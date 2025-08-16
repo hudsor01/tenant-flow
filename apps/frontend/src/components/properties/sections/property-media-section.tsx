@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label'
 import NextImage from 'next/image'
 import { FormSection } from '@/components/modals/base-form-modal'
 import type { UseFormReturn } from 'react-hook-form'
-import type { PropertyFormData } from '@repo/shared'
+import type { PropertyFormData } from '@repo/shared/validation'
 
 interface PropertyMediaSectionProps {
 	form: UseFormReturn<PropertyFormData>
@@ -14,7 +14,9 @@ interface PropertyMediaSectionProps {
  * Property media section component
  * Handles property image URL and future file upload functionality
  */
-export function PropertyMediaSection({ form }: Readonly<PropertyMediaSectionProps>) {
+export function PropertyMediaSection({
+	form
+}: Readonly<PropertyMediaSectionProps>) {
 	const imageUrl = form.watch('imageUrl')
 
 	return (
@@ -28,12 +30,15 @@ export function PropertyMediaSection({ form }: Readonly<PropertyMediaSectionProp
 					Property Image URL (Optional)
 				</Label>
 				<div className="relative">
-					<Image className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" aria-hidden="true" />
+					<Image
+						className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400"
+						aria-hidden="true"
+					/>
 					<Input
 						id="imageUrl"
 						type="url"
 						placeholder="e.g., https://tenantflow.app/property-photo.jpg"
-						className="pl-10 transition-colors focus:border-primary"
+						className="focus:border-primary pl-10 transition-colors"
 						{...form.register('imageUrl')}
 					/>
 				</div>
@@ -57,11 +62,13 @@ export function PropertyMediaSection({ form }: Readonly<PropertyMediaSectionProp
 							width={400}
 							height={192}
 							className="h-48 w-full object-cover"
-							onError={(e) => {
+							onError={e => {
 								const target = e.target as HTMLImageElement
 								target.style.display = 'none'
-								const parentElement = target.parentNode as Element | null
-								const errorDiv = parentElement?.nextElementSibling as HTMLDivElement | null
+								const parentElement =
+									target.parentNode as Element | null
+								const errorDiv =
+									parentElement?.nextElementSibling as HTMLDivElement | null
 								if (errorDiv) {
 									errorDiv.style.display = 'flex'
 								}
@@ -69,7 +76,10 @@ export function PropertyMediaSection({ form }: Readonly<PropertyMediaSectionProp
 						/>
 						<div className="hidden h-48 w-full items-center justify-center border-2 border-dashed border-gray-300 bg-gray-100">
 							<div className="text-center">
-								<Image className="mx-auto h-8 w-8 text-gray-400" aria-hidden="true" />
+								<Image
+									className="mx-auto h-8 w-8 text-gray-400"
+									aria-hidden="true"
+								/>
 								<p className="mt-1 text-sm text-gray-500">
 									Failed to load image
 								</p>
@@ -82,14 +92,17 @@ export function PropertyMediaSection({ form }: Readonly<PropertyMediaSectionProp
 			{/* Future Upload Section */}
 			<div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
 				<div className="flex items-start space-x-2">
-					<Image className="mt-0.5 h-4 w-4 text-primary" aria-hidden="true" />
+					<Image
+						className="text-primary mt-0.5 h-4 w-4"
+						aria-hidden="true"
+					/>
 					<div className="text-sm">
 						<p className="mb-1 font-medium text-blue-900">
 							Coming Soon: File Upload
 						</p>
 						<p className="text-blue-700">
-							Soon you&apos;ll be able to upload photos directly from
-							your device. For now, you can use an image URL.
+							Soon you&apos;ll be able to upload photos directly
+							from your device. For now, you can use an image URL.
 						</p>
 					</div>
 				</div>

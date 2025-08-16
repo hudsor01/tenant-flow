@@ -17,60 +17,72 @@ interface CategorySelectorProps {
 	error?: string
 }
 
-export function CategorySelector({ 
-	value, 
-	onValueChange, 
-	error 
+export function CategorySelector({
+	value,
+	onValueChange,
+	error
 }: CategorySelectorProps) {
 	const getCategoryIcon = (category: string) => {
 		switch (category) {
-			case 'GENERAL': return '📋'
-			case 'PLUMBING': return '🚰'
-			case 'ELECTRICAL': return '⚡'
-			case 'HVAC': return '❄️'
-			case 'APPLIANCES': return '🏠'
-			case 'SAFETY': return '🔒'
-			case 'OTHER': return '📝'
-			default: return '📝'
+			case 'GENERAL':
+				return '📋'
+			case 'PLUMBING':
+				return '🚰'
+			case 'ELECTRICAL':
+				return '⚡'
+			case 'HVAC':
+				return '❄️'
+			case 'APPLIANCES':
+				return '🏠'
+			case 'SAFETY':
+				return '🔒'
+			case 'OTHER':
+				return '📝'
+			default:
+				return '📝'
 		}
 	}
 
 	const getCategoryLabel = (category: string) => {
 		switch (category) {
-			case 'GENERAL': return 'General Maintenance'
-			case 'PLUMBING': return 'Plumbing'
-			case 'ELECTRICAL': return 'Electrical'
-			case 'HVAC': return 'HVAC'
-			case 'APPLIANCES': return 'Appliances'
-			case 'SAFETY': return 'Safety & Security'
-			case 'OTHER': return 'Other'
-			default: return 'Other'
+			case 'GENERAL':
+				return 'General Maintenance'
+			case 'PLUMBING':
+				return 'Plumbing'
+			case 'ELECTRICAL':
+				return 'Electrical'
+			case 'HVAC':
+				return 'HVAC'
+			case 'APPLIANCES':
+				return 'Appliances'
+			case 'SAFETY':
+				return 'Safety & Security'
+			case 'OTHER':
+				return 'Other'
+			default:
+				return 'Other'
 		}
 	}
 
 	return (
 		<div className="space-y-2">
 			<Label htmlFor="category">Category</Label>
-			<Select
-				value={value}
-				onValueChange={onValueChange}
-			>
+			<Select value={value} onValueChange={onValueChange}>
 				<SelectTrigger className="w-full">
 					<SelectValue placeholder="Select category" />
 				</SelectTrigger>
 				<SelectContent>
-					{Object.entries(MAINTENANCE_CATEGORY).map(([key, categoryValue]) => (
-						<SelectItem key={key} value={categoryValue}>
-							{getCategoryIcon(categoryValue)} {getCategoryLabel(categoryValue)}
-						</SelectItem>
-					))}
+					{Object.entries(MAINTENANCE_CATEGORY).map(
+						([key, categoryValue]) => (
+							<SelectItem key={key} value={categoryValue}>
+								{getCategoryIcon(categoryValue)}{' '}
+								{getCategoryLabel(categoryValue)}
+							</SelectItem>
+						)
+					)}
 				</SelectContent>
 			</Select>
-			{error && (
-				<p className="text-destructive text-sm">
-					{error}
-				</p>
-			)}
+			{error && <p className="text-destructive text-sm">{error}</p>}
 		</div>
 	)
 }

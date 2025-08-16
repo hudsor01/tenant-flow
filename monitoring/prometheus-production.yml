@@ -2,95 +2,95 @@
 # This config is for your LAN Docker server to monitor production apps
 
 global:
-  scrape_interval: 30s
-  evaluation_interval: 30s
-  external_labels:
-    monitor: 'tenantflow-production'
-    environment: 'production'
+    scrape_interval: 30s
+    evaluation_interval: 30s
+    external_labels:
+        monitor: 'tenantflow-production'
+        environment: 'production'
 
 # Alertmanager configuration
 alerting:
-  alertmanagers:
-    - static_configs:
-        - targets:
-            - alertmanager:9093
+    alertmanagers:
+        - static_configs:
+              - targets:
+                    - alertmanager:9093
 
 # Load rules once and periodically evaluate them
 rule_files:
-  - "alerts.yml"
+    - 'alerts.yml'
 
 # Scrape configurations for PRODUCTION
 scrape_configs:
-  # Prometheus self-monitoring
-  - job_name: 'prometheus'
-    static_configs:
-      - targets: ['localhost:9090']
+    # Prometheus self-monitoring
+    - job_name: 'prometheus'
+      static_configs:
+          - targets: ['localhost:9090']
 
-  # TenantFlow Frontend Production Metrics (WORKING)
-  - job_name: 'tenantflow-frontend-prod'
-    metrics_path: '/api/metrics'
-    scheme: https
-    static_configs:
-      - targets: ['tenantflow.app']
-    scrape_interval: 60s
-    scrape_timeout: 10s
+    # TenantFlow Frontend Production Metrics (WORKING)
+    - job_name: 'tenantflow-frontend-prod'
+      metrics_path: '/api/metrics'
+      scheme: https
+      static_configs:
+          - targets: ['tenantflow.app']
+      scrape_interval: 60s
+      scrape_timeout: 10s
 
-  # TenantFlow Auth Health Production (WORKING)
-  - job_name: 'tenantflow-auth-health-prod'
-    metrics_path: '/api/auth/health'
-    scheme: https
-    static_configs:
-      - targets: ['tenantflow.app']
-    scrape_interval: 60s
-    scrape_timeout: 10s
+    # TenantFlow Auth Health Production (WORKING)
+    - job_name: 'tenantflow-auth-health-prod'
+      metrics_path: '/api/auth/health'
+      scheme: https
+      static_configs:
+          - targets: ['tenantflow.app']
+      scrape_interval: 60s
+      scrape_timeout: 10s
 
-  # TenantFlow Backend Production Metrics (NEEDS FIXING)
-  # Currently returns 404 - need to deploy backend with metrics endpoint
-  - job_name: 'tenantflow-backend-prod'
-    metrics_path: '/metrics'
-    scheme: https
-    static_configs:
-      - targets: ['api.tenantflow.app']
-    scrape_interval: 60s
-    scrape_timeout: 10s
+    # TenantFlow Backend Production Metrics (NEEDS FIXING)
+    # Currently returns 404 - need to deploy backend with metrics endpoint
+    - job_name: 'tenantflow-backend-prod'
+      metrics_path: '/metrics'
+      scheme: https
+      static_configs:
+          - targets: ['api.tenantflow.app']
+      scrape_interval: 60s
+      scrape_timeout: 10s
 
-  # Health Check Endpoints
-  - job_name: 'tenantflow-health-prod'
-    metrics_path: '/health'
-    scheme: https
-    static_configs:
-      - targets: ['api.tenantflow.app']
-    scrape_interval: 60s
-    scrape_timeout: 10s
-    metric_relabel_configs:
-      - source_labels: [__name__]
-        regex: '.*'
-        target_label: __tmp_prometheus_job_name
+    # Health Check Endpoints
+    - job_name: 'tenantflow-health-prod'
+      metrics_path: '/health'
+      scheme: https
+      static_configs:
+          - targets: ['api.tenantflow.app']
+      scrape_interval: 60s
+      scrape_timeout: 10s
+      metric_relabel_configs:
+          - source_labels: [__name__]
+            regex: '.*'
+            target_label: __tmp_prometheus_job_name
 
-  # Blackbox Exporter - External availability monitoring
-  - job_name: 'blackbox-http-prod'
-    metrics_path: /probe
-    params:
-      module: [http_2xx]
-    static_configs:
-      - targets:
-          - https://tenantflow.app
-          - https://api.tenantflow.app
-          - https://api.tenantflow.app/health
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: __param_target
-      - source_labels: [__param_target]
-        target_label: instance
-      - target_label: __address__
-        replacement: blackbox-exporter:9115  # Your local blackbox exporter
+    # Blackbox Exporter - External availability monitoring
+    - job_name: 'blackbox-http-prod'
+      metrics_path: /probe
+      params:
+          module: [http_2xx]
+      static_configs:
+          - targets:
+                - https://tenantflow.app
+                - https://api.tenantflow.app
+                - https://api.tenantflow.app/health
+      relabel_configs:
+          - source_labels: [__address__]
+            target_label: __param_target
+          - source_labels: [__param_target]
+            target_label: instance
+          - target_label: __address__
+            replacement: blackbox-exporter:9115 # Your local blackbox exporter
 
-  # Node Exporter - System metrics (if installed on your Docker host)
-  - job_name: 'node'
-    static_configs:
-      - targets: ['node-exporter:9100']
+    # Node Exporter - System metrics (if installed on your Docker host)
+    - job_name: 'node'
+      static_configs:
+          - targets: ['node-exporter:9100']
 
-  # Docker containers monitoring (on your LAN server)
-  - job_name: 'cadvisor'
-    static_configs:
-      - targets: ['cadvisor:8080']
+    # Docker containers monitoring (on your LAN server)
+    - job_name: 'cadvisor'
+      static_configs:
+          - targets: ['cadvisor:8080']

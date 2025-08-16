@@ -22,11 +22,17 @@ export function SecurityTabSection({
 	onCancel
 }: SecurityTabSectionProps) {
 	return (
-		<form onSubmit={createAsyncHandler(form.handleSubmit(onSubmit), 'Failed to update password')} className="space-y-6">
+		<form
+			onSubmit={createAsyncHandler(
+				form.handleSubmit(onSubmit),
+				'Failed to update password'
+			)}
+			className="space-y-6"
+		>
 			{/* Security Information */}
 			<div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
 				<div className="flex items-start space-x-3">
-					<Shield className="mt-0.5 h-5 w-5 text-primary" />
+					<Shield className="text-primary mt-0.5 h-5 w-5" />
 					<div className="text-sm">
 						<p className="mb-1 font-medium text-blue-900">
 							Password Security
@@ -56,7 +62,7 @@ export function SecurityTabSection({
 							id="currentPass"
 							type="password"
 							placeholder="Enter your current password"
-							className="pl-10 transition-colors focus:border-primary"
+							className="focus:border-primary pl-10 transition-colors"
 							autoComplete="current-password"
 							{...form.register('currentPassword')}
 						/>
@@ -82,7 +88,7 @@ export function SecurityTabSection({
 							id="newPassword"
 							type="password"
 							placeholder="Enter your new password"
-							className="pl-10 transition-colors focus:border-primary"
+							className="focus:border-primary pl-10 transition-colors"
 							autoComplete="new-password"
 							{...form.register('newPassword')}
 						/>
@@ -108,7 +114,7 @@ export function SecurityTabSection({
 							id="confirmPass"
 							type="password"
 							placeholder="Confirm your new password"
-							className="pl-10 transition-colors focus:border-primary"
+							className="focus:border-primary pl-10 transition-colors"
 							autoComplete="new-password"
 							{...form.register('confirmPassword')}
 						/>
@@ -131,8 +137,8 @@ export function SecurityTabSection({
 						</p>
 						<p className="text-amber-700">
 							Changing your password will sign you out of all
-							devices. You&apos;ll need to sign in again with your new
-							password.
+							devices. You&apos;ll need to sign in again with your
+							new password.
 						</p>
 					</div>
 				</div>

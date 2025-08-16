@@ -5,24 +5,25 @@
 
 // Reminder type enum - matches Prisma schema ReminderType enum
 export const REMINDER_TYPE = {
-  RENT_REMINDER: 'RENT_REMINDER',
-  LEASE_EXPIRATION: 'LEASE_EXPIRATION',
-  MAINTENANCE_DUE: 'MAINTENANCE_DUE',
-  PAYMENT_OVERDUE: 'PAYMENT_OVERDUE'
+	RENT_REMINDER: 'RENT_REMINDER',
+	LEASE_EXPIRATION: 'LEASE_EXPIRATION',
+	MAINTENANCE_DUE: 'MAINTENANCE_DUE',
+	PAYMENT_OVERDUE: 'PAYMENT_OVERDUE'
 } as const
 
-export type ReminderType = typeof REMINDER_TYPE[keyof typeof REMINDER_TYPE]
+export type ReminderType = (typeof REMINDER_TYPE)[keyof typeof REMINDER_TYPE]
 
 // Reminder status enum - matches Prisma schema ReminderStatus enum
 export const REMINDER_STATUS = {
-  PENDING: 'PENDING',
-  SENT: 'SENT',
-  FAILED: 'FAILED',
-  DELIVERED: 'DELIVERED',
-  OPENED: 'OPENED'
+	PENDING: 'PENDING',
+	SENT: 'SENT',
+	FAILED: 'FAILED',
+	DELIVERED: 'DELIVERED',
+	OPENED: 'OPENED'
 } as const
 
-export type ReminderStatus = typeof REMINDER_STATUS[keyof typeof REMINDER_STATUS]
+export type ReminderStatus =
+	(typeof REMINDER_STATUS)[keyof typeof REMINDER_STATUS]
 
 // Derived options arrays for frontend use
 export const REMINDER_TYPE_OPTIONS = Object.values(REMINDER_TYPE)

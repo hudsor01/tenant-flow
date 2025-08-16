@@ -5,9 +5,9 @@ import { RLSController } from './rls.controller'
 import { PrismaModule } from '../../prisma/prisma.module'
 
 @Module({
-  imports: [ConfigModule, PrismaModule],
-  providers: [RLSService],
-  controllers: [RLSController],
-  exports: [RLSService]
+	imports: [ConfigModule, PrismaModule],
+	providers: [RLSService],
+	controllers: [RLSController],
+	exports: [RLSService]
 })
 export class RLSModule {}

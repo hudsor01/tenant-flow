@@ -26,12 +26,10 @@ interface UserCreationOptions {
 export class UsersService {
 	private readonly logger = new Logger(UsersService.name)
 
-	constructor(
-		private prisma: PrismaService
-	) {}
+	constructor(private prisma: PrismaService) {}
 
 	async getUserById(id: string) {
-		return await this.prisma.user.findUnique({
+		return this.prisma.user.findUnique({
 			where: { id },
 			select: {
 				id: true,
@@ -57,7 +55,7 @@ export class UsersService {
 			[key: string]: unknown
 		}
 	) {
-		return await this.prisma.user.update({
+		return this.prisma.user.update({
 			where: { id },
 			data: {
 				...data,
@@ -75,7 +73,7 @@ export class UsersService {
 			avatarUrl?: string
 		}
 	) {
-		return await this.prisma.user.update({
+		return this.prisma.user.update({
 			where: { id },
 			data: {
 				...data,
@@ -107,7 +105,10 @@ export class UsersService {
 			})
 			return !!user
 		} catch (error) {
-			this.logger.warn('Failed to check user existence', { userId, error: error instanceof Error ? error.message : String(error) })
+			this.logger.warn('Failed to check user existence', {
+				userId,
+				error: error instanceof Error ? error.message : String(error)
+			})
 			return false
 		}
 	}
@@ -163,11 +164,17 @@ export class UsersService {
 						return result
 					} else {
 						lastError = result.error || 'Unknown error'
-						this.logger.warn(`User creation failed (attempt ${attempt}/${maxRetries})`, { error: result.error })
+						this.logger.warn(
+							`User creation failed (attempt ${attempt}/${maxRetries})`,
+							{ error: result.error }
+						)
 					}
 				} catch (err) {
 					lastError = String(err)
-					this.logger.warn(`User creation attempt failed (${attempt}/${maxRetries})`, { error: err })
+					this.logger.warn(
+						`User creation attempt failed (${attempt}/${maxRetries})`,
+						{ error: err }
+					)
 
 					// Don't retry on certain types of errors
 					if (this.isNonRetryableError(err as Error)) {
@@ -250,7 +257,9 @@ export class UsersService {
 	private isNonRetryableError(
 		error: string | Error | Record<string, string | number | boolean | null>
 	): boolean {
-		if (!error) {return false}
+		if (!error) {
+			return false
+		}
 
 		const errorObject = error as { message?: string; code?: string }
 		const message = errorObject?.message?.toLowerCase() || ''
@@ -276,7 +285,10 @@ export class UsersService {
 			const userExists = await this.checkUserExists(userId)
 			return userExists
 		} catch (error) {
-			this.logger.warn('Failed to verify user creation', { userId, error: error instanceof Error ? error.message : String(error) })
+			this.logger.warn('Failed to verify user creation', {
+				userId,
+				error: error instanceof Error ? error.message : String(error)
+			})
 			return false
 		}
 	}

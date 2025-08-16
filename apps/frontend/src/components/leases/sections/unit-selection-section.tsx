@@ -60,8 +60,8 @@ export function UnitSelectionSection({
 			{!hasUnits ? (
 				<div className="rounded-lg border border-green-200 bg-green-50 p-4">
 					<p className="text-green-800">
-						<strong>{selectedProperty.name}</strong> doesn&apos;t have
-						units defined. This lease will apply to the entire
+						<strong>{selectedProperty.name}</strong> doesn&apos;t
+						have units defined. This lease will apply to the entire
 						property.
 					</p>
 				</div>

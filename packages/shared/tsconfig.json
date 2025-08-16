@@ -1,25 +1,18 @@
 {
-  "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "TenantFlow Shared Package Config",
-  "extends": "@repo/typescript-config/library.json",
-  "compilerOptions": {
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "baseUrl": ".",
-    "paths": {
-      "@repo/database": ["../database/src"],
-      "@repo/database/*": ["../database/src/*"]
-    },
-    "module": "ESNext",
-    "moduleResolution": "Bundler"
-  },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "**/*.test.ts",
-    "**/*.spec.ts"
-  ]
+	"$schema": "https://json.schemastore.org/tsconfig",
+	"display": "TenantFlow Shared Package Config",
+	"extends": "@repo/typescript-config/library.json",
+	"compilerOptions": {
+		"outDir": "./dist",
+		"rootDir": "./src",
+		"baseUrl": ".",
+		"paths": {
+			"@repo/database": ["../database/src"],
+			"@repo/database/*": ["../database/src/*"]
+		},
+		"module": "ESNext",
+		"moduleResolution": "Bundler"
+	},
+	"include": ["src/**/*"],
+	"exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"]
 }

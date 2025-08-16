@@ -1,11 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
-import { BILLING_PLANS, type BillingPlan, getPlanById } from '../shared/constants/billing-plans'
+import {
+	BILLING_PLANS,
+	type BillingPlan,
+	getPlanById
+} from '../shared/constants/billing-plans'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import type { PlanType, Subscription } from '@repo/database'
 import type { Plan } from '@repo/shared'
-
-
 
 /**
  * SubscriptionsManagerService - Handles local database operations for subscriptions
@@ -33,19 +35,25 @@ export class SubscriptionsManagerService {
 	 */
 	async getSubscription(userId: string): Promise<Subscription | null> {
 		try {
-			const subscription = await this.prismaService.subscription.findUnique({
-				where: { userId }
-			})
+			const subscription =
+				await this.prismaService.subscription.findUnique({
+					where: { userId }
+				})
 
 			// If no subscription exists, create a free one
 			if (!subscription) {
-				this.logger.debug(`No subscription found for user ${userId}, creating free subscription`)
+				this.logger.debug(
+					`No subscription found for user ${userId}, creating free subscription`
+				)
 				return await this.createFreeSubscription(userId)
 			}
 
 			return subscription
 		} catch (error) {
-			this.logger.error(`Failed to get subscription for user ${userId}`, error)
+			this.logger.error(
+				`Failed to get subscription for user ${userId}`,
+				error
+			)
 			throw this.errorHandler.handleErrorEnhanced(error as Error, {
 				operation: 'SubscriptionsService.getSubscription',
 				resource: 'subscription',
@@ -58,7 +66,9 @@ export class SubscriptionsManagerService {
 	 * Create a free subscription for new users
 	 * Note: This only creates a local database record, not a Stripe subscription
 	 */
-	private async createFreeSubscription(userId: string): Promise<Subscription> {
+	private async createFreeSubscription(
+		userId: string
+	): Promise<Subscription> {
 		try {
 			const subscription = await this.prismaService.subscription.create({
 				data: {
@@ -71,7 +81,10 @@ export class SubscriptionsManagerService {
 			this.logger.log(`Created free subscription for user ${userId}`)
 			return subscription
 		} catch (error) {
-			this.logger.error(`Failed to create free subscription for user ${userId}`, error)
+			this.logger.error(
+				`Failed to create free subscription for user ${userId}`,
+				error
+			)
 			throw this.errorHandler.handleErrorEnhanced(error as Error, {
 				operation: 'SubscriptionsService.createFreeSubscription',
 				resource: 'subscription',
@@ -83,29 +96,48 @@ export class SubscriptionsManagerService {
 	async getAvailablePlans(): Promise<Plan[]> {
 		return Object.values(BILLING_PLANS)
 			.filter((plan: { id: string }) => plan.id !== 'FREETRIAL') // Exclude free trial plan from purchase options
-			.map((plan: { id: string; name: string; price: number; propertyLimit: number; stripePriceIds: { monthly: string | null; annual: string | null } }) => ({
-				id: plan.id as PlanType,
-				uiId: plan.id,
-				name: plan.name,
-				description: `${plan.name} plan with ${plan.propertyLimit === -1 ? 'unlimited' : plan.propertyLimit} properties`,
-				price: {
-					monthly: plan.price,
-					annual: plan.price * 10 // Simplified annual pricing
-				},
-				stripePriceIds: {
-					monthly: plan.stripePriceIds.monthly,
-					annual: plan.stripePriceIds.annual
-				},
-				features: [
-					`${plan.propertyLimit === -1 ? 'Unlimited' : plan.propertyLimit} properties`,
-					'Email support',
-					plan.id === 'TENANTFLOW_MAX' ? 'Priority support' : 'Standard support'
-				],
-				propertyLimit: plan.propertyLimit,
-				storageLimit: plan.id === 'TENANTFLOW_MAX' ? -1 : plan.propertyLimit * 10,
-				apiCallLimit: plan.id === 'TENANTFLOW_MAX' ? -1 : plan.propertyLimit * 1000,
-				priority: plan.id === 'TENANTFLOW_MAX'
-			}))
+			.map(
+				(plan: {
+					id: string
+					name: string
+					price: number
+					propertyLimit: number
+					stripePriceIds: {
+						monthly: string | null
+						annual: string | null
+					}
+				}) => ({
+					id: plan.id as PlanType,
+					uiId: plan.id,
+					name: plan.name,
+					description: `${plan.name} plan with ${plan.propertyLimit === -1 ? 'unlimited' : plan.propertyLimit} properties`,
+					price: {
+						monthly: plan.price,
+						annual: plan.price * 10 // Simplified annual pricing
+					},
+					stripePriceIds: {
+						monthly: plan.stripePriceIds.monthly,
+						annual: plan.stripePriceIds.annual
+					},
+					features: [
+						`${plan.propertyLimit === -1 ? 'Unlimited' : plan.propertyLimit} properties`,
+						'Email support',
+						plan.id === 'TENANTFLOW_MAX'
+							? 'Priority support'
+							: 'Standard support'
+					],
+					propertyLimit: plan.propertyLimit,
+					storageLimit:
+						plan.id === 'TENANTFLOW_MAX'
+							? -1
+							: plan.propertyLimit * 10,
+					apiCallLimit:
+						plan.id === 'TENANTFLOW_MAX'
+							? -1
+							: plan.propertyLimit * 1000,
+					priority: plan.id === 'TENANTFLOW_MAX'
+				})
+			)
 	}
 
 	async getPropertyCount(userId: string): Promise<number> {
@@ -214,11 +246,19 @@ export class SubscriptionsManagerService {
 			features: [
 				`${billingPlan.propertyLimit === -1 ? 'Unlimited' : billingPlan.propertyLimit} properties`,
 				'Email support',
-				billingPlan.id === 'TENANTFLOW_MAX' ? 'Priority support' : 'Standard support'
+				billingPlan.id === 'TENANTFLOW_MAX'
+					? 'Priority support'
+					: 'Standard support'
 			],
 			propertyLimit: billingPlan.propertyLimit,
-			storageLimit: billingPlan.id === 'TENANTFLOW_MAX' ? -1 : billingPlan.propertyLimit * 10,
-			apiCallLimit: billingPlan.id === 'TENANTFLOW_MAX' ? -1 : billingPlan.propertyLimit * 1000,
+			storageLimit:
+				billingPlan.id === 'TENANTFLOW_MAX'
+					? -1
+					: billingPlan.propertyLimit * 10,
+			apiCallLimit:
+				billingPlan.id === 'TENANTFLOW_MAX'
+					? -1
+					: billingPlan.propertyLimit * 1000,
 			priority: billingPlan.id === 'TENANTFLOW_MAX'
 		}
 
@@ -269,11 +309,19 @@ export class SubscriptionsManagerService {
 			features: [
 				`${billingPlan.propertyLimit === -1 ? 'Unlimited' : billingPlan.propertyLimit} properties`,
 				'Email support',
-				billingPlan.id === 'TENANTFLOW_MAX' ? 'Priority support' : 'Standard support'
+				billingPlan.id === 'TENANTFLOW_MAX'
+					? 'Priority support'
+					: 'Standard support'
 			],
 			propertyLimit: billingPlan.propertyLimit as number,
-			storageLimit: billingPlan.id === 'TENANTFLOW_MAX' ? -1 : (billingPlan.propertyLimit as number) * 10,
-			apiCallLimit: billingPlan.id === 'TENANTFLOW_MAX' ? -1 : (billingPlan.propertyLimit as number) * 1000,
+			storageLimit:
+				billingPlan.id === 'TENANTFLOW_MAX'
+					? -1
+					: (billingPlan.propertyLimit as number) * 10,
+			apiCallLimit:
+				billingPlan.id === 'TENANTFLOW_MAX'
+					? -1
+					: (billingPlan.propertyLimit as number) * 1000,
 			priority: billingPlan.id === 'TENANTFLOW_MAX',
 			stripePriceIds: {
 				monthly: billingPlan.stripePriceIds.monthly || null,
@@ -310,10 +358,15 @@ export class SubscriptionsManagerService {
 				}
 			})
 
-			this.logger.log(`Updated subscription for user ${userId} to plan ${planType}`)
+			this.logger.log(
+				`Updated subscription for user ${userId} to plan ${planType}`
+			)
 			return subscription
 		} catch (error) {
-			this.logger.error(`Failed to update subscription from Stripe`, error)
+			this.logger.error(
+				`Failed to update subscription from Stripe`,
+				error
+			)
 			throw this.errorHandler.handleErrorEnhanced(error as Error, {
 				operation: 'SubscriptionsService.updateSubscriptionFromStripe',
 				resource: 'subscription',
@@ -344,15 +397,22 @@ export class SubscriptionsManagerService {
 
 			this.logger.log(
 				`Updated subscription cancellation for user ${userId}: ` +
-				`cancelAtPeriodEnd=${cancelAtPeriodEnd}`
+					`cancelAtPeriodEnd=${cancelAtPeriodEnd}`
 			)
 			return subscription
 		} catch (error) {
-			this.logger.error(`Failed to update subscription cancellation`, error)
+			this.logger.error(
+				`Failed to update subscription cancellation`,
+				error
+			)
 			throw this.errorHandler.handleErrorEnhanced(error as Error, {
-				operation: 'SubscriptionsService.updateSubscriptionCancellation',
+				operation:
+					'SubscriptionsService.updateSubscriptionCancellation',
 				resource: 'subscription',
-				metadata: { userId, cancelAtPeriodEnd: String(cancelAtPeriodEnd) }
+				metadata: {
+					userId,
+					cancelAtPeriodEnd: String(cancelAtPeriodEnd)
+				}
 			})
 		}
 	}

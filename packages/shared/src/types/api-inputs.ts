@@ -19,9 +19,9 @@ import type { Property } from './properties'
  * Used by useCreateCheckoutSession hook
  */
 export interface CreateCheckoutInput {
-  planType: string
-  billingInterval?: 'monthly' | 'yearly'
-  uiMode?: 'hosted' | 'embedded'
+	planType: string
+	billingInterval?: 'monthly' | 'yearly'
+	uiMode?: 'hosted' | 'embedded'
 }
 
 /**
@@ -29,7 +29,7 @@ export interface CreateCheckoutInput {
  * Used by useCreatePortalSession hook
  */
 export interface CreatePortalInput {
-  returnUrl?: string
+	returnUrl?: string
 }
 
 /**
@@ -37,11 +37,11 @@ export interface CreatePortalInput {
  * Used by useDirectSubscription hook
  */
 export interface DirectSubscriptionParams {
-  priceId: string
-  planType: keyof typeof PLAN_TYPE
-  billingName?: string
-  paymentMethodId?: string
-  defaultPaymentMethod?: boolean
+	priceId: string
+	planType: keyof typeof PLAN_TYPE
+	billingName?: string
+	paymentMethodId?: string
+	defaultPaymentMethod?: boolean
 }
 
 /**
@@ -49,9 +49,9 @@ export interface DirectSubscriptionParams {
  * Used by useDirectSubscription hook for plan changes
  */
 export interface SubscriptionUpdateParams extends Record<string, unknown> {
-  subscriptionId: string
-  newPriceId: string
-  prorationBehavior?: 'create_prorations' | 'none' | 'always_invoice'
+	subscriptionId: string
+	newPriceId: string
+	prorationBehavior?: 'create_prorations' | 'none' | 'always_invoice'
 }
 
 /**
@@ -59,9 +59,9 @@ export interface SubscriptionUpdateParams extends Record<string, unknown> {
  * Used by useCheckout hook
  */
 export interface CheckoutParams {
-  planType: keyof typeof PLAN_TYPE
-  billingInterval: 'monthly' | 'annual'
-  billingName?: string
+	planType: keyof typeof PLAN_TYPE
+	billingInterval: 'monthly' | 'annual'
+	billingName?: string
 }
 
 /**
@@ -69,7 +69,7 @@ export interface CheckoutParams {
  * Used by useCheckout hook for starting trials
  */
 export interface TrialParams {
-  onSuccess?: (subscriptionId: string) => void
+	onSuccess?: (subscriptionId: string) => void
 }
 
 // ========================
@@ -81,14 +81,14 @@ export interface TrialParams {
  * Used by property management hooks
  */
 export interface CreatePropertyInput {
-  name: string
-  address: string
-  city: string
-  state: string
-  zipCode: string
-  description?: string
-  propertyType?: PropertyType
-  [key: string]: unknown
+	name: string
+	address: string
+	city: string
+	state: string
+	zipCode: string
+	description?: string
+	propertyType?: PropertyType
+	[key: string]: unknown
 }
 
 /**
@@ -96,15 +96,15 @@ export interface CreatePropertyInput {
  * Used by property management hooks
  */
 export interface UpdatePropertyInput {
-  name?: string
-  address?: string
-  city?: string
-  state?: string
-  zipCode?: string
-  description?: string
-  propertyType?: PropertyType
-  imageUrl?: string
-  [key: string]: unknown
+	name?: string
+	address?: string
+	city?: string
+	state?: string
+	zipCode?: string
+	description?: string
+	propertyType?: PropertyType
+	imageUrl?: string
+	[key: string]: unknown
 }
 
 /**
@@ -122,16 +122,16 @@ export type PropertyQueryInput = PropertyQuery
  * Used by unit management hooks
  */
 export interface CreateUnitInput {
-  propertyId: string
-  unitNumber: string
-  bedrooms: number
-  bathrooms: number
-  squareFeet?: number
-  monthlyRent: number
-  securityDeposit?: number
-  description?: string
-  amenities?: string[]
-  [key: string]: unknown
+	propertyId: string
+	unitNumber: string
+	bedrooms: number
+	bathrooms: number
+	squareFeet?: number
+	monthlyRent: number
+	securityDeposit?: number
+	description?: string
+	amenities?: string[]
+	[key: string]: unknown
 }
 
 /**
@@ -139,17 +139,17 @@ export interface CreateUnitInput {
  * Used by unit management hooks
  */
 export interface UpdateUnitInput {
-  unitNumber?: string
-  bedrooms?: number
-  bathrooms?: number
-  squareFeet?: number
-  monthlyRent?: number
-  securityDeposit?: number
-  description?: string
-  amenities?: string[]
-  status?: string
-  lastInspectionDate?: string | Date
-  [key: string]: unknown
+	unitNumber?: string
+	bedrooms?: number
+	bathrooms?: number
+	squareFeet?: number
+	monthlyRent?: number
+	securityDeposit?: number
+	description?: string
+	amenities?: string[]
+	status?: string
+	lastInspectionDate?: string | Date
+	[key: string]: unknown
 }
 
 // ========================
@@ -161,14 +161,14 @@ export interface UpdateUnitInput {
  * Used by tenant management hooks
  */
 export interface CreateTenantInput {
-  name: string
-  email: string
-  phone?: string
-  emergencyContact?: string
-  emergencyPhone?: string
-  moveInDate?: string
-  notes?: string
-  [key: string]: unknown
+	name: string
+	email: string
+	phone?: string
+	emergencyContact?: string
+	emergencyPhone?: string
+	moveInDate?: string
+	notes?: string
+	[key: string]: unknown
 }
 
 /**
@@ -176,15 +176,15 @@ export interface CreateTenantInput {
  * Used by tenant management hooks
  */
 export interface UpdateTenantInput {
-  name?: string
-  email?: string
-  phone?: string
-  emergencyContact?: string
-  emergencyPhone?: string
-  moveInDate?: string
-  moveOutDate?: string
-  notes?: string
-  [key: string]: unknown
+	name?: string
+	email?: string
+	phone?: string
+	emergencyContact?: string
+	emergencyPhone?: string
+	moveInDate?: string
+	moveOutDate?: string
+	notes?: string
+	[key: string]: unknown
 }
 
 // ========================
@@ -196,17 +196,17 @@ export interface UpdateTenantInput {
  * Used by lease management hooks
  */
 export interface CreateLeaseInput {
-  unitId: string
-  tenantId: string
-  propertyId?: string
-  startDate: string
-  endDate: string
-  rentAmount: number
-  securityDeposit?: number
-  lateFeeDays?: number
-  lateFeeAmount?: number
-  leaseTerms?: string
-  [key: string]: unknown
+	unitId: string
+	tenantId: string
+	propertyId?: string
+	startDate: string
+	endDate: string
+	rentAmount: number
+	securityDeposit?: number
+	lateFeeDays?: number
+	lateFeeAmount?: number
+	leaseTerms?: string
+	[key: string]: unknown
 }
 
 /**
@@ -214,15 +214,15 @@ export interface CreateLeaseInput {
  * Used by lease management hooks
  */
 export interface UpdateLeaseInput {
-  startDate?: string
-  endDate?: string
-  rentAmount?: number
-  securityDeposit?: number
-  lateFeeDays?: number
-  lateFeeAmount?: number
-  leaseTerms?: string
-  status?: string
-  [key: string]: unknown
+	startDate?: string
+	endDate?: string
+	rentAmount?: number
+	securityDeposit?: number
+	lateFeeDays?: number
+	lateFeeAmount?: number
+	leaseTerms?: string
+	status?: string
+	[key: string]: unknown
 }
 
 // ========================
@@ -234,19 +234,19 @@ export interface UpdateLeaseInput {
  * Used by maintenance management hooks
  */
 export interface CreateMaintenanceInput {
-  unitId: string
-  title: string
-  description: string
-  category: string
-  priority?: string
-  status?: string
-  preferredDate?: string
-  allowEntry?: boolean
-  contactPhone?: string
-  requestedBy?: string
-  notes?: string
-  photos?: string[]
-  [key: string]: unknown
+	unitId: string
+	title: string
+	description: string
+	category: string
+	priority?: string
+	status?: string
+	preferredDate?: string
+	allowEntry?: boolean
+	contactPhone?: string
+	requestedBy?: string
+	notes?: string
+	photos?: string[]
+	[key: string]: unknown
 }
 
 /**
@@ -254,21 +254,21 @@ export interface CreateMaintenanceInput {
  * Used by maintenance management hooks
  */
 export interface UpdateMaintenanceInput {
-  title?: string
-  description?: string
-  category?: string
-  priority?: string
-  status?: string
-  preferredDate?: string
-  allowEntry?: boolean
-  contactPhone?: string
-  assignedTo?: string
-  estimatedCost?: number
-  actualCost?: number
-  completedAt?: string
-  notes?: string
-  photos?: string[]
-  [key: string]: unknown
+	title?: string
+	description?: string
+	category?: string
+	priority?: string
+	status?: string
+	preferredDate?: string
+	allowEntry?: boolean
+	contactPhone?: string
+	assignedTo?: string
+	estimatedCost?: number
+	actualCost?: number
+	completedAt?: string
+	notes?: string
+	photos?: string[]
+	[key: string]: unknown
 }
 
 /**
@@ -281,59 +281,43 @@ export type MaintenanceQueryInput = MaintenanceQuery
 // Form Data Types (moved from frontend)
 // ========================
 
-/**
- * Property form data structure
- * Extended version of CreatePropertyInput with UI-specific fields
- */
-export interface PropertyFormData {
-  name: string
-  address: string
-  city: string
-  state: string
-  zipCode: string
-  imageUrl?: string
-  description?: string
-  propertyType?: PropertyType
-  hasGarage?: boolean
-  hasPool?: boolean
-  numberOfUnits?: number
-  createUnitsNow?: boolean
-}
+// PropertyFormData is now defined in validation/properties.ts as z.infer<typeof propertyFormSchema>
+// This ensures type safety and alignment with React Hook Form zodResolver
 
 /**
  * Lease form props for modal components
  */
 export interface UseLeaseFormProps {
-  lease?: Lease
-  mode?: 'create' | 'edit'
-  propertyId?: string
-  unitId?: string
-  tenantId?: string
-  onSuccess: () => void
-  onClose: () => void
+	lease?: Lease
+	mode?: 'create' | 'edit'
+	propertyId?: string
+	unitId?: string
+	tenantId?: string
+	onSuccess: () => void
+	onClose: () => void
 }
 
 /**
  * Property form data props for modal components
  */
 export interface UsePropertyFormDataProps {
-  property?: Property
-  mode: 'create' | 'edit'
-  isOpen: boolean
+	property?: Property
+	mode: 'create' | 'edit'
+	isOpen: boolean
 }
 
 /**
  * Form field context types for React Hook Form integration
  */
 export interface FormFieldContextValue<
-  TFieldValues extends Record<string, unknown> = Record<string, unknown>,
-  TName extends keyof TFieldValues = keyof TFieldValues
+	TFieldValues extends Record<string, unknown> = Record<string, unknown>,
+	TName extends keyof TFieldValues = keyof TFieldValues
 > {
-  name: TName
+	name: TName
 }
 
 export interface FormItemContextValue {
-  id: string
+	id: string
 }
 
 // ========================
@@ -344,10 +328,10 @@ export interface FormItemContextValue {
  * File upload request structure
  */
 export interface FileUploadRequest {
-  file: string // base64 encoded file
-  filename: string
-  contentType: string
-  folder?: string
+	file: string // base64 encoded file
+	filename: string
+	contentType: string
+	folder?: string
 }
 
 // Note: FileUploadResponse is defined in api.ts
@@ -362,10 +346,10 @@ export interface FileUploadRequest {
  * Used by auth registration endpoints
  */
 export interface RegisterInput {
-  email: string
-  password: string
-  firstName: string
-  lastName: string
+	email: string
+	password: string
+	firstName: string
+	lastName: string
 }
 
 /**
@@ -373,8 +357,8 @@ export interface RegisterInput {
  * Used by auth login endpoints
  */
 export interface LoginInput {
-  email: string
-  password: string
+	email: string
+	password: string
 }
 
 /**
@@ -382,7 +366,7 @@ export interface LoginInput {
  * Used by auth token refresh endpoints
  */
 export interface RefreshTokenInput {
-  refreshToken: string
+	refreshToken: string
 }
 
 /**
@@ -390,7 +374,7 @@ export interface RefreshTokenInput {
  * Used by auth forgot password endpoints
  */
 export interface ForgotPasswordInput {
-  email: string
+	email: string
 }
 
 /**
@@ -398,8 +382,8 @@ export interface ForgotPasswordInput {
  * Used by auth reset password endpoints
  */
 export interface ResetPasswordInput {
-  token: string
-  password: string
+	token: string
+	password: string
 }
 
 /**
@@ -407,8 +391,8 @@ export interface ResetPasswordInput {
  * Used by auth change password endpoints
  */
 export interface ChangePasswordInput {
-  currentPassword: string
-  newPassword: string
+	currentPassword: string
+	newPassword: string
 }
 
 /**
@@ -416,9 +400,9 @@ export interface ChangePasswordInput {
  * Used by auth callback endpoints
  */
 export interface AuthCallbackInput {
-  access_token: string
-  refresh_token: string
-  type?: string
+	access_token: string
+	refresh_token: string
+	type?: string
 }
 
 // ========================
@@ -430,20 +414,20 @@ export interface AuthCallbackInput {
  * Used by user management endpoints
  */
 export interface EnsureUserExistsInput {
-  authUser: {
-    id: string
-    email: string
-    user_metadata?: {
-      name?: string
-      full_name?: string
-    }
-  }
-  options?: {
-    role?: 'OWNER' | 'TENANT' | 'MANAGER' | 'ADMIN'
-    name?: string
-    maxRetries?: number
-    retryDelayMs?: number
-  }
+	authUser: {
+		id: string
+		email: string
+		user_metadata?: {
+			name?: string
+			full_name?: string
+		}
+	}
+	options?: {
+		role?: 'OWNER' | 'TENANT' | 'MANAGER' | 'ADMIN'
+		name?: string
+		maxRetries?: number
+		retryDelayMs?: number
+	}
 }
 
 /**
@@ -451,9 +435,9 @@ export interface EnsureUserExistsInput {
  * Used by user profile update endpoints
  */
 export interface UpdateUserProfileInput {
-  name?: string
-  phone?: string
-  bio?: string
-  avatarUrl?: string
-  [key: string]: unknown
+	name?: string
+	phone?: string
+	bio?: string
+	avatarUrl?: string
+	[key: string]: unknown
 }

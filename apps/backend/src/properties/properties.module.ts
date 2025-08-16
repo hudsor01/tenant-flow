@@ -10,9 +10,9 @@ import { ZodValidationModule } from '../common/validation/zod-validation.module'
 
 @Module({
 	imports: [
-		StorageModule, 
-		StripeModule, 
-		ErrorModule, 
+		StorageModule,
+		StripeModule,
+		ErrorModule,
 		SubscriptionsModule,
 		ZodValidationModule
 	],

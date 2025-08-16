@@ -3,7 +3,10 @@ import { ConfigService } from '@nestjs/config'
 import { ExternalApiService } from '../common/services/external-api.service'
 import { EmailMetricsService } from './services/email-metrics.service'
 import { EmailTemplateService } from './services/email-template.service'
-import { EmailTemplateName, ExtractEmailData } from './types/email-templates.types'
+import {
+	EmailTemplateName,
+	ExtractEmailData
+} from './types/email-templates.types'
 
 // Email response type
 export interface SendEmailResponse {
@@ -18,34 +21,36 @@ export class EmailService {
 	private readonly fromEmail: string
 	private readonly replyToEmail: string
 	private readonly isDevelopment: boolean
-	
+
 	// Circuit breaker state
 	private circuitBreakerState: 'closed' | 'open' | 'half-open' = 'closed'
 	private failureCount = 0
 	private lastFailureTime: Date | null = null
 	private readonly maxFailures = 5
 	private readonly resetTimeout = 60000 // 1 minute
-	
+
 	constructor(
 		private readonly configService: ConfigService,
 		private readonly externalApiService: ExternalApiService,
 		private readonly metricsService: EmailMetricsService,
 		private readonly templateService: EmailTemplateService
 	) {
-		this.fromEmail = this.configService.get<string>('RESEND_FROM_EMAIL') || 'noreply@tenantflow.app'
+		this.fromEmail =
+			this.configService.get<string>('RESEND_FROM_EMAIL') ||
+			'noreply@tenantflow.app'
 		this.replyToEmail = 'support@tenantflow.app'
-		this.isDevelopment = this.configService.get<string>('NODE_ENV') === 'development'
-		
+		this.isDevelopment =
+			this.configService.get<string>('NODE_ENV') === 'development'
+
 		// Template service handles template registration
-		
+
 		this.logger.log('Email service initialized', {
 			fromEmail: this.fromEmail,
 			replyToEmail: this.replyToEmail,
 			environment: this.isDevelopment ? 'development' : 'production'
 		})
 	}
-	
-	
+
 	/**
 	 * Render email template using EmailTemplateService
 	 * Uses a runtime type conversion due to TypeScript's limitations with conditional generic types
@@ -56,15 +61,20 @@ export class EmailService {
 	): Promise<{ html: string; subject: string }> {
 		// TypeScript cannot properly narrow the type relationship between templateName and data
 		// We need to use a type assertion to tell TypeScript the types are compatible
-		const result = await (this.templateService as {
-			renderEmail: (name: EmailTemplateName, data: unknown) => Promise<{ html: string; subject: string; text?: string }>
-		}).renderEmail(templateName, data)
+		const result = await (
+			this.templateService as {
+				renderEmail: (
+					name: EmailTemplateName,
+					data: unknown
+				) => Promise<{ html: string; subject: string; text?: string }>
+			}
+		).renderEmail(templateName, data)
 		return {
 			html: result.html,
 			subject: result.subject
 		}
 	}
-	
+
 	/**
 	 * Render email template for bulk emails where template type is not known at compile time
 	 */
@@ -74,24 +84,26 @@ export class EmailService {
 	): Promise<{ html: string; subject: string }> {
 		// Cast data to the expected type - validation happens in the template service
 		const typedData = data as ExtractEmailData<EmailTemplateName>
-		const result = await this.templateService.renderEmail(templateName, typedData)
+		const result = await this.templateService.renderEmail(
+			templateName,
+			typedData
+		)
 		return {
 			html: result.html,
 			subject: result.subject
 		}
 	}
-	
-	
-	
-	
+
 	/**
 	 * Check circuit breaker state
 	 */
 	private checkCircuitBreaker(): boolean {
 		if (this.circuitBreakerState === 'open') {
 			// Check if enough time has passed to try again
-			if (this.lastFailureTime && 
-				Date.now() - this.lastFailureTime.getTime() > this.resetTimeout) {
+			if (
+				this.lastFailureTime &&
+				Date.now() - this.lastFailureTime.getTime() > this.resetTimeout
+			) {
 				this.circuitBreakerState = 'half-open'
 				this.logger.log('Circuit breaker entering half-open state')
 			} else {
@@ -100,23 +112,26 @@ export class EmailService {
 		}
 		return true // Circuit is closed or half-open
 	}
-	
+
 	/**
 	 * Handle circuit breaker failure
 	 */
 	private handleCircuitBreakerFailure(): void {
 		this.failureCount++
 		this.lastFailureTime = new Date()
-		
+
 		if (this.failureCount >= this.maxFailures) {
 			this.circuitBreakerState = 'open'
-			this.logger.warn('Circuit breaker opened due to repeated failures', {
-				failureCount: this.failureCount,
-				maxFailures: this.maxFailures
-			})
+			this.logger.warn(
+				'Circuit breaker opened due to repeated failures',
+				{
+					failureCount: this.failureCount,
+					maxFailures: this.maxFailures
+				}
+			)
 		}
 	}
-	
+
 	/**
 	 * Handle circuit breaker success
 	 */
@@ -127,7 +142,7 @@ export class EmailService {
 			this.logger.log('Circuit breaker closed after successful operation')
 		}
 	}
-	
+
 	/**
 	 * Validate email address
 	 */
@@ -135,7 +150,7 @@ export class EmailService {
 		const emailRegex = /^[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
 		return emailRegex.test(email)
 	}
-	
+
 	/**
 	 * Public method for external services to send emails
 	 */
@@ -146,7 +161,11 @@ export class EmailService {
 		replyTo?: string
 		tags?: { name: string; value: string }[]
 		template?: EmailTemplateName
-		metadata?: { userId?: string; organizationId?: string; campaignId?: string }
+		metadata?: {
+			userId?: string
+			organizationId?: string
+			campaignId?: string
+		}
 	}): Promise<SendEmailResponse> {
 		return this.sendEmail({
 			...options,
@@ -164,14 +183,19 @@ export class EmailService {
 		replyTo?: string
 		tags?: { name: string; value: string }[]
 		template?: EmailTemplateName
-		metadata?: { userId?: string; organizationId?: string; campaignId?: string }
+		metadata?: {
+			userId?: string
+			organizationId?: string
+			campaignId?: string
+		}
 	}): Promise<SendEmailResponse> {
 		const startTime = Date.now()
-		
+
 		// Check circuit breaker
 		if (!this.checkCircuitBreaker()) {
-			const error = 'Email service temporarily unavailable (circuit breaker open)'
-			
+			const error =
+				'Email service temporarily unavailable (circuit breaker open)'
+
 			// Record metrics for circuit breaker failures
 			if (options.template && options.to.length > 0) {
 				const firstRecipient = options.to[0]
@@ -185,33 +209,33 @@ export class EmailService {
 					})
 				}
 			}
-			
+
 			return { success: false, error }
 		}
-		
+
 		try {
 			// Validate recipient
 			if (options.to.length === 0) {
 				throw new Error('No recipients specified')
 			}
-			
+
 			// Use ExternalApiService for resilient API call
 			const firstRecipient = options.to[0]
 			if (!firstRecipient) {
 				throw new Error('No valid recipient found')
 			}
-			
+
 			await this.externalApiService.sendEmailViaApi(
 				firstRecipient, // ExternalApiService expects single recipient
 				options.subject,
 				options.html
 			)
-			
+
 			this.handleCircuitBreakerSuccess()
-			
+
 			const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 			const processingTime = Date.now() - startTime
-			
+
 			// Record successful send metrics
 			if (options.template && options.to.length > 0) {
 				const successRecipient = options.to[0]
@@ -226,24 +250,25 @@ export class EmailService {
 					})
 				}
 			}
-			
+
 			return {
 				success: true,
 				messageId
 			}
 		} catch (error) {
 			this.handleCircuitBreakerFailure()
-			
-			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+
+			const errorMessage =
+				error instanceof Error ? error.message : 'Unknown error'
 			const processingTime = Date.now() - startTime
-			
+
 			this.logger.error('Failed to send email', {
 				to: options.to,
 				subject: options.subject,
 				error: errorMessage,
 				processingTime
 			})
-			
+
 			// Record failed send metrics
 			if (options.template && options.to.length > 0) {
 				const failedRecipient = options.to[0]
@@ -258,14 +283,14 @@ export class EmailService {
 					})
 				}
 			}
-			
+
 			return {
 				success: false,
 				error: errorMessage
 			}
 		}
 	}
-	
+
 	/**
 	 * Send welcome email
 	 */
@@ -278,14 +303,14 @@ export class EmailService {
 		if (!this.validateEmail(email)) {
 			return { success: false, error: 'Invalid email format' }
 		}
-		
+
 		try {
 			const { html, subject } = await this.renderTemplate('welcome', {
 				name,
 				companySize: companySize || 'medium',
 				source: source || 'organic'
 			})
-			
+
 			return this.sendEmail({
 				to: [email],
 				subject,
@@ -304,11 +329,14 @@ export class EmailService {
 			this.logger.error('Failed to send welcome email', error)
 			return {
 				success: false,
-				error: error instanceof Error ? error.message : 'Failed to send email'
+				error:
+					error instanceof Error
+						? error.message
+						: 'Failed to send email'
 			}
 		}
 	}
-	
+
 	/**
 	 * Send tenant invitation
 	 */
@@ -322,19 +350,22 @@ export class EmailService {
 		if (!this.validateEmail(email)) {
 			return { success: false, error: 'Invalid email format' }
 		}
-		
+
 		if (!invitationLink.startsWith('http')) {
 			return { success: false, error: 'Invalid invitation link' }
 		}
-		
+
 		try {
-			const { html, subject } = await this.renderTemplate('tenant-invitation', {
-				tenantName,
-				propertyAddress,
-				invitationLink,
-				landlordName
-			})
-			
+			const { html, subject } = await this.renderTemplate(
+				'tenant-invitation',
+				{
+					tenantName,
+					propertyAddress,
+					invitationLink,
+					landlordName
+				}
+			)
+
 			return this.sendEmail({
 				to: [email],
 				subject,
@@ -347,11 +378,14 @@ export class EmailService {
 			this.logger.error('Failed to send tenant invitation', error)
 			return {
 				success: false,
-				error: error instanceof Error ? error.message : 'Failed to send email'
+				error:
+					error instanceof Error
+						? error.message
+						: 'Failed to send email'
 			}
 		}
 	}
-	
+
 	/**
 	 * Send payment reminder
 	 */
@@ -366,20 +400,23 @@ export class EmailService {
 		if (!this.validateEmail(email)) {
 			return { success: false, error: 'Invalid email format' }
 		}
-		
+
 		if (amountDue <= 0) {
 			return { success: false, error: 'Invalid amount' }
 		}
-		
+
 		try {
-			const { html, subject } = await this.renderTemplate('payment-reminder', {
-				tenantName,
-				amountDue,
-				dueDate,
-				propertyAddress,
-				paymentLink
-			})
-			
+			const { html, subject } = await this.renderTemplate(
+				'payment-reminder',
+				{
+					tenantName,
+					amountDue,
+					dueDate,
+					propertyAddress,
+					paymentLink
+				}
+			)
+
 			return this.sendEmail({
 				to: [email],
 				subject,
@@ -395,11 +432,14 @@ export class EmailService {
 			this.logger.error('Failed to send payment reminder', error)
 			return {
 				success: false,
-				error: error instanceof Error ? error.message : 'Failed to send email'
+				error:
+					error instanceof Error
+						? error.message
+						: 'Failed to send email'
 			}
 		}
 	}
-	
+
 	/**
 	 * Send lease expiration alert
 	 */
@@ -414,15 +454,18 @@ export class EmailService {
 		if (!this.validateEmail(email)) {
 			return { success: false, error: 'Invalid email format' }
 		}
-		
+
 		try {
-			const { html, subject } = await this.renderTemplate('lease-expiration', {
-				tenantName,
-				propertyAddress,
-				expirationDate,
-				renewalLink
-			})
-			
+			const { html, subject } = await this.renderTemplate(
+				'lease-expiration',
+				{
+					tenantName,
+					propertyAddress,
+					expirationDate,
+					renewalLink
+				}
+			)
+
 			return this.sendEmail({
 				to: [email],
 				subject,
@@ -438,11 +481,14 @@ export class EmailService {
 			this.logger.error('Failed to send lease expiration alert', error)
 			return {
 				success: false,
-				error: error instanceof Error ? error.message : 'Failed to send email'
+				error:
+					error instanceof Error
+						? error.message
+						: 'Failed to send email'
 			}
 		}
 	}
-	
+
 	/**
 	 * Send property management tips
 	 */
@@ -454,13 +500,16 @@ export class EmailService {
 		if (!this.validateEmail(email)) {
 			return { success: false, error: 'Invalid email format' }
 		}
-		
+
 		try {
-			const { html, subject } = await this.renderTemplate('property-tips', {
-				landlordName,
-				tips: _tips || [] // Use the _tips parameter or default to empty array
-			})
-			
+			const { html, subject } = await this.renderTemplate(
+				'property-tips',
+				{
+					landlordName,
+					tips: _tips || [] // Use the _tips parameter or default to empty array
+				}
+			)
+
 			return this.sendEmail({
 				to: [email],
 				subject,
@@ -473,11 +522,14 @@ export class EmailService {
 			this.logger.error('Failed to send property tips', error)
 			return {
 				success: false,
-				error: error instanceof Error ? error.message : 'Failed to send email'
+				error:
+					error instanceof Error
+						? error.message
+						: 'Failed to send email'
 			}
 		}
 	}
-	
+
 	/**
 	 * Send feature announcement
 	 */
@@ -490,14 +542,14 @@ export class EmailService {
 		if (!this.validateEmail(email)) {
 			return { success: false, error: 'Invalid email format' }
 		}
-		
+
 		try {
 			const { html, subject } = await this.renderTemplate('welcome', {
 				name: userName,
 				companySize: 'medium',
 				source: 'feature-announcement'
 			})
-			
+
 			return this.sendEmail({
 				to: [email],
 				subject,
@@ -510,11 +562,14 @@ export class EmailService {
 			this.logger.error('Failed to send feature announcement', error)
 			return {
 				success: false,
-				error: error instanceof Error ? error.message : 'Failed to send email'
+				error:
+					error instanceof Error
+						? error.message
+						: 'Failed to send email'
 			}
 		}
 	}
-	
+
 	/**
 	 * Send re-engagement email
 	 */
@@ -527,14 +582,14 @@ export class EmailService {
 		if (!this.validateEmail(email)) {
 			return { success: false, error: 'Invalid email format' }
 		}
-		
+
 		try {
 			const { html, subject } = await this.renderTemplate('welcome', {
 				name: userName,
 				companySize: 'medium',
 				source: 're-engagement'
 			})
-			
+
 			return this.sendEmail({
 				to: [email],
 				subject,
@@ -549,11 +604,14 @@ export class EmailService {
 			this.logger.error('Failed to send re-engagement email', error)
 			return {
 				success: false,
-				error: error instanceof Error ? error.message : 'Failed to send email'
+				error:
+					error instanceof Error
+						? error.message
+						: 'Failed to send email'
 			}
 		}
 	}
-	
+
 	/**
 	 * Send bulk emails (batch processing)
 	 */
@@ -563,60 +621,68 @@ export class EmailService {
 			template: EmailTemplateName
 			data: ExtractEmailData<EmailTemplateName>
 		}[]
-	): Promise<{ successful: number; failed: number; results: SendEmailResponse[] }> {
+	): Promise<{
+		successful: number
+		failed: number
+		results: SendEmailResponse[]
+	}> {
 		const results: SendEmailResponse[] = []
 		let successful = 0
 		let failed = 0
-		
+
 		// Process in batches of 10 to avoid overwhelming the service
 		const batchSize = 10
 		for (let i = 0; i < recipients.length; i += batchSize) {
 			const batch = recipients.slice(i, i + batchSize)
-			
+
 			const batchResults = await Promise.all(
 				batch.map(async recipient => {
 					try {
 						// Use a type-safe wrapper for bulk email rendering
-						const { html, subject } = await this.renderTemplateUnsafe(
-							recipient.template,
-							recipient.data
-						)
-						
+						const { html, subject } =
+							await this.renderTemplateUnsafe(
+								recipient.template,
+								recipient.data
+							)
+
 						const result = await this.sendEmail({
 							to: [recipient.email],
 							subject,
 							html,
 							replyTo: this.replyToEmail
 						})
-						
+
 						if (result.success) {
 							successful++
 						} else {
 							failed++
 						}
-						
+
 						return result
 					} catch (error) {
 						failed++
 						return {
 							success: false,
-							error: error instanceof Error ? error.message : 'Failed to send email'
+							error:
+								error instanceof Error
+									? error.message
+									: 'Failed to send email'
 						}
 					}
 				})
 			)
-			
+
 			results.push(...batchResults)
-			
+
 			// Add delay between batches to respect rate limits
 			if (i + batchSize < recipients.length) {
 				await new Promise(resolve => setTimeout(resolve, 1000))
 			}
 		}
-		
+
 		return { successful, failed, results }
 	}
-	
+
 	/**
 	 * Get email service health status
 	 */

@@ -7,15 +7,17 @@ import { QueryProvider } from '@/providers/query-provider'
 export const dynamic = 'force-dynamic'
 
 interface AuthCallbackPageProps {
-  searchParams: { [key: string]: string | string[] | undefined }
+	searchParams: { [key: string]: string | string[] | undefined }
 }
 
-export default function AuthCallbackPage({ searchParams: _searchParams }: AuthCallbackPageProps) {
-  // Access to searchParams makes this page dynamic automatically
-  // This ensures OAuth codes in URL parameters are properly handled
-  return (
-    <QueryProvider>
-      <SupabaseAuthProcessor />
-    </QueryProvider>
-  )
+export default function AuthCallbackPage({
+	searchParams: _searchParams
+}: AuthCallbackPageProps) {
+	// Access to searchParams makes this page dynamic automatically
+	// This ensures OAuth codes in URL parameters are properly handled
+	return (
+		<QueryProvider>
+			<SupabaseAuthProcessor />
+		</QueryProvider>
+	)
 }

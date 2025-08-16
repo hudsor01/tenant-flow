@@ -1,48 +1,52 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { cn } from "@/lib/utils"
+import * as React from 'react'
+import { cn } from '@/lib/utils'
 import {
-  useSidebar,
-  SidebarHeader,
-  SidebarContent,
-  SidebarFooter,
-} from "@/components/ui/sidebar"
+	useSidebar,
+	SidebarHeader,
+	SidebarContent,
+	SidebarFooter
+} from '@/components/ui/sidebar'
 
 // Main Sidebar Component
 interface AppSidebarProps {
-  className?: string
+	className?: string
 }
 
 export function AppSidebar({ className }: AppSidebarProps) {
-  const { state, isMobile } = useSidebar()
-  const collapsed = state === "collapsed"
+	const { state, isMobile } = useSidebar()
+	const collapsed = state === 'collapsed'
 
-  return (
-    <>
-      {/* Mobile overlay */}
-      {!collapsed && isMobile && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
-          onClick={() => {/* Handle close */}}
-        />
-      )}
+	return (
+		<>
+			{/* Mobile overlay */}
+			{!collapsed && isMobile && (
+				<div
+					className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+					onClick={() => {
+						/* Handle close */
+					}}
+				/>
+			)}
 
-      <aside className={cn(
-        "fixed left-0 top-0 z-50 flex h-screen flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground",
-        "bg-subtle-pattern backdrop-blur-sm",
-        "transition-all duration-300 ease-out",
-        "shadow-lg lg:shadow-none",
-        collapsed ? "w-16" : "w-64",
-        "lg:static lg:z-auto",
-        className
-      )}>
-        <SidebarHeader />
-        <SidebarContent />
-        <SidebarFooter />
-      </aside>
-    </>
-  )
+			<aside
+				className={cn(
+					'border-sidebar-border bg-sidebar text-sidebar-foreground fixed top-0 left-0 z-50 flex h-screen flex-col border-r',
+					'bg-subtle-pattern backdrop-blur-sm',
+					'transition-all duration-300 ease-out',
+					'shadow-lg lg:shadow-none',
+					collapsed ? 'w-16' : 'w-64',
+					'lg:static lg:z-auto',
+					className
+				)}
+			>
+				<SidebarHeader />
+				<SidebarContent />
+				<SidebarFooter />
+			</aside>
+		</>
+	)
 }
 
 // Export for default import compatibility

@@ -1,56 +1,56 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import type { 
-  Subscription, 
-  Plan, 
-  UsageMetrics,
-  SubscriptionSyncResult,
-  SubscriptionState
+import type {
+	Subscription,
+	Plan,
+	UsageMetrics,
+	SubscriptionSyncResult,
+	SubscriptionState
 } from '@repo/shared'
 
 interface SubscriptionSyncOptions {
-  enableAutoSync?: boolean
-  syncIntervalMs?: number
-  enableRealTimeUpdates?: boolean
-  onSyncComplete?: (result: SubscriptionSyncResult) => void
-  onSubscriptionChange?: (subscription: Subscription) => void
+	enableAutoSync?: boolean
+	syncIntervalMs?: number
+	enableRealTimeUpdates?: boolean
+	onSyncComplete?: (result: SubscriptionSyncResult) => void
+	onSubscriptionChange?: (subscription: Subscription) => void
 }
 
 interface SubscriptionSyncHook {
-  // Current subscription state
-  subscription: Subscription | null
-  plan: Plan | null
-  usage: UsageMetrics | null
-  
-  // Sync status
-  isLoading: boolean
-  isSyncing: boolean
-  lastSyncAt: Date | null
-  syncError: Error | null
-  
-  // State consistency
-  isInSync: boolean
-  discrepancies: string[]
-  
-  // Actions
-  syncNow: () => Promise<void>
-  refreshSubscription: () => Promise<void>
-  forceFullSync: () => Promise<void>
-  
-  // Real-time events
-  onSubscriptionChange?: (subscription: Subscription) => void
-  onSyncComplete?: (result: SubscriptionSyncResult) => void
+	// Current subscription state
+	subscription: Subscription | null
+	plan: Plan | null
+	usage: UsageMetrics | null
+
+	// Sync status
+	isLoading: boolean
+	isSyncing: boolean
+	lastSyncAt: Date | null
+	syncError: Error | null
+
+	// State consistency
+	isInSync: boolean
+	discrepancies: string[]
+
+	// Actions
+	syncNow: () => Promise<void>
+	refreshSubscription: () => Promise<void>
+	forceFullSync: () => Promise<void>
+
+	// Real-time events
+	onSubscriptionChange?: (subscription: Subscription) => void
+	onSyncComplete?: (result: SubscriptionSyncResult) => void
 }
 
 const QUERY_KEYS = {
-  subscription: (userId: string) => ['subscription', userId] as const,
-  usage: (userId: string) => ['subscription-usage', userId] as const,
-  syncState: (userId: string) => ['subscription-sync-state', userId] as const,
+	subscription: (userId: string) => ['subscription', userId] as const,
+	usage: (userId: string) => ['subscription-usage', userId] as const,
+	syncState: (userId: string) => ['subscription-sync-state', userId] as const
 } as const
 
 /**
  * Comprehensive subscription synchronization hook
- * 
+ *
  * Features:
  * - Real-time subscription state management
  * - Automatic sync with configurable intervals
@@ -60,230 +60,253 @@ const QUERY_KEYS = {
  * - Error handling and retry logic
  */
 export function useSubscriptionSync(
-  userId: string,
-  options: SubscriptionSyncOptions = {}
+	userId: string,
+	options: SubscriptionSyncOptions = {}
 ): SubscriptionSyncHook {
-  const {
-    enableAutoSync = true,
-    syncIntervalMs = 5 * 60 * 1000, // 5 minutes
-    enableRealTimeUpdates = true
-  } = options
+	const {
+		enableAutoSync = true,
+		syncIntervalMs = 5 * 60 * 1000, // 5 minutes
+		enableRealTimeUpdates = true
+	} = options
 
-  const queryClient = useQueryClient()
-  const [lastSyncAt, setLastSyncAt] = useState<Date | null>(null)
-  const [isSyncing, setIsSyncing] = useState(false)
+	const queryClient = useQueryClient()
+	const [lastSyncAt, setLastSyncAt] = useState<Date | null>(null)
+	const [isSyncing, setIsSyncing] = useState(false)
 
-  // Main subscription query with auto-refresh
-  const {
-    data: subscriptionData,
-    isLoading: isSubscriptionLoading,
-    error: subscriptionError,
-    refetch: refetchSubscription
-  } = useQuery({
-    queryKey: QUERY_KEYS.subscription(userId),
-    queryFn: async (): Promise<{ subscription: Subscription | null, plan: Plan | null }> => {
-      const response = await fetch(`/api/subscriptions/user/${userId}`)
-      if (!response.ok) {
-        throw new Error('Failed to fetch subscription')
-      }
-      return response.json()
-    },
-    staleTime: 1 * 60 * 1000, // 1 minute
-    refetchInterval: enableAutoSync ? syncIntervalMs : false,
-    refetchIntervalInBackground: false,
-    retry: 3
-  })
+	// Main subscription query with auto-refresh
+	const {
+		data: subscriptionData,
+		isLoading: isSubscriptionLoading,
+		error: subscriptionError,
+		refetch: refetchSubscription
+	} = useQuery({
+		queryKey: QUERY_KEYS.subscription(userId),
+		queryFn: async (): Promise<{
+			subscription: Subscription | null
+			plan: Plan | null
+		}> => {
+			const response = await fetch(`/api/subscriptions/user/${userId}`)
+			if (!response.ok) {
+				throw new Error('Failed to fetch subscription')
+			}
+			return response.json()
+		},
+		staleTime: 1 * 60 * 1000, // 1 minute
+		refetchInterval: enableAutoSync ? syncIntervalMs : false,
+		refetchIntervalInBackground: false,
+		retry: 3
+	})
 
-  // Usage metrics query
-  const {
-    data: usage,
-    isLoading: isUsageLoading
-  } = useQuery({
-    queryKey: QUERY_KEYS.usage(userId),
-    queryFn: async (): Promise<UsageMetrics> => {
-      const response = await fetch(`/api/subscriptions/usage/${userId}`)
-      if (!response.ok) {
-        throw new Error('Failed to fetch usage metrics')
-      }
-      return response.json()
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchInterval: enableAutoSync ? syncIntervalMs * 2 : false, // Slower refresh for usage
-    retry: 2
-  })
+	// Usage metrics query
+	const { data: usage, isLoading: isUsageLoading } = useQuery({
+		queryKey: QUERY_KEYS.usage(userId),
+		queryFn: async (): Promise<UsageMetrics> => {
+			const response = await fetch(`/api/subscriptions/usage/${userId}`)
+			if (!response.ok) {
+				throw new Error('Failed to fetch usage metrics')
+			}
+			return response.json()
+		},
+		staleTime: 5 * 60 * 1000, // 5 minutes
+		refetchInterval: enableAutoSync ? syncIntervalMs * 2 : false, // Slower refresh for usage
+		retry: 2
+	})
 
-  // Subscription sync state query for debugging
-  const {
-    data: syncState
-  } = useQuery({
-    queryKey: QUERY_KEYS.syncState(userId),
-    queryFn: async (): Promise<SubscriptionState> => {
-      const response = await fetch(`/api/subscriptions/sync-state/${userId}`)
-      if (!response.ok) {
-        throw new Error('Failed to fetch sync state')
-      }
-      return response.json()
-    },
-    staleTime: 30 * 1000, // 30 seconds
-    enabled: false, // Only fetch when explicitly requested
-    retry: 1
-  })
+	// Subscription sync state query for debugging
+	const { data: syncState } = useQuery({
+		queryKey: QUERY_KEYS.syncState(userId),
+		queryFn: async (): Promise<SubscriptionState> => {
+			const response = await fetch(
+				`/api/subscriptions/sync-state/${userId}`
+			)
+			if (!response.ok) {
+				throw new Error('Failed to fetch sync state')
+			}
+			return response.json()
+		},
+		staleTime: 30 * 1000, // 30 seconds
+		enabled: false, // Only fetch when explicitly requested
+		retry: 1
+	})
 
-  // Manual sync mutation
-  const syncMutation = useMutation({
-    mutationFn: async (force?: boolean): Promise<SubscriptionSyncResult> => {
-      const response = await fetch(`/api/subscriptions/sync/${userId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ force })
-      })
-      
-      if (!response.ok) {
-        throw new Error('Failed to sync subscription')
-      }
-      
-      return response.json()
-    },
-    onMutate: () => {
-      setIsSyncing(true)
-    },
-    onSuccess: (result) => {
-      setLastSyncAt(new Date())
-      
-      // Invalidate and refetch subscription data
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.subscription(userId) })
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.usage(userId) })
-      
-      // Call success callback if provided
-      if (options.onSyncComplete) {
-        options.onSyncComplete(result)
-      }
-    },
-    onError: (error) => {
-      console.error('Subscription sync failed:', error)
-    },
-    onSettled: () => {
-      setIsSyncing(false)
-    }
-  })
+	// Manual sync mutation
+	const syncMutation = useMutation({
+		mutationFn: async (
+			force?: boolean
+		): Promise<SubscriptionSyncResult> => {
+			const response = await fetch(`/api/subscriptions/sync/${userId}`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ force })
+			})
 
-  // Server-Sent Events for real-time updates
-  useEffect(() => {
-    if (!enableRealTimeUpdates || !userId) return
+			if (!response.ok) {
+				throw new Error('Failed to sync subscription')
+			}
 
-    const eventSource = new EventSource(`/api/subscriptions/events/${userId}`)
-    
-    eventSource.addEventListener('subscription-changed', (event) => {
-      try {
-        const subscription: Subscription = JSON.parse(event.data)
-        
-        // Update query cache
-        queryClient.setQueryData(
-          QUERY_KEYS.subscription(userId),
-          (old: { subscription: Subscription | null, plan: Plan | null } | undefined) => 
-            old ? { ...old, subscription } : { subscription, plan: null }
-        )
-        
-        // Call change callback if provided
-        if (options.onSubscriptionChange) {
-          options.onSubscriptionChange(subscription)
-        }
-        
-        setLastSyncAt(new Date())
-        
-      } catch (error) {
-        console.error('Failed to process subscription change event:', error)
-      }
-    })
+			return response.json()
+		},
+		onMutate: () => {
+			setIsSyncing(true)
+		},
+		onSuccess: result => {
+			setLastSyncAt(new Date())
 
-    eventSource.addEventListener('sync-completed', (event) => {
-      try {
-        const result: SubscriptionSyncResult = JSON.parse(event.data)
-        
-        if (result.success) {
-          // Refresh subscription data
-          queryClient.invalidateQueries({ queryKey: QUERY_KEYS.subscription(userId) })
-          setLastSyncAt(new Date())
-        }
-        
-        if (options.onSyncComplete) {
-          options.onSyncComplete(result)
-        }
-        
-      } catch (error) {
-        console.error('Failed to process sync completion event:', error)
-      }
-    })
+			// Invalidate and refetch subscription data
+			queryClient.invalidateQueries({
+				queryKey: QUERY_KEYS.subscription(userId)
+			})
+			queryClient.invalidateQueries({
+				queryKey: QUERY_KEYS.usage(userId)
+			})
 
-    eventSource.addEventListener('error', (event) => {
-      console.error('Subscription SSE error:', event)
-    })
+			// Call success callback if provided
+			if (options.onSyncComplete) {
+				options.onSyncComplete(result)
+			}
+		},
+		onError: error => {
+			console.error('Subscription sync failed:', error)
+		},
+		onSettled: () => {
+			setIsSyncing(false)
+		}
+	})
 
-    return () => {
-      eventSource.close()
-    }
-  }, [userId, enableRealTimeUpdates, queryClient, options])
+	// Server-Sent Events for real-time updates
+	useEffect(() => {
+		if (!enableRealTimeUpdates || !userId) return
 
-  // Manual sync functions
-  const syncNow = useCallback(async () => {
-    if (isSyncing) return
-    await syncMutation.mutateAsync(false)
-  }, [isSyncing, syncMutation])
+		const eventSource = new EventSource(
+			`/api/subscriptions/events/${userId}`
+		)
 
-  const forceFullSync = useCallback(async () => {
-    if (isSyncing) return
-    await syncMutation.mutateAsync(true)
-  }, [isSyncing, syncMutation])
+		eventSource.addEventListener('subscription-changed', event => {
+			try {
+				const subscription: Subscription = JSON.parse(event.data)
 
-  const refreshSubscription = useCallback(async () => {
-    await refetchSubscription()
-  }, [refetchSubscription])
+				// Update query cache
+				queryClient.setQueryData(
+					QUERY_KEYS.subscription(userId),
+					(
+						old:
+							| {
+									subscription: Subscription | null
+									plan: Plan | null
+							  }
+							| undefined
+					) =>
+						old
+							? { ...old, subscription }
+							: { subscription, plan: null }
+				)
 
-  // Periodic sync check for discrepancies
-  useEffect(() => {
-    if (!enableAutoSync || !userId) return
+				// Call change callback if provided
+				if (options.onSubscriptionChange) {
+					options.onSubscriptionChange(subscription)
+				}
 
-    const interval = setInterval(async () => {
-      // Only check sync state occasionally (every 10 minutes)
-      if (Math.random() < 0.1) {
-        try {
-          await queryClient.refetchQueries({ queryKey: QUERY_KEYS.syncState(userId) })
-        } catch (error) {
-          console.warn('Failed to check sync state:', error)
-        }
-      }
-    }, syncIntervalMs)
+				setLastSyncAt(new Date())
+			} catch (error) {
+				console.error(
+					'Failed to process subscription change event:',
+					error
+				)
+			}
+		})
 
-    return () => clearInterval(interval)
-  }, [enableAutoSync, userId, syncIntervalMs, queryClient])
+		eventSource.addEventListener('sync-completed', event => {
+			try {
+				const result: SubscriptionSyncResult = JSON.parse(event.data)
 
-  // Computed values
-  const isLoading = isSubscriptionLoading || isUsageLoading
-  const syncError = subscriptionError || syncMutation.error
-  const isInSync = !syncState?.discrepancies || syncState.discrepancies.length === 0
-  const discrepancies = syncState?.discrepancies || []
+				if (result.success) {
+					// Refresh subscription data
+					queryClient.invalidateQueries({
+						queryKey: QUERY_KEYS.subscription(userId)
+					})
+					setLastSyncAt(new Date())
+				}
 
-  return {
-    // Current state
-    subscription: subscriptionData?.subscription || null,
-    plan: subscriptionData?.plan || null,
-    usage: usage || null,
-    
-    // Sync status
-    isLoading,
-    isSyncing: isSyncing || syncMutation.isPending,
-    lastSyncAt,
-    syncError: syncError as Error | null,
-    
-    // Consistency
-    isInSync,
-    discrepancies,
-    
-    // Actions
-    syncNow,
-    refreshSubscription,
-    forceFullSync
-  }
+				if (options.onSyncComplete) {
+					options.onSyncComplete(result)
+				}
+			} catch (error) {
+				console.error('Failed to process sync completion event:', error)
+			}
+		})
+
+		eventSource.addEventListener('error', event => {
+			console.error('Subscription SSE error:', event)
+		})
+
+		return () => {
+			eventSource.close()
+		}
+	}, [userId, enableRealTimeUpdates, queryClient, options])
+
+	// Manual sync functions
+	const syncNow = useCallback(async () => {
+		if (isSyncing) return
+		await syncMutation.mutateAsync(false)
+	}, [isSyncing, syncMutation])
+
+	const forceFullSync = useCallback(async () => {
+		if (isSyncing) return
+		await syncMutation.mutateAsync(true)
+	}, [isSyncing, syncMutation])
+
+	const refreshSubscription = useCallback(async () => {
+		await refetchSubscription()
+	}, [refetchSubscription])
+
+	// Periodic sync check for discrepancies
+	useEffect(() => {
+		if (!enableAutoSync || !userId) return
+
+		const interval = setInterval(async () => {
+			// Only check sync state occasionally (every 10 minutes)
+			if (Math.random() < 0.1) {
+				try {
+					await queryClient.refetchQueries({
+						queryKey: QUERY_KEYS.syncState(userId)
+					})
+				} catch (error) {
+					console.warn('Failed to check sync state:', error)
+				}
+			}
+		}, syncIntervalMs)
+
+		return () => clearInterval(interval)
+	}, [enableAutoSync, userId, syncIntervalMs, queryClient])
+
+	// Computed values
+	const isLoading = isSubscriptionLoading || isUsageLoading
+	const syncError = subscriptionError || syncMutation.error
+	const isInSync =
+		!syncState?.discrepancies || syncState.discrepancies.length === 0
+	const discrepancies = syncState?.discrepancies || []
+
+	return {
+		// Current state
+		subscription: subscriptionData?.subscription || null,
+		plan: subscriptionData?.plan || null,
+		usage: usage || null,
+
+		// Sync status
+		isLoading,
+		isSyncing: isSyncing || syncMutation.isPending,
+		lastSyncAt,
+		syncError: syncError as Error | null,
+
+		// Consistency
+		isInSync,
+		discrepancies,
+
+		// Actions
+		syncNow,
+		refreshSubscription,
+		forceFullSync
+	}
 }
 
 /**
@@ -291,57 +314,58 @@ export function useSubscriptionSync(
  * Provides additional functionality for admin users
  */
 export function useSubscriptionAdmin() {
-  const queryClient = useQueryClient()
+	const queryClient = useQueryClient()
 
-  // Bulk sync mutation for admin operations
-  const bulkSyncMutation = useMutation({
-    mutationFn: async (userIds: string[]): Promise<{
-      completed: number
-      errors: number
-      results: Array<{ userId: string, result: SubscriptionSyncResult }>
-    }> => {
-      const response = await fetch('/api/admin/subscriptions/bulk-sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userIds })
-      })
-      
-      if (!response.ok) {
-        throw new Error('Failed to bulk sync subscriptions')
-      }
-      
-      return response.json()
-    },
-    onSuccess: () => {
-      // Invalidate all subscription queries to force refresh
-      queryClient.invalidateQueries({ queryKey: ['subscription'] })
-    }
-  })
+	// Bulk sync mutation for admin operations
+	const bulkSyncMutation = useMutation({
+		mutationFn: async (
+			userIds: string[]
+		): Promise<{
+			completed: number
+			errors: number
+			results: Array<{ userId: string; result: SubscriptionSyncResult }>
+		}> => {
+			const response = await fetch('/api/admin/subscriptions/bulk-sync', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ userIds })
+			})
 
-  // Get subscription metrics for admin dashboard
-  const {
-    data: subscriptionMetrics,
-    isLoading: isMetricsLoading
-  } = useQuery({
-    queryKey: ['subscription-metrics'],
-    queryFn: async () => {
-      const response = await fetch('/api/admin/subscriptions/metrics')
-      if (!response.ok) {
-        throw new Error('Failed to fetch subscription metrics')
-      }
-      return response.json()
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: 2
-  })
+			if (!response.ok) {
+				throw new Error('Failed to bulk sync subscriptions')
+			}
 
-  return {
-    bulkSync: bulkSyncMutation.mutate,
-    isBulkSyncing: bulkSyncMutation.isPending,
-    bulkSyncError: bulkSyncMutation.error,
-    subscriptionMetrics,
-    isMetricsLoading
-  }
+			return response.json()
+		},
+		onSuccess: () => {
+			// Invalidate all subscription queries to force refresh
+			queryClient.invalidateQueries({ queryKey: ['subscription'] })
+		}
+	})
+
+	// Get subscription metrics for admin dashboard
+	const { data: subscriptionMetrics, isLoading: isMetricsLoading } = useQuery(
+		{
+			queryKey: ['subscription-metrics'],
+			queryFn: async () => {
+				const response = await fetch('/api/admin/subscriptions/metrics')
+				if (!response.ok) {
+					throw new Error('Failed to fetch subscription metrics')
+				}
+				return response.json()
+			},
+			staleTime: 5 * 60 * 1000, // 5 minutes
+			retry: 2
+		}
+	)
+
+	return {
+		bulkSync: bulkSyncMutation.mutate,
+		isBulkSyncing: bulkSyncMutation.isPending,
+		bulkSyncError: bulkSyncMutation.error,
+		subscriptionMetrics,
+		isMetricsLoading
+	}
 }
 
 /**
@@ -349,24 +373,24 @@ export function useSubscriptionAdmin() {
  * Lightweight version for components that only need basic info
  */
 export function useSubscriptionStatus(userId: string) {
-  const { data } = useQuery({
-    queryKey: QUERY_KEYS.subscription(userId),
-    queryFn: async () => {
-      const response = await fetch(`/api/subscriptions/status/${userId}`)
-      if (!response.ok) {
-        throw new Error('Failed to fetch subscription status')
-      }
-      return response.json()
-    },
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    retry: 2
-  })
+	const { data } = useQuery({
+		queryKey: QUERY_KEYS.subscription(userId),
+		queryFn: async () => {
+			const response = await fetch(`/api/subscriptions/status/${userId}`)
+			if (!response.ok) {
+				throw new Error('Failed to fetch subscription status')
+			}
+			return response.json()
+		},
+		staleTime: 2 * 60 * 1000, // 2 minutes
+		retry: 2
+	})
 
-  return {
-    isActive: data?.isActive || false,
-    planType: data?.planType || 'FREETRIAL',
-    status: data?.status || 'unknown',
-    trialDaysRemaining: data?.trialDaysRemaining || 0,
-    canUpgrade: data?.canUpgrade || false
-  }
+	return {
+		isActive: data?.isActive || false,
+		planType: data?.planType || 'FREETRIAL',
+		status: data?.status || 'unknown',
+		trialDaysRemaining: data?.trialDaysRemaining || 0,
+		canUpgrade: data?.canUpgrade || false
+	}
 }
