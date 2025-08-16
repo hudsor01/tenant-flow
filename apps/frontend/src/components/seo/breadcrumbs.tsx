@@ -1,12 +1,12 @@
 import React from 'react'
 import Link from 'next/link'
-import { 
-	Breadcrumb, 
+import {
+	Breadcrumb,
 	BreadcrumbItem,
 	BreadcrumbLink,
 	BreadcrumbList,
 	BreadcrumbPage,
-	BreadcrumbSeparator 
+	BreadcrumbSeparator
 } from '@/components/ui/breadcrumb'
 
 interface BreadcrumbItem {
@@ -21,14 +21,12 @@ interface BreadcrumbsProps {
 	className?: string
 }
 
-export function Breadcrumbs({ 
-	items = [], 
-	showHome = false, 
-	className 
+export function Breadcrumbs({
+	items = [],
+	showHome = false,
+	className
 }: BreadcrumbsProps) {
-	const allItems = showHome 
-		? [{ href: '/', label: 'Home' }, ...items]
-		: items
+	const allItems = showHome ? [{ href: '/', label: 'Home' }, ...items] : items
 
 	if (allItems.length === 0) {
 		return null
@@ -39,15 +37,19 @@ export function Breadcrumbs({
 			<BreadcrumbList>
 				{allItems.map((item, index) => {
 					const isLast = index === allItems.length - 1
-					
+
 					return (
 						<React.Fragment key={index}>
 							<BreadcrumbItem>
 								{item.current || isLast ? (
-									<BreadcrumbPage>{item.label}</BreadcrumbPage>
+									<BreadcrumbPage>
+										{item.label}
+									</BreadcrumbPage>
 								) : item.href ? (
 									<BreadcrumbLink asChild>
-										<Link href={item.href}>{item.label}</Link>
+										<Link href={item.href}>
+											{item.label}
+										</Link>
 									</BreadcrumbLink>
 								) : (
 									<span>{item.label}</span>

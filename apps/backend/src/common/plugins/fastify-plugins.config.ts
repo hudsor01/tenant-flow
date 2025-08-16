@@ -42,14 +42,17 @@ export interface StaticFileConfig {
 export interface EnvSchema {
 	type: 'object'
 	required: string[]
-	properties: Record<string, {
-		type: string
-		default?: unknown
-		enum?: unknown[]
-		pattern?: string
-		minLength?: number
-		maxLength?: number
-	}>
+	properties: Record<
+		string,
+		{
+			type: string
+			default?: unknown
+			enum?: unknown[]
+			pattern?: string
+			minLength?: number
+			maxLength?: number
+		}
+	>
 	additionalProperties: boolean
 }
 
@@ -64,7 +67,7 @@ export class FastifyPluginsConfigService {
 		_configService: ConfigService
 	): Promise<void> {
 		const fastifyCircuitBreaker = await import('@fastify/circuit-breaker')
-		
+
 		// Configure circuit breaker with sensible defaults
 		await app.register(fastifyCircuitBreaker.default, {
 			threshold: 5, // Open circuit after 5 failures
@@ -72,20 +75,28 @@ export class FastifyPluginsConfigService {
 			resetTimeout: 30000, // Try again after 30 seconds
 			onCircuitOpen: (req: unknown, reply: unknown) => {
 				const request = req as { url: string; method: string }
-				const response = reply as { status: (code: number) => { send: (data: unknown) => void } }
-				this.logger.error('Circuit breaker opened for external service', {
-					path: request.url,
-					method: request.method
-				})
+				const response = reply as {
+					status: (code: number) => { send: (data: unknown) => void }
+				}
+				this.logger.error(
+					'Circuit breaker opened for external service',
+					{
+						path: request.url,
+						method: request.method
+					}
+				)
 				response.status(503).send({
 					error: 'Service temporarily unavailable',
-					message: 'External service is experiencing issues. Please try again later.',
+					message:
+						'External service is experiencing issues. Please try again later.',
 					retryAfter: 30
 				})
 			},
 			onTimeout: (req: unknown, reply: unknown) => {
 				const request = req as { url: string; method: string }
-				const response = reply as { status: (code: number) => { send: (data: unknown) => void } }
+				const response = reply as {
+					status: (code: number) => { send: (data: unknown) => void }
+				}
 				this.logger.warn('Request timeout in circuit breaker', {
 					path: request.url,
 					method: request.method
@@ -98,7 +109,9 @@ export class FastifyPluginsConfigService {
 			}
 		})
 
-		this.logger.log('✅ Circuit breaker configured for external service resilience')
+		this.logger.log(
+			'✅ Circuit breaker configured for external service resilience'
+		)
 	}
 
 	/**
@@ -110,7 +123,7 @@ export class FastifyPluginsConfigService {
 	): Promise<void> {
 		const fastifyStatic = await import('@fastify/static')
 		const path = await import('path')
-		
+
 		// Configure static file serving for uploaded documents and generated PDFs
 		const uploadsDir = path.join(process.cwd(), 'uploads')
 		const documentsDir = path.join(process.cwd(), 'documents')
@@ -150,7 +163,9 @@ export class FastifyPluginsConfigService {
 			decorateReply: false
 		})
 
-		this.logger.log('✅ Static file serving configured for uploads and documents')
+		this.logger.log(
+			'✅ Static file serving configured for uploads and documents'
+		)
 	}
 
 	/**
@@ -161,7 +176,7 @@ export class FastifyPluginsConfigService {
 		_configService: ConfigService
 	): Promise<void> {
 		const fastifyEnv = await import('@fastify/env')
-		
+
 		// Define environment variable schema
 		const schema: EnvSchema = {
 			type: 'object',
@@ -244,15 +259,17 @@ export class FastifyPluginsConfigService {
 		const ejs = await import('ejs')
 		const path = await import('path')
 		const fs = await import('fs')
-		
+
 		const templatesPath = path.join(process.cwd(), 'templates')
-		
+
 		// Check if templates directory exists
 		if (!fs.existsSync(templatesPath)) {
-			this.logger.warn('Templates directory not found - skipping view engine setup')
+			this.logger.warn(
+				'Templates directory not found - skipping view engine setup'
+			)
 			return
 		}
-		
+
 		// Configure EJS template engine with safer options
 		await app.register(fastifyView.default, {
 			engine: {
@@ -264,7 +281,9 @@ export class FastifyPluginsConfigService {
 			defaultContext: {
 				appName: 'TenantFlow',
 				year: new Date().getFullYear(),
-				baseUrl: configService.get<string>('FRONTEND_URL') || 'https://tenantflow.app'
+				baseUrl:
+					configService.get<string>('FRONTEND_URL') ||
+					'https://tenantflow.app'
 			},
 			options: {
 				filename: templatesPath,
@@ -287,26 +306,35 @@ export class FastifyPluginsConfigService {
 		try {
 			// Critical plugins
 			await this.configureCircuitBreaker(app, configService)
-			
+
 			// Performance plugins are already in main.ts (compress, etag, request-context)
-			
+
 			// Optional plugins - don't fail if they error
 			try {
 				await this.configureStaticFiles(app, configService)
 			} catch (error) {
-				this.logger.warn('Static file serving setup failed (non-critical)', error)
+				this.logger.warn(
+					'Static file serving setup failed (non-critical)',
+					error
+				)
 			}
 
 			try {
 				await this.configureEnvValidation(app, configService)
 			} catch (error) {
-				this.logger.warn('Environment validation setup failed (non-critical)', error)
+				this.logger.warn(
+					'Environment validation setup failed (non-critical)',
+					error
+				)
 			}
 
 			try {
 				await this.configureViewEngine(app, configService)
 			} catch (error) {
-				this.logger.warn('View engine setup failed (non-critical)', error)
+				this.logger.warn(
+					'View engine setup failed (non-critical)',
+					error
+				)
 			}
 
 			this.logger.log('🚀 All Fastify plugins initialized successfully')

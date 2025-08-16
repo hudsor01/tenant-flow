@@ -1,6 +1,6 @@
 /**
  * Service Pattern Example
- * 
+ *
  * This file demonstrates the standard service pattern to be used
  * throughout the TenantFlow backend. All services should follow
  * this structure for consistency.
@@ -55,19 +55,21 @@ interface Entity {
 	updatedAt: Date
 }
 
-interface CreateEntityData extends Omit<Entity, 'id' | 'createdAt' | 'updatedAt'> {
+interface CreateEntityData
+	extends Omit<Entity, 'id' | 'createdAt' | 'updatedAt'> {
 	status: string
 	userId: string
 }
 
-interface UpdateEntityData extends Partial<Omit<Entity, 'id' | 'createdAt' | 'updatedAt'>> {
+interface UpdateEntityData
+	extends Partial<Omit<Entity, 'id' | 'createdAt' | 'updatedAt'>> {
 	name?: string
 	description?: string
 }
 
 /**
  * Standard Service Pattern Implementation
- * 
+ *
  * Key principles:
  * 1. Constructor injection for all dependencies
  * 2. Private logger instance
@@ -91,7 +93,6 @@ export class EntityService {
 	 */
 	async findById(id: string, userId: string): Promise<Entity> {
 		try {
-
 			if (!id || typeof id !== 'string') {
 				throw this.errorHandler.createValidationError(
 					'Invalid entity ID provided',
@@ -100,7 +101,7 @@ export class EntityService {
 			}
 
 			const entity = await this.repository.findById(id)
-			
+
 			if (!entity) {
 				throw this.errorHandler.createNotFoundError('Entity', id)
 			}
@@ -121,17 +122,19 @@ export class EntityService {
 	/**
 	 * Find many entities with pagination and filtering
 	 */
-	async findMany(filters: EntityFilters, userId: string): Promise<{
+	async findMany(
+		filters: EntityFilters,
+		userId: string
+	): Promise<{
 		items: Entity[]
 		total: number
 		page: number
 		pageSize: number
 	}> {
 		try {
-
 			const page = filters.page || 1
 			const limit = Math.min(filters.limit || 10, 100)
-			
+
 			const userFilters = { ...filters, userId }
 
 			const [items, total] = await Promise.all([
@@ -139,7 +142,7 @@ export class EntityService {
 				this.repository.count(userFilters)
 			])
 
-			const processedItems = items.map(item => 
+			const processedItems = items.map(item =>
 				this.businessService.applyBusinessRules(item)
 			)
 
@@ -154,7 +157,7 @@ export class EntityService {
 			throw this.errorHandler.handleErrorEnhanced(error as Error, {
 				operation: 'findMany',
 				resource: 'entity',
-				metadata: { 
+				metadata: {
 					filtersCount: Object.keys(filters || {}).length,
 					userId: userId
 				}
@@ -185,7 +188,7 @@ export class EntityService {
 			throw this.errorHandler.handleErrorEnhanced(error as Error, {
 				operation: 'create',
 				resource: 'entity',
-				metadata: { 
+				metadata: {
 					dtoType: dto.constructor.name,
 					userId: userId
 				}
@@ -196,7 +199,11 @@ export class EntityService {
 	/**
 	 * Update existing entity with validation
 	 */
-	async update(id: string, dto: UpdateEntityDto, userId: string): Promise<Entity> {
+	async update(
+		id: string,
+		dto: UpdateEntityDto,
+		userId: string
+	): Promise<Entity> {
 		try {
 			const existing = await this.findById(id, userId)
 
@@ -214,10 +221,10 @@ export class EntityService {
 			throw this.errorHandler.handleErrorEnhanced(error as Error, {
 				operation: 'update',
 				resource: 'entity',
-				metadata: { 
-					entityId: id, 
-					dtoType: dto.constructor.name, 
-					userId: userId 
+				metadata: {
+					entityId: id,
+					dtoType: dto.constructor.name,
+					userId: userId
 				}
 			})
 		}
@@ -237,7 +244,11 @@ export class EntityService {
 				throw this.errorHandler.createBusinessError(
 					ErrorCode.CONFLICT,
 					'Cannot delete entity with active dependencies',
-					{ operation: 'delete', resource: 'entity', metadata: { entityId: id } }
+					{
+						operation: 'delete',
+						resource: 'entity',
+						metadata: { entityId: id }
+					}
 				)
 			}
 
@@ -291,10 +302,10 @@ export class EntityService {
 /**
  * Export pattern interfaces for reuse
  */
-export type { 
+export type {
 	EntityRepository,
 	EntityBusinessService,
 	CreateEntityDto,
 	UpdateEntityDto,
-	EntityFilters 
+	EntityFilters
 }

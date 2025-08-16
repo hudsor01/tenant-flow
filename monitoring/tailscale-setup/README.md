@@ -29,10 +29,9 @@ tailscale ip -4
 ### Step 2: Update Config Files
 
 1. Edit `prometheus-tailscale.yml`:
-   - Replace `100.x.x.x` with your app server's Tailscale IP
-   
+    - Replace `100.x.x.x` with your app server's Tailscale IP
 2. Edit `docker-compose.yml`:
-   - Replace `100.x.x.y` with your monitoring server's Tailscale IP
+    - Replace `100.x.x.y` with your monitoring server's Tailscale IP
 
 ### Step 3: Add Metrics Endpoint to TenantFlow
 
@@ -41,11 +40,11 @@ Add this to your TenantFlow app (we'll create it):
 ```typescript
 // app/api/metrics/route.ts
 export async function GET() {
-  // Prometheus metrics format
-  const metrics = await generatePrometheusMetrics()
-  return new Response(metrics, {
-    headers: { 'Content-Type': 'text/plain' }
-  })
+	// Prometheus metrics format
+	const metrics = await generatePrometheusMetrics()
+	return new Response(metrics, {
+		headers: { 'Content-Type': 'text/plain' }
+	})
 }
 ```
 
@@ -68,10 +67,10 @@ docker-compose ps
 
 ## 🔧 Port Allocation (Conflict-Free)
 
-| Service | Port | Purpose |
-|---------|------|---------|
-| Prometheus | 19090 | Metrics storage |
-| Grafana | 13000 | Dashboards |
+| Service     | Port  | Purpose           |
+| ----------- | ----- | ----------------- |
+| Prometheus  | 19090 | Metrics storage   |
+| Grafana     | 13000 | Dashboards        |
 | Uptime Kuma | 13001 | Simple monitoring |
 
 These ports are intentionally non-standard to avoid conflicts with your existing containers.
@@ -79,6 +78,7 @@ These ports are intentionally non-standard to avoid conflicts with your existing
 ## 💾 Data Storage
 
 Data is stored in Docker volumes:
+
 - `prometheus_data`: Metrics (5GB max, 30 days retention)
 - `grafana_data`: Dashboards and config
 - `uptime-kuma-data`: Uptime monitoring
@@ -116,6 +116,7 @@ The setup is optimized for environments with many containers:
 ## 🔧 Troubleshooting
 
 **Can't connect to app server?**
+
 ```bash
 # Test Tailscale connectivity
 ping 100.x.x.x
@@ -124,14 +125,16 @@ curl http://100.x.x.x:3004/api/health
 
 **Port conflicts?**
 Edit docker-compose.yml and change port mappings:
+
 ```yaml
 ports:
-  - "19091:9090"  # Change first number
+    - '19091:9090' # Change first number
 ```
 
 **High resource usage?**
 Reduce retention and limits in docker-compose.yml:
+
 ```yaml
-mem_limit: 256m     # Reduce memory
-cpus: 0.25          # Reduce CPU
+mem_limit: 256m # Reduce memory
+cpus: 0.25 # Reduce CPU
 ```

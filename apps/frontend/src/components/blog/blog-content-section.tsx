@@ -29,12 +29,42 @@ export default function BlogContentSection({
 }: BlogContentSectionProps) {
 	// Sanitize content to prevent XSS attacks
 	const sanitizedContent = DOMPurify.sanitize(processedContent, {
-		ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 
-		              'ul', 'ol', 'li', 'blockquote', 'a', 'img', 'code', 'pre', 'span', 'div'],
-		ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'id', 'target', 'rel'],
+		ALLOWED_TAGS: [
+			'p',
+			'br',
+			'strong',
+			'em',
+			'u',
+			'h1',
+			'h2',
+			'h3',
+			'h4',
+			'h5',
+			'h6',
+			'ul',
+			'ol',
+			'li',
+			'blockquote',
+			'a',
+			'img',
+			'code',
+			'pre',
+			'span',
+			'div'
+		],
+		ALLOWED_ATTR: [
+			'href',
+			'src',
+			'alt',
+			'title',
+			'class',
+			'id',
+			'target',
+			'rel'
+		],
 		ALLOW_DATA_ATTR: false
 	})
-	
+
 	return (
 		<motion.article {...fadeInUp} className="w-full">
 			{/* Article Content */}
@@ -74,13 +104,16 @@ export default function BlogContentSection({
 					<p className="text-muted-foreground mb-6 text-lg leading-relaxed">
 						TenantFlow helps you implement these best practices with
 						automated workflows, legal compliance tools, and
-						communication features. Join thousands of
-						landlords who have already transformed their property
-						management.
+						communication features. Join thousands of landlords who
+						have already transformed their property management.
 					</p>
-					<Flex direction={{ initial: "column", sm: "row" }} gap="4">
+					<Flex direction={{ initial: 'column', sm: 'row' }} gap="4">
 						<Link href="/get-started" style={{ flex: 1 }}>
-							<Button variant="default" size="lg" className="w-full">
+							<Button
+								variant="default"
+								size="lg"
+								className="w-full"
+							>
 								Start Free Trial
 							</Button>
 						</Link>

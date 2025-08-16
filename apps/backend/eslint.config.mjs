@@ -19,6 +19,7 @@ export default tseslint.config(
       "start-dev.js",
       "test-endpoints.js",
       "src/auth/auth-production-diagnostic.ts",
+      "src/test/base-crud-service.test.template.ts",
       "supabase/**"
     ]
   },

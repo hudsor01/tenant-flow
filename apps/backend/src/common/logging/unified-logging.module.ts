@@ -5,14 +5,14 @@ import { TypeSafeConfigModule } from '../config/config.module'
 
 /**
  * Unified Logging Module
- * 
+ *
  * Provides single source of truth for all logging in the application.
  * Replaces and consolidates:
  * - LoggerModule (common/modules)
  * - UnifiedLoggingModule (common/logging)
  * - StructuredLoggerService
  * - Multiple Winston configurations
- * 
+ *
  * Features:
  * - Single UnifiedLoggerService for all logging needs
  * - Environment-aware Winston configuration
@@ -22,25 +22,25 @@ import { TypeSafeConfigModule } from '../config/config.module'
  */
 @Global()
 @Module({
-  imports: [TypeSafeConfigModule],
-  providers: [
-    UnifiedLoggerService,
-    FastifyRequestLoggerService,
-    // Factory for creating contextual loggers
-    {
-      provide: 'LoggerFactory',
-      useFactory: (unifiedLogger: UnifiedLoggerService) => {
-        return (context: string) => {
-          return unifiedLogger.child(context)
-        }
-      },
-      inject: [UnifiedLoggerService]
-    }
-  ],
-  exports: [
-    UnifiedLoggerService,
-    FastifyRequestLoggerService,
-    'LoggerFactory'
-  ]
+	imports: [TypeSafeConfigModule],
+	providers: [
+		UnifiedLoggerService,
+		FastifyRequestLoggerService,
+		// Factory for creating contextual loggers
+		{
+			provide: 'LoggerFactory',
+			useFactory: (unifiedLogger: UnifiedLoggerService) => {
+				return (context: string) => {
+					return unifiedLogger.child(context)
+				}
+			},
+			inject: [UnifiedLoggerService]
+		}
+	],
+	exports: [
+		UnifiedLoggerService,
+		FastifyRequestLoggerService,
+		'LoggerFactory'
+	]
 })
 export class UnifiedLoggingModule {}

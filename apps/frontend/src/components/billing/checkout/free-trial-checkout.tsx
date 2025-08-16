@@ -1,6 +1,12 @@
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle
+} from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Loader2, Check, Calendar } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
@@ -10,9 +16,7 @@ interface FreeTrialCheckoutProps {
 	onSuccess?: () => void
 }
 
-export function FreeTrialCheckout({ 
-	onSuccess
-}: FreeTrialCheckoutProps) {
+export function FreeTrialCheckout({ onSuccess }: FreeTrialCheckoutProps) {
 	const { user } = useAuth()
 	const { startFreeTrial, isLoading, error } = useCheckout()
 
@@ -29,14 +33,17 @@ export function FreeTrialCheckout({
 		}
 	}
 
-	const errorMessage = !user ? 'Please sign in to start your free trial' : error
+	const errorMessage = !user
+		? 'Please sign in to start your free trial'
+		: error
 
 	return (
-		<Card className="w-full max-w-lg mx-auto">
+		<Card className="mx-auto w-full max-w-lg">
 			<CardHeader>
 				<CardTitle>Start Your 14-Day Free Trial</CardTitle>
 				<CardDescription>
-					Try all Starter plan features free for 14 days. No credit card required.
+					Try all Starter plan features free for 14 days. No credit
+					card required.
 				</CardDescription>
 			</CardHeader>
 			<CardContent className="space-y-6">
@@ -61,14 +68,19 @@ export function FreeTrialCheckout({
 				</div>
 
 				{/* Trial Info */}
-				<div className="bg-muted p-4 rounded-lg space-y-2">
+				<div className="bg-muted space-y-2 rounded-lg p-4">
 					<div className="flex items-center gap-2">
 						<Calendar className="h-4 w-4" />
-						<span className="text-sm font-medium">14 days free</span>
-						<Badge variant="secondary" className="ml-auto">No payment required</Badge>
+						<span className="text-sm font-medium">
+							14 days free
+						</span>
+						<Badge variant="secondary" className="ml-auto">
+							No payment required
+						</Badge>
 					</div>
-					<p className="text-sm text-muted-foreground">
-						Your trial will automatically end after 14 days. Add a payment method anytime to continue.
+					<p className="text-muted-foreground text-sm">
+						Your trial will automatically end after 14 days. Add a
+						payment method anytime to continue.
 					</p>
 				</div>
 
@@ -80,7 +92,7 @@ export function FreeTrialCheckout({
 				)}
 
 				{/* Start Trial Button */}
-				<Button 
+				<Button
 					onClick={() => void handleStartTrial()}
 					disabled={isLoading}
 					className="w-full"
@@ -96,8 +108,9 @@ export function FreeTrialCheckout({
 					)}
 				</Button>
 
-				<p className="text-xs text-muted-foreground text-center">
-					By starting your trial, you agree to our Terms of Service and Privacy Policy.
+				<p className="text-muted-foreground text-center text-xs">
+					By starting your trial, you agree to our Terms of Service
+					and Privacy Policy.
 				</p>
 			</CardContent>
 		</Card>

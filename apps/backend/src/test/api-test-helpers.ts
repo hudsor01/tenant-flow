@@ -171,7 +171,7 @@ export class TestModuleBuilder {
   }
 
   async build(): Promise<TestingModule> {
-    return await Test.createTestingModule({
+    return Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({
           isGlobal: true,

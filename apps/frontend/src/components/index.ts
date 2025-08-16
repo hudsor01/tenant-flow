@@ -1,13 +1,13 @@
 /**
  * Component Library Index - Simplified
- * 
+ *
  * Essential component exports for Next.js 15 + React 19 architecture
  */
 
 // Base UI Components (no conflicts)
 export * from './ui'
 
-// Authentication Components 
+// Authentication Components
 export * from './auth'
 
 // Billing Components

@@ -1,310 +1,341 @@
 /**
  * Authentication Service
- * 
+ *
  * Encapsulates authentication business logic and orchestrates auth operations.
  * Provides a framework-agnostic interface for all authentication concerns.
  */
 
-import type { Result, User } from '@repo/shared';
-import type { AuthRepository, SignUpData, AuthResult } from '@/repositories/interfaces';
-import { Email, ValidationError } from '@repo/shared';
+import type { Result, User } from '@repo/shared'
+import type {
+	AuthRepository,
+	SignUpData,
+	AuthResult
+} from '@/repositories/interfaces'
+import { Email, ValidationError } from '@repo/shared'
 
 export interface AuthenticationService {
-  signIn(credentials: SignInCredentials): Promise<Result<AuthResult>>;
-  signUp(userData: SignUpData): Promise<Result<AuthResult>>;
-  signOut(): Promise<Result<void>>;
-  resetPassword(email: string): Promise<Result<void>>;
-  updatePassword(currentPassword: string, newPassword: string): Promise<Result<void>>;
-  getCurrentUser(): Promise<Result<User | null>>;
-  refreshSession(): Promise<Result<AuthResult>>;
-  validateSession(): Promise<Result<boolean>>;
-  getPasswordStrength(password: string): { score: number; feedback: string[]; isStrong: boolean };
-  isEmailValid(email: string): boolean;
+	signIn(credentials: SignInCredentials): Promise<Result<AuthResult>>
+	signUp(userData: SignUpData): Promise<Result<AuthResult>>
+	signOut(): Promise<Result<void>>
+	resetPassword(email: string): Promise<Result<void>>
+	updatePassword(
+		currentPassword: string,
+		newPassword: string
+	): Promise<Result<void>>
+	getCurrentUser(): Promise<Result<User | null>>
+	refreshSession(): Promise<Result<AuthResult>>
+	validateSession(): Promise<Result<boolean>>
+	getPasswordStrength(password: string): {
+		score: number
+		feedback: string[]
+		isStrong: boolean
+	}
+	isEmailValid(email: string): boolean
 }
 
 export interface SignInCredentials {
-  email: string;
-  password: string;
+	email: string
+	password: string
 }
 
 export interface PasswordValidationRules {
-  minLength: number;
-  requireUppercase: boolean;
-  requireLowercase: boolean;
-  requireNumbers: boolean;
-  requireSpecialChars: boolean;
+	minLength: number
+	requireUppercase: boolean
+	requireLowercase: boolean
+	requireNumbers: boolean
+	requireSpecialChars: boolean
 }
 
 export class DefaultAuthenticationService implements AuthenticationService {
-  private readonly passwordRules: PasswordValidationRules = {
-    minLength: 8,
-    requireUppercase: true,
-    requireLowercase: true,
-    requireNumbers: true,
-    requireSpecialChars: false,
-  };
+	private readonly passwordRules: PasswordValidationRules = {
+		minLength: 8,
+		requireUppercase: true,
+		requireLowercase: true,
+		requireNumbers: true,
+		requireSpecialChars: false
+	}
 
-  constructor(private readonly authRepository: AuthRepository) {}
+	constructor(private readonly authRepository: AuthRepository) {}
 
-  async signIn(credentials: SignInCredentials): Promise<Result<AuthResult>> {
-    // Validate input
-    const validation = this.validateSignInCredentials(credentials);
-    if (!validation.success) {
-      return validation;
-    }
+	async signIn(credentials: SignInCredentials): Promise<Result<AuthResult>> {
+		// Validate input
+		const validation = this.validateSignInCredentials(credentials)
+		if (!validation.success) {
+			return validation
+		}
 
-    // Normalize email
-    const normalizedEmail = credentials.email.toLowerCase().trim();
+		// Normalize email
+		const normalizedEmail = credentials.email.toLowerCase().trim()
 
-    // Attempt sign in
-    return this.authRepository.signIn(normalizedEmail, credentials.password);
-  }
+		// Attempt sign in
+		return this.authRepository.signIn(normalizedEmail, credentials.password)
+	}
 
-  async signUp(userData: SignUpData): Promise<Result<AuthResult>> {
-    // Validate input
-    const validation = this.validateSignUpData(userData);
-    if (!validation.success) {
-      return validation;
-    }
+	async signUp(userData: SignUpData): Promise<Result<AuthResult>> {
+		// Validate input
+		const validation = this.validateSignUpData(userData)
+		if (!validation.success) {
+			return validation
+		}
 
-    // Normalize data
-    const normalizedUserData: SignUpData = {
-      email: userData.email.toLowerCase().trim(),
-      password: userData.password,
-      fullName: userData.fullName.trim(),
-      companyName: userData.companyName?.trim() || undefined,
-    };
+		// Normalize data
+		const normalizedUserData: SignUpData = {
+			email: userData.email.toLowerCase().trim(),
+			password: userData.password,
+			fullName: userData.fullName.trim(),
+			companyName: userData.companyName?.trim() || undefined
+		}
 
-    // Attempt sign up
-    return this.authRepository.signUp(normalizedUserData);
-  }
+		// Attempt sign up
+		return this.authRepository.signUp(normalizedUserData)
+	}
 
-  async signOut(): Promise<Result<void>> {
-    return this.authRepository.signOut();
-  }
+	async signOut(): Promise<Result<void>> {
+		return this.authRepository.signOut()
+	}
 
-  async resetPassword(email: string): Promise<Result<void>> {
-    // Validate email
-    try {
-      new Email(email);
-    } catch {
-      return {
-        success: false,
-        error: new ValidationError('Please enter a valid email address', 'email'),
-      };
-    }
+	async resetPassword(email: string): Promise<Result<void>> {
+		// Validate email
+		try {
+			new Email(email)
+		} catch {
+			return {
+				success: false,
+				error: new ValidationError(
+					'Please enter a valid email address',
+					'email'
+				)
+			}
+		}
 
-    const normalizedEmail = email.toLowerCase().trim();
-    return this.authRepository.resetPassword(normalizedEmail);
-  }
+		const normalizedEmail = email.toLowerCase().trim()
+		return this.authRepository.resetPassword(normalizedEmail)
+	}
 
-  async updatePassword(currentPassword: string, newPassword: string): Promise<Result<void>> {
-    // Validate new password
-    const validation = this.validatePassword(newPassword);
-    if (!validation.success) {
-      return validation;
-    }
+	async updatePassword(
+		currentPassword: string,
+		newPassword: string
+	): Promise<Result<void>> {
+		// Validate new password
+		const validation = this.validatePassword(newPassword)
+		if (!validation.success) {
+			return validation
+		}
 
-    // Check if passwords are different
-    if (currentPassword === newPassword) {
-      return {
-        success: false,
-        error: new ValidationError('New password must be different from current password', 'newPassword'),
-      };
-    }
+		// Check if passwords are different
+		if (currentPassword === newPassword) {
+			return {
+				success: false,
+				error: new ValidationError(
+					'New password must be different from current password',
+					'newPassword'
+				)
+			}
+		}
 
-    return this.authRepository.updatePassword(newPassword);
-  }
+		return this.authRepository.updatePassword(newPassword)
+	}
 
-  async getCurrentUser(): Promise<Result<User | null>> {
-    return this.authRepository.getCurrentUser();
-  }
+	async getCurrentUser(): Promise<Result<User | null>> {
+		return this.authRepository.getCurrentUser()
+	}
 
-  async refreshSession(): Promise<Result<AuthResult>> {
-    return this.authRepository.refreshToken();
-  }
+	async refreshSession(): Promise<Result<AuthResult>> {
+		return this.authRepository.refreshToken()
+	}
 
-  async validateSession(): Promise<Result<boolean>> {
-    const userResult = await this.getCurrentUser();
-    
-    if (!userResult.success) {
-      return {
-        success: true,
-        value: false,
-      };
-    }
+	async validateSession(): Promise<Result<boolean>> {
+		const userResult = await this.getCurrentUser()
 
-    return {
-      success: true,
-      value: userResult.value !== null,
-    };
-  }
+		if (!userResult.success) {
+			return {
+				success: true,
+				value: false
+			}
+		}
 
-  // Private validation methods
+		return {
+			success: true,
+			value: userResult.value !== null
+		}
+	}
 
-  private validateSignInCredentials(credentials: SignInCredentials): Result<void> {
-    const errors: string[] = [];
+	// Private validation methods
 
-    // Validate email
-    try {
-      new Email(credentials.email);
-    } catch {
-      errors.push('Please enter a valid email address');
-    }
+	private validateSignInCredentials(
+		credentials: SignInCredentials
+	): Result<void> {
+		const errors: string[] = []
 
-    // Validate password presence
-    if (!credentials.password || credentials.password.length < 6) {
-      errors.push('Password must be at least 6 characters');
-    }
+		// Validate email
+		try {
+			new Email(credentials.email)
+		} catch {
+			errors.push('Please enter a valid email address')
+		}
 
-    if (errors.length > 0) {
-      return {
-        success: false,
-        error: new ValidationError(errors.join('; ')),
-      };
-    }
+		// Validate password presence
+		if (!credentials.password || credentials.password.length < 6) {
+			errors.push('Password must be at least 6 characters')
+		}
 
-    return { success: true, value: undefined };
-  }
+		if (errors.length > 0) {
+			return {
+				success: false,
+				error: new ValidationError(errors.join('; '))
+			}
+		}
 
-  private validateSignUpData(userData: SignUpData): Result<void> {
-    const errors: string[] = [];
+		return { success: true, value: undefined }
+	}
 
-    // Validate email
-    try {
-      new Email(userData.email);
-    } catch {
-      errors.push('Please enter a valid email address');
-    }
+	private validateSignUpData(userData: SignUpData): Result<void> {
+		const errors: string[] = []
 
-    // Validate password
-    const passwordValidation = this.validatePassword(userData.password);
-    if (!passwordValidation.success) {
-      errors.push(passwordValidation.error.message);
-    }
+		// Validate email
+		try {
+			new Email(userData.email)
+		} catch {
+			errors.push('Please enter a valid email address')
+		}
 
-    // Validate full name
-    if (!userData.fullName || userData.fullName.trim().length < 2) {
-      errors.push('Full name must be at least 2 characters');
-    }
+		// Validate password
+		const passwordValidation = this.validatePassword(userData.password)
+		if (!passwordValidation.success) {
+			errors.push(passwordValidation.error.message)
+		}
 
-    // Validate company name if provided
-    if (userData.companyName && userData.companyName.trim().length < 2) {
-      errors.push('Company name must be at least 2 characters when provided');
-    }
+		// Validate full name
+		if (!userData.fullName || userData.fullName.trim().length < 2) {
+			errors.push('Full name must be at least 2 characters')
+		}
 
-    if (errors.length > 0) {
-      return {
-        success: false,
-        error: new ValidationError(errors.join('; ')),
-      };
-    }
+		// Validate company name if provided
+		if (userData.companyName && userData.companyName.trim().length < 2) {
+			errors.push(
+				'Company name must be at least 2 characters when provided'
+			)
+		}
 
-    return { success: true, value: undefined };
-  }
+		if (errors.length > 0) {
+			return {
+				success: false,
+				error: new ValidationError(errors.join('; '))
+			}
+		}
 
-  private validatePassword(password: string): Result<void> {
-    const errors: string[] = [];
+		return { success: true, value: undefined }
+	}
 
-    if (!password) {
-      errors.push('Password is required');
-      return {
-        success: false,
-        error: new ValidationError(errors.join('; ')),
-      };
-    }
+	private validatePassword(password: string): Result<void> {
+		const errors: string[] = []
 
-    if (password.length < this.passwordRules.minLength) {
-      errors.push(`Password must be at least ${this.passwordRules.minLength} characters`);
-    }
+		if (!password) {
+			errors.push('Password is required')
+			return {
+				success: false,
+				error: new ValidationError(errors.join('; '))
+			}
+		}
 
-    if (this.passwordRules.requireUppercase && !/[A-Z]/.test(password)) {
-      errors.push('Password must contain at least one uppercase letter');
-    }
+		if (password.length < this.passwordRules.minLength) {
+			errors.push(
+				`Password must be at least ${this.passwordRules.minLength} characters`
+			)
+		}
 
-    if (this.passwordRules.requireLowercase && !/[a-z]/.test(password)) {
-      errors.push('Password must contain at least one lowercase letter');
-    }
+		if (this.passwordRules.requireUppercase && !/[A-Z]/.test(password)) {
+			errors.push('Password must contain at least one uppercase letter')
+		}
 
-    if (this.passwordRules.requireNumbers && !/\d/.test(password)) {
-      errors.push('Password must contain at least one number');
-    }
+		if (this.passwordRules.requireLowercase && !/[a-z]/.test(password)) {
+			errors.push('Password must contain at least one lowercase letter')
+		}
 
-    if (this.passwordRules.requireSpecialChars && !/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>?]/.test(password)) {
-      errors.push('Password must contain at least one special character');
-    }
+		if (this.passwordRules.requireNumbers && !/\d/.test(password)) {
+			errors.push('Password must contain at least one number')
+		}
 
-    if (errors.length > 0) {
-      return {
-        success: false,
-        error: new ValidationError(errors.join('; ')),
-      };
-    }
+		if (
+			this.passwordRules.requireSpecialChars &&
+			!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>?]/.test(password)
+		) {
+			errors.push('Password must contain at least one special character')
+		}
 
-    return { success: true, value: undefined };
-  }
+		if (errors.length > 0) {
+			return {
+				success: false,
+				error: new ValidationError(errors.join('; '))
+			}
+		}
 
-  // Business rule methods
+		return { success: true, value: undefined }
+	}
 
-  public getPasswordStrength(password: string): {
-    score: number;
-    feedback: string[];
-    isStrong: boolean;
-  } {
-    const feedback: string[] = [];
-    let score = 0;
+	// Business rule methods
 
-    if (password.length >= this.passwordRules.minLength) {
-      score += 20;
-    } else {
-      feedback.push(`Use at least ${this.passwordRules.minLength} characters`);
-    }
+	public getPasswordStrength(password: string): {
+		score: number
+		feedback: string[]
+		isStrong: boolean
+	} {
+		const feedback: string[] = []
+		let score = 0
 
-    if (/[A-Z]/.test(password)) {
-      score += 20;
-    } else {
-      feedback.push('Add uppercase letters');
-    }
+		if (password.length >= this.passwordRules.minLength) {
+			score += 20
+		} else {
+			feedback.push(
+				`Use at least ${this.passwordRules.minLength} characters`
+			)
+		}
 
-    if (/[a-z]/.test(password)) {
-      score += 20;
-    } else {
-      feedback.push('Add lowercase letters');
-    }
+		if (/[A-Z]/.test(password)) {
+			score += 20
+		} else {
+			feedback.push('Add uppercase letters')
+		}
 
-    if (/\d/.test(password)) {
-      score += 20;
-    } else {
-      feedback.push('Add numbers');
-    }
+		if (/[a-z]/.test(password)) {
+			score += 20
+		} else {
+			feedback.push('Add lowercase letters')
+		}
 
-    if (/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>?]/.test(password)) {
-      score += 20;
-    } else {
-      feedback.push('Add special characters');
-    }
+		if (/\d/.test(password)) {
+			score += 20
+		} else {
+			feedback.push('Add numbers')
+		}
 
-    // Bonus points for length
-    if (password.length >= 12) score += 10;
-    if (password.length >= 16) score += 10;
+		if (/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>?]/.test(password)) {
+			score += 20
+		} else {
+			feedback.push('Add special characters')
+		}
 
-    return {
-      score: Math.min(100, score),
-      feedback,
-      isStrong: score >= 80,
-    };
-  }
+		// Bonus points for length
+		if (password.length >= 12) score += 10
+		if (password.length >= 16) score += 10
 
-  public isEmailValid(email: string): boolean {
-    try {
-      new Email(email);
-      return true;
-    } catch {
-      return false;
-    }
-  }
+		return {
+			score: Math.min(100, score),
+			feedback,
+			isStrong: score >= 80
+		}
+	}
 
-  public normalizeEmail(email: string): string {
-    return email.toLowerCase().trim();
-  }
+	public isEmailValid(email: string): boolean {
+		try {
+			new Email(email)
+			return true
+		} catch {
+			return false
+		}
+	}
+
+	public normalizeEmail(email: string): string {
+		return email.toLowerCase().trim()
+	}
 }
