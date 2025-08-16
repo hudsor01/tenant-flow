@@ -1,4 +1,4 @@
-import { Module, Global } from '@nestjs/common'
+import { Global, Module } from '@nestjs/common'
 import { ZodValidationService } from './zod-validation.pipe'
 import { ZodErrorMappingService } from './zod-error-mapping.service'
 import { RuntimeTypeCheckerService } from './runtime-type-checker.service'

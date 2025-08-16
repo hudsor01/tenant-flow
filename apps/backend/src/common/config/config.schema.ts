@@ -314,9 +314,9 @@ export const createDerivedConfig = (config: Config) => ({
   // Deployment Platform Detection
   deployment: {
     platform: (() => {
-      if (config.RAILWAY_ENVIRONMENT) return 'railway' as const
-      if (config.VERCEL_ENV) return 'vercel' as const
-      if (config.DOCKER_CONTAINER) return 'docker' as const
+      if (config.RAILWAY_ENVIRONMENT) {return 'railway' as const}
+      if (config.VERCEL_ENV) {return 'vercel' as const}
+      if (config.DOCKER_CONTAINER) {return 'docker' as const}
       return 'unknown' as const
     })(),
     

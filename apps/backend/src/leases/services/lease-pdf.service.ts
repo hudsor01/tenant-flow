@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { PDFGeneratorService } from '../../common/pdf/pdf-generator.service'
 import { LeaseRepository } from '../lease.repository'
 import { ErrorHandlerService } from '../../common/errors/error-handler.service'
-import type { Lease, Tenant, Unit, Property } from '@repo/database'
+import type { Lease, Property, Tenant, Unit } from '@repo/database'
 
 export interface LeasePDFOptions {
   /** Whether to include company branding */

@@ -1,9 +1,10 @@
-import { IsOptional, IsEnum, IsString, IsUUID, IsInt, Min, Max } from 'class-validator'
+import { IsEnum, IsInt, IsOptional, IsString, IsUUID, Max, Min } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
 import { Priority, RequestStatus } from '@repo/database'
 import { BaseQueryOptions } from '../../common/services/base-crud.service'
+import { MaintenanceQueryInput } from '@repo/shared'
 
-export class MaintenanceRequestQueryDto implements BaseQueryOptions {
+export class MaintenanceRequestQueryDto implements BaseQueryOptions, MaintenanceQueryInput {
   @IsOptional()
   @IsEnum(RequestStatus, { message: 'Status must be one of: OPEN, IN_PROGRESS, COMPLETED, CANCELED, ON_HOLD' })
   status?: RequestStatus

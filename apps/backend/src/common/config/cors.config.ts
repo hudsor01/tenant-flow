@@ -16,7 +16,7 @@ const corsConfigSchema = z.object({
     .default('')
     .transform((str) => {
       // Transform comma-separated string to array
-      if (!str) return []
+      if (!str) {return []}
       return str.split(',').map(origin => origin.trim()).filter(Boolean)
     })
     .refine(

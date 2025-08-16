@@ -1,4 +1,4 @@
-import { Module, Global } from '@nestjs/common'
+import { Global, Module } from '@nestjs/common'
 import { APP_FILTER, APP_GUARD } from '@nestjs/core'
 import { ErrorHandlerService } from './error-handler.service'
 import { GlobalExceptionFilter } from '../filters/global-exception.filter'

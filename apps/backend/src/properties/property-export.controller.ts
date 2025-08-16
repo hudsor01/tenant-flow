@@ -1,11 +1,11 @@
 import { 
   Controller, 
   Get, 
-  UseGuards, 
-  Query, 
+  HttpException, 
+  HttpStatus, 
+  Query,
   Res,
-  HttpStatus,
-  HttpException
+  UseGuards
 } from '@nestjs/common'
 import { FastifyReply } from 'fastify'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
@@ -180,8 +180,8 @@ export class PropertyExportController {
 
   // Helper methods
   private convertToCSV(data: Record<string, unknown>[]): string {
-    if (data.length === 0) return ''
-    if (!data[0]) return ''
+    if (data.length === 0) {return ''}
+    if (!data[0]) {return ''}
     
     const headers = Object.keys(data[0])
     const csvContent = [

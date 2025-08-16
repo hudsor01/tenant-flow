@@ -1,4 +1,4 @@
-import { Controller, Get, Inject, forwardRef } from '@nestjs/common'
+import { Controller, forwardRef, Get, Inject } from '@nestjs/common'
 import { Public } from '../auth/decorators/public.decorator'
 import { PrismaService } from '../prisma/prisma.service'
 import { Logger } from '@nestjs/common'

@@ -1,17 +1,17 @@
 import { 
-  type EmailTemplateConfig, 
+  Day3EducationDataSchema, 
+  Day7DemoDataSchema,
+  type EmailTemplateConfig,
   type EmailTemplateName,
   type ExtractEmailData,
-  WelcomeEmailDataSchema,
-  TenantInvitationDataSchema,
-  PaymentReminderDataSchema,
-  LeaseExpirationDataSchema,
-  PropertyTipsDataSchema,
   FeatureAnnouncementDataSchema,
-  Day3EducationDataSchema,
-  Day7DemoDataSchema,
+  LeaseExpirationDataSchema,
+  type PaymentReminderData,
+  PaymentReminderDataSchema,
+  PropertyTipsDataSchema,
   ReEngagementDataSchema,
-  type PaymentReminderData
+  TenantInvitationDataSchema,
+  WelcomeEmailDataSchema
 } from '../types/email-templates.types'
 
 // Template configurations - centralized and easily extensible

@@ -251,9 +251,9 @@ export class WebhookErrorMonitorService {
     const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000)
     
     return this.errors.filter(error => {
-      if (error.timestamp < cutoff) return false
-      if (eventType && error.eventType !== eventType) return false
-      if (severity && error.severity !== severity) return false
+      if (error.timestamp < cutoff) {return false}
+      if (eventType && error.eventType !== eventType) {return false}
+      if (severity && error.severity !== severity) {return false}
       return true
     })
   }
@@ -284,7 +284,7 @@ export class WebhookErrorMonitorService {
       errorsBySeverity[error.severity] = (errorsBySeverity[error.severity] || 0) + 1
       errorMessages[error.errorMessage] = (errorMessages[error.errorMessage] || 0) + 1
       totalRetryAttempts += error.retryAttempt
-      if (error.isRetriable) retriableCount++
+      if (error.isRetriable) {retriableCount++}
     })
 
     const topErrorMessages = Object.entries(errorMessages)

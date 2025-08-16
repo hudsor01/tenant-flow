@@ -1,4 +1,4 @@
-import { Module, forwardRef } from '@nestjs/common'
+import { forwardRef, Module } from '@nestjs/common'
 import { BillingController } from './billing.controller'
 import { StripeModule } from '../stripe/stripe.module'
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module'

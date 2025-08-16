@@ -323,7 +323,7 @@ export class CsrfTokenService implements OnModuleInit {
 
   private cleanupSessionTokens(sessionId: string): void {
     const sessionTokens = this.sessionTokens.get(sessionId)
-    if (!sessionTokens) return
+    if (!sessionTokens) {return}
     
     const now = Date.now()
     let expiredCount = 0

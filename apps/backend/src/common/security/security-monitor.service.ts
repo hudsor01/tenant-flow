@@ -145,7 +145,7 @@ export class SecurityMonitorService {
 
     if (!success) {
       ipTracking.count++
-      if (emailTracking) emailTracking.count++
+      if (emailTracking) {emailTracking.count++}
 
       // Check if should block
       if (ipTracking.count >= maxAttempts) {

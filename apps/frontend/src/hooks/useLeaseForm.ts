@@ -3,10 +3,11 @@
  * Provides form handling for lease creation and editing
  */
 import { useState, useCallback } from 'react';
+import { z } from 'zod';
 import { logger } from '@/lib/logger'
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { leaseInputSchema } from '@repo/shared/validation/leases';
 import { toast } from 'sonner';
 import type { Lease, CreateLeaseInput, UpdateLeaseInput } from '@repo/shared';
 
@@ -29,19 +30,12 @@ interface LeaseWithEnhancedData extends Omit<Lease, 'status'> {
   signatureStatus?: 'UNSIGNED' | 'PENDING' | 'SIGNED';
 }
 
-// Lease form schema - aligned with API input types and component usage
-const leaseFormSchema = z.object({
-  propertyId: z.string().min(1, 'Property is required'),
-  unitId: z.string().min(1, 'Unit is required'),
-  tenantId: z.string().min(1, 'Tenant is required'),
-  startDate: z.string().min(1, 'Start date is required'),
-  endDate: z.string().min(1, 'End date is required'),
-  rentAmount: z.number().min(0, 'Rent amount must be positive'),
-  securityDeposit: z.number().min(0, 'Security deposit must be positive').optional(),
+// Extended lease form schema for enhanced lease management UI
+const leaseFormSchema = leaseInputSchema.extend({
+  // Enhanced lease management fields for UI
   lateFeeDays: z.number().min(0).optional(),
   lateFeeAmount: z.number().min(0).optional(),
   leaseTerms: z.string().optional(),
-  status: z.enum(['DRAFT', 'PENDING_REVIEW', 'PENDING_SIGNATURES', 'SIGNED', 'ACTIVE', 'EXPIRED', 'TERMINATED', 'PENDING_RENEWAL']).optional(),
   templateId: z.string().optional(),
   signatureStatus: z.enum(['UNSIGNED', 'PENDING', 'SIGNED']).optional(),
 });

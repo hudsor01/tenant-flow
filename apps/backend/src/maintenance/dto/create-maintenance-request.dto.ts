@@ -1,20 +1,21 @@
 import {
-  IsString,
+  IsArray,
+  IsBoolean,
+  IsDateString,
+  IsEnum,
   IsNotEmpty,
   IsOptional,
-  IsEnum,
-  IsBoolean,
-  IsUUID,
   IsPhoneNumber,
-  IsArray,
-  MinLength,
+  IsString,
+  IsUUID,
   MaxLength,
-  IsDateString
+  MinLength
 } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
 import { Priority, RequestStatus } from '@repo/database'
+import { CreateMaintenanceRequestInput } from '@repo/shared'
 
-export class CreateMaintenanceRequestDto {
+export class CreateMaintenanceRequestDto implements CreateMaintenanceRequestInput {
   @IsUUID(4, { message: 'Unit ID must be a valid UUID' })
   @IsNotEmpty({ message: 'Unit ID is required' })
   unitId!: string

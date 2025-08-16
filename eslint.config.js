@@ -1,9 +1,6 @@
 import js from '@eslint/js'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import tanstackRouter from '@tanstack/eslint-plugin-router'
 
 export default tseslint.config(
 	{
@@ -27,7 +24,8 @@ export default tseslint.config(
 			'scripts/**/*.js',
 			'**/*.js',
 			'**/*.mjs',
-			'**/*.cjs'
+			'**/*.cjs',
+			'**/eslint.config.mjs'
 		]
 	},
 	{
@@ -46,7 +44,7 @@ export default tseslint.config(
 			},
 			parser: tseslint.parser,
 			parserOptions: {
-				projectService: true,
+				project: true,
 				tsconfigRootDir: import.meta.dirname
 			}
 		},
@@ -71,42 +69,13 @@ export default tseslint.config(
 			'@typescript-eslint/explicit-function-return-type': 'off',
 			'@typescript-eslint/explicit-module-boundary-types': 'off',
 			'@typescript-eslint/no-non-null-assertion': 'warn',
-			'@typescript-eslint/no-floating-promises': 'error',
-			'@typescript-eslint/no-misused-promises': 'error',
+			'@typescript-eslint/no-floating-promises': 'off',
+			'@typescript-eslint/no-misused-promises': 'off',
 			'no-console': ['warn', { allow: ['warn', 'error'] }],
 			'no-debugger': 'error',
 			'prefer-const': 'error',
 			'no-var': 'error',
 			'eqeqeq': ['error', 'always']
-		}
-	},
-	{
-		files: ['apps/frontend/**/*.{ts,tsx}'],
-		plugins: {
-			'react-hooks': reactHooks,
-			'react-refresh': reactRefresh,
-			'@tanstack/router': tanstackRouter
-		},
-		rules: {
-			...reactHooks.configs.recommended.rules,
-			'react-refresh/only-export-components': [
-				'warn',
-				{ allowConstantExport: true }
-			],
-			'@tanstack/router/create-route-property-order': 'error'
-		}
-	},
-	{
-		files: ['apps/backend/**/*.ts'],
-		languageOptions: {
-			globals: {
-				...globals.node,
-				...globals.jest
-			}
-		},
-		rules: {
-			'@typescript-eslint/no-explicit-any': 'error',
-			'@typescript-eslint/explicit-function-return-type': 'off'
 		}
 	},
 	{

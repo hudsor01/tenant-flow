@@ -1,4 +1,4 @@
-import type { EmailTemplateName, AnyEmailData } from './email-templates.types'
+import type { AnyEmailData, EmailTemplateName } from './email-templates.types'
 
 export interface EmailJob {
   to: string[]

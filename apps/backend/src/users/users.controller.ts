@@ -1,12 +1,12 @@
 import {
+	Body,
 	Controller,
 	Get,
-	Post,
-	Put,
-	Param,
-	Body,
 	HttpException,
 	HttpStatus,
+	Param,
+	Post,
+	Put,
 	UseGuards
 } from '@nestjs/common'
 import { UsersService } from './users.service'
@@ -15,7 +15,7 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { ValidatedUser } from '../auth/auth.service'
 import { AuditLog } from '../common/decorators/audit-log.decorator'
 import type { UserCreationResult } from './users.service'
-import type { UpdateUserProfileInput, EnsureUserExistsInput } from '@repo/shared'
+import type { EnsureUserExistsInput, UpdateUserProfileInput } from '@repo/shared'
 
 
 

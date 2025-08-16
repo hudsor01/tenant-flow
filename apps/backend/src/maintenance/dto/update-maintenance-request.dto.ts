@@ -1,9 +1,10 @@
 import { PartialType } from '@nestjs/mapped-types'
 import { CreateMaintenanceRequestDto } from './create-maintenance-request.dto'
-import { IsOptional, IsEnum } from 'class-validator'
-import { RequestStatus, Priority } from '@repo/database'
+import { IsEnum, IsOptional } from 'class-validator'
+import { Priority, RequestStatus } from '@repo/database'
+import { UpdateMaintenanceRequestInput } from '@repo/shared'
 
-export class UpdateMaintenanceRequestDto extends PartialType(CreateMaintenanceRequestDto) {
+export class UpdateMaintenanceRequestDto extends PartialType(CreateMaintenanceRequestDto) implements UpdateMaintenanceRequestInput {
   @IsEnum(RequestStatus, { message: 'Status must be one of: OPEN, IN_PROGRESS, COMPLETED, CANCELED, ON_HOLD' })
   @IsOptional()
   override status?: RequestStatus

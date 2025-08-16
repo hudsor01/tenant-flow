@@ -1,4 +1,4 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, Logger, Req } from '@nestjs/common'
+import { Body, Controller, HttpCode, HttpStatus, Logger, Post, Req } from '@nestjs/common'
 import { Public } from '../../auth/decorators/public.decorator'
 import { SecurityMonitorService } from '../security/security-monitor.service'
 import { FastifyRequest } from 'fastify'

@@ -4,6 +4,12 @@
  */
 
 export * from './common'
+export * from './properties'
+export * from './tenants'
+export * from './units'
+export * from './maintenance'
+export * from './leases'
+export * from './documents'
 
 // Re-export specific schemas that are commonly used
 export { 

@@ -122,7 +122,7 @@ export const SanitizedStringSchema = z.string()
  */
 export function sanitizeAndValidateString(input: unknown): string | null {
     try {
-        if (typeof input !== 'string') return null
+        if (typeof input !== 'string') {return null}
         return SanitizedStringSchema.parse(input)
     } catch (error) {
         logger.warn('String sanitization failed', {

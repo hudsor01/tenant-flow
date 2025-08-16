@@ -1,20 +1,20 @@
 import {
-  Controller,
-  Post,
-  Get,
   Body,
-  Query,
+  Controller,
+  Get,
   HttpCode,
   HttpStatus,
-  Logger
+  Logger,
+  Post,
+  Query
 } from '@nestjs/common'
 import Stripe from 'stripe'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { StripeBillingService } from '../stripe/stripe-billing.service'
 import { StripeService } from '../stripe/stripe.service'
 import { SubscriptionsManagerService } from '../subscriptions/subscriptions-manager.service'
-import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger'
+import { ErrorCode, ErrorHandlerService } from '../common/errors/error-handler.service'
+import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 import type { PlanType } from '@repo/database'
 import {
   CreateCheckoutSessionDto,
@@ -409,14 +409,14 @@ export class BillingController {
   // }
 
   private async getBillingInterval(stripePriceId?: string | null): Promise<'monthly' | 'annual' | null> {
-    if (!stripePriceId) return null
+    if (!stripePriceId) {return null}
 
     // Check all plans to find matching price ID
     const plans = ['FREETRIAL', 'STARTER', 'GROWTH', 'TENANTFLOW_MAX'] as PlanType[]
     for (const planType of plans) {
       const plan = await this.subscriptionsService.getPlanById(planType)
-      if (plan?.stripePriceIds.monthly === stripePriceId) return 'monthly'
-      if (plan?.stripePriceIds.annual === stripePriceId) return 'annual'
+      if (plan?.stripePriceIds.monthly === stripePriceId) {return 'monthly'}
+      if (plan?.stripePriceIds.annual === stripePriceId) {return 'annual'}
     }
 
     return null

@@ -1,10 +1,11 @@
 import { PartialType } from '@nestjs/mapped-types'
 import { CreateDocumentDto } from './create-document.dto'
-import { IsOptional, IsEnum, IsString, MaxLength } from 'class-validator'
+import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator'
 import { DocumentType } from '@repo/database'
 import { Transform } from 'class-transformer'
+import { UpdateDocumentInput } from '@repo/shared'
 
-export class UpdateDocumentDto extends PartialType(CreateDocumentDto) {
+export class UpdateDocumentDto extends PartialType(CreateDocumentDto) implements UpdateDocumentInput {
   @IsString()
   @IsOptional()
   @MaxLength(255, { message: 'Document name cannot exceed 255 characters' })

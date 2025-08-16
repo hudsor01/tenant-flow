@@ -1,4 +1,4 @@
-import { SetMetadata, Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, SetMetadata } from '@nestjs/common'
 import { SecurityEventType } from '@repo/shared'
 
 export interface AuditLogOptions {

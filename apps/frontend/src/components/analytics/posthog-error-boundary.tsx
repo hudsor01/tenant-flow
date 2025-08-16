@@ -1,6 +1,6 @@
 'use client'
 
-import React, { Component, ReactNode } from 'react'
+import React, { Component, type ReactNode } from 'react'
 import { logger } from '@/lib/logger'
 import posthog from 'posthog-js'
 

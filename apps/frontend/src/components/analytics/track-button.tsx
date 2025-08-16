@@ -1,6 +1,6 @@
 'use client'
 
-import { ButtonHTMLAttributes, forwardRef } from 'react'
+import { type ButtonHTMLAttributes, forwardRef } from 'react'
 import { usePostHog } from '@/hooks/use-posthog'
 import type { TenantFlowEvent, EventProperties } from '@/hooks/use-posthog'
 

@@ -5,7 +5,7 @@ import type { CreatePropertyInput, UpdatePropertyInput } from '@repo/shared'
 import type { PropertyFormProps, BaseComponentProps } from '@/types'
 import { useForm, FormProvider, type Control } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
+import { propertyFormSchema, type PropertyFormData } from '@repo/shared/validation/properties'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -17,19 +17,6 @@ import { closeModalAtom } from '@/atoms/ui/modals'
 import { PropertiesApi } from '@/lib/api/properties'
 import { toast } from 'sonner'
 
-// Form validation schema
-const propertyFormSchema = z.object({
-  name: z.string().min(1, 'Property name is required'),
-  address: z.string().min(1, 'Address is required'),
-  city: z.string().min(1, 'City is required'),
-  state: z.string().min(1, 'State is required'),
-  zipCode: z.string().min(1, 'ZIP code is required'),
-  description: z.string().optional(),
-  propertyType: z.enum(['SINGLE_FAMILY', 'MULTI_UNIT', 'APARTMENT', 'COMMERCIAL']),
-  imageUrl: z.string().optional(),
-})
-
-type PropertyFormData = z.infer<typeof propertyFormSchema>
 
 interface PropertyImageUploadProps extends BaseComponentProps {
   propertyId: string

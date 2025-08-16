@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, ReactNode, useMemo } from 'react'
+import { createContext, useContext, type ReactNode, useMemo } from 'react'
 import { usePricingPageData } from '@/hooks/use-pricing-page-data'
 import { useUserSubscriptionContext } from '@/hooks/use-user-subscription-context'
 import { useAuth } from '@/hooks/use-auth'
@@ -51,7 +51,7 @@ interface PricingContextValue {
 const PricingContext = createContext<PricingContextValue | undefined>(undefined)
 
 export function PricingProvider({ children }: { children: ReactNode }) {
-  const { } = useAuth()
+  const _auth = useAuth()
   const { data: pricingData, isLoading: pricingLoading, error: pricingError } = usePricingPageData()
   const { data: userContext, isLoading: contextLoading, error: contextError } = useUserSubscriptionContext()
 

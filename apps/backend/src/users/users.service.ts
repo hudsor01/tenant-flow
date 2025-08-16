@@ -250,7 +250,7 @@ export class UsersService {
 	private isNonRetryableError(
 		error: string | Error | Record<string, string | number | boolean | null>
 	): boolean {
-		if (!error) return false
+		if (!error) {return false}
 
 		const errorObject = error as { message?: string; code?: string }
 		const message = errorObject?.message?.toLowerCase() || ''

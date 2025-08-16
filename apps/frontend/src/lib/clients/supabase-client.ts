@@ -1,4 +1,4 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { supabaseUrl, supabaseAnonKey } from './env';
 
 let _supabase: SupabaseClient | null = null;

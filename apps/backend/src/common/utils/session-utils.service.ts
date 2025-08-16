@@ -20,7 +20,7 @@ export class SessionUtilsService {
       try {
         const token = authHeader.substring(7)
         const tokenParts = token.split('.')
-        if (tokenParts.length !== 3 || !tokenParts[1]) return null
+        if (tokenParts.length !== 3 || !tokenParts[1]) {return null}
         // Extract user ID from JWT payload (without verification - just for session ID)
         const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString())
         return payload.sub || payload.user_id || payload.id
@@ -48,7 +48,7 @@ export class SessionUtilsService {
   extractUserIdFromJWT(token: string): string | null {
     try {
       const tokenParts = token.split('.')
-      if (tokenParts.length !== 3 || !tokenParts[1]) return null
+      if (tokenParts.length !== 3 || !tokenParts[1]) {return null}
       
       const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString())
       return payload.sub || payload.user_id || payload.id
@@ -62,7 +62,7 @@ export class SessionUtilsService {
    */
   extractSessionCookie(request: FastifyRequest): string | null {
     const cookies = request.headers.cookie
-    if (!cookies) return null
+    if (!cookies) {return null}
     
     const sessionMatch = cookies.match(/session=([^;]+)/)
     return sessionMatch?.[1] || null

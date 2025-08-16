@@ -1,8 +1,9 @@
-import { IsNotEmpty, IsOptional, IsString, IsNumber, IsPositive, IsEnum, IsUUID, Min, Max, IsArray } from 'class-validator'
+import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID, Max, Min } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
 import { UnitStatus } from '@repo/database'
+import { CreateUnitInput } from '@repo/shared'
 
-export class UnitCreateDto {
+export class UnitCreateDto implements CreateUnitInput {
   @IsNotEmpty({ message: 'Unit number is required' })
   @IsString({ message: 'Unit number must be a string' })
   @Transform(({ value }) => value?.trim())

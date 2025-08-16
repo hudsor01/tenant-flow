@@ -181,7 +181,7 @@ export class CacheMetricsService {
     const overallTimes: number[] = []
     
     this.metrics.responseTime.forEach((times, prefix) => {
-      if (times.length === 0) return
+      if (times.length === 0) {return}
       
       const sorted = [...times].sort((a, b) => a - b)
       byEntity[prefix] = {
@@ -252,7 +252,7 @@ export class CacheMetricsService {
    * Calculate percentile from sorted array
    */
   private percentile(sorted: number[], p: number): number {
-    if (sorted.length === 0) return 0
+    if (sorted.length === 0) {return 0}
     
     const index = Math.ceil((p / 100) * sorted.length) - 1
     return sorted[Math.max(0, Math.min(index, sorted.length - 1))] ?? 0
@@ -291,7 +291,7 @@ export class CacheMetricsService {
     if (performanceMetrics.overall.averageResponseTime > 100) {
       issues.push(`Slow cache response time: ${performanceMetrics.overall.averageResponseTime.toFixed(1)}ms`)
       recommendations.push('Consider cache service optimization or hardware upgrade')
-      if (status === 'healthy') status = 'degraded'
+      if (status === 'healthy') {status = 'degraded'}
     }
     
     return { status, issues, recommendations }

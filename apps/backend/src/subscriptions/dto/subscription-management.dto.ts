@@ -1,8 +1,8 @@
-import { IsEnum, IsOptional, IsString, MaxLength, IsIn } from 'class-validator'
+import { IsEnum, IsIn, IsOptional, IsString, MaxLength } from 'class-validator'
 import { Transform } from 'class-transformer'
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import type { PlanType } from '@repo/database'
-import type { ProrationBehavior, BillingPeriod } from '@repo/shared/types/stripe'
+import type { BillingPeriod, ProrationBehavior } from '@repo/shared/types/stripe'
 
 /**
  * Validation DTO for subscription upgrade requests

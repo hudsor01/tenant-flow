@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { InjectQueue } from '@nestjs/bull'
-import { Queue, Job, JobOptions } from 'bull'
+import { Job, JobOptions, Queue } from 'bull'
 import { QUEUE_NAMES } from './constants/queue-names'
 
 export interface QueueJob<T = unknown> {

@@ -7,9 +7,9 @@ import { z } from 'zod'
 import DOMPurify from 'isomorphic-dompurify'
 
 import { 
-  EmailTemplateName, 
+  EmailDataSchemas, 
   EmailTemplateConfig,
-  EmailDataSchemas,
+  EmailTemplateName,
   ExtractEmailData
 } from '../types/email-templates.types'
 import { EMAIL_TEMPLATES, generateSubject } from '../config/email-templates.config'

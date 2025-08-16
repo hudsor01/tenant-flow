@@ -1,8 +1,13 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npx turbo run build --filter=@repo/frontend",
-  "installCommand": "npm install --include=dev",
+  "buildCommand": "npm run db:generate && cd packages/shared && npm run build && cd ../../apps/frontend && npm run build",
+  "installCommand": "npm install --include=dev && npm install --no-save --platform=linuxmusl --arch=x64 lightningcss @tailwindcss/oxide",
+  "framework": "nextjs",
   "outputDirectory": "apps/frontend/.next",
+  "env": {
+    "npm_config_target_platform": "linuxmusl",
+    "npm_config_target_arch": "x64"
+  },
   "redirects": [
     {
       "source": "/home",

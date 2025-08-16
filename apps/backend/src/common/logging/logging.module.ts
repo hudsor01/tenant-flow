@@ -1,5 +1,5 @@
-import { Module, Global } from '@nestjs/common'
-import { AuditLogger, PerformanceLogger, createLogger } from './logger.config'
+import { Global, Module } from '@nestjs/common'
+import { AuditLogger, createLogger, PerformanceLogger } from './logger.config'
 import { FastifyRequestLoggerService } from './fastify-request-logger.service'
 
 /**

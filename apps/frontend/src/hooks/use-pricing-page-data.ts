@@ -3,7 +3,7 @@
  * Consolidates all pricing-related data fetching with multi-layer caching
  */
 
-import { useQuery, UseQueryResult } from '@tanstack/react-query'
+import { useQuery, type UseQueryResult } from '@tanstack/react-query'
 import { BillingApi } from '@/lib/api/billing'
 import { 
   ENHANCED_PRODUCT_TIERS, 

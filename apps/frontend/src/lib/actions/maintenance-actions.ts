@@ -2,39 +2,13 @@
 
 import { revalidateTag, revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { z } from 'zod';
 import { apiClient } from '@/lib/api-client';
+import { 
+  maintenanceInputSchema, 
+  maintenanceUpdateSchema,
+  maintenanceCommentSchema 
+} from '@repo/shared/validation/maintenance';
 import type { MaintenanceRequest } from '@repo/shared/types/maintenance';
-
-// Maintenance request form schema
-const MaintenanceSchema = z.object({
-  propertyId: z.string().min(1, 'Property is required'),
-  tenantId: z.string().optional(),
-  unitId: z.string().optional(),
-  title: z.string().min(1, 'Title is required'),
-  description: z.string().min(10, 'Description must be at least 10 characters'),
-  priority: z.enum(['low', 'medium', 'high', 'urgent']),
-  category: z.enum(['plumbing', 'electrical', 'hvac', 'appliances', 'general', 'pest_control', 'security']),
-  status: z.enum(['open', 'in_progress', 'completed', 'cancelled']).optional(),
-  requestedBy: z.string().optional(),
-  assignedTo: z.string().optional(),
-  scheduledDate: z.string().optional(),
-  estimatedCost: z.number().min(0, 'Estimated cost cannot be negative').optional(),
-  actualCost: z.number().min(0, 'Actual cost cannot be negative').optional(),
-  notes: z.string().optional(),
-});
-
-const MaintenanceUpdateSchema = z.object({
-  status: z.enum(['open', 'in_progress', 'completed', 'cancelled']),
-  assignedTo: z.string().optional(),
-  scheduledDate: z.string().optional(),
-  actualCost: z.number().min(0, 'Actual cost cannot be negative').optional(),
-  completionNotes: z.string().optional(),
-});
-
-const CommentSchema = z.object({
-  comment: z.string().min(1, 'Comment cannot be empty'),
-});
 
 export interface MaintenanceFormState {
   errors?: {
@@ -82,7 +56,7 @@ export async function createMaintenanceRequest(
     notes: formData.get('notes'),
   };
 
-  const result = MaintenanceSchema.safeParse(rawData);
+  const result = maintenanceInputSchema.safeParse(rawData);
 
   if (!result.success) {
     return {
@@ -140,7 +114,7 @@ export async function updateMaintenanceRequest(
     notes: formData.get('notes'),
   };
 
-  const result = MaintenanceSchema.safeParse(rawData);
+  const result = maintenanceInputSchema.safeParse(rawData);
 
   if (!result.success) {
     return {
@@ -219,7 +193,7 @@ export async function updateMaintenanceStatus(
     completionNotes: formData.get('completionNotes'),
   };
 
-  const result = MaintenanceUpdateSchema.safeParse(rawData);
+  const result = maintenanceUpdateSchema.safeParse(rawData);
 
   if (!result.success) {
     return {
@@ -299,7 +273,7 @@ export async function addMaintenanceComment(
     comment: formData.get('comment'),
   };
 
-  const result = CommentSchema.safeParse(rawData);
+  const result = maintenanceCommentSchema.safeParse(rawData);
 
   if (!result.success) {
     return {

@@ -7,7 +7,7 @@
  */
 
 import { Injectable, Logger } from '@nestjs/common'
-import { ErrorHandlerService, ErrorCode } from '../errors/error-handler.service'
+import { ErrorCode, ErrorHandlerService } from '../errors/error-handler.service'
 
 interface EntityRepository {
 	findById(id: string): Promise<Entity | null>
