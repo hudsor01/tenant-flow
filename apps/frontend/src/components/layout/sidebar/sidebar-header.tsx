@@ -87,13 +87,13 @@ export function SidebarHeader() {
   const getWorkspaceColor = (type: Workspace['type']) => {
     switch (type) {
       case 'personal':
-        return 'bg-primary'
+        return 'bg-gradient-to-br from-primary to-primary/80'
       case 'team':
-        return 'bg-green-500'
+        return 'bg-gradient-to-br from-green-500 to-green-600'
       case 'enterprise':
-        return 'bg-purple-500'
+        return 'bg-gradient-to-br from-purple-500 to-purple-600'
       default:
-        return 'bg-primary'
+        return 'bg-gradient-to-br from-primary to-primary/80'
     }
   }
 
@@ -101,14 +101,50 @@ export function SidebarHeader() {
     return (
       <div className="flex h-14 items-center justify-center border-b border-sidebar-border px-2">
         <motion.div
-          whileHover={{ scale: 1.05 }}
+          whileHover={{ 
+            scale: 1.05,
+            rotate: [0, -5, 5, 0],
+            transition: { 
+              duration: 0.6,
+              ease: [0.25, 0.46, 0.45, 0.94],
+              rotate: { 
+                duration: 0.8,
+                ease: "easeInOut"
+              }
+            }
+          }}
           whileTap={{ scale: 0.95 }}
+          animate={{
+            boxShadow: [
+              "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+              "0 10px 15px -3px rgb(0 0 0 / 0.1)",
+              "0 4px 6px -1px rgb(0 0 0 / 0.1)"
+            ]
+          }}
+          transition={{
+            boxShadow: {
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }
+          }}
           className={cn(
-            "flex h-10 w-10 items-center justify-center rounded-lg text-primary-foreground cursor-pointer",
+            "flex h-10 w-10 items-center justify-center rounded-lg text-primary-foreground cursor-pointer shadow-lg",
             getWorkspaceColor(currentWorkspace.type)
           )}
         >
-          {getWorkspaceIcon(currentWorkspace.type)}
+          <motion.div
+            animate={{ 
+              rotate: [0, 360],
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+          >
+            {getWorkspaceIcon(currentWorkspace.type)}
+          </motion.div>
         </motion.div>
         
         <Button
@@ -132,30 +168,91 @@ export function SidebarHeader() {
             className="h-10 w-full justify-start gap-2 px-2 hover:bg-sidebar-accent"
           >
             <motion.div
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ 
+                scale: 1.1,
+                rotate: [0, -3, 3, 0],
+                transition: { 
+                  duration: 0.4,
+                  ease: [0.25, 0.46, 0.45, 0.94]
+                }
+              }}
+              whileTap={{ scale: 0.9 }}
+              animate={{
+                y: [0, -2, 0],
+              }}
+              transition={{
+                y: {
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }
+              }}
               className={cn(
-                "flex h-8 w-8 items-center justify-center rounded-lg text-primary-foreground",
+                "flex h-8 w-8 items-center justify-center rounded-lg text-primary-foreground shadow-md ring-1 ring-white/10",
                 getWorkspaceColor(currentWorkspace.type)
               )}
             >
-              {getWorkspaceIcon(currentWorkspace.type)}
+              <motion.div
+                animate={{ 
+                  rotate: [0, 360],
+                }}
+                transition={{
+                  duration: 12,
+                  repeat: Infinity,
+                  ease: "linear"
+                }}
+              >
+                {getWorkspaceIcon(currentWorkspace.type)}
+              </motion.div>
             </motion.div>
             
             <div className="flex flex-1 flex-col items-start">
               <div className="flex items-center gap-1">
-                <span className="text-sm font-semibold truncate max-w-[120px]">
+                <motion.span 
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2, duration: 0.4 }}
+                  className="text-sm font-semibold truncate max-w-[120px]"
+                >
                   {currentWorkspace.name}
-                </span>
+                </motion.span>
                 {currentWorkspace.type === 'enterprise' && (
-                  <Sparkles className="h-3 w-3 text-purple-500" />
+                  <motion.div
+                    animate={{ 
+                      rotate: [0, 360],
+                      scale: [1, 1.2, 1]
+                    }}
+                    transition={{
+                      rotate: { duration: 4, repeat: Infinity, ease: "linear" },
+                      scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+                    }}
+                  >
+                    <Sparkles className="h-3 w-3 text-purple-500" />
+                  </motion.div>
                 )}
               </div>
-              <span className="text-xs text-sidebar-foreground/60">
+              <motion.span 
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.4 }}
+                className="text-xs text-sidebar-foreground/60"
+              >
                 {currentWorkspace.propertyCount} properties
-              </span>
+              </motion.span>
             </div>
             
-            <ChevronDown className="h-4 w-4 text-sidebar-foreground/60" />
+            <motion.div
+              animate={{ 
+                y: [0, 2, 0],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            >
+              <ChevronDown className="h-4 w-4 text-sidebar-foreground/60" />
+            </motion.div>
           </Button>
         </DropdownMenuTrigger>
         

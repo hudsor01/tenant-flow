@@ -111,7 +111,7 @@ export default registerAs('cors', (): CorsConfig => {
  * Helper function to get CORS config with proper typing
  * Usage: const corsConfig = getCorsConfig(configService)
  */
-export function getCorsConfig(configService: any): CorsConfig {
+export function getCorsConfig(configService: { get: (key: string) => unknown }): CorsConfig {
   return configService.get('cors') as CorsConfig
 }
 

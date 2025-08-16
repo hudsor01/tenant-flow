@@ -1,4 +1,20 @@
 import { useEffect } from 'react'
+import {
+  generateBreadcrumbSchema,
+  generateFAQSchema,
+  generateLocalBusinessSchema,
+  generateProductSchema,
+} from '@/lib/seo/generate-metadata'
+
+interface BreadcrumbItem {
+  name: string
+  url: string
+}
+
+interface FAQ {
+  question: string
+  answer: string
+}
 
 interface SEOProps {
 	title?: string
@@ -10,7 +26,12 @@ interface SEOProps {
 	noIndex?: boolean
 	canonical?: string
 	structuredData?: Record<string, unknown>
-	breadcrumb?: { name: string; url: string }[]
+	breadcrumb?: BreadcrumbItem[]
+	// Enhanced SEO features
+	faqs?: FAQ[]
+	includeLocalBusiness?: boolean
+	includeProduct?: boolean
+	customSchema?: Record<string, unknown>[]
 }
 
 const DEFAULT_SEO = {
@@ -33,7 +54,12 @@ export function SEO({
 	noIndex = false,
 	canonical,
 	structuredData,
-	breadcrumb
+	breadcrumb,
+	// Enhanced SEO features
+	faqs,
+	includeLocalBusiness = false,
+	includeProduct = false,
+	customSchema = [],
 }: SEOProps) {
 	const siteTitle = title ? `${title} | TenantFlow` : DEFAULT_SEO.title
 
@@ -176,28 +202,42 @@ export function SEO({
 		const finalStructuredData = structuredData || defaultStructuredData
 		addStructuredData(finalStructuredData)
 
-		// Add breadcrumb structured data if provided
-		if (breadcrumb && breadcrumb.length > 0) {
-			const breadcrumbtructuredData = {
-				'@context': 'https://schema.org',
-				'@type': 'BreadcrumbList',
-				itemListElement: breadcrumb.map((crumb, index) => ({
-					'@type': 'ListItem',
-					position: index + 1,
-					name: crumb.name,
-					item: crumb.url
-				}))
-			}
+		// Enhanced schema generation
+		const schemas = []
 
-			// Add breadcrumb script separately
-			const breadcrumbcript = document.createElement('script')
-			breadcrumbcript.type = 'application/ld+json'
-			breadcrumbcript.setAttribute('data-breadcrumb', 'true')
-			breadcrumbcript.textContent = JSON.stringify(
-				breadcrumbtructuredData
-			)
-			document.head.appendChild(breadcrumbcript)
+		// Add breadcrumb schema
+		if (breadcrumb && breadcrumb.length > 0) {
+			schemas.push(generateBreadcrumbSchema(breadcrumb))
 		}
+
+		// Add FAQ schema
+		if (faqs && faqs.length > 0) {
+			schemas.push(generateFAQSchema(faqs))
+		}
+
+		// Add local business schema
+		if (includeLocalBusiness) {
+			schemas.push(generateLocalBusinessSchema())
+		}
+
+		// Add product schema
+		if (includeProduct) {
+			schemas.push(generateProductSchema())
+		}
+
+		// Add custom schemas
+		if (customSchema.length > 0) {
+			schemas.push(...customSchema)
+		}
+
+		// Add all enhanced schemas to the page
+		schemas.forEach((schema, index) => {
+			const script = document.createElement('script')
+			script.type = 'application/ld+json'
+			script.setAttribute('data-enhanced-seo', `true-${index}`)
+			script.textContent = JSON.stringify(schema)
+			document.head.appendChild(script)
+		})
 
 		// Cleanup function to reset title and remove structured data when component unmounts
 		return () => {
@@ -208,12 +248,11 @@ export function SEO({
 			if (structuredDataScript) {
 				structuredDataScript.remove()
 			}
-			const breadcrumbcript = document.querySelector(
-				'script[type="application/ld+json"][data-breadcrumb]'
+			// Remove all enhanced SEO scripts
+			const enhancedScripts = document.querySelectorAll(
+				'script[type="application/ld+json"][data-enhanced-seo]'
 			)
-			if (breadcrumbcript) {
-				breadcrumbcript.remove()
-			}
+			enhancedScripts.forEach(script => script.remove())
 		}
 	}, [
 		siteTitle,
@@ -225,7 +264,11 @@ export function SEO({
 		noIndex,
 		canonical,
 		structuredData,
-		breadcrumb
+		breadcrumb,
+		faqs,
+		includeLocalBusiness,
+		includeProduct,
+		customSchema,
 	])
 
 	return null // This component doesn't render anything visually

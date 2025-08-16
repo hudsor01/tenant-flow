@@ -116,10 +116,11 @@ export class FastifyPluginsConfigService {
 		const documentsDir = path.join(process.cwd(), 'documents')
 
 		// Serve uploaded files
+		const hostConstraint = _configService.get<string>('HOST')
 		await app.register(fastifyStatic.default, {
 			root: uploadsDir,
 			prefix: '/uploads/',
-			constraints: { host: _configService.get<string>('HOST') },
+			...(hostConstraint && { constraints: { host: hostConstraint } }),
 			cacheControl: true,
 			dotfiles: 'deny',
 			etag: true,
@@ -136,7 +137,7 @@ export class FastifyPluginsConfigService {
 		await app.register(fastifyStatic.default, {
 			root: documentsDir,
 			prefix: '/documents/',
-			constraints: { host: _configService.get<string>('HOST') },
+			...(hostConstraint && { constraints: { host: hostConstraint } }),
 			cacheControl: true,
 			dotfiles: 'deny',
 			etag: true,
