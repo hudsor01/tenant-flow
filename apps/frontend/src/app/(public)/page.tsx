@@ -13,7 +13,7 @@ import {
   FooterSection,
 } from '@/components/landing'
 import { OAuthRedirectHandler } from '@/components/auth/oauth-redirect-handler'
-import { SEO } from '@/components/seo/SEO'
+import { SEO } from '@/components/seo/seo'
 
 const COMMON_FAQS = {
   homepage: [
