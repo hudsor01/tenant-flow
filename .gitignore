@@ -1,103 +1,24 @@
-# Official GitHub-aligned .gitignore for TurboRepo + Next.js + Node.js
-# Based on: github.com/github/gitignore templates
-
 # ========================================
-# DEPENDENCIES (Node.js Official)
+# CRITICAL SECURITY - ENVIRONMENT & SECRETS
 # ========================================
-node_modules/
-jspm_packages/
-.pnp
-.pnp.js
-
-# Yarn v3 (Node.js Official)
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/sdks
-!.yarn/versions
-
-# ========================================
-# LOGS (Node.js Official)
-# ========================================
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
-
-# Diagnostic reports (Node.js Official)
-report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
-
-# ========================================
-# RUNTIME & BUILD (Node.js + Next.js Official)
-# ========================================
-pids
-*.pid
-*.seed
-*.pid.lock
-
-# Build outputs
-/build
-/dist
-/.next/
-/out/
-.nuxt
-
-# Coverage directory (Node.js Official)
-coverage
-*.lcov
-.nyc_output
-
-# ========================================
-# CACHING (Node.js + TurboRepo Official)
-# ========================================
-.npm
-.eslintcache
-.stylelintcache
-.cache
-.parcel-cache
-.fusebox/
-*.tsbuildinfo
-
-# TurboRepo (Vercel Official)
-.turbo/
-
-# ========================================
-# ENVIRONMENT VARIABLES & SECRETS (Security Critical)
-# ========================================
-# Environment files (all variants)
+# RULE: Ignore ALL .env files - NO EXCEPTIONS
+# User requirement: No .env files should be committed, period.
 .env
 .env.*
-.env.example
-.env.example.*
-.env.example.complete
-.env.example.nextjs
+*.env
+**/.env
+**/.env.*
 
 # Local environment files
 .env.local
 .env*.local
+*.local
 
-# Production/staging environment files
-.env.production
-.env.staging
-.env.development
-
-# Service-specific environment files
-.env.database
-.env.redis
-.env.stripe
-.env.aws
-.env.google
-
-# Vercel environment files
-.vercel/.env.*
-.vercel/env.*
+# NO EXCEPTIONS - We don't commit ANY .env files
+# Not even examples - they should be in documentation
 
 # ========================================
-# SECURITY & SECRETS (Critical Security Patterns)
+# SECRETS & CREDENTIALS (CRITICAL)
 # ========================================
 # Private keys and certificates
 *.key
@@ -109,26 +30,59 @@ coverage
 *.jks
 *.keystore
 *.p8
+*.der
+*.cer
 
 # SSH keys
-id_rsa
-id_dsa
-id_ecdsa
-id_ed25519
+id_rsa*
+id_dsa*
+id_ecdsa*
+id_ed25519*
+*_rsa
+*_dsa
+*_ecdsa  
+*_ed25519
 known_hosts
+authorized_keys
+**/*_rsa
+**/*_dsa
+**/*_ecdsa
+**/*_ed25519
 
 # GPG keys
 *.gpg
 *.asc
 
-# Secret directories and files
-secrets/
-secret/
-.secrets/
-*.secret
-*.secrets
-secret.*
-secrets.*
+# API keys and tokens
+**/api[_-]key*
+**/api[_-]secret*
+**/*[_-]token*
+**/*[_-]secret*
+**/credentials*
+**/*.credentials
+.api-keys
+api-keys.*
+*.api-key
+.tokens
+tokens.*
+*.token
+
+# Service accounts
+**/service[_-]account*
+**/gcp[_-]key*
+**/aws[_-]credentials*
+**/firebase[_-]admin*
+service-account*.json
+*.service-account.json
+gcloud-service-key.json
+
+# Database URLs
+**/*connection[_-]string*
+**/*database[_-]url*
+**/*db[_-]password*
+.database-url
+database-url.*
+connection-string.*
 
 # Configuration files that may contain secrets
 config.json
@@ -141,43 +95,137 @@ config.yml
 credentials.*
 *.credentials
 
-# Service account files
-service-account*.json
-*.service-account.json
-gcloud-service-key.json
-
-# API keys and tokens
-.api-keys
-api-keys.*
-*.api-key
-.tokens
-tokens.*
-*.token
-
-# Database connection files
-.database-url
-database-url.*
-connection-string.*
+# Secret directories
+secrets/
+secret/
+.secrets/
+*.secret
+*.secrets
+secret.*
+secrets.*
 
 # ========================================
-# OS & EDITORS (Next.js Official + Standard)  
+# DEPENDENCIES
+# ========================================
+node_modules/
+jspm_packages/
+.pnp
+.pnp.js
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# ========================================
+# BUILD OUTPUTS
+# ========================================
+/build
+/dist
+/.next/
+/out/
+.nuxt
+dist/
+build/
+.next/
+out/
+.turbo/
+*.tsbuildinfo
+**/*.tsbuildinfo
+
+# Package-specific builds
+packages/*/dist/
+packages/*/.turbo/
+apps/*/.next/
+apps/*/dist/
+apps/*/.turbo/
+
+# Storybook
+**/storybook-static/
+apps/storybook/storybook-static/
+
+# ========================================
+# LOGS & REPORTS
+# ========================================
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# ========================================
+# TESTING & COVERAGE
+# ========================================
+coverage/
+*.lcov
+.nyc_output
+test-results/
+playwright-report/
+test-screenshots/
+test-videos/
+allure-results/
+**/__tests__/fixtures/secrets/
+
+# Test outputs in subdirectories
+**/coverage/
+**/test-results/
+**/playwright-report/
+**/allure-results/
+**/test-screenshots/
+**/test-videos/
+
+# ========================================
+# CACHING
+# ========================================
+.npm
+.eslintcache
+.stylelintcache
+.cache
+.parcel-cache
+.fusebox/
+
+# ========================================
+# OS FILES
 # ========================================
 .DS_Store
-*.pem
+**/.DS_Store
+Thumbs.db
+**/Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+*.swp
+*.swo
+*~
+**/*~
+**/*.swp
+**/*.swo
+
+# ========================================
+# IDE
+# ========================================
+.vscode/
 .vscode-test
 .idea/
+*.sublime-*
+.history/
 
 # ========================================
-# DEPLOYMENT & SERVICES
+# DEPLOYMENT & CLOUD
 # ========================================
 .vercel
+.netlify
 
-# Docker secrets and compose overrides  
+# Docker
 docker-compose.override.yml
+docker-compose.*.yml
 docker-compose.secrets.yml
 .dockerignore.local
 
-# Cloud provider configs with potential secrets
+# Cloud provider configs
 .aws/
 .gcp/
 .azure/
@@ -186,21 +234,15 @@ terraform.tfvars.json
 *.auto.tfvars
 *.auto.tfvars.json
 
-# Kubernetes secrets
+# Kubernetes
 kube-config
 *.kubeconfig
 k8s-secrets.yaml
 
-# Backup files that might contain secrets
-*.backup
-*.bak
-*.old
-*~
-
 # ========================================
-# PROJECT SPECIFIC (Your Custom Patterns)
+# PROJECT SPECIFIC
 # ========================================
-# Prisma generated files
+# Prisma
 packages/database/src/generated/
 packages/database/dist/generated/
 packages/database/prisma/migrations/dev.db*
@@ -211,13 +253,16 @@ backend/prisma/client/
 node_modules/.prisma/
 node_modules/@prisma/client/
 
-# Upload directories
-# Upload directories (not source code)
+# Uploads (user data)
 /uploads/
 /avatars/
 /maintenance-files/
 /property-files/
 /tenant-files/
+uploads/
+avatars/
+documents/
+temp/
 
 # Development files
 CLAUDE.md
@@ -225,69 +270,30 @@ scripts/
 mcp.json
 .mcp.json
 
-# Test outputs
-test-results/
-playwright-report/
-test-screenshots/
-test-videos/
-allure-results/
-
-# Additional build artifacts
-**/dist/
-**/.next/
-
-# TypeScript build info files everywhere
-**/*.tsbuildinfo
-*.tsbuildinfo
-
-# OS files that slip through
-**/.DS_Store
-**/Thumbs.db
-
-# Editor backup files
-**/*~
-**/*.swp
-**/*.swo
-
-# Test and coverage outputs in subdirectories  
-**/coverage/
-**/test-results/
-**/playwright-report/
-**/allure-results/
-**/test-screenshots/
-**/test-videos/
-
-# Build outputs in packages and apps
-packages/*/dist/
-packages/*/.turbo/
-apps/*/.next/
-apps/*/dist/
-apps/*/.turbo/
-apps/*/coverage/
-apps/*/logs/
-
-# Storybook build output
-**/storybook-static/
-apps/storybook/storybook-static/
-
-# Environment files in subdirectories
-apps/**/.env
-apps/**/.env.*
-packages/**/.env
-packages/**/.env.*
-
-# Ignore test credentials file with hardcoded secrets
+# Test files that may contain hardcoded secrets
 test-signup-form.js
 test-supabase-auth.js
 
-**/storybook/
-/storybook/
-storybook/
-tests/
-/test/
-test/
-/tests/
-**/tests/**
-**/test/**
-# Turborepo
+# ========================================
+# BACKUP FILES (often contain secrets)
+# ========================================
+*.backup
+*.bak
+*.old
+*.orig
+*.tmp
+*.temp
+*.save
+
+# ========================================
+# RUNTIME FILES
+# ========================================
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# ========================================
+# TURBO SPECIFIC
+# ========================================
 .turbo
