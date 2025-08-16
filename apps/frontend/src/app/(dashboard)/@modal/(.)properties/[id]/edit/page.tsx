@@ -3,6 +3,9 @@ import { PropertyEditForm } from '@/components/properties/property-edit-form';
 import { getProperty } from '@/lib/data/properties';
 import { notFound } from 'next/navigation';
 
+// Force dynamic rendering to prevent build-time Supabase client issues
+export const dynamic = 'force-dynamic'
+
 interface EditPropertyModalProps {
   params: Promise<{ id: string }>;
 }
