@@ -248,7 +248,7 @@ export default function FeaturesPage() {
       {/* Footer */}
       <footer className="py-8 px-4 bg-gray-900 text-gray-400">
         <div className="container mx-auto text-center">
-          <p>&copy; 2024 TenantFlow. All rights reserved.</p>
+          <p>&copy; 2023 TenantFlow. All rights reserved.</p>
         </div>
       </footer>
     </div>

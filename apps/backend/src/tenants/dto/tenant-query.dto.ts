@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsEnum, IsEmail } from 'class-validator'
+import { IsEmail, IsEnum, IsOptional, IsString } from 'class-validator'
 import { Transform } from 'class-transformer'
 import { BaseQueryDtoWithSort } from '../../common/dto/base-query.dto'
 import { TenantQuery } from '@repo/shared'

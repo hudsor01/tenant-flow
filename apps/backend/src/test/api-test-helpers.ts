@@ -28,7 +28,7 @@ export class ApiTestClient {
 
   // Authentication helpers
   private getAuthHeaders(user?: TestUser) {
-    if (!user) return {}
+    if (!user) {return {}}
     return {
       Authorization: `Bearer ${user.accessToken}`
     }

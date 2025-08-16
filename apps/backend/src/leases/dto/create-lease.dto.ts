@@ -1,21 +1,22 @@
 import {
-  IsString,
-  IsNotEmpty,
-  IsOptional,
-  IsEnum,
-  IsUUID,
   IsDateString,
+  IsEnum,
+  IsNotEmpty,
   IsNumber,
-  Min,
+  IsOptional,
+  IsPositive,
+  IsString,
+  IsUUID,
   Max,
-  MinLength,
   MaxLength,
-  IsPositive
+  Min,
+  MinLength
 } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
 import { LeaseStatus } from '@repo/database'
+import { CreateLeaseInput } from '@repo/shared'
 
-export class CreateLeaseDto {
+export class CreateLeaseDto implements CreateLeaseInput {
   @IsUUID(4, { message: 'Unit ID must be a valid UUID' })
   @IsNotEmpty({ message: 'Unit ID is required' })
   unitId!: string

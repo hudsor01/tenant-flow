@@ -1,9 +1,10 @@
 import { PartialType } from '@nestjs/mapped-types'
 import { IsOptional, IsString } from 'class-validator'
 import { Transform } from 'class-transformer'
+import { UpdateTenantInput } from '@repo/shared'
 import { TenantCreateDto } from './tenant-create.dto'
 
-export class TenantUpdateDto extends PartialType(TenantCreateDto) {
+export class TenantUpdateDto extends PartialType(TenantCreateDto) implements UpdateTenantInput {
   // Only add fields that are unique to updates
   @IsOptional()
   @IsString({ message: 'Move out date must be a string' })

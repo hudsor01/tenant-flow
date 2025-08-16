@@ -1,4 +1,4 @@
-import { IsOptional, IsEnum, IsString, IsUUID, IsDateString, IsBoolean, IsInt, Min } from 'class-validator'
+import { IsBoolean, IsDateString, IsEnum, IsInt, IsOptional, IsString, IsUUID, Min } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
 import { LeaseStatus } from '@repo/database'
 import { BaseQueryDtoWithSort } from '../../common/dto/base-query.dto'
@@ -33,8 +33,8 @@ export class LeaseQueryDto extends BaseQueryDtoWithSort<LeaseSortFields> impleme
 
   @IsOptional()
   @Transform(({ value }) => {
-    if (value === 'true') return true
-    if (value === 'false') return false
+    if (value === 'true') {return true}
+    if (value === 'false') {return false}
     return value
   })
   @IsBoolean({ message: 'Include expired must be a boolean' })

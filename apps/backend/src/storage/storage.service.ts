@@ -1,7 +1,7 @@
-import { Injectable, Inject, Logger } from '@nestjs/common'
+import { Inject, Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
-import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
+import { ErrorCode, ErrorHandlerService } from '../common/errors/error-handler.service'
 import * as path from 'path'
 
 // Custom type that matches what we're returning

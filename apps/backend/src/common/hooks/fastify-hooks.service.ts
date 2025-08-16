@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common'
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
+import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import { randomUUID } from 'crypto'
 import { LoggerService } from '../services/logger.service'
-import { RequestContext, PerformanceMetrics, ErrorResponse, SharedValidationError } from '@repo/shared'
+import { ErrorResponse, PerformanceMetrics, RequestContext, SharedValidationError } from '@repo/shared'
 
 // Import type declarations to ensure FastifyRequest context extension is recognized
 
@@ -175,7 +175,7 @@ export class FastifyHooksService {
    * Check if endpoint is sensitive and requires additional logging
    */
   private isSensitiveEndpoint(url: string | undefined): boolean {
-    if (!url) return false
+    if (!url) {return false}
     
     const sensitivePatterns = [
       '/auth',
@@ -272,7 +272,7 @@ export class FastifyHooksService {
         // Basic JWT parsing without verification (for context extraction only)
         const token = authHeader.substring(7)
         const parts = token.split('.')
-        if (parts.length !== 3) return
+        if (parts.length !== 3) {return}
         
         const payload = JSON.parse(Buffer.from(parts[1] || '', 'base64').toString())
         request.context.tenantId = payload.organization_id || payload.tenant_id

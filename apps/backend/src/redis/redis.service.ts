@@ -1,4 +1,4 @@
-import { Injectable, Inject, Logger } from '@nestjs/common'
+import { Inject, Injectable, Logger } from '@nestjs/common'
 import { Redis } from 'ioredis'
 
 /**
@@ -24,7 +24,7 @@ export class RedisService {
    * Get a value from Redis
    */
   async get(key: string): Promise<string | null> {
-    if (!this.redis) return null
+    if (!this.redis) {return null}
     
     try {
       return await this.redis.get(key)
@@ -38,7 +38,7 @@ export class RedisService {
    * Set a value in Redis with optional TTL
    */
   async set(key: string, value: string, ttlSeconds?: number): Promise<boolean> {
-    if (!this.redis) return false
+    if (!this.redis) {return false}
     
     try {
       if (ttlSeconds) {
@@ -57,7 +57,7 @@ export class RedisService {
    * Delete a key from Redis
    */
   async del(key: string): Promise<boolean> {
-    if (!this.redis) return false
+    if (!this.redis) {return false}
     
     try {
       await this.redis.del(key)
@@ -72,7 +72,7 @@ export class RedisService {
    * Check if a key exists
    */
   async exists(key: string): Promise<boolean> {
-    if (!this.redis) return false
+    if (!this.redis) {return false}
     
     try {
       const result = await this.redis.exists(key)
@@ -87,7 +87,7 @@ export class RedisService {
    * Set expiration on a key
    */
   async expire(key: string, seconds: number): Promise<boolean> {
-    if (!this.redis) return false
+    if (!this.redis) {return false}
     
     try {
       const result = await this.redis.expire(key, seconds)
@@ -102,7 +102,7 @@ export class RedisService {
    * Get TTL of a key
    */
   async ttl(key: string): Promise<number> {
-    if (!this.redis) return -2
+    if (!this.redis) {return -2}
     
     try {
       return await this.redis.ttl(key)
@@ -116,7 +116,7 @@ export class RedisService {
    * Increment a counter
    */
   async incr(key: string): Promise<number | null> {
-    if (!this.redis) return null
+    if (!this.redis) {return null}
     
     try {
       return await this.redis.incr(key)
@@ -130,7 +130,7 @@ export class RedisService {
    * Decrement a counter
    */
   async decr(key: string): Promise<number | null> {
-    if (!this.redis) return null
+    if (!this.redis) {return null}
     
     try {
       return await this.redis.decr(key)

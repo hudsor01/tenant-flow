@@ -296,10 +296,10 @@ export class WebhookObservabilityService {
     fields?: Record<string, unknown>
   ): void {
     const trace = this.traces.get(traceId)
-    if (!trace) return
+    if (!trace) {return}
 
     const span = trace.spans.find(s => s.spanId === spanId)
-    if (!span) return
+    if (!span) {return}
 
     span.logs.push({
       timestamp: new Date(),
@@ -314,10 +314,10 @@ export class WebhookObservabilityService {
    */
   addSpanTags(traceId: string, spanId: string, tags: Record<string, string>): void {
     const trace = this.traces.get(traceId)
-    if (!trace) return
+    if (!trace) {return}
 
     const span = trace.spans.find(s => s.spanId === spanId)
-    if (!span) return
+    if (!span) {return}
 
     Object.assign(span.tags, tags)
   }
@@ -333,7 +333,7 @@ export class WebhookObservabilityService {
    * Create a child trace context
    */
   createChildContext(operation: string, metadata?: Record<string, unknown>): TraceContext | null {
-    if (!this.currentTraceContext) return null
+    if (!this.currentTraceContext) {return null}
 
     return {
       traceId: this.currentTraceContext.traceId,
@@ -384,16 +384,16 @@ export class WebhookObservabilityService {
     until?: Date
   }): WebhookTrace[] {
     return Array.from(this.traces.values()).filter(trace => {
-      if (criteria.eventType && trace.eventType !== criteria.eventType) return false
-      if (criteria.success !== undefined && trace.success !== criteria.success) return false
-      if (criteria.minDuration && (!trace.duration || trace.duration < criteria.minDuration)) return false
-      if (criteria.maxDuration && (!trace.duration || trace.duration > criteria.maxDuration)) return false
+      if (criteria.eventType && trace.eventType !== criteria.eventType) {return false}
+      if (criteria.success !== undefined && trace.success !== criteria.success) {return false}
+      if (criteria.minDuration && (!trace.duration || trace.duration < criteria.minDuration)) {return false}
+      if (criteria.maxDuration && (!trace.duration || trace.duration > criteria.maxDuration)) {return false}
       if (criteria.hasError !== undefined) {
         const hasError = trace.tags['error'] === 'true'
-        if (hasError !== criteria.hasError) return false
+        if (hasError !== criteria.hasError) {return false}
       }
-      if (criteria.since && trace.startTime < criteria.since) return false
-      if (criteria.until && trace.startTime > criteria.until) return false
+      if (criteria.since && trace.startTime < criteria.since) {return false}
+      if (criteria.until && trace.startTime > criteria.until) {return false}
       return true
     })
   }
@@ -403,7 +403,7 @@ export class WebhookObservabilityService {
    */
   getPerformanceBreakdown(traceId: string): PerformanceBreakdown | null {
     const trace = this.traces.get(traceId)
-    if (!trace || !trace.duration) return null
+    if (!trace || !trace.duration) {return null}
 
     const phases = {
       validation: 0,
@@ -416,7 +416,7 @@ export class WebhookObservabilityService {
     const operationDurations: { operation: string, duration: number }[] = []
 
     trace.spans.forEach(span => {
-      if (!span.duration) return
+      if (!span.duration) {return}
 
       operationDurations.push({
         operation: span.operationName,
@@ -459,7 +459,7 @@ export class WebhookObservabilityService {
    */
   exportTrace(traceId: string): Record<string, unknown> | null {
     const trace = this.traces.get(traceId)
-    if (!trace) return null
+    if (!trace) {return null}
 
     return {
       traceID: traceId,

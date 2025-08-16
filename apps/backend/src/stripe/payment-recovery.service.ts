@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma/prisma.service'
 import { StripeService } from './stripe.service'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 // import { NotificationService } from '../notifications/notification.service' // TODO: Implement when notification service is ready
-import type { StripeInvoice, StripeCustomer } from '@repo/shared/types/stripe-core-objects'
+import type { StripeCustomer, StripeInvoice } from '@repo/shared/types/stripe-core-objects'
 import type { SubStatus } from '@repo/database'
 
 export interface PaymentRecoveryOptions {
@@ -276,7 +276,7 @@ export class PaymentRecoveryService {
       ? invoice.customer 
       : (invoice.customer as unknown as StripeCustomer)?.id
 
-    if (!customerId) return null
+    if (!customerId) {return null}
 
     return await this.prismaService.subscription.findFirst({
       where: { stripeCustomerId: customerId },
@@ -313,7 +313,7 @@ export class PaymentRecoveryService {
       where: { id: userId }
     })
 
-    if (!user) return
+    if (!user) {return}
 
     const nextRetry = invoice.next_payment_attempt
       ? new Date(invoice.next_payment_attempt * 1000)

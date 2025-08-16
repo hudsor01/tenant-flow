@@ -1,7 +1,7 @@
-import { IsString, IsEnum, IsOptional, MinLength, MaxLength, Matches, IsUrl, IsNotEmpty } from 'class-validator'
+import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUrl, Matches, MaxLength, MinLength } from 'class-validator'
 import { Transform } from 'class-transformer'
 import { PropertyType } from '@repo/database'
-import { PROPERTY_TYPE, CreatePropertyInput } from '@repo/shared'
+import { CreatePropertyInput, PROPERTY_TYPE } from '@repo/shared'
 
 export class CreatePropertyDto implements CreatePropertyInput {
   [key: string]: unknown

@@ -1,7 +1,7 @@
 import { 
-  NotFoundException,
   AuthorizationException,
   BusinessException,
+  NotFoundException,
   ValidationException
 } from './base.exception'
 

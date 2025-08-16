@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { configSchema, type Config, type DerivedConfig, createDerivedConfig } from './config.schema'
+import { type Config, configSchema, createDerivedConfig, type DerivedConfig } from './config.schema'
 
 /**
  * Type-Safe Configuration Service
@@ -74,7 +74,7 @@ export class TypeSafeConfigService {
    * Logs a summary of the current configuration (without sensitive data)
    */
   private logConfigurationSummary(): void {
-    if (!this._derivedConfig) return
+    if (!this._derivedConfig) {return}
 
     const config = this._derivedConfig
     const summary = {

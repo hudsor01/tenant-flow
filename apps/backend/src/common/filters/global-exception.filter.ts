@@ -1,15 +1,15 @@
 import {
-  ExceptionFilter,
-  Catch,
   ArgumentsHost,
+  Catch,
+  ExceptionFilter,
   HttpException,
   HttpStatus,
   Injectable
 } from '@nestjs/common'
-import { FastifyRequest, FastifyReply } from 'fastify'
+import { FastifyReply, FastifyRequest } from 'fastify'
 import { ZodError } from 'zod'
-import { PrismaClientKnownRequestError, PrismaClientUnknownRequestError, PrismaClientRustPanicError, PrismaClientInitializationError, PrismaClientValidationError } from '@repo/database'
-import type { ControllerApiResponse, AppError } from '@repo/shared'
+import { PrismaClientInitializationError, PrismaClientKnownRequestError, PrismaClientRustPanicError, PrismaClientUnknownRequestError, PrismaClientValidationError } from '@repo/database'
+import type { AppError, ControllerApiResponse } from '@repo/shared'
 import { UnifiedLoggerService } from '../logging/unified-logger.service'
 
 /**

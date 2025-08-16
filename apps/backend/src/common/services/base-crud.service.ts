@@ -437,7 +437,7 @@ export abstract class BaseCrudService<
    * Parse and validate query options
    */
   protected parseQueryOptions(query?: TQueryDto): Record<string, unknown> {
-    if (!query) return {}
+    if (!query) {return {}}
 
     const options: Record<string, unknown> = { ...query }
     

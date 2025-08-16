@@ -51,7 +51,7 @@ export const SafeHTML: React.FC<SafeHTMLProps> = ({
 			],
 			ALLOW_DATA_ATTR: false,
 			// Prevent javascript: protocol
-			ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+			ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp):|[^a-z]|[a-z+.-]+(?:[^a-z+.:-]|$))/i,
 			// Add target="_blank" and rel="noopener noreferrer" to external links
 			ADD_ATTR: ['target', 'rel'],
 			// Remove dangerous tags even if they were allowed

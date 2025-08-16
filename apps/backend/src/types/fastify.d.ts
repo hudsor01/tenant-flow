@@ -5,7 +5,7 @@
  * that are used throughout the backend for request tracking and context.
  */
 
-import { RequestContext } from '@repo/shared'
+import type { RequestContext } from '@repo/shared'
 
 declare module 'fastify' {
   interface FastifyRequest {

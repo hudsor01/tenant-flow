@@ -3,9 +3,6 @@
 import { Suspense, useState } from 'react';
 import { Navigation } from '@/components/dashboard/dashboard-navigation';
 import { DashboardSidebar } from '@/components/dashboard/dashboard-sidebar';
-// import { CommandPalette } from '@/components/command-palette';
-// import { MobileNav } from '@/components/mobile-nav';
-// import { MobileHeader } from '@/components/mobile-header';
 import { Loader2 } from 'lucide-react';
 
 interface DashboardLayoutClientProps {

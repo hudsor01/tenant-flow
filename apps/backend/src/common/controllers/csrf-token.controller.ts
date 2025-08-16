@@ -1,13 +1,13 @@
 import {
   Controller,
-  Get,
-  Post,
   Delete,
-  UseGuards,
-  Req,
+  Get,
   HttpCode,
   HttpStatus,
-  Logger
+  Logger,
+  Post,
+  Req,
+  UseGuards
 } from '@nestjs/common'
 import { FastifyRequest } from 'fastify'
 import { CsrfTokenService } from '../security/csrf-token.service'

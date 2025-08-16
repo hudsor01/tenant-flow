@@ -1,16 +1,16 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Delete,
   Body,
-  Param,
-  UseGuards,
+  Controller,
+  Delete,
+  Get,
   HttpCode,
   HttpStatus,
-  Query
+  Param,
+  Post,
+  Query,
+  UseGuards
 } from '@nestjs/common'
-import { CorsSecurityService, CorsOriginConfig } from '../security/cors-security.service'
+import { CorsOriginConfig, CorsSecurityService } from '../security/cors-security.service'
 import { SecurityMonitorService } from '../security/security-monitor.service'
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard'
 

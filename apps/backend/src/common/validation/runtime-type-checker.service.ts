@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { ZodSchema, ZodError } from 'zod'
+import { ZodError, ZodSchema } from 'zod'
 import { ZodErrorMappingService } from './zod-error-mapping.service'
 
 /**

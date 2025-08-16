@@ -3,27 +3,12 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
+import { propertyFormSchema, type PropertyFormData } from '@repo/shared/validation/properties'
 import { usePostHog } from '@/hooks/use-posthog'
 import { usePropertyTracking } from '@/hooks/use-property-tracking'
 import { useBusinessEvents, useInteractionTracking } from '@/lib/analytics/business-events'
 import { TrackButton } from '@/components/analytics/track-button'
 import type { Property } from '@repo/shared'
-
-const propertySchema = z.object({
-  name: z.string().min(1, 'Property name is required'),
-  address: z.string().min(1, 'Address is required'),
-  city: z.string().min(1, 'City is required'),
-  state: z.string().min(2, 'State is required'),
-  zipCode: z.string().min(5, 'Zip code is required'),
-  propertyType: z.enum(['SINGLE_FAMILY', 'MULTI_UNIT', 'APARTMENT', 'COMMERCIAL']),
-  rentAmount: z.number().min(0).optional(),
-  bedrooms: z.number().min(0).optional(),
-  bathrooms: z.number().min(0).optional(),
-  squareFeet: z.number().min(0).optional(),
-})
-
-type PropertyFormData = z.infer<typeof propertySchema>
 
 interface PropertyFormProps {
   property?: Property
@@ -40,7 +25,7 @@ export function PropertyFormWithTracking({ property, onSubmit, onCancel }: Prope
   const [formStartTime] = useState(Date.now())
 
   const form = useForm<PropertyFormData>({
-    resolver: zodResolver(propertySchema),
+    resolver: zodResolver(propertyFormSchema),
     defaultValues: property || {
       propertyType: 'SINGLE_FAMILY',
     },

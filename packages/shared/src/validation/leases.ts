@@ -35,16 +35,31 @@ export const leaseStatusEnum = z.enum(['ACTIVE', 'INACTIVE', 'EXPIRED', 'TERMINA
   error: 'Lease status is required'
 })
 
-export const leaseSchema = z
+export const leaseTypeEnum = z.enum(['FIXED', 'MONTH_TO_MONTH'], {
+  error: 'Lease type is required'
+})
+
+export const smokingPolicyEnum = z.enum(['ALLOWED', 'NOT_ALLOWED'], {
+  error: 'Smoking policy is required'
+})
+
+// Main lease input schema
+export const leaseInputSchema = z
   .object({
     propertyId: uuidString,
     unitId: uuidString.optional().or(z.null()),
     tenantId: uuidString,
     startDate: dateString,
     endDate: dateString,
-    rentAmount: positiveMoneyAmount,
+    monthlyRent: positiveMoneyAmount,
     securityDeposit: positiveMoneyAmount.default(0),
-    status: leaseStatusEnum.default('DRAFT')
+    leaseTerm: z.number().min(1, 'Lease term must be at least 1 month').max(60, 'Lease term cannot exceed 60 months').optional(),
+    status: leaseStatusEnum.default('DRAFT'),
+    leaseType: leaseTypeEnum.default('FIXED'),
+    petPolicy: z.string().optional(),
+    smokingPolicy: smokingPolicyEnum.optional(),
+    utilities: z.array(z.string()).optional().default([]),
+    additionalTerms: z.string().optional()
   })
   .refine(
     data => {
@@ -62,4 +77,36 @@ export const leaseSchema = z
     }
   )
 
-export type LeaseFormData = z.infer<typeof leaseSchema>
+// Lease renewal schema
+export const leaseRenewalSchema = z.object({
+  endDate: dateString,
+  newRent: positiveMoneyAmount.optional(),
+  renewalTerms: z.string().optional()
+})
+
+// Lease termination schema
+export const leaseTerminationSchema = z.object({
+  terminationDate: dateString,
+  reason: z.string().min(1, 'Termination reason is required'),
+  earlyTerminationFee: positiveMoneyAmount.optional(),
+  refundableDeposit: positiveMoneyAmount.optional(),
+  notes: z.string().optional()
+})
+
+// Lease update schema (for partial updates)
+export const leaseUpdateSchema = leaseInputSchema.partial()
+
+// Legacy alias for backward compatibility
+export const leaseSchema = leaseInputSchema
+
+export type LeaseFormData = z.infer<typeof leaseInputSchema>
+export type LeaseRenewalData = z.infer<typeof leaseRenewalSchema>
+export type LeaseTerminationData = z.infer<typeof leaseTerminationSchema>
+export type LeaseStatus = z.infer<typeof leaseStatusEnum>
+
+// Backend DTO compatibility aliases
+export type CreateLeaseInput = z.infer<typeof leaseInputSchema>
+export type UpdateLeaseInput = z.infer<typeof leaseUpdateSchema>
+export type LeaseInput = z.infer<typeof leaseInputSchema>
+export type LeaseUpdate = z.infer<typeof leaseUpdateSchema>
+export type LeaseQuery = z.infer<typeof leaseInputSchema> // Add proper query schema if needed

@@ -2,9 +2,9 @@ import { Injectable, Logger } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import { FeatureAccessService } from './feature-access.service'
 import {
-  SubscriptionEventType,
+  FeatureAccessRestoreEvent,
   FeatureAccessRestrictEvent,
-  FeatureAccessRestoreEvent
+  SubscriptionEventType
 } from '../common/events/subscription.events'
 
 @Injectable()

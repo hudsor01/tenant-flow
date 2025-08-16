@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { motion, AnimatePresence, useDragControls, PanInfo } from 'framer-motion'
+import { motion, AnimatePresence, useDragControls, type PanInfo } from 'framer-motion'
 import { logger } from '@/lib/logger'
 import {
 	SidebarProvider,

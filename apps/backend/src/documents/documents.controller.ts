@@ -1,19 +1,19 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Delete,
   Body,
-  Param,
-  Query,
-  UseGuards,
-  ParseUUIDPipe,
+  Controller,
+  Delete,
+  Get,
   HttpCode,
-  HttpStatus
+  HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards
 } from '@nestjs/common'
 import { DocumentsService } from './documents.service'
-import { CreateDocumentDto, UpdateDocumentDto, DocumentQueryDto } from './dto'
+import { CreateDocumentDto, DocumentQueryDto, UpdateDocumentDto } from './dto'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { DocumentType } from '@repo/database'

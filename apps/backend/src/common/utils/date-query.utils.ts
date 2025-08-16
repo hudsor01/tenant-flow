@@ -9,7 +9,7 @@ export class DateQueryUtils {
    * @returns ISO string or undefined
    */
   static toISOString(date: Date | string | undefined | null): string | undefined {
-    if (!date) return undefined
+    if (!date) {return undefined}
     
     if (date instanceof Date) {
       return date.toISOString()
@@ -95,7 +95,7 @@ export class DateQueryUtils {
     from?: Date | string | null,
     to?: Date | string | null
   ): { gte?: Date; lte?: Date } | undefined {
-    if (!from && !to) return undefined
+    if (!from && !to) {return undefined}
     
     const filter: { gte?: Date; lte?: Date } = {}
     

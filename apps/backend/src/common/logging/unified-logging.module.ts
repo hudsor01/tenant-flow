@@ -1,4 +1,4 @@
-import { Module, Global } from '@nestjs/common'
+import { Global, Module } from '@nestjs/common'
 import { UnifiedLoggerService } from './unified-logger.service'
 import { FastifyRequestLoggerService } from './fastify-request-logger.service'
 import { TypeSafeConfigModule } from '../config/config.module'

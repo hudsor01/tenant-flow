@@ -1,5 +1,5 @@
-import { IsOptional, IsInt, Min, Max, IsEnum, IsString } from 'class-validator'
-import { Type, Transform } from 'class-transformer'
+import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator'
+import { Transform, Type } from 'class-transformer'
 import { BaseQueryOptions } from '../services/base-crud.service'
 
 /**

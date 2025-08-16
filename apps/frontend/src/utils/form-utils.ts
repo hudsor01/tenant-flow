@@ -24,23 +24,14 @@ export const futureeDateValidation = z
     return parsed > new Date()
   }, 'Date must be in the future')
 
-// Complex validation patterns
-export const createLeaseValidationSchema = z.object({
+// Re-export shared validation schemas with business logic extensions
+import { leaseInputSchema } from '@repo/shared/validation/leases';
+import { maintenanceRequestInputSchema } from '@repo/shared/validation/maintenance';
+
+// Extended lease validation with frontend-specific business rules
+export const createLeaseValidationSchema = leaseInputSchema.extend({
   unitId: z.string().min(1, 'Unit selection is required'),
   tenantId: z.string().min(1, 'Tenant selection is required'),
-  startDate: dateValidation,
-  endDate: dateValidation,
-  rentAmount: currencyValidation,
-  securityDeposit: currencyValidation,
-  status: z.enum(['DRAFT', 'ACTIVE', 'EXPIRED', 'TERMINATED'])
-}).refine((data) => {
-  // Cross-field validation: end date must be after start date
-  const start = new Date(data.startDate)
-  const end = new Date(data.endDate)
-  return end > start
-}, {
-  message: 'End date must be after start date',
-  path: ['endDate']
 }).refine((data) => {
   // Business rule: lease must be at least 30 days
   const start = new Date(data.startDate)
@@ -52,13 +43,8 @@ export const createLeaseValidationSchema = z.object({
   path: ['endDate']
 })
 
-// Conditional validation based on other fields
-export const createMaintenanceRequestSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  description: z.string().min(10, 'Description must be at least 10 characters'),
-  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT', 'EMERGENCY']),
-  unitId: z.string().min(1, 'Unit selection is required'),
-  estimatedCost: z.number().optional(),
+// Extended maintenance validation with frontend-specific conditional logic
+export const createMaintenanceRequestSchema = maintenanceRequestInputSchema.extend({
   requiresContractor: z.boolean().default(false),
   contractorInfo: z.string().optional()
 }).refine((data) => {
