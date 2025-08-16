@@ -1,7 +1,7 @@
-import { Controller, Get, Query, Param, Post, Body, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { Public } from '../auth/decorators/public.decorator'
-import { RateLimit, MonitoringRateLimits } from '../common/decorators/rate-limit.decorator'
+import { MonitoringRateLimits, RateLimit } from '../common/decorators/rate-limit.decorator'
 import { WebhookService } from './webhook.service'
 import { WebhookMetricsService } from './webhook-metrics.service'
 import { WebhookHealthService } from './webhook-health.service'
@@ -309,7 +309,7 @@ export class WebhookMonitoringController {
     // Performance metrics
     if (metrics.performance && typeof metrics.performance === 'object' && 'overall' in metrics.performance && metrics.performance.overall) {
       const perf = metrics.performance.overall as WebhookPerformanceStats | null
-      if (!perf) return lines.join('\n')
+      if (!perf) {return lines.join('\n')}
       addMetric('webhook_events_total', perf.totalEvents || 0)
       addMetric('webhook_events_success_total', perf.successCount || 0)
       addMetric('webhook_events_failure_total', perf.failureCount || 0)

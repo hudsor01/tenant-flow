@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
+import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import { randomUUID } from 'crypto'
 
 /**

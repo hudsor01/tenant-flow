@@ -1,24 +1,24 @@
 import {
+	Body,
 	Controller,
 	Get,
-	Post,
-	Body,
-	UseGuards,
 	HttpCode,
 	HttpStatus,
-	Req
+	Post,
+	Req,
+	UseGuards
 } from '@nestjs/common'
 import { ModuleRef } from '@nestjs/core'
 import { JwtAuthGuard } from './guards/jwt-auth.guard'
 // Error handling is now managed by global ErrorHandler
 import { CurrentUser } from './decorators/current-user.decorator'
-import { ValidatedUser, AuthService } from './auth.service'
+import { AuthService, ValidatedUser } from './auth.service'
 import { Public } from './decorators/public.decorator'
 import {
-	RateLimit,
-	AuthRateLimits
+	AuthRateLimits,
+	RateLimit
 } from '../common/decorators/rate-limit.decorator'
-import { CsrfGuard, CsrfExempt } from '../common/guards/csrf.guard'
+import { CsrfExempt, CsrfGuard } from '../common/guards/csrf.guard'
 import { FastifyRequest } from 'fastify'
 
 @Controller('auth')

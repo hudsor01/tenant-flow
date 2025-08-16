@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Headers, Logger, HttpCode } from '@nestjs/common'
+import { Body, Controller, Headers, HttpCode, Logger, Post } from '@nestjs/common'
 import { AuthService } from './auth.service'
 import { StripeService } from '../stripe/stripe.service'
 import { SubscriptionsManagerService } from '../subscriptions/subscriptions-manager.service'

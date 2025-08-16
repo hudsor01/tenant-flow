@@ -108,7 +108,7 @@ export class SimpleSecurityService {
    * Basic input sanitization
    */
   sanitizeInput(input: string): string {
-    if (!input) return '';
+    if (!input) {return '';}
 
     // Remove control characters - this is intentional for security sanitization
     const withoutNullBytes = input.replace(/\0/g, '') // Remove null bytes

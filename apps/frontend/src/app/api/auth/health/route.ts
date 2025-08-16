@@ -1,8 +1,5 @@
 import { NextResponse } from 'next/server'
 
-// Force dynamic to prevent build-time issues
-export const dynamic = 'force-dynamic'
-
 /**
  * GET /api/auth/health
  * Simple health check endpoint

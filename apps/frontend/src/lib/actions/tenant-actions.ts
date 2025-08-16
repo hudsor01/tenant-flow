@@ -2,26 +2,10 @@
 
 import { revalidateTag, revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { z } from 'zod';
 import { apiClient } from '@/lib/api-client';
-import { commonValidations } from '@/lib/validation/schemas';
+import { tenantInputSchema } from '@repo/shared/validation/tenants';
 import type { Tenant } from '@repo/shared/types/tenants';
 import type { MaintenanceRequest } from '@repo/shared/types/maintenance';
-
-// Tenant form schema using consolidated validations
-const TenantSchema = z.object({
-  firstName: commonValidations.name,
-  lastName: commonValidations.name,
-  email: commonValidations.email,
-  phone: commonValidations.phone,
-  propertyId: commonValidations.requiredString,
-  unitId: z.string().optional(),
-  leaseStartDate: commonValidations.date,
-  leaseEndDate: commonValidations.date,
-  rentAmount: z.number().min(0, 'Rent amount must be positive'),
-  depositAmount: z.number().min(0, 'Security deposit must be positive'),
-  notes: commonValidations.optionalString,
-});
 
 export interface TenantFormState {
   errors?: {
@@ -59,7 +43,7 @@ export async function createTenant(
     notes: formData.get('notes'),
   };
 
-  const result = TenantSchema.safeParse(rawData);
+  const result = tenantInputSchema.safeParse(rawData);
 
   if (!result.success) {
     return {
@@ -114,7 +98,7 @@ export async function updateTenant(
     notes: formData.get('notes'),
   };
 
-  const result = TenantSchema.safeParse(rawData);
+  const result = tenantInputSchema.safeParse(rawData);
 
   if (!result.success) {
     return {

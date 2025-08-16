@@ -67,7 +67,7 @@ export class CacheService {
    */
   async delByPattern(pattern: string): Promise<number> {
     const client = this.redisService.getClient()
-    if (!client) return 0
+    if (!client) {return 0}
 
     this.logger.warn(`Using expensive delByPattern operation: ${pattern}. Consider using tag-based invalidation instead.`)
 
@@ -82,7 +82,7 @@ export class CacheService {
         keys.push(...result[1])
       } while (cursor !== '0')
 
-      if (keys.length === 0) return 0
+      if (keys.length === 0) {return 0}
       
       // Delete in batches to avoid blocking Redis
       const batchSize = 100
@@ -112,7 +112,7 @@ export class CacheService {
     ttlSeconds?: number
   ): Promise<boolean> {
     const client = this.redisService.getClient()
-    if (!client) return false
+    if (!client) {return false}
 
     const pipeline = client.pipeline()
     
@@ -146,11 +146,11 @@ export class CacheService {
    */
   async invalidateTag(tag: string): Promise<number> {
     const client = this.redisService.getClient()
-    if (!client) return 0
+    if (!client) {return 0}
 
     try {
       const keys = await client.smembers(`tag:${tag}`)
-      if (keys.length === 0) return 0
+      if (keys.length === 0) {return 0}
       
       const pipeline = client.pipeline()
       for (const key of keys) {
@@ -241,7 +241,7 @@ export class CacheService {
    */
   async getMany<T>(keys: string[]): Promise<Record<string, T | null>> {
     const client = this.redisService.getClient()
-    if (!client || keys.length === 0) return {}
+    if (!client || keys.length === 0) {return {}}
 
     try {
       const values = await client.mget(...keys)
@@ -264,7 +264,7 @@ export class CacheService {
    */
   async setMany<T>(entries: Record<string, T>, ttlSeconds?: number): Promise<boolean> {
     const client = this.redisService.getClient()
-    if (!client) return false
+    if (!client) {return false}
 
     try {
       const pipeline = client.pipeline()

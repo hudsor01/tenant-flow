@@ -1,4 +1,4 @@
-import { IsOptional, IsEnum, IsString, Matches } from 'class-validator'
+import { IsEnum, IsOptional, IsString, Matches } from 'class-validator'
 import { Transform } from 'class-transformer'
 import { PropertyType } from '@repo/database'
 import { PROPERTY_TYPE, PropertyQueryInput } from '@repo/shared'

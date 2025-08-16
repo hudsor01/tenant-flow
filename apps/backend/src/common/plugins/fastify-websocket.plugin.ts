@@ -197,7 +197,7 @@ export class FastifyWebSocketPlugin {
       // First authenticate
       await this.createAuthHandler()(request, reply)
       
-      if (!request.user) return
+      if (!request.user) {return}
 
       // Then verify property access
       const params = request.params as { propertyId?: string }
@@ -225,7 +225,7 @@ export class FastifyWebSocketPlugin {
     return async (request: FastifyRequest & { user?: AuthUser }, reply: { code: (code: number) => { send: (data: unknown) => void } }) => {
       await this.createAuthHandler()(request, reply)
       
-      if (!request.user) return
+      if (!request.user) {return}
 
       if (request.user.role !== 'ADMIN') {
         reply.code(403).send({ error: 'Admin access required' })
@@ -427,7 +427,7 @@ export class FastifyWebSocketPlugin {
   private async verifyToken(token: string): Promise<AuthUser | null> {
     // TODO: Integrate with actual auth service
     // This is a placeholder - replace with actual verification
-    if (!token || token.length < 10) return null
+    if (!token || token.length < 10) {return null}
     
     return {
       id: 'user123',
@@ -481,22 +481,22 @@ export class FastifyWebSocketPlugin {
 
     fastify.decorate('sendToOrganization', (organizationId: string, message: WebSocketMessage) => {
       const room = this.connections.get(organizationId)
-      if (!room) return 0
+      if (!room) {return 0}
       
       let sent = 0
       for (const socket of room) {
-        if (this.sendMessage(socket, message)) sent++
+        if (this.sendMessage(socket, message)) {sent++}
       }
       return sent
     })
 
     fastify.decorate('broadcastToProperty', (propertyId: string, message: WebSocketMessage) => {
       const room = this.connections.get(`maintenance:${propertyId}`)
-      if (!room) return 0
+      if (!room) {return 0}
       
       let sent = 0
       for (const socket of room) {
-        if (this.sendMessage(socket, message)) sent++
+        if (this.sendMessage(socket, message)) {sent++}
       }
       return sent
     })
@@ -519,7 +519,7 @@ export class FastifyWebSocketPlugin {
     let sent = 0
     for (const room of this.connections.values()) {
       for (const socket of room) {
-        if (this.sendMessage(socket, message)) sent++
+        if (this.sendMessage(socket, message)) {sent++}
       }
     }
     return sent

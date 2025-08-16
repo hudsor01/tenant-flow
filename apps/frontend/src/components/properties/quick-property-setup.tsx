@@ -3,6 +3,7 @@ import { logger } from '@/lib/logger'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { propertyInputSchema } from '@repo/shared/validation/properties'
 import { Button } from '@/components/ui/button'
 import {
 	Card,
@@ -20,15 +21,9 @@ import { useCreateUnit } from '../../hooks/useUnits'
 import { toast } from 'sonner'
 import { motion } from '@/lib/framer-motion'
 
-const quickSetupSchema = z.object({
-	// Property info
-	propertyName: z.string().min(1, 'Property name is required'),
-	address: z.string().min(1, 'Address is required'),
-	city: z.string().min(1, 'City is required'),
-	state: z.string().min(1, 'State is required'),
-	zipCode: z.string().min(5, 'Valid zip code required'),
-
-	// Units info - already numbers from form inputs
+// Quick setup schema extends property schema with batch unit creation fields
+const quickSetupSchema = propertyInputSchema.extend({
+	// Units batch creation - quick setup specific
 	numberOfUnits: z.number().min(1, 'Must be at least 1 unit').max(50, 'Cannot exceed 50 units'),
 	baseRent: z.number().min(1, 'Base rent must be greater than 0'),
 	bedrooms: z.number().min(0, 'Cannot be negative').max(10, 'Cannot exceed 10 bedrooms'),

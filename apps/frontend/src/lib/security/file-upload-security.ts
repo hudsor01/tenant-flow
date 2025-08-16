@@ -148,9 +148,10 @@ const DANGEROUS_PATTERNS = [
 // Suspicious filename patterns
 const SUSPICIOUS_NAME_PATTERNS = [
   /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\.|$)/i, // Windows reserved names
-  /[<>:"|?*\\\/]/g, // Invalid filename characters
+  /[<>:"|?*\\/]/g, // Invalid filename characters
   /^\./, // Hidden files
   /\s{2,}/, // Multiple spaces
+  // eslint-disable-next-line no-control-regex
   /[\x00-\x1f\x7f-\x9f]/, // Control characters
 ];
 

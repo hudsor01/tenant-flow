@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '../../prisma/prisma.service'
-import { ErrorHandlerService, ErrorCode } from '../errors/error-handler.service'
+import { ErrorCode, ErrorHandlerService } from '../errors/error-handler.service'
 
 // Generic types for Prisma operations with proper typing
 type PrismaInclude = Record<string, boolean | Record<string, unknown>>
