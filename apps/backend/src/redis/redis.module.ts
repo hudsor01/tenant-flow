@@ -1,4 +1,4 @@
-import { Module, Global, Logger } from '@nestjs/common'
+import { Global, Logger, Module } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import IORedis from 'ioredis'
 import { RedisService } from './redis.service'

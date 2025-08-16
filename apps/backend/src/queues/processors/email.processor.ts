@@ -1,7 +1,7 @@
 import { Process, Processor } from '@nestjs/bull'
 import { Job } from 'bull'
 import { QUEUE_NAMES } from '../queue.module'
-import { BaseProcessor, BaseJobData, ProcessorResult } from '../base/base.processor'
+import { BaseJobData, BaseProcessor, ProcessorResult } from '../base/base.processor'
 import { ProcessorUtils } from '../utils/processor-utils'
 import { QUEUE_PROCESSING_DELAYS } from '../config/queue.constants'
 

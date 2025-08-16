@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common'
-import { Unit, UnitStatus, Prisma } from '@repo/database'
+import { Prisma, Unit, UnitStatus } from '@repo/database'
 import { UnitsRepository } from './units.repository'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { BaseCrudService, BaseStats } from '../common/services/base-crud.service'
 import { ValidationException } from '../common/exceptions/base.exception'
-import { UnitCreateDto, UnitUpdateDto, UnitQueryDto } from './dto'
+import { UnitCreateDto, UnitQueryDto, UnitUpdateDto } from './dto'
 import { UNIT_STATUS } from '@repo/shared'
 
 @Injectable()

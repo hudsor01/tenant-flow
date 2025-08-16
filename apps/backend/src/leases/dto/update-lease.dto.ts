@@ -1,6 +1,6 @@
 import { PartialType } from '@nestjs/mapped-types'
 import { CreateLeaseDto } from './create-lease.dto'
-import { IsOptional, IsEnum, IsDateString } from 'class-validator'
+import { IsDateString, IsEnum, IsOptional } from 'class-validator'
 import { LeaseStatus } from '@repo/database'
 import { UpdateLeaseInput } from '@repo/shared'
 

@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
-import type { SubStatus, PlanType } from '@repo/database'
+import type { PlanType, SubStatus } from '@repo/database'
 
 export interface UserFeatureAccess {
   canExportData: boolean

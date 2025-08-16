@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common'
-import { Tenant, Prisma } from '@repo/database'
+import { Prisma, Tenant } from '@repo/database'
 import * as crypto from 'crypto'
 import { TenantsRepository } from './tenants.repository'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { BaseCrudService, BaseStats } from '../common/services/base-crud.service'
 import { ValidationException } from '../common/exceptions/base.exception'
-import { TenantCreateDto, TenantUpdateDto, TenantQueryDto } from './dto'
+import { TenantCreateDto, TenantQueryDto, TenantUpdateDto } from './dto'
 import { FairHousingService } from '../common/validation/fair-housing.service'
 
 @Injectable()

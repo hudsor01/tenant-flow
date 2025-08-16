@@ -7,7 +7,7 @@ import {
   InvalidLeaseDatesException,
   LeaseConflictException
 } from '../common/exceptions/lease.exceptions'
-import { CreateLeaseDto, UpdateLeaseDto, LeaseQueryDto } from './dto'
+import { CreateLeaseDto, LeaseQueryDto, UpdateLeaseDto } from './dto'
 
 @Injectable()
 export class LeasesService extends BaseCrudService<

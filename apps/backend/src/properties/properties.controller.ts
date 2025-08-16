@@ -1,21 +1,21 @@
-import { Controller, Post, Put, Get, Delete, Body, Param, Query } from '@nestjs/common'
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger'
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common'
+import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { PropertiesService } from './properties.service'
 import { Property } from '@repo/database'
 import { 
   CreatePropertyDto, 
-  UpdatePropertyDto, 
+  createPropertySchema, 
   QueryPropertiesDto,
-  createPropertySchema,
-  updatePropertySchema,
   queryPropertiesSchema,
+  UpdatePropertyDto,
+  updatePropertySchema,
   uuidSchema
 } from '../common/validation/zod-schemas'
 import { 
-  ZodValidation,
   ZodBody,
+  ZodParam,
   ZodQuery,
-  ZodParam
+  ZodValidation
 } from '../common/decorators/zod-validation.decorator'
 import type { ValidatedUser } from '../auth/auth.service'
 import { UsageLimitsGuard } from '../subscriptions/guards/usage-limits.guard'

@@ -5,34 +5,15 @@
 import { useForm } from 'react-hook-form'
 import { logger } from '@/lib/logger'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { useCallback } from 'react'
 import { toast } from 'sonner'
+import { propertyFormSchema, type PropertyFormData } from '@repo/shared/validation/properties'
 import type { CreatePropertyInput, UpdatePropertyInput, Property } from '@repo/shared'
-
-// Form validation schema
-const propertyFormSchema = z.object({
-  name: z.string().min(1, 'Property name is required'),
-  address: z.string().min(1, 'Address is required'),
-  city: z.string().min(1, 'City is required'),
-  state: z.string().min(1, 'State is required'),
-  zipCode: z.string().min(1, 'ZIP code is required'),
-  description: z.string().optional(),
-  propertyType: z.enum(['SINGLE_FAMILY', 'MULTI_UNIT', 'APARTMENT', 'COMMERCIAL']),
-  imageUrl: z.string().optional(),
-  hasGarage: z.boolean().optional(),
-  hasPool: z.boolean().optional(),
-  numberOfUnits: z.number().optional(),
-  createUnitsNow: z.boolean().optional()
-})
-
-// Use shared PropertyFormData type instead of local definition
-type LocalPropertyFormData = z.infer<typeof propertyFormSchema>
 
 interface UsePropertyFormOptions {
   mode: 'create' | 'edit'
   property?: Property
-  defaultValues?: Partial<LocalPropertyFormData>
+  defaultValues?: Partial<PropertyFormData>
   checkCanCreateProperty?: () => boolean
   createProperty: {
     mutateAsync: (data: CreatePropertyInput) => Promise<Property>
@@ -54,7 +35,7 @@ export function usePropertyForm({
   updateProperty,
   onClose
 }: UsePropertyFormOptions) {
-  const form = useForm<LocalPropertyFormData>({
+  const form = useForm<PropertyFormData>({
     resolver: zodResolver(propertyFormSchema),
     defaultValues: {
       name: '',
@@ -74,7 +55,7 @@ export function usePropertyForm({
     mode: 'onChange'
   })
 
-  const handleSubmit = useCallback(async (data: LocalPropertyFormData) => {
+  const handleSubmit = useCallback(async (data: PropertyFormData) => {
     try {
       if (mode === 'create') {
         if (!checkCanCreateProperty()) {

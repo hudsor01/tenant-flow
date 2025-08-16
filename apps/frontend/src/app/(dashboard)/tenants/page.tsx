@@ -12,8 +12,9 @@ import Link from 'next/link'
 import { TenantsDataTable } from '@/components/tenants/tenants-data-table'
 import { TenantsStats } from '@/components/tenants/tenants-stats'
 import { PageTracker } from '@/components/analytics/page-tracker'
+import type { Metadata } from '../../../types/next';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Tenants | TenantFlow',
   description: 'Manage your tenants and track lease status',
 }

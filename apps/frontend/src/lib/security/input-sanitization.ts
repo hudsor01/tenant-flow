@@ -109,8 +109,8 @@ const SQL_INJECTION_PATTERNS = [
 const PATH_TRAVERSAL_PATTERNS = [
   /\.\.[\\/]/g,
   /~[\\/]/g,
-  /\%2e\%2e[\\/]/gi,
-  /\%252e\%252e[\\/]/gi,
+  /%2e%2e[\\/]/gi,
+  /%252e%252e[\\/]/gi,
 ];
 
 /**
@@ -189,7 +189,7 @@ export function sanitizeURL(url: string): string {
   
   // Only allow http, https, mailto, and relative URLs
   const allowedSchemes = /^(https?|mailto):/i;
-  const isRelative = /^[\/\.\w-]/.test(trimmedUrl);
+  const isRelative = /^[/.w-]/.test(trimmedUrl);
   
   if (!allowedSchemes.test(trimmedUrl) && !isRelative) {
     return '';
@@ -380,11 +380,11 @@ export function validateAndSanitizeInput(
       break;
     case 'phone':
       // Remove all non-numeric characters except +, spaces, hyphens, parentheses
-      sanitized = stringInput.replace(/[^\d\s\-\(\)\+]/g, '');
+      sanitized = stringInput.replace(/[^\d\s\-()]+/g, '');
       break;
     case 'number':
       // Remove all non-numeric characters except decimal point and minus
-      sanitized = stringInput.replace(/[^\d\.\-]/g, '');
+      sanitized = stringInput.replace(/[^\d.-]/g, '');
       break;
     case 'text':
     default:

@@ -338,7 +338,7 @@ export const commonValidations = {
       : undefined,
       
   phone: (value: string) =>
-    value && !/^[\+]?[1-9][\d]{0,15}$/.test(value.replace(/\s/g, ''))
+    value && !/^[+]?[1-9][\d]{0,15}$/.test(value.replace(/\s/g, ''))
       ? 'Please enter a valid phone number'
       : undefined,
       
