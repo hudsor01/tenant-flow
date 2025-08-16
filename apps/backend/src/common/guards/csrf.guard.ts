@@ -3,6 +3,9 @@ import { Reflector } from '@nestjs/core'
 import { FastifyRequest } from 'fastify'
 import { CsrfTokenService } from '../security/csrf-token.service'
 import { SecurityMonitorService } from '../security/security-monitor.service'
+import { SessionUtilsService } from '../utils/session-utils.service'
+import { CsrfUtilsService } from '../utils/csrf-utils.service'
+import { NetworkUtilsService } from '../utils/network-utils.service'
 
 // Metadata key for CSRF exemption
 export const IS_CSRF_EXEMPT_KEY = 'isCsrfExempt'
@@ -43,7 +46,10 @@ export class CsrfGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
     private csrfTokenService: CsrfTokenService,
-    private securityMonitor: SecurityMonitorService
+    private securityMonitor: SecurityMonitorService,
+    private sessionUtils: SessionUtilsService,
+    private csrfUtils: CsrfUtilsService,
+    private networkUtils: NetworkUtilsService
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -68,16 +74,16 @@ export class CsrfGuard implements CanActivate {
     }
     
     // Check global exempt routes
-    if (this.isGlobalExemptRoute(url)) {
+    if (this.csrfUtils.isGlobalExemptRoute(url, this.GLOBAL_EXEMPT_ROUTES)) {
       this.logger.debug(`CSRF protection bypassed for global exempt route: ${method} ${url}`)
       return true
     }
     
     // Extract and validate CSRF token
-    const csrfToken = this.extractCsrfToken(request)
+    const csrfToken = this.csrfUtils.extractCsrfToken(request)
     
     if (!csrfToken) {
-      const clientIP = this.getClientIP(request)
+      const clientIP = this.networkUtils.getClientIP(request)
       
       this.logger.warn(`CSRF token missing for ${method} ${url}`, {
         userAgent: request.headers['user-agent'],
@@ -97,7 +103,7 @@ export class CsrfGuard implements CanActivate {
           violationType: 'MISSING_TOKEN',
           origin: request.headers.origin,
           referer: request.headers.referer,
-          sessionId: this.extractSessionId(request)
+          sessionId: this.sessionUtils.extractSessionId(request)
         }
       })
       
@@ -115,8 +121,8 @@ export class CsrfGuard implements CanActivate {
     }
     
     // Validate token format
-    if (!this.isValidCsrfTokenFormat(csrfToken)) {
-      const clientIP = this.getClientIP(request)
+    if (!this.csrfUtils.isValidCsrfTokenFormat(csrfToken)) {
+      const clientIP = this.networkUtils.getClientIP(request)
       
       this.logger.warn(`Invalid CSRF token format for ${method} ${url}`, {
         tokenLength: csrfToken.length,
@@ -135,7 +141,7 @@ export class CsrfGuard implements CanActivate {
           violationType: 'INVALID_FORMAT',
           tokenLength: csrfToken.length,
           tokenPrefix: csrfToken.substring(0, 10),
-          sessionId: this.extractSessionId(request)
+          sessionId: this.sessionUtils.extractSessionId(request)
         }
       })
       
@@ -152,10 +158,10 @@ export class CsrfGuard implements CanActivate {
     }
     
     // Validate CSRF token against session
-    const sessionId = this.extractSessionId(request)
+    const sessionId = this.sessionUtils.extractSessionId(request)
     if (!sessionId) {
       this.logger.warn(`No session ID found for CSRF validation on ${method} ${url}`, {
-        ip: this.getClientIP(request)
+        ip: this.networkUtils.getClientIP(request)
       })
       
       throw new ForbiddenException({
@@ -175,7 +181,7 @@ export class CsrfGuard implements CanActivate {
     const isValidStateless = this.csrfTokenService.validateStatelessToken(csrfToken, sessionId)
     
     if (!isValidStateful && !isValidStateless) {
-      const clientIP = this.getClientIP(request)
+      const clientIP = this.networkUtils.getClientIP(request)
       
       this.logger.warn(`CSRF token validation failed for ${method} ${url}`, {
         tokenPrefix: csrfToken.substring(0, 16),
@@ -219,145 +225,5 @@ export class CsrfGuard implements CanActivate {
     })
     
     return true
-  }
-  
-  /**
-   * Check if route is globally exempt from CSRF protection
-   */
-  private isGlobalExemptRoute(url: string): boolean {
-    // Remove query parameters for route matching
-    const path = url.split('?')[0]
-    
-    return this.GLOBAL_EXEMPT_ROUTES.some(exemptRoute => {
-      // Handle both full paths and relative paths
-      return path === exemptRoute || 
-             path?.endsWith(exemptRoute) ||
-             path?.includes(exemptRoute)
-    })
-  }
-  
-  /**
-   * Extract CSRF token from request
-   */
-  private extractCsrfToken(request: FastifyRequest): string | null {
-    // Priority order: X-CSRF-Token > X-XSRF-TOKEN > form field
-    
-    // Check X-CSRF-Token header (recommended approach)
-    const csrfHeader = request.headers['x-csrf-token'] as string
-    if (csrfHeader) {
-      return csrfHeader
-    }
-    
-    // Check X-XSRF-TOKEN header (Angular/axios convention)
-    const xsrfHeader = request.headers['x-xsrf-token'] as string
-    if (xsrfHeader) {
-      return xsrfHeader
-    }
-    
-    // Check form data for _csrf field (traditional forms)
-    const body = request.body as Record<string, unknown>
-    if (body && typeof body === 'object' && '_csrf' in body) {
-      const formToken = body._csrf
-      if (typeof formToken === 'string') {
-        return formToken
-      }
-    }
-    
-    return null
-  }
-  
-  /**
-   * Validate CSRF token format (basic security validation)
-   */
-  private isValidCsrfTokenFormat(token: string): boolean {
-    if (typeof token !== 'string') {
-      return false
-    }
-    
-    // Length validation (prevent extremely short or long tokens)
-    if (token.length < 16 || token.length > 128) {
-      return false
-    }
-    
-    // Character validation (alphanumeric, hyphens, underscores only)
-    if (!/^[a-zA-Z0-9_-]+$/.test(token)) {
-      return false
-    }
-    
-    // Reject obviously fake tokens
-    const fakeTokenPatterns = [
-      /^test[-_]?token$/i,
-      /^fake[-_]?token$/i,
-      /^dummy[-_]?token$/i,
-      /^csrf[-_]?not[-_]?configured$/i,
-      /^1234567890abcdef$/i,
-      /^(a|1)+$/,  // Repeated characters
-      /^(abc|123)+$/i  // Simple patterns
-    ]
-    
-    if (fakeTokenPatterns.some(pattern => pattern.test(token))) {
-      return false
-    }
-    
-    return true
-  }
-  
-  /**
-   * Extract session ID from request (JWT token, session cookie, etc.)
-   */
-  private extractSessionId(request: FastifyRequest): string | null {
-    // Try to extract from Authorization header (JWT)
-    const authHeader = request.headers.authorization
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      try {
-        const token = authHeader.substring(7)
-        const tokenParts = token.split('.')
-        if (tokenParts.length !== 3 || !tokenParts[1]) return null
-        // Extract user ID from JWT payload (without verification - just for session ID)
-        const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString())
-        return payload.sub || payload.user_id || payload.id
-      } catch {
-        // Ignore JWT parsing errors
-      }
-    }
-    
-    // Try to extract from session cookie
-    const sessionCookie = request.headers.cookie
-    if (sessionCookie) {
-      const sessionMatch = sessionCookie.match(/session=([^;]+)/)
-      if (sessionMatch?.[1]) {
-        return sessionMatch[1]
-      }
-    }
-    
-    // Fallback to IP + User-Agent hash for stateless sessions
-    const ip = this.getClientIP(request)
-    const userAgent = request.headers['user-agent'] || 'unknown'
-    const fallbackSessionId = Buffer.from(`${ip}:${userAgent || 'unknown'}`).toString('base64').substring(0, 16)
-    
-    return fallbackSessionId
-  }
-
-  /**
-   * Get client IP address for logging
-   */
-  private getClientIP(request: FastifyRequest): string {
-    const forwardedFor = request.headers['x-forwarded-for'] as string
-    const realIP = request.headers['x-real-ip'] as string
-    const cfConnectingIP = request.headers['cf-connecting-ip'] as string
-    
-    if (forwardedFor) {
-      return forwardedFor.split(',')[0]?.trim() || 'unknown'
-    }
-    
-    if (cfConnectingIP) {
-      return cfConnectingIP
-    }
-    
-    if (realIP) {
-      return realIP
-    }
-    
-    return request.ip || 'unknown'
   }
 }
