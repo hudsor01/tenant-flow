@@ -80,12 +80,26 @@ export class TypeSafeConfigService {
     const summary = {
       environment: config.app.nodeEnv,
       port: config.app.port,
+      platform: config.deployment.platform,
+      deployment: {
+        isRailway: config.deployment.isRailway,
+        isVercel: config.deployment.isVercel,
+        isDocker: config.deployment.isDocker,
+        serviceUrl: this.serviceUrl,
+        ...(config.deployment.railway && {
+          railway: {
+            environment: config.deployment.railway.environment,
+            serviceName: config.deployment.railway.serviceName
+          }
+        })
+      },
       database: {
         maxConnections: config.database.maxConnections,
         connectionTimeout: config.database.connectionTimeout
       },
       cors: {
-        originsCount: config.cors.origins.length
+        originsCount: config.cors.origins.length,
+        deploymentOriginsCount: this.getDeploymentCorsOrigins().length
       },
       rateLimit: {
         enabled: config.app.enableRateLimiting,
@@ -302,5 +316,90 @@ export class TypeSafeConfigService {
       port: this.config.PORT,
       logLevel: this.config.LOG_LEVEL
     }
+  }
+
+  /**
+   * Gets deployment platform configuration
+   */
+  get deployment() {
+    return this.derived.deployment
+  }
+
+  /**
+   * Checks if running on Railway platform
+   */
+  get isRailway(): boolean {
+    return this.deployment.isRailway
+  }
+
+  /**
+   * Checks if running on Vercel platform
+   */
+  get isVercel(): boolean {
+    return this.deployment.isVercel
+  }
+
+  /**
+   * Checks if running in Docker container
+   */
+  get isDocker(): boolean {
+    return this.deployment.isDocker
+  }
+
+  /**
+   * Gets Railway-specific configuration (null if not on Railway)
+   */
+  get railwayConfig() {
+    return this.deployment.railway
+  }
+
+  /**
+   * Gets the deployment platform name
+   */
+  get deploymentPlatform(): 'railway' | 'vercel' | 'docker' | 'unknown' {
+    return this.deployment.platform
+  }
+
+  /**
+   * Checks if this is an actual production deployment (not just NODE_ENV=production)
+   */
+  get isProductionDeployment(): boolean {
+    return this.isProduction && (
+      this.deployment.railway?.environment === 'production' ||
+      this.deployment.vercel?.environment === 'production' ||
+      this.isDocker
+    )
+  }
+
+  /**
+   * Gets the service URL for the current deployment platform
+   */
+  get serviceUrl(): string | undefined {
+    if (this.isRailway) {
+      return this.railwayConfig?.serviceUrl
+    }
+    if (this.isVercel) {
+      return this.deployment.vercel?.url
+    }
+    return undefined
+  }
+
+  /**
+   * Gets deployment-specific CORS origins that should be allowed
+   */
+  getDeploymentCorsOrigins(): string[] {
+    const origins: string[] = []
+    
+    // Add Railway service URL
+    if (this.isRailway && this.railwayConfig?.serviceUrl) {
+      origins.push(this.railwayConfig.serviceUrl)
+    }
+    
+    // Add Vercel URL
+    if (this.isVercel && this.deployment.vercel?.url) {
+      origins.push(`https://${this.deployment.vercel.url}`)
+    }
+    
+    return origins
   }
 }

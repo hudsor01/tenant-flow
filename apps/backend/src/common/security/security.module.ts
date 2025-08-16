@@ -25,6 +25,10 @@ import { RequestLimitsController } from '../controllers/request-limits.controlle
 import { RequestLimitsMiddleware } from '../middleware/request-limits.middleware'
 import { CsrfTokenService } from './csrf-token.service'
 import { CsrfTokenController } from '../controllers/csrf-token.controller'
+import { SessionUtilsService } from '../utils/session-utils.service'
+import { CsrfUtilsService } from '../utils/csrf-utils.service'
+import { NetworkUtilsService } from '../utils/network-utils.service'
+import { RequestUtilsService } from '../utils/request-utils.service'
 
 @Global()
 @Module({
@@ -47,6 +51,10 @@ import { CsrfTokenController } from '../controllers/csrf-token.controller'
         RequestLimitsService,
         RequestLimitsMiddleware,
         CsrfTokenService,
+        SessionUtilsService,
+        CsrfUtilsService,
+        NetworkUtilsService,
+        RequestUtilsService,
     ],
     exports: [
         SecurityUtils, 
@@ -64,6 +72,10 @@ import { CsrfTokenController } from '../controllers/csrf-token.controller'
         RequestLimitsService,
         RequestLimitsMiddleware,
         CsrfTokenService,
+        SessionUtilsService,
+        CsrfUtilsService,
+        NetworkUtilsService,
+        RequestUtilsService,
     ]
 })
 export class SecurityModule {}
