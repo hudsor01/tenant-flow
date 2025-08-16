@@ -36,7 +36,7 @@ tenantflow_config_status{config="supabase_key",environment="${environment}"} ${h
         'Cache-Control': 'no-cache, no-store, must-revalidate'
       }
     })
-  } catch (error) {
+  } catch {
     const errorMetrics = `
 # HELP tenantflow_metrics_error Metrics generation error
 # TYPE tenantflow_metrics_error gauge

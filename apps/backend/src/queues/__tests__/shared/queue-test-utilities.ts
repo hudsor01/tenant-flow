@@ -4,7 +4,6 @@ import { getQueueToken, BullModule } from '@nestjs/bull'
 import type { Queue } from 'bull'
 import type { EmailJobData, PaymentJobData, BaseJobData } from '../../types/job.interfaces'
 import type { ProcessorResult } from '../../base/base.processor'
-import type { MockedFunction } from 'jest-mock'
 
 /**
  * Shared test utilities for queue infrastructure

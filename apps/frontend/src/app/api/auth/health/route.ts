@@ -24,7 +24,7 @@ export async function GET() {
         supabase_key: hasSupabaseKey
       }
     })
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         status: 'unhealthy',
