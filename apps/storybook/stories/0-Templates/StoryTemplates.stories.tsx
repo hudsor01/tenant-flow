@@ -1,74 +1,88 @@
-import React from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
-import { fn, expect, userEvent, within } from '@storybook/test';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Code, Copy, FileText, Lightbulb, Zap } from 'lucide-react';
-import { UIComponentErrorBoundary } from '../utils/GranularErrorBoundaries';
+import React from 'react'
+import type { Meta, StoryObj } from '@storybook/react'
+import { fn, expect, userEvent, within } from '@storybook/test'
+import {
+	Card,
+	CardHeader,
+	CardTitle,
+	CardDescription,
+	CardContent,
+	CardFooter
+} from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Code, Copy, FileText, Lightbulb, Zap } from 'lucide-react'
+import { UIComponentErrorBoundary } from '../utils/GranularErrorBoundaries'
 
 const meta = {
-  title: '🎯 Templates/Story Templates',
-  parameters: {
-    layout: 'padded',
-    docs: {
-      description: {
-        component: 'Comprehensive TypeScript templates for creating consistent, well-tested Storybook stories.',
-      },
-    },
-  },
-  decorators: [
-    (Story) => (
-      <UIComponentErrorBoundary>
-        <Story />
-      </UIComponentErrorBoundary>
-    ),
-  ],
-} satisfies Meta;
+	title: '🎯 Templates/Story Templates',
+	parameters: {
+		layout: 'padded',
+		docs: {
+			description: {
+				component:
+					'Comprehensive TypeScript templates for creating consistent, well-tested Storybook stories.'
+			}
+		}
+	},
+	decorators: [
+		Story => (
+			<UIComponentErrorBoundary>
+				<Story />
+			</UIComponentErrorBoundary>
+		)
+	]
+} satisfies Meta
 
-export default meta;
-type Story = StoryObj<typeof meta>;
+export default meta
+type Story = StoryObj<typeof meta>
 
 // Template examples with copy functionality
-const CodeBlock: React.FC<{ title: string; code: string; language: string }> = ({ title, code, language }) => {
-  const [copied, setCopied] = React.useState(false);
+const CodeBlock: React.FC<{
+	title: string
+	code: string
+	language: string
+}> = ({ title, code, language }) => {
+	const [copied, setCopied] = React.useState(false)
 
-  const copyToClipboard = async () => {
-    await navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+	const copyToClipboard = async () => {
+		await navigator.clipboard.writeText(code)
+		setCopied(true)
+		setTimeout(() => setCopied(false), 2000)
+	}
 
-  return (
-    <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Code className="h-5 w-5" />
-            {title}
-          </CardTitle>
-          <Button
-            onClick={copyToClipboard}
-            size="sm"
-            variant="outline"
-            className="h-8 w-8 p-0"
-            data-testid={`copy-${title.toLowerCase().replace(/\s+/g, '-')}`}
-          >
-            <Copy className="h-4 w-4" />
-          </Button>
-        </div>
-        {copied && (
-          <div className="text-sm text-green-600 font-medium">Copied to clipboard!</div>
-        )}
-      </CardHeader>
-      <CardContent>
-        <pre className="bg-gray-50 p-4 rounded-lg text-sm overflow-x-auto">
-          <code className={`language-${language}`}>{code}</code>
-        </pre>
-      </CardContent>
-    </Card>
-  );
-};
+	return (
+		<Card>
+			<CardHeader className="pb-3">
+				<div className="flex items-center justify-between">
+					<CardTitle className="flex items-center gap-2 text-lg">
+						<Code className="h-5 w-5" />
+						{title}
+					</CardTitle>
+					<Button
+						onClick={copyToClipboard}
+						size="sm"
+						variant="outline"
+						className="h-8 w-8 p-0"
+						data-testid={`copy-${title.toLowerCase().replace(/\s+/g, '-')}`}
+					>
+						<Copy className="h-4 w-4" />
+					</Button>
+				</div>
+				{copied && (
+					<div className="text-sm font-medium text-green-600">
+						Copied to clipboard!
+					</div>
+				)}
+			</CardHeader>
+			<CardContent>
+				<pre className="overflow-x-auto rounded-lg bg-gray-50 p-4 text-sm">
+					<code className={`language-${language}`}>{code}</code>
+				</pre>
+			</CardContent>
+		</Card>
+	)
+}
 
 // Template code strings
 const basicComponentTemplate = `import React from 'react';
@@ -146,7 +160,7 @@ export const WithInteraction: Story = {
     await userEvent.keyboard('{Tab}');
     await expect(component).toHaveFocus();
   },
-};`;
+};`
 
 const businessComponentTemplate = `import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
@@ -248,7 +262,7 @@ export const ErrorState: Story = {
     // Test error state
     await canvas.findByText(/error loading data/i);
   },
-};`;
+};`
 
 const formComponentTemplate = `import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
@@ -313,7 +327,7 @@ export const FilledForm: Story = {
     // Should submit successfully
     await expect(submitButton).toBeDisabled();
   },
-};`;
+};`
 
 const accessibilityTemplate = `import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
@@ -375,7 +389,7 @@ export const HighContrast: Story = {
     'aria-label': 'High contrast component',
     className: 'text-white border-white',
   },
-};`;
+};`
 
 const performanceTemplate = `import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
@@ -459,169 +473,184 @@ export const LargeDataset: Story = {
     // More generous threshold for large datasets
     expect(renderTime).toBeLessThan(500);
   },
-};`;
+};`
 
 export const BasicComponentTemplate: Story = {
-  render: () => (
-    <div className="space-y-6">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-2">Storybook Templates</h1>
-        <p className="text-gray-600">Production-ready TypeScript templates for consistent story creation</p>
-      </div>
-      
-      <CodeBlock 
-        title="Basic Component Template"
-        code={basicComponentTemplate}
-        language="typescript"
-      />
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-        <Card>
-          <CardContent className="pt-6 text-center">
-            <Lightbulb className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
-            <h3 className="font-semibold">Best Practices</h3>
-            <p className="text-sm text-gray-600">Error boundaries, TypeScript types, accessibility</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="pt-6 text-center">
-            <Zap className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-            <h3 className="font-semibold">Interactive Testing</h3>
-            <p className="text-sm text-gray-600">User interactions, keyboard navigation, assertions</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="pt-6 text-center">
-            <FileText className="h-8 w-8 text-green-500 mx-auto mb-2" />
-            <h3 className="font-semibold">Documentation</h3>
-            <p className="text-sm text-gray-600">Component descriptions, usage examples, props</p>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  ),
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    
-    // Test copy functionality
-    const copyButton = canvas.getByTestId('copy-basic-component-template');
-    await userEvent.click(copyButton);
-    
-    // Should show feedback
-    await canvas.findByText('Copied to clipboard!');
-  },
-};
+	render: () => (
+		<div className="space-y-6">
+			<div className="mb-8 text-center">
+				<h1 className="mb-2 text-3xl font-bold">Storybook Templates</h1>
+				<p className="text-gray-600">
+					Production-ready TypeScript templates for consistent story
+					creation
+				</p>
+			</div>
+
+			<CodeBlock
+				title="Basic Component Template"
+				code={basicComponentTemplate}
+				language="typescript"
+			/>
+
+			<div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+				<Card>
+					<CardContent className="pt-6 text-center">
+						<Lightbulb className="mx-auto mb-2 h-8 w-8 text-yellow-500" />
+						<h3 className="font-semibold">Best Practices</h3>
+						<p className="text-sm text-gray-600">
+							Error boundaries, TypeScript types, accessibility
+						</p>
+					</CardContent>
+				</Card>
+
+				<Card>
+					<CardContent className="pt-6 text-center">
+						<Zap className="mx-auto mb-2 h-8 w-8 text-blue-500" />
+						<h3 className="font-semibold">Interactive Testing</h3>
+						<p className="text-sm text-gray-600">
+							User interactions, keyboard navigation, assertions
+						</p>
+					</CardContent>
+				</Card>
+
+				<Card>
+					<CardContent className="pt-6 text-center">
+						<FileText className="mx-auto mb-2 h-8 w-8 text-green-500" />
+						<h3 className="font-semibold">Documentation</h3>
+						<p className="text-sm text-gray-600">
+							Component descriptions, usage examples, props
+						</p>
+					</CardContent>
+				</Card>
+			</div>
+		</div>
+	),
+	play: async ({ canvasElement }) => {
+		const canvas = within(canvasElement)
+
+		// Test copy functionality
+		const copyButton = canvas.getByTestId('copy-basic-component-template')
+		await userEvent.click(copyButton)
+
+		// Should show feedback
+		await canvas.findByText('Copied to clipboard!')
+	}
+}
 
 export const BusinessComponentTemplate: Story = {
-  render: () => (
-    <div className="space-y-6">
-      <CodeBlock 
-        title="Business Component Template with MSW"
-        code={businessComponentTemplate}
-        language="typescript"
-      />
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Key Features</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-2">
-            <li className="flex items-center gap-2">
-              <Badge variant="outline" className="text-xs">API</Badge>
-              MSW integration for realistic API mocking
-            </li>
-            <li className="flex items-center gap-2">
-              <Badge variant="outline" className="text-xs">Error</Badge>
-              Business-specific error boundary
-            </li>
-            <li className="flex items-center gap-2">
-              <Badge variant="outline" className="text-xs">States</Badge>
-              Loading, error, and success state testing
-            </li>
-          </ul>
-        </CardContent>
-      </Card>
-    </div>
-  ),
-};
+	render: () => (
+		<div className="space-y-6">
+			<CodeBlock
+				title="Business Component Template with MSW"
+				code={businessComponentTemplate}
+				language="typescript"
+			/>
+
+			<Card>
+				<CardHeader>
+					<CardTitle>Key Features</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<ul className="space-y-2">
+						<li className="flex items-center gap-2">
+							<Badge variant="outline" className="text-xs">
+								API
+							</Badge>
+							MSW integration for realistic API mocking
+						</li>
+						<li className="flex items-center gap-2">
+							<Badge variant="outline" className="text-xs">
+								Error
+							</Badge>
+							Business-specific error boundary
+						</li>
+						<li className="flex items-center gap-2">
+							<Badge variant="outline" className="text-xs">
+								States
+							</Badge>
+							Loading, error, and success state testing
+						</li>
+					</ul>
+				</CardContent>
+			</Card>
+		</div>
+	)
+}
 
 export const FormComponentTemplate: Story = {
-  render: () => (
-    <div className="space-y-6">
-      <CodeBlock 
-        title="Form Component Template"
-        code={formComponentTemplate}
-        language="typescript"
-      />
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Form Testing Features</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-2">
-            <li>• Form validation testing</li>
-            <li>• Input interaction simulation</li>
-            <li>• Submit flow verification</li>
-            <li>• Error state handling</li>
-          </ul>
-        </CardContent>
-      </Card>
-    </div>
-  ),
-};
+	render: () => (
+		<div className="space-y-6">
+			<CodeBlock
+				title="Form Component Template"
+				code={formComponentTemplate}
+				language="typescript"
+			/>
+
+			<Card>
+				<CardHeader>
+					<CardTitle>Form Testing Features</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<ul className="space-y-2">
+						<li>• Form validation testing</li>
+						<li>• Input interaction simulation</li>
+						<li>• Submit flow verification</li>
+						<li>• Error state handling</li>
+					</ul>
+				</CardContent>
+			</Card>
+		</div>
+	)
+}
 
 export const AccessibilityTemplate: Story = {
-  render: () => (
-    <div className="space-y-6">
-      <CodeBlock 
-        title="Accessibility Testing Template"
-        code={accessibilityTemplate}
-        language="typescript"
-      />
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Accessibility Features</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-2">
-            <li>• WCAG 2.1 AA compliance testing</li>
-            <li>• Keyboard navigation verification</li>
-            <li>• Screen reader compatibility</li>
-            <li>• High contrast mode support</li>
-          </ul>
-        </CardContent>
-      </Card>
-    </div>
-  ),
-};
+	render: () => (
+		<div className="space-y-6">
+			<CodeBlock
+				title="Accessibility Testing Template"
+				code={accessibilityTemplate}
+				language="typescript"
+			/>
+
+			<Card>
+				<CardHeader>
+					<CardTitle>Accessibility Features</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<ul className="space-y-2">
+						<li>• WCAG 2.1 AA compliance testing</li>
+						<li>• Keyboard navigation verification</li>
+						<li>• Screen reader compatibility</li>
+						<li>• High contrast mode support</li>
+					</ul>
+				</CardContent>
+			</Card>
+		</div>
+	)
+}
 
 export const PerformanceTemplate: Story = {
-  render: () => (
-    <div className="space-y-6">
-      <CodeBlock 
-        title="Performance Testing Template"
-        code={performanceTemplate}
-        language="typescript"
-      />
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Performance Monitoring</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-2">
-            <li>• Render time measurement</li>
-            <li>• Performance assertions</li>
-            <li>• Large dataset testing</li>
-            <li>• Performance budgets</li>
-          </ul>
-        </CardContent>
-      </Card>
-    </div>
-  ),
-};
+	render: () => (
+		<div className="space-y-6">
+			<CodeBlock
+				title="Performance Testing Template"
+				code={performanceTemplate}
+				language="typescript"
+			/>
+
+			<Card>
+				<CardHeader>
+					<CardTitle>Performance Monitoring</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<ul className="space-y-2">
+						<li>• Render time measurement</li>
+						<li>• Performance assertions</li>
+						<li>• Large dataset testing</li>
+						<li>• Performance budgets</li>
+					</ul>
+				</CardContent>
+			</Card>
+		</div>
+	)
+}

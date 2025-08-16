@@ -1,6 +1,7 @@
 # Build & Deployment Optimization Guide
 
 ## Current Build Performance
+
 - **Vercel Build**: 38 seconds
 - **Bundle Size**: 3.4MB static assets
 - **Railway Backend**: Docker-based deployment
@@ -8,6 +9,7 @@
 ## 🚀 Vercel Frontend Optimizations
 
 ### 1. Enable Turbo Remote Caching (IMMEDIATE - 50-70% faster)
+
 ```bash
 # Sign up for Vercel Remote Cache
 npx turbo login
@@ -17,76 +19,82 @@ npx turbo link
 TURBO_TOKEN=<your-token>
 TURBO_TEAM=<your-team>
 ```
+
 **Impact**: Skip rebuilding unchanged packages, cache hits reduce build from 38s to ~10-15s
 
 ### 2. Optimize Next.js Build Cache
+
 ```json
 // vercel.json additions
 {
-  "buildCommand": "npx turbo run build --filter=@repo/frontend --cache-dir=.turbo",
-  "build": {
-    "env": {
-      "NEXT_TELEMETRY_DISABLED": "1", // Disable telemetry
-      "NODE_OPTIONS": "--max-old-space-size=4096" // Increase memory
-    }
-  }
+	"buildCommand": "npx turbo run build --filter=@repo/frontend --cache-dir=.turbo",
+	"build": {
+		"env": {
+			"NEXT_TELEMETRY_DISABLED": "1", // Disable telemetry
+			"NODE_OPTIONS": "--max-old-space-size=4096" // Increase memory
+		}
+	}
 }
 ```
 
 ### 3. Reduce Bundle Size
+
 ```javascript
 // next.config.ts
 export default {
-  // Enable SWC minification
-  swcMinify: true,
-  
-  // Optimize images
-  images: {
-    formats: ['image/avif', 'image/webp'],
-    minimumCacheTTL: 31536000,
-  },
-  
-  // Tree shake unused code
-  experimental: {
-    optimizePackageImports: [
-      '@heroicons/react',
-      'lucide-react',
-      '@radix-ui',
-      'date-fns'
-    ]
-  },
-  
-  // Disable source maps in production
-  productionBrowserSourceMaps: false,
+	// Enable SWC minification
+	swcMinify: true,
+
+	// Optimize images
+	images: {
+		formats: ['image/avif', 'image/webp'],
+		minimumCacheTTL: 31536000
+	},
+
+	// Tree shake unused code
+	experimental: {
+		optimizePackageImports: [
+			'@heroicons/react',
+			'lucide-react',
+			'@radix-ui',
+			'date-fns'
+		]
+	},
+
+	// Disable source maps in production
+	productionBrowserSourceMaps: false
 }
 ```
 
 ### 4. Implement Incremental Static Regeneration (ISR)
+
 ```typescript
 // For marketing pages
 export const revalidate = 3600 // Revalidate every hour
 
 // For dynamic pages
 export async function generateStaticParams() {
-  // Pre-generate top 100 properties
-  const properties = await getTopProperties(100)
-  return properties.map(p => ({ id: p.id }))
+	// Pre-generate top 100 properties
+	const properties = await getTopProperties(100)
+	return properties.map(p => ({ id: p.id }))
 }
 ```
 
 ### 5. Split Heavy Components
+
 ```typescript
 // Use dynamic imports for heavy components
 const HeavyDashboard = dynamic(
   () => import('@/components/dashboard/heavy-dashboard'),
-  { 
+  {
     loading: () => <DashboardSkeleton />,
-    ssr: false 
+    ssr: false
   }
 )
 ```
 
 ### 6. Optimize Dependencies
+
 ```bash
 # Analyze bundle
 npm run analyze
@@ -102,6 +110,7 @@ npx depcheck
 ## 🚂 Railway Backend Optimizations
 
 ### 1. Multi-Stage Docker Build
+
 ```dockerfile
 # Dockerfile optimization
 FROM node:20-alpine AS deps
@@ -126,6 +135,7 @@ CMD ["node", "dist/apps/backend/src/main.js"]
 ```
 
 ### 2. Implement Layer Caching
+
 ```yaml
 # railway.toml
 [build]
@@ -139,6 +149,7 @@ restartPolicyType = "always"
 ```
 
 ### 3. Use Nixpacks (Railway's Fast Builder)
+
 ```json
 // nixpacks.toml
 [phases.setup]
@@ -155,6 +166,7 @@ cmd = "node dist/apps/backend/src/main.js"
 ```
 
 ### 4. Optimize Prisma
+
 ```javascript
 // Reduce Prisma client size
 generator client {
@@ -165,35 +177,38 @@ generator client {
 ```
 
 ### 5. Enable Connection Pooling
+
 ```javascript
 // Use Prisma Accelerate for edge caching
 const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL + '?pgbouncer=true&connection_limit=1'
-    }
-  }
+	datasources: {
+		db: {
+			url: process.env.DATABASE_URL + '?pgbouncer=true&connection_limit=1'
+		}
+	}
 })
 ```
 
 ## 📊 Monitoring & Metrics
 
 ### Add Build Analytics
+
 ```javascript
 // Track build performance
 const { register } = require('@vercel/analytics/webpack')
 
 module.exports = {
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      config.plugins.push(register())
-    }
-    return config
-  }
+	webpack: (config, { isServer }) => {
+		if (!isServer) {
+			config.plugins.push(register())
+		}
+		return config
+	}
 }
 ```
 
 ### Enable Traces
+
 ```bash
 # See what's slowing builds
 NEXT_TURBOPACK_TRACING=1 npm run build
@@ -202,18 +217,21 @@ NEXT_TURBOPACK_TRACING=1 npm run build
 ## 🎯 Quick Wins Checklist
 
 ### Immediate (5 minutes)
+
 - [ ] Enable Turbo remote caching
 - [ ] Add `NEXT_TELEMETRY_DISABLED=1` to Vercel
 - [ ] Disable source maps in production
 - [ ] Set `NODE_OPTIONS=--max-old-space-size=4096`
 
 ### Short Term (30 minutes)
+
 - [ ] Implement multi-stage Docker build
 - [ ] Add bundle analyzer and remove unused deps
 - [ ] Configure experimental optimizePackageImports
 - [ ] Enable Prisma jsonProtocol
 
 ### Medium Term (2 hours)
+
 - [ ] Implement ISR for marketing pages
 - [ ] Split heavy dashboard components
 - [ ] Migrate to Nixpacks on Railway
@@ -222,12 +240,14 @@ NEXT_TURBOPACK_TRACING=1 npm run build
 ## 🚀 Expected Results
 
 ### Vercel Improvements
+
 - **Build Time**: 38s → 10-15s (with cache)
 - **Cold Start**: 2s → 500ms
 - **Bundle Size**: 3.4MB → 2.2MB
 - **Deploy Time**: 2min → 45s
 
 ### Railway Improvements
+
 - **Build Time**: 3min → 1.5min
 - **Docker Image**: 800MB → 150MB
 - **Cold Start**: 5s → 2s
@@ -236,25 +256,27 @@ NEXT_TURBOPACK_TRACING=1 npm run build
 ## 🔧 Automation
 
 ### GitHub Actions Optimization
+
 ```yaml
 - name: Turbo Cache
   uses: actions/cache@v3
   with:
-    path: .turbo
-    key: turbo-${{ runner.os }}-${{ github.sha }}
-    restore-keys: |
-      turbo-${{ runner.os }}-
+      path: .turbo
+      key: turbo-${{ runner.os }}-${{ github.sha }}
+      restore-keys: |
+          turbo-${{ runner.os }}-
 
 - name: Next.js Cache
   uses: actions/cache@v3
   with:
-    path: apps/frontend/.next/cache
-    key: next-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+      path: apps/frontend/.next/cache
+      key: next-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
 ```
 
 ## 📝 Environment Variables
 
 ### Vercel Production Optimizations
+
 ```env
 # .env.production
 NEXT_SHARP_PATH=/tmp/node_modules/sharp
@@ -264,6 +286,7 @@ NODE_OPTIONS=--max-old-space-size=4096
 ```
 
 ### Railway Production Optimizations
+
 ```env
 # Railway Variables
 NODE_ENV=production
@@ -275,6 +298,7 @@ PRISMA_CLI_BINARY_TARGETS=["native","linux-musl"]
 ## 🎉 Results After Implementation
 
 Implementing all optimizations should achieve:
+
 - **70% faster builds** with caching
 - **60% smaller Docker images**
 - **50% reduction in cold starts**

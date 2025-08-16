@@ -2,20 +2,20 @@
 
 import { useEffect } from 'react'
 import {
-  generateBreadcrumbSchema,
-  generateFAQSchema,
-  generateLocalBusinessSchema,
-  generateProductSchema,
+	generateBreadcrumbSchema,
+	generateFAQSchema,
+	generateLocalBusinessSchema,
+	generateProductSchema
 } from '@/lib/seo/generate-metadata'
 
 interface BreadcrumbItem {
-  name: string
-  url: string
+	name: string
+	url: string
 }
 
 interface FAQ {
-  question: string
-  answer: string
+	question: string
+	answer: string
 }
 
 interface SEOProps {
@@ -61,15 +61,18 @@ export function SEO({
 	faqs,
 	includeLocalBusiness = false,
 	includeProduct = false,
-	customSchema = [],
+	customSchema = []
 }: SEOProps) {
 	const siteTitle = title ? `${title} | TenantFlow` : DEFAULT_SEO.title
 
 	const fullImageUrl = image?.startsWith('http')
 		? image
-		: `${window.location.origin}${image}`
+		: typeof window !== 'undefined'
+			? `${window.location.origin}${image}`
+			: image || DEFAULT_SEO.image
 
-	const fullUrl = url || window.location.href
+	const fullUrl =
+		url || (typeof window !== 'undefined' ? window.location.href : '')
 
 	useEffect(() => {
 		// Update document title
@@ -270,7 +273,7 @@ export function SEO({
 		faqs,
 		includeLocalBusiness,
 		includeProduct,
-		customSchema,
+		customSchema
 	])
 
 	return null // This component doesn't render anything visually

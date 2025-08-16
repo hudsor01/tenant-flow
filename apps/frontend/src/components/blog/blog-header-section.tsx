@@ -28,9 +28,9 @@ export default function BlogHeaderSection({
 				<motion.div {...fadeInUp}>
 					{/* Back Navigation */}
 					<div className="mb-8">
-						<Link 
+						<Link
 							href="/blog"
-							className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+							className="text-muted-foreground hover:text-foreground inline-flex items-center text-sm transition-colors"
 						>
 							<ArrowLeft className="mr-2 h-4 w-4" />
 							Back to articles
@@ -39,32 +39,36 @@ export default function BlogHeaderSection({
 
 					{/* Category */}
 					<div className="mb-6">
-						<span className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-sm font-medium text-muted-foreground">
+						<span className="bg-muted text-muted-foreground inline-flex items-center rounded-full px-3 py-1 text-sm font-medium">
 							<Tag className="mr-1 h-3 w-3" />
 							{article.category}
 						</span>
 					</div>
 
 					{/* Title */}
-					<h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl mb-6">
+					<h1 className="text-foreground mb-6 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
 						{article.title}
 					</h1>
 
 					{/* Description */}
-					<p className="text-xl text-muted-foreground leading-8 mb-8">
+					<p className="text-muted-foreground mb-8 text-xl leading-8">
 						{article.description}
 					</p>
 
 					{/* Meta Information */}
-					<div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground border-t border-border pt-6">
+					<div className="text-muted-foreground border-border flex flex-wrap items-center gap-6 border-t pt-6 text-sm">
 						<div className="flex items-center gap-2">
 							<User className="h-4 w-4" />
-							<span className="font-medium">{article.author?.name || article.authorName}</span>
+							<span className="font-medium">
+								{article.author?.name || article.authorName}
+							</span>
 						</div>
 						<div className="flex items-center gap-2">
 							<Calendar className="h-4 w-4" />
 							<time>
-								{article.publishedAt ? formatArticleDate(article.publishedAt) : 'Recent'}
+								{article.publishedAt
+									? formatArticleDate(article.publishedAt)
+									: 'Recent'}
 							</time>
 						</div>
 						<div className="flex items-center gap-2">
@@ -72,9 +76,9 @@ export default function BlogHeaderSection({
 							<span>{article.readTime || 5} min read</span>
 						</div>
 						<Button
-							variant="ghost" 
+							variant="ghost"
 							size="sm"
-							className="ml-auto text-muted-foreground hover:text-foreground"
+							className="text-muted-foreground hover:text-foreground ml-auto"
 						>
 							<Share2 className="mr-2 h-4 w-4" />
 							Share

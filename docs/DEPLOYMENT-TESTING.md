@@ -5,6 +5,7 @@ This guide explains how to test your deployments locally before pushing to Verce
 ## 📋 Quick Commands
 
 ### Fast Pre-Deployment Testing
+
 ```bash
 # Quick Docker build test (30s-2min)
 npm run deploy:test:docker
@@ -15,13 +16,14 @@ npm run deploy:test
 # Test only frontend (Vercel simulation)
 npm run deploy:test:vercel
 
-# Test only backend (Railway simulation)  
+# Test only backend (Railway simulation)
 npm run deploy:test:railway
 ```
 
 ## 🔧 Available Test Scripts
 
 ### 1. `npm run deploy:test:docker` ⚡
+
 **Fastest test - Run this before every commit**
 
 - Tests Docker build stages (builder + production)
@@ -30,6 +32,7 @@ npm run deploy:test:railway
 - **Use for**: Quick validation before git push
 
 ### 2. `npm run deploy:test:vercel` 🌐
+
 **Frontend deployment simulation**
 
 - Simulates exact Vercel build process
@@ -39,6 +42,7 @@ npm run deploy:test:railway
 - **Use for**: Frontend-specific changes
 
 ### 3. `npm run deploy:test:railway` 🚂
+
 **Backend deployment simulation**
 
 - Full Docker build with Railway environment
@@ -48,6 +52,7 @@ npm run deploy:test:railway
 - **Use for**: Backend-specific changes
 
 ### 4. `npm run deploy:test` 🎯
+
 **Complete deployment validation**
 
 - Runs both Vercel and Railway simulations
@@ -59,19 +64,22 @@ npm run deploy:test:railway
 ## 🛠️ What Each Test Catches
 
 ### Docker Build Test
+
 - ✅ Dockerfile syntax errors
 - ✅ Missing dependencies
 - ✅ Build stage failures
 - ✅ Production image issues
 
 ### Vercel Simulation
+
 - ✅ Next.js build failures
 - ✅ TypeScript compilation errors
 - ✅ Missing environment variables
 - ✅ Bundle size issues
 - ✅ Server startup problems
 
-### Railway Simulation  
+### Railway Simulation
+
 - ✅ Docker container issues
 - ✅ Runtime dependency problems
 - ✅ API endpoint failures
@@ -81,6 +89,7 @@ npm run deploy:test:railway
 ## 🚨 Common Issues Caught
 
 ### Frontend Issues
+
 - Missing `NEXT_PUBLIC_*` environment variables
 - TypeScript compilation errors
 - Bundle size too large
@@ -88,6 +97,7 @@ npm run deploy:test:railway
 - API route build issues
 
 ### Backend Issues
+
 - Missing database connection strings
 - Docker build memory issues
 - Missing environment variables
@@ -95,6 +105,7 @@ npm run deploy:test:railway
 - Port binding issues
 
 ### Integration Issues
+
 - API endpoint mismatches
 - Authentication configuration
 - CORS configuration
@@ -103,22 +114,27 @@ npm run deploy:test:railway
 ## 📊 Test Results Interpretation
 
 ### ✅ All Tests Pass
+
 ```bash
 🎉 DEPLOYMENT READY!
 Both frontend and backend are ready for deployment.
 ```
+
 → Safe to deploy! Push to main branch.
 
 ### ❌ Tests Fail
+
 ```bash
 ❌ DEPLOYMENT NOT READY
 Please fix the failed tests before deploying.
 ```
+
 → Fix issues before deploying to avoid downtime.
 
 ## 🔄 Recommended Workflow
 
 ### Daily Development
+
 ```bash
 # Before every commit
 npm run deploy:test:docker
@@ -128,6 +144,7 @@ npm run deploy:test
 ```
 
 ### Pre-Release
+
 ```bash
 # Run comprehensive tests
 npm run deploy:test
@@ -137,6 +154,7 @@ git push origin main
 ```
 
 ### Debugging Failed Deployments
+
 ```bash
 # Test specific platform
 npm run deploy:test:vercel  # If Vercel failed
@@ -149,6 +167,7 @@ docker logs tenantflow-test  # After railway test
 ## 🌍 Environment Variables
 
 ### Required for Vercel (Frontend)
+
 ```bash
 NEXT_PUBLIC_API_URL=https://api.tenantflow.app
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
@@ -156,6 +175,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 ```
 
 ### Required for Railway (Backend)
+
 ```bash
 DATABASE_URL=postgresql://...
 SUPABASE_URL=your_supabase_url
@@ -167,18 +187,21 @@ RESEND_API_KEY=your_resend_key
 ## 🐛 Troubleshooting
 
 ### Docker Build Fails
+
 1. Check available disk space
 2. Restart Docker Desktop
 3. Clear Docker cache: `docker system prune -a`
 4. Check memory allocation in Docker settings
 
 ### Vercel Build Fails
+
 1. Check Node.js version compatibility
 2. Verify all environment variables
 3. Test build locally: `cd apps/frontend && npm run build`
 4. Check bundle analyzer for large files
 
 ### Railway Build Fails
+
 1. Check Railway memory limits
 2. Verify database connection string
 3. Test Docker build locally

@@ -1,7 +1,0 @@
-npm error Lifecycle script `start:dev` failed with error:
-npm error workspace @repo/backend@0.0.2
-npm error location /Users/richard/Developer/tenant-flow/apps/backend
-npm error Missing script: "start:dev"
-npm error
-npm error To see a list of scripts, run:
-npm error   npm run --workspace=@repo/backend@0.0.2

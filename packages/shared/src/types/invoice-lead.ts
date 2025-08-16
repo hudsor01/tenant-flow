@@ -5,7 +5,12 @@
 
 import { z } from 'zod'
 import type { CustomerInvoice, CustomerInvoiceItem } from './invoices'
-import { LEAD_MAGNET_CONFIG, INVOICE_DEFAULTS, INVOICE_NUMBER_PREFIX, type LeadMagnetTier } from '../constants/invoices'
+import {
+	LEAD_MAGNET_CONFIG,
+	INVOICE_DEFAULTS,
+	INVOICE_NUMBER_PREFIX,
+	type LeadMagnetTier
+} from '../constants/invoices'
 
 // ========================
 // Zod Validation Schemas
@@ -15,60 +20,60 @@ import { LEAD_MAGNET_CONFIG, INVOICE_DEFAULTS, INVOICE_NUMBER_PREFIX, type LeadM
  * Invoice item validation schema
  */
 export const InvoiceItemSchema = z.object({
-  id: z.string(),
-  description: z.string().min(1, 'Description is required'),
-  quantity: z.number().min(0.01, 'Quantity must be greater than 0'),
-  unitPrice: z.number().min(0, 'Unit price must be positive'),
-  total: z.number()
+	id: z.string(),
+	description: z.string().min(1, 'Description is required'),
+	quantity: z.number().min(0.01, 'Quantity must be greater than 0'),
+	unitPrice: z.number().min(0, 'Unit price must be positive'),
+	total: z.number()
 })
 
 /**
  * Customer invoice validation schema for lead magnet
  */
 export const CustomerInvoiceSchema = z.object({
-  // Invoice Details
-  invoiceNumber: z.string().min(1, 'Invoice number is required'),
-  issueDate: z.date(),
-  dueDate: z.date(),
-  status: z
-    .enum(['DRAFT', 'SENT', 'VIEWED', 'PAID', 'OVERDUE', 'CANCELLED'])
-    .default('DRAFT'),
+	// Invoice Details
+	invoiceNumber: z.string().min(1, 'Invoice number is required'),
+	issueDate: z.date(),
+	dueDate: z.date(),
+	status: z
+		.enum(['DRAFT', 'SENT', 'VIEWED', 'PAID', 'OVERDUE', 'CANCELLED'])
+		.default('DRAFT'),
 
-  // Business Information (From)
-  businessName: z.string().min(1, 'Business name is required'),
-  businessEmail: z.string().email('Valid business email is required'),
-  businessAddress: z.string().optional(),
-  businessCity: z.string().optional(),
-  businessState: z.string().optional(),
-  businessZip: z.string().optional(),
-  businessPhone: z.string().optional(),
-  businessLogo: z.string().optional(),
+	// Business Information (From)
+	businessName: z.string().min(1, 'Business name is required'),
+	businessEmail: z.string().email('Valid business email is required'),
+	businessAddress: z.string().optional(),
+	businessCity: z.string().optional(),
+	businessState: z.string().optional(),
+	businessZip: z.string().optional(),
+	businessPhone: z.string().optional(),
+	businessLogo: z.string().optional(),
 
-  // Client Information (To)
-  clientName: z.string().min(1, 'Client name is required'),
-  clientEmail: z.string().email('Valid client email is required'),
-  clientAddress: z.string().optional(),
-  clientCity: z.string().optional(),
-  clientState: z.string().optional(),
-  clientZip: z.string().optional(),
+	// Client Information (To)
+	clientName: z.string().min(1, 'Client name is required'),
+	clientEmail: z.string().email('Valid client email is required'),
+	clientAddress: z.string().optional(),
+	clientCity: z.string().optional(),
+	clientState: z.string().optional(),
+	clientZip: z.string().optional(),
 
-  // Line Items
-  items: z.array(InvoiceItemSchema).min(1, 'At least one item is required'),
+	// Line Items
+	items: z.array(InvoiceItemSchema).min(1, 'At least one item is required'),
 
-  // Additional Information
-  notes: z.string().optional(),
-  terms: z.string().optional(),
+	// Additional Information
+	notes: z.string().optional(),
+	terms: z.string().optional(),
 
-  // Financial Calculations
-  subtotal: z.number().default(0),
-  taxRate: z.number().min(0).max(100).default(0),
-  taxAmount: z.number().default(0),
-  total: z.number().default(0),
+	// Financial Calculations
+	subtotal: z.number().default(0),
+	taxRate: z.number().min(0).max(100).default(0),
+	taxAmount: z.number().default(0),
+	total: z.number().default(0),
 
-  // Lead Magnet Features
-  emailCaptured: z.string().email().optional(),
-  downloadCount: z.number().default(0),
-  isProVersion: z.boolean().default(false)
+	// Lead Magnet Features
+	emailCaptured: z.string().email().optional(),
+	downloadCount: z.number().default(0),
+	isProVersion: z.boolean().default(false)
 })
 
 // ========================
@@ -91,17 +96,17 @@ export type InvoiceItemForm = z.infer<typeof InvoiceItemSchema>
  * (These are compile-time checks only)
  */
 export type CustomerInvoiceCheck =
-  CustomerInvoiceForm extends Omit<
-    CustomerInvoice,
-    'id' | 'createdAt' | 'updatedAt' | 'userAgent' | 'ipAddress'
-  >
-    ? true
-    : false
+	CustomerInvoiceForm extends Omit<
+		CustomerInvoice,
+		'id' | 'createdAt' | 'updatedAt' | 'userAgent' | 'ipAddress'
+	>
+		? true
+		: false
 
 export type InvoiceItemCheck =
-  InvoiceItemForm extends Omit<CustomerInvoiceItem, 'invoiceId' | 'createdAt'>
-    ? true
-    : false
+	InvoiceItemForm extends Omit<CustomerInvoiceItem, 'invoiceId' | 'createdAt'>
+		? true
+		: false
 
 // ========================
 // Lead Capture Types
@@ -111,29 +116,29 @@ export type InvoiceItemCheck =
  * Email capture data for lead magnets
  */
 export interface EmailCaptureData {
-  email: string
-  firstName?: string
-  lastName?: string
-  company?: string
-  source?: string
-  invoiceId: string
+	email: string
+	firstName?: string
+	lastName?: string
+	company?: string
+	source?: string
+	invoiceId: string
 }
 
 /**
  * Invoice download response
  */
 export interface InvoiceDownloadResponse {
-  success: boolean
-  downloadUrl?: string
-  message?: string
+	success: boolean
+	downloadUrl?: string
+	message?: string
 }
 
 /**
  * Invoice generation request
  */
 export interface InvoiceGenerationRequest {
-  invoice: Omit<CustomerInvoice, 'id' | 'createdAt' | 'updatedAt'>
-  emailCapture?: EmailCaptureData
+	invoice: Omit<CustomerInvoice, 'id' | 'createdAt' | 'updatedAt'>
+	emailCapture?: EmailCaptureData
 }
 
 // ========================
@@ -144,19 +149,21 @@ export interface InvoiceGenerationRequest {
  * Default invoice template
  */
 export const defaultCustomerInvoice: Partial<CustomerInvoiceForm> = {
-  invoiceNumber: `${INVOICE_NUMBER_PREFIX}${Date.now()}`,
-  issueDate: new Date(),
-  dueDate: new Date(Date.now() + INVOICE_DEFAULTS.PAYMENT_TERMS_DAYS * 24 * 60 * 60 * 1000),
-  status: 'DRAFT',
-  taxRate: INVOICE_DEFAULTS.TAX_RATE,
-  items: [],
-  notes: INVOICE_DEFAULTS.NOTES,
-  terms: INVOICE_DEFAULTS.TERMS,
-  subtotal: 0,
-  taxAmount: 0,
-  total: 0,
-  downloadCount: INVOICE_DEFAULTS.DOWNLOAD_COUNT,
-  isProVersion: INVOICE_DEFAULTS.IS_PRO_VERSION
+	invoiceNumber: `${INVOICE_NUMBER_PREFIX}${Date.now()}`,
+	issueDate: new Date(),
+	dueDate: new Date(
+		Date.now() + INVOICE_DEFAULTS.PAYMENT_TERMS_DAYS * 24 * 60 * 60 * 1000
+	),
+	status: 'DRAFT',
+	taxRate: INVOICE_DEFAULTS.TAX_RATE,
+	items: [],
+	notes: INVOICE_DEFAULTS.NOTES,
+	terms: INVOICE_DEFAULTS.TERMS,
+	subtotal: 0,
+	taxAmount: 0,
+	total: 0,
+	downloadCount: INVOICE_DEFAULTS.DOWNLOAD_COUNT,
+	isProVersion: INVOICE_DEFAULTS.IS_PRO_VERSION
 }
 
 // Lead Magnet Configuration is imported from constants/invoices.ts
@@ -172,58 +179,64 @@ export type { LeadMagnetTier }
  * Validate invoice form data
  */
 export function validateInvoiceForm(data: unknown): CustomerInvoiceForm {
-  return CustomerInvoiceSchema.parse(data)
+	return CustomerInvoiceSchema.parse(data)
 }
 
 /**
  * Validate invoice item
  */
 export function validateInvoiceItem(data: unknown): InvoiceItemForm {
-  return InvoiceItemSchema.parse(data)
+	return InvoiceItemSchema.parse(data)
 }
 
 /**
  * Check if invoice is within tier limits
  */
 export function checkTierLimits(
-  invoiceCount: number,
-  lineItemCount: number,
-  tier: LeadMagnetTier
+	invoiceCount: number,
+	lineItemCount: number,
+	tier: LeadMagnetTier
 ): {
-  withinInvoiceLimit: boolean
-  withinLineItemLimit: boolean
-  canCreateInvoice: boolean
+	withinInvoiceLimit: boolean
+	withinLineItemLimit: boolean
+	canCreateInvoice: boolean
 } {
-  const config = LEAD_MAGNET_CONFIG[tier]
-  
-  const withinInvoiceLimit = config.maxInvoicesPerMonth === -1 || invoiceCount < config.maxInvoicesPerMonth
-  const withinLineItemLimit = config.maxLineItems === -1 || lineItemCount <= config.maxLineItems
-  
-  return {
-    withinInvoiceLimit,
-    withinLineItemLimit,
-    canCreateInvoice: withinInvoiceLimit && withinLineItemLimit
-  }
+	const config = LEAD_MAGNET_CONFIG[tier]
+
+	const withinInvoiceLimit =
+		config.maxInvoicesPerMonth === -1 ||
+		invoiceCount < config.maxInvoicesPerMonth
+	const withinLineItemLimit =
+		config.maxLineItems === -1 || lineItemCount <= config.maxLineItems
+
+	return {
+		withinInvoiceLimit,
+		withinLineItemLimit,
+		canCreateInvoice: withinInvoiceLimit && withinLineItemLimit
+	}
 }
 
 /**
  * Calculate invoice totals
  */
 export function calculateInvoiceTotals(
-  items: InvoiceItemForm[],
-  taxRate = 0
+	items: InvoiceItemForm[],
+	taxRate = 0
 ): {
-  subtotal: number
-  taxAmount: number
-  total: number
+	subtotal: number
+	taxAmount: number
+	total: number
 } {
-  const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0)
-  const taxAmount = subtotal * (taxRate / 100)
-  const total = subtotal + taxAmount
-  
-  return {
-    subtotal: Math.round(subtotal * 100) / 100,
-    taxAmount: Math.round(taxAmount * 100) / 100,
-    total: Math.round(total * 100) / 100
-  }
+	const subtotal = items.reduce(
+		(sum, item) => sum + item.quantity * item.unitPrice,
+		0
+	)
+	const taxAmount = subtotal * (taxRate / 100)
+	const total = subtotal + taxAmount
+
+	return {
+		subtotal: Math.round(subtotal * 100) / 100,
+		taxAmount: Math.round(taxAmount * 100) / 100,
+		total: Math.round(total * 100) / 100
+	}
 }

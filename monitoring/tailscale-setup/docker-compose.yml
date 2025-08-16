@@ -1,70 +1,70 @@
 version: '3.8'
 
 services:
-  # Prometheus - Resource optimized for 30+ container environment
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: tenantflow-prometheus
-    restart: unless-stopped
-    mem_limit: 512m  # Limit memory usage
-    cpus: 0.5        # Limit CPU usage
-    volumes:
-      - ./prometheus-tailscale.yml:/etc/prometheus/prometheus.yml
-      - ./alerts.yml:/etc/prometheus/alerts.yml
-      - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--storage.tsdb.retention.time=30d'    # Reduced retention
-      - '--storage.tsdb.retention.size=5GB'    # Smaller storage
-      - '--web.enable-lifecycle'
-      - '--storage.tsdb.wal-compression'       # Enable compression
-    ports:
-      - "19090:9090"  # Non-standard port to avoid conflicts
-    networks:
-      - monitoring
+    # Prometheus - Resource optimized for 30+ container environment
+    prometheus:
+        image: prom/prometheus:latest
+        container_name: tenantflow-prometheus
+        restart: unless-stopped
+        mem_limit: 512m # Limit memory usage
+        cpus: 0.5 # Limit CPU usage
+        volumes:
+            - ./prometheus-tailscale.yml:/etc/prometheus/prometheus.yml
+            - ./alerts.yml:/etc/prometheus/alerts.yml
+            - prometheus_data:/prometheus
+        command:
+            - '--config.file=/etc/prometheus/prometheus.yml'
+            - '--storage.tsdb.path=/prometheus'
+            - '--storage.tsdb.retention.time=30d' # Reduced retention
+            - '--storage.tsdb.retention.size=5GB' # Smaller storage
+            - '--web.enable-lifecycle'
+            - '--storage.tsdb.wal-compression' # Enable compression
+        ports:
+            - '19090:9090' # Non-standard port to avoid conflicts
+        networks:
+            - monitoring
 
-  # Grafana - Lightweight for existing container environment  
-  grafana:
-    image: grafana/grafana:latest
-    container_name: tenantflow-grafana
-    restart: unless-stopped
-    mem_limit: 256m  # Memory limit
-    cpus: 0.3        # CPU limit
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-changeme123}
-      - GF_INSTALL_PLUGINS=grafana-piechart-panel  # Minimal plugins
-      - GF_SERVER_ROOT_URL=http://100.x.x.y:13000  # Your Tailscale IP
-      - GF_SERVER_HTTP_PORT=3000
-      - GF_ANALYTICS_REPORTING_ENABLED=false       # Disable analytics
-      - GF_ANALYTICS_CHECK_FOR_UPDATES=false       # Disable update checks
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./grafana-provisioning:/etc/grafana/provisioning
-      - ./dashboards:/var/lib/grafana/dashboards
-    ports:
-      - "13000:3000"  # Non-standard port to avoid conflicts
-    networks:
-      - monitoring
+    # Grafana - Lightweight for existing container environment
+    grafana:
+        image: grafana/grafana:latest
+        container_name: tenantflow-grafana
+        restart: unless-stopped
+        mem_limit: 256m # Memory limit
+        cpus: 0.3 # CPU limit
+        environment:
+            - GF_SECURITY_ADMIN_USER=admin
+            - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-changeme123}
+            - GF_INSTALL_PLUGINS=grafana-piechart-panel # Minimal plugins
+            - GF_SERVER_ROOT_URL=http://100.x.x.y:13000 # Your Tailscale IP
+            - GF_SERVER_HTTP_PORT=3000
+            - GF_ANALYTICS_REPORTING_ENABLED=false # Disable analytics
+            - GF_ANALYTICS_CHECK_FOR_UPDATES=false # Disable update checks
+        volumes:
+            - grafana_data:/var/lib/grafana
+            - ./grafana-provisioning:/etc/grafana/provisioning
+            - ./dashboards:/var/lib/grafana/dashboards
+        ports:
+            - '13000:3000' # Non-standard port to avoid conflicts
+        networks:
+            - monitoring
 
-  # Optional: Uptime Kuma for simple status monitoring
-  uptime-kuma:
-    image: louislam/uptime-kuma:1
-    container_name: tenantflow-uptime
-    restart: unless-stopped
-    volumes:
-      - uptime-kuma-data:/app/data
-    ports:
-      - "3031:3001"  # Access at tailscale-ip:3031
-    networks:
-      - monitoring
+    # Optional: Uptime Kuma for simple status monitoring
+    uptime-kuma:
+        image: louislam/uptime-kuma:1
+        container_name: tenantflow-uptime
+        restart: unless-stopped
+        volumes:
+            - uptime-kuma-data:/app/data
+        ports:
+            - '3031:3001' # Access at tailscale-ip:3031
+        networks:
+            - monitoring
 
 networks:
-  monitoring:
-    driver: bridge
+    monitoring:
+        driver: bridge
 
 volumes:
-  prometheus_data:
-  grafana_data:
-  uptime-kuma-data:
+    prometheus_data:
+    grafana_data:
+    uptime-kuma-data:
