@@ -1,6 +1,6 @@
 /**
  * Navigation Components - Next.js 15 Optimized
- * 
+ *
  * Server-first navigation patterns with client islands for interactivity.
  * Follows Next.js App Router best practices.
  */

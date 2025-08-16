@@ -1,21 +1,19 @@
 import { faker } from '@faker-js/faker'
-import type { 
-  Lease, 
-  MaintenanceRequest, 
-  Organization, 
-  Property, 
-  Tenant,
-  Unit,
-  User
-} from '@repo/shared'
 import { 
+  type Lease, 
   LeaseStatus, 
   MaintenancePriority, 
-  MaintenanceStatus, 
-  PropertyType,
-  SubscriptionPlan,
-  SubscriptionStatus,
-  UnitStatus
+  type MaintenanceRequest,
+  MaintenanceStatus,
+  type Organization,
+  type Property,
+  PropertyType, 
+  SubscriptionPlan, 
+  SubscriptionStatus, 
+  type Tenant, 
+  type Unit,
+  UnitStatus,
+  type User
 } from '@repo/shared'
 
 /**

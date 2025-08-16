@@ -1,21 +1,31 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common'
+import {
+	Body,
+	Controller,
+	Delete,
+	Get,
+	Param,
+	Post,
+	Put,
+	Query,
+	UseGuards
+} from '@nestjs/common'
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { TenantsService } from './tenants.service'
 import { Tenant } from '@repo/database'
-import { 
-  createTenantSchema, 
-  queryTenantsSchema, 
-  TenantCreateDto,
-  TenantQueryDto,
-  TenantUpdateDto,
-  updateTenantSchema,
-  uuidSchema
+import {
+	createTenantSchema,
+	queryTenantsSchema,
+	TenantCreateDto,
+	TenantQueryDto,
+	TenantUpdateDto,
+	updateTenantSchema,
+	uuidSchema
 } from '../common/dto/dto-exports'
-import { 
-  ZodBody,
-  ZodParam,
-  ZodQuery,
-  ZodValidation
+import {
+	ZodBody,
+	ZodParam,
+	ZodQuery,
+	ZodValidation
 } from '../common/decorators/zod-validation.decorator'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { ValidatedUser } from '../auth/auth.service'
@@ -40,7 +50,7 @@ export class TenantsController {
 		@Body() data: TenantCreateDto,
 		@CurrentUser() user: ValidatedUser
 	): Promise<Tenant> {
-		return await this.tenantsService.create(data, user.id)
+		return this.tenantsService.create(data, user.id)
 	}
 
 	@Get()
@@ -51,14 +61,19 @@ export class TenantsController {
 		@Query() query: TenantQueryDto,
 		@CurrentUser() user: ValidatedUser
 	): Promise<Tenant[]> {
-		return await this.tenantsService.getByOwner(user.id, query)
+		return this.tenantsService.getByOwner(user.id, query)
 	}
 
 	@Get('stats')
-	@ApiOperation({ summary: 'Get tenant statistics for the authenticated user' })
-	@ApiResponse({ status: 200, description: 'Statistics retrieved successfully' })
+	@ApiOperation({
+		summary: 'Get tenant statistics for the authenticated user'
+	})
+	@ApiResponse({
+		status: 200,
+		description: 'Statistics retrieved successfully'
+	})
 	async getStats(@CurrentUser() user: ValidatedUser) {
-		return await this.tenantsService.getStats(user.id)
+		return this.tenantsService.getStats(user.id)
 	}
 
 	@Get(':id')
@@ -71,7 +86,7 @@ export class TenantsController {
 		@Param('id') id: string,
 		@CurrentUser() user: ValidatedUser
 	): Promise<Tenant> {
-		return await this.tenantsService.findById(id, user.id)
+		return this.tenantsService.findById(id, user.id)
 	}
 
 	@Put(':id')
@@ -89,7 +104,7 @@ export class TenantsController {
 		@Body() data: TenantUpdateDto,
 		@CurrentUser() user: ValidatedUser
 	): Promise<Tenant> {
-		return await this.tenantsService.update(id, data, user.id)
+		return this.tenantsService.update(id, data, user.id)
 	}
 
 	@Delete(':id')
@@ -97,12 +112,15 @@ export class TenantsController {
 	@ApiParam({ name: 'id', description: 'Tenant ID' })
 	@ApiResponse({ status: 200, description: 'Tenant deleted successfully' })
 	@ApiResponse({ status: 404, description: 'Tenant not found' })
-	@ApiResponse({ status: 409, description: 'Cannot delete tenant with active leases' })
+	@ApiResponse({
+		status: 409,
+		description: 'Cannot delete tenant with active leases'
+	})
 	@ZodParam(uuidSchema)
 	async remove(
 		@Param('id') id: string,
 		@CurrentUser() user: ValidatedUser
 	): Promise<Tenant> {
-		return await this.tenantsService.delete(id, user.id)
+		return this.tenantsService.delete(id, user.id)
 	}
 }

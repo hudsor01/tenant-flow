@@ -19,13 +19,19 @@ export default function VirtualizedPropertiesList({
 	onView,
 	containerHeight = 600
 }: VirtualizedPropertiesListProps) {
-	const handleEdit = useCallback((property: PropertyWithDetails) => {
-		onEdit?.(property as unknown as Property)
-	}, [onEdit])
+	const handleEdit = useCallback(
+		(property: PropertyWithDetails) => {
+			onEdit?.(property as unknown as Property)
+		},
+		[onEdit]
+	)
 
-	const handleView = useCallback((property: PropertyWithDetails) => {
-		onView?.(property as unknown as Property)
-	}, [onView])
+	const handleView = useCallback(
+		(property: PropertyWithDetails) => {
+			onView?.(property as unknown as Property)
+		},
+		[onView]
+	)
 
 	// Use custom hook for responsive columns
 	const columns = useResponsiveColumns()
@@ -72,9 +78,10 @@ export default function VirtualizedPropertiesList({
 	return (
 		<div className="w-full">
 			<div className="mb-4 text-sm text-gray-600">
-				Showing first 50 of {properties.length} properties. Use filters to narrow results.
+				Showing first 50 of {properties.length} properties. Use filters
+				to narrow results.
 			</div>
-			<div 
+			<div
 				className={`grid ${gridClasses} gap-6`}
 				style={{ maxHeight: containerHeight, overflow: 'auto' }}
 			>

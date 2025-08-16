@@ -74,7 +74,7 @@ class MemoryMonitor {
 
 		const memory = performance.memory
 		if (!memory) return
-		
+
 		const sample: MemoryInfo = {
 			used: Math.round(memory.usedJSHeapSize / 1024 / 1024),
 			total: Math.round(memory.totalJSHeapSize / 1024 / 1024),
@@ -146,7 +146,7 @@ class MemoryMonitor {
 
 		const memory = performance.memory
 		if (!memory) return null
-		
+
 		return {
 			used: Math.round(memory.usedJSHeapSize / 1024 / 1024),
 			total: Math.round(memory.totalJSHeapSize / 1024 / 1024),
@@ -216,12 +216,12 @@ export function useMemoryMonitor(enabled = true) {
 	React.useEffect(() => {
 		if (enabled && process.env.NODE_ENV === 'development') {
 			memoryMonitor.start(5000) // Check every 5 seconds in development
-			
+
 			return () => {
 				memoryMonitor.stop()
 			}
 		}
-		
+
 		return undefined
 	}, [enabled])
 
@@ -231,4 +231,3 @@ export function useMemoryMonitor(enabled = true) {
 		forceGC: () => memoryMonitor.forceGC()
 	}
 }
-

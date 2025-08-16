@@ -6,41 +6,43 @@ import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
 
 // Use global variable to ensure single instance across all imports
 declare global {
-  var __supabaseClient: ReturnType<typeof createBrowserClient<Database>> | undefined
+	var __supabaseClient:
+		| ReturnType<typeof createBrowserClient<Database>>
+		| undefined
 }
 
 let client: ReturnType<typeof createBrowserClient<Database>> | undefined
 
 export function createClient() {
-  // Check for global instance first to prevent multiple instances
-  if (typeof window !== 'undefined' && globalThis.__supabaseClient) {
-    return globalThis.__supabaseClient
-  }
-  
-  // Create a single instance for client-side
-  if (!client) {
-    client = createBrowserClient<Database>(
-      config.supabase.url,
-      config.supabase.anonKey,
-      {
-        auth: {
-          autoRefreshToken: true,
-          persistSession: true,
-          detectSessionInUrl: true,
-          flowType: 'pkce',
-          storageKey: 'tf-auth-v2',
-          debug: process.env.NODE_ENV === 'development',
-        },
-      }
-    )
-    
-    // Store in global for reuse
-    if (typeof window !== 'undefined') {
-      globalThis.__supabaseClient = client
-    }
-  }
-  
-  return client
+	// Check for global instance first to prevent multiple instances
+	if (typeof window !== 'undefined' && globalThis.__supabaseClient) {
+		return globalThis.__supabaseClient
+	}
+
+	// Create a single instance for client-side
+	if (!client) {
+		client = createBrowserClient<Database>(
+			config.supabase.url,
+			config.supabase.anonKey,
+			{
+				auth: {
+					autoRefreshToken: true,
+					persistSession: true,
+					detectSessionInUrl: true,
+					flowType: 'pkce',
+					storageKey: 'tf-auth-v2',
+					debug: process.env.NODE_ENV === 'development'
+				}
+			}
+		)
+
+		// Store in global for reuse
+		if (typeof window !== 'undefined') {
+			globalThis.__supabaseClient = client
+		}
+	}
+
+	return client
 }
 
 // Export a singleton instance for backward compatibility
@@ -51,10 +53,10 @@ export const auth = supabase.auth
 
 // Auth types
 export interface AuthUser {
-  id: string
-  email: string
-  name?: string
-  avatar_url?: string
+	id: string
+	email: string
+	name?: string
+	avatar_url?: string
 }
 
 // Session management helpers with rate limiting
@@ -62,37 +64,53 @@ const authRequestTimestamps = new Map<string, number>()
 const AUTH_RATE_LIMIT_MS = 2000
 
 export async function getSession() {
-  const key = 'getSession'
-  const lastCall = authRequestTimestamps.get(key)
-  const now = Date.now()
-  
-  if (lastCall && (now - lastCall) < AUTH_RATE_LIMIT_MS) {
-    logger.warn(`[Auth] Rate limiting ${key} - too many requests`, { component: "lib_supabase_client.ts" })
-    const { data: { session } } = await supabase.auth.getSession()
-    return { session, error: null }
-  }
-  
-  authRequestTimestamps.set(key, now)
-  const { data: { session }, error } = await supabase.auth.getSession()
-  return { session, error }
+	const key = 'getSession'
+	const lastCall = authRequestTimestamps.get(key)
+	const now = Date.now()
+
+	if (lastCall && now - lastCall < AUTH_RATE_LIMIT_MS) {
+		logger.warn(`[Auth] Rate limiting ${key} - too many requests`, {
+			component: 'lib_supabase_client.ts'
+		})
+		const {
+			data: { session }
+		} = await supabase.auth.getSession()
+		return { session, error: null }
+	}
+
+	authRequestTimestamps.set(key, now)
+	const {
+		data: { session },
+		error
+	} = await supabase.auth.getSession()
+	return { session, error }
 }
 
 export async function getUser() {
-  const key = 'getUser'
-  const lastCall = authRequestTimestamps.get(key)
-  const now = Date.now()
-  
-  if (lastCall && (now - lastCall) < AUTH_RATE_LIMIT_MS) {
-    logger.warn(`[Auth] Rate limiting ${key} - too many requests`, { component: "lib_supabase_client.ts" })
-    const { data: { user } } = await supabase.auth.getUser()
-    return { user, error: null }
-  }
-  
-  authRequestTimestamps.set(key, now)
-  const { data: { user }, error } = await supabase.auth.getUser()
-  return { user, error }
+	const key = 'getUser'
+	const lastCall = authRequestTimestamps.get(key)
+	const now = Date.now()
+
+	if (lastCall && now - lastCall < AUTH_RATE_LIMIT_MS) {
+		logger.warn(`[Auth] Rate limiting ${key} - too many requests`, {
+			component: 'lib_supabase_client.ts'
+		})
+		const {
+			data: { user }
+		} = await supabase.auth.getUser()
+		return { user, error: null }
+	}
+
+	authRequestTimestamps.set(key, now)
+	const {
+		data: { user },
+		error
+	} = await supabase.auth.getUser()
+	return { user, error }
 }
 
-export function onAuthStateChange(callback: (event: AuthChangeEvent, session: Session | null) => void) {
-  return supabase.auth.onAuthStateChange(callback)
+export function onAuthStateChange(
+	callback: (event: AuthChangeEvent, session: Session | null) => void
+) {
+	return supabase.auth.onAuthStateChange(callback)
 }

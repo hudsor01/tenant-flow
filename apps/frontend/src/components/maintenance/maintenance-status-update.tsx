@@ -9,9 +9,22 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '@/components/ui/select'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle
+} from '@/components/ui/card'
 import { useUpdateMaintenanceStatus } from '@/hooks/api/use-maintenance'
-import { Clock, Wrench, CheckCircle2, XCircle, Loader2, Pause } from 'lucide-react'
+import {
+	Clock,
+	Wrench,
+	CheckCircle2,
+	XCircle,
+	Loader2,
+	Pause
+} from 'lucide-react'
 import type { MaintenanceRequest, RequestStatus } from '@repo/shared'
 
 interface MaintenanceStatusUpdateProps {
@@ -57,14 +70,14 @@ const statusOptions: {
 	}
 ]
 
-export function MaintenanceStatusUpdate({ 
-	request, 
-	onUpdate 
+export function MaintenanceStatusUpdate({
+	request,
+	onUpdate
 }: MaintenanceStatusUpdateProps) {
 	const [selectedStatus, setSelectedStatus] = useState<RequestStatus>(
 		request.status
 	)
-	
+
 	const updateStatus = useUpdateMaintenanceStatus()
 
 	const handleStatusUpdate = () => {
@@ -80,8 +93,12 @@ export function MaintenanceStatusUpdate({
 		)
 	}
 
-	const currentStatus = statusOptions.find(option => option.value === request.status)
-	const newStatus = statusOptions.find(option => option.value === selectedStatus)
+	const currentStatus = statusOptions.find(
+		option => option.value === request.status
+	)
+	const newStatus = statusOptions.find(
+		option => option.value === selectedStatus
+	)
 	const hasChanged = selectedStatus !== request.status
 
 	return (
@@ -92,24 +109,35 @@ export function MaintenanceStatusUpdate({
 					<span>Update Status</span>
 				</CardTitle>
 				<CardDescription>
-					Current status: <span className="font-medium">{currentStatus?.label}</span>
+					Current status:{' '}
+					<span className="font-medium">{currentStatus?.label}</span>
 				</CardDescription>
 			</CardHeader>
 			<CardContent className="space-y-4">
 				<div className="space-y-2">
 					<label className="text-sm font-medium">New Status</label>
-					<Select value={selectedStatus} onValueChange={(value: RequestStatus) => setSelectedStatus(value)}>
+					<Select
+						value={selectedStatus}
+						onValueChange={(value: RequestStatus) =>
+							setSelectedStatus(value)
+						}
+					>
 						<SelectTrigger>
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>
-							{statusOptions.map((option) => (
-								<SelectItem key={option.value} value={option.value}>
+							{statusOptions.map(option => (
+								<SelectItem
+									key={option.value}
+									value={option.value}
+								>
 									<div className="flex items-center space-x-2">
 										{option.icon}
 										<div className="flex flex-col">
-											<span className="font-medium">{option.label}</span>
-											<span className="text-xs text-muted-foreground">
+											<span className="font-medium">
+												{option.label}
+											</span>
+											<span className="text-muted-foreground text-xs">
 												{option.description}
 											</span>
 										</div>
@@ -121,10 +149,16 @@ export function MaintenanceStatusUpdate({
 				</div>
 
 				{hasChanged && (
-					<div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+					<div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
 						<p className="text-sm text-blue-800">
-							Status will change from <span className="font-medium">{currentStatus?.label}</span> to{' '}
-							<span className="font-medium">{newStatus?.label}</span>
+							Status will change from{' '}
+							<span className="font-medium">
+								{currentStatus?.label}
+							</span>{' '}
+							to{' '}
+							<span className="font-medium">
+								{newStatus?.label}
+							</span>
 						</p>
 					</div>
 				)}
@@ -135,10 +169,12 @@ export function MaintenanceStatusUpdate({
 						disabled={!hasChanged || updateStatus.isPending}
 						className="flex-1"
 					>
-						{updateStatus.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+						{updateStatus.isPending && (
+							<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+						)}
 						Update Status
 					</Button>
-					
+
 					{hasChanged && (
 						<Button
 							variant="outline"

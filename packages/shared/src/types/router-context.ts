@@ -1,6 +1,6 @@
 /**
  * Router Context Types for TanStack Router
- * 
+ *
  * Simple, typed context for route loaders with minimal overhead
  */
 
@@ -11,8 +11,8 @@ import type { QueryClient } from '@tanstack/react-query'
  * This matches the context configured in router-instance.tsx
  */
 export interface RouterContext {
-  queryClient: QueryClient
-  api: Record<string, unknown> // API client interface - avoiding any type
+	queryClient: QueryClient
+	api: Record<string, unknown> // API client interface - avoiding any type
 }
 
 /**
@@ -25,13 +25,13 @@ export type EnhancedRouterContext = RouterContext
  * User context for authentication state
  */
 export interface UserContext {
-  user: {
-    id: string
-    email: string
-    name?: string
-    role?: string
-  } | null
-  isAuthenticated: boolean
+	user: {
+		id: string
+		email: string
+		name?: string
+		role?: string
+	} | null
+	isAuthenticated: boolean
 }
 
 /**
@@ -43,36 +43,38 @@ export type Permission = string
  * Loader error interface
  */
 export interface LoaderError extends Error {
-  statusCode?: number
-  code?: string
-  type?: string
-  retryable?: boolean
-  metadata?: Record<string, unknown>
+	statusCode?: number
+	code?: string
+	type?: string
+	retryable?: boolean
+	metadata?: Record<string, unknown>
 }
 
 /**
  * Enhanced error interface
  */
 export interface EnhancedError extends Error {
-  statusCode?: number
-  code?: string
-  type?: string
-  retryable?: boolean
+	statusCode?: number
+	code?: string
+	type?: string
+	retryable?: boolean
 }
 
 /**
  * Type for route loader parameters
  */
 export interface LoaderParams {
-  context: RouterContext
-  params: Record<string, string>
-  location: {
-    search: Record<string, unknown>
-    pathname: string
-  }
+	context: RouterContext
+	params: Record<string, string>
+	location: {
+		search: Record<string, unknown>
+		pathname: string
+	}
 }
 
 /**
  * Generic loader function type
  */
-export type LoaderFunction<TData = unknown> = (params: LoaderParams) => Promise<TData>
+export type LoaderFunction<TData = unknown> = (
+	params: LoaderParams
+) => Promise<TData>

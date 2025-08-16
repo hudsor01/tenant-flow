@@ -1,7 +1,10 @@
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
-import { ErrorCode, ErrorHandlerService } from '../common/errors/error-handler.service'
+import {
+	ErrorCode,
+	ErrorHandlerService
+} from '../common/errors/error-handler.service'
 import * as path from 'path'
 
 // Custom type that matches what we're returning
@@ -24,7 +27,9 @@ export class StorageService {
 		private errorHandler: ErrorHandlerService
 	) {
 		const supabaseUrl = this.configService.get<string>('SUPABASE_URL')
-		const supabaseServiceKey = this.configService.get<string>('SUPABASE_SERVICE_ROLE_KEY')
+		const supabaseServiceKey = this.configService.get<string>(
+			'SUPABASE_SERVICE_ROLE_KEY'
+		)
 
 		if (!supabaseUrl || !supabaseServiceKey) {
 			throw this.errorHandler.createBusinessError(
@@ -43,19 +48,23 @@ export class StorageService {
 	private validateFilePath(filePath: string): string {
 		// Remove any path traversal attempts
 		const sanitized = filePath.replace(/\.\./g, '').replace(/\/\//g, '/')
-		
+
 		// Normalize the path and ensure it doesn't escape the intended directory
 		const normalized = path.normalize(sanitized)
-		
+
 		// Reject paths that try to go outside the storage root
-		if (normalized.startsWith('../') || normalized.includes('/../') || normalized === '..') {
+		if (
+			normalized.startsWith('../') ||
+			normalized.includes('/../') ||
+			normalized === '..'
+		) {
 			throw this.errorHandler.createBusinessError(
 				ErrorCode.BAD_REQUEST,
 				'Invalid file path detected',
 				{ operation: 'validateFilePath', resource: 'file' }
 			)
 		}
-		
+
 		// Ensure path doesn't start with /
 		return normalized.startsWith('/') ? normalized.slice(1) : normalized
 	}
@@ -70,18 +79,23 @@ export class StorageService {
 			const code = char.charCodeAt(0)
 			return code >= 0 && code <= 31
 		})
-		
+
 		const hasDangerousChars = /[<>:"|?*]/.test(filename)
-		const dangerousExtensions = /\.(exe|bat|cmd|com|pif|scr|vbs|js|jar|php|asp|aspx|jsp)$/i
-		
-		if (hasControlChars || hasDangerousChars || dangerousExtensions.test(filename)) {
+		const dangerousExtensions =
+			/\.(exe|bat|cmd|com|pif|scr|vbs|js|jar|php|asp|aspx|jsp)$/i
+
+		if (
+			hasControlChars ||
+			hasDangerousChars ||
+			dangerousExtensions.test(filename)
+		) {
 			throw this.errorHandler.createBusinessError(
 				ErrorCode.BAD_REQUEST,
 				'Invalid file name or extension',
 				{ operation: 'validateFileName', resource: 'file' }
 			)
 		}
-		
+
 		return filename
 	}
 
@@ -112,11 +126,19 @@ export class StorageService {
 
 		if (error) {
 			// Log detailed error for debugging but don't expose to client
-			this.logger.error('Storage upload failed', { error: error.message, path: safePath, bucket })
+			this.logger.error('Storage upload failed', {
+				error: error.message,
+				path: safePath,
+				bucket
+			})
 			throw this.errorHandler.createBusinessError(
 				ErrorCode.STORAGE_ERROR,
 				'Failed to upload file',
-				{ operation: 'uploadFile', resource: 'file', metadata: { bucket, path: safePath, error: error.message } }
+				{
+					operation: 'uploadFile',
+					resource: 'file',
+					metadata: { bucket, path: safePath, error: error.message }
+				}
 			)
 		}
 
@@ -136,9 +158,7 @@ export class StorageService {
 	 * Get public URL for a file
 	 */
 	getPublicUrl(bucket: string, path: string): string {
-		const { data } = this.supabase.storage
-			.from(bucket)
-			.getPublicUrl(path)
+		const { data } = this.supabase.storage.from(bucket).getPublicUrl(path)
 
 		return data.publicUrl
 	}
@@ -155,11 +175,19 @@ export class StorageService {
 
 		if (error) {
 			// Log detailed error for debugging but don't expose to client
-			this.logger.error('Storage delete failed', { error: error.message, path: safePath, bucket })
+			this.logger.error('Storage delete failed', {
+				error: error.message,
+				path: safePath,
+				bucket
+			})
 			throw this.errorHandler.createBusinessError(
 				ErrorCode.STORAGE_ERROR,
 				'Failed to delete file',
-				{ operation: 'deleteFile', resource: 'file', metadata: { bucket, path: safePath, error: error.message } }
+				{
+					operation: 'deleteFile',
+					resource: 'file',
+					metadata: { bucket, path: safePath, error: error.message }
+				}
 			)
 		}
 
@@ -176,11 +204,23 @@ export class StorageService {
 
 		if (error) {
 			// Log detailed error for debugging but don't expose to client
-			this.logger.error('Storage list failed', { error: error.message, bucket, folder })
+			this.logger.error('Storage list failed', {
+				error: error.message,
+				bucket,
+				folder
+			})
 			throw this.errorHandler.createBusinessError(
 				ErrorCode.STORAGE_ERROR,
 				'Failed to list files',
-				{ operation: 'listFiles', resource: 'file', metadata: { bucket, folder: folder || null, error: error.message } }
+				{
+					operation: 'listFiles',
+					resource: 'file',
+					metadata: {
+						bucket,
+						folder: folder || null,
+						error: error.message
+					}
+				}
 			)
 		}
 
@@ -194,15 +234,19 @@ export class StorageService {
 		const timestamp = Date.now()
 		const uniqueId = crypto.randomUUID().substring(0, 8)
 		const extension = originalName.split('.').pop()
-		const baseName = originalName.replace(/\.[^/.]+$/, "")
-		
+		const baseName = originalName.replace(/\.[^/.]+$/, '')
+
 		return `${baseName}-${timestamp}-${uniqueId}.${extension}`
 	}
 
 	/**
 	 * Get storage path for different entity types
 	 */
-	getStoragePath(entityType: 'property' | 'tenant' | 'maintenance' | 'user', entityId: string, filename: string): string {
+	getStoragePath(
+		entityType: 'property' | 'tenant' | 'maintenance' | 'user',
+		entityId: string,
+		filename: string
+	): string {
 		const uniqueFilename = this.generateUniqueFilename(filename)
 		return `${entityType}/${entityId}/${uniqueFilename}`
 	}
@@ -221,5 +265,4 @@ export class StorageService {
 				return 'documents'
 		}
 	}
-
 }

@@ -7,11 +7,11 @@ import type { UseFormRegister, FieldErrors } from 'react-hook-form'
 import type { CustomerInvoiceForm } from '@repo/shared'
 
 interface ClientInfoSectionProps {
-register: UseFormRegister<CustomerInvoiceForm>
-errors: FieldErrors<CustomerInvoiceForm>
-clientState: string
-autoTaxRate: number
-stateTaxRates: Record<string, number>
+	register: UseFormRegister<CustomerInvoiceForm>
+	errors: FieldErrors<CustomerInvoiceForm>
+	clientState: string
+	autoTaxRate: number
+	stateTaxRates: Record<string, number>
 }
 
 export function ClientInfoSection({

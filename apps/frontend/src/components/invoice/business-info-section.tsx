@@ -7,8 +7,8 @@ import type { UseFormRegister, FieldErrors } from 'react-hook-form'
 import type { CustomerInvoiceForm } from '@repo/shared'
 
 interface BusinessInfoSectionProps {
-register: UseFormRegister<CustomerInvoiceForm>
-errors: FieldErrors<CustomerInvoiceForm>
+	register: UseFormRegister<CustomerInvoiceForm>
+	errors: FieldErrors<CustomerInvoiceForm>
 }
 
 export function BusinessInfoSection({
@@ -16,11 +16,11 @@ export function BusinessInfoSection({
 	errors
 }: BusinessInfoSectionProps) {
 	return (
-		<Card className="group bg-white/10 border border-white/20 shadow-xl backdrop-blur-sm transition-all duration-300 hover:shadow-2xl hover:bg-white/15">
-			<CardHeader className="from-primary/10 to-indigo-500/10 border-white/20 flex items-center justify-center border-b bg-gradient-to-r py-4">
-				<CardTitle className="text-white flex items-center justify-center gap-2 text-base">
+		<Card className="group border border-white/20 bg-white/10 shadow-xl backdrop-blur-sm transition-all duration-300 hover:bg-white/15 hover:shadow-2xl">
+			<CardHeader className="from-primary/10 flex items-center justify-center border-b border-white/20 bg-gradient-to-r to-indigo-500/10 py-4">
+				<CardTitle className="flex items-center justify-center gap-2 text-base text-white">
 					<div className="bg-primary/20 group-hover:bg-primary/30 rounded-lg p-1.5 transition-colors">
-						<Building className="text-blue-300 h-4 w-4" />
+						<Building className="h-4 w-4 text-blue-300" />
 					</div>
 					<span className="font-serif">Sender</span>
 				</CardTitle>
@@ -28,7 +28,10 @@ export function BusinessInfoSection({
 			<CardContent className="flex flex-col gap-2 py-4">
 				<div className="grid grid-cols-2 gap-2">
 					<div className="flex flex-col gap-1">
-						<Label htmlFor="businessName" className="text-xs text-white/90">
+						<Label
+							htmlFor="businessName"
+							className="text-xs text-white/90"
+						>
 							Business Name *
 						</Label>
 						<Input
@@ -42,7 +45,7 @@ export function BusinessInfoSection({
 								}
 							})}
 							placeholder="Your Business Name"
-							className="h-8 text-sm bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50"
+							className="h-8 border-white/20 bg-white/10 text-sm text-white placeholder:text-white/60 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50"
 						/>
 						{errors.businessName && (
 							<p className="text-xs text-red-400">
@@ -51,7 +54,10 @@ export function BusinessInfoSection({
 						)}
 					</div>
 					<div className="flex flex-col gap-1">
-						<Label htmlFor="businessEmail" className="text-xs text-white/90">
+						<Label
+							htmlFor="businessEmail"
+							className="text-xs text-white/90"
+						>
 							Email *
 						</Label>
 						<Input
@@ -65,7 +71,7 @@ export function BusinessInfoSection({
 								}
 							})}
 							placeholder="business@email.com"
-							className="h-8 text-sm bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50"
+							className="h-8 border-white/20 bg-white/10 text-sm text-white placeholder:text-white/60 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50"
 						/>
 						{errors.businessEmail && (
 							<p className="text-xs text-red-400">
@@ -76,42 +82,54 @@ export function BusinessInfoSection({
 				</div>
 				<div className="grid grid-cols-2 gap-2">
 					<div className="flex flex-col gap-1">
-						<Label htmlFor="businessAddress" className="text-xs text-white/90">
+						<Label
+							htmlFor="businessAddress"
+							className="text-xs text-white/90"
+						>
 							Address
 						</Label>
 						<Input
 							id="businessAddress"
 							{...register('businessAddress')}
 							placeholder="123 Business Street"
-							className="h-8 text-sm bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50"
+							className="h-8 border-white/20 bg-white/10 text-sm text-white placeholder:text-white/60 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50"
 						/>
 					</div>
 					<div className="flex flex-col gap-1">
-						<Label htmlFor="businessPhone" className="text-xs text-white/90">
+						<Label
+							htmlFor="businessPhone"
+							className="text-xs text-white/90"
+						>
 							Phone
 						</Label>
 						<Input
 							id="businessPhone"
 							{...register('businessPhone')}
 							placeholder="(555) 123-4567"
-							className="h-8 text-sm bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50"
+							className="h-8 border-white/20 bg-white/10 text-sm text-white placeholder:text-white/60 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50"
 						/>
 					</div>
 				</div>
 				<div className="grid grid-cols-3 gap-2">
 					<div className="flex flex-col gap-1">
-						<Label htmlFor="businessCity" className="text-xs text-white/90">
+						<Label
+							htmlFor="businessCity"
+							className="text-xs text-white/90"
+						>
 							City
 						</Label>
 						<Input
 							id="businessCity"
 							{...register('businessCity')}
 							placeholder="City"
-							className="h-8 text-sm bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50"
+							className="h-8 border-white/20 bg-white/10 text-sm text-white placeholder:text-white/60 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50"
 						/>
 					</div>
 					<div className="flex flex-col gap-1">
-						<Label htmlFor="businessState" className="text-xs text-white/90">
+						<Label
+							htmlFor="businessState"
+							className="text-xs text-white/90"
+						>
 							State
 						</Label>
 						<Input
@@ -119,18 +137,21 @@ export function BusinessInfoSection({
 							{...register('businessState')}
 							placeholder="ST"
 							maxLength={2}
-							className="h-8 text-sm bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50"
+							className="h-8 border-white/20 bg-white/10 text-sm text-white placeholder:text-white/60 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50"
 						/>
 					</div>
 					<div className="flex flex-col gap-1">
-						<Label htmlFor="businessZip" className="text-xs text-white/90">
+						<Label
+							htmlFor="businessZip"
+							className="text-xs text-white/90"
+						>
 							ZIP
 						</Label>
 						<Input
 							id="businessZip"
 							{...register('businessZip')}
 							placeholder="12345"
-							className="h-8 text-sm bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50"
+							className="h-8 border-white/20 bg-white/10 text-sm text-white placeholder:text-white/60 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50"
 						/>
 					</div>
 				</div>

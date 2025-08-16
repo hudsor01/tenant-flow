@@ -1,11 +1,13 @@
 # Form Patterns Migration Guide
 
 ## Overview
+
 The monolithic `form-patterns.tsx` (787 lines) has been decomposed into focused, single-responsibility components following Next.js 15 best practices.
 
 ## Architecture Changes
 
 ### Before (Anti-pattern)
+
 ```tsx
 // Single massive client component with everything
 'use client'
@@ -13,22 +15,23 @@ import { FormContainer, FormField, TextField, ... } from './form-patterns'
 ```
 
 ### After (Next.js 15 Optimized)
+
 ```tsx
 // Server components by default, client islands for interactivity
 import { FormContainer, FormField } from './form-container'
-import { TextField, SelectField } from './form-fields' 
+import { TextField, SelectField } from './form-fields'
 import { SaveActions } from './form-actions'
 ```
 
 ## Component Mapping
 
-| Old Component | New Location | Type |
-|--------------|--------------|------|
-| FormContainer | `./form-container` | Server + Client Island |
-| FormField, TextField, etc. | `./form-fields` | Server |
-| FormSection, GridFormSection | `./form-sections` | Server |
-| SaveActions, CrudActions | `./form-actions` | Server |
-| Loading overlay | `./form-loading-overlay` | Client |
+| Old Component                | New Location             | Type                   |
+| ---------------------------- | ------------------------ | ---------------------- |
+| FormContainer                | `./form-container`       | Server + Client Island |
+| FormField, TextField, etc.   | `./form-fields`          | Server                 |
+| FormSection, GridFormSection | `./form-sections`        | Server                 |
+| SaveActions, CrudActions     | `./form-actions`         | Server                 |
+| Loading overlay              | `./form-loading-overlay` | Client                 |
 
 ## Benefits
 

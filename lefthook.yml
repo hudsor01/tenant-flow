@@ -1,0 +1,66 @@
+# Lefthook configuration for pre-commit and pre-push hooks
+# Catches errors before they reach CI/CD
+
+# Skip hooks in CI environment
+skip_in_env:
+    - CI
+
+pre-commit:
+    parallel: true
+    commands:
+        lint:
+            glob: '*.{js,jsx,ts,tsx}'
+            run: npm run lint --silent
+            skip:
+                - merge
+                - rebase
+
+        typecheck:
+            glob: '*.{ts,tsx}'
+            run: npm run typecheck --silent
+            skip:
+                - merge
+                - rebase
+
+        prettier:
+            glob: '*.{js,jsx,ts,tsx,json,md,yml,yaml}'
+            run: npx prettier --check {staged_files}
+            stage_fixed: true
+
+        no-secrets:
+            glob: '*'
+            run: |
+                # Check for potential secrets
+                if grep -E "(SUPABASE_|DATABASE_URL|JWT_SECRET|STRIPE_|RESEND_)" {staged_files} 2>/dev/null; then
+                  echo "❌ Potential secrets detected in staged files!"
+                  echo "Please remove sensitive data before committing."
+                  exit 1
+                fi
+
+pre-push:
+    parallel: false
+    commands:
+        build-check:
+            run: |
+                echo "🔨 Running quick build check..."
+                npm run build:frontend --silent || exit 1
+                npm run build:backend --silent || exit 1
+                echo "✅ Build check passed"
+
+        docker-validate:
+            run: |
+                echo "🐳 Validating Docker build..."
+                docker build --target deps -t test-deps . || exit 1
+                echo "✅ Docker validation passed"
+
+commit-msg:
+    commands:
+        commitlint:
+            run: |
+                # Simple commit message validation
+                if ! head -1 {1} | grep -qE "^(feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert)(\(.+\))?: .{1,100}$"; then
+                  echo "❌ Invalid commit message format!"
+                  echo "Format: <type>(<scope>): <subject>"
+                  echo "Example: feat(auth): add OAuth support"
+                  exit 1
+                fi

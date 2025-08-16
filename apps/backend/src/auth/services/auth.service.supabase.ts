@@ -11,7 +11,11 @@ const SupabaseUserRowSchema = z.object({
 	id: z.string().uuid('Invalid user ID format'),
 	email: z.string().email('Invalid email format'),
 	name: z.string().nullable().optional(),
-	avatarUrl: z.string().url('Invalid avatar URL format').nullable().optional(),
+	avatarUrl: z
+		.string()
+		.url('Invalid avatar URL format')
+		.nullable()
+		.optional(),
 	role: z.enum(['OWNER', 'MANAGER', 'TENANT', 'ADMIN']),
 	phone: z.string().nullable().optional(),
 	createdAt: z.union([z.string().datetime({ offset: true }), z.date()]),
@@ -19,7 +23,11 @@ const SupabaseUserRowSchema = z.object({
 	emailVerified: z.boolean().optional(),
 	bio: z.string().nullable().optional(),
 	supabaseId: z.string().uuid('Invalid Supabase ID format').optional(),
-	organizationId: z.string().uuid('Invalid organization ID format').nullable().optional()
+	organizationId: z
+		.string()
+		.uuid('Invalid organization ID format')
+		.nullable()
+		.optional()
 })
 
 /**
@@ -36,9 +44,7 @@ type SupabaseUserRow = z.infer<typeof SupabaseUserRowSchema>
 export class AuthServiceSupabase {
 	private readonly logger = new Logger(AuthServiceSupabase.name)
 
-	constructor(
-		private supabase: SupabaseClient
-	) {}
+	constructor(private supabase: SupabaseClient) {}
 
 	/**
 	 * Sync Supabase user with local database using Supabase client
@@ -48,7 +54,9 @@ export class AuthServiceSupabase {
 		supabaseUser: SupabaseUser
 	): Promise<ValidatedUser> {
 		if (!supabaseUser) {
-			this.logger.error('syncUserWithDatabase called with undefined supabaseUser')
+			this.logger.error(
+				'syncUserWithDatabase called with undefined supabaseUser'
+			)
 			throw new Error('Supabase user is required')
 		}
 
@@ -69,60 +77,71 @@ export class AuthServiceSupabase {
 
 		try {
 			// First, try to get the existing user
-			const { data: existingUser, error: selectError } = await this.supabase
-				.from('User')
-				.select('*')
-				.eq('id', supabaseId)
-				.single()
+			const { data: existingUser, error: selectError } =
+				await this.supabase
+					.from('User')
+					.select('*')
+					.eq('id', supabaseId)
+					.single()
 
 			const isNewUser = !existingUser || selectError?.code === 'PGRST116' // Row not found
 
 			if (isNewUser) {
 				// Insert new user
-				const { data: newUser, error: insertError } = await this.supabase
-					.from('User')
-					.insert({
-						id: supabaseId,
-						email,
-						name,
-						avatarUrl,
-						role: 'OWNER',
-						supabaseId,
-						createdAt: supabaseUser.created_at || new Date().toISOString(),
-						updatedAt: supabaseUser.updated_at || new Date().toISOString()
-					})
-					.select()
-					.single()
+				const { data: newUser, error: insertError } =
+					await this.supabase
+						.from('User')
+						.insert({
+							id: supabaseId,
+							email,
+							name,
+							avatarUrl,
+							role: 'OWNER',
+							supabaseId,
+							createdAt:
+								supabaseUser.created_at ||
+								new Date().toISOString(),
+							updatedAt:
+								supabaseUser.updated_at ||
+								new Date().toISOString()
+						})
+						.select()
+						.single()
 
 				if (insertError) {
 					this.logger.error('Failed to insert user via Supabase', {
 						error: insertError,
 						userId: supabaseId
 					})
-					throw new Error(`Failed to sync user: ${insertError.message}`)
+					throw new Error(
+						`Failed to sync user: ${insertError.message}`
+					)
 				}
 
 				return this.normalizeSupabaseUser(newUser)
 			} else {
 				// Update existing user
-				const { data: updatedUser, error: updateError } = await this.supabase
-					.from('User')
-					.update({
-						email,
-						name,
-						avatarUrl,
-						updatedAt: new Date().toISOString()
-					})
-					.eq('id', supabaseId)
-					.select()
-					.single()
+				const { data: updatedUser, error: updateError } =
+					await this.supabase
+						.from('User')
+						.update({
+							email,
+							name,
+							avatarUrl,
+							updatedAt: new Date().toISOString()
+						})
+						.eq('id', supabaseId)
+						.select()
+						.single()
 
 				if (updateError) {
 					this.logger.error('Failed to update user via Supabase', {
 						error: updateError,
 						userId: supabaseId
 					})
-					throw new Error(`Failed to update user: ${updateError.message}`)
+					throw new Error(
+						`Failed to update user: ${updateError.message}`
+					)
 				}
 
 				return this.normalizeSupabaseUser(updatedUser)
@@ -155,7 +174,9 @@ export class AuthServiceSupabase {
 				error: error instanceof z.ZodError ? error.issues : error,
 				rawData: JSON.stringify(supabaseRow).substring(0, 500)
 			})
-			throw new Error(`Invalid user data received from database: ${error instanceof z.ZodError ? error.issues.map(i => i.message).join(', ') : 'Unknown validation error'}`)
+			throw new Error(
+				`Invalid user data received from database: ${error instanceof z.ZodError ? error.issues.map(i => i.message).join(', ') : 'Unknown validation error'}`
+			)
 		}
 	}
 
@@ -163,11 +184,17 @@ export class AuthServiceSupabase {
 	 * Convert validated Supabase row to ValidatedUser format
 	 * Helper method to keep normalization logic clean
 	 */
-	private convertToValidatedUser(validatedRow: SupabaseUserRow): ValidatedUser {
+	private convertToValidatedUser(
+		validatedRow: SupabaseUserRow
+	): ValidatedUser {
 		// Helper function to safely convert date to ISO string
 		const toISOString = (date: string | Date): string => {
-			if (typeof date === 'string') {return date}
-			if (date instanceof Date) {return date.toISOString()}
+			if (typeof date === 'string') {
+				return date
+			}
+			if (date instanceof Date) {
+				return date.toISOString()
+			}
 			return new Date().toISOString()
 		}
 

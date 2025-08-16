@@ -6,7 +6,7 @@ import { AuthUser } from '@repo/shared'
 
 /**
  * Production-ready Fastify WebSocket Plugin for TenantFlow
- * 
+ *
  * Single Responsibility: WebSocket connection management and routing
  * Follows DRY principles with clean separation of concerns
  */
@@ -14,543 +14,659 @@ import { AuthUser } from '@repo/shared'
 // Type definitions removed - not used
 
 interface WebSocketMessage {
-  type: string
-  [key: string]: unknown
+	type: string
+	[key: string]: unknown
 }
 
 interface ConnectionMetrics {
-  total: number
-  byOrganization: Map<string, number>
-  messagesSent: number
-  messagesReceived: number
-  errors: number
+	total: number
+	byOrganization: Map<string, number>
+	messagesSent: number
+	messagesReceived: number
+	errors: number
 }
 
 @Injectable()
 export class FastifyWebSocketPlugin {
-  private readonly logger = new Logger(FastifyWebSocketPlugin.name)
-  private readonly connections = new Map<string, Set<WebSocket>>()
-  private readonly userConnections = new Map<string, WebSocket>()
-  private readonly metrics: ConnectionMetrics = {
-    total: 0,
-    byOrganization: new Map(),
-    messagesSent: 0,
-    messagesReceived: 0,
-    errors: 0
-  }
+	private readonly logger = new Logger(FastifyWebSocketPlugin.name)
+	private readonly connections = new Map<string, Set<WebSocket>>()
+	private readonly userConnections = new Map<string, WebSocket>()
+	private readonly metrics: ConnectionMetrics = {
+		total: 0,
+		byOrganization: new Map(),
+		messagesSent: 0,
+		messagesReceived: 0,
+		errors: 0
+	}
 
-  async register(fastify: FastifyInstance, configService: ConfigService): Promise<void> {
-    try {
-      const fastifyWebsocket = await import('@fastify/websocket')
-      const isProduction = configService.get<string>('NODE_ENV') === 'production'
+	async register(
+		fastify: FastifyInstance,
+		configService: ConfigService
+	): Promise<void> {
+		try {
+			const fastifyWebsocket = await import('@fastify/websocket')
+			const isProduction =
+				configService.get<string>('NODE_ENV') === 'production'
 
-      // Register WebSocket with production-optimized settings
-      await fastify.register(fastifyWebsocket.default, {
-        options: {
-          maxPayload: isProduction ? 1048576 : 10485760, // 1MB prod, 10MB dev
-          perMessageDeflate: isProduction ? {
-            zlibDeflateOptions: { chunkSize: 1024, memLevel: 7, level: 3 },
-            zlibInflateOptions: { chunkSize: 10 * 1024 },
-            threshold: 1024,
-            concurrencyLimit: 10
-          } : false,
-          verifyClient: (info: { origin: string; secure: boolean; req: { headers: Record<string, string | string[] | undefined>; socket: { remoteAddress?: string } } }) => {
-            return this.verifyClient(info, configService)
-          }
-        },
-        errorHandler: (error: Error, socket: WebSocket, request: FastifyRequest) => {
-          this.handleError(error, socket, request)
-        }
-      })
+			// Register WebSocket with production-optimized settings
+			await fastify.register(fastifyWebsocket.default, {
+				options: {
+					maxPayload: isProduction ? 1048576 : 10485760, // 1MB prod, 10MB dev
+					perMessageDeflate: isProduction
+						? {
+								zlibDeflateOptions: {
+									chunkSize: 1024,
+									memLevel: 7,
+									level: 3
+								},
+								zlibInflateOptions: { chunkSize: 10 * 1024 },
+								threshold: 1024,
+								concurrencyLimit: 10
+							}
+						: false,
+					verifyClient: (info: {
+						origin: string
+						secure: boolean
+						req: {
+							headers: Record<
+								string,
+								string | string[] | undefined
+							>
+							socket: { remoteAddress?: string }
+						}
+					}) => {
+						return this.verifyClient(info, configService)
+					}
+				},
+				errorHandler: (
+					error: Error,
+					socket: WebSocket,
+					request: FastifyRequest
+				) => {
+					this.handleError(error, socket, request)
+				}
+			})
 
-      // Register authenticated WebSocket routes
-      this.registerRoutes(fastify)
-      
-      // Add Fastify decorators for external usage
-      this.addDecorators(fastify)
-      
-      // Setup graceful shutdown
-      this.setupShutdown(fastify)
+			// Register authenticated WebSocket routes
+			this.registerRoutes(fastify)
 
-      this.logger.log('✅ WebSocket plugin registered successfully')
-    } catch (error) {
-      this.logger.error('Failed to register WebSocket plugin:', error)
-      throw error
-    }
-  }
+			// Add Fastify decorators for external usage
+			this.addDecorators(fastify)
 
-  /**
-   * Verify client connection with production security checks
-   */
-  private verifyClient(
-    info: { origin: string; secure: boolean; req: { headers: Record<string, string | string[] | undefined>; socket: { remoteAddress?: string } } },
-    configService: ConfigService
-  ): boolean {
-    const { origin } = info
-    const clientIP = info.req.socket.remoteAddress
+			// Setup graceful shutdown
+			this.setupShutdown(fastify)
 
-    // Production origin validation
-    if (configService.get('NODE_ENV') === 'production' && origin) {
-      const allowedOrigins = configService.get<string>('CORS_ORIGINS', '')
-        .split(',')
-        .map(o => o.trim())
-        .filter(Boolean)
+			this.logger.log('✅ WebSocket plugin registered successfully')
+		} catch (error) {
+			this.logger.error('Failed to register WebSocket plugin:', error)
+			throw error
+		}
+	}
 
-      if (allowedOrigins.length > 0 && !allowedOrigins.includes(origin)) {
-        this.logger.warn(`WebSocket rejected: invalid origin ${origin} from ${clientIP}`)
-        return false
-      }
-    }
+	/**
+	 * Verify client connection with production security checks
+	 */
+	private verifyClient(
+		info: {
+			origin: string
+			secure: boolean
+			req: {
+				headers: Record<string, string | string[] | undefined>
+				socket: { remoteAddress?: string }
+			}
+		},
+		configService: ConfigService
+	): boolean {
+		const { origin } = info
+		const clientIP = info.req.socket.remoteAddress
 
-    // Rate limiting check
-    if (clientIP && this.isRateLimited(clientIP)) {
-      this.logger.warn(`WebSocket rejected: rate limited ${clientIP}`)
-      return false
-    }
+		// Production origin validation
+		if (configService.get('NODE_ENV') === 'production' && origin) {
+			const allowedOrigins = configService
+				.get<string>('CORS_ORIGINS', '')
+				.split(',')
+				.map(o => o.trim())
+				.filter(Boolean)
 
-    return true
-  }
+			if (allowedOrigins.length > 0 && !allowedOrigins.includes(origin)) {
+				this.logger.warn(
+					`WebSocket rejected: invalid origin ${origin} from ${clientIP}`
+				)
+				return false
+			}
+		}
 
-  /**
-   * Simple IP-based rate limiting (use Redis in production)
-   */
-  private isRateLimited(ip: string): boolean {
-    const maxConnectionsPerIP = 10
-    let connectionsFromIP = 0
+		// Rate limiting check
+		if (clientIP && this.isRateLimited(clientIP)) {
+			this.logger.warn(`WebSocket rejected: rate limited ${clientIP}`)
+			return false
+		}
 
-    for (const connections of this.connections.values()) {
-      for (const ws of connections) {
-        const socket = ws as WebSocket & { clientIP?: string }
-        if (socket.clientIP === ip) {
-          connectionsFromIP++
-          if (connectionsFromIP >= maxConnectionsPerIP) {
-            return true
-          }
-        }
-      }
-    }
+		return true
+	}
 
-    return false
-  }
+	/**
+	 * Simple IP-based rate limiting (use Redis in production)
+	 */
+	private isRateLimited(ip: string): boolean {
+		const maxConnectionsPerIP = 10
+		let connectionsFromIP = 0
 
-  /**
-   * Register WebSocket routes with proper authentication
-   */
-  private registerRoutes(fastify: FastifyInstance): void {
-    // Main notifications endpoint
-    fastify.register(async (fastify) => {
-      fastify.get('/ws/notifications', {
-        websocket: true,
-        preHandler: [this.createAuthHandler()]
-      }, (socket: WebSocket, request: FastifyRequest) => {
-        this.handleConnection(socket, request, 'notifications')
-      })
-    })
+		for (const connections of this.connections.values()) {
+			for (const ws of connections) {
+				const socket = ws as WebSocket & { clientIP?: string }
+				if (socket.clientIP === ip) {
+					connectionsFromIP++
+					if (connectionsFromIP >= maxConnectionsPerIP) {
+						return true
+					}
+				}
+			}
+		}
 
-    // Property-specific maintenance updates
-    fastify.register(async (fastify) => {
-      fastify.get('/ws/maintenance/:propertyId', {
-        websocket: true,
-        preHandler: [this.createPropertyAuthHandler()]
-      }, (socket: WebSocket, request: FastifyRequest) => {
-        this.handleConnection(socket, request, 'maintenance')
-      })
-    })
+		return false
+	}
 
-    // Admin broadcast endpoint
-    fastify.register(async (fastify) => {
-      fastify.get('/ws/admin', {
-        websocket: true,
-        preHandler: [this.createAdminAuthHandler()]
-      }, (socket: WebSocket, request: FastifyRequest) => {
-        this.handleConnection(socket, request, 'admin')
-      })
-    })
-  }
+	/**
+	 * Register WebSocket routes with proper authentication
+	 */
+	private registerRoutes(fastify: FastifyInstance): void {
+		// Main notifications endpoint
+		fastify.register(async fastify => {
+			fastify.get(
+				'/ws/notifications',
+				{
+					websocket: true,
+					preHandler: [this.createAuthHandler()]
+				},
+				(socket: WebSocket, request: FastifyRequest) => {
+					this.handleConnection(socket, request, 'notifications')
+				}
+			)
+		})
 
-  /**
-   * Create authentication preHandler
-   */
-  private createAuthHandler() {
-    return async (request: FastifyRequest & { user?: AuthUser }, reply: { code: (code: number) => { send: (data: unknown) => void } }) => {
-      const token = this.extractToken(request)
-      if (!token) {
-        reply.code(401).send({ error: 'Authentication required' })
-        return
-      }
+		// Property-specific maintenance updates
+		fastify.register(async fastify => {
+			fastify.get(
+				'/ws/maintenance/:propertyId',
+				{
+					websocket: true,
+					preHandler: [this.createPropertyAuthHandler()]
+				},
+				(socket: WebSocket, request: FastifyRequest) => {
+					this.handleConnection(socket, request, 'maintenance')
+				}
+			)
+		})
 
-      const user = await this.verifyToken(token)
-      if (!user) {
-        reply.code(401).send({ error: 'Invalid token' })
-        return
-      }
+		// Admin broadcast endpoint
+		fastify.register(async fastify => {
+			fastify.get(
+				'/ws/admin',
+				{
+					websocket: true,
+					preHandler: [this.createAdminAuthHandler()]
+				},
+				(socket: WebSocket, request: FastifyRequest) => {
+					this.handleConnection(socket, request, 'admin')
+				}
+			)
+		})
+	}
 
-      request.user = user
-    }
-  }
+	/**
+	 * Create authentication preHandler
+	 */
+	private createAuthHandler() {
+		return async (
+			request: FastifyRequest & { user?: AuthUser },
+			reply: { code: (code: number) => { send: (data: unknown) => void } }
+		) => {
+			const token = this.extractToken(request)
+			if (!token) {
+				reply.code(401).send({ error: 'Authentication required' })
+				return
+			}
 
-  /**
-   * Create property-specific authentication handler
-   */
-  private createPropertyAuthHandler() {
-    return async (request: FastifyRequest & { user?: AuthUser; propertyId?: string }, reply: { code: (code: number) => { send: (data: unknown) => void } }) => {
-      // First authenticate
-      await this.createAuthHandler()(request, reply)
-      
-      if (!request.user) {return}
+			const user = await this.verifyToken(token)
+			if (!user) {
+				reply.code(401).send({ error: 'Invalid token' })
+				return
+			}
 
-      // Then verify property access
-      const params = request.params as { propertyId?: string }
-      const propertyId = params?.propertyId
-      
-      if (!propertyId) {
-        reply.code(400).send({ error: 'Property ID required' })
-        return
-      }
+			request.user = user
+		}
+	}
 
-      const hasAccess = await this.verifyPropertyAccess(request.user.id, propertyId)
-      if (!hasAccess) {
-        reply.code(403).send({ error: 'Access denied to this property' })
-        return
-      }
+	/**
+	 * Create property-specific authentication handler
+	 */
+	private createPropertyAuthHandler() {
+		return async (
+			request: FastifyRequest & { user?: AuthUser; propertyId?: string },
+			reply: { code: (code: number) => { send: (data: unknown) => void } }
+		) => {
+			// First authenticate
+			await this.createAuthHandler()(request, reply)
 
-      request.propertyId = propertyId
-    }
-  }
+			if (!request.user) {
+				return
+			}
 
-  /**
-   * Create admin authentication handler
-   */
-  private createAdminAuthHandler() {
-    return async (request: FastifyRequest & { user?: AuthUser }, reply: { code: (code: number) => { send: (data: unknown) => void } }) => {
-      await this.createAuthHandler()(request, reply)
-      
-      if (!request.user) {return}
+			// Then verify property access
+			const params = request.params as { propertyId?: string }
+			const propertyId = params?.propertyId
 
-      if (request.user.role !== 'ADMIN') {
-        reply.code(403).send({ error: 'Admin access required' })
-        return
-      }
-    }
-  }
+			if (!propertyId) {
+				reply.code(400).send({ error: 'Property ID required' })
+				return
+			}
 
-  /**
-   * Handle WebSocket connection with proper cleanup
-   */
-  private handleConnection(
-    socket: WebSocket & { userId?: string; organizationId?: string; clientIP?: string; connectedAt?: Date },
-    request: FastifyRequest & { user?: AuthUser; propertyId?: string },
-    type: 'notifications' | 'maintenance' | 'admin'
-  ): void {
-    const user = request.user
+			const hasAccess = await this.verifyPropertyAccess(
+				request.user.id,
+				propertyId
+			)
+			if (!hasAccess) {
+				reply
+					.code(403)
+					.send({ error: 'Access denied to this property' })
+				return
+			}
 
-    if (!user) {
-      socket.close(1008, 'User not authenticated')
-      return
-    }
+			request.propertyId = propertyId
+		}
+	}
 
-    // Store metadata on socket
-    socket.userId = user.id
-    socket.organizationId = user.organizationId || 'default'
-    socket.clientIP = request.ip
-    socket.connectedAt = new Date()
+	/**
+	 * Create admin authentication handler
+	 */
+	private createAdminAuthHandler() {
+		return async (
+			request: FastifyRequest & { user?: AuthUser },
+			reply: { code: (code: number) => { send: (data: unknown) => void } }
+		) => {
+			await this.createAuthHandler()(request, reply)
 
-    // Add to appropriate room
-    const roomKey = type === 'maintenance' && request.propertyId 
-      ? `maintenance:${request.propertyId}`
-      : type === 'admin' 
-      ? 'admin:broadcast'
-      : socket.organizationId
+			if (!request.user) {
+				return
+			}
 
-    this.addToRoom(roomKey, socket)
-    this.userConnections.set(user.id, socket)
+			if (request.user.role !== 'ADMIN') {
+				reply.code(403).send({ error: 'Admin access required' })
+				return
+			}
+		}
+	}
 
-    // Update metrics
-    this.updateMetrics('connect', socket.organizationId)
+	/**
+	 * Handle WebSocket connection with proper cleanup
+	 */
+	private handleConnection(
+		socket: WebSocket & {
+			userId?: string
+			organizationId?: string
+			clientIP?: string
+			connectedAt?: Date
+		},
+		request: FastifyRequest & { user?: AuthUser; propertyId?: string },
+		type: 'notifications' | 'maintenance' | 'admin'
+	): void {
+		const user = request.user
 
-    this.logger.log(`WebSocket connected: ${type} for user ${user.id}`)
+		if (!user) {
+			socket.close(1008, 'User not authenticated')
+			return
+		}
 
-    // Send welcome message
-    this.sendMessage(socket, {
-      type: 'connected',
-      userId: user.id,
-      connectionType: type,
-      timestamp: new Date().toISOString()
-    })
+		// Store metadata on socket
+		socket.userId = user.id
+		socket.organizationId = user.organizationId || 'default'
+		socket.clientIP = request.ip
+		socket.connectedAt = new Date()
 
-    // Setup message handler
-    socket.on('message', (data: Buffer) => {
-      this.handleMessage(socket, data, user)
-    })
+		// Add to appropriate room
+		const roomKey =
+			type === 'maintenance' && request.propertyId
+				? `maintenance:${request.propertyId}`
+				: type === 'admin'
+					? 'admin:broadcast'
+					: socket.organizationId
 
-    // Setup error handler
-    socket.on('error', (error: Error) => {
-      this.logger.error(`WebSocket error for user ${user.id}:`, error)
-      this.metrics.errors++
-    })
+		this.addToRoom(roomKey, socket)
+		this.userConnections.set(user.id, socket)
 
-    // Setup close handler
-    socket.on('close', () => {
-      this.handleDisconnect(socket, user, roomKey)
-    })
+		// Update metrics
+		this.updateMetrics('connect', socket.organizationId)
 
-    // Setup ping/pong for connection health
-    socket.on('ping', () => socket.pong())
-  }
+		this.logger.log(`WebSocket connected: ${type} for user ${user.id}`)
 
-  /**
-   * Handle incoming WebSocket messages
-   */
-  private handleMessage(socket: WebSocket, data: Buffer, user: AuthUser): void {
-    try {
-      const message = JSON.parse(data.toString()) as WebSocketMessage
-      this.metrics.messagesReceived++
+		// Send welcome message
+		this.sendMessage(socket, {
+			type: 'connected',
+			userId: user.id,
+			connectionType: type,
+			timestamp: new Date().toISOString()
+		})
 
-      this.logger.debug(`Message from ${user.id}: ${message.type}`)
+		// Setup message handler
+		socket.on('message', (data: Buffer) => {
+			this.handleMessage(socket, data, user)
+		})
 
-      // Route message based on type
-      switch (message.type) {
-        case 'ping':
-          this.sendMessage(socket, { type: 'pong', timestamp: Date.now() })
-          break
+		// Setup error handler
+		socket.on('error', (error: Error) => {
+			this.logger.error(`WebSocket error for user ${user.id}:`, error)
+			this.metrics.errors++
+		})
 
-        case 'broadcast':
-          if (user.role === 'ADMIN') {
-            this.broadcastToAll({ ...message, from: user.id })
-          }
-          break
+		// Setup close handler
+		socket.on('close', () => {
+			this.handleDisconnect(socket, user, roomKey)
+		})
 
-        default:
-          this.sendMessage(socket, {
-            type: 'error',
-            message: `Unknown message type: ${message.type}`
-          })
-      }
-    } catch (error) {
-      this.logger.error('Error processing message:', error)
-      this.sendMessage(socket, {
-        type: 'error',
-        message: 'Invalid message format'
-      })
-    }
-  }
+		// Setup ping/pong for connection health
+		socket.on('ping', () => socket.pong())
+	}
 
-  /**
-   * Handle client disconnect with cleanup
-   */
-  private handleDisconnect(socket: WebSocket & { userId?: string; organizationId?: string }, user: AuthUser, roomKey: string): void {
-    // Remove from room
-    const room = this.connections.get(roomKey)
-    if (room) {
-      room.delete(socket)
-      if (room.size === 0) {
-        this.connections.delete(roomKey)
-      }
-    }
+	/**
+	 * Handle incoming WebSocket messages
+	 */
+	private handleMessage(
+		socket: WebSocket,
+		data: Buffer,
+		user: AuthUser
+	): void {
+		try {
+			const message = JSON.parse(data.toString()) as WebSocketMessage
+			this.metrics.messagesReceived++
 
-    // Remove from user connections
-    this.userConnections.delete(user.id)
+			this.logger.debug(`Message from ${user.id}: ${message.type}`)
 
-    // Update metrics
-    if (socket.organizationId) {
-      this.updateMetrics('disconnect', socket.organizationId)
-    }
+			// Route message based on type
+			switch (message.type) {
+				case 'ping':
+					this.sendMessage(socket, {
+						type: 'pong',
+						timestamp: Date.now()
+					})
+					break
 
-    this.logger.log(`WebSocket disconnected: User ${user.id}`)
-  }
+				case 'broadcast':
+					if (user.role === 'ADMIN') {
+						this.broadcastToAll({ ...message, from: user.id })
+					}
+					break
 
-  /**
-   * Add socket to room
-   */
-  private addToRoom(roomKey: string, socket: WebSocket): void {
-    if (!this.connections.has(roomKey)) {
-      this.connections.set(roomKey, new Set())
-    }
-    const room = this.connections.get(roomKey)
-    if (room) {
-      room.add(socket)
-    }
-  }
+				default:
+					this.sendMessage(socket, {
+						type: 'error',
+						message: `Unknown message type: ${message.type}`
+					})
+			}
+		} catch (error) {
+			this.logger.error('Error processing message:', error)
+			this.sendMessage(socket, {
+				type: 'error',
+				message: 'Invalid message format'
+			})
+		}
+	}
 
-  /**
-   * Update connection metrics
-   */
-  private updateMetrics(action: 'connect' | 'disconnect', organizationId: string): void {
-    if (action === 'connect') {
-      this.metrics.total++
-      const orgCount = this.metrics.byOrganization.get(organizationId) || 0
-      this.metrics.byOrganization.set(organizationId, orgCount + 1)
-    } else {
-      this.metrics.total = Math.max(0, this.metrics.total - 1)
-      const orgCount = this.metrics.byOrganization.get(organizationId) || 0
-      if (orgCount > 1) {
-        this.metrics.byOrganization.set(organizationId, orgCount - 1)
-      } else {
-        this.metrics.byOrganization.delete(organizationId)
-      }
-    }
-  }
+	/**
+	 * Handle client disconnect with cleanup
+	 */
+	private handleDisconnect(
+		socket: WebSocket & { userId?: string; organizationId?: string },
+		user: AuthUser,
+		roomKey: string
+	): void {
+		// Remove from room
+		const room = this.connections.get(roomKey)
+		if (room) {
+			room.delete(socket)
+			if (room.size === 0) {
+				this.connections.delete(roomKey)
+			}
+		}
 
-  /**
-   * Send message to socket safely
-   */
-  private sendMessage(socket: WebSocket, message: WebSocketMessage): boolean {
-    if (socket.readyState === WebSocket.OPEN) {
-      try {
-        socket.send(JSON.stringify(message))
-        this.metrics.messagesSent++
-        return true
-      } catch (error) {
-        this.logger.error('Failed to send message:', error)
-        return false
-      }
-    }
-    return false
-  }
+		// Remove from user connections
+		this.userConnections.delete(user.id)
 
-  /**
-   * Extract token from request
-   */
-  private extractToken(request: FastifyRequest): string | null {
-    const authHeader = request.headers.authorization
-    if (authHeader?.startsWith('Bearer ')) {
-      return authHeader.substring(7)
-    }
-    
-    const query = request.query as { token?: string }
-    return query?.token || null
-  }
+		// Update metrics
+		if (socket.organizationId) {
+			this.updateMetrics('disconnect', socket.organizationId)
+		}
 
-  /**
-   * Verify JWT token (integrate with your auth service)
-   */
-  private async verifyToken(token: string): Promise<AuthUser | null> {
-    // TODO: Integrate with actual auth service
-    // This is a placeholder - replace with actual verification
-    if (!token || token.length < 10) {return null}
-    
-    return {
-      id: 'user123',
-      supabaseId: 'supabase123',
-      stripeCustomerId: null,
-      name: 'Test User',
-      email: 'test@example.com',
-      phone: null,
-      bio: null,
-      avatarUrl: null,
-      role: 'OWNER',
-      organizationId: 'org123',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      emailVerified: true
-    }
-  }
+		this.logger.log(`WebSocket disconnected: User ${user.id}`)
+	}
 
-  /**
-   * Verify property access (integrate with your property service)
-   */
-  private async verifyPropertyAccess(_userId: string, _propertyId: string): Promise<boolean> {
-    // TODO: Check if user has access to property
-    return true
-  }
+	/**
+	 * Add socket to room
+	 */
+	private addToRoom(roomKey: string, socket: WebSocket): void {
+		if (!this.connections.has(roomKey)) {
+			this.connections.set(roomKey, new Set())
+		}
+		const room = this.connections.get(roomKey)
+		if (room) {
+			room.add(socket)
+		}
+	}
 
-  /**
-   * Handle WebSocket errors
-   */
-  private handleError(error: Error, socket: WebSocket | null, request: FastifyRequest): void {
-    this.logger.error('WebSocket error:', {
-      error: error.message,
-      ip: request.ip
-    })
-    
-    this.metrics.errors++
-    
-    if (socket) {
-      socket.close(1011, 'Server error')
-    }
-  }
+	/**
+	 * Update connection metrics
+	 */
+	private updateMetrics(
+		action: 'connect' | 'disconnect',
+		organizationId: string
+	): void {
+		if (action === 'connect') {
+			this.metrics.total++
+			const orgCount =
+				this.metrics.byOrganization.get(organizationId) || 0
+			this.metrics.byOrganization.set(organizationId, orgCount + 1)
+		} else {
+			this.metrics.total = Math.max(0, this.metrics.total - 1)
+			const orgCount =
+				this.metrics.byOrganization.get(organizationId) || 0
+			if (orgCount > 1) {
+				this.metrics.byOrganization.set(organizationId, orgCount - 1)
+			} else {
+				this.metrics.byOrganization.delete(organizationId)
+			}
+		}
+	}
 
-  /**
-   * Add Fastify decorators for external usage
-   */
-  private addDecorators(fastify: FastifyInstance): void {
-    fastify.decorate('sendToUser', (userId: string, message: WebSocketMessage) => {
-      const socket = this.userConnections.get(userId)
-      return socket ? this.sendMessage(socket, message) : false
-    })
+	/**
+	 * Send message to socket safely
+	 */
+	private sendMessage(socket: WebSocket, message: WebSocketMessage): boolean {
+		if (socket.readyState === WebSocket.OPEN) {
+			try {
+				socket.send(JSON.stringify(message))
+				this.metrics.messagesSent++
+				return true
+			} catch (error) {
+				this.logger.error('Failed to send message:', error)
+				return false
+			}
+		}
+		return false
+	}
 
-    fastify.decorate('sendToOrganization', (organizationId: string, message: WebSocketMessage) => {
-      const room = this.connections.get(organizationId)
-      if (!room) {return 0}
-      
-      let sent = 0
-      for (const socket of room) {
-        if (this.sendMessage(socket, message)) {sent++}
-      }
-      return sent
-    })
+	/**
+	 * Extract token from request
+	 */
+	private extractToken(request: FastifyRequest): string | null {
+		const authHeader = request.headers.authorization
+		if (authHeader?.startsWith('Bearer ')) {
+			return authHeader.substring(7)
+		}
 
-    fastify.decorate('broadcastToProperty', (propertyId: string, message: WebSocketMessage) => {
-      const room = this.connections.get(`maintenance:${propertyId}`)
-      if (!room) {return 0}
-      
-      let sent = 0
-      for (const socket of room) {
-        if (this.sendMessage(socket, message)) {sent++}
-      }
-      return sent
-    })
+		const query = request.query as { token?: string }
+		return query?.token || null
+	}
 
-    fastify.decorate('getWebSocketStats', () => ({
-      totalConnections: this.metrics.total,
-      connectionsByOrganization: Object.fromEntries(this.metrics.byOrganization),
-      totalChannels: this.connections.size,
-      messagesSent: this.metrics.messagesSent,
-      messagesReceived: this.metrics.messagesReceived,
-      errors: this.metrics.errors,
-      uptime: process.uptime()
-    }))
-  }
+	/**
+	 * Verify JWT token (integrate with your auth service)
+	 */
+	private async verifyToken(token: string): Promise<AuthUser | null> {
+		// TODO: Integrate with actual auth service
+		// This is a placeholder - replace with actual verification
+		if (!token || token.length < 10) {
+			return null
+		}
 
-  /**
-   * Broadcast to all connections
-   */
-  private broadcastToAll(message: WebSocketMessage): number {
-    let sent = 0
-    for (const room of this.connections.values()) {
-      for (const socket of room) {
-        if (this.sendMessage(socket, message)) {sent++}
-      }
-    }
-    return sent
-  }
+		return {
+			id: 'user123',
+			supabaseId: 'supabase123',
+			stripeCustomerId: null,
+			name: 'Test User',
+			email: 'test@example.com',
+			phone: null,
+			bio: null,
+			avatarUrl: null,
+			role: 'OWNER',
+			organizationId: 'org123',
+			createdAt: new Date(),
+			updatedAt: new Date(),
+			emailVerified: true
+		}
+	}
 
-  /**
-   * Setup graceful shutdown
-   */
-  private setupShutdown(fastify: FastifyInstance): void {
-    const shutdown = () => {
-      this.logger.log('Closing all WebSocket connections...')
-      
-      for (const room of this.connections.values()) {
-        for (const socket of room) {
-          if (socket.readyState === WebSocket.OPEN) {
-            this.sendMessage(socket, {
-              type: 'server_shutdown',
-              message: 'Server is restarting'
-            })
-            socket.close(1001, 'Server restart')
-          }
-        }
-      }
-      
-      this.connections.clear()
-      this.userConnections.clear()
-    }
+	/**
+	 * Verify property access (integrate with your property service)
+	 */
+	private async verifyPropertyAccess(
+		_userId: string,
+		_propertyId: string
+	): Promise<boolean> {
+		// TODO: Check if user has access to property
+		return true
+	}
 
-    process.on('SIGTERM', shutdown)
-    process.on('SIGINT', shutdown)
-    
-    fastify.addHook('onClose', async () => shutdown())
-  }
+	/**
+	 * Handle WebSocket errors
+	 */
+	private handleError(
+		error: Error,
+		socket: WebSocket | null,
+		request: FastifyRequest
+	): void {
+		this.logger.error('WebSocket error:', {
+			error: error.message,
+			ip: request.ip
+		})
+
+		this.metrics.errors++
+
+		if (socket) {
+			socket.close(1011, 'Server error')
+		}
+	}
+
+	/**
+	 * Add Fastify decorators for external usage
+	 */
+	private addDecorators(fastify: FastifyInstance): void {
+		fastify.decorate(
+			'sendToUser',
+			(userId: string, message: WebSocketMessage) => {
+				const socket = this.userConnections.get(userId)
+				return socket ? this.sendMessage(socket, message) : false
+			}
+		)
+
+		fastify.decorate(
+			'sendToOrganization',
+			(organizationId: string, message: WebSocketMessage) => {
+				const room = this.connections.get(organizationId)
+				if (!room) {
+					return 0
+				}
+
+				let sent = 0
+				for (const socket of room) {
+					if (this.sendMessage(socket, message)) {
+						sent++
+					}
+				}
+				return sent
+			}
+		)
+
+		fastify.decorate(
+			'broadcastToProperty',
+			(propertyId: string, message: WebSocketMessage) => {
+				const room = this.connections.get(`maintenance:${propertyId}`)
+				if (!room) {
+					return 0
+				}
+
+				let sent = 0
+				for (const socket of room) {
+					if (this.sendMessage(socket, message)) {
+						sent++
+					}
+				}
+				return sent
+			}
+		)
+
+		fastify.decorate('getWebSocketStats', () => ({
+			totalConnections: this.metrics.total,
+			connectionsByOrganization: Object.fromEntries(
+				this.metrics.byOrganization
+			),
+			totalChannels: this.connections.size,
+			messagesSent: this.metrics.messagesSent,
+			messagesReceived: this.metrics.messagesReceived,
+			errors: this.metrics.errors,
+			uptime: process.uptime()
+		}))
+	}
+
+	/**
+	 * Broadcast to all connections
+	 */
+	private broadcastToAll(message: WebSocketMessage): number {
+		let sent = 0
+		for (const room of this.connections.values()) {
+			for (const socket of room) {
+				if (this.sendMessage(socket, message)) {
+					sent++
+				}
+			}
+		}
+		return sent
+	}
+
+	/**
+	 * Setup graceful shutdown
+	 */
+	private setupShutdown(fastify: FastifyInstance): void {
+		const shutdown = () => {
+			this.logger.log('Closing all WebSocket connections...')
+
+			for (const room of this.connections.values()) {
+				for (const socket of room) {
+					if (socket.readyState === WebSocket.OPEN) {
+						this.sendMessage(socket, {
+							type: 'server_shutdown',
+							message: 'Server is restarting'
+						})
+						socket.close(1001, 'Server restart')
+					}
+				}
+			}
+
+			this.connections.clear()
+			this.userConnections.clear()
+		}
+
+		process.on('SIGTERM', shutdown)
+		process.on('SIGINT', shutdown)
+
+		fastify.addHook('onClose', async () => shutdown())
+	}
 }

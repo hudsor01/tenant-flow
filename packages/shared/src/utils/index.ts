@@ -1,13 +1,13 @@
 /**
  * @repo/shared/utils - Utility functions export
- * 
+ *
  * Re-exports all utility functions from the utils directory.
  */
 
 // Billing utilities
 export * from './billing'
 
-// Error handling utilities  
+// Error handling utilities
 export * from './errors'
 
 // Auth utilities

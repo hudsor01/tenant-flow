@@ -1,9 +1,9 @@
-import { IsDateString, IsEnum, IsInt, IsOptional, IsString, IsUUID, Max, Min } from 'class-validator'
+import { IsDateString, IsEnum, IsInt, IsOptional, IsString, IsUUID, Min } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
 import { DocumentType } from '@repo/database'
-import { DocumentQueryInput } from '@repo/shared'
+import { BaseQueryDto } from '../../common/dto/base-query.dto'
 
-export class DocumentQueryDto implements DocumentQueryInput {
+export class DocumentQueryDto extends BaseQueryDto {
   @IsOptional()
   @IsEnum(DocumentType, { 
     message: 'Document type must be one of: LEASE, INVOICE, RECEIPT, PROPERTY_PHOTO, INSPECTION, MAINTENANCE, OTHER' 
@@ -45,28 +45,6 @@ export class DocumentQueryDto implements DocumentQueryInput {
 
   @IsOptional()
   @IsString()
-  @Transform(({ value }) => value?.trim())
-  search?: string
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt({ message: 'Page must be an integer' })
-  @Min(1, { message: 'Page must be at least 1' })
-  page?: number = 1
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt({ message: 'Limit must be an integer' })
-  @Min(1, { message: 'Limit must be at least 1' })
-  @Max(100, { message: 'Limit cannot exceed 100' })
-  limit?: number = 20
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt({ message: 'Offset must be an integer' })
-  @Min(0, { message: 'Offset must be at least 0' })
-  offset?: number
-
-  // REQUIRED: Index signature for BaseCrudService compatibility
-  [key: string]: unknown
+  @IsEnum(['name', 'type', 'createdAt', 'fileSize'])
+  sortBy?: 'name' | 'type' | 'createdAt' | 'fileSize'
 }

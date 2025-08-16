@@ -5,16 +5,8 @@ import { PrismaModule } from '../prisma/prisma.module'
 import { EmailModule } from '../email/email.module'
 
 @Module({
-  imports: [
-    PrismaModule,
-    EmailModule
-  ],
-  providers: [
-    SubscriptionNotificationService,
-    SubscriptionEventListener
-  ],
-  exports: [
-    SubscriptionNotificationService
-  ]
+	imports: [PrismaModule, EmailModule],
+	providers: [SubscriptionNotificationService, SubscriptionEventListener],
+	exports: [SubscriptionNotificationService]
 })
 export class NotificationsModule {}

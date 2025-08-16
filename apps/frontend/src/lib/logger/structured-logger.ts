@@ -1,4 +1,8 @@
-import { type ILogger, type LogContext, type AnalyticsEvent } from '@repo/shared'
+import {
+	type ILogger,
+	type LogContext,
+	type AnalyticsEvent
+} from '@repo/shared'
 
 // PostHog type is already declared in @repo/shared/types/global.ts
 
@@ -160,7 +164,16 @@ class FrontendLogger implements ILogger {
 				typeof window !== 'undefined' &&
 				(window as unknown as { Sentry?: unknown }).Sentry
 			) {
-				const sentry = (window as unknown as { Sentry: { captureMessage: (msg: string, opts: { level: string; extra: LogContext }) => void } }).Sentry
+				const sentry = (
+					window as unknown as {
+						Sentry: {
+							captureMessage: (
+								msg: string,
+								opts: { level: string; extra: LogContext }
+							) => void
+						}
+					}
+				).Sentry
 				sentry.captureMessage(message, {
 					level: 'error',
 					extra: context || {}
@@ -180,7 +193,9 @@ class FrontendLogger implements ILogger {
 	child(context: LogContext): FrontendLogger {
 		const childLogger = new FrontendLogger()
 		// Store context for future use
-		;(childLogger as unknown as { defaultContext: LogContext }).defaultContext = context
+		;(
+			childLogger as unknown as { defaultContext: LogContext }
+		).defaultContext = context
 		return childLogger
 	}
 

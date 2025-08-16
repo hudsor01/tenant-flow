@@ -1,352 +1,408 @@
-import { BadRequestException, Injectable, Logger, OnModuleInit } from '@nestjs/common'
+import {
+	BadRequestException,
+	Injectable,
+	Logger,
+	OnModuleInit
+} from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import Stripe from 'stripe'
-import type { 
-  CreateCheckoutSessionRequest,
-  CreateCheckoutSessionResponse,
-  CreatePortalSessionRequest,
-  CreatePortalSessionResponse
+import type {
+	CreateCheckoutSessionRequest,
+	CreateCheckoutSessionResponse,
+	CreatePortalSessionRequest,
+	CreatePortalSessionResponse
 } from '@repo/shared'
-import type { 
-  StripeCheckoutSession,
-  StripeCheckoutSessionCreateParams,
-  StripeCheckoutSessionLineItem,
-  StripeCustomer,
-  StripeCustomerUpdateParams
+import type {
+	StripeCheckoutSession,
+	StripeCheckoutSessionCreateParams,
+	StripeCheckoutSessionLineItem,
+	StripeCustomer,
+	StripeCustomerUpdateParams
 } from '@repo/shared/types/stripe'
 import type { StripePrice } from '@repo/shared/types/stripe-core-objects'
 
 @Injectable()
 export class StripeCheckoutService implements OnModuleInit {
-  private readonly logger = new Logger(StripeCheckoutService.name)
-  private stripe?: Stripe
-  private isAvailable = false
+	private readonly logger = new Logger(StripeCheckoutService.name)
+	private stripe?: Stripe
+	private isAvailable = false
 
-  constructor(
-    private readonly configService: ConfigService,
-    // private readonly errorHandler: ErrorHandlerService,
-  ) {
-    this.logger.log('StripeCheckoutService constructor called')
-    // Initialize Stripe in onModuleInit to ensure configService is available
-  }
+	constructor(
+		private readonly configService: ConfigService
+		// private readonly errorHandler: ErrorHandlerService,
+	) {
+		this.logger.log('StripeCheckoutService constructor called')
+		// Initialize Stripe in onModuleInit to ensure configService is available
+	}
 
-  onModuleInit() {
-    // Make initialization non-blocking to prevent deployment hangs
-    setImmediate(() => {
-      this.initializeStripe().catch((error) => {
-        this.logger.error('Failed to initialize Stripe:', error)
-      })
-    })
-  }
+	onModuleInit() {
+		// Make initialization non-blocking to prevent deployment hangs
+		setImmediate(() => {
+			this.initializeStripe().catch(error => {
+				this.logger.error('Failed to initialize Stripe:', error)
+			})
+		})
+	}
 
-  private async initializeStripe() {
-    this.logger.log('StripeCheckoutService initialization started')
-    this.logger.log(`ConfigService available: ${!!this.configService}`)
-    
-    try {
-      const secretKey = this.configService?.get<string>('STRIPE_SECRET_KEY') || process.env.STRIPE_SECRET_KEY
-      this.logger.log(`STRIPE_SECRET_KEY retrieved: ${secretKey ? '[REDACTED]' : 'undefined'}`)
-      
-      if (!secretKey) {
-        this.logger.warn('STRIPE_SECRET_KEY not configured - Stripe functionality will be disabled')
-        this.isAvailable = false
-        return
-      }
+	private async initializeStripe() {
+		this.logger.log('StripeCheckoutService initialization started')
+		this.logger.log(`ConfigService available: ${!!this.configService}`)
 
-      this.stripe = new Stripe(secretKey, {
-        apiVersion: '2025-07-30.basil',
-        typescript: true,
-      })
-      
-      this.isAvailable = true
-      this.logger.log('Stripe client initialized successfully')
-    } catch (error) {
-      this.logger.error('Failed to initialize Stripe client:', error)
-      this.isAvailable = false
-    }
-  }
+		try {
+			const secretKey =
+				this.configService?.get<string>('STRIPE_SECRET_KEY') ||
+				process.env.STRIPE_SECRET_KEY
+			this.logger.log(
+				`STRIPE_SECRET_KEY retrieved: ${secretKey ? '[REDACTED]' : 'undefined'}`
+			)
 
-  private ensureStripeAvailable(): Stripe {
-    if (!this.isAvailable || !this.stripe) {
-      throw new BadRequestException('Stripe service is not configured or available')
-    }
-    return this.stripe
-  }
+			if (!secretKey) {
+				this.logger.warn(
+					'STRIPE_SECRET_KEY not configured - Stripe functionality will be disabled'
+				)
+				this.isAvailable = false
+				return
+			}
 
-  async createCheckoutSession(
-    userId: string | null,
-    request: CreateCheckoutSessionRequest
-  ): Promise<CreateCheckoutSessionResponse> {
-    const stripe = this.ensureStripeAvailable()
-    
-    try {
-      this.logger.log(`Creating checkout session for user ${userId || 'non-authenticated'}`)
+			this.stripe = new Stripe(secretKey, {
+				apiVersion: '2025-07-30.basil',
+				typescript: true
+			})
 
-      // Validate required fields
-      if (!request.billingInterval) {
-        throw new BadRequestException('Billing interval is required')
-      }
+			this.isAvailable = true
+			this.logger.log('Stripe client initialized successfully')
+		} catch (error) {
+			this.logger.error('Failed to initialize Stripe client:', error)
+			this.isAvailable = false
+		}
+	}
 
-      if (!request.lookupKey && !request.priceId) {
-        throw new BadRequestException('Either lookupKey or priceId is required')
-      }
+	private ensureStripeAvailable(): Stripe {
+		if (!this.isAvailable || !this.stripe) {
+			throw new BadRequestException(
+				'Stripe service is not configured or available'
+			)
+		}
+		return this.stripe
+	}
 
-      // Prepare line items
-      const lineItems: StripeCheckoutSessionLineItem[] = []
+	async createCheckoutSession(
+		userId: string | null,
+		request: CreateCheckoutSessionRequest
+	): Promise<CreateCheckoutSessionResponse> {
+		const stripe = this.ensureStripeAvailable()
 
-      if (request.lookupKey) {
-        lineItems.push({
-          price: request.lookupKey,
-          quantity: 1,
-        })
-      } else if (request.priceId) {
-        lineItems.push({
-          price: request.priceId,
-          quantity: 1,
-        })
-      }
+		try {
+			this.logger.log(
+				`Creating checkout session for user ${userId || 'non-authenticated'}`
+			)
 
-      // Prepare session parameters according to Stripe documentation
-      // Note: In subscription mode, Stripe automatically creates customers
-      const mode = request.mode || 'subscription'
-      
-      const sessionParams: StripeCheckoutSessionCreateParams = {
-        mode: mode,
-        line_items: lineItems,
-        success_url: request.successUrl || `${this.configService?.get('FRONTEND_URL') || process.env.FRONTEND_URL || 'https://tenantflow.app'}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: request.cancelUrl || `${this.configService?.get('FRONTEND_URL') || process.env.FRONTEND_URL || 'https://tenantflow.app'}/pricing`,
-        billing_address_collection: 'auto',
-        automatic_tax: { enabled: true },
-        allow_promotion_codes: request.allowPromotionCodes ?? true,
-        client_reference_id: userId || undefined, // Only set if userId exists
-        
-        // According to Stripe docs: customer_creation is only for payment mode
-        // In subscription mode, customers are created automatically
-        ...(mode === 'payment' ? { customer_creation: 'always' } : {}),
-        
-        // Add subscription-specific configuration for subscription mode
-        ...(mode === 'subscription' ? {
-          subscription_data: {
-            // Add trial period if it's a free trial plan
-            ...(request.metadata?.planType === 'free_trial' ? { trial_period_days: 14 } : {}),
-            metadata: {
-              userId: userId || '',
-              source: userId ? 'authenticated_user' : 'new_subscriber',
-              ...request.metadata,
-            }
-          }
-        } : {}),
-        
-        metadata: {
-          userId: userId || '', // Empty string instead of null for type compatibility
-          source: userId ? 'authenticated_user' : 'new_subscriber',
-          ...request.metadata,
-        },
-      }
+			// Validate required fields
+			if (!request.billingInterval) {
+				throw new BadRequestException('Billing interval is required')
+			}
 
-      // Add customer information if provided
-      const finalSessionParams = {
-        ...sessionParams,
-        ...(request.customerId ? { customer: request.customerId } : {}),
-        ...(request.customerEmail ? { customer_email: request.customerEmail } : {})
-      }
+			if (!request.lookupKey && !request.priceId) {
+				throw new BadRequestException(
+					'Either lookupKey or priceId is required'
+				)
+			}
 
-      // Create the checkout session
-      const session = await stripe.checkout.sessions.create(finalSessionParams)
+			// Prepare line items
+			const lineItems: StripeCheckoutSessionLineItem[] = []
 
-      if (!session.url) {
-        throw new Error('Failed to create checkout session URL')
-      }
+			if (request.lookupKey) {
+				lineItems.push({
+					price: request.lookupKey,
+					quantity: 1
+				})
+			} else if (request.priceId) {
+				lineItems.push({
+					price: request.priceId,
+					quantity: 1
+				})
+			}
 
-      this.logger.log(`Checkout session created: ${session.id}`)
+			// Prepare session parameters according to Stripe documentation
+			// Note: In subscription mode, Stripe automatically creates customers
+			const mode = request.mode || 'subscription'
 
-      return {
-        url: session.url,
-        sessionId: session.id,
-      }
+			const sessionParams: StripeCheckoutSessionCreateParams = {
+				mode: mode,
+				line_items: lineItems,
+				success_url:
+					request.successUrl ||
+					`${this.configService?.get('FRONTEND_URL') || process.env.FRONTEND_URL || 'https://tenantflow.app'}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
+				cancel_url:
+					request.cancelUrl ||
+					`${this.configService?.get('FRONTEND_URL') || process.env.FRONTEND_URL || 'https://tenantflow.app'}/pricing`,
+				billing_address_collection: 'auto',
+				automatic_tax: { enabled: true },
+				allow_promotion_codes: request.allowPromotionCodes ?? true,
+				client_reference_id: userId || undefined, // Only set if userId exists
 
-    } catch (error: unknown) {
-      this.logger.error(`Failed to create checkout session: ${(error as Error).message}`, (error as Error).stack)
-      
-      if (error instanceof Stripe.errors.StripeError) {
-        throw new BadRequestException({
-          type: error.type,
-          code: error.code,
-          message: error.message,
-        })
-      }
+				// According to Stripe docs: customer_creation is only for payment mode
+				// In subscription mode, customers are created automatically
+				...(mode === 'payment' ? { customer_creation: 'always' } : {}),
 
-      throw error
-    }
-  }
+				// Add subscription-specific configuration for subscription mode
+				...(mode === 'subscription'
+					? {
+							subscription_data: {
+								// Add trial period if it's a free trial plan
+								...(request.metadata?.planType === 'free_trial'
+									? { trial_period_days: 14 }
+									: {}),
+								metadata: {
+									userId: userId || '',
+									source: userId
+										? 'authenticated_user'
+										: 'new_subscriber',
+									...request.metadata
+								}
+							}
+						}
+					: {}),
 
-  async createPortalSession(
-    userId: string,
-    request: CreatePortalSessionRequest
-  ): Promise<CreatePortalSessionResponse> {
-    const stripe = this.ensureStripeAvailable()
-    
-    try {
-      this.logger.log(`Creating portal session for user ${userId}`)
+				metadata: {
+					userId: userId || '', // Empty string instead of null for type compatibility
+					source: userId ? 'authenticated_user' : 'new_subscriber',
+					...request.metadata
+				}
+			}
 
-      if (!request.customerId) {
-        throw new BadRequestException('Customer ID is required')
-      }
+			// Add customer information if provided
+			const finalSessionParams = {
+				...sessionParams,
+				...(request.customerId ? { customer: request.customerId } : {}),
+				...(request.customerEmail
+					? { customer_email: request.customerEmail }
+					: {})
+			}
 
-      // Verify customer exists
-      try {
-        await stripe.customers.retrieve(request.customerId)
-      } catch (error: unknown) {
-        if (error instanceof Stripe.errors.StripeError && error.code === 'resource_missing') {
-          throw new BadRequestException('Customer not found')
-        }
-        throw error
-      }
+			// Create the checkout session
+			const session =
+				await stripe.checkout.sessions.create(finalSessionParams)
 
-      const session = await stripe.billingPortal.sessions.create({
-        customer: request.customerId,
-        return_url: request.returnUrl || `${this.configService?.get('FRONTEND_URL') || process.env.FRONTEND_URL || 'https://tenantflow.app'}/dashboard`,
-      })
+			if (!session.url) {
+				throw new Error('Failed to create checkout session URL')
+			}
 
-      this.logger.log(`Portal session created: ${session.id}`)
+			this.logger.log(`Checkout session created: ${session.id}`)
 
-      return {
-        url: session.url,
-      }
+			return {
+				url: session.url,
+				sessionId: session.id
+			}
+		} catch (error: unknown) {
+			this.logger.error(
+				`Failed to create checkout session: ${(error as Error).message}`,
+				(error as Error).stack
+			)
 
-    } catch (error: unknown) {
-      this.logger.error(`Failed to create portal session: ${(error as Error).message}`, (error as Error).stack)
-      
-      if (error instanceof Stripe.errors.StripeError) {
-        throw new BadRequestException({
-          type: error.type,
-          code: error.code,
-          message: error.message,
-        })
-      }
+			if (error instanceof Stripe.errors.StripeError) {
+				throw new BadRequestException({
+					type: error.type,
+					code: error.code,
+					message: error.message
+				})
+			}
 
-      throw error
-    }
-  }
+			throw error
+		}
+	}
 
-  async retrieveSession(sessionId: string): Promise<StripeCheckoutSession> {
-    const stripe = this.ensureStripeAvailable()
-    
-    try {
-      return await stripe.checkout.sessions.retrieve(sessionId, {
-        expand: ['line_items', 'customer', 'subscription'],
-      }) as StripeCheckoutSession
-    } catch (error: unknown) {
-      this.logger.error(`Failed to retrieve session: ${(error as Error).message}`, (error as Error).stack)
-      
-      if (error instanceof Stripe.errors.StripeError) {
-        throw new BadRequestException({
-          type: error.type,
-          code: error.code,
-          message: error.message,
-        })
-      }
+	async createPortalSession(
+		userId: string,
+		request: CreatePortalSessionRequest
+	): Promise<CreatePortalSessionResponse> {
+		const stripe = this.ensureStripeAvailable()
 
-      throw error
-    }
-  }
+		try {
+			this.logger.log(`Creating portal session for user ${userId}`)
 
-  async createCustomer(
-    email: string,
-    name?: string,
-    metadata?: Record<string, string>
-  ): Promise<StripeCustomer> {
-    const stripe = this.ensureStripeAvailable()
-    
-    try {
-      this.logger.log(`Creating Stripe customer for email: ${email}`)
+			if (!request.customerId) {
+				throw new BadRequestException('Customer ID is required')
+			}
 
-      const customer = await stripe.customers.create({
-        email,
-        name,
-        metadata,
-      })
+			// Verify customer exists
+			try {
+				await stripe.customers.retrieve(request.customerId)
+			} catch (error: unknown) {
+				if (
+					error instanceof Stripe.errors.StripeError &&
+					error.code === 'resource_missing'
+				) {
+					throw new BadRequestException('Customer not found')
+				}
+				throw error
+			}
 
-      this.logger.log(`Stripe customer created: ${customer.id}`)
-      return customer
+			const session = await stripe.billingPortal.sessions.create({
+				customer: request.customerId,
+				return_url:
+					request.returnUrl ||
+					`${this.configService?.get('FRONTEND_URL') || process.env.FRONTEND_URL || 'https://tenantflow.app'}/dashboard`
+			})
 
-    } catch (error: unknown) {
-      this.logger.error(`Failed to create customer: ${(error as Error).message}`, (error as Error).stack)
-      
-      if (error instanceof Stripe.errors.StripeError) {
-        throw new BadRequestException({
-          type: error.type,
-          code: error.code,
-          message: error.message,
-        })
-      }
+			this.logger.log(`Portal session created: ${session.id}`)
 
-      throw error
-    }
-  }
+			return {
+				url: session.url
+			}
+		} catch (error: unknown) {
+			this.logger.error(
+				`Failed to create portal session: ${(error as Error).message}`,
+				(error as Error).stack
+			)
 
-  async updateCustomer(
-    customerId: string,
-    updates: StripeCustomerUpdateParams
-  ): Promise<StripeCustomer> {
-    const stripe = this.ensureStripeAvailable()
-    
-    try {
-      return await stripe.customers.update(customerId, updates as Stripe.CustomerUpdateParams)
-    } catch (error: unknown) {
-      this.logger.error(`Failed to update customer: ${(error as Error).message}`, (error as Error).stack)
-      
-      if (error instanceof Stripe.errors.StripeError) {
-        throw new BadRequestException({
-          type: error.type,
-          code: error.code,
-          message: error.message,
-        })
-      }
+			if (error instanceof Stripe.errors.StripeError) {
+				throw new BadRequestException({
+					type: error.type,
+					code: error.code,
+					message: error.message
+				})
+			}
 
-      throw error
-    }
-  }
+			throw error
+		}
+	}
 
-  async retrieveCustomer(customerId: string): Promise<StripeCustomer> {
-    const stripe = this.ensureStripeAvailable()
-    
-    try {
-      const customer = await stripe.customers.retrieve(customerId)
-      
-      if (customer.deleted) {
-        throw new BadRequestException('Customer has been deleted')
-      }
+	async retrieveSession(sessionId: string): Promise<StripeCheckoutSession> {
+		const stripe = this.ensureStripeAvailable()
 
-      return customer as StripeCustomer
-    } catch (error: unknown) {
-      this.logger.error(`Failed to retrieve customer: ${(error as Error).message}`, (error as Error).stack)
-      
-      if (error instanceof Stripe.errors.StripeError) {
-        throw new BadRequestException({
-          type: error.type,
-          code: error.code,
-          message: error.message,
-        })
-      }
+		try {
+			return (await stripe.checkout.sessions.retrieve(sessionId, {
+				expand: ['line_items', 'customer', 'subscription']
+			})) as StripeCheckoutSession
+		} catch (error: unknown) {
+			this.logger.error(
+				`Failed to retrieve session: ${(error as Error).message}`,
+				(error as Error).stack
+			)
 
-      throw error
-    }
-  }
+			if (error instanceof Stripe.errors.StripeError) {
+				throw new BadRequestException({
+					type: error.type,
+					code: error.code,
+					message: error.message
+				})
+			}
 
-  async listPrices(active = true): Promise<StripePrice[]> {
-    const stripe = this.ensureStripeAvailable()
-    
-    try {
-      const prices = await stripe.prices.list({
-        active,
-        expand: ['data.product'],
-      })
+			throw error
+		}
+	}
 
-      return prices.data as StripePrice[]
-    } catch (error: unknown) {
-      this.logger.error(`Failed to list prices: ${(error as Error).message}`, (error as Error).stack)
-      throw error
-    }
-  }
+	async createCustomer(
+		email: string,
+		name?: string,
+		metadata?: Record<string, string>
+	): Promise<StripeCustomer> {
+		const stripe = this.ensureStripeAvailable()
+
+		try {
+			this.logger.log(`Creating Stripe customer for email: ${email}`)
+
+			const customer = await stripe.customers.create({
+				email,
+				name,
+				metadata
+			})
+
+			this.logger.log(`Stripe customer created: ${customer.id}`)
+			return customer
+		} catch (error: unknown) {
+			this.logger.error(
+				`Failed to create customer: ${(error as Error).message}`,
+				(error as Error).stack
+			)
+
+			if (error instanceof Stripe.errors.StripeError) {
+				throw new BadRequestException({
+					type: error.type,
+					code: error.code,
+					message: error.message
+				})
+			}
+
+			throw error
+		}
+	}
+
+	async updateCustomer(
+		customerId: string,
+		updates: StripeCustomerUpdateParams
+	): Promise<StripeCustomer> {
+		const stripe = this.ensureStripeAvailable()
+
+		try {
+			return await stripe.customers.update(
+				customerId,
+				updates as Stripe.CustomerUpdateParams
+			)
+		} catch (error: unknown) {
+			this.logger.error(
+				`Failed to update customer: ${(error as Error).message}`,
+				(error as Error).stack
+			)
+
+			if (error instanceof Stripe.errors.StripeError) {
+				throw new BadRequestException({
+					type: error.type,
+					code: error.code,
+					message: error.message
+				})
+			}
+
+			throw error
+		}
+	}
+
+	async retrieveCustomer(customerId: string): Promise<StripeCustomer> {
+		const stripe = this.ensureStripeAvailable()
+
+		try {
+			const customer = await stripe.customers.retrieve(customerId)
+
+			if (customer.deleted) {
+				throw new BadRequestException('Customer has been deleted')
+			}
+
+			return customer as StripeCustomer
+		} catch (error: unknown) {
+			this.logger.error(
+				`Failed to retrieve customer: ${(error as Error).message}`,
+				(error as Error).stack
+			)
+
+			if (error instanceof Stripe.errors.StripeError) {
+				throw new BadRequestException({
+					type: error.type,
+					code: error.code,
+					message: error.message
+				})
+			}
+
+			throw error
+		}
+	}
+
+	async listPrices(active = true): Promise<StripePrice[]> {
+		const stripe = this.ensureStripeAvailable()
+
+		try {
+			const prices = await stripe.prices.list({
+				active,
+				expand: ['data.product']
+			})
+
+			return prices.data as StripePrice[]
+		} catch (error: unknown) {
+			this.logger.error(
+				`Failed to list prices: ${(error as Error).message}`,
+				(error as Error).stack
+			)
+			throw error
+		}
+	}
 }

@@ -4,19 +4,33 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { usePostHog } from 'posthog-js/react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle
+} from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { FileText, CheckCircle, CreditCard, ChevronLeft, ChevronRight, Download } from 'lucide-react'
+import {
+	FileText,
+	CheckCircle,
+	CreditCard,
+	ChevronLeft,
+	ChevronRight,
+	Download
+} from 'lucide-react'
 import { toast } from 'sonner'
 // Temporary mock for state data
 const getAllStates = () => [
-  { value: 'california', label: 'California' },
-  { value: 'new-york', label: 'New York' },
-  { value: 'texas', label: 'Texas' },
-  { value: 'florida', label: 'Florida' }
+	{ value: 'california', label: 'California' },
+	{ value: 'new-york', label: 'New York' },
+	{ value: 'texas', label: 'Texas' },
+	{ value: 'florida', label: 'Florida' }
 ]
-const getStateFromSlug = (slug: string) => getAllStates().find(s => s.value === slug)
+const getStateFromSlug = (slug: string) =>
+	getAllStates().find(s => s.value === slug)
 import { leaseFormSchema, type LeaseFormData } from '@repo/shared'
 import { PropertyInfoSection } from './sections/property-info-section'
 import { PartiesInfoSection } from './sections/parties-info-section'
@@ -27,21 +41,40 @@ import type { LeaseGeneratorForm, LeaseOutputFormat } from '@repo/shared'
 import { createAsyncHandler } from '@/utils/async-handlers'
 
 interface LeaseGeneratorWizardProps {
-	onGenerate: (data: LeaseGeneratorForm, format: LeaseOutputFormat) => Promise<void>
+	onGenerate: (
+		data: LeaseGeneratorForm,
+		format: LeaseOutputFormat
+	) => Promise<void>
 	isGenerating: boolean
 	usageRemaining: number
 	requiresPayment: boolean
 }
 
 const STEPS = [
-	{ id: 'property', title: 'Property', description: 'Property details and location' },
-	{ id: 'parties', title: 'Parties', description: 'Landlord and tenant information' },
-	{ id: 'terms', title: 'Terms', description: 'Lease terms and payment details' },
-	{ id: 'additional', title: 'Additional', description: 'Policies and utilities' },
+	{
+		id: 'property',
+		title: 'Property',
+		description: 'Property details and location'
+	},
+	{
+		id: 'parties',
+		title: 'Parties',
+		description: 'Landlord and tenant information'
+	},
+	{
+		id: 'terms',
+		title: 'Terms',
+		description: 'Lease terms and payment details'
+	},
+	{
+		id: 'additional',
+		title: 'Additional',
+		description: 'Policies and utilities'
+	},
 	{ id: 'review', title: 'Review', description: 'Review and generate' }
 ] as const
 
-type StepId = typeof STEPS[number]['id']
+type StepId = (typeof STEPS)[number]['id']
 
 export default function LeaseGeneratorWizard({
 	onGenerate,
@@ -50,17 +83,25 @@ export default function LeaseGeneratorWizard({
 	requiresPayment
 }: LeaseGeneratorWizardProps) {
 	const [currentStep, setCurrentStep] = useState<StepId>('property')
-	const [selectedFormat, setSelectedFormat] = useState<LeaseOutputFormat>('pdf')
+	const [selectedFormat, setSelectedFormat] =
+		useState<LeaseOutputFormat>('pdf')
 	const [selectedUtilities, setSelectedUtilities] = useState<string[]>([])
 	const posthog = usePostHog()
 
 	// Utilities options
-	const utilitiesOptions = ['Water', 'Electricity', 'Gas', 'Trash', 'Internet', 'Cable']
+	const utilitiesOptions = [
+		'Water',
+		'Electricity',
+		'Gas',
+		'Trash',
+		'Internet',
+		'Cable'
+	]
 
 	// Handle utility toggle
 	const handleUtilityToggle = (utility: string) => {
-		setSelectedUtilities(prev => 
-			prev.includes(utility) 
+		setSelectedUtilities(prev =>
+			prev.includes(utility)
 				? prev.filter(u => u !== utility)
 				: [...prev, utility]
 		)
@@ -83,16 +124,16 @@ export default function LeaseGeneratorWizard({
 			squareFootage: 1000,
 			parkingSpaces: 1,
 			storageUnit: '',
-			
+
 			// Landlord defaults
 			landlordName: '',
 			landlordEmail: '',
 			landlordPhone: '',
 			landlordAddress: '',
-			
+
 			// Tenant defaults
 			tenantNames: [{ name: '' }],
-			
+
 			// Lease terms defaults
 			rentAmount: 0,
 			securityDeposit: 0,
@@ -103,7 +144,7 @@ export default function LeaseGeneratorWizard({
 			lateFeeDays: 5,
 			paymentMethod: 'check',
 			paymentAddress: '',
-			
+
 			// Additional terms defaults
 			petPolicy: 'not_allowed',
 			petDeposit: 0,
@@ -179,11 +220,11 @@ export default function LeaseGeneratorWizard({
 	const validateCurrentStep = async (): Promise<boolean> => {
 		const fieldsToValidate = getFieldsForStep(currentStep)
 		const result = await form.trigger(fieldsToValidate)
-		
+
 		if (!result) {
 			toast.error('Please complete all required fields before continuing')
 		}
-		
+
 		return result
 	}
 
@@ -192,9 +233,19 @@ export default function LeaseGeneratorWizard({
 			case 'property':
 				return ['propertyAddress', 'city', 'state', 'zipCode']
 			case 'parties':
-				return ['landlordName', 'landlordEmail', 'landlordAddress', 'tenantNames']
+				return [
+					'landlordName',
+					'landlordEmail',
+					'landlordAddress',
+					'tenantNames'
+				]
 			case 'terms':
-				return ['rentAmount', 'securityDeposit', 'leaseStartDate', 'leaseEndDate']
+				return [
+					'rentAmount',
+					'securityDeposit',
+					'leaseStartDate',
+					'leaseEndDate'
+				]
 			case 'additional':
 				return []
 			case 'review':
@@ -223,8 +274,9 @@ export default function LeaseGeneratorWizard({
 			// Transform data for lease generator
 			const leaseData: LeaseGeneratorForm = {
 				...data,
-				tenantNames: data.tenantNames
-				.filter(tenant => tenant.name.trim() !== '')
+				tenantNames: data.tenantNames.filter(
+					tenant => tenant.name.trim() !== ''
+				)
 			}
 
 			await onGenerate(leaseData, selectedFormat)
@@ -234,13 +286,19 @@ export default function LeaseGeneratorWizard({
 				state: data.state
 			})
 
-			toast.success(`${getStateFromSlug(data.state)?.label} lease agreement generated successfully!`)
+			toast.success(
+				`${getStateFromSlug(data.state)?.label} lease agreement generated successfully!`
+			)
 		} catch (error) {
 			posthog?.capture('lease_wizard_error', {
 				error: error instanceof Error ? error.message : 'Unknown error'
 			})
 			toast.error('Failed to generate lease agreement')
-			logger.error('Lease generation error:', error instanceof Error ? error : new Error(String(error)), { component: 'leasegeneratorwizard' })
+			logger.error(
+				'Lease generation error:',
+				error instanceof Error ? error : new Error(String(error)),
+				{ component: 'leasegeneratorwizard' }
+			)
 		}
 	}
 
@@ -248,19 +306,24 @@ export default function LeaseGeneratorWizard({
 	const renderStepContent = () => {
 		switch (currentStep) {
 			case 'property':
-				return <PropertyInfoSection form={form} supportedStates={[
-					{ value: 'TX', label: 'Texas' },
-					{ value: 'CA', label: 'California' },
-					{ value: 'FL', label: 'Florida' },
-					{ value: 'NY', label: 'New York' }
-				]} />
+				return (
+					<PropertyInfoSection
+						form={form}
+						supportedStates={[
+							{ value: 'TX', label: 'Texas' },
+							{ value: 'CA', label: 'California' },
+							{ value: 'FL', label: 'Florida' },
+							{ value: 'NY', label: 'New York' }
+						]}
+					/>
+				)
 			case 'parties':
 				return <PartiesInfoSection form={form} />
 			case 'terms':
 				return <LeaseTermsSection form={form} />
 			case 'additional':
 				return (
-					<AdditionalTermsSection 
+					<AdditionalTermsSection
 						form={form}
 						utilitiesOptions={utilitiesOptions}
 						selectedUtilities={selectedUtilities}
@@ -271,8 +334,8 @@ export default function LeaseGeneratorWizard({
 				)
 			case 'review':
 				return (
-					<GenerationSummary 
-						form={form} 
+					<GenerationSummary
+						form={form}
 						selectedFormat={selectedFormat}
 						onFormatChange={setSelectedFormat}
 						isGenerating={isGenerating}
@@ -292,9 +355,12 @@ export default function LeaseGeneratorWizard({
 						<div className="flex items-center space-x-3">
 							<FileText className="text-primary h-7 w-7" />
 							<div>
-								<CardTitle className="text-xl">State-Compliant Lease Generator</CardTitle>
+								<CardTitle className="text-xl">
+									State-Compliant Lease Generator
+								</CardTitle>
 								<CardDescription>
-									Create professional lease agreements in minutes
+									Create professional lease agreements in
+									minutes
 								</CardDescription>
 							</div>
 						</div>
@@ -302,10 +368,14 @@ export default function LeaseGeneratorWizard({
 							{usageRemaining > 0 ? (
 								<Badge variant="secondary" className="text-sm">
 									<CheckCircle className="mr-1 h-4 w-4" />
-									{usageRemaining} free use{usageRemaining > 1 ? 's' : ''} remaining
+									{usageRemaining} free use
+									{usageRemaining > 1 ? 's' : ''} remaining
 								</Badge>
 							) : (
-								<Badge variant="destructive" className="text-sm">
+								<Badge
+									variant="destructive"
+									className="text-sm"
+								>
 									<CreditCard className="mr-1 h-4 w-4" />
 									Payment required
 								</Badge>
@@ -319,18 +389,22 @@ export default function LeaseGeneratorWizard({
 			<Card>
 				<CardContent className="pt-6">
 					<div className="space-y-4">
-						<div className="flex justify-between text-sm text-muted-foreground">
-							<span>Step {currentStepIndex + 1} of {STEPS.length}</span>
+						<div className="text-muted-foreground flex justify-between text-sm">
+							<span>
+								Step {currentStepIndex + 1} of {STEPS.length}
+							</span>
 							<span>{Math.round(progress)}% complete</span>
 						</div>
 						<Progress value={progress} className="h-2" />
 						<div className="flex justify-between">
 							{STEPS.map((step, index) => (
-								<div 
+								<div
 									key={step.id}
 									className={`text-center ${index <= currentStepIndex ? 'text-primary' : 'text-muted-foreground'}`}
 								>
-									<div className="text-xs font-medium">{step.title}</div>
+									<div className="text-xs font-medium">
+										{step.title}
+									</div>
 								</div>
 							))}
 						</div>
@@ -339,7 +413,13 @@ export default function LeaseGeneratorWizard({
 			</Card>
 
 			{/* Step content */}
-			<form onSubmit={createAsyncHandler(form.handleSubmit(handleSubmit), 'Failed to submit lease form')} className="space-y-6">
+			<form
+				onSubmit={createAsyncHandler(
+					form.handleSubmit(handleSubmit),
+					'Failed to submit lease form'
+				)}
+				className="space-y-6"
+			>
 				{renderStepContent()}
 
 				{/* Navigation buttons */}
@@ -365,7 +445,7 @@ export default function LeaseGeneratorWizard({
 								>
 									{isGenerating ? (
 										<>
-											<div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
+											<div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
 											Generating...
 										</>
 									) : (
@@ -378,7 +458,10 @@ export default function LeaseGeneratorWizard({
 							) : (
 								<Button
 									type="button"
-									onClick={createAsyncHandler(goToNextStep, 'Failed to proceed to next step')}
+									onClick={createAsyncHandler(
+										goToNextStep,
+										'Failed to proceed to next step'
+									)}
 									className="flex items-center gap-2"
 								>
 									Next

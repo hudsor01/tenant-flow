@@ -77,7 +77,7 @@ import { RequestLimitsMiddleware } from './common/middleware/request-limits.midd
 		BillingModule,
 		NotificationsModule,
 		HealthModule,
-		PDFModule,
+		PDFModule
 	],
 	controllers: [AppController],
 	providers: [
@@ -95,40 +95,61 @@ import { RequestLimitsMiddleware } from './common/middleware/request-limits.midd
 		},
 		{
 			provide: APP_GUARD,
-			useFactory: (reflector: Reflector, csrfTokenService: CsrfTokenService, securityMonitor: SecurityMonitorService, sessionUtils: SessionUtilsService, csrfUtils: CsrfUtilsService, networkUtils: NetworkUtilsService) => {
-				return new CsrfGuard(reflector, csrfTokenService, securityMonitor, sessionUtils, csrfUtils, networkUtils)
+			useFactory: (
+				reflector: Reflector,
+				csrfTokenService: CsrfTokenService,
+				securityMonitor: SecurityMonitorService,
+				sessionUtils: SessionUtilsService,
+				csrfUtils: CsrfUtilsService,
+				networkUtils: NetworkUtilsService
+			) => {
+				return new CsrfGuard(
+					reflector,
+					csrfTokenService,
+					securityMonitor,
+					sessionUtils,
+					csrfUtils,
+					networkUtils
+				)
 			},
-			inject: [Reflector, CsrfTokenService, SecurityMonitorService, SessionUtilsService, CsrfUtilsService, NetworkUtilsService]
+			inject: [
+				Reflector,
+				CsrfTokenService,
+				SecurityMonitorService,
+				SessionUtilsService,
+				CsrfUtilsService,
+				NetworkUtilsService
+			]
 		},
 		{
 			provide: APP_INTERCEPTOR,
-			useClass: AppInterceptor,
+			useClass: AppInterceptor
 		},
 		{
 			provide: APP_INTERCEPTOR,
-			useClass: ApiVersionInterceptor,
+			useClass: ApiVersionInterceptor
 		},
 		{
 			provide: APP_INTERCEPTOR,
-			useClass: CorsInterceptor,
+			useClass: CorsInterceptor
 		},
-		RequestLimitsMiddleware,
+		RequestLimitsMiddleware
 	]
 })
 export class AppModule {
 	/**
 	 * Root application module for the TenantFlow backend.
-	 * 
+	 *
 	 * This module orchestrates all feature modules and configures global providers.
 	 * Request lifecycle management (middleware functionality) is implemented through
 	 * Fastify hooks rather than traditional NestJS middleware for optimal performance.
-	 * 
+	 *
 	 * Key architectural decisions:
 	 * - Uses Fastify adapter instead of Express for 30-50% better performance
 	 * - Implements request lifecycle through FastifyHooksService hooks
 	 * - Global JWT authentication with JwtAuthGuard
 	 * - Rate limiting with ThrottlerGuard
-	 * 
+	 *
 	 * @see FastifyHooksService at src/common/hooks/fastify-hooks.service.ts
 	 */
 }

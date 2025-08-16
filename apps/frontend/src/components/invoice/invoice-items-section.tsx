@@ -21,19 +21,19 @@ interface InvoiceItem {
 import type { CustomerInvoiceForm } from '@repo/shared'
 
 interface InvoiceItemsSectionProps {
-register: UseFormRegister<CustomerInvoiceForm>
-fields: InvoiceItem[]
-append: UseFieldArrayReturn<CustomerInvoiceForm, 'items'>['append']
-remove: UseFieldArrayReturn<CustomerInvoiceForm, 'items'>['remove']
-setValue: UseFormSetValue<CustomerInvoiceForm>
-getValues: UseFormGetValues<CustomerInvoiceForm>
-watchedItems: InvoiceItem[]
-subtotal: number
-taxAmount: number
-total: number
-autoTaxRate: number
-clientState: string
-formatCurrency: (amount: number) => string
+	register: UseFormRegister<CustomerInvoiceForm>
+	fields: InvoiceItem[]
+	append: UseFieldArrayReturn<CustomerInvoiceForm, 'items'>['append']
+	remove: UseFieldArrayReturn<CustomerInvoiceForm, 'items'>['remove']
+	setValue: UseFormSetValue<CustomerInvoiceForm>
+	getValues: UseFormGetValues<CustomerInvoiceForm>
+	watchedItems: InvoiceItem[]
+	subtotal: number
+	taxAmount: number
+	total: number
+	autoTaxRate: number
+	clientState: string
+	formatCurrency: (amount: number) => string
 }
 
 export function InvoiceItemsSection({
@@ -184,7 +184,13 @@ export function InvoiceItemsSection({
 										quantity: 1,
 										unitPrice: 0,
 										total: 0
-									} as { id: string; description: string; quantity: number; unitPrice: number; total: number })
+									} as {
+										id: string
+										description: string
+										quantity: number
+										unitPrice: number
+										total: number
+									})
 								}
 								className="bg-primary/10 border-primary/20 text-primary hover:bg-primary hover:text-primary-foreground h-10 w-full max-w-[140px] transition-colors"
 							>

@@ -9,23 +9,20 @@ import {
 	Put,
 	UseGuards
 } from '@nestjs/common'
-import { UsersService } from './users.service'
+import { type UserCreationResult, UsersService } from './users.service'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { ValidatedUser } from '../auth/auth.service'
 import { AuditLog } from '../common/decorators/audit-log.decorator'
-import type { UserCreationResult } from './users.service'
-import type { EnsureUserExistsInput, UpdateUserProfileInput } from '@repo/shared'
-
-
+import type {
+	EnsureUserExistsInput,
+	UpdateUserProfileInput
+} from '@repo/shared'
 
 @Controller('users')
 @UseGuards(JwtAuthGuard)
-
 export class UsersController {
-	constructor(
-		private readonly usersService: UsersService
-	) {}
+	constructor(private readonly usersService: UsersService) {}
 
 	@Get('me')
 	async getCurrentUser(@CurrentUser() user: ValidatedUser) {
@@ -37,15 +34,16 @@ export class UsersController {
 	}
 
 	@Put('profile')
-	@AuditLog({ action: 'UPDATE_USER_PROFILE', entity: 'User', sensitive: false })
+	@AuditLog({
+		action: 'UPDATE_USER_PROFILE',
+		entity: 'User',
+		sensitive: false
+	})
 	async updateProfile(
 		@CurrentUser() user: ValidatedUser,
 		@Body() updateDto: UpdateUserProfileInput
 	) {
-		return await this.usersService.updateUserProfile(
-			user.id,
-			updateDto
-		)
+		return this.usersService.updateUserProfile(user.id, updateDto)
 	}
 
 	@Get(':id/exists')
@@ -58,7 +56,7 @@ export class UsersController {
 	async ensureUserExists(
 		@Body() ensureUserDto: EnsureUserExistsInput
 	): Promise<UserCreationResult> {
-		return await this.usersService.ensureUserExists(
+		return this.usersService.ensureUserExists(
 			ensureUserDto.authUser,
 			ensureUserDto.options
 		)
@@ -69,5 +67,4 @@ export class UsersController {
 		const verified = await this.usersService.verifyUserCreation(id)
 		return { verified }
 	}
-
 }

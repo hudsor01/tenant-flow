@@ -1,6 +1,6 @@
 /**
  * Landing Page Components Export
- * 
+ *
  * Server components by default with client islands for interactivity
  */
 

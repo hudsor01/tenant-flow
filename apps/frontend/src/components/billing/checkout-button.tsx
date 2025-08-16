@@ -3,12 +3,12 @@ import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
 import type { PLAN_TYPE } from '@repo/shared'
 import { SubscriptionCheckoutWrapper } from './subscription-checkout-wrapper'
-import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle
 } from '@/components/ui/dialog'
 
 interface CheckoutButtonProps {
@@ -19,9 +19,9 @@ interface CheckoutButtonProps {
 	onSuccess?: (subscriptionId: string) => void
 }
 
-export function CheckoutButton({ 
-	planType, 
-	billingInterval, 
+export function CheckoutButton({
+	planType,
+	billingInterval,
 	className,
 	children = 'Subscribe',
 	onSuccess
@@ -68,10 +68,11 @@ export function CheckoutButton({
 					<DialogHeader>
 						<DialogTitle>Complete Your Subscription</DialogTitle>
 						<DialogDescription>
-							Enter your payment details to activate your subscription.
+							Enter your payment details to activate your
+							subscription.
 						</DialogDescription>
 					</DialogHeader>
-					
+
 					<SubscriptionCheckoutWrapper
 						planType={planType}
 						billingInterval={billingInterval}

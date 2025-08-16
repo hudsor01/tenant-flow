@@ -5,7 +5,7 @@ FROM node:22-slim AS builder
 
 WORKDIR /app
 
-# Install system dependencies with explicit versions and cleanup
+# Install system dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     ca-certificates \
@@ -15,16 +15,14 @@ RUN apt-get update && \
     make \
     python3 \
     tini && \
-    rm -rf /var/lib/apt/lists/* && \
-    npm config set registry https://registry.npmjs.org/
+    rm -rf /var/lib/apt/lists/*
 
-# Set Node.js memory limits for Railway 1GB limit
-# WARNING: Railway free tier has 1GB memory limit
-# If build fails with exit code 137, upgrade Railway plan for more memory
+# Set build memory limits (Railway has more memory during build)
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 ENV NPM_CONFIG_MAXSOCKETS=10
 ENV NPM_CONFIG_PROGRESS=false
 
-# Copy ALL package files first for optimal caching
+# Copy package files for dependency installation
 COPY package*.json ./
 COPY turbo.json ./
 COPY apps/backend/package*.json ./apps/backend/
@@ -35,53 +33,31 @@ COPY packages/typescript-config/package*.json ./packages/typescript-config/
 # Copy Prisma schema BEFORE installing dependencies
 COPY packages/database/prisma ./packages/database/prisma
 
-# Install dependencies with memory constraints and retry logic
-RUN npm config set audit-level moderate && \
-    npm config set fund false && \
-    npm config set update-notifier false && \
-    npm install --prefer-offline --no-audit --ignore-scripts --maxsockets=10 || \
-    (echo "First install attempt failed, clearing cache and retrying..." && \
-    npm cache clean --force && \
-    npm install --prefer-offline --no-audit --ignore-scripts --maxsockets=5)
+# Install ALL dependencies (including dev) for build (use install for cross-platform compatibility)
+RUN npm install --include=dev --maxsockets=10
 
-# Skip frontend-specific dependencies for backend build
-# lightningcss and tailwindcss are not needed for NestJS backend
-RUN echo "Skipping frontend dependencies (lightningcss, tailwindcss) for backend build"
-
-# Install missing type dependencies for build
-WORKDIR /app/apps/backend
-RUN npm install --save-dev @types/express
-
-# Explicitly generate Prisma client with error checking and memory limits
+# Generate Prisma client for build environment
 WORKDIR /app/packages/database
-RUN NODE_OPTIONS="--max-old-space-size=512" npx prisma generate --schema=./prisma/schema.prisma && \
-    echo "=== Prisma client generated successfully ===" && \
-    ls -la src/generated/client/ && \
-    test -f src/generated/client/index.js || \
-    (echo "ERROR: Prisma client not generated!" && exit 1)
+RUN npx prisma generate --schema=./prisma/schema.prisma
 
-# Return to root and copy source code
+# Copy all source code
 WORKDIR /app
 COPY . .
 
-# Build with Turbo with explicit error handling and memory constraints
-# Use tsc directly with skipLibCheck to avoid type errors in Docker
-RUN echo "=== Building shared package ===" && \
-    cd packages/shared && npm run build && \
-    echo "=== Building database package ===" && \
-    cd ../database && npm run build && \
-    echo "=== Building backend ===" && \
-    cd ../../apps/backend && \
-    NODE_OPTIONS="--max-old-space-size=768" npx tsc -p tsconfig.build.json --skipLibCheck && \
-    echo "=== Build completed ===" && \
-    echo "=== Backend dist structure ===" && \
-    find /app/apps/backend/dist
+# Build shared package first
+RUN cd packages/shared && npm run build
 
-# Verify build output exists
-RUN test -f apps/backend/dist/apps/backend/src/main.js || \
-    (echo "ERROR: Backend build failed!" && \
-    find apps/backend/dist -name "main.js" 2>/dev/null || \
-    echo "No main.js found" && \
+# Build database package
+RUN cd packages/database && npm run build
+
+# Build backend using the SAME command as package.json
+WORKDIR /app/apps/backend
+RUN NODE_ENV=production NODE_OPTIONS='--max-old-space-size=4096' npx nest build
+
+# Verify build output exists at the CORRECT path
+RUN test -f dist/main.js || \
+    (echo "ERROR: Backend build failed! Expected dist/main.js" && \
+    find dist -type f -name "*.js" | head -20 && \
     exit 1)
 
 # --- Stage 2: Production Image ---
@@ -89,7 +65,7 @@ FROM node:22-slim AS production
 
 WORKDIR /app
 
-# Install ONLY runtime dependencies - use slim for minimal footprint
+# Install runtime dependencies only
 RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
@@ -99,95 +75,59 @@ RUN apt-get update && \
     groupadd -g 1001 nodejs && \
     useradd -u 1001 -g nodejs -s /bin/bash -m nodejs
 
-# Set production environment and memory limits
+# Set production environment
 ENV NODE_ENV=production
-ENV NODE_OPTIONS="--max-old-space-size=512"
-ENV NPM_CONFIG_MAXSOCKETS=5
-ENV NPM_CONFIG_PROGRESS=false
+# Increase memory for production (Railway has 1GB limit)
+ENV NODE_OPTIONS="--max-old-space-size=768"
 
-# Database connection pool optimization settings
-ENV DATABASE_MAX_CONNECTIONS=25
-ENV DATABASE_POOL_TIMEOUT=10
-ENV DATABASE_CONNECTION_TIMEOUT=10
-ENV DATABASE_POOLER=pgbouncer
-
-# Copy package files for production dependency installation
+# Copy package files
 COPY package*.json ./
 COPY apps/backend/package*.json ./apps/backend/
 COPY packages/shared/package*.json ./packages/shared/
 COPY packages/database/package*.json ./packages/database/
 COPY packages/typescript-config/package*.json ./packages/typescript-config/
 
-# Install ONLY production dependencies with retry logic and memory constraints
-RUN npm config set audit-level moderate && \
-    npm config set fund false && \
-    npm config set update-notifier false && \
-    npm install --omit=dev --prefer-offline --no-audit --ignore-scripts --maxsockets=5 --platform=linux || \
-    (echo "Production install failed, clearing cache and retrying..." && \
-    npm cache clean --force && \
-    npm install --omit=dev --prefer-offline --no-audit --ignore-scripts --maxsockets=3 --platform=linux) && \
-    npm cache clean --force
+# Install ONLY production dependencies (use install instead of ci for cross-platform compatibility)
+RUN npm install --omit=dev --maxsockets=5
 
-# Copy built application from builder with explicit verification
+# Copy Prisma schema and migrations
 COPY --from=builder --chown=nodejs:nodejs \
-    /app/apps/backend/dist/apps/backend /app/apps/backend/dist/apps/backend
+    /app/packages/database/prisma ./packages/database/prisma
+
+# Generate Prisma client for Linux production
+WORKDIR /app/packages/database
+RUN npx prisma generate --schema=./prisma/schema.prisma
+
+# Copy built application from builder (CORRECTED PATHS)
+COPY --from=builder --chown=nodejs:nodejs \
+    /app/apps/backend/dist ./apps/backend/dist
 COPY --from=builder --chown=nodejs:nodejs \
     /app/packages/shared/dist ./packages/shared/dist
 COPY --from=builder --chown=nodejs:nodejs \
     /app/packages/database/dist ./packages/database/dist
+
+# Copy generated Prisma client
 COPY --from=builder --chown=nodejs:nodejs \
-    /app/packages/database/prisma ./packages/database/prisma
+    /app/packages/database/src/generated ./packages/database/src/generated
 
-# Install Prisma CLI in production stage to ensure correct binary
-RUN npm install --no-save prisma
-
-# Generate Prisma client for Linux in production stage (always, not conditionally)
-RUN cd packages/database && NODE_OPTIONS="--max-old-space-size=512" npx prisma generate --schema=./prisma/schema.prisma && \
-    test -f src/generated/client/index.js || (echo "ERROR: Prisma client missing in production!" && exit 1)
-
-# Copy Prisma modules needed at runtime (conditional)
-RUN --mount=from=builder,source=/app/node_modules,target=/tmp/node_modules,ro \
-    mkdir -p ./node_modules && \
-    if [ -d "/tmp/node_modules/.prisma" ]; then \
-    cp -r /tmp/node_modules/.prisma ./node_modules/ && chown -R nodejs:nodejs ./node_modules/.prisma; \
-    else \
-    echo "Warning: .prisma directory not found in builder stage"; \
-    fi && \
-    if [ -d "/tmp/node_modules/@prisma" ]; then \
-    cp -r /tmp/node_modules/@prisma ./node_modules/ && chown -R nodejs:nodejs ./node_modules/@prisma; \
-    else \
-    echo "Warning: @prisma directory not found in builder stage"; \
-    fi
-
-# Verify critical files exist
-RUN test -f packages/database/src/generated/client/index.js || \
-    (echo "ERROR: Prisma client missing in production!" && exit 1) && \
-    (test -f apps/backend/dist/apps/backend/src/main.js) || \
-    (echo "ERROR: Backend main.js missing!" && exit 1)
-
-# Set working directory
-WORKDIR /app
-
-# Create logs directory with proper permissions
+# Create necessary directories
 RUN mkdir -p /app/logs && chown -R nodejs:nodejs /app/logs
 
-# Switch to nodejs user
+# Set working directory for the app
+WORKDIR /app/apps/backend
+
+# Switch to non-root user
 USER nodejs
 
-# Dynamic port configuration for Railway
-# Railway provides PORT environment variable dynamically
-ENV DOCKER_CONTAINER=true
-# Don't set a fixed PORT - let Railway provide it
-EXPOSE $PORT
+# Dynamic port from Railway
+EXPOSE ${PORT:-3001}
 
-# Health check optimized for faster startup and connection pooling warmup
-# Railway handles health checks externally, but this helps with local testing
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+# Health check with proper timeout
+HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=5 \
     CMD node -e "require('http').get('http://localhost:' + (process.env.PORT || 3001) + '/health', (r) => r.statusCode === 200 ? process.exit(0) : process.exit(1)).on('error', () => process.exit(1))"
 
-# Use tini for proper signal handling
+# Use tini for signal handling
 ENTRYPOINT ["tini", "--"]
-# Start from the correct path
-# The dist folder is at /app/apps/backend/dist/apps/backend/src/main.js
-WORKDIR /app
-CMD ["node", "apps/backend/dist/apps/backend/src/main.js"]
+
+# Start application from the CORRECT path (matching package.json)
+CMD ["node", "dist/main.js"]
