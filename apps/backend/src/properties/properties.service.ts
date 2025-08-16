@@ -1,15 +1,19 @@
 import { Injectable } from '@nestjs/common'
 import { Prisma, Property, PropertyType } from '@repo/database'
-import { PropertiesRepository, PropertyQueryOptions } from './properties.repository'
+import {
+	PropertiesRepository,
+	PropertyQueryOptions
+} from './properties.repository'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
-import { BaseCrudService, BaseStats } from '../common/services/base-crud.service'
-import { 
-  PropertyNotFoundException
-} from '../common/exceptions/property.exceptions'
-import { 
-  CreatePropertyDto,
-  QueryPropertiesDto,
-  UpdatePropertyDto
+import {
+	BaseCrudService,
+	BaseStats
+} from '../common/services/base-crud.service'
+import { PropertyNotFoundException } from '../common/exceptions/property.exceptions'
+import {
+	CreatePropertyDto,
+	QueryPropertiesDto,
+	UpdatePropertyDto
 } from '../common/dto/dto-exports'
 // Removed unused validation imports
 
@@ -28,7 +32,7 @@ export class PropertiesService extends BaseCrudService<
 
 	constructor(
 		private readonly propertiesRepository: PropertiesRepository,
-		errorHandler: ErrorHandlerService,
+		errorHandler: ErrorHandlerService
 		// Removed unused zodValidation service
 	) {
 		super(errorHandler)
@@ -39,15 +43,21 @@ export class PropertiesService extends BaseCrudService<
 	// BaseCrudService Implementation
 	// ========================================
 
-	protected async findByIdAndOwner(id: string, ownerId: string): Promise<Property | null> {
-		return await this.propertiesRepository.findByIdAndOwner(id, ownerId, true)
+	protected async findByIdAndOwner(
+		id: string,
+		ownerId: string
+	): Promise<Property | null> {
+		return this.propertiesRepository.findByIdAndOwner(id, ownerId, true)
 	}
 
 	protected async calculateStats(ownerId: string): Promise<BaseStats> {
-		return await this.propertiesRepository.getStatsByOwner(ownerId)
+		return this.propertiesRepository.getStatsByOwner(ownerId)
 	}
 
-	protected prepareCreateData(data: CreatePropertyDto, ownerId: string): Prisma.PropertyCreateInput {
+	protected prepareCreateData(
+		data: CreatePropertyDto,
+		ownerId: string
+	): Prisma.PropertyCreateInput {
 		return {
 			...data,
 			propertyType: data.propertyType || PropertyType.SINGLE_FAMILY,
@@ -57,27 +67,36 @@ export class PropertiesService extends BaseCrudService<
 		}
 	}
 
-	protected prepareUpdateData(data: UpdatePropertyDto): Prisma.PropertyUpdateInput {
+	protected prepareUpdateData(
+		data: UpdatePropertyDto
+	): Prisma.PropertyUpdateInput {
 		return {
 			...data,
 			updatedAt: new Date()
 		}
 	}
 
-	protected createOwnerWhereClause(id: string, ownerId: string): Prisma.PropertyWhereInput {
+	protected createOwnerWhereClause(
+		id: string,
+		ownerId: string
+	): Prisma.PropertyWhereInput {
 		return { id, ownerId }
 	}
 
-	protected override async validateDeletion(entity: Property, _ownerId: string): Promise<void> {
+	protected override async validateDeletion(
+		entity: Property,
+		_ownerId: string
+	): Promise<void> {
 		// Check for active leases before deletion
-		const activeLeases = await this.propertiesRepository.prismaClient.lease.count({
-			where: {
-				Unit: {
-					propertyId: entity.id
-				},
-				status: 'ACTIVE'
-			}
-		})
+		const activeLeases =
+			await this.propertiesRepository.prismaClient.lease.count({
+				where: {
+					Unit: {
+						propertyId: entity.id
+					},
+					status: 'ACTIVE'
+				}
+			})
 
 		if (activeLeases > 0) {
 			throw new PropertyNotFoundException(entity.id)
@@ -129,34 +148,40 @@ export class PropertiesService extends BaseCrudService<
 	// Deprecated Methods (Migration Path)
 	// ========================================
 
-
-
 	// Override create to handle units creation (only use transaction when needed)
-	override async create(data: CreatePropertyDto, ownerId: string): Promise<Property> {
+	override async create(
+		data: CreatePropertyDto,
+		ownerId: string
+	): Promise<Property> {
 		try {
 			const createData = this.prepareCreateData(data, ownerId)
-			
+
 			// Only use transaction when creating with units (atomicity needed)
 			if (data.units && data.units > 0) {
-				const result = await this.propertiesRepository.createWithUnits(createData, data.units)
-				
-				this.logger.log(`${this.entityName} with units created`, { 
+				const result = await this.propertiesRepository.createWithUnits(
+					createData,
+					data.units
+				)
+
+				this.logger.log(`${this.entityName} with units created`, {
 					id: result.id,
 					ownerId,
-					unitsCount: data.units 
+					unitsCount: data.units
 				})
-				
+
 				return result
 			}
-			
+
 			// Standard create (no transaction needed)
-			const result = await this.propertiesRepository.create({ data: createData })
-			
-			this.logger.log(`${this.entityName} created`, { 
-				id: result.id,
-				ownerId 
+			const result = await this.propertiesRepository.create({
+				data: createData
 			})
-			
+
+			this.logger.log(`${this.entityName} created`, {
+				id: result.id,
+				ownerId
+			})
+
 			return result
 		} catch (error) {
 			throw this.errorHandler.handleErrorEnhanced(error as Error, {
@@ -168,11 +193,21 @@ export class PropertiesService extends BaseCrudService<
 	}
 
 	// Override getByOwner to use specialized repository method
-	override async getByOwner(ownerId: string, query?: QueryPropertiesDto): Promise<Property[]> {
+	override async getByOwner(
+		ownerId: string,
+		query?: QueryPropertiesDto
+	): Promise<Property[]> {
 		try {
-			const validQuery = query || { limit: 50, offset: 0, sortOrder: 'desc' as const }
+			const validQuery = query || {
+				limit: 50,
+				offset: 0,
+				sortOrder: 'desc' as const
+			}
 			const options = this.parseQueryOptions(validQuery)
-			return await this.repository.findByOwnerWithUnits(ownerId, options as PropertyQueryOptions)
+			return await this.repository.findByOwnerWithUnits(
+				ownerId,
+				options as PropertyQueryOptions
+			)
 		} catch (error) {
 			throw this.errorHandler.handleErrorEnhanced(error as Error, {
 				operation: 'getByOwner',
@@ -181,7 +216,6 @@ export class PropertiesService extends BaseCrudService<
 			})
 		}
 	}
-
 
 	// ========================================
 	// Unique Property-Specific Methods
@@ -193,39 +227,44 @@ export class PropertiesService extends BaseCrudService<
 	 */
 	async getPropertiesWithStats(ownerId: string) {
 		try {
-			const properties = await this.propertiesRepository.prismaClient.property.findMany({
-				where: { ownerId },
-				include: {
-					Unit: {
-						select: {
-							id: true,
-							status: true,
-							rent: true,
-							_count: {
-								select: {
-									Lease: {
-										where: { status: 'ACTIVE' }
+			const properties =
+				await this.propertiesRepository.prismaClient.property.findMany({
+					where: { ownerId },
+					include: {
+						Unit: {
+							select: {
+								id: true,
+								status: true,
+								rent: true,
+								_count: {
+									select: {
+										Lease: {
+											where: { status: 'ACTIVE' }
+										}
 									}
 								}
 							}
+						},
+						_count: {
+							select: {
+								Unit: true,
+								Document: true
+							}
 						}
 					},
-					_count: {
-						select: {
-							Unit: true,
-							Document: true
-						}
-					}
-				},
-				orderBy: { createdAt: 'desc' }
-			})
+					orderBy: { createdAt: 'desc' }
+				})
 
 			// Transform the data to include calculated stats
-			return properties.map((property) => {
+			return properties.map(property => {
 				const units = property.Unit || []
-				const occupiedUnits = units.filter((u) => u.status === 'OCCUPIED').length
-				const totalRent = units.reduce((sum: number, unit) => 
-					unit.status === 'OCCUPIED' ? sum + unit.rent : sum, 0
+				const occupiedUnits = units.filter(
+					u => u.status === 'OCCUPIED'
+				).length
+				const totalRent = units.reduce(
+					(sum: number, unit) =>
+						unit.status === 'OCCUPIED' ? sum + unit.rent : sum,
+					0
 				)
 
 				return {
@@ -234,9 +273,10 @@ export class PropertiesService extends BaseCrudService<
 						totalUnits: property._count.Unit,
 						occupiedUnits,
 						vacantUnits: property._count.Unit - occupiedUnits,
-						occupancyRate: property._count.Unit > 0 
-							? (occupiedUnits / property._count.Unit) * 100 
-							: 0,
+						occupancyRate:
+							property._count.Unit > 0
+								? (occupiedUnits / property._count.Unit) * 100
+								: 0,
 						monthlyRent: totalRent,
 						documentCount: property._count.Document
 					}
@@ -281,7 +321,7 @@ export class PropertiesService extends BaseCrudService<
 		}
 		const validOwnerId = ownerId
 		const validatedPropertyData = propertyData
-		
+
 		// Validate units data
 		if (!units || units.length === 0) {
 			throw new PropertyNotFoundException('validation')
@@ -294,16 +334,24 @@ export class PropertiesService extends BaseCrudService<
 		try {
 			// Delegate to repository for database transaction
 			// Create property with units using repository
-			const createData = this.prepareCreateData(validatedPropertyData as CreatePropertyDto, validOwnerId)
+			const createData = this.prepareCreateData(
+				validatedPropertyData as CreatePropertyDto,
+				validOwnerId
+			)
 			return await this.propertiesRepository.create({ data: createData })
 		} catch (error) {
-			this.logger.error('Error creating property with custom units', error)
+			this.logger.error(
+				'Error creating property with custom units',
+				error
+			)
 			throw this.errorHandler.handleErrorEnhanced(error as Error, {
 				operation: 'createPropertyWithUnits',
 				resource: 'property',
-				metadata: { ownerId: validOwnerId, propertyName: propertyData.name }
+				metadata: {
+					ownerId: validOwnerId,
+					propertyName: propertyData.name
+				}
 			})
 		}
 	}
-
 }

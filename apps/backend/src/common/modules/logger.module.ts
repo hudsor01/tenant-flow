@@ -6,21 +6,13 @@ import { FastifyRequestLoggerService } from '../logging/fastify-request-logger.s
 
 /**
  * Logger Module
- * 
+ *
  * Provides all logging, metrics, and auditing capabilities.
  */
 @Global()
 @Module({
-  controllers: [MetricsController],
-  providers: [
-    LoggerService,
-    MetricsService,
-    FastifyRequestLoggerService,
-  ],
-  exports: [
-    LoggerService,
-    MetricsService,
-    FastifyRequestLoggerService,
-  ],
+	controllers: [MetricsController],
+	providers: [LoggerService, MetricsService, FastifyRequestLoggerService],
+	exports: [LoggerService, MetricsService, FastifyRequestLoggerService]
 })
 export class LoggerModule {}

@@ -5,7 +5,9 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 **MUST USE TURBOPACK**: This application uses React 19 with Next.js 15, which REQUIRES Turbopack bundler to avoid webpack compatibility issues. The development server is already configured to use Turbopack automatically via the `--turbo` flag.
 
 ### Known Issue Resolved
+
 The webpack bundler has a critical incompatibility with React 19's module system that causes runtime errors:
+
 - Error: "undefined is not an object (evaluating 'originalFactory.call')"
 - Solution: Use Turbopack instead of webpack (already configured)
 

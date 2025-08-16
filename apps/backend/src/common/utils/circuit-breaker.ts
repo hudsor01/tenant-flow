@@ -42,7 +42,9 @@ export class CircuitBreaker {
 			successThreshold: config.successThreshold ?? 2,
 			timeout: config.timeout ?? 10000,
 			resetTimeout: config.resetTimeout ?? 30000,
-			fallbackFn: config.fallbackFn ?? (() => Promise.reject(new Error('Circuit breaker is open')))
+			fallbackFn:
+				config.fallbackFn ??
+				(() => Promise.reject(new Error('Circuit breaker is open')))
 		}
 	}
 
@@ -55,19 +57,24 @@ export class CircuitBreaker {
 
 		// If circuit is open, use fallback
 		if (this.state === CircuitState.OPEN) {
-			this.logger.warn(`Circuit is OPEN - using fallback for ${this.name}`)
+			this.logger.warn(
+				`Circuit is OPEN - using fallback for ${this.name}`
+			)
 			return this.config.fallbackFn() as Promise<T>
 		}
 
 		try {
 			// Create a timeout promise
 			const timeoutPromise = new Promise<never>((_, reject) => {
-				setTimeout(() => reject(new Error('Request timeout')), this.config.timeout)
+				setTimeout(
+					() => reject(new Error('Request timeout')),
+					this.config.timeout
+				)
 			})
 
 			// Race between the function and timeout
-			const result = await Promise.race([fn(), timeoutPromise]) as T
-			
+			const result = (await Promise.race([fn(), timeoutPromise])) as T
+
 			this.onSuccess()
 			return result
 		} catch (error) {
@@ -84,7 +91,9 @@ export class CircuitBreaker {
 			if (this.successCount >= this.config.successThreshold) {
 				this.state = CircuitState.CLOSED
 				this.successCount = 0
-				this.logger.log(`Circuit closed after successful recovery for ${this.name}`)
+				this.logger.log(
+					`Circuit closed after successful recovery for ${this.name}`
+				)
 			}
 		}
 	}
@@ -96,7 +105,9 @@ export class CircuitBreaker {
 
 		if (this.failureCount >= this.config.failureThreshold) {
 			this.state = CircuitState.OPEN
-			this.logger.error(`Circuit opened after ${this.failureCount} failures for ${this.name}`)
+			this.logger.error(
+				`Circuit opened after ${this.failureCount} failures for ${this.name}`
+			)
 		}
 	}
 
@@ -104,7 +115,8 @@ export class CircuitBreaker {
 		if (
 			this.state === CircuitState.OPEN &&
 			this.lastFailureTime &&
-			Date.now() - this.lastFailureTime.getTime() > this.config.resetTimeout
+			Date.now() - this.lastFailureTime.getTime() >
+				this.config.resetTimeout
 		) {
 			this.state = CircuitState.HALF_OPEN
 			this.failureCount = 0

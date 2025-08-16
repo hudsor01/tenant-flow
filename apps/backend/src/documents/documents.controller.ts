@@ -31,7 +31,7 @@ export class DocumentsController {
     @CurrentUser('id') ownerId: string,
     @Query() query: DocumentQueryDto
   ) {
-    return await this.documentsService.getByOwner(ownerId, query)
+    return this.documentsService.getByOwner(ownerId, query)
   }
 
   /**
@@ -39,7 +39,7 @@ export class DocumentsController {
    */
   @Get('stats')
   async getStats(@CurrentUser('id') ownerId: string) {
-    return await this.documentsService.getStats(ownerId)
+    return this.documentsService.getStats(ownerId)
   }
 
   /**
@@ -51,7 +51,7 @@ export class DocumentsController {
     @CurrentUser('id') ownerId: string,
     @Query() query: DocumentQueryDto
   ) {
-    return await this.documentsService.getByProperty(propertyId, ownerId, query)
+    return this.documentsService.getByProperty(propertyId, ownerId, query)
   }
 
   /**
@@ -63,7 +63,7 @@ export class DocumentsController {
     @CurrentUser('id') ownerId: string,
     @Query() query: DocumentQueryDto
   ) {
-    return await this.documentsService.getByLease(leaseId, ownerId, query)
+    return this.documentsService.getByLease(leaseId, ownerId, query)
   }
 
   /**
@@ -75,7 +75,7 @@ export class DocumentsController {
     @CurrentUser('id') ownerId: string,
     @Query() query: DocumentQueryDto
   ) {
-    return await this.documentsService.getByType(type, ownerId, query)
+    return this.documentsService.getByType(type, ownerId, query)
   }
 
   /**
@@ -86,7 +86,7 @@ export class DocumentsController {
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser('id') ownerId: string
   ) {
-    return await this.documentsService.getByIdOrThrow(id, ownerId)
+    return this.documentsService.getByIdOrThrow(id, ownerId)
   }
 
   /**
@@ -98,7 +98,7 @@ export class DocumentsController {
     @Body() createDocumentDto: CreateDocumentDto,
     @CurrentUser('id') ownerId: string
   ) {
-    return await this.documentsService.create(createDocumentDto, ownerId)
+    return this.documentsService.create(createDocumentDto, ownerId)
   }
 
   /**
@@ -110,7 +110,7 @@ export class DocumentsController {
     @Body() updateDocumentDto: UpdateDocumentDto,
     @CurrentUser('id') ownerId: string
   ) {
-    return await this.documentsService.update(id, updateDocumentDto, ownerId)
+    return this.documentsService.update(id, updateDocumentDto, ownerId)
   }
 
   /**

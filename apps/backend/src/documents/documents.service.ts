@@ -58,11 +58,11 @@ export class DocumentsService extends BaseCrudService<
    * Required abstract method implementations
    */
   protected async findByIdAndOwner(id: string, ownerId: string): Promise<Document | null> {
-    return await this.documentRepository.findByIdAndOwner(id, ownerId)
+    return this.documentRepository.findByIdAndOwner(id, ownerId)
   }
 
   protected async calculateStats(ownerId: string): Promise<BaseStats> {
-    return await this.documentRepository.getStatsByOwner(ownerId)
+    return this.documentRepository.getStatsByOwner(ownerId)
   }
 
   protected override validateCreateData(data: CreateDocumentDto): void {

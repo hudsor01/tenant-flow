@@ -1,6 +1,6 @@
 /**
  * Data Table Components
- * 
+ *
  * Linear-style dense data tables with full feature set including:
  * - 32px compact row height
  * - Sticky headers
@@ -13,5 +13,12 @@
  * - Responsive design with horizontal scroll
  */
 
-export { DenseTable, createSelectColumn, createActionsColumn } from './dense-table'
-export { propertyColumns, compactPropertyColumns } from './columns/property-columns'
+export {
+	DenseTable,
+	createSelectColumn,
+	createActionsColumn
+} from './dense-table'
+export {
+	propertyColumns,
+	compactPropertyColumns
+} from './columns/property-columns'

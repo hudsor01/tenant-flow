@@ -48,12 +48,15 @@ export default function PropertyCard({
 	onView
 }: PropertyCardProps) {
 	const { deleteProperty } = useProperties()
-	
+
 	// Memoize the delete mutation object to prevent useCallback dependencies from changing
-	const deleteMutation = useMemo(() => ({
-		mutateAsync: deleteProperty,
-		isPending: false
-	}), [deleteProperty])
+	const deleteMutation = useMemo(
+		() => ({
+			mutateAsync: deleteProperty,
+			isPending: false
+		}),
+		[deleteProperty]
+	)
 
 	const handleDelete = useCallback(async () => {
 		if (
@@ -76,7 +79,7 @@ export default function PropertyCard({
 	// Calculate property statistics
 	const totalUnits = property.units?.length || 0
 	const occupiedUnits =
-		property.units?.filter((unit) => unit.status === UNIT_STATUS.OCCUPIED)
+		property.units?.filter(unit => unit.status === UNIT_STATUS.OCCUPIED)
 			.length || 0
 	const vacantUnits = totalUnits - occupiedUnits
 	const occupancyRate =
@@ -121,9 +124,9 @@ export default function PropertyCard({
 			whileHover="hover"
 			className="group"
 		>
-			<Card className="group/card overflow-hidden border-0 bg-gradient-to-br from-card via-card to-card/95 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-2xl hover:shadow-primary/10 hover:border-primary/20">
+			<Card className="group/card from-card via-card to-card/95 hover:shadow-primary/10 hover:border-primary/20 overflow-hidden border-0 bg-gradient-to-br shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-2xl">
 				{/* Property Image */}
-				<div className="relative h-52 overflow-hidden bg-gradient-to-br from-primary via-primary to-accent">
+				<div className="from-primary via-primary to-accent relative h-52 overflow-hidden bg-gradient-to-br">
 					{property.imageUrl ? (
 						<Image
 							src={property.imageUrl}
@@ -162,7 +165,10 @@ export default function PropertyCard({
 								</DropdownMenuItem>
 								<DropdownMenuSeparator />
 								<DropdownMenuItem
-									onClick={createAsyncHandler(handleDelete, 'Failed to delete property')}
+									onClick={createAsyncHandler(
+										handleDelete,
+										'Failed to delete property'
+									)}
 									className="text-red-600 hover:bg-red-50 hover:text-red-700"
 								>
 									<Trash2 className="mr-2 h-4 w-4" />
@@ -192,10 +198,12 @@ export default function PropertyCard({
 				<CardHeader className="pb-3">
 					<div className="flex items-start justify-between">
 						<div className="flex-1">
-							<CardTitle className="text-foreground mb-1 transition-colors group-hover:text-primary">
+							<CardTitle className="text-foreground group-hover:text-primary mb-1 transition-colors">
 								{property.name}
 							</CardTitle>
-							<CardDescription className={flexLayouts.centerVertical}>
+							<CardDescription
+								className={flexLayouts.centerVertical}
+							>
 								<MapPin className="mr-1 h-4 w-4" />
 								{property.address}, {property.city},{' '}
 								{property.state} {property.zipCode}
@@ -218,9 +226,13 @@ export default function PropertyCard({
 						className={`mb-4 ${gridLayouts.responsiveCols} ${gridLayouts.gap3}`}
 					>
 						{/* Total Units */}
-						<div className={`${flexLayouts.centerVertical} rounded-lg bg-blue-50 p-3`}>
-							<div className={`mr-3 ${flexLayouts.center} h-8 w-8 rounded-lg bg-blue-100`}>
-								<Home className="h-4 w-4 text-primary" />
+						<div
+							className={`${flexLayouts.centerVertical} rounded-lg bg-blue-50 p-3`}
+						>
+							<div
+								className={`mr-3 ${flexLayouts.center} h-8 w-8 rounded-lg bg-blue-100`}
+							>
+								<Home className="text-primary h-4 w-4" />
 							</div>
 							<div>
 								<p className="text-caption text-muted-foreground">
@@ -233,8 +245,12 @@ export default function PropertyCard({
 						</div>
 
 						{/* Occupied Units */}
-						<div className={`${flexLayouts.centerVertical} rounded-lg bg-green-50 p-3`}>
-							<div className={`mr-3 ${flexLayouts.center} h-8 w-8 rounded-lg bg-green-100`}>
+						<div
+							className={`${flexLayouts.centerVertical} rounded-lg bg-green-50 p-3`}
+						>
+							<div
+								className={`mr-3 ${flexLayouts.center} h-8 w-8 rounded-lg bg-green-100`}
+							>
 								<UserCheck className="h-4 w-4 text-green-600" />
 							</div>
 							<div>
@@ -248,8 +264,12 @@ export default function PropertyCard({
 						</div>
 
 						{/* Vacant Units */}
-						<div className={`${flexLayouts.centerVertical} rounded-lg bg-orange-50 p-3`}>
-							<div className={`mr-3 ${flexLayouts.center} h-8 w-8 rounded-lg bg-orange-100`}>
+						<div
+							className={`${flexLayouts.centerVertical} rounded-lg bg-orange-50 p-3`}
+						>
+							<div
+								className={`mr-3 ${flexLayouts.center} h-8 w-8 rounded-lg bg-orange-100`}
+							>
 								<UserX className="h-4 w-4 text-orange-600" />
 							</div>
 							<div>
@@ -263,8 +283,12 @@ export default function PropertyCard({
 						</div>
 
 						{/* Monthly Revenue */}
-						<div className={`${flexLayouts.centerVertical} rounded-lg bg-purple-50 p-3`}>
-							<div className={`mr-3 ${flexLayouts.center} h-8 w-8 rounded-lg bg-purple-100`}>
+						<div
+							className={`${flexLayouts.centerVertical} rounded-lg bg-purple-50 p-3`}
+						>
+							<div
+								className={`mr-3 ${flexLayouts.center} h-8 w-8 rounded-lg bg-purple-100`}
+							>
 								<DollarSign className="h-4 w-4 text-purple-600" />
 							</div>
 							<div>
