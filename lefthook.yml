@@ -50,7 +50,7 @@ pre-push:
         docker-validate:
             run: |
                 echo "🐳 Validating Docker build..."
-                docker build --target deps -t test-deps . || exit 1
+                docker build --target builder -t test-build . || exit 1
                 echo "✅ Docker validation passed"
 
 commit-msg:
