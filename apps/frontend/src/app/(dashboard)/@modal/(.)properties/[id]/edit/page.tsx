@@ -42,4 +42,3 @@ export async function generateStaticParams() {
   return [];
 }
 
-export const dynamic = 'force-dynamic'; // Ensure this is always server-rendered
