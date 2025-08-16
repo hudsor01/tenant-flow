@@ -1,4 +1,4 @@
-import { registerDecorator, type ValidationOptions, type ValidationArguments } from 'class-validator'
+import { registerDecorator, type ValidationArguments, type ValidationOptions } from 'class-validator'
 
 /**
  * Custom validator decorator to prevent Fair Housing Act violations
@@ -63,7 +63,7 @@ export function NoDiscriminatoryLanguage(validationOptions?: ValidationOptions) 
       options: validationOptions,
       validator: {
         validate(value: unknown) {
-          if (!value || typeof value !== 'string') return true
+          if (!value || typeof value !== 'string') {return true}
 
           const discriminatoryTerms = [
             'no kids', 'no children', 'adults only', 'no section 8', 

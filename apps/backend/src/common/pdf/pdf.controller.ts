@@ -1,19 +1,19 @@
 import {
-  Controller,
-  Post,
-  Get,
   Body,
-  Res,
+  Controller,
+  Get,
   HttpCode,
   HttpStatus,
+  Post,
+  Res,
   UseGuards,
   ValidationPipe
 } from '@nestjs/common'
 import { FastifyReply } from 'fastify'
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger'
-import { IsString, IsOptional, IsIn, IsBoolean, ValidateNested } from 'class-validator'
-import { Type, Transform } from 'class-transformer'
-import { PDFGeneratorService, PDFGenerationOptions } from './pdf-generator.service'
+import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
+import { IsBoolean, IsIn, IsOptional, IsString, ValidateNested } from 'class-validator'
+import { Transform, Type } from 'class-transformer'
+import { PDFGenerationOptions, PDFGeneratorService } from './pdf-generator.service'
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard'
 import { ErrorHandlerService } from '../errors/error-handler.service'
 

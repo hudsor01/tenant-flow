@@ -1,4 +1,4 @@
-import { Injectable, Inject, Logger } from '@nestjs/common'
+import { Inject, Injectable, Logger } from '@nestjs/common'
 import { Redis } from 'ioredis'
 import { EventEmitter } from 'events'
 import type { PubSubStats } from './interfaces/pubsub.interface'
@@ -42,7 +42,7 @@ export class RedisPubSubService {
   private initializePubSub(): void {
     // Create dedicated connections for pub/sub
     // Redis requires separate connections for pub/sub operations
-    if (!this.redis) return
+    if (!this.redis) {return}
     this.subscriber = this.redis.duplicate()
     this.publisher = this.redis.duplicate()
 
@@ -82,7 +82,7 @@ export class RedisPubSubService {
    * Unsubscribe from a channel
    */
   async unsubscribe(channel: string): Promise<void> {
-    if (!this.subscriber) return
+    if (!this.subscriber) {return}
 
     try {
       await this.subscriber.unsubscribe(channel)

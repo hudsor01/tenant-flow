@@ -82,13 +82,13 @@ export class EncryptionService {
 
   // Convenience methods for SSN encryption
   encryptSSN(ssn: string): string {
-    if (!ssn) return ''
+    if (!ssn) {return ''}
     const { encrypted, iv, authTag } = this.encrypt(ssn)
     return `${encrypted}:${iv}:${authTag}`
   }
 
   decryptSSN(encryptedSSN: string): string {
-    if (!encryptedSSN) return ''
+    if (!encryptedSSN) {return ''}
     const parts = encryptedSSN.split(':')
     if (parts.length !== 3) {
       throw new Error('Invalid encrypted SSN format: expected format is encrypted:iv:authTag')

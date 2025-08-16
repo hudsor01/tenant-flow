@@ -1,81 +1,67 @@
 /**
- * Business entity types and related interfaces
- * These represent the core domain objects of the application
+ * Frontend-specific entity types and interfaces
+ * 
+ * Core entities are imported directly from @repo/shared
+ * This file contains only frontend-specific types not available in shared
  */
 
-import type { z } from 'zod'
+// Import shared types directly - no re-exports needed
+// Components should import directly from @repo/shared for better tree-shaking
 
-// Re-export shared entities for convenience
-export type { 
-  Property, 
-  Tenant, 
-  Lease, 
-  Unit, 
-  MaintenanceRequest,
-  PropertyType,
-  UnitStatus,
-  LeaseStatus,
-  MaintenancePriority,
-  MaintenanceStatus,
-  User,
-  CreatePropertyInput,
-  UpdatePropertyInput,
-  CreateTenantInput,
-  UpdateTenantInput,
-  CreateLeaseInput,
-  UpdateLeaseInput,
-  CreateUnitInput,
-  UpdateUnitInput,
-  CreateMaintenanceInput,
-  UpdateMaintenanceInput
-} from '@repo/shared'
+import type { 
+  PropertyTypeValidation, 
+  LeaseStatus, 
+  MaintenancePriorityValidation, 
+  MaintenanceStatusValidation 
+} from '@repo/shared/validation'
 
 // ============================================
-// Form Data Types (Input Forms)
+// Frontend-Specific Search/Filter Types
 // ============================================
 
 /**
- * Property form data - handles HTML input strings (frontend-specific)
+ * Property search filters (frontend-specific UI state)
  */
-export type PropertyFormData = z.input<typeof import('@/lib/validation/zod-schemas').createPropertyFormSchema>
+export interface PropertyFilters {
+  search?: string
+  propertyType?: PropertyTypeValidation
+  city?: string
+  state?: string
+  minRent?: number
+  maxRent?: number
+  bedrooms?: number
+  bathrooms?: number
+  status?: 'active' | 'inactive' | 'maintenance'
+}
 
 /**
- * Property API data - transformed for backend
+ * Tenant search filters (frontend-specific UI state)
  */
-export type PropertyAPIData = z.output<typeof import('@/lib/validation/zod-schemas').createPropertyFormSchema>
+export interface TenantFilters {
+  search?: string
+  propertyId?: string
+  unitId?: string
+  leaseStatus?: LeaseStatus
+  moveInDateFrom?: Date
+  moveInDateTo?: Date
+}
 
 /**
- * Unit form data - handles HTML input strings
+ * Maintenance request filters (frontend-specific UI state)
  */
-export type UnitFormData = z.input<typeof import('@/lib/validation/zod-schemas').createUnitFormSchema>
-
-/**
- * Unit API data - transformed for backend
- */
-export type UnitAPIData = z.infer<typeof import('@/lib/validation/zod-schemas').createUnitSchema>
-
-/**
- * Tenant form data - handles HTML input strings
- */
-export type TenantFormData = z.input<typeof import('@/lib/validation/zod-schemas').createTenantFormSchema>
-
-/**
- * Tenant API data - transformed for backend
- */
-export type TenantAPIData = z.infer<typeof import('@/lib/validation/zod-schemas').createTenantSchema>
-
-/**
- * Lease form data - handles HTML input strings
- */
-export type LeaseFormData = z.input<typeof import('@/lib/validation/zod-schemas').createLeaseFormSchema>
-
-/**
- * Lease API data - transformed for backend
- */
-export type LeaseAPIData = z.infer<typeof import('@/lib/validation/zod-schemas').createLeaseSchema>
+export interface MaintenanceFilters {
+  search?: string
+  propertyId?: string
+  unitId?: string
+  priority?: MaintenancePriorityValidation
+  status?: MaintenanceStatusValidation
+  category?: string
+  dateFrom?: Date
+  dateTo?: Date
+}
 
 // ============================================
-// Authentication Types
+// Authentication Types (Frontend-Specific)
 // ============================================
 
 /**
@@ -124,7 +110,7 @@ export interface UpdatePasswordFormData {
 }
 
 // ============================================
-// Dashboard/Analytics Types
+// Dashboard/Analytics Types (Frontend-Specific)
 // ============================================
 
 /**
@@ -176,52 +162,7 @@ export interface MonthlyRevenue {
 }
 
 // ============================================
-// Search/Filter Types
-// ============================================
-
-/**
- * Property search filters
- */
-export interface PropertyFilters {
-  search?: string
-  propertyType?: import('@repo/shared').PropertyType
-  city?: string
-  state?: string
-  minRent?: number
-  maxRent?: number
-  bedrooms?: number
-  bathrooms?: number
-  status?: 'active' | 'inactive' | 'maintenance'
-}
-
-/**
- * Tenant search filters
- */
-export interface TenantFilters {
-  search?: string
-  propertyId?: string
-  unitId?: string
-  leaseStatus?: import('@repo/shared').LeaseStatus
-  moveInDateFrom?: Date
-  moveInDateTo?: Date
-}
-
-/**
- * Maintenance request filters
- */
-export interface MaintenanceFilters {
-  search?: string
-  propertyId?: string
-  unitId?: string
-  priority?: import('@repo/shared').MaintenancePriority
-  status?: import('@repo/shared').MaintenanceStatus
-  category?: string
-  dateFrom?: Date
-  dateTo?: Date
-}
-
-// ============================================
-// File/Document Types
+// File/Document Types (Frontend-Specific)
 // ============================================
 
 /**
@@ -254,7 +195,7 @@ export interface PropertyDocument extends EntityDocument {
 }
 
 // ============================================
-// Notification Types
+// Notification Types (Frontend-Specific)
 // ============================================
 
 /**
@@ -294,7 +235,7 @@ export interface NotificationPreferences {
 }
 
 // ============================================
-// Billing/Subscription Types
+// Billing/Subscription Types (Frontend-Specific)
 // ============================================
 
 /**
@@ -336,7 +277,7 @@ export interface FeatureAccess {
 }
 
 // ============================================
-// Import/Export Types
+// Import/Export Types (Frontend-Specific)
 // ============================================
 
 /**

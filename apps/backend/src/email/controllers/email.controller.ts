@@ -1,5 +1,5 @@
-import { Controller, Get, Post, Body, Param, Query, HttpException, HttpStatus } from '@nestjs/common'
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger'
+import { Body, Controller, Get, HttpException, HttpStatus, Param, Post, Query } from '@nestjs/common'
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { EmailService } from '../email.service'
 import { EmailQueueService } from '../services/email-queue.service'
 import { EmailMetricsService } from '../services/email-metrics.service'

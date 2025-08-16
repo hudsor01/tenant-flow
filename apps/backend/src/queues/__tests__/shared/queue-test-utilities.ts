@@ -1,8 +1,8 @@
 import type { Job } from 'bull'
 import { Test, type TestingModule } from '@nestjs/testing'
-import { getQueueToken, BullModule } from '@nestjs/bull'
+import { BullModule, getQueueToken } from '@nestjs/bull'
 import type { Queue } from 'bull'
-import type { EmailJobData, PaymentJobData, BaseJobData } from '../../types/job.interfaces'
+import type { BaseJobData, EmailJobData, PaymentJobData } from '../../types/job.interfaces'
 import type { ProcessorResult } from '../../base/base.processor'
 
 /**

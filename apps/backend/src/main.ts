@@ -13,25 +13,25 @@ if (!process.env.RAILWAY_ENVIRONMENT && !process.env.DOCKER_CONTAINER) {
 }
 
 import { NestFactory } from '@nestjs/core'
-import { ValidationPipe, Logger, BadRequestException, RequestMethod } from '@nestjs/common'
+import { BadRequestException, Logger, RequestMethod, ValidationPipe } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { AppModule } from './app.module'
 import {
-	setRunningPort,
-	PerformanceLogger
+	PerformanceLogger,
+	setRunningPort
 } from './common/logging/logger.config'
 import { createLogger as createWinstonLogger } from './common/config/winston.config'
 import { FastifyRequestLoggerService } from './common/logging/fastify-request-logger.service'
 import { FastifyPluginsConfigService } from './common/plugins/fastify-plugins.config'
 import {
-	type NestFastifyApplication,
-	FastifyAdapter
+	FastifyAdapter,
+	type NestFastifyApplication
 } from '@nestjs/platform-fastify'
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { SecurityUtils } from './common/security/security.utils'
 import helmet from '@fastify/helmet'
 import securityHeadersPlugin from './common/plugins/security-headers.plugin'
-import type { FastifyRequest, FastifyReply } from 'fastify'
+import type { FastifyReply, FastifyRequest } from 'fastify'
 import { WinstonModule } from 'nest-winston'
 import { EnvValidator } from './config/env-validator'
 import * as net from 'net'

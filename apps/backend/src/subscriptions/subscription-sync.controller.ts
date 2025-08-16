@@ -1,17 +1,17 @@
 import { 
+  Body, 
   Controller, 
   Get, 
-  Post, 
+  HttpException, 
+  HttpStatus, 
+  MessageEvent, 
   Param, 
-  Body, 
-  UseGuards, 
-  Sse, 
-  MessageEvent,
+  Post,
   Query,
-  HttpException,
-  HttpStatus
+  Sse,
+  UseGuards
 } from '@nestjs/common'
-import { Observable, interval, filter, switchMap, startWith } from 'rxjs'
+import { filter, interval, Observable, startWith, switchMap } from 'rxjs'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { SubscriptionSyncService } from './subscription-sync.service'
 import { SubscriptionsManagerService } from './subscriptions-manager.service'

@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, Logger, OnModuleInit } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger, OnModuleInit } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import Stripe from 'stripe'
 import type { 
@@ -9,9 +9,9 @@ import type {
 } from '@repo/shared'
 import type { 
   StripeCheckoutSession,
-  StripeCustomer,
   StripeCheckoutSessionCreateParams,
   StripeCheckoutSessionLineItem,
+  StripeCustomer,
   StripeCustomerUpdateParams
 } from '@repo/shared/types/stripe'
 import type { StripePrice } from '@repo/shared/types/stripe-core-objects'

@@ -1,4 +1,4 @@
-import { Module, Global, OnModuleInit } from '@nestjs/common'
+import { Global, Module, OnModuleInit } from '@nestjs/common'
 import { PerformanceMonitorService } from './performance-monitor.service'
 
 @Global()

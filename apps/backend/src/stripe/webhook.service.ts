@@ -1,26 +1,26 @@
 import { User } from '@repo/database';
-import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import {
-  WebhookEventType,
-  WEBHOOK_EVENT_TYPES
+  WEBHOOK_EVENT_TYPES,
+  WebhookEventType
 } from '@repo/shared'
 import {
-	SubscriptionEventType,
+	FeatureAccessRestoreEvent,
 	FeatureAccessRestrictEvent,
-	FeatureAccessRestoreEvent
+	SubscriptionEventType
 } from '../common/events/subscription.events'
 import { EventEmitter2 } from '@nestjs/event-emitter'
-import type { PaymentMethodRequiredEvent, PaymentFailedEvent, SubscriptionCreatedEvent } from '../common/events/subscription.events'
+import type { PaymentFailedEvent, PaymentMethodRequiredEvent, SubscriptionCreatedEvent } from '../common/events/subscription.events'
 import { PrismaService } from '../prisma/prisma.service'
 import { SubscriptionSyncService } from '../subscriptions/subscription-sync.service'
 import { StripeService } from './stripe.service'
 import { WebhookMetricsService } from './webhook-metrics.service'
 import { WebhookHealthService } from './webhook-health.service'
 import { WebhookErrorMonitorService } from './webhook-error-monitor.service'
-import { WebhookObservabilityService, RequestContext } from './webhook-observability.service'
+import { RequestContext, WebhookObservabilityService } from './webhook-observability.service'
 import {
-  StripePaymentIntent,
   StripeCheckoutSession,
+  StripePaymentIntent,
   StripeSetupIntent
 } from '@repo/shared/types/stripe-payment-objects'
 import { StripeEvent } from '@repo/shared/types/stripe'
@@ -513,7 +513,7 @@ export class WebhookService {
 		// In Stripe API, invoice has a 'subscription' field that can be a string ID or null
 		const subscriptionId = (invoice as { subscription?: string | null }).subscription
 
-		if (!subscriptionId) return
+		if (!subscriptionId) {return}
 
 		this.logger.log(`Payment succeeded for subscription: ${subscriptionId}`)
 
@@ -586,7 +586,7 @@ export class WebhookService {
 		const invoice = event.data.object as unknown as StripeInvoice
 		const subscriptionId = (invoice as { subscription?: string | null }).subscription
 
-		if (!subscriptionId) return
+		if (!subscriptionId) {return}
 
 		this.logger.log(`Upcoming invoice for subscription: ${subscriptionId}`)
 
@@ -621,7 +621,7 @@ export class WebhookService {
 		const invoice = event.data.object as unknown as StripeInvoice
 		const subscriptionId = (invoice as { subscription?: string | null }).subscription
 
-		if (!subscriptionId) return
+		if (!subscriptionId) {return}
 
 		this.logger.warn(`Payment action required for subscription: ${subscriptionId}`)
 

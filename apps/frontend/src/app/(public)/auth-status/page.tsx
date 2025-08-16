@@ -1,6 +1,8 @@
 import { AuthStatusPage } from '@/components/auth/auth-status-page'
 
-export const metadata = {
+import type { Metadata } from 'next/types'
+
+export const metadata: Metadata = {
   title: 'Auth System Status | TenantFlow',
   description: 'Real-time health monitoring of authentication systems',
 }

@@ -256,7 +256,7 @@ export default function ContactPage() {
                     Send us a Message
                   </CardTitle>
                   <p className="text-muted-foreground">
-                    Fill out the form below and we'll get back to you as soon as possible.
+                    Fill out the form below and we will get back to you as soon as possible.
                   </p>
                 </CardHeader>
 
@@ -275,7 +275,7 @@ export default function ContactPage() {
                         </div>
                         <h3 className="text-2xl font-semibold text-foreground mb-4">Message Sent!</h3>
                         <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                          Thank you for reaching out. We'll get back to you within 4 hours during business hours.
+                          Thank you for reaching out. We will get back to you within 4 hours during business hours.
                         </p>
                         <Button 
                           onClick={() => setOptimisticSubmitted(false)}
@@ -410,7 +410,7 @@ export default function ContactPage() {
 
                         {/* Privacy Notice */}
                         <p className="text-xs text-muted-foreground text-center">
-                          By submitting this form, you agree to our privacy policy. We'll never share your information.
+                          By submitting this form, you agree to our privacy policy. We will never share your information.
                         </p>
                       </motion.form>
                     )}
@@ -454,7 +454,7 @@ export default function ContactPage() {
               },
               {
                 question: "What if I need help outside business hours?",
-                answer: "Our knowledge base and help center are available 24/7. For urgent issues, you can also submit a support ticket and we'll prioritize it for first thing the next business day."
+                answer: "Our knowledge base and help center are available 24/7. For urgent issues, you can also submit a support ticket and we will prioritize it for first thing the next business day."
               }
             ].map((faq, index) => (
               <motion.div

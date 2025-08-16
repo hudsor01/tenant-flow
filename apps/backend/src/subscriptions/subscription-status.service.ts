@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
-import type { SubStatus, PlanType } from '@repo/database'
+import type { PlanType, SubStatus } from '@repo/database'
 
 export interface UserSubscriptionStatus {
   hasActiveSubscription: boolean

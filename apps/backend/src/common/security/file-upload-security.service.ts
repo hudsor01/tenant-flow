@@ -1,4 +1,4 @@
-import { Injectable, Logger, BadRequestException, OnModuleInit } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger, OnModuleInit } from '@nestjs/common'
 import { TypeSafeConfigService } from '../config/config.service'
 import * as crypto from 'crypto'
 import * as path from 'path'
@@ -560,7 +560,7 @@ export class FileUploadSecurityService implements OnModuleInit {
    * Calculate threat confidence score
    */
   private calculateThreatConfidence(threats: FileSecurityThreat[]): number {
-    if (threats.length === 0) return 100
+    if (threats.length === 0) {return 100}
 
     const severityWeights = { low: 10, medium: 25, high: 50, critical: 100 }
     const totalWeight = threats.reduce((sum, threat) => sum + severityWeights[threat.severity], 0)

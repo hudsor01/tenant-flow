@@ -1,4 +1,4 @@
-import { Injectable, forwardRef, Inject } from '@nestjs/common'
+import { forwardRef, Inject, Injectable } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { PrismaService } from '../prisma/prisma.service'
 import { StripeService } from '../stripe/stripe.service'
@@ -7,15 +7,15 @@ import { SubscriptionSyncService } from './subscription-sync.service'
 import { StructuredLoggerService } from '../common/logging/structured-logger.service'
 import type { PlanType, Subscription } from '@repo/database'
 import { 
-  StripeError, 
-  StripeErrorCode, 
-  STRIPE_ERROR_CODES,
+  ERROR_CATEGORY_MAPPING, 
+  ERROR_SEVERITY_MAPPING, 
+  RETRYABLE_ERROR_CODES,
   StandardizedStripeError,
   STRIPE_ERROR_CATEGORIES,
+  STRIPE_ERROR_CODES,
   STRIPE_ERROR_SEVERITIES,
-  ERROR_CATEGORY_MAPPING,
-  ERROR_SEVERITY_MAPPING,
-  RETRYABLE_ERROR_CODES,
+  StripeError,
+  StripeErrorCode,
   StripeSubscription
 } from '@repo/shared/types/stripe'
 
