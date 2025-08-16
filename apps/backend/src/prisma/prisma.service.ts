@@ -74,7 +74,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
             'P2034', // Transaction conflict
         ];
         
-        return error?.code && transientCodes.includes(error.code);
+        return Boolean(error?.code && transientCodes.includes(error.code));
     }
 
     async onModuleInit() {
