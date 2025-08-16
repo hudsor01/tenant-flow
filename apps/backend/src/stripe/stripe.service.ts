@@ -3,9 +3,10 @@ import { ConfigService } from '@nestjs/config'
 import Stripe from 'stripe'
 import { STRIPE_ERRORS } from '@repo/shared'
 import { StripeErrorHandler } from './stripe-error.handler'
-import { StripeSubscription, StripeSubscriptionUpdateParams } from '@repo/shared/types/stripe'
-
-
+import {
+	StripeSubscription,
+	StripeSubscriptionUpdateParams
+} from '@repo/shared/types/stripe'
 
 @Injectable()
 export class StripeService {
@@ -21,16 +22,20 @@ export class StripeService {
 
 	private get stripe(): Stripe {
 		if (!this._stripe) {
-			const secretKey = this.configService.get<string>('STRIPE_SECRET_KEY')
+			const secretKey =
+				this.configService.get<string>('STRIPE_SECRET_KEY')
 			if (!secretKey) {
-				throw new Error(STRIPE_ERRORS.CONFIGURATION_ERROR + ': Missing STRIPE_SECRET_KEY')
+				throw new Error(
+					STRIPE_ERRORS.CONFIGURATION_ERROR +
+						': Missing STRIPE_SECRET_KEY'
+				)
 			}
 
 			// Initialize Stripe with minimal options
 			this._stripe = new Stripe(secretKey, {
 				apiVersion: '2025-07-30.basil',
 				typescript: true,
-				timeout: 5000,
+				timeout: 5000
 			})
 			// Stripe client is ready for use
 			// No logging needed - Stripe platform provides all activity logs
@@ -47,35 +52,37 @@ export class StripeService {
 		name?: string
 		metadata?: Record<string, string>
 	}): Promise<Stripe.Customer> {
-		return await this.errorHandler.wrapAsync(
-			() => this.stripe.customers.create({
-				email: params.email,
-				name: params.name,
-				metadata: params.metadata
-			}),
+		return this.errorHandler.wrapAsync(
+			() =>
+				this.stripe.customers.create({
+					email: params.email,
+					name: params.name,
+					metadata: params.metadata
+				}),
 			'createCustomer'
 		)
 	}
 
 	async getCustomer(customerId: string): Promise<Stripe.Customer | null> {
-		return await this.errorHandler.wrapAsync(
-			async () => {
-				try {
-					const customer = await this.stripe.customers.retrieve(customerId)
-					if (customer.deleted) {
-						return null
-					}
-					return customer as Stripe.Customer
-				} catch (error: unknown) {
-					const stripeError = error as Stripe.StripeRawError
-					if (stripeError?.type === 'invalid_request_error' && stripeError?.code === 'resource_missing') {
-						return null
-					}
-					throw error
+		return this.errorHandler.wrapAsync(async () => {
+			try {
+				const customer =
+					await this.stripe.customers.retrieve(customerId)
+				if (customer.deleted) {
+					return null
 				}
-			},
-			'getCustomer'
-		)
+				return customer as Stripe.Customer
+			} catch (error: unknown) {
+				const stripeError = error as Stripe.StripeRawError
+				if (
+					stripeError?.type === 'invalid_request_error' &&
+					stripeError?.code === 'resource_missing'
+				) {
+					return null
+				}
+				throw error
+			}
+		}, 'getCustomer')
 	}
 
 	async createCheckoutSession(params: {
@@ -122,10 +129,12 @@ export class StripeService {
 
 			// Add line items for subscription mode
 			if (params.mode === 'subscription' && params.priceId) {
-				sessionParams.line_items = [{
-					price: params.priceId,
-					quantity: 1
-				}]
+				sessionParams.line_items = [
+					{
+						price: params.priceId,
+						quantity: 1
+					}
+				]
 			}
 
 			// Add subscription data
@@ -134,12 +143,15 @@ export class StripeService {
 					trial_period_days: params.subscriptionData.trialPeriodDays,
 					metadata: params.subscriptionData.metadata
 				}
-				
+
 				// Add trial settings if provided
 				if (params.subscriptionData.trialSettings?.endBehavior) {
 					sessionParams.subscription_data.trial_settings = {
 						end_behavior: {
-							missing_payment_method: params.subscriptionData.trialSettings.endBehavior.missingPaymentMethod || 'create_invoice'
+							missing_payment_method:
+								params.subscriptionData.trialSettings
+									.endBehavior.missingPaymentMethod ||
+								'create_invoice'
 						}
 					}
 				}
@@ -156,11 +168,12 @@ export class StripeService {
 		customerId: string
 		returnUrl: string
 	}): Promise<Stripe.BillingPortal.Session> {
-		return await this.errorHandler.executeWithRetry({
-			operation: () => this.stripe.billingPortal.sessions.create({
-				customer: params.customerId,
-				return_url: params.returnUrl
-			}),
+		return this.errorHandler.executeWithRetry({
+			operation: () =>
+				this.stripe.billingPortal.sessions.create({
+					customer: params.customerId,
+					return_url: params.returnUrl
+				}),
 			metadata: {
 				operation: 'createPortalSession',
 				resource: 'portal_session',
@@ -169,34 +182,38 @@ export class StripeService {
 		})
 	}
 
-	async getSubscription(subscriptionId: string): Promise<StripeSubscription | null> {
-		return await this.errorHandler.wrapAsync(
-			async () => {
-				try {
-					const subscription = await this.stripe.subscriptions.retrieve(subscriptionId)
-					return subscription as unknown as StripeSubscription
-				} catch (error: unknown) {
-					const stripeError = error as Stripe.StripeRawError
-					if (stripeError?.type === 'invalid_request_error' && stripeError?.code === 'resource_missing') {
-						return null
-					}
-					throw error
+	async getSubscription(
+		subscriptionId: string
+	): Promise<StripeSubscription | null> {
+		return this.errorHandler.wrapAsync(async () => {
+			try {
+				const subscription =
+					await this.stripe.subscriptions.retrieve(subscriptionId)
+				return subscription as unknown as StripeSubscription
+			} catch (error: unknown) {
+				const stripeError = error as Stripe.StripeRawError
+				if (
+					stripeError?.type === 'invalid_request_error' &&
+					stripeError?.code === 'resource_missing'
+				) {
+					return null
 				}
-			},
-			'getSubscription'
-		)
+				throw error
+			}
+		}, 'getSubscription')
 	}
 
 	async updateSubscription(
 		subscriptionId: string,
 		params: StripeSubscriptionUpdateParams
 	): Promise<StripeSubscription> {
-		return await this.errorHandler.executeWithRetry({
+		return this.errorHandler.executeWithRetry({
 			operation: async () => {
 				const updateParams: Record<string, unknown> = {
 					...params,
 					days_until_due: params.days_until_due || undefined,
-					default_payment_method: params.default_payment_method || undefined
+					default_payment_method:
+						params.default_payment_method || undefined
 				}
 				// Remove null values that Stripe doesn't accept
 				Object.keys(updateParams).forEach(key => {
@@ -204,13 +221,19 @@ export class StripeService {
 						delete updateParams[key]
 					}
 				})
-				const subscription = await this.stripe.subscriptions.update(subscriptionId, updateParams)
+				const subscription = await this.stripe.subscriptions.update(
+					subscriptionId,
+					updateParams
+				)
 				return subscription as unknown as StripeSubscription
 			},
 			metadata: {
 				operation: 'updateSubscription',
 				resource: 'subscription',
-				metadata: { subscriptionId, updateKeysCount: Object.keys(params).length }
+				metadata: {
+					subscriptionId,
+					updateKeysCount: Object.keys(params).length
+				}
 			}
 		})
 	}
@@ -219,15 +242,19 @@ export class StripeService {
 		subscriptionId: string,
 		immediately = false
 	): Promise<StripeSubscription> {
-		return await this.errorHandler.executeWithRetry({
+		return this.errorHandler.executeWithRetry({
 			operation: async () => {
 				let subscription: Stripe.Subscription
 				if (immediately) {
-					subscription = await this.stripe.subscriptions.cancel(subscriptionId)
+					subscription =
+						await this.stripe.subscriptions.cancel(subscriptionId)
 				} else {
-					subscription = await this.stripe.subscriptions.update(subscriptionId, {
-						cancel_at_period_end: true
-					})
+					subscription = await this.stripe.subscriptions.update(
+						subscriptionId,
+						{
+							cancel_at_period_end: true
+						}
+					)
 				}
 				return subscription as unknown as StripeSubscription
 			},
@@ -249,15 +276,19 @@ export class StripeService {
 		}[]
 		subscriptionProrationDate?: number
 	}): Promise<Stripe.Invoice> {
-		return await this.errorHandler.executeWithRetry({
-			operation: () => this.stripe.invoices.createPreview({
-				customer: params.customerId,
-				subscription: params.subscriptionId
-			}),
+		return this.errorHandler.executeWithRetry({
+			operation: () =>
+				this.stripe.invoices.createPreview({
+					customer: params.customerId,
+					subscription: params.subscriptionId
+				}),
 			metadata: {
 				operation: 'createPreviewInvoice',
 				resource: 'invoice',
-				metadata: { customerId: params.customerId, subscriptionId: params.subscriptionId }
+				metadata: {
+					customerId: params.customerId,
+					subscriptionId: params.subscriptionId
+				}
 			}
 		})
 	}
@@ -274,31 +305,44 @@ export class StripeService {
 			prorationDate?: number
 		}
 	): Promise<StripeSubscription> {
-		return await this.errorHandler.executeWithRetry({
+		return this.errorHandler.executeWithRetry({
 			operation: async () => {
-				const subscription = await this.stripe.subscriptions.update(subscriptionId, {
-					items: params.items,
-					proration_behavior: params.prorationBehavior || 'create_prorations',
-					proration_date: params.prorationDate
-				})
+				const subscription = await this.stripe.subscriptions.update(
+					subscriptionId,
+					{
+						items: params.items,
+						proration_behavior:
+							params.prorationBehavior || 'create_prorations',
+						proration_date: params.prorationDate
+					}
+				)
 				return subscription as unknown as StripeSubscription
 			},
 			metadata: {
 				operation: 'updateSubscriptionWithProration',
 				resource: 'subscription',
-				metadata: { subscriptionId, prorationBehavior: params.prorationBehavior }
+				metadata: {
+					subscriptionId,
+					prorationBehavior: params.prorationBehavior
+				}
 			}
 		})
 	}
 
 	constructWebhookEvent(
-		payload: string | Buffer, 
-		signature: string, 
-		secret: string, 
+		payload: string | Buffer,
+		signature: string,
+		secret: string,
 		tolerance?: number
 	): Stripe.Event {
 		return this.errorHandler.wrapSync(
-			() => this.stripe.webhooks.constructEvent(payload, signature, secret, tolerance),
+			() =>
+				this.stripe.webhooks.constructEvent(
+					payload,
+					signature,
+					secret,
+					tolerance
+				),
 			'constructWebhookEvent'
 		)
 	}

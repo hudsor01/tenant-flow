@@ -11,7 +11,13 @@ import { ZodValidationModule } from '../common/validation/zod-validation.module'
 // PrismaModule is now global from nestjs-prisma
 
 @Module({
-	imports: [StorageModule, StripeModule, ErrorModule, SubscriptionsModule, ZodValidationModule],
+	imports: [
+		StorageModule,
+		StripeModule,
+		ErrorModule,
+		SubscriptionsModule,
+		ZodValidationModule
+	],
 	controllers: [TenantsController],
 	providers: [TenantsService, TenantsRepository, FairHousingService],
 	exports: [TenantsService]

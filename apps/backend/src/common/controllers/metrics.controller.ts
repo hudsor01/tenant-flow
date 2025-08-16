@@ -13,7 +13,7 @@ export class MetricsController {
 		return {
 			status: 'healthy',
 			timestamp: new Date().toISOString(),
-			system: this.metricsService.getSystemMetrics(),
+			system: this.metricsService.getSystemMetrics()
 		}
 	}
 
@@ -34,7 +34,7 @@ export class MetricsController {
 	exportMetrics() {
 		return {
 			metrics: this.metricsService.exportMetrics(),
-			exported_at: new Date().toISOString(),
+			exported_at: new Date().toISOString()
 		}
 	}
 }

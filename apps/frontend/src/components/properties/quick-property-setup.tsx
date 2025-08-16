@@ -24,10 +24,19 @@ import { motion } from '@/lib/framer-motion'
 // Quick setup schema extends property schema with batch unit creation fields
 const quickSetupSchema = propertyInputSchema.extend({
 	// Units batch creation - quick setup specific
-	numberOfUnits: z.number().min(1, 'Must be at least 1 unit').max(50, 'Cannot exceed 50 units'),
+	numberOfUnits: z
+		.number()
+		.min(1, 'Must be at least 1 unit')
+		.max(50, 'Cannot exceed 50 units'),
 	baseRent: z.number().min(1, 'Base rent must be greater than 0'),
-	bedrooms: z.number().min(0, 'Cannot be negative').max(10, 'Cannot exceed 10 bedrooms'),
-	bathrooms: z.number().min(0.5, 'Must be at least 0.5').max(10, 'Cannot exceed 10 bathrooms')
+	bedrooms: z
+		.number()
+		.min(0, 'Cannot be negative')
+		.max(10, 'Cannot exceed 10 bedrooms'),
+	bathrooms: z
+		.number()
+		.min(0.5, 'Must be at least 0.5')
+		.max(10, 'Cannot exceed 10 bathrooms')
 })
 
 type QuickSetupFormData = z.infer<typeof quickSetupSchema>
@@ -48,7 +57,7 @@ export default function QuickPropertySetup({
 	const form = useForm<QuickSetupFormData>({
 		resolver: zodResolver(quickSetupSchema),
 		defaultValues: {
-			propertyName: '',
+			name: '',
 			address: '',
 			city: '',
 			state: '',
@@ -66,7 +75,7 @@ export default function QuickPropertySetup({
 		try {
 			// 1. Create the property
 			const propertyResult = await createProperty({
-				name: data.propertyName,
+				name: data.name,
 				address: data.address,
 				city: data.city,
 				state: data.state,
@@ -96,7 +105,7 @@ export default function QuickPropertySetup({
 			await Promise.all(unitPromises)
 
 			toast.success(
-				`Property "${data.propertyName}" created with ${data.numberOfUnits} unit${data.numberOfUnits > 1 ? 's' : ''}!`
+				`Property "${data.name}" created with ${data.numberOfUnits} unit${data.numberOfUnits > 1 ? 's' : ''}!`
 			)
 			setIsComplete(true)
 
@@ -104,7 +113,11 @@ export default function QuickPropertySetup({
 				onComplete(property.id)
 			}
 		} catch (error) {
-			logger.error('Quick setup failed:', error instanceof Error ? error : new Error(String(error)), { component: 'quickpropertysetup' })
+			logger.error(
+				'Quick setup failed:',
+				error instanceof Error ? error : new Error(String(error)),
+				{ component: 'quickpropertysetup' }
+			)
 			toast.error('Failed to create property. Please try again.')
 		} finally {
 			setIsSubmitting(false)
@@ -148,7 +161,7 @@ export default function QuickPropertySetup({
 			</CardHeader>
 			<CardContent>
 				<form
-					onSubmit={(e) => void form.handleSubmit(onSubmit)(e)}
+					onSubmit={e => void form.handleSubmit(onSubmit)(e)}
 					className="space-y-6"
 				>
 					{/* Property Information */}
@@ -165,20 +178,15 @@ export default function QuickPropertySetup({
 
 						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 							<div className="md:col-span-2">
-								<Label htmlFor="propertyName">
-									Property Name *
-								</Label>
+								<Label htmlFor="name">Property Name *</Label>
 								<Input
-									id="propertyName"
-									{...form.register('propertyName')}
+									id="name"
+									{...form.register('name')}
 									placeholder="e.g., Sunset Apartments"
 								/>
-								{form.formState.errors.propertyName && (
+								{form.formState.errors.name && (
 									<p className="mt-1 text-sm text-red-600">
-										{
-											form.formState.errors.propertyName
-												.message
-										}
+										{form.formState.errors.name?.message}
 									</p>
 								)}
 							</div>
@@ -369,8 +377,8 @@ export default function QuickPropertySetup({
 								per unit
 							</li>
 							<li>
-								• All units will start as &quot;VACANT&quot; and ready for
-								tenants
+								• All units will start as &quot;VACANT&quot; and
+								ready for tenants
 							</li>
 						</ul>
 					</div>

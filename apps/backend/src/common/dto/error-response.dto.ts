@@ -36,7 +36,11 @@ export interface ConflictErrorResponse extends BaseErrorResponse {
 
 export interface UnauthorizedErrorResponse extends BaseErrorResponse {
 	error: 'Unauthorized'
-	reason: 'invalid_token' | 'missing_token' | 'expired_token' | 'insufficient_permissions'
+	reason:
+		| 'invalid_token'
+		| 'missing_token'
+		| 'expired_token'
+		| 'insufficient_permissions'
 }
 
 export interface InternalServerErrorResponse extends BaseErrorResponse {
@@ -53,12 +57,16 @@ export interface RateLimitErrorResponse extends BaseErrorResponse {
 
 export interface FileUploadErrorResponse extends BaseErrorResponse {
 	error: 'File Upload Error'
-	reason: 'file_too_large' | 'invalid_file_type' | 'upload_failed' | 'no_file_provided'
+	reason:
+		| 'file_too_large'
+		| 'invalid_file_type'
+		| 'upload_failed'
+		| 'no_file_provided'
 	maxSize?: number
 	allowedTypes?: string[]
 }
 
-export type ErrorResponse = 
+export type ErrorResponse =
 	| ValidationErrorResponse
 	| NotFoundErrorResponse
 	| BusinessErrorResponse

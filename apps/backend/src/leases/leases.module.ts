@@ -10,9 +10,15 @@ import { SubscriptionsModule } from '../subscriptions/subscriptions.module'
 import { ZodValidationModule } from '../common/validation/zod-validation.module'
 
 @Module({
-  imports: [PrismaModule, PDFModule, ErrorModule, SubscriptionsModule, ZodValidationModule],
-  controllers: [LeasesController],
-  providers: [LeasesService, LeaseRepository, LeasePDFService],
-  exports: [LeasesService, LeaseRepository, LeasePDFService]
+	imports: [
+		PrismaModule,
+		PDFModule,
+		ErrorModule,
+		SubscriptionsModule,
+		ZodValidationModule
+	],
+	controllers: [LeasesController],
+	providers: [LeasesService, LeaseRepository, LeasePDFService],
+	exports: [LeasesService, LeaseRepository, LeasePDFService]
 })
 export class LeasesModule {}

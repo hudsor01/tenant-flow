@@ -11,37 +11,36 @@ import { TrustBadges } from './trust-badges-server'
  * Handles user authentication and integrates with Stripe pricing table
  */
 export function StripePricingClient() {
-  const { user } = useAuth()
+	const { user } = useAuth()
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-      <div className="container mx-auto px-4 py-16">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Simple, Transparent Pricing
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Choose the plan that fits your portfolio. All plans include our core features with different limits.
-          </p>
-        </div>
+	return (
+		<div className="from-background to-muted/20 min-h-screen bg-gradient-to-b">
+			<div className="container mx-auto px-4 py-16">
+				{/* Header */}
+				<div className="mb-12 text-center">
+					<h1 className="mb-4 text-4xl font-bold md:text-5xl">
+						Simple, Transparent Pricing
+					</h1>
+					<p className="text-muted-foreground mx-auto max-w-2xl text-xl">
+						Choose the plan that fits your portfolio. All plans
+						include our core features with different limits.
+					</p>
+				</div>
 
-        {/* Stripe Pricing Table */}
-        <div className="max-w-6xl mx-auto mb-16">
-          <StripePricingTable 
-            customerEmail={user?.email}
-          />
-        </div>
+				{/* Stripe Pricing Table */}
+				<div className="mx-auto mb-16 max-w-6xl">
+					<StripePricingTable customerEmail={user?.email} />
+				</div>
 
-        {/* Feature Comparison */}
-        <FeatureComparisonTable />
+				{/* Feature Comparison */}
+				<FeatureComparisonTable />
 
-        {/* Trust Badges */}
-        <TrustBadges className="mt-16" />
+				{/* Trust Badges */}
+				<TrustBadges className="mt-16" />
 
-        {/* FAQ Section */}
-        <PricingFAQServer />
-      </div>
-    </div>
-  )
+				{/* FAQ Section */}
+				<PricingFAQServer />
+			</div>
+		</div>
+	)
 }

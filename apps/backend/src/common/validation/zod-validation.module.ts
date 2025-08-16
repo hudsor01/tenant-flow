@@ -11,15 +11,15 @@ import { RuntimeTypeCheckerService } from './runtime-type-checker.service'
 
 @Global()
 @Module({
-  providers: [
-    ZodValidationService, 
-    ZodErrorMappingService, 
-    RuntimeTypeCheckerService
-  ],
-  exports: [
-    ZodValidationService, 
-    ZodErrorMappingService, 
-    RuntimeTypeCheckerService
-  ]
+	providers: [
+		ZodValidationService,
+		ZodErrorMappingService,
+		RuntimeTypeCheckerService
+	],
+	exports: [
+		ZodValidationService,
+		ZodErrorMappingService,
+		RuntimeTypeCheckerService
+	]
 })
 export class ZodValidationModule {}

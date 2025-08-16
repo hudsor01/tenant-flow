@@ -8,15 +8,7 @@ import { SecurityModule } from './security/security.module'
  * across the entire backend application
  */
 @Module({
-  imports: [
-    ErrorModule,
-    LoggingModule,
-    SecurityModule
-  ],
-  exports: [
-    ErrorModule,
-    LoggingModule,
-    SecurityModule
-  ]
+	imports: [ErrorModule, LoggingModule, SecurityModule],
+	exports: [ErrorModule, LoggingModule, SecurityModule]
 })
 export class CommonModule {}

@@ -1,14 +1,13 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common'
-import type { SupabaseClient } from '@supabase/supabase-js'
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { PrismaService } from '../prisma/prisma.service'
-import { ErrorCode, ErrorHandlerService } from '../common/errors/error-handler.service'
+import {
+	ErrorCode,
+	ErrorHandlerService
+} from '../common/errors/error-handler.service'
 import { SimpleSecurityService } from '../common/security/simple-security.service'
 import { SecurityMonitorService } from '../common/security/security-monitor.service'
 import type { AuthUser, UserRole } from '@repo/shared'
-
-
-
 
 export interface SupabaseUser {
 	id: string
@@ -24,7 +23,8 @@ export interface SupabaseUser {
 }
 
 // ValidatedUser extends AuthUser but with string dates for JSON serialization
-export interface ValidatedUser extends Omit<AuthUser, 'createdAt' | 'updatedAt' | 'name' | 'avatarUrl'> {
+export interface ValidatedUser
+	extends Omit<AuthUser, 'createdAt' | 'updatedAt' | 'name' | 'avatarUrl'> {
 	name: string | undefined
 	avatarUrl: string | undefined
 	createdAt: string
@@ -97,7 +97,7 @@ export class AuthService {
 
 	/**
 	 * Validate Supabase JWT token and return user information
-	 * 
+	 *
 	 * SECURITY: All tokens must be validated through Supabase - no bypasses allowed.
 	 * For testing, use proper Jest mocking or test Supabase instances.
 	 */
@@ -106,12 +106,12 @@ export class AuthService {
 		if (!token || typeof token !== 'string') {
 			throw new UnauthorizedException('Invalid token format')
 		}
-		
+
 		// SECURITY: Token length validation to prevent DoS attacks
 		if (token.length < 20 || token.length > 2048) {
 			throw new UnauthorizedException('Token length invalid')
 		}
-		
+
 		// SECURITY: Basic JWT format check (3 parts separated by dots)
 		if (!token.includes('.') || token.split('.').length !== 3) {
 			throw new UnauthorizedException('Malformed token')
@@ -119,7 +119,7 @@ export class AuthService {
 
 		try {
 			this.logger.debug('Validating token', { tokenLength: token.length })
-			
+
 			// All tokens must go through Supabase validation - no exceptions
 			// For testing, mock this method in tests rather than bypassing security
 			const {
@@ -147,15 +147,17 @@ export class AuthService {
 
 			// SECURITY: Require email verification for all users
 			if (!user.email_confirmed_at) {
-				this.logger.warn('Unverified email login attempt', { userId: user.id })
+				this.logger.warn('Unverified email login attempt', {
+					userId: user.id
+				})
 				throw new UnauthorizedException('Email verification required')
 			}
 
 			// SECURITY: Check for basic user data integrity
 			if (!user.id || !user.email) {
-				this.logger.error('Invalid user data from Supabase', { 
-					hasId: !!user.id, 
-					hasEmail: !!user.email 
+				this.logger.error('Invalid user data from Supabase', {
+					hasId: !!user.id,
+					hasEmail: !!user.email
 				})
 				throw new UnauthorizedException('User data integrity error')
 			}
@@ -169,13 +171,17 @@ export class AuthService {
 			if (error instanceof UnauthorizedException) {
 				throw error
 			}
-			
+
 			// SECURITY: Log unexpected errors for monitoring but don't expose details
 			this.logger.error('Unexpected error in token validation', {
-				errorType: error instanceof Error ? error.constructor.name : typeof error,
-				errorMessage: error instanceof Error ? error.message : 'Unknown error'
+				errorType:
+					error instanceof Error
+						? error.constructor.name
+						: typeof error,
+				errorMessage:
+					error instanceof Error ? error.message : 'Unknown error'
 			})
-			
+
 			throw new UnauthorizedException('Token validation failed')
 		}
 	}
@@ -188,7 +194,9 @@ export class AuthService {
 		supabaseUser: SupabaseUser
 	): Promise<ValidatedUser> {
 		if (!supabaseUser) {
-			this.logger.error('syncUserWithDatabase called with undefined supabaseUser')
+			this.logger.error(
+				'syncUserWithDatabase called with undefined supabaseUser'
+			)
 			throw new Error('Supabase user is required')
 		}
 
@@ -206,9 +214,13 @@ export class AuthService {
 
 		const metadata = user_metadata as Record<string, unknown>
 		const name = String(metadata?.name || metadata?.full_name || '')
-		const avatarUrl = metadata?.avatar_url ? String(metadata.avatar_url) : null
+		const avatarUrl = metadata?.avatar_url
+			? String(metadata.avatar_url)
+			: null
 		const phone = metadata?.phone ? String(metadata.phone) : null
-		const companyName = metadata?.company_name ? String(metadata.company_name) : null
+		const companyName = metadata?.company_name
+			? String(metadata.company_name)
+			: null
 		const companyType = String(metadata?.company_type || 'LANDLORD')
 		const companySize = String(metadata?.company_size || '1-10')
 
@@ -262,16 +274,22 @@ export class AuthService {
 		// Send welcome email for new users (EmailService disabled)
 		if (isNewUser && name) {
 			try {
-				this.logger.log('Welcome email would be sent (EmailService disabled)', {
-					email,
-					name,
-					companySize
-				})
+				this.logger.log(
+					'Welcome email would be sent (EmailService disabled)',
+					{
+						email,
+						name,
+						companySize
+					}
+				)
 			} catch (emailError) {
 				this.logger.error('Error sending welcome email to new user', {
 					userId: supabaseId,
 					email,
-					error: emailError instanceof Error ? emailError.message : 'Unknown email error'
+					error:
+						emailError instanceof Error
+							? emailError.message
+							: 'Unknown email error'
 				})
 				// Don't fail the sync if email fails
 			}
@@ -398,13 +416,14 @@ export class AuthService {
 
 			// Validate password if provided
 			if (userData.password) {
-				const passwordValidation = this.securityService.validatePassword(userData.password)
+				const passwordValidation =
+					this.securityService.validatePassword(userData.password)
 				if (!passwordValidation.valid) {
 					throw this.errorHandler.createBusinessError(
 						ErrorCode.BAD_REQUEST,
 						'Password does not meet security requirements',
-						{ 
-							operation: 'createUser', 
+						{
+							operation: 'createUser',
 							resource: 'auth',
 							metadata: {
 								errors: passwordValidation.errors
@@ -412,7 +431,7 @@ export class AuthService {
 						}
 					)
 				}
-				
+
 				// Log password validation success (without the actual password)
 				this.logger.debug('Password validation passed', {
 					email: userData.email,
@@ -452,7 +471,11 @@ export class AuthService {
 					throw this.errorHandler.createBusinessError(
 						ErrorCode.CONFLICT,
 						'User with this email already exists',
-						{ operation: 'createUser', resource: 'auth', metadata: { email: userData.email } }
+						{
+							operation: 'createUser',
+							resource: 'auth',
+							metadata: { email: userData.email }
+						}
 					)
 				}
 
@@ -460,7 +483,11 @@ export class AuthService {
 					throw this.errorHandler.createBusinessError(
 						ErrorCode.BAD_REQUEST,
 						'Invalid email format',
-						{ operation: 'createUser', resource: 'auth', metadata: { email: userData.email } }
+						{
+							operation: 'createUser',
+							resource: 'auth',
+							metadata: { email: userData.email }
+						}
 					)
 				}
 
@@ -468,13 +495,13 @@ export class AuthService {
 				throw this.errorHandler.createBusinessError(
 					ErrorCode.INTERNAL_SERVER_ERROR,
 					error.message || 'Failed to create user account',
-					{ 
-						operation: 'createUser', 
-						resource: 'auth', 
-						metadata: { 
+					{
+						operation: 'createUser',
+						resource: 'auth',
+						metadata: {
 							errorMessage: error.message,
 							errorCode: error.code || 'UNKNOWN'
-						} 
+						}
 					}
 				)
 			}
@@ -502,13 +529,13 @@ export class AuthService {
 				throw this.errorHandler.createBusinessError(
 					ErrorCode.INTERNAL_SERVER_ERROR,
 					'Failed to create user account - no user data returned',
-					{ 
-						operation: 'createUser', 
-						resource: 'auth', 
-						metadata: { 
+					{
+						operation: 'createUser',
+						resource: 'auth',
+						metadata: {
 							hasData: true,
 							dataKeys: Object.keys(data).join(',')
-						} 
+						}
 					}
 				)
 			}
@@ -524,15 +551,15 @@ export class AuthService {
 				throw this.errorHandler.createBusinessError(
 					ErrorCode.INTERNAL_SERVER_ERROR,
 					'Failed to create user account - incomplete user data',
-					{ 
-						operation: 'createUser', 
-						resource: 'auth', 
-						metadata: { 
+					{
+						operation: 'createUser',
+						resource: 'auth',
+						metadata: {
 							userId: data.user.id || 'unknown',
 							userEmail: data.user.email || 'unknown',
 							hasId: !!data.user.id,
 							hasEmail: !!data.user.email
-						} 
+						}
 					}
 				)
 			}
@@ -546,14 +573,20 @@ export class AuthService {
 			// Sync user with local database
 			try {
 				await this.syncUserWithDatabase(data.user)
-				this.logger.debug('Successfully synced user with local database', {
-					userId: data.user.id
-				})
+				this.logger.debug(
+					'Successfully synced user with local database',
+					{
+						userId: data.user.id
+					}
+				)
 			} catch (syncError) {
 				this.logger.error('Failed to sync user with local database', {
 					userId: data.user.id,
 					email: data.user.email,
-					error: syncError instanceof Error ? syncError.message : 'Unknown sync error'
+					error:
+						syncError instanceof Error
+							? syncError.message
+							: 'Unknown sync error'
 				})
 				// Continue - the Supabase user was created successfully
 				// The sync can be retried later when the user logs in
@@ -572,15 +605,21 @@ export class AuthService {
 
 			// Send welcome email (EmailService disabled)
 			try {
-				this.logger.log('Welcome email would be sent (EmailService disabled)', {
-					email: data.user.email,
-					name: userData.name
-				})
+				this.logger.log(
+					'Welcome email would be sent (EmailService disabled)',
+					{
+						email: data.user.email,
+						name: userData.name
+					}
+				)
 			} catch (emailError) {
 				this.logger.error('Error sending welcome email', {
 					userId: data.user.id,
 					email: data.user.email,
-					error: emailError instanceof Error ? emailError.message : 'Unknown email error'
+					error:
+						emailError instanceof Error
+							? emailError.message
+							: 'Unknown email error'
 				})
 				// Don't fail the user creation if email fails
 			}
@@ -591,17 +630,22 @@ export class AuthService {
 			})
 
 			return response
-
 		} catch (error) {
 			// Re-throw business errors without modification
-			if (error instanceof Error && error.name?.includes('BusinessError')) {
+			if (
+				error instanceof Error &&
+				error.name?.includes('BusinessError')
+			) {
 				throw error
 			}
 
 			// Handle unexpected errors
 			this.logger.error('Unexpected error in createUser', {
 				error: {
-					message: error instanceof Error ? error.message : 'Unknown error',
+					message:
+						error instanceof Error
+							? error.message
+							: 'Unknown error',
 					name: error instanceof Error ? error.name : 'Unknown',
 					stack: error instanceof Error ? error.stack : undefined
 				},
@@ -611,13 +655,19 @@ export class AuthService {
 			throw this.errorHandler.createBusinessError(
 				ErrorCode.INTERNAL_SERVER_ERROR,
 				'An unexpected error occurred while creating user account',
-				{ 
-					operation: 'createUser', 
-					resource: 'auth', 
-					metadata: { 
-						errorMessage: error instanceof Error ? error.message : 'Unknown error',
-						errorType: error instanceof Error ? error.constructor.name : typeof error
-					} 
+				{
+					operation: 'createUser',
+					resource: 'auth',
+					metadata: {
+						errorMessage:
+							error instanceof Error
+								? error.message
+								: 'Unknown error',
+						errorType:
+							error instanceof Error
+								? error.constructor.name
+								: typeof error
+					}
 				}
 			)
 		}
@@ -632,8 +682,6 @@ export class AuthService {
 		})
 	}
 
-
-
 	/**
 	 * Logout user and invalidate tokens
 	 */
@@ -641,12 +689,12 @@ export class AuthService {
 		try {
 			// Supabase handles token invalidation
 			const { error } = await this.supabase.auth.admin.signOut(token)
-			
+
 			if (error) {
 				this.logger.error('Logout failed:', error)
 				// Don't throw - allow logout to proceed even if token is already invalid
 			}
-			
+
 			this.logger.debug('User logged out successfully')
 		} catch (error) {
 			this.logger.error('Unexpected error during logout:', error)
@@ -677,9 +725,12 @@ export class AuthService {
 					error: error.message,
 					errorCode: error.status
 				})
-				
+
 				// Map Supabase errors to business errors
-				if (error.message?.includes('Invalid refresh token') || error.status === 400) {
+				if (
+					error.message?.includes('Invalid refresh token') ||
+					error.status === 400
+				) {
 					throw this.errorHandler.createBusinessError(
 						ErrorCode.UNAUTHORIZED,
 						'Invalid or expired refresh token',
@@ -690,8 +741,8 @@ export class AuthService {
 				throw this.errorHandler.createBusinessError(
 					ErrorCode.INTERNAL_SERVER_ERROR,
 					'Token refresh failed',
-					{ 
-						operation: 'refreshToken', 
+					{
+						operation: 'refreshToken',
 						resource: 'auth',
 						metadata: { errorMessage: error.message }
 					}
@@ -707,7 +758,9 @@ export class AuthService {
 			}
 
 			// Get updated user data
-			const validatedUser = await this.validateSupabaseToken(data.session.access_token)
+			const validatedUser = await this.validateSupabaseToken(
+				data.session.access_token
+			)
 
 			this.logger.debug('Token refresh successful', {
 				userId: validatedUser.id,
@@ -721,12 +774,16 @@ export class AuthService {
 				expires_in: data.session.expires_in || 3600,
 				user: validatedUser
 			}
-
 		} catch (error) {
 			this.logger.error('Token refresh error:', error)
-			
+
 			// Re-throw business errors as-is
-			if (error && typeof error === 'object' && 'code' in error && 'statusCode' in error) {
+			if (
+				error &&
+				typeof error === 'object' &&
+				'code' in error &&
+				'statusCode' in error
+			) {
 				throw error
 			}
 
@@ -743,7 +800,11 @@ export class AuthService {
 	 * Login user with email and password
 	 * Returns access token, refresh token, and user data
 	 */
-	async login(email: string, password: string, ip?: string): Promise<{
+	async login(
+		email: string,
+		password: string,
+		ip?: string
+	): Promise<{
 		access_token: string
 		refresh_token: string
 		expires_in: number
@@ -761,14 +822,18 @@ export class AuthService {
 			})
 
 			// Check for brute force attacks before attempting authentication
-			const authAttempt = await this.securityMonitor.trackAuthAttempt(ip || 'unknown', email, false)
+			const authAttempt = await this.securityMonitor.trackAuthAttempt(
+				ip || 'unknown',
+				email,
+				false
+			)
 			if (authAttempt.blocked) {
 				await this.securityMonitor.logSecurityEvent({
 					type: 'BRUTE_FORCE_DETECTED',
 					email,
 					ip,
 					severity: 'critical',
-					details: { 
+					details: {
 						remainingAttempts: authAttempt.remainingAttempts,
 						action: 'login_blocked'
 					}
@@ -777,15 +842,21 @@ export class AuthService {
 				throw this.errorHandler.createBusinessError(
 					ErrorCode.TOO_MANY_REQUESTS,
 					'Too many failed login attempts. Please try again later.',
-					{ operation: 'login', resource: 'auth', metadata: { email, ip } }
+					{
+						operation: 'login',
+						resource: 'auth',
+						metadata: { email, ip }
+					}
 				)
 			}
 
 			// Authenticate with Supabase
-			const { data, error } = await this.supabase.auth.signInWithPassword({
-				email,
-				password
-			})
+			const { data, error } = await this.supabase.auth.signInWithPassword(
+				{
+					email,
+					password
+				}
+			)
 
 			if (error) {
 				this.logger.warn('Login failed', {
@@ -806,14 +877,25 @@ export class AuthService {
 				})
 
 				// Track failed attempt for brute force detection
-				await this.securityMonitor.trackAuthAttempt(ip || 'unknown', email, false)
+				await this.securityMonitor.trackAuthAttempt(
+					ip || 'unknown',
+					email,
+					false
+				)
 
 				// Map Supabase errors to business errors
-				if (error.message?.includes('Invalid login credentials') || error.status === 400) {
+				if (
+					error.message?.includes('Invalid login credentials') ||
+					error.status === 400
+				) {
 					throw this.errorHandler.createBusinessError(
 						ErrorCode.UNAUTHORIZED,
 						'Invalid email or password',
-						{ operation: 'login', resource: 'auth', metadata: { email } }
+						{
+							operation: 'login',
+							resource: 'auth',
+							metadata: { email }
+						}
 					)
 				}
 
@@ -821,15 +903,19 @@ export class AuthService {
 					throw this.errorHandler.createBusinessError(
 						ErrorCode.FORBIDDEN,
 						'Please verify your email address before signing in',
-						{ operation: 'login', resource: 'auth', metadata: { email } }
+						{
+							operation: 'login',
+							resource: 'auth',
+							metadata: { email }
+						}
 					)
 				}
 
 				throw this.errorHandler.createBusinessError(
 					ErrorCode.INTERNAL_SERVER_ERROR,
 					'Login failed',
-					{ 
-						operation: 'login', 
+					{
+						operation: 'login',
 						resource: 'auth',
 						metadata: { email, errorMessage: error.message }
 					}
@@ -840,12 +926,18 @@ export class AuthService {
 				throw this.errorHandler.createBusinessError(
 					ErrorCode.INTERNAL_SERVER_ERROR,
 					'Invalid login response',
-					{ operation: 'login', resource: 'auth', metadata: { email } }
+					{
+						operation: 'login',
+						resource: 'auth',
+						metadata: { email }
+					}
 				)
 			}
 
 			// Get validated user data
-			const validatedUser = await this.validateSupabaseToken(data.session.access_token)
+			const validatedUser = await this.validateSupabaseToken(
+				data.session.access_token
+			)
 
 			// Log successful authentication and reset tracking
 			await this.securityMonitor.logSecurityEvent({
@@ -857,7 +949,11 @@ export class AuthService {
 			})
 
 			// Reset brute force tracking on successful login
-			await this.securityMonitor.trackAuthAttempt(ip || 'unknown', email, true)
+			await this.securityMonitor.trackAuthAttempt(
+				ip || 'unknown',
+				email,
+				true
+			)
 
 			this.logger.log('User login successful', {
 				userId: validatedUser.id,
@@ -870,12 +966,16 @@ export class AuthService {
 				expires_in: data.session.expires_in || 3600,
 				user: validatedUser
 			}
-
 		} catch (error) {
 			this.logger.error('Login error:', error)
-			
+
 			// Re-throw business errors as-is
-			if (error && typeof error === 'object' && 'code' in error && 'statusCode' in error) {
+			if (
+				error &&
+				typeof error === 'object' &&
+				'code' in error &&
+				'statusCode' in error
+			) {
 				throw error
 			}
 
@@ -904,7 +1004,11 @@ export class AuthService {
 				throw this.errorHandler.createBusinessError(
 					ErrorCode.SERVICE_UNAVAILABLE,
 					'Authentication service connection failed',
-					{ operation: 'testConnection', resource: 'auth', metadata: { error: error.message } }
+					{
+						operation: 'testConnection',
+						resource: 'auth',
+						metadata: { error: error.message }
+					}
 				)
 			}
 

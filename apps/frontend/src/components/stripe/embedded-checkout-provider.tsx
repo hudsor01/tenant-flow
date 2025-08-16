@@ -6,27 +6,29 @@ import type { ReactNode } from 'react'
 // const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '')
 
 interface EmbeddedCheckoutProviderProps {
-    children: ReactNode
-    options: {
-        clientSecret: string
-        onComplete?: () => void
-    }
+	children: ReactNode
+	options: {
+		clientSecret: string
+		onComplete?: () => void
+	}
 }
 
 /**
  * Provider component for Stripe's Embedded Checkout
  * Provides context for embedded checkout components
- * 
+ *
  * TODO: This is a GitHub example that needs proper integration
  */
-export function EmbeddedCheckoutProvider({ children }: EmbeddedCheckoutProviderProps) {
-    return <>{children}</>
+export function EmbeddedCheckoutProvider({
+	children
+}: EmbeddedCheckoutProviderProps) {
+	return <>{children}</>
 }
 
 // export function EmbeddedCheckoutProvider({ children, options }: EmbeddedCheckoutProviderProps) {
 //     return (
-//         <StripeEmbeddedCheckoutProvider 
-//             stripe={stripePromise} 
+//         <StripeEmbeddedCheckoutProvider
+//             stripe={stripePromise}
 //             options={options}
 //         >
 //             {children}

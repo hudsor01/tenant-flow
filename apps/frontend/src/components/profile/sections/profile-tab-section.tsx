@@ -39,7 +39,13 @@ export function ProfileTabSection({
 	getInitials
 }: ProfileTabSectionProps) {
 	return (
-		<form onSubmit={createAsyncHandler(form.handleSubmit(onSubmit), 'Failed to update profile')} className="space-y-6">
+		<form
+			onSubmit={createAsyncHandler(
+				form.handleSubmit(onSubmit),
+				'Failed to update profile'
+			)}
+			className="space-y-6"
+		>
 			{/* Avatar Upload Section */}
 			<AvatarUploadSection
 				user={user}
@@ -63,7 +69,7 @@ export function ProfileTabSection({
 						<Input
 							id="name"
 							placeholder="Enter your full name"
-							className="pl-10 transition-colors focus:border-primary"
+							className="focus:border-primary pl-10 transition-colors"
 							{...form.register('fullName')}
 						/>
 					</div>
@@ -88,7 +94,7 @@ export function ProfileTabSection({
 							id="phone"
 							type="tel"
 							placeholder="e.g., (555) 123-4567"
-							className="pl-10 transition-colors focus:border-primary"
+							className="focus:border-primary pl-10 transition-colors"
 							// {...form.register('phone')} // Commented out until phone is added to ProfileFormData interface
 						/>
 					</div>
@@ -115,7 +121,7 @@ export function ProfileTabSection({
 						<Textarea
 							id="bio"
 							placeholder="Tell us a bit about yourself..."
-							className="min-h-[80px] pl-10 transition-colors focus:border-primary"
+							className="focus:border-primary min-h-[80px] pl-10 transition-colors"
 							{...form.register('bio')}
 						/>
 					</div>

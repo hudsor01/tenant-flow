@@ -29,14 +29,21 @@ export function generateTexasLeaseHTML(data: TexasLeaseData): string {
 	}
 
 	const fullAddress = `${data.propertyAddress}${data.unitNumber ? `, ${data.unitNumber}` : ''}`
-	const tenantList = data.tenantNames.map(t => typeof t === 'string' ? t : t.name).join(' and ')
+	const tenantList = data.tenantNames
+		.map(t => (typeof t === 'string' ? t : t.name))
+		.join(' and ')
 	const signatureDate = formatDateForSignature(data.leaseStartDate)
 	const holdOverRent = Math.round(data.rentAmount * 1.1) // 10% increase for holdover
 	const lateFeePerDay = data.lateFeeAmount
 	const nsfFee = data.lateFeeAmount || 50 // Default NSF fee
 	const petFeePerDay = data.petDeposit || 25 // Default pet violation fee
 	const familyMembers =
-		data.tenantNames.length > 1 ? data.tenantNames.slice(1).map(t => typeof t === 'string' ? t : t.name).join(', ') : ''
+		data.tenantNames.length > 1
+			? data.tenantNames
+					.slice(1)
+					.map(t => (typeof t === 'string' ? t : t.name))
+					.join(', ')
+			: ''
 
 	return `
 <!DOCTYPE html>
@@ -341,9 +348,10 @@ export function generateTexasLeaseHTML(data: TexasLeaseData): string {
 export function generateTexasLeaseText(data: TexasLeaseData): string {
 	// Using shared date formatting utility
 
-
 	const fullAddress = `${data.propertyAddress}${data.unitNumber ? `, ${data.unitNumber}` : ''}, ${data.city}, ${data.state} ${data.zipCode}`
-	const tenantList = data.tenantNames.map(t => typeof t === 'string' ? t : t.name).join(', ')
+	const tenantList = data.tenantNames
+		.map(t => (typeof t === 'string' ? t : t.name))
+		.join(', ')
 	const currentDate = new Date().toLocaleDateString('en-US')
 
 	return `

@@ -183,9 +183,10 @@ function MaintenanceAlert({ alert }: { alert: MaintenanceAlert }) {
 							<span className="flex items-center space-x-1">
 								<Home className="h-3 w-3" />
 								<span>
-									{'request' in alert && alert.request.propertyName
-                                            ? `${alert.request.propertyName}${alert.request.unitNumber ? ` - Unit ${alert.request.unitNumber}` : ''}`
-                                            : 'Unknown location'}
+									{'request' in alert &&
+									alert.request.propertyName
+										? `${alert.request.propertyName}${alert.request.unitNumber ? ` - Unit ${alert.request.unitNumber}` : ''}`
+										: 'Unknown location'}
 								</span>
 							</span>
 							<span className="flex items-center space-x-1">
@@ -220,7 +221,11 @@ export function CriticalAlerts() {
 	const allAlerts: Alert[] = [...rentAlerts, ...maintenanceAlerts]
 		.sort((a, b) => {
 			// Sort by severity first (error > warning > info)
-			const severityOrder: Record<string, number> = { error: 0, warning: 1, info: 2 }
+			const severityOrder: Record<string, number> = {
+				error: 0,
+				warning: 1,
+				info: 2
+			}
 			const aSeverity = severityOrder[a.severity as string] ?? 3
 			const bSeverity = severityOrder[b.severity as string] ?? 3
 
@@ -228,14 +233,22 @@ export function CriticalAlerts() {
 
 			// Then by creation date (newest first)
 			// RentAlert has dueDate, MaintenanceAlert has createdAt
-			const aDate = 'createdAt' in a ? (a as MaintenanceAlert).createdAt : (a as RentAlert).dueDate
-			const bDate = 'createdAt' in b ? (b as MaintenanceAlert).createdAt : (b as RentAlert).dueDate
+			const aDate =
+				'createdAt' in a
+					? (a as MaintenanceAlert).createdAt
+					: (a as RentAlert).dueDate
+			const bDate =
+				'createdAt' in b
+					? (b as MaintenanceAlert).createdAt
+					: (b as RentAlert).dueDate
 			return new Date(bDate).getTime() - new Date(aDate).getTime()
 		})
 		.slice(0, 10) // Show top 10 critical alerts
 
-	const totalCritical = (rentCounts?.overdue || 0) + (maintenanceCounts?.emergency || 0)
-	const totalWarnings = (rentCounts?.due_soon || 0) + (maintenanceCounts?.high_priority || 0)
+	const totalCritical =
+		(rentCounts?.overdue || 0) + (maintenanceCounts?.emergency || 0)
+	const totalWarnings =
+		(rentCounts?.due_soon || 0) + (maintenanceCounts?.high_priority || 0)
 
 	return (
 		<Card>

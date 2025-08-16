@@ -12,7 +12,7 @@ import { AxiosError } from 'axios'
 export class ExternalApiService {
 	private readonly logger = new Logger(ExternalApiService.name)
 	private readonly defaultTimeout = 10000 // 10 seconds
-	
+
 	constructor(
 		private readonly httpService: HttpService,
 		private readonly configService: ConfigService
@@ -41,7 +41,8 @@ export class ExternalApiService {
 		this.logger.debug(`Making ${method} request to ${url}`)
 
 		const response = await firstValueFrom(
-				this.httpService.request<T>({
+			this.httpService
+				.request<T>({
 					url,
 					method,
 					data,
@@ -49,21 +50,25 @@ export class ExternalApiService {
 						'Content-Type': 'application/json',
 						...headers
 					}
-				}).pipe(
+				})
+				.pipe(
 					timeout(timeoutMs),
 					catchError((error: AxiosError) => {
-						this.logger.error(`External API call failed: ${error.message}`, {
-							url,
-							method,
-							status: error.response?.status,
-							data: error.response?.data
-						})
+						this.logger.error(
+							`External API call failed: ${error.message}`,
+							{
+								url,
+								method,
+								status: error.response?.status,
+								data: error.response?.data
+							}
+						)
 						throw error
 					})
 				)
-			)
+		)
 
-			return response.data
+		return response.data
 	}
 
 	/**
@@ -92,13 +97,13 @@ export class ExternalApiService {
 		} = {}
 	): Promise<T> {
 		const stripeApiKey = this.configService.get<string>('STRIPE_SECRET_KEY')
-		
+
 		return this.makeResilientCall<T>(
 			`https://api.stripe.com/v1/${endpoint}`,
 			{
 				...options,
 				headers: {
-					'Authorization': `Bearer ${stripeApiKey}`,
+					Authorization: `Bearer ${stripeApiKey}`,
 					'Stripe-Version': '2023-10-16'
 				}
 			}
@@ -116,22 +121,23 @@ export class ExternalApiService {
 		} = {}
 	): Promise<T> {
 		const supabaseUrl = this.configService.get<string>('SUPABASE_URL')
-		const supabaseKey = this.configService.get<string>('SUPABASE_SERVICE_KEY')
-		
-		if (!supabaseKey) {
-			throw new Error('SUPABASE_SERVICE_KEY is required for Supabase API calls')
-		}
-		
-		return this.makeResilientCall<T>(
-			`${supabaseUrl}/rest/v1/${endpoint}`,
-			{
-				...options,
-				headers: {
-					'apikey': supabaseKey,
-					'Authorization': `Bearer ${supabaseKey}`
-				}
-			}
+		const supabaseKey = this.configService.get<string>(
+			'SUPABASE_SERVICE_KEY'
 		)
+
+		if (!supabaseKey) {
+			throw new Error(
+				'SUPABASE_SERVICE_KEY is required for Supabase API calls'
+			)
+		}
+
+		return this.makeResilientCall<T>(`${supabaseUrl}/rest/v1/${endpoint}`, {
+			...options,
+			headers: {
+				apikey: supabaseKey,
+				Authorization: `Bearer ${supabaseKey}`
+			}
+		})
 	}
 
 	/**
@@ -143,7 +149,7 @@ export class ExternalApiService {
 		html: string
 	): Promise<void> {
 		const resendApiKey = this.configService.get<string>('RESEND_API_KEY')
-		
+
 		await this.makeResilientCall('https://api.resend.com/emails', {
 			method: 'POST',
 			data: {
@@ -153,7 +159,7 @@ export class ExternalApiService {
 				html
 			},
 			headers: {
-				'Authorization': `Bearer ${resendApiKey}`
+				Authorization: `Bearer ${resendApiKey}`
 			}
 		})
 	}

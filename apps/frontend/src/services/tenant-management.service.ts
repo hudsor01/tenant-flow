@@ -1,504 +1,570 @@
 /**
  * Tenant Management Service
- * 
+ *
  * Encapsulates tenant management business logic, including validation,
  * communication tracking, and lease relationships.
  */
 
-import type { 
-  Tenant, 
-  CreateTenantInput, 
-  UpdateTenantInput,
-  Lease,
-  Result
-} from '@repo/shared';
-import type { 
-  TenantRepository,
-  LeaseRepository 
-} from '@/repositories/interfaces';
-import { Email, PhoneNumber, DomainError, ValidationError } from '@repo/shared';
+import type {
+	Tenant,
+	CreateTenantInput,
+	UpdateTenantInput,
+	Lease,
+	Result
+} from '@repo/shared'
+import type {
+	TenantRepository,
+	LeaseRepository
+} from '@/repositories/interfaces'
+import { Email, PhoneNumber, DomainError, ValidationError } from '@repo/shared'
 
 export interface TenantManagementService {
-  getTenant(id: string): Promise<Result<Tenant>>;
-  getAllTenants(): Promise<Result<Tenant[]>>;
-  getTenantsByProperty(propertyId: string): Promise<Result<Tenant[]>>;
-  createTenant(input: CreateTenantInput): Promise<Result<Tenant>>;
-  updateTenant(id: string, input: UpdateTenantInput): Promise<Result<Tenant>>;
-  deleteTenant(id: string): Promise<Result<void>>;
-  getTenantLeases(tenantId: string): Promise<Result<Lease[]>>;
-  findTenantByEmail(email: string): Promise<Result<Tenant | null>>;
-  getExpiringSoonTenants(days: number): Promise<Result<Tenant[]>>;
-  validateTenantData(input: CreateTenantInput | UpdateTenantInput): Result<void>;
-  canDeleteTenant(tenantId: string): Promise<Result<boolean>>;
+	getTenant(id: string): Promise<Result<Tenant>>
+	getAllTenants(): Promise<Result<Tenant[]>>
+	getTenantsByProperty(propertyId: string): Promise<Result<Tenant[]>>
+	createTenant(input: CreateTenantInput): Promise<Result<Tenant>>
+	updateTenant(id: string, input: UpdateTenantInput): Promise<Result<Tenant>>
+	deleteTenant(id: string): Promise<Result<void>>
+	getTenantLeases(tenantId: string): Promise<Result<Lease[]>>
+	findTenantByEmail(email: string): Promise<Result<Tenant | null>>
+	getExpiringSoonTenants(days: number): Promise<Result<Tenant[]>>
+	validateTenantData(
+		input: CreateTenantInput | UpdateTenantInput
+	): Result<void>
+	canDeleteTenant(tenantId: string): Promise<Result<boolean>>
 }
 
 interface TenantBusinessRules {
-  maxNameLength: number;
-  maxNotesLength: number;
-  minAge: number;
-  maxTenantsPerUnit: number;
-  requiredFields: (keyof CreateTenantInput)[];
-  allowedContactMethods: string[];
+	maxNameLength: number
+	maxNotesLength: number
+	minAge: number
+	maxTenantsPerUnit: number
+	requiredFields: (keyof CreateTenantInput)[]
+	allowedContactMethods: string[]
 }
 
 export class DefaultTenantManagementService implements TenantManagementService {
-  private readonly businessRules: TenantBusinessRules = {
-    maxNameLength: 100,
-    maxNotesLength: 1000,
-    minAge: 18,
-    maxTenantsPerUnit: 10,
-    requiredFields: ['name', 'email'],
-    allowedContactMethods: ['email', 'phone', 'text', 'mail'],
-  };
+	private readonly businessRules: TenantBusinessRules = {
+		maxNameLength: 100,
+		maxNotesLength: 1000,
+		minAge: 18,
+		maxTenantsPerUnit: 10,
+		requiredFields: ['name', 'email'],
+		allowedContactMethods: ['email', 'phone', 'text', 'mail']
+	}
 
-  constructor(
-    private readonly tenantRepository: TenantRepository,
-    private readonly leaseRepository?: LeaseRepository
-  ) {}
+	constructor(
+		private readonly tenantRepository: TenantRepository,
+		private readonly leaseRepository?: LeaseRepository
+	) {}
 
-  async getTenant(id: string): Promise<Result<Tenant>> {
-    if (!id?.trim()) {
-      return {
-        success: false,
-        error: new ValidationError('Tenant ID is required'),
-      };
-    }
+	async getTenant(id: string): Promise<Result<Tenant>> {
+		if (!id?.trim()) {
+			return {
+				success: false,
+				error: new ValidationError('Tenant ID is required')
+			}
+		}
 
-    try {
-      const tenant = await this.tenantRepository.findById(id);
-      
-      if (!tenant) {
-        return {
-          success: false,
-          error: new DomainError(`Tenant with ID ${id} not found`),
-        };
-      }
+		try {
+			const tenant = await this.tenantRepository.findById(id)
 
-      return {
-        success: true,
-        value: tenant,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error : new DomainError('Failed to get tenant'),
-      };
-    }
-  }
+			if (!tenant) {
+				return {
+					success: false,
+					error: new DomainError(`Tenant with ID ${id} not found`)
+				}
+			}
 
-  async getAllTenants(): Promise<Result<Tenant[]>> {
-    try {
-      const tenants = await this.tenantRepository.findMany();
-      return {
-        success: true,
-        value: tenants,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error : new DomainError('Failed to fetch tenants'),
-      };
-    }
-  }
+			return {
+				success: true,
+				value: tenant
+			}
+		} catch (error) {
+			return {
+				success: false,
+				error:
+					error instanceof Error
+						? error
+						: new DomainError('Failed to get tenant')
+			}
+		}
+	}
 
-  async getTenantsByProperty(propertyId: string): Promise<Result<Tenant[]>> {
-    if (!propertyId?.trim()) {
-      return {
-        success: false,
-        error: new ValidationError('Property ID is required'),
-      };
-    }
+	async getAllTenants(): Promise<Result<Tenant[]>> {
+		try {
+			const tenants = await this.tenantRepository.findMany()
+			return {
+				success: true,
+				value: tenants
+			}
+		} catch (error) {
+			return {
+				success: false,
+				error:
+					error instanceof Error
+						? error
+						: new DomainError('Failed to fetch tenants')
+			}
+		}
+	}
 
-    try {
-      const tenants = await this.tenantRepository.findByProperty(propertyId);
-      return {
-        success: true,
-        value: tenants,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error : new DomainError('Failed to fetch tenants for property'),
-      };
-    }
-  }
+	async getTenantsByProperty(propertyId: string): Promise<Result<Tenant[]>> {
+		if (!propertyId?.trim()) {
+			return {
+				success: false,
+				error: new ValidationError('Property ID is required')
+			}
+		}
 
-  async createTenant(input: CreateTenantInput): Promise<Result<Tenant>> {
-    // Validate input
-    const validation = this.validateTenantData(input);
-    if (!validation.success) {
-      return validation;
-    }
+		try {
+			const tenants =
+				await this.tenantRepository.findByProperty(propertyId)
+			return {
+				success: true,
+				value: tenants
+			}
+		} catch (error) {
+			return {
+				success: false,
+				error:
+					error instanceof Error
+						? error
+						: new DomainError(
+								'Failed to fetch tenants for property'
+							)
+			}
+		}
+	}
 
-    // Check for duplicate email
-    const existingTenant = await this.findTenantByEmail(input.email);
-    if (existingTenant.success && existingTenant.value) {
-      return {
-        success: false,
-        error: new DomainError(`A tenant with email ${input.email} already exists`),
-      };
-    }
+	async createTenant(input: CreateTenantInput): Promise<Result<Tenant>> {
+		// Validate input
+		const validation = this.validateTenantData(input)
+		if (!validation.success) {
+			return validation
+		}
 
-    // Apply business rules
-    const businessRuleCheck = this.checkBusinessRules(input);
-    if (!businessRuleCheck.success) {
-      return businessRuleCheck;
-    }
+		// Check for duplicate email
+		const existingTenant = await this.findTenantByEmail(input.email)
+		if (existingTenant.success && existingTenant.value) {
+			return {
+				success: false,
+				error: new DomainError(
+					`A tenant with email ${input.email} already exists`
+				)
+			}
+		}
 
-    // Normalize and enhance input
-    const normalizedInput = this.normalizeTenantData(input);
+		// Apply business rules
+		const businessRuleCheck = this.checkBusinessRules(input)
+		if (!businessRuleCheck.success) {
+			return businessRuleCheck
+		}
 
-    try {
-      const tenant = await this.tenantRepository.save({
-        ...normalizedInput,
-        id: '', // Will be generated by repository
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      } as Tenant);
+		// Normalize and enhance input
+		const normalizedInput = this.normalizeTenantData(input)
 
-      return {
-        success: true,
-        value: tenant,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error : new DomainError('Failed to create tenant'),
-      };
-    }
-  }
+		try {
+			const tenant = await this.tenantRepository.save({
+				...normalizedInput,
+				id: '', // Will be generated by repository
+				createdAt: new Date(),
+				updatedAt: new Date()
+			} as Tenant)
 
-  async updateTenant(id: string, input: UpdateTenantInput): Promise<Result<Tenant>> {
-    if (!id?.trim()) {
-      return {
-        success: false,
-        error: new ValidationError('Tenant ID is required'),
-      };
-    }
+			return {
+				success: true,
+				value: tenant
+			}
+		} catch (error) {
+			return {
+				success: false,
+				error:
+					error instanceof Error
+						? error
+						: new DomainError('Failed to create tenant')
+			}
+		}
+	}
 
-    // Validate input
-    const validation = this.validateTenantData(input);
-    if (!validation.success) {
-      return validation;
-    }
+	async updateTenant(
+		id: string,
+		input: UpdateTenantInput
+	): Promise<Result<Tenant>> {
+		if (!id?.trim()) {
+			return {
+				success: false,
+				error: new ValidationError('Tenant ID is required')
+			}
+		}
 
-    // Check if tenant exists
-    const existingTenant = await this.getTenant(id);
-    if (!existingTenant.success) {
-      return existingTenant;
-    }
+		// Validate input
+		const validation = this.validateTenantData(input)
+		if (!validation.success) {
+			return validation
+		}
 
-    // Check for duplicate email if email is being changed
-    if (input.email && input.email !== existingTenant.value.email) {
-      const duplicateCheck = await this.findTenantByEmail(input.email);
-      if (duplicateCheck.success && duplicateCheck.value) {
-        return {
-          success: false,
-          error: new DomainError(`A tenant with email ${input.email} already exists`),
-        };
-      }
-    }
+		// Check if tenant exists
+		const existingTenant = await this.getTenant(id)
+		if (!existingTenant.success) {
+			return existingTenant
+		}
 
-    // Apply business rules
-    const businessRuleCheck = this.checkBusinessRules(input);
-    if (!businessRuleCheck.success) {
-      return businessRuleCheck;
-    }
+		// Check for duplicate email if email is being changed
+		if (input.email && input.email !== existingTenant.value.email) {
+			const duplicateCheck = await this.findTenantByEmail(input.email)
+			if (duplicateCheck.success && duplicateCheck.value) {
+				return {
+					success: false,
+					error: new DomainError(
+						`A tenant with email ${input.email} already exists`
+					)
+				}
+			}
+		}
 
-    // Normalize input and merge with existing data
-    const normalizedInput = this.normalizeTenantData(input);
-    const updatedTenant: Tenant = {
-      ...existingTenant.value,
-      ...normalizedInput,
-      updatedAt: new Date(),
-    };
+		// Apply business rules
+		const businessRuleCheck = this.checkBusinessRules(input)
+		if (!businessRuleCheck.success) {
+			return businessRuleCheck
+		}
 
-    try {
-      const tenant = await this.tenantRepository.save(updatedTenant);
-      return {
-        success: true,
-        value: tenant,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error : new DomainError('Failed to update tenant'),
-      };
-    }
-  }
+		// Normalize input and merge with existing data
+		const normalizedInput = this.normalizeTenantData(input)
+		const updatedTenant: Tenant = {
+			...existingTenant.value,
+			...normalizedInput,
+			updatedAt: new Date()
+		}
 
-  async deleteTenant(id: string): Promise<Result<void>> {
-    if (!id?.trim()) {
-      return {
-        success: false,
-        error: new ValidationError('Tenant ID is required'),
-      };
-    }
+		try {
+			const tenant = await this.tenantRepository.save(updatedTenant)
+			return {
+				success: true,
+				value: tenant
+			}
+		} catch (error) {
+			return {
+				success: false,
+				error:
+					error instanceof Error
+						? error
+						: new DomainError('Failed to update tenant')
+			}
+		}
+	}
 
-    // Check if tenant exists
-    const existingTenant = await this.getTenant(id);
-    if (!existingTenant.success) {
-      return {
-        success: false,
-        error: existingTenant.error,
-      };
-    }
+	async deleteTenant(id: string): Promise<Result<void>> {
+		if (!id?.trim()) {
+			return {
+				success: false,
+				error: new ValidationError('Tenant ID is required')
+			}
+		}
 
-    // Check if tenant can be deleted
-    const canDelete = await this.canDeleteTenant(id);
-    if (!canDelete.success) {
-      return {
-        success: false,
-        error: canDelete.error,
-      };
-    }
+		// Check if tenant exists
+		const existingTenant = await this.getTenant(id)
+		if (!existingTenant.success) {
+			return {
+				success: false,
+				error: existingTenant.error
+			}
+		}
 
-    if (!canDelete.value) {
-      return {
-        success: false,
-        error: new DomainError('Cannot delete tenant with active leases. Please terminate all leases first.'),
-      };
-    }
+		// Check if tenant can be deleted
+		const canDelete = await this.canDeleteTenant(id)
+		if (!canDelete.success) {
+			return {
+				success: false,
+				error: canDelete.error
+			}
+		}
 
-    try {
-      await this.tenantRepository.delete(id);
-      return {
-        success: true,
-        value: undefined,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error : new DomainError('Failed to delete tenant'),
-      };
-    }
-  }
+		if (!canDelete.value) {
+			return {
+				success: false,
+				error: new DomainError(
+					'Cannot delete tenant with active leases. Please terminate all leases first.'
+				)
+			}
+		}
 
-  async getTenantLeases(tenantId: string): Promise<Result<Lease[]>> {
-    if (!this.leaseRepository) {
-      return {
-        success: false,
-        error: new DomainError('Lease repository not available'),
-      };
-    }
+		try {
+			await this.tenantRepository.delete(id)
+			return {
+				success: true,
+				value: undefined
+			}
+		} catch (error) {
+			return {
+				success: false,
+				error:
+					error instanceof Error
+						? error
+						: new DomainError('Failed to delete tenant')
+			}
+		}
+	}
 
-    if (!tenantId?.trim()) {
-      return {
-        success: false,
-        error: new ValidationError('Tenant ID is required'),
-      };
-    }
+	async getTenantLeases(tenantId: string): Promise<Result<Lease[]>> {
+		if (!this.leaseRepository) {
+			return {
+				success: false,
+				error: new DomainError('Lease repository not available')
+			}
+		}
 
-    try {
-      const leases = await this.leaseRepository.findByTenant(tenantId);
-      return {
-        success: true,
-        value: leases,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error : new DomainError('Failed to fetch tenant leases'),
-      };
-    }
-  }
+		if (!tenantId?.trim()) {
+			return {
+				success: false,
+				error: new ValidationError('Tenant ID is required')
+			}
+		}
 
-  async findTenantByEmail(email: string): Promise<Result<Tenant | null>> {
-    if (!email?.trim()) {
-      return {
-        success: false,
-        error: new ValidationError('Email is required'),
-      };
-    }
+		try {
+			const leases = await this.leaseRepository.findByTenant(tenantId)
+			return {
+				success: true,
+				value: leases
+			}
+		} catch (error) {
+			return {
+				success: false,
+				error:
+					error instanceof Error
+						? error
+						: new DomainError('Failed to fetch tenant leases')
+			}
+		}
+	}
 
-    // Validate email format
-    try {
-      new Email(email);
-    } catch {
-      return {
-        success: false,
-        error: new ValidationError('Invalid email format'),
-      };
-    }
+	async findTenantByEmail(email: string): Promise<Result<Tenant | null>> {
+		if (!email?.trim()) {
+			return {
+				success: false,
+				error: new ValidationError('Email is required')
+			}
+		}
 
-    try {
-      const tenant = await this.tenantRepository.findByEmail(email.toLowerCase().trim());
-      return {
-        success: true,
-        value: tenant,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error : new DomainError('Failed to find tenant by email'),
-      };
-    }
-  }
+		// Validate email format
+		try {
+			new Email(email)
+		} catch {
+			return {
+				success: false,
+				error: new ValidationError('Invalid email format')
+			}
+		}
 
-  async getExpiringSoonTenants(days = 30): Promise<Result<Tenant[]>> {
-    if (days < 1 || days > 365) {
-      return {
-        success: false,
-        error: new ValidationError('Days must be between 1 and 365'),
-      };
-    }
+		try {
+			const tenant = await this.tenantRepository.findByEmail(
+				email.toLowerCase().trim()
+			)
+			return {
+				success: true,
+				value: tenant
+			}
+		} catch (error) {
+			return {
+				success: false,
+				error:
+					error instanceof Error
+						? error
+						: new DomainError('Failed to find tenant by email')
+			}
+		}
+	}
 
-    try {
-      const tenants = await this.tenantRepository.findExpiringSoonTenants(days);
-      return {
-        success: true,
-        value: tenants,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error : new DomainError('Failed to fetch expiring tenants'),
-      };
-    }
-  }
+	async getExpiringSoonTenants(days = 30): Promise<Result<Tenant[]>> {
+		if (days < 1 || days > 365) {
+			return {
+				success: false,
+				error: new ValidationError('Days must be between 1 and 365')
+			}
+		}
 
-  validateTenantData(input: CreateTenantInput | UpdateTenantInput): Result<void> {
-    const errors: string[] = [];
+		try {
+			const tenants =
+				await this.tenantRepository.findExpiringSoonTenants(days)
+			return {
+				success: true,
+				value: tenants
+			}
+		} catch (error) {
+			return {
+				success: false,
+				error:
+					error instanceof Error
+						? error
+						: new DomainError('Failed to fetch expiring tenants')
+			}
+		}
+	}
 
-    // Validate name
-    if ('name' in input && input.name !== undefined) {
-      if (!input.name?.trim()) {
-        errors.push('Name is required');
-      } else if (input.name.length > this.businessRules.maxNameLength) {
-        errors.push(`Name cannot exceed ${this.businessRules.maxNameLength} characters`);
-      }
-    }
+	validateTenantData(
+		input: CreateTenantInput | UpdateTenantInput
+	): Result<void> {
+		const errors: string[] = []
 
-    // Validate email
-    if ('email' in input && input.email !== undefined) {
-      if (!input.email?.trim()) {
-        errors.push('Email is required');
-      } else {
-        try {
-          new Email(input.email);
-        } catch {
-          errors.push('Please enter a valid email address');
-        }
-      }
-    }
+		// Validate name
+		if ('name' in input && input.name !== undefined) {
+			if (!input.name?.trim()) {
+				errors.push('Name is required')
+			} else if (input.name.length > this.businessRules.maxNameLength) {
+				errors.push(
+					`Name cannot exceed ${this.businessRules.maxNameLength} characters`
+				)
+			}
+		}
 
-    // Validate phone number if provided
-    if ('phone' in input && input.phone) {
-      try {
-        new PhoneNumber(input.phone);
-      } catch {
-        errors.push('Please enter a valid phone number');
-      }
-    }
+		// Validate email
+		if ('email' in input && input.email !== undefined) {
+			if (!input.email?.trim()) {
+				errors.push('Email is required')
+			} else {
+				try {
+					new Email(input.email)
+				} catch {
+					errors.push('Please enter a valid email address')
+				}
+			}
+		}
 
-    // Validate notes length if provided
-    if ('notes' in input && input.notes) {
-      if (input.notes.length > this.businessRules.maxNotesLength) {
-        errors.push(`Notes cannot exceed ${this.businessRules.maxNotesLength} characters`);
-      }
-    }
+		// Validate phone number if provided
+		if ('phone' in input && input.phone) {
+			try {
+				new PhoneNumber(input.phone)
+			} catch {
+				errors.push('Please enter a valid phone number')
+			}
+		}
 
-    // Validate emergency contact if provided (simple string validation)
-    if ('emergencyContact' in input && input.emergencyContact) {
-      if (input.emergencyContact.length > this.businessRules.maxNameLength) {
-        errors.push(`Emergency contact cannot exceed ${this.businessRules.maxNameLength} characters`);
-      }
-    }
+		// Validate notes length if provided
+		if ('notes' in input && input.notes) {
+			if (input.notes.length > this.businessRules.maxNotesLength) {
+				errors.push(
+					`Notes cannot exceed ${this.businessRules.maxNotesLength} characters`
+				)
+			}
+		}
 
-    if (errors.length > 0) {
-      return {
-        success: false,
-        error: new ValidationError(errors.join('; ')),
-      };
-    }
+		// Validate emergency contact if provided (simple string validation)
+		if ('emergencyContact' in input && input.emergencyContact) {
+			if (
+				input.emergencyContact.length > this.businessRules.maxNameLength
+			) {
+				errors.push(
+					`Emergency contact cannot exceed ${this.businessRules.maxNameLength} characters`
+				)
+			}
+		}
 
-    return { success: true, value: undefined };
-  }
+		if (errors.length > 0) {
+			return {
+				success: false,
+				error: new ValidationError(errors.join('; '))
+			}
+		}
 
-  async canDeleteTenant(tenantId: string): Promise<Result<boolean>> {
-    if (!this.leaseRepository) {
-      return {
-        success: true,
-        value: true, // Allow deletion if we can't check leases
-      };
-    }
+		return { success: true, value: undefined }
+	}
 
-    try {
-      const leases = await this.leaseRepository.findByTenant(tenantId);
-      const activeLeases = leases.filter(lease => 
-        lease.status === 'active' || lease.status === 'pending'
-      );
-      
-      return {
-        success: true,
-        value: activeLeases.length === 0,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error : new DomainError('Failed to check tenant deletion eligibility'),
-      };
-    }
-  }
+	async canDeleteTenant(tenantId: string): Promise<Result<boolean>> {
+		if (!this.leaseRepository) {
+			return {
+				success: true,
+				value: true // Allow deletion if we can't check leases
+			}
+		}
 
-  // Private helper methods
+		try {
+			const leases = await this.leaseRepository.findByTenant(tenantId)
+			const activeLeases = leases.filter(
+				lease => lease.status === 'active' || lease.status === 'pending'
+			)
 
-  private checkBusinessRules(_input: CreateTenantInput | UpdateTenantInput): Result<void> {
-    // Add specific business rules here
-    // For example: Credit score requirements, background check status, etc.
-    
-    return { success: true, value: undefined };
-  }
+			return {
+				success: true,
+				value: activeLeases.length === 0
+			}
+		} catch (error) {
+			return {
+				success: false,
+				error:
+					error instanceof Error
+						? error
+						: new DomainError(
+								'Failed to check tenant deletion eligibility'
+							)
+			}
+		}
+	}
 
-  private normalizeTenantData(input: CreateTenantInput | UpdateTenantInput): CreateTenantInput | UpdateTenantInput {
-    return {
-      ...input,
-      name: input.name?.trim(),
-      email: input.email?.toLowerCase().trim(),
-      phone: input.phone?.replace(/\D/g, ''), // Remove non-digits for storage
-      notes: input.notes?.trim(),
-      emergencyContact: input.emergencyContact?.trim(),
-    };
-  }
+	// Private helper methods
 
-  private calculateAge(dateOfBirth: Date | string): number {
-    const birthDate = new Date(dateOfBirth);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    
-    return age;
-  }
+	private checkBusinessRules(
+		_input: CreateTenantInput | UpdateTenantInput
+	): Result<void> {
+		// Add specific business rules here
+		// For example: Credit score requirements, background check status, etc.
 
-  // Business logic helper methods
+		return { success: true, value: undefined }
+	}
 
-  public getFullName(tenant: Tenant): string {
-    return tenant.name.trim();
-  }
+	private normalizeTenantData(
+		input: CreateTenantInput | UpdateTenantInput
+	): CreateTenantInput | UpdateTenantInput {
+		return {
+			...input,
+			name: input.name?.trim(),
+			email: input.email?.toLowerCase().trim(),
+			phone: input.phone?.replace(/\D/g, ''), // Remove non-digits for storage
+			notes: input.notes?.trim(),
+			emergencyContact: input.emergencyContact?.trim()
+		}
+	}
 
-  public formatPhone(phone?: string): string {
-    if (!phone) return '';
-    
-    // Format as (XXX) XXX-XXXX
-    const cleaned = phone.replace(/\D/g, '');
-    if (cleaned.length === 10) {
-      return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
-    }
-    return phone;
-  }
+	private calculateAge(dateOfBirth: Date | string): number {
+		const birthDate = new Date(dateOfBirth)
+		const today = new Date()
+		let age = today.getFullYear() - birthDate.getFullYear()
+		const monthDiff = today.getMonth() - birthDate.getMonth()
 
-  public getTenantAge(_tenant: Tenant): number | null {
-    // Age information is not available in the current Tenant type
-    return null;
-  }
+		if (
+			monthDiff < 0 ||
+			(monthDiff === 0 && today.getDate() < birthDate.getDate())
+		) {
+			age--
+		}
 
-  public hasActiveLeases(_tenant: Tenant): boolean {
-    // Lease information is not directly available on the Tenant type
-    // This would need to be checked through the lease repository
-    return false;
-  }
+		return age
+	}
+
+	// Business logic helper methods
+
+	public getFullName(tenant: Tenant): string {
+		return tenant.name.trim()
+	}
+
+	public formatPhone(phone?: string): string {
+		if (!phone) return ''
+
+		// Format as (XXX) XXX-XXXX
+		const cleaned = phone.replace(/\D/g, '')
+		if (cleaned.length === 10) {
+			return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`
+		}
+		return phone
+	}
+
+	public getTenantAge(_tenant: Tenant): number | null {
+		// Age information is not available in the current Tenant type
+		return null
+	}
+
+	public hasActiveLeases(_tenant: Tenant): boolean {
+		// Lease information is not directly available on the Tenant type
+		// This would need to be checked through the lease repository
+		return false
+	}
 }

@@ -3,7 +3,12 @@
 import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { motion, AnimatePresence, useDragControls, type PanInfo } from 'framer-motion'
+import {
+	motion,
+	AnimatePresence,
+	useDragControls,
+	type PanInfo
+} from 'framer-motion'
 import { logger } from '@/lib/logger'
 import {
 	SidebarProvider,
@@ -35,13 +40,18 @@ import { Badge } from '@/components/ui/badge'
 import { useDashboardStats } from '@/hooks/api/use-dashboard'
 import { cn } from '@/lib/utils'
 
-const getNavigationItems = (stats?: { properties?: { totalProperties?: number }; tenants?: { totalTenants?: number }; leases?: { activeLeases?: number }; maintenanceRequests?: { open?: number } }) => [
-	{ 
-		id: 'dashboard', 
-		name: 'Dashboard', 
-		href: '/dashboard', 
+const getNavigationItems = (stats?: {
+	properties?: { totalProperties?: number }
+	tenants?: { totalTenants?: number }
+	leases?: { activeLeases?: number }
+	maintenanceRequests?: { open?: number }
+}) => [
+	{
+		id: 'dashboard',
+		name: 'Dashboard',
+		href: '/dashboard',
 		icon: Home,
-		badge: null 
+		badge: null
 	},
 	{
 		id: 'properties',
@@ -51,18 +61,18 @@ const getNavigationItems = (stats?: { properties?: { totalProperties?: number };
 		badge: stats?.properties?.totalProperties || null,
 		badgeColor: 'bg-blue-100 text-blue-700'
 	},
-	{ 
-		id: 'tenants', 
-		name: 'Tenants', 
-		href: '/tenants', 
+	{
+		id: 'tenants',
+		name: 'Tenants',
+		href: '/tenants',
 		icon: Users,
 		badge: stats?.tenants?.totalTenants || null,
 		badgeColor: 'bg-green-100 text-green-700'
 	},
-	{ 
-		id: 'leases', 
-		name: 'Leases', 
-		href: '/leases', 
+	{
+		id: 'leases',
+		name: 'Leases',
+		href: '/leases',
 		icon: FileText,
 		badge: stats?.leases?.activeLeases || null,
 		badgeColor: 'bg-purple-100 text-purple-700'
@@ -73,21 +83,24 @@ const getNavigationItems = (stats?: { properties?: { totalProperties?: number };
 		href: '/maintenance',
 		icon: Wrench,
 		badge: stats?.maintenanceRequests?.open || null,
-		badgeColor: (stats?.maintenanceRequests?.open || 0) > 0 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
+		badgeColor:
+			(stats?.maintenanceRequests?.open || 0) > 0
+				? 'bg-red-100 text-red-700'
+				: 'bg-gray-100 text-gray-700'
 	},
-	{ 
-		id: 'reports', 
-		name: 'Reports', 
-		href: '/reports', 
+	{
+		id: 'reports',
+		name: 'Reports',
+		href: '/reports',
 		icon: BarChart3,
-		badge: null 
+		badge: null
 	},
-	{ 
-		id: 'settings', 
-		name: 'Settings', 
-		href: '/settings', 
+	{
+		id: 'settings',
+		name: 'Settings',
+		href: '/settings',
 		icon: Settings,
-		badge: null 
+		badge: null
 	}
 ]
 
@@ -98,11 +111,11 @@ interface DashboardSidebarProps {
 	isMobile?: boolean
 }
 
-export function DashboardSidebar({ 
-	className, 
-	isOpen = true, 
-	onClose, 
-	isMobile = false 
+export function DashboardSidebar({
+	className,
+	isOpen = true,
+	onClose,
+	isMobile = false
 }: DashboardSidebarProps) {
 	const pathname = usePathname()
 	const { data: stats } = useDashboardStats()
@@ -126,10 +139,10 @@ export function DashboardSidebar({
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
 			if (
-				isMobile && 
-				isOpen && 
-				onClose && 
-				sidebarRef.current && 
+				isMobile &&
+				isOpen &&
+				onClose &&
+				sidebarRef.current &&
 				!sidebarRef.current.contains(event.target as Node)
 			) {
 				onClose()
@@ -138,14 +151,18 @@ export function DashboardSidebar({
 
 		if (isMobile && isOpen) {
 			document.addEventListener('mousedown', handleClickOutside)
-			return () => document.removeEventListener('mousedown', handleClickOutside)
+			return () =>
+				document.removeEventListener('mousedown', handleClickOutside)
 		}
-		
+
 		return undefined
 	}, [isMobile, isOpen, onClose])
 
 	// Handle swipe to close
-	const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+	const handleDragEnd = (
+		event: MouseEvent | TouchEvent | PointerEvent,
+		info: PanInfo
+	) => {
 		if (isMobile && onClose && info.velocity.x < -500) {
 			onClose()
 		}
@@ -171,9 +188,9 @@ export function DashboardSidebar({
 							<div className="relative">
 								<Building className="text-primary h-8 w-8" />
 								{/* Activity pulse indicator */}
-								<div className="absolute -top-1 -right-1 h-3 w-3 bg-green-500 rounded-full animate-pulse group-data-[collapsible=icon]:hidden" />
+								<div className="absolute -top-1 -right-1 h-3 w-3 animate-pulse rounded-full bg-green-500 group-data-[collapsible=icon]:hidden" />
 							</div>
-							<span className="text-xl font-bold group-data-[collapsible=icon]:hidden bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+							<span className="bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-xl font-bold text-transparent group-data-[collapsible=icon]:hidden">
 								TenantFlow
 							</span>
 						</Link>
@@ -197,23 +214,29 @@ export function DashboardSidebar({
 													tooltip={item.name}
 													className="group relative transition-all hover:scale-[1.02]"
 												>
-													<Link href={item.href} className="flex items-center justify-between w-full">
+													<Link
+														href={item.href}
+														className="flex w-full items-center justify-between"
+													>
 														<div className="flex items-center gap-2">
 															<Icon className="h-4 w-4" />
-															<span>{item.name}</span>
+															<span>
+																{item.name}
+															</span>
 														</div>
 														{/* Badge for counts */}
-														{item.badge !== null && item.badge > 0 && (
-															<Badge 
-																variant="secondary" 
-																className={`text-xs px-2 py-0.5 rounded-full group-data-[collapsible=icon]:hidden ${item.badgeColor || 'bg-gray-100 text-gray-700'}`}
-															>
-																{item.badge}
-															</Badge>
-														)}
+														{item.badge !== null &&
+															item.badge > 0 && (
+																<Badge
+																	variant="secondary"
+																	className={`rounded-full px-2 py-0.5 text-xs group-data-[collapsible=icon]:hidden ${item.badgeColor || 'bg-gray-100 text-gray-700'}`}
+																>
+																	{item.badge}
+																</Badge>
+															)}
 														{/* Active indicator */}
 														{isActive && (
-															<div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full" />
+															<div className="bg-primary absolute top-1/2 left-0 h-6 w-1 -translate-y-1/2 rounded-r-full" />
 														)}
 													</Link>
 												</SidebarMenuButton>
@@ -229,26 +252,35 @@ export function DashboardSidebar({
 						<SidebarMenu>
 							{/* Notifications */}
 							<SidebarMenuItem>
-								<SidebarMenuButton asChild tooltip="Notifications">
-									<Link href="/notifications" className="relative">
+								<SidebarMenuButton
+									asChild
+									tooltip="Notifications"
+								>
+									<Link
+										href="/notifications"
+										className="relative"
+									>
 										<Bell className="h-4 w-4" />
 										<span>Notifications</span>
 										{/* Notification badge */}
-										{(stats?.maintenanceRequests?.open || 0) > 0 && (
-											<div className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full group-data-[collapsible=icon]:block hidden" />
+										{(stats?.maintenanceRequests?.open ||
+											0) > 0 && (
+											<div className="absolute -top-1 -right-1 hidden h-2 w-2 rounded-full bg-red-500 group-data-[collapsible=icon]:block" />
 										)}
-										{(stats?.maintenanceRequests?.open || 0) > 0 && (
-											<Badge 
-												variant="destructive" 
-												className="text-xs px-1.5 py-0.5 rounded-full group-data-[collapsible=icon]:hidden ml-auto"
+										{(stats?.maintenanceRequests?.open ||
+											0) > 0 && (
+											<Badge
+												variant="destructive"
+												className="ml-auto rounded-full px-1.5 py-0.5 text-xs group-data-[collapsible=icon]:hidden"
 											>
-												{stats?.maintenanceRequests?.open || 0}
+												{stats?.maintenanceRequests
+													?.open || 0}
 											</Badge>
 										)}
 									</Link>
 								</SidebarMenuButton>
 							</SidebarMenuItem>
-							
+
 							{/* Activity */}
 							<SidebarMenuItem>
 								<SidebarMenuButton asChild tooltip="Activity">
@@ -258,17 +290,20 @@ export function DashboardSidebar({
 									</Link>
 								</SidebarMenuButton>
 							</SidebarMenuItem>
-							
+
 							{/* Profile */}
 							<SidebarMenuItem>
 								<SidebarMenuButton asChild tooltip="Profile">
-									<Link href="/profile" className="transition-all hover:scale-[1.02]">
+									<Link
+										href="/profile"
+										className="transition-all hover:scale-[1.02]"
+									>
 										<User className="h-4 w-4" />
 										<span>Profile</span>
 									</Link>
 								</SidebarMenuButton>
 							</SidebarMenuItem>
-							
+
 							{/* Logout */}
 							<SidebarMenuItem>
 								<SidebarMenuButton asChild tooltip="Logout">
@@ -304,7 +339,7 @@ export function DashboardSidebar({
 				<>
 					{/* Backdrop */}
 					<motion.div
-						className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden"
+						className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
@@ -316,15 +351,15 @@ export function DashboardSidebar({
 					<motion.div
 						ref={sidebarRef}
 						className={cn(
-							"fixed top-0 left-0 h-full w-80 max-w-[85vw] bg-white shadow-xl z-50 md:hidden",
-							"border-r border-gray-200",
+							'fixed top-0 left-0 z-50 h-full w-80 max-w-[85vw] bg-white shadow-xl md:hidden',
+							'border-r border-gray-200',
 							className
 						)}
 						initial={{ x: '-100%' }}
 						animate={{ x: 0 }}
 						exit={{ x: '-100%' }}
-						transition={{ 
-							type: "spring",
+						transition={{
+							type: 'spring',
 							stiffness: 300,
 							damping: 30
 						}}
@@ -335,10 +370,10 @@ export function DashboardSidebar({
 						onDragEnd={handleDragEnd}
 					>
 						{/* Drag handle indicator */}
-						<div className="absolute top-4 right-4 w-1 h-8 bg-gray-300 rounded-full" />
+						<div className="absolute top-4 right-4 h-8 w-1 rounded-full bg-gray-300" />
 
 						{/* Header */}
-						<div className="p-6 border-b border-gray-100">
+						<div className="border-b border-gray-100 p-6">
 							<Link
 								href="/dashboard"
 								onClick={handleNavigation}
@@ -346,20 +381,22 @@ export function DashboardSidebar({
 							>
 								<div className="relative">
 									<Building className="text-primary h-10 w-10" />
-									<div className="absolute -top-1 -right-1 h-3 w-3 bg-green-500 rounded-full animate-pulse" />
+									<div className="absolute -top-1 -right-1 h-3 w-3 animate-pulse rounded-full bg-green-500" />
 								</div>
 								<div>
-									<span className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+									<span className="bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-2xl font-bold text-transparent">
 										TenantFlow
 									</span>
-									<p className="text-xs text-gray-500 mt-1">Property Management</p>
+									<p className="mt-1 text-xs text-gray-500">
+										Property Management
+									</p>
 								</div>
 							</Link>
 						</div>
 
 						{/* Navigation */}
 						<div className="flex-1 overflow-y-auto py-4">
-							<nav className="px-4 space-y-1">
+							<nav className="space-y-1 px-4">
 								{navigation.map(item => {
 									const Icon = item.icon
 									const isActive =
@@ -377,33 +414,39 @@ export function DashboardSidebar({
 												href={item.href}
 												onClick={handleNavigation}
 												className={cn(
-													"flex items-center justify-between w-full px-3 py-3 text-sm font-medium rounded-lg transition-all",
-													"hover:bg-gray-50 hover:scale-[1.02] active:scale-[0.98]",
+													'flex w-full items-center justify-between rounded-lg px-3 py-3 text-sm font-medium transition-all',
+													'hover:scale-[1.02] hover:bg-gray-50 active:scale-[0.98]',
 													isActive
-														? "bg-blue-50 text-blue-700 border border-blue-200"
-														: "text-gray-700 hover:text-gray-900"
+														? 'border border-blue-200 bg-blue-50 text-blue-700'
+														: 'text-gray-700 hover:text-gray-900'
 												)}
 											>
 												<div className="flex items-center gap-3">
-													<Icon className={cn(
-														"h-5 w-5",
-														isActive ? "text-primary" : "text-gray-500"
-													)} />
+													<Icon
+														className={cn(
+															'h-5 w-5',
+															isActive
+																? 'text-primary'
+																: 'text-gray-500'
+														)}
+													/>
 													<span>{item.name}</span>
 												</div>
-												
+
 												{/* Badge for counts */}
-												{item.badge !== null && item.badge > 0 && (
-													<Badge 
-														variant="secondary" 
-														className={cn(
-															"text-xs px-2 py-0.5 rounded-full",
-															item.badgeColor || 'bg-gray-100 text-gray-700'
-														)}
-													>
-														{item.badge}
-													</Badge>
-												)}
+												{item.badge !== null &&
+													item.badge > 0 && (
+														<Badge
+															variant="secondary"
+															className={cn(
+																'rounded-full px-2 py-0.5 text-xs',
+																item.badgeColor ||
+																	'bg-gray-100 text-gray-700'
+															)}
+														>
+															{item.badge}
+														</Badge>
+													)}
 											</Link>
 										</motion.div>
 									)
@@ -412,19 +455,23 @@ export function DashboardSidebar({
 						</div>
 
 						{/* Footer */}
-						<div className="border-t border-gray-100 p-4 space-y-1">
+						<div className="space-y-1 border-t border-gray-100 p-4">
 							{/* Notifications */}
 							<Link
 								href="/notifications"
 								onClick={handleNavigation}
-								className="flex items-center justify-between w-full px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50 transition-all"
+								className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50"
 							>
 								<div className="flex items-center gap-3">
 									<Bell className="h-5 w-5 text-gray-500" />
 									<span>Notifications</span>
 								</div>
-								{(stats?.maintenanceRequests?.open || 0) > 0 && (
-									<Badge variant="destructive" className="text-xs px-1.5 py-0.5 rounded-full">
+								{(stats?.maintenanceRequests?.open || 0) >
+									0 && (
+									<Badge
+										variant="destructive"
+										className="rounded-full px-1.5 py-0.5 text-xs"
+									>
 										{stats?.maintenanceRequests?.open || 0}
 									</Badge>
 								)}
@@ -434,7 +481,7 @@ export function DashboardSidebar({
 							<Link
 								href="/activity"
 								onClick={handleNavigation}
-								className="flex items-center gap-3 w-full px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50 transition-all"
+								className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50"
 							>
 								<Activity className="h-5 w-5 text-gray-500" />
 								<span>Activity</span>
@@ -444,7 +491,7 @@ export function DashboardSidebar({
 							<Link
 								href="/profile"
 								onClick={handleNavigation}
-								className="flex items-center gap-3 w-full px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50 transition-all"
+								className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50"
 							>
 								<User className="h-5 w-5 text-gray-500" />
 								<span>Profile</span>
@@ -453,10 +500,12 @@ export function DashboardSidebar({
 							{/* Logout */}
 							<button
 								onClick={() => {
-									logger.info('Logout', { component: 'mobile-sidebar' })
+									logger.info('Logout', {
+										component: 'mobile-sidebar'
+									})
 									handleNavigation()
 								}}
-								className="flex items-center gap-3 w-full px-3 py-2 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 transition-all"
+								className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-red-600 transition-all hover:bg-red-50"
 							>
 								<LogOut className="h-5 w-5" />
 								<span>Logout</span>

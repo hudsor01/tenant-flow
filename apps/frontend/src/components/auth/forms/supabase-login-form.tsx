@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { cn } from '@/lib/utils/css.utils'
 import { Button } from '@/components/ui/button'
@@ -73,7 +73,7 @@ export function SupabaseLoginForm({
 		try {
 			// Use Supabase client-side OAuth flow
 			const result = await signInWithGoogle()
-			
+
 			if (!result.success) {
 				setError(result.error || 'Failed to sign in with Google')
 				setIsLoading(false)
@@ -87,34 +87,41 @@ export function SupabaseLoginForm({
 	}
 
 	return (
-		<div className={cn('flex flex-col gap-6 w-full max-w-md', className)} {...props}>
+		<div
+			className={cn('flex w-full max-w-md flex-col gap-6', className)}
+			{...props}
+		>
 			<Card className="border-0 shadow-xl">
 				<CardHeader className="space-y-1 pb-6">
-					<CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
+					<CardTitle className="text-2xl font-bold">
+						Welcome back
+					</CardTitle>
 					<CardDescription className="text-muted-foreground">
 						Sign in to your account to continue
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-4">
 					{emailConfirmed && (
-						<div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-md">
+						<div className="flex items-center gap-2 rounded-md border border-green-200 bg-green-50 p-3">
 							<CheckCircle className="h-5 w-5 text-green-600" />
 							<p className="text-sm text-green-800">
-								Email confirmed successfully! Please sign in to continue.
-							</p>
-						</div>
-					)}
-					
-					{error && (
-						<div className="bg-destructive/10 border border-destructive/20 rounded-md p-3">
-							<p className="text-destructive text-sm">
-								{error}
+								Email confirmed successfully! Please sign in to
+								continue.
 							</p>
 						</div>
 					)}
 
+					{error && (
+						<div className="bg-destructive/10 border-destructive/20 rounded-md border p-3">
+							<p className="text-destructive text-sm">{error}</p>
+						</div>
+					)}
+
 					{/* Email/Password Login Form */}
-					<form onSubmit={(e) => void handleEmailLogin(e)} className="space-y-4">
+					<form
+						onSubmit={e => void handleEmailLogin(e)}
+						className="space-y-4"
+					>
 						<div className="space-y-2">
 							<Label htmlFor="email">Email</Label>
 							<Input
@@ -122,19 +129,19 @@ export function SupabaseLoginForm({
 								type="email"
 								placeholder="name@example.com"
 								value={email}
-								onChange={(e) => setEmail(e.target.value)}
+								onChange={e => setEmail(e.target.value)}
 								required
 								disabled={isLoading}
 								className="h-11"
 							/>
 						</div>
-						
+
 						<div className="space-y-2">
 							<div className="flex items-center justify-between">
 								<Label htmlFor="password">Password</Label>
-								<Link 
+								<Link
 									href="/auth/forgot-password"
-									className="text-sm text-primary hover:underline"
+									className="text-primary text-sm hover:underline"
 								>
 									Forgot password?
 								</Link>
@@ -144,7 +151,7 @@ export function SupabaseLoginForm({
 								type="password"
 								placeholder="Enter your password"
 								value={password}
-								onChange={(e) => setPassword(e.target.value)}
+								onChange={e => setPassword(e.target.value)}
 								required
 								disabled={isLoading}
 								className="h-11"
@@ -152,23 +159,25 @@ export function SupabaseLoginForm({
 						</div>
 
 						<div className="flex items-center space-x-2">
-							<Checkbox 
-								id="remember" 
+							<Checkbox
+								id="remember"
 								checked={rememberMe}
-								onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+								onCheckedChange={checked =>
+									setRememberMe(checked as boolean)
+								}
 								disabled={isLoading}
 							/>
-							<Label 
-								htmlFor="remember" 
-								className="text-sm font-normal cursor-pointer"
+							<Label
+								htmlFor="remember"
+								className="cursor-pointer text-sm font-normal"
 							>
 								Remember me
 							</Label>
 						</div>
 
-						<Button 
-							type="submit" 
-							className="w-full h-11" 
+						<Button
+							type="submit"
+							className="h-11 w-full"
 							disabled={isLoading}
 						>
 							{isLoading ? 'Signing in...' : 'Sign in with Email'}
@@ -178,7 +187,7 @@ export function SupabaseLoginForm({
 					{/* Divider with proper spacing */}
 					<div className="relative flex items-center">
 						<div className="flex-grow border-t border-gray-300" />
-						<span className="flex-shrink mx-4 text-xs text-muted-foreground uppercase tracking-wider">
+						<span className="text-muted-foreground mx-4 flex-shrink text-xs tracking-wider uppercase">
 							Or continue with
 						</span>
 						<div className="flex-grow border-t border-gray-300" />
@@ -188,7 +197,7 @@ export function SupabaseLoginForm({
 					<Button
 						type="button"
 						variant="outline"
-						className="w-full h-11"
+						className="h-11 w-full"
 						onClick={() => void handleSocialLogin()}
 						disabled={isLoading}
 					>
@@ -199,8 +208,8 @@ export function SupabaseLoginForm({
 					{/* Sign up link */}
 					<div className="text-center text-sm">
 						Don't have an account?{' '}
-						<Link 
-							href="/auth/signup" 
+						<Link
+							href="/auth/signup"
 							className="text-primary font-medium hover:underline"
 						>
 							Sign up

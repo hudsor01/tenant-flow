@@ -356,7 +356,9 @@ export class EnvValidator {
 	 */
 	static getArray(key: string, defaultValue: string[] = []): string[] {
 		const value = process.env[key]
-		if (!value) {return defaultValue}
+		if (!value) {
+			return defaultValue
+		}
 		return value
 			.split(',')
 			.map(item => item.trim())

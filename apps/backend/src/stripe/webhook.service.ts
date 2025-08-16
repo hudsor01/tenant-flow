@@ -1,43 +1,51 @@
-import { User } from '@repo/database';
-import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
-import {
-  WEBHOOK_EVENT_TYPES,
-  WebhookEventType
-} from '@repo/shared'
+import { User } from '@repo/database'
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common'
+import { WEBHOOK_EVENT_TYPES, WebhookEventType } from '@repo/shared'
 import {
 	FeatureAccessRestoreEvent,
 	FeatureAccessRestrictEvent,
+	type PaymentFailedEvent,
+	type PaymentMethodRequiredEvent,
+	type SubscriptionCreatedEvent,
 	SubscriptionEventType
 } from '../common/events/subscription.events'
 import { EventEmitter2 } from '@nestjs/event-emitter'
-import type { PaymentFailedEvent, PaymentMethodRequiredEvent, SubscriptionCreatedEvent } from '../common/events/subscription.events'
 import { PrismaService } from '../prisma/prisma.service'
 import { SubscriptionSyncService } from '../subscriptions/subscription-sync.service'
 import { StripeService } from './stripe.service'
 import { WebhookMetricsService } from './webhook-metrics.service'
 import { WebhookHealthService } from './webhook-health.service'
 import { WebhookErrorMonitorService } from './webhook-error-monitor.service'
-import { RequestContext, WebhookObservabilityService } from './webhook-observability.service'
 import {
-  StripeCheckoutSession,
-  StripePaymentIntent,
-  StripeSetupIntent
+	RequestContext,
+	WebhookObservabilityService
+} from './webhook-observability.service'
+import {
+	StripeCheckoutSession,
+	StripePaymentIntent,
+	StripeSetupIntent
 } from '@repo/shared/types/stripe-payment-objects'
-import { StripeEvent } from '@repo/shared/types/stripe'
-import { StripeCharge, StripeSubscription } from '@repo/shared/types/stripe'
-import { StripeCustomer, StripeInvoice } from '@repo/shared/types/stripe-core-objects'
+import {
+	StripeCharge,
+	StripeEvent,
+	StripeSubscription
+} from '@repo/shared/types/stripe'
+import {
+	StripeCustomer,
+	StripeInvoice
+} from '@repo/shared/types/stripe-core-objects'
 
 // Interfaces for expanded Stripe objects using our typed definitions
 interface ExpandedPaymentIntent extends Omit<StripePaymentIntent, 'invoice'> {
-  invoice: string | StripeInvoice | null;
+	invoice: string | StripeInvoice | null
 }
 
 interface ExpandedCharge extends Omit<StripeCharge, 'invoice'> {
-  invoice: string | StripeInvoice | null;
+	invoice: string | StripeInvoice | null
 }
 
 interface ExpandedInvoice extends Omit<StripeInvoice, 'subscription'> {
-  subscription: string | StripeSubscription | null;
+	subscription: string | StripeSubscription | null
 }
 
 @Injectable()
@@ -57,41 +65,72 @@ export class WebhookService {
 		private readonly observability: WebhookObservabilityService
 	) {}
 
-	async handleWebhookEvent(event: StripeEvent, requestContext?: RequestContext): Promise<void> {
+	async handleWebhookEvent(
+		event: StripeEvent,
+		requestContext?: RequestContext
+	): Promise<void> {
 		// Start observability trace
-		const traceId = this.observability.startTrace(event.type, event.id, requestContext)
-		const correlationId = requestContext?.correlationId || `wh-${Date.now()}`
+		const traceId = this.observability.startTrace(
+			event.type,
+			event.id,
+			requestContext
+		)
+		const correlationId =
+			requestContext?.correlationId || `wh-${Date.now()}`
 		const startTime = Date.now()
-		
+
 		// Type-safe event handling with proper Stripe event mapping (declare early for error handling)
 		const eventType = event.type as WebhookEventType
 
 		// Idempotency check
 		if (this.processedEvents.has(event.id)) {
 			this.logger.log(`Event ${event.id} already processed, skipping`)
-			this.metricsService.recordIdempotencyCheck(event.id, true, this.processedEvents.size, correlationId)
+			this.metricsService.recordIdempotencyCheck(
+				event.id,
+				true,
+				this.processedEvents.size,
+				correlationId
+			)
 			this.observability.endTrace(traceId, true)
 			return
 		} else {
-			this.metricsService.recordIdempotencyCheck(event.id, false, this.processedEvents.size, correlationId)
+			this.metricsService.recordIdempotencyCheck(
+				event.id,
+				false,
+				this.processedEvents.size,
+				correlationId
+			)
 		}
 
 		try {
-			this.logger.log(`Processing webhook event: ${event.type}`, { correlationId, eventId: event.id })
+			this.logger.log(`Processing webhook event: ${event.type}`, {
+				correlationId,
+				eventId: event.id
+			})
 
 			// Start validation span
-			const validationSpanId = this.observability.startSpan(traceId, 'webhook.validate', undefined, {
-				'webhook.event_type': event.type,
-				'webhook.event_id': event.id
-			})
+			const validationSpanId = this.observability.startSpan(
+				traceId,
+				'webhook.validate',
+				undefined,
+				{
+					'webhook.event_type': event.type,
+					'webhook.event_id': event.id
+				}
+			)
 
 			// End validation span
 			this.observability.endSpan(traceId, validationSpanId, true)
 
 			// Start processing span
-			const processingSpanId = this.observability.startSpan(traceId, `webhook.process.${eventType}`, undefined, {
-				'webhook.handler': this.getHandlerName(eventType)
-			})
+			const processingSpanId = this.observability.startSpan(
+				traceId,
+				`webhook.process.${eventType}`,
+				undefined,
+				{
+					'webhook.handler': this.getHandlerName(eventType)
+				}
+			)
 
 			switch (eventType) {
 				// Customer events
@@ -104,7 +143,7 @@ export class WebhookService {
 				case WEBHOOK_EVENT_TYPES.CUSTOMER_DELETED:
 					await this.handleCustomerDeleted(event)
 					break
-				
+
 				// Subscription events
 				case WEBHOOK_EVENT_TYPES.SUBSCRIPTION_CREATED:
 					await this.handleSubscriptionCreated(event)
@@ -156,12 +195,12 @@ export class WebhookService {
 				case WEBHOOK_EVENT_TYPES.PAYMENT_INTENT_REQUIRES_ACTION:
 					await this.handlePaymentIntentRequiresAction(event)
 					break
-				
+
 				// Charge events
 				case WEBHOOK_EVENT_TYPES.CHARGE_FAILED:
 					await this.handleChargeFailed(event)
 					break
-				
+
 				// Checkout events
 				case WEBHOOK_EVENT_TYPES.CHECKOUT_SESSION_COMPLETED:
 					await this.handleCheckoutCompleted(event)
@@ -169,7 +208,7 @@ export class WebhookService {
 				case WEBHOOK_EVENT_TYPES.CHECKOUT_SESSION_EXPIRED:
 					await this.handleCheckoutSessionExpired(event)
 					break
-				
+
 				// Setup intent events
 				case WEBHOOK_EVENT_TYPES.SETUP_INTENT_SUCCEEDED:
 					await this.handleSetupIntentSucceeded(event)
@@ -178,7 +217,10 @@ export class WebhookService {
 					await this.handleSetupIntentSetupFailed(event)
 					break
 				default:
-					this.logger.log(`No handler for event type: ${event.type}`, { correlationId, eventId: event.id })
+					this.logger.log(
+						`No handler for event type: ${event.type}`,
+						{ correlationId, eventId: event.id }
+					)
 					this.observability.endSpan(traceId, processingSpanId, true)
 					this.observability.endTrace(traceId, true)
 					return
@@ -199,17 +241,33 @@ export class WebhookService {
 
 			// Record successful processing
 			const processingTime = Date.now() - startTime
-			this.metricsService.recordWebhookEvent(eventType, processingTime, true, correlationId)
+			this.metricsService.recordWebhookEvent(
+				eventType,
+				processingTime,
+				true,
+				correlationId
+			)
 			this.errorMonitor.recordSuccess(eventType, correlationId)
 			this.observability.endTrace(traceId, true)
-
 		} catch (error) {
 			const processingTime = Date.now() - startTime
 			const webhookError = error as Error
 
 			// Record error metrics
-			this.metricsService.recordWebhookEvent(eventType, processingTime, false, correlationId, webhookError)
-			this.errorMonitor.recordError(eventType, event.id, correlationId, webhookError, event)
+			this.metricsService.recordWebhookEvent(
+				eventType,
+				processingTime,
+				false,
+				correlationId,
+				webhookError
+			)
+			this.errorMonitor.recordError(
+				eventType,
+				event.id,
+				correlationId,
+				webhookError,
+				event
+			)
 			this.observability.endTrace(traceId, false, webhookError)
 
 			this.logger.error(`Error processing webhook event ${event.type}:`, {
@@ -222,11 +280,14 @@ export class WebhookService {
 			// Check if this event should be retried
 			if (this.errorMonitor.shouldRetry(webhookError, 0)) {
 				const retryDelay = this.errorMonitor.getRetryDelay(0)
-				this.logger.warn(`Webhook event ${event.id} will be retried in ${retryDelay}ms`, {
-					correlationId,
-					eventType,
-					retryDelay
-				})
+				this.logger.warn(
+					`Webhook event ${event.id} will be retried in ${retryDelay}ms`,
+					{
+						correlationId,
+						eventType,
+						retryDelay
+					}
+				)
 				// In a production system, you'd schedule the retry here
 				// For now, we'll just throw to let the webhook endpoint handle it
 			}
@@ -243,27 +304,43 @@ export class WebhookService {
 			[WEBHOOK_EVENT_TYPES.CUSTOMER_CREATED]: 'handleCustomerCreated',
 			[WEBHOOK_EVENT_TYPES.CUSTOMER_UPDATED]: 'handleCustomerUpdated',
 			[WEBHOOK_EVENT_TYPES.CUSTOMER_DELETED]: 'handleCustomerDeleted',
-			[WEBHOOK_EVENT_TYPES.SUBSCRIPTION_CREATED]: 'handleSubscriptionCreated',
-			[WEBHOOK_EVENT_TYPES.SUBSCRIPTION_UPDATED]: 'handleSubscriptionUpdated',
-			[WEBHOOK_EVENT_TYPES.SUBSCRIPTION_DELETED]: 'handleSubscriptionDeleted',
-			[WEBHOOK_EVENT_TYPES.SUBSCRIPTION_TRIAL_WILL_END]: 'handleTrialWillEnd',
-			[WEBHOOK_EVENT_TYPES.SUBSCRIPTION_PAUSED]: 'handleSubscriptionPaused',
-			[WEBHOOK_EVENT_TYPES.SUBSCRIPTION_RESUMED]: 'handleSubscriptionResumed',
+			[WEBHOOK_EVENT_TYPES.SUBSCRIPTION_CREATED]:
+				'handleSubscriptionCreated',
+			[WEBHOOK_EVENT_TYPES.SUBSCRIPTION_UPDATED]:
+				'handleSubscriptionUpdated',
+			[WEBHOOK_EVENT_TYPES.SUBSCRIPTION_DELETED]:
+				'handleSubscriptionDeleted',
+			[WEBHOOK_EVENT_TYPES.SUBSCRIPTION_TRIAL_WILL_END]:
+				'handleTrialWillEnd',
+			[WEBHOOK_EVENT_TYPES.SUBSCRIPTION_PAUSED]:
+				'handleSubscriptionPaused',
+			[WEBHOOK_EVENT_TYPES.SUBSCRIPTION_RESUMED]:
+				'handleSubscriptionResumed',
 			[WEBHOOK_EVENT_TYPES.INVOICE_CREATED]: 'handleInvoiceCreated',
 			[WEBHOOK_EVENT_TYPES.INVOICE_FINALIZED]: 'handleInvoiceFinalized',
-			[WEBHOOK_EVENT_TYPES.INVOICE_PAYMENT_SUCCEEDED]: 'handlePaymentSucceeded',
+			[WEBHOOK_EVENT_TYPES.INVOICE_PAYMENT_SUCCEEDED]:
+				'handlePaymentSucceeded',
 			[WEBHOOK_EVENT_TYPES.INVOICE_PAYMENT_FAILED]: 'handlePaymentFailed',
-			[WEBHOOK_EVENT_TYPES.INVOICE_PAYMENT_ACTION_REQUIRED]: 'handlePaymentActionRequired',
+			[WEBHOOK_EVENT_TYPES.INVOICE_PAYMENT_ACTION_REQUIRED]:
+				'handlePaymentActionRequired',
 			[WEBHOOK_EVENT_TYPES.INVOICE_UPCOMING]: 'handleInvoiceUpcoming',
-			[WEBHOOK_EVENT_TYPES.PAYMENT_INTENT_CREATED]: 'handlePaymentIntentCreated',
-			[WEBHOOK_EVENT_TYPES.PAYMENT_INTENT_SUCCEEDED]: 'handlePaymentIntentSucceeded',
-			[WEBHOOK_EVENT_TYPES.PAYMENT_INTENT_PAYMENT_FAILED]: 'handlePaymentIntentPaymentFailed',
-			[WEBHOOK_EVENT_TYPES.PAYMENT_INTENT_REQUIRES_ACTION]: 'handlePaymentIntentRequiresAction',
+			[WEBHOOK_EVENT_TYPES.PAYMENT_INTENT_CREATED]:
+				'handlePaymentIntentCreated',
+			[WEBHOOK_EVENT_TYPES.PAYMENT_INTENT_SUCCEEDED]:
+				'handlePaymentIntentSucceeded',
+			[WEBHOOK_EVENT_TYPES.PAYMENT_INTENT_PAYMENT_FAILED]:
+				'handlePaymentIntentPaymentFailed',
+			[WEBHOOK_EVENT_TYPES.PAYMENT_INTENT_REQUIRES_ACTION]:
+				'handlePaymentIntentRequiresAction',
 			[WEBHOOK_EVENT_TYPES.CHARGE_FAILED]: 'handleChargeFailed',
-			[WEBHOOK_EVENT_TYPES.CHECKOUT_SESSION_COMPLETED]: 'handleCheckoutCompleted',
-			[WEBHOOK_EVENT_TYPES.CHECKOUT_SESSION_EXPIRED]: 'handleCheckoutSessionExpired',
-			[WEBHOOK_EVENT_TYPES.SETUP_INTENT_SUCCEEDED]: 'handleSetupIntentSucceeded',
-			[WEBHOOK_EVENT_TYPES.SETUP_INTENT_SETUP_FAILED]: 'handleSetupIntentSetupFailed'
+			[WEBHOOK_EVENT_TYPES.CHECKOUT_SESSION_COMPLETED]:
+				'handleCheckoutCompleted',
+			[WEBHOOK_EVENT_TYPES.CHECKOUT_SESSION_EXPIRED]:
+				'handleCheckoutSessionExpired',
+			[WEBHOOK_EVENT_TYPES.SETUP_INTENT_SUCCEEDED]:
+				'handleSetupIntentSucceeded',
+			[WEBHOOK_EVENT_TYPES.SETUP_INTENT_SETUP_FAILED]:
+				'handleSetupIntentSetupFailed'
 		}
 		return handlerMap[eventType] || 'handleUnknownEvent'
 	}
@@ -276,15 +353,19 @@ export class WebhookService {
 		details: Record<string, unknown>
 	}> {
 		const [connectivityStatus, metricsHealth] = await Promise.all([
-			this.healthService.getLastHealthCheck() || this.healthService.performHealthCheck(),
+			this.healthService.getLastHealthCheck() ||
+				this.healthService.performHealthCheck(),
 			this.metricsService.getHealthStatus()
 		])
 
-		const overall = connectivityStatus.overall === 'unhealthy' || metricsHealth.status === 'critical' 
-			? 'unhealthy' 
-			: connectivityStatus.overall === 'degraded' || metricsHealth.status === 'warning'
-			? 'degraded'
-			: 'healthy'
+		const overall =
+			connectivityStatus.overall === 'unhealthy' ||
+			metricsHealth.status === 'critical'
+				? 'unhealthy'
+				: connectivityStatus.overall === 'degraded' ||
+					  metricsHealth.status === 'warning'
+					? 'degraded'
+					: 'healthy'
 
 		return {
 			status: overall,
@@ -304,13 +385,19 @@ export class WebhookService {
 		return {
 			performance: {
 				overall: this.metricsService.getPerformanceStats(),
-				byEventType: this.metricsService.getTrackedEventTypes().map(eventType => ({
-					eventType,
-					stats: this.metricsService.getPerformanceStats(eventType)
-				}))
+				byEventType: this.metricsService
+					.getTrackedEventTypes()
+					.map(eventType => ({
+						eventType,
+						stats: this.metricsService.getPerformanceStats(
+							eventType
+						)
+					}))
 			},
 			errors: this.errorMonitor.getErrorStatistics(24),
-			idempotency: this.metricsService.getIdempotencyMetrics(this.processedEvents),
+			idempotency: this.metricsService.getIdempotencyMetrics(
+				this.processedEvents
+			),
 			health: this.metricsService.getHealthStatus(),
 			observability: this.observability.getObservabilityMetrics()
 		}
@@ -332,43 +419,70 @@ export class WebhookService {
 
 	private async handleSubscriptionCreated(event: StripeEvent): Promise<void> {
 		const subscription = event.data.object as unknown as StripeSubscription
-		const result = await this.subscriptionSync.syncSubscriptionFromWebhook(subscription)
-		
+		const result =
+			await this.subscriptionSync.syncSubscriptionFromWebhook(
+				subscription
+			)
+
 		if (result.success) {
-			this.logger.log(`Subscription created and synced: ${subscription.id}`, {
-				changes: result.changes?.length || 0
-			})
+			this.logger.log(
+				`Subscription created and synced: ${subscription.id}`,
+				{
+					changes: result.changes?.length || 0
+				}
+			)
 		} else {
-			this.logger.error(`Failed to sync created subscription: ${subscription.id}`, {
-				error: result.error
-			})
+			this.logger.error(
+				`Failed to sync created subscription: ${subscription.id}`,
+				{
+					error: result.error
+				}
+			)
 		}
 	}
 
 	private async handleSubscriptionUpdated(event: StripeEvent): Promise<void> {
 		const subscription = event.data.object as unknown as StripeSubscription
-		const previousAttributes = event.data.previous_attributes as Partial<StripeSubscription>
+		const previousAttributes = event.data
+			.previous_attributes as Partial<StripeSubscription>
 
 		// Sync with database first
-		const result = await this.subscriptionSync.syncSubscriptionFromWebhook(subscription)
+		const result =
+			await this.subscriptionSync.syncSubscriptionFromWebhook(
+				subscription
+			)
 
 		if (result.success) {
-			this.logger.log(`Subscription updated and synced: ${subscription.id}`, {
-				changes: result.changes?.length || 0
-			})
+			this.logger.log(
+				`Subscription updated and synced: ${subscription.id}`,
+				{
+					changes: result.changes?.length || 0
+				}
+			)
 		}
 
 		// Check for specific status changes
-		if (previousAttributes?.status && previousAttributes.status !== subscription.status) {
-			this.logger.log(`Subscription ${subscription.id} status changed from ${previousAttributes.status} to ${subscription.status}`)
+		if (
+			previousAttributes?.status &&
+			previousAttributes.status !== subscription.status
+		) {
+			this.logger.log(
+				`Subscription ${subscription.id} status changed from ${previousAttributes.status} to ${subscription.status}`
+			)
 
 			// Handle pause behavior (when trial ends without payment method)
-			if (subscription.status === 'incomplete' && subscription.pause_collection) {
+			if (
+				subscription.status === 'incomplete' &&
+				subscription.pause_collection
+			) {
 				await this.handleTrialEndedWithoutPayment(subscription)
 			}
 
 			// Handle reactivation
-			if (previousAttributes.status === 'incomplete' && subscription.status === 'active') {
+			if (
+				previousAttributes.status === 'incomplete' &&
+				subscription.status === 'active'
+			) {
 				await this.handleSubscriptionReactivated(subscription)
 			}
 		}
@@ -378,7 +492,7 @@ export class WebhookService {
 
 	private async handleSubscriptionDeleted(event: StripeEvent): Promise<void> {
 		const subscription = event.data.object as unknown as StripeSubscription
-		
+
 		// Update subscription status to canceled in database
 		try {
 			await this.prismaService.subscription.update({
@@ -389,10 +503,15 @@ export class WebhookService {
 					updatedAt: new Date()
 				}
 			})
-			
-			this.logger.log(`Subscription deleted and status updated: ${subscription.id}`)
+
+			this.logger.log(
+				`Subscription deleted and status updated: ${subscription.id}`
+			)
 		} catch (error) {
-			this.logger.error(`Failed to update deleted subscription status: ${subscription.id}`, error)
+			this.logger.error(
+				`Failed to update deleted subscription status: ${subscription.id}`,
+				error
+			)
 		}
 	}
 
@@ -412,7 +531,10 @@ export class WebhookService {
 
 		if (dbSubscription) {
 			// Restrict user's feature access during pause
-			await this.restrictUserFeatureAccess(dbSubscription.userId, 'SUBSCRIPTION_PAUSED')
+			await this.restrictUserFeatureAccess(
+				dbSubscription.userId,
+				'SUBSCRIPTION_PAUSED'
+			)
 
 			// Send pause notification
 			await this.sendSubscriptionPausedEmail({
@@ -433,14 +555,19 @@ export class WebhookService {
 		await this.subscriptionSync.syncSubscriptionFromWebhook(subscription)
 
 		// Get updated subscription details
-		const dbSubscription = await this.prismaService.subscription.findUnique({
-			where: { stripeSubscriptionId: subscription.id },
-			include: { User: true }
-		})
+		const dbSubscription = await this.prismaService.subscription.findUnique(
+			{
+				where: { stripeSubscriptionId: subscription.id },
+				include: { User: true }
+			}
+		)
 
 		if (dbSubscription) {
 			// Restore user's feature access
-			await this.restoreUserFeatureAccess(dbSubscription.userId, dbSubscription.planType)
+			await this.restoreUserFeatureAccess(
+				dbSubscription.userId,
+				dbSubscription.planType
+			)
 
 			// Send resume notification
 			await this.sendSubscriptionResumedEmail({
@@ -458,35 +585,48 @@ export class WebhookService {
 		this.logger.log(`Trial will end for subscription: ${subscription.id}`)
 
 		// Get subscription details from database
-		const dbSubscription = await this.prismaService.subscription.findUnique({
-			where: { stripeSubscriptionId: subscription.id },
-			include: { User: true }
-		})
+		const dbSubscription = await this.prismaService.subscription.findUnique(
+			{
+				where: { stripeSubscriptionId: subscription.id },
+				include: { User: true }
+			}
+		)
 
 		if (!dbSubscription) {
-			this.logger.warn(`Subscription ${subscription.id} not found in database`)
+			this.logger.warn(
+				`Subscription ${subscription.id} not found in database`
+			)
 			return
 		}
 
 		// Check if customer has a payment method
-		const customer = await this.stripeService.client.customers.retrieve(subscription.customer as string)
-		
+		const customer = await this.stripeService.client.customers.retrieve(
+			subscription.customer as string
+		)
+
 		// Check for payment methods using the modern Payment Methods API
 		let hasPaymentMethod = false
 		if (customer && !customer.deleted) {
 			// Check for default payment method in invoice settings (modern approach)
-			if ((customer as StripeCustomer).invoice_settings?.default_payment_method) {
+			if (
+				(customer as StripeCustomer).invoice_settings
+					?.default_payment_method
+			) {
 				hasPaymentMethod = true
 			} else {
 				// Check if customer has any attached payment methods
 				try {
-					const paymentMethods = await this.stripeService.client.paymentMethods.list({
-						customer: customer.id,
-						limit: 1
-					})
+					const paymentMethods =
+						await this.stripeService.client.paymentMethods.list({
+							customer: customer.id,
+							limit: 1
+						})
 					hasPaymentMethod = paymentMethods.data.length > 0
 				} catch (error) {
-					this.logger.warn(`Failed to check payment methods for customer ${customer.id}:`, error)
+					this.logger.warn(
+						`Failed to check payment methods for customer ${customer.id}:`,
+						error
+					)
 					hasPaymentMethod = false
 				}
 			}
@@ -494,7 +634,9 @@ export class WebhookService {
 
 		if (!hasPaymentMethod) {
 			// Send email prompting user to add payment method
-			this.logger.log(`Sending payment method required email to ${dbSubscription.User.email}`)
+			this.logger.log(
+				`Sending payment method required email to ${dbSubscription.User.email}`
+			)
 
 			// Send payment method required notification
 			await this.sendPaymentMethodRequiredEmail({
@@ -511,9 +653,12 @@ export class WebhookService {
 	private async handlePaymentSucceeded(event: StripeEvent): Promise<void> {
 		const invoice = event.data.object as unknown as StripeInvoice
 		// In Stripe API, invoice has a 'subscription' field that can be a string ID or null
-		const subscriptionId = (invoice as { subscription?: string | null }).subscription
+		const subscriptionId = (invoice as { subscription?: string | null })
+			.subscription
 
-		if (!subscriptionId) {return}
+		if (!subscriptionId) {
+			return
+		}
 
 		this.logger.log(`Payment succeeded for subscription: ${subscriptionId}`)
 
@@ -527,13 +672,17 @@ export class WebhookService {
 	private async handlePaymentFailed(event: StripeEvent): Promise<void> {
 		const invoice = event.data.object as unknown as StripeInvoice
 		// In Stripe API, invoice has a 'subscription' field that can be a string ID or null
-		const subscriptionId = (invoice as { subscription?: string | null }).subscription
+		const subscriptionId = (invoice as { subscription?: string | null })
+			.subscription
 
 		if (!subscriptionId) {
-			this.logger.warn('Payment failed event received but no subscription ID found', {
-				invoiceId: invoice.id,
-				customerEmail: invoice.customer_email
-			})
+			this.logger.warn(
+				'Payment failed event received but no subscription ID found',
+				{
+					invoiceId: invoice.id,
+					customerEmail: invoice.customer_email
+				}
+			)
 			return
 		}
 
@@ -547,11 +696,12 @@ export class WebhookService {
 
 		try {
 			// Update subscription status
-			const updatedSubscription = await this.prismaService.subscription.update({
-				where: { stripeSubscriptionId: subscriptionId },
-				data: { status: 'PAST_DUE' },
-				include: { User: true }
-			})
+			const updatedSubscription =
+				await this.prismaService.subscription.update({
+					where: { stripeSubscriptionId: subscriptionId },
+					data: { status: 'PAST_DUE' },
+					include: { User: true }
+				})
 
 			// Log for monitoring and potential automated actions
 			this.logger.warn(`Subscription marked as PAST_DUE`, {
@@ -575,18 +725,27 @@ export class WebhookService {
 
 			// Restrict access after multiple failed attempts
 			if (invoice.attempt_count >= 3) {
-				await this.restrictUserFeatureAccess(updatedSubscription.User.id, 'PAYMENT_FAILED')
+				await this.restrictUserFeatureAccess(
+					updatedSubscription.User.id,
+					'PAYMENT_FAILED'
+				)
 			}
 		} catch (error) {
-			this.logger.error(`Failed to update subscription status for ${subscriptionId}:`, error)
+			this.logger.error(
+				`Failed to update subscription status for ${subscriptionId}:`,
+				error
+			)
 		}
 	}
 
 	private async handleInvoiceUpcoming(event: StripeEvent): Promise<void> {
 		const invoice = event.data.object as unknown as StripeInvoice
-		const subscriptionId = (invoice as { subscription?: string | null }).subscription
+		const subscriptionId = (invoice as { subscription?: string | null })
+			.subscription
 
-		if (!subscriptionId) {return}
+		if (!subscriptionId) {
+			return
+		}
 
 		this.logger.log(`Upcoming invoice for subscription: ${subscriptionId}`)
 
@@ -597,7 +756,9 @@ export class WebhookService {
 		})
 
 		if (!subscription) {
-			this.logger.warn(`Subscription ${subscriptionId} not found in database`)
+			this.logger.warn(
+				`Subscription ${subscriptionId} not found in database`
+			)
 			return
 		}
 
@@ -614,16 +775,25 @@ export class WebhookService {
 			billingInterval: this.getBillingIntervalFromInvoice(invoice)
 		})
 
-		this.logger.log(`Renewal reminder sent to user ${subscription.User.email}`)
+		this.logger.log(
+			`Renewal reminder sent to user ${subscription.User.email}`
+		)
 	}
 
-	private async handlePaymentActionRequired(event: StripeEvent): Promise<void> {
+	private async handlePaymentActionRequired(
+		event: StripeEvent
+	): Promise<void> {
 		const invoice = event.data.object as unknown as StripeInvoice
-		const subscriptionId = (invoice as { subscription?: string | null }).subscription
+		const subscriptionId = (invoice as { subscription?: string | null })
+			.subscription
 
-		if (!subscriptionId) {return}
+		if (!subscriptionId) {
+			return
+		}
 
-		this.logger.warn(`Payment action required for subscription: ${subscriptionId}`)
+		this.logger.warn(
+			`Payment action required for subscription: ${subscriptionId}`
+		)
 
 		// Get subscription details
 		const subscription = await this.prismaService.subscription.findUnique({
@@ -632,7 +802,9 @@ export class WebhookService {
 		})
 
 		if (!subscription) {
-			this.logger.warn(`Subscription ${subscriptionId} not found in database`)
+			this.logger.warn(
+				`Subscription ${subscriptionId} not found in database`
+			)
 			return
 		}
 
@@ -646,26 +818,35 @@ export class WebhookService {
 			invoiceUrl: invoice.hosted_invoice_url || undefined
 		})
 
-		this.logger.log(`Payment action required notification sent to user ${subscription.User.email}`)
+		this.logger.log(
+			`Payment action required notification sent to user ${subscription.User.email}`
+		)
 	}
 
-	private async handlePaymentIntentRequiresAction(event: StripeEvent): Promise<void> {
-		const paymentIntent = event.data.object as unknown as ExpandedPaymentIntent
+	private async handlePaymentIntentRequiresAction(
+		event: StripeEvent
+	): Promise<void> {
+		const paymentIntent = event.data
+			.object as unknown as ExpandedPaymentIntent
 		this.logger.warn(`Payment intent requires action: ${paymentIntent.id}`)
 
 		// Get the invoice from the payment intent
-		const invoice = paymentIntent.invoice ?
-			await this.stripeService.client.invoices.retrieve(paymentIntent.invoice as string) :
-			null
+		const invoice = paymentIntent.invoice
+			? await this.stripeService.client.invoices.retrieve(
+					paymentIntent.invoice as string
+				)
+			: null
 
 		if (invoice && (invoice as unknown as ExpandedInvoice).subscription) {
-			const subscriptionId = (invoice as unknown as ExpandedInvoice).subscription as string
+			const subscriptionId = (invoice as unknown as ExpandedInvoice)
+				.subscription as string
 
 			// Get subscription details
-			const subscription = await this.prismaService.subscription.findUnique({
-				where: { stripeSubscriptionId: subscriptionId },
-				include: { User: true }
-			})
+			const subscription =
+				await this.prismaService.subscription.findUnique({
+					where: { stripeSubscriptionId: subscriptionId },
+					include: { User: true }
+				})
 
 			if (subscription) {
 				// Send authentication required notification
@@ -692,18 +873,22 @@ export class WebhookService {
 		})
 
 		// Get the invoice from the charge
-		const invoice = charge.invoice ?
-			await this.stripeService.client.invoices.retrieve(charge.invoice as string) :
-			null
+		const invoice = charge.invoice
+			? await this.stripeService.client.invoices.retrieve(
+					charge.invoice as string
+				)
+			: null
 
 		if (invoice && (invoice as unknown as ExpandedInvoice).subscription) {
-			const subscriptionId = (invoice as unknown as ExpandedInvoice).subscription as string
+			const subscriptionId = (invoice as unknown as ExpandedInvoice)
+				.subscription as string
 
 			// Get subscription details
-			const subscription = await this.prismaService.subscription.findUnique({
-				where: { stripeSubscriptionId: subscriptionId },
-				include: { User: true }
-			})
+			const subscription =
+				await this.prismaService.subscription.findUnique({
+					where: { stripeSubscriptionId: subscriptionId },
+					include: { User: true }
+				})
 
 			if (subscription) {
 				// Send charge failed notification with specific error details
@@ -714,18 +899,23 @@ export class WebhookService {
 					subscriptionId,
 					planType: subscription.planType || 'FREETRIAL',
 					failureCode: charge.failure_code || 'unknown',
-					failureMessage: charge.failure_message || 'Payment could not be processed',
+					failureMessage:
+						charge.failure_message ||
+						'Payment could not be processed',
 					amount: charge.amount,
 					currency: charge.currency
 				})
 
 				// Log for monitoring and potential manual intervention
-				this.logger.error(`Charge failed for user ${(subscription.User as User).email}`, {
-					subscriptionId,
-					chargeId: charge.id,
-					failureCode: charge.failure_code,
-					failureMessage: charge.failure_message
-				})
+				this.logger.error(
+					`Charge failed for user ${(subscription.User as User).email}`,
+					{
+						subscriptionId,
+						chargeId: charge.id,
+						failureCode: charge.failure_code,
+						failureMessage: charge.failure_message
+					}
+				)
 			}
 		}
 	}
@@ -735,7 +925,9 @@ export class WebhookService {
 
 		// Only handle subscription mode sessions
 		if (session.mode !== 'subscription') {
-			this.logger.log(`Ignoring non-subscription checkout session: ${session.mode}`)
+			this.logger.log(
+				`Ignoring non-subscription checkout session: ${session.mode}`
+			)
 			return
 		}
 
@@ -744,39 +936,63 @@ export class WebhookService {
 		const customerEmail = session.customer_details?.email
 
 		if (!userId || !subscriptionId) {
-			this.logger.error('Missing userId or subscriptionId in checkout session', {
-				sessionId: session.id,
-				userId,
-				subscriptionId,
-				customerEmail
-			})
+			this.logger.error(
+				'Missing userId or subscriptionId in checkout session',
+				{
+					sessionId: session.id,
+					userId,
+					subscriptionId,
+					customerEmail
+				}
+			)
 			return
 		}
 
-		this.logger.log(`Checkout completed for user ${userId}, subscription ${subscriptionId}`, {
-			sessionId: session.id,
-			customerEmail,
-			paymentStatus: session.payment_status
-		})
+		this.logger.log(
+			`Checkout completed for user ${userId}, subscription ${subscriptionId}`,
+			{
+				sessionId: session.id,
+				customerEmail,
+				paymentStatus: session.payment_status
+			}
+		)
 
 		try {
 			// PRIMARY SOURCE OF TRUTH: Retrieve the subscription from Stripe to ensure we have the latest data
-			const stripeSubscription = await this.stripeService.client.subscriptions.retrieve(subscriptionId)
+			const stripeSubscription =
+				await this.stripeService.client.subscriptions.retrieve(
+					subscriptionId
+				)
 
 			// Sync the subscription with our database
-			await this.subscriptionSync.syncSubscriptionFromWebhook(stripeSubscription as unknown as StripeSubscription)
+			await this.subscriptionSync.syncSubscriptionFromWebhook(
+				stripeSubscription as unknown as StripeSubscription
+			)
 
 			// Additional success actions
-			await this.handleSubscriptionActivated(userId, subscriptionId, session)
+			await this.handleSubscriptionActivated(
+				userId,
+				subscriptionId,
+				session
+			)
 
-			this.logger.log(`Successfully processed checkout completion for subscription ${subscriptionId}`)
+			this.logger.log(
+				`Successfully processed checkout completion for subscription ${subscriptionId}`
+			)
 		} catch (error) {
-			this.logger.error(`Error processing checkout completion for subscription ${subscriptionId}:`, error)
+			this.logger.error(
+				`Error processing checkout completion for subscription ${subscriptionId}:`,
+				error
+			)
 			// Don't rethrow - we still want to return 200 to Stripe
 		}
 	}
 
-	private async handleSubscriptionActivated(userId: string, subscriptionId: string, session: StripeCheckoutSession): Promise<void> {
+	private async handleSubscriptionActivated(
+		userId: string,
+		subscriptionId: string,
+		session: StripeCheckoutSession
+	): Promise<void> {
 		// Update user's subscription status to ensure they have access
 		const user = await this.prismaService.user.findUnique({
 			where: { id: userId },
@@ -784,7 +1000,9 @@ export class WebhookService {
 		})
 
 		if (!user) {
-			this.logger.warn(`User ${userId} not found during subscription activation`)
+			this.logger.warn(
+				`User ${userId} not found during subscription activation`
+			)
 			return
 		}
 
@@ -802,17 +1020,25 @@ export class WebhookService {
 		// User permissions/features would be updated based on subscription plan
 	}
 
-	private async handleTrialEndedWithoutPayment(subscription: StripeSubscription): Promise<void> {
-		this.logger.log(`Trial ended without payment method for subscription: ${subscription.id}`)
+	private async handleTrialEndedWithoutPayment(
+		subscription: StripeSubscription
+	): Promise<void> {
+		this.logger.log(
+			`Trial ended without payment method for subscription: ${subscription.id}`
+		)
 
 		// Get subscription details
-		const dbSubscription = await this.prismaService.subscription.findUnique({
-			where: { stripeSubscriptionId: subscription.id },
-			include: { User: true }
-		})
+		const dbSubscription = await this.prismaService.subscription.findUnique(
+			{
+				where: { stripeSubscriptionId: subscription.id },
+				include: { User: true }
+			}
+		)
 
 		if (!dbSubscription) {
-			this.logger.warn(`Subscription ${subscription.id} not found in database`)
+			this.logger.warn(
+				`Subscription ${subscription.id} not found in database`
+			)
 			return
 		}
 
@@ -825,7 +1051,9 @@ export class WebhookService {
 			}
 		})
 
-		this.logger.log(`Trial ended without payment method for user ${dbSubscription.User.email}`)
+		this.logger.log(
+			`Trial ended without payment method for user ${dbSubscription.User.email}`
+		)
 
 		// Send payment method required email
 		await this.sendPaymentMethodRequiredEmail({
@@ -838,25 +1066,36 @@ export class WebhookService {
 		})
 
 		// Restrict user's feature access to FREETRIAL tier
-		await this.restrictUserFeatureAccess(dbSubscription.User.id, 'TRIAL_ENDED')
+		await this.restrictUserFeatureAccess(
+			dbSubscription.User.id,
+			'TRIAL_ENDED'
+		)
 	}
 
-	private async handleSubscriptionReactivated(subscription: StripeSubscription): Promise<void> {
+	private async handleSubscriptionReactivated(
+		subscription: StripeSubscription
+	): Promise<void> {
 		this.logger.log(`Subscription reactivated: ${subscription.id}`)
 
 		// Get subscription details
-		const dbSubscription = await this.prismaService.subscription.findUnique({
-			where: { stripeSubscriptionId: subscription.id },
-			include: { User: true }
-		})
+		const dbSubscription = await this.prismaService.subscription.findUnique(
+			{
+				where: { stripeSubscriptionId: subscription.id },
+				include: { User: true }
+			}
+		)
 
 		if (!dbSubscription) {
-			this.logger.warn(`Subscription ${subscription.id} not found in database`)
+			this.logger.warn(
+				`Subscription ${subscription.id} not found in database`
+			)
 			return
 		}
 
 		// Update subscription status to ACTIVE (already done by syncSubscriptionFromStripe)
-		this.logger.log(`Subscription reactivated for user ${dbSubscription.User.email}`)
+		this.logger.log(
+			`Subscription reactivated for user ${dbSubscription.User.email}`
+		)
 
 		// Send welcome back email
 		await this.sendSubscriptionReactivatedEmail({
@@ -868,7 +1107,10 @@ export class WebhookService {
 		})
 
 		// Restore user's feature access level
-		await this.restoreUserFeatureAccess(dbSubscription.User.id, dbSubscription.planType)
+		await this.restoreUserFeatureAccess(
+			dbSubscription.User.id,
+			dbSubscription.planType
+		)
 	}
 
 	// Helper methods for notifications and feature access
@@ -889,8 +1131,13 @@ export class WebhookService {
 			trialEndDate: data.trialEndDate
 		}
 
-		this.eventEmitter.emit(SubscriptionEventType.PAYMENT_METHOD_REQUIRED, event)
-		this.logger.log(`Payment method required event emitted for user ${data.userId}`)
+		this.eventEmitter.emit(
+			SubscriptionEventType.PAYMENT_METHOD_REQUIRED,
+			event
+		)
+		this.logger.log(
+			`Payment method required event emitted for user ${data.userId}`
+		)
 	}
 
 	private async sendSubscriptionReactivatedEmail(data: {
@@ -908,19 +1155,32 @@ export class WebhookService {
 			customerId: '' // Will be populated by the listener if needed
 		}
 
-		this.eventEmitter.emit(SubscriptionEventType.SUBSCRIPTION_CREATED, event)
-		this.logger.log(`Subscription reactivation event emitted for user ${data.userId}`)
+		this.eventEmitter.emit(
+			SubscriptionEventType.SUBSCRIPTION_CREATED,
+			event
+		)
+		this.logger.log(
+			`Subscription reactivation event emitted for user ${data.userId}`
+		)
 	}
 
-	private async restrictUserFeatureAccess(userId: string, reason: 'TRIAL_ENDED' | 'SUBSCRIPTION_PAUSED' | 'PAYMENT_FAILED'): Promise<void> {
+	private async restrictUserFeatureAccess(
+		userId: string,
+		reason: 'TRIAL_ENDED' | 'SUBSCRIPTION_PAUSED' | 'PAYMENT_FAILED'
+	): Promise<void> {
 		// Emit event for decoupled feature access management
 		const event: FeatureAccessRestrictEvent = {
 			userId,
 			reason
 		}
 
-		this.eventEmitter.emit(SubscriptionEventType.FEATURE_ACCESS_RESTRICT, event)
-		this.logger.log(`Feature access restriction event emitted for user ${userId}, reason: ${reason}`)
+		this.eventEmitter.emit(
+			SubscriptionEventType.FEATURE_ACCESS_RESTRICT,
+			event
+		)
+		this.logger.log(
+			`Feature access restriction event emitted for user ${userId}, reason: ${reason}`
+		)
 	}
 
 	private async sendPaymentFailedEmail(data: {
@@ -960,28 +1220,54 @@ export class WebhookService {
 	}): Promise<void> {
 		// For upcoming invoice, we can use the subscription notification service directly
 		// since it doesn't have the same circular dependency issues
-		this.logger.log(`Upcoming invoice notification queued for ${data.userEmail}`)
+		this.logger.log(
+			`Upcoming invoice notification queued for ${data.userEmail}`
+		)
 		// TODO: Implement event-based upcoming invoice notification
 	}
 
-	private getBillingIntervalFromInvoice(invoice: StripeInvoice): 'monthly' | 'annual' {
+	private getBillingIntervalFromInvoice(
+		invoice: StripeInvoice
+	): 'monthly' | 'annual' {
 		// Check the invoice lines to determine billing interval
 		const line = invoice.lines?.data?.[0]
-		if (line && 'price' in line && line.price && typeof line.price === 'object' && 'recurring' in line.price && line.price.recurring && typeof line.price.recurring === 'object' && 'interval' in line.price.recurring && line.price.recurring.interval === 'year') {
+		if (
+			line &&
+			'price' in line &&
+			line.price &&
+			typeof line.price === 'object' &&
+			'recurring' in line.price &&
+			line.price.recurring &&
+			typeof line.price.recurring === 'object' &&
+			'interval' in line.price.recurring &&
+			line.price.recurring.interval === 'year'
+		) {
 			return 'annual'
 		}
 		return 'monthly'
 	}
 
-	private async restoreUserFeatureAccess(userId: string, planType: string | null): Promise<void> {
+	private async restoreUserFeatureAccess(
+		userId: string,
+		planType: string | null
+	): Promise<void> {
 		// Emit event for decoupled feature access management
 		const event: FeatureAccessRestoreEvent = {
 			userId,
-			planType: (planType || 'FREETRIAL') as 'FREETRIAL' | 'STARTER' | 'GROWTH' | 'TENANTFLOW_MAX'
+			planType: (planType || 'FREETRIAL') as
+				| 'FREETRIAL'
+				| 'STARTER'
+				| 'GROWTH'
+				| 'TENANTFLOW_MAX'
 		}
 
-		this.eventEmitter.emit(SubscriptionEventType.FEATURE_ACCESS_RESTORE, event)
-		this.logger.log(`Feature access restoration event emitted for user ${userId}, planType: ${planType}`)
+		this.eventEmitter.emit(
+			SubscriptionEventType.FEATURE_ACCESS_RESTORE,
+			event
+		)
+		this.logger.log(
+			`Feature access restoration event emitted for user ${userId}, planType: ${planType}`
+		)
 	}
 
 	// New notification methods for additional webhook events
@@ -998,8 +1284,13 @@ export class WebhookService {
 			reason: 'SUBSCRIPTION_PAUSED'
 		}
 
-		this.eventEmitter.emit(SubscriptionEventType.FEATURE_ACCESS_RESTRICT, event)
-		this.logger.log(`Subscription paused notification queued for ${data.userEmail}`)
+		this.eventEmitter.emit(
+			SubscriptionEventType.FEATURE_ACCESS_RESTRICT,
+			event
+		)
+		this.logger.log(
+			`Subscription paused notification queued for ${data.userEmail}`
+		)
 	}
 
 	private async sendSubscriptionResumedEmail(data: {
@@ -1012,11 +1303,20 @@ export class WebhookService {
 		// Emit feature access restoration event for subscription resume
 		const event: FeatureAccessRestoreEvent = {
 			userId: data.userId,
-			planType: (data.planType || 'FREETRIAL') as 'FREETRIAL' | 'STARTER' | 'GROWTH' | 'TENANTFLOW_MAX'
+			planType: (data.planType || 'FREETRIAL') as
+				| 'FREETRIAL'
+				| 'STARTER'
+				| 'GROWTH'
+				| 'TENANTFLOW_MAX'
 		}
 
-		this.eventEmitter.emit(SubscriptionEventType.FEATURE_ACCESS_RESTORE, event)
-		this.logger.log(`Subscription resumed notification queued for ${data.userEmail}`)
+		this.eventEmitter.emit(
+			SubscriptionEventType.FEATURE_ACCESS_RESTORE,
+			event
+		)
+		this.logger.log(
+			`Subscription resumed notification queued for ${data.userEmail}`
+		)
 	}
 
 	private async sendPaymentActionRequiredEmail(data: {
@@ -1028,7 +1328,9 @@ export class WebhookService {
 		invoiceUrl?: string
 	}): Promise<void> {
 		// Log for now - could emit a more specific event if needed
-		this.logger.log(`Payment action required notification queued for ${data.userEmail}`)
+		this.logger.log(
+			`Payment action required notification queued for ${data.userEmail}`
+		)
 		// TODO: Implement specific payment action required event if needed
 	}
 
@@ -1041,7 +1343,9 @@ export class WebhookService {
 		paymentIntentId: string
 	}): Promise<void> {
 		// Log for now - could emit a more specific event if needed
-		this.logger.log(`Authentication required notification queued for ${data.userEmail}`)
+		this.logger.log(
+			`Authentication required notification queued for ${data.userEmail}`
+		)
 		// TODO: Implement specific authentication required event if needed
 	}
 
@@ -1067,7 +1371,9 @@ export class WebhookService {
 		}
 
 		this.eventEmitter.emit(SubscriptionEventType.PAYMENT_FAILED, event)
-		this.logger.log(`Charge failed notification queued for ${data.userEmail}`)
+		this.logger.log(
+			`Charge failed notification queued for ${data.userEmail}`
+		)
 	}
 
 	// ========================
@@ -1077,29 +1383,32 @@ export class WebhookService {
 	private async handleCustomerCreated(event: StripeEvent): Promise<void> {
 		const customer = event.data.object as unknown as StripeCustomer
 		this.logger.log(`Customer created: ${customer.id}`)
-		
+
 		// Basic customer creation logging - could be extended for customer onboarding
 		// TODO: Implement customer onboarding workflow if needed
 	}
 
 	private async handleCustomerUpdated(event: StripeEvent): Promise<void> {
 		const customer = event.data.object as unknown as StripeCustomer
-		const previousAttributes = event.data.previous_attributes as Partial<StripeCustomer>
-		
+		const previousAttributes = event.data
+			.previous_attributes as Partial<StripeCustomer>
+
 		this.logger.log(`Customer updated: ${customer.id}`)
-		
+
 		// Log significant changes
 		if (previousAttributes?.email) {
-			this.logger.log(`Customer ${customer.id} email changed from ${previousAttributes.email} to ${customer.email}`)
+			this.logger.log(
+				`Customer ${customer.id} email changed from ${previousAttributes.email} to ${customer.email}`
+			)
 		}
-		
+
 		// TODO: Sync customer changes with database if needed
 	}
 
 	private async handleCustomerDeleted(event: StripeEvent): Promise<void> {
 		const customer = event.data.object as unknown as StripeCustomer
 		this.logger.log(`Customer deleted: ${customer.id}`)
-		
+
 		// TODO: Handle customer deletion cleanup if needed
 		// Note: This is rare - customers are usually just deactivated
 	}
@@ -1107,36 +1416,45 @@ export class WebhookService {
 	private async handleInvoiceCreated(event: StripeEvent): Promise<void> {
 		const invoice = event.data.object as unknown as StripeInvoice
 		this.logger.log(`Invoice created: ${invoice.id}`)
-		
+
 		// TODO: Store invoice details in database for record keeping
 	}
 
 	private async handleInvoiceFinalized(event: StripeEvent): Promise<void> {
 		const invoice = event.data.object as unknown as StripeInvoice
 		this.logger.log(`Invoice finalized: ${invoice.id}`)
-		
+
 		// TODO: Send invoice to customer via email if auto-collection is disabled
 	}
 
-	private async handlePaymentIntentCreated(event: StripeEvent): Promise<void> {
-		const paymentIntent = event.data.object as unknown as StripePaymentIntent
+	private async handlePaymentIntentCreated(
+		event: StripeEvent
+	): Promise<void> {
+		const paymentIntent = event.data
+			.object as unknown as StripePaymentIntent
 		this.logger.log(`Payment intent created: ${paymentIntent.id}`)
-		
+
 		// Basic logging - payment intent creation is usually automatic
 	}
 
-	private async handlePaymentIntentSucceeded(event: StripeEvent): Promise<void> {
-		const paymentIntent = event.data.object as unknown as StripePaymentIntent
+	private async handlePaymentIntentSucceeded(
+		event: StripeEvent
+	): Promise<void> {
+		const paymentIntent = event.data
+			.object as unknown as StripePaymentIntent
 		this.logger.log(`Payment intent succeeded: ${paymentIntent.id}`)
-		
+
 		// For subscription payments, this is handled by invoice.payment_succeeded
 		// For one-time payments, could trigger success notifications
 	}
 
-	private async handlePaymentIntentPaymentFailed(event: StripeEvent): Promise<void> {
-		const paymentIntent = event.data.object as unknown as StripePaymentIntent
+	private async handlePaymentIntentPaymentFailed(
+		event: StripeEvent
+	): Promise<void> {
+		const paymentIntent = event.data
+			.object as unknown as StripePaymentIntent
 		this.logger.warn(`Payment intent failed: ${paymentIntent.id}`)
-		
+
 		// Log failure details for debugging
 		if (paymentIntent.last_payment_error) {
 			this.logger.warn('Payment failure details:', {
@@ -1147,26 +1465,32 @@ export class WebhookService {
 		}
 	}
 
-	private async handleCheckoutSessionExpired(event: StripeEvent): Promise<void> {
+	private async handleCheckoutSessionExpired(
+		event: StripeEvent
+	): Promise<void> {
 		const session = event.data.object as unknown as StripeCheckoutSession
 		this.logger.log(`Checkout session expired: ${session.id}`)
-		
+
 		// Could be used for abandoned cart analytics
 		// TODO: Implement abandoned checkout follow-up if needed
 	}
 
-	private async handleSetupIntentSucceeded(event: StripeEvent): Promise<void> {
+	private async handleSetupIntentSucceeded(
+		event: StripeEvent
+	): Promise<void> {
 		const setupIntent = event.data.object as unknown as StripeSetupIntent
 		this.logger.log(`Setup intent succeeded: ${setupIntent.id}`)
-		
+
 		// Payment method successfully attached to customer
 		// Could trigger "payment method added" notification
 	}
 
-	private async handleSetupIntentSetupFailed(event: StripeEvent): Promise<void> {
+	private async handleSetupIntentSetupFailed(
+		event: StripeEvent
+	): Promise<void> {
 		const setupIntent = event.data.object as unknown as StripeSetupIntent
 		this.logger.warn(`Setup intent failed: ${setupIntent.id}`)
-		
+
 		// Log failure details
 		if (setupIntent.last_setup_error) {
 			this.logger.warn('Setup intent failure details:', {
@@ -1175,7 +1499,7 @@ export class WebhookService {
 				type: setupIntent.last_setup_error.type
 			})
 		}
-		
+
 		// TODO: Notify customer about payment method setup failure
 	}
 }

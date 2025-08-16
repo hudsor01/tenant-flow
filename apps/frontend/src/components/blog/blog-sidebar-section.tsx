@@ -2,7 +2,10 @@ import Link from 'next/link'
 import { motion } from '@/lib/framer-motion'
 import { Button } from '@/components/ui/button'
 import { ArrowUpRight } from 'lucide-react'
-import { useRelatedBlogArticles, useBlogArticle } from '@/hooks/useBlogArticleData'
+import {
+	useRelatedBlogArticles,
+	useBlogArticle
+} from '@/hooks/useBlogArticleData'
 
 interface BlogSidebarSectionProps {
 	currentSlug: string
@@ -34,25 +37,25 @@ export default function BlogSidebarSection({
 			{/* Related Articles */}
 			{relatedArticles.length > 0 && (
 				<div>
-					<h3 className="text-lg font-semibold text-foreground mb-6">
+					<h3 className="text-foreground mb-6 text-lg font-semibold">
 						Related Articles
 					</h3>
 					<div className="space-y-6">
-						{relatedArticles.map((article) => (
+						{relatedArticles.map(article => (
 							<article key={article.slug}>
 								<Link
 									href={`/blog/${article.slug}`}
 									className="group block"
 								>
-									<h4 className="text-sm font-medium text-foreground group-hover:text-primary transition-colors mb-2 leading-snug">
+									<h4 className="text-foreground group-hover:text-primary mb-2 text-sm leading-snug font-medium transition-colors">
 										{article.title}
 									</h4>
-									<p className="text-xs text-muted-foreground mb-2">
+									<p className="text-muted-foreground mb-2 text-xs">
 										{article.category}
 									</p>
-									<div className="flex items-center text-xs text-primary group-hover:gap-2 transition-all">
+									<div className="text-primary flex items-center text-xs transition-all group-hover:gap-2">
 										Read article
-										<ArrowUpRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+										<ArrowUpRight className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100" />
 									</div>
 								</Link>
 							</article>
@@ -62,24 +65,25 @@ export default function BlogSidebarSection({
 			)}
 
 			{/* Newsletter Signup */}
-			<div className="rounded-2xl bg-muted/50 p-6">
-				<h3 className="text-lg font-semibold text-foreground mb-3">
+			<div className="bg-muted/50 rounded-2xl p-6">
+				<h3 className="text-foreground mb-3 text-lg font-semibold">
 					Stay Updated
 				</h3>
-				<p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-					Get expert property management insights delivered to your inbox weekly.
+				<p className="text-muted-foreground mb-6 text-sm leading-relaxed">
+					Get expert property management insights delivered to your
+					inbox weekly.
 				</p>
 				<div className="space-y-3">
 					<input
 						type="email"
 						placeholder="Enter your email"
-						className="w-full rounded-lg border-0 bg-background px-3 py-2 text-sm text-foreground shadow-sm ring-1 ring-inset ring-border placeholder:text-muted-foreground focus:ring-2 focus:ring-primary"
+						className="bg-background text-foreground ring-border placeholder:text-muted-foreground focus:ring-primary w-full rounded-lg border-0 px-3 py-2 text-sm shadow-sm ring-1 ring-inset focus:ring-2"
 					/>
 					<Button className="w-full text-sm font-semibold">
 						Subscribe
 					</Button>
 				</div>
-				<p className="mt-3 text-xs text-muted-foreground">
+				<p className="text-muted-foreground mt-3 text-xs">
 					No spam. Unsubscribe at any time.
 				</p>
 			</div>

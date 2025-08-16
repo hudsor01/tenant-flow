@@ -8,16 +8,16 @@
 /**
  * Wrapper component for Stripe's Embedded Checkout
  * Provides a complete checkout experience within your app
- * 
+ *
  * TODO: This is a GitHub example that needs proper integration
  */
 export function EmbeddedCheckout() {
-    return <div>EmbeddedCheckout - Placeholder</div>
+	return <div>EmbeddedCheckout - Placeholder</div>
 }
 
 // export function EmbeddedCheckout({ clientSecret, onComplete }: EmbeddedCheckoutProps) {
 //     return (
-//         <StripeEmbeddedCheckout 
+//         <StripeEmbeddedCheckout
 //             options={{ clientSecret }}
 //             onComplete={onComplete}
 //         />

@@ -7,10 +7,10 @@ import type { User } from '@repo/shared'
 
 // App-wide context that should be consumed with use() hook
 export interface AppContextValue {
-  user: User | null
-  isAuthenticated: boolean
-  theme: 'light' | 'dark' | 'system'
-  isOnline: boolean
+	user: User | null
+	isAuthenticated: boolean
+	theme: 'light' | 'dark' | 'system'
+	isOnline: boolean
 }
 
 export const AppContext = createContext<AppContextValue | null>(null)

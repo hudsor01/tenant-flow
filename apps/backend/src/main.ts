@@ -13,7 +13,12 @@ if (!process.env.RAILWAY_ENVIRONMENT && !process.env.DOCKER_CONTAINER) {
 }
 
 import { NestFactory } from '@nestjs/core'
-import { BadRequestException, Logger, RequestMethod, ValidationPipe } from '@nestjs/common'
+import {
+	BadRequestException,
+	Logger,
+	RequestMethod,
+	ValidationPipe
+} from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { AppModule } from './app.module'
 import {
@@ -196,7 +201,7 @@ async function bootstrap() {
 	logDebug('Retrieving JWT secret configuration', {
 		phase: 'jwt-configuration'
 	})
-	
+
 	// Try JWT_SECRET first, fallback to SUPABASE_JWT_SECRET for Railway deployment
 	let jwtSecret = configService.get<string>('JWT_SECRET')
 	if (!jwtSecret) {
@@ -247,24 +252,31 @@ async function bootstrap() {
 
 		// Handle warnings - strict production enforcement
 		if (validation.warnings.length > 0) {
-			const isProduction = configService.get<string>('NODE_ENV') === 'production'
-			
+			const isProduction =
+				configService.get<string>('NODE_ENV') === 'production'
+
 			if (isProduction) {
 				// Production: Treat warnings as blocking errors
-				securityLogger.error('❌ JWT_SECRET production security violations:')
+				securityLogger.error(
+					'❌ JWT_SECRET production security violations:'
+				)
 				validation.warnings.forEach(warning =>
 					securityLogger.error(`  - ${warning}`)
 				)
-				
+
 				if (validation.suggestions.length > 0) {
 					securityLogger.error('💡 Required fixes for production:')
 					validation.suggestions.forEach(suggestion =>
 						securityLogger.error(`  - ${suggestion}`)
 					)
 				}
-				
-				securityLogger.error('🚫 Production requires secure JWT_SECRET - blocking startup')
-				throw new Error(`Production JWT_SECRET security requirements not met: ${validation.warnings.join(', ')}`)
+
+				securityLogger.error(
+					'🚫 Production requires secure JWT_SECRET - blocking startup'
+				)
+				throw new Error(
+					`Production JWT_SECRET security requirements not met: ${validation.warnings.join(', ')}`
+				)
 			} else {
 				// Development: Show warnings but allow startup
 				securityLogger.warn('⚠️  JWT_SECRET security recommendations:')
@@ -278,8 +290,10 @@ async function bootstrap() {
 						securityLogger.warn(`  - ${suggestion}`)
 					)
 				}
-				
-				securityLogger.warn('🔒 These warnings will block production deployment')
+
+				securityLogger.warn(
+					'🔒 These warnings will block production deployment'
+				)
 			}
 		}
 
@@ -294,12 +308,18 @@ async function bootstrap() {
 		const currentEnv = configService.get<string>('NODE_ENV') || 'production'
 		const isProductionEnv = currentEnv === 'production'
 		if (isProductionEnv) {
-			securityLogger.error('⚠️  JWT_SECRET not found - using fallback for health check only')
+			securityLogger.error(
+				'⚠️  JWT_SECRET not found - using fallback for health check only'
+			)
 			// Set a temporary JWT_SECRET just for health checks
-			process.env.JWT_SECRET = process.env.SUPABASE_JWT_SECRET || 'temporary-health-check-only-' + Date.now()
+			process.env.JWT_SECRET =
+				process.env.SUPABASE_JWT_SECRET ||
+				'temporary-health-check-only-' + Date.now()
 		} else {
 			// In development, we can be more lenient
-			securityLogger.warn('⚠️  JWT_SECRET not configured - using development default')
+			securityLogger.warn(
+				'⚠️  JWT_SECRET not configured - using development default'
+			)
 			process.env.JWT_SECRET = 'development-jwt-secret-not-for-production'
 		}
 	}
@@ -308,11 +328,18 @@ async function bootstrap() {
 
 	// Global exception filter for production error sanitization
 	try {
-		const filterModule = await import('./common/filters/production-exception.filter')
+		const filterModule = await import(
+			'./common/filters/production-exception.filter'
+		)
 		const ProductionExceptionFilter = filterModule.ProductionExceptionFilter
 		app.useGlobalFilters(new ProductionExceptionFilter())
 	} catch (error) {
-		logger.error('Failed to load ProductionExceptionFilter:', error instanceof Error ? { error: error.message } : { error: String(error) })
+		logger.error(
+			'Failed to load ProductionExceptionFilter:',
+			error instanceof Error
+				? { error: error.message }
+				: { error: String(error) }
+		)
 		// Continue without the filter if it fails to load
 	}
 
@@ -392,20 +419,23 @@ async function bootstrap() {
 
 	// If no environment variable is set, use secure defaults
 	let finalCorsOrigins = corsOrigins
-	
+
 	// If corsOrigins is already populated from CORS_ORIGINS env var, use it
 	if (corsOrigins.length > 0) {
-		securityLogger.log(`✅ Using CORS origins from configuration: ${corsOrigins.join(', ')}`)
+		securityLogger.log(
+			`✅ Using CORS origins from configuration: ${corsOrigins.join(', ')}`
+		)
 		finalCorsOrigins = corsOrigins
 	} else {
 		// Fallback to legacy environment variables
-		const productionDomains = configService.get<string>('PRODUCTION_DOMAINS', '')
+		const productionDomains = configService
+			.get<string>('PRODUCTION_DOMAINS', '')
 			.split(',')
 			.filter(domain => domain.trim())
 			.map(domain => `https://${domain.trim()}`)
-		
+
 		const frontendUrl = configService.get<string>('FRONTEND_URL')
-		
+
 		if (isProduction) {
 			// SECURITY: Production only allows HTTPS origins from environment
 			if (productionDomains.length > 0) {
@@ -415,8 +445,12 @@ async function bootstrap() {
 			} else {
 				// Fallback for production - require explicit configuration
 				securityLogger.error('❌ Production CORS configuration missing')
-				securityLogger.error('Set CORS_ORIGINS, PRODUCTION_DOMAINS or FRONTEND_URL environment variable')
-				throw new Error('Production CORS origins must be configured via environment variables')
+				securityLogger.error(
+					'Set CORS_ORIGINS, PRODUCTION_DOMAINS or FRONTEND_URL environment variable'
+				)
+				throw new Error(
+					'Production CORS origins must be configured via environment variables'
+				)
 			}
 		} else {
 			// Development: Use configured domains or safe defaults
@@ -431,13 +465,19 @@ async function bootstrap() {
 
 			// SECURITY: Only add localhost origins in non-production with explicit flag
 			if (environment === 'development' || environment === 'test') {
-				const allowLocalhost = configService.get<string>('ALLOW_LOCALHOST_CORS')
+				const allowLocalhost = configService.get<string>(
+					'ALLOW_LOCALHOST_CORS'
+				)
 				if (allowLocalhost === 'true') {
 					// Get localhost ports from environment or use defaults
-					const localhostPorts = configService.get<string>('LOCALHOST_PORTS', '3000,3001,3002,3003,3004,5172,5173,5174,5175')
+					const localhostPorts = configService
+						.get<string>(
+							'LOCALHOST_PORTS',
+							'3000,3001,3002,3003,3004,5172,5173,5174,5175'
+						)
 						.split(',')
 						.map(port => `http://localhost:${port.trim()}`)
-					
+
 					finalCorsOrigins.push(...localhostPorts)
 				}
 			}
@@ -446,12 +486,12 @@ async function bootstrap() {
 
 	// SECURITY: In production deployment environments, enforce HTTPS-only origins
 	// Allow HTTP origins for local production testing (NODE_ENV=production locally)
-	const isActualProductionDeployment = isProduction && (
-		process.env.RAILWAY_ENVIRONMENT === 'production' || 
-		process.env.VERCEL_ENV === 'production' ||
-		process.env.DOCKER_CONTAINER === 'true'
-	)
-	
+	const isActualProductionDeployment =
+		isProduction &&
+		(process.env.RAILWAY_ENVIRONMENT === 'production' ||
+			process.env.VERCEL_ENV === 'production' ||
+			process.env.DOCKER_CONTAINER === 'true')
+
 	if (isActualProductionDeployment) {
 		const httpOrigins = finalCorsOrigins.filter(origin =>
 			origin.startsWith('http://')
@@ -549,7 +589,9 @@ async function bootstrap() {
 	fastifyInstance.decorateRequest('correlationId', '')
 	fastifyInstance.decorateRequest('startTime', 0)
 	fastifyInstance.decorateRequest('rawBody', undefined)
-	logger.log('✅ Request decorators properly declared for performance optimization')
+	logger.log(
+		'✅ Request decorators properly declared for performance optimization'
+	)
 
 	// Add content type parser for Stripe webhooks that preserves raw body
 	fastifyInstance.addContentTypeParser(
@@ -626,14 +668,18 @@ async function bootstrap() {
 		maxEventLoopUtilization: 0.98, // Max event loop utilization (0-1)
 		maxHeapUsedBytes: 0.98, // Max heap usage percentage
 		maxRssBytes: 0.98, // Max RSS memory usage percentage
-		pressureHandler: (req: FastifyRequest, res: FastifyReply, type: string) => {
+		pressureHandler: (
+			req: FastifyRequest,
+			res: FastifyReply,
+			type: string
+		) => {
 			logger.warn(`Server under pressure: ${type}`, {
 				type,
 				url: req.url,
 				method: req.method,
 				correlationId: req.correlationId
 			})
-			res.code(503).send({ 
+			res.code(503).send({
 				error: 'Service Unavailable',
 				message: 'Server is under heavy load, please try again later'
 			})
@@ -657,7 +703,10 @@ async function bootstrap() {
 	try {
 		await pluginsConfig.initializeAllPlugins(app, configService)
 	} catch (error) {
-		logger.warn('Some Fastify plugins failed to initialize', error as Record<string, unknown>)
+		logger.warn(
+			'Some Fastify plugins failed to initialize',
+			error as Record<string, unknown>
+		)
 		// Continue - these are enhancements, not critical
 	}
 
@@ -748,12 +797,12 @@ async function bootstrap() {
 	await app.register(securityHeadersPlugin, {
 		environment: isProduction ? 'production' : 'development'
 	})
-	
+
 	logger.log('✅ Enhanced security headers plugin registered')
 
 	// Configure cookie support (required for CSRF)
 	const fastifyCookie = await import('@fastify/cookie')
-	
+
 	// Get cookie domain from environment or extract from frontend URL
 	let cookieDomain: string | undefined
 	if (isProduction) {
@@ -772,12 +821,15 @@ async function bootstrap() {
 						cookieDomain = `.${parts.slice(-2).join('.')}`
 					}
 				} catch (_error) {
-					securityLogger.warn('Failed to parse FRONTEND_URL for cookie domain', { frontendUrl })
+					securityLogger.warn(
+						'Failed to parse FRONTEND_URL for cookie domain',
+						{ frontendUrl }
+					)
 				}
 			}
 		}
 	}
-	
+
 	await app.register(fastifyCookie.default, {
 		secret: jwtSecret || 'csrf-secret-change-in-production', // Use JWT secret for cookie signing
 		parseOptions: {
@@ -806,12 +858,13 @@ async function bootstrap() {
 			const headers = req.headers as Record<string, string | undefined>
 			const body = req.body as Record<string, unknown> | undefined
 			const query = req.query as Record<string, unknown> | undefined
-			
-			const token = headers['x-csrf-token'] || 
-				   headers['csrf-token'] || 
-				   body?._csrf || 
-				   query?._csrf
-			
+
+			const token =
+				headers['x-csrf-token'] ||
+				headers['csrf-token'] ||
+				body?._csrf ||
+				query?._csrf
+
 			return typeof token === 'string' ? token : undefined
 		}
 	})

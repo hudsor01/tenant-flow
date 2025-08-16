@@ -1,5 +1,12 @@
-import { applyDecorators, UseInterceptors } from '@nestjs/common'
-import { CallHandler, ExecutionContext, Injectable, Logger, NestInterceptor } from '@nestjs/common'
+import {
+	applyDecorators,
+	CallHandler,
+	ExecutionContext,
+	Injectable,
+	Logger,
+	NestInterceptor,
+	UseInterceptors
+} from '@nestjs/common'
 import { Observable, of, throwError } from 'rxjs'
 import { catchError, retry, tap, timeout } from 'rxjs/operators'
 
@@ -45,16 +52,26 @@ export class CircuitBreakerInterceptor implements NestInterceptor {
 		}
 	}
 
-	intercept(_context: ExecutionContext, next: CallHandler): Observable<unknown> {
+	intercept(
+		_context: ExecutionContext,
+		next: CallHandler
+	): Observable<unknown> {
 		// Check if circuit should be reset to half-open
 		this.checkCircuitReset()
 
 		// If circuit is open, return fallback immediately
 		if (this.state === CircuitState.OPEN) {
-			this.logger.warn('Circuit breaker is OPEN - returning fallback response')
-			return this.options.fallbackResponse 
+			this.logger.warn(
+				'Circuit breaker is OPEN - returning fallback response'
+			)
+			return this.options.fallbackResponse
 				? of(this.options.fallbackResponse)
-				: throwError(() => new Error('Service unavailable - circuit breaker is open'))
+				: throwError(
+						() =>
+							new Error(
+								'Service unavailable - circuit breaker is open'
+							)
+					)
 		}
 
 		// Execute the request with timeout and retry logic
@@ -77,7 +94,9 @@ export class CircuitBreakerInterceptor implements NestInterceptor {
 
 		if (this.failureCount >= (this.options.failureThreshold ?? 5)) {
 			this.state = CircuitState.OPEN
-			this.logger.error(`Circuit breaker opened after ${this.failureCount} failures`)
+			this.logger.error(
+				`Circuit breaker opened after ${this.failureCount} failures`
+			)
 		}
 	}
 
@@ -89,7 +108,9 @@ export class CircuitBreakerInterceptor implements NestInterceptor {
 			if (this.successCount >= (this.options.successThreshold ?? 2)) {
 				this.state = CircuitState.CLOSED
 				this.successCount = 0
-				this.logger.log('Circuit breaker closed after successful recovery')
+				this.logger.log(
+					'Circuit breaker closed after successful recovery'
+				)
 			}
 		}
 	}
@@ -98,7 +119,8 @@ export class CircuitBreakerInterceptor implements NestInterceptor {
 		if (
 			this.state === CircuitState.OPEN &&
 			this.lastFailureTime &&
-			Date.now() - this.lastFailureTime.getTime() > (this.options.resetTimeout ?? 30000)
+			Date.now() - this.lastFailureTime.getTime() >
+				(this.options.resetTimeout ?? 30000)
 		) {
 			this.state = CircuitState.HALF_OPEN
 			this.logger.log('Circuit breaker moved to HALF_OPEN state')
@@ -108,7 +130,7 @@ export class CircuitBreakerInterceptor implements NestInterceptor {
 
 /**
  * Decorator to apply circuit breaker pattern to a controller method
- * 
+ *
  * @example
  * @UseCircuitBreaker({ failureThreshold: 3, timeout: 5000 })
  * @Get('external-api')

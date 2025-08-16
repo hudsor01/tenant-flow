@@ -6,10 +6,13 @@ import type { ReactNode } from 'react'
 import { AppContext, type AppContextValue } from './app-context'
 
 interface AppContextProviderProps {
-  children: ReactNode
-  value: AppContextValue
+	children: ReactNode
+	value: AppContextValue
 }
 
-export function AppContextProvider({ children, value }: AppContextProviderProps) {
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>
+export function AppContextProvider({
+	children,
+	value
+}: AppContextProviderProps) {
+	return <AppContext.Provider value={value}>{children}</AppContext.Provider>
 }
