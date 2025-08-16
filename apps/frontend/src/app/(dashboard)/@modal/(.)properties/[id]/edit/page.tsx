@@ -4,12 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { PropertyEditForm } from '@/components/properties/property-edit-form';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-
-interface Property {
-  id: string;
-  name: string;
-  // Add other property fields as needed
-}
+import type { Property } from '@repo/shared';
 
 // Client Component for modal content
 export default function EditPropertyModal() {

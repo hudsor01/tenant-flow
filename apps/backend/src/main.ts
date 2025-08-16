@@ -548,7 +548,7 @@ async function bootstrap() {
 	// This prevents JavaScript engine deoptimization by defining object shape upfront
 	fastifyInstance.decorateRequest('correlationId', '')
 	fastifyInstance.decorateRequest('startTime', 0)
-	fastifyInstance.decorateRequest('rawBody', null)
+	fastifyInstance.decorateRequest('rawBody', undefined)
 	logger.log('✅ Request decorators properly declared for performance optimization')
 
 	// Add content type parser for Stripe webhooks that preserves raw body
@@ -649,9 +649,7 @@ async function bootstrap() {
 
 	// 5. SENSIBLE - Adds useful HTTP error decorators and utilities
 	const fastifySensible = await import('@fastify/sensible')
-	await app.register(fastifySensible.default, {
-		errorHandler: false // Use our custom error handler
-	})
+	await app.register(fastifySensible.default)
 	logger.log('✅ Sensible plugin enabled for HTTP utilities')
 
 	// 6. CIRCUIT BREAKER & OTHER PLUGINS - Initialize via config service
