@@ -158,8 +158,22 @@ lerna-debug.log*
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # ========================================
-# TESTING & COVERAGE
+# TESTING & COVERAGE - IGNORE ALL TEST FILES
 # ========================================
+# Test directories - IGNORE EVERYTHING
+**/test/**
+**/tests/**
+**/__tests__/**
+**/e2e/**
+**/*.test.*
+**/*.spec.*
+**/*.e2e.*
+**/*.e2e-spec.*
+test/
+tests/
+e2e/
+
+# Coverage and reports
 coverage/
 *.lcov
 .nyc_output
@@ -168,7 +182,6 @@ playwright-report/
 test-screenshots/
 test-videos/
 allure-results/
-**/__tests__/fixtures/secrets/
 
 # Test outputs in subdirectories
 **/coverage/
