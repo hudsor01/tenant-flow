@@ -105,6 +105,12 @@ ENV NODE_OPTIONS="--max-old-space-size=512"
 ENV NPM_CONFIG_MAXSOCKETS=5
 ENV NPM_CONFIG_PROGRESS=false
 
+# Database connection pool optimization settings
+ENV DATABASE_MAX_CONNECTIONS=25
+ENV DATABASE_POOL_TIMEOUT=10
+ENV DATABASE_CONNECTION_TIMEOUT=10
+ENV DATABASE_POOLER=pgbouncer
+
 # Copy package files for production dependency installation
 COPY package*.json ./
 COPY apps/backend/package*.json ./apps/backend/
@@ -174,10 +180,10 @@ ENV DOCKER_CONTAINER=true
 # Don't set a fixed PORT - let Railway provide it
 EXPOSE $PORT
 
-# Comprehensive health check with multiple fallbacks
-# Railway handles health checks externally, so we don't need Docker HEALTHCHECK
-# HEALTHCHECK --interval=30s --timeout=10s --start-period=180s --retries=5 \
-#     CMD curl -f http://localhost:${PORT:-3000}/health || exit 1
+# Health check optimized for faster startup and connection pooling warmup
+# Railway handles health checks externally, but this helps with local testing
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:' + (process.env.PORT || 3001) + '/health', (r) => r.statusCode === 200 ? process.exit(0) : process.exit(1)).on('error', () => process.exit(1))"
 
 # Use tini for proper signal handling
 ENTRYPOINT ["tini", "--"]

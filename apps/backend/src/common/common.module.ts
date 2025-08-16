@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common'
-import { ErrorHandlerModule } from './errors/error-handler.module'
+import { ErrorModule } from './errors/error.module'
 import { LoggingModule } from './logging/logging.module'
 import { SecurityModule } from './security/security.module'
 
@@ -9,12 +9,12 @@ import { SecurityModule } from './security/security.module'
  */
 @Module({
   imports: [
-    ErrorHandlerModule,
+    ErrorModule,
     LoggingModule,
     SecurityModule
   ],
   exports: [
-    ErrorHandlerModule,
+    ErrorModule,
     LoggingModule,
     SecurityModule
   ]
