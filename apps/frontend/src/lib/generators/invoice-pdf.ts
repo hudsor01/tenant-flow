@@ -1,15 +1,16 @@
-import type { CustomerInvoiceForm, InvoiceItemForm as InvoiceItem } from '@repo/shared'
+import type {
+	CustomerInvoiceForm,
+	InvoiceItemForm as InvoiceItem
+} from '@repo/shared'
 import jsPDF from 'jspdf'
 import { format } from 'date-fns'
 
 // Enhanced PDF generation with lead magnet features
-export const generateInvoicePDF = (
-  invoice: CustomerInvoiceForm
-): Blob => {
-  const doc = new jsPDF()
+export const generateInvoicePDF = (invoice: CustomerInvoiceForm): Blob => {
+	const doc = new jsPDF()
 
-  // Use invoice directly (already normalized)
-  const normalizedInvoice = invoice
+	// Use invoice directly (already normalized)
+	const normalizedInvoice = invoice
 
 	// Set up styling
 	doc.setFont('helvetica')
@@ -165,30 +166,28 @@ export const generateInvoicePDF = (
 	yPos += 10
 
 	// Table rows with alternating background
-normalizedInvoice.items.forEach(
-  (item: InvoiceItem, index: number) => {
-    if (index % 2 === 0) {
-      doc.setFillColor(248, 249, 250)
-      doc.rect(20, yPos - 6, 170, 10, 'F')
-    }
+	normalizedInvoice.items.forEach((item: InvoiceItem, index: number) => {
+		if (index % 2 === 0) {
+			doc.setFillColor(248, 249, 250)
+			doc.rect(20, yPos - 6, 170, 10, 'F')
+		}
 
-    // Wrap long descriptions
-    const maxDescWidth = 90
-    const splitDesc = doc.splitTextToSize(item.description, maxDescWidth)
-    const descHeight = splitDesc.length * 4
+		// Wrap long descriptions
+		const maxDescWidth = 90
+		const splitDesc = doc.splitTextToSize(item.description, maxDescWidth)
+		const descHeight = splitDesc.length * 4
 
-    doc.text(splitDesc, 25, yPos)
-    doc.text(item.quantity.toString(), 120, yPos)
-    doc.text(`$${item.unitPrice?.toFixed(2) || '0.00'}`, 140, yPos)
-    doc.text(
-      `$${((item.quantity || 0) * (item.unitPrice || 0)).toFixed(2)}`,
-      165,
-      yPos
-    )
+		doc.text(splitDesc, 25, yPos)
+		doc.text(item.quantity.toString(), 120, yPos)
+		doc.text(`$${item.unitPrice?.toFixed(2) || '0.00'}`, 140, yPos)
+		doc.text(
+			`$${((item.quantity || 0) * (item.unitPrice || 0)).toFixed(2)}`,
+			165,
+			yPos
+		)
 
-    yPos += Math.max(10, descHeight + 2)
-  }
-)
+		yPos += Math.max(10, descHeight + 2)
+	})
 
 	// Totals section with  styling
 	yPos += 15
@@ -289,9 +288,7 @@ normalizedInvoice.items.forEach(
 	return doc.output('blob')
 }
 
-export const previewInvoicePDF = (
-  invoice: CustomerInvoiceForm
-): string => {
-  const pdfBlob = generateInvoicePDF(invoice)
-  return URL.createObjectURL(pdfBlob)
+export const previewInvoicePDF = (invoice: CustomerInvoiceForm): string => {
+	const pdfBlob = generateInvoicePDF(invoice)
+	return URL.createObjectURL(pdfBlob)
 }

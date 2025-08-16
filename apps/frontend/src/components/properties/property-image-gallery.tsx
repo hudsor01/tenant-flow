@@ -52,14 +52,20 @@ export default function PropertyImageGallery({
 	// Placeholder functions
 	const deleteDocument = {
 		mutateAsync: async (documentId: string) => {
-			logger.info('Delete document placeholder:', { component: 'propertyimagegallery', data: documentId })
+			logger.info('Delete document placeholder:', {
+				component: 'propertyimagegallery',
+				data: documentId
+			})
 			return Promise.resolve()
 		},
 		isPending: false
 	}
 	const setPrimaryImage = {
 		mutateAsync: async (data: { imageId: string; propertyId: string }) => {
-			logger.info('Set primary image placeholder:', { component: 'propertyimagegallery', data: data })
+			logger.info('Set primary image placeholder:', {
+				component: 'propertyimagegallery',
+				data: data
+			})
 			return Promise.resolve()
 		},
 		isPending: false
@@ -74,7 +80,11 @@ export default function PropertyImageGallery({
 			toast.success('Image deleted successfully')
 			setDeleteConfirmId(null)
 		} catch (error) {
-			logger.error('Failed to delete image:', error instanceof Error ? error : new Error(String(error)), { component: 'propertyimagegallery' })
+			logger.error(
+				'Failed to delete image:',
+				error instanceof Error ? error : new Error(String(error)),
+				{ component: 'propertyimagegallery' }
+			)
 			toast.error('Failed to delete image')
 		}
 	}
@@ -87,7 +97,11 @@ export default function PropertyImageGallery({
 			})
 			toast.success('Primary image updated')
 		} catch (error) {
-			logger.error('Failed to set primary image:', error instanceof Error ? error : new Error(String(error)), { component: 'propertyimagegallery' })
+			logger.error(
+				'Failed to set primary image:',
+				error instanceof Error ? error : new Error(String(error)),
+				{ component: 'propertyimagegallery' }
+			)
 			toast.error('Failed to update primary image')
 		}
 	}
@@ -106,18 +120,18 @@ export default function PropertyImageGallery({
 					</CardTitle>
 				</CardHeader>
 				<CardContent>
-<div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-{[
-  { id: 'skeleton-1' },
-  { id: 'skeleton-2' },
-  { id: 'skeleton-3' },
-  { id: 'skeleton-4' }
-].map((skeleton) => (
-  <div
-    key={skeleton.id}
-    className="aspect-square animate-pulse rounded-lg bg-gray-200"
-  />
-))}
+					<div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+						{[
+							{ id: 'skeleton-1' },
+							{ id: 'skeleton-2' },
+							{ id: 'skeleton-3' },
+							{ id: 'skeleton-4' }
+						].map(skeleton => (
+							<div
+								key={skeleton.id}
+								className="aspect-square animate-pulse rounded-lg bg-gray-200"
+							/>
+						))}
 					</div>
 				</CardContent>
 			</Card>
@@ -143,7 +157,10 @@ export default function PropertyImageGallery({
 				<CardHeader>
 					<div className="flex items-center justify-between">
 						<CardTitle className="flex items-center">
-							<Image className="mr-2 h-5 w-5" aria-hidden="true" />
+							<Image
+								className="mr-2 h-5 w-5"
+								aria-hidden="true"
+							/>
 							Property Images ({images.length})
 						</CardTitle>
 						{onUploadClick && (
@@ -157,7 +174,10 @@ export default function PropertyImageGallery({
 				<CardContent>
 					{images.length === 0 ? (
 						<div className="py-12 text-center">
-							<Image className="mx-auto mb-4 h-12 w-12 text-gray-400" aria-hidden="true" />
+							<Image
+								className="mx-auto mb-4 h-12 w-12 text-gray-400"
+								aria-hidden="true"
+							/>
 							<h3 className="mb-2 text-lg font-semibold text-gray-800">
 								No Images
 							</h3>
@@ -321,7 +341,9 @@ export default function PropertyImageGallery({
 							</Button>
 							<Button
 								variant="destructive"
-								onClick={() => void handleDelete(deleteConfirmId)}
+								onClick={() =>
+									void handleDelete(deleteConfirmId)
+								}
 								disabled={deleteDocument.isPending}
 							>
 								{deleteDocument.isPending

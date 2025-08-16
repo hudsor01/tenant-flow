@@ -1,0 +1,84 @@
+name: Deploy Pipeline
+
+on:
+    push:
+        branches: [main]
+    workflow_dispatch: # Allow manual trigger
+
+# Cancel any in-progress deployments
+concurrency:
+    group: deploy-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    # Fast validation before deployment
+    validate:
+        name: Validate
+        runs-on: ubuntu-latest
+        timeout-minutes: 8
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+                  cache: 'npm'
+
+            - name: Install deps
+              run: npm install --prefer-offline --no-audit
+
+            - name: Quick checks
+              run: |
+                  npm run db:generate
+                  npm run lint
+                  npm run typecheck
+
+    # Test Docker build matches Railway
+    docker-validate:
+        name: Docker Validate
+        needs: validate
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Build test image
+              run: |
+                  docker build -f Dockerfile.fixed -t backend-test .
+
+            - name: Test container starts
+              run: |
+                  docker run -d --name test \
+                    -e PORT=3001 \
+                    -e NODE_ENV=production \
+                    -e DATABASE_URL="postgresql://test:test@localhost:5432/test" \
+                    -e SUPABASE_URL="https://test.supabase.co" \
+                    -e SUPABASE_ANON_KEY="test" \
+                    -e SUPABASE_SERVICE_ROLE_KEY="test" \
+                    -e SUPABASE_JWT_SECRET="test" \
+                    backend-test
+
+                  sleep 5
+                  docker logs test
+                  docker stop test
+
+    # Notify deployment status
+    deploy-status:
+        name: Deployment Status
+        needs: [validate, docker-validate]
+        runs-on: ubuntu-latest
+        steps:
+            - name: Report status
+              run: |
+                  echo "✅ Pre-deployment checks passed"
+                  echo ""
+                  echo "🚀 Auto-deploying to:"
+                  echo "  • Frontend → Vercel (automatic)"
+                  echo "  • Backend → Railway (automatic)"
+                  echo ""
+                  echo "📊 Monitor deployments:"
+                  echo "  • Vercel: https://vercel.com/dashboard"
+                  echo "  • Railway: https://railway.app/dashboard"
+                  echo "  • Health: https://api.tenantflow.app/health"

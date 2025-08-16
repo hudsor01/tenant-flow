@@ -1,4 +1,4 @@
-import { Module, forwardRef } from '@nestjs/common'
+import { forwardRef, Module } from '@nestjs/common'
 import { SubscriptionsController } from './subscriptions.controller'
 import { SubscriptionsManagerService } from './subscriptions-manager.service'
 import { SubscriptionStatusService } from './subscription-status.service'

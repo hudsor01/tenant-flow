@@ -5,10 +5,10 @@ import { Button } from '@/components/ui/button'
 import { ExternalLink } from 'lucide-react'
 // Temporary mock for state data
 const getAllStates = () => [
-  { value: 'california', label: 'California', code: 'CA' },
-  { value: 'new-york', label: 'New York', code: 'NY' },
-  { value: 'texas', label: 'Texas', code: 'TX' },
-  { value: 'florida', label: 'Florida', code: 'FL' }
+	{ value: 'california', label: 'California', code: 'CA' },
+	{ value: 'new-york', label: 'New York', code: 'NY' },
+	{ value: 'texas', label: 'Texas', code: 'TX' },
+	{ value: 'florida', label: 'Florida', code: 'FL' }
 ]
 
 interface StateLeaseLinksProps {
@@ -53,7 +53,7 @@ export function StateLeaseLinks({ className }: StateLeaseLinksProps) {
 								className="block"
 							>
 								<Button
-									className="w-full transition-colors group-hover:bg-primary group-hover:text-white"
+									className="group-hover:bg-primary w-full transition-colors group-hover:text-white"
 									variant="default"
 								>
 									Generate {state.label} Lease

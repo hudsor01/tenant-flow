@@ -2,11 +2,35 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 🚀 Quick Start for Developers
+
+```bash
+# Development (with Turbopack - REQUIRED)
+npm run dev
+
+# Fix all lint/type errors automatically
+npm run claude:check
+
+# Run tests
+npm run test        # All tests
+npm run test:unit   # Frontend unit tests
+npm run test:e2e    # Playwright E2E tests
+
+# Database
+npm run db:generate # Generate Prisma client
+npm run db:migrate  # Run migrations
+npm run db:studio   # Open Prisma Studio
+
+# Build
+npm run build       # Build all packages
+```
+
 ## Current Status
 
-**Branch**: `fix-react-children-and-lint-errors`
-**Production**: Backend at api.tenantflow.app, Frontend on Vercel  
-**Active Work**: TypeScript config fixes, build system optimization, React.Children error resolution
+**Branch**: `feature/request-utils-composition-and-hardening`
+**Production**: ✅ LIVE - Backend at api.tenantflow.app, Frontend at tenantflow.app (Vercel)  
+**Active Work**: Component architecture refactoring, test stabilization, performance optimization
+**Last Updated**: January 2025
 
 ## 🚨 CRITICAL: React 19 + Next.js 15 Compatibility
 
@@ -14,15 +38,31 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Known Issue Fixed**: The webpack bundler has compatibility issues with React 19's module system causing "undefined is not an object (evaluating 'originalFactory.call')" errors. This is resolved by using Turbopack.
 
+## ⚠️ Current Known Issues
+
+1. **Frontend Tests**: 59 tests failing (out of 536 total) - needs immediate attention
+2. **Backend Test Coverage**: Low coverage, empty lcov reports indicate minimal testing
+3. **Component Architecture**: Many server components converted to client due to Supabase SSR issues
+4. **Bundle Size**: 18+ vendor chunks in production build affecting performance
+5. **TypeScript Memory**: Backend compilation requires 8GB memory allocation
+6. **Build Times**: Complex TypeScript setup causing slow build times
+
 ## Tech Stack & Architecture
 
 TenantFlow is a production-ready multi-tenant SaaS property management platform with enterprise-grade architecture:
 
-- **Frontend**: React 19 + Next.js 15 + Turbopack (REQUIRED) + Zustand + TypeScript (59,174 lines)
-- **Backend**: NestJS + Fastify + Prisma + PostgreSQL (38,710 lines, 20% test coverage)
-- **Auth**: Supabase Auth + JWT + Row-Level Security (RLS)
-- **Payments**: Stripe subscriptions + webhooks (platform billing only)
-- **Infrastructure**: Turborepo monorepo, Vercel frontend, custom backend hosting
+- **Frontend**: React 19.1.1 + Next.js 15.4.6 + Turbopack (REQUIRED) + TypeScript 5.9.2
+  - State: Zustand 5.0.7 + TanStack Query 5.85.3 + Jotai 2.13.1
+  - UI: Radix UI + Tailwind CSS 4.1.12 + React Hook Form
+  - Testing: 536 tests (59 failing, needs attention)
+- **Backend**: NestJS 11.1.6 + Fastify 11.x + Prisma 6.14.0 + PostgreSQL
+  - 32 API controllers, comprehensive service layer
+  - Multi-tenant RLS with JWT claims injection
+  - Test coverage needs improvement
+- **Auth**: Supabase Auth 2.55.0 + JWT + Row-Level Security (RLS)
+- **Payments**: Stripe 18.4.0 with comprehensive webhook infrastructure
+- **Infrastructure**: Turborepo 2.5.6 monorepo, Vercel frontend, Railway backend
+- **Codebase**: ~393K lines TypeScript across 1,254 files
 
 ## Essential Commands
 
@@ -42,31 +82,38 @@ TenantFlow is a production-ready multi-tenant SaaS property management platform 
 ## Implemented Features (Production Ready)
 
 ### ✅ Core Platform Infrastructure
-- **Multi-tenant RLS**: Complete database-level tenant isolation with JWT claims injection
-- **BaseCrudService Pattern**: Unified service layer eliminating 680+ lines of duplicated CRUD code
-- **Enterprise Authentication**: Supabase Auth + JWT with MFA support and security audit logging
-- **Payment Infrastructure**: Complete Stripe integration for platform subscriptions and billing
-- **Performance Monitoring**: Comprehensive metrics, health checks, and diagnostic tools
+- **Multi-tenant RLS**: Database-level tenant isolation with JWT claims injection
+- **BaseCrudService Pattern**: Unified service layer across all business entities
+- **Enterprise Authentication**: Supabase Auth + JWT with MFA support
+- **Payment Infrastructure**: Stripe integration with webhook processing
+- **Health Monitoring**: Comprehensive health checks at `/health` endpoint (✅ LIVE)
 
-### ✅ Property Management Core
-- **Properties CRUD**: Full property lifecycle with document management and image uploads
-- **Tenants Management**: Complete tenant lifecycle with lease associations and communication tracking
-- **Units Management**: Occupancy status, maintenance scheduling, and rent tracking capabilities
-- **Leases Management**: Basic lease CRUD with document generation and expiration tracking
-- **Maintenance Requests**: Basic CRUD operations for maintenance request tracking
+### ✅ API Controllers (32 Implemented)
+- **Properties**: Full CRUD + export functionality
+- **Tenants**: Complete management with repository pattern
+- **Units**: Full lifecycle management
+- **Leases**: CRUD with PDF generation capabilities
+- **Maintenance**: Request tracking and management
+- **Users & Subscriptions**: User management with subscription tiers
+- **Billing**: Stripe checkout and webhook handling
+- **Documents**: File upload and management
+- **Email**: Queue-based email processing with Bull
+- **Notifications**: Event-driven notification system
 
-### ✅ Frontend Architecture
-- **Modern React 19**: Full concurrent features with useTransition, useOptimistic, and Suspense
-- **File-based Routing**: TanStack Router with authentication contexts (_authenticated, _public, _tenant-portal)
-- **State Management**: Modular Zustand stores with persistence and real-time synchronization
-- **Component System**: Radix UI foundation with comprehensive error boundaries and accessibility
-- **Performance Optimized**: Route-based code splitting, React Query caching, edge optimization
+### ✅ Frontend Features
+- **Modern React 19**: Concurrent features, Suspense, Server Components
+- **Routing**: App Router with proper layouts and loading states
+- **State Management**: Zustand + TanStack Query + Jotai
+- **Component Library**: Radix UI primitives with Tailwind styling
+- **Forms**: React Hook Form + Zod validation
+- **Performance**: Turbopack bundler, route-based code splitting
 
-### ✅ Development Experience
-- **Type Safety**: End-to-end TypeScript with shared types package
-- **Quality Tooling**: ESLint, Prettier, Vitest, Playwright with comprehensive CI/CD
-- **Monorepo Architecture**: Turborepo with optimized caching and build dependencies
-- **Documentation**: Comprehensive inline documentation and architectural decision records
+### ✅ Infrastructure & DevOps
+- **Monorepo**: Turborepo with optimized task running
+- **Type Safety**: End-to-end TypeScript with shared types
+- **Testing**: Jest + Vitest + Playwright (needs stabilization)
+- **CI/CD**: GitHub Actions with semantic versioning
+- **Deployment**: Vercel (frontend) + Railway (backend)
 
 ## Major Architectural Implementations
 
@@ -111,10 +158,12 @@ Production-optimized with:
 ## Common Issues & Solutions
 
 - **Prisma Client Error**: Run `npm run db:generate` from root
-- **Type Errors**: Build shared package first with `npm run build --filter=@repo/shared`
+- **Type Errors**: Run `npm run claude:check` to auto-fix lint and type errors
 - **Port Conflicts**: Use `npm run dev:clean` in frontend to kill existing processes
 - **React.Children Errors**: Keep React in main bundle (configured in vite.config.ts)
 - **Auth System Unavailable**: Ensure JwtAuthGuard is properly provided in AuthModule
+- **Test Failures**: Frontend has 59 failing tests - use `npm run test:unit` to debug
+- **Build Memory**: Backend TypeScript requires high memory allocation (8GB)
 
 ## Deployment Architecture
 
@@ -136,33 +185,39 @@ Multi-layered approach:
 
 ---
 
-## Outstanding Work & GitHub Issues
+## Outstanding Work & Current Priorities
 
-### 🚨 HIGH PRIORITY - Core Business Features
+### 🚨 IMMEDIATE PRIORITIES - Technical Debt
+
+#### **Test Suite Stabilization** - CRITICAL
+- **Issue**: 59 failing frontend tests blocking CI/CD
+- **Impact**: Cannot confidently deploy without test validation
+- **Action**: Fix test failures, improve coverage
+
+#### **Component Architecture Refactoring** - HIGH
+- **Issue**: Server/client component violations in Next.js 15
+- **Current**: Converting components from server to client due to Supabase SSR issues
+- **Impact**: Suboptimal performance and bundle size
+
+#### **Performance Optimization** - HIGH
+- **Issue**: Large bundle size (18+ vendor chunks)
+- **Current**: Using Turbopack to mitigate issues
+- **Action**: Bundle analysis and lazy loading improvements
+
+### 🔧 CORE BUSINESS FEATURES - Next Phase
 
 #### **Tenant Rent Payment System** (Issue #90) - CRITICAL
-*Consolidates issues #5-#22*
-- **Missing**: Complete rent collection system for landlord revenue
-- **Scope**: Payment processing, ACH/card support, recurring payments, financial analytics
+- **Status**: Stripe infrastructure exists, needs tenant payment flow
+- **Scope**: Payment processing, ACH/card support, recurring payments
 - **Impact**: Core revenue feature for property managers
-- **Dependencies**: Extend existing Stripe integration
 
-#### **Maintenance Request System** (Issue #91) - HIGH
-*Consolidates issues #36, #37, #43, #77*
-- **Missing**: Work order management, vendor assignment, cost tracking
-- **Current**: Basic CRUD only, needs full workflow system
-- **Features**: Priority levels, status tracking, statistics, recurring maintenance
+#### **Notification Automation** (Issue #92) - HIGH  
+- **Status**: Email queue implemented, needs orchestration
+- **Features**: Payment reminders, maintenance updates, lease renewals
 
-#### **Notification System** (Issue #92) - HIGH  
-*Consolidates issues #33, #34, #35, #38*
-- **Missing**: Email automation, in-app notifications, rent reminders
-- **Current**: EmailService exists but no notification orchestration
-- **Features**: Payment failure alerts, rent due reminders, maintenance updates
-
-#### **Tenant Portal Integration** (Issue #39) - HIGH
-- **Missing**: Tenant dashboard API, maintenance request submission
-- **Current**: Frontend exists but backend APIs throw errors
-- **Impact**: Tenant user experience completely broken
+#### **Tenant Portal Completion** (Issue #39) - HIGH
+- **Status**: Frontend exists, backend APIs need implementation
+- **Impact**: Tenant self-service capabilities
 
 ### 🔧 MEDIUM PRIORITY - System Improvements
 
@@ -216,21 +271,37 @@ Multi-layered approach:
 
 ### 📊 PROJECT METRICS
 
-**Codebase Size**: 97,884 total lines
-- Backend: 38,710 lines (20% tests)
-- Frontend: 59,174 lines (400 files)
+**Codebase Size**: ~393,087 lines TypeScript
+- 1,254 files across monorepo
+- 32 API controllers implemented
+- 536 frontend tests (59 failing)
+- Backend test coverage needs improvement
 
-**Open Issues**: 17 consolidated issues (from 40+ individual tasks)
-**Active PR**: #132 (Monorepo configuration alignment)
-**Production Status**: Core platform functional, missing key business features
+**Production Status**: ✅ LIVE and operational
+- Backend: api.tenantflow.app (healthy)
+- Frontend: tenantflow.app (Vercel)
+- Database: PostgreSQL with Supabase
 
 ### 🎯 RECOMMENDED WORK ORDER
 
-1. **Rent Payment System** (#90) - Core revenue feature
-2. **Tenant Portal APIs** (#39) - Fix broken user experience  
-3. **Notification System** (#92) - Essential for user engagement
-4. **Maintenance Workflow** (#91) - Complete business process
-5. **Security Hardening** (#94) - Production readiness
-6. **Performance & Testing** (#95, #96) - Scale preparation
+**Week 1-2: Technical Stabilization**
+1. Fix 59 failing frontend tests
+2. Complete server/client component refactoring
+3. Improve backend test coverage
 
-The platform has solid technical foundations but needs core business features to be production-complete for property management workflows.
+**Week 3-4: Performance & Optimization**
+1. Bundle size analysis and optimization
+2. Implement lazy loading for routes
+3. Database query optimization
+
+**Month 2: Business Features**
+1. Tenant rent payment system (#90)
+2. Notification automation (#92)
+3. Tenant portal API completion (#39)
+
+**Month 3: Production Hardening**
+1. Security audit and fixes (#94)
+2. Error monitoring implementation
+3. Performance monitoring setup
+
+The platform has **solid technical foundations** and is **currently operational in production**. Focus should be on **stabilizing tests**, **optimizing performance**, and **completing business features** for full market readiness.

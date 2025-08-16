@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { cn } from '@/lib/utils/css.utils'
 import { supabase } from '@/lib/clients'
@@ -64,27 +64,26 @@ export function SupabaseForgotPasswordForm({
 						<div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
 							<CheckCircle className="h-6 w-6 text-green-600" />
 						</div>
-						<CardTitle className="text-2xl font-bold text-center">
+						<CardTitle className="text-center text-2xl font-bold">
 							Check Your Email
 						</CardTitle>
 						<CardDescription className="text-center">
-							Password reset instructions sent to <strong>{email}</strong>
+							Password reset instructions sent to{' '}
+							<strong>{email}</strong>
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						<p className="text-muted-foreground text-sm text-center">
-							If you registered using your email and password,
-							you will receive a password reset email with
+						<p className="text-muted-foreground text-center text-sm">
+							If you registered using your email and password, you
+							will receive a password reset email with
 							instructions to create a new password.
 						</p>
 						<Button
 							asChild
 							variant="outline"
-							className="w-full h-11"
+							className="h-11 w-full"
 						>
-							<Link href="/auth/login">
-								Back to Sign In
-							</Link>
+							<Link href="/auth/login">Back to Sign In</Link>
 						</Button>
 					</CardContent>
 				</Card>
@@ -101,7 +100,7 @@ export function SupabaseForgotPasswordForm({
 					</CardHeader>
 					<CardContent className="space-y-4">
 						{error && (
-							<div className="bg-destructive/10 border border-destructive/20 rounded-md p-3">
+							<div className="bg-destructive/10 border-destructive/20 rounded-md border p-3">
 								<p className="text-destructive text-sm">
 									{error}
 								</p>
@@ -109,7 +108,7 @@ export function SupabaseForgotPasswordForm({
 						)}
 
 						<form
-							onSubmit={(e) => void handleForgotPassword(e)}
+							onSubmit={e => void handleForgotPassword(e)}
 							className="space-y-4"
 						>
 							<div className="space-y-2">
@@ -127,12 +126,10 @@ export function SupabaseForgotPasswordForm({
 							</div>
 							<Button
 								type="submit"
-								className="w-full h-11"
+								className="h-11 w-full"
 								disabled={isLoading}
 							>
-								{isLoading
-									? 'Sending...'
-									: 'Send Reset Email'}
+								{isLoading ? 'Sending...' : 'Send Reset Email'}
 							</Button>
 						</form>
 

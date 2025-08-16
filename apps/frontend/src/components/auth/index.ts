@@ -8,8 +8,8 @@ export { AuthLayout } from './auth-layout'
 export { AuthRedirect } from './auth-redirect'
 
 // Form Components (Client Components)
-export { LoginFormRefactored } from './login-form'
-export { SignupFormRefactored } from './signup-form'
+export { default as LoginForm } from './login-form'
+export { default as SignupForm } from './signup-form'
 export { ForgotPasswordFormRefactored } from './forgot-password-form'
 export { UpdatePasswordForm } from './update-password-form'
 

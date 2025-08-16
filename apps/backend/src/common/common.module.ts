@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common'
-import { ErrorHandlerModule } from './errors/error-handler.module'
+import { ErrorModule } from './errors/error.module'
 import { LoggingModule } from './logging/logging.module'
 import { SecurityModule } from './security/security.module'
 
@@ -8,15 +8,7 @@ import { SecurityModule } from './security/security.module'
  * across the entire backend application
  */
 @Module({
-  imports: [
-    ErrorHandlerModule,
-    LoggingModule,
-    SecurityModule
-  ],
-  exports: [
-    ErrorHandlerModule,
-    LoggingModule,
-    SecurityModule
-  ]
+	imports: [ErrorModule, LoggingModule, SecurityModule],
+	exports: [ErrorModule, LoggingModule, SecurityModule]
 })
 export class CommonModule {}

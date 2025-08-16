@@ -17,6 +17,7 @@ TenantFlow uses a comprehensive type system that bridges domain types with API l
 All type adapter utilities are located in `packages/shared/src/utils/type-adapters.ts`:
 
 #### 1. Query Parameter Adapter
+
 ```typescript
 import { createQueryAdapter } from '@repo/shared'
 
@@ -24,20 +25,27 @@ import { createQueryAdapter } from '@repo/shared'
 const response = await apiClient.get('/properties', { params: query })
 
 // After (type-safe)
-const response = await apiClient.get('/properties', { 
-  params: createQueryAdapter(query) 
+const response = await apiClient.get('/properties', {
+	params: createQueryAdapter(query)
 })
 ```
 
 #### 2. Mutation Data Adapter
+
 ```typescript
 import { createMutationAdapter } from '@repo/shared'
 
 // Before (requiring unsafe type casting)
-const response = await apiClient.post('/properties', data as Record<string, unknown>)
+const response = await apiClient.post(
+	'/properties',
+	data as Record<string, unknown>
+)
 
 // After (type-safe)
-const response = await apiClient.post('/properties', createMutationAdapter(data))
+const response = await apiClient.post(
+	'/properties',
+	createMutationAdapter(data)
+)
 ```
 
 ### Key Features
@@ -56,19 +64,19 @@ All query types extend `BaseQuery` which provides `Record<string, unknown>` comp
 ```typescript
 // packages/shared/src/types/queries.ts
 export interface BaseQuery extends Record<string, unknown> {
-  limit?: number
-  offset?: number
-  page?: number
-  search?: string
-  sortBy?: string
-  sortOrder?: 'asc' | 'desc'
+	limit?: number
+	offset?: number
+	page?: number
+	search?: string
+	sortBy?: string
+	sortOrder?: 'asc' | 'desc'
 }
 
 export interface PropertyQuery extends BaseQuery {
-  propertyType?: string
-  status?: string
-  city?: string
-  // ... other fields
+	propertyType?: string
+	status?: string
+	city?: string
+	// ... other fields
 }
 ```
 
@@ -79,10 +87,10 @@ Domain-specific input types for mutations:
 ```typescript
 // packages/shared/src/types/api-inputs.ts
 export interface CreatePropertyInput extends Record<string, unknown> {
-  name: string
-  address: string
-  city: string
-  // ... other fields
+	name: string
+	address: string
+	city: string
+	// ... other fields
 }
 ```
 
@@ -93,10 +101,10 @@ Core business entities remain pure without API concerns:
 ```typescript
 // packages/shared/src/types/properties.ts
 export interface Property {
-  id: string
-  name: string
-  address: string
-  // ... domain fields
+	id: string
+	name: string
+	address: string
+	// ... domain fields
 }
 ```
 
@@ -109,42 +117,43 @@ export interface Property {
 import { createMutationAdapter, createQueryAdapter } from '@repo/shared'
 
 export function useProperties(
-  query?: PropertyQuery,
-  options?: { enabled?: boolean }
+	query?: PropertyQuery,
+	options?: { enabled?: boolean }
 ): UseQueryResult<Property[], Error> {
-  return useQuery({
-    queryKey: queryKeys.propertyList(query),
-    queryFn: async () => {
-      const response = await apiClient.get<Property[]>('/properties', { 
-        params: createQueryAdapter(query)  // Type-safe conversion
-      })
-      return response.data
-    },
-    enabled: options?.enabled ?? true,
-  })
+	return useQuery({
+		queryKey: queryKeys.propertyList(query),
+		queryFn: async () => {
+			const response = await apiClient.get<Property[]>('/properties', {
+				params: createQueryAdapter(query) // Type-safe conversion
+			})
+			return response.data
+		},
+		enabled: options?.enabled ?? true
+	})
 }
 
 export function useCreateProperty(): UseMutationResult<
-  Property,
-  Error,
-  CreatePropertyInput
+	Property,
+	Error,
+	CreatePropertyInput
 > {
-  return useMutation({
-    mutationFn: async (data: CreatePropertyInput) => {
-      const response = await apiClient.post<Property>(
-        '/properties', 
-        createMutationAdapter(data)  // Type-safe conversion
-      )
-      return response.data
-    },
-    // ... other configuration
-  })
+	return useMutation({
+		mutationFn: async (data: CreatePropertyInput) => {
+			const response = await apiClient.post<Property>(
+				'/properties',
+				createMutationAdapter(data) // Type-safe conversion
+			)
+			return response.data
+		}
+		// ... other configuration
+	})
 }
 ```
 
 ## Type Validation Utilities
 
 ### Enum Validation
+
 ```typescript
 import { validateEnumValue, UNIT_STATUS } from '@repo/shared'
 
@@ -153,6 +162,7 @@ const status = validateEnumValue(userInput, UNIT_STATUS, 'VACANT')
 ```
 
 ### Parameter Validation
+
 ```typescript
 import { validateApiParams } from '@repo/shared'
 
@@ -161,25 +171,27 @@ validateApiParams(data, ['name', 'address'])
 ```
 
 ### Safe Type Conversion
+
 ```typescript
 import { safeParseNumber, safeParseDate } from '@repo/shared'
 
 const rent = safeParseNumber(formData.rent) // Returns number | undefined
-const date = safeParseDate(formData.date)   // Returns Date | undefined
+const date = safeParseDate(formData.date) // Returns Date | undefined
 ```
 
 ## Error Handling
 
 ### Type Adapter Errors
+
 ```typescript
 import { TypeAdapterError } from '@repo/shared'
 
 try {
-  const adapted = createMutationAdapter(data)
+	const adapted = createMutationAdapter(data)
 } catch (error) {
-  if (error instanceof TypeAdapterError) {
-    console.log(`Failed during ${error.operation}:`, error.message)
-  }
+	if (error instanceof TypeAdapterError) {
+		console.log(`Failed during ${error.operation}:`, error.message)
+	}
 }
 ```
 
@@ -188,27 +200,30 @@ try {
 ### Converting Existing Hooks
 
 1. **Import adapters**:
-   ```typescript
-   import { createMutationAdapter, createQueryAdapter } from '@repo/shared'
-   ```
+
+    ```typescript
+    import { createMutationAdapter, createQueryAdapter } from '@repo/shared'
+    ```
 
 2. **Replace type casting**:
-   ```typescript
-   // Before
-   data as Record<string, unknown>
-   
-   // After
-   createMutationAdapter(data)
-   ```
+
+    ```typescript
+    // Before
+    data as Record<string, unknown>
+
+    // After
+    createMutationAdapter(data)
+    ```
 
 3. **Update query params**:
-   ```typescript
-   // Before
-   params: query
-   
-   // After
-   params: createQueryAdapter(query)
-   ```
+
+    ```typescript
+    // Before
+    params: query
+
+    // After
+    params: createQueryAdapter(query)
+    ```
 
 ### New Hook Development
 
@@ -223,21 +238,25 @@ Follow the established patterns:
 ## Benefits
 
 ### Type Safety
+
 - No `any` types in the codebase
 - Compile-time validation of API contracts
 - IntelliSense support for all parameters
 
 ### Maintainability
+
 - Clear separation between domain and API concerns
 - Reusable patterns across all API hooks
 - Centralized type transformation logic
 
 ### Performance
+
 - Minimal runtime overhead
 - Optimized parameter filtering
 - Proper date serialization
 
 ### Developer Experience
+
 - Consistent API patterns
 - Clear error messages
 - Easy debugging with structured errors
@@ -245,32 +264,35 @@ Follow the established patterns:
 ## Future Considerations
 
 ### API Versioning
+
 Type adapters can be extended to handle API versioning:
 
 ```typescript
 export function createVersionedAdapter(data: unknown, version: 'v1' | 'v2') {
-  // Version-specific transformation logic
+	// Version-specific transformation logic
 }
 ```
 
 ### Schema Validation
+
 Integration with runtime validation libraries:
 
 ```typescript
 import { z } from 'zod'
 
 export function createValidatedAdapter<T>(data: T, schema: z.ZodSchema<T>) {
-  const validated = schema.parse(data)
-  return createMutationAdapter(validated)
+	const validated = schema.parse(data)
+	return createMutationAdapter(validated)
 }
 ```
 
 ### GraphQL Integration
+
 Adapters can be extended for GraphQL operations:
 
 ```typescript
 export function createGraphQLVariables(params: Record<string, unknown>) {
-  // GraphQL-specific parameter transformation
+	// GraphQL-specific parameter transformation
 }
 ```
 

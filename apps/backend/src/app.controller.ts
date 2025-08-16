@@ -14,7 +14,7 @@ export class AppController {
 	@Public()
 	getMetrics() {
 		const systemMetrics = this.metricsService.getSystemMetrics()
-		
+
 		// Prometheus format for Railway monitoring
 		return `# HELP nodejs_heap_used_bytes Node.js heap used in bytes
 # TYPE nodejs_heap_used_bytes gauge

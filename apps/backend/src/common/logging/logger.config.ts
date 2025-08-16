@@ -1,6 +1,6 @@
 /**
  * Logger Configuration
- * 
+ *
  * Centralized logging configuration for the backend application.
  * Provides structured logging with proper formatting and levels.
  */
@@ -25,16 +25,24 @@ const customFormat = winston.format.combine(
 	winston.format.errors({ stack: true }),
 	winston.format.splat(),
 	winston.format.json(),
-	winston.format.printf(({ timestamp, level, message, context, ...meta }: winston.Logform.TransformableInfo) => {
-		const logObject = {
+	winston.format.printf(
+		({
 			timestamp,
 			level,
 			message,
 			context,
 			...meta
+		}: winston.Logform.TransformableInfo) => {
+			const logObject = {
+				timestamp,
+				level,
+				message,
+				context,
+				...meta
+			}
+			return JSON.stringify(logObject)
 		}
-		return JSON.stringify(logObject)
-	})
+	)
 )
 
 let runningPort: number | null = null
@@ -50,8 +58,10 @@ const customConsoleFormat = winston.format.combine(
 		const pid = process.pid
 		const port = runningPort || '????'
 		const contextStr = context ? `[${context}]` : ''
-		const colorLevel = winston.format.colorize().colorize(level, level.toUpperCase())
-		
+		const colorLevel = winston.format
+			.colorize()
+			.colorize(level, level.toUpperCase())
+
 		return `[Nest] ${pid}:${port}  - ${timestamp}  ${colorLevel} ${contextStr} ${message} ${ms || ''}`
 	})
 )
@@ -100,13 +110,16 @@ export function createLogger(): LoggerService {
 	})
 }
 
-
 /**
  * Logger context helper
  * Adds consistent context to log entries
  */
 export class LogContext {
-	static create(operation: string, resource: string, userId?: string): Record<string, unknown> {
+	static create(
+		operation: string,
+		resource: string,
+		userId?: string
+	): Record<string, unknown> {
 		return {
 			operation,
 			resource,
@@ -131,9 +144,15 @@ export class PerformanceLogger {
 	) {
 		this.startTime = Date.now()
 		if ('debug' in this.logger && typeof this.logger.debug === 'function') {
-			this.logger.debug(`Starting ${operation}`, { ...this.context, phase: 'start' })
+			this.logger.debug(`Starting ${operation}`, {
+				...this.context,
+				phase: 'start'
+			})
 		} else {
-			this.logger.log(`Starting ${operation}`, { ...this.context, phase: 'start' })
+			this.logger.log(`Starting ${operation}`, {
+				...this.context,
+				phase: 'start'
+			})
 		}
 	}
 
@@ -169,7 +188,12 @@ export class PerformanceLogger {
 export class AuditLogger {
 	constructor(private logger: LoggerService) {}
 
-	logAccess(resource: string, action: string, userId: string, metadata?: Record<string, unknown>): void {
+	logAccess(
+		resource: string,
+		action: string,
+		userId: string,
+		metadata?: Record<string, unknown>
+	): void {
 		this.logger.log('Audit: Resource accessed', {
 			audit: true,
 			resource,
@@ -197,7 +221,11 @@ export class AuditLogger {
 		})
 	}
 
-	logSecurityEvent(event: string, userId: string, metadata?: Record<string, unknown>): void {
+	logSecurityEvent(
+		event: string,
+		userId: string,
+		metadata?: Record<string, unknown>
+	): void {
 		this.logger.warn('Audit: Security event', {
 			audit: true,
 			security: true,

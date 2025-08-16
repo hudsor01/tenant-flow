@@ -1,10 +1,10 @@
-import { useOptimistic, useCallback } from 'react';
+import { useOptimistic, useCallback } from 'react'
 
 export interface OptimisticAction<T> {
-  type: 'add' | 'update' | 'delete' | 'replace';
-  data?: T;
-  id?: string;
-  predicate?: (item: T) => boolean;
+	type: 'add' | 'update' | 'delete' | 'replace'
+	data?: T
+	id?: string
+	predicate?: (item: T) => boolean
 }
 
 /**
@@ -12,96 +12,124 @@ export interface OptimisticAction<T> {
  * Provides immediate feedback while server action is pending
  */
 export function useOptimisticData<T extends { id: string }>(
-  initialData: T[],
-  reducer?: (state: T[], action: OptimisticAction<T>) => T[]
+	initialData: T[],
+	reducer?: (state: T[], action: OptimisticAction<T>) => T[]
 ) {
-  const defaultReducer = useCallback((state: T[], action: OptimisticAction<T>): T[] => {
-    switch (action.type) {
-      case 'add':
-        return action.data ? [...state, action.data] : state;
-        
-      case 'update':
-        return action.data
-          ? state.map(item => item.id === action.data!.id ? action.data! : item)
-          : state;
-          
-      case 'delete':
-        return action.id
-          ? state.filter(item => item.id !== action.id)
-          : action.predicate
-          ? state.filter(item => !action.predicate!(item))
-          : state;
-          
-      case 'replace':
-        return action.data ? [action.data] : [];
-        
-      default:
-        return state;
-    }
-  }, []);
+	const defaultReducer = useCallback(
+		(state: T[], action: OptimisticAction<T>): T[] => {
+			switch (action.type) {
+				case 'add':
+					return action.data ? [...state, action.data] : state
 
-  const [optimisticData, setOptimisticData] = useOptimistic(
-    initialData,
-    reducer || defaultReducer
-  );
+				case 'update':
+					return action.data
+						? state.map(item =>
+								item.id === action.data!.id
+									? action.data!
+									: item
+							)
+						: state
 
-  const addOptimistic = useCallback((data: T) => {
-    setOptimisticData({ type: 'add', data });
-  }, [setOptimisticData]);
+				case 'delete':
+					return action.id
+						? state.filter(item => item.id !== action.id)
+						: action.predicate
+							? state.filter(item => !action.predicate!(item))
+							: state
 
-  const updateOptimistic = useCallback((data: T) => {
-    setOptimisticData({ type: 'update', data });
-  }, [setOptimisticData]);
+				case 'replace':
+					return action.data ? [action.data] : []
 
-  const deleteOptimistic = useCallback((id: string) => {
-    setOptimisticData({ type: 'delete', id });
-  }, [setOptimisticData]);
+				default:
+					return state
+			}
+		},
+		[]
+	)
 
-  const deleteOptimisticWhere = useCallback((predicate: (item: T) => boolean) => {
-    setOptimisticData({ type: 'delete', predicate });
-  }, [setOptimisticData]);
+	const [optimisticData, setOptimisticData] = useOptimistic(
+		initialData,
+		reducer || defaultReducer
+	)
 
-  const replaceOptimistic = useCallback((data: T) => {
-    setOptimisticData({ type: 'replace', data });
-  }, [setOptimisticData]);
+	const addOptimistic = useCallback(
+		(data: T) => {
+			setOptimisticData({ type: 'add', data })
+		},
+		[setOptimisticData]
+	)
 
-  return {
-    data: optimisticData,
-    addOptimistic,
-    updateOptimistic,
-    deleteOptimistic,
-    deleteOptimisticWhere,
-    replaceOptimistic,
-    setOptimisticData,
-  };
+	const updateOptimistic = useCallback(
+		(data: T) => {
+			setOptimisticData({ type: 'update', data })
+		},
+		[setOptimisticData]
+	)
+
+	const deleteOptimistic = useCallback(
+		(id: string) => {
+			setOptimisticData({ type: 'delete', id })
+		},
+		[setOptimisticData]
+	)
+
+	const deleteOptimisticWhere = useCallback(
+		(predicate: (item: T) => boolean) => {
+			setOptimisticData({ type: 'delete', predicate })
+		},
+		[setOptimisticData]
+	)
+
+	const replaceOptimistic = useCallback(
+		(data: T) => {
+			setOptimisticData({ type: 'replace', data })
+		},
+		[setOptimisticData]
+	)
+
+	return {
+		data: optimisticData,
+		addOptimistic,
+		updateOptimistic,
+		deleteOptimistic,
+		deleteOptimisticWhere,
+		replaceOptimistic,
+		setOptimisticData
+	}
 }
 
 /**
  * Hook for optimistic single item updates
  */
 export function useOptimisticItem<T>(
-  initialData: T,
-  reducer?: (state: T, action: { type: 'update'; data: Partial<T> }) => T
+	initialData: T,
+	reducer?: (state: T, action: { type: 'update'; data: Partial<T> }) => T
 ) {
-  const defaultReducer = useCallback((state: T, action: { type: 'update'; data: Partial<T> }): T => {
-    if (action.type === 'update') {
-      return { ...state, ...action.data };
-    }
-    return state;
-  }, []);
+	const defaultReducer = useCallback(
+		(state: T, action: { type: 'update'; data: Partial<T> }): T => {
+			if (action.type === 'update') {
+				return { ...state, ...action.data }
+			}
+			return state
+		},
+		[]
+	)
 
-  const [optimisticData, setOptimisticData] = useOptimistic(
-    initialData,
-    reducer || defaultReducer
-  );
+	const [optimisticData, setOptimisticData] = useOptimistic(
+		initialData,
+		reducer || defaultReducer
+	)
 
-  const updateOptimistic = useCallback((data: Partial<T>) => {
-    setOptimisticData({ type: 'update', data });
-  }, [setOptimisticData]);
+	const updateOptimistic = useCallback(
+		(data: Partial<T>) => {
+			setOptimisticData({ type: 'update', data })
+		},
+		[setOptimisticData]
+	)
 
-  return {
-    data: optimisticData,
-    updateOptimistic,
-    setOptimisticData,
-  };
+	return {
+		data: optimisticData,
+		updateOptimistic,
+		setOptimisticData
+	}
 }

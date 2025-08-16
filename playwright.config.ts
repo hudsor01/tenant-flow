@@ -12,155 +12,167 @@ process.env.NODE_ENV = 'test'
  * See https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
-  testDir: './tests/e2e',
-  
-  /* Global test timeout */
-  timeout: 60000,
-  
-  /* Expect timeout for assertions */
-  expect: {
-    timeout: 10000
-  },
+	testDir: './tests/e2e',
 
-  /* Run tests in files in parallel */
-  fullyParallel: true,
+	/* Global test timeout */
+	timeout: 60000,
 
-  /* Fail the build on CI if you accidentally left test.only in the source code */
-  forbidOnly: !!process.env.CI,
+	/* Expect timeout for assertions */
+	expect: {
+		timeout: 10000
+	},
 
-  /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
+	/* Run tests in files in parallel */
+	fullyParallel: true,
 
-  /* Opt out of parallel tests on CI */
-  workers: process.env.CI ? 1 : undefined,
+	/* Fail the build on CI if you accidentally left test.only in the source code */
+	forbidOnly: !!process.env.CI,
 
-  /* No global setup needed for CI - keep it simple */
+	/* Retry on CI only */
+	retries: process.env.CI ? 2 : 0,
 
-  /* Reporter configuration */
-  reporter: [
-    /* Use the html reporter for local development */
-    ['html', { open: 'never' }],
-    
-    /* Use list reporter for CI */
-    process.env.CI ? ['github'] : ['list'],
-    
-    /* JSON reporter for test result processing */
-    ['json', { outputFile: 'test-results/results.json' }],
-    
-    /* Allure reporter for detailed reporting */
-    ['allure-playwright', { 
-      detail: true, 
-      outputFolder: 'allure-results',
-      suiteTitle: 'TenantFlow E2E Tests'
-    }]
-  ],
+	/* Opt out of parallel tests on CI */
+	workers: process.env.CI ? 1 : undefined,
 
-  /* Shared settings for all projects */
-  use: {
-    /* Base URL for the application */
-    baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000',
+	/* No global setup needed for CI - keep it simple */
 
-    /* Collect trace when retrying the failed test */
-    trace: 'on-first-retry',
+	/* Reporter configuration */
+	reporter: [
+		/* Use the html reporter for local development */
+		['html', { open: 'never' }],
 
-    /* Take screenshot on failure */
-    screenshot: 'only-on-failure',
+		/* Use list reporter for CI */
+		process.env.CI ? ['github'] : ['list'],
 
-    /* Record video on failure */
-    video: 'retain-on-failure',
+		/* JSON reporter for test result processing */
+		['json', { outputFile: 'test-results/results.json' }],
 
-    /* Maximum time for navigation */
-    navigationTimeout: 30000,
+		/* Allure reporter for detailed reporting */
+		[
+			'allure-playwright',
+			{
+				detail: true,
+				outputFolder: 'allure-results',
+				suiteTitle: 'TenantFlow E2E Tests'
+			}
+		]
+	],
 
-    /* Maximum time for actions */
-    actionTimeout: 10000,
+	/* Shared settings for all projects */
+	use: {
+		/* Base URL for the application */
+		baseURL:
+			process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000',
 
-    /* Ignore HTTPS errors */
-    ignoreHTTPSErrors: true,
+		/* Collect trace when retrying the failed test */
+		trace: 'on-first-retry',
 
-    /* Test environment configuration */
-    extraHTTPHeaders: {
-      'Authorization': process.env.E2E_API_TOKEN || ''
-    }
-  },
+		/* Take screenshot on failure */
+		screenshot: 'only-on-failure',
 
-  /* Configure projects for major browsers */
-  projects: [
-    /* Desktop Chrome - simplified for CI */
-    {
-      name: 'chromium',
-      use: { 
-        ...devices['Desktop Chrome']
-      }
-    }
-  ],
+		/* Record video on failure */
+		video: 'retain-on-failure',
 
+		/* Maximum time for navigation */
+		navigationTimeout: 30000,
 
-  /* Local dev server configuration - disable for manual testing */
-  webServer: process.env.SKIP_WEB_SERVER ? undefined : process.env.CI ? undefined : [
-    {
-      command: 'npm run dev --filter=@repo/backend',
-      port: 8000,
-      reuseExistingServer: !process.env.CI,
-      timeout: 120000,
-      env: {
-        NODE_ENV: 'test',
-        DATABASE_URL: process.env.DATABASE_URL_TEST || process.env.DATABASE_URL || '',
-        JWT_SECRET: 'test-secret',
-        STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY_TEST || '',
-        STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET_TEST || ''
-      }
-    },
-    {
-      command: 'npm run dev --filter=@repo/frontend',
-      port: 3000,
-      reuseExistingServer: !process.env.CI,
-      timeout: 120000,
-      env: {
-        NODE_ENV: 'test',
-        NEXT_PUBLIC_API_URL: 'http://localhost:8000/api',
-        NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY_TEST || ''
-      }
-    }
-  ],
+		/* Maximum time for actions */
+		actionTimeout: 10000,
 
-  /* Test output configuration */
-  outputDir: 'test-results/',
-  
-  /* Test metadata */
-  metadata: {
-    project: 'TenantFlow',
-    environment: process.env.NODE_ENV || 'test',
-    version: process.env.npm_package_version || '1.0.0'
-  },
+		/* Ignore HTTPS errors */
+		ignoreHTTPSErrors: true,
 
+		/* Test environment configuration */
+		extraHTTPHeaders: {
+			Authorization: process.env.E2E_API_TOKEN || ''
+		}
+	},
+
+	/* Configure projects for major browsers */
+	projects: [
+		/* Desktop Chrome - simplified for CI */
+		{
+			name: 'chromium',
+			use: {
+				...devices['Desktop Chrome']
+			}
+		}
+	],
+
+	/* Local dev server configuration - disable for manual testing */
+	webServer: process.env.SKIP_WEB_SERVER
+		? undefined
+		: process.env.CI
+			? undefined
+			: [
+					{
+						command: 'npm run dev --filter=@repo/backend',
+						port: 8000,
+						reuseExistingServer: !process.env.CI,
+						timeout: 120000,
+						env: {
+							NODE_ENV: 'test',
+							DATABASE_URL:
+								process.env.DATABASE_URL_TEST ||
+								process.env.DATABASE_URL ||
+								'',
+							JWT_SECRET: 'test-secret',
+							STRIPE_SECRET_KEY:
+								process.env.STRIPE_SECRET_KEY_TEST || '',
+							STRIPE_WEBHOOK_SECRET:
+								process.env.STRIPE_WEBHOOK_SECRET_TEST || ''
+						}
+					},
+					{
+						command: 'npm run dev --filter=@repo/frontend',
+						port: 3000,
+						reuseExistingServer: !process.env.CI,
+						timeout: 120000,
+						env: {
+							NODE_ENV: 'test',
+							NEXT_PUBLIC_API_URL: 'http://localhost:8000/api',
+							NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
+								process.env.STRIPE_PUBLISHABLE_KEY_TEST || ''
+						}
+					}
+				],
+
+	/* Test output configuration */
+	outputDir: 'test-results/',
+
+	/* Test metadata */
+	metadata: {
+		project: 'TenantFlow',
+		environment: process.env.NODE_ENV || 'test',
+		version: process.env.npm_package_version || '1.0.0'
+	}
 })
 
 /* Test patterns and organization */
 export const testPatterns = {
-  unit: 'src/**/*.{test,spec}.{js,ts}',
-  integration: 'tests/integration/**/*.{test,spec}.{js,ts}',
-  e2e: 'tests/e2e/**/*.spec.ts',
-  performance: 'tests/performance/**/*.spec.ts',
-  critical: 'tests/e2e/**/*.critical.spec.ts'
+	unit: 'src/**/*.{test,spec}.{js,ts}',
+	integration: 'tests/integration/**/*.{test,spec}.{js,ts}',
+	e2e: 'tests/e2e/**/*.spec.ts',
+	performance: 'tests/performance/**/*.spec.ts',
+	critical: 'tests/e2e/**/*.critical.spec.ts'
 }
 
 /* Environment-specific configurations */
 export const environments = {
-  development: {
-    baseURL: 'http://localhost:3000',
-    workers: 1,
-    retries: 0
-  },
-  staging: {
-    baseURL: process.env.STAGING_URL,
-    workers: 2,
-    retries: 1
-  },
-  production: {
-    baseURL: process.env.PRODUCTION_URL,
-    workers: 1,
-    retries: 2,
-    forbidOnly: true
-  }
+	development: {
+		baseURL: 'http://localhost:3000',
+		workers: 1,
+		retries: 0
+	},
+	staging: {
+		baseURL: process.env.STAGING_URL,
+		workers: 2,
+		retries: 1
+	},
+	production: {
+		baseURL: process.env.PRODUCTION_URL,
+		workers: 1,
+		retries: 2,
+		forbidOnly: true
+	}
 }

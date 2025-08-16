@@ -5,30 +5,36 @@ import type { Database } from '@repo/shared/types/supabase'
 
 @Injectable()
 export class SupabaseService {
-  private _supabase: SupabaseClient<Database> | null = null
+	private _supabase: SupabaseClient<Database> | null = null
 
-  constructor(private configService: ConfigService) {}
+	constructor(private configService: ConfigService) {}
 
-  private get supabase(): SupabaseClient<Database> {
-    if (!this._supabase) {
-      const supabaseUrl = this.configService.get<string>('SUPABASE_URL')
-      const supabaseServiceKey = this.configService.get<string>('SUPABASE_SERVICE_ROLE_KEY')
+	private get supabase(): SupabaseClient<Database> {
+		if (!this._supabase) {
+			const supabaseUrl = this.configService.get<string>('SUPABASE_URL')
+			const supabaseServiceKey = this.configService.get<string>(
+				'SUPABASE_SERVICE_ROLE_KEY'
+			)
 
-      if (!supabaseUrl || !supabaseServiceKey) {
-        throw new Error('Missing required Supabase configuration')
-      }
+			if (!supabaseUrl || !supabaseServiceKey) {
+				throw new Error('Missing required Supabase configuration')
+			}
 
-      this._supabase = createClient<Database>(supabaseUrl, supabaseServiceKey, {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      })
-    }
-    return this._supabase
-  }
+			this._supabase = createClient<Database>(
+				supabaseUrl,
+				supabaseServiceKey,
+				{
+					auth: {
+						autoRefreshToken: false,
+						persistSession: false
+					}
+				}
+			)
+		}
+		return this._supabase
+	}
 
-  getClient(): SupabaseClient {
-    return this.supabase
-  }
+	getClient(): SupabaseClient {
+		return this.supabase
+	}
 }

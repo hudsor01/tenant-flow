@@ -3,7 +3,8 @@ builder = "DOCKERFILE"
 dockerfilePath = "./Dockerfile"
 
 [deploy]
-startCommand = "node apps/backend/dist/apps/backend/src/main.js"
+# Fixed path - NestJS builds to dist/main.js from the backend directory
+startCommand = "cd apps/backend && node dist/main.js"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
 healthcheckPath = "/health"

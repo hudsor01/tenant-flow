@@ -28,7 +28,7 @@ export class ApiTestClient {
 
   // Authentication helpers
   private getAuthHeaders(user?: TestUser) {
-    if (!user) return {}
+    if (!user) {return {}}
     return {
       Authorization: `Bearer ${user.accessToken}`
     }
@@ -171,7 +171,7 @@ export class TestModuleBuilder {
   }
 
   async build(): Promise<TestingModule> {
-    return await Test.createTestingModule({
+    return Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({
           isGlobal: true,

@@ -49,9 +49,12 @@ function AdditionalTermsSection({
 						<div>
 							<Label>Pet Policy</Label>
 							<Select
-								onValueChange={(value: 'allowed' | 'not_allowed' | 'with_deposit') =>
-									form.setValue('petPolicy', value)
-								}
+								onValueChange={(
+									value:
+										| 'allowed'
+										| 'not_allowed'
+										| 'with_deposit'
+								) => form.setValue('petPolicy', value)}
 							>
 								<SelectTrigger>
 									<SelectValue placeholder="Select pet policy" />
@@ -80,10 +83,9 @@ function AdditionalTermsSection({
 										type="number"
 										placeholder="300"
 										className="pl-9"
-										{...form.register(
-											'petDeposit',
-											{ valueAsNumber: true }
-										)}
+										{...form.register('petDeposit', {
+											valueAsNumber: true
+										})}
 									/>
 								</div>
 							</div>
@@ -92,9 +94,9 @@ function AdditionalTermsSection({
 						<div>
 							<Label>Smoking Policy</Label>
 							<Select
-								onValueChange={(value: 'allowed' | 'not_allowed') =>
-									form.setValue('smokingPolicy', value)
-								}
+								onValueChange={(
+									value: 'allowed' | 'not_allowed'
+								) => form.setValue('smokingPolicy', value)}
 							>
 								<SelectTrigger>
 									<SelectValue placeholder="Select smoking policy" />
@@ -113,8 +115,13 @@ function AdditionalTermsSection({
 						<div>
 							<Label>Maintenance Responsibility</Label>
 							<Select
-								onValueChange={(value: 'landlord' | 'tenant' | 'shared') =>
-									form.setValue('maintenanceResponsibility', value)
+								onValueChange={(
+									value: 'landlord' | 'tenant' | 'shared'
+								) =>
+									form.setValue(
+										'maintenanceResponsibility',
+										value
+									)
 								}
 							>
 								<SelectTrigger>

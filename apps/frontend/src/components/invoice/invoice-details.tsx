@@ -8,7 +8,7 @@ import type { UseFormRegister } from 'react-hook-form'
 import type { CustomerInvoiceForm } from '@repo/shared'
 
 interface InvoiceDetailsProps {
-register: UseFormRegister<CustomerInvoiceForm>
+	register: UseFormRegister<CustomerInvoiceForm>
 }
 
 export function InvoiceDetails({ register }: InvoiceDetailsProps) {

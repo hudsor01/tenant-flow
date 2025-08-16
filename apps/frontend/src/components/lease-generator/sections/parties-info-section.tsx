@@ -34,21 +34,28 @@ export function PartiesInfoSection({ form }: PartiesInfoSectionProps) {
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<User className="h-5 w-5 text-primary" />
+						<User className="text-primary h-5 w-5" />
 						Landlord Information
 					</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-4">
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 						<div className="space-y-2">
-							<Label htmlFor="landlordName" className="text-sm font-medium">
+							<Label
+								htmlFor="landlordName"
+								className="text-sm font-medium"
+							>
 								Full Name *
 							</Label>
 							<Input
 								id="landlordName"
 								placeholder="John Smith"
 								{...form.register('landlordName')}
-								className={form.formState.errors.landlordName ? 'border-destructive' : ''}
+								className={
+									form.formState.errors.landlordName
+										? 'border-destructive'
+										: ''
+								}
 							/>
 							{form.formState.errors.landlordName && (
 								<p className="text-destructive text-sm">
@@ -58,11 +65,14 @@ export function PartiesInfoSection({ form }: PartiesInfoSectionProps) {
 						</div>
 
 						<div className="space-y-2">
-							<Label htmlFor="landlordEmail" className="text-sm font-medium">
+							<Label
+								htmlFor="landlordEmail"
+								className="text-sm font-medium"
+							>
 								Email Address *
 							</Label>
 							<div className="relative">
-								<Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+								<Mail className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
 								<Input
 									id="landlordEmail"
 									type="email"
@@ -73,19 +83,28 @@ export function PartiesInfoSection({ form }: PartiesInfoSectionProps) {
 							</div>
 							{form.formState.errors.landlordEmail && (
 								<p className="text-destructive text-sm">
-									{form.formState.errors.landlordEmail.message}
+									{
+										form.formState.errors.landlordEmail
+											.message
+									}
 								</p>
 							)}
 						</div>
 					</div>
 
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 						<div className="space-y-2">
-							<Label htmlFor="landlordPhone" className="text-sm font-medium">
-								Phone Number <span className="text-muted-foreground">(Optional)</span>
+							<Label
+								htmlFor="landlordPhone"
+								className="text-sm font-medium"
+							>
+								Phone Number{' '}
+								<span className="text-muted-foreground">
+									(Optional)
+								</span>
 							</Label>
 							<div className="relative">
-								<Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+								<Phone className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
 								<Input
 									id="landlordPhone"
 									type="tel"
@@ -97,11 +116,14 @@ export function PartiesInfoSection({ form }: PartiesInfoSectionProps) {
 						</div>
 
 						<div className="space-y-2">
-							<Label htmlFor="landlordAddress" className="text-sm font-medium">
+							<Label
+								htmlFor="landlordAddress"
+								className="text-sm font-medium"
+							>
 								Mailing Address *
 							</Label>
 							<div className="relative">
-								<MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+								<MapPin className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
 								<Input
 									id="landlordAddress"
 									placeholder="123 Business St, City, State 12345"
@@ -111,7 +133,10 @@ export function PartiesInfoSection({ form }: PartiesInfoSectionProps) {
 							</div>
 							{form.formState.errors.landlordAddress && (
 								<p className="text-destructive text-sm">
-									{form.formState.errors.landlordAddress.message}
+									{
+										form.formState.errors.landlordAddress
+											.message
+									}
 								</p>
 							)}
 						</div>
@@ -124,7 +149,7 @@ export function PartiesInfoSection({ form }: PartiesInfoSectionProps) {
 				<CardHeader>
 					<div className="flex items-center justify-between">
 						<CardTitle className="flex items-center gap-2">
-							<UserPlus className="h-5 w-5 text-primary" />
+							<UserPlus className="text-primary h-5 w-5" />
 							Tenant Information
 						</CardTitle>
 						<Button
@@ -143,7 +168,10 @@ export function PartiesInfoSection({ form }: PartiesInfoSectionProps) {
 					{fields.map((field, index) => (
 						<div key={field.id} className="space-y-2">
 							<div className="flex items-center justify-between">
-								<Label htmlFor={`tenant-${index}`} className="text-sm font-medium">
+								<Label
+									htmlFor={`tenant-${index}`}
+									className="text-sm font-medium"
+								>
 									Tenant {index + 1} Full Name *
 								</Label>
 								{fields.length > 1 && (
@@ -161,15 +189,28 @@ export function PartiesInfoSection({ form }: PartiesInfoSectionProps) {
 							<Input
 								id={`tenant-${index}`}
 								placeholder="Jane Doe"
-								{...form.register(`tenantNames.${index}.name` as const)}
-								className={form.formState.errors.tenantNames?.[index]?.name ? 'border-destructive' : ''}
+								{...form.register(
+									`tenantNames.${index}.name` as const
+								)}
+								className={
+									form.formState.errors.tenantNames?.[index]
+										?.name
+										? 'border-destructive'
+										: ''
+								}
 							/>
-							{form.formState.errors.tenantNames?.[index]?.name && (
+							{form.formState.errors.tenantNames?.[index]
+								?.name && (
 								<p className="text-destructive text-sm">
-									{form.formState.errors.tenantNames[index]?.name?.message}
+									{
+										form.formState.errors.tenantNames[index]
+											?.name?.message
+									}
 								</p>
 							)}
-							{index < fields.length - 1 && <Separator className="mt-4" />}
+							{index < fields.length - 1 && (
+								<Separator className="mt-4" />
+							)}
 						</div>
 					))}
 
@@ -179,16 +220,17 @@ export function PartiesInfoSection({ form }: PartiesInfoSectionProps) {
 						</p>
 					)}
 
-					<div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-4">
+					<div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4">
 						<div className="flex items-start gap-2">
-							<UserPlus className="h-5 w-5 text-amber-600 mt-0.5" />
+							<UserPlus className="mt-0.5 h-5 w-5 text-amber-600" />
 							<div>
 								<h4 className="font-medium text-amber-900">
 									Multiple Tenants
 								</h4>
-								<p className="text-amber-700 text-sm mt-1">
-									If multiple people will be living in the property, add all adult tenants 
-									who will be legally responsible for the lease agreement.
+								<p className="mt-1 text-sm text-amber-700">
+									If multiple people will be living in the
+									property, add all adult tenants who will be
+									legally responsible for the lease agreement.
 								</p>
 							</div>
 						</div>

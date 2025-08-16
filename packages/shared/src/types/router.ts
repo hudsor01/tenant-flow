@@ -11,57 +11,57 @@ import type { Lease } from './leases'
 
 // Maintenance router outputs
 export interface MaintenanceRequestListOutput {
-  requests: MaintenanceRequest[]
-  total: number
-  page: number
-  limit: number
+	requests: MaintenanceRequest[]
+	total: number
+	page: number
+	limit: number
 }
 
 export interface MaintenanceRequestDetailOutput {
-  request: MaintenanceRequest
+	request: MaintenanceRequest
 }
 
 // Property router outputs
 export interface PropertyListOutput {
-  properties: Property[]
-  total: number
-  page: number
-  limit: number
+	properties: Property[]
+	total: number
+	page: number
+	limit: number
 }
 
 // Other router outputs can be added here as needed
 
 // Main RouterOutputs type
 export interface RouterOutputs {
-  maintenance: {
-    list: MaintenanceRequestListOutput
-    detail: MaintenanceRequestDetailOutput
-  }
-  properties: {
-    list: PropertyListOutput
-  }
-  tenants: {
-    list: {
-      tenants: Tenant[]
-      total: number
-      page: number
-      limit: number
-    }
-  }
-  units: {
-    list: {
-      units: Unit[]
-      total: number
-      page: number
-      limit: number
-    }
-  }
-  leases: {
-    list: {
-      leases: Lease[]
-      total: number
-      page: number
-      limit: number
-    }
-  }
+	maintenance: {
+		list: MaintenanceRequestListOutput
+		detail: MaintenanceRequestDetailOutput
+	}
+	properties: {
+		list: PropertyListOutput
+	}
+	tenants: {
+		list: {
+			tenants: Tenant[]
+			total: number
+			page: number
+			limit: number
+		}
+	}
+	units: {
+		list: {
+			units: Unit[]
+			total: number
+			page: number
+			limit: number
+		}
+	}
+	leases: {
+		list: {
+			leases: Lease[]
+			total: number
+			page: number
+			limit: number
+		}
+	}
 }

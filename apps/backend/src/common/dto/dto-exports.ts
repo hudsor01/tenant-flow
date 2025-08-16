@@ -5,33 +5,26 @@
 
 // Import all Zod schemas
 import {
-  // Property schemas
-  createPropertySchema,
-  updatePropertySchema,
-  queryPropertiesSchema,
-  // Unit schemas  
-  createUnitSchema,
-  updateUnitSchema,
-  queryUnitsSchema,
-  // Tenant schemas
-  createTenantSchema,
-  updateTenantSchema,
-  queryTenantsSchema,
-  // Maintenance schemas
-  createMaintenanceRequestSchema,
-  updateMaintenanceRequestSchema,
-  queryMaintenanceRequestsSchema,
-  // Lease schemas
-  createLeaseSchema,
-  updateLeaseSchema,
-  queryLeasesSchema,
-  // Auth schemas
-  loginSchema,
-  signupSchema,
-  // Common schemas
-  uuidSchema,
-  emailSchema,
-  phoneSchema
+	createLeaseSchema,
+	createMaintenanceRequestSchema,
+	createPropertySchema,
+	createTenantSchema,
+	createUnitSchema,
+	emailSchema,
+	loginSchema,
+	phoneSchema,
+	queryLeasesSchema,
+	queryMaintenanceRequestsSchema,
+	queryPropertiesSchema,
+	queryTenantsSchema,
+	queryUnitsSchema,
+	signupSchema,
+	updateLeaseSchema,
+	updateMaintenanceRequestSchema,
+	updatePropertySchema,
+	updateTenantSchema,
+	updateUnitSchema,
+	uuidSchema
 } from '../validation/zod-schemas'
 import type { z } from 'zod'
 
@@ -59,9 +52,15 @@ export type TenantQueryDto = z.infer<typeof queryTenantsSchema>
 // ========================================
 // Maintenance DTOs (Zod-inferred)
 // ========================================
-export type CreateMaintenanceRequestDto = z.infer<typeof createMaintenanceRequestSchema>
-export type UpdateMaintenanceRequestDto = z.infer<typeof updateMaintenanceRequestSchema>
-export type MaintenanceRequestQueryDto = z.infer<typeof queryMaintenanceRequestsSchema>
+export type CreateMaintenanceRequestDto = z.infer<
+	typeof createMaintenanceRequestSchema
+>
+export type UpdateMaintenanceRequestDto = z.infer<
+	typeof updateMaintenanceRequestSchema
+>
+export type MaintenanceRequestQueryDto = z.infer<
+	typeof queryMaintenanceRequestsSchema
+>
 
 // ========================================
 // Lease DTOs (Zod-inferred)
@@ -87,31 +86,24 @@ export type PhoneDto = z.infer<typeof phoneSchema>
 // Export schemas for validation decorators
 // ========================================
 export {
-  // Property schemas
-  createPropertySchema,
-  updatePropertySchema,
-  queryPropertiesSchema,
-  // Unit schemas  
-  createUnitSchema,
-  updateUnitSchema,
-  queryUnitsSchema,
-  // Tenant schemas
-  createTenantSchema,
-  updateTenantSchema,
-  queryTenantsSchema,
-  // Maintenance schemas
-  createMaintenanceRequestSchema,
-  updateMaintenanceRequestSchema,
-  queryMaintenanceRequestsSchema,
-  // Lease schemas
-  createLeaseSchema,
-  updateLeaseSchema,
-  queryLeasesSchema,
-  // Auth schemas
-  loginSchema,
-  signupSchema,
-  // Common schemas
-  uuidSchema,
-  emailSchema,
-  phoneSchema
+	createLeaseSchema,
+	createMaintenanceRequestSchema,
+	createPropertySchema,
+	createTenantSchema,
+	createUnitSchema,
+	emailSchema,
+	loginSchema,
+	phoneSchema,
+	queryLeasesSchema,
+	queryMaintenanceRequestsSchema,
+	queryPropertiesSchema,
+	queryTenantsSchema,
+	queryUnitsSchema,
+	signupSchema,
+	updateLeaseSchema,
+	updateMaintenanceRequestSchema,
+	updatePropertySchema,
+	updateTenantSchema,
+	updateUnitSchema,
+	uuidSchema
 }

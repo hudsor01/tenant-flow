@@ -7,6 +7,7 @@ A production-ready, multi-tenant property management platform built with React 1
 **Railway Backend API Fix** - Debugging routing issue where all endpoints except /health return 404
 
 ### UI/UX Architecture Cleanup (December 2024)
+
 - **Eliminated 680+ lines of duplicate code** through architectural improvements
 - **Single API Layer**: Removed dual-layer API access pattern (direct Supabase + backend API)
 - **Component Consolidation**: Removed all enhanced/optimized/fixed duplicate components
@@ -68,21 +69,24 @@ See [CLAUDE.md](./CLAUDE.md) for comprehensive development guidelines.
 ## Turborepo Configuration Details
 
 ### 1. Enhanced turbo.json Configuration
+
 - **UI Mode**: Set to `tui` for better development experience
-- **Environment Variables**: 
-  - Added `envMode: "strict"` for explicit environment variable handling
-  - Using wildcards (`NEXT_PUBLIC_*`, `STRIPE_*`, etc.) for better caching
-  - Added `passThroughEnv` for cloud provider variables
+- **Environment Variables**:
+    - Added `envMode: "strict"` for explicit environment variable handling
+    - Using wildcards (`NEXT_PUBLIC_*`, `STRIPE_*`, etc.) for better caching
+    - Added `passThroughEnv` for cloud provider variables
 - **Global Dependencies**: Added `**/.env.*` to invalidate cache on env changes
 - **Optimized Inputs/Outputs**: Using `$TURBO_DEFAULT for better defaults
 - **New Tasks**: Added `prisma:studio`, `format`, and `format:check`
 
 ### 2. ESLint Integration
-- Installed `eslint-plugin-turbo` 
+
+- Installed `eslint-plugin-turbo`
 - Added turbo plugin to ESLint configs for both frontend and backend
 - This catches undeclared environment variables at lint time
 
 ### 3. VS Code Integration
+
 - Enhanced `.vscode/settings.json` with Turborepo-specific configs
 - Added JSON schema for `turbo.json` IntelliSense
 - Configured search exclusions for turbo cache directories
@@ -90,13 +94,16 @@ See [CLAUDE.md](./CLAUDE.md) for comprehensive development guidelines.
 - Updated recommended extensions
 
 ### 4. Performance Optimizations
+
 - Better cache configuration with proper inputs/outputs
 - Environment variable wildcards reduce cache misses
 - Persistent tasks properly configured for dev servers
 - Added cache-friendly task dependencies
 
 ## 📚 Additional Resources
+
 - [Turborepo Docs](https://turbo.build/repo/docs)
 - [Environment Variables Guide](https://turbo.build/repo/docs/crafting-your-repository/using-environment-variables)
 - [Code Generation Guide](https://turbo.build/repo/docs/guides/generating-code)# Railway deployment trigger Mon Aug 11 19:34:14 CDT 2025
+
 # Trigger Railway deployment

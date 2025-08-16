@@ -1,4 +1,4 @@
-import { Module, Global } from '@nestjs/common'
+import { Global, Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { TypeSafeConfigModule } from '../config/config.module'
 import { TypeSafeConfigService } from '../config/config.service'
@@ -25,45 +25,64 @@ import { RequestLimitsController } from '../controllers/request-limits.controlle
 import { RequestLimitsMiddleware } from '../middleware/request-limits.middleware'
 import { CsrfTokenService } from './csrf-token.service'
 import { CsrfTokenController } from '../controllers/csrf-token.controller'
+import { SessionUtilsService } from '../utils/session-utils.service'
+import { CsrfUtilsService } from '../utils/csrf-utils.service'
+import { NetworkUtilsService } from '../utils/network-utils.service'
+import { RequestUtilsService } from '../utils/request-utils.service'
 
 @Global()
 @Module({
-    imports: [ConfigModule, TypeSafeConfigModule, PrismaModule, LoggerModule],
-    controllers: [SecurityController, FileUploadController, ApiKeyManagementController, CorsManagementController, RequestLimitsController, CsrfTokenController],
-    providers: [
-        TypeSafeConfigService,
-        SecurityUtils, // Keep for backward compatibility during transition
-        SimpleSecurityService, // New simplified service
-        FastifyHooksService,
-        SecurityAuditService,
-        SecurityMonitorService,
-        ComplianceMonitorService,
-        PrivacyService,
-        EncryptionService,
-        SecurityHeadersMiddleware,
-        FileUploadSecurityService,
-        ApiKeyManagementService,
-        CorsSecurityService,
-        RequestLimitsService,
-        RequestLimitsMiddleware,
-        CsrfTokenService,
-    ],
-    exports: [
-        SecurityUtils, 
-        SimpleSecurityService,
-        FastifyHooksService,
-        SecurityAuditService,
-        SecurityMonitorService,
-        ComplianceMonitorService,
-        PrivacyService,
-        EncryptionService,
-        SecurityHeadersMiddleware,
-        FileUploadSecurityService,
-        ApiKeyManagementService,
-        CorsSecurityService,
-        RequestLimitsService,
-        RequestLimitsMiddleware,
-        CsrfTokenService,
-    ]
+	imports: [ConfigModule, TypeSafeConfigModule, PrismaModule, LoggerModule],
+	controllers: [
+		SecurityController,
+		FileUploadController,
+		ApiKeyManagementController,
+		CorsManagementController,
+		RequestLimitsController,
+		CsrfTokenController
+	],
+	providers: [
+		TypeSafeConfigService,
+		SecurityUtils, // Keep for backward compatibility during transition
+		SimpleSecurityService, // New simplified service
+		FastifyHooksService,
+		SecurityAuditService,
+		SecurityMonitorService,
+		ComplianceMonitorService,
+		PrivacyService,
+		EncryptionService,
+		SecurityHeadersMiddleware,
+		FileUploadSecurityService,
+		ApiKeyManagementService,
+		CorsSecurityService,
+		RequestLimitsService,
+		RequestLimitsMiddleware,
+		CsrfTokenService,
+		SessionUtilsService,
+		CsrfUtilsService,
+		NetworkUtilsService,
+		RequestUtilsService
+	],
+	exports: [
+		SecurityUtils,
+		SimpleSecurityService,
+		FastifyHooksService,
+		SecurityAuditService,
+		SecurityMonitorService,
+		ComplianceMonitorService,
+		PrivacyService,
+		EncryptionService,
+		SecurityHeadersMiddleware,
+		FileUploadSecurityService,
+		ApiKeyManagementService,
+		CorsSecurityService,
+		RequestLimitsService,
+		RequestLimitsMiddleware,
+		CsrfTokenService,
+		SessionUtilsService,
+		CsrfUtilsService,
+		NetworkUtilsService,
+		RequestUtilsService
+	]
 })
 export class SecurityModule {}

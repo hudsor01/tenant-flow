@@ -36,6 +36,7 @@ The email system has been successfully consolidated into a single, production-re
 ## Unified Service Pattern
 
 **Single Source of Truth**: `/apps/backend/src/email/email.service.ts`
+
 - ✅ Direct React Email template rendering (no wrapper layer)
 - ✅ Circuit breaker pattern for resilience
 - ✅ Integration with existing ExternalApiService

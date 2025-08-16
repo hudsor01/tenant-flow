@@ -9,9 +9,18 @@ import { SubscriptionsModule } from '../subscriptions/subscriptions.module'
 import { ZodValidationModule } from '../common/validation/zod-validation.module'
 
 @Module({
-  imports: [PrismaModule, ErrorModule, SubscriptionsModule, ZodValidationModule],
-  controllers: [MaintenanceController],
-  providers: [MaintenanceService, MaintenanceRequestRepository, SupabaseService],
-  exports: [MaintenanceService, MaintenanceRequestRepository]
+	imports: [
+		PrismaModule,
+		ErrorModule,
+		SubscriptionsModule,
+		ZodValidationModule
+	],
+	controllers: [MaintenanceController],
+	providers: [
+		MaintenanceService,
+		MaintenanceRequestRepository,
+		SupabaseService
+	],
+	exports: [MaintenanceService, MaintenanceRequestRepository]
 })
 export class MaintenanceModule {}

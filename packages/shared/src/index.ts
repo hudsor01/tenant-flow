@@ -88,7 +88,7 @@ export {
 	getReminderStatusColor
 } from './types/reminders'
 
-export type { 
+export type {
 	Invoice as BillingInvoice,
 	Subscription,
 	Plan,
@@ -175,7 +175,6 @@ export type {
 	AuthCallbackInput,
 	EnsureUserExistsInput,
 	UpdateUserProfileInput,
-	PropertyFormData,
 	CheckoutParams,
 	TrialParams,
 	DirectSubscriptionParams,

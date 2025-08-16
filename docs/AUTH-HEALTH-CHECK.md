@@ -7,6 +7,7 @@ TenantFlow includes a comprehensive authentication health check system that prog
 ## Features
 
 ### Real-time Health Monitoring
+
 - Tests actual Supabase auth endpoints
 - Validates OAuth provider configurations
 - Checks session management capabilities
@@ -16,6 +17,7 @@ TenantFlow includes a comprehensive authentication health check system that prog
 ### Multiple Access Methods
 
 #### 1. CLI Command
+
 ```bash
 # Basic health check
 npm run auth:health
@@ -25,6 +27,7 @@ npm run auth:health:verbose
 ```
 
 #### 2. API Endpoint
+
 ```bash
 # JSON response
 curl http://localhost:3000/api/auth/health
@@ -34,44 +37,53 @@ curl -H "Accept: text/html" http://localhost:3000/api/auth/health
 ```
 
 #### 3. Web Dashboard
+
 Visit `/auth-status` in development mode for a real-time visual dashboard.
 
 ## Health Check Components
 
 ### 1. Environment Check
+
 - Validates all required environment variables
 - Checks URL formats and protocols
 - Ensures production uses HTTPS
 
 ### 2. Connection Test
+
 - Verifies Supabase connectivity
 - Tests basic API responsiveness
 
 ### 3. Email Authentication
+
 - Tests signup endpoint functionality
 - Validates email configuration
 - Checks for restrictions or rate limits
 
 ### 4. OAuth Providers
+
 - Tests Google OAuth configuration
 - Validates redirect URL generation
 - Checks provider availability
 
 ### 5. Session Management
+
 - Verifies session retrieval
 - Tests token refresh capabilities
 - Validates session persistence
 
 ### 6. API Endpoints
+
 - Password reset functionality
 - Magic link generation
 - User update capabilities
 
 ### 7. Rate Limiting
+
 - Verifies rate limits are active
 - Tests protection against abuse
 
 ### 8. Security Configuration
+
 - Validates HTTPS in production
 - Checks authentication keys
 - Reviews security headers
@@ -79,17 +91,21 @@ Visit `/auth-status` in development mode for a real-time visual dashboard.
 ## Status Levels
 
 ### Healthy ✅
+
 All systems operational. Authentication is fully functional.
 
 ### Degraded ⚠️
+
 Some non-critical issues detected. Core functionality works but improvements recommended.
 
 ### Unhealthy ❌
+
 Critical issues detected. Authentication may not function properly.
 
 ## Configuration
 
 ### Production Access Control
+
 In production, protect the health check endpoint:
 
 ```env
@@ -98,12 +114,14 @@ AUTH_HEALTH_CHECK_TOKEN=your-secret-token
 ```
 
 Access with:
+
 ```bash
 curl -H "Authorization: Bearer your-secret-token" \
   https://api.tenantflow.app/api/auth/health
 ```
 
 ### Enable Public Status Page
+
 ```env
 # Allow public access to status page (not recommended)
 ENABLE_PUBLIC_AUTH_STATUS=true
@@ -125,9 +143,9 @@ The health check integrates with existing monitoring:
 ```typescript
 // Automatic logging to PostHog
 logger.info('Auth health check completed', {
-  component: 'AuthHealthCheck',
-  overall: status.overall,
-  checks: checkResults
+	component: 'AuthHealthCheck',
+	overall: status.overall,
+	checks: checkResults
 })
 ```
 
@@ -141,9 +159,9 @@ const status = await authHealthChecker.runHealthCheck()
 
 // Check specific status
 if (status.overall === 'unhealthy') {
-  // Alert administrators
-  // Disable auth features
-  // Show maintenance message
+	// Alert administrators
+	// Disable auth features
+	// Show maintenance message
 }
 
 // Generate HTML report
@@ -155,14 +173,17 @@ const report = authHealthChecker.generateHTMLReport(status)
 ### Common Issues
 
 #### "Rate limiting may not be configured"
+
 - Enable rate limiting in Supabase Dashboard
 - Configure appropriate limits for your use case
 
 #### "Some OAuth providers not configured"
+
 - Add OAuth credentials in Supabase Dashboard
 - Configure redirect URLs in provider console
 
 #### "Email auth configured but has restrictions"
+
 - Check email domain restrictions
 - Verify SMTP configuration
 - Review rate limits
@@ -170,6 +191,7 @@ const report = authHealthChecker.generateHTMLReport(status)
 ### Debug Mode
 
 Enable verbose logging:
+
 ```bash
 DEBUG=auth:* npm run auth:health:verbose
 ```
@@ -182,11 +204,11 @@ Add to your deployment pipeline:
 # .github/workflows/deploy.yml
 - name: Check Auth Health
   run: |
-    npm run auth:health
-    if [ $? -ne 0 ]; then
-      echo "Auth system unhealthy, aborting deployment"
-      exit 1
-    fi
+      npm run auth:health
+      if [ $? -ne 0 ]; then
+        echo "Auth system unhealthy, aborting deployment"
+        exit 1
+      fi
 ```
 
 ## Best Practices
@@ -201,23 +223,21 @@ Add to your deployment pipeline:
 
 ```json
 {
-  "timestamp": "2024-01-15T10:30:00Z",
-  "environment": "production",
-  "overall": "healthy",
-  "checks": {
-    "environment": {
-      "status": "pass",
-      "message": "All environment variables configured correctly"
-    },
-    "connection": {
-      "status": "pass",
-      "message": "Supabase connection successful"
-    },
-    // ... other checks
-  },
-  "recommendations": [
-    "✅ All auth systems functioning optimally!"
-  ]
+	"timestamp": "2024-01-15T10:30:00Z",
+	"environment": "production",
+	"overall": "healthy",
+	"checks": {
+		"environment": {
+			"status": "pass",
+			"message": "All environment variables configured correctly"
+		},
+		"connection": {
+			"status": "pass",
+			"message": "Supabase connection successful"
+		}
+		// ... other checks
+	},
+	"recommendations": ["✅ All auth systems functioning optimally!"]
 }
 ```
 

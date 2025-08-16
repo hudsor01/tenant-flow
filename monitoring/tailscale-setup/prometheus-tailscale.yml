@@ -1,65 +1,65 @@
 # Prometheus config for Tailscale network monitoring
 global:
-  scrape_interval: 30s
-  evaluation_interval: 30s
-  external_labels:
-    monitor: 'tenantflow-tailscale'
-    environment: 'production'
+    scrape_interval: 30s
+    evaluation_interval: 30s
+    external_labels:
+        monitor: 'tenantflow-tailscale'
+        environment: 'production'
 
 # Alert rules
 rule_files:
-  - "alerts.yml"
+    - 'alerts.yml'
 
 # Scrape targets via Tailscale
 scrape_configs:
-  # Self-monitoring
-  - job_name: 'prometheus'
-    static_configs:
-      - targets: ['localhost:9090']
+    # Self-monitoring
+    - job_name: 'prometheus'
+      static_configs:
+          - targets: ['localhost:9090']
 
-  # TenantFlow Frontend - Replace with actual Tailscale IP
-  - job_name: 'tenantflow-frontend'
-    metrics_path: '/api/metrics'
-    static_configs:
-      - targets: ['100.x.x.x:3004']  # Replace with your app server's Tailscale IP
-    scrape_interval: 60s
-    scrape_timeout: 10s
+    # TenantFlow Frontend - Replace with actual Tailscale IP
+    - job_name: 'tenantflow-frontend'
+      metrics_path: '/api/metrics'
+      static_configs:
+          - targets: ['100.x.x.x:3004'] # Replace with your app server's Tailscale IP
+      scrape_interval: 60s
+      scrape_timeout: 10s
 
-  # TenantFlow Backend
-  - job_name: 'tenantflow-backend'
-    metrics_path: '/metrics'
-    static_configs:
-      - targets: ['100.x.x.x:3001']  # Replace with your app server's Tailscale IP
-    scrape_interval: 60s
+    # TenantFlow Backend
+    - job_name: 'tenantflow-backend'
+      metrics_path: '/metrics'
+      static_configs:
+          - targets: ['100.x.x.x:3001'] # Replace with your app server's Tailscale IP
+      scrape_interval: 60s
 
-  # Auth Health Check (this is the key one for your monitoring)
-  - job_name: 'auth-health'
-    metrics_path: '/api/auth/health'
-    static_configs:
-      - targets: ['100.x.x.x:3004']  # Replace with your app server's Tailscale IP
-    scrape_interval: 120s  # Check every 2 minutes
-    params:
-      format: ['prometheus']  # We'll need to add this format to your health endpoint
+    # Auth Health Check (this is the key one for your monitoring)
+    - job_name: 'auth-health'
+      metrics_path: '/api/auth/health'
+      static_configs:
+          - targets: ['100.x.x.x:3004'] # Replace with your app server's Tailscale IP
+      scrape_interval: 120s # Check every 2 minutes
+      params:
+          format: ['prometheus'] # We'll need to add this format to your health endpoint
 
-  # Website uptime check
-  - job_name: 'website-check'
-    metrics_path: '/probe'
-    params:
-      module: [http_2xx]
-    static_configs:
-      - targets:
-          - https://tenantflow.app
-          - https://tenantflow.app/auth/login
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: __param_target
-      - source_labels: [__param_target]
-        target_label: instance
-      - target_label: __address__
-        replacement: 100.x.x.x:9115  # If you add blackbox exporter to app server
+    # Website uptime check
+    - job_name: 'website-check'
+      metrics_path: '/probe'
+      params:
+          module: [http_2xx]
+      static_configs:
+          - targets:
+                - https://tenantflow.app
+                - https://tenantflow.app/auth/login
+      relabel_configs:
+          - source_labels: [__address__]
+            target_label: __param_target
+          - source_labels: [__param_target]
+            target_label: instance
+          - target_label: __address__
+            replacement: 100.x.x.x:9115 # If you add blackbox exporter to app server
 
 # Optional: Monitor your other containers if they expose metrics
-  # Example for any other services with metrics
-  # - job_name: 'other-services'
-  #   static_configs:
-  #     - targets: ['100.x.x.x:8080', '100.x.x.x:8081']  # Other container ports
+# Example for any other services with metrics
+# - job_name: 'other-services'
+#   static_configs:
+#     - targets: ['100.x.x.x:8080', '100.x.x.x:8081']  # Other container ports

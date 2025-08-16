@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { cn } from '@/lib/utils/css.utils'
 import { supabase } from '@/lib/clients'
@@ -83,7 +83,7 @@ export function SupabaseUpdatePasswordForm({
 						<div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
 							<CheckCircle className="h-6 w-6 text-green-600" />
 						</div>
-						<CardTitle className="text-2xl font-bold text-center">
+						<CardTitle className="text-center text-2xl font-bold">
 							Password Updated!
 						</CardTitle>
 						<CardDescription className="text-center">
@@ -91,16 +91,13 @@ export function SupabaseUpdatePasswordForm({
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						<p className="text-muted-foreground text-sm text-center">
+						<p className="text-muted-foreground text-center text-sm">
 							Your password has been updated successfully. You
-							will be redirected to your dashboard in a
-							moment.
+							will be redirected to your dashboard in a moment.
 						</p>
 						<Button
-							onClick={() =>
-								void router.push(redirectTo)
-							}
-							className="w-full h-11"
+							onClick={() => void router.push(redirectTo)}
+							className="h-11 w-full"
 						>
 							Continue to Dashboard
 						</Button>
@@ -119,7 +116,7 @@ export function SupabaseUpdatePasswordForm({
 					</CardHeader>
 					<CardContent className="space-y-4">
 						{error && (
-							<div className="bg-destructive/10 border border-destructive/20 rounded-md p-3">
+							<div className="bg-destructive/10 border-destructive/20 rounded-md border p-3">
 								<p className="text-destructive text-sm">
 									{error}
 								</p>
@@ -127,17 +124,17 @@ export function SupabaseUpdatePasswordForm({
 						)}
 
 						<form
-							onSubmit={(e) => void handleUpdatePassword(e)}
+							onSubmit={e => void handleUpdatePassword(e)}
 							className="space-y-4"
 						>
 							<div className="space-y-2">
-								<Label htmlFor="password">
-									New Password
-								</Label>
+								<Label htmlFor="password">New Password</Label>
 								<div className="relative">
 									<Input
 										id="password"
-										type={showPassword ? "text" : "password"}
+										type={
+											showPassword ? 'text' : 'password'
+										}
 										placeholder="At least 6 characters"
 										required
 										value={password}
@@ -149,11 +146,17 @@ export function SupabaseUpdatePasswordForm({
 									/>
 									<button
 										type="button"
-										onClick={() => setShowPassword(!showPassword)}
-										className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+										onClick={() =>
+											setShowPassword(!showPassword)
+										}
+										className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
 										tabIndex={-1}
 									>
-										{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+										{showPassword ? (
+											<EyeOff className="h-4 w-4" />
+										) : (
+											<Eye className="h-4 w-4" />
+										)}
 									</button>
 								</div>
 							</div>
@@ -164,7 +167,11 @@ export function SupabaseUpdatePasswordForm({
 								<div className="relative">
 									<Input
 										id="confirm-password"
-										type={showConfirmPassword ? "text" : "password"}
+										type={
+											showConfirmPassword
+												? 'text'
+												: 'password'
+										}
 										placeholder="Repeat your new password"
 										required
 										value={confirmPassword}
@@ -176,25 +183,34 @@ export function SupabaseUpdatePasswordForm({
 									/>
 									<button
 										type="button"
-										onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-										className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+										onClick={() =>
+											setShowConfirmPassword(
+												!showConfirmPassword
+											)
+										}
+										className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
 										tabIndex={-1}
 									>
-										{showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+										{showConfirmPassword ? (
+											<EyeOff className="h-4 w-4" />
+										) : (
+											<Eye className="h-4 w-4" />
+										)}
 									</button>
 								</div>
-								{confirmPassword && password !== confirmPassword && (
-									<p className="text-xs text-destructive">Passwords do not match</p>
-								)}
+								{confirmPassword &&
+									password !== confirmPassword && (
+										<p className="text-destructive text-xs">
+											Passwords do not match
+										</p>
+									)}
 							</div>
 							<Button
 								type="submit"
-								className="w-full h-11"
+								className="h-11 w-full"
 								disabled={isLoading}
 							>
-								{isLoading
-									? 'Updating...'
-									: 'Update Password'}
+								{isLoading ? 'Updating...' : 'Update Password'}
 							</Button>
 						</form>
 					</CardContent>

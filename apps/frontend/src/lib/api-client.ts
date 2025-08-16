@@ -2,158 +2,204 @@
  * Simplified API Client for TenantFlow Backend
  * Basic implementation for build compatibility
  */
-import axios, { type AxiosInstance, type AxiosResponse, type AxiosError, type AxiosRequestConfig } from 'axios';
+import axios, {
+	type AxiosInstance,
+	type AxiosResponse,
+	type AxiosError,
+	type AxiosRequestConfig
+} from 'axios'
 import { logger } from '@/lib/logger'
-import { config } from './config';
-import { getSession } from './supabase/client';
+import { config } from './config'
+import { getSession } from './supabase/client'
 
 export interface ApiResponse<T = unknown> {
-  data: T;
-  success: boolean;
-  message?: string;
-  timestamp?: string;
+	data: T
+	success: boolean
+	message?: string
+	timestamp?: string
 }
 
 export interface ApiError {
-  message: string;
-  code?: string;
-  details?: Record<string, unknown>;
-  timestamp?: string;
+	message: string
+	code?: string
+	details?: Record<string, unknown>
+	timestamp?: string
 }
 
 class ApiClient {
-  private readonly client: AxiosInstance;
+	private readonly client: AxiosInstance
 
-  constructor() {
-    this.client = axios.create({
-      baseURL: config.api.baseURL,
-      timeout: config.api.timeout || 30000,
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      withCredentials: true,
-      validateStatus: (status) => status < 500,
-    });
+	constructor() {
+		this.client = axios.create({
+			baseURL: config.api.baseURL,
+			timeout: config.api.timeout || 30000,
+			headers: {
+				'Content-Type': 'application/json',
+				Accept: 'application/json'
+			},
+			withCredentials: true,
+			validateStatus: status => status < 500
+		})
 
-    this.setupInterceptors();
-  }
+		this.setupInterceptors()
+	}
 
-  private setupInterceptors() {
-    // Request interceptor for authentication
-    this.client.interceptors.request.use(
-      async (config) => {
-        try {
-          const { session } = await getSession();
-          if (session?.access_token) {
-            config.headers.Authorization = `Bearer ${session.access_token}`;
-          }
-        } catch (error) {
-          logger.warn('[API] Failed to add authentication:', { component: 'lib_api_client.ts', data: error });
-        }
-        return config;
-      },
-      (error) => {
-        // Ensure the rejection reason is always an Error
-        if (error instanceof Error) {
-          return Promise.reject(error);
-        }
-        return Promise.reject(new Error(typeof error === 'string' ? error : JSON.stringify(error)));
-      }
-    );
+	private setupInterceptors() {
+		// Request interceptor for authentication
+		this.client.interceptors.request.use(
+			async config => {
+				try {
+					const { session } = await getSession()
+					if (session?.access_token) {
+						config.headers.Authorization = `Bearer ${session.access_token}`
+					}
+				} catch (error) {
+					logger.warn('[API] Failed to add authentication:', {
+						component: 'lib_api_client.ts',
+						data: error
+					})
+				}
+				return config
+			},
+			error => {
+				// Ensure the rejection reason is always an Error
+				if (error instanceof Error) {
+					return Promise.reject(error)
+				}
+				return Promise.reject(
+					new Error(
+						typeof error === 'string'
+							? error
+							: JSON.stringify(error)
+					)
+				)
+			}
+		)
 
-    // Response interceptor for error handling
-    this.client.interceptors.response.use(
-      (response) => response,
-      async (error: AxiosError) => {
-        if (error.response?.status === 401) {
-          // Handle authentication errors
-          logger.warn('[API] Authentication error - redirecting to login', { component: 'lib_api_client.ts' });
-          window.location.href = '/login';
-        }
-        return Promise.reject(error);
-      }
-    );
-  }
+		// Response interceptor for error handling
+		this.client.interceptors.response.use(
+			response => response,
+			async (error: AxiosError) => {
+				if (error.response?.status === 401) {
+					// Handle authentication errors
+					logger.warn(
+						'[API] Authentication error - redirecting to login',
+						{ component: 'lib_api_client.ts' }
+					)
+					window.location.href = '/login'
+				}
+				return Promise.reject(error)
+			}
+		)
+	}
 
-  private async makeRequest<T>(
-    method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
-    url: string,
-    data?: Record<string, unknown> | FormData,
-    config?: AxiosRequestConfig
-  ): Promise<ApiResponse<T>> {
-    try {
-      // Create AbortController for request cancellation
-      const controller = new AbortController();
-      
-      const response: AxiosResponse = await this.client.request({
-        method,
-        url,
-        data,
-        ...config,
-        signal: config?.signal || controller.signal,
-      });
+	private async makeRequest<T>(
+		method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
+		url: string,
+		data?: Record<string, unknown> | FormData,
+		config?: AxiosRequestConfig
+	): Promise<ApiResponse<T>> {
+		try {
+			// Create AbortController for request cancellation
+			const controller = new AbortController()
 
-      return {
-        data: response.data,
-        success: response.status >= 200 && response.status < 300,
-        message: response.data?.message,
-        timestamp: new Date().toISOString(),
-      };
-    } catch (error: unknown) {
-      const axiosError = error as AxiosError;
-      const responseData = axiosError.response?.data as Record<string, unknown> | undefined;
-      
-      const apiError: ApiError = {
-        message: (responseData?.message as string) || axiosError.message || 'Request failed',
-        code: (responseData?.code as string) || axiosError.code,
-        details: responseData?.details as Record<string, unknown> || responseData,
-        timestamp: new Date().toISOString(),
-      };
+			const response: AxiosResponse = await this.client.request({
+				method,
+				url,
+				data,
+				...config,
+				signal: config?.signal || controller.signal
+			})
 
-      throw apiError;
-    }
-  }
+			return {
+				data: response.data,
+				success: response.status >= 200 && response.status < 300,
+				message: response.data?.message,
+				timestamp: new Date().toISOString()
+			}
+		} catch (error: unknown) {
+			const axiosError = error as AxiosError
+			const responseData = axiosError.response?.data as
+				| Record<string, unknown>
+				| undefined
 
-  // HTTP Methods
-  async get<T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
-    return this.makeRequest<T>('GET', url, undefined, config);
-  }
+			const apiError: ApiError = {
+				message:
+					(responseData?.message as string) ||
+					axiosError.message ||
+					'Request failed',
+				code: (responseData?.code as string) || axiosError.code,
+				details:
+					(responseData?.details as Record<string, unknown>) ||
+					responseData,
+				timestamp: new Date().toISOString()
+			}
 
-  async post<T>(url: string, data?: Record<string, unknown> | FormData, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
-    return this.makeRequest<T>('POST', url, data, config);
-  }
+			throw apiError
+		}
+	}
 
-  async put<T>(url: string, data?: Record<string, unknown> | FormData, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
-    return this.makeRequest<T>('PUT', url, data, config);
-  }
+	// HTTP Methods
+	async get<T>(
+		url: string,
+		config?: AxiosRequestConfig
+	): Promise<ApiResponse<T>> {
+		return this.makeRequest<T>('GET', url, undefined, config)
+	}
 
-  async patch<T>(url: string, data?: Record<string, unknown> | FormData, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
-    return this.makeRequest<T>('PATCH', url, data, config);
-  }
+	async post<T>(
+		url: string,
+		data?: Record<string, unknown> | FormData,
+		config?: AxiosRequestConfig
+	): Promise<ApiResponse<T>> {
+		return this.makeRequest<T>('POST', url, data, config)
+	}
 
-  async delete<T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
-    return this.makeRequest<T>('DELETE', url, undefined, config);
-  }
+	async put<T>(
+		url: string,
+		data?: Record<string, unknown> | FormData,
+		config?: AxiosRequestConfig
+	): Promise<ApiResponse<T>> {
+		return this.makeRequest<T>('PUT', url, data, config)
+	}
 
-  // Health check method
-  async healthCheck(): Promise<ApiResponse<{ status: string; timestamp: string }>> {
-    return this.get<{ status: string; timestamp: string }>('/health');
-  }
+	async patch<T>(
+		url: string,
+		data?: Record<string, unknown> | FormData,
+		config?: AxiosRequestConfig
+	): Promise<ApiResponse<T>> {
+		return this.makeRequest<T>('PATCH', url, data, config)
+	}
 
-  // Helper method to create cancellable requests
-  createCancellableRequest() {
-    const controller = new AbortController();
-    return {
-      signal: controller.signal,
-      cancel: () => controller.abort(),
-    };
-  }
+	async delete<T>(
+		url: string,
+		config?: AxiosRequestConfig
+	): Promise<ApiResponse<T>> {
+		return this.makeRequest<T>('DELETE', url, undefined, config)
+	}
+
+	// Health check method
+	async healthCheck(): Promise<
+		ApiResponse<{ status: string; timestamp: string }>
+	> {
+		return this.get<{ status: string; timestamp: string }>('/health')
+	}
+
+	// Helper method to create cancellable requests
+	createCancellableRequest() {
+		const controller = new AbortController()
+		return {
+			signal: controller.signal,
+			cancel: () => controller.abort()
+		}
+	}
 }
 
 // Export singleton instance
-export const apiClient = new ApiClient();
-export default apiClient;
+export const apiClient = new ApiClient()
+export default apiClient
 
 // Export type for cancellable requests
-export type CancellableRequest = ReturnType<ApiClient['createCancellableRequest']>;
+export type CancellableRequest = ReturnType<
+	ApiClient['createCancellableRequest']
+>

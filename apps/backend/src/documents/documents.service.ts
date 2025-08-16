@@ -4,13 +4,13 @@ import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { BaseCrudService, BaseStats } from '../common/services/base-crud.service'
 import { SecurityAuditService } from '../common/security/audit.service'
 import {
-  DocumentNotFoundException,
   DocumentFileException,
   DocumentFileSizeException,
   DocumentFileTypeException,
+  DocumentNotFoundException,
   DocumentUrlException
 } from '../common/exceptions/document.exceptions'
-import { CreateDocumentDto, UpdateDocumentDto, DocumentQueryDto } from './dto'
+import { CreateDocumentDto, DocumentQueryDto, UpdateDocumentDto } from './dto'
 import { Document, DocumentType, Prisma } from '@repo/database'
 
 @Injectable()
@@ -58,11 +58,11 @@ export class DocumentsService extends BaseCrudService<
    * Required abstract method implementations
    */
   protected async findByIdAndOwner(id: string, ownerId: string): Promise<Document | null> {
-    return await this.documentRepository.findByIdAndOwner(id, ownerId)
+    return this.documentRepository.findByIdAndOwner(id, ownerId)
   }
 
   protected async calculateStats(ownerId: string): Promise<BaseStats> {
-    return await this.documentRepository.getStatsByOwner(ownerId)
+    return this.documentRepository.getStatsByOwner(ownerId)
   }
 
   protected override validateCreateData(data: CreateDocumentDto): void {

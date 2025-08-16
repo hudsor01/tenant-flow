@@ -3,366 +3,485 @@
 import { useState } from 'react'
 import { useProperty } from '@/hooks/api/use-properties'
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
+	Sheet,
+	SheetContent,
+	SheetDescription,
+	SheetHeader,
+	SheetTitle
 } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle
+} from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
-  Building2,
-  MapPin,
-  Home,
-  DollarSign,
-  Phone,
-  Mail,
-  User,
-  FileText,
-  Edit3,
-  Trash2,
-  AlertTriangle,
-  TrendingUp,
-  TrendingDown,
+	Building2,
+	MapPin,
+	Home,
+	DollarSign,
+	Phone,
+	Mail,
+	User,
+	FileText,
+	Edit3,
+	Trash2,
+	AlertTriangle,
+	TrendingUp,
+	TrendingDown
 } from 'lucide-react'
 import { format } from 'date-fns'
 import type { Property } from '@repo/shared'
 
 interface PropertyDetailsDrawerProps {
-  propertyId: string | null
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onEdit?: () => void
-  onDelete?: () => void
+	propertyId: string | null
+	open: boolean
+	onOpenChange: (open: boolean) => void
+	onEdit?: () => void
+	onDelete?: () => void
 }
 
 export function PropertyDetailsDrawer({
-  propertyId,
-  open,
-  onOpenChange,
-  onEdit,
-  onDelete
+	propertyId,
+	open,
+	onOpenChange,
+	onEdit,
+	onDelete
 }: PropertyDetailsDrawerProps) {
-  const [activeTab, setActiveTab] = useState('overview')
-  const { data: property, isLoading, error } = useProperty(propertyId || '', {
-    enabled: !!propertyId
-  })
+	const [activeTab, setActiveTab] = useState('overview')
+	const {
+		data: property,
+		isLoading,
+		error
+	} = useProperty(propertyId || '', {
+		enabled: !!propertyId
+	})
 
-  if (!propertyId) return null
+	if (!propertyId) return null
 
-  return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-2xl">
-        <SheetHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                <Building2 className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <SheetTitle>{property?.name || 'Loading...'}</SheetTitle>
-                <SheetDescription className="flex items-center gap-1 mt-1">
-                  <MapPin className="h-3 w-3" />
-                  {property?.address || 'Loading address...'}
-                </SheetDescription>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={onEdit} aria-label="Edit property">
-                <Edit3 className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="sm" onClick={onDelete} aria-label="Delete property">
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </SheetHeader>
+	return (
+		<Sheet open={open} onOpenChange={onOpenChange}>
+			<SheetContent className="w-full sm:max-w-2xl">
+				<SheetHeader>
+					<div className="flex items-center justify-between">
+						<div className="flex items-center gap-3">
+							<div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-lg">
+								<Building2 className="text-primary h-5 w-5" />
+							</div>
+							<div>
+								<SheetTitle>
+									{property?.name || 'Loading...'}
+								</SheetTitle>
+								<SheetDescription className="mt-1 flex items-center gap-1">
+									<MapPin className="h-3 w-3" />
+									{property?.address || 'Loading address...'}
+								</SheetDescription>
+							</div>
+						</div>
+						<div className="flex gap-2">
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={onEdit}
+								aria-label="Edit property"
+							>
+								<Edit3 className="h-4 w-4" />
+							</Button>
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={onDelete}
+								aria-label="Delete property"
+							>
+								<Trash2 className="h-4 w-4" />
+							</Button>
+						</div>
+					</div>
+				</SheetHeader>
 
-        {isLoading && (
-          <div className="space-y-4 mt-6">
-            <Skeleton className="h-32 w-full" />
-            <Skeleton className="h-48 w-full" />
-            <Skeleton className="h-48 w-full" />
-          </div>
-        )}
+				{isLoading && (
+					<div className="mt-6 space-y-4">
+						<Skeleton className="h-32 w-full" />
+						<Skeleton className="h-48 w-full" />
+						<Skeleton className="h-48 w-full" />
+					</div>
+				)}
 
-        {error && (
-          <Alert variant="destructive" className="mt-6">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              Failed to load property details. Please try again.
-            </AlertDescription>
-          </Alert>
-        )}
+				{error && (
+					<Alert variant="destructive" className="mt-6">
+						<AlertTriangle className="h-4 w-4" />
+						<AlertDescription>
+							Failed to load property details. Please try again.
+						</AlertDescription>
+					</Alert>
+				)}
 
-        {property && (
-          <ScrollArea className="h-[calc(100vh-120px)] mt-6">
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="units">Units</TabsTrigger>
-                <TabsTrigger value="financials">Financials</TabsTrigger>
-                <TabsTrigger value="documents">Documents</TabsTrigger>
-              </TabsList>
+				{property && (
+					<ScrollArea className="mt-6 h-[calc(100vh-120px)]">
+						<Tabs value={activeTab} onValueChange={setActiveTab}>
+							<TabsList className="grid w-full grid-cols-4">
+								<TabsTrigger value="overview">
+									Overview
+								</TabsTrigger>
+								<TabsTrigger value="units">Units</TabsTrigger>
+								<TabsTrigger value="financials">
+									Financials
+								</TabsTrigger>
+								<TabsTrigger value="documents">
+									Documents
+								</TabsTrigger>
+							</TabsList>
 
-              <TabsContent value="overview" className="space-y-4">
-                <PropertyOverview property={property} />
-              </TabsContent>
+							<TabsContent value="overview" className="space-y-4">
+								<PropertyOverview property={property} />
+							</TabsContent>
 
-              <TabsContent value="units" className="space-y-4">
-                <PropertyUnits property={property} />
-              </TabsContent>
+							<TabsContent value="units" className="space-y-4">
+								<PropertyUnits property={property} />
+							</TabsContent>
 
-              <TabsContent value="financials" className="space-y-4">
-                <PropertyFinancials property={property} />
-              </TabsContent>
+							<TabsContent
+								value="financials"
+								className="space-y-4"
+							>
+								<PropertyFinancials property={property} />
+							</TabsContent>
 
-              <TabsContent value="documents" className="space-y-4">
-                <PropertyDocuments property={property} />
-              </TabsContent>
-            </Tabs>
-          </ScrollArea>
-        )}
-      </SheetContent>
-    </Sheet>
-  )
+							<TabsContent
+								value="documents"
+								className="space-y-4"
+							>
+								<PropertyDocuments property={property} />
+							</TabsContent>
+						</Tabs>
+					</ScrollArea>
+				)}
+			</SheetContent>
+		</Sheet>
+	)
 }
 
 function PropertyOverview({ property }: { property: Property }) {
-  const totalUnits = property.units?.length || 0
-  const occupiedUnits = property.units?.filter(unit => unit.status === 'OCCUPIED').length || 0
-  const vacantUnits = totalUnits - occupiedUnits
-  const occupancyRate = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
+	const totalUnits = property.units?.length || 0
+	const occupiedUnits =
+		property.units?.filter(unit => unit.status === 'OCCUPIED').length || 0
+	const vacantUnits = totalUnits - occupiedUnits
+	const occupancyRate =
+		totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
 
-  return (
-    <>
-      <Card>
-        <CardHeader>
-          <CardTitle>Property Information</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-muted-foreground">Property Type</p>
-              <Badge variant="secondary" className="capitalize mt-1">
-                {property.propertyType}
-              </Badge>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Year Built</p>
-              <p className="font-medium">{property.yearBuilt || 'N/A'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Total Size</p>
-              <p className="font-medium">{property.totalSize ? `${property.totalSize} sq ft` : 'N/A'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Added Date</p>
-              <p className="font-medium">
-                {property.createdAt ? format(new Date(property.createdAt), 'MMM dd, yyyy') : 'N/A'}
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+	return (
+		<>
+			<Card>
+				<CardHeader>
+					<CardTitle>Property Information</CardTitle>
+				</CardHeader>
+				<CardContent className="space-y-4">
+					<div className="grid grid-cols-2 gap-4">
+						<div>
+							<p className="text-muted-foreground text-sm">
+								Property Type
+							</p>
+							<Badge
+								variant="secondary"
+								className="mt-1 capitalize"
+							>
+								{property.propertyType}
+							</Badge>
+						</div>
+						<div>
+							<p className="text-muted-foreground text-sm">
+								Year Built
+							</p>
+							<p className="font-medium">
+								{property.yearBuilt || 'N/A'}
+							</p>
+						</div>
+						<div>
+							<p className="text-muted-foreground text-sm">
+								Total Size
+							</p>
+							<p className="font-medium">
+								{property.totalSize
+									? `${property.totalSize} sq ft`
+									: 'N/A'}
+							</p>
+						</div>
+						<div>
+							<p className="text-muted-foreground text-sm">
+								Added Date
+							</p>
+							<p className="font-medium">
+								{property.createdAt
+									? format(
+											new Date(property.createdAt),
+											'MMM dd, yyyy'
+										)
+									: 'N/A'}
+							</p>
+						</div>
+					</div>
+				</CardContent>
+			</Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Occupancy Status</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Occupancy Rate</span>
-              <div className="flex items-center gap-2">
-                <Badge 
-                  variant={occupancyRate >= 90 ? "default" : occupancyRate >= 70 ? "secondary" : "destructive"}
-                >
-                  {occupancyRate}%
-                </Badge>
-                {occupancyRate >= 90 ? (
-                  <TrendingUp className="h-4 w-4 text-green-600" data-testid="trending-up-icon" />
-                ) : (
-                  <TrendingDown className="h-4 w-4 text-red-600" data-testid="trending-down-icon" />
-                )}
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div>
-                <p className="text-2xl font-bold">{totalUnits}</p>
-                <p className="text-xs text-muted-foreground">Total Units</p>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-green-600">{occupiedUnits}</p>
-                <p className="text-xs text-muted-foreground">Occupied</p>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-yellow-600">{vacantUnits}</p>
-                <p className="text-xs text-muted-foreground">Vacant</p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+			<Card>
+				<CardHeader>
+					<CardTitle>Occupancy Status</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<div className="space-y-4">
+						<div className="flex items-center justify-between">
+							<span className="text-muted-foreground text-sm">
+								Occupancy Rate
+							</span>
+							<div className="flex items-center gap-2">
+								<Badge
+									variant={
+										occupancyRate >= 90
+											? 'default'
+											: occupancyRate >= 70
+												? 'secondary'
+												: 'destructive'
+									}
+								>
+									{occupancyRate}%
+								</Badge>
+								{occupancyRate >= 90 ? (
+									<TrendingUp
+										className="h-4 w-4 text-green-600"
+										data-testid="trending-up-icon"
+									/>
+								) : (
+									<TrendingDown
+										className="h-4 w-4 text-red-600"
+										data-testid="trending-down-icon"
+									/>
+								)}
+							</div>
+						</div>
+						<div className="grid grid-cols-3 gap-4 text-center">
+							<div>
+								<p className="text-2xl font-bold">
+									{totalUnits}
+								</p>
+								<p className="text-muted-foreground text-xs">
+									Total Units
+								</p>
+							</div>
+							<div>
+								<p className="text-2xl font-bold text-green-600">
+									{occupiedUnits}
+								</p>
+								<p className="text-muted-foreground text-xs">
+									Occupied
+								</p>
+							</div>
+							<div>
+								<p className="text-2xl font-bold text-yellow-600">
+									{vacantUnits}
+								</p>
+								<p className="text-muted-foreground text-xs">
+									Vacant
+								</p>
+							</div>
+						</div>
+					</div>
+				</CardContent>
+			</Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Property Manager</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-              <User className="h-5 w-5 text-primary" />
-            </div>
-            <div className="flex-1">
-              <p className="font-medium">{property.manager?.name || 'Not Assigned'}</p>
-              {property.manager && (
-                <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                  <span className="flex items-center gap-1">
-                    <Phone className="h-3 w-3" />
-                    {property.manager.phone}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Mail className="h-3 w-3" />
-                    {property.manager.email}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </>
-  )
+			<Card>
+				<CardHeader>
+					<CardTitle>Property Manager</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<div className="flex items-center gap-3">
+						<div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-full">
+							<User className="text-primary h-5 w-5" />
+						</div>
+						<div className="flex-1">
+							<p className="font-medium">
+								{property.manager?.name || 'Not Assigned'}
+							</p>
+							{property.manager && (
+								<div className="text-muted-foreground mt-1 flex items-center gap-4 text-sm">
+									<span className="flex items-center gap-1">
+										<Phone className="h-3 w-3" />
+										{property.manager.phone}
+									</span>
+									<span className="flex items-center gap-1">
+										<Mail className="h-3 w-3" />
+										{property.manager.email}
+									</span>
+								</div>
+							)}
+						</div>
+					</div>
+				</CardContent>
+			</Card>
+		</>
+	)
 }
 
 function PropertyUnits({ property }: { property: Property }) {
-  const units = property.units || []
+	const units = property.units || []
 
-  if (units.length === 0) {
-    return (
-      <Card>
-        <CardContent className="py-8">
-          <div className="text-center">
-            <Home className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
-            <p className="text-muted-foreground">No units added yet</p>
-            <Button className="mt-4" size="sm">
-              Add Unit
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
+	if (units.length === 0) {
+		return (
+			<Card>
+				<CardContent className="py-8">
+					<div className="text-center">
+						<Home className="text-muted-foreground/50 mx-auto mb-3 h-12 w-12" />
+						<p className="text-muted-foreground">
+							No units added yet
+						</p>
+						<Button className="mt-4" size="sm">
+							Add Unit
+						</Button>
+					</div>
+				</CardContent>
+			</Card>
+		)
+	}
 
-  return (
-    <div className="space-y-3">
-      {units.map((unit) => (
-        <Card key={unit.id}>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-                  <Home className="h-4 w-4 text-primary" />
-                </div>
-                <div>
-                  <p className="font-medium">Unit {unit.unitNumber}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {unit.bedrooms} bed, {unit.bathrooms} bath • {unit.squareFeet} sq ft
-                  </p>
-                </div>
-              </div>
-              <div className="text-right">
-                <Badge 
-                  variant={unit.status === 'OCCUPIED' ? 'default' : unit.status === 'VACANT' ? 'secondary' : 'outline'}
-                >
-                  {unit.status}
-                </Badge>
-                <p className="text-sm font-medium mt-1">${unit.rentAmount}/mo</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  )
+	return (
+		<div className="space-y-3">
+			{units.map(unit => (
+				<Card key={unit.id}>
+					<CardContent className="p-4">
+						<div className="flex items-center justify-between">
+							<div className="flex items-center gap-3">
+								<div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg">
+									<Home className="text-primary h-4 w-4" />
+								</div>
+								<div>
+									<p className="font-medium">
+										Unit {unit.unitNumber}
+									</p>
+									<p className="text-muted-foreground text-sm">
+										{unit.bedrooms} bed, {unit.bathrooms}{' '}
+										bath • {unit.squareFeet} sq ft
+									</p>
+								</div>
+							</div>
+							<div className="text-right">
+								<Badge
+									variant={
+										unit.status === 'OCCUPIED'
+											? 'default'
+											: unit.status === 'VACANT'
+												? 'secondary'
+												: 'outline'
+									}
+								>
+									{unit.status}
+								</Badge>
+								<p className="mt-1 text-sm font-medium">
+									${unit.rentAmount}/mo
+								</p>
+							</div>
+						</div>
+					</CardContent>
+				</Card>
+			))}
+		</div>
+	)
 }
 
 function PropertyFinancials({ property }: { property: Property }) {
-  const totalMonthlyRent = property.units?.reduce((sum, unit) => 
-    unit.status === 'OCCUPIED' ? sum + (unit.rentAmount || 0) : sum, 0) || 0
-  const potentialMonthlyRent = property.units?.reduce((sum, unit) => 
-    sum + (unit.rentAmount || 0), 0) || 0
+	const totalMonthlyRent =
+		property.units?.reduce(
+			(sum, unit) =>
+				unit.status === 'OCCUPIED' ? sum + (unit.rentAmount || 0) : sum,
+			0
+		) || 0
+	const potentialMonthlyRent =
+		property.units?.reduce(
+			(sum, unit) => sum + (unit.rentAmount || 0),
+			0
+		) || 0
 
-  return (
-    <>
-      <Card>
-        <CardHeader>
-          <CardTitle>Revenue Overview</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Current Monthly Revenue</span>
-              <span className="text-xl font-bold text-green-600">
-                ${totalMonthlyRent.toLocaleString()}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Potential Monthly Revenue</span>
-              <span className="text-lg font-medium">
-                ${potentialMonthlyRent.toLocaleString()}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Revenue Loss (Vacancy)</span>
-              <span className="text-lg font-medium text-red-600">
-                -${(potentialMonthlyRent - totalMonthlyRent).toLocaleString()}
-              </span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+	return (
+		<>
+			<Card>
+				<CardHeader>
+					<CardTitle>Revenue Overview</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<div className="space-y-4">
+						<div className="flex items-center justify-between">
+							<span className="text-muted-foreground text-sm">
+								Current Monthly Revenue
+							</span>
+							<span className="text-xl font-bold text-green-600">
+								${totalMonthlyRent.toLocaleString()}
+							</span>
+						</div>
+						<div className="flex items-center justify-between">
+							<span className="text-muted-foreground text-sm">
+								Potential Monthly Revenue
+							</span>
+							<span className="text-lg font-medium">
+								${potentialMonthlyRent.toLocaleString()}
+							</span>
+						</div>
+						<div className="flex items-center justify-between">
+							<span className="text-muted-foreground text-sm">
+								Revenue Loss (Vacancy)
+							</span>
+							<span className="text-lg font-medium text-red-600">
+								-$
+								{(
+									potentialMonthlyRent - totalMonthlyRent
+								).toLocaleString()}
+							</span>
+						</div>
+					</div>
+				</CardContent>
+			</Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Transactions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8">
-            <DollarSign className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
-            <p className="text-muted-foreground">No recent transactions</p>
-          </div>
-        </CardContent>
-      </Card>
-    </>
-  )
+			<Card>
+				<CardHeader>
+					<CardTitle>Recent Transactions</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<div className="py-8 text-center">
+						<DollarSign className="text-muted-foreground/50 mx-auto mb-3 h-12 w-12" />
+						<p className="text-muted-foreground">
+							No recent transactions
+						</p>
+					</div>
+				</CardContent>
+			</Card>
+		</>
+	)
 }
 
 function PropertyDocuments({ property: _property }: { property: Property }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Documents</CardTitle>
-        <CardDescription>
-          Property related documents and files
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="text-center py-8">
-          <FileText className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
-          <p className="text-muted-foreground">No documents uploaded</p>
-          <Button className="mt-4" size="sm">
-            Upload Document
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  )
+	return (
+		<Card>
+			<CardHeader>
+				<CardTitle>Documents</CardTitle>
+				<CardDescription>
+					Property related documents and files
+				</CardDescription>
+			</CardHeader>
+			<CardContent>
+				<div className="py-8 text-center">
+					<FileText className="text-muted-foreground/50 mx-auto mb-3 h-12 w-12" />
+					<p className="text-muted-foreground">
+						No documents uploaded
+					</p>
+					<Button className="mt-4" size="sm">
+						Upload Document
+					</Button>
+				</div>
+			</CardContent>
+		</Card>
+	)
 }

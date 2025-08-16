@@ -9,7 +9,6 @@ import { BaseCrudService } from '../common/services/base-crud.service'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { ValidatedUser } from '../auth/auth.service'
 
-
 // Create the base CRUD controller class
 const UnitsCrudController = BaseCrudController<
 	Unit,
@@ -25,7 +24,21 @@ const UnitsCrudController = BaseCrudController<
 export class UnitsController extends UnitsCrudController {
 	constructor(private readonly unitsService: UnitsService) {
 		// Use adapter to make service compatible with CrudService interface
-		super(adaptBaseCrudService<Unit, CreateUnitInput, UpdateUnitInput, UnitQueryDto>(unitsService as BaseCrudService<Unit, CreateUnitInput, UpdateUnitInput, UnitQueryDto>))
+		super(
+			adaptBaseCrudService<
+				Unit,
+				CreateUnitInput,
+				UpdateUnitInput,
+				UnitQueryDto
+			>(
+				unitsService as BaseCrudService<
+					Unit,
+					CreateUnitInput,
+					UpdateUnitInput,
+					UnitQueryDto
+				>
+			)
+		)
 	}
 
 	// Override the findAll method to handle propertyId filter
@@ -37,14 +50,17 @@ export class UnitsController extends UnitsCrudController {
 	) {
 		// If propertyId is provided in query, use the service's specific method
 		if (query?.propertyId) {
-			const units = await this.unitsService.getUnitsByProperty(query.propertyId, user.id)
+			const units = await this.unitsService.getUnitsByProperty(
+				query.propertyId,
+				user.id
+			)
 			return {
 				success: true,
 				data: units,
 				message: 'Units retrieved successfully'
 			}
 		}
-		
+
 		// Otherwise, use the base controller's findAll method
 		return super.findAll(user, query || {})
 	}

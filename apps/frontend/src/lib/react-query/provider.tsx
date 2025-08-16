@@ -5,15 +5,15 @@ import { useState } from 'react'
 import { createQueryClient } from './query-client'
 
 interface ReactQueryProviderProps {
-  children: React.ReactNode
+	children: React.ReactNode
 }
 
 export function ReactQueryProvider({ children }: ReactQueryProviderProps) {
-  const [queryClient] = useState(() => createQueryClient())
+	const [queryClient] = useState(() => createQueryClient())
 
-  return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  )
+	return (
+		<QueryClientProvider client={queryClient}>
+			{children}
+		</QueryClientProvider>
+	)
 }

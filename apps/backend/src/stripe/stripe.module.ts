@@ -1,4 +1,4 @@
-import { Module, forwardRef } from '@nestjs/common'
+import { forwardRef, Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { HttpModule } from '@nestjs/axios'
 import { EventEmitterModule } from '@nestjs/event-emitter'
@@ -38,7 +38,11 @@ import { SubscriptionsModule } from '../subscriptions/subscriptions.module'
 		NotificationsModule,
 		forwardRef(() => SubscriptionsModule) // Fix circular dependency
 	],
-	controllers: [WebhookController, WebhookMonitoringController, StripeCheckoutController],
+	controllers: [
+		WebhookController,
+		WebhookMonitoringController,
+		StripeCheckoutController
+	],
 	providers: [
 		StripeService,
 		StripeDBService,
@@ -46,7 +50,7 @@ import { SubscriptionsModule } from '../subscriptions/subscriptions.module'
 		StripeCheckoutService,
 		StripeErrorHandler,
 		PaymentRecoveryService,
-		
+
 		// Webhook services
 		WebhookService,
 		WebhookMetricsService,
@@ -57,10 +61,10 @@ import { SubscriptionsModule } from '../subscriptions/subscriptions.module'
 	exports: [
 		StripeService,
 		StripeDBService,
-		StripeBillingService,  // 🚨 DEBUG: Explicitly exporting StripeBillingService
+		StripeBillingService, // 🚨 DEBUG: Explicitly exporting StripeBillingService
 		StripeCheckoutService,
 		PaymentRecoveryService,
-		
+
 		// Webhook system exports
 		WebhookService,
 		WebhookMetricsService,

@@ -7,12 +7,13 @@ import type { Metadata } from '@/types/next.d'
 import { Navigation } from '@/components/layout/Navigation'
 
 export const metadata: Metadata = {
-  title: 'Terms of Service | TenantFlow',
-  description: 'TenantFlow Terms of Service - Review the terms and conditions for using our property management platform.',
-  robots: {
-    index: true,
-    follow: true,
-  },
+	title: 'Terms of Service | TenantFlow',
+	description:
+		'TenantFlow Terms of Service - Review the terms and conditions for using our property management platform.',
+	robots: {
+		index: true,
+		follow: true
+	}
 }
 
 export default function TermsOfServicePage() {
@@ -45,12 +46,13 @@ export default function TermsOfServicePage() {
 											</h2>
 											<p className="text-gray-700">
 												By accessing and using
-												TenantFlow (&quot;the Service&quot;), you
-												accept and agree to be bound by
-												the terms and provision of this
-												agreement. If you do not agree
-												to abide by the above, please do
-												not use this service.
+												TenantFlow (&quot;the
+												Service&quot;), you accept and
+												agree to be bound by the terms
+												and provision of this agreement.
+												If you do not agree to abide by
+												the above, please do not use
+												this service.
 											</p>
 										</section>
 
@@ -211,8 +213,9 @@ export default function TermsOfServicePage() {
 												7. Disclaimer of Warranties
 											</h2>
 											<p className="text-gray-700">
-												The Service is provided &quot;as is&quot;
-												and &quot;as available&quot; without any
+												The Service is provided &quot;as
+												is&quot; and &quot;as
+												available&quot; without any
 												representations or warranties,
 												express or implied. We make no
 												representations or warranties in

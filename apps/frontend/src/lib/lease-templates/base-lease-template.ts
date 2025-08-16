@@ -6,19 +6,20 @@
 // Base lease template utilities and types
 
 import type { LeaseTemplateData, StateLeaseRequirements } from '@repo/shared'
+import { formatLeaseDate } from '@/lib/utils/date-formatting'
 
 export function generateBaseLease(
-data: LeaseTemplateData,
-stateRequirements: StateLeaseRequirements
+	data: LeaseTemplateData,
+	stateRequirements: StateLeaseRequirements
 ): string {
-const currentDate = new Date().toLocaleDateString()
-const tenantList = data.tenantNames.join(', ')
-const utilitiesList =
-data.utilitiesIncluded.length > 0
-? data.utilitiesIncluded.join(', ')
-: 'None included'
+	const currentDate = new Date().toLocaleDateString()
+	const tenantList = data.tenantNames.join(', ')
+	const utilitiesList =
+		data.utilitiesIncluded.length > 0
+			? data.utilitiesIncluded.join(', ')
+			: 'None included'
 
-return `
+	return `
 RESIDENTIAL LEASE AGREEMENT
 
 This Lease Agreement ("Agreement") is entered into on ${currentDate}, between ${data.landlordName} ("Landlord") and ${tenantList} ("Tenant(s)") for the property located at:
@@ -29,7 +30,7 @@ ${data.city}, ${data.state} ${data.zipCode}
 TERMS AND CONDITIONS:
 
 1. LEASE TERM
-The lease term begins on ${new Date(data.leaseStartDate).toLocaleDateString()} and ends on ${new Date(data.leaseEndDate).toLocaleDateString()}.
+The lease term begins on ${formatLeaseDate(data.leaseStartDate)} and ends on ${formatLeaseDate(data.leaseEndDate)}.
 
 2. RENT
 Monthly rent is $${data.rentAmount.toLocaleString()}, due on the ${data.paymentDueDate}${data.paymentDueDate === 1 ? 'st' : data.paymentDueDate === 2 ? 'nd' : data.paymentDueDate === 3 ? 'rd' : 'th'} of each month.
@@ -63,30 +64,30 @@ ${stateRequirements.noticeToEnter}
 ${stateRequirements.noticePeriod} notice required for lease termination.
 
 ${
-stateRequirements.requiredDisclosures.length > 0
-? `
+	stateRequirements.requiredDisclosures.length > 0
+		? `
 REQUIRED DISCLOSURES:
 ${stateRequirements.requiredDisclosures.map((disclosure: string) => `• ${disclosure}`).join('\n')}
 `
-: ''
+		: ''
 }
 
 ${
-data.stateSpecificClauses && data.stateSpecificClauses.length > 0
-? `
+	data.stateSpecificClauses && data.stateSpecificClauses.length > 0
+		? `
 STATE-SPECIFIC PROVISIONS:
 ${data.stateSpecificClauses.map((clause: string) => `• ${clause}`).join('\n')}
 `
-: ''
+		: ''
 }
 
 ${
-data.additionalTerms
-? `
+	data.additionalTerms
+		? `
 ADDITIONAL TERMS:
 ${data.additionalTerms}
 `
-: ''
+		: ''
 }
 
 LANDLORD CONTACT INFORMATION:
@@ -101,23 +102,22 @@ Landlord Signature: _________________________ Date: _________
 ${data.landlordName}
 
 ${data.tenantNames
-.map((name: string) => `
+	.map(
+		(name: string) => `
 Tenant Signature: _________________________ Date: _________
 ${name}
 `
-)
-.join('')}
+	)
+	.join('')}
 
-This lease agreement was generated on ${currentDate} and complies with ${data.state} state laws and regulations.
+This lease agreement was generated on ${formatLeaseDate(new Date().toISOString())} and complies with ${data.state} state laws and regulations.
 `
 }
 
+// Legacy formatDate function - kept for backward compatibility
+// @deprecated Use formatLeaseDate from '@/lib/utils/date-formatting' instead
 export function formatDate(dateString: string): string {
-return new Date(dateString).toLocaleDateString('en-US', {
-year: 'numeric',
-month: 'long',
-day: 'numeric'
-})
+	return formatLeaseDate(dateString)
 }
 
 // Re-export types for sibling modules

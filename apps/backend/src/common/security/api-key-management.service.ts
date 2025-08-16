@@ -1,4 +1,4 @@
-import { Injectable, Logger, BadRequestException, OnModuleInit } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger, OnModuleInit } from '@nestjs/common'
 import * as crypto from 'crypto'
 import { SecurityMonitorService } from './security-monitor.service'
 import { EncryptionService } from './encryption.service'
@@ -606,7 +606,7 @@ export class ApiKeyManagementService implements OnModuleInit {
     securityViolation?: boolean
   }): void {
     const stats = this.usageStats.get(keyId)
-    if (!stats) return
+    if (!stats) {return}
 
     stats.totalRequests++
     stats.lastUsed = new Date()

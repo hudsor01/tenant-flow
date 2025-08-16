@@ -7,12 +7,14 @@ The Stripe Sources API has been deprecated and should be replaced with the moder
 ## What Changed
 
 ### Deprecated: Sources API
+
 - `Customer.default_source` field
 - `Invoice.default_source` field
 - `Subscription.default_source` field
 - Sources API endpoints and objects
 
 ### Modern: Payment Methods API
+
 - `Customer.invoice_settings.default_payment_method` field
 - `Invoice.default_payment_method` field
 - `Subscription.default_payment_method` field
@@ -23,20 +25,24 @@ The Stripe Sources API has been deprecated and should be replaced with the moder
 ### 1. Customer Payment Method Checking
 
 **Before (deprecated):**
+
 ```typescript
-const hasPaymentMethod = customer && !customer.deleted && 
-  customer.default_source
+const hasPaymentMethod =
+	customer && !customer.deleted && customer.default_source
 ```
 
 **After (modern):**
+
 ```typescript
-const hasPaymentMethod = customer && !customer.deleted && 
-  customer.invoice_settings?.default_payment_method
+const hasPaymentMethod =
+	customer &&
+	!customer.deleted &&
+	customer.invoice_settings?.default_payment_method
 
 // Or check for any available payment methods
 const paymentMethods = await stripe.paymentMethods.list({
-  customer: customer.id,
-  limit: 1
+	customer: customer.id,
+	limit: 1
 })
 const hasPaymentMethod = paymentMethods.data.length > 0
 ```
@@ -44,70 +50,76 @@ const hasPaymentMethod = paymentMethods.data.length > 0
 ### 2. Setting Default Payment Method
 
 **Before (deprecated):**
+
 ```typescript
 await stripe.customers.update(customerId, {
-  default_source: sourceId
+	default_source: sourceId
 })
 ```
 
 **After (modern):**
+
 ```typescript
 await stripe.customers.update(customerId, {
-  invoice_settings: {
-    default_payment_method: paymentMethodId
-  }
+	invoice_settings: {
+		default_payment_method: paymentMethodId
+	}
 })
 ```
 
 ### 3. Retrieving Customer Payment Methods
 
 **Before (deprecated):**
+
 ```typescript
 const customer = await stripe.customers.retrieve(customerId, {
-  expand: ['default_source']
+	expand: ['default_source']
 })
 ```
 
 **After (modern):**
+
 ```typescript
 const customer = await stripe.customers.retrieve(customerId)
 const paymentMethods = await stripe.paymentMethods.list({
-  customer: customerId,
-  type: 'card'
+	customer: customerId,
+	type: 'card'
 })
 ```
 
 ### 4. Creating Payment Methods
 
 **Before (deprecated):**
+
 ```typescript
 const source = await stripe.sources.create({
-  type: 'card',
-  token: tokenId
+	type: 'card',
+	token: tokenId
 })
 
 await stripe.customers.update(customerId, {
-  default_source: source.id
+	default_source: source.id
 })
 ```
 
 **After (modern):**
+
 ```typescript
 const paymentMethod = await stripe.paymentMethods.create({
-  type: 'card',
-  card: {
-    token: tokenId
-  }
+	type: 'card',
+	card: {
+		token: tokenId
+	}
 })
 
 await stripe.paymentMethods.attach(paymentMethod.id, {
-  customer: customerId
+	customer: customerId
 })
 
 await stripe.customers.update(customerId, {
-  invoice_settings: {
-    default_payment_method: paymentMethod.id
-  }
+	invoice_settings: {
+		default_payment_method: paymentMethod.id
+	}
 })
 ```
 
@@ -121,20 +133,24 @@ The webhook service in `/apps/backend/src/stripe/webhook.service.ts` has been up
 // Modern implementation
 let hasPaymentMethod = false
 if (customer && !customer.deleted) {
-  if ((customer as StripeCustomer).invoice_settings?.default_payment_method) {
-    hasPaymentMethod = true
-  } else {
-    try {
-      const paymentMethods = await this.stripeService.client.paymentMethods.list({
-        customer: customer.id,
-        limit: 1
-      })
-      hasPaymentMethod = paymentMethods.data.length > 0
-    } catch (error) {
-      this.logger.warn(`Failed to check payment methods for customer ${customer.id}:`, error)
-      hasPaymentMethod = false
-    }
-  }
+	if ((customer as StripeCustomer).invoice_settings?.default_payment_method) {
+		hasPaymentMethod = true
+	} else {
+		try {
+			const paymentMethods =
+				await this.stripeService.client.paymentMethods.list({
+					customer: customer.id,
+					limit: 1
+				})
+			hasPaymentMethod = paymentMethods.data.length > 0
+		} catch (error) {
+			this.logger.warn(
+				`Failed to check payment methods for customer ${customer.id}:`,
+				error
+			)
+			hasPaymentMethod = false
+		}
+	}
 }
 ```
 
@@ -164,15 +180,15 @@ The TenantFlow type definitions now properly mark deprecated fields:
 
 ```typescript
 export interface StripeCustomer {
-  // ... other fields
-  
-  /** @deprecated Use invoice_settings.default_payment_method instead. Sources API is deprecated. */
-  readonly default_source?: string | null
-  
-  readonly invoice_settings?: {
-    readonly default_payment_method?: string | null
-    // ... other settings
-  } | null
+	// ... other fields
+
+	/** @deprecated Use invoice_settings.default_payment_method instead. Sources API is deprecated. */
+	readonly default_source?: string | null
+
+	readonly invoice_settings?: {
+		readonly default_payment_method?: string | null
+		// ... other settings
+	} | null
 }
 ```
 
@@ -181,19 +197,23 @@ export interface StripeCustomer {
 ### 1. Always Check Both Fields During Transition
 
 ```typescript
-function getCustomerDefaultPaymentMethod(customer: StripeCustomer): string | null {
-  // Check modern field first
-  if (customer.invoice_settings?.default_payment_method) {
-    return customer.invoice_settings.default_payment_method
-  }
-  
-  // Fallback to deprecated field for backward compatibility
-  if (customer.default_source) {
-    console.warn('Using deprecated default_source field. Migrate to default_payment_method.')
-    return customer.default_source
-  }
-  
-  return null
+function getCustomerDefaultPaymentMethod(
+	customer: StripeCustomer
+): string | null {
+	// Check modern field first
+	if (customer.invoice_settings?.default_payment_method) {
+		return customer.invoice_settings.default_payment_method
+	}
+
+	// Fallback to deprecated field for backward compatibility
+	if (customer.default_source) {
+		console.warn(
+			'Using deprecated default_source field. Migrate to default_payment_method.'
+		)
+		return customer.default_source
+	}
+
+	return null
 }
 ```
 
@@ -201,16 +221,16 @@ function getCustomerDefaultPaymentMethod(customer: StripeCustomer): string | nul
 
 ```typescript
 async function hasAnyPaymentMethod(customerId: string): Promise<boolean> {
-  try {
-    const paymentMethods = await stripe.paymentMethods.list({
-      customer: customerId,
-      limit: 1
-    })
-    return paymentMethods.data.length > 0
-  } catch (error) {
-    console.error('Failed to check payment methods:', error)
-    return false
-  }
+	try {
+		const paymentMethods = await stripe.paymentMethods.list({
+			customer: customerId,
+			limit: 1
+		})
+		return paymentMethods.data.length > 0
+	} catch (error) {
+		console.error('Failed to check payment methods:', error)
+		return false
+	}
 }
 ```
 
@@ -218,25 +238,28 @@ async function hasAnyPaymentMethod(customerId: string): Promise<boolean> {
 
 ```typescript
 async function ensurePaymentMethod(customerId: string): Promise<boolean> {
-  try {
-    const customer = await stripe.customers.retrieve(customerId)
-    
-    // Check if customer has default payment method
-    if (customer.invoice_settings?.default_payment_method) {
-      return true
-    }
-    
-    // Check for any payment methods
-    const paymentMethods = await stripe.paymentMethods.list({
-      customer: customerId,
-      limit: 1
-    })
-    
-    return paymentMethods.data.length > 0
-  } catch (error) {
-    console.error(`Failed to check payment methods for customer ${customerId}:`, error)
-    return false
-  }
+	try {
+		const customer = await stripe.customers.retrieve(customerId)
+
+		// Check if customer has default payment method
+		if (customer.invoice_settings?.default_payment_method) {
+			return true
+		}
+
+		// Check for any payment methods
+		const paymentMethods = await stripe.paymentMethods.list({
+			customer: customerId,
+			limit: 1
+		})
+
+		return paymentMethods.data.length > 0
+	} catch (error) {
+		console.error(
+			`Failed to check payment methods for customer ${customerId}:`,
+			error
+		)
+		return false
+	}
 }
 ```
 
@@ -267,9 +290,9 @@ console.log('Customer has payment method:', hasPayment)
 ```typescript
 // Ensure subscriptions work with Payment Methods API
 const subscription = await StripeSubscriptions.create({
-  customer: customerId,
-  items: [{ price: priceId }],
-  default_payment_method: paymentMethodId // Use this instead of default_source
+	customer: customerId,
+	items: [{ price: priceId }],
+	default_payment_method: paymentMethodId // Use this instead of default_source
 })
 ```
 
@@ -286,6 +309,7 @@ Test that webhook events process correctly with the updated payment method logic
 ## Support
 
 For questions about this migration, check:
+
 1. TenantFlow's updated type definitions in `/packages/shared/src/types/stripe-*`
 2. Updated webhook service in `/apps/backend/src/stripe/webhook.service.ts`
 3. This migration guide for implementation patterns

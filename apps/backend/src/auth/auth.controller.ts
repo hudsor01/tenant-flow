@@ -1,24 +1,24 @@
 import {
+	Body,
 	Controller,
 	Get,
-	Post,
-	Body,
-	UseGuards,
 	HttpCode,
 	HttpStatus,
-	Req
+	Post,
+	Req,
+	UseGuards
 } from '@nestjs/common'
 import { ModuleRef } from '@nestjs/core'
 import { JwtAuthGuard } from './guards/jwt-auth.guard'
 // Error handling is now managed by global ErrorHandler
 import { CurrentUser } from './decorators/current-user.decorator'
-import { ValidatedUser, AuthService } from './auth.service'
+import { AuthService, ValidatedUser } from './auth.service'
 import { Public } from './decorators/public.decorator'
 import {
-	RateLimit,
-	AuthRateLimits
+	AuthRateLimits,
+	RateLimit
 } from '../common/decorators/rate-limit.decorator'
-import { CsrfGuard, CsrfExempt } from '../common/guards/csrf.guard'
+import { CsrfExempt, CsrfGuard } from '../common/guards/csrf.guard'
 import { FastifyRequest } from 'fastify'
 
 @Controller('auth')
@@ -58,7 +58,7 @@ export class AuthController {
 	@RateLimit(AuthRateLimits.REFRESH_TOKEN)
 	@HttpCode(HttpStatus.OK)
 	async refreshToken(@Body() body: { refresh_token: string }) {
-		return await this.authService.refreshToken(body.refresh_token)
+		return this.authService.refreshToken(body.refresh_token)
 	}
 
 	/**
@@ -75,8 +75,11 @@ export class AuthController {
 		@Body() body: { email: string; password: string },
 		@Req() request: FastifyRequest
 	) {
-		const ip = request.ip || request.headers['x-forwarded-for'] as string || 'unknown'
-		return await this.authService.login(body.email, body.password, ip)
+		const ip =
+			request.ip ||
+			(request.headers['x-forwarded-for'] as string) ||
+			'unknown'
+		return this.authService.login(body.email, body.password, ip)
 	}
 
 	/**
@@ -92,7 +95,7 @@ export class AuthController {
 	async register(
 		@Body() body: { email: string; password: string; name: string }
 	) {
-		return await this.authService.createUser(body)
+		return this.authService.createUser(body)
 	}
 
 	/**

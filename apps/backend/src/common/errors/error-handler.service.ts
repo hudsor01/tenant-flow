@@ -1,15 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common'
 import type { AppError } from '@repo/shared'
 
-
-
-
 // Extend shared ErrorContext with backend-specific fields
 /**
  * Define a minimal SharedErrorContext if not imported from shared package.
  * Replace this with the correct import if available.
  */
-export type SharedErrorContext = Record<string, unknown>;
+export type SharedErrorContext = Record<string, unknown>
 
 export interface ErrorContext extends SharedErrorContext {
 	operation?: string
@@ -58,7 +55,10 @@ export class ErrorHandlerService {
 	 * Handle and transform errors into appropriate HTTP errors
 	 * Uses unified error handler for consistency
 	 */
-	handleErrorEnhanced(error: Error | AppError, context?: ErrorContext): never {
+	handleErrorEnhanced(
+		error: Error | AppError,
+		context?: ErrorContext
+	): never {
 		this.logError(error, context)
 		throw error
 	}
@@ -93,11 +93,11 @@ export class ErrorHandlerService {
 		this.logger.warn(`Validation error: ${message}`, { fields, context })
 
 		const error = new Error(message)
-		Object.assign(error, { 
+		Object.assign(error, {
 			code: 'BAD_REQUEST',
 			type: 'VALIDATION_ERROR',
 			fields,
-			context 
+			context
 		})
 		return error
 	}
@@ -110,11 +110,15 @@ export class ErrorHandlerService {
 		identifier?: string,
 		context?: ErrorContext
 	): Error {
-		const message = identifier 
+		const message = identifier
 			? `${resource} with ID '${identifier}' not found`
 			: `${resource} not found`
 
-		this.logger.warn(`Resource not found: ${message}`, { resource, identifier, context })
+		this.logger.warn(`Resource not found: ${message}`, {
+			resource,
+			identifier,
+			context
+		})
 
 		const error = new Error(message)
 		Object.assign(error, {
@@ -135,11 +139,15 @@ export class ErrorHandlerService {
 		resource?: string,
 		context?: ErrorContext
 	): Error {
-		const message = resource 
+		const message = resource
 			? `Not authorized to ${operation} ${resource}`
 			: `Not authorized to ${operation}`
 
-		this.logger.warn(`Permission denied: ${message}`, { operation, resource, context })
+		this.logger.warn(`Permission denied: ${message}`, {
+			operation,
+			resource,
+			context
+		})
 
 		const error = new Error(message)
 		Object.assign(error, {
@@ -155,10 +163,7 @@ export class ErrorHandlerService {
 	/**
 	 * Create a configuration error
 	 */
-	createConfigError(
-		message: string,
-		context?: ErrorContext
-	): Error {
+	createConfigError(message: string, context?: ErrorContext): Error {
 		this.logger.error(`Configuration error: ${message}`, { context })
 
 		const error = new Error(message)
@@ -187,13 +192,19 @@ export class ErrorHandlerService {
 		}
 	}
 
-
 	/**
 	 * Create shared AppError objects for consistent error handling
 	 */
-	
+
 	createAuthError(
-		code: 'INVALID_CREDENTIALS' | 'TOKEN_EXPIRED' | 'UNAUTHORIZED' | 'FORBIDDEN' | 'EMAIL_NOT_VERIFIED' | 'ACCOUNT_LOCKED' | 'INVALID_TOKEN',
+		code:
+			| 'INVALID_CREDENTIALS'
+			| 'TOKEN_EXPIRED'
+			| 'UNAUTHORIZED'
+			| 'FORBIDDEN'
+			| 'EMAIL_NOT_VERIFIED'
+			| 'ACCOUNT_LOCKED'
+			| 'INVALID_TOKEN',
 		message: string,
 		_context?: ErrorContext
 	): AppError {
@@ -226,7 +237,13 @@ export class ErrorHandlerService {
 	}
 
 	createBusinessAppError(
-		code: 'RESOURCE_NOT_FOUND' | 'RESOURCE_ALREADY_EXISTS' | 'INSUFFICIENT_PERMISSIONS' | 'OPERATION_NOT_ALLOWED' | 'QUOTA_EXCEEDED' | 'SUBSCRIPTION_REQUIRED',
+		code:
+			| 'RESOURCE_NOT_FOUND'
+			| 'RESOURCE_ALREADY_EXISTS'
+			| 'INSUFFICIENT_PERMISSIONS'
+			| 'OPERATION_NOT_ALLOWED'
+			| 'QUOTA_EXCEEDED'
+			| 'SUBSCRIPTION_REQUIRED',
 		message: string,
 		_context?: ErrorContext
 	): AppError {
@@ -241,7 +258,11 @@ export class ErrorHandlerService {
 	}
 
 	createServerAppError(
-		code: 'INTERNAL_ERROR' | 'SERVICE_UNAVAILABLE' | 'DATABASE_ERROR' | 'EXTERNAL_SERVICE_ERROR',
+		code:
+			| 'INTERNAL_ERROR'
+			| 'SERVICE_UNAVAILABLE'
+			| 'DATABASE_ERROR'
+			| 'EXTERNAL_SERVICE_ERROR',
 		message: string,
 		_context?: ErrorContext
 	): AppError {
@@ -256,7 +277,12 @@ export class ErrorHandlerService {
 	}
 
 	createPaymentAppError(
-		code: 'PAYMENT_FAILED' | 'INSUFFICIENT_FUNDS' | 'CARD_DECLINED' | 'PAYMENT_METHOD_INVALID' | 'STRIPE_ERROR',
+		code:
+			| 'PAYMENT_FAILED'
+			| 'INSUFFICIENT_FUNDS'
+			| 'CARD_DECLINED'
+			| 'PAYMENT_METHOD_INVALID'
+			| 'STRIPE_ERROR',
 		message: string,
 		_context?: ErrorContext
 	): AppError {

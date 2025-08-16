@@ -11,12 +11,12 @@ import type { ReactNode } from 'react'
 
 // Import utility types from shared package
 export type {
-  WithRequired as RequiredFields,
-  WithOptional as PartialFields,
-  LoadingState,
-  PaginationMeta,
-  DateRange,
-  TimePeriod
+	WithRequired as RequiredFields,
+	WithOptional as PartialFields,
+	LoadingState,
+	PaginationMeta,
+	DateRange,
+	TimePeriod
 } from '@repo/shared'
 
 // Import pagination types directly from shared index since they're defined inline
@@ -55,7 +55,13 @@ export type Size = 'sm' | 'md' | 'lg' | 'xl'
 /**
  * Standard color variants
  */
-export type Variant = 'default' | 'primary' | 'secondary' | 'destructive' | 'outline' | 'ghost'
+export type Variant =
+	| 'default'
+	| 'primary'
+	| 'secondary'
+	| 'destructive'
+	| 'outline'
+	| 'ghost'
 
 // LoadingState imported from shared package above
 
@@ -73,25 +79,25 @@ export type Position = 'top' | 'bottom' | 'left' | 'right'
  * Basic component props that most components accept
  */
 export interface BaseComponentProps {
-  className?: string
-  children?: ReactNode
-  id?: string
-  'data-testid'?: string
+	className?: string
+	children?: ReactNode
+	id?: string
+	'data-testid'?: string
 }
 
 /**
  * Props for components that can be disabled
  */
 export interface DisablableProps {
-  disabled?: boolean
+	disabled?: boolean
 }
 
 /**
  * Props for components with loading states
  */
 export interface LoadableProps {
-  loading?: boolean
-  loadingText?: string
+	loading?: boolean
+	loadingText?: string
 }
 
 // ============================================
@@ -116,25 +122,25 @@ export type FormMode = 'create' | 'edit' | 'view'
 /**
  * Form field types
  */
-export type FieldType = 
-  | 'text' 
-  | 'email' 
-  | 'password' 
-  | 'number' 
-  | 'tel' 
-  | 'url' 
-  | 'date' 
-  | 'datetime-local'
-  | 'time'
-  | 'search'
-  | 'textarea'
-  | 'select'
-  | 'checkbox'
-  | 'radio'
-  | 'file'
+export type FieldType =
+	| 'text'
+	| 'email'
+	| 'password'
+	| 'number'
+	| 'tel'
+	| 'url'
+	| 'date'
+	| 'datetime-local'
+	| 'time'
+	| 'search'
+	| 'textarea'
+	| 'select'
+	| 'checkbox'
+	| 'radio'
+	| 'file'
 
 // ============================================
-// Data Fetching Types  
+// Data Fetching Types
 // ============================================
 
 // PaginationParams imported from shared package above
@@ -143,32 +149,34 @@ export type FieldType =
  * Sorting parameters
  */
 export interface SortParams<T = string> {
-  sortBy: T
-  sortOrder: 'asc' | 'desc'
+	sortBy: T
+	sortOrder: 'asc' | 'desc'
 }
 
 /**
  * Filter parameters
  */
 export interface FilterParams<T = Record<string, unknown>> {
-  filters: T
+	filters: T
 }
 
 /**
  * Search parameters
  */
 export interface SearchParams {
-  query: string
+	query: string
 }
 
 /**
  * Combined query parameters
  */
-export type QueryParams<TSort = string, TFilter = Record<string, unknown>> = 
-  & Partial<PaginationParams>
-  & Partial<SortParams<TSort>>
-  & Partial<FilterParams<TFilter>>
-  & Partial<SearchParams>
+export type QueryParams<
+	TSort = string,
+	TFilter = Record<string, unknown>
+> = Partial<PaginationParams> &
+	Partial<SortParams<TSort>> &
+	Partial<FilterParams<TFilter>> &
+	Partial<SearchParams>
 
 // ============================================
 // Error Types
@@ -176,9 +184,9 @@ export type QueryParams<TSort = string, TFilter = Record<string, unknown>> =
 
 // Import error types from shared package
 export type {
-  ErrorResponse,
-  FieldError,
-  FormErrors as ValidationErrors
+	ErrorResponse,
+	FieldError,
+	FormErrors as ValidationErrors
 } from '@repo/shared'
 
 // ============================================
@@ -209,25 +217,25 @@ export type AsyncChangeHandler<T = string> = (value: T) => Promise<void>
  * Single selection
  */
 export interface SingleSelection<T> {
-  selected: T | null
-  onSelect: (item: T) => void
+	selected: T | null
+	onSelect: (item: T) => void
 }
 
 /**
  * Multiple selection
  */
 export interface MultipleSelection<T> {
-  selected: T[]
-  onSelect: (items: T[]) => void
-  onToggleItem?: (item: T) => void
+	selected: T[]
+	onSelect: (items: T[]) => void
+	onToggleItem?: (item: T) => void
 }
 
 /**
  * Optional multiple selection
  */
-export type OptionalMultipleSelection<T> = 
-  | SingleSelection<T> 
-  | MultipleSelection<T>
+export type OptionalMultipleSelection<T> =
+	| SingleSelection<T>
+	| MultipleSelection<T>
 
 // ============================================
 // Menu/Navigation Types
@@ -237,22 +245,22 @@ export type OptionalMultipleSelection<T> =
  * Menu item structure
  */
 export interface MenuItem {
-  id: string
-  label: string
-  icon?: ReactNode
-  href?: string
-  onClick?: ClickHandler
-  disabled?: boolean
-  children?: MenuItem[]
+	id: string
+	label: string
+	icon?: ReactNode
+	href?: string
+	onClick?: ClickHandler
+	disabled?: boolean
+	children?: MenuItem[]
 }
 
 /**
  * Navigation breadcrumb
  */
 export interface BreadcrumbItem {
-  label: string
-  href?: string
-  current?: boolean
+	label: string
+	href?: string
+	current?: boolean
 }
 
 // ============================================
@@ -263,19 +271,19 @@ export interface BreadcrumbItem {
  * Basic modal control
  */
 export interface ModalState {
-  isOpen: boolean
-  open: () => void
-  close: () => void
-  toggle: () => void
+	isOpen: boolean
+	open: () => void
+	close: () => void
+	toggle: () => void
 }
 
 /**
  * Modal with data
  */
 export interface ModalWithData<T> extends ModalState {
-  data: T | null
-  setData: (data: T | null) => void
-  openWith: (data: T) => void
+	data: T | null
+	setData: (data: T | null) => void
+	openWith: (data: T) => void
 }
 
 // ============================================
@@ -288,8 +296,8 @@ export interface ModalWithData<T> extends ModalState {
  * Optional date range
  */
 export interface OptionalDateRange {
-  start?: Date
-  end?: Date
+	start?: Date
+	end?: Date
 }
 
 // ============================================
@@ -305,16 +313,16 @@ export type UploadStatus = 'idle' | 'uploading' | 'success' | 'error'
  * File with upload metadata
  */
 export interface FileWithMetadata {
-  file: File
-  id: string
-  status: UploadStatus
-  progress?: number
-  error?: string
-  url?: string
+	file: File
+	id: string
+	status: UploadStatus
+	progress?: number
+	error?: string
+	url?: string
 }
 
 // ============================================
-// Theme/Styling Types  
+// Theme/Styling Types
 // ============================================
 
 /**

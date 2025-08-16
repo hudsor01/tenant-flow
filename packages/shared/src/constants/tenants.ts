@@ -4,10 +4,10 @@
  */
 
 export const TENANT_STATUS = {
-  ACTIVE: 'ACTIVE',
-  INACTIVE: 'INACTIVE',
-  EVICTED: 'EVICTED',
-  PENDING: 'PENDING'
+	ACTIVE: 'ACTIVE',
+	INACTIVE: 'INACTIVE',
+	EVICTED: 'EVICTED',
+	PENDING: 'PENDING'
 } as const
 
-export type TenantStatus = typeof TENANT_STATUS[keyof typeof TENANT_STATUS]
+export type TenantStatus = (typeof TENANT_STATUS)[keyof typeof TENANT_STATUS]

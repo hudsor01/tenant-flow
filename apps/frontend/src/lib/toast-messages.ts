@@ -1,58 +1,58 @@
 export const toastMessages = {
-  auth: {
-    signInSuccess: 'Successfully signed in!',
-    signInError: 'Failed to sign in. Please check your credentials.',
-    signOutSuccess: 'Successfully signed out!',
-    signOutError: 'Failed to sign out. Please try again.',
-    sessionExpired: 'Your session has expired. Please sign in again.',
-    emailConfirmed: 'Email confirmed successfully!',
-    passwordUpdated: 'Password updated successfully!',
-    profileUpdated: 'Profile updated successfully!',
-  },
-  subscription: {
-    created: 'Subscription created successfully!',
-    updated: 'Subscription updated successfully!',
-    cancelled: 'Subscription cancelled successfully!',
-    error: 'Failed to process subscription. Please try again.',
-  },
-  general: {
-    success: 'Operation completed successfully!',
-    error: 'An error occurred. Please try again.',
-    loading: 'Loading...',
-    saved: 'Changes saved successfully!',
-    deleted: 'Deleted successfully!',
-    created: 'Created successfully!',
-    updated: 'Updated successfully!',
-  },
-  property: {
-    created: 'Property created successfully!',
-    updated: 'Property updated successfully!',
-    deleted: 'Property deleted successfully!',
-    error: 'Failed to process property. Please try again.',
-  },
-  tenant: {
-    created: 'Tenant created successfully!',
-    updated: 'Tenant updated successfully!',
-    deleted: 'Tenant deleted successfully!',
-    error: 'Failed to process tenant. Please try again.',
-  },
-  maintenance: {
-    created: 'Maintenance request created successfully!',
-    updated: 'Maintenance request updated successfully!',
-    deleted: 'Maintenance request deleted successfully!',
-    error: 'Failed to process maintenance request. Please try again.',
-  },
-  lease: {
-    created: 'Lease created successfully!',
-    updated: 'Lease updated successfully!',
-    deleted: 'Lease deleted successfully!',
-    error: 'Failed to process lease. Please try again.',
-  },
-  unit: {
-    success: 'Unit operation completed successfully!',
-    error: 'Failed to process unit. Please try again.',
-    created: 'Unit created successfully!',
-    updated: 'Unit updated successfully!',
-    deleted: 'Unit deleted successfully!',
-  },
+	auth: {
+		signInSuccess: 'Successfully signed in!',
+		signInError: 'Failed to sign in. Please check your credentials.',
+		signOutSuccess: 'Successfully signed out!',
+		signOutError: 'Failed to sign out. Please try again.',
+		sessionExpired: 'Your session has expired. Please sign in again.',
+		emailConfirmed: 'Email confirmed successfully!',
+		passwordUpdated: 'Password updated successfully!',
+		profileUpdated: 'Profile updated successfully!'
+	},
+	subscription: {
+		created: 'Subscription created successfully!',
+		updated: 'Subscription updated successfully!',
+		cancelled: 'Subscription cancelled successfully!',
+		error: 'Failed to process subscription. Please try again.'
+	},
+	general: {
+		success: 'Operation completed successfully!',
+		error: 'An error occurred. Please try again.',
+		loading: 'Loading...',
+		saved: 'Changes saved successfully!',
+		deleted: 'Deleted successfully!',
+		created: 'Created successfully!',
+		updated: 'Updated successfully!'
+	},
+	property: {
+		created: 'Property created successfully!',
+		updated: 'Property updated successfully!',
+		deleted: 'Property deleted successfully!',
+		error: 'Failed to process property. Please try again.'
+	},
+	tenant: {
+		created: 'Tenant created successfully!',
+		updated: 'Tenant updated successfully!',
+		deleted: 'Tenant deleted successfully!',
+		error: 'Failed to process tenant. Please try again.'
+	},
+	maintenance: {
+		created: 'Maintenance request created successfully!',
+		updated: 'Maintenance request updated successfully!',
+		deleted: 'Maintenance request deleted successfully!',
+		error: 'Failed to process maintenance request. Please try again.'
+	},
+	lease: {
+		created: 'Lease created successfully!',
+		updated: 'Lease updated successfully!',
+		deleted: 'Lease deleted successfully!',
+		error: 'Failed to process lease. Please try again.'
+	},
+	unit: {
+		success: 'Unit operation completed successfully!',
+		error: 'Failed to process unit. Please try again.',
+		created: 'Unit created successfully!',
+		updated: 'Unit updated successfully!',
+		deleted: 'Unit deleted successfully!'
+	}
 }

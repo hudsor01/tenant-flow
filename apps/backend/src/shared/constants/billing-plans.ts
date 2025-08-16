@@ -17,73 +17,95 @@ export interface BillingPlan {
 
 // PERFORMANCE: Use lazy getters to avoid env var access during module initialization
 class BillingPlansManager {
-    private _plans?: Record<string, BillingPlan>
+	private _plans?: Record<string, BillingPlan>
 
-    get plans(): Record<string, BillingPlan> {
-        if (!this._plans) {
-            this._plans = {
-                [PLAN_TYPE.FREETRIAL]: {
-                    id: PLAN_TYPE.FREETRIAL,
-                    name: 'Free Trial',
-                    price: 0,
-                    propertyLimit: 2,
-                    stripePriceId: null,
-                    stripePriceIds: {
-                        monthly: null,
-                        annual: null
-                    }
-                },
-                [PLAN_TYPE.STARTER]: {
-                    id: PLAN_TYPE.STARTER,
-                    name: 'Starter',
-                    price: 19,
-                    propertyLimit: 10,
-                    get stripePriceId() { return process.env.STRIPE_STARTER_MONTHLY ?? null },
-                    stripePriceIds: {
-                        get monthly() { return process.env.STRIPE_STARTER_MONTHLY ?? null },
-                        get annual() { return process.env.STRIPE_STARTER_ANNUAL ?? null }
-                    }
-                },
-                [PLAN_TYPE.GROWTH]: {
-                    id: PLAN_TYPE.GROWTH,
-                    name: 'Growth',
-                    price: 49,
-                    propertyLimit: 50,
-                    get stripePriceId() { return process.env.STRIPE_GROWTH_MONTHLY ?? null },
-                    stripePriceIds: {
-                        get monthly() { return process.env.STRIPE_GROWTH_MONTHLY ?? null },
-                        get annual() { return process.env.STRIPE_GROWTH_ANNUAL ?? null }
-                    }
-                },
-                [PLAN_TYPE.TENANTFLOW_MAX]: {
-                    id: PLAN_TYPE.TENANTFLOW_MAX,
-                    name: 'TenantFlow MAX',
-                    price: 149,
-                    propertyLimit: -1,
-                    get stripePriceId() { return process.env.STRIPE_TENANTFLOW_MAX_MONTHLY ?? null },
-                    stripePriceIds: {
-                        get monthly() { return process.env.STRIPE_TENANTFLOW_MAX_MONTHLY ?? null },
-                        get annual() { return process.env.STRIPE_TENANTFLOW_MAX_ANNUAL ?? null }
-                    }
-                }
-            } as const
-        }
-        return this._plans
-    }
+	get plans(): Record<string, BillingPlan> {
+		if (!this._plans) {
+			this._plans = {
+				[PLAN_TYPE.FREETRIAL]: {
+					id: PLAN_TYPE.FREETRIAL,
+					name: 'Free Trial',
+					price: 0,
+					propertyLimit: 2,
+					stripePriceId: null,
+					stripePriceIds: {
+						monthly: null,
+						annual: null
+					}
+				},
+				[PLAN_TYPE.STARTER]: {
+					id: PLAN_TYPE.STARTER,
+					name: 'Starter',
+					price: 19,
+					propertyLimit: 10,
+					get stripePriceId() {
+						return process.env.STRIPE_STARTER_MONTHLY ?? null
+					},
+					stripePriceIds: {
+						get monthly() {
+							return process.env.STRIPE_STARTER_MONTHLY ?? null
+						},
+						get annual() {
+							return process.env.STRIPE_STARTER_ANNUAL ?? null
+						}
+					}
+				},
+				[PLAN_TYPE.GROWTH]: {
+					id: PLAN_TYPE.GROWTH,
+					name: 'Growth',
+					price: 49,
+					propertyLimit: 50,
+					get stripePriceId() {
+						return process.env.STRIPE_GROWTH_MONTHLY ?? null
+					},
+					stripePriceIds: {
+						get monthly() {
+							return process.env.STRIPE_GROWTH_MONTHLY ?? null
+						},
+						get annual() {
+							return process.env.STRIPE_GROWTH_ANNUAL ?? null
+						}
+					}
+				},
+				[PLAN_TYPE.TENANTFLOW_MAX]: {
+					id: PLAN_TYPE.TENANTFLOW_MAX,
+					name: 'TenantFlow MAX',
+					price: 149,
+					propertyLimit: -1,
+					get stripePriceId() {
+						return process.env.STRIPE_TENANTFLOW_MAX_MONTHLY ?? null
+					},
+					stripePriceIds: {
+						get monthly() {
+							return (
+								process.env.STRIPE_TENANTFLOW_MAX_MONTHLY ??
+								null
+							)
+						},
+						get annual() {
+							return (
+								process.env.STRIPE_TENANTFLOW_MAX_ANNUAL ?? null
+							)
+						}
+					}
+				}
+			} as const
+		}
+		return this._plans
+	}
 }
 
 const billingPlansManager = new BillingPlansManager()
 
 // Export lazy-loaded plans
-export const BILLING_PLANS: Record<string, BillingPlan> = billingPlansManager.plans
+export const BILLING_PLANS: Record<string, BillingPlan> =
+	billingPlansManager.plans
 
 // PERFORMANCE: Cached helper functions to avoid repeated lookups
 const planLookupCache = new Map<string, ReturnType<typeof getPlanById>>()
 
 // Helper functions
-export function getPlanById(
-	planId: string
-): BillingPlan | undefined {
+export function getPlanById(planId: string): BillingPlan | undefined {
 	// Check cache first
 	if (planLookupCache.has(planId)) {
 		return planLookupCache.get(planId)

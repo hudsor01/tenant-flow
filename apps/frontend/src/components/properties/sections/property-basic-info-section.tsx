@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { FormSection } from '@/components/modals/base-form-modal'
 import type { UseFormReturn } from 'react-hook-form'
-import type { PropertyFormData } from '@repo/shared'
+import type { PropertyFormData } from '@repo/shared/validation'
 
 interface PropertyBasicInfoSectionProps {
 	form: UseFormReturn<PropertyFormData>
@@ -37,7 +37,7 @@ export function PropertyBasicInfoSection({
 					<Input
 						id="name"
 						placeholder="e.g., Sunset Apartments, 123 Main St"
-						className="pl-10 transition-colors focus:border-primary"
+						className="focus:border-primary pl-10 transition-colors"
 						{...form.register('name')}
 					/>
 				</div>
@@ -58,7 +58,7 @@ export function PropertyBasicInfoSection({
 				</Label>
 				<select
 					id="propertyType"
-					className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm transition-colors focus:border-primary focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+					className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring focus:border-primary flex h-10 w-full rounded-md border px-3 py-2 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
 					{...form.register('propertyType')}
 				>
 					<option value="SINGLE_FAMILY">Single Family Home</option>
@@ -79,7 +79,7 @@ export function PropertyBasicInfoSection({
 					propertyType === 'APARTMENT') && (
 					<div className="space-y-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
 						<div className="flex items-center space-x-2">
-							<Users className="h-5 w-5 text-primary" />
+							<Users className="text-primary h-5 w-5" />
 							<h4 className="font-medium text-blue-900">
 								Multi-Unit Configuration
 							</h4>
@@ -99,7 +99,7 @@ export function PropertyBasicInfoSection({
 								min="1"
 								max="500"
 								placeholder="e.g., 4"
-								className="transition-colors focus:border-primary"
+								className="focus:border-primary transition-colors"
 								{...form.register('numberOfUnits', {
 									valueAsNumber: true
 								})}
@@ -120,7 +120,7 @@ export function PropertyBasicInfoSection({
 								<input
 									type="checkbox"
 									id="createUnitsNow"
-									className="rounded border-gray-300 text-primary focus:ring-primary"
+									className="text-primary focus:ring-primary rounded border-gray-300"
 									{...form.register('createUnitsNow')}
 								/>
 								<Label
@@ -133,7 +133,7 @@ export function PropertyBasicInfoSection({
 							</div>
 						)}
 
-						<p className="text-xs text-primary">
+						<p className="text-primary text-xs">
 							💡 You can always add or modify units later from the
 							property details page.
 						</p>
