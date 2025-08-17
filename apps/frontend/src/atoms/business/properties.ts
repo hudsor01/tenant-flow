@@ -132,14 +132,14 @@ export const setPropertyFiltersAtom = atom(
 	}
 )
 
-export const clearPropertyFiltersAtom = atom(null, (get, set, _arg) => {
+export const clearPropertyFiltersAtom = atom(null, (_get, set, _arg) => {
 	// Use the built-in reset functionality from atomWithReset
 	set(propertyFiltersAtom, _prev => ({}))
 })
 
 export const selectPropertyAtom = atom(
 	null,
-	(get, set, property: Property | null) => {
+	(_get, set, property: Property | null) => {
 		set(selectedPropertyAtom, property)
 	}
 )

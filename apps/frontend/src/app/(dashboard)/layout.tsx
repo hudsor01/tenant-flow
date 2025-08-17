@@ -1,7 +1,6 @@
 import { Suspense } from 'react'
 import type { Metadata } from '@/types/next.d'
 import { CommandPaletteProvider } from '@/hooks/use-command-palette'
-import { DashboardLayoutClient } from './dashboard-layout-client'
 import { QueryProvider } from '@/providers/query-provider'
 import { PHProvider } from '@/providers/posthog-provider'
 import { PostHogPageView } from '@/components/analytics/posthog-page-view'
@@ -10,6 +9,9 @@ import { PostHogErrorBoundary } from '@/components/analytics/posthog-error-bound
 import { ServerAuthGuard } from '@/components/auth/server-auth-guard'
 import { AuthProvider } from '@/providers/auth-provider'
 import { ProtectedRouteGuard } from '@/components/auth/protected-route-guard'
+import { Navigation } from '@/components/dashboard/dashboard-navigation'
+import { DashboardSidebar } from '@/components/dashboard/dashboard-sidebar'
+import { Loader2 } from 'lucide-react'
 
 export const metadata: Metadata = {
 	title: {
@@ -45,12 +47,45 @@ export default function DashboardLayout({
 									</Suspense>
 
 									<ProtectedRouteGuard>
-										<DashboardLayoutClient
-											modal={modal}
-											sidebar={sidebar}
-										>
-											{children}
-										</DashboardLayoutClient>
+										<div className="min-h-screen bg-gray-50">
+											{/* Desktop Navigation */}
+											<div className="hidden md:block">
+												<Navigation />
+											</div>
+
+											<div className="flex">
+												{/* Desktop Sidebar */}
+												<Suspense
+													fallback={
+														<div className="hidden w-64 bg-white shadow-sm md:block" />
+													}
+												>
+													<aside className="hidden w-64 bg-white shadow-sm md:block">
+														{sidebar || (
+															<DashboardSidebar />
+														)}
+													</aside>
+												</Suspense>
+
+												{/* Main content area */}
+												<main className="flex-1 pb-20 md:p-6 md:pt-6 md:pb-6">
+													<Suspense
+														fallback={
+															<div className="flex h-64 items-center justify-center">
+																<Loader2 className="h-8 w-8 animate-spin" />
+															</div>
+														}
+													>
+														<div className="px-4 md:px-0">
+															{children}
+														</div>
+													</Suspense>
+												</main>
+											</div>
+
+											{/* Modal parallel route */}
+											{modal}
+										</div>
 									</ProtectedRouteGuard>
 								</CommandPaletteProvider>
 							</PostHogUserProvider>

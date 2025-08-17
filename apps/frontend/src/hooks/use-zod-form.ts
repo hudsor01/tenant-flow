@@ -144,10 +144,11 @@ export function useZodForm<T extends Record<string, unknown>>({
 				} catch (error) {
 					if (error instanceof ZodError) {
 						const formattedErrors = formatZodError(error)
-						if (formattedErrors.length > 0) {
+						const firstError = formattedErrors[0]
+						if (firstError) {
 							setErrorsState(prev => ({
 								...prev,
-								[field as string]: formattedErrors[0].message
+								[field as string]: firstError.message
 							}))
 						}
 					}
@@ -218,8 +219,9 @@ export function useZodForm<T extends Record<string, unknown>>({
 			} catch (error) {
 				if (error instanceof ZodError) {
 					const formattedErrors = formatZodError(error)
-					if (formattedErrors.length > 0) {
-						setError(field, formattedErrors[0].message)
+					const firstError = formattedErrors[0]
+					if (firstError) {
+						setError(field, firstError.message)
 					}
 				}
 				return false

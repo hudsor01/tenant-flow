@@ -16,11 +16,6 @@ npm run test        # All tests
 npm run test:unit   # Frontend unit tests
 npm run test:e2e    # Playwright E2E tests
 
-# Database
-npm run db:generate # Generate Prisma client
-npm run db:migrate  # Run migrations
-npm run db:studio   # Open Prisma Studio
-
 # Build
 npm run build       # Build all packages
 ```
@@ -55,7 +50,7 @@ TenantFlow is a production-ready multi-tenant SaaS property management platform 
   - State: Zustand 5.0.7 + TanStack Query 5.85.3 + Jotai 2.13.1
   - UI: Radix UI + Tailwind CSS 4.1.12 + React Hook Form
   - Testing: 536 tests (59 failing, needs attention)
-- **Backend**: NestJS 11.1.6 + Fastify 11.x + Prisma 6.14.0 + PostgreSQL
+- **Backend**: NestJS 11.1.6 + Fastify 11.x + PostgreSQL
   - 32 API controllers, comprehensive service layer
   - Multi-tenant RLS with JWT claims injection
   - Test coverage needs improvement
@@ -74,8 +69,6 @@ TenantFlow is a production-ready multi-tenant SaaS property management platform 
 - `npm run deploy:test:docker` Docker build test (builds `tenantflow-backend` image)
 
 **Testing**: `npm run test` for all tests, `npm run test:e2e` for Playwright, `cd apps/frontend && npm run test:unit:watch` for frontend test watch
-
-**Database**: `npm run db:generate` for Prisma client, `npm run db:migrate` for migrations, `npm run db:studio` for database GUI
 
 **Build**: `npm run build` for all packages, `npm run build:frontend` and `npm run build:backend` for individual apps
 
@@ -127,7 +120,6 @@ Unified service pattern providing:
 
 ### Multi-Tenant Row-Level Security
 Enterprise-grade security with:
-- Prisma client pooling with separate admin (BYPASSRLS) and tenant-scoped connections
 - Dynamic JWT claims injection for database-level tenant isolation
 - Connection pool management (max 10 concurrent, 5-min TTL)
 - Multiple security validation layers preventing data leakage
@@ -156,8 +148,7 @@ Production-optimized with:
    - **Proper component composition** - Import focused components rather than inline everything
 
 ## Common Issues & Solutions
-
-- **Prisma Client Error**: Run `npm run db:generate` from root
+=
 - **Type Errors**: Run `npm run claude:check` to auto-fix lint and type errors
 - **Port Conflicts**: Use `npm run dev:clean` in frontend to kill existing processes
 - **React.Children Errors**: Keep React in main bundle (configured in vite.config.ts)
@@ -172,7 +163,6 @@ Production-optimized with:
   - Docker container built from root Dockerfile
   - Health checks at `/health` endpoint
   - Auto-deployment on main branch
-- **Database**: Supabase with Prisma Accelerate for connection pooling and edge caching
 - **Monitoring**: Comprehensive logging, error tracking, and performance monitoring
 
 ## Testing Strategy

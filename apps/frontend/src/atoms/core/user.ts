@@ -85,28 +85,31 @@ export const subscriptionStatusAtom = atom(get => {
 })
 
 // Actions
-export const setUserAtom = atom(null, (get, set, user: User | null) => {
+export const setUserAtom = atom(null, (_get, set, user: User | null) => {
 	set(userAtom, user)
 	set(lastActivityAtom, Date.now())
 	set(authErrorAtom, null)
 	set(authLoadingAtom, false)
 })
 
-export const updateUserAtom = atom(null, (get, set, updates: Partial<User>) => {
-	const currentUser = get(userAtom)
-	if (currentUser) {
-		set(userAtom, { ...currentUser, ...updates })
-		set(lastActivityAtom, Date.now())
+export const updateUserAtom = atom(
+	null,
+	(_get, set, updates: Partial<User>) => {
+		const currentUser = _get(userAtom)
+		if (currentUser) {
+			set(userAtom, { ...currentUser, ...updates })
+			set(lastActivityAtom, Date.now())
+		}
 	}
-})
+)
 
-export const clearAuthAtom = atom(null, (get, set) => {
+export const clearAuthAtom = atom(null, (_get, set) => {
 	set(userAtom, null)
 	set(sessionExpiryAtom, null)
 	set(authErrorAtom, null)
 	set(authLoadingAtom, false)
 })
 
-export const updateLastActivityAtom = atom(null, (get, set) => {
+export const updateLastActivityAtom = atom(null, (_get, set) => {
 	set(lastActivityAtom, Date.now())
 })

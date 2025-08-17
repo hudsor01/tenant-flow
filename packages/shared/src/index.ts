@@ -248,6 +248,13 @@ export type {
 	CreateSubscriptionRequest,
 	CreateSubscriptionResponse,
 
+	// Stripe API Parameter Types
+	StripeInvoiceListParams,
+	StripeSubscriptionCancelParams,
+	StripeSubscriptionCreateData,
+	StripeEventListParams,
+	StripePaymentMethodListParams,
+
 	// Webhook types
 	WebhookEventType,
 	StripeWebhookEvent,
@@ -618,7 +625,7 @@ export {
 // during build and follows proper dependency patterns.
 //
 // Import database types like this:
-// import { User, Property, PrismaClient } from '@repo/database'
+// import { User, Property, SupabaseClient } from '@repo/database'
 
 // ========================
 // React 19 Action State Types

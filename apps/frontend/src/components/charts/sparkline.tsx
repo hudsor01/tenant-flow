@@ -29,6 +29,7 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({
 }) => {
 	if (active && payload && payload.length) {
 		const data = payload[0]
+		if (!data) return null
 		return (
 			<div className="rounded-md border border-gray-200 bg-white px-2 py-1 text-xs shadow-md">
 				<p className="font-medium text-gray-900">
@@ -36,7 +37,7 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({
 						? data.value.toLocaleString()
 						: data.value}
 				</p>
-				{data.payload.date && (
+				{data?.payload?.date && (
 					<p className="text-gray-500">{data.payload.date}</p>
 				)}
 			</div>
@@ -55,8 +56,8 @@ export const Sparkline: React.FC<SparklineProps> = ({
 	className = ''
 }) => {
 	// Determine trend direction
-	const firstValue = data[0]?.value || 0
-	const lastValue = data[data.length - 1]?.value || 0
+	const firstValue = data?.[0]?.value || 0
+	const lastValue = data?.[data.length - 1]?.value || 0
 	const isPositiveTrend = lastValue >= firstValue
 
 	// Default color based on trend

@@ -8,19 +8,25 @@ import {
 	Min
 } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
-import { Priority, RequestStatus } from '@repo/database'
-import { MAINTENANCE_CATEGORY, MaintenanceCategory } from '@repo/shared'
+import {
+	MAINTENANCE_CATEGORY,
+	MaintenanceCategory,
+	PRIORITY,
+	Priority,
+	REQUEST_STATUS,
+	RequestStatus
+} from '@repo/shared'
 
 export class MaintenanceRequestQueryDto {
 	@IsOptional()
-	@IsEnum(RequestStatus, {
+	@IsEnum(REQUEST_STATUS, {
 		message:
 			'Status must be one of: OPEN, IN_PROGRESS, COMPLETED, CANCELED, ON_HOLD'
 	})
 	status?: RequestStatus
 
 	@IsOptional()
-	@IsEnum(Priority, {
+	@IsEnum(PRIORITY, {
 		message: 'Priority must be one of: LOW, MEDIUM, HIGH, EMERGENCY'
 	})
 	priority?: Priority

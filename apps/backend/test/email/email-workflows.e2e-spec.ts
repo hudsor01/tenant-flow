@@ -26,13 +26,13 @@ describe('Email Workflows E2E', () => {
 		prismaService = app.get<PrismaService>(PrismaService)
 
 		// Mock the actual email sending to prevent real emails in tests
-		mockEmailSend = jest.spyOn(emailService as any, 'sendEmail').mockImplementation(
-			async (options: any) => ({
+		mockEmailSend = jest
+			.spyOn(emailService as any, 'sendEmail')
+			.mockImplementation(async (options: any) => ({
 				success: true,
 				messageId: `test_${Date.now()}`,
 				data: options
-			})
-		)
+			}))
 	})
 
 	afterAll(async () => {
@@ -66,9 +66,11 @@ describe('Email Workflows E2E', () => {
 			)
 
 			// Clean up test user
-			await prismaService.user.delete({
-				where: { email: newUser.email }
-			}).catch(() => {}) // Ignore if already deleted
+			await prismaService.user
+				.delete({
+					where: { email: newUser.email }
+				})
+				.catch(() => {}) // Ignore if already deleted
 		})
 
 		it('should handle email sending failure gracefully', async () => {
@@ -91,9 +93,11 @@ describe('Email Workflows E2E', () => {
 			expect(response.body.user.email).toBe(newUser.email)
 
 			// Clean up
-			await prismaService.user.delete({
-				where: { email: newUser.email }
-			}).catch(() => {})
+			await prismaService.user
+				.delete({
+					where: { email: newUser.email }
+				})
+				.catch(() => {})
 		})
 	})
 
@@ -135,13 +139,17 @@ describe('Email Workflows E2E', () => {
 
 		afterEach(async () => {
 			// Clean up test data
-			await prismaService.property.deleteMany({
-				where: { userId: landlordId }
-			}).catch(() => {})
-			
-			await prismaService.user.delete({
-				where: { id: landlordId }
-			}).catch(() => {})
+			await prismaService.property
+				.deleteMany({
+					where: { userId: landlordId }
+				})
+				.catch(() => {})
+
+			await prismaService.user
+				.delete({
+					where: { id: landlordId }
+				})
+				.catch(() => {})
 		})
 
 		it('should send invitation email when tenant is invited', async () => {
@@ -172,11 +180,13 @@ describe('Email Workflows E2E', () => {
 		})
 
 		it('should handle bulk tenant invitations', async () => {
-			const tenants = Array(5).fill(null).map((_, i) => ({
-				email: `tenant${Date.now()}_${i}@example.com`,
-				name: `Tenant ${i}`,
-				propertyId: propertyId
-			}))
+			const tenants = Array(5)
+				.fill(null)
+				.map((_, i) => ({
+					email: `tenant${Date.now()}_${i}@example.com`,
+					name: `Tenant ${i}`,
+					propertyId: propertyId
+				}))
 
 			const response = await request(app.getHttpServer())
 				.post('/tenants/bulk-invite')
@@ -186,7 +196,7 @@ describe('Email Workflows E2E', () => {
 
 			// Should send email for each tenant
 			expect(mockEmailSend).toHaveBeenCalledTimes(5)
-			
+
 			// Each email should be personalized
 			tenants.forEach((tenant, index) => {
 				expect(mockEmailSend).toHaveBeenNthCalledWith(
@@ -245,17 +255,23 @@ describe('Email Workflows E2E', () => {
 		})
 
 		afterEach(async () => {
-			await prismaService.lease.deleteMany({
-				where: { id: leaseId }
-			}).catch(() => {})
-			
-			await prismaService.property.deleteMany({
-				where: { id: propertyId }
-			}).catch(() => {})
-			
-			await prismaService.user.delete({
-				where: { id: tenantId }
-			}).catch(() => {})
+			await prismaService.lease
+				.deleteMany({
+					where: { id: leaseId }
+				})
+				.catch(() => {})
+
+			await prismaService.property
+				.deleteMany({
+					where: { id: propertyId }
+				})
+				.catch(() => {})
+
+			await prismaService.user
+				.delete({
+					where: { id: tenantId }
+				})
+				.catch(() => {})
 		})
 
 		it('should send payment reminder on scheduled date', async () => {
@@ -266,10 +282,10 @@ describe('Email Workflows E2E', () => {
 				.expect(200)
 
 			// Verify reminder email was sent
-			const tenantEmails = mockEmailSend.mock.calls.filter(
-				call => call[0].to[0].includes('tenant')
+			const tenantEmails = mockEmailSend.mock.calls.filter(call =>
+				call[0].to[0].includes('tenant')
 			)
-			
+
 			expect(tenantEmails.length).toBeGreaterThan(0)
 			expect(tenantEmails[0][0]).toMatchObject({
 				subject: expect.stringContaining('Payment Reminder'),
@@ -326,9 +342,11 @@ describe('Email Workflows E2E', () => {
 			)
 
 			// Clean up
-			await prismaService.lease.delete({
-				where: { id: expiringLease.id }
-			}).catch(() => {})
+			await prismaService.lease
+				.delete({
+					where: { id: expiringLease.id }
+				})
+				.catch(() => {})
 		})
 
 		it('should send different alerts for 60, 30, and 7 day marks', async () => {
@@ -338,8 +356,12 @@ describe('Email Workflows E2E', () => {
 					data: {
 						propertyId: 'prop_60',
 						tenantId: 'tenant_60',
-						startDate: new Date(Date.now() - 305 * 24 * 60 * 60 * 1000),
-						endDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+						startDate: new Date(
+							Date.now() - 305 * 24 * 60 * 60 * 1000
+						),
+						endDate: new Date(
+							Date.now() + 60 * 24 * 60 * 60 * 1000
+						),
 						monthlyRent: 1800,
 						securityDeposit: 1800,
 						status: 'ACTIVE'
@@ -349,8 +371,12 @@ describe('Email Workflows E2E', () => {
 					data: {
 						propertyId: 'prop_30',
 						tenantId: 'tenant_30',
-						startDate: new Date(Date.now() - 335 * 24 * 60 * 60 * 1000),
-						endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+						startDate: new Date(
+							Date.now() - 335 * 24 * 60 * 60 * 1000
+						),
+						endDate: new Date(
+							Date.now() + 30 * 24 * 60 * 60 * 1000
+						),
 						monthlyRent: 1900,
 						securityDeposit: 1900,
 						status: 'ACTIVE'
@@ -360,7 +386,9 @@ describe('Email Workflows E2E', () => {
 					data: {
 						propertyId: 'prop_7',
 						tenantId: 'tenant_7',
-						startDate: new Date(Date.now() - 358 * 24 * 60 * 60 * 1000),
+						startDate: new Date(
+							Date.now() - 358 * 24 * 60 * 60 * 1000
+						),
 						endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
 						monthlyRent: 2100,
 						securityDeposit: 2100,
@@ -379,15 +407,21 @@ describe('Email Workflows E2E', () => {
 			expect(mockEmailSend).toHaveBeenCalledTimes(3)
 
 			// Each should have different urgency
-			const emailContents = mockEmailSend.mock.calls.map(call => call[0].html)
+			const emailContents = mockEmailSend.mock.calls.map(
+				call => call[0].html
+			)
 			expect(emailContents[0]).toContain('60 days')
 			expect(emailContents[1]).toContain('30 days')
 			expect(emailContents[2]).toContain('7 days')
 
 			// Clean up
-			await Promise.all(leases.map(lease => 
-				prismaService.lease.delete({ where: { id: lease.id } }).catch(() => {})
-			))
+			await Promise.all(
+				leases.map(lease =>
+					prismaService.lease
+						.delete({ where: { id: lease.id } })
+						.catch(() => {})
+				)
+			)
 		})
 	})
 
@@ -415,10 +449,12 @@ describe('Email Workflows E2E', () => {
 			// Simulate service being completely down
 			mockEmailSend.mockRejectedValue(new Error('Service unavailable'))
 
-			const emails = Array(10).fill(null).map((_, i) => ({
-				email: `queue${i}@example.com`,
-				name: `User ${i}`
-			}))
+			const emails = Array(10)
+				.fill(null)
+				.map((_, i) => ({
+					email: `queue${i}@example.com`,
+					name: `User ${i}`
+				}))
 
 			const results = await Promise.all(
 				emails.map(e => emailService.sendWelcomeEmail(e.email, e.name))
@@ -470,12 +506,16 @@ describe('Email Workflows E2E', () => {
 			})
 
 			const results = await Promise.all(
-				Array(100).fill(null).map((_, i) => 
-					emailService.sendWelcomeEmail(
-						`track${i}@example.com`,
-						`User ${i}`
-					).catch(() => ({ success: false }))
-				)
+				Array(100)
+					.fill(null)
+					.map((_, i) =>
+						emailService
+							.sendWelcomeEmail(
+								`track${i}@example.com`,
+								`User ${i}`
+							)
+							.catch(() => ({ success: false }))
+					)
 			)
 
 			const successCount = results.filter(r => r.success).length

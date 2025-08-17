@@ -49,7 +49,6 @@ export function PaymentSuccess({
 }: PaymentSuccessProps) {
 	// unused variable for function signature compatibility
 	void sessionId
-	const _router = useRouter()
 	const [showConfetti, setShowConfetti] = useState(false)
 
 	useEffect(() => {
