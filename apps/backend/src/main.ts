@@ -548,7 +548,7 @@ async function bootstrap() {
 				phase: 'timeout-warning',
 				duration: 10000,
 				suggestions: [
-					'Check PrismaService onModuleInit()',
+					'Check SupabaseService initialization',
 					'Review StripeCheckoutService initialization',
 					'Look for hanging HTTP requests in service constructors'
 				]

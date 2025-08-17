@@ -42,12 +42,20 @@ export class LeaseQueryDto
 	propertyId?: string
 
 	@IsOptional()
-	@IsDateString({}, { message: 'Start date must be a valid ISO date string' })
-	startDate?: string
+	@IsDateString({}, { message: 'Start date from must be a valid ISO date string' })
+	startDateFrom?: string
 
 	@IsOptional()
-	@IsDateString({}, { message: 'End date must be a valid ISO date string' })
-	endDate?: string
+	@IsDateString({}, { message: 'Start date to must be a valid ISO date string' })
+	startDateTo?: string
+
+	@IsOptional()
+	@IsDateString({}, { message: 'End date from must be a valid ISO date string' })
+	endDateFrom?: string
+
+	@IsOptional()
+	@IsDateString({}, { message: 'End date to must be a valid ISO date string' })
+	endDateTo?: string
 
 	@IsOptional()
 	@Transform(({ value }) => {

@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common'
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { MaintenanceService } from './maintenance.service'
-import { MaintenanceRequest } from '@repo/shared'
+import { MaintenanceRequestWithRelations } from './maintenance-request-supabase.repository'
 import {
 	CreateMaintenanceRequestDto,
 	createMaintenanceRequestSchema,
@@ -52,7 +52,7 @@ export class MaintenanceController {
 	async create(
 		@Body() data: CreateMaintenanceRequestDto,
 		@CurrentUser() user: ValidatedUser
-	): Promise<MaintenanceRequest> {
+	): Promise<MaintenanceRequestWithRelations> {
 		return this.maintenanceService.create(data, user.id)
 	}
 
@@ -68,7 +68,7 @@ export class MaintenanceController {
 	async findAll(
 		@Query() query: MaintenanceRequestQueryDto,
 		@CurrentUser() user: ValidatedUser
-	): Promise<MaintenanceRequest[]> {
+	): Promise<MaintenanceRequestWithRelations[]> {
 		return this.maintenanceService.getByOwner(user.id, query)
 	}
 
@@ -99,7 +99,7 @@ export class MaintenanceController {
 		@Param('unitId') unitId: string,
 		@CurrentUser() user: ValidatedUser,
 		@Query() query: MaintenanceRequestQueryDto
-	): Promise<MaintenanceRequest[]> {
+	): Promise<MaintenanceRequestWithRelations[]> {
 		return this.maintenanceService.getByUnit(unitId, user.id, query)
 	}
 
@@ -115,7 +115,7 @@ export class MaintenanceController {
 	async findOne(
 		@Param('id') id: string,
 		@CurrentUser() user: ValidatedUser
-	): Promise<MaintenanceRequest> {
+	): Promise<MaintenanceRequestWithRelations> {
 		return this.maintenanceService.findById(id, user.id)
 	}
 
@@ -136,7 +136,7 @@ export class MaintenanceController {
 		@Param('id') id: string,
 		@Body() data: UpdateMaintenanceRequestDto,
 		@CurrentUser() user: ValidatedUser
-	): Promise<MaintenanceRequest> {
+	): Promise<MaintenanceRequestWithRelations> {
 		return this.maintenanceService.update(id, data, user.id)
 	}
 
@@ -152,7 +152,7 @@ export class MaintenanceController {
 	async remove(
 		@Param('id') id: string,
 		@CurrentUser() user: ValidatedUser
-	): Promise<MaintenanceRequest> {
+	): Promise<void> {
 		return this.maintenanceService.delete(id, user.id)
 	}
 }

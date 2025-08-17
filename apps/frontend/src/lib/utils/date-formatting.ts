@@ -79,9 +79,3 @@ export function formatSignatureDate(dateString: string): string {
 		return dateString
 	}
 }
-
-/**
- * Legacy function for backward compatibility
- * @deprecated Use formatLeaseDate instead
- */
-export const formatDate = formatLeaseDate

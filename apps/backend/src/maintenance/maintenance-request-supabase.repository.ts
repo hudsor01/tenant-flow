@@ -623,7 +623,7 @@ export class MaintenanceRequestSupabaseRepository extends BaseSupabaseRepository
 
 			// Update the request
 			const updateData: MaintenanceRequestUpdate = {
-				status,
+				status: status as MaintenanceRequestUpdate['status'],
 				updatedAt: new Date().toISOString()
 			}
 

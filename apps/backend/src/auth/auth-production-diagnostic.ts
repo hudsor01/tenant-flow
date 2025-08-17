@@ -41,7 +41,7 @@ class AuthProductionDiagnostic {
 	private readonly logger = new Logger('AuthDiagnostic')
 	private app!: INestApplicationContext
 	private authService!: AuthService
-	private prisma!: PrismaService
+	private supabase!: SupabaseService
 	private config!: ConfigService
 	private results: DiagnosticResult[] = []
 
@@ -52,7 +52,7 @@ class AuthProductionDiagnostic {
 			})
 
 			this.authService = this.app.get(AuthService)
-			this.prisma = this.app.get(PrismaService)
+			this.supabase = this.app.get(SupabaseService)
 			this.config = this.app.get(ConfigService)
 
 			this.logger.log('🚀 Auth Diagnostic System Initialized')
@@ -407,7 +407,11 @@ class AuthProductionDiagnostic {
 
 		// Test database connection
 		try {
-			await this.prisma.$queryRaw`SELECT 1 as test`
+			const { data, error } = await this.supabase.getAdminClient()
+				.from('User')
+				.select('count', { count: 'exact' })
+				.limit(1)
+			if (error) throw error
 			this.addResult(
 				'Database',
 				'Connection',
@@ -428,7 +432,10 @@ class AuthProductionDiagnostic {
 
 		// Test user table structure
 		try {
-			const userCount = await this.prisma.user.count()
+			const { count: userCount, error } = await this.supabase.getAdminClient()
+				.from('User')
+				.select('*', { count: 'exact', head: true })
+			if (error) throw error
 			this.addResult(
 				'Database',
 				'User Table',
@@ -449,8 +456,9 @@ class AuthProductionDiagnostic {
 		// Test RLS policies (basic check)
 		try {
 			// This is a basic test - in production you'd want more comprehensive RLS testing
-			const testQuery = await this.prisma
-				.$queryRaw`SELECT current_setting('row_security', true) as rls_status`
+			const { data: testQuery, error } = await this.supabase.getAdminClient()
+				.rpc('get_current_setting', { setting_name: 'row_security' })
+			if (error) throw error
 			this.addResult(
 				'Database',
 				'RLS Configuration',
@@ -470,7 +478,10 @@ class AuthProductionDiagnostic {
 
 		// Test subscription table integration
 		try {
-			await this.prisma.subscription.count()
+			const { count, error } = await this.supabase.getAdminClient()
+				.from('Subscription')
+				.select('*', { count: 'exact', head: true })
+			if (error) throw error
 			this.addResult(
 				'Database',
 				'Subscription Table',

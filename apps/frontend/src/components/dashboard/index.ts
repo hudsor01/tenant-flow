@@ -17,8 +17,4 @@ export { default as Dashboard } from './dashboard'
 // Sidebar component
 export { Sidebar as DashboardSidebar } from './dashboard-sidebar'
 
-// Types
-export type {
-	DashboardStats,
-	ActivityItem
-} from '../../hooks/use-dashboard-data'
+// Types - TODO: Define proper dashboard types when implementing dashboard data hook

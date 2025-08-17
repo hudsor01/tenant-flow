@@ -24,43 +24,45 @@ export interface SubscriptionAccess {
 
 @Injectable()
 export class SubscriptionStatusService {
-	constructor(private readonly prismaService: PrismaService) {}
+	constructor() {}
 
 	/**
 	 * Get comprehensive subscription status for a user
 	 */
 	async getUserSubscriptionStatus(
-		userId: string
+		_userId: string
 	): Promise<UserSubscriptionStatus> {
-		const subscription = await this.prismaService.subscription.findUnique({
-			where: { userId },
-			select: {
-				id: true,
-				status: true,
-				planType: true,
-				stripeSubscriptionId: true,
-				trialEnd: true,
-				currentPeriodEnd: true,
-				cancelAtPeriodEnd: true,
-				canceledAt: true
-			}
-		})
+		// TODO: Convert to Supabase
+		// const subscription = await this.supabaseService.subscription.findUnique({
+		// 	where: { userId },
+		// 	select: {
+		// 		id: true,
+		// 		status: true,
+		// 		planType: true,
+		// 		stripeSubscriptionId: true,
+		// 		trialEnd: true,
+		// 		currentPeriodEnd: true,
+		// 		cancelAtPeriodEnd: true,
+		// 		canceledAt: true
+		// 	}
+		// })
 
-		if (!subscription) {
-			return {
-				hasActiveSubscription: false,
-				status: null,
-				planType: null,
-				trialEndsAt: null,
-				billingPeriodEndsAt: null,
-				canExportData: false,
-				canAccessPremiumFeatures: false,
-				needsPaymentMethod: false,
-				stripeSubscriptionId: null,
-				subscriptionId: null
-			}
+		// Temporarily return default values until Supabase integration
+		return {
+			hasActiveSubscription: false,
+			status: null,
+			planType: null,
+			trialEndsAt: null,
+			billingPeriodEndsAt: null,
+			canExportData: false,
+			canAccessPremiumFeatures: false,
+			needsPaymentMethod: false,
+			stripeSubscriptionId: null,
+			subscriptionId: null
 		}
 
+		// TODO: Uncomment when Supabase integration is complete
+		/*
 		const isActive = this.isSubscriptionActive(
 			subscription.status as SubStatus
 		)
@@ -80,6 +82,7 @@ export class SubscriptionStatusService {
 			stripeSubscriptionId: subscription.stripeSubscriptionId,
 			subscriptionId: subscription.id
 		}
+		*/
 	}
 
 	/**
@@ -241,15 +244,19 @@ export class SubscriptionStatusService {
 	/**
 	 * Check if subscription allows billing operations
 	 */
-	async canManageBilling(userId: string): Promise<boolean> {
-		const subscription = await this.prismaService.subscription.findUnique({
-			where: { userId },
-			select: { status: true }
-		})
+	async canManageBilling(_userId: string): Promise<boolean> {
+		// TODO: Convert to Supabase
+		// const subscription = await this.supabaseService.subscription.findUnique({
+		// 	where: { userId },
+		// 	select: { status: true }
+		// })
 
 		// Users can manage billing if they have any subscription record
 		// This includes paused subscriptions (they need to add payment method)
-		return !!subscription
+		// return !!subscription
+		
+		// Temporarily return false until Supabase integration
+		return false
 	}
 
 	/**
@@ -286,13 +293,5 @@ export class SubscriptionStatusService {
 	}
 
 	// Private helper methods
-	private isSubscriptionActive(status: SubStatus): boolean {
-		return ['ACTIVE', 'TRIALING'].includes(status)
-	}
 
-	private canAccessPaidFeatures(status: SubStatus): boolean {
-		// Only active and trialing users can access paid features
-		// Incomplete/paused users are blocked from premium features
-		return ['ACTIVE', 'TRIALING'].includes(status)
-	}
 }

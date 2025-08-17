@@ -55,12 +55,20 @@ export class UnitsService {
 				updatedAt: new Date().toISOString()
 			}
 
-			const unit = await this.repository.createWithValidation(
-				unitData,
+			// TODO: Implement createWithValidation in repository or use alternative approach
+			// For now, create the unit directly using Supabase
+			const units = await this.repository.createBulkForProperty(
+				unitData.propertyId,
+				[unitData],
 				ownerId,
 				userId,
 				userToken
 			)
+			
+			const unit = units[0]
+			if (!unit) {
+				throw new Error('Failed to create unit')
+			}
 
 			this.logger.log('Unit created successfully', {
 				unitId: unit.id,
@@ -147,15 +155,15 @@ export class UnitsService {
 	async findByProperty(
 		propertyId: string,
 		ownerId: string,
-		options: UnitQueryOptions = {},
+		_options: UnitQueryOptions = {},
 		userId?: string,
 		userToken?: string
 	): Promise<UnitWithRelations[]> {
 		try {
+			// TODO: Add support for options in repository method
 			return await this.repository.findByProperty(
 				propertyId,
 				ownerId,
-				options,
 				userId,
 				userToken
 			)
@@ -243,8 +251,9 @@ export class UnitsService {
 			}
 
 			// Check for active leases before deletion
-			const hasActiveLeases = await this.repository.hasActiveLeases(
+			const hasActiveLeases = await this.repository.hasActiveLease(
 				id,
+				ownerId,
 				userId,
 				userToken
 			)
@@ -285,11 +294,22 @@ export class UnitsService {
 		averageRent: number
 	}> {
 		try {
-			return await this.repository.getStatsByOwner(
+			const stats = await this.repository.getStatsByOwner(
 				ownerId,
 				userId,
 				userToken
 			)
+			
+			// Map repository stats to expected format
+			return {
+				total: stats.total,
+				vacant: stats.available, // Map 'available' to 'vacant'
+				occupied: stats.occupied,
+				maintenance: stats.maintenance,
+				unavailable: stats.reserved, // Map 'reserved' to 'unavailable'
+				totalRent: 0, // TODO: Calculate from actual lease data
+				averageRent: 0 // TODO: Calculate from actual lease data
+			}
 		} catch (error) {
 			throw this.errorHandler.handleErrorEnhanced(error as Error, {
 				operation: 'getStats',
@@ -304,13 +324,14 @@ export class UnitsService {
 	 */
 	async getUnitsByProperty(
 		propertyId: string,
-		userId: string,
+		ownerId: string,
+		userId?: string,
 		userToken?: string
 	): Promise<UnitWithRelations[]> {
 		try {
 			const units = await this.repository.findByProperty(
 				propertyId,
-				userId,
+				ownerId,
 				userId,
 				userToken
 			)
@@ -321,7 +342,11 @@ export class UnitsService {
 			return units
 		} catch (error) {
 			this.logger.error('Failed to get units by property:', error)
-			throw this.errorHandler.handleError(error)
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'getUnitsByProperty',
+				resource: 'unit',
+				metadata: { propertyId }
+			})
 		}
 	}
 
@@ -362,8 +387,9 @@ export class UnitsService {
 
 			// If setting to occupied, validate there's an active lease
 			if (status === 'OCCUPIED') {
-				const hasActiveLease = await this.repository.hasActiveLeases(
+				const hasActiveLease = await this.repository.hasActiveLease(
 					id,
+					ownerId,
 					userId,
 					userToken
 				)
@@ -437,12 +463,9 @@ export class UnitsService {
 				throw new ValidationException('Too many units (max 100)')
 			}
 
-			const results = await this.repository.bulkUpdateStatus(
-				unitIds,
-				status,
-				ownerId,
-				userId,
-				userToken
+			// TODO: Implement bulk update - for now update one by one
+			const results = await Promise.all(
+				unitIds.map(id => this.repository.updateStatus(id, status, ownerId, userId, userToken))
 			)
 
 			this.logger.log('Units bulk status update completed', {
@@ -471,17 +494,17 @@ export class UnitsService {
 		userToken?: string
 	): Promise<UnitWithRelations[]> {
 		try {
-			const options: UnitQueryOptions = {
-				status: 'VACANT'
-			}
-
-			return await this.repository.findByProperty(
+			// TODO: Add support for filtering by status in repository method
+			// For now, fetch all units and filter in memory
+			const allUnits = await this.repository.findByProperty(
 				propertyId,
 				ownerId,
-				options,
 				userId,
 				userToken
 			)
+
+			// Filter for vacant units
+			return allUnits.filter(unit => unit.status === 'VACANT')
 		} catch (error) {
 			throw this.errorHandler.handleErrorEnhanced(error as Error, {
 				operation: 'getVacantUnits',
@@ -534,13 +557,15 @@ export class UnitsService {
 		userToken?: string
 	): Promise<boolean> {
 		try {
-			const existing = await this.repository.findByUnitNumber(
+			// TODO: Implement findByUnitNumber in repository
+			// For now, fetch all units for the property and filter
+			const units = await this.repository.findByProperty(
 				propertyId,
-				unitNumber,
 				ownerId,
 				userId,
 				userToken
 			)
+			const existing = units.find(u => u.unitNumber === unitNumber)
 
 			if (!existing) {
 				return false

@@ -158,7 +158,6 @@ export interface StripeCustomer {
 	readonly cash_balance?: StripeCashBalance | null
 	readonly created: number
 	readonly currency?: SupportedCurrency | null
-	/** @deprecated Use invoice_settings.default_payment_method instead. Sources API is deprecated. */
 	readonly default_source?: string | null
 	readonly delinquent?: boolean | null
 	readonly description?: string | null
@@ -593,7 +592,6 @@ export interface StripeInvoice {
 	readonly customer_tax_exempt?: 'exempt' | 'none' | 'reverse' | null
 	readonly customer_tax_ids?: StripeTaxId[] | null
 	readonly default_payment_method?: string | null
-	/** @deprecated Use default_payment_method instead. Sources API is deprecated. */
 	readonly default_source?: string | null
 	readonly default_tax_rates: {
 		readonly id: string
