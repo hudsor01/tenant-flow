@@ -34,14 +34,14 @@ export class DashboardErrorBoundary extends Component<Props, State> {
 		return { hasError: true, error }
 	}
 
-	componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+	override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
 		logger.error('Dashboard error:', error, {
 			component: 'dashboarderrorboundary',
 			errorInfo
 		})
 	}
 
-	render() {
+	override render() {
 		if (this.state.hasError) {
 			// Check if it's an API error
 			const isApiError =

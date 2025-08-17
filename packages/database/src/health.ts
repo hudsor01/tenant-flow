@@ -1,4 +1,5 @@
-import type { PrismaClient } from './generated/client'
+import { createClient } from '@supabase/supabase-js'
+import type { Database } from '@repo/shared/types/supabase-generated'
 
 /**
  * Result type for database health check
@@ -9,18 +10,18 @@ export interface DatabaseHealthResult {
 }
 
 /**
- * Checks database connectivity by performing a simple SELECT 1 query
+ * Checks database connectivity using Supabase client
  *
- * @param prisma - PrismaClient instance to use for the health check
+ * @param supabaseUrl - Supabase project URL
+ * @param supabaseKey - Supabase service key
  * @returns Promise resolving to health check result
  *
  * @example
  * ```typescript
- * import { PrismaClient } from '@repo/database'
- * import { checkDatabaseConnection } from '@repo/database/health'
- *
- * const prisma = new PrismaClient()
- * const result = await checkDatabaseConnection(prisma)
+ * const result = await checkDatabaseConnection(
+ *   process.env.SUPABASE_URL,
+ *   process.env.SUPABASE_SERVICE_KEY
+ * )
  *
  * if (result.healthy) {
  *   console.log('Database is healthy')
@@ -30,12 +31,28 @@ export interface DatabaseHealthResult {
  * ```
  */
 export async function checkDatabaseConnection(
-	prisma: PrismaClient
+	supabaseUrl?: string,
+	supabaseKey?: string
 ): Promise<DatabaseHealthResult> {
 	try {
-		// Perform a simple SELECT 1 query to test connectivity
-		// This is a lightweight query that works across all SQL databases
-		await prisma.$queryRaw`SELECT 1`
+		if (!supabaseUrl || !supabaseKey) {
+			return {
+				healthy: false,
+				error: 'Missing Supabase configuration'
+			}
+		}
+
+		const supabase = createClient<Database>(supabaseUrl, supabaseKey)
+
+		// Perform a simple query to test connectivity
+		const { error } = await supabase.from('User').select('id').limit(1)
+
+		if (error) {
+			return {
+				healthy: false,
+				error: error.message
+			}
+		}
 
 		return { healthy: true }
 	} catch (error) {

@@ -185,19 +185,18 @@ export function sanitizeHTML(
 
 	// Configure DOMPurify
 	const cleanConfig = {
-		ALLOWED_TAGS: config.allowedTags,
-		ALLOWED_ATTR: Object.keys(config.allowedAttributes).reduce(
-			(acc, tag) => {
-				return [...acc, ...config.allowedAttributes[tag]]
-			},
-			[] as string[]
-		),
+		ALLOWED_TAGS: config?.allowedTags,
+		ALLOWED_ATTR: config?.allowedAttributes
+			? Object.keys(config.allowedAttributes).reduce((acc, tag) => {
+					return [...acc, ...(config.allowedAttributes[tag] || [])]
+				}, [] as string[])
+			: [],
 		ALLOWED_URI_REGEXP:
-			config.allowedSchemes.length > 0
+			config?.allowedSchemes && config.allowedSchemes.length > 0
 				? new RegExp(`^(?:${config.allowedSchemes.join('|')}):`, 'i')
 				: /^$/,
-		FORBID_TAGS: config.forbiddenTags,
-		FORBID_ATTR: config.forbiddenAttributes,
+		FORBID_TAGS: config?.forbiddenTags,
+		FORBID_ATTR: config?.forbiddenAttributes,
 		ALLOW_DATA_ATTR: false,
 		ALLOW_UNKNOWN_PROTOCOLS: false,
 		SANITIZE_DOM: true,

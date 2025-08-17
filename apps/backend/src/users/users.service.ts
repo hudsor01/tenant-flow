@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { PrismaService } from '../prisma/prisma.service'
-import type { UserRole } from '@repo/database'
+import { SupabaseService } from '../supabase/supabase.service'
+import type { UserRole } from '@repo/shared'
+
 // Define UserCreationResult locally
 export interface UserCreationResult {
 	success: boolean
@@ -26,24 +27,23 @@ interface UserCreationOptions {
 export class UsersService {
 	private readonly logger = new Logger(UsersService.name)
 
-	constructor(private prisma: PrismaService) {}
+	constructor(private supabase: SupabaseService) {}
 
 	async getUserById(id: string) {
-		return this.prisma.user.findUnique({
-			where: { id },
-			select: {
-				id: true,
-				email: true,
-				name: true,
-				phone: true,
-				bio: true,
-				avatarUrl: true,
-				role: true,
-				createdAt: true,
-				updatedAt: true,
-				stripeCustomerId: true
-			}
-		})
+		const { data, error } = await this.supabase
+			.getAdminClient()
+			.from('User')
+			.select(
+				'id, email, name, phone, bio, avatarUrl, role, createdAt, updatedAt, stripeCustomerId'
+			)
+			.eq('id', id)
+			.single()
+
+		if (error) {
+			this.logger.error('Failed to get user by ID', { error, id })
+			return null
+		}
+		return data
 	}
 
 	async updateUser(
@@ -55,13 +55,22 @@ export class UsersService {
 			[key: string]: unknown
 		}
 	) {
-		return this.prisma.user.update({
-			where: { id },
-			data: {
+		const { data: user, error } = await this.supabase
+			.getAdminClient()
+			.from('User')
+			.update({
 				...data,
-				updatedAt: new Date()
-			}
-		})
+				updatedAt: new Date().toISOString()
+			})
+			.eq('id', id)
+			.select()
+			.single()
+
+		if (error) {
+			this.logger.error('Failed to update user', { error, id })
+			throw error
+		}
+		return user
 	}
 
 	async updateUserProfile(
@@ -73,25 +82,24 @@ export class UsersService {
 			avatarUrl?: string
 		}
 	) {
-		return this.prisma.user.update({
-			where: { id },
-			data: {
+		const { data: user, error } = await this.supabase
+			.getAdminClient()
+			.from('User')
+			.update({
 				...data,
-				updatedAt: new Date()
-			},
-			select: {
-				id: true,
-				email: true,
-				name: true,
-				phone: true,
-				bio: true,
-				avatarUrl: true,
-				role: true,
-				createdAt: true,
-				updatedAt: true,
-				stripeCustomerId: true
-			}
-		})
+				updatedAt: new Date().toISOString()
+			})
+			.eq('id', id)
+			.select(
+				'id, email, name, phone, bio, avatarUrl, role, createdAt, updatedAt, stripeCustomerId'
+			)
+			.single()
+
+		if (error) {
+			this.logger.error('Failed to update user profile', { error, id })
+			throw error
+		}
+		return user
 	}
 
 	/**
@@ -99,10 +107,20 @@ export class UsersService {
 	 */
 	async checkUserExists(userId: string): Promise<boolean> {
 		try {
-			const user = await this.prisma.user.findUnique({
-				where: { id: userId },
-				select: { id: true }
-			})
+			const { data: user, error } = await this.supabase
+				.getAdminClient()
+				.from('User')
+				.select('id')
+				.eq('id', userId)
+				.single()
+
+			if (error && error.code !== 'PGRST116') {
+				// PGRST116 is 'not found' error
+				this.logger.warn('Failed to check user existence', {
+					userId,
+					error: error.message
+				})
+			}
 			return !!user
 		} catch (error) {
 			this.logger.warn('Failed to check user existence', {
@@ -215,22 +233,24 @@ export class UsersService {
 	): Promise<UserCreationResult> {
 		try {
 			// Use upsert to handle race conditions
-			const user = await this.prisma.user.upsert({
-				where: { id: authUser.id },
-				update: {
-					name: options.name,
-					updatedAt: new Date()
-				},
-				create: {
+			const { data: user, error } = await this.supabase
+				.getAdminClient()
+				.from('User')
+				.upsert({
 					id: authUser.id,
 					supabaseId: authUser.id,
 					email: authUser.email,
 					name: options.name || null,
 					role: options.role as UserRole,
-					createdAt: new Date(),
-					updatedAt: new Date()
-				}
-			})
+					createdAt: new Date().toISOString(),
+					updatedAt: new Date().toISOString()
+				})
+				.select()
+				.single()
+
+			if (error) {
+				throw error
+			}
 
 			return {
 				success: true,

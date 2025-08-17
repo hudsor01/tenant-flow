@@ -28,7 +28,7 @@ declare module 'posthog-js' {
 
 declare module 'posthog-js/react' {
 	import { PostHog } from 'posthog-js'
-	
+
 	export function usePostHog(): PostHog
 	export function PostHogProvider(props: {
 		apiKey: string

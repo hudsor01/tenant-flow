@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common'
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { MaintenanceService } from './maintenance.service'
-import { MaintenanceRequest } from '@repo/database'
+import { MaintenanceRequest } from '@repo/shared'
 import {
 	CreateMaintenanceRequestDto,
 	createMaintenanceRequestSchema,

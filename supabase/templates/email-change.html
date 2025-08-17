@@ -1,303 +1,323 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Confirm Your New Email - TenantFlow</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
-            color: #1f2937;
-            background-color: #f9fafb;
-        }
-        .container {
-            max-width: 600px;
-            margin: 40px auto;
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
-        }
-        .header {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            padding: 48px 32px;
-            text-align: center;
-        }
-        .logo {
-            font-size: 32px;
-            font-weight: 700;
-            color: white;
-            margin-bottom: 8px;
-            letter-spacing: -0.5px;
-        }
-        .tagline {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 14px;
-            font-weight: 500;
-        }
-        .content {
-            padding: 48px 32px;
-        }
-        h1 {
-            font-size: 24px;
-            font-weight: 700;
-            color: #111827;
-            margin-bottom: 16px;
-        }
-        p {
-            color: #4b5563;
-            margin-bottom: 24px;
-            font-size: 16px;
-            line-height: 1.7;
-        }
-        .email-icon {
-            text-align: center;
-            font-size: 64px;
-            margin: 32px 0;
-        }
-        .button-container {
-            text-align: center;
-            margin: 40px 0;
-        }
-        .button {
-            display: inline-block;
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            color: white;
-            padding: 14px 32px;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 16px;
-            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.25);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35);
-        }
-        .otp-box {
-            background: #f3f4f6;
-            border: 2px dashed #d1d5db;
-            border-radius: 8px;
-            padding: 20px;
-            text-align: center;
-            margin: 32px 0;
-        }
-        .otp-label {
-            font-size: 14px;
-            color: #6b7280;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .otp-code {
-            font-size: 32px;
-            font-weight: 700;
-            color: #111827;
-            letter-spacing: 8px;
-            font-family: 'Courier New', monospace;
-        }
-        .email-change-box {
-            background: #eff6ff;
-            border: 1px solid #bfdbfe;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 24px 0;
-        }
-        .email-label {
-            font-size: 14px;
-            color: #1e40af;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-        .email-address {
-            font-size: 16px;
-            color: #111827;
-            font-family: 'Courier New', monospace;
-            background: white;
-            padding: 8px 12px;
-            border-radius: 4px;
-            margin-bottom: 12px;
-            border: 1px solid #dbeafe;
-        }
-        .arrow {
-            text-align: center;
-            font-size: 20px;
-            color: #6b7280;
-            margin: 8px 0;
-        }
-        .security-notice {
-            background: #fef3c7;
-            border: 1px solid #fde68a;
-            border-radius: 8px;
-            padding: 16px;
-            margin: 24px 0;
-        }
-        .security-icon {
-            display: inline-block;
-            margin-right: 8px;
-        }
-        .security-text {
-            color: #92400e;
-            font-size: 14px;
-            margin: 0;
-        }
-        .consequences-list {
-            background: #f9fafb;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 24px 0;
-        }
-        .consequences-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #111827;
-            margin-bottom: 12px;
-        }
-        .consequences-items {
-            color: #6b7280;
-            font-size: 14px;
-            padding-left: 20px;
-        }
-        .consequences-items li {
-            margin-bottom: 8px;
-        }
-        .divider {
-            height: 1px;
-            background: #e5e7eb;
-            margin: 32px 0;
-        }
-        .footer {
-            padding: 24px 32px;
-            background: #f9fafb;
-            text-align: center;
-        }
-        .footer-text {
-            color: #6b7280;
-            font-size: 14px;
-            margin-bottom: 8px;
-        }
-        .footer-link {
-            color: #3b82f6;
-            text-decoration: none;
-            font-weight: 500;
-        }
-        .footer-link:hover {
-            text-decoration: underline;
-        }
-        .critical-warning {
-            background: #fee2e2;
-            border-left: 4px solid #ef4444;
-            padding: 12px 16px;
-            border-radius: 4px;
-            margin-top: 24px;
-        }
-        .critical-text {
-            color: #991b1b;
-            font-size: 14px;
-            margin: 0;
-            font-weight: 600;
-        }
-        @media (max-width: 640px) {
-            .container {
-                margin: 0;
-                border-radius: 0;
-            }
-            .header {
-                padding: 32px 20px;
-            }
-            .content {
-                padding: 32px 20px;
-            }
-            .footer {
-                padding: 20px;
-            }
-            .email-icon {
-                font-size: 48px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <div class="logo">🏠 TenantFlow</div>
-            <div class="tagline">Property Management Made Simple</div>
-        </div>
-        
-        <div class="content">
-            <div class="email-icon">📨</div>
-            
-            <h1>Confirm Your Email Change</h1>
-            
-            <p>
-                You've requested to change the email address associated with your TenantFlow account. 
-                Please confirm this change by clicking the button below.
-            </p>
-            
-            <div class="email-change-box">
-                <div class="email-label">Current Email:</div>
-                <div class="email-address">{{ .OldEmail | default "your-old-email@example.com" }}</div>
-                <div class="arrow">↓</div>
-                <div class="email-label">New Email:</div>
-                <div class="email-address">{{ .Email }}</div>
-            </div>
-            
-            <div class="button-container">
-                <a href="{{ .ConfirmationURL }}" class="button">
-                    Confirm Email Change →
-                </a>
-            </div>
-            
-            <div class="otp-box">
-                <div class="otp-label">Or use this confirmation code</div>
-                <div class="otp-code">{{ .Token }}</div>
-            </div>
-            
-            <div class="security-notice">
-                <p class="security-text">
-                    <span class="security-icon">🔐</span>
-                    <strong>Security Notice:</strong> Changing your email will update your login credentials. 
-                    You'll need to use your new email address to sign in after confirmation.
-                </p>
-            </div>
-            
-            <div class="divider"></div>
-            
-            <div class="consequences-list">
-                <div class="consequences-title">📋 What This Change Affects</div>
-                <ul class="consequences-items">
-                    <li>Your login email will be updated to the new address</li>
-                    <li>All notifications will be sent to your new email</li>
-                    <li>Your account recovery email will be changed</li>
-                    <li>You'll be logged out of all active sessions</li>
-                    <li>You'll need to sign in again with your new email</li>
-                </ul>
-            </div>
-            
-            <div class="critical-warning">
-                <p class="critical-text">
-                    ⚠️ IMPORTANT: If you didn't request this change, your account may be compromised. 
-                    Please secure your account immediately by changing your password and contacting our security team.
-                </p>
-            </div>
-        </div>
-        
-        <div class="footer">
-            <p class="footer-text">
-                Security concern? Contact us immediately at 
-                <a href="mailto:security@tenantflow.app" class="footer-link">security@tenantflow.app</a>
-            </p>
-            <p class="footer-text">
-                © 2024 TenantFlow. All rights reserved.
-            </p>
-        </div>
-    </div>
-</body>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Confirm Your New Email - TenantFlow</title>
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+				box-sizing: border-box;
+			}
+			body {
+				font-family:
+					-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+					'Helvetica Neue', Arial, sans-serif;
+				line-height: 1.6;
+				color: #1f2937;
+				background-color: #f9fafb;
+			}
+			.container {
+				max-width: 600px;
+				margin: 40px auto;
+				background: white;
+				border-radius: 12px;
+				overflow: hidden;
+				box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+			}
+			.header {
+				background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+				padding: 48px 32px;
+				text-align: center;
+			}
+			.logo {
+				font-size: 32px;
+				font-weight: 700;
+				color: white;
+				margin-bottom: 8px;
+				letter-spacing: -0.5px;
+			}
+			.tagline {
+				color: rgba(255, 255, 255, 0.9);
+				font-size: 14px;
+				font-weight: 500;
+			}
+			.content {
+				padding: 48px 32px;
+			}
+			h1 {
+				font-size: 24px;
+				font-weight: 700;
+				color: #111827;
+				margin-bottom: 16px;
+			}
+			p {
+				color: #4b5563;
+				margin-bottom: 24px;
+				font-size: 16px;
+				line-height: 1.7;
+			}
+			.email-icon {
+				text-align: center;
+				font-size: 64px;
+				margin: 32px 0;
+			}
+			.button-container {
+				text-align: center;
+				margin: 40px 0;
+			}
+			.button {
+				display: inline-block;
+				background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+				color: white;
+				padding: 14px 32px;
+				text-decoration: none;
+				border-radius: 8px;
+				font-weight: 600;
+				font-size: 16px;
+				box-shadow: 0 4px 14px rgba(59, 130, 246, 0.25);
+				transition:
+					transform 0.2s,
+					box-shadow 0.2s;
+			}
+			.button:hover {
+				transform: translateY(-2px);
+				box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35);
+			}
+			.otp-box {
+				background: #f3f4f6;
+				border: 2px dashed #d1d5db;
+				border-radius: 8px;
+				padding: 20px;
+				text-align: center;
+				margin: 32px 0;
+			}
+			.otp-label {
+				font-size: 14px;
+				color: #6b7280;
+				margin-bottom: 8px;
+				text-transform: uppercase;
+				letter-spacing: 0.5px;
+			}
+			.otp-code {
+				font-size: 32px;
+				font-weight: 700;
+				color: #111827;
+				letter-spacing: 8px;
+				font-family: 'Courier New', monospace;
+			}
+			.email-change-box {
+				background: #eff6ff;
+				border: 1px solid #bfdbfe;
+				border-radius: 8px;
+				padding: 20px;
+				margin: 24px 0;
+			}
+			.email-label {
+				font-size: 14px;
+				color: #1e40af;
+				margin-bottom: 8px;
+				font-weight: 600;
+			}
+			.email-address {
+				font-size: 16px;
+				color: #111827;
+				font-family: 'Courier New', monospace;
+				background: white;
+				padding: 8px 12px;
+				border-radius: 4px;
+				margin-bottom: 12px;
+				border: 1px solid #dbeafe;
+			}
+			.arrow {
+				text-align: center;
+				font-size: 20px;
+				color: #6b7280;
+				margin: 8px 0;
+			}
+			.security-notice {
+				background: #fef3c7;
+				border: 1px solid #fde68a;
+				border-radius: 8px;
+				padding: 16px;
+				margin: 24px 0;
+			}
+			.security-icon {
+				display: inline-block;
+				margin-right: 8px;
+			}
+			.security-text {
+				color: #92400e;
+				font-size: 14px;
+				margin: 0;
+			}
+			.consequences-list {
+				background: #f9fafb;
+				border-radius: 8px;
+				padding: 20px;
+				margin: 24px 0;
+			}
+			.consequences-title {
+				font-size: 16px;
+				font-weight: 600;
+				color: #111827;
+				margin-bottom: 12px;
+			}
+			.consequences-items {
+				color: #6b7280;
+				font-size: 14px;
+				padding-left: 20px;
+			}
+			.consequences-items li {
+				margin-bottom: 8px;
+			}
+			.divider {
+				height: 1px;
+				background: #e5e7eb;
+				margin: 32px 0;
+			}
+			.footer {
+				padding: 24px 32px;
+				background: #f9fafb;
+				text-align: center;
+			}
+			.footer-text {
+				color: #6b7280;
+				font-size: 14px;
+				margin-bottom: 8px;
+			}
+			.footer-link {
+				color: #3b82f6;
+				text-decoration: none;
+				font-weight: 500;
+			}
+			.footer-link:hover {
+				text-decoration: underline;
+			}
+			.critical-warning {
+				background: #fee2e2;
+				border-left: 4px solid #ef4444;
+				padding: 12px 16px;
+				border-radius: 4px;
+				margin-top: 24px;
+			}
+			.critical-text {
+				color: #991b1b;
+				font-size: 14px;
+				margin: 0;
+				font-weight: 600;
+			}
+			@media (max-width: 640px) {
+				.container {
+					margin: 0;
+					border-radius: 0;
+				}
+				.header {
+					padding: 32px 20px;
+				}
+				.content {
+					padding: 32px 20px;
+				}
+				.footer {
+					padding: 20px;
+				}
+				.email-icon {
+					font-size: 48px;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<div class="header">
+				<div class="logo">🏠 TenantFlow</div>
+				<div class="tagline">Property Management Made Simple</div>
+			</div>
+
+			<div class="content">
+				<div class="email-icon">📨</div>
+
+				<h1>Confirm Your Email Change</h1>
+
+				<p>
+					You've requested to change the email address associated with
+					your TenantFlow account. Please confirm this change by
+					clicking the button below.
+				</p>
+
+				<div class="email-change-box">
+					<div class="email-label">Current Email:</div>
+					<div class="email-address">
+						{{ .OldEmail | default "your-old-email@example.com" }}
+					</div>
+					<div class="arrow">↓</div>
+					<div class="email-label">New Email:</div>
+					<div class="email-address">{{ .Email }}</div>
+				</div>
+
+				<div class="button-container">
+					<a href="{{ .ConfirmationURL }}" class="button">
+						Confirm Email Change →
+					</a>
+				</div>
+
+				<div class="otp-box">
+					<div class="otp-label">Or use this confirmation code</div>
+					<div class="otp-code">{{ .Token }}</div>
+				</div>
+
+				<div class="security-notice">
+					<p class="security-text">
+						<span class="security-icon">🔐</span>
+						<strong>Security Notice:</strong> Changing your email
+						will update your login credentials. You'll need to use
+						your new email address to sign in after confirmation.
+					</p>
+				</div>
+
+				<div class="divider"></div>
+
+				<div class="consequences-list">
+					<div class="consequences-title">
+						📋 What This Change Affects
+					</div>
+					<ul class="consequences-items">
+						<li>
+							Your login email will be updated to the new address
+						</li>
+						<li>
+							All notifications will be sent to your new email
+						</li>
+						<li>Your account recovery email will be changed</li>
+						<li>You'll be logged out of all active sessions</li>
+						<li>
+							You'll need to sign in again with your new email
+						</li>
+					</ul>
+				</div>
+
+				<div class="critical-warning">
+					<p class="critical-text">
+						⚠️ IMPORTANT: If you didn't request this change, your
+						account may be compromised. Please secure your account
+						immediately by changing your password and contacting our
+						security team.
+					</p>
+				</div>
+			</div>
+
+			<div class="footer">
+				<p class="footer-text">
+					Security concern? Contact us immediately at
+					<a href="mailto:security@tenantflow.app" class="footer-link"
+						>security@tenantflow.app</a
+					>
+				</p>
+				<p class="footer-text">
+					© 2024 TenantFlow. All rights reserved.
+				</p>
+			</div>
+		</div>
+	</body>
 </html>

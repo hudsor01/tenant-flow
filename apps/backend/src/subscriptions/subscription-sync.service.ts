@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
-import { PrismaService } from '../prisma/prisma.service'
 import { StripeService } from '../stripe/stripe.service'
 import { StructuredLoggerService } from '../common/logging/structured-logger.service'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
@@ -13,7 +12,7 @@ import {
 	TrialWillEndEvent
 } from '../common/events/subscription.events'
 import type { StripeSubscription } from '@repo/shared/types/stripe'
-import { type PlanType, type Subscription, SubStatus } from '@repo/database'
+import { type PlanType, type Subscription, SubStatus } from '@repo/shared'
 
 // Note: StripeSubscription from our official types already includes current_period properties
 // Using our comprehensive StripeSubscription type instead of extending StripeSubscription

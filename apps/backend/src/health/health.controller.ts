@@ -1,6 +1,6 @@
 import { Controller, forwardRef, Get, Inject, Logger } from '@nestjs/common'
 import { Public } from '../auth/decorators/public.decorator'
-import { PrismaService } from '../prisma/prisma.service'
+import { SupabaseService } from '../common/supabase/supabase.service'
 
 interface HealthStatus {
 	status: 'ok' | 'degraded' | 'error'
@@ -32,8 +32,8 @@ export class HealthController {
 	private readonly CACHE_TTL = 5000 // Cache health status for 5 seconds
 
 	constructor(
-		@Inject(forwardRef(() => PrismaService))
-		private readonly prisma: PrismaService
+		@Inject(forwardRef(() => SupabaseService))
+		private readonly supabaseService: SupabaseService
 	) {}
 
 	@Get('health')
@@ -112,30 +112,27 @@ export class HealthController {
 		poolStats?: Record<string, unknown>
 	}> {
 		try {
-			// Use the new getConnectionStatus method from optimized PrismaService
-			const connectionStatus = await this.prisma.getConnectionStatus()
+			const startTime = Date.now()
+			const connected = await this.supabaseService.checkConnection()
+			const responseTime = Date.now() - startTime
 
-			if (!connectionStatus.connected) {
+			if (!connected) {
 				return {
-					status: 'connecting',
-					poolStats: connectionStatus.poolStats
+					status: 'unavailable',
+					responseTime
 				}
 			}
-
-			const responseTime = connectionStatus.responseTime ?? 0
 
 			// Categorize response time
 			if (responseTime < 100) {
 				return {
 					status: 'healthy',
-					responseTime,
-					poolStats: connectionStatus.poolStats
+					responseTime
 				}
 			} else if (responseTime < 1000) {
 				return {
 					status: 'degraded',
-					responseTime,
-					poolStats: connectionStatus.poolStats
+					responseTime
 				}
 			} else {
 				this.logger.warn(
@@ -143,8 +140,7 @@ export class HealthController {
 				)
 				return {
 					status: 'degraded',
-					responseTime,
-					poolStats: connectionStatus.poolStats
+					responseTime
 				}
 			}
 		} catch (error) {

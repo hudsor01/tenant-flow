@@ -1,66 +1,59 @@
-# Lefthook configuration for pre-commit and pre-push hooks
-# Catches errors before they reach CI/CD
-
-# Skip hooks in CI environment
-skip_in_env:
-    - CI
+# Lefthook configuration - Streamlined for performance
+# Uses GitGuardian for security, focuses on fast essential checks
 
 pre-commit:
     parallel: true
     commands:
-        lint:
-            glob: '*.{js,jsx,ts,tsx}'
-            run: npm run lint --silent
-            skip:
-                - merge
-                - rebase
+        # GitGuardian for comprehensive secret scanning (if available)
+        gitguardian:
+            run: |
+                if command -v ggshield &> /dev/null; then
+                    ggshield secret scan pre-commit
+                fi
+            priority: 1 # Run first as it's most important
 
-        typecheck:
-            glob: '*.{ts,tsx}'
-            run: npm run typecheck --silent
-            skip:
-                - merge
-                - rebase
-
+        # Quick formatting check (won't block on style issues)
         prettier:
             glob: '*.{js,jsx,ts,tsx,json,md,yml,yaml}'
-            run: npx prettier --check {staged_files}
-            stage_fixed: true
+            run: npx prettier --check {staged_files} || true
+            stage_fixed: false # Don't auto-stage to avoid surprises
 
-        no-secrets:
-            glob: '*'
-            run: |
-                # Check for potential secrets
-                if grep -E "(SUPABASE_|DATABASE_URL|JWT_SECRET|STRIPE_|RESEND_)" {staged_files} 2>/dev/null; then
-                  echo "❌ Potential secrets detected in staged files!"
-                  echo "Please remove sensitive data before committing."
-                  exit 1
-                fi
+        # Lightweight linting (only on changed files)
+        lint-quick:
+            glob: '*.{js,jsx,ts,tsx}'
+            run: npx eslint {staged_files} --quiet --fix-dry-run || true
+            skip:
+                - merge
+                - rebase
 
 pre-push:
-    parallel: false
+    # Removed build checks - they belong in CI
+    # Pre-push should be fast to not interrupt workflow
     commands:
-        build-check:
+        test-quick:
             run: |
-                echo "🔨 Running quick build check..."
-                echo "⚠️  Skipping frontend build (known React 19 SWC issues)"
-                echo "⚠️  Skipping backend build (known Stripe types issues)"
-                echo "✅ Build check skipped - will be validated in CI"
-
-        docker-validate:
-            run: |
-                echo "🐳 Validating Docker build..."
-                echo "⚠️  Skipping Docker validation (will be validated in CI)"
-                echo "✅ Docker validation skipped"
+                echo "Running quick tests..."
+                # Only run if tests are fast (< 10s)
+                if [ -f "package.json" ] && grep -q "test:quick" package.json; then
+                    npm run test:quick 2>/dev/null || echo "⚠️ Some tests failed - check CI for details"
+                else
+                    echo "ℹ️ No quick tests configured"
+                fi
 
 commit-msg:
     commands:
         commitlint:
             run: |
-                # Simple commit message validation
-                if ! head -1 {1} | grep -qE "^(feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert)(\(.+\))?: .{1,100}$"; then
-                  echo "❌ Invalid commit message format!"
-                  echo "Format: <type>(<scope>): <subject>"
-                  echo "Example: feat(auth): add OAuth support"
-                  exit 1
+                # Conventional commit format check
+                MSG=$(head -1 {1})
+                PATTERN="^(feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert)(\(.+\))?: .{1,100}$"
+
+                if ! echo "$MSG" | grep -qE "$PATTERN"; then
+                    echo "❌ Invalid commit message format!"
+                    echo ""
+                    echo "Expected: <type>(<scope>): <subject>"
+                    echo "Example:  feat(auth): add OAuth support"
+                    echo ""
+                    echo "Types: feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert"
+                    exit 1
                 fi

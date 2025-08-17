@@ -1,6 +1,5 @@
-import { User } from '@repo/database'
+import { User, WEBHOOK_EVENT_TYPES, WebhookEventType } from '@repo/shared'
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common'
-import { WEBHOOK_EVENT_TYPES, WebhookEventType } from '@repo/shared'
 import {
 	FeatureAccessRestoreEvent,
 	FeatureAccessRestrictEvent,
@@ -10,9 +9,9 @@ import {
 	SubscriptionEventType
 } from '../common/events/subscription.events'
 import { EventEmitter2 } from '@nestjs/event-emitter'
-import { PrismaService } from '../prisma/prisma.service'
 import { SubscriptionSyncService } from '../subscriptions/subscription-sync.service'
 import { StripeService } from './stripe.service'
+import { PrismaService } from '../common/database/prisma.service'
 import { WebhookMetricsService } from './webhook-metrics.service'
 import { WebhookHealthService } from './webhook-health.service'
 import { WebhookErrorMonitorService } from './webhook-error-monitor.service'

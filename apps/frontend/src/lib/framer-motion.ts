@@ -277,7 +277,7 @@ export const getReducedMotionVariants = (
 				...variant,
 				transition: { duration: 0.01 } // Near-instant transitions
 			}
-		} else {
+		} else if (variant) {
 			reducedVariants[key] = variant
 		}
 	})

@@ -108,10 +108,15 @@ export class RateLimiter {
 			.sort((a, b) => b.length - a.length)
 
 		if (sortedPaths.length > 0) {
-			return this.configs.get(sortedPaths[0])!
+			const config = this.configs.get(sortedPaths[0]!)
+			if (config) return config
 		}
 
-		return this.configs.get('default')!
+		const defaultConfig = this.configs.get('default')
+		if (!defaultConfig) {
+			throw new Error('Default rate limit config not found')
+		}
+		return defaultConfig
 	}
 
 	private startCleanupInterval() {
@@ -185,13 +190,15 @@ export class RateLimiter {
 			const [ip, ...pathParts] = key.split(':')
 			const path = pathParts.join(':')
 
-			if (!ipStats.has(ip)) {
+			if (ip && !ipStats.has(ip)) {
 				ipStats.set(ip, { totalRequests: 0, paths: new Set() })
 			}
 
-			const stats = ipStats.get(ip)!
-			stats.totalRequests += window.requests.length
-			stats.paths.add(path)
+			if (ip) {
+				const stats = ipStats.get(ip)!
+				stats.totalRequests += window.requests.length
+				stats.paths.add(path)
+			}
 		}
 
 		return Array.from(ipStats.entries())

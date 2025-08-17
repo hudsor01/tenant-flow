@@ -2,15 +2,15 @@ import { test, expect } from '@playwright/test'
 import { VisualTestHelpers } from '../../helpers/visual-helpers'
 
 test.describe('Pricing Page Visual Regression', () => {
-  let visualHelpers: VisualTestHelpers
+	let visualHelpers: VisualTestHelpers
 
-  test.beforeEach(async ({ page }) => {
-    visualHelpers = new VisualTestHelpers(page)
-    await visualHelpers.setupVisualEnvironment()
-  })
+	test.beforeEach(async ({ page }) => {
+		visualHelpers = new VisualTestHelpers(page)
+		await visualHelpers.setupVisualEnvironment()
+	})
 
-  test('pricing page hero section', async ({ page }) => {
-    await page.setContent(`
+	test('pricing page hero section', async ({ page }) => {
+		await page.setContent(`
       <!DOCTYPE html>
       <html>
         <head>
@@ -197,14 +197,14 @@ test.describe('Pricing Page Visual Regression', () => {
       </html>
     `)
 
-    await expect(page).toHaveScreenshot('pricing-hero-section.png', {
-      fullPage: true,
-      animations: 'disabled',
-    })
-  })
+		await expect(page).toHaveScreenshot('pricing-hero-section.png', {
+			fullPage: true,
+			animations: 'disabled'
+		})
+	})
 
-  test('pricing cards layout', async ({ page }) => {
-    await page.setContent(`
+	test('pricing cards layout', async ({ page }) => {
+		await page.setContent(`
       <!DOCTYPE html>
       <html>
         <head>
@@ -697,14 +697,14 @@ test.describe('Pricing Page Visual Regression', () => {
       </html>
     `)
 
-    await expect(page).toHaveScreenshot('pricing-cards-layout.png', {
-      fullPage: true,
-      animations: 'disabled',
-    })
-  })
+		await expect(page).toHaveScreenshot('pricing-cards-layout.png', {
+			fullPage: true,
+			animations: 'disabled'
+		})
+	})
 
-  test('pricing cards annual billing view', async ({ page }) => {
-    await page.setContent(`
+	test('pricing cards annual billing view', async ({ page }) => {
+		await page.setContent(`
       <!DOCTYPE html>
       <html>
         <head>
@@ -1041,14 +1041,14 @@ test.describe('Pricing Page Visual Regression', () => {
       </html>
     `)
 
-    await expect(page).toHaveScreenshot('pricing-cards-annual.png', {
-      fullPage: true,
-      animations: 'disabled',
-    })
-  })
+		await expect(page).toHaveScreenshot('pricing-cards-annual.png', {
+			fullPage: true,
+			animations: 'disabled'
+		})
+	})
 
-  test('pricing FAQ section', async ({ page }) => {
-    await page.setContent(`
+	test('pricing FAQ section', async ({ page }) => {
+		await page.setContent(`
       <!DOCTYPE html>
       <html>
         <head>
@@ -1179,14 +1179,14 @@ test.describe('Pricing Page Visual Regression', () => {
       </html>
     `)
 
-    await expect(page).toHaveScreenshot('pricing-faq-section.png', {
-      fullPage: true,
-      animations: 'disabled',
-    })
-  })
+		await expect(page).toHaveScreenshot('pricing-faq-section.png', {
+			fullPage: true,
+			animations: 'disabled'
+		})
+	})
 
-  test('pricing call-to-action sections', async ({ page }) => {
-    await page.setContent(`
+	test('pricing call-to-action sections', async ({ page }) => {
+		await page.setContent(`
       <!DOCTYPE html>
       <html>
         <head>
@@ -1453,14 +1453,14 @@ test.describe('Pricing Page Visual Regression', () => {
       </html>
     `)
 
-    await expect(page).toHaveScreenshot('pricing-cta-sections.png', {
-      fullPage: true,
-      animations: 'disabled',
-    })
-  })
+		await expect(page).toHaveScreenshot('pricing-cta-sections.png', {
+			fullPage: true,
+			animations: 'disabled'
+		})
+	})
 
-  test('pricing page responsive mobile view', async ({ page }) => {
-    await page.setContent(`
+	test('pricing page responsive mobile view', async ({ page }) => {
+		await page.setContent(`
       <!DOCTYPE html>
       <html>
         <head>
@@ -1741,18 +1741,18 @@ test.describe('Pricing Page Visual Regression', () => {
       </html>
     `)
 
-    // Set mobile viewport
-    await page.setViewportSize({ width: 375, height: 667 })
-    await page.waitForTimeout(300)
+		// Set mobile viewport
+		await page.setViewportSize({ width: 375, height: 667 })
+		await page.waitForTimeout(300)
 
-    await expect(page).toHaveScreenshot('pricing-mobile-view.png', {
-      fullPage: true,
-      animations: 'disabled',
-    })
-  })
+		await expect(page).toHaveScreenshot('pricing-mobile-view.png', {
+			fullPage: true,
+			animations: 'disabled'
+		})
+	})
 
-  test('pricing interactive states', async ({ page }) => {
-    await page.setContent(`
+	test('pricing interactive states', async ({ page }) => {
+		await page.setContent(`
       <!DOCTYPE html>
       <html>
         <head>
@@ -1989,9 +1989,9 @@ test.describe('Pricing Page Visual Regression', () => {
       </html>
     `)
 
-    await expect(page).toHaveScreenshot('pricing-interactive-states.png', {
-      fullPage: true,
-      animations: 'disabled',
-    })
-  })
+		await expect(page).toHaveScreenshot('pricing-interactive-states.png', {
+			fullPage: true,
+			animations: 'disabled'
+		})
+	})
 })

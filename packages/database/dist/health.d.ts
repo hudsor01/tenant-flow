@@ -1,4 +1,3 @@
-import type { PrismaClient } from './generated/client';
 /**
  * Result type for database health check
  */
@@ -7,18 +6,18 @@ export interface DatabaseHealthResult {
     error?: string;
 }
 /**
- * Checks database connectivity by performing a simple SELECT 1 query
+ * Checks database connectivity using Supabase client
  *
- * @param prisma - PrismaClient instance to use for the health check
+ * @param supabaseUrl - Supabase project URL
+ * @param supabaseKey - Supabase service key
  * @returns Promise resolving to health check result
  *
  * @example
  * ```typescript
- * import { PrismaClient } from '@repo/database'
- * import { checkDatabaseConnection } from '@repo/database/health'
- *
- * const prisma = new PrismaClient()
- * const result = await checkDatabaseConnection(prisma)
+ * const result = await checkDatabaseConnection(
+ *   process.env.SUPABASE_URL,
+ *   process.env.SUPABASE_SERVICE_KEY
+ * )
  *
  * if (result.healthy) {
  *   console.log('Database is healthy')
@@ -27,5 +26,5 @@ export interface DatabaseHealthResult {
  * }
  * ```
  */
-export declare function checkDatabaseConnection(prisma: PrismaClient): Promise<DatabaseHealthResult>;
+export declare function checkDatabaseConnection(supabaseUrl?: string, supabaseKey?: string): Promise<DatabaseHealthResult>;
 //# sourceMappingURL=health.d.ts.map

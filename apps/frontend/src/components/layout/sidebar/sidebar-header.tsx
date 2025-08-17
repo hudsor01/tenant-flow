@@ -68,7 +68,10 @@ const mockWorkspaces: Workspace[] = [
 export function SidebarHeader() {
 	const { collapsed, setCollapsed } = useSidebar()
 	const [currentWorkspace, setCurrentWorkspace] = React.useState<Workspace>(
-		mockWorkspaces.find(w => w.isActive) || mockWorkspaces[0]
+		() => {
+			const activeWorkspace = mockWorkspaces.find(w => w.isActive)
+			return activeWorkspace || mockWorkspaces[0]!
+		}
 	)
 
 	const getWorkspaceIcon = (type: Workspace['type']) => {

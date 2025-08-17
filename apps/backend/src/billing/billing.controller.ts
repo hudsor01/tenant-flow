@@ -18,7 +18,7 @@ import {
 	ErrorHandlerService
 } from '../common/errors/error-handler.service'
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
-import type { PlanType } from '@repo/database'
+import type { PlanType } from '@repo/shared'
 import {
 	CreateCheckoutSessionDto,
 	CreatePortalSessionDto,
@@ -331,7 +331,7 @@ export class BillingController {
 			const paymentMethods =
 				await this.stripeService.client.paymentMethods.list({
 					customer: subscription.stripeCustomerId,
-					type: 'card'
+					type: 'card' as const
 				})
 
 			// Handle the Stripe SDK customer object properly

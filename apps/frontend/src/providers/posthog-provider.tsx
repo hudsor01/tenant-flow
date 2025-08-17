@@ -12,11 +12,7 @@ if (typeof window !== 'undefined') {
 		capture_pageview: false, // We'll manually track pageviews for better control
 		capture_pageleave: true, // Track when users leave pages
 		persistence: 'localStorage+cookie', // Use both for better persistence
-		autocapture: {
-			// Configure autocapture settings
-			capture_copied_text: false, // Don't capture copied text for privacy
-			css_selector_allowlist: ['[data-track]'] // Only track elements with data-track attribute
-		},
+		autocapture: false, // Disable autocapture for privacy
 		session_recording: {
 			maskAllInputs: true, // Mask all inputs for privacy
 			maskInputOptions: {
@@ -43,5 +39,9 @@ export function PHProvider({ children }: { children: React.ReactNode }) {
 		}
 	}, [])
 
-	return <PostHogProvider client={posthog}>{children}</PostHogProvider>
+	return (
+		<PostHogProvider apiKey={process.env.NEXT_PUBLIC_POSTHOG_KEY!}>
+			{children}
+		</PostHogProvider>
+	)
 }

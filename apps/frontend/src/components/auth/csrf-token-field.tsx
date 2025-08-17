@@ -8,21 +8,16 @@ import { getCSRFToken } from '@/lib/auth/csrf-client'
  * Automatically fetches and includes CSRF token
  */
 export function CSRFTokenField() {
-  const [token, setToken] = useState<string>('')
+	const [token, setToken] = useState<string>('')
 
-  useEffect(() => {
-    // Fetch CSRF token on mount
-    getCSRFToken().then(setToken).catch(() => {
-      console.error('Failed to fetch CSRF token')
-    })
-  }, [])
+	useEffect(() => {
+		// Fetch CSRF token on mount
+		getCSRFToken()
+			.then(setToken)
+			.catch(() => {
+				console.error('Failed to fetch CSRF token')
+			})
+	}, [])
 
-  return (
-    <input
-      type="hidden"
-      name="_csrf"
-      value={token}
-      readOnly
-    />
-  )
+	return <input type="hidden" name="_csrf" value={token} readOnly />
 }

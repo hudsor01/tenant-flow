@@ -1,13 +1,9 @@
 {
-  "$schema": "https://json.schemastore.org/tsconfig",
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "types": ["node", "reflect-metadata", "vitest/globals"],
-    "skipLibCheck": true
-  },
-  "include": [
-    "src/**/*.spec.ts",
-    "src/**/*.test.ts",
-    "src/test/**/*"
-  ]
+	"$schema": "https://json.schemastore.org/tsconfig",
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"types": ["node", "reflect-metadata", "vitest/globals"],
+		"skipLibCheck": true
+	},
+	"include": ["src/**/*.spec.ts", "src/**/*.test.ts", "src/test/**/*"]
 }

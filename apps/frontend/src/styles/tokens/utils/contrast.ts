@@ -11,9 +11,9 @@ export function oklchToRgb(oklchString: string): [number, number, number] {
 		throw new Error(`Invalid OKLCH color: ${oklchString}`)
 	}
 
-	const l = parseFloat(match[1])
-	const c = parseFloat(match[2])
-	const h = parseFloat(match[3])
+	const l = parseFloat(match[1] || '0')
+	const c = parseFloat(match[2] || '0')
+	const h = parseFloat(match[3] || '0')
 
 	// Convert to Lab
 	const hRad = (h * Math.PI) / 180
@@ -57,7 +57,7 @@ export function getRelativeLuminance(rgb: [number, number, number]): number {
 			: Math.pow((sRGB + 0.055) / 1.055, 2.4)
 	})
 
-	return 0.2126 * r + 0.7152 * g + 0.0722 * b
+	return 0.2126 * (r || 0) + 0.7152 * (g || 0) + 0.0722 * (b || 0)
 }
 
 // Calculate contrast ratio between two colors
@@ -201,9 +201,9 @@ export function generateAccessibleVariations(
 
 	if (!baseMatch) return [baseColor]
 
-	const baseL = parseFloat(baseMatch[1])
-	const baseC = parseFloat(baseMatch[2])
-	const baseH = parseFloat(baseMatch[3])
+	const baseL = parseFloat(baseMatch[1] || '0')
+	const baseC = parseFloat(baseMatch[2] || '0')
+	const baseH = parseFloat(baseMatch[3] || '0')
 
 	// Try different lightness values
 	for (let i = 0; i < count; i++) {
