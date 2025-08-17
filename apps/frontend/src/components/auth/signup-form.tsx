@@ -749,7 +749,9 @@ export function SignupForm({
 									<p className="mt-2 flex items-center gap-1 text-xs text-amber-600">
 										<span className="h-1 w-1 rounded-full bg-amber-600"></span>
 										{8 - password.length} more character
-										{8 - password.length !== 1 ? 's' : ''}{' '}
+										{8 - password.length !== 1
+											? 's'
+											: ''}{' '}
 										needed
 									</p>
 								)}

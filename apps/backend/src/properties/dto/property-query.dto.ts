@@ -1,7 +1,6 @@
 import { IsEnum, IsOptional, IsString, Matches } from 'class-validator'
 import { Transform } from 'class-transformer'
-import { PropertyType } from '@repo/database'
-import { PROPERTY_TYPE, PropertyQueryInput } from '@repo/shared'
+import { PROPERTY_TYPE, PropertyQueryInput, PropertyType } from '@repo/shared'
 import { BaseQueryDtoWithSort } from '../../common/dto/base-query.dto'
 
 type PropertySortFields = 'name' | 'createdAt' | 'updatedAt' | 'city' | 'state'
@@ -13,7 +12,7 @@ export class PropertyQueryDto
 	// search field inherited from BaseQueryDto
 
 	@IsOptional()
-	@IsEnum(PropertyType, {
+	@IsEnum(PROPERTY_TYPE, {
 		message: `Property type must be one of: ${Object.values(PROPERTY_TYPE).join(', ')}`
 	})
 	propertyType?: PropertyType

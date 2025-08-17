@@ -14,7 +14,7 @@ import { FastifyReply } from 'fastify'
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { LeasesService } from './leases.service'
 import { LeasePDFService } from './services/lease-pdf.service'
-import { Lease } from '@repo/database'
+import { Lease } from '@repo/shared'
 import {
 	CreateLeaseDto,
 	createLeaseSchema,

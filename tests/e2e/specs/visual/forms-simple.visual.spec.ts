@@ -2,15 +2,15 @@ import { test, expect } from '@playwright/test'
 import { VisualTestHelpers } from '../../helpers/visual-helpers'
 
 test.describe('Forms Visual Regression', () => {
-  let visualHelpers: VisualTestHelpers
+	let visualHelpers: VisualTestHelpers
 
-  test.beforeEach(async ({ page }) => {
-    visualHelpers = new VisualTestHelpers(page)
-    await visualHelpers.setupVisualEnvironment()
-  })
+	test.beforeEach(async ({ page }) => {
+		visualHelpers = new VisualTestHelpers(page)
+		await visualHelpers.setupVisualEnvironment()
+	})
 
-  test('property creation form', async ({ page }) => {
-    await page.setContent(`
+	test('property creation form', async ({ page }) => {
+		await page.setContent(`
       <!DOCTYPE html>
       <html>
         <head>
@@ -246,14 +246,14 @@ test.describe('Forms Visual Regression', () => {
       </html>
     `)
 
-    await expect(page).toHaveScreenshot('property-creation-form.png', {
-      fullPage: true,
-      animations: 'disabled',
-    })
-  })
+		await expect(page).toHaveScreenshot('property-creation-form.png', {
+			fullPage: true,
+			animations: 'disabled'
+		})
+	})
 
-  test('form validation states', async ({ page }) => {
-    await page.setContent(`
+	test('form validation states', async ({ page }) => {
+		await page.setContent(`
       <!DOCTYPE html>
       <html>
         <head>
@@ -403,14 +403,14 @@ test.describe('Forms Visual Regression', () => {
       </html>
     `)
 
-    await expect(page).toHaveScreenshot('form-validation-states.png', {
-      fullPage: true,
-      animations: 'disabled',
-    })
-  })
+		await expect(page).toHaveScreenshot('form-validation-states.png', {
+			fullPage: true,
+			animations: 'disabled'
+		})
+	})
 
-  test('form focus states', async ({ page }) => {
-    await page.setContent(`
+	test('form focus states', async ({ page }) => {
+		await page.setContent(`
       <!DOCTYPE html>
       <html>
         <head>
@@ -494,9 +494,9 @@ test.describe('Forms Visual Regression', () => {
       </html>
     `)
 
-    await expect(page).toHaveScreenshot('form-focus-states.png', {
-      fullPage: true,
-      animations: 'disabled',
-    })
-  })
+		await expect(page).toHaveScreenshot('form-focus-states.png', {
+			fullPage: true,
+			animations: 'disabled'
+		})
+	})
 })

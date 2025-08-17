@@ -10,7 +10,6 @@ jest.mock('../common/services/external-api.service')
 jest.mock('./services/email-metrics.service')
 jest.mock('./services/email-template.service')
 
-
 describe('EmailService', () => {
 	let service: EmailService
 	let metricsService: jest.Mocked<EmailMetricsService>
@@ -29,8 +28,8 @@ describe('EmailService', () => {
 					useValue: {
 						get: jest.fn().mockImplementation((key: string) => {
 							const config: Record<string, any> = {
-								'RESEND_FROM_EMAIL': 'noreply@tenantflow.app',
-								'NODE_ENV': 'test'
+								RESEND_FROM_EMAIL: 'noreply@tenantflow.app',
+								NODE_ENV: 'test'
 							}
 							return config[key]
 						})
@@ -51,44 +50,56 @@ describe('EmailService', () => {
 				{
 					provide: EmailTemplateService,
 					useValue: {
-						renderEmail: jest.fn().mockImplementation((templateName: string, data: any) => {
-							// Mock realistic responses based on template name
-							switch (templateName) {
-								case 'welcome':
-									return Promise.resolve({
-										subject: 'Welcome to TenantFlow - Your Property Management Journey Begins!',
-										html: `<!DOCTYPE html><html><body><h1>Welcome to TenantFlow, ${data.name || 'User'}!</h1><p>Thank you for joining our property management platform.</p></body></html>`
-									})
-								case 'tenant-invitation':
-									return Promise.resolve({
-										subject: "You're Invited to Join Your Property Portal",
-										html: `<!DOCTYPE html><html><body><h1>You're Invited!</h1><p>Hello ${data.tenantName}, you've been invited to ${data.propertyAddress}.</p></body></html>`
-									})
-								case 'payment-reminder':
-									return Promise.resolve({
-										subject: `Rent Payment Reminder - Due ${data.dueDate ? new Date(data.dueDate).toLocaleDateString() : 'Soon'}`,
-										html: `<!DOCTYPE html><html><body><h1>Rent Payment Reminder</h1><p>Hello ${data.tenantName}, your rent of $${data.amountDue} is due.</p></body></html>`
-									})
-								case 'lease-expiration':
-									return Promise.resolve({
-										subject: 'Lease Expiration Notice',
-										html: `<!DOCTYPE html><html><body><h1>Lease Expiration Notice</h1><p>Hello ${data.tenantName}, your lease expires soon.</p></body></html>`
-									})
-								default:
-									return Promise.resolve({
-										subject: 'TenantFlow Notification',
-										html: '<!DOCTYPE html><html><body><h1>TenantFlow Notification</h1></body></html>'
-									})
-							}
-						})
+						renderEmail: jest
+							.fn()
+							.mockImplementation(
+								(templateName: string, data: any) => {
+									// Mock realistic responses based on template name
+									switch (templateName) {
+										case 'welcome':
+											return Promise.resolve({
+												subject:
+													'Welcome to TenantFlow - Your Property Management Journey Begins!',
+												html: `<!DOCTYPE html><html><body><h1>Welcome to TenantFlow, ${data.name || 'User'}!</h1><p>Thank you for joining our property management platform.</p></body></html>`
+											})
+										case 'tenant-invitation':
+											return Promise.resolve({
+												subject:
+													"You're Invited to Join Your Property Portal",
+												html: `<!DOCTYPE html><html><body><h1>You're Invited!</h1><p>Hello ${data.tenantName}, you've been invited to ${data.propertyAddress}.</p></body></html>`
+											})
+										case 'payment-reminder':
+											return Promise.resolve({
+												subject: `Rent Payment Reminder - Due ${data.dueDate ? new Date(data.dueDate).toLocaleDateString() : 'Soon'}`,
+												html: `<!DOCTYPE html><html><body><h1>Rent Payment Reminder</h1><p>Hello ${data.tenantName}, your rent of $${data.amountDue} is due.</p></body></html>`
+											})
+										case 'lease-expiration':
+											return Promise.resolve({
+												subject:
+													'Lease Expiration Notice',
+												html: `<!DOCTYPE html><html><body><h1>Lease Expiration Notice</h1><p>Hello ${data.tenantName}, your lease expires soon.</p></body></html>`
+											})
+										default:
+											return Promise.resolve({
+												subject:
+													'TenantFlow Notification',
+												html: '<!DOCTYPE html><html><body><h1>TenantFlow Notification</h1></body></html>'
+											})
+									}
+								}
+							)
 					}
 				}
 			]
 		}).compile()
 
 		service = module.get<EmailService>(EmailService)
-		metricsService = module.get(EmailMetricsService) as jest.Mocked<EmailMetricsService>
-		externalApiService = module.get(ExternalApiService) as jest.Mocked<ExternalApiService>
+		metricsService = module.get(
+			EmailMetricsService
+		) as jest.Mocked<EmailMetricsService>
+		externalApiService = module.get(
+			ExternalApiService
+		) as jest.Mocked<ExternalApiService>
 		configService = module.get<ConfigService>(ConfigService)
 
 		// Reset circuit breaker state
@@ -129,7 +140,9 @@ describe('EmailService', () => {
 		})
 
 		it('should handle API errors', async () => {
-			externalApiService.sendEmailViaApi.mockRejectedValue(new Error('Invalid API key'))
+			externalApiService.sendEmailViaApi.mockRejectedValue(
+				new Error('Invalid API key')
+			)
 
 			const result = await service.sendWelcomeEmail(
 				'john@example.com',
@@ -149,7 +162,9 @@ describe('EmailService', () => {
 		})
 
 		it('should handle network errors', async () => {
-			externalApiService.sendEmailViaApi.mockRejectedValue(new Error('Network error'))
+			externalApiService.sendEmailViaApi.mockRejectedValue(
+				new Error('Network error')
+			)
 
 			const result = await service.sendWelcomeEmail(
 				'john@example.com',
@@ -203,7 +218,7 @@ describe('EmailService', () => {
 			service['failureCount'] = 0
 			service['lastFailureTime'] = null
 			jest.clearAllMocks()
-			
+
 			externalApiService.sendEmailViaApi.mockResolvedValue(undefined)
 
 			const result = await service.sendTenantInvitation(
@@ -260,7 +275,7 @@ describe('EmailService', () => {
 			service['failureCount'] = 0
 			service['lastFailureTime'] = null
 			jest.clearAllMocks()
-			
+
 			externalApiService.sendEmailViaApi.mockResolvedValue(undefined)
 
 			const result = await service.sendPaymentReminder(
@@ -303,7 +318,7 @@ describe('EmailService', () => {
 
 		it('should handle past due dates', async () => {
 			const pastDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-			
+
 			externalApiService.sendEmailViaApi.mockResolvedValue(undefined)
 
 			const result = await service.sendPaymentReminder(
@@ -337,7 +352,7 @@ describe('EmailService', () => {
 			service['failureCount'] = 0
 			service['lastFailureTime'] = null
 			jest.clearAllMocks()
-			
+
 			externalApiService.sendEmailViaApi.mockResolvedValue(undefined)
 
 			const result = await service.sendLeaseExpirationAlert(
@@ -389,12 +404,17 @@ describe('EmailService', () => {
 			externalApiService.sendEmailViaApi.mockResolvedValue(undefined)
 
 			// Send multiple emails rapidly
-			const promises = Array(10).fill(null).map((_, i) => 
-				service.sendWelcomeEmail(`user${i}@example.com`, `User ${i}`)
-			)
+			const promises = Array(10)
+				.fill(null)
+				.map((_, i) =>
+					service.sendWelcomeEmail(
+						`user${i}@example.com`,
+						`User ${i}`
+					)
+				)
 
 			const results = await Promise.all(promises)
-			
+
 			// All should succeed if under rate limit
 			results.forEach(result => {
 				expect(result.success).toBe(true)
@@ -406,13 +426,20 @@ describe('EmailService', () => {
 			service['circuitBreakerState'] = 'closed'
 			service['failureCount'] = 0
 			service['lastFailureTime'] = null
-			
-			// Simulate 5 consecutive failures
-			externalApiService.sendEmailViaApi.mockRejectedValue(new Error('API Error'))
 
-			const failures = Array(5).fill(null).map((_, i) =>
-				service.sendWelcomeEmail(`fail${i}@example.com`, `User ${i}`)
+			// Simulate 5 consecutive failures
+			externalApiService.sendEmailViaApi.mockRejectedValue(
+				new Error('API Error')
 			)
+
+			const failures = Array(5)
+				.fill(null)
+				.map((_, i) =>
+					service.sendWelcomeEmail(
+						`fail${i}@example.com`,
+						`User ${i}`
+					)
+				)
 
 			await Promise.all(failures)
 
@@ -421,8 +448,11 @@ describe('EmailService', () => {
 			expect(service['failureCount']).toBe(5)
 
 			// Next call should fail immediately due to open circuit
-			const result = await service.sendWelcomeEmail('test@example.com', 'Test User')
-			
+			const result = await service.sendWelcomeEmail(
+				'test@example.com',
+				'Test User'
+			)
+
 			expect(result.success).toBe(false)
 			expect(result.error).toContain('circuit breaker open')
 			// Circuit breaker should prevent the call - still only 5 calls from failures
@@ -448,12 +478,17 @@ describe('EmailService', () => {
 				service['failureCount'] = 0
 				service['lastFailureTime'] = null
 				jest.clearAllMocks()
-				
-				const result = await service.sendWelcomeEmail(email, 'Test User')
-				
+
+				const result = await service.sendWelcomeEmail(
+					email,
+					'Test User'
+				)
+
 				expect(result.success).toBe(false)
 				expect(result.error).toContain('Invalid email format')
-				expect(externalApiService.sendEmailViaApi).not.toHaveBeenCalled()
+				expect(
+					externalApiService.sendEmailViaApi
+				).not.toHaveBeenCalled()
 			})
 		})
 
@@ -472,11 +507,14 @@ describe('EmailService', () => {
 				service['failureCount'] = 0
 				service['lastFailureTime'] = null
 				jest.clearAllMocks()
-				
+
 				externalApiService.sendEmailViaApi.mockResolvedValue(undefined)
 
-				const result = await service.sendWelcomeEmail(email, 'Test User')
-				
+				const result = await service.sendWelcomeEmail(
+					email,
+					'Test User'
+				)
+
 				expect(result.success).toBe(true)
 				expect(externalApiService.sendEmailViaApi).toHaveBeenCalled()
 			})
@@ -542,9 +580,9 @@ describe('EmailService', () => {
 			service['failureCount'] = 0
 			service['lastFailureTime'] = null
 			jest.clearAllMocks()
-			
+
 			const longString = 'a'.repeat(10000)
-			
+
 			externalApiService.sendEmailViaApi.mockResolvedValue(undefined)
 
 			const result = await service.sendWelcomeEmail(
@@ -562,7 +600,7 @@ describe('EmailService', () => {
 			service['failureCount'] = 0
 			service['lastFailureTime'] = null
 			jest.clearAllMocks()
-			
+
 			externalApiService.sendEmailViaApi.mockResolvedValue(undefined)
 
 			await service.sendWelcomeEmail('test@example.com', 'Test User')

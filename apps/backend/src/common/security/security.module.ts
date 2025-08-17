@@ -5,7 +5,7 @@ import { TypeSafeConfigService } from '../config/config.service'
 import { SecurityUtils } from './security.utils'
 import { SimpleSecurityService } from './simple-security.service'
 import { FastifyHooksService } from '../hooks/fastify-hooks.service'
-import { PrismaModule } from '../../prisma/prisma.module'
+import { SupabaseModule } from '../../supabase/supabase.module'
 import { SecurityAuditService } from './audit.service'
 import { SecurityMonitorService } from './security-monitor.service'
 import { ComplianceMonitorService } from './compliance-monitor.service'
@@ -32,7 +32,7 @@ import { RequestUtilsService } from '../utils/request-utils.service'
 
 @Global()
 @Module({
-	imports: [ConfigModule, TypeSafeConfigModule, PrismaModule, LoggerModule],
+	imports: [ConfigModule, TypeSafeConfigModule, SupabaseModule, LoggerModule],
 	controllers: [
 		SecurityController,
 		FileUploadController,

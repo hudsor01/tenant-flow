@@ -51,16 +51,20 @@ jest.mock('stripe', () => {
 					name: 'Test Product',
 					metadata: {}
 				})),
-create: jest.fn().mockImplementation((data: Partial<ProductTierConfig>) => ({
-id: data.id || 'prod_test',
-...data
-})),
-update: jest
-.fn()
-.mockImplementation((id: string, data: Partial<ProductTierConfig>) => ({
-id,
-...data
-}))
+				create: jest
+					.fn()
+					.mockImplementation((data: Partial<ProductTierConfig>) => ({
+						id: data.id || 'prod_test',
+						...data
+					})),
+				update: jest
+					.fn()
+					.mockImplementation(
+						(id: string, data: Partial<ProductTierConfig>) => ({
+							id,
+							...data
+						})
+					)
 			},
 			prices: {
 				list: jest.fn().mockResolvedValue({
@@ -83,24 +87,32 @@ id,
 						}
 					]
 				}),
-create: jest.fn().mockImplementation((data: Record<string, unknown>) => ({
-id: TEST_STRIPE.PRICE_TEST,
-...data
-})),
-update: jest
-.fn()
-.mockImplementation((id: string, data: Record<string, unknown>) => ({
-id,
-...data
-}))
+				create: jest
+					.fn()
+					.mockImplementation((data: Record<string, unknown>) => ({
+						id: TEST_STRIPE.PRICE_TEST,
+						...data
+					})),
+				update: jest
+					.fn()
+					.mockImplementation(
+						(id: string, data: Record<string, unknown>) => ({
+							id,
+							...data
+						})
+					)
 			},
 			checkout: {
 				sessions: {
-create: jest.fn().mockImplementation((data: Record<string, unknown>) => ({
-id: 'cs_test_session',
-url: 'https://checkout.stripe.com/test',
-...data
-}))
+					create: jest
+						.fn()
+						.mockImplementation(
+							(data: Record<string, unknown>) => ({
+								id: 'cs_test_session',
+								url: 'https://checkout.stripe.com/test',
+								...data
+							})
+						)
 				}
 			}
 		}))
@@ -112,14 +124,17 @@ describe('Stripe API Routes', () => {
 		// Reset fetch mock before each test
 		;(global.fetch as jest.Mock).mockClear()
 		// Set up default mock response for all fetch calls
-;(global.fetch as jest.Mock).mockImplementation(
-  (url: string, options?: RequestInit) => {
+		;(global.fetch as jest.Mock).mockImplementation(
+			(url: string, options?: RequestInit) => {
 				// Handle different endpoints with different responses
 				if (
 					url.includes('setup-pricing') &&
 					options?.method === 'POST'
 				) {
-					const body = options && typeof options.body === 'string' ? JSON.parse(options.body) : {}
+					const body =
+						options && typeof options.body === 'string'
+							? JSON.parse(options.body)
+							: {}
 					if (body.authorization === 'wrong-secret') {
 						return Promise.resolve({
 							ok: false,
@@ -217,12 +232,12 @@ describe('Stripe API Routes', () => {
 					}
 				}
 
-if (url.includes('create-checkout-session')) {
-  const body =
-    options && typeof options.body === 'string'
-      ? JSON.parse(options.body)
-      : {};
-  if (body.priceId === TEST_STRIPE.PRICE_INVALID) {
+				if (url.includes('create-checkout-session')) {
+					const body =
+						options && typeof options.body === 'string'
+							? JSON.parse(options.body)
+							: {}
+					if (body.priceId === TEST_STRIPE.PRICE_INVALID) {
 						return Promise.resolve({
 							ok: false,
 							status: 400,
@@ -318,18 +333,35 @@ if (url.includes('create-checkout-session')) {
 
 			const data = await response.json()
 
-			data.products.forEach((item: { product: ProductTierConfig; prices: Array<{ id: string; unit_amount: number; currency: string; interval: string }> }) => {
-				expect(item).toHaveProperty('product')
-				expect(item).toHaveProperty('prices')
-				expect(item.prices).toBeInstanceOf(Array)
+			data.products.forEach(
+				(item: {
+					product: ProductTierConfig
+					prices: Array<{
+						id: string
+						unit_amount: number
+						currency: string
+						interval: string
+					}>
+				}) => {
+					expect(item).toHaveProperty('product')
+					expect(item).toHaveProperty('prices')
+					expect(item.prices).toBeInstanceOf(Array)
 
-				item.prices.forEach((price: { id: string; unit_amount: number; currency: string; interval: string }) => {
-					expect(price).toHaveProperty('id')
-					expect(price).toHaveProperty('unit_amount')
-					expect(price).toHaveProperty('currency')
-					expect(price).toHaveProperty('interval')
-				})
-			})
+					item.prices.forEach(
+						(price: {
+							id: string
+							unit_amount: number
+							currency: string
+							interval: string
+						}) => {
+							expect(price).toHaveProperty('id')
+							expect(price).toHaveProperty('unit_amount')
+							expect(price).toHaveProperty('currency')
+							expect(price).toHaveProperty('interval')
+						}
+					)
+				}
+			)
 		})
 	})
 
@@ -383,13 +415,15 @@ if (url.includes('create-checkout-session')) {
 				expect(data.products.length).toBe(4) // 4 tiers
 
 				// Check each product has required metadata
-				data.products.forEach((product: { metadata: Record<string, unknown> }) => {
-					expect(product.metadata).toHaveProperty('tier')
-					expect(product.metadata).toHaveProperty('propertyLimit')
-					expect(product.metadata).toHaveProperty('unitLimit')
-					expect(product.metadata).toHaveProperty('features')
-					expect(product.metadata).toHaveProperty('order')
-				})
+				data.products.forEach(
+					(product: { metadata: Record<string, unknown> }) => {
+						expect(product.metadata).toHaveProperty('tier')
+						expect(product.metadata).toHaveProperty('propertyLimit')
+						expect(product.metadata).toHaveProperty('unitLimit')
+						expect(product.metadata).toHaveProperty('features')
+						expect(product.metadata).toHaveProperty('order')
+					}
+				)
 			}
 		})
 
@@ -422,18 +456,26 @@ if (url.includes('create-checkout-session')) {
 				expect(data.prices.length).toBe(7) // 7 price points total
 
 				// Check specific price amounts
-const starterMonthly = data.prices.find(
-  (p: { product: string; interval: string; unit_amount: number }) =>
-    p.product === 'tenantflow_starter' &&
-    p.interval === 'month'
-)
+				const starterMonthly = data.prices.find(
+					(p: {
+						product: string
+						interval: string
+						unit_amount: number
+					}) =>
+						p.product === 'tenantflow_starter' &&
+						p.interval === 'month'
+				)
 				expect(starterMonthly?.unit_amount).toBe(2900) // $29.00
 
-const growthAnnual = data.prices.find(
-  (p: { product: string; interval: string; unit_amount: number }) =>
-    p.product === 'tenantflow_growth' &&
-    p.interval === 'year'
-)
+				const growthAnnual = data.prices.find(
+					(p: {
+						product: string
+						interval: string
+						unit_amount: number
+					}) =>
+						p.product === 'tenantflow_growth' &&
+						p.interval === 'year'
+				)
 				expect(growthAnnual?.unit_amount).toBe(79000) // $790.00
 			}
 		})

@@ -1,11 +1,11 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
-import { PrismaService } from '../prisma/prisma.service'
 import { StripeService } from '../stripe/stripe.service'
+import { SupabaseService } from '../common/supabase/supabase.service'
 import { SubscriptionsManagerService } from './subscriptions-manager.service'
 import { SubscriptionSyncService } from './subscription-sync.service'
 import { StructuredLoggerService } from '../common/logging/structured-logger.service'
-import type { PlanType, Subscription } from '@repo/database'
+import type { PlanType, Subscription } from '@repo/shared'
 import {
 	ERROR_CATEGORY_MAPPING,
 	ERROR_SEVERITY_MAPPING,
@@ -79,7 +79,7 @@ export class SubscriptionManagementService {
 	private readonly logger: StructuredLoggerService
 
 	constructor(
-		private readonly prismaService: PrismaService,
+		private readonly supabaseService: SupabaseService,
 		private readonly stripeService: StripeService,
 		@Inject(forwardRef(() => SubscriptionsManagerService))
 		private readonly subscriptionManager: SubscriptionsManagerService,
@@ -933,9 +933,26 @@ export class SubscriptionManagementService {
 			})
 
 			// Get user for Stripe customer
-			const user = await this.prismaService.user.findUnique({
-				where: { id: userId }
-			})
+			const { data: user, error } = await this.supabaseService
+				.getClient()
+				.from('User')
+				.select('*')
+				.eq('id', userId)
+				.single()
+
+			if (error || !user) {
+				return {
+					success: false,
+					error: 'User not found',
+					changes: [],
+					metadata: {
+						operation: 'checkout',
+						toPlan: planType,
+						correlationId,
+						timestamp: new Date().toISOString()
+					}
+				}
+			}
 
 			if (!user || !user.stripeCustomerId) {
 				return {

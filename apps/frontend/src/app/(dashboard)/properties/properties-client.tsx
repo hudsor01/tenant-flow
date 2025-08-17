@@ -8,7 +8,6 @@ import { PropertiesDataTable } from '@/components/properties/properties-data-tab
 import { PropertyDetailsDrawer } from '@/components/properties/property-details-drawer'
 import { PropertyFormDialog } from '@/components/properties/property-form-dialog'
 import { PropertyDeleteDialog } from '@/components/properties/property-delete-dialog'
-import { useProperties } from '@/hooks/api/use-properties'
 import type { Property } from '@repo/shared'
 
 interface PropertiesClientProps {
@@ -33,9 +32,6 @@ export function PropertiesClient({ className }: PropertiesClientProps) {
 	const [formMode, setFormMode] = useState<'create' | 'edit'>('create')
 	const [drawerOpen, setDrawerOpen] = useState(false)
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-
-	// Client-only hooks
-	const _props = useProperties()
 
 	// Event handlers
 	const handleAddProperty = () => {

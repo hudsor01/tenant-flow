@@ -1,6 +1,6 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
-import { PrismaService } from '../prisma/prisma.service'
+import { SupabaseService } from '../supabase/supabase.service'
 import {
 	ErrorCode,
 	ErrorHandlerService
@@ -8,6 +8,7 @@ import {
 import { SimpleSecurityService } from '../common/security/simple-security.service'
 import { SecurityMonitorService } from '../common/security/security-monitor.service'
 import type { AuthUser, UserRole } from '@repo/shared'
+import type { Database } from '@repo/shared/types/supabase-generated'
 
 export interface SupabaseUser {
 	id: string
@@ -33,36 +34,26 @@ export interface ValidatedUser
 }
 
 /**
- * Normalize Prisma user data to match ValidatedUser interface
+ * Normalize Supabase user data to match ValidatedUser interface
  * Ensures all fields are properly typed and formatted for API responses
  */
-function normalizePrismaUser(prismaUser: {
-	id: string
-	email: string
-	name?: string | null
-	avatarUrl?: string | null
-	role: string
-	phone?: string | null
-	createdAt: Date
-	updatedAt: Date
-	bio?: string | null
-	supabaseId?: string
-	stripeCustomerId?: string | null
-}): ValidatedUser {
+function normalizeSupabaseUser(
+	supabaseUser: Database['public']['Tables']['User']['Row']
+): ValidatedUser {
 	return {
-		id: prismaUser.id,
-		email: prismaUser.email,
-		name: prismaUser.name || undefined,
-		avatarUrl: prismaUser.avatarUrl || undefined,
-		role: prismaUser.role as UserRole,
-		phone: prismaUser.phone ?? null,
-		createdAt: prismaUser.createdAt.toISOString(),
-		updatedAt: prismaUser.updatedAt.toISOString(),
+		id: supabaseUser.id,
+		email: supabaseUser.email,
+		name: supabaseUser.name || undefined,
+		avatarUrl: supabaseUser.avatarUrl || undefined,
+		role: (supabaseUser.role || 'OWNER') as UserRole,
+		phone: supabaseUser.phone ?? null,
+		createdAt: new Date(supabaseUser.createdAt).toISOString(),
+		updatedAt: new Date(supabaseUser.updatedAt).toISOString(),
 		emailVerified: true, // Always true for authenticated users
-		bio: prismaUser.bio ?? null,
-		supabaseId: prismaUser.supabaseId ?? prismaUser.id,
-		stripeCustomerId: prismaUser.stripeCustomerId ?? null,
-		organizationId: null // Not implemented in current schema
+		bio: supabaseUser.bio ?? null,
+		supabaseId: supabaseUser.supabaseId ?? supabaseUser.id,
+		stripeCustomerId: supabaseUser.stripeCustomerId ?? null,
+		organizationId: null // organizationId field doesn't exist in User table
 	}
 }
 
@@ -72,7 +63,7 @@ export class AuthService {
 	private readonly supabase: SupabaseClient
 
 	constructor(
-		private readonly prisma: PrismaService,
+		private readonly supabaseService: SupabaseService,
 		private readonly errorHandler: ErrorHandlerService,
 		private readonly securityService: SimpleSecurityService,
 		private readonly securityMonitor: SecurityMonitorService
@@ -225,37 +216,41 @@ export class AuthService {
 		const companySize = String(metadata?.company_size || '1-10')
 
 		// Check if user exists before upserting to detect new users
-		const existingUser = await this.prisma.user.findUnique({
-			where: { id: supabaseId }
-		})
+		const adminClient = this.supabaseService.getAdminClient()
+		const { data: existingUser } = await adminClient
+			.from('User')
+			.select('*')
+			.eq('id', supabaseId)
+			.single()
 		const isNewUser = !existingUser
 
-		// Simple upsert - let Supabase handle the complexity
-		const user = await this.prisma.user.upsert({
-			where: { id: supabaseId },
-			update: {
-				email,
-				name,
-				phone,
-				avatarUrl,
-				updatedAt: new Date()
-			},
-			create: {
+		// Upsert user in database
+		const { data: user, error } = await adminClient
+			.from('User')
+			.upsert({
 				id: supabaseId,
 				email,
 				name,
 				phone,
 				avatarUrl,
-				role: 'OWNER',
+				role: existingUser?.role || 'OWNER',
 				supabaseId,
-				createdAt: supabaseUser.created_at
-					? new Date(supabaseUser.created_at)
-					: new Date(),
-				updatedAt: supabaseUser.updated_at
-					? new Date(supabaseUser.updated_at)
-					: new Date()
-			}
-		})
+				createdAt:
+					existingUser?.createdAt ||
+					supabaseUser.created_at ||
+					new Date().toISOString(),
+				updatedAt: new Date().toISOString()
+			})
+			.select()
+			.single()
+
+		if (error || !user) {
+			this.logger.error('Failed to sync user with database', {
+				error,
+				supabaseId
+			})
+			throw new Error('Failed to sync user data')
+		}
 
 		// Log new user metadata for analytics
 		if (isNewUser) {
@@ -296,13 +291,15 @@ export class AuthService {
 		}
 
 		// Get Stripe customer ID if exists
-		const subscription = await this.prisma.subscription.findFirst({
-			where: { userId: supabaseId },
-			select: { stripeCustomerId: true }
-		})
+		const { data: subscription } = await adminClient
+			.from('Subscription')
+			.select('stripeCustomerId')
+			.eq('userId', supabaseId)
+			.limit(1)
+			.single()
 
 		return {
-			...normalizePrismaUser(user),
+			...normalizeSupabaseUser(user),
 			supabaseId,
 			stripeCustomerId: subscription?.stripeCustomerId || null
 		}
@@ -314,10 +311,13 @@ export class AuthService {
 	async getUserBySupabaseId(
 		supabaseId: string
 	): Promise<ValidatedUser | null> {
-		const user = await this.prisma.user.findUnique({
-			where: { id: supabaseId }
-		})
-		return user ? normalizePrismaUser(user) : null
+		const adminClient = this.supabaseService.getAdminClient()
+		const { data: user } = await adminClient
+			.from('User')
+			.select('*')
+			.eq('id', supabaseId)
+			.single()
+		return user ? normalizeSupabaseUser(user) : null
 	}
 
 	/**
@@ -332,14 +332,21 @@ export class AuthService {
 			avatarUrl?: string
 		}
 	): Promise<{ user: ValidatedUser }> {
-		const user = await this.prisma.user.update({
-			where: { id: supabaseId },
-			data: {
+		const adminClient = this.supabaseService.getAdminClient()
+		const { data: user, error } = await adminClient
+			.from('User')
+			.update({
 				...updates,
-				updatedAt: new Date()
-			}
-		})
-		return { user: normalizePrismaUser(user) }
+				updatedAt: new Date().toISOString()
+			})
+			.eq('id', supabaseId)
+			.select()
+			.single()
+
+		if (error || !user) {
+			throw new Error('Failed to update user profile')
+		}
+		return { user: normalizeSupabaseUser(user) }
 	}
 
 	/**
@@ -353,10 +360,13 @@ export class AuthService {
 	 * Get user by email
 	 */
 	async getUserByEmail(email: string): Promise<ValidatedUser | null> {
-		const user = await this.prisma.user.findUnique({
-			where: { email }
-		})
-		return user ? normalizePrismaUser(user) : null
+		const adminClient = this.supabaseService.getAdminClient()
+		const { data: user } = await adminClient
+			.from('User')
+			.select('*')
+			.eq('email', email)
+			.single()
+		return user ? normalizeSupabaseUser(user) : null
 	}
 
 	/**
@@ -371,19 +381,32 @@ export class AuthService {
 	 * Get user statistics
 	 */
 	async getUserStats() {
-		const [total, owners, managers, tenants] = await Promise.all([
-			this.prisma.user.count(),
-			this.prisma.user.count({ where: { role: 'OWNER' } }),
-			this.prisma.user.count({ where: { role: 'MANAGER' } }),
-			this.prisma.user.count({ where: { role: 'TENANT' } })
-		])
+		const adminClient = this.supabaseService.getAdminClient()
+		const [totalResult, ownersResult, managersResult, tenantsResult] =
+			await Promise.all([
+				adminClient
+					.from('User')
+					.select('*', { count: 'exact', head: true }),
+				adminClient
+					.from('User')
+					.select('*', { count: 'exact', head: true })
+					.eq('role', 'OWNER'),
+				adminClient
+					.from('User')
+					.select('*', { count: 'exact', head: true })
+					.eq('role', 'MANAGER'),
+				adminClient
+					.from('User')
+					.select('*', { count: 'exact', head: true })
+					.eq('role', 'TENANT')
+			])
 
 		return {
-			total,
+			total: totalResult.count || 0,
 			byRole: {
-				owners,
-				managers,
-				tenants
+				owners: ownersResult.count || 0,
+				managers: managersResult.count || 0,
+				tenants: tenantsResult.count || 0
 			}
 		}
 	}
@@ -677,9 +700,16 @@ export class AuthService {
 	 * Delete user and all associated data
 	 */
 	async deleteUser(supabaseId: string): Promise<void> {
-		await this.prisma.user.delete({
-			where: { id: supabaseId }
-		})
+		const adminClient = this.supabaseService.getAdminClient()
+		const { error } = await adminClient
+			.from('User')
+			.delete()
+			.eq('id', supabaseId)
+
+		if (error) {
+			this.logger.error('Failed to delete user', { error, supabaseId })
+			throw error
+		}
 	}
 
 	/**

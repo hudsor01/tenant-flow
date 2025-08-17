@@ -442,12 +442,12 @@ export function CommandPalette() {
 			if (!groups[item.category]) {
 				groups[item.category] = []
 			}
-			groups[item.category].push(item)
+			groups[item.category]?.push(item)
 		})
 
 		// Sort items within each group by priority
 		Object.keys(groups).forEach(category => {
-			groups[category].sort(
+			groups[category]?.sort(
 				(a, b) => (b.priority || 0) - (a.priority || 0)
 			)
 		})

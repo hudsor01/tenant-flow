@@ -7,9 +7,8 @@ import {
 	Min
 } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
-import { UnitStatus } from '@repo/database'
+import { UnitQuery, UnitStatus } from '@repo/shared'
 import { BaseQueryDtoWithSort } from '../../common/dto/base-query.dto'
-import { UnitQuery } from '@repo/shared'
 
 type UnitSortFields =
 	| 'unitNumber'
