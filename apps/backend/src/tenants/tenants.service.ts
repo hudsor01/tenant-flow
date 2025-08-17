@@ -7,7 +7,7 @@ import {
 } from './tenants-supabase.repository'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { ValidationException } from '../common/exceptions/base.exception'
-import { TenantCreateDto, TenantQueryDto, TenantUpdateDto } from './dto'
+import { TenantCreateDto, TenantUpdateDto } from './dto'
 import { FairHousingService } from '../common/validation/fair-housing.service'
 
 type TenantInsert = Database['public']['Tables']['Tenant']['Insert']
@@ -47,14 +47,12 @@ export class TenantsService {
 			this.validateCreateData(data)
 
 			// Combine firstName and lastName to create the name field
-			const name = `${data.firstName} ${data.lastName}`.trim()
-
 			const tenantData: TenantInsert = {
-				name,
+				name: data.name,
 				email: data.email,
 				phone: data.phone,
-				emergencyContact: data.emergencyContactName
-					? `${data.emergencyContactName}${data.emergencyContactPhone ? ` - ${data.emergencyContactPhone}` : ''}`
+				emergencyContact: data.emergencyContact
+					? `${data.emergencyContact}${data.emergencyPhone ? ` - ${data.emergencyPhone}` : ''}`
 					: undefined,
 				createdAt: new Date().toISOString(),
 				updatedAt: new Date().toISOString()
@@ -80,7 +78,7 @@ export class TenantsService {
 				resource: 'tenant',
 				metadata: {
 					email: data.email,
-					name: `${data.firstName} ${data.lastName}`
+					name: data.name
 				}
 			})
 		}
@@ -90,18 +88,11 @@ export class TenantsService {
 	 * Validate tenant create data
 	 */
 	private validateCreateData(data: TenantCreateDto): void {
-		if (!data.firstName?.trim()) {
+		if (!data.name?.trim()) {
 			throw new ValidationException(
-				'Tenant first name is required',
-				'firstName',
-				['First name is required']
-			)
-		}
-		if (!data.lastName?.trim()) {
-			throw new ValidationException(
-				'Tenant last name is required',
-				'lastName',
-				['Last name is required']
+				'Tenant name is required',
+				'name',
+				['Name is required']
 			)
 		}
 		if (!data.email?.trim()) {
@@ -327,13 +318,12 @@ export class TenantsService {
 			this.validateCreateData(tenantData)
 
 			// Prepare tenant data
-			const name = `${tenantData.firstName} ${tenantData.lastName}`.trim()
 			const tenantInsert: TenantInsert = {
-				name,
+				name: tenantData.name,
 				email: tenantData.email,
 				phone: tenantData.phone,
-				emergencyContact: tenantData.emergencyContactName
-					? `${tenantData.emergencyContactName}${tenantData.emergencyContactPhone ? ` - ${tenantData.emergencyContactPhone}` : ''}`
+				emergencyContact: tenantData.emergencyContact
+					? `${tenantData.emergencyContact}${tenantData.emergencyPhone ? ` - ${tenantData.emergencyPhone}` : ''}`
 					: undefined,
 				createdAt: new Date().toISOString(),
 				updatedAt: new Date().toISOString()
@@ -360,7 +350,7 @@ export class TenantsService {
 				resource: 'tenant',
 				metadata: {
 					email: tenantData.email,
-					name: `${tenantData.firstName} ${tenantData.lastName}`,
+					name: tenantData.name,
 					ownerId
 				}
 			})
@@ -424,42 +414,5 @@ export class TenantsService {
 				metadata: { ownerId }
 			})
 		}
-	}
-
-	// ========================================
-	// Backward Compatibility Methods (Deprecated)
-	// ========================================
-
-	/** @deprecated Use findByOwner() instead */
-	async getTenantsByOwner(
-		ownerId: string,
-		query?: TenantQueryDto
-	): Promise<TenantWithRelations[]> {
-		return this.findByOwner(ownerId, query)
-	}
-
-	/** @deprecated Use getStats() instead */
-	async getTenantStats(ownerId: string) {
-		return this.getStats(ownerId)
-	}
-
-	/** @deprecated Use findById() instead */
-	async getTenantById(
-		id: string,
-		ownerId: string
-	): Promise<TenantWithRelations | null> {
-		try {
-			return await this.findById(id, ownerId)
-		} catch (_error) {
-			return null
-		}
-	}
-
-	/** @deprecated Use findById() instead */
-	async getTenantByIdOrThrow(
-		id: string,
-		ownerId: string
-	): Promise<TenantWithRelations> {
-		return this.findById(id, ownerId)
 	}
 }

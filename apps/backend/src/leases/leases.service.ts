@@ -11,7 +11,7 @@ import {
 	InvalidLeaseDatesException,
 	LeaseConflictException
 } from '../common/exceptions/lease.exceptions'
-import { CreateLeaseDto, LeaseQueryDto, UpdateLeaseDto } from './dto'
+import { CreateLeaseDto, UpdateLeaseDto } from './dto'
 
 type LeaseInsert = Database['public']['Tables']['Lease']['Insert']
 type LeaseUpdate = Database['public']['Tables']['Lease']['Update']
@@ -47,10 +47,10 @@ export class LeasesService {
 				tenantId: data.tenantId,
 				startDate: new Date(data.startDate).toISOString(),
 				endDate: new Date(data.endDate).toISOString(),
-				rent: data.monthlyRent,
+				rentAmount: data.rentAmount,
 				securityDeposit: data.securityDeposit,
 				status: (data.status || 'DRAFT') as LeaseInsert['status'],
-				terms: data.terms,
+				terms: data.leaseTerms,
 				createdAt: new Date().toISOString(),
 				updatedAt: new Date().toISOString()
 			}
@@ -183,6 +183,46 @@ export class LeasesService {
 	}
 
 	/**
+	 * Alias for findByOwner to match controller expectations
+	 */
+	async getByOwner(
+		ownerId: string,
+		options: LeaseQueryOptions = {},
+		userId?: string,
+		userToken?: string
+	): Promise<LeaseWithRelations[]> {
+		return this.findByOwner(ownerId, options, userId, userToken)
+	}
+
+	/**
+	 * Alias for findByUnit to match controller expectations
+	 */
+	async getByUnit(
+		unitId: string,
+		ownerId: string,
+		_options: LeaseQueryOptions = {},
+		userId?: string,
+		userToken?: string
+	): Promise<LeaseWithRelations[]> {
+		// TODO: Add support for options in findByUnit
+		return this.findByUnit(unitId, ownerId, userId, userToken)
+	}
+
+	/**
+	 * Alias for findByTenant to match controller expectations
+	 */
+	async getByTenant(
+		tenantId: string,
+		ownerId: string,
+		_options: LeaseQueryOptions = {},
+		userId?: string,
+		userToken?: string
+	): Promise<LeaseWithRelations[]> {
+		// TODO: Add support for options in findByTenant
+		return this.findByTenant(tenantId, ownerId, userId, userToken)
+	}
+
+	/**
 	 * Update lease
 	 */
 	async update(
@@ -214,7 +254,6 @@ export class LeasesService {
 			}
 
 			const updateData: LeaseUpdate = {
-				...data,
 				updatedAt: new Date().toISOString()
 			}
 
@@ -224,6 +263,18 @@ export class LeasesService {
 			}
 			if (data.endDate) {
 				updateData.endDate = new Date(data.endDate).toISOString()
+			}
+			if (data.status) {
+				updateData.status = data.status as LeaseUpdate['status']
+			}
+			if (data.rentAmount !== undefined) {
+				updateData.rentAmount = data.rentAmount
+			}
+			if (data.securityDeposit !== undefined) {
+				updateData.securityDeposit = data.securityDeposit
+			}
+			if (data.leaseTerms) {
+				updateData.terms = data.leaseTerms
 			}
 
 			const updated = await this.repository.update(
@@ -499,7 +550,7 @@ export class LeasesService {
 			}
 
 			const updateData: LeaseUpdate = {
-				status,
+				status: status as LeaseUpdate['status'],
 				updatedAt: new Date().toISOString()
 			}
 
@@ -524,60 +575,5 @@ export class LeasesService {
 				metadata: { leaseId: id, status, ownerId }
 			})
 		}
-	}
-
-	// ========================================
-	// Backward Compatibility Methods (Deprecated)
-	// ========================================
-
-	/** @deprecated Use findByOwner() instead */
-	async getByOwner(
-		ownerId: string,
-		query?: LeaseQueryDto
-	): Promise<LeaseWithRelations[]> {
-		return this.findByOwner(ownerId, query)
-	}
-
-	/** @deprecated Use findByUnit() instead */
-	async getByUnit(
-		unitId: string,
-		ownerId: string,
-		_query?: LeaseQueryDto
-	): Promise<LeaseWithRelations[]> {
-		return this.findByUnit(unitId, ownerId)
-	}
-
-	/** @deprecated Use findByTenant() instead */
-	async getByTenant(
-		tenantId: string,
-		ownerId: string,
-		_query?: LeaseQueryDto
-	): Promise<LeaseWithRelations[]> {
-		return this.findByTenant(tenantId, ownerId)
-	}
-
-	/** @deprecated Use getStats() instead */
-	async getLeaseStats(ownerId: string) {
-		return this.getStats(ownerId)
-	}
-
-	/** @deprecated Use findById() instead */
-	async getLeaseById(
-		id: string,
-		ownerId: string
-	): Promise<LeaseWithRelations | null> {
-		try {
-			return await this.findById(id, ownerId)
-		} catch (_error) {
-			return null
-		}
-	}
-
-	/** @deprecated Use findById() instead */
-	async getLeaseByIdOrThrow(
-		id: string,
-		ownerId: string
-	): Promise<LeaseWithRelations> {
-		return this.findById(id, ownerId)
 	}
 }

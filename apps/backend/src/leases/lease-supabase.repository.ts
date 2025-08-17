@@ -236,8 +236,8 @@ export class LeaseSupabaseRepository extends BaseSupabaseRepository<
 			}
 
 			// Validate ownership - need to check if data has the expected structure
-			if (data && 'Unit' in data) {
-				const leaseData = data as LeaseWithRelations
+			if (data && typeof data === 'object' && 'Unit' in data) {
+				const leaseData = data as unknown as LeaseWithRelations
 				if (leaseData.Unit?.Property?.ownerId !== ownerId) {
 					return null // No ownership
 				}

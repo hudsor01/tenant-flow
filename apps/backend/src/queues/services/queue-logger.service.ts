@@ -21,7 +21,7 @@ export class QueueLogger {
 		const sanitizedData = DataSanitizationService.sanitize(job.data)
 		this.logger.log(`Starting job ${job.id}`, {
 			jobId: job.id?.toString() ?? 'unknown',
-			queueName: job.queue.name,
+			queueName: job.queue?.name ?? 'unknown',
 			jobName: job.name,
 			attempt: job.attemptsMade + 1,
 			data: sanitizedData,
@@ -35,7 +35,7 @@ export class QueueLogger {
 	logJobSuccess(job: Job, processingTime: number, result?: unknown): void {
 		this.logger.log(`✅ Job ${job.id} completed successfully`, {
 			jobId: job.id?.toString() ?? 'unknown',
-			queueName: job.queue.name,
+			queueName: job.queue?.name ?? 'unknown',
 			jobName: job.name,
 			processingTime,
 			attempts: job.attemptsMade + 1,
@@ -51,7 +51,7 @@ export class QueueLogger {
 	logJobFailure(job: Job, error: Error, processingTime?: number): void {
 		this.logger.error(`❌ Job ${job.id} failed`, {
 			jobId: job.id?.toString() ?? 'unknown',
-			queueName: job.queue.name,
+			queueName: job.queue?.name ?? 'unknown',
 			jobName: job.name,
 			attempt: job.attemptsMade + 1,
 			processingTime,
@@ -66,7 +66,7 @@ export class QueueLogger {
 	logJobRetry(job: Job, error: Error, nextAttempt: number): void {
 		this.logger.warn(`🔄 Job ${job.id} will be retried`, {
 			jobId: job.id?.toString() ?? 'unknown',
-			queueName: job.queue.name,
+			queueName: job.queue?.name ?? 'unknown',
 			jobName: job.name,
 			currentAttempt: job.attemptsMade + 1,
 			nextAttempt,
@@ -80,7 +80,7 @@ export class QueueLogger {
 	logJobProgress(job: Job, progress: number, message?: string): void {
 		this.logger.debug(`Job ${job.id} progress: ${progress}%`, {
 			jobId: job.id?.toString() ?? 'unknown',
-			queueName: job.queue.name,
+			queueName: job.queue?.name ?? 'unknown',
 			progress,
 			message
 		})

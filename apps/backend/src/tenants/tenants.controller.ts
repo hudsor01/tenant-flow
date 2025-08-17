@@ -11,7 +11,6 @@ import {
 } from '@nestjs/common'
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { TenantsService } from './tenants.service'
-import { Tenant } from '@repo/shared'
 import {
 	createTenantSchema,
 	queryTenantsSchema,
@@ -49,8 +48,9 @@ export class TenantsController {
 	async create(
 		@Body() data: TenantCreateDto,
 		@CurrentUser() user: ValidatedUser
-	): Promise<Tenant> {
-		return this.tenantsService.create(data, user.id)
+	) {
+		const tenant = await this.tenantsService.create(data, user.id)
+		return { ...tenant, invitationStatus: 'ACCEPTED' }
 	}
 
 	@Get()
@@ -60,8 +60,9 @@ export class TenantsController {
 	async findAll(
 		@Query() query: TenantQueryDto,
 		@CurrentUser() user: ValidatedUser
-	): Promise<Tenant[]> {
-		return this.tenantsService.getByOwner(user.id, query)
+	) {
+		const tenants = await this.tenantsService.findByOwner(user.id, query)
+		return tenants.map(t => ({ ...t, invitationStatus: 'ACCEPTED' }))
 	}
 
 	@Get('stats')
@@ -85,8 +86,9 @@ export class TenantsController {
 	async findOne(
 		@Param('id') id: string,
 		@CurrentUser() user: ValidatedUser
-	): Promise<Tenant> {
-		return this.tenantsService.findById(id, user.id)
+	) {
+		const tenant = await this.tenantsService.findById(id, user.id)
+		return { ...tenant, invitationStatus: 'ACCEPTED' }
 	}
 
 	@Put(':id')
@@ -103,8 +105,9 @@ export class TenantsController {
 		@Param('id') id: string,
 		@Body() data: TenantUpdateDto,
 		@CurrentUser() user: ValidatedUser
-	): Promise<Tenant> {
-		return this.tenantsService.update(id, data, user.id)
+	) {
+		const tenant = await this.tenantsService.update(id, data, user.id)
+		return { ...tenant, invitationStatus: 'ACCEPTED' }
 	}
 
 	@Delete(':id')
@@ -120,7 +123,7 @@ export class TenantsController {
 	async remove(
 		@Param('id') id: string,
 		@CurrentUser() user: ValidatedUser
-	): Promise<Tenant> {
-		return this.tenantsService.delete(id, user.id)
+	): Promise<void> {
+		await this.tenantsService.delete(id, user.id)
 	}
 }
