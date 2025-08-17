@@ -24,7 +24,7 @@ import { LeasesModule } from './leases/leases.module'
 import { MaintenanceModule } from './maintenance/maintenance.module'
 import { DocumentsModule } from './documents/documents.module'
 import { UsersModule } from './users/users.module'
-import { PrismaModule } from './prisma/prisma.module'
+import { SupabaseModule } from './common/supabase/supabase.module'
 import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 import { StripeModule } from './stripe/stripe.module'
 import { BillingModule } from './billing/billing.module'
@@ -56,7 +56,7 @@ import { RequestLimitsMiddleware } from './common/middleware/request-limits.midd
 			],
 			inject: [TypeSafeConfigService]
 		}),
-		PrismaModule,
+		SupabaseModule,
 		EventEmitterModule.forRoot(),
 		ScheduleModule.forRoot(),
 		SecurityModule,

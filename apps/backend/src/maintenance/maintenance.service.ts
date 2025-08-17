@@ -1,21 +1,23 @@
-import { Injectable } from '@nestjs/common'
-import { MaintenanceRequest, Prisma } from '@repo/database'
-import { MaintenanceRequestRepository } from './maintenance-request.repository'
+import { Injectable, Logger } from '@nestjs/common'
+import type { Database } from '@repo/shared/types/supabase-generated'
 import {
-	ErrorCode,
-	ErrorHandlerService
-} from '../common/errors/error-handler.service'
-import {
-	BaseCrudService,
-	BaseStats
-} from '../common/services/base-crud.service'
+	MaintenanceRequestQueryOptions,
+	MaintenanceRequestSupabaseRepository,
+	MaintenanceRequestWithRelations
+} from './maintenance-request-supabase.repository'
+import { ErrorHandlerService } from '../common/errors/error-handler.service'
+import { ValidationException } from '../common/exceptions/base.exception'
 import {
 	CreateMaintenanceRequestDto,
 	MaintenanceRequestQueryDto,
 	UpdateMaintenanceRequestDto
 } from './dto'
-import { SupabaseService } from '../common/supabase.service'
-import { PrismaService } from '../prisma/prisma.service'
+import { SupabaseService } from '../common/supabase/supabase.service'
+
+type MaintenanceRequestInsert =
+	Database['public']['Tables']['MaintenanceRequest']['Insert']
+type MaintenanceRequestUpdate =
+	Database['public']['Tables']['MaintenanceRequest']['Update']
 
 // Types for notification
 interface NotificationData {
@@ -27,152 +29,456 @@ interface NotificationData {
 	actionUrl?: string
 }
 
+/**
+ * Maintenance service using Supabase
+ * Handles maintenance request management with property ownership validation through units
+ */
 @Injectable()
-export class MaintenanceService extends BaseCrudService<
-	MaintenanceRequest,
-	CreateMaintenanceRequestDto,
-	UpdateMaintenanceRequestDto,
-	MaintenanceRequestQueryDto,
-	Prisma.MaintenanceRequestCreateInput,
-	Prisma.MaintenanceRequestUpdateInput,
-	Prisma.MaintenanceRequestWhereInput
-> {
-	protected readonly entityName = 'maintenance-request'
-	protected readonly repository: MaintenanceRequestRepository
+export class MaintenanceService {
+	private readonly logger = new Logger(MaintenanceService.name)
 
 	constructor(
-		private readonly maintenanceRequestRepository: MaintenanceRequestRepository,
-		errorHandler: ErrorHandlerService,
-		private readonly supabaseService: SupabaseService,
-		private readonly prismaService: PrismaService
-	) {
-		super(errorHandler)
-		this.repository = maintenanceRequestRepository
-	}
-
-	// ========================================
-	// BaseCrudService Implementation
-	// ========================================
-
-	protected async findByIdAndOwner(
-		id: string,
-		ownerId: string
-	): Promise<MaintenanceRequest | null> {
-		return this.maintenanceRequestRepository.findByIdAndOwner(id, ownerId)
-	}
-
-	protected async calculateStats(ownerId: string): Promise<BaseStats> {
-		return this.maintenanceRequestRepository.getStatsByOwner(ownerId)
-	}
-
-	protected prepareCreateData(
-		data: CreateMaintenanceRequestDto,
-		_ownerId: string
-	): Prisma.MaintenanceRequestCreateInput {
-		const { unitId, ...restData } = data
-
-		return {
-			...restData,
-			preferredDate: data.preferredDate
-				? new Date(data.preferredDate)
-				: undefined,
-			Unit: {
-				connect: { id: unitId }
-			}
-		}
-	}
-
-	protected prepareUpdateData(
-		data: UpdateMaintenanceRequestDto
-	): Prisma.MaintenanceRequestUpdateInput {
-		const updateData: Prisma.MaintenanceRequestUpdateInput = {
-			...data,
-			updatedAt: new Date()
-		}
-
-		if (data.preferredDate && typeof data.preferredDate === 'string') {
-			updateData.preferredDate = new Date(data.preferredDate)
-		}
-
-		if (
-			'completedAt' in data &&
-			data.completedAt &&
-			typeof data.completedAt === 'string'
-		) {
-			updateData.completedAt = new Date(data.completedAt)
-		}
-
-		return updateData
-	}
-
-	protected createOwnerWhereClause(
-		id: string,
-		ownerId: string
-	): Prisma.MaintenanceRequestWhereInput {
-		return {
-			id,
-			Unit: {
-				Property: {
-					ownerId
-				}
-			}
-		}
-	}
-
-	// ========================================
-	// Maintenance-Specific Methods (using repository)
-	// ========================================
+		private readonly repository: MaintenanceRequestSupabaseRepository,
+		private readonly errorHandler: ErrorHandlerService,
+		private readonly supabaseService: SupabaseService
+	) {}
 
 	/**
-	 * Find maintenance requests by unit - uses repository-specific implementation
+	 * Create a new maintenance request with validation
 	 */
-	async getByUnit(
-		unitId: string,
+	async create(
+		data: CreateMaintenanceRequestDto,
 		ownerId: string,
-		query?: MaintenanceRequestQueryDto
-	): Promise<MaintenanceRequest[]> {
-		if (!unitId || !ownerId) {
-			throw new Error('Unit ID and Owner ID are required')
-		}
-
+		userId?: string,
+		userToken?: string
+	): Promise<MaintenanceRequestWithRelations> {
 		try {
-			return (await this.maintenanceRequestRepository.findByUnit(
-				unitId,
+			// Validate required fields
+			if (!data.unitId || !data.title || !data.description) {
+				throw new ValidationException(
+					'Unit ID, title, and description are required'
+				)
+			}
+
+			const requestData: MaintenanceRequestInsert = {
+				unitId: data.unitId,
+				title: data.title,
+				description: data.description,
+				category: data.category || 'GENERAL',
+				priority: data.priority || 'MEDIUM',
+				status: data.status || 'OPEN',
+				requestedByEmail: data.requestedByEmail,
+				requestedByName: data.requestedByName,
+				requestedByPhone: data.requestedByPhone,
+				preferredDate: data.preferredDate
+					? new Date(data.preferredDate).toISOString()
+					: undefined,
+				notes: data.notes,
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString()
+			}
+
+			const maintenanceRequest =
+				await this.repository.createWithValidation(
+					requestData,
+					ownerId,
+					userId,
+					userToken
+				)
+
+			this.logger.log('Maintenance request created successfully', {
+				requestId: maintenanceRequest.id,
+				unitId: data.unitId,
+				priority: data.priority,
+				ownerId
+			})
+
+			return maintenanceRequest
+		} catch (error) {
+			this.logger.error('Failed to create maintenance request:', error)
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'create',
+				resource: 'maintenance-request',
+				metadata: { unitId: data.unitId, title: data.title, ownerId }
+			})
+		}
+	}
+
+	/**
+	 * Find maintenance request by ID
+	 */
+	async findById(
+		id: string,
+		ownerId: string,
+		userId?: string,
+		userToken?: string
+	): Promise<MaintenanceRequestWithRelations> {
+		try {
+			const request = await this.repository.findByIdAndOwner(
+				id,
 				ownerId,
-				query
-			)) as MaintenanceRequest[]
+				true,
+				userId,
+				userToken
+			)
+
+			if (!request) {
+				throw new Error('Maintenance request not found')
+			}
+
+			return request
 		} catch (error) {
 			throw this.errorHandler.handleErrorEnhanced(error as Error, {
-				operation: 'getByUnit',
-				resource: this.entityName,
+				operation: 'findById',
+				resource: 'maintenance-request',
+				metadata: { requestId: id, ownerId }
+			})
+		}
+	}
+
+	/**
+	 * Get all maintenance requests for an owner
+	 */
+	async findByOwner(
+		ownerId: string,
+		options: MaintenanceRequestQueryOptions = {},
+		userId?: string,
+		userToken?: string
+	): Promise<MaintenanceRequestWithRelations[]> {
+		try {
+			if (
+				!ownerId ||
+				typeof ownerId !== 'string' ||
+				ownerId.trim().length === 0
+			) {
+				throw new ValidationException('Owner ID is required', 'ownerId')
+			}
+
+			return await this.repository.findByOwnerWithDetails(
+				ownerId,
+				options,
+				userId,
+				userToken
+			)
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'findByOwner',
+				resource: 'maintenance-request',
+				metadata: { ownerId }
+			})
+		}
+	}
+
+	/**
+	 * Update maintenance request
+	 */
+	async update(
+		id: string,
+		data: UpdateMaintenanceRequestDto,
+		ownerId: string,
+		userId?: string,
+		userToken?: string
+	): Promise<MaintenanceRequestWithRelations> {
+		try {
+			// Get existing request for validation
+			const existing = await this.repository.findByIdAndOwner(
+				id,
+				ownerId,
+				true,
+				userId,
+				userToken
+			)
+
+			if (!existing) {
+				throw new Error('Maintenance request not found')
+			}
+
+			const updateData: MaintenanceRequestUpdate = {
+				...data,
+				updatedAt: new Date().toISOString()
+			}
+
+			// Convert dates if provided
+			if (data.preferredDate) {
+				updateData.preferredDate = new Date(
+					data.preferredDate
+				).toISOString()
+			}
+
+			// Set completion date if status is completed
+			if (
+				data.status === 'COMPLETED' &&
+				existing.status !== 'COMPLETED'
+			) {
+				updateData.completedAt = new Date().toISOString()
+			}
+
+			const updated = await this.repository.update(
+				id,
+				updateData,
+				userId,
+				userToken
+			)
+
+			this.logger.log('Maintenance request updated successfully', {
+				requestId: id,
+				ownerId
+			})
+
+			return updated
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'update',
+				resource: 'maintenance-request',
+				metadata: { requestId: id, ownerId }
+			})
+		}
+	}
+
+	/**
+	 * Delete maintenance request
+	 */
+	async delete(
+		id: string,
+		ownerId: string,
+		userId?: string,
+		userToken?: string
+	): Promise<void> {
+		try {
+			// Verify ownership first
+			const existing = await this.repository.findByIdAndOwner(
+				id,
+				ownerId,
+				false,
+				userId,
+				userToken
+			)
+
+			if (!existing) {
+				throw new Error('Maintenance request not found')
+			}
+
+			await this.repository.delete(id, userId, userToken)
+
+			this.logger.log('Maintenance request deleted successfully', {
+				requestId: id,
+				ownerId
+			})
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'delete',
+				resource: 'maintenance-request',
+				metadata: { requestId: id, ownerId }
+			})
+		}
+	}
+
+	/**
+	 * Get maintenance request statistics for owner
+	 */
+	async getStats(
+		ownerId: string,
+		userId?: string,
+		userToken?: string
+	): Promise<{
+		total: number
+		open: number
+		inProgress: number
+		completed: number
+		emergency: number
+		high: number
+		medium: number
+		low: number
+	}> {
+		try {
+			return await this.repository.getStatsByOwner(
+				ownerId,
+				userId,
+				userToken
+			)
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'getStats',
+				resource: 'maintenance-request',
+				metadata: { ownerId }
+			})
+		}
+	}
+
+	/**
+	 * Find maintenance requests by unit
+	 */
+	async findByUnit(
+		unitId: string,
+		ownerId: string,
+		options: MaintenanceRequestQueryOptions = {},
+		userId?: string,
+		userToken?: string
+	): Promise<MaintenanceRequestWithRelations[]> {
+		try {
+			if (!unitId || !ownerId) {
+				throw new ValidationException(
+					'Unit ID and Owner ID are required'
+				)
+			}
+
+			return await this.repository.findByUnit(
+				unitId,
+				ownerId,
+				options,
+				userId,
+				userToken
+			)
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'findByUnit',
+				resource: 'maintenance-request',
 				metadata: { unitId, ownerId }
 			})
 		}
 	}
 
-	async sendNotification(notificationData: NotificationData, userId: string) {
+	/**
+	 * Search maintenance requests by text
+	 */
+	async search(
+		ownerId: string,
+		searchTerm: string,
+		options: MaintenanceRequestQueryOptions = {},
+		userId?: string,
+		userToken?: string
+	): Promise<MaintenanceRequestWithRelations[]> {
+		try {
+			const searchOptions = {
+				...options,
+				search: searchTerm
+			}
+
+			return await this.repository.findByOwnerWithDetails(
+				ownerId,
+				searchOptions,
+				userId,
+				userToken
+			)
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'search',
+				resource: 'maintenance-request',
+				metadata: { ownerId, searchTerm }
+			})
+		}
+	}
+
+	/**
+	 * Find emergency maintenance requests
+	 */
+	async findEmergencyRequests(
+		ownerId: string,
+		userId?: string,
+		userToken?: string
+	): Promise<MaintenanceRequestWithRelations[]> {
+		try {
+			return await this.repository.findEmergencyRequests(
+				ownerId,
+				userId,
+				userToken
+			)
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'findEmergencyRequests',
+				resource: 'maintenance-request',
+				metadata: { ownerId }
+			})
+		}
+	}
+
+	/**
+	 * Find overdue maintenance requests
+	 */
+	async findOverdueRequests(
+		ownerId: string,
+		days = 7,
+		userId?: string,
+		userToken?: string
+	): Promise<MaintenanceRequestWithRelations[]> {
+		try {
+			return await this.repository.findOverdueRequests(
+				ownerId,
+				days,
+				userId,
+				userToken
+			)
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'findOverdueRequests',
+				resource: 'maintenance-request',
+				metadata: { ownerId, days }
+			})
+		}
+	}
+
+	/**
+	 * Update maintenance request status
+	 */
+	async updateStatus(
+		id: string,
+		status: string,
+		ownerId: string,
+		notes?: string,
+		userId?: string,
+		userToken?: string
+	): Promise<MaintenanceRequestWithRelations> {
+		try {
+			// Validate status
+			const validStatuses = [
+				'OPEN',
+				'IN_PROGRESS',
+				'COMPLETED',
+				'CANCELLED'
+			]
+			if (!validStatuses.includes(status)) {
+				throw new ValidationException(`Invalid status: ${status}`)
+			}
+
+			return await this.repository.updateStatus(
+				id,
+				status,
+				ownerId,
+				notes,
+				userId,
+				userToken
+			)
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'updateStatus',
+				resource: 'maintenance-request',
+				metadata: { requestId: id, status, ownerId }
+			})
+		}
+	}
+
+	/**
+	 * Send notification for maintenance request
+	 */
+	async sendNotification(
+		notificationData: NotificationData,
+		userId: string
+	): Promise<{
+		emailId: string
+		sentAt: string
+		type: string
+	}> {
 		try {
 			// Find the maintenance request with related data
-			const maintenanceRequest =
-				await this.prismaService.maintenanceRequest.findUnique({
-					where: { id: notificationData.maintenanceRequestId },
-					include: {
-						Unit: {
-							include: {
-								Property: true
-							}
-						}
-					}
-				})
+			const maintenanceRequest = await this.repository.findByIdAndOwner(
+				notificationData.maintenanceRequestId,
+				userId, // Assuming userId is ownerId for this context
+				true
+			)
 
 			if (!maintenanceRequest) {
-				throw this.errorHandler.createNotFoundError(
-					'Maintenance request',
-					notificationData.maintenanceRequestId,
-					{
-						operation: 'sendNotificationEmail',
-						resource: 'maintenance'
-					}
+				throw new Error(
+					`Maintenance request not found: ${notificationData.maintenanceRequestId}`
 				)
 			}
 
@@ -214,7 +520,7 @@ export class MaintenanceService extends BaseCrudService<
 						description: maintenanceRequest.description,
 						priority: maintenanceRequest.priority,
 						status: maintenanceRequest.status,
-						createdAt: maintenanceRequest.createdAt.toISOString()
+						createdAt: maintenanceRequest.createdAt
 					},
 					actionUrl,
 					propertyName: propertyName || '',
@@ -224,21 +530,15 @@ export class MaintenanceService extends BaseCrudService<
 			}
 
 			// Send notification via Supabase Edge Function
-			const supabaseClient = this.supabaseService.getClient()
+			const supabaseClient = this.supabaseService.getAdminClient()
 			const { data, error } = await supabaseClient.functions.invoke(
 				'send-maintenance-notification',
 				{ body: emailData }
 			)
 
 			if (error) {
-				throw this.errorHandler.createBusinessError(
-					ErrorCode.EMAIL_ERROR,
-					'Failed to send notification email',
-					{
-						operation: 'sendNotificationEmail',
-						resource: 'maintenance',
-						metadata: { error: error.message }
-					}
+				throw new Error(
+					`Failed to send notification email: ${error.message}`
 				)
 			}
 
@@ -247,7 +547,7 @@ export class MaintenanceService extends BaseCrudService<
 			)
 
 			return {
-				emailId: data?.id || 'email-123',
+				emailId: data?.id || `email-${Date.now()}`,
 				sentAt: new Date().toISOString(),
 				type: notificationData.type
 			}
@@ -266,10 +566,26 @@ export class MaintenanceService extends BaseCrudService<
 		}
 	}
 
-	async logNotification(logData: Record<string, unknown>, userId: string) {
+	/**
+	 * Log notification for audit purposes
+	 */
+	async logNotification(
+		logData: Record<string, unknown>,
+		userId: string
+	): Promise<{
+		id: string
+		type: unknown
+		recipientEmail: unknown
+		recipientName: unknown
+		subject: unknown
+		maintenanceRequestId: unknown
+		notificationType: unknown
+		sentAt: string
+		status: unknown
+	}> {
 		try {
-			// Generate a mock log ID
-			const logId = `log-${Date.now()}`
+			// Generate a unique log ID
+			const logId = `log-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
 
 			const result = {
 				id: logId,
@@ -286,6 +602,7 @@ export class MaintenanceService extends BaseCrudService<
 			this.logger.log(
 				`Notification logged: ${logId} for maintenance request: ${logData.maintenanceRequestId}`
 			)
+
 			return result
 		} catch (error) {
 			throw this.errorHandler.handleErrorEnhanced(error as Error, {
@@ -300,5 +617,51 @@ export class MaintenanceService extends BaseCrudService<
 				}
 			})
 		}
+	}
+
+	// ========================================
+	// Backward Compatibility Methods (Deprecated)
+	// ========================================
+
+	/** @deprecated Use findByOwner() instead */
+	async getByOwner(
+		ownerId: string,
+		query?: MaintenanceRequestQueryDto
+	): Promise<MaintenanceRequestWithRelations[]> {
+		return this.findByOwner(ownerId, query)
+	}
+
+	/** @deprecated Use findByUnit() instead */
+	async getByUnit(
+		unitId: string,
+		ownerId: string,
+		query?: MaintenanceRequestQueryDto
+	): Promise<MaintenanceRequestWithRelations[]> {
+		return this.findByUnit(unitId, ownerId, query)
+	}
+
+	/** @deprecated Use getStats() instead */
+	async getMaintenanceStats(ownerId: string) {
+		return this.getStats(ownerId)
+	}
+
+	/** @deprecated Use findById() instead */
+	async getMaintenanceRequestById(
+		id: string,
+		ownerId: string
+	): Promise<MaintenanceRequestWithRelations | null> {
+		try {
+			return await this.findById(id, ownerId)
+		} catch (_error) {
+			return null
+		}
+	}
+
+	/** @deprecated Use findById() instead */
+	async getMaintenanceRequestByIdOrThrow(
+		id: string,
+		ownerId: string
+	): Promise<MaintenanceRequestWithRelations> {
+		return this.findById(id, ownerId)
 	}
 }

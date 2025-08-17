@@ -204,18 +204,26 @@ export async function validateFile(
 
 	try {
 		// 1. Basic file info validation
-		await validateBasicInfo(file, config, result)
+		await validateBasicInfo(
+			file,
+			config || getFileConfig('documents'),
+			result
+		)
 
 		// 2. File signature (magic number) validation
-		await validateFileSignature(file, config, result)
+		await validateFileSignature(
+			file,
+			config || getFileConfig('documents'),
+			result
+		)
 
 		// 3. Content analysis
-		if (config.validateContent) {
+		if (config?.validateContent) {
 			await validateFileContent(file, config, result)
 		}
 
 		// 4. Malware scanning (simplified - in production use proper antivirus)
-		if (config.scanForMalware) {
+		if (config?.scanForMalware) {
 			await scanForMalware(file, config, result)
 		}
 
@@ -336,7 +344,12 @@ async function validateFileSignature(
 				})
 			})
 
-			if (!isValidMagic && expectedMagicNumbers[0].length > 0) {
+			const firstMagicNumber = expectedMagicNumbers[0]
+			if (
+				!isValidMagic &&
+				firstMagicNumber &&
+				firstMagicNumber.length > 0
+			) {
 				// Some files like txt may not have magic numbers
 				result.valid = false
 				result.errors.push(
@@ -451,10 +464,10 @@ async function scanForMalware(
 		// Check for PE header (Windows executables)
 		if (bytes.length > 64) {
 			const peOffset =
-				bytes[60] |
-				(bytes[61] << 8) |
-				(bytes[62] << 16) |
-				(bytes[63] << 24)
+				(bytes[60] || 0) |
+				((bytes[61] || 0) << 8) |
+				((bytes[62] || 0) << 16) |
+				((bytes[63] || 0) << 24)
 			if (peOffset < bytes.length - 4) {
 				const peSignature = bytes.slice(peOffset, peOffset + 4)
 				if (
@@ -644,7 +657,11 @@ export async function validateMultipleFiles(
 export function getFileConfig(
 	context: keyof typeof FILE_CONFIGS
 ): FileValidationConfig {
-	return { ...FILE_CONFIGS[context] }
+	const config = FILE_CONFIGS[context]
+	if (!config) {
+		throw new Error(`Unknown file context: ${context}`)
+	}
+	return { ...config }
 }
 
 /**
@@ -654,5 +671,9 @@ export function updateFileConfig(
 	context: keyof typeof FILE_CONFIGS,
 	updates: Partial<FileValidationConfig>
 ): void {
-	FILE_CONFIGS[context] = { ...FILE_CONFIGS[context], ...updates }
+	const existingConfig = FILE_CONFIGS[context]
+	if (!existingConfig) {
+		throw new Error(`Unknown file context: ${context}`)
+	}
+	FILE_CONFIGS[context] = { ...existingConfig, ...updates }
 }

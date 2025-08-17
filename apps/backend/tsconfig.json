@@ -9,15 +9,8 @@
 		"jsx": "react",
 		"jsxFactory": "React.createElement",
 		"jsxFragmentFactory": "React.Fragment",
-		"paths": {
-			"@repo/shared": ["../../packages/shared/src"],
-			"@repo/shared/*": ["../../packages/shared/src/*"],
-			"@repo/database": ["../../packages/database/src"],
-			"@repo/database/*": ["../../packages/database/src/*"],
-			"@repo/emails": ["../../packages/emails"],
-			"@repo/emails/*": ["../../packages/emails/*"]
-		},
-		"types": ["node", "reflect-metadata", "vitest/globals"]
+		"types": ["node", "reflect-metadata", "vitest/globals"],
+		"skipLibCheck": true
 	},
 	"include": ["src", "src/types/fastify.d.ts", "test/setup.ts"],
 	"exclude": [
@@ -29,5 +22,9 @@
 		"**/*.test.ts",
 		"**/*.spec.ts",
 		"**/*.template.ts"
+	],
+	"references": [
+		{ "path": "../../packages/shared" },
+		{ "path": "../../packages/database" }
 	]
 }

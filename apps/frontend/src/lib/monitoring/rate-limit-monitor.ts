@@ -143,7 +143,7 @@ export class RateLimitMonitor {
 		const emailAttempts = new Map<string, Set<string>>()
 		recentEvents.forEach(event => {
 			const [ip, email] = event.identifier.split(':')
-			if (email) {
+			if (email && ip) {
 				if (!emailAttempts.has(email)) {
 					emailAttempts.set(email, new Set())
 				}

@@ -2,10 +2,10 @@ import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { RLSService } from './rls.service'
 import { RLSController } from './rls.controller'
-import { PrismaModule } from '../../prisma/prisma.module'
+import { SupabaseModule } from '../../common/supabase/supabase.module'
 
 @Module({
-	imports: [ConfigModule, PrismaModule],
+	imports: [ConfigModule, SupabaseModule],
 	providers: [RLSService],
 	controllers: [RLSController],
 	exports: [RLSService]

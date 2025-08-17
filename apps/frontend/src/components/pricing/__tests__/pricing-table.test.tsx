@@ -1,185 +1,201 @@
-import { render, screen, waitFor } from '@testing-library/react';
-import { PricingTable } from '../pricing-table';
-import { logger } from '@/lib/logger';
+import { render, screen, waitFor } from '@testing-library/react'
+import { PricingTable } from '../pricing-table'
+import { logger } from '@/lib/logger'
 
 // Mock the auth hook
 jest.mock('@/hooks/use-auth', () => ({
-  useAuth: () => ({
-    user: { email: 'test@example.com' },
-    isAuthenticated: true
-  })
-}));
+	useAuth: () => ({
+		user: { email: 'test@example.com' },
+		isAuthenticated: true
+	})
+}))
 
 // Mock the logger
 jest.mock('@/lib/logger', () => ({
-  logger: {
-    debug: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn()
-  }
-}));
+	logger: {
+		debug: jest.fn(),
+		warn: jest.fn(),
+		error: jest.fn()
+	}
+}))
 
 // Mock the Stripe pricing table script
-const mockStripePricingTable = jest.fn();
+const mockStripePricingTable = jest.fn()
 
 describe('PricingTable', () => {
-  const mockProps = {
-    pricingTableId: 'prctbl_test123',
-    publishableKey: 'pk_test_123',
-    customerSessionClientSecret: 'cs_test_secret'
-  };
+	const mockProps = {
+		pricingTableId: 'prctbl_test123',
+		publishableKey: 'pk_test_123',
+		customerSessionClientSecret: 'cs_test_secret'
+	}
 
-  let originalCreateElement: typeof document.createElement;
+	let originalCreateElement: typeof document.createElement
 
-  beforeEach(() => {
-    // Store original createElement before any mocking
-    originalCreateElement = document.createElement.bind(document);
-    
-    // Mock document.createElement for script loading
-    jest.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
-      if (tagName === 'script') {
-        const script = originalCreateElement('script');
-        setTimeout(() => {
-          // Simulate script load
-          (window as unknown).StripePricingTable = mockStripePricingTable;
-          mockStripePricingTable(); // Actually call it
-          if (script.onload) {
-            script.onload({} as Event);
-          }
-        }, 0);
-        return script;
-      }
-      // Use the stored original function
-      return originalCreateElement(tagName);
-    });
-  });
+	beforeEach(() => {
+		// Store original createElement before any mocking
+		originalCreateElement = document.createElement.bind(document)
 
-  afterEach(() => {
-    jest.clearAllMocks();
-    jest.restoreAllMocks();
-    delete (window as unknown).StripePricingTable;
-  });
+		// Mock document.createElement for script loading
+		jest.spyOn(document, 'createElement').mockImplementation(
+			(tagName: string) => {
+				if (tagName === 'script') {
+					const script = originalCreateElement('script')
+					setTimeout(() => {
+						// Simulate script load
+						;(window as unknown).StripePricingTable =
+							mockStripePricingTable
+						mockStripePricingTable() // Actually call it
+						if (script.onload) {
+							script.onload({} as Event)
+						}
+					}, 0)
+					return script
+				}
+				// Use the stored original function
+				return originalCreateElement(tagName)
+			}
+		)
+	})
 
-  it('renders pricing table element with correct attributes', async () => {
-    render(<PricingTable {...mockProps} />);
+	afterEach(() => {
+		jest.clearAllMocks()
+		jest.restoreAllMocks()
+		delete (window as unknown).StripePricingTable
+	})
 
-    await waitFor(() => {
-      const pricingTable = document.querySelector('stripe-pricing-table');
-      expect(pricingTable).toBeInTheDocument();
-      expect(pricingTable?.getAttribute('pricing-table-id')).toBe(mockProps.pricingTableId);
-      expect(pricingTable?.getAttribute('publishable-key')).toBe(mockProps.publishableKey);
-    });
-  });
+	it('renders pricing table element with correct attributes', async () => {
+		render(<PricingTable {...mockProps} />)
 
-  it('includes customer session when provided', async () => {
-    render(<PricingTable {...mockProps} />);
+		await waitFor(() => {
+			const pricingTable = document.querySelector('stripe-pricing-table')
+			expect(pricingTable).toBeInTheDocument()
+			expect(pricingTable?.getAttribute('pricing-table-id')).toBe(
+				mockProps.pricingTableId
+			)
+			expect(pricingTable?.getAttribute('publishable-key')).toBe(
+				mockProps.publishableKey
+			)
+		})
+	})
 
-    await waitFor(() => {
-      const pricingTable = document.querySelector('stripe-pricing-table');
-      expect(pricingTable?.getAttribute('customer-session-client-secret')).toBe(
-        mockProps.customerSessionClientSecret
-      );
-    });
-  });
+	it('includes customer session when provided', async () => {
+		render(<PricingTable {...mockProps} />)
 
-  it('renders without customer session when not provided', async () => {
-    const propsWithoutSession = {
-      pricingTableId: mockProps.pricingTableId,
-      publishableKey: mockProps.publishableKey
-    };
+		await waitFor(() => {
+			const pricingTable = document.querySelector('stripe-pricing-table')
+			expect(
+				pricingTable?.getAttribute('customer-session-client-secret')
+			).toBe(mockProps.customerSessionClientSecret)
+		})
+	})
 
-    render(<PricingTable {...propsWithoutSession} />);
+	it('renders without customer session when not provided', async () => {
+		const propsWithoutSession = {
+			pricingTableId: mockProps.pricingTableId,
+			publishableKey: mockProps.publishableKey
+		}
 
-    await waitFor(() => {
-      const pricingTable = document.querySelector('stripe-pricing-table');
-      expect(pricingTable).toBeInTheDocument();
-      expect(pricingTable?.getAttribute('customer-session-client-secret')).toBeNull();
-    });
-  });
+		render(<PricingTable {...propsWithoutSession} />)
 
-  it('shows loading state initially', () => {
-    render(<PricingTable {...mockProps} />);
-    expect(screen.getByText(/loading pricing/i)).toBeInTheDocument();
-  });
+		await waitFor(() => {
+			const pricingTable = document.querySelector('stripe-pricing-table')
+			expect(pricingTable).toBeInTheDocument()
+			expect(
+				pricingTable?.getAttribute('customer-session-client-secret')
+			).toBeNull()
+		})
+	})
 
-  it('shows error when pricing table ID is missing', () => {
-    const propsWithoutId = {
-      publishableKey: mockProps.publishableKey
-    };
+	it('shows loading state initially', () => {
+		render(<PricingTable {...mockProps} />)
+		expect(screen.getByText(/loading pricing/i)).toBeInTheDocument()
+	})
 
-    render(<PricingTable {...propsWithoutId as unknown} />);
-    expect(screen.getByText(/pricing table not configured/i)).toBeInTheDocument();
-  });
+	it('shows error when pricing table ID is missing', () => {
+		const propsWithoutId = {
+			publishableKey: mockProps.publishableKey
+		}
 
-  it('shows error when publishable key is missing', () => {
-    const propsWithoutKey = {
-      pricingTableId: mockProps.pricingTableId,
-      publishableKey: undefined
-    };
+		render(<PricingTable {...(propsWithoutId as unknown)} />)
+		expect(
+			screen.getByText(/pricing table not configured/i)
+		).toBeInTheDocument()
+	})
 
-    // Mock env to be undefined
-    const originalEnv = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
-    delete process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+	it('shows error when publishable key is missing', () => {
+		const propsWithoutKey = {
+			pricingTableId: mockProps.pricingTableId,
+			publishableKey: undefined
+		}
 
-    render(<PricingTable {...propsWithoutKey as unknown} />);
-    expect(screen.getByText(/stripe configuration error/i)).toBeInTheDocument();
+		// Mock env to be undefined
+		const originalEnv = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+		delete process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 
-    // Restore env
-    if (originalEnv) {
-      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = originalEnv;
-    }
-  });
+		render(<PricingTable {...(propsWithoutKey as unknown)} />)
+		expect(
+			screen.getByText(/stripe configuration error/i)
+		).toBeInTheDocument()
 
-  it('loads Stripe script only once', async () => {
-    render(<PricingTable {...mockProps} />);
-    
-    // Wait for script load simulation
-    await waitFor(() => {
-      expect(mockStripePricingTable).toHaveBeenCalled();
-    });
+		// Restore env
+		if (originalEnv) {
+			process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = originalEnv
+		}
+	})
 
-    // Component should call createElement for script once
-    const scriptCallCount = (document.createElement as jest.Mock).mock.calls
-      .filter(call => call[0] === 'script').length;
-    expect(scriptCallCount).toBe(1);
-  });
+	it('loads Stripe script only once', async () => {
+		render(<PricingTable {...mockProps} />)
 
-  it('handles script load errors gracefully', async () => {
-    // Re-mock with error behavior
-    jest.restoreAllMocks();
-    jest.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
-      if (tagName === 'script') {
-        const script = originalCreateElement('script');
-        setTimeout(() => {
-          if (script.onerror) {
-            script.onerror({} as Event);
-          }
-        }, 0);
-        return script;
-      }
-      return originalCreateElement(tagName);
-    });
+		// Wait for script load simulation
+		await waitFor(() => {
+			expect(mockStripePricingTable).toHaveBeenCalled()
+		})
 
-    // logger is already imported at the top
+		// Component should call createElement for script once
+		const scriptCallCount = (
+			document.createElement as jest.Mock
+		).mock.calls.filter(call => call[0] === 'script').length
+		expect(scriptCallCount).toBe(1)
+	})
 
-    render(<PricingTable {...mockProps} />);
+	it('handles script load errors gracefully', async () => {
+		// Re-mock with error behavior
+		jest.restoreAllMocks()
+		jest.spyOn(document, 'createElement').mockImplementation(
+			(tagName: string) => {
+				if (tagName === 'script') {
+					const script = originalCreateElement('script')
+					setTimeout(() => {
+						if (script.onerror) {
+							script.onerror({} as Event)
+						}
+					}, 0)
+					return script
+				}
+				return originalCreateElement(tagName)
+			}
+		)
 
-    await waitFor(() => {
-      expect(logger.error).toHaveBeenCalledWith(
-        'Failed to load Stripe pricing table script',
-        expect.objectContaining({
-          component: 'PricingTable'
-        })
-      );
-    });
-  });
+		// logger is already imported at the top
 
-  it('applies custom className when provided', async () => {
-    render(<PricingTable {...mockProps} className="custom-class" />);
+		render(<PricingTable {...mockProps} />)
 
-    await waitFor(() => {
-      const container = screen.getByTestId('pricing-table-container');
-      expect(container).toHaveClass('custom-class');
-    });
-  });
-});
+		await waitFor(() => {
+			expect(logger.error).toHaveBeenCalledWith(
+				'Failed to load Stripe pricing table script',
+				expect.objectContaining({
+					component: 'PricingTable'
+				})
+			)
+		})
+	})
+
+	it('applies custom className when provided', async () => {
+		render(<PricingTable {...mockProps} className="custom-class" />)
+
+		await waitFor(() => {
+			const container = screen.getByTestId('pricing-table-container')
+			expect(container).toHaveClass('custom-class')
+		})
+	})
+})

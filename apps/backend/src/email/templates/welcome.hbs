@@ -1,54 +1,69 @@
 <h1>Welcome to TenantFlow, {{name}}! 🏡</h1>
 
-<p>Thank you for joining our property management platform. We're excited to help you streamline your rental business and make property management effortless.</p>
+<p>Thank you for joining our property management platform. We're excited to help
+	you streamline your rental business and make property management effortless.</p>
 
-{{#if (eq companySize "small")}}
-<p>As a <span class="highlight">small business owner</span>, we know you wear many hats. TenantFlow is designed to give you more time to focus on growing your portfolio.</p>
-{{else if (eq companySize "large")}}
-<p>Managing a <span class="highlight">large portfolio</span> comes with unique challenges. Our enterprise features are built to scale with your business.</p>
+{{#if (eq companySize 'small')}}
+	<p>As a
+		<span class='highlight'>small business owner</span>, we know you wear
+		many hats. TenantFlow is designed to give you more time to focus on
+		growing your portfolio.</p>
+{{else if (eq companySize 'large')}}
+	<p>Managing a
+		<span class='highlight'>large portfolio</span>
+		comes with unique challenges. Our enterprise features are built to scale
+		with your business.</p>
 {{else}}
-<p>Perfect timing to <span class="highlight">grow your business</span>! Our platform scales beautifully as your portfolio expands.</p>
+	<p>Perfect timing to
+		<span class='highlight'>grow your business</span>! Our platform scales
+		beautifully as your portfolio expands.</p>
 {{/if}}
 
 <h2>🚀 Get Started in Minutes</h2>
 <ul>
-    <li><strong>Add Your First Property</strong> - Upload details, photos, and unit information</li>
-    <li><strong>Invite Your Tenants</strong> - Give them access to their personalized portal</li>
-    <li><strong>Set Up Rent Collection</strong> - Automate payments and never chase rent again</li>
-    <li><strong>Track Maintenance</strong> - Streamline work orders and vendor management</li>
+	<li><strong>Add Your First Property</strong>
+		- Upload details, photos, and unit information</li>
+	<li><strong>Invite Your Tenants</strong>
+		- Give them access to their personalized portal</li>
+	<li><strong>Set Up Rent Collection</strong>
+		- Automate payments and never chase rent again</li>
+	<li><strong>Track Maintenance</strong>
+		- Streamline work orders and vendor management</li>
 </ul>
 
-<div style="text-align: center; margin: 30px 0;">
-    <a href="https://tenantflow.app/dashboard" class="button">Get Started Now</a>
+<div style='text-align: center; margin: 30px 0;'>
+	<a href='https://tenantflow.app/dashboard' class='button'>Get Started Now</a>
 </div>
 
 <h2>📈 Join Thousands of Successful Property Managers</h2>
 
-<div class="stats">
-    <div class="stat">
-        <div class="stat-number">10k+</div>
-        <div class="stat-label">Properties</div>
-    </div>
-    <div class="stat">
-        <div class="stat-number">98%</div>
-        <div class="stat-label">On-Time Rent</div>
-    </div>
-    <div class="stat">
-        <div class="stat-number">4.9★</div>
-        <div class="stat-label">Rating</div>
-    </div>
+<div class='stats'>
+	<div class='stat'>
+		<div class='stat-number'>10k+</div>
+		<div class='stat-label'>Properties</div>
+	</div>
+	<div class='stat'>
+		<div class='stat-number'>98%</div>
+		<div class='stat-label'>On-Time Rent</div>
+	</div>
+	<div class='stat'>
+		<div class='stat-number'>4.9★</div>
+		<div class='stat-label'>Rating</div>
+	</div>
 </div>
 
 <p>Need help getting started? Our team is here for you:</p>
 <ul>
-    <li>📚 <a href="https://tenantflow.app/help">Browse our Help Center</a></li>
-    <li>💬 <a href="https://tenantflow.app/chat">Chat with our team</a></li>
-    <li>📞 <a href="https://tenantflow.app/demo">Schedule a personal demo</a></li>
+	<li>📚 <a href='https://tenantflow.app/help'>Browse our Help Center</a></li>
+	<li>💬 <a href='https://tenantflow.app/chat'>Chat with our team</a></li>
+	<li>📞
+		<a href='https://tenantflow.app/demo'>Schedule a personal demo</a></li>
 </ul>
 
 <p>Welcome aboard!</p>
 <p><strong>The TenantFlow Team</strong></p>
 
-{{#if (eq source "referral")}}
-<p><em>P.S. Thanks for joining us through a referral! You and your friend will both receive a special bonus once you add your first property.</em></p>
+{{#if (eq source 'referral')}}
+	<p><em>P.S. Thanks for joining us through a referral! You and your friend
+			will both receive a special bonus once you add your first property.</em></p>
 {{/if}}
