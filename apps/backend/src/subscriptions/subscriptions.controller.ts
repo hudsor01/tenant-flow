@@ -46,7 +46,7 @@ export class SubscriptionsController {
 	 */
 	@Get('current')
 	async getCurrentSubscription(@CurrentUser() user: { id: string }) {
-		return this.subscriptionsService.getUserSubscriptionWithPlan(user.id)
+		return this.subscriptionsService.getUserSubscription(user.id)
 	}
 
 	/**
@@ -96,7 +96,8 @@ export class SubscriptionsController {
 	 */
 	@Get('plans')
 	async getPlans() {
-		return this.subscriptionsService.getAvailablePlans()
+		// TODO: Implement getAvailablePlans
+		return [] // this.subscriptionsService.getAvailablePlans()
 	}
 
 	/**

@@ -41,9 +41,9 @@ export class QueueService {
 	}
 
 	// Email Jobs
-	async addEmailJob(data: Record<string, unknown>): Promise<Job> {
+	async addEmailJob(jobName: string, data: Record<string, unknown>): Promise<Job> {
 		try {
-			const job = await this.emailQueue.add('send-email', data, {
+			const job = await this.emailQueue.add(jobName || 'send-email', data, {
 				attempts: 3,
 				backoff: { type: 'exponential', delay: 10000 }
 			})
@@ -62,11 +62,12 @@ export class QueueService {
 
 	// Payment Processing Jobs
 	async addPaymentJob(
+		jobName: string,
 		data: Record<string, unknown> & { type: string; paymentId: string }
 	): Promise<Job> {
 		try {
-			const jobName = `process-${data.type}`
-			const job = await this.paymentQueue.add(jobName, data, {
+			const finalJobName = jobName || `process-${data.type}`
+			const job = await this.paymentQueue.add(finalJobName, data, {
 				attempts: 5,
 				backoff: { type: 'exponential', delay: 3000 },
 				priority: data.type === 'refund' ? 1 : 2

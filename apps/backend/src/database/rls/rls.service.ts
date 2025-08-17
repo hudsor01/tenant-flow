@@ -79,6 +79,7 @@ export class RLSService {
 	 * Get all policies for a specific table
 	 */
 	async getTablePolicies(tableName: string): Promise<RLSPolicy[]> {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const { data, error } = await (this.getSupabaseClient().rpc as any)(
 			'get_policies_for_table',
 			{ table_name: tableName }
@@ -146,6 +147,7 @@ export class RLSService {
 
 		// Read and execute the RLS SQL file
 		try {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const { error } = await (this.getSupabaseClient().rpc as any)(
 				'apply_rls_policies'
 			)

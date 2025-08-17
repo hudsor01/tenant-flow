@@ -15,7 +15,7 @@ import {
 	DocumentNotFoundException,
 	DocumentUrlException
 } from '../common/exceptions/document.exceptions'
-import { CreateDocumentDto, DocumentQueryDto, UpdateDocumentDto } from './dto'
+import { CreateDocumentDto, UpdateDocumentDto } from './dto'
 
 type DocumentInsert = Database['public']['Tables']['Document']['Insert']
 type DocumentUpdate = Database['public']['Tables']['Document']['Update']
@@ -222,6 +222,69 @@ export class DocumentsService {
 				metadata: { ownerId }
 			})
 		}
+	}
+
+	/**
+	 * Alias for findByOwner to match controller expectations
+	 */
+	async getByOwner(
+		ownerId: string,
+		options: DocumentQueryOptions = {},
+		userId?: string,
+		userToken?: string
+	): Promise<DocumentWithRelations[]> {
+		return this.findByOwner(ownerId, options, userId, userToken)
+	}
+
+	/**
+	 * Alias for findByProperty to match controller expectations
+	 */
+	async getByProperty(
+		propertyId: string,
+		ownerId: string,
+		options: DocumentQueryOptions = {},
+		userId?: string,
+		userToken?: string
+	): Promise<DocumentWithRelations[]> {
+		return this.findByProperty(propertyId, ownerId, options, userId, userToken)
+	}
+
+	/**
+	 * Alias for findByLease to match controller expectations
+	 */
+	async getByLease(
+		leaseId: string,
+		ownerId: string,
+		options: DocumentQueryOptions = {},
+		userId?: string,
+		userToken?: string
+	): Promise<DocumentWithRelations[]> {
+		return this.findByLease(leaseId, ownerId, options, userId, userToken)
+	}
+
+	/**
+	 * Alias for findByType to match controller expectations
+	 */
+	async getByType(
+		type: string,
+		ownerId: string,
+		options: DocumentQueryOptions = {},
+		userId?: string,
+		userToken?: string
+	): Promise<DocumentWithRelations[]> {
+		return this.findByType(type, ownerId, options, userId, userToken)
+	}
+
+	/**
+	 * Alias for findById with error throwing behavior
+	 */
+	async getByIdOrThrow(
+		id: string,
+		ownerId: string,
+		userId?: string,
+		userToken?: string
+	): Promise<DocumentWithRelations> {
+		return this.findById(id, ownerId, userId, userToken)
 	}
 
 	/**
@@ -556,81 +619,5 @@ export class DocumentsService {
 				metadata: { ownerId, mimeType }
 			})
 		}
-	}
-
-	// ========================================
-	// Backward Compatibility Methods (Deprecated)
-	// ========================================
-
-	/** @deprecated Use findByOwner() instead */
-	async getByOwner(
-		ownerId: string,
-		query?: DocumentQueryDto
-	): Promise<DocumentWithRelations[]> {
-		return this.findByOwner(ownerId, query)
-	}
-
-	/** @deprecated Use findByProperty() instead */
-	async getByProperty(
-		propertyId: string,
-		ownerId: string,
-		query?: DocumentQueryDto
-	): Promise<DocumentWithRelations[]> {
-		return this.findByProperty(propertyId, ownerId, query)
-	}
-
-	/** @deprecated Use findByLease() instead */
-	async getByLease(
-		leaseId: string,
-		ownerId: string,
-		query?: DocumentQueryDto
-	): Promise<DocumentWithRelations[]> {
-		return this.findByLease(leaseId, ownerId, query)
-	}
-
-	/** @deprecated Use findByType() instead */
-	async getByType(
-		type: string,
-		ownerId: string,
-		query?: DocumentQueryDto
-	): Promise<DocumentWithRelations[]> {
-		return this.findByType(type, ownerId, query)
-	}
-
-	/** @deprecated Use getStats() instead */
-	async getDocumentStats(ownerId: string) {
-		return this.getStats(ownerId)
-	}
-
-	/** @deprecated Use findById() instead */
-	async getDocumentById(
-		id: string,
-		ownerId: string
-	): Promise<DocumentWithRelations | null> {
-		try {
-			return await this.findById(id, ownerId)
-		} catch (_error) {
-			return null
-		}
-	}
-
-	/** @deprecated Use findById() instead */
-	async getDocumentByIdOrThrow(
-		id: string,
-		ownerId: string
-	): Promise<DocumentWithRelations> {
-		return this.findById(id, ownerId)
-	}
-
-	/**
-	 * Alias for getById - for compatibility with controller
-	 */
-	async getByIdOrThrow(
-		id: string,
-		ownerId: string,
-		userId?: string,
-		userToken?: string
-	): Promise<DocumentWithRelations> {
-		return this.findById(id, ownerId, userId, userToken)
 	}
 }
