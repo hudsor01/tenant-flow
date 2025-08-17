@@ -114,11 +114,5 @@ This lease agreement was generated on ${formatLeaseDate(new Date().toISOString()
 `
 }
 
-// Legacy formatDate function - kept for backward compatibility
-// @deprecated Use formatLeaseDate from '@/lib/utils/date-formatting' instead
-export function formatDate(dateString: string): string {
-	return formatLeaseDate(dateString)
-}
-
 // Re-export types for sibling modules
 export type { LeaseTemplateData, StateLeaseRequirements } from '@repo/shared'

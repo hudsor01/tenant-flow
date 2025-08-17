@@ -46,7 +46,7 @@ export class QueueErrorHandlerService {
 	): Promise<ErrorHandlingResult> {
 		const queueError: QueueError = {
 			jobId: job.id?.toString() ?? 'unknown',
-			queueName: job.queue.name,
+			queueName: job.queue?.name ?? 'unknown',
 			attemptNumber: job.attemptsMade + 1,
 			error,
 			jobData: DataSanitizationService.sanitize(job.data),

@@ -35,9 +35,6 @@ jobs:
                   # Try npm ci first (fast on GitHub), fallback to install (for act)
                   npm ci --omit=optional 2>/dev/null || npm install --omit=optional --no-audit
 
-            - name: Generate Prisma
-              run: npm run db:generate
-
             - name: Lint
               run: npm run lint || true # Don't fail on lint warnings
 
@@ -59,9 +56,6 @@ jobs:
 
             - name: Install dependencies
               run: npm ci --omit=optional 2>/dev/null || npm install --omit=optional --no-audit
-
-            - name: Generate Prisma
-              run: npm run db:generate
 
             - name: Build packages
               run: |

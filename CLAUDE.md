@@ -25,7 +25,7 @@ npm run build       # Build all packages
 **Branch**: `feature/request-utils-composition-and-hardening`
 **Production**: ✅ LIVE - Backend at api.tenantflow.app, Frontend at tenantflow.app (Vercel)  
 **Active Work**: Component architecture refactoring, test stabilization, performance optimization
-**Last Updated**: January 2025
+**Last Updated**: January 17, 2025
 
 ## 🚨 CRITICAL: React 19 + Next.js 15 Compatibility
 
@@ -35,11 +35,11 @@ npm run build       # Build all packages
 
 ## ⚠️ Current Known Issues
 
-1. **Frontend Tests**: 59 tests failing (out of 536 total) - needs immediate attention
-2. **Backend Test Coverage**: Low coverage, empty lcov reports indicate minimal testing
-3. **Component Architecture**: Many server components converted to client due to Supabase SSR issues
-4. **Bundle Size**: 18+ vendor chunks in production build affecting performance
-5. **TypeScript Memory**: Backend compilation requires 8GB memory allocation
+1. **Frontend Tests**: 10 test suites failing (out of 30 total) - needs immediate attention
+2. **Backend Test Coverage**: Low coverage, minimal test implementation
+3. **Component Architecture**: Migration to Supabase-based repositories in progress
+4. **Bundle Size**: Multiple vendor chunks in production build affecting performance
+5. **TypeScript Memory**: Backend compilation requires 4-8GB memory allocation
 6. **Build Times**: Complex TypeScript setup causing slow build times
 
 ## Tech Stack & Architecture
@@ -48,16 +48,16 @@ TenantFlow is a production-ready multi-tenant SaaS property management platform 
 
 - **Frontend**: React 19.1.1 + Next.js 15.4.6 + Turbopack (REQUIRED) + TypeScript 5.9.2
   - State: Zustand 5.0.7 + TanStack Query 5.85.3 + Jotai 2.13.1
-  - UI: Radix UI + Tailwind CSS 4.1.12 + React Hook Form
-  - Testing: 536 tests (59 failing, needs attention)
-- **Backend**: NestJS 11.1.6 + Fastify 11.x + PostgreSQL
-  - 32 API controllers, comprehensive service layer
+  - UI: Radix UI + Tailwind CSS 4.1.12 + React Hook Form 7.62.0
+  - Testing: 30 test suites (10 failing, needs attention)
+- **Backend**: NestJS 11.1.6 + Fastify 11.x + PostgreSQL via Supabase
+  - Repository Pattern with BaseSupabaseRepository abstraction
   - Multi-tenant RLS with JWT claims injection
-  - Test coverage needs improvement
+  - Comprehensive service layer with BaseCrudService pattern
 - **Auth**: Supabase Auth 2.55.0 + JWT + Row-Level Security (RLS)
 - **Payments**: Stripe 18.4.0 with comprehensive webhook infrastructure
 - **Infrastructure**: Turborepo 2.5.6 monorepo, Vercel frontend, Railway backend
-- **Codebase**: ~393K lines TypeScript across 1,254 files
+- **Node**: Requires Node.js 22+ and npm 10+
 
 ## Essential Commands
 
@@ -110,26 +110,34 @@ TenantFlow is a production-ready multi-tenant SaaS property management platform 
 
 ## Major Architectural Implementations
 
-### BaseCrudService Revolution
+### Repository Pattern with Supabase
+Complete migration to Supabase-based repositories:
+- BaseSupabaseRepository providing unified data access layer
+- Direct Supabase client integration replacing Prisma
+- Type-safe operations with Supabase's TypeScript support
+- Repositories implemented: Properties, Tenants, Units, Leases, Maintenance
+
+### BaseCrudService Pattern
 Unified service pattern providing:
 - Multi-tenant security with automatic ownership validation
-- Built-in rate limiting (100 reads/min, 10 writes/min)
+- Built-in rate limiting and error handling
 - Type-safe generic abstractions across all business entities
-- Centralized error handling with retry mechanisms
+- Integration with Supabase repositories
 - Performance monitoring and audit logging
 
 ### Multi-Tenant Row-Level Security
 Enterprise-grade security with:
-- Dynamic JWT claims injection for database-level tenant isolation
-- Connection pool management (max 10 concurrent, 5-min TTL)
-- Multiple security validation layers preventing data leakage
+- Supabase RLS policies for database-level tenant isolation
+- JWT claims injection for secure multi-tenancy
+- Automatic organization filtering in all queries
+- Multiple security validation layers
 
-### Frontend Performance Strategy
+### Frontend Architecture
 Production-optimized with:
-- Smart Vite chunk splitting (React kept in main bundle to prevent Children errors)
-- Route-based lazy loading and preloading strategies
-- React Query 5-min stale time with background refetching
-- Image optimization and asset inlining for edge caching
+- Turbopack bundler (required for React 19 compatibility)
+- App Router with proper layouts and loading states
+- Zustand + TanStack Query for state management
+- Server/Client component separation (ongoing refactoring)
 
 ## Critical Architectural Rules
 
@@ -180,19 +188,19 @@ Multi-layered approach:
 ### 🚨 IMMEDIATE PRIORITIES - Technical Debt
 
 #### **Test Suite Stabilization** - CRITICAL
-- **Issue**: 59 failing frontend tests blocking CI/CD
+- **Issue**: 10 failing frontend test suites (33% failure rate)
 - **Impact**: Cannot confidently deploy without test validation
-- **Action**: Fix test failures, improve coverage
+- **Action**: Fix test failures, improve coverage for both frontend and backend
+
+#### **Supabase Migration Completion** - HIGH
+- **Current**: Repository pattern migration in progress
+- **Completed**: Properties, Tenants, Units, Leases, Maintenance repositories
+- **Remaining**: Complete removal of Prisma dependencies
 
 #### **Component Architecture Refactoring** - HIGH
-- **Issue**: Server/client component violations in Next.js 15
-- **Current**: Converting components from server to client due to Supabase SSR issues
-- **Impact**: Suboptimal performance and bundle size
-
-#### **Performance Optimization** - HIGH
-- **Issue**: Large bundle size (18+ vendor chunks)
-- **Current**: Using Turbopack to mitigate issues
-- **Action**: Bundle analysis and lazy loading improvements
+- **Issue**: Server/client component separation in Next.js 15
+- **Current**: Ongoing refactoring for optimal performance
+- **Impact**: Bundle size and performance optimization needed
 
 ### 🔧 CORE BUSINESS FEATURES - Next Phase
 
@@ -261,28 +269,29 @@ Multi-layered approach:
 
 ### 📊 PROJECT METRICS
 
-**Codebase Size**: ~393,087 lines TypeScript
-- 1,254 files across monorepo
-- 32 API controllers implemented
-- 536 frontend tests (59 failing)
-- Backend test coverage needs improvement
+**Codebase Status**:
+- Monorepo with 8 packages (apps + shared libraries)
+- Frontend: 30 test suites (10 failing - 33% failure rate)
+- Backend: Minimal test coverage, needs expansion
+- Node.js 22+ required, npm 10+ required
 
 **Production Status**: ✅ LIVE and operational
-- Backend: api.tenantflow.app (healthy)
-- Frontend: tenantflow.app (Vercel)
-- Database: PostgreSQL with Supabase
+- Backend: api.tenantflow.app (healthy, uptime verified)
+- Frontend: tenantflow.app (Vercel deployment)
+- Database: PostgreSQL via Supabase with RLS enabled
+- Architecture: Migrating from Prisma to direct Supabase integration
 
 ### 🎯 RECOMMENDED WORK ORDER
 
 **Week 1-2: Technical Stabilization**
-1. Fix 59 failing frontend tests
-2. Complete server/client component refactoring
+1. Fix 10 failing frontend test suites
+2. Complete Supabase repository migration
 3. Improve backend test coverage
 
-**Week 3-4: Performance & Optimization**
-1. Bundle size analysis and optimization
-2. Implement lazy loading for routes
-3. Database query optimization
+**Week 3-4: Architecture & Performance**
+1. Complete server/client component separation
+2. Bundle size optimization with Turbopack
+3. Remove remaining Prisma dependencies
 
 **Month 2: Business Features**
 1. Tenant rent payment system (#90)
@@ -291,7 +300,7 @@ Multi-layered approach:
 
 **Month 3: Production Hardening**
 1. Security audit and fixes (#94)
-2. Error monitoring implementation
-3. Performance monitoring setup
+2. Comprehensive test coverage (target 80% backend, 70% frontend)
+3. Performance monitoring and optimization
 
-The platform has **solid technical foundations** and is **currently operational in production**. Focus should be on **stabilizing tests**, **optimizing performance**, and **completing business features** for full market readiness.
+The platform has **solid technical foundations** and is **currently operational in production**. Focus should be on **completing the Supabase migration**, **stabilizing tests**, and **implementing core business features** for full market readiness.

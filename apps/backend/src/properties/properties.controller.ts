@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common'
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { PropertiesService } from './properties.service'
-import { Property } from '@repo/shared'
+import { PropertyWithRelations } from './properties-supabase.repository'
 import {
 	CreatePropertyDto,
 	createPropertySchema,
@@ -49,7 +49,7 @@ export class PropertiesController {
 	async create(
 		@Body() data: CreatePropertyDto,
 		@CurrentUser() user: ValidatedUser
-	): Promise<Property> {
+	): Promise<PropertyWithRelations> {
 		return this.propertiesService.create(data, user.id)
 	}
 
@@ -63,7 +63,7 @@ export class PropertiesController {
 	async findAll(
 		@Query() query: QueryPropertiesDto,
 		@CurrentUser() user: ValidatedUser
-	): Promise<Property[]> {
+	): Promise<PropertyWithRelations[]> {
 		return this.propertiesService.getByOwner(user.id, query)
 	}
 
@@ -91,7 +91,7 @@ export class PropertiesController {
 	async findOne(
 		@Param('id') id: string,
 		@CurrentUser() user: ValidatedUser
-	): Promise<Property> {
+	): Promise<PropertyWithRelations> {
 		return this.propertiesService.getById(id, user.id)
 	}
 
@@ -109,7 +109,7 @@ export class PropertiesController {
 		@Param('id') id: string,
 		@Body() data: UpdatePropertyDto,
 		@CurrentUser() user: ValidatedUser
-	): Promise<Property> {
+	): Promise<PropertyWithRelations> {
 		return this.propertiesService.update(id, data, user.id)
 	}
 
@@ -126,7 +126,7 @@ export class PropertiesController {
 	async remove(
 		@Param('id') id: string,
 		@CurrentUser() user: ValidatedUser
-	): Promise<Property> {
+	): Promise<void> {
 		return this.propertiesService.delete(id, user.id)
 	}
 }

@@ -1,7 +1,6 @@
 import { Global, Module } from '@nestjs/common'
-import { APP_FILTER, APP_GUARD } from '@nestjs/core'
+import { APP_GUARD } from '@nestjs/core'
 import { ErrorHandlerService } from './error-handler.service'
-import { GlobalExceptionFilter } from '../filters/global-exception.filter'
 import { ErrorBoundaryGuard } from '../guards/error-boundary.guard'
 import { UnifiedLoggerService } from '../logging/unified-logger.service'
 
@@ -10,10 +9,6 @@ import { UnifiedLoggerService } from '../logging/unified-logger.service'
 	providers: [
 		ErrorHandlerService,
 		UnifiedLoggerService,
-		{
-			provide: APP_FILTER,
-			useClass: GlobalExceptionFilter
-		},
 		{
 			provide: APP_GUARD,
 			useClass: ErrorBoundaryGuard

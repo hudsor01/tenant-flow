@@ -1,15 +1,15 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, jest, afterEach } from '@jest/globals'
 import { sessionManager } from '@/lib/auth/session-manager'
 import type { AuthUser } from '@/lib/supabase'
 
 // Mock Supabase client
-const mockGetSession = vi.fn()
-const mockGetUser = vi.fn()
-const mockRefreshSession = vi.fn()
-const mockSignOut = vi.fn()
+const mockGetSession = jest.fn()
+const mockGetUser = jest.fn()
+const mockRefreshSession = jest.fn()
+const mockSignOut = jest.fn()
 
-vi.mock('@/lib/supabase/client', () => ({
-	createClient: vi.fn(() => ({
+jest.mock('@/lib/supabase/client', () => ({
+	createClient: jest.fn(() => ({
 		auth: {
 			getSession: mockGetSession,
 			getUser: mockGetUser,
@@ -20,20 +20,20 @@ vi.mock('@/lib/supabase/client', () => ({
 }))
 
 // Mock auth cache
-vi.mock('@/lib/auth/auth-cache', () => ({
+jest.mock('@/lib/auth/auth-cache', () => ({
 	authCache: {
-		getAuthState: vi.fn((key, fetcher) => fetcher()),
-		invalidate: vi.fn(),
-		update: vi.fn()
+		getAuthState: jest.fn((key, fetcher) => fetcher()),
+		invalidate: jest.fn(),
+		update: jest.fn()
 	}
 }))
 
 // Mock logger
-vi.mock('@/lib/logger', () => ({
+jest.mock('@/lib/logger', () => ({
 	logger: {
-		debug: vi.fn(),
-		warn: vi.fn(),
-		error: vi.fn()
+		debug: jest.fn(),
+		warn: jest.fn(),
+		error: jest.fn()
 	}
 }))
 
@@ -59,13 +59,13 @@ describe('SessionManager', () => {
 	}
 
 	beforeEach(() => {
-		vi.clearAllMocks()
-		vi.useFakeTimers()
+		jest.clearAllMocks()
+		jest.useFakeTimers()
 	})
 
 	afterEach(() => {
 		sessionManager.cleanup()
-		vi.useRealTimers()
+		jest.useRealTimers()
 	})
 
 	describe('initialize', () => {
@@ -109,7 +109,7 @@ describe('SessionManager', () => {
 		})
 
 		it('should schedule token refresh for valid session', async () => {
-			const setTimeoutSpy = vi.spyOn(global, 'setTimeout')
+			const setTimeoutSpy = jest.spyOn(global, 'setTimeout')
 
 			mockGetSession.mockResolvedValue({
 				data: { session: mockSession },
@@ -297,7 +297,7 @@ describe('SessionManager', () => {
 
 	describe('cleanup', () => {
 		it('should clear timers and cache on cleanup', async () => {
-			const clearTimeoutSpy = vi.spyOn(global, 'clearTimeout')
+			const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout')
 
 			// Initialize to set up timers
 			mockGetSession.mockResolvedValue({
@@ -338,13 +338,13 @@ describe('SessionManager', () => {
 			await sessionManager.initialize()
 
 			// Should trigger immediate refresh
-			await vi.runAllTimersAsync()
+			jest.runAllTimers()
 
 			expect(mockRefreshSession).toHaveBeenCalled()
 		})
 
 		it('should schedule refresh 5 minutes before expiry', async () => {
-			const setTimeoutSpy = vi.spyOn(global, 'setTimeout')
+			const setTimeoutSpy = jest.spyOn(global, 'setTimeout')
 			const expiresIn = 30 * 60 // 30 minutes
 
 			mockGetSession.mockResolvedValue({

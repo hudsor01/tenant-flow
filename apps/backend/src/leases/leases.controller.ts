@@ -71,7 +71,19 @@ export class LeasesController {
 		@Query() query: LeaseQueryDto,
 		@CurrentUser() user: ValidatedUser
 	): Promise<Lease[]> {
-		return this.leasesService.getByOwner(user.id, query)
+		const options = {
+		status: query.status,
+		unitId: query.unitId,
+		tenantId: query.tenantId,
+		startDateFrom: query.startDateFrom?.toISOString(),
+		startDateTo: query.startDateTo?.toISOString(),
+		endDateFrom: query.endDateFrom?.toISOString(),
+		endDateTo: query.endDateTo?.toISOString(),
+		search: (query as LeaseQueryDto & { search?: string }).search,
+		limit: query.limit,
+		offset: query.offset
+	}
+	return this.leasesService.getByOwner(user.id, options)
 	}
 
 	@Get('stats')
@@ -99,7 +111,19 @@ export class LeasesController {
 		@CurrentUser() user: ValidatedUser,
 		@Query() query: LeaseQueryDto
 	): Promise<Lease[]> {
-		return this.leasesService.getByUnit(unitId, user.id, query)
+		const options = {
+		status: query.status,
+		unitId: query.unitId,
+		tenantId: query.tenantId,
+		startDateFrom: query.startDateFrom?.toISOString(),
+		startDateTo: query.startDateTo?.toISOString(),
+		endDateFrom: query.endDateFrom?.toISOString(),
+		endDateTo: query.endDateTo?.toISOString(),
+		search: (query as LeaseQueryDto & { search?: string }).search,
+		limit: query.limit,
+		offset: query.offset
+	}
+	return this.leasesService.getByUnit(unitId, user.id, options)
 	}
 
 	@Get('by-tenant/:tenantId')
@@ -115,7 +139,19 @@ export class LeasesController {
 		@CurrentUser() user: ValidatedUser,
 		@Query() query: LeaseQueryDto
 	): Promise<Lease[]> {
-		return this.leasesService.getByTenant(tenantId, user.id, query)
+		const options = {
+		status: query.status,
+		unitId: query.unitId,
+		tenantId: query.tenantId,
+		startDateFrom: query.startDateFrom?.toISOString(),
+		startDateTo: query.startDateTo?.toISOString(),
+		endDateFrom: query.endDateFrom?.toISOString(),
+		endDateTo: query.endDateTo?.toISOString(),
+		search: (query as LeaseQueryDto & { search?: string }).search,
+		limit: query.limit,
+		offset: query.offset
+	}
+	return this.leasesService.getByTenant(tenantId, user.id, options)
 	}
 
 	@Get(':id')
@@ -162,8 +198,8 @@ export class LeasesController {
 	async remove(
 		@Param('id') id: string,
 		@CurrentUser() user: ValidatedUser
-	): Promise<Lease> {
-		return this.leasesService.delete(id, user.id)
+	): Promise<void> {
+		await this.leasesService.delete(id, user.id)
 	}
 
 	@Get(':id/pdf')

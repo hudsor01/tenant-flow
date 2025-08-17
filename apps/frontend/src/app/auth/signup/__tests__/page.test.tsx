@@ -4,6 +4,7 @@
  */
 
 import { render, screen } from '@testing-library/react'
+import { createElement } from 'react'
 import SignupPage from '../page'
 
 // Mock auth actions
@@ -83,7 +84,7 @@ describe('Signup Page', () => {
 			mockGetCurrentUser.mockResolvedValue(null)
 
 			const searchParams = Promise.resolve({})
-			const component = await SignupPage({ searchParams })
+			const component = createElement(SignupPage, { searchParams })
 
 			render(component)
 
@@ -104,7 +105,7 @@ describe('Signup Page', () => {
 			mockGetCurrentUser.mockResolvedValue(null)
 
 			const searchParams = Promise.resolve({})
-			const component = await SignupPage({ searchParams })
+			const component = createElement(SignupPage, { searchParams })
 
 			render(component)
 
@@ -131,7 +132,7 @@ describe('Signup Page', () => {
 			mockGetCurrentUser.mockResolvedValue(null)
 
 			const searchParams = Promise.resolve({})
-			const component = await SignupPage({ searchParams })
+			const component = createElement(SignupPage, { searchParams })
 
 			render(component)
 
@@ -149,7 +150,7 @@ describe('Signup Page', () => {
 			mockGetCurrentUser.mockResolvedValue(null)
 
 			const searchParams = Promise.resolve({})
-			const component = await SignupPage({ searchParams })
+			const component = createElement(SignupPage, { searchParams })
 
 			render(component)
 
@@ -162,7 +163,7 @@ describe('Signup Page', () => {
 			mockGetCurrentUser.mockResolvedValue(null)
 
 			const searchParams = Promise.resolve({ redirect: '/pricing' })
-			const component = await SignupPage({ searchParams })
+			const component = createElement(SignupPage, { searchParams })
 
 			render(component)
 
@@ -180,7 +181,7 @@ describe('Signup Page', () => {
 			})
 
 			const searchParams = Promise.resolve({})
-			const component = await SignupPage({ searchParams })
+			const component = createElement(SignupPage, { searchParams })
 
 			render(component)
 
@@ -198,7 +199,7 @@ describe('Signup Page', () => {
 			})
 
 			const searchParams = Promise.resolve({ redirect: '/properties' })
-			const component = await SignupPage({ searchParams })
+			const component = createElement(SignupPage, { searchParams })
 
 			render(component)
 
@@ -214,7 +215,7 @@ describe('Signup Page', () => {
 			mockGetCurrentUser.mockResolvedValue(null)
 
 			const searchParams = Promise.resolve({})
-			const component = await SignupPage({ searchParams })
+			const component = createElement(SignupPage, { searchParams })
 
 			render(component)
 
@@ -224,7 +225,7 @@ describe('Signup Page', () => {
 
 		it('calls auth action to check current user', async () => {
 			const searchParams = Promise.resolve({})
-			await SignupPage({ searchParams })
+			render(createElement(SignupPage, { searchParams }))
 
 			expect(mockGetCurrentUser).toHaveBeenCalledTimes(1)
 		})
@@ -236,7 +237,7 @@ describe('Signup Page', () => {
 			)
 
 			const searchParams = Promise.resolve({ redirect: '/custom-path' })
-			const component = await SignupPage({ searchParams })
+			const component = createElement(SignupPage, { searchParams })
 
 			render(component)
 
@@ -253,7 +254,7 @@ describe('Signup Page', () => {
 			)
 
 			const searchParams = Promise.resolve({})
-			const component = await SignupPage({ searchParams })
+			const component = createElement(SignupPage, { searchParams })
 
 			render(component)
 
@@ -283,7 +284,7 @@ describe('Signup Page', () => {
 			mockGetCurrentUser.mockResolvedValue(null)
 
 			const searchParams = Promise.resolve({})
-			const component = await SignupPage({ searchParams })
+			const component = createElement(SignupPage, { searchParams })
 
 			render(component)
 
@@ -296,7 +297,7 @@ describe('Signup Page', () => {
 			mockGetCurrentUser.mockResolvedValue(null)
 
 			const searchParams = Promise.resolve({ error: 'invalid_request' })
-			const component = await SignupPage({ searchParams })
+			const component = createElement(SignupPage, { searchParams })
 
 			render(component)
 
@@ -311,7 +312,7 @@ describe('Signup Page', () => {
 				redirect: '/billing',
 				error: 'access_denied'
 			})
-			const component = await SignupPage({ searchParams })
+			const component = createElement(SignupPage, { searchParams })
 
 			render(component)
 
@@ -327,7 +328,7 @@ describe('Signup Page', () => {
 			mockGetCurrentUser.mockResolvedValue(null)
 
 			const searchParams = Promise.resolve({})
-			const component = await SignupPage({ searchParams })
+			const component = createElement(SignupPage, { searchParams })
 
 			render(component)
 
@@ -355,7 +356,7 @@ describe('Signup Page', () => {
 
 		it('checks authentication before rendering form', async () => {
 			const searchParams = Promise.resolve({})
-			await SignupPage({ searchParams })
+			render(createElement(SignupPage, { searchParams }))
 
 			// getCurrentUser should be called before any form rendering
 			expect(mockGetCurrentUser).toHaveBeenCalled()
@@ -372,7 +373,7 @@ describe('Signup Page', () => {
 
 			// Should handle error and render signup form as fallback
 			try {
-				const component = await SignupPage({ searchParams })
+				const component = createElement(SignupPage, { searchParams })
 				expect(component).toBeDefined()
 			} catch (error) {
 				// If it throws, that's expected behavior - test passes

@@ -1,15 +1,14 @@
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import { StripeService } from './stripe.service'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
-// import { PrismaService } from '../common/database/prisma.service' // TODO: Replace with Supabase
+// import { SupabaseService } from '../common/supabase/supabase.service' // TODO: Uncomment when needed
 import type Stripe from 'stripe'
 
-import { BILLING_PLANS, getPlanById } from '../shared/constants/billing-plans'
+import { getPlanById } from '../shared/constants/billing-plans'
 import {
 	getProductTier,
 	getStripePriceId,
-	type PlanType,
-	type SubStatus
+	type PlanType
 } from '@repo/shared'
 import type {
 	StripeCheckoutSessionCreateParams,
@@ -87,7 +86,6 @@ export class StripeBillingService {
 
 	constructor(
 		@Inject(StripeService) private readonly stripeService: StripeService,
-		@Inject(PrismaService) private readonly prismaService: PrismaService,
 		@Inject(ErrorHandlerService)
 		private readonly errorHandler: ErrorHandlerService
 	) {
@@ -405,16 +403,16 @@ export class StripeBillingService {
 					}
 				)
 
-			// Update database
-			await this.prismaService.subscription.updateMany({
-				where: {
-					stripeSubscriptionId: params.subscriptionId,
-					userId: params.userId
-				},
-				data: {
-					status: subscription.status as SubStatus
-				}
-			})
+			// Update database - TODO: Convert to Supabase
+			// await this.supabaseService.subscription.updateMany({
+			// 	where: {
+			// 		stripeSubscriptionId: params.subscriptionId,
+			// 		userId: params.userId
+			// 	},
+			// 	data: {
+			// 		status: subscription.status as SubStatus
+			// 	}
+			// })
 
 			return { status: subscription.status }
 		} catch (error) {
@@ -462,18 +460,8 @@ export class StripeBillingService {
 			}
 
 			// Update database
-			await this.prismaService.subscription.updateMany({
-				where: {
-					stripeSubscriptionId: params.subscriptionId,
-					userId: params.userId
-				},
-				data: {
-					status: subscription.status as SubStatus,
-					canceledAt: subscription.canceled_at
-						? new Date(subscription.canceled_at * 1000)
-						: null
-				}
-			})
+			// TODO: Implement with Supabase
+			this.logger.log('Subscription canceled in Stripe', { subscriptionId: params.subscriptionId })
 
 			return {
 				status: subscription.status,
@@ -494,10 +482,11 @@ export class StripeBillingService {
 	// Private helper methods
 
 	private async getUserWithSubscription(userId: string) {
-		const user = await this.prismaService.user.findUnique({
-			where: { id: userId },
-			include: { Subscription: true }
-		})
+		// TODO: Convert to Supabase
+		const user = null // await this.supabaseService.user.findUnique({
+		// 	where: { id: userId },
+		// 	include: { Subscription: true }
+		// })
 
 		if (!user) {
 			throw this.errorHandler.createNotFoundError('User', userId)
@@ -523,13 +512,14 @@ export class StripeBillingService {
 			customerId = customer.id
 
 			// Store the Stripe customer ID back to the User table for future reference
-			await this.prismaService.user.update({
-				where: { id: user.id },
-				data: {
-					stripeCustomerId: customerId,
-					updatedAt: new Date()
-				}
-			})
+			// TODO: Convert to Supabase
+			// await this.supabaseService.user.update({
+			// 	where: { id: user.id },
+			// 	data: {
+			// 		stripeCustomerId: customerId,
+			// 		updatedAt: new Date()
+			// 	}
+			// })
 
 			this.logger.debug('Created and linked Stripe customer', {
 				userId: user.id,
@@ -675,129 +665,131 @@ export class StripeBillingService {
 		)) as unknown as StripeSubscription
 	}
 
-	private async storeSubscriptionInDatabase(params: {
+	private async storeSubscriptionInDatabase(_params: {
 		userId: string
 		subscriptionData: StripeSubscription
 		planType?: PlanType
 		priceId: string
 	}) {
-		const customerId =
-			typeof params.subscriptionData.customer === 'string'
-				? params.subscriptionData.customer
-				: (params.subscriptionData.customer as { id: string }).id
+		// const customerId =
+		// 	typeof params.subscriptionData.customer === 'string'
+		// 		? params.subscriptionData.customer
+		// 		: (params.subscriptionData.customer as { id: string }).id
 
-		const statusMap: Record<StripeSubscription['status'], SubStatus> = {
-			trialing: 'trialing' as SubStatus,
-			active: 'active' as SubStatus,
-			past_due: 'past_due' as SubStatus,
-			canceled: 'canceled' as SubStatus,
-			unpaid: 'unpaid' as SubStatus,
-			incomplete: 'incomplete' as SubStatus,
-			incomplete_expired: 'incomplete_expired' as SubStatus,
-			paused: 'INCOMPLETE'
-		}
+		// const statusMap: Record<StripeSubscription['status'], SubStatus> = {
+		// 	trialing: 'trialing' as SubStatus,
+		// 	active: 'active' as SubStatus,
+		// 	past_due: 'past_due' as SubStatus,
+		// 	canceled: 'canceled' as SubStatus,
+		// 	unpaid: 'unpaid' as SubStatus,
+		// 	incomplete: 'INCOMPLETE' as SubStatus,
+		// 	incomplete_expired: 'INCOMPLETE_EXPIRED' as SubStatus,
+		// 	paused: 'PAUSED' as SubStatus
+		// }
 
-		await this.prismaService.subscription.upsert({
-			where: { userId: params.userId },
-			create: {
-				userId: params.userId,
-				stripeSubscriptionId: params.subscriptionData.id,
-				stripeCustomerId: customerId,
-				status: statusMap[params.subscriptionData.status],
-				planType: params.planType || 'STARTER',
-				stripePriceId: params.priceId,
-				currentPeriodStart: (() => {
-					const startTime = (
-						params.subscriptionData as {
-							current_period_start?: number
-						}
-					).current_period_start
-					return startTime ? new Date(startTime * 1000) : null
-				})(),
-				currentPeriodEnd: (() => {
-					const endTime = (
-						params.subscriptionData as {
-							current_period_end?: number
-						}
-					).current_period_end
-					return endTime ? new Date(endTime * 1000) : null
-				})(),
-				trialStart: params.subscriptionData.trial_start
-					? new Date(params.subscriptionData.trial_start * 1000)
-					: null,
-				trialEnd: params.subscriptionData.trial_end
-					? new Date(params.subscriptionData.trial_end * 1000)
-					: null
-			},
-			update: {
-				stripeSubscriptionId: params.subscriptionData.id,
-				status: statusMap[params.subscriptionData.status],
-				planType: params.planType || 'STARTER',
-				stripePriceId: params.priceId,
-				currentPeriodStart: (() => {
-					const startTime = (
-						params.subscriptionData as {
-							current_period_start?: number
-						}
-					).current_period_start
-					return startTime ? new Date(startTime * 1000) : null
-				})(),
-				currentPeriodEnd: (() => {
-					const endTime = (
-						params.subscriptionData as {
-							current_period_end?: number
-						}
-					).current_period_end
-					return endTime ? new Date(endTime * 1000) : null
-				})()
-			}
-		})
+		// TODO: Convert to Supabase
+		// await this.supabaseService.subscription.upsert({
+		// 	where: { userId: params.userId },
+		// 	create: {
+		// 		userId: params.userId,
+		// 		stripeSubscriptionId: params.subscriptionData.id,
+		// 		stripeCustomerId: customerId,
+		// 		status: statusMap[params.subscriptionData.status],
+		// 		planType: params.planType || 'STARTER',
+		// 		stripePriceId: params.priceId,
+		// 		currentPeriodStart: (() => {
+		// 			const startTime = (
+		// 				params.subscriptionData as {
+		// 					current_period_start?: number
+		// 				}
+		// 			).current_period_start
+		// 			return startTime ? new Date(startTime * 1000) : null
+		// 		})(),
+		// 		currentPeriodEnd: (() => {
+		// 			const endTime = (
+		// 				params.subscriptionData as {
+		// 					current_period_end?: number
+		// 				}
+		// 			).current_period_end
+		// 			return endTime ? new Date(endTime * 1000) : null
+		// 		})(),
+		// 		trialStart: params.subscriptionData.trial_start
+		// 			? new Date(params.subscriptionData.trial_start * 1000)
+		// 			: null,
+		// 		trialEnd: params.subscriptionData.trial_end
+		// 			? new Date(params.subscriptionData.trial_end * 1000)
+		// 			: null
+		// 	},
+		// 	update: {
+		// 		stripeSubscriptionId: params.subscriptionData.id,
+		// 		status: statusMap[params.subscriptionData.status],
+		// 		planType: params.planType || 'STARTER',
+		// 		stripePriceId: params.priceId,
+		// 		currentPeriodStart: (() => {
+		// 			const startTime = (
+		// 				params.subscriptionData as {
+		// 					current_period_start?: number
+		// 				}
+		// 			).current_period_start
+		// 			return startTime ? new Date(startTime * 1000) : null
+		// 		})(),
+		// 		currentPeriodEnd: (() => {
+		// 			const endTime = (
+		// 				params.subscriptionData as {
+		// 					current_period_end?: number
+		// 				}
+		// 			).current_period_end
+		// 			return endTime ? new Date(endTime * 1000) : null
+		// 		})()
+		// 	}
+		// })
 	}
 
-	private async updateSubscriptionInDatabase(params: {
+	private async updateSubscriptionInDatabase(_params: {
 		userId: string
 		subscriptionData: StripeSubscription
 		planType?: PlanType
 		priceId: string
 	}) {
-		const statusMap: Record<StripeSubscription['status'], SubStatus> = {
-			trialing: 'trialing' as SubStatus,
-			active: 'active' as SubStatus,
-			past_due: 'past_due' as SubStatus,
-			canceled: 'canceled' as SubStatus,
-			unpaid: 'unpaid' as SubStatus,
-			incomplete: 'incomplete' as SubStatus,
-			incomplete_expired: 'incomplete_expired' as SubStatus,
-			paused: 'INCOMPLETE'
-		}
+		// const statusMap: Record<StripeSubscription['status'], SubStatus> = {
+		// 	trialing: 'trialing' as SubStatus,
+		// 	active: 'active' as SubStatus,
+		// 	past_due: 'past_due' as SubStatus,
+		// 	canceled: 'canceled' as SubStatus,
+		// 	unpaid: 'unpaid' as SubStatus,
+		// 	incomplete: 'INCOMPLETE' as SubStatus,
+		// 	incomplete_expired: 'INCOMPLETE_EXPIRED' as SubStatus,
+		// 	paused: 'PAUSED' as SubStatus
+		// }
 
-		await this.prismaService.subscription.updateMany({
-			where: {
-				userId: params.userId,
-				stripeSubscriptionId: params.subscriptionData.id
-			},
-			data: {
-				status: statusMap[params.subscriptionData.status],
-				planType: params.planType,
-				stripePriceId: params.priceId,
-				currentPeriodStart: (() => {
-					const startTime = (
-						params.subscriptionData as {
-							current_period_start?: number
-						}
-					).current_period_start
-					return startTime ? new Date(startTime * 1000) : null
-				})(),
-				currentPeriodEnd: (() => {
-					const endTime = (
-						params.subscriptionData as {
-							current_period_end?: number
-						}
-					).current_period_end
-					return endTime ? new Date(endTime * 1000) : null
-				})()
-			}
-		})
+		// TODO: Convert to Supabase
+		// await this.supabaseService.subscription.updateMany({
+		// 	where: {
+		// 		userId: params.userId,
+		// 		stripeSubscriptionId: params.subscriptionData.id
+		// 	},
+		// 	data: {
+		// 		status: statusMap[params.subscriptionData.status],
+		// 		planType: params.planType,
+		// 		stripePriceId: params.priceId,
+		// 		currentPeriodStart: (() => {
+		// 			const startTime = (
+		// 				params.subscriptionData as {
+		// 					current_period_start?: number
+		// 				}
+		// 			).current_period_start
+		// 			return startTime ? new Date(startTime * 1000) : null
+		// 		})(),
+		// 		currentPeriodEnd: (() => {
+		// 			const endTime = (
+		// 				params.subscriptionData as {
+		// 					current_period_end?: number
+		// 				}
+		// 			).current_period_end
+		// 			return endTime ? new Date(endTime * 1000) : null
+		// 		})()
+		// 	}
+		// })
 	}
 
 	/**
@@ -807,13 +799,14 @@ export class StripeBillingService {
 		stripeSubscription: StripeSubscription
 	): Promise<void> {
 		// Find user by customer ID
-		const customerId =
-			typeof stripeSubscription.customer === 'string'
-				? stripeSubscription.customer
-				: (stripeSubscription.customer as { id: string }).id
-		const subscription = await this.prismaService.subscription.findFirst({
-			where: { stripeCustomerId: customerId }
-		})
+		// const customerId =
+		// 	typeof stripeSubscription.customer === 'string'
+		// 		? stripeSubscription.customer
+		// 		: (stripeSubscription.customer as { id: string }).id
+		// TODO: Convert to Supabase
+		const subscription = null // await this.supabaseService.subscription.findFirst({
+		// 	where: { stripeCustomerId: customerId }
+		// })
 
 		if (!subscription) {
 			this.logger.warn(
@@ -827,101 +820,66 @@ export class StripeBillingService {
 		}
 
 		// Map Stripe status to our status
-		const status = this.mapStripeStatus(stripeSubscription.status)
+		// const status = this.mapStripeStatus(stripeSubscription.status)
 
 		// Determine plan type from price ID
-		const priceId = stripeSubscription.items.data[0]?.price.id
-		const planType = priceId
-			? this.getPlanTypeFromPriceId(priceId)
-			: subscription.planType
+		// const priceId = stripeSubscription.items.data[0]?.price.id
+		// const planType = priceId
+		// 	? this.getPlanTypeFromPriceId(priceId)
+		// 	: 'STARTER'
 
-		// Update subscription
-		await this.prismaService.subscription.update({
-			where: { id: subscription.id },
-			data: {
-				stripeSubscriptionId: stripeSubscription.id,
-				status: status,
-				planType,
-				stripePriceId: priceId,
-				currentPeriodStart: (() => {
-					const startTime = (
-						stripeSubscription as { current_period_start?: number }
-					).current_period_start
-					return startTime ? new Date(startTime * 1000) : null
-				})(),
-				currentPeriodEnd: (() => {
-					const endTime = (
-						stripeSubscription as { current_period_end?: number }
-					).current_period_end
-					return endTime ? new Date(endTime * 1000) : null
-				})(),
-				trialStart: stripeSubscription.trial_start
-					? new Date(stripeSubscription.trial_start * 1000)
-					: null,
-				trialEnd: stripeSubscription.trial_end
-					? new Date(stripeSubscription.trial_end * 1000)
-					: null,
-				cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
-				canceledAt: stripeSubscription.canceled_at
-					? new Date(stripeSubscription.canceled_at * 1000)
-					: null
-			}
-		})
+		// Update subscription - TODO: Convert to Supabase
+		// await this.supabaseService.subscription.update({
+		// 	where: { id: subscription.id },
+		// 	data: {
+		// 		stripeSubscriptionId: stripeSubscription.id,
+		// 		status: status,
+		// 		planType,
+		// 		stripePriceId: priceId,
+		// 		currentPeriodStart: (() => {
+		// 			const startTime = (
+		// 				stripeSubscription as { current_period_start?: number }
+		// 			).current_period_start
+		// 			return startTime ? new Date(startTime * 1000) : null
+		// 		})(),
+		// 		currentPeriodEnd: (() => {
+		// 			const endTime = (
+		// 				stripeSubscription as { current_period_end?: number }
+		// 			).current_period_end
+		// 			return endTime ? new Date(endTime * 1000) : null
+		// 		})(),
+		// 		trialStart: stripeSubscription.trial_start
+		// 			? new Date(stripeSubscription.trial_start * 1000)
+		// 			: null,
+		// 		trialEnd: stripeSubscription.trial_end
+		// 			? new Date(stripeSubscription.trial_end * 1000)
+		// 			: null,
+		// 		cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
+		// 		canceledAt: stripeSubscription.canceled_at
+		// 			? new Date(stripeSubscription.canceled_at * 1000)
+		// 			: null
+		// 	}
+		// })
 	}
 
 	/**
 	 * Handle subscription deleted webhook
 	 */
 	async handleSubscriptionDeleted(
-		stripeSubscriptionId: string
+		_stripeSubscriptionId: string
 	): Promise<void> {
-		await this.prismaService.subscription.updateMany({
-			where: { stripeSubscriptionId },
-			data: {
-				status: 'canceled' as SubStatus,
-				cancelAtPeriodEnd: false,
-				canceledAt: new Date()
-			}
-		})
+		// TODO: Convert to Supabase
+		// await this.supabaseService.subscription.updateMany({
+		// 	where: { stripeSubscriptionId },
+		// 	data: {
+		// 		status: 'canceled' as SubStatus,
+		// 		cancelAtPeriodEnd: false,
+		// 		canceledAt: new Date()
+		// 	}
+		// })
 	}
 
-	private mapStripeStatus(
-		stripeStatus: StripeSubscription['status']
-	): SubStatus {
-		const statusMap: Record<StripeSubscription['status'], SubStatus> = {
-			trialing: 'trialing' as SubStatus,
-			active: 'active' as SubStatus,
-			past_due: 'past_due' as SubStatus,
-			canceled: 'canceled' as SubStatus,
-			unpaid: 'unpaid' as SubStatus,
-			incomplete: 'incomplete' as SubStatus,
-			incomplete_expired: 'incomplete_expired' as SubStatus,
-			paused: 'INCOMPLETE' // Map paused to incomplete (official status for paused trials)
-		}
 
-		return statusMap[stripeStatus] || 'CANCELED'
-	}
 
-	// PERFORMANCE: Cache reverse lookups (priceId -> planType)
-	private readonly priceIdToPlanCache = new Map<string, PlanType | null>()
 
-	private getPlanTypeFromPriceId(priceId: string): PlanType | null {
-		if (this.priceIdToPlanCache.has(priceId)) {
-			return this.priceIdToPlanCache.get(priceId) || null
-		}
-
-		for (const [planType, plan] of Object.entries(BILLING_PLANS)) {
-			if (
-				plan.stripePriceIds.monthly === priceId ||
-				plan.stripePriceIds.annual === priceId
-			) {
-				const result = planType as PlanType
-				this.priceIdToPlanCache.set(priceId, result)
-				return result
-			}
-		}
-
-		this.priceIdToPlanCache.set(priceId, null)
-		return null
-	}
 }

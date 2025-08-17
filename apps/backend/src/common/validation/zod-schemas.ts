@@ -148,7 +148,7 @@ export const createUnitSchema = z.object({
 	bedrooms: z.number().int().min(0).max(20).default(1),
 	bathrooms: z.number().min(0).max(20).default(1),
 	squareFeet: z.number().int().min(1).max(50000).optional(),
-	rent: currencySchema,
+	monthlyRent: currencySchema,
 	status: unitStatusSchema.default(UNIT_STATUS.VACANT),
 	description: z.string().max(1000).optional()
 })
@@ -160,8 +160,8 @@ export const updateUnitSchema = createUnitSchema
 export const queryUnitsSchema = baseQuerySchema.extend({
 	propertyId: uuidSchema.optional(),
 	status: unitStatusSchema.optional(),
-	minRent: currencySchema.optional(),
-	maxRent: currencySchema.optional(),
+	minMonthlyRent: currencySchema.optional(),
+	maxMonthlyRent: currencySchema.optional(),
 	bedrooms: z.number().int().min(0).optional(),
 	bathrooms: z.number().min(0).optional()
 })
@@ -171,12 +171,12 @@ export const queryUnitsSchema = baseQuerySchema.extend({
 // ========================================
 
 export const createTenantSchema = z.object({
-	firstName: z.string().min(1, 'First name is required').max(100),
-	lastName: z.string().min(1, 'Last name is required').max(100),
+	name: z.string().min(1, 'Name is required').max(200),
 	email: emailSchema,
 	phone: phoneSchema,
-	emergencyContactName: z.string().max(100).optional(),
-	emergencyContactPhone: phoneSchema,
+	emergencyContact: z.string().max(100).optional(),
+	emergencyPhone: phoneSchema,
+	moveInDate: dateSchema.optional(),
 	notes: z.string().max(2000).optional()
 })
 
@@ -205,10 +205,12 @@ export const createMaintenanceRequestSchema = z.object({
 	description: z.string().min(1, 'Description is required').max(2000),
 	category: z.string().max(100).optional(),
 	priority: maintenancePrioritySchema.default(PRIORITY.MEDIUM),
+	status: maintenanceStatusSchema.optional(),
 	preferredDate: dateSchema.optional(),
 	allowEntry: z.boolean().default(true),
 	contactPhone: phoneSchema,
 	requestedBy: z.string().max(100).optional(),
+	notes: z.string().max(2000).optional(),
 	photos: z.array(z.string().url()).default([])
 })
 
@@ -248,12 +250,12 @@ export const createLeaseSchema = z
 		tenantId: uuidSchema,
 		startDate: futureDateSchema,
 		endDate: futureDateSchema,
-		monthlyRent: currencySchema,
+		rentAmount: currencySchema,
 		securityDeposit: currencySchema.default(0),
-		petDeposit: currencySchema.default(0),
+		lateFeeDays: z.number().int().min(0).max(365).optional(),
+		lateFeeAmount: currencySchema.optional(),
 		status: leaseStatusSchema.default(LEASE_STATUS.DRAFT),
-		terms: z.string().max(5000).optional(),
-		notes: z.string().max(2000).optional()
+		leaseTerms: z.string().max(5000).optional()
 	})
 	.refine(data => data.endDate > data.startDate, {
 		message: 'End date must be after start date',

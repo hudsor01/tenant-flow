@@ -36,7 +36,7 @@ export class UnitsController {
 			const units = await this.unitsService.getUnitsByProperty(
 				query.propertyId,
 				user.id,
-				user.supabaseAccessToken
+				undefined
 			)
 			return {
 				success: true,
@@ -46,11 +46,9 @@ export class UnitsController {
 		}
 
 		// Otherwise, get all units for the user
-		const units = await this.unitsService.findAll(
+		const units = await this.unitsService.findByOwner(
 			user.id,
-			query,
-			user.id,
-			user.supabaseAccessToken
+			query
 		)
 		return {
 			success: true,
@@ -69,7 +67,7 @@ export class UnitsController {
 			id,
 			user.id,
 			user.id,
-			user.supabaseAccessToken
+			undefined
 		)
 		return {
 			success: true,
@@ -82,7 +80,7 @@ export class UnitsController {
 	@ApiOperation({ summary: 'Create a new unit' })
 	@ApiResponse({ status: 201, description: 'Unit created successfully' })
 	@ApiResponse({ status: 400, description: 'Invalid input' })
-	@UsageLimit('units')
+	@UsageLimit({ resource: 'units', action: 'create' })
 	async create(
 		@CurrentUser() user: ValidatedUser,
 		@Body() createUnitDto: UnitCreateDto
@@ -91,7 +89,7 @@ export class UnitsController {
 			createUnitDto,
 			user.id,
 			user.id,
-			user.supabaseAccessToken
+			undefined
 		)
 		return {
 			success: true,
@@ -115,7 +113,7 @@ export class UnitsController {
 			updateUnitDto,
 			user.id,
 			user.id,
-			user.supabaseAccessToken
+			undefined
 		)
 		return {
 			success: true,
@@ -134,7 +132,7 @@ export class UnitsController {
 			id,
 			user.id,
 			user.id,
-			user.supabaseAccessToken
+			undefined
 		)
 		return {
 			success: true,
@@ -160,7 +158,7 @@ export class UnitsController {
 			status,
 			user.id,
 			user.id,
-			user.supabaseAccessToken
+			undefined
 		)
 		return {
 			success: true,

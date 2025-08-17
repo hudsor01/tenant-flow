@@ -10,7 +10,7 @@ import { FastifyReply, FastifyRequest } from 'fastify'
 import { ZodError } from 'zod'
 // Prisma error types removed - using Supabase now
 import type { AppError, ControllerApiResponse } from '@repo/shared'
-import { UnifiedLoggerService } from '../logging/unified-logger.service'
+import { LoggerService } from '../services/logger.service'
 
 /**
  * Enhanced Global Exception Filter
@@ -48,7 +48,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 	private readonly isDevelopment = process.env.NODE_ENV === 'development'
 	private readonly isProduction = process.env.NODE_ENV === 'production'
 
-	constructor(protected readonly logger: UnifiedLoggerService) {
+	constructor(protected readonly logger: LoggerService) {
 		this.logger.setContext('GlobalExceptionFilter')
 	}
 
@@ -89,13 +89,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 			return this.handleZodError(exception, context)
 		}
 
-		// Handle Prisma errors
-		if (this.isPrismaError(exception)) {
-			return this.handlePrismaError(
-				exception as Record<string, unknown>,
-				context
-			)
-		}
+		// Prisma error handling removed - using Supabase now
 
 		// Handle other known error types
 		if (exception instanceof Error) {
@@ -169,77 +163,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 		}
 	}
 
-	/**
-	 * Handles Prisma database errors
-	 */
-	private handlePrismaError(
-		error: Record<string, unknown>,
-		_context: ErrorContext
-	): StructuredError {
-		const { code, meta, message } = error
 
-		switch (code) {
-			case 'P2002':
-				return {
-					code: 'UNIQUE_CONSTRAINT_VIOLATION',
-					message: `Duplicate value for ${this.getMetaTarget(meta) || 'field'}`,
-					details: this.isDevelopment
-						? { constraintField: this.getMetaTarget(meta) }
-						: undefined,
-					statusCode: HttpStatus.CONFLICT
-				}
-
-			case 'P2025':
-				return {
-					code: 'RECORD_NOT_FOUND',
-					message: 'The requested record was not found',
-					statusCode: HttpStatus.NOT_FOUND
-				}
-
-			case 'P2003':
-				return {
-					code: 'FOREIGN_KEY_CONSTRAINT',
-					message: 'Operation violates foreign key constraint',
-					details: this.isDevelopment
-						? { field: this.getMetaFieldName(meta) }
-						: undefined,
-					statusCode: HttpStatus.BAD_REQUEST
-				}
-
-			case 'P2014':
-				return {
-					code: 'INVALID_ID',
-					message: 'The provided ID is invalid',
-					statusCode: HttpStatus.BAD_REQUEST
-				}
-
-			case 'P1001':
-				return {
-					code: 'DATABASE_CONNECTION_ERROR',
-					message: 'Unable to connect to the database',
-					statusCode: HttpStatus.SERVICE_UNAVAILABLE
-				}
-
-			case 'P1008':
-				return {
-					code: 'DATABASE_TIMEOUT',
-					message: 'Database operation timed out',
-					statusCode: HttpStatus.REQUEST_TIMEOUT
-				}
-
-			default:
-				return {
-					code: 'DATABASE_ERROR' as const,
-					message: this.isProduction
-						? 'A database error occurred'
-						: String(message) || 'Unknown database error',
-					details: this.isDevelopment
-						? { prismaCode: code, meta }
-						: undefined,
-					statusCode: HttpStatus.INTERNAL_SERVER_ERROR
-				}
-		}
-	}
 
 	/**
 	 * Handles generic JavaScript errors
@@ -421,18 +345,19 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 	private logError(
 		exception: unknown,
 		structuredError: StructuredError,
-		context: ErrorContext
+		_context: ErrorContext
 	): void {
-		const logContext = {
-			requestId: context.requestId,
-			userId: context.userId,
-			path: context.path,
-			method: context.method,
-			userAgent: context.userAgent,
-			ip: context.ip,
-			errorCode: structuredError.code,
-			statusCode: structuredError.statusCode
-		}
+		// Log context for debugging (currently unused)
+		// const logContext = {
+		// 	requestId: context.requestId,
+		// 	userId: context.userId,
+		// 	path: context.path,
+		// 	method: context.method,
+		// 	userAgent: context.userAgent,
+		// 	ip: context.ip,
+		// 	errorCode: structuredError.code,
+		// 	statusCode: structuredError.statusCode
+		// }
 
 		const logMessage = `${structuredError.code}: ${structuredError.message}`
 
@@ -440,24 +365,19 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 		if (structuredError.statusCode >= 500) {
 			this.logger.error(
 				logMessage,
-				exception instanceof Error ? exception.stack : undefined,
-				logContext
+				exception instanceof Error ? exception.stack : undefined
 			)
 		} else if (structuredError.statusCode >= 400) {
-			this.logger.warn(logMessage, logContext)
+			this.logger.warn(logMessage)
 		} else {
-			this.logger.log(logMessage, 'GlobalExceptionFilter')
+			this.logger.log(logMessage)
 		}
 
 		// Additional logging for monitoring/alerting in production
 		if (this.isProduction && structuredError.statusCode >= 500) {
 			// Here you could integrate with external monitoring services
 			// like Sentry, DataDog, etc.
-			this.logger.error('PRODUCTION_ERROR_ALERT', undefined, {
-				...logContext,
-				errorType: structuredError.code,
-				timestamp: context.timestamp
-			})
+			this.logger.error('PRODUCTION_ERROR_ALERT')
 		}
 	}
 
@@ -493,39 +413,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 		return sanitized
 	}
 
-	/**
-	 * Safely extracts target field from Prisma error meta
-	 */
-	private getMetaTarget(meta: unknown): string | undefined {
-		if (meta && typeof meta === 'object' && 'target' in meta) {
-			return String((meta as Record<string, unknown>).target)
-		}
-		return undefined
-	}
 
-	/**
-	 * Safely extracts field_name from Prisma error meta
-	 */
-	private getMetaFieldName(meta: unknown): string | undefined {
-		if (meta && typeof meta === 'object' && 'field_name' in meta) {
-			return String((meta as Record<string, unknown>).field_name)
-		}
-		return undefined
-	}
 
-	/**
-	 * Checks if an error is a Prisma error
-	 */
-	private isPrismaError(exception: unknown): boolean {
-		return (
-			// Prisma error handling removed - using Supabase now
-			Boolean(
-				(exception as Record<string, unknown>)?.code
-					?.toString()
-					.startsWith('P')
-			)
-		)
-	}
+
 }
 
 /**
@@ -533,7 +423,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
  */
 @Catch()
 export class DevelopmentExceptionFilter extends GlobalExceptionFilter {
-	constructor(logger: UnifiedLoggerService) {
+	constructor(logger: LoggerService) {
 		super(logger)
 		this.logger.setContext('DevelopmentExceptionFilter')
 	}

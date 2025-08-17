@@ -66,64 +66,6 @@ export class CacheService {
 	}
 
 	/**
-	 * Delete multiple keys by pattern (DEPRECATED - use tag-based invalidation instead)
-	 * This method is expensive and should be avoided in production
-	 */
-	async delByPattern(pattern: string): Promise<number> {
-		const client = this.redisService.getClient()
-		if (!client) {
-			return 0
-		}
-
-		this.logger.warn(
-			`Using expensive delByPattern operation: ${pattern}. Consider using tag-based invalidation instead.`
-		)
-
-		try {
-			// Use SCAN instead of KEYS for better performance
-			const keys: string[] = []
-			let cursor = '0'
-
-			do {
-				const result = await client.scan(
-					cursor,
-					'MATCH',
-					pattern,
-					'COUNT',
-					100
-				)
-				cursor = result[0]
-				keys.push(...result[1])
-			} while (cursor !== '0')
-
-			if (keys.length === 0) {
-				return 0
-			}
-
-			// Delete in batches to avoid blocking Redis
-			const batchSize = 100
-			let deletedCount = 0
-
-			for (let i = 0; i < keys.length; i += batchSize) {
-				const batch = keys.slice(i, i + batchSize)
-				await client.del(...batch)
-				deletedCount += batch.length
-			}
-
-			this.logger.debug(
-				`Deleted ${deletedCount} keys matching pattern ${pattern}`
-			)
-			return deletedCount
-		} catch (error) {
-			this.logger.error(
-				`Failed to delete keys by pattern ${pattern}:`,
-				error
-			)
-			return 0
-		}
-	}
-
-	/**
 	 * Cache with tags for grouped invalidation
 	 */
 	async setWithTags<T>(
@@ -381,6 +323,38 @@ export class CacheService {
 		})
 
 		return parsed
+	}
+
+	/**
+	 * Delete keys by pattern using Redis SCAN
+	 */
+	async delByPattern(pattern: string): Promise<number> {
+		const client = this.redisService.getClient()
+		if (!client) {
+			return 0
+		}
+
+		try {
+			let cursor = '0'
+			let deletedCount = 0
+
+			do {
+				const result = await client.scan(cursor, 'MATCH', pattern, 'COUNT', 100)
+				cursor = result[0]
+				const keys = result[1]
+
+				if (keys.length > 0) {
+					const deleteResult = await client.del(...keys)
+					deletedCount += deleteResult
+				}
+			} while (cursor !== '0')
+
+			this.logger.debug(`Deleted ${deletedCount} keys matching pattern ${pattern}`)
+			return deletedCount
+		} catch (error) {
+			this.logger.error(`Failed to delete keys by pattern ${pattern}:`, error)
+			return 0
+		}
 	}
 
 	/**

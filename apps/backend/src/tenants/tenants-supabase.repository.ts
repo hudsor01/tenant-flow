@@ -22,6 +22,7 @@ export interface TenantWithRelations extends TenantRow {
 				id: string
 				name: string
 				address: string
+				ownerId: string
 			}
 		}
 	}[]
@@ -101,7 +102,7 @@ export class TenantsSupabaseRepository extends BaseSupabaseRepository<
 			// Add status filter if provided
 			if (status) {
 				// Assuming status refers to lease status
-				query = query.eq('Lease.status', status)
+				query = query.eq('Lease.status', status as 'ACTIVE' | 'DRAFT' | 'EXPIRED' | 'TERMINATED')
 			}
 
 			// Add search filter (searches in name, email, and phone)
@@ -121,7 +122,7 @@ export class TenantsSupabaseRepository extends BaseSupabaseRepository<
 				throw error
 			}
 
-			return (data || []) as TenantWithRelations[]
+			return (data || []) as unknown as TenantWithRelations[]
 		} catch (error) {
 			this.logger.error('Failed to fetch tenants by owner:', error)
 			throw error
@@ -180,7 +181,7 @@ export class TenantsSupabaseRepository extends BaseSupabaseRepository<
 
 			// Validate ownership through lease relationship
 			if (data && includeDetails) {
-				const tenant = data as TenantWithRelations
+				const tenant = data as unknown as TenantWithRelations
 				const hasOwnership = tenant.Lease?.some(
 					lease => lease.Unit?.Property?.ownerId === ownerId
 				)
@@ -190,7 +191,7 @@ export class TenantsSupabaseRepository extends BaseSupabaseRepository<
 				}
 			}
 
-			return data as TenantWithRelations
+			return data as unknown as TenantWithRelations
 		} catch (error) {
 			this.logger.error('Failed to find tenant by ID and owner:', error)
 			throw error
@@ -364,7 +365,7 @@ export class TenantsSupabaseRepository extends BaseSupabaseRepository<
 			return {
 				...tenant,
 				Lease: lease ? [lease] : []
-			} as TenantWithRelations
+			} as unknown as TenantWithRelations
 		} catch (error) {
 			this.logger.error('Failed to create tenant with lease:', error)
 			throw error

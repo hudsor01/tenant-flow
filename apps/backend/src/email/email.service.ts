@@ -36,11 +36,11 @@ export class EmailService {
 		private readonly templateService: EmailTemplateService
 	) {
 		this.fromEmail =
-			this.configService.get<string>('RESEND_FROM_EMAIL') ||
+			this.configService?.get<string>('RESEND_FROM_EMAIL') ||
 			'noreply@tenantflow.app'
 		this.replyToEmail = 'support@tenantflow.app'
 		this.isDevelopment =
-			this.configService.get<string>('NODE_ENV') === 'development'
+			this.configService?.get<string>('NODE_ENV') === 'development' || false
 
 		// Template service handles template registration
 
