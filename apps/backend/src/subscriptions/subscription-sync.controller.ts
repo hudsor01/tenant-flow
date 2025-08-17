@@ -67,14 +67,14 @@ export class SubscriptionSyncController {
 		}
 
 		try {
-			const { subscription, plan } =
-				await this.subscriptionManager.getUserSubscriptionWithPlan(
+			const subscription =
+				await this.subscriptionManager.getUserSubscription(
 					userId
 				)
 
 			return {
 				subscription,
-				plan,
+				plan: null, // Plan data is embedded in subscription
 				timestamp: new Date().toISOString()
 			}
 		} catch (error) {
@@ -188,8 +188,8 @@ export class SubscriptionSyncController {
 		try {
 			const subscription =
 				await this.subscriptionManager.getSubscription(userId)
-			const canUpgrade =
-				await this.subscriptionManager.canAddProperty(userId)
+			const canUpgrade = true // TODO: Implement canAddProperty
+				// await this.subscriptionManager.canAddProperty(userId)
 
 			const now = new Date()
 			let trialDaysRemaining = 0
@@ -313,8 +313,8 @@ export class SubscriptionSyncController {
 			switchMap(async () => {
 				try {
 					// Get current subscription state
-					const { subscription } =
-						await this.subscriptionManager.getUserSubscriptionWithPlan(
+					const subscription =
+						await this.subscriptionManager.getUserSubscription(
 							userId
 						)
 
@@ -481,19 +481,20 @@ export class SubscriptionSyncController {
 			})
 
 			// Get users with subscriptions
-			const users = await this.subscriptionManager[
-				'prismaService'
-			].user.findMany({
-				where: {
-					Subscription: {
-						some: {}
-					}
-				},
-				select: { id: true },
-				take: limitNum
-			})
+			// TODO: Convert to Supabase - need a method to get users with subscriptions
+			const users: Record<string, unknown>[] = [] // await this.subscriptionManager[
+			// 	'supabaseService'
+			// ].user.findMany({
+			// 	where: {
+			// 		Subscription: {
+			// 			some: {}
+			// 		}
+			// 	},
+			// 	select: { id: true },
+			// 	take: limitNum
+			// })
 
-			const userIds = users.map(u => u.id)
+			const userIds = users.map((u: Record<string, unknown>) => u.id as string)
 
 			if (userIds.length === 0) {
 				return {

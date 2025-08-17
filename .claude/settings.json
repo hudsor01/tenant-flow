@@ -1,8 +1,7 @@
 {
+	"cleanupPeriodDays": 7,
+	"enableAllProjectMcpServers": true,
 	"env": {
-		"cleanupPeriodDays": "7",
-		"enableAllProjectMcpServers": "true",
-		"defaultMode": "acceptEdits",
 		"OTEL_METRICS_EXPORTER": "otlp"
 	},
 	"permissions": {
@@ -18,7 +17,8 @@
 			"Bash(z:*)",
 			"Bash(fzf:*)"
 		],
-		"deny": []
+		"deny": [],
+		"defaultMode": "acceptEdits"
 	},
 	"hooks": {
 		"PreToolUse": [
