@@ -13,7 +13,7 @@ import {
 } from '../common/events/subscription.events'
 import type { StripeSubscription } from '@repo/shared/types/stripe'
 import { type PlanType, type Subscription, SubStatus } from '@repo/shared'
-import { SupabaseService } from 'src/common/supabase/supabase.service'
+import { SupabaseService } from '../common/supabase/supabase.service'
 
 // Note: StripeSubscription from our official types already includes current_period properties
 // Using our comprehensive StripeSubscription type instead of extending StripeSubscription

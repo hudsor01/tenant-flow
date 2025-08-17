@@ -8,6 +8,7 @@ interface HealthStatus {
 	timestamp: string
 	database: 'healthy' | 'degraded' | 'unavailable' | 'connecting'
 	databaseResponseTime?: number
+	databaseError?: string
 	environment: string
 	memory: {
 		used: number
@@ -90,6 +91,7 @@ export class HealthController {
 			timestamp: new Date().toISOString(),
 			database: dbStatus.status,
 			databaseResponseTime: dbStatus.responseTime,
+			databaseError: dbStatus.error,
 			environment: process.env.NODE_ENV || 'unknown',
 			memory: {
 				used: Math.round(memUsage.heapUsed / 1024 / 1024),
@@ -110,26 +112,43 @@ export class HealthController {
 		status: 'healthy' | 'degraded' | 'unavailable' | 'connecting'
 		responseTime?: number
 		poolStats?: Record<string, unknown>
+		error?: string
 	}> {
 		try {
 			const startTime = Date.now()
-			const connected = await this.supabaseService.checkConnection()
+			
+			// Add timeout to the health check itself
+			const timeoutPromise = new Promise<boolean>((_, reject) => {
+				setTimeout(() => reject(new Error('Health check timeout after 8 seconds')), 8000)
+			})
+			
+			const connectionPromise = this.supabaseService.checkConnection()
+			const connected = await Promise.race([connectionPromise, timeoutPromise])
 			const responseTime = Date.now() - startTime
 
 			if (!connected) {
 				return {
 					status: 'unavailable',
-					responseTime
+					responseTime,
+					error: 'Database connection failed'
 				}
 			}
 
-			// Categorize response time
-			if (responseTime < 100) {
+			// Categorize response time with more granular thresholds
+			if (responseTime < 50) {
+				return {
+					status: 'healthy',
+					responseTime
+				}
+			} else if (responseTime < 200) {
 				return {
 					status: 'healthy',
 					responseTime
 				}
 			} else if (responseTime < 1000) {
+				this.logger.warn(
+					`Database response time elevated: ${responseTime}ms`
+				)
 				return {
 					status: 'degraded',
 					responseTime
@@ -145,7 +164,20 @@ export class HealthController {
 			}
 		} catch (error) {
 			this.logger.error('Database health check failed:', error)
-			return { status: 'unavailable' }
+			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+			
+			// Check if it's a timeout issue specifically
+			if (errorMessage.includes('timeout')) {
+				return { 
+					status: 'unavailable',
+					error: `Database timeout: ${errorMessage}`
+				}
+			}
+			
+			return { 
+				status: 'unavailable',
+				error: errorMessage
+			}
 		}
 	}
 
