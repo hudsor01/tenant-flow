@@ -38,7 +38,7 @@
 			"env": ["NODE_ENV"]
 		},
 		"@repo/database#build": {
-			"dependsOn": ["@repo/database#generate"],
+			"dependsOn": ["@repo/shared#build"],
 			"inputs": [
 				"src/**",
 				"tsconfig*.json",
@@ -48,13 +48,6 @@
 				"!**/*.spec.*"
 			],
 			"outputs": ["dist/**", ".turbo/**"],
-			"cache": true,
-			"persistent": false
-		},
-		"@repo/database#generate": {
-			"dependsOn": [],
-			"inputs": ["prisma/schema.prisma", "package.json"],
-			"outputs": ["src/generated/**"],
 			"cache": true,
 			"persistent": false
 		},
@@ -80,7 +73,7 @@
 			"persistent": false
 		},
 		"@repo/frontend#build": {
-			"dependsOn": ["@repo/shared#build", "@repo/database#generate"],
+			"dependsOn": ["@repo/shared#build", "@repo/database#build"],
 			"inputs": [
 				"src/**",
 				"app/**",
@@ -103,7 +96,7 @@
 			"persistent": false
 		},
 		"@repo/backend#build": {
-			"dependsOn": ["@repo/shared#build"],
+			"dependsOn": ["@repo/shared#build", "@repo/database#build"],
 			"inputs": [
 				"src/**",
 				"tsconfig*.json",
@@ -120,7 +113,7 @@
 		"dev": {
 			"cache": false,
 			"persistent": true,
-			"dependsOn": ["@repo/database#generate"]
+			"dependsOn": ["@repo/shared#build"]
 		},
 		"lint": {
 			"inputs": [
@@ -165,7 +158,7 @@
 			"persistent": false
 		},
 		"typecheck": {
-			"dependsOn": ["@repo/database#generate"],
+			"dependsOn": ["@repo/shared#build"],
 			"inputs": [
 				"**/*.ts",
 				"**/*.tsx",
@@ -194,7 +187,7 @@
 			"persistent": false
 		},
 		"@repo/backend#typecheck": {
-			"dependsOn": ["@repo/shared#build"],
+			"dependsOn": ["@repo/shared#build", "@repo/database#build"],
 			"inputs": [
 				"src/**",
 				"tsconfig*.json",
@@ -243,13 +236,13 @@
 			"persistent": false
 		},
 		"test": {
-			"dependsOn": ["@repo/database#generate"],
+			"dependsOn": ["@repo/shared#build"],
 			"cache": false,
 			"outputs": ["coverage/**"],
 			"persistent": false
 		},
 		"test:unit": {
-			"dependsOn": ["@repo/database#generate"],
+			"dependsOn": ["@repo/shared#build"],
 			"inputs": [
 				"**/*.test.ts",
 				"**/*.test.tsx",
@@ -263,13 +256,13 @@
 			"persistent": false
 		},
 		"test:coverage": {
-			"dependsOn": ["@repo/database#generate"],
+			"dependsOn": ["@repo/shared#build"],
 			"cache": false,
 			"outputs": ["coverage/**"],
 			"persistent": false
 		},
 		"test:e2e": {
-			"dependsOn": ["@repo/database#generate"],
+			"dependsOn": ["@repo/shared#build"],
 			"cache": false,
 			"persistent": false
 		},
@@ -281,7 +274,7 @@
 		"storybook": {
 			"cache": false,
 			"persistent": true,
-			"dependsOn": ["@repo/shared#build", "@repo/database#generate"]
+			"dependsOn": ["@repo/shared#build", "@repo/database#build"]
 		},
 		"build-storybook": {
 			"dependsOn": ["^build"],

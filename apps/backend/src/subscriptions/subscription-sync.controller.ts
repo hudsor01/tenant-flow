@@ -18,7 +18,7 @@ import { SubscriptionsManagerService } from './subscriptions-manager.service'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { AdminGuard } from '../auth/guards/admin.guard'
 import { StructuredLoggerService } from '../common/logging/structured-logger.service'
-import type { User } from '@repo/database'
+import type { User } from '@repo/shared'
 
 interface SyncRequest {
 	force?: boolean

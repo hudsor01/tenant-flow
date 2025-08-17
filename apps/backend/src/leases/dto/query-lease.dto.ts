@@ -9,9 +9,8 @@ import {
 	Min
 } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
-import { LeaseStatus } from '@repo/database'
+import { LEASE_STATUS, LeaseQuery, type LeaseStatus } from '@repo/shared'
 import { BaseQueryDtoWithSort } from '../../common/dto/base-query.dto'
-import { LeaseQuery } from '@repo/shared'
 
 type LeaseSortFields =
 	| 'startDate'
@@ -25,7 +24,7 @@ export class LeaseQueryDto
 	implements LeaseQuery
 {
 	@IsOptional()
-	@IsEnum(LeaseStatus, {
+	@IsEnum(Object.values(LEASE_STATUS), {
 		message: 'Status must be one of: DRAFT, ACTIVE, EXPIRED, TERMINATED'
 	})
 	status?: LeaseStatus

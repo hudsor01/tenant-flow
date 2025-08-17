@@ -6,7 +6,7 @@ import {
 	UnauthorizedException
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-import { PrismaService } from '../../prisma/prisma.service'
+import { SupabaseService } from '../../supabase/supabase.service'
 
 export const SUBSCRIPTION_REQUIRED_KEY = 'subscriptionRequired'
 export const REQUIRE_ACTIVE_SUBSCRIPTION = () =>
@@ -20,7 +20,7 @@ export const PAUSED_SUBSCRIPTION_ALLOWED = () =>
 export class SubscriptionGuard implements CanActivate {
 	constructor(
 		private reflector: Reflector,
-		private prismaService: PrismaService
+		private supabaseService: SupabaseService
 	) {}
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -48,16 +48,14 @@ export class SubscriptionGuard implements CanActivate {
 		}
 
 		// Get user's subscription status
-		const subscription = await this.prismaService.subscription.findUnique({
-			where: { userId: user.id },
-			select: {
-				status: true,
-				stripeSubscriptionId: true,
-				planType: true,
-				trialEnd: true,
-				currentPeriodEnd: true
-			}
-		})
+		const { data: subscription } = await this.supabaseService
+			.getAdminClient()
+			.from('Subscription')
+			.select(
+				'status, stripeSubscriptionId, planType, trialEnd, currentPeriodEnd'
+			)
+			.eq('userId', user.id)
+			.single()
 
 		if (!subscription) {
 			// No subscription found - block access to paid features

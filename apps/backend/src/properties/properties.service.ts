@@ -1,289 +1,325 @@
-import { Injectable } from '@nestjs/common'
-import { Prisma, Property, PropertyType } from '@repo/database'
+import { Injectable, Logger } from '@nestjs/common'
+import type { Database } from '@repo/shared/types/supabase-generated'
 import {
-	PropertiesRepository,
-	PropertyQueryOptions
-} from './properties.repository'
+	PropertiesSupabaseRepository,
+	PropertyQueryOptions,
+	PropertyWithRelations
+} from './properties-supabase.repository'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
-import {
-	BaseCrudService,
-	BaseStats
-} from '../common/services/base-crud.service'
 import { PropertyNotFoundException } from '../common/exceptions/property.exceptions'
-import {
-	CreatePropertyDto,
-	QueryPropertiesDto,
-	UpdatePropertyDto
-} from '../common/dto/dto-exports'
-// Removed unused validation imports
+import { CreatePropertyDto, UpdatePropertyDto } from '../common/dto/dto-exports'
+type PropertyInsert = Database['public']['Tables']['Property']['Insert']
+type PropertyUpdate = Database['public']['Tables']['Property']['Update']
 
+/**
+ * Properties service using Supabase
+ * Handles property management with full ownership validation and multi-tenant security
+ */
 @Injectable()
-export class PropertiesService extends BaseCrudService<
-	Property,
-	CreatePropertyDto,
-	UpdatePropertyDto,
-	QueryPropertiesDto,
-	Prisma.PropertyCreateInput,
-	Prisma.PropertyUpdateInput,
-	Prisma.PropertyWhereInput
-> {
-	protected readonly entityName = 'property'
-	protected readonly repository: PropertiesRepository
+export class PropertiesService {
+	private readonly logger = new Logger(PropertiesService.name)
 
 	constructor(
-		private readonly propertiesRepository: PropertiesRepository,
-		errorHandler: ErrorHandlerService
-		// Removed unused zodValidation service
-	) {
-		super(errorHandler)
-		this.repository = propertiesRepository
-	}
-
-	// ========================================
-	// BaseCrudService Implementation
-	// ========================================
-
-	protected async findByIdAndOwner(
-		id: string,
-		ownerId: string
-	): Promise<Property | null> {
-		return this.propertiesRepository.findByIdAndOwner(id, ownerId, true)
-	}
-
-	protected async calculateStats(ownerId: string): Promise<BaseStats> {
-		return this.propertiesRepository.getStatsByOwner(ownerId)
-	}
-
-	protected prepareCreateData(
-		data: CreatePropertyDto,
-		ownerId: string
-	): Prisma.PropertyCreateInput {
-		return {
-			...data,
-			propertyType: data.propertyType || PropertyType.SINGLE_FAMILY,
-			User: {
-				connect: { id: ownerId }
-			}
-		}
-	}
-
-	protected prepareUpdateData(
-		data: UpdatePropertyDto
-	): Prisma.PropertyUpdateInput {
-		return {
-			...data,
-			updatedAt: new Date()
-		}
-	}
-
-	protected createOwnerWhereClause(
-		id: string,
-		ownerId: string
-	): Prisma.PropertyWhereInput {
-		return { id, ownerId }
-	}
-
-	protected override async validateDeletion(
-		entity: Property,
-		_ownerId: string
-	): Promise<void> {
-		// Check for active leases before deletion
-		const activeLeases =
-			await this.propertiesRepository.prismaClient.lease.count({
-				where: {
-					Unit: {
-						propertyId: entity.id
-					},
-					status: 'ACTIVE'
-				}
-			})
-
-		if (activeLeases > 0) {
-			throw new PropertyNotFoundException(entity.id)
-		}
-	}
-
-	// ========================================
-	// Standard API Methods (Consistent Naming)
-	// ========================================
+		private readonly repository: PropertiesSupabaseRepository,
+		private readonly errorHandler: ErrorHandlerService
+	) {}
 
 	/**
-	 * Find property by ID - returns null if not found
-	 * @param id Property ID
-	 * @param ownerId Owner ID for security
-	 * @returns Property or null
+	 * Create a new property
 	 */
-	override async findById(id: string, ownerId: string): Promise<Property> {
+	async create(
+		data: CreatePropertyDto,
+		ownerId: string,
+		userId?: string,
+		userToken?: string
+	): Promise<PropertyWithRelations> {
 		try {
-			const property = await this.findByIdAndOwner(id, ownerId)
+			const propertyData: PropertyInsert = {
+				...data,
+				ownerId,
+				propertyType: data.propertyType || 'SINGLE_FAMILY',
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString()
+			}
+
+			// Create property with units if specified
+			if (data.units && data.units > 0) {
+				return await this.repository.createWithUnits(
+					propertyData,
+					data.units,
+					ownerId,
+					userId,
+					userToken
+				)
+			}
+
+			// Create standard property
+			const property = await this.repository.create(
+				propertyData,
+				userId,
+				userToken
+			)
+
+			this.logger.log('Property created successfully', {
+				propertyId: property.id,
+				ownerId,
+				name: property.name
+			})
+
+			return property
+		} catch (error) {
+			this.logger.error('Failed to create property:', error)
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'create',
+				resource: 'property',
+				metadata: { ownerId, propertyName: data.name }
+			})
+		}
+	}
+
+	/**
+	 * Find property by ID
+	 */
+	async findById(
+		id: string,
+		ownerId: string,
+		userId?: string,
+		userToken?: string
+	): Promise<PropertyWithRelations> {
+		try {
+			const property = await this.repository.findByIdAndOwner(
+				id,
+				ownerId,
+				true,
+				userId,
+				userToken
+			)
+
 			if (!property) {
 				throw new PropertyNotFoundException(id)
 			}
+
 			return property
 		} catch (error) {
 			throw this.errorHandler.handleErrorEnhanced(error as Error, {
 				operation: 'findById',
-				resource: this.entityName,
+				resource: 'property',
 				metadata: { propertyId: id, ownerId }
 			})
 		}
 	}
 
 	/**
-	 * Get property by ID - throws if not found
-	 * @param id Property ID
-	 * @param ownerId Owner ID for security
-	 * @returns Property
-	 * @throws PropertyNotFoundException
+	 * Get all properties for an owner
 	 */
-	async getById(id: string, ownerId: string): Promise<Property> {
-		const property = await this.findById(id, ownerId)
-		if (!property) {
-			throw new PropertyNotFoundException(id)
-		}
-		return property
-	}
-
-	// ========================================
-	// Deprecated Methods (Migration Path)
-	// ========================================
-
-	// Override create to handle units creation (only use transaction when needed)
-	override async create(
-		data: CreatePropertyDto,
-		ownerId: string
-	): Promise<Property> {
-		try {
-			const createData = this.prepareCreateData(data, ownerId)
-
-			// Only use transaction when creating with units (atomicity needed)
-			if (data.units && data.units > 0) {
-				const result = await this.propertiesRepository.createWithUnits(
-					createData,
-					data.units
-				)
-
-				this.logger.log(`${this.entityName} with units created`, {
-					id: result.id,
-					ownerId,
-					unitsCount: data.units
-				})
-
-				return result
-			}
-
-			// Standard create (no transaction needed)
-			const result = await this.propertiesRepository.create({
-				data: createData
-			})
-
-			this.logger.log(`${this.entityName} created`, {
-				id: result.id,
-				ownerId
-			})
-
-			return result
-		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
-				operation: 'create',
-				resource: this.entityName,
-				metadata: { ownerId, propertyName: data.name }
-			})
-		}
-	}
-
-	// Override getByOwner to use specialized repository method
-	override async getByOwner(
+	async findByOwner(
 		ownerId: string,
-		query?: QueryPropertiesDto
-	): Promise<Property[]> {
+		options: PropertyQueryOptions = {},
+		userId?: string,
+		userToken?: string
+	): Promise<PropertyWithRelations[]> {
 		try {
-			const validQuery = query || {
-				limit: 50,
-				offset: 0,
-				sortOrder: 'desc' as const
-			}
-			const options = this.parseQueryOptions(validQuery)
-			return await this.repository.findByOwnerWithUnits(
+			return await this.repository.findByOwnerWithDetails(
 				ownerId,
-				options as PropertyQueryOptions
+				options,
+				userId,
+				userToken
 			)
 		} catch (error) {
 			throw this.errorHandler.handleErrorEnhanced(error as Error, {
-				operation: 'getByOwner',
-				resource: this.entityName,
+				operation: 'findByOwner',
+				resource: 'property',
 				metadata: { ownerId }
 			})
 		}
 	}
 
-	// ========================================
-	// Unique Property-Specific Methods
-	// ========================================
+	/**
+	 * Update property
+	 */
+	async update(
+		id: string,
+		data: UpdatePropertyDto,
+		ownerId: string,
+		userId?: string,
+		userToken?: string
+	): Promise<PropertyWithRelations> {
+		try {
+			// Verify ownership first
+			const existing = await this.repository.findByIdAndOwner(
+				id,
+				ownerId,
+				false,
+				userId,
+				userToken
+			)
+
+			if (!existing) {
+				throw new PropertyNotFoundException(id)
+			}
+
+			const updateData: PropertyUpdate = {
+				...data,
+				updatedAt: new Date().toISOString()
+			}
+
+			const updated = await this.repository.update(
+				id,
+				updateData,
+				userId,
+				userToken
+			)
+
+			this.logger.log('Property updated successfully', {
+				propertyId: id,
+				ownerId
+			})
+
+			return updated
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'update',
+				resource: 'property',
+				metadata: { propertyId: id, ownerId }
+			})
+		}
+	}
 
 	/**
-	 * Optimized method to get properties with full statistics
-	 * Uses a single query with aggregation for better performance
+	 * Delete property (with validation for active leases)
 	 */
-	async getPropertiesWithStats(ownerId: string) {
+	async delete(
+		id: string,
+		ownerId: string,
+		userId?: string,
+		userToken?: string
+	): Promise<void> {
 		try {
-			const properties =
-				await this.propertiesRepository.prismaClient.property.findMany({
-					where: { ownerId },
-					include: {
-						Unit: {
-							select: {
-								id: true,
-								status: true,
-								rent: true,
-								_count: {
-									select: {
-										Lease: {
-											where: { status: 'ACTIVE' }
-										}
-									}
-								}
-							}
-						},
-						_count: {
-							select: {
-								Unit: true,
-								Document: true
-							}
-						}
-					},
-					orderBy: { createdAt: 'desc' }
-				})
+			// Verify ownership first
+			const existing = await this.repository.findByIdAndOwner(
+				id,
+				ownerId,
+				false,
+				userId,
+				userToken
+			)
 
-			// Transform the data to include calculated stats
+			if (!existing) {
+				throw new PropertyNotFoundException(id)
+			}
+
+			// Check for active leases before deletion
+			const hasActiveLeases = await this.repository.hasActiveLeases(
+				id,
+				userId,
+				userToken
+			)
+
+			if (hasActiveLeases) {
+				throw new Error('Cannot delete property with active leases')
+			}
+
+			await this.repository.delete(id, userId, userToken)
+
+			this.logger.log('Property deleted successfully', {
+				propertyId: id,
+				ownerId
+			})
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'delete',
+				resource: 'property',
+				metadata: { propertyId: id, ownerId }
+			})
+		}
+	}
+
+	/**
+	 * Get property statistics for owner
+	 */
+	async getStats(
+		ownerId: string,
+		userId?: string,
+		userToken?: string
+	): Promise<{
+		total: number
+		singleFamily: number
+		multiFamily: number
+		commercial: number
+		totalUnits: number
+		occupiedUnits: number
+		vacantUnits: number
+		totalMonthlyRent: number
+	}> {
+		try {
+			return await this.repository.getStatsByOwner(
+				ownerId,
+				userId,
+				userToken
+			)
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'getStats',
+				resource: 'property',
+				metadata: { ownerId }
+			})
+		}
+	}
+
+	/**
+	 * Get properties with comprehensive statistics
+	 */
+	async getPropertiesWithStats(
+		ownerId: string,
+		userId?: string,
+		userToken?: string
+	): Promise<
+		(PropertyWithRelations & {
+			stats: {
+				totalUnits: number
+				occupiedUnits: number
+				vacantUnits: number
+				occupancyRate: number
+				monthlyRent: number
+				documentCount: number
+			}
+		})[]
+	> {
+		try {
+			const properties = await this.repository.findByOwnerWithStats(
+				ownerId,
+				userId,
+				userToken
+			)
+
+			// Calculate stats for each property
 			return properties.map(property => {
 				const units = property.Unit || []
 				const occupiedUnits = units.filter(
 					u => u.status === 'OCCUPIED'
 				).length
-				const totalRent = units.reduce(
-					(sum: number, unit) =>
-						unit.status === 'OCCUPIED' ? sum + unit.rent : sum,
-					0
-				)
+				const totalUnits = units.length
+				const totalRent = units
+					.filter(u => u.status === 'OCCUPIED')
+					.reduce((sum, unit) => sum + (unit.rent || 0), 0)
 
 				return {
 					...property,
 					stats: {
-						totalUnits: property._count.Unit,
+						totalUnits,
 						occupiedUnits,
-						vacantUnits: property._count.Unit - occupiedUnits,
+						vacantUnits: totalUnits - occupiedUnits,
 						occupancyRate:
-							property._count.Unit > 0
-								? (occupiedUnits / property._count.Unit) * 100
+							totalUnits > 0
+								? (occupiedUnits / totalUnits) * 100
 								: 0,
 						monthlyRent: totalRent,
-						documentCount: property._count.Document
+						documentCount: property._count?.Document || 0
 					}
 				}
 			})
 		} catch (error) {
-			this.logger.error('Error getting properties with stats', error)
+			this.logger.error('Error getting properties with stats:', error)
 			throw this.errorHandler.handleErrorEnhanced(error as Error, {
 				operation: 'getPropertiesWithStats',
 				resource: 'property',
@@ -293,19 +329,10 @@ export class PropertiesService extends BaseCrudService<
 	}
 
 	/**
-	 * Create property with custom units in a single transaction
-	 * Validates data and delegates to repository for atomicity
+	 * Create property with custom units
 	 */
 	async createPropertyWithUnits(
-		propertyData: {
-			name: string
-			address: string
-			city: string
-			state: string
-			zipCode: string
-			description?: string
-			propertyType?: PropertyType
-		},
+		propertyData: CreatePropertyDto,
 		units: {
 			unitNumber: string
 			bedrooms: number
@@ -313,45 +340,135 @@ export class PropertiesService extends BaseCrudService<
 			rent: number
 			squareFeet?: number
 		}[],
-		ownerId: string
-	) {
-		// Basic validation
-		if (!ownerId) {
-			throw new PropertyNotFoundException('validation')
-		}
-		const validOwnerId = ownerId
-		const validatedPropertyData = propertyData
-
-		// Validate units data
-		if (!units || units.length === 0) {
-			throw new PropertyNotFoundException('validation')
-		}
-
-		if (units.length > 1000) {
-			throw new PropertyNotFoundException('validation')
-		}
-
+		ownerId: string,
+		userId?: string,
+		userToken?: string
+	): Promise<PropertyWithRelations> {
 		try {
-			// Delegate to repository for database transaction
-			// Create property with units using repository
-			const createData = this.prepareCreateData(
-				validatedPropertyData as CreatePropertyDto,
-				validOwnerId
+			// Validate input
+			if (!units || units.length === 0) {
+				throw new Error('At least one unit is required')
+			}
+
+			if (units.length > 1000) {
+				throw new Error('Too many units (max 1000)')
+			}
+
+			const propertyInsert: PropertyInsert = {
+				...propertyData,
+				ownerId,
+				propertyType: propertyData.propertyType || 'MULTI_FAMILY',
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString()
+			}
+
+			return await this.repository.createWithCustomUnits(
+				propertyInsert,
+				units,
+				ownerId,
+				userId,
+				userToken
 			)
-			return await this.propertiesRepository.create({ data: createData })
 		} catch (error) {
 			this.logger.error(
-				'Error creating property with custom units',
+				'Error creating property with custom units:',
 				error
 			)
 			throw this.errorHandler.handleErrorEnhanced(error as Error, {
 				operation: 'createPropertyWithUnits',
 				resource: 'property',
 				metadata: {
-					ownerId: validOwnerId,
-					propertyName: propertyData.name
+					ownerId,
+					propertyName: propertyData.name,
+					unitCount: units.length
 				}
 			})
 		}
+	}
+
+	/**
+	 * Search properties by text
+	 */
+	async search(
+		ownerId: string,
+		searchTerm: string,
+		options: PropertyQueryOptions = {},
+		userId?: string,
+		userToken?: string
+	): Promise<PropertyWithRelations[]> {
+		try {
+			const searchOptions = {
+				...options,
+				search: searchTerm
+			}
+
+			return await this.repository.findByOwnerWithDetails(
+				ownerId,
+				searchOptions,
+				userId,
+				userToken
+			)
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'search',
+				resource: 'property',
+				metadata: { ownerId, searchTerm }
+			})
+		}
+	}
+
+	/**
+	 * Get property by address (for duplicate checking)
+	 */
+	async findByAddress(
+		address: string,
+		ownerId: string,
+		userId?: string,
+		userToken?: string
+	): Promise<PropertyWithRelations | null> {
+		try {
+			return await this.repository.findByAddress(
+				address,
+				ownerId,
+				userId,
+				userToken
+			)
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'findByAddress',
+				resource: 'property',
+				metadata: { ownerId, address }
+			})
+		}
+	}
+
+	/**
+	 * Alias methods for compatibility with controller
+	 */
+	async getByOwner(
+		ownerId: string,
+		query?: PropertyQueryOptions,
+		userId?: string,
+		userToken?: string
+	): Promise<PropertyWithRelations[]> {
+		return this.findByOwner(ownerId, query, userId, userToken)
+	}
+
+	async getById(
+		id: string,
+		ownerId: string,
+		userId?: string,
+		userToken?: string
+	): Promise<PropertyWithRelations> {
+		return this.findById(id, ownerId, userId, userToken)
+	}
+
+	async getByIdOrThrow(
+		id: string,
+		ownerId: string,
+		userId?: string,
+		userToken?: string
+	): Promise<PropertyWithRelations> {
+		return this.findById(id, ownerId, userId, userToken)
 	}
 }

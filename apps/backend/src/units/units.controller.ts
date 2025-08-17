@@ -1,50 +1,33 @@
-import { Controller, Get, Query } from '@nestjs/common'
+import {
+	Body,
+	Controller,
+	Delete,
+	Get,
+	Param,
+	Post,
+	Put,
+	Query,
+	UseGuards
+} from '@nestjs/common'
+import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { UnitsService } from './units.service'
-import { Unit } from '@repo/database'
-import type { CreateUnitInput, UpdateUnitInput } from '@repo/shared'
-import { UnitQueryDto } from './dto'
-import { BaseCrudController } from '../common/controllers/base-crud.controller'
-import { adaptBaseCrudService } from '../common/adapters/service.adapter'
-import { BaseCrudService } from '../common/services/base-crud.service'
+import { UnitCreateDto, UnitQueryDto, UnitUpdateDto } from './dto'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { ValidatedUser } from '../auth/auth.service'
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
+import { UsageLimitsGuard } from '../subscriptions/guards/usage-limits.guard'
+import { UsageLimit } from '../subscriptions/decorators/usage-limits.decorator'
 
-// Create the base CRUD controller class
-const UnitsCrudController = BaseCrudController<
-	Unit,
-	CreateUnitInput,
-	UpdateUnitInput,
-	UnitQueryDto
->({
-	entityName: 'Unit',
-	enableStats: true
-})
-
+@ApiTags('units')
 @Controller('units')
-export class UnitsController extends UnitsCrudController {
-	constructor(private readonly unitsService: UnitsService) {
-		// Use adapter to make service compatible with CrudService interface
-		super(
-			adaptBaseCrudService<
-				Unit,
-				CreateUnitInput,
-				UpdateUnitInput,
-				UnitQueryDto
-			>(
-				unitsService as BaseCrudService<
-					Unit,
-					CreateUnitInput,
-					UpdateUnitInput,
-					UnitQueryDto
-				>
-			)
-		)
-	}
+@UseGuards(JwtAuthGuard, UsageLimitsGuard)
+export class UnitsController {
+	constructor(private readonly unitsService: UnitsService) {}
 
-	// Override the findAll method to handle propertyId filter
-	// This maintains backward compatibility with existing API
 	@Get()
-	override async findAll(
+	@ApiOperation({ summary: 'Get all units' })
+	@ApiResponse({ status: 200, description: 'Units retrieved successfully' })
+	async findAll(
 		@CurrentUser() user: ValidatedUser,
 		@Query() query?: UnitQueryDto
 	) {
@@ -52,7 +35,8 @@ export class UnitsController extends UnitsCrudController {
 		if (query?.propertyId) {
 			const units = await this.unitsService.getUnitsByProperty(
 				query.propertyId,
-				user.id
+				user.id,
+				user.supabaseAccessToken
 			)
 			return {
 				success: true,
@@ -61,7 +45,127 @@ export class UnitsController extends UnitsCrudController {
 			}
 		}
 
-		// Otherwise, use the base controller's findAll method
-		return super.findAll(user, query || {})
+		// Otherwise, get all units for the user
+		const units = await this.unitsService.findAll(
+			user.id,
+			query,
+			user.id,
+			user.supabaseAccessToken
+		)
+		return {
+			success: true,
+			data: units,
+			message: 'Units retrieved successfully'
+		}
+	}
+
+	@Get(':id')
+	@ApiOperation({ summary: 'Get a unit by ID' })
+	@ApiParam({ name: 'id', description: 'Unit ID' })
+	@ApiResponse({ status: 200, description: 'Unit retrieved successfully' })
+	@ApiResponse({ status: 404, description: 'Unit not found' })
+	async findOne(@CurrentUser() user: ValidatedUser, @Param('id') id: string) {
+		const unit = await this.unitsService.findById(
+			id,
+			user.id,
+			user.id,
+			user.supabaseAccessToken
+		)
+		return {
+			success: true,
+			data: unit,
+			message: 'Unit retrieved successfully'
+		}
+	}
+
+	@Post()
+	@ApiOperation({ summary: 'Create a new unit' })
+	@ApiResponse({ status: 201, description: 'Unit created successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid input' })
+	@UsageLimit('units')
+	async create(
+		@CurrentUser() user: ValidatedUser,
+		@Body() createUnitDto: UnitCreateDto
+	) {
+		const unit = await this.unitsService.create(
+			createUnitDto,
+			user.id,
+			user.id,
+			user.supabaseAccessToken
+		)
+		return {
+			success: true,
+			data: unit,
+			message: 'Unit created successfully'
+		}
+	}
+
+	@Put(':id')
+	@ApiOperation({ summary: 'Update a unit' })
+	@ApiParam({ name: 'id', description: 'Unit ID' })
+	@ApiResponse({ status: 200, description: 'Unit updated successfully' })
+	@ApiResponse({ status: 404, description: 'Unit not found' })
+	async update(
+		@CurrentUser() user: ValidatedUser,
+		@Param('id') id: string,
+		@Body() updateUnitDto: UnitUpdateDto
+	) {
+		const unit = await this.unitsService.update(
+			id,
+			updateUnitDto,
+			user.id,
+			user.id,
+			user.supabaseAccessToken
+		)
+		return {
+			success: true,
+			data: unit,
+			message: 'Unit updated successfully'
+		}
+	}
+
+	@Delete(':id')
+	@ApiOperation({ summary: 'Delete a unit' })
+	@ApiParam({ name: 'id', description: 'Unit ID' })
+	@ApiResponse({ status: 200, description: 'Unit deleted successfully' })
+	@ApiResponse({ status: 404, description: 'Unit not found' })
+	async delete(@CurrentUser() user: ValidatedUser, @Param('id') id: string) {
+		await this.unitsService.delete(
+			id,
+			user.id,
+			user.id,
+			user.supabaseAccessToken
+		)
+		return {
+			success: true,
+			message: 'Unit deleted successfully'
+		}
+	}
+
+	@Put(':id/status')
+	@ApiOperation({ summary: 'Update unit status' })
+	@ApiParam({ name: 'id', description: 'Unit ID' })
+	@ApiResponse({
+		status: 200,
+		description: 'Unit status updated successfully'
+	})
+	@ApiResponse({ status: 404, description: 'Unit not found' })
+	async updateStatus(
+		@CurrentUser() user: ValidatedUser,
+		@Param('id') id: string,
+		@Body('status') status: string
+	) {
+		const unit = await this.unitsService.updateStatus(
+			id,
+			status,
+			user.id,
+			user.id,
+			user.supabaseAccessToken
+		)
+		return {
+			success: true,
+			data: unit,
+			message: 'Unit status updated successfully'
+		}
 	}
 }

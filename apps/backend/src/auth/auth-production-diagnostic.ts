@@ -13,7 +13,7 @@ import { Logger } from '@nestjs/common'
 import { AuthService } from './auth.service'
 import { JwtAuthGuard } from './guards/jwt-auth.guard'
 import { AppModule } from '../app.module'
-import { PrismaService } from '../prisma/prisma.service'
+import { SupabaseService } from '../supabase/supabase.service'
 import { ConfigService } from '@nestjs/config'
 import type { Reflector } from '@nestjs/core'
 

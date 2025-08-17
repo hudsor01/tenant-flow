@@ -6147,6 +6147,243 @@ export interface StripePricingPlanSubscription extends StripeObject {
 // Validation Functions
 // ========================
 
+// ====================================
+// Stripe API Request Parameter Types
+// ====================================
+
+/**
+ * Stripe Invoice List Parameters
+ * Based on https://docs.stripe.com/api/invoices/list
+ */
+export interface StripeInvoiceListParams {
+	readonly customer?: string
+	readonly subscription?: string
+	readonly status?: 'draft' | 'open' | 'paid' | 'uncollectible' | 'void'
+	readonly collection_method?: CollectionMethod
+	readonly created?: StripeRangeQueryParam | number
+	readonly due_date?: StripeRangeQueryParam | number
+	readonly ending_before?: string
+	readonly limit?: number
+	readonly starting_after?: string
+	readonly expand?: readonly string[]
+}
+
+/**
+ * Stripe Subscription Cancel Parameters
+ * Based on https://docs.stripe.com/api/subscriptions/cancel
+ */
+export interface StripeSubscriptionCancelParams {
+	readonly cancellation_details?: {
+		readonly comment?: string
+		readonly feedback?:
+			| 'too_expensive'
+			| 'unused'
+			| 'customer_service'
+			| 'too_complex'
+			| 'low_quality'
+			| 'missing_features'
+			| 'switched_service'
+			| 'other'
+	}
+	readonly invoice_now?: boolean
+	readonly prorate?: boolean
+	readonly expand?: readonly string[]
+	readonly metadata?: StripeMetadata
+}
+
+/**
+ * Stripe Subscription Create Data Parameters
+ * Based on https://docs.stripe.com/api/subscriptions/create
+ */
+export interface StripeSubscriptionCreateData {
+	readonly customer: string
+	readonly items: readonly {
+		readonly price: string
+		readonly quantity?: number
+		readonly metadata?: StripeMetadata
+		readonly tax_rates?: readonly string[]
+	}[]
+	readonly payment_settings?: {
+		readonly payment_method_options?: Record<string, unknown>
+		readonly payment_method_types?: readonly string[]
+		readonly save_default_payment_method?: 'off' | 'on_subscription'
+	}
+	readonly expand?: readonly string[]
+	readonly trial_period_days?: number
+	readonly trial_end?: number | 'now'
+	readonly backdate_start_date?: number
+	readonly billing_cycle_anchor?: number
+	readonly cancel_at?: number
+	readonly cancel_at_period_end?: boolean
+	readonly collection_method?: CollectionMethod
+	readonly coupon?: string
+	readonly days_until_due?: number
+	readonly default_payment_method?: string
+	readonly default_source?: string
+	readonly description?: string
+	readonly metadata?: StripeMetadata
+	readonly off_session?: boolean
+	readonly payment_behavior?:
+		| 'allow_incomplete'
+		| 'default_incomplete'
+		| 'error_if_incomplete'
+		| 'pending_if_incomplete'
+	readonly pending_invoice_item_interval?: {
+		readonly interval: 'day' | 'week' | 'month' | 'year'
+		readonly interval_count: number
+	}
+	readonly promotion_code?: string
+	readonly proration_behavior?:
+		| 'always_invoice'
+		| 'create_prorations'
+		| 'none'
+	readonly transfer_data?: {
+		readonly amount_percent?: number
+		readonly destination: string
+	}
+	readonly trial_settings?: {
+		readonly end_behavior: {
+			readonly missing_payment_method:
+				| 'cancel'
+				| 'create_invoice'
+				| 'pause'
+		}
+	}
+}
+
+/**
+ * Stripe List Response Base Interface
+ * Based on https://docs.stripe.com/api/pagination
+ */
+export interface StripeListResponse<T> {
+	readonly object: 'list'
+	readonly data: readonly T[]
+	readonly has_more: boolean
+	readonly total_count?: number
+	readonly url: string
+}
+
+/**
+ * Stripe Range Query Parameter
+ * Used for date/number range queries in Stripe API
+ */
+export interface StripeRangeQueryParam {
+	readonly gt?: number
+	readonly gte?: number
+	readonly lt?: number
+	readonly lte?: number
+}
+
+/**
+ * Stripe Payment Method Update Parameters
+ * Based on https://docs.stripe.com/api/payment_methods/update
+ */
+export interface StripePaymentMethodUpdateParams {
+	readonly billing_details?: {
+		readonly address?: StripeAddress
+		readonly email?: string
+		readonly name?: string
+		readonly phone?: string
+	}
+	readonly card?: {
+		readonly exp_month?: number
+		readonly exp_year?: number
+	}
+	readonly metadata?: StripeMetadata
+	readonly expand?: readonly string[]
+}
+
+/**
+ * Stripe Invoice Retry Parameters
+ * Based on https://docs.stripe.com/api/invoices/pay
+ */
+export interface StripeInvoiceRetryParams {
+	readonly forgive?: boolean
+	readonly off_session?: boolean
+	readonly paid_out_of_band?: boolean
+	readonly payment_method?: string
+	readonly source?: string
+	readonly expand?: readonly string[]
+}
+
+/**
+ * Stripe Webhook Endpoint
+ * Based on https://docs.stripe.com/api/webhook_endpoints/object
+ */
+export interface StripeWebhookEndpoint {
+	readonly id: string
+	readonly object: 'webhook_endpoint'
+	readonly api_version?: string
+	readonly application?: string
+	readonly created: number
+	readonly description?: string
+	readonly enabled_events: readonly string[]
+	readonly livemode: boolean
+	readonly metadata: StripeMetadata
+	readonly secret?: string
+	readonly status: 'enabled' | 'disabled'
+	readonly url: string
+}
+
+/**
+ * Stripe Event List Parameters
+ * Based on https://docs.stripe.com/api/events/list
+ */
+export interface StripeEventListParams {
+	readonly created?: StripeRangeQueryParam | number
+	readonly delivery_success?: boolean
+	readonly ending_before?: string
+	readonly limit?: number
+	readonly starting_after?: string
+	readonly type?: string
+	readonly types?: readonly string[]
+}
+
+/**
+ * Stripe Payment Method List Parameters
+ * Based on https://docs.stripe.com/api/payment_methods/list
+ */
+export interface StripePaymentMethodListParams {
+	readonly customer?: string
+	readonly ending_before?: string
+	readonly limit?: number
+	readonly starting_after?: string
+	readonly type?:
+		| 'acss_debit'
+		| 'affirm'
+		| 'afterpay_clearpay'
+		| 'alipay'
+		| 'au_becs_debit'
+		| 'bacs_debit'
+		| 'bancontact'
+		| 'blik'
+		| 'boleto'
+		| 'card'
+		| 'cashapp'
+		| 'customer_balance'
+		| 'eps'
+		| 'fpx'
+		| 'giropay'
+		| 'grabpay'
+		| 'ideal'
+		| 'interac_present'
+		| 'klarna'
+		| 'konbini'
+		| 'link'
+		| 'oxxo'
+		| 'p24'
+		| 'paynow'
+		| 'paypal'
+		| 'pix'
+		| 'promptpay'
+		| 'sepa_debit'
+		| 'sofort'
+		| 'us_bank_account'
+		| 'wechat_pay'
+		| 'zip'
+	readonly expand?: readonly string[]
+}
+
 /**
  * Validate Stripe configuration
  */

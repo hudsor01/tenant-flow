@@ -136,6 +136,8 @@ export function useAccessibility(options: AccessibilityOptions = {}) {
 			const firstElement = focusableElements[0]
 			const lastElement = focusableElements[focusableElements.length - 1]
 
+			if (!firstElement || !lastElement) return
+
 			const trapFocus = (e: KeyboardEvent) => {
 				if (e.key !== 'Tab') return
 

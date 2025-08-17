@@ -218,7 +218,7 @@ function FinancialChart() {
 // Mini Occupancy Chart Data Helper
 function getOccupancyChartData() {
 	return occupancyData.map(property => ({
-		name: property.name.split(' ')[0], // Shorten names for better display
+		name: property.name.split(' ')[0] || property.name, // Shorten names for better display
 		value: property.rate,
 		color:
 			property.rate >= 90
@@ -230,24 +230,6 @@ function getOccupancyChartData() {
 }
 
 // Skeleton Components
-function _FinancialChartSkeleton() {
-	return (
-		<div className="h-48 rounded-xl border border-gray-200 p-4">
-			<div className="flex h-full animate-pulse items-end justify-between rounded bg-gray-100 px-4 pb-4">
-				{[...Array(6)].map((_, i) => (
-					<div
-						key={i}
-						className="rounded-sm bg-gray-200"
-						style={{
-							width: '12%',
-							height: `${Math.random() * 60 + 20}%`
-						}}
-					/>
-				))}
-			</div>
-		</div>
-	)
-}
 
 // Widget Loading Skeleton Component
 function WidgetSkeleton() {

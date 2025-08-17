@@ -1,235 +1,563 @@
-import { Injectable } from '@nestjs/common'
-import { Prisma, Unit, UnitStatus } from '@repo/database'
-import { UnitsRepository } from './units.repository'
-import { ErrorHandlerService } from '../common/errors/error-handler.service'
+import { Injectable, Logger } from '@nestjs/common'
+import type { Database } from '@repo/shared/types/supabase-generated'
 import {
-	BaseCrudService,
-	BaseStats
-} from '../common/services/base-crud.service'
+	UnitQueryOptions,
+	UnitsSupabaseRepository,
+	UnitWithRelations
+} from './units-supabase.repository'
+import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { ValidationException } from '../common/exceptions/base.exception'
-import { UnitCreateDto, UnitQueryDto, UnitUpdateDto } from './dto'
-import { UNIT_STATUS } from '@repo/shared'
+import { UnitCreateDto, UnitUpdateDto } from './dto'
+type UnitInsert = Database['public']['Tables']['Unit']['Insert']
+type UnitUpdate = Database['public']['Tables']['Unit']['Update']
 
+/**
+ * Units service using Supabase
+ * Handles unit management with property ownership validation
+ */
 @Injectable()
-export class UnitsService extends BaseCrudService<
-	Unit,
-	UnitCreateDto,
-	UnitUpdateDto,
-	UnitQueryDto,
-	Prisma.UnitCreateInput,
-	Prisma.UnitUpdateInput,
-	Prisma.UnitWhereInput
-> {
-	protected readonly entityName = 'unit'
-	protected readonly repository: UnitsRepository
+export class UnitsService {
+	private readonly logger = new Logger(UnitsService.name)
 
 	constructor(
-		private readonly unitsRepository: UnitsRepository,
-		errorHandler: ErrorHandlerService
-	) {
-		super(errorHandler)
-		this.repository = unitsRepository
-	}
+		private readonly repository: UnitsSupabaseRepository,
+		private readonly errorHandler: ErrorHandlerService
+	) {}
 
-	// ========================================
-	// BaseCrudService Implementation
-	// ========================================
-
-	protected async findByIdAndOwner(
-		id: string,
-		ownerId: string
-	): Promise<Unit | null> {
-		return this.unitsRepository.findByIdAndOwner(id, ownerId, true)
-	}
-
-	protected async calculateStats(ownerId: string): Promise<BaseStats> {
-		return this.unitsRepository.getStatsByOwner(ownerId)
-	}
-
-	protected prepareCreateData(
+	/**
+	 * Create a new unit
+	 */
+	async create(
 		data: UnitCreateDto,
-		_ownerId: string
-	): Prisma.UnitCreateInput {
-		// First verify property ownership is handled in repository
-		const { propertyId, ...restData } = data
-
-		return {
-			...restData,
-			unitNumber: data.unitNumber,
-			bedrooms: data.bedrooms || 1,
-			bathrooms: data.bathrooms || 1,
-			squareFeet: data.squareFeet,
-			rent: data.monthlyRent,
-			status: data.status || UNIT_STATUS.VACANT,
-			Property: {
-				connect: { id: propertyId }
-			}
-		}
-	}
-
-	protected prepareUpdateData(data: UnitUpdateDto): Prisma.UnitUpdateInput {
-		return {
-			...data,
-			status: data.status as UnitStatus | undefined,
-			lastInspectionDate: data.lastInspectionDate
-				? new Date(data.lastInspectionDate)
-				: undefined,
-			updatedAt: new Date()
-		}
-	}
-
-	protected createOwnerWhereClause(
-		id: string,
-		ownerId: string
-	): Prisma.UnitWhereInput {
-		return {
-			id,
-			Property: {
-				ownerId
-			}
-		}
-	}
-
-	protected override async validateDeletion(
-		entity: Unit,
-		ownerId: string
-	): Promise<void> {
-		// Check if unit has active leases before deletion
-		const hasActiveLeases = await this.unitsRepository.hasActiveLeases(
-			entity.id,
-			ownerId
-		)
-
-		if (hasActiveLeases) {
-			throw new ValidationException(
-				'Cannot delete unit with active leases',
-				'unitId'
-			)
-		}
-	}
-
-	// ========================================
-	// Override Methods for Unit-Specific Logic
-	// ========================================
-
-	// Override create to verify property ownership
-	override async create(data: UnitCreateDto, ownerId: string): Promise<Unit> {
-		// Verify property ownership before creating unit
-		const hasPropertyAccess =
-			await this.unitsRepository.verifyPropertyOwnership(
-				data.propertyId,
-				ownerId
-			)
-
-		if (!hasPropertyAccess) {
-			throw new ValidationException(
-				'You do not have access to this property',
-				'propertyId'
-			)
-		}
-
-		return super.create(data, ownerId)
-	}
-
-	// Override getByOwner to use specialized repository method
-	override async getByOwner(
 		ownerId: string,
-		query?: UnitQueryDto
-	): Promise<Unit[]> {
-		if (
-			!ownerId ||
-			typeof ownerId !== 'string' ||
-			ownerId.trim().length === 0
-		) {
-			throw new ValidationException('Owner ID is required', 'ownerId')
-		}
-
+		userId?: string,
+		userToken?: string
+	): Promise<UnitWithRelations> {
 		try {
-			const options = this.parseQueryOptions(query)
-			return (await this.unitsRepository.findByOwnerWithDetails(
+			// Validate required fields
+			if (!data.propertyId) {
+				throw new ValidationException('Property ID is required')
+			}
+
+			if (!data.unitNumber) {
+				throw new ValidationException('Unit number is required')
+			}
+
+			const unitData: UnitInsert = {
+				unitNumber: data.unitNumber,
+				propertyId: data.propertyId,
+				bedrooms: data.bedrooms,
+				bathrooms: data.bathrooms,
+				squareFeet: data.squareFeet,
+				rent: data.monthlyRent,
+				status: data.status || 'VACANT',
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString()
+			}
+
+			const unit = await this.repository.createWithValidation(
+				unitData,
 				ownerId,
-				options
-			)) as Unit[]
+				userId,
+				userToken
+			)
+
+			this.logger.log('Unit created successfully', {
+				unitId: unit.id,
+				propertyId: data.propertyId,
+				unitNumber: data.unitNumber,
+				ownerId
+			})
+
+			return unit
+		} catch (error) {
+			this.logger.error('Failed to create unit:', error)
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'create',
+				resource: 'unit',
+				metadata: {
+					ownerId,
+					propertyId: data.propertyId,
+					unitNumber: data.unitNumber
+				}
+			})
+		}
+	}
+
+	/**
+	 * Find unit by ID
+	 */
+	async findById(
+		id: string,
+		ownerId: string,
+		userId?: string,
+		userToken?: string
+	): Promise<UnitWithRelations> {
+		try {
+			const unit = await this.repository.findByIdAndOwner(
+				id,
+				ownerId,
+				true,
+				userId,
+				userToken
+			)
+
+			if (!unit) {
+				throw new Error('Unit not found')
+			}
+
+			return unit
 		} catch (error) {
 			throw this.errorHandler.handleErrorEnhanced(error as Error, {
-				operation: 'getByOwner',
-				resource: this.entityName,
+				operation: 'findById',
+				resource: 'unit',
+				metadata: { unitId: id, ownerId }
+			})
+		}
+	}
+
+	/**
+	 * Get all units for an owner
+	 */
+	async findByOwner(
+		ownerId: string,
+		options: UnitQueryOptions = {},
+		userId?: string,
+		userToken?: string
+	): Promise<UnitWithRelations[]> {
+		try {
+			return await this.repository.findByOwnerWithDetails(
+				ownerId,
+				options,
+				userId,
+				userToken
+			)
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'findByOwner',
+				resource: 'unit',
 				metadata: { ownerId }
 			})
 		}
 	}
 
-	// ========================================
-	// Unit-Specific Methods
-	// ========================================
-
 	/**
-	 * Get units by property with ownership verification
+	 * Get units by property
 	 */
-	async getUnitsByProperty(propertyId: string, ownerId: string) {
+	async findByProperty(
+		propertyId: string,
+		ownerId: string,
+		options: UnitQueryOptions = {},
+		userId?: string,
+		userToken?: string
+	): Promise<UnitWithRelations[]> {
 		try {
-			const units = await this.unitsRepository.findByPropertyAndOwner(
+			return await this.repository.findByProperty(
 				propertyId,
-				ownerId
+				ownerId,
+				options,
+				userId,
+				userToken
 			)
-
-			if (units === null) {
-				throw new ValidationException(
-					'You do not have access to this property',
-					'propertyId'
-				)
-			}
-
-			return units
 		} catch (error) {
 			throw this.errorHandler.handleErrorEnhanced(error as Error, {
-				operation: 'getUnitsByProperty',
-				resource: this.entityName,
+				operation: 'findByProperty',
+				resource: 'unit',
 				metadata: { propertyId, ownerId }
 			})
 		}
 	}
 
-	// ========================================
-	// Backward Compatibility Aliases (DEPRECATED - Use base interface methods)
-	// ========================================
+	/**
+	 * Update unit
+	 */
+	async update(
+		id: string,
+		data: UnitUpdateDto,
+		ownerId: string,
+		userId?: string,
+		userToken?: string
+	): Promise<UnitWithRelations> {
+		try {
+			// Verify ownership first
+			const existing = await this.repository.findByIdAndOwner(
+				id,
+				ownerId,
+				false,
+				userId,
+				userToken
+			)
 
-	/** @deprecated Use getByOwner() instead */
-	async getUnitsByOwner(ownerId: string): Promise<Unit[]> {
-		return this.getByOwner(ownerId)
+			if (!existing) {
+				throw new Error('Unit not found')
+			}
+
+			const updateData: UnitUpdate = {
+				...data,
+				updatedAt: new Date().toISOString()
+			}
+
+			const updated = await this.repository.update(
+				id,
+				updateData,
+				userId,
+				userToken
+			)
+
+			this.logger.log('Unit updated successfully', {
+				unitId: id,
+				ownerId
+			})
+
+			return updated
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'update',
+				resource: 'unit',
+				metadata: { unitId: id, ownerId }
+			})
+		}
 	}
 
-	/** @deprecated Use getStats() instead */
-	async getUnitStats(ownerId: string) {
-		return this.getStats(ownerId)
-	}
-
-	/** @deprecated Use findByIdAndOwner() protected method or getByIdOrThrow() instead */
-	async getUnitById(id: string, ownerId: string): Promise<Unit | null> {
-		return this.findByIdAndOwner(id, ownerId)
-	}
-
-	/** @deprecated Use getByIdOrThrow() instead */
-	async getUnitByIdOrThrow(id: string, ownerId: string): Promise<Unit> {
-		return this.getByIdOrThrow(id, ownerId)
-	}
-
-	/** @deprecated Use create() instead */
-	async createUnit(ownerId: string, data: UnitCreateDto): Promise<Unit> {
-		return this.create(data, ownerId)
-	}
-
-	/** @deprecated Use update() instead */
-	async updateUnit(
+	/**
+	 * Delete unit (with validation for active leases)
+	 */
+	async delete(
 		id: string,
 		ownerId: string,
-		data: UnitUpdateDto
-	): Promise<Unit> {
-		return this.update(id, data, ownerId)
+		userId?: string,
+		userToken?: string
+	): Promise<void> {
+		try {
+			// Verify ownership first
+			const existing = await this.repository.findByIdAndOwner(
+				id,
+				ownerId,
+				false,
+				userId,
+				userToken
+			)
+
+			if (!existing) {
+				throw new Error('Unit not found')
+			}
+
+			// Check for active leases before deletion
+			const hasActiveLeases = await this.repository.hasActiveLeases(
+				id,
+				userId,
+				userToken
+			)
+
+			if (hasActiveLeases) {
+				throw new Error('Cannot delete unit with active leases')
+			}
+
+			await this.repository.delete(id, userId, userToken)
+
+			this.logger.log('Unit deleted successfully', {
+				unitId: id,
+				ownerId
+			})
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'delete',
+				resource: 'unit',
+				metadata: { unitId: id, ownerId }
+			})
+		}
 	}
 
-	/** @deprecated Use delete() instead */
-	async deleteUnit(id: string, ownerId: string): Promise<Unit> {
-		return this.delete(id, ownerId)
+	/**
+	 * Get unit statistics for owner
+	 */
+	async getStats(
+		ownerId: string,
+		userId?: string,
+		userToken?: string
+	): Promise<{
+		total: number
+		vacant: number
+		occupied: number
+		maintenance: number
+		unavailable: number
+		totalRent: number
+		averageRent: number
+	}> {
+		try {
+			return await this.repository.getStatsByOwner(
+				ownerId,
+				userId,
+				userToken
+			)
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'getStats',
+				resource: 'unit',
+				metadata: { ownerId }
+			})
+		}
+	}
+
+	/**
+	 * Get units by property
+	 */
+	async getUnitsByProperty(
+		propertyId: string,
+		userId: string,
+		userToken?: string
+	): Promise<UnitWithRelations[]> {
+		try {
+			const units = await this.repository.findByProperty(
+				propertyId,
+				userId,
+				userId,
+				userToken
+			)
+
+			this.logger.debug(
+				`Retrieved ${units.length} units for property ${propertyId}`
+			)
+			return units
+		} catch (error) {
+			this.logger.error('Failed to get units by property:', error)
+			throw this.errorHandler.handleError(error)
+		}
+	}
+
+	/**
+	 * Update unit status
+	 */
+	async updateStatus(
+		id: string,
+		status: string,
+		ownerId: string,
+		userId?: string,
+		userToken?: string
+	): Promise<UnitWithRelations> {
+		try {
+			// Validate status
+			const validStatuses = [
+				'VACANT',
+				'OCCUPIED',
+				'MAINTENANCE',
+				'UNAVAILABLE'
+			]
+			if (!validStatuses.includes(status)) {
+				throw new ValidationException(`Invalid status: ${status}`)
+			}
+
+			// Verify ownership first
+			const existing = await this.repository.findByIdAndOwner(
+				id,
+				ownerId,
+				false,
+				userId,
+				userToken
+			)
+
+			if (!existing) {
+				throw new Error('Unit not found')
+			}
+
+			// If setting to occupied, validate there's an active lease
+			if (status === 'OCCUPIED') {
+				const hasActiveLease = await this.repository.hasActiveLeases(
+					id,
+					userId,
+					userToken
+				)
+
+				if (!hasActiveLease) {
+					throw new ValidationException(
+						'Cannot mark unit as occupied without an active lease'
+					)
+				}
+			}
+
+			const updateData: UnitUpdate = {
+				status: status as
+					| 'MAINTENANCE'
+					| 'VACANT'
+					| 'OCCUPIED'
+					| 'RESERVED',
+				updatedAt: new Date().toISOString()
+			}
+
+			const updated = await this.repository.update(
+				id,
+				updateData,
+				userId,
+				userToken
+			)
+
+			this.logger.log('Unit status updated successfully', {
+				unitId: id,
+				newStatus: status,
+				ownerId
+			})
+
+			return updated
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'updateStatus',
+				resource: 'unit',
+				metadata: { unitId: id, status, ownerId }
+			})
+		}
+	}
+
+	/**
+	 * Bulk update unit statuses
+	 */
+	async bulkUpdateStatus(
+		unitIds: string[],
+		status: string,
+		ownerId: string,
+		userId?: string,
+		userToken?: string
+	): Promise<UnitWithRelations[]> {
+		try {
+			// Validate status
+			const validStatuses = [
+				'VACANT',
+				'OCCUPIED',
+				'MAINTENANCE',
+				'UNAVAILABLE'
+			]
+			if (!validStatuses.includes(status)) {
+				throw new ValidationException(`Invalid status: ${status}`)
+			}
+
+			if (!unitIds || unitIds.length === 0) {
+				throw new ValidationException('Unit IDs are required')
+			}
+
+			if (unitIds.length > 100) {
+				throw new ValidationException('Too many units (max 100)')
+			}
+
+			const results = await this.repository.bulkUpdateStatus(
+				unitIds,
+				status,
+				ownerId,
+				userId,
+				userToken
+			)
+
+			this.logger.log('Units bulk status update completed', {
+				unitCount: unitIds.length,
+				newStatus: status,
+				ownerId
+			})
+
+			return results
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'bulkUpdateStatus',
+				resource: 'unit',
+				metadata: { unitCount: unitIds.length, status, ownerId }
+			})
+		}
+	}
+
+	/**
+	 * Get vacant units for a property
+	 */
+	async getVacantUnits(
+		propertyId: string,
+		ownerId: string,
+		userId?: string,
+		userToken?: string
+	): Promise<UnitWithRelations[]> {
+		try {
+			const options: UnitQueryOptions = {
+				status: 'VACANT'
+			}
+
+			return await this.repository.findByProperty(
+				propertyId,
+				ownerId,
+				options,
+				userId,
+				userToken
+			)
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'getVacantUnits',
+				resource: 'unit',
+				metadata: { propertyId, ownerId }
+			})
+		}
+	}
+
+	/**
+	 * Search units by text
+	 */
+	async search(
+		ownerId: string,
+		searchTerm: string,
+		options: UnitQueryOptions = {},
+		userId?: string,
+		userToken?: string
+	): Promise<UnitWithRelations[]> {
+		try {
+			const searchOptions = {
+				...options,
+				search: searchTerm
+			}
+
+			return await this.repository.findByOwnerWithDetails(
+				ownerId,
+				searchOptions,
+				userId,
+				userToken
+			)
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'search',
+				resource: 'unit',
+				metadata: { ownerId, searchTerm }
+			})
+		}
+	}
+
+	/**
+	 * Check if unit number exists in property
+	 */
+	async checkUnitNumberExists(
+		propertyId: string,
+		unitNumber: string,
+		ownerId: string,
+		excludeUnitId?: string,
+		userId?: string,
+		userToken?: string
+	): Promise<boolean> {
+		try {
+			const existing = await this.repository.findByUnitNumber(
+				propertyId,
+				unitNumber,
+				ownerId,
+				userId,
+				userToken
+			)
+
+			if (!existing) {
+				return false
+			}
+
+			// If excluding a specific unit (for updates), check if it's a different unit
+			if (excludeUnitId && existing.id === excludeUnitId) {
+				return false
+			}
+
+			return true
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'checkUnitNumberExists',
+				resource: 'unit',
+				metadata: { propertyId, unitNumber, ownerId }
+			})
+		}
 	}
 }

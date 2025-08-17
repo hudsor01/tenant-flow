@@ -1,14 +1,13 @@
 import { PartialType } from '@nestjs/mapped-types'
 import { CreateLeaseDto } from './create-lease.dto'
 import { IsDateString, IsEnum, IsOptional } from 'class-validator'
-import { LeaseStatus } from '@repo/database'
-import { UpdateLeaseInput } from '@repo/shared'
+import { LEASE_STATUS, type LeaseStatus, UpdateLeaseInput } from '@repo/shared'
 
 export class UpdateLeaseDto
 	extends PartialType(CreateLeaseDto)
 	implements Omit<UpdateLeaseInput, 'id'>
 {
-	@IsEnum(LeaseStatus, {
+	@IsEnum(Object.values(LEASE_STATUS), {
 		message: 'Status must be one of: DRAFT, ACTIVE, EXPIRED, TERMINATED'
 	})
 	@IsOptional()
