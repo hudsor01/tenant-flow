@@ -8,7 +8,7 @@
  */
 
 import type { UserRole } from '@repo/shared'
-import { afterEach, beforeEach, jest } from '@jest/globals'
+import { afterAll, afterEach, beforeAll, beforeEach, jest } from '@jest/globals'
 
 // Type definitions for mock overrides
 interface MockSupabaseUserOverrides {
@@ -437,6 +437,23 @@ process.env.NODE_ENV = 'test'
 process.env.SUPABASE_URL = 'https://test.supabase.co'
 process.env.SUPABASE_SERVICE_ROLE_KEY = 'test_' + 'service_' + 'mock_' + 'key'
 process.env.STRIPE_SECRET_KEY = 'sk_' + 'test_' + 'X'.repeat(99)
+
+// Suppress all console output during tests for clean CI/CD
+const originalConsole = { ...console }
+beforeAll(() => {
+	global.console = {
+		...console,
+		log: jest.fn(),
+		debug: jest.fn(),
+		info: jest.fn(),
+		warn: jest.fn(),
+		error: jest.fn(),
+	}
+})
+
+afterAll(() => {
+	global.console = originalConsole
+})
 
 // Global test setup
 beforeEach(() => {

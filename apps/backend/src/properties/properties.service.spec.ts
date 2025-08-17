@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals'
 import { PropertiesService } from './properties.service'
-import { PropertyType } from '@repo/shared'
+import { PROPERTY_TYPE } from '@repo/shared'
 import {
 	NotFoundException,
 	ValidationException
@@ -103,7 +103,7 @@ describe('PropertiesService', () => {
 				state: 'TX',
 				zipCode: '78701',
 				ownerId,
-				propertyType: PropertyType.SINGLE_FAMILY,
+				propertyType: PROPERTY_TYPE.SINGLE_FAMILY,
 				createdAt: new Date(),
 				updatedAt: new Date()
 			},
@@ -115,7 +115,7 @@ describe('PropertiesService', () => {
 				state: 'TX',
 				zipCode: '75201',
 				ownerId,
-				propertyType: PropertyType.APARTMENT,
+				propertyType: PROPERTY_TYPE.APARTMENT,
 				createdAt: new Date(),
 				updatedAt: new Date()
 			}
@@ -149,7 +149,7 @@ describe('PropertiesService', () => {
 
 		it('should apply query filters correctly', async () => {
 			const query = {
-				propertyType: PropertyType.APARTMENT,
+				propertyType: PROPERTY_TYPE.APARTMENT,
 				search: 'Dallas',
 				limit: 10,
 				offset: 0
@@ -164,14 +164,14 @@ describe('PropertiesService', () => {
 			expect(repository.findByOwnerWithUnits).toHaveBeenCalledWith(
 				ownerId,
 				{
-					propertyType: PropertyType.APARTMENT,
+					propertyType: PROPERTY_TYPE.APARTMENT,
 					search: 'Dallas',
 					limit: 10,
 					offset: 0
 				}
 			)
 			expect(result).toHaveLength(1)
-			expect(result[0]?.propertyType).toBe(PropertyType.APARTMENT)
+			expect(result[0]?.propertyType).toBe(PROPERTY_TYPE.APARTMENT)
 		})
 
 		it('should validate limit parameter', async () => {
@@ -208,7 +208,7 @@ describe('PropertiesService', () => {
 			state: 'TX',
 			zipCode: '78701',
 			ownerId,
-			propertyType: PropertyType.SINGLE_FAMILY,
+			propertyType: PROPERTY_TYPE.SINGLE_FAMILY,
 			units: [],
 			createdAt: new Date(),
 			updatedAt: new Date()
@@ -266,7 +266,7 @@ describe('PropertiesService', () => {
 			state: 'TX',
 			zipCode: '77001',
 			description: 'A nice property',
-			propertyType: PropertyType.SINGLE_FAMILY
+			propertyType: PROPERTY_TYPE.SINGLE_FAMILY
 		}
 
 		it('should create property successfully', async () => {

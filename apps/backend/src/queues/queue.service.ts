@@ -43,13 +43,17 @@ export class QueueService {
 	// Email Jobs
 	async addEmailJob(jobName: string, data: Record<string, unknown>): Promise<Job> {
 		try {
+			if (!data) {
+				throw new Error('Email job data is required')
+			}
+
 			const job = await this.emailQueue.add(jobName || 'send-email', data, {
 				attempts: 3,
 				backoff: { type: 'exponential', delay: 10000 }
 			})
 
 			// Format recipients for logging
-			const recipients = Array.isArray(data.to)
+			const recipients = data.to && Array.isArray(data.to)
 				? data.to.join(',')
 				: data.to
 			this.logger.log(`Added email job ${job.id} to ${recipients}`)

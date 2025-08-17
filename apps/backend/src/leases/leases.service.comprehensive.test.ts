@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals'
-import { LeaseStatus } from '@repo/shared'
+import { LEASE_STATUS } from '@repo/shared'
 import { LeasesService } from './leases.service'
-import { LeaseRepository } from './lease.repository'
+import { LeaseSupabaseRepository } from './lease-supabase.repository'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import {
 	LeaseNotFoundException,
@@ -17,12 +17,12 @@ import {
 } from '../test/base-crud-service.test-utils'
 
 // Mock the repository and error handler
-jest.mock('./lease.repository')
+jest.mock('./lease-supabase.repository')
 jest.mock('../common/errors/error-handler.service')
 
 describe('LeasesService - Comprehensive Test Suite', () => {
 	let service: LeasesService
-	let mockRepository: LeaseRepository & any
+	let mockRepository: LeaseSupabaseRepository & any
 	let mockErrorHandler: ErrorHandlerService & any
 
 	beforeEach(() => {
@@ -99,7 +99,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 				endDate: '2024-12-31T23:59:59Z',
 				rentAmount: 1500,
 				securityDeposit: 1500,
-				status: LeaseStatus.DRAFT
+				status: LEASE_STATUS.DRAFT
 			}
 
 			it('should accept valid lease dates', async () => {
@@ -178,7 +178,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 				endDate: '2024-12-31T23:59:59Z',
 				rentAmount: 1500,
 				securityDeposit: 1500,
-				status: LeaseStatus.DRAFT
+				status: LEASE_STATUS.DRAFT
 			}
 
 			it('should check for lease conflicts during creation', async () => {
@@ -260,7 +260,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 
 			it('should pass query parameters to repository', async () => {
 				const query: LeaseQueryDto = {
-					status: LeaseStatus.ACTIVE,
+					status: LEASE_STATUS.ACTIVE,
 					limit: 10,
 					offset: 0
 				}
@@ -349,7 +349,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 				endDate: '2024-12-31T23:59:59Z',
 				rentAmount: 1500,
 				securityDeposit: 1500,
-				status: LeaseStatus.DRAFT
+				status: LEASE_STATUS.DRAFT
 			}
 
 			it('should create lease with valid data', async () => {
@@ -375,7 +375,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 						endDate: new Date('2024-12-31T23:59:59Z'),
 						rentAmount: 1500,
 						securityDeposit: 1500,
-						status: LeaseStatus.DRAFT
+						status: LEASE_STATUS.DRAFT
 					})
 				})
 				expect(result).toEqual(mockCreatedLease)
@@ -553,7 +553,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 			})
 
 			it('should pass query parameters to repository', async () => {
-				const query: LeaseQueryDto = { status: LeaseStatus.ACTIVE }
+				const query: LeaseQueryDto = { status: LEASE_STATUS.ACTIVE }
 				mockRepository.findByUnit.mockResolvedValue([])
 
 				await service.getByUnit(
@@ -593,7 +593,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 			})
 
 			it('should pass query parameters to repository', async () => {
-				const query: LeaseQueryDto = { status: LeaseStatus.ACTIVE }
+				const query: LeaseQueryDto = { status: LEASE_STATUS.ACTIVE }
 				mockRepository.findByTenant.mockResolvedValue([])
 
 				await service.getByTenant(
@@ -688,7 +688,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 					endDate: '2024-12-31T23:59:59Z',
 					rentAmount: 1500,
 					securityDeposit: 1500,
-					status: LeaseStatus.DRAFT
+					status: LEASE_STATUS.DRAFT
 				}
 
 				await expect(
@@ -716,7 +716,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 					endDate: '2024-12-31T23:59:59Z',
 					rentAmount: 1500,
 					securityDeposit: 1500,
-					status: LeaseStatus.DRAFT
+					status: LEASE_STATUS.DRAFT
 				}
 
 				// The date validation will catch this before repository calls
@@ -779,7 +779,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 					endDate: '2024-01-02T00:00:00Z', // 1 second difference
 					rentAmount: 1500,
 					securityDeposit: 1500,
-					status: LeaseStatus.DRAFT
+					status: LEASE_STATUS.DRAFT
 				}
 
 				mockRepository.checkLeaseConflict.mockResolvedValue(false)
@@ -798,7 +798,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 					endDate: '2024-03-11T06:00:00Z',
 					rentAmount: 1500,
 					securityDeposit: 1500,
-					status: LeaseStatus.DRAFT
+					status: LEASE_STATUS.DRAFT
 				}
 
 				mockRepository.checkLeaseConflict.mockResolvedValue(false)
@@ -817,7 +817,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 					endDate: '2024-02-29T23:59:59Z', // Leap year
 					rentAmount: 1500,
 					securityDeposit: 1500,
-					status: LeaseStatus.DRAFT
+					status: LEASE_STATUS.DRAFT
 				}
 
 				mockRepository.checkLeaseConflict.mockResolvedValue(false)
@@ -841,7 +841,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 						endDate: '2024-12-31T23:59:59Z',
 						rentAmount,
 						securityDeposit: 1000,
-						status: LeaseStatus.DRAFT
+						status: LEASE_STATUS.DRAFT
 					}
 
 					mockRepository.checkLeaseConflict.mockResolvedValue(false)
@@ -864,7 +864,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 					endDate: '2024-12-31T23:59:59Z',
 					rentAmount: largeRentAmount,
 					securityDeposit: 1000,
-					status: LeaseStatus.DRAFT
+					status: LEASE_STATUS.DRAFT
 				}
 
 				mockRepository.checkLeaseConflict.mockResolvedValue(false)
@@ -891,7 +891,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 					endDate: '2024-12-31T23:59:59Z',
 					rentAmount: 1500,
 					securityDeposit: 0,
-					status: LeaseStatus.DRAFT
+					status: LEASE_STATUS.DRAFT
 				}
 
 				mockRepository.checkLeaseConflict.mockResolvedValue(false)
@@ -912,7 +912,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 					endDate: '2024-12-31T23:59:59Z',
 					rentAmount: 1500,
 					securityDeposit: 1500,
-					status: LeaseStatus.DRAFT
+					status: LEASE_STATUS.DRAFT
 				}
 
 				// First call succeeds, second should fail due to conflict
@@ -974,7 +974,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 				endDate: '2024-12-31T23:59:59Z',
 				rentAmount: 1500,
 				securityDeposit: 1500,
-				status: LeaseStatus.DRAFT
+				status: LEASE_STATUS.DRAFT
 			}
 
 			// Setup fast mocks
@@ -1066,7 +1066,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 				endDate: '2024-12-31T23:59:59Z',
 				rentAmount: 1500,
 				securityDeposit: 1500,
-				status: LeaseStatus.DRAFT
+				status: LEASE_STATUS.DRAFT
 			}
 
 			mockRepository.checkLeaseConflict.mockResolvedValue(false)
