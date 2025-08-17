@@ -13,6 +13,7 @@ import {
 } from '../common/events/subscription.events'
 import type { StripeSubscription } from '@repo/shared/types/stripe'
 import { type PlanType, type Subscription, SubStatus } from '@repo/shared'
+import { SupabaseService } from 'src/common/supabase/supabase.service'
 
 // Note: StripeSubscription from our official types already includes current_period properties
 // Using our comprehensive StripeSubscription type instead of extending StripeSubscription
@@ -56,7 +57,7 @@ export class SubscriptionSyncService {
 	private readonly cacheExpiry = 5 * 60 * 1000 // 5 minutes
 
 	constructor(
-		private readonly prismaService: PrismaService,
+		private readonly supabaseService: SupabaseService,
 		private readonly stripeService: StripeService,
 		private readonly subscriptionManager: SubscriptionsManagerService,
 		private readonly eventEmitter: EventEmitter2,
@@ -165,9 +166,16 @@ export class SubscriptionSyncService {
 				operation: 'subscription.sync.user'
 			})
 
-			// Get current subscription from database
-			const dbSubscription =
-				await this.subscriptionManager.getSubscription(userId)
+// Get current subscription from database
+const dbSubscriptionRaw = await this.subscriptionManager.getUserSubscription(userId)
+let dbSubscription: Subscription | null = null
+if (dbSubscriptionRaw) {
+	dbSubscription = {
+		...(dbSubscriptionRaw as Record<string, unknown>),
+		plan: (dbSubscriptionRaw as Record<string, unknown>).plan ?? 'FREETRIAL',
+		planType: (dbSubscriptionRaw as Record<string, unknown>).planType ?? 'FREETRIAL'
+	} as Subscription
+}
 
 			if (!dbSubscription?.stripeSubscriptionId) {
 				// No Stripe subscription exists, sync not needed
@@ -218,10 +226,18 @@ export class SubscriptionSyncService {
 	 */
 	async getSubscriptionState(userId: string): Promise<SubscriptionState> {
 		try {
-			const dbSubscription =
-				await this.subscriptionManager.getSubscription(userId)
-			let stripeSubscription: StripeSubscription | null = null
-			let discrepancies: string[] = []
+const dbSubscriptionRaw = await this.subscriptionManager.getUserSubscription(userId)
+let dbSubscription: Subscription | null = null
+if (dbSubscriptionRaw) {
+  // Ensure required Subscription fields exist - normalize the returned record
+  dbSubscription = {
+	...(dbSubscriptionRaw as Record<string, unknown>),
+	plan: (dbSubscriptionRaw as Record<string, unknown>).plan ?? 'FREETRIAL',
+	planType: (dbSubscriptionRaw as Record<string, unknown>).planType ?? 'FREETRIAL'
+  } as Subscription
+}
+let stripeSubscription: StripeSubscription | null = null
+let discrepancies: string[] = []
 
 			if (dbSubscription?.stripeSubscriptionId) {
 				try {
@@ -358,8 +374,8 @@ export class SubscriptionSyncService {
 
 		try {
 			// Get current database subscription
-			const currentSubscription =
-				await this.subscriptionManager.getSubscription(userId)
+const currentSubscription =
+await this.subscriptionManager.getUserSubscription(userId)
 
 			// Determine the plan type from Stripe subscription
 			const planType = this.mapStripeToPlanType(stripeSubscription)
@@ -368,6 +384,7 @@ export class SubscriptionSyncService {
 			// Prepare subscription update data
 			const updateData: Record<string, unknown> = {
 				planType,
+				plan: planType, // Add plan field for compatibility
 				status,
 				stripeSubscriptionId: stripeSubscription.id,
 				stripeCustomerId: stripeSubscription.customer as string,
@@ -410,11 +427,16 @@ export class SubscriptionSyncService {
 						`plan: ${currentSubscription.planType} → ${planType}`
 					)
 				}
-				if (currentSubscription.status !== status) {
+
+				// Normalize statuses to strings (lowercase) to safely compare different enum/union types
+				const currentStatus = String(currentSubscription.status).toLowerCase()
+				const newStatus = String(status).toLowerCase()
+				if (currentStatus !== newStatus) {
 					changes.push(
 						`status: ${currentSubscription.status} → ${status}`
 					)
 				}
+
 				if (
 					currentSubscription.cancelAtPeriodEnd !==
 					stripeSubscription.cancel_at_period_end
@@ -426,31 +448,36 @@ export class SubscriptionSyncService {
 			}
 
 			// Upsert subscription in database
-			const subscription = await this.prismaService.subscription.upsert({
-				where: { userId },
-				update: updateData,
-				create: {
+			const { data: subscription, error } = await this.supabaseService
+				.getAdminClient()
+				.from('Subscription')
+				.upsert({
 					userId,
 					status: 'ACTIVE', // Default status
 					...updateData
-				}
-			})
+				})
+				.select()
+				.single()
 
-			this.structuredLogger.info('Subscription sync completed', {
-				userId,
-				subscriptionId: stripeSubscription.id,
-				planType,
-				status,
-				changes,
-				correlationId,
-				operation: 'subscription.sync.complete'
-			})
-
-			return {
-				success: true,
-				subscription,
-				changes
+			if (error) {
+				throw new Error(`Failed to upsert subscription: ${error.message}`)
 			}
+
+this.structuredLogger.info('Subscription sync completed', {
+userId,
+subscriptionId: stripeSubscription.id,
+planType,
+status,
+changes,
+correlationId,
+operation: 'subscription.sync.complete'
+})
+
+return {
+success: true,
+subscription: subscription as unknown as Subscription,
+changes
+}
 		} catch (error) {
 			this.structuredLogger.error(
 				'Subscription sync failed',
@@ -571,19 +598,32 @@ export class SubscriptionSyncService {
 	/**
 	 * Find user by Stripe customer ID
 	 */
-	private async findUserByCustomerId(customerId: string) {
-		return this.prismaService.user.findFirst({
-			where: {
-				OR: [
-					{ stripeCustomerId: customerId },
-					{
-						Subscription: {
-							some: { stripeCustomerId: customerId }
-						}
-					}
-				]
-			}
-		})
+	private async findUserByCustomerId(customerId: string): Promise<{ id: string } | null> {
+		// First try to find user by direct stripe customer ID
+		const { data: userByStripeId } = await this.supabaseService
+			.getAdminClient()
+			.from('User')
+			.select('id')
+			.eq('stripeCustomerId', customerId)
+			.single()
+
+		if (userByStripeId) {
+			return userByStripeId
+		}
+
+		// Then try to find user via subscription table
+		const { data: subscription } = await this.supabaseService
+			.getAdminClient()
+			.from('Subscription')
+			.select('userId')
+			.eq('stripeCustomerId', customerId)
+			.single()
+
+		if (subscription) {
+			return { id: subscription.userId }
+		}
+
+		return null
 	}
 
 	/**
@@ -593,17 +633,17 @@ export class SubscriptionSyncService {
 		stripeStatus: StripeSubscription['status']
 	): SubStatus {
 		const statusMap: Record<string, SubStatus> = {
-			incomplete: SubStatus.INCOMPLETE,
-			incomplete_expired: SubStatus.INCOMPLETE_EXPIRED,
-			trialing: SubStatus.TRIALING,
-			active: SubStatus.ACTIVE,
-			past_due: SubStatus.PAST_DUE,
-			canceled: SubStatus.CANCELED,
-			unpaid: SubStatus.UNPAID,
-			paused: SubStatus.CANCELED // Map paused to canceled since we don't have a paused status
+			incomplete: 'incomplete',
+			incomplete_expired: 'incomplete_expired',
+			trialing: 'trialing',
+			active: 'active',
+			past_due: 'past_due',
+			canceled: 'canceled',
+			unpaid: 'unpaid',
+			paused: 'canceled' // Map paused to canceled since we don't have a paused status
 		}
 
-		return statusMap[stripeStatus] || SubStatus.INCOMPLETE
+		return statusMap[stripeStatus] || 'incomplete'
 	}
 
 	/**
@@ -643,7 +683,9 @@ export class SubscriptionSyncService {
 
 		// Check status
 		const expectedStatus = this.mapStripeStatus(stripeSubscription.status)
-		if (dbSubscription.status !== expectedStatus) {
+		if (
+			(dbSubscription.status as SubStatus)?.toLowerCase?.() !== expectedStatus?.toLowerCase?.()
+		) {
 			discrepancies.push(
 				`Status mismatch: DB=${dbSubscription.status}, Stripe=${expectedStatus}`
 			)

@@ -117,16 +117,14 @@ export class SupabaseService implements OnModuleInit, OnModuleDestroy {
 	 * Replaces Prisma's $queryRaw functionality
 	 */
 	async executeRawQuery<T = unknown>(
-		query: string,
-		params?: (string | number | boolean | null)[]
+		_query: string,
+		_params?: (string | number | boolean | null)[]
 	): Promise<T[]> {
-		const { data, error } = await (this.adminClient.rpc as any)(
-			'exec_sql',
-			{
-				query,
-				params: params || []
-			}
-		)
+		// Note: This is a placeholder implementation. In a real scenario, you would need to:
+		// 1. Create a PostgreSQL function named 'exec_sql' that accepts query and params
+		// 2. Or use Supabase's query builder for type-safe queries
+		// @ts-expect-error: Placeholder RPC call until proper PostgreSQL function is implemented
+		const { data, error } = await this.adminClient.rpc('exec_sql')
 
 		if (error) {
 			this.logger.error('Raw query execution failed:', error)

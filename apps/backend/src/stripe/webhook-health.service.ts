@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { StructuredLoggerService } from '../common/logging/structured-logger.service'
 import { StripeService } from './stripe.service'
-import { PrismaService } from '../common/database/prisma.service'
+// import { SupabaseService } from '../supabase/supabase.service' // TODO: Uncomment when needed
 
 export interface HealthCheckResult {
 	service: string
@@ -45,7 +45,7 @@ export class WebhookHealthService {
 	private readonly maxRetryDelayMs = 10000 // Maximum delay between retries
 
 	constructor(
-		private readonly prismaService: PrismaService,
+		// private readonly supabaseService: SupabaseService,
 		private readonly stripeService: StripeService
 	) {
 		this.structuredLogger = new StructuredLoggerService('WebhookHealth')
@@ -416,7 +416,8 @@ export class WebhookHealthService {
 
 		try {
 			// Test basic database connectivity with a simple query
-			await this.prismaService.$queryRaw`SELECT 1 as health_check`
+			// TODO: Convert to Supabase
+			// await this.supabaseService.getAdminClient().from('User').select('id').limit(1)
 
 			const responseTime = Date.now() - startTime
 

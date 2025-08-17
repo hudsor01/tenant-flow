@@ -27,19 +27,24 @@
   "eslint.workingDirectories": [
     { "mode": "auto" }
   ],
-  "editor.formatOnSave": true,
+  "editor.formatOnSave": false,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "typescript.tsdk": "node_modules/typescript/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true,
   "files.associations": {
     "turbo.json": "jsonc"
   },
-  "json.schemas": [
-    {
-      "fileMatch": ["turbo.json"],
-      "url": "https://turbo.build/schema.json"
-    }
-  ],
+  "json.schemas": [],
+  "json.schemaDownload.enable": false,
+  "accessibility.signals.save": {
+    "sound": "off"
+  },
+  "accessibility.signals.format": {
+    "sound": "off"
+  },
+  "editor.formatOnSaveTimeout": 100,
+  "editor.codeActionsOnSaveTimeout": 100,
+  "editor.codeActionsOnSave": {},
   "search.exclude": {
     "**/node_modules": true,
     "**/dist": true,
