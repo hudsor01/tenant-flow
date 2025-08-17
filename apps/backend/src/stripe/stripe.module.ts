@@ -22,7 +22,8 @@ import { WebhookErrorMonitorService } from './webhook-error-monitor.service'
 import { WebhookObservabilityService } from './webhook-observability.service'
 import { StripeCheckoutController } from './stripe-checkout.controller'
 
-import { PrismaModule } from '../prisma/prisma.module'
+import { SupabaseModule } from '../supabase/supabase.module'
+import { DatabaseModule } from '../common/database/database.module'
 import { EmailModule } from '../email/email.module'
 import { NotificationsModule } from '../notifications/notifications.module'
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module'
@@ -31,7 +32,8 @@ import { SubscriptionsModule } from '../subscriptions/subscriptions.module'
 @Module({
 	imports: [
 		ConfigModule,
-		PrismaModule, // Global module - should be available everywhere
+		SupabaseModule, // Global module - should be available everywhere
+		DatabaseModule, // Provides PrismaService compatibility layer
 		EmailModule,
 		HttpModule,
 		EventEmitterModule,

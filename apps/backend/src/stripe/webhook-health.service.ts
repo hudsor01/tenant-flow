@@ -1,8 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { StructuredLoggerService } from '../common/logging/structured-logger.service'
-import { PrismaService } from '../prisma/prisma.service'
 import { StripeService } from './stripe.service'
-// Remove unused Stripe import
+import { PrismaService } from '../common/database/prisma.service'
 
 export interface HealthCheckResult {
 	service: string
@@ -193,7 +192,7 @@ export class WebhookHealthService {
 			return endpoints.data.map(endpoint => ({
 				url: endpoint.url,
 				isActive: endpoint.status === 'enabled',
-				enabledEvents: endpoint.enabled_events,
+				enabledEvents: [...endpoint.enabled_events],
 				version: endpoint.api_version || 'latest',
 				status: endpoint.status as 'enabled' | 'disabled' | 'error',
 				failureCount: 0 // Stripe doesn't provide this directly
@@ -531,7 +530,7 @@ export class WebhookHealthService {
 					totalEndpoints: endpoints.data.length,
 					activeEndpoints: activeEndpoints.length,
 					enabledEvents: activeEndpoints.reduce(
-						(acc, ep) => acc + ep.enabled_events.length,
+						(acc: number, ep) => acc + ep.enabled_events.length,
 						0
 					)
 				}

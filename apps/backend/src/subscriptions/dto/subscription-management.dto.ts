@@ -1,7 +1,7 @@
 import { IsEnum, IsIn, IsOptional, IsString, MaxLength } from 'class-validator'
 import { Transform } from 'class-transformer'
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
-import type { PlanType } from '@repo/database'
+import type { PlanType } from '@repo/shared'
 import type {
 	BillingPeriod,
 	ProrationBehavior

@@ -23,7 +23,7 @@ This document outlines the Turborepo best practices that have been implemented i
 ## 🚀 Tech Stack
 
 - **Frontend**: React 19 + Next.js + Zustand + TypeScript
-- **Backend**: NestJS + Fastify + Prisma + PostgreSQL (Supabase)
+- **Backend**: NestJS + Fastify + PostgreSQL (Supabase)
 - **Infrastructure**: Turborepo monorepo, Railway (project: tenantflow, service: tenantflow-backend), Vercel (frontend)
 - **Auth**: Supabase Auth with JWT + Row-Level Security (RLS)
 - **Payments**: Stripe subscriptions with webhook processing
@@ -77,7 +77,6 @@ See [CLAUDE.md](./CLAUDE.md) for comprehensive development guidelines.
     - Added `passThroughEnv` for cloud provider variables
 - **Global Dependencies**: Added `**/.env.*` to invalidate cache on env changes
 - **Optimized Inputs/Outputs**: Using `$TURBO_DEFAULT for better defaults
-- **New Tasks**: Added `prisma:studio`, `format`, and `format:check`
 
 ### 2. ESLint Integration
 

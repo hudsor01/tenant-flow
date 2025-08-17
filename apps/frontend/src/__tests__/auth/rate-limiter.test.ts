@@ -1,191 +1,197 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { loginRateLimiter, signupRateLimiter, passwordResetRateLimiter, clearRateLimit, getRateLimitStatus } from '@/lib/auth/rate-limiter'
+import {
+	loginRateLimiter,
+	signupRateLimiter,
+	passwordResetRateLimiter,
+	clearRateLimit,
+	getRateLimitStatus
+} from '@/lib/auth/rate-limiter'
 
 // Mock headers
 vi.mock('next/headers', () => ({
-  headers: vi.fn(() => ({
-    get: vi.fn((header: string) => {
-      if (header === 'x-forwarded-for') return '192.168.1.1'
-      return null
-    })
-  }))
+	headers: vi.fn(() => ({
+		get: vi.fn((header: string) => {
+			if (header === 'x-forwarded-for') return '192.168.1.1'
+			return null
+		})
+	}))
 }))
 
 // Mock logger
 vi.mock('@/lib/logger', () => ({
-  logger: {
-    debug: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  }
+	logger: {
+		debug: vi.fn(),
+		warn: vi.fn(),
+		error: vi.fn()
+	}
 }))
 
 describe('Rate Limiter', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-    // Reset rate limit state between tests
-    vi.useFakeTimers()
-  })
+	beforeEach(() => {
+		vi.clearAllMocks()
+		// Reset rate limit state between tests
+		vi.useFakeTimers()
+	})
 
-  afterEach(() => {
-    vi.useRealTimers()
-  })
+	afterEach(() => {
+		vi.useRealTimers()
+	})
 
-  describe('loginRateLimiter', () => {
-    it('should allow 5 login attempts within 15 minutes', async () => {
-      const email = 'test@example.com'
-      
-      // First 5 attempts should succeed
-      for (let i = 0; i < 5; i++) {
-        const result = await loginRateLimiter(email)
-        expect(result.success).toBe(true)
-        expect(result.remaining).toBe(4 - i)
-      }
+	describe('loginRateLimiter', () => {
+		it('should allow 5 login attempts within 15 minutes', async () => {
+			const email = 'test@example.com'
 
-      // 6th attempt should fail
-      const result = await loginRateLimiter(email)
-      expect(result.success).toBe(false)
-      expect(result.remaining).toBe(0)
-      expect(result.reason).toContain('Account locked')
-    })
+			// First 5 attempts should succeed
+			for (let i = 0; i < 5; i++) {
+				const result = await loginRateLimiter(email)
+				expect(result.success).toBe(true)
+				expect(result.remaining).toBe(4 - i)
+			}
 
-    it('should reset after 15 minutes', async () => {
-      const email = 'test@example.com'
-      
-      // Use up all attempts
-      for (let i = 0; i < 5; i++) {
-        await loginRateLimiter(email)
-      }
+			// 6th attempt should fail
+			const result = await loginRateLimiter(email)
+			expect(result.success).toBe(false)
+			expect(result.remaining).toBe(0)
+			expect(result.reason).toContain('Account locked')
+		})
 
-      // Should be locked out
-      let result = await loginRateLimiter(email)
-      expect(result.success).toBe(false)
+		it('should reset after 15 minutes', async () => {
+			const email = 'test@example.com'
 
-      // Fast forward 15 minutes and 1 second
-      vi.advanceTimersByTime(15 * 60 * 1000 + 1000)
+			// Use up all attempts
+			for (let i = 0; i < 5; i++) {
+				await loginRateLimiter(email)
+			}
 
-      // Should be allowed again
-      result = await loginRateLimiter(email)
-      expect(result.success).toBe(true)
-      expect(result.remaining).toBe(4)
-    })
+			// Should be locked out
+			let result = await loginRateLimiter(email)
+			expect(result.success).toBe(false)
 
-    it('should track different emails separately', async () => {
-      const email1 = 'user1@example.com'
-      const email2 = 'user2@example.com'
+			// Fast forward 15 minutes and 1 second
+			vi.advanceTimersByTime(15 * 60 * 1000 + 1000)
 
-      // Use up attempts for email1
-      for (let i = 0; i < 5; i++) {
-        await loginRateLimiter(email1)
-      }
+			// Should be allowed again
+			result = await loginRateLimiter(email)
+			expect(result.success).toBe(true)
+			expect(result.remaining).toBe(4)
+		})
 
-      // email1 should be locked
-      let result = await loginRateLimiter(email1)
-      expect(result.success).toBe(false)
+		it('should track different emails separately', async () => {
+			const email1 = 'user1@example.com'
+			const email2 = 'user2@example.com'
 
-      // email2 should still be allowed
-      result = await loginRateLimiter(email2)
-      expect(result.success).toBe(true)
-      expect(result.remaining).toBe(4)
-    })
-  })
+			// Use up attempts for email1
+			for (let i = 0; i < 5; i++) {
+				await loginRateLimiter(email1)
+			}
 
-  describe('signupRateLimiter', () => {
-    it('should allow 3 signup attempts per hour', async () => {
-      // First 3 attempts should succeed
-      for (let i = 0; i < 3; i++) {
-        const result = await signupRateLimiter()
-        expect(result.success).toBe(true)
-        expect(result.remaining).toBe(2 - i)
-      }
+			// email1 should be locked
+			let result = await loginRateLimiter(email1)
+			expect(result.success).toBe(false)
 
-      // 4th attempt should fail
-      const result = await signupRateLimiter()
-      expect(result.success).toBe(false)
-      expect(result.remaining).toBe(0)
-    })
+			// email2 should still be allowed
+			result = await loginRateLimiter(email2)
+			expect(result.success).toBe(true)
+			expect(result.remaining).toBe(4)
+		})
+	})
 
-    it('should reset after 1 hour', async () => {
-      // Use up all attempts
-      for (let i = 0; i < 3; i++) {
-        await signupRateLimiter()
-      }
+	describe('signupRateLimiter', () => {
+		it('should allow 3 signup attempts per hour', async () => {
+			// First 3 attempts should succeed
+			for (let i = 0; i < 3; i++) {
+				const result = await signupRateLimiter()
+				expect(result.success).toBe(true)
+				expect(result.remaining).toBe(2 - i)
+			}
 
-      // Should be rate limited
-      let result = await signupRateLimiter()
-      expect(result.success).toBe(false)
+			// 4th attempt should fail
+			const result = await signupRateLimiter()
+			expect(result.success).toBe(false)
+			expect(result.remaining).toBe(0)
+		})
 
-      // Fast forward 1 hour and 1 second
-      vi.advanceTimersByTime(60 * 60 * 1000 + 1000)
+		it('should reset after 1 hour', async () => {
+			// Use up all attempts
+			for (let i = 0; i < 3; i++) {
+				await signupRateLimiter()
+			}
 
-      // Should be allowed again
-      result = await signupRateLimiter()
-      expect(result.success).toBe(true)
-      expect(result.remaining).toBe(2)
-    })
-  })
+			// Should be rate limited
+			let result = await signupRateLimiter()
+			expect(result.success).toBe(false)
 
-  describe('passwordResetRateLimiter', () => {
-    it('should allow 3 reset attempts per hour per email', async () => {
-      const email = 'test@example.com'
-      
-      // First 3 attempts should succeed
-      for (let i = 0; i < 3; i++) {
-        const result = await passwordResetRateLimiter(email)
-        expect(result.success).toBe(true)
-        expect(result.remaining).toBe(2 - i)
-      }
+			// Fast forward 1 hour and 1 second
+			vi.advanceTimersByTime(60 * 60 * 1000 + 1000)
 
-      // 4th attempt should fail
-      const result = await passwordResetRateLimiter(email)
-      expect(result.success).toBe(false)
-      expect(result.remaining).toBe(0)
-    })
-  })
+			// Should be allowed again
+			result = await signupRateLimiter()
+			expect(result.success).toBe(true)
+			expect(result.remaining).toBe(2)
+		})
+	})
 
-  describe('clearRateLimit', () => {
-    it('should clear rate limit for specific email', async () => {
-      const email = 'test@example.com'
-      
-      // Use up all attempts
-      for (let i = 0; i < 5; i++) {
-        await loginRateLimiter(email)
-      }
+	describe('passwordResetRateLimiter', () => {
+		it('should allow 3 reset attempts per hour per email', async () => {
+			const email = 'test@example.com'
 
-      // Should be locked out
-      let result = await loginRateLimiter(email)
-      expect(result.success).toBe(false)
+			// First 3 attempts should succeed
+			for (let i = 0; i < 3; i++) {
+				const result = await passwordResetRateLimiter(email)
+				expect(result.success).toBe(true)
+				expect(result.remaining).toBe(2 - i)
+			}
 
-      // Clear rate limit
-      await clearRateLimit(email)
+			// 4th attempt should fail
+			const result = await passwordResetRateLimiter(email)
+			expect(result.success).toBe(false)
+			expect(result.remaining).toBe(0)
+		})
+	})
 
-      // Should be allowed again
-      result = await loginRateLimiter(email)
-      expect(result.success).toBe(true)
-      expect(result.remaining).toBe(4)
-    })
-  })
+	describe('clearRateLimit', () => {
+		it('should clear rate limit for specific email', async () => {
+			const email = 'test@example.com'
 
-  describe('getRateLimitStatus', () => {
-    it('should return current rate limit status without incrementing', async () => {
-      const email = 'test@example.com'
-      
-      // Check initial status
-      let status = await getRateLimitStatus(email)
-      expect(status.success).toBe(true)
-      expect(status.remaining).toBe(5)
+			// Use up all attempts
+			for (let i = 0; i < 5; i++) {
+				await loginRateLimiter(email)
+			}
 
-      // Use one attempt
-      await loginRateLimiter(email)
+			// Should be locked out
+			let result = await loginRateLimiter(email)
+			expect(result.success).toBe(false)
 
-      // Check status again
-      status = await getRateLimitStatus(email)
-      expect(status.success).toBe(true)
-      expect(status.remaining).toBe(4)
+			// Clear rate limit
+			await clearRateLimit(email)
 
-      // Check status doesn't increment counter
-      status = await getRateLimitStatus(email)
-      expect(status.remaining).toBe(4)
-    })
-  })
+			// Should be allowed again
+			result = await loginRateLimiter(email)
+			expect(result.success).toBe(true)
+			expect(result.remaining).toBe(4)
+		})
+	})
+
+	describe('getRateLimitStatus', () => {
+		it('should return current rate limit status without incrementing', async () => {
+			const email = 'test@example.com'
+
+			// Check initial status
+			let status = await getRateLimitStatus(email)
+			expect(status.success).toBe(true)
+			expect(status.remaining).toBe(5)
+
+			// Use one attempt
+			await loginRateLimiter(email)
+
+			// Check status again
+			status = await getRateLimitStatus(email)
+			expect(status.success).toBe(true)
+			expect(status.remaining).toBe(4)
+
+			// Check status doesn't increment counter
+			status = await getRateLimitStatus(email)
+			expect(status.remaining).toBe(4)
+		})
+	})
 })

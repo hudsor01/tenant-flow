@@ -4,6 +4,13 @@
 	"main": "./dist/cjs/index.js",
 	"module": "./dist/esm/index.js",
 	"types": "./dist/cjs/index.d.ts",
+	"typesVersions": {
+		"*": {
+			"types/*": [
+				"./dist/cjs/types/*"
+			]
+		}
+	},
 	"private": true,
 	"exports": {
 		".": {
@@ -74,16 +81,16 @@
 		}
 	},
 	"scripts": {
-		"build": "npm run build:cjs && npm run build:esm",
-		"build:cjs": "npx tsc --project tsconfig.build.json",
-		"build:esm": "npx tsc --project tsconfig.esm.json",
+		"build": "tsc --build && npm run build:esm",
+		"build:cjs": "tsc -p tsconfig.cjs.json",
+		"build:esm": "tsc -p tsconfig.esm.json",
 		"typecheck": "tsc --noEmit",
 		"check-types": "tsc --noEmit",
 		"lint": "eslint . --ext .ts --max-warnings 0",
 		"lint:fix": "eslint . --ext .ts --fix",
 		"format": "prettier --write \"src/**/*.ts\"",
 		"format:check": "prettier --check \"src/**/*.ts\"",
-		"clean": "rm -rf dist"
+		"clean": "tsc --build --clean && rm -rf dist"
 	},
 	"dependencies": {
 		"@tanstack/react-query": "^5.84.2",

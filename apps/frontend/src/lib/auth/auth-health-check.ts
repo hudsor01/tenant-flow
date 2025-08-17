@@ -32,7 +32,9 @@ export class AuthHealthChecker {
 	private static instance: AuthHealthChecker
 	private supabase = createClient()
 
-	private constructor() {}
+	private constructor() {
+		// Private constructor for singleton pattern
+	}
 
 	static getInstance(): AuthHealthChecker {
 		if (!AuthHealthChecker.instance) {
@@ -509,7 +511,7 @@ export class AuthHealthChecker {
 		const recommendations: string[] = []
 
 		// Environment recommendations
-		if (checks.environment.status !== 'pass') {
+		if (checks.environment?.status !== 'pass') {
 			recommendations.push(
 				'🔧 Fix environment variables configuration',
 				'   - Ensure all required variables are set',
@@ -519,7 +521,7 @@ export class AuthHealthChecker {
 		}
 
 		// Email auth recommendations
-		if (checks.emailAuth.status === 'fail') {
+		if (checks.emailAuth?.status === 'fail') {
 			recommendations.push(
 				'📧 Enable email authentication in Supabase Dashboard',
 				'   - Go to Authentication > Providers',
@@ -529,7 +531,7 @@ export class AuthHealthChecker {
 		}
 
 		// OAuth recommendations
-		if (checks.oauthProviders.status !== 'pass') {
+		if (checks.oauthProviders && checks.oauthProviders.status !== 'pass') {
 			recommendations.push(
 				'🔑 Configure OAuth providers',
 				'   - Enable Google OAuth in Supabase Dashboard',
@@ -539,7 +541,7 @@ export class AuthHealthChecker {
 		}
 
 		// Rate limit recommendations
-		if (checks.rateLimit.status === 'warn') {
+		if (checks.rateLimit && checks.rateLimit.status === 'warn') {
 			recommendations.push(
 				'🛡️ Configure rate limiting',
 				'   - Enable rate limiting in Supabase Dashboard',
@@ -548,7 +550,7 @@ export class AuthHealthChecker {
 		}
 
 		// Security recommendations
-		if (checks.security.status !== 'pass') {
+		if (checks.security && checks.security.status !== 'pass') {
 			recommendations.push(
 				'🔒 Improve security configuration',
 				'   - Use HTTPS in production',

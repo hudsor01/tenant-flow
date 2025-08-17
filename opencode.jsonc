@@ -1,0 +1,79 @@
+{
+	"$schema": "https://opencode.ai/config.json",
+	"model": "ollama/qwen3-coder-30b",
+	"theme": "dark",
+	"keybinds": {
+		"leader": "ctrl+x"
+	},
+	"provider": {
+		"ollama": {
+			"npm": "@ai-sdk/openai-compatible",
+			"name": "Ollama (local)",
+			"options": {
+				"baseURL": "http://localhost:11434/v1"
+			},
+			"models": {
+				"qwen3-coder-30b": {
+					"name": "Qwen3 Coder 30B",
+					"tool_call": true,
+					"limit": {
+						"context": 32768,
+						"output": 8192
+					},
+					"options": {
+						"temperature": 0.4
+					}
+				}
+			}
+		}
+	},
+	"agent": {
+		"build": {
+			"model": "ollama/qwen3-coder-30b",
+			"description": "Primary agent for full-stack development with the Qwen3-Coder model.",
+			"tools": {
+				"write": true,
+				"edit": true,
+				"bash": true,
+				"read": true,
+				"grep": true
+			},
+			"permission": {
+				"edit": "allow",
+				"bash": "ask",
+				"webfetch": "allow"
+			},
+			"temperature": 0.4
+		},
+		"plan": {
+			"model": "ollama/qwen3-coder-30b",
+			"description": "Use this agent for analyzing code, designing solutions, and planning features without making direct changes.",
+			"tools": {
+				"write": false,
+				"edit": false,
+				"bash": false,
+				"read": true,
+				"grep": true
+			},
+			"permission": {
+				"edit": "deny",
+				"bash": "deny"
+			},
+			"temperature": 0.3
+		},
+		"code-reviewer": {
+			"mode": "subagent",
+			"description": "A specialized agent for reviewing code quality, security, and best practices.",
+			"model": "ollama/qwen3-coder-30b",
+			"prompt": "You are an expert code reviewer. Analyze the provided code for potential bugs, security vulnerabilities, performance bottlenecks, and adherence to best practices. Provide clear, constructive feedback.",
+			"tools": {
+				"read": true,
+				"grep": true
+			},
+			"permission": {
+				"edit": "deny",
+				"bash": "deny"
+			}
+		}
+	}
+}
