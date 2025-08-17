@@ -103,11 +103,11 @@ export const trackErrorAtom = atom(
 )
 
 // Utility atoms for queue management
-export const clearAnalyticsQueueAtom = atom(null, (get, set) => {
+export const clearAnalyticsQueueAtom = atom(null, (_get, set) => {
 	set(analyticsQueueAtom, [])
 })
 
-export const clearNotificationQueueAtom = atom(null, (get, set) => {
+export const clearNotificationQueueAtom = atom(null, (_get, set) => {
 	set(notificationQueueAtom, [])
 })
 

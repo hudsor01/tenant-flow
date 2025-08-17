@@ -1,18 +1,18 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
 	"display": "TenantFlow Shared Package Config",
-	"extends": "@repo/typescript-config/library.json",
+	"extends": "@repo/typescript-config/base.json",
 	"compilerOptions": {
 		"outDir": "./dist",
 		"rootDir": "./src",
 		"baseUrl": ".",
-		"paths": {
-			"@repo/database": ["../database/src"],
-			"@repo/database/*": ["../database/src/*"]
-		},
-		"module": "ESNext",
-		"moduleResolution": "Bundler"
+		"noEmit": false,
+		"declaration": true,
+		"declarationMap": true,
+		"composite": true,
+		"tsBuildInfoFile": "./dist/.tsbuildinfo"
 	},
 	"include": ["src/**/*"],
-	"exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"]
+	"exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"],
+	"references": [{ "path": "../database" }]
 }

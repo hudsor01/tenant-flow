@@ -14,18 +14,18 @@ export const PLAN_TYPE = {
 } as const
 
 export type SubStatus =
-	| 'incomplete'
-	| 'incomplete_expired'
-	| 'trialing'
-	| 'active'
-	| 'past_due'
-	| 'canceled'
-	| 'unpaid'
-	| 'paused'
+	| 'INCOMPLETE'
+	| 'INCOMPLETE_EXPIRED'
+	| 'TRIALING'
+	| 'ACTIVE'
+	| 'PAST_DUE'
+	| 'CANCELED'
+	| 'UNPAID'
+	| 'PAUSED'
 
 export interface Plan {
 	id: PlanType
-	uiId: string // Added for UI component compatibility
+	uiId: string
 	name: string
 	description: string
 	price: {

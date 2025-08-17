@@ -85,50 +85,51 @@ export interface AuthFormFactoryProps {
 // VALIDATION HELPERS
 // ============================================================================
 
-const _commonValidations = {
-	required: (value: string, field: string): string | undefined => {
-		return !value?.trim() ? `${field} is required` : undefined
-	},
-
-	email: (value: string): string | undefined => {
-		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-		return value && !emailRegex.test(value)
-			? 'Please enter a valid email address'
-			: undefined
-	},
-
-	password: (value: string): string | undefined => {
-		if (!value) return 'Password is required'
-		if (value.length < 8) return 'Password must be at least 8 characters'
-		if (!/(?=.*[a-z])(?=.*[A-Z])/.test(value)) {
-			return 'Password must contain at least one uppercase and one lowercase letter'
-		}
-		if (!/(?=.*\d)/.test(value)) {
-			return 'Password must contain at least one number'
-		}
-		return undefined
-	},
-
-	confirmPassword: (
-		password: string,
-		confirmPassword: string
-	): string | undefined => {
-		if (!confirmPassword) return 'Please confirm your password'
-		return password !== confirmPassword
-			? 'Passwords do not match'
-			: undefined
-	},
-
-	fullName: (value: string): string | undefined => {
-		if (!value?.trim()) return 'Full name is required'
-		if (value.trim().length < 2)
-			return 'Full name must be at least 2 characters'
-		if (!/^[a-zA-Z\s]+$/.test(value.trim())) {
-			return 'Full name can only contain letters and spaces'
-		}
-		return undefined
-	}
-}
+// Validation helpers - commented out as currently unused
+// const _commonValidations = {
+// 	required: (value: string, field: string): string | undefined => {
+// 		return !value?.trim() ? `${field} is required` : undefined
+// 	},
+//
+// 	email: (value: string): string | undefined => {
+// 		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+// 		return value && !emailRegex.test(value)
+// 			? 'Please enter a valid email address'
+// 			: undefined
+// 	},
+//
+// 	password: (value: string): string | undefined => {
+// 		if (!value) return 'Password is required'
+// 		if (value.length < 8) return 'Password must be at least 8 characters'
+// 		if (!/(?=.*[a-z])(?=.*[A-Z])/.test(value)) {
+// 			return 'Password must contain at least one uppercase and one lowercase letter'
+// 		}
+// 		if (!/(?=.*\d)/.test(value)) {
+// 			return 'Password must contain at least one number'
+// 		}
+// 		return undefined
+// 	},
+//
+// 	confirmPassword: (
+// 		password: string,
+// 		confirmPassword: string
+// 	): string | undefined => {
+// 		if (!confirmPassword) return 'Please confirm your password'
+// 		return password !== confirmPassword
+// 			? 'Passwords do not match'
+// 			: undefined
+// 	},
+//
+// 	fullName: (value: string): string | undefined => {
+// 		if (!value?.trim()) return 'Full name is required'
+// 		if (value.trim().length < 2)
+// 			return 'Full name must be at least 2 characters'
+// 		if (!/^[a-zA-Z\s]+$/.test(value.trim())) {
+// 			return 'Full name can only contain letters and spaces'
+// 		}
+// 		return undefined
+// 	}
+// }
 
 // ============================================================================
 // FORM FIELD COMPONENTS
@@ -435,7 +436,7 @@ function SignupFormFields({
 			{state.errors?._form && (
 				<EnhancedVisualFeedback
 					type="error"
-					message={state.errors._form[0]}
+					message={state.errors._form[0] || 'An error occurred'}
 					animation="shake"
 					className="mb-4"
 				/>

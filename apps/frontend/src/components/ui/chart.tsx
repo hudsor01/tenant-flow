@@ -114,7 +114,6 @@ function ChartTooltipContent({
 	hideIndicator = false,
 	label,
 	labelFormatter,
-	labelClassName,
 	formatter,
 	color,
 	nameKey,
@@ -151,11 +150,12 @@ function ChartTooltipContent({
 				? config[label as keyof typeof config]?.label || label
 				: itemConfig?.label
 
-		if (labelFormatter) {
+		if (
+			labelFormatter &&
+			(typeof value === 'string' || typeof value === 'number')
+		) {
 			return (
-				<div className={cn('font-medium', labelClassName)}>
-					{labelFormatter(value, payload as never)}
-				</div>
+				<div className={cn('font-medium')}>{labelFormatter(value)}</div>
 			)
 		}
 
@@ -163,16 +163,8 @@ function ChartTooltipContent({
 			return null
 		}
 
-		return <div className={cn('font-medium', labelClassName)}>{value}</div>
-	}, [
-		label,
-		labelFormatter,
-		payload,
-		hideLabel,
-		labelClassName,
-		config,
-		labelKey
-	])
+		return <div className={cn('font-medium')}>{value}</div>
+	}, [label, labelFormatter, payload, hideLabel, config, labelKey])
 
 	if (!active || !payload?.length) {
 		return null
@@ -201,7 +193,12 @@ function ChartTooltipContent({
 
 					return (
 						<div
-							key={item.dataKey}
+							key={
+								typeof item.dataKey === 'string' ||
+								typeof item.dataKey === 'number'
+									? item.dataKey
+									: `item-${index}`
+							}
 							className={cn(
 								'[&>svg]:text-muted-foreground flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5',
 								indicator === 'dot' && 'items-center'
@@ -214,8 +211,7 @@ function ChartTooltipContent({
 									item.value as number,
 									item.name as string,
 									item as never,
-									index,
-									item.payload as never
+									index
 								)
 							) : (
 								<>

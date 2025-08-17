@@ -1,16 +1,47 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { PrismaService } from '../prisma/prisma.service'
+import { SupabaseService } from '../common/supabase/supabase.service'
 
 /**
- * StripeDBService - Uses Supabase foreign data wrapper to query Stripe data
- * This is more efficient than direct API calls and provides better caching
+ * StripeDBService - Uses Supabase RPC calls for Stripe data queries
+ * This service provides database-level Stripe data access via Supabase
+ *
+ * Note: Raw SQL queries converted to Supabase RPC calls for compatibility
  */
 @Injectable()
 export class StripeDBService {
 	private readonly logger = new Logger(StripeDBService.name)
 
-	constructor(private readonly prisma: PrismaService) {
-		this.logger.log('StripeDBService initialized with foreign data wrapper')
+	constructor(private readonly supabase: SupabaseService) {
+		this.logger.log('StripeDBService initialized with Supabase')
+	}
+
+	/**
+	 * Execute raw SQL via Supabase RPC (for Stripe foreign data wrapper queries)
+	 */
+	private async executeRawSQL(
+		query: string,
+		params: unknown[] = []
+	): Promise<unknown[]> {
+		try {
+			// Use Supabase's rpc function to execute raw SQL
+			// Note: This requires a custom PostgreSQL function 'exec_raw_sql' to be created
+			const { data, error } = await this.supabase
+				.getAdminClient()
+				.rpc('exec_raw_sql', {
+					sql_query: query,
+					query_params: params
+				})
+
+			if (error) {
+				this.logger.error('Raw SQL execution failed:', error)
+				throw error
+			}
+
+			return data || []
+		} catch (error) {
+			this.logger.error('Failed to execute raw SQL:', error)
+			throw error
+		}
 	}
 
 	/**
@@ -18,109 +49,52 @@ export class StripeDBService {
 	 */
 	async getCustomer(customerId: string) {
 		try {
-			const result = (await this.prisma.$queryRaw`
-                SELECT id, created, email, name, description, metadata, attrs
-                FROM stripe_customers
-                WHERE id = ${customerId}
-                LIMIT 1
-            `) as {
-				id: string
-				created: number
-				email: string
-				name: string | null
-				description: string | null
-				metadata: Record<string, unknown>
-				attrs: Record<string, unknown>
-			}[]
-
+			const query = `
+				SELECT * FROM stripe_customers 
+				WHERE id = $1
+			`
+			const result = await this.executeRawSQL(query, [customerId])
 			return result[0] || null
 		} catch (error) {
-			this.logger.error(
-				'Failed to get customer from Stripe foreign table:',
-				error
-			)
+			this.logger.error('Failed to get Stripe customer:', error)
 			return null
 		}
 	}
 
 	/**
-	 * Get all customers with optional filtering
+	 * Get subscription with customer data
 	 */
-	async getCustomers(limit = 100, email?: string) {
+	async getSubscription(subscriptionId: string) {
 		try {
-			if (email) {
-				// Use parameterized query for email filter
-				const result = (await this.prisma.$queryRaw`
-                    SELECT id, created, email, name, description, metadata
-                    FROM stripe_customers
-                    WHERE email = ${email}
-                    ORDER BY created DESC
-                    LIMIT ${limit}
-                `) as {
-					id: string
-					created: number
-					email: string
-					name: string | null
-					description: string | null
-					metadata: Record<string, unknown>
-				}[]
-				return result
-			} else {
-				// Use parameterized query without WHERE clause
-				const result = (await this.prisma.$queryRaw`
-                    SELECT id, created, email, name, description, metadata
-                    FROM stripe_customers
-                    ORDER BY created DESC
-                    LIMIT ${limit}
-                `) as {
-					id: string
-					created: number
-					email: string
-					name: string | null
-					description: string | null
-					metadata: Record<string, unknown>
-				}[]
-				return result
-			}
+			const query = `
+				SELECT 
+					s.*,
+					c.email as customer_email,
+					c.name as customer_name
+				FROM stripe_subscriptions s
+				LEFT JOIN stripe_customers c ON s.customer = c.id
+				WHERE s.id = $1
+			`
+			const result = await this.executeRawSQL(query, [subscriptionId])
+			return result[0] || null
 		} catch (error) {
-			this.logger.error(
-				'Failed to get customers from Stripe foreign table:',
-				error
-			)
-			return []
+			this.logger.error('Failed to get subscription:', error)
+			return null
 		}
 	}
 
 	/**
-	 * Get customer's active subscriptions
+	 * Get all subscriptions for a customer
 	 */
 	async getCustomerSubscriptions(customerId: string) {
 		try {
-			const result = (await this.prisma.$queryRaw`
-                SELECT 
-                    id, customer, status, 
-                    current_period_start, current_period_end,
-                    trial_start, trial_end,
-                    cancel_at, canceled_at,
-                    created, metadata
-                FROM stripe_subscriptions
-                WHERE customer = ${customerId}
-                ORDER BY created DESC
-            `) as {
-				id: string
-				customer: string
-				status: string
-				current_period_start: number
-				current_period_end: number
-				trial_start: number | null
-				trial_end: number | null
-				cancel_at: number | null
-				canceled_at: number | null
-				created: number
-				metadata: Record<string, unknown>
-			}[]
-
-			return result
+			const query = `
+				SELECT * FROM stripe_subscriptions 
+				WHERE customer = $1 
+				ORDER BY created DESC
+			`
+			const result = await this.executeRawSQL(query, [customerId])
+			return result || []
 		} catch (error) {
 			this.logger.error('Failed to get customer subscriptions:', error)
 			return []
@@ -128,307 +102,230 @@ export class StripeDBService {
 	}
 
 	/**
-	 * Get subscription by ID
+	 * Get recent invoices for analytics
 	 */
-	async getSubscription(subscriptionId: string) {
+	async getRecentInvoices(limit = 100) {
 		try {
-			const result = (await this.prisma.$queryRaw`
-                SELECT 
-                    id, customer, status, 
-                    current_period_start, current_period_end,
-                    trial_start, trial_end,
-                    cancel_at, canceled_at,
-                    created, metadata
-                FROM stripe_subscriptions
-                WHERE id = ${subscriptionId}
-                LIMIT 1
-            `) as {
-				id: string
-				customer: string
-				status: string
-				current_period_start: number
-				current_period_end: number
-				trial_start: number | null
-				trial_end: number | null
-				cancel_at: number | null
-				canceled_at: number | null
-				created: number
-				metadata: Record<string, unknown>
-			}[]
-
-			return result[0] || null
+			const query = `
+				SELECT 
+					i.*,
+					c.email as customer_email
+				FROM stripe_invoices i
+				LEFT JOIN stripe_customers c ON i.customer = c.id
+				WHERE i.created > extract(epoch from (now() - interval '30 days'))
+				ORDER BY i.created DESC
+				LIMIT $1
+			`
+			const result = await this.executeRawSQL(query, [limit])
+			return result || []
 		} catch (error) {
-			this.logger.error(
-				'Failed to get subscription from Stripe foreign table:',
-				error
-			)
-			return null
-		}
-	}
-
-	/**
-	 * Get all active subscriptions
-	 */
-	async getActiveSubscriptions(limit = 100) {
-		try {
-			const result = (await this.prisma.$queryRaw`
-                SELECT 
-                    s.id, s.customer, c.email as customer_email, c.name as customer_name,
-                    s.status, s.current_period_start, s.current_period_end,
-                    s.trial_end, s.created
-                FROM stripe_subscriptions s
-                JOIN stripe_customers c ON s.customer = c.id
-                WHERE s.status IN ('active', 'trialing', 'past_due')
-                ORDER BY s.created DESC
-                LIMIT ${limit}
-            `) as {
-				id: string
-				customer: string
-				customer_email: string
-				customer_name: string | null
-				status: string
-				current_period_start: number
-				current_period_end: number
-				trial_end: number | null
-				created: number
-			}[]
-
-			return result
-		} catch (error) {
-			this.logger.error('Failed to get active subscriptions:', error)
+			this.logger.error('Failed to get recent invoices:', error)
 			return []
 		}
 	}
 
 	/**
-	 * Get all products
+	 * Get payment intents with status breakdown
 	 */
-	async getProducts(activeOnly = true) {
+	async getPaymentIntentsByStatus(days = 7) {
 		try {
-			if (activeOnly) {
-				// Use parameterized query for active products
-				const result = (await this.prisma.$queryRaw`
-                    SELECT id, name, description, active, metadata, created, updated
-                    FROM stripe_products
-                    WHERE active = true
-                    ORDER BY created DESC
-                `) as {
-					id: string
-					name: string
-					description: string | null
-					active: boolean
-					metadata: Record<string, unknown>
-					created: number
-					updated: number
-				}[]
-				return result
-			} else {
-				// Use parameterized query for all products
-				const result = (await this.prisma.$queryRaw`
-                    SELECT id, name, description, active, metadata, created, updated
-                    FROM stripe_products
-                    ORDER BY created DESC
-                `) as {
-					id: string
-					name: string
-					description: string | null
-					active: boolean
-					metadata: Record<string, unknown>
-					created: number
-					updated: number
-				}[]
-				return result
+			const query = `
+				SELECT 
+					status,
+					COUNT(*) as count,
+					SUM(amount) as total_amount
+				FROM stripe_payment_intents
+				WHERE created > extract(epoch from (now() - interval '${days} days'))
+				GROUP BY status
+				ORDER BY count DESC
+			`
+			const result = await this.executeRawSQL(query, [])
+			return result || []
+		} catch (error) {
+			this.logger.error('Failed to get payment intents by status:', error)
+			return []
+		}
+	}
+
+	/**
+	 * Get subscription analytics
+	 */
+	async getSubscriptionAnalytics(days = 30) {
+		try {
+			const query = `
+				SELECT 
+					status,
+					COUNT(*) as count,
+					COUNT(DISTINCT customer) as unique_customers
+				FROM stripe_subscriptions
+				WHERE created > extract(epoch from (now() - interval '${days} days'))
+				GROUP BY status
+			`
+			const result = await this.executeRawSQL(query, [])
+			return result || []
+		} catch (error) {
+			this.logger.error('Failed to get subscription analytics:', error)
+			return []
+		}
+	}
+
+	/**
+	 * Get revenue metrics
+	 */
+	async getRevenueMetrics(days = 30) {
+		try {
+			const query = `
+				SELECT 
+					DATE(to_timestamp(created)) as date,
+					COUNT(*) as invoice_count,
+					SUM(amount_paid) as total_revenue,
+					AVG(amount_paid) as avg_invoice_amount
+				FROM stripe_invoices
+				WHERE created > extract(epoch from (now() - interval '${days} days'))
+					AND status = 'paid'
+				GROUP BY DATE(to_timestamp(created))
+				ORDER BY date DESC
+			`
+			const result = await this.executeRawSQL(query, [])
+			return result || []
+		} catch (error) {
+			this.logger.error('Failed to get revenue metrics:', error)
+			return []
+		}
+	}
+
+	/**
+	 * Get failed payment analysis
+	 */
+	async getFailedPaymentAnalysis(days = 30) {
+		try {
+			const query = `
+				SELECT 
+					pi.last_payment_error->>'code' as error_code,
+					pi.last_payment_error->>'message' as error_message,
+					COUNT(*) as occurrence_count,
+					SUM(pi.amount) as total_failed_amount
+				FROM stripe_payment_intents pi
+				WHERE pi.created > extract(epoch from (now() - interval '${days} days'))
+					AND pi.status = 'requires_payment_method'
+					AND pi.last_payment_error IS NOT NULL
+				GROUP BY error_code, error_message
+				ORDER BY occurrence_count DESC
+			`
+			const result = await this.executeRawSQL(query, [])
+			return result || []
+		} catch (error) {
+			this.logger.error('Failed to get failed payment analysis:', error)
+			return []
+		}
+	}
+
+	/**
+	 * Get customer churn analysis
+	 */
+	async getCustomerChurnAnalysis(days = 90) {
+		try {
+			const query = `
+				SELECT 
+					DATE(to_timestamp(canceled_at)) as churn_date,
+					COUNT(*) as churned_customers,
+					AVG(extract(epoch from (to_timestamp(canceled_at) - to_timestamp(created)))) / 86400 as avg_lifetime_days
+				FROM stripe_subscriptions
+				WHERE canceled_at IS NOT NULL
+					AND canceled_at > extract(epoch from (now() - interval '${days} days'))
+				GROUP BY DATE(to_timestamp(canceled_at))
+				ORDER BY churn_date DESC
+			`
+			const result = await this.executeRawSQL(query, [])
+			return result || []
+		} catch (error) {
+			this.logger.error('Failed to get churn analysis:', error)
+			return []
+		}
+	}
+
+	/**
+	 * Get subscription health metrics
+	 */
+	async getSubscriptionHealthMetrics() {
+		try {
+			const query = `
+				SELECT 
+					COUNT(CASE WHEN status = 'active' THEN 1 END) as active_subscriptions,
+					COUNT(CASE WHEN status = 'past_due' THEN 1 END) as past_due_subscriptions,
+					COUNT(CASE WHEN status = 'canceled' THEN 1 END) as canceled_subscriptions,
+					COUNT(CASE WHEN status = 'trialing' THEN 1 END) as trialing_subscriptions,
+					COUNT(*) as total_subscriptions
+				FROM stripe_subscriptions
+			`
+			const result = await this.executeRawSQL(query, [])
+			return (
+				result[0] || {
+					active_subscriptions: 0,
+					past_due_subscriptions: 0,
+					canceled_subscriptions: 0,
+					trialing_subscriptions: 0,
+					total_subscriptions: 0
+				}
+			)
+		} catch (error) {
+			this.logger.error(
+				'Failed to get subscription health metrics:',
+				error
+			)
+			return {
+				active_subscriptions: 0,
+				past_due_subscriptions: 0,
+				canceled_subscriptions: 0,
+				trialing_subscriptions: 0,
+				total_subscriptions: 0
 			}
-		} catch (error) {
-			this.logger.error('Failed to get products:', error)
-			return []
 		}
 	}
 
 	/**
-	 * Get prices for a product
-	 */
-	async getProductPrices(productId: string) {
-		try {
-			const result = (await this.prisma.$queryRaw`
-                SELECT 
-                    id, product, currency, unit_amount, recurring, 
-                    active, metadata, created
-                FROM stripe_prices
-                WHERE product = ${productId} AND active = true
-                ORDER BY created DESC
-            `) as {
-				id: string
-				product: string
-				currency: string
-				unit_amount: number
-				recurring: Record<string, unknown>
-				active: boolean
-				metadata: Record<string, unknown>
-				created: number
-			}[]
-
-			return result
-		} catch (error) {
-			this.logger.error('Failed to get product prices:', error)
-			return []
-		}
-	}
-
-	/**
-	 * Get all active prices
-	 */
-	async getActivePrices(limit = 100) {
-		try {
-			const result = (await this.prisma.$queryRaw`
-                SELECT 
-                    id, product, currency, unit_amount, recurring, 
-                    active, metadata, created
-                FROM stripe_prices
-                WHERE active = true
-                ORDER BY created DESC
-                LIMIT ${limit}
-            `) as {
-				id: string
-				product: string
-				currency: string
-				unit_amount: number
-				recurring: Record<string, unknown>
-				active: boolean
-				metadata: Record<string, unknown>
-				created: number
-			}[]
-
-			return result
-		} catch (error) {
-			this.logger.error('Failed to get active prices:', error)
-			return []
-		}
-	}
-
-	/**
-	 * Check if customer exists in Stripe
-	 */
-	async customerExists(customerId: string): Promise<boolean> {
-		try {
-			const result = (await this.prisma.$queryRaw`
-                SELECT COUNT(*) as count
-                FROM stripe_customers
-                WHERE id = ${customerId}
-            `) as { count: bigint }[]
-
-			return Number(result[0]?.count || 0) > 0
-		} catch (error) {
-			this.logger.error('Failed to check customer existence:', error)
-			return false
-		}
-	}
-
-	/**
-	 * Get subscription counts by status
-	 */
-	async getSubscriptionStats() {
-		try {
-			const result = (await this.prisma.$queryRaw`
-                SELECT status, COUNT(*) as count
-                FROM stripe_subscriptions
-                GROUP BY status
-                ORDER BY count DESC
-            `) as {
-				status: string
-				count: bigint
-			}[]
-
-			return result.map((row: { status: string; count: bigint }) => ({
-				status: row.status,
-				count: Number(row.count)
-			}))
-		} catch (error) {
-			this.logger.error('Failed to get subscription stats:', error)
-			return []
-		}
-	}
-
-	/**
-	 * Get recent subscription activity
-	 */
-	async getRecentSubscriptionActivity(days = 30, limit = 100) {
-		try {
-			const cutoffTimestamp = Math.floor(
-				(Date.now() - days * 24 * 60 * 60 * 1000) / 1000
-			)
-
-			const result = (await this.prisma.$queryRaw`
-                SELECT 
-                    s.id, s.customer, c.email as customer_email,
-                    s.status, s.created, s.current_period_start, s.current_period_end
-                FROM stripe_subscriptions s
-                JOIN stripe_customers c ON s.customer = c.id
-                WHERE s.created >= ${cutoffTimestamp}
-                ORDER BY s.created DESC
-                LIMIT ${limit}
-            `) as {
-				id: string
-				customer: string
-				customer_email: string
-				status: string
-				created: number
-				current_period_start: number
-				current_period_end: number
-			}[]
-
-			return result
-		} catch (error) {
-			this.logger.error(
-				'Failed to get recent subscription activity:',
-				error
-			)
-			return []
-		}
-	}
-
-	/**
-	 * Health check - test the foreign table connection
+	 * Health check for Stripe foreign data wrapper
 	 */
 	async healthCheck(): Promise<{
-		connected: boolean
-		customerCount?: number
-		subscriptionCount?: number
-		productCount?: number
-		error?: string
+		stripe_customers: boolean
+		stripe_subscriptions: boolean
+		stripe_invoices: boolean
 	}> {
-		try {
-			const [customerCount, subscriptionCount, productCount] =
-				await Promise.all([
-					this.prisma
-						.$queryRaw`SELECT COUNT(*) as count FROM stripe_customers`,
-					this.prisma
-						.$queryRaw`SELECT COUNT(*) as count FROM stripe_subscriptions`,
-					this.prisma
-						.$queryRaw`SELECT COUNT(*) as count FROM stripe_products`
-				])
+		const health = {
+			stripe_customers: false,
+			stripe_subscriptions: false,
+			stripe_invoices: false
+		}
 
-			return {
-				connected: true,
-				customerCount: Number(
-					(customerCount as { count: bigint }[])[0]?.count || 0
-				),
-				subscriptionCount: Number(
-					(subscriptionCount as { count: bigint }[])[0]?.count || 0
-				),
-				productCount: Number(
-					(productCount as { count: bigint }[])[0]?.count || 0
-				)
-			}
+		try {
+			// Test customers table
+			await this.executeRawSQL('SELECT 1 FROM stripe_customers LIMIT 1')
+			health.stripe_customers = true
 		} catch (error) {
-			this.logger.error(
-				'Stripe foreign table health check failed:',
+			this.logger.warn('Stripe customers table not accessible:', error)
+		}
+
+		try {
+			// Test subscriptions table
+			await this.executeRawSQL(
+				'SELECT 1 FROM stripe_subscriptions LIMIT 1'
+			)
+			health.stripe_subscriptions = true
+		} catch (error) {
+			this.logger.warn(
+				'Stripe subscriptions table not accessible:',
 				error
 			)
-			return {
-				connected: false,
-				error: error instanceof Error ? error.message : 'Unknown error'
-			}
 		}
+
+		try {
+			// Test invoices table
+			await this.executeRawSQL('SELECT 1 FROM stripe_invoices LIMIT 1')
+			health.stripe_invoices = true
+		} catch (error) {
+			this.logger.warn('Stripe invoices table not accessible:', error)
+		}
+
+		return health
 	}
 }

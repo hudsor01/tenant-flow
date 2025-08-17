@@ -139,12 +139,14 @@ export function LeaseFormClient({
 				propertyId: '', // Not available in Lease type, will be derived from unit
 				startDate:
 					typeof lease.startDate === 'string'
-						? lease.startDate.split('T')[0]
-						: lease.startDate.toISOString().split('T')[0],
+						? lease.startDate.split('T')[0] || lease.startDate
+						: lease.startDate.toISOString().split('T')[0] ||
+							lease.startDate.toISOString(),
 				endDate:
 					typeof lease.endDate === 'string'
-						? lease.endDate.split('T')[0]
-						: lease.endDate.toISOString().split('T')[0],
+						? lease.endDate.split('T')[0] || lease.endDate
+						: lease.endDate.toISOString().split('T')[0] ||
+							lease.endDate.toISOString(),
 				rentAmount: lease.rentAmount,
 				securityDeposit: lease.securityDeposit || 0,
 				lateFeeDays: 5, // Default value - not stored in Lease type

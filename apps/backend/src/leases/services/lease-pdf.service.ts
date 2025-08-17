@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PDFGeneratorService } from '../../common/pdf/pdf-generator.service'
-import { LeaseRepository } from '../lease.repository'
+import { LeaseSupabaseRepository } from '../lease-supabase.repository'
 import { ErrorHandlerService } from '../../common/errors/error-handler.service'
-import type { Lease, Property, Tenant, Unit } from '@repo/database'
+import type { Lease, Property, Tenant, Unit } from '@repo/shared'
 
 export interface LeasePDFOptions {
 	/** Whether to include company branding */
@@ -37,7 +37,7 @@ export class LeasePDFService {
 
 	constructor(
 		private readonly pdfService: PDFGeneratorService,
-		private readonly leaseRepository: LeaseRepository,
+		private readonly leaseRepository: LeaseSupabaseRepository,
 		private readonly errorHandler: ErrorHandlerService
 	) {}
 

@@ -13,7 +13,7 @@ import {
 	MinLength
 } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
-import { LeaseStatus } from '@repo/database'
+import { LEASE_STATUS, type LeaseStatus } from '@repo/shared'
 
 export class CreateLeaseDto {
 	@IsUUID(4, { message: 'Unit ID must be a valid UUID' })
@@ -84,9 +84,9 @@ export class CreateLeaseDto {
 	@Transform(({ value }) => value?.trim())
 	leaseTerms?: string
 
-	@IsEnum(LeaseStatus, {
+	@IsEnum(Object.values(LEASE_STATUS), {
 		message: 'Status must be one of: DRAFT, ACTIVE, EXPIRED, TERMINATED'
 	})
 	@IsOptional()
-	status?: LeaseStatus = LeaseStatus.DRAFT
+	status?: LeaseStatus = LEASE_STATUS.DRAFT
 }

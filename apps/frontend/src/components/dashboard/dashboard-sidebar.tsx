@@ -160,7 +160,7 @@ export function DashboardSidebar({
 
 	// Handle swipe to close
 	const handleDragEnd = (
-		event: MouseEvent | TouchEvent | PointerEvent,
+		_event: MouseEvent | TouchEvent | PointerEvent,
 		info: PanInfo
 	) => {
 		if (isMobile && onClose && info.velocity.x < -500) {

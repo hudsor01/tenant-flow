@@ -23,15 +23,15 @@ export const featureFlagsAtom = atomWithStorage('tenantflow-feature-flags', {
 })
 
 // Actions
-export const toggleSidebarAtom = atom(null, (get, set) => {
-	const currentState = get(sidebarOpenAtom)
+export const toggleSidebarAtom = atom(null, (_get, set) => {
+	const currentState = _get(sidebarOpenAtom)
 	set(sidebarOpenAtom, !currentState)
 })
 
 export const toggleFeatureAtom = atom(
 	null,
-	(get, set, feature: 'darkMode' | 'betaFeatures' | 'analyticsEnabled') => {
-		const currentFeatures = get(featureFlagsAtom)
+	(_get, set, feature: 'darkMode' | 'betaFeatures' | 'analyticsEnabled') => {
+		const currentFeatures = _get(featureFlagsAtom)
 		set(featureFlagsAtom, {
 			...currentFeatures,
 			[feature]: !currentFeatures[feature]

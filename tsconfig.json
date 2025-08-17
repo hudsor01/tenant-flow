@@ -4,25 +4,13 @@
 	"compilerOptions": {
 		"strict": true,
 		"skipLibCheck": true,
-		"noEmit": true,
-		"baseUrl": ".",
-		"module": "preserve",
-		"moduleResolution": "bundler",
-		"customConditions": ["@tenantflow/source"],
-		"paths": {
-			"@repo/database": ["./packages/database/src"],
-			"@repo/database/*": ["./packages/database/src/*"],
-			"@repo/shared": ["./packages/shared/src"],
-			"@repo/shared/*": ["./packages/shared/src/*"],
-			"@repo/typescript-config/*": ["./packages/typescript-config/*"],
-			"@repo/tailwind-config/*": ["./packages/tailwind-config/*"]
-		}
+		"noEmit": true
 	},
 	"files": [],
 	"references": [
-		{ "path": "./packages/database/tsconfig.build.json" },
-		{ "path": "./packages/shared/tsconfig.build.json" },
-		{ "path": "./apps/frontend/tsconfig.json" },
-		{ "path": "./apps/backend/tsconfig.build.json" }
+		{ "path": "./packages/database" },
+		{ "path": "./packages/shared" },
+		{ "path": "./apps/frontend" },
+		{ "path": "./apps/backend" }
 	]
 }

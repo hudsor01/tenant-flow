@@ -12,8 +12,14 @@ import {
 	MinLength
 } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
-import { Priority, RequestStatus } from '@repo/database'
-import { MAINTENANCE_CATEGORY, MaintenanceCategory } from '@repo/shared'
+import {
+	MAINTENANCE_CATEGORY,
+	type MaintenanceCategory,
+	type Priority,
+	PRIORITY,
+	REQUEST_STATUS,
+	type RequestStatus
+} from '@repo/shared'
 
 export class CreateMaintenanceRequestDto {
 	@IsUUID(4, { message: 'Unit ID must be a valid UUID' })
@@ -42,17 +48,17 @@ export class CreateMaintenanceRequestDto {
 	@IsOptional()
 	category?: MaintenanceCategory
 
-	@IsEnum(Priority, {
+	@IsEnum(Object.values(PRIORITY), {
 		message: 'Priority must be one of: LOW, MEDIUM, HIGH, EMERGENCY'
 	})
-	priority: Priority = Priority.MEDIUM
+	priority: Priority = PRIORITY.MEDIUM
 
-	@IsEnum(RequestStatus, {
+	@IsEnum(Object.values(REQUEST_STATUS), {
 		message:
 			'Status must be one of: OPEN, IN_PROGRESS, COMPLETED, CANCELED, ON_HOLD'
 	})
 	@IsOptional()
-	status?: RequestStatus = RequestStatus.OPEN
+	status?: RequestStatus = REQUEST_STATUS.OPEN
 
 	@IsDateString(
 		{},

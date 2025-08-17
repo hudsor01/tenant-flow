@@ -2,15 +2,15 @@ import { test, expect } from '@playwright/test'
 import { VisualTestHelpers } from '../../helpers/visual-helpers'
 
 test.describe('Dashboard Visual Regression', () => {
-  let visualHelpers: VisualTestHelpers
+	let visualHelpers: VisualTestHelpers
 
-  test.beforeEach(async ({ page }) => {
-    visualHelpers = new VisualTestHelpers(page)
-    await visualHelpers.setupVisualEnvironment()
-  })
+	test.beforeEach(async ({ page }) => {
+		visualHelpers = new VisualTestHelpers(page)
+		await visualHelpers.setupVisualEnvironment()
+	})
 
-  test('dashboard overview layout', async ({ page }) => {
-    await page.setContent(`
+	test('dashboard overview layout', async ({ page }) => {
+		await page.setContent(`
       <!DOCTYPE html>
       <html>
         <head>
@@ -270,14 +270,14 @@ test.describe('Dashboard Visual Regression', () => {
       </html>
     `)
 
-    await expect(page).toHaveScreenshot('dashboard-overview.png', {
-      fullPage: true,
-      animations: 'disabled',
-    })
-  })
+		await expect(page).toHaveScreenshot('dashboard-overview.png', {
+			fullPage: true,
+			animations: 'disabled'
+		})
+	})
 
-  test('dashboard statistics cards', async ({ page }) => {
-    await page.setContent(`
+	test('dashboard statistics cards', async ({ page }) => {
+		await page.setContent(`
       <!DOCTYPE html>
       <html>
         <head>
@@ -353,12 +353,14 @@ test.describe('Dashboard Visual Regression', () => {
       </html>
     `)
 
-    const statsContainer = page.locator('[data-testid="dashboard-stats"]')
-    await expect(statsContainer).toHaveScreenshot('dashboard-stats-cards.png')
-  })
+		const statsContainer = page.locator('[data-testid="dashboard-stats"]')
+		await expect(statsContainer).toHaveScreenshot(
+			'dashboard-stats-cards.png'
+		)
+	})
 
-  test('dashboard dark theme', async ({ page }) => {
-    await page.setContent(`
+	test('dashboard dark theme', async ({ page }) => {
+		await page.setContent(`
       <!DOCTYPE html>
       <html>
         <head>
@@ -466,9 +468,9 @@ test.describe('Dashboard Visual Regression', () => {
       </html>
     `)
 
-    await expect(page).toHaveScreenshot('dashboard-dark-theme.png', {
-      fullPage: true,
-      animations: 'disabled',
-    })
-  })
+		await expect(page).toHaveScreenshot('dashboard-dark-theme.png', {
+			fullPage: true,
+			animations: 'disabled'
+		})
+	})
 })

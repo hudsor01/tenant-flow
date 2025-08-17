@@ -9,359 +9,362 @@ const mockRefreshSession = vi.fn()
 const mockSignOut = vi.fn()
 
 vi.mock('@/lib/supabase/client', () => ({
-  createClient: vi.fn(() => ({
-    auth: {
-      getSession: mockGetSession,
-      getUser: mockGetUser,
-      refreshSession: mockRefreshSession,
-      signOut: mockSignOut
-    }
-  }))
+	createClient: vi.fn(() => ({
+		auth: {
+			getSession: mockGetSession,
+			getUser: mockGetUser,
+			refreshSession: mockRefreshSession,
+			signOut: mockSignOut
+		}
+	}))
 }))
 
 // Mock auth cache
 vi.mock('@/lib/auth/auth-cache', () => ({
-  authCache: {
-    getAuthState: vi.fn((key, fetcher) => fetcher()),
-    invalidate: vi.fn(),
-    update: vi.fn()
-  }
+	authCache: {
+		getAuthState: vi.fn((key, fetcher) => fetcher()),
+		invalidate: vi.fn(),
+		update: vi.fn()
+	}
 }))
 
 // Mock logger
 vi.mock('@/lib/logger', () => ({
-  logger: {
-    debug: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  }
+	logger: {
+		debug: vi.fn(),
+		warn: vi.fn(),
+		error: vi.fn()
+	}
 }))
 
 describe('SessionManager', () => {
-  const _mockUser: AuthUser = {
-    id: '123',
-    email: 'test@example.com',
-    name: 'Test User',
-    avatar_url: null
-  }
+	const _mockUser: AuthUser = {
+		id: '123',
+		email: 'test@example.com',
+		name: 'Test User',
+		avatar_url: null
+	}
 
-  const mockSession = {
-    user: {
-      id: '123',
-      email: 'test@example.com',
-      user_metadata: {
-        full_name: 'Test User'
-      }
-    },
-    expires_at: Math.floor(Date.now() / 1000) + 3600, // 1 hour from now
-    access_token: 'mock-access-token',
-    refresh_token: 'mock-refresh-token'
-  }
+	const mockSession = {
+		user: {
+			id: '123',
+			email: 'test@example.com',
+			user_metadata: {
+				full_name: 'Test User'
+			}
+		},
+		expires_at: Math.floor(Date.now() / 1000) + 3600, // 1 hour from now
+		access_token: 'mock-access-token',
+		refresh_token: 'mock-refresh-token'
+	}
 
-  beforeEach(() => {
-    vi.clearAllMocks()
-    vi.useFakeTimers()
-  })
+	beforeEach(() => {
+		vi.clearAllMocks()
+		vi.useFakeTimers()
+	})
 
-  afterEach(() => {
-    sessionManager.cleanup()
-    vi.useRealTimers()
-  })
+	afterEach(() => {
+		sessionManager.cleanup()
+		vi.useRealTimers()
+	})
 
-  describe('initialize', () => {
-    it('should initialize with existing session', async () => {
-      mockGetSession.mockResolvedValue({
-        data: { session: mockSession },
-        error: null
-      })
+	describe('initialize', () => {
+		it('should initialize with existing session', async () => {
+			mockGetSession.mockResolvedValue({
+				data: { session: mockSession },
+				error: null
+			})
 
-      const user = await sessionManager.initialize()
+			const user = await sessionManager.initialize()
 
-      expect(user).toEqual({
-        id: mockSession.user.id,
-        email: mockSession.user.email,
-        name: mockSession.user.user_metadata.full_name,
-        avatar_url: undefined
-      })
-      expect(mockGetSession).toHaveBeenCalled()
-    })
+			expect(user).toEqual({
+				id: mockSession.user.id,
+				email: mockSession.user.email,
+				name: mockSession.user.user_metadata.full_name,
+				avatar_url: undefined
+			})
+			expect(mockGetSession).toHaveBeenCalled()
+		})
 
-    it('should return null when no session exists', async () => {
-      mockGetSession.mockResolvedValue({
-        data: { session: null },
-        error: null
-      })
+		it('should return null when no session exists', async () => {
+			mockGetSession.mockResolvedValue({
+				data: { session: null },
+				error: null
+			})
 
-      const user = await sessionManager.initialize()
+			const user = await sessionManager.initialize()
 
-      expect(user).toBeNull()
-    })
+			expect(user).toBeNull()
+		})
 
-    it('should handle initialization errors gracefully', async () => {
-      mockGetSession.mockResolvedValue({
-        data: { session: null },
-        error: new Error('Network error')
-      })
+		it('should handle initialization errors gracefully', async () => {
+			mockGetSession.mockResolvedValue({
+				data: { session: null },
+				error: new Error('Network error')
+			})
 
-      const user = await sessionManager.initialize()
+			const user = await sessionManager.initialize()
 
-      expect(user).toBeNull()
-    })
+			expect(user).toBeNull()
+		})
 
-    it('should schedule token refresh for valid session', async () => {
-      const setTimeoutSpy = vi.spyOn(global, 'setTimeout')
-      
-      mockGetSession.mockResolvedValue({
-        data: { session: mockSession },
-        error: null
-      })
+		it('should schedule token refresh for valid session', async () => {
+			const setTimeoutSpy = vi.spyOn(global, 'setTimeout')
 
-      await sessionManager.initialize()
+			mockGetSession.mockResolvedValue({
+				data: { session: mockSession },
+				error: null
+			})
 
-      // Should schedule refresh 5 minutes before expiry
-      expect(setTimeoutSpy).toHaveBeenCalled()
-    })
-  })
+			await sessionManager.initialize()
 
-  describe('refreshSession', () => {
-    it('should refresh expired session', async () => {
-      mockRefreshSession.mockResolvedValue({
-        data: { 
-          session: {
-            ...mockSession,
-            expires_at: Math.floor(Date.now() / 1000) + 7200 // 2 hours from now
-          }
-        },
-        error: null
-      })
+			// Should schedule refresh 5 minutes before expiry
+			expect(setTimeoutSpy).toHaveBeenCalled()
+		})
+	})
 
-      mockGetUser.mockResolvedValue({
-        data: { user: mockSession.user },
-        error: null
-      })
+	describe('refreshSession', () => {
+		it('should refresh expired session', async () => {
+			mockRefreshSession.mockResolvedValue({
+				data: {
+					session: {
+						...mockSession,
+						expires_at: Math.floor(Date.now() / 1000) + 7200 // 2 hours from now
+					}
+				},
+				error: null
+			})
 
-      const user = await sessionManager.refreshSession()
+			mockGetUser.mockResolvedValue({
+				data: { user: mockSession.user },
+				error: null
+			})
 
-      expect(mockRefreshSession).toHaveBeenCalled()
-      expect(user).toBeTruthy()
-    })
+			const user = await sessionManager.refreshSession()
 
-    it('should handle refresh errors', async () => {
-      mockRefreshSession.mockResolvedValue({
-        data: { session: null },
-        error: new Error('Refresh failed')
-      })
+			expect(mockRefreshSession).toHaveBeenCalled()
+			expect(user).toBeTruthy()
+		})
 
-      await expect(sessionManager.refreshSession()).rejects.toThrow('Refresh failed')
-    })
+		it('should handle refresh errors', async () => {
+			mockRefreshSession.mockResolvedValue({
+				data: { session: null },
+				error: new Error('Refresh failed')
+			})
 
-    it('should prevent concurrent refresh calls', async () => {
-      mockRefreshSession.mockImplementation(() => 
-        new Promise(resolve => {
-          setTimeout(() => {
-            resolve({
-              data: { session: mockSession },
-              error: null
-            })
-          }, 100)
-        })
-      )
+			await expect(sessionManager.refreshSession()).rejects.toThrow(
+				'Refresh failed'
+			)
+		})
 
-      mockGetUser.mockResolvedValue({
-        data: { user: mockSession.user },
-        error: null
-      })
+		it('should prevent concurrent refresh calls', async () => {
+			mockRefreshSession.mockImplementation(
+				() =>
+					new Promise(resolve => {
+						setTimeout(() => {
+							resolve({
+								data: { session: mockSession },
+								error: null
+							})
+						}, 100)
+					})
+			)
 
-      // Make multiple concurrent refresh calls
-      const promises = [
-        sessionManager.refreshSession(),
-        sessionManager.refreshSession(),
-        sessionManager.refreshSession()
-      ]
+			mockGetUser.mockResolvedValue({
+				data: { user: mockSession.user },
+				error: null
+			})
 
-      await Promise.all(promises)
+			// Make multiple concurrent refresh calls
+			const promises = [
+				sessionManager.refreshSession(),
+				sessionManager.refreshSession(),
+				sessionManager.refreshSession()
+			]
 
-      // Should only call refresh once
-      expect(mockRefreshSession).toHaveBeenCalledTimes(1)
-    })
+			await Promise.all(promises)
 
-    it('should sign out on refresh failure', async () => {
-      mockRefreshSession.mockResolvedValue({
-        data: { session: null },
-        error: new Error('Token expired')
-      })
+			// Should only call refresh once
+			expect(mockRefreshSession).toHaveBeenCalledTimes(1)
+		})
 
-      try {
-        await sessionManager.refreshSession()
-      } catch {
-        // Expected to throw
-      }
+		it('should sign out on refresh failure', async () => {
+			mockRefreshSession.mockResolvedValue({
+				data: { session: null },
+				error: new Error('Token expired')
+			})
 
-      expect(mockSignOut).toHaveBeenCalled()
-    })
-  })
+			try {
+				await sessionManager.refreshSession()
+			} catch {
+				// Expected to throw
+			}
 
-  describe('getCurrentUser', () => {
-    it('should return current user', async () => {
-      mockGetUser.mockResolvedValue({
-        data: { 
-          user: {
-            id: '123',
-            email: 'test@example.com',
-            user_metadata: { full_name: 'Test User' }
-          }
-        },
-        error: null
-      })
+			expect(mockSignOut).toHaveBeenCalled()
+		})
+	})
 
-      const user = await sessionManager.getCurrentUser()
+	describe('getCurrentUser', () => {
+		it('should return current user', async () => {
+			mockGetUser.mockResolvedValue({
+				data: {
+					user: {
+						id: '123',
+						email: 'test@example.com',
+						user_metadata: { full_name: 'Test User' }
+					}
+				},
+				error: null
+			})
 
-      expect(user).toEqual({
-        id: '123',
-        email: 'test@example.com',
-        name: 'Test User',
-        avatar_url: undefined
-      })
-    })
+			const user = await sessionManager.getCurrentUser()
 
-    it('should return null when no user', async () => {
-      mockGetUser.mockResolvedValue({
-        data: { user: null },
-        error: null
-      })
+			expect(user).toEqual({
+				id: '123',
+				email: 'test@example.com',
+				name: 'Test User',
+				avatar_url: undefined
+			})
+		})
 
-      const user = await sessionManager.getCurrentUser()
+		it('should return null when no user', async () => {
+			mockGetUser.mockResolvedValue({
+				data: { user: null },
+				error: null
+			})
 
-      expect(user).toBeNull()
-    })
-  })
+			const user = await sessionManager.getCurrentUser()
 
-  describe('validateSession', () => {
-    it('should validate valid session', async () => {
-      mockGetSession.mockResolvedValue({
-        data: { 
-          session: {
-            ...mockSession,
-            expires_at: Math.floor(Date.now() / 1000) + 3600 // Valid for 1 hour
-          }
-        },
-        error: null
-      })
+			expect(user).toBeNull()
+		})
+	})
 
-      const isValid = await sessionManager.validateSession()
+	describe('validateSession', () => {
+		it('should validate valid session', async () => {
+			mockGetSession.mockResolvedValue({
+				data: {
+					session: {
+						...mockSession,
+						expires_at: Math.floor(Date.now() / 1000) + 3600 // Valid for 1 hour
+					}
+				},
+				error: null
+			})
 
-      expect(isValid).toBe(true)
-    })
+			const isValid = await sessionManager.validateSession()
 
-    it('should refresh expired session', async () => {
-      mockGetSession.mockResolvedValue({
-        data: { 
-          session: {
-            ...mockSession,
-            expires_at: Math.floor(Date.now() / 1000) - 100 // Expired
-          }
-        },
-        error: null
-      })
+			expect(isValid).toBe(true)
+		})
 
-      mockRefreshSession.mockResolvedValue({
-        data: { session: mockSession },
-        error: null
-      })
+		it('should refresh expired session', async () => {
+			mockGetSession.mockResolvedValue({
+				data: {
+					session: {
+						...mockSession,
+						expires_at: Math.floor(Date.now() / 1000) - 100 // Expired
+					}
+				},
+				error: null
+			})
 
-      mockGetUser.mockResolvedValue({
-        data: { user: mockSession.user },
-        error: null
-      })
+			mockRefreshSession.mockResolvedValue({
+				data: { session: mockSession },
+				error: null
+			})
 
-      const isValid = await sessionManager.validateSession()
+			mockGetUser.mockResolvedValue({
+				data: { user: mockSession.user },
+				error: null
+			})
 
-      expect(mockRefreshSession).toHaveBeenCalled()
-      expect(isValid).toBe(true)
-    })
+			const isValid = await sessionManager.validateSession()
 
-    it('should return false for invalid session', async () => {
-      mockGetSession.mockResolvedValue({
-        data: { session: null },
-        error: new Error('No session')
-      })
+			expect(mockRefreshSession).toHaveBeenCalled()
+			expect(isValid).toBe(true)
+		})
 
-      const isValid = await sessionManager.validateSession()
+		it('should return false for invalid session', async () => {
+			mockGetSession.mockResolvedValue({
+				data: { session: null },
+				error: new Error('No session')
+			})
 
-      expect(isValid).toBe(false)
-    })
-  })
+			const isValid = await sessionManager.validateSession()
 
-  describe('cleanup', () => {
-    it('should clear timers and cache on cleanup', async () => {
-      const clearTimeoutSpy = vi.spyOn(global, 'clearTimeout')
-      
-      // Initialize to set up timers
-      mockGetSession.mockResolvedValue({
-        data: { session: mockSession },
-        error: null
-      })
-      await sessionManager.initialize()
+			expect(isValid).toBe(false)
+		})
+	})
 
-      // Cleanup
-      sessionManager.cleanup()
+	describe('cleanup', () => {
+		it('should clear timers and cache on cleanup', async () => {
+			const clearTimeoutSpy = vi.spyOn(global, 'clearTimeout')
 
-      expect(clearTimeoutSpy).toHaveBeenCalled()
-    })
-  })
+			// Initialize to set up timers
+			mockGetSession.mockResolvedValue({
+				data: { session: mockSession },
+				error: null
+			})
+			await sessionManager.initialize()
 
-  describe('token refresh scheduling', () => {
-    it('should refresh immediately if token expires in less than 5 minutes', async () => {
-      mockGetSession.mockResolvedValue({
-        data: { 
-          session: {
-            ...mockSession,
-            expires_at: Math.floor(Date.now() / 1000) + 120 // 2 minutes from now
-          }
-        },
-        error: null
-      })
+			// Cleanup
+			sessionManager.cleanup()
 
-      mockRefreshSession.mockResolvedValue({
-        data: { session: mockSession },
-        error: null
-      })
+			expect(clearTimeoutSpy).toHaveBeenCalled()
+		})
+	})
 
-      mockGetUser.mockResolvedValue({
-        data: { user: mockSession.user },
-        error: null
-      })
+	describe('token refresh scheduling', () => {
+		it('should refresh immediately if token expires in less than 5 minutes', async () => {
+			mockGetSession.mockResolvedValue({
+				data: {
+					session: {
+						...mockSession,
+						expires_at: Math.floor(Date.now() / 1000) + 120 // 2 minutes from now
+					}
+				},
+				error: null
+			})
 
-      await sessionManager.initialize()
+			mockRefreshSession.mockResolvedValue({
+				data: { session: mockSession },
+				error: null
+			})
 
-      // Should trigger immediate refresh
-      await vi.runAllTimersAsync()
+			mockGetUser.mockResolvedValue({
+				data: { user: mockSession.user },
+				error: null
+			})
 
-      expect(mockRefreshSession).toHaveBeenCalled()
-    })
+			await sessionManager.initialize()
 
-    it('should schedule refresh 5 minutes before expiry', async () => {
-      const setTimeoutSpy = vi.spyOn(global, 'setTimeout')
-      const expiresIn = 30 * 60 // 30 minutes
-      
-      mockGetSession.mockResolvedValue({
-        data: { 
-          session: {
-            ...mockSession,
-            expires_at: Math.floor(Date.now() / 1000) + expiresIn
-          }
-        },
-        error: null
-      })
+			// Should trigger immediate refresh
+			await vi.runAllTimersAsync()
 
-      await sessionManager.initialize()
+			expect(mockRefreshSession).toHaveBeenCalled()
+		})
 
-      // Check that setTimeout was called with correct delay
-      // Should refresh 5 minutes before expiry = 25 minutes
-      expect(setTimeoutSpy).toHaveBeenCalledWith(
-        expect.any(Function),
-        (expiresIn - 5 * 60) * 1000
-      )
-    })
-  })
+		it('should schedule refresh 5 minutes before expiry', async () => {
+			const setTimeoutSpy = vi.spyOn(global, 'setTimeout')
+			const expiresIn = 30 * 60 // 30 minutes
+
+			mockGetSession.mockResolvedValue({
+				data: {
+					session: {
+						...mockSession,
+						expires_at: Math.floor(Date.now() / 1000) + expiresIn
+					}
+				},
+				error: null
+			})
+
+			await sessionManager.initialize()
+
+			// Check that setTimeout was called with correct delay
+			// Should refresh 5 minutes before expiry = 25 minutes
+			expect(setTimeoutSpy).toHaveBeenCalledWith(
+				expect.any(Function),
+				(expiresIn - 5 * 60) * 1000
+			)
+		})
+	})
 })

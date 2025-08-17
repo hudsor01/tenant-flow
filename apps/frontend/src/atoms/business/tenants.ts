@@ -89,21 +89,21 @@ export const tenantsByStatusAtom = atom(get => {
 })
 
 // Actions
-export const setTenantsAtom = atom(null, (get, set, tenants: Tenant[]) => {
+export const setTenantsAtom = atom(null, (_get, set, tenants: Tenant[]) => {
 	set(tenantsAtom, tenants)
 	set(totalTenantsCountAtom, tenants.length)
 })
 
-export const addTenantAtom = atom(null, (get, set, tenant: Tenant) => {
-	const currentTenants = get(tenantsAtom)
+export const addTenantAtom = atom(null, (_get, set, tenant: Tenant) => {
+	const currentTenants = _get(tenantsAtom)
 	set(tenantsAtom, [tenant, ...currentTenants])
 	set(totalTenantsCountAtom, currentTenants.length + 1)
 })
 
 export const updateTenantAtom = atom(
 	null,
-	(get, set, updatedTenant: Partial<Tenant> & { id: string }) => {
-		const currentTenants = get(tenantsAtom)
+	(_get, set, updatedTenant: Partial<Tenant> & { id: string }) => {
+		const currentTenants = _get(tenantsAtom)
 		const updatedTenants = currentTenants.map(tenant =>
 			tenant.id === updatedTenant.id
 				? { ...tenant, ...updatedTenant }
@@ -113,22 +113,22 @@ export const updateTenantAtom = atom(
 		set(tenantsAtom, updatedTenants)
 
 		// Update selected tenant if it matches
-		const selectedTenant = get(selectedTenantAtom)
+		const selectedTenant = _get(selectedTenantAtom)
 		if (selectedTenant?.id === updatedTenant.id) {
 			set(selectedTenantAtom, { ...selectedTenant, ...updatedTenant })
 		}
 	}
 )
 
-export const deleteTenantAtom = atom(null, (get, set, tenantId: string) => {
-	const currentTenants = get(tenantsAtom)
+export const deleteTenantAtom = atom(null, (_get, set, tenantId: string) => {
+	const currentTenants = _get(tenantsAtom)
 	const filteredTenants = currentTenants.filter(t => t.id !== tenantId)
 
 	set(tenantsAtom, filteredTenants)
 	set(totalTenantsCountAtom, filteredTenants.length)
 
 	// Clear selected tenant if it was deleted
-	const selectedTenant = get(selectedTenantAtom)
+	const selectedTenant = _get(selectedTenantAtom)
 	if (selectedTenant?.id === tenantId) {
 		set(selectedTenantAtom, null)
 	}
@@ -136,33 +136,33 @@ export const deleteTenantAtom = atom(null, (get, set, tenantId: string) => {
 
 export const setTenantFiltersAtom = atom(
 	null,
-	(get, set, filters: TenantFilters) => {
-		const currentFilters = get(tenantFiltersAtom)
+	(_get, set, filters: TenantFilters) => {
+		const currentFilters = _get(tenantFiltersAtom)
 		set(tenantFiltersAtom, { ...currentFilters, ...filters })
 	}
 )
 
-export const clearTenantFiltersAtom = atom(null, (get, set) => {
+export const clearTenantFiltersAtom = atom(null, (_get, set) => {
 	set(tenantFiltersAtom, {})
 })
 
 export const selectTenantAtom = atom(
 	null,
-	(get, set, tenant: Tenant | null) => {
+	(_get, set, tenant: Tenant | null) => {
 		set(selectedTenantAtom, tenant)
 	}
 )
 
 export const setTenantsLoadingAtom = atom(
 	null,
-	(get, set, loading: boolean) => {
+	(_get, set, loading: boolean) => {
 		set(tenantsLoadingAtom, loading)
 	}
 )
 
 export const setTenantsErrorAtom = atom(
 	null,
-	(get, set, error: string | null) => {
+	(_get, set, error: string | null) => {
 		set(tenantsErrorAtom, error)
 	}
 )
