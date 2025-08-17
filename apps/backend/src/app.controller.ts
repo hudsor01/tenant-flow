@@ -46,6 +46,31 @@ http_requests_total 1
 `
 	}
 
+	@Get('health')
+	@Public()
+	getHealth() {
+		const memoryUsage = process.memoryUsage()
+		
+		return {
+			status: 'healthy',
+			timestamp: new Date().toISOString(),
+			environment: process.env.NODE_ENV || 'unknown',
+			version: '1.0.0',
+			uptime: process.uptime(),
+			pid: process.pid,
+			memory: {
+				heapUsed: Math.round(memoryUsage.heapUsed / 1024 / 1024) + 'MB',
+				heapTotal: Math.round(memoryUsage.heapTotal / 1024 / 1024) + 'MB',
+				rss: Math.round(memoryUsage.rss / 1024 / 1024) + 'MB'
+			},
+			system: {
+				nodeVersion: process.version,
+				platform: process.platform,
+				arch: process.arch
+			}
+		}
+	}
+
 	@Get('api')
 	@Public()
 	getHello(): string {

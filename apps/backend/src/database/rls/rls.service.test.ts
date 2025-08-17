@@ -140,7 +140,7 @@ jest.mock('@supabase/supabase-js', () => ({
 
 describe('RLSService', () => {
 	let service: RLSService
-	let supabase: SupabaseService
+	let supabaseService: SupabaseService
 	let configService: ConfigService
 
 	// Test data
@@ -176,12 +176,6 @@ describe('RLSService', () => {
 		jest.clearAllMocks()
 		currentTableName = ''
 
-		// Create the mocks that we'll reuse
-		const mockPropertyFindMany = jest.fn()
-		const mockPropertyCreate = jest.fn()
-		const mockPropertyUpdate = jest.fn()
-		const mockPropertyDelete = jest.fn()
-
 		// Create mock ConfigService
 		configService = {
 			get: jest.fn((key: string) => {
@@ -194,26 +188,22 @@ describe('RLSService', () => {
 			})
 		} as unknown as ConfigService
 
-		// Create mock PrismaService
-		prisma = {
-			property: {
-				findMany: mockPropertyFindMany,
-				create: mockPropertyCreate,
-				update: mockPropertyUpdate,
-				delete: mockPropertyDelete
-			},
-			unit: {
-				findMany: jest.fn(),
-				create: jest.fn()
-			},
-			tenant: {
-				findMany: jest.fn()
-			},
-			$transaction: jest.fn()
-		} as unknown as PrismaService
+		// Create mock SupabaseService
+		supabaseService = {
+			getAdminClient: jest.fn(() => ({
+				from: jest.fn(() => ({
+					select: jest.fn(() => ({
+						eq: jest.fn(() => ({
+							single: jest.fn()
+						}))
+					}))
+				})),
+				rpc: jest.fn()
+			}))
+		} as unknown as SupabaseService
 
 		// Create service instance with mocked dependencies
-		service = new RLSService(prisma, configService)
+		service = new RLSService(supabaseService)
 	})
 
 	describe('service initialization', () => {
