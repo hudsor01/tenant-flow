@@ -212,7 +212,6 @@ export const COMMON_EXPANSIONS = {
 	],
 
 	// Customer expansions
-	// Note: default_source removed - Sources API is deprecated, use invoice_settings.default_payment_method
 	CUSTOMER_BASIC: [],
 	CUSTOMER_SUBSCRIPTIONS: ['subscriptions'],
 	CUSTOMER_DETAILED: ['subscriptions', 'tax_ids'],

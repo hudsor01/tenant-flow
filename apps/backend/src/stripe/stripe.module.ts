@@ -1,80 +1,66 @@
 import { forwardRef, Module } from '@nestjs/common'
-import { ConfigModule } from '@nestjs/config'
-import { HttpModule } from '@nestjs/axios'
-import { EventEmitterModule } from '@nestjs/event-emitter'
-import { MeasureLoadTime } from '../common/performance/performance.decorators'
-
-// Core Stripe Services
 import { StripeService } from './stripe.service'
-import { StripeDBService } from './stripe-db.service'
-import { StripeBillingService } from './stripe-billing.service'
-import { StripeCheckoutService } from './stripe-checkout.service'
-import { StripeErrorHandler } from './stripe-error.handler'
-import { PaymentRecoveryService } from './payment-recovery.service'
-
-// Webhook System
-import { WebhookController } from './webhook.controller'
-import { WebhookService } from './webhook.service'
-import { WebhookMonitoringController } from './webhook-monitoring.controller'
-import { WebhookMetricsService } from './webhook-metrics.service'
-import { WebhookHealthService } from './webhook-health.service'
-import { WebhookErrorMonitorService } from './webhook-error-monitor.service'
-import { WebhookObservabilityService } from './webhook-observability.service'
 import { StripeCheckoutController } from './stripe-checkout.controller'
-
+import { WebhookController } from './webhook.controller'
+import { StripeAnalyticsController } from './stripe-analytics.controller'
+import { WebhookService } from './webhook.service'
+import { StripeCheckoutService } from './stripe-checkout.service'
+import { StripeBillingService } from './stripe-billing.service'
+import { StripeDBService } from './stripe-db.service'
+import { WebhookHealthService } from './webhook-health.service'
+import { PaymentRecoveryService } from './payment-recovery.service'
+import { StripeFdwSimpleService } from './stripe-fdw-simple.service'
+import { StripeFdwService } from './stripe-fdw.service'
 import { SupabaseModule } from '../supabase/supabase.module'
-import { DatabaseModule } from '../common/database/database.module'
-import { EmailModule } from '../email/email.module'
+import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { NotificationsModule } from '../notifications/notifications.module'
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module'
+import { ConfigModule } from '@nestjs/config'
+import { BullModule } from '@nestjs/bull'
+import { CommonModule } from '../common/common.module'
+import { HealthModule } from '../health/health.module'
 
-@MeasureLoadTime('StripeModule')
 @Module({
 	imports: [
 		ConfigModule,
-		SupabaseModule, // Global module - should be available everywhere
-		DatabaseModule, // Provides PrismaService compatibility layer
-		EmailModule,
-		HttpModule,
-		EventEmitterModule,
-		NotificationsModule,
-		forwardRef(() => SubscriptionsModule) // Fix circular dependency
-	],
-	controllers: [
-		WebhookController,
-		WebhookMonitoringController,
-		StripeCheckoutController
+		SupabaseModule,
+		forwardRef(() => NotificationsModule),
+		forwardRef(() => SubscriptionsModule),
+		forwardRef(() => CommonModule),
+		forwardRef(() => HealthModule),
+		BullModule.registerQueue({
+			name: 'payment-recovery',
+			defaultJobOptions: {
+				attempts: 3,
+				backoff: {
+					type: 'exponential',
+					delay: 60000
+				}
+			}
+		})
 	],
 	providers: [
 		StripeService,
-		StripeDBService,
-		StripeBillingService,
-		StripeCheckoutService,
-		StripeErrorHandler,
-		PaymentRecoveryService,
-
-		// Webhook services
 		WebhookService,
-		WebhookMetricsService,
+		StripeCheckoutService,
+		StripeBillingService,
+		StripeDBService,
 		WebhookHealthService,
-		WebhookErrorMonitorService,
-		WebhookObservabilityService
+		PaymentRecoveryService,
+		StripeFdwSimpleService,
+		StripeFdwService,
+		ErrorHandlerService
 	],
+	controllers: [StripeCheckoutController, WebhookController, StripeAnalyticsController],
 	exports: [
 		StripeService,
-		StripeDBService,
-		StripeBillingService, // 🚨 DEBUG: Explicitly exporting StripeBillingService
-		StripeCheckoutService,
-		PaymentRecoveryService,
-
-		// Webhook system exports
 		WebhookService,
-		WebhookMetricsService,
-		WebhookHealthService,
-		WebhookErrorMonitorService,
-		WebhookObservabilityService
+		StripeCheckoutService,
+		StripeBillingService,
+		StripeDBService,
+		PaymentRecoveryService,
+		StripeFdwSimpleService,
+		StripeFdwService
 	]
 })
-export class StripeModule {
-	// Remove static logger and constructor to improve load time
-}
+export class StripeModule {}

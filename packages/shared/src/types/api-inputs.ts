@@ -88,6 +88,9 @@ export interface CreatePropertyInput {
 	zipCode: string
 	description?: string
 	propertyType?: PropertyType
+	imageUrl?: string
+	units?: number
+	stripeCustomerId?: string
 	[key: string]: unknown
 }
 
@@ -104,6 +107,8 @@ export interface UpdatePropertyInput {
 	description?: string
 	propertyType?: PropertyType
 	imageUrl?: string
+	units?: number
+	stripeCustomerId?: string
 	[key: string]: unknown
 }
 
@@ -128,9 +133,8 @@ export interface CreateUnitInput {
 	bathrooms: number
 	squareFeet?: number
 	monthlyRent: number
-	securityDeposit?: number
+	status?: string
 	description?: string
-	amenities?: string[]
 	[key: string]: unknown
 }
 
@@ -144,11 +148,8 @@ export interface UpdateUnitInput {
 	bathrooms?: number
 	squareFeet?: number
 	monthlyRent?: number
-	securityDeposit?: number
-	description?: string
-	amenities?: string[]
 	status?: string
-	lastInspectionDate?: string | Date
+	description?: string
 	[key: string]: unknown
 }
 
@@ -182,7 +183,6 @@ export interface UpdateTenantInput {
 	emergencyContact?: string
 	emergencyPhone?: string
 	moveInDate?: string
-	moveOutDate?: string
 	notes?: string
 	[key: string]: unknown
 }

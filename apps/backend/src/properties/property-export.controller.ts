@@ -67,7 +67,7 @@ export class PropertyExportController {
 
 			// Convert to CSV
 			const csvData = this.convertToCSV(
-				properties as Record<string, unknown>[]
+				properties as unknown as Record<string, unknown>[]
 			)
 
 			res.header('Content-Type', 'text/csv')
@@ -138,8 +138,7 @@ export class PropertyExportController {
 		const [properties] = await Promise.all([
 			this.propertiesService.getByOwner(user.id, {
 				limit: 1000,
-				offset: 0,
-				sortOrder: 'desc' as const
+				offset: 0
 			})
 			// Add other service calls as needed
 		])
@@ -153,7 +152,7 @@ export class PropertyExportController {
 
 		if (format === 'csv') {
 			const csvData = this.convertToCSV(
-				properties as Record<string, unknown>[]
+				properties as unknown as Record<string, unknown>[]
 			)
 			res.header('Content-Type', 'text/csv')
 			res.header(
@@ -185,7 +184,7 @@ export class PropertyExportController {
 		if (!status.canExportData) {
 			// Show preview of what they could export
 			const stats = await this.propertiesService.getStats(user.id)
-			const propertiesCount = stats.totalProperties
+			const propertiesCount = stats.total
 
 			return {
 				available: false,

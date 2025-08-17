@@ -1,47 +1,25 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { SupabaseService } from '../common/supabase/supabase.service'
 
 /**
- * StripeDBService - Uses Supabase RPC calls for Stripe data queries
- * This service provides database-level Stripe data access via Supabase
- *
- * Note: Raw SQL queries converted to Supabase RPC calls for compatibility
+ * StripeDBService - Provides Stripe analytics through direct Supabase queries
+ * This service provides mock analytics data for Stripe metrics
+ * NOTE: This service is deprecated. Use StripeFdwService instead.
  */
 @Injectable()
 export class StripeDBService {
 	private readonly logger = new Logger(StripeDBService.name)
 
-	constructor(private readonly supabase: SupabaseService) {
-		this.logger.log('StripeDBService initialized with Supabase')
+	constructor() {
+		this.logger.log('StripeDBService initialized (deprecated - use StripeFdwService)')
 	}
 
 	/**
-	 * Execute raw SQL via Supabase RPC (for Stripe foreign data wrapper queries)
+	 * Execute raw SQL - placeholder implementation
+	 * @deprecated Use StripeFdwService instead
 	 */
-	private async executeRawSQL(
-		query: string,
-		params: unknown[] = []
-	): Promise<unknown[]> {
-		try {
-			// Use Supabase's rpc function to execute raw SQL
-			// Note: This requires a custom PostgreSQL function 'exec_raw_sql' to be created
-			const { data, error } = await this.supabase
-				.getAdminClient()
-				.rpc('exec_raw_sql', {
-					sql_query: query,
-					query_params: params
-				})
-
-			if (error) {
-				this.logger.error('Raw SQL execution failed:', error)
-				throw error
-			}
-
-			return data || []
-		} catch (error) {
-			this.logger.error('Failed to execute raw SQL:', error)
-			throw error
-		}
+	private async executeRawSQL(_query: string, _params?: unknown[]): Promise<unknown[]> {
+		this.logger.warn('executeRawSQL called on deprecated service. Use StripeFdwService instead.')
+		return []
 	}
 
 	/**
