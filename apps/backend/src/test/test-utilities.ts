@@ -100,19 +100,25 @@ export class MockConfigService extends ConfigService {
 }
 
 // Mock Bull Job Factory
-export function createMockJob<T>(
-	data: T,
-	options: Partial<Job<T>> = {}
-): Job<T> {
-	const mockJob = {
-		id: '123',
+export function createMockJob<T = unknown>(data: T, options: { id?: string } = {}): Job<T> {
+	return {
+		id: options.id || Math.random().toString(36).substr(2, 9),
 		data,
 		attemptsMade: 0,
+		opts: {},
+		timestamp: Date.now(),
+		queue: {
+			name: 'test-queue'
+		},
 		progress: jest.fn().mockResolvedValue(undefined),
-		...options
-	} as unknown as Job<T>
-
-	return mockJob
+		update: jest.fn().mockResolvedValue(undefined),
+		remove: jest.fn().mockResolvedValue(undefined),
+		retry: jest.fn().mockResolvedValue(undefined),
+		discard: jest.fn().mockResolvedValue(undefined),
+		promote: jest.fn().mockResolvedValue(undefined),
+		finished: jest.fn().mockResolvedValue(undefined),
+		toJSON: jest.fn().mockReturnValue({ id: options.id, data })
+	} as Job<T>
 }
 
 // Mock Fastify Instance for CORS testing
@@ -346,6 +352,7 @@ export const CorsFixtures = {
 // Module builder for consistent test modules
 type Provider = object | { provide: unknown; useValue: unknown }
 type Module = object
+
 
 export class TestModuleBuilder {
 	private providers: Provider[] = []

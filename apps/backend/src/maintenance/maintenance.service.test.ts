@@ -3,10 +3,9 @@ import { MaintenanceService } from './maintenance.service'
 import { NotFoundException } from '../common/exceptions/base.exception'
 
 // Mock the dependencies
-jest.mock('./maintenance-request.repository')
+jest.mock('./maintenance-request-supabase.repository')
 jest.mock('../common/errors/error-handler.service')
-jest.mock('../common/supabase.service')
-jest.mock('../prisma/prisma.service')
+jest.mock('../common/supabase/supabase.service')
 
 describe('MaintenanceService - Simplified Tests', () => {
 	let service: MaintenanceService

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals'
-import { PropertyType } from '@repo/shared'
+import { PROPERTY_TYPE } from '@repo/shared'
 import { PropertiesService } from './properties.service'
 import { NotFoundException } from '../common/exceptions/base.exception'
 
@@ -19,7 +19,7 @@ describe('PropertiesService - Simplified Tests', () => {
 		state: 'TX',
 		zipCode: '12345',
 		description: 'A test property',
-		propertyType: PropertyType.SINGLE_FAMILY,
+		propertyType: PROPERTY_TYPE.SINGLE_FAMILY,
 		imageUrl: 'https://example.com/image.jpg',
 		bedrooms: 3,
 		bathrooms: 2,
@@ -109,7 +109,7 @@ describe('PropertiesService - Simplified Tests', () => {
 
 		it('should handle query parameters correctly', async () => {
 			const query = {
-				propertyType: PropertyType.APARTMENT,
+				propertyType: PROPERTY_TYPE.APARTMENT,
 				search: 'downtown',
 				limit: 10,
 				offset: 0
@@ -123,7 +123,7 @@ describe('PropertiesService - Simplified Tests', () => {
 			expect(
 				propertiesRepository.findByOwnerWithUnits
 			).toHaveBeenCalledWith('owner-123', {
-				propertyType: PropertyType.APARTMENT,
+				propertyType: PROPERTY_TYPE.APARTMENT,
 				search: 'downtown',
 				limit: 10,
 				offset: 0
@@ -242,7 +242,7 @@ describe('PropertiesService - Simplified Tests', () => {
 			state: 'CA',
 			zipCode: '54321',
 			description: 'A new property',
-			propertyType: PropertyType.APARTMENT,
+			propertyType: PROPERTY_TYPE.APARTMENT,
 			stripeCustomerId: 'cus_123'
 		}
 
@@ -261,7 +261,7 @@ describe('PropertiesService - Simplified Tests', () => {
 					city: mockPropertyData.city,
 					description: mockPropertyData.description,
 					name: mockPropertyData.name,
-					propertyType: PropertyType.APARTMENT,
+					propertyType: PROPERTY_TYPE.APARTMENT,
 					state: mockPropertyData.state,
 					stripeCustomerId: mockPropertyData.stripeCustomerId,
 					zipCode: mockPropertyData.zipCode
@@ -289,7 +289,7 @@ describe('PropertiesService - Simplified Tests', () => {
 					city: propertyDataWithUnits.city,
 					description: propertyDataWithUnits.description,
 					name: propertyDataWithUnits.name,
-					propertyType: PropertyType.APARTMENT,
+					propertyType: PROPERTY_TYPE.APARTMENT,
 					state: propertyDataWithUnits.state,
 					stripeCustomerId: propertyDataWithUnits.stripeCustomerId,
 					zipCode: propertyDataWithUnits.zipCode,
@@ -481,7 +481,7 @@ describe('PropertiesService - Simplified Tests', () => {
 				mockProperty
 			])
 
-			const query = { propertyType: PropertyType.APARTMENT }
+			const query = { propertyType: PROPERTY_TYPE.APARTMENT }
 			const result = await propertiesService.findAllByOwner(
 				'owner-123',
 				query
@@ -492,7 +492,7 @@ describe('PropertiesService - Simplified Tests', () => {
 			).toHaveBeenCalledWith(
 				'owner-123',
 				expect.objectContaining({
-					propertyType: PropertyType.APARTMENT
+					propertyType: PROPERTY_TYPE.APARTMENT
 				})
 			)
 			expect(result).toEqual([mockProperty])
