@@ -4,7 +4,7 @@ import { HttpException, HttpStatus } from '@nestjs/common'
 import { ArgumentsHost } from '@nestjs/common'
 
 import { GlobalExceptionFilter } from './global-exception.filter'
-import { ErrorHandlerService } from '../errors/error-handler.service'
+import { LoggerService } from '../services/logger.service'
 
 describe('GlobalExceptionFilter', () => {
 	let filter: GlobalExceptionFilter
@@ -17,9 +17,13 @@ describe('GlobalExceptionFilter', () => {
 			providers: [
 				GlobalExceptionFilter,
 				{
-					provide: ErrorHandlerService,
+					provide: LoggerService,
 					useValue: {
-						logError: jest.fn()
+						setContext: jest.fn(),
+						log: jest.fn(),
+						error: jest.fn(),
+						warn: jest.fn(),
+						debug: jest.fn()
 					}
 				}
 			]
