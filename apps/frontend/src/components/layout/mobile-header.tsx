@@ -38,9 +38,11 @@ const getBreadcrumbs = (pathname: string) => {
 
 	for (let i = 0; i < segments.length - 1; i++) {
 		currentPath += '/' + segments[i]
+		const segment = segments[i]
+		if (!segment) continue
 		const title =
 			pageTitles[currentPath] ||
-			segments[i].charAt(0).toUpperCase() + segments[i].slice(1)
+			segment.charAt(0).toUpperCase() + segment.slice(1)
 		breadcrumbs.push({ title, href: currentPath })
 	}
 

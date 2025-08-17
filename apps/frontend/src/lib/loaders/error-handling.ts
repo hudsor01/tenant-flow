@@ -424,9 +424,7 @@ export class LoaderErrorHandler {
 	}
 
 	// Helper methods
-	private isAxiosError(
-		error: unknown
-	): error is {
+	private isAxiosError(error: unknown): error is {
 		response?: { status?: number; data?: { message?: string } }
 		message: string
 	} {

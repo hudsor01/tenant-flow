@@ -8,13 +8,7 @@ import {
 } from '@nestjs/common'
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { ZodError } from 'zod'
-import {
-	PrismaClientInitializationError,
-	PrismaClientKnownRequestError,
-	PrismaClientRustPanicError,
-	PrismaClientUnknownRequestError,
-	PrismaClientValidationError
-} from '@repo/database'
+// Prisma error types removed - using Supabase now
 import type { AppError, ControllerApiResponse } from '@repo/shared'
 import { UnifiedLoggerService } from '../logging/unified-logger.service'
 
@@ -524,11 +518,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 	 */
 	private isPrismaError(exception: unknown): boolean {
 		return (
-			exception instanceof PrismaClientKnownRequestError ||
-			exception instanceof PrismaClientUnknownRequestError ||
-			exception instanceof PrismaClientRustPanicError ||
-			exception instanceof PrismaClientInitializationError ||
-			exception instanceof PrismaClientValidationError ||
+			// Prisma error handling removed - using Supabase now
 			Boolean(
 				(exception as Record<string, unknown>)?.code
 					?.toString()

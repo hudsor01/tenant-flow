@@ -17,24 +17,24 @@ const generateId = () =>
 // Actions
 export const addNotificationAtom = atom(
 	null,
-	(get, set, notification: Omit<NotificationState, 'id' | 'timestamp'>) => {
+	(_get, set, notification: Omit<NotificationState, 'id' | 'timestamp'>) => {
 		const newNotification: NotificationState = {
 			...notification,
 			id: generateId(),
 			timestamp: Date.now()
 		}
 
-		const currentNotifications = get(notificationsAtom)
+		const currentNotifications = _get(notificationsAtom)
 		set(notificationsAtom, [...currentNotifications, newNotification])
 
 		// Auto-remove after 5 seconds for success/info notifications
 		if (notification.type === 'success' || notification.type === 'info') {
 			setTimeout(() => {
-				const updatedNotifications = get(notificationsAtom)
+				const updatedNotifications = _get(notificationsAtom)
 				set(
 					notificationsAtom,
 					updatedNotifications.filter(
-						n => n.id !== newNotification.id
+						(n: NotificationState) => n.id !== newNotification.id
 					)
 				)
 			}, 5000)
@@ -42,15 +42,15 @@ export const addNotificationAtom = atom(
 	}
 )
 
-export const removeNotificationAtom = atom(null, (get, set, id: string) => {
-	const currentNotifications = get(notificationsAtom)
+export const removeNotificationAtom = atom(null, (_get, set, id: string) => {
+	const currentNotifications = _get(notificationsAtom)
 	set(
 		notificationsAtom,
 		currentNotifications.filter(n => n.id !== id)
 	)
 })
 
-export const clearNotificationsAtom = atom(null, (get, set) => {
+export const clearNotificationsAtom = atom(null, (_get, set) => {
 	set(notificationsAtom, [])
 })
 

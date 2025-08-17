@@ -15,7 +15,7 @@ import {
 	ErrorCode,
 	ErrorHandlerService
 } from '../common/errors/error-handler.service'
-import type { PlanType } from '@repo/database'
+import type { PlanType } from '@repo/shared'
 // Define subscription request type locally since it's not exported from shared
 interface CreateSubscriptionRequest {
 	planId: string

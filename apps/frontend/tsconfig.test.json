@@ -1,14 +1,14 @@
 {
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "types": ["jest", "@testing-library/jest-dom", "node"]
-  },
-  "include": [
-    "**/*.test.ts",
-    "**/*.test.tsx",
-    "**/*.spec.ts", 
-    "**/*.spec.tsx",
-    "tests/**/*",
-    "**/__tests__/**/*"
-  ]
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"types": ["jest", "@testing-library/jest-dom", "node"]
+	},
+	"include": [
+		"**/*.test.ts",
+		"**/*.test.tsx",
+		"**/*.spec.ts",
+		"**/*.spec.tsx",
+		"tests/**/*",
+		"**/__tests__/**/*"
+	]
 }

@@ -1,6 +1,6 @@
 /**
  * Email Testing Configuration
- * 
+ *
  * This file provides configuration and utilities for testing email functionality
  * across different environments (development, staging, production)
  */
@@ -53,7 +53,8 @@ export function getEmailTestConfig(env?: string): EmailTestConfig {
 				environment: 'development',
 				mockEmails: false,
 				logEmails: true,
-				redirectAllTo: process.env.DEV_EMAIL_RECIPIENT || 'dev@tenantflow.app',
+				redirectAllTo:
+					process.env.DEV_EMAIL_RECIPIENT || 'dev@tenantflow.app',
 				rateLimit: {
 					maxPerMinute: 30,
 					maxPerHour: 500,
@@ -163,8 +164,9 @@ export class EmailTestUtils {
 	 * Get emails sent to a specific recipient
 	 */
 	static getEmailsTo(recipient: string) {
-		return this.sentEmails.filter(email => 
-			email.to?.includes(recipient) || email.to?.[0] === recipient
+		return this.sentEmails.filter(
+			email =>
+				email.to?.includes(recipient) || email.to?.[0] === recipient
 		)
 	}
 
@@ -227,7 +229,9 @@ export class EmailTestUtils {
 			warnings.push('Missing viewport meta tag (mobile compatibility)')
 		}
 		if (html.includes('<script')) {
-			warnings.push('Contains script tags (may be blocked by email clients)')
+			warnings.push(
+				'Contains script tags (may be blocked by email clients)'
+			)
 		}
 		if (html.includes('javascript:')) {
 			errors.push('Contains javascript: protocol (security risk)')
@@ -268,14 +272,18 @@ export class EmailTestUtils {
 			payment_reminder: {
 				tenantName: 'Test Tenant',
 				amountDue: 1500,
-				dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+				dueDate: new Date(
+					Date.now() + 3 * 24 * 60 * 60 * 1000
+				).toISOString(),
 				propertyAddress: '456 Test Ave',
 				paymentLink: 'https://test.tenantflow.app/pay/test456'
 			},
 			lease_expiration: {
 				tenantName: 'Test Tenant',
 				propertyAddress: '789 Test Blvd',
-				expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+				expirationDate: new Date(
+					Date.now() + 30 * 24 * 60 * 60 * 1000
+				).toISOString(),
 				renewalLink: 'https://test.tenantflow.app/renew/test789',
 				leaseId: 'lease_test_123'
 			}
@@ -303,7 +311,7 @@ export class EmailTestUtils {
 		config?: EmailTestConfig
 	): boolean {
 		const testConfig = config || getEmailTestConfig()
-		
+
 		if (!testConfig.rateLimit) return false
 
 		const timeWindowMinutes = timeWindowMs / (60 * 1000)
@@ -331,15 +339,19 @@ export class EmailAssertions {
 	 */
 	static assertEmailSent(recipient: string, subject?: string) {
 		const emails = EmailTestUtils.getEmailsTo(recipient)
-		
+
 		if (emails.length === 0) {
 			throw new Error(`No emails sent to ${recipient}`)
 		}
 
 		if (subject) {
-			const matchingEmails = emails.filter(e => e.subject?.includes(subject))
+			const matchingEmails = emails.filter(e =>
+				e.subject?.includes(subject)
+			)
 			if (matchingEmails.length === 0) {
-				throw new Error(`No emails with subject "${subject}" sent to ${recipient}`)
+				throw new Error(
+					`No emails with subject "${subject}" sent to ${recipient}`
+				)
 			}
 		}
 	}
@@ -349,9 +361,11 @@ export class EmailAssertions {
 	 */
 	static assertNoEmailSent(recipient: string) {
 		const emails = EmailTestUtils.getEmailsTo(recipient)
-		
+
 		if (emails.length > 0) {
-			throw new Error(`Unexpected emails sent to ${recipient}: ${emails.length} found`)
+			throw new Error(
+				`Unexpected emails sent to ${recipient}: ${emails.length} found`
+			)
 		}
 	}
 
@@ -360,13 +374,13 @@ export class EmailAssertions {
 	 */
 	static assertEmailContains(recipient: string, content: string) {
 		const emails = EmailTestUtils.getEmailsTo(recipient)
-		
+
 		if (emails.length === 0) {
 			throw new Error(`No emails sent to ${recipient}`)
 		}
 
-		const matchingEmails = emails.filter(e => 
-			e.html?.includes(content) || e.text?.includes(content)
+		const matchingEmails = emails.filter(
+			e => e.html?.includes(content) || e.text?.includes(content)
 		)
 
 		if (matchingEmails.length === 0) {
@@ -378,14 +392,14 @@ export class EmailAssertions {
 	 * Assert email count
 	 */
 	static assertEmailCount(expectedCount: number, recipient?: string) {
-		const emails = recipient 
+		const emails = recipient
 			? EmailTestUtils.getEmailsTo(recipient)
 			: EmailTestUtils.getSentEmails()
 
 		if (emails.length !== expectedCount) {
 			throw new Error(
 				`Expected ${expectedCount} emails${recipient ? ` to ${recipient}` : ''}, ` +
-				`but found ${emails.length}`
+					`but found ${emails.length}`
 			)
 		}
 	}
@@ -426,10 +440,10 @@ export class EmailPerformanceTest {
 	static getStats() {
 		const calculate = (times: number[]) => {
 			if (times.length === 0) return null
-			
+
 			const sorted = [...times].sort((a, b) => a - b)
 			const sum = sorted.reduce((a, b) => a + b, 0)
-			
+
 			return {
 				min: sorted[0],
 				max: sorted[sorted.length - 1],

@@ -9,8 +9,7 @@ import {
 	MinLength
 } from 'class-validator'
 import { Transform } from 'class-transformer'
-import { PropertyType } from '@repo/database'
-import { CreatePropertyInput, PROPERTY_TYPE } from '@repo/shared'
+import { CreatePropertyInput, PROPERTY_TYPE, PropertyType } from '@repo/shared'
 
 export class CreatePropertyDto implements CreatePropertyInput {
 	[key: string]: unknown

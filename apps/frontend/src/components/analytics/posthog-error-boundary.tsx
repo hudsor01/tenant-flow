@@ -24,7 +24,7 @@ export class PostHogErrorBoundary extends Component<Props, State> {
 		return { hasError: true, error }
 	}
 
-	componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+	override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
 		// Log error to PostHog
 		if (typeof window !== 'undefined' && posthog) {
 			posthog.capture('error_occurred', {
@@ -48,7 +48,7 @@ export class PostHogErrorBoundary extends Component<Props, State> {
 		}
 	}
 
-	render() {
+	override render() {
 		if (this.state.hasError) {
 			// You can render any custom fallback UI
 			return (

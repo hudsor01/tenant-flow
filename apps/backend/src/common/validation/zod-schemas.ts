@@ -1,11 +1,11 @@
 import { z } from 'zod'
 import {
-	LeaseStatus,
-	Priority,
-	PropertyType,
-	RequestStatus,
-	UnitStatus
-} from '@repo/database'
+	LEASE_STATUS,
+	PRIORITY,
+	PROPERTY_TYPE,
+	REQUEST_STATUS,
+	UNIT_STATUS
+} from '@repo/shared'
 
 /**
  * Core Zod Validation Schemas
@@ -102,7 +102,9 @@ export const signupSchema = z.object({
 // Property Schemas
 // ========================================
 
-export const propertyTypeSchema = z.nativeEnum(PropertyType)
+export const propertyTypeSchema = z.enum(
+	Object.values(PROPERTY_TYPE) as [string, ...string[]]
+)
 
 export const addressSchema = z.object({
 	address: z.string().min(1, 'Address is required').max(500),
@@ -115,7 +117,7 @@ export const createPropertySchema = z
 	.object({
 		name: z.string().min(1, 'Property name is required').max(200),
 		description: z.string().max(2000).optional(),
-		propertyType: propertyTypeSchema.default(PropertyType.SINGLE_FAMILY),
+		propertyType: propertyTypeSchema.default(PROPERTY_TYPE.SINGLE_FAMILY),
 		imageUrl: urlSchema,
 		units: z.number().int().min(0).max(1000).optional(),
 		stripeCustomerId: z.string().optional()
@@ -136,7 +138,9 @@ export const queryPropertiesSchema = baseQuerySchema.extend({
 // Unit Schemas
 // ========================================
 
-export const unitStatusSchema = z.nativeEnum(UnitStatus)
+export const unitStatusSchema = z.enum(
+	Object.values(UNIT_STATUS) as [string, ...string[]]
+)
 
 export const createUnitSchema = z.object({
 	propertyId: uuidSchema,
@@ -145,7 +149,7 @@ export const createUnitSchema = z.object({
 	bathrooms: z.number().min(0).max(20).default(1),
 	squareFeet: z.number().int().min(1).max(50000).optional(),
 	rent: currencySchema,
-	status: unitStatusSchema.default(UnitStatus.VACANT),
+	status: unitStatusSchema.default(UNIT_STATUS.VACANT),
 	description: z.string().max(1000).optional()
 })
 
@@ -188,15 +192,19 @@ export const queryTenantsSchema = baseQuerySchema.extend({
 // Maintenance Request Schemas
 // ========================================
 
-export const maintenancePrioritySchema = z.nativeEnum(Priority)
-export const maintenanceStatusSchema = z.nativeEnum(RequestStatus)
+export const maintenancePrioritySchema = z.enum(
+	Object.values(PRIORITY) as [string, ...string[]]
+)
+export const maintenanceStatusSchema = z.enum(
+	Object.values(REQUEST_STATUS) as [string, ...string[]]
+)
 
 export const createMaintenanceRequestSchema = z.object({
 	unitId: uuidSchema,
 	title: z.string().min(1, 'Title is required').max(200),
 	description: z.string().min(1, 'Description is required').max(2000),
 	category: z.string().max(100).optional(),
-	priority: maintenancePrioritySchema.default(Priority.MEDIUM),
+	priority: maintenancePrioritySchema.default(PRIORITY.MEDIUM),
 	preferredDate: dateSchema.optional(),
 	allowEntry: z.boolean().default(true),
 	contactPhone: phoneSchema,
@@ -230,7 +238,9 @@ export const queryMaintenanceRequestsSchema = baseQuerySchema.extend({
 // Lease Schemas
 // ========================================
 
-export const leaseStatusSchema = z.nativeEnum(LeaseStatus)
+export const leaseStatusSchema = z.enum(
+	Object.values(LEASE_STATUS) as [string, ...string[]]
+)
 
 export const createLeaseSchema = z
 	.object({
@@ -241,7 +251,7 @@ export const createLeaseSchema = z
 		monthlyRent: currencySchema,
 		securityDeposit: currencySchema.default(0),
 		petDeposit: currencySchema.default(0),
-		status: leaseStatusSchema.default(LeaseStatus.DRAFT),
+		status: leaseStatusSchema.default(LEASE_STATUS.DRAFT),
 		terms: z.string().max(5000).optional(),
 		notes: z.string().max(2000).optional()
 	})

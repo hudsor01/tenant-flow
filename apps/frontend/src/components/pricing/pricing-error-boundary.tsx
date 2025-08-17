@@ -90,7 +90,7 @@ export class PricingErrorBoundary extends Component<
 		}
 	}
 
-	componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+	override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
 		const { onError } = this.props
 		const { errorId } = this.state
 
@@ -101,7 +101,7 @@ export class PricingErrorBoundary extends Component<
 		onError?.(error, errorInfo)
 	}
 
-	componentWillUnmount() {
+	override componentWillUnmount() {
 		if (this.retryTimeoutId) {
 			clearTimeout(this.retryTimeoutId)
 		}
@@ -148,7 +148,7 @@ export class PricingErrorBoundary extends Component<
 		)
 	}
 
-	render() {
+	override render() {
 		const {
 			children,
 			fallback,

@@ -98,52 +98,80 @@ export function sanitizeErrorMessage(error: unknown, context?: string): string {
 		lowerMessage.includes('invalid credentials') ||
 		lowerMessage.includes('invalid login')
 	) {
-		return ERROR_MESSAGES['invalid_credentials']
+		return (
+			ERROR_MESSAGES['invalid_credentials'] ||
+			ERROR_MESSAGES['unknown_error'] ||
+			'An error occurred'
+		)
 	}
 
 	if (
 		lowerMessage.includes('email not confirmed') ||
 		lowerMessage.includes('email not verified')
 	) {
-		return ERROR_MESSAGES['email_not_confirmed']
+		return (
+			ERROR_MESSAGES['email_not_confirmed'] ||
+			ERROR_MESSAGES['unknown_error'] ||
+			'An error occurred'
+		)
 	}
 
 	if (
 		lowerMessage.includes('user already registered') ||
 		lowerMessage.includes('user already exists')
 	) {
-		return ERROR_MESSAGES['user_already_exists']
+		return (
+			ERROR_MESSAGES['user_already_exists'] ||
+			ERROR_MESSAGES['unknown_error'] ||
+			'An error occurred'
+		)
 	}
 
 	if (
 		lowerMessage.includes('rate limit') ||
 		lowerMessage.includes('too many requests')
 	) {
-		return ERROR_MESSAGES['too_many_requests']
+		return (
+			ERROR_MESSAGES['too_many_requests'] ||
+			ERROR_MESSAGES['unknown_error'] ||
+			'An error occurred'
+		)
 	}
 
 	if (
 		lowerMessage.includes('network') ||
 		lowerMessage.includes('fetch failed')
 	) {
-		return ERROR_MESSAGES['network_error']
+		return (
+			ERROR_MESSAGES['network_error'] ||
+			ERROR_MESSAGES['unknown_error'] ||
+			'An error occurred'
+		)
 	}
 
 	if (
 		lowerMessage.includes('session expired') ||
 		lowerMessage.includes('jwt expired')
 	) {
-		return ERROR_MESSAGES['session_expired']
+		return (
+			ERROR_MESSAGES['session_expired'] ||
+			ERROR_MESSAGES['unknown_error'] ||
+			'An error occurred'
+		)
 	}
 
 	// Check error code mappings
 	if (errorCode && ERROR_MESSAGES[errorCode]) {
-		return ERROR_MESSAGES[errorCode]
+		return (
+			ERROR_MESSAGES[errorCode] ||
+			ERROR_MESSAGES['unknown_error'] ||
+			'An error occurred'
+		)
 	}
 
 	// Default to generic message in production
 	if (process.env.NODE_ENV === 'production') {
-		return ERROR_MESSAGES['unknown_error']
+		return ERROR_MESSAGES['unknown_error']!
 	}
 
 	// In development, return the original message for debugging

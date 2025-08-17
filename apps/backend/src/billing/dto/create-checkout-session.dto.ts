@@ -1,8 +1,8 @@
 import { IsEnum, IsIn, IsOptional, IsString } from 'class-validator'
-import { PlanType } from '@repo/database'
+import { PLAN_TYPE, PlanType } from '@repo/shared'
 
 export class CreateCheckoutSessionDto {
-	@IsEnum(PlanType)
+	@IsEnum(Object.values(PLAN_TYPE))
 	planType!: PlanType
 
 	@IsIn(['monthly', 'annual'])

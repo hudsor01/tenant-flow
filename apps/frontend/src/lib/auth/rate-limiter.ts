@@ -53,7 +53,7 @@ async function getClientIdentifier(): Promise<string> {
 
 	// Use the first available IP or fallback to 'unknown'
 	const ip =
-		forwardedFor?.split(',')[0].trim() ||
+		forwardedFor?.split(',')[0]?.trim() ||
 		realIp ||
 		cfConnectingIp ||
 		'unknown'

@@ -28,7 +28,7 @@ export function formatLeaseDate(
 		if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
 			// Split date string to avoid timezone conversion issues
 			const [year, month, day] = dateString.split('-').map(Number)
-			date = new Date(year, month - 1, day) // month is 0-indexed
+			date = new Date(year || 0, (month || 1) - 1, day || 1) // month is 0-indexed
 		} else {
 			date = new Date(dateString)
 		}
@@ -64,7 +64,7 @@ export function formatSignatureDate(dateString: string): string {
 		let date: Date
 		if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
 			const [year, month, day] = dateString.split('-').map(Number)
-			date = new Date(year, month - 1, day) // month is 0-indexed
+			date = new Date(year || 0, (month || 1) - 1, day || 1) // month is 0-indexed
 		} else {
 			date = new Date(dateString)
 		}

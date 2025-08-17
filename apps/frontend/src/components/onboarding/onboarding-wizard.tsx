@@ -109,6 +109,7 @@ export function OnboardingWizard() {
 
 	const progress = ((currentStep + 1) / steps.length) * 100
 	const step = steps[currentStep]
+	if (!step) return null
 	const Icon = step.icon
 
 	const handleNext = () => {

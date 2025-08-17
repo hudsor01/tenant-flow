@@ -1,4 +1,4 @@
-import type { User } from '@repo/database'
+import type { User } from '@repo/shared'
 
 export type AuthenticatedUser = User
 

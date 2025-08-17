@@ -1,13 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { PrismaService } from '../prisma/prisma.service'
 import { StripeService } from './stripe.service'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
+// import { PrismaService } from '../common/database/prisma.service' // TODO: Replace with Supabase
 // import { NotificationService } from '../notifications/notification.service' // TODO: Implement when notification service is ready
 import type {
 	StripeCustomer,
 	StripeInvoice
 } from '@repo/shared/types/stripe-core-objects'
-import type { SubStatus } from '@repo/database'
+import type { SubStatus } from '@repo/shared'
 
 export interface PaymentRecoveryOptions {
 	maxRetries?: number
@@ -134,7 +134,7 @@ export class PaymentRecoveryService {
 			// Get the latest unpaid invoice
 			const invoices = await this.stripeService.client.invoices.list({
 				subscription: subscription.stripeSubscriptionId,
-				status: 'open',
+				status: 'open' as const,
 				limit: 1
 			})
 
@@ -213,7 +213,7 @@ export class PaymentRecoveryService {
 			// Get unpaid invoices
 			const invoices = await this.stripeService.client.invoices.list({
 				subscription: subscription.stripeSubscriptionId,
-				status: 'open',
+				status: 'open' as const,
 				limit: 10
 			})
 
@@ -267,7 +267,7 @@ export class PaymentRecoveryService {
 			// Get all open invoices for the customer
 			const invoices = await this.stripeService.client.invoices.list({
 				customer: customerId,
-				status: 'open',
+				status: 'open' as const,
 				limit: 100
 			})
 

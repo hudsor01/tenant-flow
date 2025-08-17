@@ -1,13 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { PrismaService } from '../prisma/prisma.service'
 import {
 	BILLING_PLANS,
 	type BillingPlan,
 	getPlanById
 } from '../shared/constants/billing-plans'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
-import type { PlanType, Subscription } from '@repo/database'
-import type { Plan } from '@repo/shared'
+import { PrismaService } from '../common/database/prisma.service'
+import type { Plan, PlanType, Subscription } from '@repo/shared'
 
 /**
  * SubscriptionsManagerService - Handles local database operations for subscriptions

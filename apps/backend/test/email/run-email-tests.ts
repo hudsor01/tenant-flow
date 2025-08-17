@@ -2,10 +2,10 @@
 
 /**
  * Email System Test Runner
- * 
+ *
  * This script runs all email-related tests and generates a report
  * Can be used in CI/CD pipelines or for local testing
- * 
+ *
  * Usage: npx ts-node test/email/run-email-tests.ts [--env=production] [--verbose]
  */
 
@@ -82,7 +82,7 @@ class EmailTestRunner {
 	 */
 	private async runTestSuite(name: string, command: string): Promise<void> {
 		console.log(`\n▶️  Running: ${name}`)
-		
+
 		const startTime = Date.now()
 		const result: TestResult = {
 			suite: name,
@@ -102,29 +102,35 @@ class EmailTestRunner {
 				})
 
 				let output = ''
-				
+
 				if (!this.verbose) {
-					testProcess.stdout?.on('data', (data) => {
+					testProcess.stdout?.on('data', data => {
 						output += data.toString()
 						// Parse Jest output
-						const passMatch = data.toString().match(/✓.*\((\d+) test/g)
-						const failMatch = data.toString().match(/✕.*\((\d+) test/g)
-						const skipMatch = data.toString().match(/○.*\((\d+) test/g)
-						
+						const passMatch = data
+							.toString()
+							.match(/✓.*\((\d+) test/g)
+						const failMatch = data
+							.toString()
+							.match(/✕.*\((\d+) test/g)
+						const skipMatch = data
+							.toString()
+							.match(/○.*\((\d+) test/g)
+
 						if (passMatch) result.passed = passMatch.length
 						if (failMatch) result.failed = failMatch.length
 						if (skipMatch) result.skipped = skipMatch.length
 					})
 
-					testProcess.stderr?.on('data', (data) => {
+					testProcess.stderr?.on('data', data => {
 						output += data.toString()
 						result.errors.push(data.toString())
 					})
 				}
 
-				testProcess.on('close', (code) => {
+				testProcess.on('close', code => {
 					result.duration = Date.now() - startTime
-					
+
 					if (code === 0) {
 						console.log(`   ✅ Passed (${result.duration}ms)`)
 						resolve()
@@ -137,7 +143,7 @@ class EmailTestRunner {
 					}
 				})
 
-				testProcess.on('error', (error) => {
+				testProcess.on('error', error => {
 					result.errors.push(error.message)
 					result.duration = Date.now() - startTime
 					console.log(`   ⚠️  Error: ${error.message}`)
@@ -146,7 +152,9 @@ class EmailTestRunner {
 			})
 		} catch (error) {
 			result.failed++
-			result.errors.push(error instanceof Error ? error.message : String(error))
+			result.errors.push(
+				error instanceof Error ? error.message : String(error)
+			)
 			result.duration = Date.now() - startTime
 		}
 
@@ -158,7 +166,7 @@ class EmailTestRunner {
 	 */
 	private async runPerformanceTests(): Promise<void> {
 		console.log('\n▶️  Running: Performance Tests')
-		
+
 		const result: TestResult = {
 			suite: 'Performance Tests',
 			passed: 0,
@@ -172,16 +180,23 @@ class EmailTestRunner {
 
 		try {
 			// Import and run performance tests
-			const { EmailTemplateService } = await import('../../src/email/email-template.service')
+			const { EmailTemplateService } = await import(
+				'../../src/email/email-template.service'
+			)
 			const service = new EmailTemplateService()
 
 			// Test template rendering performance
-			const templates = ['welcome', 'tenant-invitation', 'payment-reminder', 'lease-expiration']
+			const templates = [
+				'welcome',
+				'tenant-invitation',
+				'payment-reminder',
+				'lease-expiration'
+			]
 			const renderTimes: number[] = []
 
 			for (const template of templates) {
 				const templateStart = Date.now()
-				
+
 				await service.renderTemplate(template as any, {
 					email: 'perf@test.com',
 					name: 'Performance Test',
@@ -204,20 +219,26 @@ class EmailTestRunner {
 					console.log(`   ✅ ${template}: ${renderTime}ms`)
 				} else {
 					result.failed++
-					result.errors.push(`${template} rendering too slow: ${renderTime}ms`)
+					result.errors.push(
+						`${template} rendering too slow: ${renderTime}ms`
+					)
 					console.log(`   ❌ ${template}: ${renderTime}ms (>500ms)`)
 				}
 			}
 
 			// Calculate statistics
-			const avgTime = renderTimes.reduce((a, b) => a + b, 0) / renderTimes.length
+			const avgTime =
+				renderTimes.reduce((a, b) => a + b, 0) / renderTimes.length
 			const maxTime = Math.max(...renderTimes)
-			
-			console.log(`   📊 Average: ${avgTime.toFixed(2)}ms, Max: ${maxTime}ms`)
 
+			console.log(
+				`   📊 Average: ${avgTime.toFixed(2)}ms, Max: ${maxTime}ms`
+			)
 		} catch (error) {
 			result.failed++
-			result.errors.push(error instanceof Error ? error.message : String(error))
+			result.errors.push(
+				error instanceof Error ? error.message : String(error)
+			)
 			console.log(`   ⚠️  Error: ${error}`)
 		}
 
@@ -240,13 +261,15 @@ class EmailTestRunner {
 
 		// Summary
 		console.log('\n📈 Summary:')
-		console.log(`   Total Tests: ${totalPassed + totalFailed + totalSkipped}`)
+		console.log(
+			`   Total Tests: ${totalPassed + totalFailed + totalSkipped}`
+		)
 		console.log(`   ✅ Passed: ${totalPassed}`)
 		console.log(`   ❌ Failed: ${totalFailed}`)
 		console.log(`   ⏭️  Skipped: ${totalSkipped}`)
 		console.log(`   ⏱️  Duration: ${(totalDuration / 1000).toFixed(2)}s`)
-		
-		const passRate = totalPassed / (totalPassed + totalFailed) * 100
+
+		const passRate = (totalPassed / (totalPassed + totalFailed)) * 100
 		console.log(`   📊 Pass Rate: ${passRate.toFixed(1)}%`)
 
 		// Details by suite
@@ -254,9 +277,13 @@ class EmailTestRunner {
 		this.results.forEach(result => {
 			const icon = result.failed === 0 ? '✅' : '❌'
 			console.log(`\n   ${icon} ${result.suite}`)
-			console.log(`      Passed: ${result.passed}, Failed: ${result.failed}, Skipped: ${result.skipped}`)
-			console.log(`      Duration: ${(result.duration / 1000).toFixed(2)}s`)
-			
+			console.log(
+				`      Passed: ${result.passed}, Failed: ${result.failed}, Skipped: ${result.skipped}`
+			)
+			console.log(
+				`      Duration: ${(result.duration / 1000).toFixed(2)}s`
+			)
+
 			if (result.errors.length > 0 && this.verbose) {
 				console.log('      Errors:')
 				result.errors.forEach(error => {
@@ -271,9 +298,18 @@ class EmailTestRunner {
 			{ name: 'Template Rendering', covered: totalPassed > 0 },
 			{ name: 'Email Sending', covered: totalPassed > 5 },
 			{ name: 'Error Handling', covered: totalPassed > 10 },
-			{ name: 'Rate Limiting', covered: this.results.some(r => r.suite.includes('Integration')) },
-			{ name: 'Retry Logic', covered: this.results.some(r => r.suite.includes('E2E')) },
-			{ name: 'Performance', covered: this.results.some(r => r.suite.includes('Performance')) }
+			{
+				name: 'Rate Limiting',
+				covered: this.results.some(r => r.suite.includes('Integration'))
+			},
+			{
+				name: 'Retry Logic',
+				covered: this.results.some(r => r.suite.includes('E2E'))
+			},
+			{
+				name: 'Performance',
+				covered: this.results.some(r => r.suite.includes('Performance'))
+			}
 		]
 
 		coverageItems.forEach(item => {
@@ -281,7 +317,10 @@ class EmailTestRunner {
 			console.log(`   ${icon} ${item.name}`)
 		})
 
-		const coverage = coverageItems.filter(i => i.covered).length / coverageItems.length * 100
+		const coverage =
+			(coverageItems.filter(i => i.covered).length /
+				coverageItems.length) *
+			100
 		console.log(`   📊 Overall Coverage: ${coverage.toFixed(0)}%`)
 
 		// Recommendations
@@ -300,12 +339,21 @@ class EmailTestRunner {
 		}
 
 		// Save report to file
-		this.saveReport(totalPassed, totalFailed, totalSkipped, totalDuration, passRate, coverage)
+		this.saveReport(
+			totalPassed,
+			totalFailed,
+			totalSkipped,
+			totalDuration,
+			passRate,
+			coverage
+		)
 
 		// Exit code
 		const exitCode = totalFailed > 0 ? 1 : 0
 		console.log('\n' + '═'.repeat(50))
-		console.log(exitCode === 0 ? '✅ All tests passed!' : '❌ Some tests failed')
+		console.log(
+			exitCode === 0 ? '✅ All tests passed!' : '❌ Some tests failed'
+		)
 		process.exit(exitCode)
 	}
 
@@ -340,7 +388,10 @@ class EmailTestRunner {
 			}
 		}
 
-		const reportPath = path.join(__dirname, `email-test-report-${Date.now()}.json`)
+		const reportPath = path.join(
+			__dirname,
+			`email-test-report-${Date.now()}.json`
+		)
 		fs.writeFileSync(reportPath, JSON.stringify(report, null, 2))
 		console.log(`\n📄 Report saved to: ${reportPath}`)
 	}

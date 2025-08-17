@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { PrismaService } from '../prisma/prisma.service'
-import { Prisma } from '@repo/database'
+import { Prisma } from '@repo/shared'
 
 export interface SubscriptionEmailData {
 	userId: string

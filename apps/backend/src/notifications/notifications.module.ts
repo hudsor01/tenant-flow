@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common'
 import { SubscriptionNotificationService } from './subscription-notification.service'
 import { SubscriptionEventListener } from './subscription-event.listener'
-import { PrismaModule } from '../prisma/prisma.module'
+import { SupabaseModule } from '../supabase/supabase.module'
 import { EmailModule } from '../email/email.module'
 
 @Module({
-	imports: [PrismaModule, EmailModule],
+	imports: [SupabaseModule, EmailModule],
 	providers: [SubscriptionNotificationService, SubscriptionEventListener],
 	exports: [SubscriptionNotificationService]
 })

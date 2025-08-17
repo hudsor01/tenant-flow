@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { PropertyType } from '@repo/database'
+import { PROPERTY_TYPE, type PropertyType } from '@repo/shared'
 
 /**
  * Unified Property Validation Schemas
@@ -47,8 +47,8 @@ const propertyBaseSchema = z.object({
 		.transform(val => val?.trim() || undefined),
 
 	propertyType: z
-		.nativeEnum(PropertyType)
-		.default(PropertyType.SINGLE_FAMILY),
+		.enum(Object.values(PROPERTY_TYPE) as [PropertyType, ...PropertyType[]])
+		.default(PROPERTY_TYPE.SINGLE_FAMILY),
 
 	imageUrl: z
 		.string()
@@ -89,7 +89,14 @@ export const updatePropertySchema = propertyBaseSchema.partial().extend({
 // Query property schema
 export const queryPropertySchema = z
 	.object({
-		propertyType: z.nativeEnum(PropertyType).optional(),
+		propertyType: z
+			.enum(
+				Object.values(PROPERTY_TYPE) as [
+					PropertyType,
+					...PropertyType[]
+				]
+			)
+			.optional(),
 		search: z
 			.string()
 			.max(200, 'Search term must be less than 200 characters')

@@ -10,12 +10,6 @@ restartPolicyMaxRetries = 10
 healthcheckPath = "/health"
 healthcheckTimeout = 30
 
-[environments.production]
-# Required environment variables (set these in Railway dashboard)
-# DATABASE_URL = "postgresql://..."
-# JWT_SECRET = "your-jwt-secret"
-# RESEND_API_KEY = "re_..."
-
 [variables]
 NODE_ENV = "production"
 PORT = "${{ PORT }}"

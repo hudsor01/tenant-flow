@@ -3,7 +3,7 @@
  * Central source of truth for billing enums and constants
  */
 
-// Plan type enum (matching Prisma schema)
+// Plan type enum
 export const PLAN_TYPE = {
 	FREETRIAL: 'FREETRIAL',
 	STARTER: 'STARTER',

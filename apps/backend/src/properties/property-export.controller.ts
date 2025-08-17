@@ -15,7 +15,7 @@ import { RequireActiveSubscription } from '../auth/decorators/subscription.decor
 import { PropertiesService } from './properties.service'
 import { SubscriptionStatusService } from '../subscriptions/subscription-status.service'
 import { ValidatedUser } from '../auth/auth.service'
-import { PropertyType } from '@repo/database'
+import { PropertyType } from '@repo/shared'
 import {
 	FeatureRequired,
 	FEATURES

@@ -11,7 +11,7 @@ import {
 	Min
 } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
-import { UnitStatus } from '@repo/database'
+import { UnitStatus } from '@repo/shared'
 
 export class UnitCreateDto {
 	@IsNotEmpty({ message: 'Unit number is required' })

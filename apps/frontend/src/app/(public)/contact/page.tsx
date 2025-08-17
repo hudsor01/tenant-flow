@@ -52,7 +52,7 @@ export default function ContactPage() {
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [optimisticSubmitted, setOptimisticSubmitted] = useOptimistic(
 		false,
-		(state, optimisticValue: boolean) => optimisticValue
+		(_state, optimisticValue: boolean) => optimisticValue
 	)
 
 	const contactMethods: ContactMethod[] = [

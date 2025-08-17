@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import { SubscriptionNotificationService } from './subscription-notification.service'
-import { PrismaService } from '../prisma/prisma.service'
 import {
 	PaymentFailedEvent,
 	PaymentMethodRequiredEvent,

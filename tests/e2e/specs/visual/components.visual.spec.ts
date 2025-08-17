@@ -2,16 +2,16 @@ import { test, expect } from '@playwright/test'
 import { VisualTestHelpers } from '../../helpers/visual-helpers'
 
 test.describe('UI Components Visual Regression', () => {
-  let visualHelpers: VisualTestHelpers
+	let visualHelpers: VisualTestHelpers
 
-  test.beforeEach(async ({ page }) => {
-    visualHelpers = new VisualTestHelpers(page)
-    await visualHelpers.setupVisualEnvironment()
-  })
+	test.beforeEach(async ({ page }) => {
+		visualHelpers = new VisualTestHelpers(page)
+		await visualHelpers.setupVisualEnvironment()
+	})
 
-  test.describe('Basic Components', () => {
-    test('button states', async ({ page }) => {
-      await page.setContent(`
+	test.describe('Basic Components', () => {
+		test('button states', async ({ page }) => {
+			await page.setContent(`
         <!DOCTYPE html>
         <html>
           <head>
@@ -60,14 +60,14 @@ test.describe('UI Components Visual Regression', () => {
         </html>
       `)
 
-      await expect(page).toHaveScreenshot('button-components.png', {
-        fullPage: true,
-        animations: 'disabled',
-      })
-    })
+			await expect(page).toHaveScreenshot('button-components.png', {
+				fullPage: true,
+				animations: 'disabled'
+			})
+		})
 
-    test('form elements', async ({ page }) => {
-      await page.setContent(`
+		test('form elements', async ({ page }) => {
+			await page.setContent(`
         <!DOCTYPE html>
         <html>
           <head>
@@ -139,14 +139,14 @@ test.describe('UI Components Visual Regression', () => {
         </html>
       `)
 
-      await expect(page).toHaveScreenshot('form-components.png', {
-        fullPage: true,
-        animations: 'disabled',
-      })
-    })
+			await expect(page).toHaveScreenshot('form-components.png', {
+				fullPage: true,
+				animations: 'disabled'
+			})
+		})
 
-    test('cards and containers', async ({ page }) => {
-      await page.setContent(`
+		test('cards and containers', async ({ page }) => {
+			await page.setContent(`
         <!DOCTYPE html>
         <html>
           <head>
@@ -205,14 +205,14 @@ test.describe('UI Components Visual Regression', () => {
         </html>
       `)
 
-      await expect(page).toHaveScreenshot('card-components.png', {
-        fullPage: true,
-        animations: 'disabled',
-      })
-    })
+			await expect(page).toHaveScreenshot('card-components.png', {
+				fullPage: true,
+				animations: 'disabled'
+			})
+		})
 
-    test('dark theme components', async ({ page }) => {
-      await page.setContent(`
+		test('dark theme components', async ({ page }) => {
+			await page.setContent(`
         <!DOCTYPE html>
         <html>
           <head>
@@ -258,22 +258,22 @@ test.describe('UI Components Visual Regression', () => {
         </html>
       `)
 
-      await expect(page).toHaveScreenshot('dark-theme-components.png', {
-        fullPage: true,
-        animations: 'disabled',
-      })
-    })
-  })
+			await expect(page).toHaveScreenshot('dark-theme-components.png', {
+				fullPage: true,
+				animations: 'disabled'
+			})
+		})
+	})
 
-  test.describe('Responsive Components', () => {
-    const viewports = [
-      { width: 1440, height: 900, name: 'desktop' },
-      { width: 768, height: 1024, name: 'tablet' },
-      { width: 375, height: 667, name: 'mobile' },
-    ]
+	test.describe('Responsive Components', () => {
+		const viewports = [
+			{ width: 1440, height: 900, name: 'desktop' },
+			{ width: 768, height: 1024, name: 'tablet' },
+			{ width: 375, height: 667, name: 'mobile' }
+		]
 
-    test('responsive card grid', async ({ page }) => {
-      await page.setContent(`
+		test('responsive card grid', async ({ page }) => {
+			await page.setContent(`
         <!DOCTYPE html>
         <html>
           <head>
@@ -317,15 +317,18 @@ test.describe('UI Components Visual Regression', () => {
         </html>
       `)
 
-      for (const viewport of viewports) {
-        await page.setViewportSize(viewport)
-        await page.waitForTimeout(300)
+			for (const viewport of viewports) {
+				await page.setViewportSize(viewport)
+				await page.waitForTimeout(300)
 
-        await expect(page).toHaveScreenshot(`responsive-grid-${viewport.name}.png`, {
-          fullPage: true,
-          animations: 'disabled',
-        })
-      }
-    })
-  })
+				await expect(page).toHaveScreenshot(
+					`responsive-grid-${viewport.name}.png`,
+					{
+						fullPage: true,
+						animations: 'disabled'
+					}
+				)
+			}
+		})
+	})
 })

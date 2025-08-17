@@ -52,7 +52,7 @@ jest.mock('next/navigation', () => ({
 jest.mock('next/image', () => {
 	// Using require is necessary in jest.mock factory functions
 	// Dynamic imports won't work here as the mock needs to be synchronous
-	const React = (jest.requireActual('react') as typeof import('react'))
+	const React = jest.requireActual('react') as typeof import('react')
 	return {
 		default: (props: Record<string, unknown>) => {
 			return React.createElement('img', props)
@@ -64,7 +64,7 @@ jest.mock('next/image', () => {
 jest.mock('next/link', () => {
 	// Using require is necessary in jest.mock factory functions
 	// Dynamic imports won't work here as the mock needs to be synchronous
-	const React = (jest.requireActual('react') as typeof import('react'))
+	const React = jest.requireActual('react') as typeof import('react')
 	return {
 		default: ({
 			children,

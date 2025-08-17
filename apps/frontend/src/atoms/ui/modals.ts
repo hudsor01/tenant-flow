@@ -32,18 +32,21 @@ const initialModalState: ModalState = {
 export const modalsAtom = atom<ModalState>(initialModalState)
 
 // Actions
-export const openModalAtom = atom(null, (get, set, modal: keyof ModalState) => {
-	const currentModals = get(modalsAtom)
-	set(modalsAtom, {
-		...currentModals,
-		[modal]: true
-	})
-})
+export const openModalAtom = atom(
+	null,
+	(_get, set, modal: keyof ModalState) => {
+		const currentModals = _get(modalsAtom)
+		set(modalsAtom, {
+			...currentModals,
+			[modal]: true
+		})
+	}
+)
 
 export const closeModalAtom = atom(
 	null,
-	(get, set, modal: keyof ModalState) => {
-		const currentModals = get(modalsAtom)
+	(_get, set, modal: keyof ModalState) => {
+		const currentModals = _get(modalsAtom)
 		set(modalsAtom, {
 			...currentModals,
 			[modal]: false
@@ -51,7 +54,7 @@ export const closeModalAtom = atom(
 	}
 )
 
-export const closeAllModalsAtom = atom(null, (get, set) => {
+export const closeAllModalsAtom = atom(null, (_get, set) => {
 	set(modalsAtom, initialModalState)
 })
 

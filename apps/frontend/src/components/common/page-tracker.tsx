@@ -1,9 +1,8 @@
 import { useEffect } from 'react'
-import { useRouter, usePathname, useSearchParams } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { usePostHog } from 'posthog-js/react'
 
 export function PageTracker() {
-	const _router = useRouter()
 	const pathname = usePathname()
 	const searchParams = useSearchParams()
 	const posthog = usePostHog()

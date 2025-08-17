@@ -1,8 +1,8 @@
 import { IsEnum, IsIn } from 'class-validator'
-import { PlanType } from '@repo/database'
+import { PLAN_TYPE, PlanType } from '@repo/shared'
 
 export class PreviewSubscriptionUpdateDto {
-	@IsEnum(PlanType)
+	@IsEnum(Object.values(PLAN_TYPE))
 	newPlanType!: PlanType
 
 	@IsIn(['monthly', 'annual'])

@@ -79,7 +79,7 @@ export interface AuthFormState {
 }
 
 export async function loginAction(
-	prevState: AuthFormState,
+	_prevState: AuthFormState,
 	formData: FormData
 ): Promise<AuthFormState> {
 	try {

@@ -84,7 +84,7 @@ export const tenantFormValidAtom = atom(get => {
 // Form actions using Immer's draft state
 export const setPropertyFormFieldAtom = atom(
 	null,
-	(get, set, field: keyof PropertyFormState, value: unknown) => {
+	(_get, set, field: keyof PropertyFormState, value: unknown) => {
 		set(propertyFormAtom, draft => {
 			;(draft as PropertyFormState)[field] =
 				value as PropertyFormState[typeof field]
@@ -100,14 +100,14 @@ export const setPropertyFormFieldAtom = atom(
 
 export const setPropertyFormErrorAtom = atom(
 	null,
-	(get, set, field: string, error: string) => {
+	(_get, set, field: string, error: string) => {
 		set(propertyFormAtom, draft => {
 			draft.validationErrors[field] = error
 		})
 	}
 )
 
-export const clearPropertyFormErrorsAtom = atom(null, (get, set) => {
+export const clearPropertyFormErrorsAtom = atom(null, (_get, set) => {
 	set(propertyFormAtom, draft => {
 		draft.validationErrors = {}
 	})
@@ -116,7 +116,7 @@ export const clearPropertyFormErrorsAtom = atom(null, (get, set) => {
 export const setTenantFormFieldAtom = atom(
 	null,
 	(
-		get,
+		_get,
 		set,
 		field: keyof TenantFormState,
 		value: string | number | boolean
@@ -143,7 +143,7 @@ export const setTenantFormFieldAtom = atom(
 export const populatePropertyFormAtom = atom(
 	null,
 	(
-		get,
+		_get,
 		set,
 		propertyData: Partial<CreatePropertyInput & UpdatePropertyInput>
 	) => {
@@ -158,7 +158,7 @@ export const populatePropertyFormAtom = atom(
 
 export const populateTenantFormAtom = atom(
 	null,
-	(get, set, tenantData: Partial<TenantFormState>) => {
+	(_get, set, tenantData: Partial<TenantFormState>) => {
 		set(tenantFormAtom, draft => {
 			Object.assign(draft, tenantData)
 			draft.isEditing = true

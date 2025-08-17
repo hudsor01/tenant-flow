@@ -4,7 +4,7 @@ import { AuthService } from './auth.service'
 import { AuthController } from './auth.controller'
 import { AuthWebhookController } from './auth-webhook.controller'
 import { JwtAuthGuard } from './guards/jwt-auth.guard'
-import { PrismaModule } from '../prisma/prisma.module'
+import { SupabaseModule } from '../supabase/supabase.module'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { EmailModule } from '../email/email.module'
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module'
@@ -15,7 +15,7 @@ import { UsersModule } from '../users/users.module'
 @Module({
 	imports: [
 		ConfigModule,
-		PrismaModule,
+		SupabaseModule,
 		EmailModule,
 		SubscriptionsModule,
 		StripeModule,

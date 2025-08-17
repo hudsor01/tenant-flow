@@ -4,7 +4,7 @@ import {
 	Injectable
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-import type { UserRole } from '@repo/database'
+import type { UserRole } from '@repo/shared'
 
 @Injectable()
 export class RolesGuard implements CanActivate {

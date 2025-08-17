@@ -1,7 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { PrismaService } from '../../prisma/prisma.service'
-import { createClient } from '@supabase/supabase-js'
-import { ConfigService } from '@nestjs/config'
+import { SupabaseService } from '../../common/supabase/supabase.service'
 import {
 	RLSAuditReport,
 	RLSPolicy,
@@ -12,32 +10,10 @@ import {
 
 @Injectable()
 export class RLSService {
-	private supabaseAdmin: ReturnType<typeof createClient> | undefined
+	constructor(private readonly supabaseService: SupabaseService) {}
 
-	constructor(
-		private readonly prisma: PrismaService,
-		private readonly configService: ConfigService
-	) {}
-
-	private ensureSupabaseClient() {
-		if (!this.supabaseAdmin) {
-			const supabaseUrl = this.configService.get<string>('SUPABASE_URL')
-			const supabaseServiceKey = this.configService.get<string>(
-				'SUPABASE_SERVICE_ROLE_KEY'
-			)
-
-			if (!supabaseUrl || !supabaseServiceKey) {
-				throw new Error('Supabase configuration missing')
-			}
-
-			this.supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-				auth: {
-					autoRefreshToken: false,
-					persistSession: false
-				}
-			})
-		}
-		return this.supabaseAdmin
+	private getSupabaseClient() {
+		return this.supabaseService.getAdminClient()
 	}
 
 	/**
@@ -59,12 +35,19 @@ export class RLSService {
 		const results = []
 
 		for (const table of criticalTables) {
-			const { data, error } = await this.ensureSupabaseClient()
-				.from('pg_tables')
-				.select('tablename, rowsecurity')
-				.eq('schemaname', 'public')
-				.eq('tablename', table)
-				.single()
+			// Query system tables using raw SQL instead of direct table access
+			const query = `
+				SELECT tablename, rowsecurity 
+				FROM pg_tables 
+				WHERE schemaname = 'public' 
+				AND tablename = $1
+			`
+			const result = await this.supabaseService.executeRawQuery<{
+				tablename: string
+				rowsecurity: boolean
+			}>(query, [table])
+			const data = result[0]
+			const error = !data ? new Error('Table not found') : null
 
 			if (error) {
 				results.push({
@@ -96,7 +79,7 @@ export class RLSService {
 	 * Get all policies for a specific table
 	 */
 	async getTablePolicies(tableName: string): Promise<RLSPolicy[]> {
-		const { data, error } = await this.ensureSupabaseClient().rpc(
+		const { data, error } = await (this.getSupabaseClient().rpc as any)(
 			'get_policies_for_table',
 			{ table_name: tableName }
 		)
@@ -142,10 +125,12 @@ export class RLSService {
 
 		// Test property access
 		try {
-			const ownProperties = await this.prisma.property.findMany({
-				where: { ownerId: userId }
-			})
-			testResults.property.canViewOwn = ownProperties.length > 0
+			const { data } = await this.getSupabaseClient()
+				.from('Property')
+				.select('id')
+				.eq('ownerId', userId)
+				.limit(1)
+			testResults.property.canViewOwn = !!data && data.length > 0
 		} catch {
 			testResults.property.canViewOwn = false
 		}
@@ -161,8 +146,9 @@ export class RLSService {
 
 		// Read and execute the RLS SQL file
 		try {
-			const { error } =
-				await this.ensureSupabaseClient().rpc('apply_rls_policies')
+			const { error } = await (this.getSupabaseClient().rpc as any)(
+				'apply_rls_policies'
+			)
 
 			if (error) {
 				errors.push(`Failed to apply RLS policies: ${error.message}`)

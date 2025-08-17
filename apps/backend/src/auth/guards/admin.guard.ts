@@ -4,7 +4,7 @@ import {
 	Injectable,
 	Logger
 } from '@nestjs/common'
-import type { User } from '@repo/database'
+import type { User } from '@repo/shared'
 
 interface RequestWithUser {
 	user?: User & { organizationId?: string }

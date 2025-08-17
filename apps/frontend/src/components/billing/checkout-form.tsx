@@ -152,8 +152,8 @@ export function CheckoutForm({
 interface CheckoutButtonProps {
 	priceId: string
 	planName: string
-	_amount: number
-	_interval: 'month' | 'year'
+	amount: number
+	interval: 'month' | 'year'
 	trialDays?: number
 	couponId?: string
 	variant?: 'default' | 'outline' | 'ghost'
@@ -165,8 +165,8 @@ interface CheckoutButtonProps {
 export function CheckoutButton({
 	priceId,
 	planName,
-	_amount,
-	_interval,
+	amount: _amount,
+	interval: _interval,
 	trialDays,
 	couponId,
 	variant = 'default',

@@ -64,7 +64,6 @@ Dockerfile*
 !apps/frontend/scripts/quick-deploy.sh
 
 # Database files
-prisma/migrations/
 *.db
 *.sqlite
 

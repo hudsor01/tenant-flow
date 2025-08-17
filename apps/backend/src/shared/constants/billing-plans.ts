@@ -1,6 +1,6 @@
 import { PLAN_TYPE } from '@repo/shared'
 
-// import type { PlanType } from '@repo/database'
+// import type { PlanType } from '@repo/shared'
 
 // Export types for use in other files
 export interface BillingPlan {

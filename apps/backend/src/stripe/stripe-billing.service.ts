@@ -1,11 +1,16 @@
 import { Inject, Injectable, Logger } from '@nestjs/common'
-import type Stripe from 'stripe'
-import { PrismaService } from '../prisma/prisma.service'
 import { StripeService } from './stripe.service'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
+// import { PrismaService } from '../common/database/prisma.service' // TODO: Replace with Supabase
+import type Stripe from 'stripe'
 
 import { BILLING_PLANS, getPlanById } from '../shared/constants/billing-plans'
-import type { PlanType, SubStatus } from '@repo/database'
+import {
+	getProductTier,
+	getStripePriceId,
+	type PlanType,
+	type SubStatus
+} from '@repo/shared'
 import type {
 	StripeCheckoutSessionCreateParams,
 	StripeInvoice,
@@ -16,7 +21,6 @@ import {
 	AsyncTimeout,
 	MeasureMethod
 } from '../common/performance/performance.decorators'
-import { getProductTier, getStripePriceId } from '@repo/shared'
 
 export interface CreateSubscriptionParams {
 	userId: string
@@ -435,7 +439,7 @@ export class StripeBillingService {
 		cancellationReason?: string
 	}): Promise<{ status: string; canceledAt?: number }> {
 		try {
-			const cancelParams: Stripe.SubscriptionUpdateParams = {
+			const cancelParams = {
 				metadata: {
 					cancellation_reason:
 						params.cancellationReason || 'user_requested'
@@ -645,7 +649,7 @@ export class StripeBillingService {
 			? { discounts: [{ coupon: params.couponId }] }
 			: {}
 
-		const subscriptionData: Stripe.SubscriptionCreateParams = {
+		const subscriptionData = {
 			customer: params.customerId,
 			items: [{ price: params.priceId }],
 			payment_settings: {
@@ -667,7 +671,7 @@ export class StripeBillingService {
 		}
 
 		return (await this.stripeService.client.subscriptions.create(
-			subscriptionData
+			subscriptionData as Stripe.SubscriptionCreateParams
 		)) as unknown as StripeSubscription
 	}
 
@@ -683,13 +687,13 @@ export class StripeBillingService {
 				: (params.subscriptionData.customer as { id: string }).id
 
 		const statusMap: Record<StripeSubscription['status'], SubStatus> = {
-			trialing: 'TRIALING',
-			active: 'ACTIVE',
-			past_due: 'PAST_DUE',
-			canceled: 'CANCELED',
-			unpaid: 'UNPAID',
-			incomplete: 'INCOMPLETE',
-			incomplete_expired: 'INCOMPLETE_EXPIRED',
+			trialing: 'trialing' as SubStatus,
+			active: 'active' as SubStatus,
+			past_due: 'past_due' as SubStatus,
+			canceled: 'canceled' as SubStatus,
+			unpaid: 'unpaid' as SubStatus,
+			incomplete: 'incomplete' as SubStatus,
+			incomplete_expired: 'incomplete_expired' as SubStatus,
 			paused: 'INCOMPLETE'
 		}
 
@@ -757,13 +761,13 @@ export class StripeBillingService {
 		priceId: string
 	}) {
 		const statusMap: Record<StripeSubscription['status'], SubStatus> = {
-			trialing: 'TRIALING',
-			active: 'ACTIVE',
-			past_due: 'PAST_DUE',
-			canceled: 'CANCELED',
-			unpaid: 'UNPAID',
-			incomplete: 'INCOMPLETE',
-			incomplete_expired: 'INCOMPLETE_EXPIRED',
+			trialing: 'trialing' as SubStatus,
+			active: 'active' as SubStatus,
+			past_due: 'past_due' as SubStatus,
+			canceled: 'canceled' as SubStatus,
+			unpaid: 'unpaid' as SubStatus,
+			incomplete: 'incomplete' as SubStatus,
+			incomplete_expired: 'incomplete_expired' as SubStatus,
 			paused: 'INCOMPLETE'
 		}
 
@@ -874,7 +878,7 @@ export class StripeBillingService {
 		await this.prismaService.subscription.updateMany({
 			where: { stripeSubscriptionId },
 			data: {
-				status: 'CANCELED',
+				status: 'canceled' as SubStatus,
 				cancelAtPeriodEnd: false,
 				canceledAt: new Date()
 			}
@@ -885,13 +889,13 @@ export class StripeBillingService {
 		stripeStatus: StripeSubscription['status']
 	): SubStatus {
 		const statusMap: Record<StripeSubscription['status'], SubStatus> = {
-			trialing: 'TRIALING',
-			active: 'ACTIVE',
-			past_due: 'PAST_DUE',
-			canceled: 'CANCELED',
-			unpaid: 'UNPAID',
-			incomplete: 'INCOMPLETE',
-			incomplete_expired: 'INCOMPLETE_EXPIRED',
+			trialing: 'trialing' as SubStatus,
+			active: 'active' as SubStatus,
+			past_due: 'past_due' as SubStatus,
+			canceled: 'canceled' as SubStatus,
+			unpaid: 'unpaid' as SubStatus,
+			incomplete: 'incomplete' as SubStatus,
+			incomplete_expired: 'incomplete_expired' as SubStatus,
 			paused: 'INCOMPLETE' // Map paused to incomplete (official status for paused trials)
 		}
 

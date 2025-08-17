@@ -2,117 +2,159 @@
 
 <p>Hello {{tenantName}},</p>
 
-<p>We have an update regarding your maintenance request at <strong>{{propertyAddress}}</strong>.</p>
+<p>We have an update regarding your maintenance request at
+	<strong>{{propertyAddress}}</strong>.</p>
 
-<div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-    <h2 style="color: #374151; margin-top: 0;">📋 Request Details</h2>
-    <div style="display: flex; justify-content: space-between; margin: 10px 0;">
-        <span><strong>Request ID:</strong></span>
-        <span>#{{requestId}}</span>
-    </div>
-    <div style="display: flex; justify-content: space-between; margin: 10px 0;">
-        <span><strong>Issue:</strong></span>
-        <span>{{issueDescription}}</span>
-    </div>
-    <div style="display: flex; justify-content: space-between; margin: 10px 0;">
-        <span><strong>Submitted:</strong></span>
-        <span>{{formatDate submissionDate "MMMM D, YYYY"}}</span>
-    </div>
-    <div style="display: flex; justify-content: space-between; margin: 10px 0;">
-        <span><strong>Priority:</strong></span>
-        <span>
-            {{#if (eq priority "emergency")}}
-                <span style="background: #fee2e2; color: #dc2626; padding: 4px 8px; border-radius: 4px; font-size: 12px;">🚨 EMERGENCY</span>
-            {{else if (eq priority "high")}}
-                <span style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 4px; font-size: 12px;">⚠️ HIGH</span>
-            {{else if (eq priority "medium")}}
-                <span style="background: #e0f2fe; color: #0277bd; padding: 4px 8px; border-radius: 4px; font-size: 12px;">📋 MEDIUM</span>
-            {{else}}
-                <span style="background: #f0fdf4; color: #166534; padding: 4px 8px; border-radius: 4px; font-size: 12px;">📝 LOW</span>
-            {{/if}}
-        </span>
-    </div>
+<div
+	style='background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;'
+>
+	<h2 style='color: #374151; margin-top: 0;'>📋 Request Details</h2>
+	<div style='display: flex; justify-content: space-between; margin: 10px 0;'>
+		<span><strong>Request ID:</strong></span>
+		<span>#{{requestId}}</span>
+	</div>
+	<div style='display: flex; justify-content: space-between; margin: 10px 0;'>
+		<span><strong>Issue:</strong></span>
+		<span>{{issueDescription}}</span>
+	</div>
+	<div style='display: flex; justify-content: space-between; margin: 10px 0;'>
+		<span><strong>Submitted:</strong></span>
+		<span>{{formatDate submissionDate 'MMMM D, YYYY'}}</span>
+	</div>
+	<div style='display: flex; justify-content: space-between; margin: 10px 0;'>
+		<span><strong>Priority:</strong></span>
+		<span>
+			{{#if (eq priority 'emergency')}}
+				<span
+					style='background: #fee2e2; color: #dc2626; padding: 4px 8px; border-radius: 4px; font-size: 12px;'
+				>🚨 EMERGENCY</span>
+			{{else if (eq priority 'high')}}
+				<span
+					style='background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 4px; font-size: 12px;'
+				>⚠️ HIGH</span>
+			{{else if (eq priority 'medium')}}
+				<span
+					style='background: #e0f2fe; color: #0277bd; padding: 4px 8px; border-radius: 4px; font-size: 12px;'
+				>📋 MEDIUM</span>
+			{{else}}
+				<span
+					style='background: #f0fdf4; color: #166534; padding: 4px 8px; border-radius: 4px; font-size: 12px;'
+				>📝 LOW</span>
+			{{/if}}
+		</span>
+	</div>
 </div>
 
-{{#if (eq status "scheduled")}}
-<div style="background: #e0f2fe; border: 1px solid #0288d1; padding: 20px; border-radius: 8px; margin: 20px 0;">
-    <h2 style="color: #01579b; margin-top: 0;">📅 Work Scheduled</h2>
-    <p style="margin-bottom: 15px;">Great news! We've scheduled the repair work:</p>
-    <div style="font-size: 18px; text-align: center; margin: 15px 0;">
-        <strong>{{formatDate scheduledDate "dddd, MMMM D"}} at {{formatTime scheduledTime}}</strong>
-    </div>
-    {{#if vendorName}}
-    <p><strong>Technician:</strong> {{vendorName}}</p>
-    {{/if}}
-    {{#if vendorPhone}}
-    <p><strong>Contact:</strong> {{vendorPhone}}</p>
-    {{/if}}
-    <p><strong>Please ensure someone is available</strong> to provide access during the scheduled time.</p>
-</div>
-{{else if (eq status "in_progress")}}
-<div style="background: #fef3c7; border: 1px solid #f59e0b; padding: 20px; border-radius: 8px; margin: 20px 0;">
-    <h2 style="color: #92400e; margin-top: 0;">⚡ Work in Progress</h2>
-    <p>Our technician {{vendorName}} is currently working on your maintenance request.</p>
-    {{#if estimatedCompletion}}
-    <p><strong>Estimated completion:</strong> {{formatDate estimatedCompletion "MMMM D at h:mm A"}}</p>
-    {{/if}}
-    <p>You'll receive another update once the work is completed.</p>
-</div>
-{{else if (eq status "completed")}}
-<div style="background: #ecfdf5; border: 1px solid #10b981; padding: 20px; border-radius: 8px; margin: 20px 0;">
-    <h2 style="color: #065f46; margin-top: 0;">✅ Work Completed</h2>
-    <p>Excellent! Your maintenance request has been completed.</p>
-    <div style="margin: 15px 0;">
-        <strong>Completed on:</strong> {{formatDate completionDate "MMMM D, YYYY at h:mm A"}}
-    </div>
-    {{#if vendorNotes}}
-    <div style="background: white; padding: 15px; border-radius: 6px; margin: 15px 0;">
-        <strong>Technician Notes:</strong><br>
-        {{vendorNotes}}
-    </div>
-    {{/if}}
-    <p>Please test the repair and let us know if you notice any issues.</p>
-</div>
-{{else if (eq status "cancelled")}}
-<div style="background: #fee2e2; border: 1px solid #f87171; padding: 20px; border-radius: 8px; margin: 20px 0;">
-    <h2 style="color: #dc2626; margin-top: 0;">❌ Request Cancelled</h2>
-    <p>This maintenance request has been cancelled.</p>
-    {{#if cancellationReason}}
-    <p><strong>Reason:</strong> {{cancellationReason}}</p>
-    {{/if}}
-    <p>If you still need assistance, please submit a new request through your tenant portal.</p>
-</div>
+{{#if (eq status 'scheduled')}}
+	<div
+		style='background: #e0f2fe; border: 1px solid #0288d1; padding: 20px; border-radius: 8px; margin: 20px 0;'
+	>
+		<h2 style='color: #01579b; margin-top: 0;'>📅 Work Scheduled</h2>
+		<p style='margin-bottom: 15px;'>Great news! We've scheduled the repair
+			work:</p>
+		<div style='font-size: 18px; text-align: center; margin: 15px 0;'>
+			<strong>{{formatDate scheduledDate 'dddd, MMMM D'}}
+				at
+				{{formatTime scheduledTime}}</strong>
+		</div>
+		{{#if vendorName}}
+			<p><strong>Technician:</strong> {{vendorName}}</p>
+		{{/if}}
+		{{#if vendorPhone}}
+			<p><strong>Contact:</strong> {{vendorPhone}}</p>
+		{{/if}}
+		<p><strong>Please ensure someone is available</strong>
+			to provide access during the scheduled time.</p>
+	</div>
+{{else if (eq status 'in_progress')}}
+	<div
+		style='background: #fef3c7; border: 1px solid #f59e0b; padding: 20px; border-radius: 8px; margin: 20px 0;'
+	>
+		<h2 style='color: #92400e; margin-top: 0;'>⚡ Work in Progress</h2>
+		<p>Our technician
+			{{vendorName}}
+			is currently working on your maintenance request.</p>
+		{{#if estimatedCompletion}}
+			<p><strong>Estimated completion:</strong>
+				{{formatDate estimatedCompletion 'MMMM D at h:mm A'}}</p>
+		{{/if}}
+		<p>You'll receive another update once the work is completed.</p>
+	</div>
+{{else if (eq status 'completed')}}
+	<div
+		style='background: #ecfdf5; border: 1px solid #10b981; padding: 20px; border-radius: 8px; margin: 20px 0;'
+	>
+		<h2 style='color: #065f46; margin-top: 0;'>✅ Work Completed</h2>
+		<p>Excellent! Your maintenance request has been completed.</p>
+		<div style='margin: 15px 0;'>
+			<strong>Completed on:</strong>
+			{{formatDate completionDate 'MMMM D, YYYY at h:mm A'}}
+		</div>
+		{{#if vendorNotes}}
+			<div
+				style='background: white; padding: 15px; border-radius: 6px; margin: 15px 0;'
+			>
+				<strong>Technician Notes:</strong><br />
+				{{vendorNotes}}
+			</div>
+		{{/if}}
+		<p>Please test the repair and let us know if you notice any issues.</p>
+	</div>
+{{else if (eq status 'cancelled')}}
+	<div
+		style='background: #fee2e2; border: 1px solid #f87171; padding: 20px; border-radius: 8px; margin: 20px 0;'
+	>
+		<h2 style='color: #dc2626; margin-top: 0;'>❌ Request Cancelled</h2>
+		<p>This maintenance request has been cancelled.</p>
+		{{#if cancellationReason}}
+			<p><strong>Reason:</strong> {{cancellationReason}}</p>
+		{{/if}}
+		<p>If you still need assistance, please submit a new request through
+			your tenant portal.</p>
+	</div>
 {{else}}
-<div style="background: #f3f4f6; border: 1px solid #d1d5db; padding: 20px; border-radius: 8px; margin: 20px 0;">
-    <h2 style="color: #374151; margin-top: 0;">📋 Request Received</h2>
-    <p>We've received your maintenance request and are reviewing it.</p>
-    <p>We'll contact you soon to schedule the repair work.</p>
-    {{#if (eq priority "emergency")}}
-    <p style="color: #dc2626;"><strong>Emergency Priority:</strong> We'll address this as quickly as possible, typically within 24 hours.</p>
-    {{/if}}
-</div>
+	<div
+		style='background: #f3f4f6; border: 1px solid #d1d5db; padding: 20px; border-radius: 8px; margin: 20px 0;'
+	>
+		<h2 style='color: #374151; margin-top: 0;'>📋 Request Received</h2>
+		<p>We've received your maintenance request and are reviewing it.</p>
+		<p>We'll contact you soon to schedule the repair work.</p>
+		{{#if (eq priority 'emergency')}}
+			<p style='color: #dc2626;'><strong>Emergency Priority:</strong>
+				We'll address this as quickly as possible, typically within 24
+				hours.</p>
+		{{/if}}
+	</div>
 {{/if}}
 
-{{#if (eq status "completed")}}
-<div style="text-align: center; margin: 30px 0;">
-    <p><strong>How was our service?</strong></p>
-    <a href="{{feedbackLink}}" class="button">Rate Our Service</a>
-</div>
+{{#if (eq status 'completed')}}
+	<div style='text-align: center; margin: 30px 0;'>
+		<p><strong>How was our service?</strong></p>
+		<a href='{{feedbackLink}}' class='button'>Rate Our Service</a>
+	</div>
 {{/if}}
 
 <h2>🏠 Need Additional Help?</h2>
 
 <ul>
-    <li>📱 <strong>Track Progress:</strong> View real-time updates in your tenant portal</li>
-    <li>💬 <strong>Contact Support:</strong> Message us directly for questions</li>
-    <li>🔧 <strong>New Request:</strong> Submit additional maintenance needs anytime</li>
+	<li>📱
+		<strong>Track Progress:</strong>
+		View real-time updates in your tenant portal</li>
+	<li>💬
+		<strong>Contact Support:</strong>
+		Message us directly for questions</li>
+	<li>🔧
+		<strong>New Request:</strong>
+		Submit additional maintenance needs anytime</li>
 </ul>
 
-<div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center;">
-    <p style="margin: 0; color: #6b7280;">
-        <strong>Questions about this update?</strong><br>
-        Reply to this email or contact us through your tenant portal.
-    </p>
+<div
+	style='background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center;'
+>
+	<p style='margin: 0; color: #6b7280;'>
+		<strong>Questions about this update?</strong><br />
+		Reply to this email or contact us through your tenant portal.
+	</p>
 </div>
 
 <p>Thank you for your patience!</p>

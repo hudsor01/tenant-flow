@@ -28,7 +28,7 @@ import {
 	PreviewPlanChangeDto,
 	UpgradeRequestDto
 } from './dto/subscription-management.dto'
-import type { User } from '@repo/database'
+import type { User } from '@repo/shared'
 
 /**
  * DTO for validating UUID parameters

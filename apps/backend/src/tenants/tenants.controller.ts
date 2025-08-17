@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common'
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { TenantsService } from './tenants.service'
-import { Tenant } from '@repo/database'
+import { Tenant } from '@repo/shared'
 import {
 	createTenantSchema,
 	queryTenantsSchema,

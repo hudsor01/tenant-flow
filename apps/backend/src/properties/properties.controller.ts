@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common'
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { PropertiesService } from './properties.service'
-import { Property } from '@repo/database'
+import { Property } from '@repo/shared'
 import {
 	CreatePropertyDto,
 	createPropertySchema,
