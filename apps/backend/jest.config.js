@@ -21,12 +21,14 @@ module.exports = {
 		'^@repo/(.*)$': '<rootDir>/../../packages/$1/src'
 	},
 	setupFilesAfterEnv: ['<rootDir>/src/test/setup-jest.ts'],
+	// Environment variables for clean test runs
+	setupFiles: ['<rootDir>/src/test/disable-nestjs-logger.ts'],
 	testTimeout: 10000,
 	maxWorkers: 1, // Prevent race conditions in tests
 	testSequencer:
 		'<rootDir>/../../node_modules/@jest/test-sequencer/build/index.js',
 	verbose: false,
-	silent: false,
+	silent: true,
 	// Force V8 coverage provider to avoid babel-plugin-istanbul conflicts
 	coverageProvider: 'v8',
 	// Modern ts-jest configuration (no more globals deprecation)
@@ -34,7 +36,6 @@ module.exports = {
 		'^.+\\.ts$': [
 			'ts-jest',
 			{
-				isolatedModules: true,
 				// Disable babel to avoid conflicts
 				useESM: false
 			}

@@ -9,8 +9,9 @@
 		"jsx": "react",
 		"jsxFactory": "React.createElement",
 		"jsxFragmentFactory": "React.Fragment",
-		"types": ["node", "reflect-metadata", "vitest/globals"],
-		"skipLibCheck": true
+		"types": ["node", "reflect-metadata"],
+		"skipLibCheck": true,
+		"isolatedModules": true
 	},
 	"include": ["src", "src/types/fastify.d.ts", "test/setup.ts"],
 	"exclude": [

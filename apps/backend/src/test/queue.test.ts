@@ -262,9 +262,17 @@ describe('Queue System Integration', () => {
 				.addMockProvider(EmailService, {
 					sendWelcomeEmail: jest
 						.fn()
-						.mockResolvedValue({
-							success: true,
-							messageId: 'msg_123'
+						.mockImplementation((email: string) => {
+							if (email === 'invalid-email') {
+								return Promise.resolve({
+									success: false,
+									error: 'Invalid email address'
+								})
+							}
+							return Promise.resolve({
+								success: true,
+								messageId: 'msg_123'
+							})
 						}),
 					sendTenantInvitation: jest
 						.fn()
