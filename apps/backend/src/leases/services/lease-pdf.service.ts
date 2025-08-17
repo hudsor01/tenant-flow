@@ -175,8 +175,8 @@ export class LeasePDFService {
 
         <div class="lease-terms">
           <h3>2. LEASE TERM</h3>
-          <p>The lease term begins on <strong>${formatDate(lease.startDate)}</strong> and ends on 
-          <strong>${formatDate(lease.endDate)}</strong>.</p>
+          <p>The lease term begins on <strong>${formatDate(new Date(lease.startDate))}</strong> and ends on 
+          <strong>${formatDate(new Date(lease.endDate))}</strong>.</p>
         </div>
 
         <div class="rent-details">
@@ -276,7 +276,7 @@ export class LeasePDFService {
 		const propertyAddress = lease.Unit.Property.address
 			.replace(/[^a-zA-Z0-9]/g, '_')
 			.substring(0, 30)
-		const startDate = lease.startDate.toISOString().split('T')[0]
+		const startDate = new Date(lease.startDate).toISOString().split('T')[0]
 
 		return `lease_${tenantName}_${propertyAddress}_${startDate}`
 	}

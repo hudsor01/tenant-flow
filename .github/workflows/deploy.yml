@@ -30,7 +30,6 @@ jobs:
                   # Check if critical files exist
                   test -f package.json || exit 1
                   test -f apps/backend/package.json || exit 1
-                  test -f packages/database/prisma/schema.prisma || exit 1
 
                   # Validate JSON syntax
                   node -e "JSON.parse(require('fs').readFileSync('package.json'))"

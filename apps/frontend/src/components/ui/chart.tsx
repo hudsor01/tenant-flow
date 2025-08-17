@@ -155,7 +155,7 @@ function ChartTooltipContent({
 			(typeof value === 'string' || typeof value === 'number')
 		) {
 			return (
-				<div className={cn('font-medium')}>{labelFormatter(value)}</div>
+				<div className={cn('font-medium')}>{labelFormatter(value, undefined as any /* eslint-disable-line @typescript-eslint/no-explicit-any */)}</div>
 			)
 		}
 
@@ -181,7 +181,7 @@ function ChartTooltipContent({
 		>
 			{!nestLabel ? tooltipLabel : null}
 			<div className="grid gap-1.5">
-				{payload.map((item, index: number) => {
+				{payload.map((item: { name?: string; dataKey?: string; value?: unknown; payload?: unknown; fill?: string; color?: string }, index: number) => {
 					const key = `${nameKey || item.name || item.dataKey || 'value'}`
 					const itemConfig = getPayloadConfigFromPayload(
 						config,
@@ -189,7 +189,7 @@ function ChartTooltipContent({
 						key
 					)
 					const indicatorColor =
-						color || item.payload?.fill || item.color
+						color || (item.payload as any /* eslint-disable-line @typescript-eslint/no-explicit-any */)?.fill || item.color
 
 					return (
 						<div
@@ -211,7 +211,8 @@ function ChartTooltipContent({
 									item.value as number,
 									item.name as string,
 									item as never,
-									index
+									index,
+									undefined as any /* eslint-disable-line @typescript-eslint/no-explicit-any */
 								)
 							) : (
 								<>

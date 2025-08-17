@@ -80,7 +80,6 @@ const preview: Preview = {
 				date: /Date$/i
 			}
 		}
-		// Removed deprecated argTypesRegex - use fn() from @storybook/test instead
 	},
 	decorators: [
 		withThemeByClassName({

@@ -86,7 +86,7 @@ http_requests_total 1
 				'UsersService',
 				'PropertiesService',
 				'TenantsService',
-				'PrismaService'
+				'SupabaseService'
 			]
 
 			for (const serviceName of testServices) {

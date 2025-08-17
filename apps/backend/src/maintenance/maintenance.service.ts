@@ -9,7 +9,6 @@ import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { ValidationException } from '../common/exceptions/base.exception'
 import {
 	CreateMaintenanceRequestDto,
-	MaintenanceRequestQueryDto,
 	UpdateMaintenanceRequestDto
 } from './dto'
 import { SupabaseService } from '../common/supabase/supabase.service'
@@ -65,15 +64,16 @@ export class MaintenanceService {
 				title: data.title,
 				description: data.description,
 				category: data.category || 'GENERAL',
-				priority: data.priority || 'MEDIUM',
-				status: data.status || 'OPEN',
-				requestedByEmail: data.requestedByEmail,
-				requestedByName: data.requestedByName,
-				requestedByPhone: data.requestedByPhone,
+				priority: (data.priority || 'MEDIUM') as MaintenanceRequestInsert['priority'],
+				status: (data.status || 'OPEN') as MaintenanceRequestInsert['status'],
+				contactPhone: data.contactPhone,
+				requestedBy: data.requestedBy,
+				allowEntry: data.allowEntry,
+				photos: data.photos || [],
+				notes: data.notes,
 				preferredDate: data.preferredDate
 					? new Date(data.preferredDate).toISOString()
 					: undefined,
-				notes: data.notes,
 				createdAt: new Date().toISOString(),
 				updatedAt: new Date().toISOString()
 			}
@@ -170,6 +170,31 @@ export class MaintenanceService {
 	}
 
 	/**
+	 * Alias for findByOwner to match controller expectations
+	 */
+	async getByOwner(
+		ownerId: string,
+		options: MaintenanceRequestQueryOptions = {},
+		userId?: string,
+		userToken?: string
+	): Promise<MaintenanceRequestWithRelations[]> {
+		return this.findByOwner(ownerId, options, userId, userToken)
+	}
+
+	/**
+	 * Alias for findByUnit to match controller expectations
+	 */
+	async getByUnit(
+		unitId: string,
+		ownerId: string,
+		options: MaintenanceRequestQueryOptions = {},
+		userId?: string,
+		userToken?: string
+	): Promise<MaintenanceRequestWithRelations[]> {
+		return this.findByUnit(unitId, ownerId, options, userId, userToken)
+	}
+
+	/**
 	 * Update maintenance request
 	 */
 	async update(
@@ -194,9 +219,21 @@ export class MaintenanceService {
 			}
 
 			const updateData: MaintenanceRequestUpdate = {
-				...data,
 				updatedAt: new Date().toISOString()
 			}
+
+			// Copy over the fields that are defined
+			if (data.title) {updateData.title = data.title}
+			if (data.description) {updateData.description = data.description}
+			if (data.category) {updateData.category = data.category}
+			if (data.priority) {updateData.priority = data.priority as MaintenanceRequestUpdate['priority']}
+			if (data.status) {updateData.status = data.status as MaintenanceRequestUpdate['status']}
+			if (data.allowEntry !== undefined) {updateData.allowEntry = data.allowEntry}
+			if (data.contactPhone) {updateData.contactPhone = data.contactPhone}
+			if (data.actualCost !== undefined) {updateData.actualCost = data.actualCost}
+			if (data.estimatedCost !== undefined) {updateData.estimatedCost = data.estimatedCost}
+			if (data.assignedTo) {updateData.assignedTo = data.assignedTo}
+			if (data.photos) {updateData.photos = data.photos}
 
 			// Convert dates if provided
 			if (data.preferredDate) {
@@ -617,51 +654,5 @@ export class MaintenanceService {
 				}
 			})
 		}
-	}
-
-	// ========================================
-	// Backward Compatibility Methods (Deprecated)
-	// ========================================
-
-	/** @deprecated Use findByOwner() instead */
-	async getByOwner(
-		ownerId: string,
-		query?: MaintenanceRequestQueryDto
-	): Promise<MaintenanceRequestWithRelations[]> {
-		return this.findByOwner(ownerId, query)
-	}
-
-	/** @deprecated Use findByUnit() instead */
-	async getByUnit(
-		unitId: string,
-		ownerId: string,
-		query?: MaintenanceRequestQueryDto
-	): Promise<MaintenanceRequestWithRelations[]> {
-		return this.findByUnit(unitId, ownerId, query)
-	}
-
-	/** @deprecated Use getStats() instead */
-	async getMaintenanceStats(ownerId: string) {
-		return this.getStats(ownerId)
-	}
-
-	/** @deprecated Use findById() instead */
-	async getMaintenanceRequestById(
-		id: string,
-		ownerId: string
-	): Promise<MaintenanceRequestWithRelations | null> {
-		try {
-			return await this.findById(id, ownerId)
-		} catch (_error) {
-			return null
-		}
-	}
-
-	/** @deprecated Use findById() instead */
-	async getMaintenanceRequestByIdOrThrow(
-		id: string,
-		ownerId: string
-	): Promise<MaintenanceRequestWithRelations> {
-		return this.findById(id, ownerId)
 	}
 }

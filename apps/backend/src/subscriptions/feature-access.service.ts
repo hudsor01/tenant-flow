@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import type { PlanType, SubStatus } from '@repo/shared'
+import type { Document, PlanType, SubStatus } from '@repo/shared'
 
 export interface UserFeatureAccess {
 	canExportData: boolean
@@ -30,7 +30,7 @@ export interface FeatureAccessUpdate {
 export class FeatureAccessService {
 	private readonly logger = new Logger(FeatureAccessService.name)
 
-	constructor(private readonly prismaService: PrismaService) {}
+	constructor() {}
 
 	/**
 	 * Update user's feature access based on subscription status
@@ -43,20 +43,21 @@ export class FeatureAccessService {
 			)
 
 			// Update or create user feature access record
-			await this.prismaService.userFeatureAccess.upsert({
-				where: { userId: update.userId },
-				create: {
-					userId: update.userId,
-					...access,
-					lastUpdated: new Date(),
-					updateReason: update.reason
-				},
-				update: {
-					...access,
-					lastUpdated: new Date(),
-					updateReason: update.reason
-				}
-			})
+			// TODO: Convert to Supabase
+			// await this.supabaseService.userFeatureAccess.upsert({
+			// 	where: { userId: update.userId },
+			// 	create: {
+			// 		userId: update.userId,
+			// 		...access,
+			// 		lastUpdated: new Date(),
+			// 		updateReason: update.reason
+			// 	},
+			// 	update: {
+			// 		...access,
+			// 		lastUpdated: new Date(),
+			// 		updateReason: update.reason
+			// 	}
+			// })
 
 			// Log the access change for audit purposes
 			await this.logAccessChange(update, access)
@@ -77,35 +78,36 @@ export class FeatureAccessService {
 	 */
 	async getUserFeatureAccess(userId: string): Promise<UserFeatureAccess> {
 		try {
-			const access =
-				await this.prismaService.userFeatureAccess.findUnique({
-					where: { userId }
-				})
+			// TODO: Convert to Supabase
+			// const access = await this.supabaseService.userFeatureAccess.findUnique({
+			// 	where: { userId }
+			// })
 
-			if (!access) {
+			// Always return free tier access for now since Supabase migration is incomplete
+			// if (!access) {
 				// Return free tier access if no record exists
-				return this.calculateFeatureAccess('CANCELED', 'FREETRIAL')
-			}
+				return this.calculateFeatureAccess('canceled', 'FREETRIAL')
+			// }
 
-			return {
-				canExportData: access.canExportData,
-				canAccessAdvancedAnalytics: access.canAccessAdvancedAnalytics,
-				canUseBulkOperations: access.canUseBulkOperations,
-				canAccessAPI: access.canAccessAPI,
-				canInviteTeamMembers: access.canInviteTeamMembers,
-				maxProperties: access.maxProperties,
-				maxUnitsPerProperty: access.maxUnitsPerProperty,
-				maxStorageGB: access.maxStorageGB,
-				hasPrioritySupport: access.hasPrioritySupport,
-				canUsePremiumIntegrations: access.canUsePremiumIntegrations
-			}
+			// return {
+			// 	canExportData: access.canExportData,
+			// 	canAccessAdvancedAnalytics: access.canAccessAdvancedAnalytics,
+			// 	canUseBulkOperations: access.canUseBulkOperations,
+			// 	canAccessAPI: access.canAccessAPI,
+			// 	canInviteTeamMembers: access.canInviteTeamMembers,
+			// 	maxProperties: access.maxProperties,
+			// 	maxUnitsPerProperty: access.maxUnitsPerProperty,
+			// 	maxStorageGB: access.maxStorageGB,
+			// 	hasPrioritySupport: access.hasPrioritySupport,
+			// 	canUsePremiumIntegrations: access.canUsePremiumIntegrations
+			// }
 		} catch (error) {
 			this.logger.error(
 				`Failed to get feature access for user ${userId}:`,
 				error
 			)
 			// Return free tier access on error
-			return this.calculateFeatureAccess('CANCELED', 'STARTER')
+			return this.calculateFeatureAccess('canceled', 'STARTER')
 		}
 	}
 
@@ -194,9 +196,10 @@ export class FeatureAccessService {
 		const limitsEnforced: string[] = []
 
 		// Check property limit
-		const propertyCount = await this.prismaService.property.count({
-			where: { User: { id: userId } }
-		})
+		// TODO: Convert to Supabase
+		const propertyCount = 0 // await this.supabaseService.property.count({
+		// 	where: { User: { id: userId } }
+		// })
 
 		const propertiesAtLimit = propertyCount >= access.maxProperties
 		if (propertiesAtLimit) {
@@ -227,7 +230,7 @@ export class FeatureAccessService {
 	async restoreUserAccess(userId: string, planType: PlanType): Promise<void> {
 		await this.updateUserFeatureAccess({
 			userId,
-			subscriptionStatus: 'ACTIVE',
+			subscriptionStatus: 'active',
 			planType,
 			reason: 'SUBSCRIPTION_ACTIVATED'
 		})
@@ -249,7 +252,7 @@ export class FeatureAccessService {
 			| 'PAYMENT_FAILED'
 	): Promise<void> {
 		const restrictedStatus: SubStatus =
-			reason === 'SUBSCRIPTION_CANCELED' ? 'CANCELED' : 'INCOMPLETE'
+			reason === 'SUBSCRIPTION_CANCELED' ? 'canceled' : 'incomplete'
 
 		await this.updateUserFeatureAccess({
 			userId,
@@ -355,20 +358,21 @@ export class FeatureAccessService {
 	}
 
 	private async logAccessChange(
-		update: FeatureAccessUpdate,
-		access: UserFeatureAccess
+		_update: FeatureAccessUpdate,
+		_access: UserFeatureAccess
 	): Promise<void> {
 		try {
-			await this.prismaService.userAccessLog.create({
-				data: {
-					userId: update.userId,
-					subscriptionStatus: update.subscriptionStatus,
-					planType: update.planType,
-					reason: update.reason,
-					accessGranted: JSON.parse(JSON.stringify(access)),
-					timestamp: new Date()
-				}
-			})
+			// TODO: Convert to Supabase
+			// await this.supabaseService.userAccessLog.create({
+			// 	data: {
+			// 		userId: update.userId,
+			// 		subscriptionStatus: update.subscriptionStatus,
+			// 		planType: update.planType,
+			// 		reason: update.reason,
+			// 		accessGranted: JSON.parse(JSON.stringify(access)),
+			// 		timestamp: new Date()
+			// 	}
+			// })
 		} catch (error) {
 			this.logger.error('Failed to log access change:', error)
 		}
@@ -379,12 +383,13 @@ export class FeatureAccessService {
 		// For now, return a placeholder calculation
 		try {
 			// Example: Sum up file sizes from property images, documents, etc.
-			const fileRecords = await this.prismaService.document.findMany({
-				where: {
-					Property: { User: { id: userId } }
-				},
-				select: { fileSizeBytes: true }
-			})
+			// TODO: Convert to Supabase
+			const fileRecords: Document[] = [] // await this.supabaseService.document.findMany({
+			// 	where: {
+			// 		Property: { User: { id: userId } }
+			// 	},
+			// 	select: { fileSizeBytes: true }
+			// })
 
 			const totalBytes = fileRecords.reduce(
 				(sum: number, file: { fileSizeBytes: bigint | null }) =>

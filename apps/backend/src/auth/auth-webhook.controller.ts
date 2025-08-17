@@ -220,8 +220,8 @@ export class AuthWebhookController {
 			// Create/update local subscription record with Stripe info
 			try {
 				// Get or create the subscription (this will create a free one if none exists)
-				const subscription =
-					await this.subscriptionsService.getSubscription(userId)
+const subscription =
+await this.subscriptionsService.getUserSubscription(userId)
 
 				if (subscription) {
 					// Update the subscription with Stripe information
@@ -273,12 +273,10 @@ export class AuthWebhookController {
 		stripeSubscriptionId: string
 	) {
 		// Update subscription with Stripe IDs using the proper service method
-		await this.subscriptionsService.updateSubscriptionFromStripe(
-			userId,
-			'FREETRIAL', // Free trial plan type
-			stripeSubscriptionId,
-			'TRIALING' // Free trial is in trialing status
-		)
+await this.subscriptionsService.createOrUpdateSubscription(userId, {
+  stripeSubscriptionId,
+  status: 'TRIALING'
+})
 
 		// Also update user record with Stripe customer ID using users service
 		await this.usersService.updateUser(userId, {
