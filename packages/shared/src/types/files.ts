@@ -4,14 +4,15 @@
  */
 
 // Document type enum - matches Prisma schema DocumentType enum
-export type DocumentType =
-	| 'LEASE'
-	| 'INVOICE'
-	| 'RECEIPT'
-	| 'PROPERTY_PHOTO'
-	| 'INSPECTION'
-	| 'MAINTENANCE'
-	| 'OTHER'
+export enum DocumentType {
+	LEASE = 'LEASE',
+	INVOICE = 'INVOICE',
+	RECEIPT = 'RECEIPT',
+	PROPERTY_PHOTO = 'PROPERTY_PHOTO',
+	INSPECTION = 'INSPECTION',
+	MAINTENANCE = 'MAINTENANCE',
+	OTHER = 'OTHER'
+}
 
 // Document interface - matches Prisma schema
 export interface Document {
