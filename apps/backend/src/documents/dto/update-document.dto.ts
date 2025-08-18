@@ -1,7 +1,7 @@
 import { PartialType } from '@nestjs/mapped-types'
 import { CreateDocumentDto } from './create-document.dto'
 import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator'
-import type { DocumentType, UpdateDocumentInput } from '@repo/shared'
+import { DocumentType, type UpdateDocumentInput } from '@repo/shared'
 import { Transform } from 'class-transformer'
 
 export class UpdateDocumentDto
