@@ -75,13 +75,23 @@ export class SimpleSecurity {
 	static sanitizeInput(input: string): string {
 		if (!input) return ''
 
-		return (
-			input
-				.replace(/\0/g, '') // Remove null bytes
-				// eslint-disable-next-line no-control-regex
-				.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // Remove control characters
-				.trim()
-		)
+		// Remove control characters by filtering character codes
+		let result = ''
+		for (let i = 0; i < input.length; i++) {
+			const charCode = input.charCodeAt(i)
+			// Skip control characters (0-8, 11-12, 14-31, 127-159)
+			if (
+				(charCode >= 0 && charCode <= 8) ||
+				(charCode >= 11 && charCode <= 12) ||
+				(charCode >= 14 && charCode <= 31) ||
+				(charCode >= 127 && charCode <= 159)
+			) {
+				continue
+			}
+			result += input[i]
+		}
+		
+		return result.trim()
 	}
 
 	/**

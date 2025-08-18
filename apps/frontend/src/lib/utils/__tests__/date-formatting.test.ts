@@ -50,7 +50,6 @@ describe.skip('Date Formatting Utilities', () => {
 })
 
 // Legacy implementation for comparison testing (original with timezone issues)
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function legacyFormatDate(dateString: string): string {
 	return new Date(dateString).toLocaleDateString('en-US', {
 		year: 'numeric',
