@@ -162,14 +162,27 @@ const DANGEROUS_PATTERNS = [
 	/\.\w+\s+\.(exe|bat|cmd|scr|pif|com)$/i
 ]
 
+// Function to check for control characters without regex
+function hasControlCharacters(filename: string): boolean {
+	for (let i = 0; i < filename.length; i++) {
+		const charCode = filename.charCodeAt(i)
+		// Check for control characters (0-31, 127-159)
+		if (
+			(charCode >= 0 && charCode <= 31) ||
+			(charCode >= 127 && charCode <= 159)
+		) {
+			return true
+		}
+	}
+	return false
+}
+
 // Suspicious filename patterns
 const SUSPICIOUS_NAME_PATTERNS = [
 	/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\.|$)/i, // Windows reserved names
 	/[<>:"|?*\\/]/g, // Invalid filename characters
 	/^\./, // Hidden files
-	/\s{2,}/, // Multiple spaces
-	// eslint-disable-next-line no-control-regex
-	/[\x00-\x1f\x7f-\x9f]/ // Control characters
+	/\s{2,}/ // Multiple spaces
 ]
 
 // Using the singleton securityLogger imported above
@@ -301,7 +314,10 @@ async function validateBasicInfo(
 	}
 
 	// Suspicious filename check
-	if (SUSPICIOUS_NAME_PATTERNS.some(pattern => pattern.test(file.name))) {
+	if (
+		SUSPICIOUS_NAME_PATTERNS.some(pattern => pattern.test(file.name)) ||
+		hasControlCharacters(file.name)
+	) {
 		result.warnings.push('Filename contains suspicious patterns')
 		result.securityFlags.suspiciousName = true
 	}
