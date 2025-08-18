@@ -1,14 +1,10 @@
 {
 	"$schema": "https://openapi.vercel.sh/vercel.json",
-	"buildCommand": "cd packages/shared && npm run build && cd ../../apps/frontend && npm run build",
-	"installCommand": "npm install --include=dev && npm install --no-save --platform=linuxmusl --arch=x64 lightningcss @tailwindcss/oxide",
+	"buildCommand": "npx turbo run build --filter=@repo/frontend",
+	"installCommand": "npm ci",
 	"framework": "nextjs",
 	"outputDirectory": "apps/frontend/.next",
-	"functions": {
-		"apps/frontend/**/*.js": {
-			"maxDuration": 10
-		}
-	},
+	"ignoreCommand": "npx turbo-ignore",
 	"redirects": [
 		{
 			"source": "/home",
