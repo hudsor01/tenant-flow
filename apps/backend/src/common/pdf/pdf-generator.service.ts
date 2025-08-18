@@ -193,7 +193,7 @@ export class PDFGeneratorService {
 				generationTime: `${generationTime}ms`
 			})
 
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'generatePDF',
 				resource: 'pdf',
 				metadata: { filename: options.filename }
@@ -284,7 +284,7 @@ export class PDFGeneratorService {
 				generationTime: `${generationTime}ms`
 			})
 
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'generatePDFFromURL',
 				resource: 'pdf',
 				metadata: { url, filename }

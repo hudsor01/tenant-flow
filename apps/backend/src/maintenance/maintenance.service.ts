@@ -96,7 +96,7 @@ export class MaintenanceService {
 			return maintenanceRequest
 		} catch (error) {
 			this.logger.error('Failed to create maintenance request:', error)
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'create',
 				resource: 'maintenance-request',
 				metadata: { unitId: data.unitId, title: data.title, ownerId }
@@ -128,7 +128,7 @@ export class MaintenanceService {
 
 			return request
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'findById',
 				resource: 'maintenance-request',
 				metadata: { requestId: id, ownerId }
@@ -161,7 +161,7 @@ export class MaintenanceService {
 				userToken
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'findByOwner',
 				resource: 'maintenance-request',
 				metadata: { ownerId }
@@ -264,7 +264,7 @@ export class MaintenanceService {
 
 			return updated
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'update',
 				resource: 'maintenance-request',
 				metadata: { requestId: id, ownerId }
@@ -302,7 +302,7 @@ export class MaintenanceService {
 				ownerId
 			})
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'delete',
 				resource: 'maintenance-request',
 				metadata: { requestId: id, ownerId }
@@ -334,7 +334,7 @@ export class MaintenanceService {
 				userToken
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'getStats',
 				resource: 'maintenance-request',
 				metadata: { ownerId }
@@ -367,7 +367,7 @@ export class MaintenanceService {
 				userToken
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'findByUnit',
 				resource: 'maintenance-request',
 				metadata: { unitId, ownerId }
@@ -398,7 +398,7 @@ export class MaintenanceService {
 				userToken
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'search',
 				resource: 'maintenance-request',
 				metadata: { ownerId, searchTerm }
@@ -421,7 +421,7 @@ export class MaintenanceService {
 				userToken
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'findEmergencyRequests',
 				resource: 'maintenance-request',
 				metadata: { ownerId }
@@ -446,7 +446,7 @@ export class MaintenanceService {
 				userToken
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'findOverdueRequests',
 				resource: 'maintenance-request',
 				metadata: { ownerId, days }
@@ -486,7 +486,7 @@ export class MaintenanceService {
 				userToken
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'updateStatus',
 				resource: 'maintenance-request',
 				metadata: { requestId: id, status, ownerId }
@@ -589,7 +589,7 @@ export class MaintenanceService {
 				type: notificationData.type
 			}
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'sendNotification',
 				resource: 'maintenance-request',
 				metadata: {
@@ -642,7 +642,7 @@ export class MaintenanceService {
 
 			return result
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'logNotification',
 				resource: 'maintenance-request',
 				metadata: {

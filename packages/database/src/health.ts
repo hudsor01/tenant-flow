@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Local type definition to avoid circular dependency
-type Database = {
+// Local interface definition to avoid circular dependency
+interface Database {
 	public: {
 		Tables: {
 			User: {

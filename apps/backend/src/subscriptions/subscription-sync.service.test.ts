@@ -171,7 +171,7 @@ describe('SubscriptionSyncService', () => {
 		}
 
 		const mockErrorHandler = {
-			handleErrorEnhanced: jest.fn()
+			handleError: jest.fn()
 		}
 
 		const module: TestingModule = await Test.createTestingModule({
@@ -642,7 +642,7 @@ describe('SubscriptionSyncService', () => {
 			prismaService.user.findFirst.mockResolvedValue(mockUser)
 			subscriptionManager.getSubscription.mockResolvedValue(null)
 			prismaService.subscription.upsert.mockRejectedValue(dbError)
-			errorHandler.handleErrorEnhanced.mockImplementation(() => {
+			errorHandler.handleError.mockImplementation(() => {
 				throw dbError
 			})
 
@@ -651,7 +651,7 @@ describe('SubscriptionSyncService', () => {
 				service.syncSubscriptionFromWebhook(mockStripeSubscription)
 			).rejects.toThrow('Database connection failed')
 
-			expect(errorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
+			expect(errorHandler.handleError).toHaveBeenCalledWith(
 				dbError,
 				expect.objectContaining({
 					operation: 'SubscriptionSyncService.performSubscriptionSync'

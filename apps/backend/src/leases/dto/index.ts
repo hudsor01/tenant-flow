@@ -1,8 +1,11 @@
 // Re-export from centralized Zod-inferred DTOs
-export {
+export type {
 	CreateLeaseDto,
 	UpdateLeaseDto,
-	LeaseQueryDto,
+	LeaseQueryDto
+} from '../../common/dto/dto-exports'
+
+export {
 	createLeaseSchema,
 	updateLeaseSchema,
 	queryLeasesSchema

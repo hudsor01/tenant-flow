@@ -1,7 +1,8 @@
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import { StripeService } from './stripe.service'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
-// import { SupabaseService } from '../common/supabase/supabase.service' // TODO: Uncomment when needed
+import { UserSupabaseRepository } from '../auth/user-supabase.repository'
+import { SubscriptionSupabaseRepository } from '../subscriptions/subscription-supabase.repository'
 import type Stripe from 'stripe'
 
 import { getPlanById } from '../shared/constants/billing-plans'
@@ -87,10 +88,29 @@ export class StripeBillingService {
 	constructor(
 		@Inject(StripeService) private readonly stripeService: StripeService,
 		@Inject(ErrorHandlerService)
-		private readonly errorHandler: ErrorHandlerService
+		private readonly errorHandler: ErrorHandlerService,
+		private readonly userRepository: UserSupabaseRepository,
+		private readonly subscriptionRepository: SubscriptionSupabaseRepository
 	) {
 		// PERFORMANCE: Minimize constructor work - just store dependencies
 		// No logging or validation to speed up initialization
+	}
+
+	/**
+	 * Map Stripe subscription status to Supabase SubStatus enum
+	 */
+	private mapStripeStatusToSubStatus(stripeStatus: string): 'ACTIVE' | 'TRIALING' | 'PAST_DUE' | 'CANCELED' | 'UNPAID' {
+		const statusMap: Record<string, 'ACTIVE' | 'TRIALING' | 'PAST_DUE' | 'CANCELED' | 'UNPAID'> = {
+			'trialing': 'TRIALING',
+			'active': 'ACTIVE',
+			'past_due': 'PAST_DUE',
+			'canceled': 'CANCELED',
+			'unpaid': 'UNPAID',
+			'incomplete': 'UNPAID',
+			'incomplete_expired': 'CANCELED',
+			'paused': 'CANCELED'
+		}
+		return statusMap[stripeStatus] || 'CANCELED'
 	}
 
 	/**
@@ -178,7 +198,7 @@ export class StripeBillingService {
 				customerId
 			}
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'createSubscription',
 				resource: 'subscription',
 				metadata: { userId: params.userId, planType: params.planType }
@@ -261,7 +281,7 @@ export class StripeBillingService {
 				url: session.url || ''
 			}
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'createCheckoutSession',
 				resource: 'checkout',
 				metadata: { userId: params.userId }
@@ -336,7 +356,7 @@ export class StripeBillingService {
 						: (updatedSubscription.customer as { id: string }).id
 			}
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'updateSubscription',
 				resource: 'subscription',
 				metadata: {
@@ -366,7 +386,7 @@ export class StripeBillingService {
 
 			return { url: session.url }
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'createCustomerPortalSession',
 				resource: 'portal_session',
 				metadata: { userId: params.userId }
@@ -403,20 +423,16 @@ export class StripeBillingService {
 					}
 				)
 
-			// Update database - TODO: Convert to Supabase
-			// await this.supabaseService.subscription.updateMany({
-			// 	where: {
-			// 		stripeSubscriptionId: params.subscriptionId,
-			// 		userId: params.userId
-			// 	},
-			// 	data: {
-			// 		status: subscription.status as SubStatus
-			// 	}
-			// })
+			// Update database
+			await this.subscriptionRepository.updateStatusByStripeId(
+				params.subscriptionId,
+				this.mapStripeStatusToSubStatus(subscription.status),
+				params.userId
+			)
 
 			return { status: subscription.status }
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'reactivateSubscription',
 				resource: 'subscription',
 				metadata: {
@@ -460,7 +476,11 @@ export class StripeBillingService {
 			}
 
 			// Update database
-			// TODO: Implement with Supabase
+			await this.subscriptionRepository.cancelSubscription(
+				params.subscriptionId,
+				!params.immediately, // cancelAtPeriodEnd = !immediately
+				params.userId
+			)
 			this.logger.log('Subscription canceled in Stripe', { subscriptionId: params.subscriptionId })
 
 			return {
@@ -468,7 +488,7 @@ export class StripeBillingService {
 				canceledAt: subscription.canceled_at || undefined
 			}
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'cancelSubscription',
 				resource: 'subscription',
 				metadata: {
@@ -482,11 +502,7 @@ export class StripeBillingService {
 	// Private helper methods
 
 	private async getUserWithSubscription(userId: string) {
-		// TODO: Convert to Supabase
-		const user = null // await this.supabaseService.user.findUnique({
-		// 	where: { id: userId },
-		// 	include: { Subscription: true }
-		// })
+		const user = await this.userRepository.findByIdWithSubscription(userId)
 
 		if (!user) {
 			throw this.errorHandler.createNotFoundError('User', userId)
@@ -512,14 +528,7 @@ export class StripeBillingService {
 			customerId = customer.id
 
 			// Store the Stripe customer ID back to the User table for future reference
-			// TODO: Convert to Supabase
-			// await this.supabaseService.user.update({
-			// 	where: { id: user.id },
-			// 	data: {
-			// 		stripeCustomerId: customerId,
-			// 		updatedAt: new Date()
-			// 	}
-			// })
+			await this.userRepository.updateStripeCustomerId(user.id, customerId)
 
 			this.logger.debug('Created and linked Stripe customer', {
 				userId: user.id,
@@ -665,131 +674,89 @@ export class StripeBillingService {
 		)) as unknown as StripeSubscription
 	}
 
-	private async storeSubscriptionInDatabase(_params: {
+	private async storeSubscriptionInDatabase(params: {
 		userId: string
 		subscriptionData: StripeSubscription
 		planType?: PlanType
 		priceId: string
 	}) {
-		// const customerId =
-		// 	typeof params.subscriptionData.customer === 'string'
-		// 		? params.subscriptionData.customer
-		// 		: (params.subscriptionData.customer as { id: string }).id
+		const customerId =
+			typeof params.subscriptionData.customer === 'string'
+				? params.subscriptionData.customer
+				: (params.subscriptionData.customer as { id: string }).id
 
-		// const statusMap: Record<StripeSubscription['status'], SubStatus> = {
-		// 	trialing: 'trialing' as SubStatus,
-		// 	active: 'active' as SubStatus,
-		// 	past_due: 'past_due' as SubStatus,
-		// 	canceled: 'canceled' as SubStatus,
-		// 	unpaid: 'unpaid' as SubStatus,
-		// 	incomplete: 'INCOMPLETE' as SubStatus,
-		// 	incomplete_expired: 'INCOMPLETE_EXPIRED' as SubStatus,
-		// 	paused: 'PAUSED' as SubStatus
-		// }
+		const subscriptionData = {
+			userId: params.userId,
+			stripeSubscriptionId: params.subscriptionData.id,
+			stripeCustomerId: customerId,
+			status: this.mapStripeStatusToSubStatus(params.subscriptionData.status),
+			planType: params.planType || 'STARTER',
+			stripePriceId: params.priceId,
+			currentPeriodStart: (() => {
+				const startTime = (
+					params.subscriptionData as {
+						current_period_start?: number
+					}
+				).current_period_start
+				return startTime ? new Date(startTime * 1000).toISOString() : null
+			})(),
+			currentPeriodEnd: (() => {
+				const endTime = (
+					params.subscriptionData as {
+						current_period_end?: number
+					}
+				).current_period_end
+				return endTime ? new Date(endTime * 1000).toISOString() : null
+			})(),
+			trialStart: params.subscriptionData.trial_start
+				? new Date(params.subscriptionData.trial_start * 1000).toISOString()
+				: null,
+			trialEnd: params.subscriptionData.trial_end
+				? new Date(params.subscriptionData.trial_end * 1000).toISOString()
+				: null,
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString()
+		}
 
-		// TODO: Convert to Supabase
-		// await this.supabaseService.subscription.upsert({
-		// 	where: { userId: params.userId },
-		// 	create: {
-		// 		userId: params.userId,
-		// 		stripeSubscriptionId: params.subscriptionData.id,
-		// 		stripeCustomerId: customerId,
-		// 		status: statusMap[params.subscriptionData.status],
-		// 		planType: params.planType || 'STARTER',
-		// 		stripePriceId: params.priceId,
-		// 		currentPeriodStart: (() => {
-		// 			const startTime = (
-		// 				params.subscriptionData as {
-		// 					current_period_start?: number
-		// 				}
-		// 			).current_period_start
-		// 			return startTime ? new Date(startTime * 1000) : null
-		// 		})(),
-		// 		currentPeriodEnd: (() => {
-		// 			const endTime = (
-		// 				params.subscriptionData as {
-		// 					current_period_end?: number
-		// 				}
-		// 			).current_period_end
-		// 			return endTime ? new Date(endTime * 1000) : null
-		// 		})(),
-		// 		trialStart: params.subscriptionData.trial_start
-		// 			? new Date(params.subscriptionData.trial_start * 1000)
-		// 			: null,
-		// 		trialEnd: params.subscriptionData.trial_end
-		// 			? new Date(params.subscriptionData.trial_end * 1000)
-		// 			: null
-		// 	},
-		// 	update: {
-		// 		stripeSubscriptionId: params.subscriptionData.id,
-		// 		status: statusMap[params.subscriptionData.status],
-		// 		planType: params.planType || 'STARTER',
-		// 		stripePriceId: params.priceId,
-		// 		currentPeriodStart: (() => {
-		// 			const startTime = (
-		// 				params.subscriptionData as {
-		// 					current_period_start?: number
-		// 				}
-		// 			).current_period_start
-		// 			return startTime ? new Date(startTime * 1000) : null
-		// 		})(),
-		// 		currentPeriodEnd: (() => {
-		// 			const endTime = (
-		// 				params.subscriptionData as {
-		// 					current_period_end?: number
-		// 				}
-		// 			).current_period_end
-		// 			return endTime ? new Date(endTime * 1000) : null
-		// 		})()
-		// 	}
-		// })
+		await this.subscriptionRepository.upsert(subscriptionData, params.userId)
 	}
 
-	private async updateSubscriptionInDatabase(_params: {
+	private async updateSubscriptionInDatabase(params: {
 		userId: string
 		subscriptionData: StripeSubscription
 		planType?: PlanType
 		priceId: string
 	}) {
-		// const statusMap: Record<StripeSubscription['status'], SubStatus> = {
-		// 	trialing: 'trialing' as SubStatus,
-		// 	active: 'active' as SubStatus,
-		// 	past_due: 'past_due' as SubStatus,
-		// 	canceled: 'canceled' as SubStatus,
-		// 	unpaid: 'unpaid' as SubStatus,
-		// 	incomplete: 'INCOMPLETE' as SubStatus,
-		// 	incomplete_expired: 'INCOMPLETE_EXPIRED' as SubStatus,
-		// 	paused: 'PAUSED' as SubStatus
-		// }
+		const updateData = {
+			status: this.mapStripeStatusToSubStatus(params.subscriptionData.status),
+			planType: params.planType,
+			stripePriceId: params.priceId,
+			currentPeriodStart: (() => {
+				const startTime = (
+					params.subscriptionData as {
+						current_period_start?: number
+					}
+				).current_period_start
+				return startTime ? new Date(startTime * 1000).toISOString() : null
+			})(),
+			currentPeriodEnd: (() => {
+				const endTime = (
+					params.subscriptionData as {
+						current_period_end?: number
+					}
+				).current_period_end
+				return endTime ? new Date(endTime * 1000).toISOString() : null
+			})(),
+			updatedAt: new Date().toISOString()
+		}
 
-		// TODO: Convert to Supabase
-		// await this.supabaseService.subscription.updateMany({
-		// 	where: {
-		// 		userId: params.userId,
-		// 		stripeSubscriptionId: params.subscriptionData.id
-		// 	},
-		// 	data: {
-		// 		status: statusMap[params.subscriptionData.status],
-		// 		planType: params.planType,
-		// 		stripePriceId: params.priceId,
-		// 		currentPeriodStart: (() => {
-		// 			const startTime = (
-		// 				params.subscriptionData as {
-		// 					current_period_start?: number
-		// 				}
-		// 			).current_period_start
-		// 			return startTime ? new Date(startTime * 1000) : null
-		// 		})(),
-		// 		currentPeriodEnd: (() => {
-		// 			const endTime = (
-		// 				params.subscriptionData as {
-		// 					current_period_end?: number
-		// 				}
-		// 			).current_period_end
-		// 			return endTime ? new Date(endTime * 1000) : null
-		// 		})()
-		// 	}
-		// })
+		// Use upsert to handle both create and update cases
+		await this.subscriptionRepository.upsert({
+			userId: params.userId,
+			stripeSubscriptionId: params.subscriptionData.id,
+			...updateData,
+			createdAt: new Date().toISOString()
+		}, params.userId)
 	}
 
 	/**
@@ -799,84 +766,71 @@ export class StripeBillingService {
 		stripeSubscription: StripeSubscription
 	): Promise<void> {
 		// Find user by customer ID
-		// const customerId =
-		// 	typeof stripeSubscription.customer === 'string'
-		// 		? stripeSubscription.customer
-		// 		: (stripeSubscription.customer as { id: string }).id
-		// TODO: Convert to Supabase
-		const subscription = null // await this.supabaseService.subscription.findFirst({
-		// 	where: { stripeCustomerId: customerId }
-		// })
+		const customerId =
+			typeof stripeSubscription.customer === 'string'
+				? stripeSubscription.customer
+				: (stripeSubscription.customer as { id: string }).id
+
+		const subscription = await this.subscriptionRepository.findByStripeCustomerId(customerId)
 
 		if (!subscription) {
 			this.logger.warn(
-				`No subscription found for customer ${
-					typeof stripeSubscription.customer === 'string'
-						? stripeSubscription.customer
-						: (stripeSubscription.customer as { id: string }).id
-				}`
+				`No subscription found for customer ${customerId}`
 			)
 			return
 		}
 
-		// Map Stripe status to our status
-		// const status = this.mapStripeStatus(stripeSubscription.status)
-
 		// Determine plan type from price ID
-		// const priceId = stripeSubscription.items.data[0]?.price.id
-		// const planType = priceId
-		// 	? this.getPlanTypeFromPriceId(priceId)
-		// 	: 'STARTER'
+		const priceId = stripeSubscription.items.data[0]?.price.id
+		const planType: PlanType = 'STARTER' // Default plan type, could be enhanced to derive from priceId
 
-		// Update subscription - TODO: Convert to Supabase
-		// await this.supabaseService.subscription.update({
-		// 	where: { id: subscription.id },
-		// 	data: {
-		// 		stripeSubscriptionId: stripeSubscription.id,
-		// 		status: status,
-		// 		planType,
-		// 		stripePriceId: priceId,
-		// 		currentPeriodStart: (() => {
-		// 			const startTime = (
-		// 				stripeSubscription as { current_period_start?: number }
-		// 			).current_period_start
-		// 			return startTime ? new Date(startTime * 1000) : null
-		// 		})(),
-		// 		currentPeriodEnd: (() => {
-		// 			const endTime = (
-		// 				stripeSubscription as { current_period_end?: number }
-		// 			).current_period_end
-		// 			return endTime ? new Date(endTime * 1000) : null
-		// 		})(),
-		// 		trialStart: stripeSubscription.trial_start
-		// 			? new Date(stripeSubscription.trial_start * 1000)
-		// 			: null,
-		// 		trialEnd: stripeSubscription.trial_end
-		// 			? new Date(stripeSubscription.trial_end * 1000)
-		// 			: null,
-		// 		cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
-		// 		canceledAt: stripeSubscription.canceled_at
-		// 			? new Date(stripeSubscription.canceled_at * 1000)
-		// 			: null
-		// 	}
-		// })
+		// Create subscription data for upsert
+		const subscriptionData = {
+			userId: subscription.userId,
+			stripeSubscriptionId: stripeSubscription.id,
+			stripeCustomerId: customerId,
+			status: this.mapStripeStatusToSubStatus(stripeSubscription.status),
+			planType,
+			stripePriceId: priceId,
+			currentPeriodStart: (() => {
+				const startTime = (
+					stripeSubscription as { current_period_start?: number }
+				).current_period_start
+				return startTime ? new Date(startTime * 1000).toISOString() : null
+			})(),
+			currentPeriodEnd: (() => {
+				const endTime = (
+					stripeSubscription as { current_period_end?: number }
+				).current_period_end
+				return endTime ? new Date(endTime * 1000).toISOString() : null
+			})(),
+			trialStart: stripeSubscription.trial_start
+				? new Date(stripeSubscription.trial_start * 1000).toISOString()
+				: null,
+			trialEnd: stripeSubscription.trial_end
+				? new Date(stripeSubscription.trial_end * 1000).toISOString()
+				: null,
+			cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
+			canceledAt: stripeSubscription.canceled_at
+				? new Date(stripeSubscription.canceled_at * 1000).toISOString()
+				: null,
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString()
+		}
+
+		await this.subscriptionRepository.upsert(subscriptionData, subscription.userId)
 	}
 
 	/**
 	 * Handle subscription deleted webhook
 	 */
 	async handleSubscriptionDeleted(
-		_stripeSubscriptionId: string
+		stripeSubscriptionId: string
 	): Promise<void> {
-		// TODO: Convert to Supabase
-		// await this.supabaseService.subscription.updateMany({
-		// 	where: { stripeSubscriptionId },
-		// 	data: {
-		// 		status: 'canceled' as SubStatus,
-		// 		cancelAtPeriodEnd: false,
-		// 		canceledAt: new Date()
-		// 	}
-		// })
+		await this.subscriptionRepository.cancelSubscription(
+			stripeSubscriptionId,
+			false // cancelAtPeriodEnd = false for immediate cancellation
+		)
 	}
 
 

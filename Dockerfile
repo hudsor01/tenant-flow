@@ -74,14 +74,8 @@ RUN echo "🔨 Building shared packages first..." && \
     echo "✅ All shared package artifacts verified"
 
 # Build backend with dependency packages already available
-RUN echo "🚨 BUILDING BACKEND - Using 850MB (Railway 1GB plan) 🚨" && \
-    NODE_OPTIONS="--max-old-space-size=850" npx turbo run build --filter=@repo/backend || \
-    (echo "❌ BUILD FAILED - Exit code: $?" && \
-    echo "Retrying with reduced memory (750MB)..." && \
-    NODE_OPTIONS="--max-old-space-size=750" npx turbo run build --filter=@repo/backend) && \
-    echo "=== Build completed ===" && \
-    echo "=== Backend dist structure ===" && \
-    find /app/apps/backend/dist
+RUN NODE_OPTIONS="--max-old-space-size=850" npx turbo run build --filter=@repo/backend || \
+    NODE_OPTIONS="--max-old-space-size=750" npx turbo run build --filter=@repo/backend
 
 # Verify build output exists
 RUN test -f apps/backend/dist/main.js || \

@@ -41,6 +41,7 @@ module.exports = {
 			}
 		]
 	},
+	injectGlobals: true,
 	// Clear cache and mocks
 	clearMocks: true,
 	restoreMocks: true

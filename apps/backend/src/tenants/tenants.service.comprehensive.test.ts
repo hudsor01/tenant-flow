@@ -45,7 +45,7 @@ describe('TenantsService - Comprehensive Test Suite', () => {
 			createBusinessError: jest.fn(
 				(_code, message) => new Error(message as string)
 			),
-			handleErrorEnhanced: jest.fn(error => {
+			handleError: jest.fn(error => {
 				throw error
 			})
 		} as any

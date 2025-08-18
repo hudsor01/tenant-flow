@@ -6,7 +6,6 @@ import { MultiTenantSupabaseService } from '../common/supabase/multi-tenant-supa
 
 type PropertyRow = Database['public']['Tables']['Property']['Row']
 type PropertyInsert = Database['public']['Tables']['Property']['Insert']
-type PropertyUpdate = Database['public']['Tables']['Property']['Update']
 
 export interface PropertyWithRelations extends PropertyRow {
 	id: string // Explicit id field to ensure it's always available
@@ -35,13 +34,8 @@ export interface PropertyQueryOptions {
  * Replaces the Prisma-based PropertiesRepository
  */
 @Injectable()
-export class PropertiesSupabaseRepository extends BaseSupabaseRepository<
-	'Property',
-	PropertyRow,
-	PropertyInsert,
-	PropertyUpdate
-> {
-	protected readonly tableName = 'Property' as const
+export class PropertiesSupabaseRepository extends BaseSupabaseRepository<PropertyRow> {
+	protected readonly tableName = 'Property'
 
 	constructor(
 		supabaseService: SupabaseService,

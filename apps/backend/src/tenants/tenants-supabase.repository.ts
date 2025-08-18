@@ -6,7 +6,6 @@ import { MultiTenantSupabaseService } from '../common/supabase/multi-tenant-supa
 
 type TenantRow = Database['public']['Tables']['Tenant']['Row']
 type TenantInsert = Database['public']['Tables']['Tenant']['Insert']
-type TenantUpdate = Database['public']['Tables']['Tenant']['Update']
 
 export interface TenantWithRelations extends TenantRow {
 	Lease?: {
@@ -42,13 +41,8 @@ export interface TenantQueryOptions {
  * Note: Tenants have indirect ownership through leases
  */
 @Injectable()
-export class TenantsSupabaseRepository extends BaseSupabaseRepository<
-	'Tenant',
-	TenantRow,
-	TenantInsert,
-	TenantUpdate
-> {
-	protected readonly tableName = 'Tenant' as const
+export class TenantsSupabaseRepository extends BaseSupabaseRepository<TenantRow> {
+	protected readonly tableName = 'Tenant'
 
 	constructor(
 		supabaseService: SupabaseService,

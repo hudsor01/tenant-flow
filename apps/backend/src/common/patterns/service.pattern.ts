@@ -111,7 +111,7 @@ export class EntityService {
 			return this.businessService.applyBusinessRules(entity)
 		} catch (error) {
 			this.logger.error(`Failed to find entity: ${id}`, error)
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'findById',
 				resource: 'entity',
 				metadata: { entityId: id, userId }
@@ -154,7 +154,7 @@ export class EntityService {
 			}
 		} catch (error) {
 			this.logger.error('Failed to find entities', error)
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'findMany',
 				resource: 'entity',
 				metadata: {
@@ -185,7 +185,7 @@ export class EntityService {
 			return this.businessService.applyBusinessRules(entity)
 		} catch (error) {
 			this.logger.error('Failed to create entity', error)
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'create',
 				resource: 'entity',
 				metadata: {
@@ -218,7 +218,7 @@ export class EntityService {
 			return this.businessService.applyBusinessRules(updated)
 		} catch (error) {
 			this.logger.error(`Failed to update entity: ${id}`, error)
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'update',
 				resource: 'entity',
 				metadata: {
@@ -257,7 +257,7 @@ export class EntityService {
 			this.logger.log(`Entity deleted: ${id} by user: ${userId}`)
 		} catch (error) {
 			this.logger.error(`Failed to delete entity: ${id}`, error)
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'delete',
 				resource: 'entity',
 				metadata: { entityId: id, userId }
@@ -283,7 +283,7 @@ export class EntityService {
 			return { total, active, inactive }
 		} catch (error) {
 			this.logger.error('Failed to get entity stats', error)
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'getStats',
 				resource: 'entity',
 				metadata: { userId }

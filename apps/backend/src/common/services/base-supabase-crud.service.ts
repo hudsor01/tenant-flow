@@ -77,7 +77,7 @@ export interface ISupabaseCrudService<
 		ownerId: string,
 		userId?: string,
 		userToken?: string
-	): Promise<TEntity>
+	): Promise<void>
 }
 
 /**
@@ -107,12 +107,7 @@ export abstract class BaseSupabaseCrudService<
 	protected readonly errorHandler = new ErrorHandlerService()
 
 	constructor(
-		protected readonly repository: BaseSupabaseRepository<
-			TTableName,
-			TEntity,
-			TInsert,
-			TUpdate
-		>,
+		protected readonly repository: BaseSupabaseRepository<TEntity>,
 		protected readonly auditService?: SecurityAuditService,
 		protected readonly entityName?: string
 	) {
@@ -197,7 +192,7 @@ export abstract class BaseSupabaseCrudService<
 				`Failed to fetch ${this.entityName || 'entities'}:`,
 				error
 			)
-			throw this.errorHandler.handleErrorEnhanced(
+			throw this.errorHandler.handleError(
 				error as Error | AppError,
 				{ operation: 'getByOwner' }
 			)
@@ -252,7 +247,7 @@ export abstract class BaseSupabaseCrudService<
 				`Failed to fetch ${this.entityName || 'entity'} by ID:`,
 				error
 			)
-			throw this.errorHandler.handleErrorEnhanced(
+			throw this.errorHandler.handleError(
 				error as Error | AppError,
 				{ operation: 'getByIdOrThrow' }
 			)
@@ -282,7 +277,7 @@ export abstract class BaseSupabaseCrudService<
 			}
 		} catch (error) {
 			this.logger.error(`Failed to get stats:`, error)
-			throw this.errorHandler.handleErrorEnhanced(
+			throw this.errorHandler.handleError(
 				error as Error | AppError,
 				{ operation: 'getStats' }
 			)
@@ -308,7 +303,7 @@ export abstract class BaseSupabaseCrudService<
 
 			// Create entity
 			const created = await this.repository.create(
-				insertData,
+				insertData as Record<string, unknown>,
 				userId,
 				userToken
 			)
@@ -333,7 +328,7 @@ export abstract class BaseSupabaseCrudService<
 				`Failed to create ${this.entityName || 'entity'}:`,
 				error
 			)
-			throw this.errorHandler.handleErrorEnhanced(
+			throw this.errorHandler.handleError(
 				error as Error | AppError,
 				{ operation: 'create' }
 			)
@@ -364,7 +359,7 @@ export abstract class BaseSupabaseCrudService<
 			// Update entity
 			const updated = await this.repository.update(
 				id,
-				updateData,
+				updateData as Record<string, unknown>,
 				userId,
 				userToken
 			)
@@ -385,7 +380,7 @@ export abstract class BaseSupabaseCrudService<
 				`Failed to update ${this.entityName || 'entity'}:`,
 				error
 			)
-			throw this.errorHandler.handleErrorEnhanced(
+			throw this.errorHandler.handleError(
 				error as Error | AppError,
 				{ operation: 'update' }
 			)
@@ -401,7 +396,7 @@ export abstract class BaseSupabaseCrudService<
 		ownerId: string,
 		userId?: string,
 		userToken?: string
-	): Promise<TEntity> {
+	): Promise<void> {
 		try {
 			// Verify ownership first
 			await this.getByIdOrThrow(id, ownerId, userId, userToken)
@@ -410,7 +405,7 @@ export abstract class BaseSupabaseCrudService<
 			await this.checkDeletionConstraints(id, ownerId, userId, userToken)
 
 			// Delete entity
-			const deleted = await this.repository.delete(id, userId, userToken)
+			await this.repository.delete(id, userId, userToken)
 
 			// Log audit event
 			await this.auditService?.logSecurityEvent({
@@ -422,13 +417,12 @@ export abstract class BaseSupabaseCrudService<
 			})
 
 			this.logger.log(`Deleted ${this.entityName || 'entity'}: ${id}`)
-			return deleted
 		} catch (error) {
 			this.logger.error(
 				`Failed to delete ${this.entityName || 'entity'}:`,
 				error
 			)
-			throw this.errorHandler.handleErrorEnhanced(
+			throw this.errorHandler.handleError(
 				error as Error | AppError,
 				{ operation: 'delete' }
 			)

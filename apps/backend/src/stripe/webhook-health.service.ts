@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { StructuredLoggerService } from '../common/logging/structured-logger.service'
 import { StripeService } from './stripe.service'
-// import { SupabaseService } from '../supabase/supabase.service' // TODO: Uncomment when needed
+import { SupabaseService } from '../common/supabase/supabase.service'
 
 export interface HealthCheckResult {
 	service: string
@@ -45,7 +45,7 @@ export class WebhookHealthService {
 	private readonly maxRetryDelayMs = 10000 // Maximum delay between retries
 
 	constructor(
-		// private readonly supabaseService: SupabaseService,
+		private readonly supabaseService: SupabaseService,
 		private readonly stripeService: StripeService
 	) {
 		this.structuredLogger = new StructuredLoggerService('WebhookHealth')
@@ -416,8 +416,7 @@ export class WebhookHealthService {
 
 		try {
 			// Test basic database connectivity with a simple query
-			// TODO: Convert to Supabase
-			// await this.supabaseService.getAdminClient().from('User').select('id').limit(1)
+			await this.supabaseService.getAdminClient().from('User').select('id').limit(1)
 
 			const responseTime = Date.now() - startTime
 
@@ -430,7 +429,7 @@ export class WebhookHealthService {
 				responseTime,
 				lastChecked: new Date(),
 				metadata: {
-					query: 'SELECT 1',
+					query: 'User.select(id).limit(1)',
 					responseTimeMs: responseTime
 				}
 			}

@@ -13,7 +13,7 @@ import {
 	MinLength
 } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
-import { DocumentType } from '@repo/shared'
+import type { DocumentType } from '@repo/shared'
 
 export class CreateDocumentDto {
 	@IsString()

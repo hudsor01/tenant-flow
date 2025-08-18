@@ -1,14 +1,27 @@
 import { Process, Processor } from '@nestjs/bull'
 import { Job } from 'bull'
+import { Injectable, Logger } from '@nestjs/common'
 import { QUEUE_NAMES } from '../constants/queue-names'
 import { BaseProcessor, ProcessorResult } from '../base/base.processor'
 import { PaymentJobData } from '../types/job.interfaces'
 import { ProcessorUtils } from '../utils/processor-utils'
 import { QUEUE_PROCESSING_DELAYS } from '../config/queue.constants'
+import { StripeService } from '../../stripe/stripe.service'
+import { SubscriptionSupabaseRepository } from '../../subscriptions/subscription-supabase.repository'
+import { UserSupabaseRepository } from '../../auth/user-supabase.repository'
+import { EventEmitter2 } from '@nestjs/event-emitter'
 
 @Processor(QUEUE_NAMES.PAYMENTS)
+@Injectable()
 export class PaymentProcessor extends BaseProcessor<PaymentJobData> {
-	constructor() {
+	private readonly logger = new Logger(PaymentProcessor.name)
+
+	constructor(
+		private readonly stripeService: StripeService,
+		private readonly subscriptionRepository: SubscriptionSupabaseRepository,
+		private readonly userRepository: UserSupabaseRepository,
+		private readonly eventEmitter: EventEmitter2
+	) {
 		super('PaymentProcessor')
 	}
 
@@ -113,92 +126,364 @@ export class PaymentProcessor extends BaseProcessor<PaymentJobData> {
 
 	// Sanitization handled by base class using DataSanitizationService
 
-	private async processPaymentCharge(_data: PaymentJobData): Promise<void> {
-		// TODO: Implement payment charge processing
-		// - Validate payment data
-		// - Process charge via Stripe/payment provider
-		// - Update payment status in database
-		// - Send confirmation notifications
-		// - Handle payment failure scenarios
+	private async processPaymentCharge(data: PaymentJobData): Promise<void> {
+		try {
+			this.logger.log(`Processing payment charge: ${data.paymentId}`)
 
-		// Process charge for payment
-		// Simulate payment processing
-		await ProcessorUtils.simulateProcessing(
-			'payment-charge',
-			QUEUE_PROCESSING_DELAYS.PAYMENT
-		)
+			// Validate payment data
+			if (!data.paymentId || !data.customerId) {
+				throw new Error('Missing required payment data')
+			}
 
-		// TODO: Actual payment processing logic
-		// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
-		// const paymentIntent = await stripe.paymentIntents.confirm(data.paymentId)
-		//
-		// if (paymentIntent.status === 'succeeded') {
-		//   await this.updatePaymentStatus(data.paymentId, 'succeeded')
-		//   await this.sendPaymentConfirmation(data.customerId, data)
-		// } else {
-		//   throw new Error(`Payment failed: ${paymentIntent.status}`)
-		// }
+			// Process charge via Stripe
+			const paymentIntent = await this.stripeService.client.paymentIntents.confirm(
+				data.paymentId,
+				{
+					return_url: `${process.env.FRONTEND_URL}/payment/success`
+				}
+			)
+
+			if (paymentIntent.status === 'succeeded') {
+				// Update payment status in database
+				await this.updatePaymentStatus(data.paymentId, 'succeeded')
+				
+				// Send confirmation notifications
+				await this.sendPaymentConfirmation(data.customerId, data)
+				
+				// Emit success event for analytics
+				this.eventEmitter.emit('payment.charge.succeeded', {
+					paymentId: data.paymentId,
+					customerId: data.customerId,
+					amount: data.amount,
+					currency: data.currency || 'usd'
+				})
+
+				this.logger.log(`Payment charge succeeded: ${data.paymentId}`)
+			} else {
+				throw new Error(`Payment failed: ${paymentIntent.status}`)
+			}
+		} catch (error) {
+			this.logger.error(`Payment charge failed: ${data.paymentId}`, error)
+			
+			// Emit failure event for analytics
+			this.eventEmitter.emit('payment.charge.failed', {
+				paymentId: data.paymentId,
+				customerId: data.customerId,
+				error: error instanceof Error ? error.message : 'Unknown error'
+			})
+			
+			throw error
+		}
 	}
 
-	private async processPaymentRefund(_data: PaymentJobData): Promise<void> {
-		// TODO: Implement payment refund processing
-		// - Validate refund request
-		// - Process refund via payment provider
-		// - Update refund status in database
-		// - Send refund notifications
-		// - Handle partial vs full refunds
+	private async processPaymentRefund(data: PaymentJobData): Promise<void> {
+		try {
+			this.logger.log(`Processing payment refund: ${data.paymentId}`)
 
-		// Process refund for payment
-		await ProcessorUtils.simulateProcessing(
-			'payment-refund',
-			QUEUE_PROCESSING_DELAYS.PAYMENT
-		)
+			// Validate refund request
+			if (!data.paymentId || !data.customerId) {
+				throw new Error('Missing required refund data')
+			}
 
-		// TODO: Actual refund processing logic
+			// Create refund via Stripe
+			const refund = await this.stripeService.client.refunds.create({
+				payment_intent: data.paymentId,
+				amount: data.amount, // Optional - if not provided, Stripe refunds the full amount
+				reason: data.refundReason || 'requested_by_customer',
+				metadata: {
+					customerId: data.customerId,
+					processedBy: 'payment-processor'
+				}
+			})
+
+			if (refund.status === 'succeeded') {
+				// Update refund status in database
+				await this.updateRefundStatus(data.paymentId, refund.id, 'succeeded')
+				
+				// Send refund notifications
+				await this.sendRefundConfirmation(data.customerId, data, refund)
+				
+				// Emit success event for analytics
+				this.eventEmitter.emit('payment.refund.succeeded', {
+					paymentId: data.paymentId,
+					refundId: refund.id,
+					customerId: data.customerId,
+					amount: refund.amount,
+					currency: refund.currency
+				})
+
+				this.logger.log(`Payment refund succeeded: ${refund.id}`)
+			} else {
+				throw new Error(`Refund failed: ${refund.status}`)
+			}
+		} catch (error) {
+			this.logger.error(`Payment refund failed: ${data.paymentId}`, error)
+			
+			// Emit failure event for analytics
+			this.eventEmitter.emit('payment.refund.failed', {
+				paymentId: data.paymentId,
+				customerId: data.customerId,
+				error: error instanceof Error ? error.message : 'Unknown error'
+			})
+			
+			throw error
+		}
 	}
 
-	private async processSubscriptionPayment(
-		_data: PaymentJobData
-	): Promise<void> {
-		// TODO: Implement subscription payment processing
-		// - Handle recurring payment processing
-		// - Update subscription status
-		// - Handle payment failures and retries
-		// - Manage subscription lifecycle
-		// - Send subscription notifications
+	private async processSubscriptionPayment(data: PaymentJobData): Promise<void> {
+		try {
+			this.logger.log(`Processing subscription payment: ${data.paymentId}`)
 
-		// Process subscription payment
-		await ProcessorUtils.simulateProcessing(
-			'subscription-payment',
-			QUEUE_PROCESSING_DELAYS.PAYMENT
-		)
+			// Validate subscription payment data
+			if (!data.paymentId || !data.customerId) {
+				throw new Error('Missing required subscription payment data')
+			}
 
-		// TODO: Actual subscription processing logic
+			// Get subscription details from Stripe
+			const subscription = await this.stripeService.client.subscriptions.retrieve(data.paymentId)
+
+			// Handle recurring payment processing
+			if (subscription.status === 'active') {
+				// Update subscription status in database
+				await this.subscriptionRepository.updateStatusByStripeId(
+					subscription.id,
+					'ACTIVE'
+				)
+
+				// Send subscription payment confirmation
+				await this.sendSubscriptionPaymentConfirmation(data.customerId, data, subscription)
+
+				// Emit success event for analytics
+				this.eventEmitter.emit('payment.subscription.succeeded', {
+					subscriptionId: subscription.id,
+					customerId: data.customerId,
+					status: subscription.status,
+					currentPeriodEnd: subscription.current_period_end
+				})
+
+				this.logger.log(`Subscription payment succeeded: ${subscription.id}`)
+			} else {
+				throw new Error(`Subscription payment failed: ${subscription.status}`)
+			}
+		} catch (error) {
+			this.logger.error(`Subscription payment failed: ${data.paymentId}`, error)
+			
+			// Emit failure event for analytics
+			this.eventEmitter.emit('payment.subscription.failed', {
+				subscriptionId: data.paymentId,
+				customerId: data.customerId,
+				error: error instanceof Error ? error.message : 'Unknown error'
+			})
+			
+			throw error
+		}
 	}
 
-	private async processInvoicePayment(_data: PaymentJobData): Promise<void> {
-		// TODO: Implement invoice payment processing
-		// - Process invoice payment
-		// - Update invoice status
-		// - Apply payment to outstanding balance
-		// - Generate payment receipt
-		// - Send payment confirmation
+	private async processInvoicePayment(data: PaymentJobData): Promise<void> {
+		try {
+			this.logger.log(`Processing invoice payment: ${data.paymentId}`)
 
-		// Process invoice payment
-		await ProcessorUtils.simulateProcessing(
-			'invoice-payment',
-			QUEUE_PROCESSING_DELAYS.PAYMENT
-		)
+			// Validate invoice payment data
+			if (!data.paymentId || !data.customerId) {
+				throw new Error('Missing required invoice payment data')
+			}
 
-		// TODO: Actual invoice processing logic
+			// Get invoice details from Stripe
+			const invoice = await this.stripeService.client.invoices.retrieve(data.paymentId)
+
+			// Process invoice payment
+			if (invoice.status === 'paid') {
+				// Apply payment to outstanding balance (handled by Stripe)
+				// Update local records if needed
+				
+				// Generate payment receipt and send confirmation
+				await this.sendInvoicePaymentConfirmation(data.customerId, data, invoice)
+
+				// Emit success event for analytics
+				this.eventEmitter.emit('payment.invoice.succeeded', {
+					invoiceId: invoice.id,
+					customerId: data.customerId,
+					amount: invoice.amount_paid,
+					currency: invoice.currency,
+					subscriptionId: invoice.subscription
+				})
+
+				this.logger.log(`Invoice payment succeeded: ${invoice.id}`)
+			} else {
+				throw new Error(`Invoice payment failed: ${invoice.status}`)
+			}
+		} catch (error) {
+			this.logger.error(`Invoice payment failed: ${data.paymentId}`, error)
+			
+			// Emit failure event for analytics
+			this.eventEmitter.emit('payment.invoice.failed', {
+				invoiceId: data.paymentId,
+				customerId: data.customerId,
+				error: error instanceof Error ? error.message : 'Unknown error'
+			})
+			
+			throw error
+		}
 	}
 
-	// TODO: Implement these methods when payment service is integrated
-	// private async updatePaymentStatus(paymentId: string, status: string): Promise<void> {
-	//   this.logger.debug(`Updating payment ${paymentId} status to ${status}`)
-	// }
+	/**
+	 * Update payment status in database/audit log
+	 */
+	private async updatePaymentStatus(paymentId: string, status: string): Promise<void> {
+		this.logger.debug(`Updating payment ${paymentId} status to ${status}`)
+		
+		// In a real implementation, you would update a PaymentAttempt or PaymentLog table
+		// For now, we'll just emit an event for audit tracking
+		this.eventEmitter.emit('payment.status.updated', {
+			paymentId,
+			status,
+			timestamp: new Date().toISOString()
+		})
+	}
 
-	// private async sendPaymentConfirmation(customerId: string, data: PaymentJobData): Promise<void> {
-	//   this.logger.debug(`Sending payment confirmation to customer ${customerId}`)
-	// }
+	/**
+	 * Update refund status in database/audit log
+	 */
+	private async updateRefundStatus(paymentId: string, refundId: string, status: string): Promise<void> {
+		this.logger.debug(`Updating refund ${refundId} status to ${status}`)
+		
+		// Emit event for audit tracking
+		this.eventEmitter.emit('refund.status.updated', {
+			paymentId,
+			refundId,
+			status,
+			timestamp: new Date().toISOString()
+		})
+	}
+
+	/**
+	 * Send payment confirmation notification
+	 */
+	private async sendPaymentConfirmation(customerId: string, data: PaymentJobData): Promise<void> {
+		try {
+			// Get user details
+			const user = await this.userRepository.findByStripeCustomerId(customerId)
+			
+			if (user) {
+				this.eventEmitter.emit('payment.confirmation', {
+					type: 'payment_confirmed',
+					userId: user.id,
+					email: user.email,
+					templateData: {
+						userName: user.name || 'valued customer',
+						paymentId: data.paymentId,
+						amount: data.amount ? (data.amount / 100).toFixed(2) : '0.00',
+						currency: data.currency?.toUpperCase() || 'USD',
+						receiptUrl: `${process.env.FRONTEND_URL}/billing/receipt/${data.paymentId}`
+					},
+					metadata: {
+						paymentId: data.paymentId,
+						customerId,
+						source: 'payment_processor'
+					}
+				})
+			}
+		} catch (error) {
+			this.logger.error('Failed to send payment confirmation:', error)
+		}
+	}
+
+	/**
+	 * Send refund confirmation notification
+	 */
+	private async sendRefundConfirmation(customerId: string, data: PaymentJobData, refund: any): Promise<void> {
+		try {
+			const user = await this.userRepository.findByStripeCustomerId(customerId)
+			
+			if (user) {
+				this.eventEmitter.emit('refund.confirmation', {
+					type: 'refund_confirmed',
+					userId: user.id,
+					email: user.email,
+					templateData: {
+						userName: user.name || 'valued customer',
+						refundId: refund.id,
+						originalPaymentId: data.paymentId,
+						amount: (refund.amount / 100).toFixed(2),
+						currency: refund.currency.toUpperCase(),
+						reason: data.refundReason || 'Customer request'
+					},
+					metadata: {
+						refundId: refund.id,
+						paymentId: data.paymentId,
+						customerId,
+						source: 'payment_processor'
+					}
+				})
+			}
+		} catch (error) {
+			this.logger.error('Failed to send refund confirmation:', error)
+		}
+	}
+
+	/**
+	 * Send subscription payment confirmation
+	 */
+	private async sendSubscriptionPaymentConfirmation(customerId: string, data: PaymentJobData, subscription: any): Promise<void> {
+		try {
+			const user = await this.userRepository.findByStripeCustomerId(customerId)
+			
+			if (user) {
+				this.eventEmitter.emit('subscription.payment_confirmed', {
+					type: 'subscription_payment_confirmed',
+					userId: user.id,
+					email: user.email,
+					templateData: {
+						userName: user.name || 'valued customer',
+						subscriptionId: subscription.id,
+						planName: subscription.metadata?.planName || 'Subscription',
+						nextBillingDate: new Date(subscription.current_period_end * 1000).toLocaleDateString(),
+						amount: subscription.items?.data[0]?.price?.unit_amount ? 
+							(subscription.items.data[0].price.unit_amount / 100).toFixed(2) : '0.00',
+						currency: subscription.items?.data[0]?.price?.currency?.toUpperCase() || 'USD'
+					},
+					metadata: {
+						subscriptionId: subscription.id,
+						customerId,
+						source: 'payment_processor'
+					}
+				})
+			}
+		} catch (error) {
+			this.logger.error('Failed to send subscription payment confirmation:', error)
+		}
+	}
+
+	/**
+	 * Send invoice payment confirmation
+	 */
+	private async sendInvoicePaymentConfirmation(customerId: string, data: PaymentJobData, invoice: any): Promise<void> {
+		try {
+			const user = await this.userRepository.findByStripeCustomerId(customerId)
+			
+			if (user) {
+				this.eventEmitter.emit('invoice.payment_confirmed', {
+					type: 'invoice_payment_confirmed',
+					userId: user.id,
+					email: user.email,
+					templateData: {
+						userName: user.name || 'valued customer',
+						invoiceId: invoice.id,
+						invoiceNumber: invoice.number,
+						amount: (invoice.amount_paid / 100).toFixed(2),
+						currency: invoice.currency.toUpperCase(),
+						paidDate: new Date(invoice.status_transitions?.paid_at * 1000).toLocaleDateString(),
+						invoiceUrl: invoice.hosted_invoice_url
+					},
+					metadata: {
+						invoiceId: invoice.id,
+						customerId,
+						source: 'payment_processor'
+					}
+				})
+			}
+		} catch (error) {
+			this.logger.error('Failed to send invoice payment confirmation:', error)
+		}
+	}
 }

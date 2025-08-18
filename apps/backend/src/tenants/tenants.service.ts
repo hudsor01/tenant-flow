@@ -73,7 +73,7 @@ export class TenantsService {
 			return tenant
 		} catch (error) {
 			this.logger.error('Failed to create tenant:', error)
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'create',
 				resource: 'tenant',
 				metadata: {
@@ -124,7 +124,7 @@ export class TenantsService {
 
 			return tenant
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'findById',
 				resource: 'tenant',
 				metadata: { tenantId: id, ownerId }
@@ -158,7 +158,7 @@ export class TenantsService {
 				userToken
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'findByOwner',
 				resource: 'tenant',
 				metadata: { ownerId }
@@ -209,7 +209,7 @@ export class TenantsService {
 
 			return updated
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'update',
 				resource: 'tenant',
 				metadata: { tenantId: id, ownerId }
@@ -262,7 +262,7 @@ export class TenantsService {
 				ownerId
 			})
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'delete',
 				resource: 'tenant',
 				metadata: { tenantId: id, ownerId }
@@ -290,7 +290,7 @@ export class TenantsService {
 				userToken
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'getStats',
 				resource: 'tenant',
 				metadata: { ownerId }
@@ -345,7 +345,7 @@ export class TenantsService {
 			return result
 		} catch (error) {
 			this.logger.error('Failed to create tenant with lease:', error)
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'createWithLease',
 				resource: 'tenant',
 				metadata: {
@@ -380,7 +380,7 @@ export class TenantsService {
 				userToken
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'search',
 				resource: 'tenant',
 				metadata: { ownerId, searchTerm }
@@ -408,7 +408,7 @@ export class TenantsService {
 				userToken
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'getActiveTenantsWithLeases',
 				resource: 'tenant',
 				metadata: { ownerId }

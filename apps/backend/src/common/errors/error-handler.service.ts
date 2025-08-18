@@ -56,7 +56,7 @@ export class ErrorHandlerService {
 	 * Handle and transform errors into appropriate HTTP errors
 	 * Uses unified error handler for consistency
 	 */
-	handleErrorEnhanced(
+	handleError(
 		error: Error | AppError,
 		context?: ErrorContext
 	): never {

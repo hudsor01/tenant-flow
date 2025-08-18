@@ -211,7 +211,7 @@ export const mockLogger = {
 
 // Mock ErrorHandlerService
 export const mockErrorHandler = {
-	handleErrorEnhanced: jest.fn(error => {
+	handleError: jest.fn(error => {
 		throw error
 	}),
 	createConfigError: jest.fn(),

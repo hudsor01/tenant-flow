@@ -155,7 +155,7 @@ export class SubscriptionsController {
 				currentSubscription: subscription
 			}
 		} catch (error) {
-			return this.errorHandler.handleErrorEnhanced(error as Error, {
+			return this.errorHandler.handleError(error as Error, {
 				operation: 'SubscriptionsController.createSubscription',
 				metadata: { userId: user.id }
 			})
@@ -189,7 +189,7 @@ export class SubscriptionsController {
 				currentSubscription: subscription
 			}
 		} catch (error) {
-			return this.errorHandler.handleErrorEnhanced(error as Error, {
+			return this.errorHandler.handleError(error as Error, {
 				operation: 'SubscriptionsController.cancelSubscription',
 				metadata: { userId: user.id }
 			})

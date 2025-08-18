@@ -22,9 +22,10 @@ export interface EmailJob {
 export enum EmailPriority {
 	CRITICAL = 1, // Welcome, invitations, password resets
 	HIGH = 2, // Payment reminders, lease alerts
-	MEDIUM = 3, // Property tips, notifications
-	LOW = 4, // Bulk campaigns, newsletters
-	BULK = 5 // Large volume campaigns
+	NORMAL = 3, // Regular notifications
+	MEDIUM = 4, // Property tips, notifications
+	LOW = 5, // Bulk campaigns, newsletters
+	BULK = 6 // Large volume campaigns
 }
 
 export interface EmailJobResult {

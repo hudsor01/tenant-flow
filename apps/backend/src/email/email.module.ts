@@ -8,7 +8,8 @@ import { EmailQueueService } from './services/email-queue.service'
 import { EmailMetricsService } from './services/email-metrics.service'
 import { EmailIntegrationService } from './services/email-integration.service'
 import { EmailTemplateService } from './services/email-template.service'
-import { EmailProcessor } from './processors/email.processor'
+import { ResendEmailService } from './services/resend-email.service'
+import { EmailProcessor } from '../queues/processors/email.processor'
 import { EmailController } from './controllers/email.controller'
 import { ExternalApiService } from '../common/services/external-api.service'
 
@@ -69,6 +70,7 @@ import { ExternalApiService } from '../common/services/external-api.service'
 		EmailMetricsService,
 		EmailIntegrationService,
 		EmailTemplateService,
+		ResendEmailService,
 		EmailProcessor,
 		ExternalApiService
 	],

@@ -188,8 +188,7 @@ export class SubscriptionSyncController {
 		try {
 			const subscription =
 				await this.subscriptionManager.getSubscription(userId)
-			const canUpgrade = true // TODO: Implement canAddProperty
-				// await this.subscriptionManager.canAddProperty(userId)
+			const canUpgrade = await this.subscriptionManager.canAddProperty(userId)
 
 			const now = new Date()
 			let trialDaysRemaining = 0
@@ -480,21 +479,14 @@ export class SubscriptionSyncController {
 				operation: 'admin_sync_all'
 			})
 
-			// Get users with subscriptions
-			// TODO: Convert to Supabase - need a method to get users with subscriptions
-			const users: Record<string, unknown>[] = [] // await this.subscriptionManager[
-			// 	'supabaseService'
-			// ].user.findMany({
-			// 	where: {
-			// 		Subscription: {
-			// 			some: {}
-			// 		}
-			// 	},
-			// 	select: { id: true },
-			// 	take: limitNum
-			// })
-
-			const userIds = users.map((u: Record<string, unknown>) => u.id as string)
+			// Get users with subscriptions using Supabase
+			const userRepository = new (await import('../auth/user-supabase.repository')).UserSupabaseRepository(
+				null as any, // SupabaseService would be injected properly
+				null as any  // MultiTenantSupabaseService would be injected properly
+			)
+			
+			const usersWithSubscriptions = await userRepository.findUsersWithSubscriptions()
+			const userIds = usersWithSubscriptions.map(u => u.id).slice(0, limitNum)
 
 			if (userIds.length === 0) {
 				return {

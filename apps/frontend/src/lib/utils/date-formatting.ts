@@ -3,6 +3,8 @@
  * Consolidates duplicate formatDate implementations across lease templates
  */
 
+import { logger } from '@/lib/logger'
+
 export interface DateFormatOptions {
 	format?: 'long' | 'short' | 'numeric'
 	timezone?: string
@@ -50,7 +52,7 @@ export function formatLeaseDate(
 
 		return date.toLocaleDateString(locale, formatOptions)
 	} catch (error) {
-		console.error('Date formatting error:', error)
+		logger.error('Date formatting error:', error)
 		return dateString // Fallback to original string
 	}
 }
@@ -75,7 +77,7 @@ export function formatSignatureDate(dateString: string): string {
 			day: '2-digit'
 		})
 	} catch (error) {
-		console.error('Signature date formatting error:', error)
+		logger.error('Signature date formatting error:', error)
 		return dateString
 	}
 }
