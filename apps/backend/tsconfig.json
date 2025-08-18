@@ -11,7 +11,9 @@
 		"jsxFragmentFactory": "React.Fragment",
 		"types": ["node", "reflect-metadata"],
 		"skipLibCheck": true,
-		"isolatedModules": true
+		"isolatedModules": false,
+		"moduleResolution": "bundler",
+		"module": "ESNext"
 	},
 	"include": ["src", "src/types/fastify.d.ts", "test/setup.ts"],
 	"exclude": [

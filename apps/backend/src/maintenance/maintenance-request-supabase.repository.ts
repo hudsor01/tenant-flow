@@ -12,6 +12,12 @@ type MaintenanceRequestUpdate =
 	Database['public']['Tables']['MaintenanceRequest']['Update']
 
 export interface MaintenanceRequestWithRelations extends MaintenanceRequestRow {
+	id: string // Explicit id field to ensure it's always available
+	title: string // Explicit required fields
+	description: string
+	status: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELED' | 'ON_HOLD'
+	priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
+	createdAt: string
 	Unit?: {
 		id: string
 		unitNumber: string
