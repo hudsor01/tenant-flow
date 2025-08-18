@@ -37,7 +37,8 @@ export class PropertiesService {
 			const propertyData: PropertyInsert = {
 				...data,
 				ownerId,
-				propertyType: (data.propertyType || 'SINGLE_FAMILY') as PropertyInsert['propertyType'],
+				propertyType: (data.propertyType ||
+					'SINGLE_FAMILY') as PropertyInsert['propertyType'],
 				createdAt: new Date().toISOString(),
 				updatedAt: new Date().toISOString()
 			}
@@ -46,20 +47,21 @@ export class PropertiesService {
 			const units = data.units as number | undefined
 			if (units && units > 0) {
 				// Generate unit data array from count using proper Database types
-				const unitData: Database['public']['Tables']['Unit']['Insert'][] = Array.from({ length: units }, (_, index) => ({
-					propertyId: '', // Will be set after property creation
-					unitNumber: `Unit ${index + 1}`,
-					bedrooms: 1,
-					bathrooms: 1,
-					squareFeet: null,
-					rent: 1000, // Default rent amount
-					status: 'VACANT',
-					notes: null,
-					lastInspectionDate: null,
-					createdAt: new Date().toISOString(),
-					updatedAt: new Date().toISOString()
-				}))
-				
+				const unitData: Database['public']['Tables']['Unit']['Insert'][] =
+					Array.from({ length: units }, (_, index) => ({
+						propertyId: '', // Will be set after property creation
+						unitNumber: `Unit ${index + 1}`,
+						bedrooms: 1,
+						bathrooms: 1,
+						squareFeet: null,
+						rent: 1000, // Default rent amount
+						status: 'VACANT',
+						notes: null,
+						lastInspectionDate: null,
+						createdAt: new Date().toISOString(),
+						updatedAt: new Date().toISOString()
+					}))
+
 				return await this.repository.createWithUnits(
 					propertyData,
 					unitData,
@@ -176,11 +178,18 @@ export class PropertiesService {
 			const updateData: PropertyUpdate = {
 				updatedAt: new Date().toISOString(),
 				...(data.name && { name: data.name }),
-				...(data.description !== undefined && { description: data.description }),
-				...(data.propertyType && { propertyType: data.propertyType as PropertyUpdate['propertyType'] }),
+				...(data.description !== undefined && {
+					description: data.description
+				}),
+				...(data.propertyType && {
+					propertyType:
+						data.propertyType as PropertyUpdate['propertyType']
+				}),
 				...(data.imageUrl !== undefined && { imageUrl: data.imageUrl }),
 				...(data.units !== undefined && { units: data.units }),
-				...(data.stripeCustomerId !== undefined && { stripeCustomerId: data.stripeCustomerId }),
+				...(data.stripeCustomerId !== undefined && {
+					stripeCustomerId: data.stripeCustomerId
+				}),
 				...(data.address && { address: data.address }),
 				...(data.city && { city: data.city }),
 				...(data.state && { state: data.state }),
@@ -262,9 +271,7 @@ export class PropertiesService {
 	/**
 	 * Get property statistics for owner
 	 */
-	async getStats(
-		ownerId: string
-	): Promise<{
+	async getStats(ownerId: string): Promise<{
 		total: number
 		singleFamily: number
 		multiFamily: number
@@ -298,9 +305,7 @@ export class PropertiesService {
 	/**
 	 * Get properties with comprehensive statistics
 	 */
-	async getPropertiesWithStats(
-		ownerId: string
-	): Promise<
+	async getPropertiesWithStats(ownerId: string): Promise<
 		(PropertyWithRelations & {
 			stats: {
 				totalUnits: number
@@ -313,9 +318,8 @@ export class PropertiesService {
 		})[]
 	> {
 		try {
-			const properties = await this.repository.findByOwnerWithUnits(
-				ownerId
-			)
+			const properties =
+				await this.repository.findByOwnerWithUnits(ownerId)
 
 			// Calculate stats for each property
 			return properties.map(property => {
@@ -380,25 +384,27 @@ export class PropertiesService {
 			const propertyInsert: PropertyInsert = {
 				...propertyData,
 				ownerId,
-				propertyType: (propertyData.propertyType || 'MULTI_UNIT') as PropertyInsert['propertyType'],
+				propertyType: (propertyData.propertyType ||
+					'MULTI_UNIT') as PropertyInsert['propertyType'],
 				createdAt: new Date().toISOString(),
 				updatedAt: new Date().toISOString()
 			}
 
 			// Map units to Database type
-			const unitInserts: Database['public']['Tables']['Unit']['Insert'][] = units.map(unit => ({
-				propertyId: '', // Will be set by repository
-				unitNumber: unit.unitNumber,
-				bedrooms: unit.bedrooms,
-				bathrooms: unit.bathrooms,
-				rent: unit.rent,
-				squareFeet: unit.squareFeet || null,
-				status: 'VACANT',
-				notes: null,
-				lastInspectionDate: null,
-				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString()
-			}))
+			const unitInserts: Database['public']['Tables']['Unit']['Insert'][] =
+				units.map(unit => ({
+					propertyId: '', // Will be set by repository
+					unitNumber: unit.unitNumber,
+					bedrooms: unit.bedrooms,
+					bathrooms: unit.bathrooms,
+					rent: unit.rent,
+					squareFeet: unit.squareFeet || null,
+					status: 'VACANT',
+					notes: null,
+					lastInspectionDate: null,
+					createdAt: new Date().toISOString(),
+					updatedAt: new Date().toISOString()
+				}))
 
 			return await this.repository.createWithUnits(
 				propertyInsert,

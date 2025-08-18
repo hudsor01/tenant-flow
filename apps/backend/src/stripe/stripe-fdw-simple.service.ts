@@ -48,7 +48,7 @@ export interface StripePaymentIntentFDW {
 export class StripeFdwSimpleService {
 	private readonly logger = new Logger(StripeFdwSimpleService.name)
 
-	constructor(_supabase: SupabaseService) {}   
+	constructor(_supabase: SupabaseService) {}
 
 	/**
 	 * Execute raw SQL query on Stripe FDW tables using Supabase MCP
@@ -58,7 +58,7 @@ export class StripeFdwSimpleService {
 			// Note: This service is a placeholder for direct SQL execution
 			// In production, use the StripeFdwService which uses proper RPC functions
 			this.logger.debug(`Would execute FDW query: ${query}`)
-			
+
 			// Return empty array until RPC functions are deployed
 			return [] as T[]
 		} catch (error) {
@@ -84,7 +84,9 @@ export class StripeFdwSimpleService {
 	/**
 	 * Get customer by ID from Stripe via Foreign Data Wrapper
 	 */
-	async getCustomerById(customerId: string): Promise<StripeCustomerFDW | null> {
+	async getCustomerById(
+		customerId: string
+	): Promise<StripeCustomerFDW | null> {
 		const query = `
 			SELECT id, email, name, description, phone, currency, 
 				   balance, delinquent, livemode, metadata, created_at
@@ -99,39 +101,45 @@ export class StripeFdwSimpleService {
 	/**
 	 * Get subscriptions from Stripe via Foreign Data Wrapper
 	 */
-	async getSubscriptions(customerId?: string, limit = 50): Promise<StripeSubscriptionFDW[]> {
+	async getSubscriptions(
+		customerId?: string,
+		limit = 50
+	): Promise<StripeSubscriptionFDW[]> {
 		let query = `
 			SELECT id, customer_id, status, cancel_at_period_end, currency,
 				   default_payment_method, description, livemode, metadata,
 				   created_at, current_period_start, current_period_end, trial_end
 			FROM stripe_fdw.v_subscriptions
 		`
-		
+
 		if (customerId) {
 			query += ` WHERE customer_id = '${customerId}'`
 		}
-		
+
 		query += ` ORDER BY created_at DESC LIMIT ${limit}`
-		
+
 		return this.executeQuery<StripeSubscriptionFDW>(query)
 	}
 
 	/**
 	 * Get payment intents from Stripe via Foreign Data Wrapper
 	 */
-	async getPaymentIntents(customerId?: string, limit = 50): Promise<StripePaymentIntentFDW[]> {
+	async getPaymentIntents(
+		customerId?: string,
+		limit = 50
+	): Promise<StripePaymentIntentFDW[]> {
 		let query = `
 			SELECT id, amount, currency, customer_id, status, description,
 				   receipt_email, livemode, metadata, created_at
 			FROM stripe_fdw.v_payment_intents
 		`
-		
+
 		if (customerId) {
 			query += ` WHERE customer_id = '${customerId}'`
 		}
-		
+
 		query += ` ORDER BY created_at DESC LIMIT ${limit}`
-		
+
 		return this.executeQuery<StripePaymentIntentFDW>(query)
 	}
 
@@ -144,11 +152,13 @@ export class StripeFdwSimpleService {
 		paymentIntents: StripePaymentIntentFDW[]
 	}> {
 		try {
-			const [customer, subscriptions, paymentIntents] = await Promise.all([
-				this.getCustomerById(customerId),
-				this.getSubscriptions(customerId),
-				this.getPaymentIntents(customerId)
-			])
+			const [customer, subscriptions, paymentIntents] = await Promise.all(
+				[
+					this.getCustomerById(customerId),
+					this.getSubscriptions(customerId),
+					this.getPaymentIntents(customerId)
+				]
+			)
 
 			return {
 				customer,
@@ -156,7 +166,10 @@ export class StripeFdwSimpleService {
 				paymentIntents
 			}
 		} catch (error) {
-			this.logger.error(`Failed to fetch payment history for customer ${customerId}:`, error)
+			this.logger.error(
+				`Failed to fetch payment history for customer ${customerId}:`,
+				error
+			)
 			throw error
 		}
 	}
@@ -178,9 +191,12 @@ export class StripeFdwSimpleService {
 				FROM stripe_fdw.v_subscriptions
 				GROUP BY status
 			`
-			
-			const results = await this.executeQuery<{status: string, count: number}>(query)
-			
+
+			const results = await this.executeQuery<{
+				status: string
+				count: number
+			}>(query)
+
 			const analytics = {
 				totalSubscriptions: 0,
 				activeSubscriptions: 0,
@@ -205,7 +221,10 @@ export class StripeFdwSimpleService {
 
 			return analytics
 		} catch (error) {
-			this.logger.error('Failed to calculate subscription analytics:', error)
+			this.logger.error(
+				'Failed to calculate subscription analytics:',
+				error
+			)
 			throw error
 		}
 	}
@@ -223,7 +242,8 @@ export class StripeFdwSimpleService {
 	 */
 	async testConnection(): Promise<boolean> {
 		try {
-			const query = 'SELECT COUNT(*) as count FROM stripe_fdw.v_customers LIMIT 1'
+			const query =
+				'SELECT COUNT(*) as count FROM stripe_fdw.v_customers LIMIT 1'
 			await this.executeQuery(query)
 			return true
 		} catch (error) {

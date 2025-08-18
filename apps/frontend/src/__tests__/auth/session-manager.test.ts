@@ -1,4 +1,3 @@
-
 import { sessionManager } from '@/lib/auth/session-manager'
 import type { AuthUser } from '@/lib/supabase'
 

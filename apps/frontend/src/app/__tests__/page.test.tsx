@@ -136,9 +136,7 @@ describe.skip('Landing Page (Homepage)', () => {
 
 	describe.skip('SEO and Meta Information', () => {
 		it('includes SEO component with correct props', () => {
-			const { SEO } = jest.requireMock(
-				'@/components/seo/seo'
-			)
+			const { SEO } = jest.requireMock('@/components/seo/seo')
 
 			render(<HomePage />)
 

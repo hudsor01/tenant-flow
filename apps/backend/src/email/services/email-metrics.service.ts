@@ -386,7 +386,7 @@ export class EmailMetricsService {
 			// Create metric entry
 			const metric: EmailMetric = {
 				id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-				template: data.template || 'unknown' as EmailTemplateName,
+				template: data.template || ('unknown' as EmailTemplateName),
 				recipient: data.recipient || 'unknown',
 				status: this.mapEventToStatus(eventType),
 				timestamp: new Date(),
@@ -408,7 +408,6 @@ export class EmailMetricsService {
 
 			// Check for alerts
 			await this.checkAlertConditions(metric, eventType)
-
 		} catch (error) {
 			this.logger.warn(`Failed to track email event: ${eventType}`, error)
 		}
@@ -419,18 +418,18 @@ export class EmailMetricsService {
 	 */
 	private mapEventToStatus(eventType: string): EmailMetric['status'] {
 		const statusMap: Record<string, EmailMetric['status']> = {
-			'email_send_started': 'sent',
-			'email_job_started': 'sent',
-			'direct_email_send_started': 'sent',
-			'email_send_success': 'delivered',
-			'email_job_completed': 'delivered',
-			'direct_email_send_success': 'delivered',
-			'email_send_failed': 'failed',
-			'email_job_failed': 'failed',
-			'direct_email_send_failed': 'failed',
-			'email_bounced': 'bounced',
-			'email_opened': 'opened',
-			'email_clicked': 'clicked'
+			email_send_started: 'sent',
+			email_job_started: 'sent',
+			direct_email_send_started: 'sent',
+			email_send_success: 'delivered',
+			email_job_completed: 'delivered',
+			direct_email_send_success: 'delivered',
+			email_send_failed: 'failed',
+			email_job_failed: 'failed',
+			direct_email_send_failed: 'failed',
+			email_bounced: 'bounced',
+			email_opened: 'opened',
+			email_clicked: 'clicked'
 		}
 		return statusMap[eventType] || 'sent'
 	}
@@ -454,7 +453,10 @@ export class EmailMetricsService {
 	/**
 	 * Check for alert conditions and trigger notifications
 	 */
-	private async checkAlertConditions(metric: EmailMetric, eventType: string): Promise<void> {
+	private async checkAlertConditions(
+		metric: EmailMetric,
+		eventType: string
+	): Promise<void> {
 		try {
 			// High error rate alert
 			if (eventType.includes('failed')) {
@@ -470,14 +472,14 @@ export class EmailMetricsService {
 			}
 
 			// Slow processing alert
-			if (metric.processingTime && metric.processingTime > 10000) { // 10 seconds
+			if (metric.processingTime && metric.processingTime > 10000) {
+				// 10 seconds
 				this.logger.warn('Slow email processing detected', {
 					processingTime: metric.processingTime,
 					messageId: metric.messageId,
 					template: metric.template
 				})
 			}
-
 		} catch (error) {
 			this.logger.warn('Failed to check alert conditions', error)
 		}
@@ -507,10 +509,14 @@ export class EmailMetricsService {
 		const recentMetrics = this.getRecentMetrics(60 * 60 * 1000) // Last hour
 		const totalSent = recentMetrics.length
 		const failures = recentMetrics.filter(m => m.status === 'failed').length
-		const successes = recentMetrics.filter(m => ['delivered', 'opened', 'clicked'].includes(m.status)).length
-		
+		const successes = recentMetrics.filter(m =>
+			['delivered', 'opened', 'clicked'].includes(m.status)
+		).length
+
 		const successRate = totalSent > 0 ? (successes / totalSent) * 100 : 100
-		const avgProcessingTime = recentMetrics.reduce((sum, m) => sum + (m.processingTime || 0), 0) / totalSent || 0
+		const avgProcessingTime =
+			recentMetrics.reduce((sum, m) => sum + (m.processingTime || 0), 0) /
+				totalSent || 0
 
 		const alerts: string[] = []
 		let status: 'healthy' | 'degraded' | 'unhealthy' = 'healthy'
@@ -526,7 +532,9 @@ export class EmailMetricsService {
 
 		if (avgProcessingTime > 5000) {
 			status = status === 'healthy' ? 'degraded' : status
-			alerts.push(`High processing time: ${avgProcessingTime.toFixed(0)}ms`)
+			alerts.push(
+				`High processing time: ${avgProcessingTime.toFixed(0)}ms`
+			)
 		}
 
 		if (failures > 10) {
@@ -564,7 +572,7 @@ export class EmailMetricsService {
 		// Calculate peak hours over last 24 hours
 		const last24h = this.getRecentMetrics(24 * 60 * 60 * 1000)
 		const hourlyBuckets = new Map<number, number>()
-		
+
 		last24h.forEach(metric => {
 			const hour = metric.timestamp.getHours()
 			hourlyBuckets.set(hour, (hourlyBuckets.get(hour) || 0) + 1)

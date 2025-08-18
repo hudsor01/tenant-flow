@@ -4,9 +4,12 @@ import { BaseSupabaseRepository } from '../common/repositories/base-supabase.rep
 import { SupabaseService } from '../common/supabase/supabase.service'
 import { MultiTenantSupabaseService } from '../common/supabase/multi-tenant-supabase.service'
 
-type UserFeatureAccessRow = Database['public']['Tables']['UserFeatureAccess']['Row']
-type UserFeatureAccessInsert = Database['public']['Tables']['UserFeatureAccess']['Insert']
-type UserFeatureAccessUpdate = Database['public']['Tables']['UserFeatureAccess']['Update']
+type UserFeatureAccessRow =
+	Database['public']['Tables']['UserFeatureAccess']['Row']
+type UserFeatureAccessInsert =
+	Database['public']['Tables']['UserFeatureAccess']['Insert']
+type UserFeatureAccessUpdate =
+	Database['public']['Tables']['UserFeatureAccess']['Update']
 
 /**
  * Supabase repository for UserFeatureAccess entity
