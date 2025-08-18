@@ -12,7 +12,6 @@ export default tseslint.config(
 			'**/*.spec.*',
 			'**/*.d.ts',
 			'**/vite.config.ts',
-			'**/vitest.config.ts',
 			'apps/frontend/src/routeTree.gen.ts',
 			'apps/frontend/src/types/backend-app-router.d.ts',
 			'apps/backend/test-endpoints.js',
