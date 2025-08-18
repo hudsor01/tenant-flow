@@ -18,6 +18,7 @@
 		"incremental": true,
 		"skipLibCheck": true,
 		"skipDefaultLibCheck": true,
+		"jsx": "react-jsx",
 		"strict": true,
 		"noImplicitAny": true,
 		"strictNullChecks": true,
