@@ -9,6 +9,7 @@ type PropertyInsert = Database['public']['Tables']['Property']['Insert']
 type PropertyUpdate = Database['public']['Tables']['Property']['Update']
 
 export interface PropertyWithRelations extends PropertyRow {
+	id: string // Explicit id field to ensure it's always available
 	Unit?: {
 		id: string
 		unitNumber: string

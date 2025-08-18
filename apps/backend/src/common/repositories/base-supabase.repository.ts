@@ -76,7 +76,7 @@ export abstract class BaseSupabaseRepository<
 		try {
 			const client = await this.getClient(userId, userToken)
 			let query = client
-				.from(this.tableName)
+				.from(this.tableName as any)
 				.select(options.select || '*')
 
 			// Apply filters
@@ -177,7 +177,7 @@ export abstract class BaseSupabaseRepository<
 
 			const { data, error } = await (
 				client
-					.from(this.tableName)
+					.from(this.tableName as any)
 					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 					.select('*') as any
 			)
@@ -271,7 +271,7 @@ export abstract class BaseSupabaseRepository<
 		try {
 			const client = await this.getClient(userId, userToken)
 			let query = client
-				.from(this.tableName)
+				.from(this.tableName as any)
 				.select('*', { count: 'exact', head: true })
 
 			if (filters) {
@@ -322,7 +322,7 @@ export abstract class BaseSupabaseRepository<
 
 			const { data: created, error } = await (
 				client
-					.from(this.tableName)
+					.from(this.tableName as any)
 					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 					.insert(data as any) as any
 			)
@@ -367,7 +367,7 @@ export abstract class BaseSupabaseRepository<
 
 			const { data: updated, error } = await (
 				client
-					.from(this.tableName)
+					.from(this.tableName as any)
 					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 					.update(data as any) as any
 			)
@@ -408,7 +408,7 @@ export abstract class BaseSupabaseRepository<
 
 			const { data: deleted, error } = await (
 				client
-					.from(this.tableName)
+					.from(this.tableName as any)
 					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 					.delete() as any
 			)
@@ -453,7 +453,7 @@ export abstract class BaseSupabaseRepository<
 
 			const { data: created, error } = await (
 				client
-					.from(this.tableName)
+					.from(this.tableName as any)
 					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 					.insert(data as any) as any
 			).select('*')
