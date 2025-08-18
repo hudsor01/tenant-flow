@@ -332,11 +332,15 @@ export class FastifyWebSocketPlugin {
 					? 'admin:broadcast'
 					: socket.organizationId
 
-		this.addToRoom(roomKey, socket)
+		if (roomKey) {
+			this.addToRoom(roomKey, socket)
+		}
 		this.userConnections.set(user.id, socket)
 
 		// Update metrics
-		this.updateMetrics('connect', socket.organizationId)
+		if (socket.organizationId) {
+			this.updateMetrics('connect', socket.organizationId)
+		}
 
 		this.logger.log(`WebSocket connected: ${type} for user ${user.id}`)
 
@@ -361,7 +365,9 @@ export class FastifyWebSocketPlugin {
 
 		// Setup close handler
 		socket.on('close', () => {
-			this.handleDisconnect(socket, user, roomKey)
+			if (roomKey) {
+				this.handleDisconnect(socket, user, roomKey)
+			}
 		})
 
 		// Setup ping/pong for connection health
