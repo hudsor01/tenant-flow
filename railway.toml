@@ -1,6 +1,18 @@
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "./Dockerfile"
+# Watch all monorepo packages for changes
+watchPaths = [
+  "apps/backend/**",
+  "packages/shared/**", 
+  "packages/database/**",
+  "packages/typescript-config/**",
+  "package.json",
+  "package-lock.json",
+  "turbo.json",
+  "Dockerfile",
+  ".dockerignore"
+]
 
 [deploy]
 # Fixed path - NestJS builds to dist/main.js from the backend directory
