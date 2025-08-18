@@ -127,15 +127,25 @@ export function TenantFormClient({
 		// Date validation
 		if (
 			formData.moveInDate &&
+			typeof (formData as UpdateTenantInput).moveOutDate === 'string' &&
 			(formData as UpdateTenantInput).moveOutDate
 		) {
 			const moveIn = new Date(formData.moveInDate)
-			const moveOut = new Date(
-				(formData as UpdateTenantInput).moveOutDate!
-			)
-			if (moveOut <= moveIn) {
-				newErrors.moveOutDate =
-					'Move-out date must be after move-in date'
+			const moveOutDateString = (formData as UpdateTenantInput).moveOutDate
+			
+			// Ensure we have a valid string before creating Date
+			if (moveOutDateString && typeof moveOutDateString === 'string') {
+				const moveOut = new Date(moveOutDateString)
+				
+				// Check if the date is valid
+				if (!isNaN(moveOut.getTime()) && !isNaN(moveIn.getTime())) {
+					if (moveOut <= moveIn) {
+						newErrors.moveOutDate =
+							'Move-out date must be after move-in date'
+					}
+				} else {
+					newErrors.moveOutDate = 'Please enter a valid move-out date'
+				}
 			}
 		}
 

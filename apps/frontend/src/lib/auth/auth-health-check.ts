@@ -4,15 +4,7 @@
  */
 
 import { createClient } from '@/lib/supabase/client'
-
-// Simple logger fallback
-const logger = {
-	info: (message: string, meta?: object) => {
-		if (process.env.NODE_ENV === 'development') {
-			console.log(`[INFO] ${message}`, meta || '')
-		}
-	}
-}
+import { logger } from '@/lib/logger'
 
 export interface AuthHealthStatus {
 	timestamp: string

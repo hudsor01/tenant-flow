@@ -234,7 +234,7 @@ export abstract class BaseCrudService<
 			const options = this.parseQueryOptions(query)
 			return await this.repository.findManyByOwner(ownerId, options)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'getByOwner',
 				resource: this.entityName,
 				metadata: { ownerId }
@@ -262,7 +262,7 @@ export abstract class BaseCrudService<
 
 			return entity
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'getByIdOrThrow',
 				resource: this.entityName,
 				metadata: { id, ownerId }
@@ -283,7 +283,7 @@ export abstract class BaseCrudService<
 		try {
 			return await this.calculateStats(ownerId)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'getStats',
 				resource: this.entityName,
 				metadata: { ownerId }
@@ -326,7 +326,7 @@ export abstract class BaseCrudService<
 
 			return result
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'create',
 				resource: this.entityName,
 				metadata: { ownerId }
@@ -379,7 +379,7 @@ export abstract class BaseCrudService<
 
 			return result
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'update',
 				resource: this.entityName,
 				metadata: { id, ownerId }
@@ -426,7 +426,7 @@ export abstract class BaseCrudService<
 
 			return result
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'delete',
 				resource: this.entityName,
 				metadata: { id, ownerId }
@@ -603,7 +603,7 @@ export abstract class BaseCrudService<
 				options
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'findByUnit',
 				resource: this.entityName,
 				metadata: { unitId, ownerId }
@@ -632,7 +632,7 @@ export abstract class BaseCrudService<
 				options
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'findByTenant',
 				resource: this.entityName,
 				metadata: { tenantId, ownerId }
@@ -661,7 +661,7 @@ export abstract class BaseCrudService<
 				options
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'findByProperty',
 				resource: this.entityName,
 				metadata: { propertyId, ownerId }

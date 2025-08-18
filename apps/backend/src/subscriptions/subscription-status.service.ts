@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import type { PlanType, SubStatus } from '@repo/shared'
+import { SubscriptionSupabaseRepository } from './subscription-supabase.repository'
 
 export interface UserSubscriptionStatus {
 	hasActiveSubscription: boolean
@@ -24,65 +25,50 @@ export interface SubscriptionAccess {
 
 @Injectable()
 export class SubscriptionStatusService {
-	constructor() {}
+	constructor(
+		private readonly subscriptionRepository: SubscriptionSupabaseRepository
+	) {}
 
 	/**
 	 * Get comprehensive subscription status for a user
 	 */
 	async getUserSubscriptionStatus(
-		_userId: string
+		userId: string
 	): Promise<UserSubscriptionStatus> {
-		// TODO: Convert to Supabase
-		// const subscription = await this.supabaseService.subscription.findUnique({
-		// 	where: { userId },
-		// 	select: {
-		// 		id: true,
-		// 		status: true,
-		// 		planType: true,
-		// 		stripeSubscriptionId: true,
-		// 		trialEnd: true,
-		// 		currentPeriodEnd: true,
-		// 		cancelAtPeriodEnd: true,
-		// 		canceledAt: true
-		// 	}
-		// })
+		// Get subscription from Supabase using the new repository
+		const subscription = await this.subscriptionRepository.findByUserId(userId)
 
-		// Temporarily return default values until Supabase integration
-		return {
-			hasActiveSubscription: false,
-			status: null,
-			planType: null,
-			trialEndsAt: null,
-			billingPeriodEndsAt: null,
-			canExportData: false,
-			canAccessPremiumFeatures: false,
-			needsPaymentMethod: false,
-			stripeSubscriptionId: null,
-			subscriptionId: null
+		if (!subscription) {
+			// No subscription found - user is in free tier
+			return {
+				hasActiveSubscription: false,
+				status: null,
+				planType: null,
+				trialEndsAt: null,
+				billingPeriodEndsAt: null,
+				canExportData: false,
+				canAccessPremiumFeatures: false,
+				needsPaymentMethod: false,
+				stripeSubscriptionId: null,
+				subscriptionId: null
+			}
 		}
 
-		// TODO: Uncomment when Supabase integration is complete
-		/*
-		const isActive = this.isSubscriptionActive(
-			subscription.status as SubStatus
-		)
-		const canAccessPaidFeatures = this.canAccessPaidFeatures(
-			subscription.status as SubStatus
-		)
+		const isActive = this.isSubscriptionActive(subscription.status)
+		const canAccessPaidFeatures = this.canAccessPaidFeatures(subscription.status)
 
 		return {
 			hasActiveSubscription: isActive,
-			status: subscription.status as SubStatus,
-			planType: subscription.planType as PlanType,
-			trialEndsAt: subscription.trialEnd,
-			billingPeriodEndsAt: subscription.currentPeriodEnd,
+			status: subscription.status,
+			planType: subscription.planType,
+			trialEndsAt: subscription.trialEnd ? new Date(subscription.trialEnd) : null,
+			billingPeriodEndsAt: subscription.currentPeriodEnd ? new Date(subscription.currentPeriodEnd) : null,
 			canExportData: canAccessPaidFeatures,
 			canAccessPremiumFeatures: canAccessPaidFeatures,
-			needsPaymentMethod: subscription.status === 'INCOMPLETE',
+			needsPaymentMethod: subscription.status === 'UNPAID' || subscription.status === 'PAST_DUE',
 			stripeSubscriptionId: subscription.stripeSubscriptionId,
 			subscriptionId: subscription.id
 		}
-		*/
 	}
 
 	/**
@@ -244,19 +230,13 @@ export class SubscriptionStatusService {
 	/**
 	 * Check if subscription allows billing operations
 	 */
-	async canManageBilling(_userId: string): Promise<boolean> {
-		// TODO: Convert to Supabase
-		// const subscription = await this.supabaseService.subscription.findUnique({
-		// 	where: { userId },
-		// 	select: { status: true }
-		// })
+	async canManageBilling(userId: string): Promise<boolean> {
+		// Get subscription from Supabase
+		const subscription = await this.subscriptionRepository.findByUserId(userId)
 
 		// Users can manage billing if they have any subscription record
 		// This includes paused subscriptions (they need to add payment method)
-		// return !!subscription
-		
-		// Temporarily return false until Supabase integration
-		return false
+		return !!subscription
 	}
 
 	/**
@@ -294,4 +274,17 @@ export class SubscriptionStatusService {
 
 	// Private helper methods
 
+	/**
+	 * Check if subscription status indicates an active subscription
+	 */
+	private isSubscriptionActive(status: SubStatus): boolean {
+		return ['ACTIVE', 'TRIALING'].includes(status)
+	}
+
+	/**
+	 * Check if subscription status allows access to paid features
+	 */
+	private canAccessPaidFeatures(status: SubStatus): boolean {
+		return ['ACTIVE', 'TRIALING'].includes(status)
+	}
 }
