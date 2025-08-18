@@ -20,10 +20,10 @@ RUN apt-get update && \
 
 # Set Node.js memory limits for Railway 1GB limit
 # WARNING: Railway free tier has 1GB memory limit
-# If build fails with exit code 137, upgrade Railway plan for more memory
-ENV NODE_OPTIONS="--max-old-space-size=900"
-RUN echo "⚠️ RAILWAY FREE TIER MEMORY WARNING ⚠️" && \
-    echo "Building with 900MB memory limit (Railway free tier: 1GB total)" && \
+# Set memory for TypeScript compilation (Railway 1GB plan)
+ENV NODE_OPTIONS="--max-old-space-size=850"
+RUN echo "⚠️ RAILWAY MEMORY CONFIGURATION ⚠️" && \
+    echo "Building with 850MB memory limit (Railway 1GB plan)" && \
     echo "If build fails with 'Killed' or exit code 137, you need to:" && \
     echo "1. Upgrade your Railway plan for more memory, OR" && \
     echo "2. Disable teardown feature to save memory, OR" && \
@@ -51,18 +51,12 @@ RUN npm config set audit-level moderate && \
 # Copy source code
 COPY . .
 
-# Build with explicit error handling and memory constraints
-RUN echo "=== Building shared package ===" && \
-    cd packages/shared && npm run build && \
-    echo "=== Building database package ===" && \
-    cd ../database && npm run build && \
-    echo "=== Building backend ===" && \
-    cd ../../apps/backend && \
-    (echo "🚨 BUILDING BACKEND - THIS IS WHERE RAILWAY USUALLY FAILS ON FREE TIER 🚨" && \
-    echo "If this fails with 'Killed' or exit code 137, upgrade Railway plan!" && \
-    NODE_OPTIONS="--max-old-space-size=900" npm run build || \
-    (echo "❌ BUILD FAILED - LIKELY MEMORY ISSUE! Exit code: $?" && \
-    echo "SOLUTION: Upgrade Railway plan from free tier (1GB) to hobby tier (8GB)" && exit 1)) && \
+# Build using Turborepo for proper dependency resolution
+RUN echo "🚨 BUILDING WITH TURBOREPO - Using 850MB (Railway 1GB plan) 🚨" && \
+    NODE_OPTIONS="--max-old-space-size=850" npx turbo run build --filter=@repo/backend || \
+    (echo "❌ BUILD FAILED - Exit code: $?" && \
+    echo "Retrying with reduced memory (750MB)..." && \
+    NODE_OPTIONS="--max-old-space-size=750" npx turbo run build --filter=@repo/backend) && \
     echo "=== Build completed ===" && \
     echo "=== Backend dist structure ===" && \
     find /app/apps/backend/dist
