@@ -6,7 +6,6 @@ import { MultiTenantSupabaseService } from '../common/supabase/multi-tenant-supa
 
 type LeaseRow = Database['public']['Tables']['Lease']['Row']
 type LeaseInsert = Database['public']['Tables']['Lease']['Insert']
-type LeaseUpdate = Database['public']['Tables']['Lease']['Update']
 
 export interface LeaseWithRelations extends LeaseRow {
 	id: string // Explicit id field to ensure it's always available
@@ -54,13 +53,8 @@ export interface LeaseQueryOptions {
  * Leases are owned through property ownership via units
  */
 @Injectable()
-export class LeaseSupabaseRepository extends BaseSupabaseRepository<
-	'Lease',
-	LeaseRow,
-	LeaseInsert,
-	LeaseUpdate
-> {
-	protected readonly tableName = 'Lease' as const
+export class LeaseSupabaseRepository extends BaseSupabaseRepository<LeaseRow> {
+	protected readonly tableName = 'Lease'
 
 	constructor(
 		supabaseService: SupabaseService,

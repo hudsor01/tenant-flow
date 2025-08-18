@@ -57,7 +57,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 		} as any
 
 		mockErrorHandler = {
-			handleErrorEnhanced: jest.fn().mockImplementation(error => {
+			handleError: jest.fn().mockImplementation(error => {
 				throw error
 			}),
 			createNotFoundError: jest
@@ -283,7 +283,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 				)
 
 				expect(
-					mockErrorHandler.handleErrorEnhanced
+					mockErrorHandler.handleError
 				).toHaveBeenCalledWith(
 					error,
 					expect.objectContaining({
@@ -329,7 +329,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 				).rejects.toThrow()
 
 				expect(
-					mockErrorHandler.handleErrorEnhanced
+					mockErrorHandler.handleError
 				).toHaveBeenCalledWith(
 					error,
 					expect.objectContaining({
@@ -408,7 +408,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 				).rejects.toThrow()
 
 				expect(
-					mockErrorHandler.handleErrorEnhanced
+					mockErrorHandler.handleError
 				).toHaveBeenCalledWith(
 					error,
 					expect.objectContaining({
@@ -634,7 +634,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 				await expect(service.getStats('owner-123')).rejects.toThrow()
 
 				expect(
-					mockErrorHandler.handleErrorEnhanced
+					mockErrorHandler.handleError
 				).toHaveBeenCalledWith(
 					error,
 					expect.objectContaining({
@@ -659,7 +659,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 				)
 
 				expect(
-					mockErrorHandler.handleErrorEnhanced
+					mockErrorHandler.handleError
 				).toHaveBeenCalledWith(
 					timeoutError,
 					expect.objectContaining({
@@ -696,7 +696,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 				).rejects.toThrow()
 
 				expect(
-					mockErrorHandler.handleErrorEnhanced
+					mockErrorHandler.handleError
 				).toHaveBeenCalledWith(
 					constraintError,
 					expect.objectContaining({
@@ -757,7 +757,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 				).rejects.toThrow()
 
 				expect(
-					mockErrorHandler.handleErrorEnhanced
+					mockErrorHandler.handleError
 				).toHaveBeenCalledWith(
 					optimisticLockError,
 					expect.objectContaining({

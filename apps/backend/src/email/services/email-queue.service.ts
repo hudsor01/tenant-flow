@@ -19,24 +19,26 @@ export class EmailQueueService implements OnModuleInit {
 
 	async onModuleInit() {
 		// Make initialization non-blocking to prevent startup hangs
-		setImmediate(async () => {
-			try {
-				// Set up queue event listeners first (these don't require Redis connection)
-				this.setupQueueEventListeners()
-
-				// Test Redis connection with timeout to prevent hanging
-				await this.testRedisConnection()
-
-				this.logger.log(
-					'Email queue service initialized successfully with Redis connection'
-				)
-			} catch (error) {
+		setImmediate(() => {
+			this.initializeAsync().catch((error) => {
 				this.logger.error('Failed to initialize email queue', {
 					error: error instanceof Error ? error.message : String(error)
 				})
 				// Don't throw - let the app run without email queue
-			}
+			})
 		})
+	}
+
+	private async initializeAsync(): Promise<void> {
+		// Set up queue event listeners first (these don't require Redis connection)
+		this.setupQueueEventListeners()
+
+		// Test Redis connection with timeout to prevent hanging
+		await this.testRedisConnection()
+
+		this.logger.log(
+			'Email queue service initialized successfully with Redis connection'
+		)
 	}
 
 	/**
@@ -337,6 +339,89 @@ export class EmailQueueService implements OnModuleInit {
 	async resumeQueue(): Promise<void> {
 		await this.emailQueue.resume()
 		this.logger.log('Email queue resumed')
+	}
+
+	/**
+	 * Add templated email to queue - used by notification processor
+	 */
+	async addTemplatedEmail(
+		template: EmailTemplateName,
+		templateData: Record<string, unknown>,
+		to: string | string[],
+		options?: {
+			userId?: string
+			organizationId?: string
+			priority?: EmailPriority
+			trackingId?: string
+		}
+	): Promise<Job<EmailJob>> {
+		// Convert to array if string
+		const recipients = Array.isArray(to) ? to : [to]
+		
+		const emailData: EmailJob = {
+			to: recipients,
+			template,
+			data: templateData as any, // Type assertion for flexible template data
+			priority: options?.priority || EmailPriority.NORMAL,
+			metadata: {
+				userId: options?.userId,
+				organizationId: options?.organizationId,
+				trackingId: options?.trackingId
+			}
+		}
+
+		return this.emailQueue.add('send-templated-email', emailData, {
+			priority: options?.priority || EmailPriority.NORMAL,
+			attempts: 3,
+			backoff: {
+				type: 'exponential',
+				delay: 5000
+			},
+			removeOnComplete: 100,
+			removeOnFail: 50
+		})
+	}
+
+	/**
+	 * Add direct email to queue - used by notification processor
+	 */
+	async addDirectEmail(emailData: {
+		to: string | string[]
+		subject: string
+		html?: string
+		text?: string
+		attachments?: { filename: string; content: Buffer | string }[]
+		userId?: string
+		organizationId?: string
+		priority?: EmailPriority
+		trackingId?: string
+	}): Promise<Job<any>> {
+		// Convert to array if string
+		const recipients = Array.isArray(emailData.to) ? emailData.to : [emailData.to]
+		
+		// For direct emails, we use a different job structure that matches the processor expectations
+		const jobData = {
+			to: recipients,
+			subject: emailData.subject,
+			html: emailData.html,
+			text: emailData.text,
+			attachments: emailData.attachments,
+			priority: emailData.priority || EmailPriority.NORMAL,
+			userId: emailData.userId,
+			organizationId: emailData.organizationId,
+			trackingId: emailData.trackingId
+		}
+
+		return this.emailQueue.add('send-direct-email', jobData, {
+			priority: emailData.priority || EmailPriority.NORMAL,
+			attempts: 3,
+			backoff: {
+				type: 'exponential',
+				delay: 5000
+			},
+			removeOnComplete: 100,
+			removeOnFail: 50
+		})
 	}
 
 	/**

@@ -183,6 +183,7 @@ export interface UpdateTenantInput {
 	emergencyContact?: string
 	emergencyPhone?: string
 	moveInDate?: string
+	moveOutDate?: string
 	notes?: string
 	[key: string]: unknown
 }
