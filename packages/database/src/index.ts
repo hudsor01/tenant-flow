@@ -1,8 +1,5 @@
-// Database package - Simple re-export of Supabase types and health utilities
-// All types and constants now come from @repo/shared
-
-// Re-export Supabase database types
-export * from '@repo/shared/types/supabase-generated'
+// Database package - Health utilities for Supabase database
+// This package provides minimal database utilities without circular dependencies
 
 // Export health check utilities  
 export { checkDatabaseConnection } from './health'
