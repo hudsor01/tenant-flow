@@ -84,7 +84,7 @@ export class PropertiesService {
 			return property
 		} catch (error) {
 			this.logger.error('Failed to create property:', error)
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'create',
 				resource: 'property',
 				metadata: { ownerId, propertyName: data.name }
@@ -116,7 +116,7 @@ export class PropertiesService {
 
 			return property
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'findById',
 				resource: 'property',
 				metadata: { propertyId: id, ownerId }
@@ -141,7 +141,7 @@ export class PropertiesService {
 				userToken
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'findByOwner',
 				resource: 'property',
 				metadata: { ownerId }
@@ -201,7 +201,7 @@ export class PropertiesService {
 
 			return updated
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'update',
 				resource: 'property',
 				metadata: { propertyId: id, ownerId }
@@ -251,7 +251,7 @@ export class PropertiesService {
 				ownerId
 			})
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'delete',
 				resource: 'property',
 				metadata: { propertyId: id, ownerId }
@@ -287,7 +287,7 @@ export class PropertiesService {
 				totalMonthlyRent: 0
 			}
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'getStats',
 				resource: 'property',
 				metadata: { ownerId }
@@ -345,7 +345,7 @@ export class PropertiesService {
 			})
 		} catch (error) {
 			this.logger.error('Error getting properties with stats:', error)
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'getPropertiesWithStats',
 				resource: 'property',
 				metadata: { ownerId }
@@ -410,7 +410,7 @@ export class PropertiesService {
 				'Error creating property with custom units:',
 				error
 			)
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'createPropertyWithUnits',
 				resource: 'property',
 				metadata: {
@@ -445,7 +445,7 @@ export class PropertiesService {
 				userToken
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'search',
 				resource: 'property',
 				metadata: { ownerId, searchTerm }
@@ -464,7 +464,7 @@ export class PropertiesService {
 			// TODO: Implement findByAddress in repository
 			return null
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'findByAddress',
 				resource: 'property',
 				metadata: { ownerId, address }

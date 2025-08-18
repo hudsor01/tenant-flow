@@ -504,7 +504,7 @@ export class SubscriptionSyncService {
 				}
 			)
 
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'SubscriptionSyncService.performSubscriptionSync',
 				resource: 'subscription',
 				metadata: {

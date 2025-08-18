@@ -369,6 +369,221 @@ export class EmailMetricsService {
 	}
 
 	/**
+	 * Track email event for analytics and monitoring
+	 */
+	async trackEmailEvent(
+		eventType: string,
+		data: {
+			template?: EmailTemplateName
+			recipient?: string
+			messageId?: string
+			processingTime?: number
+			error?: string
+			metadata?: Record<string, unknown>
+		}
+	): Promise<void> {
+		try {
+			// Create metric entry
+			const metric: EmailMetric = {
+				id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+				template: data.template || 'unknown' as EmailTemplateName,
+				recipient: data.recipient || 'unknown',
+				status: this.mapEventToStatus(eventType),
+				timestamp: new Date(),
+				processingTime: data.processingTime,
+				messageId: data.messageId,
+				error: data.error,
+				metadata: data.metadata
+			}
+
+			// Store metric
+			this.metrics.push(metric)
+
+			// Log event with appropriate level
+			const logLevel = this.getLogLevel(eventType)
+			this.logger[logLevel](`Email event: ${eventType}`, {
+				...data,
+				metricId: metric.id
+			})
+
+			// Check for alerts
+			await this.checkAlertConditions(metric, eventType)
+
+		} catch (error) {
+			this.logger.warn(`Failed to track email event: ${eventType}`, error)
+		}
+	}
+
+	/**
+	 * Map event type to metric status
+	 */
+	private mapEventToStatus(eventType: string): EmailMetric['status'] {
+		const statusMap: Record<string, EmailMetric['status']> = {
+			'email_send_started': 'sent',
+			'email_job_started': 'sent',
+			'direct_email_send_started': 'sent',
+			'email_send_success': 'delivered',
+			'email_job_completed': 'delivered',
+			'direct_email_send_success': 'delivered',
+			'email_send_failed': 'failed',
+			'email_job_failed': 'failed',
+			'direct_email_send_failed': 'failed',
+			'email_bounced': 'bounced',
+			'email_opened': 'opened',
+			'email_clicked': 'clicked'
+		}
+		return statusMap[eventType] || 'sent'
+	}
+
+	/**
+	 * Get appropriate log level for event type
+	 */
+	private getLogLevel(eventType: string): 'debug' | 'log' | 'warn' | 'error' {
+		if (eventType.includes('failed') || eventType.includes('bounced')) {
+			return 'error'
+		}
+		if (eventType.includes('started')) {
+			return 'debug'
+		}
+		if (eventType.includes('success') || eventType.includes('completed')) {
+			return 'log'
+		}
+		return 'debug'
+	}
+
+	/**
+	 * Check for alert conditions and trigger notifications
+	 */
+	private async checkAlertConditions(metric: EmailMetric, eventType: string): Promise<void> {
+		try {
+			// High error rate alert
+			if (eventType.includes('failed')) {
+				const recentFailures = this.getRecentMetrics(5 * 60 * 1000) // Last 5 minutes
+					.filter(m => m.status === 'failed')
+
+				if (recentFailures.length >= 5) {
+					this.logger.warn('High email failure rate detected', {
+						failureCount: recentFailures.length,
+						timeWindow: '5 minutes'
+					})
+				}
+			}
+
+			// Slow processing alert
+			if (metric.processingTime && metric.processingTime > 10000) { // 10 seconds
+				this.logger.warn('Slow email processing detected', {
+					processingTime: metric.processingTime,
+					messageId: metric.messageId,
+					template: metric.template
+				})
+			}
+
+		} catch (error) {
+			this.logger.warn('Failed to check alert conditions', error)
+		}
+	}
+
+	/**
+	 * Get metrics from recent time window
+	 */
+	private getRecentMetrics(timeWindowMs: number): EmailMetric[] {
+		const cutoff = Date.now() - timeWindowMs
+		return this.metrics.filter(m => m.timestamp.getTime() > cutoff)
+	}
+
+	/**
+	 * Get delivery health status
+	 */
+	getDeliveryHealth(): {
+		status: 'healthy' | 'degraded' | 'unhealthy'
+		metrics: {
+			successRate: number
+			avgProcessingTime: number
+			recentFailures: number
+			totalSent: number
+		}
+		alerts: string[]
+	} {
+		const recentMetrics = this.getRecentMetrics(60 * 60 * 1000) // Last hour
+		const totalSent = recentMetrics.length
+		const failures = recentMetrics.filter(m => m.status === 'failed').length
+		const successes = recentMetrics.filter(m => ['delivered', 'opened', 'clicked'].includes(m.status)).length
+		
+		const successRate = totalSent > 0 ? (successes / totalSent) * 100 : 100
+		const avgProcessingTime = recentMetrics.reduce((sum, m) => sum + (m.processingTime || 0), 0) / totalSent || 0
+
+		const alerts: string[] = []
+		let status: 'healthy' | 'degraded' | 'unhealthy' = 'healthy'
+
+		// Determine health status
+		if (successRate < 85) {
+			status = 'unhealthy'
+			alerts.push(`Low success rate: ${successRate.toFixed(1)}%`)
+		} else if (successRate < 95) {
+			status = 'degraded'
+			alerts.push(`Degraded success rate: ${successRate.toFixed(1)}%`)
+		}
+
+		if (avgProcessingTime > 5000) {
+			status = status === 'healthy' ? 'degraded' : status
+			alerts.push(`High processing time: ${avgProcessingTime.toFixed(0)}ms`)
+		}
+
+		if (failures > 10) {
+			status = 'degraded'
+			alerts.push(`High failure count: ${failures} in last hour`)
+		}
+
+		return {
+			status,
+			metrics: {
+				successRate,
+				avgProcessingTime,
+				recentFailures: failures,
+				totalSent
+			},
+			alerts
+		}
+	}
+
+	/**
+	 * Get queue processing metrics
+	 */
+	getQueueMetrics(): {
+		processingRate: number // emails per minute
+		avgQueueTime: number
+		backlogSize: number
+		peakHourMetrics: {
+			hour: number
+			count: number
+		}[]
+	} {
+		const recentMetrics = this.getRecentMetrics(60 * 60 * 1000) // Last hour
+		const processingRate = recentMetrics.length / 60 // per minute
+
+		// Calculate peak hours over last 24 hours
+		const last24h = this.getRecentMetrics(24 * 60 * 60 * 1000)
+		const hourlyBuckets = new Map<number, number>()
+		
+		last24h.forEach(metric => {
+			const hour = metric.timestamp.getHours()
+			hourlyBuckets.set(hour, (hourlyBuckets.get(hour) || 0) + 1)
+		})
+
+		const peakHourMetrics = Array.from(hourlyBuckets.entries())
+			.map(([hour, count]) => ({ hour, count }))
+			.sort((a, b) => b.count - a.count)
+			.slice(0, 5)
+
+		return {
+			processingRate,
+			avgQueueTime: 0, // TODO: Implement queue time tracking
+			backlogSize: 0, // TODO: Implement backlog monitoring
+			peakHourMetrics
+		}
+	}
+
+	/**
 	 * Clear old metrics (cleanup)
 	 */
 	@Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)

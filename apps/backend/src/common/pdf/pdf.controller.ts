@@ -218,7 +218,7 @@ export class PDFController {
 			// Stream the PDF buffer
 			response.send(result.buffer)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'generatePDF',
 				resource: 'pdf',
 				metadata: { filename: dto.filename }
@@ -286,7 +286,7 @@ export class PDFController {
 			// Stream the PDF buffer
 			response.send(result.buffer)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'generatePDFFromURL',
 				resource: 'pdf',
 				metadata: { url: dto.url, filename: dto.filename }
@@ -324,7 +324,7 @@ export class PDFController {
 				timestamp: new Date().toISOString()
 			}
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'healthCheck',
 				resource: 'pdf'
 			})

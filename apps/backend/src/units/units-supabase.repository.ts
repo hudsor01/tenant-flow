@@ -45,13 +45,8 @@ export interface UnitQueryOptions {
  * Units are owned through property ownership
  */
 @Injectable()
-export class UnitsSupabaseRepository extends BaseSupabaseRepository<
-	'Unit',
-	UnitRow,
-	UnitInsert,
-	UnitUpdate
-> {
-	protected readonly tableName = 'Unit' as const
+export class UnitsSupabaseRepository extends BaseSupabaseRepository<UnitRow> {
+	protected readonly tableName = 'Unit'
 
 	constructor(
 		supabaseService: SupabaseService,

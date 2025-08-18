@@ -52,13 +52,8 @@ export interface MaintenanceRequestQueryOptions {
  * Maintenance requests are owned through unit property ownership
  */
 @Injectable()
-export class MaintenanceRequestSupabaseRepository extends BaseSupabaseRepository<
-	'MaintenanceRequest',
-	MaintenanceRequestRow,
-	MaintenanceRequestInsert,
-	MaintenanceRequestUpdate
-> {
-	protected readonly tableName = 'MaintenanceRequest' as const
+export class MaintenanceRequestSupabaseRepository extends BaseSupabaseRepository<MaintenanceRequestRow> {
+	protected readonly tableName = 'MaintenanceRequest'
 
 	constructor(
 		supabaseService: SupabaseService,

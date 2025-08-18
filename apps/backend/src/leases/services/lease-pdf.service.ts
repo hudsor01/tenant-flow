@@ -116,7 +116,7 @@ export class LeasePDFService {
 				error: error instanceof Error ? error.message : 'Unknown error'
 			})
 
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'generateLeasePDF',
 				resource: 'lease-pdf',
 				metadata: { leaseId, ownerId }

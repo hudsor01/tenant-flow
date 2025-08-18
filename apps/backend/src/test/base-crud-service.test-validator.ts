@@ -104,7 +104,7 @@ export class BaseCrudServiceTestValidator<
 			beforeEach(() => {
 				repository = repositoryMockFactory()
 				errorHandler = {
-					handleErrorEnhanced: vi.fn().mockImplementation(error => {
+					handleError: vi.fn().mockImplementation(error => {
 						throw error
 					})
 				} as unknown as ErrorHandlerService
@@ -354,7 +354,7 @@ export class BaseCrudServiceTestValidator<
 					).rejects.toThrow('Database connection failed')
 
 					expect(
-						errorHandler.handleErrorEnhanced
+						errorHandler.handleError
 					).toHaveBeenCalledWith(
 						repositoryError,
 						expect.objectContaining({
@@ -374,7 +374,7 @@ export class BaseCrudServiceTestValidator<
 					).rejects.toThrow('Test error')
 
 					expect(
-						errorHandler.handleErrorEnhanced
+						errorHandler.handleError
 					).toHaveBeenCalledWith(
 						error,
 						expect.objectContaining({
