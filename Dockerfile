@@ -54,6 +54,13 @@ RUN npm config set audit-level moderate && \
 # OPTIMIZATION: Copy source AFTER dependencies for better caching
 COPY . .
 
+# Clear TypeScript build cache to prevent module resolution issues
+RUN echo "🧹 Clearing TypeScript build cache..." && \
+    find . -name "*.tsbuildinfo" -delete && \
+    find . -name "dist" -type d -exec rm -rf {} + 2>/dev/null || true && \
+    find . -name "node_modules/.cache" -type d -exec rm -rf {} + 2>/dev/null || true && \
+    echo "✅ Build cache cleared"
+
 # Build shared packages first (sequential build required for dependencies)
 RUN echo "🔨 Building shared packages first..." && \
     echo "=== Building @repo/shared with explicit commands ===" && \
