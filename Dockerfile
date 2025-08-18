@@ -3,10 +3,9 @@
 # --- Stage 1: Build Dependencies ---
 FROM node:22-slim AS builder
 
-WORKDIR /app
-
 # Install system dependencies with explicit versions and cleanup
 RUN apt-get update && \
+    apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
@@ -17,6 +16,9 @@ RUN apt-get update && \
     tini && \
     rm -rf /var/lib/apt/lists/* && \
     npm config set registry https://registry.npmjs.org/
+
+    WORKDIR /app
+    COPY . .
 
 # Set Node.js memory limits for Railway 1GB limit
 # WARNING: Railway free tier has 1GB memory limit
@@ -51,8 +53,28 @@ RUN npm config set audit-level moderate && \
 # Copy source code
 COPY . .
 
-# Build using Turborepo for proper dependency resolution
-RUN echo "🚨 BUILDING WITH TURBOREPO - Using 850MB (Railway 1GB plan) 🚨" && \
+# Build shared packages first (explicit build commands)
+RUN echo "🔨 Building shared packages first..." && \
+    echo "=== Building @repo/shared with explicit commands ===" && \
+    cd packages/shared && \
+    npm run build:cjs && \
+    npm run build:esm && \
+    echo "=== Building @repo/database ===" && \
+    cd ../../packages/database && \
+    npm run build && \
+    cd ../../ && \
+    echo "✅ Shared packages built successfully" && \
+    echo "=== DEBUG: Checking what files were created ===" && \
+    find packages/shared -name "*.js" -o -name "*.d.ts" | head -20 && \
+    find packages/database -name "*.js" -o -name "*.d.ts" | head -20 && \
+    echo "=== Verifying shared package build ===" && \
+    test -f packages/shared/dist/cjs/index.js || (echo "ERROR: @repo/shared CJS build missing!" && exit 1) && \
+    test -f packages/shared/dist/cjs/index.d.ts || (echo "ERROR: @repo/shared CJS types missing!" && exit 1) && \
+    test -f packages/database/dist/index.js || (echo "ERROR: @repo/database build missing!" && exit 1) && \
+    echo "✅ All shared package artifacts verified"
+
+# Build backend with dependency packages already available
+RUN echo "🚨 BUILDING BACKEND - Using 850MB (Railway 1GB plan) 🚨" && \
     NODE_OPTIONS="--max-old-space-size=850" npx turbo run build --filter=@repo/backend || \
     (echo "❌ BUILD FAILED - Exit code: $?" && \
     echo "Retrying with reduced memory (750MB)..." && \
@@ -62,7 +84,7 @@ RUN echo "🚨 BUILDING WITH TURBOREPO - Using 850MB (Railway 1GB plan) 🚨" &&
     find /app/apps/backend/dist
 
 # Verify build output exists
-RUN test -f apps/backend/dist/apps/backend/src/main.js || \
+RUN test -f apps/backend/dist/main.js || \
     (echo "ERROR: Backend build failed!" && \
     find apps/backend/dist -name "main.js" 2>/dev/null || \
     echo "No main.js found" && \
@@ -108,14 +130,14 @@ RUN npm config set audit-level moderate && \
 
 # Copy built application from builder with explicit verification
 COPY --from=builder --chown=nodejs:nodejs \
-    /app/apps/backend/dist/apps/backend /app/apps/backend/dist/apps/backend
+    /app/apps/backend/dist /app/apps/backend/dist
 COPY --from=builder --chown=nodejs:nodejs \
     /app/packages/shared/dist ./packages/shared/dist
 COPY --from=builder --chown=nodejs:nodejs \
     /app/packages/database/dist ./packages/database/dist
 
 # Verify critical files exist
-RUN test -f apps/backend/dist/apps/backend/src/main.js || \
+RUN test -f apps/backend/dist/main.js || \
     (echo "ERROR: Backend main.js missing!" && exit 1)
 
 # Set working directory
@@ -141,6 +163,6 @@ EXPOSE $PORT
 # Use tini for proper signal handling
 ENTRYPOINT ["tini", "--"]
 # Start from the correct path
-# The dist folder is at /app/apps/backend/dist/apps/backend/src/main.js
+# The dist folder is at /app/apps/backend/dist/main.js
 WORKDIR /app
-CMD ["node", "apps/backend/dist/apps/backend/src/main.js"]
+CMD ["node", "apps/backend/dist/main.js"]
