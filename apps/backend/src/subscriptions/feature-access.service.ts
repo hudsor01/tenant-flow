@@ -86,7 +86,7 @@ export class FeatureAccessService {
 			// Always return free tier access for now since Supabase migration is incomplete
 			// if (!access) {
 				// Return free tier access if no record exists
-				return this.calculateFeatureAccess('canceled', 'FREETRIAL')
+				return this.calculateFeatureAccess('CANCELED', 'FREETRIAL')
 			// }
 
 			// return {
@@ -107,7 +107,7 @@ export class FeatureAccessService {
 				error
 			)
 			// Return free tier access on error
-			return this.calculateFeatureAccess('canceled', 'STARTER')
+			return this.calculateFeatureAccess('CANCELED', 'STARTER')
 		}
 	}
 
@@ -230,7 +230,7 @@ export class FeatureAccessService {
 	async restoreUserAccess(userId: string, planType: PlanType): Promise<void> {
 		await this.updateUserFeatureAccess({
 			userId,
-			subscriptionStatus: 'active',
+			subscriptionStatus: 'ACTIVE',
 			planType,
 			reason: 'SUBSCRIPTION_ACTIVATED'
 		})
@@ -252,7 +252,7 @@ export class FeatureAccessService {
 			| 'PAYMENT_FAILED'
 	): Promise<void> {
 		const restrictedStatus: SubStatus =
-			reason === 'SUBSCRIPTION_CANCELED' ? 'canceled' : 'incomplete'
+			reason === 'SUBSCRIPTION_CANCELED' ? 'CANCELED' : 'INCOMPLETE'
 
 		await this.updateUserFeatureAccess({
 			userId,
