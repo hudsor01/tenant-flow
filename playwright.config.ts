@@ -4,7 +4,7 @@ import * as dotenv from 'dotenv'
 // Load test environment variables
 dotenv.config({ path: '.env.test' })
 
-// Ensure we're in an isolated environment from Vitest
+// Ensure we're in an isolated test environment
 process.env.NODE_ENV = 'test'
 
 /**

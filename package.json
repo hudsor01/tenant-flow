@@ -40,6 +40,7 @@
 		"typecheck": "dotenv -e .env.local -- turbo run typecheck",
 		"test": "dotenv -e .env.local -- turbo run test",
 		"test:unit": "dotenv -e .env.local -- turbo run test:unit",
+		"test:integration": "dotenv -e .env.local -- turbo run test:integration",
 		"test:coverage": "dotenv -e .env.local -- turbo run test:coverage",
 		"test:e2e": "dotenv -e .env.local -- turbo run test:e2e",
 		"test:e2e:visual": "npx playwright test tests/e2e/specs/visual/landing-page.visual.spec.ts",
@@ -74,7 +75,7 @@
 		"update-supabase-types": "npx supabase gen types typescript --project-id \"bshjmbshupiibfiewpxb\" --schema public > packages/shared/src/types/supabase-generated.ts"
 	},
 	"devDependencies": {
-		"@eslint/js": "^9.32.0",
+		"@eslint/js": "9.33.0",
 		"@faker-js/faker": "^9.9.0",
 		"@playwright/test": "^1.54.2",
 		"@supabase/supabase-js": "2.55.0",
@@ -90,7 +91,6 @@
 		"@typescript-eslint/eslint-plugin": "^8.39.1",
 		"@typescript-eslint/parser": "^8.39.1",
 		"@vercel/node": "^5.3.13",
-		"@vitest/coverage-v8": "^3.2.4",
 		"allure-playwright": "3.3.3",
 		"dotenv-cli": "10.0.0",
 		"eslint": "^9.33.0",

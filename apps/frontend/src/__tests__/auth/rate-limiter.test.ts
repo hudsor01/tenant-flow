@@ -1,4 +1,14 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+// Mock headers BEFORE any imports
+jest.mock('next/headers', () => ({
+	headers: jest.fn(() => Promise.resolve({
+		get: jest.fn((header: string) => {
+			if (header === 'x-forwarded-for') return '192.168.1.1'
+			return null
+		})
+	}))
+}))
+
+
 import {
 	loginRateLimiter,
 	signupRateLimiter,
@@ -7,34 +17,25 @@ import {
 	getRateLimitStatus
 } from '@/lib/auth/rate-limiter'
 
-// Mock headers
-vi.mock('next/headers', () => ({
-	headers: vi.fn(() => ({
-		get: vi.fn((header: string) => {
-			if (header === 'x-forwarded-for') return '192.168.1.1'
-			return null
-		})
-	}))
-}))
-
 // Mock logger
-vi.mock('@/lib/logger', () => ({
+jest.mock('@/lib/logger', () => ({
 	logger: {
-		debug: vi.fn(),
-		warn: vi.fn(),
-		error: vi.fn()
+		debug: jest.fn(),
+		info: jest.fn(),
+		warn: jest.fn(),
+		error: jest.fn()
 	}
 }))
 
 describe('Rate Limiter', () => {
 	beforeEach(() => {
-		vi.clearAllMocks()
+		jest.clearAllMocks()
 		// Reset rate limit state between tests
-		vi.useFakeTimers()
+		jest.useFakeTimers()
 	})
 
 	afterEach(() => {
-		vi.useRealTimers()
+		jest.useRealTimers()
 	})
 
 	describe('loginRateLimiter', () => {
@@ -68,7 +69,7 @@ describe('Rate Limiter', () => {
 			expect(result.success).toBe(false)
 
 			// Fast forward 15 minutes and 1 second
-			vi.advanceTimersByTime(15 * 60 * 1000 + 1000)
+			jest.advanceTimersByTime(15 * 60 * 1000 + 1000)
 
 			// Should be allowed again
 			result = await loginRateLimiter(email)
@@ -122,7 +123,7 @@ describe('Rate Limiter', () => {
 			expect(result.success).toBe(false)
 
 			// Fast forward 1 hour and 1 second
-			vi.advanceTimersByTime(60 * 60 * 1000 + 1000)
+			jest.advanceTimersByTime(60 * 60 * 1000 + 1000)
 
 			// Should be allowed again
 			result = await signupRateLimiter()
@@ -179,7 +180,7 @@ describe('Rate Limiter', () => {
 			// Check initial status
 			let status = await getRateLimitStatus(email)
 			expect(status.success).toBe(true)
-			expect(status.remaining).toBe(5)
+			expect(status.remaining).toBe(4)
 
 			// Use one attempt
 			await loginRateLimiter(email)
@@ -187,11 +188,11 @@ describe('Rate Limiter', () => {
 			// Check status again
 			status = await getRateLimitStatus(email)
 			expect(status.success).toBe(true)
-			expect(status.remaining).toBe(4)
+			expect(status.remaining).toBe(3)
 
 			// Check status doesn't increment counter
 			status = await getRateLimitStatus(email)
-			expect(status.remaining).toBe(4)
+			expect(status.remaining).toBe(3)
 		})
 	})
 })

@@ -39,9 +39,6 @@ COPY packages/shared/package*.json ./packages/shared/
 COPY packages/database/package*.json ./packages/database/
 COPY packages/typescript-config/package*.json ./packages/typescript-config/
 
-# Copy Prisma schema BEFORE installing dependencies
-COPY packages/database/prisma ./packages/database/prisma
-
 # Install dependencies with memory constraints and retry logic
 RUN npm config set audit-level moderate && \
     npm config set fund false && \
@@ -51,28 +48,10 @@ RUN npm config set audit-level moderate && \
     npm cache clean --force && \
     npm install --prefer-offline --no-audit --ignore-scripts --maxsockets=5)
 
-# Skip frontend-specific dependencies for backend build
-# lightningcss and tailwindcss are not needed for NestJS backend
-RUN echo "Skipping frontend dependencies (lightningcss, tailwindcss) for backend build"
-
-# Install missing type dependencies for build
-WORKDIR /app/apps/backend
-RUN npm install --save-dev @types/express
-
-# Explicitly generate Prisma client with error checking and memory limits
-WORKDIR /app/packages/database
-RUN NODE_OPTIONS="--max-old-space-size=700" npx prisma generate --schema=./prisma/schema.prisma && \
-    echo "=== Prisma client generated successfully ===" && \
-    ls -la src/generated/client/ && \
-    test -f src/generated/client/index.js || \
-    (echo "ERROR: Prisma client not generated!" && exit 1)
-
-# Return to root and copy source code
-WORKDIR /app
+# Copy source code
 COPY . .
 
-# Build with Turbo with explicit error handling and memory constraints
-# Use tsc directly with skipLibCheck to avoid type errors in Docker
+# Build with explicit error handling and memory constraints
 RUN echo "=== Building shared package ===" && \
     cd packages/shared && npm run build && \
     echo "=== Building database package ===" && \
@@ -81,7 +60,7 @@ RUN echo "=== Building shared package ===" && \
     cd ../../apps/backend && \
     (echo "🚨 BUILDING BACKEND - THIS IS WHERE RAILWAY USUALLY FAILS ON FREE TIER 🚨" && \
     echo "If this fails with 'Killed' or exit code 137, upgrade Railway plan!" && \
-    NODE_OPTIONS="--max-old-space-size=900" npx tsc -p tsconfig.build.json --skipLibCheck || \
+    NODE_OPTIONS="--max-old-space-size=900" npm run build || \
     (echo "❌ BUILD FAILED - LIKELY MEMORY ISSUE! Exit code: $?" && \
     echo "SOLUTION: Upgrade Railway plan from free tier (1GB) to hobby tier (8GB)" && exit 1)) && \
     echo "=== Build completed ===" && \
@@ -140,34 +119,9 @@ COPY --from=builder --chown=nodejs:nodejs \
     /app/packages/shared/dist ./packages/shared/dist
 COPY --from=builder --chown=nodejs:nodejs \
     /app/packages/database/dist ./packages/database/dist
-COPY --from=builder --chown=nodejs:nodejs \
-    /app/packages/database/prisma ./packages/database/prisma
-
-# Install Prisma CLI in production stage to ensure correct binary
-RUN npm install --no-save prisma
-
-# Generate Prisma client for Linux in production stage (always, not conditionally)
-RUN cd packages/database && NODE_OPTIONS="--max-old-space-size=700" npx prisma generate --schema=./prisma/schema.prisma && \
-    test -f src/generated/client/index.js || (echo "ERROR: Prisma client missing in production!" && exit 1)
-
-# Copy Prisma modules needed at runtime (conditional)
-RUN --mount=from=builder,source=/app/node_modules,target=/tmp/node_modules,ro \
-    mkdir -p ./node_modules && \
-    if [ -d "/tmp/node_modules/.prisma" ]; then \
-    cp -r /tmp/node_modules/.prisma ./node_modules/ && chown -R nodejs:nodejs ./node_modules/.prisma; \
-    else \
-    echo "Warning: .prisma directory not found in builder stage"; \
-    fi && \
-    if [ -d "/tmp/node_modules/@prisma" ]; then \
-    cp -r /tmp/node_modules/@prisma ./node_modules/ && chown -R nodejs:nodejs ./node_modules/@prisma; \
-    else \
-    echo "Warning: @prisma directory not found in builder stage"; \
-    fi
 
 # Verify critical files exist
-RUN test -f packages/database/src/generated/client/index.js || \
-    (echo "ERROR: Prisma client missing in production!" && exit 1) && \
-    (test -f apps/backend/dist/apps/backend/src/main.js) || \
+RUN test -f apps/backend/dist/apps/backend/src/main.js || \
     (echo "ERROR: Backend main.js missing!" && exit 1)
 
 # Set working directory

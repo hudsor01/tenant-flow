@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { createPropertyFormSchema } from '@/lib/validation/zod-schemas'
+import { propertyFormSchema } from '@repo/shared/validation'
 // import { z } from 'zod'
 import {
 	useCreateProperty,
@@ -62,7 +62,7 @@ export function PropertyFormDialog({
 	const updateProperty = useUpdateProperty()
 
 	const form = useForm<PropertyFormData>({
-		resolver: zodResolver(createPropertyFormSchema),
+		resolver: zodResolver(propertyFormSchema),
 		defaultValues: {
 			name: property?.name || '',
 			address: property?.address || '',
