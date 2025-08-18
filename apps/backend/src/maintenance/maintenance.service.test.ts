@@ -52,7 +52,7 @@ describe('MaintenanceService - Simplified Tests', () => {
 		}
 
 		mockErrorHandler = {
-			handleErrorEnhanced: jest.fn().mockImplementation((error: any) => {
+			handleError: jest.fn().mockImplementation((error: any) => {
 				throw error
 			}),
 			createNotFoundError: jest
@@ -303,7 +303,7 @@ describe('MaintenanceService - Simplified Tests', () => {
 				service.create({} as any, 'owner-123')
 			).rejects.toThrow('Creation failed')
 
-			expect(mockErrorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
+			expect(mockErrorHandler.handleError).toHaveBeenCalledWith(
 				error,
 				expect.objectContaining({
 					operation: 'create',
@@ -321,7 +321,7 @@ describe('MaintenanceService - Simplified Tests', () => {
 				'Database error'
 			)
 
-			expect(mockErrorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
+			expect(mockErrorHandler.handleError).toHaveBeenCalledWith(
 				error,
 				expect.objectContaining({
 					operation: 'getByOwner',
