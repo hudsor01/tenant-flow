@@ -1,7 +1,11 @@
 import { PartialType } from '@nestjs/mapped-types'
 import { CreateDocumentDto } from './create-document.dto'
 import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator'
-import { DocumentType, type UpdateDocumentInput } from '@repo/shared'
+import { 
+	DOCUMENT_TYPE_OPTIONS,
+	type DocumentType,
+	type UpdateDocumentInput 
+} from '@repo/shared'
 import { Transform } from 'class-transformer'
 
 export class UpdateDocumentDto
@@ -14,7 +18,7 @@ export class UpdateDocumentDto
 	@Transform(({ value }) => value?.trim())
 	override name?: string
 
-	@IsEnum(DocumentType, {
+	@IsEnum(DOCUMENT_TYPE_OPTIONS, {
 		message:
 			'Document type must be one of: LEASE, INVOICE, RECEIPT, PROPERTY_PHOTO, INSPECTION, MAINTENANCE, OTHER'
 	})
