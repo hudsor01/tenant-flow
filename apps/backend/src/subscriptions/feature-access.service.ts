@@ -30,8 +30,6 @@ export interface FeatureAccessUpdate {
 export class FeatureAccessService {
 	private readonly logger = new Logger(FeatureAccessService.name)
 
-	constructor() {}
-
 	/**
 	 * Update user's feature access based on subscription status
 	 */
@@ -85,8 +83,8 @@ export class FeatureAccessService {
 
 			// Always return free tier access for now since Supabase migration is incomplete
 			// if (!access) {
-				// Return free tier access if no record exists
-				return this.calculateFeatureAccess('CANCELED', 'FREETRIAL')
+			// Return free tier access if no record exists
+			return this.calculateFeatureAccess('CANCELED', 'FREETRIAL')
 			// }
 
 			// return {
