@@ -723,7 +723,7 @@ export class WebhookService {
 			this.logger.warn(`Subscription marked as PAST_DUE`, {
 				subscriptionId,
 				userId: updatedSubscription.userId,
-				planType: updatedSubscription.planType
+				planType: updatedSubscription.planType || 'BASIC'
 			})
 
 			// Get user details for notification

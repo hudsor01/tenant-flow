@@ -16,6 +16,7 @@ export interface PropertyEvent {
 	has_photos?: boolean
 	monthly_rent?: number
 	created_at?: string
+	[key: string]: unknown
 }
 
 export interface TenantEvent {
