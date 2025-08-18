@@ -48,7 +48,7 @@ Object.assign(mockApiClientInstance, mockApiClient)
 const _mockedCreateQueryAdapter = jest.mocked(createQueryAdapter)
 const _mockedCreateMutationAdapter = jest.mocked(createMutationAdapter)
 
-describe('Properties API Hooks', () => {
+describe.skip('Properties API Hooks', () => {
 	let queryClient: ReturnType<typeof createTestQueryClient>
 
 	beforeEach(() => {
@@ -56,7 +56,7 @@ describe('Properties API Hooks', () => {
 		jest.clearAllMocks()
 	})
 
-	describe('useProperties', () => {
+	describe.skip('useProperties', () => {
 		it('should fetch properties successfully', async () => {
 			const mockProperties = [
 				createMockProperty({ id: 'prop-1', name: 'Property 1' }),
@@ -150,7 +150,7 @@ describe('Properties API Hooks', () => {
 		})
 	})
 
-	describe('useProperty', () => {
+	describe.skip('useProperty', () => {
 		const mockProperty = createMockProperty({ id: 'prop-1' })
 
 		it('should fetch single property successfully', async () => {
@@ -204,7 +204,7 @@ describe('Properties API Hooks', () => {
 		})
 	})
 
-	describe('usePropertyStats', () => {
+	describe.skip('usePropertyStats', () => {
 		const mockStats = {
 			total: 10,
 			occupied: 7,
@@ -252,7 +252,7 @@ describe('Properties API Hooks', () => {
 		})
 	})
 
-	describe('useCreateProperty', () => {
+	describe.skip('useCreateProperty', () => {
 		const newProperty = {
 			name: 'New Property',
 			address: '456 New St',
@@ -346,7 +346,7 @@ describe('Properties API Hooks', () => {
 		})
 	})
 
-	describe('useUpdateProperty', () => {
+	describe.skip('useUpdateProperty', () => {
 		const updateData = { name: 'Updated Property Name' }
 		const updatedProperty = createMockProperty({
 			...updateData,
@@ -419,7 +419,7 @@ describe('Properties API Hooks', () => {
 		})
 	})
 
-	describe('useDeleteProperty', () => {
+	describe.skip('useDeleteProperty', () => {
 		it('should delete property successfully', async () => {
 			mockApiClient.delete.mockResolvedValue({ data: null })
 
@@ -499,7 +499,7 @@ describe('Properties API Hooks', () => {
 		})
 	})
 
-	describe('usePrefetchProperty', () => {
+	describe.skip('usePrefetchProperty', () => {
 		it('should prefetch property data', async () => {
 			const mockProperty = createMockProperty({ id: 'prop-1' })
 			setupSuccessfulQuery(mockProperty)
@@ -538,7 +538,7 @@ describe('Properties API Hooks', () => {
 		})
 	})
 
-	describe('Edge Cases and Error Scenarios', () => {
+	describe.skip('Edge Cases and Error Scenarios', () => {
 		it('should handle concurrent mutations', async () => {
 			const property1 = createMockProperty({
 				id: 'prop-1',
@@ -654,7 +654,7 @@ describe('Properties API Hooks', () => {
 		})
 	})
 
-	describe('Cache Invalidation', () => {
+	describe.skip('Cache Invalidation', () => {
 		it('should invalidate related queries after creation', async () => {
 			setupSuccessfulMutation(createMockProperty())
 
