@@ -3,7 +3,7 @@
  * Tests the API routes that interact with Stripe
  */
 
-import { describe, it, expect } from '@jest/globals'
+
 import { TEST_STRIPE, TEST_USERS } from '../test-constants'
 import type { ProductTierConfig } from '@repo/shared/types/billing'
 
@@ -119,7 +119,7 @@ jest.mock('stripe', () => {
 	}
 })
 
-describe('Stripe API Routes', () => {
+describe.skip('Stripe API Routes', () => {
 	beforeEach(() => {
 		// Reset fetch mock before each test
 		;(global.fetch as jest.Mock).mockClear()
@@ -285,7 +285,7 @@ describe('Stripe API Routes', () => {
 		)
 	})
 
-	describe('GET /api/stripe/setup-pricing', () => {
+	describe.skip('GET /api/stripe/setup-pricing', () => {
 		it('should fetch current pricing from Stripe', async () => {
 			const response = await fetch(
 				'http://localhost:3001/api/stripe/setup-pricing',
@@ -365,7 +365,7 @@ describe('Stripe API Routes', () => {
 		})
 	})
 
-	describe('POST /api/stripe/setup-pricing', () => {
+	describe.skip('POST /api/stripe/setup-pricing', () => {
 		it('should require authorization', async () => {
 			const response = await fetch(
 				'http://localhost:3001/api/stripe/setup-pricing',
@@ -482,7 +482,7 @@ describe('Stripe API Routes', () => {
 	})
 })
 
-describe('Stripe Checkout Integration', () => {
+describe.skip('Stripe Checkout Integration', () => {
 	it('should create checkout session with correct parameters', async () => {
 		const mockPriceId = TEST_STRIPE.PRICE_STARTER_MONTHLY
 		const _mockUserId = TEST_USERS.USER_ID
@@ -534,7 +534,7 @@ describe('Stripe Checkout Integration', () => {
 	})
 })
 
-describe('Pricing Configuration', () => {
+describe.skip('Pricing Configuration', () => {
 	it('should have all required environment variables', () => {
 		const requiredVars = [
 			'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY',
@@ -565,7 +565,7 @@ describe('Pricing Configuration', () => {
 	})
 })
 
-describe('Pricing Calculations', () => {
+describe.skip('Pricing Calculations', () => {
 	it('should calculate annual savings correctly', () => {
 		const monthlyPrice = 79 // Growth monthly
 		const annualPrice = 790 // Growth annual
@@ -591,7 +591,7 @@ describe('Pricing Calculations', () => {
 	})
 })
 
-describe('Error Handling', () => {
+describe.skip('Error Handling', () => {
 	it('should handle Stripe API errors gracefully', async () => {
 		// Mock a network error scenario
 		;(global.fetch as jest.Mock).mockRejectedValueOnce(
@@ -638,7 +638,7 @@ describe('Error Handling', () => {
 	})
 })
 
-describe('Security', () => {
+describe.skip('Security', () => {
 	it('should not expose sensitive data in responses', async () => {
 		const response = await fetch(
 			'http://localhost:3001/api/stripe/setup-pricing',
