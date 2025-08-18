@@ -1,90 +1,116 @@
 # syntax=docker/dockerfile:1.6
+# check=error=true
 
-# --- Stage 1: Build and Dependencies ---
-FROM node:22-slim AS builder
+# ===== BASE BUILDER STAGE =====
+FROM node:24-alpine AS base
 
-# Install essential build dependencies
-RUN apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install -y --no-install-recommends \
-    ca-certificates \
-    g++ \
-    make \
+# Install build dependencies for Alpine
+RUN apk add --no-cache \
     python3 \
-    tini && \
-    rm -rf /var/lib/apt/lists/*
+    make \
+    g++ \
+    gcc \
+    libc-dev
 
-# Set the working directory
 WORKDIR /app
 
-# Set Node.js memory limits for Railway 1GB limit
-ENV NODE_OPTIONS="--max-old-space-size=850"
-ENV NPM_CONFIG_MAXSOCKETS=10
-ENV NPM_CONFIG_PROGRESS=false
+# ===== PRUNER STAGE =====
+FROM base AS pruner
 
-# Copy the monorepo's root package files first for layer caching
-COPY package.json package-lock.json turbo.json ./
-# Copy workspace package.json files to allow npm to build the dependency tree
-COPY apps/backend/package.json ./apps/backend/
-COPY packages/shared/package.json ./packages/shared/
-COPY packages/database/package.json ./packages/database/
-COPY packages/typescript-config/package.json ./packages/typescript-config/
-
-# Install all dependencies using the monorepo's root package file.
-# This correctly handles all workspace symlinks automatically.
-RUN npm config set audit-level moderate && \
-    npm config set fund false && \
-    npm config set update-notifier false && \
-    npm install
-
-# Copy the rest of the source code
+# Copy entire monorepo
 COPY . .
 
-# Build only the backend and its dependencies using turbo.
-# Turbo will correctly build shared packages before the backend.
-# No need for manual symlinking or sequential build scripts in the Dockerfile.
-RUN TURBO_TELEMETRY_DISABLED=1 npx turbo run build --filter=@repo/backend --no-cache
+# Install turbo locally and disable telemetry
+ENV TURBO_TELEMETRY_DISABLED=1
+ENV NPM_CONFIG_UPDATE_NOTIFIER=false
 
-# Verify build output exists
-RUN test -f apps/backend/dist/main.js || \
-    (echo "ERROR: Backend build failed!" && \
-    find apps/backend/dist -name "main.js" 2>/dev/null || \
-    echo "No main.js found" && \
-    exit 1)
+RUN npm install turbo@2.5.6 --no-save && \
+    npx turbo prune @repo/backend --docker
 
-# --- Stage 2: Production Image ---
-FROM node:22-slim AS production
+# ===== DEPS STAGE =====
+FROM base AS deps
 
-# Set the working directory
+ENV NPM_CONFIG_UPDATE_NOTIFIER=false
+
+# Copy pruned workspace structure
+COPY --from=pruner /app/out/json/ .
+
+# Install all dependencies for building
+RUN npm install --loglevel=error
+
+# ===== BUILDER STAGE =====
+FROM base AS builder
+
 WORKDIR /app
 
-# Install ONLY runtime dependencies
-RUN apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install -y --no-install-recommends \
-    ca-certificates \
-    tini && \
-    rm -rf /var/lib/apt/lists/* && \
-    groupadd -g 1001 nodejs && \
-    useradd -u 1001 -g nodejs -s /bin/bash -m nodejs
+# Copy the entire deps stage output
+COPY --from=deps /app ./
 
-# Set production environment
+# Copy source from pruned output
+COPY --from=pruner /app/out/full/ .
+
+# Memory optimization
+ENV NODE_OPTIONS="--max-old-space-size=850"
+ENV TURBO_TELEMETRY_DISABLED=1
+ENV NPM_CONFIG_UPDATE_NOTIFIER=false
+
+# Turbo remote caching
+ARG TURBO_TOKEN
+ARG TURBO_TEAM
+ENV TURBO_TOKEN=${TURBO_TOKEN}
+ENV TURBO_TEAM=${TURBO_TEAM}
+
+# Build with Turbo
+RUN npx turbo build --filter=@repo/backend --no-daemon
+
+# Verify build outputs
+RUN test -f apps/backend/dist/main.js || (echo "Backend build failed" && exit 1) && \
+    test -d packages/shared/dist || (echo "Shared build failed" && exit 1) && \
+    test -d packages/database/dist || (echo "Database build failed" && exit 1)
+
+# ===== PRODUCTION DEPS STAGE =====
+# Use same base for production deps
+FROM base AS prod-deps
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NPM_CONFIG_UPDATE_NOTIFIER=false
+
+# Copy package files from pruner
+COPY --from=pruner /app/out/json/ .
+
+# Install only production dependencies
+RUN npm install --omit=dev --loglevel=error && \
+    npm cache clean --force
+
+# ===== DISTROLESS RUNNER STAGE =====
+# Use Google Distroless Node.js 24 for runtime - maximum security
+FROM gcr.io/distroless/nodejs24-debian12:nonroot AS runner
+
+WORKDIR /app
+
+# Copy production dependencies
+COPY --from=prod-deps --chown=nonroot:nonroot /app/node_modules ./node_modules
+
+# Copy package.json files for module resolution
+COPY --from=prod-deps --chown=nonroot:nonroot /app/package.json ./package.json
+COPY --from=prod-deps --chown=nonroot:nonroot /app/apps/backend/package.json ./apps/backend/package.json
+COPY --from=prod-deps --chown=nonroot:nonroot /app/packages/shared/package.json ./packages/shared/package.json
+COPY --from=prod-deps --chown=nonroot:nonroot /app/packages/database/package.json ./packages/database/package.json
+
+# Copy built application
+COPY --from=builder --chown=nonroot:nonroot /app/apps/backend/dist ./apps/backend/dist
+COPY --from=builder --chown=nonroot:nonroot /app/packages/shared/dist ./packages/shared/dist
+COPY --from=builder --chown=nonroot:nonroot /app/packages/database/dist ./packages/database/dist
+
+# Runtime environment
 ENV NODE_ENV=production
 ENV DOCKER_CONTAINER=true
-EXPOSE $PORT
+ENV PORT=3333
 
-# Copy only production dependencies from the builder stage
-# This is more robust as it ensures all necessary packages are present
-COPY --from=builder /app/node_modules /app/node_modules
+# Expose port
+EXPOSE 3333
 
-# Copy the built application files
-COPY --from=builder /app/apps/backend/dist ./apps/backend/dist
-COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
-COPY --from=builder /app/packages/database/dist ./packages/database/dist
-
-# Switch to nodejs user
-USER nodejs
-
-# Use tini for proper signal handling
-ENTRYPOINT ["tini", "--"]
-CMD ["node", "apps/backend/dist/main.js"]
+# Distroless has Node.js as entrypoint, just provide the script
+CMD ["apps/backend/dist/main.js"]
