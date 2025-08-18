@@ -116,14 +116,23 @@ export class HealthController {
 	}> {
 		try {
 			const startTime = Date.now()
-			
+
 			// Add timeout to the health check itself
 			const timeoutPromise = new Promise<boolean>((_, reject) => {
-				setTimeout(() => reject(new Error('Health check timeout after 8 seconds')), 8000)
+				setTimeout(
+					() =>
+						reject(
+							new Error('Health check timeout after 8 seconds')
+						),
+					8000
+				)
 			})
-			
+
 			const connectionPromise = this.supabaseService.checkConnection()
-			const connected = await Promise.race([connectionPromise, timeoutPromise])
+			const connected = await Promise.race([
+				connectionPromise,
+				timeoutPromise
+			])
 			const responseTime = Date.now() - startTime
 
 			if (!connected) {
@@ -164,17 +173,18 @@ export class HealthController {
 			}
 		} catch (error) {
 			this.logger.error('Database health check failed:', error)
-			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-			
+			const errorMessage =
+				error instanceof Error ? error.message : 'Unknown error'
+
 			// Check if it's a timeout issue specifically
 			if (errorMessage.includes('timeout')) {
-				return { 
+				return {
 					status: 'unavailable',
 					error: `Database timeout: ${errorMessage}`
 				}
 			}
-			
-			return { 
+
+			return {
 				status: 'unavailable',
 				error: errorMessage
 			}

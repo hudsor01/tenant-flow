@@ -7,10 +7,7 @@
 
 import { apiClient } from '@/lib/api-client'
 import { logger } from '@/lib/logger'
-import type {
-	Unit,
-	UnitQuery
-} from '@repo/shared'
+import type { Unit, UnitQuery } from '@repo/shared'
 import type { UnitRepository } from '../interfaces'
 import { DomainError } from '@repo/shared'
 

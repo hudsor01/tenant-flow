@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { SupabaseClient } from '@supabase/supabase-js'
-import type { 
-	Database, 
-	RawTablesType, 
-	TablesInsert, 
+import type {
+	Database,
+	RawTablesType,
+	TablesInsert,
 	TablesUpdate
 } from '@repo/shared/types/supabase'
 import { ErrorHandlerService } from '../errors/error-handler.service'
@@ -106,13 +106,21 @@ export abstract class BaseSupabaseRepository<T = Record<string, unknown>> {
 			const { data, error } = await query
 
 			if (error) {
-				this.logger.error(`Error finding records in ${this.tableName}:`, error)
-				throw this.errorHandler.handleError(error, { operation: 'find' })
+				this.logger.error(
+					`Error finding records in ${this.tableName}:`,
+					error
+				)
+				throw this.errorHandler.handleError(error, {
+					operation: 'find'
+				})
 			}
 
 			return (data || []) as T[]
 		} catch (error) {
-			this.logger.error(`Failed to find records in ${this.tableName}:`, error)
+			this.logger.error(
+				`Failed to find records in ${this.tableName}:`,
+				error
+			)
 			throw error
 		}
 	}
@@ -171,7 +179,9 @@ export abstract class BaseSupabaseRepository<T = Record<string, unknown>> {
 					`Error finding record by ID in ${this.tableName}:`,
 					error
 				)
-				throw this.errorHandler.handleError(error, { operation: 'find' })
+				throw this.errorHandler.handleError(error, {
+					operation: 'find'
+				})
 			}
 
 			return data as T
@@ -211,7 +221,9 @@ export abstract class BaseSupabaseRepository<T = Record<string, unknown>> {
 					`Error finding record by field in ${this.tableName}:`,
 					error
 				)
-				throw this.errorHandler.handleError(error, { operation: 'find' })
+				throw this.errorHandler.handleError(error, {
+					operation: 'find'
+				})
 			}
 
 			return data as T
@@ -252,13 +264,21 @@ export abstract class BaseSupabaseRepository<T = Record<string, unknown>> {
 			const { count, error } = await query
 
 			if (error) {
-				this.logger.error(`Error counting records in ${this.tableName}:`, error)
-				throw this.errorHandler.handleError(error, { operation: 'find' })
+				this.logger.error(
+					`Error counting records in ${this.tableName}:`,
+					error
+				)
+				throw this.errorHandler.handleError(error, {
+					operation: 'find'
+				})
 			}
 
 			return count || 0
 		} catch (error) {
-			this.logger.error(`Failed to count records in ${this.tableName}:`, error)
+			this.logger.error(
+				`Failed to count records in ${this.tableName}:`,
+				error
+			)
 			throw error
 		}
 	}
@@ -281,13 +301,21 @@ export abstract class BaseSupabaseRepository<T = Record<string, unknown>> {
 				.single()
 
 			if (error) {
-				this.logger.error(`Error creating record in ${this.tableName}:`, error)
-				throw this.errorHandler.handleError(error, { operation: 'create' })
+				this.logger.error(
+					`Error creating record in ${this.tableName}:`,
+					error
+				)
+				throw this.errorHandler.handleError(error, {
+					operation: 'create'
+				})
 			}
 
 			return created as T
 		} catch (error) {
-			this.logger.error(`Failed to create record in ${this.tableName}:`, error)
+			this.logger.error(
+				`Failed to create record in ${this.tableName}:`,
+				error
+			)
 			throw error
 		}
 	}
@@ -312,13 +340,21 @@ export abstract class BaseSupabaseRepository<T = Record<string, unknown>> {
 				.single()
 
 			if (error) {
-				this.logger.error(`Error updating record in ${this.tableName}:`, error)
-				throw this.errorHandler.handleError(error, { operation: 'update' })
+				this.logger.error(
+					`Error updating record in ${this.tableName}:`,
+					error
+				)
+				throw this.errorHandler.handleError(error, {
+					operation: 'update'
+				})
 			}
 
 			return updated as T
 		} catch (error) {
-			this.logger.error(`Failed to update record in ${this.tableName}:`, error)
+			this.logger.error(
+				`Failed to update record in ${this.tableName}:`,
+				error
+			)
 			throw error
 		}
 	}
@@ -340,11 +376,19 @@ export abstract class BaseSupabaseRepository<T = Record<string, unknown>> {
 				.eq('id', id)
 
 			if (error) {
-				this.logger.error(`Error deleting record in ${this.tableName}:`, error)
-				throw this.errorHandler.handleError(error, { operation: 'find' })
+				this.logger.error(
+					`Error deleting record in ${this.tableName}:`,
+					error
+				)
+				throw this.errorHandler.handleError(error, {
+					operation: 'find'
+				})
 			}
 		} catch (error) {
-			this.logger.error(`Failed to delete record in ${this.tableName}:`, error)
+			this.logger.error(
+				`Failed to delete record in ${this.tableName}:`,
+				error
+			)
 			throw error
 		}
 	}
@@ -370,7 +414,9 @@ export abstract class BaseSupabaseRepository<T = Record<string, unknown>> {
 					`Error creating multiple records in ${this.tableName}:`,
 					error
 				)
-				throw this.errorHandler.handleError(error, { operation: 'createMany' })
+				throw this.errorHandler.handleError(error, {
+					operation: 'createMany'
+				})
 			}
 
 			return (created || []) as T[]
@@ -394,8 +440,10 @@ export abstract class BaseSupabaseRepository<T = Record<string, unknown>> {
 	): Promise<T[]> {
 		try {
 			const client = await this.getClient(userId, userToken)
-			 
-			let query = client.from(this.tableName as keyof RawTablesType).update(data as TablesUpdate<keyof RawTablesType>)
+
+			let query = client
+				.from(this.tableName as keyof RawTablesType)
+				.update(data as TablesUpdate<keyof RawTablesType>)
 
 			for (const filter of filters) {
 				query = query.filter(
@@ -412,7 +460,9 @@ export abstract class BaseSupabaseRepository<T = Record<string, unknown>> {
 					`Error updating multiple records in ${this.tableName}:`,
 					error
 				)
-				throw this.errorHandler.handleError(error, { operation: 'updateMany' })
+				throw this.errorHandler.handleError(error, {
+					operation: 'updateMany'
+				})
 			}
 
 			return (updated || []) as T[]
@@ -436,7 +486,9 @@ export abstract class BaseSupabaseRepository<T = Record<string, unknown>> {
 		try {
 			const client = await this.getClient(userId, userToken)
 
-			let query = client.from(this.tableName as keyof RawTablesType).delete()
+			let query = client
+				.from(this.tableName as keyof RawTablesType)
+				.delete()
 
 			for (const filter of filters) {
 				query = query.filter(
@@ -453,7 +505,9 @@ export abstract class BaseSupabaseRepository<T = Record<string, unknown>> {
 					`Error deleting multiple records in ${this.tableName}:`,
 					error
 				)
-				throw this.errorHandler.handleError(error, { operation: 'find' })
+				throw this.errorHandler.handleError(error, {
+					operation: 'find'
+				})
 			}
 		} catch (error) {
 			this.logger.error(

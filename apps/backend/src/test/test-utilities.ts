@@ -100,7 +100,10 @@ export class MockConfigService extends ConfigService {
 }
 
 // Mock Bull Job Factory
-export function createMockJob<T = unknown>(data: T, options: { id?: string } = {}): Job<T> {
+export function createMockJob<T = unknown>(
+	data: T,
+	options: { id?: string } = {}
+): Job<T> {
 	return {
 		id: options.id || Math.random().toString(36).substr(2, 9),
 		data,
@@ -352,7 +355,6 @@ export const CorsFixtures = {
 // Module builder for consistent test modules
 type Provider = object | { provide: unknown; useValue: unknown }
 type Module = object
-
 
 export class TestModuleBuilder {
 	private providers: Provider[] = []

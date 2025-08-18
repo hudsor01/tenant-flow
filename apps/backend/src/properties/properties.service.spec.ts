@@ -378,11 +378,9 @@ describe('PropertiesService', () => {
 
 		it('should throw NotFoundException when property does not exist', async () => {
 			repository.findByIdAndOwner.mockResolvedValue(null)
-			errorHandler.handleError.mockImplementation(
-				(error: any) => {
-					throw error
-				}
-			)
+			errorHandler.handleError.mockImplementation((error: any) => {
+				throw error
+			})
 
 			await expect(
 				service.updateProperty(propertyId, updateData, ownerId)
@@ -444,11 +442,9 @@ describe('PropertiesService', () => {
 			const mockProperty = { id: propertyId, ownerId }
 			repository.findByIdAndOwner.mockResolvedValue(mockProperty)
 			prisma.lease.count.mockResolvedValue(3)
-			errorHandler.handleError.mockImplementation(
-				(error: any) => {
-					throw error
-				}
-			)
+			errorHandler.handleError.mockImplementation((error: any) => {
+				throw error
+			})
 
 			await expect(
 				service.deleteProperty(propertyId, ownerId)
@@ -461,11 +457,9 @@ describe('PropertiesService', () => {
 
 		it('should throw NotFoundException when property does not exist', async () => {
 			repository.findByIdAndOwner.mockResolvedValue(null)
-			errorHandler.handleError.mockImplementation(
-				(error: any) => {
-					throw error
-				}
-			)
+			errorHandler.handleError.mockImplementation((error: any) => {
+				throw error
+			})
 
 			await expect(
 				service.deleteProperty(propertyId, ownerId)

@@ -7,10 +7,7 @@
 
 import { apiClient } from '@/lib/api-client'
 import { logger } from '@/lib/logger'
-import type {
-	Lease,
-	LeaseQuery
-} from '@repo/shared'
+import type { Lease, LeaseQuery } from '@repo/shared'
 import type { LeaseRepository } from '../interfaces'
 import { DomainError } from '@repo/shared'
 
@@ -29,7 +26,8 @@ export class ApiLeaseRepository implements LeaseRepository {
 				'Failed to find lease by ID:',
 				error instanceof Error ? error : new Error(String(error)),
 				{
-					component: 'repositories_implementations_lease.repository.ts'
+					component:
+						'repositories_implementations_lease.repository.ts'
 				}
 			)
 			return null
@@ -103,7 +101,8 @@ export class ApiLeaseRepository implements LeaseRepository {
 				'Failed to fetch leases:',
 				error instanceof Error ? error : new Error(String(error)),
 				{
-					component: 'repositories_implementations_lease.repository.ts'
+					component:
+						'repositories_implementations_lease.repository.ts'
 				}
 			)
 			return []
@@ -131,7 +130,8 @@ export class ApiLeaseRepository implements LeaseRepository {
 				'Failed to count leases:',
 				error instanceof Error ? error : new Error(String(error)),
 				{
-					component: 'repositories_implementations_lease.repository.ts'
+					component:
+						'repositories_implementations_lease.repository.ts'
 				}
 			)
 			return 0
@@ -162,7 +162,8 @@ export class ApiLeaseRepository implements LeaseRepository {
 				'Failed to find expiring leases:',
 				error instanceof Error ? error : new Error(String(error)),
 				{
-					component: 'repositories_implementations_lease.repository.ts'
+					component:
+						'repositories_implementations_lease.repository.ts'
 				}
 			)
 			return []
@@ -183,7 +184,8 @@ export class ApiLeaseRepository implements LeaseRepository {
 				'Failed to find active leases:',
 				error instanceof Error ? error : new Error(String(error)),
 				{
-					component: 'repositories_implementations_lease.repository.ts'
+					component:
+						'repositories_implementations_lease.repository.ts'
 				}
 			)
 			return []
@@ -210,7 +212,8 @@ export class ApiLeaseRepository implements LeaseRepository {
 				'Failed to find leases by date range:',
 				error instanceof Error ? error : new Error(String(error)),
 				{
-					component: 'repositories_implementations_lease.repository.ts'
+					component:
+						'repositories_implementations_lease.repository.ts'
 				}
 			)
 			return []
