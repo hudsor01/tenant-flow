@@ -9,6 +9,9 @@ type LeaseInsert = Database['public']['Tables']['Lease']['Insert']
 type LeaseUpdate = Database['public']['Tables']['Lease']['Update']
 
 export interface LeaseWithRelations extends LeaseRow {
+	id: string // Explicit id field to ensure it's always available
+	startDate: string // Explicit date fields
+	endDate: string
 	Unit?: {
 		id: string
 		unitNumber: string
