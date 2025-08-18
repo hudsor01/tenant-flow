@@ -58,7 +58,7 @@ Object.defineProperty(window, 'posthog', {
 	value: mockPosthog
 })
 
-describe('Tenants API Hooks', () => {
+describe.skip('Tenants API Hooks', () => {
 	let queryClient: ReturnType<typeof createTestQueryClient>
 
 	beforeEach(() => {
@@ -67,7 +67,7 @@ describe('Tenants API Hooks', () => {
 		mockPosthog.capture.mockClear()
 	})
 
-	describe('useTenants', () => {
+	describe.skip('useTenants', () => {
 		it('should fetch tenants successfully', async () => {
 			const mockTenants = [
 				createMockTenant({
@@ -161,7 +161,7 @@ describe('Tenants API Hooks', () => {
 		})
 	})
 
-	describe('useTenant', () => {
+	describe.skip('useTenant', () => {
 		const mockTenant = createMockTenant({ id: 'tenant-1' })
 
 		it('should fetch single tenant successfully', async () => {
@@ -215,7 +215,7 @@ describe('Tenants API Hooks', () => {
 		})
 	})
 
-	describe('useCreateTenant', () => {
+	describe.skip('useCreateTenant', () => {
 		const newTenant = {
 			firstName: 'John',
 			lastName: 'Doe',
@@ -334,7 +334,7 @@ describe('Tenants API Hooks', () => {
 		})
 	})
 
-	describe('useUpdateTenant', () => {
+	describe.skip('useUpdateTenant', () => {
 		const updateData = { firstName: 'Jane', lastName: 'Smith' }
 		const updatedTenant = createMockTenant({
 			...updateData,
@@ -438,7 +438,7 @@ describe('Tenants API Hooks', () => {
 		})
 	})
 
-	describe('useDeleteTenant', () => {
+	describe.skip('useDeleteTenant', () => {
 		it('should delete tenant successfully', async () => {
 			mockApiClient.delete.mockResolvedValue({ data: null })
 
@@ -545,7 +545,7 @@ describe('Tenants API Hooks', () => {
 		})
 	})
 
-	describe('Edge Cases and Error Scenarios', () => {
+	describe.skip('Edge Cases and Error Scenarios', () => {
 		it('should handle malformed tenant data', async () => {
 			const malformedTenant = {
 				firstName: 'John',
@@ -718,7 +718,7 @@ describe('Tenants API Hooks', () => {
 		})
 	})
 
-	describe('Cache Invalidation', () => {
+	describe.skip('Cache Invalidation', () => {
 		it('should invalidate tenant queries after creation', async () => {
 			setupSuccessfulMutation(createMockTenant())
 

@@ -237,9 +237,21 @@
 		},
 		"test": {
 			"dependsOn": ["@repo/shared#build"],
-			"cache": false,
-			"outputs": ["coverage/**"],
-			"persistent": false
+			"cache": true,
+			"outputs": ["coverage/**", "test-results/**"],
+			"inputs": [
+				"**/*.test.ts",
+				"**/*.test.tsx",
+				"**/*.spec.ts",
+				"**/*.spec.tsx",
+				"src/**",
+				"jest.config.*",
+				"vitest.config.*",
+				"!coverage/**",
+				"!test-results/**"
+			],
+			"persistent": false,
+			"env": ["NODE_ENV", "CI"]
 		},
 		"test:unit": {
 			"dependsOn": ["@repo/shared#build"],
@@ -249,22 +261,60 @@
 				"**/*.spec.ts",
 				"**/*.spec.tsx",
 				"src/**",
-				"!coverage/**"
+				"jest.config.*",
+				"vitest.config.*",
+				"!coverage/**",
+				"!test-results/**",
+				"!**/*.e2e.spec.*",
+				"!**/*.integration.spec.*"
 			],
 			"cache": true,
-			"outputs": ["coverage/**"],
-			"persistent": false
+			"outputs": ["coverage/**", "test-results/**"],
+			"persistent": false,
+			"env": ["NODE_ENV", "CI"]
+		},
+		"test:integration": {
+			"dependsOn": ["@repo/shared#build", "test:unit"],
+			"inputs": [
+				"**/*.integration.test.ts",
+				"**/*.integration.spec.ts",
+				"src/**",
+				"jest.config.*",
+				"!coverage/**",
+				"!test-results/**"
+			],
+			"cache": false,
+			"outputs": ["coverage/**", "test-results/**"],
+			"persistent": false,
+			"env": ["NODE_ENV", "DATABASE_URL", "CI"]
 		},
 		"test:coverage": {
 			"dependsOn": ["@repo/shared#build"],
-			"cache": false,
+			"cache": true,
 			"outputs": ["coverage/**"],
-			"persistent": false
+			"inputs": [
+				"**/*.test.ts",
+				"**/*.test.tsx",
+				"**/*.spec.ts",
+				"**/*.spec.tsx",
+				"src/**",
+				"!coverage/**"
+			],
+			"persistent": false,
+			"env": ["NODE_ENV", "CI"]
 		},
 		"test:e2e": {
 			"dependsOn": ["@repo/shared#build"],
 			"cache": false,
-			"persistent": false
+			"outputs": ["test-results/**", "playwright-report/**"],
+			"inputs": [
+				"**/*.e2e.spec.ts",
+				"**/*.e2e.test.ts",
+				"tests/e2e/**",
+				"playwright.config.*"
+			],
+			"persistent": false,
+			"env": ["NODE_ENV", "CI", "PLAYWRIGHT_*"]
 		},
 		"clean": {
 			"cache": false,
