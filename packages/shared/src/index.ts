@@ -618,9 +618,14 @@ export {
 } from './utils'
 
 // ========================
-// Note: Database Types
+// Database Types (Supabase Generated)
 // ========================
-// Database types are now imported directly from @repo/database
+export type { Database } from './types/supabase-generated'
+
+// ========================
+// Note: Other Database Types
+// ========================
+// Other database types are now imported directly from @repo/database
 // in each package that needs them. This avoids circular dependencies
 // during build and follows proper dependency patterns.
 //

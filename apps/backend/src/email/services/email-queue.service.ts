@@ -18,22 +18,25 @@ export class EmailQueueService implements OnModuleInit {
 	constructor(@InjectQueue('email') private readonly emailQueue: Queue) {}
 
 	async onModuleInit() {
-		try {
-			// Set up queue event listeners first (these don't require Redis connection)
-			this.setupQueueEventListeners()
+		// Make initialization non-blocking to prevent startup hangs
+		setImmediate(async () => {
+			try {
+				// Set up queue event listeners first (these don't require Redis connection)
+				this.setupQueueEventListeners()
 
-			// Test Redis connection with timeout to prevent hanging
-			await this.testRedisConnection()
+				// Test Redis connection with timeout to prevent hanging
+				await this.testRedisConnection()
 
-			this.logger.log(
-				'Email queue service initialized successfully with Redis connection'
-			)
-		} catch (error) {
-			this.logger.error('Failed to initialize email queue', {
-				error: error instanceof Error ? error.message : String(error)
-			})
-			// Don't throw - let the app run without email queue
-		}
+				this.logger.log(
+					'Email queue service initialized successfully with Redis connection'
+				)
+			} catch (error) {
+				this.logger.error('Failed to initialize email queue', {
+					error: error instanceof Error ? error.message : String(error)
+				})
+				// Don't throw - let the app run without email queue
+			}
+		})
 	}
 
 	/**

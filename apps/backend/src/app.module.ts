@@ -35,6 +35,7 @@ import { SecurityModule } from './common/security/security.module'
 import { RLSModule } from './database/rls/rls.module'
 import { PDFModule } from './common/pdf/pdf.module'
 import { LoggerModule } from './common/modules/logger.module'
+// import { EmailModule } from './email/email.module' // Temporarily disabled - needs Redis configuration fix
 import { VersioningModule } from './common/versioning/versioning.module'
 import { AppInterceptor } from './common/interceptors/interceptor'
 import { ApiVersionInterceptor } from './common/interceptors/api-version.interceptor'
@@ -78,6 +79,7 @@ import { RequestLimitsMiddleware } from './common/middleware/request-limits.midd
 		NotificationsModule,
 		HealthModule,
 		PDFModule
+		// EmailModule // Temporarily disabled - needs Redis configuration fix
 	],
 	controllers: [AppController],
 	providers: [
