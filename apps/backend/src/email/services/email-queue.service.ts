@@ -7,6 +7,7 @@ import {
 	QueueHealth
 } from '../types/email-queue.types'
 import {
+	AnyEmailData,
 	EmailTemplateName,
 	ExtractEmailData
 } from '../types/email-templates.types'
@@ -20,9 +21,10 @@ export class EmailQueueService implements OnModuleInit {
 	async onModuleInit() {
 		// Make initialization non-blocking to prevent startup hangs
 		setImmediate(() => {
-			this.initializeAsync().catch((error) => {
+			this.initializeAsync().catch(error => {
 				this.logger.error('Failed to initialize email queue', {
-					error: error instanceof Error ? error.message : String(error)
+					error:
+						error instanceof Error ? error.message : String(error)
 				})
 				// Don't throw - let the app run without email queue
 			})
@@ -357,11 +359,11 @@ export class EmailQueueService implements OnModuleInit {
 	): Promise<Job<EmailJob>> {
 		// Convert to array if string
 		const recipients = Array.isArray(to) ? to : [to]
-		
+
 		const emailData: EmailJob = {
 			to: recipients,
 			template,
-			data: templateData as any, // Type assertion for flexible template data
+			data: templateData as AnyEmailData, // Type assertion for flexible template data
 			priority: options?.priority || EmailPriority.NORMAL,
 			metadata: {
 				userId: options?.userId,
@@ -395,10 +397,12 @@ export class EmailQueueService implements OnModuleInit {
 		organizationId?: string
 		priority?: EmailPriority
 		trackingId?: string
-	}): Promise<Job<any>> {
+	}): Promise<Job<EmailJob>> {
 		// Convert to array if string
-		const recipients = Array.isArray(emailData.to) ? emailData.to : [emailData.to]
-		
+		const recipients = Array.isArray(emailData.to)
+			? emailData.to
+			: [emailData.to]
+
 		// For direct emails, we use a different job structure that matches the processor expectations
 		const jobData = {
 			to: recipients,

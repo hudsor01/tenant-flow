@@ -40,6 +40,9 @@ export type { User, UserRole, AuthUser } from './types/auth'
 // Export UserRole constants
 export { USER_ROLE } from './constants/auth'
 
+// Export Document constants
+export { DOCUMENT_TYPE, DOCUMENT_TYPE_OPTIONS } from './types/documents'
+
 // Global type declarations (augmentations)
 import './types/global'
 
@@ -68,8 +71,8 @@ export type {
 } from './types/maintenance'
 
 export type {
-	Document,
-	DocumentType,
+	Document as DocumentEntity,
+	DocumentType as DocumentTypeEnum,
 	File,
 	FileUploadProgress,
 	FileUploadOptions,

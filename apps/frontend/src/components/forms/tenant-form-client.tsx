@@ -131,12 +131,13 @@ export function TenantFormClient({
 			(formData as UpdateTenantInput).moveOutDate
 		) {
 			const moveIn = new Date(formData.moveInDate)
-			const moveOutDateString = (formData as UpdateTenantInput).moveOutDate
-			
+			const moveOutDateString = (formData as UpdateTenantInput)
+				.moveOutDate
+
 			// Ensure we have a valid string before creating Date
 			if (moveOutDateString && typeof moveOutDateString === 'string') {
 				const moveOut = new Date(moveOutDateString)
-				
+
 				// Check if the date is valid
 				if (!isNaN(moveOut.getTime()) && !isNaN(moveIn.getTime())) {
 					if (moveOut <= moveIn) {

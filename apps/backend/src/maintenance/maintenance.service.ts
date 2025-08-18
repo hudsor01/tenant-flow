@@ -7,10 +7,7 @@ import {
 } from './maintenance-request-supabase.repository'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { ValidationException } from '../common/exceptions/base.exception'
-import {
-	CreateMaintenanceRequestDto,
-	UpdateMaintenanceRequestDto
-} from './dto'
+import { CreateMaintenanceRequestDto, UpdateMaintenanceRequestDto } from './dto'
 import { SupabaseService } from '../common/supabase/supabase.service'
 
 type MaintenanceRequestInsert =
@@ -64,8 +61,10 @@ export class MaintenanceService {
 				title: data.title,
 				description: data.description,
 				category: data.category || 'GENERAL',
-				priority: (data.priority || 'MEDIUM') as MaintenanceRequestInsert['priority'],
-				status: (data.status || 'OPEN') as MaintenanceRequestInsert['status'],
+				priority: (data.priority ||
+					'MEDIUM') as MaintenanceRequestInsert['priority'],
+				status: (data.status ||
+					'OPEN') as MaintenanceRequestInsert['status'],
 				contactPhone: data.contactPhone,
 				requestedBy: data.requestedBy,
 				allowEntry: data.allowEntry,
@@ -223,17 +222,41 @@ export class MaintenanceService {
 			}
 
 			// Copy over the fields that are defined
-			if (data.title) {updateData.title = data.title}
-			if (data.description) {updateData.description = data.description}
-			if (data.category) {updateData.category = data.category}
-			if (data.priority) {updateData.priority = data.priority as MaintenanceRequestUpdate['priority']}
-			if (data.status) {updateData.status = data.status as MaintenanceRequestUpdate['status']}
-			if (data.allowEntry !== undefined) {updateData.allowEntry = data.allowEntry}
-			if (data.contactPhone) {updateData.contactPhone = data.contactPhone}
-			if (data.actualCost !== undefined) {updateData.actualCost = data.actualCost}
-			if (data.estimatedCost !== undefined) {updateData.estimatedCost = data.estimatedCost}
-			if (data.assignedTo) {updateData.assignedTo = data.assignedTo}
-			if (data.photos) {updateData.photos = data.photos}
+			if (data.title) {
+				updateData.title = data.title
+			}
+			if (data.description) {
+				updateData.description = data.description
+			}
+			if (data.category) {
+				updateData.category = data.category
+			}
+			if (data.priority) {
+				updateData.priority =
+					data.priority as MaintenanceRequestUpdate['priority']
+			}
+			if (data.status) {
+				updateData.status =
+					data.status as MaintenanceRequestUpdate['status']
+			}
+			if (data.allowEntry !== undefined) {
+				updateData.allowEntry = data.allowEntry
+			}
+			if (data.contactPhone) {
+				updateData.contactPhone = data.contactPhone
+			}
+			if (data.actualCost !== undefined) {
+				updateData.actualCost = data.actualCost
+			}
+			if (data.estimatedCost !== undefined) {
+				updateData.estimatedCost = data.estimatedCost
+			}
+			if (data.assignedTo) {
+				updateData.assignedTo = data.assignedTo
+			}
+			if (data.photos) {
+				updateData.photos = data.photos
+			}
 
 			// Convert dates if provided
 			if (data.preferredDate) {

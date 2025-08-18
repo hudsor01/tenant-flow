@@ -56,10 +56,7 @@ export class ErrorHandlerService {
 	 * Handle and transform errors into appropriate HTTP errors
 	 * Uses unified error handler for consistency
 	 */
-	handleError(
-		error: Error | AppError,
-		context?: ErrorContext
-	): never {
+	handleError(error: Error | AppError, context?: ErrorContext): never {
 		this.logError(error, context)
 		throw error
 	}

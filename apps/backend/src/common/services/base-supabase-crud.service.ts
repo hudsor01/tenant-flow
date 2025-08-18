@@ -192,10 +192,9 @@ export abstract class BaseSupabaseCrudService<
 				`Failed to fetch ${this.entityName || 'entities'}:`,
 				error
 			)
-			throw this.errorHandler.handleError(
-				error as Error | AppError,
-				{ operation: 'getByOwner' }
-			)
+			throw this.errorHandler.handleError(error as Error | AppError, {
+				operation: 'getByOwner'
+			})
 		}
 	}
 
@@ -247,10 +246,9 @@ export abstract class BaseSupabaseCrudService<
 				`Failed to fetch ${this.entityName || 'entity'} by ID:`,
 				error
 			)
-			throw this.errorHandler.handleError(
-				error as Error | AppError,
-				{ operation: 'getByIdOrThrow' }
-			)
+			throw this.errorHandler.handleError(error as Error | AppError, {
+				operation: 'getByIdOrThrow'
+			})
 		}
 	}
 
@@ -277,10 +275,9 @@ export abstract class BaseSupabaseCrudService<
 			}
 		} catch (error) {
 			this.logger.error(`Failed to get stats:`, error)
-			throw this.errorHandler.handleError(
-				error as Error | AppError,
-				{ operation: 'getStats' }
-			)
+			throw this.errorHandler.handleError(error as Error | AppError, {
+				operation: 'getStats'
+			})
 		}
 	}
 
@@ -328,10 +325,9 @@ export abstract class BaseSupabaseCrudService<
 				`Failed to create ${this.entityName || 'entity'}:`,
 				error
 			)
-			throw this.errorHandler.handleError(
-				error as Error | AppError,
-				{ operation: 'create' }
-			)
+			throw this.errorHandler.handleError(error as Error | AppError, {
+				operation: 'create'
+			})
 		}
 	}
 
@@ -380,10 +376,9 @@ export abstract class BaseSupabaseCrudService<
 				`Failed to update ${this.entityName || 'entity'}:`,
 				error
 			)
-			throw this.errorHandler.handleError(
-				error as Error | AppError,
-				{ operation: 'update' }
-			)
+			throw this.errorHandler.handleError(error as Error | AppError, {
+				operation: 'update'
+			})
 		}
 	}
 
@@ -422,10 +417,9 @@ export abstract class BaseSupabaseCrudService<
 				`Failed to delete ${this.entityName || 'entity'}:`,
 				error
 			)
-			throw this.errorHandler.handleError(
-				error as Error | AppError,
-				{ operation: 'delete' }
-			)
+			throw this.errorHandler.handleError(error as Error | AppError, {
+				operation: 'delete'
+			})
 		}
 	}
 

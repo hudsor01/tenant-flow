@@ -149,10 +149,14 @@ export const configSchema = z
 		SMTP_USER: z.string().optional(),
 		SMTP_PASS: z.string().optional(),
 		FROM_EMAIL: z.string().email().optional(),
-		
+
 		// Resend Email Service
 		RESEND_API_KEY: z.string().optional(),
-		RESEND_FROM_EMAIL: z.string().email().optional().default('noreply@tenantflow.app'),
+		RESEND_FROM_EMAIL: z
+			.string()
+			.email()
+			.optional()
+			.default('noreply@tenantflow.app'),
 
 		// Security
 		CSRF_SECRET: z.string().optional(),

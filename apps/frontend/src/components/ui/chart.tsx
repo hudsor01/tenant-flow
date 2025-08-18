@@ -155,7 +155,12 @@ function ChartTooltipContent({
 			(typeof value === 'string' || typeof value === 'number')
 		) {
 			return (
-				<div className={cn('font-medium')}>{labelFormatter(value, undefined as any /* eslint-disable-line @typescript-eslint/no-explicit-any */)}</div>
+				<div className={cn('font-medium')}>
+					{labelFormatter(
+						value,
+						undefined as any /* eslint-disable-line @typescript-eslint/no-explicit-any */
+					)}
+				</div>
 			)
 		}
 
@@ -181,100 +186,121 @@ function ChartTooltipContent({
 		>
 			{!nestLabel ? tooltipLabel : null}
 			<div className="grid gap-1.5">
-				{payload.map((item: { name?: string; dataKey?: string; value?: unknown; payload?: unknown; fill?: string; color?: string }, index: number) => {
-					const key = `${nameKey || item.name || item.dataKey || 'value'}`
-					const itemConfig = getPayloadConfigFromPayload(
-						config,
-						item,
-						key
-					)
-					const indicatorColor =
-						color || (item.payload as any /* eslint-disable-line @typescript-eslint/no-explicit-any */)?.fill || item.color
+				{payload.map(
+					(
+						item: {
+							name?: string
+							dataKey?: string
+							value?: unknown
+							payload?: unknown
+							fill?: string
+							color?: string
+						},
+						index: number
+					) => {
+						const key = `${nameKey || item.name || item.dataKey || 'value'}`
+						const itemConfig = getPayloadConfigFromPayload(
+							config,
+							item,
+							key
+						)
+						const indicatorColor =
+							color ||
+							(
+								item.payload as any
+							) /* eslint-disable-line @typescript-eslint/no-explicit-any */
+								?.fill ||
+							item.color
 
-					return (
-						<div
-							key={
-								typeof item.dataKey === 'string' ||
-								typeof item.dataKey === 'number'
-									? item.dataKey
-									: `item-${index}`
-							}
-							className={cn(
-								'[&>svg]:text-muted-foreground flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5',
-								indicator === 'dot' && 'items-center'
-							)}
-						>
-							{formatter &&
-							item?.value !== undefined &&
-							item.name ? (
-								formatter(
-									item.value as number,
-									item.name as string,
-									item as never,
-									index,
-									undefined as any /* eslint-disable-line @typescript-eslint/no-explicit-any */
-								)
-							) : (
-								<>
-									{itemConfig?.icon ? (
-										<itemConfig.icon />
-									) : (
-										!hideIndicator && (
-											<div
-												className={cn(
-													'shrink-0 rounded-[2px] border-(--color-border) bg-(--color-bg)',
-													{
-														'h-2.5 w-2.5':
-															indicator === 'dot',
-														'w-1':
-															indicator ===
-															'line',
-														'w-0 border-[1.5px] border-dashed bg-transparent':
-															indicator ===
-															'dashed',
-														'my-0.5':
-															nestLabel &&
-															indicator ===
-																'dashed'
+						return (
+							<div
+								key={
+									typeof item.dataKey === 'string' ||
+									typeof item.dataKey === 'number'
+										? item.dataKey
+										: `item-${index}`
+								}
+								className={cn(
+									'[&>svg]:text-muted-foreground flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5',
+									indicator === 'dot' && 'items-center'
+								)}
+							>
+								{formatter &&
+								item?.value !== undefined &&
+								item.name ? (
+									formatter(
+										item.value as number,
+										item.name as string,
+										item as never,
+										index,
+										undefined as any /* eslint-disable-line @typescript-eslint/no-explicit-any */
+									)
+								) : (
+									<>
+										{itemConfig?.icon ? (
+											<itemConfig.icon />
+										) : (
+											!hideIndicator && (
+												<div
+													className={cn(
+														'shrink-0 rounded-[2px] border-(--color-border) bg-(--color-bg)',
+														{
+															'h-2.5 w-2.5':
+																indicator ===
+																'dot',
+															'w-1':
+																indicator ===
+																'line',
+															'w-0 border-[1.5px] border-dashed bg-transparent':
+																indicator ===
+																'dashed',
+															'my-0.5':
+																nestLabel &&
+																indicator ===
+																	'dashed'
+														}
+													)}
+													style={
+														{
+															'--color-bg':
+																indicatorColor,
+															'--color-border':
+																indicatorColor
+														} as React.CSSProperties
 													}
-												)}
-												style={
-													{
-														'--color-bg':
-															indicatorColor,
-														'--color-border':
-															indicatorColor
-													} as React.CSSProperties
-												}
-											/>
-										)
-									)}
-									<div
-										className={cn(
-											'flex flex-1 justify-between leading-none',
-											nestLabel
-												? 'items-end'
-												: 'items-center'
+												/>
+											)
 										)}
-									>
-										<div className="grid gap-1.5">
-											{nestLabel ? tooltipLabel : null}
-											<span className="text-muted-foreground">
-												{itemConfig?.label || item.name}
-											</span>
-										</div>
-										{item.value !== undefined &&
-											item.value !== null && (
-												<span className="text-foreground font-mono font-medium tabular-nums">
-													{String(item.value)}
-												</span>
+										<div
+											className={cn(
+												'flex flex-1 justify-between leading-none',
+												nestLabel
+													? 'items-end'
+													: 'items-center'
 											)}
-									</div>
-								</>
-							)}
-						</div>
-					)
-				})}
+										>
+											<div className="grid gap-1.5">
+												{nestLabel
+													? tooltipLabel
+													: null}
+												<span className="text-muted-foreground">
+													{itemConfig?.label ||
+														item.name}
+												</span>
+											</div>
+											{item.value !== undefined &&
+												item.value !== null && (
+													<span className="text-foreground font-mono font-medium tabular-nums">
+														{String(item.value)}
+													</span>
+												)}
+										</div>
+									</>
+								)}
+							</div>
+						)
+					}
+				)}
 			</div>
 		</div>
 	)

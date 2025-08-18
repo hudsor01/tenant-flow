@@ -166,9 +166,7 @@ export function createBaseCrudServiceTestSuite<
 					).rejects.toThrow()
 
 					// Note: Error handler operation name may vary by service implementation
-					expect(
-						mockErrorHandler.handleError
-					).toHaveBeenCalled()
+					expect(mockErrorHandler.handleError).toHaveBeenCalled()
 				})
 			})
 

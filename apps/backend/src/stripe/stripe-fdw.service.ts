@@ -81,15 +81,22 @@ export class StripeFdwService {
 	 */
 	async getCustomers(limit = 50): Promise<StripeCustomerFDW[]> {
 		try {
-			const { data, error } = await this.supabase.getAdminClient()
-				.rpc('get_stripe_customers' as never, {
+			const { data, error } = await this.supabase.getAdminClient().rpc(
+				'get_stripe_customers' as never,
+				{
 					limit_count: limit
-				} as never)
+				} as never
+			)
 
-			if (error) {throw error}
+			if (error) {
+				throw error
+			}
 			return (data as StripeCustomerFDW[]) || []
 		} catch (error) {
-			this.logger.error('Failed to fetch Stripe customers via FDW:', error)
+			this.logger.error(
+				'Failed to fetch Stripe customers via FDW:',
+				error
+			)
 			throw error
 		}
 	}
@@ -97,17 +104,26 @@ export class StripeFdwService {
 	/**
 	 * Get customer by ID from Stripe via Foreign Data Wrapper
 	 */
-	async getCustomerById(customerId: string): Promise<StripeCustomerFDW | null> {
+	async getCustomerById(
+		customerId: string
+	): Promise<StripeCustomerFDW | null> {
 		try {
-			const { data, error } = await this.supabase.getAdminClient()
-				.rpc('get_stripe_customer_by_id' as never, {
+			const { data, error } = await this.supabase.getAdminClient().rpc(
+				'get_stripe_customer_by_id' as never,
+				{
 					customer_id: customerId
-				} as never)
+				} as never
+			)
 
-			if (error) {throw error}
+			if (error) {
+				throw error
+			}
 			return data || null
 		} catch (error) {
-			this.logger.error(`Failed to fetch Stripe customer ${customerId} via FDW:`, error)
+			this.logger.error(
+				`Failed to fetch Stripe customer ${customerId} via FDW:`,
+				error
+			)
 			throw error
 		}
 	}
@@ -115,18 +131,28 @@ export class StripeFdwService {
 	/**
 	 * Get subscriptions from Stripe via Foreign Data Wrapper
 	 */
-	async getSubscriptions(customerId?: string, limit = 50): Promise<StripeSubscriptionFDW[]> {
+	async getSubscriptions(
+		customerId?: string,
+		limit = 50
+	): Promise<StripeSubscriptionFDW[]> {
 		try {
-			const { data, error } = await this.supabase.getAdminClient()
-				.rpc('get_stripe_subscriptions' as never, {
+			const { data, error } = await this.supabase.getAdminClient().rpc(
+				'get_stripe_subscriptions' as never,
+				{
 					customer_id: customerId || null,
 					limit_count: limit
-				} as never)
+				} as never
+			)
 
-			if (error) {throw error}
+			if (error) {
+				throw error
+			}
 			return (data as StripeSubscriptionFDW[]) || []
 		} catch (error) {
-			this.logger.error('Failed to fetch Stripe subscriptions via FDW:', error)
+			this.logger.error(
+				'Failed to fetch Stripe subscriptions via FDW:',
+				error
+			)
 			throw error
 		}
 	}
@@ -134,18 +160,28 @@ export class StripeFdwService {
 	/**
 	 * Get payment intents from Stripe via Foreign Data Wrapper
 	 */
-	async getPaymentIntents(customerId?: string, limit = 50): Promise<StripePaymentIntentFDW[]> {
+	async getPaymentIntents(
+		customerId?: string,
+		limit = 50
+	): Promise<StripePaymentIntentFDW[]> {
 		try {
-			const { data, error } = await this.supabase.getAdminClient()
-				.rpc('get_stripe_payment_intents' as never, {
+			const { data, error } = await this.supabase.getAdminClient().rpc(
+				'get_stripe_payment_intents' as never,
+				{
 					customer_id: customerId || null,
 					limit_count: limit
-				} as never)
+				} as never
+			)
 
-			if (error) {throw error}
+			if (error) {
+				throw error
+			}
 			return (data as StripePaymentIntentFDW[]) || []
 		} catch (error) {
-			this.logger.error('Failed to fetch Stripe payment intents via FDW:', error)
+			this.logger.error(
+				'Failed to fetch Stripe payment intents via FDW:',
+				error
+			)
 			throw error
 		}
 	}
@@ -153,15 +189,22 @@ export class StripeFdwService {
 	/**
 	 * Get products from Stripe via Foreign Data Wrapper
 	 */
-	async getProducts(activeOnly = true, limit = 50): Promise<StripeProductFDW[]> {
+	async getProducts(
+		activeOnly = true,
+		limit = 50
+	): Promise<StripeProductFDW[]> {
 		try {
-			const { data, error } = await this.supabase.getAdminClient()
-				.rpc('get_stripe_products' as never, {
+			const { data, error } = await this.supabase.getAdminClient().rpc(
+				'get_stripe_products' as never,
+				{
 					active_only: activeOnly,
 					limit_count: limit
-				} as never)
+				} as never
+			)
 
-			if (error) {throw error}
+			if (error) {
+				throw error
+			}
 			return (data as StripeProductFDW[]) || []
 		} catch (error) {
 			this.logger.error('Failed to fetch Stripe products via FDW:', error)
@@ -172,16 +215,24 @@ export class StripeFdwService {
 	/**
 	 * Get prices from Stripe via Foreign Data Wrapper
 	 */
-	async getPrices(productId?: string, activeOnly = true, limit = 50): Promise<StripePriceFDW[]> {
+	async getPrices(
+		productId?: string,
+		activeOnly = true,
+		limit = 50
+	): Promise<StripePriceFDW[]> {
 		try {
-			const { data, error } = await this.supabase.getAdminClient()
-				.rpc('get_stripe_prices' as never, {
+			const { data, error } = await this.supabase.getAdminClient().rpc(
+				'get_stripe_prices' as never,
+				{
 					product_id: productId || null,
 					active_only: activeOnly,
 					limit_count: limit
-				} as never)
+				} as never
+			)
 
-			if (error) {throw error}
+			if (error) {
+				throw error
+			}
 			return (data as StripePriceFDW[]) || []
 		} catch (error) {
 			this.logger.error('Failed to fetch Stripe prices via FDW:', error)
@@ -198,11 +249,13 @@ export class StripeFdwService {
 		paymentIntents: StripePaymentIntentFDW[]
 	}> {
 		try {
-			const [customer, subscriptions, paymentIntents] = await Promise.all([
-				this.getCustomerById(customerId),
-				this.getSubscriptions(customerId),
-				this.getPaymentIntents(customerId)
-			])
+			const [customer, subscriptions, paymentIntents] = await Promise.all(
+				[
+					this.getCustomerById(customerId),
+					this.getSubscriptions(customerId),
+					this.getPaymentIntents(customerId)
+				]
+			)
 
 			return {
 				customer,
@@ -210,7 +263,10 @@ export class StripeFdwService {
 				paymentIntents
 			}
 		} catch (error) {
-			this.logger.error(`Failed to fetch payment history for customer ${customerId}:`, error)
+			this.logger.error(
+				`Failed to fetch payment history for customer ${customerId}:`,
+				error
+			)
 			throw error
 		}
 	}
@@ -221,14 +277,22 @@ export class StripeFdwService {
 	 */
 	async executeCustomQuery(query: string): Promise<unknown[]> {
 		try {
-			const { data, error } = await this.supabase.getAdminClient().rpc('execute_stripe_fdw_query' as never, { 
-				sql_query: query 
-			} as never)
+			const { data, error } = await this.supabase.getAdminClient().rpc(
+				'execute_stripe_fdw_query' as never,
+				{
+					sql_query: query
+				} as never
+			)
 
-			if (error) {throw error}
+			if (error) {
+				throw error
+			}
 			return data || []
 		} catch (error) {
-			this.logger.error('Failed to execute custom Stripe FDW query:', error)
+			this.logger.error(
+				'Failed to execute custom Stripe FDW query:',
+				error
+			)
 			throw error
 		}
 	}
@@ -244,19 +308,27 @@ export class StripeFdwService {
 		monthlyRevenue: number
 	}> {
 		try {
-			const { data, error } = await this.supabase.getAdminClient()
+			const { data, error } = await this.supabase
+				.getAdminClient()
 				.rpc('get_stripe_subscription_analytics' as never)
 
-			if (error) {throw error}
-			return data || {
-				totalSubscriptions: 0,
-				activeSubscriptions: 0,
-				canceledSubscriptions: 0,
-				trialSubscriptions: 0,
-				monthlyRevenue: 0
+			if (error) {
+				throw error
 			}
+			return (
+				data || {
+					totalSubscriptions: 0,
+					activeSubscriptions: 0,
+					canceledSubscriptions: 0,
+					trialSubscriptions: 0,
+					monthlyRevenue: 0
+				}
+			)
 		} catch (error) {
-			this.logger.error('Failed to calculate subscription analytics:', error)
+			this.logger.error(
+				'Failed to calculate subscription analytics:',
+				error
+			)
 			throw error
 		}
 	}

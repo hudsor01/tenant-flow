@@ -6,11 +6,7 @@ import { SubscriptionSupabaseRepository } from '../subscriptions/subscription-su
 import type Stripe from 'stripe'
 
 import { getPlanById } from '../shared/constants/billing-plans'
-import {
-	getProductTier,
-	getStripePriceId,
-	type PlanType
-} from '@repo/shared'
+import { getProductTier, getStripePriceId, type PlanType } from '@repo/shared'
 import type {
 	StripeCheckoutSessionCreateParams,
 	StripeInvoice,
@@ -99,16 +95,21 @@ export class StripeBillingService {
 	/**
 	 * Map Stripe subscription status to Supabase SubStatus enum
 	 */
-	private mapStripeStatusToSubStatus(stripeStatus: string): 'ACTIVE' | 'TRIALING' | 'PAST_DUE' | 'CANCELED' | 'UNPAID' {
-		const statusMap: Record<string, 'ACTIVE' | 'TRIALING' | 'PAST_DUE' | 'CANCELED' | 'UNPAID'> = {
-			'trialing': 'TRIALING',
-			'active': 'ACTIVE',
-			'past_due': 'PAST_DUE',
-			'canceled': 'CANCELED',
-			'unpaid': 'UNPAID',
-			'incomplete': 'UNPAID',
-			'incomplete_expired': 'CANCELED',
-			'paused': 'CANCELED'
+	private mapStripeStatusToSubStatus(
+		stripeStatus: string
+	): 'ACTIVE' | 'TRIALING' | 'PAST_DUE' | 'CANCELED' | 'UNPAID' {
+		const statusMap: Record<
+			string,
+			'ACTIVE' | 'TRIALING' | 'PAST_DUE' | 'CANCELED' | 'UNPAID'
+		> = {
+			trialing: 'TRIALING',
+			active: 'ACTIVE',
+			past_due: 'PAST_DUE',
+			canceled: 'CANCELED',
+			unpaid: 'UNPAID',
+			incomplete: 'UNPAID',
+			incomplete_expired: 'CANCELED',
+			paused: 'CANCELED'
 		}
 		return statusMap[stripeStatus] || 'CANCELED'
 	}
@@ -481,7 +482,9 @@ export class StripeBillingService {
 				!params.immediately, // cancelAtPeriodEnd = !immediately
 				params.userId
 			)
-			this.logger.log('Subscription canceled in Stripe', { subscriptionId: params.subscriptionId })
+			this.logger.log('Subscription canceled in Stripe', {
+				subscriptionId: params.subscriptionId
+			})
 
 			return {
 				status: subscription.status,
@@ -528,7 +531,10 @@ export class StripeBillingService {
 			customerId = customer.id
 
 			// Store the Stripe customer ID back to the User table for future reference
-			await this.userRepository.updateStripeCustomerId(user.id, customerId)
+			await this.userRepository.updateStripeCustomerId(
+				user.id,
+				customerId
+			)
 
 			this.logger.debug('Created and linked Stripe customer', {
 				userId: user.id,
@@ -689,7 +695,9 @@ export class StripeBillingService {
 			userId: params.userId,
 			stripeSubscriptionId: params.subscriptionData.id,
 			stripeCustomerId: customerId,
-			status: this.mapStripeStatusToSubStatus(params.subscriptionData.status),
+			status: this.mapStripeStatusToSubStatus(
+				params.subscriptionData.status
+			),
 			planType: params.planType || 'STARTER',
 			stripePriceId: params.priceId,
 			currentPeriodStart: (() => {
@@ -698,7 +706,9 @@ export class StripeBillingService {
 						current_period_start?: number
 					}
 				).current_period_start
-				return startTime ? new Date(startTime * 1000).toISOString() : null
+				return startTime
+					? new Date(startTime * 1000).toISOString()
+					: null
 			})(),
 			currentPeriodEnd: (() => {
 				const endTime = (
@@ -709,16 +719,23 @@ export class StripeBillingService {
 				return endTime ? new Date(endTime * 1000).toISOString() : null
 			})(),
 			trialStart: params.subscriptionData.trial_start
-				? new Date(params.subscriptionData.trial_start * 1000).toISOString()
+				? new Date(
+						params.subscriptionData.trial_start * 1000
+					).toISOString()
 				: null,
 			trialEnd: params.subscriptionData.trial_end
-				? new Date(params.subscriptionData.trial_end * 1000).toISOString()
+				? new Date(
+						params.subscriptionData.trial_end * 1000
+					).toISOString()
 				: null,
 			createdAt: new Date().toISOString(),
 			updatedAt: new Date().toISOString()
 		}
 
-		await this.subscriptionRepository.upsert(subscriptionData, params.userId)
+		await this.subscriptionRepository.upsert(
+			subscriptionData,
+			params.userId
+		)
 	}
 
 	private async updateSubscriptionInDatabase(params: {
@@ -728,7 +745,9 @@ export class StripeBillingService {
 		priceId: string
 	}) {
 		const updateData = {
-			status: this.mapStripeStatusToSubStatus(params.subscriptionData.status),
+			status: this.mapStripeStatusToSubStatus(
+				params.subscriptionData.status
+			),
 			planType: params.planType,
 			stripePriceId: params.priceId,
 			currentPeriodStart: (() => {
@@ -737,7 +756,9 @@ export class StripeBillingService {
 						current_period_start?: number
 					}
 				).current_period_start
-				return startTime ? new Date(startTime * 1000).toISOString() : null
+				return startTime
+					? new Date(startTime * 1000).toISOString()
+					: null
 			})(),
 			currentPeriodEnd: (() => {
 				const endTime = (
@@ -751,12 +772,15 @@ export class StripeBillingService {
 		}
 
 		// Use upsert to handle both create and update cases
-		await this.subscriptionRepository.upsert({
-			userId: params.userId,
-			stripeSubscriptionId: params.subscriptionData.id,
-			...updateData,
-			createdAt: new Date().toISOString()
-		}, params.userId)
+		await this.subscriptionRepository.upsert(
+			{
+				userId: params.userId,
+				stripeSubscriptionId: params.subscriptionData.id,
+				...updateData,
+				createdAt: new Date().toISOString()
+			},
+			params.userId
+		)
 	}
 
 	/**
@@ -771,12 +795,11 @@ export class StripeBillingService {
 				? stripeSubscription.customer
 				: (stripeSubscription.customer as { id: string }).id
 
-		const subscription = await this.subscriptionRepository.findByStripeCustomerId(customerId)
+		const subscription =
+			await this.subscriptionRepository.findByStripeCustomerId(customerId)
 
 		if (!subscription) {
-			this.logger.warn(
-				`No subscription found for customer ${customerId}`
-			)
+			this.logger.warn(`No subscription found for customer ${customerId}`)
 			return
 		}
 
@@ -796,7 +819,9 @@ export class StripeBillingService {
 				const startTime = (
 					stripeSubscription as { current_period_start?: number }
 				).current_period_start
-				return startTime ? new Date(startTime * 1000).toISOString() : null
+				return startTime
+					? new Date(startTime * 1000).toISOString()
+					: null
 			})(),
 			currentPeriodEnd: (() => {
 				const endTime = (
@@ -818,7 +843,10 @@ export class StripeBillingService {
 			updatedAt: new Date().toISOString()
 		}
 
-		await this.subscriptionRepository.upsert(subscriptionData, subscription.userId)
+		await this.subscriptionRepository.upsert(
+			subscriptionData,
+			subscription.userId
+		)
 	}
 
 	/**
@@ -832,8 +860,4 @@ export class StripeBillingService {
 			false // cancelAtPeriodEnd = false for immediate cancellation
 		)
 	}
-
-
-
-
 }

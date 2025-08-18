@@ -204,11 +204,21 @@ describe('PropertyFormDialog', () => {
 			)
 
 			// Test that form inputs work properly
-			await user.type(screen.getByLabelText('Property Name'), 'Test Property')
-			expect(screen.getByLabelText('Property Name')).toHaveValue('Test Property')
+			await user.type(
+				screen.getByLabelText('Property Name'),
+				'Test Property'
+			)
+			expect(screen.getByLabelText('Property Name')).toHaveValue(
+				'Test Property'
+			)
 
-			await user.type(screen.getByLabelText('Street Address'), '123 Main St')
-			expect(screen.getByLabelText('Street Address')).toHaveValue('123 Main St')
+			await user.type(
+				screen.getByLabelText('Street Address'),
+				'123 Main St'
+			)
+			expect(screen.getByLabelText('Street Address')).toHaveValue(
+				'123 Main St'
+			)
 		})
 	})
 

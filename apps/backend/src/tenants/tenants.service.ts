@@ -89,11 +89,9 @@ export class TenantsService {
 	 */
 	private validateCreateData(data: TenantCreateDto): void {
 		if (!data.name?.trim()) {
-			throw new ValidationException(
-				'Tenant name is required',
-				'name',
-				['Name is required']
-			)
+			throw new ValidationException('Tenant name is required', 'name', [
+				'Name is required'
+			])
 		}
 		if (!data.email?.trim()) {
 			throw new ValidationException('Tenant email is required', 'email')

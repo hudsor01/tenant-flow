@@ -416,7 +416,11 @@ export class WebhookHealthService {
 
 		try {
 			// Test basic database connectivity with a simple query
-			await this.supabaseService.getAdminClient().from('User').select('id').limit(1)
+			await this.supabaseService
+				.getAdminClient()
+				.from('User')
+				.select('id')
+				.limit(1)
 
 			const responseTime = Date.now() - startTime
 

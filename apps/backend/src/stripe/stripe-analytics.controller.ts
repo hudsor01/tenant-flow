@@ -49,7 +49,10 @@ export class StripeAnalyticsController {
 		@Query('limit') limit?: string
 	) {
 		const subscriptionLimit = limit ? parseInt(limit, 10) : 50
-		return this.stripeFdwService.getSubscriptions(customerId, subscriptionLimit)
+		return this.stripeFdwService.getSubscriptions(
+			customerId,
+			subscriptionLimit
+		)
 	}
 
 	/**
@@ -100,7 +103,11 @@ export class StripeAnalyticsController {
 	) {
 		const isActiveOnly = activeOnly !== 'false'
 		const priceLimit = limit ? parseInt(limit, 10) : 50
-		return this.stripeFdwService.getPrices(productId, isActiveOnly, priceLimit)
+		return this.stripeFdwService.getPrices(
+			productId,
+			isActiveOnly,
+			priceLimit
+		)
 	}
 
 	/**
@@ -115,6 +122,10 @@ export class StripeAnalyticsController {
 	) {
 		const isActiveOnly = activeOnly !== 'false'
 		const priceLimit = limit ? parseInt(limit, 10) : 50
-		return this.stripeFdwService.getPrices(productId, isActiveOnly, priceLimit)
+		return this.stripeFdwService.getPrices(
+			productId,
+			isActiveOnly,
+			priceLimit
+		)
 	}
 }

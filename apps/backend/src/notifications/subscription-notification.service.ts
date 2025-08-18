@@ -5,9 +5,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter'
 export class SubscriptionNotificationService {
 	private readonly logger = new Logger(SubscriptionNotificationService.name)
 
-	constructor(
-		private readonly eventEmitter: EventEmitter2
-	) {}
+	constructor(private readonly eventEmitter: EventEmitter2) {}
 
 	async notifySubscriptionChange(
 		userId: string,
@@ -30,7 +28,9 @@ export class SubscriptionNotificationService {
 	}
 
 	async notifyTrialEnding(userId: string, daysRemaining: number) {
-		this.logger.log(`Trial ending for user ${userId} in ${daysRemaining} days`)
+		this.logger.log(
+			`Trial ending for user ${userId} in ${daysRemaining} days`
+		)
 		// Handle trial ending notification
 	}
 }

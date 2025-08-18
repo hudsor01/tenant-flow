@@ -40,7 +40,8 @@ export class EmailService {
 			'noreply@tenantflow.app'
 		this.replyToEmail = 'support@tenantflow.app'
 		this.isDevelopment =
-			this.configService?.get<string>('NODE_ENV') === 'development' || false
+			this.configService?.get<string>('NODE_ENV') === 'development' ||
+			false
 
 		// Template service handles template registration
 

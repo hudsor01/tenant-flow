@@ -64,7 +64,7 @@ export class UnitsService {
 				userId,
 				userToken
 			)
-			
+
 			const unit = units[0]
 			if (!unit) {
 				throw new Error('Failed to create unit')
@@ -299,7 +299,7 @@ export class UnitsService {
 				userId,
 				userToken
 			)
-			
+
 			// Map repository stats to expected format
 			return {
 				total: stats.total,
@@ -465,7 +465,15 @@ export class UnitsService {
 
 			// TODO: Implement bulk update - for now update one by one
 			const results = await Promise.all(
-				unitIds.map(id => this.repository.updateStatus(id, status, ownerId, userId, userToken))
+				unitIds.map(id =>
+					this.repository.updateStatus(
+						id,
+						status,
+						ownerId,
+						userId,
+						userToken
+					)
+				)
 			)
 
 			this.logger.log('Units bulk status update completed', {

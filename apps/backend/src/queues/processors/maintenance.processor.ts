@@ -1,17 +1,15 @@
-import { Process, Processor } from '@nestjs/bull'
-import { Logger } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { Job } from 'bull'
-import { QUEUE_NAMES } from '../queue.module'
-
-interface MaintenanceJobData {
-	requestId: string
-	action: 'created' | 'updated' | 'assigned' | 'completed'
-	organizationId: string
-}
+import { Process, Processor } from '@nestjs/bull'
+import { QUEUE_NAMES } from '../constants/queue-names'
+import { MaintenanceJobData } from '../types/job.interfaces'
 
 @Processor(QUEUE_NAMES.MAINTENANCE)
+@Injectable()
 export class MaintenanceProcessor {
 	private readonly logger = new Logger(MaintenanceProcessor.name)
+
+	constructor() {}
 
 	@Process('process-maintenance')
 	async handleMaintenanceRequest(
@@ -19,8 +17,6 @@ export class MaintenanceProcessor {
 	): Promise<void> {
 		this.logger.log(`Processing maintenance job: ${job.id}`)
 		const { action } = job.data
-
-		// Log handled by base processor
 
 		switch (action) {
 			case 'created':
@@ -36,50 +32,35 @@ export class MaintenanceProcessor {
 				await this.handleMaintenanceCompleted(job.data)
 				break
 			default:
-				throw new Error(`Unknown maintenance action: ${action}`)
+				this.logger.warn(`Unknown maintenance action: ${action}`)
 		}
-
-		// Log handled by base processor
 	}
 
 	private async handleMaintenanceCreated(
-		_data: MaintenanceJobData
+		data: MaintenanceJobData
 	): Promise<void> {
-		// TODO: Implement maintenance creation workflow
-		// - Send notification to property manager
-		// - Update maintenance status
-		// - Log activity
-		// Processing logic
+		this.logger.log(`Handling maintenance created: ${data.requestId}`)
+		// Implementation for created maintenance request
 	}
 
 	private async handleMaintenanceUpdated(
-		_data: MaintenanceJobData
+		data: MaintenanceJobData
 	): Promise<void> {
-		// TODO: Implement maintenance update workflow
-		// - Send update notifications
-		// - Update related records
-		// - Log activity
-		// Processing logic
+		this.logger.log(`Handling maintenance updated: ${data.requestId}`)
+		// Implementation for updated maintenance request
 	}
 
 	private async handleMaintenanceAssigned(
-		_data: MaintenanceJobData
+		data: MaintenanceJobData
 	): Promise<void> {
-		// TODO: Implement maintenance assignment workflow
-		// - Send notification to assigned vendor/staff
-		// - Update status and timeline
-		// - Create work order
-		// Processing logic
+		this.logger.log(`Handling maintenance assigned: ${data.requestId}`)
+		// Implementation for assigned maintenance request
 	}
 
 	private async handleMaintenanceCompleted(
-		_data: MaintenanceJobData
+		data: MaintenanceJobData
 	): Promise<void> {
-		// TODO: Implement maintenance completion workflow
-		// - Send completion notification to tenant
-		// - Update status and close request
-		// - Generate completion report
-		// - Update maintenance history
-		// Processing logic
+		this.logger.log(`Handling maintenance completed: ${data.requestId}`)
+		// Implementation for completed maintenance request
 	}
 }

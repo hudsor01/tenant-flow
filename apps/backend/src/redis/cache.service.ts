@@ -339,7 +339,13 @@ export class CacheService {
 			let deletedCount = 0
 
 			do {
-				const result = await client.scan(cursor, 'MATCH', pattern, 'COUNT', 100)
+				const result = await client.scan(
+					cursor,
+					'MATCH',
+					pattern,
+					'COUNT',
+					100
+				)
 				cursor = result[0]
 				const keys = result[1]
 
@@ -349,10 +355,15 @@ export class CacheService {
 				}
 			} while (cursor !== '0')
 
-			this.logger.debug(`Deleted ${deletedCount} keys matching pattern ${pattern}`)
+			this.logger.debug(
+				`Deleted ${deletedCount} keys matching pattern ${pattern}`
+			)
 			return deletedCount
 		} catch (error) {
-			this.logger.error(`Failed to delete keys by pattern ${pattern}:`, error)
+			this.logger.error(
+				`Failed to delete keys by pattern ${pattern}:`,
+				error
+			)
 			return 0
 		}
 	}

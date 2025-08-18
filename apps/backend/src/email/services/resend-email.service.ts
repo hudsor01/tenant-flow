@@ -24,7 +24,7 @@ export interface DirectEmailData {
 
 /**
  * Resend Email Service
- * 
+ *
  * Handles actual email sending via Resend API with comprehensive error handling,
  * retry logic, and PostHog analytics integration.
  */
@@ -40,14 +40,18 @@ export class ResendEmailService {
 		private readonly metricsService: EmailMetricsService
 	) {
 		const apiKey = this.configService.get<string>('RESEND_API_KEY')
-		this.fromEmail = this.configService.get<string>('RESEND_FROM_EMAIL') || 'noreply@tenantflow.app'
-		
+		this.fromEmail =
+			this.configService.get<string>('RESEND_FROM_EMAIL') ||
+			'noreply@tenantflow.app'
+
 		if (apiKey) {
 			this.resend = new Resend(apiKey)
 			this.logger.log('Resend email service initialized')
 		} else {
 			this.resend = null
-			this.logger.warn('Resend API key not configured - email sending disabled')
+			this.logger.warn(
+				'Resend API key not configured - email sending disabled'
+			)
 		}
 	}
 
@@ -72,7 +76,7 @@ export class ResendEmailService {
 			// Track email send attempt with PostHog
 			await this.metricsService.trackEmailEvent('email_send_started', {
 				template: templateName,
-				metadata: { 
+				metadata: {
 					recipientCount: recipients.length,
 					userId: options.userId,
 					organizationId: options.organizationId,
@@ -82,7 +86,10 @@ export class ResendEmailService {
 			})
 
 			// Render template using existing service
-			const rendered = await this.templateService.renderEmail(templateName, data)
+			const rendered = await this.templateService.renderEmail(
+				templateName,
+				data
+			)
 
 			// Send email via Resend
 			const result = await this.sendWithRetry({
@@ -98,7 +105,7 @@ export class ResendEmailService {
 				template: templateName,
 				messageId: result.messageId,
 				processingTime: Date.now() - startTime,
-				metadata: { 
+				metadata: {
 					recipientCount: recipients.length,
 					userId: options.userId,
 					organizationId: options.organizationId,
@@ -106,24 +113,27 @@ export class ResendEmailService {
 				}
 			})
 
-			this.logger.log(`Template email sent successfully: ${templateName}`, {
-				template: templateName,
-				messageId: result.messageId,
-				recipients: recipients.length,
-				processingTime: Date.now() - startTime
-			})
+			this.logger.log(
+				`Template email sent successfully: ${templateName}`,
+				{
+					template: templateName,
+					messageId: result.messageId,
+					recipients: recipients.length,
+					processingTime: Date.now() - startTime
+				}
+			)
 
 			return result
-
 		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-			
+			const errorMessage =
+				error instanceof Error ? error.message : 'Unknown error'
+
 			// Track email failure with PostHog
 			await this.metricsService.trackEmailEvent('email_send_failed', {
 				template: templateName,
 				error: errorMessage,
 				processingTime: Date.now() - startTime,
-				metadata: { 
+				metadata: {
 					recipientCount: recipients.length,
 					userId: options.userId,
 					organizationId: options.organizationId,
@@ -131,12 +141,15 @@ export class ResendEmailService {
 				}
 			})
 
-			this.logger.error(`Failed to send template email: ${templateName}`, {
-				template: templateName,
-				error: errorMessage,
-				recipients: recipients.length,
-				processingTime: Date.now() - startTime
-			})
+			this.logger.error(
+				`Failed to send template email: ${templateName}`,
+				{
+					template: templateName,
+					error: errorMessage,
+					recipients: recipients.length,
+					processingTime: Date.now() - startTime
+				}
+			)
 
 			return {
 				success: false,
@@ -158,22 +171,27 @@ export class ResendEmailService {
 		} = {}
 	): Promise<EmailResult> {
 		const startTime = Date.now()
-		const recipients = Array.isArray(emailData.to) ? emailData.to : [emailData.to]
+		const recipients = Array.isArray(emailData.to)
+			? emailData.to
+			: [emailData.to]
 
 		try {
 			// Track direct email send attempt
-			await this.metricsService.trackEmailEvent('direct_email_send_started', {
-				metadata: { 
-					recipientCount: recipients.length,
-					hasHtml: !!emailData.html,
-					hasText: !!emailData.text,
-					hasAttachments: !!(emailData.attachments?.length),
-					userId: options.userId,
-					organizationId: options.organizationId,
-					priority: options.priority || 'normal',
-					trackingId: options.trackingId
+			await this.metricsService.trackEmailEvent(
+				'direct_email_send_started',
+				{
+					metadata: {
+						recipientCount: recipients.length,
+						hasHtml: !!emailData.html,
+						hasText: !!emailData.text,
+						hasAttachments: !!emailData.attachments?.length,
+						userId: options.userId,
+						organizationId: options.organizationId,
+						priority: options.priority || 'normal',
+						trackingId: options.trackingId
+					}
 				}
-			})
+			)
 
 			// Prepare Resend email data
 			const resendData = {
@@ -194,16 +212,19 @@ export class ResendEmailService {
 			const result = await this.sendWithRetry(resendData)
 
 			// Track success
-			await this.metricsService.trackEmailEvent('direct_email_send_success', {
-				messageId: result.messageId,
-				processingTime: Date.now() - startTime,
-				metadata: { 
-					recipientCount: recipients.length,
-					userId: options.userId,
-					organizationId: options.organizationId,
-					trackingId: options.trackingId
+			await this.metricsService.trackEmailEvent(
+				'direct_email_send_success',
+				{
+					messageId: result.messageId,
+					processingTime: Date.now() - startTime,
+					metadata: {
+						recipientCount: recipients.length,
+						userId: options.userId,
+						organizationId: options.organizationId,
+						trackingId: options.trackingId
+					}
 				}
-			})
+			)
 
 			this.logger.log('Direct email sent successfully', {
 				messageId: result.messageId,
@@ -213,21 +234,24 @@ export class ResendEmailService {
 			})
 
 			return result
-
 		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-			
+			const errorMessage =
+				error instanceof Error ? error.message : 'Unknown error'
+
 			// Track failure
-			await this.metricsService.trackEmailEvent('direct_email_send_failed', {
-				error: errorMessage,
-				processingTime: Date.now() - startTime,
-				metadata: { 
-					recipientCount: recipients.length,
-					userId: options.userId,
-					organizationId: options.organizationId,
-					trackingId: options.trackingId
+			await this.metricsService.trackEmailEvent(
+				'direct_email_send_failed',
+				{
+					error: errorMessage,
+					processingTime: Date.now() - startTime,
+					metadata: {
+						recipientCount: recipients.length,
+						userId: options.userId,
+						organizationId: options.organizationId,
+						trackingId: options.trackingId
+					}
 				}
-			})
+			)
 
 			this.logger.error('Failed to send direct email', {
 				error: errorMessage,
@@ -265,19 +289,25 @@ export class ResendEmailService {
 		this.validateEmailData(emailData)
 
 		let lastError: Error = new Error('Unknown error')
-		
+
 		for (let attempt = 1; attempt <= maxRetries; attempt++) {
 			try {
 				// Add delay for retries with exponential backoff
 				if (attempt > 1) {
-					const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000) // Max 5s
+					const delay = Math.min(
+						1000 * Math.pow(2, attempt - 1),
+						5000
+					) // Max 5s
 					await new Promise(resolve => setTimeout(resolve, delay))
-					
-					this.logger.debug(`Retrying email send (attempt ${attempt}/${maxRetries})`, {
-						delay,
-						subject: emailData.subject,
-						recipients: emailData.to.length
-					})
+
+					this.logger.debug(
+						`Retrying email send (attempt ${attempt}/${maxRetries})`,
+						{
+							delay,
+							subject: emailData.subject,
+							recipients: emailData.to.length
+						}
+					)
 				}
 
 				// Send via Resend API
@@ -287,7 +317,9 @@ export class ResendEmailService {
 					subject: emailData.subject,
 					html: emailData.html,
 					text: emailData.text || emailData.subject,
-					...(emailData.attachments && { attachments: emailData.attachments })
+					...(emailData.attachments && {
+						attachments: emailData.attachments
+					})
 				})
 
 				if (result.error) {
@@ -298,10 +330,10 @@ export class ResendEmailService {
 					success: true,
 					messageId: result.data?.id
 				}
-
 			} catch (error) {
-				lastError = error instanceof Error ? error : new Error(String(error))
-				
+				lastError =
+					error instanceof Error ? error : new Error(String(error))
+
 				this.logger.warn(`Email send attempt ${attempt} failed`, {
 					error: lastError.message,
 					attempt,
@@ -311,7 +343,10 @@ export class ResendEmailService {
 				})
 
 				// Don't retry on validation errors or rate limits
-				if (this.isNonRetryableError(lastError) || attempt === maxRetries) {
+				if (
+					this.isNonRetryableError(lastError) ||
+					attempt === maxRetries
+				) {
 					break
 				}
 			}
@@ -335,7 +370,9 @@ export class ResendEmailService {
 		]
 
 		const errorMessage = error.message.toLowerCase()
-		return nonRetryablePatterns.some(pattern => errorMessage.includes(pattern))
+		return nonRetryablePatterns.some(pattern =>
+			errorMessage.includes(pattern)
+		)
 	}
 
 	/**
@@ -404,7 +441,6 @@ export class ResendEmailService {
 				configured: true,
 				canSend: true
 			}
-
 		} catch (error) {
 			return {
 				configured: !!this.resend,
@@ -425,7 +461,7 @@ export class ResendEmailService {
 	}> {
 		const apiKeyConfigured = !!this.configService.get('RESEND_API_KEY')
 		const configured = !!this.resend
-		
+
 		let serviceStatus: 'ready' | 'disabled' | 'error' = 'disabled'
 		if (configured) {
 			serviceStatus = 'ready'
@@ -449,7 +485,7 @@ export class ResendEmailService {
 	}> {
 		try {
 			const stats = await this.getEmailStats()
-			
+
 			if (!stats.configured) {
 				return {
 					status: 'unhealthy',
@@ -463,11 +499,11 @@ export class ResendEmailService {
 				message: 'Email service ready',
 				details: stats
 			}
-
 		} catch (error) {
 			return {
 				status: 'unhealthy',
-				message: error instanceof Error ? error.message : 'Unknown error',
+				message:
+					error instanceof Error ? error.message : 'Unknown error',
 				details: { error: String(error) }
 			}
 		}
