@@ -43,7 +43,7 @@ export interface EmailJobOptions {
 
 /**
  * Email Integration Service
- * 
+ *
  * Unified service that bridges queue operations with email delivery.
  * Leverages existing BaseProcessor patterns and Bull queue infrastructure
  * for reliable, scalable email processing.
@@ -101,7 +101,9 @@ export class EmailIntegrationService {
 
 			// Add job to queue
 			const job = await this.emailQueue.add(
-				options.scheduledFor ? 'send-scheduled-email' : 'send-templated-email',
+				options.scheduledFor
+					? 'send-scheduled-email'
+					: 'send-templated-email',
 				jobData,
 				bullOptions
 			)
@@ -130,16 +132,22 @@ export class EmailIntegrationService {
 			})
 
 			return {
-				jobId: job.id!,
-				estimated: this.calculateEstimatedDelivery(options.delay, options.priority)
+				jobId: job.id ?? 'unknown',
+				estimated: this.calculateEstimatedDelivery(
+					options.delay,
+					options.priority
+				)
 			}
-
 		} catch (error) {
-			this.logger.error(`Failed to queue templated email: ${templateName}`, {
-				error: error instanceof Error ? error.message : String(error),
-				template: templateName,
-				recipients: Array.isArray(to) ? to.length : 1
-			})
+			this.logger.error(
+				`Failed to queue templated email: ${templateName}`,
+				{
+					error:
+						error instanceof Error ? error.message : String(error),
+					template: templateName,
+					recipients: Array.isArray(to) ? to.length : 1
+				}
+			)
 
 			// Track failure
 			await this.metricsService.trackEmailEvent('email_queue_failed', {
@@ -229,16 +237,22 @@ export class EmailIntegrationService {
 			const bullOptions = this.prepareBullJobOptions(options)
 
 			// Add job to queue
-			const job = await this.emailQueue.add('send-direct-email', jobData, bullOptions)
+			const job = await this.emailQueue.add(
+				'send-direct-email',
+				jobData,
+				bullOptions
+			)
 
 			// Track queue addition
 			await this.metricsService.trackEmailEvent('direct_email_queued', {
 				metadata: {
 					jobId: job.id?.toString(),
-					recipientCount: Array.isArray(emailData.to) ? emailData.to.length : 1,
+					recipientCount: Array.isArray(emailData.to)
+						? emailData.to.length
+						: 1,
 					hasHtml: !!emailData.html,
 					hasText: !!emailData.text,
-					hasAttachments: !!(emailData.attachments?.length),
+					hasAttachments: !!emailData.attachments?.length,
 					userId: options.userId,
 					organizationId: options.organizationId,
 					priority: options.priority || 'normal',
@@ -250,31 +264,41 @@ export class EmailIntegrationService {
 			this.logger.log('Direct email queued', {
 				jobId: job.id,
 				subject: emailData.subject,
-				recipients: Array.isArray(emailData.to) ? emailData.to.length : 1,
+				recipients: Array.isArray(emailData.to)
+					? emailData.to.length
+					: 1,
 				priority: options.priority || 'normal'
 			})
 
 			return {
-				jobId: job.id!,
-				estimated: this.calculateEstimatedDelivery(options.delay, options.priority)
+				jobId: job.id ?? 'unknown',
+				estimated: this.calculateEstimatedDelivery(
+					options.delay,
+					options.priority
+				)
 			}
-
 		} catch (error) {
 			this.logger.error('Failed to queue direct email', {
 				error: error instanceof Error ? error.message : String(error),
 				subject: emailData.subject,
-				recipients: Array.isArray(emailData.to) ? emailData.to.length : 1
+				recipients: Array.isArray(emailData.to)
+					? emailData.to.length
+					: 1
 			})
 
 			// Track failure
-			await this.metricsService.trackEmailEvent('direct_email_queue_failed', {
-				error: error instanceof Error ? error.message : String(error),
-				metadata: {
-					userId: options.userId,
-					organizationId: options.organizationId,
-					trackingId: options.trackingId
+			await this.metricsService.trackEmailEvent(
+				'direct_email_queue_failed',
+				{
+					error:
+						error instanceof Error ? error.message : String(error),
+					metadata: {
+						userId: options.userId,
+						organizationId: options.organizationId,
+						trackingId: options.trackingId
+					}
 				}
-			})
+			)
 
 			throw error
 		}
@@ -352,13 +376,16 @@ export class EmailIntegrationService {
 			})
 
 			return result
-
 		} catch (error) {
-			this.logger.error(`Failed to send immediate email: ${templateName}`, {
-				error: error instanceof Error ? error.message : String(error),
-				template: templateName,
-				recipients: Array.isArray(to) ? to.length : 1
-			})
+			this.logger.error(
+				`Failed to send immediate email: ${templateName}`,
+				{
+					error:
+						error instanceof Error ? error.message : String(error),
+					template: templateName,
+					recipients: Array.isArray(to) ? to.length : 1
+				}
+			)
 
 			return {
 				success: false,
@@ -384,7 +411,8 @@ export class EmailIntegrationService {
 			leaseId?: string
 		}
 	) {
-		const sendAt = options?.sendAt || new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours from now
+		const sendAt =
+			options?.sendAt || new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours from now
 
 		return this.queueTemplatedEmail(
 			'payment-reminder',
@@ -485,11 +513,17 @@ export class EmailIntegrationService {
 				)
 				results.push(result)
 			} catch (error) {
-				this.logger.error(`Failed to queue property tips email for ${recipient.email}`, {
-					error: error instanceof Error ? error.message : String(error),
-					campaignId,
-					recipient: recipient.email
-				})
+				this.logger.error(
+					`Failed to queue property tips email for ${recipient.email}`,
+					{
+						error:
+							error instanceof Error
+								? error.message
+								: String(error),
+						campaignId,
+						recipient: recipient.email
+					}
+				)
 				// Continue with other recipients even if one fails
 			}
 		}
@@ -516,7 +550,8 @@ export class EmailIntegrationService {
 			campaignId?: string
 		}
 	): Promise<{ jobIds: (string | number)[]; estimated: string[] }> {
-		const campaignId = options?.campaignId || `feature_announcement_${Date.now()}`
+		const campaignId =
+			options?.campaignId || `feature_announcement_${Date.now()}`
 		const results: { jobId: string | number; estimated: string }[] = []
 
 		// Queue each recipient individually for better error handling and tracking
@@ -539,11 +574,17 @@ export class EmailIntegrationService {
 				)
 				results.push(result)
 			} catch (error) {
-				this.logger.error(`Failed to queue feature announcement email for ${recipient.email}`, {
-					error: error instanceof Error ? error.message : String(error),
-					campaignId,
-					recipient: recipient.email
-				})
+				this.logger.error(
+					`Failed to queue feature announcement email for ${recipient.email}`,
+					{
+						error:
+							error instanceof Error
+								? error.message
+								: String(error),
+						campaignId,
+						recipient: recipient.email
+					}
+				)
 				// Continue with other recipients even if one fails
 			}
 		}
@@ -602,11 +643,17 @@ export class EmailIntegrationService {
 				)
 				results.push(result)
 			} catch (error) {
-				this.logger.error(`Failed to queue re-engagement email for ${recipient.email}`, {
-					error: error instanceof Error ? error.message : String(error),
-					campaignId,
-					recipient: recipient.email
-				})
+				this.logger.error(
+					`Failed to queue re-engagement email for ${recipient.email}`,
+					{
+						error:
+							error instanceof Error
+								? error.message
+								: String(error),
+						campaignId,
+						recipient: recipient.email
+					}
+				)
 				// Continue with other recipients even if one fails
 			}
 		}
@@ -639,14 +686,19 @@ export class EmailIntegrationService {
 	): Promise<{ jobIds: (string | number)[]; estimated: string[] }> {
 		const results: { jobId: string | number; estimated: string }[] = []
 		const startDate = options.startDate || new Date()
-		const endDate = options.endDate || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // 1 year from now
+		const endDate =
+			options.endDate || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // 1 year from now
 
 		// Calculate reminder dates (3 days before due date each month)
 		const reminderDates: Date[] = []
 		const current = new Date(startDate)
-		
+
 		while (current <= endDate) {
-			const reminderDate = new Date(current.getFullYear(), current.getMonth(), options.dueDay - 3)
+			const reminderDate = new Date(
+				current.getFullYear(),
+				current.getMonth(),
+				options.dueDay - 3
+			)
 			if (reminderDate >= startDate && reminderDate <= endDate) {
 				reminderDates.push(new Date(reminderDate))
 			}
@@ -655,8 +707,12 @@ export class EmailIntegrationService {
 
 		// Schedule individual reminders
 		for (const reminderDate of reminderDates) {
-			const dueDate = new Date(reminderDate.getFullYear(), reminderDate.getMonth(), options.dueDay)
-			
+			const dueDate = new Date(
+				reminderDate.getFullYear(),
+				reminderDate.getMonth(),
+				options.dueDay
+			)
+
 			try {
 				const result = await this.queueTemplatedEmail(
 					'payment-reminder',
@@ -678,12 +734,18 @@ export class EmailIntegrationService {
 				)
 				results.push(result)
 			} catch (error) {
-				this.logger.error(`Failed to schedule recurring payment reminder`, {
-					error: error instanceof Error ? error.message : String(error),
-					leaseId: options.leaseId,
-					reminderDate: reminderDate.toISOString(),
-					recipient: email
-				})
+				this.logger.error(
+					`Failed to schedule recurring payment reminder`,
+					{
+						error:
+							error instanceof Error
+								? error.message
+								: String(error),
+						leaseId: options.leaseId,
+						reminderDate: reminderDate.toISOString(),
+						recipient: email
+					}
+				)
 				// Continue with other dates even if one fails
 			}
 		}
@@ -707,19 +769,23 @@ export class EmailIntegrationService {
 		health: 'healthy' | 'degraded' | 'unhealthy'
 	}> {
 		try {
-			const [waiting, active, completed, failed, delayed] = await Promise.all([
-				this.emailQueue.getWaiting(),
-				this.emailQueue.getActive(),
-				this.emailQueue.getCompleted(),
-				this.emailQueue.getFailed(),
-				this.emailQueue.getDelayed()
-			])
+			const [waiting, active, completed, failed, delayed] =
+				await Promise.all([
+					this.emailQueue.getWaiting(),
+					this.emailQueue.getActive(),
+					this.emailQueue.getCompleted(),
+					this.emailQueue.getFailed(),
+					this.emailQueue.getDelayed()
+				])
 
 			const isPaused = await this.emailQueue.isPaused()
 
 			// Calculate health based on queue metrics
 			let health: 'healthy' | 'degraded' | 'unhealthy' = 'healthy'
-			const failureRate = failed.length > 0 ? failed.length / (completed.length + failed.length) : 0
+			const failureRate =
+				failed.length > 0
+					? failed.length / (completed.length + failed.length)
+					: 0
 			const queueBacklog = waiting.length + delayed.length
 
 			if (isPaused || failureRate > 0.1 || queueBacklog > 1000) {
@@ -737,7 +803,6 @@ export class EmailIntegrationService {
 				paused: isPaused,
 				health
 			}
-
 		} catch (error) {
 			this.logger.error('Failed to get queue stats', {
 				error: error instanceof Error ? error.message : String(error)
@@ -760,7 +825,13 @@ export class EmailIntegrationService {
 	 */
 	async getJobStatus(jobId: string | number): Promise<{
 		id: string | number
-		status: 'waiting' | 'active' | 'completed' | 'failed' | 'delayed' | 'unknown'
+		status:
+			| 'waiting'
+			| 'active'
+			| 'completed'
+			| 'failed'
+			| 'delayed'
+			| 'unknown'
 		progress: number
 		result?: unknown
 		error?: string
@@ -782,17 +853,43 @@ export class EmailIntegrationService {
 			const state = await job.getState()
 			const progress = job.progress() || 0
 
+			// Map Bull states to our expected states
+			let mappedStatus:
+				| 'waiting'
+				| 'active'
+				| 'completed'
+				| 'failed'
+				| 'delayed'
+				| 'unknown'
+			switch (state) {
+				case 'completed':
+				case 'waiting':
+				case 'active':
+				case 'failed':
+				case 'delayed':
+					mappedStatus = state
+					break
+				case 'paused':
+				case 'stuck':
+				default:
+					mappedStatus = 'unknown'
+					break
+			}
+
 			return {
-				id: job.id!,
-				status: state as any,
+				id: job.id ?? 'unknown',
+				status: mappedStatus,
 				progress,
 				result: job.returnvalue,
 				error: job.failedReason,
 				createdAt: job.timestamp ? new Date(job.timestamp) : undefined,
-				processedAt: job.processedOn ? new Date(job.processedOn) : undefined,
-				finishedAt: job.finishedOn ? new Date(job.finishedOn) : undefined
+				processedAt: job.processedOn
+					? new Date(job.processedOn)
+					: undefined,
+				finishedAt: job.finishedOn
+					? new Date(job.finishedOn)
+					: undefined
 			}
-
 		} catch (error) {
 			this.logger.error(`Failed to get job status: ${jobId}`, {
 				error: error instanceof Error ? error.message : String(error),
@@ -815,24 +912,24 @@ export class EmailIntegrationService {
 		status: 'healthy' | 'degraded' | 'unhealthy'
 		message: string
 		details: {
-			queue: { status: string; stats?: any }
-			resendService: { status: string; details?: any }
-			metrics: { status: string; details?: any }
+			queue: { status: string; stats?: Record<string, unknown> }
+			resendService: { status: string; details?: Record<string, unknown> }
+			metrics: { status: string; details?: Record<string, unknown> }
 		}
 	}> {
 		try {
 			// Check queue health
 			const queueStats = await this.getQueueStats()
-			
+
 			// Check Resend service health
 			const resendHealth = await this.resendEmailService.healthCheck()
-			
+
 			// Check metrics service
 			const metricsHealth = this.metricsService.getDeliveryHealth()
 
 			// Determine overall health
 			let overallStatus: 'healthy' | 'degraded' | 'unhealthy' = 'healthy'
-			
+
 			if (
 				queueStats.health === 'unhealthy' ||
 				resendHealth.status === 'unhealthy' ||
@@ -851,15 +948,23 @@ export class EmailIntegrationService {
 				message: `Email integration system ${overallStatus}`,
 				details: {
 					queue: { status: queueStats.health, stats: queueStats },
-					resendService: { status: resendHealth.status, details: resendHealth },
-					metrics: { status: metricsHealth.status, details: metricsHealth }
+					resendService: {
+						status: resendHealth.status,
+						details: resendHealth
+					},
+					metrics: {
+						status: metricsHealth.status,
+						details: metricsHealth
+					}
 				}
 			}
-
 		} catch (error) {
 			return {
 				status: 'unhealthy',
-				message: error instanceof Error ? error.message : 'Unknown health check error',
+				message:
+					error instanceof Error
+						? error.message
+						: 'Unknown health check error',
 				details: {
 					queue: { status: 'error' },
 					resendService: { status: 'error' },
@@ -893,7 +998,9 @@ export class EmailIntegrationService {
 		html?: string
 		text?: string
 	}): void {
-		const recipients = Array.isArray(emailData.to) ? emailData.to : [emailData.to]
+		const recipients = Array.isArray(emailData.to)
+			? emailData.to
+			: [emailData.to]
 
 		if (!recipients.length) {
 			throw new Error('Email recipients required')
@@ -929,9 +1036,9 @@ export class EmailIntegrationService {
 		delay?: number
 		priority?: 'low' | 'normal' | 'high'
 		jobOptions?: EmailJobOptions
-	}): any {
+	}): Record<string, unknown> {
 		const priorityValues = { low: 10, normal: 5, high: 1 }
-		
+
 		return {
 			priority: priorityValues[options.priority || 'normal'],
 			delay: options.delay || 0,
@@ -950,11 +1057,14 @@ export class EmailIntegrationService {
 		return `email_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 	}
 
-	private calculateEstimatedDelivery(delay = 0, priority: 'low' | 'normal' | 'high' = 'normal'): string {
+	private calculateEstimatedDelivery(
+		delay = 0,
+		priority: 'low' | 'normal' | 'high' = 'normal'
+	): string {
 		const priorityDelays = { low: 30000, normal: 5000, high: 1000 } // Additional delay by priority
 		const estimatedDelay = delay + priorityDelays[priority]
 		const deliveryTime = new Date(Date.now() + estimatedDelay)
-		
+
 		return deliveryTime.toISOString()
 	}
 

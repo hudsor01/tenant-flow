@@ -37,10 +37,12 @@ export class UserSupabaseRepository extends BaseSupabaseRepository<UserRow> {
 
 			const { data, error } = await client
 				.from(this.tableName)
-				.select(`
+				.select(
+					`
 					*,
 					Subscription(*)
-				`)
+				`
+				)
 				.eq('id', userId)
 				.single()
 
@@ -159,10 +161,7 @@ export class UserSupabaseRepository extends BaseSupabaseRepository<UserRow> {
 
 			return data
 		} catch (error) {
-			this.logger.error(
-				`Failed to find user by email ${email}:`,
-				error
-			)
+			this.logger.error(`Failed to find user by email ${email}:`, error)
 			throw error
 		}
 	}
@@ -179,10 +178,12 @@ export class UserSupabaseRepository extends BaseSupabaseRepository<UserRow> {
 
 			const { data, error } = await client
 				.from(this.tableName)
-				.select(`
+				.select(
+					`
 					*,
 					Subscription!inner(*)
-				`)
+				`
+				)
 				.neq('Subscription.status', 'CANCELED')
 
 			if (error) {
@@ -191,10 +192,7 @@ export class UserSupabaseRepository extends BaseSupabaseRepository<UserRow> {
 
 			return data || []
 		} catch (error) {
-			this.logger.error(
-				'Failed to find users with subscriptions:',
-				error
-			)
+			this.logger.error('Failed to find users with subscriptions:', error)
 			throw error
 		}
 	}

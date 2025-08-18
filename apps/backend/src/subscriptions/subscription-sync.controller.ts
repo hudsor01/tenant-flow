@@ -18,6 +18,8 @@ import { SubscriptionsManagerService } from './subscriptions-manager.service'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { AdminGuard } from '../auth/guards/admin.guard'
 import { StructuredLoggerService } from '../common/logging/structured-logger.service'
+import type { SupabaseService } from '../common/supabase/supabase.service'
+import type { MultiTenantSupabaseService } from '../common/supabase/multi-tenant-supabase.service'
 import type { User } from '@repo/shared'
 
 interface SyncRequest {
@@ -68,9 +70,7 @@ export class SubscriptionSyncController {
 
 		try {
 			const subscription =
-				await this.subscriptionManager.getUserSubscription(
-					userId
-				)
+				await this.subscriptionManager.getUserSubscription(userId)
 
 			return {
 				subscription,
@@ -188,7 +188,8 @@ export class SubscriptionSyncController {
 		try {
 			const subscription =
 				await this.subscriptionManager.getSubscription(userId)
-			const canUpgrade = await this.subscriptionManager.canAddProperty(userId)
+			const canUpgrade =
+				await this.subscriptionManager.canAddProperty(userId)
 
 			const now = new Date()
 			let trialDaysRemaining = 0
@@ -480,13 +481,18 @@ export class SubscriptionSyncController {
 			})
 
 			// Get users with subscriptions using Supabase
-			const userRepository = new (await import('../auth/user-supabase.repository')).UserSupabaseRepository(
-				null as any, // SupabaseService would be injected properly
-				null as any  // MultiTenantSupabaseService would be injected properly
+			const userRepository = new (
+				await import('../auth/user-supabase.repository')
+			).UserSupabaseRepository(
+				null as unknown as SupabaseService, // SupabaseService would be injected properly
+				null as unknown as MultiTenantSupabaseService // MultiTenantSupabaseService would be injected properly
 			)
-			
-			const usersWithSubscriptions = await userRepository.findUsersWithSubscriptions()
-			const userIds = usersWithSubscriptions.map(u => u.id).slice(0, limitNum)
+
+			const usersWithSubscriptions =
+				await userRepository.findUsersWithSubscriptions()
+			const userIds = usersWithSubscriptions
+				.map(u => u.id)
+				.slice(0, limitNum)
 
 			if (userIds.length === 0) {
 				return {

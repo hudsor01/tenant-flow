@@ -122,10 +122,12 @@ export class SubscriptionSupabaseRepository extends BaseSupabaseRepository<Subsc
 			// Join with User table to get user's subscription
 			const { data, error } = await client
 				.from(this.tableName)
-				.select(`
+				.select(
+					`
 					*,
 					User!inner(*)
-				`)
+				`
+				)
 				.eq('User.id', userId)
 				.single()
 
@@ -274,10 +276,12 @@ export class SubscriptionSupabaseRepository extends BaseSupabaseRepository<Subsc
 
 			const { data, error } = await client
 				.from(this.tableName)
-				.select(`
+				.select(
+					`
 					*,
 					User!inner(*)
-				`)
+				`
+				)
 				.in('User.id', userIds)
 
 			if (error) {

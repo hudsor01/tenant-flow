@@ -35,10 +35,11 @@ export interface SubscriptionManagementResult {
 	}
 }
 
-import { CancelRequestDto, DowngradeRequestDto, UpgradeRequestDto } from './dto/subscription-management.dto'
-
-
-
+import {
+	CancelRequestDto,
+	DowngradeRequestDto,
+	UpgradeRequestDto
+} from './dto/subscription-management.dto'
 
 /**
  * Service for managing subscription upgrades, downgrades, and cancellations
@@ -335,11 +336,11 @@ export class SubscriptionManagementService {
 	/**
 	 * Upgrade user's subscription to a higher plan
 	 */
-async upgradeSubscription(
-userId: string,
-request: UpgradeRequestDto
-): Promise<SubscriptionManagementResult> {
-const correlationId = `upgrade-${userId}-${Date.now()}`
+	async upgradeSubscription(
+		userId: string,
+		request: UpgradeRequestDto
+	): Promise<SubscriptionManagementResult> {
+		const correlationId = `upgrade-${userId}-${Date.now()}`
 
 		try {
 			this.logger.info('Starting subscription upgrade', {
@@ -350,25 +351,33 @@ const correlationId = `upgrade-${userId}-${Date.now()}`
 			})
 
 			// Get current subscription
-// Fetch current subscription and ensure startDate is a Date object
-const currentSubscription =
-(await this.subscriptionManager.getSubscription(userId) as unknown) as Partial<Subscription & { startDate?: string | Date | undefined }> | null
-if (currentSubscription && currentSubscription.startDate && typeof currentSubscription.startDate === 'string') {
-  // startDate is already a string, no conversion needed
-}
-if (!currentSubscription) {
-return {
-success: false,
-error: 'No active subscription found',
-changes: [],
-metadata: {
-operation: 'upgrade',
-toPlan: request.targetPlan,
-correlationId,
-timestamp: new Date().toISOString()
-}
-}
-}
+			// Fetch current subscription and ensure startDate is a Date object
+			const currentSubscription =
+				(await this.subscriptionManager.getSubscription(
+					userId
+				)) as unknown as Partial<
+					Subscription & { startDate?: string | Date | undefined }
+				> | null
+			if (
+				currentSubscription &&
+				currentSubscription.startDate &&
+				typeof currentSubscription.startDate === 'string'
+			) {
+				// startDate is already a string, no conversion needed
+			}
+			if (!currentSubscription) {
+				return {
+					success: false,
+					error: 'No active subscription found',
+					changes: [],
+					metadata: {
+						operation: 'upgrade',
+						toPlan: request.targetPlan,
+						correlationId,
+						timestamp: new Date().toISOString()
+					}
+				}
+			}
 
 			// Validate upgrade path
 			const validationResult = await this.validateUpgrade(
@@ -534,11 +543,11 @@ timestamp: new Date().toISOString()
 	/**
 	 * Downgrade user's subscription to a lower plan
 	 */
-async downgradeSubscription(
-userId: string,
-request: DowngradeRequestDto
-): Promise<SubscriptionManagementResult> {
-const correlationId = `downgrade-${userId}-${Date.now()}`
+	async downgradeSubscription(
+		userId: string,
+		request: DowngradeRequestDto
+	): Promise<SubscriptionManagementResult> {
+		const correlationId = `downgrade-${userId}-${Date.now()}`
 
 		try {
 			this.logger.info('Starting subscription downgrade', {
@@ -550,25 +559,33 @@ const correlationId = `downgrade-${userId}-${Date.now()}`
 			})
 
 			// Get current subscription
-// Fetch current subscription and ensure startDate is a Date object
-const currentSubscription =
-(await this.subscriptionManager.getSubscription(userId) as unknown) as Partial<Subscription & { startDate?: string | Date | undefined }>
-if (currentSubscription && currentSubscription.startDate && typeof currentSubscription.startDate === 'string') {
-  // startDate is already a string, no conversion needed
-}
-if (!currentSubscription) {
-return {
-success: false,
-error: 'No active subscription found',
-changes: [],
-metadata: {
-operation: 'downgrade',
-toPlan: request.targetPlan,
-correlationId,
-timestamp: new Date().toISOString()
-}
-}
-}
+			// Fetch current subscription and ensure startDate is a Date object
+			const currentSubscription =
+				(await this.subscriptionManager.getSubscription(
+					userId
+				)) as unknown as Partial<
+					Subscription & { startDate?: string | Date | undefined }
+				>
+			if (
+				currentSubscription &&
+				currentSubscription.startDate &&
+				typeof currentSubscription.startDate === 'string'
+			) {
+				// startDate is already a string, no conversion needed
+			}
+			if (!currentSubscription) {
+				return {
+					success: false,
+					error: 'No active subscription found',
+					changes: [],
+					metadata: {
+						operation: 'downgrade',
+						toPlan: request.targetPlan,
+						correlationId,
+						timestamp: new Date().toISOString()
+					}
+				}
+			}
 
 			// Validate downgrade path
 			const validationResult = await this.validateDowngrade(
@@ -757,11 +774,11 @@ timestamp: new Date().toISOString()
 	/**
 	 * Cancel user's subscription
 	 */
-async cancelSubscription(
-userId: string,
-request: CancelRequestDto
-): Promise<SubscriptionManagementResult> {
-const correlationId = `cancel-${userId}-${Date.now()}`
+	async cancelSubscription(
+		userId: string,
+		request: CancelRequestDto
+	): Promise<SubscriptionManagementResult> {
+		const correlationId = `cancel-${userId}-${Date.now()}`
 
 		try {
 			this.logger.info('Starting subscription cancellation', {
@@ -772,24 +789,28 @@ const correlationId = `cancel-${userId}-${Date.now()}`
 			})
 
 			// Get current subscription
-// Fetch current subscription and ensure startDate is a Date object
-const currentSubscription =
-await this.subscriptionManager.getSubscription(userId)
-if (currentSubscription && currentSubscription.startDate && typeof currentSubscription.startDate === 'string') {
-  // startDate is already a string, no conversion needed
-}
-if (!currentSubscription) {
-return {
-success: false,
-error: 'No active subscription found',
-changes: [],
-metadata: {
-operation: 'cancel',
-correlationId,
-timestamp: new Date().toISOString()
-}
-}
-}
+			// Fetch current subscription and ensure startDate is a Date object
+			const currentSubscription =
+				await this.subscriptionManager.getSubscription(userId)
+			if (
+				currentSubscription &&
+				currentSubscription.startDate &&
+				typeof currentSubscription.startDate === 'string'
+			) {
+				// startDate is already a string, no conversion needed
+			}
+			if (!currentSubscription) {
+				return {
+					success: false,
+					error: 'No active subscription found',
+					changes: [],
+					metadata: {
+						operation: 'cancel',
+						correlationId,
+						timestamp: new Date().toISOString()
+					}
+				}
+			}
 
 			// Validate Stripe subscription ID
 			if (!currentSubscription.stripeSubscriptionId) {
@@ -1051,7 +1072,9 @@ timestamp: new Date().toISOString()
 	 * Validate upgrade path
 	 */
 	private async validateUpgrade(
-		currentSubscription: Partial<Subscription & { startDate?: string | Date }>,
+		currentSubscription: Partial<
+			Subscription & { startDate?: string | Date }
+		>,
 		targetPlan: PlanType
 	): Promise<{ valid: boolean; reason?: string }> {
 		// Check if it's actually an upgrade
@@ -1062,7 +1085,7 @@ timestamp: new Date().toISOString()
 			'TENANTFLOW_MAX'
 		]
 		const currentIndex = planHierarchy.indexOf(
-			(currentSubscription.planType as PlanType)
+			currentSubscription.planType as PlanType
 		)
 		const targetIndex = planHierarchy.indexOf(targetPlan)
 
@@ -1071,7 +1094,9 @@ timestamp: new Date().toISOString()
 		}
 
 		// Check subscription status
-		if (!['ACTIVE', 'TRIALING'].includes(currentSubscription.status ?? '')) {
+		if (
+			!['ACTIVE', 'TRIALING'].includes(currentSubscription.status ?? '')
+		) {
 			return {
 				valid: false,
 				reason: 'Current subscription is not active'
@@ -1085,7 +1110,9 @@ timestamp: new Date().toISOString()
 	 * Validate downgrade path
 	 */
 	private async validateDowngrade(
-		currentSubscription: Partial<Subscription & { startDate?: string | Date }>,
+		currentSubscription: Partial<
+			Subscription & { startDate?: string | Date }
+		>,
 		targetPlan: PlanType,
 		userId: string
 	): Promise<{ valid: boolean; reason?: string }> {
@@ -1097,7 +1124,7 @@ timestamp: new Date().toISOString()
 			'TENANTFLOW_MAX'
 		]
 		const currentIndex = planHierarchy.indexOf(
-			(currentSubscription.planType as PlanType)
+			currentSubscription.planType as PlanType
 		)
 		const targetIndex = planHierarchy.indexOf(targetPlan)
 
@@ -1106,7 +1133,9 @@ timestamp: new Date().toISOString()
 		}
 
 		// Check subscription status
-		if (!['ACTIVE', 'TRIALING'].includes(currentSubscription.status ?? '')) {
+		if (
+			!['ACTIVE', 'TRIALING'].includes(currentSubscription.status ?? '')
+		) {
 			return {
 				valid: false,
 				reason: 'Current subscription is not active'
@@ -1321,8 +1350,11 @@ timestamp: new Date().toISOString()
 @Injectable()
 export class SubscriptionsManagerStub {
 	// Returns usage metrics for a user. Provide a default implementation so callers can safely access usage.properties.
-	async calculateUsageMetrics(_userId: string): Promise<{ properties: number }> {
-		// TODO: replace with real calculation from DB or usage store
+	async calculateUsageMetrics(
+		_userId: string
+	): Promise<{ properties: number }> {
+		// Implementation stub - returns zero usage for compatibility
+		// Real implementation would query properties repository
 		return { properties: 0 }
 	}
 
@@ -1330,13 +1362,14 @@ export class SubscriptionsManagerStub {
 	async getUsageLimits(
 		_userId: string
 	): Promise<{ properties: number | { limit: number } }> {
-		// TODO: replace with real lookup from plan definitions / DB
+		// Implementation stub - returns zero limit for compatibility
+		// Real implementation would query plan definitions
 		return { properties: { limit: 0 } }
 	}
-getPlanById(_planType: PlanType): Promise<Plan | null> {
-  return Promise.resolve(null)
-}
-getSubscription(_userId: string): Promise<Subscription | null> {
-  return Promise.resolve(null)
-}
+	getPlanById(_planType: PlanType): Promise<Plan | null> {
+		return Promise.resolve(null)
+	}
+	getSubscription(_userId: string): Promise<Subscription | null> {
+		return Promise.resolve(null)
+	}
 }

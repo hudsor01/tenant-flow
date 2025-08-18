@@ -407,7 +407,8 @@ class AuthProductionDiagnostic {
 
 		// Test database connection
 		try {
-			const { data, error } = await this.supabase.getAdminClient()
+			const { data, error } = await this.supabase
+				.getAdminClient()
 				.from('User')
 				.select('count', { count: 'exact' })
 				.limit(1)
@@ -432,7 +433,8 @@ class AuthProductionDiagnostic {
 
 		// Test user table structure
 		try {
-			const { count: userCount, error } = await this.supabase.getAdminClient()
+			const { count: userCount, error } = await this.supabase
+				.getAdminClient()
 				.from('User')
 				.select('*', { count: 'exact', head: true })
 			if (error) throw error
@@ -456,7 +458,8 @@ class AuthProductionDiagnostic {
 		// Test RLS policies (basic check)
 		try {
 			// This is a basic test - in production you'd want more comprehensive RLS testing
-			const { data: testQuery, error } = await this.supabase.getAdminClient()
+			const { data: testQuery, error } = await this.supabase
+				.getAdminClient()
 				.rpc('get_current_setting', { setting_name: 'row_security' })
 			if (error) throw error
 			this.addResult(
@@ -478,7 +481,8 @@ class AuthProductionDiagnostic {
 
 		// Test subscription table integration
 		try {
-			const { count, error } = await this.supabase.getAdminClient()
+			const { count, error } = await this.supabase
+				.getAdminClient()
 				.from('Subscription')
 				.select('*', { count: 'exact', head: true })
 			if (error) throw error
