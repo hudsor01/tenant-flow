@@ -235,7 +235,6 @@ describe('PricingClient', () => {
 			isLoading: true,
 			error: null
 		})
-
 		;(useAuth as jest.Mock).mockReturnValue({
 			user: null,
 			isLoading: false,
@@ -256,7 +255,6 @@ describe('PricingClient', () => {
 			isLoading: false,
 			error: new Error('Failed to load pricing data')
 		})
-
 		;(useAuth as jest.Mock).mockReturnValue({
 			user: null,
 			isLoading: false,
@@ -300,7 +298,6 @@ describe('PricingClient', () => {
 			isLoading: false,
 			error: null
 		})
-
 		;(useAuth as jest.Mock).mockReturnValue({
 			user: {
 				id: '123',
@@ -410,7 +407,6 @@ describe('PricingClient', () => {
 			isLoading: false,
 			error: null
 		})
-
 		;(useAuth as jest.Mock).mockReturnValue({
 			user: { id: '123', email: 'test@example.com' },
 			isLoading: false,

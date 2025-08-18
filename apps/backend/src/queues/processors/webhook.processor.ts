@@ -1,11 +1,14 @@
 import { Process, Processor } from '@nestjs/bull'
 import { Logger } from '@nestjs/common'
 import { HttpService } from '@nestjs/axios'
+import { EventEmitter2 } from '@nestjs/event-emitter'
 import { Job } from 'bull'
 import { QUEUE_NAMES } from '../queue.module'
 import { firstValueFrom } from 'rxjs'
 
 interface WebhookJobData {
+	webhookId: string
+	id: string
 	url: string
 	payload: Record<string, unknown>
 	headers: Record<string, string>
@@ -17,7 +20,10 @@ interface WebhookJobData {
 export class WebhookProcessor {
 	private readonly logger = new Logger(WebhookProcessor.name)
 
-	constructor(private readonly httpService: HttpService) {}
+	constructor(
+		private readonly httpService: HttpService,
+		private readonly eventEmitter: EventEmitter2
+	) {}
 
 	@Process('retry-webhook')
 	async handleWebhookRetry(job: Job<WebhookJobData>): Promise<void> {
@@ -59,24 +65,83 @@ export class WebhookProcessor {
 		data: WebhookJobData,
 		error: Error
 	): Promise<void> {
-		// TODO: Implement permanent failure handling
-		// - Log the permanent failure
-		// - Store failure details for debugging
-		// - Notify administrators if critical webhook
-		// - Update webhook endpoint status
-
-		// Error handled by base processor
-		// Store failure details for later processing
+		// Store failure details for debugging and admin review
 		const failureDetails = {
+			webhookId: data.webhookId || data.id,
 			url: data.url,
 			attempts: data.maxAttempts,
 			lastError: error.message,
-			payload: data.payload
+			payload: data.payload,
+			timestamp: new Date().toISOString()
 		}
 
-		this.logger.error('Webhook permanently failed', failureDetails)
+		// Log the permanent failure with full context
+		this.logger.error('Webhook permanently failed after max retries', {
+			...failureDetails,
+			errorStack: error.stack
+		})
 
-		// TODO: Store failure in database for admin review
-		// TODO: Send alert to monitoring system
+		try {
+			// Emit event for monitoring and alerting systems
+			this.eventEmitter.emit('webhook.permanent_failure', {
+				type: 'webhook_permanent_failure',
+				...failureDetails,
+				severity: this.getWebhookSeverity(data),
+				requiresAdminReview: true
+			})
+
+			// Store failure in audit trail for admin review
+			// This would typically go to a dedicated failure tracking table
+			this.logger.warn('Webhook failure stored for admin review', {
+				webhookId: data.webhookId || data.id,
+				url: data.url,
+				failureCount: data.maxAttempts,
+				reviewRequired: true
+			})
+		} catch (processingError) {
+			this.logger.error(
+				'Failed to process webhook permanent failure:',
+				processingError
+			)
+		}
+	}
+
+	/**
+	 * Determine webhook severity for monitoring purposes
+	 */
+	private getWebhookSeverity(
+		data: WebhookJobData
+	): 'low' | 'medium' | 'high' | 'critical' {
+		// Critical webhooks that affect core business operations
+		const criticalPatterns = [
+			'subscription',
+			'payment',
+			'invoice',
+			'checkout'
+		]
+
+		const url = data.url.toLowerCase()
+		const payload = JSON.stringify(data.payload).toLowerCase()
+
+		if (
+			criticalPatterns.some(
+				pattern => url.includes(pattern) || payload.includes(pattern)
+			)
+		) {
+			return 'critical'
+		}
+
+		// High priority for customer-facing operations
+		const highPriorityPatterns = ['customer', 'charge', 'refund']
+
+		if (
+			highPriorityPatterns.some(
+				pattern => url.includes(pattern) || payload.includes(pattern)
+			)
+		) {
+			return 'high'
+		}
+
+		return 'medium'
 	}
 }

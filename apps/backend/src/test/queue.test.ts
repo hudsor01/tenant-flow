@@ -4,10 +4,7 @@ import { QueueService } from '../queues/queue.service'
 import { EmailProcessor } from '../email/processors/email.processor'
 import { PaymentProcessor } from '../queues/processors/payment.processor'
 import { BaseProcessor, ProcessorResult } from '../queues/base/base.processor'
-import {
-	EmailJobData,
-	PaymentJobData
-} from '../queues/types/job.interfaces'
+import { EmailJobData, PaymentJobData } from '../queues/types/job.interfaces'
 import {
 	MockConfigService,
 	MockQueue,
@@ -272,18 +269,14 @@ describe('Queue System Integration', () => {
 								messageId: 'msg_123'
 							})
 						}),
-					sendTenantInvitation: jest
-						.fn()
-						.mockResolvedValue({
-							success: true,
-							messageId: 'msg_456'
-						}),
-					sendPaymentReminder: jest
-						.fn()
-						.mockResolvedValue({
-							success: true,
-							messageId: 'msg_789'
-						})
+					sendTenantInvitation: jest.fn().mockResolvedValue({
+						success: true,
+						messageId: 'msg_456'
+					}),
+					sendPaymentReminder: jest.fn().mockResolvedValue({
+						success: true,
+						messageId: 'msg_789'
+					})
 				})
 				.addMockProvider(EmailMetricsService, {
 					recordMetric: jest.fn()

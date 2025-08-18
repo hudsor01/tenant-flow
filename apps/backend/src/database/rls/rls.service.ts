@@ -32,45 +32,55 @@ export class RLSService {
 			'Subscription'
 		]
 
-		const results = []
+		// Use the efficient batch RPC function for better performance
+		const { data, error } = await this.getSupabaseClient().rpc(
+			'check_tables_rls',
+			{ table_names: criticalTables }
+		)
 
-		for (const table of criticalTables) {
-			// Query system tables using raw SQL instead of direct table access
-			const query = `
-				SELECT tablename, rowsecurity 
-				FROM pg_tables 
-				WHERE schemaname = 'public' 
-				AND tablename = $1
-			`
-			const result = await this.supabaseService.executeRawQuery<{
+		if (error) {
+			throw new Error(`Failed to audit RLS status: ${error.message}`)
+		}
+
+		const tableResults =
+			(data as {
 				tablename: string
 				rowsecurity: boolean
-			}>(query, [table])
-			const data = result[0]
-			const error = !data ? new Error('Table not found') : null
+				exists: boolean
+			}[]) || []
 
-			if (error) {
-				results.push({
-					table,
-					enabled: false,
-					policyCount: 0,
-					policyNames: [],
-					lastAudit: new Date()
-				})
-			} else {
-				const enabled = Boolean(data?.rowsecurity)
+		// Create a map for quick lookup
+		const tableMap = new Map(tableResults.map(t => [t.tablename, t]))
+
+		// Process each critical table
+		const results = await Promise.all(
+			criticalTables.map(async table => {
+				const tableInfo = tableMap.get(table)
+
+				if (!tableInfo || !tableInfo.exists) {
+					return {
+						table,
+						enabled: false,
+						policyCount: 0,
+						policyNames: [],
+						lastAudit: new Date()
+					}
+				}
+
+				const enabled = Boolean(tableInfo.rowsecurity)
 				const policies = enabled
 					? await this.getTablePolicies(table)
 					: []
-				results.push({
+
+				return {
 					table,
 					enabled,
 					policyCount: policies.length,
 					policyNames: policies.map(p => p.policyname),
 					lastAudit: new Date()
-				})
-			}
-		}
+				}
+			})
+		)
 
 		return results
 	}
@@ -79,8 +89,7 @@ export class RLSService {
 	 * Get all policies for a specific table
 	 */
 	async getTablePolicies(tableName: string): Promise<RLSPolicy[]> {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const { data, error } = await (this.getSupabaseClient().rpc as any)(
+		const { data, error } = await this.getSupabaseClient().rpc(
 			'get_policies_for_table',
 			{ table_name: tableName }
 		)
@@ -91,7 +100,21 @@ export class RLSService {
 			)
 		}
 
-		return (data as RLSPolicy[]) || []
+		// Parse the JSON response properly
+		const policies = Array.isArray(data)
+			? data
+			: typeof data === 'string'
+				? JSON.parse(data)
+				: []
+
+		return policies.map((p: Record<string, unknown>) => ({
+			policyname: p.policyname,
+			permissive: p.permissive,
+			roles: p.roles,
+			cmd: p.cmd,
+			qual: p.qual,
+			with_check: p.with_check
+		})) as RLSPolicy[]
 	}
 
 	/**

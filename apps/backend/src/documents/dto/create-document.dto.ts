@@ -13,7 +13,7 @@ import {
 	MinLength
 } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
-import type { DocumentType } from '@repo/shared'
+import { DOCUMENT_TYPE_OPTIONS, type DocumentType } from '@repo/shared'
 
 export class CreateDocumentDto {
 	@IsString()
@@ -34,7 +34,7 @@ export class CreateDocumentDto {
 	@MaxLength(2048, { message: 'URL cannot exceed 2048 characters' })
 	url!: string
 
-	@IsEnum(DocumentType, {
+	@IsEnum(DOCUMENT_TYPE_OPTIONS, {
 		message:
 			'Document type must be one of: LEASE, INVOICE, RECEIPT, PROPERTY_PHOTO, INSPECTION, MAINTENANCE, OTHER'
 	})

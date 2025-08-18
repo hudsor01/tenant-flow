@@ -51,7 +51,11 @@ import { HealthModule } from '../health/health.module'
 		StripeFdwService,
 		ErrorHandlerService
 	],
-	controllers: [StripeCheckoutController, WebhookController, StripeAnalyticsController],
+	controllers: [
+		StripeCheckoutController,
+		WebhookController,
+		StripeAnalyticsController
+	],
 	exports: [
 		StripeService,
 		WebhookService,

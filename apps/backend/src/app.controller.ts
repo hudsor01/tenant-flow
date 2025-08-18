@@ -50,7 +50,7 @@ http_requests_total 1
 	@Public()
 	getHealth() {
 		const memoryUsage = process.memoryUsage()
-		
+
 		return {
 			status: 'healthy',
 			timestamp: new Date().toISOString(),
@@ -60,7 +60,8 @@ http_requests_total 1
 			pid: process.pid,
 			memory: {
 				heapUsed: Math.round(memoryUsage.heapUsed / 1024 / 1024) + 'MB',
-				heapTotal: Math.round(memoryUsage.heapTotal / 1024 / 1024) + 'MB',
+				heapTotal:
+					Math.round(memoryUsage.heapTotal / 1024 / 1024) + 'MB',
 				rss: Math.round(memoryUsage.rss / 1024 / 1024) + 'MB'
 			},
 			system: {

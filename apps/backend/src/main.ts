@@ -1041,19 +1041,22 @@ async function bootstrap() {
 					// Create AbortController for timeout
 					const controller = new AbortController()
 					const timeoutId = setTimeout(() => controller.abort(), 3000) // 3 second timeout
-					
+
 					const testResponse = await fetch(url, {
 						method: 'GET',
 						headers: { Accept: 'application/json' },
 						signal: controller.signal
-					}).catch((error) => {
+					}).catch(error => {
 						clearTimeout(timeoutId)
 						if (error.name === 'AbortError') {
-							logger.warn('Health check timed out', { url, timeout: '3s' })
+							logger.warn('Health check timed out', {
+								url,
+								timeout: '3s'
+							})
 						}
 						return null
 					})
-					
+
 					clearTimeout(timeoutId)
 
 					if (testResponse) {
@@ -1102,11 +1105,13 @@ async function bootstrap() {
 						listening: fastifyInstance.server?.listening,
 						address: fastifyInstance.server?.address()
 					})
-					
+
 					// If Fastify is listening, consider it a success
 					if (fastifyInstance.server?.listening) {
 						healthCheckPassed = true
-						logger.log('Server is listening - considering health check passed')
+						logger.log(
+							'Server is listening - considering health check passed'
+						)
 					}
 				} catch (error) {
 					logger.warn('Failed to retrieve Fastify diagnostic info', {
@@ -1114,7 +1119,7 @@ async function bootstrap() {
 					})
 				}
 			}
-			
+
 			healthCheckPerfLogger.complete({ healthCheckPassed })
 		} else {
 			logger.log('Skipping health check in production environment')
