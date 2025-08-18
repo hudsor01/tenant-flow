@@ -2,9 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { SubscriptionSupabaseRepository } from '../subscriptions/subscription-supabase.repository'
 import { StripeService } from './stripe.service'
-import type {
-	StripeInvoice
-} from '@repo/shared/types/stripe-core-objects'
+import type { StripeInvoice } from '@repo/shared/types/stripe-core-objects'
 
 export interface PaymentRecoveryOptions {
 	maxRetries?: number
@@ -23,7 +21,7 @@ export interface RecoveryAttempt {
 /**
  * Service for handling payment failures and recovery strategies
  * Implements Stripe's best practices for dunning and payment recovery
- * 
+ *
  * TEMPORARY IMPLEMENTATION: This service has been simplified to resolve compilation errors.
  * The original implementation had corrupted syntax from incomplete Prisma->Supabase migration.
  * This needs to be properly implemented with Supabase operations.
@@ -46,18 +44,24 @@ export class PaymentRecoveryService {
 		_options?: PaymentRecoveryOptions
 	): Promise<void> {
 		try {
-			this.logger.warn(`Processing payment failure for invoice: ${invoice.id}`, {
-				invoiceId: invoice.id,
-				customerId: invoice.customer,
-				amount: invoice.amount_due,
-				currency: invoice.currency,
-				attemptCount: invoice.attempt_count
-			})
-			
+			this.logger.warn(
+				`Processing payment failure for invoice: ${invoice.id}`,
+				{
+					invoiceId: invoice.id,
+					customerId: invoice.customer,
+					amount: invoice.amount_due,
+					currency: invoice.currency,
+					attemptCount: invoice.attempt_count
+				}
+			)
+
 			// Get subscription details from the invoice
-			const subscriptionId = (invoice as { subscription?: string | null }).subscription
+			const subscriptionId = (invoice as { subscription?: string | null })
+				.subscription
 			if (!subscriptionId) {
-				this.logger.warn('No subscription found for failed payment', { invoiceId: invoice.id })
+				this.logger.warn('No subscription found for failed payment', {
+					invoiceId: invoice.id
+				})
 				return
 			}
 
@@ -68,13 +72,19 @@ export class PaymentRecoveryService {
 			)
 
 			// Get subscription details for further processing
-			const subscription = await this.subscriptionRepository.findByStripeSubscriptionId(subscriptionId)
+			const subscription =
+				await this.subscriptionRepository.findByStripeSubscriptionId(
+					subscriptionId
+				)
 			if (subscription) {
-				this.logger.log(`Updated subscription ${subscriptionId} to PAST_DUE status`, {
-					userId: subscription.userId,
-					planType: subscription.planType,
-					attemptCount: invoice.attempt_count
-				})
+				this.logger.log(
+					`Updated subscription ${subscriptionId} to PAST_DUE status`,
+					{
+						userId: subscription.userId,
+						planType: subscription.planType,
+						attemptCount: invoice.attempt_count
+					}
+				)
 			}
 		} catch (error) {
 			this.logger.error('Error handling payment failure:', error)
@@ -94,21 +104,36 @@ export class PaymentRecoveryService {
 		paymentMethodId?: string
 	): Promise<{ success: boolean; error?: string }> {
 		try {
-			this.logger.log(`Attempting to retry failed payment for subscription: ${subscriptionId}`, {
-				subscriptionId,
-				paymentMethodId: paymentMethodId ? '***' : 'none'
-			})
-			
+			this.logger.log(
+				`Attempting to retry failed payment for subscription: ${subscriptionId}`,
+				{
+					subscriptionId,
+					paymentMethodId: paymentMethodId ? '***' : 'none'
+				}
+			)
+
 			// Get subscription details
-			const subscription = await this.subscriptionRepository.findByStripeSubscriptionId(subscriptionId)
+			const subscription =
+				await this.subscriptionRepository.findByStripeSubscriptionId(
+					subscriptionId
+				)
 			if (!subscription) {
-				return { success: false, error: 'Subscription not found in database' }
+				return {
+					success: false,
+					error: 'Subscription not found in database'
+				}
 			}
 
 			// Retry payment using Stripe
-			const stripeSubscription = await this.stripeService.client.subscriptions.retrieve(subscriptionId)
+			const stripeSubscription =
+				await this.stripeService.client.subscriptions.retrieve(
+					subscriptionId
+				)
 			if (!stripeSubscription) {
-				return { success: false, error: 'Subscription not found in Stripe' }
+				return {
+					success: false,
+					error: 'Subscription not found in Stripe'
+				}
 			}
 
 			// If payment method provided, update default payment method
@@ -126,10 +151,15 @@ export class PaymentRecoveryService {
 			// Get latest invoice and retry payment
 			const latestInvoice = stripeSubscription.latest_invoice
 			if (latestInvoice && typeof latestInvoice === 'string') {
-				const invoice = await this.stripeService.client.invoices.retrieve(latestInvoice)
+				const invoice =
+					await this.stripeService.client.invoices.retrieve(
+						latestInvoice
+					)
 				if (invoice.status === 'open' && invoice.id) {
 					await this.stripeService.client.invoices.pay(invoice.id)
-					this.logger.log(`Successfully retried payment for subscription: ${subscriptionId}`)
+					this.logger.log(
+						`Successfully retried payment for subscription: ${subscriptionId}`
+					)
 					return { success: true }
 				}
 			}
@@ -156,10 +186,15 @@ export class PaymentRecoveryService {
 		canRetry: boolean
 	}> {
 		try {
-			this.logger.log(`Getting payment retry status for subscription: ${subscriptionId}`)
-			
+			this.logger.log(
+				`Getting payment retry status for subscription: ${subscriptionId}`
+			)
+
 			// Get subscription details from Supabase
-			const subscription = await this.subscriptionRepository.findByStripeSubscriptionId(subscriptionId)
+			const subscription =
+				await this.subscriptionRepository.findByStripeSubscriptionId(
+					subscriptionId
+				)
 			if (!subscription) {
 				return {
 					hasFailedPayments: false,
@@ -169,30 +204,40 @@ export class PaymentRecoveryService {
 			}
 
 			// Get current subscription from Stripe for latest status
-			const stripeSubscription = await this.stripeService.client.subscriptions.retrieve(subscriptionId)
-			const hasFailedPayments = stripeSubscription.status === 'past_due' || subscription.status === 'PAST_DUE'
-			
+			const stripeSubscription =
+				await this.stripeService.client.subscriptions.retrieve(
+					subscriptionId
+				)
+			const hasFailedPayments =
+				stripeSubscription.status === 'past_due' ||
+				subscription.status === 'PAST_DUE'
+
 			// If there are failed payments, get latest invoice details
 			let attemptCount = 0
 			let lastFailure: Date | undefined
 			let nextRetry: Date | undefined
-			
+
 			if (hasFailedPayments && stripeSubscription.latest_invoice) {
-				const invoice = await this.stripeService.client.invoices.retrieve(
-					stripeSubscription.latest_invoice as string
-				)
-				
+				const invoice =
+					await this.stripeService.client.invoices.retrieve(
+						stripeSubscription.latest_invoice as string
+					)
+
 				attemptCount = invoice.attempt_count || 0
-				
+
 				// Calculate last failure and next retry based on invoice timestamps
 				if (invoice.status_transitions?.finalized_at) {
-					lastFailure = new Date(invoice.status_transitions.finalized_at * 1000)
+					lastFailure = new Date(
+						invoice.status_transitions.finalized_at * 1000
+					)
 				}
-				
+
 				// Next retry calculation would depend on Stripe's retry settings
 				// For now, assume 24 hours between retries
 				if (lastFailure && attemptCount < 4) {
-					nextRetry = new Date(lastFailure.getTime() + (24 * 60 * 60 * 1000))
+					nextRetry = new Date(
+						lastFailure.getTime() + 24 * 60 * 60 * 1000
+					)
 				}
 			}
 
@@ -220,11 +265,14 @@ export class PaymentRecoveryService {
 		paymentMethodId: string
 	): Promise<{ success: boolean; retriedInvoices: number }> {
 		try {
-			this.logger.log(`Updating payment method and retrying failed payments for customer: ${customerId}`, {
-				customerId,
-				paymentMethodId: '***'
-			})
-			
+			this.logger.log(
+				`Updating payment method and retrying failed payments for customer: ${customerId}`,
+				{
+					customerId,
+					paymentMethodId: '***'
+				}
+			)
+
 			// Update customer's default payment method
 			await this.stripeService.client.customers.update(customerId, {
 				invoice_settings: {
@@ -233,10 +281,11 @@ export class PaymentRecoveryService {
 			})
 
 			// Get all subscriptions for this customer
-			const subscriptions = await this.stripeService.client.subscriptions.list({
-				customer: customerId,
-				status: 'past_due'
-			})
+			const subscriptions =
+				await this.stripeService.client.subscriptions.list({
+					customer: customerId,
+					status: 'past_due'
+				})
 
 			let retriedInvoices = 0
 			let allSuccessful = true
@@ -244,20 +293,30 @@ export class PaymentRecoveryService {
 			// Retry payment for each past due subscription
 			for (const subscription of subscriptions.data) {
 				try {
-					const result = await this.retryFailedPayment(subscription.id, paymentMethodId)
+					const result = await this.retryFailedPayment(
+						subscription.id,
+						paymentMethodId
+					)
 					if (result.success) {
 						retriedInvoices++
 					} else {
 						allSuccessful = false
-						this.logger.warn(`Failed to retry payment for subscription ${subscription.id}: ${result.error}`)
+						this.logger.warn(
+							`Failed to retry payment for subscription ${subscription.id}: ${result.error}`
+						)
 					}
 				} catch (error) {
 					allSuccessful = false
-					this.logger.error(`Error retrying payment for subscription ${subscription.id}:`, error)
+					this.logger.error(
+						`Error retrying payment for subscription ${subscription.id}:`,
+						error
+					)
 				}
 			}
 
-			this.logger.log(`Updated payment method and retried ${retriedInvoices} invoices for customer ${customerId}`)
+			this.logger.log(
+				`Updated payment method and retried ${retriedInvoices} invoices for customer ${customerId}`
+			)
 
 			return {
 				success: allSuccessful,

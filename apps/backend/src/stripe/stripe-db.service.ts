@@ -10,15 +10,22 @@ export class StripeDBService {
 	private readonly logger = new Logger(StripeDBService.name)
 
 	constructor() {
-		this.logger.log('StripeDBService initialized (deprecated - use StripeFdwService)')
+		this.logger.log(
+			'StripeDBService initialized (deprecated - use StripeFdwService)'
+		)
 	}
 
 	/**
 	 * Execute raw SQL - placeholder implementation
 	 * @deprecated Use StripeFdwService instead
 	 */
-	private async executeRawSQL(_query: string, _params?: unknown[]): Promise<unknown[]> {
-		this.logger.warn('executeRawSQL called on deprecated service. Use StripeFdwService instead.')
+	private async executeRawSQL(
+		_query: string,
+		_params?: unknown[]
+	): Promise<unknown[]> {
+		this.logger.warn(
+			'executeRawSQL called on deprecated service. Use StripeFdwService instead.'
+		)
 		return []
 	}
 

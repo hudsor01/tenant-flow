@@ -282,9 +282,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 					'Database error'
 				)
 
-				expect(
-					mockErrorHandler.handleError
-				).toHaveBeenCalledWith(
+				expect(mockErrorHandler.handleError).toHaveBeenCalledWith(
 					error,
 					expect.objectContaining({
 						operation: 'getByOwner',
@@ -328,9 +326,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 					service.getByIdOrThrow('lease-123', 'owner-123')
 				).rejects.toThrow()
 
-				expect(
-					mockErrorHandler.handleError
-				).toHaveBeenCalledWith(
+				expect(mockErrorHandler.handleError).toHaveBeenCalledWith(
 					error,
 					expect.objectContaining({
 						operation: 'getByIdOrThrow',
@@ -407,9 +403,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 					service.create(validLeaseData, 'owner-123')
 				).rejects.toThrow()
 
-				expect(
-					mockErrorHandler.handleError
-				).toHaveBeenCalledWith(
+				expect(mockErrorHandler.handleError).toHaveBeenCalledWith(
 					error,
 					expect.objectContaining({
 						operation: 'create',
@@ -633,9 +627,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 
 				await expect(service.getStats('owner-123')).rejects.toThrow()
 
-				expect(
-					mockErrorHandler.handleError
-				).toHaveBeenCalledWith(
+				expect(mockErrorHandler.handleError).toHaveBeenCalledWith(
 					error,
 					expect.objectContaining({
 						operation: 'getStats',
@@ -658,9 +650,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 					'Connection timeout'
 				)
 
-				expect(
-					mockErrorHandler.handleError
-				).toHaveBeenCalledWith(
+				expect(mockErrorHandler.handleError).toHaveBeenCalledWith(
 					timeoutError,
 					expect.objectContaining({
 						operation: 'getByOwner',
@@ -695,9 +685,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 					service.create(leaseData, 'owner-123')
 				).rejects.toThrow()
 
-				expect(
-					mockErrorHandler.handleError
-				).toHaveBeenCalledWith(
+				expect(mockErrorHandler.handleError).toHaveBeenCalledWith(
 					constraintError,
 					expect.objectContaining({
 						operation: 'create',
@@ -756,9 +744,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 					)
 				).rejects.toThrow()
 
-				expect(
-					mockErrorHandler.handleError
-				).toHaveBeenCalledWith(
+				expect(mockErrorHandler.handleError).toHaveBeenCalledWith(
 					optimisticLockError,
 					expect.objectContaining({
 						operation: 'update',

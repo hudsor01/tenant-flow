@@ -189,9 +189,7 @@ export const crudExpectations = {
 	errorHandling: {
 		shouldUseErrorHandler: (
 			mockErrorHandler: {
-				handleError: MockedFunction<
-					(...args: unknown[]) => unknown
-				>
+				handleError: MockedFunction<(...args: unknown[]) => unknown>
 			},
 			operation: string,
 			resource: string

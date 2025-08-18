@@ -3,7 +3,6 @@
  * Validates WCAG 2.1 compliance for all color combinations
  */
 
-
 import { logger } from '@/lib/logger'
 import { primitiveColors, semanticColors, componentColors } from '../colors'
 import { testColorPair, testColorCombinations } from '../utils/contrast'

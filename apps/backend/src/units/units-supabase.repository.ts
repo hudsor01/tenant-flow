@@ -113,7 +113,10 @@ export class UnitsSupabaseRepository extends BaseSupabaseRepository<UnitRow> {
 
 			// Add status filter if provided
 			if (status) {
-				query = query.eq('status', status as 'MAINTENANCE' | 'VACANT' | 'OCCUPIED' | 'RESERVED')
+				query = query.eq(
+					'status',
+					status as 'MAINTENANCE' | 'VACANT' | 'OCCUPIED' | 'RESERVED'
+				)
 			}
 
 			// Add search filter (searches in unit number and property name)
@@ -259,7 +262,10 @@ export class UnitsSupabaseRepository extends BaseSupabaseRepository<UnitRow> {
 			}
 
 			// Validate ownership
-			if ((data as unknown as UnitWithRelations)?.Property?.ownerId !== ownerId) {
+			if (
+				(data as unknown as UnitWithRelations)?.Property?.ownerId !==
+				ownerId
+			) {
 				return null // No ownership
 			}
 

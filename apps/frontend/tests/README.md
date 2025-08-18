@@ -7,37 +7,38 @@ Comprehensive automated testing for all new dashboard features implemented by th
 ### ✅ Features Tested
 
 1. **Theme System**
-   - Dark/Light/System mode switching
-   - Theme persistence across sessions
-   - Theme toggle accessibility
+    - Dark/Light/System mode switching
+    - Theme persistence across sessions
+    - Theme toggle accessibility
 
 2. **Command Palette (⌘K)**
-   - Keyboard shortcut activation
-   - Search across entities (properties, tenants, leases)
-   - Navigation functionality
-   - ESC key dismissal
+    - Keyboard shortcut activation
+    - Search across entities (properties, tenants, leases)
+    - Navigation functionality
+    - ESC key dismissal
 
 3. **Dense Data Tables**
-   - 32px row height (Linear-style)
-   - Sortable columns
-   - Filtering capabilities
-   - Responsive behavior
+    - 32px row height (Linear-style)
+    - Sortable columns
+    - Filtering capabilities
+    - Responsive behavior
 
 4. **Mobile Navigation**
-   - Fixed bottom navigation
-   - FAB-style Add button with animations
-   - Touch gestures and interactions
-   - Responsive breakpoints
+    - Fixed bottom navigation
+    - FAB-style Add button with animations
+    - Touch gestures and interactions
+    - Responsive breakpoints
 
 5. **Sparkline Charts**
-   - Minimalist 40px height charts
-   - Hover tooltips
-   - Responsive scaling
-   - Performance rendering
+    - Minimalist 40px height charts
+    - Hover tooltips
+    - Responsive scaling
+    - Performance rendering
 
 ## 🚀 Running Tests
 
 ### Quick Start
+
 ```bash
 # Run basic dashboard tests
 npm run test:dashboard
@@ -53,6 +54,7 @@ npm run test:dashboard:all
 ```
 
 ### Manual Commands
+
 ```bash
 # Individual test suites
 npx playwright test tests/e2e/dashboard-modernization.spec.ts
@@ -73,6 +75,7 @@ npx playwright test --debug tests/e2e/dashboard-modernization.spec.ts
 ## 📊 Test Reports
 
 ### View Results
+
 ```bash
 # Open HTML report
 npx playwright show-report
@@ -82,6 +85,7 @@ npx playwright test --ui
 ```
 
 ### Visual Regression
+
 ```bash
 # Update baseline screenshots (first run)
 npx playwright test --update-snapshots tests/e2e/dashboard-visual-regression.spec.ts
@@ -111,6 +115,7 @@ tests/
 ## 📱 Device Testing
 
 Tests run across multiple devices:
+
 - Desktop (1920×1080, 1280×800)
 - Tablet (iPad, 1024×768)
 - Mobile (iPhone 12, Pixel 5)
@@ -118,6 +123,7 @@ Tests run across multiple devices:
 ## 🎨 Visual Regression
 
 Screenshots captured for:
+
 - Full dashboard layout
 - Command palette appearance
 - Theme variations (light/dark)
@@ -138,33 +144,37 @@ Screenshots captured for:
 ### Common Issues
 
 1. **Auth Setup Fails**
-   ```bash
-   # Update test credentials in tests/auth.setup.ts
-   # Or set environment variables:
-   export TEST_USER_EMAIL="your-test@email.com"
-   export TEST_USER_PASSWORD="your-password"
-   ```
+
+    ```bash
+    # Update test credentials in tests/auth.setup.ts
+    # Or set environment variables:
+    export TEST_USER_EMAIL="your-test@email.com"
+    export TEST_USER_PASSWORD="your-password"
+    ```
 
 2. **Visual Tests Fail First Time**
-   ```bash
-   # Normal on first run - update baselines:
-   npx playwright test --update-snapshots
-   ```
+
+    ```bash
+    # Normal on first run - update baselines:
+    npx playwright test --update-snapshots
+    ```
 
 3. **Mobile Tests Timeout**
-   ```bash
-   # Increase timeout in playwright.config.ts or run with:
-   npx playwright test --timeout=60000
-   ```
+    ```bash
+    # Increase timeout in playwright.config.ts or run with:
+    npx playwright test --timeout=60000
+    ```
 
 ## 📈 CI/CD Integration
 
 Tests automatically run on:
+
 - Push to `main` or `develop`
 - Pull requests
 - Dashboard component changes
 
 ### GitHub Actions
+
 - ✅ Cross-browser testing
 - ✅ Mobile device testing
 - ✅ Visual regression checks
@@ -173,11 +183,13 @@ Tests automatically run on:
 ## 🔄 Maintenance
 
 ### Adding New Tests
+
 1. Add test cases to `dashboard-modernization.spec.ts`
 2. Update visual baselines if UI changes
 3. Run full test suite to ensure no regressions
 
 ### Updating Baselines
+
 ```bash
 # After intentional UI changes
 npm run test:dashboard:visual
@@ -200,6 +212,7 @@ Before deploying dashboard changes:
 ## 🎉 Success Metrics
 
 The tests ensure:
+
 - ⚡ **Fast**: Dashboard loads < 5s
 - 📱 **Responsive**: Works on all devices
 - 🎨 **Consistent**: Visual regression protected

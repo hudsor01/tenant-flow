@@ -8,7 +8,10 @@ import {
 } from '../base/base.processor'
 import { EmailMetricsService } from '../../email/services/email-metrics.service'
 import { ResendEmailService } from '../../email/services/resend-email.service'
-import { EmailTemplateName } from '../../email/types/email-templates.types'
+import {
+	AnyEmailData,
+	EmailTemplateName
+} from '../../email/types/email-templates.types'
 
 interface EmailJobData extends BaseJobData {
 	to: string | string[]
@@ -42,21 +45,34 @@ export class EmailProcessor extends BaseProcessor<EmailJobData> {
 	}
 
 	@Process('send-templated-email')
-	async handleTemplatedEmailSending(job: Job<EmailJobData>): Promise<ProcessorResult> {
+	async handleTemplatedEmailSending(
+		job: Job<EmailJobData>
+	): Promise<ProcessorResult> {
 		return this.handleJob(job)
 	}
 
 	@Process('send-direct-email')
-	async handleDirectEmailSending(job: Job<EmailJobData>): Promise<ProcessorResult> {
+	async handleDirectEmailSending(
+		job: Job<EmailJobData>
+	): Promise<ProcessorResult> {
 		return this.handleJob(job)
 	}
 
 	@Process('send-scheduled-email')
-	async handleScheduledEmailSending(job: Job<EmailJobData>): Promise<ProcessorResult> {
+	async handleScheduledEmailSending(
+		job: Job<EmailJobData>
+	): Promise<ProcessorResult> {
 		// Check if email should be sent now
-		if (job.data.scheduledFor && new Date() < new Date(job.data.scheduledFor)) {
+		if (
+			job.data.scheduledFor &&
+			new Date() < new Date(job.data.scheduledFor)
+		) {
 			const delay = new Date(job.data.scheduledFor).getTime() - Date.now()
-			this.logger.logJobProgress(job, 0, `Email scheduled for future delivery, delaying ${delay}ms`)
+			this.logger.logJobProgress(
+				job,
+				0,
+				`Email scheduled for future delivery, delaying ${delay}ms`
+			)
 			throw new Error(`Email scheduled for ${job.data.scheduledFor}`)
 		}
 		return this.handleJob(job)
@@ -66,15 +82,15 @@ export class EmailProcessor extends BaseProcessor<EmailJobData> {
 		job: Job<EmailJobData>
 	): Promise<ProcessorResult> {
 		const startTime = Date.now()
-		const { 
-			to, 
-			subject, 
-			template, 
-			html, 
-			text, 
-			userId, 
-			organizationId, 
-			priority, 
+		const {
+			to,
+			subject,
+			template,
+			html,
+			text,
+			userId,
+			organizationId,
+			priority,
 			trackingId,
 			retryCount = 0,
 			maxRetries = 3
@@ -90,7 +106,7 @@ export class EmailProcessor extends BaseProcessor<EmailJobData> {
 
 			// Track job start with comprehensive metadata
 			await this.metricsService.trackEmailEvent('email_job_started', {
-				template: template || 'unknown' as EmailTemplateName,
+				template: template || ('unknown' as EmailTemplateName),
 				metadata: {
 					jobId: job.id?.toString(),
 					recipientCount: recipients.length,
@@ -122,7 +138,7 @@ export class EmailProcessor extends BaseProcessor<EmailJobData> {
 
 			// Track success with enhanced metrics
 			await this.metricsService.trackEmailEvent('email_job_completed', {
-				template: template || 'unknown' as EmailTemplateName,
+				template: template || ('unknown' as EmailTemplateName),
 				messageId: result.messageId,
 				processingTime: Date.now() - startTime,
 				metadata: {
@@ -146,8 +162,8 @@ export class EmailProcessor extends BaseProcessor<EmailJobData> {
 
 			return {
 				success: true,
-				data: { 
-					recipients: recipients.join(', '), 
+				data: {
+					recipients: recipients.join(', '),
 					subject,
 					messageId: result.messageId,
 					processingTime: Date.now() - startTime,
@@ -156,13 +172,13 @@ export class EmailProcessor extends BaseProcessor<EmailJobData> {
 				processingTime: Date.now() - startTime,
 				timestamp: new Date()
 			}
-
 		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-			
+			const errorMessage =
+				error instanceof Error ? error.message : 'Unknown error'
+
 			// Enhanced error tracking
 			await this.metricsService.trackEmailEvent('email_job_failed', {
-				template: template || 'unknown' as EmailTemplateName,
+				template: template || ('unknown' as EmailTemplateName),
 				error: errorMessage,
 				processingTime: Date.now() - startTime,
 				metadata: {
@@ -178,19 +194,37 @@ export class EmailProcessor extends BaseProcessor<EmailJobData> {
 				}
 			})
 
-			this.logger.logJobFailure(job, error instanceof Error ? error : new Error(errorMessage), Date.now() - startTime)
+			this.logger.logJobFailure(
+				job,
+				error instanceof Error ? error : new Error(errorMessage),
+				Date.now() - startTime
+			)
 
 			// Determine if job should be retried
 			if (this.shouldRetryJob(error, retryCount, maxRetries)) {
-				this.logger.logJobRetry(job, error instanceof Error ? error : new Error(errorMessage), retryCount + 1)
+				this.logger.logJobRetry(
+					job,
+					error instanceof Error ? error : new Error(errorMessage),
+					retryCount + 1
+				)
 			}
 
 			throw error
 		}
 	}
 
-	private async sendTemplatedEmail(data: EmailJobData): Promise<{ messageId?: string }> {
-		const { template, templateData, to, userId, organizationId, priority, trackingId } = data
+	private async sendTemplatedEmail(
+		data: EmailJobData
+	): Promise<{ messageId?: string }> {
+		const {
+			template,
+			templateData,
+			to,
+			userId,
+			organizationId,
+			priority,
+			trackingId
+		} = data
 
 		if (!template) {
 			throw new Error('Template name is required for templated email')
@@ -200,7 +234,7 @@ export class EmailProcessor extends BaseProcessor<EmailJobData> {
 			// Use ResendEmailService for templated emails with proper type safety
 			const result = await this.resendEmailService.sendTemplatedEmail(
 				template,
-				templateData as any, // Type assertion for flexible template data
+				templateData as AnyEmailData, // Type assertion for flexible template data
 				to,
 				{
 					userId,
@@ -211,7 +245,9 @@ export class EmailProcessor extends BaseProcessor<EmailJobData> {
 			)
 
 			if (!result.success) {
-				throw new Error(result.error || 'Failed to send templated email')
+				throw new Error(
+					result.error || 'Failed to send templated email'
+				)
 			}
 
 			this.logger.logQueueEvent('templated_email_sent', {
@@ -221,7 +257,6 @@ export class EmailProcessor extends BaseProcessor<EmailJobData> {
 			})
 
 			return { messageId: result.messageId }
-
 		} catch (error) {
 			this.logger.logQueueEvent('templated_email_failed', {
 				template,
@@ -232,8 +267,20 @@ export class EmailProcessor extends BaseProcessor<EmailJobData> {
 		}
 	}
 
-	private async sendDirectEmail(data: EmailJobData): Promise<{ messageId?: string }> {
-		const { to, subject, html, text, attachments, userId, organizationId, priority, trackingId } = data
+	private async sendDirectEmail(
+		data: EmailJobData
+	): Promise<{ messageId?: string }> {
+		const {
+			to,
+			subject,
+			html,
+			text,
+			attachments,
+			userId,
+			organizationId,
+			priority,
+			trackingId
+		} = data
 
 		try {
 			// Use ResendEmailService for direct emails
@@ -263,11 +310,10 @@ export class EmailProcessor extends BaseProcessor<EmailJobData> {
 				recipients: Array.isArray(to) ? to.length : 1,
 				hasHtml: !!html,
 				hasText: !!text,
-				hasAttachments: !!(attachments?.length)
+				hasAttachments: !!attachments?.length
 			})
 
 			return { messageId: result.messageId }
-
 		} catch (error) {
 			this.logger.logQueueEvent('direct_email_failed', {
 				subject,
@@ -331,9 +377,15 @@ export class EmailProcessor extends BaseProcessor<EmailJobData> {
 	 * Determine the type of email job
 	 */
 	private determineJobType(data: EmailJobData): string {
-		if (data.template) {return 'templated'}
-		if (data.html) {return 'html'}
-		if (data.text) {return 'text'}
+		if (data.template) {
+			return 'templated'
+		}
+		if (data.html) {
+			return 'html'
+		}
+		if (data.text) {
+			return 'text'
+		}
 		return 'unknown'
 	}
 
@@ -341,29 +393,51 @@ export class EmailProcessor extends BaseProcessor<EmailJobData> {
 	 * Classify error type for better tracking
 	 */
 	private classifyError(error: unknown): string {
-		if (!(error instanceof Error)) {return 'unknown'}
+		if (!(error instanceof Error)) {
+			return 'unknown'
+		}
 
 		const message = error.message.toLowerCase()
-		if (message.includes('validation')) {return 'validation'}
-		if (message.includes('rate limit')) {return 'rate_limit'}
-		if (message.includes('network') || message.includes('timeout')) {return 'network'}
-		if (message.includes('template')) {return 'template'}
-		if (message.includes('recipient') || message.includes('email')) {return 'recipient'}
-		if (message.includes('auth')) {return 'authentication'}
+		if (message.includes('validation')) {
+			return 'validation'
+		}
+		if (message.includes('rate limit')) {
+			return 'rate_limit'
+		}
+		if (message.includes('network') || message.includes('timeout')) {
+			return 'network'
+		}
+		if (message.includes('template')) {
+			return 'template'
+		}
+		if (message.includes('recipient') || message.includes('email')) {
+			return 'recipient'
+		}
+		if (message.includes('auth')) {
+			return 'authentication'
+		}
 		return 'processing'
 	}
 
 	/**
 	 * Determine if a job should be retried based on error type and retry count
 	 */
-	private shouldRetryJob(error: unknown, retryCount: number, maxRetries: number): boolean {
-		if (retryCount >= maxRetries) {return false}
+	private shouldRetryJob(
+		error: unknown,
+		retryCount: number,
+		maxRetries: number
+	): boolean {
+		if (retryCount >= maxRetries) {
+			return false
+		}
 
 		const errorType = this.classifyError(error)
-		
+
 		// Don't retry validation or authentication errors
 		const nonRetryableErrors = ['validation', 'authentication', 'recipient']
-		if (nonRetryableErrors.includes(errorType)) {return false}
+		if (nonRetryableErrors.includes(errorType)) {
+			return false
+		}
 
 		// Retry network and processing errors
 		const retryableErrors = ['network', 'processing', 'rate_limit']
@@ -382,13 +456,13 @@ export class EmailProcessor extends BaseProcessor<EmailJobData> {
 		// This would typically fetch from metrics service or cache
 		// For now, return placeholder data that could be enhanced with actual metrics
 		const deliveryHealth = this.metricsService.getDeliveryHealth()
-		
+
 		return {
 			totalProcessed: deliveryHealth.metrics.totalSent,
 			successRate: deliveryHealth.metrics.successRate,
 			avgProcessingTime: deliveryHealth.metrics.avgProcessingTime,
 			errorBreakdown: {
-				'recent_failures': deliveryHealth.metrics.recentFailures
+				recent_failures: deliveryHealth.metrics.recentFailures
 			}
 		}
 	}
@@ -403,8 +477,9 @@ export class EmailProcessor extends BaseProcessor<EmailJobData> {
 	}> {
 		try {
 			// Check email service health
-			const emailServiceHealth = await this.resendEmailService.healthCheck()
-			
+			const emailServiceHealth =
+				await this.resendEmailService.healthCheck()
+
 			if (emailServiceHealth.status === 'unhealthy') {
 				return {
 					status: 'unhealthy',
@@ -415,7 +490,7 @@ export class EmailProcessor extends BaseProcessor<EmailJobData> {
 
 			// Check metrics service
 			const deliveryHealth = this.metricsService.getDeliveryHealth()
-			
+
 			return {
 				status: deliveryHealth.status,
 				message: `Email processor ${deliveryHealth.status}`,
@@ -424,11 +499,13 @@ export class EmailProcessor extends BaseProcessor<EmailJobData> {
 					deliveryMetrics: deliveryHealth
 				}
 			}
-
 		} catch (error) {
 			return {
 				status: 'unhealthy',
-				message: error instanceof Error ? error.message : 'Unknown health check error',
+				message:
+					error instanceof Error
+						? error.message
+						: 'Unknown health check error',
 				details: { error: String(error) }
 			}
 		}

@@ -76,14 +76,12 @@ describe('MaintenanceService - Simplified Tests', () => {
 		mockSupabaseService = {
 			getClient: jest.fn(() => ({
 				functions: {
-					invoke: jest
-						.fn()
-						.mockImplementation(() =>
-							Promise.resolve({
-								data: { id: 'email-123' },
-								error: null
-							})
-						)
+					invoke: jest.fn().mockImplementation(() =>
+						Promise.resolve({
+							data: { id: 'email-123' },
+							error: null
+						})
+					)
 				}
 			}))
 		}

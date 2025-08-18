@@ -96,7 +96,10 @@ export class TenantsSupabaseRepository extends BaseSupabaseRepository<TenantRow>
 			// Add status filter if provided
 			if (status) {
 				// Assuming status refers to lease status
-				query = query.eq('Lease.status', status as 'ACTIVE' | 'DRAFT' | 'EXPIRED' | 'TERMINATED')
+				query = query.eq(
+					'Lease.status',
+					status as 'ACTIVE' | 'DRAFT' | 'EXPIRED' | 'TERMINATED'
+				)
 			}
 
 			// Add search filter (searches in name, email, and phone)

@@ -190,6 +190,8 @@ allure-results/
 **/allure-results/
 **/test-screenshots/
 **/test-videos/
+playwright.config.ts
+
 
 # ========================================
 # CACHING

@@ -36,7 +36,8 @@ export class SubscriptionStatusService {
 		userId: string
 	): Promise<UserSubscriptionStatus> {
 		// Get subscription from Supabase using the new repository
-		const subscription = await this.subscriptionRepository.findByUserId(userId)
+		const subscription =
+			await this.subscriptionRepository.findByUserId(userId)
 
 		if (!subscription) {
 			// No subscription found - user is in free tier
@@ -55,17 +56,25 @@ export class SubscriptionStatusService {
 		}
 
 		const isActive = this.isSubscriptionActive(subscription.status)
-		const canAccessPaidFeatures = this.canAccessPaidFeatures(subscription.status)
+		const canAccessPaidFeatures = this.canAccessPaidFeatures(
+			subscription.status
+		)
 
 		return {
 			hasActiveSubscription: isActive,
 			status: subscription.status,
 			planType: subscription.planType,
-			trialEndsAt: subscription.trialEnd ? new Date(subscription.trialEnd) : null,
-			billingPeriodEndsAt: subscription.currentPeriodEnd ? new Date(subscription.currentPeriodEnd) : null,
+			trialEndsAt: subscription.trialEnd
+				? new Date(subscription.trialEnd)
+				: null,
+			billingPeriodEndsAt: subscription.currentPeriodEnd
+				? new Date(subscription.currentPeriodEnd)
+				: null,
 			canExportData: canAccessPaidFeatures,
 			canAccessPremiumFeatures: canAccessPaidFeatures,
-			needsPaymentMethod: subscription.status === 'UNPAID' || subscription.status === 'PAST_DUE',
+			needsPaymentMethod:
+				subscription.status === 'UNPAID' ||
+				subscription.status === 'PAST_DUE',
 			stripeSubscriptionId: subscription.stripeSubscriptionId,
 			subscriptionId: subscription.id
 		}
@@ -232,7 +241,8 @@ export class SubscriptionStatusService {
 	 */
 	async canManageBilling(userId: string): Promise<boolean> {
 		// Get subscription from Supabase
-		const subscription = await this.subscriptionRepository.findByUserId(userId)
+		const subscription =
+			await this.subscriptionRepository.findByUserId(userId)
 
 		// Users can manage billing if they have any subscription record
 		// This includes paused subscriptions (they need to add payment method)

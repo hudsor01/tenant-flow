@@ -163,8 +163,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 		}
 	}
 
-
-
 	/**
 	 * Handles generic JavaScript errors
 	 */
@@ -412,10 +410,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
 		return sanitized
 	}
-
-
-
-
 }
 
 /**

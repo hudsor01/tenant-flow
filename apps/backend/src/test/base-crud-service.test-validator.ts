@@ -353,9 +353,7 @@ export class BaseCrudServiceTestValidator<
 						service.getByOwner('owner-123')
 					).rejects.toThrow('Database connection failed')
 
-					expect(
-						errorHandler.handleError
-					).toHaveBeenCalledWith(
+					expect(errorHandler.handleError).toHaveBeenCalledWith(
 						repositoryError,
 						expect.objectContaining({
 							operation: 'getByOwner',
@@ -373,9 +371,7 @@ export class BaseCrudServiceTestValidator<
 						service.create(createDto, 'owner-123')
 					).rejects.toThrow('Test error')
 
-					expect(
-						errorHandler.handleError
-					).toHaveBeenCalledWith(
+					expect(errorHandler.handleError).toHaveBeenCalledWith(
 						error,
 						expect.objectContaining({
 							operation: 'create',
