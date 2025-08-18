@@ -109,7 +109,7 @@ export class DocumentsService {
 			return document
 		} catch (error) {
 			this.logger.error('Failed to create document:', error)
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'create',
 				resource: 'document',
 				metadata: { name: data.name, type: data.type, ownerId }
@@ -183,7 +183,7 @@ export class DocumentsService {
 
 			return document
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'findById',
 				resource: 'document',
 				metadata: { documentId: id, ownerId }
@@ -216,7 +216,7 @@ export class DocumentsService {
 				userToken
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'findByOwner',
 				resource: 'document',
 				metadata: { ownerId }
@@ -345,7 +345,7 @@ export class DocumentsService {
 
 			return updated
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'update',
 				resource: 'document',
 				metadata: { documentId: id, ownerId }
@@ -395,7 +395,7 @@ export class DocumentsService {
 				ownerId
 			})
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'delete',
 				resource: 'document',
 				metadata: { documentId: id, ownerId }
@@ -425,7 +425,7 @@ export class DocumentsService {
 				userToken
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'getStats',
 				resource: 'document',
 				metadata: { ownerId }
@@ -458,7 +458,7 @@ export class DocumentsService {
 				userToken
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'findByProperty',
 				resource: 'document',
 				metadata: { propertyId, ownerId }
@@ -491,7 +491,7 @@ export class DocumentsService {
 				userToken
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'findByLease',
 				resource: 'document',
 				metadata: { leaseId, ownerId }
@@ -522,7 +522,7 @@ export class DocumentsService {
 				userToken
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'findByType',
 				resource: 'document',
 				metadata: { type, ownerId }
@@ -553,7 +553,7 @@ export class DocumentsService {
 				userToken
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'search',
 				resource: 'document',
 				metadata: { ownerId, searchTerm }
@@ -584,7 +584,7 @@ export class DocumentsService {
 				userToken
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'findByFileSizeRange',
 				resource: 'document',
 				metadata: { ownerId, minSizeBytes, maxSizeBytes }
@@ -613,7 +613,7 @@ export class DocumentsService {
 				userToken
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'findByMimeType',
 				resource: 'document',
 				metadata: { ownerId, mimeType }

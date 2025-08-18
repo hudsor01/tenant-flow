@@ -53,7 +53,7 @@ describe('PropertiesService', () => {
 
 		errorHandler = {
 			handleError: jest.fn(),
-			handleErrorEnhanced: jest.fn(error => {
+			handleError: jest.fn(error => {
 				throw error
 			}),
 			createNotFoundError: jest.fn(
@@ -316,14 +316,14 @@ describe('PropertiesService', () => {
 		it('should handle errors properly', async () => {
 			const error = new Error('Database error')
 			repository.create.mockRejectedValue(error)
-			errorHandler.handleErrorEnhanced.mockImplementation(() => {
+			errorHandler.handleError.mockImplementation(() => {
 				throw error
 			})
 
 			await expect(
 				service.createProperty(propertyData, ownerId)
 			).rejects.toThrow('Database error')
-			expect(errorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
+			expect(errorHandler.handleError).toHaveBeenCalledWith(
 				error,
 				expect.objectContaining({
 					operation: 'create',
@@ -378,7 +378,7 @@ describe('PropertiesService', () => {
 
 		it('should throw NotFoundException when property does not exist', async () => {
 			repository.findByIdAndOwner.mockResolvedValue(null)
-			errorHandler.handleErrorEnhanced.mockImplementation(
+			errorHandler.handleError.mockImplementation(
 				(error: any) => {
 					throw error
 				}
@@ -444,7 +444,7 @@ describe('PropertiesService', () => {
 			const mockProperty = { id: propertyId, ownerId }
 			repository.findByIdAndOwner.mockResolvedValue(mockProperty)
 			prisma.lease.count.mockResolvedValue(3)
-			errorHandler.handleErrorEnhanced.mockImplementation(
+			errorHandler.handleError.mockImplementation(
 				(error: any) => {
 					throw error
 				}
@@ -461,7 +461,7 @@ describe('PropertiesService', () => {
 
 		it('should throw NotFoundException when property does not exist', async () => {
 			repository.findByIdAndOwner.mockResolvedValue(null)
-			errorHandler.handleErrorEnhanced.mockImplementation(
+			errorHandler.handleError.mockImplementation(
 				(error: any) => {
 					throw error
 				}
@@ -558,14 +558,14 @@ describe('PropertiesService', () => {
 		it('should handle errors properly', async () => {
 			const error = new Error('Database error')
 			prisma.property.findMany.mockRejectedValue(error)
-			errorHandler.handleErrorEnhanced.mockImplementation(() => {
+			errorHandler.handleError.mockImplementation(() => {
 				throw error
 			})
 
 			await expect(
 				service.getPropertiesWithStats(ownerId)
 			).rejects.toThrow('Database error')
-			expect(errorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
+			expect(errorHandler.handleError).toHaveBeenCalledWith(
 				error,
 				expect.objectContaining({
 					operation: 'getPropertiesWithStats',

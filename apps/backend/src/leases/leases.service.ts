@@ -85,7 +85,7 @@ export class LeasesService {
 				)
 			}
 
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'create',
 				resource: 'lease',
 				metadata: {
@@ -141,7 +141,7 @@ export class LeasesService {
 
 			return lease
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'findById',
 				resource: 'lease',
 				metadata: { leaseId: id, ownerId }
@@ -174,7 +174,7 @@ export class LeasesService {
 				userToken
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'findByOwner',
 				resource: 'lease',
 				metadata: { ownerId }
@@ -291,7 +291,7 @@ export class LeasesService {
 
 			return updated
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'update',
 				resource: 'lease',
 				metadata: { leaseId: id, ownerId }
@@ -329,7 +329,7 @@ export class LeasesService {
 				ownerId
 			})
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'delete',
 				resource: 'lease',
 				metadata: { leaseId: id, ownerId }
@@ -359,7 +359,7 @@ export class LeasesService {
 				userToken
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'getStats',
 				resource: 'lease',
 				metadata: { ownerId }
@@ -390,7 +390,7 @@ export class LeasesService {
 				userToken
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'findByUnit',
 				resource: 'lease',
 				metadata: { unitId, ownerId }
@@ -421,7 +421,7 @@ export class LeasesService {
 				userToken
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'findByTenant',
 				resource: 'lease',
 				metadata: { tenantId, ownerId }
@@ -446,7 +446,7 @@ export class LeasesService {
 				userToken
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'findExpiringLeases',
 				resource: 'lease',
 				metadata: { ownerId, days }
@@ -477,7 +477,7 @@ export class LeasesService {
 				userToken
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'search',
 				resource: 'lease',
 				metadata: { ownerId, searchTerm }
@@ -505,7 +505,7 @@ export class LeasesService {
 				userToken
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'getActiveLeases',
 				resource: 'lease',
 				metadata: { ownerId }
@@ -569,7 +569,7 @@ export class LeasesService {
 
 			return updated
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'updateStatus',
 				resource: 'lease',
 				metadata: { leaseId: id, status, ownerId }

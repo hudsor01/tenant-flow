@@ -75,7 +75,7 @@ export function HandleServiceErrors(
 					}
 
 					// Use errorHandler to process the error
-					const handledError = errorHandler.handleErrorEnhanced(
+					const handledError = errorHandler.handleError(
 						error as Error,
 						{
 							operation: propertyName,
@@ -172,7 +172,7 @@ export function HandleServiceErrors(
 						}
 					}
 
-					const handledError = errorHandler.handleErrorEnhanced(
+					const handledError = errorHandler.handleError(
 						error as Error,
 						{
 							operation: propertyName,

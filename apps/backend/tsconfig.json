@@ -11,7 +11,7 @@
 		"jsxFragmentFactory": "React.Fragment",
 		"types": ["node", "reflect-metadata"],
 		"skipLibCheck": true,
-		"isolatedModules": false,
+		"isolatedModules": true,
 		"paths": {
 			"@repo/shared": ["../../packages/shared/dist/cjs"],
 			"@repo/shared/*": ["../../packages/shared/dist/cjs/*"]

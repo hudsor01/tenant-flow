@@ -8,7 +8,7 @@ import {
 	Min
 } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
-import { DocumentType } from '@repo/shared'
+import type { DocumentType } from '@repo/shared'
 import { BaseQueryDto } from '../../common/dto/base-query.dto'
 
 export class DocumentQueryDto extends BaseQueryDto {
