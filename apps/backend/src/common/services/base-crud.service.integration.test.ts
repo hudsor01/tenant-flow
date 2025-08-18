@@ -303,7 +303,7 @@ describe('BaseCrudService Integration Test', () => {
 				{
 					provide: ErrorHandlerService,
 					useValue: {
-						handleErrorEnhanced: jest
+						handleError: jest
 							.fn()
 							.mockImplementation(error => {
 								throw error
@@ -561,7 +561,7 @@ describe('BaseCrudService Integration Test', () => {
 			)
 
 			// Verify error handler was called
-			expect(errorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
+			expect(errorHandler.handleError).toHaveBeenCalledWith(
 				expect.any(Error),
 				expect.objectContaining({
 					operation: 'getByOwner',
@@ -579,7 +579,7 @@ describe('BaseCrudService Integration Test', () => {
 				service.getByIdOrThrow(entityId, ownerId)
 			).rejects.toThrow(NotFoundException)
 
-			expect(errorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
+			expect(errorHandler.handleError).toHaveBeenCalledWith(
 				expect.any(NotFoundException),
 				expect.objectContaining({
 					operation: 'getByIdOrThrow',
@@ -601,7 +601,7 @@ describe('Service Contract Validator', () => {
 		// Create a test service for the validator tests
 		const mockRepository = new MockTestRepository()
 		const mockErrorHandler = {
-			handleErrorEnhanced: jest.fn().mockImplementation(error => {
+			handleError: jest.fn().mockImplementation(error => {
 				throw error
 			})
 		} as any

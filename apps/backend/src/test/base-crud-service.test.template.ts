@@ -45,7 +45,7 @@ export function createBaseCrudServiceTestSuite<
 			} as any
 
 			mockErrorHandler = {
-				handleErrorEnhanced: jest.fn(error => {
+				handleError: jest.fn(error => {
 					throw error
 				}),
 				createNotFoundError: jest.fn(
@@ -167,7 +167,7 @@ export function createBaseCrudServiceTestSuite<
 
 					// Note: Error handler operation name may vary by service implementation
 					expect(
-						mockErrorHandler.handleErrorEnhanced
+						mockErrorHandler.handleError
 					).toHaveBeenCalled()
 				})
 			})

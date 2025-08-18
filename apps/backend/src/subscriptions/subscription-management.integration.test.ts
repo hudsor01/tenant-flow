@@ -80,7 +80,7 @@ describe('Subscription Management Integration Tests', () => {
 				},
 				{
 					provide: ErrorHandlerService,
-					useValue: { handleErrorEnhanced: jest.fn() }
+					useValue: { handleError: jest.fn() }
 				}
 			]
 		})

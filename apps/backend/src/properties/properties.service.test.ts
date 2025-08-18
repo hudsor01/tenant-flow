@@ -70,7 +70,7 @@ describe('PropertiesService - Simplified Tests', () => {
 		}
 
 		errorHandler = {
-			handleErrorEnhanced: jest.fn().mockImplementation((err: any) => {
+			handleError: jest.fn().mockImplementation((err: any) => {
 				throw err
 			}),
 			createNotFoundError: jest
@@ -138,7 +138,7 @@ describe('PropertiesService - Simplified Tests', () => {
 				propertiesService.getPropertiesByOwner('owner-123')
 			).rejects.toThrow('Database connection failed')
 
-			expect(errorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
+			expect(errorHandler.handleError).toHaveBeenCalledWith(
 				error,
 				{
 					operation: 'getByOwner',
@@ -171,7 +171,7 @@ describe('PropertiesService - Simplified Tests', () => {
 				propertiesService.getPropertyStats('owner-123')
 			).rejects.toThrow('Stats query failed')
 
-			expect(errorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
+			expect(errorHandler.handleError).toHaveBeenCalledWith(
 				error,
 				{
 					operation: 'getStats',
@@ -223,7 +223,7 @@ describe('PropertiesService - Simplified Tests', () => {
 				propertiesService.getPropertyById('prop-123', 'owner-123')
 			).rejects.toThrow('Query failed')
 
-			expect(errorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
+			expect(errorHandler.handleError).toHaveBeenCalledWith(
 				error,
 				{
 					operation: 'getByIdOrThrow',
@@ -308,7 +308,7 @@ describe('PropertiesService - Simplified Tests', () => {
 				propertiesService.createProperty(mockPropertyData, 'owner-123')
 			).rejects.toThrow('Creation failed')
 
-			expect(errorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
+			expect(errorHandler.handleError).toHaveBeenCalledWith(
 				error,
 				{
 					operation: 'create',
@@ -394,7 +394,7 @@ describe('PropertiesService - Simplified Tests', () => {
 				)
 			).rejects.toThrow('Update failed')
 
-			expect(errorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
+			expect(errorHandler.handleError).toHaveBeenCalledWith(
 				error,
 				{
 					operation: 'update',
@@ -464,7 +464,7 @@ describe('PropertiesService - Simplified Tests', () => {
 				propertiesService.deleteProperty('prop-123', 'owner-123')
 			).rejects.toThrow('Deletion failed')
 
-			expect(errorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
+			expect(errorHandler.handleError).toHaveBeenCalledWith(
 				error,
 				{
 					operation: 'delete',
