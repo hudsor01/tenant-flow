@@ -197,7 +197,7 @@ export const mockLogger = {
 
 // Mock ErrorHandlerService
 export const mockErrorHandler = {
-	handleErrorEnhanced: jest.fn(error => {
+	handleError: jest.fn(error => {
 		throw error
 	}) as jest.MockedFunction<(error: Error) => never>,
 	createConfigError: jest.fn() as jest.MockedFunction<

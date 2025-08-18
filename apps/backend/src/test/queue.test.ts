@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach } from '@jest/globals'
 import { Test, TestingModule } from '@nestjs/testing'
 import { QueueService } from '../queues/queue.service'
 import { EmailProcessor } from '../email/processors/email.processor'
@@ -5,13 +6,10 @@ import { PaymentProcessor } from '../queues/processors/payment.processor'
 import { BaseProcessor, ProcessorResult } from '../queues/base/base.processor'
 import {
 	EmailJobData,
-	PaymentJobData,
-	JobStatus
+	PaymentJobData
 } from '../queues/types/job.interfaces'
-import { QUEUE_NAMES } from '../queues/queue.module'
 import {
 	MockConfigService,
-	MockLogger,
 	MockQueue,
 	createMockJob,
 	TestTimer,

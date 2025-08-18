@@ -115,8 +115,9 @@ export function TenantFormFields({
 							name="moveOutDate"
 							label="Move-out Date"
 							value={
-								(formData as UpdateTenantInput).moveOutDate ||
-								''
+								typeof (formData as UpdateTenantInput).moveOutDate === 'string'
+									? (formData as UpdateTenantInput).moveOutDate || ''
+									: ''
 							}
 							onChange={value => onChange('moveOutDate', value)}
 							error={errors.moveOutDate}

@@ -2,96 +2,113 @@ import { describe, it, expect } from '@jest/globals'
 
 // Import all exports from the main index file
 import * as dbExports from '../index'
+import { checkDatabaseConnection } from '../index'
+import type { DatabaseHealthResult } from '../index'
 
 describe('Database Package Exports', () => {
-	describe('PrismaClient', () => {
-		it('should export PrismaClient', () => {
-			expect(dbExports.PrismaClient).toBeDefined()
-			expect(typeof dbExports.PrismaClient).toBe('function')
-		})
-	})
-
-	describe('Prisma Error Types', () => {
-		it('should export PrismaClientKnownRequestError', () => {
-			expect(dbExports.PrismaClientKnownRequestError).toBeDefined()
-			expect(typeof dbExports.PrismaClientKnownRequestError).toBe(
-				'function'
-			)
-		})
-
-		it('should export PrismaClientUnknownRequestError', () => {
-			expect(dbExports.PrismaClientUnknownRequestError).toBeDefined()
-			expect(typeof dbExports.PrismaClientUnknownRequestError).toBe(
-				'function'
-			)
-		})
-
-		it('should export PrismaClientRustPanicError', () => {
-			expect(dbExports.PrismaClientRustPanicError).toBeDefined()
-			expect(typeof dbExports.PrismaClientRustPanicError).toBe('function')
-		})
-
-		it('should export PrismaClientInitializationError', () => {
-			expect(dbExports.PrismaClientInitializationError).toBeDefined()
-			expect(typeof dbExports.PrismaClientInitializationError).toBe(
-				'function'
-			)
-		})
-
-		it('should export PrismaClientValidationError', () => {
-			expect(dbExports.PrismaClientValidationError).toBeDefined()
-			expect(typeof dbExports.PrismaClientValidationError).toBe(
-				'function'
-			)
-		})
-	})
-
-	describe('Database Health Check', () => {
+	describe('Health Check Function', () => {
 		it('should export checkDatabaseConnection function', () => {
 			expect(dbExports.checkDatabaseConnection).toBeDefined()
 			expect(typeof dbExports.checkDatabaseConnection).toBe('function')
 		})
-	})
 
-	describe('Prisma Types and Enums', () => {
-		it('should export Prisma namespace', () => {
-			expect(dbExports.Prisma).toBeDefined()
-			expect(typeof dbExports.Prisma).toBe('object')
+		it('should be importable directly', () => {
+			expect(checkDatabaseConnection).toBeDefined()
+			expect(typeof checkDatabaseConnection).toBe('function')
 		})
 
-		it('should export UserRole enum', () => {
-			expect(dbExports.UserRole).toBeDefined()
-			expect(typeof dbExports.UserRole).toBe('object')
-		})
-
-		it('should export PropertyType enum', () => {
-			expect(dbExports.PropertyType).toBeDefined()
-			expect(typeof dbExports.PropertyType).toBe('object')
-		})
-
-		it('should export UnitStatus enum', () => {
-			expect(dbExports.UnitStatus).toBeDefined()
-			expect(typeof dbExports.UnitStatus).toBe('object')
-		})
-
-		it('should export LeaseStatus enum', () => {
-			expect(dbExports.LeaseStatus).toBeDefined()
-			expect(typeof dbExports.LeaseStatus).toBe('object')
-		})
-
-		it('should export Priority enum', () => {
-			expect(dbExports.Priority).toBeDefined()
-			expect(typeof dbExports.Priority).toBe('object')
+		// Test that the function has the expected signature
+		it('should accept supabaseUrl and supabaseKey parameters', () => {
+			// Check function length (number of parameters)
+			expect(checkDatabaseConnection.length).toBe(2)
 		})
 	})
 
-	describe('Essential Entity Types', () => {
-		// Note: These are types, so we test that they can be imported without errors
-		// Type testing would require more complex type-level testing with TypeScript
-		it('should allow importing essential entity types', () => {
-			// This test passes if the imports don't fail
-			// The types User, Property, Unit, Tenant, Lease, etc. are available for import
-			expect(true).toBe(true)
+	describe('Type Exports', () => {
+		it('should export DatabaseHealthResult type', () => {
+			// TypeScript types cannot be tested at runtime directly,
+			// but we can verify they can be imported without compilation errors
+			
+			// This test passes if the type import doesn't cause compilation issues
+			const mockResult: DatabaseHealthResult = {
+				isHealthy: true,
+				message: 'Test message',
+				timestamp: new Date().toISOString(),
+				latency: 100
+			}
+			
+			expect(mockResult).toBeDefined()
+			expect(typeof mockResult.isHealthy).toBe('boolean')
+			expect(typeof mockResult.message).toBe('string')
+			expect(typeof mockResult.timestamp).toBe('string')
+			expect(typeof mockResult.latency).toBe('number')
+		})
+	})
+
+	describe('Package Structure', () => {
+		it('should only export health-related utilities', () => {
+			const exportKeys = Object.keys(dbExports)
+			
+			// Should only export the health check function
+			expect(exportKeys).toContain('checkDatabaseConnection')
+			
+			// Should not export Prisma-related items (legacy test expectations)
+			expect(exportKeys).not.toContain('PrismaClient')
+			expect(exportKeys).not.toContain('Prisma')
+			expect(exportKeys).not.toContain('UserRole')
+			expect(exportKeys).not.toContain('PropertyType')
+			expect(exportKeys).not.toContain('UnitStatus')
+			expect(exportKeys).not.toContain('LeaseStatus')
+			expect(exportKeys).not.toContain('Priority')
+		})
+
+		it('should have minimal dependencies', () => {
+			// This package should only depend on Supabase for health checks
+			// and not include heavy ORM functionality
+			expect(Object.keys(dbExports).length).toBeLessThanOrEqual(2)
+		})
+	})
+
+	describe('Functional Tests', () => {
+		it('should handle invalid connection parameters gracefully', async () => {
+			// Test with invalid parameters
+			const result = await checkDatabaseConnection('invalid-url', 'invalid-key')
+			
+			expect(result).toBeDefined()
+			expect(typeof result.isHealthy).toBe('boolean')
+			expect(typeof result.message).toBe('string')
+			expect(typeof result.timestamp).toBe('string')
+			expect(typeof result.latency).toBe('number')
+			
+			// Should return false for invalid credentials
+			expect(result.isHealthy).toBe(false)
+			expect(result.message).toContain('error')
+		})
+
+		it('should return proper structure for health check result', async () => {
+			// Test with mock parameters (will fail but should return proper structure)
+			const result = await checkDatabaseConnection(
+				'https://test.supabase.co',
+				'test-key'
+			)
+			
+			// Verify the result structure matches DatabaseHealthResult interface
+			expect(result).toHaveProperty('isHealthy')
+			expect(result).toHaveProperty('message')
+			expect(result).toHaveProperty('timestamp')
+			expect(result).toHaveProperty('latency')
+			
+			// Verify types
+			expect(typeof result.isHealthy).toBe('boolean')
+			expect(typeof result.message).toBe('string')
+			expect(typeof result.timestamp).toBe('string')
+			expect(typeof result.latency).toBe('number')
+			
+			// Latency should be non-negative
+			expect(result.latency).toBeGreaterThanOrEqual(0)
+			
+			// Timestamp should be a valid ISO string
+			expect(() => new Date(result.timestamp)).not.toThrow()
 		})
 	})
 })

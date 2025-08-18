@@ -1,5 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import type { Document, PlanType, SubStatus } from '@repo/shared'
+import { PropertiesSupabaseRepository } from '../properties/properties-supabase.repository'
+import { UserFeatureAccessSupabaseRepository } from './user-feature-access-supabase.repository'
 
 export interface UserFeatureAccess {
 	canExportData: boolean
@@ -30,6 +32,11 @@ export interface FeatureAccessUpdate {
 export class FeatureAccessService {
 	private readonly logger = new Logger(FeatureAccessService.name)
 
+	constructor(
+		private readonly propertiesRepository: PropertiesSupabaseRepository,
+		private readonly userFeatureAccessRepository: UserFeatureAccessSupabaseRepository
+	) {}
+
 	/**
 	 * Update user's feature access based on subscription status
 	 */
@@ -40,22 +47,13 @@ export class FeatureAccessService {
 				update.planType
 			)
 
-			// Update or create user feature access record
-			// TODO: Convert to Supabase
-			// await this.supabaseService.userFeatureAccess.upsert({
-			// 	where: { userId: update.userId },
-			// 	create: {
-			// 		userId: update.userId,
-			// 		...access,
-			// 		lastUpdated: new Date(),
-			// 		updateReason: update.reason
-			// 	},
-			// 	update: {
-			// 		...access,
-			// 		lastUpdated: new Date(),
-			// 		updateReason: update.reason
-			// 	}
-			// })
+			// Update or create user feature access record in Supabase
+			await this.userFeatureAccessRepository.upsertUserAccess({
+				userId: update.userId,
+				...access,
+				lastUpdated: new Date().toISOString(),
+				updateReason: update.reason
+			}, update.userId)
 
 			// Log the access change for audit purposes
 			await this.logAccessChange(update, access)
@@ -76,29 +74,26 @@ export class FeatureAccessService {
 	 */
 	async getUserFeatureAccess(userId: string): Promise<UserFeatureAccess> {
 		try {
-			// TODO: Convert to Supabase
-			// const access = await this.supabaseService.userFeatureAccess.findUnique({
-			// 	where: { userId }
-			// })
+			// Get feature access from Supabase
+			const access = await this.userFeatureAccessRepository.findByUserId(userId)
 
-			// Always return free tier access for now since Supabase migration is incomplete
-			// if (!access) {
-			// Return free tier access if no record exists
-			return this.calculateFeatureAccess('CANCELED', 'FREETRIAL')
-			// }
+			if (!access) {
+				// No feature access record found - return free tier access
+				return this.calculateFeatureAccess('CANCELED', 'FREETRIAL')
+			}
 
-			// return {
-			// 	canExportData: access.canExportData,
-			// 	canAccessAdvancedAnalytics: access.canAccessAdvancedAnalytics,
-			// 	canUseBulkOperations: access.canUseBulkOperations,
-			// 	canAccessAPI: access.canAccessAPI,
-			// 	canInviteTeamMembers: access.canInviteTeamMembers,
-			// 	maxProperties: access.maxProperties,
-			// 	maxUnitsPerProperty: access.maxUnitsPerProperty,
-			// 	maxStorageGB: access.maxStorageGB,
-			// 	hasPrioritySupport: access.hasPrioritySupport,
-			// 	canUsePremiumIntegrations: access.canUsePremiumIntegrations
-			// }
+			return {
+				canExportData: access.canExportData,
+				canAccessAdvancedAnalytics: access.canAccessAdvancedAnalytics,
+				canUseBulkOperations: access.canUseBulkOperations,
+				canAccessAPI: access.canAccessAPI,
+				canInviteTeamMembers: access.canInviteTeamMembers,
+				maxProperties: access.maxProperties,
+				maxUnitsPerProperty: access.maxUnitsPerProperty,
+				maxStorageGB: access.maxStorageGB,
+				hasPrioritySupport: access.hasPrioritySupport,
+				canUsePremiumIntegrations: access.canUsePremiumIntegrations
+			}
 		} catch (error) {
 			this.logger.error(
 				`Failed to get feature access for user ${userId}:`,
@@ -193,11 +188,9 @@ export class FeatureAccessService {
 		const access = await this.getUserFeatureAccess(userId)
 		const limitsEnforced: string[] = []
 
-		// Check property limit
-		// TODO: Convert to Supabase
-		const propertyCount = 0 // await this.supabaseService.property.count({
-		// 	where: { User: { id: userId } }
-		// })
+		// Check property limit using Supabase
+		const properties = await this.propertiesRepository.findAllWithUnits(userId, userId)
+		const propertyCount = properties.length
 
 		const propertiesAtLimit = propertyCount >= access.maxProperties
 		if (propertiesAtLimit) {
@@ -356,21 +349,31 @@ export class FeatureAccessService {
 	}
 
 	private async logAccessChange(
-		_update: FeatureAccessUpdate,
-		_access: UserFeatureAccess
+		update: FeatureAccessUpdate,
+		access: UserFeatureAccess
 	): Promise<void> {
 		try {
-			// TODO: Convert to Supabase
-			// await this.supabaseService.userAccessLog.create({
-			// 	data: {
-			// 		userId: update.userId,
-			// 		subscriptionStatus: update.subscriptionStatus,
-			// 		planType: update.planType,
-			// 		reason: update.reason,
-			// 		accessGranted: JSON.parse(JSON.stringify(access)),
-			// 		timestamp: new Date()
-			// 	}
-			// })
+			// Log access change for audit purposes (using structured logging for now)
+			// In the future, this could be stored in a dedicated UserAccessLog table
+			this.logger.log('User feature access updated', {
+				userId: update.userId,
+				subscriptionStatus: update.subscriptionStatus,
+				planType: update.planType,
+				reason: update.reason,
+				accessGranted: {
+					canExportData: access.canExportData,
+					canAccessAdvancedAnalytics: access.canAccessAdvancedAnalytics,
+					canUseBulkOperations: access.canUseBulkOperations,
+					canAccessAPI: access.canAccessAPI,
+					canInviteTeamMembers: access.canInviteTeamMembers,
+					maxProperties: access.maxProperties,
+					maxUnitsPerProperty: access.maxUnitsPerProperty,
+					maxStorageGB: access.maxStorageGB,
+					hasPrioritySupport: access.hasPrioritySupport,
+					canUsePremiumIntegrations: access.canUsePremiumIntegrations
+				},
+				timestamp: new Date().toISOString()
+			})
 		} catch (error) {
 			this.logger.error('Failed to log access change:', error)
 		}
@@ -380,21 +383,18 @@ export class FeatureAccessService {
 		// This would integrate with your file storage system
 		// For now, return a placeholder calculation
 		try {
-			// Example: Sum up file sizes from property images, documents, etc.
-			// TODO: Convert to Supabase
-			const fileRecords: Document[] = [] // await this.supabaseService.document.findMany({
-			// 	where: {
-			// 		Property: { User: { id: userId } }
-			// 	},
-			// 	select: { fileSizeBytes: true }
-			// })
-
-			const totalBytes = fileRecords.reduce(
-				(sum: number, file: { fileSizeBytes: bigint | null }) =>
-					sum + Number(file.fileSizeBytes || 0n),
-				0
-			)
-			return totalBytes / (1024 * 1024 * 1024) // Convert to GB
+			// Get user's properties and their documents to calculate storage usage
+			const properties = await this.propertiesRepository.findAll(userId, userId)
+			
+			// For now, return a simple calculation based on property count
+			// In a real implementation, you would sum up file sizes from:
+			// - Property images, documents, attachments
+			// - Tenant documents and photos
+			// - Maintenance request attachments
+			// - Lease documents and signatures
+			const estimatedStorageGB = properties.length * 0.01 // 10MB per property as estimate
+			
+			return estimatedStorageGB
 		} catch (error) {
 			this.logger.error(
 				`Failed to calculate storage usage for user ${userId}:`,

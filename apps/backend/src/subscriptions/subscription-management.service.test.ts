@@ -182,7 +182,7 @@ describe('SubscriptionManagementService', () => {
 		}
 
 		const mockErrorHandler = {
-			handleErrorEnhanced: jest.fn()
+			handleError: jest.fn()
 		}
 
 		const module: TestingModule = await Test.createTestingModule({

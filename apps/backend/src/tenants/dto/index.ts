@@ -1,8 +1,11 @@
 // Re-export from centralized Zod-inferred DTOs
-export {
+export type {
 	TenantCreateDto,
 	TenantUpdateDto,
-	TenantQueryDto,
+	TenantQueryDto
+} from '../../common/dto/dto-exports'
+
+export {
 	createTenantSchema,
 	updateTenantSchema,
 	queryTenantsSchema

@@ -80,7 +80,7 @@ export class UnitsService {
 			return unit
 		} catch (error) {
 			this.logger.error('Failed to create unit:', error)
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'create',
 				resource: 'unit',
 				metadata: {
@@ -116,7 +116,7 @@ export class UnitsService {
 
 			return unit
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'findById',
 				resource: 'unit',
 				metadata: { unitId: id, ownerId }
@@ -141,7 +141,7 @@ export class UnitsService {
 				userToken
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'findByOwner',
 				resource: 'unit',
 				metadata: { ownerId }
@@ -168,7 +168,7 @@ export class UnitsService {
 				userToken
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'findByProperty',
 				resource: 'unit',
 				metadata: { propertyId, ownerId }
@@ -219,7 +219,7 @@ export class UnitsService {
 
 			return updated
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'update',
 				resource: 'unit',
 				metadata: { unitId: id, ownerId }
@@ -269,7 +269,7 @@ export class UnitsService {
 				ownerId
 			})
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'delete',
 				resource: 'unit',
 				metadata: { unitId: id, ownerId }
@@ -311,7 +311,7 @@ export class UnitsService {
 				averageRent: 0 // TODO: Calculate from actual lease data
 			}
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'getStats',
 				resource: 'unit',
 				metadata: { ownerId }
@@ -342,7 +342,7 @@ export class UnitsService {
 			return units
 		} catch (error) {
 			this.logger.error('Failed to get units by property:', error)
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'getUnitsByProperty',
 				resource: 'unit',
 				metadata: { propertyId }
@@ -425,7 +425,7 @@ export class UnitsService {
 
 			return updated
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'updateStatus',
 				resource: 'unit',
 				metadata: { unitId: id, status, ownerId }
@@ -476,7 +476,7 @@ export class UnitsService {
 
 			return results
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'bulkUpdateStatus',
 				resource: 'unit',
 				metadata: { unitCount: unitIds.length, status, ownerId }
@@ -506,7 +506,7 @@ export class UnitsService {
 			// Filter for vacant units
 			return allUnits.filter(unit => unit.status === 'VACANT')
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'getVacantUnits',
 				resource: 'unit',
 				metadata: { propertyId, ownerId }
@@ -537,7 +537,7 @@ export class UnitsService {
 				userToken
 			)
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'search',
 				resource: 'unit',
 				metadata: { ownerId, searchTerm }
@@ -578,7 +578,7 @@ export class UnitsService {
 
 			return true
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'checkUnitNumberExists',
 				resource: 'unit',
 				metadata: { propertyId, unitNumber, ownerId }

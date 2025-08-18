@@ -144,7 +144,7 @@ user.id
 				url: session.url
 			}
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'BillingController.createCheckoutSession',
 				metadata: { userId: user.id, planType: dto.planType }
 			})
@@ -193,7 +193,7 @@ user.id
 				url: session.url
 			}
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'BillingController.createPortalSession',
 				metadata: { userId: user.id }
 			})
@@ -296,7 +296,7 @@ await this.subscriptionsService.getSubscription(user.id) as Subscription
 				currency: preview.currency
 			}
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'BillingController.previewSubscriptionUpdate',
 				metadata: { userId: user.id, newPlanType: dto.newPlanType }
 			})
@@ -354,7 +354,7 @@ await this.subscriptionsService.getSubscription(user.id) as Subscription
 				defaultPaymentMethodId
 			}
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'BillingController.getPaymentMethods',
 				metadata: { userId: user.id }
 			})
@@ -434,7 +434,7 @@ await this.subscriptionsService.getSubscription(user.id) as Subscription
 				message: 'Payment method updated successfully'
 			}
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'BillingController.updatePaymentMethod',
 				metadata: { userId: user.id }
 			})
@@ -502,7 +502,7 @@ await this.subscriptionsService.getSubscription(user.id) as Subscription
 				message: 'Thank you for your subscription!'
 			}
 		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+			throw this.errorHandler.handleError(error as Error, {
 				operation: 'BillingController.handleCheckoutSuccess',
 				metadata: { userId: user.id, sessionId }
 			})

@@ -189,14 +189,14 @@ export const crudExpectations = {
 	errorHandling: {
 		shouldUseErrorHandler: (
 			mockErrorHandler: {
-				handleErrorEnhanced: MockedFunction<
+				handleError: MockedFunction<
 					(...args: unknown[]) => unknown
 				>
 			},
 			operation: string,
 			resource: string
 		) => {
-			expect(mockErrorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
+			expect(mockErrorHandler.handleError).toHaveBeenCalledWith(
 				expect.any(Error),
 				expect.objectContaining({
 					operation,

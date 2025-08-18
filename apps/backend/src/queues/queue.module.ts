@@ -5,8 +5,10 @@ import { HttpModule } from '@nestjs/axios'
 import { QueueService } from './queue.service'
 import { EmailProcessor } from '../email/processors/email.processor'
 import { PaymentProcessor } from './processors/payment.processor'
+import { NotificationProcessor } from './processors/notification.processor'
 import { QueueErrorHandlerService } from './services/queue-error-handler.service'
 import { QueueMetricsService } from './services/queue-metrics.service'
+import { EmailModule } from '../email/email.module'
 import { FUTURE_QUEUE_NAMES, QUEUE_NAMES } from './constants/queue-names'
 
 // Re-export for backward compatibility
@@ -20,6 +22,7 @@ export class QueueModule {
 			imports: [
 				ConfigModule,
 				HttpModule,
+				EmailModule,
 				// Register Bull queues
 				BullModule.forRootAsync({
 					imports: [ConfigModule],
@@ -118,6 +121,15 @@ export class QueueModule {
 							removeOnComplete: 100,
 							removeOnFail: 500
 						}
+					},
+					{
+						name: QUEUE_NAMES.NOTIFICATIONS,
+						defaultJobOptions: {
+							attempts: 3,
+							backoff: { type: 'exponential', delay: 5000 },
+							removeOnComplete: 100,
+							removeOnFail: 200
+						}
 					}
 				)
 			],
@@ -125,6 +137,7 @@ export class QueueModule {
 				QueueService,
 				EmailProcessor,
 				PaymentProcessor,
+				NotificationProcessor,
 				QueueErrorHandlerService,
 				QueueMetricsService
 			],

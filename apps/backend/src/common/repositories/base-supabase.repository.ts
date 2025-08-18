@@ -1,16 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { PostgrestError, SupabaseClient } from '@supabase/supabase-js'
-import type { Database } from '@repo/shared/types/supabase-generated'
-import { ErrorCode, ErrorHandlerService } from '../errors/error-handler.service'
+import { SupabaseClient } from '@supabase/supabase-js'
+import type { 
+	Database, 
+	RawTablesType, 
+	TablesInsert, 
+	TablesUpdate
+} from '@repo/shared/types/supabase'
+import { ErrorHandlerService } from '../errors/error-handler.service'
 import { SupabaseService } from '../supabase/supabase.service'
 import { MultiTenantSupabaseService } from '../supabase/multi-tenant-supabase.service'
-
-// Type aliases for Supabase operations
-type Tables = Database['public']['Tables']
-type TableName = keyof Tables
-type TableRow<T extends TableName> = Tables[T]['Row']
-type TableInsert<T extends TableName> = Tables[T]['Insert']
-type TableUpdate<T extends TableName> = Tables[T]['Update']
 
 interface FindOptions {
 	select?: string
@@ -32,16 +30,11 @@ interface PaginationOptions {
 
 /**
  * Base repository class that provides common CRUD operations
- * for all Supabase tables. Replaces the Prisma-based BaseRepository.
+ * for all Supabase tables. Uses string table names for compatibility.
  */
 @Injectable()
-export abstract class BaseSupabaseRepository<
-	TTableName extends TableName,
-	T = TableRow<TTableName>,
-	TInsert = TableInsert<TTableName>,
-	TUpdate = TableUpdate<TTableName>
-> {
-	protected abstract readonly tableName: TTableName
+export abstract class BaseSupabaseRepository<T = Record<string, unknown>> {
+	protected abstract readonly tableName: string
 	protected readonly logger: Logger
 	private readonly errorHandler = new ErrorHandlerService()
 
@@ -66,17 +59,17 @@ export abstract class BaseSupabaseRepository<
 	}
 
 	/**
-	 * Find many records with optional filtering and pagination
+	 * Find multiple records with filtering, sorting, and pagination
 	 */
-	async findMany(
-		options: FindOptions & PaginationOptions = {},
+	async find(
+		options: FindOptions = {},
 		userId?: string,
 		userToken?: string
 	): Promise<T[]> {
 		try {
 			const client = await this.getClient(userId, userToken)
 			let query = client
-				.from(this.tableName as any)
+				.from(this.tableName as keyof RawTablesType)
 				.select(options.select || '*')
 
 			// Apply filters
@@ -94,74 +87,62 @@ export abstract class BaseSupabaseRepository<
 			if (options.order) {
 				for (const orderBy of options.order) {
 					query = query.order(orderBy.column, {
-						ascending: orderBy.ascending ?? true
+						ascending: orderBy.ascending !== false
 					})
 				}
 			}
 
 			// Apply pagination
-			const limit = options.limit || 10
-			const offset =
-				options.offset ||
-				(options.page ? (options.page - 1) * limit : 0)
-
-			query = query.range(offset, offset + limit - 1)
+			if (options.limit) {
+				query = query.limit(options.limit)
+			}
+			if (options.offset) {
+				query = query.range(
+					options.offset,
+					options.offset + (options.limit || 10) - 1
+				)
+			}
 
 			const { data, error } = await query
 
 			if (error) {
-				this.logger.error(`Error fetching ${this.tableName}:`, error)
-				throw this.errorHandler.createBusinessError(
-					ErrorCode.DATABASE_ERROR,
-					(error as Error).message || 'Database operation failed',
-					{ operation: 'database' }
-				)
+				this.logger.error(`Error finding records in ${this.tableName}:`, error)
+				throw this.errorHandler.handleError(error, { operation: 'find' })
 			}
 
 			return (data || []) as T[]
 		} catch (error) {
-			this.logger.error(`Failed to fetch ${this.tableName}:`, error)
-			const message =
-				error instanceof Error
-					? error.message
-					: 'Database operation failed'
-			throw this.errorHandler.createBusinessError(
-				ErrorCode.DATABASE_ERROR,
-				message,
-				{ operation: 'database' }
-			)
+			this.logger.error(`Failed to find records in ${this.tableName}:`, error)
+			throw error
 		}
 	}
 
 	/**
-	 * Find many records with pagination metadata
+	 * Find all records
 	 */
-	async findManyPaginated(
-		options: FindOptions & PaginationOptions = {},
+	async findAll(userId?: string, userToken?: string): Promise<T[]> {
+		return this.find({}, userId, userToken)
+	}
+
+	/**
+	 * Find all records with pagination
+	 */
+	async findMany(
+		options: PaginationOptions = {},
 		userId?: string,
 		userToken?: string
-	) {
-		const { page = 1, limit = 10 } = options
+	): Promise<T[]> {
+		const { page, limit = 10, offset } = options
+		const actualOffset = page ? (page - 1) * limit : offset || 0
 
-		// Get total count
-		const totalCount = await this.count(options.filters, userId, userToken)
-
-		// Get paginated data
-		const data = await this.findMany(
-			{ ...options, page, limit },
+		return this.find(
+			{
+				limit,
+				offset: actualOffset
+			},
 			userId,
 			userToken
 		)
-
-		return {
-			data,
-			pagination: {
-				page,
-				limit,
-				total: totalCount,
-				totalPages: Math.ceil(totalCount / limit)
-			}
-		}
 	}
 
 	/**
@@ -175,93 +156,76 @@ export abstract class BaseSupabaseRepository<
 		try {
 			const client = await this.getClient(userId, userToken)
 
-			const { data, error } = await (
-				client
-					.from(this.tableName as any)
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					.select('*') as any
-			)
+			const { data, error } = await client
+				.from(this.tableName as keyof RawTablesType)
+				.select('*')
 				.eq('id', id)
 				.single()
 
 			if (error) {
-				if ((error as PostgrestError).code === 'PGRST116') {
-					return null // Not found
+				if (error.code === 'PGRST116') {
+					// No rows returned
+					return null
 				}
-				throw this.errorHandler.createBusinessError(
-					ErrorCode.DATABASE_ERROR,
-					(error as Error).message || 'Database operation failed',
-					{ operation: 'database' }
+				this.logger.error(
+					`Error finding record by ID in ${this.tableName}:`,
+					error
 				)
+				throw this.errorHandler.handleError(error, { operation: 'find' })
 			}
 
 			return data as T
 		} catch (error) {
-			this.logger.error(`Failed to find ${this.tableName} by ID:`, error)
-			const message =
-				error instanceof Error
-					? error.message
-					: 'Database operation failed'
-			throw this.errorHandler.createBusinessError(
-				ErrorCode.DATABASE_ERROR,
-				message,
-				{ operation: 'database' }
+			this.logger.error(
+				`Failed to find record by ID in ${this.tableName}:`,
+				error
 			)
+			throw error
 		}
 	}
 
 	/**
-	 * Find first record matching filters
+	 * Find a single record by field
 	 */
-	async findFirst(
-		filters?: { column: string; operator: string; value: unknown }[],
+	async findByField(
+		field: string,
+		value: string | number | boolean,
 		userId?: string,
 		userToken?: string
 	): Promise<T | null> {
 		try {
 			const client = await this.getClient(userId, userToken)
-			let query = client.from(this.tableName).select('*')
 
-			if (filters) {
-				for (const filter of filters) {
-					query = query.filter(
-						filter.column,
-						filter.operator,
-						filter.value
-					)
-				}
-			}
-
-			const { data, error } = await query.limit(1).single()
+			const { data, error } = await client
+				.from(this.tableName as keyof RawTablesType)
+				.select('*')
+				.eq(field, value)
+				.single()
 
 			if (error) {
-				if ((error as PostgrestError).code === 'PGRST116') {
-					return null // Not found
+				if (error.code === 'PGRST116') {
+					// No rows returned
+					return null
 				}
-				throw this.errorHandler.createBusinessError(
-					ErrorCode.DATABASE_ERROR,
-					(error as Error).message || 'Database operation failed',
-					{ operation: 'database' }
+				this.logger.error(
+					`Error finding record by field in ${this.tableName}:`,
+					error
 				)
+				throw this.errorHandler.handleError(error, { operation: 'find' })
 			}
 
 			return data as T
 		} catch (error) {
-			this.logger.error(`Failed to find first ${this.tableName}:`, error)
-			const message =
-				error instanceof Error
-					? error.message
-					: 'Database operation failed'
-			throw this.errorHandler.createBusinessError(
-				ErrorCode.DATABASE_ERROR,
-				message,
-				{ operation: 'database' }
+			this.logger.error(
+				`Failed to find record by field in ${this.tableName}:`,
+				error
 			)
+			throw error
 		}
 	}
 
 	/**
-	 * Count records matching filters
+	 * Count records with optional filtering
 	 */
 	async count(
 		filters?: { column: string; operator: string; value: unknown }[],
@@ -271,9 +235,10 @@ export abstract class BaseSupabaseRepository<
 		try {
 			const client = await this.getClient(userId, userToken)
 			let query = client
-				.from(this.tableName as any)
+				.from(this.tableName as keyof RawTablesType)
 				.select('*', { count: 'exact', head: true })
 
+			// Apply filters
 			if (filters) {
 				for (const filter of filters) {
 					query = query.filter(
@@ -287,25 +252,14 @@ export abstract class BaseSupabaseRepository<
 			const { count, error } = await query
 
 			if (error) {
-				throw this.errorHandler.createBusinessError(
-					ErrorCode.DATABASE_ERROR,
-					(error as Error).message || 'Database operation failed',
-					{ operation: 'database' }
-				)
+				this.logger.error(`Error counting records in ${this.tableName}:`, error)
+				throw this.errorHandler.handleError(error, { operation: 'find' })
 			}
 
 			return count || 0
 		} catch (error) {
-			this.logger.error(`Failed to count ${this.tableName}:`, error)
-			const message =
-				error instanceof Error
-					? error.message
-					: 'Database operation failed'
-			throw this.errorHandler.createBusinessError(
-				ErrorCode.DATABASE_ERROR,
-				message,
-				{ operation: 'database' }
-			)
+			this.logger.error(`Failed to count records in ${this.tableName}:`, error)
+			throw error
 		}
 	}
 
@@ -313,43 +267,28 @@ export abstract class BaseSupabaseRepository<
 	 * Create a new record
 	 */
 	async create(
-		data: TInsert,
+		data: Record<string, unknown>,
 		userId?: string,
 		userToken?: string
 	): Promise<T> {
 		try {
 			const client = await this.getClient(userId, userToken)
 
-			const { data: created, error } = await (
-				client
-					.from(this.tableName as any)
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					.insert(data as any) as any
-			)
+			const { data: created, error } = await client
+				.from(this.tableName as keyof RawTablesType)
+				.insert(data as TablesInsert<keyof RawTablesType>)
 				.select('*')
 				.single()
 
 			if (error) {
-				throw this.errorHandler.createBusinessError(
-					ErrorCode.DATABASE_ERROR,
-					(error as Error).message || 'Database operation failed',
-					{ operation: 'database' }
-				)
+				this.logger.error(`Error creating record in ${this.tableName}:`, error)
+				throw this.errorHandler.handleError(error, { operation: 'create' })
 			}
 
-			this.logger.debug(`Created ${this.tableName}:`, created)
 			return created as T
 		} catch (error) {
-			this.logger.error(`Failed to create ${this.tableName}:`, error)
-			const message =
-				error instanceof Error
-					? error.message
-					: 'Database operation failed'
-			throw this.errorHandler.createBusinessError(
-				ErrorCode.DATABASE_ERROR,
-				message,
-				{ operation: 'database' }
-			)
+			this.logger.error(`Failed to create record in ${this.tableName}:`, error)
+			throw error
 		}
 	}
 
@@ -358,145 +297,105 @@ export abstract class BaseSupabaseRepository<
 	 */
 	async update(
 		id: string,
-		data: TUpdate,
+		data: Record<string, unknown>,
 		userId?: string,
 		userToken?: string
 	): Promise<T> {
 		try {
 			const client = await this.getClient(userId, userToken)
 
-			const { data: updated, error } = await (
-				client
-					.from(this.tableName as any)
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					.update(data as any) as any
-			)
+			const { data: updated, error } = await client
+				.from(this.tableName as keyof RawTablesType)
+				.update(data as TablesUpdate<keyof RawTablesType>)
 				.eq('id', id)
 				.select('*')
 				.single()
 
 			if (error) {
-				throw this.errorHandler.createBusinessError(
-					ErrorCode.DATABASE_ERROR,
-					(error as Error).message || 'Database operation failed',
-					{ operation: 'database' }
-				)
+				this.logger.error(`Error updating record in ${this.tableName}:`, error)
+				throw this.errorHandler.handleError(error, { operation: 'update' })
 			}
 
-			this.logger.debug(`Updated ${this.tableName}:`, updated)
 			return updated as T
 		} catch (error) {
-			this.logger.error(`Failed to update ${this.tableName}:`, error)
-			const message =
-				error instanceof Error
-					? error.message
-					: 'Database operation failed'
-			throw this.errorHandler.createBusinessError(
-				ErrorCode.DATABASE_ERROR,
-				message,
-				{ operation: 'database' }
-			)
+			this.logger.error(`Failed to update record in ${this.tableName}:`, error)
+			throw error
 		}
 	}
 
 	/**
 	 * Delete a record by ID
 	 */
-	async delete(id: string, userId?: string, userToken?: string): Promise<T> {
+	async delete(
+		id: string,
+		userId?: string,
+		userToken?: string
+	): Promise<void> {
 		try {
 			const client = await this.getClient(userId, userToken)
 
-			const { data: deleted, error } = await (
-				client
-					.from(this.tableName as any)
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					.delete() as any
-			)
+			const { error } = await client
+				.from(this.tableName as keyof RawTablesType)
+				.delete()
 				.eq('id', id)
-				.select('*')
-				.single()
 
 			if (error) {
-				throw this.errorHandler.createBusinessError(
-					ErrorCode.DATABASE_ERROR,
-					(error as Error).message || 'Database operation failed',
-					{ operation: 'database' }
-				)
+				this.logger.error(`Error deleting record in ${this.tableName}:`, error)
+				throw this.errorHandler.handleError(error, { operation: 'find' })
 			}
-
-			this.logger.debug(`Deleted ${this.tableName}:`, deleted)
-			return deleted as T
 		} catch (error) {
-			this.logger.error(`Failed to delete ${this.tableName}:`, error)
-			const message =
-				error instanceof Error
-					? error.message
-					: 'Database operation failed'
-			throw this.errorHandler.createBusinessError(
-				ErrorCode.DATABASE_ERROR,
-				message,
-				{ operation: 'database' }
-			)
+			this.logger.error(`Failed to delete record in ${this.tableName}:`, error)
+			throw error
 		}
 	}
 
 	/**
-	 * Perform a bulk insert
+	 * Create multiple records
 	 */
 	async createMany(
-		data: TInsert[],
+		data: Record<string, unknown>[],
 		userId?: string,
 		userToken?: string
 	): Promise<T[]> {
 		try {
 			const client = await this.getClient(userId, userToken)
 
-			const { data: created, error } = await (
-				client
-					.from(this.tableName as any)
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					.insert(data as any) as any
-			).select('*')
+			const { data: created, error } = await client
+				.from(this.tableName as keyof RawTablesType)
+				.insert(data as TablesInsert<keyof RawTablesType>[])
+				.select('*')
 
 			if (error) {
-				throw this.errorHandler.createBusinessError(
-					ErrorCode.DATABASE_ERROR,
-					(error as Error).message || 'Database operation failed',
-					{ operation: 'database' }
+				this.logger.error(
+					`Error creating multiple records in ${this.tableName}:`,
+					error
 				)
+				throw this.errorHandler.handleError(error, { operation: 'createMany' })
 			}
 
-			this.logger.debug(
-				`Bulk created ${data.length} ${this.tableName} records`
-			)
 			return (created || []) as T[]
 		} catch (error) {
-			this.logger.error(`Failed to bulk create ${this.tableName}:`, error)
-			const message =
-				error instanceof Error
-					? error.message
-					: 'Database operation failed'
-			throw this.errorHandler.createBusinessError(
-				ErrorCode.DATABASE_ERROR,
-				message,
-				{ operation: 'database' }
+			this.logger.error(
+				`Failed to create multiple records in ${this.tableName}:`,
+				error
 			)
+			throw error
 		}
 	}
 
 	/**
-	 * Perform a bulk update
+	 * Update multiple records based on filters
 	 */
 	async updateMany(
 		filters: { column: string; operator: string; value: unknown }[],
-		data: TUpdate,
+		data: Record<string, unknown>,
 		userId?: string,
 		userToken?: string
 	): Promise<T[]> {
 		try {
 			const client = await this.getClient(userId, userToken)
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			let query = client.from(this.tableName).update(data as any)
+			 
+			let query = client.from(this.tableName as keyof RawTablesType).update(data as TablesUpdate<keyof RawTablesType>)
 
 			for (const filter of filters) {
 				query = query.filter(
@@ -509,40 +408,35 @@ export abstract class BaseSupabaseRepository<
 			const { data: updated, error } = await query.select('*')
 
 			if (error) {
-				throw this.errorHandler.createBusinessError(
-					ErrorCode.DATABASE_ERROR,
-					(error as Error).message || 'Database operation failed',
-					{ operation: 'database' }
+				this.logger.error(
+					`Error updating multiple records in ${this.tableName}:`,
+					error
 				)
+				throw this.errorHandler.handleError(error, { operation: 'updateMany' })
 			}
 
-			this.logger.debug(`Bulk updated ${this.tableName} records`)
 			return (updated || []) as T[]
 		} catch (error) {
-			this.logger.error(`Failed to bulk update ${this.tableName}:`, error)
-			const message =
-				error instanceof Error
-					? error.message
-					: 'Database operation failed'
-			throw this.errorHandler.createBusinessError(
-				ErrorCode.DATABASE_ERROR,
-				message,
-				{ operation: 'database' }
+			this.logger.error(
+				`Failed to update multiple records in ${this.tableName}:`,
+				error
 			)
+			throw error
 		}
 	}
 
 	/**
-	 * Perform a bulk delete
+	 * Delete multiple records based on filters
 	 */
 	async deleteMany(
 		filters: { column: string; operator: string; value: unknown }[],
 		userId?: string,
 		userToken?: string
-	): Promise<T[]> {
+	): Promise<void> {
 		try {
 			const client = await this.getClient(userId, userToken)
-			let query = client.from(this.tableName).delete()
+
+			let query = client.from(this.tableName as keyof RawTablesType).delete()
 
 			for (const filter of filters) {
 				query = query.filter(
@@ -552,29 +446,48 @@ export abstract class BaseSupabaseRepository<
 				)
 			}
 
-			const { data: deleted, error } = await query.select('*')
+			const { error } = await query
 
 			if (error) {
-				throw this.errorHandler.createBusinessError(
-					ErrorCode.DATABASE_ERROR,
-					(error as Error).message || 'Database operation failed',
-					{ operation: 'database' }
+				this.logger.error(
+					`Error deleting multiple records in ${this.tableName}:`,
+					error
 				)
+				throw this.errorHandler.handleError(error, { operation: 'find' })
 			}
-
-			this.logger.debug(`Bulk deleted ${this.tableName} records`)
-			return (deleted || []) as T[]
 		} catch (error) {
-			this.logger.error(`Failed to bulk delete ${this.tableName}:`, error)
-			const message =
-				error instanceof Error
-					? error.message
-					: 'Database operation failed'
-			throw this.errorHandler.createBusinessError(
-				ErrorCode.DATABASE_ERROR,
-				message,
-				{ operation: 'database' }
+			this.logger.error(
+				`Failed to delete multiple records in ${this.tableName}:`,
+				error
 			)
+			throw error
+		}
+	}
+
+	/**
+	 * Check if a record exists by ID
+	 */
+	async exists(
+		id: string,
+		userId?: string,
+		userToken?: string
+	): Promise<boolean> {
+		const record = await this.findById(id, userId, userToken)
+		return record !== null
+	}
+
+	/**
+	 * Upsert (insert or update) a record
+	 */
+	async upsert(
+		data: Partial<T> & { id?: string },
+		userId?: string,
+		userToken?: string
+	): Promise<T> {
+		if (data.id && (await this.exists(data.id, userId, userToken))) {
+			return this.update(data.id, data, userId, userToken)
+		} else {
+			return this.create(data, userId, userToken)
 		}
 	}
 }

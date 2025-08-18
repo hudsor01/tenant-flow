@@ -26,6 +26,9 @@ import type {
 
 import { SupabaseAuthRepository } from '@/repositories/implementations/auth.repository'
 import { ApiPropertyRepository } from '@/repositories/implementations/property.repository'
+import { ApiTenantRepository } from '@/repositories/implementations/tenant.repository'
+import { ApiLeaseRepository } from '@/repositories/implementations/lease.repository'
+import { ApiUnitRepository } from '@/repositories/implementations/unit.repository'
 
 import { DefaultAuthenticationService } from './authentication.service'
 import { DefaultPropertyManagementService } from './property-management.service'
@@ -102,24 +105,21 @@ class DefaultServiceContainer implements ServiceContainer {
 
 	private get tenantRepository(): TenantRepository {
 		if (!this._tenantRepository) {
-			// TODO: Implement ApiTenantRepository
-			throw new Error('TenantRepository not implemented yet')
+			this._tenantRepository = new ApiTenantRepository()
 		}
 		return this._tenantRepository
 	}
 
 	private get leaseRepository(): LeaseRepository {
 		if (!this._leaseRepository) {
-			// TODO: Implement ApiLeaseRepository
-			throw new Error('LeaseRepository not implemented yet')
+			this._leaseRepository = new ApiLeaseRepository()
 		}
 		return this._leaseRepository
 	}
 
 	private get unitRepository(): UnitRepository {
 		if (!this._unitRepository) {
-			// TODO: Implement ApiUnitRepository
-			throw new Error('UnitRepository not implemented yet')
+			this._unitRepository = new ApiUnitRepository()
 		}
 		return this._unitRepository
 	}
