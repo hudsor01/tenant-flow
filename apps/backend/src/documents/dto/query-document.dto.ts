@@ -8,12 +8,15 @@ import {
 	Min
 } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
-import type { DocumentType } from '@repo/shared'
+import { 
+	DOCUMENT_TYPE_OPTIONS,
+	type DocumentType
+} from '@repo/shared'
 import { BaseQueryDto } from '../../common/dto/base-query.dto'
 
 export class DocumentQueryDto extends BaseQueryDto {
 	@IsOptional()
-	@IsEnum(DocumentType, {
+	@IsEnum(DOCUMENT_TYPE_OPTIONS, {
 		message:
 			'Document type must be one of: LEASE, INVOICE, RECEIPT, PROPERTY_PHOTO, INSPECTION, MAINTENANCE, OTHER'
 	})
