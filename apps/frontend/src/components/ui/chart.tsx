@@ -158,7 +158,7 @@ function ChartTooltipContent({
 				<div className={cn('font-medium')}>
 					{labelFormatter(
 						value,
-						undefined as any /* eslint-disable-line @typescript-eslint/no-explicit-any */
+						[]
 					)}
 				</div>
 			)
@@ -206,10 +206,7 @@ function ChartTooltipContent({
 						)
 						const indicatorColor =
 							color ||
-							(
-								item.payload as any
-							) /* eslint-disable-line @typescript-eslint/no-explicit-any */
-								?.fill ||
+							(item.payload as Record<string, unknown>)?.fill ||
 							item.color
 
 						return (
@@ -233,7 +230,7 @@ function ChartTooltipContent({
 										item.name as string,
 										item as never,
 										index,
-										undefined as any /* eslint-disable-line @typescript-eslint/no-explicit-any */
+										[]
 									)
 								) : (
 									<>
