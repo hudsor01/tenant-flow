@@ -633,17 +633,17 @@ changes
 		stripeStatus: StripeSubscription['status']
 	): SubStatus {
 		const statusMap: Record<string, SubStatus> = {
-			incomplete: 'incomplete',
-			incomplete_expired: 'incomplete_expired',
-			trialing: 'trialing',
-			active: 'active',
-			past_due: 'past_due',
-			canceled: 'canceled',
-			unpaid: 'unpaid',
-			paused: 'canceled' // Map paused to canceled since we don't have a paused status
+			incomplete: 'INCOMPLETE',
+			incomplete_expired: 'INCOMPLETE_EXPIRED',
+			trialing: 'TRIALING',
+			active: 'ACTIVE',
+			past_due: 'PAST_DUE',
+			canceled: 'CANCELED',
+			unpaid: 'UNPAID',
+			paused: 'CANCELED' // Map paused to canceled since we don't have a paused status
 		}
 
-		return statusMap[stripeStatus] || 'incomplete'
+		return statusMap[stripeStatus] || 'INCOMPLETE'
 	}
 
 	/**
