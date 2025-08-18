@@ -3,9 +3,9 @@
 	"display": "TenantFlow Database Package Config",
 	"extends": "@repo/typescript-config/base.json",
 	"compilerOptions": {
+		"target": "ES2022",
 		"module": "CommonJS",
 		"moduleResolution": "node",
-		"isolatedModules": false,
 		"outDir": "./dist",
 		"rootDir": "./src",
 		"composite": true,
@@ -13,6 +13,8 @@
 		"declarationMap": true,
 		"sourceMap": true,
 		"noEmit": false,
+		"isolatedModules": false,
+		"skipLibCheck": true,
 		"tsBuildInfoFile": "./dist/.tsbuildinfo"
 	},
 	"include": ["src/**/*"],
