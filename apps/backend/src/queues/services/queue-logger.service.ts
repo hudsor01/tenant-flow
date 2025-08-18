@@ -8,6 +8,15 @@ import { DataSanitizationService } from './data-sanitization.service'
  */
 @Injectable()
 export class QueueLogger {
+	log(_arg0: string) {
+		throw new Error('Method not implemented.')
+	}
+	error(_arg0: string, _error: unknown) {
+		throw new Error('Method not implemented.')
+	}
+	debug(_arg0: string) {
+		throw new Error('Method not implemented.')
+	}
 	private readonly logger: Logger
 
 	constructor(context: string) {

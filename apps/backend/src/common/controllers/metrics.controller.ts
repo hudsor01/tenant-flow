@@ -13,7 +13,7 @@ export class MetricsController {
 	getPrometheusMetrics(@Res() res: FastifyReply) {
 		// Prometheus-compatible metrics endpoint for Railway monitoring
 		const systemMetrics = this.metricsService.getSystemMetrics()
-		
+
 		// Convert to Prometheus format
 		const lines = [
 			'# HELP nodejs_heap_size_used_bytes Process heap memory size used',
@@ -37,7 +37,7 @@ export class MetricsController {
 			`process_uptime_seconds ${systemMetrics.system.uptime}`,
 			''
 		]
-		
+
 		res.header('Content-Type', 'text/plain; version=0.0.4; charset=utf-8')
 		res.send(lines.join('\n'))
 	}

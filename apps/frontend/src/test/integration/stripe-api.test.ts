@@ -3,7 +3,6 @@
  * Tests the API routes that interact with Stripe
  */
 
-
 import { TEST_STRIPE, TEST_USERS } from '../test-constants'
 import type { ProductTierConfig } from '@repo/shared/types/billing'
 

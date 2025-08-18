@@ -46,10 +46,7 @@ export class UnitsController {
 		}
 
 		// Otherwise, get all units for the user
-		const units = await this.unitsService.findByOwner(
-			user.id,
-			query
-		)
+		const units = await this.unitsService.findByOwner(user.id, query)
 		return {
 			success: true,
 			data: units,
@@ -128,12 +125,7 @@ export class UnitsController {
 	@ApiResponse({ status: 200, description: 'Unit deleted successfully' })
 	@ApiResponse({ status: 404, description: 'Unit not found' })
 	async delete(@CurrentUser() user: ValidatedUser, @Param('id') id: string) {
-		await this.unitsService.delete(
-			id,
-			user.id,
-			user.id,
-			undefined
-		)
+		await this.unitsService.delete(id, user.id, user.id, undefined)
 		return {
 			success: true,
 			message: 'Unit deleted successfully'

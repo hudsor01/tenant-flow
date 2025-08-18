@@ -72,18 +72,18 @@ export class LeasesController {
 		@CurrentUser() user: ValidatedUser
 	): Promise<Lease[]> {
 		const options = {
-		status: query.status,
-		unitId: query.unitId,
-		tenantId: query.tenantId,
-		startDateFrom: query.startDateFrom?.toISOString(),
-		startDateTo: query.startDateTo?.toISOString(),
-		endDateFrom: query.endDateFrom?.toISOString(),
-		endDateTo: query.endDateTo?.toISOString(),
-		search: (query as LeaseQueryDto & { search?: string }).search,
-		limit: query.limit,
-		offset: query.offset
-	}
-	return this.leasesService.getByOwner(user.id, options)
+			status: query.status,
+			unitId: query.unitId,
+			tenantId: query.tenantId,
+			startDateFrom: query.startDateFrom?.toISOString(),
+			startDateTo: query.startDateTo?.toISOString(),
+			endDateFrom: query.endDateFrom?.toISOString(),
+			endDateTo: query.endDateTo?.toISOString(),
+			search: (query as LeaseQueryDto & { search?: string }).search,
+			limit: query.limit,
+			offset: query.offset
+		}
+		return this.leasesService.getByOwner(user.id, options)
 	}
 
 	@Get('stats')
@@ -112,18 +112,18 @@ export class LeasesController {
 		@Query() query: LeaseQueryDto
 	): Promise<Lease[]> {
 		const options = {
-		status: query.status,
-		unitId: query.unitId,
-		tenantId: query.tenantId,
-		startDateFrom: query.startDateFrom?.toISOString(),
-		startDateTo: query.startDateTo?.toISOString(),
-		endDateFrom: query.endDateFrom?.toISOString(),
-		endDateTo: query.endDateTo?.toISOString(),
-		search: (query as LeaseQueryDto & { search?: string }).search,
-		limit: query.limit,
-		offset: query.offset
-	}
-	return this.leasesService.getByUnit(unitId, user.id, options)
+			status: query.status,
+			unitId: query.unitId,
+			tenantId: query.tenantId,
+			startDateFrom: query.startDateFrom?.toISOString(),
+			startDateTo: query.startDateTo?.toISOString(),
+			endDateFrom: query.endDateFrom?.toISOString(),
+			endDateTo: query.endDateTo?.toISOString(),
+			search: (query as LeaseQueryDto & { search?: string }).search,
+			limit: query.limit,
+			offset: query.offset
+		}
+		return this.leasesService.getByUnit(unitId, user.id, options)
 	}
 
 	@Get('by-tenant/:tenantId')
@@ -140,18 +140,18 @@ export class LeasesController {
 		@Query() query: LeaseQueryDto
 	): Promise<Lease[]> {
 		const options = {
-		status: query.status,
-		unitId: query.unitId,
-		tenantId: query.tenantId,
-		startDateFrom: query.startDateFrom?.toISOString(),
-		startDateTo: query.startDateTo?.toISOString(),
-		endDateFrom: query.endDateFrom?.toISOString(),
-		endDateTo: query.endDateTo?.toISOString(),
-		search: (query as LeaseQueryDto & { search?: string }).search,
-		limit: query.limit,
-		offset: query.offset
-	}
-	return this.leasesService.getByTenant(tenantId, user.id, options)
+			status: query.status,
+			unitId: query.unitId,
+			tenantId: query.tenantId,
+			startDateFrom: query.startDateFrom?.toISOString(),
+			startDateTo: query.startDateTo?.toISOString(),
+			endDateFrom: query.endDateFrom?.toISOString(),
+			endDateTo: query.endDateTo?.toISOString(),
+			search: (query as LeaseQueryDto & { search?: string }).search,
+			limit: query.limit,
+			offset: query.offset
+		}
+		return this.leasesService.getByTenant(tenantId, user.id, options)
 	}
 
 	@Get(':id')

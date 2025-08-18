@@ -13,10 +13,14 @@ const customJestConfig = {
 		// Handle module aliases (this will be automatically configured for you based on your tsconfig.json paths)
 		'^@/(.*)$': '<rootDir>/src/$1',
 		// Handle shared package subdirectory imports
-		'^@repo/shared/validation$': '<rootDir>/../../packages/shared/src/validation/index',
-		'^@repo/shared/validation/(.*)$': '<rootDir>/../../packages/shared/src/validation/$1',
-		'^@repo/shared/config/(.*)$': '<rootDir>/../../packages/shared/src/config/$1',
-		'^@repo/shared/config$': '<rootDir>/../../packages/shared/src/config/index',
+		'^@repo/shared/validation$':
+			'<rootDir>/../../packages/shared/src/validation/index',
+		'^@repo/shared/validation/(.*)$':
+			'<rootDir>/../../packages/shared/src/validation/$1',
+		'^@repo/shared/config/(.*)$':
+			'<rootDir>/../../packages/shared/src/config/$1',
+		'^@repo/shared/config$':
+			'<rootDir>/../../packages/shared/src/config/index',
 		'^@repo/shared/(.*)$': '<rootDir>/../../packages/shared/src/$1',
 		'^@repo/(.*)$': '<rootDir>/../../packages/$1/src'
 	},

@@ -7,10 +7,7 @@
 
 import { apiClient } from '@/lib/api-client'
 import { logger } from '@/lib/logger'
-import type {
-	Tenant,
-	TenantQuery
-} from '@repo/shared'
+import type { Tenant, TenantQuery } from '@repo/shared'
 import type { TenantRepository } from '../interfaces'
 import { DomainError } from '@repo/shared'
 
@@ -29,7 +26,8 @@ export class ApiTenantRepository implements TenantRepository {
 				'Failed to find tenant by ID:',
 				error instanceof Error ? error : new Error(String(error)),
 				{
-					component: 'repositories_implementations_tenant.repository.ts'
+					component:
+						'repositories_implementations_tenant.repository.ts'
 				}
 			)
 			return null
@@ -103,7 +101,8 @@ export class ApiTenantRepository implements TenantRepository {
 				'Failed to fetch tenants:',
 				error instanceof Error ? error : new Error(String(error)),
 				{
-					component: 'repositories_implementations_tenant.repository.ts'
+					component:
+						'repositories_implementations_tenant.repository.ts'
 				}
 			)
 			return []
@@ -131,7 +130,8 @@ export class ApiTenantRepository implements TenantRepository {
 				'Failed to count tenants:',
 				error instanceof Error ? error : new Error(String(error)),
 				{
-					component: 'repositories_implementations_tenant.repository.ts'
+					component:
+						'repositories_implementations_tenant.repository.ts'
 				}
 			)
 			return 0
@@ -144,7 +144,9 @@ export class ApiTenantRepository implements TenantRepository {
 
 	async findByEmail(email: string): Promise<Tenant | null> {
 		try {
-			const response = await apiClient.get<Tenant>(`/tenants/email/${email}`)
+			const response = await apiClient.get<Tenant>(
+				`/tenants/email/${email}`
+			)
 
 			if (!response.success) {
 				return null
@@ -156,7 +158,8 @@ export class ApiTenantRepository implements TenantRepository {
 				'Failed to find tenant by email:',
 				error instanceof Error ? error : new Error(String(error)),
 				{
-					component: 'repositories_implementations_tenant.repository.ts'
+					component:
+						'repositories_implementations_tenant.repository.ts'
 				}
 			)
 			return null
@@ -165,7 +168,9 @@ export class ApiTenantRepository implements TenantRepository {
 
 	async findWithActiveLeases(id: string): Promise<Tenant | null> {
 		try {
-			const response = await apiClient.get<Tenant>(`/tenants/${id}/active-leases`)
+			const response = await apiClient.get<Tenant>(
+				`/tenants/${id}/active-leases`
+			)
 
 			if (!response.success) {
 				return null
@@ -177,7 +182,8 @@ export class ApiTenantRepository implements TenantRepository {
 				'Failed to find tenant with active leases:',
 				error instanceof Error ? error : new Error(String(error)),
 				{
-					component: 'repositories_implementations_tenant.repository.ts'
+					component:
+						'repositories_implementations_tenant.repository.ts'
 				}
 			)
 			return null
@@ -200,7 +206,8 @@ export class ApiTenantRepository implements TenantRepository {
 				'Failed to find expiring tenants:',
 				error instanceof Error ? error : new Error(String(error)),
 				{
-					component: 'repositories_implementations_tenant.repository.ts'
+					component:
+						'repositories_implementations_tenant.repository.ts'
 				}
 			)
 			return []

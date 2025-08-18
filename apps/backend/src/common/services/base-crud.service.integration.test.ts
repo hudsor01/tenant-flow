@@ -303,11 +303,9 @@ describe('BaseCrudService Integration Test', () => {
 				{
 					provide: ErrorHandlerService,
 					useValue: {
-						handleError: jest
-							.fn()
-							.mockImplementation(error => {
-								throw error
-							})
+						handleError: jest.fn().mockImplementation(error => {
+							throw error
+						})
 					}
 				}
 			]

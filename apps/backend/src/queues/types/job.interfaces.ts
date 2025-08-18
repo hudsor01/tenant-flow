@@ -28,6 +28,7 @@ export interface PaymentJobData extends BaseJobData {
 	customerId: string
 	idempotencyKey?: string
 	retryAttempt?: number
+	refundReason?: string
 }
 
 /**
@@ -36,11 +37,19 @@ export interface PaymentJobData extends BaseJobData {
  */
 export interface MaintenanceJobData extends BaseJobData {
 	requestId: string
+	maintenanceId?: string
 	action: 'created' | 'updated' | 'assigned' | 'completed'
 	propertyId?: string
 	unitId?: string
 	priority?: 'low' | 'medium' | 'high' | 'emergency'
 	assignedTo?: string
+	propertyManagerEmail?: string
+	propertyAddress?: string
+	tenantName?: string
+	tenantId?: string
+	tenantEmail?: string
+	description?: string
+	status?: string
 }
 
 /**
@@ -76,6 +85,7 @@ export interface ReportJobData extends BaseJobData {
  * For future webhook retry system
  */
 export interface WebhookJobData extends BaseJobData {
+	id?: string
 	url: string
 	payload: Record<string, unknown>
 	headers: Record<string, string>
