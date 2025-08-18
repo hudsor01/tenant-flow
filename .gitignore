@@ -455,7 +455,7 @@ packages/database/src/generated/
 # Uploads (user data)
 uploads/
 avatars/
-documents/
+/documents/
 temp/
 
 # Deployment
