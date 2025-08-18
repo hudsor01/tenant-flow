@@ -12,8 +12,10 @@
 		"types": ["node", "reflect-metadata"],
 		"skipLibCheck": true,
 		"isolatedModules": false,
-		"moduleResolution": "bundler",
-		"module": "ESNext"
+		"paths": {
+			"@repo/shared": ["../../packages/shared/dist/cjs"],
+			"@repo/shared/*": ["../../packages/shared/dist/cjs/*"]
+		}
 	},
 	"include": ["src", "src/types/fastify.d.ts", "test/setup.ts"],
 	"exclude": [
