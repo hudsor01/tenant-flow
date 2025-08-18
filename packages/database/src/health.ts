@@ -1,5 +1,17 @@
 import { createClient } from '@supabase/supabase-js'
-import type { Database } from '@repo/shared/types/supabase-generated'
+
+// Local type definition to avoid circular dependency
+type Database = {
+	public: {
+		Tables: {
+			User: {
+				Row: { id: string }
+				Insert: { id?: string }
+				Update: { id?: string }
+			}
+		}
+	}
+}
 
 /**
  * Result type for database health check

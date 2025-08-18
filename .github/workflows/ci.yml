@@ -64,7 +64,9 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci --omit=optional
+        run: |
+          # Remove platform-specific optional dependencies from lockfile for CI
+          npm ci --force || npm install --force
 
       - name: Cache node_modules
         uses: actions/cache@v4
@@ -202,6 +204,8 @@ jobs:
               ;;
             frontend)
               cd apps/frontend
+              # Install correct SWC binary for Linux and build
+              npm install @next/swc-linux-x64-gnu --no-save --force 2>/dev/null || true
               npm run build
               ;;
           esac

@@ -13,7 +13,10 @@ export class EmailIntegrationService implements OnModuleInit {
 	constructor(private readonly queueService: EmailQueueService) {}
 
 	async onModuleInit() {
-		this.logger.log('Email integration service initialized')
+		// Non-blocking initialization
+		setImmediate(() => {
+			this.logger.log('Email integration service initialized')
+		})
 	}
 
 	/**
