@@ -83,10 +83,7 @@ export class TenantsController {
 	@ApiResponse({ status: 200, description: 'Tenant retrieved successfully' })
 	@ApiResponse({ status: 404, description: 'Tenant not found' })
 	@ZodParam(uuidSchema)
-	async findOne(
-		@Param('id') id: string,
-		@CurrentUser() user: ValidatedUser
-	) {
+	async findOne(@Param('id') id: string, @CurrentUser() user: ValidatedUser) {
 		const tenant = await this.tenantsService.findById(id, user.id)
 		return { ...tenant, invitationStatus: 'ACCEPTED' }
 	}

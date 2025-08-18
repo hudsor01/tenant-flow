@@ -246,7 +246,13 @@ export class DocumentsService {
 		userId?: string,
 		userToken?: string
 	): Promise<DocumentWithRelations[]> {
-		return this.findByProperty(propertyId, ownerId, options, userId, userToken)
+		return this.findByProperty(
+			propertyId,
+			ownerId,
+			options,
+			userId,
+			userToken
+		)
 	}
 
 	/**

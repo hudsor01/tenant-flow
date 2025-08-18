@@ -1,13 +1,14 @@
 // Mock headers BEFORE any imports
 jest.mock('next/headers', () => ({
-	headers: jest.fn(() => Promise.resolve({
-		get: jest.fn((header: string) => {
-			if (header === 'x-forwarded-for') return '192.168.1.1'
-			return null
+	headers: jest.fn(() =>
+		Promise.resolve({
+			get: jest.fn((header: string) => {
+				if (header === 'x-forwarded-for') return '192.168.1.1'
+				return null
+			})
 		})
-	}))
+	)
 }))
-
 
 import {
 	loginRateLimiter,

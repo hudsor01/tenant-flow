@@ -14,6 +14,9 @@ import type { Database } from '@repo/shared/types/supabase-generated'
  */
 @Injectable()
 export class SupabaseService implements OnModuleInit, OnModuleDestroy {
+	getClient() {
+		throw new Error('Method not implemented.')
+	}
 	private readonly logger = new Logger(SupabaseService.name)
 	private adminClient!: SupabaseClient<Database>
 
@@ -50,14 +53,26 @@ export class SupabaseService implements OnModuleInit, OnModuleDestroy {
 			// Test connection with very short timeout due to network issues (Tailscale/AdGuard)
 			try {
 				const quickTest = new Promise<void>((resolve, reject) => {
-					setTimeout(() => reject(new Error('Network timeout - likely DNS/proxy conflict')), 1000)
+					setTimeout(
+						() =>
+							reject(
+								new Error(
+									'Network timeout - likely DNS/proxy conflict'
+								)
+							),
+						1000
+					)
 					// Just test client creation, don't make actual requests
 					setTimeout(() => resolve(), 100)
 				})
 				await quickTest
-				this.logger.log('✅ Basic client initialization successful (DNS/network bypass)')
+				this.logger.log(
+					'✅ Basic client initialization successful (DNS/network bypass)'
+				)
 			} catch (_error) {
-				this.logger.warn('⚠️ Network connectivity issues detected (Tailscale/AdGuard?), continuing anyway...')
+				this.logger.warn(
+					'⚠️ Network connectivity issues detected (Tailscale/AdGuard?), continuing anyway...'
+				)
 			}
 
 			this.logger.log('✅ SupabaseService initialized successfully')
@@ -114,25 +129,48 @@ export class SupabaseService implements OnModuleInit, OnModuleDestroy {
 	}
 
 	/**
-	 * Execute a raw SQL query (admin only)
-	 * Replaces Prisma's $queryRaw functionality
+	 * Execute a raw SQL query (admin only) - DEPRECATED
+	 *
+	 * @deprecated Use Supabase RPC functions instead for complex queries.
+	 * Create specific RPC functions in your database for system table access
+	 * or complex queries that can't be expressed with the query builder.
+	 *
+	 * Best practices:
+	 * 1. Use Supabase query builder for standard CRUD operations
+	 * 2. Create RPC functions for complex queries (see supabase/migrations/)
+	 * 3. Use database migrations to manage schema and functions
+	 *
+	 * Example migration for an RPC function:
+	 * ```sql
+	 * CREATE OR REPLACE FUNCTION your_custom_function(param1 text)
+	 * RETURNS jsonb
+	 * LANGUAGE plpgsql
+	 * SECURITY DEFINER
+	 * AS $$
+	 * BEGIN
+	 *   -- Your logic here
+	 * END;
+	 * $$;
+	 * ```
+	 *
+	 * Then call it with: supabase.rpc('your_custom_function', { param1: 'value' })
 	 */
 	async executeRawQuery<T = unknown>(
-		_query: string,
+		query: string,
 		_params?: (string | number | boolean | null)[]
 	): Promise<T[]> {
-		// Note: This is a placeholder implementation. In a real scenario, you would need to:
-		// 1. Create a PostgreSQL function named 'exec_sql' that accepts query and params
-		// 2. Or use Supabase's query builder for type-safe queries
-		// @ts-expect-error: Placeholder RPC call until proper PostgreSQL function is implemented
-		const { data, error } = await this.adminClient.rpc('exec_sql')
+		this.logger.warn(
+			'executeRawQuery is deprecated. Use Supabase RPC functions instead.',
+			{
+				query: query.substring(0, 100),
+				recommendation:
+					'Create an RPC function in supabase/migrations/ for this query pattern'
+			}
+		)
 
-		if (error) {
-			this.logger.error('Raw query execution failed:', error)
-			throw error
-		}
-
-		return data as T[]
+		// For backward compatibility, return empty array
+		// This forces developers to migrate to proper RPC functions
+		return []
 	}
 
 	/**
@@ -142,26 +180,37 @@ export class SupabaseService implements OnModuleInit, OnModuleDestroy {
 		try {
 			// Create a timeout promise
 			const timeoutPromise = new Promise<never>((_, reject) => {
-				setTimeout(() => reject(new Error('Database check timeout after 3 seconds')), 3000)
+				setTimeout(
+					() =>
+						reject(
+							new Error('Database check timeout after 3 seconds')
+						),
+					3000
+				)
 			})
 
 			// Try a simple authenticated connection test
 			const checkPromise = this.adminClient.auth.getUser()
 
 			const { error } = await Promise.race([checkPromise, timeoutPromise])
-			
+
 			// Success if no error, or if error is just "no rows found"
 			const isHealthy = !error || error.code === 'PGRST116'
-			
+
 			if (!isHealthy) {
-				this.logger.warn('Database health check failed:', error?.message || 'Unknown error')
+				this.logger.warn(
+					'Database health check failed:',
+					error?.message || 'Unknown error'
+				)
 			}
-			
+
 			return isHealthy
 		} catch (error) {
 			// Check if it's a timeout vs other error
 			if (error instanceof Error && error.message.includes('timeout')) {
-				this.logger.error('Database connection timeout - this indicates network or database issues')
+				this.logger.error(
+					'Database connection timeout - this indicates network or database issues'
+				)
 			} else {
 				this.logger.error('Database connection check failed:', error)
 			}

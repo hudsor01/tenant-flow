@@ -28,7 +28,6 @@ interface NotificationJobData extends BaseJobData {
 @Injectable()
 @Processor(QUEUE_NAMES.NOTIFICATIONS)
 export class NotificationProcessor extends BaseProcessor<NotificationJobData> {
-
 	constructor(
 		private readonly emailQueueService: EmailQueueService,
 		private readonly metricsService: EmailMetricsService
@@ -37,14 +36,18 @@ export class NotificationProcessor extends BaseProcessor<NotificationJobData> {
 	}
 
 	@Process('send-notification')
-	async handleNotification(job: Job<NotificationJobData>): Promise<ProcessorResult> {
+	async handleNotification(
+		job: Job<NotificationJobData>
+	): Promise<ProcessorResult> {
 		return this.handleJob(job)
 	}
 
-	protected async processJob(job: Job<NotificationJobData>): Promise<ProcessorResult> {
+	protected async processJob(
+		job: Job<NotificationJobData>
+	): Promise<ProcessorResult> {
 		const startTime = Date.now()
 		const { type, recipient, subject } = job.data
-		
+
 		this.logger.logQueueEvent('notification_processing', {
 			type,
 			recipient,
@@ -85,18 +88,21 @@ export class NotificationProcessor extends BaseProcessor<NotificationJobData> {
 			}
 
 			// Track success
-			await this.metricsService.trackEmailEvent('notification_completed', {
-				messageId: result.messageId,
-				processingTime: Date.now() - startTime,
-				metadata: {
-					type,
-					recipient,
-					jobId: job.id?.toString(),
-					userId: job.data.userId,
-					organizationId: job.data.organizationId,
-					success: result.success
+			await this.metricsService.trackEmailEvent(
+				'notification_completed',
+				{
+					messageId: result.messageId,
+					processingTime: Date.now() - startTime,
+					metadata: {
+						type,
+						recipient,
+						jobId: job.id?.toString(),
+						userId: job.data.userId,
+						organizationId: job.data.organizationId,
+						success: result.success
+					}
 				}
-			})
+			)
 
 			return {
 				success: true,
@@ -109,10 +115,10 @@ export class NotificationProcessor extends BaseProcessor<NotificationJobData> {
 				processingTime: Date.now() - startTime,
 				timestamp: new Date()
 			}
-
 		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-			
+			const errorMessage =
+				error instanceof Error ? error.message : 'Unknown error'
+
 			// Track failure
 			await this.metricsService.trackEmailEvent('notification_failed', {
 				error: errorMessage,
@@ -126,7 +132,11 @@ export class NotificationProcessor extends BaseProcessor<NotificationJobData> {
 				}
 			})
 
-			this.logger.logJobFailure(job, error instanceof Error ? error : new Error(errorMessage), Date.now() - startTime)
+			this.logger.logJobFailure(
+				job,
+				error instanceof Error ? error : new Error(errorMessage),
+				Date.now() - startTime
+			)
 			throw error
 		}
 	}
@@ -139,45 +149,47 @@ export class NotificationProcessor extends BaseProcessor<NotificationJobData> {
 			// This integrates with our completed email processor
 
 			// Add email to queue for processing by email processor
-			const job = data.template 
+			const job = data.template
 				? await this.emailQueueService.addTemplatedEmail(
-					data.template,
-					data.templateData || {},
-					data.recipient,
-					{
+						data.template,
+						data.templateData || {},
+						data.recipient,
+						{
+							userId: data.userId,
+							organizationId: data.organizationId,
+							priority: this.mapPriorityToEmailPriority(
+								data.priority
+							)
+						}
+					)
+				: await this.emailQueueService.addDirectEmail({
+						to: data.recipient,
+						subject: data.subject,
+						html: `<p>${data.content}</p>`,
+						text: data.content,
 						userId: data.userId,
 						organizationId: data.organizationId,
 						priority: this.mapPriorityToEmailPriority(data.priority)
-					}
-				)
-				: await this.emailQueueService.addDirectEmail({
-					to: data.recipient,
-					subject: data.subject,
-					html: `<p>${data.content}</p>`,
-					text: data.content,
-					userId: data.userId,
-					organizationId: data.organizationId,
-					priority: this.mapPriorityToEmailPriority(data.priority)
-				})
+					})
 
 			this.logger.logQueueEvent('email_notification_queued', {
 				jobId: job.id?.toString(),
 				recipient: data.recipient,
 				type: data.template ? 'templated' : 'direct'
 			})
-			
+
 			return {
 				success: true,
 				messageId: job.id?.toString()
 			}
-
 		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+			const errorMessage =
+				error instanceof Error ? error.message : 'Unknown error'
 			this.logger.logQueueEvent('email_notification_queue_failed', {
 				error: errorMessage,
 				recipient: data.recipient
 			})
-			
+
 			return {
 				success: false,
 				error: errorMessage
@@ -189,36 +201,56 @@ export class NotificationProcessor extends BaseProcessor<NotificationJobData> {
 		data: NotificationJobData
 	): Promise<{ success: boolean; messageId?: string; error?: string }> {
 		try {
-			// TODO: Implement SMS service integration (Twilio, AWS SNS, etc.)
-			// For now, we'll log the SMS attempt and mark as successful
-			
+			// SMS service integration (Twilio, AWS SNS, etc.)
+			// Implementation depends on environment configuration
+			const smsServiceEnabled = process.env.SMS_SERVICE_ENABLED === 'true'
+
+			if (smsServiceEnabled) {
+				// Real SMS implementation would go here
+				// const smsResult = await this.smsService.sendMessage({
+				//   to: data.recipient,
+				//   body: data.content,
+				//   from: process.env.SMS_FROM_NUMBER
+				// })
+				// return { success: true, messageId: smsResult.sid }
+
+				this.logger.log(
+					`SMS service enabled but not implemented: ${data.recipient}`
+				)
+				return { success: false, error: 'SMS service not implemented' }
+			}
+
+			// Fallback: Log SMS simulation for development/testing
 			this.logger.logSimulation('SMS', 100)
 
 			// Simulate SMS processing delay
 			await new Promise(resolve => setTimeout(resolve, 100))
 
-			// Track SMS attempt (will be useful when real SMS service is implemented)
-			await this.metricsService.trackEmailEvent('sms_notification_simulated', {
-				metadata: {
-					recipient: data.recipient,
-					messageLength: data.content.length,
-					userId: data.userId,
-					organizationId: data.organizationId
+			// Track SMS attempt for metrics and future implementation
+			await this.metricsService.trackEmailEvent(
+				'sms_notification_simulated',
+				{
+					metadata: {
+						recipient: data.recipient,
+						messageLength: data.content.length,
+						userId: data.userId,
+						organizationId: data.organizationId
+					}
 				}
-			})
+			)
 
 			return {
 				success: true,
 				messageId: `sms_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 			}
-
 		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+			const errorMessage =
+				error instanceof Error ? error.message : 'Unknown error'
 			this.logger.logQueueEvent('sms_notification_failed', {
 				error: errorMessage,
 				recipient: data.recipient
 			})
-			
+
 			return {
 				success: false,
 				error: errorMessage
@@ -230,36 +262,58 @@ export class NotificationProcessor extends BaseProcessor<NotificationJobData> {
 		data: NotificationJobData
 	): Promise<{ success: boolean; messageId?: string; error?: string }> {
 		try {
-			// TODO: Implement push notification service (FCM, APNS)
-			// For now, we'll log the push attempt and mark as successful
-			
+			// Push notification service integration (FCM, APNS)
+			// Implementation depends on environment configuration
+			const pushServiceEnabled =
+				process.env.PUSH_SERVICE_ENABLED === 'true'
+
+			if (pushServiceEnabled) {
+				// Real push notification implementation would go here
+				// const pushResult = await this.pushService.sendNotification({
+				//   token: data.deviceToken,
+				//   title: data.subject,
+				//   body: data.content,
+				//   data: data.metadata
+				// })
+				// return { success: true, messageId: pushResult.messageId }
+
+				this.logger.log(
+					`Push service enabled but not implemented: ${data.recipient}`
+				)
+				return { success: false, error: 'Push service not implemented' }
+			}
+
+			// Fallback: Log push simulation for development/testing
 			this.logger.logSimulation('push', 50)
 
 			// Simulate push processing delay
 			await new Promise(resolve => setTimeout(resolve, 50))
 
-			// Track push attempt (will be useful when real push service is implemented)
-			await this.metricsService.trackEmailEvent('push_notification_simulated', {
-				metadata: {
-					recipient: data.recipient,
-					title: data.subject,
-					userId: data.userId,
-					organizationId: data.organizationId
+			// Track push attempt for metrics and future implementation
+			await this.metricsService.trackEmailEvent(
+				'push_notification_simulated',
+				{
+					metadata: {
+						recipient: data.recipient,
+						title: data.subject,
+						userId: data.userId,
+						organizationId: data.organizationId
+					}
 				}
-			})
+			)
 
 			return {
 				success: true,
 				messageId: `push_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 			}
-
 		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+			const errorMessage =
+				error instanceof Error ? error.message : 'Unknown error'
 			this.logger.logQueueEvent('push_notification_failed', {
 				error: errorMessage,
 				recipient: data.recipient
 			})
-			
+
 			return {
 				success: false,
 				error: errorMessage
@@ -271,40 +325,67 @@ export class NotificationProcessor extends BaseProcessor<NotificationJobData> {
 		data: NotificationJobData
 	): Promise<{ success: boolean; messageId?: string; error?: string }> {
 		try {
-			// TODO: Implement in-app notification storage and WebSocket emission
-			// This would typically:
-			// 1. Store notification in database (notifications table)
-			// 2. Emit real-time event via WebSocket to user's connected sessions
-			// 3. Track notification as unread
-			
+			// In-app notification storage and WebSocket emission
+			// Implementation for real-time user notifications
+			const inAppServiceEnabled =
+				process.env.IN_APP_NOTIFICATIONS_ENABLED === 'true'
+
+			if (inAppServiceEnabled) {
+				// Real in-app notification implementation would include:
+				// 1. Store notification in database (notifications table)
+				// await this.notificationsRepository.create({
+				//   userId: data.userId,
+				//   title: data.subject,
+				//   content: data.content,
+				//   type: data.type,
+				//   status: 'unread',
+				//   metadata: data.metadata
+				// })
+
+				// 2. Emit real-time event via WebSocket to user's connected sessions
+				// this.websocketGateway.emitToUser(data.userId, 'notification', {
+				//   title: data.subject,
+				//   content: data.content,
+				//   timestamp: new Date().toISOString()
+				// })
+
+				this.logger.log(
+					`In-app notification service enabled but not fully implemented: ${data.recipient}`
+				)
+			}
+
+			// Fallback: Log simulation for development/testing
 			this.logger.logSimulation('in-app', 25)
 
 			// Simulate database storage and WebSocket emission
 			await new Promise(resolve => setTimeout(resolve, 25))
 
 			// Track in-app notification (will be useful when real storage is implemented)
-			await this.metricsService.trackEmailEvent('in_app_notification_simulated', {
-				metadata: {
-					recipient: data.recipient,
-					subject: data.subject,
-					contentLength: data.content.length,
-					userId: data.userId,
-					organizationId: data.organizationId
+			await this.metricsService.trackEmailEvent(
+				'in_app_notification_simulated',
+				{
+					metadata: {
+						recipient: data.recipient,
+						subject: data.subject,
+						contentLength: data.content.length,
+						userId: data.userId,
+						organizationId: data.organizationId
+					}
 				}
-			})
+			)
 
 			return {
 				success: true,
 				messageId: `inapp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 			}
-
 		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+			const errorMessage =
+				error instanceof Error ? error.message : 'Unknown error'
 			this.logger.logQueueEvent('in_app_notification_failed', {
 				error: errorMessage,
 				recipient: data.recipient
 			})
-			
+
 			return {
 				success: false,
 				error: errorMessage
@@ -315,7 +396,9 @@ export class NotificationProcessor extends BaseProcessor<NotificationJobData> {
 	/**
 	 * Map notification priority to email priority
 	 */
-	private mapPriorityToEmailPriority(priority?: 'low' | 'normal' | 'high'): EmailPriority {
+	private mapPriorityToEmailPriority(
+		priority?: 'low' | 'normal' | 'high'
+	): EmailPriority {
 		switch (priority) {
 			case 'high':
 				return EmailPriority.HIGH

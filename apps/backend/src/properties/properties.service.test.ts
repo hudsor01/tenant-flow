@@ -138,14 +138,11 @@ describe('PropertiesService - Simplified Tests', () => {
 				propertiesService.getPropertiesByOwner('owner-123')
 			).rejects.toThrow('Database connection failed')
 
-			expect(errorHandler.handleError).toHaveBeenCalledWith(
-				error,
-				{
-					operation: 'getByOwner',
-					resource: 'property',
-					metadata: { ownerId: 'owner-123' }
-				}
-			)
+			expect(errorHandler.handleError).toHaveBeenCalledWith(error, {
+				operation: 'getByOwner',
+				resource: 'property',
+				metadata: { ownerId: 'owner-123' }
+			})
 		})
 	})
 
@@ -171,14 +168,11 @@ describe('PropertiesService - Simplified Tests', () => {
 				propertiesService.getPropertyStats('owner-123')
 			).rejects.toThrow('Stats query failed')
 
-			expect(errorHandler.handleError).toHaveBeenCalledWith(
-				error,
-				{
-					operation: 'getStats',
-					resource: 'property',
-					metadata: { ownerId: 'owner-123' }
-				}
-			)
+			expect(errorHandler.handleError).toHaveBeenCalledWith(error, {
+				operation: 'getStats',
+				resource: 'property',
+				metadata: { ownerId: 'owner-123' }
+			})
 		})
 	})
 
@@ -223,14 +217,11 @@ describe('PropertiesService - Simplified Tests', () => {
 				propertiesService.getPropertyById('prop-123', 'owner-123')
 			).rejects.toThrow('Query failed')
 
-			expect(errorHandler.handleError).toHaveBeenCalledWith(
-				error,
-				{
-					operation: 'getByIdOrThrow',
-					resource: 'property',
-					metadata: { id: 'prop-123', ownerId: 'owner-123' }
-				}
-			)
+			expect(errorHandler.handleError).toHaveBeenCalledWith(error, {
+				operation: 'getByIdOrThrow',
+				resource: 'property',
+				metadata: { id: 'prop-123', ownerId: 'owner-123' }
+			})
 		})
 	})
 
@@ -308,17 +299,14 @@ describe('PropertiesService - Simplified Tests', () => {
 				propertiesService.createProperty(mockPropertyData, 'owner-123')
 			).rejects.toThrow('Creation failed')
 
-			expect(errorHandler.handleError).toHaveBeenCalledWith(
-				error,
-				{
-					operation: 'create',
-					resource: 'property',
-					metadata: {
-						ownerId: 'owner-123',
-						propertyName: 'New Property'
-					}
+			expect(errorHandler.handleError).toHaveBeenCalledWith(error, {
+				operation: 'create',
+				resource: 'property',
+				metadata: {
+					ownerId: 'owner-123',
+					propertyName: 'New Property'
 				}
-			)
+			})
 		})
 	})
 
@@ -394,14 +382,11 @@ describe('PropertiesService - Simplified Tests', () => {
 				)
 			).rejects.toThrow('Update failed')
 
-			expect(errorHandler.handleError).toHaveBeenCalledWith(
-				error,
-				{
-					operation: 'update',
-					resource: 'property',
-					metadata: { id: 'prop-123', ownerId: 'owner-123' }
-				}
-			)
+			expect(errorHandler.handleError).toHaveBeenCalledWith(error, {
+				operation: 'update',
+				resource: 'property',
+				metadata: { id: 'prop-123', ownerId: 'owner-123' }
+			})
 		})
 	})
 
@@ -464,14 +449,11 @@ describe('PropertiesService - Simplified Tests', () => {
 				propertiesService.deleteProperty('prop-123', 'owner-123')
 			).rejects.toThrow('Deletion failed')
 
-			expect(errorHandler.handleError).toHaveBeenCalledWith(
-				error,
-				{
-					operation: 'delete',
-					resource: 'property',
-					metadata: { id: 'prop-123', ownerId: 'owner-123' }
-				}
-			)
+			expect(errorHandler.handleError).toHaveBeenCalledWith(error, {
+				operation: 'delete',
+				resource: 'property',
+				metadata: { id: 'prop-123', ownerId: 'owner-123' }
+			})
 		})
 	})
 

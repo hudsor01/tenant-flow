@@ -12,7 +12,10 @@ import Stripe from 'stripe'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { StripeBillingService } from '../stripe/stripe-billing.service'
 import { StripeService } from '../stripe/stripe.service'
-import { type Subscription, SubscriptionsManagerService } from '../subscriptions/subscriptions-manager.service'
+import {
+	type Subscription,
+	SubscriptionsManagerService
+} from '../subscriptions/subscriptions-manager.service'
 import {
 	ErrorCode,
 	ErrorHandlerService
@@ -20,10 +23,10 @@ import {
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 import type { PlanType } from '@repo/shared'
 import {
-CreateCheckoutSessionDto,
-CreatePortalSessionDto,
-PreviewSubscriptionUpdateDto,
-UpdatePaymentMethodDto
+	CreateCheckoutSessionDto,
+	CreatePortalSessionDto,
+	PreviewSubscriptionUpdateDto,
+	UpdatePaymentMethodDto
 } from './dto'
 
 // @DetectCircular('BillingController')
@@ -74,9 +77,10 @@ export class BillingController {
 	) {
 		try {
 			// Check if user already has an active subscription
-const existingSubscription = (await this.subscriptionsService.getSubscription(
-user.id
-)) as Subscription
+			const existingSubscription =
+				(await this.subscriptionsService.getSubscription(
+					user.id
+				)) as Subscription
 			if (
 				existingSubscription &&
 				['ACTIVE', 'TRIALING'].includes(existingSubscription.status)
@@ -167,13 +171,16 @@ user.id
 		@Body() _dto: CreatePortalSessionDto
 	) {
 		try {
-const subscription = await this.subscriptionsService.getSubscription(user.id) as Subscription
-if (!subscription || !subscription.stripeCustomerId) {
-throw this.errorHandler.createNotFoundError(
-'Subscription',
-user.id
-)
-}
+			const subscription =
+				(await this.subscriptionsService.getSubscription(
+					user.id
+				)) as Subscription
+			if (!subscription || !subscription.stripeCustomerId) {
+				throw this.errorHandler.createNotFoundError(
+					'Subscription',
+					user.id
+				)
+			}
 
 			// Create portal session using StripeBillingService
 			const session =
@@ -215,8 +222,10 @@ user.id
 		@Body() dto: PreviewSubscriptionUpdateDto
 	) {
 		try {
-const subscription =
-await this.subscriptionsService.getSubscription(user.id) as Subscription
+			const subscription =
+				(await this.subscriptionsService.getSubscription(
+					user.id
+				)) as Subscription
 			if (!subscription || !subscription.stripeSubscriptionId) {
 				throw this.errorHandler.createNotFoundError(
 					'Subscription',

@@ -96,8 +96,7 @@ export class SubscriptionsController {
 	 */
 	@Get('plans')
 	async getPlans() {
-		// TODO: Implement getAvailablePlans
-		return [] // this.subscriptionsService.getAvailablePlans()
+		return this.subscriptionsService.getAvailablePlans()
 	}
 
 	/**

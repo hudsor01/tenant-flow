@@ -2161,6 +2161,24 @@ export interface Database {
     }
     Views: Record<string, never>
     Functions: {
+      check_table_rls: {
+        Args: { 
+          table_name: string
+        }
+        Returns: Json
+      }
+      check_tables_rls: {
+        Args: { 
+          table_names: string[]
+        }
+        Returns: Json
+      }
+      get_policies_for_table: {
+        Args: { 
+          table_name: string
+        }
+        Returns: Json
+      }
       execute_stripe_fdw_query: {
         Args: { sql_query: string }
         Returns: Json
