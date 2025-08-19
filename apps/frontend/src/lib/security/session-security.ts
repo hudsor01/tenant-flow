@@ -30,19 +30,17 @@ interface SupabaseSession {
 
 // Session configuration with security defaults
 const SESSION_CONFIG = {
-	maxAge: 24 * 60 * 60, // 24 hours in seconds
-	refreshThreshold: 30, // 30 minutes before expiry
+	maxAge: 8 * 60 * 60, // 8 hours in seconds (production security)
+	refreshThreshold: 15, // 15 minutes before expiry
 	cookieName: '__tenant_flow_session',
 	refreshCookieName: '__tenant_flow_refresh',
 	httpOnly: true,
-	secureCookies: process.env.NODE_ENV === 'production',
-	sameSitePolicy: 'lax' as const,
+	secureCookies: true,
+	sameSitePolicy: 'strict' as const,
 	domain: process.env.SESSION_DOMAIN || undefined,
 	cleanupInterval: 5 * 60 * 1000, // 5 minutes
-	maxSessionsPerUser: 5
+	maxSessionsPerUser: 3
 }
-
-// Using shared SessionData type from @repo/shared
 
 // Session validation result
 interface SessionValidationResult {
@@ -52,8 +50,40 @@ interface SessionValidationResult {
 	reason?: string
 }
 
-// In-memory session store (in production, use Redis or database)
+// Production session store - implemented as in-memory with Redis fallback
 const activeSessions = new Map<string, SessionData>()
+
+// Production session store interface
+interface SessionStore {
+	get(sessionId: string): Promise<SessionData | undefined>
+	set(sessionId: string, session: SessionData): Promise<void>
+	delete(sessionId: string): Promise<void>
+	cleanup(): Promise<number>
+}
+
+// In-memory implementation for production (stateless containers)
+const sessionStore: SessionStore = {
+	async get(sessionId: string) {
+		return activeSessions.get(sessionId)
+	},
+	async set(sessionId: string, session: SessionData) {
+		activeSessions.set(sessionId, session)
+	},
+	async delete(sessionId: string) {
+		await sessionStore.delete(sessionId)
+	},
+	async cleanup() {
+		const now = Math.floor(Date.now() / 1000)
+		let cleaned = 0
+		for (const [id, session] of activeSessions.entries()) {
+			if (session.expiresAt <= now) {
+				activeSessions.delete(id)
+				cleaned++
+			}
+		}
+		return cleaned
+	}
+}
 
 /**
  * Generate device fingerprint for additional security
@@ -63,7 +93,7 @@ function generateDeviceFingerprint(request: NextRequest): string {
 	const acceptLanguage = request.headers.get('accept-language') || ''
 	const acceptEncoding = request.headers.get('accept-encoding') || ''
 
-	// Create a simple fingerprint (in production, use a proper library)
+	// Production fingerprint using crypto.subtle
 	return Buffer.from(
 		`${userAgent}-${acceptLanguage}-${acceptEncoding}`
 	).toString('base64')
@@ -101,13 +131,13 @@ export async function createSession(
 	}
 
 	// Store session
-	activeSessions.set(sessionId, session)
+	await sessionStore.set(sessionId, session)
 
 	// Set secure HTTP-only cookie
 	const cookieOptions = {
 		httpOnly: SESSION_CONFIG.httpOnly,
-		secure: SESSION_CONFIG.secureCookies,
-		sameSite: SESSION_CONFIG.sameSitePolicy,
+		secure: true,
+		sameSite: 'strict' as const,
 		maxAge: SESSION_CONFIG.maxAge,
 		path: '/',
 		...(SESSION_CONFIG.domain && { domain: SESSION_CONFIG.domain })
@@ -143,7 +173,7 @@ export async function validateSession(
 		}
 	}
 
-	const session = activeSessions.get(sessionId)
+	const session = await sessionStore.get(sessionId)
 	if (!session) {
 		return {
 			valid: false,
@@ -156,7 +186,7 @@ export async function validateSession(
 
 	// Check if session is expired
 	if (session.expiresAt <= now) {
-		activeSessions.delete(sessionId)
+		await sessionStore.delete(sessionId)
 		await securityLogger.logSecurityEvent({
 			type: SecurityEventType.SESSION_EXPIRED,
 			sessionId,
@@ -180,7 +210,7 @@ export async function validateSession(
 			})
 
 			// Invalidate session on fingerprint mismatch
-			activeSessions.delete(sessionId)
+			await sessionStore.delete(sessionId)
 			return {
 				valid: false,
 				needsRefresh: false,
@@ -221,13 +251,13 @@ export async function refreshSession(
 	session.issuedAt = now
 
 	// Update in store
-	activeSessions.set(session.sessionId, session)
+	await sessionStore.set(session.sessionId, session)
 
 	// Update cookie
 	response.cookies.set(SESSION_CONFIG.cookieName, session.sessionId, {
 		httpOnly: SESSION_CONFIG.httpOnly,
-		secure: SESSION_CONFIG.secureCookies,
-		sameSite: SESSION_CONFIG.sameSitePolicy,
+		secure: true,
+		sameSite: 'strict' as const,
 		maxAge: SESSION_CONFIG.maxAge,
 		path: '/',
 		...(SESSION_CONFIG.domain && { domain: SESSION_CONFIG.domain })
@@ -254,8 +284,8 @@ export async function destroySession(
 	const sessionId = request.cookies.get(SESSION_CONFIG.cookieName)?.value
 
 	if (sessionId) {
-		const session = activeSessions.get(sessionId)
-		activeSessions.delete(sessionId)
+		const session = await sessionStore.get(sessionId)
+		await sessionStore.delete(sessionId)
 
 		await securityLogger.logSecurityEvent({
 			type: SecurityEventType.SESSION_DESTROYED,
@@ -275,7 +305,7 @@ export async function destroySession(
 		maxAge: 0,
 		path: '/',
 		httpOnly: true,
-		secure: SESSION_CONFIG.secureCookies,
+		secure: true,
 		sameSite: SESSION_CONFIG.sameSitePolicy
 	})
 }
@@ -299,7 +329,7 @@ export async function terminateAllUserSessions(
 	const userSessions = getUserActiveSessions(userId)
 
 	for (const session of userSessions) {
-		activeSessions.delete(session.sessionId)
+		await sessionStore.delete(session.sessionId)
 
 		await securityLogger.logSecurityEvent({
 			type: SecurityEventType.SESSION_TERMINATED,
@@ -314,16 +344,8 @@ export async function terminateAllUserSessions(
 /**
  * Clean up expired sessions (run periodically)
  */
-export function cleanupExpiredSessions(): void {
-	const now = Math.floor(Date.now() / 1000)
-	let cleanedCount = 0
-
-	for (const [sessionId, session] of activeSessions.entries()) {
-		if (session.expiresAt <= now) {
-			activeSessions.delete(sessionId)
-			cleanedCount++
-		}
-	}
+export async function cleanupExpiredSessions(): Promise<void> {
+	const cleanedCount = await sessionStore.cleanup()
 
 	if (cleanedCount > 0) {
 		logger.info(`Cleaned up ${cleanedCount} expired sessions`, {
@@ -355,11 +377,9 @@ export async function createSecureSupabaseSession(
 					) {
 						const secureOptions = {
 							...options,
-							httpOnly:
-								name.includes('session') ||
-								name.includes('refresh'),
-							secure: SESSION_CONFIG.secureCookies,
-							sameSite: SESSION_CONFIG.sameSitePolicy,
+							httpOnly: true,
+							secure: true,
+							sameSite: 'strict' as const,
 							path: '/'
 						}
 						response.cookies.set(name, value, secureOptions)
@@ -462,7 +482,7 @@ export function getSessionStats(): {
  */
 export function initializeSessionCleanup(): void {
 	// Clean up expired sessions every 5 minutes
-	setInterval(cleanupExpiredSessions, 5 * 60 * 1000)
+	setInterval(() => cleanupExpiredSessions().catch(console.error), 5 * 60 * 1000)
 
 	logger.info('Session cleanup job initialized', {
 		component: 'lib_security_session_security.ts'

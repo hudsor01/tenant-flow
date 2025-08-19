@@ -1,579 +1,437 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, BadRequestException, NotFoundException, Scope, Inject, Logger } from '@nestjs/common'
+import { REQUEST } from '@nestjs/core'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@repo/shared/types/supabase-generated'
-import {
-	LeaseQueryOptions,
-	LeaseSupabaseRepository,
-	LeaseWithRelations
-} from './lease-supabase.repository'
-import { ErrorHandlerService } from '../common/errors/error-handler.service'
-import { ValidationException } from '../common/exceptions/base.exception'
-import {
-	InvalidLeaseDatesException,
-	LeaseConflictException
-} from '../common/exceptions/lease.exceptions'
-import { CreateLeaseDto, UpdateLeaseDto } from './dto'
+import { SupabaseService } from '../common/supabase/supabase.service'
+import { CreateLeaseDto, UpdateLeaseDto } from '../common/dto/dto-exports'
 
+type Lease = Database['public']['Tables']['Lease']['Row']
 type LeaseInsert = Database['public']['Tables']['Lease']['Insert']
 type LeaseUpdate = Database['public']['Tables']['Lease']['Update']
+type Unit = Database['public']['Tables']['Unit']['Row']
+type Property = Database['public']['Tables']['Property']['Row']
+type Tenant = Database['public']['Tables']['Tenant']['Row']
+
+export interface LeaseWithRelations extends Lease {
+	Unit?: Unit & {
+		Property?: Property
+	}
+	Tenant?: Tenant
+}
+
+export interface LeaseQueryOptions {
+	status?: string
+	unitId?: string
+	tenantId?: string
+	startDateFrom?: string
+	startDateTo?: string
+	endDateFrom?: string
+	endDateTo?: string
+	search?: string
+	limit?: number
+	offset?: number
+}
 
 /**
- * Leases service using Supabase
- * Handles lease management with property ownership validation through units
+ * Leases service - Direct Supabase implementation following KISS principle
+ * No abstraction layers, no base classes, just simple CRUD operations
  */
-@Injectable()
+@Injectable({ scope: Scope.REQUEST })
 export class LeasesService {
 	private readonly logger = new Logger(LeasesService.name)
+	private readonly supabase: SupabaseClient<Database>
 
 	constructor(
-		private readonly repository: LeaseSupabaseRepository,
-		private readonly errorHandler: ErrorHandlerService
-	) {}
-
-	/**
-	 * Create a new lease with validation
-	 */
-	async create(
-		data: CreateLeaseDto,
-		ownerId: string,
-		userId?: string,
-		userToken?: string
-	): Promise<LeaseWithRelations> {
-		try {
-			// Validate lease dates
-			this.validateLeaseDates(data.startDate, data.endDate)
-
-			const leaseData: LeaseInsert = {
-				unitId: data.unitId,
-				tenantId: data.tenantId,
-				startDate: new Date(data.startDate).toISOString(),
-				endDate: new Date(data.endDate).toISOString(),
-				rentAmount: data.rentAmount,
-				securityDeposit: data.securityDeposit,
-				status: (data.status || 'DRAFT') as LeaseInsert['status'],
-				terms: data.leaseTerms,
-				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString()
-			}
-
-			const lease = await this.repository.createWithValidation(
-				leaseData,
-				ownerId,
-				userId,
-				userToken
-			)
-
-			this.logger.log('Lease created successfully', {
-				leaseId: lease.id,
-				unitId: data.unitId,
-				tenantId: data.tenantId,
-				ownerId
-			})
-
-			return lease
-		} catch (error) {
-			this.logger.error('Failed to create lease:', error)
-
-			// Handle specific lease conflict errors
-			if (
-				error instanceof Error &&
-				error.message.includes('overlapping')
-			) {
-				throw new LeaseConflictException(
-					data.unitId,
-					data.startDate.toString(),
-					data.endDate.toString()
-				)
-			}
-
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'create',
-				resource: 'lease',
-				metadata: {
-					unitId: data.unitId,
-					tenantId: data.tenantId,
-					ownerId
-				}
-			})
-		}
-	}
-
-	/**
-	 * Validate lease dates
-	 */
-	private validateLeaseDates(
-		startDate: string | Date,
-		endDate: string | Date,
-		leaseId?: string
-	): void {
-		const start = new Date(startDate)
-		const end = new Date(endDate)
-
-		if (end <= start) {
-			throw new InvalidLeaseDatesException(
-				leaseId || 'new',
-				startDate.toString(),
-				endDate.toString()
-			)
-		}
-	}
-
-	/**
-	 * Find lease by ID
-	 */
-	async findById(
-		id: string,
-		ownerId: string,
-		userId?: string,
-		userToken?: string
-	): Promise<LeaseWithRelations> {
-		try {
-			const lease = await this.repository.findByIdAndOwner(
-				id,
-				ownerId,
-				true,
-				userId,
-				userToken
-			)
-
-			if (!lease) {
-				throw new Error('Lease not found')
-			}
-
-			return lease
-		} catch (error) {
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'findById',
-				resource: 'lease',
-				metadata: { leaseId: id, ownerId }
-			})
-		}
+		@Inject(REQUEST) private request: any,
+		private supabaseService: SupabaseService
+	) {
+		// Get user-scoped client if token available, otherwise admin client
+		const token = this.request.user?.supabaseToken || 
+			this.request.headers?.authorization?.replace('Bearer ', '')
+		
+		this.supabase = token 
+			? this.supabaseService.getUserClient(token)
+			: this.supabaseService.getAdminClient()
 	}
 
 	/**
 	 * Get all leases for an owner
 	 */
-	async findByOwner(
-		ownerId: string,
-		options: LeaseQueryOptions = {},
-		userId?: string,
-		userToken?: string
-	): Promise<LeaseWithRelations[]> {
-		try {
-			if (
-				!ownerId ||
-				typeof ownerId !== 'string' ||
-				ownerId.trim().length === 0
-			) {
-				throw new ValidationException('Owner ID is required', 'ownerId')
-			}
+	async findAll(ownerId: string, options: LeaseQueryOptions = {}): Promise<LeaseWithRelations[]> {
+		let query = this.supabase
+			.from('Lease')
+			.select(`
+				*,
+				Unit!inner (
+					*,
+					Property!inner (*)
+				),
+				Tenant (*)
+			`)
 
-			return await this.repository.findByOwnerWithDetails(
-				ownerId,
-				options,
-				userId,
-				userToken
-			)
-		} catch (error) {
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'findByOwner',
-				resource: 'lease',
-				metadata: { ownerId }
-			})
+		// Filter by owner through join
+		query = query.eq('Unit.Property.ownerId', ownerId)
+
+		// Apply filters
+		if (options.status) {
+			query = query.eq('status', options.status)
 		}
+		if (options.unitId) {
+			query = query.eq('unitId', options.unitId)
+		}
+		if (options.tenantId) {
+			query = query.eq('tenantId', options.tenantId)
+		}
+		if (options.startDateFrom) {
+			query = query.gte('startDate', options.startDateFrom)
+		}
+		if (options.startDateTo) {
+			query = query.lte('startDate', options.startDateTo)
+		}
+		if (options.endDateFrom) {
+			query = query.gte('endDate', options.endDateFrom)
+		}
+		if (options.endDateTo) {
+			query = query.lte('endDate', options.endDateTo)
+		}
+
+		// Apply search
+		if (options.search) {
+			query = query.or(`
+				Tenant.firstName.ilike.%${options.search}%,
+				Tenant.lastName.ilike.%${options.search}%,
+				Tenant.email.ilike.%${options.search}%,
+				Unit.unitNumber.ilike.%${options.search}%,
+				Unit.Property.name.ilike.%${options.search}%
+			`)
+		}
+
+		// Apply pagination
+		if (options.offset && options.limit) {
+			query = query.range(options.offset, options.offset + options.limit - 1)
+		} else if (options.limit) {
+			query = query.limit(options.limit)
+		}
+
+		query = query.order('createdAt', { ascending: false })
+
+		const { data, error } = await query
+
+		if (error) {
+			this.logger.error('Failed to fetch leases:', error)
+			throw new BadRequestException(error.message)
+		}
+
+		return (data || []) as LeaseWithRelations[]
 	}
 
 	/**
-	 * Alias for findByOwner to match controller expectations
+	 * Get single lease by ID
 	 */
-	async getByOwner(
-		ownerId: string,
-		options: LeaseQueryOptions = {},
-		userId?: string,
-		userToken?: string
-	): Promise<LeaseWithRelations[]> {
-		return this.findByOwner(ownerId, options, userId, userToken)
+	async findOne(id: string, ownerId: string): Promise<LeaseWithRelations> {
+		const { data, error } = await this.supabase
+			.from('Lease')
+			.select(`
+				*,
+				Unit!inner (
+					*,
+					Property!inner (*)
+				),
+				Tenant (*)
+			`)
+			.eq('id', id)
+			.eq('Unit.Property.ownerId', ownerId)
+			.single()
+
+		if (error) {
+			if (error.code === 'PGRST116') {
+				throw new NotFoundException('Lease not found')
+			}
+			this.logger.error('Failed to fetch lease:', error)
+			throw new BadRequestException(error.message)
+		}
+
+		return data as LeaseWithRelations
 	}
 
 	/**
-	 * Alias for findByUnit to match controller expectations
+	 * Create new lease
 	 */
-	async getByUnit(
-		unitId: string,
-		ownerId: string,
-		_options: LeaseQueryOptions = {},
-		userId?: string,
-		userToken?: string
-	): Promise<LeaseWithRelations[]> {
-		// TODO: Add support for options in findByUnit
-		return this.findByUnit(unitId, ownerId, userId, userToken)
-	}
+	async create(dto: CreateLeaseDto, ownerId: string): Promise<LeaseWithRelations> {
+		// First validate that the unit belongs to the owner
+		const { data: unit } = await this.supabase
+			.from('Unit')
+			.select(`
+				*,
+				Property (*)
+			`)
+			.eq('id', dto.unitId)
+			.eq('Property.ownerId', ownerId)
+			.single()
 
-	/**
-	 * Alias for findByTenant to match controller expectations
-	 */
-	async getByTenant(
-		tenantId: string,
-		ownerId: string,
-		_options: LeaseQueryOptions = {},
-		userId?: string,
-		userToken?: string
-	): Promise<LeaseWithRelations[]> {
-		// TODO: Add support for options in findByTenant
-		return this.findByTenant(tenantId, ownerId, userId, userToken)
+		if (!unit) {
+			throw new BadRequestException('Unit not found or not owned by user')
+		}
+
+		// Validate tenant belongs to owner
+		const tenantQuery = await this.supabase
+			.from('Tenant')
+			.select('id')
+			.eq('id', dto.tenantId)
+			.eq('ownerId', ownerId)
+			.single()
+		
+		const tenant = tenantQuery.data
+
+		if (!tenant) {
+			throw new BadRequestException('Tenant not found or not owned by user')
+		}
+
+		// Validate lease dates
+		this.validateLeaseDates(dto.startDate, dto.endDate)
+
+		// Check for overlapping leases
+		await this.checkLeaseConflicts(dto.unitId, dto.startDate, dto.endDate)
+
+		const leaseData: LeaseInsert = {
+			unitId: dto.unitId,
+			tenantId: dto.tenantId,
+			startDate: new Date(dto.startDate).toISOString(),
+			endDate: new Date(dto.endDate).toISOString(),
+			rentAmount: dto.rentAmount,
+			securityDeposit: dto.securityDeposit,
+			status: (dto.status || 'DRAFT') as 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED',
+			terms: dto.leaseTerms,
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString()
+		}
+
+		const { data, error } = await this.supabase
+			.from('Lease')
+			.insert(leaseData)
+			.select(`
+				*,
+				Unit!inner (
+					*,
+					Property!inner (*)
+				),
+				Tenant (*)
+			`)
+			.single()
+
+		if (error) {
+			this.logger.error('Failed to create lease:', error)
+			throw new BadRequestException(error.message)
+		}
+
+		this.logger.log(`Lease created: ${data.id}`)
+		return data as LeaseWithRelations
 	}
 
 	/**
 	 * Update lease
 	 */
-	async update(
-		id: string,
-		data: UpdateLeaseDto,
-		ownerId: string,
-		userId?: string,
-		userToken?: string
-	): Promise<LeaseWithRelations> {
-		try {
-			// Get existing lease for validation
-			const existing = await this.repository.findByIdAndOwner(
-				id,
-				ownerId,
-				true,
-				userId,
-				userToken
-			)
+	async update(id: string, dto: UpdateLeaseDto, ownerId: string): Promise<LeaseWithRelations> {
+		// Verify ownership
+		const existing = await this.findOne(id, ownerId)
 
-			if (!existing) {
-				throw new Error('Lease not found')
-			}
+		// Validate dates if provided
+		if (dto.startDate || dto.endDate) {
+			const startDate = dto.startDate || existing.startDate
+			const endDate = dto.endDate || existing.endDate
+			this.validateLeaseDates(startDate, endDate)
 
-			// Validate dates if provided
-			if (data.startDate || data.endDate) {
-				const startDate = data.startDate || existing.startDate
-				const endDate = data.endDate || existing.endDate
-				this.validateLeaseDates(startDate, endDate, id)
+			// Check for conflicts if dates changed
+			if (dto.startDate || dto.endDate) {
+				await this.checkLeaseConflicts(
+					existing.unitId, 
+					startDate, 
+					endDate, 
+					id
+				)
 			}
-
-			const updateData: LeaseUpdate = {
-				updatedAt: new Date().toISOString()
-			}
-
-			// Convert dates if provided
-			if (data.startDate) {
-				updateData.startDate = new Date(data.startDate).toISOString()
-			}
-			if (data.endDate) {
-				updateData.endDate = new Date(data.endDate).toISOString()
-			}
-			if (data.status) {
-				updateData.status = data.status as LeaseUpdate['status']
-			}
-			if (data.rentAmount !== undefined) {
-				updateData.rentAmount = data.rentAmount
-			}
-			if (data.securityDeposit !== undefined) {
-				updateData.securityDeposit = data.securityDeposit
-			}
-			if (data.leaseTerms) {
-				updateData.terms = data.leaseTerms
-			}
-
-			const updated = await this.repository.update(
-				id,
-				updateData,
-				userId,
-				userToken
-			)
-
-			this.logger.log('Lease updated successfully', {
-				leaseId: id,
-				ownerId
-			})
-
-			return updated
-		} catch (error) {
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'update',
-				resource: 'lease',
-				metadata: { leaseId: id, ownerId }
-			})
 		}
+
+		const updateData: LeaseUpdate = {
+			updatedAt: new Date().toISOString()
+		}
+
+		// Update fields
+		if (dto.startDate) {
+			updateData.startDate = new Date(dto.startDate).toISOString()
+		}
+		if (dto.endDate) {
+			updateData.endDate = new Date(dto.endDate).toISOString()
+		}
+		if (dto.status) {
+			updateData.status = dto.status as 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED'
+		}
+		if (dto.rentAmount !== undefined) {
+			updateData.rentAmount = dto.rentAmount
+		}
+		if (dto.securityDeposit !== undefined) {
+			updateData.securityDeposit = dto.securityDeposit
+		}
+		if (dto.leaseTerms) {
+			updateData.terms = dto.leaseTerms
+		}
+
+		const { data, error } = await this.supabase
+			.from('Lease')
+			.update(updateData)
+			.eq('id', id)
+			.select(`
+				*,
+				Unit!inner (
+					*,
+					Property!inner (*)
+				),
+				Tenant (*)
+			`)
+			.single()
+
+		if (error) {
+			this.logger.error('Failed to update lease:', error)
+			throw new BadRequestException(error.message)
+		}
+
+		this.logger.log(`Lease updated: ${id}`)
+		return data as LeaseWithRelations
 	}
 
 	/**
 	 * Delete lease
 	 */
-	async delete(
-		id: string,
-		ownerId: string,
-		userId?: string,
-		userToken?: string
-	): Promise<void> {
-		try {
-			// Verify ownership first
-			const existing = await this.repository.findByIdAndOwner(
-				id,
-				ownerId,
-				false,
-				userId,
-				userToken
-			)
+	async remove(id: string, ownerId: string): Promise<void> {
+		// Verify ownership
+		await this.findOne(id, ownerId)
 
-			if (!existing) {
-				throw new Error('Lease not found')
-			}
+		const { error } = await this.supabase
+			.from('Lease')
+			.delete()
+			.eq('id', id)
 
-			await this.repository.delete(id, userId, userToken)
-
-			this.logger.log('Lease deleted successfully', {
-				leaseId: id,
-				ownerId
-			})
-		} catch (error) {
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'delete',
-				resource: 'lease',
-				metadata: { leaseId: id, ownerId }
-			})
+		if (error) {
+			this.logger.error('Failed to delete lease:', error)
+			throw new BadRequestException(error.message)
 		}
+
+		this.logger.log(`Lease deleted: ${id}`)
 	}
 
 	/**
-	 * Get lease statistics for owner
+	 * Get lease statistics
 	 */
-	async getStats(
-		ownerId: string,
-		userId?: string,
-		userToken?: string
-	): Promise<{
+	async getStats(ownerId: string): Promise<{
 		total: number
 		active: number
 		expired: number
 		terminated: number
-		pending: number
 		draft: number
 	}> {
-		try {
-			return await this.repository.getStatsByOwner(
-				ownerId,
-				userId,
-				userToken
-			)
-		} catch (error) {
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'getStats',
-				resource: 'lease',
-				metadata: { ownerId }
-			})
+		const leases = await this.findAll(ownerId)
+
+		const stats = {
+			total: leases.length,
+			active: 0,
+			expired: 0,
+			terminated: 0,
+			draft: 0
 		}
+
+		for (const lease of leases) {
+			switch (lease.status) {
+				case 'ACTIVE':
+					stats.active++
+					break
+				case 'EXPIRED':
+					stats.expired++
+					break
+				case 'TERMINATED':
+					stats.terminated++
+					break
+				case 'DRAFT':
+					stats.draft++
+					break
+				default:
+					// Handle any other statuses
+					break
+			}
+		}
+
+		return stats
 	}
 
 	/**
-	 * Find leases by unit
+	 * Get leases by unit
 	 */
-	async findByUnit(
-		unitId: string,
-		ownerId: string,
-		userId?: string,
-		userToken?: string
-	): Promise<LeaseWithRelations[]> {
-		try {
-			if (!unitId || !ownerId) {
-				throw new ValidationException(
-					'Unit ID and Owner ID are required'
-				)
-			}
-
-			return await this.repository.findByUnit(
-				unitId,
-				ownerId,
-				userId,
-				userToken
-			)
-		} catch (error) {
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'findByUnit',
-				resource: 'lease',
-				metadata: { unitId, ownerId }
-			})
-		}
+	async findByUnit(unitId: string, ownerId: string): Promise<LeaseWithRelations[]> {
+		return this.findAll(ownerId, { unitId })
 	}
 
 	/**
-	 * Find leases by tenant
+	 * Get leases by tenant
 	 */
-	async findByTenant(
-		tenantId: string,
-		ownerId: string,
-		userId?: string,
-		userToken?: string
-	): Promise<LeaseWithRelations[]> {
-		try {
-			if (!tenantId || !ownerId) {
-				throw new ValidationException(
-					'Tenant ID and Owner ID are required'
-				)
-			}
-
-			return await this.repository.findByTenant(
-				tenantId,
-				ownerId,
-				userId,
-				userToken
-			)
-		} catch (error) {
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'findByTenant',
-				resource: 'lease',
-				metadata: { tenantId, ownerId }
-			})
-		}
+	async findByTenant(tenantId: string, ownerId: string): Promise<LeaseWithRelations[]> {
+		return this.findAll(ownerId, { tenantId })
 	}
 
 	/**
-	 * Find expiring leases
+	 * Search leases
 	 */
-	async findExpiringLeases(
-		ownerId: string,
-		days = 30,
-		userId?: string,
-		userToken?: string
-	): Promise<LeaseWithRelations[]> {
-		try {
-			return await this.repository.findExpiringLeases(
-				ownerId,
-				days,
-				userId,
-				userToken
-			)
-		} catch (error) {
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'findExpiringLeases',
-				resource: 'lease',
-				metadata: { ownerId, days }
-			})
-		}
+	async search(ownerId: string, searchTerm: string): Promise<LeaseWithRelations[]> {
+		return this.findAll(ownerId, { search: searchTerm })
 	}
 
 	/**
-	 * Search leases by text
+	 * Get expiring leases
 	 */
-	async search(
-		ownerId: string,
-		searchTerm: string,
-		options: LeaseQueryOptions = {},
-		userId?: string,
-		userToken?: string
-	): Promise<LeaseWithRelations[]> {
-		try {
-			const searchOptions = {
-				...options,
-				search: searchTerm
-			}
+	async getExpiringLeases(ownerId: string, days = 30): Promise<LeaseWithRelations[]> {
+		const futureDate = new Date()
+		futureDate.setDate(futureDate.getDate() + days)
 
-			return await this.repository.findByOwnerWithDetails(
-				ownerId,
-				searchOptions,
-				userId,
-				userToken
-			)
-		} catch (error) {
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'search',
-				resource: 'lease',
-				metadata: { ownerId, searchTerm }
-			})
-		}
+		return this.findAll(ownerId, {
+			status: 'ACTIVE',
+			endDateTo: futureDate.toISOString()
+		})
 	}
 
 	/**
-	 * Get active leases only
+	 * Private helper methods
 	 */
-	async getActiveLeases(
-		ownerId: string,
-		userId?: string,
-		userToken?: string
-	): Promise<LeaseWithRelations[]> {
-		try {
-			const options: LeaseQueryOptions = {
-				status: 'ACTIVE'
-			}
+	private validateLeaseDates(startDate: string | Date, endDate: string | Date): void {
+		const start = new Date(startDate)
+		const end = new Date(endDate)
 
-			return await this.repository.findByOwnerWithDetails(
-				ownerId,
-				options,
-				userId,
-				userToken
-			)
-		} catch (error) {
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'getActiveLeases',
-				resource: 'lease',
-				metadata: { ownerId }
-			})
+		if (end <= start) {
+			throw new BadRequestException('End date must be after start date')
 		}
 	}
 
-	/**
-	 * Update lease status
-	 */
-	async updateStatus(
-		id: string,
-		status: string,
-		ownerId: string,
-		userId?: string,
-		userToken?: string
-	): Promise<LeaseWithRelations> {
-		try {
-			// Validate status
-			const validStatuses = [
-				'DRAFT',
-				'ACTIVE',
-				'EXPIRED',
-				'TERMINATED',
-				'PENDING'
-			]
-			if (!validStatuses.includes(status)) {
-				throw new ValidationException(`Invalid status: ${status}`)
-			}
+	private async checkLeaseConflicts(
+		unitId: string, 
+		startDate: string | Date, 
+		endDate: string | Date, 
+		excludeLeaseId?: string
+	): Promise<void> {
+		const start = new Date(startDate).toISOString()
+		const end = new Date(endDate).toISOString()
 
-			// Verify ownership first
-			const existing = await this.repository.findByIdAndOwner(
-				id,
-				ownerId,
-				false,
-				userId,
-				userToken
-			)
+		let query = this.supabase
+			.from('Lease')
+			.select('id')
+			.eq('unitId', unitId)
+			.neq('status', 'TERMINATED')
+			.or(`startDate.lte.${end},endDate.gte.${start}`)
 
-			if (!existing) {
-				throw new Error('Lease not found')
-			}
+		if (excludeLeaseId) {
+			query = query.neq('id', excludeLeaseId)
+		}
 
-			const updateData: LeaseUpdate = {
-				status: status as LeaseUpdate['status'],
-				updatedAt: new Date().toISOString()
-			}
+		const { data: conflicts } = await query.limit(1)
 
-			const updated = await this.repository.update(
-				id,
-				updateData,
-				userId,
-				userToken
-			)
-
-			this.logger.log('Lease status updated successfully', {
-				leaseId: id,
-				newStatus: status,
-				ownerId
-			})
-
-			return updated
-		} catch (error) {
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'updateStatus',
-				resource: 'lease',
-				metadata: { leaseId: id, status, ownerId }
-			})
+		if (conflicts && conflicts.length > 0) {
+			throw new BadRequestException('Lease dates conflict with existing lease')
 		}
 	}
 }

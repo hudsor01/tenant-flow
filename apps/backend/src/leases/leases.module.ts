@@ -1,24 +1,23 @@
-import { Module } from '@nestjs/common'
+import { forwardRef, Module } from '@nestjs/common'
 import { LeasesController } from './leases.controller'
 import { LeasesService } from './leases.service'
-import { LeaseSupabaseRepository } from './lease-supabase.repository'
 import { LeasePDFService } from './services/lease-pdf.service'
 import { SupabaseModule } from '../common/supabase/supabase.module'
 import { PDFModule } from '../common/pdf/pdf.module'
-import { ErrorModule } from '../common/errors/error.module'
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module'
-import { ZodValidationModule } from '../common/validation/zod-validation.module'
 
+/**
+ * Leases module - Simplified with direct Supabase usage
+ * No repositories, minimal dependencies
+ */
 @Module({
 	imports: [
 		SupabaseModule,
-		PDFModule,
-		ErrorModule,
-		SubscriptionsModule,
-		ZodValidationModule
+		PDFModule, // For lease PDF generation
+		forwardRef(() => SubscriptionsModule) // For usage limits guard
 	],
 	controllers: [LeasesController],
-	providers: [LeasesService, LeaseSupabaseRepository, LeasePDFService],
-	exports: [LeasesService, LeaseSupabaseRepository, LeasePDFService]
+	providers: [LeasesService, LeasePDFService],
+	exports: [LeasesService, LeasePDFService]
 })
 export class LeasesModule {}
