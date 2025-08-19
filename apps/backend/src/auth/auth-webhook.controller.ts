@@ -47,9 +47,9 @@ export class AuthWebhookController {
 	) {}
 
 	@Post('supabase')
-	@Public() // Webhooks don't use session auth
-	@CsrfExempt() // Webhooks use their own verification
-	@RateLimit(WebhookRateLimits.SUPABASE_WEBHOOK) // Protect against abuse
+	@Public()
+	@CsrfExempt()
+	@RateLimit(WebhookRateLimits.SUPABASE_WEBHOOK)
 	@HttpCode(200)
 	async handleSupabaseAuthWebhook(
 		@Body() event: SupabaseWebhookEvent,
@@ -194,7 +194,7 @@ export class AuthWebhookController {
 					customer: customer.id,
 					items: [
 						{
-							price: 'price_1RtWFcP3WCR53Sdo5Li5xHiC' // Free Trial price with 14-day trial
+							price: 'price_1RtWFcP3WCR53Sdo5Li5xHiC'
 						}
 					],
 					trial_period_days: 14,

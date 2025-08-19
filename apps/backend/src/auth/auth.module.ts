@@ -19,7 +19,7 @@ import { UsersModule } from '../users/users.module'
 		EmailModule,
 		SubscriptionsModule,
 		StripeModule,
-		forwardRef(() => UsersModule) // Use forwardRef to handle circular dependency
+		forwardRef(() => UsersModule)
 	],
 	controllers: [AuthController, AuthWebhookController],
 	providers: [AuthService, JwtAuthGuard, ErrorHandlerService],

@@ -31,6 +31,7 @@ export interface ValidatedUser
 	createdAt: string
 	updatedAt: string
 	stripeCustomerId: string | null
+	[key: string]: unknown
 }
 
 /**
@@ -470,8 +471,8 @@ export class AuthService {
 			// Create user in Supabase auth
 			const { data, error } = await this.supabase.auth.admin.createUser({
 				email: userData.email,
-				password: userData.password || undefined, // Let Supabase generate password if not provided
-				email_confirm: false, // Require email confirmation
+				password: userData.password || undefined,
+				email_confirm: false,
 				user_metadata: {
 					name: userData.name,
 					full_name: userData.name
@@ -626,10 +627,10 @@ export class AuthService {
 				refresh_token: 'temp_refresh_token_email_confirmation_required'
 			}
 
-			// Send welcome email (EmailService disabled)
+			// Send welcome email
 			try {
 				this.logger.log(
-					'Welcome email would be sent (EmailService disabled)',
+					'Welcome email would be sent',
 					{
 						email: data.user.email,
 						name: userData.name
