@@ -1,34 +1,46 @@
 import { Global, Module } from '@nestjs/common'
-import { AuditLogger, createLogger, PerformanceLogger } from './logger.config'
+import { UnifiedLoggerService } from './logger.service'
 import { FastifyRequestLoggerService } from './fastify-request-logger.service'
+import { TypeSafeConfigModule } from '../config/config.module'
 
 /**
- * Logging Module
+ * Unified Logging Module
  *
- * Makes the existing logger helpers available as injectable providers
- * throughout the application for consistent structured logging.
+ * Provides single source of truth for all logging in the application.
+ * Replaces and consolidates:
+ * - LoggerModule (common/modules)
+ * - UnifiedLoggingModule (common/logging)
+ * - StructuredLoggerService
+ * - Multiple Winston configurations
  *
  * Features:
- * - AuditLogger for security and compliance logging
- * - PerformanceLogger for tracking operation timing
- * - Global availability without duplication
+ * - Single UnifiedLoggerService for all logging needs
+ * - Environment-aware Winston configuration
+ * - Request logging capabilities
+ * - Performance and security audit logging
+ * - Global availability throughout application
  */
 @Global()
 @Module({
+	imports: [TypeSafeConfigModule],
 	providers: [
-		AuditLogger,
+		UnifiedLoggerService,
 		FastifyRequestLoggerService,
+		// Factory for creating contextual loggers
 		{
-			provide: 'PerformanceLoggerFactory',
-			useFactory:
-				() => (operation: string, context?: Record<string, unknown>) =>
-					new PerformanceLogger(createLogger(), operation, context)
+			provide: 'LoggerFactory',
+			useFactory: (unifiedLogger: UnifiedLoggerService) => {
+				return (context: string) => {
+					return unifiedLogger.child(context)
+				}
+			},
+			inject: [UnifiedLoggerService]
 		}
 	],
 	exports: [
-		AuditLogger,
+		UnifiedLoggerService,
 		FastifyRequestLoggerService,
-		'PerformanceLoggerFactory'
+		'LoggerFactory'
 	]
 })
-export class LoggingModule {}
+export class UnifiedLoggingModule {}

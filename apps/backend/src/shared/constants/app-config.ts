@@ -1,30 +1,20 @@
 /**
  * Application Configuration Constants
  *
- * Centralized configuration for the backend application.
+ * Production-ready configuration for the backend application.
  * All environment-dependent values should be defined here.
  */
 
 export const APP_CONFIG = {
 	// Application URLs
-	FRONTEND_URL:
-		process.env.FRONTEND_URL ||
-		(process.env.NODE_ENV === 'production'
-			? 'https://tenantflow.app'
-			: 'http://tenantflow.app'),
+	FRONTEND_URL: process.env.FRONTEND_URL || 'https://tenantflow.app',
 
-	// API Configuration
-	API_PORT: process.env.PORT || '3002',
+	// API Configuration  
+	API_PORT: process.env.PORT || '3001',
 	API_PREFIX: '/api',
 
 	// CORS Configuration
-	ALLOWED_ORIGINS: process.env.CORS_ORIGINS?.split(',') || [],
-
-	// Development Ports (only used in non-production)
-	DEV_PORTS: {
-		FRONTEND: ['5172', '5173', '5174', '5175'],
-		BACKEND: ['3000', '3001', '3002', '3003', '3004']
-	},
+	ALLOWED_ORIGINS: process.env.CORS_ORIGINS?.split(',') || ['https://tenantflow.app'],
 
 	// External Services
 	SUPABASE: {
@@ -41,9 +31,7 @@ export const APP_CONFIG = {
 		PORTAL_RETURN_URL:
 			process.env.STRIPE_PORTAL_RETURN_URL ||
 			process.env.FRONTEND_URL ||
-			(process.env.NODE_ENV === 'production'
-				? 'https://tenantflow.app/settings/billing'
-				: 'http://tenantflow.app/settings/billing')
+			'https://tenantflow.app/settings/billing'
 	},
 
 	// Email Configuration
@@ -57,14 +45,11 @@ export const APP_CONFIG = {
 	// Feature Flags
 	FEATURES: {
 		ENABLE_TELEMETRY: process.env.ENABLE_TELEMETRY === 'true',
-		ENABLE_DEBUG_LOGGING: process.env.ENABLE_DEBUG_LOGGING === 'true',
 		ENABLE_MAINTENANCE_MODE: process.env.ENABLE_MAINTENANCE_MODE === 'true'
 	},
 
 	// Environment
 	IS_PRODUCTION: process.env.NODE_ENV === 'production',
-	IS_DEVELOPMENT: process.env.NODE_ENV === 'development',
-	IS_TEST: process.env.NODE_ENV === 'test',
 
 	// Database
 	DATABASE_URL: process.env.DATABASE_URL,
@@ -76,7 +61,7 @@ export const APP_CONFIG = {
 	// Rate Limiting
 	RATE_LIMIT: {
 		WINDOW_MS: 15 * 60 * 1000, // 15 minutes
-		MAX_REQUESTS: process.env.RATE_LIMIT_MAX || 100
+		MAX_REQUESTS: parseInt(process.env.RATE_LIMIT_MAX || '100', 10)
 	}
 } as const
 
@@ -86,11 +71,14 @@ export function validateConfig(): void {
 		{ key: 'DATABASE_URL', value: APP_CONFIG.DATABASE_URL },
 		{ key: 'JWT_SECRET', value: APP_CONFIG.JWT_SECRET },
 		{ key: 'SUPABASE_URL', value: APP_CONFIG.SUPABASE.URL },
-		{
-			key: 'SUPABASE_SERVICE_ROLE_KEY',
-			value: APP_CONFIG.SUPABASE.SERVICE_KEY
-		}
+		{ key: 'SUPABASE_SERVICE_ROLE_KEY', value: APP_CONFIG.SUPABASE.SERVICE_KEY }
 	]
+
+	// Production requirements
+	requiredVars.push(
+		{ key: 'SUPABASE_JWT_SECRET', value: process.env.SUPABASE_JWT_SECRET },
+		{ key: 'CORS_ORIGINS', value: process.env.CORS_ORIGINS }
+	)
 
 	const missing = requiredVars
 		.filter(({ value }) => !value)
@@ -101,6 +89,11 @@ export function validateConfig(): void {
 			`Missing required environment variables: ${missing.join(', ')}\n` +
 				'Please check your .env file and ensure all required variables are set.'
 		)
+	}
+
+	// Validate JWT_SECRET length for security
+	if (APP_CONFIG.JWT_SECRET && APP_CONFIG.JWT_SECRET.length < 32) {
+		throw new Error('JWT_SECRET must be at least 32 characters for security')
 	}
 }
 

@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { propertyFormSchema } from '@repo/shared/validation'
-// import { z } from 'zod'
 import {
 	useCreateProperty,
 	useUpdateProperty
@@ -38,7 +37,6 @@ import {
 } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, AlertTriangle } from 'lucide-react'
-// import type { Property } from '@repo/shared'
 import type { PropertyFormProps } from '@/types'
 import type { PropertyFormData } from '@repo/shared/validation'
 
@@ -46,9 +44,6 @@ type PropertyFormDialogProps = PropertyFormProps & {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 }
-
-// Using centralized Zod schema from validation library
-// Form data type is now imported from centralized types
 
 export function PropertyFormDialog({
 	open,

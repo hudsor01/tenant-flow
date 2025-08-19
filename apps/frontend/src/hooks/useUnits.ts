@@ -1,22 +1,6 @@
 import { toast } from 'sonner'
 import { logger } from '@/lib/logger'
 
-// Mock unit operations for now
-export function useCreateUnit() {
-	return {
-		mutateAsync: async (data: Record<string, unknown>) => {
-			logger.info('Creating unit:', {
-				component: 'UUnitsHook',
-				data: data
-			})
-			toast.success('Unit created successfully')
-			return { id: 'mock-id', ...data }
-		},
-		isPending: false,
-		error: null
-	}
-}
-
 export function useUpdateUnit() {
 	return {
 		mutateAsync: async (data: Record<string, unknown>) => {
@@ -26,6 +10,21 @@ export function useUpdateUnit() {
 			})
 			toast.success('Unit updated successfully')
 			return { ...data }
+		},
+		isPending: false,
+		error: null
+	}
+}
+
+export function useCreateUnit() {
+	return {
+		mutateAsync: async (data: Record<string, unknown>) => {
+			logger.info('Creating unit:', {
+				component: 'UUnitsHook',
+				data: data
+			})
+			toast.success('Unit created successfully')
+			return { id: 'new-unit-id', ...data }
 		},
 		isPending: false,
 		error: null

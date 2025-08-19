@@ -8,7 +8,6 @@ import {
 	type NestFastifyApplication
 } from '@nestjs/platform-fastify'
 import { FastifyConfigService } from './common/fastify/fastify-config.service'
-import { setupSwagger } from './config/swagger.config'
 import helmet from '@fastify/helmet'
 import { EnvValidator } from './config/env-validator'
 import { ZodValidationPipe } from './common/validation/zod-validation.pipe'
@@ -22,7 +21,6 @@ async function bootstrap() {
 	)
 
 	const configService = app.get(ConfigService)
-	const isProduction = configService.get('NODE_ENV') === 'production'
 
 	// Core configuration
 	app.setGlobalPrefix('api/v1', {
@@ -35,24 +33,25 @@ async function bootstrap() {
 	})
 
 	app.enableCors({
-		origin: configService.get('CORS_ORIGINS', ['http://localhost:3000']),
+		origin: configService.get('CORS_ORIGINS', ['https://tenantflow.app']),
 		credentials: true
 	})
 
 	// Use NestJS native validation pipe (replaces Zod)
 	app.useGlobalPipes(new ZodValidationPipe())
 
-	// Optional configurations
-	if (isProduction) {
-		await app.register(helmet)
-	}
-	if (!isProduction) {
-		await setupSwagger(app)
-	}
+	// Production security
+	await app.register(helmet)
 
 	// Fastify plugins
 	const fastifyConfig = new FastifyConfigService()
 	await fastifyConfig.configureFastifyPlugins(app)
+
+	// Liveness probe independent of downstream deps
+	const fastify = app.getHttpAdapter().getInstance()
+	fastify.get('/ping', async (_req: unknown, reply: any) => {
+		reply.code(200).send({ status: 'ok' })
+	})
 
 	app.enableShutdownHooks()
 
@@ -64,10 +63,10 @@ async function bootstrap() {
 		await app.listen(port, '0.0.0.0')
 		logger.log(`🚀 Server successfully started on 0.0.0.0:${port}`)
 		logger.log(
-			`✅ Health check endpoint available at: http://0.0.0.0:${port}/ping`
+			`✅ Health check endpoint available at: http://127.0.0.1:${port}/health`
 		)
 		logger.log(
-			`✅ API endpoints available at: http://0.0.0.0:${port}/api/v1/`
+			`✅ API endpoints available at: http://127.0.0.1:${port}/api/v1/`
 		)
 	} catch (error) {
 		logger.error(`❌ Failed to start server on port ${port}:`, error)

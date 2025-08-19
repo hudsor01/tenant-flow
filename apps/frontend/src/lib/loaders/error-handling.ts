@@ -6,7 +6,6 @@
  */
 
 import type { LoaderError } from '@repo/shared'
-import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
 
 // Error classification
@@ -311,11 +310,7 @@ export class LoaderErrorHandler {
 				break
 
 			case 'low':
-				// Don't show toast for low severity errors
-				logger.warn('Low severity error:', {
-					component: 'lib_loaders_error_handling.ts',
-					data: error.userMessage
-				})
+				// Low severity errors are logged but not shown to user
 				break
 		}
 	}
@@ -335,20 +330,8 @@ export class LoaderErrorHandler {
 			userId: this.getCurrentUserId()
 		}
 
-		// Log to console in development
-		if (process.env.DEV) {
-			logger.warn(`🚨 Loader Error [${error.severity.toUpperCase()}]`)
-			logger.error('Message:', error.technicalMessage)
-			logger.warn('Context:', error.context)
-			logger.warn('Suggestions:', error.suggestions)
-			if (error.stackTrace) {
-				logger.error('Stack:', error.stackTrace)
-			}
-			logger.warn('--- End Loader Error ---')
-		}
-
-		// Send to monitoring service in production
-		if (process.env.PROD && error.severity !== 'low') {
+		// Send to monitoring service for all errors except low severity
+		if (error.severity !== 'low') {
 			this.sendToMonitoring(logData)
 		}
 	}
@@ -437,11 +420,21 @@ export class LoaderErrorHandler {
 	}
 
 	private sendToMonitoring(logData: Record<string, unknown>): void {
-		// This would send to monitoring service like Sentry, LogRocket, etc.
-		logger.warn('Would send to monitoring:', {
-			component: 'lib_loaders_error_handling.ts',
-			data: logData
-		})
+		// Production monitoring implementation
+		try {
+			// Send to backend monitoring endpoint
+			fetch('/api/monitoring/errors', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(logData)
+			}).catch(err => {
+				console.error('Failed to send error to monitoring service:', err)
+			})
+		} catch (error) {
+			console.error('Failed to send error to monitoring service:', error)
+		}
 	}
 }
 

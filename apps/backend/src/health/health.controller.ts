@@ -1,4 +1,4 @@
-import { Controller, forwardRef, Get, Inject, Logger } from '@nestjs/common'
+import { Controller, Get, Logger } from '@nestjs/common'
 import { Public } from '../auth/decorators/public.decorator'
 import { SupabaseService } from '../common/supabase/supabase.service'
 
@@ -33,7 +33,6 @@ export class HealthController {
 	private readonly CACHE_TTL = 5000 // Cache health status for 5 seconds
 
 	constructor(
-		@Inject(forwardRef(() => SupabaseService))
 		private readonly supabaseService: SupabaseService
 	) {}
 
@@ -153,9 +152,9 @@ export class HealthController {
 				setTimeout(
 					() =>
 						reject(
-							new Error('Health check timeout after 3 seconds')
+							new Error('Health check timeout after 1 second')
 						),
-					3000
+					1000
 				)
 			})
 

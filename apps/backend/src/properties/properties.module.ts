@@ -1,25 +1,20 @@
 import { forwardRef, Module } from '@nestjs/common'
 import { PropertiesController } from './properties.controller'
 import { PropertiesService } from './properties.service'
-import { PropertiesSupabaseRepository } from './properties-supabase.repository'
-import { StorageModule } from '../storage/storage.module'
-import { StripeModule } from '../stripe/stripe.module'
-import { ErrorModule } from '../common/errors/error.module'
-import { SubscriptionsModule } from '../subscriptions/subscriptions.module'
-import { ZodValidationModule } from '../common/validation/zod-validation.module'
 import { SupabaseModule } from '../common/supabase/supabase.module'
+import { SubscriptionsModule } from '../subscriptions/subscriptions.module'
 
+/**
+ * Properties module - Simplified with direct Supabase usage
+ * No repositories, minimal dependencies
+ */
 @Module({
 	imports: [
 		SupabaseModule,
-		StorageModule,
-		forwardRef(() => StripeModule),
-		ErrorModule,
-		forwardRef(() => SubscriptionsModule),
-		ZodValidationModule
+		forwardRef(() => SubscriptionsModule) // For usage limits guard
 	],
 	controllers: [PropertiesController],
-	providers: [PropertiesService, PropertiesSupabaseRepository],
-	exports: [PropertiesService, PropertiesSupabaseRepository]
+	providers: [PropertiesService],
+	exports: [PropertiesService]
 })
 export class PropertiesModule {}

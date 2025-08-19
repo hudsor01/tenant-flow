@@ -5,3 +5,5 @@ dockerfilePath = "./Dockerfile"
 [deploy]
 startCommand = "/nodejs/bin/node apps/backend/dist/main.js"
 healthcheckPath = "/ping"
+healthcheckTimeout = 60
+waitForPort = 60
