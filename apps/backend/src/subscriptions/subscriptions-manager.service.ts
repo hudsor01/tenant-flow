@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common'
 import { SupabaseService } from '../common/supabase/supabase.service'
 import { StripeBillingService } from '../stripe/stripe-billing.service'
 import { PropertiesSupabaseRepository } from '../properties/properties-supabase.repository'
@@ -14,7 +14,9 @@ export class SubscriptionsManagerService {
 
 	constructor(
 		private readonly supabaseService: SupabaseService,
+		@Inject(forwardRef(() => StripeBillingService))
 		private readonly stripeBillingService: StripeBillingService,
+		@Inject(forwardRef(() => PropertiesSupabaseRepository))
 		private readonly propertiesRepository: PropertiesSupabaseRepository,
 		private readonly subscriptionsRepository: SubscriptionSupabaseRepository
 	) {}
