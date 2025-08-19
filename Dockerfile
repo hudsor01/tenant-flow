@@ -107,10 +107,33 @@ COPY --from=builder --chown=nonroot:nonroot /app/packages/database/dist ./packag
 # Runtime environment
 ENV NODE_ENV=production
 ENV DOCKER_CONTAINER=true
-ENV PORT=3333
 
-# Expose port
-EXPOSE 3333
+# Use Railway's injected PORT or fallback to 3001
+ARG PORT=3001
+ENV PORT=${PORT}
 
-# Distroless has Node.js as entrypoint, just provide the script
+# Expose the dynamic port
+EXPOSE ${PORT}
+
+# Health check for Railway deployment
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD /nodejs/bin/node -e " \
+    const http = require('http'); \
+    const options = { \
+      hostname: '0.0.0.0', \
+      port: process.env.PORT || 4600, \
+      path: '/ping', \
+      timeout: 5000 \
+    }; \
+    const req = http.request(options, (res) => { \
+      process.exit(res.statusCode === 200 ? 0 : 1); \
+    }); \
+    req.on('error', () => process.exit(1)); \
+    req.on('timeout', () => process.exit(1)); \
+    req.end(); \
+  " || exit 1
+
+# For Distroless, the Node.js binary is at /nodejs/bin/node
+# Railway's startCommand will override this if set
+ENTRYPOINT ["/nodejs/bin/node"]
 CMD ["apps/backend/dist/main.js"]
