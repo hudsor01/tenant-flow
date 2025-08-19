@@ -48,9 +48,7 @@ export class ConfigValidator {
 	private configHealth?: ConfigHealth
 	private readonly validationCache = new Map<string, ValidationResult>()
 
-	constructor(
-		private readonly configService: ConfigService
-	) {}
+	constructor(private readonly configService: ConfigService) {}
 
 	/**
 	 * Comprehensive configuration validation
@@ -105,9 +103,13 @@ export class ConfigValidator {
 					projectName: this.configService.get('RAILWAY_PROJECT_NAME'),
 					serviceName: this.configService.get('RAILWAY_SERVICE_NAME'),
 					projectId: this.configService.get('RAILWAY_PROJECT_ID'),
-					environmentId: this.configService.get('RAILWAY_ENVIRONMENT_ID'),
+					environmentId: this.configService.get(
+						'RAILWAY_ENVIRONMENT_ID'
+					),
 					serviceId: this.configService.get('RAILWAY_SERVICE_ID'),
-					privateDomain: this.configService.get('RAILWAY_PRIVATE_DOMAIN')
+					privateDomain: this.configService.get(
+						'RAILWAY_PRIVATE_DOMAIN'
+					)
 				}
 			}
 
@@ -183,9 +185,7 @@ export class ConfigValidator {
 		} catch (error) {
 			// If schema validation fails, add errors
 			if (error instanceof Error) {
-				warnings.push(
-					`Schema validation warning: ${error.message}`
-				)
+				warnings.push(`Schema validation warning: ${error.message}`)
 			}
 		}
 
