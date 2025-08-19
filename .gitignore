@@ -448,6 +448,23 @@ avatars/
 /documents/
 temp/
 
+# Documentation and project files
+docs/
+.claude
+CLAUDE.md
+claude.md
+ROADMAP.md
+roadmap.md
+.env.example
+backend_logs.json
+
+# IDE and configuration
+.vscode/
+playwright.config.ts
+
+# Monitoring files
+monitoring/
+
 # Deployment
 .vercel
 .netlify

@@ -48,6 +48,11 @@ export default function DashboardLayout({
 
 									<ProtectedRouteGuard>
 										<div className="min-h-screen bg-gray-50">
+											{/* Mobile-First Navigation */}
+											<div className="md:hidden">
+												<Navigation className="border-b" />
+											</div>
+
 											{/* Desktop Navigation */}
 											<div className="hidden md:block">
 												<Navigation />
@@ -67,8 +72,8 @@ export default function DashboardLayout({
 													</aside>
 												</Suspense>
 
-												{/* Main content area */}
-												<main className="flex-1 pb-20 md:p-6 md:pt-6 md:pb-6">
+												{/* Main content area - improved mobile spacing */}
+												<main className="flex-1 min-w-0 pb-20 pt-2 md:p-6 md:pt-6 md:pb-6">
 													<Suspense
 														fallback={
 															<div className="flex h-64 items-center justify-center">
@@ -76,7 +81,7 @@ export default function DashboardLayout({
 															</div>
 														}
 													>
-														<div className="px-4 md:px-0">
+														<div className="px-3 sm:px-4 md:px-0">
 															{children}
 														</div>
 													</Suspense>

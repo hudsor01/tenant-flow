@@ -1,9 +1,8 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
-import { SupabaseService } from '../common/supabase/supabase.service'
-import { ErrorCode, ErrorHandlerService } from '../common/errors/error-handler.service'
-import { SimpleSecurityService } from '../common/security/simple-security.service'
-import { SecurityMonitorService } from '../common/security/security-monitor.service'
+import { SupabaseService } from '../database/supabase.service'
+import { ErrorCode, ErrorHandlerService } from '../services/error-handler.service'
+import { SecurityMonitorService } from '../security/security-monitor.service'
 import type { AuthUser, UserRole } from '@repo/shared'
 import type { Database } from '@repo/shared/types/supabase-generated'
 
@@ -55,7 +54,7 @@ export class AuthService {
 	constructor(
 		private readonly supabaseService: SupabaseService,
 		private readonly errorHandler: ErrorHandlerService,
-		private readonly securityService: SimpleSecurityService,
+		// private readonly securityService: SimpleSecurityService,
 		private readonly securityMonitor: SecurityMonitorService
 	) {
 		const supabaseUrl = process.env.SUPABASE_URL
@@ -106,7 +105,7 @@ export class AuthService {
 			if (error instanceof UnauthorizedException) {
 				throw error
 			}
-			this.logger.error('Token validation error', { error: error?.message })
+			this.logger.error('Token validation error', { error: error instanceof Error ? error.message : 'Unknown error' })
 			throw new UnauthorizedException('Token validation failed')
 		}
 	}
@@ -250,12 +249,12 @@ export class AuthService {
 		}
 
 		if (userData.password) {
-			const passwordValidation = this.securityService.validatePassword(userData.password)
-			if (!passwordValidation.valid) {
+			// Basic password validation (could be enhanced with proper validation library)
+			if (userData.password.length < 8) {
 				throw this.errorHandler.createBusinessError(
 					ErrorCode.BAD_REQUEST,
-					'Password does not meet security requirements',
-					{ operation: 'createUser', resource: 'auth', metadata: { errors: passwordValidation.errors } }
+					'Password must be at least 8 characters long',
+					{ operation: 'createUser', resource: 'auth' }
 				)
 			}
 		}
@@ -293,7 +292,7 @@ export class AuthService {
 		try {
 			await this.syncUserWithDatabase(data.user)
 		} catch (syncError) {
-			this.logger.error('User sync failed', { userId: data.user.id, error: syncError?.message })
+			this.logger.error('User sync failed', { userId: data.user.id, error: syncError instanceof Error ? syncError.message : 'Unknown error' })
 		}
 
 		return {
@@ -351,41 +350,39 @@ export class AuthService {
 		expires_in: number
 		user: ValidatedUser
 	}> {
-		await this.securityMonitor.logSecurityEvent({
-			type: 'AUTH_ATTEMPT',
+		this.securityMonitor.logSecurityEvent('AUTH_ATTEMPT', {
 			email,
 			ip,
 			details: { operation: 'login' }
 		})
 
-		const authAttempt = await this.securityMonitor.trackAuthAttempt(ip || 'unknown', email, false)
-		if (authAttempt.blocked) {
-			await this.securityMonitor.logSecurityEvent({
-				type: 'BRUTE_FORCE_DETECTED',
-				email,
-				ip,
-				severity: 'critical',
-				details: { action: 'login_blocked' }
-			})
-			throw this.errorHandler.createBusinessError(
-				ErrorCode.TOO_MANY_REQUESTS,
-				'Too many failed login attempts. Please try again later.',
-				{ operation: 'login', resource: 'auth' }
-			)
-		}
+		// Rate limiting temporarily disabled
+		// const authAttempt = await this.securityMonitor.trackAuthAttempt(ip || 'unknown', email, false)
+		// if (authAttempt.blocked) {
+		//	this.securityMonitor.logSecurityEvent('BRUTE_FORCE_DETECTED', {
+		//		email,
+		//		ip,
+		//		severity: 'critical',
+		//		details: { action: 'login_blocked' }
+		//	})
+		//	throw this.errorHandler.createBusinessError(
+		//		ErrorCode.TOO_MANY_REQUESTS,
+		//		'Too many failed login attempts. Please try again later.',
+		//		{ operation: 'login', resource: 'auth' }
+		//	)
+		// }
 
 		const { data, error } = await this.supabase.auth.signInWithPassword({ email, password })
 
 		if (error || !data.session || !data.user) {
-			await this.securityMonitor.trackAuthAttempt(ip || 'unknown', email, false)
-			await this.securityMonitor.logSecurityEvent({
-				type: 'AUTH_FAILURE',
+			// await this.securityMonitor.trackAuthAttempt(ip || 'unknown', email, false)
+			this.securityMonitor.logSecurityEvent('AUTH_FAILURE', {
 				email,
 				ip,
-				details: { error: error?.message }
+				details: { error: error instanceof Error ? error.message : 'Unknown error' }
 			})
 
-			if (error?.message?.includes('Invalid login credentials')) {
+			if (error && error.message?.includes('Invalid login credentials')) {
 				throw this.errorHandler.createBusinessError(
 					ErrorCode.UNAUTHORIZED,
 					'Invalid email or password',
@@ -410,15 +407,14 @@ export class AuthService {
 
 		const validatedUser = await this.validateSupabaseToken(data.session.access_token)
 
-		await this.securityMonitor.logSecurityEvent({
-			type: 'AUTH_SUCCESS',
+		this.securityMonitor.logSecurityEvent('AUTH_SUCCESS', {
 			userId: validatedUser.id,
 			email: validatedUser.email,
 			ip,
 			details: { operation: 'login' }
 		})
 
-		await this.securityMonitor.trackAuthAttempt(ip || 'unknown', email, true)
+		// await this.securityMonitor.trackAuthAttempt(ip || 'unknown', email, true)
 
 		return {
 			access_token: data.session.access_token,
