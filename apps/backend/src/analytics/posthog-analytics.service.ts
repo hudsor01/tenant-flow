@@ -48,12 +48,12 @@ export class PostHogAnalyticsService implements OnModuleInit {
 			try {
 				this.posthog = new PostHog(apiKey, {
 					host,
-					flushAt: 20, // Flush after 20 events
-					flushInterval: 10000, // Flush every 10 seconds
+					flushAt: 20,
+					flushInterval: 10000,
 					personalApiKey: this.configService.get<string>(
 						'POSTHOG_PERSONAL_API_KEY'
 					),
-					featureFlagsPollingInterval: 30000 // Poll feature flags every 30 seconds
+					featureFlagsPollingInterval: 30000
 				})
 
 				this.logger.log('PostHog analytics initialized successfully')

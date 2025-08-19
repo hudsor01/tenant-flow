@@ -177,7 +177,7 @@ export class FeatureAccessService {
 				}
 
 			default:
-				return { allowed: true } // Allow unknown features by default
+				return { allowed: true }
 		}
 	}
 
@@ -255,7 +255,7 @@ export class FeatureAccessService {
 		await this.updateUserFeatureAccess({
 			userId,
 			subscriptionStatus: restrictedStatus,
-			planType: 'FREETRIAL', // Default to free trial plan limits
+			planType: 'FREETRIAL',
 			reason
 		})
 
@@ -281,9 +281,9 @@ export class FeatureAccessService {
 				canUseBulkOperations: false,
 				canAccessAPI: false,
 				canInviteTeamMembers: false,
-				maxProperties: 1, // Allow 1 property for free users
-				maxUnitsPerProperty: 5, // Allow 5 units per property
-				maxStorageGB: 0.1, // 100MB for free users
+				maxProperties: 1,
+				maxUnitsPerProperty: 5,
+				maxStorageGB: 0.1,
 				hasPrioritySupport: false,
 				canUsePremiumIntegrations: false
 			}
@@ -315,8 +315,8 @@ export class FeatureAccessService {
 					canUseBulkOperations: false,
 					canAccessAPI: false,
 					canInviteTeamMembers: false,
-					maxProperties: 25, // Updated to match pricing plan
-					maxUnitsPerProperty: 25, // Updated to match pricing plan
+					maxProperties: 25,
+					maxUnitsPerProperty: 25,
 					maxStorageGB: 5,
 					hasPrioritySupport: false,
 					canUsePremiumIntegrations: false
@@ -327,11 +327,11 @@ export class FeatureAccessService {
 					canExportData: true,
 					canAccessAdvancedAnalytics: true,
 					canUseBulkOperations: true,
-					canAccessAPI: true, // Limited API access
+					canAccessAPI: true,
 					canInviteTeamMembers: true,
-					maxProperties: 150, // Updated to match pricing plan
-					maxUnitsPerProperty: 150, // Updated to match pricing plan
-					maxStorageGB: 25, // Updated to match pricing plan
+					maxProperties: 150,
+					maxUnitsPerProperty: 150,
+					maxStorageGB: 25,
 					hasPrioritySupport: false,
 					canUsePremiumIntegrations: true
 				}
@@ -343,9 +343,9 @@ export class FeatureAccessService {
 					canUseBulkOperations: true,
 					canAccessAPI: true,
 					canInviteTeamMembers: true,
-					maxProperties: 999999, // Unlimited
-					maxUnitsPerProperty: 999999, // Unlimited
-					maxStorageGB: 999999, // Unlimited storage
+					maxProperties: 999999,
+					maxUnitsPerProperty: 999999,
+					maxStorageGB: 999999,
 					hasPrioritySupport: true,
 					canUsePremiumIntegrations: true
 				}
