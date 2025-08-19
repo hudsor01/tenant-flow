@@ -1,9 +1,10 @@
-import { Injectable, BadRequestException, NotFoundException, Scope, Inject, Logger } from '@nestjs/common'
+import { BadRequestException, Inject, Injectable, Logger, NotFoundException, Scope } from '@nestjs/common'
 import { REQUEST } from '@nestjs/core'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@repo/shared/types/supabase-generated'
-import { SupabaseService } from '../common/supabase/supabase.service'
-import { CreateLeaseDto, UpdateLeaseDto } from '../common/dto/dto-exports'
+import type { AuthRequest } from '../shared/types'
+import { SupabaseService } from '../database/supabase.service'
+import { CreateLeaseDto, UpdateLeaseDto } from '../shared/types/dto-exports'
 
 type Lease = Database['public']['Tables']['Lease']['Row']
 type LeaseInsert = Database['public']['Tables']['Lease']['Insert']
@@ -20,7 +21,7 @@ export interface LeaseWithRelations extends Lease {
 }
 
 export interface LeaseQueryOptions {
-	status?: string
+	status?: 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED'
 	unitId?: string
 	tenantId?: string
 	startDateFrom?: string
@@ -42,11 +43,11 @@ export class LeasesService {
 	private readonly supabase: SupabaseClient<Database>
 
 	constructor(
-		@Inject(REQUEST) private request: any,
+		@Inject(REQUEST) private request: AuthRequest,
 		private supabaseService: SupabaseService
 	) {
 		// Get user-scoped client if token available, otherwise admin client
-		const token = this.request.user?.supabaseToken || 
+		const token = this.request.user?.supabaseToken ||
 			this.request.headers?.authorization?.replace('Bearer ', '')
 		
 		this.supabase = token 

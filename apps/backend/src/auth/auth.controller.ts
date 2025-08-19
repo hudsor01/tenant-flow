@@ -9,15 +9,12 @@ import {
 	UseGuards
 } from '@nestjs/common'
 import { ModuleRef } from '@nestjs/core'
-import { JwtAuthGuard } from './guards/jwt-auth.guard'
-import { CurrentUser } from './decorators/current-user.decorator'
+import { Throttle } from '@nestjs/throttler'
+import { JwtAuthGuard } from '../shared/guards/jwt-auth.guard'
+import { CurrentUser } from '../shared/decorators/current-user.decorator'
 import { AuthService, ValidatedUser } from './auth.service'
-import { Public } from './decorators/public.decorator'
-import {
-	AuthRateLimits,
-	RateLimit
-} from '../common/decorators/rate-limit.decorator'
-import { CsrfExempt, CsrfGuard } from '../common/guards/csrf.guard'
+import { Public } from '../shared/decorators/public.decorator'
+import { CsrfExempt, CsrfGuard } from '../security/csrf.guard'
 import { FastifyRequest } from 'fastify'
 
 @Controller('auth')
@@ -53,7 +50,7 @@ export class AuthController {
 	@Post('refresh')
 	@Public()
 	@CsrfExempt() // Token refresh uses existing authentication
-	@RateLimit(AuthRateLimits.REFRESH_TOKEN)
+	@Throttle({ default: { limit: 20, ttl: 60000 } }) // 20 refreshes per minute
 	@HttpCode(HttpStatus.OK)
 	async refreshToken(@Body() body: { refresh_token: string }) {
 		return this.authService.refreshToken(body.refresh_token)
@@ -67,7 +64,7 @@ export class AuthController {
 	@Post('login')
 	@Public()
 	@CsrfExempt()
-	@RateLimit(AuthRateLimits.LOGIN)
+	@Throttle({ auth: { limit: 5, ttl: 60000 } }) // Uses 'auth' context from app.module
 	@HttpCode(HttpStatus.OK)
 	async login(
 		@Body() body: { email: string; password: string },
@@ -88,7 +85,7 @@ export class AuthController {
 	@Post('register')
 	@Public()
 	@CsrfExempt()
-	@RateLimit(AuthRateLimits.REGISTER)
+	@Throttle({ auth: { limit: 3, ttl: 60000 } }) // Uses 'auth' context, stricter for registration
 	@HttpCode(HttpStatus.CREATED)
 	async register(
 		@Body() body: { email: string; password: string; name: string }
