@@ -20,9 +20,9 @@ module.exports = {
 		'^@repo/emails/(.*)$': '<rootDir>/../../packages/emails/$1',
 		'^@repo/(.*)$': '<rootDir>/../../packages/$1/src'
 	},
-	setupFilesAfterEnv: ['<rootDir>/src/test/setup-jest.ts'],
+	setupFilesAfterEnv: ['<rootDir>/test/setup.ts'],
 	// Environment variables for clean test runs
-	setupFiles: ['<rootDir>/src/test/disable-nestjs-logger.ts'],
+	// setupFiles: ['<rootDir>/test/disable-nestjs-logger.ts'],
 	testTimeout: 10000,
 	maxWorkers: 1, // Prevent race conditions in tests
 	testSequencer:
