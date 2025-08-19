@@ -61,7 +61,7 @@ export class PaymentAnalyticsListener {
 		// Track revenue
 		await this.analytics.trackRevenue(
 			payload.customerId,
-			payload.amount / 100, // Convert cents to dollars
+			payload.amount / 100,
 			payload.currency
 		)
 
@@ -204,7 +204,7 @@ export class PaymentAnalyticsListener {
 		// Track revenue from invoice
 		await this.analytics.trackRevenue(
 			payload.customerId,
-			(payload.amount ?? 0) / 100, // Convert cents to dollars
+			(payload.amount ?? 0) / 100,
 			payload.currency ?? 'usd',
 			{
 				invoice_id: payload.invoiceId,

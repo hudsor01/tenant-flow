@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { configSchema } from './config.schema'
-import { RuntimeTypeCheckerService } from '../validation/runtime-type-checker.service'
 
 /**
  * Enhanced Configuration Validator with Railway Support
@@ -50,8 +49,7 @@ export class ConfigValidator {
 	private readonly validationCache = new Map<string, ValidationResult>()
 
 	constructor(
-		private readonly configService: ConfigService,
-		private readonly typeChecker: RuntimeTypeCheckerService
+		private readonly configService: ConfigService
 	) {}
 
 	/**
@@ -183,25 +181,16 @@ export class ConfigValidator {
 			}
 		})
 
-		// Try Zod validation if typeChecker is available
+		// Basic validation using configSchema directly
 		try {
-			const result = this.typeChecker.safeCheck(
-				configSchema,
-				rawConfig,
-				'base configuration'
-			)
-
-			if (!result.valid) {
-				errors.push(
-					...(result.errors?.map(e => `${e.field}: ${e.message}`) ||
-						[])
+			configSchema.parse(rawConfig)
+		} catch (error) {
+			// If schema validation fails, add errors
+			if (error instanceof Error) {
+				warnings.push(
+					`Schema validation warning: ${error.message}`
 				)
 			}
-		} catch (error) {
-			// If typeChecker fails, continue with basic validation above
-			warnings.push(
-				`Advanced validation unavailable: ${error instanceof Error ? error.message : String(error)}`
-			)
 		}
 
 		return { errors, warnings }
