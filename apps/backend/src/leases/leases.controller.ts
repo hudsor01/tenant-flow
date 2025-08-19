@@ -1,28 +1,28 @@
 import {
+	Body,
 	Controller,
+	Delete,
 	Get,
+	Param,
+	ParseUUIDPipe,
 	Post,
 	Put,
-	Delete,
-	Body,
-	Param,
 	Query,
 	Res,
 	UseGuards,
 	UsePipes,
-	ValidationPipe,
-	ParseUUIDPipe
+	ValidationPipe
 } from '@nestjs/common'
 import { FastifyReply } from 'fastify'
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger'
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
-import { CurrentUser } from '../auth/decorators/current-user.decorator'
+import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger'
+import { JwtAuthGuard } from '../shared/guards/jwt-auth.guard'
+import { CurrentUser } from '../shared/decorators/current-user.decorator'
 import { ValidatedUser } from '../auth/auth.service'
-import { LeasesService, LeaseWithRelations, LeaseQueryOptions } from './leases.service'
-import { LeasePDFService } from './services/lease-pdf.service'
-import { CreateLeaseDto, UpdateLeaseDto } from '../common/dto/dto-exports'
-import { UsageLimitsGuard } from '../subscriptions/guards/usage-limits.guard'
-import { UsageLimit } from '../subscriptions/decorators/usage-limits.decorator'
+import { LeaseQueryOptions, LeasesService, LeaseWithRelations } from './leases.service'
+import { LeasePDFService } from '../pdf/lease-pdf.service'
+import { CreateLeaseDto, UpdateLeaseDto } from '../shared/types/dto-exports'
+import { UsageLimitsGuard } from '../shared/guards/usage-limits.guard'
+import { UsageLimit } from '../shared/decorators/usage-limits.decorator'
 import type { ControllerApiResponse } from '@repo/shared'
 
 /**
@@ -42,6 +42,7 @@ export class LeasesController {
 	@ApiOperation({ summary: 'Get all leases for current user' })
 	@ApiResponse({ status: 200, description: 'Leases retrieved successfully' })
 	async findAll(
+		@CurrentUser() user: ValidatedUser,
 		@Query('status') status?: string,
 		@Query('unitId') unitId?: string,
 		@Query('tenantId') tenantId?: string,
@@ -51,11 +52,10 @@ export class LeasesController {
 		@Query('endDateTo') endDateTo?: string,
 		@Query('search') search?: string,
 		@Query('limit') limit?: string,
-		@Query('offset') offset?: string,
-		@CurrentUser() user: ValidatedUser
+		@Query('offset') offset?: string
 	): Promise<ControllerApiResponse<LeaseWithRelations[]>> {
 		const options: LeaseQueryOptions = {
-			status,
+			status: status as 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED' | undefined,
 			unitId,
 			tenantId,
 			startDateFrom,
@@ -93,8 +93,8 @@ export class LeasesController {
 	@ApiOperation({ summary: 'Get expiring leases' })
 	@ApiResponse({ status: 200, description: 'Expiring leases retrieved successfully' })
 	async getExpiringLeases(
-		@Query('days') days?: string,
-		@CurrentUser() user: ValidatedUser
+		@CurrentUser() user: ValidatedUser,
+		@Query('days') days?: string
 	): Promise<ControllerApiResponse<LeaseWithRelations[]>> {
 		const daysNumber = days ? parseInt(days) : 30
 		const data = await this.leasesService.getExpiringLeases(user.id, daysNumber)
@@ -175,7 +175,7 @@ export class LeasesController {
 	@ApiResponse({ status: 400, description: 'Invalid input' })
 	@ApiResponse({ status: 403, description: 'Usage limit exceeded' })
 	@ApiResponse({ status: 409, description: 'Lease dates conflict with existing lease' })
-	@UsageLimit({ resource: 'leases', action: 'create' })
+	@UsageLimit({ feature: 'leases' })
 	@UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 	async create(
 		@Body() createLeaseDto: CreateLeaseDto,
@@ -255,7 +255,7 @@ export class LeasesController {
 			includePageNumbers: true
 		}
 
-		const result = await this.leasePDFService.generateLeasePDF(
+		const result = await this.leasePDFService.generateLeasePdf(
 			leaseId,
 			user.id,
 			options

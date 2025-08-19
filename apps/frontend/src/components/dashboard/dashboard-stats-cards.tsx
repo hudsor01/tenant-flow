@@ -81,10 +81,11 @@ export function DashboardStatsCards() {
 			value: currentStats?.properties?.totalProperties || 0,
 			description: `${currentStats?.properties?.occupancyRate || 0}% occupancy`,
 			icon: Building2,
-			color: 'blue',
-			bgColor: 'bg-gradient-to-br from-blue-50 to-blue-100/50',
-			iconColor: 'text-primary',
-			borderColor: 'border-blue-200',
+			color: 'primary',
+			bgColor: 'bg-simplify-soft',
+			iconColor: 'text-white',
+			iconBg: 'bg-simplify',
+			borderColor: 'border-primary/20',
 			trend: 'up',
 			change: '+12%'
 		},
@@ -93,9 +94,10 @@ export function DashboardStatsCards() {
 			value: currentStats?.tenants?.totalTenants || 0,
 			description: 'Active tenants',
 			icon: Users,
-			color: 'green',
+			color: 'success',
 			bgColor: 'bg-gradient-to-br from-green-50 to-green-100/50',
-			iconColor: 'text-green-600',
+			iconColor: 'text-white',
+			iconBg: 'bg-green-500',
 			borderColor: 'border-green-200',
 			trend: 'up',
 			change: '+8%'
@@ -105,10 +107,11 @@ export function DashboardStatsCards() {
 			value: currentStats?.leases?.totalLeases || 0,
 			description: 'Active leases',
 			icon: FileText,
-			color: 'purple',
-			bgColor: 'bg-gradient-to-br from-purple-50 to-purple-100/50',
-			iconColor: 'text-purple-600',
-			borderColor: 'border-purple-200',
+			color: 'accent',
+			bgColor: 'bg-gradient-to-br from-teal-50 to-teal-100/50',
+			iconColor: 'text-white',
+			iconBg: 'bg-gradient-to-br from-teal-500 to-teal-600',
+			borderColor: 'border-teal-200',
 			trend: 'up',
 			change: '+5%'
 		},
@@ -117,9 +120,10 @@ export function DashboardStatsCards() {
 			value: 0,
 			description: 'Maintenance requests',
 			icon: Wrench,
-			color: 'orange',
+			color: 'warning',
 			bgColor: 'bg-gradient-to-br from-orange-50 to-orange-100/50',
-			iconColor: 'text-orange-600',
+			iconColor: 'text-white',
+			iconBg: 'bg-orange-500',
 			borderColor: 'border-orange-200',
 			trend: 'down',
 			change: '-15%'
@@ -156,14 +160,15 @@ export function DashboardStatsCards() {
 						/>
 
 						<CardHeader className="relative z-10 flex flex-row items-center justify-between space-y-0 pb-3">
-							<CardTitle className="text-foreground/90 group-hover:text-foreground text-sm font-semibold transition-colors">
+							<CardTitle className="text-heading-sm text-foreground/90 group-hover:text-foreground transition-colors">
 								{stat.title}
 							</CardTitle>
 							<div
 								className={cn(
 									'rounded-xl p-2.5 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3',
-									'bg-white/80 shadow-sm ring-1 ring-black/5 backdrop-blur-sm',
-									'group-hover:shadow-md'
+									'shadow-sm ring-1 ring-black/5 backdrop-blur-sm',
+									'group-hover:shadow-md',
+									stat.iconBg
 								)}
 							>
 								<Icon
@@ -177,19 +182,20 @@ export function DashboardStatsCards() {
 
 						<CardContent className="relative z-10">
 							<div className="space-y-2">
-								<div className="text-foreground text-2xl font-bold transition-all duration-300 group-hover:scale-105">
+								<div className="text-display-lg text-foreground font-bold transition-all duration-300 group-hover:scale-105">
 									{typeof stat.value === 'number'
 										? stat.value.toLocaleString()
 										: stat.value}
 								</div>
 								<div className="flex items-center justify-between">
-									<p className="text-muted-foreground text-xs font-medium">
+									<p className="text-ui-sm text-muted-foreground font-medium">
 										{stat.description}
 									</p>
 									<div
 										className={cn(
-											'flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium',
-											'bg-white/60 backdrop-blur-sm',
+											'flex items-center gap-1 rounded-full px-2 py-1 font-medium',
+											'bg-white/80 backdrop-blur-sm shadow-sm',
+											'text-ui-xs',
 											stat.trend === 'up'
 												? 'text-green-700 ring-1 ring-green-200'
 												: 'text-red-700 ring-1 ring-red-200'

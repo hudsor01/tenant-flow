@@ -71,6 +71,119 @@ const ColorPalette: React.FC<{
 	</Card>
 )
 
+// Brand gradient showcase component
+const BrandGradients: React.FC = () => (
+	<Card>
+		<CardHeader>
+			<CardTitle className="flex items-center gap-2">
+				<Layers className="h-5 w-5" />
+				"Simplify" Brand Gradients
+			</CardTitle>
+			<CardDescription>
+				TenantFlow's signature gradient system for brand consistency and visual hierarchy
+			</CardDescription>
+		</CardHeader>
+		<CardContent>
+			<div className="space-y-6">
+				{/* Primary Simplify Gradient */}
+				<div>
+					<h4 className="mb-3 font-semibold text-gray-800">Primary Brand Gradient</h4>
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+						<div className="text-center">
+							<div className="bg-simplify mb-3 h-20 w-full rounded-lg border shadow-md" />
+							<div className="text-sm font-medium">Simplify Primary</div>
+							<div className="font-mono text-xs text-gray-500">bg-simplify</div>
+							<div className="mt-1 text-xs text-gray-600">Hero elements, CTAs</div>
+						</div>
+						<div className="text-center">
+							<div className="bg-simplify-soft mb-3 h-20 w-full rounded-lg border shadow-md" />
+							<div className="text-sm font-medium">Simplify Soft</div>
+							<div className="font-mono text-xs text-gray-500">bg-simplify-soft</div>
+							<div className="mt-1 text-xs text-gray-600">Backgrounds, cards</div>
+						</div>
+						<div className="text-center">
+							<div className="bg-simplify-radial mb-3 h-20 w-full rounded-lg border shadow-md" />
+							<div className="text-sm font-medium">Simplify Radial</div>
+							<div className="font-mono text-xs text-gray-500">bg-simplify-radial</div>
+							<div className="mt-1 text-xs text-gray-600">Overlays, effects</div>
+						</div>
+					</div>
+				</div>
+
+				{/* Text Gradients */}
+				<div>
+					<h4 className="mb-3 font-semibold text-gray-800">Text Gradients</h4>
+					<div className="space-y-4">
+						<div className="rounded-lg border p-4">
+							<h3 className="text-simplify mb-2 text-2xl font-bold">
+								Simplify Your Property Management
+							</h3>
+							<p className="text-sm text-gray-600">
+								<code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-xs">
+									text-simplify
+								</code>
+								- Primary heading gradient
+							</p>
+						</div>
+						<div className="rounded-lg border p-4">
+							<h4 className="text-gradient-subtle mb-2 text-lg font-semibold">
+								Professional Property Solutions
+							</h4>
+							<p className="text-sm text-gray-600">
+								<code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-xs">
+									text-gradient-subtle
+								</code>
+								- Subtle text gradient for subheadings
+							</p>
+						</div>
+					</div>
+				</div>
+
+				{/* Interactive Gradients */}
+				<div>
+					<h4 className="mb-3 font-semibold text-gray-800">Interactive Elements</h4>
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+						<div className="space-y-3">
+							<button className="shadow-simplify bg-simplify hover:glow-simplify w-full rounded-lg px-4 py-3 font-medium text-white transition-all duration-300 hover:scale-[1.02]">
+								Premium CTA Button
+							</button>
+							<p className="text-xs text-gray-600">
+								<code className="rounded bg-gray-100 px-1 py-0.5 font-mono">
+									shadow-simplify hover:glow-simplify
+								</code>
+							</p>
+						</div>
+						<div className="space-y-3">
+							<div className="hover-simplify cursor-pointer rounded-lg border p-3 text-center transition-all duration-300">
+								Hover for gradient effect
+							</div>
+							<p className="text-xs text-gray-600">
+								<code className="rounded bg-gray-100 px-1 py-0.5 font-mono">
+									hover-simplify
+								</code>
+							</p>
+						</div>
+					</div>
+				</div>
+
+				{/* Guidelines */}
+				<div className="rounded-lg bg-blue-50 p-4">
+					<h4 className="mb-2 font-semibold text-blue-800">
+						Brand Gradient Guidelines
+					</h4>
+					<ul className="space-y-1 text-sm text-blue-700">
+						<li>• Use primary "Simplify" gradient for hero elements and main CTAs</li>
+						<li>• Apply soft variants for subtle backgrounds and card overlays</li>
+						<li>• Text gradients should be used sparingly for headlines only</li>
+						<li>• All gradients maintain WCAG 2.1 AA contrast ratios</li>
+						<li>• Dark mode variants automatically adjust for optimal visibility</li>
+					</ul>
+				</div>
+			</div>
+		</CardContent>
+	</Card>
+)
+
 // Typography scale component
 const TypographyScale: React.FC = () => (
 	<Card>
@@ -508,125 +621,144 @@ export const ColorSystem: Story = {
 				</p>
 			</div>
 
+			{/* Brand Gradients Section */}
+			<BrandGradients />
+
 			<div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
 				<ColorPalette
-					title="Primary Colors"
+					title="Brand Colors (OKLCH)"
 					colors={[
 						{
-							name: 'Blue 50',
-							value: '#eff6ff',
-							description: 'Light background'
+							name: 'Brand 50',
+							value: 'oklch(0.97 0.02 235)',
+							description: 'Light backgrounds'
 						},
 						{
-							name: 'Blue 500',
-							value: '#3b82f6',
+							name: 'Brand 500',
+							value: 'oklch(0.52 0.18 235)',
 							description: 'Primary brand'
 						},
 						{
-							name: 'Blue 600',
-							value: '#2563eb',
-							description: 'Hover state'
+							name: 'Brand 600',
+							value: 'oklch(0.44 0.16 235)',
+							description: 'Primary hover'
 						},
 						{
-							name: 'Blue 900',
-							value: '#1e3a8a',
-							description: 'Dark text'
+							name: 'Brand 900',
+							value: 'oklch(0.2 0.08 235)',
+							description: 'High contrast'
 						}
 					]}
 				/>
 
 				<ColorPalette
-					title="Semantic Colors"
+					title="Semantic Colors (OKLCH)"
 					colors={[
 						{
-							name: 'Green 500',
-							value: '#10b981',
+							name: 'Success',
+							value: 'oklch(0.55 0.12 142)',
 							description: 'Success states'
 						},
 						{
-							name: 'Red 500',
-							value: '#ef4444',
+							name: 'Error',
+							value: 'oklch(0.58 0.15 27)',
 							description: 'Error states'
 						},
 						{
-							name: 'Yellow 500',
-							value: '#f59e0b',
+							name: 'Warning',
+							value: 'oklch(0.75 0.14 85)',
 							description: 'Warning states'
 						},
 						{
-							name: 'Gray 500',
-							value: '#6b7280',
-							description: 'Neutral text'
+							name: 'Info',
+							value: 'oklch(0.6 0.12 240)',
+							description: 'Information'
 						}
 					]}
 				/>
 			</div>
 
 			<ColorPalette
-				title="Gray Scale"
+				title="Neutral Scale (OKLCH)"
 				colors={[
 					{
-						name: 'White',
-						value: '#ffffff',
-						description: 'Pure white'
+						name: 'Neutral 50',
+						value: 'oklch(0.99 0.002 240)',
+						description: 'Pure backgrounds'
 					},
 					{
-						name: 'Gray 50',
-						value: '#f9fafb',
-						description: 'Background'
+						name: 'Neutral 100',
+						value: 'oklch(0.97 0.003 240)',
+						description: 'Subtle backgrounds'
 					},
 					{
-						name: 'Gray 100',
-						value: '#f3f4f6',
-						description: 'Subtle background'
-					},
-					{
-						name: 'Gray 200',
-						value: '#e5e7eb',
+						name: 'Neutral 200',
+						value: 'oklch(0.94 0.004 240)',
 						description: 'Borders'
 					},
 					{
-						name: 'Gray 300',
-						value: '#d1d5db',
-						description: 'Disabled states'
+						name: 'Neutral 300',
+						value: 'oklch(0.89 0.005 240)',
+						description: 'Input borders'
 					},
 					{
-						name: 'Gray 400',
-						value: '#9ca3af',
+						name: 'Neutral 400',
+						value: 'oklch(0.63 0.006 240)',
 						description: 'Placeholder text'
 					},
 					{
-						name: 'Gray 500',
-						value: '#6b7280',
+						name: 'Neutral 500',
+						value: 'oklch(0.52 0.007 240)',
 						description: 'Secondary text'
 					},
 					{
-						name: 'Gray 600',
-						value: '#4b5563',
+						name: 'Neutral 600',
+						value: 'oklch(0.42 0.008 240)',
 						description: 'Primary text'
 					},
 					{
-						name: 'Gray 700',
-						value: '#374151',
+						name: 'Neutral 700',
+						value: 'oklch(0.32 0.009 240)',
 						description: 'Headings'
 					},
 					{
-						name: 'Gray 800',
-						value: '#1f2937',
-						description: 'Strong text'
+						name: 'Neutral 800',
+						value: 'oklch(0.22 0.01 240)',
+						description: 'High contrast'
 					},
 					{
-						name: 'Gray 900',
-						value: '#111827',
-						description: 'Darkest text'
-					},
-					{
-						name: 'Black',
-						value: '#000000',
-						description: 'Pure black'
+						name: 'Neutral 900',
+						value: 'oklch(0.15 0.011 240)',
+						description: 'Maximum contrast'
 					}
 				]}
 			/>
+
+			{/* WCAG Compliance Notice */}
+			<div className="rounded-lg bg-green-50 p-6 border border-green-200">
+				<h3 className="mb-3 font-semibold text-green-800 flex items-center gap-2">
+					<span className="text-green-600">✓</span>
+					WCAG 2.1 AA Compliance
+				</h3>
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-green-700">
+					<div>
+						<h4 className="font-medium mb-2">Color Accessibility</h4>
+						<ul className="space-y-1">
+							<li>• All text colors meet 4.5:1 contrast ratio minimum</li>
+							<li>• Large text meets 3:1 contrast ratio minimum</li>
+							<li>• Brand gradients maintain readability standards</li>
+						</ul>
+					</div>
+					<div>
+						<h4 className="font-medium mb-2">Modern Color Science</h4>
+						<ul className="space-y-1">
+							<li>• OKLCH color space for perceptual uniformity</li>
+							<li>• Consistent lightness across hue variations</li>
+							<li>• Future-proof for wide gamut displays</li>
+						</ul>
+					</div>
+				</div>
+			</div>
 		</div>
 	)
 }
