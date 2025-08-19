@@ -49,8 +49,8 @@ COPY --from=deps /app ./
 # Copy source from pruned output
 COPY --from=pruner /app/out/full/ .
 
-# Memory optimization
-ENV NODE_OPTIONS="--max-old-space-size=850"
+# Memory optimization for Railway deployment
+ENV NODE_OPTIONS="--max-old-space-size=1024"
 ENV TURBO_TELEMETRY_DISABLED=1
 ENV NPM_CONFIG_UPDATE_NOTIFIER=false
 
@@ -107,31 +107,34 @@ COPY --from=builder --chown=nonroot:nonroot /app/packages/database/dist ./packag
 # Runtime environment
 ENV NODE_ENV=production
 ENV DOCKER_CONTAINER=true
+ENV NODE_OPTIONS="--enable-source-maps --max-old-space-size=512"
+ENV UV_THREADPOOL_SIZE=4
 
-# Use Railway's injected PORT or fallback to 3001
-ARG PORT=3001
+# Use Railway's injected PORT or fallback to 4600
+ARG PORT=4600
 ENV PORT=${PORT}
 
 # Expose the dynamic port
 EXPOSE ${PORT}
 
-# Health check for Railway deployment
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+# Health check for Railway deployment - simplified and robust
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD /nodejs/bin/node -e " \
     const http = require('http'); \
-    const options = { \
-      hostname: '0.0.0.0', \
-      port: process.env.PORT || 4600, \
+    const port = process.env.PORT || 3001; \
+    const req = http.request({ \
+      hostname: 'localhost', \
+      port: port, \
       path: '/ping', \
-      timeout: 5000 \
-    }; \
-    const req = http.request(options, (res) => { \
+      method: 'GET', \
+      timeout: 8000 \
+    }, (res) => { \
       process.exit(res.statusCode === 200 ? 0 : 1); \
     }); \
     req.on('error', () => process.exit(1)); \
-    req.on('timeout', () => process.exit(1)); \
+    req.on('timeout', () => { req.destroy(); process.exit(1); }); \
     req.end(); \
-  " || exit 1
+  "
 
 # For Distroless, the Node.js binary is at /nodejs/bin/node
 # Railway's startCommand will override this if set
