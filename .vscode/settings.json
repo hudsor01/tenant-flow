@@ -35,7 +35,7 @@
     "turbo.json": "jsonc"
   },
   "json.schemas": [],
-  "json.schemaDownload.enable": false,
+  "json.schemaDownload.enable": true,
   "accessibility.signals.save": {
     "sound": "off"
   },
