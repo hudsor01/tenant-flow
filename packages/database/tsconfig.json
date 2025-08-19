@@ -1,7 +1,7 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
 	"display": "TenantFlow Database Package Config",
-	"extends": "@repo/typescript-config/base.json",
+	"extends": "../typescript-config/base.json",
 	"compilerOptions": {
 		"target": "ES2022",
 		"module": "CommonJS",
