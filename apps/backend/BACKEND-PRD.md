@@ -5,23 +5,26 @@
 **Product**: Backend API for property management platform  
 **Purpose**: RESTful API serving property, tenant, and lease data  
 **Core Value**: Simple, secure, scalable backend supporting property management operations  
-**Integration**: Supabase (auth/db), Stripe (billing), PostHog (analytics)  
+**Integration**: Supabase (auth/db), Stripe (billing), PostHog (analytics)
 
 ---
 
 ## 1. Product Overview
 
 ### 1.1 Vision
+
 A simple, beautiful property management dashboard that makes it easy for property owners and managers to store and manage their rental portfolio data without overwhelming complexity.
 
 ### 1.2 Core Principles
+
 - **KISS** (Keep It Simple, Stupid)
-- **YAGNI** (You Aren't Gonna Need It) 
+- **YAGNI** (You Aren't Gonna Need It)
 - **DRY** (Don't Repeat Yourself)
 - **Single Responsibility Principle**
 - **Explicit over Implicit**
 
 ### 1.3 Success Metrics
+
 - User signups
 - Paid subscription conversions
 - Low bounce rate
@@ -37,10 +40,10 @@ graph TB
     B -->|Auth/DB/Storage| C[Supabase]
     B -->|Payments| D[Stripe]
     B -->|Analytics| E[PostHog]
-    
+
     subgraph "Backend Services"
         B --> F[Properties API]
-        B --> G[Tenants API] 
+        B --> G[Tenants API]
         B --> H[Leases API]
         B --> I[Documents API]
         B --> J[Auth Middleware]
@@ -52,16 +55,16 @@ graph TB
 
 ### 2.1 Technology Stack
 
-| Component | Technology | Purpose |
-|-----------|------------|---------|
-| **API Framework** | NestJS 11 + Fastify | REST API server |
-| **Database** | Supabase PostgreSQL | Data storage |
-| **Authentication** | Supabase Auth | JWT token validation |
-| **File Storage** | Supabase Storage | Document/receipt storage |
-| **Payments** | Stripe API | Subscription management |
-| **Analytics** | PostHog API | Event tracking |
-| **Hosting** | Railway | Container deployment |
-| **Language** | TypeScript | Type safety |
+| Component          | Technology          | Purpose                  |
+| ------------------ | ------------------- | ------------------------ |
+| **API Framework**  | NestJS 11 + Fastify | REST API server          |
+| **Database**       | Supabase PostgreSQL | Data storage             |
+| **Authentication** | Supabase Auth       | JWT token validation     |
+| **File Storage**   | Supabase Storage    | Document/receipt storage |
+| **Payments**       | Stripe API          | Subscription management  |
+| **Analytics**      | PostHog API         | Event tracking           |
+| **Hosting**        | Railway             | Container deployment     |
+| **Language**       | TypeScript          | Type safety              |
 
 ---
 
@@ -79,7 +82,7 @@ sequenceDiagram
     participant F as Frontend
     participant S as Supabase Auth
     participant B as Backend
-    
+
     U->>F: Sign up/Login
     F->>S: Authenticate
     S->>F: JWT Token
@@ -91,60 +94,64 @@ sequenceDiagram
 ### 3.2 Core CRUD Operations
 
 #### 3.2.1 Properties
+
 **Purpose**: Store property portfolio data  
 **Lifecycle**: Permanent (lifetime of ownership)
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `address` | String | Yes | Full property address |
-| `unit_number` | String | No | Unit identifier for multi-unit properties |
-| `total_units` | Integer | Yes | Number of units (1 for single-family) |
-| `bedrooms` | Integer | Yes | Number of bedrooms |
-| `bathrooms` | Decimal | Yes | Number of bathrooms |
-| `square_footage` | Integer | No | Total square footage |
-| `has_pool` | Boolean | No | Pool amenity |
-| `created_at` | Timestamp | Auto | Record creation date |
-| `updated_at` | Timestamp | Auto | Last modification date |
-| `org_id` | UUID | Auto | Multi-tenant isolation |
+| Field            | Type      | Required | Description                               |
+| ---------------- | --------- | -------- | ----------------------------------------- |
+| `address`        | String    | Yes      | Full property address                     |
+| `unit_number`    | String    | No       | Unit identifier for multi-unit properties |
+| `total_units`    | Integer   | Yes      | Number of units (1 for single-family)     |
+| `bedrooms`       | Integer   | Yes      | Number of bedrooms                        |
+| `bathrooms`      | Decimal   | Yes      | Number of bathrooms                       |
+| `square_footage` | Integer   | No       | Total square footage                      |
+| `has_pool`       | Boolean   | No       | Pool amenity                              |
+| `created_at`     | Timestamp | Auto     | Record creation date                      |
+| `updated_at`     | Timestamp | Auto     | Last modification date                    |
+| `org_id`         | UUID      | Auto     | Multi-tenant isolation                    |
 
 #### 3.2.2 Tenants
+
 **Purpose**: Store tenant contact information  
 **Lifecycle**: Permanent (history preservation)
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `first_name` | String | Yes | Tenant first name |
-| `last_name` | String | Yes | Tenant last name |
-| `email` | String | Yes | Contact email |
-| `phone` | String | Yes | Contact phone |
-| `previous_address` | String | No | Previous residence |
-| `created_at` | Timestamp | Auto | Record creation date |
-| `updated_at` | Timestamp | Auto | Last modification date |
-| `org_id` | UUID | Auto | Multi-tenant isolation |
+| Field              | Type      | Required | Description            |
+| ------------------ | --------- | -------- | ---------------------- |
+| `first_name`       | String    | Yes      | Tenant first name      |
+| `last_name`        | String    | Yes      | Tenant last name       |
+| `email`            | String    | Yes      | Contact email          |
+| `phone`            | String    | Yes      | Contact phone          |
+| `previous_address` | String    | No       | Previous residence     |
+| `created_at`       | Timestamp | Auto     | Record creation date   |
+| `updated_at`       | Timestamp | Auto     | Last modification date |
+| `org_id`           | UUID      | Auto     | Multi-tenant isolation |
 
 #### 3.2.3 Leases
+
 **Purpose**: Store lease agreements and terms  
 **Lifecycle**: Most frequently updated (1-2 year cycles)
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `property_id` | UUID | Yes | Associated property (FK) |
-| `tenant_id` | UUID | Yes | Associated tenant (FK) |
-| `rent_amount` | Decimal | Yes | Monthly rent amount |
-| `start_date` | Date | Yes | Lease start date |
-| `end_date` | Date | Yes | Lease end date |
-| `security_deposit` | Decimal | Yes | Security deposit amount |
-| `late_fee_grace_days` | Integer | Yes | Days before late fee applies |
-| `late_fee_amount` | Decimal | Yes | Daily late fee amount |
-| `tenant_signature` | String | No | Tenant signature data |
-| `tenant_signature_date` | Date | No | Date tenant signed |
-| `landlord_signature` | String | No | Landlord signature data |
-| `landlord_signature_date` | Date | No | Date landlord signed |
-| `created_at` | Timestamp | Auto | Record creation date |
-| `updated_at` | Timestamp | Auto | Last modification date |
-| `org_id` | UUID | Auto | Multi-tenant isolation |
+| Field                     | Type      | Required | Description                  |
+| ------------------------- | --------- | -------- | ---------------------------- |
+| `property_id`             | UUID      | Yes      | Associated property (FK)     |
+| `tenant_id`               | UUID      | Yes      | Associated tenant (FK)       |
+| `rent_amount`             | Decimal   | Yes      | Monthly rent amount          |
+| `start_date`              | Date      | Yes      | Lease start date             |
+| `end_date`                | Date      | Yes      | Lease end date               |
+| `security_deposit`        | Decimal   | Yes      | Security deposit amount      |
+| `late_fee_grace_days`     | Integer   | Yes      | Days before late fee applies |
+| `late_fee_amount`         | Decimal   | Yes      | Daily late fee amount        |
+| `tenant_signature`        | String    | No       | Tenant signature data        |
+| `tenant_signature_date`   | Date      | No       | Date tenant signed           |
+| `landlord_signature`      | String    | No       | Landlord signature data      |
+| `landlord_signature_date` | Date      | No       | Date landlord signed         |
+| `created_at`              | Timestamp | Auto     | Record creation date         |
+| `updated_at`              | Timestamp | Auto     | Last modification date       |
+| `org_id`                  | UUID      | Auto     | Multi-tenant isolation       |
 
 ### 3.3 Document Storage
+
 **Purpose**: Store receipts and property-related documents  
 **Storage**: Supabase Storage  
 **File Types**: PDF, images, common document formats  
@@ -159,6 +166,7 @@ sequenceDiagram
 **Base URL**: `https://api.tenantflow.app`
 
 #### Properties API
+
 ```
 GET    /api/properties           # List all properties
 POST   /api/properties           # Create new property
@@ -169,6 +177,7 @@ GET    /api/properties/search    # Search properties (autocomplete)
 ```
 
 #### Tenants API
+
 ```
 GET    /api/tenants              # List all tenants
 POST   /api/tenants              # Create new tenant
@@ -179,6 +188,7 @@ GET    /api/tenants/search       # Search tenants (autocomplete)
 ```
 
 #### Leases API
+
 ```
 GET    /api/leases               # List all leases
 POST   /api/leases               # Create new lease
@@ -188,6 +198,7 @@ DELETE /api/leases/:id           # Delete lease
 ```
 
 #### Documents API
+
 ```
 POST   /api/documents            # Upload document
 GET    /api/documents            # List documents
@@ -196,6 +207,7 @@ DELETE /api/documents/:id        # Delete document
 ```
 
 ### 4.2 Authentication
+
 **Method**: Bearer token (Supabase JWT)  
 **Header**: `Authorization: Bearer <token>`  
 **All endpoints require authentication**
@@ -205,13 +217,14 @@ DELETE /api/documents/:id        # Delete document
 ## 5. User Experience Flow
 
 ### 5.1 API Request Flow
+
 ```mermaid
 sequenceDiagram
     participant C as Client
     participant A as API Gateway
     participant S as Supabase
     participant DB as Database
-    
+
     C->>A: POST /api/leases + JWT
     A->>S: Validate JWT token
     S->>A: User confirmed
@@ -222,8 +235,9 @@ sequenceDiagram
 ```
 
 ### 5.2 Multi-Tenant Security
+
 - **Row Level Security (RLS)** enforced on all queries
-- **org_id filtering** automatic on all CRUD operations  
+- **org_id filtering** automatic on all CRUD operations
 - **JWT token validation** on every request
 - **No cross-tenant data leakage** possible
 
@@ -232,16 +246,18 @@ sequenceDiagram
 ## 6. Subscription & Billing
 
 ### 6.1 Pricing Tiers
-| Tier | Name | Features | Target Users |
-|------|------|----------|--------------|
-| 1 | **Starter** | Core CRUD, Basic features | Small landlords |
-| 2 | **Growth** | Enhanced features, More storage | Growing portfolios |
-| 3 | **TenantFlow Max** | Full feature set, Priority support | Large property managers |
+
+| Tier | Name               | Features                           | Target Users            |
+| ---- | ------------------ | ---------------------------------- | ----------------------- |
+| 1    | **Starter**        | Core CRUD, Basic features          | Small landlords         |
+| 2    | **Growth**         | Enhanced features, More storage    | Growing portfolios      |
+| 3    | **TenantFlow Max** | Full feature set, Priority support | Large property managers |
 
 **Philosophy**: No artificial property limits that frustrate users  
-**Free Trial**: Handled automatically by Stripe  
+**Free Trial**: Handled automatically by Stripe
 
 ### 6.2 Stripe Integration
+
 - **Customer creation** on signup
 - **Subscription management** (create, update, cancel)
 - **Webhook handling** for subscription events
@@ -252,15 +268,17 @@ sequenceDiagram
 ## 7. Analytics & Monitoring
 
 ### 7.1 PostHog Events
-| Event | Trigger | Purpose |
-|-------|---------|---------|
-| `user_signup` | Registration complete | Track acquisition |
-| `subscription_created` | Paid plan activated | Track conversions |
-| `property_created` | New property added | Track engagement |
-| `lease_created` | New lease added | Track core usage |
-| `document_uploaded` | File uploaded | Track feature adoption |
+
+| Event                  | Trigger               | Purpose                |
+| ---------------------- | --------------------- | ---------------------- |
+| `user_signup`          | Registration complete | Track acquisition      |
+| `subscription_created` | Paid plan activated   | Track conversions      |
+| `property_created`     | New property added    | Track engagement       |
+| `lease_created`        | New lease added       | Track core usage       |
+| `document_uploaded`    | File uploaded         | Track feature adoption |
 
 ### 7.2 Metrics Dashboard
+
 - **Heatmaps**: User interaction patterns
 - **Bounce Rate**: Page abandonment tracking
 - **A/B Testing**: Feature/UI optimization
@@ -271,6 +289,7 @@ sequenceDiagram
 ## 8. Technical Implementation
 
 ### 8.1 Database Schema (Supabase)
+
 ```mermaid
 erDiagram
     USERS ||--o{ PROPERTIES : owns
@@ -281,14 +300,14 @@ erDiagram
     PROPERTIES ||--o{ DOCUMENTS : related_to
     TENANTS ||--o{ DOCUMENTS : related_to
     LEASES ||--o{ DOCUMENTS : related_to
-    
+
     USERS {
         uuid id PK
         string email
         timestamp created_at
         uuid org_id
     }
-    
+
     PROPERTIES {
         uuid id PK
         string address
@@ -302,7 +321,7 @@ erDiagram
         timestamp updated_at
         uuid org_id FK
     }
-    
+
     TENANTS {
         uuid id PK
         string first_name
@@ -314,7 +333,7 @@ erDiagram
         timestamp updated_at
         uuid org_id FK
     }
-    
+
     LEASES {
         uuid id PK
         uuid property_id FK
@@ -333,7 +352,7 @@ erDiagram
         timestamp updated_at
         uuid org_id FK
     }
-    
+
     DOCUMENTS {
         uuid id PK
         string filename
@@ -348,11 +367,13 @@ erDiagram
 ```
 
 ### 8.2 Row Level Security (RLS)
+
 **Policy**: All data filtered by `org_id` to ensure multi-tenant isolation  
 **Implementation**: Automatic filtering on all CRUD operations  
-**Security**: Users can only access their organization's data  
+**Security**: Users can only access their organization's data
 
 ### 8.3 File Structure (Current State)
+
 ```
 src/
 ├── app.module.ts              # Main application module
@@ -361,7 +382,7 @@ src/
 ├── stripe.service.ts          # Stripe payment processing
 ├── auth/                      # Supabase authentication
 ├── properties/                # Properties CRUD module
-├── tenants/                   # Tenants CRUD module  
+├── tenants/                   # Tenants CRUD module
 ├── leases/                    # Leases CRUD module
 ├── supabase/                  # Database service
 ├── health/                    # Health check endpoints
@@ -373,19 +394,21 @@ src/
 ## 9. Deployment & Infrastructure
 
 ### 9.1 Environments
-| Environment | Frontend | Backend | Database |
-|-------------|----------|---------|----------|
-| **Production** | Vercel | Railway | Supabase |
-| **Development** | Local | Local | Supabase |
+
+| Environment     | Frontend | Backend | Database |
+| --------------- | -------- | ------- | -------- |
+| **Production**  | Vercel   | Railway | Supabase |
+| **Development** | Local    | Local   | Supabase |
 
 ### 9.2 Environment Variables
+
 ```bash
 # Supabase
 SUPABASE_URL=https://xxx.supabase.co
 SUPABASE_ANON_KEY=xxx
 SUPABASE_SERVICE_KEY=xxx
 
-# Stripe  
+# Stripe
 STRIPE_SECRET_KEY=sk_xxx
 STRIPE_WEBHOOK_SECRET=whsec_xxx
 STRIPE_PRICE_ID_STARTER=price_xxx
@@ -401,8 +424,10 @@ PORT=3000
 ```
 
 ### 9.3 Health Checks
+
 **Endpoint**: `GET /health`  
-**Checks**: 
+**Checks**:
+
 - Database connectivity (Supabase)
 - Service status
 - API response time
@@ -412,6 +437,7 @@ PORT=3000
 ## 10. Success Criteria & Milestones
 
 ### 10.1 MVP Definition of Done
+
 - ✅ Core CRUD (Properties, Tenants, Leases) functional
 - ✅ Supabase authentication working
 - ✅ Stripe subscription flow complete
@@ -422,6 +448,7 @@ PORT=3000
 - ✅ Production deployment stable
 
 ### 10.2 Post-MVP Features (Future)
+
 - Advanced reporting and analytics
 - Automated lease renewal reminders
 - Tenant portal access
@@ -435,19 +462,21 @@ PORT=3000
 ## 11. Risk Mitigation
 
 ### 11.1 Technical Risks
-| Risk | Impact | Mitigation |
-|------|---------|------------|
-| Railway health check failures | High | Proper service configuration + database connection testing |
-| Supabase RLS misconfiguration | High | Comprehensive testing of multi-tenant isolation |
-| Stripe webhook reliability | Medium | Retry logic + webhook verification |
-| File storage limits | Low | Monitor usage + implement cleanup policies |
+
+| Risk                          | Impact | Mitigation                                                 |
+| ----------------------------- | ------ | ---------------------------------------------------------- |
+| Railway health check failures | High   | Proper service configuration + database connection testing |
+| Supabase RLS misconfiguration | High   | Comprehensive testing of multi-tenant isolation            |
+| Stripe webhook reliability    | Medium | Retry logic + webhook verification                         |
+| File storage limits           | Low    | Monitor usage + implement cleanup policies                 |
 
 ### 11.2 API Risks
-| Risk | Impact | Mitigation |
-|------|---------|------------|
-| Rate limiting issues | Medium | Implement proper throttling + monitoring |
-| Data consistency problems | High | Database transactions + validation |
-| API versioning conflicts | Low | Semantic versioning + backward compatibility |
+
+| Risk                      | Impact | Mitigation                                   |
+| ------------------------- | ------ | -------------------------------------------- |
+| Rate limiting issues      | Medium | Implement proper throttling + monitoring     |
+| Data consistency problems | High   | Database transactions + validation           |
+| API versioning conflicts  | Low    | Semantic versioning + backward compatibility |
 
 ---
 
@@ -456,6 +485,7 @@ PORT=3000
 This PRD defines a **minimum viable but complete** property management platform focused on simplicity and user experience. The architecture follows KISS/YAGNI principles while providing a solid foundation for future growth.
 
 **Key Success Factors**:
+
 1. **Simplicity**: No over-engineering, focus on core needs
 2. **User Experience**: Beautiful, intuitive interface
 3. **Scalability**: Clean architecture for future feature additions
@@ -466,6 +496,6 @@ This PRD defines a **minimum viable but complete** property management platform 
 
 ---
 
-*Last Updated: January 2025*  
-*Version: 1.0*  
-*Status: Implementation Ready*
+_Last Updated: January 2025_  
+_Version: 1.0_  
+_Status: Implementation Ready_

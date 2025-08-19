@@ -52,9 +52,7 @@ export const DEFAULT_SECURITY_CONFIG: SecurityConfig = {
 /**
  * Initialize consolidated security system
  */
-export function initializeSecurity(
-	config: Partial<SecurityConfig> = {}
-) {
+export function initializeSecurity(config: Partial<SecurityConfig> = {}) {
 	const finalConfig = { ...DEFAULT_SECURITY_CONFIG, ...config }
 
 	logger.info('🔒 Initializing Consolidated Security System', {

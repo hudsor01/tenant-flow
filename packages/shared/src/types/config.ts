@@ -8,11 +8,11 @@
 // ============================================================================
 
 export interface AppConfig {
-  port: number
-  host: string
-  env: 'development' | 'production' | 'test'
-  apiVersion: string
-  corsOrigins: string[]
+	port: number
+	host: string
+	env: 'development' | 'production' | 'test'
+	apiVersion: string
+	corsOrigins: string[]
 }
 
 // ============================================================================
@@ -20,17 +20,17 @@ export interface AppConfig {
 // ============================================================================
 
 export interface DatabaseConfig {
-  url: string
-  poolMin: number
-  poolMax: number
-  ssl: boolean
+	url: string
+	poolMin: number
+	poolMax: number
+	ssl: boolean
 }
 
 export interface SupabaseConfig {
-  url: string
-  serviceRoleKey: string
-  jwtSecret: string
-  anonKey: string
+	url: string
+	serviceRoleKey: string
+	jwtSecret: string
+	anonKey: string
 }
 
 // ============================================================================
@@ -38,32 +38,32 @@ export interface SupabaseConfig {
 // ============================================================================
 
 export interface StripeConfig {
-  secretKey: string
-  webhookSecret: string
-  publishableKey?: string
+	secretKey: string
+	webhookSecret: string
+	publishableKey?: string
 }
 
 export interface RedisConfig {
-  url: string
-  host?: string
-  port?: number
-  password?: string
-  db?: number
+	url: string
+	host?: string
+	port?: number
+	password?: string
+	db?: number
 }
 
 export interface EmailConfig {
-  provider: 'resend' | 'sendgrid' | 'smtp'
-  apiKey?: string
-  from: string
-  replyTo?: string
+	provider: 'resend' | 'sendgrid' | 'smtp'
+	apiKey?: string
+	from: string
+	replyTo?: string
 }
 
 export interface StorageConfig {
-  provider: 'supabase' | 's3' | 'local'
-  bucket: string
-  region?: string
-  accessKey?: string
-  secretKey?: string
+	provider: 'supabase' | 's3' | 'local'
+	bucket: string
+	region?: string
+	accessKey?: string
+	secretKey?: string
 }
 
 // ============================================================================
@@ -71,11 +71,11 @@ export interface StorageConfig {
 // ============================================================================
 
 export interface FullConfig {
-  app: AppConfig
-  database: DatabaseConfig
-  supabase: SupabaseConfig
-  stripe: StripeConfig
-  redis: RedisConfig
-  email: EmailConfig
-  storage: StorageConfig
+	app: AppConfig
+	database: DatabaseConfig
+	supabase: SupabaseConfig
+	stripe: StripeConfig
+	redis: RedisConfig
+	email: EmailConfig
+	storage: StorageConfig
 }

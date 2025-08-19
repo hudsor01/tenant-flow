@@ -46,7 +46,9 @@ export class JwtAuthGuard implements CanActivate {
 	) {}
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
-		const request = context.switchToHttp().getRequest<AuthenticatedRequest>()
+		const request = context
+			.switchToHttp()
+			.getRequest<AuthenticatedRequest>()
 		const method = request.method
 		const url = request.url
 
@@ -156,7 +158,9 @@ export class JwtAuthGuard implements CanActivate {
 		}
 	}
 
-	private extractTokenFromHeader(request: Pick<FastifyRequest, 'headers'>): string | undefined {
+	private extractTokenFromHeader(
+		request: Pick<FastifyRequest, 'headers'>
+	): string | undefined {
 		const authHeader = request.headers.authorization
 
 		if (!authHeader) {
@@ -231,7 +235,9 @@ export class JwtAuthGuard implements CanActivate {
 	/**
 	 * Get client IP address for security logging
 	 */
-	private getClientIP(request: Pick<FastifyRequest, 'headers' | 'ip'>): string {
+	private getClientIP(
+		request: Pick<FastifyRequest, 'headers' | 'ip'>
+	): string {
 		// Check various headers for real IP (in order of trust)
 		const forwardedFor = request.headers['x-forwarded-for']
 		const realIP = request.headers['x-real-ip']

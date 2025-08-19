@@ -19,7 +19,7 @@ export default function DashboardPage() {
 	return (
 		<DashboardErrorBoundary>
 			<DashboardTracker />
-			<div className="mx-auto max-w-[1400px] flex-1 space-y-6 p-3 sm:p-4 md:p-6 lg:p-8 sm:space-y-8">
+			<div className="mx-auto max-w-[1400px] flex-1 space-y-6 p-3 sm:space-y-8 sm:p-4 md:p-6 lg:p-8">
 				{/* Enhanced Page Header */}
 				<div className="relative">
 					{/* Background gradient effect */}

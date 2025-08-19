@@ -1,10 +1,20 @@
-import { BadRequestException, Inject, Injectable, Logger, NotFoundException, Scope } from '@nestjs/common'
+import {
+	BadRequestException,
+	Inject,
+	Injectable,
+	Logger,
+	NotFoundException,
+	Scope
+} from '@nestjs/common'
 import { REQUEST } from '@nestjs/core'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import type { AuthRequest } from '../shared/types'
 import { SupabaseService } from '../database/supabase.service'
-import { CreatePropertyDto, UpdatePropertyDto } from '../shared/types/dto-exports'
+import {
+	CreatePropertyDto,
+	UpdatePropertyDto
+} from '../shared/types/dto-exports'
 
 type Property = Database['public']['Tables']['Property']['Row']
 type PropertyInsert = Database['public']['Tables']['Property']['Insert']
@@ -30,10 +40,11 @@ export class PropertiesService {
 		private supabaseService: SupabaseService
 	) {
 		// Get user-scoped client if token available, otherwise admin client
-		const token = this.request.user?.supabaseToken ||
+		const token =
+			this.request.user?.supabaseToken ||
 			this.request.headers?.authorization?.replace('Bearer ', '')
-		
-		this.supabase = token 
+
+		this.supabase = token
 			? this.supabaseService.getUserClient(token)
 			: this.supabaseService.getAdminClient()
 	}
@@ -44,10 +55,12 @@ export class PropertiesService {
 	async findAll(ownerId: string): Promise<PropertyWithRelations[]> {
 		const { data, error } = await this.supabase
 			.from('Property')
-			.select(`
+			.select(
+				`
 				*,
 				Unit (*)
-			`)
+			`
+			)
 			.eq('ownerId', ownerId)
 			.order('createdAt', { ascending: false })
 
@@ -65,10 +78,12 @@ export class PropertiesService {
 	async findOne(id: string, ownerId: string): Promise<PropertyWithRelations> {
 		const { data, error } = await this.supabase
 			.from('Property')
-			.select(`
+			.select(
+				`
 				*,
 				Unit (*)
-			`)
+			`
+			)
 			.eq('id', id)
 			.eq('ownerId', ownerId)
 			.single()
@@ -87,11 +102,15 @@ export class PropertiesService {
 	/**
 	 * Create new property
 	 */
-	async create(dto: CreatePropertyDto, ownerId: string): Promise<PropertyWithRelations> {
+	async create(
+		dto: CreatePropertyDto,
+		ownerId: string
+	): Promise<PropertyWithRelations> {
 		const propertyData: PropertyInsert = {
 			...dto,
 			ownerId,
-			propertyType: (dto.propertyType || 'SINGLE_FAMILY') as PropertyInsert['propertyType'],
+			propertyType: (dto.propertyType ||
+				'SINGLE_FAMILY') as PropertyInsert['propertyType'],
 			createdAt: new Date().toISOString(),
 			updatedAt: new Date().toISOString()
 		}
@@ -105,10 +124,12 @@ export class PropertiesService {
 		const { data, error } = await this.supabase
 			.from('Property')
 			.insert(propertyData)
-			.select(`
+			.select(
+				`
 				*,
 				Unit (*)
-			`)
+			`
+			)
 			.single()
 
 		if (error) {
@@ -124,7 +145,7 @@ export class PropertiesService {
 	 * Create property with units
 	 */
 	private async createWithUnits(
-		propertyData: PropertyInsert, 
+		propertyData: PropertyInsert,
 		unitCount: number
 	): Promise<PropertyWithRelations> {
 		// Create property first
@@ -140,16 +161,19 @@ export class PropertiesService {
 		}
 
 		// Create units
-		const units: UnitInsert[] = Array.from({ length: unitCount }, (_, i) => ({
-			propertyId: property.id,
-			unitNumber: `Unit ${i + 1}`,
-			bedrooms: 1,
-			bathrooms: 1,
-			rent: 1000,
-			status: 'VACANT' as const,
-			createdAt: new Date().toISOString(),
-			updatedAt: new Date().toISOString()
-		}))
+		const units: UnitInsert[] = Array.from(
+			{ length: unitCount },
+			(_, i) => ({
+				propertyId: property.id,
+				unitNumber: `Unit ${i + 1}`,
+				bedrooms: 1,
+				bathrooms: 1,
+				rent: 1000,
+				status: 'VACANT' as const,
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString()
+			})
+		)
 
 		const { error: unitsError } = await this.supabase
 			.from('Unit')
@@ -170,8 +194,8 @@ export class PropertiesService {
 	 * Update property
 	 */
 	async update(
-		id: string, 
-		dto: UpdatePropertyDto, 
+		id: string,
+		dto: UpdatePropertyDto,
 		ownerId: string
 	): Promise<PropertyWithRelations> {
 		// Verify ownership
@@ -187,10 +211,12 @@ export class PropertiesService {
 			.update(updateData)
 			.eq('id', id)
 			.eq('ownerId', ownerId)
-			.select(`
+			.select(
+				`
 				*,
 				Unit (*)
-			`)
+			`
+			)
 			.single()
 
 		if (error) {
@@ -218,7 +244,9 @@ export class PropertiesService {
 			.limit(1)
 
 		if (leases && leases.length > 0) {
-			throw new BadRequestException('Cannot delete property with active leases')
+			throw new BadRequestException(
+				'Cannot delete property with active leases'
+			)
 		}
 
 		// Delete units first (cascade)
@@ -277,9 +305,13 @@ export class PropertiesService {
 
 		for (const property of properties) {
 			// Count property types
-			if (property.propertyType === 'SINGLE_FAMILY') {stats.singleFamily++}
-			else if (property.propertyType === 'MULTI_UNIT') {stats.multiFamily++}
-			else if (property.propertyType === 'COMMERCIAL') {stats.commercial++}
+			if (property.propertyType === 'SINGLE_FAMILY') {
+				stats.singleFamily++
+			} else if (property.propertyType === 'MULTI_UNIT') {
+				stats.multiFamily++
+			} else if (property.propertyType === 'COMMERCIAL') {
+				stats.commercial++
+			}
 
 			// Count units
 			if (property.Unit) {
@@ -301,15 +333,22 @@ export class PropertiesService {
 	/**
 	 * Search properties
 	 */
-	async search(ownerId: string, searchTerm: string): Promise<PropertyWithRelations[]> {
+	async search(
+		ownerId: string,
+		searchTerm: string
+	): Promise<PropertyWithRelations[]> {
 		const { data, error } = await this.supabase
 			.from('Property')
-			.select(`
+			.select(
+				`
 				*,
 				Unit (*)
-			`)
+			`
+			)
 			.eq('ownerId', ownerId)
-			.or(`name.ilike.%${searchTerm}%,address.ilike.%${searchTerm}%,city.ilike.%${searchTerm}%`)
+			.or(
+				`name.ilike.%${searchTerm}%,address.ilike.%${searchTerm}%,city.ilike.%${searchTerm}%`
+			)
 			.order('createdAt', { ascending: false })
 
 		if (error) {

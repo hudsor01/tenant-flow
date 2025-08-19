@@ -1,4 +1,11 @@
-import { BadRequestException, Inject, Injectable, Logger, NotFoundException, Scope } from '@nestjs/common'
+import {
+	BadRequestException,
+	Inject,
+	Injectable,
+	Logger,
+	NotFoundException,
+	Scope
+} from '@nestjs/common'
 import { REQUEST } from '@nestjs/core'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@repo/shared/types/supabase-generated'
@@ -47,10 +54,11 @@ export class LeasesService {
 		private supabaseService: SupabaseService
 	) {
 		// Get user-scoped client if token available, otherwise admin client
-		const token = this.request.user?.supabaseToken ||
+		const token =
+			this.request.user?.supabaseToken ||
 			this.request.headers?.authorization?.replace('Bearer ', '')
-		
-		this.supabase = token 
+
+		this.supabase = token
 			? this.supabaseService.getUserClient(token)
 			: this.supabaseService.getAdminClient()
 	}
@@ -58,10 +66,11 @@ export class LeasesService {
 	/**
 	 * Get all leases for an owner
 	 */
-	async findAll(ownerId: string, options: LeaseQueryOptions = {}): Promise<LeaseWithRelations[]> {
-		let query = this.supabase
-			.from('Lease')
-			.select(`
+	async findAll(
+		ownerId: string,
+		options: LeaseQueryOptions = {}
+	): Promise<LeaseWithRelations[]> {
+		let query = this.supabase.from('Lease').select(`
 				*,
 				Unit!inner (
 					*,
@@ -109,7 +118,10 @@ export class LeasesService {
 
 		// Apply pagination
 		if (options.offset && options.limit) {
-			query = query.range(options.offset, options.offset + options.limit - 1)
+			query = query.range(
+				options.offset,
+				options.offset + options.limit - 1
+			)
 		} else if (options.limit) {
 			query = query.limit(options.limit)
 		}
@@ -132,14 +144,16 @@ export class LeasesService {
 	async findOne(id: string, ownerId: string): Promise<LeaseWithRelations> {
 		const { data, error } = await this.supabase
 			.from('Lease')
-			.select(`
+			.select(
+				`
 				*,
 				Unit!inner (
 					*,
 					Property!inner (*)
 				),
 				Tenant (*)
-			`)
+			`
+			)
 			.eq('id', id)
 			.eq('Unit.Property.ownerId', ownerId)
 			.single()
@@ -158,14 +172,19 @@ export class LeasesService {
 	/**
 	 * Create new lease
 	 */
-	async create(dto: CreateLeaseDto, ownerId: string): Promise<LeaseWithRelations> {
+	async create(
+		dto: CreateLeaseDto,
+		ownerId: string
+	): Promise<LeaseWithRelations> {
 		// First validate that the unit belongs to the owner
 		const { data: unit } = await this.supabase
 			.from('Unit')
-			.select(`
+			.select(
+				`
 				*,
 				Property (*)
-			`)
+			`
+			)
 			.eq('id', dto.unitId)
 			.eq('Property.ownerId', ownerId)
 			.single()
@@ -181,11 +200,13 @@ export class LeasesService {
 			.eq('id', dto.tenantId)
 			.eq('ownerId', ownerId)
 			.single()
-		
+
 		const tenant = tenantQuery.data
 
 		if (!tenant) {
-			throw new BadRequestException('Tenant not found or not owned by user')
+			throw new BadRequestException(
+				'Tenant not found or not owned by user'
+			)
 		}
 
 		// Validate lease dates
@@ -201,7 +222,11 @@ export class LeasesService {
 			endDate: new Date(dto.endDate).toISOString(),
 			rentAmount: dto.rentAmount,
 			securityDeposit: dto.securityDeposit,
-			status: (dto.status || 'DRAFT') as 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED',
+			status: (dto.status || 'DRAFT') as
+				| 'DRAFT'
+				| 'ACTIVE'
+				| 'EXPIRED'
+				| 'TERMINATED',
 			terms: dto.leaseTerms,
 			createdAt: new Date().toISOString(),
 			updatedAt: new Date().toISOString()
@@ -210,14 +235,16 @@ export class LeasesService {
 		const { data, error } = await this.supabase
 			.from('Lease')
 			.insert(leaseData)
-			.select(`
+			.select(
+				`
 				*,
 				Unit!inner (
 					*,
 					Property!inner (*)
 				),
 				Tenant (*)
-			`)
+			`
+			)
 			.single()
 
 		if (error) {
@@ -232,7 +259,11 @@ export class LeasesService {
 	/**
 	 * Update lease
 	 */
-	async update(id: string, dto: UpdateLeaseDto, ownerId: string): Promise<LeaseWithRelations> {
+	async update(
+		id: string,
+		dto: UpdateLeaseDto,
+		ownerId: string
+	): Promise<LeaseWithRelations> {
 		// Verify ownership
 		const existing = await this.findOne(id, ownerId)
 
@@ -245,9 +276,9 @@ export class LeasesService {
 			// Check for conflicts if dates changed
 			if (dto.startDate || dto.endDate) {
 				await this.checkLeaseConflicts(
-					existing.unitId, 
-					startDate, 
-					endDate, 
+					existing.unitId,
+					startDate,
+					endDate,
 					id
 				)
 			}
@@ -265,7 +296,11 @@ export class LeasesService {
 			updateData.endDate = new Date(dto.endDate).toISOString()
 		}
 		if (dto.status) {
-			updateData.status = dto.status as 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED'
+			updateData.status = dto.status as
+				| 'DRAFT'
+				| 'ACTIVE'
+				| 'EXPIRED'
+				| 'TERMINATED'
 		}
 		if (dto.rentAmount !== undefined) {
 			updateData.rentAmount = dto.rentAmount
@@ -281,14 +316,16 @@ export class LeasesService {
 			.from('Lease')
 			.update(updateData)
 			.eq('id', id)
-			.select(`
+			.select(
+				`
 				*,
 				Unit!inner (
 					*,
 					Property!inner (*)
 				),
 				Tenant (*)
-			`)
+			`
+			)
 			.single()
 
 		if (error) {
@@ -366,28 +403,40 @@ export class LeasesService {
 	/**
 	 * Get leases by unit
 	 */
-	async findByUnit(unitId: string, ownerId: string): Promise<LeaseWithRelations[]> {
+	async findByUnit(
+		unitId: string,
+		ownerId: string
+	): Promise<LeaseWithRelations[]> {
 		return this.findAll(ownerId, { unitId })
 	}
 
 	/**
 	 * Get leases by tenant
 	 */
-	async findByTenant(tenantId: string, ownerId: string): Promise<LeaseWithRelations[]> {
+	async findByTenant(
+		tenantId: string,
+		ownerId: string
+	): Promise<LeaseWithRelations[]> {
 		return this.findAll(ownerId, { tenantId })
 	}
 
 	/**
 	 * Search leases
 	 */
-	async search(ownerId: string, searchTerm: string): Promise<LeaseWithRelations[]> {
+	async search(
+		ownerId: string,
+		searchTerm: string
+	): Promise<LeaseWithRelations[]> {
 		return this.findAll(ownerId, { search: searchTerm })
 	}
 
 	/**
 	 * Get expiring leases
 	 */
-	async getExpiringLeases(ownerId: string, days = 30): Promise<LeaseWithRelations[]> {
+	async getExpiringLeases(
+		ownerId: string,
+		days = 30
+	): Promise<LeaseWithRelations[]> {
 		const futureDate = new Date()
 		futureDate.setDate(futureDate.getDate() + days)
 
@@ -400,7 +449,10 @@ export class LeasesService {
 	/**
 	 * Private helper methods
 	 */
-	private validateLeaseDates(startDate: string | Date, endDate: string | Date): void {
+	private validateLeaseDates(
+		startDate: string | Date,
+		endDate: string | Date
+	): void {
 		const start = new Date(startDate)
 		const end = new Date(endDate)
 
@@ -410,9 +462,9 @@ export class LeasesService {
 	}
 
 	private async checkLeaseConflicts(
-		unitId: string, 
-		startDate: string | Date, 
-		endDate: string | Date, 
+		unitId: string,
+		startDate: string | Date,
+		endDate: string | Date,
 		excludeLeaseId?: string
 	): Promise<void> {
 		const start = new Date(startDate).toISOString()
@@ -432,7 +484,9 @@ export class LeasesService {
 		const { data: conflicts } = await query.limit(1)
 
 		if (conflicts && conflicts.length > 0) {
-			throw new BadRequestException('Lease dates conflict with existing lease')
+			throw new BadRequestException(
+				'Lease dates conflict with existing lease'
+			)
 		}
 	}
 }

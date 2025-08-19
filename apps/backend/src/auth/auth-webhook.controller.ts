@@ -171,7 +171,10 @@ export class AuthWebhookController {
 			)
 
 			// Create Stripe customer
-			const customer = await this.stripeService.createCustomer(email, name)
+			const customer = await this.stripeService.createCustomer(
+				email,
+				name
+			)
 
 			this.logger.log('Stripe customer created successfully', {
 				userId,
@@ -225,7 +228,8 @@ export class AuthWebhookController {
 						'Local subscription updated with Stripe data',
 						{
 							userId,
-							subscriptionId: (subscription as { id?: string })?.id,
+							subscriptionId: (subscription as { id?: string })
+								?.id,
 							stripeSubscriptionId: stripeSubscription.id
 						}
 					)

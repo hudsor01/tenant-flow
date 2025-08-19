@@ -80,39 +80,62 @@ const BrandGradients: React.FC = () => (
 				"Simplify" Brand Gradients
 			</CardTitle>
 			<CardDescription>
-				TenantFlow's signature gradient system for brand consistency and visual hierarchy
+				TenantFlow's signature gradient system for brand consistency and
+				visual hierarchy
 			</CardDescription>
 		</CardHeader>
 		<CardContent>
 			<div className="space-y-6">
 				{/* Primary Simplify Gradient */}
 				<div>
-					<h4 className="mb-3 font-semibold text-gray-800">Primary Brand Gradient</h4>
+					<h4 className="mb-3 font-semibold text-gray-800">
+						Primary Brand Gradient
+					</h4>
 					<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
 						<div className="text-center">
 							<div className="bg-simplify mb-3 h-20 w-full rounded-lg border shadow-md" />
-							<div className="text-sm font-medium">Simplify Primary</div>
-							<div className="font-mono text-xs text-gray-500">bg-simplify</div>
-							<div className="mt-1 text-xs text-gray-600">Hero elements, CTAs</div>
+							<div className="text-sm font-medium">
+								Simplify Primary
+							</div>
+							<div className="font-mono text-xs text-gray-500">
+								bg-simplify
+							</div>
+							<div className="mt-1 text-xs text-gray-600">
+								Hero elements, CTAs
+							</div>
 						</div>
 						<div className="text-center">
 							<div className="bg-simplify-soft mb-3 h-20 w-full rounded-lg border shadow-md" />
-							<div className="text-sm font-medium">Simplify Soft</div>
-							<div className="font-mono text-xs text-gray-500">bg-simplify-soft</div>
-							<div className="mt-1 text-xs text-gray-600">Backgrounds, cards</div>
+							<div className="text-sm font-medium">
+								Simplify Soft
+							</div>
+							<div className="font-mono text-xs text-gray-500">
+								bg-simplify-soft
+							</div>
+							<div className="mt-1 text-xs text-gray-600">
+								Backgrounds, cards
+							</div>
 						</div>
 						<div className="text-center">
 							<div className="bg-simplify-radial mb-3 h-20 w-full rounded-lg border shadow-md" />
-							<div className="text-sm font-medium">Simplify Radial</div>
-							<div className="font-mono text-xs text-gray-500">bg-simplify-radial</div>
-							<div className="mt-1 text-xs text-gray-600">Overlays, effects</div>
+							<div className="text-sm font-medium">
+								Simplify Radial
+							</div>
+							<div className="font-mono text-xs text-gray-500">
+								bg-simplify-radial
+							</div>
+							<div className="mt-1 text-xs text-gray-600">
+								Overlays, effects
+							</div>
 						</div>
 					</div>
 				</div>
 
 				{/* Text Gradients */}
 				<div>
-					<h4 className="mb-3 font-semibold text-gray-800">Text Gradients</h4>
+					<h4 className="mb-3 font-semibold text-gray-800">
+						Text Gradients
+					</h4>
 					<div className="space-y-4">
 						<div className="rounded-lg border p-4">
 							<h3 className="text-simplify mb-2 text-2xl font-bold">
@@ -141,7 +164,9 @@ const BrandGradients: React.FC = () => (
 
 				{/* Interactive Gradients */}
 				<div>
-					<h4 className="mb-3 font-semibold text-gray-800">Interactive Elements</h4>
+					<h4 className="mb-3 font-semibold text-gray-800">
+						Interactive Elements
+					</h4>
 					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 						<div className="space-y-3">
 							<button className="shadow-simplify bg-simplify hover:glow-simplify w-full rounded-lg px-4 py-3 font-medium text-white transition-all duration-300 hover:scale-[1.02]">
@@ -172,11 +197,25 @@ const BrandGradients: React.FC = () => (
 						Brand Gradient Guidelines
 					</h4>
 					<ul className="space-y-1 text-sm text-blue-700">
-						<li>• Use primary "Simplify" gradient for hero elements and main CTAs</li>
-						<li>• Apply soft variants for subtle backgrounds and card overlays</li>
-						<li>• Text gradients should be used sparingly for headlines only</li>
-						<li>• All gradients maintain WCAG 2.1 AA contrast ratios</li>
-						<li>• Dark mode variants automatically adjust for optimal visibility</li>
+						<li>
+							• Use primary "Simplify" gradient for hero elements
+							and main CTAs
+						</li>
+						<li>
+							• Apply soft variants for subtle backgrounds and
+							card overlays
+						</li>
+						<li>
+							• Text gradients should be used sparingly for
+							headlines only
+						</li>
+						<li>
+							• All gradients maintain WCAG 2.1 AA contrast ratios
+						</li>
+						<li>
+							• Dark mode variants automatically adjust for
+							optimal visibility
+						</li>
 					</ul>
 				</div>
 			</div>
@@ -735,25 +774,40 @@ export const ColorSystem: Story = {
 			/>
 
 			{/* WCAG Compliance Notice */}
-			<div className="rounded-lg bg-green-50 p-6 border border-green-200">
-				<h3 className="mb-3 font-semibold text-green-800 flex items-center gap-2">
+			<div className="rounded-lg border border-green-200 bg-green-50 p-6">
+				<h3 className="mb-3 flex items-center gap-2 font-semibold text-green-800">
 					<span className="text-green-600">✓</span>
 					WCAG 2.1 AA Compliance
 				</h3>
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-green-700">
+				<div className="grid grid-cols-1 gap-4 text-sm text-green-700 md:grid-cols-2">
 					<div>
-						<h4 className="font-medium mb-2">Color Accessibility</h4>
+						<h4 className="mb-2 font-medium">
+							Color Accessibility
+						</h4>
 						<ul className="space-y-1">
-							<li>• All text colors meet 4.5:1 contrast ratio minimum</li>
-							<li>• Large text meets 3:1 contrast ratio minimum</li>
-							<li>• Brand gradients maintain readability standards</li>
+							<li>
+								• All text colors meet 4.5:1 contrast ratio
+								minimum
+							</li>
+							<li>
+								• Large text meets 3:1 contrast ratio minimum
+							</li>
+							<li>
+								• Brand gradients maintain readability standards
+							</li>
 						</ul>
 					</div>
 					<div>
-						<h4 className="font-medium mb-2">Modern Color Science</h4>
+						<h4 className="mb-2 font-medium">
+							Modern Color Science
+						</h4>
 						<ul className="space-y-1">
-							<li>• OKLCH color space for perceptual uniformity</li>
-							<li>• Consistent lightness across hue variations</li>
+							<li>
+								• OKLCH color space for perceptual uniformity
+							</li>
+							<li>
+								• Consistent lightness across hue variations
+							</li>
 							<li>• Future-proof for wide gamut displays</li>
 						</ul>
 					</div>

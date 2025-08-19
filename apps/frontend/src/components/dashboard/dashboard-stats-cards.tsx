@@ -194,7 +194,7 @@ export function DashboardStatsCards() {
 									<div
 										className={cn(
 											'flex items-center gap-1 rounded-full px-2 py-1 font-medium',
-											'bg-white/80 backdrop-blur-sm shadow-sm',
+											'bg-white/80 shadow-sm backdrop-blur-sm',
 											'text-ui-xs',
 											stat.trend === 'up'
 												? 'text-green-700 ring-1 ring-green-200'

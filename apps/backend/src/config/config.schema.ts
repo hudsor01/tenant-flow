@@ -108,7 +108,9 @@ export const configSchema = z
 		// Stripe (required in production)
 		STRIPE_SECRET_KEY: z.string().min(1, 'Stripe secret key is required'),
 		STRIPE_PUBLISHABLE_KEY: z.string().optional(),
-		STRIPE_WEBHOOK_SECRET: z.string().min(1, 'Stripe webhook secret is required'),
+		STRIPE_WEBHOOK_SECRET: z
+			.string()
+			.min(1, 'Stripe webhook secret is required'),
 		STRIPE_PRICE_ID_STARTER: z.string().optional(),
 		STRIPE_PRICE_ID_GROWTH: z.string().optional(),
 		STRIPE_PRICE_ID_BUSINESS: z.string().optional(),

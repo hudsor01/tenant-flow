@@ -14,7 +14,10 @@ export class SubscriptionsManagerService {
 		return { success: true }
 	}
 
-	async updateSubscription(_subscriptionId: string, _data: Record<string, unknown>) {
+	async updateSubscription(
+		_subscriptionId: string,
+		_data: Record<string, unknown>
+	) {
 		// Implementation for updating subscription
 		return { success: true }
 	}
@@ -44,7 +47,10 @@ export class SubscriptionsManagerService {
 		return { id: planId, name: 'Basic Plan' }
 	}
 
-	async createOrUpdateSubscription(_userId: string, _subscriptionData: Record<string, unknown>) {
+	async createOrUpdateSubscription(
+		_userId: string,
+		_subscriptionData: Record<string, unknown>
+	) {
 		// Implementation for creating or updating subscription
 		return { success: true }
 	}

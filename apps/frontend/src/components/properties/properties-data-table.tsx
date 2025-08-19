@@ -167,16 +167,24 @@ function PropertyCard({ property, onView, onEdit }: PropertyCardProps) {
 					</div>
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
-							<Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+							<Button
+								variant="ghost"
+								size="sm"
+								className="h-8 w-8 p-0"
+							>
 								<MoreHorizontal className="h-4 w-4" />
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end">
-							<DropdownMenuItem onClick={() => onView?.(property)}>
+							<DropdownMenuItem
+								onClick={() => onView?.(property)}
+							>
 								<Eye className="mr-2 h-4 w-4" />
 								View Details
 							</DropdownMenuItem>
-							<DropdownMenuItem onClick={() => onEdit?.(property)}>
+							<DropdownMenuItem
+								onClick={() => onEdit?.(property)}
+							>
 								<Edit3 className="mr-2 h-4 w-4" />
 								Edit Property
 							</DropdownMenuItem>
@@ -205,12 +213,16 @@ function PropertyCard({ property, onView, onEdit }: PropertyCardProps) {
 					<div className="grid grid-cols-2 gap-4 text-sm">
 						<div className="flex items-center gap-1">
 							<Home className="text-muted-foreground h-3 w-3" />
-							<span className="text-muted-foreground">Units:</span>
+							<span className="text-muted-foreground">
+								Units:
+							</span>
 							<span className="font-medium">{totalUnits}</span>
 						</div>
 						<div className="flex items-center gap-1">
 							<Users className="text-muted-foreground h-3 w-3" />
-							<span className="text-muted-foreground">Tenants:</span>
+							<span className="text-muted-foreground">
+								Tenants:
+							</span>
 							<span className="font-medium">{occupiedUnits}</span>
 						</div>
 					</div>
@@ -256,7 +268,7 @@ function PropertiesTableSkeleton() {
 			</div>
 
 			{/* Desktop table skeleton */}
-			<div className="hidden md:block space-y-4">
+			<div className="hidden space-y-4 md:block">
 				{[...Array(5)].map((_, i) => (
 					<div key={i} className="flex items-center space-x-4 p-4">
 						<Skeleton className="h-10 w-10 rounded-lg" />
@@ -400,7 +412,9 @@ export function PropertiesDataTable({
 					<Link href="/properties/new">
 						<Button size="sm">
 							<Plus className="mr-2 h-4 w-4" />
-							<span className="hidden sm:inline">Add Property</span>
+							<span className="hidden sm:inline">
+								Add Property
+							</span>
 							<span className="sm:hidden">Add</span>
 						</Button>
 					</Link>
@@ -436,14 +450,16 @@ export function PropertiesDataTable({
 								</TableRow>
 							</TableHeader>
 							<TableBody>
-								{filteredProperties.map((property: Property) => (
-									<PropertyRow
-										key={property.id}
-										property={property}
-										onView={onViewProperty}
-										onEdit={onEditProperty}
-									/>
-								))}
+								{filteredProperties.map(
+									(property: Property) => (
+										<PropertyRow
+											key={property.id}
+											property={property}
+											onView={onViewProperty}
+											onEdit={onEditProperty}
+										/>
+									)
+								)}
 							</TableBody>
 						</Table>
 					</div>

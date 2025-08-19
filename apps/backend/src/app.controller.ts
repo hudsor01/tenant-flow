@@ -73,6 +73,4 @@ http_requests_total 1
 	getHello(): string {
 		return 'TenantFlow Backend API - Core Routes Working'
 	}
-
-
 }

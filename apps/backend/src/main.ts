@@ -40,9 +40,15 @@ async function bootstrap() {
 
 	// Liveness probe independent of downstream deps
 	const fastify = app.getHttpAdapter().getInstance()
-	fastify.get('/ping', async (_req: unknown, reply: { code: (code: number) => { send: (data: unknown) => void } }) => {
-		reply.code(200).send({ status: 'ok' })
-	})
+	fastify.get(
+		'/ping',
+		async (
+			_req: unknown,
+			reply: { code: (code: number) => { send: (data: unknown) => void } }
+		) => {
+			reply.code(200).send({ status: 'ok' })
+		}
+	)
 
 	app.enableShutdownHooks()
 
