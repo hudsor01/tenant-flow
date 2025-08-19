@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common'
 import { BullModule } from '@nestjs/bullmq'
-import { ConfigModule } from '@nestjs/config'
 import { HttpModule } from '@nestjs/axios'
 import { ScheduleModule } from '@nestjs/schedule'
 import { EmailService } from './email.service'
@@ -25,8 +24,7 @@ import { ExternalApiService } from '../common/services/external-api.service'
 			maxRedirects: 3
 		}),
 
-		ScheduleModule.forRoot(),
-		ConfigModule
+		ScheduleModule.forRoot()
 	],
 	controllers: [EmailController],
 	providers: [
