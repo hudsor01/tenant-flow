@@ -1,10 +1,20 @@
-import { BadRequestException, Inject, Injectable, Logger, NotFoundException, Scope } from '@nestjs/common'
+import {
+	BadRequestException,
+	Inject,
+	Injectable,
+	Logger,
+	NotFoundException,
+	Scope
+} from '@nestjs/common'
 import { REQUEST } from '@nestjs/core'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import type { AuthRequest } from '../shared/types'
 import { SupabaseService } from '../database/supabase.service'
-import { CreateTenantDto as TenantCreateDto, UpdateTenantDto as TenantUpdateDto } from './dto'
+import {
+	CreateTenantDto as TenantCreateDto,
+	UpdateTenantDto as TenantUpdateDto
+} from './dto'
 
 type Tenant = Database['public']['Tables']['Tenant']['Row']
 type TenantInsert = Database['public']['Tables']['Tenant']['Insert']
@@ -45,10 +55,11 @@ export class TenantsService {
 		private supabaseService: SupabaseService
 	) {
 		// Get user-scoped client if token available, otherwise admin client
-		const token = this.request.user?.supabaseToken ||
+		const token =
+			this.request.user?.supabaseToken ||
 			this.request.headers?.authorization?.replace('Bearer ', '')
-		
-		this.supabase = token 
+
+		this.supabase = token
 			? this.supabaseService.getUserClient(token)
 			: this.supabaseService.getAdminClient()
 	}
@@ -59,7 +70,8 @@ export class TenantsService {
 	async findAll(ownerId: string): Promise<TenantWithRelations[]> {
 		const { data, error } = await this.supabase
 			.from('Tenant')
-			.select(`
+			.select(
+				`
 				*,
 				Lease!inner (
 					id,
@@ -78,7 +90,8 @@ export class TenantsService {
 						)
 					)
 				)
-			`)
+			`
+			)
 			.eq('Lease.Unit.Property.ownerId', ownerId)
 			.order('createdAt', { ascending: false })
 
@@ -96,7 +109,8 @@ export class TenantsService {
 	async findOne(id: string, ownerId: string): Promise<TenantWithRelations> {
 		const { data, error } = await this.supabase
 			.from('Tenant')
-			.select(`
+			.select(
+				`
 				*,
 				Lease (
 					id,
@@ -115,7 +129,8 @@ export class TenantsService {
 						)
 					)
 				)
-			`)
+			`
+			)
 			.eq('id', id)
 			.single()
 
@@ -143,7 +158,10 @@ export class TenantsService {
 	/**
 	 * Create new tenant
 	 */
-	async create(dto: TenantCreateDto, _ownerId: string): Promise<TenantWithRelations> {
+	async create(
+		dto: TenantCreateDto,
+		_ownerId: string
+	): Promise<TenantWithRelations> {
 		const tenantData: TenantInsert = {
 			name: dto.name,
 			email: dto.email,
@@ -158,7 +176,8 @@ export class TenantsService {
 		const { data, error } = await this.supabase
 			.from('Tenant')
 			.insert(tenantData)
-			.select(`
+			.select(
+				`
 				*,
 				Lease (
 					id,
@@ -177,7 +196,8 @@ export class TenantsService {
 						)
 					)
 				)
-			`)
+			`
+			)
 			.single()
 
 		if (error) {
@@ -193,8 +213,8 @@ export class TenantsService {
 	 * Update tenant
 	 */
 	async update(
-		id: string, 
-		dto: TenantUpdateDto, 
+		id: string,
+		dto: TenantUpdateDto,
 		ownerId: string
 	): Promise<TenantWithRelations> {
 		// Verify ownership first
@@ -212,7 +232,8 @@ export class TenantsService {
 			.from('Tenant')
 			.update(updateData)
 			.eq('id', id)
-			.select(`
+			.select(
+				`
 				*,
 				Lease (
 					id,
@@ -231,7 +252,8 @@ export class TenantsService {
 						)
 					)
 				)
-			`)
+			`
+			)
 			.single()
 
 		if (error) {
@@ -259,7 +281,9 @@ export class TenantsService {
 			.limit(1)
 
 		if (activeLeases && activeLeases.length > 0) {
-			throw new BadRequestException('Cannot delete tenant with active leases')
+			throw new BadRequestException(
+				'Cannot delete tenant with active leases'
+			)
 		}
 
 		const { error } = await this.supabase
@@ -312,10 +336,14 @@ export class TenantsService {
 	/**
 	 * Search tenants
 	 */
-	async search(ownerId: string, searchTerm: string): Promise<TenantWithRelations[]> {
+	async search(
+		ownerId: string,
+		searchTerm: string
+	): Promise<TenantWithRelations[]> {
 		const { data, error } = await this.supabase
 			.from('Tenant')
-			.select(`
+			.select(
+				`
 				*,
 				Lease!inner (
 					id,
@@ -334,9 +362,12 @@ export class TenantsService {
 						)
 					)
 				)
-			`)
+			`
+			)
 			.eq('Lease.Unit.Property.ownerId', ownerId)
-			.or(`name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,phone.ilike.%${searchTerm}%`)
+			.or(
+				`name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,phone.ilike.%${searchTerm}%`
+			)
 			.order('createdAt', { ascending: false })
 
 		if (error) {

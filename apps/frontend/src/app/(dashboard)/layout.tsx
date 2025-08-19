@@ -73,7 +73,7 @@ export default function DashboardLayout({
 												</Suspense>
 
 												{/* Main content area - improved mobile spacing */}
-												<main className="flex-1 min-w-0 pb-20 pt-2 md:p-6 md:pt-6 md:pb-6">
+												<main className="min-w-0 flex-1 pt-2 pb-20 md:p-6 md:pt-6 md:pb-6">
 													<Suspense
 														fallback={
 															<div className="flex h-64 items-center justify-center">

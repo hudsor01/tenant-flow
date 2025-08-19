@@ -156,10 +156,7 @@ function ChartTooltipContent({
 		) {
 			return (
 				<div className={cn('font-medium')}>
-					{labelFormatter(
-						value,
-						[]
-					)}
+					{labelFormatter(value, [])}
 				</div>
 			)
 		}

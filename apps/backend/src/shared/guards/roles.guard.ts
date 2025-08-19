@@ -67,7 +67,7 @@ export class RolesGuard implements CanActivate {
 	}
 
 	private validateAdminAccess(
-		request: RequestWithUser, 
+		request: RequestWithUser,
 		user: User & { organizationId?: string }
 	): boolean {
 		if (user.role !== 'ADMIN') {
@@ -81,12 +81,15 @@ export class RolesGuard implements CanActivate {
 
 		// Enforce tenant isolation for admin operations
 		if (!this.validateTenantIsolation(request, user)) {
-			this.logger.error('Admin access denied: Tenant isolation violation', {
-				userId: user.id,
-				userOrganizationId: user.organizationId,
-				route: request.route?.path,
-				ip: request.ip
-			})
+			this.logger.error(
+				'Admin access denied: Tenant isolation violation',
+				{
+					userId: user.id,
+					userOrganizationId: user.organizationId,
+					route: request.route?.path,
+					ip: request.ip
+				}
+			)
 			return false
 		}
 
@@ -110,9 +113,13 @@ export class RolesGuard implements CanActivate {
 
 	private extractOrganizationId(request: RequestWithUser): string | null {
 		// Check URL parameters, query parameters, and request body
-		return request.params?.organizationId ||
-			   request.query?.organizationId ||
-			   (typeof request.body?.organizationId === 'string' ? request.body.organizationId : null)
+		return (
+			request.params?.organizationId ||
+			request.query?.organizationId ||
+			(typeof request.body?.organizationId === 'string'
+				? request.body.organizationId
+				: null)
+		)
 	}
 
 	private isValidUserObject(user: unknown): user is User {
@@ -121,17 +128,23 @@ export class RolesGuard implements CanActivate {
 		}
 
 		const userObj = user as Record<string, unknown>
-		
-		return typeof userObj.id === 'string' && 
-			   typeof userObj.email === 'string' && 
-			   typeof userObj.role === 'string' &&
-			   ['USER', 'ADMIN', 'SUPER_ADMIN'].includes(userObj.role)
+
+		return (
+			typeof userObj.id === 'string' &&
+			typeof userObj.email === 'string' &&
+			typeof userObj.role === 'string' &&
+			['USER', 'ADMIN', 'SUPER_ADMIN'].includes(userObj.role)
+		)
 	}
 }
 
 // Decorator for admin-only routes
 export const AdminOnly = () => {
-	return (_target: unknown, _propertyKey: string, descriptor: PropertyDescriptor) => {
+	return (
+		_target: unknown,
+		_propertyKey: string,
+		descriptor: PropertyDescriptor
+	) => {
 		Reflect.defineMetadata('admin-only', true, descriptor.value)
 		return descriptor
 	}

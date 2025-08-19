@@ -434,8 +434,11 @@ export class SubscriptionSyncService {
 				changes.push('created')
 			} else {
 				// Cast to ensure TypeScript knows it's not null
-				const existingSubscription = currentSubscription as Record<string, unknown>
-				
+				const existingSubscription = currentSubscription as Record<
+					string,
+					unknown
+				>
+
 				if (existingSubscription.planType !== planType) {
 					changes.push(
 						`plan: ${existingSubscription.planType} → ${planType}`
@@ -542,10 +545,7 @@ export class SubscriptionSyncService {
 					...eventData,
 					timestamp: new Date()
 				}
-				this.eventEmitter.emit(
-					SubscriptionEventType.CREATED,
-					event
-				)
+				this.eventEmitter.emit(SubscriptionEventType.CREATED, event)
 			} else if (
 				changes.some(
 					change =>
@@ -561,10 +561,7 @@ export class SubscriptionSyncService {
 					timestamp: new Date(),
 					planType: subscription.planType || 'FREETRIAL'
 				}
-				this.eventEmitter.emit(
-					SubscriptionEventType.UPDATED,
-					event
-				)
+				this.eventEmitter.emit(SubscriptionEventType.UPDATED, event)
 			}
 
 			// Handle cancellation events
@@ -573,12 +570,11 @@ export class SubscriptionSyncService {
 					...eventData,
 					timestamp: new Date(),
 					cancelAtPeriodEnd: subscription.cancelAtPeriodEnd || false,
-					cancelAt: subscription.canceledAt ? new Date(subscription.canceledAt) : undefined
+					cancelAt: subscription.canceledAt
+						? new Date(subscription.canceledAt)
+						: undefined
 				}
-				this.eventEmitter.emit(
-					SubscriptionEventType.CANCELED,
-					event
-				)
+				this.eventEmitter.emit(SubscriptionEventType.CANCELED, event)
 			}
 
 			// Handle trial events
