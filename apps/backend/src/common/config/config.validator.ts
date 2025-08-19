@@ -300,20 +300,12 @@ export class ConfigValidator {
 			}
 		}
 
-		// Check for environment mismatches
+		// Environment validation - production only
 		const nodeEnv = rawConfig.NODE_ENV as string
-		const railwayEnv = rawConfig.RAILWAY_ENVIRONMENT_NAME as string
-
-		if (nodeEnv && railwayEnv && nodeEnv !== railwayEnv) {
-			if (nodeEnv === 'development' && railwayEnv === 'production') {
-				warnings.push(
-					'NODE_ENV (development) does not match RAILWAY_ENVIRONMENT_NAME (production)'
-				)
-			} else if (nodeEnv === 'production' && railwayEnv === 'staging') {
-				warnings.push(
-					'NODE_ENV (production) does not match RAILWAY_ENVIRONMENT_NAME (staging)'
-				)
-			}
+		if (nodeEnv && nodeEnv !== 'production') {
+			errors.push(
+				'Only production environment allowed in this deployment'
+			)
 		}
 
 		return { errors, warnings }
@@ -356,30 +348,21 @@ export class ConfigValidator {
 			}
 		}
 
-		// Stripe key validation for production
-		if (
-			process.env.NODE_ENV === 'production' &&
-			rawConfig.STRIPE_SECRET_KEY
-		) {
+		// Stripe key validation - production keys required
+		if (rawConfig.STRIPE_SECRET_KEY) {
 			const stripeKey = rawConfig.STRIPE_SECRET_KEY as string
 			if (stripeKey.startsWith('sk_test_')) {
-				errors.push('Using test Stripe key in production environment')
+				errors.push('Test Stripe keys not allowed - production keys required')
 			}
 		}
 
-		// CORS security validation
+		// CORS security validation - production only
 		if (rawConfig.CORS_ORIGINS) {
 			const corsOrigins = rawConfig.CORS_ORIGINS as string
 			if (corsOrigins.includes('*') || corsOrigins.includes('null')) {
-				if (process.env.NODE_ENV === 'production') {
-					errors.push(
-						'Wildcard CORS origins are not allowed in production'
-					)
-				} else {
-					warnings.push(
-						'Wildcard CORS origins detected in development'
-					)
-				}
+				errors.push(
+					'Wildcard CORS origins are not allowed'
+				)
 			}
 		}
 

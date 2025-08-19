@@ -1,126 +1,149 @@
 import {
-	Body,
 	Controller,
-	Delete,
 	Get,
-	Param,
 	Post,
 	Put,
+	Delete,
+	Body,
+	Param,
 	Query,
-	UseGuards
+	UseGuards,
+	UsePipes,
+	ValidationPipe,
+	ParseUUIDPipe
 } from '@nestjs/common'
-import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger'
-import { TenantsService } from './tenants.service'
-import {
-	createTenantSchema,
-	queryTenantsSchema,
-	TenantCreateDto,
-	TenantQueryDto,
-	TenantUpdateDto,
-	updateTenantSchema,
-	uuidSchema
-} from '../common/dto/dto-exports'
-import {
-	ZodBody,
-	ZodParam,
-	ZodQuery,
-	ZodValidation
-} from '../common/decorators/zod-validation.decorator'
+import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger'
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { ValidatedUser } from '../auth/auth.service'
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
+import { TenantsService, TenantWithRelations } from './tenants.service'
+import { TenantCreateDto, TenantUpdateDto } from './dto'
 import { UsageLimitsGuard } from '../subscriptions/guards/usage-limits.guard'
 import { UsageLimit } from '../subscriptions/decorators/usage-limits.decorator'
+import type { ControllerApiResponse } from '@repo/shared'
 
+/**
+ * Tenants controller - Simple, direct implementation
+ * No base classes, no abstraction, just clean endpoints
+ */
 @ApiTags('tenants')
 @Controller('tenants')
 @UseGuards(JwtAuthGuard, UsageLimitsGuard)
 export class TenantsController {
 	constructor(private readonly tenantsService: TenantsService) {}
 
-	@Post()
-	@ApiOperation({ summary: 'Create a new tenant' })
-	@ApiResponse({ status: 201, description: 'Tenant created successfully' })
-	@ApiResponse({ status: 400, description: 'Validation error' })
-	@ApiResponse({ status: 403, description: 'Usage limit exceeded' })
-	@UsageLimit({ resource: 'tenants', action: 'create' })
-	@ZodBody(createTenantSchema)
-	async create(
-		@Body() data: TenantCreateDto,
-		@CurrentUser() user: ValidatedUser
-	) {
-		const tenant = await this.tenantsService.create(data, user.id)
-		return { ...tenant, invitationStatus: 'ACCEPTED' }
-	}
-
 	@Get()
-	@ApiOperation({ summary: 'Get tenants for the authenticated user' })
+	@ApiOperation({ summary: 'Get all tenants for current user' })
 	@ApiResponse({ status: 200, description: 'Tenants retrieved successfully' })
-	@ZodQuery(queryTenantsSchema)
 	async findAll(
-		@Query() query: TenantQueryDto,
 		@CurrentUser() user: ValidatedUser
-	) {
-		const tenants = await this.tenantsService.findByOwner(user.id, query)
-		return tenants.map(t => ({ ...t, invitationStatus: 'ACCEPTED' }))
+	): Promise<ControllerApiResponse<TenantWithRelations[]>> {
+		const data = await this.tenantsService.findAll(user.id)
+		return {
+			success: true,
+			data,
+			message: 'Tenants retrieved successfully'
+		}
 	}
 
 	@Get('stats')
-	@ApiOperation({
-		summary: 'Get tenant statistics for the authenticated user'
-	})
-	@ApiResponse({
-		status: 200,
-		description: 'Statistics retrieved successfully'
-	})
-	async getStats(@CurrentUser() user: ValidatedUser) {
-		return this.tenantsService.getStats(user.id)
+	@ApiOperation({ summary: 'Get tenant statistics' })
+	@ApiResponse({ status: 200, description: 'Statistics retrieved successfully' })
+	async getStats(
+		@CurrentUser() user: ValidatedUser
+	): Promise<ControllerApiResponse> {
+		const data = await this.tenantsService.getStats(user.id)
+		return {
+			success: true,
+			data,
+			message: 'Statistics retrieved successfully'
+		}
+	}
+
+	@Get('search')
+	@ApiOperation({ summary: 'Search tenants' })
+	@ApiResponse({ status: 200, description: 'Search results retrieved' })
+	async search(
+		@Query('q') searchTerm: string,
+		@CurrentUser() user: ValidatedUser
+	): Promise<ControllerApiResponse<TenantWithRelations[]>> {
+		const data = await this.tenantsService.search(user.id, searchTerm || '')
+		return {
+			success: true,
+			data,
+			message: 'Search completed successfully'
+		}
 	}
 
 	@Get(':id')
-	@ApiOperation({ summary: 'Get a specific tenant by ID' })
+	@ApiOperation({ summary: 'Get tenant by ID' })
 	@ApiParam({ name: 'id', description: 'Tenant ID' })
 	@ApiResponse({ status: 200, description: 'Tenant retrieved successfully' })
 	@ApiResponse({ status: 404, description: 'Tenant not found' })
-	@ZodParam(uuidSchema)
-	async findOne(@Param('id') id: string, @CurrentUser() user: ValidatedUser) {
-		const tenant = await this.tenantsService.findById(id, user.id)
-		return { ...tenant, invitationStatus: 'ACCEPTED' }
+	async findOne(
+		@Param('id', ParseUUIDPipe) id: string,
+		@CurrentUser() user: ValidatedUser
+	): Promise<ControllerApiResponse<TenantWithRelations>> {
+		const data = await this.tenantsService.findOne(id, user.id)
+		return {
+			success: true,
+			data,
+			message: 'Tenant retrieved successfully'
+		}
+	}
+
+	@Post()
+	@ApiOperation({ summary: 'Create new tenant' })
+	@ApiResponse({ status: 201, description: 'Tenant created successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid input' })
+	@ApiResponse({ status: 403, description: 'Usage limit exceeded' })
+	@UsageLimit({ resource: 'tenants', action: 'create' })
+	@UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+	async create(
+		@Body() createTenantDto: TenantCreateDto,
+		@CurrentUser() user: ValidatedUser
+	): Promise<ControllerApiResponse<TenantWithRelations>> {
+		const data = await this.tenantsService.create(createTenantDto, user.id)
+		return {
+			success: true,
+			data,
+			message: 'Tenant created successfully'
+		}
 	}
 
 	@Put(':id')
-	@ApiOperation({ summary: 'Update a tenant' })
+	@ApiOperation({ summary: 'Update tenant' })
 	@ApiParam({ name: 'id', description: 'Tenant ID' })
 	@ApiResponse({ status: 200, description: 'Tenant updated successfully' })
-	@ApiResponse({ status: 400, description: 'Validation error' })
 	@ApiResponse({ status: 404, description: 'Tenant not found' })
-	@ZodValidation({
-		params: uuidSchema,
-		body: updateTenantSchema
-	})
+	@UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 	async update(
-		@Param('id') id: string,
-		@Body() data: TenantUpdateDto,
+		@Param('id', ParseUUIDPipe) id: string,
+		@Body() updateTenantDto: TenantUpdateDto,
 		@CurrentUser() user: ValidatedUser
-	) {
-		const tenant = await this.tenantsService.update(id, data, user.id)
-		return { ...tenant, invitationStatus: 'ACCEPTED' }
+	): Promise<ControllerApiResponse<TenantWithRelations>> {
+		const data = await this.tenantsService.update(id, updateTenantDto, user.id)
+		return {
+			success: true,
+			data,
+			message: 'Tenant updated successfully'
+		}
 	}
 
 	@Delete(':id')
-	@ApiOperation({ summary: 'Delete a tenant' })
+	@ApiOperation({ summary: 'Delete tenant' })
 	@ApiParam({ name: 'id', description: 'Tenant ID' })
 	@ApiResponse({ status: 200, description: 'Tenant deleted successfully' })
 	@ApiResponse({ status: 404, description: 'Tenant not found' })
-	@ApiResponse({
-		status: 409,
-		description: 'Cannot delete tenant with active leases'
-	})
-	@ZodParam(uuidSchema)
+	@ApiResponse({ status: 400, description: 'Cannot delete tenant with active leases' })
 	async remove(
-		@Param('id') id: string,
+		@Param('id', ParseUUIDPipe) id: string,
 		@CurrentUser() user: ValidatedUser
-	): Promise<void> {
-		await this.tenantsService.delete(id, user.id)
+	): Promise<ControllerApiResponse> {
+		await this.tenantsService.remove(id, user.id)
+		return {
+			success: true,
+			message: 'Tenant deleted successfully'
+		}
 	}
 }

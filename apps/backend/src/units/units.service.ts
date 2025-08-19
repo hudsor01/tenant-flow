@@ -1,125 +1,72 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, BadRequestException, NotFoundException, Scope, Inject, Logger } from '@nestjs/common'
+import { REQUEST } from '@nestjs/core'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@repo/shared/types/supabase-generated'
-import {
-	UnitQueryOptions,
-	UnitsSupabaseRepository,
-	UnitWithRelations
-} from './units-supabase.repository'
-import { ErrorHandlerService } from '../common/errors/error-handler.service'
-import { ValidationException } from '../common/exceptions/base.exception'
+import { TypeSafeConfigService } from '../common/config/config.service'
 import { UnitCreateDto, UnitUpdateDto } from './dto'
+
+type Unit = Database['public']['Tables']['Unit']['Row']
 type UnitInsert = Database['public']['Tables']['Unit']['Insert']
 type UnitUpdate = Database['public']['Tables']['Unit']['Update']
+type Property = Database['public']['Tables']['Property']['Row']
+type Lease = Database['public']['Tables']['Lease']['Row']
+type Tenant = Database['public']['Tables']['Tenant']['Row']
+
+export interface UnitWithRelations extends Unit {
+	Property?: {
+		id: string
+		name: string
+		address: string
+		ownerId: string
+	}
+	Lease?: Array<{
+		id: string
+		status: string
+		startDate: string
+		endDate: string
+		rentAmount: number
+		Tenant?: {
+			id: string
+			name: string
+			email: string
+			phone: string | null
+		}
+	}>
+}
 
 /**
- * Units service using Supabase
- * Handles unit management with property ownership validation
+ * Units service - Direct Supabase implementation
+ * No abstraction layers, no base classes, just simple CRUD operations
  */
-@Injectable()
+@Injectable({ scope: Scope.REQUEST })
 export class UnitsService {
 	private readonly logger = new Logger(UnitsService.name)
+	private readonly supabase: SupabaseClient<Database>
 
 	constructor(
-		private readonly repository: UnitsSupabaseRepository,
-		private readonly errorHandler: ErrorHandlerService
-	) {}
-
-	/**
-	 * Create a new unit
-	 */
-	async create(
-		data: UnitCreateDto,
-		ownerId: string,
-		userId?: string,
-		userToken?: string
-	): Promise<UnitWithRelations> {
-		try {
-			// Validate required fields
-			if (!data.propertyId) {
-				throw new ValidationException('Property ID is required')
-			}
-
-			if (!data.unitNumber) {
-				throw new ValidationException('Unit number is required')
-			}
-
-			const unitData: UnitInsert = {
-				unitNumber: data.unitNumber,
-				propertyId: data.propertyId,
-				bedrooms: data.bedrooms,
-				bathrooms: data.bathrooms,
-				squareFeet: data.squareFeet,
-				rent: data.monthlyRent,
-				status: data.status || 'VACANT',
-				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString()
-			}
-
-			// TODO: Implement createWithValidation in repository or use alternative approach
-			// For now, create the unit directly using Supabase
-			const units = await this.repository.createBulkForProperty(
-				unitData.propertyId,
-				[unitData],
-				ownerId,
-				userId,
-				userToken
-			)
-
-			const unit = units[0]
-			if (!unit) {
-				throw new Error('Failed to create unit')
-			}
-
-			this.logger.log('Unit created successfully', {
-				unitId: unit.id,
-				propertyId: data.propertyId,
-				unitNumber: data.unitNumber,
-				ownerId
-			})
-
-			return unit
-		} catch (error) {
-			this.logger.error('Failed to create unit:', error)
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'create',
-				resource: 'unit',
-				metadata: {
-					ownerId,
-					propertyId: data.propertyId,
-					unitNumber: data.unitNumber
+		@Inject(REQUEST) private request: any,
+		private configService: TypeSafeConfigService
+	) {
+		// Create client with anon key for RLS
+		this.supabase = createClient<Database>(
+			this.configService.supabase.url,
+			this.configService.supabase.anonKey,
+			{
+				auth: {
+					persistSession: false,
+					autoRefreshToken: false
 				}
-			})
-		}
-	}
-
-	/**
-	 * Find unit by ID
-	 */
-	async findById(
-		id: string,
-		ownerId: string,
-		userId?: string,
-		userToken?: string
-	): Promise<UnitWithRelations> {
-		try {
-			const unit = await this.repository.findByIdAndOwner(
-				id,
-				ownerId,
-				true,
-				userId,
-				userToken
-			)
-
-			if (!unit) {
-				throw new Error('Unit not found')
 			}
+		)
 
-			return unit
-		} catch (error) {
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'findById',
-				resource: 'unit',
-				metadata: { unitId: id, ownerId }
+		// Set user session if available
+		const token = this.request.user?.supabaseToken || 
+			this.request.headers?.authorization?.replace('Bearer ', '')
+		
+		if (token) {
+			this.supabase.auth.setSession({
+				access_token: token,
+				refresh_token: ''
 			})
 		}
 	}
@@ -127,470 +74,434 @@ export class UnitsService {
 	/**
 	 * Get all units for an owner
 	 */
-	async findByOwner(
-		ownerId: string,
-		options: UnitQueryOptions = {},
-		userId?: string,
-		userToken?: string
-	): Promise<UnitWithRelations[]> {
-		try {
-			return await this.repository.findByOwnerWithDetails(
-				ownerId,
-				options,
-				userId,
-				userToken
-			)
-		} catch (error) {
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'findByOwner',
-				resource: 'unit',
-				metadata: { ownerId }
-			})
+	async findAll(ownerId: string, propertyId?: string): Promise<UnitWithRelations[]> {
+		let query = this.supabase
+			.from('Unit')
+			.select(`
+				*,
+				Property!inner (
+					id,
+					name,
+					address,
+					ownerId
+				),
+				Lease (
+					id,
+					status,
+					startDate,
+					endDate,
+					rentAmount,
+					Tenant (
+						id,
+						name,
+						email,
+						phone
+					)
+				)
+			`)
+			.eq('Property.ownerId', ownerId)
+
+		if (propertyId) {
+			query = query.eq('propertyId', propertyId)
 		}
+
+		const { data, error } = await query
+			.order('createdAt', { ascending: false })
+
+		if (error) {
+			this.logger.error('Failed to fetch units:', error)
+			throw new BadRequestException(error.message)
+		}
+
+		return data as UnitWithRelations[]
 	}
 
 	/**
-	 * Get units by property
+	 * Get single unit by ID
 	 */
-	async findByProperty(
-		propertyId: string,
-		ownerId: string,
-		_options: UnitQueryOptions = {},
-		userId?: string,
-		userToken?: string
-	): Promise<UnitWithRelations[]> {
-		try {
-			// TODO: Add support for options in repository method
-			return await this.repository.findByProperty(
-				propertyId,
-				ownerId,
-				userId,
-				userToken
-			)
-		} catch (error) {
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'findByProperty',
-				resource: 'unit',
-				metadata: { propertyId, ownerId }
-			})
+	async findOne(id: string, ownerId: string): Promise<UnitWithRelations> {
+		const { data, error } = await this.supabase
+			.from('Unit')
+			.select(`
+				*,
+				Property!inner (
+					id,
+					name,
+					address,
+					ownerId
+				),
+				Lease (
+					id,
+					status,
+					startDate,
+					endDate,
+					rentAmount,
+					Tenant (
+						id,
+						name,
+						email,
+						phone
+					)
+				)
+			`)
+			.eq('id', id)
+			.eq('Property.ownerId', ownerId)
+			.single()
+
+		if (error) {
+			if (error.code === 'PGRST116') {
+				throw new NotFoundException(`Unit not found`)
+			}
+			this.logger.error('Failed to fetch unit:', error)
+			throw new BadRequestException(error.message)
 		}
+
+		return data as UnitWithRelations
+	}
+
+	/**
+	 * Create new unit
+	 */
+	async create(dto: UnitCreateDto, ownerId: string): Promise<UnitWithRelations> {
+		// First verify property ownership
+		const { data: property, error: propertyError } = await this.supabase
+			.from('Property')
+			.select('id, ownerId')
+			.eq('id', dto.propertyId)
+			.eq('ownerId', ownerId)
+			.single()
+
+		if (propertyError || !property) {
+			throw new BadRequestException('Property not found or access denied')
+		}
+
+		// Check if unit number already exists in this property
+		const { data: existingUnit } = await this.supabase
+			.from('Unit')
+			.select('id')
+			.eq('propertyId', dto.propertyId)
+			.eq('unitNumber', dto.unitNumber)
+			.single()
+
+		if (existingUnit) {
+			throw new BadRequestException('Unit number already exists in this property')
+		}
+
+		const unitData: UnitInsert = {
+			unitNumber: dto.unitNumber,
+			propertyId: dto.propertyId,
+			bedrooms: dto.bedrooms,
+			bathrooms: dto.bathrooms,
+			squareFeet: dto.squareFeet,
+			rent: dto.monthlyRent,
+			securityDeposit: dto.securityDeposit,
+			description: dto.description,
+			amenities: dto.amenities,
+			status: dto.status || 'VACANT',
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString()
+		}
+
+		const { data, error } = await this.supabase
+			.from('Unit')
+			.insert(unitData)
+			.select(`
+				*,
+				Property (
+					id,
+					name,
+					address,
+					ownerId
+				),
+				Lease (
+					id,
+					status,
+					startDate,
+					endDate,
+					rentAmount,
+					Tenant (
+						id,
+						name,
+						email,
+						phone
+					)
+				)
+			`)
+			.single()
+
+		if (error) {
+			this.logger.error('Failed to create unit:', error)
+			throw new BadRequestException(error.message)
+		}
+
+		this.logger.log(`Unit created: ${data.id}`)
+		return data as UnitWithRelations
 	}
 
 	/**
 	 * Update unit
 	 */
 	async update(
-		id: string,
-		data: UnitUpdateDto,
-		ownerId: string,
-		userId?: string,
-		userToken?: string
+		id: string, 
+		dto: UnitUpdateDto, 
+		ownerId: string
 	): Promise<UnitWithRelations> {
-		try {
-			// Verify ownership first
-			const existing = await this.repository.findByIdAndOwner(
-				id,
-				ownerId,
-				false,
-				userId,
-				userToken
-			)
+		// Verify ownership
+		await this.findOne(id, ownerId)
 
-			if (!existing) {
-				throw new Error('Unit not found')
+		// If updating unit number, check for conflicts
+		if (dto.unitNumber) {
+			const unit = await this.findOne(id, ownerId)
+			const { data: existingUnit } = await this.supabase
+				.from('Unit')
+				.select('id')
+				.eq('propertyId', unit.propertyId)
+				.eq('unitNumber', dto.unitNumber)
+				.neq('id', id)
+				.single()
+
+			if (existingUnit) {
+				throw new BadRequestException('Unit number already exists in this property')
 			}
-
-			const updateData: UnitUpdate = {
-				...data,
-				updatedAt: new Date().toISOString()
-			}
-
-			const updated = await this.repository.update(
-				id,
-				updateData,
-				userId,
-				userToken
-			)
-
-			this.logger.log('Unit updated successfully', {
-				unitId: id,
-				ownerId
-			})
-
-			return updated
-		} catch (error) {
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'update',
-				resource: 'unit',
-				metadata: { unitId: id, ownerId }
-			})
 		}
+
+		const updateData: UnitUpdate = {
+			...dto,
+			updatedAt: new Date().toISOString()
+		}
+
+		// Map monthlyRent to rent if provided
+		if ('monthlyRent' in dto) {
+			updateData.rent = dto.monthlyRent
+			delete (updateData as any).monthlyRent
+		}
+
+		const { data, error } = await this.supabase
+			.from('Unit')
+			.update(updateData)
+			.eq('id', id)
+			.select(`
+				*,
+				Property (
+					id,
+					name,
+					address,
+					ownerId
+				),
+				Lease (
+					id,
+					status,
+					startDate,
+					endDate,
+					rentAmount,
+					Tenant (
+						id,
+						name,
+						email,
+						phone
+					)
+				)
+			`)
+			.single()
+
+		if (error) {
+			this.logger.error('Failed to update unit:', error)
+			throw new BadRequestException(error.message)
+		}
+
+		this.logger.log(`Unit updated: ${id}`)
+		return data as UnitWithRelations
 	}
 
 	/**
-	 * Delete unit (with validation for active leases)
+	 * Delete unit
 	 */
-	async delete(
-		id: string,
-		ownerId: string,
-		userId?: string,
-		userToken?: string
-	): Promise<void> {
-		try {
-			// Verify ownership first
-			const existing = await this.repository.findByIdAndOwner(
-				id,
-				ownerId,
-				false,
-				userId,
-				userToken
-			)
+	async remove(id: string, ownerId: string): Promise<void> {
+		// Verify ownership
+		const unit = await this.findOne(id, ownerId)
 
-			if (!existing) {
-				throw new Error('Unit not found')
-			}
+		// Check for active leases
+		const { data: leases } = await this.supabase
+			.from('Lease')
+			.select('id')
+			.eq('unitId', id)
+			.eq('status', 'ACTIVE')
+			.limit(1)
 
-			// Check for active leases before deletion
-			const hasActiveLeases = await this.repository.hasActiveLease(
-				id,
-				ownerId,
-				userId,
-				userToken
-			)
-
-			if (hasActiveLeases) {
-				throw new Error('Cannot delete unit with active leases')
-			}
-
-			await this.repository.delete(id, userId, userToken)
-
-			this.logger.log('Unit deleted successfully', {
-				unitId: id,
-				ownerId
-			})
-		} catch (error) {
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'delete',
-				resource: 'unit',
-				metadata: { unitId: id, ownerId }
-			})
+		if (leases && leases.length > 0) {
+			throw new BadRequestException('Cannot delete unit with active leases')
 		}
-	}
 
-	/**
-	 * Get unit statistics for owner
-	 */
-	async getStats(
-		ownerId: string,
-		userId?: string,
-		userToken?: string
-	): Promise<{
-		total: number
-		vacant: number
-		occupied: number
-		maintenance: number
-		unavailable: number
-		totalRent: number
-		averageRent: number
-	}> {
-		try {
-			const stats = await this.repository.getStatsByOwner(
-				ownerId,
-				userId,
-				userToken
-			)
+		const { error } = await this.supabase
+			.from('Unit')
+			.delete()
+			.eq('id', id)
 
-			// Map repository stats to expected format
-			return {
-				total: stats.total,
-				vacant: stats.available, // Map 'available' to 'vacant'
-				occupied: stats.occupied,
-				maintenance: stats.maintenance,
-				unavailable: stats.reserved, // Map 'reserved' to 'unavailable'
-				totalRent: 0, // TODO: Calculate from actual lease data
-				averageRent: 0 // TODO: Calculate from actual lease data
-			}
-		} catch (error) {
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'getStats',
-				resource: 'unit',
-				metadata: { ownerId }
-			})
+		if (error) {
+			this.logger.error('Failed to delete unit:', error)
+			throw new BadRequestException(error.message)
 		}
-	}
 
-	/**
-	 * Get units by property
-	 */
-	async getUnitsByProperty(
-		propertyId: string,
-		ownerId: string,
-		userId?: string,
-		userToken?: string
-	): Promise<UnitWithRelations[]> {
-		try {
-			const units = await this.repository.findByProperty(
-				propertyId,
-				ownerId,
-				userId,
-				userToken
-			)
-
-			this.logger.debug(
-				`Retrieved ${units.length} units for property ${propertyId}`
-			)
-			return units
-		} catch (error) {
-			this.logger.error('Failed to get units by property:', error)
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'getUnitsByProperty',
-				resource: 'unit',
-				metadata: { propertyId }
-			})
-		}
+		this.logger.log(`Unit deleted: ${id}`)
 	}
 
 	/**
 	 * Update unit status
 	 */
-	async updateStatus(
-		id: string,
-		status: string,
-		ownerId: string,
-		userId?: string,
-		userToken?: string
-	): Promise<UnitWithRelations> {
-		try {
-			// Validate status
-			const validStatuses = [
-				'VACANT',
-				'OCCUPIED',
-				'MAINTENANCE',
-				'UNAVAILABLE'
-			]
-			if (!validStatuses.includes(status)) {
-				throw new ValidationException(`Invalid status: ${status}`)
+	async updateStatus(id: string, status: string, ownerId: string): Promise<UnitWithRelations> {
+		// Validate status
+		const validStatuses = ['VACANT', 'OCCUPIED', 'MAINTENANCE', 'RESERVED']
+		if (!validStatuses.includes(status)) {
+			throw new BadRequestException(`Invalid status: ${status}`)
+		}
+
+		// Verify ownership
+		await this.findOne(id, ownerId)
+
+		// If setting to occupied, validate there's an active lease
+		if (status === 'OCCUPIED') {
+			const { data: lease } = await this.supabase
+				.from('Lease')
+				.select('id')
+				.eq('unitId', id)
+				.eq('status', 'ACTIVE')
+				.single()
+
+			if (!lease) {
+				throw new BadRequestException('Cannot mark unit as occupied without an active lease')
 			}
+		}
 
-			// Verify ownership first
-			const existing = await this.repository.findByIdAndOwner(
-				id,
-				ownerId,
-				false,
-				userId,
-				userToken
-			)
-
-			if (!existing) {
-				throw new Error('Unit not found')
-			}
-
-			// If setting to occupied, validate there's an active lease
-			if (status === 'OCCUPIED') {
-				const hasActiveLease = await this.repository.hasActiveLease(
-					id,
-					ownerId,
-					userId,
-					userToken
-				)
-
-				if (!hasActiveLease) {
-					throw new ValidationException(
-						'Cannot mark unit as occupied without an active lease'
-					)
-				}
-			}
-
-			const updateData: UnitUpdate = {
-				status: status as
-					| 'MAINTENANCE'
-					| 'VACANT'
-					| 'OCCUPIED'
-					| 'RESERVED',
+		const { data, error } = await this.supabase
+			.from('Unit')
+			.update({ 
+				status: status as Unit['status'],
 				updatedAt: new Date().toISOString()
-			}
-
-			const updated = await this.repository.update(
-				id,
-				updateData,
-				userId,
-				userToken
-			)
-
-			this.logger.log('Unit status updated successfully', {
-				unitId: id,
-				newStatus: status,
-				ownerId
 			})
-
-			return updated
-		} catch (error) {
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'updateStatus',
-				resource: 'unit',
-				metadata: { unitId: id, status, ownerId }
-			})
-		}
-	}
-
-	/**
-	 * Bulk update unit statuses
-	 */
-	async bulkUpdateStatus(
-		unitIds: string[],
-		status: string,
-		ownerId: string,
-		userId?: string,
-		userToken?: string
-	): Promise<UnitWithRelations[]> {
-		try {
-			// Validate status
-			const validStatuses = [
-				'VACANT',
-				'OCCUPIED',
-				'MAINTENANCE',
-				'UNAVAILABLE'
-			]
-			if (!validStatuses.includes(status)) {
-				throw new ValidationException(`Invalid status: ${status}`)
-			}
-
-			if (!unitIds || unitIds.length === 0) {
-				throw new ValidationException('Unit IDs are required')
-			}
-
-			if (unitIds.length > 100) {
-				throw new ValidationException('Too many units (max 100)')
-			}
-
-			// TODO: Implement bulk update - for now update one by one
-			const results = await Promise.all(
-				unitIds.map(id =>
-					this.repository.updateStatus(
+			.eq('id', id)
+			.select(`
+				*,
+				Property (
+					id,
+					name,
+					address,
+					ownerId
+				),
+				Lease (
+					id,
+					status,
+					startDate,
+					endDate,
+					rentAmount,
+					Tenant (
 						id,
-						status,
-						ownerId,
-						userId,
-						userToken
+						name,
+						email,
+						phone
 					)
 				)
-			)
+			`)
+			.single()
 
-			this.logger.log('Units bulk status update completed', {
-				unitCount: unitIds.length,
-				newStatus: status,
-				ownerId
-			})
-
-			return results
-		} catch (error) {
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'bulkUpdateStatus',
-				resource: 'unit',
-				metadata: { unitCount: unitIds.length, status, ownerId }
-			})
+		if (error) {
+			this.logger.error('Failed to update unit status:', error)
+			throw new BadRequestException(error.message)
 		}
+
+		this.logger.log(`Unit status updated: ${id} to ${status}`)
+		return data as UnitWithRelations
 	}
 
 	/**
-	 * Get vacant units for a property
+	 * Get unit statistics for owner
 	 */
-	async getVacantUnits(
-		propertyId: string,
-		ownerId: string,
-		userId?: string,
-		userToken?: string
-	): Promise<UnitWithRelations[]> {
-		try {
-			// TODO: Add support for filtering by status in repository method
-			// For now, fetch all units and filter in memory
-			const allUnits = await this.repository.findByProperty(
-				propertyId,
-				ownerId,
-				userId,
-				userToken
-			)
+	async getStats(ownerId: string): Promise<{
+		total: number
+		vacant: number
+		occupied: number
+		maintenance: number
+		reserved: number
+		totalRent: number
+		averageRent: number
+	}> {
+		const units = await this.findAll(ownerId)
 
-			// Filter for vacant units
-			return allUnits.filter(unit => unit.status === 'VACANT')
-		} catch (error) {
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'getVacantUnits',
-				resource: 'unit',
-				metadata: { propertyId, ownerId }
-			})
+		const stats = {
+			total: units.length,
+			vacant: 0,
+			occupied: 0,
+			maintenance: 0,
+			reserved: 0,
+			totalRent: 0,
+			averageRent: 0
 		}
+
+		for (const unit of units) {
+			switch (unit.status) {
+				case 'VACANT':
+					stats.vacant++
+					break
+				case 'OCCUPIED':
+					stats.occupied++
+					stats.totalRent += unit.rent || 0
+					break
+				case 'MAINTENANCE':
+					stats.maintenance++
+					break
+				case 'RESERVED':
+					stats.reserved++
+					break
+			}
+		}
+
+		stats.averageRent = stats.occupied > 0 ? stats.totalRent / stats.occupied : 0
+
+		return stats
 	}
 
 	/**
-	 * Search units by text
+	 * Search units
 	 */
-	async search(
-		ownerId: string,
-		searchTerm: string,
-		options: UnitQueryOptions = {},
-		userId?: string,
-		userToken?: string
-	): Promise<UnitWithRelations[]> {
-		try {
-			const searchOptions = {
-				...options,
-				search: searchTerm
-			}
+	async search(ownerId: string, searchTerm: string, propertyId?: string): Promise<UnitWithRelations[]> {
+		let query = this.supabase
+			.from('Unit')
+			.select(`
+				*,
+				Property!inner (
+					id,
+					name,
+					address,
+					ownerId
+				),
+				Lease (
+					id,
+					status,
+					startDate,
+					endDate,
+					rentAmount,
+					Tenant (
+						id,
+						name,
+						email,
+						phone
+					)
+				)
+			`)
+			.eq('Property.ownerId', ownerId)
 
-			return await this.repository.findByOwnerWithDetails(
-				ownerId,
-				searchOptions,
-				userId,
-				userToken
-			)
-		} catch (error) {
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'search',
-				resource: 'unit',
-				metadata: { ownerId, searchTerm }
-			})
+		if (propertyId) {
+			query = query.eq('propertyId', propertyId)
 		}
-	}
 
-	/**
-	 * Check if unit number exists in property
-	 */
-	async checkUnitNumberExists(
-		propertyId: string,
-		unitNumber: string,
-		ownerId: string,
-		excludeUnitId?: string,
-		userId?: string,
-		userToken?: string
-	): Promise<boolean> {
-		try {
-			// TODO: Implement findByUnitNumber in repository
-			// For now, fetch all units for the property and filter
-			const units = await this.repository.findByProperty(
-				propertyId,
-				ownerId,
-				userId,
-				userToken
-			)
-			const existing = units.find(u => u.unitNumber === unitNumber)
+		const { data, error } = await query
+			.or(`unitNumber.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`)
+			.order('createdAt', { ascending: false })
 
-			if (!existing) {
-				return false
-			}
-
-			// If excluding a specific unit (for updates), check if it's a different unit
-			if (excludeUnitId && existing.id === excludeUnitId) {
-				return false
-			}
-
-			return true
-		} catch (error) {
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'checkUnitNumberExists',
-				resource: 'unit',
-				metadata: { propertyId, unitNumber, ownerId }
-			})
+		if (error) {
+			this.logger.error('Failed to search units:', error)
+			throw new BadRequestException(error.message)
 		}
+
+		return data as UnitWithRelations[]
 	}
 }

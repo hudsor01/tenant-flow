@@ -11,7 +11,8 @@ import { WebhookHealthService } from './webhook-health.service'
 import { PaymentRecoveryService } from './payment-recovery.service'
 import { StripeFdwSimpleService } from './stripe-fdw-simple.service'
 import { StripeFdwService } from './stripe-fdw.service'
-import { SupabaseModule } from '../supabase/supabase.module'
+import { SupabaseModule } from '../common/supabase/supabase.module'
+import { ErrorModule } from '../common/errors/error.module'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { NotificationsModule } from '../notifications/notifications.module'
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module'
@@ -19,6 +20,12 @@ import { ConfigModule } from '@nestjs/config'
 import { BullModule } from '@nestjs/bull'
 import { CommonModule } from '../common/common.module'
 import { HealthModule } from '../health/health.module'
+import { StripeErrorHandler } from './stripe-error.handler'
+import { UsersModule } from '../users/users.module'
+import { WebhookMetricsService } from './webhook-metrics.service'
+import { LoggerModule } from '../common/modules/logger.module'
+import { WebhookErrorMonitorService } from './webhook-error-monitor.service'
+import { WebhookObservabilityService } from './webhook-observability.service'
 
 @Module({
 	imports: [
@@ -28,6 +35,9 @@ import { HealthModule } from '../health/health.module'
 		forwardRef(() => SubscriptionsModule),
 		forwardRef(() => CommonModule),
 		forwardRef(() => HealthModule),
+		ErrorModule,
+		UsersModule,
+		LoggerModule,
 		BullModule.registerQueue({
 			name: 'payment-recovery',
 			defaultJobOptions: {
@@ -49,7 +59,11 @@ import { HealthModule } from '../health/health.module'
 		PaymentRecoveryService,
 		StripeFdwSimpleService,
 		StripeFdwService,
-		ErrorHandlerService
+		ErrorHandlerService,
+		StripeErrorHandler,
+		WebhookMetricsService,
+		WebhookErrorMonitorService,
+		WebhookObservabilityService
 	],
 	controllers: [
 		StripeCheckoutController,

@@ -1,23 +1,31 @@
 import {
-	Body,
 	Controller,
-	Delete,
 	Get,
-	Param,
 	Post,
 	Put,
+	Delete,
+	Body,
+	Param,
 	Query,
-	UseGuards
+	UseGuards,
+	UsePipes,
+	ValidationPipe,
+	ParseUUIDPipe
 } from '@nestjs/common'
-import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger'
-import { UnitsService } from './units.service'
-import { UnitCreateDto, UnitQueryDto, UnitUpdateDto } from './dto'
+import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger'
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { ValidatedUser } from '../auth/auth.service'
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
+import { UnitsService, UnitWithRelations } from './units.service'
+import { UnitCreateDto, UnitUpdateDto } from './dto'
 import { UsageLimitsGuard } from '../subscriptions/guards/usage-limits.guard'
 import { UsageLimit } from '../subscriptions/decorators/usage-limits.decorator'
+import type { ControllerApiResponse } from '@repo/shared'
 
+/**
+ * Units controller - Simple, direct implementation
+ * No base classes, no abstraction, just clean endpoints
+ */
 @ApiTags('units')
 @Controller('units')
 @UseGuards(JwtAuthGuard, UsageLimitsGuard)
@@ -25,107 +33,116 @@ export class UnitsController {
 	constructor(private readonly unitsService: UnitsService) {}
 
 	@Get()
-	@ApiOperation({ summary: 'Get all units' })
+	@ApiOperation({ summary: 'Get all units for current user' })
 	@ApiResponse({ status: 200, description: 'Units retrieved successfully' })
 	async findAll(
 		@CurrentUser() user: ValidatedUser,
-		@Query() query?: UnitQueryDto
-	) {
-		// If propertyId is provided in query, use the service's specific method
-		if (query?.propertyId) {
-			const units = await this.unitsService.getUnitsByProperty(
-				query.propertyId,
-				user.id,
-				undefined
-			)
-			return {
-				success: true,
-				data: units,
-				message: 'Units retrieved successfully'
-			}
-		}
-
-		// Otherwise, get all units for the user
-		const units = await this.unitsService.findByOwner(user.id, query)
+		@Query('propertyId') propertyId?: string
+	): Promise<ControllerApiResponse<UnitWithRelations[]>> {
+		const data = await this.unitsService.findAll(user.id, propertyId)
 		return {
 			success: true,
-			data: units,
+			data,
 			message: 'Units retrieved successfully'
 		}
 	}
 
+	@Get('stats')
+	@ApiOperation({ summary: 'Get unit statistics' })
+	@ApiResponse({ status: 200, description: 'Statistics retrieved successfully' })
+	async getStats(
+		@CurrentUser() user: ValidatedUser
+	): Promise<ControllerApiResponse> {
+		const data = await this.unitsService.getStats(user.id)
+		return {
+			success: true,
+			data,
+			message: 'Statistics retrieved successfully'
+		}
+	}
+
+	@Get('search')
+	@ApiOperation({ summary: 'Search units' })
+	@ApiResponse({ status: 200, description: 'Search results retrieved' })
+	async search(
+		@Query('q') searchTerm: string,
+		@Query('propertyId') propertyId: string | undefined,
+		@CurrentUser() user: ValidatedUser
+	): Promise<ControllerApiResponse<UnitWithRelations[]>> {
+		const data = await this.unitsService.search(user.id, searchTerm || '', propertyId)
+		return {
+			success: true,
+			data,
+			message: 'Search completed successfully'
+		}
+	}
+
 	@Get(':id')
-	@ApiOperation({ summary: 'Get a unit by ID' })
+	@ApiOperation({ summary: 'Get unit by ID' })
 	@ApiParam({ name: 'id', description: 'Unit ID' })
 	@ApiResponse({ status: 200, description: 'Unit retrieved successfully' })
 	@ApiResponse({ status: 404, description: 'Unit not found' })
-	async findOne(@CurrentUser() user: ValidatedUser, @Param('id') id: string) {
-		const unit = await this.unitsService.findById(
-			id,
-			user.id,
-			user.id,
-			undefined
-		)
+	async findOne(
+		@Param('id', ParseUUIDPipe) id: string,
+		@CurrentUser() user: ValidatedUser
+	): Promise<ControllerApiResponse<UnitWithRelations>> {
+		const data = await this.unitsService.findOne(id, user.id)
 		return {
 			success: true,
-			data: unit,
+			data,
 			message: 'Unit retrieved successfully'
 		}
 	}
 
 	@Post()
-	@ApiOperation({ summary: 'Create a new unit' })
+	@ApiOperation({ summary: 'Create new unit' })
 	@ApiResponse({ status: 201, description: 'Unit created successfully' })
 	@ApiResponse({ status: 400, description: 'Invalid input' })
+	@ApiResponse({ status: 403, description: 'Usage limit exceeded' })
 	@UsageLimit({ resource: 'units', action: 'create' })
+	@UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 	async create(
-		@CurrentUser() user: ValidatedUser,
-		@Body() createUnitDto: UnitCreateDto
-	) {
-		const unit = await this.unitsService.create(
-			createUnitDto,
-			user.id,
-			user.id,
-			undefined
-		)
+		@Body() createUnitDto: UnitCreateDto,
+		@CurrentUser() user: ValidatedUser
+	): Promise<ControllerApiResponse<UnitWithRelations>> {
+		const data = await this.unitsService.create(createUnitDto, user.id)
 		return {
 			success: true,
-			data: unit,
+			data,
 			message: 'Unit created successfully'
 		}
 	}
 
 	@Put(':id')
-	@ApiOperation({ summary: 'Update a unit' })
+	@ApiOperation({ summary: 'Update unit' })
 	@ApiParam({ name: 'id', description: 'Unit ID' })
 	@ApiResponse({ status: 200, description: 'Unit updated successfully' })
 	@ApiResponse({ status: 404, description: 'Unit not found' })
+	@UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 	async update(
-		@CurrentUser() user: ValidatedUser,
-		@Param('id') id: string,
-		@Body() updateUnitDto: UnitUpdateDto
-	) {
-		const unit = await this.unitsService.update(
-			id,
-			updateUnitDto,
-			user.id,
-			user.id,
-			undefined
-		)
+		@Param('id', ParseUUIDPipe) id: string,
+		@Body() updateUnitDto: UnitUpdateDto,
+		@CurrentUser() user: ValidatedUser
+	): Promise<ControllerApiResponse<UnitWithRelations>> {
+		const data = await this.unitsService.update(id, updateUnitDto, user.id)
 		return {
 			success: true,
-			data: unit,
+			data,
 			message: 'Unit updated successfully'
 		}
 	}
 
 	@Delete(':id')
-	@ApiOperation({ summary: 'Delete a unit' })
+	@ApiOperation({ summary: 'Delete unit' })
 	@ApiParam({ name: 'id', description: 'Unit ID' })
 	@ApiResponse({ status: 200, description: 'Unit deleted successfully' })
 	@ApiResponse({ status: 404, description: 'Unit not found' })
-	async delete(@CurrentUser() user: ValidatedUser, @Param('id') id: string) {
-		await this.unitsService.delete(id, user.id, user.id, undefined)
+	@ApiResponse({ status: 400, description: 'Cannot delete unit with active leases' })
+	async remove(
+		@Param('id', ParseUUIDPipe) id: string,
+		@CurrentUser() user: ValidatedUser
+	): Promise<ControllerApiResponse> {
+		await this.unitsService.remove(id, user.id)
 		return {
 			success: true,
 			message: 'Unit deleted successfully'
@@ -135,26 +152,18 @@ export class UnitsController {
 	@Put(':id/status')
 	@ApiOperation({ summary: 'Update unit status' })
 	@ApiParam({ name: 'id', description: 'Unit ID' })
-	@ApiResponse({
-		status: 200,
-		description: 'Unit status updated successfully'
-	})
+	@ApiResponse({ status: 200, description: 'Unit status updated successfully' })
 	@ApiResponse({ status: 404, description: 'Unit not found' })
+	@ApiResponse({ status: 400, description: 'Invalid status or business rule violation' })
 	async updateStatus(
-		@CurrentUser() user: ValidatedUser,
-		@Param('id') id: string,
-		@Body('status') status: string
-	) {
-		const unit = await this.unitsService.updateStatus(
-			id,
-			status,
-			user.id,
-			user.id,
-			undefined
-		)
+		@Param('id', ParseUUIDPipe) id: string,
+		@Body('status') status: string,
+		@CurrentUser() user: ValidatedUser
+	): Promise<ControllerApiResponse<UnitWithRelations>> {
+		const data = await this.unitsService.updateStatus(id, status, user.id)
 		return {
 			success: true,
-			data: unit,
+			data,
 			message: 'Unit status updated successfully'
 		}
 	}
