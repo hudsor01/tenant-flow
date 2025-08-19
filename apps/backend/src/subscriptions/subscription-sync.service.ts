@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { StripeService } from '../stripe/stripe.service'
 import { StructuredLoggerService } from '../common/logging/structured-logger.service'
@@ -58,6 +58,7 @@ export class SubscriptionSyncService {
 
 	constructor(
 		private readonly supabaseService: SupabaseService,
+		@Inject(forwardRef(() => StripeService))
 		private readonly stripeService: StripeService,
 		private readonly subscriptionManager: SubscriptionsManagerService,
 		private readonly eventEmitter: EventEmitter2,
