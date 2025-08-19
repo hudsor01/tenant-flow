@@ -16,7 +16,12 @@ import type {
 	TenantRepository,
 	LeaseRepository
 } from '@/repositories/interfaces'
-import { Email, PhoneNumber, DomainError, ValidationErrorClass as ValidationError } from '@repo/shared'
+import {
+	Email,
+	PhoneNumber,
+	DomainError,
+	ValidationErrorClass as ValidationError
+} from '@repo/shared'
 
 export interface TenantManagementService {
 	getTenant(id: string): Promise<Result<Tenant>>

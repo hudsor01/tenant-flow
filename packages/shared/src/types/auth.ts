@@ -10,7 +10,14 @@ import type { USER_ROLE } from '../constants/auth'
 export type UserRole = (typeof USER_ROLE)[keyof typeof USER_ROLE]
 
 // Subscription status type
-export type SubscriptionStatus = 'ACTIVE' | 'TRIALING' | 'PAST_DUE' | 'CANCELED' | 'UNPAID' | 'INCOMPLETE' | 'INCOMPLETE_EXPIRED'
+export type SubscriptionStatus =
+	| 'ACTIVE'
+	| 'TRIALING'
+	| 'PAST_DUE'
+	| 'CANCELED'
+	| 'UNPAID'
+	| 'INCOMPLETE'
+	| 'INCOMPLETE_EXPIRED'
 
 // User role display helpers are now imported from utils
 // This ensures single source of truth for these functions

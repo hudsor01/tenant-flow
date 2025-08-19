@@ -90,14 +90,17 @@ export const AllVariants: Story = {
 					{/* Premium Card with Simplify gradient */}
 					<Card className="bg-simplify-soft border-0 text-gray-800">
 						<CardHeader>
-							<CardTitle className="text-simplify">Premium Feature</CardTitle>
+							<CardTitle className="text-simplify">
+								Premium Feature
+							</CardTitle>
 							<CardDescription className="text-gray-600">
 								Enhanced with brand gradient background
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
 							<p className="text-sm text-gray-700">
-								Subtle brand integration with gradient backgrounds
+								Subtle brand integration with gradient
+								backgrounds
 							</p>
 						</CardContent>
 						<CardFooter>
@@ -125,7 +128,9 @@ export const AllVariants: Story = {
 					{/* Hero Section Card */}
 					<Card className="bg-hero border border-gray-200">
 						<CardHeader>
-							<CardTitle className="text-simplify">Hero Section</CardTitle>
+							<CardTitle className="text-simplify">
+								Hero Section
+							</CardTitle>
 							<CardDescription>
 								Perfect for landing page features
 							</CardDescription>
@@ -136,9 +141,7 @@ export const AllVariants: Story = {
 							</p>
 						</CardContent>
 						<CardFooter>
-							<Button variant="gradient">
-								Get Started
-							</Button>
+							<Button variant="gradient">Get Started</Button>
 						</CardFooter>
 					</Card>
 				</div>
@@ -159,7 +162,9 @@ export const AllVariants: Story = {
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
-							<p className="text-sm text-gray-600">Simple content area</p>
+							<p className="text-sm text-gray-600">
+								Simple content area
+							</p>
 						</CardContent>
 					</Card>
 
@@ -187,10 +192,14 @@ export const AllVariants: Story = {
 					<Card>
 						<CardHeader>
 							<CardTitle>With Footer</CardTitle>
-							<CardDescription>Card with footer actions</CardDescription>
+							<CardDescription>
+								Card with footer actions
+							</CardDescription>
 						</CardHeader>
 						<CardContent>
-							<p className="text-sm text-gray-600">Content area</p>
+							<p className="text-sm text-gray-600">
+								Content area
+							</p>
 						</CardContent>
 						<CardFooter className="justify-between">
 							<Button variant="outline">Cancel</Button>
@@ -202,7 +211,7 @@ export const AllVariants: Story = {
 					<Card>
 						<CardHeader>
 							<div className="flex items-center gap-3">
-								<div className="bg-simplify-soft rounded-lg p-2 border border-gray-200">
+								<div className="bg-simplify-soft rounded-lg border border-gray-200 p-2">
 									<Settings className="h-4 w-4 text-gray-700" />
 								</div>
 								<div>
@@ -230,11 +239,15 @@ export const AllVariants: Story = {
 										New premium functionality
 									</CardDescription>
 								</div>
-								<Badge className="bg-simplify text-white">Pro</Badge>
+								<Badge className="bg-simplify text-white">
+									Pro
+								</Badge>
 							</div>
 						</CardHeader>
 						<CardContent>
-							<p className="text-sm text-gray-600">Feature description</p>
+							<p className="text-sm text-gray-600">
+								Feature description
+							</p>
 						</CardContent>
 					</Card>
 
@@ -242,7 +255,9 @@ export const AllVariants: Story = {
 					<Card className="shadow-simplify hover:glow-simplify cursor-pointer transition-all duration-300 hover:scale-[1.01]">
 						<CardHeader>
 							<CardTitle>Enhanced Interactive</CardTitle>
-							<CardDescription>Advanced hover effects</CardDescription>
+							<CardDescription>
+								Advanced hover effects
+							</CardDescription>
 						</CardHeader>
 						<CardContent>
 							<p className="text-sm text-gray-600">
@@ -254,25 +269,40 @@ export const AllVariants: Story = {
 			</div>
 
 			{/* Brand Usage Guidelines */}
-			<div className="rounded-lg bg-blue-50 p-6 border border-blue-200">
-				<h3 className="mb-3 font-semibold text-blue-800 flex items-center gap-2">
+			<div className="rounded-lg border border-blue-200 bg-blue-50 p-6">
+				<h3 className="mb-3 flex items-center gap-2 font-semibold text-blue-800">
 					<span className="text-blue-600">💡</span>
 					Card Brand Integration Guidelines
 				</h3>
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-700">
+				<div className="grid grid-cols-1 gap-4 text-sm text-blue-700 md:grid-cols-2">
 					<div>
-						<h4 className="font-medium mb-2">Brand Enhancement</h4>
+						<h4 className="mb-2 font-medium">Brand Enhancement</h4>
 						<ul className="space-y-1">
-							<li>• Use <code>bg-simplify-soft</code> for premium content</li>
-							<li>• Apply <code>hover-simplify</code> for interactive cards</li>
-							<li>• Add <code>shadow-simplify</code> for elevated content</li>
-							<li>• Use <code>text-simplify</code> for feature headlines</li>
+							<li>
+								• Use <code>bg-simplify-soft</code> for premium
+								content
+							</li>
+							<li>
+								• Apply <code>hover-simplify</code> for
+								interactive cards
+							</li>
+							<li>
+								• Add <code>shadow-simplify</code> for elevated
+								content
+							</li>
+							<li>
+								• Use <code>text-simplify</code> for feature
+								headlines
+							</li>
 						</ul>
 					</div>
 					<div>
-						<h4 className="font-medium mb-2">Best Practices</h4>
+						<h4 className="mb-2 font-medium">Best Practices</h4>
 						<ul className="space-y-1">
-							<li>• Limit brand treatments to 1-2 cards per section</li>
+							<li>
+								• Limit brand treatments to 1-2 cards per
+								section
+							</li>
 							<li>• Use gradient backgrounds sparingly</li>
 							<li>• Maintain readability with proper contrast</li>
 							<li>• Test interactions on mobile devices</li>

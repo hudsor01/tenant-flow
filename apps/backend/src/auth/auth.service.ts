@@ -1,7 +1,10 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { SupabaseService } from '../database/supabase.service'
-import { ErrorCode, ErrorHandlerService } from '../services/error-handler.service'
+import {
+	ErrorCode,
+	ErrorHandlerService
+} from '../services/error-handler.service'
 import { SecurityMonitorService } from '../security/security-monitor.service'
 import type { AuthUser, UserRole } from '@repo/shared'
 import type { Database } from '@repo/shared/types/supabase-generated'
@@ -19,7 +22,8 @@ export interface SupabaseUser {
 	updated_at?: string
 }
 
-export interface ValidatedUser extends Omit<AuthUser, 'createdAt' | 'updatedAt' | 'name' | 'avatarUrl'> {
+export interface ValidatedUser
+	extends Omit<AuthUser, 'createdAt' | 'updatedAt' | 'name' | 'avatarUrl'> {
 	name: string | undefined
 	avatarUrl: string | undefined
 	createdAt: string
@@ -28,7 +32,9 @@ export interface ValidatedUser extends Omit<AuthUser, 'createdAt' | 'updatedAt' 
 	[key: string]: unknown
 }
 
-function normalizeSupabaseUser(supabaseUser: Database['public']['Tables']['User']['Row']): ValidatedUser {
+function normalizeSupabaseUser(
+	supabaseUser: Database['public']['Tables']['User']['Row']
+): ValidatedUser {
 	return {
 		id: supabaseUser.id,
 		email: supabaseUser.email,
@@ -85,10 +91,15 @@ export class AuthService {
 		}
 
 		try {
-			const { data: { user }, error } = await this.supabase.auth.getUser(token)
+			const {
+				data: { user },
+				error
+			} = await this.supabase.auth.getUser(token)
 
 			if (error || !user) {
-				this.logger.warn('Token validation failed', { errorType: error?.name })
+				this.logger.warn('Token validation failed', {
+					errorType: error?.name
+				})
 				throw new UnauthorizedException('Invalid or expired token')
 			}
 
@@ -105,12 +116,16 @@ export class AuthService {
 			if (error instanceof UnauthorizedException) {
 				throw error
 			}
-			this.logger.error('Token validation error', { error: error instanceof Error ? error.message : 'Unknown error' })
+			this.logger.error('Token validation error', {
+				error: error instanceof Error ? error.message : 'Unknown error'
+			})
 			throw new UnauthorizedException('Token validation failed')
 		}
 	}
 
-	async syncUserWithDatabase(supabaseUser: SupabaseUser): Promise<ValidatedUser> {
+	async syncUserWithDatabase(
+		supabaseUser: SupabaseUser
+	): Promise<ValidatedUser> {
 		if (!supabaseUser?.email) {
 			throw new UnauthorizedException('User email is required')
 		}
@@ -118,11 +133,13 @@ export class AuthService {
 		const { id: supabaseId, email, user_metadata } = supabaseUser
 		const metadata = user_metadata as Record<string, unknown>
 		const name = String(metadata?.name || metadata?.full_name || '')
-		const avatarUrl = metadata?.avatar_url ? String(metadata.avatar_url) : null
+		const avatarUrl = metadata?.avatar_url
+			? String(metadata.avatar_url)
+			: null
 		const phone = metadata?.phone ? String(metadata.phone) : null
 
 		const adminClient = this.supabaseService.getAdminClient()
-		
+
 		const { data: existingUser } = await adminClient
 			.from('User')
 			.select('*')
@@ -141,7 +158,10 @@ export class AuthService {
 				avatarUrl,
 				role: existingUser?.role || 'OWNER',
 				supabaseId,
-				createdAt: existingUser?.createdAt || supabaseUser.created_at || new Date().toISOString(),
+				createdAt:
+					existingUser?.createdAt ||
+					supabaseUser.created_at ||
+					new Date().toISOString(),
 				updatedAt: new Date().toISOString()
 			})
 			.select()
@@ -152,7 +172,11 @@ export class AuthService {
 		}
 
 		if (isNewUser) {
-			this.logger.log('New user created', { userId: supabaseId, email, name })
+			this.logger.log('New user created', {
+				userId: supabaseId,
+				email,
+				name
+			})
 		}
 
 		const { data: subscription } = await adminClient
@@ -169,7 +193,9 @@ export class AuthService {
 		}
 	}
 
-	async getUserBySupabaseId(supabaseId: string): Promise<ValidatedUser | null> {
+	async getUserBySupabaseId(
+		supabaseId: string
+	): Promise<ValidatedUser | null> {
 		const adminClient = this.supabaseService.getAdminClient()
 		const { data: user } = await adminClient
 			.from('User')
@@ -181,7 +207,12 @@ export class AuthService {
 
 	async updateUserProfile(
 		supabaseId: string,
-		updates: { name?: string; phone?: string; bio?: string; avatarUrl?: string }
+		updates: {
+			name?: string
+			phone?: string
+			bio?: string
+			avatarUrl?: string
+		}
 	): Promise<{ user: ValidatedUser }> {
 		const adminClient = this.supabaseService.getAdminClient()
 		const { data: user, error } = await adminClient
@@ -218,12 +249,24 @@ export class AuthService {
 
 	async getUserStats() {
 		const adminClient = this.supabaseService.getAdminClient()
-		const [totalResult, ownersResult, managersResult, tenantsResult] = await Promise.all([
-			adminClient.from('User').select('*', { count: 'exact', head: true }),
-			adminClient.from('User').select('*', { count: 'exact', head: true }).eq('role', 'OWNER'),
-			adminClient.from('User').select('*', { count: 'exact', head: true }).eq('role', 'MANAGER'),
-			adminClient.from('User').select('*', { count: 'exact', head: true }).eq('role', 'TENANT')
-		])
+		const [totalResult, ownersResult, managersResult, tenantsResult] =
+			await Promise.all([
+				adminClient
+					.from('User')
+					.select('*', { count: 'exact', head: true }),
+				adminClient
+					.from('User')
+					.select('*', { count: 'exact', head: true })
+					.eq('role', 'OWNER'),
+				adminClient
+					.from('User')
+					.select('*', { count: 'exact', head: true })
+					.eq('role', 'MANAGER'),
+				adminClient
+					.from('User')
+					.select('*', { count: 'exact', head: true })
+					.eq('role', 'TENANT')
+			])
 
 		return {
 			total: totalResult.count || 0,
@@ -235,7 +278,11 @@ export class AuthService {
 		}
 	}
 
-	async createUser(userData: { email: string; name: string; password?: string }): Promise<{
+	async createUser(userData: {
+		email: string
+		name: string
+		password?: string
+	}): Promise<{
 		user: { id: string; email: string; name: string }
 		access_token: string
 		refresh_token: string
@@ -292,11 +339,21 @@ export class AuthService {
 		try {
 			await this.syncUserWithDatabase(data.user)
 		} catch (syncError) {
-			this.logger.error('User sync failed', { userId: data.user.id, error: syncError instanceof Error ? syncError.message : 'Unknown error' })
+			this.logger.error('User sync failed', {
+				userId: data.user.id,
+				error:
+					syncError instanceof Error
+						? syncError.message
+						: 'Unknown error'
+			})
 		}
 
 		return {
-			user: { id: data.user.id, email: data.user.email, name: userData.name },
+			user: {
+				id: data.user.id,
+				email: data.user.email,
+				name: userData.name
+			},
 			access_token: 'temp_token_email_confirmation_required',
 			refresh_token: 'temp_refresh_token_email_confirmation_required'
 		}
@@ -304,7 +361,10 @@ export class AuthService {
 
 	async deleteUser(supabaseId: string): Promise<void> {
 		const adminClient = this.supabaseService.getAdminClient()
-		const { error } = await adminClient.from('User').delete().eq('id', supabaseId)
+		const { error } = await adminClient
+			.from('User')
+			.delete()
+			.eq('id', supabaseId)
 		if (error) {
 			throw error
 		}
@@ -324,7 +384,9 @@ export class AuthService {
 		expires_in: number
 		user: ValidatedUser
 	}> {
-		const { data, error } = await this.supabase.auth.refreshSession({ refresh_token: refreshToken })
+		const { data, error } = await this.supabase.auth.refreshSession({
+			refresh_token: refreshToken
+		})
 
 		if (error || !data.session || !data.user) {
 			throw this.errorHandler.createBusinessError(
@@ -334,7 +396,9 @@ export class AuthService {
 			)
 		}
 
-		const validatedUser = await this.validateSupabaseToken(data.session.access_token)
+		const validatedUser = await this.validateSupabaseToken(
+			data.session.access_token
+		)
 
 		return {
 			access_token: data.session.access_token,
@@ -344,7 +408,11 @@ export class AuthService {
 		}
 	}
 
-	async login(email: string, password: string, ip?: string): Promise<{
+	async login(
+		email: string,
+		password: string,
+		ip?: string
+	): Promise<{
 		access_token: string
 		refresh_token: string
 		expires_in: number
@@ -372,14 +440,20 @@ export class AuthService {
 		//	)
 		// }
 
-		const { data, error } = await this.supabase.auth.signInWithPassword({ email, password })
+		const { data, error } = await this.supabase.auth.signInWithPassword({
+			email,
+			password
+		})
 
 		if (error || !data.session || !data.user) {
 			// await this.securityMonitor.trackAuthAttempt(ip || 'unknown', email, false)
 			this.securityMonitor.logSecurityEvent('AUTH_FAILURE', {
 				email,
 				ip,
-				details: { error: error instanceof Error ? error.message : 'Unknown error' }
+				details: {
+					error:
+						error instanceof Error ? error.message : 'Unknown error'
+				}
 			})
 
 			if (error && error.message?.includes('Invalid login credentials')) {
@@ -405,7 +479,9 @@ export class AuthService {
 			)
 		}
 
-		const validatedUser = await this.validateSupabaseToken(data.session.access_token)
+		const validatedUser = await this.validateSupabaseToken(
+			data.session.access_token
+		)
 
 		this.securityMonitor.logSecurityEvent('AUTH_SUCCESS', {
 			userId: validatedUser.id,
@@ -424,7 +500,10 @@ export class AuthService {
 		}
 	}
 
-	async testSupabaseConnection(): Promise<{ connected: boolean; auth?: object }> {
+	async testSupabaseConnection(): Promise<{
+		connected: boolean
+		auth?: object
+	}> {
 		const { data, error } = await this.supabase.auth.getSession()
 
 		if (error) {

@@ -128,6 +128,28 @@ const navItems: NavItem[] = [
 		]
 	},
 	{
+		title: 'Documents',
+		url: '/documents',
+		icon: <FileText className="h-4 w-4" />,
+		description: 'Manage property documents and files',
+		shortcut: '⌘+Shift+D',
+		hasActivity: false,
+		items: [
+			{
+				title: 'All Documents',
+				url: '/documents',
+				icon: <FileText className="h-3 w-3" />,
+				description: 'View all uploaded documents'
+			},
+			{
+				title: 'Upload Document',
+				url: '/documents/upload',
+				icon: <Plus className="h-3 w-3" />,
+				description: 'Upload new document or file'
+			}
+		]
+	},
+	{
 		title: 'Maintenance',
 		url: '/maintenance',
 		icon: <Wrench className="h-4 w-4" />,

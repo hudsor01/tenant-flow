@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common'
 export class MetricsService {
 	getSystemMetrics() {
 		const memoryUsage = process.memoryUsage()
-		
+
 		return {
 			memory: {
 				heapUsed: memoryUsage.heapUsed,
@@ -26,7 +26,7 @@ export class MetricsService {
 
 	getHealthMetrics() {
 		const memoryUsage = process.memoryUsage()
-		
+
 		return {
 			status: 'healthy',
 			timestamp: new Date().toISOString(),

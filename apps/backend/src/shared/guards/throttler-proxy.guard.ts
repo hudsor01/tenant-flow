@@ -13,27 +13,35 @@ export class ThrottlerProxyGuard extends ThrottlerGuard {
 	 * Custom tracker for Railway/proxy environments
 	 * Uses X-Forwarded-For header to get real client IP
 	 */
-	protected override async getTracker(req: ThrottlerRequest): Promise<string> {
+	protected override async getTracker(
+		req: ThrottlerRequest
+	): Promise<string> {
 		// Check for forwarded IP from proxy (Railway, Cloudflare, etc.)
 		const forwardedFor = req.headers['x-forwarded-for']
-		const realIp = req.headers['x-real-ip'] 
+		const realIp = req.headers['x-real-ip']
 		const cfConnectingIp = req.headers['cf-connecting-ip'] // Cloudflare
-		
+
 		// Priority order: CF-Connecting-IP > X-Real-IP > X-Forwarded-For > req.ip
 		if (cfConnectingIp) {
-			return Array.isArray(cfConnectingIp) ? (cfConnectingIp[0] || 'unknown') : String(cfConnectingIp)
+			return Array.isArray(cfConnectingIp)
+				? cfConnectingIp[0] || 'unknown'
+				: String(cfConnectingIp)
 		}
-		
+
 		if (realIp) {
-			return Array.isArray(realIp) ? (realIp[0] || 'unknown') : String(realIp)
+			return Array.isArray(realIp)
+				? realIp[0] || 'unknown'
+				: String(realIp)
 		}
-		
+
 		if (forwardedFor) {
 			// X-Forwarded-For can be comma-separated list, get first IP
-			const ips = Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor
+			const ips = Array.isArray(forwardedFor)
+				? forwardedFor[0]
+				: forwardedFor
 			return ips?.split(',')[0]?.trim() || 'unknown'
 		}
-		
+
 		// Fallback to direct connection IP
 		return req.ip || req.socket?.remoteAddress || 'unknown'
 	}
