@@ -105,8 +105,12 @@ export class LoggerService extends Logger {
 	 */
 	setContext(context: string): void {
 		// NestJS Logger doesn't support runtime context changes,
-		// but we can override the context property
-		;(this as Logger & { context: string }).context = context
+		// but we can override the context property using Object.defineProperty
+		Object.defineProperty(this, 'context', {
+			value: context,
+			writable: true,
+			configurable: true
+		})
 	}
 
 	/**

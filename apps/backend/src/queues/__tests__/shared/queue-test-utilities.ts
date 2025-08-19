@@ -8,6 +8,13 @@ import type {
 } from '../../types/job.interfaces'
 import type { ProcessorResult } from '../../base/base.processor'
 
+// Jest globals declaration for TypeScript  
+import type Jest from 'jest'
+import type { expect as JestExpect } from '@jest/globals'
+
+declare const jest: typeof Jest
+declare const expect: typeof JestExpect
+
 /**
  * Shared test utilities for queue infrastructure
  * Following DRY principles to avoid test code duplication
@@ -76,7 +83,7 @@ export class MockJobFactory {
 			id: Math.floor(Math.random() * 10000),
 			data,
 			attemptsMade: 0,
-			progress: jest.fn().mockResolvedValue(undefined) as MockedFunction<
+			progress: jest.fn().mockResolvedValue(undefined) as jest.MockedFunction<
 				(progress: number) => Promise<void>
 			>,
 			queue: {
@@ -111,7 +118,7 @@ export class MockJobFactory {
 export class MockQueueFactory {
 	static createQueue(
 		name = 'test-queue'
-	): Queue & { [K in keyof Queue]: MockedFunction<Queue[K]> } {
+	): Queue & { [K in keyof Queue]: jest.MockedFunction<Queue[K]> } {
 		return {
 			name,
 			add: jest.fn().mockResolvedValue({ id: 123 }),
@@ -125,7 +132,7 @@ export class MockQueueFactory {
 			resume: jest.fn().mockResolvedValue(undefined),
 			clean: jest.fn().mockResolvedValue(10),
 			close: jest.fn().mockResolvedValue(undefined)
-		} as unknown as Queue & { [K in keyof Queue]: MockedFunction<Queue[K]> }
+		} as unknown as Queue & { [K in keyof Queue]: jest.MockedFunction<Queue[K]> }
 	}
 
 	static createQueueProvider(queueName: string) {
@@ -257,7 +264,7 @@ export class QueueTestAssertions {
 	}
 
 	static expectQueueOperation(
-		queue: Queue & { [K in keyof Queue]: MockedFunction<Queue[K]> },
+		queue: Queue & { [K in keyof Queue]: jest.MockedFunction<Queue[K]> },
 		operation: keyof Queue,
 		times = 1
 	): void {

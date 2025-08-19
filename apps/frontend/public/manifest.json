@@ -23,17 +23,17 @@
 			"purpose": "any maskable"
 		}
 	],
-	"categories": ["business", "productivity", "finance"],
+	"categories": ["business", "productivity", "real estate", "property managemet", "rental management"],
 	"screenshots": [
 		{
-			"src": "/screenshot-desktop.png",
+			"src": "/property-management-og.jpg",
 			"sizes": "1280x720",
 			"type": "image/png",
 			"form_factor": "wide",
 			"label": "TenantFlow Dashboard - Desktop View"
 		},
 		{
-			"src": "/screenshot-mobile.png",
+			"src": "/property-management-og.jpg",
 			"sizes": "375x812",
 			"type": "image/png",
 			"form_factor": "narrow",

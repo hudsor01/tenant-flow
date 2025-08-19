@@ -11,7 +11,4 @@ dist/
 
 # Environment files
 .env*
-
-# Prisma generated files
-generated/
-migrations/dev.db*
+.env
