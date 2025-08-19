@@ -96,22 +96,18 @@ export class ConfigValidator {
 
 			// Get Railway information
 			const railwayInfo = {
-				isRailway: !!this.configService.get('RAILWAY_ENVIRONMENT'),
-				environment: this.configService.get('RAILWAY_ENVIRONMENT'),
-				serviceUrl:
-					this.configService.get('RAILWAY_STATIC_URL') ||
-					(this.configService.get('RAILWAY_PUBLIC_DOMAIN')
-						? `https://${this.configService.get('RAILWAY_PUBLIC_DOMAIN')}`
-						: undefined),
+				isRailway: !!this.configService.get('RAILWAY_ENVIRONMENT_NAME'),
+				environment: this.configService.get('RAILWAY_ENVIRONMENT_NAME'),
+				serviceUrl: this.configService.get('RAILWAY_PUBLIC_DOMAIN')
+					? `https://${this.configService.get('RAILWAY_PUBLIC_DOMAIN')}`
+					: undefined,
 				metadata: {
+					projectName: this.configService.get('RAILWAY_PROJECT_NAME'),
 					serviceName: this.configService.get('RAILWAY_SERVICE_NAME'),
 					projectId: this.configService.get('RAILWAY_PROJECT_ID'),
-					deploymentId: this.configService.get(
-						'RAILWAY_DEPLOYMENT_ID'
-					),
-					gitCommit: this.configService.get('RAILWAY_GIT_COMMIT_SHA'),
-					gitBranch: this.configService.get('RAILWAY_GIT_BRANCH'),
-					buildId: this.configService.get('RAILWAY_BUILD_ID')
+					environmentId: this.configService.get('RAILWAY_ENVIRONMENT_ID'),
+					serviceId: this.configService.get('RAILWAY_SERVICE_ID'),
+					privateDomain: this.configService.get('RAILWAY_PRIVATE_DOMAIN')
 				}
 			}
 
@@ -207,7 +203,7 @@ export class ConfigValidator {
 		const warnings: string[] = []
 
 		// Only validate Railway config if Railway is detected
-		if (!this.configService.get('RAILWAY_ENVIRONMENT')) {
+		if (!this.configService.get('RAILWAY_ENVIRONMENT_NAME')) {
 			return { errors, warnings }
 		}
 
@@ -229,12 +225,9 @@ export class ConfigValidator {
 
 			// Additional Railway-specific validations
 			if (process.env.NODE_ENV === 'production') {
-				if (
-					!rawConfig.RAILWAY_PUBLIC_DOMAIN &&
-					!rawConfig.RAILWAY_STATIC_URL
-				) {
+				if (!rawConfig.RAILWAY_PUBLIC_DOMAIN) {
 					warnings.push(
-						'Railway production deployment should have public domain or static URL configured'
+						'Railway production deployment should have public domain configured'
 					)
 				}
 			}
@@ -294,13 +287,11 @@ export class ConfigValidator {
 		}
 
 		// Railway + CORS dependencies
-		if (this.configService.get('RAILWAY_ENVIRONMENT')) {
+		if (this.configService.get('RAILWAY_ENVIRONMENT_NAME')) {
 			const corsOrigins = (rawConfig.CORS_ORIGINS as string) || ''
-			const railwayUrl =
-				this.configService.get('RAILWAY_STATIC_URL') ||
-				(this.configService.get('RAILWAY_PUBLIC_DOMAIN')
-					? `https://${this.configService.get('RAILWAY_PUBLIC_DOMAIN')}`
-					: undefined)
+			const railwayUrl = this.configService.get('RAILWAY_PUBLIC_DOMAIN')
+				? `https://${this.configService.get('RAILWAY_PUBLIC_DOMAIN')}`
+				: undefined
 
 			if (railwayUrl && !corsOrigins.includes(railwayUrl)) {
 				warnings.push(
@@ -311,16 +302,16 @@ export class ConfigValidator {
 
 		// Check for environment mismatches
 		const nodeEnv = rawConfig.NODE_ENV as string
-		const railwayEnv = rawConfig.RAILWAY_ENVIRONMENT as string
+		const railwayEnv = rawConfig.RAILWAY_ENVIRONMENT_NAME as string
 
 		if (nodeEnv && railwayEnv && nodeEnv !== railwayEnv) {
 			if (nodeEnv === 'development' && railwayEnv === 'production') {
 				warnings.push(
-					'NODE_ENV (development) does not match RAILWAY_ENVIRONMENT (production)'
+					'NODE_ENV (development) does not match RAILWAY_ENVIRONMENT_NAME (production)'
 				)
 			} else if (nodeEnv === 'production' && railwayEnv === 'staging') {
 				warnings.push(
-					'NODE_ENV (production) does not match RAILWAY_ENVIRONMENT (staging)'
+					'NODE_ENV (production) does not match RAILWAY_ENVIRONMENT_NAME (staging)'
 				)
 			}
 		}
@@ -413,7 +404,7 @@ export class ConfigValidator {
 			redis: 'not_configured',
 			stripe: 'not_configured',
 			cors: 'not_configured',
-			railway: this.configService.get('RAILWAY_ENVIRONMENT')
+			railway: this.configService.get('RAILWAY_ENVIRONMENT_NAME')
 				? 'detected'
 				: 'not_detected',
 			lastCheck: new Date()
@@ -484,8 +475,10 @@ export class ConfigValidator {
 				'SUPABASE_SERVICE_ROLE_KEY',
 				'SUPABASE_JWT_SECRET',
 				'CORS_ORIGINS',
-				'RAILWAY_ENVIRONMENT',
-				'RAILWAY_STATIC_URL',
+				'RAILWAY_ENVIRONMENT_NAME',
+				'RAILWAY_PUBLIC_DOMAIN',
+				'RAILWAY_PROJECT_NAME',
+				'RAILWAY_SERVICE_NAME',
 				'STRIPE_SECRET_KEY',
 				'STRIPE_WEBHOOK_SECRET'
 			]
