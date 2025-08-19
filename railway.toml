@@ -1,6 +1,8 @@
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "./Dockerfile"
+# Enable Railway build caching
+buildCache = true
 # Watch all monorepo packages for changes
 watchPaths = [
   "apps/backend/**",
@@ -19,7 +21,7 @@ watchPaths = [
 startCommand = "/nodejs/bin/node apps/backend/dist/main.js"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
-healthcheckPath = "/health"
+healthcheckPath = "/ping"
 healthcheckTimeout = 30
 
 [variables]

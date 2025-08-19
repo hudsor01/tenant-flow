@@ -27,7 +27,7 @@ const eslintConfig = [
 			'*.generated.ts',
 			'*.generated.js',
 			'test-*.js',
-			'tests/fixtures/**',
+			'tests/**',
 			'**/*.test.ts',
 			'**/*.test.tsx',
 			'**/*.spec.ts',
