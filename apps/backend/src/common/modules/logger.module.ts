@@ -1,4 +1,4 @@
-import { Global, Module } from '@nestjs/common'
+import { Module } from '@nestjs/common'
 import { LoggerService } from '../services/logger.service'
 import { MetricsService } from '../services/metrics.service'
 import { MetricsController } from '../controllers/metrics.controller'
@@ -7,9 +7,9 @@ import { FastifyRequestLoggerService } from '../logging/fastify-request-logger.s
 /**
  * Logger Module
  *
- * Provides all logging, metrics, and auditing capabilities.
+ * Provides native NestJS logging, metrics, and auditing capabilities.
+ * No longer @Global - import where needed following NestJS best practices.
  */
-@Global()
 @Module({
 	controllers: [MetricsController],
 	providers: [LoggerService, MetricsService, FastifyRequestLoggerService],

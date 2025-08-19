@@ -165,7 +165,7 @@ export class MetricsService {
 	private logSystemMetrics(): void {
 		const metrics = this.getSystemMetrics()
 
-		this.logger.logWithMetadata('info', 'System metrics', {
+		this.logger.logWithMetadata('System metrics', {
 			cpu: metrics.cpu,
 			memory: {
 				heapUsedMB: Math.round(metrics.memory.heapUsed / 1024 / 1024),
@@ -197,7 +197,7 @@ export class MetricsService {
 
 		// Alert if RSS memory exceeds 80% of system memory OR heap exceeds 3GB
 		if (rssMemoryPercent > 80 || heapUsedMB > 3072) {
-			this.logger.logWithMetadata('warn', 'High memory usage detected', {
+			this.logger.logWithMetadata('High memory usage detected', {
 				rssMemoryPercent: rssMemoryPercent.toFixed(2),
 				heapUsedMB,
 				heapTotalMB: Math.round(metrics.memory.heapTotal / 1024 / 1024),

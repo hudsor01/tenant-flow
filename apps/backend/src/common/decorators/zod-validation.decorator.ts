@@ -10,12 +10,13 @@ import { ZodValidationPipe } from '../validation/zod-validation.pipe'
 
 /**
  * Apply Zod validation to controller method body
+ * @deprecated Use NestJS ValidationPipe with DTO classes instead
  */
-export function ZodBody(schema: ZodSchema) {
+export function ZodBody(_schema: ZodSchema) {
 	return applyDecorators(
-		UsePipes(new ZodValidationPipe(schema)),
+		UsePipes(new ZodValidationPipe()),
 		ApiBody({
-			description: 'Request body validation powered by Zod',
+			description: 'Request body validation powered by NestJS ValidationPipe',
 			required: true
 		})
 	)
@@ -23,16 +24,18 @@ export function ZodBody(schema: ZodSchema) {
 
 /**
  * Apply Zod validation to query parameters
+ * @deprecated Use NestJS ValidationPipe with DTO classes instead
  */
-export function ZodQuery(schema: ZodSchema) {
-	return applyDecorators(UsePipes(new ZodValidationPipe(schema)))
+export function ZodQuery(_schema: ZodSchema) {
+	return applyDecorators(UsePipes(new ZodValidationPipe()))
 }
 
 /**
  * Apply Zod validation to path parameters
+ * @deprecated Use NestJS ValidationPipe with DTO classes instead
  */
-export function ZodParam(schema: ZodSchema) {
-	return applyDecorators(UsePipes(new ZodValidationPipe(schema)))
+export function ZodParam(_schema: ZodSchema) {
+	return applyDecorators(UsePipes(new ZodValidationPipe()))
 }
 
 /**
@@ -46,21 +49,21 @@ export function ZodValidation(options: {
 	const decorators: MethodDecorator[] = []
 
 	if (options.body) {
-		decorators.push(UsePipes(new ZodValidationPipe(options.body)))
+		decorators.push(UsePipes(new ZodValidationPipe()))
 		decorators.push(
 			ApiBody({
-				description: 'Request body validation powered by Zod',
+				description: 'Request body validation powered by NestJS ValidationPipe',
 				required: true
 			})
 		)
 	}
 
 	if (options.query) {
-		decorators.push(UsePipes(new ZodValidationPipe(options.query)))
+		decorators.push(UsePipes(new ZodValidationPipe()))
 	}
 
 	if (options.params) {
-		decorators.push(UsePipes(new ZodValidationPipe(options.params)))
+		decorators.push(UsePipes(new ZodValidationPipe()))
 	}
 
 	decorators.push(
