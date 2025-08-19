@@ -9,7 +9,7 @@ export class SupabaseService {
 	private adminClient: SupabaseClient<Database>
 
 	constructor(private configService: TypeSafeConfigService) {
-		void this._logger; // Prevent unused variable warning
+		void this._logger // Prevent unused variable warning
 		this.adminClient = createClient<Database>(
 			this.configService.supabase.url,
 			this.configService.supabase.serviceRoleKey,
@@ -56,7 +56,8 @@ export class SupabaseService {
 
 			return { status: 'healthy' }
 		} catch (error) {
-			const message = error instanceof Error ? error.message : 'Unknown error'
+			const message =
+				error instanceof Error ? error.message : 'Unknown error'
 			return { status: 'unhealthy', message }
 		}
 	}

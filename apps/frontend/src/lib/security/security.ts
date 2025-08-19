@@ -12,7 +12,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 
 export enum UserRole {
 	SUPER_ADMIN = 'SUPER_ADMIN',
-	ADMIN = 'ADMIN', 
+	ADMIN = 'ADMIN',
 	PROPERTY_MANAGER = 'PROPERTY_MANAGER',
 	PROPERTY_OWNER = 'PROPERTY_OWNER',
 	TENANT = 'TENANT',
@@ -123,8 +123,18 @@ export class Security {
 		}
 
 		// Check for common weak patterns
-		const commonPasswords = ['password', 'password123', 'admin', 'letmein', 'welcome']
-		if (commonPasswords.some(common => password.toLowerCase().includes(common))) {
+		const commonPasswords = [
+			'password',
+			'password123',
+			'admin',
+			'letmein',
+			'welcome'
+		]
+		if (
+			commonPasswords.some(common =>
+				password.toLowerCase().includes(common)
+			)
+		) {
 			errors.push('Password is too common')
 		}
 
@@ -137,7 +147,7 @@ export class Security {
 
 	static sanitizeInput(input: string): SecurityValidationResult {
 		const errors: string[] = []
-		
+
 		if (!input) {
 			return { valid: true, errors: [], sanitized: '' }
 		}
@@ -182,10 +192,10 @@ export class Security {
 			.replace(/"/g, '&quot;')
 			.replace(/'/g, '&#x27;')
 
-		return { 
-			valid: errors.length === 0, 
-			errors, 
-			sanitized: sanitized.trim() 
+		return {
+			valid: errors.length === 0,
+			errors,
+			sanitized: sanitized.trim()
 		}
 	}
 
@@ -195,14 +205,14 @@ export class Security {
 
 	static validateEmail(email: string): SecurityValidationResult {
 		const errors: string[] = []
-		
+
 		if (!email) {
 			errors.push('Email is required')
 			return { valid: false, errors }
 		}
 
 		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-		
+
 		if (!emailRegex.test(email)) {
 			errors.push('Invalid email format')
 		}
@@ -216,9 +226,9 @@ export class Security {
 		}
 
 		const sanitizeResult = this.sanitizeInput(email.toLowerCase().trim())
-		
-		return { 
-			valid: errors.length === 0 && sanitizeResult.valid, 
+
+		return {
+			valid: errors.length === 0 && sanitizeResult.valid,
 			errors: [...errors, ...sanitizeResult.errors],
 			sanitized: sanitizeResult.sanitized
 		}
@@ -268,9 +278,15 @@ export class Security {
 		response.headers.set('X-Content-Type-Options', 'nosniff')
 		response.headers.set('X-Frame-Options', 'DENY')
 		response.headers.set('X-XSS-Protection', '1; mode=block')
-		response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
-		response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
-		
+		response.headers.set(
+			'Referrer-Policy',
+			'strict-origin-when-cross-origin'
+		)
+		response.headers.set(
+			'Strict-Transport-Security',
+			'max-age=31536000; includeSubDomains'
+		)
+
 		// CSP for production
 		const csp = [
 			"default-src 'self'",
@@ -281,7 +297,7 @@ export class Security {
 			"connect-src 'self' https://api.tenantflow.app https://*.supabase.co https://js.stripe.com wss:",
 			"frame-src 'self' https://js.stripe.com"
 		].join('; ')
-		
+
 		response.headers.set('Content-Security-Policy', csp)
 
 		return response
@@ -315,7 +331,9 @@ export class Security {
 	// AUTH CONTEXT EXTRACTION
 	// ===========================
 
-	static async extractAuthContext(request: NextRequest): Promise<AuthContext> {
+	static async extractAuthContext(
+		request: NextRequest
+	): Promise<AuthContext> {
 		const authHeader = request.headers.get('authorization')
 		const sessionCookie = request.cookies.get('session')?.value
 
@@ -342,7 +360,9 @@ export class Security {
 export function withSecurity(
 	handler: (req: NextRequest) => Promise<NextResponse>
 ) {
-	return async function securedHandler(req: NextRequest): Promise<NextResponse> {
+	return async function securedHandler(
+		req: NextRequest
+	): Promise<NextResponse> {
 		// Check for suspicious requests
 		if (Security.isSuspiciousRequest(req)) {
 			return new NextResponse('Request blocked', { status: 403 })
