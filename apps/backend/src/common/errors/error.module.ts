@@ -2,7 +2,7 @@ import { Global, Module } from '@nestjs/common'
 import { APP_GUARD } from '@nestjs/core'
 import { ErrorHandlerService } from './error-handler.service'
 import { ErrorBoundaryGuard } from '../guards/error-boundary.guard'
-import { UnifiedLoggerService } from '../logging/unified-logger.service'
+import { UnifiedLoggerService } from '../logging/logger.service'
 
 @Global()
 @Module({

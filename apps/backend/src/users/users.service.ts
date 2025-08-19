@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { SupabaseService } from '../supabase/supabase.service'
+import { SupabaseService } from '../common/supabase/supabase.service'
 import type { UserRole } from '@repo/shared'
 
 // Define UserCreationResult locally

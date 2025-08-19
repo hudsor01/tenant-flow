@@ -57,7 +57,7 @@ docs
 
 # Other unnecessary files
 .env*
-!.env.production
+.env.production
 docker-compose*
 Dockerfile*
 *.sh

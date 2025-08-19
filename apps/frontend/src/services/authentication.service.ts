@@ -11,7 +11,7 @@ import type {
 	SignUpData,
 	AuthResult
 } from '@/repositories/interfaces'
-import { Email, ValidationError } from '@repo/shared'
+import { Email, ValidationErrorClass as ValidationError } from '@repo/shared'
 
 export interface AuthenticationService {
 	signIn(credentials: SignInCredentials): Promise<Result<AuthResult>>

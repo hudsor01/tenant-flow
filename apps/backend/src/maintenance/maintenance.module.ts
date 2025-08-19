@@ -1,21 +1,20 @@
-import { Module } from '@nestjs/common'
+import { forwardRef, Module } from '@nestjs/common'
 import { MaintenanceController } from './maintenance.controller'
 import { MaintenanceService } from './maintenance.service'
-import { MaintenanceRequestSupabaseRepository } from './maintenance-request-supabase.repository'
 import { SupabaseModule } from '../common/supabase/supabase.module'
-import { ErrorModule } from '../common/errors/error.module'
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module'
-import { ZodValidationModule } from '../common/validation/zod-validation.module'
 
+/**
+ * Maintenance module - Simplified with direct Supabase usage
+ * No repositories, minimal dependencies
+ */
 @Module({
 	imports: [
 		SupabaseModule,
-		ErrorModule,
-		SubscriptionsModule,
-		ZodValidationModule
+		forwardRef(() => SubscriptionsModule) // For usage limits guard
 	],
 	controllers: [MaintenanceController],
-	providers: [MaintenanceService, MaintenanceRequestSupabaseRepository],
-	exports: [MaintenanceService, MaintenanceRequestSupabaseRepository]
+	providers: [MaintenanceService],
+	exports: [MaintenanceService]
 })
 export class MaintenanceModule {}
