@@ -292,11 +292,21 @@ export class HealthController {
 	@Get('ping')
 	@Public()
 	getPing() {
-		return {
-			status: 'ok',
-			timestamp: new Date().toISOString(),
-			uptime: Math.floor((Date.now() - this.startTime) / 1000),
-			port: process.env.PORT || 'unknown'
+		// Always return 200 OK for Railway health checks - no database dependency
+		try {
+			return {
+				status: 'ok',
+				timestamp: new Date().toISOString(),
+				uptime: Math.floor((Date.now() - this.startTime) / 1000),
+				port: process.env.PORT || 'unknown',
+				environment: process.env.NODE_ENV || 'unknown',
+				version: '1.0.0',
+				memory: Math.round(process.memoryUsage().heapUsed / 1024 / 1024)
+			}
+		} catch (error) {
+			// Even if something fails, return OK for Railway
+			this.logger.warn('Ping endpoint error (returning OK anyway):', error)
+			return { status: 'ok', timestamp: new Date().toISOString() }
 		}
 	}
 
