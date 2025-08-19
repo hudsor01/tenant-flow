@@ -1,4 +1,9 @@
-import { CanActivate, ExecutionContext, Injectable, SetMetadata } from '@nestjs/common'
+import {
+	CanActivate,
+	ExecutionContext,
+	Injectable,
+	SetMetadata
+} from '@nestjs/common'
 
 @Injectable()
 export class CsrfGuard implements CanActivate {

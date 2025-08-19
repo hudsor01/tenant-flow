@@ -2,11 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import { randomUUID } from 'crypto'
 import { LoggerService } from './logger.service'
-import {
-	ErrorResponse,
-	PerformanceMetrics,
-	RequestContext
-} from '@repo/shared'
+import { ErrorResponse, PerformanceMetrics, RequestContext } from '@repo/shared'
 import type { ValidationError } from '@repo/shared/types/errors'
 
 // Import type declarations to ensure FastifyRequest context extension is recognized
