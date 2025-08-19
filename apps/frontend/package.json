@@ -21,6 +21,7 @@
     "test": "jest --passWithNoTests",
     "test:unit": "jest --passWithNoTests",
     "test:unit:watch": "jest --watch",
+    "claude:check": "npm run lint && npm run typecheck && npm run test:unit",
     "test:coverage": "jest --coverage",
     "test:a11y": "jest --config jest.a11y.config.js",
     "test:a11y:watch": "jest --watch --config jest.a11y.config.js",

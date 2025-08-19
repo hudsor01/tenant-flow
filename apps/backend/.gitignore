@@ -18,6 +18,7 @@ logs/
 # Environment files (extra safety)
 .env*
 .env
+.env.example
 
 # Secrets and keys
 *.key
