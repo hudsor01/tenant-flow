@@ -9,7 +9,15 @@ import { CommonModule } from '../shared/common.module'
 @Module({
 	imports: [StripeModule, CommonModule],
 	controllers: [SubscriptionsController],
-	providers: [SubscriptionsManagerService, UsageLimitsGuard, SubscriptionStatusService],
-	exports: [SubscriptionsManagerService, UsageLimitsGuard, SubscriptionStatusService]
+	providers: [
+		SubscriptionsManagerService,
+		UsageLimitsGuard,
+		SubscriptionStatusService
+	],
+	exports: [
+		SubscriptionsManagerService,
+		UsageLimitsGuard,
+		SubscriptionStatusService
+	]
 })
 export class SubscriptionsModule {}

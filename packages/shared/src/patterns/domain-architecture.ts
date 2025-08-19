@@ -1,9 +1,9 @@
 /**
  * Domain Architecture Patterns and Type Safety Guidelines
- * 
+ *
  * Shared architectural patterns for consistent domain modeling across
  * frontend and backend applications in the TenantFlow monorepo.
- * 
+ *
  * This module provides standardized patterns for creating type-safe
  * domain models with proper multi-tenant support.
  */
@@ -153,11 +153,14 @@ export interface RepositoryContract<TEntity, TCreateInput, TUpdateInput> {
 	create(data: TCreateInput): Promise<TEntity>
 	update(id: string, data: TUpdateInput): Promise<TEntity>
 	delete(id: string): Promise<TEntity>
-	
+
 	// Multi-tenant operations
 	findByIdAndOwner(id: string, ownerId: string): Promise<TEntity | null>
-	findManyByOwner(ownerId: string, options?: StandardQueryDto): Promise<TEntity[]>
-	
+	findManyByOwner(
+		ownerId: string,
+		options?: StandardQueryDto
+	): Promise<TEntity[]>
+
 	// Statistics and analytics
 	count(options?: StandardQueryDto): Promise<number>
 	getStats(ownerId?: string): Promise<BaseStats>
@@ -174,13 +177,17 @@ export interface ServiceContract<TEntity, TCreateDto, TUpdateDto> {
 	create(data: TCreateDto, ownerId: string): Promise<TEntity>
 	update(id: string, data: TUpdateDto, ownerId: string): Promise<TEntity>
 	delete(id: string, ownerId: string): Promise<void>
-	
+
 	// Statistics and dashboard data
 	getStatistics(ownerId: string): Promise<BaseStats>
-	
+
 	// Business logic validation
 	validateCreate?(data: TCreateDto, ownerId: string): Promise<void>
-	validateUpdate?(id: string, data: TUpdateDto, ownerId: string): Promise<void>
+	validateUpdate?(
+		id: string,
+		data: TUpdateDto,
+		ownerId: string
+	): Promise<void>
 	validateDelete?(id: string, ownerId: string): Promise<void>
 }
 
@@ -218,30 +225,36 @@ export const TypeGuards = {
 	isValidQueryOptions: (obj: unknown): obj is BaseQueryOptions => {
 		if (obj === null || obj === undefined) return true
 		if (typeof obj !== 'object') return false
-		
+
 		const query = obj as Record<string, unknown>
-		
+
 		// Check limit
-		if ('limit' in query && 
-			typeof query.limit !== 'number' && 
-			typeof query.limit !== 'string') {
+		if (
+			'limit' in query &&
+			typeof query.limit !== 'number' &&
+			typeof query.limit !== 'string'
+		) {
 			return false
 		}
-		
+
 		// Check offset
-		if ('offset' in query && 
-			typeof query.offset !== 'number' && 
-			typeof query.offset !== 'string') {
+		if (
+			'offset' in query &&
+			typeof query.offset !== 'number' &&
+			typeof query.offset !== 'string'
+		) {
 			return false
 		}
-		
+
 		// Check sortOrder
-		if ('sortOrder' in query && 
-			query.sortOrder !== 'asc' && 
-			query.sortOrder !== 'desc') {
+		if (
+			'sortOrder' in query &&
+			query.sortOrder !== 'asc' &&
+			query.sortOrder !== 'desc'
+		) {
 			return false
 		}
-		
+
 		return true
 	},
 
@@ -327,7 +340,7 @@ export const BusinessRules = {
 	 * Validate entity ownership for multi-tenant security
 	 */
 	validateOwnership: <T extends OwnedEntity>(
-		entity: T, 
+		entity: T,
 		requestedOwnerId: string
 	): boolean => {
 		return entity.ownerId === requestedOwnerId
@@ -337,12 +350,17 @@ export const BusinessRules = {
 	 * Validate required fields are present
 	 */
 	validateRequired: (
-		data: Record<string, unknown>, 
+		data: Record<string, unknown>,
 		requiredFields: string[]
 	): string[] => {
 		const missing: string[] = []
 		for (const field of requiredFields) {
-			if (!(field in data) || data[field] === null || data[field] === undefined || data[field] === '') {
+			if (
+				!(field in data) ||
+				data[field] === null ||
+				data[field] === undefined ||
+				data[field] === ''
+			) {
 				missing.push(field)
 			}
 		}
@@ -378,31 +396,31 @@ export const DomainArchitecturePatterns = {
 
 /**
  * Development Guidelines
- * 
+ *
  * ## Creating Domain Entities:
  * 1. Extend BaseDomainEntity for all entities
  * 2. Add OwnedEntity for multi-tenant entities
  * 3. Use OrganizationEntity for organization-scoped data
  * 4. Always include proper TypeScript types
- * 
+ *
  * ## Repository Pattern:
  * 1. Implement RepositoryContract interface
  * 2. Use TypeGuards for runtime validation
  * 3. Include owner filtering for security
  * 4. Add comprehensive error handling
- * 
+ *
  * ## Service Pattern:
  * 1. Implement ServiceContract interface
  * 2. Add business rule validation
  * 3. Use proper error types from DomainErrorType
  * 4. Include audit logging for sensitive operations
- * 
+ *
  * ## Query Patterns:
  * 1. Extend StandardQueryDto for entity queries
  * 2. Use BaseQueryOptions for pagination
  * 3. Include search functionality where appropriate
  * 4. Add proper sorting and filtering
- * 
+ *
  * ## Event Patterns:
  * 1. Emit DomainEvent for all CRUD operations
  * 2. Include previous state for audit trails

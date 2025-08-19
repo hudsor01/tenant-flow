@@ -2,7 +2,7 @@
 # check=error=true
 
 # ===== BASE STAGE =====
-# Lightweight Node.js 24 on Alpine Linux for minimal footprint
+# Lightweight Node.js 24 on Alpine Linux for minimal footprint and security
 FROM node:24-alpine AS base
 
 # Install essential build dependencies only
@@ -31,7 +31,7 @@ COPY packages/typescript-config/package.json ./packages/typescript-config/
 # npm ci: More reliable than npm install, uses exact lock file versions
 # --omit=dev: Skip devDependencies (TypeScript, Jest, etc.) - saves ~300MB
 # --silent: Clean build logs, only show errors
-RUN --mount=type=cache,target=/root/.npm \
+RUN --mount=type=cache,id=npm-deps,target=/root/.npm \
     npm ci --omit=dev --silent
 
 # ===== BUILDER STAGE =====
@@ -57,7 +57,7 @@ ENV NODE_OPTIONS="--max-old-space-size=768" \
 # --mount=type=cache: Persist Turbo cache for faster subsequent builds
 # --filter=@repo/backend: Build only backend, not frontend
 # --no-daemon: Prevent hanging processes
-RUN --mount=type=cache,target=/app/.turbo \
+RUN --mount=type=cache,id=turbo-build,target=/app/.turbo \
     npx turbo build --filter=@repo/backend --no-daemon && \
     # Verify critical build outputs exist
     test -f apps/backend/dist/main.js && \
@@ -80,7 +80,7 @@ COPY packages/tailwind-config/package.json ./packages/tailwind-config/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 
 # Fresh production dependency install with cache optimization
-RUN --mount=type=cache,target=/root/.npm \
+RUN --mount=type=cache,id=npm-deps,target=/root/.npm \
     npm ci --omit=dev --silent
 
 # ===== RUNTIME STAGE =====

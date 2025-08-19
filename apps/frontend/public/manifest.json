@@ -23,7 +23,13 @@
 			"purpose": "any maskable"
 		}
 	],
-	"categories": ["business", "productivity", "real estate", "property managemet", "rental management"],
+	"categories": [
+		"business",
+		"productivity",
+		"real estate",
+		"property managemet",
+		"rental management"
+	],
 	"screenshots": [
 		{
 			"src": "/property-management-og.jpg",
