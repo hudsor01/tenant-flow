@@ -22,7 +22,7 @@ export class FeatureAccessGuard implements CanActivate {
 		)
 
 		if (!requiredFeature) {
-			return true // No feature restriction
+			return true
 		}
 
 		const request = context.switchToHttp().getRequest()

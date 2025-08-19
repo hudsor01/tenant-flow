@@ -396,8 +396,9 @@ export class FastifyHooksService {
 		additionalData: Record<string, unknown> = {}
 	): void {
 		try {
-			this.logger.logSecurity(eventType, request.context.userId, {
+			this.logger.logSecurity(eventType, {
 				severity,
+				userId: request.context.userId,
 				tenantId: request.context.tenantId,
 				endpoint: request.url || '',
 				method: request.method,
