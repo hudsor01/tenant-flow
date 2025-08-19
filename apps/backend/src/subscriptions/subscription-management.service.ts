@@ -58,6 +58,7 @@ export class SubscriptionManagementService {
 
 	constructor(
 		private readonly supabaseService: SupabaseService,
+		@Inject(forwardRef(() => StripeService))
 		private readonly stripeService: StripeService,
 		@Inject(forwardRef(() => SubscriptionsManagerService))
 		private readonly subscriptionManager: SubscriptionsManagerService,

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, Optional } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { Resend } from 'resend'
 import { EmailTemplateService } from './email-template.service'
@@ -35,13 +35,13 @@ export class ResendEmailService {
 	private readonly fromEmail: string
 
 	constructor(
-		private readonly configService: ConfigService,
+		@Optional() private readonly configService: ConfigService,
 		private readonly templateService: EmailTemplateService,
 		private readonly metricsService: EmailMetricsService
 	) {
-		const apiKey = this.configService.get<string>('RESEND_API_KEY')
+		const apiKey = this.configService?.get<string>('RESEND_API_KEY')
 		this.fromEmail =
-			this.configService.get<string>('RESEND_FROM_EMAIL') ||
+			this.configService?.get<string>('RESEND_FROM_EMAIL') ||
 			'noreply@tenantflow.app'
 
 		if (apiKey) {

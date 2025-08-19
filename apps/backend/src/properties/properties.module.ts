@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { forwardRef, Module } from '@nestjs/common'
 import { PropertiesController } from './properties.controller'
 import { PropertiesService } from './properties.service'
 import { PropertiesSupabaseRepository } from './properties-supabase.repository'
@@ -13,9 +13,9 @@ import { SupabaseModule } from '../common/supabase/supabase.module'
 	imports: [
 		SupabaseModule,
 		StorageModule,
-		StripeModule,
+		forwardRef(() => StripeModule),
 		ErrorModule,
-		SubscriptionsModule,
+		forwardRef(() => SubscriptionsModule),
 		ZodValidationModule
 	],
 	controllers: [PropertiesController],
