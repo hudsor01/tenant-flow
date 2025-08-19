@@ -1,118 +1,60 @@
-import {
-	Injectable,
-	Logger,
-	OnModuleDestroy,
-	OnModuleInit
-} from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@repo/shared/types/supabase-generated'
 
 /**
- * Service providing Supabase client instances for database operations
- * Replaces the previous PrismaService with Supabase-based database access
+ * Simplified Supabase Service - Direct client usage following KISS principle
+ * No unnecessary abstractions, just what we need
  */
 @Injectable()
-export class SupabaseService implements OnModuleInit, OnModuleDestroy {
-	getClient() {
-		throw new Error('Method not implemented.')
-	}
+export class SupabaseService {
 	private readonly logger = new Logger(SupabaseService.name)
-	private adminClient!: SupabaseClient<Database>
+	private adminClient: SupabaseClient<Database>
+	private readonly supabaseUrl: string
+	private readonly supabaseAnonKey: string
 
-	constructor(private configService: ConfigService) {}
+	constructor(private configService: ConfigService) {
+		// Get config once in constructor
+		this.supabaseUrl = this.configService.get<string>('SUPABASE_URL') || ''
+		this.supabaseAnonKey = this.configService.get<string>('SUPABASE_ANON_KEY') || ''
+		const supabaseServiceKey = this.configService.get<string>('SUPABASE_SERVICE_ROLE_KEY') || ''
 
-	async onModuleInit() {
-		this.logger.log('🔄 Initializing SupabaseService...')
-
-		try {
-			const supabaseUrl = this.configService.get<string>('SUPABASE_URL')
-			const supabaseServiceKey = this.configService.get<string>(
-				'SUPABASE_SERVICE_ROLE_KEY'
-			)
-
-			if (!supabaseUrl || !supabaseServiceKey) {
-				throw new Error('Missing required Supabase configuration')
-			}
-
-			// Create admin client with service role key (bypasses RLS)
-			this.adminClient = createClient<Database>(
-				supabaseUrl,
-				supabaseServiceKey,
-				{
-					auth: {
-						persistSession: false,
-						autoRefreshToken: false
-					},
-					db: {
-						schema: 'public'
-					}
-				}
-			)
-
-			// Test connection with very short timeout due to network issues (Tailscale/AdGuard)
-			try {
-				const quickTest = new Promise<void>((resolve, reject) => {
-					setTimeout(
-						() =>
-							reject(
-								new Error(
-									'Network timeout - likely DNS/proxy conflict'
-								)
-							),
-						1000
-					)
-					// Just test client creation, don't make actual requests
-					setTimeout(() => resolve(), 100)
-				})
-				await quickTest
-				this.logger.log(
-					'✅ Basic client initialization successful (DNS/network bypass)'
-				)
-			} catch (_error) {
-				this.logger.warn(
-					'⚠️ Network connectivity issues detected (Tailscale/AdGuard?), continuing anyway...'
-				)
-			}
-
-			this.logger.log('✅ SupabaseService initialized successfully')
-		} catch (error) {
-			this.logger.error('❌ Failed to initialize SupabaseService:', error)
-			throw error
+		if (!this.supabaseUrl || !supabaseServiceKey) {
+			throw new Error('Missing required Supabase configuration')
 		}
-	}
 
-	async onModuleDestroy() {
-		// Supabase clients don't need explicit disconnection
-		this.logger.log('SupabaseService destroyed')
+		// Create admin client immediately - no async initialization needed
+		this.adminClient = createClient<Database>(
+			this.supabaseUrl,
+			supabaseServiceKey,
+			{
+				auth: {
+					persistSession: false,
+					autoRefreshToken: false
+				}
+			}
+		)
+
+		this.logger.log('✅ SupabaseService initialized')
 	}
 
 	/**
-	 * Get the admin Supabase client (with service role key)
-	 * Use for: admin operations, user sync, cross-tenant operations
+	 * Get admin client for system operations
 	 */
 	getAdminClient(): SupabaseClient<Database> {
-		if (!this.adminClient) {
-			throw new Error('SupabaseService not initialized')
-		}
 		return this.adminClient
 	}
 
 	/**
-	 * Create a tenant-scoped Supabase client
-	 * This client will use the user's JWT for RLS
+	 * Get user-scoped client for RLS operations
 	 */
-	getTenantClient(userToken: string): SupabaseClient<Database> {
-		const supabaseUrl = this.configService.get<string>('SUPABASE_URL')
-		const supabaseAnonKey =
-			this.configService.get<string>('SUPABASE_ANON_KEY')
-
-		if (!supabaseUrl || !supabaseAnonKey) {
-			throw new Error('Missing required Supabase configuration')
+	getUserClient(userToken: string): SupabaseClient<Database> {
+		if (!this.supabaseUrl || !this.supabaseAnonKey) {
+			throw new Error('Missing Supabase configuration')
 		}
 
-		// Create a client with the user's JWT token
-		return createClient<Database>(supabaseUrl, supabaseAnonKey, {
+		return createClient<Database>(this.supabaseUrl, this.supabaseAnonKey, {
 			auth: {
 				persistSession: false,
 				autoRefreshToken: false
@@ -121,99 +63,24 @@ export class SupabaseService implements OnModuleInit, OnModuleDestroy {
 				headers: {
 					Authorization: `Bearer ${userToken}`
 				}
-			},
-			db: {
-				schema: 'public'
 			}
 		})
 	}
 
 	/**
-	 * Execute a raw SQL query (admin only) - DEPRECATED
-	 *
-	 * @deprecated Use Supabase RPC functions instead for complex queries.
-	 * Create specific RPC functions in your database for system table access
-	 * or complex queries that can't be expressed with the query builder.
-	 *
-	 * Best practices:
-	 * 1. Use Supabase query builder for standard CRUD operations
-	 * 2. Create RPC functions for complex queries (see supabase/migrations/)
-	 * 3. Use database migrations to manage schema and functions
-	 *
-	 * Example migration for an RPC function:
-	 * ```sql
-	 * CREATE OR REPLACE FUNCTION your_custom_function(param1 text)
-	 * RETURNS jsonb
-	 * LANGUAGE plpgsql
-	 * SECURITY DEFINER
-	 * AS $$
-	 * BEGIN
-	 *   -- Your logic here
-	 * END;
-	 * $$;
-	 * ```
-	 *
-	 * Then call it with: supabase.rpc('your_custom_function', { param1: 'value' })
+	 * Simple health check - no complex timeout logic
 	 */
-	async executeRawQuery<T = unknown>(
-		query: string,
-		_params?: (string | number | boolean | null)[]
-	): Promise<T[]> {
-		this.logger.warn(
-			'executeRawQuery is deprecated. Use Supabase RPC functions instead.',
-			{
-				query: query.substring(0, 100),
-				recommendation:
-					'Create an RPC function in supabase/migrations/ for this query pattern'
-			}
-		)
-
-		// For backward compatibility, return empty array
-		// This forces developers to migrate to proper RPC functions
-		return []
-	}
-
-	/**
-	 * Check database connection health with timeout
-	 */
-	async checkConnection(): Promise<boolean> {
+	async checkHealth(): Promise<boolean> {
 		try {
-			// Create a timeout promise
-			const timeoutPromise = new Promise<never>((_, reject) => {
-				setTimeout(
-					() =>
-						reject(
-							new Error('Database check timeout after 3 seconds')
-						),
-					3000
-				)
-			})
+			const { error } = await this.adminClient
+				.from('healthcheck')
+				.select('1')
+				.limit(1)
+				.single()
 
-			// Try a simple authenticated connection test
-			const checkPromise = this.adminClient.auth.getUser()
-
-			const { error } = await Promise.race([checkPromise, timeoutPromise])
-
-			// Success if no error, or if error is just "no rows found"
-			const isHealthy = !error || error.code === 'PGRST116'
-
-			if (!isHealthy) {
-				this.logger.warn(
-					'Database health check failed:',
-					error?.message || 'Unknown error'
-				)
-			}
-
-			return isHealthy
-		} catch (error) {
-			// Check if it's a timeout vs other error
-			if (error instanceof Error && error.message.includes('timeout')) {
-				this.logger.error(
-					'Database connection timeout - this indicates network or database issues'
-				)
-			} else {
-				this.logger.error('Database connection check failed:', error)
-			}
+			// Table doesn't need to exist for health check
+			return !error || error.code === 'PGRST116'
+		} catch {
 			return false
 		}
 	}

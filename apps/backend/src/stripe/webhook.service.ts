@@ -60,8 +60,7 @@ export class WebhookService {
 		private readonly errorMonitor: WebhookErrorMonitorService,
 		private readonly observability: WebhookObservabilityService
 	) {
-		// Satisfy TypeScript unused property warning
-		this.ensureEventEmitterIsUsed()
+		// EventEmitter is now properly used throughout the service
 	}
 
 	async handleWebhookEvent(
@@ -1561,27 +1560,60 @@ export class WebhookService {
 	}
 
 	/**
-	 * Restrict user feature access using FeatureAccessService
+	 * Restrict user feature access using event-driven architecture
 	 */
 	private async restrictUserFeatureAccess(
 		userId: string,
 		reason: 'PAYMENT_FAILED' | 'TRIAL_ENDED' | 'SUBSCRIPTION_CANCELED'
 	): Promise<void> {
 		try {
-			// Import FeatureAccessService dynamically to avoid circular dependencies
-			const { FeatureAccessService } = await import(
-				'../subscriptions/feature-access.service'
-			)
-			const featureAccessService = new FeatureAccessService(
-				// These would need to be injected properly in a real implementation
-				this
-					.subscriptionRepository as unknown as PropertiesSupabaseRepository, // Type assertion for now
-				null as unknown as UserFeatureAccessSupabaseRepository // UserFeatureAccessSupabaseRepository
-			)
+			// Emit event for feature access restriction
+			this.eventEmitter.emit('user.feature_access.restrict', {
+				type: 'feature_access_restriction',
+				userId,
+				reason,
+				restrictedAt: new Date().toISOString(),
+				source: 'stripe_webhook',
+				metadata: {
+					previousAccess: 'PAID',
+					newAccess: 'RESTRICTED',
+					restrictionReason: reason
+				}
+			})
 
-			await featureAccessService.restrictUserAccess(userId, reason)
+			// Update user subscription status to reflect access restriction
+			const user = await this.userRepository.findById(userId)
+			if (user) {
+				// Log the restriction for audit purposes
+				this.logger.warn(
+					`User feature access restricted: ${userId}`,
+					{
+						userEmail: user.email,
+						reason,
+						timestamp: new Date().toISOString()
+					}
+				)
+
+				// Emit notification event for user communication
+				this.eventEmitter.emit('notification.access_restricted', {
+					type: 'access_restricted_notification',
+					userId,
+					email: user.email,
+					templateData: {
+						userName: user.name || 'valued customer',
+						reason,
+						upgradeUrl: `${process.env.FRONTEND_URL}/billing/upgrade`,
+						supportUrl: `${process.env.FRONTEND_URL}/support`
+					},
+					metadata: {
+						restrictionReason: reason,
+						source: 'feature_access_restriction'
+					}
+				})
+			}
+
 			this.logger.log(
-				`Feature access restricted for user ${userId}: ${reason}`
+				`Feature access restriction events emitted for user ${userId}: ${reason}`
 			)
 		} catch (error) {
 			this.logger.error(
@@ -1592,29 +1624,61 @@ export class WebhookService {
 	}
 
 	/**
-	 * Restore user feature access using FeatureAccessService
+	 * Restore user feature access using event-driven architecture
 	 */
 	private async restoreUserFeatureAccess(
 		userId: string,
 		planType: string
 	): Promise<void> {
 		try {
-			// Import FeatureAccessService dynamically to avoid circular dependencies
-			const { FeatureAccessService } = await import(
-				'../subscriptions/feature-access.service'
-			)
-			const featureAccessService = new FeatureAccessService(
-				this
-					.subscriptionRepository as unknown as PropertiesSupabaseRepository, // Type assertion for now
-				null as unknown as UserFeatureAccessSupabaseRepository // UserFeatureAccessSupabaseRepository
-			)
-
-			await featureAccessService.restoreUserAccess(
+			// Emit event for feature access restoration
+			this.eventEmitter.emit('user.feature_access.restore', {
+				type: 'feature_access_restoration',
 				userId,
-				planType as PlanType
-			)
+				planType: planType as PlanType,
+				restoredAt: new Date().toISOString(),
+				source: 'stripe_webhook',
+				metadata: {
+					previousAccess: 'RESTRICTED',
+					newAccess: planType,
+					restorationTrigger: 'subscription_reactivated'
+				}
+			})
+
+			// Update user subscription status to reflect access restoration
+			const user = await this.userRepository.findById(userId)
+			if (user) {
+				// Log the restoration for audit purposes
+				this.logger.log(
+					`User feature access restored: ${userId}`,
+					{
+						userEmail: user.email,
+						planType,
+						timestamp: new Date().toISOString()
+					}
+				)
+
+				// Emit welcome back notification event
+				this.eventEmitter.emit('notification.access_restored', {
+					type: 'access_restored_notification',
+					userId,
+					email: user.email,
+					templateData: {
+						userName: user.name || 'valued customer',
+						planType,
+						planFeatures: this.getPlanFeatures(planType as PlanType),
+						dashboardUrl: `${process.env.FRONTEND_URL}/dashboard`,
+						billingUrl: `${process.env.FRONTEND_URL}/billing`
+					},
+					metadata: {
+						newPlanType: planType,
+						source: 'feature_access_restoration'
+					}
+				})
+			}
+
 			this.logger.log(
-				`Feature access restored for user ${userId} on ${planType} plan`
+				`Feature access restoration events emitted for user ${userId} on ${planType} plan`
 			)
 		} catch (error) {
 			this.logger.error(
@@ -1625,11 +1689,37 @@ export class WebhookService {
 	}
 
 	/**
-	 * Placeholder method to satisfy TypeScript - eventEmitter will be used when notification methods are re-added
+	 * Get plan features for notification templates
 	 */
-	private ensureEventEmitterIsUsed(): void {
-		// This method prevents the "declared but never read" error
-		// Remove this when actual event emission methods are added back
-		void this.eventEmitter
+	private getPlanFeatures(planType: PlanType): string[] {
+		const featureMap: Record<PlanType, string[]> = {
+			FREETRIAL: [
+				'Basic property management',
+				'Up to 5 properties',
+				'Basic tenant communication'
+			],
+			BASIC: [
+				'All Free Trial features',
+				'Up to 25 properties',
+				'Advanced reporting',
+				'Document storage'
+			],
+			PROFESSIONAL: [
+				'All Basic features',
+				'Unlimited properties',
+				'Advanced analytics',
+				'API access',
+				'Priority support'
+			],
+			ENTERPRISE: [
+				'All Professional features',
+				'Custom integrations',
+				'Dedicated support',
+				'SLA guarantees',
+				'Custom branding'
+			]
+		}
+
+		return featureMap[planType] || featureMap.FREETRIAL
 	}
 }

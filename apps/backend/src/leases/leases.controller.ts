@@ -1,41 +1,34 @@
 import {
-	Body,
 	Controller,
-	Delete,
 	Get,
-	Param,
 	Post,
 	Put,
+	Delete,
+	Body,
+	Param,
 	Query,
 	Res,
-	UseGuards
+	UseGuards,
+	UsePipes,
+	ValidationPipe,
+	ParseUUIDPipe
 } from '@nestjs/common'
 import { FastifyReply } from 'fastify'
-import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger'
-import { LeasesService } from './leases.service'
-import { LeasePDFService } from './services/lease-pdf.service'
-import { Lease } from '@repo/shared'
-import {
-	CreateLeaseDto,
-	createLeaseSchema,
-	LeaseQueryDto,
-	queryLeasesSchema,
-	UpdateLeaseDto,
-	updateLeaseSchema,
-	uuidSchema
-} from '../common/dto/dto-exports'
-import {
-	ZodBody,
-	ZodParam,
-	ZodQuery,
-	ZodValidation
-} from '../common/decorators/zod-validation.decorator'
+import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger'
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { ValidatedUser } from '../auth/auth.service'
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
+import { LeasesService, LeaseWithRelations, LeaseQueryOptions } from './leases.service'
+import { LeasePDFService } from './services/lease-pdf.service'
+import { CreateLeaseDto, UpdateLeaseDto } from '../common/dto/dto-exports'
 import { UsageLimitsGuard } from '../subscriptions/guards/usage-limits.guard'
 import { UsageLimit } from '../subscriptions/decorators/usage-limits.decorator'
+import type { ControllerApiResponse } from '@repo/shared'
 
+/**
+ * Leases controller - Simple, direct implementation
+ * No base classes, no abstraction, just clean endpoints
+ */
 @ApiTags('leases')
 @Controller('leases')
 @UseGuards(JwtAuthGuard, UsageLimitsGuard)
@@ -45,161 +38,191 @@ export class LeasesController {
 		private readonly leasePDFService: LeasePDFService
 	) {}
 
-	@Post()
-	@ApiOperation({ summary: 'Create a new lease' })
-	@ApiResponse({ status: 201, description: 'Lease created successfully' })
-	@ApiResponse({ status: 400, description: 'Validation error' })
-	@ApiResponse({ status: 403, description: 'Usage limit exceeded' })
-	@ApiResponse({
-		status: 409,
-		description: 'Lease dates conflict with existing lease'
-	})
-	@UsageLimit({ resource: 'leases', action: 'create' })
-	@ZodBody(createLeaseSchema)
-	async create(
-		@Body() data: CreateLeaseDto,
-		@CurrentUser() user: ValidatedUser
-	): Promise<Lease> {
-		return this.leasesService.create(data, user.id)
-	}
-
 	@Get()
-	@ApiOperation({ summary: 'Get leases for the authenticated user' })
+	@ApiOperation({ summary: 'Get all leases for current user' })
 	@ApiResponse({ status: 200, description: 'Leases retrieved successfully' })
-	@ZodQuery(queryLeasesSchema)
 	async findAll(
-		@Query() query: LeaseQueryDto,
+		@Query('status') status?: string,
+		@Query('unitId') unitId?: string,
+		@Query('tenantId') tenantId?: string,
+		@Query('startDateFrom') startDateFrom?: string,
+		@Query('startDateTo') startDateTo?: string,
+		@Query('endDateFrom') endDateFrom?: string,
+		@Query('endDateTo') endDateTo?: string,
+		@Query('search') search?: string,
+		@Query('limit') limit?: string,
+		@Query('offset') offset?: string,
 		@CurrentUser() user: ValidatedUser
-	): Promise<Lease[]> {
-		const options = {
-			status: query.status,
-			unitId: query.unitId,
-			tenantId: query.tenantId,
-			startDateFrom: query.startDateFrom?.toISOString(),
-			startDateTo: query.startDateTo?.toISOString(),
-			endDateFrom: query.endDateFrom?.toISOString(),
-			endDateTo: query.endDateTo?.toISOString(),
-			search: (query as LeaseQueryDto & { search?: string }).search,
-			limit: query.limit,
-			offset: query.offset
+	): Promise<ControllerApiResponse<LeaseWithRelations[]>> {
+		const options: LeaseQueryOptions = {
+			status,
+			unitId,
+			tenantId,
+			startDateFrom,
+			startDateTo,
+			endDateFrom,
+			endDateTo,
+			search,
+			limit: limit ? parseInt(limit) : undefined,
+			offset: offset ? parseInt(offset) : undefined
 		}
-		return this.leasesService.getByOwner(user.id, options)
+
+		const data = await this.leasesService.findAll(user.id, options)
+		return {
+			success: true,
+			data,
+			message: 'Leases retrieved successfully'
+		}
 	}
 
 	@Get('stats')
-	@ApiOperation({
-		summary: 'Get lease statistics for the authenticated user'
-	})
-	@ApiResponse({
-		status: 200,
-		description: 'Statistics retrieved successfully'
-	})
-	async getStats(@CurrentUser() user: ValidatedUser) {
-		return this.leasesService.getStats(user.id)
+	@ApiOperation({ summary: 'Get lease statistics' })
+	@ApiResponse({ status: 200, description: 'Statistics retrieved successfully' })
+	async getStats(
+		@CurrentUser() user: ValidatedUser
+	): Promise<ControllerApiResponse> {
+		const data = await this.leasesService.getStats(user.id)
+		return {
+			success: true,
+			data,
+			message: 'Statistics retrieved successfully'
+		}
+	}
+
+	@Get('expiring')
+	@ApiOperation({ summary: 'Get expiring leases' })
+	@ApiResponse({ status: 200, description: 'Expiring leases retrieved successfully' })
+	async getExpiringLeases(
+		@Query('days') days?: string,
+		@CurrentUser() user: ValidatedUser
+	): Promise<ControllerApiResponse<LeaseWithRelations[]>> {
+		const daysNumber = days ? parseInt(days) : 30
+		const data = await this.leasesService.getExpiringLeases(user.id, daysNumber)
+		return {
+			success: true,
+			data,
+			message: 'Expiring leases retrieved successfully'
+		}
+	}
+
+	@Get('search')
+	@ApiOperation({ summary: 'Search leases' })
+	@ApiResponse({ status: 200, description: 'Search results retrieved' })
+	async search(
+		@Query('q') searchTerm: string,
+		@CurrentUser() user: ValidatedUser
+	): Promise<ControllerApiResponse<LeaseWithRelations[]>> {
+		const data = await this.leasesService.search(user.id, searchTerm || '')
+		return {
+			success: true,
+			data,
+			message: 'Search completed successfully'
+		}
 	}
 
 	@Get('by-unit/:unitId')
 	@ApiOperation({ summary: 'Get leases for a specific unit' })
 	@ApiParam({ name: 'unitId', description: 'Unit ID' })
 	@ApiResponse({ status: 200, description: 'Leases retrieved successfully' })
-	@ZodValidation({
-		params: uuidSchema,
-		query: queryLeasesSchema
-	})
 	async getLeasesByUnit(
-		@Param('unitId') unitId: string,
-		@CurrentUser() user: ValidatedUser,
-		@Query() query: LeaseQueryDto
-	): Promise<Lease[]> {
-		const options = {
-			status: query.status,
-			unitId: query.unitId,
-			tenantId: query.tenantId,
-			startDateFrom: query.startDateFrom?.toISOString(),
-			startDateTo: query.startDateTo?.toISOString(),
-			endDateFrom: query.endDateFrom?.toISOString(),
-			endDateTo: query.endDateTo?.toISOString(),
-			search: (query as LeaseQueryDto & { search?: string }).search,
-			limit: query.limit,
-			offset: query.offset
+		@Param('unitId', ParseUUIDPipe) unitId: string,
+		@CurrentUser() user: ValidatedUser
+	): Promise<ControllerApiResponse<LeaseWithRelations[]>> {
+		const data = await this.leasesService.findByUnit(unitId, user.id)
+		return {
+			success: true,
+			data,
+			message: 'Leases retrieved successfully'
 		}
-		return this.leasesService.getByUnit(unitId, user.id, options)
 	}
 
 	@Get('by-tenant/:tenantId')
 	@ApiOperation({ summary: 'Get leases for a specific tenant' })
 	@ApiParam({ name: 'tenantId', description: 'Tenant ID' })
 	@ApiResponse({ status: 200, description: 'Leases retrieved successfully' })
-	@ZodValidation({
-		params: uuidSchema,
-		query: queryLeasesSchema
-	})
 	async getLeasesByTenant(
-		@Param('tenantId') tenantId: string,
-		@CurrentUser() user: ValidatedUser,
-		@Query() query: LeaseQueryDto
-	): Promise<Lease[]> {
-		const options = {
-			status: query.status,
-			unitId: query.unitId,
-			tenantId: query.tenantId,
-			startDateFrom: query.startDateFrom?.toISOString(),
-			startDateTo: query.startDateTo?.toISOString(),
-			endDateFrom: query.endDateFrom?.toISOString(),
-			endDateTo: query.endDateTo?.toISOString(),
-			search: (query as LeaseQueryDto & { search?: string }).search,
-			limit: query.limit,
-			offset: query.offset
+		@Param('tenantId', ParseUUIDPipe) tenantId: string,
+		@CurrentUser() user: ValidatedUser
+	): Promise<ControllerApiResponse<LeaseWithRelations[]>> {
+		const data = await this.leasesService.findByTenant(tenantId, user.id)
+		return {
+			success: true,
+			data,
+			message: 'Leases retrieved successfully'
 		}
-		return this.leasesService.getByTenant(tenantId, user.id, options)
 	}
 
 	@Get(':id')
-	@ApiOperation({ summary: 'Get a specific lease by ID' })
+	@ApiOperation({ summary: 'Get lease by ID' })
 	@ApiParam({ name: 'id', description: 'Lease ID' })
 	@ApiResponse({ status: 200, description: 'Lease retrieved successfully' })
 	@ApiResponse({ status: 404, description: 'Lease not found' })
-	@ZodParam(uuidSchema)
 	async findOne(
-		@Param('id') id: string,
+		@Param('id', ParseUUIDPipe) id: string,
 		@CurrentUser() user: ValidatedUser
-	): Promise<Lease> {
-		return this.leasesService.findById(id, user.id)
+	): Promise<ControllerApiResponse<LeaseWithRelations>> {
+		const data = await this.leasesService.findOne(id, user.id)
+		return {
+			success: true,
+			data,
+			message: 'Lease retrieved successfully'
+		}
+	}
+
+	@Post()
+	@ApiOperation({ summary: 'Create new lease' })
+	@ApiResponse({ status: 201, description: 'Lease created successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid input' })
+	@ApiResponse({ status: 403, description: 'Usage limit exceeded' })
+	@ApiResponse({ status: 409, description: 'Lease dates conflict with existing lease' })
+	@UsageLimit({ resource: 'leases', action: 'create' })
+	@UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+	async create(
+		@Body() createLeaseDto: CreateLeaseDto,
+		@CurrentUser() user: ValidatedUser
+	): Promise<ControllerApiResponse<LeaseWithRelations>> {
+		const data = await this.leasesService.create(createLeaseDto, user.id)
+		return {
+			success: true,
+			data,
+			message: 'Lease created successfully'
+		}
 	}
 
 	@Put(':id')
-	@ApiOperation({ summary: 'Update a lease' })
+	@ApiOperation({ summary: 'Update lease' })
 	@ApiParam({ name: 'id', description: 'Lease ID' })
 	@ApiResponse({ status: 200, description: 'Lease updated successfully' })
-	@ApiResponse({ status: 400, description: 'Validation error' })
 	@ApiResponse({ status: 404, description: 'Lease not found' })
-	@ApiResponse({
-		status: 409,
-		description: 'Lease dates conflict with existing lease'
-	})
-	@ZodValidation({
-		params: uuidSchema,
-		body: updateLeaseSchema
-	})
+	@ApiResponse({ status: 409, description: 'Lease dates conflict with existing lease' })
+	@UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 	async update(
-		@Param('id') id: string,
-		@Body() data: UpdateLeaseDto,
+		@Param('id', ParseUUIDPipe) id: string,
+		@Body() updateLeaseDto: UpdateLeaseDto,
 		@CurrentUser() user: ValidatedUser
-	): Promise<Lease> {
-		return this.leasesService.update(id, data, user.id)
+	): Promise<ControllerApiResponse<LeaseWithRelations>> {
+		const data = await this.leasesService.update(id, updateLeaseDto, user.id)
+		return {
+			success: true,
+			data,
+			message: 'Lease updated successfully'
+		}
 	}
 
 	@Delete(':id')
-	@ApiOperation({ summary: 'Delete a lease' })
+	@ApiOperation({ summary: 'Delete lease' })
 	@ApiParam({ name: 'id', description: 'Lease ID' })
 	@ApiResponse({ status: 200, description: 'Lease deleted successfully' })
 	@ApiResponse({ status: 404, description: 'Lease not found' })
-	@ZodParam(uuidSchema)
 	async remove(
-		@Param('id') id: string,
+		@Param('id', ParseUUIDPipe) id: string,
 		@CurrentUser() user: ValidatedUser
-	): Promise<void> {
-		await this.leasesService.delete(id, user.id)
+	): Promise<ControllerApiResponse> {
+		await this.leasesService.remove(id, user.id)
+		return {
+			success: true,
+			message: 'Lease deleted successfully'
+		}
 	}
 
 	@Get(':id/pdf')
@@ -220,7 +243,7 @@ export class LeasesController {
 	@ApiResponse({ status: 404, description: 'Lease not found' })
 	@ApiResponse({ status: 500, description: 'PDF generation failed' })
 	async generateLeasePDF(
-		@Param('id') leaseId: string,
+		@Param('id', ParseUUIDPipe) leaseId: string,
 		@CurrentUser() user: ValidatedUser,
 		@Res() response: FastifyReply,
 		@Query('format') format?: 'A4' | 'Letter' | 'Legal',

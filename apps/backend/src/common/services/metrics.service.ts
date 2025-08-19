@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common'
-import { LoggerService } from './logger.service'
 import * as os from 'os'
 import * as process from 'process'
 
@@ -35,13 +34,6 @@ export interface SystemMetrics {
 
 @Injectable()
 export class MetricsService {
-	private metrics: PerformanceMetric[] = []
-	private readonly maxMetrics = 1000 // Keep last 1000 metrics in memory
-
-	constructor(private readonly logger: LoggerService) {
-		if (this.logger && typeof this.logger.setContext === 'function') {
-			this.logger.setContext('MetricsService')
-		}
 
 		// Log system metrics every 5 minutes
 		setInterval(
@@ -196,7 +188,7 @@ export class MetricsService {
 		const heapUsedMB = Math.round(metrics.memory.heapUsed / 1024 / 1024)
 
 		// Alert if RSS memory exceeds 80% of system memory OR heap exceeds 3GB
-		if (rssMemoryPercent > 80 || heapUsedMB > 3072) {
+		if ( > 80 || heapUsedMB > 3072) {
 			this.logger.logWithMetadata('High memory usage detected', {
 				rssMemoryPercent: rssMemoryPercent.toFixed(2),
 				heapUsedMB,
@@ -217,7 +209,7 @@ export class MetricsService {
 			? this.metrics.filter(m => m.operation === operation)
 			: this.metrics
 
-		if (relevantMetrics.length === 0) {
+		if (.length === 0) {
 			return { message: 'No metrics available' }
 		}
 

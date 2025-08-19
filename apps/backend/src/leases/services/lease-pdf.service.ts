@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PDFGeneratorService } from '../../common/pdf/pdf-generator.service'
-import { LeaseSupabaseRepository } from '../lease-supabase.repository'
-import { ErrorHandlerService } from '../../common/errors/error-handler.service'
+import { LeasesService, LeaseWithRelations } from '../leases.service'
 import type { Lease, Property, Tenant, Unit } from '@repo/shared'
 
 export interface LeasePDFOptions {
@@ -37,8 +36,7 @@ export class LeasePDFService {
 
 	constructor(
 		private readonly pdfService: PDFGeneratorService,
-		private readonly leaseRepository: LeaseSupabaseRepository,
-		private readonly errorHandler: ErrorHandlerService
+		private readonly leasesService: LeasesService
 	) {}
 
 	/**
@@ -51,19 +49,7 @@ export class LeasePDFService {
 	) {
 		try {
 			// Fetch lease with all related data
-			const lease = (await this.leaseRepository.findByIdAndOwner(
-				leaseId,
-				ownerId
-			)) as
-				| (Lease & {
-						Tenant: Tenant | null
-						Unit: (Unit & { Property: Property }) | null
-				  })
-				| null
-
-			if (!lease) {
-				throw this.errorHandler.createNotFoundError('Lease', leaseId)
-			}
+			const lease = await this.leasesService.findOne(leaseId, ownerId)
 
 			if (!lease.Tenant || !lease.Unit || !lease.Unit.Property) {
 				throw new Error(
@@ -116,11 +102,7 @@ export class LeasePDFService {
 				error: error instanceof Error ? error.message : 'Unknown error'
 			})
 
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'generateLeasePDF',
-				resource: 'lease-pdf',
-				metadata: { leaseId, ownerId }
-			})
+			throw error
 		}
 	}
 
@@ -162,7 +144,7 @@ export class LeasePDFService {
         <div class="agreement-intro">
           <p><strong>THIS AGREEMENT</strong> is made this ______ day of _________, ______, between 
           <strong>[OWNER NAME]</strong> ("Landlord") and 
-          <strong>${tenant.name}</strong> ("Tenant").</p>
+          <strong>${tenant.firstName} ${tenant.lastName}</strong> ("Tenant").</p>
         </div>
 
         <div class="property-details">
@@ -184,12 +166,12 @@ export class LeasePDFService {
           <p>Tenant agrees to pay rent in the amount of <strong>${formatCurrency(lease.rentAmount)}</strong> 
           per month, due on the first day of each month.</p>
           ${
-				lease.securityDeposit > 0
-					? `
+			lease.securityDeposit && lease.securityDeposit > 0
+				? `
             <p>Security Deposit: <strong>${formatCurrency(lease.securityDeposit)}</strong></p>
           `
-					: ''
-			}
+				: ''
+		}
         </div>
 
         <div class="tenant-obligations">
@@ -252,7 +234,7 @@ export class LeasePDFService {
 
           <div class="signature-block">
             <div class="signature-line"></div>
-            <p><strong>TENANT:</strong> ${tenant.name}</p>
+            <p><strong>TENANT:</strong> ${tenant.firstName} ${tenant.lastName}</p>
             <p>Email: ${tenant.email}</p>
             <p>Phone: ${tenant.phone || '[PHONE NUMBER]'}</p>
             <p>Date: _________________</p>
@@ -272,7 +254,7 @@ export class LeasePDFService {
 	private generateFilename(
 		lease: Lease & { Tenant: Tenant; Unit: Unit & { Property: Property } }
 	): string {
-		const tenantName = lease.Tenant.name.replace(/\s+/g, '_')
+		const tenantName = `${lease.Tenant.firstName}_${lease.Tenant.lastName}`.replace(/\s+/g, '_')
 		const propertyAddress = lease.Unit.Property.address
 			.replace(/[^a-zA-Z0-9]/g, '_')
 			.substring(0, 30)
