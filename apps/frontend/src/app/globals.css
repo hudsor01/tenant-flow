@@ -9,6 +9,9 @@
 
 /* 2. PROGRESSIVE - Enhanced theme and components (can be lazy loaded) */
 @import '../design-tokens/tokens/components.css';
+@import '../design-tokens/tokens/brand-gradients.css';
+@import '../design-tokens/tokens/typography-scale.css';
+@import '../design-tokens/accessibility-audit.css';
 @import '../styles/modern-theme.css';
 
 /* 3. UTILITIES - Essential interaction styles */

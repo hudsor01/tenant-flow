@@ -28,8 +28,15 @@ import {
 	MapPin,
 	Home,
 	AlertTriangle,
-	Plus
+	Plus,
+	MoreHorizontal
 } from 'lucide-react'
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
 import Link from 'next/link'
 import type { Property } from '@repo/shared'
 
@@ -127,24 +134,145 @@ function PropertyRow({ property, onView, onEdit }: PropertyRowProps) {
 	)
 }
 
+interface PropertyCardProps {
+	property: Property
+	onView?: (property: Property) => void
+	onEdit?: (property: Property) => void
+}
+
+function PropertyCard({ property, onView, onEdit }: PropertyCardProps) {
+	const totalUnits = property.units?.length || 0
+	const occupiedUnits =
+		property.units?.filter(unit => unit.status === 'OCCUPIED').length || 0
+	const occupancyRate =
+		totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
+
+	return (
+		<Card className="transition-all hover:shadow-md">
+			<CardHeader className="pb-3">
+				<div className="flex items-start justify-between">
+					<div className="flex items-center gap-3">
+						<div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-lg">
+							<Building2 className="text-primary h-5 w-5" />
+						</div>
+						<div className="space-y-1">
+							<CardTitle className="text-base leading-none">
+								{property.name}
+							</CardTitle>
+							<div className="text-muted-foreground flex items-center gap-1 text-sm">
+								<MapPin className="h-3 w-3" />
+								{property.address}
+							</div>
+						</div>
+					</div>
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild>
+							<Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+								<MoreHorizontal className="h-4 w-4" />
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align="end">
+							<DropdownMenuItem onClick={() => onView?.(property)}>
+								<Eye className="mr-2 h-4 w-4" />
+								View Details
+							</DropdownMenuItem>
+							<DropdownMenuItem onClick={() => onEdit?.(property)}>
+								<Edit3 className="mr-2 h-4 w-4" />
+								Edit Property
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
+				</div>
+			</CardHeader>
+			<CardContent className="pt-0">
+				<div className="space-y-3">
+					<div className="flex items-center gap-4">
+						<Badge variant="secondary" className="capitalize">
+							{property.propertyType.replace('_', ' ')}
+						</Badge>
+						<Badge
+							variant={
+								occupancyRate >= 90
+									? 'default'
+									: occupancyRate >= 70
+										? 'secondary'
+										: 'destructive'
+							}
+						>
+							{occupancyRate}% occupied
+						</Badge>
+					</div>
+					<div className="grid grid-cols-2 gap-4 text-sm">
+						<div className="flex items-center gap-1">
+							<Home className="text-muted-foreground h-3 w-3" />
+							<span className="text-muted-foreground">Units:</span>
+							<span className="font-medium">{totalUnits}</span>
+						</div>
+						<div className="flex items-center gap-1">
+							<Users className="text-muted-foreground h-3 w-3" />
+							<span className="text-muted-foreground">Tenants:</span>
+							<span className="font-medium">{occupiedUnits}</span>
+						</div>
+					</div>
+				</div>
+			</CardContent>
+		</Card>
+	)
+}
+
 function PropertiesTableSkeleton() {
 	return (
-		<div className="space-y-4">
-			{[...Array(5)].map((_, i) => (
-				<div key={i} className="flex items-center space-x-4 p-4">
-					<Skeleton className="h-10 w-10 rounded-lg" />
-					<div className="flex-1 space-y-2">
-						<Skeleton className="h-4 w-[200px]" />
-						<Skeleton className="h-3 w-[150px]" />
+		<>
+			{/* Mobile card skeleton */}
+			<div className="space-y-4 md:hidden">
+				{[...Array(3)].map((_, i) => (
+					<Card key={i}>
+						<CardHeader className="pb-3">
+							<div className="flex items-start justify-between">
+								<div className="flex items-center gap-3">
+									<Skeleton className="h-10 w-10 rounded-lg" />
+									<div className="space-y-2">
+										<Skeleton className="h-4 w-[140px]" />
+										<Skeleton className="h-3 w-[120px]" />
+									</div>
+								</div>
+								<Skeleton className="h-8 w-8" />
+							</div>
+						</CardHeader>
+						<CardContent className="pt-0">
+							<div className="space-y-3">
+								<div className="flex gap-2">
+									<Skeleton className="h-6 w-16" />
+									<Skeleton className="h-6 w-20" />
+								</div>
+								<div className="grid grid-cols-2 gap-4">
+									<Skeleton className="h-4 w-full" />
+									<Skeleton className="h-4 w-full" />
+								</div>
+							</div>
+						</CardContent>
+					</Card>
+				))}
+			</div>
+
+			{/* Desktop table skeleton */}
+			<div className="hidden md:block space-y-4">
+				{[...Array(5)].map((_, i) => (
+					<div key={i} className="flex items-center space-x-4 p-4">
+						<Skeleton className="h-10 w-10 rounded-lg" />
+						<div className="flex-1 space-y-2">
+							<Skeleton className="h-4 w-[200px]" />
+							<Skeleton className="h-3 w-[150px]" />
+						</div>
+						<Skeleton className="h-6 w-16" />
+						<Skeleton className="h-4 w-8" />
+						<Skeleton className="h-4 w-8" />
+						<Skeleton className="h-6 w-12" />
+						<Skeleton className="h-8 w-16" />
 					</div>
-					<Skeleton className="h-6 w-16" />
-					<Skeleton className="h-4 w-8" />
-					<Skeleton className="h-4 w-8" />
-					<Skeleton className="h-6 w-12" />
-					<Skeleton className="h-8 w-16" />
-				</div>
-			))}
-		</div>
+				))}
+			</div>
+		</>
 	)
 }
 
@@ -272,37 +400,53 @@ export function PropertiesDataTable({
 					<Link href="/properties/new">
 						<Button size="sm">
 							<Plus className="mr-2 h-4 w-4" />
-							Add Property
+							<span className="hidden sm:inline">Add Property</span>
+							<span className="sm:hidden">Add</span>
 						</Button>
 					</Link>
 				</div>
 			</CardHeader>
 			<CardContent>
-				<div className="rounded-md border">
-					<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead>Property</TableHead>
-								<TableHead>Type</TableHead>
-								<TableHead>Units</TableHead>
-								<TableHead>Tenants</TableHead>
-								<TableHead>Occupancy</TableHead>
-								<TableHead className="w-[100px]">
-									Actions
-								</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{filteredProperties.map((property: Property) => (
-								<PropertyRow
-									key={property.id}
-									property={property}
-									onView={onViewProperty}
-									onEdit={onEditProperty}
-								/>
-							))}
-						</TableBody>
-					</Table>
+				{/* Mobile Card View */}
+				<div className="space-y-4 md:hidden">
+					{filteredProperties.map((property: Property) => (
+						<PropertyCard
+							key={property.id}
+							property={property}
+							onView={onViewProperty}
+							onEdit={onEditProperty}
+						/>
+					))}
+				</div>
+
+				{/* Desktop Table View */}
+				<div className="hidden md:block">
+					<div className="rounded-md border">
+						<Table>
+							<TableHeader>
+								<TableRow>
+									<TableHead>Property</TableHead>
+									<TableHead>Type</TableHead>
+									<TableHead>Units</TableHead>
+									<TableHead>Tenants</TableHead>
+									<TableHead>Occupancy</TableHead>
+									<TableHead className="w-[100px]">
+										Actions
+									</TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody>
+								{filteredProperties.map((property: Property) => (
+									<PropertyRow
+										key={property.id}
+										property={property}
+										onView={onViewProperty}
+										onEdit={onEditProperty}
+									/>
+								))}
+							</TableBody>
+						</Table>
+					</div>
 				</div>
 
 				{filteredProperties.length > 10 && (

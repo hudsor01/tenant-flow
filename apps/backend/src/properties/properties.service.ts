@@ -1,9 +1,10 @@
-import { Injectable, BadRequestException, NotFoundException, Scope, Inject, Logger } from '@nestjs/common'
+import { BadRequestException, Inject, Injectable, Logger, NotFoundException, Scope } from '@nestjs/common'
 import { REQUEST } from '@nestjs/core'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@repo/shared/types/supabase-generated'
-import { SupabaseService } from '../common/supabase/supabase.service'
-import { CreatePropertyDto, UpdatePropertyDto } from '../common/dto/dto-exports'
+import type { AuthRequest } from '../shared/types'
+import { SupabaseService } from '../database/supabase.service'
+import { CreatePropertyDto, UpdatePropertyDto } from '../shared/types/dto-exports'
 
 type Property = Database['public']['Tables']['Property']['Row']
 type PropertyInsert = Database['public']['Tables']['Property']['Insert']
@@ -25,11 +26,11 @@ export class PropertiesService {
 	private readonly supabase: SupabaseClient<Database>
 
 	constructor(
-		@Inject(REQUEST) private request: any,
+		@Inject(REQUEST) private request: AuthRequest,
 		private supabaseService: SupabaseService
 	) {
 		// Get user-scoped client if token available, otherwise admin client
-		const token = this.request.user?.supabaseToken || 
+		const token = this.request.user?.supabaseToken ||
 			this.request.headers?.authorization?.replace('Bearer ', '')
 		
 		this.supabase = token 
@@ -97,7 +98,7 @@ export class PropertiesService {
 
 		// Start a transaction for property with units
 		if (dto.units && Number(dto.units) > 0) {
-			return await this.createWithUnits(propertyData, Number(dto.units))
+			return this.createWithUnits(propertyData, Number(dto.units))
 		}
 
 		// Create simple property
@@ -162,7 +163,7 @@ export class PropertiesService {
 		}
 
 		// Return property with units
-		return await this.findOne(property.id, property.ownerId)
+		return this.findOne(property.id, property.ownerId)
 	}
 
 	/**
@@ -276,9 +277,9 @@ export class PropertiesService {
 
 		for (const property of properties) {
 			// Count property types
-			if (property.propertyType === 'SINGLE_FAMILY') stats.singleFamily++
-			else if (property.propertyType === 'MULTI_UNIT') stats.multiFamily++
-			else if (property.propertyType === 'COMMERCIAL') stats.commercial++
+			if (property.propertyType === 'SINGLE_FAMILY') {stats.singleFamily++}
+			else if (property.propertyType === 'MULTI_UNIT') {stats.multiFamily++}
+			else if (property.propertyType === 'COMMERCIAL') {stats.commercial++}
 
 			// Count units
 			if (property.Unit) {

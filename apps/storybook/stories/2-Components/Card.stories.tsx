@@ -77,110 +77,209 @@ export const Basic: Story = {
 	)
 }
 
-// Card Variants
+// Card Variants with Brand Integration
 export const AllVariants: Story = {
 	render: () => (
-		<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-			{/* Simple Card */}
-			<Card>
-				<CardHeader>
-					<CardTitle>Simple Card</CardTitle>
-					<CardDescription>
-						Basic card with title and description
-					</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<p className="text-sm text-gray-600">Simple content area</p>
-				</CardContent>
-			</Card>
-
-			{/* Card with Action */}
-			<Card>
-				<CardHeader>
-					<CardTitle>With Action</CardTitle>
-					<CardAction>
-						<Button size="sm" variant="outline">
-							<MoreVertical className="h-4 w-4" />
-						</Button>
-					</CardAction>
-					<CardDescription>
-						Card with header action button
-					</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<p className="text-sm text-gray-600">
-						Content with header action
-					</p>
-				</CardContent>
-			</Card>
-
-			{/* Card with Footer */}
-			<Card>
-				<CardHeader>
-					<CardTitle>With Footer</CardTitle>
-					<CardDescription>Card with footer actions</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<p className="text-sm text-gray-600">Content area</p>
-				</CardContent>
-				<CardFooter className="justify-between">
-					<Button variant="outline">Cancel</Button>
-					<Button>Save</Button>
-				</CardFooter>
-			</Card>
-
-			{/* Card with Icon */}
-			<Card>
-				<CardHeader>
-					<div className="flex items-center gap-3">
-						<div className="rounded-lg bg-blue-100 p-2">
-							<Settings className="h-4 w-4 text-blue-600" />
-						</div>
-						<div>
-							<CardTitle>Settings</CardTitle>
-							<CardDescription>
-								Manage your preferences
+		<div className="space-y-8">
+			{/* Brand-Enhanced Cards */}
+			<div>
+				<h3 className="mb-4 text-lg font-semibold text-gray-800">
+					Brand-Enhanced Card Variants
+				</h3>
+				<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+					{/* Premium Card with Simplify gradient */}
+					<Card className="bg-simplify-soft border-0 text-gray-800">
+						<CardHeader>
+							<CardTitle className="text-simplify">Premium Feature</CardTitle>
+							<CardDescription className="text-gray-600">
+								Enhanced with brand gradient background
 							</CardDescription>
-						</div>
-					</div>
-				</CardHeader>
-				<CardContent>
-					<p className="text-sm text-gray-600">
-						Configuration options
-					</p>
-				</CardContent>
-			</Card>
+						</CardHeader>
+						<CardContent>
+							<p className="text-sm text-gray-700">
+								Subtle brand integration with gradient backgrounds
+							</p>
+						</CardContent>
+						<CardFooter>
+							<Button variant="simplify" className="w-full">
+								Upgrade Now
+							</Button>
+						</CardFooter>
+					</Card>
 
-			{/* Card with Badge */}
-			<Card>
-				<CardHeader>
-					<div className="flex items-start justify-between">
-						<div>
-							<CardTitle>Feature Request</CardTitle>
+					{/* Interactive Brand Card */}
+					<Card className="hover-simplify cursor-pointer transition-all duration-300">
+						<CardHeader>
+							<CardTitle>Interactive Brand Card</CardTitle>
 							<CardDescription>
-								New dashboard feature
+								Hover to see brand transformation
 							</CardDescription>
-						</div>
-						<Badge variant="secondary">New</Badge>
-					</div>
-				</CardHeader>
-				<CardContent>
-					<p className="text-sm text-gray-600">Feature description</p>
-				</CardContent>
-			</Card>
+						</CardHeader>
+						<CardContent>
+							<p className="text-sm text-gray-600">
+								Brand gradient appears on hover interaction
+							</p>
+						</CardContent>
+					</Card>
 
-			{/* Clickable Card */}
-			<Card className="cursor-pointer transition-shadow hover:shadow-lg">
-				<CardHeader>
-					<CardTitle>Clickable Card</CardTitle>
-					<CardDescription>Hover to see the effect</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<p className="text-sm text-gray-600">
-						Interactive card content
-					</p>
-				</CardContent>
-			</Card>
+					{/* Hero Section Card */}
+					<Card className="bg-hero border border-gray-200">
+						<CardHeader>
+							<CardTitle className="text-simplify">Hero Section</CardTitle>
+							<CardDescription>
+								Perfect for landing page features
+							</CardDescription>
+						</CardHeader>
+						<CardContent>
+							<p className="text-sm text-gray-600">
+								Subtle gradient background for hero sections
+							</p>
+						</CardContent>
+						<CardFooter>
+							<Button variant="gradient">
+								Get Started
+							</Button>
+						</CardFooter>
+					</Card>
+				</div>
+			</div>
+
+			{/* Standard Card Variants */}
+			<div>
+				<h3 className="mb-4 text-lg font-semibold text-gray-800">
+					Standard Card Variants
+				</h3>
+				<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+					{/* Simple Card */}
+					<Card>
+						<CardHeader>
+							<CardTitle>Simple Card</CardTitle>
+							<CardDescription>
+								Basic card with title and description
+							</CardDescription>
+						</CardHeader>
+						<CardContent>
+							<p className="text-sm text-gray-600">Simple content area</p>
+						</CardContent>
+					</Card>
+
+					{/* Card with Action */}
+					<Card>
+						<CardHeader>
+							<CardTitle>With Action</CardTitle>
+							<CardAction>
+								<Button size="sm" variant="outline">
+									<MoreVertical className="h-4 w-4" />
+								</Button>
+							</CardAction>
+							<CardDescription>
+								Card with header action button
+							</CardDescription>
+						</CardHeader>
+						<CardContent>
+							<p className="text-sm text-gray-600">
+								Content with header action
+							</p>
+						</CardContent>
+					</Card>
+
+					{/* Card with Footer */}
+					<Card>
+						<CardHeader>
+							<CardTitle>With Footer</CardTitle>
+							<CardDescription>Card with footer actions</CardDescription>
+						</CardHeader>
+						<CardContent>
+							<p className="text-sm text-gray-600">Content area</p>
+						</CardContent>
+						<CardFooter className="justify-between">
+							<Button variant="outline">Cancel</Button>
+							<Button variant="simplify">Save</Button>
+						</CardFooter>
+					</Card>
+
+					{/* Card with Brand Icon */}
+					<Card>
+						<CardHeader>
+							<div className="flex items-center gap-3">
+								<div className="bg-simplify-soft rounded-lg p-2 border border-gray-200">
+									<Settings className="h-4 w-4 text-gray-700" />
+								</div>
+								<div>
+									<CardTitle>Brand Settings</CardTitle>
+									<CardDescription>
+										Manage your brand preferences
+									</CardDescription>
+								</div>
+							</div>
+						</CardHeader>
+						<CardContent>
+							<p className="text-sm text-gray-600">
+								Configuration with brand touches
+							</p>
+						</CardContent>
+					</Card>
+
+					{/* Card with Brand Badge */}
+					<Card>
+						<CardHeader>
+							<div className="flex items-start justify-between">
+								<div>
+									<CardTitle>Premium Feature</CardTitle>
+									<CardDescription>
+										New premium functionality
+									</CardDescription>
+								</div>
+								<Badge className="bg-simplify text-white">Pro</Badge>
+							</div>
+						</CardHeader>
+						<CardContent>
+							<p className="text-sm text-gray-600">Feature description</p>
+						</CardContent>
+					</Card>
+
+					{/* Enhanced Interactive Card */}
+					<Card className="shadow-simplify hover:glow-simplify cursor-pointer transition-all duration-300 hover:scale-[1.01]">
+						<CardHeader>
+							<CardTitle>Enhanced Interactive</CardTitle>
+							<CardDescription>Advanced hover effects</CardDescription>
+						</CardHeader>
+						<CardContent>
+							<p className="text-sm text-gray-600">
+								Premium interactive experience
+							</p>
+						</CardContent>
+					</Card>
+				</div>
+			</div>
+
+			{/* Brand Usage Guidelines */}
+			<div className="rounded-lg bg-blue-50 p-6 border border-blue-200">
+				<h3 className="mb-3 font-semibold text-blue-800 flex items-center gap-2">
+					<span className="text-blue-600">💡</span>
+					Card Brand Integration Guidelines
+				</h3>
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-700">
+					<div>
+						<h4 className="font-medium mb-2">Brand Enhancement</h4>
+						<ul className="space-y-1">
+							<li>• Use <code>bg-simplify-soft</code> for premium content</li>
+							<li>• Apply <code>hover-simplify</code> for interactive cards</li>
+							<li>• Add <code>shadow-simplify</code> for elevated content</li>
+							<li>• Use <code>text-simplify</code> for feature headlines</li>
+						</ul>
+					</div>
+					<div>
+						<h4 className="font-medium mb-2">Best Practices</h4>
+						<ul className="space-y-1">
+							<li>• Limit brand treatments to 1-2 cards per section</li>
+							<li>• Use gradient backgrounds sparingly</li>
+							<li>• Maintain readability with proper contrast</li>
+							<li>• Test interactions on mobile devices</li>
+						</ul>
+					</div>
+				</div>
+			</div>
 		</div>
 	)
 }

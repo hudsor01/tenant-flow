@@ -1,25 +1,25 @@
 import {
+	Body,
 	Controller,
+	Delete,
 	Get,
+	Param,
+	ParseUUIDPipe,
 	Post,
 	Put,
-	Delete,
-	Body,
-	Param,
 	Query,
 	UseGuards,
 	UsePipes,
-	ValidationPipe,
-	ParseUUIDPipe
+	ValidationPipe
 } from '@nestjs/common'
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger'
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
-import { CurrentUser } from '../auth/decorators/current-user.decorator'
+import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger'
+import { JwtAuthGuard } from '../shared/guards/jwt-auth.guard'
+import { CurrentUser } from '../shared/decorators/current-user.decorator'
 import { ValidatedUser } from '../auth/auth.service'
 import { TenantsService, TenantWithRelations } from './tenants.service'
 import { TenantCreateDto, TenantUpdateDto } from './dto'
-import { UsageLimitsGuard } from '../subscriptions/guards/usage-limits.guard'
-import { UsageLimit } from '../subscriptions/decorators/usage-limits.decorator'
+import { UsageLimitsGuard } from '../shared/guards/usage-limits.guard'
+import { UsageLimit } from '../shared/decorators/usage-limits.decorator'
 import type { ControllerApiResponse } from '@repo/shared'
 
 /**
@@ -97,7 +97,7 @@ export class TenantsController {
 	@ApiResponse({ status: 201, description: 'Tenant created successfully' })
 	@ApiResponse({ status: 400, description: 'Invalid input' })
 	@ApiResponse({ status: 403, description: 'Usage limit exceeded' })
-	@UsageLimit({ resource: 'tenants', action: 'create' })
+	@UsageLimit({ feature: 'tenants' })
 	@UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 	async create(
 		@Body() createTenantDto: TenantCreateDto,

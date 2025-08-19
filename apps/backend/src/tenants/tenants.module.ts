@@ -1,18 +1,13 @@
-import { forwardRef, Module } from '@nestjs/common'
+import { Module } from '@nestjs/common'
 import { TenantsController } from './tenants.controller'
 import { TenantsService } from './tenants.service'
-import { SupabaseModule } from '../common/supabase/supabase.module'
-import { SubscriptionsModule } from '../subscriptions/subscriptions.module'
+import { SupabaseModule } from '../database/supabase.module'
 
 /**
  * Tenants module - Simplified with direct Supabase usage
- * No repositories, minimal dependencies
  */
 @Module({
-	imports: [
-		SupabaseModule,
-		forwardRef(() => SubscriptionsModule) // For usage limits guard
-	],
+	imports: [SupabaseModule],
 	controllers: [TenantsController],
 	providers: [TenantsService],
 	exports: [TenantsService]
