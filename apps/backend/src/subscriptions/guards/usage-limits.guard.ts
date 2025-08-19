@@ -25,7 +25,7 @@ export class UsageLimitsGuard implements CanActivate {
 		)
 
 		if (!limitConfig) {
-			return true // No usage limit
+			return true
 		}
 
 		const request = context.switchToHttp().getRequest()

@@ -8,15 +8,19 @@ import { SubscriptionSyncService } from './subscription-sync.service'
 import { SubscriptionSyncController } from './subscription-sync.controller'
 import { SubscriptionManagementService } from './subscription-management.service'
 import { SubscriptionManagementController } from './subscription-management.controller'
+import { SubscriptionSupabaseRepository } from './subscription-supabase.repository'
+import { UserFeatureAccessSupabaseRepository } from './user-feature-access-supabase.repository'
 import { SupabaseModule } from '../supabase/supabase.module'
 import { StripeModule } from '../stripe/stripe.module'
 import { CommonModule } from '../common/common.module'
+import { PropertiesModule } from '../properties/properties.module'
 
 @Module({
 	imports: [
 		SupabaseModule,
 		forwardRef(() => StripeModule), // Fix circular dependency
-		CommonModule
+		CommonModule,
+		forwardRef(() => PropertiesModule)
 	],
 	controllers: [
 		SubscriptionsController,
@@ -29,7 +33,9 @@ import { CommonModule } from '../common/common.module'
 		FeatureAccessService,
 		FeatureAccessEventListener,
 		SubscriptionSyncService,
-		SubscriptionManagementService
+		SubscriptionManagementService,
+		SubscriptionSupabaseRepository,
+		UserFeatureAccessSupabaseRepository
 	],
 	exports: [
 		SubscriptionsManagerService,

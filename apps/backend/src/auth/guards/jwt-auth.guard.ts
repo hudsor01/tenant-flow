@@ -6,8 +6,29 @@ import {
 	UnauthorizedException
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
+
+import type { FastifyRequest } from 'fastify'
 import { AuthService } from '../auth.service'
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator'
+
+// Official NestJS types for standardized error responses
+interface AuthErrorResponse {
+	error: {
+		code: string
+		message: string
+		statusCode: number
+		details?: Record<string, unknown>
+	}
+}
+
+// Enhanced request interface with user context
+interface AuthenticatedRequest extends FastifyRequest {
+	user?: {
+		id: string
+		email: string
+		[key: string]: unknown
+	}
+}
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
@@ -16,8 +37,8 @@ export class JwtAuthGuard implements CanActivate {
 	// Token format validation patterns
 	private readonly JWT_PATTERN =
 		/^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_.+/=]*$/
-	private readonly MIN_TOKEN_LENGTH = 50 // Minimum reasonable JWT length
-	private readonly MAX_TOKEN_LENGTH = 2048 // Maximum reasonable JWT length
+	private readonly MIN_TOKEN_LENGTH = 50
+	private readonly MAX_TOKEN_LENGTH = 2048
 
 	constructor(
 		private readonly authService: AuthService,
@@ -25,7 +46,7 @@ export class JwtAuthGuard implements CanActivate {
 	) {}
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
-		const request = context.switchToHttp().getRequest()
+		const request = context.switchToHttp().getRequest<AuthenticatedRequest>()
 		const method = request.method
 		const url = request.url
 
@@ -44,7 +65,7 @@ export class JwtAuthGuard implements CanActivate {
 		if (!token) {
 			this.logger.warn('Authentication token missing', {
 				method,
-				url: url?.substring(0, 100), // Limit URL length in logs
+				url: url?.substring(0, 100),
 				userAgent: request.headers['user-agent']?.substring(0, 100),
 				origin: request.headers.origin
 			})
@@ -57,7 +78,7 @@ export class JwtAuthGuard implements CanActivate {
 						hint: 'Include Authorization: Bearer <token> header'
 					}
 				}
-			})
+			} satisfies AuthErrorResponse)
 		}
 
 		// Validate token format before sending to auth service
@@ -66,7 +87,7 @@ export class JwtAuthGuard implements CanActivate {
 				method,
 				url: url?.substring(0, 100),
 				tokenLength: token.length,
-				tokenPrefix: token.substring(0, 20), // Safe prefix for debugging
+				tokenPrefix: token.substring(0, 20),
 				ip: this.getClientIP(request)
 			})
 			throw new UnauthorizedException({
@@ -75,7 +96,7 @@ export class JwtAuthGuard implements CanActivate {
 					message: 'Invalid authentication token format',
 					statusCode: 401
 				}
-			})
+			} satisfies AuthErrorResponse)
 		}
 
 		try {
@@ -89,14 +110,14 @@ export class JwtAuthGuard implements CanActivate {
 							'Authentication system temporarily unavailable',
 						statusCode: 401
 					}
-				})
+				} satisfies AuthErrorResponse)
 			}
 
 			// Validate token with auth service
 			const user = await this.authService.validateTokenAndGetUser(token)
 
 			// Attach user to request for downstream handlers
-			request['user'] = user
+			request.user = user
 
 			this.logger.debug('Token validation successful', {
 				userId: user.id,
@@ -131,13 +152,11 @@ export class JwtAuthGuard implements CanActivate {
 					message: 'Authentication token validation failed',
 					statusCode: 401
 				}
-			})
+			} satisfies AuthErrorResponse)
 		}
 	}
 
-	private extractTokenFromHeader(request: {
-		headers: { authorization?: string }
-	}): string | undefined {
+	private extractTokenFromHeader(request: Pick<FastifyRequest, 'headers'>): string | undefined {
 		const authHeader = request.headers.authorization
 
 		if (!authHeader) {
@@ -149,7 +168,7 @@ export class JwtAuthGuard implements CanActivate {
 			return undefined
 		}
 
-		const token = authHeader.substring(7) // Remove 'Bearer ' prefix
+		const token = authHeader.substring(7)
 
 		// Basic sanity check - token should not be empty
 		if (!token || token.trim() === '') {
@@ -212,14 +231,11 @@ export class JwtAuthGuard implements CanActivate {
 	/**
 	 * Get client IP address for security logging
 	 */
-	private getClientIP(request: {
-		headers: Record<string, string | string[]>
-		ip?: string
-	}): string {
+	private getClientIP(request: Pick<FastifyRequest, 'headers' | 'ip'>): string {
 		// Check various headers for real IP (in order of trust)
 		const forwardedFor = request.headers['x-forwarded-for']
 		const realIP = request.headers['x-real-ip']
-		const cfConnectingIP = request.headers['cf-connecting-ip'] // Cloudflare
+		const cfConnectingIP = request.headers['cf-connecting-ip']
 
 		if (forwardedFor) {
 			const ip = Array.isArray(forwardedFor)

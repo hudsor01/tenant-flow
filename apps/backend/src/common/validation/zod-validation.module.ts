@@ -1,25 +1,18 @@
-import { Global, Module } from '@nestjs/common'
-import { ZodValidationService } from './zod-validation.pipe'
-import { ZodErrorMappingService } from './zod-error-mapping.service'
-import { RuntimeTypeCheckerService } from './runtime-type-checker.service'
+import { Module } from '@nestjs/common'
+import { ZodValidationPipe } from './zod-validation.pipe'
 
 /**
- * Global Zod Validation Module
- * Provides comprehensive Zod validation services, error mapping, and runtime type checking
- * across the entire application
+ * Native Validation Module
+ * 
+ * Provides NestJS native class-validator functionality.
+ * Maintains the same module name for backward compatibility
+ * but now uses class-validator instead of Zod.
+ * 
+ * Note: Removed @Global decorator - import this module where needed
+ * to follow NestJS best practices for reduced global scope.
  */
-
-@Global()
 @Module({
-	providers: [
-		ZodValidationService,
-		ZodErrorMappingService,
-		RuntimeTypeCheckerService
-	],
-	exports: [
-		ZodValidationService,
-		ZodErrorMappingService,
-		RuntimeTypeCheckerService
-	]
+	providers: [ZodValidationPipe],
+	exports: [ZodValidationPipe]
 })
 export class ZodValidationModule {}

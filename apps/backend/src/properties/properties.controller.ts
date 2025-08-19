@@ -14,19 +14,9 @@ import { PropertiesService } from './properties.service'
 import { PropertyWithRelations } from './properties-supabase.repository'
 import {
 	CreatePropertyDto,
-	createPropertySchema,
 	QueryPropertiesDto,
-	queryPropertiesSchema,
-	UpdatePropertyDto,
-	updatePropertySchema,
-	uuidSchema
-} from '../common/validation/zod-schemas'
-import {
-	ZodBody,
-	ZodParam,
-	ZodQuery,
-	ZodValidation
-} from '../common/decorators/zod-validation.decorator'
+	UpdatePropertyDto
+} from '../common/dto/dto-exports'
 import type { ValidatedUser } from '../auth/auth.service'
 import { UsageLimitsGuard } from '../subscriptions/guards/usage-limits.guard'
 import { UsageLimit } from '../subscriptions/decorators/usage-limits.decorator'
@@ -45,7 +35,7 @@ export class PropertiesController {
 	@ApiResponse({ status: 400, description: 'Validation error' })
 	@ApiResponse({ status: 403, description: 'Usage limit exceeded' })
 	@UsageLimit({ resource: 'properties', action: 'create' })
-	@ZodBody(createPropertySchema)
+
 	async create(
 		@Body() data: CreatePropertyDto,
 		@CurrentUser() user: ValidatedUser
@@ -59,7 +49,7 @@ export class PropertiesController {
 		status: 200,
 		description: 'Properties retrieved successfully'
 	})
-	@ZodQuery(queryPropertiesSchema)
+
 	async findAll(
 		@Query() query: QueryPropertiesDto,
 		@CurrentUser() user: ValidatedUser
@@ -87,7 +77,7 @@ export class PropertiesController {
 		description: 'Property retrieved successfully'
 	})
 	@ApiResponse({ status: 404, description: 'Property not found' })
-	@ZodParam(uuidSchema)
+
 	async findOne(
 		@Param('id') id: string,
 		@CurrentUser() user: ValidatedUser
@@ -101,10 +91,7 @@ export class PropertiesController {
 	@ApiResponse({ status: 200, description: 'Property updated successfully' })
 	@ApiResponse({ status: 400, description: 'Validation error' })
 	@ApiResponse({ status: 404, description: 'Property not found' })
-	@ZodValidation({
-		params: uuidSchema,
-		body: updatePropertySchema
-	})
+
 	async update(
 		@Param('id') id: string,
 		@Body() data: UpdatePropertyDto,
@@ -122,7 +109,7 @@ export class PropertiesController {
 		status: 409,
 		description: 'Cannot delete property with active leases'
 	})
-	@ZodParam(uuidSchema)
+
 	async remove(
 		@Param('id') id: string,
 		@CurrentUser() user: ValidatedUser

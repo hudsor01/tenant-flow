@@ -10,7 +10,6 @@ import {
 } from '@nestjs/common'
 import { ModuleRef } from '@nestjs/core'
 import { JwtAuthGuard } from './guards/jwt-auth.guard'
-// Error handling is now managed by global ErrorHandler
 import { CurrentUser } from './decorators/current-user.decorator'
 import { AuthService, ValidatedUser } from './auth.service'
 import { Public } from './decorators/public.decorator'
@@ -22,8 +21,7 @@ import { CsrfExempt, CsrfGuard } from '../common/guards/csrf.guard'
 import { FastifyRequest } from 'fastify'
 
 @Controller('auth')
-// Error handling is now managed by global ErrorHandler
-@UseGuards(CsrfGuard) // Apply CSRF protection to all auth endpoints
+@UseGuards(CsrfGuard)
 export class AuthController {
 	constructor(
 		private readonly moduleRef: ModuleRef,
@@ -68,7 +66,7 @@ export class AuthController {
 	 */
 	@Post('login')
 	@Public()
-	@CsrfExempt() // Login forms typically exempt from CSRF
+	@CsrfExempt()
 	@RateLimit(AuthRateLimits.LOGIN)
 	@HttpCode(HttpStatus.OK)
 	async login(
@@ -89,7 +87,7 @@ export class AuthController {
 	 */
 	@Post('register')
 	@Public()
-	@CsrfExempt() // Registration forms typically exempt from CSRF
+	@CsrfExempt()
 	@RateLimit(AuthRateLimits.REGISTER)
 	@HttpCode(HttpStatus.CREATED)
 	async register(
@@ -105,7 +103,6 @@ export class AuthController {
 	@UseGuards(JwtAuthGuard)
 	@HttpCode(HttpStatus.OK)
 	async logout(@Req() request: FastifyRequest) {
-		// Extract token from the Authorization header
 		const authHeader = request.headers.authorization
 		const token = authHeader?.split(' ')[1] || ''
 		await this.authService.logout(token)

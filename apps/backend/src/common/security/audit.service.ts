@@ -33,7 +33,8 @@ export class SecurityAuditService {
 				? JSON.parse(event.details)
 				: event.details
 
-		this.logger.logSecurity(event.eventType, event.userId, {
+		this.logger.logSecurity(event.eventType, {
+			userId: event.userId,
 			ipAddress: event.ipAddress,
 			resource: event.resource,
 			action: event.action,

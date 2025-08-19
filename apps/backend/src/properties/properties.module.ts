@@ -20,6 +20,6 @@ import { SupabaseModule } from '../common/supabase/supabase.module'
 	],
 	controllers: [PropertiesController],
 	providers: [PropertiesService, PropertiesSupabaseRepository],
-	exports: [PropertiesService]
+	exports: [PropertiesService, PropertiesSupabaseRepository]
 })
 export class PropertiesModule {}
