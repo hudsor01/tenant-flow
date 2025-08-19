@@ -103,7 +103,7 @@ export function PropertyFormDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-w-[95vw] sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+			<DialogContent className="max-h-[90vh] max-w-[95vw] overflow-y-auto sm:max-w-[600px]">
 				<DialogHeader>
 					<DialogTitle>
 						{mode === 'edit' ? 'Edit Property' : 'Add New Property'}
@@ -198,7 +198,7 @@ export function PropertyFormDialog({
 							)}
 						/>
 
-						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 							<FormField
 								control={form.control}
 								name="city"
@@ -284,7 +284,11 @@ export function PropertyFormDialog({
 							>
 								Cancel
 							</Button>
-							<Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
+							<Button
+								type="submit"
+								disabled={isLoading}
+								className="w-full sm:w-auto"
+							>
 								{isLoading ? (
 									<>
 										<Loader2 className="mr-2 h-4 w-4 animate-spin" />

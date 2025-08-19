@@ -50,13 +50,7 @@ const FILE_CONFIGS: Record<string, FileValidationConfig> = {
 			'text/plain',
 			'text/csv'
 		],
-		allowedExtensions: [
-			'.pdf',
-			'.docx',
-			'.xlsx',
-			'.txt',
-			'.csv'
-		],
+		allowedExtensions: ['.pdf', '.docx', '.xlsx', '.txt', '.csv'],
 		allowedMagicNumbers: {
 			pdf: [[0x25, 0x50, 0x44, 0x46]], // %PDF
 			docx: [[0x50, 0x4b, 0x03, 0x04]], // ZIP format
@@ -70,11 +64,7 @@ const FILE_CONFIGS: Record<string, FileValidationConfig> = {
 	// Property images - PRODUCTION OPTIMIZED
 	images: {
 		maxFileSize: 10 * 1024 * 1024, // 10MB (reduced for production)
-		allowedMimeTypes: [
-			'image/jpeg',
-			'image/png',
-			'image/webp'
-		],
+		allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
 		allowedExtensions: ['.jpg', '.jpeg', '.png', '.webp'],
 		allowedMagicNumbers: {
 			jpeg: [[0xff, 0xd8, 0xff]],
@@ -110,13 +100,7 @@ const FILE_CONFIGS: Record<string, FileValidationConfig> = {
 			'image/webp',
 			'application/pdf'
 		],
-		allowedExtensions: [
-			'.jpg',
-			'.jpeg',
-			'.png',
-			'.webp',
-			'.pdf'
-		],
+		allowedExtensions: ['.jpg', '.jpeg', '.png', '.webp', '.pdf'],
 		allowedMagicNumbers: {
 			jpeg: [[0xff, 0xd8, 0xff]],
 			png: [[0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]],
@@ -464,18 +448,24 @@ async function scanForMalware(
 			// Common malware headers (add more signatures in production)
 			[0x4d, 0x5a], // MZ header (Windows executables)
 			[0x7f, 0x45, 0x4c, 0x46], // ELF header (Linux executables)
-			[0xcf, 0xfa, 0xed, 0xfe], // Mach-O header (macOS executables)
+			[0xcf, 0xfa, 0xed, 0xfe] // Mach-O header (macOS executables)
 		]
 
 		for (const pattern of malwarePatterns) {
 			for (let i = 0; i <= bytes.length - pattern.length; i++) {
 				if (pattern.every((byte, j) => bytes[i + j] === byte)) {
 					result.valid = false
-					result.errors.push('File contains prohibited executable signature')
+					result.errors.push(
+						'File contains prohibited executable signature'
+					)
 					result.securityFlags.potentialMalware = true
-					
+
 					// PRODUCTION: Immediate quarantine for malware
-					await quarantineFile(file, 'Malware signature detected', 'system')
+					await quarantineFile(
+						file,
+						'Malware signature detected',
+						'system'
+					)
 					return
 				}
 			}
@@ -534,7 +524,9 @@ function analyzeSecurityFlags(result: FileValidationResult): void {
 
 	if (flagCount >= 2) {
 		result.valid = false
-		result.errors.push('File triggers multiple security concerns - rejected for production safety')
+		result.errors.push(
+			'File triggers multiple security concerns - rejected for production safety'
+		)
 	} else if (flagCount >= 1) {
 		result.warnings.push(
 			'File has security flags - heightened monitoring applied'
@@ -542,7 +534,11 @@ function analyzeSecurityFlags(result: FileValidationResult): void {
 	}
 
 	// PRODUCTION: Zero tolerance for critical security flags
-	if (securityFlags.potentialMalware || securityFlags.containsScript || securityFlags.containsMacros) {
+	if (
+		securityFlags.potentialMalware ||
+		securityFlags.containsScript ||
+		securityFlags.containsMacros
+	) {
 		result.valid = false
 		result.errors.push('Critical security violation detected')
 	}
@@ -657,7 +653,8 @@ export async function validateMultipleFiles(
 
 		// PRODUCTION: Zero tolerance - reject entire batch on any security violation
 		if (!result.valid) {
-			const hasCriticalViolation = result.securityFlags.potentialMalware ||
+			const hasCriticalViolation =
+				result.securityFlags.potentialMalware ||
 				result.securityFlags.containsScript ||
 				result.securityFlags.containsMacros
 

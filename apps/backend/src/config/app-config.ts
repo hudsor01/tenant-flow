@@ -9,12 +9,14 @@ export const APP_CONFIG = {
 	// Application URLs
 	FRONTEND_URL: process.env.FRONTEND_URL || 'https://tenantflow.app',
 
-	// API Configuration  
+	// API Configuration
 	API_PORT: process.env.PORT || '4600',
 	API_PREFIX: '/api',
 
 	// CORS Configuration
-	ALLOWED_ORIGINS: process.env.CORS_ORIGINS?.split(',') || ['https://tenantflow.app'],
+	ALLOWED_ORIGINS: process.env.CORS_ORIGINS?.split(',') || [
+		'https://tenantflow.app'
+	],
 
 	// External Services
 	SUPABASE: {
@@ -71,7 +73,10 @@ export function validateConfig(): void {
 		{ key: 'DATABASE_URL', value: APP_CONFIG.DATABASE_URL },
 		{ key: 'JWT_SECRET', value: APP_CONFIG.JWT_SECRET },
 		{ key: 'SUPABASE_URL', value: APP_CONFIG.SUPABASE.URL },
-		{ key: 'SUPABASE_SERVICE_ROLE_KEY', value: APP_CONFIG.SUPABASE.SERVICE_KEY }
+		{
+			key: 'SUPABASE_SERVICE_ROLE_KEY',
+			value: APP_CONFIG.SUPABASE.SERVICE_KEY
+		}
 	]
 
 	// Production requirements
@@ -93,7 +98,9 @@ export function validateConfig(): void {
 
 	// Validate JWT_SECRET length for security
 	if (APP_CONFIG.JWT_SECRET && APP_CONFIG.JWT_SECRET.length < 32) {
-		throw new Error('JWT_SECRET must be at least 32 characters for security')
+		throw new Error(
+			'JWT_SECRET must be at least 32 characters for security'
+		)
 	}
 }
 

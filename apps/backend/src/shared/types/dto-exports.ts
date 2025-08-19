@@ -1,72 +1,72 @@
 // Property DTOs
 export {
-  CreatePropertyDto,
-  UpdatePropertyDto,
-  PropertyQueryDto
+	CreatePropertyDto,
+	UpdatePropertyDto,
+	PropertyQueryDto
 } from '../../properties/dto'
 
-// Tenant DTOs  
+// Tenant DTOs
 export {
-  TenantCreateDto,
-  TenantUpdateDto,
-  CreateTenantDto,
-  UpdateTenantDto
+	TenantCreateDto,
+	TenantUpdateDto,
+	CreateTenantDto,
+	UpdateTenantDto
 } from '../../tenants/dto'
 
 // Lease DTOs - temporarily inline to fix compilation
 export interface CreateLeaseDto {
-  unitId: string
-  tenantId: string
-  startDate: string
-  endDate: string
-  rentAmount: number
-  securityDeposit: number
-  status: string
-  leaseTerms: string
+	unitId: string
+	tenantId: string
+	startDate: string
+	endDate: string
+	rentAmount: number
+	securityDeposit: number
+	status: string
+	leaseTerms: string
 }
 
 export interface UpdateLeaseDto {
-  startDate?: string
-  endDate?: string
-  rentAmount?: number
-  securityDeposit?: number
-  status?: string
-  leaseTerms?: string
+	startDate?: string
+	endDate?: string
+	rentAmount?: number
+	securityDeposit?: number
+	status?: string
+	leaseTerms?: string
 }
 
 // Temporary exports for missing modules
 export interface CreateUnitDto {
-  name: string
-  propertyId: string
+	name: string
+	propertyId: string
 }
 
 export interface UpdateUnitDto {
-  name?: string
-  propertyId?: string
+	name?: string
+	propertyId?: string
 }
 
 export interface UnitQueryDto {
-  propertyId?: string
+	propertyId?: string
 }
 
 export interface UnitDto {
-  id: string
-  name: string
-  propertyId: string
+	id: string
+	name: string
+	propertyId: string
 }
 
 export interface CreateUserDto {
-  email: string
-  name: string
+	email: string
+	name: string
 }
 
 export interface UpdateUserProfileDto {
-  name?: string
-  phone?: string
+	name?: string
+	phone?: string
 }
 
 export interface UserDto {
-  id: string
-  email: string
-  name: string
+	id: string
+	email: string
+	name: string
 }

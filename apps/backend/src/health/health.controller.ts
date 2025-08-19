@@ -32,9 +32,7 @@ export class HealthController {
 	private lastCheckTime = 0
 	private readonly CACHE_TTL = 5000 // Cache health status for 5 seconds
 
-	constructor(
-		private readonly supabaseService: SupabaseService
-	) {}
+	constructor(private readonly supabaseService: SupabaseService) {}
 
 	@Get('health')
 	@Public()
@@ -43,12 +41,16 @@ export class HealthController {
 			const now = Date.now()
 
 			// Return cached result if recent enough (reduces database load)
-			if (this.lastHealthCheck && now - this.lastCheckTime < this.CACHE_TTL) {
+			if (
+				this.lastHealthCheck &&
+				now - this.lastCheckTime < this.CACHE_TTL
+			) {
 				return {
 					...this.lastHealthCheck,
 					timestamp: new Date().toISOString(),
 					_meta: {
-						apiVersion: this.lastHealthCheck._meta?.apiVersion || '',
+						apiVersion:
+							this.lastHealthCheck._meta?.apiVersion || '',
 						timestamp: this.lastHealthCheck._meta?.timestamp || '',
 						...(this.lastHealthCheck._meta || {}),
 						cached: true,
@@ -67,7 +69,10 @@ export class HealthController {
 			return healthStatus
 		} catch (error) {
 			// Fallback: return basic health status if detailed check fails
-			this.logger.error('Health check failed, returning basic status:', error)
+			this.logger.error(
+				'Health check failed, returning basic status:',
+				error
+			)
 			return this.getBasicHealthStatus()
 		}
 	}

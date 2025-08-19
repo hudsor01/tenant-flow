@@ -6,13 +6,15 @@ import { Injectable } from '@nestjs/common'
  */
 @Injectable()
 export class DocumentsService {
-
 	async getDocuments() {
 		return []
 	}
 
 	async createDocument() {
-		return { id: 'temp', message: 'Document service temporarily unavailable' }
+		return {
+			id: 'temp',
+			message: 'Document service temporarily unavailable'
+		}
 	}
 
 	async deleteDocument() {

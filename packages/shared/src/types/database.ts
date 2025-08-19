@@ -44,11 +44,11 @@ export type DocumentUpdate = Tables['Document']['Update']
 // ============================================================================
 
 export interface BaseRepository<T, TInsert, TUpdate> {
-  findById(id: string): Promise<T | null>
-  findAll(options?: Record<string, unknown>): Promise<T[]>
-  create(data: TInsert): Promise<T>
-  update(id: string, data: TUpdate): Promise<T | null>
-  delete(id: string): Promise<boolean>
+	findById(id: string): Promise<T | null>
+	findAll(options?: Record<string, unknown>): Promise<T[]>
+	create(data: TInsert): Promise<T>
+	update(id: string, data: TUpdate): Promise<T | null>
+	delete(id: string): Promise<boolean>
 }
 
 // ============================================================================

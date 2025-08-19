@@ -1,4 +1,13 @@
-import { BadRequestException, ConflictException, ForbiddenException, Injectable, InternalServerErrorException, Logger, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common'
+import {
+	BadRequestException,
+	ConflictException,
+	ForbiddenException,
+	Injectable,
+	InternalServerErrorException,
+	Logger,
+	ServiceUnavailableException,
+	UnauthorizedException
+} from '@nestjs/common'
 import { ThrottlerException } from '@nestjs/throttler'
 
 export enum ErrorCode {
@@ -20,23 +29,40 @@ export enum ErrorCode {
 export class ErrorHandlerService {
 	private readonly logger = new Logger(ErrorHandlerService.name)
 
-	handleError(error: unknown, contextOrString?: string | { operation: string; resource: string; metadata?: Record<string, unknown> }) {
+	handleError(
+		error: unknown,
+		contextOrString?:
+			| string
+			| {
+					operation: string
+					resource: string
+					metadata?: Record<string, unknown>
+			  }
+	) {
 		if (typeof contextOrString === 'string') {
 			this.logger.error(`Error in ${contextOrString}:`, error)
 		} else if (contextOrString) {
-			this.logger.error(`Error in ${contextOrString.operation} on ${contextOrString.resource}:`, error, contextOrString.metadata)
+			this.logger.error(
+				`Error in ${contextOrString.operation} on ${contextOrString.resource}:`,
+				error,
+				contextOrString.metadata
+			)
 		} else {
 			this.logger.error('Error:', error)
 		}
-		
+
 		if (error instanceof Error) {
 			throw error
 		}
-		
+
 		throw new Error('An unknown error occurred')
 	}
 
-	createConfigError(message: string, code: ErrorCode = ErrorCode.CONFIG_ERROR, context?: unknown) {
+	createConfigError(
+		message: string,
+		code: ErrorCode = ErrorCode.CONFIG_ERROR,
+		context?: unknown
+	) {
 		this.logger.error(`Config error: ${message}`, context)
 		return new InternalServerErrorException({
 			code,
@@ -48,7 +74,7 @@ export class ErrorHandlerService {
 
 	createBusinessError(code: ErrorCode, message: string, context?: unknown) {
 		this.logger.error(`Business error: ${message}`, context)
-		
+
 		switch (code) {
 			case ErrorCode.BAD_REQUEST:
 				return new BadRequestException({

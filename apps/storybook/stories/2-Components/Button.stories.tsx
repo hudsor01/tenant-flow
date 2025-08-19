@@ -86,7 +86,9 @@ export const AllVariants: Story = {
 		<div className="space-y-6">
 			{/* Primary Brand Variants */}
 			<div>
-				<h3 className="mb-3 text-lg font-semibold text-gray-800">Brand & CTA Variants</h3>
+				<h3 className="mb-3 text-lg font-semibold text-gray-800">
+					Brand & CTA Variants
+				</h3>
 				<div className="flex flex-wrap gap-4">
 					<Button variant="default">Default</Button>
 					<Button variant="cta">CTA Primary</Button>
@@ -98,7 +100,9 @@ export const AllVariants: Story = {
 
 			{/* Standard Variants */}
 			<div>
-				<h3 className="mb-3 text-lg font-semibold text-gray-800">Standard Variants</h3>
+				<h3 className="mb-3 text-lg font-semibold text-gray-800">
+					Standard Variants
+				</h3>
 				<div className="flex flex-wrap gap-4">
 					<Button variant="outline">Outline</Button>
 					<Button variant="secondary">Secondary</Button>
@@ -109,7 +113,9 @@ export const AllVariants: Story = {
 
 			{/* Semantic Variants */}
 			<div>
-				<h3 className="mb-3 text-lg font-semibold text-gray-800">Semantic Variants</h3>
+				<h3 className="mb-3 text-lg font-semibold text-gray-800">
+					Semantic Variants
+				</h3>
 				<div className="flex flex-wrap gap-4">
 					<Button variant="success">Success</Button>
 					<Button variant="warning">Warning</Button>
@@ -119,10 +125,14 @@ export const AllVariants: Story = {
 
 			{/* Special Variants */}
 			<div>
-				<h3 className="mb-3 text-lg font-semibold text-gray-800">Special Variants</h3>
+				<h3 className="mb-3 text-lg font-semibold text-gray-800">
+					Special Variants
+				</h3>
 				<div className="flex flex-wrap gap-4">
 					<Button variant="glass">Glass</Button>
-					<Button variant="loading" loading>Loading</Button>
+					<Button variant="loading" loading>
+						Loading
+					</Button>
 				</div>
 			</div>
 		</div>
@@ -267,19 +277,26 @@ export const BrandShowcase: Story = {
 	render: () => (
 		<div className="space-y-8">
 			<div className="text-center">
-				<h2 className="mb-4 text-2xl font-bold text-gray-800">TenantFlow Brand Button System</h2>
-				<p className="text-gray-600">Showcasing the "Simplify" gradient system and brand consistency</p>
+				<h2 className="mb-4 text-2xl font-bold text-gray-800">
+					TenantFlow Brand Button System
+				</h2>
+				<p className="text-gray-600">
+					Showcasing the "Simplify" gradient system and brand
+					consistency
+				</p>
 			</div>
 
 			{/* Hero CTA Buttons */}
 			<div className="space-y-4">
-				<h3 className="text-lg font-semibold text-gray-800">Hero & Primary CTAs</h3>
-				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+				<h3 className="text-lg font-semibold text-gray-800">
+					Hero & Primary CTAs
+				</h3>
+				<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
 					<div className="space-y-3">
 						<Button variant="simplify" size="lg" className="w-full">
 							Start Free Trial
 						</Button>
-						<p className="text-xs text-gray-600 text-center">
+						<p className="text-center text-xs text-gray-600">
 							<code>variant="simplify"</code> - Primary brand CTA
 						</p>
 					</div>
@@ -287,7 +304,7 @@ export const BrandShowcase: Story = {
 						<Button variant="gradient" size="lg" className="w-full">
 							Get Started Today
 						</Button>
-						<p className="text-xs text-gray-600 text-center">
+						<p className="text-center text-xs text-gray-600">
 							<code>variant="gradient"</code> - Enhanced gradient
 						</p>
 					</div>
@@ -295,7 +312,7 @@ export const BrandShowcase: Story = {
 						<Button variant="premium" size="lg" className="w-full">
 							Go Premium
 						</Button>
-						<p className="text-xs text-gray-600 text-center">
+						<p className="text-center text-xs text-gray-600">
 							<code>variant="premium"</code> - Premium features
 						</p>
 					</div>
@@ -304,8 +321,10 @@ export const BrandShowcase: Story = {
 
 			{/* Interactive Effects */}
 			<div className="space-y-4">
-				<h3 className="text-lg font-semibold text-gray-800">Interactive & Enhanced CTAs</h3>
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+				<h3 className="text-lg font-semibold text-gray-800">
+					Interactive & Enhanced CTAs
+				</h3>
+				<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 					<div className="space-y-4">
 						<CTAButton glow>Enhanced with Glow</CTAButton>
 						<CTAButton pulse>Attention-grabbing Pulse</CTAButton>
@@ -314,7 +333,9 @@ export const BrandShowcase: Story = {
 						</CTAButton>
 					</div>
 					<div className="space-y-4">
-						<CTAButton priority="secondary">Secondary Action</CTAButton>
+						<CTAButton priority="secondary">
+							Secondary Action
+						</CTAButton>
 						<Button variant="outline" className="hover-simplify">
 							Hover for Brand Effect
 						</Button>
@@ -327,24 +348,34 @@ export const BrandShowcase: Story = {
 
 			{/* Size Variations with Brand */}
 			<div className="space-y-4">
-				<h3 className="text-lg font-semibold text-gray-800">Brand CTA Sizes</h3>
+				<h3 className="text-lg font-semibold text-gray-800">
+					Brand CTA Sizes
+				</h3>
 				<div className="flex flex-wrap items-center gap-4">
-					<Button variant="simplify" size="sm">Small CTA</Button>
-					<Button variant="simplify" size="default">Default CTA</Button>
-					<Button variant="simplify" size="lg">Large CTA</Button>
-					<Button variant="simplify" size="xl">Extra Large CTA</Button>
+					<Button variant="simplify" size="sm">
+						Small CTA
+					</Button>
+					<Button variant="simplify" size="default">
+						Default CTA
+					</Button>
+					<Button variant="simplify" size="lg">
+						Large CTA
+					</Button>
+					<Button variant="simplify" size="xl">
+						Extra Large CTA
+					</Button>
 				</div>
 			</div>
 
 			{/* Guidelines */}
-			<div className="rounded-lg bg-blue-50 p-6 border border-blue-200">
-				<h3 className="mb-3 font-semibold text-blue-800 flex items-center gap-2">
+			<div className="rounded-lg border border-blue-200 bg-blue-50 p-6">
+				<h3 className="mb-3 flex items-center gap-2 font-semibold text-blue-800">
 					<span className="text-blue-600">📋</span>
 					Brand Button Guidelines
 				</h3>
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-700">
+				<div className="grid grid-cols-1 gap-4 text-sm text-blue-700 md:grid-cols-2">
 					<div>
-						<h4 className="font-medium mb-2">Primary Usage</h4>
+						<h4 className="mb-2 font-medium">Primary Usage</h4>
 						<ul className="space-y-1">
 							<li>• Use "simplify" variant for main CTAs</li>
 							<li>• Reserve "premium" for upgrade actions</li>
@@ -353,7 +384,9 @@ export const BrandShowcase: Story = {
 						</ul>
 					</div>
 					<div>
-						<h4 className="font-medium mb-2">Enhancement Guidelines</h4>
+						<h4 className="mb-2 font-medium">
+							Enhancement Guidelines
+						</h4>
 						<ul className="space-y-1">
 							<li>• Use glow effect sparingly for emphasis</li>
 							<li>• Apply pulse for time-sensitive actions</li>

@@ -482,7 +482,10 @@ export function getSessionStats(): {
  */
 export function initializeSessionCleanup(): void {
 	// Clean up expired sessions every 5 minutes
-	setInterval(() => cleanupExpiredSessions().catch(console.error), 5 * 60 * 1000)
+	setInterval(
+		() => cleanupExpiredSessions().catch(console.error),
+		5 * 60 * 1000
+	)
 
 	logger.info('Session cleanup job initialized', {
 		component: 'lib_security_session_security.ts'

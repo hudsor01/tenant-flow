@@ -18,7 +18,11 @@ import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { JwtAuthGuard } from '../shared/guards/jwt-auth.guard'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
 import { ValidatedUser } from '../auth/auth.service'
-import { LeaseQueryOptions, LeasesService, LeaseWithRelations } from './leases.service'
+import {
+	LeaseQueryOptions,
+	LeasesService,
+	LeaseWithRelations
+} from './leases.service'
 import { LeasePDFService } from '../pdf/lease-pdf.service'
 import { CreateLeaseDto, UpdateLeaseDto } from '../shared/types/dto-exports'
 import { UsageLimitsGuard } from '../shared/guards/usage-limits.guard'
@@ -55,7 +59,12 @@ export class LeasesController {
 		@Query('offset') offset?: string
 	): Promise<ControllerApiResponse<LeaseWithRelations[]>> {
 		const options: LeaseQueryOptions = {
-			status: status as 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED' | undefined,
+			status: status as
+				| 'DRAFT'
+				| 'ACTIVE'
+				| 'EXPIRED'
+				| 'TERMINATED'
+				| undefined,
 			unitId,
 			tenantId,
 			startDateFrom,
@@ -77,7 +86,10 @@ export class LeasesController {
 
 	@Get('stats')
 	@ApiOperation({ summary: 'Get lease statistics' })
-	@ApiResponse({ status: 200, description: 'Statistics retrieved successfully' })
+	@ApiResponse({
+		status: 200,
+		description: 'Statistics retrieved successfully'
+	})
 	async getStats(
 		@CurrentUser() user: ValidatedUser
 	): Promise<ControllerApiResponse> {
@@ -91,13 +103,19 @@ export class LeasesController {
 
 	@Get('expiring')
 	@ApiOperation({ summary: 'Get expiring leases' })
-	@ApiResponse({ status: 200, description: 'Expiring leases retrieved successfully' })
+	@ApiResponse({
+		status: 200,
+		description: 'Expiring leases retrieved successfully'
+	})
 	async getExpiringLeases(
 		@CurrentUser() user: ValidatedUser,
 		@Query('days') days?: string
 	): Promise<ControllerApiResponse<LeaseWithRelations[]>> {
 		const daysNumber = days ? parseInt(days) : 30
-		const data = await this.leasesService.getExpiringLeases(user.id, daysNumber)
+		const data = await this.leasesService.getExpiringLeases(
+			user.id,
+			daysNumber
+		)
 		return {
 			success: true,
 			data,
@@ -174,7 +192,10 @@ export class LeasesController {
 	@ApiResponse({ status: 201, description: 'Lease created successfully' })
 	@ApiResponse({ status: 400, description: 'Invalid input' })
 	@ApiResponse({ status: 403, description: 'Usage limit exceeded' })
-	@ApiResponse({ status: 409, description: 'Lease dates conflict with existing lease' })
+	@ApiResponse({
+		status: 409,
+		description: 'Lease dates conflict with existing lease'
+	})
 	@UsageLimit({ feature: 'leases' })
 	@UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 	async create(
@@ -194,14 +215,21 @@ export class LeasesController {
 	@ApiParam({ name: 'id', description: 'Lease ID' })
 	@ApiResponse({ status: 200, description: 'Lease updated successfully' })
 	@ApiResponse({ status: 404, description: 'Lease not found' })
-	@ApiResponse({ status: 409, description: 'Lease dates conflict with existing lease' })
+	@ApiResponse({
+		status: 409,
+		description: 'Lease dates conflict with existing lease'
+	})
 	@UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 	async update(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() updateLeaseDto: UpdateLeaseDto,
 		@CurrentUser() user: ValidatedUser
 	): Promise<ControllerApiResponse<LeaseWithRelations>> {
-		const data = await this.leasesService.update(id, updateLeaseDto, user.id)
+		const data = await this.leasesService.update(
+			id,
+			updateLeaseDto,
+			user.id
+		)
 		return {
 			success: true,
 			data,

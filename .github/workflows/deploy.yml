@@ -21,7 +21,7 @@ jobs:
 
             - uses: actions/setup-node@v4
               with:
-                  node-version: '22'
+                  node-version: '24'
 
             # Skip npm install completely for quick validation
             # Just check syntax and types with existing node_modules
@@ -48,12 +48,12 @@ jobs:
             - name: Dockerfile lint
               run: |
                   # Quick Dockerfile validation without building
-                  if ! grep -q "FROM node:22-slim" Dockerfile; then
+                  if ! grep -q "FROM node:24-alpine" Dockerfile; then
                     echo "❌ Dockerfile missing correct base image"
                     exit 1
                   fi
 
-                  if ! grep -q "CMD.*dist/main.js" Dockerfile; then
+                  if ! grep -q "CMD.*apps/backend/dist/main.js" Dockerfile; then
                     echo "❌ Dockerfile missing correct CMD"
                     exit 1
                   fi
@@ -63,7 +63,7 @@ jobs:
             - name: Test build (first stage only)
               run: |
                   # Build only the first stage to validate syntax
-                  docker build --target builder -t test-builder . || {
+                  DOCKER_BUILDKIT=1 docker build --target base -t test-base . || {
                     echo "❌ Docker build failed"
                     exit 1
                   }

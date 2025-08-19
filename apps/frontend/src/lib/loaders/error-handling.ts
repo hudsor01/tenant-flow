@@ -430,7 +430,10 @@ export class LoaderErrorHandler {
 				},
 				body: JSON.stringify(logData)
 			}).catch(err => {
-				console.error('Failed to send error to monitoring service:', err)
+				console.error(
+					'Failed to send error to monitoring service:',
+					err
+				)
 			})
 		} catch (error) {
 			console.error('Failed to send error to monitoring service:', error)

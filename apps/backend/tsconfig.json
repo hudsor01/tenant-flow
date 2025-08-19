@@ -9,7 +9,7 @@
 		"jsx": "react",
 		"jsxFactory": "React.createElement",
 		"jsxFragmentFactory": "React.Fragment",
-		"types": ["node", "reflect-metadata"],
+		"types": ["node", "reflect-metadata", "jest"],
 		"skipLibCheck": true,
 		"isolatedModules": false,
 		"paths": {
@@ -24,8 +24,6 @@
 		"src/services/base-crud.service.test.template.ts",
 		"supabase/functions/**/*",
 		"test/email/**/*",
-		"**/*.test.ts",
-		"**/*.spec.ts",
 		"**/*.template.ts"
 	],
 	"references": [

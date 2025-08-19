@@ -17,7 +17,10 @@ import { JwtAuthGuard } from '../shared/guards/jwt-auth.guard'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
 import { ValidatedUser } from '../auth/auth.service'
 import { PropertiesService, PropertyWithRelations } from './properties.service'
-import { CreatePropertyDto, UpdatePropertyDto } from '../shared/types/dto-exports'
+import {
+	CreatePropertyDto,
+	UpdatePropertyDto
+} from '../shared/types/dto-exports'
 import { UsageLimitsGuard } from '../shared/guards/usage-limits.guard'
 import { UsageLimit } from '../shared/decorators/usage-limits.decorator'
 import type { ControllerApiResponse } from '@repo/shared'
@@ -34,7 +37,10 @@ export class PropertiesController {
 
 	@Get()
 	@ApiOperation({ summary: 'Get all properties for current user' })
-	@ApiResponse({ status: 200, description: 'Properties retrieved successfully' })
+	@ApiResponse({
+		status: 200,
+		description: 'Properties retrieved successfully'
+	})
 	async findAll(
 		@CurrentUser() user: ValidatedUser
 	): Promise<ControllerApiResponse<PropertyWithRelations[]>> {
@@ -48,7 +54,10 @@ export class PropertiesController {
 
 	@Get('stats')
 	@ApiOperation({ summary: 'Get property statistics' })
-	@ApiResponse({ status: 200, description: 'Statistics retrieved successfully' })
+	@ApiResponse({
+		status: 200,
+		description: 'Statistics retrieved successfully'
+	})
 	async getStats(
 		@CurrentUser() user: ValidatedUser
 	): Promise<ControllerApiResponse> {
@@ -67,7 +76,10 @@ export class PropertiesController {
 		@Query('q') searchTerm: string,
 		@CurrentUser() user: ValidatedUser
 	): Promise<ControllerApiResponse<PropertyWithRelations[]>> {
-		const data = await this.propertiesService.search(user.id, searchTerm || '')
+		const data = await this.propertiesService.search(
+			user.id,
+			searchTerm || ''
+		)
 		return {
 			success: true,
 			data,
@@ -78,7 +90,10 @@ export class PropertiesController {
 	@Get(':id')
 	@ApiOperation({ summary: 'Get property by ID' })
 	@ApiParam({ name: 'id', description: 'Property ID' })
-	@ApiResponse({ status: 200, description: 'Property retrieved successfully' })
+	@ApiResponse({
+		status: 200,
+		description: 'Property retrieved successfully'
+	})
 	@ApiResponse({ status: 404, description: 'Property not found' })
 	async findOne(
 		@Param('id', ParseUUIDPipe) id: string,
@@ -103,7 +118,10 @@ export class PropertiesController {
 		@Body() createPropertyDto: CreatePropertyDto,
 		@CurrentUser() user: ValidatedUser
 	): Promise<ControllerApiResponse<PropertyWithRelations>> {
-		const data = await this.propertiesService.create(createPropertyDto, user.id)
+		const data = await this.propertiesService.create(
+			createPropertyDto,
+			user.id
+		)
 		return {
 			success: true,
 			data,
@@ -122,7 +140,11 @@ export class PropertiesController {
 		@Body() updatePropertyDto: UpdatePropertyDto,
 		@CurrentUser() user: ValidatedUser
 	): Promise<ControllerApiResponse<PropertyWithRelations>> {
-		const data = await this.propertiesService.update(id, updatePropertyDto, user.id)
+		const data = await this.propertiesService.update(
+			id,
+			updatePropertyDto,
+			user.id
+		)
 		return {
 			success: true,
 			data,
@@ -135,7 +157,10 @@ export class PropertiesController {
 	@ApiParam({ name: 'id', description: 'Property ID' })
 	@ApiResponse({ status: 200, description: 'Property deleted successfully' })
 	@ApiResponse({ status: 404, description: 'Property not found' })
-	@ApiResponse({ status: 400, description: 'Cannot delete property with active leases' })
+	@ApiResponse({
+		status: 400,
+		description: 'Cannot delete property with active leases'
+	})
 	async remove(
 		@Param('id', ParseUUIDPipe) id: string,
 		@CurrentUser() user: ValidatedUser

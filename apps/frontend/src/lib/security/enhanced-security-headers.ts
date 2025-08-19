@@ -243,7 +243,6 @@ export function applyEnhancedSecurityHeaders(
 	request: NextRequest,
 	sessionId?: string
 ): NextResponse {
-
 	// Generate nonce for this request
 	const nonce = getOrCreateNonce(sessionId)
 
@@ -318,7 +317,6 @@ export function applyEnhancedSecurityHeaders(
 			'public, max-age=300, s-maxage=300, stale-while-revalidate=60'
 		)
 	}
-
 
 	return response
 }

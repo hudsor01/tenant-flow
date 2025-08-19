@@ -48,7 +48,10 @@ export class TenantsController {
 
 	@Get('stats')
 	@ApiOperation({ summary: 'Get tenant statistics' })
-	@ApiResponse({ status: 200, description: 'Statistics retrieved successfully' })
+	@ApiResponse({
+		status: 200,
+		description: 'Statistics retrieved successfully'
+	})
 	async getStats(
 		@CurrentUser() user: ValidatedUser
 	): Promise<ControllerApiResponse> {
@@ -122,7 +125,11 @@ export class TenantsController {
 		@Body() updateTenantDto: TenantUpdateDto,
 		@CurrentUser() user: ValidatedUser
 	): Promise<ControllerApiResponse<TenantWithRelations>> {
-		const data = await this.tenantsService.update(id, updateTenantDto, user.id)
+		const data = await this.tenantsService.update(
+			id,
+			updateTenantDto,
+			user.id
+		)
 		return {
 			success: true,
 			data,
@@ -135,7 +142,10 @@ export class TenantsController {
 	@ApiParam({ name: 'id', description: 'Tenant ID' })
 	@ApiResponse({ status: 200, description: 'Tenant deleted successfully' })
 	@ApiResponse({ status: 404, description: 'Tenant not found' })
-	@ApiResponse({ status: 400, description: 'Cannot delete tenant with active leases' })
+	@ApiResponse({
+		status: 400,
+		description: 'Cannot delete tenant with active leases'
+	})
 	async remove(
 		@Param('id', ParseUUIDPipe) id: string,
 		@CurrentUser() user: ValidatedUser

@@ -2,7 +2,18 @@ import { Injectable, Logger } from '@nestjs/common'
 
 @Injectable()
 export class LoggerService {
-	logSecurity(_eventType: string, _arg1: { ipAddress: string; userAgent: string; severity: string; userId: string | undefined; tenantId: string | undefined; endpoint: string; method: string }) {
+	logSecurity(
+		_eventType: string,
+		_arg1: {
+			ipAddress: string
+			userAgent: string
+			severity: string
+			userId: string | undefined
+			tenantId: string | undefined
+			endpoint: string
+			method: string
+		}
+	) {
 		throw new Error('Method not implemented.')
 	}
 	private readonly logger = new Logger('TenantFlow')

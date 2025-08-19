@@ -11,7 +11,16 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { Bell, Search, User, Settings, LogOut, Command, Menu, Building } from 'lucide-react'
+import {
+	Bell,
+	Search,
+	User,
+	Settings,
+	LogOut,
+	Command,
+	Menu,
+	Building
+} from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/hooks'
 import { logoutAction } from '@/lib/actions/auth-actions'
@@ -72,7 +81,7 @@ export function Navigation({ className }: NavigationProps) {
 				</div>
 
 				{/* Desktop Search - Command Palette Trigger */}
-				<div className="hidden md:flex max-w-md flex-1 items-center gap-4">
+				<div className="hidden max-w-md flex-1 items-center gap-4 md:flex">
 					<div className="relative flex-1">
 						<Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
 						<Input
@@ -90,7 +99,9 @@ export function Navigation({ className }: NavigationProps) {
 						className="hidden items-center gap-2 lg:flex"
 					>
 						<Command className="h-4 w-4" />
-						<span className="text-muted-foreground text-xs">⌘K</span>
+						<span className="text-muted-foreground text-xs">
+							⌘K
+						</span>
 					</Button>
 				</div>
 
@@ -101,14 +112,19 @@ export function Navigation({ className }: NavigationProps) {
 						variant="ghost"
 						size="sm"
 						onClick={handleSearchClick}
-						className="md:hidden h-8 w-8 p-0"
+						className="h-8 w-8 p-0 md:hidden"
 						aria-label="Search"
 					>
 						<Search className="h-4 w-4" />
 					</Button>
 
 					{/* Notifications */}
-					<Button variant="ghost" size="sm" className="h-8 w-8 p-0" aria-label="Notifications">
+					<Button
+						variant="ghost"
+						size="sm"
+						className="h-8 w-8 p-0"
+						aria-label="Notifications"
+					>
 						<Bell className="h-4 w-4 sm:h-5 sm:w-5" />
 					</Button>
 
@@ -152,13 +168,19 @@ export function Navigation({ className }: NavigationProps) {
 							</DropdownMenuLabel>
 							<DropdownMenuSeparator />
 							<DropdownMenuItem asChild>
-								<Link href="/profile" className="cursor-pointer">
+								<Link
+									href="/profile"
+									className="cursor-pointer"
+								>
 									<User className="mr-2 h-4 w-4" />
 									<span>Profile</span>
 								</Link>
 							</DropdownMenuItem>
 							<DropdownMenuItem asChild>
-								<Link href="/settings" className="cursor-pointer">
+								<Link
+									href="/settings"
+									className="cursor-pointer"
+								>
 									<Settings className="mr-2 h-4 w-4" />
 									<span>Settings</span>
 								</Link>
@@ -171,7 +193,9 @@ export function Navigation({ className }: NavigationProps) {
 							>
 								<LogOut className="mr-2 h-4 w-4" />
 								<span>
-									{isLoggingOut ? 'Signing out...' : 'Sign out'}
+									{isLoggingOut
+										? 'Signing out...'
+										: 'Sign out'}
 								</span>
 							</DropdownMenuItem>
 						</DropdownMenuContent>
