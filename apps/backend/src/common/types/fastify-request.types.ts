@@ -5,7 +5,7 @@
  * used throughout the application for logging and request tracking.
  */
 
-import { FastifyRequest as BaseFastifyRequest } from 'fastify'
+import type { FastifyRequest as BaseFastifyRequest } from 'fastify'
 
 declare module 'fastify' {
   interface FastifyRequest {
