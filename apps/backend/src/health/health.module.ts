@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common'
 import { HealthController } from './health.controller'
-import { SupabaseModule } from '../common/supabase/supabase.module'
+import { SupabaseModule } from '../database/supabase.module'
 
 @Module({
 	imports: [SupabaseModule],

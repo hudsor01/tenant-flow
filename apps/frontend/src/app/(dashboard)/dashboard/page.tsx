@@ -19,7 +19,7 @@ export default function DashboardPage() {
 	return (
 		<DashboardErrorBoundary>
 			<DashboardTracker />
-			<div className="mx-auto max-w-[1400px] flex-1 space-y-8 p-4 md:p-6 lg:p-8">
+			<div className="mx-auto max-w-[1400px] flex-1 space-y-6 p-3 sm:p-4 md:p-6 lg:p-8 sm:space-y-8">
 				{/* Enhanced Page Header */}
 				<div className="relative">
 					{/* Background gradient effect */}
@@ -28,10 +28,10 @@ export default function DashboardPage() {
 					<div className="relative space-y-3">
 						<div className="flex items-center justify-between">
 							<div className="space-y-2">
-								<h1 className="from-foreground via-foreground/90 to-foreground/70 bg-gradient-to-r bg-clip-text text-3xl font-bold tracking-tight text-transparent md:text-4xl">
+								<h1 className="from-foreground via-foreground/90 to-foreground/70 bg-gradient-to-r bg-clip-text text-2xl font-bold tracking-tight text-transparent sm:text-3xl md:text-4xl">
 									Dashboard
 								</h1>
-								<p className="text-muted-foreground text-lg font-medium">
+								<p className="text-muted-foreground text-base font-medium sm:text-lg">
 									Welcome back! Here's an overview of your
 									property portfolio.
 								</p>
@@ -95,7 +95,7 @@ export default function DashboardPage() {
 				</Suspense>
 
 				{/* Enhanced Content Grid */}
-				<div className="grid gap-6 lg:grid-cols-3 xl:grid-cols-3">
+				<div className="grid gap-4 sm:gap-6 lg:grid-cols-3 xl:grid-cols-3">
 					{/* Properties Table - Takes up 2 columns on larger screens */}
 					<div className="lg:col-span-2">
 						<Suspense
@@ -120,7 +120,7 @@ export default function DashboardPage() {
 				</div>
 
 				{/* Additional Dashboard Insights Row */}
-				<div className="grid gap-6 lg:grid-cols-2">
+				<div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
 					{/* Placeholder for future analytics widgets */}
 					<div className="card-modern rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50/50 to-indigo-50/30 p-6">
 						<div className="mb-4 flex items-center justify-between">

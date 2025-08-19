@@ -1,18 +1,13 @@
 import 'reflect-metadata'
 import { NestFactory } from '@nestjs/core'
-import { Logger } from '@nestjs/common'
+import { Logger, ValidationPipe } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { AppModule } from './app.module'
 import {
 	FastifyAdapter,
 	type NestFastifyApplication
 } from '@nestjs/platform-fastify'
-import { FastifyConfigService } from './common/fastify/fastify-config.service'
 import helmet from '@fastify/helmet'
-import { EnvValidator } from './config/env-validator'
-import { ZodValidationPipe } from './common/validation/zod-validation.pipe'
-
-EnvValidator.validate()
 
 async function bootstrap() {
 	const app = await NestFactory.create<NestFastifyApplication>(
@@ -37,19 +32,15 @@ async function bootstrap() {
 		credentials: true
 	})
 
-	// Use NestJS native validation pipe (replaces Zod)
-	app.useGlobalPipes(new ZodValidationPipe())
+	// Use NestJS native validation pipe
+	app.useGlobalPipes(new ValidationPipe())
 
 	// Production security
 	await app.register(helmet)
 
-	// Fastify plugins
-	const fastifyConfig = new FastifyConfigService()
-	await fastifyConfig.configureFastifyPlugins(app)
-
 	// Liveness probe independent of downstream deps
 	const fastify = app.getHttpAdapter().getInstance()
-	fastify.get('/ping', async (_req: unknown, reply: any) => {
+	fastify.get('/ping', async (_req: unknown, reply: { code: (code: number) => { send: (data: unknown) => void } }) => {
 		reply.code(200).send({ status: 'ok' })
 	})
 

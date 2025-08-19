@@ -316,9 +316,10 @@ export const enhancedButtonVariants = cva(
 				ghost: 'hover:bg-accent hover:text-accent-foreground transition-all duration-200',
 				link: 'text-primary underline-offset-4 hover:underline hover:text-primary-hover transition-colors duration-200',
 				gradient:
-					'bg-gradient-to-r from-primary via-accent to-primary bg-size-200 text-primary-foreground shadow-lg hover:bg-pos-100 hover:shadow-xl transition-all duration-300',
-				premium: 'btn-premium text-primary-foreground font-semibold',
-				cta: 'cta-glow bg-primary text-primary-foreground shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300',
+					'bg-simplify text-white shadow-lg hover:shadow-simplify hover:shadow-xl transition-all duration-300',
+				premium: 'bg-simplify text-white font-semibold shadow-simplify hover:shadow-xl hover:scale-[1.02] transition-all duration-300',
+				cta: 'bg-simplify text-white shadow-simplify hover:shadow-xl hover:glow-simplify transform hover:scale-[1.02] transition-all duration-300',
+				simplify: 'bg-simplify text-white shadow-simplify hover:shadow-xl transition-all duration-300',
 				success:
 					'bg-success text-success-foreground shadow-sm hover:bg-success/90 hover:shadow-md transition-all duration-200',
 				warning:

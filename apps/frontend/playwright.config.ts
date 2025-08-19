@@ -17,7 +17,11 @@ export default defineConfig({
 	],
 
 	use: {
-		baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3001',
+		baseURL: process.env.PLAYWRIGHT_BASE_URL || process.env.CI 
+			? process.env.VERCEL_URL 
+				? `https://${process.env.VERCEL_URL}` 
+				: 'https://tenantflow.app'
+			: 'http://localhost:3000',
 		trace: 'on-first-retry',
 		screenshot: 'only-on-failure',
 		video: 'retain-on-failure'
@@ -79,12 +83,16 @@ export default defineConfig({
 		}
 	],
 
-	// webServer: {
-	//   command: 'npm run dev',
-	//   port: 3000,
-	//   reuseExistingServer: !process.env.CI,
-	//   timeout: 120 * 1000,
-	// },
+	webServer: process.env.CI ? undefined : {
+		command: 'npm run dev',
+		port: 3000,
+		reuseExistingServer: !process.env.CI,
+		timeout: 120 * 1000,
+		env: {
+			NODE_ENV: 'development',
+			NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://api.tenantflow.app/api'
+		}
+	},
 
 	// Visual regression testing configuration
 	expect: {

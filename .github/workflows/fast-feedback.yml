@@ -129,15 +129,11 @@ jobs:
     needs: [pre-check, quick-quality]
     if: needs.pre-check.outputs.should-run-tests == 'true'
     strategy:
-      matrix:
-        app: ${{ fromJSON(
-          needs.pre-check.outputs.affected-apps == 'none' && '[]' ||
-          contains(needs.pre-check.outputs.affected-apps, 'frontend') && contains(needs.pre-check.outputs.affected-apps, 'backend') && '["frontend", "backend"]' ||
-          contains(needs.pre-check.outputs.affected-apps, 'frontend') && '["frontend"]' ||
-          contains(needs.pre-check.outputs.affected-apps, 'backend') && '["backend"]' ||
-          '[]'
-        ) }}
       fail-fast: false
+      matrix:
+        app: 
+          - ${{ contains(needs.pre-check.outputs.affected-apps, 'frontend') && 'frontend' || '' }}
+          - ${{ contains(needs.pre-check.outputs.affected-apps, 'backend') && 'backend' || '' }}
     steps:
       - uses: actions/checkout@v4
 

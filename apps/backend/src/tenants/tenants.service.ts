@@ -129,7 +129,7 @@ export class TenantsService {
 
 		// Validate ownership through lease relationship
 		const tenant = data as TenantWithRelations
-		const hasOwnership = tenant.Lease?.some(
+		const hasOwnership = tenant._Lease?.some(
 			lease => lease.Unit?.Property?.ownerId === ownerId
 		)
 
@@ -294,7 +294,7 @@ export class TenantsService {
 		}
 
 		for (const tenant of tenants) {
-			const hasActiveLeases = tenant.Lease?.some(
+			const hasActiveLeases = tenant._Lease?.some(
 				lease => lease.status === 'ACTIVE'
 			)
 

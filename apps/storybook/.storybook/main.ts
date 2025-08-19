@@ -3,11 +3,10 @@ import path from 'path'
 
 const config: StorybookConfig = {
 	stories: [
-		// Phase 1: UI components only
-		'../../frontend/src/components/ui/**/*.stories.@(js|jsx|ts|tsx|mdx)',
-		// Phase 2: Add more as we clean up
-		'../stories/**/*.stories.@(js|jsx|ts|tsx|mdx)',
-		'../stories/**/*.mdx'
+		// Current story files
+		'../stories/**/*.stories.@(js|jsx|ts|tsx)',
+		// Future: UI components when they have stories
+		// '../../frontend/src/components/ui/**/*.stories.@(js|jsx|ts|tsx|mdx)',
 	],
 	addons: [
 		'@storybook/addon-essentials',

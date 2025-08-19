@@ -12,7 +12,7 @@ import type { Subscription } from './types/billing'
 // Core Entity Types
 // ========================
 export type {
-	ValidatedUser,
+	// ValidatedUser, // Already exported from auth types
 	Context,
 	AuthenticatedContext,
 	RequestContext,
@@ -35,7 +35,15 @@ export type {
 	UpdateActivityInput
 } from './types/activity'
 
-export type { User, UserRole, AuthUser } from './types/auth'
+export type { 
+	User, 
+	UserRole, 
+	AuthUser,
+	SubscriptionStatus,
+	JwtPayload,
+	ValidatedUser,
+	SupabaseJwtPayload
+} from './types/auth'
 
 // Export UserRole constants
 export { USER_ROLE } from './constants/auth'
@@ -45,6 +53,88 @@ export { DOCUMENT_TYPE, DOCUMENT_TYPE_OPTIONS } from './types/documents'
 
 // Global type declarations (augmentations)
 import './types/global'
+
+// ========================
+// Database Types
+// ========================
+export type {
+	Tables,
+	User as DatabaseUser,
+	Property as DatabaseProperty,
+	Tenant as DatabaseTenant,
+	Lease as DatabaseLease,
+	Unit as DatabaseUnit,
+	Subscription as DatabaseSubscription,
+	MaintenanceRequest as DatabaseMaintenanceRequest,
+	Document as DatabaseDocument,
+	UserInsert,
+	PropertyInsert,
+	TenantInsert,
+	LeaseInsert,
+	UnitInsert,
+	SubscriptionInsert,
+	MaintenanceRequestInsert,
+	DocumentInsert,
+	UserUpdate,
+	PropertyUpdate,
+	TenantUpdate,
+	LeaseUpdate,
+	UnitUpdate,
+	SubscriptionUpdate,
+	MaintenanceRequestUpdate,
+	DocumentUpdate,
+	BaseRepository,
+	Nullable,
+	DatabaseRow,
+	DatabaseInsert,
+	DatabaseUpdate
+} from './types/database'
+
+// ========================
+// Configuration Types
+// ========================
+export type {
+	AppConfig,
+	DatabaseConfig as DbConfig,
+	SupabaseConfig,
+	// StripeConfig, // Already exported from billing types
+	RedisConfig,
+	EmailConfig,
+	StorageConfig,
+	FullConfig
+} from './types/config'
+
+// ========================
+// Common Shared Types
+// ========================
+export type {
+	ApiResponse,
+	ControllerApiResponse,
+	PaginatedResponse,
+	QueryOptions,
+	LeaseQueryOptions,
+	PropertyQueryOptions,
+	TenantQueryOptions,
+	BackendFileUploadResult,
+	PDFGenerationResult,
+	DocumentMetadata,
+	AppError,
+	ValidationError,
+	BaseEvent,
+	SubscriptionEvent,
+	PaymentEvent,
+	AsyncFunction,
+	DecoratorMetadata,
+	DeepPartial,
+	RequireAtLeastOne,
+	WithId,
+	WithTimestamps,
+	WithSoftDelete,
+	WithOwner,
+	BaseEntity,
+	OwnedEntity,
+	SoftDeleteEntity
+} from './types/common'
 
 export type {
 	Property,
@@ -101,7 +191,7 @@ export type {
 } from './types/billing'
 
 // Re-export SubStatus as SubscriptionStatus for backwards compatibility
-export type { SubStatus as SubscriptionStatus } from './types/billing'
+// export type { SubStatus as SubscriptionStatus } from './types/billing' // Already exported from auth
 
 // Export subscription sync types (these would be defined in backend types if they exist)
 export interface SubscriptionSyncResult {
@@ -469,7 +559,7 @@ export type {
 // ========================
 // Auth Types
 // ========================
-export type { AuthResponse, SupabaseJwtPayload } from './types/auth'
+export type { AuthResponse } from './types/auth' // SupabaseJwtPayload already exported above
 
 // ========================
 // WebSocket Types
@@ -543,9 +633,9 @@ export { LogLevel } from './types/logger'
 // Error Types
 // ========================
 export type {
-	AppError,
+	// AppError, // Already exported from common.ts
 	AuthError,
-	ValidationError as SharedValidationError,
+	ValidationError as ValidationErrorType, // Export as type with different name
 	NetworkError,
 	ServerError,
 	BusinessError,
@@ -553,8 +643,8 @@ export type {
 	PaymentError,
 	ErrorResponse,
 	SuccessResponse,
-	ApiResponse as SharedApiResponse,
-	ControllerApiResponse,
+	// ApiResponse as SharedApiResponse, // Already exported from common.ts
+	// ControllerApiResponse, // Already exported from common.ts
 	ErrorContext
 } from './types/errors'
 
@@ -719,7 +809,7 @@ export interface PaginationMeta {
 	endCursor?: string
 }
 
-export interface PaginatedResponse<T> {
+export interface SimplePaginatedResponse<T> {
 	data: T[]
 	meta: PaginationMeta
 }
@@ -775,7 +865,7 @@ export interface ApiRequestConfig {
 	timeout?: number
 }
 
-export interface ApiResponse<T = unknown> {
+export interface HttpApiResponse<T = unknown> {
 	data: T
 	status: number
 	statusText: string
@@ -830,7 +920,7 @@ export type {
 export {
 	// Classes and utilities
 	BaseValueObject,
-	BaseEntity,
+	// BaseEntity, // Already exported as type from common.ts
 	BaseSpecification,
 	Result as DomainResultClass,
 	Money,
@@ -841,7 +931,7 @@ export {
 
 	// Domain exceptions
 	DomainError,
-	ValidationError,
+	ValidationError as ValidationErrorClass, // Export class with different name to avoid conflict with type
 	NotFoundError,
 	ConflictError,
 	UnauthorizedError,
@@ -889,7 +979,7 @@ export type {
 	Diff,
 	Intersection,
 	Flatten,
-	Nullable,
+	// Nullable, // Already exported from database types
 	OptionalNullable,
 
 	// API types
@@ -923,7 +1013,7 @@ export type {
 	Environment,
 	FeatureFlags,
 	ApiConfig,
-	DatabaseConfig,
+	// DatabaseConfig, // Already commented out from config types
 
 	// Time and date
 	DateRange,

@@ -6,16 +6,13 @@ import {
 	Logger,
 	Post
 } from '@nestjs/common'
+import { Throttle } from '@nestjs/throttler'
 import { AuthService } from './auth.service'
-import { StripeService } from '../stripe/stripe.service'
-import { SubscriptionsManagerService } from '../subscriptions/subscriptions-manager.service'
+import { StripeService } from '../billing/stripe.service'
+import { SubscriptionsManagerService } from '../billing/subscriptions-manager.service'
 import { UsersService } from '../users/users.service'
-import { Public } from './decorators/public.decorator'
-import { CsrfExempt } from '../common/guards/csrf.guard'
-import {
-	RateLimit,
-	WebhookRateLimits
-} from '../common/decorators/rate-limit.decorator'
+import { Public } from '../shared/decorators/public.decorator'
+import { CsrfExempt } from '../security/csrf.guard'
 
 interface SupabaseWebhookEvent {
 	type: 'INSERT' | 'UPDATE' | 'DELETE'
@@ -49,7 +46,7 @@ export class AuthWebhookController {
 	@Post('supabase')
 	@Public()
 	@CsrfExempt()
-	@RateLimit(WebhookRateLimits.SUPABASE_WEBHOOK)
+	@Throttle({ webhook: { limit: 200, ttl: 60000 } }) // Uses 'webhook' context from app.module
 	@HttpCode(200)
 	async handleSupabaseAuthWebhook(
 		@Body() event: SupabaseWebhookEvent,
@@ -174,14 +171,7 @@ export class AuthWebhookController {
 			)
 
 			// Create Stripe customer
-			const customer = await this.stripeService.createCustomer({
-				email,
-				name,
-				metadata: {
-					userId,
-					source: 'signup_webhook'
-				}
-			})
+			const customer = await this.stripeService.createCustomer(email, name)
 
 			this.logger.log('Stripe customer created successfully', {
 				userId,
@@ -235,7 +225,7 @@ export class AuthWebhookController {
 						'Local subscription updated with Stripe data',
 						{
 							userId,
-							subscriptionId: subscription.id,
+							subscriptionId: (subscription as { id?: string })?.id,
 							stripeSubscriptionId: stripeSubscription.id
 						}
 					)

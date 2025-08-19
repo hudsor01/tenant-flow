@@ -9,6 +9,9 @@ import type { USER_ROLE } from '../constants/auth'
 // User role type derived from constants
 export type UserRole = (typeof USER_ROLE)[keyof typeof USER_ROLE]
 
+// Subscription status type
+export type SubscriptionStatus = 'ACTIVE' | 'TRIALING' | 'PAST_DUE' | 'CANCELED' | 'UNPAID' | 'INCOMPLETE' | 'INCOMPLETE_EXPIRED'
+
 // User role display helpers are now imported from utils
 // This ensures single source of truth for these functions
 
@@ -67,4 +70,24 @@ export interface SupabaseJwtPayload {
 	exp: number
 	aud?: string
 	iss?: string
+}
+
+// Standard JWT Payload
+export interface JwtPayload {
+	sub: string
+	email: string
+	role?: UserRole
+	iat?: number
+	exp?: number
+}
+
+// Validated user (after authentication)
+export interface ValidatedUser {
+	id: string
+	email: string
+	name?: string
+	role?: UserRole
+	organizationId?: string
+	stripeCustomerId?: string
+	subscription?: Record<string, unknown>
 }
