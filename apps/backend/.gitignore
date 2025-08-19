@@ -17,7 +17,7 @@ logs/
 
 # Environment files (extra safety)
 .env*
-!.env.example
+.env
 
 # Secrets and keys
 *.key
@@ -33,3 +33,8 @@ logs/
 
 # Email templates backup
 email-templates/*.bak
+/src/test/
+/src/test
+/src/test-utils/
+/src/test-utils
+
