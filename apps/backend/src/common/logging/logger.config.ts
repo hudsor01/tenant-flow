@@ -14,7 +14,8 @@ const getLogLevels = (): LogLevel[] => {
 	if (APP_CONFIG.IS_PRODUCTION) {
 		return ['error', 'warn', 'log']
 	}
-	if (APP_CONFIG.IS_TEST) {
+	// Treat test as non-production with verbose logs unless explicitly set via NODE_ENV
+	if (process.env.NODE_ENV === 'test') {
 		return ['error']
 	}
 	return ['error', 'warn', 'log', 'debug', 'verbose']

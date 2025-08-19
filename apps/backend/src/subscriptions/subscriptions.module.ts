@@ -10,7 +10,7 @@ import { SubscriptionManagementService } from './subscription-management.service
 import { SubscriptionManagementController } from './subscription-management.controller'
 import { SubscriptionSupabaseRepository } from './subscription-supabase.repository'
 import { UserFeatureAccessSupabaseRepository } from './user-feature-access-supabase.repository'
-import { SupabaseModule } from '../supabase/supabase.module'
+import { SupabaseModule } from '../common/supabase/supabase.module'
 import { StripeModule } from '../stripe/stripe.module'
 import { CommonModule } from '../common/common.module'
 import { PropertiesModule } from '../properties/properties.module'
@@ -42,7 +42,9 @@ import { PropertiesModule } from '../properties/properties.module'
 		SubscriptionStatusService,
 		FeatureAccessService,
 		SubscriptionSyncService,
-		SubscriptionManagementService
+		SubscriptionManagementService,
+		SubscriptionSupabaseRepository,
+		UserFeatureAccessSupabaseRepository
 	]
 })
 export class SubscriptionsModule {}

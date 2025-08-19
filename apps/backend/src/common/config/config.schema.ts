@@ -47,14 +47,8 @@ const corsOriginsSchema = z
 	)
 	.refine(origins => {
 		// Only enforce HTTPS in actual production deployment environments
-		// Allow HTTP origins for local production testing (NODE_ENV=production locally)
-		const isActualProductionDeployment =
-			process.env.NODE_ENV === 'production' &&
-			(process.env.RAILWAY_ENVIRONMENT === 'production' ||
-				process.env.VERCEL_ENV === 'production' ||
-				process.env.DOCKER_CONTAINER === 'true')
-
-		if (isActualProductionDeployment && origins.length > 0) {
+		// PRODUCTION-ONLY: No HTTP origins allowed in production
+		if (origins.length > 0) {
 			const httpOrigins = origins.filter(origin =>
 				origin.startsWith('http://')
 			)
@@ -76,9 +70,9 @@ const portSchema = z
 	)
 
 // Node environment validation
-// CRITICAL: Don't default to development - require explicit setting
+// PRODUCTION-ONLY: Only production environment allowed
 const nodeEnvSchema = z
-	.enum(['development', 'production', 'test'])
+	.enum(['production'])
 	.optional()
 	.default('production')
 
@@ -111,10 +105,10 @@ export const configSchema = z
 		RATE_LIMIT_TTL: z.string().optional(),
 		RATE_LIMIT_LIMIT: z.string().optional(),
 
-		// Stripe (optional in development)
-		STRIPE_SECRET_KEY: z.string().optional(),
+		// Stripe (required in production)
+		STRIPE_SECRET_KEY: z.string().min(1, 'Stripe secret key is required'),
 		STRIPE_PUBLISHABLE_KEY: z.string().optional(),
-		STRIPE_WEBHOOK_SECRET: z.string().optional(),
+		STRIPE_WEBHOOK_SECRET: z.string().min(1, 'Stripe webhook secret is required'),
 		STRIPE_PRICE_ID_STARTER: z.string().optional(),
 		STRIPE_PRICE_ID_GROWTH: z.string().optional(),
 		STRIPE_PRICE_ID_BUSINESS: z.string().optional(),
@@ -210,51 +204,48 @@ export const configSchema = z
 			.default(false)
 	})
 	.superRefine((config, ctx) => {
-		// In production, certain fields are required
-		if (config.NODE_ENV === 'production') {
-			if (!config.DATABASE_URL) {
-				ctx.addIssue({
-					code: 'custom',
-					path: ['DATABASE_URL'],
-					message: 'DATABASE_URL is required in production'
-				})
-			}
-			if (!config.DIRECT_URL) {
-				ctx.addIssue({
-					code: 'custom',
-					path: ['DIRECT_URL'],
-					message: 'DIRECT_URL is required in production'
-				})
-			}
-			if (!config.JWT_SECRET) {
-				ctx.addIssue({
-					code: 'custom',
-					path: ['JWT_SECRET'],
-					message: 'JWT_SECRET is required in production'
-				})
-			}
-			if (!config.SUPABASE_URL) {
-				ctx.addIssue({
-					code: 'custom',
-					path: ['SUPABASE_URL'],
-					message: 'SUPABASE_URL is required in production'
-				})
-			}
-			if (!config.SUPABASE_SERVICE_ROLE_KEY) {
-				ctx.addIssue({
-					code: 'custom',
-					path: ['SUPABASE_SERVICE_ROLE_KEY'],
-					message:
-						'SUPABASE_SERVICE_ROLE_KEY is required in production'
-				})
-			}
-			if (!config.SUPABASE_JWT_SECRET) {
-				ctx.addIssue({
-					code: 'custom',
-					path: ['SUPABASE_JWT_SECRET'],
-					message: 'SUPABASE_JWT_SECRET is required in production'
-				})
-			}
+		// All fields are required for production-only deployment
+		if (!config.DATABASE_URL) {
+			ctx.addIssue({
+				code: 'custom',
+				path: ['DATABASE_URL'],
+				message: 'DATABASE_URL is required'
+			})
+		}
+		if (!config.DIRECT_URL) {
+			ctx.addIssue({
+				code: 'custom',
+				path: ['DIRECT_URL'],
+				message: 'DIRECT_URL is required'
+			})
+		}
+		if (!config.JWT_SECRET) {
+			ctx.addIssue({
+				code: 'custom',
+				path: ['JWT_SECRET'],
+				message: 'JWT_SECRET is required'
+			})
+		}
+		if (!config.SUPABASE_URL) {
+			ctx.addIssue({
+				code: 'custom',
+				path: ['SUPABASE_URL'],
+				message: 'SUPABASE_URL is required'
+			})
+		}
+		if (!config.SUPABASE_SERVICE_ROLE_KEY) {
+			ctx.addIssue({
+				code: 'custom',
+				path: ['SUPABASE_SERVICE_ROLE_KEY'],
+				message: 'SUPABASE_SERVICE_ROLE_KEY is required'
+			})
+		}
+		if (!config.SUPABASE_JWT_SECRET) {
+			ctx.addIssue({
+				code: 'custom',
+				path: ['SUPABASE_JWT_SECRET'],
+				message: 'SUPABASE_JWT_SECRET is required'
+			})
 		}
 	})
 
