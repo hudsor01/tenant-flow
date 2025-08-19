@@ -151,7 +151,10 @@ export class SubscriptionsController {
 				currentSubscription: subscription
 			}
 		} catch (error) {
-			return this.errorHandler.handleError(error as Error, 'SubscriptionsController.createSubscription')
+			return this.errorHandler.handleError(
+				error as Error,
+				'SubscriptionsController.createSubscription'
+			)
 		}
 	}
 
@@ -182,7 +185,10 @@ export class SubscriptionsController {
 				currentSubscription: subscription
 			}
 		} catch (error) {
-			return this.errorHandler.handleError(error as Error, 'SubscriptionsController.cancelSubscription')
+			return this.errorHandler.handleError(
+				error as Error,
+				'SubscriptionsController.cancelSubscription'
+			)
 		}
 	}
 }

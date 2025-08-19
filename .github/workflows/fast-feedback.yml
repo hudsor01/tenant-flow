@@ -2,17 +2,17 @@ name: Fast Feedback - Development
 
 on:
   push:
-    branches: ['feature/**', 'fix/**', 'chore/**']
+    branches: ['feature/**', 'fix/**', 'feat/**']
   pull_request:
     types: [opened, synchronize, reopened]
-    branches: [develop]
+    branches: [main]
 
 concurrency:
   group: fast-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: '22'
+  NODE_VERSION: '24'
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ vars.TURBO_TEAM }}
 
@@ -142,6 +142,17 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            apps/*/node_modules
+            packages/*/node_modules
+          key: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            npm-${{ runner.os }}-
+
       - name: Install dependencies
         run: npm ci --omit=optional
 
@@ -151,14 +162,14 @@ jobs:
           
           # Run only fast unit tests, skip slow integration tests
           if [[ "${{ matrix.app }}" == "frontend" ]]; then
-            # Frontend: Run unit tests excluding slow ones
-            npm run test:unit -- --testPathIgnorePatterns="integration|e2e" --maxWorkers=2 || {
+            # Frontend: Run unit tests
+            npm run test:unit --maxWorkers=2 || {
               echo "⚠️ Some tests failed - review before merging"
               exit 0  # Don't fail fast feedback for test issues
             }
           elif [[ "${{ matrix.app }}" == "backend" ]]; then
-            # Backend: Run only service unit tests
-            npm test -- --testPathPattern="service\.test\." --maxWorkers=2 || {
+            # Backend: Run unit tests
+            npm run test --maxWorkers=2 || {
               echo "⚠️ Some tests failed - review before merging"
               exit 0
             }
@@ -181,6 +192,17 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            apps/*/node_modules
+            packages/*/node_modules
+          key: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            npm-${{ runner.os }}-
 
       - name: Install dependencies
         run: npm ci --omit=optional
@@ -210,10 +232,7 @@ jobs:
             }
           fi
         env:
-          # Minimal env for build verification
-          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder
-          NEXT_PUBLIC_API_BASE_URL: https://api.placeholder.com
+          NODE_ENV: production
 
   # Fast feedback summary
   feedback-summary:

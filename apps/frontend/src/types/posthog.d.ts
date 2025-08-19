@@ -63,7 +63,9 @@ declare module 'posthog-js' {
 		set_config(config: Partial<PostHogConfig>): void
 		isFeatureEnabled(flagKey: string): boolean | undefined
 		getFeatureFlag(flagKey: string): string | boolean | undefined
-		getFeatureFlagPayload(flagKey: string): Record<string, unknown> | undefined
+		getFeatureFlagPayload(
+			flagKey: string
+		): Record<string, unknown> | undefined
 		reloadFeatureFlags(): void
 		[key: string]: unknown
 	}
@@ -74,12 +76,20 @@ declare module 'posthog-js' {
 
 declare module 'posthog-js/react' {
 	export function usePostHog(): {
-		capture: (eventName: string, properties?: Record<string, unknown>) => void
-		identify: (distinctId: string, properties?: Record<string, unknown>) => void
+		capture: (
+			eventName: string,
+			properties?: Record<string, unknown>
+		) => void
+		identify: (
+			distinctId: string,
+			properties?: Record<string, unknown>
+		) => void
 		reset: () => void
 		isFeatureEnabled: (flagKey: string) => boolean | undefined
 		getFeatureFlag: (flagKey: string) => string | boolean | undefined
-		getFeatureFlagPayload: (flagKey: string) => Record<string, unknown> | undefined
+		getFeatureFlagPayload: (
+			flagKey: string
+		) => Record<string, unknown> | undefined
 		reloadFeatureFlags: () => void
 		[key: string]: unknown
 	}

@@ -352,7 +352,9 @@ export class ConfigValidator {
 		if (rawConfig.STRIPE_SECRET_KEY) {
 			const stripeKey = rawConfig.STRIPE_SECRET_KEY as string
 			if (stripeKey.startsWith('sk_test_')) {
-				errors.push('Test Stripe keys not allowed - production keys required')
+				errors.push(
+					'Test Stripe keys not allowed - production keys required'
+				)
 			}
 		}
 
@@ -360,9 +362,7 @@ export class ConfigValidator {
 		if (rawConfig.CORS_ORIGINS) {
 			const corsOrigins = rawConfig.CORS_ORIGINS as string
 			if (corsOrigins.includes('*') || corsOrigins.includes('null')) {
-				errors.push(
-					'Wildcard CORS origins are not allowed'
-				)
+				errors.push('Wildcard CORS origins are not allowed')
 			}
 		}
 

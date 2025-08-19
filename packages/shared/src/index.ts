@@ -35,9 +35,9 @@ export type {
 	UpdateActivityInput
 } from './types/activity'
 
-export type { 
-	User, 
-	UserRole, 
+export type {
+	User,
+	UserRole,
 	AuthUser,
 	SubscriptionStatus,
 	JwtPayload,

@@ -8,32 +8,32 @@
 // ============================================================================
 
 export interface ApiResponse<T = unknown> {
-  success: boolean
-  data?: T
-  error?: string
-  message?: string
-  meta?: {
-    total?: number
-    page?: number
-    limit?: number
-  }
+	success: boolean
+	data?: T
+	error?: string
+	message?: string
+	meta?: {
+		total?: number
+		page?: number
+		limit?: number
+	}
 }
 
 export interface ControllerApiResponse<T = unknown> extends ApiResponse<T> {
-  statusCode?: number
+	statusCode?: number
 }
 
 export interface PaginatedResponse<T> {
-  success: boolean
-  data: T[]
-  error?: string
-  message?: string
-  meta: {
-    total: number
-    page: number
-    limit: number
-    totalPages: number
-  }
+	success: boolean
+	data: T[]
+	error?: string
+	message?: string
+	meta: {
+		total: number
+		page: number
+		limit: number
+		totalPages: number
+	}
 }
 
 // ============================================================================
@@ -41,33 +41,33 @@ export interface PaginatedResponse<T> {
 // ============================================================================
 
 export interface QueryOptions {
-  limit?: number
-  offset?: number
-  orderBy?: string
-  orderDirection?: 'asc' | 'desc'
-  search?: string
+	limit?: number
+	offset?: number
+	orderBy?: string
+	orderDirection?: 'asc' | 'desc'
+	search?: string
 }
 
 export interface LeaseQueryOptions extends QueryOptions {
-  status?: LeaseStatus
-  unitId?: string
-  tenantId?: string
-  startDateFrom?: string
-  startDateTo?: string
-  endDateFrom?: string
-  endDateTo?: string
+	status?: LeaseStatus
+	unitId?: string
+	tenantId?: string
+	startDateFrom?: string
+	startDateTo?: string
+	endDateFrom?: string
+	endDateTo?: string
 }
 
 export interface PropertyQueryOptions extends QueryOptions {
-  propertyType?: PropertyType
-  city?: string
-  state?: string
-  hasUnits?: boolean
+	propertyType?: PropertyType
+	city?: string
+	state?: string
+	hasUnits?: boolean
 }
 
 export interface TenantQueryOptions extends QueryOptions {
-  hasActiveLease?: boolean
-  propertyId?: string
+	hasActiveLease?: boolean
+	propertyId?: string
 }
 
 // ============================================================================
@@ -75,24 +75,24 @@ export interface TenantQueryOptions extends QueryOptions {
 // ============================================================================
 
 export interface BackendFileUploadResult {
-  url: string
-  filename: string
-  size: number
-  mimeType: string
-  message: string
+	url: string
+	filename: string
+	size: number
+	mimeType: string
+	message: string
 }
 
 export interface PDFGenerationResult extends BackendFileUploadResult {
-  buffer?: Buffer
-  pages?: number
+	buffer?: Buffer
+	pages?: number
 }
 
 export interface DocumentMetadata {
-  filename: string
-  mimeType: string
-  size: number
-  uploadedAt: string
-  uploadedBy: string
+	filename: string
+	mimeType: string
+	size: number
+	uploadedAt: string
+	uploadedBy: string
 }
 
 // ============================================================================
@@ -100,8 +100,16 @@ export interface DocumentMetadata {
 // ============================================================================
 
 export type LeaseStatus = 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED'
-export type PropertyType = 'SINGLE_FAMILY' | 'MULTI_UNIT' | 'APARTMENT' | 'COMMERCIAL'
-export type MaintenanceStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELED'
+export type PropertyType =
+	| 'SINGLE_FAMILY'
+	| 'MULTI_UNIT'
+	| 'APARTMENT'
+	| 'COMMERCIAL'
+export type MaintenanceStatus =
+	| 'PENDING'
+	| 'IN_PROGRESS'
+	| 'COMPLETED'
+	| 'CANCELED'
 export type MaintenancePriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
 
 // ============================================================================
@@ -109,13 +117,13 @@ export type MaintenancePriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
 // ============================================================================
 
 export interface AppError extends Error {
-  code: string
-  statusCode: number
-  details?: Record<string, unknown>
+	code: string
+	statusCode: number
+	details?: Record<string, unknown>
 }
 
 export interface ValidationError extends AppError {
-  fields?: Record<string, string[]>
+	fields?: Record<string, string[]>
 }
 
 // ============================================================================
@@ -123,26 +131,29 @@ export interface ValidationError extends AppError {
 // ============================================================================
 
 export interface BaseEvent {
-  id: string
-  type: string
-  timestamp: Date
-  userId?: string
-  metadata?: Record<string, unknown>
+	id: string
+	type: string
+	timestamp: Date
+	userId?: string
+	metadata?: Record<string, unknown>
 }
 
 export interface SubscriptionEvent extends BaseEvent {
-  type: 'subscription.created' | 'subscription.updated' | 'subscription.canceled'
-  subscriptionId: string
-  customerId: string
-  planId?: string
-  status?: string
+	type:
+		| 'subscription.created'
+		| 'subscription.updated'
+		| 'subscription.canceled'
+	subscriptionId: string
+	customerId: string
+	planId?: string
+	status?: string
 }
 
 export interface PaymentEvent extends BaseEvent {
-  type: 'payment.succeeded' | 'payment.failed' | 'payment.refunded'
-  paymentId: string
-  amount: number
-  currency: string
+	type: 'payment.succeeded' | 'payment.failed' | 'payment.refunded'
+	paymentId: string
+	amount: number
+	currency: string
 }
 
 // ============================================================================
@@ -154,35 +165,37 @@ export type AsyncFunction = (...args: unknown[]) => Promise<unknown>
 export type DecoratorMetadata = Record<string, unknown>
 
 export type DeepPartial<T> = {
-  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P]
+	[P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P]
 }
 
-export type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = 
-  Pick<T, Exclude<keyof T, Keys>> & 
-  {
-    [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>
-  }[Keys]
+export type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<
+	T,
+	Exclude<keyof T, Keys>
+> &
+	{
+		[K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>
+	}[Keys]
 
 // ============================================================================
 // With Relations Types
 // ============================================================================
 
 export interface WithId {
-  id: string
+	id: string
 }
 
 export interface WithTimestamps {
-  createdAt: Date | string
-  updatedAt: Date | string
+	createdAt: Date | string
+	updatedAt: Date | string
 }
 
 export interface WithSoftDelete extends WithTimestamps {
-  deletedAt?: Date | string | null
+	deletedAt?: Date | string | null
 }
 
 export interface WithOwner {
-  userId: string
-  organizationId?: string
+	userId: string
+	organizationId?: string
 }
 
 // ============================================================================
