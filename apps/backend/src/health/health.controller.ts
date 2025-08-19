@@ -1,6 +1,6 @@
 import { Controller, Get, Logger } from '@nestjs/common'
-import { Public } from '../auth/decorators/public.decorator'
-import { SupabaseService } from '../common/supabase/supabase.service'
+import { Public } from '../shared/decorators/public.decorator'
+import { SupabaseService } from '../database/supabase.service'
 
 interface HealthStatus {
 	status: 'ok' | 'degraded' | 'error'

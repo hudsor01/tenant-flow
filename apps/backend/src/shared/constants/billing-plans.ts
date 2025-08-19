@@ -1,6 +1,5 @@
 import { PLAN_TYPE } from '@repo/shared'
 
-// Export types for use in other files
 export interface BillingPlan {
 	id: string
 	name: string
@@ -13,7 +12,6 @@ export interface BillingPlan {
 	}
 }
 
-// PERFORMANCE: Use lazy getters to avoid env var access during module initialization
 class BillingPlansManager {
 	private _plans?: Record<string, BillingPlan>
 
@@ -36,16 +34,10 @@ class BillingPlansManager {
 					name: 'Starter',
 					price: 19,
 					propertyLimit: 10,
-					get stripePriceId() {
-						return process.env.STRIPE_STARTER_MONTHLY ?? null
-					},
+					stripePriceId: process.env.STRIPE_STARTER_MONTHLY ?? null,
 					stripePriceIds: {
-						get monthly() {
-							return process.env.STRIPE_STARTER_MONTHLY ?? null
-						},
-						get annual() {
-							return process.env.STRIPE_STARTER_ANNUAL ?? null
-						}
+						monthly: process.env.STRIPE_STARTER_MONTHLY ?? null,
+						annual: process.env.STRIPE_STARTER_ANNUAL ?? null
 					}
 				},
 				[PLAN_TYPE.GROWTH]: {
@@ -53,41 +45,24 @@ class BillingPlansManager {
 					name: 'Growth',
 					price: 49,
 					propertyLimit: 50,
-					get stripePriceId() {
-						return process.env.STRIPE_GROWTH_MONTHLY ?? null
-					},
+					stripePriceId: process.env.STRIPE_GROWTH_MONTHLY ?? null,
 					stripePriceIds: {
-						get monthly() {
-							return process.env.STRIPE_GROWTH_MONTHLY ?? null
-						},
-						get annual() {
-							return process.env.STRIPE_GROWTH_ANNUAL ?? null
-						}
+						monthly: process.env.STRIPE_GROWTH_MONTHLY ?? null,
+						annual: process.env.STRIPE_GROWTH_ANNUAL ?? null
 					}
 				},
 				[PLAN_TYPE.TENANTFLOW_MAX]: {
 					id: PLAN_TYPE.TENANTFLOW_MAX,
-					name: 'TenantFlow MAX',
-					price: 149,
-					propertyLimit: -1,
-					get stripePriceId() {
-						return process.env.STRIPE_TENANTFLOW_MAX_MONTHLY ?? null
-					},
+					name: 'TenantFlow Max',
+					price: 99,
+					propertyLimit: 200,
+					stripePriceId: process.env.STRIPE_MAX_MONTHLY ?? null,
 					stripePriceIds: {
-						get monthly() {
-							return (
-								process.env.STRIPE_TENANTFLOW_MAX_MONTHLY ??
-								null
-							)
-						},
-						get annual() {
-							return (
-								process.env.STRIPE_TENANTFLOW_MAX_ANNUAL ?? null
-							)
-						}
+						monthly: process.env.STRIPE_MAX_MONTHLY ?? null,
+						annual: process.env.STRIPE_MAX_ANNUAL ?? null
 					}
 				}
-			} as const
+			}
 		}
 		return this._plans
 	}
@@ -95,54 +70,16 @@ class BillingPlansManager {
 
 const billingPlansManager = new BillingPlansManager()
 
-// Export lazy-loaded plans
-export const BILLING_PLANS: Record<string, BillingPlan> =
-	billingPlansManager.plans
+export const getBillingPlans = () => billingPlansManager.plans
 
-// PERFORMANCE: Cached helper functions to avoid repeated lookups
-const planLookupCache = new Map<string, ReturnType<typeof getPlanById>>()
-
-// Helper functions
-export function getPlanById(planId: string): BillingPlan | undefined {
-	// Check cache first
-	if (planLookupCache.has(planId)) {
-		return planLookupCache.get(planId)
-	}
-
-	// Use switch for better performance than Object.entries iteration
-	let result: BillingPlan | undefined
-	switch (planId) {
-		case PLAN_TYPE.FREETRIAL:
-			result = BILLING_PLANS[PLAN_TYPE.FREETRIAL]
-			break
-		case PLAN_TYPE.STARTER:
-			result = BILLING_PLANS[PLAN_TYPE.STARTER]
-			break
-		case PLAN_TYPE.GROWTH:
-			result = BILLING_PLANS[PLAN_TYPE.GROWTH]
-			break
-		case PLAN_TYPE.TENANTFLOW_MAX:
-			result = BILLING_PLANS[PLAN_TYPE.TENANTFLOW_MAX]
-			break
-		default:
-			result = undefined
-	}
-
-	// Cache the result
-	planLookupCache.set(planId, result)
-	return result
+export const getPlanById = (planId: string): BillingPlan | undefined => {
+	return getBillingPlans()[planId]
 }
 
-export function getPriceId(planId: string): string | undefined {
-	const plan = getPlanById(planId)
-	return plan?.stripePriceId ?? undefined
-}
-
-// PERFORMANCE: Pre-warm commonly used plans during idle time
-if (typeof setImmediate !== 'undefined') {
-	setImmediate(() => {
-		// Pre-load starter and growth plans (most common)
-		getPlanById(PLAN_TYPE.STARTER)
-		getPlanById(PLAN_TYPE.GROWTH)
-	})
+export const getDefaultPlan = (): BillingPlan => {
+	const plan = getBillingPlans()[PLAN_TYPE.FREETRIAL]
+	if (!plan) {
+		throw new Error('Default plan not found')
+	}
+	return plan
 }
