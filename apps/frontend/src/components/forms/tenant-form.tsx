@@ -19,8 +19,6 @@ import { TenantFormClient } from './tenant-form-client'
 // MAIN TENANT FORM (SERVER COMPONENT)
 // ============================================================================
 
-// Using centralized TenantFormProps from types
-
 /**
  * Main tenant form server component
  * Handles form structure and composition

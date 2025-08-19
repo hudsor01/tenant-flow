@@ -117,17 +117,17 @@ ENV PORT=${PORT}
 # Expose the dynamic port
 EXPOSE ${PORT}
 
-# Health check for Railway deployment - simplified and robust
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+# Health check for Railway deployment - fast and simple
+HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=2 \
   CMD /nodejs/bin/node -e " \
     const http = require('http'); \
     const port = process.env.PORT || 3001; \
     const req = http.request({ \
-      hostname: 'localhost', \
+      hostname: '127.0.0.1', \
       port: port, \
-      path: '/ping', \
+      path: '/health', \
       method: 'GET', \
-      timeout: 8000 \
+      timeout: 3000 \
     }, (res) => { \
       process.exit(res.statusCode === 200 ? 0 : 1); \
     }); \

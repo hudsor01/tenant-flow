@@ -26,6 +26,7 @@ import { BillingModule } from './billing/billing.module'
 import { NotificationsModule } from './notifications/notifications.module'
 import { HealthModule } from './health/health.module'
 import { EmailModule } from './email/email.module'
+import { AnalyticsModule } from './analytics/analytics.module'
 
 // Guards & Interceptors (native NestJS)
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard'
@@ -93,7 +94,8 @@ import { AppService } from './app.service'
 		BillingModule,
 		NotificationsModule,
 		HealthModule,
-		EmailModule
+		EmailModule,
+		AnalyticsModule
 	],
 	controllers: [AppController],
 	providers: [

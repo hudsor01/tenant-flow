@@ -11,12 +11,12 @@ export interface SupabaseOAuthResult {
 
 const getURL = () => {
 	let url =
-		process?.env?.NEXT_PUBLIC_SITE_URL ?? // Set this to your site URL in production
+		process?.env?.NEXT_PUBLIC_SITE_URL ?? // Production site URL
 		process?.env?.NEXT_PUBLIC_VERCEL_URL ?? // Automatically set by Vercel
-		'http://localhost:3000/'
-	// Make sure to include `https` in production
+		'https://tenantflow.app' // Production fallback
+	// Ensure HTTPS in production
 	url = url.includes('http') ? url : `https://${url}`
-	// Make sure to include a trailing `/`
+	// Ensure trailing slash
 	url = url.charAt(url.length - 1) === '/' ? url : `${url}/`
 	return url
 }
@@ -190,9 +190,7 @@ export function onAuthStateChange(
 			data: {
 				subscription: {
 					unsubscribe: () => {
-						logger.debug(
-							'Auth state change unsubscribed - no cleanup needed for null client'
-						)
+						// No cleanup needed for null client
 					}
 				}
 			}
@@ -208,9 +206,6 @@ export function onAuthStateChange(
 			subscription: {
 				unsubscribe: () => {
 					subscription.unsubscribe()
-					logger.debug(
-						'Auth state change subscription properly unsubscribed'
-					)
 				}
 			}
 		}

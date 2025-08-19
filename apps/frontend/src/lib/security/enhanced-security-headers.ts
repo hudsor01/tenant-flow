@@ -2,10 +2,10 @@
  * Enhanced Security Headers with Nonce-Based CSP
  * Production-grade security with comprehensive protection
  *
- * CRITICAL FIXES FOR NEXT.JS 15 PRODUCTION:
+ * PRODUCTION CONFIGURATION FOR NEXT.JS 15:
  * - unsafe-eval REQUIRED for Next.js dynamic imports and webpack chunks
  * - unsafe-inline REQUIRED for Next.js initialization scripts
- * - Dynamic domain detection based on NEXT_PUBLIC_APP_URL
+ * - Production domain detection based on NEXT_PUBLIC_APP_URL
  * - Middleware excludes _next/ routes to prevent CSP conflicts
  *
  * CSP Configuration supports:
@@ -168,19 +168,15 @@ const ENHANCED_SECURITY_CONFIG = {
  * Get allowed domains based on environment
  */
 function getAllowedDomains(): string[] {
-	const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+	const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tenantflow.app'
 	const domains = ["'self'"]
 
-	// Add current domain
+	// Production domains only
 	if (baseUrl.includes('tenantflow.app')) {
 		domains.push('https://tenantflow.app')
 	} else if (baseUrl.includes('vercel.app')) {
 		domains.push('*.vercel.app')
 		domains.push('*.vercel-deployments.com')
-	} else if (baseUrl.includes('localhost')) {
-		domains.push('http://localhost:3000')
-		domains.push('http://localhost:3004')
-		domains.push('ws://localhost:*')
 	}
 
 	return domains
@@ -189,7 +185,7 @@ function getAllowedDomains(): string[] {
 /**
  * Build CSP header with nonce replacement
  */
-function buildEnhancedCSPHeader(isDevelopment: boolean, nonce: string): string {
+function buildEnhancedCSPHeader(isProduction: boolean, nonce: string): string {
 	const csp = { ...ENHANCED_SECURITY_CONFIG.CSP }
 
 	// Get dynamic domains based on environment
@@ -212,44 +208,12 @@ function buildEnhancedCSPHeader(isDevelopment: boolean, nonce: string): string {
 		src.replace('{{NONCE}}', nonce)
 	)
 
-	if (isDevelopment) {
-		// Development-specific CSP adjustments for Next.js
-		csp['connect-src'] = [
-			...csp['connect-src'],
-			'ws://localhost:*',
-			'ws://127.0.0.1:*',
-			'http://localhost:*',
-			'http://127.0.0.1:*',
-			// Next.js dev server
-			'http://localhost:3000',
-			'http://localhost:3004'
-		]
-
-		// Allow unsafe-eval for development builds (Next.js requires this)
-		csp['script-src'] = [
-			...csp['script-src'],
-			"'unsafe-eval'",
-			"'unsafe-inline'"
-		]
-
-		// Allow unsafe-inline for development styles (Next.js dev mode)
-		csp['style-src'] = [...csp['style-src'], "'unsafe-inline'"]
-
-		// More permissive object-src for development
-		csp['object-src'] = ["'none'"]
-
-		// Allow data URLs for fonts in development
-		csp['font-src'] = [...csp['font-src'], "'unsafe-inline'"]
-	} else {
-		// Production: Keep both unsafe-inline AND unsafe-eval for Next.js compatibility
-		// Next.js requires these for proper functionality even in production:
-		// - unsafe-inline: For inline scripts and initialization
-		// - unsafe-eval: For dynamic imports and code splitting chunks
-		// The framework adds its own security measures for safe evaluation
-		// Do NOT remove unsafe-eval in production - Next.js needs it for chunks
-		// csp['script-src'] = csp['script-src'] (keep as-is)
-		// Keep unsafe-inline for styles as Next.js requires it
-	}
+	// Production: Keep both unsafe-inline AND unsafe-eval for Next.js compatibility
+	// Next.js requires these for proper functionality even in production:
+	// - unsafe-inline: For inline scripts and initialization
+	// - unsafe-eval: For dynamic imports and code splitting chunks
+	// The framework adds its own security measures for safe evaluation
+	// Do NOT remove unsafe-eval in production - Next.js needs it for chunks
 
 	// Build CSP string
 	return Object.entries(csp)
@@ -279,25 +243,13 @@ export function applyEnhancedSecurityHeaders(
 	request: NextRequest,
 	sessionId?: string
 ): NextResponse {
-	const isProduction = process.env.NODE_ENV === 'production'
-	const isDevelopment = process.env.NODE_ENV === 'development'
 
 	// Generate nonce for this request
 	const nonce = getOrCreateNonce(sessionId)
 
-	// Content Security Policy with nonce
-	const cspHeader = buildEnhancedCSPHeader(isDevelopment, nonce)
-
-	// Apply CSP in production or when explicitly enabled in development
-	// CRITICAL: Always apply CSP in production to prevent JS blocking issues
-	if (isProduction || process.env.ENABLE_DEV_CSP === 'true') {
-		response.headers.set('Content-Security-Policy', cspHeader)
-
-		// Log CSP header in development for debugging
-		if (isDevelopment && process.env.ENABLE_DEV_CSP === 'true') {
-			console.log('[CSP DEBUG]', { cspHeader, nonce })
-		}
-	}
+	// Content Security Policy with nonce (production configuration)
+	const cspHeader = buildEnhancedCSPHeader(true, nonce)
+	response.headers.set('Content-Security-Policy', cspHeader)
 
 	// Store nonce in response header for client access
 	response.headers.set('X-CSP-Nonce', nonce)
@@ -308,11 +260,9 @@ export function applyEnhancedSecurityHeaders(
 	//   response.headers.set('Content-Security-Policy-Report-Only', cspHeader);
 	// }
 
-	// Strict Transport Security (HTTPS only)
-	if (isProduction) {
-		const hstsHeader = `max-age=${ENHANCED_SECURITY_CONFIG.HSTS.maxAge}; includeSubDomains; preload`
-		response.headers.set('Strict-Transport-Security', hstsHeader)
-	}
+	// Strict Transport Security (HTTPS enforced)
+	const hstsHeader = `max-age=${ENHANCED_SECURITY_CONFIG.HSTS.maxAge}; includeSubDomains; preload`
+	response.headers.set('Strict-Transport-Security', hstsHeader)
 
 	// Enhanced security headers
 	response.headers.set('X-Frame-Options', 'DENY')
@@ -343,13 +293,11 @@ export function applyEnhancedSecurityHeaders(
 	response.headers.set('X-Permitted-Cross-Domain-Policies', 'none') // Adobe Flash/PDF
 	response.headers.set('X-DNS-Prefetch-Control', 'on')
 
-	// Certificate Transparency
-	if (isProduction) {
-		response.headers.set(
-			'Expect-CT',
-			'enforce, max-age=86400, report-uri="/.well-known/ct-report"'
-		)
-	}
+	// Certificate Transparency (production security)
+	response.headers.set(
+		'Expect-CT',
+		'enforce, max-age=86400, report-uri="/.well-known/ct-report"'
+	)
 
 	// Remove server information
 	response.headers.delete('Server')
@@ -371,11 +319,6 @@ export function applyEnhancedSecurityHeaders(
 		)
 	}
 
-	// Security debugging in development
-	if (isDevelopment) {
-		response.headers.set('X-Security-Debug', 'enabled')
-		// Removed X-CSP-Report-Only header as we're not using report-only mode
-	}
 
 	return response
 }
@@ -499,6 +442,7 @@ interface CSPViolationReport {
  * CSP violation report handler for monitoring
  */
 export function handleCSPViolation(violationReport: CSPViolationReport): void {
+	// Production monitoring only - log to monitoring service
 	console.warn('[CSP VIOLATION]', {
 		blockedURI: violationReport.blockedURI,
 		documentURI: violationReport.documentURI,
@@ -509,14 +453,12 @@ export function handleCSPViolation(violationReport: CSPViolationReport): void {
 		timestamp: new Date().toISOString()
 	})
 
-	// In production, send to monitoring service
-	if (process.env.NODE_ENV === 'production') {
-		// fetch('/api/csp-violations', {
-		//   method: 'POST',
-		//   headers: { 'Content-Type': 'application/json' },
-		//   body: JSON.stringify(violationReport)
-		// }).catch(console.error);
-	}
+	// Send to production monitoring service
+	// fetch('/api/csp-violations', {
+	//   method: 'POST',
+	//   headers: { 'Content-Type': 'application/json' },
+	//   body: JSON.stringify(violationReport)
+	// }).catch(console.error);
 }
 
 /**

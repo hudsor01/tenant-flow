@@ -60,10 +60,7 @@ export class PropertyExportController {
 					: 0,
 				sortOrder: 'desc' as const
 			}
-			const properties = await this.propertiesService.getByOwner(
-				user.id,
-				normalizedQuery
-			)
+			const properties = await this.propertiesService.findAll(user.id)
 
 			// Convert to CSV
 			const csvData = this.convertToCSV(
