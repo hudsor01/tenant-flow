@@ -232,7 +232,6 @@ $RECYCLE.BIN/
 # DEPLOYMENT & CLOUD
 # ========================================
 .vercel
-.netlify
 
 # Docker
 docker-compose.override.yml
@@ -266,7 +265,6 @@ k8s-secrets.yaml
 /tenant-files/
 uploads/
 avatars/
-documents/
 temp/
 
 # Development files
@@ -309,12 +307,6 @@ pids
 # RULE: Ignore ALL .env files by default
 .env
 .env.*
-
-# EXCEPTION: Only allow example files to be committed
-!.env.example
-!.env.*.example
-!*/.env.example
-!*/.env.*.example
 
 # Double-check local files are NEVER committed
 .env.local
@@ -386,7 +378,6 @@ dist/
 build/
 .next/
 out/
-.nuxt/
 .turbo/
 *.tsbuildinfo
 
@@ -450,7 +441,6 @@ $RECYCLE.BIN/
 # ========================================
 # PROJECT SPECIFIC
 # ========================================
-packages/database/src/generated/
 
 # Uploads (user data)
 uploads/
