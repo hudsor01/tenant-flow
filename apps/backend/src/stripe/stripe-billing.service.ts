@@ -58,8 +58,6 @@ export interface BillingConfig {
 // @TraceInjections
 @Injectable()
 export class StripeBillingService {
-	// 🚨 DEBUG: Adding static property to verify class is being loaded
-	static readonly DEBUG_TOKEN = 'STRIPE_BILLING_SERVICE_LOADED'
 	private readonly logger = new Logger(StripeBillingService.name)
 
 	// PERFORMANCE: Lazy-initialize config to avoid blocking constructor

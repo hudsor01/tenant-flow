@@ -3,10 +3,7 @@
  * Integrated with security input sanitization system
  */
 import { z } from 'zod'
-import {
-	sanitizeText,
-	validateAndSanitizeInput
-} from '../security/input-sanitization'
+import { Security } from '../security'
 
 // Re-export shared validation schemas to avoid duplication
 export {
@@ -46,12 +43,9 @@ export const commonValidations = {
 		.string()
 		.min(10, 'Please provide a detailed description')
 		.max(1000, 'Description must be less than 1000 characters')
-		.transform(val => sanitizeText(val))
+		.transform(val => Security.sanitizeInput(val).sanitized || val)
 		.refine(val => {
-			const validation = validateAndSanitizeInput(val, {
-				type: 'text',
-				strict: true
-			})
+			const validation = Security.sanitizeInput(val)
 			return validation.valid
 		}, 'Description contains invalid or potentially dangerous content'),
 
@@ -62,10 +56,7 @@ export const commonValidations = {
 		.email('Please enter a valid email address')
 		.transform(val => val.toLowerCase().trim())
 		.refine(val => {
-			const validation = validateAndSanitizeInput(val, {
-				type: 'email',
-				strict: true
-			})
+			const validation = Security.validateEmail(val)
 			return validation.valid
 		}, 'Email contains invalid characters'),
 

@@ -1,29 +1,15 @@
 /**
- * Simplified Security System - Main Export
- * Essential security functions for TenantFlow MVP
+ * Consolidated Security System - Main Export
+ * Production-ready security utilities with no conflicts
  */
 
 import { logger } from '@/lib/logger'
 
-// Core Simplified Security
-export { SimpleSecurity, withBasicSecurity, withAuth } from './simple-security'
-export type { UserRole } from './simple-security'
+// Core Consolidated Security
+export { default as Security, withSecurity, withAuth } from './security'
+export type { UserRole, Permission } from './security'
 
-// Keep essential input sanitization exports
-export {
-	validateAndSanitizeInput,
-	sanitizeHTML,
-	sanitizeText,
-	sanitizeURL,
-	detectXSS,
-	detectSQLInjection,
-	detectPathTraversal,
-	detectCommandInjection,
-	sanitizeFormData,
-	createSanitizationMiddleware
-} from './input-sanitization'
-
-// Keep JWT validation (simplified)
+// Keep JWT validation (if still needed elsewhere)
 export {
 	validateJWT,
 	extractOrganizationId,
@@ -31,7 +17,7 @@ export {
 	isTokenNearExpiration
 } from './jwt-validator'
 
-// Keep file upload security - still needed
+// Keep file upload security (if still needed elsewhere)
 export {
 	validateFile,
 	validateMultipleFiles,
@@ -40,8 +26,8 @@ export {
 	updateFileConfig
 } from './file-upload-security'
 
-// Simplified Security Configuration
-export interface SimplifiedSecurityConfig {
+// Consolidated Security Configuration
+export interface SecurityConfig {
 	fileUpload: {
 		maxSize: number
 		allowedTypes: string[]
@@ -52,7 +38,7 @@ export interface SimplifiedSecurityConfig {
 	}
 }
 
-export const DEFAULT_SECURITY_CONFIG: SimplifiedSecurityConfig = {
+export const DEFAULT_SECURITY_CONFIG: SecurityConfig = {
 	fileUpload: {
 		maxSize: 50 * 1024 * 1024, // 50MB
 		allowedTypes: ['image/*', 'application/pdf', 'application/msword']
@@ -64,37 +50,37 @@ export const DEFAULT_SECURITY_CONFIG: SimplifiedSecurityConfig = {
 }
 
 /**
- * Initialize simplified security system
+ * Initialize consolidated security system
  */
 export function initializeSecurity(
-	config: Partial<SimplifiedSecurityConfig> = {}
+	config: Partial<SecurityConfig> = {}
 ) {
 	const finalConfig = { ...DEFAULT_SECURITY_CONFIG, ...config }
 
-	logger.info('🔒 Initializing Simplified Security System', {
+	logger.info('🔒 Initializing Consolidated Security System', {
 		component: 'lib_security_index.ts'
 	})
-	logger.info('├── Input Sanitization:', {
+	logger.info('├── Input Sanitization & XSS Protection:', {
 		component: 'lib_security_index.ts',
 		data: '✓'
 	})
-	logger.info('├── JWT Validation:', {
+	logger.info('├── Password Validation:', {
 		component: 'lib_security_index.ts',
 		data: '✓'
 	})
-	logger.info('├── Password Security:', {
+	logger.info('├── RBAC Permissions:', {
 		component: 'lib_security_index.ts',
 		data: '✓'
 	})
-	logger.info('├── File Upload Security:', {
+	logger.info('├── Security Headers:', {
 		component: 'lib_security_index.ts',
 		data: '✓'
 	})
-	logger.info('├── Basic Security Headers:', {
+	logger.info('├── Threat Detection:', {
 		component: 'lib_security_index.ts',
 		data: '✓'
 	})
-	logger.info('└── Simple Role Check:', {
+	logger.info('└── Auth Context Extraction:', {
 		component: 'lib_security_index.ts',
 		data: '✓'
 	})
@@ -146,7 +132,7 @@ export async function performSecurityHealthCheck(): Promise<{
 }
 
 /**
- * Essential security best practices for MVP
+ * Essential security best practices for production
  */
 export const ESSENTIAL_SECURITY_PRACTICES = [
 	'Enable HTTPS in production',
@@ -154,7 +140,7 @@ export const ESSENTIAL_SECURITY_PRACTICES = [
 	'Implement strong password policies',
 	'Keep dependencies updated',
 	'Validate all user inputs',
-	'Use secure session management'
+	'Use secure session management',
+	'Apply proper RBAC permissions',
+	'Monitor for security threats'
 ]
-
-// Simple security utilities - no complex emergency response needed for MVP

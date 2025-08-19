@@ -18,7 +18,7 @@ import type {
 	UnitRepository,
 	PropertyStats
 } from '@/repositories/interfaces'
-import { Money, DomainError, ValidationError } from '@repo/shared'
+import { Money, DomainError, ValidationErrorClass as ValidationError } from '@repo/shared'
 
 export interface PropertyManagementService {
 	getProperty(id: string): Promise<Result<Property>>

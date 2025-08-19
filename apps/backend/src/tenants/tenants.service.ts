@@ -1,416 +1,349 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, Inject, Injectable, Logger, NotFoundException, Scope } from '@nestjs/common'
+import { REQUEST } from '@nestjs/core'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@repo/shared/types/supabase-generated'
-import {
-	TenantQueryOptions,
-	TenantsSupabaseRepository,
-	TenantWithRelations
-} from './tenants-supabase.repository'
-import { ErrorHandlerService } from '../common/errors/error-handler.service'
-import { ValidationException } from '../common/exceptions/base.exception'
-import { TenantCreateDto, TenantUpdateDto } from './dto'
-import { FairHousingService } from '../common/validation/fair-housing.service'
+import type { AuthRequest } from '../shared/types'
+import { SupabaseService } from '../database/supabase.service'
+import { CreateTenantDto as TenantCreateDto, UpdateTenantDto as TenantUpdateDto } from './dto'
 
+type Tenant = Database['public']['Tables']['Tenant']['Row']
 type TenantInsert = Database['public']['Tables']['Tenant']['Insert']
 type TenantUpdate = Database['public']['Tables']['Tenant']['Update']
 
+export interface TenantWithRelations extends Tenant {
+	_Lease?: {
+		id: string
+		startDate: string
+		endDate: string
+		status: string
+		rentAmount: number
+		Unit?: {
+			id: string
+			unitNumber: string
+			Property?: {
+				id: string
+				name: string
+				address: string
+				ownerId: string
+			}
+		}
+	}[]
+}
+
 /**
- * Tenants service using Supabase
- * Handles tenant management with property ownership validation through leases
+ * Tenants service - Direct Supabase implementation following KISS principle
+ * No abstraction layers, no base classes, just simple CRUD operations
+ * Note: Tenants are accessed through property ownership via leases
  */
-@Injectable()
+@Injectable({ scope: Scope.REQUEST })
 export class TenantsService {
 	private readonly logger = new Logger(TenantsService.name)
+	private readonly supabase: SupabaseClient<Database>
 
 	constructor(
-		private readonly repository: TenantsSupabaseRepository,
-		private readonly errorHandler: ErrorHandlerService,
-		private readonly fairHousingService: FairHousingService
-	) {}
-
-	/**
-	 * Create a new tenant with Fair Housing compliance validation
-	 */
-	async create(
-		data: TenantCreateDto,
-		_ownerId: string,
-		userId?: string,
-		userToken?: string
-	): Promise<TenantWithRelations> {
-		try {
-			// Fair Housing Act compliance validation
-			await this.fairHousingService.validateTenantData(
-				data as unknown as Record<string, unknown>,
-				'system'
-			)
-
-			// Standard validation
-			this.validateCreateData(data)
-
-			// Combine firstName and lastName to create the name field
-			const tenantData: TenantInsert = {
-				name: data.name,
-				email: data.email,
-				phone: data.phone,
-				emergencyContact: data.emergencyContact
-					? `${data.emergencyContact}${data.emergencyPhone ? ` - ${data.emergencyPhone}` : ''}`
-					: undefined,
-				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString()
-			}
-
-			const tenant = await this.repository.create(
-				tenantData,
-				userId,
-				userToken
-			)
-
-			this.logger.log('Tenant created successfully', {
-				tenantId: tenant.id,
-				name: tenant.name,
-				email: tenant.email
-			})
-
-			return tenant
-		} catch (error) {
-			this.logger.error('Failed to create tenant:', error)
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'create',
-				resource: 'tenant',
-				metadata: {
-					email: data.email,
-					name: data.name
-				}
-			})
-		}
-	}
-
-	/**
-	 * Validate tenant create data
-	 */
-	private validateCreateData(data: TenantCreateDto): void {
-		if (!data.name?.trim()) {
-			throw new ValidationException('Tenant name is required', 'name', [
-				'Name is required'
-			])
-		}
-		if (!data.email?.trim()) {
-			throw new ValidationException('Tenant email is required', 'email')
-		}
-	}
-
-	/**
-	 * Find tenant by ID
-	 */
-	async findById(
-		id: string,
-		ownerId: string,
-		userId?: string,
-		userToken?: string
-	): Promise<TenantWithRelations> {
-		try {
-			const tenant = await this.repository.findByIdAndOwner(
-				id,
-				ownerId,
-				true,
-				userId,
-				userToken
-			)
-
-			if (!tenant) {
-				throw new Error('Tenant not found')
-			}
-
-			return tenant
-		} catch (error) {
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'findById',
-				resource: 'tenant',
-				metadata: { tenantId: id, ownerId }
-			})
-		}
+		@Inject(REQUEST) private request: AuthRequest,
+		private supabaseService: SupabaseService
+	) {
+		// Get user-scoped client if token available, otherwise admin client
+		const token = this.request.user?.supabaseToken ||
+			this.request.headers?.authorization?.replace('Bearer ', '')
+		
+		this.supabase = token 
+			? this.supabaseService.getUserClient(token)
+			: this.supabaseService.getAdminClient()
 	}
 
 	/**
 	 * Get all tenants for an owner through lease relationships
 	 */
-	async findByOwner(
-		ownerId: string,
-		options: TenantQueryOptions = {},
-		userId?: string,
-		userToken?: string
-	): Promise<TenantWithRelations[]> {
-		try {
-			// Validate owner ID
-			if (
-				!ownerId ||
-				typeof ownerId !== 'string' ||
-				ownerId.trim().length === 0
-			) {
-				throw new ValidationException('Owner ID is required', 'ownerId')
-			}
+	async findAll(ownerId: string): Promise<TenantWithRelations[]> {
+		const { data, error } = await this.supabase
+			.from('Tenant')
+			.select(`
+				*,
+				Lease!inner (
+					id,
+					startDate,
+					endDate,
+					status,
+					rentAmount,
+					Unit!inner (
+						id,
+						unitNumber,
+						Property!inner (
+							id,
+							name,
+							address,
+							ownerId
+						)
+					)
+				)
+			`)
+			.eq('Lease.Unit.Property.ownerId', ownerId)
+			.order('createdAt', { ascending: false })
 
-			return await this.repository.findByOwnerWithLeases(
-				ownerId,
-				options,
-				userId,
-				userToken
-			)
-		} catch (error) {
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'findByOwner',
-				resource: 'tenant',
-				metadata: { ownerId }
-			})
+		if (error) {
+			this.logger.error('Failed to fetch tenants:', error)
+			throw new BadRequestException(error.message)
 		}
+
+		return data as TenantWithRelations[]
+	}
+
+	/**
+	 * Get single tenant by ID with ownership validation
+	 */
+	async findOne(id: string, ownerId: string): Promise<TenantWithRelations> {
+		const { data, error } = await this.supabase
+			.from('Tenant')
+			.select(`
+				*,
+				Lease (
+					id,
+					startDate,
+					endDate,
+					status,
+					rentAmount,
+					Unit (
+						id,
+						unitNumber,
+						Property (
+							id,
+							name,
+							address,
+							ownerId
+						)
+					)
+				)
+			`)
+			.eq('id', id)
+			.single()
+
+		if (error) {
+			if (error.code === 'PGRST116') {
+				throw new NotFoundException(`Tenant not found`)
+			}
+			this.logger.error('Failed to fetch tenant:', error)
+			throw new BadRequestException(error.message)
+		}
+
+		// Validate ownership through lease relationship
+		const tenant = data as TenantWithRelations
+		const hasOwnership = tenant.Lease?.some(
+			lease => lease.Unit?.Property?.ownerId === ownerId
+		)
+
+		if (!hasOwnership) {
+			throw new NotFoundException(`Tenant not found`)
+		}
+
+		return tenant
+	}
+
+	/**
+	 * Create new tenant
+	 */
+	async create(dto: TenantCreateDto, _ownerId: string): Promise<TenantWithRelations> {
+		const tenantData: TenantInsert = {
+			name: dto.name,
+			email: dto.email,
+			phone: dto.phone,
+			emergencyContact: dto.emergencyContact
+				? `${dto.emergencyContact}${dto.emergencyPhone ? ` - ${dto.emergencyPhone}` : ''}`
+				: undefined,
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString()
+		}
+
+		const { data, error } = await this.supabase
+			.from('Tenant')
+			.insert(tenantData)
+			.select(`
+				*,
+				Lease (
+					id,
+					startDate,
+					endDate,
+					status,
+					rentAmount,
+					Unit (
+						id,
+						unitNumber,
+						Property (
+							id,
+							name,
+							address,
+							ownerId
+						)
+					)
+				)
+			`)
+			.single()
+
+		if (error) {
+			this.logger.error('Failed to create tenant:', error)
+			throw new BadRequestException(error.message)
+		}
+
+		this.logger.log(`Tenant created: ${data.id}`)
+		return data as TenantWithRelations
 	}
 
 	/**
 	 * Update tenant
 	 */
 	async update(
-		id: string,
-		data: TenantUpdateDto,
-		ownerId: string,
-		userId?: string,
-		userToken?: string
+		id: string, 
+		dto: TenantUpdateDto, 
+		ownerId: string
 	): Promise<TenantWithRelations> {
-		try {
-			// Verify ownership first
-			const existing = await this.repository.findByIdAndOwner(
-				id,
-				ownerId,
-				false,
-				userId,
-				userToken
-			)
+		// Verify ownership first
+		await this.findOne(id, ownerId)
 
-			if (!existing) {
-				throw new Error('Tenant not found')
-			}
-
-			const updateData: TenantUpdate = {
-				...data,
-				updatedAt: new Date().toISOString()
-			}
-
-			const updated = await this.repository.update(
-				id,
-				updateData,
-				userId,
-				userToken
-			)
-
-			this.logger.log('Tenant updated successfully', {
-				tenantId: id,
-				ownerId
-			})
-
-			return updated
-		} catch (error) {
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'update',
-				resource: 'tenant',
-				metadata: { tenantId: id, ownerId }
-			})
+		const updateData: TenantUpdate = {
+			...dto,
+			emergencyContact: dto.emergencyContact
+				? `${dto.emergencyContact}${dto.emergencyPhone ? ` - ${dto.emergencyPhone}` : ''}`
+				: undefined,
+			updatedAt: new Date().toISOString()
 		}
+
+		const { data, error } = await this.supabase
+			.from('Tenant')
+			.update(updateData)
+			.eq('id', id)
+			.select(`
+				*,
+				Lease (
+					id,
+					startDate,
+					endDate,
+					status,
+					rentAmount,
+					Unit (
+						id,
+						unitNumber,
+						Property (
+							id,
+							name,
+							address,
+							ownerId
+						)
+					)
+				)
+			`)
+			.single()
+
+		if (error) {
+			this.logger.error('Failed to update tenant:', error)
+			throw new BadRequestException(error.message)
+		}
+
+		this.logger.log(`Tenant updated: ${id}`)
+		return data as TenantWithRelations
 	}
 
 	/**
 	 * Delete tenant (with validation for active leases)
 	 */
-	async delete(
-		id: string,
-		ownerId: string,
-		userId?: string,
-		userToken?: string
-	): Promise<void> {
-		try {
-			// Verify ownership first
-			const existing = await this.repository.findByIdAndOwner(
-				id,
-				ownerId,
-				false,
-				userId,
-				userToken
-			)
+	async remove(id: string, ownerId: string): Promise<void> {
+		// Verify ownership first
+		await this.findOne(id, ownerId)
 
-			if (!existing) {
-				throw new Error('Tenant not found')
-			}
+		// Check for active leases
+		const { data: activeLeases } = await this.supabase
+			.from('Lease')
+			.select('id')
+			.eq('tenantId', id)
+			.eq('status', 'ACTIVE')
+			.limit(1)
 
-			// Check for active leases before deletion
-			const hasActiveLeases = await this.repository.hasActiveLeases(
-				id,
-				ownerId,
-				userId,
-				userToken
-			)
-
-			if (hasActiveLeases) {
-				throw new ValidationException(
-					'Cannot delete tenant with active leases',
-					'tenantId'
-				)
-			}
-
-			await this.repository.delete(id, userId, userToken)
-
-			this.logger.log('Tenant deleted successfully', {
-				tenantId: id,
-				ownerId
-			})
-		} catch (error) {
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'delete',
-				resource: 'tenant',
-				metadata: { tenantId: id, ownerId }
-			})
+		if (activeLeases && activeLeases.length > 0) {
+			throw new BadRequestException('Cannot delete tenant with active leases')
 		}
+
+		const { error } = await this.supabase
+			.from('Tenant')
+			.delete()
+			.eq('id', id)
+
+		if (error) {
+			this.logger.error('Failed to delete tenant:', error)
+			throw new BadRequestException(error.message)
+		}
+
+		this.logger.log(`Tenant deleted: ${id}`)
 	}
 
 	/**
 	 * Get tenant statistics for owner
 	 */
-	async getStats(
-		ownerId: string,
-		userId?: string,
-		userToken?: string
-	): Promise<{
+	async getStats(ownerId: string): Promise<{
 		total: number
 		active: number
 		inactive: number
 		withActiveLeases: number
 	}> {
-		try {
-			return await this.repository.getStatsByOwner(
-				ownerId,
-				userId,
-				userToken
-			)
-		} catch (error) {
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'getStats',
-				resource: 'tenant',
-				metadata: { ownerId }
-			})
+		const tenants = await this.findAll(ownerId)
+
+		const stats = {
+			total: tenants.length,
+			active: 0,
+			inactive: 0,
+			withActiveLeases: 0
 		}
+
+		for (const tenant of tenants) {
+			const hasActiveLeases = tenant.Lease?.some(
+				lease => lease.status === 'ACTIVE'
+			)
+
+			if (hasActiveLeases) {
+				stats.active++
+				stats.withActiveLeases++
+			} else {
+				stats.inactive++
+			}
+		}
+
+		return stats
 	}
 
 	/**
-	 * Create tenant with lease assignment
+	 * Search tenants
 	 */
-	async createWithLease(
-		tenantData: TenantCreateDto,
-		leaseData: Database['public']['Tables']['Lease']['Insert'],
-		ownerId: string,
-		userId?: string,
-		userToken?: string
-	): Promise<TenantWithRelations> {
-		try {
-			// Fair Housing validation
-			await this.fairHousingService.validateTenantData(
-				tenantData as unknown as Record<string, unknown>,
-				'system'
-			)
+	async search(ownerId: string, searchTerm: string): Promise<TenantWithRelations[]> {
+		const { data, error } = await this.supabase
+			.from('Tenant')
+			.select(`
+				*,
+				Lease!inner (
+					id,
+					startDate,
+					endDate,
+					status,
+					rentAmount,
+					Unit!inner (
+						id,
+						unitNumber,
+						Property!inner (
+							id,
+							name,
+							address,
+							ownerId
+						)
+					)
+				)
+			`)
+			.eq('Lease.Unit.Property.ownerId', ownerId)
+			.or(`name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,phone.ilike.%${searchTerm}%`)
+			.order('createdAt', { ascending: false })
 
-			this.validateCreateData(tenantData)
-
-			// Prepare tenant data
-			const tenantInsert: TenantInsert = {
-				name: tenantData.name,
-				email: tenantData.email,
-				phone: tenantData.phone,
-				emergencyContact: tenantData.emergencyContact
-					? `${tenantData.emergencyContact}${tenantData.emergencyPhone ? ` - ${tenantData.emergencyPhone}` : ''}`
-					: undefined,
-				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString()
-			}
-
-			const result = await this.repository.createWithLease(
-				tenantInsert,
-				leaseData,
-				userId,
-				userToken
-			)
-
-			this.logger.log('Tenant created with lease successfully', {
-				tenantId: result.id,
-				name: result.name,
-				ownerId
-			})
-
-			return result
-		} catch (error) {
-			this.logger.error('Failed to create tenant with lease:', error)
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'createWithLease',
-				resource: 'tenant',
-				metadata: {
-					email: tenantData.email,
-					name: tenantData.name,
-					ownerId
-				}
-			})
+		if (error) {
+			this.logger.error('Failed to search tenants:', error)
+			throw new BadRequestException(error.message)
 		}
-	}
 
-	/**
-	 * Search tenants by text
-	 */
-	async search(
-		ownerId: string,
-		searchTerm: string,
-		options: TenantQueryOptions = {},
-		userId?: string,
-		userToken?: string
-	): Promise<TenantWithRelations[]> {
-		try {
-			const searchOptions = {
-				...options,
-				search: searchTerm
-			}
-
-			return await this.repository.findByOwnerWithLeases(
-				ownerId,
-				searchOptions,
-				userId,
-				userToken
-			)
-		} catch (error) {
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'search',
-				resource: 'tenant',
-				metadata: { ownerId, searchTerm }
-			})
-		}
-	}
-
-	/**
-	 * Get tenants with active leases only
-	 */
-	async getActiveTenantsWithLeases(
-		ownerId: string,
-		userId?: string,
-		userToken?: string
-	): Promise<TenantWithRelations[]> {
-		try {
-			const options: TenantQueryOptions = {
-				status: 'ACTIVE'
-			}
-
-			return await this.repository.findByOwnerWithLeases(
-				ownerId,
-				options,
-				userId,
-				userToken
-			)
-		} catch (error) {
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'getActiveTenantsWithLeases',
-				resource: 'tenant',
-				metadata: { ownerId }
-			})
-		}
+		return data as TenantWithRelations[]
 	}
 }

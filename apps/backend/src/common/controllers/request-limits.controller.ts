@@ -329,8 +329,7 @@ export class RequestLimitsController {
 	} {
 		const metrics = this.requestLimitsService.getMetrics()
 
-		// Note: This is a simplified version. In a real implementation,
-		// you might want to track more detailed rate limiting statistics
+		// Note: In a real implementation, you might want to track more detailed rate limiting statistics
 		return {
 			enabled: true, // From config
 			windowMs: 15 * 60 * 1000, // 15 minutes (from config)

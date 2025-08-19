@@ -89,10 +89,9 @@ export class EnvValidator {
 	 * Validate environment variables on application startup
 	 */
 	static validate(): void {
-		const env = process.env.NODE_ENV || 'production' // Default to production for safety
 		const errors: string[] = []
 		const warnings: string[] = []
-		const info: string[] = []
+		const env = process.env.NODE_ENV || 'development'
 
 		// Check required variables
 		for (const key of this.config.required) {
@@ -101,31 +100,11 @@ export class EnvValidator {
 			}
 		}
 
-		// Check environment-specific required variables
-		if (env === 'production' && this.config.production) {
-			for (const key of this.config.production) {
-				if (!process.env[key]) {
-					errors.push(
-						`Missing required production environment variable: ${key}`
-					)
-				}
-			}
-		}
 
 		// Check optional variables and provide warnings
 		for (const key of this.config.optional) {
 			if (!process.env[key]) {
-				// Only warn for critical optional variables in production
-				if (
-					env === 'production' &&
-					this.config.production?.includes(key)
-				) {
-					warnings.push(
-						`Missing recommended environment variable for production: ${key}`
-					)
-				} else if (env === 'development') {
-					info.push(`Optional environment variable not set: ${key}`)
-				}
+				warnings.push(`Optional environment variable not set: ${key}`)
 			}
 		}
 
@@ -136,10 +115,6 @@ export class EnvValidator {
 		this.validateSecrets(errors, env)
 
 		// Log results
-		if (info.length > 0 && env === 'development') {
-			this.logger.debug('Environment configuration info:')
-			info.forEach(msg => this.logger.debug(`  ℹ️  ${msg}`))
-		}
 
 		if (warnings.length > 0) {
 			this.logger.warn('Environment configuration warnings:')
@@ -149,18 +124,10 @@ export class EnvValidator {
 		if (errors.length > 0) {
 			this.logger.error('Environment configuration errors:')
 			errors.forEach(msg => this.logger.error(`  ❌ ${msg}`))
-
-			if (env === 'production') {
-				this.logger.error(
-					'Environment validation failed in production. Some features may not work.'
-				)
-				// Don't throw in production to allow partial functionality
-				this.logger.warn('Continuing with limited functionality...')
-			} else {
-				this.logger.warn(
-					'Continuing despite errors (non-production environment)'
-				)
-			}
+			this.logger.error(
+				'Environment validation failed. Some features may not work.'
+			)
+			this.logger.warn('Continuing with limited functionality...')
 		} else {
 			this.logger.log(
 				'✅ Environment configuration validated successfully'

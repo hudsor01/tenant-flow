@@ -5,7 +5,6 @@ import { RedisService } from './redis.service'
 import { CacheService } from './cache.service'
 import { RedisPubSubService } from './redis-pubsub.service'
 import { CacheMetricsService } from './cache-metrics.service'
-import { CacheDebugController } from './cache-debug.controller'
 
 /**
  * Global Redis Module
@@ -24,8 +23,12 @@ import { CacheDebugController } from './cache-debug.controller'
 					configService.get<string>('REDIS_CONNECTION_STRING')
 
 				if (!redisUrl) {
+					if (process.env.NODE_ENV === 'production') {
+						logger.error('Redis URL not configured in production - failing fast')
+						throw new Error('REDIS_URL is required in production environment')
+					}
 					logger.warn(
-						'Redis URL not configured, using in-memory fallback'
+						'Redis URL not configured, using in-memory fallback (development only)'
 					)
 					return null
 				}
@@ -79,7 +82,6 @@ import { CacheDebugController } from './cache-debug.controller'
 		RedisPubSubService,
 		CacheMetricsService
 	],
-	controllers: [CacheDebugController],
 	exports: [
 		'REDIS_CLIENT',
 		RedisService,

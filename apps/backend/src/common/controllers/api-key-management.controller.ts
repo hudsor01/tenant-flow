@@ -542,7 +542,7 @@ export class ApiKeyManagementController {
 		apiKeys: {
 			total: number
 			active: number
-			expiringSoon: number // expires within 7 days
+			expiringSoon: number
 			expired: number
 		}
 		externalServices: {
@@ -573,14 +573,14 @@ export class ApiKeyManagementController {
 		const usageStats = this.apiKeyManagement.getUsageStats()
 		const healthStatus = this.apiKeyManagement.getServiceHealthStatus()
 
-		// const now = new Date()
-		// const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+		const now = new Date()
+		const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
 
 		// Calculate API key metrics
 		const apiKeyMetrics = {
 			total: usageStats.length,
 			active: usageStats.filter(stat => stat.totalRequests > 0).length,
-			expiringSoon: 0, // Would need to track expiration dates
+			expiringSoon: 0,
 			expired: 0
 		}
 
