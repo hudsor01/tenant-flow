@@ -178,16 +178,25 @@ export const configSchema = z
 			.transform(val => val !== 'false')
 			.default(true),
 
-		// Railway Platform Detection
-		RAILWAY_ENVIRONMENT: z.string().optional(),
+		// Railway Platform Detection (actual Railway environment variables)
+		RAILWAY_PUBLIC_DOMAIN: z.string().optional(),
+		RAILWAY_PRIVATE_DOMAIN: z.string().optional(),
+		RAILWAY_PROJECT_NAME: z.string().optional(),
+		RAILWAY_ENVIRONMENT_NAME: z.string().optional(),
 		RAILWAY_SERVICE_NAME: z.string().optional(),
 		RAILWAY_PROJECT_ID: z.string().optional(),
-		RAILWAY_DEPLOYMENT_ID: z.string().optional(),
-		RAILWAY_PUBLIC_DOMAIN: z.string().optional(),
-		RAILWAY_STATIC_URL: z.string().url().optional(),
-		RAILWAY_GIT_COMMIT_SHA: z.string().optional(),
-		RAILWAY_GIT_BRANCH: z.string().optional(),
-		RAILWAY_BUILD_ID: z.string().optional(),
+		RAILWAY_ENVIRONMENT_ID: z.string().optional(),
+		RAILWAY_SERVICE_ID: z.string().optional(),
+
+		// Additional project-specific variables
+		ALLOW_LOCALHOST_CORS: z
+			.string()
+			.optional()
+			.transform(val => val === 'true')
+			.default(false),
+		REDISHOST: z.string().optional(),
+		REDISPASSWORD: z.string().optional(),
+		REDISPORT: z.string().optional(),
 
 		// Vercel Platform Detection
 		VERCEL_ENV: z.string().optional(),
@@ -337,7 +346,7 @@ export const createDerivedConfig = (config: Config) => ({
 	// Deployment Platform Detection
 	deployment: {
 		platform: (() => {
-			if (config.RAILWAY_ENVIRONMENT) {
+			if (config.RAILWAY_ENVIRONMENT_NAME) {
 				return 'railway' as const
 			}
 			if (config.VERCEL_ENV) {
@@ -349,28 +358,25 @@ export const createDerivedConfig = (config: Config) => ({
 			return 'unknown' as const
 		})(),
 
-		isRailway: !!config.RAILWAY_ENVIRONMENT,
+		isRailway: !!config.RAILWAY_ENVIRONMENT_NAME,
 		isVercel: !!config.VERCEL_ENV,
 		isDocker: !!config.DOCKER_CONTAINER,
 
 		// Railway-specific info
-		railway: config.RAILWAY_ENVIRONMENT
+		railway: config.RAILWAY_ENVIRONMENT_NAME
 			? {
-					environment: config.RAILWAY_ENVIRONMENT,
+					environment: config.RAILWAY_ENVIRONMENT_NAME,
 					serviceName: config.RAILWAY_SERVICE_NAME,
 					projectId: config.RAILWAY_PROJECT_ID,
-					deploymentId: config.RAILWAY_DEPLOYMENT_ID,
+					environmentId: config.RAILWAY_ENVIRONMENT_ID,
+					serviceId: config.RAILWAY_SERVICE_ID,
 					publicDomain: config.RAILWAY_PUBLIC_DOMAIN,
-					staticUrl: config.RAILWAY_STATIC_URL,
-					gitCommit: config.RAILWAY_GIT_COMMIT_SHA,
-					gitBranch: config.RAILWAY_GIT_BRANCH,
-					buildId: config.RAILWAY_BUILD_ID,
+					privateDomain: config.RAILWAY_PRIVATE_DOMAIN,
+					projectName: config.RAILWAY_PROJECT_NAME,
 					// Computed service URL
-					serviceUrl:
-						config.RAILWAY_STATIC_URL ||
-						(config.RAILWAY_PUBLIC_DOMAIN
-							? `https://${config.RAILWAY_PUBLIC_DOMAIN}`
-							: undefined)
+					serviceUrl: config.RAILWAY_PUBLIC_DOMAIN
+						? `https://${config.RAILWAY_PUBLIC_DOMAIN}`
+						: undefined
 				}
 			: null,
 
