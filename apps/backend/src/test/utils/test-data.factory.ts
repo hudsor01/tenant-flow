@@ -1,20 +1,21 @@
 import { faker } from '@faker-js/faker'
 import {
 	type Lease,
-	LeaseStatus,
-	MaintenancePriority,
+	LEASE_STATUS,
+	PRIORITY,
 	type MaintenanceRequest,
-	MaintenanceStatus,
-	type Organization,
+	REQUEST_STATUS,
 	type Property,
-	PropertyType,
-	SubscriptionPlan,
-	SubscriptionStatus,
+	PROPERTY_TYPE,
+	type Subscription,
 	type Tenant,
 	type Unit,
-	UnitStatus,
+	UNIT_STATUS,
 	type User
 } from '@repo/shared'
+
+// Import TenantFlowOrganization from supabase types
+import type { TenantFlowOrganization } from '@repo/shared/types/supabase'
 
 /**
  * Factory for generating consistent test data across all tests
@@ -43,19 +44,19 @@ export class TestDataFactory {
 	 * Creates a test organization
 	 */
 	static createOrganization(
-		overrides: Partial<Organization> = {}
-	): Organization {
+		overrides: Partial<TenantFlowOrganization> = {}
+	): TenantFlowOrganization {
 		return {
 			...this.createBaseEntity(),
 			name: faker.company.name(),
 			slug: faker.helpers.slugify(faker.company.name()).toLowerCase(),
-			subscriptionStatus: SubscriptionStatus.ACTIVE,
-			subscriptionPlan: SubscriptionPlan.STARTER,
+			subscriptionStatus: 'ACTIVE',
+			subscriptionPlan: 'STARTER',
 			subscriptionCurrentPeriodEnd: faker.date.future(),
 			stripeCustomerId: `cus_${faker.string.alphanumeric(14)}`,
 			stripeSubscriptionId: `sub_${faker.string.alphanumeric(14)}`,
 			...overrides
-		} as Organization
+		} as TenantFlowOrganization
 	}
 
 	/**
@@ -94,7 +95,7 @@ export class TestDataFactory {
 			zipCode: faker.location.zipCode(),
 			country: 'USA',
 			propertyType: faker.helpers.arrayElement(
-				Object.values(PropertyType)
+				Object.values(PROPERTY_TYPE)
 			),
 			units: faker.number.int({ min: 1, max: 50 }),
 			yearBuilt: faker.number.int({ min: 1950, max: 2023 }),
@@ -203,10 +204,10 @@ export class TestDataFactory {
 			title: faker.lorem.sentence(),
 			description: faker.lorem.paragraph(),
 			priority: faker.helpers.arrayElement(
-				Object.values(MaintenancePriority)
+				Object.values(PRIORITY)
 			),
 			status: faker.helpers.arrayElement(
-				Object.values(MaintenanceStatus)
+				Object.values(REQUEST_STATUS)
 			),
 			category: faker.helpers.arrayElement([
 				'PLUMBING',
@@ -255,13 +256,13 @@ export class TestDataFactory {
 		const property = this.createProperty()
 		const unit = this.createUnit({
 			propertyId: property.id,
-			status: UnitStatus.OCCUPIED
+			status: UNIT_STATUS.OCCUPIED
 		})
 		const tenant = this.createTenant()
 		const lease = this.createLease({
 			unitId: unit.id,
 			tenantId: tenant.id,
-			status: LeaseStatus.ACTIVE,
+			status: LEASE_STATUS.ACTIVE,
 			rentAmount: unit.rent
 		})
 

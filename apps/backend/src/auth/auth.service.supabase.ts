@@ -210,7 +210,7 @@ export class AuthServiceSupabase {
 			emailVerified: validatedRow.emailVerified ?? true,
 			bio: validatedRow.bio || null,
 			supabaseId: validatedRow.supabaseId || validatedRow.id,
-			stripeCustomerId: null, // Would need separate query
+			stripeCustomerId: null,
 			organizationId: validatedRow.organizationId || null
 		}
 	}

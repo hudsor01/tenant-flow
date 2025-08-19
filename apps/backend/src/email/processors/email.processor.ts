@@ -1,45 +1,71 @@
-import { Process, Processor } from '@nestjs/bull'
+import { OnWorkerEvent, WorkerHost } from '@nestjs/bullmq'
 import { Logger } from '@nestjs/common'
-import { Job } from 'bull'
+import { Job } from 'bullmq'
 import { EmailService } from '../email.service'
 import { EmailMetricsService } from '../services/email-metrics.service'
+import { ResendEmailService } from '../services/resend-email.service'
 import { EmailJob, EmailJobResult } from '../types/email-queue.types'
 
-@Processor('email')
-export class EmailProcessor {
+export class EmailProcessor extends WorkerHost {
 	private readonly logger = new Logger(EmailProcessor.name)
 
 	constructor(
 		private readonly emailService: EmailService,
-		private readonly metricsService: EmailMetricsService
-	) {}
-
-	@Process({ name: 'send-immediate', concurrency: 10 })
-	async handleImmediateEmail(job: Job<EmailJob>): Promise<EmailJobResult> {
-		return this.processEmail(job, 'immediate')
+		private readonly metricsService: EmailMetricsService,
+		private readonly resendEmailService: ResendEmailService
+	) {
+		super()
 	}
 
-	@Process({ name: 'send-scheduled', concurrency: 5 })
-	async handleScheduledEmail(job: Job<EmailJob>): Promise<EmailJobResult> {
-		return this.processEmail(job, 'scheduled')
-	}
+	async process(job: Job<EmailJob>): Promise<EmailJobResult> {
+		const { name } = job
 
-	@Process({ name: 'send-bulk', concurrency: 20 })
-	async handleBulkEmail(job: Job<EmailJob>): Promise<EmailJobResult> {
-		return this.processEmail(job, 'bulk')
-	}
-
-	@Process({ name: 'retry-failed', concurrency: 3 })
-	async handleRetryEmail(job: Job<EmailJob>): Promise<EmailJobResult> {
-		this.logger.warn(
-			`Retrying failed email job ${job.id ?? 'unknown'} (attempt ${job.attemptsMade + 1})`
-		)
-		const result = await this.processEmail(job, 'retry')
-		// For retry jobs, set a specific messageId pattern
-		if (result.success && result.messageId) {
-			result.messageId = 'msg_retry_success'
+		switch (name) {
+			case 'send-immediate':
+				return this.processEmail(job, 'immediate')
+			case 'send-scheduled':
+				return this.processEmail(job, 'scheduled')
+			case 'send-bulk':
+				return this.processEmail(job, 'bulk')
+			case 'retry-failed': {
+				this.logger.warn(
+					`Retrying failed email job ${job.id ?? 'unknown'} (attempt ${job.attemptsMade + 1})`
+				)
+				const result = await this.processEmail(job, 'retry')
+				// For retry jobs, set a specific messageId pattern
+				if (result.success && result.messageId) {
+					result.messageId = 'msg_retry_success'
+				}
+				return result
+			}
+			case 'send-templated-email':
+				return this.processEmail(job, 'templated')
+			case 'send-direct-email':
+				return this.processDirectEmail(job)
+			default:
+				throw new Error(`Unknown job type: ${name}`)
 		}
-		return result
+	}
+
+	@OnWorkerEvent('completed')
+	onCompleted(job: Job) {
+		this.logger.debug(`Job ${job.id || 'unknown'} completed`, {
+			name: job.name,
+			processingTime: job.processedOn && job.finishedOn
+				? job.finishedOn - job.processedOn
+				: 0,
+			attempts: job.attemptsMade
+		})
+	}
+
+	@OnWorkerEvent('failed')
+	onFailed(job: Job, error: Error) {
+		this.logger.error(`Job ${job.id || 'unknown'} failed`, {
+			name: job.name,
+			attempts: job.attemptsMade,
+			maxAttempts: job.opts.attempts,
+			error: error.message
+		})
 	}
 
 	private async processEmail(
@@ -420,5 +446,62 @@ export class EmailProcessor {
 		}
 
 		return { successful, failed }
+	}
+
+	private async processDirectEmail(job: Job): Promise<EmailJobResult> {
+		const startTime = Date.now()
+		const { to, subject, html, text, attachments } = job.data
+
+		this.logger.debug(
+			`Processing direct email job ${job.id ?? 'unknown'}`,
+			{
+				subject,
+				recipients: Array.isArray(to) ? to.length : 1,
+				attempt: job.attemptsMade + 1
+			}
+		)
+
+		try {
+			// For direct emails, we bypass the template system
+			const result = await this.resendEmailService.sendDirectEmail({
+				to: Array.isArray(to) ? to : [to],
+				subject,
+				html,
+				text,
+				attachments
+			})
+
+			const processingTime = Date.now() - startTime
+
+			return {
+				jobId: String(job.id ?? 'unknown'),
+				success: result.success,
+				messageId: result.messageId,
+				error: result.error,
+				timestamp: new Date(),
+				processingTime,
+				recipientCount: Array.isArray(to) ? to.length : 1
+			}
+		} catch (error) {
+			const processingTime = Date.now() - startTime
+			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+
+			this.logger.error(`❌ Direct email job ${job.id || 'unknown'} failed`, {
+				subject,
+				recipients: Array.isArray(to) ? to.length : 1,
+				attempt: job.attemptsMade + 1,
+				error: errorMessage,
+				processingTime
+			})
+
+			return {
+				jobId: String(job.id ?? 'unknown'),
+				success: false,
+				error: errorMessage,
+				timestamp: new Date(),
+				processingTime,
+				recipientCount: Array.isArray(to) ? to.length : 1
+			}
+		}
 	}
 }

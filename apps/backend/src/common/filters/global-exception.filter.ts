@@ -44,7 +44,7 @@ interface StructuredError {
 
 @Injectable()
 @Catch()
-export class GlobalExceptionFilter implements ExceptionFilter {
+export class GlobalExceptionFilter implements ExceptionFilter<unknown> {
 	private readonly isDevelopment = process.env.NODE_ENV === 'development'
 	private readonly isProduction = process.env.NODE_ENV === 'production'
 
@@ -54,7 +54,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
 	catch(exception: unknown, host: ArgumentsHost): void {
 		const ctx = host.switchToHttp()
-		const request = ctx.getRequest<FastifyRequest>()
+		const request = ctx.getRequest<FastifyRequest & { user?: { id: string } }>()
 		const response = ctx.getResponse<FastifyReply>()
 
 		const errorContext = this.buildErrorContext(request)
@@ -250,10 +250,10 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 	/**
 	 * Builds error context from the request
 	 */
-	private buildErrorContext(request: FastifyRequest): ErrorContext {
+	private buildErrorContext(request: FastifyRequest & { user?: { id: string } }): ErrorContext {
 		return {
 			requestId: request.headers['x-correlation-id'] as string,
-			userId: (request as { user?: { id: string } }).user?.id,
+			userId: request.user?.id,
 			path: request.url,
 			method: request.method,
 			timestamp: new Date().toISOString(),
