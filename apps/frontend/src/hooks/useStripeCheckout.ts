@@ -5,10 +5,10 @@ import { loadStripe } from '@stripe/stripe-js'
 import type { BillingInterval, PlanType, ProductTierConfig } from '@repo/shared'
 import { stripeNotifications, dismissToast } from '@/lib/toast'
 
-// Initialize Stripe
-const stripePromise = loadStripe(
-	process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
-)
+// Initialize Stripe - only if key is available
+const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY 
+	? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+	: null
 
 export function useStripeCheckout() {
 	const [loading, setLoading] = useState(false)
@@ -143,6 +143,9 @@ export function useStripeCheckout() {
 						window.location.href = data.url
 					}, 800)
 				} else if (data.sessionId) {
+					if (!stripePromise) {
+						throw new Error('Stripe not configured - publishable key missing')
+					}
 					const stripe = await stripePromise
 					if (!stripe) {
 						throw new Error('Stripe failed to load')
