@@ -5,8 +5,8 @@ import { PostHogProvider } from 'posthog-js/react'
 import { useEffect } from 'react'
 
 // Initialize PostHog only on the client side
-if (typeof window !== 'undefined') {
-	posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
+if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
+	posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
 		api_host: '/ingest', // Use reverse proxy to avoid ad blockers
 		person_profiles: 'identified_only', // Reduce costs by only tracking identified users
 		capture_pageview: false, // We'll manually track pageviews for better control
@@ -32,6 +32,8 @@ if (typeof window !== 'undefined') {
 }
 
 export function PHProvider({ children }: { children: React.ReactNode }) {
+	const apiKey = process.env.NEXT_PUBLIC_POSTHOG_KEY
+	
 	useEffect(() => {
 		// Check for Do Not Track browser setting
 		if (typeof window !== 'undefined' && navigator.doNotTrack === '1') {
@@ -39,8 +41,13 @@ export function PHProvider({ children }: { children: React.ReactNode }) {
 		}
 	}, [])
 
+	// If no API key, just return children without PostHog
+	if (!apiKey) {
+		return <>{children}</>
+	}
+
 	return (
-		<PostHogProvider apiKey={process.env.NEXT_PUBLIC_POSTHOG_KEY!}>
+		<PostHogProvider apiKey={apiKey}>
 			{children}
 		</PostHogProvider>
 	)
