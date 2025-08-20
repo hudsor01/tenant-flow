@@ -1,27 +1,42 @@
 /**
  * Hook for managing upcoming rent payment alerts
- * Provides notifications for upcoming rent due dates
+ * Provides notifications for upcoming, overdue, or late rent payments
  */
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 
 export interface RentAlert {
 	id: string
-	tenantId: string
+	leaseId: string
 	tenantName: string
 	propertyAddress: string
-	unitNumber: string
-	dueDate: string
-	amount: number
-	daysUntilDue: number
-	severity: 'info' | 'warning' | 'error'
+	unitNumber?: string
 	title: string
 	type: string
+	amount: number
+	dueDate: string
+	status: 'upcoming' | 'due_today' | 'overdue'
+	daysUntilDue: number
+	daysOverdue: number
+	severity: 'info' | 'warning' | 'error'
 	message: string
-	property: { address: string; name: string }
-	unit: { number: string; name: string }
-	tenant: { name: string }
-	lease: { id: string; rentAmount: number }
+	tenant: {
+		name: string
+		email?: string
+		phone?: string
+	}
+	property: {
+		name: string
+		address: string
+	}
+	unit: {
+		name: string
+		number: string
+	}
+	lease: {
+		rentAmount: number
+		dueDate: string
+	}
 }
 
 export function useUpcomingRentAlerts() {
@@ -39,42 +54,37 @@ export function useUpcomingRentAlerts() {
 		if (!leases) return []
 
 		// TODO: Process leases to generate rent alerts
-		// This would calculate which rents are due soon based on lease terms
+		// This would identify upcoming due dates, overdue payments, etc.
 		const rentAlerts: RentAlert[] = []
 
 		return rentAlerts
 	}, [leases])
 
-	const criticalAlerts = useMemo(
-		() => alerts.filter(alert => alert.severity === 'error'),
+	const upcomingAlerts = useMemo(
+		() => alerts.filter(alert => alert.status === 'upcoming'),
 		[alerts]
 	)
 
-	const warningAlerts = useMemo(
-		() => alerts.filter(alert => alert.severity === 'warning'),
+	const overdueAlerts = useMemo(
+		() => alerts.filter(alert => alert.status === 'overdue'),
+		[alerts]
+	)
+
+	const dueTodayAlerts = useMemo(
+		() => alerts.filter(alert => alert.status === 'due_today'),
 		[alerts]
 	)
 
 	return {
 		alerts,
-		criticalAlerts,
-		warningAlerts,
+		upcomingAlerts,
+		overdueAlerts,
+		dueTodayAlerts,
 		isLoading,
 		hasAlerts: alerts.length > 0,
-		criticalCount: criticalAlerts.length,
-		warningCount: warningAlerts.length,
-		data: alerts // For compatibility
-	}
-}
-
-// Export for backward compatibility
-export function useRentAlertCounts() {
-	const { criticalCount, warningCount, isLoading } = useUpcomingRentAlerts()
-	return {
-		criticalCount,
-		warningCount,
-		isLoading,
-		overdue: criticalCount, // Alias for backward compatibility
-		due_soon: warningCount // Alias for backward compatibility
+		upcomingCount: upcomingAlerts.length,
+		overdueCount: overdueAlerts.length,
+		dueTodayCount: dueTodayAlerts.length,
+		dueSoonCount: upcomingAlerts.length + dueTodayAlerts.length
 	}
 }
