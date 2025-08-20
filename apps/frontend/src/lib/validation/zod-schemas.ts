@@ -35,7 +35,7 @@ export {
 	maintenanceCategorySchema,
 
 	// Lease validation
-	leaseSchema,
+	leaseInputSchema,
 	leaseStatusEnum,
 
 	// Common validation
@@ -171,7 +171,7 @@ export type SearchInputData = z.infer<typeof searchInputSchema>
 export { propertyFormSchema as createPropertyFormSchema } from '@repo/shared/validation'
 export { unitFormSchema as createUnitFormSchema } from '@repo/shared/validation'
 export { tenantFormSchema as createTenantFormSchema } from '@repo/shared/validation'
-export { leaseSchema as createLeaseFormSchema } from '@repo/shared/validation'
+export { leaseInputSchema as createLeaseFormSchema } from '@repo/shared/validation'
 
 // Legacy type aliases - re-export from shared
 export type { PropertyFormData as PropertyFormInputData } from '@repo/shared/validation'

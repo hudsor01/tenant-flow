@@ -277,22 +277,3 @@ export const getCollectionRateStatus = (
 	}
 }
 
-// Legacy aliases for backward compatibility
-export const formatPriceFromCents = (
-	priceInCents: number,
-	currency: CurrencyCode = 'USD'
-): string => {
-	return formatPrice(priceInCents, {
-		fromCents: true,
-		currency,
-		showInterval: false
-	})
-}
-
-export const formatPriceWithInterval = (
-	amount: number,
-	interval: BillingInterval,
-	fromCents = false
-): string => {
-	return formatPrice(amount, { interval, fromCents })
-}
