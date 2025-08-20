@@ -12,6 +12,7 @@ import { DocumentsModule } from './documents/documents.module'
 import { HealthModule } from './health/health.module'
 import { AnalyticsService } from './analytics/analytics.service'
 import { StripeService } from './billing/stripe.service'
+import { MetricsService } from './services/metrics.service'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 
@@ -64,6 +65,7 @@ import { AppService } from './app.service'
 		AppService,
 		AnalyticsService,
 		StripeService,
+		MetricsService,
 		// Global rate limiting guard with proxy support
 		{
 			provide: APP_GUARD,
