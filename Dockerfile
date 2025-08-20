@@ -1,6 +1,9 @@
 # syntax=docker/dockerfile:1.9
 # check=error=true
 
+# Railway service ID for unique cache mount IDs
+ARG RAILWAY_SERVICE_ID=tenantflow-backend
+
 # ===== BASE STAGE =====
 # Lightweight Node.js 24 on Alpine Linux for minimal footprint and security
 FROM node:24-alpine AS base
@@ -30,7 +33,7 @@ COPY packages/typescript-config/package.json ./packages/typescript-config/
 # --mount=type=cache: Persist npm cache across builds (60-90s faster rebuilds)
 # --omit=dev: Skip devDependencies (TypeScript, Jest, etc.) - saves ~300MB
 # --silent: Clean build logs, only show errors
-RUN --mount=type=cache,id=npm-deps,target=/root/.npm \
+RUN --mount=type=cache,id=${RAILWAY_SERVICE_ID}-npm-deps,target=/root/.npm \
     npm install --omit=dev --silent
 
 # ===== BUILDER STAGE =====
@@ -56,7 +59,7 @@ ENV NODE_OPTIONS="--max-old-space-size=1096" \
 # --mount=type=cache: Persist Turbo cache for faster subsequent builds
 # --filter=@repo/backend: Build only backend, not frontend
 # --no-daemon: Prevent hanging processes
-RUN --mount=type=cache,id=turbo-build,target=/app/.turbo \
+RUN --mount=type=cache,id=${RAILWAY_SERVICE_ID}-turbo-build,target=/app/.turbo \
     npx turbo build --filter=@repo/backend --no-daemon
 
 # ===== PRODUCTION DEPS STAGE =====
@@ -75,7 +78,7 @@ COPY packages/tailwind-config/package.json ./packages/tailwind-config/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 
 # Fresh production dependency install with cache optimization
-RUN --mount=type=cache,id=npm-prod,target=/root/.npm \
+RUN --mount=type=cache,id=${RAILWAY_SERVICE_ID}-npm-prod,target=/root/.npm \
     npm ci --omit=dev --silent
 
 # ===== RUNTIME STAGE =====
