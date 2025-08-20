@@ -67,7 +67,7 @@ class EnvConfig {
 		return {
 			// Application
 			appUrl: env?.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-			apiUrl: env?.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api',
+			apiUrl: env?.NEXT_PUBLIC_API_URL || 'https://api.tenantflow.app/api',
 			environment:
 				(env?.NODE_ENV as
 					| 'development'

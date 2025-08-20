@@ -7,7 +7,7 @@
 		"node": ">=22.0.0",
 		"npm": ">=10.0.0"
 	},
-	"packageManager": "npm@10.9.3",
+	"packageManager": "npm@11.5.2",
 	"workspaces": [
 		"apps/*",
 		"packages/*"
@@ -44,7 +44,6 @@
 		"test:e2e": "dotenv -e .env.local -- turbo run test:e2e",
 		"test:e2e:visual": "npx playwright test tests/e2e/specs/visual/landing-page.visual.spec.ts",
 		"test:visual:update": "npx playwright test tests/e2e/specs/visual/landing-page.visual.spec.ts --update-snapshots",
-		"visual:baseline": "./scripts/generate-visual-baselines.sh",
 		"cache:optimize": "node scripts/optimize-edge-cache.js",
 		"generate": "echo 'Code generation available through individual tools: npm run update-supabase-types, npm run secrets:generate'",
 		"clean": "npx turbo run clean",
@@ -57,7 +56,7 @@
 		"update-supabase-types": "npx supabase gen types typescript --project-id \"bshjmbshupiibfiewpxb\" --schema public > packages/shared/src/types/supabase-generated.ts"
 	},
 	"devDependencies": {
-		"@eslint/eslintrc": "2.1.4",
+		"@eslint/eslintrc": "3.3.1",
 		"@eslint/js": "9.33.0",
 		"@playwright/test": "^1.54.2",
 		"@testing-library/jest-dom": "^6.7.0",
@@ -87,12 +86,12 @@
 		"typescript": "5.9.2",
 		"esbuild": "^0.25.9",
 		"path-to-regexp": "^8.2.0",
-		"undici": "^7.13.0",
+		"undici": "^7.14.0",
 		"tmp": "^0.2.5",
 		"glob": "^11.0.3",
-		"@types/glob": "^8.1.0",
+		"@types/glob": "^9.0.0",
 		"@types/mdx": "^2.0.13",
-		"minimatch": "^9.0.5",
+		"minimatch": "^10.0.3",
 		"rimraf": "^6.0.1",
 		"sourcemap-codec": "npm:@jridgewell/sourcemap-codec@^1.5.5",
 		"inflight": "npm:lru-cache@^11.1.0"
