@@ -1,7 +1,7 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
 	"display": "TenantFlow Backend TypeScript Config",
-	"extends": "@repo/typescript-config/nestjs.json",
+	"extends": "../../packages/typescript-config/nestjs.json",
 	"compilerOptions": {
 		"baseUrl": "./",
 		"outDir": "./dist",
