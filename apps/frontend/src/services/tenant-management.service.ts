@@ -20,8 +20,8 @@ import {
 	Email,
 	PhoneNumber,
 	DomainError,
-	ValidationErrorClass as ValidationError
-} from '@repo/shared'
+	ValidationError
+} from '@repo/shared/types/domain'
 
 export interface TenantManagementService {
 	getTenant(id: string): Promise<Result<Tenant>>

@@ -23,8 +23,6 @@ export interface NotificationData {
 	metadata?: Record<string, string | number | boolean | null>
 }
 
-// Alias for backward compatibility
-export type Notification = NotificationData
 
 // WebSocket types for real-time notifications
 export interface NotificationWebSocketMessage {

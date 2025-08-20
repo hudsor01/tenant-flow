@@ -550,7 +550,7 @@ export { leaseFormSchema } from './types/lease-generator'
 // Notification Types
 // ========================
 export type {
-	Notification,
+	NotificationData,
 	NotificationType,
 	NotificationPriority,
 	UseWebSocketOptions
@@ -671,8 +671,6 @@ export {
 	getDashboardPercentage,
 	getCollectionRateStatus,
 	getIntervalSuffix,
-	formatPriceFromCents,
-	formatPriceWithInterval
 } from './utils'
 
 export type {

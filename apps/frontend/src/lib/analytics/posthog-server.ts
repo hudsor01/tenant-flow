@@ -4,12 +4,14 @@ import { PostHog } from 'posthog-node'
 import { logger } from '@/lib/logger'
 import type { TenantFlowEvent } from '@/hooks/use-posthog'
 
-// Initialize PostHog for server-side tracking
-const posthog = new PostHog(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
-	host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
-	flushAt: 1, // Send immediately for server actions
-	flushInterval: 0 // Don't batch on server
-})
+// Initialize PostHog for server-side tracking - only if key is available
+const posthog = process.env.NEXT_PUBLIC_POSTHOG_KEY 
+	? new PostHog(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
+		host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
+		flushAt: 1, // Send immediately for server actions
+		flushInterval: 0 // Don't batch on server
+	})
+	: null
 
 /**
  * Track server-side events (for server actions, API routes)
@@ -20,7 +22,7 @@ export async function trackServerSideEvent(
 	properties?: Record<string, unknown>
 ): Promise<void> {
 	try {
-		if (!process.env.NEXT_PUBLIC_POSTHOG_KEY) {
+		if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) {
 			logger.warn('PostHog key not configured for server-side tracking', {
 				component: 'lib_analytics_posthog_server.ts'
 			})
@@ -58,7 +60,7 @@ export async function identifyUser(
 	properties: Record<string, unknown>
 ): Promise<void> {
 	try {
-		if (!process.env.NEXT_PUBLIC_POSTHOG_KEY) {
+		if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) {
 			return
 		}
 
@@ -84,5 +86,7 @@ export async function identifyUser(
  * Shutdown PostHog client (for cleanup)
  */
 export async function shutdownPostHog(): Promise<void> {
-	await posthog.shutdown()
+	if (posthog) {
+		await posthog.shutdown()
+	}
 }

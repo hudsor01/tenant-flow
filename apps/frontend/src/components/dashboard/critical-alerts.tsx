@@ -19,12 +19,10 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
 	useUpcomingRentAlerts,
-	useRentAlertCounts,
 	type RentAlert
 } from '@/hooks/useUpcomingRentAlerts'
 import {
 	useMaintenanceAlerts,
-	useMaintenanceAlertCounts,
 	type MaintenanceAlert
 } from '@/hooks/useMaintenanceAlerts'
 import { cn } from '@/lib/utils/css.utils'
@@ -210,12 +208,18 @@ function MaintenanceAlert({ alert }: { alert: MaintenanceAlert }) {
 }
 
 export function CriticalAlerts() {
-	const { data: rentAlerts = [], isLoading: rentLoading } =
-		useUpcomingRentAlerts()
-	const { alerts: maintenanceAlerts = [], isLoading: maintenanceLoading } =
-		useMaintenanceAlerts()
-	const rentCounts = useRentAlertCounts()
-	const maintenanceCounts = useMaintenanceAlertCounts()
+	const { 
+		alerts: rentAlerts = [], 
+		isLoading: rentLoading,
+		overdueCount,
+		dueSoonCount
+	} = useUpcomingRentAlerts()
+	const { 
+		alerts: maintenanceAlerts = [], 
+		isLoading: maintenanceLoading,
+		urgentCount,
+		overdueCount: maintenanceOverdueCount
+	} = useMaintenanceAlerts()
 
 	const isLoading = rentLoading || maintenanceLoading
 	const allAlerts: Alert[] = [...rentAlerts, ...maintenanceAlerts]
@@ -245,10 +249,8 @@ export function CriticalAlerts() {
 		})
 		.slice(0, 10) // Show top 10 critical alerts
 
-	const totalCritical =
-		(rentCounts?.overdue || 0) + (maintenanceCounts?.emergency || 0)
-	const totalWarnings =
-		(rentCounts?.due_soon || 0) + (maintenanceCounts?.high_priority || 0)
+	const totalCritical = overdueCount + urgentCount
+	const totalWarnings = dueSoonCount + maintenanceOverdueCount
 
 	return (
 		<Card>
