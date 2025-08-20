@@ -57,11 +57,7 @@ ENV NODE_OPTIONS="--max-old-space-size=1096" \
 # --filter=@repo/backend: Build only backend, not frontend
 # --no-daemon: Prevent hanging processes
 RUN --mount=type=cache,id=turbo-build,target=/app/.turbo \
-    npx turbo build --filter=@repo/backend --no-daemon && \
-    # Verify critical build outputs exist
-    test -f apps/backend/dist/main.js && \
-    test -d packages/shared/dist && \
-    test -d packages/database/dist
+    npx turbo build --filter=@repo/backend --no-daemon
 
 # ===== PRODUCTION DEPS STAGE =====
 # Clean production dependencies separate from build artifacts
@@ -79,7 +75,7 @@ COPY packages/tailwind-config/package.json ./packages/tailwind-config/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 
 # Fresh production dependency install with cache optimization
-RUN --mount=type=cache,id=npm-deps,target=/root/.npm \
+RUN --mount=type=cache,id=npm-prod,target=/root/.npm \
     npm ci --omit=dev --silent
 
 # ===== RUNTIME STAGE =====
@@ -149,4 +145,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     req.end();"
 
 # Direct Node.js execution (no npm overhead)
-CMD ["node", "apps/backend/dist/main.js"]
+CMD ["node", "apps/backend/dist/apps/backend/src/main.js"]

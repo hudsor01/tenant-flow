@@ -27,8 +27,11 @@ async function bootstrap() {
 		]
 	})
 
+	const corsOrigins = configService.get('CORS_ORIGINS')
 	app.enableCors({
-		origin: configService.get('CORS_ORIGINS')?.split(',') || ['https://tenantflow.app'],
+		origin: typeof corsOrigins === 'string' 
+			? corsOrigins.split(',') 
+			: corsOrigins || ['https://tenantflow.app'],
 		credentials: true
 	})
 
@@ -38,17 +41,7 @@ async function bootstrap() {
 	// Production security
 	await app.register(helmet)
 
-	// Liveness probe independent of downstream deps
-	const fastify = app.getHttpAdapter().getInstance()
-	fastify.get(
-		'/ping',
-		async (
-			_req: unknown,
-			reply: { code: (code: number) => { send: (data: unknown) => void } }
-		) => {
-			reply.code(200).send({ status: 'ok' })
-		}
-	)
+	// Liveness probe handled by HealthController
 
 	app.enableShutdownHooks()
 
