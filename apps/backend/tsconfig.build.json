@@ -10,7 +10,8 @@
 		"inlineSources": false,
 		"removeComments": true,
 		"noEmitOnError": false,
-		"skipLibCheck": true
+		"skipLibCheck": true,
+		"types": ["node", "reflect-metadata"]
 	},
 	"include": ["src/**/*.ts", "src/types/fastify.d.ts"],
 	"exclude": [
