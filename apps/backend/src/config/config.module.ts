@@ -76,5 +76,3 @@ export class TypeSafeConfigModule {
 	 */
 }
 
-// Export as ConfigModule for backward compatibility
-export const ConfigModule = TypeSafeConfigModule

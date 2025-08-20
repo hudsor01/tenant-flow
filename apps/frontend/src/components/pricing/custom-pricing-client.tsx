@@ -15,9 +15,9 @@ import { TrustBadges } from './trust-badges-server'
 import { StripeFooter } from './stripe-footer'
 import type { PricingTier } from './pricing-card-server'
 
-const stripePromise = loadStripe(
-	process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
-)
+const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+	? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+	: null
 
 /**
  * Client component that manages pricing state and Stripe integration

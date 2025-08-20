@@ -86,7 +86,7 @@
 		"build:esm": "tsc -p tsconfig.esm.json",
 		"typecheck": "tsc --noEmit",
 		"check-types": "tsc --noEmit",
-		"lint": "eslint . --max-warnings 0",
+		"lint": "eslint . --max-warnings 0 --no-warn-ignored",
 		"lint:fix": "eslint . --fix",
 		"format": "prettier --write \"src/**/*.ts\"",
 		"format:check": "prettier --check \"src/**/*.ts\"",

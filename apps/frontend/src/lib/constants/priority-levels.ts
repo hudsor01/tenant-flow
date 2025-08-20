@@ -31,6 +31,3 @@ export const PRIORITY_COLORS: Record<PriorityLevel, string> = {
 	LOW: 'bg-green-100 text-green-800'
 }
 
-// Legacy aliases for backward compatibility
-export const SecurityEventSeverity = PRIORITY_LEVELS
-export const Priority = PRIORITY_LEVELS

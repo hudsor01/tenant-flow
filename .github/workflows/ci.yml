@@ -90,7 +90,7 @@ jobs:
     name: Code Quality
     runs-on: ubuntu-latest
     timeout-minutes: 8
-    needs: [quick-validation, install-deps]
+    needs: [quick-validation, install-deps, build-shared-deps]
     if: needs.quick-validation.outputs.has-changes == 'true'
     strategy:
       matrix:
@@ -114,6 +114,26 @@ jobs:
           key: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             npm-${{ runner.os }}-
+
+      - name: Restore shared build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            packages/shared/dist
+            packages/database/dist
+          key: build-shared-${{ runner.os }}-shared-${{ github.sha }}
+          restore-keys: |
+            build-shared-${{ runner.os }}-shared-
+
+      - name: Restore database build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            packages/shared/dist
+            packages/database/dist
+          key: build-shared-${{ runner.os }}-database-${{ github.sha }}
+          restore-keys: |
+            build-shared-${{ runner.os }}-database-
 
       - name: Run ${{ matrix.check }}
         run: |
