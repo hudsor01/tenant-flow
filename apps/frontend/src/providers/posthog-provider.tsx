@@ -4,9 +4,9 @@ import posthog from 'posthog-js'
 import { PostHogProvider } from 'posthog-js/react'
 import { useEffect } from 'react'
 
-// Initialize PostHog only on the client side
-if (typeof window !== 'undefined') {
-	posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
+// Initialize PostHog only on the client side and when API key is available
+if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
+	posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
 		api_host: '/ingest', // Use reverse proxy to avoid ad blockers
 		person_profiles: 'identified_only', // Reduce costs by only tracking identified users
 		capture_pageview: false, // We'll manually track pageviews for better control
@@ -39,8 +39,13 @@ export function PHProvider({ children }: { children: React.ReactNode }) {
 		}
 	}, [])
 
+	// If no PostHog API key is provided, render children without PostHog provider
+	if (!process.env.NEXT_PUBLIC_POSTHOG_KEY) {
+		return <>{children}</>
+	}
+
 	return (
-		<PostHogProvider apiKey={process.env.NEXT_PUBLIC_POSTHOG_KEY!}>
+		<PostHogProvider apiKey={process.env.NEXT_PUBLIC_POSTHOG_KEY}>
 			{children}
 		</PostHogProvider>
 	)
