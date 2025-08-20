@@ -97,12 +97,14 @@ export interface EventProperties {
 }
 
 export function usePostHog() {
+	// Get PostHog instance - may be null/undefined during build
 	const posthog = usePostHogBase()
 
 	// Track custom events with consistent naming
 	const trackEvent = useCallback(
 		(event: TenantFlowEvent, properties?: EventProperties) => {
-			if (!posthog) return
+			// Safely check if posthog exists and has capture method
+			if (!posthog?.capture) return
 
 			// Add consistent metadata to all events
 			const enrichedProperties = {
@@ -120,7 +122,7 @@ export function usePostHog() {
 	// Identify user with properties
 	const identifyUser = useCallback(
 		(user: User | null, organizationId?: string) => {
-			if (!posthog || !user) return
+			if (!posthog?.identify || !user) return
 
 			posthog.identify(user.id, {
 				email: user.email,
@@ -133,14 +135,14 @@ export function usePostHog() {
 
 	// Reset user identification on logout
 	const resetUser = useCallback(() => {
-		if (!posthog) return
+		if (!posthog?.reset) return
 		posthog.reset()
 	}, [posthog])
 
 	// Track conversion goals
 	const trackConversion = useCallback(
 		(goalName: string, value?: number, properties?: EventProperties) => {
-			if (!posthog) return
+			if (!posthog?.capture) return
 
 			posthog.capture('conversion_goal', {
 				goal_name: goalName,
@@ -154,7 +156,7 @@ export function usePostHog() {
 	// Track errors with context
 	const trackError = useCallback(
 		(error: Error | unknown, context?: EventProperties) => {
-			if (!posthog) return
+			if (!posthog?.capture) return
 
 			const errorMessage =
 				error instanceof Error ? error.message : String(error)
@@ -174,7 +176,7 @@ export function usePostHog() {
 	// Check feature flag status
 	const isFeatureEnabled = useCallback(
 		(flagKey: string, fallback: boolean = false): boolean => {
-			if (!posthog) return fallback
+			if (!posthog?.isFeatureEnabled) return fallback
 			return posthog.isFeatureEnabled(flagKey) ?? fallback
 		},
 		[posthog]
@@ -183,7 +185,7 @@ export function usePostHog() {
 	// Get feature flag payload
 	const getFeatureFlagPayload = useCallback(
 		(flagKey: string) => {
-			if (!posthog) return null
+			if (!posthog?.getFeatureFlagPayload) return null
 			return posthog.getFeatureFlagPayload(flagKey)
 		},
 		[posthog]
@@ -192,7 +194,7 @@ export function usePostHog() {
 	// Track timing metrics
 	const trackTiming = useCallback(
 		(category: string, variable: string, time: number, label?: string) => {
-			if (!posthog) return
+			if (!posthog?.capture) return
 
 			posthog.capture('timing_metric', {
 				timing_category: category,
