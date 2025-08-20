@@ -1,4 +1,5 @@
-import { Geist, Geist_Mono } from 'next/font/google'
+// Temporarily disabled for build environments with network restrictions
+// import { Geist, Geist_Mono } from 'next/font/google'
 import Script from 'next/script'
 import { CSPNonceMeta } from '@/components/security/csp-nonce-meta'
 import {
@@ -10,19 +11,22 @@ import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from 'sonner'
 import './globals.css'
 
-const geistSans = Geist({
-	variable: '--font-geist-sans',
-	subsets: ['latin'],
-	display: 'swap',
-	preload: true
-})
+// Temporarily using system fonts for build environments with network restrictions
+// TODO: Re-enable Google Fonts once network connectivity is available
+// const geistSans = Geist({
+//   variable: '--font-geist-sans',
+//   subsets: ['latin'],
+//   display: 'swap',
+//   preload: true,
+// })
+// 
+// const geistMono = Geist_Mono({
+//   variable: '--font-geist-mono', 
+//   subsets: ['latin'],
+//   display: 'swap',
+//   preload: true,
+// })
 
-const geistMono = Geist_Mono({
-	variable: '--font-geist-mono',
-	subsets: ['latin'],
-	display: 'swap',
-	preload: true
-})
 
 export { viewport, metadata } from './layout.constants'
 
@@ -76,7 +80,7 @@ export default function RootLayout({
 				/>
 			</head>
 			<body
-				className={`${geistSans.variable} ${geistMono.variable} bg-white antialiased dark:bg-gray-950`}
+				className="font-sans bg-white antialiased dark:bg-gray-950"
 			>
 				<ThemeProvider
 					attribute="class"
