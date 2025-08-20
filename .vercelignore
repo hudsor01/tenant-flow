@@ -32,15 +32,17 @@ eslint.config.*
 
 # Backend files (not needed for frontend deployment)
 apps/backend
+
+# Config packages can be ignored for deployment  
 packages/eslint-config
 packages/prettier-config
 packages/typescript-config
 
 # Keep these packages - they're needed for frontend build:
 # packages/shared (required by frontend)
-# packages/database (required by shared)
+# packages/database (required by shared) 
 # packages/tailwind-config (required by frontend)
-# packages/ui (required by frontend)
+# packages/emails (required by frontend for types)
 Dockerfile
 railway.toml
 railway.json

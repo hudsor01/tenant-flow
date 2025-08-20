@@ -1,10 +1,15 @@
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "./Dockerfile"
+watchPaths = ["apps/backend/**", "packages/shared/**", "packages/database/**", "package.json", "turbo.json"]
 
 [deploy]
-startCommand = "/nodejs/bin/node apps/backend/dist/main.js"
+startCommand = "node apps/backend/dist/main.js"
 healthcheckPath = "/health"
 healthcheckTimeout = 300
-restartPolicyType = "on_failure"
+restartPolicyType = "on_failure" 
 restartPolicyMaxRetries = 3
+workingDirectory = "/"
+
+[environments.production]
+PORT = { default = "4600" }

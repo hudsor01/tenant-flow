@@ -28,7 +28,7 @@ async function bootstrap() {
 	})
 
 	app.enableCors({
-		origin: configService.get('CORS_ORIGINS', ['https://tenantflow.app']),
+		origin: configService.get('CORS_ORIGINS')?.split(',') || ['https://tenantflow.app'],
 		credentials: true
 	})
 
@@ -60,10 +60,10 @@ async function bootstrap() {
 		await app.listen(port, '0.0.0.0')
 		logger.log(`🚀 Server successfully started on 0.0.0.0:${port}`)
 		logger.log(
-			`✅ Health check endpoint available at: http://127.0.0.1:${port}/health`
+			`✅ Health check endpoint available at: https://api.tenantflow.app/health`
 		)
 		logger.log(
-			`✅ API endpoints available at: http://127.0.0.1:${port}/api/v1/`
+			`✅ API endpoints available at: https://api.tenantflow.app/api/v1/`
 		)
 	} catch (error) {
 		logger.error(`❌ Failed to start server on port ${port}:`, error)

@@ -48,7 +48,7 @@ export function createCorsOptions(): FastifyCorsOptions {
 
 	// Fallback if no origins configured
 	if (uniqueOrigins.length === 0) {
-		uniqueOrigins.push('http://localhost:3000')
+		uniqueOrigins.push('https://tenantflow.app')
 	}
 
 	return {
