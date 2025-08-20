@@ -31,8 +31,6 @@ if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
 }
 
 export function PHProvider({ children }: { children: React.ReactNode }) {
-	const apiKey = process.env.NEXT_PUBLIC_POSTHOG_KEY
-	
 	useEffect(() => {
 		// Check for Do Not Track browser setting
 		if (typeof window !== 'undefined' && navigator.doNotTrack === '1') {
@@ -41,7 +39,6 @@ export function PHProvider({ children }: { children: React.ReactNode }) {
 	}, [])
 
 	if (!process.env.NEXT_PUBLIC_POSTHOG_KEY) {
-
 		return <>{children}</>
 	}
 

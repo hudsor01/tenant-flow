@@ -28,11 +28,10 @@ COPY packages/typescript-config/package.json ./packages/typescript-config/
 
 # Install production dependencies with optimizations
 # --mount=type=cache: Persist npm cache across builds (60-90s faster rebuilds)
-# npm ci: More reliable than npm install, uses exact lock file versions
 # --omit=dev: Skip devDependencies (TypeScript, Jest, etc.) - saves ~300MB
 # --silent: Clean build logs, only show errors
 RUN --mount=type=cache,id=npm-deps,target=/root/.npm \
-    npm ci --omit=dev --silent
+    npm install --omit=dev --silent
 
 # ===== BUILDER STAGE =====
 # Compile TypeScript to JavaScript with optimizations
@@ -48,9 +47,9 @@ COPY . .
 RUN rm -rf .git .github docs *.md apps/frontend apps/storybook
 
 # Build-time optimizations
-# 768MB memory: Prevents OOM during TypeScript compilation on Railway
+# 1096MB memory: Prevents OOM during TypeScript compilation on Railway
 # Disable telemetry: Faster builds, no data collection
-ENV NODE_OPTIONS="--max-old-space-size=768" \
+ENV NODE_OPTIONS="--max-old-space-size=1096" \
     TURBO_TELEMETRY_DISABLED=1
 
 # Build with local caching only - no external dependencies
