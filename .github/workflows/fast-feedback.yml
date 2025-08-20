@@ -125,8 +125,10 @@ jobs:
       - name: Build dependencies
         run: |
           # Build shared packages first so TypeScript can find type declarations
-          npm run build:shared
-          npm run build:database
+          echo "Building shared package..."
+          cd packages/shared && npm run build && cd ../..
+          echo "Building database package..."
+          npx turbo run build --filter=@repo/database || (cd packages/database && npm run build)
 
       - name: Quick typecheck (affected packages only)
         run: |
@@ -230,7 +232,10 @@ jobs:
       - name: Build essential packages
         run: |
           # Build only what's needed to verify compilation
-          npm run build:shared
+          echo "Building shared package..."
+          cd packages/shared && npm run build && cd ../..
+          echo "Building database package..."
+          npx turbo run build --filter=@repo/database || (cd packages/database && npm run build)
 
           AFFECTED="${{ needs.pre-check.outputs.affected-apps }}"
 
