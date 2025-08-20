@@ -97,6 +97,7 @@ export interface EventProperties {
 }
 
 export function usePostHog() {
+	// Get PostHog instance - may be null/undefined during build
 	const posthog = usePostHogBase()
 
 	// Track custom events with consistent naming
@@ -120,6 +121,7 @@ export function usePostHog() {
 	// Identify user with properties
 	const identifyUser = useCallback(
 		(user: User | null, organizationId?: string) => {
+
 			if (!posthog || !user || !process.env.NEXT_PUBLIC_POSTHOG_KEY) return
 
 			posthog.identify(user.id, {
@@ -133,13 +135,16 @@ export function usePostHog() {
 
 	// Reset user identification on logout
 	const resetUser = useCallback(() => {
+
 		if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) return
+
 		posthog.reset()
 	}, [posthog])
 
 	// Track conversion goals
 	const trackConversion = useCallback(
 		(goalName: string, value?: number, properties?: EventProperties) => {
+
 			if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) return
 
 			posthog.capture('conversion_goal', {
@@ -154,6 +159,7 @@ export function usePostHog() {
 	// Track errors with context
 	const trackError = useCallback(
 		(error: Error | unknown, context?: EventProperties) => {
+
 			if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) return
 
 			const errorMessage =
@@ -175,6 +181,9 @@ export function usePostHog() {
 	const isFeatureEnabled = useCallback(
 		(flagKey: string, fallback: boolean = false): boolean => {
 			if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) return fallback
+
+
+
 			return posthog.isFeatureEnabled(flagKey) ?? fallback
 		},
 		[posthog]
@@ -183,7 +192,11 @@ export function usePostHog() {
 	// Get feature flag payload
 	const getFeatureFlagPayload = useCallback(
 		(flagKey: string) => {
+
 			if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) return null
+
+
+
 			return posthog.getFeatureFlagPayload(flagKey)
 		},
 		[posthog]
@@ -192,7 +205,11 @@ export function usePostHog() {
 	// Track timing metrics
 	const trackTiming = useCallback(
 		(category: string, variable: string, time: number, label?: string) => {
+
 			if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) return
+
+
+
 
 			posthog.capture('timing_metric', {
 				timing_category: category,
