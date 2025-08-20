@@ -10,6 +10,7 @@
 		"inlineSources": false,
 		"removeComments": true,
 		"noEmitOnError": false,
+		"noEmit": false,
 		"skipLibCheck": true,
 		"types": ["node", "reflect-metadata"]
 	},
@@ -22,5 +23,6 @@
 		"src/test-utils/**/*",
 		"src/queues/__tests__/**/*",
 		"src/**/__tests__/**/*"
-	]
+	],
+	"references": []
 }
