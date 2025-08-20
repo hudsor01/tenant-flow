@@ -70,14 +70,3 @@ export function useMaintenanceAlerts() {
 	}
 }
 
-// Export for backward compatibility
-export function useMaintenanceAlertCounts() {
-	const { urgentCount, overdueCount, isLoading } = useMaintenanceAlerts()
-	return {
-		urgentCount,
-		overdueCount,
-		isLoading,
-		emergency: urgentCount, // Alias for backward compatibility
-		high_priority: overdueCount // Alias for backward compatibility
-	}
-}

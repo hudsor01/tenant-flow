@@ -115,6 +115,12 @@ jobs:
             echo "No TypeScript/JavaScript files changed"
           fi
 
+      - name: Build dependencies
+        run: |
+          # Build shared packages first so TypeScript can find type declarations
+          npm run build:shared
+          npm run build:database
+
       - name: Quick typecheck (affected packages only)
         run: |
           # Only typecheck affected packages

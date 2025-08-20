@@ -6,7 +6,7 @@ import { atom } from 'jotai'
 // Note: jotai-form integration pending library update
 // Will use atomWithFormControls when available
 import { z } from 'zod'
-import { leaseSchema } from '@repo/shared/validation/leases'
+import { leaseInputSchema } from '@repo/shared/validation/leases'
 
 // Lease form steps
 export const LEASE_STEPS = [
@@ -28,7 +28,7 @@ export const LEASE_STEPS = [
 export type LeaseStep = (typeof LEASE_STEPS)[number]['id']
 
 // Extended lease form schema for wizard - extends shared schema with UI-specific fields
-export const leaseFormSchema = leaseSchema.extend({
+export const leaseFormSchema = leaseInputSchema.extend({
 	// Property Information (additional UI fields)
 	propertyAddress: z.string().min(1, 'Address required'),
 	city: z.string().min(1, 'City required'),

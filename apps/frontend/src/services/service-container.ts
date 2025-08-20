@@ -43,12 +43,6 @@ export interface ServiceContainer {
 	readonly authService: AuthenticationService
 	readonly propertyService: PropertyManagementService
 	readonly tenantService: TenantManagementService
-
-	// Future services
-	// readonly leaseService: LeaseManagementService;
-	// readonly maintenanceService: MaintenanceService;
-	// readonly billingService: BillingService;
-	// readonly notificationService: NotificationService;
 }
 
 /**

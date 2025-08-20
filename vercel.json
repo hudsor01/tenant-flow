@@ -3,7 +3,7 @@
   "buildCommand": "turbo build --filter=@repo/frontend",
   "framework": "nextjs",
   "outputDirectory": "apps/frontend/.next",
-  "ignoreCommand": "npx turbo-ignore --fallback=HEAD^1",
+  "ignoreCommand": "npx turbo-ignore --filter=@repo/frontend --fallback=HEAD^1",
   "redirects": [
     {
       "source": "/home",

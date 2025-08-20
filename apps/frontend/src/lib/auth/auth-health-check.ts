@@ -91,8 +91,8 @@ export class AuthHealthChecker {
 		}
 
 		// Validate URL formats
-		const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-		const siteUrl = process.env.NEXT_PUBLIC_SITE_URL!
+		const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+		const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || ''
 
 		const warnings: string[] = []
 

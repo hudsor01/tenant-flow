@@ -109,8 +109,6 @@ export const leaseTerminationSchema = z.object({
 // Lease update schema (for partial updates)
 export const leaseUpdateSchema = leaseInputSchema.partial()
 
-// Legacy alias for backward compatibility
-export const leaseSchema = leaseInputSchema
 
 export type LeaseFormData = z.infer<typeof leaseInputSchema>
 export type LeaseRenewalData = z.infer<typeof leaseRenewalSchema>
