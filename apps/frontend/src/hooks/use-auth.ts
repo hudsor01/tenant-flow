@@ -246,8 +246,3 @@ export function useAuth() {
 	}
 }
 
-// Alias for backward compatibility with useMe naming
-export const useMe = () => {
-	const { user, loading, error } = useAuth()
-	return { data: user, isLoading: loading, error }
-}
