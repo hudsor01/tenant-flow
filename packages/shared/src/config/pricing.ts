@@ -1,38 +1,21 @@
 /**
- * Enhanced type-safe pricing configuration for 4-tier subscription system
- * Defines products, trials, limits, and features for each tier with branded types
+ * Simple pricing configuration for TenantFlow subscription system
  */
 
-import type { PlanType } from '../types/stripe'
-import type { ProductTierConfig, TrialConfig } from '../types/billing'
-
-// Branded types for type safety
+// Simple types
 export type StripePriceId = `price_${string}`
 export type PlanId = 'trial' | 'starter' | 'growth' | 'max'
-export type BillingInterval = 'monthly' | 'annual'
-export type SupportTier = 'email' | 'priority' | 'dedicated'
 
-// Usage metrics type
-export interface UsageMetrics {
-	readonly properties: number
-	readonly units: number
-	readonly users: number
-	readonly storage: number // GB
-	readonly apiCalls: number
+// Trial configuration interface
+export interface TrialConfig {
+	readonly trialPeriodDays?: number
+	readonly collectPaymentMethod?: boolean
+	readonly trialEndBehavior?: 'cancel' | 'pause' | 'require_payment'
 }
 
-// Plan limits with branded types
-export interface PlanLimits {
-	readonly properties: number // -1 for unlimited
-	readonly units: number // -1 for unlimited
-	readonly users: number // -1 for unlimited
-	readonly storage: number // GB, -1 for unlimited
-	readonly apiCalls: number // -1 for unlimited
-}
-
-// Enhanced pricing configuration
-export interface EnhancedPricingConfig {
-	readonly id: PlanType
+// Main pricing configuration interface
+export interface PricingConfig {
+	readonly id: string
 	readonly planId: PlanId
 	readonly name: string
 	readonly description: string
@@ -44,671 +27,292 @@ export interface EnhancedPricingConfig {
 		readonly monthly: StripePriceId | null
 		readonly annual: StripePriceId | null
 	}
-	readonly limits: PlanLimits
+	readonly limits: {
+		readonly properties: number
+		readonly units: number
+		readonly users: number
+		readonly storage: number
+		readonly apiCalls: number
+	}
 	readonly features: readonly string[]
-	readonly support: SupportTier
-	readonly trial: TrialConfig
-	readonly recommended?: boolean
-	readonly popular?: boolean
+	readonly support: string
+	readonly trial: boolean | TrialConfig
 }
 
-/**
- * Production-ready enhanced pricing configuration for TenantFlow
- * 4 Products: Free Trial, Starter, Growth, TenantFlow Max
- * Immutable configuration with branded types for type safety
- */
-export const ENHANCED_PRODUCT_TIERS = {
+// Simple pricing plans configuration
+export const PRICING_PLANS: Record<string, PricingConfig> = {
 	FREETRIAL: {
-		id: 'FREETRIAL' as const,
-		planId: 'trial' as const,
+		id: 'FREETRIAL',
+		planId: 'trial',
 		name: 'Free Trial',
 		description: 'Perfect for trying out TenantFlow',
 		price: {
 			monthly: 0,
 			annual: 0
-		} as const,
+		},
 		stripePriceIds: {
 			monthly: 'price_1RtWFcP3WCR53Sdo5Li5xHiC' as StripePriceId,
 			annual: null
-		} as const,
+		},
 		limits: {
 			properties: 1,
 			units: 5,
 			users: 1,
 			storage: 1,
 			apiCalls: 1000
-		} as const,
+		},
 		features: [
 			'Up to 1 property',
 			'Up to 5 units',
 			'Basic tenant management',
 			'Email support',
 			'Mobile app access'
-		] as const,
-		support: 'email' as const,
+		],
+		support: 'email',
 		trial: {
 			trialPeriodDays: 14,
-			trialEndBehavior: 'cancel' as const,
 			collectPaymentMethod: false,
-			reminderDaysBeforeEnd: 3
-		} as const
+			trialEndBehavior: 'cancel'
+		}
 	},
 	STARTER: {
-		id: 'STARTER' as const,
-		planId: 'starter' as const,
+		id: 'STARTER',
+		planId: 'starter',
 		name: 'Starter',
 		description: 'Great for small property managers',
 		price: {
 			monthly: 29,
 			annual: 290
-		} as const,
+		},
 		stripePriceIds: {
-			monthly: 'price_1RtWFcP3WCR53SdoCxiVldhb' as StripePriceId,
-			annual: 'price_1RtWFdP3WCR53SdoArRRXYrL' as StripePriceId
-		} as const,
+			monthly: 'price_1RtWGhP3WCR53Sdo5Li5xHiD' as StripePriceId,
+			annual: 'price_1RtWGhP3WCR53Sdo5Li5xHiE' as StripePriceId
+		},
 		limits: {
-			properties: 5,
+			properties: 10,
 			units: 50,
 			users: 3,
 			storage: 10,
 			apiCalls: 10000
-		} as const,
+		},
 		features: [
-			'Up to 5 properties',
+			'Up to 10 properties',
 			'Up to 50 units',
-			'Advanced tenant management',
-			'Lease management',
-			'Maintenance tracking',
-			'Financial reporting',
+			'Full tenant management',
 			'Priority email support',
-			'API access'
-		] as const,
-		support: 'email' as const,
-		trial: {
-			trialPeriodDays: 14,
-			trialEndBehavior: 'pause' as const,
-			collectPaymentMethod: false,
-			reminderDaysBeforeEnd: 3
-		} as const,
-		popular: true
+			'Mobile app access',
+			'Basic reporting'
+		],
+		support: 'email',
+		trial: false
 	},
 	GROWTH: {
-		id: 'GROWTH' as const,
-		planId: 'growth' as const,
+		id: 'GROWTH',
+		planId: 'growth',
 		name: 'Growth',
-		description: 'Ideal for growing property management companies',
+		description: 'Perfect for growing property portfolios',
 		price: {
-			monthly: 79,
-			annual: 790
-		} as const,
+			monthly: 89,
+			annual: 890
+		},
 		stripePriceIds: {
-			monthly: 'price_1RtWFdP3WCR53Sdoz98FFpSu' as StripePriceId,
-			annual: 'price_1RtWFdP3WCR53SdoHDRR9kAJ' as StripePriceId
-		} as const,
+			monthly: 'price_1RtWHiP3WCR53Sdo5Li5xHiF' as StripePriceId,
+			annual: 'price_1RtWHiP3WCR53Sdo5Li5xHiG' as StripePriceId
+		},
 		limits: {
-			properties: 20,
-			units: 200,
+			properties: 50,
+			units: 250,
 			users: 10,
 			storage: 50,
 			apiCalls: 50000
-		} as const,
+		},
 		features: [
-			'Up to 20 properties',
-			'Up to 200 units',
-			'Everything in Starter',
-			'Advanced analytics',
-			'Custom reports',
-			'Bulk operations',
-			'Team collaboration',
+			'Up to 50 properties',
+			'Up to 250 units',
+			'Advanced tenant management',
 			'Priority support',
-			'Advanced API access',
-			'Integrations'
-		] as const,
-		support: 'priority' as const,
-		trial: {
-			trialPeriodDays: 14,
-			trialEndBehavior: 'pause' as const,
-			collectPaymentMethod: false,
-			reminderDaysBeforeEnd: 3
-		} as const,
-		recommended: true
+			'Advanced reporting',
+			'API access',
+			'Bulk operations'
+		],
+		support: 'priority',
+		trial: false
 	},
 	TENANTFLOW_MAX: {
-		id: 'TENANTFLOW_MAX' as const,
-		planId: 'max' as const,
+		id: 'TENANTFLOW_MAX',
+		planId: 'max',
 		name: 'TenantFlow Max',
-		description: 'For large property management operations',
+		description: 'Enterprise-grade property management',
 		price: {
 			monthly: 199,
 			annual: 1990
-		} as const,
+		},
 		stripePriceIds: {
-			monthly: 'price_1RtWFeP3WCR53Sdo9AsL7oGv' as StripePriceId,
-			annual: 'price_1RtWFeP3WCR53Sdoxm2iY4mt' as StripePriceId
-		} as const,
+			monthly: 'price_1RtWIjP3WCR53Sdo5Li5xHiH' as StripePriceId,
+			annual: 'price_1RtWIjP3WCR53Sdo5Li5xHiI' as StripePriceId
+		},
 		limits: {
 			properties: -1,
 			units: -1,
 			users: -1,
 			storage: -1,
 			apiCalls: -1
-		} as const,
+		},
 		features: [
 			'Unlimited properties',
 			'Unlimited units',
-			'Everything in Growth',
-			'White-label options',
-			'Custom integrations',
+			'Unlimited users',
 			'Dedicated account manager',
-			'SLA guarantee',
-			'24/7 phone support',
-			'Custom training',
-			'API rate limit bypass'
-		] as const,
-		support: 'dedicated' as const,
-		trial: {
-			trialPeriodDays: 30,
-			trialEndBehavior: 'pause' as const,
-			collectPaymentMethod: true,
-			reminderDaysBeforeEnd: 7
-		} as const
+			'Custom integrations',
+			'Advanced analytics',
+			'White-label options',
+			'SLA guarantee'
+		],
+		support: 'dedicated',
+		trial: false
 	}
-} as const
-
-// Legacy support - maps to enhanced config
-export const PRODUCT_TIERS: Record<PlanType, ProductTierConfig> = {
-	FREETRIAL: ENHANCED_PRODUCT_TIERS.FREETRIAL,
-
-	STARTER: ENHANCED_PRODUCT_TIERS.STARTER,
-
-	GROWTH: ENHANCED_PRODUCT_TIERS.GROWTH,
-
-	TENANTFLOW_MAX: ENHANCED_PRODUCT_TIERS.TENANTFLOW_MAX
 }
 
-/**
- * Get product tier configuration by plan type with validation
- */
-export function getProductTier(planType: PlanType): ProductTierConfig {
-	// Input validation
-	if (!planType || typeof planType !== 'string') {
-		throw new Error('Plan type must be a non-empty string')
-	}
-
-	// Validate plan type is a known enum value
-	const validPlanTypes: PlanType[] = [
-		'FREETRIAL',
-		'STARTER',
-		'GROWTH',
-		'TENANTFLOW_MAX'
-	]
-	if (!validPlanTypes.includes(planType)) {
-		throw new Error(
-			`Invalid plan type: ${planType}. Must be one of: ${validPlanTypes.join(', ')}`
-		)
-	}
-
-	const tier = PRODUCT_TIERS[planType]
-	if (!tier) {
-		throw new Error(`Product tier not found for plan type: ${planType}`)
-	}
-
-	// Validate tier configuration integrity
-	if (!tier.id || !tier.name || !tier.description) {
-		throw new Error(`Invalid tier configuration for plan type: ${planType}`)
-	}
-
-	return tier
+// Helper functions
+export function getPricingPlan(planId: PlanId): PricingConfig | undefined {
+	return Object.values(PRICING_PLANS).find(plan => plan.planId === planId)
 }
 
-/**
- * Enhanced type-safe functions for pricing operations
- */
-
-/**
- * Get Stripe price ID for a plan and billing interval with validation
- */
-export function getStripePriceId(
-	planType: PlanType,
-	interval: BillingInterval
-): StripePriceId | null {
-	// Input validation
-	if (!planType || typeof planType !== 'string') {
-		throw new Error('Plan type must be a non-empty string')
-	}
-
-	if (!interval || typeof interval !== 'string') {
-		throw new Error('Billing interval must be a non-empty string')
-	}
-
-	// Validate billing interval
-	const validIntervals: BillingInterval[] = ['monthly', 'annual']
-	if (!validIntervals.includes(interval)) {
-		throw new Error(
-			`Invalid billing interval: ${interval}. Must be one of: ${validIntervals.join(', ')}`
-		)
-	}
-
-	// Validate plan type
-	const validPlanTypes: PlanType[] = [
-		'FREETRIAL',
-		'STARTER',
-		'GROWTH',
-		'TENANTFLOW_MAX'
-	]
-	if (!validPlanTypes.includes(planType)) {
-		throw new Error(
-			`Invalid plan type: ${planType}. Must be one of: ${validPlanTypes.join(', ')}`
-		)
-	}
-
-	const tier = ENHANCED_PRODUCT_TIERS[planType]
-	if (!tier) {
-		throw new Error(`Product tier not found for plan type: ${planType}`)
-	}
-
-	const priceId = tier.stripePriceIds[interval]
-
-	// Validate price ID format if it exists
-	if (priceId && !priceId.startsWith('price_')) {
-		throw new Error(
-			`Invalid Stripe price ID format: ${priceId}. Must start with 'price_'`
-		)
-	}
-
-	return priceId
+export function getAllPricingPlans(): PricingConfig[] {
+	return Object.values(PRICING_PLANS)
 }
 
-/**
- * Get enhanced product tier configuration by plan type with validation
- */
-export function getEnhancedProductTier(
-	planType: PlanType
-): (typeof ENHANCED_PRODUCT_TIERS)[PlanType] {
-	// Input validation
-	if (!planType || typeof planType !== 'string') {
-		throw new Error('Plan type must be a non-empty string')
-	}
-
-	// Validate plan type is a known enum value
-	const validPlanTypes: PlanType[] = [
-		'FREETRIAL',
-		'STARTER',
-		'GROWTH',
-		'TENANTFLOW_MAX'
-	]
-	if (!validPlanTypes.includes(planType)) {
-		throw new Error(
-			`Invalid plan type: ${planType}. Must be one of: ${validPlanTypes.join(', ')}`
-		)
-	}
-
-	const tier = ENHANCED_PRODUCT_TIERS[planType]
-	if (!tier) {
-		throw new Error(
-			`Enhanced product tier not found for plan type: ${planType}`
-		)
-	}
-
-	// Validate tier configuration integrity
-	if (!tier.id || !tier.name || !tier.description) {
-		throw new Error(
-			`Invalid enhanced tier configuration for plan type: ${planType}`
-		)
-	}
-
-	if (
-		typeof tier.price.monthly !== 'number' ||
-		typeof tier.price.annual !== 'number'
-	) {
-		throw new Error(
-			`Invalid pricing configuration for plan type: ${planType}`
-		)
-	}
-
-	if (tier.price.monthly < 0 || tier.price.annual < 0) {
-		throw new Error(`Pricing cannot be negative for plan type: ${planType}`)
-	}
-
-	return tier
+// Usage metrics interface for plan checking
+export interface UsageMetrics {
+	properties: number
+	units: number
+	users: number
+	storage: number
+	apiCalls: number
 }
 
-/**
- * Check if a plan has a free trial with validation
- */
-export function hasTrial(planType: PlanType): boolean {
-	// Input validation
-	if (!planType || typeof planType !== 'string') {
-		throw new Error('Plan type must be a non-empty string')
-	}
-
-	// Validate plan type is a known enum value
-	const validPlanTypes: PlanType[] = [
-		'FREETRIAL',
-		'STARTER',
-		'GROWTH',
-		'TENANTFLOW_MAX'
-	]
-	if (!validPlanTypes.includes(planType)) {
-		throw new Error(
-			`Invalid plan type: ${planType}. Must be one of: ${validPlanTypes.join(', ')}`
-		)
-	}
-
-	const tier = PRODUCT_TIERS[planType]
-	if (!tier) {
-		throw new Error(`Product tier not found for plan type: ${planType}`)
-	}
-
-	// Validate trial configuration
-	if (!tier.trial || typeof tier.trial.trialPeriodDays !== 'number') {
-		throw new Error(
-			`Invalid trial configuration for plan type: ${planType}`
-		)
-	}
-
-	if (tier.trial.trialPeriodDays < 0) {
-		throw new Error(
-			`Trial period cannot be negative for plan type: ${planType}`
-		)
-	}
-
-	return tier.trial.trialPeriodDays > 0
-}
-
-/**
- * Get trial configuration for a plan with validation
- */
-export function getTrialConfig(planType: PlanType): TrialConfig | undefined {
-	// Input validation
-	if (!planType || typeof planType !== 'string') {
-		throw new Error('Plan type must be a non-empty string')
-	}
-
-	// Validate plan type is a known enum value
-	const validPlanTypes: PlanType[] = [
-		'FREETRIAL',
-		'STARTER',
-		'GROWTH',
-		'TENANTFLOW_MAX'
-	]
-	if (!validPlanTypes.includes(planType)) {
-		throw new Error(
-			`Invalid plan type: ${planType}. Must be one of: ${validPlanTypes.join(', ')}`
-		)
-	}
-
-	const tier = PRODUCT_TIERS[planType]
-	if (!tier) {
-		throw new Error(`Product tier not found for plan type: ${planType}`)
-	}
-
-	const trialConfig = tier.trial
-
-	// Validate trial configuration if it exists
-	if (trialConfig) {
-		if (
-			typeof trialConfig.trialPeriodDays !== 'number' ||
-			trialConfig.trialPeriodDays < 0
-		) {
-			throw new Error(`Invalid trial period for plan type: ${planType}`)
-		}
-
-		const validTrialEndBehaviors = ['cancel', 'pause'] as const
-		if (
-			!validTrialEndBehaviors.includes(
-				trialConfig.trialEndBehavior as (typeof validTrialEndBehaviors)[number]
-			)
-		) {
-			throw new Error(
-				`Invalid trial end behavior for plan type: ${planType}`
-			)
-		}
-
-		if (typeof trialConfig.collectPaymentMethod !== 'boolean') {
-			throw new Error(
-				`Invalid collectPaymentMethod setting for plan type: ${planType}`
-			)
-		}
-
-		if (
-			typeof trialConfig.reminderDaysBeforeEnd !== 'number' ||
-			trialConfig.reminderDaysBeforeEnd < 0
-		) {
-			throw new Error(
-				`Invalid reminderDaysBeforeEnd for plan type: ${planType}`
-			)
-		}
-	}
-
-	return trialConfig
-}
-
-/**
- * Enhanced plan limit checking with comprehensive validation
- */
+// Check if current usage exceeds plan limits
 export function checkPlanLimits(
-	planType: PlanType,
-	usage: Partial<UsageMetrics>
-): {
-	readonly exceeded: boolean
-	readonly limits: readonly {
-		readonly type: keyof UsageMetrics
-		readonly current: number
-		readonly limit: number
-		readonly utilizationPercent: number
-	}[]
-	readonly warningLimits: readonly {
-		readonly type: keyof UsageMetrics
-		readonly current: number
-		readonly limit: number
-		readonly utilizationPercent: number
-	}[]
-} {
-	// Input validation
-	if (!planType || typeof planType !== 'string') {
-		throw new Error('Plan type must be a non-empty string')
+	usage: UsageMetrics,
+	planId: PlanId
+): { exceeded: boolean; limits: string[] } {
+	const plan = getPricingPlan(planId)
+	if (!plan) {
+		return { exceeded: false, limits: [] }
 	}
 
-	if (!usage || typeof usage !== 'object') {
-		throw new Error('Usage must be a valid object')
-	}
+	const limits: string[] = []
+	let exceeded = false
 
-	// Validate plan type is a known enum value
-	const validPlanTypes: PlanType[] = [
-		'FREETRIAL',
-		'STARTER',
-		'GROWTH',
-		'TENANTFLOW_MAX'
-	]
-	if (!validPlanTypes.includes(planType)) {
-		throw new Error(
-			`Invalid plan type: ${planType}. Must be one of: ${validPlanTypes.join(', ')}`
-		)
-	}
-
-	// Validate usage metrics
-	const validUsageKeys: (keyof UsageMetrics)[] = [
-		'properties',
-		'units',
-		'users',
-		'storage',
-		'apiCalls'
-	]
-	for (const key in usage) {
-		if (!validUsageKeys.includes(key as keyof UsageMetrics)) {
-			throw new Error(
-				`Invalid usage metric: ${key}. Must be one of: ${validUsageKeys.join(', ')}`
-			)
-		}
-
-		const value = usage[key as keyof UsageMetrics]
-		if (value !== undefined && (typeof value !== 'number' || value < 0)) {
-			throw new Error(
-				`Usage metric ${key} must be a non-negative number, got: ${value}`
-			)
-		}
-	}
-
-	const tier = PRODUCT_TIERS[planType]
-	if (!tier) {
-		throw new Error(`Product tier not found for plan type: ${planType}`)
-	}
-
-	const exceededLimits: {
-		readonly type: keyof UsageMetrics
-		readonly current: number
-		readonly limit: number
-		readonly utilizationPercent: number
-	}[] = []
-
-	const warningLimits: {
-		readonly type: keyof UsageMetrics
-		readonly current: number
-		readonly limit: number
-		readonly utilizationPercent: number
-	}[] = []
-
-	// Helper function to calculate utilization and check limits
-	const checkLimit = (
-		type: keyof UsageMetrics,
-		current: number | undefined,
-		limit: number | undefined
-	): void => {
-		if (!current || !limit || limit === -1) return
-
-		const utilizationPercent = Math.round((current / limit) * 100)
-
-		if (current > limit) {
-			exceededLimits.push({
-				type,
-				current,
-				limit,
-				utilizationPercent
-			})
-		} else if (utilizationPercent >= 80) {
-			// Warning when usage is 80% or higher
-			warningLimits.push({
-				type,
-				current,
-				limit,
-				utilizationPercent
-			})
-		}
-	}
-
-	// Check all limits
-	checkLimit('properties', usage.properties, tier.limits.properties)
-	checkLimit('units', usage.units, tier.limits.units)
-	checkLimit('users', usage.users, tier.limits.users)
-	checkLimit('storage', usage.storage, tier.limits.storage)
-	checkLimit('apiCalls', usage.apiCalls, tier.limits.apiCalls)
-
-	return {
-		exceeded: exceededLimits.length > 0,
-		limits: exceededLimits,
-		warningLimits
-	}
-}
-
-/**
- * Get recommended upgrade plan based on usage
- */
-export function getRecommendedUpgrade(
-	currentPlan: PlanType,
-	usage: {
-		properties?: number
-		units?: number
-		users?: number
-	}
-): PlanType | null {
-	const planOrder: PlanType[] = [
-		'FREETRIAL',
-		'STARTER',
-		'GROWTH',
-		'TENANTFLOW_MAX'
-	]
-	const currentIndex = planOrder.indexOf(currentPlan)
-
-	// Check each plan in order to find the first one that fits usage
-	for (let i = currentIndex + 1; i < planOrder.length; i++) {
-		const plan = planOrder[i]
-		if (!plan) continue // Skip if plan is undefined
-
-		const tier = PRODUCT_TIERS[plan]
-		if (!tier) continue // Skip if tier is undefined
-
-		const fitsUsage =
-			(tier.limits.properties === -1 ||
-				tier.limits.properties === undefined ||
-				!usage.properties ||
-				usage.properties <= tier.limits.properties) &&
-			(tier.limits.units === -1 ||
-				tier.limits.units === undefined ||
-				!usage.units ||
-				usage.units <= tier.limits.units) &&
-			(tier.limits.users === -1 ||
-				tier.limits.users === undefined ||
-				!usage.users ||
-				usage.users <= tier.limits.users)
-
-		if (fitsUsage) {
-			return plan
-		}
-	}
-
-	return null
-}
-
-/**
- * Calculate annual savings for a plan with validation
- */
-export function calculateAnnualSavings(planType: PlanType): number {
-	// Input validation
-	if (!planType || typeof planType !== 'string') {
-		throw new Error('Plan type must be a non-empty string')
-	}
-
-	// Validate plan type is a known enum value
-	const validPlanTypes: PlanType[] = [
-		'FREETRIAL',
-		'STARTER',
-		'GROWTH',
-		'TENANTFLOW_MAX'
-	]
-	if (!validPlanTypes.includes(planType)) {
-		throw new Error(
-			`Invalid plan type: ${planType}. Must be one of: ${validPlanTypes.join(', ')}`
-		)
-	}
-
-	const tier = PRODUCT_TIERS[planType]
-	if (!tier) {
-		throw new Error(`Product tier not found for plan type: ${planType}`)
-	}
-
-	// Validate pricing data
 	if (
-		typeof tier.price.monthly !== 'number' ||
-		typeof tier.price.annual !== 'number'
+		plan.limits.properties > 0 &&
+		usage.properties > plan.limits.properties
 	) {
-		throw new Error(`Invalid pricing data for plan type: ${planType}`)
+		limits.push(`Properties: ${usage.properties}/${plan.limits.properties}`)
+		exceeded = true
+	}
+	if (plan.limits.units > 0 && usage.units > plan.limits.units) {
+		limits.push(`Units: ${usage.units}/${plan.limits.units}`)
+		exceeded = true
+	}
+	if (plan.limits.users > 0 && usage.users > plan.limits.users) {
+		limits.push(`Users: ${usage.users}/${plan.limits.users}`)
+		exceeded = true
+	}
+	if (plan.limits.storage > 0 && usage.storage > plan.limits.storage) {
+		limits.push(`Storage: ${usage.storage}GB/${plan.limits.storage}GB`)
+		exceeded = true
+	}
+	if (plan.limits.apiCalls > 0 && usage.apiCalls > plan.limits.apiCalls) {
+		limits.push(`API Calls: ${usage.apiCalls}/${plan.limits.apiCalls}`)
+		exceeded = true
 	}
 
-	if (tier.price.monthly < 0 || tier.price.annual < 0) {
-		throw new Error(`Pricing cannot be negative for plan type: ${planType}`)
-	}
-
-	const monthlyCost = tier.price.monthly * 12
-	const annualCost = tier.price.annual
-	const savings = monthlyCost - annualCost
-
-	// Validate calculated values
-	if (!Number.isFinite(savings)) {
-		throw new Error(
-			`Invalid savings calculation for plan type: ${planType}`
-		)
-	}
-
-	return Math.max(0, savings) // Ensure non-negative savings
+	return { exceeded, limits }
 }
+
+// Get recommended upgrade based on current usage
+export function getRecommendedUpgrade(
+	usage: UsageMetrics,
+	currentPlanId: PlanId
+): PlanId | null {
+	const plans: PlanId[] = ['trial', 'starter', 'growth', 'max']
+	const currentIndex = plans.indexOf(currentPlanId)
+
+	// Check each higher plan to see if it fits
+	for (let i = currentIndex + 1; i < plans.length; i++) {
+		const planId = plans[i]
+		if (!planId) continue
+
+		const plan = getPricingPlan(planId)
+		if (!plan) continue
+
+		const { exceeded } = checkPlanLimits(usage, planId)
+		if (!exceeded) {
+			return planId
+		}
+	}
+
+	return 'max' // Recommend max if nothing else fits
+}
+
+// Calculate annual savings
+export function calculateAnnualSavings(monthlyPrice: number): number {
+	const yearlyPrice = monthlyPrice * 10 // 2 months free
+	const monthlyCost = monthlyPrice * 12
+	return monthlyCost - yearlyPrice
+}
+
+// Get product tier configuration by ID (supports both PlanId and legacy PlanType)
+export function getProductTier(
+	planId: PlanId | string
+): PricingConfig | undefined {
+	// Handle legacy PlanType constants
+	if (typeof planId === 'string' && planId in PRICING_PLANS) {
+		return PRICING_PLANS[planId]
+	}
+
+	// Handle new PlanId format
+	return getPricingPlan(planId as PlanId)
+}
+
+// Convert legacy PlanType to new PlanId
+export function planTypeToId(planType: string): PlanId | undefined {
+	const config = PRICING_PLANS[planType]
+	return config?.planId
+}
+
+// Get trial configuration from a pricing config
+export function getTrialConfig(config: PricingConfig): TrialConfig | null {
+	if (typeof config.trial === 'boolean') {
+		return config.trial
+			? {
+					trialPeriodDays: 14,
+					collectPaymentMethod: false,
+					trialEndBehavior: 'cancel'
+				}
+			: null
+	}
+	return config.trial
+}
+
+// Check if a plan has trial
+export function hasTrial(config: PricingConfig): boolean {
+	return typeof config.trial === 'boolean' ? config.trial : true
+}
+
+// Get Stripe price ID for a plan and billing period
+export function getStripePriceId(
+	planId: PlanId,
+	period: 'monthly' | 'annual'
+): StripePriceId | null {
+	const plan = getPricingPlan(planId)
+	if (!plan) return null
+
+	return period === 'monthly'
+		? plan.stripePriceIds.monthly
+		: plan.stripePriceIds.annual
+}
+
+// Backward compatibility - alias the new name to the old one
+export const ENHANCED_PRODUCT_TIERS = PRICING_PLANS

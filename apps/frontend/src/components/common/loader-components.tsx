@@ -342,7 +342,12 @@ export const ProgressiveLoader: React.FC<{
 		return (
 			<LoaderErrorFallback
 				error={error}
-				resetErrorBoundary={onRetry || (() => {})}
+				resetErrorBoundary={
+					onRetry ||
+					(() => {
+						/* empty fallback */
+					})
+				}
 			/>
 		)
 	}

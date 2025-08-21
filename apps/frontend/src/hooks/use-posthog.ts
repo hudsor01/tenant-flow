@@ -121,8 +121,8 @@ export function usePostHog() {
 	// Identify user with properties
 	const identifyUser = useCallback(
 		(user: User | null, organizationId?: string) => {
-
-			if (!posthog || !user || !process.env.NEXT_PUBLIC_POSTHOG_KEY) return
+			if (!posthog || !user || !process.env.NEXT_PUBLIC_POSTHOG_KEY)
+				return
 
 			posthog.identify(user.id, {
 				email: user.email,
@@ -135,7 +135,6 @@ export function usePostHog() {
 
 	// Reset user identification on logout
 	const resetUser = useCallback(() => {
-
 		if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) return
 
 		posthog.reset()
@@ -144,7 +143,6 @@ export function usePostHog() {
 	// Track conversion goals
 	const trackConversion = useCallback(
 		(goalName: string, value?: number, properties?: EventProperties) => {
-
 			if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) return
 
 			posthog.capture('conversion_goal', {
@@ -159,7 +157,6 @@ export function usePostHog() {
 	// Track errors with context
 	const trackError = useCallback(
 		(error: Error | unknown, context?: EventProperties) => {
-
 			if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) return
 
 			const errorMessage =
@@ -177,39 +174,13 @@ export function usePostHog() {
 		[posthog]
 	)
 
-	// Check feature flag status
-	const isFeatureEnabled = useCallback(
-		(flagKey: string, fallback: boolean = false): boolean => {
-			if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) return fallback
-
-
-
-			return posthog.isFeatureEnabled(flagKey) ?? fallback
-		},
-		[posthog]
-	)
-
-	// Get feature flag payload
-	const getFeatureFlagPayload = useCallback(
-		(flagKey: string) => {
-
-			if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) return null
-
-
-
-			return posthog.getFeatureFlagPayload(flagKey)
-		},
-		[posthog]
-	)
+	// Feature flags removed for stable production version
+	// All features are now enabled by default via env-config
 
 	// Track timing metrics
 	const trackTiming = useCallback(
 		(category: string, variable: string, time: number, label?: string) => {
-
 			if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) return
-
-
-
 
 			posthog.capture('timing_metric', {
 				timing_category: category,
@@ -228,8 +199,6 @@ export function usePostHog() {
 		resetUser,
 		trackConversion,
 		trackError,
-		isFeatureEnabled,
-		getFeatureFlagPayload,
 		trackTiming
 	}
 }

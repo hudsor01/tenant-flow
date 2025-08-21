@@ -1,8 +1,14 @@
 import { Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import type { EnvironmentVariables } from '../config/config.schema'
 
 @Injectable()
 export class AnalyticsService {
-	private posthogKey = process.env.POSTHOG_KEY
+	private posthogKey: string | undefined
+
+	constructor(private configService: ConfigService<EnvironmentVariables>) {
+		this.posthogKey = this.configService.get('POSTHOG_KEY', { infer: true })
+	}
 
 	track(userId: string, event: string, properties?: Record<string, unknown>) {
 		if (!this.posthogKey) {

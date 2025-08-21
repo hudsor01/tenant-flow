@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Building2, Sparkles, Menu, X, ChevronDown } from 'lucide-react'
+import { Building2, Menu, X, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export function NavigationSection(): React.ReactElement {
@@ -36,19 +36,16 @@ export function NavigationSection(): React.ReactElement {
 			className={cn(
 				'fixed top-0 z-50 w-full transition-all duration-300',
 				'border-b border-gray-200/50 bg-white/95 backdrop-blur-md',
-				scrollY > 50 && 'bg-white/98 shadow-xl shadow-black/5'
+				scrollY > 50 && 'border-gray-200/80 bg-white/98 shadow-sm'
 			)}
 		>
-			<div className="container mx-auto flex h-16 items-center justify-between px-4">
-				{/* Enhanced logo */}
-				<Link href="/" className="group flex items-center space-x-3">
-					<div className="relative">
-						<div className="from-primary flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br to-purple-600 shadow-lg transition-all duration-300 group-hover:scale-105 group-hover:shadow-xl">
-							<Building2 className="h-6 w-6 text-white" />
-						</div>
-						<Sparkles className="absolute -top-1 -right-1 h-3 w-3 animate-pulse text-yellow-500" />
+			<div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+				{/* Simplified modern logo */}
+				<Link href="/" className="flex items-center space-x-3">
+					<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-purple-600">
+						<Building2 className="h-5 w-5 text-white" />
 					</div>
-					<span className="bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-xl font-bold text-transparent">
+					<span className="text-xl font-bold text-gray-900">
 						TenantFlow
 					</span>
 				</Link>
@@ -91,21 +88,20 @@ export function NavigationSection(): React.ReactElement {
 					))}
 				</div>
 
-				{/* Desktop CTA buttons */}
-				<div className="hidden items-center space-x-3 md:flex">
-					<Button
-						asChild
-						variant="ghost"
-						className="text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+				{/* Modern CTA buttons */}
+				<div className="hidden items-center space-x-4 md:flex">
+					<Link
+						href="/auth/login"
+						className="text-sm font-medium text-gray-700 hover:text-gray-900"
 					>
-						<Link href="/auth/login">Sign In</Link>
-					</Button>
-					<Button
-						asChild
-						className="from-primary bg-gradient-to-r to-purple-600 text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-blue-700 hover:to-purple-700 hover:shadow-xl"
+						Sign in
+					</Link>
+					<Link
+						href="/auth/signup"
+						className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
 					>
-						<Link href="/auth/signup">Get Started Free</Link>
-					</Button>
+						Get started
+					</Link>
 				</div>
 
 				{/* Mobile menu button */}

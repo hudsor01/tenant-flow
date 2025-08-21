@@ -109,7 +109,6 @@ export const leaseTerminationSchema = z.object({
 // Lease update schema (for partial updates)
 export const leaseUpdateSchema = leaseInputSchema.partial()
 
-
 export type LeaseFormData = z.infer<typeof leaseInputSchema>
 export type LeaseRenewalData = z.infer<typeof leaseRenewalSchema>
 export type LeaseTerminationData = z.infer<typeof leaseTerminationSchema>

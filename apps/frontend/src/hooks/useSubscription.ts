@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from './use-auth'
 import { PLAN_TYPE } from '@repo/shared'
 import type { PlanType } from '@repo/shared'
+import { apiClient } from '@/lib/api-client'
 
 interface Subscription {
 	id: string
@@ -28,27 +29,15 @@ export function useSubscription() {
 		const fetchSubscription = async () => {
 			try {
 				setIsLoading(true)
-				const response = await fetch(
-					`${process.env.NEXT_PUBLIC_API_URL}/subscriptions/current`,
-					{
-						headers: {
-							Authorization: `Bearer ${user.access_token}`
-						}
-					}
-				)
-
-				if (!response.ok) {
-					if (response.status === 404) {
-						// No subscription found - this is valid for free users
-						setSubscription(null)
-						return
-					}
-					throw new Error('Failed to fetch subscription')
-				}
-
-				const data = await response.json()
+				const data = await apiClient.get('/subscriptions/current')
 				setSubscription(data)
-			} catch (err) {
+			} catch (err: unknown) {
+				// Handle 404 as valid case for free users
+				const apiError = err as { code?: string; message?: string }
+				if (apiError.code === '404') {
+					setSubscription(null)
+					return
+				}
 				const errorMessage =
 					err instanceof Error
 						? err.message

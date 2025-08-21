@@ -56,7 +56,7 @@ export function PricingTable({ currentPlan }: PricingTableProps) {
 		try {
 			await createCheckoutSession(
 				planId as PlanType,
-				billingInterval === 'annual' ? 'yearly' : 'monthly'
+				billingInterval === 'annual' ? 'annual' : 'monthly'
 			)
 		} catch {
 			// Error is handled in the hook

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs-vite'
 import { PricingFAQ } from '../../../../apps/frontend/src/components/pricing/pricing-faq'
 
 const meta = {

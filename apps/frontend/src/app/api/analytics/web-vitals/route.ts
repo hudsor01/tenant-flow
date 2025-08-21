@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
 				{ component: 'app_api_analytics_web_vitals_route.ts' }
 			)
 		} else {
-			console.log('Web Vitals Metric:', {
+			console.warn('Web Vitals Metric:', {
 				name: payload.name,
 				value: payload.value,
 				rating: payload.rating,

@@ -2,10 +2,7 @@
  * React Query hooks for Maintenance Requests
  * Provides type-safe data fetching and mutations with optimistic updates
  */
-import {
-	type UseQueryResult,
-	type UseMutationResult
-} from '@tanstack/react-query'
+import type { UseQueryResult, UseMutationResult } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
 import { queryKeys } from '@/lib/react-query/query-client'
 import type {
@@ -38,7 +35,7 @@ export function useMaintenanceRequests(
 					params: createQueryAdapter(query)
 				}
 			)
-			return response.data
+			return response
 		},
 		enabled: options?.enabled ?? true,
 		staleTime: 5 * 60 * 1000
@@ -56,10 +53,9 @@ export function useMaintenanceRequest(
 		'maintenance',
 		Boolean(id) && (options?.enabled ?? true) ? id : undefined,
 		async (id: string) => {
-			const response = await apiClient.get<MaintenanceRequest>(
+			return await apiClient.get<MaintenanceRequest>(
 				`/maintenance/${id}`
 			)
-			return response.data
 		}
 	)
 }
@@ -78,7 +74,7 @@ export function useCreateMaintenanceRequest(): UseMutationResult<
 				'/maintenance',
 				createMutationAdapter(data)
 			)
-			return response.data
+			return response
 		},
 		invalidateKeys: [queryKeys.maintenance()],
 		successMessage: 'Maintenance request created successfully',
@@ -128,7 +124,7 @@ export function useUpdateMaintenanceRequest(): UseMutationResult<
 				`/maintenance/${id}`,
 				createMutationAdapter(data)
 			)
-			return response.data
+			return response
 		},
 		invalidateKeys: [queryKeys.maintenance()],
 		successMessage: 'Maintenance request updated successfully',
@@ -171,11 +167,10 @@ export function useUpdateMaintenanceStatus(): UseMutationResult<
 > {
 	return useMutationFactory({
 		mutationFn: async ({ id, status }) => {
-			const response = await apiClient.patch<MaintenanceRequest>(
+			return await apiClient.patch<MaintenanceRequest>(
 				`/maintenance/${id}/status`,
 				{ status }
 			)
-			return response.data
 		},
 		invalidateKeys: [queryKeys.maintenance()],
 		errorMessage: 'Failed to update status',
@@ -214,7 +209,7 @@ export function useAssignMaintenanceVendor(): UseMutationResult<
 				`/maintenance/${id}/assign`,
 				createMutationAdapter({ vendorId, notes })
 			)
-			return response.data
+			return response
 		},
 		invalidateKeys: [queryKeys.maintenance()],
 		successMessage: 'Vendor assigned successfully',
