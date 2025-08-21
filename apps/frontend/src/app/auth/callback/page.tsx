@@ -7,7 +7,7 @@ import { QueryProvider } from '@/providers/query-provider'
 export const dynamic = 'force-dynamic'
 
 interface AuthCallbackPageProps {
-	searchParams: { [key: string]: string | string[] | undefined }
+	searchParams: Record<string, string | string[] | undefined>
 }
 
 export default function AuthCallbackPage({

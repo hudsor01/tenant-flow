@@ -70,7 +70,17 @@ export function SidebarHeader() {
 	const [currentWorkspace, setCurrentWorkspace] = React.useState<Workspace>(
 		() => {
 			const activeWorkspace = mockWorkspaces.find(w => w.isActive)
-			return activeWorkspace || mockWorkspaces[0]!
+			return (
+				activeWorkspace ||
+				mockWorkspaces[0] || {
+					id: 'default',
+					name: 'Default Workspace',
+					type: 'personal' as const,
+					role: 'Owner',
+					propertyCount: 0,
+					isActive: true
+				}
+			)
 		}
 	)
 

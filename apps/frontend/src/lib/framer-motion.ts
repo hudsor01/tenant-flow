@@ -18,11 +18,10 @@ export type {
 	HTMLMotionProps
 } from 'framer-motion'
 
-export type Variants = {
-	[key: string]:
-		| TargetAndTransition
-		| ((custom?: number) => TargetAndTransition)
-}
+export type Variants = Record<
+	string,
+	TargetAndTransition | ((custom?: number) => TargetAndTransition)
+>
 
 export const fadeInVariants: Variants = {
 	hidden: { opacity: 0 },

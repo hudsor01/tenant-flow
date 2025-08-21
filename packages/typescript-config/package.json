@@ -21,6 +21,6 @@
 		"clean": "echo 'No build artifacts to clean in config package'"
 	},
 	"devDependencies": {
-		"eslint": "^9.33.0"
+		"eslint": "^9.17.0"
 	}
 }

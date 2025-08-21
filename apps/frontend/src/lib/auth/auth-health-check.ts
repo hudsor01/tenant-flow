@@ -102,7 +102,7 @@ export class AuthHealthChecker {
 
 		if (process.env.NODE_ENV === 'production') {
 			if (siteUrl.includes('localhost')) {
-				warnings.push('Production using localhost URL')
+				warnings.push('Production using localhost URL (should be https://tenantflow.app)')
 			}
 			if (!siteUrl.startsWith('https://')) {
 				warnings.push('Production not using HTTPS')
@@ -702,32 +702,16 @@ export const authHealthChecker = AuthHealthChecker.getInstance()
 export async function runAuthHealthCheck(): Promise<AuthHealthStatus> {
 	const status = await authHealthChecker.runHealthCheck()
 
-	// Log to console in development
+	// Log detailed results in development
 	if (process.env.NODE_ENV === 'development') {
-		console.log('\n' + '='.repeat(60))
-		console.log('🔍 AUTH HEALTH CHECK RESULTS')
-		console.log('='.repeat(60))
-		console.log(`Status: ${status.overall.toUpperCase()}`)
-		console.log(`Environment: ${status.environment}`)
-		console.log(`Timestamp: ${status.timestamp}`)
-		console.log('\nChecks:')
-
-		Object.entries(status.checks).forEach(([name, check]) => {
-			const icon =
-				check.status === 'pass'
-					? '✅'
-					: check.status === 'warn'
-						? '⚠️'
-						: '❌'
-			console.log(`  ${icon} ${name}: ${check.message}`)
+		logger.info('Auth health check detailed results', {
+			component: 'AuthHealthCheck',
+			status: status.overall,
+			environment: status.environment,
+			timestamp: status.timestamp,
+			checks: status.checks,
+			recommendations: status.recommendations
 		})
-
-		if (status.recommendations.length > 0) {
-			console.log('\nRecommendations:')
-			status.recommendations.forEach(rec => console.log(rec))
-		}
-
-		console.log('='.repeat(60) + '\n')
 	}
 
 	// Log to monitoring

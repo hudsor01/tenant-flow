@@ -4,7 +4,8 @@ import type { PlanType } from '@repo/shared'
 import type {
 	UserSubscription,
 	StripeSubscription
-} from '@repo/shared/types/stripe'
+} from '@repo/shared'
+import { apiClient } from '@/lib/api-client'
 
 interface SubscriptionManagementResult {
 	success: boolean
@@ -22,7 +23,7 @@ interface SubscriptionManagementResult {
 	}
 }
 
-interface PlanChangePreview {
+interface _PlanChangePreview {
 	currentPlan: PlanType
 	targetPlan: PlanType
 	priceChange: number
@@ -35,26 +36,26 @@ interface PlanChangePreview {
 	}
 }
 
-interface UpgradeRequest {
+interface UpgradeRequest extends Record<string, unknown> {
 	targetPlan: PlanType
 	billingCycle: 'monthly' | 'annual'
 	prorationBehavior?: 'create_prorations' | 'none' | 'always_invoice'
 }
 
-interface DowngradeRequest {
+interface DowngradeRequest extends Record<string, unknown> {
 	targetPlan: PlanType
 	billingCycle: 'monthly' | 'annual'
 	effectiveDate?: 'immediate' | 'end_of_period'
 	reason?: string
 }
 
-interface CancelRequest {
+interface CancelRequest extends Record<string, unknown> {
 	cancelAt: 'immediate' | 'end_of_period'
 	reason?: string
 	feedback?: string
 }
 
-interface CheckoutRequest {
+interface CheckoutRequest extends Record<string, unknown> {
 	planType: PlanType
 	billingCycle: 'monthly' | 'annual'
 	successUrl: string
@@ -79,7 +80,7 @@ interface SubscriptionManagementHook {
 	previewPlanChange: (
 		targetPlan: PlanType,
 		billingCycle: 'monthly' | 'annual'
-	) => Promise<PlanChangePreview>
+	) => Promise<unknown>
 
 	// State
 	isUpgrading: boolean
@@ -126,23 +127,7 @@ export function useSubscriptionManagement(
 		mutationFn: async (
 			request: UpgradeRequest
 		): Promise<SubscriptionManagementResult> => {
-			const response = await fetch(
-				`/api/subscriptions/upgrade/${userId}`,
-				{
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify(request)
-				}
-			)
-
-			if (!response.ok) {
-				const errorData = await response.json().catch(() => ({}))
-				throw new Error(
-					errorData.message || 'Failed to upgrade subscription'
-				)
-			}
-
-			return response.json()
+			return apiClient.post(`/subscriptions/upgrade/${userId}`, request)
 		},
 		onSuccess: result => {
 			setLastResult(result)
@@ -169,23 +154,7 @@ export function useSubscriptionManagement(
 		mutationFn: async (
 			request: DowngradeRequest
 		): Promise<SubscriptionManagementResult> => {
-			const response = await fetch(
-				`/api/subscriptions/downgrade/${userId}`,
-				{
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify(request)
-				}
-			)
-
-			if (!response.ok) {
-				const errorData = await response.json().catch(() => ({}))
-				throw new Error(
-					errorData.message || 'Failed to downgrade subscription'
-				)
-			}
-
-			return response.json()
+			return apiClient.post(`/subscriptions/downgrade/${userId}`, request)
 		},
 		onSuccess: result => {
 			setLastResult(result)
@@ -212,23 +181,7 @@ export function useSubscriptionManagement(
 		mutationFn: async (
 			request: CancelRequest
 		): Promise<SubscriptionManagementResult> => {
-			const response = await fetch(
-				`/api/subscriptions/cancel/${userId}`,
-				{
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify(request)
-				}
-			)
-
-			if (!response.ok) {
-				const errorData = await response.json().catch(() => ({}))
-				throw new Error(
-					errorData.message || 'Failed to cancel subscription'
-				)
-			}
-
-			return response.json()
+			return apiClient.post(`/subscriptions/cancel/${userId}`, request)
 		},
 		onSuccess: result => {
 			setLastResult(result)
@@ -255,23 +208,7 @@ export function useSubscriptionManagement(
 		mutationFn: async (
 			request: CheckoutRequest
 		): Promise<SubscriptionManagementResult> => {
-			const response = await fetch(
-				`/api/subscriptions/checkout/${userId}`,
-				{
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify(request)
-				}
-			)
-
-			if (!response.ok) {
-				const errorData = await response.json().catch(() => ({}))
-				throw new Error(
-					errorData.message || 'Failed to create checkout session'
-				)
-			}
-
-			return response.json()
+			return apiClient.post(`/subscriptions/checkout/${userId}`, request)
 		},
 		onSuccess: result => {
 			setLastResult(result)
@@ -288,22 +225,7 @@ export function useSubscriptionManagement(
 	// Reactivate mutation
 	const reactivateMutation = useMutation({
 		mutationFn: async (): Promise<SubscriptionManagementResult> => {
-			const response = await fetch(
-				`/api/subscriptions/reactivate/${userId}`,
-				{
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' }
-				}
-			)
-
-			if (!response.ok) {
-				const errorData = await response.json().catch(() => ({}))
-				throw new Error(
-					errorData.message || 'Failed to reactivate subscription'
-				)
-			}
-
-			return response.json()
+			return apiClient.post(`/subscriptions/reactivate/${userId}`)
 		},
 		onSuccess: result => {
 			setLastResult(result)
@@ -334,23 +256,10 @@ export function useSubscriptionManagement(
 			targetPlan: PlanType
 			billingCycle: 'monthly' | 'annual'
 		}) => {
-			const response = await fetch(
-				`/api/subscriptions/preview/${userId}`,
-				{
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ targetPlan, billingCycle })
-				}
-			)
-
-			if (!response.ok) {
-				const errorData = await response.json().catch(() => ({}))
-				throw new Error(
-					errorData.message || 'Failed to preview plan change'
-				)
-			}
-
-			return response.json()
+			return apiClient.post(`/subscriptions/preview/${userId}`, {
+				targetPlan,
+				billingCycle
+			})
 		},
 		onError: error => {
 			console.error('Plan change preview failed:', error)

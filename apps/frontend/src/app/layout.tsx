@@ -1,4 +1,3 @@
-
 import Script from 'next/script'
 import { CSPNonceMeta } from '@/components/security/csp-nonce-meta'
 import {
@@ -61,9 +60,7 @@ export default function RootLayout({
 					}}
 				/>
 			</head>
-			<body
-				className="font-sans bg-white antialiased dark:bg-gray-950"
-			>
+			<body className="bg-white font-sans antialiased dark:bg-gray-950">
 				<ThemeProvider
 					attribute="class"
 					defaultTheme="system"

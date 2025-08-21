@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { apiClient } from '@/lib/api-client'
 import type { PlanType } from '@repo/shared'
 
 export function useBilling() {
@@ -15,34 +16,22 @@ export function useBilling() {
 		setError(null)
 
 		try {
-			const response = await fetch(
-				`${process.env.NEXT_PUBLIC_API_URL}/stripe/create-checkout-session`,
+			const response = await apiClient.post<{ url: string }>(
+				'/stripe/create-checkout-session',
 				{
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify({
-						priceId,
-						billingInterval,
-						mode: 'subscription',
-						successUrl: `${window.location.origin}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
-						cancelUrl: `${window.location.origin}/pricing`,
-						metadata: {
-							planType
-						}
-					})
+					priceId,
+					billingInterval,
+					mode: 'subscription',
+					successUrl: `${window.location.origin}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
+					cancelUrl: `${window.location.origin}/pricing`,
+					metadata: {
+						planType
+					}
 				}
 			)
 
-			if (!response.ok) {
-				throw new Error('Failed to create checkout session')
-			}
-
-			const data = await response.json()
-
-			if (data.url) {
-				window.location.href = data.url
+			if (response.url) {
+				window.location.href = response.url
 			} else {
 				throw new Error('No checkout URL received')
 			}

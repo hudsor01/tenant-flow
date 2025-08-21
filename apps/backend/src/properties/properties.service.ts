@@ -1,15 +1,11 @@
 import {
 	BadRequestException,
-	Inject,
 	Injectable,
 	Logger,
-	NotFoundException,
-	Scope
+	NotFoundException
 } from '@nestjs/common'
-import { REQUEST } from '@nestjs/core'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@repo/shared/types/supabase-generated'
-import type { AuthRequest } from '../shared/types'
 import { SupabaseService } from '../database/supabase.service'
 import {
 	CreatePropertyDto,
@@ -29,31 +25,31 @@ export interface PropertyWithRelations extends Property {
 /**
  * Properties service - Direct Supabase implementation following KISS principle
  * No abstraction layers, no base classes, just simple CRUD operations
+ * Optimized for performance - singleton scope with token passed per method
  */
-@Injectable({ scope: Scope.REQUEST })
+@Injectable()
 export class PropertiesService {
 	private readonly logger = new Logger(PropertiesService.name)
-	private readonly supabase: SupabaseClient<Database>
 
 	constructor(
-		@Inject(REQUEST) private request: AuthRequest,
 		private supabaseService: SupabaseService
-	) {
-		// Get user-scoped client if token available, otherwise admin client
-		const token =
-			this.request.user?.supabaseToken ||
-			this.request.headers?.authorization?.replace('Bearer ', '')
+	) {}
 
-		this.supabase = token
-			? this.supabaseService.getUserClient(token)
+	/**
+	 * Get Supabase client with proper auth context
+	 */
+	private getClient(authToken?: string): SupabaseClient<Database> {
+		return authToken
+			? this.supabaseService.getUserClient(authToken)
 			: this.supabaseService.getAdminClient()
 	}
 
 	/**
 	 * Get all properties for an owner
 	 */
-	async findAll(ownerId: string): Promise<PropertyWithRelations[]> {
-		const { data, error } = await this.supabase
+	async findAll(ownerId: string, authToken?: string): Promise<PropertyWithRelations[]> {
+		const supabase = this.getClient(authToken)
+		const { data, error } = await supabase
 			.from('Property')
 			.select(
 				`
@@ -75,8 +71,9 @@ export class PropertiesService {
 	/**
 	 * Get single property by ID
 	 */
-	async findOne(id: string, ownerId: string): Promise<PropertyWithRelations> {
-		const { data, error } = await this.supabase
+	async findOne(id: string, ownerId: string, authToken?: string): Promise<PropertyWithRelations> {
+		const supabase = this.getClient(authToken)
+		const { data, error } = await supabase
 			.from('Property')
 			.select(
 				`
@@ -104,8 +101,10 @@ export class PropertiesService {
 	 */
 	async create(
 		dto: CreatePropertyDto,
-		ownerId: string
+		ownerId: string,
+		authToken?: string
 	): Promise<PropertyWithRelations> {
+		const supabase = this.getClient(authToken)
 		const propertyData: PropertyInsert = {
 			...dto,
 			ownerId,
@@ -117,11 +116,11 @@ export class PropertiesService {
 
 		// Start a transaction for property with units
 		if (dto.units && Number(dto.units) > 0) {
-			return this.createWithUnits(propertyData, Number(dto.units))
+			return this.createWithUnits(propertyData, Number(dto.units), authToken)
 		}
 
 		// Create simple property
-		const { data, error } = await this.supabase
+		const { data, error } = await supabase
 			.from('Property')
 			.insert(propertyData)
 			.select(
@@ -146,10 +145,12 @@ export class PropertiesService {
 	 */
 	private async createWithUnits(
 		propertyData: PropertyInsert,
-		unitCount: number
+		unitCount: number,
+		authToken?: string
 	): Promise<PropertyWithRelations> {
+		const supabase = this.getClient(authToken)
 		// Create property first
-		const { data: property, error: propertyError } = await this.supabase
+		const { data: property, error: propertyError } = await supabase
 			.from('Property')
 			.insert(propertyData)
 			.select()
@@ -175,19 +176,19 @@ export class PropertiesService {
 			})
 		)
 
-		const { error: unitsError } = await this.supabase
+		const { error: unitsError } = await supabase
 			.from('Unit')
 			.insert(units)
 
 		if (unitsError) {
 			// Rollback property creation
-			await this.supabase.from('Property').delete().eq('id', property.id)
+			await supabase.from('Property').delete().eq('id', property.id)
 			this.logger.error('Failed to create units:', unitsError)
 			throw new BadRequestException(unitsError.message)
 		}
 
 		// Return property with units
-		return this.findOne(property.id, property.ownerId)
+		return this.findOne(property.id, property.ownerId, authToken)
 	}
 
 	/**
@@ -196,17 +197,19 @@ export class PropertiesService {
 	async update(
 		id: string,
 		dto: UpdatePropertyDto,
-		ownerId: string
+		ownerId: string,
+		authToken?: string
 	): Promise<PropertyWithRelations> {
+		const supabase = this.getClient(authToken)
 		// Verify ownership
-		await this.findOne(id, ownerId)
+		await this.findOne(id, ownerId, authToken)
 
 		const updateData: PropertyUpdate = {
 			...dto,
 			updatedAt: new Date().toISOString()
 		}
 
-		const { data, error } = await this.supabase
+		const { data, error } = await supabase
 			.from('Property')
 			.update(updateData)
 			.eq('id', id)
@@ -231,12 +234,13 @@ export class PropertiesService {
 	/**
 	 * Delete property
 	 */
-	async remove(id: string, ownerId: string): Promise<void> {
+	async remove(id: string, ownerId: string, authToken?: string): Promise<void> {
+		const supabase = this.getClient(authToken)
 		// Verify ownership
-		const property = await this.findOne(id, ownerId)
+		const property = await this.findOne(id, ownerId, authToken)
 
 		// Check for active leases
-		const { data: leases } = await this.supabase
+		const { data: leases } = await supabase
 			.from('Lease')
 			.select('id')
 			.eq('propertyId', id)
@@ -251,7 +255,7 @@ export class PropertiesService {
 
 		// Delete units first (cascade)
 		if (property.Unit && property.Unit.length > 0) {
-			const { error: unitsError } = await this.supabase
+			const { error: unitsError } = await supabase
 				.from('Unit')
 				.delete()
 				.eq('propertyId', id)
@@ -263,7 +267,7 @@ export class PropertiesService {
 		}
 
 		// Delete property
-		const { error } = await this.supabase
+		const { error } = await supabase
 			.from('Property')
 			.delete()
 			.eq('id', id)
@@ -280,7 +284,7 @@ export class PropertiesService {
 	/**
 	 * Get property statistics
 	 */
-	async getStats(ownerId: string): Promise<{
+	async getStats(ownerId: string, authToken?: string): Promise<{
 		total: number
 		singleFamily: number
 		multiFamily: number
@@ -290,7 +294,7 @@ export class PropertiesService {
 		vacantUnits: number
 		totalMonthlyRent: number
 	}> {
-		const properties = await this.findAll(ownerId)
+		const properties = await this.findAll(ownerId, authToken)
 
 		const stats = {
 			total: properties.length,
@@ -335,9 +339,11 @@ export class PropertiesService {
 	 */
 	async search(
 		ownerId: string,
-		searchTerm: string
+		searchTerm: string,
+		authToken?: string
 	): Promise<PropertyWithRelations[]> {
-		const { data, error } = await this.supabase
+		const supabase = this.getClient(authToken)
+		const { data, error } = await supabase
 			.from('Property')
 			.select(
 				`

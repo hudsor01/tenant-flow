@@ -1,13 +1,13 @@
 import { atom } from 'jotai'
 import { atomWithMutation } from 'jotai-tanstack-query'
-import { PropertiesApi } from '../../lib/api/properties'
+import { ApiService } from '../../lib/api/api-service'
 import { propertiesQueryAtom } from '../business/properties'
 import { logger } from '../../lib/logger'
 import type { CreatePropertyInput, UpdatePropertyInput } from '@repo/shared'
 
 // Property mutation atoms with proper error handling
 export const createPropertyMutationAtom = atomWithMutation(() => ({
-	mutationFn: PropertiesApi.createProperty,
+	mutationFn: ApiService.createProperty,
 	onSuccess: () => {
 		// This will be handled by React Query cache invalidation
 	},
@@ -25,7 +25,7 @@ export const createPropertyMutationAtom = atomWithMutation(() => ({
 
 export const updatePropertyMutationAtom = atomWithMutation(() => ({
 	mutationFn: ({ id, data }: { id: string; data: UpdatePropertyInput }) => {
-		return PropertiesApi.updateProperty(id, data)
+		return ApiService.updateProperty(id, data)
 	},
 	onSuccess: () => {
 		// Cache will be invalidated automatically
@@ -44,7 +44,7 @@ export const updatePropertyMutationAtom = atomWithMutation(() => ({
 
 export const deletePropertyMutationAtom = atomWithMutation(() => ({
 	mutationFn: (id: string) => {
-		return PropertiesApi.deleteProperty(id)
+		return ApiService.deleteProperty(id)
 	},
 	onSuccess: () => {
 		// Cache invalidation handled by React Query

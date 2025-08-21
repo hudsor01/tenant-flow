@@ -1,4 +1,4 @@
-import { logger } from '@/lib/logger'
+import { logger } from '@/lib/logger/structured-logger'
 
 /**
  * Basic Supabase configuration checker
@@ -14,7 +14,10 @@ export class SupabaseConfigChecker {
 	private configValid = false
 	private issues: string[] = []
 
-	private constructor() {}
+	private constructor() {
+		// Private constructor for singleton pattern
+		// Initialization happens in getInstance() method
+	}
 
 	static getInstance(): SupabaseConfigChecker {
 		if (!SupabaseConfigChecker.instance) {
@@ -189,26 +192,49 @@ export class SupabaseConfigChecker {
 	logConfigurationReport(): void {
 		const status = this.getStatus()
 
-		console.log('\n' + '='.repeat(60))
-		console.log('🔍 SUPABASE AUTHENTICATION CONFIGURATION CHECK')
-		console.log('='.repeat(60))
+		// Log configuration status with appropriate level based on validity
+		if (status.valid) {
+			logger.info('Supabase authentication configuration check completed', {
+				component: 'SupabaseConfigChecker',
+				environment: status.environment,
+				valid: status.valid,
+				urls: {
+					supabase: status.urls.supabase || 'NOT_SET',
+					site: status.urls.site || 'NOT_SET',
+					callback: status.urls.callback || 'NOT_SET'
+				}
+			})
+		} else {
+			logger.warn('Supabase authentication configuration issues detected', {
+				component: 'SupabaseConfigChecker',
+				environment: status.environment,
+				valid: status.valid,
+				issues: status.issues,
+				urls: {
+					supabase: status.urls.supabase || 'NOT_SET',
+					site: status.urls.site || 'NOT_SET',
+					callback: status.urls.callback || 'NOT_SET'
+				}
+			})
 
-		console.log(`\n📋 Environment: ${status.environment}`)
-		console.log(`✅ Valid: ${status.valid}`)
-
-		if (status.issues.length > 0) {
-			console.log('\n❌ Issues Found:')
+			// Log each issue as a separate warning for better visibility
 			status.issues.forEach(issue => {
-				console.log(`   - ${issue}`)
+				logger.warn(`Configuration issue: ${issue}`, {
+					component: 'SupabaseConfigChecker',
+					issue,
+					environment: status.environment
+				})
 			})
 		}
 
-		console.log('\n🔗 Configured URLs:')
-		console.log(`   Supabase: ${status.urls.supabase || 'NOT SET'}`)
-		console.log(`   Site: ${status.urls.site || 'NOT SET'}`)
-		console.log(`   Callback: ${status.urls.callback || 'NOT SET'}`)
-
-		console.log('\n' + '='.repeat(60) + '\n')
+		// Log URL configuration details at debug level
+		logger.debug('Supabase URL configuration details', {
+			component: 'SupabaseConfigChecker',
+			supabaseUrl: status.urls.supabase || 'NOT_SET',
+			siteUrl: status.urls.site || 'NOT_SET',
+			callbackUrl: status.urls.callback || 'NOT_SET',
+			environment: status.environment
+		})
 	}
 }
 
@@ -226,11 +252,20 @@ export async function checkSupabaseConfiguration(): Promise<void> {
 		supabaseConfigChecker.logConfigurationReport()
 
 		if (result.recommendations.length > 0) {
-			console.log('📝 Recommendations:')
-			result.recommendations.forEach(rec => {
-				console.log(rec)
+			logger.debug('Supabase configuration recommendations', {
+				component: 'SupabaseConfigChecker',
+				recommendationCount: result.recommendations.length,
+				recommendations: result.recommendations
 			})
-			console.log('\n')
+			
+			// Log each recommendation separately for better readability in development
+			result.recommendations.forEach((rec, index) => {
+				logger.debug(`Recommendation ${index + 1}: ${rec}`, {
+					component: 'SupabaseConfigChecker',
+					recommendationIndex: index + 1,
+					recommendation: rec
+				})
+			})
 		}
 	}
 }

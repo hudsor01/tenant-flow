@@ -79,6 +79,7 @@ export class LeasesController {
 		const data = await this.leasesService.findAll(user.id, options)
 		return {
 			success: true,
+			timestamp: new Date().toISOString(),
 			data,
 			message: 'Leases retrieved successfully'
 		}
@@ -96,6 +97,7 @@ export class LeasesController {
 		const data = await this.leasesService.getStats(user.id)
 		return {
 			success: true,
+			timestamp: new Date().toISOString(),
 			data,
 			message: 'Statistics retrieved successfully'
 		}
@@ -118,6 +120,7 @@ export class LeasesController {
 		)
 		return {
 			success: true,
+			timestamp: new Date().toISOString(),
 			data,
 			message: 'Expiring leases retrieved successfully'
 		}
@@ -133,6 +136,7 @@ export class LeasesController {
 		const data = await this.leasesService.search(user.id, searchTerm || '')
 		return {
 			success: true,
+			timestamp: new Date().toISOString(),
 			data,
 			message: 'Search completed successfully'
 		}
@@ -149,6 +153,7 @@ export class LeasesController {
 		const data = await this.leasesService.findByUnit(unitId, user.id)
 		return {
 			success: true,
+			timestamp: new Date().toISOString(),
 			data,
 			message: 'Leases retrieved successfully'
 		}
@@ -165,6 +170,7 @@ export class LeasesController {
 		const data = await this.leasesService.findByTenant(tenantId, user.id)
 		return {
 			success: true,
+			timestamp: new Date().toISOString(),
 			data,
 			message: 'Leases retrieved successfully'
 		}
@@ -182,6 +188,7 @@ export class LeasesController {
 		const data = await this.leasesService.findOne(id, user.id)
 		return {
 			success: true,
+			timestamp: new Date().toISOString(),
 			data,
 			message: 'Lease retrieved successfully'
 		}
@@ -205,6 +212,7 @@ export class LeasesController {
 		const data = await this.leasesService.create(createLeaseDto, user.id)
 		return {
 			success: true,
+			timestamp: new Date().toISOString(),
 			data,
 			message: 'Lease created successfully'
 		}
@@ -231,7 +239,8 @@ export class LeasesController {
 			user.id
 		)
 		return {
-			success: true,
+			success: true, // This line was already present
+			timestamp: new Date().toISOString(),
 			data,
 			message: 'Lease updated successfully'
 		}
@@ -248,7 +257,9 @@ export class LeasesController {
 	): Promise<ControllerApiResponse> {
 		await this.leasesService.remove(id, user.id)
 		return {
+			timestamp: new Date().toISOString(),
 			success: true,
+			data: null,
 			message: 'Lease deleted successfully'
 		}
 	}

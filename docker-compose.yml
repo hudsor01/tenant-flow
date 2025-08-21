@@ -24,7 +24,7 @@ services:
             # Memory optimization
             - NODE_OPTIONS=--max-old-space-size=4096
         healthcheck:
-            test: ['CMD', 'curl', '-f', 'http://localhost:3001/health']
+            test: ['CMD', 'curl', '-f', 'https://tenantflow.app/api/v1/health']
             interval: 30s
             timeout: 10s
             retries: 3

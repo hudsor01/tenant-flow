@@ -10,7 +10,7 @@ import type {
 	CreateLeaseInput,
 	PropertyType
 } from '@repo/shared'
-import { api } from '@/lib/api/endpoints'
+import { ApiService } from '@/lib/api/api-service'
 import { toast } from 'sonner'
 
 // =====================================================
@@ -64,12 +64,12 @@ export async function createPropertyAction(
 		}
 
 		// Call API
-		const response = await api.properties.create(propertyData)
+		const response = await ApiService.createProperty(propertyData)
 
 		toast.success('Property created successfully!')
 
 		return {
-			data: response.data as unknown as CreatePropertyInput,
+			data: response as unknown as CreatePropertyInput,
 			loading: false,
 			success: true,
 			error: undefined
@@ -103,12 +103,12 @@ export async function updatePropertyAction(
 			}
 		}
 
-		const response = await api.properties.update(propertyId, updates)
+		const response = await ApiService.updateProperty(propertyId, updates)
 
 		toast.success('Property updated successfully!')
 
 		return {
-			data: response.data as unknown as UpdatePropertyInput,
+			data: response as unknown as UpdatePropertyInput,
 			loading: false,
 			success: true,
 			error: undefined
@@ -152,12 +152,12 @@ export async function createUnitAction(
 			description: (formData.get('description') as string) || undefined
 		}
 
-		const response = await api.units.create(unitData)
+		const response = await ApiService.createUnit(unitData)
 
 		toast.success('Unit created successfully!')
 
 		return {
-			data: response.data as CreateUnitInput,
+			data: response as CreateUnitInput,
 			loading: false,
 			success: true,
 			error: undefined
@@ -199,12 +199,12 @@ export async function createLeaseAction(
 			leaseTerms: (formData.get('terms') as string) || undefined
 		}
 
-		const response = await api.leases.create(leaseData)
+		const response = await ApiService.createLease(leaseData)
 
 		toast.success('Lease created successfully!')
 
 		return {
-			data: response.data as CreateLeaseInput,
+			data: response as CreateLeaseInput,
 			loading: false,
 			success: true,
 			error: undefined

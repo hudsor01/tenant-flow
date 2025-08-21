@@ -2,10 +2,8 @@ import Link from 'next/link'
 import { motion } from '@/lib/framer-motion'
 import { Button } from '@/components/ui/button'
 import { ArrowUpRight } from 'lucide-react'
-import {
-	useRelatedBlogArticles,
-	useBlogArticle
-} from '@/hooks/useBlogArticleData'
+import { useRelatedBlogArticles, useBlogArticle } from '@/lib/utils/blog-stubs'
+import type { BlogArticle } from '@/lib/utils/blog-data'
 
 interface BlogSidebarSectionProps {
 	currentSlug: string
@@ -27,8 +25,8 @@ export default function BlogSidebarSection({
 	// Get current article data to extract category and ID for related articles
 	const { data: currentArticle } = useBlogArticle(currentSlug)
 	const { data: relatedArticles = [] } = useRelatedBlogArticles(
-		currentArticle?.id || '',
-		currentArticle?.category || '',
+		currentArticle && 'id' in currentArticle ? currentArticle.id : '',
+		currentArticle && 'category' in currentArticle ? currentArticle.category : '',
 		3
 	)
 
@@ -41,7 +39,7 @@ export default function BlogSidebarSection({
 						Related Articles
 					</h3>
 					<div className="space-y-6">
-						{relatedArticles.map(article => (
+						{relatedArticles.map((article: BlogArticle) => (
 							<article key={article.slug}>
 								<Link
 									href={`/blog/${article.slug}`}
