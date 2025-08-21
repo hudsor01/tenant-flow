@@ -3,6 +3,7 @@
 
 # Railway service ID for unique cache mount IDs
 ARG RAILWAY_SERVICE_ID=tenantflow-backend
+ARG RAILWAY_CACHE_KEY=${RAILWAY_SERVICE_ID}
 
 # ===== BASE STAGE =====
 # Lightweight Node.js 24 on Alpine Linux for minimal footprint and security
@@ -21,6 +22,7 @@ WORKDIR /app
 FROM base AS deps
 
 ARG RAILWAY_SERVICE_ID=tenantflow-backend
+ARG RAILWAY_CACHE_KEY=${RAILWAY_SERVICE_ID}
 
 # Copy package files first for better Docker layer caching
 # Changes to source code won't invalidate dependency cache
@@ -34,7 +36,7 @@ COPY packages/typescript-config/package.json ./packages/typescript-config/
 # Install all dependencies including dev dependencies for building
 # --mount=type=cache: Persist npm cache across builds (60-90s faster rebuilds)
 # --silent: Clean build logs, only show errors
-RUN --mount=type=cache,id=${RAILWAY_SERVICE_ID}-npm-deps,target=/root/.npm \
+RUN --mount=type=cache,id=cache-${RAILWAY_CACHE_KEY}-npm-deps,target=/root/.npm \
     npm install --silent
 
 # ===== BUILDER STAGE =====
@@ -42,6 +44,7 @@ RUN --mount=type=cache,id=${RAILWAY_SERVICE_ID}-npm-deps,target=/root/.npm \
 FROM base AS builder
 
 ARG RAILWAY_SERVICE_ID=tenantflow-backend
+ARG RAILWAY_CACHE_KEY=${RAILWAY_SERVICE_ID}
 
 WORKDIR /app
 
@@ -59,7 +62,7 @@ ENV NODE_OPTIONS="--max-old-space-size=1096" \
     TURBO_TELEMETRY_DISABLED=1
 
 # Build shared and database packages first, then backend
-RUN --mount=type=cache,id=${RAILWAY_SERVICE_ID}-turbo-build,target=/app/.turbo \
+RUN --mount=type=cache,id=cache-${RAILWAY_CACHE_KEY}-turbo-build,target=/app/.turbo \
     cd packages/shared && npm run build && cd ../.. && \
     cd packages/database && npm run build && cd ../.. && \
     cd apps/backend && npm run build:docker
@@ -69,6 +72,7 @@ RUN --mount=type=cache,id=${RAILWAY_SERVICE_ID}-turbo-build,target=/app/.turbo \
 FROM base AS prod-deps
 
 ARG RAILWAY_SERVICE_ID=tenantflow-backend
+ARG RAILWAY_CACHE_KEY=${RAILWAY_SERVICE_ID}
 
 WORKDIR /app
 ENV NODE_ENV=production
@@ -82,8 +86,8 @@ COPY packages/tailwind-config/package.json ./packages/tailwind-config/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 
 # Fresh production dependency install with cache optimization
-RUN --mount=type=cache,id=${RAILWAY_SERVICE_ID}-npm-prod,target=/root/.npm \
-    npm ci --omit=dev --silent
+RUN --mount=type=cache,id=cache-${RAILWAY_CACHE_KEY}-npm-prod,target=/root/.npm \
+    npm install --omit=dev --silent
 
 # ===== RUNTIME STAGE =====
 # Final minimal runtime image with security hardening
