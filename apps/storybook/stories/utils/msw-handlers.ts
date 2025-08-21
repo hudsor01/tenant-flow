@@ -5,6 +5,9 @@ import {
 	mockMaintenanceRequests,
 	mockStats
 } from './mockData'
+import type { Property } from '@repo/shared/types/properties'
+import type { Tenant } from '@repo/shared/types/tenants'
+import type { MaintenanceRequest } from '@repo/shared/types/maintenance'
 
 // API handlers for Storybook MSW
 export const handlers = [
@@ -36,10 +39,10 @@ export const handlers = [
 	}),
 
 	http.post('/api/properties', async ({ request }) => {
-		const data = await request.json()
+		const data = await request.json() as Partial<Property>
 		const newProperty = {
 			id: String(mockProperties.length + 1),
-			...(data as any),
+			...data,
 			status: 'Active',
 			occupied: 0,
 			occupancyRate: 0
@@ -56,14 +59,14 @@ export const handlers = [
 
 	http.patch('/api/properties/:id', async ({ params, request }) => {
 		const { id } = params
-		const updates = await request.json()
+		const updates = await request.json() as Partial<Property>
 		const property = mockProperties.find(p => p.id === id)
 
 		if (!property) {
 			return new HttpResponse(null, { status: 404 })
 		}
 
-		const updatedProperty = { ...property, ...(updates as any) }
+		const updatedProperty = { ...property, ...updates }
 
 		return HttpResponse.json({
 			success: true,
@@ -113,10 +116,10 @@ export const handlers = [
 	}),
 
 	http.post('/api/tenants', async ({ request }) => {
-		const data = await request.json()
+		const data = await request.json() as Partial<Tenant>
 		const newTenant = {
 			id: String(mockTenants.length + 1),
-			...(data as any),
+			...data,
 			status: 'Active'
 		}
 
@@ -131,14 +134,14 @@ export const handlers = [
 
 	http.patch('/api/tenants/:id', async ({ params, request }) => {
 		const { id } = params
-		const updates = await request.json()
+		const updates = await request.json() as Partial<Tenant>
 		const tenant = mockTenants.find(t => t.id === id)
 
 		if (!tenant) {
 			return new HttpResponse(null, { status: 404 })
 		}
 
-		const updatedTenant = { ...tenant, ...(updates as any) }
+		const updatedTenant = { ...tenant, ...updates }
 
 		return HttpResponse.json({
 			success: true,
@@ -174,10 +177,10 @@ export const handlers = [
 	}),
 
 	http.post('/api/maintenance', async ({ request }) => {
-		const data = await request.json()
+		const data = await request.json() as Partial<MaintenanceRequest>
 		const newRequest = {
 			id: String(mockMaintenanceRequests.length + 1),
-			...(data as any),
+			...data,
 			status: 'Open',
 			createdAt: new Date().toISOString(),
 			updatedAt: new Date().toISOString()
@@ -205,7 +208,7 @@ export const handlers = [
 
 		const updatedRequest = {
 			...maintenanceRequest,
-			...(updates as any),
+			...updates as Partial<MaintenanceRequest>,
 			updatedAt: new Date().toISOString()
 		}
 
@@ -225,7 +228,7 @@ export const handlers = [
 
 	// Notification/Communication APIs
 	http.post('/api/notifications/send', async ({ request }) => {
-		const data = await request.json()
+		const data = await request.json() as Record<string, unknown>
 
 		// Simulate API delay
 		await new Promise(resolve => setTimeout(resolve, 1000))
@@ -233,13 +236,13 @@ export const handlers = [
 		return HttpResponse.json({
 			success: true,
 			message: 'Notification sent successfully',
-			data: { id: Date.now(), ...(data as any) }
+			data: { id: Date.now(), ...data }
 		})
 	}),
 
 	http.post('/api/tenants/:id/contact', async ({ params, request }) => {
 		const { id } = params
-		const data = await request.json()
+		const data = await request.json() as Record<string, unknown>
 
 		// Simulate API delay
 		await new Promise(resolve => setTimeout(resolve, 800))
@@ -250,7 +253,7 @@ export const handlers = [
 			data: {
 				tenantId: id,
 				messageId: Date.now(),
-				...(data as any),
+				...data,
 				sentAt: new Date().toISOString()
 			}
 		})
@@ -259,7 +262,7 @@ export const handlers = [
 	// Vendor/Assignment APIs
 	http.post('/api/maintenance/:id/assign', async ({ params, request }) => {
 		const { id } = params
-		const data = await request.json()
+		const data = await request.json() as Record<string, unknown>
 
 		// Simulate API delay
 		await new Promise(resolve => setTimeout(resolve, 1200))
@@ -270,7 +273,7 @@ export const handlers = [
 			data: {
 				maintenanceId: id,
 				assignmentId: Date.now(),
-				...(data as any),
+				...data,
 				assignedAt: new Date().toISOString()
 			}
 		})

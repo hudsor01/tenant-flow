@@ -2,7 +2,8 @@
 	"$schema": "https://json.schemastore.org/tsconfig",
 	"compilerOptions": {
 		"target": "ES2022",
-		"lib": ["ES2022"],
+		"lib": ["ES2022", "DOM"],
+		"types": ["node", "react"],
 		"module": "ESNext",
 		"moduleResolution": "bundler",
 		"declaration": true,

@@ -1,184 +1,184 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "turbo build --filter=@repo/frontend",
-  "framework": "nextjs",
-  "outputDirectory": "apps/frontend/.next",
-  "ignoreCommand": "npx turbo-ignore --filter=@repo/frontend --fallback=HEAD^1",
-  "redirects": [
-    {
-      "source": "/home",
-      "destination": "/",
-      "permanent": true
-    },
-    {
-      "source": "/signin",
-      "destination": "/auth/login",
-      "permanent": true
-    },
-    {
-      "source": "/login",
-      "destination": "/auth/login",
-      "permanent": true
-    },
-    {
-      "source": "/signup",
-      "destination": "/auth/signup",
-      "permanent": false
-    },
-    {
-      "source": "/register",
-      "destination": "/auth/signup",
-      "permanent": false
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/api/v1/:path*",
-      "destination": "https://api.tenantflow.app/api/v1/:path*"
-    },
-    {
-      "source": "/health",
-      "destination": "/api/health"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/static/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        }
-      ]
-    },
-    {
-      "source": "/_next/static/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
-    },
-    {
-      "source": "/static/img/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        },
-        {
-          "key": "Vary",
-          "value": "Accept"
-        }
-      ]
-    },
-    {
-      "source": "/manifest.json",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=86400"
-        }
-      ]
-    },
-    {
-      "source": "/sw.js",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        }
-      ]
-    },
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        },
-        {
-          "key": "Permissions-Policy",
-          "value": "camera=(), microphone=(), geolocation=(), payment=(), autoplay=self"
-        },
-        {
-          "key": "Strict-Transport-Security",
-          "value": "max-age=31536000; includeSubDomains; preload"
-        }
-      ]
-    },
-    {
-      "source": "/favicon.ico",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=86400"
-        }
-      ]
-    },
-    {
-      "source": "/(.*\\.(?:jpg|jpeg|png|gif|ico|svg|webp|avif))",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        },
-        {
-          "key": "Vary",
-          "value": "Accept"
-        }
-      ]
-    },
-    {
-      "source": "/properties/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, s-maxage=300, stale-while-revalidate=3600"
-        },
-        {
-          "key": "Vary",
-          "value": "Authorization, Cookie"
-        }
-      ]
-    },
-    {
-      "source": "/dashboard",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "private, no-cache, must-revalidate"
-        }
-      ]
-    },
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, max-age=0"
-        }
-      ]
-    }
-  ],
-  "trailingSlash": false,
-  "cleanUrls": true,
-  "crons": []
+	"$schema": "https://openapi.vercel.sh/vercel.json",
+	"buildCommand": "turbo build --filter=@repo/frontend",
+	"framework": "nextjs",
+	"outputDirectory": ".next",
+	"ignoreCommand": "npx turbo-ignore --filter=@repo/frontend --fallback=HEAD^1",
+	"redirects": [
+		{
+			"source": "/home",
+			"destination": "/",
+			"permanent": true
+		},
+		{
+			"source": "/signin",
+			"destination": "/auth/login",
+			"permanent": true
+		},
+		{
+			"source": "/login",
+			"destination": "/auth/login",
+			"permanent": true
+		},
+		{
+			"source": "/signup",
+			"destination": "/auth/signup",
+			"permanent": false
+		},
+		{
+			"source": "/register",
+			"destination": "/auth/signup",
+			"permanent": false
+		}
+	],
+	"rewrites": [
+		{
+			"source": "/api/v1/:path*",
+			"destination": "https://api.tenantflow.app/api/v1/:path*"
+		},
+		{
+			"source": "/health",
+			"destination": "/api/health"
+		}
+	],
+	"headers": [
+		{
+			"source": "/static/(.*)",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public, max-age=31536000, immutable"
+				},
+				{
+					"key": "X-Content-Type-Options",
+					"value": "nosniff"
+				}
+			]
+		},
+		{
+			"source": "/_next/static/(.*)",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public, max-age=31536000, immutable"
+				}
+			]
+		},
+		{
+			"source": "/static/img/(.*)",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public, max-age=31536000, immutable"
+				},
+				{
+					"key": "Vary",
+					"value": "Accept"
+				}
+			]
+		},
+		{
+			"source": "/manifest.json",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public, max-age=86400"
+				}
+			]
+		},
+		{
+			"source": "/sw.js",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public, max-age=0, must-revalidate"
+				}
+			]
+		},
+		{
+			"source": "/(.*)",
+			"headers": [
+				{
+					"key": "X-Content-Type-Options",
+					"value": "nosniff"
+				},
+				{
+					"key": "X-Frame-Options",
+					"value": "DENY"
+				},
+				{
+					"key": "X-XSS-Protection",
+					"value": "1; mode=block"
+				},
+				{
+					"key": "Referrer-Policy",
+					"value": "strict-origin-when-cross-origin"
+				},
+				{
+					"key": "Permissions-Policy",
+					"value": "camera=(), microphone=(), geolocation=(), payment=(), autoplay=self"
+				},
+				{
+					"key": "Strict-Transport-Security",
+					"value": "max-age=31536000; includeSubDomains; preload"
+				}
+			]
+		},
+		{
+			"source": "/favicon.ico",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public, max-age=86400"
+				}
+			]
+		},
+		{
+			"source": "/(.*\\.(?:jpg|jpeg|png|gif|ico|svg|webp|avif))",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public, max-age=31536000, immutable"
+				},
+				{
+					"key": "Vary",
+					"value": "Accept"
+				}
+			]
+		},
+		{
+			"source": "/properties/(.*)",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public, s-maxage=300, stale-while-revalidate=3600"
+				},
+				{
+					"key": "Vary",
+					"value": "Authorization, Cookie"
+				}
+			]
+		},
+		{
+			"source": "/dashboard",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "private, no-cache, must-revalidate"
+				}
+			]
+		},
+		{
+			"source": "/api/(.*)",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "no-store, max-age=0"
+				}
+			]
+		}
+	],
+	"trailingSlash": false,
+	"cleanUrls": true,
+	"crons": []
 }

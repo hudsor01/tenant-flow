@@ -4,7 +4,6 @@ import * as React from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useA11yId } from '@/hooks/use-accessibility'
 
 interface InputProps extends React.ComponentProps<'input'> {
 	label?: string
@@ -50,11 +49,11 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 		const [isFocused, setIsFocused] = React.useState(false)
 		const [showPassword, setShowPassword] = React.useState(false)
 		const [internalValue, setInternalValue] = React.useState(value || '')
-		const generatedId = useA11yId('input')
+		const generatedId = React.useId()
 		const actualId = id || generatedId
-		const errorId = useA11yId('error')
-		const successId = useA11yId('success')
-		const helpTextId = useA11yId('help')
+		const errorId = `${actualId}-error`
+		const successId = `${actualId}-success`
+		const helpTextId = `${actualId}-help`
 
 		// Track internal value for character count and floating label
 		React.useEffect(() => {

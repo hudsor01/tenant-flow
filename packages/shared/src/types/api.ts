@@ -21,6 +21,14 @@ import type {
 	ApiResponse as CentralizedApiResponse,
 	ControllerApiResponse
 } from './errors'
+import type {
+	CheckoutResponse,
+	PortalResponse as CreatePortalSessionResponse,
+	TrialResponse as StartTrialResponse,
+	ApiSubscriptionCreateResponse as CreateSubscriptionResponse,
+	SubscriptionUpdateResponse as UpdateSubscriptionResponse,
+	SubscriptionCancelResponse as CancelSubscriptionResponse
+} from './responses'
 
 // Re-export commonly used types
 export type { User, Lease, Property, Tenant, Unit, MaintenanceRequest }
@@ -38,6 +46,16 @@ export type {
 	SuccessResponse,
 	CentralizedApiResponse,
 	ControllerApiResponse
+}
+
+// Re-export subscription response types from responses.ts for backwards compatibility
+export type {
+	CheckoutResponse,
+	CreatePortalSessionResponse,
+	StartTrialResponse,
+	CreateSubscriptionResponse,
+	UpdateSubscriptionResponse,
+	CancelSubscriptionResponse
 }
 
 // Note: ApiResponse types moved to responses.ts to avoid conflicts
@@ -277,14 +295,8 @@ export interface UpdateSubscriptionRequest {
 	billingPeriod?: string
 }
 
-// Subscription response types
-export interface CreateSubscriptionResponse {
-	subscriptionId: string
-	status: string
-	clientSecret?: string | null
-	setupIntentId?: string
-	trialEnd?: number | null
-}
+// Subscription response types moved to responses.ts for consolidation
+// These are now imported and re-exported above
 
 export interface CreateSubscriptionWithSignupResponse {
 	subscriptionId: string
@@ -299,26 +311,4 @@ export interface CreateSubscriptionWithSignupResponse {
 	}
 	accessToken: string
 	refreshToken: string
-}
-
-export interface StartTrialResponse {
-	subscriptionId: string
-	status: string
-	trialEnd?: number | null
-}
-
-export interface CreatePortalSessionResponse {
-	url: string
-	sessionId?: string
-}
-
-export interface CancelSubscriptionResponse {
-	success: boolean
-	message: string
-}
-
-export interface UpdateSubscriptionResponse {
-	subscriptionId: string
-	status: string
-	message: string
 }

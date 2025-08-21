@@ -7,10 +7,10 @@
 		"timeout": 60
 	},
 	"globalEnv": [
-		"NODE_ENV", 
-		"CI", 
-		"VERCEL", 
-		"VERCEL_ENV", 
+		"NODE_ENV",
+		"CI",
+		"VERCEL",
+		"VERCEL_ENV",
 		"VERCEL_URL",
 		"GITHUB_ACTIONS",
 		"NEXT_PUBLIC_VERCEL_URL"
@@ -41,9 +41,12 @@
 				"!**/dist/**"
 			],
 			"outputs": [
-				".next/**", "!.next/cache/**",
-				".vercel/**", ".vercel/output/**",
-				"dist/**", "build/**", 
+				".next/**",
+				"!.next/cache/**",
+				".vercel/**",
+				".vercel/output/**",
+				"dist/**",
+				"build/**",
 				".turbo/**"
 			],
 			"cache": true,
@@ -104,14 +107,14 @@
 				"!**/playwright-report/**"
 			],
 			"outputs": [
-				".next/**", 
+				".next/**",
 				"!.next/cache/**",
 				".vercel/**",
 				".vercel/output/**",
 				".turbo/**"
 			],
 			"env": [
-				"NODE_ENV", 
+				"NODE_ENV",
 				"NEXT_PUBLIC_*",
 				"VERCEL",
 				"VERCEL_ENV",
@@ -147,7 +150,6 @@
 				"**/*.js",
 				"**/*.jsx",
 				"eslint.config.*",
-				".eslintrc*",
 				"!node_modules/**",
 				"!dist/**",
 				"!.next/**",
@@ -163,8 +165,7 @@
 				"**/*.tsx",
 				"**/*.js",
 				"**/*.jsx",
-				"eslint.config.*",
-				".eslintrc*"
+				"eslint.config.*"
 			],
 			"outputs": [".eslintcache"],
 			"cache": false,
