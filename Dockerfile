@@ -1,9 +1,6 @@
 # syntax=docker/dockerfile:1.9
 # check=error=true
 
-# Railway service ID for cache mount IDs (hardcoded per Railway requirements)
-# Service ID: c03893f1-40dd-475f-9a6d-47578a09303a
-
 # ===== BASE STAGE =====
 # Lightweight Node.js 24 on Alpine Linux for minimal footprint and security
 FROM node:24-alpine AS base
@@ -32,7 +29,7 @@ COPY packages/typescript-config/package.json ./packages/typescript-config/
 # Install all dependencies including dev dependencies for building
 # --mount=type=cache: Persist npm cache across builds (60-90s faster rebuilds)
 # --silent: Clean build logs, only show errors
-RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-npm-deps,target=/root/.npm \
+RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-/root/.npm,target=/root/.npm \
     npm install --silent
 
 # ===== BUILDER STAGE =====
@@ -55,7 +52,7 @@ ENV NODE_OPTIONS="--max-old-space-size=1096" \
     TURBO_TELEMETRY_DISABLED=1
 
 # Build shared and database packages first, then backend
-RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-turbo-build,target=/app/.turbo \
+RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-/app/.turbo,target=/app/.turbo \
     cd packages/shared && npm run build && cd ../.. && \
     cd packages/database && npm run build && cd ../.. && \
     cd apps/backend && npm run build:docker
@@ -76,7 +73,7 @@ COPY packages/tailwind-config/package.json ./packages/tailwind-config/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 
 # Fresh production dependency install with cache optimization
-RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-npm-prod,target=/root/.npm \
+RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-/root/.npm,target=/root/.npm \
     npm install --omit=dev --silent
 
 # ===== RUNTIME STAGE =====
@@ -123,7 +120,6 @@ ENV NODE_ENV=production \
 # Railway PORT injection with fallback
 ARG PORT=4600
 ENV PORT=${PORT}
-EXPOSE ${PORT}
 
 # VERBOSE health check with detailed logging for Railway debugging
 # interval=20s: Balanced check frequency for Railway
