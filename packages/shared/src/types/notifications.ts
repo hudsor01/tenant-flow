@@ -23,7 +23,6 @@ export interface NotificationData {
 	metadata?: Record<string, string | number | boolean | null>
 }
 
-
 // WebSocket types for real-time notifications
 export interface NotificationWebSocketMessage {
 	type: string

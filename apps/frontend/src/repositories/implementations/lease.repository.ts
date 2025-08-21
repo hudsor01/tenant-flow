@@ -5,7 +5,7 @@
  * Abstracts API-specific logic behind a clean repository interface.
  */
 
-import { apiClient } from '@/lib/api-client'
+import { ApiService } from '@/lib/api/api-service'
 import { logger } from '@/lib/logger'
 import type { Lease, LeaseQuery } from '@repo/shared'
 import type { LeaseRepository } from '../interfaces'
@@ -14,13 +14,8 @@ import { DomainError } from '@repo/shared'
 export class ApiLeaseRepository implements LeaseRepository {
 	async findById(id: string): Promise<Lease | null> {
 		try {
-			const response = await apiClient.get<Lease>(`/leases/${id}`)
-
-			if (!response.success) {
-				return null
-			}
-
-			return response.data
+			const response = await ApiService.getLease(id)
+			return response
 		} catch (error) {
 			logger.error(
 				'Failed to find lease by ID:',
@@ -40,23 +35,25 @@ export class ApiLeaseRepository implements LeaseRepository {
 
 			if (entity.id) {
 				// Update existing lease
-				response = await apiClient.put<Lease>(
-					`/leases/${entity.id}`,
-					entity as unknown as Record<string, unknown>
-				)
+				response = await ApiService.updateLease(entity.id, {
+					...entity,
+					leaseTerms: entity.terms ?? undefined,
+					securityDeposit: entity.securityDeposit ?? undefined,
+					startDate: typeof entity.startDate === 'string' ? entity.startDate : entity.startDate.toISOString(),
+					endDate: typeof entity.endDate === 'string' ? entity.endDate : entity.endDate.toISOString()
+				})
 			} else {
 				// Create new lease
-				response = await apiClient.post<Lease>(
-					'/leases',
-					entity as unknown as Record<string, unknown>
-				)
+				response = await ApiService.createLease({
+					...entity,
+					leaseTerms: entity.terms ?? undefined,
+					securityDeposit: entity.securityDeposit ?? undefined,
+					startDate: typeof entity.startDate === 'string' ? entity.startDate : entity.startDate.toISOString(),
+					endDate: typeof entity.endDate === 'string' ? entity.endDate : entity.endDate.toISOString()
+				})
 			}
 
-			if (!response.success) {
-				throw new DomainError('Failed to save lease')
-			}
-
-			return response.data
+			return response
 		} catch (error) {
 			throw error instanceof DomainError
 				? error
@@ -66,11 +63,7 @@ export class ApiLeaseRepository implements LeaseRepository {
 
 	async delete(id: string): Promise<void> {
 		try {
-			const response = await apiClient.delete(`/leases/${id}`)
-
-			if (!response.success) {
-				throw new DomainError('Failed to delete lease')
-			}
+			await ApiService.deleteLease(id)
 		} catch (error) {
 			throw error instanceof DomainError
 				? error
@@ -83,19 +76,10 @@ export class ApiLeaseRepository implements LeaseRepository {
 			const params = query
 				? new URLSearchParams(query as Record<string, string>)
 				: undefined
-			const url = params ? `/leases?${params.toString()}` : '/leases'
+			const _url = params ? `/leases?${params.toString()}` : '/leases'
 
-			const response = await apiClient.get<Lease[]>(url)
-
-			if (!response.success) {
-				throw new DomainError('Failed to fetch leases')
-			}
-
-			// Handle both direct array and wrapped response
-			const data = response.data
-			return Array.isArray(data)
-				? data
-				: (data as { data: Lease[] }).data || []
+			const response = await ApiService.getLeases(query)
+			return response || []
 		} catch (error) {
 			logger.error(
 				'Failed to fetch leases:',
@@ -114,17 +98,13 @@ export class ApiLeaseRepository implements LeaseRepository {
 			const params = query
 				? new URLSearchParams(query as Record<string, string>)
 				: undefined
-			const url = params
+			const _url = params
 				? `/leases/count?${params.toString()}`
 				: '/leases/count'
 
-			const response = await apiClient.get<{ count: number }>(url)
-
-			if (!response.success) {
-				return 0
-			}
-
-			return response.data.count || 0
+			// Use the leases list to count instead of separate endpoint
+			const response = await ApiService.getLeases(query)
+			return response?.length || 0
 		} catch (error) {
 			logger.error(
 				'Failed to count leases:',
@@ -148,15 +128,10 @@ export class ApiLeaseRepository implements LeaseRepository {
 
 	async findExpiring(days: number): Promise<Lease[]> {
 		try {
-			const response = await apiClient.get<Lease[]>(
-				`/leases/expiring?days=${days}`
-			)
+			// Use general lease query with expiring filter
+			const response = await ApiService.getLeases({ expiring: days.toString() })
 
-			if (!response.success) {
-				throw new DomainError('Failed to fetch expiring leases')
-			}
-
-			return Array.isArray(response.data) ? response.data : []
+			return response || []
 		} catch (error) {
 			logger.error(
 				'Failed to find expiring leases:',
@@ -172,13 +147,10 @@ export class ApiLeaseRepository implements LeaseRepository {
 
 	async findActive(): Promise<Lease[]> {
 		try {
-			const response = await apiClient.get<Lease[]>('/leases/active')
+			// Use general lease query with active status filter
+			const response = await ApiService.getLeases({ status: 'active' })
 
-			if (!response.success) {
-				throw new DomainError('Failed to fetch active leases')
-			}
-
-			return Array.isArray(response.data) ? response.data : []
+			return response || []
 		} catch (error) {
 			logger.error(
 				'Failed to find active leases:',
@@ -194,19 +166,13 @@ export class ApiLeaseRepository implements LeaseRepository {
 
 	async findByDateRange(startDate: Date, endDate: Date): Promise<Lease[]> {
 		try {
-			const params = new URLSearchParams({
+			// Use general lease query with date range filter
+			const response = await ApiService.getLeases({
 				startDate: startDate.toISOString(),
 				endDate: endDate.toISOString()
 			})
-			const response = await apiClient.get<Lease[]>(
-				`/leases/date-range?${params.toString()}`
-			)
 
-			if (!response.success) {
-				throw new DomainError('Failed to fetch leases by date range')
-			}
-
-			return Array.isArray(response.data) ? response.data : []
+			return response || []
 		} catch (error) {
 			logger.error(
 				'Failed to find leases by date range:',

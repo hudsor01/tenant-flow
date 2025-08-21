@@ -5,12 +5,14 @@ import { logger } from '@/lib/logger'
 import type { TenantFlowEvent } from '@/hooks/use-posthog'
 
 // Initialize PostHog for server-side tracking - only if key is available
-const posthog = process.env.NEXT_PUBLIC_POSTHOG_KEY 
+const posthog = process.env.NEXT_PUBLIC_POSTHOG_KEY
 	? new PostHog(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
-		host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
-		flushAt: 1, // Send immediately for server actions
-		flushInterval: 0 // Don't batch on server
-	})
+			host:
+				process.env.NEXT_PUBLIC_POSTHOG_HOST ||
+				'https://us.i.posthog.com',
+			flushAt: 1, // Send immediately for server actions
+			flushInterval: 0 // Don't batch on server
+		})
 	: null
 
 /**

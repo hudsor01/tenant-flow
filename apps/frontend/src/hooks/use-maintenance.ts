@@ -30,7 +30,10 @@ const maintenanceAtom = atom<MaintenanceAtomData>({
 	data: [],
 	isLoading: false,
 	error: null,
-	refetch: () => {}
+	refetch: () => {
+		// No-op for mock data
+		return
+	}
 })
 const selectedMaintenanceAtom = atom<MaintenanceRequest | null>(null)
 

@@ -345,7 +345,7 @@ export class DefaultPropertyManagementService
 		}
 
 		const occupiedUnits = units.filter(
-			unit => unit.status === 'occupied'
+			(unit: { status: string }) => unit.status === 'occupied'
 		).length
 		const occupancyRate = (occupiedUnits / units.length) * 100
 

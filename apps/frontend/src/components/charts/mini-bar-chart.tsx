@@ -4,7 +4,7 @@ import React from 'react'
 import { BarChart, Bar, ResponsiveContainer, Tooltip, Cell } from 'recharts'
 
 interface MiniBarChartProps {
-	data: Array<{ name: string; value: number; color?: string }>
+	data: { name: string; value: number; color?: string }[]
 	width?: number | string
 	height?: number
 	showTooltip?: boolean
@@ -15,10 +15,10 @@ interface MiniBarChartProps {
 
 interface CustomTooltipProps {
 	active?: boolean
-	payload?: Array<{
+	payload?: {
 		value: number
 		payload: { name: string; value: number; color?: string }
-	}>
+	}[]
 	label?: string
 }
 
@@ -120,7 +120,7 @@ export const MiniBarChartSkeleton: React.FC<{
 // Helper function to format data for occupancy charts
 export const formatOccupancyData = (
 	occupancyData: Record<string, number>
-): Array<{ name: string; value: number; color?: string }> => {
+): { name: string; value: number; color?: string }[] => {
 	const statusColors = {
 		Occupied: 'hsl(var(--chart-1))', // Steel blue
 		Vacant: 'hsl(var(--chart-2))', // Teal
@@ -137,8 +137,8 @@ export const formatOccupancyData = (
 
 // Helper function to format data for financial charts
 export const formatFinancialData = (
-	data: Array<{ label: string; amount: number }>
-): Array<{ name: string; value: number; color?: string }> => {
+	data: { label: string; amount: number }[]
+): { name: string; value: number; color?: string }[] => {
 	return data.map((item, index) => ({
 		name: item.label,
 		value: item.amount,

@@ -44,7 +44,6 @@ export function PHProvider({ children }: { children: React.ReactNode }) {
 
 	return (
 		<PostHogProvider apiKey={process.env.NEXT_PUBLIC_POSTHOG_KEY}>
-
 			{children}
 		</PostHogProvider>
 	)

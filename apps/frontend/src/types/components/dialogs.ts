@@ -153,12 +153,12 @@ export interface MaintenanceRequestDialogProps extends ModalDialogProps {
  * Image gallery dialog props
  */
 export interface ImageGalleryDialogProps extends BaseDialogProps {
-	images: Array<{
+	images: {
 		id: string
 		url: string
 		alt?: string
 		title?: string
-	}>
+	}[]
 	currentIndex?: number
 	onIndexChange?: (index: number) => void
 	showThumbnails?: boolean

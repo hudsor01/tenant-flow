@@ -1,23 +1,20 @@
 'use server'
 
 import { revalidateTag } from 'next/cache'
-import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { createActionClient } from '@/lib/supabase/action-client'
 import type { AuthUser } from '@/lib/supabase/client'
 import { trackServerSideEvent } from '@/lib/analytics/posthog-server'
 import { commonValidations } from '@/lib/validation/schemas'
-import {
-	loginRateLimiter,
-	signupRateLimiter,
-	passwordResetRateLimiter,
-	clearRateLimit
-} from '@/lib/auth/rate-limiter'
 import { sanitizeErrorMessage } from '@/lib/auth/error-sanitizer'
 import { requireCSRFToken } from '@/lib/auth/csrf'
 import { logger } from '@/lib/logger'
+import { redirect } from 'next/navigation'
 
-// Auth form schemas using consolidated validations
+// ========================
+// Schema Definitions
+// ========================
+
 const LoginSchema = z.object({
 	email: commonValidations.email,
 	password: z.string().min(6, 'Password must be at least 6 characters')
@@ -27,9 +24,7 @@ const SignupSchema = z
 	.object({
 		email: commonValidations.email,
 		password: z.string().min(8, 'Password must be at least 8 characters'),
-		confirmPassword: z
-			.string()
-			.min(8, 'Password must be at least 8 characters'),
+		confirmPassword: z.string().min(8, 'Password must be at least 8 characters'),
 		fullName: commonValidations.name,
 		companyName: z.string().nullable().optional()
 	})
@@ -45,14 +40,16 @@ const ResetPasswordSchema = z.object({
 const UpdatePasswordSchema = z
 	.object({
 		password: z.string().min(8, 'Password must be at least 8 characters'),
-		confirmPassword: z
-			.string()
-			.min(8, 'Password must be at least 8 characters')
+		confirmPassword: z.string().min(8, 'Password must be at least 8 characters')
 	})
 	.refine(data => data.password === data.confirmPassword, {
 		message: "Passwords don't match",
 		path: ['confirmPassword']
 	})
+
+// ========================
+// Type Definitions
+// ========================
 
 export interface AuthFormState {
 	errors?: {
@@ -78,6 +75,87 @@ export interface AuthFormState {
 	}
 }
 
+// ========================
+// Rate Limiting
+// ========================
+
+class RateLimiter {
+	private attempts: Map<string, { count: number; lastAttempt: number }> = new Map()
+	private readonly maxAttempts: number
+	private readonly windowMs: number
+
+	constructor(maxAttempts = 5, windowMinutes = 5) {
+		this.maxAttempts = maxAttempts
+		this.windowMs = windowMinutes * 60 * 1000
+	}
+
+	check(key: string): { success: boolean; reason?: string } {
+		const now = Date.now()
+		const entry = this.attempts.get(key)
+
+		if (entry) {
+			// Reset count if window expired
+			if (now - entry.lastAttempt > this.windowMs) {
+				this.attempts.set(key, { count: 1, lastAttempt: now })
+				return { success: true }
+			}
+
+			// Check if limit exceeded
+			if (entry.count >= this.maxAttempts) {
+				const minutesRemaining = Math.ceil((this.windowMs - (now - entry.lastAttempt)) / 60000)
+				return {
+					success: false,
+					reason: `Too many attempts. Please wait ${minutesRemaining} minute${minutesRemaining > 1 ? 's' : ''} before trying again.`
+				}
+			}
+
+			// Increment count
+			entry.count += 1
+			entry.lastAttempt = now
+			return { success: true }
+		}
+
+		// First attempt
+		this.attempts.set(key, { count: 1, lastAttempt: now })
+		return { success: true }
+	}
+
+	clear(key: string): void {
+		this.attempts.delete(key)
+	}
+
+	// Cleanup old entries periodically
+	cleanup(): void {
+		const now = Date.now()
+		for (const [key, entry] of this.attempts.entries()) {
+			if (now - entry.lastAttempt > this.windowMs) {
+				this.attempts.delete(key)
+			}
+		}
+	}
+}
+
+// Create rate limiter instances
+const loginRateLimiter = new RateLimiter(5, 5)
+const signupRateLimiter = new RateLimiter(3, 15) // Stricter for signup
+const passwordResetRateLimiter = new RateLimiter(3, 15)
+
+// Cleanup old entries every 10 minutes
+if (typeof setInterval !== 'undefined') {
+	setInterval(() => {
+		loginRateLimiter.cleanup()
+		signupRateLimiter.cleanup()
+		passwordResetRateLimiter.cleanup()
+	}, 10 * 60 * 1000)
+}
+
+// ========================
+// Auth Actions
+// ========================
+
+/**
+ * Login action with CSRF protection and rate limiting
+ */
 export async function loginAction(
 	_prevState: AuthFormState,
 	formData: FormData
@@ -106,15 +184,12 @@ export async function loginAction(
 		}
 	}
 
-	// Check rate limit before attempting login
-	const rateLimitResult = await loginRateLimiter(result.data.email)
+	// Check rate limit
+	const rateLimitResult = loginRateLimiter.check(result.data.email)
 	if (!rateLimitResult.success) {
 		return {
 			errors: {
-				_form: [
-					rateLimitResult.reason ||
-						'Too many login attempts. Please try again later.'
-				]
+				_form: [rateLimitResult.reason || 'Too many login attempts. Please try again later.']
 			}
 		}
 	}
@@ -143,12 +218,12 @@ export async function loginAction(
 
 		// Track successful login and clear rate limit
 		if (data.user) {
-			await clearRateLimit(result.data.email)
+			loginRateLimiter.clear(result.data.email)
 			await trackServerSideEvent('user_signed_in', data.user.id, {
 				method: 'email',
 				email: data.user.email,
 				user_id: data.user.id,
-				session_id: data.session?.access_token?.slice(-8) // Last 8 chars for identification
+				session_id: data.session?.access_token?.slice(-8)
 			})
 		}
 
@@ -156,23 +231,27 @@ export async function loginAction(
 		revalidateTag('user')
 		revalidateTag('session')
 
-		// Return success instead of redirecting - let client handle redirect
 		return {
 			success: true,
 			message: 'Successfully signed in!',
 			data: {
 				user: {
 					id: data.user.id,
-					email: data.user.email!,
-					name: data.user.user_metadata?.full_name || data.user.email!
+					email: data.user.email || '',
+					name: data.user.user_metadata?.full_name || data.user.email || 'Unknown User'
 				},
-				session: {
-					access_token: data.session!.access_token,
-					refresh_token: data.session!.refresh_token
-				}
+				session: data.session ? {
+					access_token: data.session.access_token,
+					refresh_token: data.session.refresh_token
+				} : undefined
 			}
 		}
 	} catch (error: unknown) {
+		logger.error('Login error:', error instanceof Error ? error : new Error(String(error)), {
+			component: 'AuthActions',
+			email: result.data.email
+		})
+
 		return {
 			errors: {
 				_form: [sanitizeErrorMessage(error, 'login')]
@@ -181,8 +260,11 @@ export async function loginAction(
 	}
 }
 
+/**
+ * Signup action with comprehensive validation and tracking
+ */
 export async function signupAction(
-	prevState: AuthFormState,
+	_prevState: AuthFormState,
 	formData: FormData
 ): Promise<AuthFormState> {
 	try {
@@ -196,15 +278,15 @@ export async function signupAction(
 		}
 	}
 
-	// Check rate limit before processing signup
-	const signupRateLimit = await signupRateLimiter()
-	if (!signupRateLimit.success) {
+	// Extract email for rate limiting
+	const email = formData.get('email') as string
+
+	// Check rate limit
+	const rateLimitResult = signupRateLimiter.check(email || 'global')
+	if (!rateLimitResult.success) {
 		return {
 			errors: {
-				_form: [
-					signupRateLimit.reason ||
-						'Too many signup attempts. Please try again later.'
-				]
+				_form: [rateLimitResult.reason || 'Too many signup attempts. Please try again later.']
 			}
 		}
 	}
@@ -214,15 +296,13 @@ export async function signupAction(
 	if (!acceptTerms) {
 		return {
 			errors: {
-				_form: [
-					'You must accept the terms and conditions to create an account'
-				]
+				_form: ['You must accept the terms and conditions to create an account']
 			}
 		}
 	}
 
 	const rawData = {
-		email: formData.get('email'),
+		email,
 		password: formData.get('password'),
 		confirmPassword: formData.get('confirmPassword'),
 		fullName: formData.get('fullName'),
@@ -241,13 +321,7 @@ export async function signupAction(
 	}
 
 	try {
-		let supabase
-		try {
-			supabase = await createActionClient()
-		} catch {
-			throw new Error('Authentication service unavailable')
-		}
-
+		const supabase = await createActionClient()
 		const { data, error } = await supabase.auth.signUp({
 			email: result.data.email,
 			password: result.data.password,
@@ -280,6 +354,7 @@ export async function signupAction(
 
 		// Track successful signup
 		if (data.user) {
+			signupRateLimiter.clear(email)
 			await trackServerSideEvent('user_signed_up', data.user.id, {
 				method: 'email',
 				email: data.user.email,
@@ -293,9 +368,6 @@ export async function signupAction(
 			})
 		}
 
-		// If email confirmation is required, inform the user
-		// Note: Removed auto-signin bypass for security - users must verify email first
-
 		return {
 			success: true,
 			message: data.session
@@ -307,15 +379,17 @@ export async function signupAction(
 					email: data.user?.email || result.data.email,
 					name: result.data.fullName
 				},
-				session: data.session
-					? {
-							access_token: data.session.access_token,
-							refresh_token: data.session.refresh_token
-						}
-					: undefined
+				session: data.session ? {
+					access_token: data.session.access_token,
+					refresh_token: data.session.refresh_token
+				} : undefined
 			}
 		}
 	} catch (error: unknown) {
+		logger.error('Signup error:', error instanceof Error ? error : new Error(String(error)), {
+			component: 'AuthActions'
+		})
+
 		return {
 			errors: {
 				_form: [sanitizeErrorMessage(error, 'signup')]
@@ -324,14 +398,17 @@ export async function signupAction(
 	}
 }
 
+/**
+ * Logout action with proper cleanup
+ */
 export async function logoutAction(): Promise<AuthFormState> {
 	try {
 		const supabase = await createActionClient()
+		
 		// Get current user for tracking before logout
-		const {
-			data: { user }
-		} = await supabase.auth.getUser()
+		const { data: { user } } = await supabase.auth.getUser()
 
+		// Perform logout
 		await supabase.auth.signOut()
 
 		// Track logout event
@@ -351,20 +428,14 @@ export async function logoutAction(): Promise<AuthFormState> {
 		revalidateTag('leases')
 		revalidateTag('maintenance')
 
-		// Return success - let client handle redirect
 		return {
 			success: true,
 			message: 'Successfully signed out!'
 		}
 	} catch (error: unknown) {
-		// Log error internally but don't expose details
-		logger.error(
-			'Logout error:',
-			error instanceof Error ? error : new Error(String(error)),
-			{
-				component: 'AuthActions'
-			}
-		)
+		logger.error('Logout error:', error instanceof Error ? error : new Error(String(error)), {
+			component: 'AuthActions'
+		})
 
 		return {
 			errors: {
@@ -374,8 +445,11 @@ export async function logoutAction(): Promise<AuthFormState> {
 	}
 }
 
+/**
+ * Forgot password action with rate limiting
+ */
 export async function forgotPasswordAction(
-	prevState: AuthFormState,
+	_prevState: AuthFormState,
 	formData: FormData
 ): Promise<AuthFormState> {
 	try {
@@ -401,15 +475,12 @@ export async function forgotPasswordAction(
 		}
 	}
 
-	// Check rate limit for password reset
-	const resetRateLimit = await passwordResetRateLimiter(result.data.email)
-	if (!resetRateLimit.success) {
+	// Check rate limit
+	const rateLimitResult = passwordResetRateLimiter.check(result.data.email)
+	if (!rateLimitResult.success) {
 		return {
 			errors: {
-				_form: [
-					resetRateLimit.reason ||
-						'Too many password reset attempts. Please try again later.'
-				]
+				_form: [rateLimitResult.reason || 'Too many password reset attempts. Please try again later.']
 			}
 		}
 	}
@@ -424,6 +495,12 @@ export async function forgotPasswordAction(
 		)
 
 		if (error) {
+			// Track failed password reset
+			await trackServerSideEvent('password_reset_failed', undefined, {
+				error_message: error.message,
+				email_domain: result.data.email.split('@')[1]
+			})
+
 			return {
 				errors: {
 					_form: [sanitizeErrorMessage(error, 'password-reset')]
@@ -431,12 +508,20 @@ export async function forgotPasswordAction(
 			}
 		}
 
+		// Track successful password reset request
+		await trackServerSideEvent('password_reset_requested', undefined, {
+			email_domain: result.data.email.split('@')[1]
+		})
+
 		return {
 			success: true,
-			message:
-				'Password reset email sent! Check your inbox for instructions.'
+			message: 'Password reset email sent! Check your inbox for instructions.'
 		}
 	} catch (error: unknown) {
+		logger.error('Password reset error:', error instanceof Error ? error : new Error(String(error)), {
+			component: 'AuthActions'
+		})
+
 		return {
 			errors: {
 				_form: [sanitizeErrorMessage(error, 'password-reset')]
@@ -445,8 +530,11 @@ export async function forgotPasswordAction(
 	}
 }
 
+/**
+ * Update password action
+ */
 export async function updatePasswordAction(
-	prevState: AuthFormState,
+	_prevState: AuthFormState,
 	formData: FormData
 ): Promise<AuthFormState> {
 	const rawData = {
@@ -464,6 +552,11 @@ export async function updatePasswordAction(
 
 	try {
 		const supabase = await createActionClient()
+		
+		// Get current user
+		const { data: { user } } = await supabase.auth.getUser()
+		
+		// Update password
 		const { error } = await supabase.auth.updateUser({
 			password: result.data.password
 		})
@@ -476,6 +569,14 @@ export async function updatePasswordAction(
 			}
 		}
 
+		// Track password update
+		if (user) {
+			await trackServerSideEvent('password_updated', user.id, {
+				user_id: user.id,
+				method: 'reset_link'
+			})
+		}
+
 		// Revalidate user data
 		revalidateTag('user')
 
@@ -484,6 +585,10 @@ export async function updatePasswordAction(
 			message: 'Password updated successfully!'
 		}
 	} catch (error: unknown) {
+		logger.error('Password update error:', error instanceof Error ? error : new Error(String(error)), {
+			component: 'AuthActions'
+		})
+
 		return {
 			errors: {
 				_form: [sanitizeErrorMessage(error, 'password-update')]
@@ -492,37 +597,37 @@ export async function updatePasswordAction(
 	}
 }
 
-// Server-side auth helpers
+// ========================
+// Auth Helper Functions
+// ========================
+
+/**
+ * Get current authenticated user (server-side)
+ */
 export async function getCurrentUser(): Promise<AuthUser | null> {
 	try {
 		const supabase = await createActionClient()
-		const {
-			data: { user }
-		} = await supabase.auth.getUser()
+		const { data: { user } } = await supabase.auth.getUser()
 
 		if (!user) return null
 
 		return {
 			id: user.id,
-			email: user.email!,
-			name: user.user_metadata?.full_name || user.email!,
+			email: user.email || '',
+			name: user.user_metadata?.full_name || user.email || 'Unknown User',
 			avatar_url: user.user_metadata?.avatar_url
 		}
 	} catch (error) {
-		// Don't log sensitive errors in production
-		if (process.env.NODE_ENV !== 'production') {
-			logger.error(
-				'Get current user error:',
-				error instanceof Error ? error : new Error(String(error)),
-				{
-					component: 'AuthActions'
-				}
-			)
-		}
+		logger.error('Get current user error:', error instanceof Error ? error : new Error(String(error)), {
+			component: 'AuthActions'
+		})
 		return null
 	}
 }
 
+/**
+ * Require authentication or redirect to login
+ */
 export async function requireAuth(): Promise<AuthUser> {
 	const user = await getCurrentUser()
 
@@ -533,4 +638,27 @@ export async function requireAuth(): Promise<AuthUser> {
 	return user
 }
 
-// OAuth actions
+/**
+ * Check if user has a specific role
+ */
+export async function hasRole(requiredRole: string): Promise<boolean> {
+	try {
+		const user = await getCurrentUser()
+		if (!user) return false
+
+		const supabase = await createActionClient()
+		const { data } = await supabase
+			.from('User')
+			.select('role')
+			.eq('id', user.id)
+			.single()
+
+		return data?.role === requiredRole
+	} catch (error) {
+		logger.error('Role check error:', error instanceof Error ? error : new Error(String(error)), {
+			component: 'AuthActions',
+			requiredRole
+		})
+		return false
+	}
+}

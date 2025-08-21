@@ -31,7 +31,7 @@ export interface MutationFactoryOptions<
 	mutationFn: (variables: TVariables) => Promise<TData>
 	onSuccess?: (data: TData, variables: TVariables) => void
 	onError?: (error: TError, variables: TVariables) => void
-	invalidateKeys?: Array<readonly unknown[]>
+	invalidateKeys?: (readonly unknown[])[]
 	successMessage?: string
 	errorMessage?: string
 	optimisticUpdate?: {
@@ -239,7 +239,10 @@ export function useDetailQuery<TData = unknown>(
 ) {
 	return useQueryFactory({
 		queryKey: [resource, 'detail', id],
-		queryFn: () => fetcher(id!),
+		queryFn: () => {
+			if (!id) throw new Error(`${resource} ID is required`)
+			return fetcher(id)
+		},
 		enabled: !!id,
 		staleTime: 2 * 60 * 1000
 	})

@@ -1,6 +1,6 @@
 import React from 'react'
-import type { Meta, StoryObj } from '@storybook/react'
-import { fn, expect, userEvent, within } from '@storybook/test'
+import type { Meta, StoryObj } from '@storybook/nextjs-vite'
+import { fn, expect, userEvent, within } from 'storybook/test'
 import {
 	Card,
 	CardHeader,
@@ -86,8 +86,8 @@ const CodeBlock: React.FC<{
 
 // Template code strings
 const basicComponentTemplate = `import React from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
-import { fn, expect, userEvent, within } from '@storybook/test';
+import type { Meta, StoryObj } from '@storybook/nextjs-vite';
+import { fn, expect, userEvent, within } from 'storybook/test';
 import { YourComponent } from '@/components/your-component';
 import { UIComponentErrorBoundary } from '../utils/GranularErrorBoundaries';
 
@@ -163,8 +163,8 @@ export const WithInteraction: Story = {
 };`
 
 const businessComponentTemplate = `import React from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
-import { fn, expect, userEvent, within } from '@storybook/test';
+import type { Meta, StoryObj } from '@storybook/nextjs-vite';
+import { fn, expect, userEvent, within } from 'storybook/test';
 import { http, HttpResponse } from 'msw';
 import { BusinessComponent } from '@/components/business/business-component';
 import { BusinessComponentErrorBoundary } from '../utils/GranularErrorBoundaries';
@@ -265,8 +265,8 @@ export const ErrorState: Story = {
 };`
 
 const formComponentTemplate = `import React from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
-import { fn, expect, userEvent, within } from '@storybook/test';
+import type { Meta, StoryObj } from '@storybook/nextjs-vite';
+import { fn, expect, userEvent, within } from 'storybook/test';
 import { FormComponent } from '@/components/forms/form-component';
 import { FormComponentErrorBoundary } from '../utils/GranularErrorBoundaries';
 
@@ -330,8 +330,8 @@ export const FilledForm: Story = {
 };`
 
 const accessibilityTemplate = `import React from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
-import { expect, userEvent, within } from '@storybook/test';
+import type { Meta, StoryObj } from '@storybook/nextjs-vite';
+import { expect, userEvent, within } from 'storybook/test';
 import { AccessibleComponent } from '@/components/accessible-component';
 
 const meta = {
@@ -392,8 +392,8 @@ export const HighContrast: Story = {
 };`
 
 const performanceTemplate = `import React from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
-import { expect, within } from '@storybook/test';
+import type { Meta, StoryObj } from '@storybook/nextjs-vite';
+import { expect, within } from 'storybook/test';
 import { PerformanceComponent } from '@/components/performance-component';
 
 // Mock performance API for testing

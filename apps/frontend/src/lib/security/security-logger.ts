@@ -116,7 +116,7 @@ export class SecurityLogger {
 			this.events = this.events.slice(-this.maxEvents / 2)
 		}
 
-		const logLevel = this.getLogLevel(enhancedEvent.severity!)
+		const logLevel = this.getLogLevel(enhancedEvent.severity || SecurityEventSeverity.MEDIUM)
 		const logData = {
 			timestamp: enhancedEvent.timestamp,
 			type: enhancedEvent.type,
@@ -127,7 +127,12 @@ export class SecurityLogger {
 			reason: enhancedEvent.reason
 		}
 
-		console[logLevel]('[SECURITY]', JSON.stringify(logData, null, 2))
+		// Use only allowed console methods (warn/error)
+		if (logLevel === 'error') {
+			console.error('[SECURITY]', JSON.stringify(logData, null, 2))
+		} else {
+			console.warn('[SECURITY]', JSON.stringify(logData, null, 2))
+		}
 	}
 
 	private calculateSeverity(event: SecurityEvent): SecurityEventSeverity {
