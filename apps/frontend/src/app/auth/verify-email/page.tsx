@@ -340,12 +340,4 @@ export default function VerifyEmailPage() {
 	)
 }
 
-// Export metadata for static optimization
-export const metadata: Metadata = {
-	title: 'Verify Your Email | TenantFlow',
-	description: 'Please verify your email address to complete your TenantFlow account setup and access your dashboard.',
-	robots: {
-		index: false,
-		follow: false
-	}
-}
+// Note: metadata moved to layout.tsx due to 'use client' directive
