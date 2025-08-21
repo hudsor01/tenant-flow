@@ -10,7 +10,7 @@ import {
 	selectedTenantAtom,
 	tenantFiltersAtom
 } from '../atoms/business/tenants'
-import { TenantsApi } from '../lib/api/tenants'
+import { ApiService } from '../lib/api/api-service'
 import type { CreateTenantInput, UpdateTenantInput } from '@repo/shared'
 
 export function useTenants() {
@@ -22,7 +22,7 @@ export function useTenants() {
 	const createTenant = useCallback(
 		async (data: CreateTenantInput) => {
 			try {
-				const tenant = await TenantsApi.createTenant(data)
+				const tenant = await ApiService.createTenant(data)
 
 				// Invalidate query to refetch data
 				tenantsQuery.refetch?.()
@@ -45,7 +45,7 @@ export function useTenants() {
 	const updateTenant = useCallback(
 		async (id: string, data: UpdateTenantInput) => {
 			try {
-				const tenant = await TenantsApi.updateTenant(id, data)
+				const tenant = await ApiService.updateTenant(id, data)
 
 				// Invalidate query to refetch data
 				tenantsQuery.refetch?.()
@@ -73,7 +73,7 @@ export function useTenants() {
 	const deleteTenant = useCallback(
 		async (id: string) => {
 			try {
-				await TenantsApi.deleteTenant(id)
+				await ApiService.deleteTenant(id)
 
 				// Invalidate query to refetch data
 				tenantsQuery.refetch?.()
@@ -100,7 +100,7 @@ export function useTenants() {
 	// Get single tenant
 	const getTenant = useCallback(async (id: string) => {
 		try {
-			const tenant = await TenantsApi.getTenant(id)
+			const tenant = await ApiService.getTenant(id)
 			return { success: true, data: tenant }
 		} catch (error: unknown) {
 			const message =
