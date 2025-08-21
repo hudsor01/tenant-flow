@@ -213,7 +213,7 @@ export function generateSoftwareApplicationSchema() {
 
 // Additional schema generators for enhanced SEO
 export function generateBreadcrumbSchema(
-	items: Array<{ name: string; url: string }>
+	items: { name: string; url: string }[]
 ) {
 	return {
 		'@context': 'https://schema.org',
@@ -228,7 +228,7 @@ export function generateBreadcrumbSchema(
 }
 
 export function generateFAQSchema(
-	faqs: Array<{ question: string; answer: string }>
+	faqs: { question: string; answer: string }[]
 ) {
 	return {
 		'@context': 'https://schema.org',

@@ -1,46 +1,19 @@
-import type { NextConfig } from './src/types/next'
+import type { NextConfig } from 'next/types'
 
+// Webpack configuration for production builds
 interface WebpackConfig {
-	optimization?: {
-		splitChunks?: {
-			cacheGroups?: Record<
-				string,
-				{
-					test?: RegExp
-					name?: string
-					chunks?: string
-					priority?: number
-					enforce?: boolean
-				}
-			>
-		}
-	}
-	module?: {
-		rules?: Array<{
-			test: RegExp
-			loader: string
-		}>
-	}
-	ignoreWarnings?: Array<{
+	ignoreWarnings?: {
 		module: RegExp
 		message: RegExp
-	}>
+	}[]
 	resolve?: {
 		fallback?: Record<string, boolean>
 	}
 }
 
-interface WebpackPlugin {
-	new (...args: unknown[]): unknown
-}
-
 interface WebpackContext {
 	dev: boolean
 	isServer: boolean
-	webpack: {
-		ProvidePlugin: WebpackPlugin
-		DefinePlugin: WebpackPlugin
-	}
 }
 
 const nextConfig: NextConfig = {
@@ -161,42 +134,33 @@ const nextConfig: NextConfig = {
 		]
 	},
 
-	// Minimal webpack config for production
+	// Experimental features
+	experimental: {
+		// Turbopack configuration for development
+		turbo: {
+			rules: {
+				'*.svg': {
+					loaders: ['@svgr/webpack'],
+					as: '*.js'
+				}
+			}
+		}
+	},
+
+	// Webpack configuration for production builds
 	webpack: (config: unknown, context: unknown): unknown => {
 		const typedConfig = config as WebpackConfig
 		const typedContext = context as WebpackContext
-		const { dev, isServer } = typedContext
-		// Only apply optimizations in production builds
-		if (!dev && !isServer) {
-			// Optimize React chunk splitting to prevent Children errors
-			if (typedConfig.optimization?.splitChunks) {
-				typedConfig.optimization.splitChunks.cacheGroups = {
-					...typedConfig.optimization.splitChunks.cacheGroups,
-					react: {
-						test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
-						name: 'react',
-						chunks: 'all',
-						priority: 20,
-						enforce: true
-					}
-				}
-			}
+		const { isServer } = typedContext
 
-			// Exclude test files from production bundle
-			typedConfig.module?.rules?.push({
-				test: /\.(test|spec)\.(ts|tsx|js|jsx)$/,
-				loader: 'ignore-loader'
-			})
-		}
-
-		// Suppress Supabase websocket warnings
+		// Suppress Supabase websocket warnings in all builds
 		typedConfig.ignoreWarnings = [
 			...(typedConfig.ignoreWarnings || []),
 			{ module: /websocket-factory/, message: /Critical dependency/ },
 			{ module: /@supabase/, message: /Critical dependency/ }
 		]
 
-		// Client-side fallbacks
+		// Client-side fallbacks for production
 		if (!isServer) {
 			if (!typedConfig.resolve) {
 				typedConfig.resolve = {}
@@ -210,14 +174,9 @@ const nextConfig: NextConfig = {
 		}
 
 		return typedConfig
-	},
-
-	// Environment variables for client
-	env: {
-		NEXT_PUBLIC_APP_NAME: 'TenantFlow',
-		NEXT_PUBLIC_APP_URL:
-			process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 	}
+
+	// Environment variables are handled by env-config.ts
 }
 
 export default nextConfig

@@ -85,7 +85,6 @@ export function RealTimeValidation({
 	)
 
 	const handleChange = (newValue: string) => {
-		console.log(`🔄 RealTimeValidation handleChange for ${name}:`, newValue)
 		onChange(newValue)
 
 		// Clear existing timer

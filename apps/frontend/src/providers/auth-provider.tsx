@@ -166,10 +166,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 								...prev,
 								user: {
 									id: session.user.id,
-									email: session.user.email!,
+									email: session.user.email || '',
 									name:
 										session.user.user_metadata?.full_name ||
-										session.user.email!,
+										session.user.email || 'Unknown User',
 									avatar_url:
 										session.user.user_metadata?.avatar_url
 								}

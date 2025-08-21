@@ -254,12 +254,6 @@ const securityHeaders = [
 - Tailwind CSS IntelliSense
 - REST Client (API testing)
 
-### Git Hooks & CI/CD
-```bash
-# Pre-commit hooks via lefthook
-npm run claude:check     # Runs automatically on commit
-```
-
 ### Environment Setup Scripts
 ```bash
 # Setup new development environment

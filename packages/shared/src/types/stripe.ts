@@ -1183,6 +1183,10 @@ export const WEBHOOK_EVENT_TYPES = {
 	CHECKOUT_SESSION_COMPLETED: 'checkout.session.completed',
 	CHECKOUT_SESSION_EXPIRED: 'checkout.session.expired',
 
+	// Payment Method events
+	PAYMENT_METHOD_ATTACHED: 'payment_method.attached',
+	PAYMENT_METHOD_DETACHED: 'payment_method.detached',
+
 	// Setup intent events
 	SETUP_INTENT_SUCCEEDED: 'setup_intent.succeeded',
 	SETUP_INTENT_SETUP_FAILED: 'setup_intent.setup_failed'
@@ -6383,6 +6387,13 @@ export interface StripePaymentMethodListParams {
 		| 'zip'
 	readonly expand?: readonly string[]
 }
+
+// ========================
+// Stripe Element Types for Frontend Components
+// ========================
+
+// Stripe Element event types are defined earlier in this file (around line 4744)
+// This duplicate section was removed to avoid TypeScript conflicts
 
 /**
  * Validate Stripe configuration

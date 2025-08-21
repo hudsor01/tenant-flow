@@ -13,8 +13,8 @@
 		"skipLibCheck": true,
 		"isolatedModules": false,
 		"paths": {
-			"@repo/shared": ["../../packages/shared/src"],
-			"@repo/shared/*": ["../../packages/shared/src/*"]
+			"@repo/shared": ["../../packages/shared/dist/cjs"],
+			"@repo/shared/*": ["../../packages/shared/dist/cjs/*"]
 		}
 	},
 	"include": ["src", "src/types/fastify.d.ts", "test/setup.ts"],
