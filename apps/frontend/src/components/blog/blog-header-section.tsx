@@ -3,7 +3,7 @@ import { motion } from '@/lib/framer-motion'
 import { Button } from '@/components/ui/button'
 import { Clock, User, ArrowLeft, Share2, Calendar, Tag } from 'lucide-react'
 import type { BlogArticleWithDetails } from '@repo/shared'
-import { formatArticleDate } from '@/hooks/useBlogArticleData'
+import { formatArticleDate } from '@/lib/utils/date-utils'
 
 interface BlogHeaderSectionProps {
 	article: BlogArticleWithDetails

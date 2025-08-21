@@ -1,14 +1,21 @@
-import { useState } from 'react'
-import { logger } from '@/lib/logger'
-import { useAuth } from './use-auth'
-import { toast } from 'sonner'
+/**
+ * Profile editing data hook
+ * Provides profile form data and update functionality
+ */
 
-export interface ProfileFormData {
-	fullName: string
+import { useState } from 'react'
+import type { UpdateUserProfileInput } from '@repo/shared'
+import { logger } from '@/lib/logger'
+
+export interface ProfileData {
+	name: string
 	email: string
 	phone?: string
-	bio?: string
+	company?: string
 }
+
+// Export with both names for compatibility
+export type ProfileFormData = ProfileData
 
 export interface PasswordFormData {
 	currentPassword: string
@@ -17,96 +24,27 @@ export interface PasswordFormData {
 }
 
 export function useEditProfileData() {
-	const { user } = useAuth()
 	const [isLoading, setIsLoading] = useState(false)
-	const [avatarState, setAvatarState] = useState<string | null>(null)
+	const [error, setError] = useState<string | null>(null)
 
-	const profileForm = {
-		fullName: user?.user_metadata?.full_name || '',
-		email: user?.email || ''
-	}
-
-	const passwordForm = {
-		currentPassword: '',
-		newPassword: '',
-		confirmPassword: ''
-	}
-
-	const onSubmit = async (data: ProfileFormData) => {
+	const updateProfile = async (data: UpdateUserProfileInput) => {
 		setIsLoading(true)
+		setError(null)
 		try {
-			// Mock profile update for now
-			logger.info('Updating profile:', {
-				component: 'UEditProfileDataHook',
-				data: data
-			})
-			toast.success('Profile updated successfully')
-		} catch (error) {
-			logger.error(
-				'Profile update error:',
-				error instanceof Error ? error : new Error(String(error)),
-				{ component: 'UEditProfileDataHook' }
-			)
-			toast.error('Failed to update profile')
-		} finally {
-			setIsLoading(false)
-		}
-	}
-
-	const onAvatarChange = async (file: File | null) => {
-		if (!file) return
-
-		try {
-			// Mock avatar upload for now
-			logger.info('Uploading avatar:', {
-				component: 'UEditProfileDataHook',
-				data: file.name
-			})
-			toast.success('Avatar uploaded successfully')
-		} catch (error) {
-			logger.error(
-				'Avatar upload error:',
-				error instanceof Error ? error : new Error(String(error)),
-				{ component: 'UEditProfileDataHook' }
-			)
-			toast.error('Failed to upload avatar')
-		}
-	}
-
-	const handlePasswordSubmit = async (data: PasswordFormData) => {
-		setIsLoading(true)
-		try {
-			if (data.newPassword !== data.confirmPassword) {
-				toast.error('Passwords do not match')
-				return
-			}
-
-			// Mock password update for now
-			logger.info('Updating password', {
-				component: 'UEditProfileDataHook'
-			})
-			toast.success('Password updated successfully')
-		} catch (error) {
-			logger.error(
-				'Password update error:',
-				error instanceof Error ? error : new Error(String(error)),
-				{ component: 'UEditProfileDataHook' }
-			)
-			toast.error('Failed to update password')
+			// TODO: Implement actual profile update API call
+			logger.info('Profile update requested', { data })
+			// Placeholder implementation
+			await new Promise(resolve => setTimeout(resolve, 1000))
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to update profile')
 		} finally {
 			setIsLoading(false)
 		}
 	}
 
 	return {
-		user,
-		avatarState,
-		setAvatarState,
-		profileForm,
-		passwordForm,
-		onSubmit,
-		onAvatarChange,
-		handlePasswordSubmit,
-		isLoading
+		updateProfile,
+		isLoading,
+		error
 	}
 }

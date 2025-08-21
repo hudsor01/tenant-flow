@@ -3,6 +3,8 @@
  * Central source of truth for billing enums and constants
  */
 
+import type { BillingPeriod } from '../types/stripe-official'
+
 // Plan type enum
 export const PLAN_TYPE = {
 	FREETRIAL: 'FREETRIAL',
@@ -13,13 +15,8 @@ export const PLAN_TYPE = {
 
 export type PlanType = (typeof PLAN_TYPE)[keyof typeof PLAN_TYPE]
 
-// Billing period enum
-export const BILLING_PERIOD = {
-	MONTHLY: 'MONTHLY',
-	ANNUAL: 'ANNUAL'
-} as const
-
-export type BillingPeriod = (typeof BILLING_PERIOD)[keyof typeof BILLING_PERIOD]
+// Billing period enum - imported from types/stripe for consistency
+// Values: 'monthly', 'annual' (lowercase to match Stripe API)
 
 // Subscription status enum
 export const SUB_STATUS = {
@@ -89,5 +86,7 @@ export const PLANS = [
 
 // Derived options arrays for frontend use
 export const PLAN_TYPE_OPTIONS = Object.values(PLAN_TYPE)
-export const BILLING_PERIOD_OPTIONS = Object.values(BILLING_PERIOD)
 export const SUB_STATUS_OPTIONS = Object.values(SUB_STATUS)
+
+// Re-export BillingPeriod type for convenience
+export type { BillingPeriod }

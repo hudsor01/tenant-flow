@@ -27,7 +27,6 @@ __mocks__
 .eslintcache
 .prettierignore
 .prettierrc
-.eslintrc*
 eslint.config.*
 
 # Backend files (not needed for frontend deployment)
@@ -93,3 +92,6 @@ yarn.lock
 *.tmp
 *.temp
 .cache
+.flaskenv*
+!.env.project
+!.env.vault

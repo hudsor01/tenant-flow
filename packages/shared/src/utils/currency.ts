@@ -276,4 +276,3 @@ export const getCollectionRateStatus = (
 		return { status: 'Poor', color: 'text-red-600', icon: '🔻' }
 	}
 }
-

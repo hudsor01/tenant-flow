@@ -42,7 +42,6 @@ http_requests_total 1
 `
 	}
 
-
 	@Get('api')
 	@Public()
 	getHello(): string {

@@ -82,3 +82,7 @@ apps/e2e
 !apps/backend/package-lock.json
 !packages/shared/package.json
 !packages/shared/package-lock.json
+.env*
+.flaskenv*
+!.env.project
+!.env.vault

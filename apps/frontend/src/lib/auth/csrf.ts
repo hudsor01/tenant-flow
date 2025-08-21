@@ -7,10 +7,14 @@ const CSRF_TOKEN_NAME = 'csrf-token'
  * Get CSRF token from cookies (server-side)
  */
 async function getStoredCSRFToken(): Promise<string | null> {
-	const cookieStore = await cookies()
-	const token = cookieStore.get(CSRF_TOKEN_NAME)
-
-	return token?.value || null
+	try {
+		const cookieStore = await cookies()
+		const token = cookieStore.get(CSRF_TOKEN_NAME)
+		return token?.value || null
+	} catch (error) {
+		logger.warn('Failed to get CSRF token from cookies', { error })
+		return null
+	}
 }
 
 /**
@@ -20,18 +24,14 @@ async function validateCSRFToken(
 	providedToken: string | null
 ): Promise<boolean> {
 	if (!providedToken) {
-		logger.warn('CSRF validation failed: No token provided', {
-			component: 'CSRF'
-		})
+		logger.debug('CSRF validation: No token provided')
 		return false
 	}
 
 	const storedToken = await getStoredCSRFToken()
 
 	if (!storedToken) {
-		logger.warn('CSRF validation failed: No stored token', {
-			component: 'CSRF'
-		})
+		logger.debug('CSRF validation: No stored token')
 		return false
 	}
 
@@ -39,11 +39,7 @@ async function validateCSRFToken(
 	const isValid = timingSafeEqual(providedToken, storedToken)
 
 	if (!isValid) {
-		logger.warn('CSRF validation failed: Token mismatch', {
-			component: 'CSRF',
-			providedPrefix: providedToken.substring(0, 8),
-			storedPrefix: storedToken.substring(0, 8)
-		})
+		logger.warn('CSRF validation failed: Token mismatch')
 	}
 
 	return isValid
@@ -66,17 +62,32 @@ function timingSafeEqual(a: string, b: string): boolean {
 }
 
 /**
- * CSRF protection for server actions
- * Add this check to all state-changing server actions
+ * Production CSRF protection for server actions
+ * Validates double-submit cookie pattern with timing attack protection
  */
 export async function requireCSRFToken(formData: FormData): Promise<void> {
 	const providedToken = formData.get('_csrf') as string | null
+	
+	// Production security: require token
+	if (!providedToken) {
+		logger.warn('CSRF protection: No token provided in form data')
+		throw new Error('Security validation required. Please refresh the page and try again.')
+	}
+
+	// Validate token length (production requirement)
+	if (providedToken.length !== 64) {
+		logger.warn('CSRF protection: Invalid token length')
+		throw new Error('Security validation failed. Please refresh the page and try again.')
+	}
 
 	const isValid = await validateCSRFToken(providedToken)
 
 	if (!isValid) {
+		logger.warn('CSRF protection: Token validation failed')
 		throw new Error(
-			'Invalid or missing CSRF token. Please refresh the page and try again.'
+			'Security validation failed. Please refresh the page and try again.'
 		)
 	}
+
+	logger.debug('CSRF protection: Token validated successfully')
 }

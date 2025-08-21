@@ -1,10 +1,18 @@
+const path = require('path');
+
 module.exports = {
-	'displayName': 'backend',
-	'preset': 'ts-jest',
-	'testEnvironment': 'node',
-	'rootDir': '.',
-	'testMatch': ['<rootDir>/src/**/*.(test|spec).ts'],
-	'collectCoverageFrom': [
+	displayName: 'backend',
+	preset: 'ts-jest',
+	testEnvironment: 'node',
+	rootDir: '.',
+	testMatch: [
+		'<rootDir>/src/**/*.spec.ts',
+		'<rootDir>/src/**/*.test.ts',
+		'<rootDir>/test/**/*.spec.ts',
+		'<rootDir>/test/**/*.test.ts'
+	],
+	testPathIgnorePatterns: ['/node_modules/', '/dist/', '/coverage/'],
+	collectCoverageFrom: [
 		'src/**/*.(t|j)s',
 		'!src/**/*.spec.ts',
 		'!src/**/*.test.ts',
@@ -13,31 +21,34 @@ module.exports = {
 		'!src/**/*.interface.ts',
 		'!src/**/*.dto.ts'
 	],
-	'coverageDirectory': './coverage',
-	'coverageReporters': ['text', 'lcov', 'html'],
-	'moduleNameMapper': {
+	coverageDirectory: './coverage',
+	coverageReporters: ['text', 'lcov', 'html'],
+	moduleNameMapper: {
 		'^@/(.*)$': '<rootDir>/src/$1',
 		'^@repo/emails/(.*)$': '<rootDir>/../../packages/emails/$1',
 		'^@repo/(.*)$': '<rootDir>/../../packages/$1/src'
 	},
-	'setupFilesAfterEnv': ['<rootDir>/test/setup.ts'],
+	setupFilesAfterEnv: [path.resolve(__dirname, 'test', 'setup.ts')],
 	// 'setupFiles': ['<rootDir>/test/disable-nestjs-logger.ts'],
-	'testTimeout': 10000,
-	'maxWorkers': 1,
-	'testSequencer':
+	testTimeout: 10000,
+	maxWorkers: 1,
+	testSequencer:
 		'<rootDir>/../../node_modules/@jest/test-sequencer/build/index.js',
-	'verbose': false,
-	'silent': true,
-	'coverageProvider': 'v8',
-	'transform': {
+	verbose: false,
+	silent: true,
+	clearMocks: true,
+	restoreMocks: true,
+	bail: false,
+	coverageProvider: 'v8',
+	transform: {
 		'^.+\.ts$': [
 			'ts-jest',
 			{
-				'useESM': false
+				useESM: false
 			}
 		]
 	},
-	'injectGlobals': true,
-	'clearMocks': true,
-	'restoreMocks': true
-};
+	injectGlobals: true,
+	clearMocks: true,
+	restoreMocks: true
+}
