@@ -37,10 +37,10 @@
   "json.schemas": [],
   "json.schemaDownload.enable": true,
   "accessibility.signals.save": {
-    "sound": "off"
+    "sound": "never"
   },
   "accessibility.signals.format": {
-    "sound": "off"
+    "sound": "never"
   },
   "editor.formatOnSaveTimeout": 100,
   "editor.codeActionsOnSaveTimeout": 100,
@@ -121,9 +121,11 @@
 "githubPullRequests.experimental.useQuickChat": true,
 "github.copilot.chat.localeOverride": "en",
 "workbench.editor.autoLockGroups": {
-  "workbench.editor.chatSession": false
+  "workbench.editor.chatSession": false,
+  "terminalEditor": false,
+  "mainThreadWebview-markdown.preview": true
 },
-"workbench.editor.alwaysShowEditorActions": false,
+"workbench.editor.alwaysShowEditorActions": true,
 "workbench.editor.centeredLayoutFixedWidth": true,
 "workbench.editor.closeOnFileDelete": true,
 "workbench.editor.defaultBinaryEditor": "default",
@@ -153,5 +155,7 @@
 "[markdown]": {
   "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
 },
-"editor.formatOnSaveMode": "modifications"
+"editor.formatOnSaveMode": "modifications",
+"jest.jestCommandLine": ".",
+"cmake.sourceDirectory": "/Users/richard/Developer/tenant-flow/node_modules/bare-fs"
 }

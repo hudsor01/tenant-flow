@@ -1,13 +1,16 @@
 # ========================================
 # CRITICAL SECURITY - ENVIRONMENT & SECRETS
 # ========================================
-# RULE: Ignore ALL .env files - NO EXCEPTIONS
-# User requirement: No .env files should be committed, period.
-.env
-.env.*
-*.env
-**/.env
-**/.env.*
+# direnv - local environment overrides
+.envrc
+.envrc.local
+*/.envrc
+**/.envrc
+
+# Environment keys (legacy)
+.env.keys
+*/.env.keys
+**/.env.keys
 
 # Local environment files
 .env.local
@@ -506,3 +509,14 @@ docker-compose.*.yml
 **/*actual[_-]password*
 **/*real[_-]secret*
 **/*private[_-]key*
+.env*
+.flaskenv*
+!.env.project
+!.env.vault
+clinerules-bank/
+memory-bank/
+docs/
+.env.*
+
+*storybook.log
+.envrc

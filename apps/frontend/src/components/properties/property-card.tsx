@@ -33,7 +33,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import type { PropertyWithDetails } from '@repo/shared'
 import { UNIT_STATUS } from '@repo/shared'
-import { useProperties } from '../../hooks/use-properties'
+import { useDeleteProperty } from '@/hooks/api/use-properties'
 import { gridLayouts, flexLayouts } from '@/utils/layout-classes'
 
 interface PropertyCardProps {
@@ -47,15 +47,15 @@ export default function PropertyCard({
 	onEdit,
 	onView
 }: PropertyCardProps) {
-	const { deleteProperty } = useProperties()
+	const deletePropertyMutation = useDeleteProperty()
 
 	// Memoize the delete mutation object to prevent useCallback dependencies from changing
 	const deleteMutation = useMemo(
 		() => ({
-			mutateAsync: deleteProperty,
-			isPending: false
+			mutateAsync: deletePropertyMutation.mutateAsync,
+			isPending: deletePropertyMutation.isPending
 		}),
-		[deleteProperty]
+		[deletePropertyMutation.mutateAsync, deletePropertyMutation.isPending]
 	)
 
 	const handleDelete = useCallback(async () => {

@@ -30,9 +30,3 @@ export const tenantNotificationPrefsAtom = atom({
 	paymentReminders: true,
 	leaseRenewalAlerts: true
 })
-
-// TODO: Add back jotai-tanstack-query atoms when scoping is fixed
-// export const tenantMaintenanceAtom = atomWithQuery(...)
-// export const tenantPaymentsAtom = atomWithQuery(...)
-// export const tenantLeaseAtom = atomWithQuery(...)
-// export const tenantDocumentsAtom = atomWithQuery(...)

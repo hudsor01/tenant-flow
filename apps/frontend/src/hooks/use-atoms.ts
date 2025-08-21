@@ -20,9 +20,7 @@ import {
 	themeAtom,
 	sidebarOpenAtom,
 	isOnlineAtom,
-	featureFlagsAtom,
 	toggleSidebarAtom,
-	toggleFeatureAtom,
 
 	// Notification atoms
 	notificationsAtom,
@@ -48,20 +46,21 @@ import {
 	selectPropertyAtom,
 	setPropertyFiltersAtom,
 	clearPropertyFiltersAtom,
-	usePropertiesMutationsAtom,
+	createPropertyMutationAtom,
+	updatePropertyMutationAtom,
+	deletePropertyMutationAtom,
 
 	// Tenant atoms
 	tenantsAtom,
 	selectedTenantAtom,
 	tenantFiltersAtom,
 	filteredTenantsAtom,
-	activeTenentsAtom,
+	activeTenantsAtom,
 	tenantsByPropertyAtom,
 	tenantsByStatusAtom,
-	setTenantsAtom,
-	addTenantAtom,
-	updateTenantAtom,
-	deleteTenantAtom,
+	createTenantMutationAtom,
+	updateTenantMutationAtom,
+	deleteTenantMutationAtom,
 	selectTenantAtom,
 	setTenantFiltersAtom,
 	clearTenantFiltersAtom,
@@ -116,23 +115,19 @@ export function useTheme() {
 	const [theme, setTheme] = useAtom(themeAtom)
 	const [sidebarOpen, setSidebarOpen] = useAtom(sidebarOpenAtom)
 	const isOnline = useAtomValue(isOnlineAtom)
-	const features = useAtomValue(featureFlagsAtom)
 
 	const toggleSidebar = useSetAtom(toggleSidebarAtom)
-	const toggleFeature = useSetAtom(toggleFeatureAtom)
 
 	return {
 		// State
 		theme,
 		sidebarOpen,
 		isOnline,
-		features,
 
 		// Actions
 		setTheme,
 		setSidebarOpen,
-		toggleSidebar,
-		toggleFeature
+		toggleSidebar
 	}
 }
 
@@ -198,8 +193,10 @@ export function useProperties() {
 	const vacantUnitsCount = useAtomValue(vacantUnitsCountAtom)
 	const propertiesByCity = useAtomValue(propertiesByCityAtom)
 
-	// Import mutation atoms from server layer
-	const mutations = useAtomValue(usePropertiesMutationsAtom)
+	// Import mutation atoms directly (they return mutation objects)
+	const createPropertyMutation = useAtomValue(createPropertyMutationAtom)
+	const updatePropertyMutation = useAtomValue(updatePropertyMutationAtom)
+	const deletePropertyMutation = useAtomValue(deletePropertyMutationAtom)
 	const selectProperty = useSetAtom(selectPropertyAtom)
 	const setFilters = useSetAtom(setPropertyFiltersAtom)
 	const clearFilters = useSetAtom(clearPropertyFiltersAtom)
@@ -214,9 +211,9 @@ export function useProperties() {
 		propertiesByCity,
 
 		// Actions from mutations
-		createProperty: mutations.createProperty,
-		updateProperty: mutations.updateProperty,
-		deleteProperty: mutations.deleteProperty,
+		createProperty: createPropertyMutation.mutateAsync,
+		updateProperty: updatePropertyMutation.mutateAsync,
+		deleteProperty: deletePropertyMutation.mutateAsync,
 		selectProperty,
 		setFilters,
 		clearFilters
@@ -229,14 +226,13 @@ export function useTenants() {
 	const selectedTenant = useAtomValue(selectedTenantAtom)
 	const filters = useAtomValue(tenantFiltersAtom)
 	const filteredTenants = useAtomValue(filteredTenantsAtom)
-	const activeTenants = useAtomValue(activeTenentsAtom)
+	const activeTenants = useAtomValue(activeTenantsAtom)
 	const tenantsByProperty = useAtomValue(tenantsByPropertyAtom)
 	const tenantsByStatus = useAtomValue(tenantsByStatusAtom)
 
-	const setTenants = useSetAtom(setTenantsAtom)
-	const addTenant = useSetAtom(addTenantAtom)
-	const updateTenant = useSetAtom(updateTenantAtom)
-	const deleteTenant = useSetAtom(deleteTenantAtom)
+	const createTenantMutation = useAtomValue(createTenantMutationAtom)
+	const updateTenantMutation = useAtomValue(updateTenantMutationAtom)
+	const deleteTenantMutation = useAtomValue(deleteTenantMutationAtom)
 	const selectTenant = useSetAtom(selectTenantAtom)
 	const setFilters = useSetAtom(setTenantFiltersAtom)
 	const clearFilters = useSetAtom(clearTenantFiltersAtom)
@@ -252,10 +248,9 @@ export function useTenants() {
 		tenantsByStatus,
 
 		// Actions
-		setTenants,
-		addTenant,
-		updateTenant,
-		deleteTenant,
+		createTenant: createTenantMutation.mutateAsync,
+		updateTenant: updateTenantMutation.mutateAsync,
+		deleteTenant: deleteTenantMutation.mutateAsync,
 		selectTenant,
 		setFilters,
 		clearFilters
@@ -271,4 +266,4 @@ export const useFilteredProperties = () => useAtomValue(filteredPropertiesAtom)
 export const useSelectedTenant = () => useAtomValue(selectedTenantAtom)
 export const useTenantFilters = () => useAtomValue(tenantFiltersAtom)
 export const useFilteredTenants = () => useAtomValue(filteredTenantsAtom)
-export const useActiveTenants = () => useAtomValue(activeTenentsAtom)
+export const useActiveTenants = () => useAtomValue(activeTenantsAtom)

@@ -6,8 +6,8 @@
 // Import types from consolidated stripe.ts
 import type { StripeError, BillingPeriod } from './stripe'
 
-// Import ProductTierConfig for modern pricing types
-import type { ProductTierConfig } from '../types/billing'
+// Import PricingConfig for modern pricing types
+import type { PricingConfig } from '../config/pricing'
 
 export type BillingInterval = BillingPeriod
 
@@ -60,7 +60,7 @@ export interface PricingComponentProps {
 	customerId?: string
 	customerEmail?: string
 	onPlanSelect?: (
-		tier: ProductTierConfig,
+		tier: PricingConfig,
 		billingInterval: BillingInterval
 	) => void
 	onError?: (error: StripeError) => void
@@ -69,7 +69,7 @@ export interface PricingComponentProps {
 
 // Pricing Card Props
 export interface PricingCardProps {
-	tier: ProductTierConfig
+	tier: PricingConfig
 	billingInterval: BillingInterval
 	isCurrentPlan?: boolean
 	loading?: boolean
@@ -182,7 +182,7 @@ export const getStripeErrorMessage = (error: StripeError): string => {
 }
 
 // Enhanced tier data validation with comprehensive checks
-export const validatePricingPlan = (tier: ProductTierConfig): boolean => {
+export const validatePricingPlan = (tier: PricingConfig): boolean => {
 	try {
 		// Input validation
 		if (!tier || typeof tier !== 'object') {

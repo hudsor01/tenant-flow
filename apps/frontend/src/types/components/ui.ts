@@ -224,7 +224,7 @@ export interface SliderProps extends BaseComponentProps, DisablableProps {
 	min?: number
 	max?: number
 	step?: number
-	marks?: boolean | Array<{ value: number; label?: ReactNode }>
+	marks?: boolean | { value: number; label?: ReactNode }[]
 	orientation?: 'horizontal' | 'vertical'
 	size?: Size
 	color?: 'primary' | 'secondary'

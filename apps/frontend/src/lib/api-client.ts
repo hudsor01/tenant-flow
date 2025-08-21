@@ -11,13 +11,9 @@ import axios, {
 import { logger } from '@/lib/logger'
 import { config } from './config'
 import { getSession } from './supabase/client'
+import type { ControllerApiResponse } from '@repo/shared'
 
-export interface ApiResponse<T = unknown> {
-	data: T
-	success: boolean
-	message?: string
-	timestamp?: string
-}
+
 
 export interface ApiError {
 	message: string
@@ -98,40 +94,41 @@ class ApiClient {
 		url: string,
 		data?: Record<string, unknown> | FormData,
 		config?: AxiosRequestConfig
-	): Promise<ApiResponse<T>> {
+	): Promise<T> {
 		try {
-			// Create AbortController for request cancellation
-			const controller = new AbortController()
-
-			const response: AxiosResponse = await this.client.request({
+			const response: AxiosResponse<ControllerApiResponse<T>> = await this.client.request({
 				method,
 				url,
 				data,
-				...config,
-				signal: config?.signal || controller.signal
+				...config
 			})
 
-			return {
-				data: response.data,
-				success: response.status >= 200 && response.status < 300,
-				message: response.data?.message,
-				timestamp: new Date().toISOString()
+			// Extract data from backend's ControllerApiResponse format
+			const backendResponse = response.data as ControllerApiResponse<T>
+			
+			if (backendResponse && typeof backendResponse === 'object' && 'success' in backendResponse) {
+				if (!backendResponse.success) {
+					throw new Error(backendResponse.message || 'Request failed')
+				}
+				if (backendResponse.data === undefined) {
+					throw new Error('Response data is missing from successful request')
+				}
+				return backendResponse.data
 			}
+
+			// Should not reach here with current backend implementation
+			throw new Error('Invalid response format from backend')
 		} catch (error: unknown) {
 			const axiosError = error as AxiosError
-			const responseData = axiosError.response?.data as
-				| Record<string, unknown>
-				| undefined
+			const responseData = axiosError.response?.data as ControllerApiResponse<unknown> | undefined
 
 			const apiError: ApiError = {
 				message:
 					(responseData?.message as string) ||
 					axiosError.message ||
 					'Request failed',
-				code: (responseData?.code as string) || axiosError.code,
-				details:
-					(responseData?.details as Record<string, unknown>) ||
-					responseData,
+				code: responseData?.statusCode?.toString() || axiosError.code,
+				details: responseData as unknown as Record<string, unknown>,
 				timestamp: new Date().toISOString()
 			}
 
@@ -143,7 +140,7 @@ class ApiClient {
 	async get<T>(
 		url: string,
 		config?: AxiosRequestConfig
-	): Promise<ApiResponse<T>> {
+	): Promise<T> {
 		return this.makeRequest<T>('GET', url, undefined, config)
 	}
 
@@ -151,7 +148,7 @@ class ApiClient {
 		url: string,
 		data?: Record<string, unknown> | FormData,
 		config?: AxiosRequestConfig
-	): Promise<ApiResponse<T>> {
+	): Promise<T> {
 		return this.makeRequest<T>('POST', url, data, config)
 	}
 
@@ -159,7 +156,7 @@ class ApiClient {
 		url: string,
 		data?: Record<string, unknown> | FormData,
 		config?: AxiosRequestConfig
-	): Promise<ApiResponse<T>> {
+	): Promise<T> {
 		return this.makeRequest<T>('PUT', url, data, config)
 	}
 
@@ -167,21 +164,19 @@ class ApiClient {
 		url: string,
 		data?: Record<string, unknown> | FormData,
 		config?: AxiosRequestConfig
-	): Promise<ApiResponse<T>> {
+	): Promise<T> {
 		return this.makeRequest<T>('PATCH', url, data, config)
 	}
 
 	async delete<T>(
 		url: string,
 		config?: AxiosRequestConfig
-	): Promise<ApiResponse<T>> {
+	): Promise<T> {
 		return this.makeRequest<T>('DELETE', url, undefined, config)
 	}
 
 	// Health check method
-	async healthCheck(): Promise<
-		ApiResponse<{ status: string; timestamp: string }>
-	> {
+	async healthCheck(): Promise<{ status: string; timestamp: string }> {
 		return this.get<{ status: string; timestamp: string }>('/health')
 	}
 
@@ -203,3 +198,5 @@ export default apiClient
 export type CancellableRequest = ReturnType<
 	ApiClient['createCancellableRequest']
 >
+
+

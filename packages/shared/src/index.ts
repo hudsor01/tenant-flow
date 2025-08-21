@@ -45,11 +45,7 @@ export type {
 	SupabaseJwtPayload
 } from './types/auth'
 
-// Export UserRole constants
-export { USER_ROLE } from './constants/auth'
-
-// Export Document constants
-export { DOCUMENT_TYPE, DOCUMENT_TYPE_OPTIONS } from './types/documents'
+// Global type declarations (augmentations) - USER_ROLE and DOCUMENT_TYPE are exported via barrel exports
 
 // Global type declarations (augmentations)
 import './types/global'
@@ -139,11 +135,16 @@ export type {
 export type {
 	Property,
 	Unit,
-	PropertyType,
-	UnitStatus,
 	PropertyStats,
 	PropertyEntitlements
 } from './types/properties'
+
+// Property utilities
+export {
+	getPropertyTypeLabel,
+	getUnitStatusLabel,
+	getUnitStatusColor
+} from './utils/properties'
 
 export type { Tenant, TenantStats, CurrentLeaseInfo } from './types/tenants'
 
@@ -157,7 +158,8 @@ export type {
 export type {
 	MaintenanceRequest,
 	Priority as MaintenancePriority,
-	RequestStatus as MaintenanceStatus
+	RequestStatus as MaintenanceStatus,
+	RequestStatus
 } from './types/maintenance'
 
 export type {
@@ -185,9 +187,7 @@ export type {
 	Invoice as BillingInvoice,
 	Subscription,
 	Plan,
-	UsageMetrics,
-	SubscriptionCreateResponse,
-	SubStatus
+	SubscriptionCreateResponse
 } from './types/billing'
 
 // Re-export SubStatus as SubscriptionStatus for backwards compatibility
@@ -272,6 +272,7 @@ export type {
 	TrialParams,
 	DirectSubscriptionParams,
 	SubscriptionUpdateParams,
+	SubscriptionUpdateParams as UpdateSubscriptionParams, // Backward compatibility alias
 	PropertyQueryInput,
 	UsePropertyFormDataProps,
 	CreateCheckoutInput,
@@ -309,69 +310,90 @@ export type {
 export type { DashboardStats } from './types/api'
 
 // ========================
-// Stripe & Billing Types (Unified)
+// Official Stripe Types
 // ========================
 export type {
-	// Core types
-	PlanType,
-	BillingPeriod,
-	UserSubscription,
-	PlanConfig,
-	PaymentMethod,
-	Invoice,
-
+	// Core Stripe types from official SDK
+	StripeCustomer,
+	StripeSubscription,
+	StripePrice,
+	StripeProduct,
+	StripePaymentIntent,
+	StripePaymentMethod,
+	StripeInvoice,
+	StripeCheckoutSession,
+	StripeBillingPortalSession,
+	StripeWebhookEvent,
+	StripeError,
+	
+	// Status types
+	StripeSubscriptionStatus,
+	StripePaymentIntentStatus,
+	StripeInvoiceStatus,
+	
+	// API parameter types
+	StripeCustomerCreateParams,
+	StripeCustomerUpdateParams,
+	StripeSubscriptionCreateParams,
+	StripeSubscriptionUpdateParams,
+	StripeCheckoutSessionCreateParams,
+	StripeBillingPortalSessionCreateParams,
+	StripePaymentIntentCreateParams,
+	StripeInvoiceCreateParams,
+	
+	// List parameter types
+	StripeCustomerListParams,
+	StripeSubscriptionListParams,
+	StripeInvoiceListParams,
+	StripeEventListParams,
+	
+	// Response types
+	StripeCustomerList,
+	StripeSubscriptionList,
+	StripeInvoiceList,
+	StripeEventList,
+	StripeApiList,
+	
 	// Configuration
 	StripeConfig,
-	StripeEnvironmentConfig,
-	StripePlanPriceIds,
-
-	// Error handling
-	StripeErrorCode,
-	StripeErrorCategory,
-	StripeErrorSeverity,
-	StandardizedStripeError,
-	StripeRetryConfig,
-	ClientSafeStripeError,
-
-	// API types
-	CreateCheckoutSessionParams,
-	CreatePortalSessionParams,
-	UpdateSubscriptionParams,
-	PreviewInvoiceParams,
-	CreateSubscriptionRequest,
-	CreateSubscriptionResponse,
-
-	// Stripe API Parameter Types
-	StripeInvoiceListParams,
-	StripeSubscriptionCancelParams,
-	StripeSubscriptionCreateData,
-	StripeEventListParams,
-	StripePaymentMethodListParams,
-
-	// Webhook types
-	WebhookEventType,
-	StripeWebhookEvent,
-	WebhookEventHandlers,
-
-	// Response types
+	StripeBillingInterval,
+	BillingPeriod,
+	PlanType,
+	
+	// Application-specific types
+	TenantFlowSubscriptionMetadata,
+	TenantFlowCustomerMetadata,
+	TenantFlowCustomer,
+	TenantFlowSubscription,
 	StripeApiResponse,
-	StripeSuccessResponse,
-	StripeErrorResponse,
+	StripeOperationResult
+} from './types/stripe-official'
 
-	// Frontend integration
-	StripeElementEvent,
-	StripeCardElementEvent,
-	StripePaymentElementEvent,
-	StripeElementEventCallback,
-	StripeCardElementEventCallback,
-	StripePaymentElementEventCallback
-} from './types/stripe'
+export {
+	// Constants and utilities
+	STRIPE_SUBSCRIPTION_STATUSES,
+	STRIPE_PAYMENT_INTENT_STATUSES,
+	STRIPE_INVOICE_STATUSES,
+	WEBHOOK_EVENTS,
+	isStripeError,
+	isActiveSubscription,
+	isPaidInvoice
+} from './types/stripe-official'
+
+// Legacy billing types (non-Stripe specific)
+export type {
+	PlanConfig,
+	PaymentMethod,
+	Invoice
+} from './types/billing'
+
+// User subscription from stripe types
+export type { UserSubscription } from './types/stripe'
 
 // ========================
 // New Stripe Pricing Types
 // ========================
 export type {
-	BillingInterval,
 	CreateCheckoutSessionRequest,
 	CreateCheckoutSessionResponse,
 	CreatePortalSessionRequest,
@@ -386,21 +408,11 @@ export {
 	validatePricingPlan
 } from './types/stripe-pricing'
 
+// Legacy Stripe constants (deprecated - use official types above)
 export {
-	// Constants
 	PLAN_TYPES,
 	BILLING_PERIODS,
-	SUBSCRIPTION_STATUSES,
-	STRIPE_API_VERSIONS,
-	STRIPE_ERROR_CODES,
-	STRIPE_DECLINE_CODES,
-	STRIPE_ERROR_CATEGORIES,
-	STRIPE_ERROR_SEVERITIES,
-	WEBHOOK_EVENT_TYPES,
-	DEFAULT_STRIPE_RETRY_CONFIG,
-	ERROR_CATEGORY_MAPPING,
-	ERROR_SEVERITY_MAPPING,
-	RETRYABLE_ERROR_CODES
+	SUBSCRIPTION_STATUSES
 } from './types/stripe'
 
 // ========================
@@ -414,59 +426,21 @@ export type {
 } from './types/stripe-error-handler'
 
 // ========================
-// Stripe Type Guards
+// Legacy Stripe Type Guards (deprecated - use official types above)
 // ========================
 export {
-	StripeTypeGuards,
-	// Individual guards for tree-shaking
 	isPlanType,
 	isBillingPeriod,
-	isSubscriptionStatus,
-	isWebhookEventType,
-	isStripeErrorCode,
-	isStandardizedStripeError,
-	isStripeWebhookEvent,
-	isPaymentMethod,
-	isUserSubscription,
-	isPlanConfig,
-	isStripeConfig,
-	isRetryableError as isStripeRetryableError,
-	isCardError,
-	isRateLimitError,
-	isInfrastructureError,
-	isConfigurationError,
-	isCriticalError,
-	isStripeId,
-	isStripeCustomerId,
-	isStripeSubscriptionId,
-	isStripePriceId
+	isSubscriptionStatus
 } from './types/stripe-guards'
 
 // ========================
-// Stripe Utilities
+// Legacy Stripe Utilities (deprecated - use official types above)
 // ========================
 export {
-	StripeUtils,
-	// Individual utilities for tree-shaking
-	generateErrorId,
-	getErrorCategory,
-	getErrorSeverity,
-	calculateRetryDelay,
-	toClientSafeError,
-	createStandardizedError,
-	generateUserMessage,
-	getPlanTypeFromPriceId,
-	getBillingPeriodFromPriceId,
 	formatPrice as formatStripePrice,
 	calculateAnnualSavings as calculateStripeAnnualSavings,
-	getPlanDisplayName,
-	isActiveSubscription,
-	isInGracePeriod,
-	getSubscriptionStatusDisplay,
-	getDaysUntilExpiry,
-	getTrialDaysRemaining,
-	sanitizeMetadata,
-	generateIdempotencyKey
+	getPlanDisplayName
 } from './types/stripe-utils'
 
 // ========================
@@ -476,31 +450,45 @@ export type {
 	UserPlan,
 	SubscriptionData,
 	DetailedUsageMetrics,
-	PlanLimits,
 	LimitChecks,
 	UsageData,
 	LocalSubscriptionData,
 	EnhancedUserPlan,
 	// New types for 4-tier system
-	TrialConfig,
-	ProductTierConfig,
-	SubscriptionChangePreview
+	SubscriptionChangePreview,
+	UsageMetrics as BillingUsageMetrics
 } from './types/billing'
 
-export { PLAN_TYPE, STRIPE_ERRORS, getPlanTypeLabel } from './types/billing'
+export { STRIPE_ERRORS, getPlanTypeLabel } from './types/billing'
 
 // ========================
 // Pricing Configuration
 // ========================
 export {
-	PRODUCT_TIERS,
-	getProductTier,
-	getStripePriceId,
-	hasTrial,
-	getTrialConfig,
+	PRICING_PLANS,
+	ENHANCED_PRODUCT_TIERS,
+	getPricingPlan,
+	getAllPricingPlans,
 	checkPlanLimits,
 	getRecommendedUpgrade,
-	calculateAnnualSavings
+	calculateAnnualSavings,
+	getProductTier,
+	getStripePriceId,
+	planTypeToId,
+	getTrialConfig,
+	hasTrial
+} from './config/pricing'
+
+// Backward compatibility aliases
+export { ENHANCED_PRODUCT_TIERS as PRODUCT_TIERS } from './config/pricing'
+
+export type {
+	StripePriceId,
+	PlanId,
+	PricingConfig,
+	PricingConfig as ProductTierConfig, // Backward compatibility alias
+	UsageMetrics,
+	TrialConfig
 } from './config/pricing'
 
 // ========================
@@ -570,11 +558,6 @@ export type { WebSocketMessage } from './types/websocket'
 // Constants
 // ========================
 export * from './constants'
-
-export type { TenantStatus } from './constants/tenants'
-export { TENANT_STATUS } from './constants/tenants'
-export type { ReminderType, ReminderStatus } from './constants/reminders'
-export { REMINDER_TYPE, REMINDER_STATUS } from './constants/reminders'
 
 // ========================
 // Security Types
@@ -670,7 +653,7 @@ export {
 	getDashboardCurrency,
 	getDashboardPercentage,
 	getCollectionRateStatus,
-	getIntervalSuffix,
+	getIntervalSuffix
 } from './utils'
 
 export type {
@@ -1009,7 +992,6 @@ export type {
 
 	// Configuration
 	Environment,
-	FeatureFlags,
 	ApiConfig,
 	// DatabaseConfig, // Already commented out from config types
 
@@ -1069,4 +1051,74 @@ export * from './utils'
 // ========================
 // Validation
 // ========================
-export * from './validation'
+// Export validation schemas only (no conflicting types)
+export {
+	// Common validation schemas
+	uuidSchema,
+	emailSchema,
+	nonEmptyStringSchema,
+	positiveNumberSchema,
+	nonNegativeNumberSchema,
+	dateStringSchema,
+	paginationSchema,
+	paginationQuerySchema,
+	paginationResponseSchema,
+	actionStateSchema,
+	formActionStateSchema,
+	serverActionResponseSchema,
+	phoneSchema,
+	currencyAmountSchema,
+	percentageSchema,
+	urlSchema,
+	fileTypeSchema,
+	fileSizeSchema,
+	uploadedFileSchema,
+	addressSchema,
+	coordinatesSchema,
+	sortSchema,
+	advancedSearchSchema,
+	timeRangeSchema,
+	baseQuerySchema,
+	bulkOperationSchema,
+	bulkResponseSchema,
+	webhookEventSchema,
+	webhookDeliverySchema,
+	successResponseSchema,
+	errorResponseSchema,
+	createPaginatedResponseSchema,
+	createApiResponseSchema,
+	createListResponseSchema,
+
+	// Tenant validation schemas
+	tenantStatusSchema,
+	emergencyContactSchema,
+	tenantInputSchema,
+	tenantSchema,
+	tenantUpdateSchema,
+	tenantQuerySchema,
+	tenantStatsSchema,
+	tenantFormSchema,
+
+	// Unit validation schemas
+	unitStatusSchema,
+	unitInputSchema,
+	unitSchema,
+	unitUpdateSchema,
+	unitQuerySchema,
+	unitFormSchema
+} from './validation'
+
+// Export validation types (only non-conflicting form types)
+export type {
+	// Form-specific types that don't conflict with database types
+	TenantFormData,
+	TenantFormOutput,
+	UnitFormData,
+	UnitFormOutput,
+	PropertyFormData,
+	EmergencyContact
+
+	// Note: Other validation types like Tenant, Unit, TenantUpdate, etc.
+	// are already exported from database/types sections above
+	// Note: TenantStatus, UnitStatus, PropertyType are exported via constants barrel export
+} from './validation'

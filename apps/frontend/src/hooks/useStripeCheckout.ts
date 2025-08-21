@@ -4,9 +4,10 @@ import { useRouter } from 'next/navigation'
 import { loadStripe } from '@stripe/stripe-js'
 import type { BillingInterval, PlanType, ProductTierConfig } from '@repo/shared'
 import { stripeNotifications, dismissToast } from '@/lib/toast'
+import { apiClient } from '@/lib/api-client'
 
 // Initialize Stripe - only if key is available
-const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY 
+const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 	? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
 	: null
 
@@ -57,7 +58,7 @@ export function useStripeCheckout() {
 
 				// Get the correct price ID based on billing interval
 				const priceId =
-					billingInterval === 'yearly'
+					billingInterval === 'annual'
 						? tier.stripePriceIds.annual
 						: tier.stripePriceIds.monthly
 
@@ -68,35 +69,25 @@ export function useStripeCheckout() {
 				}
 
 				// Call the backend API to create checkout session
-				const response = await fetch(
-					`${process.env.NEXT_PUBLIC_API_URL}/stripe/create-checkout-session`,
-					{
-						method: 'POST',
-						headers: {
-							'Content-Type': 'application/json'
-						},
-						credentials: 'include',
-						body: JSON.stringify({
-							priceId,
-							billingInterval, // Backend requires this field
-							mode: 'subscription',
-							successUrl: `${window.location.origin}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
-							cancelUrl: `${window.location.origin}/pricing`,
-							allowPromotionCodes: true,
-							metadata: {
-								planType,
-								billingInterval,
-								tier: tier.name
-							}
-						})
-					}
-				)
-
-				if (!response.ok) {
-					const errorData = await response.json().catch(() => null)
-
+				let data
+				try {
+					data = await apiClient.post('/stripe/create-checkout-session', {
+						priceId,
+						billingInterval, // Backend requires this field
+						mode: 'subscription',
+						successUrl: `${window.location.origin}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
+						cancelUrl: `${window.location.origin}/pricing`,
+						allowPromotionCodes: true,
+						metadata: {
+							planType,
+							billingInterval,
+							tier: tier.name
+						}
+					})
+				} catch (apiError: unknown) {
 					// If it's a 404, the endpoint doesn't exist yet
-					if (response.status === 404) {
+					const error = apiError as { code?: string; message?: string }
+					if (error.code === '404') {
 						dismissToast(loadingToast)
 
 						// Show helpful error message
@@ -116,13 +107,9 @@ export function useStripeCheckout() {
 					}
 
 					throw new Error(
-						errorData?.message ||
-							errorData?.error ||
-							`Failed to create checkout session (${response.status})`
+						error.message || 'Failed to create checkout session'
 					)
 				}
-
-				const data = await response.json()
 
 				// According to Stripe docs, prefer using the URL for redirect
 				if (data.url) {
@@ -144,7 +131,9 @@ export function useStripeCheckout() {
 					}, 800)
 				} else if (data.sessionId) {
 					if (!stripePromise) {
-						throw new Error('Stripe not configured - publishable key missing')
+						throw new Error(
+							'Stripe not configured - publishable key missing'
+						)
 					}
 					const stripe = await stripePromise
 					if (!stripe) {
@@ -198,25 +187,15 @@ export function useStripeCheckout() {
 
 		try {
 			// Call backend to create portal session
-			const response = await fetch(
-				`${process.env.NEXT_PUBLIC_API_URL}/stripe/create-portal-session`,
-				{
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					credentials: 'include',
-					body: JSON.stringify({
-						returnUrl: window.location.href
-					})
-				}
-			)
-
-			if (!response.ok) {
-				const errorData = await response.json().catch(() => null)
-
+			let data
+			try {
+				data = await apiClient.post('/stripe/create-portal-session', {
+					returnUrl: window.location.href
+				})
+			} catch (apiError: unknown) {
 				// If endpoint doesn't exist, show a helpful message
-				if (response.status === 404) {
+				const error = apiError as { code?: string; message?: string }
+				if (error.code === '404') {
 					dismissToast(loadingToast)
 					stripeNotifications.custom('Billing portal unavailable', {
 						type: 'warning',
@@ -230,13 +209,9 @@ export function useStripeCheckout() {
 				}
 
 				throw new Error(
-					errorData?.message ||
-						errorData?.error ||
-						`Failed to open billing portal (${response.status})`
+					error.message || 'Failed to open billing portal'
 				)
 			}
-
-			const data = await response.json()
 
 			if (!data.url) {
 				throw new Error('No portal URL returned from server')

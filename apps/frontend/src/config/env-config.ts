@@ -27,13 +27,12 @@ interface FrontendConfig {
 		gaId?: string
 	}
 
-	// Feature Flags
+	// Core Features (always enabled in stable version)
 	features: {
 		tenantPortal: boolean
 		maintenanceModule: boolean
 		paymentProcessing: boolean
 		emailNotifications: boolean
-		betaFeatures: boolean
 	}
 
 	// Performance
@@ -66,8 +65,9 @@ class EnvConfig {
 
 		return {
 			// Application
-			appUrl: env?.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-			apiUrl: env?.NEXT_PUBLIC_API_URL || 'https://api.tenantflow.app/api',
+			appUrl: env?.NEXT_PUBLIC_APP_URL || 'https://tenantflow.app',
+			apiUrl:
+				env?.NEXT_PUBLIC_API_URL || 'https://api.tenantflow.app/api/v1',
 			environment:
 				(env?.NODE_ENV as
 					| 'development'
@@ -94,14 +94,12 @@ class EnvConfig {
 				gaId: env?.NEXT_PUBLIC_GA_MEASUREMENT_ID
 			},
 
-			// Feature Flags
+			// Core Features (always enabled in stable version)
 			features: {
-				tenantPortal: env?.NEXT_PUBLIC_ENABLE_TENANT_PORTAL !== 'false',
-				maintenanceModule:
-					env?.NEXT_PUBLIC_ENABLE_MAINTENANCE !== 'false',
-				paymentProcessing: env?.NEXT_PUBLIC_ENABLE_PAYMENTS !== 'false',
-				emailNotifications: env?.NEXT_PUBLIC_ENABLE_EMAIL !== 'false',
-				betaFeatures: env?.NEXT_PUBLIC_ENABLE_BETA === 'true'
+				tenantPortal: true,
+				maintenanceModule: true,
+				paymentProcessing: true,
+				emailNotifications: true
 			},
 
 			// Performance
@@ -144,13 +142,13 @@ class EnvConfig {
 				!this.config.appUrl ||
 				this.config.appUrl.includes('localhost')
 			) {
-				errors.push('NEXT_PUBLIC_APP_URL must be a production URL')
+				errors.push('NEXT_PUBLIC_APP_URL must be a production URL (should be https://tenantflow.app)')
 			}
 			if (
 				!this.config.apiUrl ||
 				this.config.apiUrl.includes('localhost')
 			) {
-				errors.push('NEXT_PUBLIC_API_URL must be a production URL')
+				errors.push('NEXT_PUBLIC_API_URL must be a production URL (should be https://api.tenantflow.app/api/v1)')
 			}
 		}
 
@@ -181,7 +179,7 @@ class EnvConfig {
 		}
 
 		if (errors.length === 0 && warnings.length === 0) {
-			console.log('✅ Environment configuration validated')
+			console.warn('✅ Environment configuration validated')
 		}
 	}
 

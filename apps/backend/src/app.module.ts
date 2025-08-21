@@ -1,8 +1,11 @@
 import { Module } from '@nestjs/common'
-import { ConfigModule, ConfigService } from '@nestjs/config'
-import { APP_GUARD } from '@nestjs/core'
+import { ConfigModule } from '@nestjs/config'
+import { EventEmitterModule } from '@nestjs/event-emitter'
+import { validate } from './config/config.schema'
+import { APP_FILTER, APP_GUARD } from '@nestjs/core'
 import { ThrottlerModule } from '@nestjs/throttler'
 import { ThrottlerProxyGuard } from './shared/guards/throttler-proxy.guard'
+import { ThrottlerExceptionFilter } from './shared/filters/throttler-exception.filter'
 import { SupabaseModule } from './database/supabase.module'
 import { AuthModule } from './auth/auth.module'
 import { PropertiesModule } from './properties/properties.module'
@@ -10,6 +13,7 @@ import { TenantsModule } from './tenants/tenants.module'
 import { LeasesModule } from './leases/leases.module'
 import { DocumentsModule } from './documents/documents.module'
 import { HealthModule } from './health/health.module'
+import { StripeModule } from './stripe/stripe.module'
 import { AnalyticsService } from './analytics/analytics.service'
 import { StripeService } from './billing/stripe.service'
 import { MetricsService } from './services/metrics.service'
@@ -22,35 +26,31 @@ import { AppService } from './app.service'
  */
 @Module({
 	imports: [
-		ConfigModule.forRoot({ isGlobal: true }),
+		ConfigModule.forRoot({
+			isGlobal: true,
+			validate
+		}),
+		
+		// Event-driven architecture support
+		EventEmitterModule.forRoot({
+			wildcard: false,
+			delimiter: '.',
+			newListener: false,
+			removeListener: false,
+			maxListeners: 10,
+			verboseMemoryLeak: false,
+			ignoreErrors: false
+		}),
+		
 		SupabaseModule,
 
-		// Rate limiting with environment-based configuration
-		ThrottlerModule.forRootAsync({
-			imports: [ConfigModule],
-			inject: [ConfigService],
-			useFactory: (config: ConfigService) => [
-				{
-					name: 'default',
-					ttl: parseInt(config.get('RATE_LIMIT_TTL', '60000')), // 1 minute default
-					limit: parseInt(config.get('RATE_LIMIT_LIMIT', '100')) // 100 requests default
-				},
-				{
-					name: 'auth',
-					ttl: parseInt(config.get('AUTH_RATE_LIMIT_TTL', '60000')), // 1 minute
-					limit: parseInt(config.get('AUTH_RATE_LIMIT_LIMIT', '5')) // 5 requests for auth
-				},
-				{
-					name: 'webhook',
-					ttl: parseInt(
-						config.get('WEBHOOK_RATE_LIMIT_TTL', '60000')
-					), // 1 minute
-					limit: parseInt(
-						config.get('WEBHOOK_RATE_LIMIT_LIMIT', '200')
-					) // 200 for webhooks
-				}
-			]
-		}),
+		// Rate limiting - simple and effective
+		ThrottlerModule.forRoot([
+			{
+				ttl: 60000, // 1 minute
+				limit: 100 // 100 requests per minute (global default)
+			}
+		]),
 
 		// Core CRUD modules
 		AuthModule,
@@ -58,7 +58,8 @@ import { AppService } from './app.service'
 		TenantsModule,
 		LeasesModule,
 		DocumentsModule,
-		HealthModule
+		HealthModule,
+		StripeModule
 	],
 	controllers: [AppController],
 	providers: [
@@ -70,6 +71,11 @@ import { AppService } from './app.service'
 		{
 			provide: APP_GUARD,
 			useClass: ThrottlerProxyGuard
+		},
+		// Global exception filter for rate limiting errors
+		{
+			provide: APP_FILTER,
+			useClass: ThrottlerExceptionFilter
 		}
 	],
 	exports: [AnalyticsService, StripeService]

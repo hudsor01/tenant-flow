@@ -8,7 +8,8 @@ import { logger } from '@/lib/logger'
 export const config = {
 	api: {
 		baseURL:
-			process.env.NEXT_PUBLIC_API_URL || 'https://api.tenantflow.app',
+			process.env.NEXT_PUBLIC_API_URL ||
+			'https://api.tenantflow.app/api/v1',
 		timeout: 30000
 	},
 	supabase: {

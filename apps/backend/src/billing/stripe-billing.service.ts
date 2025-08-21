@@ -6,13 +6,16 @@ import { SubscriptionSupabaseRepository } from './subscription-supabase.reposito
 import type Stripe from 'stripe'
 
 import { getPlanById } from '../shared/constants/billing-plans'
-import { getProductTier, getStripePriceId, type PlanType } from '@repo/shared'
-import type {
-	StripeCheckoutSessionCreateParams,
-	StripeInvoice,
-	StripePaymentIntent,
-	StripeSubscription
-} from '@repo/shared/types/stripe'
+import {
+	getProductTier,
+	getStripePriceId,
+	type PlanType,
+	planTypeToId,
+	type StripeCheckoutSessionCreateParams,
+	type StripeInvoice,
+	type StripePaymentIntent,
+	type StripeSubscription
+} from '@repo/shared'
 import {
 	AsyncTimeout,
 	MeasureMethod
@@ -76,7 +79,7 @@ export class StripeBillingService {
 	 */
 	private getTrialConfigForPlan(planType: PlanType) {
 		const tier = getProductTier(planType)
-		return tier.trial
+		return tier?.trial
 	}
 
 	constructor(
@@ -143,7 +146,12 @@ export class StripeBillingService {
 
 			// Get trial configuration for the specific plan
 			const trialConfig = this.getTrialConfigForPlan(planType)
-			const trialDays = params.trialDays ?? trialConfig.trialPeriodDays
+			const trialDays =
+				params.trialDays ??
+				(typeof trialConfig === 'object'
+					? (trialConfig.trialPeriodDays ??
+						this.defaultConfig.trialDays)
+					: this.defaultConfig.trialDays)
 
 			// Create subscription with appropriate payment behavior
 			const subscriptionData = await this.createStripeSubscription({
@@ -151,7 +159,8 @@ export class StripeBillingService {
 				priceId,
 				paymentMethodId: params.paymentMethodId,
 				trialDays,
-				trialConfig,
+				trialConfig:
+					typeof trialConfig === 'object' ? trialConfig : undefined,
 				automaticTax:
 					params.automaticTax ?? this.defaultConfig.automaticTax,
 				couponId: params.couponId,
@@ -229,7 +238,10 @@ export class StripeBillingService {
 			// Get trial configuration for the specific plan
 			const trialConfig = this.getTrialConfigForPlan(params.planType)
 			const trialEndBehavior =
-				trialConfig.trialEndBehavior === 'cancel' ? 'cancel' : 'pause'
+				typeof trialConfig === 'object' &&
+				trialConfig.trialEndBehavior === 'cancel'
+					? 'cancel'
+					: 'pause'
 
 			const sessionParams: StripeCheckoutSessionCreateParams = {
 				customer: customerId,
@@ -244,7 +256,10 @@ export class StripeBillingService {
 				success_url: params.successUrl,
 				cancel_url: params.cancelUrl,
 				subscription_data: {
-					trial_period_days: trialConfig.trialPeriodDays,
+					trial_period_days:
+						typeof trialConfig === 'object'
+							? trialConfig.trialPeriodDays
+							: undefined,
 					metadata: {
 						userId: params.userId,
 						planType: params.planType
@@ -554,7 +569,10 @@ export class StripeBillingService {
 		billingInterval: 'monthly' | 'annual'
 	): string {
 		// First try the new pricing configuration from shared package
-		const priceId = getStripePriceId(planType, billingInterval)
+		const planId = planTypeToId(planType)
+		const priceId = planId
+			? getStripePriceId(planId, billingInterval)
+			: null
 
 		if (priceId) {
 			return priceId

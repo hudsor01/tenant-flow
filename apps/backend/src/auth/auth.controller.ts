@@ -50,7 +50,7 @@ export class AuthController {
 	@Post('refresh')
 	@Public()
 	@CsrfExempt() // Token refresh uses existing authentication
-	@Throttle({ default: { limit: 20, ttl: 60000 } }) // 20 refreshes per minute
+	@Throttle({ default: { limit: 20, ttl: 60000 } })
 	@HttpCode(HttpStatus.OK)
 	async refreshToken(@Body() body: { refresh_token: string }) {
 		return this.authService.refreshToken(body.refresh_token)
@@ -64,7 +64,7 @@ export class AuthController {
 	@Post('login')
 	@Public()
 	@CsrfExempt()
-	@Throttle({ auth: { limit: 5, ttl: 60000 } }) // Uses 'auth' context from app.module
+	@Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 login attempts per minute
 	@HttpCode(HttpStatus.OK)
 	async login(
 		@Body() body: { email: string; password: string },
@@ -85,7 +85,7 @@ export class AuthController {
 	@Post('register')
 	@Public()
 	@CsrfExempt()
-	@Throttle({ auth: { limit: 3, ttl: 60000 } }) // Uses 'auth' context, stricter for registration
+	@Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 registration attempts per minute
 	@HttpCode(HttpStatus.CREATED)
 	async register(
 		@Body() body: { email: string; password: string; name: string }

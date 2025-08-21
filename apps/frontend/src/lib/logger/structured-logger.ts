@@ -1,8 +1,4 @@
-import {
-	type ILogger,
-	type LogContext,
-	type AnalyticsEvent
-} from '@repo/shared'
+import type { ILogger, LogContext, AnalyticsEvent } from '@repo/shared'
 
 // PostHog type is already declared in @repo/shared/types/global.ts
 
@@ -23,18 +19,19 @@ class FrontendLogger implements ILogger {
 	/**
 	 * Debug level logging - only in development
 	 */
-	debug(message: string, context?: LogContext): void {
+	debug(message: string, ...args: unknown[]): void {
 		if (this.isDevelopment && !this.isTest) {
-			console.debug(`[DEBUG] ${message}`, context)
+			console.warn(`[DEBUG] ${message}`, ...args)
 		}
 	}
 
 	/**
 	 * Info level logging
 	 */
-	info(message: string, context?: LogContext): void {
+	info(message: string, ...args: unknown[]): void {
+		const context = args.length > 0 ? { data: args } : undefined
 		if (this.isDevelopment && !this.isTest) {
-			console.info(`[INFO] ${message}`, context)
+			console.warn(`[INFO] ${message}`, ...args)
 		}
 
 		// Send to analytics in production
@@ -46,9 +43,10 @@ class FrontendLogger implements ILogger {
 	/**
 	 * Warning level logging
 	 */
-	warn(message: string, context?: LogContext): void {
+	warn(message: string, ...args: unknown[]): void {
+		const context = args.length > 0 ? { data: args } : undefined
 		if (this.isDevelopment && !this.isTest) {
-			console.warn(`[WARN] ${message}`, context)
+			console.warn(`[WARN] ${message}`, ...args)
 		}
 
 		// Always send warnings to analytics
@@ -58,11 +56,14 @@ class FrontendLogger implements ILogger {
 	}
 
 	/**
-	 * Error level logging
+	 * Error level logging - backward compatible with simple logger
 	 */
-	error(message: string, error?: Error, context?: LogContext): void {
+	error(message: string, ...args: unknown[]): void {
+		const error = args.find(arg => arg instanceof Error) as Error | undefined
+		const context = args.length > 0 ? { data: args } : undefined
+		
 		if (this.isDevelopment && !this.isTest) {
-			console.error(`[ERROR] ${message}`, error, context)
+			console.error(`[ERROR] ${message}`, ...args)
 		}
 
 		// Always send errors to analytics

@@ -5,6 +5,7 @@
  * Abstracts API-specific logic behind a clean repository interface.
  */
 
+import { ApiService } from '@/lib/api/api-service'
 import { apiClient } from '@/lib/api-client'
 import { logger } from '@/lib/logger'
 import type {
@@ -20,13 +21,8 @@ import { DomainError, NotFoundError } from '@repo/shared'
 export class ApiPropertyRepository implements PropertyRepository {
 	async findById(id: string): Promise<Property | null> {
 		try {
-			const response = await apiClient.get<Property>(`/properties/${id}`)
-
-			if (!response.success) {
-				return null
-			}
-
-			return response.data
+			const response = await ApiService.getProperty(id)
+			return response
 		} catch (error) {
 			logger.error(
 				'Failed to find property by ID:',
@@ -46,23 +42,25 @@ export class ApiPropertyRepository implements PropertyRepository {
 
 			if (entity.id) {
 				// Update existing property
-				response = await apiClient.put<Property>(
-					`/properties/${entity.id}`,
-					entity as unknown as Record<string, unknown>
-				)
+				response = await ApiService.updateProperty(entity.id, {
+					...entity,
+					description: entity.description ?? undefined,
+					imageUrl: entity.imageUrl ?? undefined,
+					yearBuilt: entity.yearBuilt ?? undefined,
+					totalSize: entity.totalSize ?? undefined
+				})
 			} else {
 				// Create new property
-				response = await apiClient.post<Property>(
-					'/properties',
-					entity as unknown as Record<string, unknown>
-				)
+				response = await ApiService.createProperty({
+					...entity,
+					description: entity.description ?? undefined,
+					imageUrl: entity.imageUrl ?? undefined,
+					yearBuilt: entity.yearBuilt ?? undefined,
+					totalSize: entity.totalSize ?? undefined
+				})
 			}
 
-			if (!response.success) {
-				throw new DomainError('Failed to save property')
-			}
-
-			return response.data
+			return response
 		} catch (error) {
 			throw error instanceof DomainError
 				? error
@@ -72,11 +70,7 @@ export class ApiPropertyRepository implements PropertyRepository {
 
 	async delete(id: string): Promise<void> {
 		try {
-			const response = await apiClient.delete(`/properties/${id}`)
-
-			if (!response.success) {
-				throw new DomainError('Failed to delete property')
-			}
+			await ApiService.deleteProperty(id)
 		} catch (error) {
 			throw error instanceof DomainError
 				? error
@@ -86,24 +80,8 @@ export class ApiPropertyRepository implements PropertyRepository {
 
 	async findMany(query?: PropertyQuery): Promise<Property[]> {
 		try {
-			const params = query
-				? new URLSearchParams(query as Record<string, string>)
-				: undefined
-			const url = params
-				? `/properties?${params.toString()}`
-				: '/properties'
-
-			const response = await apiClient.get<Property[]>(url)
-
-			if (!response.success) {
-				throw new DomainError('Failed to fetch properties')
-			}
-
-			// Handle both direct array and wrapped response
-			const data = response.data
-			return Array.isArray(data)
-				? data
-				: (data as { data: Property[] }).data || []
+			const response = await ApiService.getProperties(query)
+			return response || []
 		} catch (error) {
 			logger.error(
 				'Failed to fetch properties:',
@@ -119,20 +97,9 @@ export class ApiPropertyRepository implements PropertyRepository {
 
 	async count(query?: PropertyQuery): Promise<number> {
 		try {
-			const params = query
-				? new URLSearchParams(query as Record<string, string>)
-				: undefined
-			const url = params
-				? `/properties/count?${params.toString()}`
-				: '/properties/count'
-
-			const response = await apiClient.get<{ count: number }>(url)
-
-			if (!response.success) {
-				return 0
-			}
-
-			return response.data.count || 0
+			// Use the properties list to count instead of separate endpoint
+			const response = await ApiService.getProperties(query)
+			return response?.length || 0
 		} catch (error) {
 			logger.error(
 				'Failed to count properties:',
@@ -155,12 +122,7 @@ export class ApiPropertyRepository implements PropertyRepository {
 			const response = await apiClient.get<Property>(
 				`/properties/${id}/units`
 			)
-
-			if (!response.success) {
-				return null
-			}
-
-			return response.data
+			return response
 		} catch (error) {
 			logger.error(
 				'Failed to find property with units:',
@@ -179,12 +141,7 @@ export class ApiPropertyRepository implements PropertyRepository {
 			const response = await apiClient.get<Property>(
 				`/properties/${id}/tenants`
 			)
-
-			if (!response.success) {
-				return null
-			}
-
-			return response.data
+			return response
 		} catch (error) {
 			logger.error(
 				'Failed to find property with tenants:',
@@ -203,12 +160,7 @@ export class ApiPropertyRepository implements PropertyRepository {
 			const response = await apiClient.get<Property>(
 				`/properties/${id}/leases`
 			)
-
-			if (!response.success) {
-				return null
-			}
-
-			return response.data
+			return response
 		} catch (error) {
 			logger.error(
 				'Failed to find property with leases:',
@@ -227,12 +179,7 @@ export class ApiPropertyRepository implements PropertyRepository {
 			const response = await apiClient.get<Property>(
 				`/properties/${id}/maintenance`
 			)
-
-			if (!response.success) {
-				return null
-			}
-
-			return response.data
+			return response
 		} catch (error) {
 			logger.error(
 				'Failed to find property with maintenance:',
@@ -246,17 +193,10 @@ export class ApiPropertyRepository implements PropertyRepository {
 		}
 	}
 
-	async getStats(ownerId: string): Promise<PropertyStats> {
+	async getStats(_ownerId: string): Promise<PropertyStats> {
 		try {
-			const response = await apiClient.get<PropertyStats>(
-				`/properties/stats?ownerId=${ownerId}`
-			)
-
-			if (!response.success) {
-				throw new DomainError('Failed to fetch property statistics')
-			}
-
-			return response.data
+			const response = await ApiService.getPropertyStats()
+			return response
 		} catch {
 			// Return default stats on error
 			return {
@@ -278,21 +218,11 @@ export class ApiPropertyRepository implements PropertyRepository {
 			const formData = new FormData()
 			formData.append('image', imageFile)
 
-			const response = await apiClient.post<{ url: string }>(
-				`/properties/${id}/images`,
-				formData
-			)
-
-			if (!response.success) {
-				return {
-					success: false,
-					error: new DomainError('Failed to upload property image')
-				}
-			}
+			const response = await ApiService.uploadPropertyImage(id, formData)
 
 			return {
 				success: true,
-				value: response.data
+				value: response
 			}
 		} catch (error) {
 			return {
@@ -308,21 +238,11 @@ export class ApiPropertyRepository implements PropertyRepository {
 	// Additional helper methods for business logic
 	async create(input: CreatePropertyInput): Promise<Result<Property>> {
 		try {
-			const response = await apiClient.post<Property>(
-				'/properties',
-				input
-			)
-
-			if (!response.success) {
-				return {
-					success: false,
-					error: new DomainError('Failed to create property')
-				}
-			}
+			const response = await ApiService.createProperty(input)
 
 			return {
 				success: true,
-				value: response.data
+				value: response
 			}
 		} catch (error) {
 			return {
@@ -340,21 +260,11 @@ export class ApiPropertyRepository implements PropertyRepository {
 		input: UpdatePropertyInput
 	): Promise<Result<Property>> {
 		try {
-			const response = await apiClient.put<Property>(
-				`/properties/${id}`,
-				input
-			)
-
-			if (!response.success) {
-				return {
-					success: false,
-					error: new DomainError('Failed to update property')
-				}
-			}
+			const response = await ApiService.updateProperty(id, input)
 
 			return {
 				success: true,
-				value: response.data
+				value: response
 			}
 		} catch (error) {
 			return {

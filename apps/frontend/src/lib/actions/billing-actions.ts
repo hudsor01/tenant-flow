@@ -120,34 +120,20 @@ export async function createCheckoutSession(
 	}
 
 	try {
-		const response = await apiClient.post(
-			'/billing/create-checkout-session',
-			result.data
-		)
+const data = await apiClient.post<CheckoutSessionResponse>(
+'/billing/create-checkout-session',
+result.data
+)
 
-		if (!response.success) {
-			return {
-				errors: {
-					_form: [
-						response.message || 'Failed to create checkout session'
-					]
-				}
-			}
-		}
+/* Redirect to Stripe Checkout */
+if (data?.url) {
+redirect(data.url)
+}
 
-		// Redirect to Stripe Checkout
-		if (
-			response.data &&
-			typeof response.data === 'object' &&
-			'url' in response.data
-		) {
-			redirect((response.data as { url: string }).url)
-		}
-
-		return {
-			success: true,
-			data: response.data as CheckoutSessionResponse
-		}
+return {
+success: true,
+data: data
+}
 	} catch (error: unknown) {
 		const message =
 			error instanceof Error
@@ -180,34 +166,20 @@ export async function createPortalSession(
 	}
 
 	try {
-		const response = await apiClient.post(
-			'/billing/create-portal-session',
-			result.data
-		)
+const data = await apiClient.post<PortalSessionResponse>(
+'/billing/create-portal-session',
+result.data
+)
 
-		if (!response.success) {
-			return {
-				errors: {
-					_form: [
-						response.message || 'Failed to create portal session'
-					]
-				}
-			}
-		}
+/* Redirect to Stripe Customer Portal */
+if (data?.url) {
+redirect(data.url)
+}
 
-		// Redirect to Stripe Customer Portal
-		if (
-			response.data &&
-			typeof response.data === 'object' &&
-			'url' in response.data
-		) {
-			redirect((response.data as { url: string }).url)
-		}
-
-		return {
-			success: true,
-			data: response.data as PortalSessionResponse
-		}
+return {
+success: true,
+data: data
+}
 	} catch (error: unknown) {
 		const message =
 			error instanceof Error
@@ -243,18 +215,10 @@ export async function updateSubscription(
 	}
 
 	try {
-		const response = await apiClient.put(
-			'/billing/subscription',
-			result.data
-		)
-
-		if (!response.success) {
-			return {
-				errors: {
-					_form: [response.message || 'Failed to update subscription']
-				}
-			}
-		}
+const data = await apiClient.put<SubscriptionUpdateResponse>(
+'/billing/subscription',
+result.data
+)
 
 		// Revalidate subscription data
 		revalidateTag('subscription')
@@ -266,9 +230,8 @@ export async function updateSubscription(
 			success: true,
 			message: 'Subscription updated successfully',
 			data: {
-				subscriptionId:
-					(response.data as { subscription?: { id?: string } })
-						.subscription?.id || ''
+subscriptionId:
+data.subscription?.id || ''
 			}
 		}
 	} catch (error: unknown) {
@@ -290,14 +253,7 @@ export async function cancelSubscription(): Promise<{
 	message?: string
 }> {
 	try {
-		const response = await apiClient.delete('/billing/subscription')
-
-		if (!response.success) {
-			return {
-				success: false,
-				error: response.message || 'Failed to cancel subscription'
-			}
-		}
+await apiClient.delete<unknown>('/billing/subscription')
 
 		// Revalidate subscription data
 		revalidateTag('subscription')
@@ -325,16 +281,9 @@ export async function addPaymentMethod(
 	paymentMethodId: string
 ): Promise<{ success: boolean; error?: string; message?: string }> {
 	try {
-		const response = await apiClient.post('/billing/payment-methods', {
-			paymentMethodId
-		})
-
-		if (!response.success) {
-			return {
-				success: false,
-				error: response.message || 'Failed to add payment method'
-			}
-		}
+await apiClient.post<unknown>('/billing/payment-methods', {
+paymentMethodId
+})
 
 		// Revalidate billing data
 		revalidateTag('billing')
@@ -362,18 +311,10 @@ export async function setDefaultPaymentMethod(
 	paymentMethodId: string
 ): Promise<{ success: boolean; error?: string; message?: string }> {
 	try {
-		const response = await apiClient.put(
-			'/billing/payment-methods/default',
-			{ paymentMethodId }
-		)
-
-		if (!response.success) {
-			return {
-				success: false,
-				error:
-					response.message || 'Failed to set default payment method'
-			}
-		}
+await apiClient.put<unknown>(
+'/billing/payment-methods/default',
+{ paymentMethodId }
+)
 
 		// Revalidate billing data
 		revalidateTag('billing')
@@ -401,21 +342,14 @@ export async function downloadInvoice(
 	invoiceId: string
 ): Promise<{ success: boolean; error?: string; url?: string }> {
 	try {
-		const response = await apiClient.get(
-			`/billing/invoices/${invoiceId}/download`
-		)
+const data = await apiClient.get<InvoiceDownloadResponse>(
+`/billing/invoices/${invoiceId}/download`
+)
 
-		if (!response.success) {
-			return {
-				success: false,
-				error: response.message || 'Failed to download invoice'
-			}
-		}
-
-		return {
-			success: true,
-			url: (response.data as InvoiceDownloadResponse).url
-		}
+return {
+success: true,
+url: data.url
+}
 	} catch (error: unknown) {
 		const message =
 			error instanceof Error
@@ -431,10 +365,10 @@ export async function downloadInvoice(
 // Server Component data fetchers with caching
 export async function getSubscriptionData(): Promise<Subscription | null> {
 	try {
-		const response = await apiClient.get<Subscription>(
-			'/billing/subscription'
-		)
-		return response.success ? (response.data as Subscription) : null
+const data = await apiClient.get<Subscription>(
+'/billing/subscription'
+)
+return data
 	} catch (error: unknown) {
 		logger.error(
 			'Get subscription data error:',
@@ -447,10 +381,10 @@ export async function getSubscriptionData(): Promise<Subscription | null> {
 
 export async function getPaymentMethodsData(): Promise<PaymentMethod[]> {
 	try {
-		const response = await apiClient.get<PaymentMethod[]>(
-			'/billing/payment-methods'
-		)
-		return response.success ? (response.data as PaymentMethod[]) : []
+const data = await apiClient.get<PaymentMethod[]>(
+'/billing/payment-methods'
+)
+return data
 	} catch (error: unknown) {
 		logger.error(
 			'Get payment methods data error:',
@@ -463,8 +397,8 @@ export async function getPaymentMethodsData(): Promise<PaymentMethod[]> {
 
 export async function getInvoicesData(): Promise<Invoice[]> {
 	try {
-		const response = await apiClient.get<Invoice[]>('/billing/invoices')
-		return response.success ? (response.data as Invoice[]) : []
+const data = await apiClient.get<Invoice[]>('/billing/invoices')
+return data
 	} catch (error: unknown) {
 		logger.error(
 			'Get invoices data error:',
@@ -477,8 +411,8 @@ export async function getInvoicesData(): Promise<Invoice[]> {
 
 export async function getUsageData(): Promise<UsageData | null> {
 	try {
-		const response = await apiClient.get<UsageData>('/billing/usage')
-		return response.success ? (response.data as UsageData) : null
+const data = await apiClient.get<UsageData>('/billing/usage')
+return data
 	} catch (error: unknown) {
 		logger.error(
 			'Get usage data error:',
@@ -492,20 +426,20 @@ export async function getUsageData(): Promise<UsageData | null> {
 // Quick action for subscription upgrades/downgrades
 export async function upgradeSubscription(priceId: string) {
 	try {
-		const response = await apiClient.put('/billing/subscription', {
-			priceId,
-			prorationBehavior: 'create_prorations'
-		})
+const data = await apiClient.put<SubscriptionUpdateResponse>('/billing/subscription', {
+priceId,
+prorationBehavior: 'create_prorations'
+})
 
 		// Revalidate subscription data
 		revalidateTag('subscription')
 		revalidateTag('billing')
 		revalidatePath('/settings')
 
-		return {
-			success: response.success,
-			data: response.data as SubscriptionUpdateResponse
-		}
+return {
+success: true,
+data: data
+}
 	} catch (error: unknown) {
 		const message =
 			error instanceof Error

@@ -44,8 +44,12 @@ export function usePropertyFormServer({
 	const action =
 		mode === 'create'
 			? createProperty
-			: (prevState: PropertyFormState, formData: FormData) =>
-					updateProperty(property!.id, prevState, formData)
+			: (prevState: PropertyFormState, formData: FormData) => {
+					if (!property?.id) {
+						throw new Error('Property ID is required for update')
+					}
+					return updateProperty(property.id, prevState, formData)
+				}
 
 	// Initialize form state with server action
 	const [formState] = useFormState(action, initialState)

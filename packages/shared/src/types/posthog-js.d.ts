@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 declare module 'posthog-js' {
 	export interface PostHogConfig {
 		api_host?: string
@@ -8,18 +7,35 @@ declare module 'posthog-js' {
 		capture_pageview?: boolean
 		capture_pageleave?: boolean
 		disable_session_recording?: boolean
-		[key: string]: any
+		[key: string]:
+			| string
+			| boolean
+			| number
+			| undefined
+			| ((posthog: PostHog) => void)
 	}
 
 	export interface PostHog {
 		init(apiKey: string, config?: PostHogConfig): void
-		capture(eventName: string, properties?: Record<string, any>): void
-		identify(distinctId: string, properties?: Record<string, any>): void
+		capture(
+			eventName: string,
+			properties?: Record<
+				string,
+				string | number | boolean | null | undefined
+			>
+		): void
+		identify(
+			distinctId: string,
+			properties?: Record<
+				string,
+				string | number | boolean | null | undefined
+			>
+		): void
 		reset(): void
 		opt_out_capturing(): void
 		opt_in_capturing(): void
 		debug(enabled?: boolean): void
-		[key: string]: any
+		[key: string]: unknown
 	}
 
 	const posthog: PostHog
@@ -33,6 +49,6 @@ declare module 'posthog-js/react' {
 	export function PostHogProvider(props: {
 		apiKey: string
 		children: React.ReactNode
-		options?: Record<string, any>
+		options?: Record<string, string | boolean | number | undefined>
 	}): JSX.Element
 }

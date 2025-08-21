@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import type { BillingInterval, PlanType } from '@repo/shared'
+import { apiClient } from '@/lib/api-client'
 
 export function useCheckout() {
 	const [isLoading, setIsLoading] = useState(false)
@@ -14,31 +15,16 @@ export function useCheckout() {
 		setError(null)
 
 		try {
-			const response = await fetch(
-				`${process.env.NEXT_PUBLIC_API_URL}/stripe/create-checkout-session`,
-				{
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify({
-						priceId: getPriceId(planType, billingInterval),
-						billingInterval,
-						mode: 'subscription',
-						successUrl: `${window.location.origin}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
-						cancelUrl: `${window.location.origin}/pricing`,
-						metadata: {
-							planType
-						}
-					})
+			const data = await apiClient.post('/stripe/create-checkout-session', {
+				priceId: getPriceId(planType, billingInterval),
+				billingInterval,
+				mode: 'subscription',
+				successUrl: `${window.location.origin}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
+				cancelUrl: `${window.location.origin}/pricing`,
+				metadata: {
+					planType
 				}
-			)
-
-			if (!response.ok) {
-				throw new Error('Failed to create checkout session')
-			}
-
-			const data = await response.json()
+			})
 
 			if (data.url) {
 				window.location.href = data.url
@@ -66,24 +52,9 @@ export function useCheckout() {
 		setError(null)
 
 		try {
-			const response = await fetch(
-				`${process.env.NEXT_PUBLIC_API_URL}/stripe/create-portal-session`,
-				{
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify({
-						returnUrl: window.location.href
-					})
-				}
-			)
-
-			if (!response.ok) {
-				throw new Error('Failed to create portal session')
-			}
-
-			const data = await response.json()
+			const data = await apiClient.post('/stripe/create-portal-session', {
+				returnUrl: window.location.href
+			})
 
 			if (data.url) {
 				window.location.href = data.url
@@ -125,14 +96,14 @@ function getPriceId(
 			process.env.NEXT_PUBLIC_STRIPE_PRICE_FREE_TRIAL || '',
 		STARTER_monthly:
 			process.env.NEXT_PUBLIC_STRIPE_PRICE_STARTER_MONTHLY || '',
-		STARTER_yearly:
+		STARTER_annual:
 			process.env.NEXT_PUBLIC_STRIPE_PRICE_STARTER_ANNUAL || '',
 		GROWTH_monthly:
 			process.env.NEXT_PUBLIC_STRIPE_PRICE_GROWTH_MONTHLY || '',
-		GROWTH_yearly: process.env.NEXT_PUBLIC_STRIPE_PRICE_GROWTH_ANNUAL || '',
+		GROWTH_annual: process.env.NEXT_PUBLIC_STRIPE_PRICE_GROWTH_ANNUAL || '',
 		TENANTFLOW_MAX_monthly:
 			process.env.NEXT_PUBLIC_STRIPE_PRICE_MAX_MONTHLY || '',
-		TENANTFLOW_MAX_yearly:
+		TENANTFLOW_MAX_annual:
 			process.env.NEXT_PUBLIC_STRIPE_PRICE_MAX_ANNUAL || ''
 	}
 

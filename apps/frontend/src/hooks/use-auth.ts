@@ -74,10 +74,10 @@ export function useAuth() {
 							data: backendError
 						})
 						// Keep the user logged in with Supabase data only
-						if (session.user) {
+						if (session.user && session.user.email) {
 							setUser({
 								id: session.user.id,
-								email: session.user.email!,
+								email: session.user.email,
 								name: session.user.user_metadata?.name,
 								avatarUrl:
 									session.user.user_metadata?.avatar_url,
@@ -87,8 +87,8 @@ export function useAuth() {
 									'TENANT',
 								emailVerified:
 									!!session.user.email_confirmed_at,
-								createdAt: session.user.created_at!,
-								updatedAt: session.user.updated_at!,
+								createdAt: session.user.created_at || new Date().toISOString(),
+								updatedAt: session.user.updated_at || new Date().toISOString(),
 								supabaseId: session.user.id,
 								phone: null,
 								bio: null,
@@ -245,4 +245,3 @@ export function useAuth() {
 		resetPassword
 	}
 }
-

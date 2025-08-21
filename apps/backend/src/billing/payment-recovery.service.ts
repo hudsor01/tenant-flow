@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { ErrorHandlerService } from '../services/error-handler.service'
 import { SubscriptionSupabaseRepository } from './subscription-supabase.repository'
 import { StripeService } from './stripe.service'
-import type { StripeInvoice } from '@repo/shared/types/stripe-core-objects'
+import type { StripeInvoice } from '@repo/shared'
 
 export interface PaymentRecoveryOptions {
 	maxRetries?: number

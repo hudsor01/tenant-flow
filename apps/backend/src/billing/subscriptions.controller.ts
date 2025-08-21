@@ -8,6 +8,7 @@ import {
 	Param,
 	Post
 } from '@nestjs/common'
+// Global rate limiting applies to all endpoints
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
 import { SubscriptionsManagerService } from './subscriptions-manager.service'
 import { SubscriptionStatusService } from './subscription-status.service'

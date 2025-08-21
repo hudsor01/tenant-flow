@@ -1,143 +1,72 @@
 /**
- * Billing/Stripe API
- * Handles all billing and subscription operations with NestJS backend
+ * Billing API client
+ * Provides billing and subscription related API calls
  */
-import { api } from './endpoints'
-import type {
+
+import { ApiService } from './api-service'
+import type { 
+	Subscription, 
+	Invoice, 
+	PaymentMethod, 
 	CreateCheckoutSessionRequest,
+	CreateCheckoutSessionResponse,
 	CreatePortalInput,
-	UpdateSubscriptionParams,
-	Subscription,
-	Invoice,
-	PaymentMethod
+	UpdateSubscriptionParams
 } from '@repo/shared'
+import type { UsageMetrics } from '@/state/types'
 
 export class BillingApi {
-	/**
-	 * Create Stripe checkout session
-	 */
-	static async createCheckoutSession(
-		data: CreateCheckoutSessionRequest
-	): Promise<{
-		sessionId: string
-		url: string
-	}> {
-		const response = await api.billing.createCheckoutSession(data)
-		return response.data as { sessionId: string; url: string }
-	}
-
-	/**
-	 * Create Stripe customer portal session
-	 */
-	static async createPortalSession(data: CreatePortalInput): Promise<{
-		url: string
-	}> {
-		const response = await api.billing.createPortalSession(data)
-		return response.data as { url: string }
-	}
-
-	/**
-	 * Get current subscription
-	 */
 	static async getSubscription(): Promise<Subscription> {
-		const response = await api.billing.getSubscription()
-		return response.data as Subscription
+		return ApiService.getSubscription()
 	}
 
-	/**
-	 * Update subscription
-	 */
-	static async updateSubscription(
-		params: UpdateSubscriptionParams
-	): Promise<Subscription> {
-		const response = await api.billing.updateSubscription(params)
-		return response.data as Subscription
-	}
-
-	/**
-	 * Cancel subscription
-	 */
-	static async cancelSubscription(): Promise<{ message: string }> {
-		const response = await api.billing.cancelSubscription()
-		return response.data as { message: string }
-	}
-
-	/**
-	 * Get payment methods
-	 */
-	static async getPaymentMethods(): Promise<PaymentMethod[]> {
-		const response = await api.billing.getPaymentMethods()
-		return response.data as PaymentMethod[]
-	}
-
-	/**
-	 * Add payment method
-	 */
-	static async addPaymentMethod(
-		paymentMethodId: string
-	): Promise<PaymentMethod> {
-		const response = await api.billing.addPaymentMethod(paymentMethodId)
-		return response.data as PaymentMethod
-	}
-
-	/**
-	 * Set default payment method
-	 */
-	static async setDefaultPaymentMethod(
-		paymentMethodId: string
-	): Promise<{ message: string }> {
-		const response =
-			await api.billing.setDefaultPaymentMethod(paymentMethodId)
-		return response.data as { message: string }
-	}
-
-	/**
-	 * Get invoices
-	 */
 	static async getInvoices(): Promise<Invoice[]> {
-		const response = await api.billing.getInvoices()
-		return response.data as Invoice[]
+		return ApiService.getInvoices()
 	}
 
-	/**
-	 * Download invoice
-	 */
+	static async getPaymentMethods(): Promise<PaymentMethod[]> {
+		return ApiService.getPaymentMethods()
+	}
+
+	static async createCheckoutSession(data: CreateCheckoutSessionRequest): Promise<CreateCheckoutSessionResponse> {
+		return ApiService.createCheckoutSession(data)
+	}
+
+	static async createPortalSession(data: CreatePortalInput): Promise<{ url: string }> {
+		return ApiService.createPortalSession(data)
+	}
+
+	static async updateSubscription(params: UpdateSubscriptionParams): Promise<Subscription> {
+		return ApiService.updateSubscription(params)
+	}
+
+	static async cancelSubscription(): Promise<{ message: string }> {
+		return ApiService.cancelSubscription()
+	}
+
+	static async addPaymentMethod(paymentMethodId: string): Promise<PaymentMethod> {
+		return ApiService.addPaymentMethod(paymentMethodId)
+	}
+
+	static async setDefaultPaymentMethod(paymentMethodId: string): Promise<{ message: string }> {
+		return ApiService.setDefaultPaymentMethod(paymentMethodId)
+	}
+
+	static async getUsage(): Promise<UsageMetrics> {
+		const response = await ApiService.getUsage()
+		// Map the API response to frontend UsageMetrics format
+		return {
+			properties_count: response.properties || 0,
+			units_count: response.properties || 0, // Units are related to properties
+			tenants_count: response.tenants || 0,
+			team_members_count: response.tenants || 0, // Team members mapped from tenants
+			storage_gb: 0, // Storage not available from this endpoint
+			api_calls_this_month: 0, // API calls not available from this endpoint
+			last_updated: new Date()
+		}
+	}
+
 	static async downloadInvoice(invoiceId: string): Promise<{ url: string }> {
-		const response = await api.billing.downloadInvoice(invoiceId)
-		return response.data as { url: string }
-	}
-
-	/**
-	 * Get usage statistics
-	 */
-	static async getUsage(): Promise<{
-		properties: number
-		tenants: number
-		leases: number
-		maintenanceRequests: number
-		limits: {
-			properties: number
-			tenants: number
-			leases: number
-			maintenanceRequests: number
-		}
-	}> {
-		const response = await api.billing.getUsage()
-		return response.data as {
-			properties: number
-			tenants: number
-			leases: number
-			maintenanceRequests: number
-			limits: {
-				properties: number
-				tenants: number
-				leases: number
-				maintenanceRequests: number
-			}
-		}
+		return ApiService.downloadInvoice(invoiceId)
 	}
 }
-
-// Export type aliases
-export type CheckoutParams = CreateCheckoutSessionRequest
-export type PortalParams = CreatePortalInput

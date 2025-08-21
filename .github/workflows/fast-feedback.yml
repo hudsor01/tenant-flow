@@ -2,10 +2,9 @@ name: Fast Feedback - Development
 
 on:
   push:
-    branches: ['feature/**', 'fix/**', 'feat/**']
+    branches: [ 'feature/**', 'fix/**', 'feat/**' ]
   pull_request:
-    types: [opened, synchronize, reopened]
-    branches: [main]
+    types: [ opened, synchronize, reopened ]
 
 concurrency:
   group: fast-${{ github.workflow }}-${{ github.ref }}
@@ -14,7 +13,7 @@ concurrency:
 env:
   NODE_VERSION: '24'
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
 jobs:
   pre-check:
@@ -27,7 +26,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
+          fetch-tags: true
+          submodules: true
+          ref: ${{ github.head_ref || github.sha }}
 
       - name: Analyze changes
         id: analyze
@@ -77,17 +79,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
+          fetch-tags: true
+          submodules: true
+          ref: ${{ github.head_ref || github.sha }}
 
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
 
-      - name: Install dependencies (minimal)
+      - name: Setup Turbo Cache
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
+      - name: Install dependencies and tools
         run: |
-          # Only install what we need for linting/typechecking
-          npm ci --omit=optional --ignore-scripts 2>/dev/null || npm install --omit=optional --no-audit --ignore-scripts
+          npm ci --no-audit --no-fund
 
       - name: Clean test artifacts
         run: |
@@ -122,28 +133,30 @@ jobs:
             echo "No TypeScript/JavaScript files changed"
           fi
 
-      - name: Build dependencies
+      - name: Build and Typecheck (Turbo Best Practices)
         run: |
-          # Build shared packages first so TypeScript can find type declarations
-          echo "Building shared package..."
-          cd packages/shared && npm run build && cd ../..
-          echo "Building database package..."
-          npx turbo run build --filter=@repo/database || (cd packages/database && npm run build)
-
-      - name: Quick typecheck (affected packages only)
-        run: |
-          # Only typecheck affected packages
           AFFECTED="${{ needs.pre-check.outputs.affected-apps }}"
-
+          
+          if [[ "$AFFECTED" == "none" ]]; then
+            echo "ℹ️ No affected packages - skipping build and typecheck"
+            exit 0
+          fi
+          
+          echo "=== Building and typechecking affected packages: $AFFECTED ==="
+          
+          # Use Turbo's dependency-aware task execution
+          # This ensures proper build order without manual dependency management
           if [[ "$AFFECTED" == *"frontend"* ]]; then
-            echo "Typechecking frontend..."
-            cd apps/frontend && npx tsc --noEmit --incremental
+            echo "🔨 Building and typechecking frontend dependencies..."
+            npx turbo run build typecheck --filter=@repo/frontend...
           fi
-
+          
           if [[ "$AFFECTED" == *"backend"* ]]; then
-            echo "Typechecking backend..."
-            cd apps/backend && npx tsc --noEmit --incremental
+            echo "🔨 Building and typechecking backend dependencies..."
+            npx turbo run build typecheck --filter=@repo/backend...
           fi
+          
+          echo "✅ All affected packages built and typechecked successfully"
 
   essential-tests:
     name: Essential Tests
@@ -159,25 +172,19 @@ jobs:
           - ${{ contains(needs.pre-check.outputs.affected-apps, 'backend') && 'backend' || '' }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          submodules: true
+          ref: ${{ github.head_ref || github.sha }}
 
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
 
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            apps/*/node_modules
-            packages/*/node_modules
-          key: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            npm-${{ runner.os }}-
-
-      - name: Install dependencies
-        run: npm ci --omit=optional
+      - name: Install dependencies and tools
+        run: |
+          npm ci --no-audit --no-fund
 
       - name: Run core tests for ${{ matrix.app }}
         run: |
@@ -209,53 +216,52 @@ jobs:
     if: needs.pre-check.outputs.should-run-tests == 'true'
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          submodules: true
+          ref: ${{ github.head_ref || github.sha }}
 
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
 
-      - name: Cache dependencies
+      - name: Setup Turbo Cache
         uses: actions/cache@v4
         with:
-          path: |
-            node_modules
-            apps/*/node_modules
-            packages/*/node_modules
-          key: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
           restore-keys: |
-            npm-${{ runner.os }}-
+            ${{ runner.os }}-turbo-
 
-      - name: Install dependencies
-        run: npm ci --omit=optional
-
-      - name: Build essential packages
+      - name: Install dependencies and tools
         run: |
-          # Build only what's needed to verify compilation
-          echo "Building shared package..."
-          cd packages/shared && npm run build && cd ../..
-          echo "Building database package..."
-          npx turbo run build --filter=@repo/database || (cd packages/database && npm run build)
+          npm ci --no-audit --no-fund
 
+      - name: Production Build Test (Turbo Best Practices)
+        run: |
           AFFECTED="${{ needs.pre-check.outputs.affected-apps }}"
-
+          
+          if [[ "$AFFECTED" == "none" ]]; then
+            echo "ℹ️ No affected packages - skipping production build test"
+            exit 0
+          fi
+          
+          echo "=== Testing production builds for affected packages: $AFFECTED ==="
+          
+          # Use Turbo to build all dependencies and affected apps
+          # The ... syntax includes all dependencies automatically
           if [[ "$AFFECTED" == *"frontend"* ]]; then
-            echo "Building frontend..."
-            cd apps/frontend
-            NODE_ENV=production npm run build || {
-              echo "❌ Frontend build failed"
-              exit 1
-            }
+            echo "🔨 Production build test: Frontend + dependencies..."
+            NODE_ENV=production npx turbo run build --filter=@repo/frontend...
           fi
-
+          
           if [[ "$AFFECTED" == *"backend"* ]]; then
-            echo "Building backend..."
-            cd apps/backend
-            NODE_OPTIONS='--max-old-space-size=4096' npm run build || {
-              echo "❌ Backend build failed"
-              exit 1
-            }
+            echo "🔨 Production build test: Backend + dependencies..."
+            NODE_OPTIONS='--max-old-space-size=4096' NODE_ENV=production npx turbo run build --filter=@repo/backend...
           fi
+          
+          echo "✅ Production build test completed successfully"
         env:
           NODE_ENV: production
 

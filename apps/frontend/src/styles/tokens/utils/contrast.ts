@@ -163,12 +163,12 @@ export function testColorPair(
 
 // Batch test multiple color combinations
 export function testColorCombinations(
-	combinations: Array<{
+	combinations: {
 		foreground: string
 		background: string
 		label: string
-	}>
-): Array<ContrastTestResult & { label: string }> {
+	}[]
+): (ContrastTestResult & { label: string })[] {
 	return combinations.map(({ foreground, background, label }) => ({
 		...testColorPair(foreground, background),
 		label
@@ -194,7 +194,7 @@ export function findAccessibleColor(
 export function generateAccessibleVariations(
 	baseColor: string,
 	background: string,
-	count: number = 5
+	count = 5
 ): string[] {
 	const variations: string[] = []
 	const baseMatch = baseColor.match(/oklch\(([\d.]+)\s+([\d.]+)\s+([\d.]+)\)/)

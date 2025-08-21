@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs-vite'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { InteractivePricingTable } from '../../../../apps/frontend/src/components/pricing/interactive-pricing-table'
 

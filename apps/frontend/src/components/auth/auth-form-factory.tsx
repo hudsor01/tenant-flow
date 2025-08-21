@@ -391,7 +391,6 @@ function SignupFormFields({
 	}
 
 	const handleFieldChange = (field: string, value: string) => {
-		console.log(`📝 Field ${field} changed to:`, value)
 		setFormData(prev => ({ ...prev, [field]: value }))
 	}
 
@@ -411,18 +410,6 @@ function SignupFormFields({
 			isPasswordValid &&
 			isPasswordMatch &&
 			acceptTerms
-
-		console.log('📋 Form validation details:', {
-			formData,
-			acceptTerms,
-			checks: {
-				isNameValid,
-				isEmailValid,
-				isPasswordValid,
-				isPasswordMatch
-			},
-			finalIsValid: isValid
-		})
 
 		onFormValidChange?.(isValid)
 	}, [formData, acceptTerms, onFormValidChange])
@@ -619,10 +606,6 @@ function SignupFormFields({
 						name="terms"
 						checked={acceptTerms}
 						onChange={e => {
-							console.log(
-								'🔲 Checkbox changed:',
-								e.target.checked
-							)
 							setAcceptTerms(e.target.checked)
 						}}
 						value="on"
@@ -791,7 +774,7 @@ function ForgotPasswordSuccess({ state }: { state: AuthFormState }) {
 
 export function AuthFormFactory({ config, onSuccess }: AuthFormFactoryProps) {
 	const initialState: AuthFormState = { errors: {} }
-	const [isSignupFormValid, setIsSignupFormValid] = useState(false)
+	const [_isSignupFormValid, setIsSignupFormValid] = useState(false)
 	const [isClient, setIsClient] = useState(false)
 
 	// Ensure client-side hydration
@@ -799,10 +782,7 @@ export function AuthFormFactory({ config, onSuccess }: AuthFormFactoryProps) {
 		setIsClient(true)
 	}, [])
 
-	// Debug the form validation state changes
-	React.useEffect(() => {
-		console.log('🎯 isSignupFormValid changed to:', isSignupFormValid)
-	}, [isSignupFormValid])
+	// Debug the form validation state changes (removed for production)
 
 	// Select the appropriate action based on form type
 	const formAction = {
@@ -814,26 +794,10 @@ export function AuthFormFactory({ config, onSuccess }: AuthFormFactoryProps) {
 	const [state, action] = useActionState(formAction, initialState)
 	const [isPending, _startTransition] = useTransition()
 
-	const isFormValid = () => {
-		if (config.type === 'signup') {
-			console.log('🔍 Form validation check:', {
-				isSignupFormValid,
-				configType: config.type
-			})
-			// Always allow form submission for signup - let server-side validation handle it
-			// This ensures Playwright tests work and real users can still submit
-			return true
-		}
-		return true
-	}
+
 
 	// Handle success and error feedback
 	React.useEffect(() => {
-		console.log('🔄 Auth state changed:', {
-			success: state.success,
-			errors: state.errors,
-			data: state.data
-		})
 		if (state.success) {
 			// Success toast notifications
 			if (config.type === 'login') {
@@ -881,22 +845,8 @@ export function AuthFormFactory({ config, onSuccess }: AuthFormFactoryProps) {
 	}, [state, onSuccess, config.type, isPending, config.redirectTo])
 
 	// Debug function for form submission
-	const debugFormSubmission = (e: React.MouseEvent<HTMLButtonElement>) => {
-		const formElement = e.currentTarget.closest('form')
-		const formData = formElement ? new FormData(formElement) : null
-
-		console.log('🔥 FORM SUBMIT BUTTON CLICKED', {
-			isClient,
-			isPending,
-			isFormValid: config.type === 'signup' ? isFormValid() : true,
-			disabled:
-				!isClient ||
-				isPending ||
-				(config.type === 'signup' && !isFormValid()),
-			formData: formData ? Object.fromEntries(formData.entries()) : null,
-			isSignupFormValid,
-			termsValue: formData?.get('terms')
-		})
+	const debugFormSubmission = (_e: React.MouseEvent<HTMLButtonElement>) => {
+		// Debug functionality removed for production
 	}
 
 	// Show success state for signup and forgot password

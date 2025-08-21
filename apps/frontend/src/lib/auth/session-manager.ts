@@ -8,7 +8,10 @@ export class SessionManager {
 	private refreshPromise: Promise<void> | null = null
 	private refreshTimeoutId: NodeJS.Timeout | null = null
 
-	private constructor() {}
+	private constructor() {
+		// Private constructor for singleton pattern
+		// Initialization happens in getInstance() method
+	}
 
 	static getInstance(): SessionManager {
 		if (!SessionManager.instance) {
@@ -43,10 +46,10 @@ export class SessionManager {
 				// Return user data
 				return {
 					id: session.user.id,
-					email: session.user.email!,
+					email: session.user.email || '',
 					name:
 						session.user.user_metadata?.full_name ||
-						session.user.email!,
+						session.user.email || 'Unknown User',
 					avatar_url: session.user.user_metadata?.avatar_url
 				}
 			}
@@ -151,8 +154,8 @@ export class SessionManager {
 
 				return {
 					id: user.id,
-					email: user.email!,
-					name: user.user_metadata?.full_name || user.email!,
+					email: user.email || '',
+					name: user.user_metadata?.full_name || user.email || 'Unknown User',
 					avatar_url: user.user_metadata?.avatar_url
 				}
 			} catch (error) {

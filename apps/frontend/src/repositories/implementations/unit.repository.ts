@@ -5,7 +5,7 @@
  * Abstracts API-specific logic behind a clean repository interface.
  */
 
-import { apiClient } from '@/lib/api-client'
+import { ApiService } from '@/lib/api/api-service'
 import { logger } from '@/lib/logger'
 import type { Unit, UnitQuery } from '@repo/shared'
 import type { UnitRepository } from '../interfaces'
@@ -14,13 +14,8 @@ import { DomainError } from '@repo/shared'
 export class ApiUnitRepository implements UnitRepository {
 	async findById(id: string): Promise<Unit | null> {
 		try {
-			const response = await apiClient.get<Unit>(`/units/${id}`)
-
-			if (!response.success) {
-				return null
-			}
-
-			return response.data
+			const response = await ApiService.getUnit(id)
+			return response
 		} catch (error) {
 			logger.error(
 				'Failed to find unit by ID:',
@@ -39,23 +34,21 @@ export class ApiUnitRepository implements UnitRepository {
 
 			if (entity.id) {
 				// Update existing unit
-				response = await apiClient.put<Unit>(
-					`/units/${entity.id}`,
-					entity as unknown as Record<string, unknown>
-				)
+				response = await ApiService.updateUnit(entity.id, {
+					...entity,
+					squareFeet: entity.squareFeet ?? undefined,
+					monthlyRent: entity.monthlyRent ?? entity.rent ?? entity.rentAmount ?? 0
+				})
 			} else {
 				// Create new unit
-				response = await apiClient.post<Unit>(
-					'/units',
-					entity as unknown as Record<string, unknown>
-				)
+				response = await ApiService.createUnit({
+					...entity,
+					squareFeet: entity.squareFeet ?? undefined,
+					monthlyRent: entity.monthlyRent ?? entity.rent ?? entity.rentAmount ?? 0
+				})
 			}
 
-			if (!response.success) {
-				throw new DomainError('Failed to save unit')
-			}
-
-			return response.data
+			return response
 		} catch (error) {
 			throw error instanceof DomainError
 				? error
@@ -65,11 +58,7 @@ export class ApiUnitRepository implements UnitRepository {
 
 	async delete(id: string): Promise<void> {
 		try {
-			const response = await apiClient.delete(`/units/${id}`)
-
-			if (!response.success) {
-				throw new DomainError('Failed to delete unit')
-			}
+			await ApiService.deleteUnit(id)
 		} catch (error) {
 			throw error instanceof DomainError
 				? error
@@ -82,19 +71,10 @@ export class ApiUnitRepository implements UnitRepository {
 			const params = query
 				? new URLSearchParams(query as Record<string, string>)
 				: undefined
-			const url = params ? `/units?${params.toString()}` : '/units'
+			const _url = params ? `/units?${params.toString()}` : '/units'
 
-			const response = await apiClient.get<Unit[]>(url)
-
-			if (!response.success) {
-				throw new DomainError('Failed to fetch units')
-			}
-
-			// Handle both direct array and wrapped response
-			const data = response.data
-			return Array.isArray(data)
-				? data
-				: (data as { data: Unit[] }).data || []
+			const response = await ApiService.getUnits(query)
+			return response || []
 		} catch (error) {
 			logger.error(
 				'Failed to fetch units:',
@@ -112,17 +92,13 @@ export class ApiUnitRepository implements UnitRepository {
 			const params = query
 				? new URLSearchParams(query as Record<string, string>)
 				: undefined
-			const url = params
+			const _url = params
 				? `/units/count?${params.toString()}`
 				: '/units/count'
 
-			const response = await apiClient.get<{ count: number }>(url)
-
-			if (!response.success) {
-				return 0
-			}
-
-			return response.data.count || 0
+			// Use the units list to count instead of separate endpoint
+			const response = await ApiService.getUnits(query)
+			return response?.length || 0
 		} catch (error) {
 			logger.error(
 				'Failed to count units:',

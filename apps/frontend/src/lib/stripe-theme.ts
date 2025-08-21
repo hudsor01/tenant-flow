@@ -191,7 +191,11 @@ export const createStripeTheme = (): StripeElementsOptions['appearance'] => {
  */
 export const createMobileStripeTheme =
 	(): StripeElementsOptions['appearance'] => {
-		const baseTheme = createStripeTheme()!
+		const baseTheme = createStripeTheme()
+
+		if (!baseTheme) {
+			return {}
+		}
 
 		return {
 			...baseTheme,
@@ -220,7 +224,7 @@ export const createMobileStripeTheme =
  * Options for Stripe Elements with custom theme
  */
 export const getStripeElementsOptions = (
-	isMobile: boolean = false
+	isMobile = false
 ): StripeElementsOptions => {
 	return {
 		appearance: isMobile ? createMobileStripeTheme() : createStripeTheme(),

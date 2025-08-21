@@ -69,7 +69,7 @@ export function SubscriptionCheckout({
 			// Use checkout session flow instead of direct subscription
 			await createCheckoutSession(
 				planType,
-				billingInterval === 'annual' ? 'yearly' : 'monthly'
+				billingInterval === 'annual' ? 'annual' : 'monthly'
 			)
 			// The checkout session will redirect to Stripe
 		} catch (error) {

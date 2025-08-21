@@ -42,27 +42,6 @@ export interface PropertyTrend {
 	maintenanceRequests: number
 }
 
-export type PropertyAlertType =
-	| 'occupancy_drop'
-	| 'maintenance_spike'
-	| 'revenue_decline'
-	| 'expense_increase'
-	| 'lease_expiring'
-
-export type AlertSeverity = 'low' | 'medium' | 'high' | 'critical'
-
-export interface PropertyAlert {
-	id: string
-	propertyId: string
-	type: PropertyAlertType
-	severity: AlertSeverity
-	title: string
-	message: string
-	timestamp: string
-	read: boolean
-	actionUrl?: string
-	data?: Record<string, unknown>
-}
 
 export type ReportFrequency = 'daily' | 'weekly' | 'monthly'
 
@@ -119,7 +98,6 @@ export interface PropertyAnalyticsSummary {
 	periodEnd: string
 	metrics: PropertyMetric
 	trends: PropertyTrend[]
-	alerts: PropertyAlert[]
 }
 
 export interface PortfolioAnalytics {
@@ -143,7 +121,6 @@ export interface AnalyticsQuery {
 	startDate?: string
 	endDate?: string
 	metricTypes?: string[]
-	includeAlerts?: boolean
 	includeTrends?: boolean
 }
 

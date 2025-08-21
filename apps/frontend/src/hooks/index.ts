@@ -19,7 +19,6 @@ export {
 
 // Export dedicated hooks (these take precedence)
 export * from './use-auth'
-export * from './use-properties'
 export * from './use-tenants'
 
 // Advanced business hooks (migrated from backup)

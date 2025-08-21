@@ -16,8 +16,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Building2, Plus, Home, Check } from 'lucide-react'
-import { useProperties } from '@/hooks/use-properties'
-import { useCreateUnit } from '../../hooks/useUnits'
+import { useCreateUnit } from '@/hooks/api/use-units'
+import { useCreateProperty } from '@/hooks/useCreateProperty'
 import { toast } from 'sonner'
 import { motion } from '@/lib/framer-motion'
 
@@ -51,7 +51,7 @@ export default function QuickPropertySetup({
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [isComplete, setIsComplete] = useState(false)
 
-	const { createProperty } = useProperties()
+	const createPropertyMutation = useCreateProperty()
 	const createUnit = useCreateUnit()
 
 	const form = useForm<QuickSetupFormData>({
@@ -74,7 +74,7 @@ export default function QuickPropertySetup({
 
 		try {
 			// 1. Create the property
-			const propertyResult = await createProperty({
+			const property = await createPropertyMutation.mutateAsync({
 				name: data.name,
 				address: data.address,
 				city: data.city,
@@ -82,12 +82,6 @@ export default function QuickPropertySetup({
 				zipCode: data.zipCode,
 				propertyType: 'MULTI_UNIT'
 			})
-
-			if (!propertyResult.success || !propertyResult.data) {
-				throw new Error('Failed to create property')
-			}
-
-			const property = propertyResult.data
 
 			// 2. Create units for the property
 			const unitPromises = Array.from(

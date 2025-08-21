@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { apiClient } from '@/lib/api-client'
 
 export function useDirectSubscription() {
 	const [isProcessing, setIsProcessing] = useState(false)
@@ -11,25 +12,11 @@ export function useDirectSubscription() {
 
 		try {
 			// Here you would call your backend API to process the subscription
-			const response = await fetch(
-				`${process.env.NEXT_PUBLIC_API_URL}/stripe/create-subscription`,
-				{
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify({
-						planType,
-						paymentMethodId
-					})
-				}
-			)
-
-			if (!response.ok) {
-				throw new Error('Failed to create subscription')
-			}
-
-			const data = await response.json()
+			const data = await apiClient.post<{ subscriptionId: string }>('/stripe/create-subscription', {
+				planType,
+				paymentMethodId
+			})
+			
 			toast.success('Subscription created successfully!')
 			return data
 		} catch (err) {

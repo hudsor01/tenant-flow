@@ -4,10 +4,10 @@
 	"compilerOptions": {
 		"baseUrl": ".",
 		"target": "ES2022",
-		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		"lib": ["ES2022", "DOM", "DOM.Iterable", "ES6"],
 		"moduleDetection": "force",
 		"module": "ESNext",
-		"moduleResolution": "Bundler",
+		"moduleResolution": "node",
 		"resolveJsonModule": true,
 		"allowJs": true,
 		"checkJs": false,
@@ -49,8 +49,8 @@
 		],
 		"paths": {
 			"@/*": ["./src/*"],
-			"@repo/shared": ["../../packages/shared/src"],
-			"@repo/shared/*": ["../../packages/shared/src/*"]
+			"@repo/shared": ["../../packages/shared/dist/cjs"],
+			"@repo/shared/*": ["../../packages/shared/dist/cjs/*"]
 		}
 	},
 	"include": [
@@ -58,7 +58,8 @@
 		"**/*.ts",
 		"**/*.tsx",
 		".next/types/**/*.ts",
-		"src/types/**/*.d.ts"
+		"src/types/**/*.d.ts",
+		"node_modules/@types/react/jsx-runtime.d.ts"
 	],
 	"exclude": [
 		"node_modules",

@@ -4,7 +4,7 @@ import React from 'react'
 import { LineChart, Line, ResponsiveContainer, Tooltip } from 'recharts'
 
 interface SparklineProps {
-	data: Array<{ name: string; value: number; date?: string }>
+	data: { name: string; value: number; date?: string }[]
 	width?: number | string
 	height?: number
 	color?: string
@@ -15,10 +15,10 @@ interface SparklineProps {
 
 interface CustomTooltipProps {
 	active?: boolean
-	payload?: Array<{
+	payload?: {
 		value: number
 		payload: { name: string; value: number; date?: string }
-	}>
+	}[]
 	label?: string
 }
 
@@ -95,7 +95,7 @@ export const Sparkline: React.FC<SparklineProps> = ({
 }
 
 // Helper function to generate trend indicator
-export const getTrendIndicator = (data: Array<{ value: number }>) => {
+export const getTrendIndicator = (data: { value: number }[]) => {
 	if (data.length < 2) return { direction: 'neutral' as const, percentage: 0 }
 
 	const firstValue = data[0]?.value || 0

@@ -43,11 +43,11 @@ type MaintenanceTableRow = MaintenanceRequest & {
 		property?: {
 			name: string
 		}
-		leases?: Array<{
+		leases?: {
 			tenant: {
 				name: string
 			}
-		}>
+		}[]
 	}
 }
 
