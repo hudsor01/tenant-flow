@@ -85,12 +85,7 @@ declare module 'posthog-js/react' {
 			properties?: Record<string, unknown>
 		) => void
 		reset: () => void
-		isFeatureEnabled: (flagKey: string) => boolean | undefined
-		getFeatureFlag: (flagKey: string) => string | boolean | undefined
-		getFeatureFlagPayload: (
-			flagKey: string
-		) => Record<string, unknown> | undefined
-		reloadFeatureFlags: () => void
+		// Feature flags removed for stable production version
 		[key: string]: unknown
 	}
 	export function PostHogProvider(props: {

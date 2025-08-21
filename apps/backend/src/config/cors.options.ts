@@ -12,41 +12,49 @@ import type { FastifyCorsOptions } from '@fastify/cors'
  * Used by main.ts for basic CORS setup
  */
 export function createCorsOptions(): FastifyCorsOptions {
-	// Get base origins from environment
+	// Production CORS: strict origin validation
 	const corsOrigins =
 		process.env.CORS_ORIGINS?.split(',')
 			.map(o => o.trim())
 			.filter(Boolean) || []
 
-	// Add frontend URL if configured
-	const frontendUrl = process.env.FRONTEND_URL
+	// Production domains
+	const productionOrigins = [
+		'https://tenantflow.app',
+		'https://www.tenantflow.app'
+	]
 
-	// Auto-detect deployment URLs
+	// Auto-detect deployment URLs (production only)
 	const deploymentOrigins: string[] = []
 
-	// Railway detection
+	// Railway detection (production)
 	if (process.env.RAILWAY_STATIC_URL) {
 		deploymentOrigins.push(process.env.RAILWAY_STATIC_URL)
 	} else if (process.env.RAILWAY_PUBLIC_DOMAIN) {
 		deploymentOrigins.push(`https://${process.env.RAILWAY_PUBLIC_DOMAIN}`)
 	}
 
-	// Vercel detection
+	// Vercel detection (production)
 	if (process.env.VERCEL_URL) {
 		deploymentOrigins.push(`https://${process.env.VERCEL_URL}`)
 	}
 
-	// Combine all origins
+	// Combine all origins - production security
 	const allOrigins = [
+		...productionOrigins,
 		...corsOrigins,
-		...deploymentOrigins,
-		...(frontendUrl ? [frontendUrl] : [])
+		...deploymentOrigins
 	].filter(Boolean)
 
-	// Remove duplicates
-	const uniqueOrigins = [...new Set(allOrigins)]
+	// Remove duplicates and validate HTTPS in production
+	const uniqueOrigins = [...new Set(allOrigins)].filter(origin => {
+		if (process.env.NODE_ENV === 'production') {
+			return origin.startsWith('https://')
+		}
+		return true
+	})
 
-	// Fallback if no origins configured
+	// Production fallback
 	if (uniqueOrigins.length === 0) {
 		uniqueOrigins.push('https://tenantflow.app')
 	}
@@ -62,6 +70,7 @@ export function createCorsOptions(): FastifyCorsOptions {
 			'Origin',
 			'Cache-Control',
 			'X-CSRF-Token',
+			'X-XSRF-Token',
 			'X-Correlation-Id',
 			'stripe-signature'
 		],
@@ -73,7 +82,12 @@ export function createCorsOptions(): FastifyCorsOptions {
 			'X-RateLimit-Reset'
 		],
 		credentials: true,
-		maxAge: process.env.NODE_ENV === 'production' ? 86400 : 0,
-		optionsSuccessStatus: 204
+		// Production: cache preflight for 24 hours
+		maxAge: process.env.NODE_ENV === 'production' ? 86400 : 300,
+		optionsSuccessStatus: 204,
+		// Production security: strict preflight
+		preflightContinue: false,
+		// Only allow explicit origins (no wildcards in production)
+		strictPreflight: process.env.NODE_ENV === 'production'
 	}
 }

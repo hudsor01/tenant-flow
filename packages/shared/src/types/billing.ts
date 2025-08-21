@@ -4,7 +4,7 @@
  */
 
 // Import consolidated types from stripe.ts
-import type { PlanType, BillingPeriod, StripeWebhookEvent } from './stripe'
+import type { PlanType, BillingPeriod } from './stripe'
 
 export const PLAN_TYPE = {
 	FREETRIAL: 'FREETRIAL',
@@ -153,38 +153,7 @@ export interface StripePricing {
 	updatedAt: Date
 }
 
-// Trial configuration for each product tier
-export interface TrialConfig {
-	trialPeriodDays: number
-	trialEndBehavior: 'cancel' | 'pause' | 'require_payment'
-	collectPaymentMethod: boolean
-	reminderDaysBeforeEnd: number
-}
-
-// Product tier configuration
-export interface ProductTierConfig {
-	id: PlanType
-	name: string
-	description: string
-	price: {
-		monthly: number
-		annual: number
-	}
-	trial: TrialConfig
-	features: readonly string[]
-	limits: {
-		properties: number
-		units: number
-		users?: number
-		storage?: number // in GB
-		apiCalls?: number
-	}
-	support: 'email' | 'priority' | 'dedicated'
-	stripePriceIds: {
-		monthly: string | null
-		annual: string | null
-	}
-}
+// Cleaned up - removed unused TrialConfig and ProductTierConfig types
 
 export interface WebhookEvent {
 	id: string
@@ -245,16 +214,14 @@ export interface CustomerPortalResponse {
 // Direct subscription parameters (moved to api-inputs.ts)
 // Note: DirectSubscriptionParams is now available in @repo/shared/types/api-inputs
 
-// Stripe error handling types using official Stripe types
-// Note: These types are available when stripe package is installed (backend only)
-export type StripeErrorType =
-	| 'card_error'
-	| 'rate_limit_error'
-	| 'invalid_request_error'
-	| 'api_error'
-	| 'api_connection_error'
-	| 'authentication_error'
-	| 'idempotency_error'
+// Import Stripe types from the single source of truth
+import type { 
+	StripeErrorCode as StripeErrorType,
+	StripeWebhookEvent
+} from './stripe'
+
+// Note: Stripe element types (StripeElementEvent, StripeCardElementEvent, etc.) 
+// are now available in './stripe' and can be imported when needed
 
 export interface StripeWebhookError {
 	type: StripeErrorType
@@ -340,7 +307,7 @@ export interface WebhookEventHandler {
 	'charge.failed': (event: StripeWebhookEvent) => Promise<void>
 }
 
-export type WebhookEventType = keyof WebhookEventHandler
+// WebhookEventType is now imported from stripe.ts
 
 export const STRIPE_ERRORS = {
 	CUSTOMER_NOT_FOUND: 'Customer not found',
@@ -381,37 +348,8 @@ export interface SubscriptionChangePreview {
 	creditApplied: number
 }
 
-// Stripe Element event types for frontend components
-export interface StripeElementEvent {
-	elementType: string
-	empty: boolean
-	complete: boolean
-	error?: {
-		type: string
-		code: string
-		message: string
-	}
-}
-
-export interface StripeCardElementEvent extends StripeElementEvent {
-	brand?: string
-	country?: string
-}
-
-export interface StripePaymentElementEvent extends StripeElementEvent {
-	value?: {
-		type: string
-	}
-}
-
-// Generic event callback for Stripe elements
-export type StripeElementEventCallback = (event: StripeElementEvent) => void
-export type StripeCardElementEventCallback = (
-	event: StripeCardElementEvent
-) => void
-export type StripePaymentElementEventCallback = (
-	event: StripePaymentElementEvent
-) => void
+// Stripe Element event types moved to stripe.ts for consolidation
+// Import these types from './stripe' if needed
 
 // ========================
 // Payment Method Types

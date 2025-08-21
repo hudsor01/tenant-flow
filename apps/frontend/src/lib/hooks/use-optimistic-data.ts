@@ -24,8 +24,8 @@ export function useOptimisticData<T extends { id: string }>(
 				case 'update':
 					return action.data
 						? state.map(item =>
-								item.id === action.data!.id
-									? action.data!
+								item.id === action.data?.id
+									? action.data
 									: item
 							)
 						: state
@@ -34,7 +34,7 @@ export function useOptimisticData<T extends { id: string }>(
 					return action.id
 						? state.filter(item => item.id !== action.id)
 						: action.predicate
-							? state.filter(item => !action.predicate!(item))
+							? state.filter(item => !action.predicate?.(item))
 							: state
 
 				case 'replace':

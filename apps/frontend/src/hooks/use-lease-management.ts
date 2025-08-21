@@ -28,7 +28,10 @@ const leasesAtom = atom<LeasesAtomData>({
 	data: [],
 	isLoading: false,
 	error: null,
-	refetch: () => {}
+	refetch: () => {
+		// No-op for mock data
+		return
+	}
 })
 const selectedLeaseAtom = atom<Lease | null>(null)
 

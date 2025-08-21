@@ -30,4 +30,3 @@ export const PRIORITY_COLORS: Record<PriorityLevel, string> = {
 	MEDIUM: 'bg-yellow-100 text-yellow-800',
 	LOW: 'bg-green-100 text-green-800'
 }
-

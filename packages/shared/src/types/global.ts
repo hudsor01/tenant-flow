@@ -60,10 +60,6 @@ declare global {
 			) => void
 			alias: (alias: string) => void
 			reset: () => void
-			isFeatureEnabled: (flag: string) => boolean
-			getFeatureFlag: (flag: string) => string | boolean
-			reloadFeatureFlags: () => Promise<void>
-			onFeatureFlags: (callback: () => void) => void
 			group: (
 				groupType: string,
 				groupKey: string,

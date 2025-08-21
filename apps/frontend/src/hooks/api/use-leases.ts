@@ -2,10 +2,7 @@
  * React Query hooks for Leases
  * Provides type-safe data fetching and mutations with optimistic updates
  */
-import {
-	type UseQueryResult,
-	type UseMutationResult
-} from '@tanstack/react-query'
+import type { UseQueryResult, UseMutationResult } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
 import { queryKeys } from '@/lib/react-query/query-client'
 import type {
@@ -34,7 +31,7 @@ export function useLeases(
 			const response = await apiClient.get<Lease[]>('/leases', {
 				params: createQueryAdapter(query)
 			})
-			return response.data
+			return response
 		},
 		enabled: options?.enabled ?? true,
 		staleTime: 5 * 60 * 1000
@@ -52,8 +49,7 @@ export function useLease(
 		'leases',
 		Boolean(id) && (options?.enabled ?? true) ? id : undefined,
 		async (id: string) => {
-			const response = await apiClient.get<Lease>(`/leases/${id}`)
-			return response.data
+			return await apiClient.get<Lease>(`/leases/${id}`)
 		}
 	)
 }
@@ -71,10 +67,9 @@ export function useLeasesByProperty(
 			? `property-${propertyId}`
 			: undefined,
 		async () => {
-			const response = await apiClient.get<Lease[]>(
+			return await apiClient.get<Lease[]>(
 				`/properties/${propertyId}/leases`
 			)
-			return response.data
 		}
 	)
 }
@@ -93,7 +88,7 @@ export function useCreateLease(): UseMutationResult<
 				'/leases',
 				createMutationAdapter(data)
 			)
-			return response.data
+			return response
 		},
 		invalidateKeys: [queryKeys.leases()],
 		successMessage: 'Lease created successfully',
@@ -132,7 +127,7 @@ export function useUpdateLease(): UseMutationResult<
 				`/leases/${id}`,
 				createMutationAdapter(data)
 			)
-			return response.data
+			return response
 		},
 		invalidateKeys: [queryKeys.leases()],
 		successMessage: 'Lease updated successfully',
@@ -175,7 +170,7 @@ export function useRenewLease(): UseMutationResult<
 				`/leases/${id}/renew`,
 				createMutationAdapter({ endDate })
 			)
-			return response.data
+			return response
 		},
 		invalidateKeys: [queryKeys.leases()],
 		successMessage: 'Lease renewed successfully',

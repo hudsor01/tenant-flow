@@ -10,7 +10,11 @@
 import type {
 	SupportedCurrency,
 	StripeMetadata,
-	StripeSubscription
+	StripeSubscription,
+	WebhookEventType
+} from './stripe'
+import {
+	WEBHOOK_EVENT_TYPES
 } from './stripe'
 import type {
 	StripeAddress,
@@ -1228,70 +1232,8 @@ export function hasPortalFlow(session: StripeCustomerPortalSession): boolean {
 // ========================
 // Event Object Types
 // ========================
-
-export const WEBHOOK_EVENT_TYPES = {
-	// Customer events
-	CUSTOMER_CREATED: 'customer.created',
-	CUSTOMER_UPDATED: 'customer.updated',
-	CUSTOMER_DELETED: 'customer.deleted',
-
-	// Subscription events
-	SUBSCRIPTION_CREATED: 'customer.subscription.created',
-	SUBSCRIPTION_UPDATED: 'customer.subscription.updated',
-	SUBSCRIPTION_DELETED: 'customer.subscription.deleted',
-	SUBSCRIPTION_TRIAL_WILL_END: 'customer.subscription.trial_will_end',
-	SUBSCRIPTION_PAUSED: 'customer.subscription.paused',
-	SUBSCRIPTION_RESUMED: 'customer.subscription.resumed',
-
-	// Invoice events
-	INVOICE_CREATED: 'invoice.created',
-	INVOICE_FINALIZED: 'invoice.finalized',
-	INVOICE_PAID: 'invoice.paid',
-	INVOICE_PAYMENT_SUCCEEDED: 'invoice.payment_succeeded',
-	INVOICE_PAYMENT_FAILED: 'invoice.payment_failed',
-	INVOICE_UPDATED: 'invoice.updated',
-	INVOICE_VOIDED: 'invoice.voided',
-	INVOICE_MARKED_UNCOLLECTIBLE: 'invoice.marked_uncollectible',
-	INVOICE_UPCOMING: 'invoice.upcoming',
-
-	// Payment events
-	PAYMENT_INTENT_CREATED: 'payment_intent.created',
-	PAYMENT_INTENT_SUCCEEDED: 'payment_intent.succeeded',
-	PAYMENT_INTENT_PAYMENT_FAILED: 'payment_intent.payment_failed',
-	PAYMENT_INTENT_REQUIRES_ACTION: 'payment_intent.requires_action',
-	PAYMENT_INTENT_CANCELED: 'payment_intent.canceled',
-
-	// Setup Intent events
-	SETUP_INTENT_CREATED: 'setup_intent.created',
-	SETUP_INTENT_SUCCEEDED: 'setup_intent.succeeded',
-	SETUP_INTENT_SETUP_FAILED: 'setup_intent.setup_failed',
-	SETUP_INTENT_REQUIRES_ACTION: 'setup_intent.requires_action',
-	SETUP_INTENT_CANCELED: 'setup_intent.canceled',
-
-	// Payment Method events
-	PAYMENT_METHOD_ATTACHED: 'payment_method.attached',
-	PAYMENT_METHOD_DETACHED: 'payment_method.detached',
-	PAYMENT_METHOD_UPDATED: 'payment_method.updated',
-
-	// Checkout events
-	CHECKOUT_SESSION_COMPLETED: 'checkout.session.completed',
-	CHECKOUT_SESSION_EXPIRED: 'checkout.session.expired',
-	CHECKOUT_SESSION_ASYNC_PAYMENT_SUCCEEDED:
-		'checkout.session.async_payment_succeeded',
-	CHECKOUT_SESSION_ASYNC_PAYMENT_FAILED:
-		'checkout.session.async_payment_failed',
-
-	// Charge events
-	CHARGE_SUCCEEDED: 'charge.succeeded',
-	CHARGE_FAILED: 'charge.failed',
-	CHARGE_CAPTURED: 'charge.captured',
-	CHARGE_REFUNDED: 'charge.refunded',
-	CHARGE_UPDATED: 'charge.updated',
-	CHARGE_DISPUTE_CREATED: 'charge.dispute.created'
-} as const
-
-export type WebhookEventType =
-	(typeof WEBHOOK_EVENT_TYPES)[keyof typeof WEBHOOK_EVENT_TYPES]
+// NOTE: WEBHOOK_EVENT_TYPES and WebhookEventType are now imported from './stripe'
+// to maintain single source of truth and avoid duplications
 
 /**
  * Main Event object as used in TenantFlow webhooks

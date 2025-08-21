@@ -3,10 +3,21 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type {
 	Subscription,
 	Plan,
-	UsageMetrics,
+	BillingUsageMetrics as UsageMetrics,
 	SubscriptionSyncResult,
-	SubscriptionState
+	SubscriptionState,
+	PlanType
 } from '@repo/shared'
+import { apiClient } from '@/lib/api-client'
+
+// Interface for subscription status API response
+interface SubscriptionStatusResponse {
+	isActive: boolean
+	planType: PlanType
+	status: string
+	trialDaysRemaining: number
+	canUpgrade: boolean
+}
 
 interface SubscriptionSyncOptions {
 	enableAutoSync?: boolean
@@ -85,11 +96,7 @@ export function useSubscriptionSync(
 			subscription: Subscription | null
 			plan: Plan | null
 		}> => {
-			const response = await fetch(`/api/subscriptions/user/${userId}`)
-			if (!response.ok) {
-				throw new Error('Failed to fetch subscription')
-			}
-			return response.json()
+			return apiClient.get(`/subscriptions/user/${userId}`)
 		},
 		staleTime: 1 * 60 * 1000, // 1 minute
 		refetchInterval: enableAutoSync ? syncIntervalMs : false,
@@ -101,11 +108,7 @@ export function useSubscriptionSync(
 	const { data: usage, isLoading: isUsageLoading } = useQuery({
 		queryKey: QUERY_KEYS.usage(userId),
 		queryFn: async (): Promise<UsageMetrics> => {
-			const response = await fetch(`/api/subscriptions/usage/${userId}`)
-			if (!response.ok) {
-				throw new Error('Failed to fetch usage metrics')
-			}
-			return response.json()
+			return apiClient.get(`/subscriptions/usage/${userId}`)
 		},
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		refetchInterval: enableAutoSync ? syncIntervalMs * 2 : false, // Slower refresh for usage
@@ -116,13 +119,7 @@ export function useSubscriptionSync(
 	const { data: syncState } = useQuery({
 		queryKey: QUERY_KEYS.syncState(userId),
 		queryFn: async (): Promise<SubscriptionState> => {
-			const response = await fetch(
-				`/api/subscriptions/sync-state/${userId}`
-			)
-			if (!response.ok) {
-				throw new Error('Failed to fetch sync state')
-			}
-			return response.json()
+			return apiClient.get(`/subscriptions/sync-state/${userId}`)
 		},
 		staleTime: 30 * 1000, // 30 seconds
 		enabled: false, // Only fetch when explicitly requested
@@ -134,17 +131,7 @@ export function useSubscriptionSync(
 		mutationFn: async (
 			force?: boolean
 		): Promise<SubscriptionSyncResult> => {
-			const response = await fetch(`/api/subscriptions/sync/${userId}`, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ force })
-			})
-
-			if (!response.ok) {
-				throw new Error('Failed to sync subscription')
-			}
-
-			return response.json()
+			return apiClient.post(`/subscriptions/sync/${userId}`, { force })
 		},
 		onMutate: () => {
 			setIsSyncing(true)
@@ -323,19 +310,9 @@ export function useSubscriptionAdmin() {
 		): Promise<{
 			completed: number
 			errors: number
-			results: Array<{ userId: string; result: SubscriptionSyncResult }>
+			results: { userId: string; result: SubscriptionSyncResult }[]
 		}> => {
-			const response = await fetch('/api/admin/subscriptions/bulk-sync', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ userIds })
-			})
-
-			if (!response.ok) {
-				throw new Error('Failed to bulk sync subscriptions')
-			}
-
-			return response.json()
+			return apiClient.post('/admin/subscriptions/bulk-sync', { userIds })
 		},
 		onSuccess: () => {
 			// Invalidate all subscription queries to force refresh
@@ -348,11 +325,7 @@ export function useSubscriptionAdmin() {
 		{
 			queryKey: ['subscription-metrics'],
 			queryFn: async () => {
-				const response = await fetch('/api/admin/subscriptions/metrics')
-				if (!response.ok) {
-					throw new Error('Failed to fetch subscription metrics')
-				}
-				return response.json()
+				return apiClient.get('/admin/subscriptions/metrics')
 			},
 			staleTime: 5 * 60 * 1000, // 5 minutes
 			retry: 2
@@ -373,14 +346,10 @@ export function useSubscriptionAdmin() {
  * Lightweight version for components that only need basic info
  */
 export function useSubscriptionStatus(userId: string) {
-	const { data } = useQuery({
+	const { data } = useQuery<SubscriptionStatusResponse>({
 		queryKey: QUERY_KEYS.subscription(userId),
 		queryFn: async () => {
-			const response = await fetch(`/api/subscriptions/status/${userId}`)
-			if (!response.ok) {
-				throw new Error('Failed to fetch subscription status')
-			}
-			return response.json()
+			return apiClient.get<SubscriptionStatusResponse>(`/subscriptions/status/${userId}`)
 		},
 		staleTime: 2 * 60 * 1000, // 2 minutes
 		retry: 2

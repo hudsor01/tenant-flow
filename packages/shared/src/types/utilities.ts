@@ -220,43 +220,27 @@ export type OptionalNullable<T> = {
 // API Response Types
 // ========================
 
-/**
- * Standard API response wrapper
- */
-export interface ApiResponse<T = unknown> {
-	success: boolean
-	data?: T
-	error?: string
-	message?: string
-	code?: string
-	timestamp?: string
-}
+// Import API response types from consolidated source
+import type {
+	ApiSuccessResponse,
+	ApiErrorResponse,
+	ApiPaginatedResponse
+} from './responses'
 
 /**
- * Paginated API response
+ * Standard API response wrapper - now uses consolidated types
  */
-export type PaginatedApiResponse<T = unknown> = ApiResponse<T[]> & {
-	pagination?: {
-		page: number
-		limit: number
-		total: number
-		pages: number
-		hasNext: boolean
-		hasPrev: boolean
-	}
-}
+export type ApiResponse<T = unknown> = ApiSuccessResponse<T> | ApiErrorResponse
 
 /**
- * API error response
+ * Paginated API response - now uses consolidated types
  */
-export interface ApiErrorResponse {
-	success: false
-	error: string
-	message: string
-	code?: string
-	details?: unknown
-	timestamp?: string
-}
+export type PaginatedApiResponse<T = unknown> = ApiPaginatedResponse<T>
+
+/**
+ * API error response - now uses consolidated types from responses.ts
+ */
+export type { ApiErrorResponse } from './responses'
 
 // ========================
 // Form and Validation Types
@@ -403,11 +387,6 @@ export type StoreActions<T> = {
  * Environment configuration
  */
 export type Environment = 'development' | 'staging' | 'production' | 'test'
-
-/**
- * Feature flag configuration
- */
-export type FeatureFlags = Record<string, boolean>
 
 /**
  * API configuration

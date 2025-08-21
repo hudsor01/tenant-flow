@@ -5,7 +5,6 @@ import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { XIcon } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
-import { useFocusManagement, useAnnounce } from '@/hooks/use-accessibility'
 
 function Dialog({
 	...props
@@ -57,28 +56,14 @@ function DialogContent({
 	showCloseButton?: boolean
 	onOpenChange?: (open: boolean) => void
 }) {
-	const _containerRef = useFocusManagement(true)
-	const announce = useAnnounce()
-
-	React.useEffect(() => {
-		// Announce when dialog opens
-		announce('Dialog opened', 'polite')
-
-		return () => {
-			// Announce when dialog closes
-			announce('Dialog closed', 'polite')
-		}
-	}, [announce])
-
 	const handleEscapeKeyDown = React.useCallback(
 		(event: KeyboardEvent) => {
 			if (event.key === 'Escape') {
 				event.preventDefault()
 				onOpenChange?.(false)
-				announce('Dialog closed', 'polite')
 			}
 		},
-		[onOpenChange, announce]
+		[onOpenChange]
 	)
 
 	React.useEffect(() => {

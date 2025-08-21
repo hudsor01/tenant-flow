@@ -38,7 +38,7 @@ export interface LeaseEvent {
 
 export interface SubscriptionEvent {
 	plan_name: string
-	billing_period: 'monthly' | 'yearly'
+	billing_period: 'monthly' | 'annual'
 	amount: number
 	previous_plan?: string
 	discount_applied?: boolean

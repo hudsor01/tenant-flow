@@ -4,37 +4,23 @@
  */
 
 // ============================================================================
-// API Response Types
+// API Response Types - Consolidated in responses.ts
 // ============================================================================
 
-export interface ApiResponse<T = unknown> {
-	success: boolean
-	data?: T
-	error?: string
-	message?: string
-	meta?: {
-		total?: number
-		page?: number
-		limit?: number
-	}
-}
+import type {
+	ApiSuccessResponse,
+	ApiErrorResponse, 
+	ApiPaginatedResponse
+} from './responses'
 
-export interface ControllerApiResponse<T = unknown> extends ApiResponse<T> {
+// Type aliases for backwards compatibility
+export type ApiResponse<T = unknown> = ApiSuccessResponse<T> | ApiErrorResponse
+
+export interface ControllerApiResponse<T = unknown> extends ApiSuccessResponse<T> {
 	statusCode?: number
 }
 
-export interface PaginatedResponse<T> {
-	success: boolean
-	data: T[]
-	error?: string
-	message?: string
-	meta: {
-		total: number
-		page: number
-		limit: number
-		totalPages: number
-	}
-}
+export type PaginatedResponse<T> = ApiPaginatedResponse<T>
 
 // ============================================================================
 // Query Types

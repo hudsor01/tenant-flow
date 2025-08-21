@@ -42,7 +42,8 @@ export class TenantsController {
 		return {
 			success: true,
 			data,
-			message: 'Tenants retrieved successfully'
+			message: 'Tenants retrieved successfully',
+			timestamp: new Date().toISOString()
 		}
 	}
 
@@ -59,7 +60,8 @@ export class TenantsController {
 		return {
 			success: true,
 			data,
-			message: 'Statistics retrieved successfully'
+			message: 'Statistics retrieved successfully',
+			timestamp: new Date().toISOString()
 		}
 	}
 
@@ -74,7 +76,8 @@ export class TenantsController {
 		return {
 			success: true,
 			data,
-			message: 'Search completed successfully'
+			message: 'Search completed successfully',
+			timestamp: new Date().toISOString()
 		}
 	}
 
@@ -91,7 +94,8 @@ export class TenantsController {
 		return {
 			success: true,
 			data,
-			message: 'Tenant retrieved successfully'
+			message: 'Tenant retrieved successfully',
+			timestamp: new Date().toISOString()
 		}
 	}
 
@@ -110,7 +114,8 @@ export class TenantsController {
 		return {
 			success: true,
 			data,
-			message: 'Tenant created successfully'
+			message: 'Tenant created successfully',
+			timestamp: new Date().toISOString()
 		}
 	}
 
@@ -133,7 +138,8 @@ export class TenantsController {
 		return {
 			success: true,
 			data,
-			message: 'Tenant updated successfully'
+			message: 'Tenant updated successfully',
+			timestamp: new Date().toISOString()
 		}
 	}
 
@@ -153,7 +159,9 @@ export class TenantsController {
 		await this.tenantsService.remove(id, user.id)
 		return {
 			success: true,
-			message: 'Tenant deleted successfully'
+			data: null,
+			message: 'Tenant deleted successfully',
+			timestamp: new Date().toISOString()
 		}
 	}
 }

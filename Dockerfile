@@ -20,6 +20,8 @@ WORKDIR /app
 # Install production dependencies only for optimal caching
 FROM base AS deps
 
+ARG RAILWAY_SERVICE_ID=tenantflow-backend
+
 # Copy package files first for better Docker layer caching
 # Changes to source code won't invalidate dependency cache
 COPY package*.json turbo.json ./
@@ -29,16 +31,17 @@ COPY packages/database/package.json ./packages/database/
 COPY packages/tailwind-config/package.json ./packages/tailwind-config/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 
-# Install production dependencies with optimizations
+# Install all dependencies including dev dependencies for building
 # --mount=type=cache: Persist npm cache across builds (60-90s faster rebuilds)
-# --omit=dev: Skip devDependencies (TypeScript, Jest, etc.) - saves ~300MB
 # --silent: Clean build logs, only show errors
 RUN --mount=type=cache,id=${RAILWAY_SERVICE_ID}-npm-deps,target=/root/.npm \
-    npm install --omit=dev --silent
+    npm install --silent
 
 # ===== BUILDER STAGE =====
 # Compile TypeScript to JavaScript with optimizations
 FROM base AS builder
+
+ARG RAILWAY_SERVICE_ID=tenantflow-backend
 
 WORKDIR /app
 
@@ -55,16 +58,17 @@ RUN rm -rf .git .github docs *.md apps/frontend apps/storybook
 ENV NODE_OPTIONS="--max-old-space-size=1096" \
     TURBO_TELEMETRY_DISABLED=1
 
-# Build with local caching only - no external dependencies
-# --mount=type=cache: Persist Turbo cache for faster subsequent builds
-# --filter=@repo/backend: Build only backend, not frontend
-# --no-daemon: Prevent hanging processes
+# Build shared and database packages first, then backend
 RUN --mount=type=cache,id=${RAILWAY_SERVICE_ID}-turbo-build,target=/app/.turbo \
-    npx turbo build --filter=@repo/backend --no-daemon
+    cd packages/shared && npm run build && cd ../.. && \
+    cd packages/database && npm run build && cd ../.. && \
+    cd apps/backend && npm run build:docker
 
 # ===== PRODUCTION DEPS STAGE =====
 # Clean production dependencies separate from build artifacts
 FROM base AS prod-deps
+
+ARG RAILWAY_SERVICE_ID=tenantflow-backend
 
 WORKDIR /app
 ENV NODE_ENV=production
@@ -104,7 +108,9 @@ COPY --from=builder --chown=nodejs:nodejs /app/apps/backend/dist ./apps/backend/
 COPY --from=builder --chown=nodejs:nodejs /app/packages/shared/dist ./packages/shared/dist
 COPY --from=builder --chown=nodejs:nodejs /app/packages/database/dist ./packages/database/dist
 
-# Switch to non-root user before execution
+# Install curl for healthchecks and utilities
+USER root
+RUN apk add --no-cache curl
 USER nodejs
 
 # Runtime optimizations for Railway deployment
@@ -125,27 +131,83 @@ ARG PORT=4600
 ENV PORT=${PORT}
 EXPOSE ${PORT}
 
-# Guaranteed reliable health check using Node.js runtime (production best practice)
-# interval=30s: Check every 30 seconds  
-# timeout=10s: Extended timeout prevents false failures under load
-# start-period=40s: Extended grace period for NestJS + Fastify startup on Railway
-# retries=3: Standard Docker default, handles temporary network issues
-# Node.js approach: Tests actual application health, not just HTTP connectivity
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+# VERBOSE health check with detailed logging for Railway debugging
+# interval=20s: Balanced check frequency for Railway
+# timeout=8s: Longer timeout to account for Railway network latency  
+# start-period=90s: Extended grace period for Railway container startup
+# retries=5: More retries to handle Railway network fluctuations
+# Uses /health/ping - bulletproof endpoint with no dependencies
+HEALTHCHECK --interval=20s --timeout=8s --start-period=90s --retries=5 \
   CMD node -e " \
     const http = require('http'); \
+    const startTime = Date.now(); \
+    console.log('=== DOCKER HEALTH CHECK START ==='); \
+    console.log('Timestamp:', new Date().toISOString()); \
+    console.log('Environment:', process.env.NODE_ENV || 'unknown'); \
+    console.log('Port:', process.env.PORT || 'unknown'); \
+    console.log('Railway Env:', process.env.RAILWAY_ENVIRONMENT || 'none'); \
+    console.log('Docker Container:', process.env.DOCKER_CONTAINER || 'none'); \
+    \
+    const port = process.env.PORT || 4600; \
+    console.log('Attempting to connect to 127.0.0.1:' + port + '/health/ping'); \
+    \
     const options = { \
-      host: '127.0.0.1', \
-      port: process.env.PORT || 4600, \
-      path: '/health', \
-      timeout: 8000 \
+      hostname: '127.0.0.1', \
+      port: port, \
+      path: '/health/ping', \
+      method: 'GET', \
+      timeout: 6000, \
+      headers: { \
+        'User-Agent': 'Docker-HealthCheck', \
+        'Accept': 'application/json', \
+        'Connection': 'close' \
+      } \
     }; \
+    \
+    console.log('Request options:', JSON.stringify(options, null, 2)); \
+    \
     const req = http.request(options, (res) => { \
-      process.exit(res.statusCode === 200 ? 0 : 1); \
+      console.log('Response received!'); \
+      console.log('Status Code:', res.statusCode); \
+      console.log('Headers:', JSON.stringify(res.headers, null, 2)); \
+      \
+      let data = ''; \
+      res.on('data', chunk => { \
+        data += chunk; \
+        console.log('Data chunk received, length:', chunk.length); \
+      }); \
+      \
+      res.on('end', () => { \
+        const duration = Date.now() - startTime; \
+        console.log('Response completed in', duration + 'ms'); \
+        console.log('Response body:', data.slice(0, 200)); \
+        console.log('=== HEALTH CHECK', res.statusCode === 200 ? 'PASSED' : 'FAILED', '==='); \
+        process.exit(res.statusCode === 200 ? 0 : 1); \
+      }); \
     }); \
-    req.on('error', () => process.exit(1)); \
-    req.on('timeout', () => process.exit(1)); \
+    \
+    req.on('error', (err) => { \
+      console.error('=== HEALTH CHECK ERROR ==='); \
+      console.error('Error type:', err.constructor.name); \
+      console.error('Error message:', err.message); \
+      console.error('Error code:', err.code || 'unknown'); \
+      console.error('Duration:', Date.now() - startTime + 'ms'); \
+      console.error('Stack trace:', err.stack); \
+      process.exit(1); \
+    }); \
+    \
+    req.on('timeout', () => { \
+      console.error('=== HEALTH CHECK TIMEOUT ==='); \
+      console.error('Request timed out after 6000ms'); \
+      console.error('Total duration:', Date.now() - startTime + 'ms'); \
+      req.destroy(); \
+      process.exit(1); \
+    }); \
+    \
+    req.setTimeout(6000); \
+    \
+    console.log('Sending HTTP request...'); \
     req.end();"
 
-# Direct Node.js execution (no npm overhead)
+# Direct Node.js execution
 CMD ["node", "apps/backend/dist/apps/backend/src/main.js"]

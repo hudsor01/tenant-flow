@@ -171,7 +171,7 @@ export function sanitizeErrorMessage(error: unknown, context?: string): string {
 
 	// Default to generic message in production
 	if (process.env.NODE_ENV === 'production') {
-		return ERROR_MESSAGES['unknown_error']!
+		return ERROR_MESSAGES['unknown_error'] || 'An error occurred'
 	}
 
 	// In development, return the original message for debugging

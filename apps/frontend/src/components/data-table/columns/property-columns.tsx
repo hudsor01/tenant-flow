@@ -1,6 +1,6 @@
 'use client'
 
-import { type ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 // import { Button } from "@/components/ui/button"
@@ -19,7 +19,7 @@ function formatCurrency(amount: number | undefined | null): string {
 	return sharedFormatCurrency(amount, { maximumFractionDigits: 0 })
 }
 
-function calculateOccupancyRate(units?: Array<{ status: string }>): number {
+function calculateOccupancyRate(units?: { status: string }[]): number {
 	if (!units || units.length === 0) return 0
 	const occupiedUnits = units.filter(
 		unit => unit.status === 'OCCUPIED'
@@ -28,7 +28,7 @@ function calculateOccupancyRate(units?: Array<{ status: string }>): number {
 }
 
 function calculateTotalRevenue(
-	units?: Array<{ monthlyRent?: number; rent?: number; status: string }>
+	units?: { monthlyRent?: number; rent?: number; status: string }[]
 ): number {
 	if (!units) return 0
 	return units.reduce((total, unit) => {

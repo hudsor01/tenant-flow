@@ -6,19 +6,19 @@ import { ArrowRight, Calendar } from 'lucide-react'
 
 export function HeroButtons() {
 	return (
-		<div className="animate-fade-in-up animation-delay-400 flex flex-col justify-center gap-4 sm:flex-row">
+		<div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
 			<Link href="/signup">
 				<Button
-					size="lg"
-					className="from-primary bg-gradient-to-r to-purple-600 hover:from-blue-700 hover:to-purple-700"
+					size="default"
+					className="bg-blue-600 text-white hover:bg-blue-700"
 					rightIcon={<ArrowRight className="h-4 w-4" />}
 				>
-					Start Free 14-Day Trial
+					Start Free Trial
 				</Button>
 			</Link>
 			<Link href="/demo">
 				<Button
-					size="lg"
+					size="default"
 					variant="outline"
 					leftIcon={<Calendar className="h-4 w-4" />}
 				>

@@ -11,8 +11,12 @@ import {
 	SubscriptionUpdatedEvent,
 	TrialWillEndEvent
 } from '../shared/events/subscription.events'
-import type { StripeSubscription } from '@repo/shared/types/stripe'
-import { type PlanType, type Subscription, SubStatus } from '@repo/shared'
+import { 
+	type PlanType,
+	type StripeSubscription, 
+	type Subscription,
+	SubStatus 
+} from '@repo/shared'
 import { SupabaseService } from '../database/supabase.service'
 
 // Note: StripeSubscription from our official types already includes current_period properties
@@ -657,9 +661,9 @@ export class SubscriptionSyncService {
 			trialing: 'TRIALING',
 			active: 'ACTIVE',
 			past_due: 'PAST_DUE',
-			canceled: 'CANCELED',
+			canceled: 'CANCELLED',
 			unpaid: 'UNPAID',
-			paused: 'CANCELED' // Map paused to canceled since we don't have a paused status
+			paused: 'CANCELLED' // Map paused to cancelled since we don't have a paused status
 		}
 
 		return statusMap[stripeStatus] || 'INCOMPLETE'

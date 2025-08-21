@@ -17,6 +17,7 @@ import { CurrentUser } from '../shared/decorators/current-user.decorator'
 import { ValidatedUser } from '../auth/auth.service'
 import { DocumentsService } from './documents.service'
 import type { ControllerApiResponse } from '@repo/shared'
+import { createSuccessResponse } from '../shared/utils/api-response'
 
 /**
  * Documents controller - File upload and document management
@@ -41,11 +42,7 @@ export class DocumentsController {
 		@Query('lease_id') _leaseId?: string
 	): Promise<ControllerApiResponse> {
 		const data = await this.documentsService.getDocuments()
-		return {
-			success: true,
-			data,
-			message: 'Documents retrieved successfully'
-		}
+		return createSuccessResponse(data, 'Documents retrieved successfully')
 	}
 
 	@Get('search')
@@ -56,11 +53,7 @@ export class DocumentsController {
 		@CurrentUser() _user: ValidatedUser
 	): Promise<ControllerApiResponse> {
 		const data = await this.documentsService.getDocuments()
-		return {
-			success: true,
-			data,
-			message: 'Search completed successfully'
-		}
+		return createSuccessResponse(data, 'Search completed successfully')
 	}
 
 	@Post()
@@ -73,11 +66,7 @@ export class DocumentsController {
 		@CurrentUser() _user: ValidatedUser
 	): Promise<ControllerApiResponse> {
 		const data = await this.documentsService.createDocument()
-		return {
-			success: true,
-			data,
-			message: 'Document created successfully'
-		}
+		return createSuccessResponse(data, 'Document created successfully')
 	}
 
 	@Delete(':id')
@@ -90,9 +79,6 @@ export class DocumentsController {
 		@CurrentUser() _user: ValidatedUser
 	): Promise<ControllerApiResponse> {
 		await this.documentsService.deleteDocument()
-		return {
-			success: true,
-			message: 'Document deleted successfully'
-		}
+		return createSuccessResponse(null, 'Document deleted successfully')
 	}
 }

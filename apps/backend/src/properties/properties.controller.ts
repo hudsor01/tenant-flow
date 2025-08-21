@@ -15,6 +15,7 @@ import {
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { JwtAuthGuard } from '../shared/guards/jwt-auth.guard'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
+import { AuthToken } from '../shared/decorators/auth-token.decorator'
 import { ValidatedUser } from '../auth/auth.service'
 import { PropertiesService, PropertyWithRelations } from './properties.service'
 import {
@@ -42,13 +43,15 @@ export class PropertiesController {
 		description: 'Properties retrieved successfully'
 	})
 	async findAll(
-		@CurrentUser() user: ValidatedUser
+		@CurrentUser() user: ValidatedUser,
+		@AuthToken() authToken?: string
 	): Promise<ControllerApiResponse<PropertyWithRelations[]>> {
-		const data = await this.propertiesService.findAll(user.id)
+		const data = await this.propertiesService.findAll(user.id, authToken)
 		return {
 			success: true,
 			data,
-			message: 'Properties retrieved successfully'
+			message: 'Properties retrieved successfully',
+			timestamp: new Date().toISOString()
 		}
 	}
 
@@ -59,13 +62,15 @@ export class PropertiesController {
 		description: 'Statistics retrieved successfully'
 	})
 	async getStats(
-		@CurrentUser() user: ValidatedUser
+		@CurrentUser() user: ValidatedUser,
+		@AuthToken() authToken?: string
 	): Promise<ControllerApiResponse> {
-		const data = await this.propertiesService.getStats(user.id)
+		const data = await this.propertiesService.getStats(user.id, authToken)
 		return {
 			success: true,
 			data,
-			message: 'Statistics retrieved successfully'
+			message: 'Statistics retrieved successfully',
+			timestamp: new Date().toISOString()
 		}
 	}
 
@@ -74,16 +79,19 @@ export class PropertiesController {
 	@ApiResponse({ status: 200, description: 'Search results retrieved' })
 	async search(
 		@Query('q') searchTerm: string,
-		@CurrentUser() user: ValidatedUser
+		@CurrentUser() user: ValidatedUser,
+		@AuthToken() authToken?: string
 	): Promise<ControllerApiResponse<PropertyWithRelations[]>> {
 		const data = await this.propertiesService.search(
 			user.id,
-			searchTerm || ''
+			searchTerm || '',
+			authToken
 		)
 		return {
 			success: true,
 			data,
-			message: 'Search completed successfully'
+			message: 'Search completed successfully',
+			timestamp: new Date().toISOString()
 		}
 	}
 
@@ -97,13 +105,15 @@ export class PropertiesController {
 	@ApiResponse({ status: 404, description: 'Property not found' })
 	async findOne(
 		@Param('id', ParseUUIDPipe) id: string,
-		@CurrentUser() user: ValidatedUser
+		@CurrentUser() user: ValidatedUser,
+		@AuthToken() authToken?: string
 	): Promise<ControllerApiResponse<PropertyWithRelations>> {
-		const data = await this.propertiesService.findOne(id, user.id)
+		const data = await this.propertiesService.findOne(id, user.id, authToken)
 		return {
 			success: true,
 			data,
-			message: 'Property retrieved successfully'
+			message: 'Property retrieved successfully',
+			timestamp: new Date().toISOString()
 		}
 	}
 
@@ -112,20 +122,24 @@ export class PropertiesController {
 	@ApiResponse({ status: 201, description: 'Property created successfully' })
 	@ApiResponse({ status: 400, description: 'Invalid input' })
 	@ApiResponse({ status: 403, description: 'Usage limit exceeded' })
+	// Global rate limiting applies
 	@UsageLimit({ feature: 'properties' })
 	@UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 	async create(
 		@Body() createPropertyDto: CreatePropertyDto,
-		@CurrentUser() user: ValidatedUser
+		@CurrentUser() user: ValidatedUser,
+		@AuthToken() authToken?: string
 	): Promise<ControllerApiResponse<PropertyWithRelations>> {
 		const data = await this.propertiesService.create(
 			createPropertyDto,
-			user.id
+			user.id,
+			authToken
 		)
 		return {
 			success: true,
 			data,
-			message: 'Property created successfully'
+			message: 'Property created successfully',
+			timestamp: new Date().toISOString()
 		}
 	}
 
@@ -134,21 +148,25 @@ export class PropertiesController {
 	@ApiParam({ name: 'id', description: 'Property ID' })
 	@ApiResponse({ status: 200, description: 'Property updated successfully' })
 	@ApiResponse({ status: 404, description: 'Property not found' })
+	// Global rate limiting applies
 	@UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 	async update(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() updatePropertyDto: UpdatePropertyDto,
-		@CurrentUser() user: ValidatedUser
+		@CurrentUser() user: ValidatedUser,
+		@AuthToken() authToken?: string
 	): Promise<ControllerApiResponse<PropertyWithRelations>> {
 		const data = await this.propertiesService.update(
 			id,
 			updatePropertyDto,
-			user.id
+			user.id,
+			authToken
 		)
 		return {
 			success: true,
 			data,
-			message: 'Property updated successfully'
+			message: 'Property updated successfully',
+			timestamp: new Date().toISOString()
 		}
 	}
 
@@ -161,14 +179,18 @@ export class PropertiesController {
 		status: 400,
 		description: 'Cannot delete property with active leases'
 	})
+	// Global rate limiting applies
 	async remove(
 		@Param('id', ParseUUIDPipe) id: string,
-		@CurrentUser() user: ValidatedUser
+		@CurrentUser() user: ValidatedUser,
+		@AuthToken() authToken?: string
 	): Promise<ControllerApiResponse> {
-		await this.propertiesService.remove(id, user.id)
+		await this.propertiesService.remove(id, user.id, authToken)
 		return {
 			success: true,
-			message: 'Property deleted successfully'
+			data: null,
+			message: 'Property deleted successfully',
+			timestamp: new Date().toISOString()
 		}
 	}
 }

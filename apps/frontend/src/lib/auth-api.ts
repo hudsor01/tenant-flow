@@ -2,7 +2,7 @@
  * Authentication API functions
  * Handles auth operations with the backend
  */
-import { apiClient } from './api-client'
+import { ApiService } from './api/api-service'
 import { logger } from '@/lib/logger'
 import { supabase } from './supabase/client'
 import type {
@@ -184,23 +184,20 @@ export class AuthApi {
 	 */
 	private static async syncWithBackend(): Promise<User> {
 		try {
-			// The backend auth service will validate the token and return user data
-			const response = await apiClient.get<{ user?: User } | User>(
-				'/auth/me'
-			)
-
-			// Handle both wrapped and direct user response formats
-			if (
-				response.data &&
-				typeof response.data === 'object' &&
-				'user' in response.data &&
-				response.data.user
-			) {
-				return response.data.user
+			// Use the unified ApiService for auth calls
+			const user = await ApiService.getCurrentUser()
+			// Map from shared User to frontend User interface
+			return {
+				...user,
+				name: user.name || undefined, // Convert null to undefined
+				phone: user.phone || undefined,
+				bio: user.bio || undefined,
+				avatarUrl: user.avatarUrl || undefined,
+				emailVerified: true, // Backend users are assumed verified
+				role: user.role as 'OWNER' | 'MANAGER' | 'TENANT',
+				createdAt: user.createdAt.toString(),
+				updatedAt: user.updatedAt.toString()
 			}
-
-			// If response.data is directly the user object
-			return response.data as User
 		} catch (error: unknown) {
 			logger.error(
 				'Backend sync failed:',

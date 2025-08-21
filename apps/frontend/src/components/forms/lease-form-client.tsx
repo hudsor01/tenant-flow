@@ -11,7 +11,7 @@ import React, { useState, useTransition, useEffect, useMemo } from 'react'
 import { motion } from '@/lib/framer-motion'
 import type { CreateLeaseInput, UpdateLeaseInput, Lease } from '@repo/shared'
 import { useCreateLease, useUpdateLease } from '@/hooks/api/use-leases'
-import { useProperties } from '@/hooks/use-properties'
+import { useProperties } from '@/hooks/api/use-properties'
 import { useTenants } from '@/hooks/use-tenants'
 import {
 	useBusinessEvents,
@@ -90,8 +90,11 @@ export function LeaseFormClient({
 	const isEditing = mode === 'edit' && Boolean(lease)
 
 	// Data hooks
-	const { properties } = useProperties()
-	const { tenants } = useTenants()
+	const propertiesQuery = useProperties()
+	const { data: tenants = [] } = useTenants()
+	
+	// Memoize properties to prevent render loop
+	const properties = useMemo(() => propertiesQuery.data || [], [propertiesQuery.data])
 
 	// Analytics hooks
 	const { trackLeaseCreated, trackUserError } = useBusinessEvents()
@@ -104,14 +107,14 @@ export function LeaseFormClient({
 	// Available units and tenants
 	const availableUnits = useMemo(() => {
 		return properties.flatMap(
-			property =>
+			(property) =>
 				property.units
 					?.filter(
-						unit =>
+						(unit) =>
 							unit.status === 'VACANT' ||
 							unit.id === lease?.unitId
 					)
-					.map(unit => ({
+					.map((unit) => ({
 						value: unit.id,
 						label: `${property.name} - Unit ${unit.unitNumber} ($${unit.rent ?? unit.monthlyRent ?? 0}/month)`,
 						propertyName: property.name,
@@ -177,11 +180,11 @@ export function LeaseFormClient({
 	useEffect(() => {
 		if (formData.unitId) {
 			const selectedUnit = availableUnits.find(
-				unit => unit.value === formData.unitId
+				(unit) => unit.value === formData.unitId
 			)
 			if (selectedUnit) {
-				const property = properties.find(p =>
-					p.units?.some(u => u.id === formData.unitId)
+				const property = properties.find((p) =>
+					p.units?.some((u) => u.id === formData.unitId)
 				)
 
 				setFormData(prev => ({

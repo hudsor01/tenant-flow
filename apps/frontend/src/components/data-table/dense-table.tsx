@@ -528,12 +528,12 @@ export function createSelectColumn<T>() {
 }
 
 export function createActionsColumn<T>(
-	actions: Array<{
+	actions: {
 		label: string
 		onClick: (item: T) => void
 		icon?: React.ReactNode
 		variant?: 'default' | 'destructive'
-	}>
+	}[]
 ) {
 	return {
 		id: 'actions',

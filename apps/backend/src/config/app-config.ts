@@ -44,10 +44,10 @@ export const APP_CONFIG = {
 		SUPPORT_EMAIL: process.env.SUPPORT_EMAIL || 'support@tenantflow.app'
 	},
 
-	// Feature Flags
+	// Production Features (always enabled in stable version)
 	FEATURES: {
-		ENABLE_TELEMETRY: process.env.ENABLE_TELEMETRY === 'true',
-		ENABLE_MAINTENANCE_MODE: process.env.ENABLE_MAINTENANCE_MODE === 'true'
+		ENABLE_TELEMETRY: true,
+		ENABLE_MAINTENANCE_MODE: false
 	},
 
 	// Environment

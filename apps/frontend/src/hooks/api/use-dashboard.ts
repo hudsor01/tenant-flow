@@ -2,7 +2,7 @@
  * React Query hooks for Dashboard
  * Provides type-safe data fetching for dashboard statistics and analytics
  */
-import { type UseQueryResult } from '@tanstack/react-query'
+import type { UseQueryResult } from '@tanstack/react-query'
 import { logger } from '@/lib/logger'
 import { apiClient } from '@/lib/api-client'
 import { queryKeys } from '@/lib/react-query/query-client'
@@ -84,7 +84,7 @@ export function useDashboardStats(options?: {
 			try {
 				const response =
 					await apiClient.get<DashboardStats>('/dashboard/stats')
-				return response.data
+				return response
 			} catch {
 				// Return default data on error to allow UI to render
 				logger.warn('Dashboard stats API unavailable, using defaults', {
@@ -112,10 +112,9 @@ export function useDashboardOverview(options?: {
 		queryKey: queryKeys.dashboardOverview(),
 		queryFn: async () => {
 			try {
-				const response = await apiClient.get<DashboardOverview>(
+				return await apiClient.get<DashboardOverview>(
 					'/dashboard/overview'
 				)
-				return response.data
 			} catch {
 				logger.warn('Dashboard overview API unavailable', {
 					component: 'UdashboardHook'
@@ -145,10 +144,9 @@ export function useDashboardActivity(
 		queryKey: queryKeys.dashboardActivity(),
 		queryFn: async () => {
 			try {
-				const response = await apiClient.get<
+				return await apiClient.get<
 					DashboardOverview['recentActivity']
 				>('/dashboard/activity', { params: { limit } })
-				return response.data
 			} catch {
 				logger.warn('Dashboard activity API unavailable', {
 					component: 'UdashboardHook'
@@ -171,11 +169,10 @@ export function useRevenueAnalytics(options?: {
 	return useQueryFactory({
 		queryKey: ['revenue-analytics', options?.period ?? 'month'],
 		queryFn: async () => {
-			const response = await apiClient.get<RevenueAnalytics>(
+			return await apiClient.get<RevenueAnalytics>(
 				'/dashboard/revenue',
 				{ params: { period: options?.period ?? 'month' } }
 			)
-			return response.data
 		},
 		enabled: options?.enabled ?? true,
 		staleTime: 10 * 60 * 1000 // Consider data stale after 10 minutes
@@ -204,7 +201,7 @@ export function useOccupancyTrends(options?: {
 				'/dashboard/occupancy-trends',
 				{ params: { months: options?.months ?? 12 } }
 			)
-			return response.data as {
+			return response as {
 				month: string
 				occupancyRate: number
 				totalUnits: number
@@ -255,7 +252,7 @@ export function useMaintenanceMetrics(options?: {
 			const response = await apiClient.get(
 				'/dashboard/maintenance-metrics'
 			)
-			return response.data as {
+			return response as {
 				averageResolutionTime: number
 				requestsByCategory: {
 					category: string
@@ -310,7 +307,7 @@ export function useTenantMetrics(options?: {
 		queryKey: ['tenant-metrics'],
 		queryFn: async () => {
 			const response = await apiClient.get('/dashboard/tenant-metrics')
-			return response.data as {
+			return response as {
 				totalTenants: number
 				newTenantsThisMonth: number
 				renewalRate: number

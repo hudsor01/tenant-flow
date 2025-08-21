@@ -43,7 +43,7 @@ export const createLeaseValidationSchema = leaseInputSchema
 		tenantId: z.string().min(1, 'Tenant selection is required')
 	})
 	.refine(
-		data => {
+		(data: { startDate: string; endDate: string }) => {
 			// Business rule: lease must be at least 30 days
 			const start = new Date(data.startDate)
 			const end = new Date(data.endDate)
@@ -64,7 +64,7 @@ export const createMaintenanceRequestSchema = maintenanceRequestInputSchema
 		contractorInfo: z.string().optional()
 	})
 	.refine(
-		data => {
+		(data: { requiresContractor: boolean; contractorInfo?: string }) => {
 			// If requires contractor is true, contractor info is required
 			if (data.requiresContractor && !data.contractorInfo) {
 				return false
@@ -78,7 +78,7 @@ export const createMaintenanceRequestSchema = maintenanceRequestInputSchema
 		}
 	)
 	.refine(
-		data => {
+		(data: { priority: string; estimatedCost?: number }) => {
 			// Emergency and urgent requests should have estimated costs
 			if (
 				['URGENT', 'EMERGENCY'].includes(data.priority) &&

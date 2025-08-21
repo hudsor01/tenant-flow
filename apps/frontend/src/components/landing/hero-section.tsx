@@ -1,65 +1,57 @@
-import { Badge } from '@/components/ui/badge'
-import { Sparkles, Shield, Zap, Users } from 'lucide-react'
+import { ArrowRight, Shield, Zap, Users, Play } from 'lucide-react'
 import { HeroButtons } from './hero-buttons'
 
 export function HeroSection() {
 	return (
-		<section className="relative flex min-h-[90vh] items-center overflow-hidden px-4 pt-32 pb-20">
-			{/* Brand-consistent hero background */}
-			<div className="bg-hero absolute inset-0" />
+		<section className="relative overflow-hidden bg-white py-16 sm:py-20 lg:py-24">
+			{/* Subtle gradient background */}
+			<div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-blue-50/30" />
 
-			{/* Animated blobs with brand colors */}
-			<div className="absolute inset-0">
-				<div className="animate-blob bg-simplify-soft absolute top-20 left-20 h-96 w-96 rounded-full opacity-30 mix-blend-multiply blur-3xl filter" />
-				<div className="animate-blob animation-delay-2000 bg-simplify-radial absolute top-40 right-20 h-96 w-96 rounded-full opacity-25 mix-blend-multiply blur-3xl filter" />
-				<div className="animate-blob animation-delay-4000 bg-simplify-soft absolute -bottom-8 left-40 h-96 w-96 rounded-full opacity-20 mix-blend-multiply blur-3xl filter" />
-			</div>
-
-			<div className="relative z-10 container mx-auto text-center">
-				{/* Brand-consistent badge */}
-				<Badge className="bg-simplify shadow-simplify mb-6 border-0 px-4 py-1.5 text-white">
-					<Sparkles className="mr-2 h-4 w-4" />
-					New: AI-Powered Lease Generator Now Available
-				</Badge>
-
-				{/* Brand typography with "Simplify" gradient */}
-				<h1 className="animate-fade-in-up mb-6">
-					<span className="text-display-2xl block text-gray-900">
-						Property Management
-					</span>
-					<span className="text-brand-hero mt-2 block">
-						Made Simple
-					</span>
-				</h1>
-
-				{/* Brand-consistent subtitle with improved typography */}
-				<p className="animate-fade-in-up animation-delay-200 text-body-xl mx-auto mb-12 max-w-3xl text-gray-600">
-					Save 10+ hours per week with the all-in-one platform trusted
-					by 10,000+ property managers
-				</p>
-
-				{/* CTA Buttons */}
-				<HeroButtons />
-
-				{/* Trust indicators with brand-consistent colors */}
-				<div className="animate-fade-in-up animation-delay-600 text-ui-md mt-12 flex flex-col items-center justify-center gap-6 text-gray-600 sm:flex-row">
-					<div className="flex items-center gap-2">
-						<Shield className="h-4 w-4 text-green-600" />
-						<span>No credit card required</span>
+			<div className="relative mx-auto max-w-7xl px-6 lg:px-8">
+				<div className="mx-auto max-w-4xl text-center">
+					{/* Compact announcement badge */}
+					<div className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 text-sm text-gray-600 shadow-sm mb-6">
+						<div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
+						<span>New: AI-Powered Lease Generator</span>
+						<ArrowRight className="h-3 w-3" />
 					</div>
-					<div className="flex items-center gap-2">
-						<Zap
-							className="h-4 w-4"
-							style={{ color: 'oklch(0.52 0.18 235)' }}
-						/>
-						<span>Setup in 5 minutes</span>
+
+					{/* Compact typography */}
+					<h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
+						<span className="block">Property Management</span>
+						<span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+							Made Simple
+						</span>
+					</h1>
+
+					{/* Compact subtitle */}
+					<p className="mx-auto mt-6 max-w-2xl text-lg leading-7 text-gray-600">
+						The all-in-one platform trusted by 10,000+ property managers to save 10+ hours per week
+					</p>
+
+					{/* Compact CTA section */}
+					<div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
+						<HeroButtons />
+						<button className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50">
+							<Play className="h-4 w-4" />
+							Watch Demo
+						</button>
 					</div>
-					<div className="flex items-center gap-2">
-						<Users
-							className="h-4 w-4"
-							style={{ color: 'oklch(0.55 0.14 200)' }}
-						/>
-						<span>Join 10,000+ users</span>
+
+					{/* Compact trust indicators */}
+					<div className="mt-12 flex flex-wrap items-center justify-center gap-6 text-sm text-gray-600">
+						<div className="flex items-center gap-2">
+							<Shield className="h-4 w-4 text-emerald-500" />
+							<span>14-day free trial</span>
+						</div>
+						<div className="flex items-center gap-2">
+							<Zap className="h-4 w-4 text-blue-500" />
+							<span>5-minute setup</span>
+						</div>
+						<div className="flex items-center gap-2">
+							<Users className="h-4 w-4 text-purple-500" />
+							<span>Join 10,000+ users</span>
+						</div>
 					</div>
 				</div>
 			</div>

@@ -2,10 +2,7 @@
  * React Query hooks for Units
  * Provides type-safe data fetching and mutations with optimistic updates
  */
-import {
-	type UseQueryResult,
-	type UseMutationResult
-} from '@tanstack/react-query'
+import type { UseQueryResult, UseMutationResult } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
 import { queryKeys } from '@/lib/react-query/query-client'
 import type {
@@ -34,7 +31,7 @@ export function useUnits(
 			const response = await apiClient.get<Unit[]>('/units', {
 				params: createQueryAdapter(query)
 			})
-			return response.data
+			return response
 		},
 		enabled: options?.enabled ?? true,
 		staleTime: 5 * 60 * 1000
@@ -52,8 +49,7 @@ export function useUnit(
 		'units',
 		Boolean(id) && (options?.enabled ?? true) ? id : undefined,
 		async (id: string) => {
-			const response = await apiClient.get<Unit>(`/units/${id}`)
-			return response.data
+			return await apiClient.get<Unit>(`/units/${id}`)
 		}
 	)
 }
@@ -71,10 +67,9 @@ export function useUnitsByProperty(
 			? `property-${propertyId}`
 			: undefined,
 		async () => {
-			const response = await apiClient.get<Unit[]>(
+			return await apiClient.get<Unit[]>(
 				`/properties/${propertyId}/units`
 			)
-			return response.data
 		}
 	)
 }
@@ -93,7 +88,7 @@ export function useCreateUnit(): UseMutationResult<
 				'/units',
 				createMutationAdapter(data)
 			)
-			return response.data
+			return response
 		},
 		invalidateKeys: [queryKeys.units()],
 		successMessage: 'Unit created successfully',
@@ -142,7 +137,7 @@ export function useUpdateUnit(): UseMutationResult<
 				`/units/${id}`,
 				createMutationAdapter(data)
 			)
-			return response.data
+			return response
 		},
 		invalidateKeys: [queryKeys.units()],
 		successMessage: 'Unit updated successfully',
@@ -181,11 +176,10 @@ export function useUpdateUnitOccupancy(): UseMutationResult<
 > {
 	return useMutationFactory({
 		mutationFn: async ({ id, isOccupied }) => {
-			const response = await apiClient.patch<Unit>(
+			return await apiClient.patch<Unit>(
 				`/units/${id}/occupancy`,
 				{ isOccupied }
 			)
-			return response.data
 		},
 		invalidateKeys: [queryKeys.units()],
 		successMessage: 'Unit occupancy updated',

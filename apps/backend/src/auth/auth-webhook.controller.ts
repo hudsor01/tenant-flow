@@ -6,7 +6,7 @@ import {
 	Logger,
 	Post
 } from '@nestjs/common'
-import { Throttle } from '@nestjs/throttler'
+// Rate limiting handled globally
 import { AuthService } from './auth.service'
 import { StripeService } from '../billing/stripe.service'
 import { SubscriptionsManagerService } from '../billing/subscriptions-manager.service'
@@ -46,7 +46,7 @@ export class AuthWebhookController {
 	@Post('supabase')
 	@Public()
 	@CsrfExempt()
-	@Throttle({ webhook: { limit: 200, ttl: 60000 } }) // Uses 'webhook' context from app.module
+	// Global rate limiting is sufficient for webhooks
 	@HttpCode(200)
 	async handleSupabaseAuthWebhook(
 		@Body() event: SupabaseWebhookEvent,

@@ -1,18 +1,29 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@repo/shared/types/supabase-generated'
-import { TypeSafeConfigService } from '../config/config.service'
+import type { EnvironmentVariables } from '../config/config.schema'
 
 @Injectable()
 export class SupabaseService {
-	private readonly _logger = new Logger(SupabaseService.name)
 	private adminClient: SupabaseClient<Database>
 
-	constructor(private configService: TypeSafeConfigService) {
-		void this._logger // Prevent unused variable warning
+	constructor(private configService: ConfigService<EnvironmentVariables>) {
+		const supabaseUrl = this.configService.get('SUPABASE_URL', {
+			infer: true
+		})
+		const supabaseServiceKey = this.configService.get(
+			'SUPABASE_SERVICE_ROLE_KEY',
+			{ infer: true }
+		)
+
+		if (!supabaseUrl || !supabaseServiceKey) {
+			throw new Error('Supabase configuration is missing')
+		}
+
 		this.adminClient = createClient<Database>(
-			this.configService.supabase.url,
-			this.configService.supabase.serviceRoleKey,
+			supabaseUrl,
+			supabaseServiceKey,
 			{
 				auth: {
 					persistSession: false,
@@ -27,21 +38,24 @@ export class SupabaseService {
 	}
 
 	getUserClient(userToken: string): SupabaseClient<Database> {
-		return createClient<Database>(
-			this.configService.supabase.url,
-			this.configService.supabase.anonKey,
-			{
-				auth: {
-					persistSession: false,
-					autoRefreshToken: false
-				},
-				global: {
-					headers: {
-						Authorization: `Bearer ${userToken}`
-					}
+		const supabaseUrl = process.env.SUPABASE_URL
+		const supabaseAnonKey = process.env.SUPABASE_ANON_KEY
+
+		if (!supabaseUrl || !supabaseAnonKey) {
+			throw new Error('Supabase configuration is missing for user client')
+		}
+
+		return createClient<Database>(supabaseUrl, supabaseAnonKey, {
+			auth: {
+				persistSession: false,
+				autoRefreshToken: false
+			},
+			global: {
+				headers: {
+					Authorization: `Bearer ${userToken}`
 				}
 			}
-		)
+		})
 	}
 
 	async checkConnection(): Promise<{ status: string; message?: string }> {

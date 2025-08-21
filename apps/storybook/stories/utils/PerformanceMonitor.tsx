@@ -13,6 +13,15 @@ import {
 	RefreshCw
 } from 'lucide-react'
 
+// Extended Performance interface for memory API
+interface ExtendedPerformance extends Performance {
+	memory?: {
+		usedJSHeapSize: number
+		totalJSHeapSize: number
+		jsHeapSizeLimit: number
+	}
+}
+
 // Performance metrics interface
 interface PerformanceMetrics {
 	renderTime: number
@@ -95,7 +104,7 @@ export const usePerformanceMonitor = (componentName: string) => {
 					...prev,
 					firstContentfulPaint: fcp?.startTime,
 					largestContentfulPaint: lcp
-						? (lcp as any).startTime
+						? (lcp as PerformanceEntry).startTime
 						: undefined
 				}))
 			})
@@ -140,10 +149,10 @@ export const usePerformanceMonitor = (componentName: string) => {
 	// Memory usage (if available)
 	useEffect(() => {
 		if ('memory' in performance) {
-			const memory = (performance as any).memory
+			const memory = (performance as ExtendedPerformance).memory
 			setMetrics(prev => ({
 				...prev,
-				memoryUsage: memory.usedJSHeapSize
+				memoryUsage: memory?.usedJSHeapSize
 			}))
 		}
 	}, [])
@@ -376,7 +385,7 @@ export const PerformanceMonitor: React.FC<{
 // Performance decorator for stories
 export const withPerformanceMonitor =
 	(showDetails: boolean = false) =>
-	(Story: React.ComponentType, context: any) => {
+	(Story: React.ComponentType, context: Record<string, unknown>) => {
 		const [showMonitor, setShowMonitor] = useState(showDetails)
 
 		return (

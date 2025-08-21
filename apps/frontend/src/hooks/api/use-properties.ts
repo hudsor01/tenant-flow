@@ -41,7 +41,7 @@ export function useProperties(
 						params: createQueryAdapter(query)
 					}
 				)
-				return response.data
+				return response
 			} catch {
 				logger.warn(
 					'Properties API unavailable, returning empty list',
@@ -66,8 +66,7 @@ export function useProperty(
 		'properties',
 		Boolean(id) && (options?.enabled ?? true) ? id : undefined,
 		async (id: string) => {
-			const response = await apiClient.get<Property>(`/properties/${id}`)
-			return response.data
+			return await apiClient.get<Property>(`/properties/${id}`)
 		}
 	)
 }
@@ -87,7 +86,7 @@ export function usePropertyStats(): UseQueryResult<
 	Error
 > {
 	return useStatsQuery('properties', async () => {
-		const response = await apiClient.get<{
+		return await apiClient.get<{
 			total: number
 			occupied: number
 			vacant: number
@@ -95,7 +94,6 @@ export function usePropertyStats(): UseQueryResult<
 			totalMonthlyRent: number
 			averageRent: number
 		}>('/properties/stats')
-		return response.data
 	})
 }
 
@@ -113,7 +111,7 @@ export function useCreateProperty(): UseMutationResult<
 				'/properties',
 				createMutationAdapter(data)
 			)
-			return response.data
+			return response
 		},
 		invalidateKeys: [queryKeys.properties(), queryKeys.propertyStats()],
 		successMessage: 'Property created successfully',
@@ -152,7 +150,7 @@ export function useUpdateProperty(): UseMutationResult<
 				`/properties/${id}`,
 				createMutationAdapter(data)
 			)
-			return response.data
+			return response
 		},
 		invalidateKeys: [queryKeys.properties(), queryKeys.propertyStats()],
 		successMessage: 'Property updated successfully',
@@ -205,10 +203,9 @@ export function usePrefetchProperty() {
 		queryClient.prefetchQuery({
 			queryKey: queryKeys.propertyDetail(id),
 			queryFn: async () => {
-				const response = await apiClient.get<Property>(
+				return await apiClient.get<Property>(
 					`/properties/${id}`
 				)
-				return response.data
 			},
 			staleTime: 10 * 1000 // Consider data stale after 10 seconds
 		})

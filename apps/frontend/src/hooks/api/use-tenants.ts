@@ -2,10 +2,7 @@
  * React Query hooks for Tenants
  * Provides type-safe data fetching and mutations with optimistic updates
  */
-import {
-	type UseQueryResult,
-	type UseMutationResult
-} from '@tanstack/react-query'
+import type { UseQueryResult, UseMutationResult } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
 import { queryKeys } from '@/lib/react-query/query-client'
 import type {
@@ -34,7 +31,7 @@ export function useTenants(
 			const response = await apiClient.get<Tenant[]>('/tenants', {
 				params: createQueryAdapter(query)
 			})
-			return response.data
+			return response
 		},
 		enabled: options?.enabled ?? true,
 		staleTime: 5 * 60 * 1000
@@ -52,8 +49,7 @@ export function useTenant(
 		'tenants',
 		Boolean(id) && (options?.enabled ?? true) ? id : undefined,
 		async (id: string) => {
-			const response = await apiClient.get<Tenant>(`/tenants/${id}`)
-			return response.data
+			return await apiClient.get<Tenant>(`/tenants/${id}`)
 		}
 	)
 }
@@ -72,7 +68,7 @@ export function useCreateTenant(): UseMutationResult<
 				'/tenants',
 				createMutationAdapter(data)
 			)
-			return response.data
+			return response
 		},
 		invalidateKeys: [queryKeys.tenants()],
 		successMessage: 'Tenant created successfully',
@@ -122,7 +118,7 @@ export function useUpdateTenant(): UseMutationResult<
 				`/tenants/${id}`,
 				createMutationAdapter(data)
 			)
-			return response.data
+			return response
 		},
 		invalidateKeys: [queryKeys.tenants()],
 		successMessage: 'Tenant updated successfully',
