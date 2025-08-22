@@ -47,7 +47,7 @@ export function registerGlobalSerializers(app: NestFastifyApplication): void {
     includeCurrencySymbol: false  // Let frontend handle symbols
   })
   
-  console.log('✅ Global serializers registered successfully')
+  console.info('✅ Global serializers registered successfully')
 }
 
 /**
@@ -179,7 +179,7 @@ export function applySerializersSelectively(app: NestFastifyApplication) {
   
   // Only apply to billing/subscription routes
   fastify.register(async function billingSerializers(childFastify) {
-    childFastify.addHook('preHandler', async (request, reply) => {
+    childFastify.addHook('preHandler', async (request, _reply) => {
       // Only apply to billing-related routes
       if (request.url.startsWith('/api/v1/billing') || 
           request.url.startsWith('/api/v1/stripe')) {
@@ -190,7 +190,7 @@ export function applySerializersSelectively(app: NestFastifyApplication) {
   
   // Apply date serializer to dashboard routes (lots of timestamps)
   fastify.register(async function dashboardSerializers(childFastify) {
-    childFastify.addHook('preHandler', async (request, reply) => {
+    childFastify.addHook('preHandler', async (request, _reply) => {
       if (request.url.startsWith('/api/v1/dashboard')) {
         registerDateSerializerForRoute(childFastify)
       }
