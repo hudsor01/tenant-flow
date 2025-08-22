@@ -1,9 +1,10 @@
 {
 	"$schema": "https://openapi.vercel.sh/vercel.json",
-	"buildCommand": "turbo build --filter=@repo/frontend",
+	"installCommand": "npm ci",
+	"buildCommand": "cd packages/shared && npm run build && cd ../.. && npx turbo run build --filter=@repo/frontend",
 	"framework": "nextjs",
 	"outputDirectory": ".next",
-	"ignoreCommand": "npx turbo-ignore --filter=@repo/frontend --fallback=HEAD^1",
+	"ignoreCommand": "npx turbo-ignore @repo/frontend --fallback=HEAD^1",
 	"redirects": [
 		{
 			"source": "/home",
