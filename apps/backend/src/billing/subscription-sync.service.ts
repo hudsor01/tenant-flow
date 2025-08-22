@@ -68,7 +68,7 @@ export class SubscriptionSyncService {
 		private readonly eventEmitter: EventEmitter2,
 		private readonly errorHandler: ErrorHandlerService
 	) {
-		this.structuredLogger = new StructuredLoggerService('SubscriptionSync')
+		this.structuredLogger = new StructuredLoggerService()
 
 		// Clean up cache every 10 minutes
 		setInterval(
@@ -506,6 +506,7 @@ export class SubscriptionSyncService {
 		} catch (error) {
 			this.structuredLogger.error(
 				'Subscription sync failed',
+				undefined,
 				{
 					error: error as Error,
 					userId,
