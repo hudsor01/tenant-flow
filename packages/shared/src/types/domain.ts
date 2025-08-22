@@ -422,11 +422,11 @@ export class Address extends BaseValueObject<Address> {
 		public readonly country = 'US'
 	) {
 		super()
-		if (!street?.trim()) throw new Error('Street is required')
-		if (!city?.trim()) throw new Error('City is required')
-		if (!state?.trim()) throw new Error('State is required')
-		if (!zipCode?.trim()) throw new Error('ZIP code is required')
-		if (!country?.trim()) throw new Error('Country is required')
+		if (!street?.trim()) {throw new Error('Street is required')}
+		if (!city?.trim()) {throw new Error('City is required')}
+		if (!state?.trim()) {throw new Error('State is required')}
+		if (!zipCode?.trim()) {throw new Error('ZIP code is required')}
+		if (!country?.trim()) {throw new Error('Country is required')}
 	}
 
 	equals(other: Address): boolean {
