@@ -2,10 +2,9 @@
 
 import React, { useMemo } from 'react'
 import DOMPurify from 'dompurify'
+import type { SafeHTMLProps as BaseSafeHTMLProps } from '@/types'
 
-interface SafeHTMLProps {
-	html: string
-	className?: string
+interface SafeHTMLProps extends Omit<BaseSafeHTMLProps, 'allowedTags' | 'allowedAttributes'> {
 	/**
 	 * DOMPurify configuration options
 	 * @see https://github.com/cure53/DOMPurify#can-i-configure-dompurify

@@ -40,18 +40,26 @@ import {
 import Link from 'next/link'
 import type { Property } from '@repo/shared'
 
+// Extended property type with backend-calculated metrics
+interface PropertyWithMetrics extends Property {
+	occupancyRate?: number
+	totalRevenue?: number
+}
+
 interface PropertyRowProps {
-	property: Property
-	onView?: (property: Property) => void
-	onEdit?: (property: Property) => void
+	property: PropertyWithMetrics
+	onView?: (property: PropertyWithMetrics) => void
+	onEdit?: (property: PropertyWithMetrics) => void
 }
 
 function PropertyRow({ property, onView, onEdit }: PropertyRowProps) {
 	const totalUnits = property.units?.length || 0
-	const occupiedUnits =
-		property.units?.filter(unit => unit.status === 'OCCUPIED').length || 0
-	const occupancyRate =
-		totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
+	// Use backend-calculated metrics if available, fallback to client calculation
+	const occupancyRate = property.occupancyRate ?? (
+		totalUnits > 0 
+			? Math.round((property.units?.filter(unit => unit.status === 'OCCUPIED').length || 0) / totalUnits * 100)
+			: 0
+	)
 
 	return (
 		<TableRow className="hover:bg-accent/50">

@@ -32,7 +32,7 @@ import { CustomerPortalButton } from './customer-portal-button'
  * Simple display of current subscription with portal access
  */
 export function SubscriptionStatus() {
-	const { subscription, isLoading } = useSubscription()
+	const { data: subscription, isLoading } = useSubscription()
 	const premiumAccess = useCanAccessPremiumFeatures()
 
 	if (isLoading) {
@@ -107,7 +107,7 @@ export function SubscriptionStatus() {
 	} as const
 
 	const config =
-		statusConfig[subscription?.status as keyof typeof statusConfig] ||
+		statusConfig[subscription?.subscription?.status as keyof typeof statusConfig] ||
 		statusConfig.ACTIVE
 	const StatusIcon = config.icon
 
@@ -150,8 +150,8 @@ export function SubscriptionStatus() {
 							<div className="text-sm">
 								<p className="font-medium">Current Period</p>
 								<p className="text-muted-foreground">
-									{subscription?.currentPeriodEnd
-										? `Ends ${new Date(subscription.currentPeriodEnd).toLocaleDateString()}`
+									{subscription?.subscriptionEndsAt
+										? `Ends ${subscription.subscriptionEndsAt.toLocaleDateString()}`
 										: 'No end date'}
 								</p>
 							</div>
@@ -162,7 +162,7 @@ export function SubscriptionStatus() {
 							<div className="text-sm">
 								<p className="font-medium">Billing</p>
 								<p className="text-muted-foreground">
-									{subscription?.cancelAtPeriodEnd
+									{subscription?.isCanceled
 										? 'Cancels at period end'
 										: 'Auto-renews'}
 								</p>
@@ -171,7 +171,7 @@ export function SubscriptionStatus() {
 					</div>
 
 					{/* Status-specific alerts */}
-					{subscription?.status === 'PAST_DUE' && (
+					{subscription?.isPastDue && (
 						<div className={`rounded-lg p-3 ${config.bgClass}`}>
 							<div className="flex items-start gap-2">
 								<StatusIcon className="mt-0.5 h-4 w-4 shrink-0" />
@@ -190,7 +190,7 @@ export function SubscriptionStatus() {
 						</div>
 					)}
 
-					{subscription?.status === 'CANCELED' && (
+					{subscription?.isCanceled && (
 						<div className={`rounded-lg p-3 ${config.bgClass}`}>
 							<div className="flex items-start gap-2">
 								<StatusIcon className="mt-0.5 h-4 w-4 shrink-0" />
@@ -202,10 +202,8 @@ export function SubscriptionStatus() {
 									</p>
 									<p className="text-muted-foreground mt-1 text-xs">
 										Access continues until{' '}
-										{subscription.currentPeriodEnd
-											? new Date(
-													subscription.currentPeriodEnd
-												).toLocaleDateString()
+										{subscription.subscriptionEndsAt
+											? subscription.subscriptionEndsAt.toLocaleDateString()
 											: 'end of period'}
 									</p>
 								</div>
@@ -213,7 +211,7 @@ export function SubscriptionStatus() {
 						</div>
 					)}
 
-					{subscription?.status === 'TRIALING' && (
+					{subscription?.isTrialing && (
 						<div className={`rounded-lg p-3 ${config.bgClass}`}>
 							<div className="flex items-start gap-2">
 								<StatusIcon className="mt-0.5 h-4 w-4 shrink-0" />
@@ -225,10 +223,8 @@ export function SubscriptionStatus() {
 									</p>
 									<p className="text-muted-foreground mt-1 text-xs">
 										Trial ends{' '}
-										{subscription.currentPeriodEnd
-											? new Date(
-													subscription.currentPeriodEnd
-												).toLocaleDateString()
+										{subscription.trialEndsAt
+											? subscription.trialEndsAt.toLocaleDateString()
 											: 'soon'}
 									</p>
 								</div>

@@ -16,6 +16,8 @@ export type TenantFlowEvent =
 	| 'user_oauth_initiated'
 	| 'password_reset_requested'
 	| 'password_reset_completed'
+	| 'password_reset_failed'
+	| 'password_updated'
 
 	// Property Management Events
 	| 'property_created'

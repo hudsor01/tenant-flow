@@ -1,203 +1,74 @@
-/**
- * React Query hooks for Units
- * Provides type-safe data fetching and mutations with optimistic updates
- */
-import type { UseQueryResult, UseMutationResult } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
-import { queryKeys } from '@/lib/react-query/query-client'
-import type {
-	Unit,
-	UnitQuery,
-	CreateUnitInput,
-	UpdateUnitInput
-} from '@repo/shared'
-import { createMutationAdapter, createQueryAdapter } from '@repo/shared'
-import {
-	useQueryFactory,
-	useDetailQuery,
-	useMutationFactory
-} from '../query-factory'
+import type { Unit } from '@repo/shared'
 
-/**
- * Fetch list of units with optional filters
- */
-export function useUnits(
-	query?: UnitQuery,
-	options?: { enabled?: boolean }
-): UseQueryResult<Unit[], Error> {
-	return useQueryFactory({
-		queryKey: ['tenantflow', 'units', 'list', query],
-		queryFn: async () => {
-			const response = await apiClient.get<Unit[]>('/units', {
-				params: createQueryAdapter(query)
-			})
-			return response
+export function useUnits(propertyId?: string) {
+	return useQuery({
+		queryKey: ['units', propertyId],
+		queryFn: async (): Promise<Unit[]> => {
+			const url = propertyId ? `/properties/${propertyId}/units` : '/units'
+			return apiClient.get<Unit[]>(url)
 		},
-		enabled: options?.enabled ?? true,
-		staleTime: 5 * 60 * 1000
+		staleTime: 5 * 60 * 1000, // 5 minutes
 	})
 }
 
-/**
- * Fetch single unit by ID
- */
-export function useUnit(
-	id: string,
-	options?: { enabled?: boolean }
-): UseQueryResult<Unit, Error> {
-	return useDetailQuery(
-		'units',
-		Boolean(id) && (options?.enabled ?? true) ? id : undefined,
-		async (id: string) => {
-			return await apiClient.get<Unit>(`/units/${id}`)
-		}
-	)
-}
-
-/**
- * Fetch units by property ID
- */
-export function useUnitsByProperty(
-	propertyId: string,
-	options?: { enabled?: boolean }
-): UseQueryResult<Unit[], Error> {
-	return useDetailQuery(
-		'units',
-		Boolean(propertyId) && (options?.enabled ?? true)
-			? `property-${propertyId}`
-			: undefined,
-		async () => {
-			return await apiClient.get<Unit[]>(
-				`/properties/${propertyId}/units`
-			)
-		}
-	)
-}
-
-/**
- * Create new unit with optimistic updates
- */
-export function useCreateUnit(): UseMutationResult<
-	Unit,
-	Error,
-	CreateUnitInput
-> {
-	return useMutationFactory({
-		mutationFn: async (data: CreateUnitInput) => {
-			const response = await apiClient.post<Unit>(
-				'/units',
-				createMutationAdapter(data)
-			)
-			return response
+export function useUnit(id: string) {
+	return useQuery({
+		queryKey: ['units', id],
+		queryFn: async (): Promise<Unit> => {
+			return apiClient.get<Unit>(`/units/${id}`)
 		},
-		invalidateKeys: [queryKeys.units()],
-		successMessage: 'Unit created successfully',
-		errorMessage: 'Failed to create unit',
-		optimisticUpdate: {
-			queryKey: queryKeys.unitList(),
-			updater: (oldData: unknown, variables: CreateUnitInput) => {
-				const previousUnits = oldData as Unit[]
-				const newUnit = {
-					...variables,
-					id: `temp-${Date.now()}`,
-					rent:
-						'monthlyRent' in variables ? variables.monthlyRent : 0,
-					monthlyRent:
-						'monthlyRent' in variables ? variables.monthlyRent : 0,
-					status:
-						'status' in variables
-							? (variables.status as string)
-							: 'VACANT',
-					lastInspectionDate:
-						'lastInspectionDate' in variables
-							? typeof variables.lastInspectionDate === 'string'
-								? new Date(variables.lastInspectionDate)
-								: (variables.lastInspectionDate as Date | null)
-							: null,
-					createdAt: new Date(),
-					updatedAt: new Date()
-				} as Unit
-				return previousUnits ? [...previousUnits, newUnit] : [newUnit]
+		enabled: !!id,
+	})
+}
+
+export function useCreateUnit() {
+	const queryClient = useQueryClient()
+	
+	return useMutation({
+		mutationFn: async (data: Partial<Unit>) => {
+			return apiClient.post<Unit>('/units', data)
+		},
+		onSuccess: (newUnit) => {
+			queryClient.invalidateQueries({ queryKey: ['units'] })
+			if (newUnit.propertyId) {
+				queryClient.invalidateQueries({ queryKey: ['units', newUnit.propertyId] })
+				queryClient.invalidateQueries({ queryKey: ['properties'] })
 			}
-		}
-	})
-}
-
-/**
- * Update unit with optimistic updates
- */
-export function useUpdateUnit(): UseMutationResult<
-	Unit,
-	Error,
-	{ id: string; data: UpdateUnitInput }
-> {
-	return useMutationFactory({
-		mutationFn: async ({ id, data }) => {
-			const response = await apiClient.put<Unit>(
-				`/units/${id}`,
-				createMutationAdapter(data)
-			)
-			return response
 		},
-		invalidateKeys: [queryKeys.units()],
-		successMessage: 'Unit updated successfully',
-		errorMessage: 'Failed to update unit'
 	})
 }
 
-/**
- * Delete unit with optimistic updates
- */
-export function useDeleteUnit(): UseMutationResult<void, Error, string> {
-	return useMutationFactory({
+export function useUpdateUnit() {
+	const queryClient = useQueryClient()
+	
+	return useMutation({
+		mutationFn: async ({ id, ...data }: Partial<Unit> & { id: string }) => {
+			return apiClient.put<Unit>(`/units/${id}`, data)
+		},
+		onSuccess: (updatedUnit) => {
+			queryClient.invalidateQueries({ queryKey: ['units'] })
+			if (updatedUnit.id) {
+				queryClient.invalidateQueries({ queryKey: ['units', updatedUnit.id] })
+			}
+			if (updatedUnit.propertyId) {
+				queryClient.invalidateQueries({ queryKey: ['units', updatedUnit.propertyId] })
+			}
+		},
+	})
+}
+
+export function useDeleteUnit() {
+	const queryClient = useQueryClient()
+	
+	return useMutation({
 		mutationFn: async (id: string) => {
-			await apiClient.delete(`/units/${id}`)
+			return apiClient.delete(`/units/${id}`)
 		},
-		invalidateKeys: [queryKeys.units()],
-		successMessage: 'Unit deleted successfully',
-		errorMessage: 'Failed to delete unit',
-		optimisticUpdate: {
-			queryKey: queryKeys.unitList(),
-			updater: (oldData: unknown, id: string) => {
-				const previousList = oldData as Unit[]
-				return previousList ? previousList.filter(u => u.id !== id) : []
-			}
-		}
-	})
-}
-
-/**
- * Update unit occupancy status
- */
-export function useUpdateUnitOccupancy(): UseMutationResult<
-	Unit,
-	Error,
-	{ id: string; isOccupied: boolean }
-> {
-	return useMutationFactory({
-		mutationFn: async ({ id, isOccupied }) => {
-			return await apiClient.patch<Unit>(
-				`/units/${id}/occupancy`,
-				{ isOccupied }
-			)
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['units'] })
+			queryClient.invalidateQueries({ queryKey: ['properties'] })
 		},
-		invalidateKeys: [queryKeys.units()],
-		successMessage: 'Unit occupancy updated',
-		errorMessage: 'Failed to update unit occupancy',
-		optimisticUpdate: {
-			queryKey: queryKeys.unitList(),
-			updater: (oldData: unknown, { id, isOccupied }) => {
-				const previousList = oldData as Unit[]
-				if (!previousList) return []
-				return previousList.map(unit =>
-					unit.id === id
-						? {
-								...unit,
-								status: isOccupied ? 'OCCUPIED' : 'VACANT'
-							}
-						: unit
-				)
-			}
-		}
 	})
 }
