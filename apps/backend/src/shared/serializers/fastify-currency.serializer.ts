@@ -67,7 +67,6 @@ export function createCurrencyAmount(
  */
 export function createCurrencySerializer(options: CurrencySerializerOptions = {}) {
   const {
-    defaultCurrency = 'USD',
     convertCentsToDisplay = true,
     decimalPlaces = 2,
     includeCurrencySymbol = false
@@ -77,15 +76,16 @@ export function createCurrencySerializer(options: CurrencySerializerOptions = {}
     // Handle currency amount objects
     if (payload && typeof payload === 'object' && '__isCurrency' in payload) {
       const currencyObj = payload as CurrencyAmount
-      let { amount, currency } = currencyObj
+      const { amount, currency } = currencyObj
       
       // Convert cents to dollars if needed (Stripe amounts are in cents)
+      let displayAmount = amount
       if (convertCentsToDisplay && amount >= 100) {
-        amount = amount / 100
+        displayAmount = amount / 100
       }
       
       // Round to specified decimal places
-      amount = Number(amount.toFixed(decimalPlaces))
+      displayAmount = Number(displayAmount.toFixed(decimalPlaces))
       
       if (includeCurrencySymbol) {
         const symbols: Record<string, string> = {
@@ -94,10 +94,10 @@ export function createCurrencySerializer(options: CurrencySerializerOptions = {}
           GBP: '£'
         }
         const symbol = symbols[currency] || currency
-        return `${symbol}${amount}`
+        return `${symbol}${displayAmount}`
       }
       
-      return amount
+      return displayAmount
     }
     
     // Handle plain numbers that might be currency (when field name suggests currency)
