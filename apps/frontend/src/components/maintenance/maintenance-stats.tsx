@@ -41,24 +41,19 @@ export function MaintenanceStats() {
 		)
 	}
 
-	const totalRequests = maintenanceRequests?.length || 0
-	const openRequests =
-		maintenanceRequests?.filter(request => request.status === 'OPEN')
-			.length || 0
-	const inProgressRequests =
-		maintenanceRequests?.filter(request => request.status === 'IN_PROGRESS')
-			.length || 0
-	const completedRequests =
-		maintenanceRequests?.filter(request => request.status === 'COMPLETED')
-			.length || 0
+
+	const safeRequests = Array.isArray(maintenanceRequests) ? maintenanceRequests : [];
+	const totalRequests = safeRequests.length;
+	const openRequests = safeRequests.filter(request => request.status === 'OPEN').length;
+	const inProgressRequests = safeRequests.filter(request => request.status === 'IN_PROGRESS').length;
+	const completedRequests = safeRequests.filter(request => request.status === 'COMPLETED').length;
 
 	// Calculate urgent/high priority requests
-	const urgentRequests =
-		maintenanceRequests?.filter(
-			request =>
-				request.priority === 'EMERGENCY' &&
-				['OPEN', 'IN_PROGRESS'].includes(request.status)
-		).length || 0
+	const urgentRequests = safeRequests.filter(
+		request =>
+			request.priority === 'EMERGENCY' &&
+			['OPEN', 'IN_PROGRESS'].includes(request.status)
+	).length || 0
 
 	const stats = [
 		{
