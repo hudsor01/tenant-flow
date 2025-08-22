@@ -21,6 +21,18 @@ export class CreateCheckoutDto {
   cancelUrl?: string
 }
 
+export class CreateEmbeddedCheckoutDto {
+  @IsEnum(Object.values(PLAN_TYPES), {
+    message: 'planId must be one of: STARTER, GROWTH, TENANTFLOW_MAX'
+  })
+  planId!: string
+
+  @IsEnum(['monthly', 'annual'], {
+    message: 'interval must be either monthly or annual'
+  })
+  interval!: 'monthly' | 'annual'
+}
+
 export class CreatePortalDto {
   @IsOptional()
   @IsUrl({}, { message: 'returnUrl must be a valid URL' })
