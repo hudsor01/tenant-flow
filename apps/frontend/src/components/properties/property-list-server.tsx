@@ -129,9 +129,7 @@ async function PropertyStats() {
 			<Card>
 				<CardContent className="p-4">
 					<div className="text-2xl font-bold">
-						{(stats as unknown as PropertyStats)?.totalProperties ||
-							stats?.total ||
-							0}
+						{stats?.properties?.totalProperties || 0}
 					</div>
 					<p className="text-muted-foreground text-sm">
 						Total Properties
@@ -141,9 +139,7 @@ async function PropertyStats() {
 			<Card>
 				<CardContent className="p-4">
 					<div className="text-2xl font-bold">
-						{(stats as unknown as PropertyStats)?.totalUnits ||
-							stats?.occupied + stats?.vacant ||
-							0}
+						{stats?.units?.totalUnits || 0}
 					</div>
 					<p className="text-muted-foreground text-sm">Total Units</p>
 				</CardContent>

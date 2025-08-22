@@ -243,7 +243,7 @@ export function getLineItemAmountExcludingTax(
  * Get total tax amount for a line item
  */
 export function getLineItemTaxAmount(lineItem: StripeInvoiceLineItem): number {
-	if (!lineItem.tax_amounts) return 0
+	if (!lineItem.tax_amounts) {return 0}
 	return lineItem.tax_amounts.reduce(
 		(total, taxAmount) => total + taxAmount.amount,
 		0
@@ -256,7 +256,7 @@ export function getLineItemTaxAmount(lineItem: StripeInvoiceLineItem): number {
 export function getLineItemDiscountAmount(
 	lineItem: StripeInvoiceLineItem
 ): number {
-	if (!lineItem.discount_amounts) return 0
+	if (!lineItem.discount_amounts) {return 0}
 	return lineItem.discount_amounts.reduce(
 		(total, discount) => total + discount.amount,
 		0
@@ -357,7 +357,7 @@ export function getLineItemEffectiveTaxRate(
 	const totalTax = getLineItemTaxAmount(lineItem)
 	const baseAmount = getLineItemAmountExcludingTax(lineItem)
 
-	if (baseAmount === 0) return 0
+	if (baseAmount === 0) {return 0}
 
 	return (totalTax / baseAmount) * 100
 }
