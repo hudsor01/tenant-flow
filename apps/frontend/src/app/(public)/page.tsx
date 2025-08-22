@@ -9,7 +9,7 @@ import {
 	CTASection,
 	FooterSection
 } from '@/components/landing'
-import { SEO } from '@/components/SEO/Seo'
+import { SEO } from '@/components/seo/SEO'
 import { OAuthRedirectHandler } from '@/components/auth/oauth-redirect-handler'
 
 export const metadata: Metadata = {
