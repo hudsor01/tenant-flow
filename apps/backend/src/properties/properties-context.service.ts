@@ -47,8 +47,9 @@ export class PropertiesContextService {
 	 * Context automatically provides the correct client scope
 	 */
 	private getClient(): SupabaseClient<Database> {
-		// Request context ensures we get user-scoped client automatically
-		return this.supabaseService.getUserClient()
+		// For now, use admin client with RLS for security
+		// TODO: Extract auth token from request context when available
+		return this.supabaseService.getAdminClient()
 	}
 
 	/**

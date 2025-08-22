@@ -34,9 +34,10 @@ async function bootstrap() {
 	logger.log(`Target Port: ${process.env.PORT || 4600}`)
 	
 	logger.log('Creating NestJS application...')
+	const fastifyAdapter = new FastifyAdapter({ trustProxy: true, bodyLimit: 10485760 })
 	const app = await NestFactory.create<NestFastifyApplication>(
 		AppModule,
-		new FastifyAdapter({ trustProxy: true, bodyLimit: 10485760 })
+		fastifyAdapter
 	)
 	logger.log('NestJS application created successfully')
 
@@ -310,7 +311,7 @@ async function bootstrap() {
 		logger.log(`✅ Environment validated (NODE_ENV: ${env.NODE_ENV})`)
 		
 		// Setup type providers
-		await initializeTypeProviders(app)
+		await initializeTypeProviders(fastifyAdapter)
 		logger.log('✅ Fastify Type Providers initialized successfully')
 		
 	} catch (typeProviderError) {

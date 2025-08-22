@@ -147,7 +147,7 @@ export class PerformanceController {
 	@Get('health')
 	@Public()
 	getPerformanceHealth() {
-		const stats = this.performanceService.getPerformanceStats()
+		const _stats = this.performanceService.getPerformanceStats()
 		const summary = this.performanceService.getMetricsSummary()
 		
 		// Define health thresholds
@@ -173,11 +173,9 @@ export class PerformanceController {
 				.map(([key, _]) => key)
 			
 			this.logger.warn(`Performance health issues detected: ${issues.join(', ')}`, {
-				avgResponseTime: summary.avgResponseTime,
-				memoryUsageMB: summary.memoryUsageMB,
-				eventLoopUtilization: stats.system.eventLoopUtilization,
-				errorRate: (stats.status.clientError + stats.status.serverError) / 
-						  Math.max(1, stats.requests.total) * 100
+				avgResponseTime: summary.averageResponseTime,
+				memoryUsageMB: summary.memoryUsage.heapUsedMB,
+				errorRate: summary.errorRate * 100
 			})
 		}
 		
@@ -188,14 +186,10 @@ export class PerformanceController {
 			indicators,
 			thresholds,
 			metrics: {
-				avgResponseTime: summary.avgResponseTime,
-				memoryUsageMB: summary.memoryUsageMB,
-				eventLoopUtilization: stats.system.eventLoopUtilization,
-				errorRatePercent: Math.round(
-					(stats.status.clientError + stats.status.serverError) / 
-					Math.max(1, stats.requests.total) * 100 * 100
-				) / 100,
-				totalRequests: stats.requests.total
+				avgResponseTime: summary.averageResponseTime,
+				memoryUsageMB: summary.memoryUsage.heapUsedMB,
+				errorRatePercent: Math.round(summary.errorRate * 100 * 100) / 100,
+				totalRequests: summary.totalRequests
 			}
 		}
 	}

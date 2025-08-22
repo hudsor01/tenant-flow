@@ -11,7 +11,7 @@
  * 4. Focus on performance and security benefits
  */
 
-import type { RouteOptions } from 'fastify'
+import type { FastifyRequest, RouteOptions } from 'fastify'
 import type { FastifyRateLimitOptions } from '@fastify/rate-limit'
 
 // ============================================================================
@@ -27,7 +27,7 @@ export const AuthRouteConfig = {
       rateLimit: {
         max: 3,
         timeWindow: '1 minute',
-        keyGenerator: (req) => `auth_login_${req.ip}`,
+        keyGenerator: (req: FastifyRequest) => `auth_login_${req.ip}`,
         errorResponseBuilder: () => ({
           statusCode: 429,
           error: 'Too Many Login Attempts',
@@ -42,7 +42,7 @@ export const AuthRouteConfig = {
       rateLimit: {
         max: 2,
         timeWindow: '5 minutes',
-        keyGenerator: (req) => `auth_register_${req.ip}`,
+        keyGenerator: (req: FastifyRequest) => `auth_register_${req.ip}`,
         errorResponseBuilder: () => ({
           statusCode: 429,
           error: 'Registration Limit Exceeded', 
@@ -57,7 +57,7 @@ export const AuthRouteConfig = {
       rateLimit: {
         max: 20,
         timeWindow: '1 minute',
-        keyGenerator: (req) => {
+        keyGenerator: (req: FastifyRequest) => {
           // Use user ID from JWT for authenticated rate limiting
           const authHeader = req.headers.authorization
           const userId = extractUserIdFromToken(authHeader)
@@ -77,7 +77,7 @@ export const FileUploadRouteConfig = {
       rateLimit: {
         max: 10,
         timeWindow: '1 minute',
-        keyGenerator: (req) => `upload_doc_${req.ip}`
+        keyGenerator: (req: FastifyRequest) => `upload_doc_${req.ip}`
       } as FastifyRateLimitOptions,
       bodyLimit: 50 * 1024 * 1024, // 50MB for documents
       preHandler: async function(request: _request, _reply: _reply) {
