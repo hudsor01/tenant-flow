@@ -234,7 +234,7 @@ export class UnifiedPerformanceMonitoringService {
     }
   }
 
-  getSlowRequests(limit: number = 10) {
+  getSlowRequests(limit = 10) {
     return this.getRequestMetrics()
       .sort((a, b) => (b.duration || 0) - (a.duration || 0))
       .slice(0, limit)
@@ -252,7 +252,9 @@ export class UnifiedPerformanceMonitoringService {
       const stats = pathStats.get(path)
       stats.count++
       stats.totalDuration += req.duration || 0
-      if (req.statusCode >= 400) stats.errors++
+      if (req.statusCode >= 400) {
+        stats.errors++
+      }
     })
     
     return Array.from(pathStats.entries()).map(([path, stats]) => ({
@@ -263,7 +265,7 @@ export class UnifiedPerformanceMonitoringService {
     }))
   }
 
-  getMetricsInTimeWindow(windowMinutes: number = 60) {
+  getMetricsInTimeWindow(windowMinutes = 60) {
     const cutoff = Date.now() - (windowMinutes * 60 * 1000)
     return this.getRequestMetrics().filter(req => 
       req.timestamp && new Date(req.timestamp).getTime() > cutoff
