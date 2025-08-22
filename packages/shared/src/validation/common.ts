@@ -121,7 +121,25 @@ export const errorResponseSchema = z.object({
 
 // ===== METADATA SCHEMAS =====
 
-export const metadataSchema = z.record(z.string(), z.unknown())
+// Secure metadata schema with constrained value types
+export const metadataValueSchema = z.union([
+	z.string().max(1000, 'Metadata string value too long'),
+	z.number().finite('Metadata number must be finite'),
+	z.boolean(),
+	z.null(),
+	z.array(z.string().max(255, 'Metadata array string too long')).max(50, 'Too many metadata array items'),
+	z.record(z.string(), z.string().max(255, 'Nested metadata value too long')).refine(
+		obj => Object.keys(obj).length <= 20,
+		'Too many nested metadata properties'
+	)
+])
+
+export const metadataSchema = z
+	.record(z.string().max(100, 'Metadata key too long'), metadataValueSchema)
+	.refine(
+		obj => Object.keys(obj).length <= 50,
+		'Too many metadata properties'
+	)
 
 export const auditFieldsSchema = z.object({
 	createdBy: z
@@ -199,12 +217,28 @@ export const createListResponseSchema = <T extends z.ZodTypeAny>(
 
 // ===== REACT 19 ACTION STATE SCHEMAS =====
 
+// Secure action data schema with specific allowed types
+export const actionDataSchema = z.union([
+	z.string().max(10000, 'Action data string too long'),
+	z.number().finite('Action data number must be finite'),
+	z.boolean(),
+	z.null(),
+	z.object({}).passthrough().refine(
+		obj => {
+			const jsonStr = JSON.stringify(obj)
+			return jsonStr.length <= 50000 // 50KB limit
+		},
+		'Action data object too large'
+	),
+	z.array(z.unknown()).max(1000, 'Too many items in action data array')
+])
+
 export const actionStateSchema = z.object({
 	success: z.boolean().optional(),
 	loading: z.boolean().optional(),
-	error: z.string().optional(),
-	message: z.string().optional(),
-	data: z.unknown().optional()
+	error: z.string().max(1000, 'Error message too long').optional(),
+	message: z.string().max(1000, 'Message too long').optional(),
+	data: actionDataSchema.optional()
 })
 
 export const formActionStateSchema = actionStateSchema.extend({
