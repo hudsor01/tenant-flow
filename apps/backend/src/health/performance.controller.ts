@@ -32,7 +32,10 @@ export class PerformanceController {
 		return {
 			status: 'ok',
 			timestamp: new Date().toISOString(),
-			data: this.performanceService.getPerformanceStats()
+			data: {
+				health: this.performanceService.getHealthMetrics(),
+				requests: this.performanceService.getRequestMetrics()
+			}
 		}
 	}
 
@@ -50,7 +53,7 @@ export class PerformanceController {
 		return {
 			status: 'ok',
 			timestamp: new Date().toISOString(),
-			...this.performanceService.getMetricsSummary()
+			health: this.performanceService.getHealthMetrics()
 		}
 	}
 
@@ -71,11 +74,16 @@ export class PerformanceController {
 		
 		this.logger.log(`Slow requests requested (limit: ${safeLimit})`)
 		
+		const allRequests = this.performanceService.getRequestMetrics()
+		const slowRequests = allRequests
+			.sort((a, b) => (b.duration || 0) - (a.duration || 0))
+			.slice(0, safeLimit)
+		
 		return {
 			status: 'ok',
 			timestamp: new Date().toISOString(),
 			limit: safeLimit,
-			data: this.performanceService.getSlowRequests(safeLimit)
+			data: slowRequests
 		}
 	}
 
@@ -147,16 +155,13 @@ export class PerformanceController {
 			avgResponseTime: 1000, // 1 second
 			errorRate: 10, // 10%
 			memoryUsage: 1024, // 1GB
-			eventLoopUtilization: 90 // 90%
 		}
 		
 		// Calculate health indicators
 		const indicators = {
-			responseTime: summary.avgResponseTime < thresholds.avgResponseTime,
-			memory: summary.memoryUsageMB < thresholds.memoryUsage,
-			eventLoop: stats.system.eventLoopUtilization < thresholds.eventLoopUtilization,
-			errors: (stats.status.clientError + stats.status.serverError) / 
-					 Math.max(1, stats.requests.total) * 100 < thresholds.errorRate
+			responseTime: summary.averageResponseTime < thresholds.avgResponseTime,
+			memory: summary.memoryUsage.heapUsedMB < thresholds.memoryUsage,
+			errors: summary.errorRate * 100 < thresholds.errorRate
 		}
 		
 		const isHealthy = Object.values(indicators).every(Boolean)
@@ -229,8 +234,10 @@ export class PerformanceController {
 		// Calculate event loop utilization if available
 		let eventLoopUtil = 0
 		try {
-			if (performance.eventLoopUtilization) {
-				eventLoopUtil = performance.eventLoopUtilization().utilization
+			// eventLoopUtilization is available in Node.js 14.10.0+
+			const perf = performance as unknown as { eventLoopUtilization?: () => { utilization: number } }
+			if (perf.eventLoopUtilization) {
+				eventLoopUtil = perf.eventLoopUtilization().utilization
 			}
 		} catch {
 			// Not available in older Node versions
