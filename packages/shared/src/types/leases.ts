@@ -12,7 +12,7 @@ export interface Lease {
 	rentAmount: number
 	securityDeposit: number
 	terms: string | null
-	status: LeaseStatus | string
+	status: LeaseStatus
 	createdAt: Date | string
 	updatedAt: Date | string
 }
