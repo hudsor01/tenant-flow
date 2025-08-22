@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
+import { loadavg } from 'os'
 import { UnifiedPerformanceMonitoringService } from './unified-performance-monitoring.service'
 import { MemoryMonitoringService } from './memory-monitoring.service'
 
@@ -254,7 +255,7 @@ export class MetricsAggregatorService {
 				nodeVersion: systemMetrics.process.version,
 				platform: systemMetrics.process.platform,
 				pid: systemMetrics.process.pid,
-				loadAverage: process.platform !== 'win32' ? require('os').loadavg() : undefined
+				loadAverage: process.platform !== 'win32' ? loadavg() : undefined
 			},
 			
 			recommendations,
@@ -295,7 +296,7 @@ export class MetricsAggregatorService {
 				{ labels: { method: 'ALL', status: '500' }, value: performanceStats.status.serverError }
 			],
 			
-			http_request_duration_seconds: requestDurations.map((duration, i) => ({
+			http_request_duration_seconds: requestDurations.map((duration, _i) => ({
 				labels: { path: '/api', method: 'GET' }, // Simplified for example
 				value: duration
 			})),
@@ -521,7 +522,7 @@ export class MetricsAggregatorService {
 	private collectTrendData(): void {
 		const now = Date.now()
 		const summary = this.performanceService.getPerformanceSummary()
-		const memoryStats = this.memoryService.getMemoryStatistics()
+		const _memoryStats = this.memoryService.getMemoryStatistics()
 		
 		// Add current values
 		this.trendHistory.requests.push({ timestamp: now, value: summary.requestsPerSecond })
