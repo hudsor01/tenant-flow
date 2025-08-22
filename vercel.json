@@ -1,10 +1,10 @@
 {
 	"$schema": "https://openapi.vercel.sh/vercel.json",
-	"installCommand": "npm ci",
-	"buildCommand": "turbo run build --filter=@repo/frontend...",
+	"installCommand": "npm install",
+	"buildCommand": "npm run build:frontend",
 	"framework": "nextjs",
 	"outputDirectory": "apps/frontend/.next",
-	"ignoreCommand": "npx turbo-ignore @repo/frontend --fallback=HEAD^1",
+	"ignoreCommand": "echo 'Building for deployment stability'",
 	"redirects": [
 		{
 			"source": "/home",
