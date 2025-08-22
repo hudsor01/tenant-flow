@@ -146,8 +146,7 @@
 	"devDependencies": {
 		"@axe-core/cli": "^4.10.2",
 		"@axe-core/playwright": "^4.10.2",
-		"@eslint/eslintrc": "3.2.0",
-		"@eslint/js": "9.33.0",
+		"@repo/eslint-config": "*",
 		"@lhci/cli": "^0.15.1",
 		"@playwright/test": "1.54.2",
 		"@repo/tailwind-config": "*",

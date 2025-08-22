@@ -158,7 +158,7 @@ export function isStripeApiVersion(value: unknown): value is StripeApiVersion {
 export function isStandardizedStripeError(
 	value: unknown
 ): value is StandardizedStripeError {
-	if (!value || typeof value !== 'object') return false
+	if (!value || typeof value !== 'object') {return false}
 
 	const error = value as Record<string, unknown>
 
@@ -181,7 +181,7 @@ export function isStandardizedStripeError(
 export function isStripeWebhookEvent(
 	value: unknown
 ): value is StripeWebhookEvent {
-	if (!value || typeof value !== 'object') return false
+	if (!value || typeof value !== 'object') {return false}
 
 	const event = value as Record<string, unknown>
 
@@ -204,7 +204,7 @@ export function isStripeWebhookEvent(
  * Check if value is a valid PaymentMethod
  */
 export function isPaymentMethod(value: unknown): value is PaymentMethod {
-	if (!value || typeof value !== 'object') return false
+	if (!value || typeof value !== 'object') {return false}
 
 	const pm = value as Record<string, unknown>
 
@@ -225,7 +225,7 @@ export function isPaymentMethod(value: unknown): value is PaymentMethod {
  * Check if value is a valid UserSubscription
  */
 export function isUserSubscription(value: unknown): value is UserSubscription {
-	if (!value || typeof value !== 'object') return false
+	if (!value || typeof value !== 'object') {return false}
 
 	const sub = value as Record<string, unknown>
 
@@ -245,7 +245,7 @@ export function isUserSubscription(value: unknown): value is UserSubscription {
  * Check if value is a valid PlanConfig
  */
 export function isPlanConfig(value: unknown): value is PlanConfig {
-	if (!value || typeof value !== 'object') return false
+	if (!value || typeof value !== 'object') {return false}
 
 	const plan = value as Record<string, unknown>
 
@@ -268,7 +268,7 @@ export function isPlanConfig(value: unknown): value is PlanConfig {
  * Check if value is a valid UsageMetrics
  */
 export function isUsageMetrics(value: unknown): value is UsageMetrics {
-	if (!value || typeof value !== 'object') return false
+	if (!value || typeof value !== 'object') {return false}
 
 	const usage = value as Record<string, unknown>
 
@@ -280,7 +280,7 @@ export function isUsageMetrics(value: unknown): value is UsageMetrics {
 		typeof usage.apiCallsCount === 'number' &&
 		typeof usage.leaseGenerationsCount === 'number' &&
 		typeof usage.month === 'string' &&
-		/^\d{4}-\d{2}$/.test(usage.month as string)
+		/^\d{4}-\d{2}$/.test(usage.month)
 	)
 }
 
@@ -288,7 +288,7 @@ export function isUsageMetrics(value: unknown): value is UsageMetrics {
  * Check if value is a valid StripeConfig
  */
 export function isStripeConfig(value: unknown): value is StripeConfig {
-	if (!value || typeof value !== 'object') return false
+	if (!value || typeof value !== 'object') {return false}
 
 	const config = value as Record<string, unknown>
 
@@ -309,7 +309,7 @@ export function isStripeConfig(value: unknown): value is StripeConfig {
 export function isCreateCheckoutSessionParams(
 	value: unknown
 ): value is CreateCheckoutSessionParams {
-	if (!value || typeof value !== 'object') return false
+	if (!value || typeof value !== 'object') {return false}
 
 	const params = value as Record<string, unknown>
 
@@ -328,7 +328,7 @@ export function isCreateCheckoutSessionParams(
 export function isCreatePortalSessionParams(
 	value: unknown
 ): value is CreatePortalSessionParams {
-	if (!value || typeof value !== 'object') return false
+	if (!value || typeof value !== 'object') {return false}
 
 	const params = value as Record<string, unknown>
 
@@ -344,7 +344,7 @@ export function isCreatePortalSessionParams(
 export function isStripeSuccessResponse<T>(
 	value: unknown
 ): value is StripeSuccessResponse<T> {
-	if (!value || typeof value !== 'object') return false
+	if (!value || typeof value !== 'object') {return false}
 
 	const response = value as Record<string, unknown>
 
@@ -357,7 +357,7 @@ export function isStripeSuccessResponse<T>(
 export function isStripeErrorResponse(
 	value: unknown
 ): value is StripeErrorResponse {
-	if (!value || typeof value !== 'object') return false
+	if (!value || typeof value !== 'object') {return false}
 
 	const response = value as Record<string, unknown>
 
@@ -452,10 +452,10 @@ export function requiresUserAction(error: StandardizedStripeError): boolean {
  * Check if value looks like a Stripe ID
  */
 export function isStripeId(value: unknown, prefix?: string): value is string {
-	if (typeof value !== 'string') return false
+	if (typeof value !== 'string') {return false}
 
 	// All Stripe IDs start with a prefix followed by underscore
-	if (!value.includes('_')) return false
+	if (!value.includes('_')) {return false}
 
 	if (prefix) {
 		return value.startsWith(prefix + '_')
@@ -569,7 +569,7 @@ export function isStripePublishableKey(value: unknown): value is string {
  * Validate email format for Stripe operations
  */
 export function isValidEmail(value: unknown): value is string {
-	if (typeof value !== 'string') return false
+	if (typeof value !== 'string') {return false}
 
 	// Use bounded quantifiers to prevent ReDoS attacks
 	const emailRegex = /^[^\s@]{1,64}@[^\s@]{1,63}(?:\.[^\s@]{1,63})+$/
@@ -580,7 +580,7 @@ export function isValidEmail(value: unknown): value is string {
  * Validate currency code (3-letter ISO)
  */
 export function isValidCurrency(value: unknown): value is string {
-	if (typeof value !== 'string') return false
+	if (typeof value !== 'string') {return false}
 
 	return /^[A-Z]{3}$/.test(value.toUpperCase()) && value.length === 3
 }
@@ -596,7 +596,7 @@ export function isValidAmount(value: unknown): value is number {
  * Validate URL format
  */
 export function isValidUrl(value: unknown): value is string {
-	if (typeof value !== 'string') return false
+	if (typeof value !== 'string') {return false}
 
 	try {
 		new URL(value)
@@ -612,7 +612,7 @@ export function isValidUrl(value: unknown): value is string {
 export function isValidMetadata(
 	value: unknown
 ): value is Record<string, string> {
-	if (!value || typeof value !== 'object') return false
+	if (!value || typeof value !== 'object') {return false}
 
 	const metadata = value as Record<string, unknown>
 

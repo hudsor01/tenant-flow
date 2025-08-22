@@ -93,6 +93,7 @@ export class StripeController {
         customer_email: user.email,
         client_reference_id: user.id,
         metadata: {
+          ...dto.metadata,
           userId: user.id,
           planId: dto.planId,
           interval: dto.interval
@@ -485,9 +486,11 @@ export class StripeController {
           }
         ],
         return_url: `${process.env.FRONTEND_URL || 'https://tenantflow.app'}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
+        customer: dto.customerId,
         customer_email: user.email,
         client_reference_id: user.id,
         metadata: {
+          ...dto.metadata,
           userId: user.id,
           planId: dto.planId,
           interval: dto.interval
