@@ -2,7 +2,6 @@ import { Suspense } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { PropertiesStats } from '@/components/properties/properties-stats'
 import { PropertiesClient } from './properties-client'
-import { PageTracker } from '@/components/analytics/page-tracker'
 
 /**
  * Server component for Properties page header
@@ -52,7 +51,7 @@ function PropertiesLoading() {
 export default function PropertiesPage() {
 	return (
 		<div className="space-y-6">
-			<PageTracker pageName="properties" />
+			{/* SIMPLIFIED: Remove PageTracker - PostHog autocapture handles page views */}
 			{/* Server-rendered header */}
 			<PropertiesHeader />
 

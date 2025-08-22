@@ -1,8 +1,10 @@
 /**
  * React Query hooks for Tenants
- * Provides type-safe data fetching and mutations with optimistic updates
+ * Direct TanStack Query usage - no factory abstractions
  */
 import type { UseQueryResult, UseMutationResult } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { apiClient } from '@/lib/api-client'
 import { queryKeys } from '@/lib/react-query/query-client'
 import type {
@@ -12,11 +14,6 @@ import type {
 	UpdateTenantInput
 } from '@repo/shared'
 import { createMutationAdapter, createQueryAdapter } from '@repo/shared'
-import {
-	useQueryFactory,
-	useDetailQuery,
-	useMutationFactory
-} from '../query-factory'
 
 /**
  * Fetch list of tenants with optional filters
@@ -25,7 +22,7 @@ export function useTenants(
 	query?: TenantQuery,
 	options?: { enabled?: boolean }
 ): UseQueryResult<Tenant[], Error> {
-	return useQueryFactory({
+	return useQuery({
 		queryKey: ['tenantflow', 'tenants', 'list', query],
 		queryFn: async () => {
 			const response = await apiClient.get<Tenant[]>('/tenants', {
@@ -45,24 +42,54 @@ export function useTenant(
 	id: string,
 	options?: { enabled?: boolean }
 ): UseQueryResult<Tenant, Error> {
-	return useDetailQuery(
-		'tenants',
-		Boolean(id) && (options?.enabled ?? true) ? id : undefined,
-		async (id: string) => {
+	return useQuery({
+		queryKey: queryKeys.tenantDetail(id),
+		queryFn: async () => {
+			if (!id) throw new Error('Tenant ID is required')
 			return await apiClient.get<Tenant>(`/tenants/${id}`)
-		}
-	)
+		},
+		enabled: Boolean(id) && (options?.enabled ?? true),
+		staleTime: 2 * 60 * 1000
+	})
 }
 
 /**
- * Create new tenant with optimistic updates
+ * Fetch tenant statistics
+ */
+export function useTenantStats(): UseQueryResult<
+	{
+		total: number
+		active: number
+		inactive: number
+		withActiveLeases: number
+	},
+	Error
+> {
+	return useQuery({
+		queryKey: ['tenantflow', 'tenants', 'stats'],
+		queryFn: async () => {
+			return await apiClient.get<{
+				total: number
+				active: number
+				inactive: number
+				withActiveLeases: number
+			}>('/tenants/stats')
+		},
+		staleTime: 2 * 60 * 1000 // 2 minutes
+	})
+}
+
+/**
+ * Create new tenant - simplified without complex optimistic updates
  */
 export function useCreateTenant(): UseMutationResult<
 	Tenant,
 	Error,
 	CreateTenantInput
 > {
-	return useMutationFactory({
+	const queryClient = useQueryClient()
+	
+	return useMutation({
 		mutationFn: async (data: CreateTenantInput) => {
 			const response = await apiClient.post<Tenant>(
 				'/tenants',
@@ -70,27 +97,14 @@ export function useCreateTenant(): UseMutationResult<
 			)
 			return response
 		},
-		invalidateKeys: [queryKeys.tenants()],
-		successMessage: 'Tenant created successfully',
-		errorMessage: 'Failed to create tenant',
-		optimisticUpdate: {
-			queryKey: queryKeys.tenantList(),
-			updater: (oldData: unknown, variables: CreateTenantInput) => {
-				const previousTenants = oldData as Tenant[]
-				return previousTenants
-					? [
-							...previousTenants,
-							{
-								...variables,
-								id: `temp-${Date.now()}`,
-								createdAt: new Date(),
-								updatedAt: new Date()
-							} as Tenant
-						]
-					: []
-			}
+		onSuccess: () => {
+			// Invalidate and refetch related queries
+			queryClient.invalidateQueries({ queryKey: queryKeys.tenants() })
+			toast.success('Tenant created successfully')
 		},
 		onError: (error, _variables) => {
+			toast.error('Failed to create tenant')
+			
 			// Track API error
 			if (typeof window !== 'undefined' && window.posthog) {
 				window.posthog.capture('api_error_occurred', {
@@ -105,14 +119,16 @@ export function useCreateTenant(): UseMutationResult<
 }
 
 /**
- * Update tenant with optimistic updates
+ * Update tenant - simplified without complex optimistic updates
  */
 export function useUpdateTenant(): UseMutationResult<
 	Tenant,
 	Error,
 	{ id: string; data: UpdateTenantInput }
 > {
-	return useMutationFactory({
+	const queryClient = useQueryClient()
+	
+	return useMutation({
 		mutationFn: async ({ id, data }) => {
 			const response = await apiClient.put<Tenant>(
 				`/tenants/${id}`,
@@ -120,10 +136,14 @@ export function useUpdateTenant(): UseMutationResult<
 			)
 			return response
 		},
-		invalidateKeys: [queryKeys.tenants()],
-		successMessage: 'Tenant updated successfully',
-		errorMessage: 'Failed to update tenant',
+		onSuccess: () => {
+			// Invalidate and refetch related queries
+			queryClient.invalidateQueries({ queryKey: queryKeys.tenants() })
+			toast.success('Tenant updated successfully')
+		},
 		onError: (error, { id }) => {
+			toast.error('Failed to update tenant')
+			
 			// Track API error
 			if (typeof window !== 'undefined' && window.posthog) {
 				window.posthog.capture('api_error_occurred', {
@@ -139,24 +159,23 @@ export function useUpdateTenant(): UseMutationResult<
 }
 
 /**
- * Delete tenant with optimistic updates
+ * Delete tenant - simplified without complex optimistic updates
  */
 export function useDeleteTenant(): UseMutationResult<void, Error, string> {
-	return useMutationFactory({
+	const queryClient = useQueryClient()
+	
+	return useMutation({
 		mutationFn: async (id: string) => {
 			await apiClient.delete(`/tenants/${id}`)
 		},
-		invalidateKeys: [queryKeys.tenants()],
-		successMessage: 'Tenant deleted successfully',
-		errorMessage: 'Failed to delete tenant',
-		optimisticUpdate: {
-			queryKey: queryKeys.tenantList(),
-			updater: (oldData: unknown, id: string) => {
-				const previousList = oldData as Tenant[]
-				return previousList ? previousList.filter(t => t.id !== id) : []
-			}
+		onSuccess: () => {
+			// Invalidate and refetch related queries
+			queryClient.invalidateQueries({ queryKey: queryKeys.tenants() })
+			toast.success('Tenant deleted successfully')
 		},
 		onError: (error, id) => {
+			toast.error('Failed to delete tenant')
+			
 			// Track API error
 			if (typeof window !== 'undefined' && window.posthog) {
 				window.posthog.capture('api_error_occurred', {

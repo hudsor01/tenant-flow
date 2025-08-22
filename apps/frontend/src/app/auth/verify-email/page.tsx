@@ -1,6 +1,6 @@
 'use client'
 
-import type { Metadata } from '@/types/next.d'
+// import type { Metadata } from '@/types/next.d' // Not used in client component
 import { Suspense, useState, useTransition } from 'react'
 import { Mail, CheckCircle, ArrowRight, Loader2, RotateCcw, AlertCircle } from 'lucide-react'
 import Link from 'next/link'

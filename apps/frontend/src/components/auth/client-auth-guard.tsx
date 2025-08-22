@@ -1,10 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { logger } from '@/lib/logger'
 import { useRouter } from 'next/navigation'
-import { getCurrentUser } from '@/lib/actions/auth-actions'
-import type { AuthUser } from '@/lib/supabase/client'
+import { useAuth } from '@/hooks/use-auth'
 
 interface ClientAuthGuardProps {
 	children: React.ReactNode
@@ -29,51 +28,29 @@ export function ClientAuthGuard({
 	)
 }: ClientAuthGuardProps) {
 	const router = useRouter()
-	const [user, setUser] = useState<AuthUser | null>(null)
-	const [isLoading, setIsLoading] = useState(true)
+	const { user, isAuthenticated, isLoading } = useAuth()
 
 	useEffect(() => {
-		const checkAuth = async () => {
-			try {
-				const currentUser = await getCurrentUser()
-				setUser(currentUser)
-
-				if (currentUser) {
-					router.push(redirectTo)
-					return
-				}
-			} catch (error) {
-				// User is not authenticated, continue to show children
-				logger.debug('User not authenticated:', {
-					component: 'components_auth_client_auth_guard.tsx',
-					data: error
-				})
-			} finally {
-				setIsLoading(false)
-			}
+		if (!isLoading && isAuthenticated && user) {
+			logger.info('[ClientAuthGuard] User is authenticated, redirecting', {
+				component: 'ClientAuthGuard',
+				redirectTo,
+				userId: user.id
+			})
+			router.push(redirectTo)
 		}
+	}, [isAuthenticated, isLoading, user, router, redirectTo])
 
-		checkAuth()
-	}, [router, redirectTo])
-
+	// Show loading state while checking authentication
 	if (isLoading) {
 		return <>{fallback}</>
 	}
 
-	if (user) {
-		// User is authenticated, showing redirect loading state
-		return (
-			<div className="flex min-h-screen items-center justify-center">
-				<div className="text-center">
-					<div className="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-b-2"></div>
-					<p className="text-muted-foreground mt-2 text-sm">
-						Redirecting to dashboard...
-					</p>
-				</div>
-			</div>
-		)
+	// If user is authenticated, don't render children (redirect will happen)
+	if (isAuthenticated && user) {
+		return <>{fallback}</>
 	}
 
-	// User is not authenticated, show the auth form
+	// User is not authenticated, render children
 	return <>{children}</>
 }

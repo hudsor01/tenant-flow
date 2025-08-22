@@ -21,5 +21,5 @@ export * from './use-maintenance'
 // Dashboard
 export * from './use-dashboard'
 
-// Billing
-export * from './use-billing'
+// Billing - Consolidated into useSubscription and useSubscriptionActions
+// export * from './use-billing' // DEPRECATED: Use ../useSubscription and ../useSubscriptionActions instead

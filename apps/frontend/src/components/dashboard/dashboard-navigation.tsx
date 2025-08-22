@@ -23,8 +23,7 @@ import {
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/hooks'
-import { logoutAction } from '@/lib/actions/auth-actions'
-import { useServerAction } from '@/lib/hooks/use-server-action'
+import { logoutClient } from '@/lib/actions/client-auth-actions'
 import { useCommandPalette } from '@/hooks/use-command-palette'
 import { DashboardSidebar } from './dashboard-sidebar'
 import Link from 'next/link'
@@ -37,19 +36,25 @@ export function Navigation({ className }: NavigationProps) {
 	const { user } = useAuth()
 	const { open: openCommandPalette } = useCommandPalette()
 	const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
-	const [logout, isLoggingOut] = useServerAction(logoutAction, {
-		showSuccessToast: false,
-		onSuccess: () => {
-			// Client-side redirect after successful logout
-			setTimeout(() => {
-				window.location.href = '/'
-			}, 100)
-		}
-	})
+	const [isLoggingOut, setIsLoggingOut] = useState(false)
 
-	const handleLogout = () => {
-		logout()
+	const handleLogout = async () => {
+		setIsLoggingOut(true)
+		try {
+			const result = await logoutClient()
+			if (result.success) {
+				// Client-side redirect after successful logout
+				setTimeout(() => {
+					window.location.href = '/'
+				}, 100)
+			}
+		} catch (error) {
+			console.error('Logout failed:', error)
+		} finally {
+			setIsLoggingOut(false)
+		}
 	}
+
 
 	const handleSearchClick = () => {
 		openCommandPalette()

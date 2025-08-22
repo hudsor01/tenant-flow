@@ -1,6 +1,6 @@
 'use client'
 
-import { useTenants } from '@/hooks/api/use-tenants'
+import { useTenantStats } from '@/hooks/api/use-tenants'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -8,7 +8,7 @@ import { Users, UserCheck, UserX, Calendar, AlertTriangle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export function TenantsStats() {
-	const { data: tenants, isLoading, error } = useTenants()
+	const { data: stats, isLoading, error } = useTenantStats()
 
 	if (isLoading) {
 		return (
@@ -37,24 +37,13 @@ export function TenantsStats() {
 		)
 	}
 
-	const totalTenants = tenants?.length || 0
-	// Note: Basic Tenant interface doesn't include status or leases
-	// These would need to come from a different endpoint with relations
-	const acceptedInvitations =
-		tenants?.filter(tenant => tenant.invitationStatus === 'ACCEPTED')
-			.length || 0
-	const pendingInvitations =
-		tenants?.filter(
-			tenant =>
-				tenant.invitationStatus === 'PENDING' ||
-				tenant.invitationStatus === 'SENT'
-		).length || 0
+	// Use backend-calculated statistics
+	const totalTenants = stats?.total || 0
+	const activeTenants = stats?.active || 0
+	const inactiveTenants = stats?.inactive || 0
+	const withActiveLeases = stats?.withActiveLeases || 0
 
-	// Without access to lease data, we cannot calculate expiring leases
-	// This would require using TenantWithLeases type from a different endpoint
-	const expiringLeases = 0
-
-	const stats = [
+	const statsCards = [
 		{
 			title: 'Total Tenants',
 			value: totalTenants,
@@ -63,31 +52,31 @@ export function TenantsStats() {
 			color: 'text-primary'
 		},
 		{
-			title: 'Accepted Invites',
-			value: acceptedInvitations,
-			description: 'Active tenant accounts',
+			title: 'Active Tenants',
+			value: activeTenants,
+			description: 'Currently active',
 			icon: UserCheck,
 			color: 'text-green-600'
 		},
 		{
-			title: 'Pending Invites',
-			value: pendingInvitations,
-			description: 'Awaiting acceptance',
+			title: 'Inactive Tenants',
+			value: inactiveTenants,
+			description: 'Not currently active',
 			icon: UserX,
 			color: 'text-yellow-600'
 		},
 		{
-			title: 'Expiring Soon',
-			value: expiringLeases,
-			description: 'Requires enhanced data',
+			title: 'With Active Leases',
+			value: withActiveLeases,
+			description: 'Have active leases',
 			icon: Calendar,
-			color: 'text-gray-400'
+			color: 'text-blue-600'
 		}
 	]
 
 	return (
 		<div className="grid gap-4 md:grid-cols-4">
-			{stats.map(stat => {
+			{statsCards.map(stat => {
 				const Icon = stat.icon
 				return (
 					<Card

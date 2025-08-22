@@ -19,27 +19,17 @@ export interface BlogArticle {
 	readingTime: number
 }
 
-export function useBlogArticleData(slug: string) {
-	// TODO: Implement actual blog data fetching
-	// This is a placeholder implementation
-	const article: BlogArticle = {
-		id: '1',
-		title: 'Sample Blog Article',
-		slug,
-		excerpt: 'This is a sample blog article excerpt.',
-		content: 'This is the sample blog article content.',
-		publishedAt: new Date().toISOString(),
-		updatedAt: new Date().toISOString(),
-		author: {
-			name: 'Sample Author'
-		},
-		tags: ['sample', 'blog'],
-		readingTime: 5
-	}
+import { useQuery } from '@tanstack/react-query'
+import { apiClient } from '@/lib/api-client'
 
-	return {
-		article,
-		isLoading: false,
-		error: null
-	}
+export function useBlogArticleData(slug: string) {
+	return useQuery({
+		queryKey: ['blog-article', slug],
+		queryFn: async (): Promise<BlogArticle> => {
+			const response = await apiClient.get(`/api/v1/blog/articles/${slug}`)
+			return response.data
+		},
+		staleTime: 10 * 60 * 1000, // 10 minutes
+		enabled: !!slug
+	})
 }

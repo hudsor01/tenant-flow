@@ -11,6 +11,8 @@ export * from './core/entities'
 export * from './components/forms'
 export * from './components/dialogs'
 export * from './components/ui'
+export * from './components/modals'
+export * from './components/charts'
 
 // Hook types
 export * from './hooks'

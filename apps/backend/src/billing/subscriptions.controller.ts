@@ -12,10 +12,7 @@ import {
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
 import { SubscriptionsManagerService } from './subscriptions-manager.service'
 import { SubscriptionStatusService } from './subscription-status.service'
-import {
-	ErrorCode,
-	ErrorHandlerService
-} from '../services/error-handler.service'
+import { ErrorHandlerService } from '../services/error-handler.service'
 import type { PlanType } from '@repo/shared'
 // Define subscription request type locally since it's not exported from shared
 interface CreateSubscriptionRequest {
@@ -138,7 +135,6 @@ export class SubscriptionsController {
 				['ACTIVE', 'TRIALING'].includes(subscription.status)
 			) {
 				throw this.errorHandler.createBusinessError(
-					ErrorCode.CONFLICT,
 					'User already has an active subscription',
 					{ metadata: { userId: user.id } }
 				)

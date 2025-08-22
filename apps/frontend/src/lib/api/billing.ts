@@ -1,9 +1,9 @@
 /**
- * Billing API client
- * Provides billing and subscription related API calls
+ * @deprecated Use the unified apiClient from '../api-client' instead
+ * This wrapper is maintained for backward compatibility only
  */
 
-import { ApiService } from './api-service'
+import { apiClient } from '../api-client'
 import type { 
 	Subscription, 
 	Invoice, 
@@ -17,43 +17,43 @@ import type { UsageMetrics } from '@/state/types'
 
 export class BillingApi {
 	static async getSubscription(): Promise<Subscription> {
-		return ApiService.getSubscription()
+		return apiClient.getSubscription()
 	}
 
 	static async getInvoices(): Promise<Invoice[]> {
-		return ApiService.getInvoices()
+		return apiClient.getInvoices()
 	}
 
 	static async getPaymentMethods(): Promise<PaymentMethod[]> {
-		return ApiService.getPaymentMethods()
+		return apiClient.getPaymentMethods()
 	}
 
 	static async createCheckoutSession(data: CreateCheckoutSessionRequest): Promise<CreateCheckoutSessionResponse> {
-		return ApiService.createCheckoutSession(data)
+		return apiClient.createCheckoutSession(data)
 	}
 
 	static async createPortalSession(data: CreatePortalInput): Promise<{ url: string }> {
-		return ApiService.createPortalSession(data)
+		return apiClient.createPortalSession(data)
 	}
 
 	static async updateSubscription(params: UpdateSubscriptionParams): Promise<Subscription> {
-		return ApiService.updateSubscription(params)
+		return apiClient.updateSubscription(params)
 	}
 
 	static async cancelSubscription(): Promise<{ message: string }> {
-		return ApiService.cancelSubscription()
+		return apiClient.cancelSubscription()
 	}
 
 	static async addPaymentMethod(paymentMethodId: string): Promise<PaymentMethod> {
-		return ApiService.addPaymentMethod(paymentMethodId)
+		return apiClient.addPaymentMethod(paymentMethodId)
 	}
 
 	static async setDefaultPaymentMethod(paymentMethodId: string): Promise<{ message: string }> {
-		return ApiService.setDefaultPaymentMethod(paymentMethodId)
+		return apiClient.setDefaultPaymentMethod(paymentMethodId)
 	}
 
 	static async getUsage(): Promise<UsageMetrics> {
-		const response = await ApiService.getUsage()
+		const response = await apiClient.getUsage()
 		// Map the API response to frontend UsageMetrics format
 		return {
 			properties_count: response.properties || 0,
@@ -67,6 +67,6 @@ export class BillingApi {
 	}
 
 	static async downloadInvoice(invoiceId: string): Promise<{ url: string }> {
-		return ApiService.downloadInvoice(invoiceId)
+		return apiClient.downloadInvoice(invoiceId)
 	}
 }

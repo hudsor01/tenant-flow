@@ -71,18 +71,7 @@ export async function createMaintenanceRequest(
 	}
 
 	try {
-		const response = await apiClient.post('/maintenance', result.data)
-
-		if (!response.success) {
-			return {
-				errors: {
-					_form: [
-						response.message ||
-							'Failed to create maintenance request'
-					]
-				}
-			}
-		}
+		const maintenanceRequest = await apiClient.post<MaintenanceRequest>('/maintenance', result.data)
 
 		// Revalidate relevant caches
 		revalidateTag('maintenance')
@@ -90,7 +79,7 @@ export async function createMaintenanceRequest(
 		revalidatePath('/maintenance')
 
 		// Redirect to new maintenance request
-		redirect(`/maintenance/${(response.data as MaintenanceRequest).id}`)
+		redirect(`/maintenance/${maintenanceRequest.id}`)
 	} catch (error: unknown) {
 		const message =
 			error instanceof Error
@@ -139,21 +128,10 @@ export async function updateMaintenanceRequest(
 	}
 
 	try {
-		const response = await apiClient.put(
+		const maintenanceRequest = await apiClient.put<MaintenanceRequest>(
 			`/maintenance/${maintenanceId}`,
 			result.data
 		)
-
-		if (!response.success) {
-			return {
-				errors: {
-					_form: [
-						response.message ||
-							'Failed to update maintenance request'
-					]
-				}
-			}
-		}
 
 		// Revalidate caches
 		revalidateTag('maintenance')
@@ -164,7 +142,7 @@ export async function updateMaintenanceRequest(
 		return {
 			success: true,
 			message: 'Maintenance request updated successfully',
-			data: response.data as MaintenanceRequest
+			data: maintenanceRequest
 		}
 	} catch (error: unknown) {
 		const message =
@@ -183,15 +161,7 @@ export async function deleteMaintenanceRequest(
 	maintenanceId: string
 ): Promise<{ success: boolean; error?: string }> {
 	try {
-		const response = await apiClient.delete(`/maintenance/${maintenanceId}`)
-
-		if (!response.success) {
-			return {
-				success: false,
-				error:
-					response.message || 'Failed to delete maintenance request'
-			}
-		}
+		await apiClient.delete<{ message: string }>(`/maintenance/${maintenanceId}`)
 
 		// Revalidate caches
 		revalidateTag('maintenance')
@@ -235,21 +205,10 @@ export async function updateMaintenanceStatus(
 	}
 
 	try {
-		const response = await apiClient.patch(
+		const maintenanceRequest = await apiClient.patch<MaintenanceRequest>(
 			`/maintenance/${maintenanceId}/status`,
 			result.data
 		)
-
-		if (!response.success) {
-			return {
-				errors: {
-					_form: [
-						response.message ||
-							'Failed to update maintenance status'
-					]
-				}
-			}
-		}
 
 		// Revalidate caches
 		revalidateTag('maintenance')
@@ -259,7 +218,7 @@ export async function updateMaintenanceStatus(
 		return {
 			success: true,
 			message: 'Maintenance status updated successfully',
-			data: response.data as MaintenanceRequest
+			data: maintenanceRequest
 		}
 	} catch (error: unknown) {
 		const message =
@@ -279,18 +238,10 @@ export async function assignMaintenanceToVendor(
 	vendorId: string
 ): Promise<{ success: boolean; error?: string; message?: string }> {
 	try {
-		const response = await apiClient.post(
+		await apiClient.post<MaintenanceRequest>(
 			`/maintenance/${maintenanceId}/assign`,
 			{ vendorId }
 		)
-
-		if (!response.success) {
-			return {
-				success: false,
-				error:
-					response.message || 'Failed to assign maintenance to vendor'
-			}
-		}
 
 		// Revalidate caches
 		revalidateTag('maintenance')
@@ -334,18 +285,10 @@ export async function addMaintenanceComment(
 	}
 
 	try {
-		const response = await apiClient.post(
+		const maintenanceRequest = await apiClient.post<MaintenanceRequest>(
 			`/maintenance/${maintenanceId}/comments`,
 			result.data
 		)
-
-		if (!response.success) {
-			return {
-				errors: {
-					_form: [response.message || 'Failed to add comment']
-				}
-			}
-		}
 
 		// Revalidate maintenance request data
 		revalidateTag('maintenance-request')
@@ -354,7 +297,7 @@ export async function addMaintenanceComment(
 		return {
 			success: true,
 			message: 'Comment added successfully',
-			data: response.data as MaintenanceRequest
+			data: maintenanceRequest
 		}
 	} catch (error: unknown) {
 		const message =
@@ -381,17 +324,11 @@ export async function uploadMaintenanceImage(
 		const formData = new FormData()
 		formData.append('image', file)
 
-		const response = await apiClient.post(
-			`/maintenance/${maintenanceId}/images`,
-			formData
-		)
-
-		if (!response.success) {
-			return {
-				success: false,
-				error: response.message || 'Failed to upload image'
-			}
-		}
+		const imageData = await apiClient.post<{
+			id: string
+			url: string
+			filename: string
+		}>(`/maintenance/${maintenanceId}/images`, formData)
 
 		// Revalidate maintenance request data
 		revalidateTag('maintenance-request')
@@ -399,11 +336,7 @@ export async function uploadMaintenanceImage(
 
 		return {
 			success: true,
-			image: response.data as {
-				id: string
-				url: string
-				filename: string
-			}
+			image: imageData
 		}
 	} catch (error: unknown) {
 		const message =
@@ -420,7 +353,7 @@ export async function uploadMaintenanceImage(
 // Quick status update actions for optimistic UI updates
 export async function markMaintenanceInProgress(maintenanceId: string) {
 	try {
-		const response = await apiClient.patch(
+		await apiClient.patch<{ message: string }>(
 			`/maintenance/${maintenanceId}/status`,
 			{
 				status: 'in_progress'
@@ -431,7 +364,7 @@ export async function markMaintenanceInProgress(maintenanceId: string) {
 		revalidateTag('maintenance')
 		revalidatePath(`/maintenance/${maintenanceId}`)
 
-		return { success: response.success }
+		return { success: true }
 	} catch (error: unknown) {
 		const message =
 			error instanceof Error
@@ -443,7 +376,7 @@ export async function markMaintenanceInProgress(maintenanceId: string) {
 
 export async function markMaintenanceCompleted(maintenanceId: string) {
 	try {
-		const response = await apiClient.patch(
+		await apiClient.patch<{ message: string }>(
 			`/maintenance/${maintenanceId}/status`,
 			{
 				status: 'completed'
@@ -454,7 +387,7 @@ export async function markMaintenanceCompleted(maintenanceId: string) {
 		revalidateTag('maintenance')
 		revalidatePath(`/maintenance/${maintenanceId}`)
 
-		return { success: response.success }
+		return { success: true }
 	} catch (error: unknown) {
 		const message =
 			error instanceof Error

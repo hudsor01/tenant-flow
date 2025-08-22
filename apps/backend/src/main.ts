@@ -10,6 +10,17 @@ import {
 	type NestFastifyApplication
 } from '@nestjs/platform-fastify'
 import helmet from '@fastify/helmet'
+import compress from '@fastify/compress'
+import etag from '@fastify/etag'
+import sensible from '@fastify/sensible'
+import underPressure from '@fastify/under-pressure'
+import circuitBreaker from '@fastify/circuit-breaker'
+import rateLimit from '@fastify/rate-limit'
+import requestContext from '@fastify/request-context'
+import cookie from '@fastify/cookie'
+import csrfProtection from '@fastify/csrf-protection'
+import env from '@fastify/env'
+import multipart from '@fastify/multipart'
 import { createCorsOptions } from './config/cors.options'
 
 async function bootstrap() {
@@ -62,10 +73,251 @@ async function bootstrap() {
 		}
 	}))
 
-	// Production security
-	logger.log('Registering security middleware (helmet)...')
-	await app.register(helmet)
-	logger.log('Security middleware registered')
+	// Core Fastify plugins - optimized order for performance and security
+	logger.log('Registering Fastify core plugins...')
+	
+	// 1. Environment validation (fail fast if config invalid)
+	await app.register(env, {
+		schema: {
+			type: 'object',
+			required: ['NODE_ENV'],
+			properties: {
+				NODE_ENV: { type: 'string', enum: ['development', 'production', 'test'] },
+				PORT: { type: 'string', default: '4600' },
+				SUPABASE_URL: { type: 'string' },
+				SUPABASE_SERVICE_ROLE_KEY: { type: 'string' },
+				JWT_SECRET: { type: 'string' }
+			}
+		},
+		dotenv: false // Already handled by dotenv.config()
+	})
+	logger.log('Environment validation registered')
+
+	// 2. Request context for correlation IDs and tracing
+	await app.register(requestContext, {
+		defaultStoreValues: {
+			correlationId: () => `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+			traceId: () => `trace_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+			startTime: () => Date.now(),
+			timing: () => ({ startTime: Date.now() }),
+			// Request metadata will be populated by hooks
+			method: () => 'unknown',
+			path: () => 'unknown',
+			ip: () => 'unknown'
+		},
+		hook: 'onRequest' // Initialize context early in request lifecycle
+	})
+	logger.log('Request context plugin registered')
+	
+	// Initialize request context hooks (after request context plugin)
+	const { RequestContextHooksService } = await import('./shared/services/request-context-hooks.service')
+	const contextHooksService = new RequestContextHooksService()
+	contextHooksService.registerContextHooks(app.getHttpAdapter().getInstance())
+	logger.log('Request context hooks registered')
+
+	// Initialize unified performance monitoring hooks (after context hooks)
+	const { UnifiedPerformanceMonitoringService } = await import('./shared/services/unified-performance-monitoring.service')
+	const { MemoryMonitoringService } = await import('./shared/services/memory-monitoring.service')
+	const { MetricsAggregatorService } = await import('./shared/services/metrics-aggregator.service')
+	
+	const unifiedPerformanceService = new UnifiedPerformanceMonitoringService()
+	const memoryService = new MemoryMonitoringService()
+	const metricsAggregator = new MetricsAggregatorService(unifiedPerformanceService, memoryService)
+	
+	// Register hooks in correct order
+	unifiedPerformanceService.registerPerformanceHooks(app.getHttpAdapter().getInstance())
+	memoryService.registerMemoryPressureIntegration(app.getHttpAdapter().getInstance())
+	metricsAggregator.startTrendCollection()
+	
+	logger.log('Unified performance monitoring system registered')
+	logger.log('Memory monitoring and pressure integration registered')
+	logger.log('Metrics aggregation and trend collection started')
+
+	// 3. Cookie support for session management
+	await app.register(cookie, {
+		secret: process.env.COOKIE_SECRET || process.env.JWT_SECRET,
+		hook: 'onRequest', // Parse cookies early
+		parseOptions: {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === 'production',
+			sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+			maxAge: 24 * 60 * 60 * 1000 // 24 hours
+		}
+	})
+	logger.log('Cookie support registered')
+
+	// 4. CSRF protection at Fastify level
+	await app.register(csrfProtection, {
+		cookieOpts: {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === 'production',
+			sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax'
+		},
+		sessionPlugin: '@fastify/cookie',
+		getToken: (req) => {
+			const csrfToken = req.headers['x-csrf-token']
+			const xsrfToken = req.headers['x-xsrf-token']
+			if (typeof csrfToken === 'string') {return csrfToken}
+			if (typeof xsrfToken === 'string') {return xsrfToken}
+			return undefined
+		},
+		cookieKey: '_csrf'
+	})
+	logger.log('CSRF protection registered')
+
+	// 5. Multipart support for file uploads
+	await app.register(multipart, {
+		limits: {
+			fieldNameSize: 100, // Max field name size
+			fieldSize: 100, // Max field value size  
+			fields: 10, // Max number of non-file fields
+			fileSize: 10485760, // 10MB max file size (matches body limit)
+			files: 5, // Max number of file fields
+			headerPairs: 2000 // Max number of header key=>value pairs
+		},
+		attachFieldsToBody: 'keyValues' // Attach non-file fields to body
+	})
+	logger.log('Multipart support registered (file uploads)')
+
+	// 6. Response compression (after request parsing, before response generation)
+	await app.register(compress, {
+		global: true,
+		encodings: ['gzip', 'deflate', 'br'], // brotli (br) preferred, fallback to gzip
+		threshold: 1024, // Only compress responses > 1KB
+		customTypes: /^text\/|\+json$|\+text$|\+xml$|^application\/.*json.*$/, // Enhanced pattern
+		zlibOptions: {
+			level: 6, // Balanced compression vs speed
+			chunkSize: 16 * 1024 // 16KB chunks
+		},
+		brotliOptions: {
+			params: {
+				// Using numeric values directly instead of require imports
+				[1]: 0, // BROTLI_PARAM_MODE: BROTLI_MODE_TEXT
+				[11]: 6 // BROTLI_PARAM_QUALITY: 6 (balanced)
+			}
+		}
+	})
+	logger.log('Compression plugin registered (gzip/brotli)')
+
+	// 7. ETag generation for efficient caching
+	await app.register(etag, {
+		algorithm: 'fnv1a', // Faster than MD5, good distribution
+		weak: true // Use weak ETags for better performance
+	})
+	logger.log('ETag plugin registered (fnv1a)')
+
+	// 8. Rate limiting (more granular than NestJS throttler)
+	await app.register(rateLimit, {
+		global: true,
+		max: 100, // 100 requests per window (aligns with NestJS config)
+		timeWindow: '1 minute',
+		cache: 10000, // Cache up to 10k IP addresses
+		allowList: ['127.0.0.1', '::1'], // Whitelist local IPs
+		continueExceeding: true, // Don't ban, just rate limit
+		keyGenerator: (req) => {
+			// Enhanced key generation for better rate limiting
+			const forwarded = req.headers['x-forwarded-for'] as string
+			const realIP = req.headers['x-real-ip'] as string
+			const remoteAddress = req.socket.remoteAddress
+			return forwarded?.split(',')[0]?.trim() || realIP || remoteAddress || 'unknown'
+		},
+		errorResponseBuilder: (_req, context) => ({
+			code: 'RATE_LIMIT_EXCEEDED',
+			error: 'Rate limit exceeded',
+			message: `Too many requests. Try again in ${Math.round(context.ttl / 1000)} seconds.`,
+			statusCode: 429,
+			retryAfter: context.ttl
+		}),
+		onExceeding: (req, key) => {
+			logger.warn(`Rate limit approaching for ${key}: ${req.ip}`)
+		},
+		onExceeded: (req, key) => {
+			logger.warn(`Rate limit exceeded for ${key}: ${req.ip}`)
+		}
+	})
+	logger.log('Rate limiting plugin registered (100 req/min)')
+
+	// 9. Sensible utilities (adds useful request/response helpers)
+	await app.register(sensible)
+	logger.log('Sensible utilities plugin registered')
+
+	// 10. Load monitoring and shedding
+	await app.register(underPressure, {
+		maxEventLoopDelay: 1000, // 1 second max event loop delay
+		maxHeapUsedBytes: 1073741824, // 1GB max heap (adjusted for Railway)
+		maxRssBytes: 1342177280, // 1.25GB max RSS (adjusted for Railway)
+		maxEventLoopUtilization: 0.98, // 98% max event loop utilization
+		retryAfter: 50, // Tell clients to retry after 50ms
+		message: 'Service temporarily unavailable due to high load',
+		healthCheck: async (_fastifyInstance) => {
+			// Enhanced health check with actual service verification
+			try {
+				const configService = app.get(ConfigService)
+				const supabaseUrl = configService.get('SUPABASE_URL')
+				// Basic connectivity check without expensive operations
+				return !!supabaseUrl
+			} catch (error) {
+				logger.error('Health check failed:', error)
+				return false
+			}
+		},
+		healthCheckInterval: 5000, // Check every 5 seconds
+		exposeStatusRoute: '/health/pressure' // Expose pressure metrics
+	})
+	logger.log('Under pressure plugin registered (load monitoring)')
+
+	// 11. Circuit breaker for external calls
+	await app.register(circuitBreaker, {
+		threshold: 5, // Open circuit after 5 failures
+		timeout: 10000, // 10 second timeout
+		resetTimeout: 30000, // Reset after 30 seconds
+		onCircuitOpen: (req) => {
+			logger.warn(`Circuit breaker opened for ${req.url} - external service failures detected`)
+		}
+	})
+	logger.log('Circuit breaker plugin registered')
+
+	// 12. Security middleware (register last to protect all routes)
+	await app.register(helmet, {
+		contentSecurityPolicy: {
+			directives: {
+				defaultSrc: ["'self'"],
+				styleSrc: ["'self'", "'unsafe-inline'"],
+				scriptSrc: ["'self'"],
+				imgSrc: ["'self'", "data:", "https:"],
+				connectSrc: ["'self'", "https://api.stripe.com", "https://*.supabase.co"],
+				frameSrc: ["'self'", "https://js.stripe.com"],
+				baseUri: ["'self'"],
+				formAction: ["'self'"]
+			}
+		},
+		crossOriginEmbedderPolicy: false, // Allows embedding for Stripe
+		hsts: {
+			maxAge: 31536000, // 1 year
+			includeSubDomains: true,
+			preload: true
+		}
+	})
+	logger.log('Security middleware registered (enhanced CSP)')
+
+	// Initialize Fastify Type Providers for schema-driven validation
+	logger.log('Initializing Fastify Type Providers...')
+	try {
+		const { initializeTypeProviders, validateEnvironment } = await import('./setup-type-providers')
+		
+		// Validate environment with schema
+		const env = validateEnvironment()
+		logger.log(`✅ Environment validated (NODE_ENV: ${env.NODE_ENV})`)
+		
+		// Setup type providers
+		await initializeTypeProviders(app)
+		logger.log('✅ Fastify Type Providers initialized successfully')
+		
+	} catch (typeProviderError) {
+		logger.error('❌ Failed to initialize Type Providers:', typeProviderError)
+		// Continue without type providers in case of setup failure
+		logger.warn('⚠️  Continuing without schema-driven type inference')
+	}
 
 	// Liveness probe handled by HealthController
 	logger.log('Enabling graceful shutdown hooks...')

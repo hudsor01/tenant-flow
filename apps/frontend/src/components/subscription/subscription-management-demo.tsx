@@ -13,8 +13,8 @@ import { Badge } from '../ui/badge'
 import { ArrowUpIcon, ArrowDownIcon, XIcon, CreditCardIcon } from 'lucide-react'
 import { SubscriptionUpgradeModal } from './subscription-upgrade-modal'
 import { SubscriptionCancelModal } from './subscription-cancel-modal'
-import { useSubscriptionSync } from '../../hooks/use-subscription-sync'
-import { useSubscriptionManagement } from '../../hooks/use-subscription-management'
+import { useSubscription } from '../../hooks/useSubscription'
+import { useSubscriptionActions } from '../../hooks/useSubscriptionActions'
 import { LoadingSpinner } from '../ui/loading-spinner'
 import type { PlanType } from '@repo/shared'
 
@@ -40,40 +40,33 @@ export function SubscriptionManagementDemo({
 	const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 	const [showCancelModal, setShowCancelModal] = useState(false)
 
-	// Real-time subscription state
+	// Subscription data
 	const {
-		subscription,
-		plan: _plan,
-		usage,
+		data: subscriptionData,
 		isLoading,
-		isSyncing,
-		lastSyncAt,
-		syncError,
-		isInSync,
-		discrepancies,
-		syncNow,
-		refreshSubscription,
-		forceFullSync
-	} = useSubscriptionSync(userId, {
-		enableAutoSync: true,
-		enableRealTimeUpdates: true,
-		syncIntervalMs: 5 * 60 * 1000 // 5 minutes
-	})
+		error: _subscriptionError,
+		refetch: _refetchSubscription
+	} = useSubscription()
 
 	// Subscription management actions
 	const {
 		downgradePlan,
 		createCheckout,
+		syncNow: _syncNow,
 		isDowngrading,
 		isCreatingCheckout,
+		isSyncing,
 		downgradeError,
 		checkoutError,
+		syncError,
 		lastResult
-	} = useSubscriptionManagement(userId)
+	} = useSubscriptionActions()
 
-	const currentPlan = subscription?.planType || 'FREETRIAL'
-	const isActive =
-		subscription?.status === 'ACTIVE' || subscription?.status === 'TRIALING'
+	const subscription = subscriptionData?.subscription
+	const usage = subscriptionData?.usage
+
+	const currentPlan = subscriptionData?.planType || 'FREETRIAL'
+	const isActive = subscriptionData?.hasActiveSubscription || false
 
 	const planInfo = {
 		FREETRIAL: { name: 'Free Trial', color: 'gray', price: 0 },
@@ -142,9 +135,6 @@ export function SubscriptionManagementDemo({
 							<Badge variant={isActive ? 'default' : 'secondary'}>
 								{subscription?.status || 'Unknown'}
 							</Badge>
-							{!isInSync && (
-								<Badge variant="destructive">Out of Sync</Badge>
-							)}
 						</div>
 					</CardTitle>
 					<CardDescription>
@@ -220,42 +210,18 @@ export function SubscriptionManagementDemo({
 					{/* Sync Status */}
 					<div className="flex items-center justify-between text-sm text-gray-600">
 						<span>
-							Last synced:{' '}
-							{lastSyncAt
-								? lastSyncAt.toLocaleTimeString()
-								: 'Never'}
+							Subscription data synced
 						</span>
 						<Button
 							variant="outline"
 							size="sm"
-							onClick={syncNow}
+							onClick={syncSubscription}
 							disabled={isSyncing}
 						>
 							{isSyncing ? 'Syncing...' : 'Sync Now'}
 						</Button>
 					</div>
 
-					{/* Discrepancies Alert */}
-					{discrepancies.length > 0 && (
-						<div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3">
-							<div className="text-sm font-medium text-yellow-800">
-								Sync Issues Detected
-							</div>
-							<ul className="mt-1 text-sm text-yellow-700">
-								{discrepancies.map((issue, index) => (
-									<li key={index}>• {issue}</li>
-								))}
-							</ul>
-							<Button
-								variant="outline"
-								size="sm"
-								className="mt-2"
-								onClick={forceFullSync}
-							>
-								Force Full Sync
-							</Button>
-						</div>
-					)}
 
 					{/* Error Display */}
 					{(syncError || downgradeError || checkoutError) && (

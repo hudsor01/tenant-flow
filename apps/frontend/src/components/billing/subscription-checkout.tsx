@@ -12,7 +12,7 @@ import {
 	CardTitle
 } from '@/components/ui/card'
 import { Loader2, CreditCard } from 'lucide-react'
-import { useCheckout } from '@/hooks/useCheckout'
+import { useCreateCheckout } from '@/hooks/useSubscriptionActions'
 import type { PLAN_TYPE } from '@repo/shared'
 import { getPlanWithUIMapping } from '@/lib/subscription-utils'
 
@@ -38,7 +38,7 @@ export function SubscriptionCheckout({
 }: SubscriptionCheckoutProps) {
 	const stripe = useStripe()
 	const elements = useElements()
-	const { createCheckoutSession, isLoading, error } = useCheckout()
+	const { mutate: createCheckout, isPending: isLoading, error } = useCreateCheckout()
 
 	const [billingName, setBillingName] = useState('')
 	const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -67,10 +67,10 @@ export function SubscriptionCheckout({
 
 		try {
 			// Use checkout session flow instead of direct subscription
-			await createCheckoutSession(
+			createCheckout({
 				planType,
-				billingInterval === 'annual' ? 'annual' : 'monthly'
-			)
+				billingPeriod: billingInterval === 'annual' ? 'annual' : 'monthly'
+			})
 			// The checkout session will redirect to Stripe
 		} catch (error) {
 			const message =
@@ -168,7 +168,7 @@ export function SubscriptionCheckout({
 					{(errorMessage || error) && (
 						<Alert variant="destructive">
 							<AlertDescription>
-								{errorMessage || error}
+								{errorMessage || error?.message}
 							</AlertDescription>
 						</Alert>
 					)}

@@ -58,6 +58,16 @@ const PortalSessionSchema = z.object({
 	returnUrl: z.string().url('Valid return URL is required').optional()
 })
 
+// Embedded Checkout Schema - for keeping users on our site
+const EmbeddedCheckoutSchema = z.object({
+	priceId: z.string().min(1, 'Price ID is required'),
+	quantity: z.number().min(1).optional().default(1),
+	customerId: z.string().optional(),
+	trialPeriodDays: z.number().min(0).optional(),
+	couponId: z.string().optional(),
+	metadata: z.record(z.string(), z.string()).optional()
+})
+
 const SubscriptionUpdateSchema = z.object({
 	priceId: z.string().min(1, 'Price ID is required'),
 	quantity: z.number().min(1, 'Quantity must be at least 1').optional(),
@@ -120,10 +130,16 @@ export async function createCheckoutSession(
 	}
 
 	try {
-const data = await apiClient.post<CheckoutSessionResponse>(
-'/billing/create-checkout-session',
-result.data
-)
+		// Use the existing backend endpoint
+		const data = await apiClient.post<CheckoutSessionResponse>(
+			'/stripe/checkout',
+			{
+				planId: result.data.priceId, // Backend expects planId format
+				interval: 'monthly', // Default - should be passed in
+				successUrl: result.data.successUrl,
+				cancelUrl: result.data.cancelUrl
+			}
+		)
 
 /* Redirect to Stripe Checkout */
 if (data?.url) {
@@ -139,6 +155,82 @@ data: data
 			error instanceof Error
 				? error.message
 				: 'An unexpected error occurred'
+		return {
+			errors: {
+				_form: [message]
+			}
+		}
+	}
+}
+
+// Embedded Checkout State Interface
+export interface EmbeddedBillingState {
+	errors?: {
+		priceId?: string[]
+		quantity?: string[]
+		trialPeriodDays?: string[]
+		couponId?: string[]
+		_form?: string[]
+	}
+	success?: boolean
+	clientSecret?: string
+	sessionId?: string
+}
+
+/**
+ * Create embedded checkout session that keeps users on our site
+ * Uses the existing NestJS backend embedded checkout endpoint
+ */
+export async function createEmbeddedCheckoutSession(
+	prevState: EmbeddedBillingState,
+	formData: FormData
+): Promise<EmbeddedBillingState> {
+	const rawData = {
+		priceId: formData.get('priceId') as string,
+		quantity: formData.get('quantity') 
+			? Number(formData.get('quantity'))
+			: 1,
+		customerId: formData.get('customerId') as string || undefined,
+		trialPeriodDays: formData.get('trialPeriodDays')
+			? Number(formData.get('trialPeriodDays'))
+			: undefined,
+		couponId: formData.get('couponId') as string || undefined,
+		metadata: formData.get('metadata')
+			? JSON.parse(formData.get('metadata') as string)
+			: undefined
+	}
+
+	const result = EmbeddedCheckoutSchema.safeParse(rawData)
+
+	if (!result.success) {
+		return {
+			errors: result.error.flatten().fieldErrors
+		}
+	}
+
+	try {
+		// Call the existing NestJS backend embedded checkout endpoint
+		const session = await apiClient.post<{
+			id: string
+			client_secret: string
+		}>('/stripe/embedded-checkout', {
+			priceId: result.data.priceId,
+			quantity: result.data.quantity,
+			customerId: result.data.customerId,
+			trialPeriodDays: result.data.trialPeriodDays,
+			couponId: result.data.couponId,
+			metadata: result.data.metadata
+		})
+
+		return {
+			success: true,
+			clientSecret: session.client_secret,
+			sessionId: session.id
+		}
+	} catch (error: unknown) {
+		const message = error instanceof Error 
+			? error.message 
+			: 'Failed to create checkout session'
 		return {
 			errors: {
 				_form: [message]
@@ -216,7 +308,7 @@ export async function updateSubscription(
 
 	try {
 const data = await apiClient.put<SubscriptionUpdateResponse>(
-'/billing/subscription',
+'/stripe/subscription',
 result.data
 )
 
@@ -253,7 +345,7 @@ export async function cancelSubscription(): Promise<{
 	message?: string
 }> {
 	try {
-await apiClient.delete<unknown>('/billing/subscription')
+await apiClient.delete<unknown>('/stripe/subscription')
 
 		// Revalidate subscription data
 		revalidateTag('subscription')
@@ -366,7 +458,7 @@ url: data.url
 export async function getSubscriptionData(): Promise<Subscription | null> {
 	try {
 const data = await apiClient.get<Subscription>(
-'/billing/subscription'
+'/stripe/subscription'
 )
 return data
 	} catch (error: unknown) {
@@ -426,7 +518,7 @@ return data
 // Quick action for subscription upgrades/downgrades
 export async function upgradeSubscription(priceId: string) {
 	try {
-const data = await apiClient.put<SubscriptionUpdateResponse>('/billing/subscription', {
+const data = await apiClient.put<SubscriptionUpdateResponse>('/stripe/subscription', {
 priceId,
 prorationBehavior: 'create_prorations'
 })

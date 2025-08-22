@@ -117,7 +117,7 @@
 "github.copilot.chat.languageContext.inline.typescript.enabled": true,
 "github.copilot.chat.languageContext.typescript.enabled": true,
 "github.copilot.chat.notebook.followCellExecution.enabled": true,
-"notebook.defaultFormatter": "rvest.vs-code-prettier-eslint",
+"notebook.defaultFormatter": "esbenp.prettier-vscode",
 "githubPullRequests.experimental.useQuickChat": true,
 "github.copilot.chat.localeOverride": "en",
 "workbench.editor.autoLockGroups": {
@@ -157,5 +157,11 @@
 },
 "editor.formatOnSaveMode": "modifications",
 "jest.jestCommandLine": ".",
-"cmake.sourceDirectory": "/Users/richard/Developer/tenant-flow/node_modules/bare-fs"
+"cmake.sourceDirectory": "/Users/richard/Developer/tenant-flow/node_modules/bare-fs",
+"markdown-pdf.stylesRelativePathFile": true,
+"markdown-pdf.outputDirectoryRelativePathFile": true,
+"markdown-pdf.omitBackground": true,
+"markdown-pdf.highlightStyle": "obsidian.css",
+"markdown-pdf.format": "Letter",
+"markdown-pdf.breaks": true
 }

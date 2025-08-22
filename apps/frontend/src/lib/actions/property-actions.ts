@@ -2,7 +2,7 @@
 
 import { revalidateTag, revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { ApiService } from '@/lib/api/api-service'
+import { apiClient } from '@/lib/api-client'
 import { propertyInputSchema } from '@repo/shared/validation/properties'
 import type { Property } from '@repo/shared/types/properties'
 
@@ -45,7 +45,7 @@ export async function createProperty(
 
 	try {
 		// Create property via API
-		const property = await ApiService.createProperty(result.data)
+		const property = await apiClient.createProperty(result.data)
 
 		// Revalidate relevant caches
 		revalidateTag('properties')
@@ -90,7 +90,7 @@ export async function updateProperty(
 	}
 
 	try {
-		const property = await ApiService.updateProperty(propertyId, result.data)
+		const property = await apiClient.updateProperty(propertyId, result.data)
 
 		// Revalidate caches
 		revalidateTag('properties')
@@ -119,7 +119,7 @@ export async function deleteProperty(
 	propertyId: string
 ): Promise<{ success: boolean; error?: string }> {
 	try {
-		await ApiService.deleteProperty(propertyId)
+		await apiClient.deleteProperty(propertyId)
 
 		// Revalidate caches
 		revalidateTag('properties')

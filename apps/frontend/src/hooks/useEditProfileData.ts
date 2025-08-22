@@ -31,10 +31,9 @@ export function useEditProfileData() {
 		setIsLoading(true)
 		setError(null)
 		try {
-			// TODO: Implement actual profile update API call
-			logger.info('Profile update requested', { data })
-			// Placeholder implementation
-			await new Promise(resolve => setTimeout(resolve, 1000))
+			const { apiClient } = await import('@/lib/api-client')
+			await apiClient.put('/api/v1/auth/profile', data)
+			logger.info('Profile updated successfully', { data })
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Failed to update profile')
 		} finally {

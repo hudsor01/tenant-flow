@@ -1,6 +1,6 @@
 'use client'
 
-import { useMaintenanceRequests } from '@/hooks/api/use-maintenance'
+import { useMaintenanceStats } from '@/hooks/api/use-maintenance'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -9,10 +9,10 @@ import { cn } from '@/lib/utils'
 
 export function MaintenanceStats() {
 	const {
-		data: maintenanceRequests,
+		data: stats,
 		isLoading,
 		error
-	} = useMaintenanceRequests()
+	} = useMaintenanceStats()
 
 	if (isLoading) {
 		return (
@@ -41,26 +41,14 @@ export function MaintenanceStats() {
 		)
 	}
 
-	const totalRequests = maintenanceRequests?.length || 0
-	const openRequests =
-		maintenanceRequests?.filter(request => request.status === 'OPEN')
-			.length || 0
-	const inProgressRequests =
-		maintenanceRequests?.filter(request => request.status === 'IN_PROGRESS')
-			.length || 0
-	const completedRequests =
-		maintenanceRequests?.filter(request => request.status === 'COMPLETED')
-			.length || 0
+	// Use backend stats data
+	const totalRequests = stats?.total || 0
+	const openRequests = stats?.open || 0
+	const inProgressRequests = (stats?.assigned || 0) + (stats?.inProgress || 0)
+	const completedRequests = stats?.completed || 0
+	const overdueRequests = stats?.overdue || 0
 
-	// Calculate urgent/high priority requests
-	const urgentRequests =
-		maintenanceRequests?.filter(
-			request =>
-				request.priority === 'EMERGENCY' &&
-				['OPEN', 'IN_PROGRESS'].includes(request.status)
-		).length || 0
-
-	const stats = [
+	const statCards = [
 		{
 			title: 'Total Requests',
 			value: totalRequests,
@@ -93,7 +81,7 @@ export function MaintenanceStats() {
 
 	return (
 		<div className="grid gap-4 md:grid-cols-4">
-			{stats.map(stat => {
+			{statCards.map(stat => {
 				const Icon = stat.icon
 				return (
 					<Card
@@ -113,10 +101,10 @@ export function MaintenanceStats() {
 							<p className="text-muted-foreground text-xs">
 								{stat.description}
 							</p>
-							{stat.title === 'Open' && urgentRequests > 0 && (
+							{stat.title === 'Open' && overdueRequests > 0 && (
 								<div className="mt-1">
 									<span className="text-xs font-medium text-red-600">
-										{urgentRequests} urgent
+										{overdueRequests} overdue
 									</span>
 								</div>
 							)}

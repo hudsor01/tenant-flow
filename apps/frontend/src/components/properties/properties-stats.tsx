@@ -1,6 +1,6 @@
 'use client'
 
-import { useProperties } from '@/hooks/api/use-properties'
+import { usePropertyStats } from '@/hooks/api/use-properties'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -8,7 +8,8 @@ import { Building2, Users, Home, AlertTriangle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export function PropertiesStats() {
-	const { data: properties, isLoading, error } = useProperties()
+	// Use backend stats endpoint through proper hook
+	const { data: stats, isLoading, error } = usePropertyStats()
 
 	if (isLoading) {
 		return (
@@ -37,24 +38,12 @@ export function PropertiesStats() {
 		)
 	}
 
-	const totalProperties = properties?.length || 0
-	const totalUnits =
-		properties?.reduce(
-			(acc, property) => acc + (property.units?.length || 0),
-			0
-		) || 0
-	const occupiedUnits =
-		properties?.reduce(
-			(acc, property) =>
-				acc +
-				(property.units?.filter(unit => unit.status === 'OCCUPIED')
-					.length || 0),
-			0
-		) || 0
-	const occupancyRate =
-		totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
+	const totalProperties = stats?.total || 0
+	const totalUnits = (stats?.occupied || 0) + (stats?.vacant || 0)
+	const occupiedUnits = stats?.occupied || 0
+	const occupancyRate = stats?.occupancyRate || 0
 
-	const stats = [
+	const statsCards = [
 		{
 			title: 'Total Properties',
 			value: totalProperties,
@@ -85,7 +74,7 @@ export function PropertiesStats() {
 
 	return (
 		<div className="grid gap-4 md:grid-cols-3">
-			{stats.map(stat => {
+			{statsCards.map(stat => {
 				const Icon = stat.icon
 				return (
 					<Card

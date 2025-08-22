@@ -334,10 +334,9 @@ export function Badge({
 // EMPTY STATE COMPONENT
 // ============================================================================
 
-interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement> {
-	icon?: React.ReactNode
-	title: string
-	description?: string
+import type { EmptyStateProps as BaseEmptyStateProps } from '@/types'
+
+interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement>, Omit<BaseEmptyStateProps, 'action'> {
 	action?: React.ReactNode
 }
 

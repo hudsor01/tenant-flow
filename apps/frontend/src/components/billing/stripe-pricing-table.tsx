@@ -15,22 +15,7 @@ interface StripePricingTableProps {
 	customerSessionClientSecret?: string
 }
 
-declare global {
-	namespace JSX {
-		interface IntrinsicElements {
-			'stripe-pricing-table': React.DetailedHTMLProps<
-				React.HTMLAttributes<HTMLElement> & {
-					'pricing-table-id': string
-					'publishable-key': string
-					'customer-email'?: string
-					'customer-session-client-secret'?: string
-					'client-reference-id'?: string
-				},
-				HTMLElement
-			>
-		}
-	}
-}
+// Type definitions moved to types/stripe-pricing-table.d.ts
 
 export function StripePricingTable({
 	pricingTableId = process.env.NEXT_PUBLIC_STRIPE_PRICING_TABLE_ID || '',

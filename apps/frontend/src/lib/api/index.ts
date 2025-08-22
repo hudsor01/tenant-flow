@@ -1,8 +1,10 @@
 /**
  * API exports
- * Centralized exports for all API modules
+ * Centralized exports for unified API client
  */
 
 export { AuthApi } from '../auth-api'
-export { ApiService } from './api-service'
-export { apiClient } from '../api-client'
+export { apiClient, ApiService } from '../api-client'
+
+// Re-export for backward compatibility
+export default apiClient

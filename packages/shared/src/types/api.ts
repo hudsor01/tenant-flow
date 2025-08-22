@@ -31,7 +31,7 @@ import type {
 } from './responses'
 
 // Re-export commonly used types
-export type { User, Lease, Property, Tenant, Unit, MaintenanceRequest }
+export type { User, Lease, Property, PropertyStats, Tenant, TenantStats, Unit, MaintenanceRequest }
 export type { NotificationData }
 export type {
 	AppError,
@@ -208,20 +208,60 @@ export type {
 
 // Dashboard statistics
 export interface DashboardStats {
-	properties: PropertyStats
-	tenants: TenantStats
-	units: UnitStats
-	leases: LeaseStats
-	maintenanceRequests: {
+	properties: {
+		total: number
+		growth: number
+		singleFamily: number
+		multiFamily: number
+		commercial: number
+		// Legacy/alternative property names for backward compatibility
+		totalProperties?: number
+		totalUnits?: number
+		occupancyRate?: number
+	}
+	tenants: {
+		total: number
+		growth: number
+		active: number
+		inactive: number
+		// Legacy/alternative property names for backward compatibility
+		totalTenants?: number
+		activeTenants?: number
+	}
+	leases: {
+		total: number
+		active: number
+		expiring: number
+		draft: number
+		// Legacy/alternative property names for backward compatibility
+		totalLeases?: number
+		activeLeases?: number
+		totalRentRoll?: number
+	}
+	units: {
+		total: number
+		occupied: number
+		vacant: number
+		occupancyRate: number
+	}
+	revenue: {
+		total: number
+		growth: number
+		currency: string
+	}
+	maintenanceRequests?: {
 		total: number
 		open: number
 		inProgress: number
 		completed: number
 	}
-	notifications: {
-		total: number
-		unread: number
-	}
+	// Additional properties for activity tracking
+	recentActivity?: {
+		id: string
+		type: string
+		title: string
+		timestamp: Date
+	}[]
 }
 
 // Invitation types

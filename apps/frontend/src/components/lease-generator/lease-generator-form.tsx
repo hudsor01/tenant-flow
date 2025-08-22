@@ -1,5 +1,9 @@
-/* TODO: Issue #76 - Advanced lease generator feature beyond MVP scope
-// This entire component should be commented out for MVP and implemented later
+/*
+ * Issue #76 - Advanced lease generator feature beyond MVP scope
+ * This component serves as a placeholder for the advanced lease generator feature
+ * scheduled for implementation after MVP release
+ */
+/*
 export default function LeaseGeneratorForm() {
   return (
     <div className="p-8 text-center">
@@ -20,7 +24,7 @@ import React, { useState, useEffect } from 'react'
 import { logger } from '@/lib/logger'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { usePostHog } from 'posthog-js/react'
+import { useAnalytics } from '@/hooks/common/use-analytics'
 import { Button } from '@/components/ui/button'
 import {
 	Card,
@@ -85,16 +89,18 @@ export default function LeaseGeneratorForm({
 	const [selectedFormat, setSelectedFormat] =
 		useState<LeaseOutputFormat>('pdf')
 	const [selectedUtilities, setSelectedUtilities] = useState<string[]>([])
-	const posthog = usePostHog()
+	// SIMPLIFIED: Single analytics hook
+	const { track } = useAnalytics()
 
-	// Track form view on mount
+	// Track form view on mount - only if it's a meaningful business event
 	useEffect(() => {
-		posthog?.capture('lease_generator_form_viewed', {
-			usage_remaining: usageRemaining,
-			requires_payment: requiresPayment,
-			timestamp: new Date().toISOString()
-		})
-	}, [posthog, usageRemaining, requiresPayment])
+		// Only track if user has limited usage (business value)
+		if (requiresPayment) {
+			track('trial_converted', {
+				feature_name: 'lease_generator'
+			})
+		}
+	}, [track, requiresPayment])
 
 	// Define available utilities options
 	const utilitiesOptions = [
@@ -148,26 +154,11 @@ export default function LeaseGeneratorForm({
 	}
 
 	const handleSubmit = async (data: LeaseFormData) => {
-		// Track form submission attempt
-		posthog?.capture('lease_generator_form_submitted', {
-			format: selectedFormat,
-			tenant_count: data.tenantNames.length,
-			rent_amount: data.rentAmount,
-			security_deposit: data.securityDeposit,
-			payment_method: data.paymentMethod,
-			pet_policy: data.petPolicy,
-			smoking_policy: data.smokingPolicy,
-			utilities_count: data.utilitiesIncluded.length,
-			state: data.state,
-			requires_payment: requiresPayment,
-			usage_remaining: usageRemaining,
-			timestamp: new Date().toISOString()
-		})
-
 		if (requiresPayment) {
-			posthog?.capture('lease_generator_payment_required', {
-				format: selectedFormat,
-				timestamp: new Date().toISOString()
+			// SIMPLIFIED: Single payment required tracking
+			track('trial_converted', {
+				feature_name: 'lease_generator',
+				requires_payment: true
 			})
 
 			toast.error('Payment required to generate additional leases')
@@ -245,26 +236,20 @@ export default function LeaseGeneratorForm({
 
 			await onGenerate(formDataForGenerator, selectedFormat)
 
-			// Track successful generation
-			posthog?.capture('lease_generator_success', {
-				format: selectedFormat,
-				tenant_count: data.tenantNames.length,
-				rent_amount: data.rentAmount,
+			// SIMPLIFIED: Single strategic tracking call for business success
+			track('lease_generated', {
 				state: data.state,
-				is_compliant: leaseResult.isCompliant,
-				warnings_count: leaseResult.warnings.length,
-				timestamp: new Date().toISOString()
+				tenant_count: data.tenantNames.length
 			})
 
 			toast.success(
 				`${getStateFromSlug(data.state)?.label} lease agreement generated successfully!`
 			)
 		} catch (error) {
-			// Track generation failure
-			posthog?.capture('lease_generator_error', {
-				format: selectedFormat,
-				error: error instanceof Error ? error.message : 'Unknown error',
-				timestamp: new Date().toISOString()
+			// SIMPLIFIED: Single error tracking call
+			track('error_occurred', {
+				error_message: error instanceof Error ? error.message : 'Unknown error',
+				feature_name: 'lease_generator'
 			})
 
 			toast.error('Failed to generate lease agreement')
@@ -324,12 +309,7 @@ export default function LeaseGeneratorForm({
 				<Tabs
 					defaultValue="property"
 					className="space-y-6"
-					onValueChange={(value: string) => {
-						posthog?.capture('lease_generator_tab_changed', {
-							tab: value,
-							timestamp: new Date().toISOString()
-						})
-					}}
+					// SIMPLIFIED: Remove tab tracking - PostHog autocapture handles this
 				>
 					<TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
 						<TabsTrigger
