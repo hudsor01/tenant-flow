@@ -315,15 +315,15 @@ export function getPlanTypeFromPriceId(priceId: string): PlanType | null {
 	// For now, we'll use pattern matching
 	const lowerPriceId = priceId.toLowerCase()
 
-	if (lowerPriceId.includes('starter')) return PLAN_TYPES.STARTER
-	if (lowerPriceId.includes('growth')) return PLAN_TYPES.GROWTH
+	if (lowerPriceId.includes('starter')) {return PLAN_TYPES.STARTER}
+	if (lowerPriceId.includes('growth')) {return PLAN_TYPES.GROWTH}
 	if (
 		lowerPriceId.includes('tenantflow_max') ||
 		lowerPriceId.includes('tenantflow')
 	)
-		return PLAN_TYPES.TENANTFLOW_MAX
+		{return PLAN_TYPES.TENANTFLOW_MAX}
 	if (lowerPriceId.includes('free') || lowerPriceId.includes('trial'))
-		return PLAN_TYPES.FREETRIAL
+		{return PLAN_TYPES.FREETRIAL}
 
 	return null
 }
@@ -451,7 +451,7 @@ export function getSubscriptionStatusDisplay(
 export function getDaysUntilExpiry(
 	currentPeriodEnd: Date | null
 ): number | null {
-	if (!currentPeriodEnd) return null
+	if (!currentPeriodEnd) {return null}
 
 	const now = new Date()
 	const diffTime = currentPeriodEnd.getTime() - now.getTime()
@@ -464,7 +464,7 @@ export function getDaysUntilExpiry(
  * Calculate trial days remaining
  */
 export function getTrialDaysRemaining(trialEnd: Date | null): number | null {
-	if (!trialEnd) return null
+	if (!trialEnd) {return null}
 
 	const now = new Date()
 	const diffTime = trialEnd.getTime() - now.getTime()
@@ -516,8 +516,8 @@ export function getWebhookEventPriority(
 		'checkout.session.completed'
 	]
 
-	if (highPriorityEvents.includes(eventType)) return 'high'
-	if (mediumPriorityEvents.includes(eventType)) return 'medium'
+	if (highPriorityEvents.includes(eventType)) {return 'high'}
+	if (mediumPriorityEvents.includes(eventType)) {return 'medium'}
 	return 'low'
 }
 

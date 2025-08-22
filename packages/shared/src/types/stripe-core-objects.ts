@@ -970,11 +970,11 @@ export function extractPlanTypeFromPrice(price: StripePrice): string | null {
 	// Check lookup key for plan type
 	if (price.lookup_key) {
 		const key = price.lookup_key.toLowerCase()
-		if (key.includes('starter')) return 'STARTER'
-		if (key.includes('growth')) return 'GROWTH'
+		if (key.includes('starter')) {return 'STARTER'}
+		if (key.includes('growth')) {return 'GROWTH'}
 		if (key.includes('max') || key.includes('enterprise'))
-			return 'TENANTFLOW_MAX'
-		if (key.includes('trial') || key.includes('free')) return 'FREETRIAL'
+			{return 'TENANTFLOW_MAX'}
+		if (key.includes('trial') || key.includes('free')) {return 'FREETRIAL'}
 	}
 
 	return null
@@ -985,7 +985,7 @@ export function extractPlanTypeFromPrice(price: StripePrice): string | null {
  */
 export function getPriceInDollars(price: StripePrice): number | null {
 	if (price.unit_amount === null || price.unit_amount === undefined)
-		return null
+		{return null}
 	return price.unit_amount / 100
 }
 
@@ -1000,7 +1000,7 @@ export function isPriceRecurring(price: StripePrice): boolean {
  * Get billing period from recurring price
  */
 export function getBillingPeriod(price: StripePrice): string | null {
-	if (!price.recurring) return null
+	if (!price.recurring) {return null}
 
 	const { interval, interval_count } = price.recurring
 
@@ -1026,7 +1026,7 @@ export function isInvoicePaid(invoice: StripeInvoice): boolean {
  * Check if invoice is overdue
  */
 export function isInvoiceOverdue(invoice: StripeInvoice): boolean {
-	if (!invoice.due_date) return false
+	if (!invoice.due_date) {return false}
 	return Date.now() / 1000 > invoice.due_date && invoice.status === 'open'
 }
 

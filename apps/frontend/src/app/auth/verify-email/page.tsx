@@ -1,6 +1,6 @@
 'use client'
 
-import type { Metadata } from '@/types/next.d'
+// Removed unused Metadata import
 import { Suspense, useState, useTransition } from 'react'
 import { Mail, CheckCircle, ArrowRight, Loader2, RotateCcw, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
@@ -152,8 +152,12 @@ function VerifyEmailContent({ email }: VerifyEmailContentProps) {
 	}
 
 	const getResendButtonText = () => {
-		if (isPending) return 'Sending...'
-		if (resendAttempts === 0) return 'Resend Verification Email'
+		if (isPending) {
+			return 'Sending...'
+		}
+		if (resendAttempts === 0) {
+			return 'Resend Verification Email'
+		}
 		return `Resend Email (${3 - resendAttempts} attempts left)`
 	}
 
@@ -316,7 +320,7 @@ function VerifyEmailPageContent() {
 	const searchParams = useSearchParams()
 	const email = searchParams.get('email')
 
-	return <VerifyEmailContent email={email || undefined} />
+	return <VerifyEmailContent email={email ?? undefined} />
 }
 
 export default function VerifyEmailPage() {
