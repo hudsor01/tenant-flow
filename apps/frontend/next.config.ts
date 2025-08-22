@@ -136,15 +136,26 @@ const nextConfig: NextConfig = {
 
 	// Experimental features
 	experimental: {
-		// Turbopack configuration for development
-		turbo: {
-			rules: {
-				'*.svg': {
-					loaders: ['@svgr/webpack'],
-					as: '*.js'
+		
+	},
+	
+	// Turbopack configuration (now stable)
+	turbopack: {
+		rules: (() => {
+			try {
+				// Only add SVG loader if @svgr/webpack is available
+				require.resolve('@svgr/webpack')
+				return {
+					'*.svg': {
+						loaders: ['@svgr/webpack'],
+						as: '*.js'
+					}
 				}
+			} catch {
+				// @svgr/webpack not installed, skip SVG transformation
+				return undefined
 			}
-		}
+		})()
 	},
 
 	// Webpack configuration for production builds

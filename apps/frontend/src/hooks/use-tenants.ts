@@ -1,135 +1,19 @@
-/**
- * Tenants hook
- * Provides tenants data and actions using Jotai queries
- */
-import { useCallback } from 'react'
-import { useAtom } from 'jotai'
-import { toast } from 'sonner'
-import {
-	tenantsQueryAtom,
-	selectedTenantAtom,
-	tenantFiltersAtom
-} from '../atoms/business/tenants'
-import { ApiService } from '../lib/api/api-service'
-import type { CreateTenantInput, UpdateTenantInput } from '@repo/shared'
+import { useQuery } from '@tanstack/react-query'
+import { apiClient } from '@/lib/api-client'
 
-export function useTenants() {
-	const [tenantsQuery] = useAtom(tenantsQueryAtom)
-	const [selectedTenant, setSelectedTenant] = useAtom(selectedTenantAtom)
-	const [filters, setFilters] = useAtom(tenantFiltersAtom)
-
-	// Create tenant
-	const createTenant = useCallback(
-		async (data: CreateTenantInput) => {
-			try {
-				const tenant = await ApiService.createTenant(data)
-
-				// Invalidate query to refetch data
-				tenantsQuery.refetch?.()
-
-				toast.success('Tenant created successfully')
-				return { success: true, data: tenant }
-			} catch (error: unknown) {
-				const message =
-					error instanceof Error
-						? error.message
-						: 'Failed to create tenant'
-				toast.error(message)
-				return { success: false, error: message }
+export function useTenants(filters?: Record<string, unknown>) {
+	return useQuery({
+		queryKey: ['tenants', filters],
+		queryFn: () => {
+			const params = new URLSearchParams()
+			if (filters) {
+				Object.entries(filters).forEach(([key, value]) => {
+					if (value) params.append(key, String(value))
+				})
 			}
+			const query = params.toString()
+			return apiClient.get(`/tenants${query ? `?${query}` : ''}`)
 		},
-		[tenantsQuery]
-	)
-
-	// Update tenant
-	const updateTenant = useCallback(
-		async (id: string, data: UpdateTenantInput) => {
-			try {
-				const tenant = await ApiService.updateTenant(id, data)
-
-				// Invalidate query to refetch data
-				tenantsQuery.refetch?.()
-
-				// Update selected tenant if it's the one being updated
-				if (selectedTenant?.id === id) {
-					setSelectedTenant({ ...selectedTenant, ...tenant })
-				}
-
-				toast.success('Tenant updated successfully')
-				return { success: true, data: tenant }
-			} catch (error: unknown) {
-				const message =
-					error instanceof Error
-						? error.message
-						: 'Failed to update tenant'
-				toast.error(message)
-				return { success: false, error: message }
-			}
-		},
-		[tenantsQuery, selectedTenant, setSelectedTenant]
-	)
-
-	// Delete tenant
-	const deleteTenant = useCallback(
-		async (id: string) => {
-			try {
-				await ApiService.deleteTenant(id)
-
-				// Invalidate query to refetch data
-				tenantsQuery.refetch?.()
-
-				// Clear selected tenant if it's the one being deleted
-				if (selectedTenant?.id === id) {
-					setSelectedTenant(null)
-				}
-
-				toast.success('Tenant deleted successfully')
-				return { success: true }
-			} catch (error: unknown) {
-				const message =
-					error instanceof Error
-						? error.message
-						: 'Failed to delete tenant'
-				toast.error(message)
-				return { success: false, error: message }
-			}
-		},
-		[tenantsQuery, selectedTenant, setSelectedTenant]
-	)
-
-	// Get single tenant
-	const getTenant = useCallback(async (id: string) => {
-		try {
-			const tenant = await ApiService.getTenant(id)
-			return { success: true, data: tenant }
-		} catch (error: unknown) {
-			const message =
-				error instanceof Error
-					? error.message
-					: 'Failed to fetch tenant'
-			return { success: false, error: message }
-		}
-	}, [])
-
-	return {
-		// Data
-		tenants: tenantsQuery.data || [],
-		selectedTenant,
-		filters,
-
-		// Loading states
-		isLoading: tenantsQuery.isLoading,
-		isFetching: tenantsQuery.isFetching,
-		isError: tenantsQuery.isError,
-		error: tenantsQuery.error,
-
-		// Actions
-		createTenant,
-		updateTenant,
-		deleteTenant,
-		getTenant,
-		setSelectedTenant,
-		setFilters,
-		refetch: tenantsQuery.refetch
-	}
+		staleTime: 5 * 60 * 1000,
+	})
 }

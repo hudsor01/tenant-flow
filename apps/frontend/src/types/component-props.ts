@@ -1,24 +1,13 @@
 import type { Property, Unit } from '@repo/shared'
+import type { BaseModalProps } from './components/modals'
 
-export interface UnitFormModalProps {
-	isOpen: boolean
-	onClose: () => void
+export interface UnitFormModalProps extends BaseModalProps {
 	propertyId: string
 	unit?: Unit
 	mode?: 'create' | 'edit'
-	onSuccess?: () => void
 }
 
-export interface PropertyFormModalProps {
-	isOpen: boolean
-	onClose: () => void
+export interface PropertyFormModalProps extends BaseModalProps {
 	property?: Property
 	mode?: 'create' | 'edit'
-	onSuccess?: () => void
-}
-
-export interface BaseModalProps {
-	isOpen: boolean
-	onClose: () => void
-	onSuccess?: () => void
 }

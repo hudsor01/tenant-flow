@@ -6,10 +6,10 @@ import {
 	PropertiesTable,
 	QuickActions
 } from '@/components/dashboard/dashboard-client'
-import { EnhancedDashboardWidgets } from '@/components/dashboard/enhanced-dashboard-widgets'
-import { DashboardTracker } from '@/components/analytics/dashboard-tracker'
+import { DashboardWidgets } from '@/components/dashboard/dashboard-widgets'
+import type { Metadata } from '@/types/next'
 
-export const metadata = {
+export const metadata: Metadata = {
 	title: 'Dashboard | TenantFlow',
 	description:
 		'Comprehensive property management dashboard with analytics and insights'
@@ -18,7 +18,7 @@ export const metadata = {
 export default function DashboardPage() {
 	return (
 		<DashboardErrorBoundary>
-			<DashboardTracker />
+			{/* SIMPLIFIED: Remove DashboardTracker - PostHog autocapture handles page views */}
 			<div className="mx-auto max-w-[1400px] flex-1 space-y-6 p-3 sm:space-y-8 sm:p-4 md:p-6 lg:p-8">
 				{/* Enhanced Page Header */}
 				<div className="relative">
@@ -91,7 +91,7 @@ export default function DashboardPage() {
 						<div className="card-modern from-muted/40 to-muted/20 h-96 animate-pulse rounded-xl border bg-gradient-to-br" />
 					}
 				>
-					<EnhancedDashboardWidgets />
+					<DashboardWidgets />
 				</Suspense>
 
 				{/* Enhanced Content Grid */}

@@ -1,7 +1,6 @@
 'use client'
 
-import { useTransition } from 'react'
-import { useActionState } from 'react'
+import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { CheckCircle, AlertCircle } from 'lucide-react'
@@ -15,31 +14,27 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-	updatePasswordAction,
-	type AuthFormState
-} from '@/lib/actions/auth-actions'
+import { updatePasswordClient } from '@/lib/actions/client-auth-actions'
+import type { AuthFormState } from '@/lib/actions/auth-actions'
 import { AuthError } from './auth-error'
 
 interface UpdatePasswordFormProps {
 	error?: string
 }
 
-const initialState: AuthFormState = {
-	errors: {}
-}
-
 export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
-	const [state, formAction] = useActionState(
-		updatePasswordAction,
-		initialState
-	)
+	const [state, setState] = useState<AuthFormState>({ errors: {} })
 	const [isPending, startTransition] = useTransition()
 	const router = useRouter()
 
-	const handleSubmit = (formData: FormData) => {
-		startTransition(() => {
-			formAction(formData)
+	const handleSubmit = async (formData: FormData) => {
+		startTransition(async () => {
+			const password = formData.get('password') as string
+			const confirmPassword = formData.get('confirmPassword') as string
+			const token = formData.get('token') as string
+
+			const result = await updatePasswordClient(password, confirmPassword, token)
+			setState(result)
 		})
 	}
 

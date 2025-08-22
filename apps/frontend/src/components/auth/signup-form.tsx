@@ -8,7 +8,6 @@
 'use client'
 
 import { useState, useTransition, useEffect } from 'react'
-import { useActionState } from 'react'
 import Link from 'next/link'
 import {
 	CheckCircle,
@@ -33,7 +32,8 @@ import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { signupAction, type AuthFormState } from '@/lib/actions/auth-actions'
+import { signupClient } from '@/lib/actions/client-auth-actions'
+import type { AuthFormState } from '@/lib/actions/auth-actions'
 import { OAuthProviders } from './oauth-providers'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/clients'
@@ -53,9 +53,8 @@ export function SignupForm({
 	onSuccess,
 	layout = 'clean'
 }: SignupFormProps) {
-	const initialState: AuthFormState = { errors: {} }
-	const [state, action] = useActionState(signupAction, initialState)
-	const [isPending, _startTransition] = useTransition()
+	const [state, setState] = useState<AuthFormState>({ errors: {} })
+	const [isPending, startTransition] = useTransition()
 	const [password, setPassword] = useState('')
 	const [resendLoading, setResendLoading] = useState(false)
 	const [resendSuccess, setResendSuccess] = useState(false)
@@ -69,6 +68,20 @@ export function SignupForm({
 	const [isLoading, setIsLoading] = useState(false)
 	const [enhancedError, setEnhancedError] = useState<string | null>(null)
 	const [success, setSuccess] = useState(false)
+
+	// Clean layout form handler
+	const handleCleanSubmit = async (formData: FormData) => {
+		startTransition(async () => {
+			const fullName = formData.get('fullName') as string
+			const email = formData.get('email') as string
+			const password = formData.get('password') as string
+			const confirmPassword = formData.get('confirmPassword') as string
+
+			setSubmittedEmail(email)
+			const result = await signupClient(fullName, email, password, confirmPassword, redirectTo)
+			setState(result)
+		})
+	}
 
 	// Enhanced form handlers for marketing layout
 	const handleEnhancedSubmit = async (e: React.FormEvent) => {
@@ -664,13 +677,7 @@ export function SignupForm({
 		<div className="mx-auto w-full max-w-md">
 			<div className="rounded-3xl border border-white/20 bg-white/80 p-8 shadow-xl backdrop-blur-sm">
 				<form
-					action={formData => {
-						// Capture email before submitting
-						setSubmittedEmail(
-							(formData.get('email') as string) || ''
-						)
-						action(formData)
-					}}
+					action={handleCleanSubmit}
 					className="space-y-6"
 				>
 					{/* Error display */}

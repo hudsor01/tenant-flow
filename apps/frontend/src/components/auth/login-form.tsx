@@ -32,15 +32,7 @@ import {
 } from 'lucide-react'
 import { AuthFormFactory } from './auth-form-factory'
 import { supabase } from '@/lib/clients'
-import type { AuthFormState } from '@/lib/actions/auth-actions'
-import type { LoginFormProps } from '@/types'
-
-type LoginLayout = 'clean' | 'marketing'
-
-type LoginFormRefactoredProps = LoginFormProps & {
-	onSuccess?: (result: AuthFormState) => void
-	layout?: LoginLayout
-}
+import type { LoginFormRefactoredProps } from '@/types'
 
 export function LoginForm({
 	redirectTo = '/dashboard',

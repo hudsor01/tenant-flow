@@ -13,19 +13,13 @@ import {
 } from '@/components/ui/dialog'
 import { ButtonSpinner } from '@/components/ui/spinner'
 import { modalVariants, fieldVariants } from './modal-constants'
+import type { BaseFormModalProps as BaseFormModalPropsType } from '@/types'
 
-interface BaseFormModalProps {
-	isOpen: boolean
-	onClose: () => void
-	title: string
-	description?: string
+// Extend the base type with additional properties
+interface BaseFormModalProps extends BaseFormModalPropsType {
 	icon?: LucideIcon
 	iconBgColor?: string
 	iconColor?: string
-	children: ReactNode
-	submitLabel?: string
-	cancelLabel?: string
-	onSubmit?: () => void
 	isSubmitting?: boolean
 	submitDisabled?: boolean
 	maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl'

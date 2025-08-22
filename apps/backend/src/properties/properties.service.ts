@@ -45,9 +45,12 @@ export class PropertiesService {
 	}
 
 	/**
-	 * Get all properties for an owner
+	 * Get all properties for an owner with calculated metrics
 	 */
-	async findAll(ownerId: string, authToken?: string): Promise<PropertyWithRelations[]> {
+	async findAll(ownerId: string, authToken?: string): Promise<(PropertyWithRelations & {
+		occupancyRate: number
+		totalRevenue: number
+	})[]> {
 		const supabase = this.getClient(authToken)
 		const { data, error } = await supabase
 			.from('Property')
@@ -65,7 +68,29 @@ export class PropertiesService {
 			throw new BadRequestException(error.message)
 		}
 
-		return data as PropertyWithRelations[]
+		// Add calculated metrics to each property
+		const propertiesWithMetrics = (data as PropertyWithRelations[]).map(property => {
+			const occupancyRate = property.Unit && property.Unit.length > 0
+				? Math.round((property.Unit.filter(u => u.status === 'OCCUPIED').length / property.Unit.length) * 100)
+				: 0
+			
+			const totalRevenue = property.Unit
+				? property.Unit.reduce((total, unit) => {
+					if (unit.status === 'OCCUPIED') {
+						return total + (unit.rent || 0)
+					}
+					return total
+				}, 0)
+				: 0
+
+			return {
+				...property,
+				occupancyRate,
+				totalRevenue
+			}
+		})
+
+		return propertiesWithMetrics
 	}
 
 	/**
@@ -363,5 +388,74 @@ export class PropertiesService {
 		}
 
 		return data as PropertyWithRelations[]
+	}
+
+	/**
+	 * Calculate occupancy rate for a property
+	 */
+	async calculateOccupancyRate(
+		propertyId: string,
+		ownerId: string,
+		authToken?: string
+	): Promise<number> {
+		const property = await this.findOne(propertyId, ownerId, authToken)
+		
+		if (!property.Unit || property.Unit.length === 0) {
+			return 0
+		}
+
+		const occupiedUnits = property.Unit.filter(
+			unit => unit.status === 'OCCUPIED'
+		).length
+		
+		return Math.round((occupiedUnits / property.Unit.length) * 100)
+	}
+
+	/**
+	 * Calculate total revenue for a property
+	 */
+	async calculateTotalRevenue(
+		propertyId: string,
+		ownerId: string,
+		authToken?: string
+	): Promise<number> {
+		const property = await this.findOne(propertyId, ownerId, authToken)
+		
+		if (!property.Unit) {return 0}
+		
+		return property.Unit.reduce((total, unit) => {
+			if (unit.status === 'OCCUPIED') {
+				return total + (unit.rent || 0)
+			}
+			return total
+		}, 0)
+	}
+
+	/**
+	 * Get enhanced property with calculated metrics
+	 */
+	async findOneWithMetrics(
+		id: string,
+		ownerId: string,
+		authToken?: string
+	): Promise<PropertyWithRelations & {
+		occupancyRate: number
+		totalRevenue: number
+		vacancyCount: number
+	}> {
+		const property = await this.findOne(id, ownerId, authToken)
+		const occupancyRate = await this.calculateOccupancyRate(id, ownerId, authToken)
+		const totalRevenue = await this.calculateTotalRevenue(id, ownerId, authToken)
+		
+		const vacancyCount = property.Unit
+			? property.Unit.filter(unit => unit.status !== 'OCCUPIED').length
+			: 0
+
+		return {
+			...property,
+			occupancyRate,
+			totalRevenue,
+			vacancyCount
+		}
 	}
 }
