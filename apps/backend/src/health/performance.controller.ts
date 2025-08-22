@@ -1,6 +1,6 @@
 import { Controller, Get, Logger, ParseIntPipe, Query } from '@nestjs/common'
 import { Public } from '../shared/decorators/public.decorator'
-import { PerformanceMonitoringService } from '../shared/services/performance-monitoring.service'
+import { UnifiedPerformanceMonitoringService } from '../shared/services/unified-performance-monitoring.service'
 
 /**
  * Performance Metrics Controller
@@ -14,7 +14,7 @@ export class PerformanceController {
 	private readonly logger = new Logger(PerformanceController.name)
 
 	constructor(
-		private readonly performanceService: PerformanceMonitoringService
+		private readonly performanceService: UnifiedPerformanceMonitoringService
 	) {}
 
 	/**
