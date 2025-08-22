@@ -53,7 +53,7 @@ export interface RouteConfig {
 export class RouteConfigInterceptor implements NestInterceptor {
   private readonly logger = new Logger(RouteConfigInterceptor.name)
 
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const request = context.switchToHttp().getRequest<FastifyRequest>()
     const reply = context.switchToHttp().getResponse<FastifyReply>()
     const handler = context.getHandler()
@@ -98,7 +98,7 @@ export class RouteConfigInterceptor implements NestInterceptor {
 
       // Store timing configuration for post-processing
       if (config.timing) {
-        (request as any).routeTiming = config.timing
+        (request as FastifyRequest & { routeTiming?: unknown }).routeTiming = config.timing
       }
 
       // Log configuration application for debugging
@@ -169,14 +169,14 @@ export class RouteConfigInterceptor implements NestInterceptor {
   private applyPostProcessing(
     request: FastifyRequest,
     reply: FastifyReply,
-    config: RouteConfig | undefined
+    _config: RouteConfig | undefined
   ): void {
     try {
       // Apply timing analysis
-      const routeTiming = (request as any).routeTiming
-      if (routeTiming?.logSlowRequests) {
-        const duration = Date.now() - ((request as any).startTime || Date.now())
-        const threshold = routeTiming.slowThreshold || 1000
+      const routeTiming = (request as FastifyRequest & { routeTiming?: unknown }).routeTiming
+      if (routeTiming && typeof routeTiming === 'object' && 'logSlowRequests' in routeTiming) {
+        const duration = Date.now() - ((request as FastifyRequest & { startTime?: number }).startTime || Date.now())
+        const threshold = (routeTiming as { slowThreshold?: number }).slowThreshold || 1000
 
         if (duration > threshold) {
           this.logger.warn(`Slow request detected`, {
@@ -210,7 +210,7 @@ export class FastifyRouteConfigPlugin {
    * Call this from main.ts after NestJS app initialization
    */
   static async registerRouteConfigs(
-    fastifyInstance: any,
+    fastifyInstance: unknown,
     routeConfigs: Map<string, RouteConfig>
   ): Promise<void> {
     try {
@@ -257,7 +257,7 @@ export class FastifyRouteConfigPlugin {
 
     // Apply compression settings
     if (config.compress !== undefined) {
-      routeOptions.preHandler = async function(request, reply) {
+      routeOptions.preHandler = function(request, _reply) {
         if (!config.compress) {
           // Disable compression for this route
           request.raw.headers['accept-encoding'] = 'identity'

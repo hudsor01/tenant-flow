@@ -13,7 +13,6 @@
 
 import type { RouteOptions } from 'fastify'
 import type { FastifyRateLimitOptions } from '@fastify/rate-limit'
-import type { FastifyCompressOptions } from '@fastify/compress'
 
 // ============================================================================
 // ROUTE-SPECIFIC RATE LIMITING CONFIGURATIONS
@@ -81,7 +80,7 @@ export const FileUploadRouteConfig = {
         keyGenerator: (req) => `upload_doc_${req.ip}`
       } as FastifyRateLimitOptions,
       bodyLimit: 50 * 1024 * 1024, // 50MB for documents
-      preHandler: async function(request: _request, reply: _reply) {
+      preHandler: async function(request: _request, _reply: _reply) {
         // Disable compression for uploads (save CPU)
         request.raw.headers['accept-encoding'] = 'identity'
       }
@@ -144,7 +143,7 @@ export const ApiRouteConfig = {
       } as FastifyRateLimitOptions,
       bodyLimit: 10 * 1024 * 1024, // 10MB for webhook payloads
       // Disable CSRF for webhooks
-      preHandler: async function(request: _request, reply: _reply) {
+      preHandler: async function(request: _request, _reply: _reply) {
         // Skip CSRF validation
         request.raw.skipCsrf = true
       }
@@ -433,7 +432,7 @@ export class RouteConfigBuilder {
       if (existingOnSend) {
         this.config.onSend = async function(request: _request, reply: _reply, payload) {
           const result = await existingOnSend.call(this, request, reply, payload)
-          return await securityOnSend.call(this, request, reply, result)
+          return securityOnSend.call(this, request, reply, result)
         }
       } else {
         this.config.onSend = securityOnSend

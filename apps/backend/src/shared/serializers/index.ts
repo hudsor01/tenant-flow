@@ -73,7 +73,7 @@ export function resetSerializerMetrics(): void {
 /**
  * Wrap serializer with performance tracking (development only)
  */
-export function withPerformanceTracking<T extends (...args: any[]) => any>(
+export function withPerformanceTracking<T extends (...args: unknown[]) => unknown>(
   serializer: T,
   type: 'date' | 'currency'
 ): T {

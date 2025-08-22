@@ -64,7 +64,7 @@ export function registerDateSerializerForRoute(
     // Only apply to responses that include Date fields
     if (schema && typeof schema === 'object' && 'properties' in schema) {
       const hasDateFields = Object.values(schema.properties || {}).some(
-        (prop: any) => prop.type === 'string' && prop.format === 'date-time'
+        (prop: unknown) => typeof prop === 'object' && prop !== null && 'type' in prop && prop.type === 'string' && 'format' in prop && prop.format === 'date-time'
       )
       
       if (hasDateFields) {

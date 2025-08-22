@@ -91,6 +91,7 @@ export class UnifiedAuthGuard implements CanActivate {
 	private setUserInRequestContext(user: ValidatedUser): void {
 		try {
 			// Import here to avoid circular dependencies
+			// eslint-disable-next-line @typescript-eslint/no-require-imports
 			const { requestContext } = require('@fastify/request-context')
 			const store = requestContext.get('store')
 			
