@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect } from 'react'
 import {
 	Card,
 	CardContent,
@@ -24,30 +24,71 @@ import {
 	Save,
 	Loader2
 } from 'lucide-react'
+import { useFormState, useApiCall } from '@/hooks/common'
+import { FormValidator } from '@/lib/validation/form-validator'
+import type { ProfileFormData } from '@/types/forms'
+import { toast } from 'sonner'
+import { apiClient } from '@/lib/api-client'
+import { useAuth } from '@/hooks/use-auth'
 
 export function ProfileSettings() {
-	const [isLoading, setIsLoading] = useState(false)
-
-	// Mock user data - in real app this would come from API/context
-	const [profile, setProfile] = useState({
-		firstName: 'John',
-		lastName: 'Doe',
-		email: 'john.doe@example.com',
-		phone: '+1 (555) 123-4567',
-		company: 'Acme Property Management',
-		address: '123 Main St, Anytown, USA',
-		avatar: ''
+	const { user } = useAuth()
+	
+	const {
+		values: profile,
+		handleChange,
+		setValues
+	} = useFormState<ProfileFormData>({
+		initialValues: {
+			name: '',
+			email: '',
+			phone: '',
+			company: '',
+			address: ''
+		}
 	})
 
+	const { execute: saveProfile, isLoading } = useApiCall(
+		async (data: ProfileFormData) => {
+			return await apiClient.put('/api/v1/auth/profile', data)
+		},
+		{
+			successMessage: 'Profile updated successfully',
+			errorMessage: 'Failed to update profile'
+		}
+	)
+
+	// Load user data on mount
+	useEffect(() => {
+		if (user) {
+			setValues({
+				name: user.name || '',
+				email: user.email || '',
+				phone: user.phone || '',
+				company: user.company || '',
+				address: user.address || ''
+			})
+		}
+	}, [user, setValues])
+
 	const handleSave = async () => {
-		setIsLoading(true)
-		// Simulate API call
-		await new Promise(resolve => setTimeout(resolve, 1000))
-		setIsLoading(false)
+		// Basic UI validation
+		const emailError = FormValidator.validateEmail(profile.email)
+		if (emailError) {
+			toast.error(emailError)
+			return
+		}
+
+		await saveProfile(profile)
 	}
 
-	const initials =
-		`${profile.firstName?.[0] || ''}${profile.lastName?.[0] || ''}`.toUpperCase()
+	// Parse name for initials
+	const nameParts = profile.name?.split(' ') || []
+	const initials = nameParts
+		.map(part => part[0])
+		.join('')
+		.toUpperCase()
+		.slice(0, 2)
 
 	return (
 		<div className="space-y-6">
@@ -68,7 +109,7 @@ export function ProfileSettings() {
 						<Avatar className="h-20 w-20">
 							<AvatarImage
 								src={profile.avatar}
-								alt={`${profile.firstName} ${profile.lastName}`}
+								alt={profile.name}
 							/>
 							<AvatarFallback className="bg-primary/10 text-primary text-lg">
 								{initials}
@@ -88,35 +129,14 @@ export function ProfileSettings() {
 					<Separator />
 
 					{/* Personal Information */}
-					<div className="grid gap-4 md:grid-cols-2">
-						<div className="space-y-2">
-							<Label htmlFor="firstName">First Name</Label>
-							<Input
-								id="firstName"
-								value={profile.firstName}
-								onChange={e =>
-									setProfile({
-										...profile,
-										firstName: e.target.value
-									})
-								}
-								placeholder="Enter your first name"
-							/>
-						</div>
-						<div className="space-y-2">
-							<Label htmlFor="lastName">Last Name</Label>
-							<Input
-								id="lastName"
-								value={profile.lastName}
-								onChange={e =>
-									setProfile({
-										...profile,
-										lastName: e.target.value
-									})
-								}
-								placeholder="Enter your last name"
-							/>
-						</div>
+					<div className="space-y-2">
+						<Label htmlFor="name">Full Name</Label>
+						<Input
+							id="name"
+							value={profile.name}
+							onChange={handleChange('name')}
+							placeholder="Enter your full name"
+						/>
 					</div>
 
 					{/* Contact Information */}
@@ -133,12 +153,7 @@ export function ProfileSettings() {
 								id="email"
 								type="email"
 								value={profile.email}
-								onChange={e =>
-									setProfile({
-										...profile,
-										email: e.target.value
-									})
-								}
+								onChange={handleChange('email')}
 								placeholder="Enter your email"
 							/>
 						</div>
@@ -153,12 +168,7 @@ export function ProfileSettings() {
 							<Input
 								id="phone"
 								value={profile.phone}
-								onChange={e =>
-									setProfile({
-										...profile,
-										phone: e.target.value
-									})
-								}
+								onChange={handleChange('phone')}
 								placeholder="Enter your phone number"
 							/>
 						</div>
@@ -177,12 +187,7 @@ export function ProfileSettings() {
 							<Input
 								id="company"
 								value={profile.company}
-								onChange={e =>
-									setProfile({
-										...profile,
-										company: e.target.value
-									})
-								}
+								onChange={handleChange('company')}
 								placeholder="Enter your company name"
 							/>
 						</div>
@@ -197,12 +202,7 @@ export function ProfileSettings() {
 							<Input
 								id="address"
 								value={profile.address}
-								onChange={e =>
-									setProfile({
-										...profile,
-										address: e.target.value
-									})
-								}
+								onChange={handleChange('address')}
 								placeholder="Enter your business address"
 							/>
 						</div>

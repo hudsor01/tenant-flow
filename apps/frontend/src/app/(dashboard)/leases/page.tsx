@@ -8,8 +8,9 @@ import Link from 'next/link'
 import { LeasesDataTable } from '@/components/leases/leases-data-table'
 import { LeasesStats } from '@/components/leases/leases-stats'
 import { PageTracker } from '@/components/analytics/page-tracker'
+import type { Metadata } from '@/types/next'
 
-export const metadata = {
+export const metadata: Metadata = {
 	title: 'Leases | TenantFlow',
 	description: 'Manage lease agreements and track rental terms'
 }
