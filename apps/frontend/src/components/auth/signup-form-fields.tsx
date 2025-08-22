@@ -10,13 +10,13 @@ import { PasswordStrengthIndicator } from './password-strength-indicator'
 import { ErrorDisplay } from './error-display'
 import { GoogleSignupButton } from './google-signup-button'
 import { usePasswordValidation } from '@/hooks/use-password-validation'
-import type { FormState } from '@/hooks/use-form-state'
+import type { SignupFormState } from '@/hooks/use-signup-form-state'
 
 interface SignupFormFieldsProps {
-	formState: FormState
-	onFieldUpdate: <K extends keyof FormState>(
+	formState: SignupFormState
+	onFieldUpdate: <K extends keyof SignupFormState>(
 		field: K,
-		value: FormState[K]
+		value: SignupFormState[K]
 	) => void
 	onTogglePasswordVisibility: () => void
 	onToggleConfirmPasswordVisibility: () => void

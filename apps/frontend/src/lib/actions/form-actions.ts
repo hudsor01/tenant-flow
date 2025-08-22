@@ -10,7 +10,7 @@ import type {
 	CreateLeaseInput,
 	PropertyType
 } from '@repo/shared'
-import { ApiService } from '@/lib/api/api-service'
+import { apiClient } from '@/lib/api-client'
 import { toast } from 'sonner'
 
 // =====================================================
@@ -64,7 +64,7 @@ export async function createPropertyAction(
 		}
 
 		// Call API
-		const response = await ApiService.createProperty(propertyData)
+		const response = await apiClient.createProperty(propertyData)
 
 		toast.success('Property created successfully!')
 
@@ -97,13 +97,13 @@ export async function updatePropertyAction(
 		const updates: Partial<UpdatePropertyInput> = {}
 
 		// Extract only changed fields
-		for (const [key, value] of formData.entries()) {
+		for (const [key, value] of Array.from(formData.entries())) {
 			if (key !== 'id' && value) {
 				;(updates as Record<string, unknown>)[key] = value
 			}
 		}
 
-		const response = await ApiService.updateProperty(propertyId, updates)
+		const response = await apiClient.updateProperty(propertyId, updates)
 
 		toast.success('Property updated successfully!')
 
@@ -152,12 +152,12 @@ export async function createUnitAction(
 			description: (formData.get('description') as string) || undefined
 		}
 
-		const response = await ApiService.createUnit(unitData)
+		await ApiService.createUnit(unitData)
 
 		toast.success('Unit created successfully!')
 
 		return {
-			data: response as CreateUnitInput,
+			data: unitData,
 			loading: false,
 			success: true,
 			error: undefined
@@ -199,12 +199,12 @@ export async function createLeaseAction(
 			leaseTerms: (formData.get('terms') as string) || undefined
 		}
 
-		const response = await ApiService.createLease(leaseData)
+		await ApiService.createLease(leaseData)
 
 		toast.success('Lease created successfully!')
 
 		return {
-			data: response as CreateLeaseInput,
+			data: leaseData,
 			loading: false,
 			success: true,
 			error: undefined
@@ -296,7 +296,7 @@ export function useOptimisticFormAction<T>(
 	const optimisticAction = (formData: FormData) => {
 		// Extract optimistic data from form
 		const optimisticData: Partial<T> = {}
-		for (const [key, value] of formData.entries()) {
+		for (const [key, value] of Array.from(formData.entries())) {
 			;(optimisticData as Record<string, unknown>)[key] = value
 		}
 

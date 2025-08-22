@@ -1,9 +1,9 @@
 /**
- * Properties API client
- * Provides property related API calls
+ * @deprecated Use the unified apiClient from '../api-client' instead
+ * This wrapper is maintained for backward compatibility only
  */
 
-import { ApiService } from './api-service'
+import { apiClient } from '../api-client'
 import type { 
 	Property, 
 	CreatePropertyInput, 
@@ -14,32 +14,32 @@ import type {
 
 export class PropertiesApi {
 	static async getProperties(query?: PropertyQuery): Promise<Property[]> {
-		return ApiService.getProperties(query)
+		return apiClient.getProperties(query)
 	}
 
 	static async getProperty(id: string): Promise<Property> {
-		return ApiService.getProperty(id)
+		return apiClient.getProperty(id)
 	}
 
 	static async createProperty(data: CreatePropertyInput): Promise<Property> {
-		return ApiService.createProperty(data)
+		return apiClient.createProperty(data)
 	}
 
 	static async updateProperty(id: string, data: UpdatePropertyInput): Promise<Property> {
-		return ApiService.updateProperty(id, data)
+		return apiClient.updateProperty(id, data)
 	}
 
 	static async deleteProperty(id: string): Promise<{ message: string }> {
-		return ApiService.deleteProperty(id)
+		return apiClient.deleteProperty(id)
 	}
 
 	static async getPropertyStats(): Promise<DashboardStats> {
-		return ApiService.getDashboardOverview()
+		return apiClient.getDashboardOverview()
 	}
 
 	static async uploadPropertyImage(id: string, file: File): Promise<{ url: string }> {
 		const formData = new FormData()
 		formData.append('image', file)
-		return ApiService.uploadPropertyImage(id, formData)
+		return apiClient.uploadPropertyImage(id, formData)
 	}
 }

@@ -9,23 +9,28 @@ import React from 'react'
 import { logger } from '@/lib/logger'
 import type { QueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query-keys'
+import { apiClient } from '@/lib/api-client'
 
-// Temporary API stubs and config
+// Production API client integration
 const api = {
 	properties: {
-		list: (_params?: Record<string, unknown>) =>
-			Promise.resolve({ data: [] })
+		list: (params?: Record<string, unknown>) =>
+			apiClient.get('/api/v1/properties', { params })
 	},
 	tenants: {
-		list: (_params?: Record<string, unknown>) =>
-			Promise.resolve({ data: [] })
+		list: (params?: Record<string, unknown>) =>
+			apiClient.get('/api/v1/tenants', { params })
 	},
 	maintenance: {
-		list: (_params?: Record<string, unknown>) =>
-			Promise.resolve({ data: [] })
+		list: (params?: Record<string, unknown>) =>
+			apiClient.get('/api/v1/maintenance', { params })
 	},
-	users: { profile: () => Promise.resolve({ data: null }) },
-	subscriptions: { current: () => Promise.resolve({ data: null }) }
+	users: { 
+		profile: () => apiClient.get('/api/v1/auth/me')
+	},
+	subscriptions: { 
+		current: () => apiClient.get('/api/v1/subscriptions/current')
+	}
 }
 
 const cacheConfig = {
@@ -108,7 +113,11 @@ export class PreloadManager {
 	/**
 	 * Preload data for a specific route
 	 */
-	async preloadRoute(routePath: string, forceRefresh = false): Promise<void> {
+	async preloadRoute(
+		routePath: string, 
+		forceRefresh = false, 
+		userContext?: { userId?: string; orgId?: string; tier?: string }
+	): Promise<void> {
 		const preloadConfig = ROUTE_PRELOADS[routePath]
 		if (!preloadConfig) return
 
@@ -120,7 +129,7 @@ export class PreloadManager {
 		}
 
 		// Create preload promise
-		const preloadPromise = this.executePreload(routePath, preloadConfig)
+		const preloadPromise = this.executePreload(routePath, preloadConfig, userContext)
 		this.preloadQueue.set(cacheKey, preloadPromise)
 
 		try {
@@ -217,7 +226,8 @@ export class PreloadManager {
 	 */
 	private async executePreload(
 		_routePath: string,
-		config: { data: string[]; config: PreloadConfig }
+		config: { data: string[]; config: PreloadConfig },
+		userContext?: { userId?: string; orgId?: string; tier?: string }
 	): Promise<void> {
 		// Check conditions
 		if (config.config.conditions && !config.config.conditions()) {
@@ -241,7 +251,7 @@ export class PreloadManager {
 		}
 
 		const preloadPromises = config.data.map(dataType =>
-			this.preloadDataType(dataType)
+			this.preloadDataType(dataType, userContext)
 		)
 
 		await Promise.allSettled(preloadPromises)
@@ -250,18 +260,17 @@ export class PreloadManager {
 	/**
 	 * Preload specific data type
 	 */
-	private async preloadDataType(dataType: string): Promise<void> {
-		// For now, we'll preload data regardless of user context
-		// TODO: Add user context support when needed
-
+	private async preloadDataType(dataType: string, userContext?: { userId?: string; orgId?: string; tier?: string }): Promise<void> {
 		try {
 			switch (dataType) {
 				case 'properties':
 					await this.queryClient.prefetchQuery({
-						queryKey: queryKeys.properties.lists(),
+						queryKey: userContext?.userId 
+							? queryKeys.properties.lists({ userId: userContext.userId })
+							: queryKeys.properties.lists(),
 						queryFn: async () => {
 							const response = await api.properties.list({
-								limit: 20
+								limit: userContext?.tier === 'FREETRIAL' ? 5 : 20
 							})
 							return response.data
 						},
@@ -349,14 +358,13 @@ export class PreloadManager {
 	/**
 	 * Warm cache with critical user data
 	 */
-	async warmCache(): Promise<void> {
-		// For now, warm cache regardless of user context
-		// TODO: Add user-specific caching when needed
-
+	async warmCache(userContext?: { userId?: string; orgId?: string; tier?: string }): Promise<void> {
 		const warmupPromises = [
 			// User profile and preferences
 			this.queryClient.prefetchQuery({
-				queryKey: queryKeys.auth.profile(),
+				queryKey: userContext?.userId 
+					? queryKeys.auth.profile({ userId: userContext.userId })
+					: queryKeys.auth.profile(),
 				queryFn: async () => {
 					const response = await api.users.profile()
 					return response.data
@@ -394,13 +402,13 @@ export class PreloadManager {
 	/**
 	 * Preload critical path data
 	 */
-	async preloadCriticalPath(): Promise<void> {
+	async preloadCriticalPath(userContext?: { userId?: string; orgId?: string; tier?: string }): Promise<void> {
 		const criticalQueries = [
 			// Dashboard essentials
-			this.preloadRoute('/dashboard'),
+			this.preloadRoute('/dashboard', false, userContext),
 
 			// Properties overview
-			this.preloadDataType('properties')
+			this.preloadDataType('properties', userContext)
 
 			// User subscription check handled in warmCache()
 		]

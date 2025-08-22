@@ -1,12 +1,9 @@
 /**
- * State Management Main Export
- * Centralized exports for all state atoms, actions, and hooks
+ * State Management Main Export - POST-JOTAI MIGRATION
+ * State is now handled via React primitives and contexts
  */
 
-// Store exports
-export { store } from './store'
-
-// Type exports
+// Type exports only - atoms removed
 export type {
 	User,
 	AuthError,
@@ -18,57 +15,9 @@ export type {
 	FormState
 } from './types'
 
-// Auth exports - Re-export from core atoms
-export {
-	// Atoms
-	userAtom,
-	authLoadingAtom,
-	isAuthenticatedAtom,
-	organizationAtom,
-	userRoleAtom,
-	isSessionActiveAtom,
-	userPermissionsAtom,
-	// Actions
-	setUserAtom,
-	updateUserAtom,
-	clearAuthAtom,
-	updateLastActivityAtom
-} from '../atoms/core/user'
-
-// Subscription exports
-export {
-	// Atoms
-	subscriptionAtom,
-	usageMetricsAtom,
-	subscriptionLoadingAtom,
-	metricsLoadingAtom,
-	subscriptionErrorAtom,
-	hasActiveSubscriptionAtom,
-	isSubscriptionCanceledAtom,
-	subscriptionStatusAtom,
-	daysUntilRenewalAtom,
-	isInTrialAtom,
-	trialDaysRemainingAtom,
-	propertyLimitAtom,
-	unitLimitAtom,
-	tenantLimitAtom,
-	propertyUsagePercentageAtom,
-	unitUsagePercentageAtom,
-	tenantUsagePercentageAtom
-} from './subscription/atoms'
-
-export {
-	// Actions
-	setSubscriptionAtom,
-	clearSubscriptionAtom,
-	setUsageMetricsAtom,
-	updateSubscriptionStatusAtom,
-	setSubscriptionLoadingAtom,
-	setMetricsLoadingAtom,
-	setSubscriptionErrorAtom,
-	syncSubscriptionAtom,
-	syncUsageMetricsAtom
-} from './subscription/actions'
-
-// Hook exports
-export { useSubscription } from './hooks/use-subscription'
+// State management patterns:
+// - Auth: Use AuthProvider context from @/providers/auth-provider  
+// - Forms: Use React Hook Form
+// - Server data: Use TanStack Query
+// - Local state: Use useState/useReducer
+// - Subscription: Use consolidated hooks from @/hooks/useSubscription

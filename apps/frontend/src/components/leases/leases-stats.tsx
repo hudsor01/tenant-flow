@@ -1,6 +1,6 @@
 'use client'
 
-import { useLeases } from '@/hooks/api/use-leases'
+import { useLeaseStats } from '@/hooks/api/use-leases'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -14,7 +14,7 @@ import {
 import { cn } from '@/lib/utils'
 
 export function LeasesStats() {
-	const { data: leases, isLoading, error } = useLeases()
+	const { data: stats, isLoading, error } = useLeaseStats()
 
 	if (isLoading) {
 		return (
@@ -43,31 +43,13 @@ export function LeasesStats() {
 		)
 	}
 
-	const totalLeases = leases?.length || 0
-	const activeLeases =
-		leases?.filter(lease => lease.status === 'ACTIVE').length || 0
-	// const expiredLeases = leases?.filter(lease => lease.status === 'EXPIRED').length || 0
+	// Use backend-calculated statistics
+	const totalLeases = stats?.total || 0
+	const activeLeases = stats?.active || 0
+	const expiringSoon = stats?.expiringSoon || 0
+	const totalMonthlyRent = stats?.totalMonthlyRent || 0
 
-	// Calculate leases expiring within 30 days
-	const expiringSoon =
-		leases?.filter(lease => {
-			if (lease.status !== 'ACTIVE') return false
-			const endDate = new Date(lease.endDate)
-			const thirtyDaysFromNow = new Date()
-			thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30)
-			return endDate <= thirtyDaysFromNow && endDate > new Date()
-		}).length || 0
-
-	// Calculate total monthly rent from active leases
-	const totalMonthlyRent =
-		leases?.reduce((total, lease) => {
-			if (lease.status === 'ACTIVE') {
-				return total + (lease.rentAmount || 0)
-			}
-			return total
-		}, 0) || 0
-
-	const stats = [
+	const statsCards = [
 		{
 			title: 'Total Leases',
 			value: totalLeases,
@@ -100,7 +82,7 @@ export function LeasesStats() {
 
 	return (
 		<div className="grid gap-4 md:grid-cols-4">
-			{stats.map(stat => {
+			{statsCards.map(stat => {
 				const Icon = stat.icon
 				return (
 					<Card

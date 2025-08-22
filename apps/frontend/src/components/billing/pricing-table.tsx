@@ -14,7 +14,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/use-auth'
 import { PLAN_TYPE } from '@repo/shared'
 import type { PlanType } from '@repo/shared'
-import { useCheckout } from '@/hooks/useCheckout'
+import { useCreateCheckout } from '@/hooks/useSubscriptionActions'
 
 interface Plan {
 	id: PlanType
@@ -43,7 +43,7 @@ export function PricingTable({ currentPlan }: PricingTableProps) {
 	// Plan data will be loaded from Stripe pricing API
 	const plans: Plan[] = []
 
-	const { createCheckoutSession } = useCheckout()
+	const { mutate: createCheckout } = useCreateCheckout()
 
 	const handleSelectPlan = async (planId: string) => {
 		if (!user) {
@@ -53,16 +53,14 @@ export function PricingTable({ currentPlan }: PricingTableProps) {
 
 		setLoadingPlan(planId)
 
-		try {
-			await createCheckoutSession(
-				planId as PlanType,
-				billingInterval === 'annual' ? 'annual' : 'monthly'
-			)
-		} catch {
-			// Error is handled in the hook
-		} finally {
-			setLoadingPlan(null)
-		}
+		createCheckout({
+			planType: planId,
+			billingPeriod: billingInterval === 'annual' ? 'annual' : 'monthly'
+		}, {
+			onSettled: () => {
+				setLoadingPlan(null)
+			}
+		})
 	}
 
 	const getMonthlyPrice = (price: { monthly: number; annual: number }) =>

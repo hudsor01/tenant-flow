@@ -1,10 +1,7 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { SupabaseService } from '../database/supabase.service'
-import {
-	ErrorCode,
-	ErrorHandlerService
-} from '../services/error-handler.service'
+import { ErrorHandlerService } from '../services/error-handler.service'
 import { SecurityMonitorService } from '../security/security-monitor.service'
 import type { AuthUser, UserRole } from '@repo/shared'
 import type { Database } from '@repo/shared/types/supabase-generated'
@@ -29,6 +26,10 @@ export interface ValidatedUser
 	createdAt: string
 	updatedAt: string
 	stripeCustomerId: string | null
+	supabaseId: string
+	bio: string | null
+	profileComplete: boolean
+	lastLoginAt: string
 	[key: string]: unknown
 }
 
@@ -48,6 +49,8 @@ function normalizeSupabaseUser(
 		bio: supabaseUser.bio ?? null,
 		supabaseId: supabaseUser.supabaseId ?? supabaseUser.id,
 		stripeCustomerId: supabaseUser.stripeCustomerId ?? null,
+		profileComplete: true,
+		lastLoginAt: new Date().toISOString(),
 		organizationId: null
 	}
 }
@@ -289,7 +292,6 @@ export class AuthService {
 	}> {
 		if (!userData.email || !userData.name) {
 			throw this.errorHandler.createBusinessError(
-				ErrorCode.BAD_REQUEST,
 				'Email and name are required',
 				{ operation: 'createUser', resource: 'auth' }
 			)
@@ -299,7 +301,6 @@ export class AuthService {
 			// Basic password validation (could be enhanced with proper validation library)
 			if (userData.password.length < 8) {
 				throw this.errorHandler.createBusinessError(
-					ErrorCode.BAD_REQUEST,
 					'Password must be at least 8 characters long',
 					{ operation: 'createUser', resource: 'auth' }
 				)
@@ -316,13 +317,11 @@ export class AuthService {
 		if (error) {
 			if (error.message?.includes('already registered')) {
 				throw this.errorHandler.createBusinessError(
-					ErrorCode.CONFLICT,
 					'User with this email already exists',
 					{ operation: 'createUser', resource: 'auth' }
 				)
 			}
 			throw this.errorHandler.createBusinessError(
-				ErrorCode.INTERNAL_SERVER_ERROR,
 				error.message || 'Failed to create user account',
 				{ operation: 'createUser', resource: 'auth' }
 			)
@@ -330,7 +329,6 @@ export class AuthService {
 
 		if (!data?.user?.id || !data?.user?.email) {
 			throw this.errorHandler.createBusinessError(
-				ErrorCode.INTERNAL_SERVER_ERROR,
 				'Failed to create user account',
 				{ operation: 'createUser', resource: 'auth' }
 			)
@@ -390,7 +388,6 @@ export class AuthService {
 
 		if (error || !data.session || !data.user) {
 			throw this.errorHandler.createBusinessError(
-				ErrorCode.UNAUTHORIZED,
 				'Invalid or expired refresh token',
 				{ operation: 'refreshToken', resource: 'auth' }
 			)
@@ -458,7 +455,6 @@ export class AuthService {
 
 			if (error && error.message?.includes('Invalid login credentials')) {
 				throw this.errorHandler.createBusinessError(
-					ErrorCode.UNAUTHORIZED,
 					'Invalid email or password',
 					{ operation: 'login', resource: 'auth' }
 				)
@@ -466,14 +462,12 @@ export class AuthService {
 
 			if (error?.message?.includes('Email not confirmed')) {
 				throw this.errorHandler.createBusinessError(
-					ErrorCode.FORBIDDEN,
 					'Please verify your email address before signing in',
 					{ operation: 'login', resource: 'auth' }
 				)
 			}
 
 			throw this.errorHandler.createBusinessError(
-				ErrorCode.INTERNAL_SERVER_ERROR,
 				'Login failed',
 				{ operation: 'login', resource: 'auth' }
 			)
@@ -508,7 +502,6 @@ export class AuthService {
 
 		if (error) {
 			throw this.errorHandler.createBusinessError(
-				ErrorCode.SERVICE_UNAVAILABLE,
 				'Authentication service connection failed',
 				{ operation: 'testConnection', resource: 'auth' }
 			)

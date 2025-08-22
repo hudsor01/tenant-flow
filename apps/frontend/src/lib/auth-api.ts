@@ -2,7 +2,7 @@
  * Authentication API functions
  * Handles auth operations with the backend
  */
-import { ApiService } from './api/api-service'
+import { apiClient } from './api-client'
 import { logger } from '@/lib/logger'
 import { supabase } from './supabase/client'
 import type {
@@ -185,7 +185,7 @@ export class AuthApi {
 	private static async syncWithBackend(): Promise<User> {
 		try {
 			// Use the unified ApiService for auth calls
-			const user = await ApiService.getCurrentUser()
+			const user = await apiClient.getCurrentUser()
 			// Map from shared User to frontend User interface
 			return {
 				...user,

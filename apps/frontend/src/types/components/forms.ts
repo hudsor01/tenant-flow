@@ -20,6 +20,7 @@ import type {
 	LeaseFormData
 } from '@repo/shared/validation'
 import type { Property, Tenant, Unit, Lease } from '@repo/shared'
+import type { AuthFormState } from '@/lib/actions/auth-actions'
 
 // ============================================
 // Form Container Props
@@ -122,6 +123,19 @@ export interface LoginFormProps
 	showRememberMe?: boolean
 	showForgotPassword?: boolean
 	showSignUpLink?: boolean
+}
+
+/**
+ * Login form layout options
+ */
+export type LoginLayout = 'clean' | 'marketing'
+
+/**
+ * Extended login form props with layout and success handling
+ */
+export interface LoginFormRefactoredProps extends Omit<LoginFormProps, 'onSuccess'> {
+	onSuccess?: (result: AuthFormState) => void
+	layout?: LoginLayout
 }
 
 /**

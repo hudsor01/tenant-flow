@@ -11,16 +11,16 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { getAllPlans, formatPrice, getAnnualSavings } from '@repo/shared/stripe/config'
-import { useCheckoutNew } from '@/hooks/useCheckoutNew'
+import { useCreateCheckout } from '@/hooks/useSubscriptionActions'
 import type { PlanType, BillingPeriod } from '@repo/shared'
 
 export function PricingCards() {
   const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('monthly')
-  const { checkout, loading } = useCheckoutNew()
+  const { mutate: startCheckout, isPending: loading } = useCreateCheckout()
   const plans = getAllPlans()
 
-  const handleGetStarted = async (planId: PlanType) => {
-    await checkout(planId, billingPeriod)
+  const handleGetStarted = (planId: PlanType) => {
+    startCheckout({ planType: planId, billingPeriod })
   }
 
   return (

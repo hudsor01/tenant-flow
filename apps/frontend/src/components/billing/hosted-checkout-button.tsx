@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
-import { useBilling } from '@/hooks/useBilling'
+import { useCreateCheckout } from '@/hooks/useSubscriptionActions'
 import type { PlanType } from '@repo/shared'
 
 interface HostedCheckoutButtonProps {
@@ -26,17 +26,10 @@ export function HostedCheckoutButton({
 	cancelUrl: _cancelUrl,
 	couponId: _couponId
 }: HostedCheckoutButtonProps) {
-	const { createCheckoutSession, isLoading } = useBilling()
+	const { mutate: createCheckout, isPending: isLoading } = useCreateCheckout()
 
 	const handleClick = async () => {
-		try {
-			// The useBilling hook expects priceId, we'll need to map planType to priceId
-			// For now, using a placeholder - this should be replaced with actual price IDs
-			const priceId = `price_${planType}_${billingInterval}`
-			await createCheckoutSession(priceId, planType, billingInterval)
-		} catch {
-			// Error is handled by the hook
-		}
+		createCheckout({ planType, billingPeriod: billingInterval })
 	}
 
 	return (

@@ -68,7 +68,7 @@ export interface MaintenanceRequest {
 	contactPhone: string | null
 	requestedBy: string | null
 	notes: string | null
-	photos: string[]
+	photos: string[] | null
 	assignedTo: string | null
 	estimatedCost: number | null
 	actualCost: number | null

@@ -3,7 +3,7 @@ import { Loader2, CreditCard, Shield } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils/css.utils'
-import { useCheckout } from '@/hooks/useCheckout'
+import { useOpenPortal } from '@/hooks/useSubscriptionActions'
 
 interface CustomerPortalButtonProps {
 	variant?: 'default' | 'outline' | 'secondary' | 'ghost'
@@ -21,14 +21,14 @@ export function CustomerPortalButton({
 	showSecurityBadge = false
 }: CustomerPortalButtonProps) {
 	const { user } = useAuth()
-	const { openPortal, isOpeningPortal, portalError } = useCheckout()
+	const { mutate: openPortal, isPending: isOpeningPortal, error: portalError } = useOpenPortal()
 
 	const handlePortalAccess = async () => {
 		if (!user?.id) {
 			return
 		}
 
-		await openPortal()
+		openPortal()
 	}
 
 	return (
@@ -70,7 +70,7 @@ export function CustomerPortalButton({
 					className="border-red-200 bg-red-50"
 				>
 					<AlertDescription className="text-red-700">
-						{portalError}
+						{portalError.message}
 					</AlertDescription>
 				</Alert>
 			)}

@@ -12,7 +12,7 @@ import {
 	ValidationPipe
 } from '@nestjs/common'
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger'
-import { JwtAuthGuard } from '../shared/guards/jwt-auth.guard'
+import { UnifiedAuthGuard } from '../shared/guards/unified-auth.guard'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
 import { ValidatedUser } from '../auth/auth.service'
 import { DocumentsService } from './documents.service'
@@ -25,7 +25,7 @@ import { createSuccessResponse } from '../shared/utils/api-response'
  */
 @ApiTags('documents')
 @Controller('documents')
-@UseGuards(JwtAuthGuard)
+@UseGuards(UnifiedAuthGuard)
 export class DocumentsController {
 	constructor(private readonly documentsService: DocumentsService) {}
 

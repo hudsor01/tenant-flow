@@ -13,16 +13,33 @@ interface EmbeddedCheckoutProviderProps {
 	}
 }
 
+import { loadStripe } from '@stripe/stripe-js'
+import { Elements } from '@stripe/react-stripe-js'
+
+// Initialize Stripe
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? '')
+
 /**
  * Provider component for Stripe's Embedded Checkout
- * Provides context for embedded checkout components
- *
- * TODO: This is a GitHub example that needs proper integration
+ * Provides Stripe context for embedded checkout components
  */
 export function EmbeddedCheckoutProvider({
 	children
 }: EmbeddedCheckoutProviderProps) {
-	return <>{children}</>
+	return (
+		<Elements 
+			stripe={stripePromise}
+			options={{
+				mode: 'payment',
+				currency: 'usd',
+				appearance: {
+					theme: 'stripe',
+				},
+			}}
+		>
+			{children}
+		</Elements>
+	)
 }
 
 // export function EmbeddedCheckoutProvider({ children, options }: EmbeddedCheckoutProviderProps) {

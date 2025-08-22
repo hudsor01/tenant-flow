@@ -506,8 +506,8 @@ export class SubscriptionSyncService {
 		} catch (error) {
 			this.structuredLogger.error(
 				'Subscription sync failed',
-				error as Error,
 				{
+					error: error as Error,
 					userId,
 					subscriptionId: stripeSubscription.id,
 					correlationId,

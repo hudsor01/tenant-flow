@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
-import { logger } from '@/lib/logger'
+import { useFormAnalytics } from '@/hooks/common/use-form-analytics'
 import Image from 'next/image'
 import type { CreatePropertyInput, UpdatePropertyInput } from '@repo/shared'
 import type { PropertyFormProps, BaseComponentProps } from '@/types'
-import { useForm, FormProvider, type Control } from 'react-hook-form'
+import { useForm, useController } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { z } from 'zod'
 import { propertyFormSchema } from '@repo/shared/validation'
@@ -15,17 +15,26 @@ import {
 	CardTitle
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, Upload, X } from 'lucide-react'
-import { SupabaseFormField, PropertyTypeField } from './supabase-form-field'
 import {
 	useCreateProperty,
 	useUpdateProperty
 } from '@/hooks/api/use-properties'
-import { useAtom } from 'jotai'
-import { closeModalAtom } from '@/atoms/ui/modals'
+// No more Jotai dependencies - using props for modal control
 import { PropertiesApi } from '@/lib/api/properties'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 
 interface PropertyImageUploadProps extends BaseComponentProps {
 	propertyId: string
@@ -123,15 +132,125 @@ function PropertyImageUpload({
 	)
 }
 
+// Property Type Field using direct RHF
+function PropertyTypeField({ control }: { control: unknown }) {
+	const {
+		field,
+		fieldState: { error }
+	} = useController({
+		name: 'propertyType',
+		control,
+		rules: { required: 'Property type is required' }
+	})
+
+	return (
+		<div className="space-y-2">
+			<Label htmlFor="propertyType">
+				Property Type
+				<span className="text-destructive ml-1">*</span>
+			</Label>
+			<Select value={field.value || ''} onValueChange={field.onChange}>
+				<SelectTrigger
+					id="propertyType"
+					className={cn(
+						error && 'border-destructive focus-visible:ring-destructive'
+					)}
+				>
+					<SelectValue placeholder="Select property type" />
+				</SelectTrigger>
+				<SelectContent>
+					<SelectItem value="SINGLE_FAMILY">Single Family Home</SelectItem>
+					<SelectItem value="MULTI_UNIT">Multi-Unit Building</SelectItem>
+					<SelectItem value="APARTMENT">Apartment Complex</SelectItem>
+					<SelectItem value="CONDO">Condominium</SelectItem>
+					<SelectItem value="TOWNHOUSE">Townhouse</SelectItem>
+					<SelectItem value="COMMERCIAL">Commercial Property</SelectItem>
+					<SelectItem value="OTHER">Other</SelectItem>
+				</SelectContent>
+			</Select>
+			{error && (
+				<p className="text-destructive text-sm">{error.message}</p>
+			)}
+		</div>
+	)
+}
+
+// Form Field Component using direct RHF
+function FormField({ 
+	name, 
+	control, 
+	label, 
+	type = 'text', 
+	placeholder, 
+	required = false, 
+	multiline = false, 
+	rows = 3 
+}: {
+	name: string
+	control: unknown
+	label: string
+	type?: string
+	placeholder?: string
+	required?: boolean
+	multiline?: boolean
+	rows?: number
+}) {
+	const {
+		field,
+		fieldState: { error }
+	} = useController({
+		name,
+		control,
+		rules: { required: required ? `${label} is required` : false }
+	})
+
+	const fieldId = `field-${name}`
+
+	return (
+		<div className="space-y-2">
+			<Label htmlFor={fieldId}>
+				{label}
+				{required && <span className="text-destructive ml-1">*</span>}
+			</Label>
+			{multiline ? (
+				<Textarea
+					{...field}
+					id={fieldId}
+					placeholder={placeholder}
+					rows={rows}
+					value={field.value || ''}
+					className={cn(
+						error && 'border-destructive focus-visible:ring-destructive'
+					)}
+				/>
+			) : (
+				<Input
+					{...field}
+					id={fieldId}
+					type={type}
+					placeholder={placeholder}
+					value={field.value || ''}
+					className={cn(
+						error && 'border-destructive focus-visible:ring-destructive'
+					)}
+				/>
+			)}
+			{error && (
+				<p className="text-destructive text-sm">{error.message}</p>
+			)}
+		</div>
+	)
+}
+
 interface PropertyFormFieldsProps {
-	control: Control<z.input<typeof propertyFormSchema>>
+	control: unknown
 }
 
 function PropertyFormFields({ control }: PropertyFormFieldsProps) {
 	return (
 		<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 			<div className="md:col-span-2">
-				<SupabaseFormField
+				<FormField
 					name="name"
 					control={control}
 					label="Property Name"
@@ -141,7 +260,7 @@ function PropertyFormFields({ control }: PropertyFormFieldsProps) {
 			</div>
 
 			<div className="md:col-span-2">
-				<SupabaseFormField
+				<FormField
 					name="address"
 					control={control}
 					label="Address"
@@ -150,7 +269,7 @@ function PropertyFormFields({ control }: PropertyFormFieldsProps) {
 				/>
 			</div>
 
-			<SupabaseFormField
+			<FormField
 				name="city"
 				control={control}
 				label="City"
@@ -158,7 +277,7 @@ function PropertyFormFields({ control }: PropertyFormFieldsProps) {
 				required
 			/>
 
-			<SupabaseFormField
+			<FormField
 				name="state"
 				control={control}
 				label="State"
@@ -166,7 +285,7 @@ function PropertyFormFields({ control }: PropertyFormFieldsProps) {
 				required
 			/>
 
-			<SupabaseFormField
+			<FormField
 				name="zipCode"
 				control={control}
 				label="ZIP Code"
@@ -174,15 +293,10 @@ function PropertyFormFields({ control }: PropertyFormFieldsProps) {
 				required
 			/>
 
-			<PropertyTypeField
-				name="propertyType"
-				control={control}
-				label="Property Type"
-				required
-			/>
+			<PropertyTypeField control={control} />
 
 			<div className="md:col-span-2">
-				<SupabaseFormField
+				<FormField
 					name="description"
 					control={control}
 					label="Description"
@@ -200,7 +314,13 @@ export function PropertyForm({
 	onSuccess,
 	onCancel
 }: PropertyFormProps) {
-	const [, closeModalAction] = useAtom(closeModalAtom)
+	// No more Jotai modal atoms - using props/callbacks for modal control
+
+	// DRY: Reusable form analytics
+	const { withFormTracking } = useFormAnalytics({
+		featureName: 'property_form',
+		successEvent: 'property_created'
+	})
 
 	// React Query mutations
 	const createPropertyMutation = useCreateProperty()
@@ -262,10 +382,20 @@ export function PropertyForm({
 			imageUrl: data.imageUrl || undefined
 		}
 
-		const result = await createPropertyMutation.mutateAsync(createData)
-		onSuccess?.(result)
-		closeModalAction('propertyForm')
-		// onCancel not needed here as form was successful
+		// DRY: Use form tracking wrapper for analytics
+		return await withFormTracking(
+			async () => {
+				const result = await createPropertyMutation.mutateAsync(createData)
+				onSuccess?.(result)
+				// Modal closing handled by parent component via onSuccess callback
+				return result
+			},
+			{
+				property_type: data.propertyType,
+				has_photos: Boolean(data.imageUrl),
+				is_update: false
+			}
+		)
 	}
 
 	const handleUpdateProperty = async (
@@ -284,32 +414,34 @@ export function PropertyForm({
 			imageUrl: data.imageUrl || undefined
 		}
 
-		const result = await updatePropertyMutation.mutateAsync({
-			id: property.id,
-			data: updateData
-		})
-
-		onSuccess?.(result)
-		closeModalAction('editProperty')
-		// onCancel not needed here as form was successful
+		// DRY: Use form tracking wrapper for analytics
+		return await withFormTracking(
+			async () => {
+				const result = await updatePropertyMutation.mutateAsync({
+					id: property.id,
+					data: updateData
+				})
+				onSuccess?.(result)
+				// Modal closing handled by parent component via onSuccess callback
+				return result
+			},
+			{
+				property_type: data.propertyType,
+				has_photos: Boolean(data.imageUrl),
+				is_update: true
+			}
+		)
 	}
 
-	// Form submission handler
+	// Form submission handler - simplified with analytics built-in
 	const onSubmit = async (data: z.output<typeof propertyFormSchema>) => {
-		try {
-			if (property) {
-				await handleUpdateProperty(data)
-			} else {
-				await handleCreateProperty(data)
-			}
-		} catch (error) {
-			// Error handling is done by React Query hooks with toast notifications
-			logger.error(
-				'Form submission error:',
-				error instanceof Error ? error : new Error(String(error)),
-				{ component: 'propertyform' }
-			)
+		// DRY: Analytics tracking is now handled by withFormTracking wrapper
+		if (property) {
+			await handleUpdateProperty(data)
+		} else {
+			await handleCreateProperty(data)
 		}
+		// Error handling and analytics are handled by withFormTracking
 	}
 
 	return (
@@ -326,61 +458,59 @@ export function PropertyForm({
 			</CardHeader>
 
 			<CardContent>
-				<FormProvider {...form}>
-					<form
-						onSubmit={handleSubmit(onSubmit)}
-						className="space-y-6"
-					>
-						{/* Image Upload Section */}
-						{property && (
-							<PropertyImageUpload
-								propertyId={property.id}
-								currentImageUrl={watch('imageUrl')}
-								onImageChange={imageUrl =>
-									setValue('imageUrl', imageUrl)
-								}
-								disabled={isSubmitting}
-							/>
-						)}
+				<form
+					onSubmit={handleSubmit(onSubmit)}
+					className="space-y-6"
+				>
+					{/* Image Upload Section */}
+					{property && (
+						<PropertyImageUpload
+							propertyId={property.id}
+							currentImageUrl={watch('imageUrl')}
+							onImageChange={imageUrl =>
+								setValue('imageUrl', imageUrl)
+							}
+							disabled={isSubmitting}
+						/>
+					)}
 
-						{/* Form Fields */}
-						<PropertyFormFields control={control} />
+					{/* Form Fields */}
+					<PropertyFormFields control={control} />
 
-						{/* Error Display */}
-						{Object.keys(errors).length > 0 && (
-							<Alert variant="destructive">
-								<AlertDescription>
-									Please fix the errors above and try again.
-								</AlertDescription>
-							</Alert>
-						)}
+					{/* Error Display */}
+					{Object.keys(errors).length > 0 && (
+						<Alert variant="destructive">
+							<AlertDescription>
+								Please fix the errors above and try again.
+							</AlertDescription>
+						</Alert>
+					)}
 
-						{/* Actions */}
-						<div className="flex justify-end space-x-3">
-							{onCancel && (
-								<Button
-									type="button"
-									variant="outline"
-									onClick={onCancel}
-								>
-									Cancel
-								</Button>
-							)}
-
+					{/* Actions */}
+					<div className="flex justify-end space-x-3">
+						{onCancel && (
 							<Button
-								type="submit"
-								disabled={isSubmitting}
-								className="min-w-[120px]"
+								type="button"
+								variant="outline"
+								onClick={onCancel}
 							>
-								{isSubmitting && (
-									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-								)}
-								{property ? 'Update' : 'Create'} Property
+								Cancel
 							</Button>
-						</div>
-					</form>
-				</FormProvider>
-			</CardContent>
+					)}
+
+						<Button
+							type="submit"
+							disabled={isSubmitting}
+							className="min-w-[120px]"
+						>
+							{isSubmitting && (
+								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+							)}
+							{property ? 'Update' : 'Create'} Property
+						</Button>
+				</div>
+			</form>
+		</CardContent>
 		</Card>
 	)
 }

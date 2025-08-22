@@ -7,6 +7,7 @@
 
 import { queryKeys } from '@/lib/query-keys'
 import { logger } from '@/lib/logger'
+import { apiClient } from '@/lib/api-client'
 // Removed unused imports MaintenanceQuery, RequestStatus
 
 // Temporary stub types and configurations
@@ -68,31 +69,37 @@ const loaderUtils = {
 	}
 }
 
+// Real API client now imported at top
+
 const api = {
-	users: { profile: () => Promise.resolve({ data: null }) },
-	subscriptions: { current: () => Promise.resolve({ data: null }) },
+	users: { 
+		profile: () => apiClient.get('/api/v1/auth/me')
+	},
+	subscriptions: { 
+		current: () => apiClient.get('/api/v1/subscriptions/current')
+	},
 	properties: {
-		list: (_params?: Record<string, unknown>) =>
-			Promise.resolve({ data: [] }),
-		get: (_id: string) => Promise.resolve({ data: null }),
-		stats: () => Promise.resolve({ data: {} })
+		list: (params?: Record<string, unknown>) =>
+			apiClient.get('/api/v1/properties', { params }),
+		get: (id: string) => apiClient.get(`/api/v1/properties/${id}`),
+		stats: () => apiClient.get('/api/v1/properties/stats')
 	},
 	tenants: {
-		list: (_params?: Record<string, unknown>) =>
-			Promise.resolve({ data: [] }),
-		get: (_id: string) => Promise.resolve({ data: null })
+		list: (params?: Record<string, unknown>) =>
+			apiClient.get('/api/v1/tenants', { params }),
+		get: (id: string) => apiClient.get(`/api/v1/tenants/${id}`)
 	},
 	maintenance: {
-		list: (_params?: Record<string, unknown>) =>
-			Promise.resolve({ data: [] })
+		list: (params?: Record<string, unknown>) =>
+			apiClient.get('/api/v1/maintenance', { params })
 	},
 	units: {
-		list: (_params?: Record<string, unknown>) =>
-			Promise.resolve({ data: [] })
+		list: (params?: Record<string, unknown>) =>
+			apiClient.get('/api/v1/units', { params })
 	},
 	leases: {
-		list: (_params?: Record<string, unknown>) =>
-			Promise.resolve({ data: [] })
+		list: (params?: Record<string, unknown>) =>
+			apiClient.get('/api/v1/leases', { params })
 	}
 }
 
@@ -284,13 +291,8 @@ export const loadDashboard = loaderUtils.createLoader(
 				return await context.queryClient.ensureQueryData({
 					queryKey: queryKeys.financial.analytics(),
 					queryFn: async () => {
-						// This would need to be implemented in the backend
-						return {
-							totalRent: 0,
-							occupancyRate: 0,
-							monthlyRevenue: 0,
-							expenses: 0
-						}
+						const response = await apiClient.get('/api/v1/analytics/financial')
+						return response
 					},
 					...cacheConfig.business
 				})
@@ -315,8 +317,8 @@ export const loadDashboard = loaderUtils.createLoader(
 				return await context.queryClient.ensureQueryData({
 					queryKey: queryKeys.notifications.unread(),
 					queryFn: async () => {
-						// This would need to be implemented
-						return []
+						const response = await apiClient.get('/api/v1/notifications?status=unread')
+						return response
 					},
 					...cacheConfig.realtime
 				})
@@ -421,13 +423,8 @@ export const loadProperty = (propertyId: string, includeAnalytics = false) =>
 								queryKey:
 									queryKeys.properties.analytics(propertyId),
 								queryFn: async () => {
-									// This would need to be implemented in the backend
-									return {
-										occupancyRate: 0,
-										monthlyRent: 0,
-										maintenanceRequests: 0,
-										avgTenantStay: 0
-									}
+									const response = await apiClient.get(`/api/v1/properties/${propertyId}/analytics`)
+									return response
 								},
 								...cacheConfig.business
 							})
@@ -548,8 +545,8 @@ export const loadTenant = (tenantId: string) =>
 					return await context.queryClient.ensureQueryData({
 						queryKey: queryKeys.tenants.payments(tenantId),
 						queryFn: async () => {
-							// This would need to be implemented
-							return []
+							const response = await apiClient.get(`/api/v1/tenants/${tenantId}/payments`)
+							return response
 						},
 						...cacheConfig.business
 					})
@@ -561,8 +558,8 @@ export const loadTenant = (tenantId: string) =>
 					return await context.queryClient.ensureQueryData({
 						queryKey: queryKeys.tenants.documents(tenantId),
 						queryFn: async () => {
-							// This would need to be implemented
-							return []
+							const response = await apiClient.get(`/api/v1/tenants/${tenantId}/documents`)
+							return response
 						},
 						...cacheConfig.business
 					})
@@ -641,34 +638,44 @@ export const loadMaintenance = (
 /**
  * Derive user permissions based on role and subscription
  */
-function derivePermissions(role = 'OWNER', _tier?: string): Permission[] {
-	// TODO: Implement tier-based permissions when needed
+function derivePermissions(role = 'OWNER', tier?: string): Permission[] {
 	const basePermissions: Permission[] = [
 		'properties:read',
 		'tenants:read',
 		'maintenance:read'
 	]
 
+	// Tier-based permission restrictions
+	const tierPermissions: Permission[] = []
+	
+	switch (tier) {
+		case 'FREETRIAL':
+			tierPermissions.push('properties:read', 'tenants:read')
+			break
+		case 'STARTER':
+			tierPermissions.push(...basePermissions, 'properties:write', 'tenants:write')
+			break
+		case 'GROWTH':
+			tierPermissions.push(...basePermissions, 'properties:write', 'tenants:write', 'maintenance:write', 'analytics:read')
+			break
+		case 'TENANTFLOW_MAX':
+			tierPermissions.push(...basePermissions, 'properties:write', 'tenants:write', 'maintenance:write', 'analytics:read', 'integrations:read', 'integrations:write')
+			break
+		default:
+			// Default to base permissions for unknown tiers
+			tierPermissions.push(...basePermissions)
+	}
+
 	if (role === 'OWNER') {
 		return [
-			...basePermissions,
-			'properties:write',
-			'tenants:write',
-			'maintenance:write',
-			'analytics:read',
+			...tierPermissions,
 			'billing:read',
 			'billing:write'
 		]
 	}
 
 	if (role === 'MANAGER') {
-		return [
-			...basePermissions,
-			'properties:write',
-			'tenants:write',
-			'maintenance:write',
-			'analytics:read'
-		]
+		return tierPermissions.filter(p => !p.includes('billing'))
 	}
 
 	// TENANT role

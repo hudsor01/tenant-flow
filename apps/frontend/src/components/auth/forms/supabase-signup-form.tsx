@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/card'
 import { SignupFormFields } from '../signup-form-fields'
 import { SignupSuccess } from '../signup-success'
-import { useFormState } from '@/hooks/use-form-state'
+import { useSignupFormState } from '@/hooks/use-signup-form-state'
 import { useSignup } from '@/hooks/use-signup'
 import { usePasswordValidation } from '@/hooks/use-password-validation'
 
@@ -29,7 +29,7 @@ export function SupabaseSignupForm({
 		togglePasswordVisibility,
 		toggleConfirmPasswordVisibility,
 		getFormData
-	} = useFormState()
+	} = useSignupFormState()
 
 	const {
 		isLoading,

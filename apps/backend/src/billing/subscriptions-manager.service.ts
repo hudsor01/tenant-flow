@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { StripeService } from './stripe.service'
+import { SuccessResponseUtil } from '../shared/utils/success-response.util'
 
 @Injectable()
 export class SubscriptionsManagerService {
@@ -11,7 +12,7 @@ export class SubscriptionsManagerService {
 
 	async cancelSubscription(_subscriptionId: string) {
 		// Implementation for canceling subscription
-		return { success: true }
+		return SuccessResponseUtil.success()
 	}
 
 	async updateSubscription(
@@ -19,7 +20,7 @@ export class SubscriptionsManagerService {
 		_data: Record<string, unknown>
 	) {
 		// Implementation for updating subscription
-		return { success: true }
+		return SuccessResponseUtil.success()
 	}
 
 	async getUserSubscription(_userId: string) {
@@ -52,6 +53,6 @@ export class SubscriptionsManagerService {
 		_subscriptionData: Record<string, unknown>
 	) {
 		// Implementation for creating or updating subscription
-		return { success: true }
+		return SuccessResponseUtil.success()
 	}
 }

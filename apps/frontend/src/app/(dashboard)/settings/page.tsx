@@ -9,8 +9,9 @@ import { SecuritySettings } from '@/components/settings/security-settings'
 import { BillingSettings } from '@/components/settings/billing-settings'
 import { AppearanceSettings } from '@/components/settings/appearance-settings'
 import { DataSettings } from '@/components/settings/data-settings'
+import type { Metadata } from '@/types/next'
 
-export const metadata = {
+export const metadata: Metadata = {
 	title: 'Settings | TenantFlow',
 	description: 'Manage your account settings and preferences'
 }
