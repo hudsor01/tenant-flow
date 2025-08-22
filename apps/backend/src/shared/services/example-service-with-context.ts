@@ -59,7 +59,7 @@ export class ExampleServiceWithContext {
 	 * BEFORE: async updateProperty(id: string, data: any, userId: string, orgId: string)
 	 * AFTER: async updateProperty(id: string, data: any)
 	 */
-	async updateProperty(id: string, data: any) {
+	async updateProperty(id: string, data: unknown) {
 		// Require organization context for multi-tenant operations
 		const { userId, organizationId } = this.requestContext.requireOrganizationContext()
 
@@ -252,14 +252,14 @@ export class ExampleServiceWithContext {
  * BEFORE: Manual ID passing pattern
  */
 export class OldPatternService {
-	async findProperties(userId: string, organizationId: string, authToken?: string) {
+	async findProperties(_userId: string, _organizationId: string, _authToken?: string) {
 		// Verbose parameter passing
 		// Risk of parameter confusion
 		// Repeated validation logic
 		return []
 	}
 
-	async updateProperty(id: string, data: any, userId: string, organizationId: string) {
+	async updateProperty(_id: string, _data: unknown, _userId: string, _organizationId: string) {
 		// Even more parameters
 		// Easy to mix up parameter order
 		// Manual tenant validation everywhere
@@ -277,15 +277,15 @@ export class NewPatternService {
 		// Clean interface - no parameter threading
 		// Automatic context access
 		// Built-in logging and monitoring
-		const { userId, organizationId } = this.requestContext.requireOrganizationContext()
+		const { userId: _userId, organizationId: _organizationId } = this.requestContext.requireOrganizationContext()
 		return []
 	}
 
-	async updateProperty(id: string, data: any) {
+	async updateProperty(_id: string, _data: unknown) {
 		// Simplified interface
 		// Automatic multi-tenant validation
 		// Enhanced logging and tracing
-		const { userId, organizationId } = this.requestContext.requireOrganizationContext()
+		const { userId: _userId, organizationId: _organizationId } = this.requestContext.requireOrganizationContext()
 		return {}
 	}
 }

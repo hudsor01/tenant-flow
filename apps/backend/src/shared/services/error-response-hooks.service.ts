@@ -133,8 +133,8 @@ export class ErrorResponseHooksService {
 	 * Process accumulated security events
 	 */
 	private async processSecurityEvents(
-		request: FastifyRequest,
-		reply: FastifyReply
+		_request: FastifyRequest,
+		_reply: FastifyReply
 	): Promise<void> {
 		// Process any queued security events
 		if (this.securityEvents.length > 0) {
