@@ -66,8 +66,8 @@ export const formatPrice = (
 	} = options
 
 	// Handle special values
-	if (amount === 0) return 'Free'
-	if (amount === -1) return 'Custom'
+	if (amount === 0) {return 'Free'}
+	if (amount === -1) {return 'Custom'}
 
 	// Convert from cents if needed
 	const dollarAmount = fromCents ? amount / 100 : amount
@@ -185,7 +185,7 @@ export const formatCurrencyChange = (
 	currency: CurrencyCode = 'USD'
 ): string => {
 	const formatted = formatCurrency(Math.abs(amount), { currency })
-	if (!showSign) return formatted
+	if (!showSign) {return formatted}
 
 	return amount >= 0 ? `+${formatted}` : `-${formatted}`
 }
@@ -198,7 +198,7 @@ export const formatPercentageChange = (
 	showSign = true
 ): string => {
 	const formatted = formatPercentage(Math.abs(value))
-	if (!showSign) return formatted
+	if (!showSign) {return formatted}
 
 	return value >= 0 ? `+${formatted}` : `-${formatted}`
 }
