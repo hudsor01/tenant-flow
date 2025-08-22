@@ -1,9 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import * as os from 'os'
 
 @Injectable()
 export class MetricsService {
-  private readonly _logger = new Logger(MetricsService.name)
   private metrics = new Map<string, number>()
 
   increment(key: string, value = 1): void {
