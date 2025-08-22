@@ -13,7 +13,7 @@ import {
 	CardTitle
 } from '@/components/ui/card'
 import { Loader2, CreditCard, AlertCircle } from 'lucide-react'
-import { useDirectSubscription } from '@/hooks/useDirectSubscription'
+import { useDirectSubscription } from '@/hooks/useSubscriptionActions'
 import type { PLAN_TYPE } from '@repo/shared'
 
 interface DirectSubscriptionFormProps {
@@ -76,11 +76,8 @@ export function DirectSubscriptionForm({
 			}
 
 			const result = await processPlan(planType, paymentMethod?.id)
-
-			if (result && result.subscriptionId) {
-				onSuccess?.(result.subscriptionId)
-			} else if (result) {
-				// If no subscriptionId returned, pass a generic success message
+			// If subscription succeeded, call onSuccess with a generic ID
+			if (result.success) {
 				onSuccess?.('subscription_created')
 			}
 		} catch (err) {

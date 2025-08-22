@@ -3,7 +3,6 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
-// import { Button } from "@/components/ui/button"
 import { Building2, Eye, Edit, Trash, MapPin, DollarSign } from 'lucide-react'
 import type { Property, PropertyType } from '@repo/shared'
 import {
@@ -19,26 +18,8 @@ function formatCurrency(amount: number | undefined | null): string {
 	return sharedFormatCurrency(amount, { maximumFractionDigits: 0 })
 }
 
-function calculateOccupancyRate(units?: { status: string }[]): number {
-	if (!units || units.length === 0) return 0
-	const occupiedUnits = units.filter(
-		unit => unit.status === 'OCCUPIED'
-	).length
-	return Math.round((occupiedUnits / units.length) * 100)
-}
-
-function calculateTotalRevenue(
-	units?: { monthlyRent?: number; rent?: number; status: string }[]
-): number {
-	if (!units) return 0
-	return units.reduce((total, unit) => {
-		if (unit.status === 'OCCUPIED') {
-			const rent = unit.monthlyRent || unit.rent || 0
-			return total + rent
-		}
-		return total
-	}, 0)
-}
+// Business logic calculations are now handled by the backend
+// These functions have been removed to eliminate duplication
 
 function getStatusBadgeVariant(
 	occupancyRate: number
@@ -133,8 +114,8 @@ export const propertyColumns: ColumnDef<Property>[] = [
 		header: 'Occupancy',
 		size: 100,
 		cell: ({ row }) => {
-			const units = row.original.units || []
-			const occupancyRate = calculateOccupancyRate(units)
+			// Backend provides occupancyRate - no client-side calculation needed
+			const occupancyRate = row.original.occupancyRate || 0
 
 			return (
 				<div className="flex items-center gap-2">
@@ -169,8 +150,8 @@ export const propertyColumns: ColumnDef<Property>[] = [
 		header: 'Revenue',
 		size: 100,
 		cell: ({ row }) => {
-			const units = row.original.units || []
-			const totalRevenue = calculateTotalRevenue(units)
+			// Backend provides totalRevenue - no client-side calculation needed
+			const totalRevenue = row.original.totalRevenue || 0
 
 			return (
 				<div className="flex items-center gap-1">
@@ -188,8 +169,8 @@ export const propertyColumns: ColumnDef<Property>[] = [
 		header: 'Status',
 		size: 90,
 		cell: ({ row }) => {
-			const units = row.original.units || []
-			const occupancyRate = calculateOccupancyRate(units)
+			// Backend provides occupancyRate - no client-side calculation needed
+			const occupancyRate = row.original.occupancyRate || 0
 			const statusLabel = getStatusLabel(occupancyRate)
 			const variant = getStatusBadgeVariant(occupancyRate)
 
@@ -232,9 +213,37 @@ export const propertyColumns: ColumnDef<Property>[] = [
 		},
 		{
 			label: 'Delete',
-			onClick: _property => {
-				// TODO: Open a confirmation dialog for property deletion
-				// Property deletion functionality not yet implemented
+			onClick: (property) => {
+				// Implemented: Open a confirmation dialog for property deletion
+				const handleDelete = async () => {
+					try {
+						const { apiClient } = await import('@/lib/api-client')
+						
+						// Implement actual property deletion API call
+						await apiClient.delete(`/api/v1/properties/${property.id}`)
+						
+						// Optionally trigger a refetch of the properties list
+						// This would typically be handled by React Query invalidation
+						window.location.reload() // Simple approach for now
+						
+					} catch (error: unknown) {
+						console.error('Failed to delete property:', error)
+						
+						// Show user-friendly error message
+						const message = error instanceof Error ? error.message : 'Failed to delete property'
+						alert(`Error: ${message}`)
+					}
+				}
+
+				// Create confirmation dialog
+				const confirmDialog = document.createElement('div')
+				document.body.appendChild(confirmDialog)
+
+				// Note: This would be better implemented with a proper React context/state management
+				// For now, providing minimal confirmation via native dialog
+				if (window.confirm(`Are you sure you want to delete "${property.name}"?\n\nThis action cannot be undone.`)) {
+					handleDelete()
+				}
 			},
 			icon: <Trash className="h-3 w-3" />,
 			variant: 'destructive' as const
@@ -252,8 +261,8 @@ export const compactPropertyColumns: ColumnDef<Property>[] = [
 		cell: ({ row }) => {
 			const property = row.original
 			const units = property.units || []
-			const occupancyRate = calculateOccupancyRate(units)
-			const revenue = calculateTotalRevenue(units)
+			const occupancyRate = property.occupancyRate || 0
+			const revenue = property.totalRevenue || 0
 
 			return (
 				<div className="space-y-1">

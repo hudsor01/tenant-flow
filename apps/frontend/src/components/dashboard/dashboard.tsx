@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { logger } from '@/lib/logger'
 import { motion } from '@/lib/framer-motion'
 import { useAuth } from '../../hooks/use-auth'
@@ -20,12 +21,19 @@ import {
 	ErrorScreen,
 	LoadingScreen
 } from '@/components/common/centered-container'
+import { PropertyFormDialog } from '@/components/properties/property-form-dialog'
+import { MaintenanceRequestModal } from '@/components/maintenance/maintenance-request-modal'
 
 export default function Dashboard() {
 	const { user } = useAuth()
+	const router = useRouter()
 	const [selectedPeriod, setSelectedPeriod] = useState<'7d' | '30d' | '90d'>(
 		'30d'
 	)
+
+	// Modal state management
+	const [isPropertyModalOpen, setIsPropertyModalOpen] = useState(false)
+	const [isMaintenanceModalOpen, setIsMaintenanceModalOpen] = useState(false)
 
 	// Use React Query hooks for dashboard data
 	const {
@@ -50,22 +58,22 @@ export default function Dashboard() {
 
 	// Quick action handlers
 	const handleAddProperty = () => {
-		// TODO: Implement property creation modal
+		setIsPropertyModalOpen(true)
 		logger.info('Add property clicked', { component: 'dashboard' })
 	}
 
 	const handleNewTenant = () => {
-		// TODO: Navigate to tenant creation
+		router.push('/tenants/new')
 		logger.info('New tenant clicked', { component: 'dashboard' })
 	}
 
 	const handleScheduleMaintenance = () => {
-		// TODO: Implement maintenance request modal
+		setIsMaintenanceModalOpen(true)
 		logger.info('Schedule maintenance clicked', { component: 'dashboard' })
 	}
 
 	const handleGenerateReport = () => {
-		// TODO: Navigate to reports page
+		router.push('/reports')
 		logger.info('Generate report clicked', { component: 'dashboard' })
 	}
 
@@ -96,41 +104,55 @@ export default function Dashboard() {
 	}
 
 	return (
-		<motion.div
-			variants={contentVariants}
-			initial="hidden"
-			animate="visible"
-			className="space-y-8"
-		>
-			{/* Header Section */}
-			<DashboardHeader
-				userEmail={user?.email}
-				selectedPeriod={selectedPeriod}
-				onPeriodChange={setSelectedPeriod}
-			/>
-
-			{/* Metrics Grid */}
-			<DashboardMetrics
-				stats={stats || null}
-				isLoading={isStatsLoading}
-			/>
-
-			{/* Quick Actions and Recent Activity */}
-			<div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-				{/* Quick Actions */}
-				<DashboardQuickActions
-					onAddProperty={handleAddProperty}
-					onNewTenant={handleNewTenant}
-					onScheduleMaintenance={handleScheduleMaintenance}
-					onGenerateReport={handleGenerateReport}
+		<>
+			<motion.div
+				variants={contentVariants}
+				initial="hidden"
+				animate="visible"
+				className="space-y-8"
+			>
+				{/* Header Section */}
+				<DashboardHeader
+					userEmail={user?.email}
+					selectedPeriod={selectedPeriod}
+					onPeriodChange={setSelectedPeriod}
 				/>
 
-				{/* Recent Activity */}
-				<DashboardActivityFeed
-					activities={activities || []}
-					isLoading={isActivitiesLoading}
+				{/* Metrics Grid */}
+				<DashboardMetrics
+					stats={stats || null}
+					isLoading={isStatsLoading}
 				/>
-			</div>
-		</motion.div>
+
+				{/* Quick Actions and Recent Activity */}
+				<div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+					{/* Quick Actions */}
+					<DashboardQuickActions
+						onAddProperty={handleAddProperty}
+						onNewTenant={handleNewTenant}
+						onScheduleMaintenance={handleScheduleMaintenance}
+						onGenerateReport={handleGenerateReport}
+					/>
+
+					{/* Recent Activity */}
+					<DashboardActivityFeed
+						activities={activities || []}
+						isLoading={isActivitiesLoading}
+					/>
+				</div>
+			</motion.div>
+
+			{/* Modals */}
+			<PropertyFormDialog
+				open={isPropertyModalOpen}
+				onOpenChange={setIsPropertyModalOpen}
+				mode="create"
+			/>
+
+			<MaintenanceRequestModal
+				open={isMaintenanceModalOpen}
+				onOpenChange={setIsMaintenanceModalOpen}
+			/>
+		</>
 	)
 }

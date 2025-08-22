@@ -249,11 +249,10 @@ export class PaymentRecoveryService {
 				canRetry: hasFailedPayments && attemptCount < 4
 			}
 		} catch (error) {
-			throw this.errorHandler.handleError(error as Error, {
-				operation: 'getPaymentRetryStatus',
-				resource: 'payment-recovery',
-				metadata: { subscriptionId }
-			})
+			// Log for debugging (keeps behavior consistent with other catches)
+			this.logger.error('Error getting payment retry status:', error)
+			// Pass a string for the operation name to match the handleError signature
+			throw this.errorHandler.handleError(error as Error, 'getPaymentRetryStatus')
 		}
 	}
 

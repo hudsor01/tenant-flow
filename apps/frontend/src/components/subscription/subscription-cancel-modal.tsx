@@ -13,7 +13,7 @@ import { Textarea } from '../ui/textarea'
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group'
 import { Label } from '../ui/label'
 import { AlertTriangleIcon, CheckIcon, XIcon } from 'lucide-react'
-import { useSubscriptionCancellation } from '../../hooks/use-subscription-management'
+import { useSubscriptionCancellation } from '../../hooks/useSubscriptionActions'
 import { LoadingSpinner } from '../ui/loading-spinner'
 import type { PlanType } from '@repo/shared'
 

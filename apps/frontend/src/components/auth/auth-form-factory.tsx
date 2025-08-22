@@ -15,7 +15,6 @@
 'use client'
 
 import React, { useState, useTransition } from 'react'
-import { useActionState } from 'react'
 import Link from 'next/link'
 import {
 	CheckCircle,
@@ -41,11 +40,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
-	loginAction,
-	signupAction,
-	forgotPasswordAction,
-	type AuthFormState
-} from '@/lib/actions/auth-actions'
+	loginClient,
+	signupClient,
+	forgotPasswordClient
+} from '@/lib/actions/client-auth-actions'
+import type { AuthFormState } from '@/lib/actions/auth-actions'
 import { OAuthProviders } from './oauth-providers'
 import { AuthError } from './auth-error'
 import { SignupProgressIndicator } from './signup-progress-indicator'
@@ -54,7 +53,7 @@ import { RealTimeValidation } from './real-time-validation'
 import {
 	EnhancedVisualFeedback,
 	FieldFeedback
-} from './enhanced-visual-feedback'
+} from './visual-feedback'
 import { CSRFTokenField } from './csrf-token-field'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -773,26 +772,41 @@ function ForgotPasswordSuccess({ state }: { state: AuthFormState }) {
 // ============================================================================
 
 export function AuthFormFactory({ config, onSuccess }: AuthFormFactoryProps) {
-	const initialState: AuthFormState = { errors: {} }
+	const [state, setState] = useState<AuthFormState>({ success: false, errors: {} })
 	const [_isSignupFormValid, setIsSignupFormValid] = useState(false)
 	const [isClient, setIsClient] = useState(false)
+	const [isPending, startTransition] = useTransition()
 
 	// Ensure client-side hydration
 	React.useEffect(() => {
 		setIsClient(true)
 	}, [])
 
-	// Debug the form validation state changes (removed for production)
-
-	// Select the appropriate action based on form type
-	const formAction = {
-		login: loginAction,
-		signup: signupAction,
-		'forgot-password': forgotPasswordAction
-	}[config.type]
-
-	const [state, action] = useActionState(formAction, initialState)
-	const [isPending, _startTransition] = useTransition()
+	// Handle form submission
+	const handleSubmit = async (formData: FormData) => {
+		startTransition(async () => {
+			let result: AuthFormState
+			
+			if (config.type === 'login') {
+				const email = formData.get('email') as string
+				const password = formData.get('password') as string
+				result = await loginClient(email, password, config.redirectTo)
+			} else if (config.type === 'signup') {
+				const fullName = formData.get('fullName') as string
+				const email = formData.get('email') as string
+				const password = formData.get('password') as string
+				const confirmPassword = formData.get('confirmPassword') as string
+				result = await signupClient(fullName, email, password, confirmPassword, config.redirectTo)
+			} else if (config.type === 'forgot-password') {
+				const email = formData.get('email') as string
+				result = await forgotPasswordClient(email)
+			} else {
+				result = { success: false, errors: { _form: ['Invalid form type'] } }
+			}
+			
+			setState(result)
+		})
+	}
 
 
 
@@ -811,14 +825,14 @@ export function AuthFormFactory({ config, onSuccess }: AuthFormFactoryProps) {
 				}, 500) // Small delay to let session cookies settle
 			} else if (config.type === 'signup') {
 				toast.success('Account created!', {
-					description: state.data?.session
+					description: state.data?.user
 						? 'Redirecting to dashboard...'
 						: 'Please check your email to verify your account.'
 				})
 
 				// EMERGENCY FIX: Redirect to dashboard if session exists, otherwise to verification
 				setTimeout(() => {
-					if (state.data?.session) {
+					if (state.data?.user) {
 						window.location.href = '/dashboard'
 					} else {
 						window.location.href =
@@ -948,7 +962,7 @@ export function AuthFormFactory({ config, onSuccess }: AuthFormFactoryProps) {
 					)}
 
 					{/* Form */}
-					<form action={action} className="space-y-5">
+					<form action={handleSubmit} className="space-y-5">
 						<CSRFTokenField />
 						{renderFormFields()}
 
