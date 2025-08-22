@@ -165,7 +165,7 @@ export class PerformanceMonitorService implements OnModuleInit, OnModuleDestroy 
 
 		// Check response times
 		const percentiles = this.calculatePercentiles([...this.metrics.responseTimes].sort((a, b) => a - b))
-		if (percentiles.p95 > thresholds.api.p95) {
+		if (percentiles.p95 && percentiles.p95 > thresholds.api.p95) {
 			return 'degraded'
 		}
 
