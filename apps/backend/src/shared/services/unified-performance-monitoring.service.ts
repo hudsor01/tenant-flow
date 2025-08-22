@@ -212,6 +212,68 @@ export class UnifiedPerformanceMonitoringService {
       .replace(/\/\d+/g, '/:id')
       .replace(/\/[a-f0-9]{8}-([a-f0-9]{4}-){3}[a-f0-9]{12}/gi, '/:uuid');
   }
+
+  // --- Compatibility methods for performance controller ---
+  
+  getPerformanceStats() {
+    return {
+      health: this.getHealthMetrics(),
+      requests: this.getRequestMetrics()
+    }
+  }
+
+  getMetricsSummary() {
+    const health = this.getHealthMetrics()
+    const requests = this.getRequestMetrics()
+    return {
+      totalRequests: requests.length,
+      averageResponseTime: requests.reduce((sum, req) => sum + (req.duration || 0), 0) / requests.length || 0,
+      errorRate: requests.filter(req => req.statusCode >= 400).length / requests.length || 0,
+      uptime: health.uptime,
+      memoryUsage: health.memory
+    }
+  }
+
+  getSlowRequests(limit: number = 10) {
+    return this.getRequestMetrics()
+      .sort((a, b) => (b.duration || 0) - (a.duration || 0))
+      .slice(0, limit)
+  }
+
+  getStatsByPath() {
+    const requests = this.getRequestMetrics()
+    const pathStats = new Map()
+    
+    requests.forEach(req => {
+      const path = req.route || 'unknown'
+      if (!pathStats.has(path)) {
+        pathStats.set(path, { count: 0, totalDuration: 0, errors: 0 })
+      }
+      const stats = pathStats.get(path)
+      stats.count++
+      stats.totalDuration += req.duration || 0
+      if (req.statusCode >= 400) stats.errors++
+    })
+    
+    return Array.from(pathStats.entries()).map(([path, stats]) => ({
+      path,
+      requestCount: stats.count,
+      averageResponseTime: stats.totalDuration / stats.count,
+      errorRate: stats.errors / stats.count
+    }))
+  }
+
+  getMetricsInTimeWindow(windowMinutes: number = 60) {
+    const cutoff = Date.now() - (windowMinutes * 60 * 1000)
+    return this.getRequestMetrics().filter(req => 
+      req.timestamp && new Date(req.timestamp).getTime() > cutoff
+    )
+  }
+
+  clearMetrics() {
+    this.metrics = []
+    return { cleared: true, timestamp: new Date().toISOString() }
+  }
 }
 
 declare module 'fastify' {
