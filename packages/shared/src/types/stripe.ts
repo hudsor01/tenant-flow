@@ -516,7 +516,7 @@ export function getSubscriptionCurrentPeriod(
 	end: Date
 } | null {
 	if (!subscription.current_period_start || !subscription.current_period_end)
-		return null
+		{return null}
 
 	return {
 		start: new Date(subscription.current_period_start * 1000),
@@ -528,7 +528,7 @@ export function getSubscriptionCurrentPeriod(
  * Check if subscription is in trial
  */
 export function isInTrial(subscription: StripeSubscription): boolean {
-	if (!subscription.trial_end) return false
+	if (!subscription.trial_end) {return false}
 	return new Date(subscription.trial_end * 1000) > new Date()
 }
 
@@ -538,7 +538,7 @@ export function isInTrial(subscription: StripeSubscription): boolean {
 export function getTrialDaysRemaining(
 	subscription: StripeSubscription
 ): number {
-	if (!subscription.trial_end) return 0
+	if (!subscription.trial_end) {return 0}
 
 	const trialEnd = new Date(subscription.trial_end * 1000)
 	const now = new Date()
@@ -645,7 +645,7 @@ export function calculateSubscriptionMRR(
 	subscription: StripeSubscription
 ): number {
 	const item = subscription.items?.data?.[0]
-	if (!item?.price) return 0
+	if (!item?.price) {return 0}
 
 	const amount = item.price.unit_amount || 0
 	const quantity = item.quantity || 1
@@ -673,7 +673,7 @@ export function formatSubscriptionPeriod(
 	subscription: StripeSubscription
 ): string {
 	const period = getSubscriptionCurrentPeriod(subscription)
-	if (!period) return 'Unknown period'
+	if (!period) {return 'Unknown period'}
 
 	return `${period.start.toLocaleDateString()} - ${period.end.toLocaleDateString()}`
 }
@@ -683,7 +683,7 @@ export function formatSubscriptionPeriod(
  */
 export function getDaysUntilRenewal(subscription: StripeSubscription): number {
 	const period = getSubscriptionCurrentPeriod(subscription)
-	if (!period) return 0
+	if (!period) {return 0}
 
 	const now = new Date()
 	const diffTime = period.end.getTime() - now.getTime()
@@ -2473,7 +2473,7 @@ export interface StripePaymentIntent {
 			| 'pix_display_qr_code'
 			| 'promptpay_display_qr_code'
 			| 'swish_handle_redirect_or_display_qr_code'
-			| 'use_stripe_sdk'
+			 
 			| 'verify_with_microdeposits'
 			| 'wechat_pay_display_qr_code'
 			| 'wechat_pay_redirect_to_android_app'

@@ -9,10 +9,10 @@
 
 import React, { useState, useTransition, useEffect, useMemo } from 'react'
 import { motion } from '@/lib/framer-motion'
-import type { CreateLeaseInput, UpdateLeaseInput, Lease } from '@repo/shared'
+import type { CreateLeaseInput, UpdateLeaseInput, Lease, Tenant } from '@repo/shared'
 import { useCreateLease, useUpdateLease } from '@/hooks/api/use-leases'
 import { useProperties } from '@/hooks/api/use-properties'
-import { useTenants } from '@/hooks/use-tenants'
+import { useTenants } from '@/hooks/api/use-tenants'
 import {
 	useBusinessEvents,
 	useInteractionTracking
@@ -91,7 +91,8 @@ export function LeaseFormClient({
 
 	// Data hooks
 	const propertiesQuery = useProperties()
-	const { data: tenants = [] } = useTenants()
+	const tenantsQuery = useTenants()
+	const tenants = tenantsQuery.data || []
 	
 	// Memoize properties to prevent render loop
 	const properties = useMemo(() => propertiesQuery.data || [], [propertiesQuery.data])

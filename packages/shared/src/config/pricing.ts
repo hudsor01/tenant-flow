@@ -242,10 +242,10 @@ export function getRecommendedUpgrade(
 	// Check each higher plan to see if it fits
 	for (let i = currentIndex + 1; i < plans.length; i++) {
 		const planId = plans[i]
-		if (!planId) continue
+		if (!planId) {continue}
 
 		const plan = getPricingPlan(planId)
-		if (!plan) continue
+		if (!plan) {continue}
 
 		const { exceeded } = checkPlanLimits(usage, planId)
 		if (!exceeded) {
@@ -265,7 +265,7 @@ export function calculateAnnualSavings(monthlyPrice: number): number {
 
 // Get product tier configuration by ID (supports both PlanId and legacy PlanType)
 export function getProductTier(
-	planId: PlanId | string
+	planId: PlanId
 ): PricingConfig | undefined {
 	// Handle legacy PlanType constants
 	if (typeof planId === 'string' && planId in PRICING_PLANS) {
@@ -273,7 +273,7 @@ export function getProductTier(
 	}
 
 	// Handle new PlanId format
-	return getPricingPlan(planId as PlanId)
+	return getPricingPlan(planId)
 }
 
 // Convert legacy PlanType to new PlanId
@@ -307,7 +307,7 @@ export function getStripePriceId(
 	period: 'monthly' | 'annual'
 ): StripePriceId | null {
 	const plan = getPricingPlan(planId)
-	if (!plan) return null
+	if (!plan) {return null}
 
 	return period === 'monthly'
 		? plan.stripePriceIds.monthly

@@ -47,7 +47,7 @@
 		"tsBuildInfoFile": "./dist/.tsbuildinfo"
 	},
 	"include": ["src/**/*"],
-	"exclude": ["node_modules", "dist", "src/__tests__", "src/generated"],
+	"exclude": ["node_modules", "dist", "src/generated"],
 	"ts-node": {
 		"swc": true
 	}

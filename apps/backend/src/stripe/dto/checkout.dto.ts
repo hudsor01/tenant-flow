@@ -1,4 +1,4 @@
-import { IsEnum, IsOptional, IsUrl } from 'class-validator'
+import { IsEnum, IsOptional, IsString, IsUrl } from 'class-validator'
 import { PLAN_TYPES } from '@repo/shared'
 
 export class CreateCheckoutDto {
@@ -19,6 +19,9 @@ export class CreateCheckoutDto {
   @IsOptional()
   @IsUrl({}, { message: 'cancelUrl must be a valid URL' })
   cancelUrl?: string
+
+  @IsOptional()
+  metadata?: Record<string, any>
 }
 
 export class CreateEmbeddedCheckoutDto {
@@ -31,6 +34,17 @@ export class CreateEmbeddedCheckoutDto {
     message: 'interval must be either monthly or annual'
   })
   interval!: 'monthly' | 'annual'
+
+  @IsOptional()
+  @IsString()
+  priceId?: string
+
+  @IsOptional()
+  @IsString()
+  customerId?: string
+
+  @IsOptional()
+  metadata?: Record<string, any>
 }
 
 export class CreatePortalDto {

@@ -1176,7 +1176,7 @@ export function getCheckoutSessionTotalInDollars(
 	session: StripeCheckoutSession
 ): number | null {
 	if (session.amount_total === null || session.amount_total === undefined)
-		return null
+		{return null}
 	return session.amount_total / 100
 }
 
@@ -1427,7 +1427,7 @@ export function hasAttributeChanged(
 	attributePath: string
 ): boolean {
 	const previousAttributes = extractPreviousAttributes(event)
-	if (!previousAttributes) return false
+	if (!previousAttributes) {return false}
 
 	return (
 		attributePath.split('.').reduce<unknown>((obj, key) => {

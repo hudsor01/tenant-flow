@@ -52,4 +52,28 @@ export class EmailService {
 			html: `<p>Click here to reset your password: <a href="/reset?token=${resetToken}">Reset Password</a></p>`
 		})
 	}
+
+	async sendMaintenanceNotificationEmail(
+		to: string,
+		maintenanceDetails: {
+			title: string
+			description: string
+			priority: string
+			propertyName?: string
+			unitNumber?: string
+		}
+	): Promise<void> {
+		await this.sendEmail({
+			to,
+			subject: `Maintenance Request: ${maintenanceDetails.title}`,
+			html: `
+				<h2>New Maintenance Request</h2>
+				<p><strong>Title:</strong> ${maintenanceDetails.title}</p>
+				<p><strong>Description:</strong> ${maintenanceDetails.description}</p>
+				<p><strong>Priority:</strong> ${maintenanceDetails.priority}</p>
+				${maintenanceDetails.propertyName ? `<p><strong>Property:</strong> ${maintenanceDetails.propertyName}</p>` : ''}
+				${maintenanceDetails.unitNumber ? `<p><strong>Unit:</strong> ${maintenanceDetails.unitNumber}</p>` : ''}
+			`
+		})
+	}
 }
