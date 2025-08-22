@@ -15,7 +15,7 @@ import {
 } from '@nestjs/common'
 import { FastifyReply } from 'fastify'
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger'
-import { JwtAuthGuard } from '../shared/guards/jwt-auth.guard'
+import { UnifiedAuthGuard } from '../shared/guards/unified-auth.guard'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
 import { ValidatedUser } from '../auth/auth.service'
 import {
@@ -35,7 +35,7 @@ import type { ControllerApiResponse } from '@repo/shared'
  */
 @ApiTags('leases')
 @Controller('leases')
-@UseGuards(JwtAuthGuard, UsageLimitsGuard)
+@UseGuards(UnifiedAuthGuard, UsageLimitsGuard)
 export class LeasesController {
 	constructor(
 		private readonly leasesService: LeasesService,

@@ -52,14 +52,11 @@ export async function createTenant(
 	}
 
 	try {
-		const response = await apiClient.post('/tenants', result.data)
+		const tenant = await apiClient.post<Tenant>('/tenants', result.data)
 
-		if (!response.success) {
-			return {
-				errors: {
-					_form: [response.message || 'Failed to create tenant']
-				}
-			}
+		// Type guard to ensure response is properly typed
+		if (!tenant || typeof tenant !== 'object' || !('id' in tenant)) {
+			throw new Error('Invalid response from server')
 		}
 
 		// Revalidate relevant caches
@@ -68,7 +65,7 @@ export async function createTenant(
 		revalidatePath('/tenants')
 		revalidatePath(`/properties/${result.data.propertyId}`)
 
-		redirect(`/tenants/${(response.data as Tenant).id}`)
+		redirect(`/tenants/${tenant.id}`)
 	} catch (error: unknown) {
 		const message =
 			error instanceof Error
@@ -110,17 +107,14 @@ export async function updateTenant(
 	}
 
 	try {
-		const response = await apiClient.put(
+		const tenant = await apiClient.put<Tenant>(
 			`/tenants/${tenantId}`,
 			result.data
 		)
 
-		if (!response.success) {
-			return {
-				errors: {
-					_form: [response.message || 'Failed to update tenant']
-				}
-			}
+		// Type guard to ensure response is properly typed
+		if (!tenant || typeof tenant !== 'object') {
+			throw new Error('Invalid response from server')
 		}
 
 		// Revalidate caches
@@ -131,7 +125,7 @@ export async function updateTenant(
 
 		return {
 			success: true,
-			data: response.data as Tenant
+			data: tenant as Tenant
 		}
 	} catch (error: unknown) {
 		const message =
@@ -150,14 +144,7 @@ export async function deleteTenant(
 	tenantId: string
 ): Promise<{ success: boolean; error?: string }> {
 	try {
-		const response = await apiClient.delete(`/tenants/${tenantId}`)
-
-		if (!response.success) {
-			return {
-				success: false,
-				error: response.message || 'Failed to delete tenant'
-			}
-		}
+		await apiClient.delete(`/tenants/${tenantId}`)
 
 		// Revalidate caches
 		revalidateTag('tenants')
@@ -202,20 +189,14 @@ export async function createMaintenanceRequest(
 	}
 
 	try {
-		const response = await apiClient.post(
+		const maintenanceRequest = await apiClient.post<MaintenanceRequest>(
 			'/maintenance-requests',
 			requestData
 		)
 
-		if (!response.success) {
-			return {
-				errors: {
-					_form: [
-						response.message ||
-							'Failed to create maintenance request'
-					]
-				}
-			}
+		// Type guard to ensure response is properly typed
+		if (!maintenanceRequest || typeof maintenanceRequest !== 'object') {
+			throw new Error('Invalid response from server')
 		}
 
 		// Revalidate maintenance requests
@@ -224,7 +205,7 @@ export async function createMaintenanceRequest(
 
 		return {
 			success: true,
-			data: response.data as MaintenanceRequest
+			data: maintenanceRequest as MaintenanceRequest
 		}
 	} catch (error: unknown) {
 		const message =
