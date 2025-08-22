@@ -1,4 +1,4 @@
-import { FastifyAdapter } from '@nestjs/platform-fastify'
+import type { FastifyAdapter } from '@nestjs/platform-fastify'
 
 export interface EnvironmentConfig {
   NODE_ENV: string
@@ -14,7 +14,7 @@ export function validateEnvironment(): EnvironmentConfig {
   }
 }
 
-export async function initializeTypeProviders(app: FastifyAdapter): Promise<void> {
+export async function initializeTypeProviders(_app: FastifyAdapter): Promise<void> {
   // Minimal type provider setup
   // This can be expanded later with proper schema validation
   return Promise.resolve()
