@@ -14,7 +14,7 @@ import { Request } from 'express'
 // import Stripe from 'stripe' // Using enhanced types from @repo/shared instead
 import { StripeService } from '../billing/stripe.service'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
-import { CreateCheckoutDto, CreatePortalDto } from './dto/checkout.dto'
+import { CreateCheckoutDto, CreateEmbeddedCheckoutDto, CreatePortalDto } from './dto/checkout.dto'
 import { getPriceId } from '@repo/shared/stripe/config'
 import type { 
   BillingPeriod, 
@@ -24,7 +24,7 @@ import type {
   StripeSubscription
 } from '@repo/shared'
 
-interface AuthenticatedUser {
+export interface AuthenticatedUser {
   id: string
   email: string
 }
@@ -445,6 +445,103 @@ export class StripeController {
     } catch (error: unknown) {
       this.logger.error(`Failed to process payment failure: ${error instanceof Error ? error.message : String(error)}`, error instanceof Error ? error.stack : '')
       throw error
+    }
+  }
+
+  @Post('embedded-checkout')
+  @ApiOperation({
+    summary: 'Create embedded Stripe checkout session',
+    description: 'Creates an embedded checkout session for subscription purchase'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Embedded checkout session created successfully'
+  })
+  @ApiResponse({ status: 400, description: 'Invalid request data' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiBearerAuth()
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+  async createEmbeddedCheckout(
+    @Body() dto: CreateEmbeddedCheckoutDto,
+    @CurrentUser() user: AuthenticatedUser
+  ) {
+    this.logger.log(`Creating embedded checkout for user ${user.id}, plan: ${dto.planId}`)
+
+    try {
+      const priceId = getPriceId(dto.planId as PlanType, dto.interval as BillingPeriod)
+      
+      if (!priceId) {
+        throw new Error(`No price ID found for plan ${dto.planId} with interval ${dto.interval}`)
+      }
+
+      const session = await this.stripeService.client.checkout.sessions.create({
+        mode: 'subscription',
+        ui_mode: 'embedded',
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price: priceId,
+            quantity: 1
+          }
+        ],
+        return_url: `${process.env.FRONTEND_URL || 'https://tenantflow.app'}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
+        customer_email: user.email,
+        client_reference_id: user.id,
+        metadata: {
+          userId: user.id,
+          planId: dto.planId,
+          interval: dto.interval
+        }
+      })
+
+      this.logger.log(`Embedded checkout session created: ${session.id}`)
+
+      return {
+        clientSecret: session.client_secret,
+        sessionId: session.id
+      }
+    } catch (error: unknown) {
+      this.logger.error(`Failed to create embedded checkout session: ${error instanceof Error ? error.message : String(error)}`, error instanceof Error ? error.stack : '')
+      throw new Error(`Failed to create embedded checkout session: ${error instanceof Error ? error.message : String(error)}`)
+    }
+  }
+
+  @Post('checkout-session/:sessionId')
+  @ApiOperation({
+    summary: 'Get checkout session details',
+    description: 'Retrieves checkout session information'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Checkout session retrieved successfully'
+  })
+  @ApiResponse({ status: 404, description: 'Session not found' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiBearerAuth()
+  async getCheckoutSession(
+    sessionId: string,
+    @CurrentUser() user: AuthenticatedUser
+  ) {
+    this.logger.log(`Getting checkout session ${sessionId} for user ${user.id}`)
+
+    try {
+      const session = await this.stripeService.client.checkout.sessions.retrieve(sessionId)
+      
+      // Verify session belongs to this user
+      if (session.client_reference_id !== user.id) {
+        throw new Error('Session does not belong to this user')
+      }
+
+      return {
+        id: session.id,
+        status: session.status,
+        customer: session.customer,
+        subscription: session.subscription,
+        payment_status: session.payment_status
+      }
+    } catch (error: unknown) {
+      this.logger.error(`Failed to get checkout session: ${error instanceof Error ? error.message : String(error)}`, error instanceof Error ? error.stack : '')
+      throw new Error(`Failed to get checkout session: ${error instanceof Error ? error.message : String(error)}`)
     }
   }
 }
