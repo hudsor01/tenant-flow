@@ -11,17 +11,15 @@ export const maintenancePrioritySchema = z.enum([
 	'LOW',
 	'MEDIUM',
 	'HIGH',
-	'URGENT',
 	'EMERGENCY'
 ])
 
 // Maintenance status enum
 export const maintenanceStatusSchema = z.enum([
 	'OPEN',
-	'ASSIGNED',
 	'IN_PROGRESS',
 	'COMPLETED',
-	'CANCELLED',
+	'CANCELED',
 	'ON_HOLD'
 ])
 
@@ -54,9 +52,7 @@ export const maintenanceRequestInputSchema = z.object({
 
 	category: maintenanceCategorySchema.default('GENERAL'),
 
-	propertyId: uuidSchema,
-
-	unitId: uuidSchema.optional(),
+	unitId: uuidSchema,
 
 	tenantId: uuidSchema.optional(),
 
@@ -131,7 +127,6 @@ export const maintenanceRequestUpdateSchema = maintenanceRequestInputSchema
 // Maintenance request query schema (for search/filtering)
 export const maintenanceRequestQuerySchema = z.object({
 	search: z.string().optional(),
-	propertyId: uuidSchema.optional(),
 	unitId: uuidSchema.optional(),
 	tenantId: uuidSchema.optional(),
 	assignedTo: uuidSchema.optional(),
@@ -171,10 +166,10 @@ export const maintenanceRequestQuerySchema = z.object({
 export const maintenanceStatsSchema = z.object({
 	total: z.number().nonnegative(),
 	open: z.number().nonnegative(),
-	assigned: z.number().nonnegative(),
 	inProgress: z.number().nonnegative(),
 	completed: z.number().nonnegative(),
-	cancelled: z.number().nonnegative(),
+	canceled: z.number().nonnegative(),
+	onHold: z.number().nonnegative(),
 	overdue: z.number().nonnegative(),
 	averageCompletionTime: z.number().nonnegative(), // in days
 	totalCost: z.number().nonnegative(),
@@ -210,8 +205,7 @@ export const maintenanceRequestFormSchema = z
 		description: z.string().min(1, 'Description is required'),
 		priority: z.string().default('MEDIUM'),
 		category: z.string().default('GENERAL'),
-		propertyId: z.string().min(1, 'Property is required'),
-		unitId: z.string().optional().or(z.literal('')),
+		unitId: z.string().min(1, 'Unit is required'),
 		tenantId: z.string().optional().or(z.literal('')),
 		assignedTo: z.string().optional().or(z.literal('')),
 		estimatedCost: z
@@ -226,7 +220,6 @@ export const maintenanceRequestFormSchema = z
 		...data,
 		priority: data.priority as MaintenancePriorityValidation,
 		category: data.category as MaintenanceCategoryValidation,
-		unitId: data.unitId === '' ? undefined : data.unitId,
 		tenantId: data.tenantId === '' ? undefined : data.tenantId,
 		assignedTo: data.assignedTo === '' ? undefined : data.assignedTo,
 		scheduledDate:

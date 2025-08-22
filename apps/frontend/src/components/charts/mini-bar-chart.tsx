@@ -2,25 +2,7 @@
 
 import React from 'react'
 import { BarChart, Bar, ResponsiveContainer, Tooltip, Cell } from 'recharts'
-
-interface MiniBarChartProps {
-	data: { name: string; value: number; color?: string }[]
-	width?: number | string
-	height?: number
-	showTooltip?: boolean
-	className?: string
-	barRadius?: number
-	spacing?: number
-}
-
-interface CustomTooltipProps {
-	active?: boolean
-	payload?: {
-		value: number
-		payload: { name: string; value: number; color?: string }
-	}[]
-	label?: string
-}
+import type { MiniBarChartProps, CustomTooltipProps } from '@/types'
 
 const CustomTooltip: React.FC<CustomTooltipProps> = ({
 	active,

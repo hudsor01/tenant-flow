@@ -9,7 +9,7 @@
 		"jsx": "react",
 		"jsxFactory": "React.createElement",
 		"jsxFragmentFactory": "React.Fragment",
-		"types": ["node", "reflect-metadata", "jest"],
+		"types": [],
 		"skipLibCheck": true,
 		"isolatedModules": false,
 		"paths": {

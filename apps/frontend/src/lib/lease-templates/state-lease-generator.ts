@@ -8,17 +8,7 @@ import type {
 	StateLeaseRequirements
 } from './base-lease-template'
 import { generateBaseLease } from './base-lease-template'
-// import { getStateFromSlug, getAllStates } from '@/lib/state-data' // TODO: Create state-data module
-
-// Temporary stub implementations until state-data module is created
-const getStateFromSlug = (slug: string) => ({
-	name: 'Unknown State',
-	slug,
-	code: 'XX'
-})
-const getAllStates = () => [
-	{ name: 'Example State', slug: 'example', code: 'EX' }
-]
+import { getStateFromSlug, getAllStates } from '@/lib/state-data'
 
 export interface GenerateLeaseOptions {
 	data: LeaseTemplateData

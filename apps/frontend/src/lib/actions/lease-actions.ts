@@ -71,15 +71,7 @@ export async function createLease(
 	}
 
 	try {
-		const response = await apiClient.post('/leases', result.data)
-
-		if (!response.success) {
-			return {
-				errors: {
-					_form: [response.message || 'Failed to create lease']
-				}
-			}
-		}
+		const lease = await apiClient.post<Lease>('/leases', result.data)
 
 		// Revalidate relevant caches
 		revalidateTag('leases')
@@ -88,7 +80,7 @@ export async function createLease(
 		revalidatePath('/leases')
 
 		// Redirect to new lease
-		redirect(`/leases/${(response.data as Lease).id}`)
+		redirect(`/leases/${lease.id}`)
 	} catch (error: unknown) {
 		const message =
 			error instanceof Error
@@ -133,15 +125,7 @@ export async function updateLease(
 	}
 
 	try {
-		const response = await apiClient.put(`/leases/${leaseId}`, result.data)
-
-		if (!response.success) {
-			return {
-				errors: {
-					_form: [response.message || 'Failed to update lease']
-				}
-			}
-		}
+		const lease = await apiClient.put<Lease>(`/leases/${leaseId}`, result.data)
 
 		// Revalidate caches
 		revalidateTag('leases')
@@ -154,7 +138,7 @@ export async function updateLease(
 		return {
 			success: true,
 			message: 'Lease updated successfully',
-			data: response.data as Lease
+			data: lease
 		}
 	} catch (error: unknown) {
 		const message =
@@ -173,14 +157,7 @@ export async function deleteLease(
 	leaseId: string
 ): Promise<{ success: boolean; error?: string }> {
 	try {
-		const response = await apiClient.delete(`/leases/${leaseId}`)
-
-		if (!response.success) {
-			return {
-				success: false,
-				error: response.message || 'Failed to delete lease'
-			}
-		}
+		await apiClient.delete<{ message: string }>(`/leases/${leaseId}`)
 
 		// Revalidate caches
 		revalidateTag('leases')
@@ -206,14 +183,7 @@ export async function activateLease(
 	leaseId: string
 ): Promise<{ success: boolean; error?: string; message?: string }> {
 	try {
-		const response = await apiClient.post(`/leases/${leaseId}/activate`)
-
-		if (!response.success) {
-			return {
-				success: false,
-				error: response.message || 'Failed to activate lease'
-			}
-		}
+		await apiClient.post<{ message: string }>(`/leases/${leaseId}/activate`)
 
 		// Revalidate caches
 		revalidateTag('leases')
@@ -260,18 +230,10 @@ export async function renewLease(
 	}
 
 	try {
-		const response = await apiClient.post(
+		const lease = await apiClient.post<Lease>(
 			`/leases/${leaseId}/renew`,
 			result.data
 		)
-
-		if (!response.success) {
-			return {
-				errors: {
-					_form: [response.message || 'Failed to renew lease']
-				}
-			}
-		}
 
 		// Revalidate caches
 		revalidateTag('leases')
@@ -281,7 +243,7 @@ export async function renewLease(
 		return {
 			success: true,
 			message: 'Lease renewed successfully',
-			data: response.data as Lease
+			data: lease
 		}
 	} catch (error: unknown) {
 		const message =
@@ -322,18 +284,10 @@ export async function terminateLease(
 	}
 
 	try {
-		const response = await apiClient.post(
+		const lease = await apiClient.post<Lease>(
 			`/leases/${leaseId}/terminate`,
 			result.data
 		)
-
-		if (!response.success) {
-			return {
-				errors: {
-					_form: [response.message || 'Failed to terminate lease']
-				}
-			}
-		}
 
 		// Revalidate caches
 		revalidateTag('leases')
@@ -346,7 +300,7 @@ export async function terminateLease(
 		return {
 			success: true,
 			message: 'Lease terminated successfully',
-			data: response.data as Lease
+			data: lease
 		}
 	} catch (error: unknown) {
 		const message =
@@ -365,18 +319,11 @@ export async function generateLeasePDF(
 	leaseId: string
 ): Promise<{ success: boolean; error?: string; url?: string }> {
 	try {
-		const response = await apiClient.post(`/leases/${leaseId}/generate-pdf`)
-
-		if (!response.success) {
-			return {
-				success: false,
-				error: response.message || 'Failed to generate lease PDF'
-			}
-		}
+		const data = await apiClient.post<{ url: string }>(`/leases/${leaseId}/generate-pdf`)
 
 		return {
 			success: true,
-			url: (response.data as { url: string }).url
+			url: data.url
 		}
 	} catch (error: unknown) {
 		const message =
@@ -398,17 +345,10 @@ export async function uploadLeaseDocument(
 		const formData = new FormData()
 		formData.append('file', file)
 
-		const response = await apiClient.post(
+		const document = await apiClient.post<Document>(
 			`/leases/${leaseId}/documents`,
 			formData
 		)
-
-		if (!response.success) {
-			return {
-				success: false,
-				error: response.message || 'Failed to upload document'
-			}
-		}
 
 		// Revalidate lease data
 		revalidateTag('lease')
@@ -416,7 +356,7 @@ export async function uploadLeaseDocument(
 
 		return {
 			success: true,
-			document: response.data as Document
+			document
 		}
 	} catch (error: unknown) {
 		const message =

@@ -11,7 +11,7 @@ import {
 import { Button } from '../ui/button'
 import { Badge } from '../ui/badge'
 import { CheckIcon, XIcon, ArrowUpIcon, CreditCardIcon } from 'lucide-react'
-import { useSubscriptionManagement } from '../../hooks/use-subscription-management'
+import { useSubscriptionActions } from '../../hooks/useSubscriptionActions'
 import { LoadingSpinner } from '../ui/loading-spinner'
 import type { PlanType } from '@repo/shared'
 
@@ -82,7 +82,7 @@ export function SubscriptionUpgradeModal({
 	isOpen,
 	onClose,
 	currentPlan,
-	userId,
+	userId: _userId,
 	onUpgradeSuccess
 }: SubscriptionUpgradeModalProps) {
 	const [selectedPlan, setSelectedPlan] = useState<PlanType | null>(null)
@@ -92,7 +92,7 @@ export function SubscriptionUpgradeModal({
 	const [showConfirmation, setShowConfirmation] = useState(false)
 
 	const { upgradePlan, isUpgrading, upgradeError, lastResult } =
-		useSubscriptionManagement(userId)
+		useSubscriptionActions()
 
 	// Filter plans to only show upgrades
 	const availablePlans = PLAN_OPTIONS.filter(plan => {
