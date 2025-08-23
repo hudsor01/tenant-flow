@@ -216,7 +216,7 @@ jobs:
       - name: Install dependencies
         run: |
           # Clean, deterministic install for CI
-          npm install --prefer-offline --no-audit --no-fund
+          npm ci --prefer-offline --no-audit --no-fund
 
   code-quality:
     name: Code Quality
@@ -249,7 +249,7 @@ jobs:
 
       - name: Install dependencies and tools
         run: |
-          npm install --prefer-offline --no-audit --no-fund
+          npm ci --prefer-offline --no-audit --no-fund
 
       - name: Run ${{ matrix.check }}
         run: |
@@ -296,7 +296,7 @@ jobs:
 
       - name: Install dependencies and tools
         run: |
-          npm install --prefer-offline --no-audit --no-fund
+          npm ci --prefer-offline --no-audit --no-fund
 
       - name: Run unit tests
         run: npx turbo run test:unit || echo "⚠️ Some tests failed - this is expected during development"
@@ -348,7 +348,7 @@ jobs:
 
       - name: Install dependencies and tools
         run: |
-          npm install --prefer-offline --no-audit --no-fund
+          npm ci --prefer-offline --no-audit --no-fund
 
       - name: Build ${{ matrix.target }} and dependencies
         run: |
@@ -417,7 +417,7 @@ jobs:
 
       - name: Install dependencies and tools
         run: |
-          npm install --prefer-offline --no-audit --no-fund
+          npm ci --prefer-offline --no-audit --no-fund
 
       - name: Run integration tests
         run: |
