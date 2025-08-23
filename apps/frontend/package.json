@@ -19,6 +19,7 @@
 		"typecheck": "tsc --noEmit",
 		"test": "jest --passWithNoTests",
 		"test:unit": "jest --passWithNoTests",
+		"test:minimal": "jest --config jest.config.minimal.js",
 		"test:production": "vitest run --config vitest.config.production.ts",
 		"claude:check": "npm run lint && npm run typecheck && npm run test:unit",
 		"test:coverage": "jest --coverage",
