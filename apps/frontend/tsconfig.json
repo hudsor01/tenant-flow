@@ -7,7 +7,7 @@
 		"lib": ["ES2022", "DOM", "DOM.Iterable", "ES6"],
 		"moduleDetection": "force",
 		"module": "ESNext",
-		"moduleResolution": "node",
+		"moduleResolution": "Bundler",
 		"resolveJsonModule": true,
 		"allowJs": true,
 		"checkJs": false,
@@ -49,8 +49,8 @@
 		],
 		"paths": {
 			"@/*": ["./src/*"],
-			"@repo/shared": ["../../packages/shared/dist/cjs"],
-			"@repo/shared/*": ["../../packages/shared/dist/cjs/*"]
+			"@repo/shared": ["../../packages/shared/src"],
+			"@repo/shared/*": ["../../packages/shared/src/*"]
 		}
 	},
 	"include": [
