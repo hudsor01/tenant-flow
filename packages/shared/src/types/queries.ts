@@ -9,7 +9,8 @@ import type { RequestStatus } from './maintenance'
  * Base query interface with common pagination params
  * Supports both offset-based (backend) and page-based (frontend) pagination
  */
-export interface BaseQuery extends Record<string, string | number | boolean | string[] | undefined> {
+export interface BaseQuery
+	extends Record<string, string | number | boolean | string[] | undefined> {
 	limit?: number
 	offset?: number
 	page?: number

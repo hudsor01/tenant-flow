@@ -112,12 +112,7 @@
 				".vercel/output/**",
 				".turbo/**"
 			],
-			"env": [
-				"NEXT_PUBLIC_*",
-				"VERCEL",
-				"VERCEL_ENV",
-				"VERCEL_URL"
-			],
+			"env": ["NEXT_PUBLIC_*", "VERCEL", "VERCEL_ENV", "VERCEL_URL"],
 			"cache": true,
 			"persistent": false
 		},

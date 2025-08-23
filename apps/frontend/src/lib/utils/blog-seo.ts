@@ -19,12 +19,13 @@ export interface BlogSEOData {
 
 export function useBlogSEO(slug?: string) {
 	const { getArticleBySlug } = useBlogArticleData()
-	
+
 	if (!slug) {
 		// Default blog page SEO
 		return {
 			title: 'TenantFlow Blog - Property Management Insights',
-			description: 'Expert tips, industry insights, and best practices for property managers and landlords. Learn how to maximize returns and streamline operations.',
+			description:
+				'Expert tips, industry insights, and best practices for property managers and landlords. Learn how to maximize returns and streamline operations.',
 			keywords: [
 				'property management',
 				'landlord tips',
@@ -37,9 +38,9 @@ export function useBlogSEO(slug?: string) {
 			ogImage: '/og-blog.png'
 		}
 	}
-	
+
 	const article = getArticleBySlug(slug)
-	
+
 	if (!article) {
 		return {
 			title: 'Article Not Found - TenantFlow Blog',
@@ -48,7 +49,7 @@ export function useBlogSEO(slug?: string) {
 			ogImage: '/og-blog.png'
 		}
 	}
-	
+
 	return {
 		title: `${article.title} - TenantFlow Blog`,
 		description: article.excerpt,

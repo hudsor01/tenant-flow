@@ -103,9 +103,7 @@ export function TabNavigation({
 							)}
 							{item.label}
 							{item.badge && (
-								<Badge variant="secondary">
-									{item.badge}
-								</Badge>
+								<Badge variant="secondary">{item.badge}</Badge>
 							)}
 						</div>
 					)

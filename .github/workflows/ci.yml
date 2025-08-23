@@ -1,470 +1,468 @@
 name: CI Pipeline
 
 on:
-  push:
-    branches: [ main, 'feature/**', 'fix/**', 'feat/**' ]
-  pull_request:
-    types: [ opened, synchronize, reopened ]
+    push:
+        branches: [main, 'feature/**', 'fix/**', 'feat/**']
+    pull_request:
+        types: [opened, synchronize, reopened]
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+    group: ci-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
 
 env:
-  NODE_VERSION: '24'
-  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-  TURBO_TEAM: ${{ secrets.TURBO_TEAM || 'tenant-flow' }}
-
+    NODE_VERSION: '24'
+    TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+    TURBO_TEAM: ${{ secrets.TURBO_TEAM || 'tenant-flow' }}
 
 jobs:
-  workflow-lint:
-    name: Workflow Lint & Type Safety
-    runs-on: macos-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-          submodules: true
+    workflow-lint:
+        name: Workflow Lint & Type Safety
+        runs-on: macos-latest
+        timeout-minutes: 5
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+                  fetch-tags: true
+                  submodules: true
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
 
-      - name: Install validation dependencies
-        run: |
-          npm config set force true
-          npm install -g tsx yaml 2>/dev/null || true
-          npm install typescript @types/node --no-save 2>/dev/null || true
+            - name: Install validation dependencies
+              run: |
+                  npm config set force true
+                  npm install -g tsx yaml 2>/dev/null || true
+                  npm install typescript @types/node --no-save 2>/dev/null || true
 
-      - name: TypeScript-based workflow validation
-        run: |
-          echo "🔍 Validating GitHub workflow files with TypeScript..."
-          
-          # Run our TypeScript validation script
-          if [ -f ".github/scripts/validate-workflow-types.ts" ]; then
-            tsx .github/scripts/validate-workflow-types.ts
-          else
-            echo "⚠️ TypeScript validation script not found, falling back to basic validation"
-          fi
+            - name: TypeScript-based workflow validation
+              run: |
+                  echo "🔍 Validating GitHub workflow files with TypeScript..."
 
-      - name: Basic YAML structure validation
-        run: |
-          echo "🔍 Basic YAML structure validation..."
-          
-          # Check that all workflow files exist and have basic structure
-          ERRORS=0
-          for file in .github/workflows/*.yml; do
-            echo "Checking $file..."
-            
-            # Check file exists
-            if [ ! -f "$file" ]; then
-              echo "❌ File not found: $file"
-              ERRORS=$((ERRORS + 1))
-              continue
-            fi
-            
-            # Check file is not empty
-            if [ ! -s "$file" ]; then
-              echo "❌ Empty file: $file"
-              ERRORS=$((ERRORS + 1))
-              continue
-            fi
-            
-            # Check for required workflow keys
-            if ! grep -q "^name:" "$file"; then
-              echo "❌ Missing 'name' in $file"
-              ERRORS=$((ERRORS + 1))
-            fi
-            
-            if ! grep -q "^on:" "$file"; then
-              echo "❌ Missing 'on' trigger in $file"
-              ERRORS=$((ERRORS + 1))
-            fi
-            
-            if ! grep -q "^jobs:" "$file"; then
-              echo "❌ Missing 'jobs' in $file"
-              ERRORS=$((ERRORS + 1))
-            fi
-            
-            # Basic YAML syntax check - look for common errors
-            if grep -E "^\t" "$file" > /dev/null; then
-              echo "❌ Tab characters found in $file (YAML requires spaces)"
-              ERRORS=$((ERRORS + 1))
-            fi
-            
-            # Environment variable validation
-            if grep -q "NODE_VERSION" "$file" && ! grep -q "env:" "$file"; then
-              echo "⚠️ $file references NODE_VERSION but doesn't define env section"
-            fi
-            
-            if [ $ERRORS -eq 0 ]; then
-              echo "✅ Valid structure: $file"
-            fi
-          done
-          
-          if [ $ERRORS -gt 0 ]; then
-            echo "❌ Found $ERRORS errors in workflow files"
-            exit 1
-          fi
-          
-          echo "✅ All workflow files are valid"
+                  # Run our TypeScript validation script
+                  if [ -f ".github/scripts/validate-workflow-types.ts" ]; then
+                    tsx .github/scripts/validate-workflow-types.ts
+                  else
+                    echo "⚠️ TypeScript validation script not found, falling back to basic validation"
+                  fi
 
-  quick-validation:
-    name: Quick Validation
-    runs-on: macos-latest
-    timeout-minutes: 3
-    outputs:
-      has-changes: ${{ steps.changes.outputs.has-changes }}
-      affected-packages: ${{ steps.changes.outputs.affected-packages }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-          submodules: true
+            - name: Basic YAML structure validation
+              run: |
+                  echo "🔍 Basic YAML structure validation..."
 
-      - name: Check for relevant changes
-        id: changes
-        run: |
-          # Check if we have actual code changes (not just docs/config)
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }})
-          else
-            CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }})
-          fi
+                  # Check that all workflow files exist and have basic structure
+                  ERRORS=0
+                  for file in .github/workflows/*.yml; do
+                    echo "Checking $file..."
+                    
+                    # Check file exists
+                    if [ ! -f "$file" ]; then
+                      echo "❌ File not found: $file"
+                      ERRORS=$((ERRORS + 1))
+                      continue
+                    fi
+                    
+                    # Check file is not empty
+                    if [ ! -s "$file" ]; then
+                      echo "❌ Empty file: $file"
+                      ERRORS=$((ERRORS + 1))
+                      continue
+                    fi
+                    
+                    # Check for required workflow keys
+                    if ! grep -q "^name:" "$file"; then
+                      echo "❌ Missing 'name' in $file"
+                      ERRORS=$((ERRORS + 1))
+                    fi
+                    
+                    if ! grep -q "^on:" "$file"; then
+                      echo "❌ Missing 'on' trigger in $file"
+                      ERRORS=$((ERRORS + 1))
+                    fi
+                    
+                    if ! grep -q "^jobs:" "$file"; then
+                      echo "❌ Missing 'jobs' in $file"
+                      ERRORS=$((ERRORS + 1))
+                    fi
+                    
+                    # Basic YAML syntax check - look for common errors
+                    if grep -E "^\t" "$file" > /dev/null; then
+                      echo "❌ Tab characters found in $file (YAML requires spaces)"
+                      ERRORS=$((ERRORS + 1))
+                    fi
+                    
+                    # Environment variable validation
+                    if grep -q "NODE_VERSION" "$file" && ! grep -q "env:" "$file"; then
+                      echo "⚠️ $file references NODE_VERSION but doesn't define env section"
+                    fi
+                    
+                    if [ $ERRORS -eq 0 ]; then
+                      echo "✅ Valid structure: $file"
+                    fi
+                  done
 
-          echo "Changed files: $CHANGED_FILES"
+                  if [ $ERRORS -gt 0 ]; then
+                    echo "❌ Found $ERRORS errors in workflow files"
+                    exit 1
+                  fi
 
-          if echo "$CHANGED_FILES" | grep -E '\.(ts|tsx|js|jsx|json)' > /dev/null; then
-            echo "has-changes=true" >> "$GITHUB_OUTPUT"
-            echo "affected-packages=$(echo "$CHANGED_FILES" | grep -E '^(apps|packages)/' | cut -d'/' -f1-2 | sort -u | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
-          else
-            echo "has-changes=false" >> "$GITHUB_OUTPUT"
-          fi
+                  echo "✅ All workflow files are valid"
 
-      - name: Preflight - Environment validation
-        run: |
-          echo "🚀 CI Environment Preflight Check"
-          echo "Runner OS: $RUNNER_OS"
-          echo "Node version target: $NODE_VERSION"
-          echo "Event: ${{ github.event_name }}"
-          echo "Ref: ${{ github.ref }}"
-          echo "SHA: ${{ github.sha }}"
-          
-          # Validate environment
-          test -n "$RUNNER_OS" || (echo "❌ Missing RUNNER_OS" && exit 1)
-          test -n "$NODE_VERSION" || (echo "❌ Missing NODE_VERSION" && exit 1)
-          
-          echo "✅ Environment validation passed"
+    quick-validation:
+        name: Quick Validation
+        runs-on: macos-latest
+        timeout-minutes: 3
+        outputs:
+            has-changes: ${{ steps.changes.outputs.has-changes }}
+            affected-packages: ${{ steps.changes.outputs.affected-packages }}
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+                  fetch-tags: true
+                  submodules: true
 
-      - name: Preflight - File structure validation
-        run: |
-          echo "📁 Validating project structure..."
-          
-          # Critical files
-          test -f package.json || (echo "❌ Missing package.json" && exit 1)
-          test -f turbo.json || (echo "❌ Missing turbo.json" && exit 1)
-          test -f apps/backend/package.json || (echo "❌ Missing backend package.json" && exit 1)
-          test -f apps/frontend/package.json || (echo "❌ Missing frontend package.json" && exit 1)
-          
-          # Validate JSON syntax
-          node -e "JSON.parse(require('fs').readFileSync('package.json'))" || exit 1
-          node -e "JSON.parse(require('fs').readFileSync('turbo.json'))" || exit 1
-          
-          # Check for required scripts
-          if ! jq -r '.scripts | keys[]' package.json | grep -q "dev"; then
-            echo "⚠️ Missing dev script in root package.json"
-          fi
-          
-          echo "✅ File structure validation passed"
+            - name: Check for relevant changes
+              id: changes
+              run: |
+                  # Check if we have actual code changes (not just docs/config)
+                  if [ "${{ github.event_name }}" = "pull_request" ]; then
+                    CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }})
+                  else
+                    CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }})
+                  fi
 
-      - name: Assertion - Git state verification
-        run: |
-          echo "🔍 Verifying git state..."
-          
-          # Verify we have git history
-          COMMIT_COUNT=$(git rev-list --count HEAD)
-          if [ "$COMMIT_COUNT" -lt 1 ]; then
-            echo "❌ No git history found"
-            exit 1
-          fi
-          
-          # Verify we can access current commit
-          git show --format="%H %s" -s HEAD || exit 1
-          
-          echo "✅ Git state verification passed (commits: $COMMIT_COUNT)"
+                  echo "Changed files: $CHANGED_FILES"
 
-  install-deps:
-    name: Install Dependencies
-    runs-on: macos-latest
-    timeout-minutes: 5
-    needs: quick-validation
-    if: needs.quick-validation.outputs.has-changes == 'true'
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-          submodules: true
+                  if echo "$CHANGED_FILES" | grep -E '\.(ts|tsx|js|jsx|json)' > /dev/null; then
+                    echo "has-changes=true" >> "$GITHUB_OUTPUT"
+                    echo "affected-packages=$(echo "$CHANGED_FILES" | grep -E '^(apps|packages)/' | cut -d'/' -f1-2 | sort -u | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "has-changes=false" >> "$GITHUB_OUTPUT"
+                  fi
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
+            - name: Preflight - Environment validation
+              run: |
+                  echo "🚀 CI Environment Preflight Check"
+                  echo "Runner OS: $RUNNER_OS"
+                  echo "Node version target: $NODE_VERSION"
+                  echo "Event: ${{ github.event_name }}"
+                  echo "Ref: ${{ github.ref }}"
+                  echo "SHA: ${{ github.sha }}"
 
-      - name: Install dependencies
-        run: |
-          # Clean, deterministic install for CI
-          npm ci --prefer-offline --no-audit --no-fund --omit=optional
+                  # Validate environment
+                  test -n "$RUNNER_OS" || (echo "❌ Missing RUNNER_OS" && exit 1)
+                  test -n "$NODE_VERSION" || (echo "❌ Missing NODE_VERSION" && exit 1)
 
-  code-quality:
-    name: Code Quality
-    runs-on: macos-latest
-    timeout-minutes: 8
-    needs: [quick-validation]
-    if: needs.quick-validation.outputs.has-changes == 'true'
-    strategy:
-      matrix:
-        check: [lint, typecheck, format-check]
-      fail-fast: false
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-          submodules: true
+                  echo "✅ Environment validation passed"
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
+            - name: Preflight - File structure validation
+              run: |
+                  echo "📁 Validating project structure..."
 
-      - name: Setup Turbo Cache
-        uses: actions/cache@v4
-        with:
-          path: .turbo
-          key: ${{ runner.os }}-turbo-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-turbo-
+                  # Critical files
+                  test -f package.json || (echo "❌ Missing package.json" && exit 1)
+                  test -f turbo.json || (echo "❌ Missing turbo.json" && exit 1)
+                  test -f apps/backend/package.json || (echo "❌ Missing backend package.json" && exit 1)
+                  test -f apps/frontend/package.json || (echo "❌ Missing frontend package.json" && exit 1)
 
-      - name: Install dependencies and tools
-        run: |
-          npm ci --prefer-offline --no-audit --no-fund --omit=optional
+                  # Validate JSON syntax
+                  node -e "JSON.parse(require('fs').readFileSync('package.json'))" || exit 1
+                  node -e "JSON.parse(require('fs').readFileSync('turbo.json'))" || exit 1
 
-      - name: Run ${{ matrix.check }}
-        run: |
-          case "${{ matrix.check }}" in
-            lint)
-              npx turbo run lint
-              ;; 
-            typecheck)
-              # Turbo handles dependency builds automatically
-              npx turbo run typecheck
-              ;; 
-            format-check)
-              npx prettier --check "**/*.{js,jsx,ts,tsx,json,md}" --ignore-path .gitignore || echo "Format check completed"
-              ;; 
-          esac
-        env:
-          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-          TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+                  # Check for required scripts
+                  if ! jq -r '.scripts | keys[]' package.json | grep -q "dev"; then
+                    echo "⚠️ Missing dev script in root package.json"
+                  fi
 
-  unit-tests:
-    name: Unit Tests
-    runs-on: macos-latest
-    timeout-minutes: 10
-    needs: [quick-validation]
-    if: needs.quick-validation.outputs.has-changes == 'true'
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-          submodules: true
+                  echo "✅ File structure validation passed"
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
+            - name: Assertion - Git state verification
+              run: |
+                  echo "🔍 Verifying git state..."
 
-      - name: Setup Turbo Cache
-        uses: actions/cache@v4
-        with:
-          path: .turbo
-          key: ${{ runner.os }}-turbo-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-turbo-
+                  # Verify we have git history
+                  COMMIT_COUNT=$(git rev-list --count HEAD)
+                  if [ "$COMMIT_COUNT" -lt 1 ]; then
+                    echo "❌ No git history found"
+                    exit 1
+                  fi
 
-      - name: Install dependencies and tools
-        run: |
-          npm ci --prefer-offline --no-audit --no-fund --omit=optional
+                  # Verify we can access current commit
+                  git show --format="%H %s" -s HEAD || exit 1
 
-      - name: Run unit tests
-        run: npx turbo run test:unit || echo "⚠️ Some tests failed - this is expected during development"
-        continue-on-error: true
-        env:
-          CI: true
-          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-          TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+                  echo "✅ Git state verification passed (commits: $COMMIT_COUNT)"
 
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
+    install-deps:
+        name: Install Dependencies
+        runs-on: macos-latest
+        timeout-minutes: 5
+        needs: quick-validation
+        if: needs.quick-validation.outputs.has-changes == 'true'
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+                  fetch-tags: true
+                  submodules: true
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+
+            - name: Install dependencies
+              run: |
+                  # Clean, deterministic install for CI
+                  npm ci --prefer-offline --no-audit --no-fund --omit=optional
+
+    code-quality:
+        name: Code Quality
+        runs-on: macos-latest
+        timeout-minutes: 8
+        needs: [quick-validation]
+        if: needs.quick-validation.outputs.has-changes == 'true'
+        strategy:
+            matrix:
+                check: [lint, typecheck, format-check]
+            fail-fast: false
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+                  fetch-tags: true
+                  submodules: true
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+
+            - name: Setup Turbo Cache
+              uses: actions/cache@v4
+              with:
+                  path: .turbo
+                  key: ${{ runner.os }}-turbo-${{ github.sha }}
+                  restore-keys: |
+                      ${{ runner.os }}-turbo-
+
+            - name: Install dependencies and tools
+              run: |
+                  npm ci --prefer-offline --no-audit --no-fund --omit=optional
+
+            - name: Run ${{ matrix.check }}
+              run: |
+                  case "${{ matrix.check }}" in
+                    lint)
+                      npx turbo run lint
+                      ;; 
+                    typecheck)
+                      # Turbo handles dependency builds automatically
+                      npx turbo run typecheck
+                      ;; 
+                    format-check)
+                      npx prettier --check "**/*.{js,jsx,ts,tsx,json,md}" --ignore-path .gitignore || echo "Format check completed"
+                      ;; 
+                  esac
+              env:
+                  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+                  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+
+    unit-tests:
+        name: Unit Tests
+        runs-on: macos-latest
+        timeout-minutes: 10
+        needs: [quick-validation]
+        if: needs.quick-validation.outputs.has-changes == 'true'
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+                  fetch-tags: true
+                  submodules: true
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+
+            - name: Setup Turbo Cache
+              uses: actions/cache@v4
+              with:
+                  path: .turbo
+                  key: ${{ runner.os }}-turbo-${{ github.sha }}
+                  restore-keys: |
+                      ${{ runner.os }}-turbo-
+
+            - name: Install dependencies and tools
+              run: |
+                  npm ci --prefer-offline --no-audit --no-fund --omit=optional
+
+            - name: Run unit tests
+              run: npx turbo run test:unit || echo "⚠️ Some tests failed - this is expected during development"
+              continue-on-error: true
+              env:
+                  CI: true
+                  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+                  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+
+            - name: Upload test results
+              uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                  name: unit-test-results
+                  path: |
+                      apps/backend/coverage/
+                      apps/frontend/coverage/
+                      packages/*/coverage/
+                  retention-days: 7
+
+    build-validation:
+        name: Build Validation
+        runs-on: macos-latest
+        timeout-minutes: 15
+        needs: [quick-validation]
+        if: needs.quick-validation.outputs.has-changes == 'true'
+        strategy:
+            matrix:
+                target: [backend, frontend]
+            fail-fast: false
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+                  fetch-tags: true
+                  submodules: true
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+
+            - name: Setup Turbo Cache
+              uses: actions/cache@v4
+              with:
+                  path: .turbo
+                  key: ${{ runner.os }}-turbo-${{ github.sha }}
+                  restore-keys: |
+                      ${{ runner.os }}-turbo-
+
+            - name: Install dependencies and tools
+              run: |
+                  npm ci --prefer-offline --no-audit --no-fund --omit=optional
+
+            - name: Build ${{ matrix.target }} and dependencies
+              run: |
+                  case "${{ matrix.target }}" in
+                    backend)
+                      echo "🔨 Building backend + dependencies..."
+                      NODE_OPTIONS='--max-old-space-size=6144' npx turbo run build --filter=@repo/backend...
+                      ;; 
+                    frontend)
+                      echo "🔨 Building frontend + dependencies..."
+                      # Install correct SWC binary for Linux
+                      npm install @next/swc-linux-x64-gnu --no-save --force 2>/dev/null || true
+                      npx turbo run build --filter=@repo/frontend...
+                      ;; 
+                  esac
+              env:
+                  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+                  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+
+    docker-validation:
+        name: Docker Validation
+        runs-on: macos-latest
+        timeout-minutes: 20
+        needs: [quick-validation, build-validation]
+        if: |
+            needs.quick-validation.outputs.has-changes == 'true' && 
+            (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch')
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+                  fetch-tags: true
+                  submodules: true
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Build Docker image
+              uses: docker/build-push-action@v5
+              with:
+                  context: .
+                  file: ./Dockerfile
+                  push: false
+                  tags: tenantflow-backend:test
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
+                  target: builder # Build only first stage for validation
+
+    integration-tests:
+        name: Integration Tests
+        runs-on: macos-latest
+        timeout-minutes: 15
+        needs: [unit-tests, build-validation]
+        if: always() && needs.unit-tests.result == 'success'
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+                  fetch-tags: true
+                  submodules: true
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+
+            - name: Install dependencies and tools
+              run: |
+                  npm ci --prefer-offline --no-audit --no-fund --omit=optional
+
+            - name: Run integration tests
+              run: |
+                  # Run backend integration tests
+                  cd apps/backend
+                  npm run test:integration || echo "Backend integration tests completed with warnings"
+              env:
+                  DATABASE_URL: postgresql://test:test@localhost:5432/test
+              continue-on-error: true
+
+    quality-gate:
+        name: Quality Gate
+        runs-on: macos-latest
+        needs: [code-quality, unit-tests, build-validation]
         if: always()
-        with:
-          name: unit-test-results
-          path: |
-            apps/backend/coverage/
-            apps/frontend/coverage/
-            packages/*/coverage/
-          retention-days: 7
+        steps:
+            - name: Check all jobs passed
+              run: |
+                  if [[ ("${{ needs.code-quality.result }}" == "success" || "${{ needs.code-quality.result }}" == "skipped") && 
+                        ("${{ needs.unit-tests.result }}" == "success" || "${{ needs.unit-tests.result }}" == "skipped") && 
+                        ("${{ needs.build-validation.result }}" == "success" || "${{ needs.build-validation.result }}" == "skipped") ]]; then
+                    echo "✅ All quality checks passed (some may have been skipped)"
+                  else
+                    echo "❌ Quality gate failed"
+                    echo "Code quality: ${{ needs.code-quality.result }}"
+                    echo "Unit tests: ${{ needs.unit-tests.result }}"
+                    echo "Build validation: ${{ needs.build-validation.result }}"
+                    exit 1
+                  fi
 
-  build-validation:
-    name: Build Validation
-    runs-on: macos-latest
-    timeout-minutes: 15
-    needs: [quick-validation]
-    if: needs.quick-validation.outputs.has-changes == 'true'
-    strategy:
-      matrix:
-        target: [backend, frontend]
-      fail-fast: false
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-          submodules: true
+    ci-status:
+        name: CI Status
+        runs-on: macos-latest
+        needs: [quality-gate, integration-tests, docker-validation]
+        if: always()
+        steps:
+            - name: Report final status
+              run: |
+                  echo "## CI Pipeline Results" >> $GITHUB_STEP_SUMMARY
+                  echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+                  echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+                  echo "| Quality Gate | ${{ needs.quality-gate.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+                  echo "| Integration Tests | ${{ needs.integration-tests.result == 'success' && '✅ Passed' || needs.integration-tests.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+                  echo "| Docker Validation | ${{ needs.docker-validation.result == 'success' && '✅ Passed' || needs.docker-validation.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Setup Turbo Cache
-        uses: actions/cache@v4
-        with:
-          path: .turbo
-          key: ${{ runner.os }}-turbo-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-turbo-
-
-      - name: Install dependencies and tools
-        run: |
-          npm ci --prefer-offline --no-audit --no-fund --omit=optional
-
-      - name: Build ${{ matrix.target }} and dependencies
-        run: |
-          case "${{ matrix.target }}" in
-            backend)
-              echo "🔨 Building backend + dependencies..."
-              NODE_OPTIONS='--max-old-space-size=6144' npx turbo run build --filter=@repo/backend...
-              ;; 
-            frontend)
-              echo "🔨 Building frontend + dependencies..."
-              # Install correct SWC binary for Linux
-              npm install @next/swc-linux-x64-gnu --no-save --force 2>/dev/null || true
-              npx turbo run build --filter=@repo/frontend...
-              ;; 
-          esac
-        env:
-          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-          TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
-
-
-  docker-validation:
-    name: Docker Validation
-    runs-on: macos-latest
-    timeout-minutes: 20
-    needs: [quick-validation, build-validation]
-    if: |
-      needs.quick-validation.outputs.has-changes == 'true' && 
-      (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch')
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-          submodules: true
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile
-          push: false
-          tags: tenantflow-backend:test
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          target: builder # Build only first stage for validation
-
-  integration-tests:
-    name: Integration Tests
-    runs-on: macos-latest
-    timeout-minutes: 15
-    needs: [unit-tests, build-validation]
-    if: always() && needs.unit-tests.result == 'success'
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-          submodules: true
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Install dependencies and tools
-        run: |
-          npm ci --prefer-offline --no-audit --no-fund --omit=optional
-
-      - name: Run integration tests
-        run: |
-          # Run backend integration tests
-          cd apps/backend
-          npm run test:integration || echo "Backend integration tests completed with warnings"
-        env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/test
-        continue-on-error: true
-
-  quality-gate:
-    name: Quality Gate
-    runs-on: macos-latest
-    needs: [code-quality, unit-tests, build-validation]
-    if: always()
-    steps:
-      - name: Check all jobs passed
-        run: |
-          if [[ ("${{ needs.code-quality.result }}" == "success" || "${{ needs.code-quality.result }}" == "skipped") && 
-                ("${{ needs.unit-tests.result }}" == "success" || "${{ needs.unit-tests.result }}" == "skipped") && 
-                ("${{ needs.build-validation.result }}" == "success" || "${{ needs.build-validation.result }}" == "skipped") ]]; then
-            echo "✅ All quality checks passed (some may have been skipped)"
-          else
-            echo "❌ Quality gate failed"
-            echo "Code quality: ${{ needs.code-quality.result }}"
-            echo "Unit tests: ${{ needs.unit-tests.result }}"
-            echo "Build validation: ${{ needs.build-validation.result }}"
-            exit 1
-          fi
-
-  ci-status:
-    name: CI Status
-    runs-on: macos-latest
-    needs: [quality-gate, integration-tests, docker-validation]
-    if: always()
-    steps:
-      - name: Report final status
-        run: |
-          echo "## CI Pipeline Results" >> $GITHUB_STEP_SUMMARY
-          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Quality Gate | ${{ needs.quality-gate.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Integration Tests | ${{ needs.integration-tests.result == 'success' && '✅ Passed' || needs.integration-tests.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Docker Validation | ${{ needs.docker-validation.result == 'success' && '✅ Passed' || needs.docker-validation.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-
-          if [[ "${{ needs.quality-gate.result }}" == "success" ]]; then
-            echo "🚀 **Ready for deployment**" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "🚫 **Not ready for deployment**" >> $GITHUB_STEP_SUMMARY
-          fi
+                  if [[ "${{ needs.quality-gate.result }}" == "success" ]]; then
+                    echo "🚀 **Ready for deployment**" >> $GITHUB_STEP_SUMMARY
+                  else
+                    echo "🚫 **Not ready for deployment**" >> $GITHUB_STEP_SUMMARY
+                  fi

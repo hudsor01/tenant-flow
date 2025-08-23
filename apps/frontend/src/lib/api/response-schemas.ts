@@ -38,11 +38,13 @@ const tenantSchema = z.object({
 	lastName: z.string(),
 	email: z.string().email(),
 	phone: z.string().optional(),
-	emergencyContact: z.object({
-		name: z.string(),
-		phone: z.string(),
-		relationship: z.string()
-	}).optional(),
+	emergencyContact: z
+		.object({
+			name: z.string(),
+			phone: z.string(),
+			relationship: z.string()
+		})
+		.optional(),
 	propertyId: z.string().uuid(),
 	unitId: z.string().uuid().optional(),
 	organizationId: z.string().uuid(),
@@ -107,12 +109,16 @@ const dashboardStatsSchema = z.object({
 	totalTenants: z.number().int().nonnegative(),
 	monthlyRevenue: z.number().nonnegative(),
 	pendingMaintenance: z.number().int().nonnegative(),
-	recentActivity: z.array(z.object({
-		id: z.string(),
-		type: z.string(),
-		description: z.string(),
-		timestamp: z.string().datetime()
-	})).optional()
+	recentActivity: z
+		.array(
+			z.object({
+				id: z.string(),
+				type: z.string(),
+				description: z.string(),
+				timestamp: z.string().datetime()
+			})
+		)
+		.optional()
 })
 
 const propertyStatsSchema = z.object({
@@ -157,14 +163,16 @@ const subscriptionSchema = z.object({
 export const responseSchemas = {
 	// Auth responses
 	user: commonValidators.apiResponse(userSchema),
-	session: commonValidators.apiResponse(z.object({
-		user: userSchema,
-		session: z.object({
-			access_token: z.string(),
-			refresh_token: z.string(),
-			expires_at: z.number()
+	session: commonValidators.apiResponse(
+		z.object({
+			user: userSchema,
+			session: z.object({
+				access_token: z.string(),
+				refresh_token: z.string(),
+				expires_at: z.number()
+			})
 		})
-	})),
+	),
 
 	// Property responses
 	property: commonValidators.apiResponse(propertySchema),
@@ -191,7 +199,9 @@ export const responseSchemas = {
 
 	// Maintenance responses
 	maintenanceRequest: commonValidators.apiResponse(maintenanceRequestSchema),
-	maintenanceRequests: commonValidators.apiResponse(z.array(maintenanceRequestSchema)),
+	maintenanceRequests: commonValidators.apiResponse(
+		z.array(maintenanceRequestSchema)
+	),
 	paginatedMaintenanceRequests: commonValidators.apiResponse(
 		commonValidators.paginatedResponse(maintenanceRequestSchema)
 	),

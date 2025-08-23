@@ -11,293 +11,350 @@ import { useAppStore } from '../stores/app-store'
 import { logger } from '@/lib/logger'
 import { notifications } from '@/lib/toast'
 import type { User } from '@repo/shared'
-import type { User as SupabaseUser, AuthChangeEvent, Session } from '@supabase/supabase-js'
+import type {
+	User as SupabaseUser,
+	AuthChangeEvent,
+	Session
+} from '@supabase/supabase-js'
 
 // Map Supabase user to app User type
 function mapSupabaseUserToAppUser(supabaseUser: SupabaseUser): User {
-  return {
-    id: supabaseUser.id,
-    supabaseId: supabaseUser.id,
-    email: supabaseUser.email || '',
-    name: supabaseUser.user_metadata?.name || supabaseUser.user_metadata?.full_name || null,
-    phone: null,
-    bio: null,
-    avatarUrl: supabaseUser.user_metadata?.avatar_url || null,
-    role: 'TENANT', // Default role - backend will update with correct role
-    organizationId: null,
-    createdAt: new Date(supabaseUser.created_at || new Date().toISOString()),
-    updatedAt: new Date(supabaseUser.updated_at || new Date().toISOString()),
-    stripeCustomerId: null
-  }
+	return {
+		id: supabaseUser.id,
+		supabaseId: supabaseUser.id,
+		email: supabaseUser.email || '',
+		name:
+			supabaseUser.user_metadata?.name ||
+			supabaseUser.user_metadata?.full_name ||
+			null,
+		phone: null,
+		bio: null,
+		avatarUrl: supabaseUser.user_metadata?.avatar_url || null,
+		role: 'TENANT', // Default role - backend will update with correct role
+		organizationId: null,
+		createdAt: new Date(
+			supabaseUser.created_at || new Date().toISOString()
+		),
+		updatedAt: new Date(
+			supabaseUser.updated_at || new Date().toISOString()
+		),
+		stripeCustomerId: null
+	}
 }
 
 export function useAuth() {
-  // Get state from Zustand store
-  const session = useAppStore(state => state.session)
-  const setStoreUser = useAppStore(state => state.setUser)
-  const clearSession = useAppStore(state => state.clearSession)
-  
-  // Local loading state for auth operations
-  const [loading, setLoading] = useState(true)
-  const [initialized, setInitialized] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  
-  const router = useRouter()
+	// Get state from Zustand store
+	const session = useAppStore(state => state.session)
+	const setStoreUser = useAppStore(state => state.setUser)
+	const clearSession = useAppStore(state => state.clearSession)
 
-  // Initialize auth state on mount
-  useEffect(() => {
-    let mounted = true
+	// Local loading state for auth operations
+	const [loading, setLoading] = useState(true)
+	const [initialized, setInitialized] = useState(false)
+	const [error, setError] = useState<string | null>(null)
 
-    const initializeAuth = async () => {
-      try {
-        logger.debug('Initializing auth state', { component: 'useAuth' })
+	const router = useRouter()
 
-        // Get initial session from Supabase
-        const { data: { session } } = await supabase.auth.getSession()
-        
-        if (mounted) {
-          const appUser = session?.user ? mapSupabaseUserToAppUser(session.user) : null
-          setStoreUser(appUser)
-          setLoading(false)
-          setInitialized(true)
-        }
+	// Initialize auth state on mount
+	useEffect(() => {
+		let mounted = true
 
-        logger.debug('Auth state initialized', {
-          component: 'useAuth',
-          hasUser: !!session?.user
-        })
-      } catch (err) {
-        logger.error('Auth initialization failed:', err instanceof Error ? err : new Error(String(err)))
-        
-        if (mounted) {
-          setError(err instanceof Error ? err.message : 'Auth initialization failed')
-          setStoreUser(null)
-          setLoading(false)
-          setInitialized(true)
-        }
-      }
-    }
+		const initializeAuth = async () => {
+			try {
+				logger.debug('Initializing auth state', {
+					component: 'useAuth'
+				})
 
-    initializeAuth()
+				// Get initial session from Supabase
+				const {
+					data: { session }
+				} = await supabase.auth.getSession()
 
-    // Listen for auth state changes - Direct Supabase usage
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event: AuthChangeEvent, session: Session | null) => {
-        if (!mounted) return
+				if (mounted) {
+					const appUser = session?.user
+						? mapSupabaseUserToAppUser(session.user)
+						: null
+					setStoreUser(appUser)
+					setLoading(false)
+					setInitialized(true)
+				}
 
-        logger.debug('Auth state change event', {
-          component: 'useAuth',
-          event,
-          hasSession: !!session
-        })
+				logger.debug('Auth state initialized', {
+					component: 'useAuth',
+					hasUser: !!session?.user
+				})
+			} catch (err) {
+				logger.error(
+					'Auth initialization failed:',
+					err instanceof Error ? err : new Error(String(err))
+				)
 
-        try {
-          if (event === 'SIGNED_OUT' || !session) {
-            setStoreUser(null)
-            clearSession()
-            setError(null)
+				if (mounted) {
+					setError(
+						err instanceof Error
+							? err.message
+							: 'Auth initialization failed'
+					)
+					setStoreUser(null)
+					setLoading(false)
+					setInitialized(true)
+				}
+			}
+		}
 
-            // Redirect to login for protected routes
-            const currentPath = window.location.pathname
-            const isProtectedRoute = [
-              '/dashboard',
-              '/properties', 
-              '/tenants',
-              '/leases',
-              '/maintenance',
-              '/profile'
-            ].some(route => currentPath.startsWith(route))
+		initializeAuth()
 
-            if (isProtectedRoute) {
-              router.push('/auth/login')
-            }
-          } else if (
-            event === 'SIGNED_IN' ||
-            event === 'TOKEN_REFRESHED'
-          ) {
-            const appUser = session.user ? mapSupabaseUserToAppUser(session.user) : null
-            setStoreUser(appUser)
-            setError(null)
+		// Listen for auth state changes - Direct Supabase usage
+		const {
+			data: { subscription }
+		} = supabase.auth.onAuthStateChange(
+			async (event: AuthChangeEvent, session: Session | null) => {
+				if (!mounted) return
 
-            // Redirect from auth pages to dashboard
-            const currentPath = window.location.pathname
-            const isAuthPage = [
-              '/auth/login',
-              '/auth/signup',
-              '/login',
-              '/signup'
-            ].some(route => currentPath === route)
+				logger.debug('Auth state change event', {
+					component: 'useAuth',
+					event,
+					hasSession: !!session
+				})
 
-            if (isAuthPage) {
-              router.push('/dashboard')
-            }
-          }
-        } catch (err) {
-          logger.error('Auth state change error:', err instanceof Error ? err : new Error(String(err)))
-          setError(err instanceof Error ? err.message : 'Auth state change failed')
-        }
-      }
-    )
+				try {
+					if (event === 'SIGNED_OUT' || !session) {
+						setStoreUser(null)
+						clearSession()
+						setError(null)
 
-    return () => {
-      mounted = false
-      subscription.unsubscribe()
-    }
-  }, [router, setStoreUser, clearSession])
+						// Redirect to login for protected routes
+						const currentPath = window.location.pathname
+						const isProtectedRoute = [
+							'/dashboard',
+							'/properties',
+							'/tenants',
+							'/leases',
+							'/maintenance',
+							'/profile'
+						].some(route => currentPath.startsWith(route))
 
-  // Sign in method - Direct Supabase usage
-  const signIn = useCallback(async (email: string, password: string) => {
-    try {
-      setLoading(true)
-      setError(null)
+						if (isProtectedRoute) {
+							router.push('/auth/login')
+						}
+					} else if (
+						event === 'SIGNED_IN' ||
+						event === 'TOKEN_REFRESHED'
+					) {
+						const appUser = session.user
+							? mapSupabaseUserToAppUser(session.user)
+							: null
+						setStoreUser(appUser)
+						setError(null)
 
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
+						// Redirect from auth pages to dashboard
+						const currentPath = window.location.pathname
+						const isAuthPage = [
+							'/auth/login',
+							'/auth/signup',
+							'/login',
+							'/signup'
+						].some(route => currentPath === route)
 
-      if (authError) {
-        setError(authError.message)
-        notifications.error('Login failed', { description: authError.message })
-        return { success: false, error: authError.message }
-      }
+						if (isAuthPage) {
+							router.push('/dashboard')
+						}
+					}
+				} catch (err) {
+					logger.error(
+						'Auth state change error:',
+						err instanceof Error ? err : new Error(String(err))
+					)
+					setError(
+						err instanceof Error
+							? err.message
+							: 'Auth state change failed'
+					)
+				}
+			}
+		)
 
-      notifications.success('Welcome back!')
-      return { success: true }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Login failed'
-      setError(message)
-      notifications.error('Login failed', { description: message })
-      return { success: false, error: message }
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+		return () => {
+			mounted = false
+			subscription.unsubscribe()
+		}
+	}, [router, setStoreUser, clearSession])
 
-  // Sign up method - Direct Supabase usage
-  const signUp = useCallback(async (email: string, password: string, name: string) => {
-    try {
-      setLoading(true)
-      setError(null)
+	// Sign in method - Direct Supabase usage
+	const signIn = useCallback(async (email: string, password: string) => {
+		try {
+			setLoading(true)
+			setError(null)
 
-      const { data, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name,
-            full_name: name
-          }
-        }
-      })
+			const { data, error: authError } =
+				await supabase.auth.signInWithPassword({
+					email,
+					password
+				})
 
-      if (authError) {
-        setError(authError.message)
-        notifications.error('Signup failed', { description: authError.message })
-        return { success: false, error: authError.message }
-      }
+			if (authError) {
+				setError(authError.message)
+				notifications.error('Login failed', {
+					description: authError.message
+				})
+				return { success: false, error: authError.message }
+			}
 
-      notifications.success('Account created!', { description: 'Check your email to verify your account.' })
-      return { success: true }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Signup failed'
-      setError(message)
-      notifications.error('Signup failed', { description: message })
-      return { success: false, error: message }
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+			notifications.success('Welcome back!')
+			return { success: true }
+		} catch (err) {
+			const message = err instanceof Error ? err.message : 'Login failed'
+			setError(message)
+			notifications.error('Login failed', { description: message })
+			return { success: false, error: message }
+		} finally {
+			setLoading(false)
+		}
+	}, [])
 
-  // Sign out method - Direct Supabase usage
-  const signOut = useCallback(async () => {
-    try {
-      setLoading(true)
-      setError(null)
+	// Sign up method - Direct Supabase usage
+	const signUp = useCallback(
+		async (email: string, password: string, name: string) => {
+			try {
+				setLoading(true)
+				setError(null)
 
-      const { error: authError } = await supabase.auth.signOut()
+				const { data, error: authError } = await supabase.auth.signUp({
+					email,
+					password,
+					options: {
+						data: {
+							name,
+							full_name: name
+						}
+					}
+				})
 
-      if (authError) {
-        logger.error('Logout error:', authError)
-        setError(authError.message)
-      } else {
-        notifications.success('Logged out successfully')
-      }
+				if (authError) {
+					setError(authError.message)
+					notifications.error('Signup failed', {
+						description: authError.message
+					})
+					return { success: false, error: authError.message }
+				}
 
-      router.push('/')
-    } catch (err) {
-      logger.error('Logout error:', err instanceof Error ? err : new Error(String(err)))
-      
-      // Clear local state even if logout fails
-      clearSession()
-      router.push('/')
-    } finally {
-      setLoading(false)
-    }
-  }, [router, clearSession])
+				notifications.success('Account created!', {
+					description: 'Check your email to verify your account.'
+				})
+				return { success: true }
+			} catch (err) {
+				const message =
+					err instanceof Error ? err.message : 'Signup failed'
+				setError(message)
+				notifications.error('Signup failed', { description: message })
+				return { success: false, error: message }
+			} finally {
+				setLoading(false)
+			}
+		},
+		[]
+	)
 
-  // Password reset method - Direct Supabase usage
-  const resetPassword = useCallback(async (email: string) => {
-    try {
-      setError(null)
+	// Sign out method - Direct Supabase usage
+	const signOut = useCallback(async () => {
+		try {
+			setLoading(true)
+			setError(null)
 
-      const { error: authError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`
-      })
+			const { error: authError } = await supabase.auth.signOut()
 
-      if (authError) {
-        setError(authError.message)
-        notifications.error('Password reset failed', { description: authError.message })
-        return { success: false, error: authError.message }
-      }
+			if (authError) {
+				logger.error('Logout error:', authError)
+				setError(authError.message)
+			} else {
+				notifications.success('Logged out successfully')
+			}
 
-      notifications.success('Password reset email sent!', { description: 'Please check your inbox.' })
-      return { success: true }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Password reset failed'
-      setError(message)
-      notifications.error('Password reset failed', { description: message })
-      return { success: false, error: message }
-    }
-  }, [])
+			router.push('/')
+		} catch (err) {
+			logger.error(
+				'Logout error:',
+				err instanceof Error ? err : new Error(String(err))
+			)
 
-  return {
-    // State
-    user: session.user,
-    isAuthenticated: session.isAuthenticated,
-    loading,
-    initialized,
-    error,
-    
-    // Methods
-    signIn,
-    signUp,
-    signOut,
-    resetPassword,
-    
-    // Backward compatibility aliases
-    setUser: setStoreUser,
-    clearAuth: clearSession,
-    logout: signOut,
-    session
-  }
+			// Clear local state even if logout fails
+			clearSession()
+			router.push('/')
+		} finally {
+			setLoading(false)
+		}
+	}, [router, clearSession])
+
+	// Password reset method - Direct Supabase usage
+	const resetPassword = useCallback(async (email: string) => {
+		try {
+			setError(null)
+
+			const { error: authError } =
+				await supabase.auth.resetPasswordForEmail(email, {
+					redirectTo: `${window.location.origin}/auth/reset-password`
+				})
+
+			if (authError) {
+				setError(authError.message)
+				notifications.error('Password reset failed', {
+					description: authError.message
+				})
+				return { success: false, error: authError.message }
+			}
+
+			notifications.success('Password reset email sent!', {
+				description: 'Please check your inbox.'
+			})
+			return { success: true }
+		} catch (err) {
+			const message =
+				err instanceof Error ? err.message : 'Password reset failed'
+			setError(message)
+			notifications.error('Password reset failed', {
+				description: message
+			})
+			return { success: false, error: message }
+		}
+	}, [])
+
+	return {
+		// State
+		user: session.user,
+		isAuthenticated: session.isAuthenticated,
+		loading,
+		initialized,
+		error,
+
+		// Methods
+		signIn,
+		signUp,
+		signOut,
+		resetPassword,
+
+		// Backward compatibility aliases
+		setUser: setStoreUser,
+		clearAuth: clearSession,
+		logout: signOut,
+		session
+	}
 }
 
 // Hook for checking if user is authenticated and redirecting if needed
 export function useRequireAuth() {
-  const auth = useAuth()
-  const router = useRouter() // Already imported above
+	const auth = useAuth()
+	const router = useRouter() // Already imported above
 
-  useEffect(() => {
-    if (auth.initialized && !auth.loading && !auth.user) {
-      router.push('/auth/login')
-    }
-  }, [auth.user, auth.loading, auth.initialized, router])
+	useEffect(() => {
+		if (auth.initialized && !auth.loading && !auth.user) {
+			router.push('/auth/login')
+		}
+	}, [auth.user, auth.loading, auth.initialized, router])
 
-  return { 
-    user: auth.user, 
-    loading: auth.loading || !auth.initialized, 
-    isAuthenticated: !!auth.user,
-    error: auth.error
-  }
+	return {
+		user: auth.user,
+		loading: auth.loading || !auth.initialized,
+		isAuthenticated: !!auth.user,
+		error: auth.error
+	}
 }

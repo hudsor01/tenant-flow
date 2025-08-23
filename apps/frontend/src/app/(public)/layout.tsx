@@ -16,7 +16,7 @@ interface PublicLayoutProps {
 
 /**
  * Layout for public pages (marketing, auth, etc.)
- * 
+ *
  * Auth state is now handled globally by the app store and useAuth hook.
  * No need for a separate AuthProvider wrapper.
  */
