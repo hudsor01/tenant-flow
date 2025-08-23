@@ -3,7 +3,7 @@ import { Loader2, CreditCard, Shield } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils/css.utils'
-import { useCheckout } from '@/hooks/useCheckout'
+import { useCreatePortalSession } from '@/hooks/api/use-billing'
 
 interface CustomerPortalButtonProps {
 	variant?: 'default' | 'outline' | 'secondary' | 'ghost'
@@ -21,14 +21,16 @@ export function CustomerPortalButton({
 	showSecurityBadge = false
 }: CustomerPortalButtonProps) {
 	const { user } = useAuth()
-	const { openPortal, isOpeningPortal, portalError } = useCheckout()
+	const createPortalMutation = useCreatePortalSession()
 
 	const handlePortalAccess = async () => {
 		if (!user?.id) {
 			return
 		}
 
-		await openPortal()
+		createPortalMutation.mutate({
+			returnUrl: window.location.href
+		})
 	}
 
 	return (
@@ -42,7 +44,7 @@ export function CustomerPortalButton({
 
 			<Button
 				onClick={() => void handlePortalAccess()}
-				disabled={isOpeningPortal || !user}
+				disabled={createPortalMutation.isPending || !user}
 				variant={variant}
 				size={size}
 				className={cn(
@@ -51,7 +53,7 @@ export function CustomerPortalButton({
 					className
 				)}
 			>
-				{isOpeningPortal ? (
+				{createPortalMutation.isPending ? (
 					<>
 						<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 						Loading...
@@ -64,13 +66,13 @@ export function CustomerPortalButton({
 				)}
 			</Button>
 
-			{portalError && (
+			{createPortalMutation.error && (
 				<Alert
 					variant="destructive"
 					className="border-red-200 bg-red-50"
 				>
 					<AlertDescription className="text-red-700">
-						{portalError}
+						{createPortalMutation.error.message}
 					</AlertDescription>
 				</Alert>
 			)}

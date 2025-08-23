@@ -22,7 +22,7 @@ import {
 	Plus
 } from 'lucide-react'
 
-import { EnhancedButton as Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
 	DropdownMenu,
@@ -377,12 +377,12 @@ export function createSortableHeader<_T>(
 }
 
 export function createActionsColumn<T>(
-	onView?: (item: T) => void,
-	onEdit?: (item: T) => void,
-	onDelete?: (item: T) => void,
+	onView?: (_item: T) => void,
+	onEdit?: (_item: T) => void,
+	onDelete?: (_item: T) => void,
 	customActions?: {
 		label: string
-		onClick: (item: T) => void
+		onClick: (_item: T) => void
 		icon?: React.ReactNode
 		variant?: 'default' | 'destructive'
 	}[]
@@ -458,7 +458,7 @@ export function createSelectColumn<_T>() {
 			table: {
 				getIsAllPageRowsSelected: () => boolean
 				getIsSomePageRowsSelected: () => boolean
-				toggleAllPageRowsSelected: (value: boolean) => void
+				toggleAllPageRowsSelected: (_value: boolean) => void
 			}
 		}) => (
 			<Checkbox
@@ -478,7 +478,7 @@ export function createSelectColumn<_T>() {
 		}: {
 			row: {
 				getIsSelected: () => boolean
-				toggleSelected: (value: boolean) => void
+				toggleSelected: (_value: boolean) => void
 			}
 		}) => (
 			<Checkbox

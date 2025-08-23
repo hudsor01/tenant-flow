@@ -1,9 +1,8 @@
 import Link from 'next/link'
-import { motion } from '@/lib/framer-motion'
+import { motion } from '@/lib/lazy-motion'
 import { Button } from '@/components/ui/button'
 import { Clock, User, ArrowLeft, Share2, Calendar, Tag } from 'lucide-react'
 import type { BlogArticleWithDetails } from '@repo/shared'
-import { formatArticleDate } from '@/lib/utils/date-utils'
 
 interface BlogHeaderSectionProps {
 	article: BlogArticleWithDetails
@@ -67,13 +66,17 @@ export default function BlogHeaderSection({
 							<Calendar className="h-4 w-4" />
 							<time>
 								{article.publishedAt
-									? formatArticleDate(article.publishedAt)
+									? new Date(article.publishedAt).toLocaleDateString('en-US', {
+											year: 'numeric',
+											month: 'long',
+											day: 'numeric'
+										})
 									: 'Recent'}
 							</time>
 						</div>
 						<div className="flex items-center gap-2">
 							<Clock className="h-4 w-4" />
-							<span>{article.readTime || 5} min read</span>
+							<span>{article.readTime ?? 5} min read</span>
 						</div>
 						<Button
 							variant="ghost"

@@ -8,10 +8,9 @@
 'use client'
 
 import * as React from 'react'
-import { motion } from '@/lib/framer-motion'
+import { motion } from '@/lib/lazy-motion'
 import { Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Stack } from '@/components/ui/primitives'
 import { cn } from '@/lib/utils'
 import { NavigationLink } from './navigation-link'
 import type { NavItem } from './types'
@@ -82,7 +81,7 @@ export function MobileNavigation({
 
 							{/* Navigation Items */}
 							<div className="flex-1 overflow-y-auto p-4">
-								<Stack spacing="md">
+								<div className="flex flex-col gap-4">
 									{items.map(item => (
 										<NavigationLink
 											key={item.id}
@@ -90,7 +89,7 @@ export function MobileNavigation({
 											variant="vertical"
 										/>
 									))}
-								</Stack>
+								</div>
 							</div>
 						</div>
 					</motion.div>

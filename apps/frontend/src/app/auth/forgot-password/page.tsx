@@ -1,7 +1,7 @@
 import type { Metadata } from '@/types/next.d'
 import { Suspense } from 'react'
-import { ForgotPasswordFormRefactored } from '@/components/auth/forgot-password-form'
-import { AuthLayout } from '@/components/auth/auth-layout'
+import { SimpleForgotPasswordForm } from '@/components/forms/supabase-forgot-password-form'
+import { AuthLayout } from '@/components/layout/auth/layout'
 import { ClientAuthGuard } from '@/components/auth/client-auth-guard'
 
 export const metadata: Metadata = {
@@ -37,7 +37,7 @@ export default function ForgotPasswordPage({
 						<div className="bg-muted h-[300px] animate-pulse rounded-lg" />
 					}
 				>
-					<ForgotPasswordFormRefactored error={searchParams?.error} />
+					<SimpleForgotPasswordForm />
 				</Suspense>
 			</AuthLayout>
 		</ClientAuthGuard>

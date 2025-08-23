@@ -5,8 +5,8 @@
 
 import type { Metadata } from '@/types/next.d'
 import { Suspense } from 'react'
-import { AuthLayout } from '@/components/auth/auth-layout'
-import LoginForm from '@/components/auth/login-form'
+import { AuthLayout } from '@/components/layout/auth/layout'
+import { SimpleLoginForm } from '@/components/forms/supabase-login-form'
 import { getCurrentUser } from '@/lib/actions/auth-actions'
 import { AuthRedirect } from '@/components/auth/auth-redirect'
 
@@ -28,10 +28,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 	const user = await getCurrentUser()
 
 	if (user) {
-		return <AuthRedirect to={params?.redirect || '/dashboard'} />
+		return <AuthRedirect to={params?.redirect ?? '/dashboard'} />
 	}
 
-	const redirectTo = params?.redirect || '/dashboard'
+	const redirectTo = params?.redirect ?? '/dashboard'
 
 	return (
 		<AuthLayout
@@ -54,7 +54,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 					<div className="bg-muted h-[400px] animate-pulse rounded-lg" />
 				}
 			>
-				<LoginForm redirectTo={redirectTo} />
+				<SimpleLoginForm redirectTo={redirectTo} />
 			</Suspense>
 		</AuthLayout>
 	)

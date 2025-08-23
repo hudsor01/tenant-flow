@@ -1,4 +1,4 @@
-import type { Variants } from '@/lib/framer-motion'
+import type { Variants } from '@/lib/lazy-motion'
 
 // Professional metric card animations
 export const cardVariants: Variants = {

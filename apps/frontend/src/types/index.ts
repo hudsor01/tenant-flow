@@ -7,10 +7,8 @@
 export * from './core/common'
 export * from './core/entities'
 
-// Component types
+// Component types (minimal, only used types)
 export * from './components/forms'
-export * from './components/dialogs'
-export * from './components/ui'
 
 // Hook types
 export * from './hooks'
@@ -24,6 +22,12 @@ export type {
 	Unit,
 	MaintenanceRequest,
 	User,
+
+	// Auth types
+	AuthError,
+	AuthSession,
+	LoginCredentials,
+	SignupCredentials,
 
 	// Enums
 	PropertyType,

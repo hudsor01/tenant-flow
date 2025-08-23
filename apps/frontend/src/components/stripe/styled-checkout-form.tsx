@@ -1,27 +1,22 @@
-import {
-	EmbeddedCheckout,
-	EmbeddedCheckoutProvider
-} from '@stripe/react-stripe-js'
-
-import { loadStripe } from '@stripe/stripe-js'
+import { CheckoutForm } from './CheckoutForm'
 
 interface StyledCheckoutFormProps {
 	clientSecret: string
 	onSuccess?: () => void
-	onError?: (error: string) => void
+	onError?: (_error: string) => void
 	returnUrl?: string
 }
 
 /**
  * StyledCheckoutForm Component
  *
- * Official Stripe Embedded Checkout implementation following Stripe's best practices.
- * This component uses Stripe's EmbeddedCheckout for secure, PCI-compliant payment processing.
+ * Migrated to use the new CheckoutForm with CheckoutProvider API.
+ * This maintains backward compatibility while using the modern Stripe implementation.
  *
  * Features:
- * - Official Stripe Embedded Checkout
- * - Automatic payment method detection
- * - Built-in address collection
+ * - Modern Stripe Checkout API
+ * - PaymentElement for flexible payment methods
+ * - Built-in error handling
  * - Mobile-optimized responsive design
  * - Full PCI compliance
  * - Integrated with TenantFlow's design system
@@ -41,32 +36,16 @@ export function StyledCheckoutForm({
 	onError,
 	returnUrl
 }: StyledCheckoutFormProps) {
-	const stripePromise = loadStripe(
-		process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''
-	)
-
-	const options = {
-		clientSecret,
-		onComplete: () => {
-			onSuccess?.()
-		},
-		onError: (error: { message?: string }) => {
-			onError?.(error?.message || 'Payment failed')
-		},
-		...(returnUrl && {
-			appearance: {
-				variables: {
-					colorPrimary: 'var(--primary)'
-				}
-			}
-		})
-	}
-
+	// returnUrl is handled by the backend when creating the session
+	// The new API doesn't need it passed here
+	void returnUrl
+	
 	return (
-		<div className="w-full">
-			<EmbeddedCheckoutProvider stripe={stripePromise} options={options}>
-				<EmbeddedCheckout />
-			</EmbeddedCheckoutProvider>
-		</div>
+		<CheckoutForm
+			clientSecret={clientSecret}
+			onSuccess={onSuccess}
+			onError={onError}
+			className="w-full"
+		/>
 	)
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useOptimistic, useTransition } from 'react'
-import { useDashboardStats } from '@/hooks/api/use-dashboard'
+import { useDashboardOverview } from '@/hooks/api/use-dashboard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -23,7 +23,7 @@ import type { DashboardStats } from '@repo/shared'
  * Extracted from massive dashboard client component
  */
 export function DashboardStatsCards() {
-	const { data: stats, isLoading, error } = useDashboardStats()
+	const { data: stats, isLoading, error } = useDashboardOverview()
 	const [isPending, _startTransition] = useTransition()
 
 	// React 19 useOptimistic for instant feedback on metric updates
@@ -78,8 +78,8 @@ export function DashboardStatsCards() {
 	const statCards = [
 		{
 			title: 'Total Properties',
-			value: currentStats?.properties?.totalProperties || 0,
-			description: `${currentStats?.properties?.occupancyRate || 0}% occupancy`,
+			value: currentStats?.properties?.totalProperties ?? 0,
+			description: `${currentStats?.properties?.occupancyRate ?? 0}% occupancy`,
 			icon: Building2,
 			color: 'primary',
 			bgColor: 'bg-simplify-soft',
@@ -91,7 +91,7 @@ export function DashboardStatsCards() {
 		},
 		{
 			title: 'Active Tenants',
-			value: currentStats?.tenants?.totalTenants || 0,
+			value: currentStats?.tenants?.totalTenants ?? 0,
 			description: 'Active tenants',
 			icon: Users,
 			color: 'success',
@@ -104,7 +104,7 @@ export function DashboardStatsCards() {
 		},
 		{
 			title: 'Active Leases',
-			value: currentStats?.leases?.totalLeases || 0,
+			value: currentStats?.leases?.totalLeases ?? 0,
 			description: 'Active leases',
 			icon: FileText,
 			color: 'accent',

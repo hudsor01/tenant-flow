@@ -41,6 +41,65 @@ export class StripeService {
 		return this.stripe.subscriptions.cancel(subscriptionId)
 	}
 
+	/**
+	 * Create subscription using Confirmation Token (Stripe 2025 pattern)
+	 * This method implements Stripe's latest best practices for embedded checkout
+	 */
+	async createSubscriptionWithConfirmationToken(
+		confirmationTokenId: string,
+		customerId: string,
+		priceId: string,
+		metadata?: Record<string, string>
+	) {
+		try {
+			// Create the subscription with payment_behavior set to allow incomplete status
+			// This enables proper SCA handling per Stripe's 2025 best practices
+			const subscription = await this.stripe.subscriptions.create({
+				customer: customerId,
+				items: [{ price: priceId }],
+				payment_behavior: 'default_incomplete',
+				payment_settings: {
+					save_default_payment_method: 'on_subscription'
+				},
+				expand: ['latest_invoice.payment_intent'],
+				metadata: metadata || {}
+			})
+
+			this.logger.log(`Subscription created: ${subscription.id}, status: ${subscription.status}`)
+
+			// If subscription is incomplete, we need to confirm the payment using the confirmation token
+			if (subscription.status === 'incomplete') {
+				const latestInvoice = subscription.latest_invoice
+				
+				if (typeof latestInvoice === 'object' && latestInvoice && 'payment_intent' in latestInvoice && latestInvoice.payment_intent) {
+					const paymentIntentId = typeof latestInvoice.payment_intent === 'string' 
+						? latestInvoice.payment_intent 
+						: (latestInvoice.payment_intent as Stripe.PaymentIntent).id
+
+					// Confirm the payment intent with the confirmation token
+					const confirmedPayment = await this.stripe.paymentIntents.confirm(paymentIntentId, {
+						confirmation_token: confirmationTokenId,
+						return_url: `${process.env.FRONTEND_URL || 'https://tenantflow.app'}/billing/success`
+					})
+
+					this.logger.log(`Payment confirmed: ${confirmedPayment.id}, status: ${confirmedPayment.status}`)
+					
+					// Return the updated subscription with payment status
+					const updatedSubscription = await this.stripe.subscriptions.retrieve(subscription.id, {
+						expand: ['latest_invoice.payment_intent']
+					})
+					
+					return updatedSubscription
+				}
+			}
+			
+			return subscription
+		} catch (error) {
+			this.logger.error('Failed to create subscription with confirmation token', error)
+			throw error
+		}
+	}
+
 	async handleWebhook(payload: Buffer, signature: string) {
 		const webhookSecret = this.configService.get('STRIPE_WEBHOOK_SECRET', {
 			infer: true

@@ -10,12 +10,12 @@ export function createSuccessResponse<T = unknown>(
 	data: T,
 	message = 'Operation completed successfully'
 ): ControllerApiResponse<T> {
-	return {
-		success: true,
-		data,
-		message,
-		timestamp: new Date().toISOString()
-	}
+return {
+success: true,
+data,
+message,
+timestamp: new Date()
+}
 }
 
 /**
@@ -27,7 +27,7 @@ export function createSuccessResponse<T = unknown>(
 export function createErrorResponse(
 	message: string,
 	statusCode?: number
-): ApiErrorResponse & { timestamp: string; statusCode?: number } {
+): ApiErrorResponse & { statusCode?: number } {
 	return {
 		success: false,
 		error: {

@@ -273,7 +273,7 @@ export class FastifyHooksService {
 				response: {
 					success: false,
 					error: validationError,
-					timestamp: new Date()
+					timestamp: new Date().toISOString()
 				}
 			}
 		}
@@ -298,7 +298,7 @@ export class FastifyHooksService {
 				response: {
 					success: false,
 					error: validationError,
-					timestamp: new Date()
+					timestamp: new Date().toISOString()
 				}
 			}
 		}

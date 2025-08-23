@@ -1,48 +1,31 @@
 /**
- * Animation utilities and configurations
+ * Animation constants and configurations
+ * Standard animation timing and spring configs
  */
 
-export const animationConfig = {
-	ease: [0.4, 0, 0.2, 1],
-	duration: 0.3,
-	spring: {
-		type: 'spring',
-		stiffness: 300,
-		damping: 30
-	}
-}
-
+// Spring configurations for consistent animations
 export const springConfig = {
-	type: 'spring' as const,
-	stiffness: 300,
-	damping: 30,
-	snappy: {
-		type: 'spring' as const,
-		stiffness: 400,
-		damping: 25
-	},
-	bouncy: {
-		type: 'spring' as const,
-		stiffness: 200,
-		damping: 15
-	},
-	gentle: {
-		type: 'spring' as const,
-		stiffness: 100,
-		damping: 20
-	}
+  type: 'spring' as const,
+  stiffness: 300,
+  damping: 30,
 }
 
-export const fadeInOut = {
-	initial: { opacity: 0 },
-	animate: { opacity: 1 },
-	exit: { opacity: 0 },
-	transition: animationConfig
+export const softSpringConfig = {
+  type: 'spring' as const,
+  stiffness: 200,
+  damping: 25,
 }
 
-export const slideInOut = {
-	initial: { opacity: 0, y: 20 },
-	animate: { opacity: 1, y: 0 },
-	exit: { opacity: 0, y: -20 },
-	transition: animationConfig.spring
+// Duration constants (in seconds)
+export const ANIMATION_DURATION = {
+  fast: 0.15,
+  normal: 0.3,
+  slow: 0.5,
+}
+
+// Easing functions
+export const EASING = {
+  easeOut: 'ease-out',
+  easeIn: 'ease-in',
+  easeInOut: 'ease-in-out',
 }

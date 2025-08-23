@@ -22,12 +22,14 @@ import {
 	Building
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
-import { useAuth } from '@/hooks'
-import { logoutAction } from '@/lib/actions/auth-actions'
-import { useServerAction } from '@/lib/hooks/use-server-action'
+import { useAuth } from '@/hooks/use-auth'
 import { useCommandPalette } from '@/hooks/use-command-palette'
 import { DashboardSidebar } from './dashboard-sidebar'
+import { OfflineIndicator } from '@/components/ui/offline-indicator'
 import Link from 'next/link'
+import { logoutAction } from '@/lib/actions/auth-actions'
+import { useTransition } from 'react'
+import { toast } from 'sonner'
 
 interface NavigationProps {
 	className?: string
@@ -37,18 +39,17 @@ export function Navigation({ className }: NavigationProps) {
 	const { user } = useAuth()
 	const { open: openCommandPalette } = useCommandPalette()
 	const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
-	const [logout, isLoggingOut] = useServerAction(logoutAction, {
-		showSuccessToast: false,
-		onSuccess: () => {
-			// Client-side redirect after successful logout
-			setTimeout(() => {
-				window.location.href = '/'
-			}, 100)
-		}
-	})
+	const [isLoggingOut, startTransition] = useTransition()
 
 	const handleLogout = () => {
-		logout()
+		startTransition(async () => {
+			try {
+				await logoutAction()
+				// Server action will handle redirect
+			} catch (error) {
+				toast.error('Failed to sign out')
+			}
+		})
 	}
 
 	const handleSearchClick = () => {
@@ -118,6 +119,9 @@ export function Navigation({ className }: NavigationProps) {
 						<Search className="h-4 w-4" />
 					</Button>
 
+					{/* Offline Indicator */}
+					<OfflineIndicator />
+
 					{/* Notifications */}
 					<Button
 						variant="ghost"
@@ -138,7 +142,7 @@ export function Navigation({ className }: NavigationProps) {
 							>
 								<Avatar className="h-8 w-8">
 									<AvatarImage
-										src={user?.avatarUrl}
+										src={user?.avatarUrl || undefined}
 										alt={user?.name || user?.email}
 									/>
 									<AvatarFallback>

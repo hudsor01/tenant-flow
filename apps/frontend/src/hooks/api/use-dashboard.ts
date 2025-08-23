@@ -1,326 +1,115 @@
+import { apiClient } from '@/lib/api-client'
 /**
  * React Query hooks for Dashboard
- * Provides type-safe data fetching for dashboard statistics and analytics
+ * Native TanStack Query implementation - no custom abstractions
  */
-import type { UseQueryResult } from '@tanstack/react-query'
+import { useQuery, type UseQueryResult } from '@tanstack/react-query'
 import { logger } from '@/lib/logger'
-import { apiClient } from '@/lib/api-client'
-import { queryKeys } from '@/lib/react-query/query-client'
-import type { DashboardStats } from '@repo/shared'
-import { useQueryFactory, useStatsQuery } from '../query-factory'
-
-interface DashboardOverview {
-	recentActivity: {
-		id: string
-		type:
-			| 'tenant_added'
-			| 'lease_created'
-			| 'maintenance_request'
-			| 'payment_received'
-		description: string
-		timestamp: Date
-		entityId?: string
-	}[]
-	upcomingLeaseExpirations: {
-		id: string
-		tenantName: string
-		propertyName: string
-		unitNumber: string
-		expirationDate: Date
-		daysRemaining: number
-	}[]
-	overduePayments: {
-		id: string
-		tenantName: string
-		amount: number
-		dueDate: Date
-		daysOverdue: number
-	}[]
-	propertyPerformance: {
-		propertyId: string
-		propertyName: string
-		occupancyRate: number
-		monthlyRevenue: number
-		maintenanceRequests: number
-		performance: 'excellent' | 'good' | 'fair' | 'poor'
-	}[]
-}
-
-interface RevenueAnalytics {
-	monthlyRevenue: {
-		month: string
-		revenue: number
-		expenses: number
-		profit: number
-	}[]
-	revenueByProperty: {
-		propertyId: string
-		propertyName: string
-		revenue: number
-		percentage: number
-	}[]
-	paymentStatus: {
-		paid: number
-		pending: number
-		overdue: number
-	}
-	projectedRevenue: {
-		nextMonth: number
-		nextQuarter: number
-		nextYear: number
-	}
-}
+import { dashboardApi, type UpcomingTask } from '@/lib/api/dashboard'
+import { queryKeys } from '@/lib/query-keys'
+import type { DashboardStats, ActivityItem } from '@repo/shared'
 
 /**
- * Fetch dashboard statistics
- */
-export function useDashboardStats(options?: {
-	enabled?: boolean
-	refetchInterval?: number
-}): UseQueryResult<DashboardStats, Error> {
-	return useStatsQuery(
-		'dashboard',
-		async () => {
-			try {
-				const response =
-					await apiClient.get<DashboardStats>('/dashboard/stats')
-				return response
-			} catch {
-				// Return default data on error to allow UI to render
-				logger.warn('Dashboard stats API unavailable, using defaults', {
-					component: 'UdashboardHook'
-				})
-				return {
-					properties: { totalProperties: 0, occupancyRate: 0 },
-					tenants: { totalTenants: 0 },
-					leases: { activeLeases: 0, expiredLeases: 0 },
-					maintenanceRequests: { open: 0 }
-				} as DashboardStats
-			}
-		},
-		options?.refetchInterval
-	)
-}
-
-/**
- * Fetch dashboard overview with recent activity and alerts
+ * Fetch dashboard overview statistics
  */
 export function useDashboardOverview(options?: {
-	enabled?: boolean
-}): UseQueryResult<DashboardOverview, Error> {
-	return useQueryFactory({
-		queryKey: queryKeys.dashboardOverview(),
-		queryFn: async () => {
-			try {
-				return await apiClient.get<DashboardOverview>(
-					'/dashboard/overview'
-				)
-			} catch {
-				logger.warn('Dashboard overview API unavailable', {
-					component: 'UdashboardHook'
-				})
-				// Return empty data structure
-				return {
-					recentActivity: [],
-					upcomingLeaseExpirations: [],
-					overduePayments: [],
-					propertyPerformance: []
-				} as DashboardOverview
-			}
-		},
-		enabled: options?.enabled,
-		staleTime: 2 * 60 * 1000
-	})
+  enabled?: boolean
+  refetchInterval?: number
+}): UseQueryResult<DashboardStats, Error> {
+  return useQuery({
+    queryKey: queryKeys.dashboard.overview(),
+    queryFn: async () => {
+      try {
+        const response = await dashboardApi.getOverview()
+        return response
+      } catch {
+        // Return default data on error to allow UI to render
+        logger.warn('Dashboard overview API unavailable, using defaults', {
+          component: 'useDashboardOverview'
+        })
+        return {
+          properties: { totalProperties: 0, occupancyRate: 0 },
+          tenants: { totalTenants: 0 },
+          leases: { activeLeases: 0, expiredLeases: 0 },
+          maintenanceRequests: { open: 0 }
+        } as DashboardStats
+      }
+    },
+    enabled: options?.enabled ?? true,
+    refetchInterval: options?.refetchInterval,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 5 * 60 * 1000
+  })
 }
 
 /**
  * Fetch recent activity for the dashboard
  */
-export function useDashboardActivity(
-	limit = 10,
-	options?: { enabled?: boolean }
-): UseQueryResult<DashboardOverview['recentActivity'], Error> {
-	return useQueryFactory({
-		queryKey: queryKeys.dashboardActivity(),
-		queryFn: async () => {
-			try {
-				return await apiClient.get<
-					DashboardOverview['recentActivity']
-				>('/dashboard/activity', { params: { limit } })
-			} catch {
-				logger.warn('Dashboard activity API unavailable', {
-					component: 'UdashboardHook'
-				})
-				return [] // Return empty array on error
-			}
-		},
-		enabled: options?.enabled,
-		staleTime: 60 * 1000
-	})
+export function useDashboardActivity(options?: {
+  enabled?: boolean
+}): UseQueryResult<ActivityItem[], Error> {
+  return useQuery({
+    queryKey: queryKeys.dashboard.activity(),
+    queryFn: async () => {
+      try {
+        return await dashboardApi.getRecentActivity()
+      } catch {
+        logger.warn('Dashboard activity API unavailable', {
+          component: 'useDashboardActivity'
+        })
+        return [] // Return empty array on error
+      }
+    },
+    enabled: options?.enabled ?? true,
+    staleTime: 60 * 1000, // 1 minute
+    gcTime: 5 * 60 * 1000 // 5 minutes
+  })
 }
 
 /**
- * Fetch revenue analytics
+ * Fetch upcoming tasks
  */
-export function useRevenueAnalytics(options?: {
-	enabled?: boolean
-	period?: 'month' | 'quarter' | 'year'
-}): UseQueryResult<RevenueAnalytics, Error> {
-	return useQueryFactory({
-		queryKey: ['revenue-analytics', options?.period ?? 'month'],
-		queryFn: async () => {
-			return await apiClient.get<RevenueAnalytics>(
-				'/dashboard/revenue',
-				{ params: { period: options?.period ?? 'month' } }
-			)
-		},
-		enabled: options?.enabled ?? true,
-		staleTime: 10 * 60 * 1000 // Consider data stale after 10 minutes
-	})
+export function useUpcomingTasks(options?: {
+  enabled?: boolean
+}): UseQueryResult<UpcomingTask[], Error> {
+  return useQuery({
+    queryKey: queryKeys.dashboard.tasks(),
+    queryFn: async () => {
+      try {
+        return await dashboardApi.getUpcomingTasks()
+      } catch {
+        logger.warn('Dashboard tasks API unavailable', {
+          component: 'useUpcomingTasks'
+        })
+        return [] // Return empty array on error
+      }
+    },
+    enabled: options?.enabled ?? true,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000 // 10 minutes
+  })
 }
 
 /**
- * Fetch occupancy trends
+ * Fetch dashboard alerts
  */
-export function useOccupancyTrends(options?: {
-	enabled?: boolean
-	months?: number
-}): UseQueryResult<
-	{
-		month: string
-		occupancyRate: number
-		totalUnits: number
-		occupiedUnits: number
-	}[],
-	Error
-> {
-	return useQueryFactory({
-		queryKey: ['occupancy-trends', options?.months ?? 12],
-		queryFn: async () => {
-			const response = await apiClient.get(
-				'/dashboard/occupancy-trends',
-				{ params: { months: options?.months ?? 12 } }
-			)
-			return response as {
-				month: string
-				occupancyRate: number
-				totalUnits: number
-				occupiedUnits: number
-			}[]
-		},
-		enabled: options?.enabled ?? true,
-		staleTime: 30 * 60 * 1000 // Consider data stale after 30 minutes
-	})
-}
-
-/**
- * Fetch maintenance metrics
- */
-export function useMaintenanceMetrics(options?: {
-	enabled?: boolean
-}): UseQueryResult<
-	{
-		averageResolutionTime: number
-		requestsByCategory: {
-			category: string
-			count: number
-			percentage: number
-		}[]
-		requestsByPriority: {
-			low: number
-			medium: number
-			high: number
-			urgent: number
-		}
-		monthlyTrends: {
-			month: string
-			created: number
-			resolved: number
-			pending: number
-		}[]
-		topIssues: {
-			issue: string
-			count: number
-			averageResolutionTime: number
-		}[]
-	},
-	Error
-> {
-	return useQueryFactory({
-		queryKey: ['maintenance-metrics'],
-		queryFn: async () => {
-			const response = await apiClient.get(
-				'/dashboard/maintenance-metrics'
-			)
-			return response as {
-				averageResolutionTime: number
-				requestsByCategory: {
-					category: string
-					count: number
-					percentage: number
-				}[]
-				requestsByPriority: {
-					low: number
-					medium: number
-					high: number
-					urgent: number
-				}
-				monthlyTrends: {
-					month: string
-					created: number
-					resolved: number
-					pending: number
-				}[]
-				topIssues: {
-					issue: string
-					count: number
-					averageResolutionTime: number
-				}[]
-			}
-		},
-		enabled: options?.enabled ?? true,
-		staleTime: 15 * 60 * 1000 // Consider data stale after 15 minutes
-	})
-}
-
-/**
- * Fetch tenant satisfaction metrics
- */
-export function useTenantMetrics(options?: {
-	enabled?: boolean
-}): UseQueryResult<
-	{
-		totalTenants: number
-		newTenantsThisMonth: number
-		renewalRate: number
-		averageTenancy: number
-		satisfactionScore: number
-		tenantsByProperty: {
-			propertyId: string
-			propertyName: string
-			tenantCount: number
-		}[]
-	},
-	Error
-> {
-	return useQueryFactory({
-		queryKey: ['tenant-metrics'],
-		queryFn: async () => {
-			const response = await apiClient.get('/dashboard/tenant-metrics')
-			return response as {
-				totalTenants: number
-				newTenantsThisMonth: number
-				renewalRate: number
-				averageTenancy: number
-				satisfactionScore: number
-				tenantsByProperty: {
-					propertyId: string
-					propertyName: string
-					tenantCount: number
-				}[]
-			}
-		},
-		enabled: options?.enabled ?? true,
-		staleTime: 20 * 60 * 1000 // Consider data stale after 20 minutes
-	})
+export function useDashboardAlerts(options?: {
+  enabled?: boolean
+}): UseQueryResult<unknown[], Error> {
+  return useQuery({
+    queryKey: queryKeys.dashboard.alerts(),
+    queryFn: async () => {
+      try {
+        return await dashboardApi.getAlerts()
+      } catch {
+        logger.warn('Dashboard alerts API unavailable', {
+          component: 'useDashboardAlerts'
+        })
+        return [] // Return empty array on error
+      }
+    },
+    enabled: options?.enabled ?? true,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 5 * 60 * 1000 // 5 minutes
+  })
 }
