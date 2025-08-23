@@ -157,7 +157,7 @@ export function checkPropertyLimitExceeded(
 	current: number,
 	limit: number
 ): boolean {
-	if (limit === -1) return false // Unlimited
+	if (limit === -1) {return false} // Unlimited
 	return current >= limit
 }
 
@@ -165,7 +165,7 @@ export function checkPropertyLimitExceeded(
  * Format plan price for display
  */
 export function formatPlanPrice(price: number): string {
-	if (price === 0) return 'Free'
+	if (price === 0) {return 'Free'}
 	return `$${price}/mo`
 }
 

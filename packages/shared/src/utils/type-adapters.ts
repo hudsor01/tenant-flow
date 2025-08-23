@@ -18,7 +18,7 @@ export interface TypeAdapter<TDomain, TApi extends Record<string, unknown>> {
 export function createQueryAdapter<T extends Record<string, unknown>>(
 	query?: T
 ): Record<string, unknown> {
-	if (!query) return {}
+	if (!query) {return {}}
 
 	// Filter out undefined values and ensure proper serialization
 	const filtered: Record<string, unknown> = {}
@@ -137,7 +137,7 @@ export function validateEnumValue<T extends Record<string, string>>(
 export function safeParseNumber(
 	value: string | number | undefined
 ): number | undefined {
-	if (typeof value === 'number') return value
+	if (typeof value === 'number') {return value}
 	if (typeof value === 'string') {
 		const parsed = parseFloat(value)
 		return isNaN(parsed) ? undefined : parsed
@@ -151,7 +151,7 @@ export function safeParseNumber(
 export function safeParseDate(
 	value: string | Date | undefined
 ): Date | undefined {
-	if (value instanceof Date) return value
+	if (value instanceof Date) {return value}
 	if (typeof value === 'string') {
 		const parsed = new Date(value)
 		return isNaN(parsed.getTime()) ? undefined : parsed

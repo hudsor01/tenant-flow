@@ -25,6 +25,7 @@ module.exports = {
 	coverageReporters: ['text', 'lcov', 'html'],
 	moduleNameMapper: {
 		'^@/(.*)$': '<rootDir>/src/$1',
+        '^@repo/shared/(.*)$': '<rootDir>/../../packages/shared/src/$1',
 		'^@repo/emails/(.*)$': '<rootDir>/../../packages/emails/$1',
 		'^@repo/(.*)$': '<rootDir>/../../packages/$1/src'
 	},

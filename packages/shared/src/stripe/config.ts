@@ -122,6 +122,7 @@ export function getPlan(planId: PlanType): Plan | undefined {
 }
 
 export function getPriceId(planId: PlanType, interval: BillingPeriod): string {
+<<<<<<< HEAD
 	const plan = getPlan(planId)
 	if (!plan) return ''
 	return interval === 'monthly' ? plan.monthly.priceId : plan.annual.priceId
@@ -131,6 +132,17 @@ export function getAmount(planId: PlanType, interval: BillingPeriod): number {
 	const plan = getPlan(planId)
 	if (!plan) return 0
 	return interval === 'monthly' ? plan.monthly.amount : plan.annual.amount
+=======
+  const plan = getPlan(planId)
+  if (!plan) {return ''}
+  return interval === 'monthly' ? plan.monthly.priceId : plan.annual.priceId
+}
+
+export function getAmount(planId: PlanType, interval: BillingPeriod): number {
+  const plan = getPlan(planId)
+  if (!plan) {return 0}
+  return interval === 'monthly' ? plan.monthly.amount : plan.annual.amount
+>>>>>>> origin/copilot/vscode1755835343516
 }
 
 export function formatPrice(amount: number): string {
@@ -142,9 +154,18 @@ export function getAllPlans(): Plan[] {
 }
 
 export function getAnnualSavings(planId: PlanType): number {
+<<<<<<< HEAD
 	const plan = getPlan(planId)
 	if (!plan) return 0
 	const monthlyTotal = plan.monthly.amount * 12
 	const annualPrice = plan.annual.amount
 	return monthlyTotal - annualPrice
 }
+=======
+  const plan = getPlan(planId)
+  if (!plan) {return 0}
+  const monthlyTotal = plan.monthly.amount * 12
+  const annualPrice = plan.annual.amount
+  return monthlyTotal - annualPrice
+}
+>>>>>>> origin/copilot/vscode1755835343516

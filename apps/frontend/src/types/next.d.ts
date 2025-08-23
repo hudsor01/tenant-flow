@@ -24,12 +24,12 @@ export interface Metadata {
 		siteName?: string
 		locale?: string
 		type?: string
-		images?: Array<{
+		images?: {
 			url: string | URL
 			width?: number
 			height?: number
 			alt?: string
-		}>
+		}[]
 	}
 	twitter?: {
 		card?: string
@@ -57,7 +57,7 @@ export interface Metadata {
 	publisher?: string
 	category?: string
 	classification?: string
-	other?: Record<string, string | number | Array<string | number>>
+	other?: Record<string, string | number | (string | number)[]>
 }
 
 export type ResolvingMetadata = Metadata
@@ -77,17 +77,17 @@ export interface Viewport {
 // MetadataRoute namespace with correct definitions
 export namespace MetadataRoute {
 	export interface Robots {
-		rules: Array<{
+		rules: {
 			userAgent?: string | string[]
 			allow?: string | string[]
 			disallow?: string | string[]
 			crawlDelay?: number
-		}>
+		}[]
 		sitemap?: string | string[]
 		host?: string
 	}
 
-	export type Sitemap = Array<{
+	export type Sitemap = {
 		url: string
 		lastModified?: string | Date
 		changeFrequency?:
