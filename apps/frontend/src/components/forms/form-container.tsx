@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils'
 interface FormContainerProps {
 	children: React.ReactNode
 	className?: string
-	onSubmit?: (event: React.FormEvent<HTMLFormElement>) => void
+	onSubmit?: (_event: React.FormEvent<HTMLFormElement>) => void
 }
 
 export function FormContainer({

@@ -1,9 +1,13 @@
 import Link from 'next/link'
-import { motion } from '@/lib/framer-motion'
+import { motion } from '@/lib/lazy-motion'
 import { Button } from '@/components/ui/button'
 import { ArrowUpRight } from 'lucide-react'
-import { useRelatedBlogArticles, useBlogArticle } from '@/lib/utils/blog-stubs'
-import type { BlogArticle } from '@/lib/utils/blog-data'
+// Removed blog-stubs imports - using placeholder data for unused component
+type BlogArticle = {
+	slug: string
+	title: string
+	category: string
+}
 
 interface BlogSidebarSectionProps {
 	currentSlug: string
@@ -22,13 +26,8 @@ export default function BlogSidebarSection({
 	currentSlug,
 	fadeInUp
 }: BlogSidebarSectionProps) {
-	// Get current article data to extract category and ID for related articles
-	const { data: currentArticle } = useBlogArticle(currentSlug)
-	const { data: relatedArticles = [] } = useRelatedBlogArticles(
-		currentArticle && 'id' in currentArticle ? currentArticle.id : '',
-		currentArticle && 'category' in currentArticle ? currentArticle.category : '',
-		3
-	)
+	// Placeholder data for unused component - blog functionality removed
+	const relatedArticles: BlogArticle[] = []
 
 	return (
 		<motion.aside {...fadeInUp} className="space-y-12">

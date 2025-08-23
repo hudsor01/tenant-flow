@@ -1,42 +1,59 @@
 'use client'
 
-import { useEffect } from 'react'
-import {
-	useBusinessEvents,
-	useInteractionTracking
-} from '@/lib/analytics/business-events'
-
 /**
- * Dashboard Analytics Tracker
- * Automatically tracks dashboard views and user engagement
+ * Dashboard-specific analytics tracker
+ * Tracks dashboard interactions and metrics views
  */
-export function DashboardTracker() {
-	const { trackDashboardView } = useBusinessEvents()
-	const { trackPageView } = useInteractionTracking()
+
+import { useEffect, useCallback } from 'react'
+import { usePostHog } from 'posthog-js/react'
+
+interface DashboardTrackerProps {
+	section?: string
+	metrics?: Record<string, number>
+	userId?: string
+}
+
+export function DashboardTracker({ 
+	section = 'main',
+	metrics = {},
+	userId
+}: DashboardTrackerProps) {
+	const posthog = usePostHog()
 
 	useEffect(() => {
-		const startTime = Date.now()
+		if (!posthog) return
 
 		// Track dashboard view
-		trackDashboardView('overview')
+		posthog.capture('dashboard_viewed', {
+			section,
+			user_id: userId,
+			...metrics,
+			timestamp: new Date().toISOString()
+		})
+	}, [posthog, section, metrics, userId])
 
-		// Track page view with load time
-		const handleLoad = () => {
-			const loadTime = Date.now() - startTime
-			trackPageView('dashboard', loadTime)
-		}
+	// Track specific dashboard interactions
+	const trackDashboardAction = useCallback((action: string, properties?: Record<string, unknown>) => {
+		if (!posthog) return
 
-		// If page is already loaded
-		if (document.readyState === 'complete') {
-			handleLoad()
-		} else {
-			window.addEventListener('load', handleLoad)
-		}
+		posthog.capture('dashboard_action', {
+			action,
+			section,
+			user_id: userId,
+			...properties,
+			timestamp: new Date().toISOString()
+		})
+	}, [posthog, section, userId])
 
-		return () => {
-			window.removeEventListener('load', handleLoad)
-		}
-	}, [trackDashboardView, trackPageView])
+	// Expose tracking function via ref callback pattern
+	useEffect(() => {
+		// Store tracker function on window for easy access
+		// @ts-ignore - global augmentation would be overkill for this use case
+		window.trackDashboardAction = trackDashboardAction
+	}, [trackDashboardAction])
 
-	return null // This component doesn't render anything
+	return null
 }
+
+export default DashboardTracker

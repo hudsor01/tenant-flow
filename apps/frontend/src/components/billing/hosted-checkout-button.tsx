@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
-import { useBilling } from '@/hooks/useBilling'
+import { useCreateCheckoutSession } from '@/hooks/api/use-billing'
 import type { PlanType } from '@repo/shared'
 
 interface HostedCheckoutButtonProps {
@@ -26,26 +26,24 @@ export function HostedCheckoutButton({
 	cancelUrl: _cancelUrl,
 	couponId: _couponId
 }: HostedCheckoutButtonProps) {
-	const { createCheckoutSession, isLoading } = useBilling()
+	const createCheckoutMutation = useCreateCheckoutSession()
 
 	const handleClick = async () => {
-		try {
-			// The useBilling hook expects priceId, we'll need to map planType to priceId
-			// For now, using a placeholder - this should be replaced with actual price IDs
-			const priceId = `price_${planType}_${billingInterval}`
-			await createCheckoutSession(priceId, planType, billingInterval)
-		} catch {
-			// Error is handled by the hook
-		}
+		createCheckoutMutation.mutate({
+			planId: planType,
+			interval: billingInterval === 'annual' ? 'annual' : 'monthly',
+			successUrl: _successUrl || `${window.location.origin}/billing/success`,
+			cancelUrl: _cancelUrl || `${window.location.origin}/pricing`
+		})
 	}
 
 	return (
 		<Button
 			onClick={() => void handleClick()}
-			disabled={isLoading}
+			disabled={createCheckoutMutation.isPending}
 			className={className}
 		>
-			{isLoading ? (
+			{createCheckoutMutation.isPending ? (
 				<>
 					<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 					Loading checkout...

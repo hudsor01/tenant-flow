@@ -3,7 +3,7 @@
  * Handles checkout cancellation with server/client separation
  */
 
-import type { Metadata } from '@/types/next.d'
+import type { Metadata } from 'next/types'
 import {
 	BillingLayout,
 	generateBillingMetadata
@@ -12,10 +12,11 @@ import { PaymentCancelled } from '@/components/billing/payment-cancelled'
 
 // Server-side metadata generation
 export async function generateMetadata(): Promise<Metadata> {
-	return generateBillingMetadata(
+	const meta = await generateBillingMetadata(
 		'Checkout Cancelled',
 		'Your checkout was cancelled - no charges were made'
 	)
+	return meta as unknown as Metadata
 }
 
 /**

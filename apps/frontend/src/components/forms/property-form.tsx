@@ -22,9 +22,8 @@ import {
 	useCreateProperty,
 	useUpdateProperty
 } from '@/hooks/api/use-properties'
-import { useAtom } from 'jotai'
-import { closeModalAtom } from '@/atoms/ui/modals'
-import { PropertiesApi } from '@/lib/api/properties'
+// Modal close handler will be passed as prop instead of atom
+import { propertyApi } from '@/lib/api/properties'
 import { toast } from 'sonner'
 
 interface PropertyImageUploadProps extends BaseComponentProps {
@@ -46,9 +45,12 @@ function PropertyImageUpload({
 		propertyId: string,
 		file: File
 	): Promise<string> => {
-		const response = await PropertiesApi.uploadPropertyImage(
+		const formData = new FormData()
+		formData.append('image', file)
+		
+		const response = await propertyApi.uploadImage(
 			propertyId,
-			file
+			formData
 		)
 		return response.url
 	}
@@ -200,7 +202,7 @@ export function PropertyForm({
 	onSuccess,
 	onCancel
 }: PropertyFormProps) {
-	const [, closeModalAction] = useAtom(closeModalAtom)
+	// Modal close will be handled by parent component or navigation
 
 	// React Query mutations
 	const createPropertyMutation = useCreateProperty()
@@ -257,14 +259,14 @@ export function PropertyForm({
 			city: data.city,
 			state: data.state,
 			zipCode: data.zipCode,
-			description: data.description || undefined,
+			description: data.description ?? undefined,
 			propertyType: data.propertyType,
-			imageUrl: data.imageUrl || undefined
+			imageUrl: data.imageUrl ?? undefined
 		}
 
 		const result = await createPropertyMutation.mutateAsync(createData)
 		onSuccess?.(result)
-		closeModalAction('propertyForm')
+		// Modal close is handled by onSuccess callback
 		// onCancel not needed here as form was successful
 	}
 
@@ -279,9 +281,9 @@ export function PropertyForm({
 			city: data.city,
 			state: data.state,
 			zipCode: data.zipCode,
-			description: data.description || undefined,
+			description: data.description ?? undefined,
 			propertyType: data.propertyType,
-			imageUrl: data.imageUrl || undefined
+			imageUrl: data.imageUrl ?? undefined
 		}
 
 		const result = await updatePropertyMutation.mutateAsync({
@@ -290,7 +292,7 @@ export function PropertyForm({
 		})
 
 		onSuccess?.(result)
-		closeModalAction('editProperty')
+		// Modal close is handled by onSuccess callback
 		// onCancel not needed here as form was successful
 	}
 

@@ -11,7 +11,7 @@ import * as React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { Badge } from '@/components/ui/primitives'
+import { Badge } from '@/components/ui/badge'
 import type { TabItem } from './types'
 
 const TAB_VARIANTS = {
@@ -103,7 +103,7 @@ export function TabNavigation({
 							)}
 							{item.label}
 							{item.badge && (
-								<Badge size="sm" variant="secondary">
+								<Badge variant="secondary">
 									{item.badge}
 								</Badge>
 							)}

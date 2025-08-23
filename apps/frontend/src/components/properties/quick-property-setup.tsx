@@ -17,9 +17,9 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Building2, Plus, Home, Check } from 'lucide-react'
 import { useCreateUnit } from '@/hooks/api/use-units'
-import { useCreateProperty } from '@/hooks/useCreateProperty'
+import { useCreateProperty } from '@/hooks/api/use-properties'
 import { toast } from 'sonner'
-import { motion } from '@/lib/framer-motion'
+import { motion } from '@/lib/lazy-motion'
 
 // Quick setup schema extends property schema with batch unit creation fields
 const quickSetupSchema = propertyInputSchema.extend({
@@ -82,6 +82,10 @@ export default function QuickPropertySetup({
 				zipCode: data.zipCode,
 				propertyType: 'MULTI_UNIT'
 			})
+
+			if (!property) {
+				throw new Error('Failed to create property')
+			}
 
 			// 2. Create units for the property
 			const unitPromises = Array.from(

@@ -36,6 +36,8 @@ export * from './skeleton'
 export * from './slider'
 export * from './sonner'
 export * from './spinner'
+export * from './mutation-loading'
+export * from './offline-indicator'
 // export * from './stepper' // Component not implemented yet
 export * from './switch'
 export * from './table'
@@ -72,24 +74,4 @@ export * from './modal'
 // Enhanced components
 // export * from './enhanced-button' // Component not implemented yet
 
-// Design System Foundation - selective exports to avoid conflicts
-export {
-	containerVariants,
-	sectionVariants,
-	stackVariants,
-	gridVariants,
-	cardVariants,
-	statCardVariants,
-	formGroupVariants,
-	actionVariants,
-	enhancedButtonVariants,
-	type ContainerVariants,
-	type SectionVariants,
-	type StackVariants,
-	type GridVariants,
-	type CardVariants,
-	type StatCardVariants,
-	type FormGroupVariants,
-	type ActionVariants,
-	type EnhancedButtonVariants
-} from './variants'
+// Design System Foundation - Removed variants.ts (using direct Tailwind classes)

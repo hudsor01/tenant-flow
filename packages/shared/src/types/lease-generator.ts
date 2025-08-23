@@ -139,3 +139,29 @@ export interface LeaseGeneratorUsage {
 	lastUsedAt: string
 	createdAt: string
 }
+
+// Template data structure for lease generation
+export interface LeaseTemplateData extends LeaseFormData {
+	generatedAt: Date
+	templateVersion: string
+	stateRequirements?: StateLeaseRequirements
+}
+
+// State-specific lease requirements
+export interface StateLeaseRequirements {
+	state: string
+	requiredClauses: string[]
+	prohibitedClauses: string[]
+	securityDepositLimit?: number
+	noticePeriods: {
+		terminationByLandlord: number
+		terminationByTenant: number
+		rentIncrease: number
+	}
+	mandatoryDisclosures: string[]
+	lateFeeLimits?: {
+		maxAmount?: number
+		maxPercentage?: number
+		gracePeriod: number
+	}
+}

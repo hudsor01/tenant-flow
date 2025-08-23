@@ -14,7 +14,7 @@ import type { Priority } from '@/services/notifications/types'
 
 interface PrioritySelectorProps {
 	value?: Priority
-	onValueChange: (value: Priority) => void
+	onValueChange: (_value: Priority) => void
 	error?: string
 }
 

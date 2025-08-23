@@ -1,6 +1,6 @@
 'use client'
 
-import { motion, AnimatePresence } from '@/lib/framer-motion'
+import { motion, AnimatePresence } from '@/lib/lazy-motion'
 import {
 	Clock,
 	Wrench,

@@ -1,6 +1,7 @@
 'use client'
 
 import { useProperties } from '@/hooks/api/use-properties'
+import { PropertyListLoading } from './property-list-loading'
 import {
 	Card,
 	CardContent,
@@ -47,9 +48,9 @@ interface PropertyRowProps {
 }
 
 function PropertyRow({ property, onView, onEdit }: PropertyRowProps) {
-	const totalUnits = property.units?.length || 0
+	const totalUnits = property.units?.length ?? 0
 	const occupiedUnits =
-		property.units?.filter(unit => unit.status === 'OCCUPIED').length || 0
+		property.units?.filter(unit => unit.status === 'OCCUPIED').length ?? 0
 	const occupancyRate =
 		totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
 
@@ -141,9 +142,9 @@ interface PropertyCardProps {
 }
 
 function PropertyCard({ property, onView, onEdit }: PropertyCardProps) {
-	const totalUnits = property.units?.length || 0
+	const totalUnits = property.units?.length ?? 0
 	const occupiedUnits =
-		property.units?.filter(unit => unit.status === 'OCCUPIED').length || 0
+		property.units?.filter(unit => unit.status === 'OCCUPIED').length ?? 0
 	const occupancyRate =
 		totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
 
@@ -232,138 +233,35 @@ function PropertyCard({ property, onView, onEdit }: PropertyCardProps) {
 	)
 }
 
-function PropertiesTableSkeleton() {
-	return (
-		<>
-			{/* Mobile card skeleton */}
-			<div className="space-y-4 md:hidden">
-				{[...Array(3)].map((_, i) => (
-					<Card key={i}>
-						<CardHeader className="pb-3">
-							<div className="flex items-start justify-between">
-								<div className="flex items-center gap-3">
-									<Skeleton className="h-10 w-10 rounded-lg" />
-									<div className="space-y-2">
-										<Skeleton className="h-4 w-[140px]" />
-										<Skeleton className="h-3 w-[120px]" />
-									</div>
-								</div>
-								<Skeleton className="h-8 w-8" />
-							</div>
-						</CardHeader>
-						<CardContent className="pt-0">
-							<div className="space-y-3">
-								<div className="flex gap-2">
-									<Skeleton className="h-6 w-16" />
-									<Skeleton className="h-6 w-20" />
-								</div>
-								<div className="grid grid-cols-2 gap-4">
-									<Skeleton className="h-4 w-full" />
-									<Skeleton className="h-4 w-full" />
-								</div>
-							</div>
-						</CardContent>
-					</Card>
-				))}
-			</div>
+// Moved to separate pure component - use PropertyListLoading instead
 
-			{/* Desktop table skeleton */}
-			<div className="hidden space-y-4 md:block">
-				{[...Array(5)].map((_, i) => (
-					<div key={i} className="flex items-center space-x-4 p-4">
-						<Skeleton className="h-10 w-10 rounded-lg" />
-						<div className="flex-1 space-y-2">
-							<Skeleton className="h-4 w-[200px]" />
-							<Skeleton className="h-3 w-[150px]" />
-						</div>
-						<Skeleton className="h-6 w-16" />
-						<Skeleton className="h-4 w-8" />
-						<Skeleton className="h-4 w-8" />
-						<Skeleton className="h-6 w-12" />
-						<Skeleton className="h-8 w-16" />
-					</div>
-				))}
-			</div>
-		</>
-	)
+// Filter properties based on search and type criteria
+function filterProperties(properties: Property[] | undefined, searchQuery: string, propertyType: string): Property[] {
+	if (!properties) return []
+	
+	return properties.filter(property => {
+		const matchesSearch =
+			searchQuery === '' ||
+			property.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+			property.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
+			property.city?.toLowerCase().includes(searchQuery.toLowerCase())
+
+		const matchesType =
+			propertyType === '' || property.propertyType === propertyType
+
+		return matchesSearch && matchesType
+	})
 }
 
-interface PropertiesDataTableProps {
-	searchQuery?: string
-	propertyType?: string
+interface PropertiesTableUIProps {
+	properties: Property[]
+	hasFilters: boolean
 	onViewProperty?: (property: Property) => void
 	onEditProperty?: (property: Property) => void
 }
 
-export function PropertiesDataTable({
-	searchQuery = '',
-	propertyType = '',
-	onViewProperty,
-	onEditProperty
-}: PropertiesDataTableProps = {}) {
-	const { data: properties, isLoading, error } = useProperties()
-
-	// Filter properties based on search query and type
-	const filteredProperties =
-		properties?.filter(property => {
-			const matchesSearch =
-				searchQuery === '' ||
-				property.name
-					.toLowerCase()
-					.includes(searchQuery.toLowerCase()) ||
-				property.address
-					.toLowerCase()
-					.includes(searchQuery.toLowerCase()) ||
-				property.city?.toLowerCase().includes(searchQuery.toLowerCase())
-
-			const matchesType =
-				propertyType === '' || property.propertyType === propertyType
-
-			return matchesSearch && matchesType
-		}) || []
-
-	if (isLoading) {
-		return (
-			<Card>
-				<CardHeader>
-					<CardTitle>Properties</CardTitle>
-					<CardDescription>
-						Manage all your rental properties
-					</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<PropertiesTableSkeleton />
-				</CardContent>
-			</Card>
-		)
-	}
-
-	if (error) {
-		return (
-			<Card>
-				<CardHeader>
-					<CardTitle>Properties</CardTitle>
-					<CardDescription>
-						Manage all your rental properties
-					</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<Alert variant="destructive">
-						<AlertTriangle className="h-4 w-4" />
-						<AlertTitle>Error loading properties</AlertTitle>
-						<AlertDescription>
-							There was a problem loading your properties. Please
-							try refreshing the page.
-						</AlertDescription>
-					</Alert>
-				</CardContent>
-			</Card>
-		)
-	}
-
-	if (!filteredProperties?.length) {
-		const hasFilters = searchQuery !== '' || propertyType !== ''
-
+function PropertiesTableUI({ properties, hasFilters, onViewProperty, onEditProperty }: PropertiesTableUIProps) {
+	if (!properties.length) {
 		return (
 			<Card>
 				<CardHeader>
@@ -423,7 +321,7 @@ export function PropertiesDataTable({
 			<CardContent>
 				{/* Mobile Card View */}
 				<div className="space-y-4 md:hidden">
-					{filteredProperties.map((property: Property) => (
+					{properties.map((property: Property) => (
 						<PropertyCard
 							key={property.id}
 							property={property}
@@ -450,22 +348,20 @@ export function PropertiesDataTable({
 								</TableRow>
 							</TableHeader>
 							<TableBody>
-								{filteredProperties.map(
-									(property: Property) => (
-										<PropertyRow
-											key={property.id}
-											property={property}
-											onView={onViewProperty}
-											onEdit={onEditProperty}
-										/>
-									)
-								)}
+								{properties.map((property: Property) => (
+									<PropertyRow
+										key={property.id}
+										property={property}
+										onView={onViewProperty}
+										onEdit={onEditProperty}
+									/>
+								))}
 							</TableBody>
 						</Table>
 					</div>
 				</div>
 
-				{filteredProperties.length > 10 && (
+				{properties.length > 10 && (
 					<div className="flex items-center justify-center pt-4">
 						<Button variant="outline" size="sm">
 							Load more properties
@@ -474,5 +370,56 @@ export function PropertiesDataTable({
 				)}
 			</CardContent>
 		</Card>
+	)
+}
+
+interface PropertiesDataTableProps {
+	searchQuery?: string
+	propertyType?: string
+	onViewProperty?: (property: Property) => void
+	onEditProperty?: (property: Property) => void
+}
+
+export function PropertiesDataTable({
+	searchQuery = '',
+	propertyType = '',
+	onViewProperty,
+	onEditProperty
+}: PropertiesDataTableProps) {
+	const { data: properties, isLoading, error } = useProperties()
+
+	// Loading state
+	if (isLoading) {
+		return (
+			<Card>
+				<CardHeader>
+					<CardTitle>Properties</CardTitle>
+					<CardDescription>
+						Manage all your rental properties
+					</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<PropertyListLoading />
+				</CardContent>
+			</Card>
+		)
+	}
+
+	// Error handling - throw to be caught by error boundary
+	if (error) {
+		throw error
+	}
+
+	// Filter properties
+	const filteredProperties = filterProperties(properties, searchQuery, propertyType)
+	const hasFilters = searchQuery !== '' || propertyType !== ''
+
+	return (
+		<PropertiesTableUI
+			properties={filteredProperties}
+			hasFilters={hasFilters}
+			onViewProperty={onViewProperty}
+			onEditProperty={onEditProperty}
+		/>
 	)
 }

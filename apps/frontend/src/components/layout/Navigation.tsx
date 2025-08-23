@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { motion, AnimatePresence } from '@/lib/framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
 import { CurrentUserAvatar } from '@/components/profile/sections/current-user-avatar'
@@ -14,6 +14,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
+import { signOut } from '@/lib/actions/auth-actions'
 import {
 	FileText,
 	Calculator,
@@ -67,7 +68,7 @@ export function Navigation({
 	}, [pathname])
 
 	const handleLogout = (): void => {
-		void logout()
+		void signOut()
 	}
 
 	const getNavBarClasses = () => {

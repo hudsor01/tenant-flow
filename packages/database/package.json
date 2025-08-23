@@ -17,7 +17,7 @@
 		"clean": "tsc --build --clean && rm -rf dist",
 		"clean-dist": "tsc --build --clean && rm -rf dist",
 		"typecheck": "tsc --noEmit",
-		"lint": "eslint . --max-warnings 0 --no-warn-ignored",
+		"lint": "eslint . --fix",
 		"lint:fix": "eslint . --fix",
 		"format": "echo 'No formatting configured for database package'",
 		"format:check": "echo 'No formatting configured for database package'"
@@ -28,6 +28,6 @@
 	},
 	"dependencies": {
 		"@repo/shared": "*",
-		"@supabase/supabase-js": "^2.55.0"
+		"@supabase/supabase-js": "^2.56.0"
 	}
 }

@@ -9,7 +9,7 @@
 
 import React, { useState, useTransition, useEffect } from 'react'
 import { logger } from '@/lib/logger'
-import { motion } from '@/lib/framer-motion'
+import { motion } from '@/lib/lazy-motion'
 import { useRouter } from 'next/navigation'
 import type { CreateTenantInput, UpdateTenantInput, Tenant } from '@repo/shared'
 import { useCreateTenant, useUpdateTenant } from '@/hooks/api/use-tenants'
@@ -20,7 +20,7 @@ import {
 } from '@/lib/analytics/business-events'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/primitives'
+import { Card, CardContent } from '@/components/ui/card'
 import { Save, X, User, AlertCircle } from 'lucide-react'
 import { TenantFormFields } from './tenant-form-fields'
 

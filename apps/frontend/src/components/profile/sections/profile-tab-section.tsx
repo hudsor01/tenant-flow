@@ -5,9 +5,10 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import type { UseFormReturn } from 'react-hook-form'
 import { AvatarUploadSection } from './avatar-upload-section'
-import { createAsyncHandler } from '@/utils/async-handlers'
+import { logger } from '@/lib/logger'
+import { toast } from 'sonner'
 import type { User } from '@repo/shared'
-import type { ProfileFormData } from '@/hooks/useEditProfileData'
+import type { ProfileFormData } from '@/hooks/use-edit-profile-data'
 
 interface AvatarState {
 	file: File | null
@@ -40,10 +41,16 @@ export function ProfileTabSection({
 }: ProfileTabSectionProps) {
 	return (
 		<form
-			onSubmit={createAsyncHandler(
-				form.handleSubmit(onSubmit),
-				'Failed to update profile'
-			)}
+			onSubmit={(e) => {
+				void form.handleSubmit(onSubmit)(e).catch(error => {
+					logger.error(
+						'Failed to update profile:',
+						error instanceof Error ? error : new Error(String(error)),
+						{ component: 'ProfileTabSection' }
+					)
+					toast.error('Failed to update profile')
+				})
+			}}
 			className="space-y-6"
 		>
 			{/* Avatar Upload Section */}
@@ -70,12 +77,12 @@ export function ProfileTabSection({
 							id="name"
 							placeholder="Enter your full name"
 							className="focus:border-primary pl-10 transition-colors"
-							{...form.register('fullName')}
+							{...form.register('name')}
 						/>
 					</div>
-					{form.formState.errors.fullName && (
+					{form.formState.errors.name && (
 						<p className="text-sm text-red-600">
-							{form.formState.errors.fullName.message}
+							{form.formState.errors.name.message}
 						</p>
 					)}
 				</div>
@@ -95,7 +102,7 @@ export function ProfileTabSection({
 							type="tel"
 							placeholder="e.g., (555) 123-4567"
 							className="focus:border-primary pl-10 transition-colors"
-							// {...form.register('phone')} // Commented out until phone is added to ProfileFormData interface
+							{...form.register('phone')}
 						/>
 					</div>
 					{form.formState.errors.phone && (
