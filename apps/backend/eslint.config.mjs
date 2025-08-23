@@ -1,12 +1,12 @@
 /**
- * Backend ESLint configuration using shared @repo/eslint-config
- * Following official Turborepo recommendations for optimal cache performance
+ * Backend ESLint configuration
+ * Uses root eslint config since @repo/eslint-config doesn't exist
  */
 
-import nestjsConfig from '@repo/eslint-config/nestjs'
+import rootConfig from '../../eslint.config.js'
 
 export default [
-	...nestjsConfig,
+	...rootConfig,
 	{
 		languageOptions: {
 			parserOptions: {
