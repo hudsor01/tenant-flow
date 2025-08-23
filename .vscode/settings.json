@@ -11,23 +11,27 @@
     "scrollbar.shadow": "#000000AA"
   },
   "editor.minimap.enabled": false,
-  "editor.smoothScrolling": false,
+  "editor.smoothScrolling": true,
   "editor.fastScrollSensitivity": 5,
   "editor.mouseWheelScrollSensitivity": 1,
   "files.participants.timeout": 1000,
   "files.exclude": {},
   "explorer.confirmDelete": false,
   "explorer.confirmDragAndDrop": false,
-  "git.enableSmartCommit": false,
   "git.postCommitCommand": "none",
-  "prettier.enable": false,
-  "eslint.enable": false,
-  "typescript.preferences.includePackageJsonAutoImports": "off",
-  "typescript.suggest.autoImports": false,
+  "prettier.enable": true,
+  "eslint.enable": true,
+  "typescript.preferences.includePackageJsonAutoImports": "on",
+  "typescript.suggest.autoImports": true,
   "eslint.workingDirectories": [
-    { "mode": "auto" }
+    { "pattern": "./apps/*" },
+    { "pattern": "./packages/*" }
   ],
+  "eslint.nodePath": null,
+  "eslint.execArgv": null,
+  "eslint.packageManager": "npm",
   "editor.formatOnSave": false,
+  "editor.formatOnSaveMode": "modificationsIfAvailable",
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "typescript.tsdk": "node_modules/typescript/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true,
@@ -42,9 +46,22 @@
   "accessibility.signals.format": {
     "sound": "never"
   },
-  "editor.formatOnSaveTimeout": 100,
-  "editor.codeActionsOnSaveTimeout": 100,
+  "editor.formatOnSaveTimeout": 3000,
+  "editor.codeActionsOnSaveTimeout": 3000,
   "editor.codeActionsOnSave": {},
+  "eslint.codeActionsOnSave.mode": "problems",
+  "eslint.run": "onSave",
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  "eslint.format.enable": true,
+  "eslint.useFlatConfig": true,
+  "eslint.useESLintClass": true,
+  "eslint.debug": false,
+  "eslint.trace.server": "off",
   "search.exclude": {
     "**/node_modules": true,
     "**/dist": true,
@@ -54,14 +71,6 @@
     "**/build": true
   },
   "explorer.fileNesting.enabled": false,
-  "explorer.fileNesting.patterns": {
-    "*.ts": "${capture}.test.ts, ${capture}.spec.ts, ${capture}.d.ts",
-    "*.tsx": "${capture}.test.tsx, ${capture}.spec.tsx, ${capture}.stories.tsx",
-    "*.js": "${capture}.test.js, ${capture}.spec.js",
-    "*.jsx": "${capture}.test.jsx, ${capture}.spec.jsx",
-    "package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml, .npmrc",
-    "turbo.json": ".turbo"
-  },
 "todo-tree.tree.scanMode": "workspace only",
 "chat.mcp.serverSampling": {
   "tenant-flow/.vscode/mcp.json: MCP_DOCKER": {
@@ -89,19 +98,22 @@
 "yaml.format.singleQuote": true,
 "yaml.format.bracketSpacing": false,
 "[typescriptreact]": {
-  "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
 },
 "[typescript]": {
-  "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
 },
 "[json]": {
-  "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
 },
 "[javascript]": {
-  "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
 },
 "github.copilot.enable": {
-  "javascript": true
+  "javascript": true,
+  "typescript": true,
+  "typescriptreact": true,
+  "javascriptreact": true
 },
 "github.copilot.selectedCompletionModel": "",
 "github.copilot.chat.terminalChatLocation": "terminal",
@@ -117,7 +129,7 @@
 "github.copilot.chat.languageContext.inline.typescript.enabled": true,
 "github.copilot.chat.languageContext.typescript.enabled": true,
 "github.copilot.chat.notebook.followCellExecution.enabled": true,
-"notebook.defaultFormatter": "rvest.vs-code-prettier-eslint",
+"notebook.defaultFormatter": "esbenp.prettier-vscode",
 "githubPullRequests.experimental.useQuickChat": true,
 "github.copilot.chat.localeOverride": "en",
 "workbench.editor.autoLockGroups": {
@@ -131,7 +143,6 @@
 "workbench.editor.defaultBinaryEditor": "default",
 "workbench.editor.enablePreviewFromQuickOpen": true,
 "workbench.editor.enablePreviewFromCodeNavigation": true,
-"workbench.editor.highlightModifiedTabs": false,
 "versionlens.caching.duration": 5,
 "versionlens.cargo.caching.duration": 5,
 "versionlens.composer.caching.duration": 5,
@@ -148,14 +159,63 @@
 "versionlens.suggestions.showOnStartup": true,
 "versionlens.suggestions.showSuggestionsStats": true,
 "[jsonc]": {
-  "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
 },
 "github.copilot.chat.enableRetryAfterFilteredResponse": true,
 "github.copilot.chat.newWorkspace.useContext7": true,
 "[markdown]": {
-  "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
 },
-"editor.formatOnSaveMode": "modifications",
-"jest.jestCommandLine": ".",
-"cmake.sourceDirectory": "/Users/richard/Developer/tenant-flow/node_modules/bare-fs"
+  "typescript.suggest.completeFunctionCalls": true,
+  "javascript.suggest.completeFunctionCalls": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "typescript.suggest.autoImports": true,
+  "javascript.suggest.autoImports": true,
+  "typescript.inlayHints.parameterNames.enabled": "literals",
+  "typescript.inlayHints.functionLikeReturnTypes.enabled": true,
+  "editor.suggestSelection": "first",
+  "editor.acceptSuggestionOnCommitCharacter": true,
+  "editor.quickSuggestions": {
+    "other": true,
+    "comments": false,
+    "strings": true
+  },
+  "editor.snippetSuggestions": "top",
+  "editor.tabCompletion": "on",
+  "editor.parameterHints.enabled": true,
+  "editor.suggest.localityBonus": true,
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": "active",
+  "editor.stickyScroll.enabled": true,
+  "editor.renderWhitespace": "selection",
+  "editor.linkedEditing": true,
+  "editor.inlineSuggest.enabled": true,
+  "files.autoSave": "onFocusChange",
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "git.enableSmartCommit": true,
+  "git.autofetch": true,
+  "git.confirmSync": false,
+  "workbench.editor.highlightModifiedTabs": true,
+  "workbench.list.smoothScrolling": true,
+  "terminal.integrated.enablePersistentSessions": true,
+  "terminal.integrated.copyOnSelection": true,
+
+  "jest.jestCommandLine": "npm test",
+  "cmake.sourceDirectory": "/Users/richard/Developer/tenant-flow/node_modules/bare-fs",
+  "continue.enableConsole": true,
+  "continue.enableQuickActions": true,
+  
+  // Cline Configuration for MLX Qwen3-Coder
+  "cline.apiProvider": "openai-compatible",
+  "cline.openAiCompatibleApiUrl": "http://localhost:8001/v1/chat/completions",
+  "cline.openAiCompatibleModel": "lmstudio-community/Qwen3-Coder-30B-A3B-Instruct-MLX-4bit",
+  "cline.openAiCompatibleApiKey": "dummy",
+  "cline.customInstructions": "You are an expert TypeScript/React 19 developer. Focus on fixing compilation errors and React 19 compatibility. Always provide complete, working code.",
+  "cline.alwaysAllowReadOnly": true,
+  "cline.contextWindow": 100000,
+  "cline.maxTokens": 2048,
+  "cline.temperature": 0.1
 }

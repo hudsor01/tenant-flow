@@ -8,7 +8,7 @@ import Link from 'next/link'
 import { TenantsDataTable } from '@/components/tenants/tenants-data-table'
 import { TenantsStats } from '@/components/tenants/tenants-stats'
 import { PageTracker } from '@/components/analytics/page-tracker'
-import type { Metadata } from '../../../types/next'
+import type { Metadata } from 'next/types'
 
 export const metadata: Metadata = {
 	title: 'Tenants | TenantFlow',

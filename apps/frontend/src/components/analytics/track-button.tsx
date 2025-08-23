@@ -1,60 +1,63 @@
 'use client'
 
-import { type ButtonHTMLAttributes, forwardRef } from 'react'
-import { usePostHog } from '@/hooks/use-posthog'
-import type { TenantFlowEvent, EventProperties } from '@/hooks/use-posthog'
+/**
+ * Button wrapper with analytics tracking
+ * Automatically tracks button clicks with context
+ */
 
-interface TrackButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-	trackEvent?: TenantFlowEvent
-	trackProperties?: EventProperties
-	trackOnHover?: boolean
+import { usePostHog } from 'posthog-js/react'
+import { Button, type ButtonProps } from '@/components/ui/button'
+import { forwardRef } from 'react'
+
+interface TrackButtonProps extends ButtonProps {
+	trackingEvent?: string
+	trackingProperties?: Record<string, string | number | boolean>
+	// Legacy prop names for backwards compatibility
+	trackEvent?: string
+	trackProperties?: Record<string, string | number | boolean>
+	category?: string
 }
 
 export const TrackButton = forwardRef<HTMLButtonElement, TrackButtonProps>(
-	(
-		{
-			trackEvent,
-			trackProperties,
-			trackOnHover = false,
-			onClick,
-			onMouseEnter,
-			...props
-		},
-		ref
-	) => {
-		const { trackEvent: track } = usePostHog()
+	({ 
+		trackingEvent, 
+		trackingProperties = {}, 
+		trackEvent, 
+		trackProperties = {},
+		category = 'ui', 
+		onClick, 
+		children, 
+		...props 
+	}, ref) => {
+		const posthog = usePostHog()
 
-		const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-			if (trackEvent) {
-				track(trackEvent, {
-					...trackProperties,
-					button_text: props.children?.toString(),
-					button_class: props.className
+		const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+			// Use new prop names first, fallback to legacy prop names
+			const eventName = trackingEvent || trackEvent
+			const eventProperties = { ...trackingProperties, ...trackProperties }
+			
+			// Track the click event
+			if (posthog && eventName) {
+				posthog.capture(eventName, {
+					category,
+					button_text: typeof children === 'string' ? children : 'button',
+					...eventProperties,
+					timestamp: new Date().toISOString()
 				})
 			}
-			onClick?.(e)
-		}
 
-		const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
-			if (trackOnHover && trackEvent) {
-				track(`${trackEvent}_hovered` as TenantFlowEvent, {
-					...trackProperties,
-					button_text: props.children?.toString()
-				})
-			}
-			onMouseEnter?.(e)
+			// Call the original onClick handler
+			onClick?.(event)
 		}
 
 		return (
-			<button
-				ref={ref}
-				onClick={handleClick}
-				onMouseEnter={handleMouseEnter}
-				data-track={trackEvent}
-				{...props}
-			/>
+			<Button ref={ref} onClick={handleClick} {...props}>
+				{children}
+			</Button>
 		)
 	}
 )
 
 TrackButton.displayName = 'TrackButton'
+
+export default TrackButton

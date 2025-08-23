@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { motion, AnimatePresence } from '@/lib/framer-motion'
+import { motion, AnimatePresence } from '@/lib/lazy-motion'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -247,7 +247,7 @@ function ResourceCard({ resource }: { resource: Resource }) {
 						>
 							<Link
 								href={
-									resource.href || resource.downloadUrl || '#'
+									resource.href ?? resource.downloadUrl ?? '#'
 								}
 								target={
 									resource.downloadUrl ? '_blank' : undefined
@@ -275,11 +275,11 @@ function ResourceCard({ resource }: { resource: Resource }) {
 							</Link>
 						</Button>
 						{resource.href && (
-							<Button variant="ghost" size="sm" asChild>
-								<Link href={resource.href}>
+							<Link href={resource.href}>
+								<Button variant="ghost" size="sm">
 									<ExternalLink className="h-4 w-4" />
-								</Link>
-							</Button>
+								</Button>
+							</Link>
 						)}
 					</div>
 				</CardContent>
@@ -588,21 +588,22 @@ export default function ResourcesPage() {
 						</div>
 
 						<div className="flex flex-col justify-center gap-4 sm:flex-row">
-							<Link href="/contact">
-								<Button
-									variant="premium"
-									size="lg"
-									className="group"
-								>
+							<Button
+								asChild
+								variant="premium"
+								size="lg"
+								className="group"
+							>
+								<Link href="/contact">
 									Contact Support
 									<ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-								</Button>
-							</Link>
-							<Link href="/help">
-								<Button variant="outline" size="lg">
+								</Link>
+							</Button>
+							<Button asChild variant="outline" size="lg">
+								<Link href="/help">
 									Visit Help Center
-								</Button>
-							</Link>
+								</Link>
+							</Button>
 						</div>
 					</motion.div>
 				</div>

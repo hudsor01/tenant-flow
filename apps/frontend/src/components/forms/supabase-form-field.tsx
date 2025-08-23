@@ -1,149 +1,159 @@
-import {
-	useController,
-	type Control,
-	type FieldPath,
-	type FieldValues
-} from 'react-hook-form'
-import { Label } from '@/components/ui/label'
+'use client'
+
+/**
+ * Supabase-specific form field component
+ * Handles form fields with Supabase real-time validation
+ */
+
+import { useState, useEffect } from 'react'
+import { useController, type Control, type FieldValues, type Path } from 'react-hook-form'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from '@/components/ui/select'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Switch } from '@/components/ui/switch'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 
-interface BaseFieldProps<TFieldValues extends FieldValues = FieldValues> {
-	name: FieldPath<TFieldValues>
-	control: Control<TFieldValues>
-	label?: string
-	placeholder?: string
-	description?: string
-	className?: string
-	disabled?: boolean
-	required?: boolean
+import type { PathValue } from 'react-hook-form'
+
+export interface SupabaseFormFieldProps<TFormData extends FieldValues = FieldValues> {
+label: string
+name: Path<TFormData>
+control: Control<TFormData>
+type?: 'text' | 'email' | 'tel' | 'url' | 'textarea' | 'select'
+placeholder?: string
+defaultValue?: PathValue<TFormData, Path<TFormData>>
+required?: boolean
+multiline?: boolean
+className?: string
+validation?: {
+table?: string
+column?: string
+unique?: boolean
+}
+options?: Array<{ value: string; label: string }>
+rows?: number
 }
 
-interface TextFieldProps<TFieldValues extends FieldValues = FieldValues>
-	extends BaseFieldProps<TFieldValues> {
-	type?: 'text' | 'email' | 'password' | 'tel' | 'url'
-	multiline?: boolean
-	rows?: number
+export interface PropertyTypeFieldProps<TFormData extends FieldValues = FieldValues> {
+label: string
+name: Path<TFormData>
+control: Control<TFormData>
+defaultValue?: PathValue<TFormData, Path<TFormData>>
+required?: boolean
+className?: string
 }
 
-interface NumberFieldProps<TFieldValues extends FieldValues = FieldValues>
-	extends BaseFieldProps<TFieldValues> {
-	type: 'number'
-	min?: number
-	max?: number
-	step?: number
-}
-
-interface SelectFieldProps<TFieldValues extends FieldValues = FieldValues>
-	extends BaseFieldProps<TFieldValues> {
-	type: 'select'
-	options: { value: string; label: string; disabled?: boolean }[]
-}
-
-interface CheckboxFieldProps<TFieldValues extends FieldValues = FieldValues>
-	extends BaseFieldProps<TFieldValues> {
-	type: 'checkbox'
-}
-
-interface SwitchFieldProps<TFieldValues extends FieldValues = FieldValues>
-	extends BaseFieldProps<TFieldValues> {
-	type: 'switch'
-}
-
-type SupabaseFormFieldProps<TFieldValues extends FieldValues = FieldValues> =
-	| TextFieldProps<TFieldValues>
-	| NumberFieldProps<TFieldValues>
-	| SelectFieldProps<TFieldValues>
-	| CheckboxFieldProps<TFieldValues>
-	| SwitchFieldProps<TFieldValues>
-
-export function SupabaseFormField<
-	TFieldValues extends FieldValues = FieldValues
->({
+export function SupabaseFormField<TFormData extends FieldValues = FieldValues>({
+	label,
 	name,
 	control,
-	label,
+	type = 'text',
 	placeholder,
-	description,
+	defaultValue,
+	required,
+	multiline = false,
 	className,
-	disabled = false,
-	required = false,
-	...props
-}: SupabaseFormFieldProps<TFieldValues>) {
+	validation,
+	options = [],
+	rows = 3
+}: SupabaseFormFieldProps<TFormData>) {
 	const {
-		field,
-		fieldState: { error, invalid }
-	} = useController({
-		name,
-		control,
-		rules: { required: required ? `${label || name} is required` : false }
-	})
+		field: { onChange, onBlur, value, ref },
+		fieldState: { error }
+} = useController({
+name,
+control,
+defaultValue
+})
 
-	const fieldId = `field-${String(name)}`
-	const hasError = invalid && error
+	const [validationError, setValidationError] = useState<string | null>(null)
+	const [isValidating, setIsValidating] = useState(false)
 
+	// Real-time validation for unique fields
+	useEffect(() => {
+		if (!validation?.unique || !validation.table || !validation.column || !value) {
+			setValidationError(null)
+			return
+		}
+
+		const validateUnique = async () => {
+			setIsValidating(true)
+			try {
+				const supabase = createClient()
+				const { data, error } = await supabase
+					.from(validation.table!)
+					.select('id')
+					.eq(validation.column!, value)
+					.limit(1)
+
+				if (error) {
+					console.warn('Validation error:', error)
+					setValidationError(null)
+				} else if (data && data.length > 0) {
+					setValidationError(`This ${label.toLowerCase()} is already taken`)
+				} else {
+					setValidationError(null)
+				}
+			} catch (err) {
+				console.warn('Validation failed:', err)
+				setValidationError(null)
+			} finally {
+				setIsValidating(false)
+			}
+		}
+
+		// Debounce validation
+		const timeoutId = setTimeout(validateUnique, 500)
+		return () => clearTimeout(timeoutId)
+	}, [value, validation, label])
+
+	const handleChange = (newValue: string) => {
+		onChange(newValue)
+	}
+
+	const fieldError = error?.message || validationError
+	const isError = !!fieldError
+
+	const fieldClassName = cn(
+		isError && 'border-red-500',
+		isValidating && 'border-yellow-500',
+		className
+	)
+
+	// Render different field types
 	const renderField = () => {
-		switch (props.type) {
-			case 'number':
+		switch (type) {
+			case 'textarea':
 				return (
-					<Input
-						{...field}
-						id={fieldId}
-						type="number"
+					<Textarea
+						id={name}
+						name={name}
+						ref={ref}
 						placeholder={placeholder}
-						disabled={disabled}
-						min={props.min}
-						max={props.max}
-						step={props.step}
-						value={field.value || ''}
-						onChange={e => {
-							const value = e.target.value
-							field.onChange(
-								value === '' ? undefined : Number(value)
-							)
-						}}
-						className={cn(
-							hasError &&
-								'border-destructive focus-visible:ring-destructive',
-							className
-						)}
+						value={value}
+						onChange={(e) => handleChange(e.target.value)}
+						onBlur={onBlur}
+						required={required}
+						rows={rows}
+						className={fieldClassName}
 					/>
 				)
 
 			case 'select':
 				return (
 					<Select
-						value={field.value || ''}
-						onValueChange={field.onChange}
-						disabled={disabled}
+						name={name}
+						value={value}
+						onValueChange={handleChange}
+						required={required}
 					>
-						<SelectTrigger
-							id={fieldId}
-							className={cn(
-								hasError &&
-									'border-destructive focus-visible:ring-destructive',
-								className
-							)}
-						>
+						<SelectTrigger className={fieldClassName}>
 							<SelectValue placeholder={placeholder} />
 						</SelectTrigger>
 						<SelectContent>
-							{props.options.map(option => (
-								<SelectItem
-									key={option.value}
-									value={option.value}
-									disabled={option.disabled}
-								>
+							{options.map((option) => (
+								<SelectItem key={option.value} value={option.value}>
 									{option.label}
 								</SelectItem>
 							))}
@@ -151,207 +161,110 @@ export function SupabaseFormField<
 					</Select>
 				)
 
-			case 'checkbox':
-				return (
-					<div className="flex items-center space-x-2">
-						<Checkbox
-							id={fieldId}
-							checked={field.value || false}
-							onCheckedChange={field.onChange}
-							disabled={disabled}
-							className={cn(
-								hasError &&
-									'border-destructive data-[state=checked]:bg-destructive',
-								className
-							)}
-						/>
-						{label && (
-							<Label
-								htmlFor={fieldId}
-								className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-							>
-								{label}
-								{required && (
-									<span className="text-destructive ml-1">
-										*
-									</span>
-								)}
-							</Label>
-						)}
-					</div>
-				)
-
-			case 'switch':
-				return (
-					<div className="flex items-center space-x-2">
-						<Switch
-							id={fieldId}
-							checked={field.value || false}
-							onCheckedChange={field.onChange}
-							disabled={disabled}
-							className={className}
-						/>
-						{label && (
-							<Label
-								htmlFor={fieldId}
-								className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-							>
-								{label}
-								{required && (
-									<span className="text-destructive ml-1">
-										*
-									</span>
-								)}
-							</Label>
-						)}
-					</div>
-				)
-
 			default:
-				// Text, email, password, tel, url, or multiline
-				if (props.multiline) {
+				if (multiline) {
 					return (
 						<Textarea
-							{...field}
-							id={fieldId}
+							id={name}
+							name={name}
+							ref={ref}
 							placeholder={placeholder}
-							disabled={disabled}
-							rows={props.rows || 3}
-							value={field.value || ''}
-							className={cn(
-								hasError &&
-									'border-destructive focus-visible:ring-destructive',
-								className
-							)}
+							value={value}
+							onChange={(e) => handleChange(e.target.value)}
+							onBlur={onBlur}
+							required={required}
+							rows={rows}
+							className={fieldClassName}
 						/>
 					)
 				}
-
 				return (
 					<Input
-						{...field}
-						id={fieldId}
-						type={props.type || 'text'}
+						id={name}
+						name={name}
+						ref={ref}
+						type={type}
 						placeholder={placeholder}
-						disabled={disabled}
-						value={field.value || ''}
-						className={cn(
-							hasError &&
-								'border-destructive focus-visible:ring-destructive',
-							className
-						)}
+						value={value}
+						onChange={(e) => handleChange(e.target.value)}
+						onBlur={onBlur}
+						required={required}
+						className={fieldClassName}
 					/>
 				)
 		}
 	}
 
-	// For checkbox and switch, label is handled within the field
-	if (props.type === 'checkbox' || props.type === 'switch') {
-		return (
-			<div className="space-y-2">
-				{renderField()}
-				{description && (
-					<p className="text-muted-foreground text-sm">
-						{description}
-					</p>
-				)}
-				{hasError && (
-					<p className="text-destructive text-sm">{error.message}</p>
-				)}
-			</div>
-		)
-	}
-
 	return (
 		<div className="space-y-2">
-			{label && (
-				<Label htmlFor={fieldId}>
-					{label}
-					{required && (
-						<span className="text-destructive ml-1">*</span>
-					)}
-				</Label>
-			)}
+			<Label htmlFor={name}>
+				{label}
+				{required && <span className="text-red-500 ml-1">*</span>}
+				{isValidating && <span className="text-yellow-500 ml-1">(checking...)</span>}
+			</Label>
 			{renderField()}
-			{description && (
-				<p className="text-muted-foreground text-sm">{description}</p>
-			)}
-			{hasError && (
-				<p className="text-destructive text-sm">{error.message}</p>
+			{fieldError && (
+				<p className="text-sm text-red-600">{fieldError}</p>
 			)}
 		</div>
 	)
 }
 
-// Specialized field components for common Supabase types
-export function PropertyTypeField<
-	TFieldValues extends FieldValues = FieldValues
->({ ...props }: Omit<SelectFieldProps<TFieldValues>, 'type' | 'options'>) {
+// Property Type Field Component
+export function PropertyTypeField<TFormData extends FieldValues = FieldValues>({
+label,
+name,
+control,
+defaultValue,
+required,
+className
+}: PropertyTypeFieldProps<TFormData>) {
+const {
+field: { onChange, onBlur, value },
+fieldState: { error }
+} = useController({
+name,
+control,
+defaultValue
+})
+
+	const propertyTypes = [
+		{ value: 'SINGLE_FAMILY', label: 'Single Family' },
+		{ value: 'MULTI_FAMILY', label: 'Multi Family' },
+		{ value: 'APARTMENT', label: 'Apartment' },
+		{ value: 'CONDO', label: 'Condo' },
+		{ value: 'TOWNHOUSE', label: 'Townhouse' },
+		{ value: 'COMMERCIAL', label: 'Commercial' }
+	]
+
 	return (
-		<SupabaseFormField
-			{...props}
-			type="select"
-			options={[
-				{ value: 'SINGLE_FAMILY', label: 'Single Family Home' },
-				{ value: 'MULTI_UNIT', label: 'Multi-Unit Building' },
-				{ value: 'APARTMENT', label: 'Apartment Complex' },
-				{ value: 'CONDO', label: 'Condominium' },
-				{ value: 'TOWNHOUSE', label: 'Townhouse' },
-				{ value: 'COMMERCIAL', label: 'Commercial Property' },
-				{ value: 'OTHER', label: 'Other' }
-			]}
-		/>
+		<div className={cn('space-y-2', className)}>
+			<Label htmlFor={name}>
+				{label}
+				{required && <span className="text-red-500 ml-1">*</span>}
+			</Label>
+			<Select
+				name={name}
+				value={value}
+				onValueChange={onChange}
+				required={required}
+			>
+				<SelectTrigger className={cn(error && 'border-red-500')}>
+					<SelectValue placeholder="Select property type" />
+				</SelectTrigger>
+				<SelectContent>
+					{propertyTypes.map((type) => (
+						<SelectItem key={type.value} value={type.value}>
+							{type.label}
+						</SelectItem>
+					))}
+				</SelectContent>
+			</Select>
+			{error?.message && (
+				<p className="text-sm text-red-600">{error.message}</p>
+			)}
+		</div>
 	)
 }
 
-export function UnitStatusField<
-	TFieldValues extends FieldValues = FieldValues
->({ ...props }: Omit<SelectFieldProps<TFieldValues>, 'type' | 'options'>) {
-	return (
-		<SupabaseFormField
-			{...props}
-			type="select"
-			options={[
-				{ value: 'VACANT', label: 'Vacant' },
-				{ value: 'OCCUPIED', label: 'Occupied' },
-				{ value: 'MAINTENANCE', label: 'Under Maintenance' },
-				{ value: 'RESERVED', label: 'Reserved' }
-			]}
-		/>
-	)
-}
-
-export function LeaseStatusField<
-	TFieldValues extends FieldValues = FieldValues
->({ ...props }: Omit<SelectFieldProps<TFieldValues>, 'type' | 'options'>) {
-	return (
-		<SupabaseFormField
-			{...props}
-			type="select"
-			options={[
-				{ value: 'DRAFT', label: 'Draft' },
-				{ value: 'ACTIVE', label: 'Active' },
-				{ value: 'EXPIRED', label: 'Expired' },
-				{ value: 'TERMINATED', label: 'Terminated' }
-			]}
-		/>
-	)
-}
-
-export function PriorityField<TFieldValues extends FieldValues = FieldValues>({
-	...props
-}: Omit<SelectFieldProps<TFieldValues>, 'type' | 'options'>) {
-	return (
-		<SupabaseFormField
-			{...props}
-			type="select"
-			options={[
-				{ value: 'LOW', label: 'Low Priority' },
-				{ value: 'MEDIUM', label: 'Medium Priority' },
-				{ value: 'HIGH', label: 'High Priority' },
-				{ value: 'URGENT', label: 'Urgent' },
-				{ value: 'EMERGENCY', label: 'Emergency' }
-			]}
-		/>
-	)
-}
+export default SupabaseFormField

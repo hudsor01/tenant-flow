@@ -1,7 +1,6 @@
 import React, { useMemo, useCallback } from 'react'
-import { motion } from '@/lib/framer-motion'
+import { motion } from '@/lib/lazy-motion'
 import PropertyCard from './property-card'
-import { useResponsiveColumns } from '@/hooks/useResponsiveColumns'
 import type { Property } from '@repo/shared'
 import type { PropertyWithDetails } from '@repo/shared'
 
@@ -33,14 +32,8 @@ export default function VirtualizedPropertiesList({
 		[onView]
 	)
 
-	// Use custom hook for responsive columns
-	const columns = useResponsiveColumns()
-
-	const gridClasses = useMemo(() => {
-		if (columns === 3) return 'grid-cols-3'
-		if (columns === 2) return 'grid-cols-2'
-		return 'grid-cols-1'
-	}, [columns])
+	// Use CSS Grid with responsive columns
+	const gridClasses = 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3'
 
 	// For large lists, paginate. For small lists, show all
 	const shouldVirtualize = properties.length > 50
@@ -55,7 +48,7 @@ export default function VirtualizedPropertiesList({
 	// Return simple grid for all cases
 	if (!shouldVirtualize) {
 		return (
-			<div className={`grid ${gridClasses} gap-6`}>
+			<div className={`${gridClasses} gap-6`}>
 				{displayedProperties.map((property, index) => (
 					<motion.div
 						key={property.id}
@@ -82,7 +75,7 @@ export default function VirtualizedPropertiesList({
 				to narrow results.
 			</div>
 			<div
-				className={`grid ${gridClasses} gap-6`}
+				className={`${gridClasses} gap-6`}
 				style={{ maxHeight: containerHeight, overflow: 'auto' }}
 			>
 				{displayedProperties.map((property, index) => (

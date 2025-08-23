@@ -31,57 +31,59 @@ export const emergencyContactSchema = z
 	})
 	.optional()
 
+// Base tenant object schema (without refinements)
+const tenantBaseSchema = z.object({
+	email: emailSchema,
+
+	firstName: nonEmptyStringSchema
+		.min(1, 'First name is required')
+		.max(50, 'First name cannot exceed 50 characters'),
+
+	lastName: nonEmptyStringSchema
+		.min(1, 'Last name is required')
+		.max(50, 'Last name cannot exceed 50 characters'),
+
+	phone: phoneSchema.optional(),
+
+	dateOfBirth: z
+		.string()
+		.optional()
+		.refine(val => !val || !isNaN(Date.parse(val)), {
+			message: 'Please enter a valid date of birth'
+		})
+		.transform(val => (val ? new Date(val) : undefined)),
+
+	emergencyContact: emergencyContactSchema,
+
+	// Optional property/unit associations
+	propertyId: uuidSchema.optional(),
+	unitId: uuidSchema.optional(),
+
+	// Optional lease dates for context
+	leaseStartDate: z
+		.string()
+		.optional()
+		.refine(val => !val || !isNaN(Date.parse(val)), {
+			message: 'Please enter a valid lease start date'
+		})
+		.transform(val => (val ? new Date(val) : undefined)),
+
+	leaseEndDate: z
+		.string()
+		.optional()
+		.refine(val => !val || !isNaN(Date.parse(val)), {
+			message: 'Please enter a valid lease end date'
+		})
+		.transform(val => (val ? new Date(val) : undefined)),
+
+	notes: z
+		.string()
+		.max(1000, 'Notes cannot exceed 1000 characters')
+		.optional()
+})
+
 // Base tenant input schema (for forms and API creation)
-export const tenantInputSchema = z
-	.object({
-		email: emailSchema,
-
-		firstName: nonEmptyStringSchema
-			.min(1, 'First name is required')
-			.max(50, 'First name cannot exceed 50 characters'),
-
-		lastName: nonEmptyStringSchema
-			.min(1, 'Last name is required')
-			.max(50, 'Last name cannot exceed 50 characters'),
-
-		phone: phoneSchema.optional(),
-
-		dateOfBirth: z
-			.string()
-			.optional()
-			.refine(val => !val || !isNaN(Date.parse(val)), {
-				message: 'Please enter a valid date of birth'
-			})
-			.transform(val => (val ? new Date(val) : undefined)),
-
-		emergencyContact: emergencyContactSchema,
-
-		// Optional property/unit associations
-		propertyId: uuidSchema.optional(),
-		unitId: uuidSchema.optional(),
-
-		// Optional lease dates for context
-		leaseStartDate: z
-			.string()
-			.optional()
-			.refine(val => !val || !isNaN(Date.parse(val)), {
-				message: 'Please enter a valid lease start date'
-			})
-			.transform(val => (val ? new Date(val) : undefined)),
-
-		leaseEndDate: z
-			.string()
-			.optional()
-			.refine(val => !val || !isNaN(Date.parse(val)), {
-				message: 'Please enter a valid lease end date'
-			})
-			.transform(val => (val ? new Date(val) : undefined)),
-
-		notes: z
-			.string()
-			.max(1000, 'Notes cannot exceed 1000 characters')
-			.optional()
-	})
+export const tenantInputSchema = tenantBaseSchema
 	.refine(
 		data => {
 			// Validate lease date logic
@@ -97,7 +99,7 @@ export const tenantInputSchema = z
 	)
 
 // Full tenant schema (includes server-generated fields)
-export const tenantSchema = tenantInputSchema.extend({
+export const tenantSchema = tenantBaseSchema.extend({
 	id: uuidSchema,
 	ownerId: uuidSchema,
 	status: tenantStatusSchema.default('PENDING'),
@@ -106,7 +108,7 @@ export const tenantSchema = tenantInputSchema.extend({
 })
 
 // Tenant update schema (partial input)
-export const tenantUpdateSchema = tenantInputSchema.partial().extend({
+export const tenantUpdateSchema = tenantBaseSchema.partial().extend({
 	status: tenantStatusSchema.optional()
 })
 

@@ -6,7 +6,6 @@ import { AuthWebhookController } from './auth-webhook.controller'
 import { JwtAuthGuard } from '../shared/guards/jwt-auth.guard'
 import { SupabaseModule } from '../database/supabase.module'
 import { EmailModule } from '../email/email.module'
-import { SubscriptionsModule } from '../billing/subscriptions.module'
 import { StripeModule } from '../billing/stripe.module'
 import { UsersModule } from '../users/users.module'
 import { CommonModule } from '../shared/common.module'
@@ -20,7 +19,6 @@ import { ErrorHandlerService } from '../services/error-handler.service'
 		CommonModule,
 		SupabaseModule,
 		EmailModule,
-		SubscriptionsModule,
 		StripeModule,
 		forwardRef(() => UsersModule)
 	],

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { logger } from '@/lib/logger'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser } from '@/lib/actions/auth-actions'
-import type { AuthUser } from '@/lib/supabase/client'
+import type { User } from '@supabase/supabase-js'
 
 interface ClientAuthGuardProps {
 	children: React.ReactNode
@@ -29,7 +29,7 @@ export function ClientAuthGuard({
 	)
 }: ClientAuthGuardProps) {
 	const router = useRouter()
-	const [user, setUser] = useState<AuthUser | null>(null)
+	const [user, setUser] = useState<User | null>(null)
 	const [isLoading, setIsLoading] = useState(true)
 
 	useEffect(() => {

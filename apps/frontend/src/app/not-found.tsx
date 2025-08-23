@@ -1,110 +1,38 @@
-/**
- * 404 Not Found Page - Server Component
- * Displays when a requested page cannot be found
- */
-
-import type { Metadata } from '@/types/next.d'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Home, Search, AlertCircle, HelpCircle, Mail } from 'lucide-react'
-import { AuthLayout } from '@/components/auth/auth-layout'
-import { NotFoundActions } from '@/components/error/not-found-actions'
 
-export const metadata: Metadata = {
-	title: '404 - Page Not Found | TenantFlow',
-	description:
-		"The page you're looking for could not be found. Return to your dashboard or explore our features."
+export const metadata = {
+	title: '404 - Page Not Found | TenantFlow'
 }
 
 export default function NotFound() {
 	return (
-		<AuthLayout
-			title="Page Not Found"
-			subtitle="We can't find the page you're looking for"
-			description="The page might have been moved, deleted, or the URL might be incorrect"
-			side="left"
-			image={{
-				src: '/images/roi-up_to_the_right.jpg',
-				alt: 'Page not found - TenantFlow'
-			}}
-			heroContent={{
-				title: 'Every Path Leads Somewhere',
-				description:
-					'Even when you take a wrong turn, TenantFlow helps you find your way back to efficient property management'
-			}}
-			features={[
-				{
-					icon: <Search className="h-5 w-5" />,
-					title: 'Easy Navigation',
-					description: 'Find what you need quickly'
-				},
-				{
-					icon: <HelpCircle className="h-5 w-5" />,
-					title: 'Always Supported',
-					description: 'Help is just a click away'
-				},
-				{
-					icon: <Home className="h-5 w-5" />,
-					title: 'Return Home',
-					description: 'Get back to your dashboard'
-				}
-			]}
-		>
-			<div className="space-y-6">
-				{/* Large 404 visual indicator */}
-				<div className="text-center">
-					<div className="relative mb-6">
-						<div className="text-muted-foreground/20 text-8xl font-bold select-none">
-							404
-						</div>
-						<div className="absolute inset-0 flex items-center justify-center">
-							<div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
-								<AlertCircle className="h-8 w-8 text-red-600 dark:text-red-400" />
-							</div>
-						</div>
-					</div>
-				</div>
-
-				{/* Action buttons - Client component for interactivity */}
-				<div className="flex flex-col gap-3">
-					<Link href="/dashboard" className="w-full">
-						<Button className="flex w-full items-center justify-center gap-2">
-							<Home className="h-4 w-4" />
-							Go to Dashboard
-						</Button>
-					</Link>
-
-					{/* Interactive back button - Client component */}
-					<NotFoundActions />
-
-					<Link href="/" className="w-full">
-						<Button
-							variant="ghost"
-							className="flex w-full items-center justify-center gap-2"
-						>
-							<Search className="h-4 w-4" />
-							Visit Homepage
-						</Button>
-					</Link>
-				</div>
-
-				{/* Help section */}
-				<div className="border-border/50 border-t pt-4 text-center">
-					<p className="text-muted-foreground mb-2 text-sm">
-						Still need help finding what you're looking for?
+		<div className="flex min-h-screen items-center justify-center bg-gray-50">
+			<div className="mx-auto max-w-md space-y-6 px-4 text-center">
+				<div className="space-y-4">
+					<h1 className="text-4xl font-bold text-gray-900">404</h1>
+					<h2 className="text-2xl font-semibold text-gray-900">
+						Page Not Found
+					</h2>
+					<p className="text-gray-600">
+						The page you&apos;re looking for could not be found.
 					</p>
-					<Button
-						variant="link"
-						className="flex h-auto items-center gap-1 p-0 text-sm"
-						asChild
+				</div>
+
+				<div className="flex flex-col gap-3">
+					<Link 
+						href="/dashboard" 
+						className="rounded-lg bg-blue-600 px-6 py-3 text-white hover:bg-blue-700"
 					>
-						<a href="mailto:support@tenantflow.com">
-							<Mail className="h-3 w-3" />
-							Contact Support
-						</a>
-					</Button>
+						Go to Dashboard
+					</Link>
+					<Link 
+						href="/" 
+						className="rounded-lg bg-gray-100 px-6 py-3 text-gray-700 hover:bg-gray-200"
+					>
+						Visit Homepage
+					</Link>
 				</div>
 			</div>
-		</AuthLayout>
+		</div>
 	)
 }

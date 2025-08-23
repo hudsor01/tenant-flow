@@ -52,7 +52,7 @@ export function generateBillingMetadata(
 	return {
 		title: `${title} | TenantFlow`,
 		description:
-			description || 'Manage your TenantFlow subscription and billing',
+			description ?? 'Manage your TenantFlow subscription and billing',
 		robots: {
 			index: false, // Don't index billing pages
 			follow: false

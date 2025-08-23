@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useFormState } from 'react-dom'
 import { useServerAction } from '@/hooks'
 import {
 	createProperty,
@@ -21,7 +20,7 @@ interface PropertyFormServerHookReturn {
 	// Form state and submission
 	formState: PropertyFormState
 	isPending: boolean
-	handleSubmit: (formData: FormData) => Promise<void>
+	formAction: (formData: FormData) => void
 
 	// Amenities management
 	amenities: string[]
@@ -31,7 +30,7 @@ interface PropertyFormServerHookReturn {
 	mode: 'create' | 'edit'
 }
 
-const initialState: PropertyFormState = {}
+const initialState: PropertyFormState = { success: false }
 
 export function usePropertyFormServer({
 	property,
@@ -51,37 +50,32 @@ export function usePropertyFormServer({
 					return updateProperty(property.id, prevState, formData)
 				}
 
-	// Initialize form state with server action
-	const [formState] = useFormState(action, initialState)
-
-	// Server action wrapper with amenities and success handling
-	const [executeAction, isPending] = useServerAction(
-		async (formData: FormData) => {
-			// Add amenities to form data
-			amenities.forEach(amenity => {
-				formData.append('amenities', amenity)
-			})
-
-			// Execute the server action
-			const result = await action(formState, formData)
-			return result
-		},
+	// Use server action hook for form state management
+	const { state: formState, formAction, isPending } = useServerAction(
+		action,
+		initialState,
 		{
 			onSuccess: () => {
 				const successMessage =
 					mode === 'create'
 						? 'Property created successfully'
 						: 'Property updated successfully'
-
+				
 				toast.success(successMessage)
 				onSuccess?.()
 			},
-			showErrorToast: false // Handle errors through form state
+			showToast: false // Handle toast manually above
 		}
 	)
 
-	const handleSubmit = async (formData: FormData) => {
-		await executeAction(formData)
+	const wrappedFormAction = (formData: FormData) => {
+		// Add amenities to form data
+		amenities.forEach(amenity => {
+			formData.append('amenities', amenity)
+		})
+
+		// Use the formAction from useActionState for React 19 compatibility
+		formAction(formData)
 	}
 
 	const updateAmenities = (newAmenities: string[]) => {
@@ -91,7 +85,7 @@ export function usePropertyFormServer({
 	return {
 		formState,
 		isPending,
-		handleSubmit,
+		formAction: wrappedFormAction,
 		amenities,
 		updateAmenities,
 		mode

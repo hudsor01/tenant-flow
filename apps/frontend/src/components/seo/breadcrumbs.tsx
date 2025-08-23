@@ -9,14 +9,14 @@ import {
 	BreadcrumbSeparator
 } from '@/components/ui/breadcrumb'
 
-interface BreadcrumbItem {
+interface BreadcrumbItemData {
 	href?: string
 	label: string
 	current?: boolean
 }
 
 interface BreadcrumbsProps {
-	items?: BreadcrumbItem[]
+	items?: BreadcrumbItemData[]
 	showHome?: boolean
 	className?: string
 }

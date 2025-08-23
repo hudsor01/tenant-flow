@@ -3,13 +3,13 @@
 import { useEffect, useState } from 'react'
 import { logger } from '@/lib/logger'
 import { useRouter } from 'next/navigation'
-import { motion } from '@/lib/framer-motion'
+import { motion } from '@/lib/lazy-motion'
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
-import { toastMessages } from '@/lib/toast-messages'
-import { debugSupabaseAuth } from '@/lib/debug-auth'
+// Removed debug-auth import - using logger directly
+import { queryKeys } from '@/lib/query-keys'
 import type { Session, AuthError } from '@supabase/supabase-js'
 
 type ProcessingState = 'loading' | 'success' | 'error'
@@ -46,8 +46,9 @@ export function SupabaseAuthProcessor() {
 			const currentPath = window.location.href
 
 			if (isProcessing) {
-				debugSupabaseAuth.log(
-					'Auth processing already in progress, skipping'
+				logger.warn(
+					'Auth processing already in progress, skipping',
+					{ component: 'supabaseauthprocessor' }
 				)
 				return
 			}
@@ -57,8 +58,9 @@ export function SupabaseAuthProcessor() {
 				now - successfulAuthCache.timestamp < AUTH_CACHE_TTL &&
 				successfulAuthCache.path === currentPath
 			) {
-				debugSupabaseAuth.log(
-					'Recent successful auth cached, skipping reprocessing'
+				logger.info(
+					'Recent successful auth cached, skipping reprocessing',
+					{ component: 'supabaseauthprocessor' }
 				)
 				// Redirect immediately to dashboard
 				setTimeout(() => {
@@ -68,7 +70,7 @@ export function SupabaseAuthProcessor() {
 			}
 
 			isProcessing = true
-			debugSupabaseAuth.log('Starting authentication processing')
+			logger.info('Starting authentication processing', { component: 'supabaseauthprocessor' })
 
 			try {
 				if (!supabase) {
@@ -86,12 +88,15 @@ export function SupabaseAuthProcessor() {
 				const errorCode = hashParams.get('error_code')
 				const errorDescription = hashParams.get('error_description')
 
-				debugSupabaseAuth.log('Hash params:', {
-					hasAccessToken: !!accessToken,
-					hasRefreshToken: !!refreshToken,
-					type,
-					error,
-					errorCode
+				logger.info('Hash params:', {
+					component: 'supabaseauthprocessor',
+					data: {
+						hasAccessToken: !!accessToken,
+						hasRefreshToken: !!refreshToken,
+						type,
+						error,
+						errorCode
+					}
 				})
 
 				// Check if there's an error in the hash
@@ -105,7 +110,7 @@ export function SupabaseAuthProcessor() {
 					if (session?.user) {
 						// Invalidate auth queries to ensure fresh user data
 						await queryClient.invalidateQueries({
-							queryKey: ['auth']
+							queryKey: queryKeys.auth.all()
 						})
 
 						setStatus({
@@ -226,7 +231,7 @@ export function SupabaseAuthProcessor() {
 
 							// Invalidate auth queries to ensure fresh user data
 							await queryClient.invalidateQueries({
-								queryKey: ['auth']
+								queryKey: queryKeys.auth.all()
 							})
 
 							setStatus({
@@ -240,8 +245,8 @@ export function SupabaseAuthProcessor() {
 
 							toast.success(
 								type === 'signup'
-									? toastMessages.auth.emailConfirmed
-									: toastMessages.auth.signInSuccess
+									? 'Email confirmed successfully!'
+									: 'Successfully signed in!'
 							)
 
 							// Clear the hash from URL to prevent reprocessing
@@ -328,7 +333,7 @@ export function SupabaseAuthProcessor() {
 						if (data.session && mounted) {
 							// Invalidate auth queries to ensure fresh user data
 							await queryClient.invalidateQueries({
-								queryKey: ['auth']
+								queryKey: queryKeys.auth.all()
 							})
 
 							setStatus({
@@ -337,7 +342,7 @@ export function SupabaseAuthProcessor() {
 								details: 'Welcome back!'
 							})
 
-							toast.success(toastMessages.auth.signInSuccess)
+							toast.success('Successfully signed in!')
 							void router.push('/dashboard')
 							return
 						}
@@ -379,9 +384,12 @@ export function SupabaseAuthProcessor() {
 					searchParams.has('type') &&
 					searchParams.get('type') === 'signup'
 
-				debugSupabaseAuth.log('Search params:', {
-					isEmailConfirmation,
-					allParams: Object.fromEntries(searchParams.entries())
+				logger.info('Search params:', {
+					component: 'supabaseauthprocessor',
+					data: {
+						isEmailConfirmation,
+						allParams: Object.fromEntries(searchParams.entries())
+					}
 				})
 
 				// Check for existing session
@@ -398,7 +406,7 @@ export function SupabaseAuthProcessor() {
 
 				if (session?.user) {
 					// Invalidate auth queries to ensure fresh user data
-					await queryClient.invalidateQueries({ queryKey: ['auth'] })
+					await queryClient.invalidateQueries({ queryKey: queryKeys.auth.all() })
 
 					// Success! User is authenticated
 					setStatus({
@@ -407,7 +415,7 @@ export function SupabaseAuthProcessor() {
 						details: 'Welcome back!'
 					})
 
-					toast.success(toastMessages.auth.signInSuccess)
+					toast.success('Successfully signed in!')
 					void router.push('/dashboard')
 				} else if (isEmailConfirmation) {
 					// This is an email confirmation that succeeded
@@ -420,12 +428,13 @@ export function SupabaseAuthProcessor() {
 					toast.success('Email confirmed! Welcome to TenantFlow!')
 
 					// Clear any cache to ensure fresh session check
-					await queryClient.invalidateQueries({ queryKey: ['auth'] })
+					await queryClient.invalidateQueries({ queryKey: queryKeys.auth.all() })
 
 					// For Double Opt-In mode, redirect quickly to login with helpful message
 					setTimeout(() => {
-						debugSupabaseAuth.log(
-							'Double opt-in email confirmation, redirecting to login'
+						logger.info(
+							'Double opt-in email confirmation, redirecting to login',
+							{ component: 'supabaseauthprocessor' }
 						)
 						toast.success(
 							'Email confirmed! Please sign in to continue.'

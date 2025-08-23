@@ -40,7 +40,7 @@ export function PropertyFormWithTracking({
 		defaultValues: property
 			? {
 					name: property.name || '',
-					description: property.description || undefined,
+					description: property.description ?? undefined,
 					propertyType: property.propertyType || 'SINGLE_FAMILY',
 					address: property.address || '',
 					city: property.city || '',
@@ -92,7 +92,7 @@ export function PropertyFormWithTracking({
 					property_id: property.id,
 					property_type: data.propertyType,
 					monthly_rent: data.rent ? parseFloat(data.rent) : undefined,
-					has_photos: false // TODO: Add photo detection
+					has_photos: !!(property.imageUrl || data.imageUrl)
 				})
 			} else {
 				trackPropertyCreated({
@@ -101,7 +101,7 @@ export function PropertyFormWithTracking({
 					unit_count:
 						data.propertyType === 'MULTI_UNIT' ? 1 : undefined,
 					monthly_rent: data.rent ? parseFloat(data.rent) : undefined,
-					has_photos: false // TODO: Add photo detection
+					has_photos: !!data.imageUrl
 				})
 			}
 

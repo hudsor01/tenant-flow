@@ -1,8 +1,8 @@
-import { IsEnum, IsOptional, IsUrl } from 'class-validator'
-import { PLAN_TYPES } from '@repo/shared'
+import { IsEnum, IsOptional, IsString, IsUrl } from 'class-validator'
+import { PLAN_TYPE } from '@repo/shared'
 
 export class CreateCheckoutDto {
-  @IsEnum(Object.values(PLAN_TYPES), {
+  @IsEnum(Object.values(PLAN_TYPE), {
     message: 'planId must be one of: STARTER, GROWTH, TENANTFLOW_MAX'
   })
   planId!: string
@@ -22,7 +22,7 @@ export class CreateCheckoutDto {
 }
 
 export class CreateEmbeddedCheckoutDto {
-  @IsEnum(Object.values(PLAN_TYPES), {
+  @IsEnum(Object.values(PLAN_TYPE), {
     message: 'planId must be one of: STARTER, GROWTH, TENANTFLOW_MAX'
   })
   planId!: string
@@ -37,4 +37,19 @@ export class CreatePortalDto {
   @IsOptional()
   @IsUrl({}, { message: 'returnUrl must be a valid URL' })
   returnUrl?: string
+}
+
+export class CreateSubscriptionDto {
+  @IsString({ message: 'confirmationTokenId must be a string' })
+  confirmationTokenId!: string
+
+  @IsEnum(Object.values(PLAN_TYPE), {
+    message: 'planType must be one of: STARTER, GROWTH, TENANTFLOW_MAX'
+  })
+  planType!: string
+
+  @IsEnum(['month', 'year'], {
+    message: 'billingInterval must be either month or year'
+  })
+  billingInterval!: 'month' | 'year'
 }

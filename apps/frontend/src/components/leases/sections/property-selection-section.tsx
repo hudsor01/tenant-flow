@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/select'
 import { FormSection } from '@/components/modals/base-form-modal'
 import type { Property } from '@repo/shared'
-import type { LeaseFormData } from '@/hooks/useLeaseForm'
+import type { LeaseFormData } from '@/hooks/use-lease-form'
 
 interface PropertySelectionSectionProps {
 	form: UseFormReturn<LeaseFormData>

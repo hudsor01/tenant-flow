@@ -8,17 +8,17 @@
 // ============================================================================
 
 import type {
-	ApiSuccessResponse,
-	ApiErrorResponse, 
+	ApiSuccessResponse as _ApiSuccessResponse,
+	ApiErrorResponse as _ApiErrorResponse, 
 	ApiPaginatedResponse
 } from './responses'
 
 // Type aliases for backwards compatibility
-export type ApiResponse<T = unknown> = ApiSuccessResponse<T> | ApiErrorResponse
+// Note: ApiResponse is exported from errors.ts to avoid conflicts
+// export type ApiResponse<T = unknown> = ApiSuccessResponse<T> | ApiErrorResponse
 
-export interface ControllerApiResponse<T = unknown> extends ApiSuccessResponse<T> {
-	statusCode?: number
-}
+// ControllerApiResponse is now defined in errors.ts to avoid conflicts
+// Import it from there: import type { ControllerApiResponse } from './errors'
 
 export type PaginatedResponse<T> = ApiPaginatedResponse<T>
 

@@ -247,10 +247,10 @@ export const formActionStateSchema = actionStateSchema.extend({
 
 export const serverActionResponseSchema = z.object({
 	success: z.boolean(),
-	data: z.unknown().optional(),
-	error: z.string().optional(),
-	message: z.string().optional(),
-	redirect: z.string().optional()
+	data: actionDataSchema.optional(),
+	error: z.string().max(1000, 'Error message too long').optional(),
+	message: z.string().max(1000, 'Message too long').optional(),
+	redirect: z.string().url('Invalid redirect URL').optional()
 })
 
 // ===== ENHANCED COMMON SCHEMAS =====
@@ -336,11 +336,27 @@ export const sortSchema = z.object({
 	direction: z.enum(['asc', 'desc']).default('desc')
 })
 
+// Secure filter value schema with constrained types
+export const filterValueSchema = z.union([
+	z.string().max(500, 'Filter string value too long'),
+	z.number().finite('Filter number must be finite'),
+	z.boolean(),
+	z.null(),
+	z.array(z.string().max(255, 'Filter array string too long')).max(20, 'Too many filter array items'),
+	z.array(z.number().finite()).max(20, 'Too many filter number items')
+])
+
 export const advancedSearchSchema = searchSchema.extend({
-	filters: z.record(z.string(), z.unknown()).optional(),
-	sort: z.array(sortSchema).optional(),
-	include: z.array(z.string()).optional(),
-	exclude: z.array(z.string()).optional()
+	filters: z
+		.record(z.string().max(100, 'Filter key too long'), filterValueSchema)
+		.refine(
+			obj => Object.keys(obj).length <= 20,
+			'Too many filter properties'
+		)
+		.optional(),
+	sort: z.array(sortSchema).max(5, 'Too many sort criteria').optional(),
+	include: z.array(z.string().max(100, 'Include field name too long')).max(50, 'Too many include fields').optional(),
+	exclude: z.array(z.string().max(100, 'Exclude field name too long')).max(50, 'Too many exclude fields').optional()
 })
 
 export const timeRangeSchema = z.object({
@@ -364,8 +380,8 @@ export const timeRangeSchema = z.object({
 
 export const bulkOperationSchema = z.object({
 	action: z.enum(['create', 'update', 'delete', 'archive', 'restore']),
-	ids: z.array(uuidSchema).min(1, 'At least one ID is required'),
-	data: z.unknown().optional()
+	ids: z.array(uuidSchema).min(1, 'At least one ID is required').max(100, 'Too many IDs for bulk operation'),
+	data: actionDataSchema.optional()
 })
 
 export const bulkResponseSchema = z.object({
@@ -385,10 +401,10 @@ export const bulkResponseSchema = z.object({
 
 export const webhookEventSchema = z.object({
 	id: uuidSchema,
-	type: z.string(),
-	data: z.unknown(),
+	type: z.string().max(100, 'Webhook event type too long'),
+	data: actionDataSchema,
 	timestamp: dateStringSchema,
-	version: z.string().default('1.0')
+	version: z.string().regex(/^\d+\.\d+$/, 'Invalid version format').default('1.0')
 })
 
 export const webhookDeliverySchema = z.object({

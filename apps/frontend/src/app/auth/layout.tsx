@@ -1,5 +1,4 @@
 import type { Metadata } from '@/types/next.d'
-import { AuthProvider } from '@/providers/auth-provider'
 import { ReverseAuthGuard } from '@/components/auth/protected-route-guard'
 
 export const metadata: Metadata = {
@@ -19,13 +18,9 @@ interface AuthLayoutProps {
 /**
  * Layout for authentication pages
  *
- * This layout provides AuthProvider and uses ReverseAuthGuard to redirect
- * already authenticated users to the dashboard, preventing confusion.
+ * Uses ReverseAuthGuard to redirect already authenticated users to the dashboard.
+ * Auth state is managed by the global app store and useAuth hook.
  */
 export default function AuthLayout({ children }: AuthLayoutProps) {
-	return (
-		<AuthProvider>
-			<ReverseAuthGuard>{children}</ReverseAuthGuard>
-		</AuthProvider>
-	)
+	return <ReverseAuthGuard>{children}</ReverseAuthGuard>
 }

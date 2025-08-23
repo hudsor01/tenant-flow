@@ -15,8 +15,8 @@
  * Returned by Stripe checkout session endpoints
  */
 export interface CheckoutResponse {
-	url?: string // Stripe.Checkout.Session.url - checkout page URL
-	clientSecret?: string // For embedded checkout
+	url: string // Stripe.Checkout.Session.url - checkout page URL
+	sessionId: string // Stripe session ID
 }
 
 /**

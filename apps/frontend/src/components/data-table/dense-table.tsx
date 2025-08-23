@@ -530,7 +530,7 @@ export function createSelectColumn<T>() {
 export function createActionsColumn<T>(
 	actions: {
 		label: string
-		onClick: (item: T) => void
+		onClick: (_item: T) => void
 		icon?: React.ReactNode
 		variant?: 'default' | 'destructive'
 	}[]

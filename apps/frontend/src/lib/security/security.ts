@@ -239,7 +239,7 @@ export class Security {
 	// ===========================
 
 	static hasPermission(userRole: UserRole, permission: Permission): boolean {
-		return this.rolePermissions[userRole]?.includes(permission) || false
+		return this.rolePermissions[userRole]?.includes(permission) ?? false
 	}
 
 	static hasResourceAccess(
