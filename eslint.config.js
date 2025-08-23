@@ -107,14 +107,7 @@ export default tseslint.config({
             }
         ],
 
-        // Prevent factory pattern reintroduction
-        'no-restricted-patterns': [
-            'error',
-            {
-                group: ['**/factory/**', '**/*factory*', '**/*Factory*'],
-                message: 'Factory patterns are prohibited. Use direct library usage instead.'
-            }
-        ],
+        // Factory patterns are checked via no-restricted-imports below
 
         // Enforce direct React Hook Form usage
         'no-restricted-imports': [
@@ -128,6 +121,10 @@ export default tseslint.config({
                     {
                         group: ['**/query-factory*', '**/api-factory*'],
                         message: 'Use TanStack Query directly. Query factories are prohibited.'
+                    },
+                    {
+                        group: ['**/factory/**', '**/*factory*', '**/*Factory*'],
+                        message: 'Factory patterns are prohibited. Use direct library usage instead.'
                     },
                     {
                         group: ['**/useCheckout*'],

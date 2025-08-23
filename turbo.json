@@ -345,30 +345,6 @@
 			"cache": false,
 			"outputs": [],
 			"persistent": false
-		},
-		"storybook": {
-			"cache": false,
-			"persistent": true,
-			"dependsOn": ["@repo/shared#build", "@repo/database#build"]
-		},
-		"build-storybook": {
-			"dependsOn": ["^build"],
-			"inputs": [
-				"$TURBO_DEFAULT$",
-				"!**/*.stories.@(js|jsx|ts|tsx|mdx)",
-				"!**/stories/**"
-			],
-			"outputs": ["storybook-static/**"],
-			"cache": true
-		},
-		"test-storybook": {
-			"dependsOn": ["build-storybook"],
-			"cache": false
-		},
-		"@repo/storybook#build": {
-			"cache": false,
-			"persistent": false,
-			"outputs": []
 		}
 	}
 }
