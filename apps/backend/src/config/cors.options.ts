@@ -79,7 +79,9 @@ export function createCorsOptions(): FastifyCorsOptions {
 			'X-Response-Time',
 			'X-RateLimit-Limit',
 			'X-RateLimit-Remaining',
-			'X-RateLimit-Reset'
+			'X-RateLimit-Reset',
+			'Retry-After', // For rate limiting and under-pressure
+			'X-Correlation-Id' // Request correlation tracking
 		],
 		credentials: true,
 		// Production: cache preflight for 24 hours

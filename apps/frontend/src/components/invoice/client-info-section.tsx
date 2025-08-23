@@ -2,17 +2,7 @@ import { User } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import type { UseFormRegister, FieldErrors } from 'react-hook-form'
-
-import type { CustomerInvoiceForm } from '@repo/shared'
-
-interface ClientInfoSectionProps {
-	register: UseFormRegister<CustomerInvoiceForm>
-	errors: FieldErrors<CustomerInvoiceForm>
-	clientState: string
-	autoTaxRate: number
-	stateTaxRates: Record<string, number>
-}
+import type { ClientInfoSectionProps } from '@/types/components'
 
 export function ClientInfoSection({
 	register,
