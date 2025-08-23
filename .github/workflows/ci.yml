@@ -19,7 +19,7 @@ env:
 jobs:
   workflow-lint:
     name: Workflow Lint & Type Safety
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
@@ -113,7 +113,7 @@ jobs:
 
   quick-validation:
     name: Quick Validation
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     timeout-minutes: 3
     outputs:
       has-changes: ${{ steps.changes.outputs.has-changes }}
@@ -198,7 +198,7 @@ jobs:
 
   install-deps:
     name: Install Dependencies
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     timeout-minutes: 5
     needs: quick-validation
     if: needs.quick-validation.outputs.has-changes == 'true'
@@ -216,11 +216,11 @@ jobs:
       - name: Install dependencies
         run: |
           # Clean, deterministic install for CI
-          npm ci --prefer-offline --no-audit --no-fund
+          npm ci --prefer-offline --no-audit --no-fund --omit=optional
 
   code-quality:
     name: Code Quality
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     timeout-minutes: 8
     needs: [quick-validation]
     if: needs.quick-validation.outputs.has-changes == 'true'
@@ -249,7 +249,7 @@ jobs:
 
       - name: Install dependencies and tools
         run: |
-          npm ci --prefer-offline --no-audit --no-fund
+          npm ci --prefer-offline --no-audit --no-fund --omit=optional
 
       - name: Run ${{ matrix.check }}
         run: |
@@ -271,7 +271,7 @@ jobs:
 
   unit-tests:
     name: Unit Tests
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     timeout-minutes: 10
     needs: [quick-validation]
     if: needs.quick-validation.outputs.has-changes == 'true'
@@ -296,7 +296,7 @@ jobs:
 
       - name: Install dependencies and tools
         run: |
-          npm ci --prefer-offline --no-audit --no-fund
+          npm ci --prefer-offline --no-audit --no-fund --omit=optional
 
       - name: Run unit tests
         run: npx turbo run test:unit || echo "⚠️ Some tests failed - this is expected during development"
@@ -319,7 +319,7 @@ jobs:
 
   build-validation:
     name: Build Validation
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     timeout-minutes: 15
     needs: [quick-validation]
     if: needs.quick-validation.outputs.has-changes == 'true'
@@ -348,7 +348,7 @@ jobs:
 
       - name: Install dependencies and tools
         run: |
-          npm ci --prefer-offline --no-audit --no-fund
+          npm ci --prefer-offline --no-audit --no-fund --omit=optional
 
       - name: Build ${{ matrix.target }} and dependencies
         run: |
@@ -371,7 +371,7 @@ jobs:
 
   docker-validation:
     name: Docker Validation
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     timeout-minutes: 20
     needs: [quick-validation, build-validation]
     if: |
@@ -400,7 +400,7 @@ jobs:
 
   integration-tests:
     name: Integration Tests
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     timeout-minutes: 15
     needs: [unit-tests, build-validation]
     if: always() && needs.unit-tests.result == 'success'
@@ -417,7 +417,7 @@ jobs:
 
       - name: Install dependencies and tools
         run: |
-          npm ci --prefer-offline --no-audit --no-fund
+          npm ci --prefer-offline --no-audit --no-fund --omit=optional
 
       - name: Run integration tests
         run: |
@@ -430,7 +430,7 @@ jobs:
 
   quality-gate:
     name: Quality Gate
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     needs: [code-quality, unit-tests, build-validation]
     if: always()
     steps:
@@ -450,7 +450,7 @@ jobs:
 
   ci-status:
     name: CI Status
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     needs: [quality-gate, integration-tests, docker-validation]
     if: always()
     steps:
