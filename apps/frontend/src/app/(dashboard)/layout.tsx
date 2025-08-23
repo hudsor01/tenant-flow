@@ -7,10 +7,10 @@ import { PostHogPageView } from '@/components/analytics/posthog-page-view'
 import { PostHogUserProvider } from '@/components/analytics/posthog-user-provider'
 import { PostHogErrorBoundary } from '@/components/analytics/posthog-error-boundary'
 import { ServerAuthGuard } from '@/components/auth/server-auth-guard'
-import { AuthProvider } from '@/providers/auth-provider'
 import { ProtectedRouteGuard } from '@/components/auth/protected-route-guard'
 import { Navigation } from '@/components/dashboard/dashboard-navigation'
 import { DashboardSidebar } from '@/components/dashboard/dashboard-sidebar'
+import { OfflineBanner } from '@/components/ui/offline-indicator'
 import { Loader2 } from 'lucide-react'
 
 export const metadata: Metadata = {
@@ -36,8 +36,7 @@ export default function DashboardLayout({
 }: DashboardLayoutProps) {
 	return (
 		<ServerAuthGuard requireAuth={true}>
-			<AuthProvider>
-				<PHProvider>
+			<PHProvider>
 					<PostHogErrorBoundary>
 						<QueryProvider>
 							<PostHogUserProvider>
@@ -48,6 +47,9 @@ export default function DashboardLayout({
 
 									<ProtectedRouteGuard>
 										<div className="min-h-screen bg-gray-50">
+											{/* Offline Banner */}
+											<OfflineBanner />
+											
 											{/* Mobile-First Navigation */}
 											<div className="md:hidden">
 												<Navigation className="border-b" />
@@ -66,7 +68,7 @@ export default function DashboardLayout({
 													}
 												>
 													<aside className="hidden w-64 bg-white shadow-sm md:block">
-														{sidebar || (
+														{sidebar ?? (
 															<DashboardSidebar />
 														)}
 													</aside>
@@ -97,7 +99,6 @@ export default function DashboardLayout({
 						</QueryProvider>
 					</PostHogErrorBoundary>
 				</PHProvider>
-			</AuthProvider>
 		</ServerAuthGuard>
 	)
 }

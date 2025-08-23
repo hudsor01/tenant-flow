@@ -1,19 +1,11 @@
-/* TODO: Issue #76 - Advanced lease generator feature beyond MVP scope
-// This entire component should be commented out for MVP and implemented later
-export default function LeaseGeneratorForm() {
-  return (
-    <div className="p-8 text-center">
-      <h2 className="text-2xl font-semibold mb-4">Lease Generator</h2>
-      <p className="text-muted-foreground mb-4">
-        Advanced lease generation features are coming soon in a future update.
-      </p>
-      <p className="text-sm text-muted-foreground">
-        For now, focus on managing your properties and tenants.
-      </p>
-    </div>
-  )
-}
-*/
+/**
+ * Advanced Lease Generator Component
+ * 
+ * Provides comprehensive lease document generation with property and tenant data integration.
+ * Features include PDF generation, state-specific lease templates, and electronic signature support.
+ * 
+ * Note: This is a premium feature that extends beyond basic property management MVP scope.
+ */
 
 // RESTORED WORKING IMPLEMENTATION
 import React, { useState, useEffect } from 'react'
@@ -46,7 +38,8 @@ import { toast } from 'sonner'
 import type {
 	LeaseGeneratorForm,
 	LeaseOutputFormat,
-	LeaseFormData
+	LeaseFormData,
+	LeaseTemplateData
 } from '@repo/shared'
 import { leaseFormSchema } from '@repo/shared'
 import { PropertyInfoSection } from './sections/property-info-section'
@@ -76,7 +69,7 @@ interface LeaseGeneratorFormProps {
 
 const SUPPORTED_STATES_AND_REGIONS = getAllStates()
 
-export default function LeaseGeneratorForm({
+export default function LeaseGeneratorFormComponent({
 	onGenerate,
 	isGenerating,
 	usageRemaining,
@@ -177,8 +170,8 @@ export default function LeaseGeneratorForm({
 		try {
 			// Convert tenant names array to the expected format for the lease generator
 			const tenantNamesForLeaseGenerator = data.tenantNames
-				.filter(tenant => tenant.name.trim() !== '')
-				.map(tenant => tenant.name.trim())
+				.filter((tenant: { name: string }) => tenant.name.trim() !== '')
+				.map((tenant: { name: string }) => ({ name: tenant.name.trim() }))
 
 			// Map format to what the lease generator expects
 			const formatForGenerator =
@@ -186,39 +179,22 @@ export default function LeaseGeneratorForm({
 					? 'pdf'
 					: (selectedFormat as 'pdf' | 'docx' | 'html')
 
-			// Generate state-compliant lease
+			// Generate state-compliant lease with required template fields
+			const templateData: LeaseTemplateData = {
+				...data,
+				generatedAt: new Date(),
+				templateVersion: '2025.1.0',
+				// Ensure required occupancy fields are present
+				maxOccupants: data.maxOccupants || 1,
+				occupancyLimits: data.occupancyLimits || {
+					adults: 1,
+					childrenUnder18: 0,
+					childrenUnder2: 0
+				}
+			}
+
 			const leaseResult = generateStateLease({
-				data: {
-					propertyAddress: data.propertyAddress,
-					city: data.city,
-					state: data.state,
-					zipCode: data.zipCode,
-					unitNumber: data.unitNumber,
-					propertyType: data.propertyType,
-					bedrooms: data.bedrooms,
-					bathrooms: data.bathrooms,
-					squareFootage: data.squareFootage,
-					landlordName: data.landlordName,
-					landlordEmail: data.landlordEmail,
-					landlordPhone: data.landlordPhone,
-					landlordAddress: data.landlordAddress,
-					tenantNames: tenantNamesForLeaseGenerator,
-					rentAmount: data.rentAmount,
-					securityDeposit: data.securityDeposit,
-					leaseStartDate: data.leaseStartDate,
-					leaseEndDate: data.leaseEndDate,
-					paymentDueDate: data.paymentDueDate,
-					lateFeeAmount: data.lateFeeAmount,
-					lateFeeDays: data.lateFeeDays,
-					paymentMethod: data.paymentMethod,
-					paymentAddress: data.paymentAddress,
-					petPolicy: data.petPolicy,
-					petDeposit: data.petDeposit,
-					smokingPolicy: data.smokingPolicy,
-					maintenanceResponsibility: data.maintenanceResponsibility,
-					utilitiesIncluded: data.utilitiesIncluded,
-					additionalTerms: data.additionalTerms
-				},
+				data: templateData,
 				stateKey: data.state,
 				format: formatForGenerator
 			})
@@ -234,10 +210,10 @@ export default function LeaseGeneratorForm({
 			const formDataForGenerator: LeaseGeneratorForm = {
 				...data,
 				tenantNames: data.tenantNames.filter(
-					tenant => tenant.name.trim() !== ''
+					(tenant: { name: string }) => tenant.name.trim() !== ''
 				),
-				occupancyLimits: data.occupancyLimits || {
-					adults: data.maxOccupants || 2,
+				occupancyLimits: data.occupancyLimits ?? {
+					adults: data.maxOccupants ?? 2,
 					childrenUnder18: 0,
 					childrenUnder2: 0
 				}

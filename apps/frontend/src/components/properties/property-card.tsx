@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react'
-import { motion } from '@/lib/framer-motion'
+import { motion } from '@/lib/lazy-motion'
 import Image from 'next/image'
 import {
 	Building2,
@@ -14,7 +14,8 @@ import {
 	UserX
 } from 'lucide-react'
 import { formatCurrency } from '@repo/shared'
-import { createAsyncHandler } from '@/utils/async-handlers'
+import { logger } from '@/lib/logger'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
 	Card,
@@ -34,7 +35,13 @@ import {
 import type { PropertyWithDetails } from '@repo/shared'
 import { UNIT_STATUS } from '@repo/shared'
 import { useDeleteProperty } from '@/hooks/api/use-properties'
-import { gridLayouts, flexLayouts } from '@/utils/layout-classes'
+
+// Layout utility classes
+const flexLayouts = {
+	center: 'flex items-center justify-center',
+	centerVertical: 'flex items-center',
+	rowGap2: 'flex gap-2'
+}
 
 interface PropertyCardProps {
 	property: PropertyWithDetails
@@ -77,10 +84,10 @@ export default function PropertyCard({
 	}, [onEdit, property])
 
 	// Calculate property statistics
-	const totalUnits = property.units?.length || 0
+	const totalUnits = property.units?.length ?? 0
 	const occupiedUnits =
 		property.units?.filter(unit => unit.status === UNIT_STATUS.OCCUPIED)
-			.length || 0
+			.length ?? 0
 	const vacantUnits = totalUnits - occupiedUnits
 	const occupancyRate =
 		totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
@@ -89,10 +96,10 @@ export default function PropertyCard({
 	const totalRent =
 		property.units?.reduce((sum: number, unit) => {
 			if (unit.status === UNIT_STATUS.OCCUPIED) {
-				return sum + (unit.rent || 0)
+				return sum + (unit.rent ?? 0)
 			}
 			return sum
-		}, 0) || 0
+		}, 0) ?? 0
 
 	const cardVariants = {
 		hidden: { opacity: 0, y: 20 },
@@ -135,7 +142,7 @@ export default function PropertyCard({
 							className="object-cover transition-transform duration-300 group-hover:scale-105"
 						/>
 					) : (
-						<div className={`${flexLayouts.center} h-full w-full`}>
+						<div className="flex items-center justify-center h-full w-full">
 							<Building2 className="h-16 w-16 text-white/70" />
 						</div>
 					)}
@@ -165,10 +172,16 @@ export default function PropertyCard({
 								</DropdownMenuItem>
 								<DropdownMenuSeparator />
 								<DropdownMenuItem
-									onClick={createAsyncHandler(
-										handleDelete,
-										'Failed to delete property'
-									)}
+									onClick={() => {
+										void handleDelete().catch(error => {
+											logger.error(
+												'Failed to delete property:',
+												error instanceof Error ? error : new Error(String(error)),
+												{ component: 'PropertyCard' }
+											)
+											toast.error('Failed to delete property')
+										})
+									}}
 									className="text-red-600 hover:bg-red-50 hover:text-red-700"
 								>
 									<Trash2 className="mr-2 h-4 w-4" />
@@ -202,7 +215,7 @@ export default function PropertyCard({
 								{property.name}
 							</CardTitle>
 							<CardDescription
-								className={flexLayouts.centerVertical}
+								className="flex items-center"
 							>
 								<MapPin className="mr-1 h-4 w-4" />
 								{property.address}, {property.city},{' '}
@@ -223,14 +236,14 @@ export default function PropertyCard({
 					{/* Statistics Grid */}
 					<motion.div
 						variants={statVariants}
-						className={`mb-4 ${gridLayouts.responsiveCols} ${gridLayouts.gap3}`}
+						className="mb-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
 					>
 						{/* Total Units */}
 						<div
-							className={`${flexLayouts.centerVertical} rounded-lg bg-blue-50 p-3`}
+							className="flex items-center rounded-lg bg-blue-50 p-3"
 						>
 							<div
-								className={`mr-3 ${flexLayouts.center} h-8 w-8 rounded-lg bg-blue-100`}
+								className="mr-3 flex items-center justify-center h-8 w-8 rounded-lg bg-blue-100"
 							>
 								<Home className="text-primary h-4 w-4" />
 							</div>
@@ -246,10 +259,10 @@ export default function PropertyCard({
 
 						{/* Occupied Units */}
 						<div
-							className={`${flexLayouts.centerVertical} rounded-lg bg-green-50 p-3`}
+							className="flex items-center rounded-lg bg-green-50 p-3"
 						>
 							<div
-								className={`mr-3 ${flexLayouts.center} h-8 w-8 rounded-lg bg-green-100`}
+								className="mr-3 flex items-center justify-center h-8 w-8 rounded-lg bg-green-100"
 							>
 								<UserCheck className="h-4 w-4 text-green-600" />
 							</div>
@@ -265,10 +278,10 @@ export default function PropertyCard({
 
 						{/* Vacant Units */}
 						<div
-							className={`${flexLayouts.centerVertical} rounded-lg bg-orange-50 p-3`}
+							className="flex items-center rounded-lg bg-orange-50 p-3"
 						>
 							<div
-								className={`mr-3 ${flexLayouts.center} h-8 w-8 rounded-lg bg-orange-100`}
+								className="mr-3 flex items-center justify-center h-8 w-8 rounded-lg bg-orange-100"
 							>
 								<UserX className="h-4 w-4 text-orange-600" />
 							</div>
@@ -284,10 +297,10 @@ export default function PropertyCard({
 
 						{/* Monthly Revenue */}
 						<div
-							className={`${flexLayouts.centerVertical} rounded-lg bg-purple-50 p-3`}
+							className="flex items-center rounded-lg bg-purple-50 p-3"
 						>
 							<div
-								className={`mr-3 ${flexLayouts.center} h-8 w-8 rounded-lg bg-purple-100`}
+								className="mr-3 flex items-center justify-center h-8 w-8 rounded-lg bg-purple-100"
 							>
 								<DollarSign className="h-4 w-4 text-purple-600" />
 							</div>
@@ -303,7 +316,7 @@ export default function PropertyCard({
 					</motion.div>
 
 					{/* Action Buttons */}
-					<div className={flexLayouts.rowGap2}>
+					<div className="flex gap-2">
 						<Button
 							variant="outline"
 							size="sm"

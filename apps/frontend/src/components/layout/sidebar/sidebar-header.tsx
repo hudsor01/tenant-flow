@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { motion } from 'framer-motion'
+import { motion } from '@/lib/lazy-motion'
 import {
 	Building2,
 	X,
@@ -71,8 +71,8 @@ export function SidebarHeader() {
 		() => {
 			const activeWorkspace = mockWorkspaces.find(w => w.isActive)
 			return (
-				activeWorkspace ||
-				mockWorkspaces[0] || {
+				activeWorkspace ??
+				mockWorkspaces[0] ?? {
 					id: 'default',
 					name: 'Default Workspace',
 					type: 'personal' as const,

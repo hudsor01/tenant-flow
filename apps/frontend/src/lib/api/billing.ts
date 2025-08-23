@@ -1,72 +1,125 @@
 /**
- * Billing API client
- * Provides billing and subscription related API calls
+ * Billing API - Direct Stripe integration
+ * No abstractions, direct API calls only
  */
 
-import { ApiService } from './api-service'
-import type { 
-	Subscription, 
-	Invoice, 
-	PaymentMethod, 
-	CreateCheckoutSessionRequest,
-	CreateCheckoutSessionResponse,
-	CreatePortalInput,
-	UpdateSubscriptionParams
-} from '@repo/shared'
-import type { UsageMetrics } from '@/state/types'
+import { apiClient } from '@/lib/api-client'
+import type { Subscription, PaymentMethod, Invoice } from '@repo/shared'
 
-export class BillingApi {
-	static async getSubscription(): Promise<Subscription> {
-		return ApiService.getSubscription()
-	}
+// Actual response types from backend endpoints
+interface CheckoutSessionResponse {
+  url: string
+  sessionId: string
+}
 
-	static async getInvoices(): Promise<Invoice[]> {
-		return ApiService.getInvoices()
-	}
+interface PortalSessionResponse {
+  url: string
+}
 
-	static async getPaymentMethods(): Promise<PaymentMethod[]> {
-		return ApiService.getPaymentMethods()
-	}
+interface SubscriptionResponse {
+  subscription: {
+    id: string
+    status: string
+  }
+  clientSecret?: string
+  requiresAction?: boolean
+}
 
-	static async createCheckoutSession(data: CreateCheckoutSessionRequest): Promise<CreateCheckoutSessionResponse> {
-		return ApiService.createCheckoutSession(data)
-	}
+/**
+ * Query keys for React Query caching
+ */
+export const billingKeys = {
+  all: ['billing'] as const,
+  subscription: () => [...billingKeys.all, 'subscription'] as const,
+  paymentMethods: () => [...billingKeys.all, 'payment-methods'] as const,
+  invoices: () => [...billingKeys.all, 'invoices'] as const,
+  usage: () => [...billingKeys.all, 'usage'] as const,
+}
 
-	static async createPortalSession(data: CreatePortalInput): Promise<{ url: string }> {
-		return ApiService.createPortalSession(data)
-	}
+/**
+ * Billing API functions - Direct calls only
+ */
+export const billingApi = {
+  // Subscription - Managed through Stripe Customer Portal
+  async getSubscription() {
+    // Note: Subscription details are managed through Customer Portal
+    // Backend doesn't expose subscription endpoints directly
+    throw new Error('Subscription details should be accessed through Customer Portal')
+  },
 
-	static async updateSubscription(params: UpdateSubscriptionParams): Promise<Subscription> {
-		return ApiService.updateSubscription(params)
-	}
+  async updateSubscription(data: { newPriceId: string; userId: string; prorationBehavior?: 'create_prorations' | 'none' | 'always_invoice' }) {
+    // Note: Subscription updates are handled through Customer Portal
+    const portalSession = await this.createPortalSession()
+    return { message: 'Redirecting to customer portal for subscription update', portalUrl: portalSession.url }
+  },
 
-	static async cancelSubscription(): Promise<{ message: string }> {
-		return ApiService.cancelSubscription()
-	}
+  async cancelSubscription() {
+    // Note: Subscription management is handled through Stripe Customer Portal
+    // This method redirects to portal for cancellation
+    const portalSession = await this.createPortalSession()
+    return { message: 'Redirecting to customer portal for cancellation', portalUrl: portalSession.url }
+  },
 
-	static async addPaymentMethod(paymentMethodId: string): Promise<PaymentMethod> {
-		return ApiService.addPaymentMethod(paymentMethodId)
-	}
+  // Payment Methods - Managed through Stripe Customer Portal
+  async getPaymentMethods() {
+    // Note: Payment methods are managed through Customer Portal
+    // Backend doesn't expose payment method endpoints directly
+    const portalSession = await this.createPortalSession()
+    return { portalUrl: portalSession.url, message: 'Redirecting to customer portal for payment methods' }
+  },
 
-	static async setDefaultPaymentMethod(paymentMethodId: string): Promise<{ message: string }> {
-		return ApiService.setDefaultPaymentMethod(paymentMethodId)
-	}
+  async addPaymentMethod(paymentMethodId: string) {
+    // Note: Adding payment methods is handled through Customer Portal
+    const portalSession = await this.createPortalSession()
+    return { portalUrl: portalSession.url, message: 'Redirecting to customer portal to add payment method' }
+  },
 
-	static async getUsage(): Promise<UsageMetrics> {
-		const response = await ApiService.getUsage()
-		// Map the API response to frontend UsageMetrics format
-		return {
-			properties_count: response.properties || 0,
-			units_count: response.properties || 0, // Units are related to properties
-			tenants_count: response.tenants || 0,
-			team_members_count: response.tenants || 0, // Team members mapped from tenants
-			storage_gb: 0, // Storage not available from this endpoint
-			api_calls_this_month: 0, // API calls not available from this endpoint
-			last_updated: new Date()
-		}
-	}
+  async setDefaultPaymentMethod(paymentMethodId: string) {
+    // Note: Payment method management is handled through Stripe Customer Portal
+    // This method redirects to portal for payment method updates
+    const portalSession = await this.createPortalSession()
+    return { message: 'Redirecting to customer portal for payment method update', portalUrl: portalSession.url }
+  },
 
-	static async downloadInvoice(invoiceId: string): Promise<{ url: string }> {
-		return ApiService.downloadInvoice(invoiceId)
-	}
+  async removePaymentMethod(paymentMethodId: string) {
+    // Note: Removing payment methods is handled through Customer Portal
+    const portalSession = await this.createPortalSession()
+    return { message: 'Redirecting to customer portal to remove payment method', portalUrl: portalSession.url }
+  },
+
+  // Checkout & Portal - Match backend endpoints exactly
+  async createCheckoutSession(data: {
+    planId: string // Match backend DTO field name
+    interval: 'monthly' | 'annual' // Match backend DTO field name
+    successUrl?: string
+    cancelUrl?: string
+  }) {
+    return apiClient.post<CheckoutSessionResponse>('/stripe/checkout', data)
+  },
+
+  async createPortalSession(data?: { returnUrl?: string }) {
+    return apiClient.post<PortalSessionResponse>('/stripe/portal', data)
+  },
+
+  async createSubscription(data: {
+    confirmationTokenId: string
+    planType: string
+    billingInterval: 'month' | 'year'
+  }) {
+    return apiClient.post<SubscriptionResponse>('/stripe/create-subscription', data)
+  },
+
+  // Invoices - Managed through Stripe Customer Portal
+  async getInvoices() {
+    // Note: Invoice history is available through Customer Portal
+    // Backend doesn't expose invoice endpoints directly
+    const portalSession = await this.createPortalSession()
+    return { portalUrl: portalSession.url, message: 'Redirecting to customer portal for invoice history' }
+  },
+
+  async downloadInvoice(invoiceId: string) {
+    // Note: Invoice downloads are handled through Customer Portal
+    const portalSession = await this.createPortalSession()
+    return { portalUrl: portalSession.url, message: 'Redirecting to customer portal to download invoice' }
+  },
 }

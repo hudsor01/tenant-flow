@@ -16,7 +16,7 @@ interface CheckoutButtonProps {
 	billingInterval: 'monthly' | 'annual'
 	className?: string
 	children?: React.ReactNode
-	onSuccess?: (subscriptionId: string) => void
+	onSuccess?: (_subscriptionId: string) => void
 }
 
 export function CheckoutButton({

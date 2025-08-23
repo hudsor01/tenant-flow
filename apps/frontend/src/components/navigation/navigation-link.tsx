@@ -11,7 +11,7 @@ import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { Badge } from '@/components/ui/primitives'
+import { Badge } from '@/components/ui/badge'
 import type { NavItem } from './types'
 
 const VARIANT_STYLES = {
@@ -99,7 +99,7 @@ export function NavigationLink({
 			</span>
 
 			{showBadges && item.badge && (
-				<Badge size="sm" variant="secondary" className="ml-auto">
+				<Badge variant="secondary" className="ml-auto">
 					{item.badge}
 				</Badge>
 			)}

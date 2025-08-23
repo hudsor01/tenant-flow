@@ -5,58 +5,35 @@ import type { User } from './auth'
 import type { Lease } from './leases'
 import type { Property, Unit, PropertyStats } from './properties'
 import type { Tenant, TenantStats } from './tenants'
-import type { MaintenanceRequest } from './maintenance'
-import type { NotificationData } from './notifications'
+import type { MaintenanceRequest as _MaintenanceRequest } from './maintenance'
+import type { NotificationData as _NotificationData } from './notifications'
 import type {
-	AppError,
-	AuthError,
-	ValidationError,
-	NetworkError,
-	ServerError,
-	BusinessError,
-	FileUploadError,
-	PaymentError,
-	ErrorResponse,
-	SuccessResponse,
-	ApiResponse as CentralizedApiResponse,
-	ControllerApiResponse
+	AppError as _AppError,
+	AuthError as _AuthError,
+	ValidationError as _ValidationError,
+	NetworkError as _NetworkError,
+	ServerError as _ServerError,
+	BusinessError as _BusinessError,
+	FileUploadError as _FileUploadError,
+	PaymentError as _PaymentError,
+	ErrorResponse as _ErrorResponse,
+	SuccessResponse as _SuccessResponse,
+	ApiResponse as _CentralizedApiResponse,
+	ControllerApiResponse as _ControllerApiResponse
 } from './errors'
 import type {
-	CheckoutResponse,
-	PortalResponse as CreatePortalSessionResponse,
-	TrialResponse as StartTrialResponse,
-	ApiSubscriptionCreateResponse as CreateSubscriptionResponse,
-	SubscriptionUpdateResponse as UpdateSubscriptionResponse,
-	SubscriptionCancelResponse as CancelSubscriptionResponse
+	CheckoutResponse as _CheckoutResponse,
+	PortalResponse as _CreatePortalSessionResponse,
+	TrialResponse as _StartTrialResponse,
+	ApiSubscriptionCreateResponse as _CreateSubscriptionResponse,
+	SubscriptionUpdateResponse as _UpdateSubscriptionResponse,
+	SubscriptionCancelResponse as _CancelSubscriptionResponse
 } from './responses'
 
-// Re-export commonly used types
-export type { User, Lease, Property, Tenant, Unit, MaintenanceRequest }
-export type { NotificationData }
-export type {
-	AppError,
-	AuthError,
-	ValidationError,
-	NetworkError,
-	ServerError,
-	BusinessError,
-	FileUploadError,
-	PaymentError,
-	ErrorResponse,
-	SuccessResponse,
-	CentralizedApiResponse,
-	ControllerApiResponse
-}
-
-// Re-export subscription response types from responses.ts for backwards compatibility
-export type {
-	CheckoutResponse,
-	CreatePortalSessionResponse,
-	StartTrialResponse,
-	CreateSubscriptionResponse,
-	UpdateSubscriptionResponse,
-	CancelSubscriptionResponse
-}
+// Note: Core types (User, Lease, Property, etc.) are exported from their own files
+// Note: Error types are exported from errors.ts 
+// Note: Response types are exported from responses.ts
+// This file contains only API-specific types to avoid re-export conflicts
 
 // Note: ApiResponse types moved to responses.ts to avoid conflicts
 
@@ -93,6 +70,15 @@ export interface UpdateUserProfileDto {
 	avatarUrl?: string | null
 }
 
+// Alternative naming for consistency with frontend
+export interface UpdateUserProfileInput {
+	name?: string | null
+	phone?: string | null
+	bio?: string | null
+	avatarUrl?: string | null
+	fullName?: string | null
+}
+
 // Note: Property, Tenant, Unit, and Lease input types are defined in api-inputs.ts
 // Import them from there instead
 
@@ -126,6 +112,11 @@ export interface UnitStats {
 	occupiedUnits: number
 	maintenanceUnits: number
 	averageRent: number
+	// Additional properties needed by tests
+	total: number
+	occupied: number
+	vacant: number
+	occupancyRate: number
 }
 
 export interface LeaseStats {
@@ -134,6 +125,9 @@ export interface LeaseStats {
 	expiredLeases: number
 	pendingLeases: number
 	totalRentRoll: number
+	// Additional properties needed by tests
+	total: number
+	active: number
 }
 
 export interface ExpiringLease extends Omit<Lease, 'endDate'> {
@@ -222,6 +216,25 @@ export interface DashboardStats {
 		total: number
 		unread: number
 	}
+	// Additional properties needed by tests
+	revenue: {
+		total: number
+		monthly: number
+		collected: number
+	}
+}
+
+// Dashboard activity item for recent activity feed
+export interface ActivityItem {
+	id: string
+	type: 'property' | 'tenant' | 'lease' | 'maintenance' | 'payment'
+	title: string
+	description: string
+	timestamp: Date
+	entityId?: string
+	entityType?: string
+	userId?: string
+	metadata?: Record<string, unknown>
 }
 
 // Invitation types

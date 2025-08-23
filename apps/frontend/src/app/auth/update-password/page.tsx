@@ -1,7 +1,7 @@
 import type { Metadata } from '@/types/next.d'
 import { Suspense } from 'react'
-import { UpdatePasswordForm } from '@/components/auth/update-password-form'
-import { AuthLayout } from '@/components/auth/auth-layout'
+import { UpdatePasswordForm } from '@/components/forms/update-password-form'
+import { AuthLayout } from '@/components/layout/auth/layout'
 
 export const metadata: Metadata = {
 	title: 'Update Password | TenantFlow',

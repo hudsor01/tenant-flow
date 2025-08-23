@@ -51,12 +51,10 @@ export interface NavigationMetrics {
 
 export type ResourceType = 'image' | 'script' | 'style' | 'font' | 'other'
 
-export interface ResourceThresholds {
-  [key: string]: {
-    warn: number
-    critical: number
-  }
-}
+export type ResourceThresholds = Record<string, {
+  warn: number
+  critical: number
+}>
 
 export interface PerformanceBudget {
   maxImageSize: number
@@ -414,11 +412,11 @@ export interface LoadBalancerConfig {
     timeout: number
     retries: number
   }
-  servers: Array<{
+  servers: {
     url: string
     weight?: number
     backup?: boolean
-  }>
+  }[]
 }
 
 // ========================

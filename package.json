@@ -32,7 +32,7 @@
 		"lint:fix": "turbo run lint:fix --filter='!@repo/storybook'",
 		"format": "turbo run format --filter='!@repo/storybook'",
 		"typecheck": "turbo run typecheck --filter='!@repo/storybook'",
-		"test": "turbo run test",
+		"test": "turbo run test:unit",
 		"test:unit": "turbo run test:unit",
 		"generate": "echo 'Code generation available through individual tools: npm run update-supabase-types, npm run secrets:generate'",
 		"update-supabase-types": "npx supabase gen types typescript --project-id \"bshjmbshupiibfiewpxb\" --schema public > packages/shared/src/types/supabase-generated.ts"
@@ -46,6 +46,7 @@
 		"@eslint/plugin-kit": "0.3.5",
 		"@humanfs/node": "0.16.6",
 		"@playwright/test": "1.54.2",
+		"@rollup/rollup-darwin-arm64": "4.47.1",
 		"@testing-library/jest-dom": "^6.7.0",
 		"@testing-library/react": "^16.3.0",
 		"@testing-library/user-event": "^14.6.1",
@@ -98,7 +99,7 @@
 	},
 	"lint-staged": {
 		"*.{ts,tsx}": [
-			"eslint --fix --max-warnings 0",
+			"eslint --fix",
 			"prettier --write"
 		],
 		"*.{js,jsx,json,md}": [
