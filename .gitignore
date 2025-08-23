@@ -504,6 +504,7 @@ docker-compose.*.yml
 !**/password-*.tsx
 !**/secret-*.tsx
 !**/key-*.tsx
+!**/auth-token.decorator.ts
 
 # But still block actual secret values
 **/*actual[_-]password*
