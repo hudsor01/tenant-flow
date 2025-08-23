@@ -542,8 +542,11 @@ export type PartialExcept<T, K extends keyof T> = Partial<T> & Pick<T, K>
 
 /**
  * Merge component props with HTML attributes
+ * @template T - Element type (unused but required for type compatibility)
+ * @template P - Component props
  */
-export type ComponentProps<_T extends ElementType, P = object> = P &
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export type ComponentProps<T extends ElementType, P = object> = P &
 	Record<string, unknown>
 
 /**
