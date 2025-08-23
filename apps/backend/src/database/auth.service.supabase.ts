@@ -210,7 +210,9 @@ export class AuthServiceSupabase {
 			bio: validatedRow.bio || null,
 			supabaseId: validatedRow.supabaseId || validatedRow.id,
 			stripeCustomerId: null,
-			organizationId: validatedRow.organizationId || null
+			organizationId: validatedRow.organizationId || null,
+			profileComplete: true, // Assuming profile is complete if user exists
+			lastLoginAt: toISOString(validatedRow.updatedAt) // Using updatedAt as proxy for lastLoginAt
 		}
 	}
 }

@@ -1,10 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
-import {
-	ErrorCode,
-	ErrorHandlerService
-} from '../services/error-handler.service'
+import { ErrorHandlerService } from '../services/error-handler.service'
 import * as path from 'path'
 
 // Custom type that matches what we're returning
@@ -33,7 +30,6 @@ export class StorageService {
 
 		if (!supabaseUrl || !supabaseServiceKey) {
 			throw this.errorHandler.createBusinessError(
-				ErrorCode.BAD_REQUEST,
 				'Supabase configuration missing: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY required',
 				{ operation: 'constructor', resource: 'storage' }
 			)
@@ -59,7 +55,6 @@ export class StorageService {
 			normalized === '..'
 		) {
 			throw this.errorHandler.createBusinessError(
-				ErrorCode.BAD_REQUEST,
 				'Invalid file path detected',
 				{ operation: 'validateFilePath', resource: 'file' }
 			)
@@ -90,7 +85,6 @@ export class StorageService {
 			dangerousExtensions.test(filename)
 		) {
 			throw this.errorHandler.createBusinessError(
-				ErrorCode.BAD_REQUEST,
 				'Invalid file name or extension',
 				{ operation: 'validateFileName', resource: 'file' }
 			)
@@ -132,7 +126,6 @@ export class StorageService {
 				bucket
 			})
 			throw this.errorHandler.createBusinessError(
-				ErrorCode.STORAGE_ERROR,
 				'Failed to upload file',
 				{
 					operation: 'uploadFile',
@@ -181,7 +174,6 @@ export class StorageService {
 				bucket
 			})
 			throw this.errorHandler.createBusinessError(
-				ErrorCode.STORAGE_ERROR,
 				'Failed to delete file',
 				{
 					operation: 'deleteFile',
@@ -210,7 +202,6 @@ export class StorageService {
 				folder
 			})
 			throw this.errorHandler.createBusinessError(
-				ErrorCode.STORAGE_ERROR,
 				'Failed to list files',
 				{
 					operation: 'listFiles',
