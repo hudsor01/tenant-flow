@@ -489,7 +489,8 @@ export interface BusinessRule {
  * Utility types for common patterns
  */
 export type WithRequired<T, K extends keyof T> = T & Required<Pick<T, K>>
-export type WithOptional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
+export type WithOptional<T, K extends keyof T> = Omit<T, K> &
+	Partial<Pick<T, K>>
 
 /**
  * Loading state type

@@ -123,7 +123,13 @@ export const commonValidations = {
 			if (!file) return true
 			// Basic security checks using native File API
 			const maxSize = 10 * 1024 * 1024 // 10MB
-			const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'text/plain']
+			const allowedTypes = [
+				'image/jpeg',
+				'image/png',
+				'image/gif',
+				'application/pdf',
+				'text/plain'
+			]
 			return file.size <= maxSize && allowedTypes.includes(file.type)
 		}, 'File must be under 10MB and be a valid image, PDF, or text file')
 }
@@ -170,7 +176,10 @@ export const profileUpdateSchema = createFormSchema({
 	name: commonValidations.name,
 	email: commonValidations.email,
 	phone: commonValidations.phone.optional(),
-	company: z.string().max(100, 'Company name must be less than 100 characters').optional(),
+	company: z
+		.string()
+		.max(100, 'Company name must be less than 100 characters')
+		.optional(),
 	bio: z.string().max(500, 'Bio must be less than 500 characters').optional(),
 	address: commonValidations.address.optional(),
 	city: commonValidations.city.optional(),

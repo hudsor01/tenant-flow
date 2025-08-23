@@ -19,14 +19,14 @@ export default function NotFound() {
 				</div>
 
 				<div className="flex flex-col gap-3">
-					<Link 
-						href="/dashboard" 
+					<Link
+						href="/dashboard"
 						className="rounded-lg bg-blue-600 px-6 py-3 text-white hover:bg-blue-700"
 					>
 						Go to Dashboard
 					</Link>
-					<Link 
-						href="/" 
+					<Link
+						href="/"
 						className="rounded-lg bg-gray-100 px-6 py-3 text-gray-700 hover:bg-gray-200"
 					>
 						Visit Homepage

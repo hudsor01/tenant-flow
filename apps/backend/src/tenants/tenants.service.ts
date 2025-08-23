@@ -158,7 +158,10 @@ export class TenantsService {
 	/**
 	 * Get tenants by property ID
 	 */
-	async findByProperty(propertyId: string, ownerId: string): Promise<TenantWithRelations[]> {
+	async findByProperty(
+		propertyId: string,
+		ownerId: string
+	): Promise<TenantWithRelations[]> {
 		const { data, error } = await this.supabase
 			.from('Tenant')
 			.select(

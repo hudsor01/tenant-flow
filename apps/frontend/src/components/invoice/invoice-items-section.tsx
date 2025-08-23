@@ -155,12 +155,13 @@ export function InvoiceItemsSection({
 								<div className="bg-muted/50 flex h-10 items-center justify-center rounded-md text-sm font-medium">
 									$
 									{formatCurrency(
-										(Number(
+										Number(
 											watchedItems[index]?.quantity ?? 0
-										)) *
-											(Number(
-												watchedItems[index]?.unitPrice ?? 0
-											))
+										) *
+											Number(
+												watchedItems[index]
+													?.unitPrice ?? 0
+											)
 									)}
 								</div>
 							</div>

@@ -12,13 +12,26 @@ import { queryKeys } from '@/lib/query-keys'
 interface OptimisticMutationOptions<TData, TVariables> {
 	mutationFn: (variables: TVariables) => Promise<TData>
 	queryKey: readonly unknown[]
-	addOptimisticUpdate?: (oldData: TData[] | undefined, newItem: Partial<TData>) => TData[]
-	updateOptimisticUpdate?: (oldData: TData[] | undefined, updatedItem: Partial<TData> & { id: string }) => TData[]
-	removeOptimisticUpdate?: (oldData: TData[] | undefined, itemId: string) => TData[]
+	addOptimisticUpdate?: (
+		oldData: TData[] | undefined,
+		newItem: Partial<TData>
+	) => TData[]
+	updateOptimisticUpdate?: (
+		oldData: TData[] | undefined,
+		updatedItem: Partial<TData> & { id: string }
+	) => TData[]
+	removeOptimisticUpdate?: (
+		oldData: TData[] | undefined,
+		itemId: string
+	) => TData[]
 	successMessage?: string | ((data: TData) => string)
 	errorMessage?: string
 	invalidateQueries?: unknown[][]
-	onErrorRecovery?: (error: unknown, variables: TVariables, context: MutationContext) => void
+	onErrorRecovery?: (
+		error: unknown,
+		variables: TVariables,
+		context: MutationContext
+	) => void
 }
 
 interface MutationContext {
@@ -28,10 +41,12 @@ interface MutationContext {
 export function useOptimisticMutation<
 	TData extends { id: string },
 	// Constrain TVariables so .type, .data, and .id are recognized by TS
-	TVariables extends { type: 'create' | 'update' | 'delete'; data?: Partial<TData>; id?: string }
->(
-	options: OptimisticMutationOptions<TData, TVariables>
-) {
+	TVariables extends {
+		type: 'create' | 'update' | 'delete'
+		data?: Partial<TData>
+		id?: string
+	}
+>(options: OptimisticMutationOptions<TData, TVariables>) {
 	const queryClient = useQueryClient()
 
 	const {
@@ -49,7 +64,7 @@ export function useOptimisticMutation<
 	return useMutation<TData, Error, TVariables, MutationContext>({
 		mutationFn,
 
-		onMutate: async (variables) => {
+		onMutate: async variables => {
 			// Cancel outgoing refetches
 			await queryClient.cancelQueries({ queryKey })
 
@@ -59,33 +74,41 @@ export function useOptimisticMutation<
 			// Optimistically update the cache
 			if (addOptimisticUpdate && variables.type === 'create') {
 				const optimisticItem = {
-					id: `temp-${ Date.now() }`,
+					id: `temp-${Date.now()}`,
 					// ensure we're always spreading an object
-					...( variables.data ?? {} ),
+					...(variables.data ?? {}),
 					createdAt: new Date().toISOString(),
 					updatedAt: new Date().toISOString()
 				} as unknown as Partial<TData>
 
-				queryClient.setQueryData<TData[]>(queryKey, (old) =>
+				queryClient.setQueryData<TData[]>(queryKey, old =>
 					addOptimisticUpdate(old, optimisticItem)
 				)
 			}
 
-			if (updateOptimisticUpdate && variables.type === 'update' && variables.id) {
+			if (
+				updateOptimisticUpdate &&
+				variables.type === 'update' &&
+				variables.id
+			) {
 				const optimisticUpdate = {
 					id: variables.id,
 					// ensure we're always spreading an object
-					...( variables.data ?? {} ),
+					...(variables.data ?? {}),
 					updatedAt: new Date().toISOString()
 				} as unknown as Partial<TData> & { id: string }
 
-				queryClient.setQueryData<TData[]>(queryKey, (old) =>
+				queryClient.setQueryData<TData[]>(queryKey, old =>
 					updateOptimisticUpdate(old, optimisticUpdate)
 				)
 			}
 
-			if (removeOptimisticUpdate && variables.type === 'delete' && variables.id) {
-				queryClient.setQueryData<TData[]>(queryKey, (old) =>
+			if (
+				removeOptimisticUpdate &&
+				variables.type === 'delete' &&
+				variables.id
+			) {
+				queryClient.setQueryData<TData[]>(queryKey, old =>
 					removeOptimisticUpdate(old, variables.id!)
 				)
 			}
@@ -100,7 +123,10 @@ export function useOptimisticMutation<
 			}
 
 			logger.error('Optimistic mutation failed', error, {
-				variables: process.env.NODE_ENV === 'development' ? variables : '[hidden]',
+				variables:
+					process.env.NODE_ENV === 'development'
+						? variables
+						: '[hidden]',
 				queryKey
 			})
 
@@ -113,7 +139,7 @@ export function useOptimisticMutation<
 		onSuccess: (data, variables) => {
 			// If this was a create operation, replace temp ID with real ID
 			if (variables.type === 'create' && variables.data) {
-				queryClient.setQueryData<TData[]>(queryKey, (old) => {
+				queryClient.setQueryData<TData[]>(queryKey, old => {
 					if (!old) return [data]
 					return old.map(item =>
 						item.id.startsWith('temp-') ? data : item
@@ -123,9 +149,10 @@ export function useOptimisticMutation<
 
 			// Show success message
 			if (successMessage) {
-				const message = typeof successMessage === 'function'
-					? successMessage(data)
-					: successMessage
+				const message =
+					typeof successMessage === 'function'
+						? successMessage(data)
+						: successMessage
 				toast.success(message)
 			}
 
@@ -135,7 +162,8 @@ export function useOptimisticMutation<
 			})
 
 			logger.debug('Optimistic mutation succeeded', {
-				data: process.env.NODE_ENV === 'development' ? data : '[hidden]',
+				data:
+					process.env.NODE_ENV === 'development' ? data : '[hidden]',
 				queryKey
 			})
 		},
@@ -156,37 +184,50 @@ export function useOptimisticList<T extends { id: string }>(
 ) {
 	const queryClient = useQueryClient()
 
-	const addOptimistic = useCallback((item: Partial<T>) => {
-		queryClient.setQueryData<T[]>(queryKey, (old) => {
-			const optimisticItem = {
-				id: `temp-${Date.now()}`,
-				...item,
-				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString()
-			} as unknown as T
+	const addOptimistic = useCallback(
+		(item: Partial<T>) => {
+			queryClient.setQueryData<T[]>(queryKey, old => {
+				const optimisticItem = {
+					id: `temp-${Date.now()}`,
+					...item,
+					createdAt: new Date().toISOString(),
+					updatedAt: new Date().toISOString()
+				} as unknown as T
 
-			if (!old) return [optimisticItem]
-			return [optimisticItem, ...old]
-		})
-	}, [queryClient, queryKey])
+				if (!old) return [optimisticItem]
+				return [optimisticItem, ...old]
+			})
+		},
+		[queryClient, queryKey]
+	)
 
-	const updateOptimistic = useCallback((id: string, updates: Partial<T>) => {
-		queryClient.setQueryData<T[]>(queryKey, (old) => {
-			if (!old) return []
-			return old.map(item =>
-				item.id === id
-					? { ...item, ...updates, updatedAt: new Date().toISOString() }
-					: item
-			)
-		})
-	}, [queryClient, queryKey])
+	const updateOptimistic = useCallback(
+		(id: string, updates: Partial<T>) => {
+			queryClient.setQueryData<T[]>(queryKey, old => {
+				if (!old) return []
+				return old.map(item =>
+					item.id === id
+						? {
+								...item,
+								...updates,
+								updatedAt: new Date().toISOString()
+							}
+						: item
+				)
+			})
+		},
+		[queryClient, queryKey]
+	)
 
-	const removeOptimistic = useCallback((id: string) => {
-		queryClient.setQueryData<T[]>(queryKey, (old) => {
-			if (!old) return []
-			return old.filter(item => item.id !== id)
-		})
-	}, [queryClient, queryKey])
+	const removeOptimistic = useCallback(
+		(id: string) => {
+			queryClient.setQueryData<T[]>(queryKey, old => {
+				if (!old) return []
+				return old.filter(item => item.id !== id)
+			})
+		},
+		[queryClient, queryKey]
+	)
 
 	const revertOptimistic = useCallback(() => {
 		queryClient.invalidateQueries({ queryKey })
@@ -212,11 +253,14 @@ export function useOptimisticWithRollback<T extends { id: string }>(
 		return queryClient.getQueryData<T[]>(queryKey)
 	}, [queryClient, queryKey])
 
-	const rollback = useCallback((snapshot: T[] | undefined) => {
-		if (snapshot) {
-			queryClient.setQueryData(queryKey, snapshot)
-		}
-	}, [queryClient, queryKey])
+	const rollback = useCallback(
+		(snapshot: T[] | undefined) => {
+			if (snapshot) {
+				queryClient.setQueryData(queryKey, snapshot)
+			}
+		},
+		[queryClient, queryKey]
+	)
 
 	const commit = useCallback(() => {
 		queryClient.invalidateQueries({ queryKey })

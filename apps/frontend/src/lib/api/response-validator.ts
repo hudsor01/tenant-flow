@@ -12,7 +12,9 @@ export class ApiResponseValidationError extends Error {
 		public validationErrors: ZodError,
 		public rawResponse: unknown
 	) {
-		super(`API response validation failed for ${schema}: ${validationErrors.message}`)
+		super(
+			`API response validation failed for ${schema}: ${validationErrors.message}`
+		)
 		this.name = 'ApiResponseValidationError'
 	}
 }
@@ -33,7 +35,11 @@ export class ResponseValidator {
 		schemaName: string,
 		options: ValidationOptions = {}
 	): T {
-		const { throwOnFailure = true, logErrors = true, schema: schemaLabel } = options
+		const {
+			throwOnFailure = true,
+			logErrors = true,
+			schema: schemaLabel
+		} = options
 
 		try {
 			// Parse and validate the data
@@ -124,7 +130,12 @@ export class ResponseValidator {
 		try {
 			// Try to get schema shape description
 			if ('_def' in schema) {
-				const def = schema._def as { shape?: () => Record<string, { _def?: { typeName?: string } }> }
+				const def = schema._def as {
+					shape?: () => Record<
+						string,
+						{ _def?: { typeName?: string } }
+					>
+				}
 				if (def.shape) {
 					const shapeFunction = def.shape
 					const shape: Record<string, string> = {}
@@ -144,7 +155,9 @@ export class ResponseValidator {
 	/**
 	 * Extract validation error messages for user display
 	 */
-	static getValidationErrorMessages(error: ApiResponseValidationError): string[] {
+	static getValidationErrorMessages(
+		error: ApiResponseValidationError
+	): string[] {
 		return error.validationErrors.issues.map(err => {
 			const path = err.path.length > 0 ? err.path.join('.') : 'root'
 			return `${path}: ${err.message}`
@@ -154,7 +167,9 @@ export class ResponseValidator {
 	/**
 	 * Check if error is a validation error
 	 */
-	static isValidationError(error: unknown): error is ApiResponseValidationError {
+	static isValidationError(
+		error: unknown
+	): error is ApiResponseValidationError {
 		return error instanceof ApiResponseValidationError
 	}
 }
@@ -166,24 +181,26 @@ export const commonValidators = {
 	/**
 	 * Standard API response wrapper
 	 */
-	apiResponse: <T>(dataSchema: ZodSchema<T>) => z.object({
-		success: z.boolean(),
-		data: dataSchema,
-		message: z.string().optional(),
-		timestamp: z.string().optional()
-	}),
+	apiResponse: <T>(dataSchema: ZodSchema<T>) =>
+		z.object({
+			success: z.boolean(),
+			data: dataSchema,
+			message: z.string().optional(),
+			timestamp: z.string().optional()
+		}),
 
 	/**
 	 * Paginated response
 	 */
-	paginatedResponse: <T>(itemSchema: ZodSchema<T>) => z.object({
-		items: z.array(itemSchema),
-		total: z.number(),
-		page: z.number(),
-		limit: z.number(),
-		hasNext: z.boolean().optional(),
-		hasPrev: z.boolean().optional()
-	}),
+	paginatedResponse: <T>(itemSchema: ZodSchema<T>) =>
+		z.object({
+			items: z.array(itemSchema),
+			total: z.number(),
+			page: z.number(),
+			limit: z.number(),
+			hasNext: z.boolean().optional(),
+			hasPrev: z.boolean().optional()
+		}),
 
 	/**
 	 * Error response

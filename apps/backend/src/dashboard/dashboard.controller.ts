@@ -41,7 +41,10 @@ export class DashboardController {
 	) {
 		this.logger.log(`Getting dashboard activity for user ${user.id}`)
 
-		const activity = await this.dashboardService.getActivity(user.id, authToken)
+		const activity = await this.dashboardService.getActivity(
+			user.id,
+			authToken
+		)
 
 		return createSuccessResponse(
 			activity,

@@ -7,11 +7,7 @@ import { LeasesModule } from '../leases/leases.module'
 import { ErrorHandlerService } from '../services/error-handler.service'
 
 @Module({
-	imports: [
-		PropertiesModule,
-		TenantsModule,
-		LeasesModule
-	],
+	imports: [PropertiesModule, TenantsModule, LeasesModule],
 	controllers: [DashboardController],
 	providers: [DashboardService, ErrorHandlerService],
 	exports: [DashboardService]
