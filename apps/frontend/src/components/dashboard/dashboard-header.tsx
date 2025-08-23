@@ -1,12 +1,12 @@
 'use client'
 
-import { motion } from '@/lib/framer-motion'
+import { motion } from '@/lib/lazy-motion'
 import { cardVariants } from './dashboard-animations'
 
 interface DashboardHeaderProps {
 	userEmail?: string
 	selectedPeriod: '7d' | '30d' | '90d'
-	onPeriodChange: (period: '7d' | '30d' | '90d') => void
+	onPeriodChange: (_period: '7d' | '30d' | '90d') => void
 }
 
 export function DashboardHeader({
@@ -14,7 +14,7 @@ export function DashboardHeader({
 	selectedPeriod,
 	onPeriodChange
 }: DashboardHeaderProps) {
-	const username = userEmail?.split('@')[0] || 'User'
+	const username = userEmail?.split('@')[0] ?? 'User'
 
 	const periodOptions = [
 		{ key: '7d', label: '7 Days' },

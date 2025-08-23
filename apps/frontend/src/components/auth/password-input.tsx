@@ -8,7 +8,7 @@ interface PasswordInputProps {
 	placeholder: string
 	value: string
 	showPassword: boolean
-	onValueChange: (value: string) => void
+	onValueChange: (_value: string) => void
 	onToggleVisibility: () => void
 	required?: boolean
 	disabled?: boolean

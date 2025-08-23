@@ -4,6 +4,7 @@ import { LoggerService } from '../services/logger.service'
 import { SecurityMonitorService } from '../security/security-monitor.service'
 import { SimpleSecurityService } from '../security/security.service'
 import { MetricsService } from '../services/metrics.service'
+import { UsageLimitsGuard } from './guards/usage-limits.guard'
 
 /**
  * Common module that provides shared services and utilities
@@ -15,14 +16,16 @@ import { MetricsService } from '../services/metrics.service'
 		LoggerService,
 		SecurityMonitorService,
 		SimpleSecurityService,
-		MetricsService
+		MetricsService,
+		UsageLimitsGuard
 	],
 	exports: [
 		ErrorHandlerService,
 		LoggerService,
 		SecurityMonitorService,
 		SimpleSecurityService,
-		MetricsService
+		MetricsService,
+		UsageLimitsGuard
 	]
 })
 export class CommonModule {}

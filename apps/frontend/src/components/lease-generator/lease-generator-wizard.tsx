@@ -38,7 +38,6 @@ import { LeaseTermsSection } from './sections/wizard-lease-terms'
 import { AdditionalTermsSection } from './sections/additional-terms-section'
 import { GenerationSummary } from './sections/generation-summary'
 import type { LeaseGeneratorForm, LeaseOutputFormat } from '@repo/shared'
-import { createAsyncHandler } from '@/utils/async-handlers'
 
 interface LeaseGeneratorWizardProps {
 	onGenerate: (
@@ -272,11 +271,12 @@ export default function LeaseGeneratorWizard({
 
 		try {
 			// Transform data for lease generator
+			const filteredTenantNames = data.tenantNames.filter(
+				(tenant: { name: string }) => tenant.name.trim() !== ''
+			)
 			const leaseData: LeaseGeneratorForm = {
 				...data,
-				tenantNames: data.tenantNames.filter(
-					tenant => tenant.name.trim() !== ''
-				)
+				tenantNames: filteredTenantNames
 			}
 
 			await onGenerate(leaseData, selectedFormat)
@@ -414,10 +414,16 @@ export default function LeaseGeneratorWizard({
 
 			{/* Step content */}
 			<form
-				onSubmit={createAsyncHandler(
-					form.handleSubmit(handleSubmit),
-					'Failed to submit lease form'
-				)}
+				onSubmit={(e) => {
+					void form.handleSubmit(handleSubmit)(e).catch(error => {
+						logger.error(
+							'Failed to submit lease form:',
+							error instanceof Error ? error : new Error(String(error)),
+							{ component: 'LeaseGeneratorWizard' }
+						)
+						toast.error('Failed to submit lease form')
+					})
+				}}
 				className="space-y-6"
 			>
 				{renderStepContent()}
@@ -458,10 +464,16 @@ export default function LeaseGeneratorWizard({
 							) : (
 								<Button
 									type="button"
-									onClick={createAsyncHandler(
-										goToNextStep,
-										'Failed to proceed to next step'
-									)}
+									onClick={() => {
+										void goToNextStep().catch(error => {
+											logger.error(
+												'Failed to proceed to next step:',
+												error instanceof Error ? error : new Error(String(error)),
+												{ component: 'LeaseGeneratorWizard' }
+											)
+											toast.error('Failed to proceed to next step')
+										})
+									}}
 									className="flex items-center gap-2"
 								>
 									Next

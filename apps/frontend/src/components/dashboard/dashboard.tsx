@@ -1,14 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { logger } from '@/lib/logger'
-import { motion } from '@/lib/framer-motion'
-import { useAuth } from '../../hooks/use-auth'
+import { motion } from '@/lib/lazy-motion'
+import { useAuth } from '@/hooks/use-auth'
 import {
-	useDashboardStats,
+	useDashboardOverview,
 	useDashboardActivity
 } from '../../hooks/api/use-dashboard'
-import { Spinner } from '@/components/ui/spinner'
 import {
 	DashboardHeader,
 	DashboardMetrics,
@@ -16,12 +14,11 @@ import {
 	DashboardActivityFeed,
 	contentVariants
 } from './index'
-import {
-	ErrorScreen,
-	LoadingScreen
-} from '@/components/common/centered-container'
+import { DashboardErrorBoundary } from './dashboard-error-boundary'
+import { DashboardStatsLoading } from './dashboard-stats-loading'
+import { logger } from '@/lib/logger'
 
-export default function Dashboard() {
+function DashboardContent() {
 	const { user } = useAuth()
 	const [selectedPeriod, setSelectedPeriod] = useState<'7d' | '30d' | '90d'>(
 		'30d'
@@ -32,7 +29,7 @@ export default function Dashboard() {
 		data: stats,
 		isLoading: isStatsLoading,
 		error: statsError
-	} = useDashboardStats({
+	} = useDashboardOverview({
 		enabled: !!user?.id,
 		refetchInterval: 5 * 60 * 1000 // Refetch every 5 minutes
 	})
@@ -41,58 +38,39 @@ export default function Dashboard() {
 		data: activities,
 		isLoading: isActivitiesLoading,
 		error: activitiesError
-	} = useDashboardActivity(10, {
+	} = useDashboardActivity({
 		enabled: !!user?.id
 	})
 
-	const isLoading = isStatsLoading || isActivitiesLoading
-	const hasError = statsError || activitiesError
-
-	// Quick action handlers
+	// Quick action handlers with router navigation
 	const handleAddProperty = () => {
-		// TODO: Implement property creation modal
 		logger.info('Add property clicked', { component: 'dashboard' })
+		window.location.href = '/properties/new'
 	}
 
 	const handleNewTenant = () => {
-		// TODO: Navigate to tenant creation
 		logger.info('New tenant clicked', { component: 'dashboard' })
+		window.location.href = '/tenants/new'
 	}
 
 	const handleScheduleMaintenance = () => {
-		// TODO: Implement maintenance request modal
 		logger.info('Schedule maintenance clicked', { component: 'dashboard' })
+		window.location.href = '/maintenance/new'
 	}
 
 	const handleGenerateReport = () => {
-		// TODO: Navigate to reports page
 		logger.info('Generate report clicked', { component: 'dashboard' })
+		window.location.href = '/reports'
 	}
 
-	if (hasError) {
-		return (
-			<ErrorScreen>
-				<Spinner size="xl" color="red" className="mx-auto mb-4" />
-				<p className="mb-2 text-white/70">
-					Failed to load dashboard data
-				</p>
-				<button
-					onClick={() => window.location.reload()}
-					className="text-[#60a5fa] hover:underline"
-				>
-					Try refreshing the page
-				</button>
-			</ErrorScreen>
-		)
+	// Loading states
+	if (isStatsLoading) {
+		return <DashboardStatsLoading />
 	}
 
-	if (isLoading) {
-		return (
-			<LoadingScreen>
-				<Spinner size="xl" color="blue" className="mx-auto mb-4" />
-				<p className="text-white/70">Loading dashboard...</p>
-			</LoadingScreen>
-		)
+	// Error handling - throw to be caught by error boundary
+	if (statsError || activitiesError) {
+		throw statsError || activitiesError
 	}
 
 	return (
@@ -111,7 +89,7 @@ export default function Dashboard() {
 
 			{/* Metrics Grid */}
 			<DashboardMetrics
-				stats={stats || null}
+				stats={stats ?? null}
 				isLoading={isStatsLoading}
 			/>
 
@@ -127,10 +105,18 @@ export default function Dashboard() {
 
 				{/* Recent Activity */}
 				<DashboardActivityFeed
-					activities={activities || []}
+					activities={activities ?? []}
 					isLoading={isActivitiesLoading}
 				/>
 			</div>
 		</motion.div>
+	)
+}
+
+export default function Dashboard() {
+	return (
+		<DashboardErrorBoundary>
+			<DashboardContent />
+		</DashboardErrorBoundary>
 	)
 }

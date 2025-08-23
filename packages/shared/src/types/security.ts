@@ -48,7 +48,14 @@ export enum SecurityEventType {
 	CONFIGURATION_CHANGE = 'CONFIGURATION_CHANGE',
 	CONFIG_ACCESS = 'CONFIG_ACCESS',
 	PII_ACCESS = 'PII_ACCESS',
-	SYSTEM_ERROR = 'SYSTEM_ERROR'
+	SYSTEM_ERROR = 'SYSTEM_ERROR',
+
+	// Additional security event types for comprehensive monitoring
+	SESSION_HIJACK_ATTEMPT = 'SESSION_HIJACK_ATTEMPT',
+	COMMAND_INJECTION_ATTEMPT = 'COMMAND_INJECTION_ATTEMPT',
+	BRUTE_FORCE_ATTEMPT = 'BRUTE_FORCE_ATTEMPT',
+	PATH_TRAVERSAL_ATTEMPT = 'PATH_TRAVERSAL_ATTEMPT',
+	SECURITY_CONFIG_CHANGE = 'SECURITY_CONFIG_CHANGE'
 }
 
 /**
@@ -69,7 +76,7 @@ export interface SecurityEvent {
 	severity: SecurityEventSeverity
 	userId?: string
 	details?: string
-	metadata?: Record<string, unknown>
+	metadata?: SecurityEventMetadata
 	ipAddress?: string
 	userAgent?: string
 	timestamp?: Date
@@ -84,7 +91,7 @@ export interface SecurityAuditLog {
 	severity: SecurityEventSeverity
 	userId?: string
 	details: string
-	metadata?: Record<string, unknown>
+	metadata?: SecurityEventMetadata
 	ipAddress?: string
 	userAgent?: string
 	timestamp?: Date
@@ -112,13 +119,26 @@ export interface SecurityMetrics {
 }
 
 /**
- * Security validation result
+ * Security validation result with constrained data types
  */
-export interface SecurityValidationResult<T = unknown> {
+export type SecureDataType = 
+	| string 
+	| number 
+	| boolean 
+	| null 
+	| (string | number | boolean | null)[]
+	| Record<string, string | number | boolean | null>
+
+export interface SecurityValidationResult<T extends SecureDataType = SecureDataType> {
 	isValid: boolean
 	data?: T
 	errors?: string[]
-	sanitizedInput?: unknown
+	sanitizedInput?: T
+	violationDetails?: {
+		riskLevel: SecurityEventSeverity
+		detectedPatterns: string[]
+		sanitizationApplied: boolean
+	}
 }
 
 /**
@@ -143,4 +163,214 @@ export interface ComplianceStatus {
 	}
 	recentAlerts?: SecurityEvent[]
 	recommendations?: string[]
+}
+
+/**
+ * Security header configuration for CSP and other security policies
+ */
+export interface SecurityHeaderConfig {
+	contentSecurityPolicy: CSPDirectives
+	permissionsPolicy: PermissionsPolicyDirectives
+	strictTransportSecurity: HSTSConfig
+	crossOriginPolicies: CrossOriginConfig
+}
+
+/**
+ * Content Security Policy directives with type safety
+ */
+export interface CSPDirectives {
+	'default-src': string[]
+	'script-src': string[]
+	'style-src': string[]
+	'img-src': string[]
+	'font-src': string[]
+	'connect-src': string[]
+	'frame-src': string[]
+	'object-src': string[]
+	'base-uri': string[]
+	'form-action': string[]
+	'frame-ancestors': string[]
+	'upgrade-insecure-requests'?: boolean
+	'block-all-mixed-content'?: boolean
+}
+
+/**
+ * Permissions Policy configuration
+ */
+export interface PermissionsPolicyDirectives {
+	camera: string
+	microphone: string
+	geolocation: string
+	gyroscope: string
+	magnetometer: string
+	payment: string
+	usb: string
+	'interest-cohort': string
+	'browsing-topics': string
+	'attribution-reporting': string
+	'trust-token-redemption': string
+	fullscreen: string
+	'picture-in-picture': string
+	accelerometer: string
+	'ambient-light-sensor': string
+	autoplay: string
+	'clipboard-read': string
+	'clipboard-write': string
+	'display-capture': string
+	'document-domain': string
+	'encrypted-media': string
+	'execution-while-not-rendered': string
+	'execution-while-out-of-viewport': string
+	gamepad: string
+	hid: string
+	'idle-detection': string
+	'local-fonts': string
+	midi: string
+	'navigation-override': string
+	'otp-credentials': string
+	'publickey-credentials-create': string
+	'publickey-credentials-get': string
+	'screen-wake-lock': string
+	serial: string
+	'speaker-selection': string
+	'storage-access': string
+	'web-share': string
+	'window-management': string
+	'xr-spatial-tracking': string
+}
+
+/**
+ * HTTP Strict Transport Security configuration
+ */
+export interface HSTSConfig {
+	maxAge: number
+	includeSubDomains: boolean
+	preload: boolean
+}
+
+/**
+ * Cross-origin policy configuration
+ */
+export interface CrossOriginConfig {
+	embedderPolicy: 'unsafe-none' | 'require-corp'
+	openerPolicy: 'unsafe-none' | 'same-origin-allow-popups' | 'same-origin'
+	resourcePolicy: 'same-site' | 'same-origin' | 'cross-origin'
+}
+
+/**
+ * CSP nonce management types
+ */
+export interface CSPNonceData {
+	nonce: string
+	expires: number
+	sessionId?: string
+}
+
+/**
+ * CSP violation report structure
+ */
+export interface CSPViolationReport {
+	blockedURI?: string
+	documentURI?: string
+	effectiveDirective?: string
+	originalPolicy?: string
+	referrer?: string
+	violatedDirective?: string
+	sourceFile?: string
+	lineNumber?: number
+	columnNumber?: number
+	sample?: string
+	timestamp: string
+}
+
+/**
+ * Security data classification types
+ */
+export type DataClassificationType = 
+	| 'PII'           // Personally identifiable information
+	| 'PHI'           // Protected health information  
+	| 'FINANCIAL'     // Financial/payment data
+	| 'CREDENTIALS'   // Authentication credentials
+	| 'LEGAL'         // Legal documents/contracts
+	| 'OPERATIONAL'   // Business operational data
+	| 'PUBLIC'        // Public information
+
+/**
+ * Type-safe user metadata for authentication
+ */
+export interface SecureAppMetadata {
+	provider?: string
+	providers?: string[]
+	role?: string
+	organizationId?: string
+	permissions?: string[]
+}
+
+/**
+ * Type-safe user metadata for profiles  
+ */
+export interface SecureUserMetadata {
+	name?: string
+	full_name?: string
+	avatar_url?: string
+	phone?: string
+	company_name?: string
+	job_title?: string
+	last_login?: string
+	email_verified?: boolean
+	phone_verified?: boolean
+}
+
+/**
+ * Security event metadata with typed fields
+ */
+export interface SecurityEventMetadata {
+	// Network security
+	ipAddress?: string
+	userAgent?: string
+	requestId?: string
+	
+	// Authentication context
+	sessionId?: string
+	refreshTokenId?: string
+	mfaUsed?: boolean
+	loginMethod?: 'password' | 'oauth' | 'magic_link' | 'otp'
+	
+	// Device context
+	deviceFingerprint?: string
+	deviceType?: 'desktop' | 'mobile' | 'tablet' | 'unknown'
+	platform?: string
+	browser?: string
+	
+	// File security
+	fileName?: string
+	fileSize?: number
+	fileType?: string
+	filePath?: string
+	fileHash?: string
+	scanResult?: 'clean' | 'infected' | 'suspicious' | 'error'
+	
+	// Application context
+	feature?: string
+	action?: string
+	resource?: string
+	previousState?: string
+	newState?: string
+	
+	// Error context
+	errorCode?: string
+	errorMessage?: string
+	stackTrace?: string
+	
+	// Compliance context
+	gdprBasis?: 'consent' | 'contract' | 'legal_obligation' | 'vital_interests' | 'public_task' | 'legitimate_interests'
+	retentionPeriod?: number
+	anonymizationRequired?: boolean
+	
+	// Application-specific context  
+	context?: string
+	quarantineReason?: string
+	configChangeType?: string
+	previousConfig?: unknown
+	updates?: unknown
 }

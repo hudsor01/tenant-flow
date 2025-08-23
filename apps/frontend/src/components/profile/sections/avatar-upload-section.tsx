@@ -35,7 +35,7 @@ export function AvatarUploadSection({
 			<div className="relative">
 				<Avatar className="h-24 w-24">
 					<AvatarImage
-						src={displayAvatar || undefined}
+						src={displayAvatar ?? undefined}
 						alt={user?.name || 'User avatar'}
 					/>
 					<AvatarFallback className="bg-primary/10 text-primary text-xl font-semibold">

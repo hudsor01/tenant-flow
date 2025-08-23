@@ -8,7 +8,7 @@ export function ErrorDisplay({ error, className }: ErrorDisplayProps) {
 
 	return (
 		<div
-			className={`bg-destructive/10 border-destructive/20 rounded-md border p-3 ${className || ''}`}
+			className={`bg-destructive/10 border-destructive/20 rounded-md border p-3 ${className ?? ''}`}
 		>
 			<p className="text-destructive text-sm">{error}</p>
 		</div>

@@ -11,7 +11,7 @@ import type { PropertyFormState } from '@/lib/actions/property-actions'
 
 interface PropertyFormFeaturesProps {
 	property?: Property
-	errors?: PropertyFormState['errors']
+	error?: string
 	onAmenitiesChange?: (amenities: string[]) => void
 }
 
@@ -40,7 +40,7 @@ function AmenityTag({ amenity, onRemove }: AmenityTagProps) {
 
 interface AmenityInputProps {
 	value: string
-	onChange: (value: string) => void
+	onChange: (_value: string) => void
 	onAdd: () => void
 }
 
@@ -70,7 +70,7 @@ function AmenityInput({ value, onChange, onAdd }: AmenityInputProps) {
 
 export function PropertyFormFeatures({
 	property,
-	errors,
+	error,
 	onAmenitiesChange
 }: PropertyFormFeaturesProps) {
 	const [amenities, setAmenities] = useState<string[]>([])
@@ -103,11 +103,11 @@ export function PropertyFormFeatures({
 					defaultValue={property?.description || ''}
 					placeholder="Describe the property (optional)"
 					rows={4}
-					className={errors?.description ? 'border-destructive' : ''}
+					className={error ? 'border-destructive' : ''}
 				/>
-				{errors?.description && (
+				{error && (
 					<p className="text-destructive text-sm">
-						{errors.description[0]}
+						{error}
 					</p>
 				)}
 			</div>

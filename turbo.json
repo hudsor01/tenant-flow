@@ -7,7 +7,6 @@
 		"timeout": 60
 	},
 	"globalEnv": [
-		"NODE_ENV",
 		"CI",
 		"VERCEL",
 		"VERCEL_ENV",
@@ -51,7 +50,7 @@
 			],
 			"cache": true,
 			"persistent": false,
-			"env": ["NODE_ENV", "VERCEL", "VERCEL_ENV", "VERCEL_URL"]
+			"env": ["VERCEL", "VERCEL_ENV", "VERCEL_URL"]
 		},
 		"@repo/database#build": {
 			"dependsOn": ["@repo/shared#build"],
@@ -114,7 +113,6 @@
 				".turbo/**"
 			],
 			"env": [
-				"NODE_ENV",
 				"NEXT_PUBLIC_*",
 				"VERCEL",
 				"VERCEL_ENV",
@@ -277,7 +275,7 @@
 				"!test-results/**"
 			],
 			"persistent": false,
-			"env": ["NODE_ENV", "CI"]
+			"env": ["CI"]
 		},
 		"test:unit": {
 			"dependsOn": ["@repo/shared#build"],
@@ -303,7 +301,7 @@
 			"cache": true,
 			"outputs": ["coverage/**", "test-results/**"],
 			"persistent": false,
-			"env": ["NODE_ENV", "CI"]
+			"env": ["CI"]
 		},
 		"test:integration": {
 			"dependsOn": ["@repo/shared#build", "test:unit"],
@@ -318,7 +316,7 @@
 			"cache": false,
 			"outputs": ["coverage/**", "test-results/**"],
 			"persistent": false,
-			"env": ["NODE_ENV", "DATABASE_URL", "CI"]
+			"env": ["DATABASE_URL", "CI"]
 		},
 		"test:coverage": {
 			"dependsOn": ["@repo/shared#build"],
@@ -333,7 +331,7 @@
 				"!coverage/**"
 			],
 			"persistent": false,
-			"env": ["NODE_ENV", "CI"]
+			"env": ["CI"]
 		},
 		"test:e2e": {
 			"dependsOn": ["@repo/shared#build"],
@@ -371,6 +369,11 @@
 		"test-storybook": {
 			"dependsOn": ["build-storybook"],
 			"cache": false
+		},
+		"@repo/storybook#build": {
+			"cache": false,
+			"persistent": false,
+			"outputs": []
 		}
 	}
 }

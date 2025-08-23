@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from '@/lib/lazy-motion'
 import { Menu, Search, Bell, X, ChevronRight } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { useDashboardStats } from '@/hooks/api/use-dashboard'
+import { useDashboardOverview } from '@/hooks/api/use-dashboard'
 import { cn } from '@/lib/utils'
 
 // Page title mapping based on routes
@@ -61,7 +61,7 @@ export function MobileHeader({
 	className
 }: MobileHeaderProps) {
 	const pathname = usePathname()
-	const { data: stats } = useDashboardStats()
+	const { data: stats } = useDashboardOverview()
 	const [isSearchOpen, setIsSearchOpen] = useState(false)
 
 	// Get current page title
@@ -69,7 +69,7 @@ export function MobileHeader({
 	const breadcrumbs = getBreadcrumbs(pathname)
 
 	// Calculate notification count
-	const notificationCount = stats?.maintenanceRequests?.open || 0
+	const notificationCount = stats?.maintenanceRequests?.open ?? 0
 
 	// Close search on route change
 	useEffect(() => {
