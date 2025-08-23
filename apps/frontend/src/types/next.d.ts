@@ -87,7 +87,7 @@ export namespace MetadataRoute {
 		host?: string
 	}
 
-	export type Sitemap = {
+	export type Sitemap = Array<{
 		url: string
 		lastModified?: string | Date
 		changeFrequency?:

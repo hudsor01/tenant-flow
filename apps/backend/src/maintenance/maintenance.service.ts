@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { Injectable, Logger } from '@nestjs/common'
 import { SupabaseService } from '../database/supabase.service'
 import type { MaintenanceRequest } from '@repo/shared'
@@ -86,24 +85,6 @@ export enum MaintenanceStatus {
 	COMPLETED = 'COMPLETED',
 	CANCELED = 'CANCELED',
 	ON_HOLD = 'ON_HOLD'
-=======
-import { Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common'
-import { SupabaseService } from '../database/supabase.service'
-import { MaintenanceCreateDto, MaintenanceQueryDto, MaintenanceUpdateDto } from './dto'
-import type { MaintenanceRequest, RequestStatus } from '@repo/shared'
-
-export interface MaintenanceRequestWithRelations extends MaintenanceRequest {
-	unit?: {
-		id: string
-		unitNumber: string
-		property?: {
-			id: string
-			name: string
-			address: string
-			ownerId: string
-		}
-	}
->>>>>>> origin/copilot/vscode1755830877462
 }
 
 @Injectable()
@@ -111,7 +92,6 @@ export class MaintenanceService {
 	private readonly logger = new Logger(MaintenanceService.name)
 
 	constructor(
-<<<<<<< HEAD
 		private readonly supabaseService: SupabaseService,
 		private readonly errorHandler: ErrorHandlerService
 	) {}
@@ -154,43 +134,11 @@ export class MaintenanceService {
 	}
 
 	async findAll(ownerId: string, query?: MaintenanceQueryDto): Promise<MaintenanceRequest[]> {
-=======
-		private readonly supabaseService: SupabaseService
-	) {}
-
-	async findAll(
-		ownerId: string,
-		query?: MaintenanceQueryDto
-	): Promise<MaintenanceRequestWithRelations[]> {
->>>>>>> origin/copilot/vscode1755830877462
 		try {
 			const client = this.supabaseService.getAdminClient()
 			
 			let queryBuilder = client
 				.from('MaintenanceRequest')
-<<<<<<< HEAD
-				.select('*')
-				.eq('requestedBy', ownerId)
-
-			if (query?.unitId) {
-				queryBuilder = queryBuilder.eq('unitId', query.unitId)
-			}
-			
-			if (query?.status) {
-				queryBuilder = queryBuilder.eq('status', query.status)
-			}
-			
-			if (query?.priority) {
-				queryBuilder = queryBuilder.eq('priority', query.priority)
-			}
-
-			if (query?.limit) {
-				queryBuilder = queryBuilder.limit(query.limit)
-			}
-
-			if (query?.offset) {
-				queryBuilder = queryBuilder.range(query.offset, (query.offset + (query.limit || 10)) - 1)
-=======
 				.select(`
 					*,
 					unit:Unit!inner (
@@ -219,13 +167,11 @@ export class MaintenanceService {
 			}
 			if (query?.unitId) {
 				queryBuilder = queryBuilder.eq('unitId', query.unitId)
->>>>>>> origin/copilot/vscode1755830877462
 			}
 
 			const { data, error } = await queryBuilder
 
 			if (error) {
-<<<<<<< HEAD
 				throw this.errorHandler.createBusinessError(
 					ErrorCode.STORAGE_ERROR,
 					'Failed to fetch maintenance requests',
@@ -241,67 +187,11 @@ export class MaintenanceService {
 	}
 
 	async findOne(id: string, ownerId: string): Promise<MaintenanceRequest> {
-=======
-				this.logger.error('Error fetching maintenance requests:', error)
-				throw new Error(`Failed to fetch maintenance requests: ${error.message}`)
-			}
-
-			return data || []
-		} catch (error) {
-			this.logger.error('Error fetching maintenance requests:', error)
-			throw new InternalServerErrorException('Failed to fetch maintenance requests')
-		}
-	}
-
-	async findOne(id: string, ownerId: string): Promise<MaintenanceRequestWithRelations> {
->>>>>>> origin/copilot/vscode1755830877462
 		try {
 			const client = this.supabaseService.getAdminClient()
 			
 			const { data, error } = await client
 				.from('MaintenanceRequest')
-<<<<<<< HEAD
-				.select('*')
-				.eq('id', id)
-				.eq('requestedBy', ownerId)
-				.single()
-
-			if (error) {
-				throw this.errorHandler.createNotFoundError('Maintenance request', id)
-			}
-
-			return data as MaintenanceRequest
-		} catch (error) {
-			this.logger.error('Failed to fetch maintenance request', { error, id, ownerId })
-			throw error
-		}
-	}
-
-	async update(id: string, ownerId: string, updateDto: MaintenanceUpdateDto): Promise<MaintenanceRequest> {
-		try {
-			const client = this.supabaseService.getAdminClient()
-			
-			const { data, error } = await client
-				.from('MaintenanceRequest')
-				.update(updateDto)
-				.eq('id', id)
-				.eq('requestedBy', ownerId)
-				.select()
-				.single()
-
-			if (error) {
-				throw this.errorHandler.createBusinessError(
-					ErrorCode.STORAGE_ERROR,
-					'Failed to update maintenance request',
-					{ metadata: { error: error.message } }
-				)
-			}
-
-			return data as MaintenanceRequest
-		} catch (error) {
-			this.logger.error('Failed to update maintenance request', { error, id, ownerId, updateDto })
-			throw error
-=======
 				.select(`
 					*,
 					unit:Unit!inner (
@@ -504,16 +394,12 @@ export class MaintenanceService {
 			}
 			this.logger.error('Error updating maintenance request status:', error)
 			throw new InternalServerErrorException('Failed to update maintenance request status')
->>>>>>> origin/copilot/vscode1755830877462
 		}
 	}
 
 	async remove(id: string, ownerId: string): Promise<void> {
 		try {
 			const client = this.supabaseService.getAdminClient()
-<<<<<<< HEAD
-			
-=======
 
 			// First verify the maintenance request belongs to the owner
 			const existing = await this.findOne(id, ownerId)
@@ -521,25 +407,10 @@ export class MaintenanceService {
 				throw new NotFoundException('Maintenance request not found')
 			}
 
->>>>>>> origin/copilot/vscode1755830877462
 			const { error } = await client
 				.from('MaintenanceRequest')
 				.delete()
 				.eq('id', id)
-<<<<<<< HEAD
-				.eq('requestedBy', ownerId)
-
-			if (error) {
-				throw this.errorHandler.createBusinessError(
-					ErrorCode.STORAGE_ERROR,
-					'Failed to delete maintenance request',
-					{ metadata: { error: error.message } }
-				)
-			}
-		} catch (error) {
-			this.logger.error('Failed to delete maintenance request', { error, id, ownerId })
-			throw error
-=======
 
 			if (error) {
 				this.logger.error('Error deleting maintenance request:', error)
@@ -634,7 +505,6 @@ export class MaintenanceService {
 		} catch (error) {
 			this.logger.error('Error fetching maintenance stats:', error)
 			throw new InternalServerErrorException('Failed to fetch maintenance stats')
->>>>>>> origin/copilot/vscode1755830877462
 		}
 	}
 }
