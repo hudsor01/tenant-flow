@@ -414,15 +414,19 @@ export default function LeaseGeneratorWizard({
 
 			{/* Step content */}
 			<form
-				onSubmit={(e) => {
-					void form.handleSubmit(handleSubmit)(e).catch(error => {
-						logger.error(
-							'Failed to submit lease form:',
-							error instanceof Error ? error : new Error(String(error)),
-							{ component: 'LeaseGeneratorWizard' }
-						)
-						toast.error('Failed to submit lease form')
-					})
+				onSubmit={e => {
+					void form
+						.handleSubmit(handleSubmit)(e)
+						.catch(error => {
+							logger.error(
+								'Failed to submit lease form:',
+								error instanceof Error
+									? error
+									: new Error(String(error)),
+								{ component: 'LeaseGeneratorWizard' }
+							)
+							toast.error('Failed to submit lease form')
+						})
 				}}
 				className="space-y-6"
 			>
@@ -468,10 +472,17 @@ export default function LeaseGeneratorWizard({
 										void goToNextStep().catch(error => {
 											logger.error(
 												'Failed to proceed to next step:',
-												error instanceof Error ? error : new Error(String(error)),
-												{ component: 'LeaseGeneratorWizard' }
+												error instanceof Error
+													? error
+													: new Error(String(error)),
+												{
+													component:
+														'LeaseGeneratorWizard'
+												}
 											)
-											toast.error('Failed to proceed to next step')
+											toast.error(
+												'Failed to proceed to next step'
+											)
 										})
 									}}
 									className="flex items-center gap-2"

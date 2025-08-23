@@ -9,10 +9,7 @@ import type {
 	ClickHandler,
 	AsyncSubmitHandler
 } from '../core/common'
-import type {
-	PropertyFormData,
-	TenantFormData
-} from '@repo/shared/validation'
+import type { PropertyFormData, TenantFormData } from '@repo/shared/validation'
 import type { Property, Tenant } from '@repo/shared'
 
 // ============================================

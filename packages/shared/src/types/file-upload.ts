@@ -20,7 +20,7 @@ export interface FileUploadResult {
 }
 
 /**
- * Enhanced options for secure file upload operations  
+ * Enhanced options for secure file upload operations
  */
 export interface FileUploadOptions {
 	maxSize?: number
@@ -39,11 +39,11 @@ export interface FileUploadOptions {
 /**
  * File upload context for security categorization
  */
-export type FileUploadContext = 
-	| 'documents' 
-	| 'images' 
-	| 'avatar' 
-	| 'maintenance' 
+export type FileUploadContext =
+	| 'documents'
+	| 'images'
+	| 'avatar'
+	| 'maintenance'
 	| 'contracts'
 	| 'reports'
 

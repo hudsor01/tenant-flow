@@ -9,10 +9,7 @@ import { CommonModule } from '../shared/common.module'
  * No repositories, minimal dependencies
  */
 @Module({
-	imports: [
-		SupabaseModule,
-		CommonModule
-	],
+	imports: [SupabaseModule, CommonModule],
 	controllers: [PropertiesController],
 	providers: [PropertiesService],
 	exports: [PropertiesService]

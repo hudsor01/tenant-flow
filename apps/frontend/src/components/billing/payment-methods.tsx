@@ -19,16 +19,22 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import {
-  CreditCard,
-  Plus,
-  Trash2,
-  Check,
-  Star,
-  Lock,
-  Loader2,
-  AlertCircle
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger
+} from '@/components/ui/dialog'
+import {
+	CreditCard,
+	Plus,
+	Trash2,
+	Check,
+	Star,
+	Lock,
+	Loader2,
+	AlertCircle
 } from 'lucide-react'
 import { usePaymentMethods } from '@/hooks/api/use-billing'
 import { useNotificationSystem } from '@/hooks/use-app-store'
@@ -37,351 +43,387 @@ import { EnhancedElementsProvider } from '@/lib/stripe/elements-provider'
 import { apiClient } from '@/lib/api-client'
 
 interface AddPaymentMethodProps {
-  onSuccess?: () => void
-  onCancel?: () => void
+	onSuccess?: () => void
+	onCancel?: () => void
 }
 
 /**
  * Add Payment Method Component using Setup Intent pattern
  */
 function AddPaymentMethodForm({ onSuccess, onCancel }: AddPaymentMethodProps) {
-  const stripe = useStripe()
-  const elements = useElements()
-  const { notifySuccess, notifyError } = useNotificationSystem()
-  const queryClient = useQueryClient()
+	const stripe = useStripe()
+	const elements = useElements()
+	const { notifySuccess, notifyError } = useNotificationSystem()
+	const queryClient = useQueryClient()
 
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+	const [isProcessing, setIsProcessing] = useState(false)
+	const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
+	const handleSubmit = useCallback(
+		async (e: React.FormEvent) => {
+			e.preventDefault()
+			setError(null)
 
-    if (!stripe || !elements) {
-      setError('Payment system not ready. Please try again.')
-      return
-    }
+			if (!stripe || !elements) {
+				setError('Payment system not ready. Please try again.')
+				return
+			}
 
-    setIsProcessing(true)
+			setIsProcessing(true)
 
-    try {
-      // Create Setup Intent for secure payment method collection
-      const setupIntentResponse = await apiClient.post<{
-        clientSecret: string
-        setupIntentId: string
-      }>('/billing/setup-intent')
+			try {
+				// Create Setup Intent for secure payment method collection
+				const setupIntentResponse = await apiClient.post<{
+					clientSecret: string
+					setupIntentId: string
+				}>('/billing/setup-intent')
 
-      // Confirm Setup Intent with payment method
-      const { error: confirmError } = await stripe.confirmSetup({
-        elements,
-        clientSecret: setupIntentResponse.clientSecret,
-        confirmParams: {
-          return_url: `${window.location.origin}/dashboard/settings?payment_method_added=true`
-        },
-        redirect: 'if_required'
-      })
+				// Confirm Setup Intent with payment method
+				const { error: confirmError } = await stripe.confirmSetup({
+					elements,
+					clientSecret: setupIntentResponse.clientSecret,
+					confirmParams: {
+						return_url: `${window.location.origin}/dashboard/settings?payment_method_added=true`
+					},
+					redirect: 'if_required'
+				})
 
-      if (confirmError) {
-        setError(confirmError.message || 'Failed to add payment method')
-        return
-      }
+				if (confirmError) {
+					setError(
+						confirmError.message || 'Failed to add payment method'
+					)
+					return
+				}
 
-      // Success - invalidate payment methods query
-      await queryClient.invalidateQueries({ queryKey: billingKeys.paymentMethods() })
+				// Success - invalidate payment methods query
+				await queryClient.invalidateQueries({
+					queryKey: billingKeys.paymentMethods()
+				})
 
-      notifySuccess('Payment Method Added', 'Your payment method has been added successfully.')
-      onSuccess?.()
+				notifySuccess(
+					'Payment Method Added',
+					'Your payment method has been added successfully.'
+				)
+				onSuccess?.()
+			} catch (err) {
+				const message =
+					err instanceof Error
+						? err.message
+						: 'An unexpected error occurred'
+				setError(message)
+				notifyError('Failed to Add Payment Method', message)
+			} finally {
+				setIsProcessing(false)
+			}
+		},
+		[stripe, elements, queryClient, onSuccess, notifySuccess, notifyError]
+	)
 
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'An unexpected error occurred'
-      setError(message)
-      notifyError('Failed to Add Payment Method', message)
-    } finally {
-      setIsProcessing(false)
-    }
-  }, [stripe, elements, queryClient, onSuccess, notifySuccess, notifyError])
+	return (
+		<form onSubmit={handleSubmit} className="space-y-6">
+			<div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+				<PaymentElement
+					options={{
+						layout: {
+							type: 'tabs',
+							defaultCollapsed: false
+						},
+						fields: {
+							billingDetails: {
+								name: 'auto',
+								email: 'never', // Don't collect email for setup
+								address: {
+									country: 'auto',
+									postalCode: 'auto'
+								}
+							}
+						},
+						terms: {
+							card: 'never' // No terms needed for setup
+						},
+						wallets: {
+							applePay: 'auto',
+							googlePay: 'auto'
+						}
+					}}
+				/>
+			</div>
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-        <PaymentElement
-          options={{
-            layout: {
-              type: 'tabs',
-              defaultCollapsed: false
-            },
-            fields: {
-              billingDetails: {
-                name: 'auto',
-                email: 'never', // Don't collect email for setup
-                address: {
-                  country: 'auto',
-                  postalCode: 'auto'
-                }
-              }
-            },
-            terms: {
-              card: 'never' // No terms needed for setup
-            },
-            wallets: {
-              applePay: 'auto',
-              googlePay: 'auto'
-            }
-          }}
-        />
-      </div>
+			{error && (
+				<Alert variant="destructive">
+					<AlertCircle className="h-4 w-4" />
+					<AlertDescription>{error}</AlertDescription>
+				</Alert>
+			)}
 
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
+			<div className="flex gap-3 pt-4">
+				<Button
+					type="button"
+					variant="outline"
+					onClick={onCancel}
+					disabled={isProcessing}
+					className="flex-1"
+				>
+					Cancel
+				</Button>
 
-      <div className="flex gap-3 pt-4">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-          disabled={isProcessing}
-          className="flex-1"
-        >
-          Cancel
-        </Button>
+				<Button
+					type="submit"
+					disabled={!stripe || isProcessing}
+					className="flex-1"
+				>
+					{isProcessing ? (
+						<>
+							<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+							Adding...
+						</>
+					) : (
+						<>
+							<Lock className="mr-2 h-4 w-4" />
+							Add Payment Method
+						</>
+					)}
+				</Button>
+			</div>
 
-        <Button
-          type="submit"
-          disabled={!stripe || isProcessing}
-          className="flex-1"
-        >
-          {isProcessing ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Adding...
-            </>
-          ) : (
-            <>
-              <Lock className="mr-2 h-4 w-4" />
-              Add Payment Method
-            </>
-          )}
-        </Button>
-      </div>
-
-      <div className="text-xs text-gray-500 text-center">
-        <Lock className="inline h-3 w-3 mr-1" />
-        Your payment information is encrypted and secure
-      </div>
-    </form>
-  )
+			<div className="text-center text-xs text-gray-500">
+				<Lock className="mr-1 inline h-3 w-3" />
+				Your payment information is encrypted and secure
+			</div>
+		</form>
+	)
 }
 
 /**
  * Payment Method Card Component
  */
 interface PaymentMethodCardProps {
-  paymentMethod: PaymentMethod
-  isDefault?: boolean
-  onSetDefault?: () => void
-  onDelete?: () => void
-  isUpdating?: boolean
-  isDeleting?: boolean
+	paymentMethod: PaymentMethod
+	isDefault?: boolean
+	onSetDefault?: () => void
+	onDelete?: () => void
+	isUpdating?: boolean
+	isDeleting?: boolean
 }
 
 function PaymentMethodCard({
-  paymentMethod,
-  isDefault,
-  onSetDefault,
-  onDelete,
-  isUpdating = false,
-  isDeleting = false
+	paymentMethod,
+	isDefault,
+	onSetDefault,
+	onDelete,
+	isUpdating = false,
+	isDeleting = false
 }: PaymentMethodCardProps) {
-  const getBrandIcon = (brand: string) => {
-    // You could return actual brand SVG icons here
-    const brandColors = {
-      visa: 'text-blue-600',
-      mastercard: 'text-red-500',
-      amex: 'text-green-600',
-      discover: 'text-orange-500'
-    }
-    return brandColors[brand as keyof typeof brandColors] || 'text-gray-500'
-  }
+	const getBrandIcon = (brand: string) => {
+		// You could return actual brand SVG icons here
+		const brandColors = {
+			visa: 'text-blue-600',
+			mastercard: 'text-red-500',
+			amex: 'text-green-600',
+			discover: 'text-orange-500'
+		}
+		return brandColors[brand as keyof typeof brandColors] || 'text-gray-500'
+	}
 
-  if (paymentMethod.type !== 'card' || !paymentMethod.card) {
-    return null
-  }
+	if (paymentMethod.type !== 'card' || !paymentMethod.card) {
+		return null
+	}
 
-  const { card } = paymentMethod
+	const { card } = paymentMethod
 
-  return (
-    <Card className={`transition-all ${isDefault ? 'ring-2 ring-blue-500 bg-blue-50' : ''}`}>
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="flex items-center space-x-2">
-              <CreditCard className={`h-6 w-6 ${getBrandIcon(card.brand)}`} />
-              <div>
-                <div className="flex items-center space-x-2">
-                  <span className="font-medium capitalize">{card.brand}</span>
-                  <span className="text-gray-500">•••• {card.last4}</span>
-                  {isDefault && (
-                    <Badge variant="default" className="text-xs">
-                      <Star className="h-3 w-3 mr-1" />
-                      Default
-                    </Badge>
-                  )}
-                </div>
-                <div className="text-sm text-gray-500">
-                  Expires {String(card.exp_month).padStart(2, '0')}/{card.exp_year}
-                </div>
-              </div>
-            </div>
-          </div>
+	return (
+		<Card
+			className={`transition-all ${isDefault ? 'bg-blue-50 ring-2 ring-blue-500' : ''}`}
+		>
+			<CardContent className="p-4">
+				<div className="flex items-center justify-between">
+					<div className="flex items-center space-x-3">
+						<div className="flex items-center space-x-2">
+							<CreditCard
+								className={`h-6 w-6 ${getBrandIcon(card.brand)}`}
+							/>
+							<div>
+								<div className="flex items-center space-x-2">
+									<span className="font-medium capitalize">
+										{card.brand}
+									</span>
+									<span className="text-gray-500">
+										•••• {card.last4}
+									</span>
+									{isDefault && (
+										<Badge
+											variant="default"
+											className="text-xs"
+										>
+											<Star className="mr-1 h-3 w-3" />
+											Default
+										</Badge>
+									)}
+								</div>
+								<div className="text-sm text-gray-500">
+									Expires{' '}
+									{String(card.exp_month).padStart(2, '0')}/
+									{card.exp_year}
+								</div>
+							</div>
+						</div>
+					</div>
 
-          <div className="flex items-center space-x-2">
-            {!isDefault && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={onSetDefault}
-                disabled={isUpdating}
-              >
-                {isUpdating ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <>
-                    <Check className="h-4 w-4 mr-1" />
-                    Set Default
-                  </>
-                )}
-              </Button>
-            )}
+					<div className="flex items-center space-x-2">
+						{!isDefault && (
+							<Button
+								size="sm"
+								variant="outline"
+								onClick={onSetDefault}
+								disabled={isUpdating}
+							>
+								{isUpdating ? (
+									<Loader2 className="h-4 w-4 animate-spin" />
+								) : (
+									<>
+										<Check className="mr-1 h-4 w-4" />
+										Set Default
+									</>
+								)}
+							</Button>
+						)}
 
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={onDelete}
-              disabled={isDeleting}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-            >
-              {isDeleting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Trash2 className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
+						<Button
+							size="sm"
+							variant="outline"
+							onClick={onDelete}
+							disabled={isDeleting}
+							className="text-red-600 hover:bg-red-50 hover:text-red-700"
+						>
+							{isDeleting ? (
+								<Loader2 className="h-4 w-4 animate-spin" />
+							) : (
+								<Trash2 className="h-4 w-4" />
+							)}
+						</Button>
+					</div>
+				</div>
+			</CardContent>
+		</Card>
+	)
 }
 
 /**
  * Main Enhanced Payment Methods Component
  */
 export function EnhancedPaymentMethods() {
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
-  const { data: portalData, isLoading, error } = usePaymentMethods()
-  
-  const handleAddSuccess = useCallback(() => {
-    setIsAddDialogOpen(false)
-  }, [])
+	const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+	const { data: portalData, isLoading, error } = usePaymentMethods()
 
-  if (isLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Payment Methods</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {[1, 2].map(i => (
-              <div key={i} className="h-20 bg-gray-100 rounded-lg animate-pulse" />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
+	const handleAddSuccess = useCallback(() => {
+		setIsAddDialogOpen(false)
+	}, [])
 
-  if (error) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Payment Methods</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Failed to load payment methods. Please try again.
-            </AlertDescription>
-          </Alert>
-        </CardContent>
-      </Card>
-    )
-  }
+	if (isLoading) {
+		return (
+			<Card>
+				<CardHeader>
+					<CardTitle>Payment Methods</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<div className="space-y-4">
+						{[1, 2].map(i => (
+							<div
+								key={i}
+								className="h-20 animate-pulse rounded-lg bg-gray-100"
+							/>
+						))}
+					</div>
+				</CardContent>
+			</Card>
+		)
+	}
 
-  return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle>Payment Methods</CardTitle>
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Payment Method
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>Add Payment Method</DialogTitle>
-              </DialogHeader>
-              <EnhancedElementsProvider mode="setup">
-                <AddPaymentMethodForm
-                  onSuccess={handleAddSuccess}
-                  onCancel={() => setIsAddDialogOpen(false)}
-                />
-              </EnhancedElementsProvider>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </CardHeader>
+	if (error) {
+		return (
+			<Card>
+				<CardHeader>
+					<CardTitle>Payment Methods</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<Alert variant="destructive">
+						<AlertCircle className="h-4 w-4" />
+						<AlertDescription>
+							Failed to load payment methods. Please try again.
+						</AlertDescription>
+					</Alert>
+				</CardContent>
+			</Card>
+		)
+	}
 
-      <CardContent>
-        <div className="text-center py-8">
-          <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Payment Methods</h3>
-          <p className="text-gray-500 mb-4">
-            Manage your payment methods, billing history, and subscription details through the secure customer portal.
-          </p>
-          <Button 
-            onClick={() => {
-              if (portalData?.portalUrl) {
-                window.location.href = portalData.portalUrl
-              }
-            }}
-            disabled={isLoading || !portalData?.portalUrl}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Loading...
-              </>
-            ) : (
-              <>
-                <Lock className="h-4 w-4 mr-2" />
-                Open Customer Portal
-              </>
-            )}
-          </Button>
-          {portalData?.message && (
-            <p className="text-sm text-gray-600 mt-2">{portalData.message}</p>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  )
+	return (
+		<Card>
+			<CardHeader>
+				<div className="flex items-center justify-between">
+					<CardTitle>Payment Methods</CardTitle>
+					<Dialog
+						open={isAddDialogOpen}
+						onOpenChange={setIsAddDialogOpen}
+					>
+						<DialogTrigger asChild>
+							<Button>
+								<Plus className="mr-2 h-4 w-4" />
+								Add Payment Method
+							</Button>
+						</DialogTrigger>
+						<DialogContent className="max-w-md">
+							<DialogHeader>
+								<DialogTitle>Add Payment Method</DialogTitle>
+							</DialogHeader>
+							<EnhancedElementsProvider mode="setup">
+								<AddPaymentMethodForm
+									onSuccess={handleAddSuccess}
+									onCancel={() => setIsAddDialogOpen(false)}
+								/>
+							</EnhancedElementsProvider>
+						</DialogContent>
+					</Dialog>
+				</div>
+			</CardHeader>
+
+			<CardContent>
+				<div className="py-8 text-center">
+					<CreditCard className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+					<h3 className="mb-2 text-lg font-medium text-gray-900">
+						Payment Methods
+					</h3>
+					<p className="mb-4 text-gray-500">
+						Manage your payment methods, billing history, and
+						subscription details through the secure customer portal.
+					</p>
+					<Button
+						onClick={() => {
+							if (portalData?.portalUrl) {
+								window.location.href = portalData.portalUrl
+							}
+						}}
+						disabled={isLoading || !portalData?.portalUrl}
+					>
+						{isLoading ? (
+							<>
+								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+								Loading...
+							</>
+						) : (
+							<>
+								<Lock className="mr-2 h-4 w-4" />
+								Open Customer Portal
+							</>
+						)}
+					</Button>
+					{portalData?.message && (
+						<p className="mt-2 text-sm text-gray-600">
+							{portalData.message}
+						</p>
+					)}
+				</div>
+			</CardContent>
+		</Card>
+	)
 }

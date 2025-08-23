@@ -20,9 +20,10 @@ export function usePropertyDeletion(config: PropertyDeletionConfig = {}) {
 		initialState
 	)
 
-	const deleteProperty = async (
-		property: { id: string; name: string }
-	): Promise<void> => {
+	const deleteProperty = async (property: {
+		id: string
+		name: string
+	}): Promise<void> => {
 		// Show confirmation dialog
 		const confirmed = window.confirm(
 			`Are you sure you want to delete "${property.name}"? This action cannot be undone.`
@@ -33,7 +34,7 @@ export function usePropertyDeletion(config: PropertyDeletionConfig = {}) {
 		}
 
 		try {
-			logger.info('Property deletion initiated', { 
+			logger.info('Property deletion initiated', {
 				propertyId: property.id,
 				propertyName: property.name
 			})
@@ -43,7 +44,9 @@ export function usePropertyDeletion(config: PropertyDeletionConfig = {}) {
 			formData.append('propertyId', property.id)
 
 			// Add CSRF token if available
-			const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+			const csrfToken = document
+				.querySelector('meta[name="csrf-token"]')
+				?.getAttribute('content')
 			if (csrfToken) {
 				formData.append('_token', csrfToken)
 			}
@@ -54,10 +57,17 @@ export function usePropertyDeletion(config: PropertyDeletionConfig = {}) {
 			// Note: State updates are handled by useActionState automatically
 			// Success/error handling should be done via useEffect or similar
 		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : 'Failed to delete property'
-			logger.error('Property deletion error', error instanceof Error ? error : new Error(String(error)), {
-				propertyId: property.id
-			})
+			const errorMessage =
+				error instanceof Error
+					? error.message
+					: 'Failed to delete property'
+			logger.error(
+				'Property deletion error',
+				error instanceof Error ? error : new Error(String(error)),
+				{
+					propertyId: property.id
+				}
+			)
 			config.onError?.(errorMessage)
 		}
 	}

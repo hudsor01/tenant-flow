@@ -9,11 +9,17 @@ export async function POST(request: NextRequest) {
 
 		// Basic validation
 		if (!payload.name || !payload.value) {
-			return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
+			return NextResponse.json(
+				{ error: 'Invalid payload' },
+				{ status: 400 }
+			)
 		}
 
 		// Only log poor performance in production
-		if (process.env.NODE_ENV === 'production' && payload.rating === 'poor') {
+		if (
+			process.env.NODE_ENV === 'production' &&
+			payload.rating === 'poor'
+		) {
 			console.warn(`Poor ${payload.name}: ${payload.value}ms`)
 		}
 

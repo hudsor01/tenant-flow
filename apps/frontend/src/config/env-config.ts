@@ -142,13 +142,17 @@ class EnvConfig {
 				!this.config.appUrl ||
 				this.config.appUrl.includes('localhost')
 			) {
-				errors.push('NEXT_PUBLIC_APP_URL must be a production URL (should be https://tenantflow.app)')
+				errors.push(
+					'NEXT_PUBLIC_APP_URL must be a production URL (should be https://tenantflow.app)'
+				)
 			}
 			if (
 				!this.config.apiUrl ||
 				this.config.apiUrl.includes('localhost')
 			) {
-				errors.push('NEXT_PUBLIC_API_URL must be a production URL (should be https://api.tenantflow.app/api/v1)')
+				errors.push(
+					'NEXT_PUBLIC_API_URL must be a production URL (should be https://api.tenantflow.app/api/v1)'
+				)
 			}
 		}
 

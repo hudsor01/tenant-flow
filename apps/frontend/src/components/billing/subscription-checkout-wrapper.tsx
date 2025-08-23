@@ -10,7 +10,7 @@ interface SubscriptionCheckoutWrapperProps {
 
 /**
  * Simplified Subscription Checkout Wrapper (2025)
- * 
+ *
  * With the new Confirmation Token pattern, this wrapper simply passes through
  * to the main SubscriptionCheckout component. The complex initialization logic
  * is no longer needed as Stripe Elements handles everything natively.

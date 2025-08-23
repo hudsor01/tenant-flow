@@ -31,9 +31,7 @@ export interface PropertyWithRelations extends Property {
 export class PropertiesService {
 	private readonly logger = new Logger(PropertiesService.name)
 
-	constructor(
-		private supabaseService: SupabaseService
-	) {}
+	constructor(private supabaseService: SupabaseService) {}
 
 	/**
 	 * Get Supabase client with proper auth context
@@ -47,7 +45,10 @@ export class PropertiesService {
 	/**
 	 * Get all properties for an owner
 	 */
-	async findAll(ownerId: string, authToken?: string): Promise<PropertyWithRelations[]> {
+	async findAll(
+		ownerId: string,
+		authToken?: string
+	): Promise<PropertyWithRelations[]> {
 		const supabase = this.getClient(authToken)
 		const { data, error } = await supabase
 			.from('Property')
@@ -71,7 +72,11 @@ export class PropertiesService {
 	/**
 	 * Get single property by ID
 	 */
-	async findOne(id: string, ownerId: string, authToken?: string): Promise<PropertyWithRelations> {
+	async findOne(
+		id: string,
+		ownerId: string,
+		authToken?: string
+	): Promise<PropertyWithRelations> {
 		const supabase = this.getClient(authToken)
 		const { data, error } = await supabase
 			.from('Property')
@@ -116,7 +121,11 @@ export class PropertiesService {
 
 		// Start a transaction for property with units
 		if (dto.units && Number(dto.units) > 0) {
-			return this.createWithUnits(propertyData, Number(dto.units), authToken)
+			return this.createWithUnits(
+				propertyData,
+				Number(dto.units),
+				authToken
+			)
 		}
 
 		// Create simple property
@@ -176,9 +185,7 @@ export class PropertiesService {
 			})
 		)
 
-		const { error: unitsError } = await supabase
-			.from('Unit')
-			.insert(units)
+		const { error: unitsError } = await supabase.from('Unit').insert(units)
 
 		if (unitsError) {
 			// Rollback property creation
@@ -234,7 +241,11 @@ export class PropertiesService {
 	/**
 	 * Delete property
 	 */
-	async remove(id: string, ownerId: string, authToken?: string): Promise<void> {
+	async remove(
+		id: string,
+		ownerId: string,
+		authToken?: string
+	): Promise<void> {
 		const supabase = this.getClient(authToken)
 		// Verify ownership
 		const property = await this.findOne(id, ownerId, authToken)
@@ -284,7 +295,10 @@ export class PropertiesService {
 	/**
 	 * Get property statistics
 	 */
-	async getStats(ownerId: string, authToken?: string): Promise<{
+	async getStats(
+		ownerId: string,
+		authToken?: string
+	): Promise<{
 		total: number
 		singleFamily: number
 		multiFamily: number

@@ -65,37 +65,60 @@ export class StripeService {
 				metadata: metadata || {}
 			})
 
-			this.logger.log(`Subscription created: ${subscription.id}, status: ${subscription.status}`)
+			this.logger.log(
+				`Subscription created: ${subscription.id}, status: ${subscription.status}`
+			)
 
 			// If subscription is incomplete, we need to confirm the payment using the confirmation token
 			if (subscription.status === 'incomplete') {
 				const latestInvoice = subscription.latest_invoice
-				
-				if (typeof latestInvoice === 'object' && latestInvoice && 'payment_intent' in latestInvoice && latestInvoice.payment_intent) {
-					const paymentIntentId = typeof latestInvoice.payment_intent === 'string' 
-						? latestInvoice.payment_intent 
-						: (latestInvoice.payment_intent as Stripe.PaymentIntent).id
+
+				if (
+					typeof latestInvoice === 'object' &&
+					latestInvoice &&
+					'payment_intent' in latestInvoice &&
+					latestInvoice.payment_intent
+				) {
+					const paymentIntentId =
+						typeof latestInvoice.payment_intent === 'string'
+							? latestInvoice.payment_intent
+							: (
+									latestInvoice.payment_intent as Stripe.PaymentIntent
+								).id
 
 					// Confirm the payment intent with the confirmation token
-					const confirmedPayment = await this.stripe.paymentIntents.confirm(paymentIntentId, {
-						confirmation_token: confirmationTokenId,
-						return_url: `${process.env.FRONTEND_URL || 'https://tenantflow.app'}/billing/success`
-					})
+					const confirmedPayment =
+						await this.stripe.paymentIntents.confirm(
+							paymentIntentId,
+							{
+								confirmation_token: confirmationTokenId,
+								return_url: `${process.env.FRONTEND_URL || 'https://tenantflow.app'}/billing/success`
+							}
+						)
 
-					this.logger.log(`Payment confirmed: ${confirmedPayment.id}, status: ${confirmedPayment.status}`)
-					
+					this.logger.log(
+						`Payment confirmed: ${confirmedPayment.id}, status: ${confirmedPayment.status}`
+					)
+
 					// Return the updated subscription with payment status
-					const updatedSubscription = await this.stripe.subscriptions.retrieve(subscription.id, {
-						expand: ['latest_invoice.payment_intent']
-					})
-					
+					const updatedSubscription =
+						await this.stripe.subscriptions.retrieve(
+							subscription.id,
+							{
+								expand: ['latest_invoice.payment_intent']
+							}
+						)
+
 					return updatedSubscription
 				}
 			}
-			
+
 			return subscription
 		} catch (error) {
-			this.logger.error('Failed to create subscription with confirmation token', error)
+			this.logger.error(
+				'Failed to create subscription with confirmation token',
+				error
+			)
 			throw error
 		}
 	}

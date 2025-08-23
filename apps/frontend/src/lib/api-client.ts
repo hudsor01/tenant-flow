@@ -6,28 +6,33 @@
 import { config } from './config'
 import { getSession } from './supabase/client'
 import type { ControllerApiResponse } from '@repo/shared'
-import { ResponseValidator, type ValidationOptions } from './api/response-validator'
+import {
+	ResponseValidator,
+	type ValidationOptions
+} from './api/response-validator'
 import type { ZodSchema } from 'zod'
 
 // Type-safe URLSearchParams utility
 export function createSearchParams(params: Record<string, unknown>): string {
-  const searchParams = new URLSearchParams()
-  
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== '') {
-      // Handle arrays by joining with comma
-      if (Array.isArray(value)) {
-        const filteredArray = value.filter(v => v !== undefined && v !== null && v !== '')
-        if (filteredArray.length > 0) {
-          searchParams.append(key, filteredArray.join(','))
-        }
-      } else {
-        searchParams.append(key, String(value))
-      }
-    }
-  })
-  
-  return searchParams.toString()
+	const searchParams = new URLSearchParams()
+
+	Object.entries(params).forEach(([key, value]) => {
+		if (value !== undefined && value !== null && value !== '') {
+			// Handle arrays by joining with comma
+			if (Array.isArray(value)) {
+				const filteredArray = value.filter(
+					v => v !== undefined && v !== null && v !== ''
+				)
+				if (filteredArray.length > 0) {
+					searchParams.append(key, filteredArray.join(','))
+				}
+			} else {
+				searchParams.append(key, String(value))
+			}
+		}
+	})
+
+	return searchParams.toString()
 }
 
 export interface ApiError {
@@ -55,7 +60,7 @@ class SimpleApiClient {
 	private async getAuthHeaders(): Promise<Record<string, string>> {
 		try {
 			const { session } = await getSession()
-			return session?.access_token 
+			return session?.access_token
 				? { Authorization: `Bearer ${session.access_token}` }
 				: {}
 		} catch {
@@ -63,13 +68,21 @@ class SimpleApiClient {
 		}
 	}
 
-	private buildURL(path: string, params?: Record<string, string | number | boolean | string[] | undefined>): string {
+	private buildURL(
+		path: string,
+		params?: Record<
+			string,
+			string | number | boolean | string[] | undefined
+		>
+	): string {
 		const url = new URL(path, this.baseURL)
 		if (params) {
 			Object.entries(params).forEach(([key, value]) => {
 				if (value !== undefined && value !== null) {
 					if (Array.isArray(value)) {
-						value.forEach(v => url.searchParams.append(key, String(v)))
+						value.forEach(v =>
+							url.searchParams.append(key, String(v))
+						)
 					} else {
 						url.searchParams.append(key, String(value))
 					}
@@ -105,7 +118,11 @@ class SimpleApiClient {
 			const response = await fetch(this.buildURL(path, config?.params), {
 				method,
 				headers,
-				body: isFormData ? data : (data ? JSON.stringify(data) : undefined),
+				body: isFormData
+					? data
+					: data
+						? JSON.stringify(data)
+						: undefined,
 				credentials: 'include',
 				signal: config?.signal || controller.signal
 			})
@@ -120,7 +137,7 @@ class SimpleApiClient {
 			if (!response.ok) {
 				const errorText = await response.text()
 				let errorData: ControllerApiResponse<unknown> | undefined
-				
+
 				try {
 					errorData = JSON.parse(errorText)
 				} catch {
@@ -128,7 +145,9 @@ class SimpleApiClient {
 				}
 
 				const apiError: ApiError = {
-					message: errorData?.message || `Request failed: ${response.status}`,
+					message:
+						errorData?.message ||
+						`Request failed: ${response.status}`,
 					code: response.status.toString(),
 					details: errorData ? { ...errorData } : undefined,
 					timestamp: new Date().toISOString()
@@ -138,12 +157,18 @@ class SimpleApiClient {
 
 			const responseData: ControllerApiResponse<T> = await response.json()
 
-			if (responseData && typeof responseData === 'object' && 'success' in responseData) {
+			if (
+				responseData &&
+				typeof responseData === 'object' &&
+				'success' in responseData
+			) {
 				if (!responseData.success) {
 					throw new Error(responseData.message || 'Request failed')
 				}
 				if (responseData.data === undefined) {
-					throw new Error('Response data is missing from successful request')
+					throw new Error(
+						'Response data is missing from successful request'
+					)
 				}
 				return responseData.data
 			}
@@ -151,11 +176,11 @@ class SimpleApiClient {
 			throw new Error('Invalid response format from backend')
 		} catch (error: unknown) {
 			clearTimeout(timeoutId)
-			
+
 			if (error instanceof Error && error.name === 'AbortError') {
 				throw new Error('Request timeout')
 			}
-			
+
 			throw error
 		}
 	}
@@ -164,15 +189,27 @@ class SimpleApiClient {
 		return this.makeRequest<T>('GET', path, undefined, config)
 	}
 
-	async post<T>(path: string, data?: unknown, config?: RequestConfig): Promise<T> {
+	async post<T>(
+		path: string,
+		data?: unknown,
+		config?: RequestConfig
+	): Promise<T> {
 		return this.makeRequest<T>('POST', path, data, config)
 	}
 
-	async put<T>(path: string, data?: unknown, config?: RequestConfig): Promise<T> {
+	async put<T>(
+		path: string,
+		data?: unknown,
+		config?: RequestConfig
+	): Promise<T> {
 		return this.makeRequest<T>('PUT', path, data, config)
 	}
 
-	async patch<T>(path: string, data?: unknown, config?: RequestConfig): Promise<T> {
+	async patch<T>(
+		path: string,
+		data?: unknown,
+		config?: RequestConfig
+	): Promise<T> {
 		return this.makeRequest<T>('PATCH', path, data, config)
 	}
 
@@ -182,61 +219,106 @@ class SimpleApiClient {
 
 	// Validated API methods with Zod schema validation
 	async getValidated<T>(
-		path: string, 
-		schema: ZodSchema<T>, 
+		path: string,
+		schema: ZodSchema<T>,
 		schemaName: string,
 		config?: RequestConfig,
 		validationOptions?: ValidationOptions
 	): Promise<T> {
 		const data = await this.makeRequest<T>('GET', path, undefined, config)
-		return ResponseValidator.validate(schema, data, schemaName, validationOptions)
+		return ResponseValidator.validate(
+			schema,
+			data,
+			schemaName,
+			validationOptions
+		)
 	}
 
 	async postValidated<T>(
-		path: string, 
-		schema: ZodSchema<T>, 
+		path: string,
+		schema: ZodSchema<T>,
 		schemaName: string,
-		data?: Record<string, unknown> | FormData, 
+		data?: Record<string, unknown> | FormData,
 		config?: RequestConfig,
 		validationOptions?: ValidationOptions
 	): Promise<T> {
-		const responseData = await this.makeRequest<T>('POST', path, data, config)
-		return ResponseValidator.validate(schema, responseData, schemaName, validationOptions)
+		const responseData = await this.makeRequest<T>(
+			'POST',
+			path,
+			data,
+			config
+		)
+		return ResponseValidator.validate(
+			schema,
+			responseData,
+			schemaName,
+			validationOptions
+		)
 	}
 
 	async putValidated<T>(
-		path: string, 
-		schema: ZodSchema<T>, 
+		path: string,
+		schema: ZodSchema<T>,
 		schemaName: string,
-		data?: Record<string, unknown> | FormData, 
+		data?: Record<string, unknown> | FormData,
 		config?: RequestConfig,
 		validationOptions?: ValidationOptions
 	): Promise<T> {
-		const responseData = await this.makeRequest<T>('PUT', path, data, config)
-		return ResponseValidator.validate(schema, responseData, schemaName, validationOptions)
+		const responseData = await this.makeRequest<T>(
+			'PUT',
+			path,
+			data,
+			config
+		)
+		return ResponseValidator.validate(
+			schema,
+			responseData,
+			schemaName,
+			validationOptions
+		)
 	}
 
 	async patchValidated<T>(
-		path: string, 
-		schema: ZodSchema<T>, 
+		path: string,
+		schema: ZodSchema<T>,
 		schemaName: string,
-		data?: Record<string, unknown> | FormData, 
+		data?: Record<string, unknown> | FormData,
 		config?: RequestConfig,
 		validationOptions?: ValidationOptions
 	): Promise<T> {
-		const responseData = await this.makeRequest<T>('PATCH', path, data, config)
-		return ResponseValidator.validate(schema, responseData, schemaName, validationOptions)
+		const responseData = await this.makeRequest<T>(
+			'PATCH',
+			path,
+			data,
+			config
+		)
+		return ResponseValidator.validate(
+			schema,
+			responseData,
+			schemaName,
+			validationOptions
+		)
 	}
 
 	async deleteValidated<T>(
-		path: string, 
-		schema: ZodSchema<T>, 
+		path: string,
+		schema: ZodSchema<T>,
 		schemaName: string,
 		config?: RequestConfig,
 		validationOptions?: ValidationOptions
 	): Promise<T> {
-		const responseData = await this.makeRequest<T>('DELETE', path, undefined, config)
-		return ResponseValidator.validate(schema, responseData, schemaName, validationOptions)
+		const responseData = await this.makeRequest<T>(
+			'DELETE',
+			path,
+			undefined,
+			config
+		)
+		return ResponseValidator.validate(
+			schema,
+			responseData,
+			schemaName,
+			validationOptions
+		)
 	}
 
 	async healthCheck(): Promise<{ status: string; timestamp: string }> {
@@ -247,5 +329,3 @@ class SimpleApiClient {
 // Export singleton instance
 export const apiClient = new SimpleApiClient()
 export default apiClient
-
-
