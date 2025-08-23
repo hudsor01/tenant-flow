@@ -45,6 +45,11 @@ export type StripePrice = StripeSDK.Price
  */
 export type StripeProduct = StripeSDK.Product
 
+/**
+ * Official Stripe Event type (when available)
+ */
+export type StripeEvent = StripeSDK.Event
+
 // ========================
 // Fallback Type Definitions (when Stripe SDK is not available)
 // ========================
@@ -180,125 +185,11 @@ export interface StripeSubscriptionData {
 					interval: StripeBillingInterval
 					interval_count: number
 				}
-<<<<<<< HEAD
 			}
 			quantity: number
 		}[]
 	}
-=======
-				verification_method?:
-					| 'automatic'
-					| 'instant'
-					| 'microdeposits'
-					| null
-			} | null
-			bancontact?: {
-				preferred_language?: 'de' | 'en' | 'fr' | 'nl' | null
-			} | null
-			card?: {
-				mandate_options?: {
-					amount?: number | null
-					amount_type?: 'fixed' | 'maximum' | null
-					description?: string | null
-				} | null
-				network?:
-					| 'amex'
-					| 'cartes_bancaires'
-					| 'diners'
-					| 'discover'
-					| 'eftpos_au'
-					| 'interac'
-					| 'jcb'
-					| 'mastercard'
-					| 'unionpay'
-					| 'unknown'
-					| 'visa'
-					| null
-				request_three_d_secure?:
-					| 'any'
-					| 'automatic'
-					| 'challenge'
-					| null
-			} | null
-			customer_balance?: {
-				bank_transfer?: {
-					eu_bank_transfer?: {
-						country: string
-					} | null
-					type?: string | null
-				} | null
-				funding_type?: 'bank_transfer' | null
-			} | null
-			konbini?: Record<string, never> | null
-			sepa_debit?: Record<string, never> | null
-			us_bank_account?: {
-				financial_connections?: {
-					filters?: {
-						account_subcategory?: ('checking' | 'savings')[] | null
-					} | null
-					permissions?:
-						| (
-								| 'balances'
-								| 'ownership'
-								| 'payment_method'
-								| 'transactions'
-						  )[]
-						| null
-					prefetch?:
-						| ('balances' | 'ownership' | 'transactions')[]
-						| null
-					return_url?: string | null
-				} | null
-				verification_method?:
-					| 'automatic'
-					| 'instant'
-					| 'microdeposits'
-					| null
-			} | null
-		} | null
-		payment_method_types?: PaymentMethodType[] | null
-		save_default_payment_method?: 'off' | 'on_subscription' | null
-	} | null
-	pending_invoice_item_interval?: {
-		interval: 'day' | 'week' | 'month' | 'year'
-		interval_count: number
-	} | null
-	pending_setup_intent?: string | null
-	pending_update?: {
-		billing_cycle_anchor?: number | null
-		expires_at: number
-		subscription_items?:
-			| {
-					id?: string | null
-					billing_thresholds?: {
-						usage_gte?: number | null
-					} | null
-					clear_usage?: boolean | null
-					deleted?: boolean | null
-					metadata?: Record<string, string> | null
-					price?: string | null
-					quantity?: number | null
-					tax_rates?: string[] | 'none' | null
-			  }[]
-			| null
-		trial_end?: number | null
-		trial_from_plan?: boolean | null
-	} | null
-	schedule?: string | null
-	start_date: number
-	status: SubscriptionStatus
-	test_clock?: string | null
-	transfer_data?: {
-		amount_percent?: number | null
-		destination: string
-	} | null
-	trial_end?: number | null
-	trial_settings?: {
-		end_behavior: {
-			missing_payment_method: 'cancel' | 'create_invoice' | 'pause'
-		}
-	} | null
-	trial_start?: number | null
+	metadata?: Record<string, string>
 }
 
 // ========================
@@ -368,12 +259,14 @@ export function getSubscriptionCurrentPeriod(
 	start: Date
 	end: Date
 } | null {
-	if (!subscription.current_period_start || !subscription.current_period_end)
-		{return null}
+	const sub = subscription as any
+	if (!sub.current_period_start || !sub.current_period_end) {
+		return null
+	}
 
 	return {
-		start: new Date(subscription.current_period_start * 1000),
-		end: new Date(subscription.current_period_end * 1000)
+		start: new Date(sub.current_period_start * 1000),
+		end: new Date(sub.current_period_end * 1000)
 	}
 }
 
@@ -608,15 +501,16 @@ export function calculateProrationAmount(
 	return 0
 }
 
-export interface StripePaymentMethod {
-	id: string
-	object: 'payment_method'
-	type: string
-	created: number
-	customer: string | null
-	livemode: boolean
-	metadata: Record<string, string>
-}
+// Removed duplicate - using SDK type alias defined above
+// interface StripePaymentMethod {
+// 	id: string
+// 	object: 'payment_method'
+// 	type: string
+// 	created: number
+// 	customer: string | null
+// 	livemode: boolean
+// 	metadata: Record<string, string>
+// }
 
 export interface StripeCheckoutSession {
 	id: string
@@ -633,7 +527,6 @@ export interface StripeCheckoutSession {
 export interface StripeCustomerCreateParams {
 	email?: string
 	name?: string
->>>>>>> origin/copilot/vscode1755835343516
 	metadata?: Record<string, string>
 }
 
@@ -826,9 +719,6 @@ export const TENANTFLOW_PLAN_TYPES = {
  */
 export const BILLING_PERIODS = {
 	MONTHLY: 'monthly',
-<<<<<<< HEAD
-	ANNUAL: 'annual'
-=======
 	ANNUAL: 'annual',
 	// Backward compatibility alias - prefer ANNUAL
 	YEARLY: 'yearly'
@@ -1215,6 +1105,21 @@ export interface StripeErrorContext {
 }
 
 /**
+ * Stripe error codes
+ */
+export type StripeErrorCode = string
+
+/**
+ * Stripe decline codes
+ */
+export type StripeDeclineCode = string
+
+/**
+ * Stripe API version
+ */
+export type StripeApiVersion = string
+
+/**
  * Standardized error structure with full context
  */
 export interface StandardizedStripeError {
@@ -1373,8 +1278,11 @@ export interface StripeCustomerSession {
 
 /**
  * Comprehensive Stripe Invoice interface based on official API
+ * @deprecated Use the SDK type alias StripeInvoice instead
+ * @internal Not exported - kept for reference only
  */
-export interface StripeInvoice {
+// eslint-disable-next-line @typescript-eslint/naming-convention
+interface _StripeInvoiceDetailed {
 	readonly id: string
 	readonly object: 'invoice'
 	readonly account_country?: string | null
@@ -4638,7 +4546,6 @@ export const DEFAULT_STRIPE_RETRY_CONFIG: StripeRetryConfig = {
 	maxDelayMs: 10000,
 	exponentialBase: 2,
 	jitterMs: 100
->>>>>>> origin/copilot/vscode1755835343516
 } as const
 
 /**
@@ -4648,8 +4555,9 @@ export type PlanType = 'FREETRIAL' | 'STARTER' | 'GROWTH' | 'TENANTFLOW_MAX'
 
 /**
  * Billing periods (moved from stripe-official.ts)
+ * @deprecated Already defined above via BILLING_PERIODS const
  */
-export type BillingPeriod = 'monthly' | 'annual'
+// export type BillingPeriod = 'monthly' | 'annual'
 
 /**
  * Native Stripe Subscription type - uses official Stripe SDK types
@@ -4701,7 +4609,7 @@ export function stripeSubscriptionToSubscription(
 		userId,
 		planType,
 		planId: String(stripeSubscription.metadata?.planId ?? ''),
-		billingPeriod: billingPeriod as BillingPeriod,
+		billingPeriod: billingPeriod,
 		stripeCustomerId: String(customerId ?? ''),
 		stripeSubscriptionId: stripeSubscription.id,
 		stripePriceId: String(priceId ?? ''),
