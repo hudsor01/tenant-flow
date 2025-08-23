@@ -18,7 +18,7 @@ env:
 jobs:
   pre-check:
     name: Pre-Check
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     timeout-minutes: 2
     outputs:
       should-run-tests: ${{ steps.analyze.outputs.should-run-tests }}
@@ -71,7 +71,7 @@ jobs:
 
   quick-quality:
     name: Quick Quality Check
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     timeout-minutes: 5
     needs: pre-check
     if: needs.pre-check.outputs.should-run-tests == 'true'
@@ -158,7 +158,7 @@ jobs:
 
   essential-tests:
     name: Essential Tests
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     timeout-minutes: 8
     needs: [pre-check, quick-quality]
     if: needs.pre-check.outputs.should-run-tests == 'true'
@@ -207,7 +207,7 @@ jobs:
 
   build-smoke-test:
     name: Build Smoke Test
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     timeout-minutes: 10
     needs: [pre-check, quick-quality]
     if: needs.pre-check.outputs.should-run-tests == 'true'
@@ -263,7 +263,7 @@ jobs:
 
   feedback-summary:
     name: Fast Feedback Summary
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     needs: [pre-check, quick-quality, essential-tests, build-smoke-test]
     if: always()
     steps:
