@@ -16,7 +16,7 @@ import type { Property } from './properties'
 
 /**
  * Input for creating a checkout session
- * Used by useCreateCheckoutSession hook
+ * Used by useCreateCheckoutSession hook from use-billing
  */
 export interface CreateCheckoutInput {
 	planType: string
@@ -28,7 +28,7 @@ export interface CreateCheckoutInput {
 
 /**
  * Input for creating a customer portal session
- * Used by useCreatePortalSession hook
+ * Used by useCreatePortalSession hook from use-billing
  */
 export interface CreatePortalInput {
 	returnUrl?: string
@@ -58,7 +58,7 @@ export interface SubscriptionUpdateParams extends Record<string, unknown> {
 
 /**
  * Checkout parameters for basic checkout flow
- * Used by useCheckout hook
+ * Used by useCreateCheckout hook from use-billing
  */
 export interface CheckoutParams {
 	planType: keyof typeof PLAN_TYPE
@@ -68,7 +68,7 @@ export interface CheckoutParams {
 
 /**
  * Trial activation parameters
- * Used by useCheckout hook for starting trials
+ * Used by useStartFreeTrial hook from use-billing
  */
 export interface TrialParams {
 	onSuccess?: (subscriptionId: string) => void

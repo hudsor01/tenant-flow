@@ -30,11 +30,11 @@ nodejs_version_info{version="${process.version}"} 1
 
 # HELP process_cpu_user_seconds_total User CPU time spent in seconds
 # TYPE process_cpu_user_seconds_total counter
-process_cpu_user_seconds_total ${systemMetrics.cpu.usage / 1000}
+process_cpu_user_seconds_total ${systemMetrics.cpu.user / 1000000}
 
 # HELP process_start_time_seconds Start time of the process since unix epoch in seconds
 # TYPE process_start_time_seconds gauge
-process_start_time_seconds ${Date.now() / 1000 - systemMetrics.system.uptime}
+process_start_time_seconds ${Date.now() / 1000 - systemMetrics.uptime}
 
 # HELP http_requests_total Total HTTP requests processed
 # TYPE http_requests_total counter

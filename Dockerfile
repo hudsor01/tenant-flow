@@ -28,9 +28,9 @@ COPY packages/typescript-config/package.json ./packages/typescript-config/
 
 # Install all dependencies including dev dependencies for building
 # --mount=type=cache: Persist npm cache across builds (60-90s faster rebuilds)
-# --silent: Clean build logs, only show errors
+# npm ci: Use lockfile for deterministic, reproducible builds
 RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-/root/.npm,target=/root/.npm \
-    npm install --silent
+    npm ci --silent
 
 # ===== BUILDER STAGE =====
 # Compile TypeScript to JavaScript with optimizations
@@ -73,8 +73,9 @@ COPY packages/tailwind-config/package.json ./packages/tailwind-config/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 
 # Fresh production dependency install with cache optimization
+# npm ci: Use lockfile for deterministic, reproducible builds
 RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-/root/.npm,target=/root/.npm \
-    npm install --omit=dev --silent
+    npm ci --omit=dev --silent
 
 # ===== RUNTIME STAGE =====
 # Final minimal runtime image with security hardening

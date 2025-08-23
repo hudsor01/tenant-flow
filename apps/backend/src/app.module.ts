@@ -16,6 +16,10 @@ import { DashboardModule } from './dashboard/dashboard.module'
 import { MaintenanceModule } from './maintenance/maintenance.module'
 import { HealthModule } from './health/health.module'
 import { StripeModule } from './stripe/stripe.module'
+import { ContactModule } from './contact/contact.module'
+import { NotificationsModule } from './notifications/notifications.module'
+import { MaintenanceModule } from './maintenance/maintenance.module'
+import { DashboardModule } from './dashboard/dashboard.module'
 import { AnalyticsService } from './analytics/analytics.service'
 import { StripeService } from './billing/stripe.service'
 import { MetricsService } from './services/metrics.service'
@@ -63,7 +67,11 @@ import { AppService } from './app.service'
 		DashboardModule,
 		MaintenanceModule,
 		HealthModule,
-		StripeModule
+		StripeModule,
+		ContactModule,
+		NotificationsModule,
+		MaintenanceModule,
+		DashboardModule
 	],
 	controllers: [AppController],
 	providers: [

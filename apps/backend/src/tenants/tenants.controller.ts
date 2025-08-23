@@ -13,7 +13,7 @@ import {
 	ValidationPipe
 } from '@nestjs/common'
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger'
-import { JwtAuthGuard } from '../shared/guards/jwt-auth.guard'
+import { UnifiedAuthGuard } from '../shared/guards/unified-auth.guard'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
 import { ValidatedUser } from '../auth/auth.service'
 import { TenantsService, TenantWithRelations } from './tenants.service'
@@ -28,7 +28,7 @@ import type { ControllerApiResponse } from '@repo/shared'
  */
 @ApiTags('tenants')
 @Controller('tenants')
-@UseGuards(JwtAuthGuard, UsageLimitsGuard)
+@UseGuards(UnifiedAuthGuard, UsageLimitsGuard)
 export class TenantsController {
 	constructor(private readonly tenantsService: TenantsService) {}
 
