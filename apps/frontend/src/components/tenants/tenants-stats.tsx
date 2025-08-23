@@ -24,11 +24,15 @@ function TenantsStatsSkeleton() {
 
 function calculateTenantStats(tenants: Tenant[]) {
 	const totalTenants = tenants.length
-	const acceptedInvitations = tenants.filter(tenant => tenant.invitationStatus === 'ACCEPTED').length
-	const pendingInvitations = tenants.filter(
-		tenant => tenant.invitationStatus === 'PENDING' || tenant.invitationStatus === 'SENT'
+	const acceptedInvitations = tenants.filter(
+		tenant => tenant.invitationStatus === 'ACCEPTED'
 	).length
-	
+	const pendingInvitations = tenants.filter(
+		tenant =>
+			tenant.invitationStatus === 'PENDING' ||
+			tenant.invitationStatus === 'SENT'
+	).length
+
 	// Without access to lease data, we cannot calculate expiring leases
 	// This would require using TenantWithLeases type from a different endpoint
 	const expiringLeases = 0

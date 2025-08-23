@@ -108,7 +108,11 @@ export class PropertiesController {
 		@CurrentUser() user: ValidatedUser,
 		@AuthToken() authToken?: string
 	): Promise<ControllerApiResponse<PropertyWithRelations>> {
-		const data = await this.propertiesService.findOne(id, user.id, authToken)
+		const data = await this.propertiesService.findOne(
+			id,
+			user.id,
+			authToken
+		)
 		return {
 			success: true,
 			data,

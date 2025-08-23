@@ -127,11 +127,18 @@ export const metadataValueSchema = z.union([
 	z.number().finite('Metadata number must be finite'),
 	z.boolean(),
 	z.null(),
-	z.array(z.string().max(255, 'Metadata array string too long')).max(50, 'Too many metadata array items'),
-	z.record(z.string(), z.string().max(255, 'Nested metadata value too long')).refine(
-		obj => Object.keys(obj).length <= 20,
-		'Too many nested metadata properties'
-	)
+	z
+		.array(z.string().max(255, 'Metadata array string too long'))
+		.max(50, 'Too many metadata array items'),
+	z
+		.record(
+			z.string(),
+			z.string().max(255, 'Nested metadata value too long')
+		)
+		.refine(
+			obj => Object.keys(obj).length <= 20,
+			'Too many nested metadata properties'
+		)
 ])
 
 export const metadataSchema = z
@@ -223,13 +230,13 @@ export const actionDataSchema = z.union([
 	z.number().finite('Action data number must be finite'),
 	z.boolean(),
 	z.null(),
-	z.object({}).passthrough().refine(
-		obj => {
+	z
+		.object({})
+		.passthrough()
+		.refine(obj => {
 			const jsonStr = JSON.stringify(obj)
 			return jsonStr.length <= 50000 // 50KB limit
-		},
-		'Action data object too large'
-	),
+		}, 'Action data object too large'),
 	z.array(z.unknown()).max(1000, 'Too many items in action data array')
 ])
 
@@ -342,7 +349,9 @@ export const filterValueSchema = z.union([
 	z.number().finite('Filter number must be finite'),
 	z.boolean(),
 	z.null(),
-	z.array(z.string().max(255, 'Filter array string too long')).max(20, 'Too many filter array items'),
+	z
+		.array(z.string().max(255, 'Filter array string too long'))
+		.max(20, 'Too many filter array items'),
 	z.array(z.number().finite()).max(20, 'Too many filter number items')
 ])
 
@@ -355,8 +364,14 @@ export const advancedSearchSchema = searchSchema.extend({
 		)
 		.optional(),
 	sort: z.array(sortSchema).max(5, 'Too many sort criteria').optional(),
-	include: z.array(z.string().max(100, 'Include field name too long')).max(50, 'Too many include fields').optional(),
-	exclude: z.array(z.string().max(100, 'Exclude field name too long')).max(50, 'Too many exclude fields').optional()
+	include: z
+		.array(z.string().max(100, 'Include field name too long'))
+		.max(50, 'Too many include fields')
+		.optional(),
+	exclude: z
+		.array(z.string().max(100, 'Exclude field name too long'))
+		.max(50, 'Too many exclude fields')
+		.optional()
 })
 
 export const timeRangeSchema = z.object({
@@ -380,7 +395,10 @@ export const timeRangeSchema = z.object({
 
 export const bulkOperationSchema = z.object({
 	action: z.enum(['create', 'update', 'delete', 'archive', 'restore']),
-	ids: z.array(uuidSchema).min(1, 'At least one ID is required').max(100, 'Too many IDs for bulk operation'),
+	ids: z
+		.array(uuidSchema)
+		.min(1, 'At least one ID is required')
+		.max(100, 'Too many IDs for bulk operation'),
 	data: actionDataSchema.optional()
 })
 
@@ -404,7 +422,10 @@ export const webhookEventSchema = z.object({
 	type: z.string().max(100, 'Webhook event type too long'),
 	data: actionDataSchema,
 	timestamp: dateStringSchema,
-	version: z.string().regex(/^\d+\.\d+$/, 'Invalid version format').default('1.0')
+	version: z
+		.string()
+		.regex(/^\d+\.\d+$/, 'Invalid version format')
+		.default('1.0')
 })
 
 export const webhookDeliverySchema = z.object({

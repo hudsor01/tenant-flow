@@ -6,42 +6,57 @@
  */
 
 import { useState, useEffect } from 'react'
-import { useController, type Control, type FieldValues, type Path } from 'react-hook-form'
+import {
+	useController,
+	type Control,
+	type FieldValues,
+	type Path
+} from 'react-hook-form'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '@/components/ui/select'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 
 import type { PathValue } from 'react-hook-form'
 
-export interface SupabaseFormFieldProps<TFormData extends FieldValues = FieldValues> {
-label: string
-name: Path<TFormData>
-control: Control<TFormData>
-type?: 'text' | 'email' | 'tel' | 'url' | 'textarea' | 'select'
-placeholder?: string
-defaultValue?: PathValue<TFormData, Path<TFormData>>
-required?: boolean
-multiline?: boolean
-className?: string
-validation?: {
-table?: string
-column?: string
-unique?: boolean
-}
-options?: Array<{ value: string; label: string }>
-rows?: number
+export interface SupabaseFormFieldProps<
+	TFormData extends FieldValues = FieldValues
+> {
+	label: string
+	name: Path<TFormData>
+	control: Control<TFormData>
+	type?: 'text' | 'email' | 'tel' | 'url' | 'textarea' | 'select'
+	placeholder?: string
+	defaultValue?: PathValue<TFormData, Path<TFormData>>
+	required?: boolean
+	multiline?: boolean
+	className?: string
+	validation?: {
+		table?: string
+		column?: string
+		unique?: boolean
+	}
+	options?: Array<{ value: string; label: string }>
+	rows?: number
 }
 
-export interface PropertyTypeFieldProps<TFormData extends FieldValues = FieldValues> {
-label: string
-name: Path<TFormData>
-control: Control<TFormData>
-defaultValue?: PathValue<TFormData, Path<TFormData>>
-required?: boolean
-className?: string
+export interface PropertyTypeFieldProps<
+	TFormData extends FieldValues = FieldValues
+> {
+	label: string
+	name: Path<TFormData>
+	control: Control<TFormData>
+	defaultValue?: PathValue<TFormData, Path<TFormData>>
+	required?: boolean
+	className?: string
 }
 
 export function SupabaseFormField<TFormData extends FieldValues = FieldValues>({
@@ -61,18 +76,23 @@ export function SupabaseFormField<TFormData extends FieldValues = FieldValues>({
 	const {
 		field: { onChange, onBlur, value, ref },
 		fieldState: { error }
-} = useController({
-name,
-control,
-defaultValue
-})
+	} = useController({
+		name,
+		control,
+		defaultValue
+	})
 
 	const [validationError, setValidationError] = useState<string | null>(null)
 	const [isValidating, setIsValidating] = useState(false)
 
 	// Real-time validation for unique fields
 	useEffect(() => {
-		if (!validation?.unique || !validation.table || !validation.column || !value) {
+		if (
+			!validation?.unique ||
+			!validation.table ||
+			!validation.column ||
+			!value
+		) {
 			setValidationError(null)
 			return
 		}
@@ -91,7 +111,9 @@ defaultValue
 					console.warn('Validation error:', error)
 					setValidationError(null)
 				} else if (data && data.length > 0) {
-					setValidationError(`This ${label.toLowerCase()} is already taken`)
+					setValidationError(
+						`This ${label.toLowerCase()} is already taken`
+					)
 				} else {
 					setValidationError(null)
 				}
@@ -132,7 +154,7 @@ defaultValue
 						ref={ref}
 						placeholder={placeholder}
 						value={value}
-						onChange={(e) => handleChange(e.target.value)}
+						onChange={e => handleChange(e.target.value)}
 						onBlur={onBlur}
 						required={required}
 						rows={rows}
@@ -152,8 +174,11 @@ defaultValue
 							<SelectValue placeholder={placeholder} />
 						</SelectTrigger>
 						<SelectContent>
-							{options.map((option) => (
-								<SelectItem key={option.value} value={option.value}>
+							{options.map(option => (
+								<SelectItem
+									key={option.value}
+									value={option.value}
+								>
 									{option.label}
 								</SelectItem>
 							))}
@@ -170,7 +195,7 @@ defaultValue
 							ref={ref}
 							placeholder={placeholder}
 							value={value}
-							onChange={(e) => handleChange(e.target.value)}
+							onChange={e => handleChange(e.target.value)}
 							onBlur={onBlur}
 							required={required}
 							rows={rows}
@@ -186,7 +211,7 @@ defaultValue
 						type={type}
 						placeholder={placeholder}
 						value={value}
-						onChange={(e) => handleChange(e.target.value)}
+						onChange={e => handleChange(e.target.value)}
 						onBlur={onBlur}
 						required={required}
 						className={fieldClassName}
@@ -199,34 +224,34 @@ defaultValue
 		<div className="space-y-2">
 			<Label htmlFor={name}>
 				{label}
-				{required && <span className="text-red-500 ml-1">*</span>}
-				{isValidating && <span className="text-yellow-500 ml-1">(checking...)</span>}
+				{required && <span className="ml-1 text-red-500">*</span>}
+				{isValidating && (
+					<span className="ml-1 text-yellow-500">(checking...)</span>
+				)}
 			</Label>
 			{renderField()}
-			{fieldError && (
-				<p className="text-sm text-red-600">{fieldError}</p>
-			)}
+			{fieldError && <p className="text-sm text-red-600">{fieldError}</p>}
 		</div>
 	)
 }
 
 // Property Type Field Component
 export function PropertyTypeField<TFormData extends FieldValues = FieldValues>({
-label,
-name,
-control,
-defaultValue,
-required,
-className
+	label,
+	name,
+	control,
+	defaultValue,
+	required,
+	className
 }: PropertyTypeFieldProps<TFormData>) {
-const {
-field: { onChange, onBlur, value },
-fieldState: { error }
-} = useController({
-name,
-control,
-defaultValue
-})
+	const {
+		field: { onChange, onBlur, value },
+		fieldState: { error }
+	} = useController({
+		name,
+		control,
+		defaultValue
+	})
 
 	const propertyTypes = [
 		{ value: 'SINGLE_FAMILY', label: 'Single Family' },
@@ -241,7 +266,7 @@ defaultValue
 		<div className={cn('space-y-2', className)}>
 			<Label htmlFor={name}>
 				{label}
-				{required && <span className="text-red-500 ml-1">*</span>}
+				{required && <span className="ml-1 text-red-500">*</span>}
 			</Label>
 			<Select
 				name={name}
@@ -253,7 +278,7 @@ defaultValue
 					<SelectValue placeholder="Select property type" />
 				</SelectTrigger>
 				<SelectContent>
-					{propertyTypes.map((type) => (
+					{propertyTypes.map(type => (
 						<SelectItem key={type.value} value={type.value}>
 							{type.label}
 						</SelectItem>

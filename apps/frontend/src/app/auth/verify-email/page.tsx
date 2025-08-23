@@ -2,7 +2,14 @@
 
 import type { Metadata as _Metadata } from '@/types/next.d'
 import { Suspense, useState, useTransition } from 'react'
-import { Mail, CheckCircle, ArrowRight, Loader2, RotateCcw, AlertCircle } from 'lucide-react'
+import {
+	Mail,
+	CheckCircle,
+	ArrowRight,
+	Loader2,
+	RotateCcw,
+	AlertCircle
+} from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -22,11 +29,16 @@ import { logger } from '@/lib/logger'
 export const dynamic = 'force-dynamic'
 
 // Enhanced resend verification email with proper error handling and rate limiting
-async function resendVerificationEmail(email: string): Promise<{ success: boolean; message: string }> {
+async function resendVerificationEmail(
+	email: string
+): Promise<{ success: boolean; message: string }> {
 	try {
-		logger.info('Attempting to resend verification email', { 
+		logger.info('Attempting to resend verification email', {
 			component: 'verify-email-page',
-			email: email.substring(0, 3) + '***' + email.substring(email.indexOf('@'))
+			email:
+				email.substring(0, 3) +
+				'***' +
+				email.substring(email.indexOf('@'))
 		})
 
 		const { error } = await supabase.auth.resend({
@@ -47,7 +59,8 @@ async function resendVerificationEmail(email: string): Promise<{ success: boolea
 			if (error.message.includes('rate limit')) {
 				return {
 					success: false,
-					message: 'Please wait a moment before requesting another verification email.'
+					message:
+						'Please wait a moment before requesting another verification email.'
 				}
 			}
 
@@ -60,7 +73,9 @@ async function resendVerificationEmail(email: string): Promise<{ success: boolea
 
 			return {
 				success: false,
-				message: error.message || 'Failed to resend verification email. Please try again.'
+				message:
+					error.message ||
+					'Failed to resend verification email. Please try again.'
 			}
 		}
 
@@ -70,12 +85,17 @@ async function resendVerificationEmail(email: string): Promise<{ success: boolea
 
 		return {
 			success: true,
-			message: 'Verification email sent successfully! Please check your inbox.'
+			message:
+				'Verification email sent successfully! Please check your inbox.'
 		}
 	} catch (error) {
-		logger.error('Unexpected error resending verification email', error as Error, {
-			component: 'verify-email-page'
-		})
+		logger.error(
+			'Unexpected error resending verification email',
+			error as Error,
+			{
+				component: 'verify-email-page'
+			}
+		)
 
 		return {
 			success: false,
@@ -92,10 +112,14 @@ function VerifyEmailContent({ email }: VerifyEmailContentProps) {
 	const [isPending, startTransition] = useTransition()
 	const [resendAttempts, setResendAttempts] = useState(0)
 	const [lastResendTime, setLastResendTime] = useState<number | null>(null)
-	const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+	const [message, setMessage] = useState<{
+		type: 'success' | 'error'
+		text: string
+	} | null>(null)
 
 	// Rate limiting: allow resend every 60 seconds, max 3 attempts per session
-	const canResend = resendAttempts < 3 && 
+	const canResend =
+		resendAttempts < 3 &&
 		(!lastResendTime || Date.now() - lastResendTime > 60000)
 
 	const handleResendEmail = () => {
@@ -108,14 +132,16 @@ function VerifyEmailContent({ email }: VerifyEmailContentProps) {
 		}
 
 		if (!canResend) {
-			const timeRemaining = lastResendTime ? 
-				Math.ceil((60000 - (Date.now() - lastResendTime)) / 1000) : 0
-			
+			const timeRemaining = lastResendTime
+				? Math.ceil((60000 - (Date.now() - lastResendTime)) / 1000)
+				: 0
+
 			setMessage({
 				type: 'error',
-				text: timeRemaining > 0 
-					? `Please wait ${timeRemaining} seconds before requesting another email.`
-					: 'Maximum resend attempts reached. Please contact support if you continue having issues.'
+				text:
+					timeRemaining > 0
+						? `Please wait ${timeRemaining} seconds before requesting another email.`
+						: 'Maximum resend attempts reached. Please contact support if you continue having issues.'
 			})
 			return
 		}
@@ -124,10 +150,10 @@ function VerifyEmailContent({ email }: VerifyEmailContentProps) {
 			try {
 				setMessage(null)
 				const result = await resendVerificationEmail(email)
-				
+
 				setResendAttempts(prev => prev + 1)
 				setLastResendTime(Date.now())
-				
+
 				setMessage({
 					type: result.success ? 'success' : 'error',
 					text: result.message
@@ -160,8 +186,9 @@ function VerifyEmailContent({ email }: VerifyEmailContentProps) {
 		return `Resend Email (${3 - resendAttempts} attempts left)`
 	}
 
-	const timeUntilNextResend = lastResendTime ? 
-		Math.max(0, Math.ceil((60000 - (Date.now() - lastResendTime)) / 1000)) : 0
+	const timeUntilNextResend = lastResendTime
+		? Math.max(0, Math.ceil((60000 - (Date.now() - lastResendTime)) / 1000))
+		: 0
 
 	return (
 		<div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4">
@@ -189,15 +216,19 @@ function VerifyEmailContent({ email }: VerifyEmailContentProps) {
 
 					{/* Display status message */}
 					{message && (
-						<Alert variant={message.type === 'error' ? 'destructive' : 'default'}>
+						<Alert
+							variant={
+								message.type === 'error'
+									? 'destructive'
+									: 'default'
+							}
+						>
 							{message.type === 'error' ? (
 								<AlertCircle className="h-4 w-4" />
 							) : (
 								<CheckCircle className="h-4 w-4" />
 							)}
-							<AlertDescription>
-								{message.text}
-							</AlertDescription>
+							<AlertDescription>{message.text}</AlertDescription>
 						</Alert>
 					)}
 
@@ -209,8 +240,9 @@ function VerifyEmailContent({ email }: VerifyEmailContentProps) {
 									Check your inbox
 								</p>
 								<p className="text-muted-foreground text-sm">
-									Click the verification link we sent to confirm your email address.
-									The link will expire in 24 hours.
+									Click the verification link we sent to
+									confirm your email address. The link will
+									expire in 24 hours.
 								</p>
 							</div>
 						</div>
@@ -222,8 +254,8 @@ function VerifyEmailContent({ email }: VerifyEmailContentProps) {
 									Complete your setup
 								</p>
 								<p className="text-muted-foreground text-sm">
-									After verification, you'll be automatically signed in and
-									redirected to your dashboard.
+									After verification, you'll be automatically
+									signed in and redirected to your dashboard.
 								</p>
 							</div>
 						</div>
@@ -235,7 +267,8 @@ function VerifyEmailContent({ email }: VerifyEmailContentProps) {
 									Check your spam folder
 								</p>
 								<p className="text-muted-foreground text-sm">
-									Sometimes verification emails end up in spam or junk folders.
+									Sometimes verification emails end up in spam
+									or junk folders.
 								</p>
 							</div>
 						</div>
@@ -249,7 +282,8 @@ function VerifyEmailContent({ email }: VerifyEmailContentProps) {
 
 							{timeUntilNextResend > 0 && (
 								<p className="text-center text-xs text-orange-600">
-									You can request another email in {timeUntilNextResend} seconds
+									You can request another email in{' '}
+									{timeUntilNextResend} seconds
 								</p>
 							)}
 
@@ -275,8 +309,8 @@ function VerifyEmailContent({ email }: VerifyEmailContentProps) {
 							{resendAttempts >= 3 && (
 								<p className="text-center text-xs text-red-600">
 									Maximum attempts reached. Please{' '}
-									<Link 
-										href="/contact" 
+									<Link
+										href="/contact"
 										className="underline hover:no-underline"
 									>
 										contact support
@@ -298,9 +332,10 @@ function VerifyEmailContent({ email }: VerifyEmailContentProps) {
 
 						<div className="text-xs text-gray-500">
 							<p>
-								Having trouble? Try signing up with a different email or{' '}
-								<Link 
-									href="/contact" 
+								Having trouble? Try signing up with a different
+								email or{' '}
+								<Link
+									href="/contact"
 									className="underline hover:no-underline"
 								>
 									contact our support team
@@ -331,7 +366,9 @@ export default function VerifyEmailPage() {
 						<CardContent className="flex items-center justify-center p-8">
 							<div className="space-y-4 text-center">
 								<Loader2 className="mx-auto h-8 w-8 animate-spin text-blue-600" />
-								<p className="text-muted-foreground text-sm">Loading...</p>
+								<p className="text-muted-foreground text-sm">
+									Loading...
+								</p>
 							</div>
 						</CardContent>
 					</Card>

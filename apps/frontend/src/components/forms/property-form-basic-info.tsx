@@ -68,8 +68,7 @@ export function PropertyFormBasicInfo({
 					defaultValue={property?.propertyType || ''}
 					required
 				>
-					<SelectTrigger
-					>
+					<SelectTrigger>
 						<SelectValue placeholder="Select property type" />
 					</SelectTrigger>
 					<SelectContent>

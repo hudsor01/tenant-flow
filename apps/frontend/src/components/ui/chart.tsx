@@ -147,7 +147,7 @@ function ChartTooltipContent({
 		const itemConfig = getPayloadConfigFromPayload(config, item, key)
 		const value =
 			!labelKey && typeof label === 'string'
-				? config[label as keyof typeof config]?.label ?? label
+				? (config[label as keyof typeof config]?.label ?? label)
 				: itemConfig?.label
 
 		if (
@@ -343,10 +343,7 @@ function ChartLegendContent({
 
 				return (
 					<div
-						key={
-							item.dataKey || 
-							`legend-${Math.random()}`
-						}
+						key={item.dataKey || `legend-${Math.random()}`}
 						className={cn(
 							'[&>svg]:text-muted-foreground flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3'
 						)}

@@ -47,11 +47,8 @@ function PropertyImageUpload({
 	): Promise<string> => {
 		const formData = new FormData()
 		formData.append('image', file)
-		
-		const response = await propertyApi.uploadImage(
-			propertyId,
-			formData
-		)
+
+		const response = await propertyApi.uploadImage(propertyId, formData)
 		return response.url
 	}
 

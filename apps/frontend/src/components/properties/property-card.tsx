@@ -142,7 +142,7 @@ export default function PropertyCard({
 							className="object-cover transition-transform duration-300 group-hover:scale-105"
 						/>
 					) : (
-						<div className="flex items-center justify-center h-full w-full">
+						<div className="flex h-full w-full items-center justify-center">
 							<Building2 className="h-16 w-16 text-white/70" />
 						</div>
 					)}
@@ -176,10 +176,14 @@ export default function PropertyCard({
 										void handleDelete().catch(error => {
 											logger.error(
 												'Failed to delete property:',
-												error instanceof Error ? error : new Error(String(error)),
+												error instanceof Error
+													? error
+													: new Error(String(error)),
 												{ component: 'PropertyCard' }
 											)
-											toast.error('Failed to delete property')
+											toast.error(
+												'Failed to delete property'
+											)
 										})
 									}}
 									className="text-red-600 hover:bg-red-50 hover:text-red-700"
@@ -214,9 +218,7 @@ export default function PropertyCard({
 							<CardTitle className="text-foreground group-hover:text-primary mb-1 transition-colors">
 								{property.name}
 							</CardTitle>
-							<CardDescription
-								className="flex items-center"
-							>
+							<CardDescription className="flex items-center">
 								<MapPin className="mr-1 h-4 w-4" />
 								{property.address}, {property.city},{' '}
 								{property.state} {property.zipCode}
@@ -236,15 +238,11 @@ export default function PropertyCard({
 					{/* Statistics Grid */}
 					<motion.div
 						variants={statVariants}
-						className="mb-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
+						className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
 					>
 						{/* Total Units */}
-						<div
-							className="flex items-center rounded-lg bg-blue-50 p-3"
-						>
-							<div
-								className="mr-3 flex items-center justify-center h-8 w-8 rounded-lg bg-blue-100"
-							>
+						<div className="flex items-center rounded-lg bg-blue-50 p-3">
+							<div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100">
 								<Home className="text-primary h-4 w-4" />
 							</div>
 							<div>
@@ -258,12 +256,8 @@ export default function PropertyCard({
 						</div>
 
 						{/* Occupied Units */}
-						<div
-							className="flex items-center rounded-lg bg-green-50 p-3"
-						>
-							<div
-								className="mr-3 flex items-center justify-center h-8 w-8 rounded-lg bg-green-100"
-							>
+						<div className="flex items-center rounded-lg bg-green-50 p-3">
+							<div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-green-100">
 								<UserCheck className="h-4 w-4 text-green-600" />
 							</div>
 							<div>
@@ -277,12 +271,8 @@ export default function PropertyCard({
 						</div>
 
 						{/* Vacant Units */}
-						<div
-							className="flex items-center rounded-lg bg-orange-50 p-3"
-						>
-							<div
-								className="mr-3 flex items-center justify-center h-8 w-8 rounded-lg bg-orange-100"
-							>
+						<div className="flex items-center rounded-lg bg-orange-50 p-3">
+							<div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-orange-100">
 								<UserX className="h-4 w-4 text-orange-600" />
 							</div>
 							<div>
@@ -296,12 +286,8 @@ export default function PropertyCard({
 						</div>
 
 						{/* Monthly Revenue */}
-						<div
-							className="flex items-center rounded-lg bg-purple-50 p-3"
-						>
-							<div
-								className="mr-3 flex items-center justify-center h-8 w-8 rounded-lg bg-purple-100"
-							>
+						<div className="flex items-center rounded-lg bg-purple-50 p-3">
+							<div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100">
 								<DollarSign className="h-4 w-4 text-purple-600" />
 							</div>
 							<div>

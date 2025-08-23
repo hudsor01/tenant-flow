@@ -600,9 +600,7 @@ export default function ResourcesPage() {
 								</Link>
 							</Button>
 							<Button asChild variant="outline" size="lg">
-								<Link href="/help">
-									Visit Help Center
-								</Link>
+								<Link href="/help">Visit Help Center</Link>
 							</Button>
 						</div>
 					</motion.div>

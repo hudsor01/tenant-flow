@@ -28,12 +28,14 @@ export class PostHogErrorBoundary extends React.Component<
 	override render() {
 		if (this.state.hasError) {
 			return (
-				<div className="min-h-screen flex items-center justify-center">
+				<div className="flex min-h-screen items-center justify-center">
 					<div className="text-center">
-						<h2 className="text-xl font-semibold mb-2">Something went wrong</h2>
+						<h2 className="mb-2 text-xl font-semibold">
+							Something went wrong
+						</h2>
 						<button
 							onClick={() => this.setState({ hasError: false })}
-							className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+							className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
 						>
 							Try again
 						</button>

@@ -1,4 +1,4 @@
-import { Meta } from '@storybook/blocks';
+import { Meta } from '@storybook/blocks'
 
 <Meta title="Design System/Overview" />
 
@@ -9,10 +9,13 @@ Welcome to the TenantFlow Design System documentation. This comprehensive compon
 ## 🎨 Design Principles
 
 ### Consistency
+
 All components follow consistent design patterns, spacing, and visual hierarchy to create a cohesive user experience across the application.
 
 ### Accessibility First
+
 Every component is built with accessibility in mind, featuring:
+
 - WCAG 2.1 AA compliance
 - Keyboard navigation support
 - Screen reader optimization
@@ -20,7 +23,9 @@ Every component is built with accessibility in mind, featuring:
 - Focus management
 
 ### Developer Experience
+
 Components are designed for ease of use with:
+
 - TypeScript support
 - Comprehensive prop interfaces
 - Flexible styling options
@@ -30,28 +35,33 @@ Components are designed for ease of use with:
 ## 🚀 Component Categories
 
 ### Core Components
+
 - **Button** - Primary actions, secondary actions, and specialized button variants
 - **Input** - Text inputs with validation, floating labels, and accessibility features
 - **Card** - Flexible content containers for organizing information
 - **Badge** - Status indicators, tags, and small informational elements
 
 ### Layout Components
+
 - **Grid System** - Responsive layout utilities
 - **Containers** - Content wrappers and sections
 - **Spacing** - Consistent spacing utilities
 
 ### Form Components
+
 - **Form Controls** - Complete form building blocks
 - **Validation** - Real-time validation with clear feedback
 - **Input Groups** - Complex input combinations
 
 ### Navigation
+
 - **Navigation Bars** - Top-level navigation
 - **Sidebar Navigation** - Side navigation panels
 - **Breadcrumbs** - Hierarchical navigation
 - **Tabs** - Content switching
 
 ### Data Display
+
 - **Tables** - Data presentation with sorting and filtering
 - **Lists** - Ordered and unordered content lists
 - **Statistics** - Metrics and KPI displays
@@ -59,6 +69,7 @@ Components are designed for ease of use with:
 ## 🎯 Design Tokens
 
 ### Colors
+
 Our color system is built on semantic color tokens that adapt to light and dark themes:
 
 - **Primary Colors** - Main brand colors for actions and emphasis
@@ -67,13 +78,15 @@ Our color system is built on semantic color tokens that adapt to light and dark 
 - **Semantic Colors** - Success, warning, error, and info states
 
 ### Typography
+
 Typography scale with consistent line heights and spacing:
 
 - **Headings** - H1 through H6 for content hierarchy
-- **Body Text** - Regular and large body text sizes  
+- **Body Text** - Regular and large body text sizes
 - **UI Text** - Small text for captions and labels
 
 ### Spacing
+
 Consistent spacing scale based on 8px grid system:
 
 - **Micro** - 4px, 8px for tight spacing
@@ -82,6 +95,7 @@ Consistent spacing scale based on 8px grid system:
 - **Large** - 48px, 64px for generous spacing
 
 ### Borders & Shadows
+
 Subtle border and shadow system for depth and separation:
 
 - **Border Radius** - Consistent corner rounding
@@ -91,13 +105,16 @@ Subtle border and shadow system for depth and separation:
 ## 🛠 Usage Guidelines
 
 ### Component Selection
+
 Choose components based on their intended purpose:
+
 - Use **Button** for actions users can take
 - Use **Badge** for status and categorization
 - Use **Card** for content grouping
 - Use **Input** for user data entry
 
 ### Accessibility Best Practices
+
 - Always provide meaningful labels
 - Use semantic HTML structure
 - Ensure sufficient color contrast
@@ -105,7 +122,9 @@ Choose components based on their intended purpose:
 - Provide clear error messages
 
 ### Customization
+
 Components support customization through:
+
 - **Variant Props** - Pre-defined style variations
 - **Size Props** - Multiple size options
 - **Custom CSS Classes** - Override styling when needed
@@ -114,6 +133,7 @@ Components support customization through:
 ## 📱 Responsive Design
 
 All components are built mobile-first and include:
+
 - Flexible layouts that adapt to screen size
 - Touch-friendly interaction targets
 - Optimized typography scales
@@ -122,25 +142,38 @@ All components are built mobile-first and include:
 ## 🔧 Development
 
 ### Installation
+
 Components are available through the shared package:
+
 ```bash
 import { Button, Card, Input, Badge } from '@/components/ui'
 ```
 
 ### TypeScript Support
+
 Full TypeScript support with comprehensive type definitions:
+
 ```typescript
 interface ButtonProps {
-  variant?: 'default' | 'secondary' | 'destructive' | 'outline' | 'ghost' | 'link' | 'cta'
-  size?: 'sm' | 'default' | 'lg' | 'xl'
-  fullWidth?: boolean
-  loading?: boolean
-  // ... and many more
+	variant?:
+		| 'default'
+		| 'secondary'
+		| 'destructive'
+		| 'outline'
+		| 'ghost'
+		| 'link'
+		| 'cta'
+	size?: 'sm' | 'default' | 'lg' | 'xl'
+	fullWidth?: boolean
+	loading?: boolean
+	// ... and many more
 }
 ```
 
 ### Testing
+
 All components include:
+
 - Unit tests for functionality
 - Accessibility tests
 - Visual regression tests
@@ -149,7 +182,8 @@ All components include:
 ## 📚 Documentation
 
 Each component includes:
-- **Overview** - Component purpose and use cases  
+
+- **Overview** - Component purpose and use cases
 - **API Reference** - Complete prop documentation
 - **Examples** - Code examples and live demos
 - **Accessibility** - WCAG compliance details
@@ -158,6 +192,7 @@ Each component includes:
 ## 🎨 Theming
 
 The design system supports:
+
 - **Light/Dark Themes** - Automatic theme switching
 - **Custom Themes** - Brand-specific color schemes
 - **CSS Custom Properties** - Easy theme customization
@@ -168,7 +203,7 @@ The design system supports:
 ## Getting Started
 
 1. **Browse Components** - Explore the component library in the sidebar
-2. **View Examples** - See components in action with interactive examples  
+2. **View Examples** - See components in action with interactive examples
 3. **Read Documentation** - Review API references and best practices
 4. **Copy Code** - Use the code snippets in your application
 5. **Customize** - Adapt components to your specific needs

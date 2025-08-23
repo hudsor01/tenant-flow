@@ -213,20 +213,19 @@ export class AuthWebhookController {
 			try {
 				// TODO: Replace with simplified webhook-based subscription handling
 				// Subscription management now handled entirely through Stripe webhooks
-				this.logger.log(`User created: ${userId}, subscription will be created via Stripe webhooks`)
+				this.logger.log(
+					`User created: ${userId}, subscription will be created via Stripe webhooks`
+				)
 				await this.updateSubscriptionWithStripeData(
 					userId,
 					customer.id,
 					stripeSubscription.id
 				)
 
-				this.logger.log(
-					'Local subscription updated with Stripe data',
-					{
-						userId,
-						stripeSubscriptionId: stripeSubscription.id
-					}
-				)
+				this.logger.log('Local subscription updated with Stripe data', {
+					userId,
+					stripeSubscriptionId: stripeSubscription.id
+				})
 			} catch (localDbError) {
 				this.logger.error(
 					'Failed to update local subscription with Stripe data',
@@ -261,7 +260,9 @@ export class AuthWebhookController {
 	) {
 		// TODO: Replace with webhook-based subscription handling
 		// Subscription updates now handled entirely through Stripe webhooks
-		this.logger.log(`Subscription ${stripeSubscriptionId} will be handled via webhooks`)
+		this.logger.log(
+			`Subscription ${stripeSubscriptionId} will be handled via webhooks`
+		)
 
 		// Also update user record with Stripe customer ID using users service
 		await this.usersService.updateUser(userId, {

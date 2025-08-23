@@ -6,7 +6,7 @@
  */
 export function getClientCSRFToken(): string | null {
 	if (typeof document === 'undefined') return null
-	
+
 	const metaTag = document.querySelector('meta[name="csrf-token"]')
 	return metaTag?.getAttribute('content') || null
 }

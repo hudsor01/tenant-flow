@@ -244,10 +244,7 @@ function TenantsTableUI({ tenants }: TenantsTableUIProps) {
 						</TableHeader>
 						<TableBody>
 							{tenants.map(tenant => (
-								<TenantRow
-									key={tenant.id}
-									tenant={tenant}
-								/>
+								<TenantRow key={tenant.id} tenant={tenant} />
 							))}
 						</TableBody>
 					</Table>
@@ -288,9 +285,5 @@ export function TenantsDataTable() {
 		throw error
 	}
 
-	return (
-		<TenantsTableUI 
-			tenants={tenants as TenantWithLeases[] || []}
-		/>
-	)
+	return <TenantsTableUI tenants={(tenants as TenantWithLeases[]) || []} />
 }

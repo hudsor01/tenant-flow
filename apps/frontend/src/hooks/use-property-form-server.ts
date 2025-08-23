@@ -51,22 +51,22 @@ export function usePropertyFormServer({
 				}
 
 	// Use server action hook for form state management
-	const { state: formState, formAction, isPending } = useServerAction(
-		action,
-		initialState,
-		{
-			onSuccess: () => {
-				const successMessage =
-					mode === 'create'
-						? 'Property created successfully'
-						: 'Property updated successfully'
-				
-				toast.success(successMessage)
-				onSuccess?.()
-			},
-			showToast: false // Handle toast manually above
-		}
-	)
+	const {
+		state: formState,
+		formAction,
+		isPending
+	} = useServerAction(action, initialState, {
+		onSuccess: () => {
+			const successMessage =
+				mode === 'create'
+					? 'Property created successfully'
+					: 'Property updated successfully'
+
+			toast.success(successMessage)
+			onSuccess?.()
+		},
+		showToast: false // Handle toast manually above
+	})
 
 	const wrappedFormAction = (formData: FormData) => {
 		// Add amenities to form data

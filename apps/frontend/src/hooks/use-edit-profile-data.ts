@@ -63,8 +63,12 @@ export function useEditProfileData() {
 				message: result.message || 'Profile updated successfully'
 			})
 		} catch (err) {
-			const errorMessage = err instanceof Error ? err.message : 'Failed to update profile'
-			logger.error('Profile update failed', err instanceof Error ? err : new Error(String(err)))
+			const errorMessage =
+				err instanceof Error ? err.message : 'Failed to update profile'
+			logger.error(
+				'Profile update failed',
+				err instanceof Error ? err : new Error(String(err))
+			)
 			setError(errorMessage)
 			throw err
 		} finally {

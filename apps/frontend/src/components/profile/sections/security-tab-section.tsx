@@ -24,15 +24,19 @@ export function SecurityTabSection({
 }: SecurityTabSectionProps) {
 	return (
 		<form
-			onSubmit={(e) => {
-				void form.handleSubmit(onSubmit)(e).catch(error => {
-					logger.error(
-						'Failed to update password:',
-						error instanceof Error ? error : new Error(String(error)),
-						{ component: 'SecurityTabSection' }
-					)
-					toast.error('Failed to update password')
-				})
+			onSubmit={e => {
+				void form
+					.handleSubmit(onSubmit)(e)
+					.catch(error => {
+						logger.error(
+							'Failed to update password:',
+							error instanceof Error
+								? error
+								: new Error(String(error)),
+							{ component: 'SecurityTabSection' }
+						)
+						toast.error('Failed to update password')
+					})
 			}}
 			className="space-y-6"
 		>

@@ -6,10 +6,8 @@
 import { setCSRFToken } from '@/lib/auth/csrf-token'
 
 export async function CSRFMeta() {
-  // Generate CSRF token and set HTTP-only cookie
-  const csrfToken = await setCSRFToken()
-  
-  return (
-    <meta name="csrf-token" content={csrfToken} />
-  )
+	// Generate CSRF token and set HTTP-only cookie
+	const csrfToken = await setCSRFToken()
+
+	return <meta name="csrf-token" content={csrfToken} />
 }

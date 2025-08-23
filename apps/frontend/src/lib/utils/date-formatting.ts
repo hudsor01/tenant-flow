@@ -52,7 +52,10 @@ export function formatLeaseDate(
 
 		return date.toLocaleDateString(locale, formatOptions)
 	} catch (error) {
-		logger.error('Date formatting error:', error instanceof Error ? error : new Error(String(error)))
+		logger.error(
+			'Date formatting error:',
+			error instanceof Error ? error : new Error(String(error))
+		)
 		return dateString // Fallback to original string
 	}
 }
@@ -77,7 +80,10 @@ export function formatSignatureDate(dateString: string): string {
 			day: '2-digit'
 		})
 	} catch (error) {
-		logger.error('Signature date formatting error:', error instanceof Error ? error : new Error(String(error)))
+		logger.error(
+			'Signature date formatting error:',
+			error instanceof Error ? error : new Error(String(error))
+		)
 		return dateString
 	}
 }

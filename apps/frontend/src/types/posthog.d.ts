@@ -55,7 +55,10 @@ declare module 'posthog-js' {
 	export interface PostHog {
 		init(_apiKey: string, _config?: PostHogConfig): void
 		capture(_eventName: string, _properties?: Record<string, unknown>): void
-		identify(_distinctId: string, _properties?: Record<string, unknown>): void
+		identify(
+			_distinctId: string,
+			_properties?: Record<string, unknown>
+		): void
 		reset(): void
 		opt_out_capturing(): void
 		opt_in_capturing(): void
@@ -109,8 +112,14 @@ declare module '@radix-ui/themes' {
 declare global {
 	interface Window {
 		posthog?: {
-			capture: (eventName: string, properties?: Record<string, unknown>) => void
-			identify: (distinctId: string, properties?: Record<string, unknown>) => void
+			capture: (
+				eventName: string,
+				properties?: Record<string, unknown>
+			) => void
+			identify: (
+				distinctId: string,
+				properties?: Record<string, unknown>
+			) => void
 			reset: () => void
 			isFeatureEnabled: (flagKey: string) => boolean | undefined
 			getFeatureFlag: (flagKey: string) => string | boolean | undefined

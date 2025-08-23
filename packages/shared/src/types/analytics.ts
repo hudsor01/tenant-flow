@@ -42,7 +42,6 @@ export interface PropertyTrend {
 	maintenanceRequests: number
 }
 
-
 export type ReportFrequency = 'daily' | 'weekly' | 'monthly'
 
 export interface AnalyticsSettings {

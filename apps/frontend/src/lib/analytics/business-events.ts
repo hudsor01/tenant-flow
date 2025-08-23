@@ -33,7 +33,10 @@ export interface TenantEvent extends BusinessEvent {
 /**
  * Track property-related business events
  */
-export const trackPropertyEvent = (posthog: PostHog | null, event: PropertyEvent) => {
+export const trackPropertyEvent = (
+	posthog: PostHog | null,
+	event: PropertyEvent
+) => {
 	if (!posthog) return
 
 	posthog.capture(event.event, {
@@ -66,7 +69,10 @@ export const trackLeaseEvent = (posthog: PostHog | null, event: LeaseEvent) => {
 /**
  * Track tenant-related business events
  */
-export const trackTenantEvent = (posthog: PostHog | null, event: TenantEvent) => {
+export const trackTenantEvent = (
+	posthog: PostHog | null,
+	event: TenantEvent
+) => {
 	if (!posthog) return
 
 	posthog.capture(event.event, {
@@ -104,7 +110,8 @@ export const BUSINESS_EVENTS = {
 	TENANT_MOVED_OUT: 'tenant_moved_out'
 } as const
 
-export type BusinessEventType = typeof BUSINESS_EVENTS[keyof typeof BUSINESS_EVENTS]
+export type BusinessEventType =
+	(typeof BUSINESS_EVENTS)[keyof typeof BUSINESS_EVENTS]
 
 /**
  * Hook for tracking business events
@@ -115,34 +122,34 @@ export const useBusinessEvents = () => {
 	const trackEvent = (event: BusinessEvent) => {
 		console.log('Business event tracked:', event)
 	}
-	
+
 	const trackPropertyCreated = (propertyData: Record<string, unknown>) => {
 		console.log('Property created event tracked:', propertyData)
 	}
-	
+
 	const trackPropertyUpdated = (propertyData: Record<string, unknown>) => {
 		console.log('Property updated event tracked:', propertyData)
 	}
-	
+
 	const trackLeaseCreated = (leaseData: Record<string, unknown>) => {
 		console.log('Lease created event tracked:', leaseData)
 	}
-	
+
 	const trackTenantCreated = (tenantData: Record<string, unknown>) => {
 		console.log('Tenant created event tracked:', tenantData)
 	}
-	
+
 	const trackUserError = (error: Record<string, unknown>) => {
 		console.log('User error tracked:', error)
 	}
-	
-	return { 
-		trackEvent, 
-		trackPropertyCreated, 
+
+	return {
+		trackEvent,
+		trackPropertyCreated,
 		trackPropertyUpdated,
-		trackLeaseCreated, 
-		trackTenantCreated, 
-		trackUserError 
+		trackLeaseCreated,
+		trackTenantCreated,
+		trackUserError
 	}
 }
 
@@ -152,13 +159,20 @@ export const useBusinessEvents = () => {
  */
 export const useInteractionTracking = () => {
 	// This is a placeholder - integrate with actual analytics when available
-	const trackInteraction = (interaction: string, properties?: Record<string, unknown>) => {
+	const trackInteraction = (
+		interaction: string,
+		properties?: Record<string, unknown>
+	) => {
 		console.log('Interaction tracked:', interaction, properties)
 	}
-	
-	const trackFormSubmission = (formType: string, success: boolean, errors?: string[]) => {
+
+	const trackFormSubmission = (
+		formType: string,
+		success: boolean,
+		errors?: string[]
+	) => {
 		console.log('Form submission tracked:', { formType, success, errors })
 	}
-	
+
 	return { trackInteraction, trackFormSubmission }
 }

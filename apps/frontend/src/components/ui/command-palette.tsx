@@ -71,7 +71,7 @@ interface CommandItem {
 
 export function CommandPalette() {
 	const router = useRouter()
-	
+
 	// Use the command palette hook for basic functionality
 	const commandPalette = useCommandPalette()
 	const { isOpen, close, toggle } = commandPalette
@@ -95,10 +95,20 @@ export function CommandPalette() {
 
 	// Simplified recent items (would normally be persisted)
 	const recentItems: CommandItem[] = []
-	const addRecentItem = useCallback((item: Partial<CommandItem> & { id: string; title: string; href?: string; type?: string }) => {
-		// Would normally add to persistent storage
-		console.log('Adding recent item:', item)
-	}, [])
+	const addRecentItem = useCallback(
+		(
+			item: Partial<CommandItem> & {
+				id: string
+				title: string
+				href?: string
+				type?: string
+			}
+		) => {
+			// Would normally add to persistent storage
+			console.log('Adding recent item:', item)
+		},
+		[]
+	)
 
 	// Navigation items - wrapped in useMemo to fix ESLint warning
 	const navigationItems: CommandItem[] = React.useMemo(
@@ -567,12 +577,12 @@ export function CommandPalette() {
 							</CommandPrimitive.Empty>
 						)}
 
-						{filteredGroups.map((group) => (
+						{filteredGroups.map(group => (
 							<CommandPrimitive.Group
 								key={group.heading}
 								heading={group.heading}
 							>
-								{group.items.map((item) => {
+								{group.items.map(item => {
 									const Icon = item.icon
 									return (
 										<CommandPrimitive.Item

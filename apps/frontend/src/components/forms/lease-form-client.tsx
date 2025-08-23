@@ -92,9 +92,12 @@ export function LeaseFormClient({
 	// Data hooks
 	const propertiesQuery = useProperties()
 	const { tenants = [] } = useTenants()
-	
+
 	// Memoize properties to prevent render loop
-	const properties = useMemo(() => propertiesQuery.data ?? [], [propertiesQuery.data])
+	const properties = useMemo(
+		() => propertiesQuery.data ?? [],
+		[propertiesQuery.data]
+	)
 
 	// Analytics hooks
 	const { trackLeaseCreated, trackUserError } = useBusinessEvents()
@@ -107,14 +110,14 @@ export function LeaseFormClient({
 	// Available units and tenants
 	const availableUnits = useMemo(() => {
 		return properties.flatMap(
-			(property) =>
+			property =>
 				property.units
 					?.filter(
-						(unit) =>
+						unit =>
 							unit.status === 'VACANT' ||
 							unit.id === lease?.unitId
 					)
-					.map((unit) => ({
+					.map(unit => ({
 						value: unit.id,
 						label: `${property.name} - Unit ${unit.unitNumber} ($${unit.rent ?? unit.monthlyRent ?? 0}/month)`,
 						propertyName: property.name,
@@ -180,11 +183,11 @@ export function LeaseFormClient({
 	useEffect(() => {
 		if (formData.unitId) {
 			const selectedUnit = availableUnits.find(
-				(unit) => unit.value === formData.unitId
+				unit => unit.value === formData.unitId
 			)
 			if (selectedUnit) {
-				const property = properties.find((p) =>
-					p.units?.some((u) => u.id === formData.unitId)
+				const property = properties.find(p =>
+					p.units?.some(u => u.id === formData.unitId)
 				)
 
 				setFormData(prev => ({
@@ -294,7 +297,9 @@ export function LeaseFormClient({
 							onSuccess?.(updatedLease)
 						},
 						onError: error => {
-							trackFormSubmission('lease_form', false, [error.message])
+							trackFormSubmission('lease_form', false, [
+								error.message
+							])
 							trackUserError({
 								error_type: 'lease_update_failed',
 								error_message: error.message,
@@ -333,7 +338,9 @@ export function LeaseFormClient({
 						onSuccess?.(newLease)
 					},
 					onError: error => {
-						trackFormSubmission('lease_form', false, [error.message])
+						trackFormSubmission('lease_form', false, [
+							error.message
+						])
 						trackUserError({
 							error_type: 'lease_creation_failed',
 							error_message: error.message,

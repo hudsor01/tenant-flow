@@ -1,9 +1,9 @@
 /**
  * Advanced Lease Generator Component
- * 
+ *
  * Provides comprehensive lease document generation with property and tenant data integration.
  * Features include PDF generation, state-specific lease templates, and electronic signature support.
- * 
+ *
  * Note: This is a premium feature that extends beyond basic property management MVP scope.
  */
 
@@ -171,7 +171,9 @@ export default function LeaseGeneratorFormComponent({
 			// Convert tenant names array to the expected format for the lease generator
 			const tenantNamesForLeaseGenerator = data.tenantNames
 				.filter((tenant: { name: string }) => tenant.name.trim() !== '')
-				.map((tenant: { name: string }) => ({ name: tenant.name.trim() }))
+				.map((tenant: { name: string }) => ({
+					name: tenant.name.trim()
+				}))
 
 			// Map format to what the lease generator expects
 			const formatForGenerator =

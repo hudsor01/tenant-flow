@@ -37,68 +37,68 @@ export default function DashboardLayout({
 	return (
 		<ServerAuthGuard requireAuth={true}>
 			<PHProvider>
-					<PostHogErrorBoundary>
-						<QueryProvider>
-							<PostHogUserProvider>
-								<CommandPaletteProvider>
-									<Suspense fallback={null}>
-										<PostHogPageView />
-									</Suspense>
+				<PostHogErrorBoundary>
+					<QueryProvider>
+						<PostHogUserProvider>
+							<CommandPaletteProvider>
+								<Suspense fallback={null}>
+									<PostHogPageView />
+								</Suspense>
 
-									<ProtectedRouteGuard>
-										<div className="min-h-screen bg-gray-50">
-											{/* Offline Banner */}
-											<OfflineBanner />
-											
-											{/* Mobile-First Navigation */}
-											<div className="md:hidden">
-												<Navigation className="border-b" />
-											</div>
+								<ProtectedRouteGuard>
+									<div className="min-h-screen bg-gray-50">
+										{/* Offline Banner */}
+										<OfflineBanner />
 
-											{/* Desktop Navigation */}
-											<div className="hidden md:block">
-												<Navigation />
-											</div>
+										{/* Mobile-First Navigation */}
+										<div className="md:hidden">
+											<Navigation className="border-b" />
+										</div>
 
-											<div className="flex">
-												{/* Desktop Sidebar */}
+										{/* Desktop Navigation */}
+										<div className="hidden md:block">
+											<Navigation />
+										</div>
+
+										<div className="flex">
+											{/* Desktop Sidebar */}
+											<Suspense
+												fallback={
+													<div className="hidden w-64 bg-white shadow-sm md:block" />
+												}
+											>
+												<aside className="hidden w-64 bg-white shadow-sm md:block">
+													{sidebar ?? (
+														<DashboardSidebar />
+													)}
+												</aside>
+											</Suspense>
+
+											{/* Main content area - improved mobile spacing */}
+											<main className="min-w-0 flex-1 pt-2 pb-20 md:p-6 md:pt-6 md:pb-6">
 												<Suspense
 													fallback={
-														<div className="hidden w-64 bg-white shadow-sm md:block" />
+														<div className="flex h-64 items-center justify-center">
+															<Loader2 className="h-8 w-8 animate-spin" />
+														</div>
 													}
 												>
-													<aside className="hidden w-64 bg-white shadow-sm md:block">
-														{sidebar ?? (
-															<DashboardSidebar />
-														)}
-													</aside>
+													<div className="px-3 sm:px-4 md:px-0">
+														{children}
+													</div>
 												</Suspense>
-
-												{/* Main content area - improved mobile spacing */}
-												<main className="min-w-0 flex-1 pt-2 pb-20 md:p-6 md:pt-6 md:pb-6">
-													<Suspense
-														fallback={
-															<div className="flex h-64 items-center justify-center">
-																<Loader2 className="h-8 w-8 animate-spin" />
-															</div>
-														}
-													>
-														<div className="px-3 sm:px-4 md:px-0">
-															{children}
-														</div>
-													</Suspense>
-												</main>
-											</div>
-
-											{/* Modal parallel route */}
-											{modal}
+											</main>
 										</div>
-									</ProtectedRouteGuard>
-								</CommandPaletteProvider>
-							</PostHogUserProvider>
-						</QueryProvider>
-					</PostHogErrorBoundary>
-				</PHProvider>
+
+										{/* Modal parallel route */}
+										{modal}
+									</div>
+								</ProtectedRouteGuard>
+							</CommandPaletteProvider>
+						</PostHogUserProvider>
+					</QueryProvider>
+				</PostHogErrorBoundary>
+			</PHProvider>
 		</ServerAuthGuard>
 	)
 }

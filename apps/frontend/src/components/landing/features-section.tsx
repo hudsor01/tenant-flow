@@ -62,7 +62,7 @@ export function FeaturesSection() {
 			<div className="mx-auto max-w-7xl px-6 lg:px-8">
 				{/* Section header - Next.js inspired */}
 				<div className="mx-auto max-w-2xl text-center">
-					<div className="inline-flex items-center gap-2 rounded-full border border-gray-200/60 bg-gray-50/80 px-4 py-2 text-sm font-medium text-gray-700 mb-8">
+					<div className="mb-8 inline-flex items-center gap-2 rounded-full border border-gray-200/60 bg-gray-50/80 px-4 py-2 text-sm font-medium text-gray-700">
 						<Sparkles className="h-4 w-4 text-blue-600" />
 						<span>Platform Features</span>
 					</div>
@@ -70,7 +70,9 @@ export function FeaturesSection() {
 						Everything you need in one platform
 					</h2>
 					<p className="mt-6 text-lg leading-8 text-gray-600">
-						Stop juggling multiple tools. TenantFlow brings all your property management needs together in one powerful platform.
+						Stop juggling multiple tools. TenantFlow brings all your
+						property management needs together in one powerful
+						platform.
 					</p>
 				</div>
 
@@ -82,7 +84,7 @@ export function FeaturesSection() {
 								<div className="mb-6 flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg">
 									<feature.icon className="h-6 w-6 text-white" />
 								</div>
-								<dt className="text-lg font-semibold leading-7 text-gray-900">
+								<dt className="text-lg leading-7 font-semibold text-gray-900">
 									{feature.title}
 								</dt>
 								<dd className="mt-2 text-base leading-7 text-gray-600">
@@ -99,7 +101,7 @@ export function FeaturesSection() {
 
 				{/* Bottom CTA */}
 				<div className="mt-20 text-center">
-					<p className="text-base leading-7 text-gray-600 mb-8">
+					<p className="mb-8 text-base leading-7 text-gray-600">
 						And many more features to streamline your workflow
 					</p>
 					<button className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-3 text-base font-medium text-white shadow-lg transition-all hover:from-blue-700 hover:to-purple-700 hover:shadow-xl">

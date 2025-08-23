@@ -2,7 +2,11 @@ import { Injectable, Logger } from '@nestjs/common'
 import { PropertiesService } from '../properties/properties.service'
 import { TenantsService } from '../tenants/tenants.service'
 import { LeasesService } from '../leases/leases.service'
-import type { DashboardStats, LeaseStats, UnitStats } from '@repo/shared/types/api'
+import type {
+	DashboardStats,
+	LeaseStats,
+	UnitStats
+} from '@repo/shared/types/api'
 import type { PropertyStats } from '@repo/shared/types/properties'
 import type { TenantStats } from '@repo/shared/types/tenants'
 import {
@@ -36,23 +40,32 @@ export class DashboardService {
 	/**
 	 * Get comprehensive dashboard statistics
 	 */
-	async getStats(userId: string, authToken?: string): Promise<DashboardStats> {
+	async getStats(
+		userId: string,
+		authToken?: string
+	): Promise<DashboardStats> {
 		try {
 			// Get stats from all services in parallel
-			const [rawPropertyStats, rawTenantStats, rawLeaseStats] = await Promise.all([
-				this.propertiesService.getStats(userId),
-				this.tenantsService.getStats(userId),
-				this.leasesService.getStats(userId)
-			])
+			const [rawPropertyStats, rawTenantStats, rawLeaseStats] =
+				await Promise.all([
+					this.propertiesService.getStats(userId),
+					this.tenantsService.getStats(userId),
+					this.leasesService.getStats(userId)
+				])
 
 			// Map to PropertyStats interface
 			const properties: PropertyStats = {
 				totalUnits: rawPropertyStats.totalUnits || 0,
 				occupiedUnits: rawPropertyStats.occupiedUnits || 0,
 				vacantUnits: rawPropertyStats.vacantUnits || 0,
-				occupancyRate: rawPropertyStats.totalUnits > 0
-					? Math.round( ( rawPropertyStats.occupiedUnits / rawPropertyStats.totalUnits ) * 100 )
-					: 0,
+				occupancyRate:
+					rawPropertyStats.totalUnits > 0
+						? Math.round(
+								(rawPropertyStats.occupiedUnits /
+									rawPropertyStats.totalUnits) *
+									100
+							)
+						: 0,
 				totalMonthlyRent: rawPropertyStats.totalMonthlyRent || 0,
 				potentialRent: rawPropertyStats.totalMonthlyRent || 0, // TODO: Calculate actual potential rent
 				totalProperties: rawPropertyStats.total || 0,
@@ -80,15 +93,22 @@ export class DashboardService {
 				availableUnits: rawPropertyStats.vacantUnits || 0,
 				occupiedUnits: rawPropertyStats.occupiedUnits || 0,
 				maintenanceUnits: 0, // TODO: Add maintenance units calculation
-				averageRent: rawPropertyStats.totalUnits > 0
-					? rawPropertyStats.totalMonthlyRent / rawPropertyStats.totalUnits
-					: 0,
+				averageRent:
+					rawPropertyStats.totalUnits > 0
+						? rawPropertyStats.totalMonthlyRent /
+							rawPropertyStats.totalUnits
+						: 0,
 				total: rawPropertyStats.totalUnits || 0,
 				occupied: rawPropertyStats.occupiedUnits || 0,
 				vacant: rawPropertyStats.vacantUnits || 0,
-				occupancyRate: rawPropertyStats.totalUnits > 0
-					? Math.round( ( rawPropertyStats.occupiedUnits / rawPropertyStats.totalUnits ) * 100 )
-					: 0
+				occupancyRate:
+					rawPropertyStats.totalUnits > 0
+						? Math.round(
+								(rawPropertyStats.occupiedUnits /
+									rawPropertyStats.totalUnits) *
+									100
+							)
+						: 0
 			}
 
 			// Map to LeaseStats interface
@@ -124,7 +144,9 @@ export class DashboardService {
 				}
 			}
 
-			this.logger.log(`Dashboard stats retrieved for user ${userId}`, { authToken })
+			this.logger.log(`Dashboard stats retrieved for user ${userId}`, {
+				authToken
+			})
 			return dashboardStats
 		} catch (error) {
 			this.logger.error('Failed to get dashboard stats', {
@@ -147,7 +169,10 @@ export class DashboardService {
 	/**
 	 * Get recent activity feed
 	 */
-	async getActivity(userId: string, authToken?: string): Promise<DashboardActivity> {
+	async getActivity(
+		userId: string,
+		authToken?: string
+	): Promise<DashboardActivity> {
 		try {
 			// TODO: Implement actual activity feed from database
 			// For now, return empty activity feed
@@ -155,7 +180,9 @@ export class DashboardService {
 				activities: []
 			}
 
-			this.logger.log(`Dashboard activity retrieved for user ${userId}`, { authToken })
+			this.logger.log(`Dashboard activity retrieved for user ${userId}`, {
+				authToken
+			})
 			return activities
 		} catch (error) {
 			this.logger.error('Failed to get dashboard activity', {
@@ -174,5 +201,4 @@ export class DashboardService {
 			)
 		}
 	}
-
 }

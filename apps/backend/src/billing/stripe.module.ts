@@ -12,15 +12,15 @@ import { UserSupabaseRepository } from '../database/user-supabase.repository'
 		// Core services
 		StripeService,
 		PaymentRecoveryService,
-		
+
 		// New minimal services
 		StripeWebhookService,
 		StripePortalService,
-		
+
 		// Repositories
 		SubscriptionSupabaseRepository,
 		UserSupabaseRepository,
-		
+
 		// Database
 		SupabaseService
 	],
