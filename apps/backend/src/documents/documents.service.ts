@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common'
+import { SuccessResponseUtil } from '../shared/utils/success-response.util'
 
 /**
  * Documents service - temporarily simplified for compilation
@@ -18,6 +19,6 @@ export class DocumentsService {
 	}
 
 	async deleteDocument() {
-		return { success: true }
+		return SuccessResponseUtil.success()
 	}
 }
