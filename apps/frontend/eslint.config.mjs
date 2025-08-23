@@ -84,10 +84,9 @@ export default [
 				btoa: 'readonly',
 				atob: 'readonly'
 			},
-
 			parserOptions: {
 				project: './tsconfig.json',
-				tsconfigRootDir: __dirname
+				tsconfigRootDir: import.meta.dirname
 			}
 		},
 

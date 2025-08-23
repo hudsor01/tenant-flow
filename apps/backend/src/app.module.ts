@@ -13,6 +13,7 @@ import { TenantsModule } from './tenants/tenants.module'
 import { LeasesModule } from './leases/leases.module'
 import { DocumentsModule } from './documents/documents.module'
 import { DashboardModule } from './dashboard/dashboard.module'
+import { MaintenanceModule } from './maintenance/maintenance.module'
 import { HealthModule } from './health/health.module'
 import { StripeModule } from './stripe/stripe.module'
 import { AnalyticsService } from './analytics/analytics.service'
@@ -60,6 +61,7 @@ import { AppService } from './app.service'
 		LeasesModule,
 		DocumentsModule,
 		DashboardModule,
+		MaintenanceModule,
 		HealthModule,
 		StripeModule
 	],

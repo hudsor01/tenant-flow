@@ -223,8 +223,8 @@ export const TypeGuards = {
 	},
 
 	isValidQueryOptions: (obj: unknown): obj is BaseQueryOptions => {
-		if (obj === null || obj === undefined) return true
-		if (typeof obj !== 'object') return false
+		if (obj === null || obj === undefined) {return true}
+		if (typeof obj !== 'object') {return false}
 
 		const query = obj as Record<string, unknown>
 

@@ -1,6 +1,6 @@
 'use client'
 
-import type { Metadata as _Metadata } from '@/types/next.d'
+// Removed unused Metadata import
 import { Suspense, useState, useTransition } from 'react'
 import {
 	Mail,
@@ -181,8 +181,12 @@ function VerifyEmailContent({ email }: VerifyEmailContentProps) {
 	}
 
 	const getResendButtonText = () => {
-		if (isPending) return 'Sending...'
-		if (resendAttempts === 0) return 'Resend Verification Email'
+		if (isPending) {
+			return 'Sending...'
+		}
+		if (resendAttempts === 0) {
+			return 'Resend Verification Email'
+		}
 		return `Resend Email (${3 - resendAttempts} attempts left)`
 	}
 

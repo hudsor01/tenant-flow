@@ -45,8 +45,12 @@ export default function ReEngagementEmail({
 	}
 }: ReEngagementEmailProps) {
 	const getUrgencyLevel = () => {
-		if (daysSinceLogin <= 7) return 'gentle'
-		if (daysSinceLogin <= 21) return 'moderate'
+		if (daysSinceLogin <= 7) {
+			return 'gentle'
+		}
+		if (daysSinceLogin <= 21) {
+			return 'moderate'
+		}
 		return 'strong'
 	}
 
