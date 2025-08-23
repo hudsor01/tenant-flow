@@ -7,37 +7,37 @@
 export const STRIPE_PRICE_IDS = {
 	// Free Trial
 	FREE_TRIAL:
-		process.env.NEXT_PUBLIC_STRIPE_FREE_TRIAL ||
+		process.env.NEXT_PUBLIC_STRIPE_FREE_TRIAL ??
 		'price_1RgguDP3WCR53Sdo1lJmjlD5',
 
 	// Starter Plan
 	STARTER_MONTHLY:
-		process.env.NEXT_PUBLIC_STRIPE_STARTER_MONTHLY ||
+		process.env.NEXT_PUBLIC_STRIPE_STARTER_MONTHLY ??
 		'price_1RtFLzP3WCR53SdoGWXcT0j5',
 	STARTER_ANNUAL:
-		process.env.NEXT_PUBLIC_STRIPE_STARTER_ANNUAL ||
+		process.env.NEXT_PUBLIC_STRIPE_STARTER_ANNUAL ??
 		'price_1RtFM3P3WCR53SdotPKMQnZx',
 
 	// Growth Plan
 	GROWTH_MONTHLY:
-		process.env.NEXT_PUBLIC_STRIPE_GROWTH_MONTHLY ||
+		process.env.NEXT_PUBLIC_STRIPE_GROWTH_MONTHLY ??
 		'price_1RtFMGP3WCR53SdoGcrH3JgN',
 	GROWTH_ANNUAL:
-		process.env.NEXT_PUBLIC_STRIPE_GROWTH_ANNUAL ||
+		process.env.NEXT_PUBLIC_STRIPE_GROWTH_ANNUAL ??
 		'price_1RtFMQP3WCR53Sdoe6GhGWeG',
 
 	// TenantFlow Max Plan
 	TENANTFLOW_MAX_MONTHLY:
-		process.env.NEXT_PUBLIC_STRIPE_TENANTFLOW_MAX_MONTHLY ||
+		process.env.NEXT_PUBLIC_STRIPE_TENANTFLOW_MAX_MONTHLY ??
 		'price_1RtFMdP3WCR53SdokfQC5jFn',
 	TENANTFLOW_MAX_ANNUAL:
-		process.env.NEXT_PUBLIC_STRIPE_TENANTFLOW_MAX_ANNUAL ||
+		process.env.NEXT_PUBLIC_STRIPE_TENANTFLOW_MAX_ANNUAL ??
 		'price_1RtFMqP3WCR53Sdou9dBpxlD'
 } as const
 
 // Stripe Publishable Key
 export const STRIPE_PUBLISHABLE_KEY =
-	process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''
+	process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ''
 
 // Plan metadata for consistency across the app
 export const PLAN_METADATA = {

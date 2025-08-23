@@ -218,7 +218,7 @@ export type AsyncChangeHandler<T = string> = (value: T) => Promise<void>
  */
 export interface SingleSelection<T> {
 	selected: T | null
-	onSelect: (item: T) => void
+	onSelect: (_item: T) => void
 }
 
 /**
@@ -227,7 +227,7 @@ export interface SingleSelection<T> {
 export interface MultipleSelection<T> {
 	selected: T[]
 	onSelect: (items: T[]) => void
-	onToggleItem?: (item: T) => void
+	onToggleItem?: (_item: T) => void
 }
 
 /**

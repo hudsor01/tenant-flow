@@ -16,6 +16,7 @@ interface Pagination {
 export const queryKeys = {
 	// Authentication
 	auth: {
+		all: () => ['auth'] as const,
 		profile: () => ['auth', 'profile'] as const,
 		session: () => ['auth', 'session'] as const
 	},
@@ -26,6 +27,7 @@ export const queryKeys = {
 		list: (params?: Record<string, unknown>) =>
 			['properties', 'list', params] as const,
 		detail: (id: string) => ['properties', 'detail', id] as const,
+		stats: () => ['properties', 'stats'] as const,
 		units: (propertyId: string) =>
 			['properties', propertyId, 'units'] as const,
 		analytics: (propertyId: string) =>
@@ -40,6 +42,7 @@ export const queryKeys = {
 		list: (params?: Record<string, unknown>) =>
 			['tenants', 'list', params] as const,
 		detail: (id: string) => ['tenants', 'detail', id] as const,
+		stats: () => ['tenants', 'stats'] as const,
 		lease: (tenantId: string) => ['tenants', tenantId, 'lease'] as const,
 		payments: (tenantId: string) =>
 			['tenants', tenantId, 'payments'] as const,
@@ -63,7 +66,10 @@ export const queryKeys = {
 
 	// Subscriptions
 	subscriptions: {
-		current: () => ['subscriptions', 'current'] as const
+		current: () => ['subscriptions', 'current'] as const,
+		user: (userId: string) => ['subscription', userId] as const,
+		usage: (userId: string) => ['subscription-usage', userId] as const,
+		syncState: (userId: string) => ['subscription-sync-state', userId] as const
 	},
 
 	// Notifications
@@ -85,6 +91,17 @@ export const queryKeys = {
 	// Users (additional)
 	users: {
 		profile: () => ['users', 'profile'] as const
+	},
+
+	// Dashboard
+	dashboard: {
+		all: ['dashboard'] as const,
+		overview: () => ['dashboard', 'overview'] as const,
+		stats: () => ['dashboard', 'stats'] as const,
+		tasks: () => ['dashboard', 'tasks'] as const,
+		activity: () => ['dashboard', 'activity'] as const,
+		alerts: () => ['dashboard', 'alerts'] as const,
+		metrics: (period: string) => ['dashboard', 'metrics', period] as const,
 	}
 }
 

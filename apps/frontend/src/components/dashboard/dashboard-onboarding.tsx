@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useDashboardStats } from '@/hooks/api/use-dashboard'
+import { useDashboardOverview } from '@/hooks/api/use-dashboard'
 import {
 	Card,
 	CardContent,
@@ -27,7 +27,7 @@ import { cn } from '@/lib/utils'
  * Extracted from massive dashboard client component
  */
 function useOnboardingProgress() {
-	const { data: stats } = useDashboardStats()
+	const { data: stats } = useDashboardOverview()
 	const [dismissed, setDismissed] = useState(false)
 
 	useEffect(() => {
@@ -41,21 +41,21 @@ function useOnboardingProgress() {
 		{
 			id: 'property',
 			label: 'Add a property',
-			completed: (stats?.properties?.totalProperties || 0) > 0,
+			completed: (stats?.properties?.totalProperties ?? 0) > 0,
 			href: '/properties/new',
 			icon: Building2
 		},
 		{
 			id: 'tenant',
 			label: 'Add a tenant',
-			completed: (stats?.tenants?.totalTenants || 0) > 0,
+			completed: (stats?.tenants?.totalTenants ?? 0) > 0,
 			href: '/tenants/new',
 			icon: Users
 		},
 		{
 			id: 'lease',
 			label: 'Create a lease',
-			completed: (stats?.leases?.totalLeases || 0) > 0,
+			completed: (stats?.leases?.totalLeases ?? 0) > 0,
 			href: '/leases/new',
 			icon: FileText
 		}

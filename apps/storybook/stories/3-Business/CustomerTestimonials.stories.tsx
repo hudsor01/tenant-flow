@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite'
-import { CustomerTestimonials } from '../../../../apps/frontend/src/components/pricing/customer-testimonials'
+import { TestimonialsSection } from '../../../../apps/frontend/src/components/landing/testimonials-section'
 
 const meta = {
 	title: 'Business/Pricing/CustomerTestimonials',
-	component: CustomerTestimonials,
+	component: TestimonialsSection,
 	parameters: {
 		layout: 'fullscreen',
 		docs: {
@@ -31,7 +31,7 @@ This component builds trust by showing real customer experiences across differen
 			description: 'Additional CSS classes'
 		}
 	}
-} satisfies Meta<typeof CustomerTestimonials>
+} satisfies Meta<typeof TestimonialsSection>
 
 export default meta
 type Story = StoryObj<typeof meta>

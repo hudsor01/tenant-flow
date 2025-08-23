@@ -1,4 +1,4 @@
-import { logger } from '@/lib/logger/structured-logger'
+import { logger } from '@/lib/logger/logger'
 
 /**
  * Basic Supabase configuration checker
@@ -257,7 +257,7 @@ export async function checkSupabaseConfiguration(): Promise<void> {
 				recommendationCount: result.recommendations.length,
 				recommendations: result.recommendations
 			})
-			
+
 			// Log each recommendation separately for better readability in development
 			result.recommendations.forEach((rec, index) => {
 				logger.debug(`Recommendation ${index + 1}: ${rec}`, {

@@ -1,135 +1,178 @@
 /**
- * Tenants hook
- * Provides tenants data and actions using Jotai queries
+ * Enhanced Tenants Management Hook - Zustand + TanStack Query Integration
+ * Maximum performance with native API usage and advanced state management
  */
 import { useCallback } from 'react'
-import { useAtom } from 'jotai'
-import { toast } from 'sonner'
-import {
-	tenantsQueryAtom,
-	selectedTenantAtom,
-	tenantFiltersAtom
-} from '../atoms/business/tenants'
-import { ApiService } from '../lib/api/api-service'
-import type { CreateTenantInput, UpdateTenantInput } from '@repo/shared'
+import { useTenantSelection, useNotificationSystem, usePropertySelection } from './use-app-store'
+import { 
+  useTenants as useTenantsAPI,
+  useTenant as useTenantAPI,
+  useTenantsByProperty,
+  useCreateTenant,
+  useUpdateTenant,
+  useDeleteTenant
+} from './api/use-tenants'
+import type { CreateTenantInput, UpdateTenantInput, TenantQuery } from '@repo/shared'
 
-export function useTenants() {
-	const [tenantsQuery] = useAtom(tenantsQueryAtom)
-	const [selectedTenant, setSelectedTenant] = useAtom(selectedTenantAtom)
-	const [filters, setFilters] = useAtom(tenantFiltersAtom)
+/**
+ * Enhanced Tenants Management Hook
+ * Combines TanStack Query for server state with Zustand for UI state
+ */
+export function useTenants(query?: TenantQuery, options?: { enabled?: boolean }) {
+  // Zustand state for UI management
+  const { selectedTenantId, selectTenant, clearSelection } = useTenantSelection()
+  const { selectedPropertyId } = usePropertySelection()
+  const { notifySuccess, notifyError } = useNotificationSystem()
+  
+  // TanStack Query for server state
+  const tenantsQuery = useTenantsAPI(query, options)
+  const selectedTenantQuery = useTenantAPI(selectedTenantId || '', { enabled: !!selectedTenantId })
+  const propertyTenantsQuery = useTenantsByProperty(selectedPropertyId || '', { 
+    enabled: !!selectedPropertyId 
+  })
+  
+  // Mutations with integrated notifications
+  const createTenantMutation = useCreateTenant()
+  const updateTenantMutation = useUpdateTenant()
+  const deleteTenantMutation = useDeleteTenant()
 
-	// Create tenant
-	const createTenant = useCallback(
-		async (data: CreateTenantInput) => {
-			try {
-				const tenant = await ApiService.createTenant(data)
+  // Enhanced actions with integrated state management
+  const createTenant = useCallback(
+    async (data: CreateTenantInput) => {
+      try {
+        const result = await createTenantMutation.mutateAsync(data)
+        // Auto-select newly created tenant
+        selectTenant(result.id, result.name)
+        notifySuccess('Tenant Created', `${result.name} has been added successfully.`)
+        return result
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to create tenant'
+        notifyError('Creation Failed', message)
+        throw error
+      }
+    },
+    [createTenantMutation, selectTenant, notifySuccess, notifyError]
+  )
 
-				// Invalidate query to refetch data
-				tenantsQuery.refetch?.()
+  const updateTenant = useCallback(
+    async (id: string, data: UpdateTenantInput) => {
+      try {
+        const result = await updateTenantMutation.mutateAsync({ id, data })
+        notifySuccess('Tenant Updated', 'Tenant information has been updated successfully.')
+        return result
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to update tenant'
+        notifyError('Update Failed', message)
+        throw error
+      }
+    },
+    [updateTenantMutation, notifySuccess, notifyError]
+  )
 
-				toast.success('Tenant created successfully')
-				return { success: true, data: tenant }
-			} catch (error: unknown) {
-				const message =
-					error instanceof Error
-						? error.message
-						: 'Failed to create tenant'
-				toast.error(message)
-				return { success: false, error: message }
-			}
-		},
-		[tenantsQuery]
-	)
+  const deleteTenant = useCallback(
+    async (id: string) => {
+      try {
+        await deleteTenantMutation.mutateAsync(id)
+        // Clear selection if deleted tenant was selected
+        if (selectedTenantId === id) {
+          clearSelection()
+        }
+        notifySuccess('Tenant Removed', 'Tenant has been removed from the system.')
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to delete tenant'
+        notifyError('Deletion Failed', message)
+        throw error
+      }
+    },
+    [deleteTenantMutation, selectedTenantId, clearSelection, notifySuccess, notifyError]
+  )
 
-	// Update tenant
-	const updateTenant = useCallback(
-		async (id: string, data: UpdateTenantInput) => {
-			try {
-				const tenant = await ApiService.updateTenant(id, data)
+  // Computed values for better UX  
+  const activeTenants = tenantsQuery.data?.filter(tenant => tenant.invitationStatus === 'ACCEPTED') || []
+  const inactiveTenants = tenantsQuery.data?.filter(tenant => 
+    tenant.invitationStatus === 'PENDING' || 
+    tenant.invitationStatus === 'EXPIRED'
+  ) || []
+  const recentTenants = tenantsQuery.data?.filter(tenant => {
+    const createdDate = new Date(tenant.createdAt)
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    return createdDate >= thirtyDaysAgo
+  }) || []
 
-				// Invalidate query to refetch data
-				tenantsQuery.refetch?.()
+  return {
+    // Query state
+    tenants: tenantsQuery.data || [],
+    isLoading: tenantsQuery.isLoading,
+    isError: tenantsQuery.isError,
+    error: tenantsQuery.error,
+    refetch: tenantsQuery.refetch,
+    
+    // Selected tenant
+    selectedTenant: selectedTenantQuery.data || null,
+    selectedTenantId,
+    isSelectedTenantLoading: selectedTenantQuery.isLoading,
+    
+    // Property-specific tenants
+    propertyTenants: propertyTenantsQuery.data || [],
+    isPropertyTenantsLoading: propertyTenantsQuery.isLoading,
+    selectedPropertyId,
+    
+    // Selection actions
+    selectTenant,
+    clearSelection,
+    
+    // Computed tenant data
+    activeTenants,
+    inactiveTenants,
+    recentTenants,
+    
+    // Statistics
+    stats: {
+      total: tenantsQuery.data?.length || 0,
+      active: activeTenants.length,
+      inactive: inactiveTenants.length,
+      recent: recentTenants.length,
+    },
+    
+    // CRUD actions
+    createTenant,
+    updateTenant,
+    deleteTenant,
+    
+    // Mutation states
+    isCreating: createTenantMutation.isPending,
+    isUpdating: updateTenantMutation.isPending,
+    isDeleting: deleteTenantMutation.isPending,
+    
+    // Action states
+    isBusy: createTenantMutation.isPending || updateTenantMutation.isPending || deleteTenantMutation.isPending,
+  }
+}
 
-				// Update selected tenant if it's the one being updated
-				if (selectedTenant?.id === id) {
-					setSelectedTenant({ ...selectedTenant, ...tenant })
-				}
+/**
+ * Hook for managing a single tenant by ID
+ */
+export function useTenant(id: string, options?: { enabled?: boolean }) {
+  const tenantQuery = useTenantAPI(id, options)
+  
+  return {
+    tenant: tenantQuery.data || null,
+    isLoading: tenantQuery.isLoading,
+    isError: tenantQuery.isError,
+    error: tenantQuery.error,
+    refetch: tenantQuery.refetch,
+    
+    // Computed tenant information
+    isActive: tenantQuery.data?.invitationStatus === 'ACCEPTED',
+    isInactive: tenantQuery.data?.invitationStatus === 'PENDING' || tenantQuery.data?.invitationStatus === 'EXPIRED',
+    fullName: tenantQuery.data?.name || null,
+  }
+}
 
-				toast.success('Tenant updated successfully')
-				return { success: true, data: tenant }
-			} catch (error: unknown) {
-				const message =
-					error instanceof Error
-						? error.message
-						: 'Failed to update tenant'
-				toast.error(message)
-				return { success: false, error: message }
-			}
-		},
-		[tenantsQuery, selectedTenant, setSelectedTenant]
-	)
-
-	// Delete tenant
-	const deleteTenant = useCallback(
-		async (id: string) => {
-			try {
-				await ApiService.deleteTenant(id)
-
-				// Invalidate query to refetch data
-				tenantsQuery.refetch?.()
-
-				// Clear selected tenant if it's the one being deleted
-				if (selectedTenant?.id === id) {
-					setSelectedTenant(null)
-				}
-
-				toast.success('Tenant deleted successfully')
-				return { success: true }
-			} catch (error: unknown) {
-				const message =
-					error instanceof Error
-						? error.message
-						: 'Failed to delete tenant'
-				toast.error(message)
-				return { success: false, error: message }
-			}
-		},
-		[tenantsQuery, selectedTenant, setSelectedTenant]
-	)
-
-	// Get single tenant
-	const getTenant = useCallback(async (id: string) => {
-		try {
-			const tenant = await ApiService.getTenant(id)
-			return { success: true, data: tenant }
-		} catch (error: unknown) {
-			const message =
-				error instanceof Error
-					? error.message
-					: 'Failed to fetch tenant'
-			return { success: false, error: message }
-		}
-	}, [])
-
-	return {
-		// Data
-		tenants: tenantsQuery.data || [],
-		selectedTenant,
-		filters,
-
-		// Loading states
-		isLoading: tenantsQuery.isLoading,
-		isFetching: tenantsQuery.isFetching,
-		isError: tenantsQuery.isError,
-		error: tenantsQuery.error,
-
-		// Actions
-		createTenant,
-		updateTenant,
-		deleteTenant,
-		getTenant,
-		setSelectedTenant,
-		setFilters,
-		refetch: tenantsQuery.refetch
-	}
+/**
+ * Hook for tenant selection management only (lightweight)
+ */
+export function useTenantSelectionOnly() {
+  return useTenantSelection()
 }

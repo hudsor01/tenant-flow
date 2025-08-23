@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { InteractivePricingTable } from '../../../../apps/frontend/src/components/pricing/interactive-pricing-table'
+import { PricingCards } from '../../../../apps/frontend/src/components/pricing/pricing-cards'
 
 // Mock query client for Storybook
 const createMockQueryClient = () => {
@@ -75,7 +75,7 @@ const createMockQueryClient = () => {
 
 const meta = {
 	title: 'Business/Pricing/InteractivePricingTable',
-	component: InteractivePricingTable,
+	component: PricingCards,
 	decorators: [
 		Story => {
 			const queryClient = createMockQueryClient()
@@ -140,7 +140,7 @@ This is the enhanced interactive component for the pricing page with full error 
 			description: 'Show smart plan recommendations'
 		}
 	}
-} satisfies Meta<typeof InteractivePricingTable>
+} satisfies Meta<typeof PricingCards>
 
 export default meta
 type Story = StoryObj<typeof meta>

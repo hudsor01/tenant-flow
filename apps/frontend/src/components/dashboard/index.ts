@@ -17,4 +17,6 @@ export { default as Dashboard } from './dashboard'
 // Sidebar component
 export { Sidebar as DashboardSidebar } from './dashboard-sidebar'
 
-// Types - TODO: Define proper dashboard types when implementing dashboard data hook
+// Types - re-export from shared package and dashboard API
+export type { DashboardStats, ActivityItem } from '@repo/shared'
+export type { UpcomingTask } from '@/lib/api/dashboard'

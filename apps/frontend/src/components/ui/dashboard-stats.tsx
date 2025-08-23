@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
-import { useDashboardStats } from '@/hooks/api/use-dashboard'
+import { useDashboardOverview } from '@/hooks/api/use-dashboard'
 
 interface DashboardStatsProps {
 	loading?: boolean
@@ -189,7 +189,7 @@ export function DashboardStats({
 		data: dashboardStats,
 		isLoading,
 		error
-	} = useDashboardStats({
+	} = useDashboardOverview({
 		refetchInterval: 5 * 60 * 1000 // Refetch every 5 minutes
 	})
 
@@ -211,10 +211,7 @@ export function DashboardStats({
 				? `$${dashboardStats.leases.totalRentRoll.toLocaleString()}`
 				: '$0',
 			description: 'Monthly collected rent',
-			trend: {
-				value: 0, // TODO: Add growth calculation
-				period: 'from last month'
-			},
+			trend: undefined, // Growth tracking not yet implemented
 			icon: <DollarSign className="h-4 w-4" />,
 			variant: 'revenue' as const
 		},
@@ -223,7 +220,7 @@ export function DashboardStats({
 			value:
 				dashboardStats?.tenants?.activeTenants?.toLocaleString() || '0',
 			description: 'Currently occupied units',
-			trend: { value: 8.2, period: 'from last month' },
+			trend: undefined, // Growth tracking not yet implemented
 			icon: <Users className="h-4 w-4" />,
 			variant: 'users' as const
 		},
@@ -232,7 +229,7 @@ export function DashboardStats({
 			value:
 				dashboardStats?.properties?.totalProperties?.toString() || '0',
 			description: 'Total properties managed',
-			trend: { value: 4.1, period: 'from last quarter' },
+			trend: undefined, // Growth tracking not yet implemented
 			icon: <Home className="h-4 w-4" />,
 			variant: 'properties' as const
 		},
@@ -240,7 +237,7 @@ export function DashboardStats({
 			title: 'Maintenance Requests',
 			value: dashboardStats?.maintenanceRequests?.open?.toString() || '0',
 			description: 'Pending requests',
-			trend: { value: -15.3, period: 'from last week' },
+			trend: undefined, // Growth tracking not yet implemented
 			icon: <Wrench className="h-4 w-4" />,
 			variant: 'maintenance' as const
 		}

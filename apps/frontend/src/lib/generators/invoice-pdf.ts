@@ -181,7 +181,7 @@ export const generateInvoicePDF = (invoice: CustomerInvoiceForm): Blob => {
 		doc.text(item.quantity.toString(), 120, yPos)
 		doc.text(`$${item.unitPrice?.toFixed(2) || '0.00'}`, 140, yPos)
 		doc.text(
-			`$${((item.quantity || 0) * (item.unitPrice || 0)).toFixed(2)}`,
+			`$${((item.quantity ?? 0) * (item.unitPrice ?? 0)).toFixed(2)}`,
 			165,
 			yPos
 		)
@@ -203,7 +203,7 @@ export const generateInvoicePDF = (invoice: CustomerInvoiceForm): Blob => {
 	doc.text(`$${normalizedInvoice.subtotal?.toFixed(2) || '0.00'}`, 165, yPos)
 
 	// Tax (if applicable)
-	if ((normalizedInvoice.taxRate || 0) > 0) {
+	if ((normalizedInvoice.taxRate ?? 0) > 0) {
 		yPos += 8
 		doc.text(`Tax (${normalizedInvoice.taxRate}%):`, totalsX, yPos)
 		doc.text(

@@ -13,7 +13,7 @@ import type { MaintenanceCategory } from '@repo/shared'
 
 interface CategorySelectorProps {
 	value?: MaintenanceCategory
-	onValueChange: (value: MaintenanceCategory) => void
+	onValueChange: (_value: MaintenanceCategory) => void
 	error?: string
 }
 

@@ -8,7 +8,7 @@
 'use client'
 
 import React, { useState, useTransition, useEffect, useMemo } from 'react'
-import { motion } from '@/lib/framer-motion'
+import { motion } from '@/lib/lazy-motion'
 import type { CreateLeaseInput, UpdateLeaseInput, Lease } from '@repo/shared'
 import { useCreateLease, useUpdateLease } from '@/hooks/api/use-leases'
 import { useProperties } from '@/hooks/api/use-properties'
@@ -94,7 +94,7 @@ export function LeaseFormClient({
 	const { tenants = [] } = useTenants()
 	
 	// Memoize properties to prevent render loop
-	const properties = useMemo(() => propertiesQuery.data || [], [propertiesQuery.data])
+	const properties = useMemo(() => propertiesQuery.data ?? [], [propertiesQuery.data])
 
 	// Analytics hooks
 	const { trackLeaseCreated, trackUserError } = useBusinessEvents()
@@ -120,7 +120,7 @@ export function LeaseFormClient({
 						propertyName: property.name,
 						unitNumber: unit.unitNumber,
 						rent: unit.rent ?? unit.monthlyRent ?? 0
-					})) || []
+					})) ?? []
 		)
 	}, [properties, lease?.unitId])
 
@@ -151,7 +151,7 @@ export function LeaseFormClient({
 						: lease.endDate.toISOString().split('T')[0] ||
 							lease.endDate.toISOString(),
 				rentAmount: lease.rentAmount,
-				securityDeposit: lease.securityDeposit || 0,
+				securityDeposit: lease.securityDeposit ?? 0,
 				lateFeeDays: 5, // Default value - not stored in Lease type
 				lateFeeAmount: 50, // Default value - not stored in Lease type
 				leaseTerms: lease.terms || '',
@@ -206,7 +206,7 @@ export function LeaseFormClient({
 			? new Date(formData.startDate)
 			: null
 		const endDate = formData.endDate ? new Date(formData.endDate) : null
-		const rentAmount = formData.rentAmount || 0
+		const rentAmount = formData.rentAmount ?? 0
 
 		if (!startDate || !endDate) return null
 
@@ -294,9 +294,7 @@ export function LeaseFormClient({
 							onSuccess?.(updatedLease)
 						},
 						onError: error => {
-							trackFormSubmission('lease_form', false, [
-								error.message
-							])
+							trackFormSubmission('lease_form', false, [error.message])
 							trackUserError({
 								error_type: 'lease_update_failed',
 								error_message: error.message,
@@ -328,16 +326,14 @@ export function LeaseFormClient({
 							property_id: formData.propertyId || '',
 							tenant_id: newLease.tenantId,
 							lease_duration_months:
-								leaseCalculations?.duration || 0,
+								leaseCalculations?.duration ?? 0,
 							monthly_rent: newLease.rentAmount,
 							security_deposit: newLease.securityDeposit
 						})
 						onSuccess?.(newLease)
 					},
 					onError: error => {
-						trackFormSubmission('lease_form', false, [
-							error.message
-						])
+						trackFormSubmission('lease_form', false, [error.message])
 						trackUserError({
 							error_type: 'lease_creation_failed',
 							error_message: error.message,
@@ -445,7 +441,7 @@ export function LeaseFormClient({
 
 					{/* Custom Lease Terms */}
 					<LeaseTermsSection
-						terms={formData.customTerms || []}
+						terms={formData.customTerms ?? []}
 						onChange={handleCustomTermsChange}
 					/>
 

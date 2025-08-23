@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { AnimatePresence } from 'framer-motion'
+import { AnimatePresence } from '@/lib/lazy-motion'
 import { AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -48,9 +48,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 	) => {
 		const [isFocused, setIsFocused] = React.useState(false)
 		const [showPassword, setShowPassword] = React.useState(false)
-		const [internalValue, setInternalValue] = React.useState(value || '')
+		const [internalValue, setInternalValue] = React.useState(value ?? '')
 		const generatedId = React.useId()
-		const actualId = id || generatedId
+		const actualId = id ?? generatedId
 		const errorId = `${actualId}-error`
 		const successId = `${actualId}-success`
 		const helpTextId = `${actualId}-help`

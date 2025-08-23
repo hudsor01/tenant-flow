@@ -1,693 +1,264 @@
-/**
- * Common UI Patterns
- *
- * Reusable UI pattern components that eliminate duplication
- * across different domain areas (properties, tenants, leases, etc.)
- *
- * These patterns abstract common layouts and interactions
- * while remaining flexible for specific use cases.
- */
-
 'use client'
 
-import React from 'react'
-import { motion } from '@/lib/framer-motion'
-import Image from 'next/image'
-import {
-	MoreVertical,
-	Edit3,
-	Trash2,
-	Eye,
-	ChevronRight,
-	Building2,
-	Users,
-	FileText,
-	Calendar,
-	DollarSign,
-	AlertCircle,
-	CheckCircle,
-	Clock,
-	XCircle
-} from 'lucide-react'
+/**
+ * Common UI patterns and layouts
+ * Reusable components following design system principles
+ */
+
 import { cn } from '@/lib/utils'
-// import { createAsyncHandler } from '@/utils/async-handlers'
-import { formatCurrency } from '@repo/shared'
-import { Button } from '@/components/ui/button'
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import {
-	Card,
-	CardContent,
-	CardHeader,
-	CardTitle
-} from '@/components/ui/primitives'
-import { StatCard, Grid, Stack, EmptyState } from '@/components/ui/primitives'
+import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
 
 // ============================================================================
-// INTERACTIVE CARD PATTERN
+// Layout Patterns
 // ============================================================================
 
-interface InteractiveCardProps {
-	title: string
-	subtitle?: string
+export interface SectionProps {
+	title?: string
 	description?: string
-	imageUrl?: string
-	fallbackIcon?: React.ReactNode
-	stats?: {
-		icon: React.ReactNode
-		label: string
-		value: string | number
-		variant?: 'primary' | 'success' | 'warning' | 'error' | 'accent'
-	}[]
-	badges?: {
-		label: string
-		variant?: 'default' | 'success' | 'warning' | 'error'
-	}[]
-	actions?: {
-		onView?: () => void
-		onEdit?: () => void
-		onDelete?: () => void
-		customActions?: {
-			label: string
-			icon: React.ReactNode
-			onClick: () => void
-			variant?: 'default' | 'destructive'
-		}[]
-	}
+	children: React.ReactNode
 	className?: string
-	animationDelay?: number
+	headerAction?: React.ReactNode
 }
 
-export function InteractiveCard({
-	title,
-	subtitle,
-	description,
-	imageUrl,
-	fallbackIcon = <Building2 className="h-16 w-16 text-white/70" />,
-	stats = [],
-	badges = [],
-	actions,
-	className,
-	animationDelay = 0
-}: InteractiveCardProps) {
-	const cardVariants = {
-		hidden: { opacity: 0, y: 20 },
-		visible: {
-			opacity: 1,
-			y: 0,
-			transition: { duration: 0.3, delay: animationDelay }
-		},
-		hover: {
-			y: -4,
-			transition: { duration: 0.2 }
-		}
-	}
-
+export function Section({ title, description, children, className, headerAction }: SectionProps) {
 	return (
-		<motion.div
-			variants={cardVariants}
-			initial="hidden"
-			animate="visible"
-			whileHover="hover"
-			className="group"
-		>
-			<Card
-				className={cn(
-					'from-card via-card to-card/95 overflow-hidden border-0 bg-gradient-to-br shadow-lg',
-					'backdrop-blur-sm transition-all duration-300',
-					'hover:shadow-primary/10 hover:border-primary/20 hover:shadow-2xl',
-					className
-				)}
-			>
-				{/* Image/Icon Header */}
-				<div className="from-primary via-primary to-accent relative h-52 overflow-hidden bg-gradient-to-br">
-					{imageUrl ? (
-						<Image
-							src={imageUrl}
-							alt={title}
-							fill
-							className="object-cover transition-transform duration-300 group-hover:scale-105"
-						/>
-					) : (
-						<div className="flex h-full w-full items-center justify-center">
-							{fallbackIcon}
-						</div>
-					)}
-
-					{/* Actions Dropdown */}
-					{actions && (
-						<div className="absolute top-3 right-3">
-							<DropdownMenu>
-								<DropdownMenuTrigger asChild>
-									<Button
-										variant="ghost"
-										size="icon"
-										className="h-8 w-8 border border-white/20 bg-white/10 text-white backdrop-blur-sm transition-colors hover:bg-white/20"
-									>
-										<MoreVertical className="h-4 w-4" />
-									</Button>
-								</DropdownMenuTrigger>
-								<DropdownMenuContent
-									align="end"
-									className="w-48"
-								>
-									<DropdownMenuLabel>
-										Actions
-									</DropdownMenuLabel>
-									<DropdownMenuSeparator />
-									{actions.onView && (
-										<DropdownMenuItem
-											onClick={actions.onView}
-										>
-											<Eye className="mr-2 h-4 w-4" />
-											View Details
-										</DropdownMenuItem>
-									)}
-									{actions.onEdit && (
-										<DropdownMenuItem
-											onClick={actions.onEdit}
-										>
-											<Edit3 className="mr-2 h-4 w-4" />
-											Edit
-										</DropdownMenuItem>
-									)}
-									{actions.customActions?.map(
-										(action, index) => (
-											<DropdownMenuItem
-												key={index}
-												onClick={action.onClick}
-												className={
-													action.variant ===
-													'destructive'
-														? 'text-red-600 hover:bg-red-50 hover:text-red-700'
-														: undefined
-												}
-											>
-												{action.icon}
-												{action.label}
-											</DropdownMenuItem>
-										)
-									)}
-									{actions.onDelete && (
-										<>
-											<DropdownMenuSeparator />
-											<DropdownMenuItem
-												onClick={actions.onDelete}
-												className="text-red-600 hover:bg-red-50 hover:text-red-700"
-											>
-												<Trash2 className="mr-2 h-4 w-4" />
-												Delete
-											</DropdownMenuItem>
-										</>
-									)}
-								</DropdownMenuContent>
-							</DropdownMenu>
-						</div>
-					)}
-
-					{/* Badges */}
-					{badges.length > 0 && (
-						<div className="absolute bottom-3 left-3 flex flex-wrap gap-2">
-							{badges.map((badge, index) => (
-								<Badge
-									key={index}
-									variant={
-										badge.variant === 'success'
-											? 'secondary'
-											: badge.variant === 'warning'
-												? 'outline'
-												: badge.variant === 'error'
-													? 'destructive'
-													: 'default'
-									}
-									className="text-white"
-								>
-									{badge.label}
-								</Badge>
-							))}
-						</div>
-					)}
+		<div className={cn('space-y-4', className)}>
+			{(title || description || headerAction) && (
+				<div className="flex items-start justify-between">
+					<div className="space-y-1">
+						{title && <h3 className="text-lg font-semibold">{title}</h3>}
+						{description && <p className="text-sm text-muted-foreground">{description}</p>}
+					</div>
+					{headerAction && <div>{headerAction}</div>}
 				</div>
-
-				{/* Card Content */}
-				<CardHeader className="pb-3">
-					<div className="flex items-start justify-between">
-						<div className="flex-1">
-							<CardTitle className="text-foreground group-hover:text-primary mb-1 transition-colors">
-								{title}
-							</CardTitle>
-							{subtitle && (
-								<p className="text-muted-foreground flex items-center text-sm">
-									{subtitle}
-								</p>
-							)}
-						</div>
-					</div>
-				</CardHeader>
-
-				<CardContent className="space-y-4 pt-0">
-					{/* Description */}
-					{description && (
-						<p className="text-muted-foreground line-clamp-2">
-							{description}
-						</p>
-					)}
-
-					{/* Statistics Grid */}
-					{stats.length > 0 && (
-						<Grid cols={2} gap="sm">
-							{stats.map((stat, index) => (
-								<StatCard
-									key={index}
-									variant={stat.variant || 'muted'}
-									icon={stat.icon}
-									label={stat.label}
-									value={stat.value}
-								/>
-							))}
-						</Grid>
-					)}
-
-					{/* Action Buttons */}
-					{actions && (actions.onView || actions.onEdit) && (
-						<Stack direction="horizontal" spacing="sm">
-							{actions.onView && (
-								<Button
-									variant="outline"
-									size="sm"
-									className="flex-1 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
-									onClick={actions.onView}
-								>
-									<Eye className="mr-2 h-4 w-4" />
-									View Details
-								</Button>
-							)}
-							{actions.onEdit && (
-								<Button
-									variant="outline"
-									size="sm"
-									className="flex-1 transition-colors hover:border-green-200 hover:bg-green-50 hover:text-green-700"
-									onClick={actions.onEdit}
-								>
-									<Edit3 className="mr-2 h-4 w-4" />
-									Edit
-								</Button>
-							)}
-						</Stack>
-					)}
-				</CardContent>
-			</Card>
-		</motion.div>
-	)
-}
-
-// ============================================================================
-// LIST ITEM PATTERN
-// ============================================================================
-
-interface ListItemProps {
-	icon?: React.ReactNode
-	title: string
-	subtitle?: string
-	description?: string
-	meta?: string
-	status?: 'success' | 'warning' | 'error' | 'pending' | 'default'
-	amount?: number | string
-	actions?: {
-		onView?: () => void
-		onEdit?: () => void
-		onDelete?: () => void
-	}
-	className?: string
-	onClick?: () => void
-}
-
-export function ListItem({
-	icon,
-	title,
-	subtitle,
-	description,
-	meta,
-	status = 'default',
-	amount,
-	actions,
-	className,
-	onClick
-}: ListItemProps) {
-	const statusIcons = {
-		success: <CheckCircle className="h-4 w-4 text-green-600" />,
-		warning: <AlertCircle className="h-4 w-4 text-orange-600" />,
-		error: <XCircle className="h-4 w-4 text-red-600" />,
-		pending: <Clock className="text-primary h-4 w-4" />,
-		default: null
-	}
-
-	const statusColors = {
-		success: 'border-l-green-500',
-		warning: 'border-l-orange-500',
-		error: 'border-l-red-500',
-		pending: 'border-l-primary',
-		default: 'border-l-transparent'
-	}
-
-	return (
-		<Card
-			variant={onClick ? 'interactive' : 'default'}
-			className={cn('border-l-4', statusColors[status], className)}
-			onClick={onClick}
-		>
-			<CardContent>
-				<Stack direction="horizontal" align="center" justify="between">
-					<Stack
-						direction="horizontal"
-						align="center"
-						spacing="md"
-						className="flex-1"
-					>
-						{icon && (
-							<div className="text-muted-foreground">{icon}</div>
-						)}
-						<div className="flex-1">
-							<div className="flex items-center gap-2">
-								<h3 className="font-semibold">{title}</h3>
-								{statusIcons[status]}
-							</div>
-							{subtitle && (
-								<p className="text-muted-foreground text-sm">
-									{subtitle}
-								</p>
-							)}
-							{description && (
-								<p className="text-muted-foreground mt-1 line-clamp-2 text-sm">
-									{description}
-								</p>
-							)}
-							{meta && (
-								<p className="text-muted-foreground mt-1 text-xs">
-									{meta}
-								</p>
-							)}
-						</div>
-					</Stack>
-
-					<Stack direction="horizontal" align="center" spacing="md">
-						{amount && (
-							<div className="text-right">
-								<p className="font-semibold">
-									{typeof amount === 'number'
-										? formatCurrency(amount)
-										: amount}
-								</p>
-							</div>
-						)}
-
-						{actions && (
-							<DropdownMenu>
-								<DropdownMenuTrigger asChild>
-									<Button variant="ghost" size="icon">
-										<MoreVertical className="h-4 w-4" />
-									</Button>
-								</DropdownMenuTrigger>
-								<DropdownMenuContent align="end">
-									{actions.onView && (
-										<DropdownMenuItem
-											onClick={actions.onView}
-										>
-											<Eye className="mr-2 h-4 w-4" />
-											View
-										</DropdownMenuItem>
-									)}
-									{actions.onEdit && (
-										<DropdownMenuItem
-											onClick={actions.onEdit}
-										>
-											<Edit3 className="mr-2 h-4 w-4" />
-											Edit
-										</DropdownMenuItem>
-									)}
-									{actions.onDelete && (
-										<DropdownMenuItem
-											onClick={actions.onDelete}
-											className="text-red-600"
-										>
-											<Trash2 className="mr-2 h-4 w-4" />
-											Delete
-										</DropdownMenuItem>
-									)}
-								</DropdownMenuContent>
-							</DropdownMenu>
-						)}
-
-						{onClick && (
-							<ChevronRight className="text-muted-foreground h-4 w-4" />
-						)}
-					</Stack>
-				</Stack>
-			</CardContent>
-		</Card>
-	)
-}
-
-// ============================================================================
-// DATA DISPLAY PATTERNS
-// ============================================================================
-
-interface MetricCardProps {
-	title: string
-	value: string | number
-	change?: {
-		value: string
-		type: 'increase' | 'decrease' | 'neutral'
-	}
-	icon?: React.ReactNode
-	variant?: 'default' | 'primary' | 'success' | 'warning' | 'error'
-	className?: string
-}
-
-export function MetricCard({
-	title,
-	value,
-	change,
-	icon,
-	variant = 'default',
-	className
-}: MetricCardProps) {
-	const variants = {
-		default: 'bg-card border-border',
-		primary: 'bg-primary/5 border-primary/20',
-		success: 'bg-green-50 border-green-200',
-		warning: 'bg-orange-50 border-orange-200',
-		error: 'bg-red-50 border-red-200'
-	}
-
-	const iconColors = {
-		default: 'text-muted-foreground',
-		primary: 'text-primary',
-		success: 'text-green-600',
-		warning: 'text-orange-600',
-		error: 'text-red-600'
-	}
-
-	return (
-		<Card className={cn(variants[variant], className)}>
-			<CardContent>
-				<Stack spacing="sm">
-					<div className="flex items-center justify-between">
-						<p className="text-muted-foreground text-sm">{title}</p>
-						{icon && (
-							<div className={iconColors[variant]}>{icon}</div>
-						)}
-					</div>
-					<div className="flex items-end justify-between">
-						<p className="text-2xl font-bold">{value}</p>
-						{change && (
-							<div
-								className={cn(
-									'flex items-center text-sm',
-									change.type === 'increase' &&
-										'text-green-600',
-									change.type === 'decrease' &&
-										'text-red-600',
-									change.type === 'neutral' &&
-										'text-muted-foreground'
-								)}
-							>
-								{change.type === 'increase' && '↗'}
-								{change.type === 'decrease' && '↘'}
-								{change.value}
-							</div>
-						)}
-					</div>
-				</Stack>
-			</CardContent>
-		</Card>
-	)
-}
-
-// ============================================================================
-// COLLECTION PATTERNS
-// ============================================================================
-
-interface CollectionHeaderProps {
-	title: string
-	description?: string
-	itemCount?: number
-	actions?: React.ReactNode
-	filters?: React.ReactNode
-	className?: string
-}
-
-export function CollectionHeader({
-	title,
-	description,
-	itemCount,
-	actions,
-	filters,
-	className
-}: CollectionHeaderProps) {
-	return (
-		<div className={cn('space-y-6', className)}>
-			<Stack direction="horizontal" align="start" justify="between">
-				<div>
-					<h1 className="text-3xl font-bold">{title}</h1>
-					{description && (
-						<p className="text-muted-foreground mt-2">
-							{description}
-						</p>
-					)}
-					{typeof itemCount === 'number' && (
-						<p className="text-muted-foreground mt-1 text-sm">
-							{itemCount} {itemCount === 1 ? 'item' : 'items'}
-						</p>
-					)}
-				</div>
-				{actions && (
-					<div className="flex items-center gap-2">{actions}</div>
-				)}
-			</Stack>
-			{filters}
+			)}
+			{children}
 		</div>
 	)
 }
 
-interface CollectionGridProps<T = unknown> {
-	items: T[]
-	renderItem: (item: T, index: number) => React.ReactNode
-	cols?: 1 | 2 | 3 | 4 | 'auto'
-	gap?: 'sm' | 'md' | 'lg' | 'xl'
-	emptyState?: {
-		title: string
-		description?: string
-		icon?: React.ReactNode
-		action?: React.ReactNode
-	}
-	loading?: boolean
-	loadingCount?: number
+export interface PageHeaderProps {
+	title: string
+	description?: string
+	children?: React.ReactNode
 	className?: string
 }
 
-export function CollectionGrid<T = unknown>({
-	items,
-	renderItem,
-	cols = 3,
-	gap = 'lg',
-	emptyState,
-	loading = false,
-	loadingCount = 6,
-	className
-}: CollectionGridProps<T>) {
-	if (loading) {
-		return (
-			<Grid cols={cols} gap={gap} className={className}>
-				{Array.from({ length: loadingCount }).map((_, index) => (
-					<Card key={index} className="animate-pulse">
-						<CardContent>
-							<div className="space-y-4">
-								<div className="bg-muted h-4 w-3/4 rounded" />
-								<div className="bg-muted h-4 w-1/2 rounded" />
-								<div className="grid grid-cols-2 gap-4">
-									<div className="bg-muted h-8 rounded" />
-									<div className="bg-muted h-8 rounded" />
-								</div>
-							</div>
-						</CardContent>
-					</Card>
-				))}
-			</Grid>
-		)
-	}
-
-	if (items.length === 0 && emptyState) {
-		return (
-			<EmptyState
-				icon={emptyState.icon}
-				title={emptyState.title}
-				description={emptyState.description}
-				action={emptyState.action}
-				className={className}
-			/>
-		)
-	}
-
+export function PageHeader({ title, description, children, className }: PageHeaderProps) {
 	return (
-		<Grid cols={cols} gap={gap} className={className}>
-			{items.map((item, index) => renderItem(item, index))}
-		</Grid>
+		<div className={cn('flex items-center justify-between pb-4', className)}>
+			<div className="space-y-1">
+				<h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+				{description && <p className="text-muted-foreground">{description}</p>}
+			</div>
+			{children && <div className="flex items-center gap-2">{children}</div>}
+		</div>
 	)
 }
 
 // ============================================================================
-// FORM SECTION PATTERN
+// Card Patterns
 // ============================================================================
 
-interface FormSectionProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface InfoCardProps {
 	title: string
 	description?: string
-	required?: boolean
+	value?: string | number
+	change?: {
+		value: number
+		type: 'positive' | 'negative' | 'neutral'
+	}
+	badge?: string
+	children?: React.ReactNode
+	className?: string
 }
 
-export function FormSection({
-	title,
-	description,
-	required = false,
-	children,
-	className,
-	...props
-}: FormSectionProps) {
+export function InfoCard({ 
+	title, 
+	description, 
+	value, 
+	change, 
+	badge, 
+	children, 
+	className 
+}: InfoCardProps) {
 	return (
-		<div className={cn('space-y-6', className)} {...props}>
-			<div className="border-b pb-4">
-				<h3 className="text-lg font-semibold">
-					{title}
-					{required && <span className="ml-1 text-red-500">*</span>}
-				</h3>
+		<Card className={className}>
+			<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+				<CardTitle className="text-sm font-medium">{title}</CardTitle>
+				{badge && <Badge variant="secondary">{badge}</Badge>}
+			</CardHeader>
+			<CardContent>
+				{value !== undefined && (
+					<div className="text-2xl font-bold">{value}</div>
+				)}
 				{description && (
-					<p className="text-muted-foreground mt-1 text-sm">
+					<CardDescription className="text-xs text-muted-foreground">
 						{description}
+					</CardDescription>
+				)}
+				{change && (
+					<p className={cn(
+						'text-xs',
+						change.type === 'positive' && 'text-green-600',
+						change.type === 'negative' && 'text-red-600',
+						change.type === 'neutral' && 'text-muted-foreground'
+					)}>
+						{change.type === 'positive' && '+'}
+						{change.value}%
 					</p>
 				)}
+				{children}
+			</CardContent>
+		</Card>
+	)
+}
+
+// ============================================================================
+// List Patterns
+// ============================================================================
+
+export interface ListItemProps {
+	title: string
+	description?: string
+	meta?: string
+	badge?: string
+	actions?: React.ReactNode
+	onClick?: () => void
+	className?: string
+}
+
+export function ListItem({ 
+	title, 
+	description, 
+	meta, 
+	badge, 
+	actions, 
+	onClick, 
+	className 
+}: ListItemProps) {
+	const Component = onClick ? 'button' : 'div'
+	
+	return (
+		<Component
+			onClick={onClick}
+			className={cn(
+				'flex items-center justify-between p-4 border rounded-lg',
+				onClick && 'hover:bg-muted/50 cursor-pointer',
+				className
+			)}
+		>
+			<div className="flex-1 space-y-1">
+				<div className="flex items-center gap-2">
+					<h4 className="text-sm font-medium">{title}</h4>
+					{badge && <Badge variant="outline" className="text-xs">{badge}</Badge>}
+				</div>
+				{description && (
+					<p className="text-sm text-muted-foreground">{description}</p>
+				)}
+				{meta && (
+					<p className="text-xs text-muted-foreground">{meta}</p>
+				)}
 			</div>
-			<div className="space-y-4">{children}</div>
+			{actions && (
+				<div className="flex items-center gap-2">{actions}</div>
+			)}
+		</Component>
+	)
+}
+
+// ============================================================================
+// Status Patterns
+// ============================================================================
+
+export interface StatusIndicatorProps {
+	status: 'active' | 'inactive' | 'pending' | 'error' | 'warning'
+	label?: string
+	size?: 'sm' | 'md' | 'lg'
+}
+
+export function StatusIndicator({ status, label, size = 'md' }: StatusIndicatorProps) {
+	const statusConfig = {
+		active: { color: 'bg-green-500', label: label || 'Active' },
+		inactive: { color: 'bg-gray-400', label: label || 'Inactive' },
+		pending: { color: 'bg-yellow-500', label: label || 'Pending' },
+		error: { color: 'bg-red-500', label: label || 'Error' },
+		warning: { color: 'bg-orange-500', label: label || 'Warning' }
+	}
+
+	const sizeConfig = {
+		sm: 'h-2 w-2',
+		md: 'h-3 w-3',
+		lg: 'h-4 w-4'
+	}
+
+	const config = statusConfig[status]
+
+	return (
+		<div className="flex items-center gap-2">
+			<div className={cn(
+				'rounded-full',
+				config.color,
+				sizeConfig[size]
+			)} />
+			<span className="text-sm">{config.label}</span>
 		</div>
 	)
 }
 
-export {
-	// Re-export common icons for convenience
-	Building2 as BuildingIcon,
-	Users as UsersIcon,
-	FileText as FileIcon,
-	Calendar as CalendarIcon,
-	DollarSign as DollarIcon,
-	AlertCircle as AlertIcon,
-	CheckCircle as CheckIcon,
-	Clock as ClockIcon,
-	XCircle as ErrorIcon
+// ============================================================================
+// Empty State Pattern
+// ============================================================================
+
+export interface EmptyStateProps {
+	title: string
+	description?: string
+	action?: {
+		label: string
+		onClick: () => void
+	}
+	icon?: React.ReactNode
+	className?: string
+}
+
+export function EmptyState({ title, description, action, icon, className }: EmptyStateProps) {
+	return (
+		<div className={cn('flex flex-col items-center justify-center py-12 text-center', className)}>
+			{icon && <div className="mb-4 text-muted-foreground">{icon}</div>}
+			<h3 className="text-lg font-semibold">{title}</h3>
+			{description && (
+				<p className="mt-2 text-sm text-muted-foreground max-w-sm">{description}</p>
+			)}
+			{action && (
+				<Button onClick={action.onClick} className="mt-4">
+					{action.label}
+				</Button>
+			)}
+		</div>
+	)
+}
+
+// ============================================================================
+// Loading Pattern
+// ============================================================================
+
+export interface LoadingStateProps {
+	title?: string
+	description?: string
+	className?: string
+}
+
+export function LoadingState({ title = 'Loading...', description, className }: LoadingStateProps) {
+	return (
+		<div className={cn('flex flex-col items-center justify-center py-12 text-center', className)}>
+			<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4" />
+			<h3 className="text-lg font-semibold">{title}</h3>
+			{description && (
+				<p className="mt-2 text-sm text-muted-foreground">{description}</p>
+			)}
+		</div>
+	)
 }

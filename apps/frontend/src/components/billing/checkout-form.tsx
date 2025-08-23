@@ -1,6 +1,7 @@
 'use client'
 
 import { useActionState } from 'react'
+import { createCheckoutSession } from '@/lib/actions/checkout-action'
 import {
 	Card,
 	CardContent,
@@ -11,8 +12,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, CreditCard, Shield } from 'lucide-react'
-import { createCheckoutSession } from '@/lib/actions/billing-actions'
-import type { BillingFormState } from '@/lib/actions/billing-actions'
 
 interface CheckoutFormProps {
 	priceId: string
@@ -22,11 +21,6 @@ interface CheckoutFormProps {
 	trialDays?: number
 	couponId?: string
 	className?: string
-}
-
-const initialState: BillingFormState = {
-	errors: {},
-	success: false
 }
 
 /**
@@ -42,10 +36,10 @@ export function CheckoutForm({
 	couponId,
 	className
 }: CheckoutFormProps) {
-	const [state, formAction, isPending] = useActionState(
-		createCheckoutSession,
-		initialState
-	)
+	const [state, formAction, isPending] = useActionState(createCheckoutSession, {
+		success: false,
+		errors: {}
+	})
 
 	return (
 		<Card className={className}>
@@ -105,14 +99,6 @@ export function CheckoutForm({
 						</Alert>
 					)}
 
-					{/* Success message */}
-					{state.success && (
-						<Alert>
-							<AlertDescription>
-								Redirecting to checkout...
-							</AlertDescription>
-						</Alert>
-					)}
 
 					{/* Action button */}
 					<Button
@@ -176,7 +162,7 @@ export function CheckoutButton({
 }: CheckoutButtonProps) {
 	const [state, formAction, isPending] = useActionState(
 		createCheckoutSession,
-		initialState
+		{ success: false, errors: {} }
 	)
 
 	return (
@@ -213,7 +199,7 @@ export function CheckoutButton({
 						Loading...
 					</>
 				) : (
-					children || `Subscribe to ${planName}`
+					children ?? `Subscribe to ${planName}`
 				)}
 			</Button>
 

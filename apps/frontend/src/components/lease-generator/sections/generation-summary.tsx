@@ -62,7 +62,7 @@ export function GenerationSummary({
 						</p>
 						<p className="text-muted-foreground text-sm">
 							Tenant:{' '}
-							{formData.tenantNames?.map(t => t.name).join(', ')}
+							{formData.tenantNames?.map((t: { name: string }) => t.name).join(', ')}
 						</p>
 					</div>
 

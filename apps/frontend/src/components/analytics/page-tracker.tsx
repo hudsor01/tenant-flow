@@ -1,40 +1,46 @@
 'use client'
 
+/**
+ * Page tracker component for analytics
+ * Tracks page views and user interactions with PostHog
+ */
+
 import { useEffect } from 'react'
-import { useInteractionTracking } from '@/lib/analytics/business-events'
+import { usePostHog } from 'posthog-js/react'
+import { usePathname, useSearchParams } from 'next/navigation'
 
 interface PageTrackerProps {
-	pageName: string
-	section?: string
+	pageTitle?: string
+	pageName?: string
+	pageCategory?: string
+	properties?: Record<string, string | number | boolean>
 }
 
-/**
- * Page Analytics Tracker
- * Automatically tracks page views with load time and section data
- */
-export function PageTracker({ pageName, section: _section }: PageTrackerProps) {
-	const { trackPageView } = useInteractionTracking()
+export function PageTracker({ 
+	pageTitle, 
+	pageName,
+	pageCategory = 'dashboard',
+	properties = {}
+}: PageTrackerProps) {
+	const posthog = usePostHog()
+	const pathname = usePathname()
+	const searchParams = useSearchParams()
 
 	useEffect(() => {
-		const startTime = Date.now()
+		if (!posthog) return
 
-		// Track page view with load time
-		const handleLoad = () => {
-			const loadTime = Date.now() - startTime
-			trackPageView(pageName, loadTime)
-		}
+		// Track page view
+		posthog.capture('$pageview', {
+			$current_url: `${pathname}${searchParams?.toString() ? `?${searchParams.toString()}` : ''}`,
+			page_title: pageTitle || pageName || document.title,
+			page_name: pageName,
+			page_category: pageCategory,
+			...properties
+		})
+	}, [posthog, pathname, searchParams, pageTitle, pageName, pageCategory, properties])
 
-		// If page is already loaded
-		if (document.readyState === 'complete') {
-			handleLoad()
-		} else {
-			window.addEventListener('load', handleLoad)
-		}
-
-		return () => {
-			window.removeEventListener('load', handleLoad)
-		}
-	}, [pageName, trackPageView])
-
-	return null // This component doesn't render anything
+	// This component doesn't render anything
+	return null
 }
+
+export default PageTracker

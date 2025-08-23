@@ -1,5 +1,4 @@
 import type { Metadata } from '@/types/next.d'
-import { AuthProvider } from '@/providers/auth-provider'
 
 export const metadata: Metadata = {
 	title: {
@@ -17,11 +16,10 @@ interface PublicLayoutProps {
 
 /**
  * Layout for public pages (marketing, auth, etc.)
- *
- * This layout provides AuthProvider for pages that might need auth state
- * (like auth pages that check if user is already logged in) but doesn't
- * enforce authentication requirements.
+ * 
+ * Auth state is now handled globally by the app store and useAuth hook.
+ * No need for a separate AuthProvider wrapper.
  */
 export default function PublicLayout({ children }: PublicLayoutProps) {
-	return <AuthProvider>{children}</AuthProvider>
+	return <>{children}</>
 }

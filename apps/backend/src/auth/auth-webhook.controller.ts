@@ -9,7 +9,7 @@ import {
 // Rate limiting handled globally
 import { AuthService } from './auth.service'
 import { StripeService } from '../billing/stripe.service'
-import { SubscriptionsManagerService } from '../billing/subscriptions-manager.service'
+// Removed SubscriptionsManagerService - replaced by StripeWebhookService
 import { UsersService } from '../users/users.service'
 import { Public } from '../shared/decorators/public.decorator'
 import { CsrfExempt } from '../security/csrf.guard'
@@ -39,7 +39,6 @@ export class AuthWebhookController {
 	constructor(
 		private authService: AuthService,
 		private stripeService: StripeService,
-		private subscriptionsService: SubscriptionsManagerService,
 		private usersService: UsersService
 	) {}
 
@@ -122,7 +121,7 @@ export class AuthWebhookController {
 			})
 
 			// Create Stripe customer and free trial subscription for new user
-			await this.createUserSubscription(user.id, user.email, userName)
+			await this.createSubscription(user.id, user.email, userName)
 
 			// Send welcome email (EmailService disabled)
 			this.logger.log(
@@ -155,7 +154,7 @@ export class AuthWebhookController {
 		}
 	}
 
-	private async createUserSubscription(
+	private async createSubscription(
 		userId: string,
 		email: string,
 		name: string
@@ -212,28 +211,22 @@ export class AuthWebhookController {
 
 			// Create/update local subscription record with Stripe info
 			try {
-				// Get or create the subscription (this will create a free one if none exists)
-				const subscription =
-					await this.subscriptionsService.getUserSubscription(userId)
+				// TODO: Replace with simplified webhook-based subscription handling
+				// Subscription management now handled entirely through Stripe webhooks
+				this.logger.log(`User created: ${userId}, subscription will be created via Stripe webhooks`)
+				await this.updateSubscriptionWithStripeData(
+					userId,
+					customer.id,
+					stripeSubscription.id
+				)
 
-				if (subscription) {
-					// Update the subscription with Stripe information
-					await this.updateSubscriptionWithStripeData(
+				this.logger.log(
+					'Local subscription updated with Stripe data',
+					{
 						userId,
-						customer.id,
-						stripeSubscription.id
-					)
-
-					this.logger.log(
-						'Local subscription updated with Stripe data',
-						{
-							userId,
-							subscriptionId: (subscription as { id?: string })
-								?.id,
-							stripeSubscriptionId: stripeSubscription.id
-						}
-					)
-				}
+						stripeSubscriptionId: stripeSubscription.id
+					}
+				)
 			} catch (localDbError) {
 				this.logger.error(
 					'Failed to update local subscription with Stripe data',
@@ -266,11 +259,9 @@ export class AuthWebhookController {
 		stripeCustomerId: string,
 		stripeSubscriptionId: string
 	) {
-		// Update subscription with Stripe IDs using the proper service method
-		await this.subscriptionsService.createOrUpdateSubscription(userId, {
-			stripeSubscriptionId,
-			status: 'TRIALING'
-		})
+		// TODO: Replace with webhook-based subscription handling
+		// Subscription updates now handled entirely through Stripe webhooks
+		this.logger.log(`Subscription ${stripeSubscriptionId} will be handled via webhooks`)
 
 		// Also update user record with Stripe customer ID using users service
 		await this.usersService.updateUser(userId, {

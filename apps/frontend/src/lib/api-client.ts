@@ -1,19 +1,34 @@
 /**
- * Simplified API Client for TenantFlow Backend
- * Basic implementation for build compatibility
+ * Simplified API Client using native fetch
+ * Eliminates Axios dependency and complex interceptor patterns
+ * Includes runtime response validation with Zod schemas
  */
-import axios, {
-	type AxiosInstance,
-	type AxiosResponse,
-	type AxiosError,
-	type AxiosRequestConfig
-} from 'axios'
-import { logger } from '@/lib/logger'
 import { config } from './config'
 import { getSession } from './supabase/client'
 import type { ControllerApiResponse } from '@repo/shared'
+import { ResponseValidator, type ValidationOptions } from './api/response-validator'
+import type { ZodSchema } from 'zod'
 
-
+// Type-safe URLSearchParams utility
+export function createSearchParams(params: Record<string, unknown>): string {
+  const searchParams = new URLSearchParams()
+  
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      // Handle arrays by joining with comma
+      if (Array.isArray(value)) {
+        const filteredArray = value.filter(v => v !== undefined && v !== null && v !== '')
+        if (filteredArray.length > 0) {
+          searchParams.append(key, filteredArray.join(','))
+        }
+      } else {
+        searchParams.append(key, String(value))
+      }
+    }
+  })
+  
+  return searchParams.toString()
+}
 
 export interface ApiError {
 	message: string
@@ -22,181 +37,215 @@ export interface ApiError {
 	timestamp?: string
 }
 
-class ApiClient {
-	private readonly client: AxiosInstance
+export interface RequestConfig {
+	params?: Record<string, string | number | boolean | string[] | undefined>
+	headers?: Record<string, string>
+	signal?: AbortSignal
+}
+
+class SimpleApiClient {
+	private baseURL: string
+	private timeout: number
 
 	constructor() {
-		this.client = axios.create({
-			baseURL: config.api.baseURL,
-			timeout: config.api.timeout || 30000,
-			headers: {
-				'Content-Type': 'application/json',
-				Accept: 'application/json'
-			},
-			withCredentials: true,
-			validateStatus: status => status < 500
-		})
-
-		this.setupInterceptors()
+		this.baseURL = config.api.baseURL
+		this.timeout = config.api.timeout ?? 30000
 	}
 
-	private setupInterceptors() {
-		// Request interceptor for authentication
-		this.client.interceptors.request.use(
-			async config => {
-				try {
-					const { session } = await getSession()
-					if (session?.access_token) {
-						config.headers.Authorization = `Bearer ${session.access_token}`
-					}
-				} catch (error) {
-					logger.warn('[API] Failed to add authentication:', {
-						component: 'lib_api_client.ts',
-						data: error
-					})
-				}
-				return config
-			},
-			error => {
-				// Ensure the rejection reason is always an Error
-				if (error instanceof Error) {
-					return Promise.reject(error)
-				}
-				return Promise.reject(
-					new Error(
-						typeof error === 'string'
-							? error
-							: JSON.stringify(error)
-					)
-				)
-			}
-		)
+	private async getAuthHeaders(): Promise<Record<string, string>> {
+		try {
+			const { session } = await getSession()
+			return session?.access_token 
+				? { Authorization: `Bearer ${session.access_token}` }
+				: {}
+		} catch {
+			return {}
+		}
+	}
 
-		// Response interceptor for error handling
-		this.client.interceptors.response.use(
-			response => response,
-			async (error: AxiosError) => {
-				if (error.response?.status === 401) {
-					// Handle authentication errors
-					logger.warn(
-						'[API] Authentication error - redirecting to login',
-						{ component: 'lib_api_client.ts' }
-					)
-					window.location.href = '/login'
+	private buildURL(path: string, params?: Record<string, string | number | boolean | string[] | undefined>): string {
+		const url = new URL(path, this.baseURL)
+		if (params) {
+			Object.entries(params).forEach(([key, value]) => {
+				if (value !== undefined && value !== null) {
+					if (Array.isArray(value)) {
+						value.forEach(v => url.searchParams.append(key, String(v)))
+					} else {
+						url.searchParams.append(key, String(value))
+					}
 				}
-				return Promise.reject(error)
-			}
-		)
+			})
+		}
+		return url.toString()
 	}
 
 	private async makeRequest<T>(
-		method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
-		url: string,
-		data?: Record<string, unknown> | FormData,
-		config?: AxiosRequestConfig
+		method: string,
+		path: string,
+		data?: unknown,
+		config?: RequestConfig
 	): Promise<T> {
+		const authHeaders = await this.getAuthHeaders()
+		const isFormData = data instanceof FormData
+
+		const headers: Record<string, string> = {
+			Accept: 'application/json',
+			...authHeaders,
+			...config?.headers
+		}
+
+		if (!isFormData) {
+			headers['Content-Type'] = 'application/json'
+		}
+
+		const controller = new AbortController()
+		const timeoutId = setTimeout(() => controller.abort(), this.timeout)
+
 		try {
-			const response: AxiosResponse<ControllerApiResponse<T>> = await this.client.request({
+			const response = await fetch(this.buildURL(path, config?.params), {
 				method,
-				url,
-				data,
-				...config
+				headers,
+				body: isFormData ? data : (data ? JSON.stringify(data) : undefined),
+				credentials: 'include',
+				signal: config?.signal || controller.signal
 			})
 
-			// Extract data from backend's ControllerApiResponse format
-			const backendResponse = response.data as ControllerApiResponse<T>
-			
-			if (backendResponse && typeof backendResponse === 'object' && 'success' in backendResponse) {
-				if (!backendResponse.success) {
-					throw new Error(backendResponse.message || 'Request failed')
+			clearTimeout(timeoutId)
+
+			if (response.status === 401) {
+				window.location.href = '/login'
+				throw new Error('Authentication required')
+			}
+
+			if (!response.ok) {
+				const errorText = await response.text()
+				let errorData: ControllerApiResponse<unknown> | undefined
+				
+				try {
+					errorData = JSON.parse(errorText)
+				} catch {
+					// Not JSON, use text as message
 				}
-				if (backendResponse.data === undefined) {
+
+				const apiError: ApiError = {
+					message: errorData?.message || `Request failed: ${response.status}`,
+					code: response.status.toString(),
+					details: errorData ? { ...errorData } : undefined,
+					timestamp: new Date().toISOString()
+				}
+				throw apiError
+			}
+
+			const responseData: ControllerApiResponse<T> = await response.json()
+
+			if (responseData && typeof responseData === 'object' && 'success' in responseData) {
+				if (!responseData.success) {
+					throw new Error(responseData.message || 'Request failed')
+				}
+				if (responseData.data === undefined) {
 					throw new Error('Response data is missing from successful request')
 				}
-				return backendResponse.data
+				return responseData.data
 			}
 
-			// Should not reach here with current backend implementation
 			throw new Error('Invalid response format from backend')
 		} catch (error: unknown) {
-			const axiosError = error as AxiosError
-			const responseData = axiosError.response?.data as ControllerApiResponse<unknown> | undefined
-
-			const apiError: ApiError = {
-				message:
-					(responseData?.message as string) ||
-					axiosError.message ||
-					'Request failed',
-				code: responseData?.statusCode?.toString() || axiosError.code,
-				details: responseData as unknown as Record<string, unknown>,
-				timestamp: new Date().toISOString()
+			clearTimeout(timeoutId)
+			
+			if (error instanceof Error && error.name === 'AbortError') {
+				throw new Error('Request timeout')
 			}
-
-			throw apiError
+			
+			throw error
 		}
 	}
 
-	// HTTP Methods
-	async get<T>(
-		url: string,
-		config?: AxiosRequestConfig
-	): Promise<T> {
-		return this.makeRequest<T>('GET', url, undefined, config)
+	async get<T>(path: string, config?: RequestConfig): Promise<T> {
+		return this.makeRequest<T>('GET', path, undefined, config)
 	}
 
-	async post<T>(
-		url: string,
-		data?: Record<string, unknown> | FormData,
-		config?: AxiosRequestConfig
-	): Promise<T> {
-		return this.makeRequest<T>('POST', url, data, config)
+	async post<T>(path: string, data?: unknown, config?: RequestConfig): Promise<T> {
+		return this.makeRequest<T>('POST', path, data, config)
 	}
 
-	async put<T>(
-		url: string,
-		data?: Record<string, unknown> | FormData,
-		config?: AxiosRequestConfig
-	): Promise<T> {
-		return this.makeRequest<T>('PUT', url, data, config)
+	async put<T>(path: string, data?: unknown, config?: RequestConfig): Promise<T> {
+		return this.makeRequest<T>('PUT', path, data, config)
 	}
 
-	async patch<T>(
-		url: string,
-		data?: Record<string, unknown> | FormData,
-		config?: AxiosRequestConfig
-	): Promise<T> {
-		return this.makeRequest<T>('PATCH', url, data, config)
+	async patch<T>(path: string, data?: unknown, config?: RequestConfig): Promise<T> {
+		return this.makeRequest<T>('PATCH', path, data, config)
 	}
 
-	async delete<T>(
-		url: string,
-		config?: AxiosRequestConfig
-	): Promise<T> {
-		return this.makeRequest<T>('DELETE', url, undefined, config)
+	async delete<T>(path: string, config?: RequestConfig): Promise<T> {
+		return this.makeRequest<T>('DELETE', path, undefined, config)
 	}
 
-	// Health check method
+	// Validated API methods with Zod schema validation
+	async getValidated<T>(
+		path: string, 
+		schema: ZodSchema<T>, 
+		schemaName: string,
+		config?: RequestConfig,
+		validationOptions?: ValidationOptions
+	): Promise<T> {
+		const data = await this.makeRequest<T>('GET', path, undefined, config)
+		return ResponseValidator.validate(schema, data, schemaName, validationOptions)
+	}
+
+	async postValidated<T>(
+		path: string, 
+		schema: ZodSchema<T>, 
+		schemaName: string,
+		data?: Record<string, unknown> | FormData, 
+		config?: RequestConfig,
+		validationOptions?: ValidationOptions
+	): Promise<T> {
+		const responseData = await this.makeRequest<T>('POST', path, data, config)
+		return ResponseValidator.validate(schema, responseData, schemaName, validationOptions)
+	}
+
+	async putValidated<T>(
+		path: string, 
+		schema: ZodSchema<T>, 
+		schemaName: string,
+		data?: Record<string, unknown> | FormData, 
+		config?: RequestConfig,
+		validationOptions?: ValidationOptions
+	): Promise<T> {
+		const responseData = await this.makeRequest<T>('PUT', path, data, config)
+		return ResponseValidator.validate(schema, responseData, schemaName, validationOptions)
+	}
+
+	async patchValidated<T>(
+		path: string, 
+		schema: ZodSchema<T>, 
+		schemaName: string,
+		data?: Record<string, unknown> | FormData, 
+		config?: RequestConfig,
+		validationOptions?: ValidationOptions
+	): Promise<T> {
+		const responseData = await this.makeRequest<T>('PATCH', path, data, config)
+		return ResponseValidator.validate(schema, responseData, schemaName, validationOptions)
+	}
+
+	async deleteValidated<T>(
+		path: string, 
+		schema: ZodSchema<T>, 
+		schemaName: string,
+		config?: RequestConfig,
+		validationOptions?: ValidationOptions
+	): Promise<T> {
+		const responseData = await this.makeRequest<T>('DELETE', path, undefined, config)
+		return ResponseValidator.validate(schema, responseData, schemaName, validationOptions)
+	}
+
 	async healthCheck(): Promise<{ status: string; timestamp: string }> {
 		return this.get<{ status: string; timestamp: string }>('/health')
-	}
-
-	// Helper method to create cancellable requests
-	createCancellableRequest() {
-		const controller = new AbortController()
-		return {
-			signal: controller.signal,
-			cancel: () => controller.abort()
-		}
 	}
 }
 
 // Export singleton instance
-export const apiClient = new ApiClient()
+export const apiClient = new SimpleApiClient()
 export default apiClient
-
-// Export type for cancellable requests
-export type CancellableRequest = ReturnType<
-	ApiClient['createCancellableRequest']
->
 
 

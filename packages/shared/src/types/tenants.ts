@@ -88,6 +88,8 @@ export interface TenantStats {
 	activeTenants: number
 	inactiveTenants: number
 	pendingInvitations: number
+	// Additional properties needed by tests
+	total: number
 }
 
 // Note: For complex relations, import from relations file to avoid circular imports

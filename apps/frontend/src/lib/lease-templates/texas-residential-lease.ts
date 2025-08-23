@@ -30,18 +30,18 @@ export function generateTexasLeaseHTML(data: TexasLeaseData): string {
 
 	const fullAddress = `${data.propertyAddress}${data.unitNumber ? `, ${data.unitNumber}` : ''}`
 	const tenantList = data.tenantNames
-		.map(t => (typeof t === 'string' ? t : t.name))
+		.map((t: string | { name: string }) => (typeof t === 'string' ? t : t.name))
 		.join(' and ')
 	const signatureDate = formatDateForSignature(data.leaseStartDate)
 	const holdOverRent = Math.round(data.rentAmount * 1.1) // 10% increase for holdover
 	const lateFeePerDay = data.lateFeeAmount
-	const nsfFee = data.lateFeeAmount || 50 // Default NSF fee
-	const petFeePerDay = data.petDeposit || 25 // Default pet violation fee
+	const nsfFee = data.lateFeeAmount ?? 50 // Default NSF fee
+	const petFeePerDay = data.petDeposit ?? 25 // Default pet violation fee
 	const familyMembers =
 		data.tenantNames.length > 1
 			? data.tenantNames
 					.slice(1)
-					.map(t => (typeof t === 'string' ? t : t.name))
+					.map((t: string | { name: string }) => (typeof t === 'string' ? t : t.name))
 					.join(', ')
 			: ''
 
@@ -326,7 +326,7 @@ export function generateTexasLeaseHTML(data: TexasLeaseData): string {
             
             ${data.tenantNames
 				.map(
-					(tenant, index) => `
+					(tenant: string | { name: string }, index: number) => `
             <strong>TENANT${data.tenantNames.length > 1 ? ` ${index + 1}` : ''}:</strong><br><br>
             Sign: <span class="signature-line"></span><br>
             Print: <span class="form-line">${typeof tenant === 'string' ? tenant : tenant.name}</span> Date: <span class="date-line"></span><br><br>
@@ -350,7 +350,7 @@ export function generateTexasLeaseText(data: TexasLeaseData): string {
 
 	const fullAddress = `${data.propertyAddress}${data.unitNumber ? `, ${data.unitNumber}` : ''}, ${data.city}, ${data.state} ${data.zipCode}`
 	const tenantList = data.tenantNames
-		.map(t => (typeof t === 'string' ? t : t.name))
+		.map((t: string | { name: string }) => (typeof t === 'string' ? t : t.name))
 		.join(', ')
 	const currentDate = new Date().toLocaleDateString('en-US')
 
@@ -388,7 +388,7 @@ Maximum occupants: ${data.maxOccupants || 'Tenant(s) and minor children'}
 ${data.emergencyContact ? `Emergency contact: ${data.emergencyContact.name} (${data.emergencyContact.phone}) - ${data.emergencyContact.relationship}` : ''}
 
 6. PETS
-Pet policy: ${data.petPolicy === 'not_allowed' ? 'No pets allowed' : data.petPolicy === 'allowed' ? 'Pets allowed' : `Pets allowed with deposit of ${formatCurrency(data.petDeposit || 0)}`}
+Pet policy: ${data.petPolicy === 'not_allowed' ? 'No pets allowed' : data.petPolicy === 'allowed' ? 'Pets allowed' : `Pets allowed with deposit of ${formatCurrency(data.petDeposit ?? 0)}`}
 ${data.petDetails ? `Pet details: ${data.petDetails.type}, ${data.petDetails.breed}, ${data.petDetails.weight}, Registration: ${data.petDetails.registration}` : ''}
 
 7. SMOKING
@@ -415,7 +415,7 @@ ${data.landlordName}
 
 ${data.tenantNames
 	.map(
-		tenant => `
+		(tenant: string | { name: string }) => `
 Tenant: _________________________ Date: _____________
 ${typeof tenant === 'string' ? tenant : tenant.name}
 `

@@ -1,7 +1,7 @@
 import type { Metadata } from '@/types/next.d'
 import { Suspense } from 'react'
-import SignupForm from '@/components/auth/signup-form'
-import { AuthLayout } from '@/components/auth/auth-layout'
+import { SimpleSignupForm } from '@/components/forms/supabase-signup-form'
+import { AuthLayout } from '@/components/layout/auth/layout'
 import { getCurrentUser } from '@/lib/actions/auth-actions'
 import { AuthRedirect } from '@/components/auth/auth-redirect'
 
@@ -23,10 +23,10 @@ export default async function SignupPage({
 	const user = await getCurrentUser()
 
 	if (user) {
-		return <AuthRedirect to={params?.redirect || '/dashboard'} />
+		return <AuthRedirect to={params?.redirect ?? '/dashboard'} />
 	}
 
-	const redirectTo = params?.redirect || '/dashboard'
+	const redirectTo = params?.redirect ?? '/dashboard'
 
 	return (
 		<AuthLayout
@@ -48,7 +48,7 @@ export default async function SignupPage({
 					<div className="bg-muted h-[500px] animate-pulse rounded-lg" />
 				}
 			>
-				<SignupForm redirectTo={redirectTo} />
+				<SimpleSignupForm redirectTo={redirectTo} />
 			</Suspense>
 		</AuthLayout>
 	)

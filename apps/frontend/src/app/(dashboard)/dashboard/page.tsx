@@ -8,8 +8,9 @@ import {
 } from '@/components/dashboard/dashboard-client'
 import { EnhancedDashboardWidgets } from '@/components/dashboard/enhanced-dashboard-widgets'
 import { DashboardTracker } from '@/components/analytics/dashboard-tracker'
+import type { Metadata } from 'next/types'
 
-export const metadata = {
+export const metadata: Metadata = {
 	title: 'Dashboard | TenantFlow',
 	description:
 		'Comprehensive property management dashboard with analytics and insights'

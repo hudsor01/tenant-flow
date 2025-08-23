@@ -214,11 +214,10 @@ export interface CustomerPortalResponse {
 // Direct subscription parameters (moved to api-inputs.ts)
 // Note: DirectSubscriptionParams is now available in @repo/shared/types/api-inputs
 
-// Import Stripe types from the single source of truth
-import type { 
-	StripeErrorCode as StripeErrorType,
-	StripeWebhookEvent
-} from './stripe'
+// Import Stripe types from the official Stripe SDK
+import type { Stripe } from 'stripe'
+type StripeErrorType = string
+type StripeWebhookEvent = Stripe.Event
 
 // Note: Stripe element types (StripeElementEvent, StripeCardElementEvent, etc.) 
 // are now available in './stripe' and can be imported when needed
@@ -388,6 +387,7 @@ export interface PaymentMethod {
 		name: string | null
 		phone: string | null
 	}
+	isDefault?: boolean
 }
 
 // ========================

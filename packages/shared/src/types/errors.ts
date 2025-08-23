@@ -87,6 +87,16 @@ export interface PaymentError extends BaseError {
 		| 'STRIPE_ERROR'
 }
 
+// Loader errors (for data loading failures)
+export interface LoaderError extends BaseError {
+	type: 'LOADER_ERROR'
+	code:
+		| 'LOAD_FAILED'
+		| 'MISSING_DEPENDENCY'
+		| 'INVALID_CONFIG'
+		| 'TIMEOUT'
+}
+
 // Union type for all possible errors
 export type AppError =
 	| AuthError
@@ -96,13 +106,14 @@ export type AppError =
 	| BusinessError
 	| FileUploadError
 	| PaymentError
+	| LoaderError
 
 // Error response from API
 export interface ErrorResponse {
 	success: false
 	error: AppError
 	requestId?: string
-	timestamp: Date
+	timestamp: string
 }
 
 // Success response type
@@ -113,7 +124,7 @@ export interface SuccessResponse<
 	data: T
 	message?: string
 	requestId?: string
-	timestamp: Date
+	timestamp: string
 }
 
 // Standard API response interface (for backward compatibility with controllers)

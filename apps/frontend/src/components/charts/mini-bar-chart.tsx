@@ -79,7 +79,7 @@ export const MiniBarChart: React.FC<MiniBarChartProps> = ({
 							<Cell
 								key={`cell-${index}`}
 								fill={
-									entry.color ||
+									entry.color ??
 									defaultColors[index % defaultColors.length]
 								}
 							/>

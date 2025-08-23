@@ -3,7 +3,6 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
-// import { Button } from "@/components/ui/button"
 import { Building2, Eye, Edit, Trash, MapPin, DollarSign } from 'lucide-react'
 import type { Property, PropertyType } from '@repo/shared'
 import {
@@ -12,6 +11,7 @@ import {
 } from '@repo/shared'
 import { createSelectColumn, createActionsColumn } from '../dense-table'
 import { cn } from '@/lib/utils'
+import { createPropertyDeletionHandler } from '@/lib/utils/property-deletion'
 
 // Helper functions - unified with shared implementation
 function formatCurrency(amount: number | undefined | null): string {
@@ -33,7 +33,7 @@ function calculateTotalRevenue(
 	if (!units) return 0
 	return units.reduce((total, unit) => {
 		if (unit.status === 'OCCUPIED') {
-			const rent = unit.monthlyRent || unit.rent || 0
+			const rent = unit.monthlyRent ?? unit.rent ?? 0
 			return total + rent
 		}
 		return total
@@ -112,7 +112,7 @@ export const propertyColumns: ColumnDef<Property>[] = [
 		header: 'Units',
 		size: 80,
 		cell: ({ row }) => {
-			const units = row.original.units || []
+			const units = row.original.units ?? []
 			const totalUnits = units.length
 			const occupiedUnits = units.filter(
 				unit => unit.status === 'OCCUPIED'
@@ -133,7 +133,7 @@ export const propertyColumns: ColumnDef<Property>[] = [
 		header: 'Occupancy',
 		size: 100,
 		cell: ({ row }) => {
-			const units = row.original.units || []
+			const units = row.original.units ?? []
 			const occupancyRate = calculateOccupancyRate(units)
 
 			return (
@@ -169,7 +169,7 @@ export const propertyColumns: ColumnDef<Property>[] = [
 		header: 'Revenue',
 		size: 100,
 		cell: ({ row }) => {
-			const units = row.original.units || []
+			const units = row.original.units ?? []
 			const totalRevenue = calculateTotalRevenue(units)
 
 			return (
@@ -188,7 +188,7 @@ export const propertyColumns: ColumnDef<Property>[] = [
 		header: 'Status',
 		size: 90,
 		cell: ({ row }) => {
-			const units = row.original.units || []
+			const units = row.original.units ?? []
 			const occupancyRate = calculateOccupancyRate(units)
 			const statusLabel = getStatusLabel(occupancyRate)
 			const variant = getStatusBadgeVariant(occupancyRate)
@@ -232,10 +232,7 @@ export const propertyColumns: ColumnDef<Property>[] = [
 		},
 		{
 			label: 'Delete',
-			onClick: _property => {
-				// TODO: Open a confirmation dialog for property deletion
-				// Property deletion functionality not yet implemented
-			},
+			onClick: createPropertyDeletionHandler(),
 			icon: <Trash className="h-3 w-3" />,
 			variant: 'destructive' as const
 		}
@@ -251,7 +248,7 @@ export const compactPropertyColumns: ColumnDef<Property>[] = [
 		header: 'Property',
 		cell: ({ row }) => {
 			const property = row.original
-			const units = property.units || []
+			const units = property.units ?? []
 			const occupancyRate = calculateOccupancyRate(units)
 			const revenue = calculateTotalRevenue(units)
 

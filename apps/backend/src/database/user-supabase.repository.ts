@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { SupabaseService } from '../database/supabase.service'
-import type { Subscription, User } from '../shared/types'
+import type { Subscription, User } from '@repo/shared'
 
 export interface UserWithSubscription extends User {
 	Subscription?: Subscription[]
@@ -20,7 +20,12 @@ export class UserSupabaseRepository {
 			.eq('stripeCustomerId', stripeCustomerId)
 			.single()
 
-		return data
+		return data ? { 
+			...data, 
+			organizationId: null,
+			createdAt: new Date(data.createdAt),
+			updatedAt: new Date(data.updatedAt)
+		} : null
 	}
 
 	async updateStripeCustomerId(
@@ -42,7 +47,12 @@ export class UserSupabaseRepository {
 			.eq('id', userId)
 			.single()
 
-		return data
+		return data ? { 
+			...data, 
+			organizationId: null,
+			createdAt: new Date(data.createdAt),
+			updatedAt: new Date(data.updatedAt)
+		} : null
 	}
 
 	async findByIdWithSubscription(

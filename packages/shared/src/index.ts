@@ -1,1124 +1,248 @@
 /**
- * @repo/shared - Main export file
- *
- * This file exports commonly used types and utilities from the shared package.
- * More specific exports are available through the package.json exports map.
+ * Main export file for @repo/shared package
+ * Essential exports to resolve frontend TypeScript dependencies
  */
 
-// Import types needed for interface definitions
-import type { Subscription } from './types/billing'
+// ============================================================================
+// Essential Types for Frontend
+// ============================================================================
 
-// ========================
-// Core Entity Types
-// ========================
-export type {
-	// ValidatedUser, // Already exported from auth types
-	Context,
-	AuthenticatedContext,
-	RequestContext,
-	PerformanceMetrics
-} from './types/backend'
+// Property Types
+export type { 
+	Property, 
+	Unit, 
+	PropertyType, 
+	UnitStatus, 
+	PropertyStats,
+	UnitStats,
+	CreatePropertyInput, 
+	UpdatePropertyInput 
+} from './types/properties'
 
-// ========================
-// Activity Types
-// ========================
-export type {
-	Activity,
-	ActivityItem,
-	ActivityFeed,
-	ActivityQuery,
-	ActivityType,
-	ActivityStatus,
-	ActivityPriority,
-	ActivityMetadata,
-	CreateActivityInput,
-	UpdateActivityInput
-} from './types/activity'
+// Property Relations
+export type { PropertyWithUnits, PropertyWithDetails, PropertyWithUnitsAndLeases, TenantWithLeases } from './types/relations'
 
+// Tenant Types
+export type { 
+	Tenant, 
+	TenantStats,
+	InvitationStatus
+} from './types/tenants'
+
+// Lease Types
+export type { 
+	Lease, 
+	LeaseStatus
+} from './types/leases'
+
+// Maintenance Types
+export type { 
+	MaintenanceRequest,
+	Priority as MaintenancePriority,
+	RequestStatus as MaintenanceStatus
+} from './types/maintenance'
+
+// API Input Types (all Create/Update inputs)
 export type {
-	User,
-	UserRole,
-	AuthUser,
-	SubscriptionStatus,
-	JwtPayload,
+	CreateTenantInput, 
+	UpdateTenantInput,
+	CreateLeaseInput, 
+	UpdateLeaseInput,
+	CreateUnitInput,
+	UpdateUnitInput,
+	CreateMaintenanceInput, 
+	UpdateMaintenanceInput,
+	UpdateUserProfileInput
+} from './types/api-inputs'
+
+// Blog Types
+export type { BlogArticleWithDetails } from './types/blog'
+
+// Dashboard Stats  
+export type { DashboardStats, ActivityItem } from './types/api'
+
+// Analytics Types
+export type { PropertyMetric, PropertyTrend, PropertyAnalyticsSummary, PortfolioAnalytics } from './types/analytics'
+
+// Query Types
+export type { 
+	MaintenanceQuery, 
+	PropertyQuery, 
+	LeaseQuery, 
+	TenantQuery, 
+	UnitQuery 
+} from './types/queries'
+
+// Billing Types
+export type { Invoice, PaymentMethod, Plan, SubStatus, UpdateSubscriptionParams } from './types/billing'
+export type { CreateCheckoutInput, SubscriptionUpdateParams, CreatePortalInput } from './types/api-inputs'
+export type { CheckoutResponse, PortalResponse } from './types/responses'
+export type { 
+	PlanType, 
+	BillingPeriod,
+	StripeSubscription,
+	StripeSubscriptionData,
+	StripeBillingInterval,
+	BillingInterval,
+	Subscription
+} from './types/stripe'
+
+// Auth Types
+export type { 
+	User, 
+	AuthUser, 
+	AuthError, 
+	AuthErrorCode,
+	LoginCredentials, 
+	SignupCredentials, 
+	AuthSession,
 	ValidatedUser,
+	JwtPayload,
+	UserRole,
 	SupabaseJwtPayload
 } from './types/auth'
 
-// Global type declarations (augmentations) - USER_ROLE and DOCUMENT_TYPE are exported via barrel exports
-
-// Global type declarations (augmentations)
-import './types/global'
-
-// ========================
-// Database Types
-// ========================
-export type {
-	Tables,
-	User as DatabaseUser,
-	Property as DatabaseProperty,
-	Tenant as DatabaseTenant,
-	Lease as DatabaseLease,
-	Unit as DatabaseUnit,
-	Subscription as DatabaseSubscription,
-	MaintenanceRequest as DatabaseMaintenanceRequest,
-	Document as DatabaseDocument,
-	UserInsert,
-	PropertyInsert,
-	TenantInsert,
-	LeaseInsert,
-	UnitInsert,
-	SubscriptionInsert,
-	MaintenanceRequestInsert,
-	DocumentInsert,
-	UserUpdate,
-	PropertyUpdate,
-	TenantUpdate,
-	LeaseUpdate,
-	UnitUpdate,
-	SubscriptionUpdate,
-	MaintenanceRequestUpdate,
-	DocumentUpdate,
-	BaseRepository,
-	Nullable,
-	DatabaseRow,
-	DatabaseInsert,
-	DatabaseUpdate
-} from './types/database'
-
-// ========================
-// Configuration Types
-// ========================
-export type {
-	AppConfig,
-	DatabaseConfig as DbConfig,
-	SupabaseConfig,
-	// StripeConfig, // Already exported from billing types
-	RedisConfig,
-	EmailConfig,
-	StorageConfig,
-	FullConfig
-} from './types/config'
-
-// ========================
-// Common Shared Types
-// ========================
-export type {
-	ApiResponse,
-	ControllerApiResponse,
-	PaginatedResponse,
-	QueryOptions,
-	LeaseQueryOptions,
-	PropertyQueryOptions,
-	TenantQueryOptions,
-	BackendFileUploadResult,
-	PDFGenerationResult,
-	DocumentMetadata,
-	AppError,
-	ValidationError,
-	BaseEvent,
-	SubscriptionEvent,
-	PaymentEvent,
-	AsyncFunction,
-	DecoratorMetadata,
-	DeepPartial,
-	RequireAtLeastOne,
-	WithId,
-	WithTimestamps,
-	WithSoftDelete,
-	WithOwner,
-	BaseEntity,
-	OwnedEntity,
-	SoftDeleteEntity
-} from './types/common'
-
-export type {
-	Property,
-	Unit,
-	PropertyStats,
-	PropertyEntitlements
-} from './types/properties'
-
-// Property utilities
-export {
-	getPropertyTypeLabel,
-	getUnitStatusLabel,
-	getUnitStatusColor
-} from './utils/properties'
-
-export type { Tenant, TenantStats, CurrentLeaseInfo } from './types/tenants'
-
-export type {
-	Lease,
-	LeaseStatus,
-	LeaseTemplateData,
-	StateLeaseRequirements
-} from './types/leases'
-
-export type {
-	MaintenanceRequest,
-	Priority as MaintenancePriority,
-	RequestStatus as MaintenanceStatus,
-	RequestStatus
-} from './types/maintenance'
-
-export type {
-	Document as DocumentEntity,
-	DocumentType as DocumentTypeEnum,
-	File,
-	FileUploadProgress,
-	FileUploadOptions,
-	FileUploadResult
-} from './types/files'
-
-export type {
-	ReminderLog,
-	ReminderType as ReminderTypeInterface,
-	ReminderStatus as ReminderStatusInterface
-} from './types/reminders'
-
-export {
-	getReminderTypeLabel,
-	getReminderStatusLabel,
-	getReminderStatusColor
-} from './types/reminders'
-
-export type {
-	Invoice as BillingInvoice,
-	Subscription,
-	Plan,
-	SubscriptionCreateResponse
-} from './types/billing'
-
-// Re-export SubStatus as SubscriptionStatus for backwards compatibility
-// export type { SubStatus as SubscriptionStatus } from './types/billing' // Already exported from auth
-
-// Export subscription sync types (these would be defined in backend types if they exist)
-export interface SubscriptionSyncResult {
-	success: boolean
-	subscription?: Subscription
-	changes?: string[]
-	error?: string
-}
-
-export interface SubscriptionState {
-	subscription: Subscription | null
-	stripeSubscription: Subscription | null
-	isSync: boolean
-	lastSyncAt?: Date
-	discrepancies?: string[]
-}
-
-// ========================
-// Extended Types with Relations
-// ========================
-export type {
-	PropertyWithDetails,
-	PropertyWithUnits,
-	PropertyWithUnitsAndLeases,
-	UnitWithDetails,
-	TenantWithDetails,
-	TenantWithLeases,
-	LeaseWithDetails,
-	LeaseWithRelations,
-	MaintenanceWithDetails,
-	MaintenanceRequestWithRelations,
-	NotificationWithDetails,
-	NotificationWithRelations,
-	UnitWithProperty,
-	UserWithProperties
-} from './types/relations'
-
-// ========================
-// Query Types
-// ========================
-export type {
-	PropertyQuery,
-	TenantQuery,
-	UnitQuery,
-	LeaseQuery,
-	MaintenanceQuery,
-	NotificationQuery
-} from './types/queries'
-
-// ========================
-// API Input Types
-// ========================
-// Property Input Types from properties module
-export type {
-	CreatePropertyInput,
-	UpdatePropertyInput
-} from './types/properties'
-
-export type {
-	CreateUnitInput,
-	UpdateUnitInput,
-	CreateTenantInput,
-	UpdateTenantInput,
-	CreateLeaseInput,
-	UpdateLeaseInput,
-	CreateMaintenanceInput,
-	UpdateMaintenanceInput,
-	RegisterInput,
-	LoginInput,
-	RefreshTokenInput,
-	ForgotPasswordInput,
-	ResetPasswordInput,
-	ChangePasswordInput,
-	AuthCallbackInput,
-	EnsureUserExistsInput,
-	UpdateUserProfileInput,
-	CheckoutParams,
-	TrialParams,
-	DirectSubscriptionParams,
-	SubscriptionUpdateParams,
-	SubscriptionUpdateParams as UpdateSubscriptionParams, // Backward compatibility alias
-	PropertyQueryInput,
-	UsePropertyFormDataProps,
-	CreateCheckoutInput,
-	CreatePortalInput
-} from './types/api-inputs'
-
-// ========================
-// API Response Types
-// ========================
-export type {
-	CheckoutResponse,
-	PortalResponse,
-	TrialResponse,
-	ApiSubscriptionCreateResponse,
-	PropertyCreateResponse,
-	PropertyListResponse,
-	PropertyStatsResponse,
-	UnitCreateResponse,
-	UnitListResponse,
-	TenantCreateResponse,
-	TenantListResponse,
-	TenantStatsResponse,
-	LeaseCreateResponse,
-	LeaseListResponse,
-	MaintenanceCreateResponse,
-	MaintenanceListResponse,
-	UsageMetricsResponse,
-	ActivityFeedResponse,
-	ApiSuccessResponse,
-	ApiErrorResponse,
-	ApiPaginatedResponse
-} from './types/responses'
-
-// Dashboard API types
-export type { DashboardStats } from './types/api'
-
-// ========================
-// Official Stripe Types
-// ========================
-export type {
-	// Core Stripe types from official SDK
-	StripeCustomer,
-	StripeSubscription,
-	StripePrice,
-	StripeProduct,
-	StripePaymentIntent,
-	StripePaymentMethod,
-	StripeInvoice,
-	StripeCheckoutSession,
-	StripeBillingPortalSession,
-	StripeWebhookEvent,
-	StripeError,
-	
-	// Status types
-	StripeSubscriptionStatus,
-	StripePaymentIntentStatus,
-	StripeInvoiceStatus,
-	
-	// API parameter types
-	StripeCustomerCreateParams,
-	StripeCustomerUpdateParams,
-	StripeSubscriptionCreateParams,
-	StripeSubscriptionUpdateParams,
-	StripeCheckoutSessionCreateParams,
-	StripeBillingPortalSessionCreateParams,
-	StripePaymentIntentCreateParams,
-	StripeInvoiceCreateParams,
-	
-	// List parameter types
-	StripeCustomerListParams,
-	StripeSubscriptionListParams,
-	StripeInvoiceListParams,
-	StripeEventListParams,
-	
-	// Response types
-	StripeCustomerList,
-	StripeSubscriptionList,
-	StripeInvoiceList,
-	StripeEventList,
-	StripeApiList,
-	
-	// Configuration
-	StripeConfig,
-	StripeBillingInterval,
-	BillingPeriod,
-	PlanType,
-	
-	// Application-specific types
-	TenantFlowSubscriptionMetadata,
-	TenantFlowCustomerMetadata,
-	TenantFlowCustomer,
-	TenantFlowSubscription,
-	StripeApiResponse,
-	StripeOperationResult
-} from './types/stripe-official'
-
-export {
-	// Constants and utilities
-	STRIPE_SUBSCRIPTION_STATUSES,
-	STRIPE_PAYMENT_INTENT_STATUSES,
-	STRIPE_INVOICE_STATUSES,
-	WEBHOOK_EVENTS,
-	isStripeError,
-	isActiveSubscription,
-	isPaidInvoice
-} from './types/stripe-official'
-
-// Legacy billing types (non-Stripe specific)
-export type {
-	PlanConfig,
-	PaymentMethod,
-	Invoice
-} from './types/billing'
-
-// User subscription from stripe types
-export type { UserSubscription } from './types/stripe'
-
-// ========================
-// New Stripe Pricing Types
-// ========================
-export type {
-	CreateCheckoutSessionRequest,
-	CreateCheckoutSessionResponse,
-	CreatePortalSessionRequest,
-	CreatePortalSessionResponse,
-	PricingComponentProps,
-	PricingCardProps
-} from './types/stripe-pricing'
-
-export {
-	calculateYearlySavings,
-	getStripeErrorMessage,
-	validatePricingPlan
-} from './types/stripe-pricing'
-
-// Legacy Stripe constants (deprecated - use official types above)
-export {
-	PLAN_TYPES,
-	BILLING_PERIODS,
-	SUBSCRIPTION_STATUSES
-} from './types/stripe'
-
-// ========================
-// Stripe Error Handler Types
-// ========================
-export type {
-	ExecuteContext,
-	RetryConfig,
-	ExecuteParams,
-	AsyncWrapParams
-} from './types/stripe-error-handler'
-
-// ========================
-// Legacy Stripe Type Guards (deprecated - use official types above)
-// ========================
-export {
-	isPlanType,
-	isBillingPeriod,
-	isSubscriptionStatus
-} from './types/stripe-guards'
-
-// ========================
-// Legacy Stripe Utilities (deprecated - use official types above)
-// ========================
-export {
-	formatPrice as formatStripePrice,
-	calculateAnnualSavings as calculateStripeAnnualSavings,
-	getPlanDisplayName
-} from './types/stripe-utils'
-
-// ========================
-// Billing Types (excluding duplicates from Stripe types)
-// ========================
-export type {
-	UserPlan,
-	SubscriptionData,
-	DetailedUsageMetrics,
-	LimitChecks,
-	UsageData,
-	LocalSubscriptionData,
-	EnhancedUserPlan,
-	// New types for 4-tier system
-	SubscriptionChangePreview,
-	UsageMetrics as BillingUsageMetrics
-} from './types/billing'
-
-export { STRIPE_ERRORS, getPlanTypeLabel } from './types/billing'
-
-// ========================
-// Pricing Configuration
-// ========================
-export {
-	PRICING_PLANS,
-	ENHANCED_PRODUCT_TIERS,
-	getPricingPlan,
-	getAllPricingPlans,
-	checkPlanLimits,
-	getRecommendedUpgrade,
-	calculateAnnualSavings,
-	getProductTier,
-	getStripePriceId,
-	planTypeToId,
-	getTrialConfig,
-	hasTrial
-} from './config/pricing'
-
-// Backward compatibility aliases
-export { ENHANCED_PRODUCT_TIERS as PRODUCT_TIERS } from './config/pricing'
-
-export type {
-	StripePriceId,
-	PlanId,
-	PricingConfig,
-	PricingConfig as ProductTierConfig, // Backward compatibility alias
-	UsageMetrics,
-	TrialConfig
-} from './config/pricing'
-
-// ========================
-// Invoice Types
-// ========================
-export type { CustomerInvoice, CustomerInvoiceItem } from './types/invoices'
-
-export type { CustomerInvoiceForm, InvoiceItemForm } from './types/invoice-lead'
-
-// ========================
-// Analytics Types
-// ========================
-export type { AnalyticsEventData } from './types/analytics'
-
-// ========================
-// Blog Types
-// ========================
-export type {
-	BlogArticle,
-	BlogArticleWithDetails,
-	BlogArticleListItem,
-	BlogArticleInput,
-	BlogTag,
-	BlogTagInput,
-	BlogFilters,
-	BlogPagination,
-	BlogAnalytics,
-	BlogSEOData,
-	BlogCategory,
-	BlogStatus
-} from './types/blog'
-
-// ========================
-// Lease Generator Types
-// ========================
-export type {
-	LeaseFormData,
-	LeaseGeneratorForm,
-	LeaseOutputFormat,
-	LeaseGenerationResult,
-	LeaseGeneratorUsage
-} from './types/lease-generator'
-
-export { leaseFormSchema } from './types/lease-generator'
-
-// ========================
-// Notification Types
-// ========================
-export type {
-	NotificationData,
-	NotificationType,
-	NotificationPriority,
-	UseWebSocketOptions
-} from './types/notifications'
-
-// ========================
-// Auth Types
-// ========================
-export type { AuthResponse } from './types/auth' // SupabaseJwtPayload already exported above
-
-// ========================
-// WebSocket Types
-// ========================
-export type { WebSocketMessage } from './types/websocket'
-
-// ========================
-// Constants
-// ========================
-export * from './constants'
-
-// ========================
-// Security Types
-// ========================
-export {
-	SecurityEventType,
-	SecurityEventSeverity as SecuritySeverity,
-	SecurityEventSeverity
-} from './types/security'
-
-export type {
-	SecurityEvent,
-	SecurityAuditLog,
-	SecurityMetrics,
-	ComplianceStatus
-} from './types/security'
-
-// ========================
-// Row Level Security (RLS) Types
-// ========================
-export type {
-	RLSPolicy,
-	RLSTableStatus,
-	RLSPolicyInfo,
-	RLSAuditReport,
-	RLSTestResult,
-	RLSTestSuite,
-	RLSTableConfig,
-	TenantIsolationTest
-} from './types/rls'
-
-// ========================
-// Session Types
-// ========================
-export type { SessionData, TokenPair } from './types/session'
-
-// ========================
-// Email Types
-// ========================
-export type { EmailOptions, SendEmailResponse } from './types/email'
-
-// ========================
-// Logger Types
-export type {
-	LogEntry,
-	LoggerConfig,
-	ILogger,
-	LogContext,
-	AnalyticsEvent
-} from './types/logger'
-
-// Logger Constants
-export { LogLevel } from './types/logger'
-
-// ========================
-// Error Types
-// ========================
-export type {
-	// AppError, // Already exported from common.ts
-	AuthError,
-	ValidationError as ValidationErrorType, // Export as type with different name
-	NetworkError,
-	ServerError,
-	BusinessError,
-	FileUploadError,
-	PaymentError,
-	ErrorResponse,
-	SuccessResponse,
-	// ApiResponse as SharedApiResponse, // Already exported from common.ts
-	// ControllerApiResponse, // Already exported from common.ts
-	ErrorContext
-} from './types/errors'
-
-export type { StandardError, ErrorType, ErrorSeverity } from './utils'
-
-// ========================
-// Utilities
-// ========================
-export {
-	calculateProratedAmount,
-	calculateAnnualPrice,
-	SUBSCRIPTION_URLS
-} from './utils'
-
-export {
-	formatCurrency,
-	formatPrice,
-	formatCompactCurrency,
-	formatPercentage,
-	formatNumber,
-	formatCurrencyChange,
-	formatPercentageChange,
-	getDashboardCurrency,
-	getDashboardPercentage,
-	getCollectionRateStatus,
-	getIntervalSuffix
-} from './utils'
-
-export type {
-	BillingInterval as CurrencyBillingInterval,
-	CurrencyCode,
-	CurrencyFormatOptions,
-	PriceFormatOptions
-} from './utils'
-
-export {
-	createStandardError,
-	createValidationError,
-	createNetworkError,
-	createBusinessLogicError,
-	classifyError,
-	isRetryableError,
-	getErrorLogLevel,
-	ERROR_TYPES
-} from './utils'
-
-// Type adapter utilities (using utils barrel export for CI compatibility)
-export {
-	createQueryAdapter,
-	createMutationAdapter,
-	createResponseAdapter,
-	validateApiParams,
-	validateEnumValue,
-	safeParseNumber,
-	safeParseDate,
-	mergeApiParams,
-	createApiCall,
-	isValidQueryParam,
-	isValidMutationData,
-	TypeAdapterError,
-	handleAdapterError
-} from './utils'
-
-// ========================
-// Database Types (Supabase Generated)
-// ========================
-export type { Database } from './types/supabase-generated'
-
-// ========================
-// Note: Other Database Types
-// ========================
-// Other database types are now imported directly from @repo/database
-// in each package that needs them. This avoids circular dependencies
-// during build and follows proper dependency patterns.
-//
-// Import database types like this:
-// import { User, Property, SupabaseClient } from '@repo/database'
-
-// ========================
-// React 19 Action State Types
-// ========================
-export interface ActionState<TData = unknown> {
-	success?: boolean
-	loading?: boolean
-	error?: string
-	message?: string
-	data?: TData
-}
-
-export type FormActionState<TData = unknown> = ActionState<TData> & {
-	fieldErrors?: Record<string, string[]>
-}
-
-export interface OptimisticState<TData = unknown> {
-	isSubmitting: boolean
-	data?: TData
-	message?: string
-}
-
-export interface AsyncFormHandler<TArgs extends unknown[] = unknown[]> {
-	handler: (...args: TArgs) => void
-	isPending: boolean
-}
-
-export interface AsyncClickHandler<TArgs extends unknown[] = unknown[]> {
-	handler: (...args: TArgs) => void
-	isPending: boolean
-}
-
-// Form action function type for React 19 useActionState
-export type FormAction<TData = unknown> = (
-	prevState: ActionState<TData>,
-	formData: FormData
-) => Promise<ActionState<TData>>
-
-// Server action response type
-export interface ServerActionResponse<TData = unknown> {
-	success: boolean
-	data?: TData
-	error?: string
-	message?: string
-	redirect?: string
-}
-
-// ========================
-// Common Frontend Utility Types
-// ========================
-export type WithOptional<T, K extends keyof T> = Omit<T, K> &
-	Partial<Pick<T, K>>
-
-export type WithRequired<T, K extends keyof T> = T & Required<Pick<T, K>>
-
-export type PartialExcept<T, K extends keyof T> = Partial<T> & Pick<T, K>
-
-export type SharedDeepPartial<T> = {
-	[P in keyof T]?: T[P] extends object ? SharedDeepPartial<T[P]> : T[P]
-}
-
-export type LoadingState = 'idle' | 'loading' | 'success' | 'error'
-
-export interface AsyncOperationState<TData = unknown, TError = Error> {
-	data?: TData
-	error?: TError
-	isLoading: boolean
-	isSuccess: boolean
-	isError: boolean
-}
-
-// ========================
-// Enhanced Pagination Types
-// ========================
-export interface PaginationMeta {
-	totalCount: number
-	totalPages: number
-	currentPage: number
-	pageSize: number
-	hasNextPage: boolean
-	hasPreviousPage: boolean
-	startCursor?: string
-	endCursor?: string
-}
-
-export interface SimplePaginatedResponse<T> {
-	data: T[]
-	meta: PaginationMeta
-}
-
-export interface CursorPaginationParams {
-	first?: number
-	after?: string
-	last?: number
-	before?: string
-}
-
-export interface OffsetPaginationParams {
-	page?: number
-	limit?: number
-	offset?: number
-}
-
-// ========================
-// Domain Event Types
-// ========================
-export interface DomainEvent<TPayload = unknown> {
-	id: string
-	type: string
-	payload: TPayload
-	timestamp: Date
-	aggregateId: string
-	aggregateType: string
-	version: number
-	metadata?: Record<string, unknown>
-}
-
-export type EventHandler<TEvent extends DomainEvent = DomainEvent> = (
-	event: TEvent
-) => Promise<void> | void
-
-// ========================
-// API Client Types
-// ========================
-export interface ApiClientConfig {
-	baseURL: string
-	timeout?: number
-	headers?: Record<string, string>
-	retryAttempts?: number
-	retryDelay?: number
-}
-
-export interface ApiRequestConfig {
-	url: string
-	method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
-	data?: unknown
-	params?: Record<string, unknown>
-	headers?: Record<string, string>
-	timeout?: number
-}
-
-export interface HttpApiResponse<T = unknown> {
-	data: T
-	status: number
-	statusText: string
-	headers: Record<string, string>
-}
-
-// ========================
-// Domain-Driven Design Types
-// ========================
-export type {
-	// Base patterns
-	ValueObject,
-	Entity,
-	AggregateRoot,
-	DomainEvent as SharedDomainEvent,
-	Repository,
-	QueryRepository,
-	Specification,
-	Command,
-	Query,
-	CommandHandler,
-	QueryHandler,
-	BusinessRule,
-	DomainService,
-	Factory,
-	UnitOfWork,
-
-	// Result pattern
-	Result,
-	Result as DomainResult,
-	Success,
-	Failure,
-
-	// Branded ID types
-	Brand,
-	UserId,
-	PropertyId,
-	UnitId,
-	TenantId,
-	LeaseId,
-	MaintenanceRequestId,
-	OrganizationId,
-	DocumentId,
-	FileId,
-	ActivityId,
-	NotificationId,
-	ReminderLogId,
-	BlogArticleId,
-	CustomerInvoiceId
-} from './types/domain'
-
-export {
-	// Classes and utilities
-	BaseValueObject,
-	// BaseEntity, // Already exported as type from common.ts
-	BaseSpecification,
-	Result as DomainResultClass,
-	Money,
-	Email,
-	PhoneNumber,
-	Address,
-	createId,
-
-	// Domain exceptions
-	DomainError,
-	ValidationError as ValidationErrorClass, // Export class with different name to avoid conflict with type
-	NotFoundError,
-	ConflictError,
-	UnauthorizedError,
-	ForbiddenError,
-	BusinessRuleValidationError
-} from './types/domain'
-
-// ========================
 // Utility Types
-// ========================
-export type {
-	// Type manipulation
-	PartialBy,
-	RequiredBy,
-	NonNullable,
-	DeepReadonly,
-	DeepPartial as UtilityDeepPartial,
-	KeysOfType,
-	PickByType,
-	OmitByType,
-	ValueOf,
-	ArrayElement,
-	FunctionWithParams,
-	PromiseReturnType,
-	NonFunctionKeys,
-	NonFunctionProps,
-
-	// Conditional types
-	IsArray,
-	IsFunction,
-	IsPromise,
-	IsEqual,
-	IsNever,
-
-	// String manipulation
-	CamelCase,
-	SnakeCase,
-	KebabCase,
-	CamelCaseKeys,
-	SnakeCaseKeys,
-
-	// Object manipulation
-	Merge,
-	OptionalExcept,
-	Diff,
-	Intersection,
-	Flatten,
-	// Nullable, // Already exported from database types
-	OptionalNullable,
-
-	// API types
-	ApiResponse as UtilityApiResponse,
-	PaginatedApiResponse,
-
-	// Form and validation
-	FieldError,
-	FormErrors,
-	ValidationResult,
-	FormSubmissionState,
-
-	// Event handlers (backend-compatible only)
-	EventHandler as UtilityEventHandler,
-	AsyncEventHandler,
-
-	// Component props (backend-compatible only)
-	BaseProps,
-	DisablableProps,
-	LoadableProps,
-	SizedProps,
-	VariantProps,
-
-	// Store and state
-	BaseState,
-	DataState,
-	ListState,
-	StoreActions,
-
-	// Configuration
-	Environment,
-	ApiConfig,
-	// DatabaseConfig, // Already commented out from config types
-
-	// Time and date
+export type { 
+	WithRequired, 
+	WithOptional, 
+	LoadingState, 
+	PaginationMeta, 
+	OffsetPaginationParams,
 	DateRange,
 	TimePeriod,
-
-	// File and upload (backend-compatible only)
-	FileMetadata,
-	UploadProgress,
-	UploadStatus,
-
-	// Search and filter
-	SortDirection,
-	SortConfig,
-	FilterValue,
-	FilterOperator,
-	FilterCondition,
-	SearchConfig
+	FieldError,
+	FormErrors
 } from './types/utilities'
 
-// ========================
-// Frontend-Only Types (React/DOM dependent)
-// ========================
-export type {
-	// Event handlers (frontend-only)
-	ChangeHandler,
-	ClickHandler,
-	SubmitHandler,
+// Error Response Types
+export type { 
+	ErrorResponse, 
+	SuccessResponse,
+	LoaderError
+} from './types/errors'
 
-	// Component props (frontend-only)
-	WithChildren,
-	AsProps,
+export type { 
+	ApiErrorResponse
+} from './types/responses'
 
-	// File upload (frontend-only)
-	FileUploadState
-} from './types/frontend-only'
+export type { 
+	ControllerApiResponse 
+} from './types/errors'
 
-// ========================
-// Router Context Types
-// ========================
-export type {
-	RouterContext,
-	EnhancedRouterContext,
-	UserContext,
-	LoaderError,
-	EnhancedError,
-	LoaderParams,
-	LoaderFunction
-} from './types/router-context'
+// Invoice Types  
+export type { CustomerInvoiceForm, InvoiceItemForm } from './types/invoice-lead'
 
-// ========================
-// Utilities
-// ========================
-export * from './utils'
+// Lease Generator Types
+export type { 
+	LeaseGeneratorForm,
+	LeaseOutputFormat,
+	LeaseFormData,
+	LeaseTemplateData,
+	StateLeaseRequirements
+} from './types/lease-generator'
+export { leaseFormSchema } from './types/lease-generator'
 
-// ========================
-// Validation
-// ========================
-// Export validation schemas only (no conflicting types)
-export {
-	// Common validation schemas
-	uuidSchema,
-	emailSchema,
-	nonEmptyStringSchema,
-	positiveNumberSchema,
-	nonNegativeNumberSchema,
-	dateStringSchema,
-	paginationSchema,
-	paginationQuerySchema,
-	paginationResponseSchema,
-	actionStateSchema,
-	formActionStateSchema,
-	serverActionResponseSchema,
-	phoneSchema,
-	currencyAmountSchema,
-	percentageSchema,
-	urlSchema,
-	fileTypeSchema,
-	fileSizeSchema,
-	uploadedFileSchema,
-	addressSchema,
-	coordinatesSchema,
-	sortSchema,
-	advancedSearchSchema,
-	timeRangeSchema,
-	baseQuerySchema,
-	bulkOperationSchema,
-	bulkResponseSchema,
-	webhookEventSchema,
-	webhookDeliverySchema,
-	successResponseSchema,
-	errorResponseSchema,
-	createPaginatedResponseSchema,
-	createApiResponseSchema,
-	createListResponseSchema,
+// Backend Types
+export type { PerformanceMetrics, RequestContext } from './types/backend'
 
-	// Tenant validation schemas
-	tenantStatusSchema,
-	emergencyContactSchema,
-	tenantInputSchema,
-	tenantSchema,
-	tenantUpdateSchema,
-	tenantQuerySchema,
-	tenantStatsSchema,
-	tenantFormSchema,
+// Export specific constants needed
+export { PLANS, PLAN_TYPE } from './constants/billing'
+export { PROPERTY_TYPE, UNIT_STATUS } from './constants/properties'
+export { PRIORITY, REQUEST_STATUS, MAINTENANCE_CATEGORY } from './constants/maintenance'
+export type { MaintenanceCategory, Priority, RequestStatus } from './constants/maintenance'
 
-	// Unit validation schemas
-	unitStatusSchema,
-	unitInputSchema,
-	unitSchema,
-	unitUpdateSchema,
-	unitQuerySchema,
-	unitFormSchema
-} from './validation'
+// Export utility functions
+export { getPropertyTypeLabel } from './utils/properties'
+export { formatCurrency } from './utils/currency'
 
-// Export validation types (only non-conflicting form types)
-export type {
-	// Form-specific types that don't conflict with database types
-	TenantFormData,
-	TenantFormOutput,
-	UnitFormData,
-	UnitFormOutput,
-	PropertyFormData,
-	EmergencyContact
+// ============================================================================
+// Logger Types
+// ============================================================================
 
-	// Note: Other validation types like Tenant, Unit, TenantUpdate, etc.
-	// are already exported from database/types sections above
-	// Note: TenantStatus, UnitStatus, PropertyType are exported via constants barrel export
-} from './validation'
+export type { 
+	ILogger, 
+	LogContext, 
+	LogEntry, 
+	LoggerConfig, 
+	AnalyticsEvent 
+} from './types/logger'
+export { LogLevel } from './types/logger'
+
+// ============================================================================
+// Session Types  
+// ============================================================================
+
+export type { 
+	SessionData, 
+	TokenPair, 
+	SessionValidationResult, 
+	SessionActivity 
+} from './types/session'
+
+// ============================================================================
+// Domain Types
+// ============================================================================
+
+export type { 
+	ValueObject, 
+	Entity, 
+	AggregateRoot, 
+	DomainEvent, 
+	Repository, 
+	QueryRepository, 
+	Specification, 
+	Command, 
+	Query, 
+	CommandHandler, 
+	QueryHandler, 
+	DomainService, 
+	Factory, 
+	UnitOfWork,
+	BusinessRule
+} from './types/domain'
+
+export { 
+	BaseValueObject, 
+	BaseEntity, 
+	BaseSpecification, 
+	Result, 
+	BusinessRuleValidationError, 
+	Money, 
+	Email, 
+	PhoneNumber, 
+	Address, 
+	DomainError, 
+	ValidationError, 
+	NotFoundError, 
+	ConflictError, 
+	UnauthorizedError, 
+	ForbiddenError, 
+	createId 
+} from './types/domain'
+
+export type { 
+	Brand, 
+	UserId, 
+	PropertyId, 
+	UnitId, 
+	TenantId, 
+	LeaseId, 
+	MaintenanceRequestId, 
+	OrganizationId, 
+	DocumentId, 
+	FileId, 
+	ActivityId, 
+	NotificationId, 
+	ReminderLogId, 
+	BlogArticleId, 
+	CustomerInvoiceId 
+} from './types/domain'
+
+// ============================================================================
+// Type Aliases for Frontend Compatibility
+// ============================================================================
+
+export type { CreateCheckoutInput as CreateCheckoutSessionRequest } from './types/api-inputs'
+export type { CheckoutResponse as CreateCheckoutSessionResponse } from './types/responses'
+export type { SubStatus as SubscriptionStatus } from './types/billing'

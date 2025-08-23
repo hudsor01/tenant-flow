@@ -246,24 +246,24 @@ export default function FeaturesPage() {
 						Join thousands of property managers using TenantFlow
 					</p>
 					<div className="flex flex-col justify-center gap-4 sm:flex-row">
-						<Button
-							asChild
-							size="lg"
-							className="text-primary bg-white hover:bg-gray-100"
-						>
-							<Link href="/auth/signup">
+						<Link href="/auth/signup">
+							<Button
+								size="lg"
+								className="text-primary bg-white hover:bg-gray-100 inline-flex items-center"
+							>
 								Start Free Trial
 								<ArrowRight className="ml-2 h-5 w-5" />
-							</Link>
-						</Button>
-						<Button
-							asChild
-							size="lg"
-							variant="outline"
-							className="border-white text-white hover:bg-white/10"
-						>
-							<Link href="/pricing">View Pricing</Link>
-						</Button>
+							</Button>
+						</Link>
+						<Link href="/pricing">
+							<Button
+								size="lg"
+								variant="outline"
+								className="border-white text-white hover:bg-white/10"
+							>
+								View Pricing
+							</Button>
+						</Link>
 					</div>
 				</div>
 			</section>

@@ -22,6 +22,8 @@ export interface CreateCheckoutInput {
 	planType: string
 	billingInterval?: 'monthly' | 'yearly'
 	uiMode?: 'hosted' | 'embedded'
+	successUrl?: string
+	cancelUrl?: string
 }
 
 /**
@@ -79,6 +81,7 @@ export interface TrialParams {
 /**
  * Input for creating a new property
  * Used by property management hooks
+ * Field names must match backend DTO exactly (snake_case for backend compatibility)
  */
 export interface CreatePropertyInput {
 	name: string
@@ -89,7 +92,13 @@ export interface CreatePropertyInput {
 	description?: string
 	propertyType?: PropertyType
 	imageUrl?: string
-	units?: number
+	unit_number?: string // Backend expects snake_case
+	total_units: number // Required field matching backend
+	units?: number // For unit creation count
+	bedrooms: number // Required field matching backend
+	bathrooms: number // Required field matching backend
+	square_footage?: number // Backend expects snake_case
+	has_pool?: boolean // Backend expects snake_case
 	stripeCustomerId?: string
 	[key: string]: unknown
 }
@@ -97,6 +106,7 @@ export interface CreatePropertyInput {
 /**
  * Input for updating an existing property
  * Used by property management hooks
+ * Field names must match backend DTO exactly (snake_case for backend compatibility)
  */
 export interface UpdatePropertyInput {
 	name?: string
@@ -107,7 +117,13 @@ export interface UpdatePropertyInput {
 	description?: string
 	propertyType?: PropertyType
 	imageUrl?: string
-	units?: number
+	unit_number?: string // Backend expects snake_case
+	total_units?: number // Backend expects snake_case
+	units?: number // For unit creation count
+	bedrooms?: number
+	bathrooms?: number
+	square_footage?: number // Backend expects snake_case
+	has_pool?: boolean // Backend expects snake_case
 	stripeCustomerId?: string
 	[key: string]: unknown
 }
@@ -437,8 +453,10 @@ export interface EnsureUserExistsInput {
  */
 export interface UpdateUserProfileInput {
 	name?: string
+	email?: string
 	phone?: string
 	bio?: string
+	company?: string
 	avatarUrl?: string
 	[key: string]: unknown
 }

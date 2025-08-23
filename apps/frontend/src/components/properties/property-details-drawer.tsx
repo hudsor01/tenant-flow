@@ -169,9 +169,9 @@ export function PropertyDetailsDrawer({
 }
 
 function PropertyOverview({ property }: { property: Property }) {
-	const totalUnits = property.units?.length || 0
+	const totalUnits = property.units?.length ?? 0
 	const occupiedUnits =
-		property.units?.filter(unit => unit.status === 'OCCUPIED').length || 0
+		property.units?.filter(unit => unit.status === 'OCCUPIED').length ?? 0
 	const vacantUnits = totalUnits - occupiedUnits
 	const occupancyRate =
 		totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
@@ -329,7 +329,7 @@ function PropertyOverview({ property }: { property: Property }) {
 }
 
 function PropertyUnits({ property }: { property: Property }) {
-	const units = property.units || []
+	const units = property.units ?? []
 
 	if (units.length === 0) {
 		return (
@@ -397,14 +397,14 @@ function PropertyFinancials({ property }: { property: Property }) {
 	const totalMonthlyRent =
 		property.units?.reduce(
 			(sum, unit) =>
-				unit.status === 'OCCUPIED' ? sum + (unit.rentAmount || 0) : sum,
+				unit.status === 'OCCUPIED' ? sum + (unit.rentAmount ?? 0) : sum,
 			0
-		) || 0
+		) ?? 0
 	const potentialMonthlyRent =
 		property.units?.reduce(
-			(sum, unit) => sum + (unit.rentAmount || 0),
+			(sum, unit) => sum + (unit.rentAmount ?? 0),
 			0
-		) || 0
+		) ?? 0
 
 	return (
 		<>

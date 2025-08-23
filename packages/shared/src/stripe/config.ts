@@ -4,7 +4,7 @@
  * Uses existing shared types for consistency
  */
 
-import type { BillingPeriod, PlanType } from '../types/stripe-official'
+import type { BillingPeriod, PlanType } from '../types/stripe'
 
 export interface PlanPrice {
   readonly priceId: string

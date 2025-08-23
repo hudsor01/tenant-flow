@@ -49,7 +49,59 @@ export interface AuthUser extends User {
 	}
 }
 
-// Authentication related types
+// Secure subscription data type
+export interface SecureSubscriptionData {
+	status: SubscriptionStatus
+	plan: string
+	expiresAt?: Date
+	stripeSubscriptionId?: string
+	trialEndsAt?: Date
+	cancelAtPeriodEnd?: boolean
+}
+
+// Enhanced user metadata with validation
+export interface SecureUserMetadata {
+	name?: string
+	full_name?: string
+	avatar_url?: string
+	company_name?: string
+	company_type?: 'LANDLORD' | 'PROPERTY_MANAGER' | 'TENANT' | 'VENDOR'
+	company_size?: '1-10' | '11-50' | '51-200' | '201+'
+	onboarding_completed?: boolean
+	terms_accepted_at?: string
+	privacy_policy_accepted_at?: string
+}
+
+// Authentication error types
+export type AuthErrorCode = 
+	| 'INVALID_CREDENTIALS'
+	| 'USER_NOT_FOUND'
+	| 'EMAIL_NOT_VERIFIED'
+	| 'ACCOUNT_LOCKED'
+	| 'PASSWORD_TOO_WEAK'
+	| 'EMAIL_ALREADY_EXISTS'
+	| 'INVALID_TOKEN'
+	| 'TOKEN_EXPIRED'
+	| 'RATE_LIMITED'
+	| 'NETWORK_ERROR'
+	| 'VALIDATION_ERROR'
+	| 'UNKNOWN_ERROR'
+
+export interface AuthError {
+	code: AuthErrorCode
+	message: string
+	field?: string
+	details?: Record<string, string | number | boolean>
+}
+
+// Authentication related types  
+export interface AuthSession {
+	access_token: string
+	refresh_token: string
+	expires_at: number
+	user: User
+}
+
 export interface AuthResponse {
 	user: {
 		id: string
@@ -58,20 +110,30 @@ export interface AuthResponse {
 		role: UserRole
 	}
 	message: string
+	session?: AuthSession
+}
+
+// Frontend-specific credential types
+export interface LoginCredentials {
+	email: string
+	password: string
+}
+
+export interface SignupCredentials {
+	email: string
+	password: string
+	name: string
 }
 
 export interface SupabaseJwtPayload {
 	sub: string // Supabase user ID
 	email: string
 	email_confirmed_at?: string
-	user_metadata?: {
-		name?: string
-		full_name?: string
-		avatar_url?: string
-	}
+	user_metadata?: SecureUserMetadata
 	app_metadata?: {
 		provider?: string
 		providers?: string[]
+		role?: UserRole
 	}
 	iat: number
 	exp: number
@@ -88,7 +150,7 @@ export interface JwtPayload {
 	exp?: number
 }
 
-// Validated user (after authentication)
+// Validated user (after authentication) - type-safe with security context
 export interface ValidatedUser {
 	id: string
 	email: string
@@ -96,5 +158,18 @@ export interface ValidatedUser {
 	role?: UserRole
 	organizationId?: string
 	stripeCustomerId?: string
-	subscription?: Record<string, unknown>
+	subscription?: SecureSubscriptionData
+	metadata?: SecureUserMetadata
+	emailVerified?: boolean
+	lastLoginAt?: Date
+	createdAt?: Date
+	updatedAt?: Date
+	securityFlags?: {
+		requiresMFA?: boolean
+		isLocked?: boolean
+		suspiciousActivity?: boolean
+		passwordExpiresAt?: Date
+		lastPasswordChange?: Date
+		failedLoginAttempts?: number
+	}
 }

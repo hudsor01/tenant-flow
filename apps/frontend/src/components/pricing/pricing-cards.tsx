@@ -11,16 +11,21 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { getAllPlans, formatPrice, getAnnualSavings } from '@repo/shared/stripe/config'
-import { useCheckoutNew } from '@/hooks/useCheckoutNew'
+import { useCreateCheckoutSession } from '@/hooks/api/use-billing'
 import type { PlanType, BillingPeriod } from '@repo/shared'
 
 export function PricingCards() {
   const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('monthly')
-  const { checkout, loading } = useCheckoutNew()
+  const createCheckoutMutation = useCreateCheckoutSession()
   const plans = getAllPlans()
 
   const handleGetStarted = async (planId: PlanType) => {
-    await checkout(planId, billingPeriod)
+    createCheckoutMutation.mutate({
+      planId: planId,
+      interval: billingPeriod === 'monthly' ? 'monthly' : 'annual',
+      successUrl: `${window.location.origin}/billing/success`,
+      cancelUrl: `${window.location.origin}/pricing`
+    })
   }
 
   return (
@@ -162,14 +167,14 @@ export function PricingCards() {
                   {/* CTA Button */}
                   <Button
                     onClick={() => handleGetStarted(plan.id)}
-                    disabled={loading}
+                    disabled={createCheckoutMutation.isPending}
                     className={`w-full h-12 text-base font-semibold transition-all ${
                       isPopular || isRecommended
                         ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl'
                         : 'bg-gray-900 hover:bg-gray-800 text-white'
                     }`}
                   >
-                    {loading ? (
+                    {createCheckoutMutation.isPending ? (
                       <div className="flex items-center gap-2">
                         <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                         Processing...

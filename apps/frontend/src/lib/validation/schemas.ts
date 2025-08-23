@@ -115,18 +115,17 @@ export const commonValidations = {
 	date: z.date(),
 	optionalDate: z.date().optional(),
 
-	// File upload with security validation
+	// File upload with basic validation (removed security dependency)
 	file: z
 		.instanceof(File)
 		.optional()
-		.refine(async file => {
+		.refine(file => {
 			if (!file) return true
-			const { validateFile } = await import(
-				'../security/file-upload-security'
-			)
-			const result = await validateFile(file, 'documents')
-			return result.valid
-		}, 'File failed security validation')
+			// Basic security checks using native File API
+			const maxSize = 10 * 1024 * 1024 // 10MB
+			const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'text/plain']
+			return file.size <= maxSize && allowedTypes.includes(file.type)
+		}, 'File must be under 10MB and be a valid image, PDF, or text file')
 }
 
 // Common schema patterns for forms
@@ -168,9 +167,11 @@ export const signupSchema = createFormSchema({
 
 // Profile update schema
 export const profileUpdateSchema = createFormSchema({
-	firstName: commonValidations.name,
-	lastName: commonValidations.name,
+	name: commonValidations.name,
+	email: commonValidations.email,
 	phone: commonValidations.phone.optional(),
+	company: z.string().max(100, 'Company name must be less than 100 characters').optional(),
+	bio: z.string().max(500, 'Bio must be less than 500 characters').optional(),
 	address: commonValidations.address.optional(),
 	city: commonValidations.city.optional(),
 	state: commonValidations.state.optional(),

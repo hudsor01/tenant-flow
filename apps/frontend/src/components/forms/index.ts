@@ -7,22 +7,9 @@
  * - Single responsibility principle for maintainability
  */
 
-// Form Container & Layout (new decomposed components)
+// Form Container & Layout (minimal components)
 export { FormContainer } from './form-container'
 export { FormLoadingOverlay } from './form-loading-overlay'
-
-// Form Fields (new decomposed components)
-export { FormField, TextField, TextareaField, SelectField } from './form-fields'
-
-// Form Sections (new decomposed components)
-export {
-	FormSection,
-	GridFormSection,
-	CollapsibleFormSection
-} from './form-sections'
-
-// Form Actions (new decomposed components)
-export { FormActions, SaveActions, CrudActions } from './form-actions'
 
 // Form Components
 export { PropertyForm } from './property-form'
@@ -31,7 +18,6 @@ export { PropertyFormFeatures } from './property-form-features'
 export { PropertyFormActions } from './property-form-actions'
 export { PropertyFormClient } from './property-form-client'
 export { LeaseForm } from './lease-form'
-export { SupabaseFormField } from './supabase-form-field'
 
 // New React Query Optimized Components
 export { TenantForm } from './tenant-form'

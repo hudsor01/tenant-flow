@@ -102,7 +102,7 @@ export function InvoiceItemsSection({
 											const currentQty =
 												getValues(
 													`items.${index}.quantity`
-												) || 0
+												) ?? 0
 											if (currentQty > 1) {
 												setValue(
 													`items.${index}.quantity`,
@@ -117,7 +117,7 @@ export function InvoiceItemsSection({
 										<Minus className="h-4 w-4" />
 									</Button>
 									<div className="w-16 text-center text-sm font-medium">
-										{watchedItems[index]?.quantity || 0}
+										{watchedItems[index]?.quantity ?? 0}
 									</div>
 									<Button
 										type="button"
@@ -127,7 +127,7 @@ export function InvoiceItemsSection({
 											const currentQty =
 												getValues(
 													`items.${index}.quantity`
-												) || 0
+												) ?? 0
 											setValue(
 												`items.${index}.quantity`,
 												currentQty + 1
@@ -156,11 +156,11 @@ export function InvoiceItemsSection({
 									$
 									{formatCurrency(
 										(Number(
-											watchedItems[index]?.quantity
-										) || 0) *
+											watchedItems[index]?.quantity ?? 0
+										)) *
 											(Number(
-												watchedItems[index]?.unitPrice
-											) || 0)
+												watchedItems[index]?.unitPrice ?? 0
+											))
 									)}
 								</div>
 							</div>

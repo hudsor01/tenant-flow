@@ -65,32 +65,32 @@ class EnvConfig {
 
 		return {
 			// Application
-			appUrl: env?.NEXT_PUBLIC_APP_URL || 'https://tenantflow.app',
+			appUrl: env?.NEXT_PUBLIC_APP_URL ?? 'https://tenantflow.app',
 			apiUrl:
-				env?.NEXT_PUBLIC_API_URL || 'https://api.tenantflow.app/api/v1',
+				env?.NEXT_PUBLIC_API_URL ?? 'https://api.tenantflow.app/api/v1',
 			environment:
 				(env?.NODE_ENV as
 					| 'development'
 					| 'staging'
 					| 'production'
-					| 'test') || 'development',
+					| 'test') ?? 'development',
 
 			// Supabase
 			supabase: {
-				url: env?.NEXT_PUBLIC_SUPABASE_URL || '',
-				anonKey: env?.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+				url: env?.NEXT_PUBLIC_SUPABASE_URL ?? '',
+				anonKey: env?.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
 			},
 
 			// Stripe
 			stripe: {
-				publishableKey: env?.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''
+				publishableKey: env?.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ''
 			},
 
 			// Analytics
 			analytics: {
 				posthogKey: env?.NEXT_PUBLIC_POSTHOG_KEY,
 				posthogHost:
-					env?.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
+					env?.NEXT_PUBLIC_POSTHOG_HOST ?? 'https://us.i.posthog.com',
 				gaId: env?.NEXT_PUBLIC_GA_MEASUREMENT_ID
 			},
 
@@ -104,13 +104,13 @@ class EnvConfig {
 
 			// Performance
 			timeouts: {
-				api: parseInt(env?.NEXT_PUBLIC_API_TIMEOUT || '30000', 10),
+				api: parseInt(env?.NEXT_PUBLIC_API_TIMEOUT ?? '30000', 10),
 				checkout: parseInt(
-					env?.NEXT_PUBLIC_CHECKOUT_TIMEOUT || '8000',
+					env?.NEXT_PUBLIC_CHECKOUT_TIMEOUT ?? '8000',
 					10
 				),
 				notification: parseInt(
-					env?.NEXT_PUBLIC_NOTIFICATION_TIMEOUT || '8000',
+					env?.NEXT_PUBLIC_NOTIFICATION_TIMEOUT ?? '8000',
 					10
 				)
 			}

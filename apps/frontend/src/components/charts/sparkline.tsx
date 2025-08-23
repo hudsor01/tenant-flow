@@ -56,8 +56,8 @@ export const Sparkline: React.FC<SparklineProps> = ({
 	className = ''
 }) => {
 	// Determine trend direction
-	const firstValue = data?.[0]?.value || 0
-	const lastValue = data?.[data.length - 1]?.value || 0
+	const firstValue = data?.[0]?.value ?? 0
+	const lastValue = data?.[data.length - 1]?.value ?? 0
 	const isPositiveTrend = lastValue >= firstValue
 
 	// Default color based on trend
@@ -65,7 +65,7 @@ export const Sparkline: React.FC<SparklineProps> = ({
 		? 'hsl(var(--chart-1))' // Steel blue for positive trend
 		: 'hsl(var(--chart-2))' // Teal for neutral/negative trend
 
-	const strokeColor = color || defaultColor
+	const strokeColor = color ?? defaultColor
 
 	return (
 		<div className={`sparkline ${className}`} style={{ width, height }}>
@@ -98,8 +98,8 @@ export const Sparkline: React.FC<SparklineProps> = ({
 export const getTrendIndicator = (data: { value: number }[]) => {
 	if (data.length < 2) return { direction: 'neutral' as const, percentage: 0 }
 
-	const firstValue = data[0]?.value || 0
-	const lastValue = data[data.length - 1]?.value || 0
+	const firstValue = data[0]?.value ?? 0
+	const lastValue = data[data.length - 1]?.value ?? 0
 
 	if (firstValue === 0) {
 		return { direction: 'up' as const, percentage: 0 }

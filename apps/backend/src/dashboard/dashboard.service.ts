@@ -50,15 +50,19 @@ export class DashboardService {
 				totalUnits: rawPropertyStats.totalUnits || 0,
 				occupiedUnits: rawPropertyStats.occupiedUnits || 0,
 				vacantUnits: rawPropertyStats.vacantUnits || 0,
-				occupancyRate: rawPropertyStats.totalUnits > 0 
-					? Math.round((rawPropertyStats.occupiedUnits / rawPropertyStats.totalUnits) * 100) 
+				occupancyRate: rawPropertyStats.totalUnits > 0
+					? Math.round( ( rawPropertyStats.occupiedUnits / rawPropertyStats.totalUnits ) * 100 )
 					: 0,
 				totalMonthlyRent: rawPropertyStats.totalMonthlyRent || 0,
 				potentialRent: rawPropertyStats.totalMonthlyRent || 0, // TODO: Calculate actual potential rent
 				totalProperties: rawPropertyStats.total || 0,
 				totalRent: rawPropertyStats.totalMonthlyRent || 0,
 				collectedRent: rawPropertyStats.totalMonthlyRent || 0, // TODO: Calculate actual collected rent
-				pendingRent: 0 // TODO: Calculate pending rent
+				pendingRent: 0, // TODO: Calculate pending rent
+				total: rawPropertyStats.total || 0,
+				singleFamily: 0, // TODO: Calculate from property types
+				multiFamily: 0, // TODO: Calculate from property types
+				commercial: 0 // TODO: Calculate from property types
 			}
 
 			// Map to TenantStats interface
@@ -66,7 +70,8 @@ export class DashboardService {
 				totalTenants: rawTenantStats.total || 0,
 				activeTenants: rawTenantStats.active || 0,
 				inactiveTenants: rawTenantStats.inactive || 0,
-				pendingInvitations: 0 // TODO: Add actual pending invitations count
+				pendingInvitations: 0, // TODO: Add actual pending invitations count
+				total: rawTenantStats.total || 0
 			}
 
 			// Map to UnitStats interface
@@ -75,8 +80,14 @@ export class DashboardService {
 				availableUnits: rawPropertyStats.vacantUnits || 0,
 				occupiedUnits: rawPropertyStats.occupiedUnits || 0,
 				maintenanceUnits: 0, // TODO: Add maintenance units calculation
-				averageRent: rawPropertyStats.totalUnits > 0 
-					? rawPropertyStats.totalMonthlyRent / rawPropertyStats.totalUnits 
+				averageRent: rawPropertyStats.totalUnits > 0
+					? rawPropertyStats.totalMonthlyRent / rawPropertyStats.totalUnits
+					: 0,
+				total: rawPropertyStats.totalUnits || 0,
+				occupied: rawPropertyStats.occupiedUnits || 0,
+				vacant: rawPropertyStats.vacantUnits || 0,
+				occupancyRate: rawPropertyStats.totalUnits > 0
+					? Math.round( ( rawPropertyStats.occupiedUnits / rawPropertyStats.totalUnits ) * 100 )
 					: 0
 			}
 
@@ -86,7 +97,9 @@ export class DashboardService {
 				activeLeases: rawLeaseStats.active || 0,
 				expiredLeases: rawLeaseStats.expired || 0,
 				pendingLeases: rawLeaseStats.draft || 0,
-				totalRentRoll: rawPropertyStats.totalMonthlyRent || 0
+				totalRentRoll: rawPropertyStats.totalMonthlyRent || 0,
+				total: rawLeaseStats.total || 0,
+				active: rawLeaseStats.active || 0
 			}
 
 			const dashboardStats: DashboardStats = {
@@ -103,6 +116,11 @@ export class DashboardService {
 				notifications: {
 					total: 0,
 					unread: 0
+				},
+				revenue: {
+					total: 0,
+					monthly: 0,
+					collected: 0
 				}
 			}
 

@@ -2,7 +2,7 @@
 
 import { usePostHog as usePostHogBase } from 'posthog-js/react'
 import { useCallback } from 'react'
-import type { User } from '@/types/auth'
+import type { User } from '@repo/shared'
 
 // Custom event types for TenantFlow
 export type TenantFlowEvent =
@@ -16,6 +16,9 @@ export type TenantFlowEvent =
 	| 'user_oauth_initiated'
 	| 'password_reset_requested'
 	| 'password_reset_completed'
+	| 'password_reset_failed'
+	| 'password_updated'
+	| 'profile_updated'
 
 	// Property Management Events
 	| 'property_created'

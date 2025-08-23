@@ -4,7 +4,7 @@
  */
 
 import { Suspense } from 'react'
-import type { Metadata } from '@/types/next.d'
+import type { Metadata } from 'next/types'
 import { Loader2 } from 'lucide-react'
 import {
 	BillingLayout,
@@ -18,10 +18,13 @@ interface BillingSuccessPageProps {
 
 // Server-side metadata generation
 export async function generateMetadata(): Promise<Metadata> {
-	return generateBillingMetadata(
+	// Cast the helper's return to Next's Metadata type to satisfy the expected type.
+	// Using `await` is safe whether the helper is sync or async.
+	const meta = await generateBillingMetadata(
 		'Payment Success',
 		'Your subscription has been activated successfully'
 	)
+	return meta as unknown as Metadata
 }
 
 /**

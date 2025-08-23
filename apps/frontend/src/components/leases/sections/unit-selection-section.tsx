@@ -18,7 +18,7 @@ import {
 import { FormSection } from '@/components/modals/base-form-modal'
 import type { Unit } from '@repo/shared'
 import type { PropertyWithDetails } from '@repo/shared'
-import type { LeaseFormData } from '@/hooks/useLeaseForm'
+import type { LeaseFormData } from '@/hooks/use-lease-form'
 
 interface UnitSelectionSectionProps {
 	form: UseFormReturn<LeaseFormData>

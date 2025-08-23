@@ -1,235 +1,123 @@
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardFooter,
-	CardHeader,
-	CardTitle
-} from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Check, Loader2 } from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import { useAuth } from '@/hooks/use-auth'
-import { PLAN_TYPE } from '@repo/shared'
-import type { PlanType } from '@repo/shared'
-import { useCheckout } from '@/hooks/useCheckout'
+/**
+ * Official Stripe Pricing Table Component
+ * This uses Stripe's hosted pricing table for a seamless checkout experience
+ */
 
-interface Plan {
-	id: PlanType
-	name: string
-	description: string
-	price: { monthly: number; annual: number }
-	features: string[]
-	propertyLimit: number
-	storageLimit: number
-	apiCallLimit: number
-	priority: boolean
+'use client'
+
+import { useEffect } from 'react'
+import Script from 'next/script'
+
+interface StripePricingTableProps {
+	pricingTableId?: string
+	publishableKey?: string
+	customerEmail?: string
+	customerSessionClientSecret?: string
 }
 
-interface PricingTableProps {
-	currentPlan?: string
-}
-
-export function PricingTable({ currentPlan }: PricingTableProps) {
-	const router = useRouter()
-	const { user } = useAuth()
-	const [billingInterval, setBillingInterval] = useState<
-		'monthly' | 'annual'
-	>('monthly')
-	const [loadingPlan, setLoadingPlan] = useState<string | null>(null)
-
-	// Plan data will be loaded from Stripe pricing API
-	const plans: Plan[] = []
-
-	const { createCheckoutSession } = useCheckout()
-
-	const handleSelectPlan = async (planId: string) => {
-		if (!user) {
-			void router.push('/auth/signup')
-			return
-		}
-
-		setLoadingPlan(planId)
-
-		try {
-			await createCheckoutSession(
-				planId as PlanType,
-				billingInterval === 'annual' ? 'annual' : 'monthly'
-			)
-		} catch {
-			// Error is handled in the hook
-		} finally {
-			setLoadingPlan(null)
+declare global {
+	namespace JSX {
+		interface IntrinsicElements {
+			'pricing-table': React.DetailedHTMLProps<
+				React.HTMLAttributes<HTMLElement> & {
+					'pricing-table-id': string
+					'publishable-key': string
+					'customer-email'?: string
+					'customer-session-client-secret'?: string
+					'client-reference-id'?: string
+				},
+				HTMLElement
+			>
 		}
 	}
+}
 
-	const getMonthlyPrice = (price: { monthly: number; annual: number }) =>
-		price.monthly
-	const getAnnualPrice = (price: { monthly: number; annual: number }) =>
-		price.annual
+export function StripePricingTable({
+	pricingTableId = process.env.NEXT_PUBLIC_STRIPE_PRICING_TABLE_ID ?? '',
+	publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? '',
+	customerEmail,
+	customerSessionClientSecret
+}: StripePricingTableProps) {
+	useEffect(() => {
+		// Ensure the Stripe Pricing Table script is loaded
+		const script = document.createElement('script')
+		script.src = 'https://js.stripe.com/v3/pricing-table.js'
+		script.async = true
+
+		// Only append if not already loaded
+		if (
+			!document.querySelector(
+				'script[src="https://js.stripe.com/v3/pricing-table.js"]'
+			)
+		) {
+			document.body.appendChild(script)
+		}
+
+		return () => {
+			// Cleanup if needed
+		}
+	}, [])
+
+	if (!pricingTableId || !publishableKey) {
+		return (
+			<div className="py-12 text-center">
+				<p className="text-muted-foreground">
+					Pricing table configuration is missing. Please check your
+					environment variables.
+				</p>
+			</div>
+		)
+	}
 
 	return (
-		<div className="space-y-8">
-			{/* Billing Toggle */}
-			<div className="flex justify-center">
-				<div className="bg-muted inline-flex rounded-lg p-1">
-					<button
-						onClick={() => setBillingInterval('monthly')}
-						className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
-							billingInterval === 'monthly'
-								? 'bg-background text-foreground shadow-sm'
-								: 'text-muted-foreground hover:text-foreground'
-						}`}
-					>
-						Monthly
-					</button>
-					<button
-						onClick={() => setBillingInterval('annual')}
-						className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
-							billingInterval === 'annual'
-								? 'bg-background text-foreground shadow-sm'
-								: 'text-muted-foreground hover:text-foreground'
-						}`}
-					>
-						Annual
-						<Badge variant="secondary" className="ml-2">
-							Save 17%
-						</Badge>
-					</button>
-				</div>
+		<>
+			<Script
+				id="pricing-table"
+				src="https://js.stripe.com/v3/pricing-table.js"
+				strategy="lazyOnload"
+			/>
+			{/* @ts-expect-error - Stripe pricing table custom element */}
+			<pricing-table
+				pricing-table-id={pricingTableId}
+				publishable-key={publishableKey}
+				customer-email={customerEmail}
+				customer-session-client-secret={customerSessionClientSecret}
+			/>
+		</>
+	)
+}
+
+/**
+ * Alternative component that embeds the pricing table in an iframe
+ * Use this if you prefer iframe isolation
+ */
+export function StripePricingTableIframe({
+	pricingTableId = process.env.NEXT_PUBLIC_STRIPE_PRICING_TABLE_ID ?? ''
+}: {
+	pricingTableId?: string
+}) {
+	if (!pricingTableId) {
+		return (
+			<div className="py-12 text-center">
+				<p className="text-muted-foreground">
+					Pricing table configuration is missing.
+				</p>
 			</div>
+		)
+	}
 
-			{/* Pricing Cards */}
-			<div className="grid gap-8 md:grid-cols-3">
-				{plans.map((plan: Plan) => {
-					const monthlyPrice = getMonthlyPrice(plan.price)
-					const annualPrice = getAnnualPrice(plan.price)
-					const price =
-						billingInterval === 'monthly'
-							? monthlyPrice
-							: annualPrice
-					const isCurrentPlan = currentPlan === plan.id
-					const isPremium = plan.id === PLAN_TYPE.GROWTH
+	// Construct the pricing table URL
+	const pricingTableUrl = `https://pricing.stripe.com/embed/${pricingTableId}`
 
-					return (
-						<Card
-							key={plan.id}
-							className={
-								isPremium ? 'border-primary shadow-lg' : ''
-							}
-						>
-							{isPremium && (
-								<div className="bg-primary text-primary-foreground rounded-t-lg py-2 text-center text-sm font-medium">
-									Most Popular
-								</div>
-							)}
-							<CardHeader>
-								<CardTitle>{plan.name}</CardTitle>
-								<CardDescription>
-									Perfect for{' '}
-									{plan.propertyLimit === -1
-										? 'unlimited'
-										: plan.propertyLimit}{' '}
-									properties
-								</CardDescription>
-							</CardHeader>
-							<CardContent className="space-y-6">
-								<div>
-									<span className="text-4xl font-bold">
-										${price}
-									</span>
-									<span className="text-muted-foreground">
-										/
-										{billingInterval === 'monthly'
-											? 'month'
-											: 'year'}
-									</span>
-									{billingInterval === 'annual' && (
-										<p className="text-muted-foreground mt-1 text-sm">
-											${monthlyPrice}/month billed
-											annually
-										</p>
-									)}
-								</div>
-
-								<ul className="space-y-3">
-									<li className="flex items-center gap-3">
-										<Check className="text-primary h-4 w-4" />
-										<span>
-											Up to{' '}
-											{plan.propertyLimit === -1
-												? 'unlimited'
-												: plan.propertyLimit}{' '}
-											properties
-										</span>
-									</li>
-									<li className="flex items-center gap-3">
-										<Check className="text-primary h-4 w-4" />
-										<span>Unlimited tenants & units</span>
-									</li>
-									<li className="flex items-center gap-3">
-										<Check className="text-primary h-4 w-4" />
-										<span>Maintenance tracking</span>
-									</li>
-									<li className="flex items-center gap-3">
-										<Check className="text-primary h-4 w-4" />
-										<span>Document storage</span>
-									</li>
-									{plan.id === PLAN_TYPE.GROWTH && (
-										<li className="flex items-center gap-3">
-											<Check className="text-primary h-4 w-4" />
-											<span>Priority support</span>
-										</li>
-									)}
-									{plan.id === PLAN_TYPE.TENANTFLOW_MAX && (
-										<>
-											<li className="flex items-center gap-3">
-												<Check className="text-primary h-4 w-4" />
-												<span>
-													Unlimited properties
-												</span>
-											</li>
-											<li className="flex items-center gap-3">
-												<Check className="text-primary h-4 w-4" />
-												<span>Dedicated support</span>
-											</li>
-											<li className="flex items-center gap-3">
-												<Check className="text-primary h-4 w-4" />
-												<span>Custom integrations</span>
-											</li>
-										</>
-									)}
-								</ul>
-							</CardContent>
-							<CardFooter>
-								<Button
-									className="w-full"
-									variant={isPremium ? 'default' : 'outline'}
-									disabled={
-										isCurrentPlan || loadingPlan !== null
-									}
-									onClick={() =>
-										void handleSelectPlan(plan.id)
-									}
-								>
-									{loadingPlan === plan.id ? (
-										<>
-											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-											Loading...
-										</>
-									) : isCurrentPlan ? (
-										'Current Plan'
-									) : (
-										'Get Started'
-									)}
-								</Button>
-							</CardFooter>
-						</Card>
-					)
-				})}
-			</div>
+	return (
+		<div className="w-full">
+			<iframe
+				src={pricingTableUrl}
+				className="min-h-[600px] w-full border-0"
+				title="Stripe Pricing Table"
+				allow="payment"
+				loading="lazy"
+			/>
 		</div>
 	)
 }

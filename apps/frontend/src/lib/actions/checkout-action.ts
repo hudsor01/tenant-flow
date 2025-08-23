@@ -1,0 +1,34 @@
+'use server'
+
+import { redirect } from 'next/navigation'
+import { apiClient } from '@/lib/api-client'
+
+interface CheckoutFormState {
+	success: boolean
+	errors?: Record<string, string[]>
+}
+
+export async function createCheckoutSession(
+	prevState: CheckoutFormState,
+	formData: FormData
+): Promise<CheckoutFormState> {
+	try {
+		const data = {
+			priceId: formData.get('priceId') as string,
+			successUrl: formData.get('successUrl') as string,
+			cancelUrl: formData.get('cancelUrl') as string,
+			trialPeriodDays: formData.get('trialPeriodDays') ? Number(formData.get('trialPeriodDays')) : undefined,
+			couponId: formData.get('couponId') as string | undefined
+		}
+		
+		const response = await apiClient.post<{ url: string }>('/billing/checkout', data)
+		
+		// Use Next.js native redirect instead of returning URL
+		redirect(response.url)
+	} catch (error) {
+		return {
+			success: false,
+			errors: { _form: [error instanceof Error ? error.message : 'Failed to create checkout session'] }
+		}
+	}
+}

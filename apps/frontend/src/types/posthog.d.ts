@@ -29,7 +29,7 @@ declare module 'posthog-js' {
 		disable_session_recording?: boolean
 		enable_recording_console_log?: boolean
 		enable_heatmaps?: boolean
-		loaded?: (posthog: PostHog) => void
+		loaded?: (_posthog: PostHog) => void
 		mask_all_text?: boolean
 		mask_all_element_attributes?: boolean
 		opt_out_capturing_by_default?: boolean
@@ -53,18 +53,18 @@ declare module 'posthog-js' {
 	}
 
 	export interface PostHog {
-		init(apiKey: string, config?: PostHogConfig): void
-		capture(eventName: string, properties?: Record<string, unknown>): void
-		identify(distinctId: string, properties?: Record<string, unknown>): void
+		init(_apiKey: string, _config?: PostHogConfig): void
+		capture(_eventName: string, _properties?: Record<string, unknown>): void
+		identify(_distinctId: string, _properties?: Record<string, unknown>): void
 		reset(): void
 		opt_out_capturing(): void
 		opt_in_capturing(): void
-		debug(enabled?: boolean): void
-		set_config(config: Partial<PostHogConfig>): void
-		isFeatureEnabled(flagKey: string): boolean | undefined
-		getFeatureFlag(flagKey: string): string | boolean | undefined
+		debug(_enabled?: boolean): void
+		set_config(_config: Partial<PostHogConfig>): void
+		isFeatureEnabled(_flagKey: string): boolean | undefined
+		getFeatureFlag(_flagKey: string): string | boolean | undefined
 		getFeatureFlagPayload(
-			flagKey: string
+			_flagKey: string
 		): Record<string, unknown> | undefined
 		reloadFeatureFlags(): void
 		[key: string]: unknown
@@ -77,18 +77,18 @@ declare module 'posthog-js' {
 declare module 'posthog-js/react' {
 	export function usePostHog(): {
 		capture: (
-			eventName: string,
-			properties?: Record<string, unknown>
+			_eventName: string,
+			_properties?: Record<string, unknown>
 		) => void
 		identify: (
-			distinctId: string,
-			properties?: Record<string, unknown>
+			_distinctId: string,
+			_properties?: Record<string, unknown>
 		) => void
 		reset: () => void
 		// Feature flags removed for stable production version
 		[key: string]: unknown
 	}
-	export function PostHogProvider(props: {
+	export function PostHogProvider(_props: {
 		apiKey: string
 		children: React.ReactNode
 		options?: Record<string, unknown>
@@ -103,4 +103,20 @@ declare module '@radix-ui/themes' {
 	export const Section: React.ComponentType<Record<string, unknown>>
 	export const Text: React.ComponentType<Record<string, unknown>>
 	export const Heading: React.ComponentType<Record<string, unknown>>
+}
+
+// Window.posthog global type
+declare global {
+	interface Window {
+		posthog?: {
+			capture: (eventName: string, properties?: Record<string, unknown>) => void
+			identify: (distinctId: string, properties?: Record<string, unknown>) => void
+			reset: () => void
+			isFeatureEnabled: (flagKey: string) => boolean | undefined
+			getFeatureFlag: (flagKey: string) => string | boolean | undefined
+			opt_out_capturing: () => void
+			opt_in_capturing: () => void
+			[key: string]: unknown
+		}
+	}
 }

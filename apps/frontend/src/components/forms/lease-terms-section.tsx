@@ -36,8 +36,8 @@ interface LeaseTermsSectionProps {
 interface LeaseTermCardProps {
 	term: LeaseTerm
 	index: number
-	onUpdate: (index: number, updatedTerm: LeaseTerm) => void
-	onRemove: (index: number) => void
+	onUpdate: (_index: number, updatedTerm: LeaseTerm) => void
+	onRemove: (_index: number) => void
 }
 
 // ============================================================================
@@ -123,7 +123,7 @@ function LeaseTermCard({
 								onChange={e =>
 									handleFieldChange(
 										'amount',
-										parseFloat(e.target.value) || 0
+										parseFloat(e.target.value) ?? 0
 									)
 								}
 								placeholder="0.00"
