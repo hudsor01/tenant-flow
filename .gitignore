@@ -521,3 +521,83 @@ docs/
 
 *storybook.log
 .envrc
+*.md
+
+# ========================================
+# TEST FILES & ARTIFACTS
+# ========================================
+# Test results and coverage
+coverage/
+*.lcov
+*.coverage
+test-results/
+test-results.json
+*.test-report.*
+jest-results/
+playwright-report/
+playwright/.cache/
+
+# Test configurations
+tsconfig.spec.json
+tsconfig.test.json
+vitest.config.*.ts
+
+# Mock files
+**/__mocks__/
+**/__tests__/
+*.mock.ts
+*.mock.tsx
+*.spec.ts
+*.spec.tsx
+*.test.ts
+*.test.tsx
+
+# ========================================
+# EXAMPLES & DEMOS
+# ========================================
+*.example.*
+*.demo.*
+*.sample.*
+examples/
+demos/
+
+# ========================================
+# STORYBOOK
+# ========================================
+storybook-static/
+*storybook.log
+.storybook-out/
+
+# ========================================
+# DOCUMENTATION
+# ========================================
+*.md
+!README.md
+!LICENSE.md
+docs/
+documentation/
+ARCHITECTURE_*.md
+MIGRATION_*.md
+*_GUIDE.md
+*_PLAN.md
+*_ANALYSIS.md
+
+# ========================================
+# DUPLICATES & BACKUPS
+# ========================================
+*.backup
+*.bak
+*.old
+*.copy
+*.orig
+*-old.*
+*-copy.*
+*-backup.*
+
+# ========================================
+# DEPLOYMENT SPECIFIC
+# ========================================
+.vercel/
+.railway/
+.netlify/
+
