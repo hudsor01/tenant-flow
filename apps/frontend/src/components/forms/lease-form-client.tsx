@@ -91,14 +91,8 @@ export function LeaseFormClient({
 
 	// Data hooks
 	const propertiesQuery = useProperties()
-<<<<<<< HEAD
-	const { tenants = [] } = useTenants()
-
-=======
 	const tenantsQuery = useTenants()
 	const tenants = tenantsQuery.data || []
-	
->>>>>>> origin/copilot/vscode1755835343516
 	// Memoize properties to prevent render loop
 	const properties = useMemo(
 		() => propertiesQuery.data ?? [],

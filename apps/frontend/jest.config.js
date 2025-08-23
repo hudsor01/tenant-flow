@@ -26,6 +26,8 @@ const customJestConfig = {
 		'^@repo/shared/(.*)$': '<rootDir>/../../packages/shared/src/$1',
 		'^@repo/(.*)$': '<rootDir>/../../packages/$1/src'
 	},
+	// Automatically mock UI components using __mocks__ directory
+	automock: false,
 	testEnvironment: 'jest-environment-jsdom',
 	testMatch: [
 		'<rootDir>/src/**/*.(test|spec).(t|j)s?(x)',

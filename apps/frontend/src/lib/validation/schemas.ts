@@ -49,16 +49,12 @@ export const commonValidations = {
 			return validation.valid
 		}, 'Description contains invalid or potentially dangerous content'),
 
-	// Contact information
+	// Contact information - basic format validation only
 	email: z
 		.string()
 		.min(1, 'Email is required')
 		.email('Please enter a valid email address')
-		.transform(val => val.toLowerCase().trim())
-		.refine(val => {
-			const validation = Security.validateEmail(val)
-			return validation.valid
-		}, 'Email contains invalid characters'),
+		.transform(val => val.toLowerCase().trim()),
 
 	phone: z
 		.string()

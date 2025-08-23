@@ -23,7 +23,7 @@ import {
 	PDFGenerationOptions,
 	PDFGeneratorService
 } from './pdf-generator.service'
-import { JwtAuthGuard } from '../shared/guards/jwt-auth.guard'
+import { UnifiedAuthGuard } from '../shared/guards/unified-auth.guard'
 import { ErrorHandlerService } from '../services/error-handler.service'
 
 // DTOs for validation
@@ -151,7 +151,7 @@ class GeneratePDFFromURLDto {
  */
 @ApiTags('PDF Generation')
 @Controller('pdf')
-@UseGuards(JwtAuthGuard)
+@UseGuards(UnifiedAuthGuard)
 export class PDFController {
 	constructor(
 		private readonly pdfService: PDFGeneratorService,

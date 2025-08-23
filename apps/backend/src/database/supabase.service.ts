@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@repo/shared/types/supabase-generated'
@@ -6,9 +6,10 @@ import type { EnvironmentVariables } from '../config/config.schema'
 
 @Injectable()
 export class SupabaseService {
+	private readonly logger = new Logger(SupabaseService.name)
 	private adminClient: SupabaseClient<Database>
 
-	constructor(private configService: ConfigService<EnvironmentVariables>) {
+	constructor(@Inject(ConfigService) private readonly configService: ConfigService<EnvironmentVariables>) {
 		const supabaseUrl = this.configService.get('SUPABASE_URL', {
 			infer: true
 		})
@@ -31,6 +32,8 @@ export class SupabaseService {
 				}
 			}
 		)
+
+		this.logger.log('Supabase service initialized successfully')
 	}
 
 	getAdminClient(): SupabaseClient<Database> {

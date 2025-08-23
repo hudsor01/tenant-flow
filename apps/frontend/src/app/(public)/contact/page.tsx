@@ -96,8 +96,8 @@ export default function ContactPage() {
 		setOptimisticSubmitted(true)
 
 		try {
-			// Simulate form submission
-			await new Promise(resolve => setTimeout(resolve, 2000))
+			const { apiClient } = await import('@/lib/api-client')
+			await apiClient.post('/api/v1/contact', formData as unknown as Record<string, unknown>)
 
 			// Reset form on success
 			setFormData({
