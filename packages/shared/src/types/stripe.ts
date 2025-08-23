@@ -72,13 +72,7 @@ export type StripeCollectionMethod = 'charge_automatically' | 'send_invoice'
 /**
  * Stripe Currency enumeration (subset of commonly used currencies)
  */
-export type StripeCurrency =
-	| 'usd'
-	| 'eur'
-	| 'gbp'
-	| 'cad'
-	| 'aud'
-	| 'jpy'
+export type StripeCurrency = 'usd' | 'eur' | 'gbp' | 'cad' | 'aud' | 'jpy'
 
 /**
  * Stripe Billing interval enumeration
@@ -132,7 +126,7 @@ export interface Subscription {
 	id: string
 	userId: string
 
-	// Plan and billing information  
+	// Plan and billing information
 	planType: 'FREETRIAL' | 'STARTER' | 'GROWTH' | 'TENANTFLOW_MAX' | null
 	planId?: string | null
 	billingPeriod: 'monthly' | 'annual' | null
@@ -274,7 +268,7 @@ export function normalizeSubscriptionStatus(
  * Convert camelCase property names to snake_case for Stripe API
  */
 export function camelToSnake(str: string): string {
-	return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`)
+	return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`)
 }
 
 /**
@@ -305,7 +299,10 @@ export function isStripeSubscriptionStatus(
 		'unpaid'
 	]
 
-	return typeof value === 'string' && validStatuses.includes(value as StripeSubscriptionStatus)
+	return (
+		typeof value === 'string' &&
+		validStatuses.includes(value as StripeSubscriptionStatus)
+	)
 }
 
 /**
@@ -313,21 +310,37 @@ export function isStripeSubscriptionStatus(
  */
 export function isStripeCurrency(value: unknown): value is StripeCurrency {
 	const validCurrencies: StripeCurrency[] = [
-		'usd', 'eur', 'gbp', 'cad', 'aud', 'jpy'
+		'usd',
+		'eur',
+		'gbp',
+		'cad',
+		'aud',
+		'jpy'
 	]
 
-	return typeof value === 'string' && validCurrencies.includes(value as StripeCurrency)
+	return (
+		typeof value === 'string' &&
+		validCurrencies.includes(value as StripeCurrency)
+	)
 }
 
 /**
  * Type guard to check if a value is a valid billing interval
  */
-export function isStripeBillingInterval(value: unknown): value is StripeBillingInterval {
+export function isStripeBillingInterval(
+	value: unknown
+): value is StripeBillingInterval {
 	const validIntervals: StripeBillingInterval[] = [
-		'day', 'week', 'month', 'year'
+		'day',
+		'week',
+		'month',
+		'year'
 	]
 
-	return typeof value === 'string' && validIntervals.includes(value as StripeBillingInterval)
+	return (
+		typeof value === 'string' &&
+		validIntervals.includes(value as StripeBillingInterval)
+	)
 }
 
 // ========================
@@ -380,7 +393,11 @@ export type BillingPeriod = 'monthly' | 'annual'
  * Native Stripe Subscription type - uses official Stripe SDK types
  * This ensures compatibility with the official Stripe API
  */
-export interface NativeStripeSubscription extends Omit<StripeSDK.Subscription, 'canceled_at' | 'trial_start' | 'trial_end'> {
+export interface NativeStripeSubscription
+	extends Omit<
+		StripeSDK.Subscription,
+		'canceled_at' | 'trial_start' | 'trial_end'
+	> {
 	// These properties exist in API responses with correct types
 	current_period_start: number
 	current_period_end: number
@@ -407,12 +424,15 @@ export function stripeSubscriptionToSubscription(
 	const planType = mapPriceIdToPlanType(priceId ?? undefined) ?? 'STARTER'
 
 	// Extract customer ID (Stripe customer can be expanded or just ID)
-	const customerId = typeof stripeSubscription.customer === 'string'
-		? stripeSubscription.customer
-		: stripeSubscription.customer?.id ?? null
+	const customerId =
+		typeof stripeSubscription.customer === 'string'
+			? stripeSubscription.customer
+			: (stripeSubscription.customer?.id ?? null)
 
 	// Determine billing period from price recurring information
-	const billingPeriod = price?.recurring ? determineBillingPeriod(price) : 'monthly'
+	const billingPeriod = price?.recurring
+		? determineBillingPeriod(price)
+		: 'monthly'
 
 	return {
 		id: stripeSubscription.id,
@@ -537,7 +557,11 @@ export interface InvoiceInfo {
  * Native Stripe Subscription type - uses official Stripe SDK types
  * This ensures compatibility with the official Stripe API
  */
-export interface NativeStripeSubscription extends Omit<StripeSDK.Subscription, 'canceled_at' | 'trial_start' | 'trial_end'> {
+export interface NativeStripeSubscription
+	extends Omit<
+		StripeSDK.Subscription,
+		'canceled_at' | 'trial_start' | 'trial_end'
+	> {
 	// These properties exist in API responses with correct types
 	current_period_start: number
 	current_period_end: number
@@ -547,7 +571,6 @@ export interface NativeStripeSubscription extends Omit<StripeSDK.Subscription, '
 	canceled_at: number | null
 }
 
-
 /**
  * Map Stripe price ID to our plan type
  */
@@ -555,10 +578,13 @@ function mapPriceIdToPlanType(priceId: string | undefined): PlanType | null {
 	if (!priceId) return null
 
 	// Map based on price ID patterns (customize based on your Stripe setup)
-	if (priceId.includes('starter') || priceId.includes('basic')) return 'STARTER'
+	if (priceId.includes('starter') || priceId.includes('basic'))
+		return 'STARTER'
 	if (priceId.includes('growth') || priceId.includes('pro')) return 'GROWTH'
-	if (priceId.includes('max') || priceId.includes('enterprise')) return 'TENANTFLOW_MAX'
-	if (priceId.includes('trial') || priceId.includes('free')) return 'FREETRIAL'
+	if (priceId.includes('max') || priceId.includes('enterprise'))
+		return 'TENANTFLOW_MAX'
+	if (priceId.includes('trial') || priceId.includes('free'))
+		return 'FREETRIAL'
 
 	return null
 }
@@ -566,7 +592,9 @@ function mapPriceIdToPlanType(priceId: string | undefined): PlanType | null {
 /**
  * Determine billing period from native Stripe price object
  */
-function determineBillingPeriod(price: StripeSDK.Price): 'monthly' | 'annual' | null {
+function determineBillingPeriod(
+	price: StripeSDK.Price
+): 'monthly' | 'annual' | null {
 	if (!price.recurring) return null
 
 	const interval = price.recurring.interval
@@ -613,7 +641,12 @@ export function isStripeError(error: unknown): error is StripeError {
 /**
  * Subscription state for UI representation
  */
-export type SubscriptionState = 'active' | 'trialing' | 'past_due' | 'canceled' | 'incomplete'
+export type SubscriptionState =
+	| 'active'
+	| 'trialing'
+	| 'past_due'
+	| 'canceled'
+	| 'incomplete'
 
 /**
  * Usage metrics for billing

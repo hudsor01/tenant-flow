@@ -2,45 +2,45 @@
 # Apply this configuration via GitHub CLI or API
 
 main:
-  protection:
-    required_status_checks:
-      strict: true
-      checks:
-        - "Quality Gate"
-        - "Code Quality (lint)"
-        - "Code Quality (typecheck)"
-        - "Code Quality (format-check)"
-        - "Unit Tests"
-        - "Build Validation (shared)"
-        - "Build Validation (database)"
-        - "Build Validation (backend)"
-        - "Build Validation (frontend)"
-    enforce_admins: false
-    required_pull_request_reviews:
-      required_approving_review_count: 1
-      dismiss_stale_reviews: true
-      require_code_owner_reviews: true
-      require_last_push_approval: false
-    restrictions: null
-    allow_force_pushes: false
-    allow_deletions: false
-    block_creations: false
-    required_conversation_resolution: true
+    protection:
+        required_status_checks:
+            strict: true
+            checks:
+                - 'Quality Gate'
+                - 'Code Quality (lint)'
+                - 'Code Quality (typecheck)'
+                - 'Code Quality (format-check)'
+                - 'Unit Tests'
+                - 'Build Validation (shared)'
+                - 'Build Validation (database)'
+                - 'Build Validation (backend)'
+                - 'Build Validation (frontend)'
+        enforce_admins: false
+        required_pull_request_reviews:
+            required_approving_review_count: 1
+            dismiss_stale_reviews: true
+            require_code_owner_reviews: true
+            require_last_push_approval: false
+        restrictions: null
+        allow_force_pushes: false
+        allow_deletions: false
+        block_creations: false
+        required_conversation_resolution: true
 
 develop:
-  protection:
-    required_status_checks:
-      strict: true
-      checks:
-        - "Quality Gate"
-        - "Unit Tests"
-        - "Build Validation (backend)"
-        - "Build Validation (frontend)"
-    enforce_admins: false
-    required_pull_request_reviews:
-      required_approving_review_count: 1
-      dismiss_stale_reviews: false
-      require_code_owner_reviews: false
-    restrictions: null
-    allow_force_pushes: false
-    allow_deletions: false
+    protection:
+        required_status_checks:
+            strict: true
+            checks:
+                - 'Quality Gate'
+                - 'Unit Tests'
+                - 'Build Validation (backend)'
+                - 'Build Validation (frontend)'
+        enforce_admins: false
+        required_pull_request_reviews:
+            required_approving_review_count: 1
+            dismiss_stale_reviews: false
+            require_code_owner_reviews: false
+        restrictions: null
+        allow_force_pushes: false
+        allow_deletions: false

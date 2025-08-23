@@ -8,7 +8,7 @@ import Link from 'next/link'
 import { MaintenanceDataTable } from '@/components/maintenance/maintenance-data-table'
 import { MaintenanceStats } from '@/components/maintenance/maintenance-stats'
 import { PageTracker } from '@/components/analytics/page-tracker'
-import {type Metadata } from 'next/types'
+import { type Metadata } from 'next/types'
 
 export const metadata: Metadata = {
 	title: 'Maintenance | TenantFlow',

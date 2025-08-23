@@ -128,7 +128,12 @@ Successful property management requires dedication, organization, and continuous
 		date: '2024-01-15',
 		readTime: '8 min read',
 		category: 'Property Management',
-		tags: ['landlord tips', 'property management', 'real estate', 'investing'],
+		tags: [
+			'landlord tips',
+			'property management',
+			'real estate',
+			'investing'
+		],
 		featured: true
 	},
 	{
@@ -352,20 +357,22 @@ Stay informed and adapt to changing market conditions to maximize your rental pr
 export function useBlogArticleData() {
 	return {
 		articles: blogArticles,
-		getArticleBySlug: (slug: string) => 
+		getArticleBySlug: (slug: string) =>
 			blogArticles.find(article => article.slug === slug),
-		getArticleById: (id: string) => 
+		getArticleById: (id: string) =>
 			blogArticles.find(article => article.id === id),
-		getFeaturedArticles: () => 
+		getFeaturedArticles: () =>
 			blogArticles.filter(article => article.featured),
 		getArticlesByCategory: (category: string) =>
 			blogArticles.filter(article => article.category === category),
 		getRelatedArticles: (articleId: string, limit = 3) => {
 			const article = blogArticles.find(a => a.id === articleId)
 			if (!article) return []
-			
+
 			return blogArticles
-				.filter(a => a.id !== articleId && a.category === article.category)
+				.filter(
+					a => a.id !== articleId && a.category === article.category
+				)
 				.slice(0, limit)
 		}
 	}

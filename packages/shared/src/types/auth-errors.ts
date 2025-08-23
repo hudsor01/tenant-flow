@@ -24,9 +24,9 @@ export class AuthenticationError extends Error implements TypedAuthError {
 	public readonly details?: Record<string, string | number | boolean>
 
 	constructor(
-		code: AuthErrorCode, 
-		message: string, 
-		field?: string, 
+		code: AuthErrorCode,
+		message: string,
+		field?: string,
 		details?: Record<string, string | number | boolean>
 	) {
 		super(message)
@@ -73,7 +73,7 @@ export function isSupabaseError(error: unknown): error is SupabaseError {
  */
 export function mapSupabaseError(error: SupabaseError): AuthErrorCode {
 	const message = error.message.toLowerCase()
-	
+
 	if (message.includes('invalid login credentials')) {
 		return 'INVALID_CREDENTIALS'
 	}
@@ -107,7 +107,7 @@ export function mapSupabaseError(error: SupabaseError): AuthErrorCode {
 	if (error.status && error.status >= 500) {
 		return 'NETWORK_ERROR'
 	}
-	
+
 	return 'UNKNOWN_ERROR'
 }
 
@@ -115,30 +115,30 @@ export function mapSupabaseError(error: SupabaseError): AuthErrorCode {
  * Creates a typed authentication error from any error
  */
 export function createAuthError(
-	error: unknown, 
+	error: unknown,
 	defaultCode: AuthErrorCode = 'UNKNOWN_ERROR',
 	field?: string
 ): TypedAuthError {
 	if (isAuthError(error)) {
 		return error
 	}
-	
+
 	if (isSupabaseError(error)) {
 		const code = mapSupabaseError(error)
 		return new AuthenticationError(code, error.message, field)
 	}
-	
+
 	if (error instanceof Error) {
 		return new AuthenticationError(defaultCode, error.message, field)
 	}
-	
+
 	if (typeof error === 'string') {
 		return new AuthenticationError(defaultCode, error, field)
 	}
-	
+
 	return new AuthenticationError(
-		defaultCode, 
-		'An unexpected error occurred during authentication', 
+		defaultCode,
+		'An unexpected error occurred during authentication',
 		field
 	)
 }
@@ -151,18 +151,26 @@ export function sanitizeAuthErrorMessage(error: TypedAuthError): string {
 	const safeMessages: Record<AuthErrorCode, string> = {
 		INVALID_CREDENTIALS: 'Invalid email or password. Please try again.',
 		USER_NOT_FOUND: 'No account found with this email address.',
-		EMAIL_NOT_VERIFIED: 'Please verify your email address before signing in.',
-		ACCOUNT_LOCKED: 'Your account has been temporarily locked. Please contact support.',
-		PASSWORD_TOO_WEAK: 'Password must be at least 8 characters with a mix of letters, numbers, and symbols.',
-		EMAIL_ALREADY_EXISTS: 'An account with this email address already exists.',
-		INVALID_TOKEN: 'Invalid or expired verification link. Please request a new one.',
-		TOKEN_EXPIRED: 'Verification link has expired. Please request a new one.',
-		RATE_LIMITED: 'Too many attempts. Please wait a few minutes before trying again.',
-		NETWORK_ERROR: 'Network error. Please check your connection and try again.',
+		EMAIL_NOT_VERIFIED:
+			'Please verify your email address before signing in.',
+		ACCOUNT_LOCKED:
+			'Your account has been temporarily locked. Please contact support.',
+		PASSWORD_TOO_WEAK:
+			'Password must be at least 8 characters with a mix of letters, numbers, and symbols.',
+		EMAIL_ALREADY_EXISTS:
+			'An account with this email address already exists.',
+		INVALID_TOKEN:
+			'Invalid or expired verification link. Please request a new one.',
+		TOKEN_EXPIRED:
+			'Verification link has expired. Please request a new one.',
+		RATE_LIMITED:
+			'Too many attempts. Please wait a few minutes before trying again.',
+		NETWORK_ERROR:
+			'Network error. Please check your connection and try again.',
 		VALIDATION_ERROR: 'Please check your input and try again.',
 		UNKNOWN_ERROR: 'An unexpected error occurred. Please try again.'
 	}
-	
+
 	return safeMessages[error.code] || safeMessages.UNKNOWN_ERROR
 }
 
@@ -182,12 +190,12 @@ export interface AuthFormResult {
  * Creates a form result from an authentication error
  */
 export function createFormErrorResult(
-	error: unknown, 
+	error: unknown,
 	field?: string
 ): AuthFormResult {
 	const authError = createAuthError(error, 'UNKNOWN_ERROR', field)
 	const sanitizedMessage = sanitizeAuthErrorMessage(authError)
-	
+
 	if (authError.field) {
 		return {
 			success: false,
@@ -196,7 +204,7 @@ export function createFormErrorResult(
 			}
 		}
 	}
-	
+
 	return {
 		success: false,
 		errors: {
@@ -225,13 +233,10 @@ export function createRateLimitError(
 ): RateLimitError {
 	const minutes = remainingTime ? Math.ceil(remainingTime / 60) : 5
 	const message = `Too many attempts. Please wait ${minutes} minute${minutes > 1 ? 's' : ''} before trying again.`
-	
-	return Object.assign(
-		new AuthenticationError('RATE_LIMITED', message),
-		{
-			remainingTime,
-			maxAttempts,
-			currentAttempts
-		}
-	) as RateLimitError
+
+	return Object.assign(new AuthenticationError('RATE_LIMITED', message), {
+		remainingTime,
+		maxAttempts,
+		currentAttempts
+	}) as RateLimitError
 }

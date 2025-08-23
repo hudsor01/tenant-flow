@@ -194,28 +194,34 @@ export class SupabaseConfigChecker {
 
 		// Log configuration status with appropriate level based on validity
 		if (status.valid) {
-			logger.info('Supabase authentication configuration check completed', {
-				component: 'SupabaseConfigChecker',
-				environment: status.environment,
-				valid: status.valid,
-				urls: {
-					supabase: status.urls.supabase || 'NOT_SET',
-					site: status.urls.site || 'NOT_SET',
-					callback: status.urls.callback || 'NOT_SET'
+			logger.info(
+				'Supabase authentication configuration check completed',
+				{
+					component: 'SupabaseConfigChecker',
+					environment: status.environment,
+					valid: status.valid,
+					urls: {
+						supabase: status.urls.supabase || 'NOT_SET',
+						site: status.urls.site || 'NOT_SET',
+						callback: status.urls.callback || 'NOT_SET'
+					}
 				}
-			})
+			)
 		} else {
-			logger.warn('Supabase authentication configuration issues detected', {
-				component: 'SupabaseConfigChecker',
-				environment: status.environment,
-				valid: status.valid,
-				issues: status.issues,
-				urls: {
-					supabase: status.urls.supabase || 'NOT_SET',
-					site: status.urls.site || 'NOT_SET',
-					callback: status.urls.callback || 'NOT_SET'
+			logger.warn(
+				'Supabase authentication configuration issues detected',
+				{
+					component: 'SupabaseConfigChecker',
+					environment: status.environment,
+					valid: status.valid,
+					issues: status.issues,
+					urls: {
+						supabase: status.urls.supabase || 'NOT_SET',
+						site: status.urls.site || 'NOT_SET',
+						callback: status.urls.callback || 'NOT_SET'
+					}
 				}
-			})
+			)
 
 			// Log each issue as a separate warning for better visibility
 			status.issues.forEach(issue => {
