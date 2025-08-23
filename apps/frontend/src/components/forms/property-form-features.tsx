@@ -105,11 +105,7 @@ export function PropertyFormFeatures({
 					rows={4}
 					className={error ? 'border-destructive' : ''}
 				/>
-				{error && (
-					<p className="text-destructive text-sm">
-						{error}
-					</p>
-				)}
+				{error && <p className="text-destructive text-sm">{error}</p>}
 			</div>
 
 			{/* Amenities */}

@@ -46,10 +46,9 @@ export function SupabaseAuthProcessor() {
 			const currentPath = window.location.href
 
 			if (isProcessing) {
-				logger.warn(
-					'Auth processing already in progress, skipping',
-					{ component: 'supabaseauthprocessor' }
-				)
+				logger.warn('Auth processing already in progress, skipping', {
+					component: 'supabaseauthprocessor'
+				})
 				return
 			}
 
@@ -70,7 +69,9 @@ export function SupabaseAuthProcessor() {
 			}
 
 			isProcessing = true
-			logger.info('Starting authentication processing', { component: 'supabaseauthprocessor' })
+			logger.info('Starting authentication processing', {
+				component: 'supabaseauthprocessor'
+			})
 
 			try {
 				if (!supabase) {
@@ -406,7 +407,9 @@ export function SupabaseAuthProcessor() {
 
 				if (session?.user) {
 					// Invalidate auth queries to ensure fresh user data
-					await queryClient.invalidateQueries({ queryKey: queryKeys.auth.all() })
+					await queryClient.invalidateQueries({
+						queryKey: queryKeys.auth.all()
+					})
 
 					// Success! User is authenticated
 					setStatus({
@@ -428,7 +431,9 @@ export function SupabaseAuthProcessor() {
 					toast.success('Email confirmed! Welcome to TenantFlow!')
 
 					// Clear any cache to ensure fresh session check
-					await queryClient.invalidateQueries({ queryKey: queryKeys.auth.all() })
+					await queryClient.invalidateQueries({
+						queryKey: queryKeys.auth.all()
+					})
 
 					// For Double Opt-In mode, redirect quickly to login with helpful message
 					setTimeout(() => {

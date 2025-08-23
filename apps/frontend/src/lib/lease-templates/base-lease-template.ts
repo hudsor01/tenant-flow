@@ -5,7 +5,10 @@
 
 // Base lease template utilities and types
 
-import type { LeaseFormData as LeaseTemplateData, StateLeaseRequirements } from '@repo/shared'
+import type {
+	LeaseFormData as LeaseTemplateData,
+	StateLeaseRequirements
+} from '@repo/shared'
 import { formatLeaseDate } from '@/lib/utils/date-formatting'
 
 export function generateBaseLease(
@@ -14,9 +17,12 @@ export function generateBaseLease(
 ): string {
 	const currentDate = new Date().toLocaleDateString()
 	// Handle both string[] and {name: string}[] formats for tenant names
-	const tenantList = data.tenantNames?.map((t: string | { name: string }) => 
-		typeof t === 'string' ? t : t.name
-	).join(', ') || 'Tenant'
+	const tenantList =
+		data.tenantNames
+			?.map((t: string | { name: string }) =>
+				typeof t === 'string' ? t : t.name
+			)
+			.join(', ') || 'Tenant'
 	const utilitiesList =
 		data.utilitiesIncluded?.length > 0
 			? data.utilitiesIncluded.join(', ')
@@ -68,7 +74,8 @@ ${stateRequirements.noticePeriods.terminationByTenant} days notice required by t
 ${stateRequirements.noticePeriods.terminationByLandlord} days notice required by landlord for lease termination.
 
 ${
-	stateRequirements.mandatoryDisclosures && stateRequirements.mandatoryDisclosures.length > 0
+	stateRequirements.mandatoryDisclosures &&
+	stateRequirements.mandatoryDisclosures.length > 0
 		? `
 REQUIRED DISCLOSURES:
 ${stateRequirements.mandatoryDisclosures.map((disclosure: string) => `• ${disclosure}`).join('\n')}
@@ -77,7 +84,8 @@ ${stateRequirements.mandatoryDisclosures.map((disclosure: string) => `• ${disc
 }
 
 ${
-	stateRequirements.requiredClauses && stateRequirements.requiredClauses.length > 0
+	stateRequirements.requiredClauses &&
+	stateRequirements.requiredClauses.length > 0
 		? `
 STATE-SPECIFIC PROVISIONS:
 ${stateRequirements.requiredClauses.map((clause: string) => `• ${clause}`).join('\n')}
@@ -119,4 +127,7 @@ This lease agreement was generated on ${formatLeaseDate(new Date().toISOString()
 }
 
 // Re-export types for sibling modules
-export type { LeaseFormData as LeaseTemplateData, StateLeaseRequirements } from '@repo/shared'
+export type {
+	LeaseFormData as LeaseTemplateData,
+	StateLeaseRequirements
+} from '@repo/shared'

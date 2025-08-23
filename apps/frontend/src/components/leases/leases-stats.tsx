@@ -3,12 +3,7 @@
 import { useLeases } from '@/hooks/api/use-leases'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import {
-	FileText,
-	CheckCircle,
-	Calendar,
-	DollarSign
-} from 'lucide-react'
+import { FileText, CheckCircle, Calendar, DollarSign } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Lease } from '@repo/shared'
 
@@ -29,7 +24,9 @@ function LeasesStatsSkeleton() {
 
 function calculateLeaseStats(leases: Lease[]) {
 	const totalLeases = leases.length
-	const activeLeases = leases.filter(lease => lease.status === 'ACTIVE').length
+	const activeLeases = leases.filter(
+		lease => lease.status === 'ACTIVE'
+	).length
 
 	// Calculate leases expiring within 30 days
 	const expiringSoon = leases.filter(lease => {

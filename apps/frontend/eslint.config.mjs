@@ -92,7 +92,7 @@ export default [
 		},
 
 		rules: {
-			// Core TypeScript rules  
+			// Core TypeScript rules
 			'@typescript-eslint/no-explicit-any': 'warn',
 			'@typescript-eslint/no-unused-vars': 'off', // Temporarily disabled to reduce warning count
 			// Standard no-unused-vars rule for non-TypeScript issues
