@@ -1,43 +1,59 @@
 import { Injectable, Logger } from '@nestjs/common'
 
-/**
- * Structured logger service for consistent logging
- * This is a simple stub for now - can be enhanced with proper structured logging later
- */
 @Injectable()
 export class StructuredLoggerService {
-	private readonly logger: Logger
+  private readonly logger = new Logger(StructuredLoggerService.name)
 
-	constructor(context?: string) {
-		this.logger = new Logger(context || 'StructuredLogger')
-	}
+  log(message: string, context?: string | Record<string, unknown>, metadata?: Record<string, unknown>): void {
+    const contextStr = typeof context === 'string' ? context : undefined
+    const meta = typeof context === 'object' ? { ...context, ...metadata } : metadata
+    
+    this.logger.log(JSON.stringify({
+      message,
+      context: contextStr,
+      metadata: meta,
+      timestamp: new Date().toISOString()
+    }))
+  }
 
-	info(message: string, metadata?: Record<string, unknown>) {
-		this.logger.log(
-			message,
-			metadata ? JSON.stringify(metadata) : undefined
-		)
-	}
+  error(message: string, trace?: string, context?: string | Record<string, unknown>): void {
+    const contextStr = typeof context === 'string' ? context : JSON.stringify(context)
+    
+    this.logger.error(JSON.stringify({
+      message,
+      trace,
+      context: contextStr,
+      timestamp: new Date().toISOString()
+    }))
+  }
 
-	error(message: string, error: Error, metadata?: Record<string, unknown>) {
-		this.logger.error(
-			message,
-			error.stack,
-			metadata ? JSON.stringify(metadata) : undefined
-		)
-	}
+  warn(message: string, context?: string | Record<string, unknown>): void {
+    const contextStr = typeof context === 'string' ? context : JSON.stringify(context)
+    
+    this.logger.warn(JSON.stringify({
+      message,
+      context: contextStr,
+      timestamp: new Date().toISOString()
+    }))
+  }
 
-	warn(message: string, metadata?: Record<string, unknown>) {
-		this.logger.warn(
-			message,
-			metadata ? JSON.stringify(metadata) : undefined
-		)
-	}
+  debug(message: string, context?: string | Record<string, unknown>): void {
+    const contextStr = typeof context === 'string' ? context : JSON.stringify(context)
+    
+    this.logger.debug(JSON.stringify({
+      message,
+      context: contextStr,
+      timestamp: new Date().toISOString()
+    }))
+  }
 
-	debug(message: string, metadata?: Record<string, unknown>) {
-		this.logger.debug(
-			message,
-			metadata ? JSON.stringify(metadata) : undefined
-		)
-	}
+  info(message: string, context?: string | Record<string, unknown>): void {
+    const contextStr = typeof context === 'string' ? context : JSON.stringify(context)
+    
+    this.logger.log(JSON.stringify({
+      message,
+      context: contextStr,
+      timestamp: new Date().toISOString()
+    }))
+  }
 }

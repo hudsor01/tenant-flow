@@ -2,14 +2,7 @@ import { Building } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import type { UseFormRegister, FieldErrors } from 'react-hook-form'
-
-import type { CustomerInvoiceForm } from '@repo/shared'
-
-interface BusinessInfoSectionProps {
-	register: UseFormRegister<CustomerInvoiceForm>
-	errors: FieldErrors<CustomerInvoiceForm>
-}
+import type { BusinessInfoSectionProps } from '@/types/components'
 
 export function BusinessInfoSection({
 	register,
