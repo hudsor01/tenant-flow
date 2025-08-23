@@ -101,6 +101,25 @@ export interface PropertyStats {
 	totalRent?: number
 	collectedRent?: number
 	pendingRent?: number
+	// Additional properties needed by tests
+	total: number
+	singleFamily: number
+	multiFamily: number
+	commercial: number
+	growth?: number
+}
+
+// Unit statistics for dashboard and analytics
+export interface UnitStats {
+	total: number
+	occupied: number
+	vacant: number
+	maintenance: number
+	available: number
+	occupancyRate: number
+	averageRent: number
+	totalPotentialRent: number
+	totalActualRent: number
 }
 
 // Property input types for API operations

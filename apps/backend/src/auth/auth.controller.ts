@@ -35,7 +35,8 @@ export class AuthController {
 		// Dynamically resolve UsersService to avoid circular dependency
 		const { UsersService } = await import('../users/users.service')
 		const usersService = this.moduleRef.get(UsersService, { strict: false })
-		const userProfile = await usersService.getUserById(user.id)
+
+		const userProfile = await usersService.getUserById(user.id as string)
 		if (!userProfile) {
 			throw new Error('User not found')
 		}

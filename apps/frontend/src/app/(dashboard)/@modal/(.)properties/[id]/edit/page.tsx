@@ -61,14 +61,14 @@ export default function EditPropertyModal() {
 		)
 	}
 
-	if (error || !property) {
+	if (error ?? !property) {
 		return (
 			<Dialog defaultOpen={true}>
 				<DialogContent>
 					<DialogHeader>
 						<DialogTitle>Error</DialogTitle>
 						<DialogDescription>
-							{error || 'Property not found'}
+							{error ?? 'Property not found'}
 						</DialogDescription>
 					</DialogHeader>
 				</DialogContent>

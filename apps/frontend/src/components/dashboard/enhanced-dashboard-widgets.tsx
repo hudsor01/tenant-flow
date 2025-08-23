@@ -1,7 +1,7 @@
 'use client'
 
 import { Suspense } from 'react'
-import { motion } from 'framer-motion'
+import { motion } from '@/lib/lazy-motion'
 import {
 	Card,
 	CardContent,
@@ -30,7 +30,7 @@ import {
 	ArrowDownRight,
 	Eye
 } from 'lucide-react'
-import { useDashboardStats } from '@/hooks/api/use-dashboard'
+import { useDashboardOverview } from '@/hooks/api/use-dashboard'
 import { cn } from '@/lib/utils'
 import { AreaChart, Area, ResponsiveContainer } from 'recharts'
 import { MiniBarChart } from '@/components/charts/mini-bar-chart'
@@ -260,7 +260,7 @@ function WidgetSkeleton() {
 }
 
 export function EnhancedDashboardWidgets() {
-	const { data: _stats } = useDashboardStats()
+	const { data: _stats } = useDashboardOverview()
 
 	return (
 		<div className="grid gap-6 lg:grid-cols-3">

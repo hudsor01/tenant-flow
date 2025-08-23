@@ -156,6 +156,47 @@ export class TenantsService {
 	}
 
 	/**
+	 * Get tenants by property ID
+	 */
+	async findByProperty(propertyId: string, ownerId: string): Promise<TenantWithRelations[]> {
+		const { data, error } = await this.supabase
+			.from('Tenant')
+			.select(
+				`
+				*,
+				Lease!inner (
+					id,
+					startDate,
+					endDate,
+					monthlyRent,
+					status,
+					Unit!inner (
+						id,
+						unitNumber,
+						bedrooms,
+						bathrooms,
+						Property!inner (
+							id,
+							name,
+							ownerId
+						)
+					)
+				)
+			`
+			)
+			.eq('Lease.Unit.Property.id', propertyId)
+			.eq('Lease.Unit.Property.ownerId', ownerId)
+			.order('createdAt', { ascending: false })
+
+		if (error) {
+			this.logger.error('Failed to fetch tenants by property:', error)
+			throw new BadRequestException(error.message)
+		}
+
+		return data as TenantWithRelations[]
+	}
+
+	/**
 	 * Create new tenant
 	 */
 	async create(

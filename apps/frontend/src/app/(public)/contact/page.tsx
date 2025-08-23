@@ -2,7 +2,7 @@
 
 import React, { useState, useOptimistic } from 'react'
 import { logger } from '@/lib/logger'
-import { motion, AnimatePresence } from '@/lib/framer-motion'
+import { motion, AnimatePresence } from '@/lib/lazy-motion'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'

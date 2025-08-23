@@ -7,7 +7,7 @@
  * Minimal JavaScript footprint for this interactive feature
  */
 
-import { motion } from '@/lib/framer-motion'
+import { motion } from '@/lib/lazy-motion'
 import { Spinner } from '@/components/ui/spinner'
 
 export function FormLoadingOverlay() {

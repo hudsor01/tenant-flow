@@ -1,32 +1,48 @@
 'use client'
 
-import Link from 'next/link'
+/**
+ * Signup form fields component
+ * Reusable form fields for user registration
+ */
+
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import { PasswordInput } from './password-input'
-import { PasswordStrengthIndicator } from './password-strength-indicator'
-import { ErrorDisplay } from './error-display'
-import { GoogleSignupButton } from './google-signup-button'
-import { usePasswordValidation } from '@/hooks/use-password-validation'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+
 import type { FormState } from '@/hooks/use-form-state'
 
-interface SignupFormFieldsProps {
+export interface SignupFormFieldsProps {
 	formState: FormState
-	onFieldUpdate: <K extends keyof FormState>(
-		field: K,
-		value: FormState[K]
-	) => void
+	onFieldUpdate: <K extends keyof FormState>(field: K, value: FormState[K]) => void
 	onTogglePasswordVisibility: () => void
 	onToggleConfirmPasswordVisibility: () => void
 	onEmailSubmit: (e: React.FormEvent) => void
 	onGoogleSignup: () => void
 	isLoading: boolean
 	error: string | null
+	// Legacy props for backwards compatibility
+	errors?: {
+		email?: string[]
+		password?: string[]
+		confirmPassword?: string[]
+		fullName?: string[]
+		companyName?: string[]
+		companyType?: string[]
+		companySize?: string[]
+		phone?: string[]
+	}
+	defaultValues?: {
+		email?: string
+		fullName?: string
+		companyName?: string
+		companyType?: string
+		companySize?: string
+		phone?: string
+	}
 }
 
-export function SignupFormFields({
+export function SignupFormFields({ 
 	formState,
 	onFieldUpdate,
 	onTogglePasswordVisibility,
@@ -34,151 +50,119 @@ export function SignupFormFields({
 	onEmailSubmit,
 	onGoogleSignup,
 	isLoading,
-	error
+	error,
+	errors = {}, 
+	defaultValues = {} 
 }: SignupFormFieldsProps) {
-	const { validatePassword } = usePasswordValidation(formState.password)
-	const passwordError = validatePassword(formState.confirmPassword)
+	// Use formState if available, otherwise fallback to defaultValues
+	const name = formState?.name ?? defaultValues.fullName ?? ''
+	const email = formState?.email ?? defaultValues.email ?? ''
+	const password = formState?.password ?? ''
+	const confirmPassword = formState?.confirmPassword ?? ''
 
 	return (
-		<>
-			<ErrorDisplay error={error} />
-
-			<form onSubmit={onEmailSubmit} className="space-y-4">
-				<div className="space-y-2">
-					<Label htmlFor="name">Full Name</Label>
-					<Input
-						id="name"
-						type="text"
-						placeholder="John Doe"
-						value={formState.name}
-						onChange={e => onFieldUpdate('name', e.target.value)}
-						required
-						disabled={isLoading}
-						className="h-11"
-					/>
+		<form onSubmit={onEmailSubmit} className="space-y-4">
+			{/* Error Display */}
+			{error && (
+				<div className="text-red-600 text-sm bg-red-50 p-3 rounded-md">
+					{error}
 				</div>
+			)}
 
-				<div className="space-y-2">
-					<Label htmlFor="email">Email</Label>
-					<Input
-						id="email"
-						type="email"
-						placeholder="name@company.com"
-						value={formState.email}
-						onChange={e => onFieldUpdate('email', e.target.value)}
-						required
-						disabled={isLoading}
-						className="h-11"
-					/>
-				</div>
-
-				<div className="space-y-2">
-					<PasswordInput
-						id="password"
-						label="Password"
-						placeholder="Create a strong password"
-						value={formState.password}
-						showPassword={formState.showPassword}
-						onValueChange={value =>
-							onFieldUpdate('password', value)
-						}
-						onToggleVisibility={onTogglePasswordVisibility}
-						required
-						disabled={isLoading}
-					/>
-
-					<PasswordStrengthIndicator password={formState.password} />
-				</div>
-
-				<PasswordInput
-					id="confirmPassword"
-					label="Confirm Password"
-					placeholder="Confirm your password"
-					value={formState.confirmPassword}
-					showPassword={formState.showConfirmPassword}
-					onValueChange={value =>
-						onFieldUpdate('confirmPassword', value)
-					}
-					onToggleVisibility={onToggleConfirmPasswordVisibility}
+			{/* Full Name */}
+			<div className="space-y-2">
+				<Label htmlFor="name">Full Name</Label>
+				<Input
+					id="name"
+					name="name"
+					type="text"
 					required
+					value={name}
+					onChange={(e) => onFieldUpdate?.('name', e.target.value)}
+					className={errors.fullName ? 'border-red-500' : ''}
 					disabled={isLoading}
-					error={
-						formState.confirmPassword &&
-						formState.password !== formState.confirmPassword
-							? 'Passwords do not match'
-							: null
-					}
 				/>
+				{errors.fullName && (
+					<p className="text-sm text-red-600">{errors.fullName[0]}</p>
+				)}
+			</div>
 
-				<div className="flex items-start space-x-2">
-					<Checkbox
-						id="terms"
-						checked={formState.agreedToTerms}
-						onCheckedChange={checked =>
-							onFieldUpdate('agreedToTerms', checked as boolean)
-						}
-						disabled={isLoading}
-						className="mt-1"
-					/>
-					<Label
-						htmlFor="terms"
-						className="cursor-pointer text-sm leading-relaxed font-normal"
-					>
-						I agree to the{' '}
-						<Link
-							href="/terms"
-							className="text-primary hover:underline"
-						>
-							Terms of Service
-						</Link>{' '}
-						and{' '}
-						<Link
-							href="/privacy"
-							className="text-primary hover:underline"
-						>
-							Privacy Policy
-						</Link>
-					</Label>
-				</div>
+			{/* Email */}
+			<div className="space-y-2">
+				<Label htmlFor="email">Email</Label>
+				<Input
+					id="email"
+					name="email"
+					type="email"
+					required
+					value={email}
+					onChange={(e) => onFieldUpdate?.('email', e.target.value)}
+					className={errors.email ? 'border-red-500' : ''}
+					disabled={isLoading}
+				/>
+				{errors.email && (
+					<p className="text-sm text-red-600">{errors.email[0]}</p>
+				)}
+			</div>
 
-				<Button
-					type="submit"
-					disabled={
-						isLoading || !formState.agreedToTerms || !!passwordError
-					}
-					className="h-11 w-full"
+			{/* Password */}
+			<div className="space-y-2">
+				<Label htmlFor="password">Password</Label>
+				<Input
+					id="password"
+					name="password"
+					type={formState?.showPassword ? 'text' : 'password'}
+					required
+					value={password}
+					onChange={(e) => onFieldUpdate?.('password', e.target.value)}
+					className={errors.password ? 'border-red-500' : ''}
+					disabled={isLoading}
+					minLength={8}
+				/>
+				{errors.password && (
+					<p className="text-sm text-red-600">{errors.password[0]}</p>
+				)}
+			</div>
+
+			{/* Confirm Password */}
+			<div className="space-y-2">
+				<Label htmlFor="confirmPassword">Confirm Password</Label>
+				<Input
+					id="confirmPassword"
+					name="confirmPassword"
+					type={formState?.showConfirmPassword ? 'text' : 'password'}
+					required
+					value={confirmPassword}
+					onChange={(e) => onFieldUpdate?.('confirmPassword', e.target.value)}
+					className={errors.confirmPassword ? 'border-red-500' : ''}
+					disabled={isLoading}
+				/>
+				{errors.confirmPassword && (
+					<p className="text-sm text-red-600">{errors.confirmPassword[0]}</p>
+				)}
+			</div>
+
+			{/* Submit Button */}
+			<div className="space-y-4">
+				<Button 
+					type="submit" 
+					className="w-full" 
+					disabled={isLoading}
 				>
 					{isLoading ? 'Creating account...' : 'Create Account'}
 				</Button>
-			</form>
 
-			{/* Divider */}
-			{/* Divider with proper spacing */}
-			<div className="relative flex items-center">
-				<div className="flex-grow border-t border-gray-300" />
-				<span className="text-muted-foreground mx-4 flex-shrink text-xs tracking-wider uppercase">
-					Or continue with
-				</span>
-				<div className="flex-grow border-t border-gray-300" />
-			</div>
-
-			{/* Social Signup */}
-			<GoogleSignupButton
-				onSignup={onGoogleSignup}
-				isLoading={isLoading}
-				disabled={isLoading}
-			/>
-
-			{/* Sign in link */}
-			<div className="text-center text-sm">
-				Already have an account?{' '}
-				<Link
-					href="/auth/login"
-					className="text-primary font-medium hover:underline"
+				{/* Google Signup */}
+				<Button 
+					type="button"
+					variant="outline"
+					className="w-full"
+					onClick={onGoogleSignup}
+					disabled={isLoading}
 				>
-					Sign in
-				</Link>
+					Sign up with Google
+				</Button>
 			</div>
-		</>
+		</form>
 	)
 }

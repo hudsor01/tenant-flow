@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from '@/lib/framer-motion'
+import { motion } from '@/lib/lazy-motion'
 import { Building2, Users, Wrench, DollarSign, TrendingUp } from 'lucide-react'
 import { cardVariants } from './dashboard-animations'
 import type { DashboardStats } from '@repo/shared'
@@ -112,8 +112,8 @@ export function DashboardMetrics({ stats, isLoading }: DashboardMetricsProps) {
 		<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
 			<MetricCard
 				title="Total Properties"
-				value={stats?.properties?.totalUnits || 0}
-				subtitle={`${Math.round(stats?.properties?.occupancyRate || 0)}% occupancy rate`}
+				value={stats?.properties?.totalUnits ?? 0}
+				subtitle={`${Math.round(stats?.properties?.occupancyRate ?? 0)}% occupancy rate`}
 				icon={Building2}
 				trend={{ value: 12, isPositive: true }}
 				color="navy"
@@ -121,8 +121,8 @@ export function DashboardMetrics({ stats, isLoading }: DashboardMetricsProps) {
 			/>
 			<MetricCard
 				title="Active Tenants"
-				value={stats?.tenants?.activeTenants || 0}
-				subtitle={`${stats?.leases?.activeLeases || 0} active leases`}
+				value={stats?.tenants?.activeTenants ?? 0}
+				subtitle={`${stats?.leases?.activeLeases ?? 0} active leases`}
 				icon={Users}
 				trend={{ value: 8, isPositive: true }}
 				color="steel"
@@ -130,8 +130,8 @@ export function DashboardMetrics({ stats, isLoading }: DashboardMetricsProps) {
 			/>
 			<MetricCard
 				title="Maintenance Requests"
-				value={stats?.maintenanceRequests?.open || 0}
-				subtitle={`${stats?.maintenanceRequests?.inProgress || 0} in progress`}
+				value={stats?.maintenanceRequests?.open ?? 0}
+				subtitle={`${stats?.maintenanceRequests?.inProgress ?? 0} in progress`}
 				icon={Wrench}
 				trend={{ value: 5, isPositive: false }}
 				color="emerald"
@@ -139,7 +139,7 @@ export function DashboardMetrics({ stats, isLoading }: DashboardMetricsProps) {
 			/>
 			<MetricCard
 				title="Monthly Revenue"
-				value={`$${(stats?.leases?.totalRentRoll || 0).toLocaleString()}`}
+				value={`$${(stats?.leases?.totalRentRoll ?? 0).toLocaleString()}`}
 				subtitle="Total rent roll"
 				icon={DollarSign}
 				trend={{

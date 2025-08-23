@@ -5,7 +5,7 @@
 
 // Base lease template utilities and types
 
-import type { LeaseTemplateData, StateLeaseRequirements } from '@repo/shared'
+import type { LeaseFormData as LeaseTemplateData, StateLeaseRequirements } from '@repo/shared'
 import { formatLeaseDate } from '@/lib/utils/date-formatting'
 
 export function generateBaseLease(
@@ -13,9 +13,12 @@ export function generateBaseLease(
 	stateRequirements: StateLeaseRequirements
 ): string {
 	const currentDate = new Date().toLocaleDateString()
-	const tenantList = data.tenantNames.join(', ')
+	// Handle both string[] and {name: string}[] formats for tenant names
+	const tenantList = data.tenantNames?.map((t: string | { name: string }) => 
+		typeof t === 'string' ? t : t.name
+	).join(', ') || 'Tenant'
 	const utilitiesList =
-		data.utilitiesIncluded.length > 0
+		data.utilitiesIncluded?.length > 0
 			? data.utilitiesIncluded.join(', ')
 			: 'None included'
 
@@ -40,7 +43,7 @@ ${data.paymentAddress ? `Payment Address: ${data.paymentAddress}` : ''}
 
 3. SECURITY DEPOSIT
 Security deposit: $${data.securityDeposit.toLocaleString()}
-${stateRequirements.securityDepositLimit !== 'No statutory limit' ? `\nState Limit: ${stateRequirements.securityDepositLimit}` : ''}
+${stateRequirements.securityDepositLimit && stateRequirements.securityDepositLimit > 0 ? `\nState Limit: ${stateRequirements.securityDepositLimit}` : ''}
 
 4. LATE FEES
 Late fee of $${data.lateFeeAmount} applies after ${data.lateFeeDays} days past due date.
@@ -49,7 +52,7 @@ Late fee of $${data.lateFeeAmount} applies after ${data.lateFeeDays} days past d
 The following utilities are included in rent: ${utilitiesList}
 
 6. PET POLICY
-${data.petPolicy === 'allowed' ? 'Pets are allowed.' : data.petPolicy === 'with_deposit' ? `Pets allowed with additional deposit of $${data.petDeposit || 0}.` : 'No pets allowed.'}
+${data.petPolicy === 'allowed' ? 'Pets are allowed.' : data.petPolicy === 'with_deposit' ? `Pets allowed with additional deposit of $${data.petDeposit ?? 0}.` : 'No pets allowed.'}
 
 7. SMOKING POLICY
 ${data.smokingPolicy === 'allowed' ? 'Smoking is permitted.' : 'No smoking allowed on the premises.'}
@@ -58,25 +61,26 @@ ${data.smokingPolicy === 'allowed' ? 'Smoking is permitted.' : 'No smoking allow
 ${data.maintenanceResponsibility === 'landlord' ? 'Landlord is responsible for major repairs and maintenance.' : data.maintenanceResponsibility === 'tenant' ? 'Tenant is responsible for all maintenance and repairs.' : 'Maintenance responsibilities are shared between landlord and tenant.'}
 
 9. ENTRY NOTICE
-${stateRequirements.noticeToEnter}
+Landlord must provide proper notice before entering the premises as required by state law.
 
 10. LEASE TERMINATION
-${stateRequirements.noticePeriod} notice required for lease termination.
+${stateRequirements.noticePeriods.terminationByTenant} days notice required by tenant for lease termination.
+${stateRequirements.noticePeriods.terminationByLandlord} days notice required by landlord for lease termination.
 
 ${
-	stateRequirements.requiredDisclosures.length > 0
+	stateRequirements.mandatoryDisclosures && stateRequirements.mandatoryDisclosures.length > 0
 		? `
 REQUIRED DISCLOSURES:
-${stateRequirements.requiredDisclosures.map((disclosure: string) => `• ${disclosure}`).join('\n')}
+${stateRequirements.mandatoryDisclosures.map((disclosure: string) => `• ${disclosure}`).join('\n')}
 `
 		: ''
 }
 
 ${
-	data.stateSpecificClauses && data.stateSpecificClauses.length > 0
+	stateRequirements.requiredClauses && stateRequirements.requiredClauses.length > 0
 		? `
 STATE-SPECIFIC PROVISIONS:
-${data.stateSpecificClauses.map((clause: string) => `• ${clause}`).join('\n')}
+${stateRequirements.requiredClauses.map((clause: string) => `• ${clause}`).join('\n')}
 `
 		: ''
 }
@@ -103,9 +107,9 @@ ${data.landlordName}
 
 ${data.tenantNames
 	.map(
-		(name: string) => `
+		(tenant: string | { name: string }) => `
 Tenant Signature: _________________________ Date: _________
-${name}
+${typeof tenant === 'string' ? tenant : tenant.name}
 `
 	)
 	.join('')}
@@ -115,4 +119,4 @@ This lease agreement was generated on ${formatLeaseDate(new Date().toISOString()
 }
 
 // Re-export types for sibling modules
-export type { LeaseTemplateData, StateLeaseRequirements } from '@repo/shared'
+export type { LeaseFormData as LeaseTemplateData, StateLeaseRequirements } from '@repo/shared'

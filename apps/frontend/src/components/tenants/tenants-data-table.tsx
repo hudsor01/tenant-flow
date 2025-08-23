@@ -175,44 +175,11 @@ function TenantsTableSkeleton() {
 	)
 }
 
-export function TenantsDataTable() {
-	const { data: tenants, isLoading, error } = useTenants()
+interface TenantsTableUIProps {
+	tenants: TenantWithLeases[]
+}
 
-	if (isLoading) {
-		return (
-			<Card>
-				<CardHeader>
-					<CardTitle>Tenants</CardTitle>
-					<CardDescription>Manage all your tenants</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<TenantsTableSkeleton />
-				</CardContent>
-			</Card>
-		)
-	}
-
-	if (error) {
-		return (
-			<Card>
-				<CardHeader>
-					<CardTitle>Tenants</CardTitle>
-					<CardDescription>Manage all your tenants</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<Alert variant="destructive">
-						<AlertTriangle className="h-4 w-4" />
-						<AlertTitle>Error loading tenants</AlertTitle>
-						<AlertDescription>
-							There was a problem loading your tenants. Please try
-							refreshing the page.
-						</AlertDescription>
-					</Alert>
-				</CardContent>
-			</Card>
-		)
-	}
-
+function TenantsTableUI({ tenants }: TenantsTableUIProps) {
 	if (!tenants?.length) {
 		return (
 			<Card>
@@ -279,7 +246,7 @@ export function TenantsDataTable() {
 							{tenants.map(tenant => (
 								<TenantRow
 									key={tenant.id}
-									tenant={tenant as TenantWithLeases}
+									tenant={tenant}
 								/>
 							))}
 						</TableBody>
@@ -295,5 +262,35 @@ export function TenantsDataTable() {
 				)}
 			</CardContent>
 		</Card>
+	)
+}
+
+export function TenantsDataTable() {
+	const { data: tenants, isLoading, error } = useTenants()
+
+	// Loading state
+	if (isLoading) {
+		return (
+			<Card>
+				<CardHeader>
+					<CardTitle>Tenants</CardTitle>
+					<CardDescription>Manage all your tenants</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<TenantsTableSkeleton />
+				</CardContent>
+			</Card>
+		)
+	}
+
+	// Error handling - throw to be caught by error boundary
+	if (error) {
+		throw error
+	}
+
+	return (
+		<TenantsTableUI 
+			tenants={tenants as TenantWithLeases[] || []}
+		/>
 	)
 }

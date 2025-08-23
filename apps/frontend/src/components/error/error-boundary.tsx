@@ -23,7 +23,7 @@ interface ErrorBoundaryState {
 interface ErrorBoundaryProps {
 	children: React.ReactNode
 	fallback?: React.ComponentType<ErrorFallbackProps>
-	onError?: (error: Error, errorInfo: React.ErrorInfo) => void
+	onError?: (_error: Error, _errorInfo: React.ErrorInfo) => void
 }
 
 interface ErrorFallbackProps {
@@ -50,8 +50,8 @@ class ErrorBoundary extends React.Component<
 
 	override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
 		logger.error('ErrorBoundary caught an error', error, {
-			componentStack: errorInfo.componentStack || null,
-			digest: errorInfo.digest || null
+			componentStack: errorInfo.componentStack ?? null,
+			digest: errorInfo.digest ?? null
 		})
 
 		this.setState({
@@ -69,8 +69,8 @@ class ErrorBoundary extends React.Component<
 				this.state.error,
 				{
 					error: error.message,
-					stack: error.stack || null,
-					componentStack: errorInfo.componentStack || '' || null
+					stack: error.stack ?? null,
+					componentStack: errorInfo.componentStack ?? ''
 				}
 			)
 		}

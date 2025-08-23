@@ -11,23 +11,27 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import type { Property } from '@repo/shared'
+import { PROPERTY_TYPE } from '@repo/shared'
 import type { PropertyFormState } from '@/lib/actions/property-actions'
 
 interface PropertyFormBasicInfoProps {
 	property?: Property
-	errors?: PropertyFormState['errors']
+	error?: string
 }
 
 const propertyTypes = [
-	{ value: 'single_family', label: 'Single Family' },
-	{ value: 'multi_family', label: 'Multi Family' },
-	{ value: 'apartment', label: 'Apartment' },
-	{ value: 'commercial', label: 'Commercial' }
+	{ value: PROPERTY_TYPE.SINGLE_FAMILY, label: 'Single Family' },
+	{ value: PROPERTY_TYPE.MULTI_UNIT, label: 'Multi Family' },
+	{ value: PROPERTY_TYPE.APARTMENT, label: 'Apartment' },
+	{ value: PROPERTY_TYPE.CONDO, label: 'Condo' },
+	{ value: PROPERTY_TYPE.TOWNHOUSE, label: 'Townhouse' },
+	{ value: PROPERTY_TYPE.COMMERCIAL, label: 'Commercial' },
+	{ value: PROPERTY_TYPE.OTHER, label: 'Other' }
 ] as const
 
 export function PropertyFormBasicInfo({
 	property,
-	errors
+	error
 }: PropertyFormBasicInfoProps) {
 	return (
 		<div className="space-y-6">
@@ -40,11 +44,7 @@ export function PropertyFormBasicInfo({
 					defaultValue={property?.name || ''}
 					placeholder="Enter property name"
 					required
-					className={errors?.name ? 'border-destructive' : ''}
 				/>
-				{errors?.name && (
-					<p className="text-destructive text-sm">{errors.name[0]}</p>
-				)}
 			</div>
 
 			{/* Address */}
@@ -57,25 +57,18 @@ export function PropertyFormBasicInfo({
 					placeholder="Enter complete address"
 					required
 					rows={3}
-					className={errors?.address ? 'border-destructive' : ''}
 				/>
-				{errors?.address && (
-					<p className="text-destructive text-sm">
-						{errors.address[0]}
-					</p>
-				)}
 			</div>
 
 			{/* Property Type */}
 			<div className="space-y-2">
 				<Label htmlFor="type">Property Type *</Label>
 				<Select
-					name="type"
+					name="propertyType"
 					defaultValue={property?.propertyType || ''}
 					required
 				>
 					<SelectTrigger
-						className={errors?.type ? 'border-destructive' : ''}
 					>
 						<SelectValue placeholder="Select property type" />
 					</SelectTrigger>
@@ -87,9 +80,6 @@ export function PropertyFormBasicInfo({
 						))}
 					</SelectContent>
 				</Select>
-				{errors?.type && (
-					<p className="text-destructive text-sm">{errors.type[0]}</p>
-				)}
 			</div>
 
 			{/* Number of Units */}
@@ -103,13 +93,7 @@ export function PropertyFormBasicInfo({
 					defaultValue={property?.units?.length?.toString() || '1'}
 					placeholder="Enter number of units"
 					required
-					className={errors?.units ? 'border-destructive' : ''}
 				/>
-				{errors?.units && (
-					<p className="text-destructive text-sm">
-						{errors.units[0]}
-					</p>
-				)}
 			</div>
 		</div>
 	)

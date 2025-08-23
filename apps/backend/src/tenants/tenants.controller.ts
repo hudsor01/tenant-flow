@@ -43,7 +43,7 @@ export class TenantsController {
 			success: true,
 			data,
 			message: 'Tenants retrieved successfully',
-			timestamp: new Date().toISOString()
+			timestamp: new Date()
 		}
 	}
 
@@ -61,7 +61,7 @@ export class TenantsController {
 			success: true,
 			data,
 			message: 'Statistics retrieved successfully',
-			timestamp: new Date().toISOString()
+			timestamp: new Date()
 		}
 	}
 
@@ -77,7 +77,24 @@ export class TenantsController {
 			success: true,
 			data,
 			message: 'Search completed successfully',
-			timestamp: new Date().toISOString()
+			timestamp: new Date()
+		}
+	}
+
+	@Get('by-property/:propertyId')
+	@ApiOperation({ summary: 'Get tenants by property ID' })
+	@ApiParam({ name: 'propertyId', description: 'Property ID' })
+	@ApiResponse({ status: 200, description: 'Tenants retrieved successfully' })
+	async findByProperty(
+		@Param('propertyId', ParseUUIDPipe) propertyId: string,
+		@CurrentUser() user: ValidatedUser
+	): Promise<ControllerApiResponse<TenantWithRelations[]>> {
+		const data = await this.tenantsService.findByProperty(propertyId, user.id)
+		return {
+			success: true,
+			data,
+			message: 'Tenants retrieved successfully',
+			timestamp: new Date()
 		}
 	}
 
@@ -95,7 +112,7 @@ export class TenantsController {
 			success: true,
 			data,
 			message: 'Tenant retrieved successfully',
-			timestamp: new Date().toISOString()
+			timestamp: new Date()
 		}
 	}
 
@@ -115,7 +132,7 @@ export class TenantsController {
 			success: true,
 			data,
 			message: 'Tenant created successfully',
-			timestamp: new Date().toISOString()
+			timestamp: new Date()
 		}
 	}
 
@@ -139,7 +156,7 @@ export class TenantsController {
 			success: true,
 			data,
 			message: 'Tenant updated successfully',
-			timestamp: new Date().toISOString()
+			timestamp: new Date()
 		}
 	}
 
@@ -161,7 +178,7 @@ export class TenantsController {
 			success: true,
 			data: null,
 			message: 'Tenant deleted successfully',
-			timestamp: new Date().toISOString()
+			timestamp: new Date()
 		}
 	}
 }

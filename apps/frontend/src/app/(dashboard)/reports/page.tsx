@@ -19,8 +19,9 @@ import {
 	Building
 } from 'lucide-react'
 import { PageTracker } from '@/components/analytics/page-tracker'
+import type { Metadata } from 'next/types'
 
-export const metadata = {
+export const metadata: Metadata = {
 	title: 'Reports | TenantFlow',
 	description: 'Analytics and reports for your property portfolio'
 }

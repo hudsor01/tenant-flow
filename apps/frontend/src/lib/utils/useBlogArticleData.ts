@@ -20,8 +20,8 @@ export interface BlogArticle {
 }
 
 export function useBlogArticleData(slug: string) {
-	// TODO: Implement actual blog data fetching
-	// This is a placeholder implementation
+	// Placeholder implementation for blog functionality
+	// Replace with CMS integration when blog feature is implemented
 	const article: BlogArticle = {
 		id: '1',
 		title: 'Sample Blog Article',

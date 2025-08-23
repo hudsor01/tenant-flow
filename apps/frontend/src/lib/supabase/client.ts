@@ -21,9 +21,22 @@ export function createClient() {
 
 	// Create a single instance for client-side
 	if (!client) {
+		// Check if environment variables are available
+		const url = config.supabase.url
+		const anonKey = config.supabase.anonKey
+		
+		// During build time, these might be empty - that's OK for static generation
+		if (!url || !anonKey) {
+			logger.warn('[Supabase] Missing environment variables - client initialization skipped', {
+				component: 'lib_supabase_client.ts'
+			})
+			// Return a mock client that will be replaced at runtime
+			return null as unknown as ReturnType<typeof createBrowserClient<Database>>
+		}
+		
 		client = createBrowserClient<Database>(
-			config.supabase.url,
-			config.supabase.anonKey,
+			url,
+			anonKey,
 			{
 				auth: {
 					autoRefreshToken: true,
@@ -45,19 +58,28 @@ export function createClient() {
 	return client
 }
 
-// Export a singleton instance for backward compatibility
-export const supabase = createClient()
+// Export a lazy-initialized singleton for backward compatibility
+// This will only initialize when actually used, not at module load time
+export const supabase = (() => {
+	let instance: ReturnType<typeof createClient> | undefined
+	return new Proxy({} as ReturnType<typeof createClient>, {
+		get(target, prop, receiver) {
+			if (!instance) {
+				instance = createClient()
+			}
+			return instance ? Reflect.get(instance, prop, receiver) : undefined
+		}
+	})
+})()
 
-// Export auth helpers
-export const auth = supabase.auth
+// Export auth helpers - also lazy-initialized
+export const auth = new Proxy({} as typeof supabase.auth, {
+	get(target, prop, receiver) {
+		return Reflect.get(supabase.auth, prop, receiver)
+	}
+})
 
-// Auth types
-export interface AuthUser {
-	id: string
-	email: string
-	name?: string
-	avatar_url?: string
-}
+// Auth types are now in @repo/shared - use those instead
 
 // Session management helpers with rate limiting
 const authRequestTimestamps = new Map<string, number>()

@@ -9,5 +9,11 @@ export {
 	MinimalBoundary,
 	type LoadingVariant
 } from './suspense-boundary'
-export { ErrorBoundaryWrapper } from './error-boundary-wrapper'
 export { useBoundaryReset, useErrorReporting } from './boundary-hooks'
+export {
+	QueryErrorBoundary,
+	PageErrorBoundary,
+	SectionErrorBoundary,
+	NetworkErrorBoundary,
+	ErrorBoundary
+} from './error-boundary'

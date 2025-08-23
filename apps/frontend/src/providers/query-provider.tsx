@@ -1,6 +1,6 @@
 /**
  * React Query provider
- * Provides React Query context for data fetching
+ * Provides React Query context (removed Zustand sync dependency)
  */
 'use client'
 

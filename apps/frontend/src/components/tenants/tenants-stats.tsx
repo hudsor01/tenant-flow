@@ -3,82 +3,79 @@
 import { useTenants } from '@/hooks/api/use-tenants'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Users, UserCheck, UserX, Calendar, AlertTriangle } from 'lucide-react'
+import { Users, UserCheck, UserX, Calendar } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import type { Tenant } from '@repo/shared'
 
-export function TenantsStats() {
-	const { data: tenants, isLoading, error } = useTenants()
+function TenantsStatsSkeleton() {
+	return (
+		<div className="grid gap-4 md:grid-cols-4">
+			{[...Array(4)].map((_, i) => (
+				<Card key={i}>
+					<CardHeader className="space-y-2">
+						<Skeleton className="h-4 w-24" />
+						<Skeleton className="h-8 w-32" />
+					</CardHeader>
+				</Card>
+			))}
+		</div>
+	)
+}
 
-	if (isLoading) {
-		return (
-			<div className="grid gap-4 md:grid-cols-4">
-				{[...Array(4)].map((_, i) => (
-					<Card key={i}>
-						<CardHeader className="space-y-2">
-							<Skeleton className="h-4 w-24" />
-							<Skeleton className="h-8 w-32" />
-						</CardHeader>
-					</Card>
-				))}
-			</div>
-		)
-	}
-
-	if (error) {
-		return (
-			<Alert variant="destructive">
-				<AlertTriangle className="h-4 w-4" />
-				<AlertTitle>Error loading tenants</AlertTitle>
-				<AlertDescription>
-					There was a problem loading your tenants data.
-				</AlertDescription>
-			</Alert>
-		)
-	}
-
-	const totalTenants = tenants?.length || 0
-	// Note: Basic Tenant interface doesn't include status or leases
-	// These would need to come from a different endpoint with relations
-	const acceptedInvitations =
-		tenants?.filter(tenant => tenant.invitationStatus === 'ACCEPTED')
-			.length || 0
-	const pendingInvitations =
-		tenants?.filter(
-			tenant =>
-				tenant.invitationStatus === 'PENDING' ||
-				tenant.invitationStatus === 'SENT'
-		).length || 0
-
+function calculateTenantStats(tenants: Tenant[]) {
+	const totalTenants = tenants.length
+	const acceptedInvitations = tenants.filter(tenant => tenant.invitationStatus === 'ACCEPTED').length
+	const pendingInvitations = tenants.filter(
+		tenant => tenant.invitationStatus === 'PENDING' || tenant.invitationStatus === 'SENT'
+	).length
+	
 	// Without access to lease data, we cannot calculate expiring leases
 	// This would require using TenantWithLeases type from a different endpoint
 	const expiringLeases = 0
 
-	const stats = [
+	return {
+		totalTenants,
+		acceptedInvitations,
+		pendingInvitations,
+		expiringLeases
+	}
+}
+
+interface TenantsStatsUIProps {
+	stats: {
+		totalTenants: number
+		acceptedInvitations: number
+		pendingInvitations: number
+		expiringLeases: number
+	}
+}
+
+function TenantsStatsUI({ stats }: TenantsStatsUIProps) {
+	const statItems = [
 		{
 			title: 'Total Tenants',
-			value: totalTenants,
+			value: stats.totalTenants,
 			description: 'All registered tenants',
 			icon: Users,
 			color: 'text-primary'
 		},
 		{
 			title: 'Accepted Invites',
-			value: acceptedInvitations,
+			value: stats.acceptedInvitations,
 			description: 'Active tenant accounts',
 			icon: UserCheck,
 			color: 'text-green-600'
 		},
 		{
 			title: 'Pending Invites',
-			value: pendingInvitations,
+			value: stats.pendingInvitations,
 			description: 'Awaiting acceptance',
 			icon: UserX,
 			color: 'text-yellow-600'
 		},
 		{
 			title: 'Expiring Soon',
-			value: expiringLeases,
+			value: stats.expiringLeases,
 			description: 'Requires enhanced data',
 			icon: Calendar,
 			color: 'text-gray-400'
@@ -87,7 +84,7 @@ export function TenantsStats() {
 
 	return (
 		<div className="grid gap-4 md:grid-cols-4">
-			{stats.map(stat => {
+			{statItems.map(stat => {
 				const Icon = stat.icon
 				return (
 					<Card
@@ -113,4 +110,23 @@ export function TenantsStats() {
 			})}
 		</div>
 	)
+}
+
+export function TenantsStats() {
+	const { data: tenants, isLoading, error } = useTenants()
+
+	// Loading state
+	if (isLoading) {
+		return <TenantsStatsSkeleton />
+	}
+
+	// Error handling - throw to be caught by error boundary
+	if (error) {
+		throw error
+	}
+
+	// Calculate stats using pure function
+	const stats = calculateTenantStats(tenants || [])
+
+	return <TenantsStatsUI stats={stats} />
 }

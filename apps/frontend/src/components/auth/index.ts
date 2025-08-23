@@ -4,21 +4,16 @@
  */
 
 // Layout Components (Server Components)
-export { AuthLayout } from './auth-layout'
+export { AuthLayout } from '../layout/auth/layout'
 export { AuthRedirect } from './auth-redirect'
-
-// Form Components (Client Components)
-export { default as LoginForm } from './login-form'
-export { default as SignupForm } from './signup-form'
-export { ForgotPasswordFormRefactored } from './forgot-password-form'
-export { UpdatePasswordForm } from './update-password-form'
-
-// Auth Factory Components
-export { AuthFormFactory } from './auth-form-factory'
 
 // Utility Components (Client Components)
 export { OAuthProviders } from './oauth-providers'
 export { AuthError } from './auth-error'
+export { ErrorDisplay } from './error-display'
+export { PasswordInput } from './password-input'
+export { SignupFormFields } from './signup-form-fields'
+export { GoogleSignupButton } from './google-signup-button'
 
 // Core Auth Processing (Client Component)
 export { SupabaseAuthProcessor } from './supabase-auth-processor'
