@@ -16,7 +16,7 @@ export interface Metadata {
 				nosnippet?: boolean
 				noimageindex?: boolean
 				nocache?: boolean
-}
+		  }
 	openGraph?: {
 		title?: string
 		description?: string

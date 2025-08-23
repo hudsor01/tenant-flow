@@ -32,7 +32,9 @@ export function OAuthProviders({
 				}
 			})
 			if (result.error) {
-				toast.error(result.error.message ?? 'Failed to sign in with Google')
+				toast.error(
+					result.error.message ?? 'Failed to sign in with Google'
+				)
 				setIsGoogleLoading(false)
 			}
 			// If successful, Supabase will redirect to the callback URL

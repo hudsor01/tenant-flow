@@ -83,20 +83,19 @@ const tenantBaseSchema = z.object({
 })
 
 // Base tenant input schema (for forms and API creation)
-export const tenantInputSchema = tenantBaseSchema
-	.refine(
-		data => {
-			// Validate lease date logic
-			if (data.leaseStartDate && data.leaseEndDate) {
-				return data.leaseEndDate > data.leaseStartDate
-			}
-			return true
-		},
-		{
-			message: 'Lease end date must be after start date',
-			path: ['leaseEndDate']
+export const tenantInputSchema = tenantBaseSchema.refine(
+	data => {
+		// Validate lease date logic
+		if (data.leaseStartDate && data.leaseEndDate) {
+			return data.leaseEndDate > data.leaseStartDate
 		}
-	)
+		return true
+	},
+	{
+		message: 'Lease end date must be after start date',
+		path: ['leaseEndDate']
+	}
+)
 
 // Full tenant schema (includes server-generated fields)
 export const tenantSchema = tenantBaseSchema.extend({

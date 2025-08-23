@@ -14,7 +14,7 @@ interface DashboardTrackerProps {
 	userId?: string
 }
 
-export function DashboardTracker({ 
+export function DashboardTracker({
 	section = 'main',
 	metrics = {},
 	userId
@@ -34,17 +34,20 @@ export function DashboardTracker({
 	}, [posthog, section, metrics, userId])
 
 	// Track specific dashboard interactions
-	const trackDashboardAction = useCallback((action: string, properties?: Record<string, unknown>) => {
-		if (!posthog) return
+	const trackDashboardAction = useCallback(
+		(action: string, properties?: Record<string, unknown>) => {
+			if (!posthog) return
 
-		posthog.capture('dashboard_action', {
-			action,
-			section,
-			user_id: userId,
-			...properties,
-			timestamp: new Date().toISOString()
-		})
-	}, [posthog, section, userId])
+			posthog.capture('dashboard_action', {
+				action,
+				section,
+				user_id: userId,
+				...properties,
+				timestamp: new Date().toISOString()
+			})
+		},
+		[posthog, section, userId]
+	)
 
 	// Expose tracking function via ref callback pattern
 	useEffect(() => {

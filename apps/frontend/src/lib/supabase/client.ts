@@ -24,30 +24,31 @@ export function createClient() {
 		// Check if environment variables are available
 		const url = config.supabase.url
 		const anonKey = config.supabase.anonKey
-		
+
 		// During build time, these might be empty - that's OK for static generation
 		if (!url || !anonKey) {
-			logger.warn('[Supabase] Missing environment variables - client initialization skipped', {
-				component: 'lib_supabase_client.ts'
-			})
-			// Return a mock client that will be replaced at runtime
-			return null as unknown as ReturnType<typeof createBrowserClient<Database>>
-		}
-		
-		client = createBrowserClient<Database>(
-			url,
-			anonKey,
-			{
-				auth: {
-					autoRefreshToken: true,
-					persistSession: true,
-					detectSessionInUrl: true,
-					flowType: 'pkce',
-					storageKey: 'tf-auth-v2',
-					debug: process.env.NODE_ENV === 'development'
+			logger.warn(
+				'[Supabase] Missing environment variables - client initialization skipped',
+				{
+					component: 'lib_supabase_client.ts'
 				}
+			)
+			// Return a mock client that will be replaced at runtime
+			return null as unknown as ReturnType<
+				typeof createBrowserClient<Database>
+			>
+		}
+
+		client = createBrowserClient<Database>(url, anonKey, {
+			auth: {
+				autoRefreshToken: true,
+				persistSession: true,
+				detectSessionInUrl: true,
+				flowType: 'pkce',
+				storageKey: 'tf-auth-v2',
+				debug: process.env.NODE_ENV === 'development'
 			}
-		)
+		})
 
 		// Store in global for reuse
 		if (typeof window !== 'undefined') {

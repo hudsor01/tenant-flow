@@ -31,7 +31,7 @@ import { AppService } from './app.service'
 			isGlobal: true,
 			validate
 		}),
-		
+
 		// Event-driven architecture support
 		EventEmitterModule.forRoot({
 			wildcard: false,
@@ -42,7 +42,7 @@ import { AppService } from './app.service'
 			verboseMemoryLeak: false,
 			ignoreErrors: false
 		}),
-		
+
 		SupabaseModule,
 
 		// Rate limiting - simple and effective

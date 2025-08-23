@@ -1,10 +1,7 @@
 import { useCallback, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { PlanType } from '@repo/shared'
-import type {
-	Subscription,
-	StripeSubscription
-} from '@repo/shared'
+import type { Subscription, StripeSubscription } from '@repo/shared'
 import { apiClient } from '@/lib/api-client'
 import { queryKeys } from '@/lib/query-keys'
 

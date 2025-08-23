@@ -41,9 +41,7 @@ function FormErrorDisplay({ error }: FormErrorDisplayProps) {
 					<h3 className="text-destructive text-sm font-medium">
 						Form submission error
 					</h3>
-					<p className="text-destructive/80 mt-1 text-sm">
-						{error}
-					</p>
+					<p className="text-destructive/80 mt-1 text-sm">{error}</p>
 				</div>
 			</div>
 		</div>

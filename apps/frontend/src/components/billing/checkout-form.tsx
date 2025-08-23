@@ -36,10 +36,13 @@ export function CheckoutForm({
 	couponId,
 	className
 }: CheckoutFormProps) {
-	const [state, formAction, isPending] = useActionState(createCheckoutSession, {
-		success: false,
-		errors: {}
-	})
+	const [state, formAction, isPending] = useActionState(
+		createCheckoutSession,
+		{
+			success: false,
+			errors: {}
+		}
+	)
 
 	return (
 		<Card className={className}>
@@ -98,7 +101,6 @@ export function CheckoutForm({
 							</AlertDescription>
 						</Alert>
 					)}
-
 
 					{/* Action button */}
 					<Button
@@ -199,7 +201,7 @@ export function CheckoutButton({
 						Loading...
 					</>
 				) : (
-					children ?? `Subscribe to ${planName}`
+					(children ?? `Subscribe to ${planName}`)
 				)}
 			</Button>
 

@@ -3,12 +3,19 @@
  * Provides consistent loading feedback for all React Query mutations
  */
 
-import { useMutation, useIsFetching, useIsMutating } from '@tanstack/react-query'
+import {
+	useMutation,
+	useIsFetching,
+	useIsMutating
+} from '@tanstack/react-query'
 import { useState, useCallback, useRef } from 'react'
 import { toast } from 'sonner'
 import { logger } from '@/lib/logger'
 
-interface MutationLoadingOptions<TData = unknown, TError extends Error = Error> {
+interface MutationLoadingOptions<
+	TData = unknown,
+	TError extends Error = Error
+> {
 	loadingMessage?: string
 	successMessage?: string | ((data: TData) => string)
 	errorMessage?: string | ((error: TError) => string)
@@ -27,7 +34,11 @@ interface MutationState<TData = unknown> {
 	loadingMessage: string
 }
 
-export function useMutationLoading<TData = unknown, TError extends Error = Error, TVariables = void>(
+export function useMutationLoading<
+	TData = unknown,
+	TError extends Error = Error,
+	TVariables = void
+>(
 	mutationFn: (variables: TVariables) => Promise<TData>,
 	options: MutationLoadingOptions = {}
 ) {
@@ -54,10 +65,13 @@ export function useMutationLoading<TData = unknown, TError extends Error = Error
 
 	const mutation = useMutation<TData, TError, TVariables>({
 		mutationFn,
-		onMutate: (variables) => {
-			logger.debug('Mutation started', { 
-				mutationType, 
-				variables: process.env.NODE_ENV === 'development' ? variables : '[hidden]'
+		onMutate: variables => {
+			logger.debug('Mutation started', {
+				mutationType,
+				variables:
+					process.env.NODE_ENV === 'development'
+						? variables
+						: '[hidden]'
 			})
 
 			setState(prev => ({
@@ -73,8 +87,8 @@ export function useMutationLoading<TData = unknown, TError extends Error = Error
 			}
 		},
 		onSuccess: (data, variables) => {
-			logger.info('Mutation completed successfully', { 
-				mutationType, 
+			logger.info('Mutation completed successfully', {
+				mutationType,
 				data: process.env.NODE_ENV === 'development' ? data : '[hidden]'
 			})
 
@@ -93,20 +107,25 @@ export function useMutationLoading<TData = unknown, TError extends Error = Error
 
 			// Show success message
 			if (showToasts && autoToastSuccess && successMessage) {
-				const message = typeof successMessage === 'function' 
-					? successMessage(data) 
-					: successMessage
+				const message =
+					typeof successMessage === 'function'
+						? successMessage(data)
+						: successMessage
 				toast.success(message)
 			}
 
 			onSuccess?.(data)
 		},
 		onError: (error, variables) => {
-			const errorInstance = error instanceof Error ? error : new Error(String(error))
-			
-			logger.error('Mutation failed', errorInstance, { 
-				mutationType, 
-				variables: process.env.NODE_ENV === 'development' ? variables : '[hidden]'
+			const errorInstance =
+				error instanceof Error ? error : new Error(String(error))
+
+			logger.error('Mutation failed', errorInstance, {
+				mutationType,
+				variables:
+					process.env.NODE_ENV === 'development'
+						? variables
+						: '[hidden]'
 			})
 
 			setState(prev => ({
@@ -123,9 +142,10 @@ export function useMutationLoading<TData = unknown, TError extends Error = Error
 
 			// Show error message
 			if (showToasts && autoToastError) {
-				const message = typeof errorMessage === 'function'
-					? errorMessage(error)
-					: errorMessage
+				const message =
+					typeof errorMessage === 'function'
+						? errorMessage(error)
+						: errorMessage
 				toast.error(message)
 			}
 
@@ -133,23 +153,26 @@ export function useMutationLoading<TData = unknown, TError extends Error = Error
 		}
 	})
 
-	const execute = useCallback(async (variables: TVariables) => {
-		return await mutation.mutateAsync(variables)
-	}, [mutation])
+	const execute = useCallback(
+		async (variables: TVariables) => {
+			return await mutation.mutateAsync(variables)
+		},
+		[mutation]
+	)
 
 	const reset = useCallback(() => {
 		if (toastId.current) {
 			toast.dismiss(toastId.current)
 			toastId.current = null
 		}
-		
+
 		setState({
 			isLoading: false,
 			error: null,
 			data: null,
 			loadingMessage
 		})
-		
+
 		mutation.reset()
 	}, [mutation, loadingMessage])
 
@@ -172,7 +195,7 @@ export function useMutationLoading<TData = unknown, TError extends Error = Error
 export function useGlobalMutationLoading() {
 	const mutatingCount = useIsMutating()
 	const fetchingCount = useIsFetching()
-	
+
 	return {
 		isMutating: mutatingCount > 0,
 		isFetching: fetchingCount > 0,
@@ -193,7 +216,7 @@ export function usePropertyMutationLoading<T = unknown>(
 ) {
 	return useMutationLoading(mutationFn, {
 		loadingMessage: `${operation === 'create' ? 'Creating' : operation === 'update' ? 'Updating' : 'Deleting'} property...`,
-		successMessage: (data) => {
+		successMessage: data => {
 			if (operation === 'create') {
 				const property = data as { name?: string } | null | undefined
 				return `Property "${property?.name || 'New property'}" created successfully`
@@ -213,9 +236,12 @@ export function useTenantMutationLoading<T = unknown>(
 ) {
 	return useMutationLoading(mutationFn, {
 		loadingMessage: `${operation === 'create' ? 'Creating' : operation === 'update' ? 'Updating' : 'Deleting'} tenant...`,
-		successMessage: (data) => {
+		successMessage: data => {
 			if (operation === 'create') {
-				const tenant = data as { firstName?: string; lastName?: string } | null | undefined
+				const tenant = data as
+					| { firstName?: string; lastName?: string }
+					| null
+					| undefined
 				return `Tenant "${`${tenant?.firstName || ''} ${tenant?.lastName || ''}`.trim() || 'New tenant'}" added successfully`
 			}
 			if (operation === 'update') return `Tenant updated successfully`
@@ -251,8 +277,10 @@ export function useMaintenanceMutationLoading<T = unknown>(
 	return useMutationLoading(mutationFn, {
 		loadingMessage: `${operation === 'create' ? 'Submitting' : operation === 'update' ? 'Updating' : 'Canceling'} maintenance request...`,
 		successMessage: () => {
-			if (operation === 'create') return 'Maintenance request submitted successfully'
-			if (operation === 'update') return 'Maintenance request updated successfully'
+			if (operation === 'create')
+				return 'Maintenance request submitted successfully'
+			if (operation === 'update')
+				return 'Maintenance request updated successfully'
 			return 'Maintenance request canceled successfully'
 		},
 		errorMessage: `Failed to ${operation} maintenance request`,

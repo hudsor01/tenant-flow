@@ -121,15 +121,17 @@ export interface SecurityMetrics {
 /**
  * Security validation result with constrained data types
  */
-export type SecureDataType = 
-	| string 
-	| number 
-	| boolean 
-	| null 
+export type SecureDataType =
+	| string
+	| number
+	| boolean
+	| null
 	| (string | number | boolean | null)[]
 	| Record<string, string | number | boolean | null>
 
-export interface SecurityValidationResult<T extends SecureDataType = SecureDataType> {
+export interface SecurityValidationResult<
+	T extends SecureDataType = SecureDataType
+> {
 	isValid: boolean
 	data?: T
 	errors?: string[]
@@ -286,14 +288,14 @@ export interface CSPViolationReport {
 /**
  * Security data classification types
  */
-export type DataClassificationType = 
-	| 'PII'           // Personally identifiable information
-	| 'PHI'           // Protected health information  
-	| 'FINANCIAL'     // Financial/payment data
-	| 'CREDENTIALS'   // Authentication credentials
-	| 'LEGAL'         // Legal documents/contracts
-	| 'OPERATIONAL'   // Business operational data
-	| 'PUBLIC'        // Public information
+export type DataClassificationType =
+	| 'PII' // Personally identifiable information
+	| 'PHI' // Protected health information
+	| 'FINANCIAL' // Financial/payment data
+	| 'CREDENTIALS' // Authentication credentials
+	| 'LEGAL' // Legal documents/contracts
+	| 'OPERATIONAL' // Business operational data
+	| 'PUBLIC' // Public information
 
 /**
  * Type-safe user metadata for authentication
@@ -307,7 +309,7 @@ export interface SecureAppMetadata {
 }
 
 /**
- * Type-safe user metadata for profiles  
+ * Type-safe user metadata for profiles
  */
 export interface SecureUserMetadata {
 	name?: string
@@ -329,19 +331,19 @@ export interface SecurityEventMetadata {
 	ipAddress?: string
 	userAgent?: string
 	requestId?: string
-	
+
 	// Authentication context
 	sessionId?: string
 	refreshTokenId?: string
 	mfaUsed?: boolean
 	loginMethod?: 'password' | 'oauth' | 'magic_link' | 'otp'
-	
+
 	// Device context
 	deviceFingerprint?: string
 	deviceType?: 'desktop' | 'mobile' | 'tablet' | 'unknown'
 	platform?: string
 	browser?: string
-	
+
 	// File security
 	fileName?: string
 	fileSize?: number
@@ -349,25 +351,31 @@ export interface SecurityEventMetadata {
 	filePath?: string
 	fileHash?: string
 	scanResult?: 'clean' | 'infected' | 'suspicious' | 'error'
-	
+
 	// Application context
 	feature?: string
 	action?: string
 	resource?: string
 	previousState?: string
 	newState?: string
-	
+
 	// Error context
 	errorCode?: string
 	errorMessage?: string
 	stackTrace?: string
-	
+
 	// Compliance context
-	gdprBasis?: 'consent' | 'contract' | 'legal_obligation' | 'vital_interests' | 'public_task' | 'legitimate_interests'
+	gdprBasis?:
+		| 'consent'
+		| 'contract'
+		| 'legal_obligation'
+		| 'vital_interests'
+		| 'public_task'
+		| 'legitimate_interests'
 	retentionPeriod?: number
 	anonymizationRequired?: boolean
-	
-	// Application-specific context  
+
+	// Application-specific context
 	context?: string
 	quarantineReason?: string
 	configChangeType?: string

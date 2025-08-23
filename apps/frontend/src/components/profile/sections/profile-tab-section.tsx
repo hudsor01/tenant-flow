@@ -41,15 +41,19 @@ export function ProfileTabSection({
 }: ProfileTabSectionProps) {
 	return (
 		<form
-			onSubmit={(e) => {
-				void form.handleSubmit(onSubmit)(e).catch(error => {
-					logger.error(
-						'Failed to update profile:',
-						error instanceof Error ? error : new Error(String(error)),
-						{ component: 'ProfileTabSection' }
-					)
-					toast.error('Failed to update profile')
-				})
+			onSubmit={e => {
+				void form
+					.handleSubmit(onSubmit)(e)
+					.catch(error => {
+						logger.error(
+							'Failed to update profile:',
+							error instanceof Error
+								? error
+								: new Error(String(error)),
+							{ component: 'ProfileTabSection' }
+						)
+						toast.error('Failed to update profile')
+					})
 			}}
 			className="space-y-6"
 		>

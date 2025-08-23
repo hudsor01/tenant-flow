@@ -52,7 +52,7 @@ export async function getCSRFToken(): Promise<string> {
 		return token
 	} catch (error) {
 		logger.warn('Failed to get CSRF token, using fallback', { error })
-		
+
 		// Generate a client-side token as fallback
 		const fallbackToken = generateClientToken()
 
@@ -71,7 +71,9 @@ export async function getCSRFToken(): Promise<string> {
 function generateClientToken(): string {
 	const array = new Uint8Array(32)
 	crypto.getRandomValues(array)
-	return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('')
+	return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join(
+		''
+	)
 }
 
 /**

@@ -31,7 +31,7 @@ import type {
 } from './responses'
 
 // Note: Core types (User, Lease, Property, etc.) are exported from their own files
-// Note: Error types are exported from errors.ts 
+// Note: Error types are exported from errors.ts
 // Note: Response types are exported from responses.ts
 // This file contains only API-specific types to avoid re-export conflicts
 

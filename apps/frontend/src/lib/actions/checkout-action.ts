@@ -17,18 +17,29 @@ export async function createCheckoutSession(
 			priceId: formData.get('priceId') as string,
 			successUrl: formData.get('successUrl') as string,
 			cancelUrl: formData.get('cancelUrl') as string,
-			trialPeriodDays: formData.get('trialPeriodDays') ? Number(formData.get('trialPeriodDays')) : undefined,
+			trialPeriodDays: formData.get('trialPeriodDays')
+				? Number(formData.get('trialPeriodDays'))
+				: undefined,
 			couponId: formData.get('couponId') as string | undefined
 		}
-		
-		const response = await apiClient.post<{ url: string }>('/billing/checkout', data)
-		
+
+		const response = await apiClient.post<{ url: string }>(
+			'/billing/checkout',
+			data
+		)
+
 		// Use Next.js native redirect instead of returning URL
 		redirect(response.url)
 	} catch (error) {
 		return {
 			success: false,
-			errors: { _form: [error instanceof Error ? error.message : 'Failed to create checkout session'] }
+			errors: {
+				_form: [
+					error instanceof Error
+						? error.message
+						: 'Failed to create checkout session'
+				]
+			}
 		}
 	}
 }

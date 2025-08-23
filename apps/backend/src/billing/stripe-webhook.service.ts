@@ -181,20 +181,38 @@ export class StripeWebhookService {
 		const subscription = {
 			userId,
 			stripeSubscriptionId: stripeSubscription.id,
-			stripeCustomerId: typeof stripeSubscription.customer === 'string' 
-				? stripeSubscription.customer 
-				: stripeSubscription.customer.id,
+			stripeCustomerId:
+				typeof stripeSubscription.customer === 'string'
+					? stripeSubscription.customer
+					: stripeSubscription.customer.id,
 			status: stripeSubscription.status,
-			currentPeriodStart: new Date(stripeSubscription.current_period_start * 1000),
-			currentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
+			currentPeriodStart: new Date(
+				stripeSubscription.current_period_start * 1000
+			),
+			currentPeriodEnd: new Date(
+				stripeSubscription.current_period_end * 1000
+			),
 			createdAt: new Date(stripeSubscription.created * 1000),
 			updatedAt: new Date(),
 			cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
-			canceledAt: stripeSubscription.canceled_at ? new Date(stripeSubscription.canceled_at * 1000) : null,
-			trialStart: stripeSubscription.trial_start ? new Date(stripeSubscription.trial_start * 1000) : null,
-			trialEnd: stripeSubscription.trial_end ? new Date(stripeSubscription.trial_end * 1000) : null,
-			planType: stripeSubscription.items.data[0]?.price?.lookup_key as 'FREETRIAL' | 'STARTER' | 'GROWTH' | 'TENANTFLOW_MAX' || 'UNKNOWN',
-			stripePriceId: stripeSubscription.items.data[0]?.price?.id || 'UNKNOWN_PRICE_ID'
+			canceledAt: stripeSubscription.canceled_at
+				? new Date(stripeSubscription.canceled_at * 1000)
+				: null,
+			trialStart: stripeSubscription.trial_start
+				? new Date(stripeSubscription.trial_start * 1000)
+				: null,
+			trialEnd: stripeSubscription.trial_end
+				? new Date(stripeSubscription.trial_end * 1000)
+				: null,
+			planType:
+				(stripeSubscription.items.data[0]?.price?.lookup_key as
+					| 'FREETRIAL'
+					| 'STARTER'
+					| 'GROWTH'
+					| 'TENANTFLOW_MAX') || 'UNKNOWN',
+			stripePriceId:
+				stripeSubscription.items.data[0]?.price?.id ||
+				'UNKNOWN_PRICE_ID'
 		}
 
 		const { error } = await this.supabaseService

@@ -16,8 +16,8 @@ interface PageTrackerProps {
 	properties?: Record<string, string | number | boolean>
 }
 
-export function PageTracker({ 
-	pageTitle, 
+export function PageTracker({
+	pageTitle,
 	pageName,
 	pageCategory = 'dashboard',
 	properties = {}
@@ -37,7 +37,15 @@ export function PageTracker({
 			page_category: pageCategory,
 			...properties
 		})
-	}, [posthog, pathname, searchParams, pageTitle, pageName, pageCategory, properties])
+	}, [
+		posthog,
+		pathname,
+		searchParams,
+		pageTitle,
+		pageName,
+		pageCategory,
+		properties
+	])
 
 	// This component doesn't render anything
 	return null

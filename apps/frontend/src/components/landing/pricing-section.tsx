@@ -49,12 +49,15 @@ export function PricingSection() {
 		<section className="bg-gray-50 py-16 sm:py-20">
 			<div className="mx-auto max-w-7xl px-6 lg:px-8">
 				<div className="mx-auto max-w-2xl text-center">
-					<h2 className="text-sm font-semibold text-blue-600">Pricing</h2>
+					<h2 className="text-sm font-semibold text-blue-600">
+						Pricing
+					</h2>
 					<p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
 						Simple, transparent pricing
 					</p>
 					<p className="mt-4 text-base text-gray-600">
-						Choose the plan that fits your portfolio size. Start free, upgrade as you grow.
+						Choose the plan that fits your portfolio size. Start
+						free, upgrade as you grow.
 					</p>
 				</div>
 
@@ -65,8 +68,8 @@ export function PricingSection() {
 							className={cn(
 								'rounded-2xl p-6',
 								plan.popular
-									? 'ring-2 ring-blue-600 bg-white shadow-lg'
-									: 'ring-1 ring-gray-200 bg-white'
+									? 'bg-white shadow-lg ring-2 ring-blue-600'
+									: 'bg-white ring-1 ring-gray-200'
 							)}
 						>
 							<div className="flex items-center justify-between">
@@ -102,7 +105,9 @@ export function PricingSection() {
 											? 'bg-blue-600 text-white hover:bg-blue-700'
 											: 'bg-white text-blue-600 ring-1 ring-blue-200 hover:bg-blue-50'
 									)}
-									variant={plan.popular ? 'default' : 'outline'}
+									variant={
+										plan.popular ? 'default' : 'outline'
+									}
 								>
 									Get started
 								</Button>
@@ -111,7 +116,7 @@ export function PricingSection() {
 							<ul className="mt-6 space-y-2 text-sm text-gray-600">
 								{plan.features.map((feature, idx) => (
 									<li key={idx} className="flex gap-x-2">
-										<CheckCircle className="h-4 w-4 flex-none text-blue-600 mt-0.5" />
+										<CheckCircle className="mt-0.5 h-4 w-4 flex-none text-blue-600" />
 										{feature}
 									</li>
 								))}

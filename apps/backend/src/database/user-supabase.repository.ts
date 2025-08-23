@@ -20,12 +20,14 @@ export class UserSupabaseRepository {
 			.eq('stripeCustomerId', stripeCustomerId)
 			.single()
 
-		return data ? { 
-			...data, 
-			organizationId: null,
-			createdAt: new Date(data.createdAt),
-			updatedAt: new Date(data.updatedAt)
-		} : null
+		return data
+			? {
+					...data,
+					organizationId: null,
+					createdAt: new Date(data.createdAt),
+					updatedAt: new Date(data.updatedAt)
+				}
+			: null
 	}
 
 	async updateStripeCustomerId(
@@ -47,12 +49,14 @@ export class UserSupabaseRepository {
 			.eq('id', userId)
 			.single()
 
-		return data ? { 
-			...data, 
-			organizationId: null,
-			createdAt: new Date(data.createdAt),
-			updatedAt: new Date(data.updatedAt)
-		} : null
+		return data
+			? {
+					...data,
+					organizationId: null,
+					createdAt: new Date(data.createdAt),
+					updatedAt: new Date(data.updatedAt)
+				}
+			: null
 	}
 
 	async findByIdWithSubscription(

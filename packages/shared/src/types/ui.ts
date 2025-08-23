@@ -32,7 +32,9 @@ export interface BaseUIProps {
 /**
  * Props for components that can contain children
  */
-export type WithChildren<T extends Record<string, unknown> = Record<string, unknown>> = T & {
+export type WithChildren<
+	T extends Record<string, unknown> = Record<string, unknown>
+> = T & {
 	children?: ReactNode
 }
 
@@ -92,9 +94,27 @@ export interface ColorTokens {
 /**
  * Spacing system based on rem units
  */
-export type SpacingToken = 
-	| 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl'
-	| '0' | '1' | '2' | '3' | '4' | '6' | '8' | '12' | '16' | '20' | '24' | '32'
+export type SpacingToken =
+	| 'xs'
+	| 'sm'
+	| 'md'
+	| 'lg'
+	| 'xl'
+	| '2xl'
+	| '3xl'
+	| '4xl'
+	| '0'
+	| '1'
+	| '2'
+	| '3'
+	| '4'
+	| '6'
+	| '8'
+	| '12'
+	| '16'
+	| '20'
+	| '24'
+	| '32'
 
 /**
  * Typography tokens
@@ -135,9 +155,18 @@ export type SizeVariant = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 /**
  * Component color variants
  */
-export type ColorVariant = 
-	| 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'destructive'
-	| 'outline' | 'ghost' | 'link' | 'accent' | 'muted'
+export type ColorVariant =
+	| 'default'
+	| 'primary'
+	| 'secondary'
+	| 'success'
+	| 'warning'
+	| 'destructive'
+	| 'outline'
+	| 'ghost'
+	| 'link'
+	| 'accent'
+	| 'muted'
 
 // ============================================================================
 // COMPONENT VARIANT TYPES
@@ -147,10 +176,21 @@ export type ColorVariant =
  * Button variant types
  */
 export interface ButtonVariants {
-	variant?: 
-		| 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
-		| 'gradient' | 'premium' | 'cta' | 'simplify' | 'success' | 'warning'
-		| 'loading' | 'glass'
+	variant?:
+		| 'default'
+		| 'destructive'
+		| 'outline'
+		| 'secondary'
+		| 'ghost'
+		| 'link'
+		| 'gradient'
+		| 'premium'
+		| 'cta'
+		| 'simplify'
+		| 'success'
+		| 'warning'
+		| 'loading'
+		| 'glass'
 	size?: 'default' | 'sm' | 'lg' | 'xl' | 'icon' | 'icon-sm' | 'icon-lg'
 	fullWidth?: boolean
 }
@@ -168,9 +208,15 @@ export interface InputVariants {
  * Card variant types
  */
 export interface CardVariants {
-	variant?: 
-		| 'default' | 'elevated' | 'interactive' | 'accent' | 'gradient'
-		| 'glass' | 'highlight' | 'premium'
+	variant?:
+		| 'default'
+		| 'elevated'
+		| 'interactive'
+		| 'accent'
+		| 'gradient'
+		| 'glass'
+		| 'highlight'
+		| 'premium'
 	size?: 'sm' | 'md' | 'lg' | 'xl'
 	spacing?: 'compact' | 'comfortable' | 'spacious'
 }
@@ -179,9 +225,14 @@ export interface CardVariants {
  * Badge variant types
  */
 export interface BadgeVariants {
-	variant?: 
-		| 'default' | 'secondary' | 'success' | 'warning' | 'error'
-		| 'outline' | 'gradient'
+	variant?:
+		| 'default'
+		| 'secondary'
+		| 'success'
+		| 'warning'
+		| 'error'
+		| 'outline'
+		| 'gradient'
 	size?: 'sm' | 'md' | 'lg'
 }
 
@@ -192,7 +243,16 @@ export interface BadgeVariants {
 /**
  * Container size options
  */
-export type ContainerSize = 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '4xl' | '6xl' | '7xl' | 'full'
+export type ContainerSize =
+	| 'sm'
+	| 'md'
+	| 'lg'
+	| 'xl'
+	| '2xl'
+	| '4xl'
+	| '6xl'
+	| '7xl'
+	| 'full'
 
 /**
  * Grid column configurations
@@ -338,7 +398,12 @@ export type AnimationDuration = 'fast' | 'normal' | 'slow'
 /**
  * Animation easing presets
  */
-export type AnimationEasing = 'linear' | 'ease' | 'ease-in' | 'ease-out' | 'ease-in-out'
+export type AnimationEasing =
+	| 'linear'
+	| 'ease'
+	| 'ease-in'
+	| 'ease-out'
+	| 'ease-in-out'
 
 /**
  * Motion variant types
@@ -478,14 +543,16 @@ export type PartialExcept<T, K extends keyof T> = Partial<T> & Pick<T, K>
 /**
  * Merge component props with HTML attributes
  */
-export type ComponentProps<_T extends ElementType, P = object> = 
-	P & Record<string, unknown>
+export type ComponentProps<_T extends ElementType, P = object> = P &
+	Record<string, unknown>
 
 /**
  * Polymorphic component props
  */
-export type PolymorphicProps<T extends ElementType, P = object> = 
-	ComponentProps<T, P & { as?: T }>
+export type PolymorphicProps<
+	T extends ElementType,
+	P = object
+> = ComponentProps<T, P & { as?: T }>
 
 // ============================================================================
 // RESPONSIVE DESIGN TYPES
@@ -539,12 +606,7 @@ export interface VirtualListItem {
 // ============================================================================
 
 // Framework-agnostic exports for convenience
-export type {
-	ReactNode,
-	AriaAttributes,
-	KeyboardEvent,
-	ElementType
-}
+export type { ReactNode, AriaAttributes, KeyboardEvent, ElementType }
 
 // Design system component types
 export interface DesignSystemComponents {

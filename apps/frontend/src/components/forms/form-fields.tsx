@@ -8,7 +8,13 @@
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 
 export interface FormFieldProps {
@@ -52,22 +58,22 @@ export interface CheckboxFieldProps extends FormFieldProps {
 	description?: string
 }
 
-export function TextField({ 
-	label, 
-	name, 
-	type = 'text', 
-	placeholder, 
-	defaultValue, 
-	error, 
-	required, 
+export function TextField({
+	label,
+	name,
+	type = 'text',
+	placeholder,
+	defaultValue,
+	error,
+	required,
 	maxLength,
-	className 
+	className
 }: TextFieldProps) {
 	return (
 		<div className={`space-y-2 ${className || ''}`}>
 			<Label htmlFor={name}>
 				{label}
-				{required && <span className="text-red-500 ml-1">*</span>}
+				{required && <span className="ml-1 text-red-500">*</span>}
 			</Label>
 			<Input
 				id={name}
@@ -79,30 +85,28 @@ export function TextField({
 				maxLength={maxLength}
 				className={error ? 'border-red-500' : ''}
 			/>
-			{error && (
-				<p className="text-sm text-red-600">{error}</p>
-			)}
+			{error && <p className="text-sm text-red-600">{error}</p>}
 		</div>
 	)
 }
 
-export function NumberField({ 
-	label, 
-	name, 
-	placeholder, 
-	defaultValue, 
-	error, 
-	required, 
+export function NumberField({
+	label,
+	name,
+	placeholder,
+	defaultValue,
+	error,
+	required,
 	min,
 	max,
 	step,
-	className 
+	className
 }: NumberFieldProps) {
 	return (
 		<div className={`space-y-2 ${className || ''}`}>
 			<Label htmlFor={name}>
 				{label}
-				{required && <span className="text-red-500 ml-1">*</span>}
+				{required && <span className="ml-1 text-red-500">*</span>}
 			</Label>
 			<Input
 				id={name}
@@ -116,29 +120,27 @@ export function NumberField({
 				step={step}
 				className={error ? 'border-red-500' : ''}
 			/>
-			{error && (
-				<p className="text-sm text-red-600">{error}</p>
-			)}
+			{error && <p className="text-sm text-red-600">{error}</p>}
 		</div>
 	)
 }
 
-export function TextareaField({ 
-	label, 
-	name, 
-	placeholder, 
-	defaultValue, 
-	error, 
-	required, 
+export function TextareaField({
+	label,
+	name,
+	placeholder,
+	defaultValue,
+	error,
+	required,
 	rows = 3,
 	maxLength,
-	className 
+	className
 }: TextareaFieldProps) {
 	return (
 		<div className={`space-y-2 ${className || ''}`}>
 			<Label htmlFor={name}>
 				{label}
-				{required && <span className="text-red-500 ml-1">*</span>}
+				{required && <span className="ml-1 text-red-500">*</span>}
 			</Label>
 			<Textarea
 				id={name}
@@ -150,56 +152,52 @@ export function TextareaField({
 				maxLength={maxLength}
 				className={error ? 'border-red-500' : ''}
 			/>
-			{error && (
-				<p className="text-sm text-red-600">{error}</p>
-			)}
+			{error && <p className="text-sm text-red-600">{error}</p>}
 		</div>
 	)
 }
 
-export function SelectField({ 
-	label, 
-	name, 
-	placeholder, 
-	defaultValue, 
-	error, 
+export function SelectField({
+	label,
+	name,
+	placeholder,
+	defaultValue,
+	error,
 	required,
 	options,
-	className 
+	className
 }: SelectFieldProps) {
 	return (
 		<div className={`space-y-2 ${className || ''}`}>
 			<Label htmlFor={name}>
 				{label}
-				{required && <span className="text-red-500 ml-1">*</span>}
+				{required && <span className="ml-1 text-red-500">*</span>}
 			</Label>
 			<Select name={name} defaultValue={defaultValue} required={required}>
 				<SelectTrigger className={error ? 'border-red-500' : ''}>
 					<SelectValue placeholder={placeholder} />
 				</SelectTrigger>
 				<SelectContent>
-					{options.map((option) => (
+					{options.map(option => (
 						<SelectItem key={option.value} value={option.value}>
 							{option.label}
 						</SelectItem>
 					))}
 				</SelectContent>
 			</Select>
-			{error && (
-				<p className="text-sm text-red-600">{error}</p>
-			)}
+			{error && <p className="text-sm text-red-600">{error}</p>}
 		</div>
 	)
 }
 
-export function CheckboxField({ 
-	label, 
-	name, 
-	defaultChecked, 
-	error, 
+export function CheckboxField({
+	label,
+	name,
+	defaultChecked,
+	error,
 	required,
 	description,
-	className 
+	className
 }: CheckboxFieldProps) {
 	return (
 		<div className={`space-y-2 ${className || ''}`}>
@@ -210,17 +208,18 @@ export function CheckboxField({
 					defaultChecked={defaultChecked}
 					required={required}
 				/>
-				<Label htmlFor={name} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+				<Label
+					htmlFor={name}
+					className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+				>
 					{label}
-					{required && <span className="text-red-500 ml-1">*</span>}
+					{required && <span className="ml-1 text-red-500">*</span>}
 				</Label>
 			</div>
 			{description && (
 				<p className="text-sm text-gray-600">{description}</p>
 			)}
-			{error && (
-				<p className="text-sm text-red-600">{error}</p>
-			)}
+			{error && <p className="text-sm text-red-600">{error}</p>}
 		</div>
 	)
 }

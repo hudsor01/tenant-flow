@@ -89,7 +89,10 @@ export class TenantsController {
 		@Param('propertyId', ParseUUIDPipe) propertyId: string,
 		@CurrentUser() user: ValidatedUser
 	): Promise<ControllerApiResponse<TenantWithRelations[]>> {
-		const data = await this.tenantsService.findByProperty(propertyId, user.id)
+		const data = await this.tenantsService.findByProperty(
+			propertyId,
+			user.id
+		)
 		return {
 			success: true,
 			data,

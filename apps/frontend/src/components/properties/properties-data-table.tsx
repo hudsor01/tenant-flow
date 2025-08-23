@@ -236,14 +236,20 @@ function PropertyCard({ property, onView, onEdit }: PropertyCardProps) {
 // Moved to separate pure component - use PropertyListLoading instead
 
 // Filter properties based on search and type criteria
-function filterProperties(properties: Property[] | undefined, searchQuery: string, propertyType: string): Property[] {
+function filterProperties(
+	properties: Property[] | undefined,
+	searchQuery: string,
+	propertyType: string
+): Property[] {
 	if (!properties) return []
-	
+
 	return properties.filter(property => {
 		const matchesSearch =
 			searchQuery === '' ||
 			property.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-			property.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
+			property.address
+				.toLowerCase()
+				.includes(searchQuery.toLowerCase()) ||
 			property.city?.toLowerCase().includes(searchQuery.toLowerCase())
 
 		const matchesType =
@@ -260,7 +266,12 @@ interface PropertiesTableUIProps {
 	onEditProperty?: (property: Property) => void
 }
 
-function PropertiesTableUI({ properties, hasFilters, onViewProperty, onEditProperty }: PropertiesTableUIProps) {
+function PropertiesTableUI({
+	properties,
+	hasFilters,
+	onViewProperty,
+	onEditProperty
+}: PropertiesTableUIProps) {
 	if (!properties.length) {
 		return (
 			<Card>
@@ -411,7 +422,11 @@ export function PropertiesDataTable({
 	}
 
 	// Filter properties
-	const filteredProperties = filterProperties(properties, searchQuery, propertyType)
+	const filteredProperties = filterProperties(
+		properties,
+		searchQuery,
+		propertyType
+	)
 	const hasFilters = searchQuery !== '' || propertyType !== ''
 
 	return (

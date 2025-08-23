@@ -44,12 +44,14 @@ export function MutationLoading({
 				{isLoading && (
 					<>
 						<Spinner size="sm" />
-						<span className="text-muted-foreground">{loadingMessage}</span>
+						<span className="text-muted-foreground">
+							{loadingMessage}
+						</span>
 					</>
 				)}
 				{error && (
 					<>
-						<AlertTriangle className="h-4 w-4 text-destructive" />
+						<AlertTriangle className="text-destructive h-4 w-4" />
 						<span className="text-destructive">
 							{errorMessage || error.message}
 						</span>
@@ -71,30 +73,44 @@ export function MutationLoading({
 
 	if (variant === 'overlay') {
 		return (
-			<div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center z-10">
+			<div className="bg-background/50 absolute inset-0 z-10 flex items-center justify-center backdrop-blur-sm">
 				{isLoading && (
 					<div className="flex flex-col items-center gap-2">
 						<Spinner size={size === 'sm' ? 'md' : 'lg'} />
-						<span className="text-sm text-muted-foreground">{loadingMessage}</span>
+						<span className="text-muted-foreground text-sm">
+							{loadingMessage}
+						</span>
 					</div>
 				)}
 				{error && (
 					<Card className="border-destructive/50 bg-destructive/5">
 						<CardContent className="p-4">
-							<div className="flex items-center gap-2 mb-2">
-								<AlertTriangle className="h-5 w-5 text-destructive" />
-								<span className="font-medium text-destructive">Error</span>
+							<div className="mb-2 flex items-center gap-2">
+								<AlertTriangle className="text-destructive h-5 w-5" />
+								<span className="text-destructive font-medium">
+									Error
+								</span>
 							</div>
-							<p className="text-sm mb-3">{errorMessage || error.message}</p>
+							<p className="mb-3 text-sm">
+								{errorMessage || error.message}
+							</p>
 							<div className="flex gap-2">
 								{onRetry && (
-									<Button variant="outline" size="sm" onClick={onRetry}>
-										<RefreshCw className="h-3 w-3 mr-1" />
+									<Button
+										variant="outline"
+										size="sm"
+										onClick={onRetry}
+									>
+										<RefreshCw className="mr-1 h-3 w-3" />
 										Retry
 									</Button>
 								)}
 								{onDismiss && (
-									<Button variant="secondary" size="sm" onClick={onDismiss}>
+									<Button
+										variant="secondary"
+										size="sm"
+										onClick={onDismiss}
+									>
 										Dismiss
 									</Button>
 								)}
@@ -108,34 +124,51 @@ export function MutationLoading({
 
 	// Default variant - card-based
 	return (
-		<Card className={cn(
-			'border-dashed',
-			isLoading && 'border-primary/50 bg-primary/5',
-			error && 'border-destructive/50 bg-destructive/5'
-		)}>
+		<Card
+			className={cn(
+				'border-dashed',
+				isLoading && 'border-primary/50 bg-primary/5',
+				error && 'border-destructive/50 bg-destructive/5'
+			)}
+		>
 			<CardContent className="p-6">
 				{isLoading && (
 					<div className="flex flex-col items-center text-center">
-						<Spinner size={size === 'sm' ? 'md' : 'lg'} className="mb-3" />
-						<p className="text-sm text-muted-foreground">{loadingMessage}</p>
+						<Spinner
+							size={size === 'sm' ? 'md' : 'lg'}
+							className="mb-3"
+						/>
+						<p className="text-muted-foreground text-sm">
+							{loadingMessage}
+						</p>
 					</div>
 				)}
 				{error && (
 					<div className="text-center">
-						<AlertTriangle className="h-8 w-8 text-destructive mx-auto mb-3" />
-						<p className="font-medium text-destructive mb-1">Operation Failed</p>
-						<p className="text-sm text-muted-foreground mb-4">
+						<AlertTriangle className="text-destructive mx-auto mb-3 h-8 w-8" />
+						<p className="text-destructive mb-1 font-medium">
+							Operation Failed
+						</p>
+						<p className="text-muted-foreground mb-4 text-sm">
 							{errorMessage || error.message}
 						</p>
 						<div className="flex justify-center gap-2">
 							{onRetry && (
-								<Button variant="outline" size="sm" onClick={onRetry}>
-									<RefreshCw className="h-3 w-3 mr-1" />
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={onRetry}
+								>
+									<RefreshCw className="mr-1 h-3 w-3" />
 									Try Again
 								</Button>
 							)}
 							{onDismiss && (
-								<Button variant="secondary" size="sm" onClick={onDismiss}>
+								<Button
+									variant="secondary"
+									size="sm"
+									onClick={onDismiss}
+								>
 									Dismiss
 								</Button>
 							)}
@@ -177,15 +210,15 @@ export function MutationSuccess({
 			<CardContent className="p-4">
 				<div className="flex items-center gap-2">
 					<CheckCircle className="h-5 w-5 text-green-600" />
-					<span className="text-green-800 font-medium">Success</span>
+					<span className="font-medium text-green-800">Success</span>
 				</div>
-				<p className="text-sm text-green-700 mt-1">{message}</p>
+				<p className="mt-1 text-sm text-green-700">{message}</p>
 				{onDismiss && !autoHide && (
 					<Button
 						variant="link"
 						size="sm"
 						onClick={onDismiss}
-						className="h-auto p-0 mt-2 text-green-700"
+						className="mt-2 h-auto p-0 text-green-700"
 					>
 						Dismiss
 					</Button>
@@ -212,18 +245,19 @@ export function GlobalMutationLoading({
 	if (!isMutating) return null
 
 	return (
-		<div className={cn(
-			'fixed left-0 right-0 z-50 bg-primary/10 border-primary/20',
-			position === 'top' ? 'top-0 border-b' : 'bottom-0 border-t'
-		)}>
+		<div
+			className={cn(
+				'bg-primary/10 border-primary/20 fixed right-0 left-0 z-50',
+				position === 'top' ? 'top-0 border-b' : 'bottom-0 border-t'
+			)}
+		>
 			<div className="container mx-auto px-4 py-2">
 				<div className="flex items-center justify-center gap-2">
 					<Spinner size="sm" />
-					<span className="text-sm text-primary">
-						{mutatingCount === 1 
+					<span className="text-primary text-sm">
+						{mutatingCount === 1
 							? 'Processing request...'
-							: `Processing ${mutatingCount} requests...`
-						}
+							: `Processing ${mutatingCount} requests...`}
 					</span>
 				</div>
 			</div>
@@ -247,10 +281,7 @@ export function LoadingButton({
 	...props
 }: LoadingButtonProps) {
 	return (
-		<Button
-			disabled={disabled || isLoading}
-			{...props}
-		>
+		<Button disabled={disabled || isLoading} {...props}>
 			{isLoading ? <ButtonSpinner text={loadingText} /> : children}
 		</Button>
 	)
@@ -279,13 +310,15 @@ export function MutationForm({
 	return (
 		<form onSubmit={onSubmit} className={cn('relative', className)}>
 			{children}
-			
+
 			{/* Loading overlay for forms */}
 			{isLoading && (
-				<div className="absolute inset-0 bg-background/50 backdrop-blur-sm rounded-lg flex items-center justify-center">
+				<div className="bg-background/50 absolute inset-0 flex items-center justify-center rounded-lg backdrop-blur-sm">
 					<div className="flex flex-col items-center gap-2">
 						<Spinner size="md" />
-						<span className="text-sm text-muted-foreground">{loadingMessage}</span>
+						<span className="text-muted-foreground text-sm">
+							{loadingMessage}
+						</span>
 					</div>
 				</div>
 			)}

@@ -2,7 +2,10 @@
  * Property deletion utilities for secure mutation-based operations
  */
 
-import { deletePropertyAction, type PropertyFormState } from '@/lib/actions/property-actions'
+import {
+	deletePropertyAction,
+	type PropertyFormState
+} from '@/lib/actions/property-actions'
 import { addCSRFTokenToFormData } from '@/lib/auth/csrf'
 import { logger } from '@/lib/logger'
 import { notifications, dismissToast } from '@/lib/toast'
@@ -10,9 +13,10 @@ import { notifications, dismissToast } from '@/lib/toast'
 /**
  * Secure property deletion with confirmation and proper error handling
  */
-export async function deletePropertyWithConfirmation(
-	property: { id: string; name: string }
-): Promise<void> {
+export async function deletePropertyWithConfirmation(property: {
+	id: string
+	name: string
+}): Promise<void> {
 	// Show confirmation dialog
 	const confirmed = window.confirm(
 		`Are you sure you want to delete "${property.name}"? This action cannot be undone.`
@@ -23,7 +27,7 @@ export async function deletePropertyWithConfirmation(
 	}
 
 	try {
-		logger.info('Property deletion initiated', { 
+		logger.info('Property deletion initiated', {
 			propertyId: property.id,
 			propertyName: property.name
 		})
@@ -46,11 +50,11 @@ export async function deletePropertyWithConfirmation(
 		dismissToast(loadingToast)
 
 		if (result.success) {
-			logger.info('Property deleted successfully', { 
-				propertyId: property.id 
+			logger.info('Property deleted successfully', {
+				propertyId: property.id
 			})
 			notifications.success('Property deleted successfully')
-			
+
 			// Redirect will happen automatically via server action
 		} else if (result.errors?._form?.[0]) {
 			const errorMessage = result.errors._form[0]
@@ -60,10 +64,15 @@ export async function deletePropertyWithConfirmation(
 			notifications.error(errorMessage)
 		}
 	} catch (error) {
-		const errorMessage = error instanceof Error ? error.message : 'Failed to delete property'
-		logger.error('Property deletion error', error instanceof Error ? error : new Error(String(error)), {
-			propertyId: property.id
-		})
+		const errorMessage =
+			error instanceof Error ? error.message : 'Failed to delete property'
+		logger.error(
+			'Property deletion error',
+			error instanceof Error ? error : new Error(String(error)),
+			{
+				propertyId: property.id
+			}
+		)
 		notifications.error(errorMessage)
 	}
 }

@@ -82,7 +82,9 @@ export function useSignup({
 			})
 
 			if (result.error) {
-				throw new Error(result.error.message || 'Failed to sign up with Google')
+				throw new Error(
+					result.error.message || 'Failed to sign up with Google'
+				)
 			}
 			// If successful, Supabase will redirect to the callback URL
 		} catch (error) {

@@ -49,18 +49,24 @@ export type FormAction = string | ((formData: FormData) => void | Promise<void>)
  * Event handler with optional preventDefault
  * Common pattern for form submissions
  */
-export type PreventableEventHandler<T = React.FormEvent> = (event: T) => void | Promise<void>
+export type PreventableEventHandler<T = React.FormEvent> = (
+	event: T
+) => void | Promise<void>
 
 /**
  * Generic async event handler
  * For async operations triggered by user events
  */
-export type AsyncEventHandler<T = React.SyntheticEvent> = (event: T) => Promise<void>
+export type AsyncEventHandler<T = React.SyntheticEvent> = (
+	event: T
+) => Promise<void>
 
 /**
  * Keyboard event handler
  */
-export type KeyboardHandler<T = HTMLElement> = (event: React.KeyboardEvent<T>) => void
+export type KeyboardHandler<T = HTMLElement> = (
+	event: React.KeyboardEvent<T>
+) => void
 
 /**
  * Focus event handler
@@ -93,7 +99,8 @@ export interface AsProps<T extends React.ElementType = React.ElementType> {
 /**
  * Form props for React 19 with action support
  */
-export interface FormProps extends Omit<React.FormHTMLAttributes<HTMLFormElement>, 'action'> {
+export interface FormProps
+	extends Omit<React.FormHTMLAttributes<HTMLFormElement>, 'action'> {
 	action?: FormAction
 	onSubmit?: SubmitHandler<HTMLFormElement>
 }
@@ -101,7 +108,8 @@ export interface FormProps extends Omit<React.FormHTMLAttributes<HTMLFormElement
 /**
  * Button props for React 19 with formAction support
  */
-export interface ButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'formAction'> {
+export interface ButtonProps
+	extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'formAction'> {
 	formAction?: FormAction
 	onClick?: ClickHandler<HTMLButtonElement>
 }
@@ -109,7 +117,11 @@ export interface ButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonE
 /**
  * Input props with proper event handlers
  */
-export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'onBlur' | 'onFocus'> {
+export interface InputProps
+	extends Omit<
+		React.InputHTMLAttributes<HTMLInputElement>,
+		'onChange' | 'onBlur' | 'onFocus'
+	> {
 	onChange?: ChangeHandler<HTMLInputElement>
 	onBlur?: BlurHandler<HTMLInputElement>
 	onFocus?: FocusHandler<HTMLInputElement>
@@ -118,7 +130,11 @@ export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
 /**
  * Select props with proper event handlers
  */
-export interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'onChange' | 'onBlur' | 'onFocus'> {
+export interface SelectProps
+	extends Omit<
+		React.SelectHTMLAttributes<HTMLSelectElement>,
+		'onChange' | 'onBlur' | 'onFocus'
+	> {
 	onChange?: ChangeHandler<HTMLSelectElement>
 	onBlur?: BlurHandler<HTMLSelectElement>
 	onFocus?: FocusHandler<HTMLSelectElement>
@@ -127,7 +143,11 @@ export interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectE
 /**
  * Textarea props with proper event handlers
  */
-export interface TextareaProps extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'onChange' | 'onBlur' | 'onFocus'> {
+export interface TextareaProps
+	extends Omit<
+		React.TextareaHTMLAttributes<HTMLTextAreaElement>,
+		'onChange' | 'onBlur' | 'onFocus'
+	> {
 	onChange?: ChangeHandler<HTMLTextAreaElement>
 	onBlur?: BlurHandler<HTMLTextAreaElement>
 	onFocus?: FocusHandler<HTMLTextAreaElement>

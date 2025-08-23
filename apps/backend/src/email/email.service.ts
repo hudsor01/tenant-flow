@@ -16,13 +16,18 @@ export class EmailService {
 
 	constructor(private readonly configService: ConfigService) {
 		// TODO: Initialize email configuration from configService
-		const emailEnabled = this.configService.get<boolean>('EMAIL_ENABLED', false)
+		const emailEnabled = this.configService.get<boolean>(
+			'EMAIL_ENABLED',
+			false
+		)
 		this.logger.log(`Email service initialized (enabled: ${emailEnabled})`)
 	}
 
 	async sendEmail(options: EmailOptions): Promise<void> {
-		this.logger.log(`Sending email to ${options.to} with subject: ${options.subject}`)
-		
+		this.logger.log(
+			`Sending email to ${options.to} with subject: ${options.subject}`
+		)
+
 		// TODO: Implement actual email sending logic
 		// For now, just log the email details
 		this.logger.debug('Email details:', {
@@ -32,7 +37,7 @@ export class EmailService {
 			hasHtml: !!options.html,
 			template: options.template
 		})
-		
+
 		// Simulate email sending
 		await new Promise(resolve => setTimeout(resolve, 100))
 	}
@@ -45,7 +50,10 @@ export class EmailService {
 		})
 	}
 
-	async sendPasswordResetEmail(to: string, resetToken: string): Promise<void> {
+	async sendPasswordResetEmail(
+		to: string,
+		resetToken: string
+	): Promise<void> {
 		await this.sendEmail({
 			to,
 			subject: 'Password Reset Request',

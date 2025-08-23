@@ -249,7 +249,7 @@ export default function FeaturesPage() {
 						<Link href="/auth/signup">
 							<Button
 								size="lg"
-								className="text-primary bg-white hover:bg-gray-100 inline-flex items-center"
+								className="text-primary inline-flex items-center bg-white hover:bg-gray-100"
 							>
 								Start Free Trial
 								<ArrowRight className="ml-2 h-5 w-5" />

@@ -19,28 +19,35 @@ interface TrackButtonProps extends ButtonProps {
 }
 
 export const TrackButton = forwardRef<HTMLButtonElement, TrackButtonProps>(
-	({ 
-		trackingEvent, 
-		trackingProperties = {}, 
-		trackEvent, 
-		trackProperties = {},
-		category = 'ui', 
-		onClick, 
-		children, 
-		...props 
-	}, ref) => {
+	(
+		{
+			trackingEvent,
+			trackingProperties = {},
+			trackEvent,
+			trackProperties = {},
+			category = 'ui',
+			onClick,
+			children,
+			...props
+		},
+		ref
+	) => {
 		const posthog = usePostHog()
 
 		const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
 			// Use new prop names first, fallback to legacy prop names
 			const eventName = trackingEvent || trackEvent
-			const eventProperties = { ...trackingProperties, ...trackProperties }
-			
+			const eventProperties = {
+				...trackingProperties,
+				...trackProperties
+			}
+
 			// Track the click event
 			if (posthog && eventName) {
 				posthog.capture(eventName, {
 					category,
-					button_text: typeof children === 'string' ? children : 'button',
+					button_text:
+						typeof children === 'string' ? children : 'button',
 					...eventProperties,
 					timestamp: new Date().toISOString()
 				})

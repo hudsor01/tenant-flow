@@ -39,7 +39,7 @@ export const handlers = [
 	}),
 
 	http.post('/api/properties', async ({ request }) => {
-		const data = await request.json() as Partial<Property>
+		const data = (await request.json()) as Partial<Property>
 		const newProperty = {
 			id: String(mockProperties.length + 1),
 			...data,
@@ -59,7 +59,7 @@ export const handlers = [
 
 	http.patch('/api/properties/:id', async ({ params, request }) => {
 		const { id } = params
-		const updates = await request.json() as Partial<Property>
+		const updates = (await request.json()) as Partial<Property>
 		const property = mockProperties.find(p => p.id === id)
 
 		if (!property) {
@@ -116,7 +116,7 @@ export const handlers = [
 	}),
 
 	http.post('/api/tenants', async ({ request }) => {
-		const data = await request.json() as Partial<Tenant>
+		const data = (await request.json()) as Partial<Tenant>
 		const newTenant = {
 			id: String(mockTenants.length + 1),
 			...data,
@@ -134,7 +134,7 @@ export const handlers = [
 
 	http.patch('/api/tenants/:id', async ({ params, request }) => {
 		const { id } = params
-		const updates = await request.json() as Partial<Tenant>
+		const updates = (await request.json()) as Partial<Tenant>
 		const tenant = mockTenants.find(t => t.id === id)
 
 		if (!tenant) {
@@ -177,7 +177,7 @@ export const handlers = [
 	}),
 
 	http.post('/api/maintenance', async ({ request }) => {
-		const data = await request.json() as Partial<MaintenanceRequest>
+		const data = (await request.json()) as Partial<MaintenanceRequest>
 		const newRequest = {
 			id: String(mockMaintenanceRequests.length + 1),
 			...data,
@@ -208,7 +208,7 @@ export const handlers = [
 
 		const updatedRequest = {
 			...maintenanceRequest,
-			...updates as Partial<MaintenanceRequest>,
+			...(updates as Partial<MaintenanceRequest>),
 			updatedAt: new Date().toISOString()
 		}
 
@@ -228,7 +228,7 @@ export const handlers = [
 
 	// Notification/Communication APIs
 	http.post('/api/notifications/send', async ({ request }) => {
-		const data = await request.json() as Record<string, unknown>
+		const data = (await request.json()) as Record<string, unknown>
 
 		// Simulate API delay
 		await new Promise(resolve => setTimeout(resolve, 1000))
@@ -242,7 +242,7 @@ export const handlers = [
 
 	http.post('/api/tenants/:id/contact', async ({ params, request }) => {
 		const { id } = params
-		const data = await request.json() as Record<string, unknown>
+		const data = (await request.json()) as Record<string, unknown>
 
 		// Simulate API delay
 		await new Promise(resolve => setTimeout(resolve, 800))
@@ -262,7 +262,7 @@ export const handlers = [
 	// Vendor/Assignment APIs
 	http.post('/api/maintenance/:id/assign', async ({ params, request }) => {
 		const { id } = params
-		const data = await request.json() as Record<string, unknown>
+		const data = (await request.json()) as Record<string, unknown>
 
 		// Simulate API delay
 		await new Promise(resolve => setTimeout(resolve, 1200))
