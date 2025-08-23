@@ -52,21 +52,8 @@ export interface UserFormData {
 	password: string
 }
 
-export function validateUserForm(data: UserFormData): string | null {
-	if (!data.fullName.trim()) return 'Full name is required'
-	if (!data.email.trim()) return 'Email is required'
-	if (!data.email.includes('@')) return 'Valid email is required'
-	if (data.password.length < 6)
-		return 'Password must be at least 6 characters'
-	return null
-}
-
-export function calculateAnnualSavings(
-	monthlyPrice: number,
-	annualPrice: number
-): number {
-	return monthlyPrice * 12 - annualPrice
-}
+// Business logic validation and calculations moved to backend
+// Frontend only handles display formatting
 
 export function createAuthLoginUrl(returnTo?: string): string {
 	const baseUrl = '/auth/login'
@@ -78,5 +65,5 @@ export function createAuthLoginUrl(returnTo?: string): string {
 export const SUBSCRIPTION_URLS = {
 	success: '/billing/success',
 	cancel: '/pricing',
-	portal: '/billing/portal'
+	portal: '/stripe/portal'
 }

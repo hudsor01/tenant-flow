@@ -64,50 +64,6 @@ export interface MaintenanceFilters {
 // Authentication Types (Frontend-Specific)
 // ============================================
 
-/**
- * Login form data
- */
-export interface LoginFormData {
-	email: string
-	password: string
-	rememberMe?: boolean
-}
-
-/**
- * Signup form data
- */
-export interface SignupFormData {
-	email: string
-	password: string
-	confirmPassword: string
-	firstName: string
-	lastName: string
-	acceptTerms: boolean
-}
-
-/**
- * Forgot password form data
- */
-export interface ForgotPasswordFormData {
-	email: string
-}
-
-/**
- * Reset password form data
- */
-export interface ResetPasswordFormData {
-	password: string
-	confirmPassword: string
-}
-
-/**
- * Update password form data
- */
-export interface UpdatePasswordFormData {
-	currentPassword: string
-	newPassword: string
-	confirmPassword: string
-}
 
 // ============================================
 // Dashboard/Analytics Types (Frontend-Specific)

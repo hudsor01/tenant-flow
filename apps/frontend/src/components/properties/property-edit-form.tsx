@@ -1,6 +1,6 @@
 'use client'
 
-import { PropertyFormClient } from '@/components/forms/property-form-client'
+import { PropertyForm } from '@/components/forms/property-form'
 import type { Property } from '@repo/shared'
 
 interface PropertyEditFormProps {
@@ -15,9 +15,8 @@ export function PropertyEditForm({
 	onCancel
 }: PropertyEditFormProps) {
 	return (
-		<PropertyFormClient
+		<PropertyForm
 			property={property}
-			mode="edit"
 			onSuccess={onSuccess}
 			onCancel={onCancel}
 		/>

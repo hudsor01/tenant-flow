@@ -9,17 +9,10 @@ import type {
 	UseFormSetValue,
 	UseFormGetValues
 } from 'react-hook-form'
-
-interface InvoiceItem {
-	id: string
-	description: string
-	quantity: number
-	unitPrice: number
-	total: number
-}
-
 import type { CustomerInvoiceForm } from '@repo/shared'
+import type { InvoiceItem } from '@/types/components'
 
+// Extended props for the invoice items section
 interface InvoiceItemsSectionProps {
 	register: UseFormRegister<CustomerInvoiceForm>
 	fields: InvoiceItem[]

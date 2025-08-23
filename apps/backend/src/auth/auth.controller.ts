@@ -6,16 +6,19 @@ import {
 	HttpStatus,
 	Post,
 	Req,
-	UseGuards
+	UseGuards,
+	ValidationPipe
 } from '@nestjs/common'
 import { ModuleRef } from '@nestjs/core'
 import { Throttle } from '@nestjs/throttler'
-import { JwtAuthGuard } from '../shared/guards/jwt-auth.guard'
+import { UnifiedAuthGuard } from '../shared/guards/unified-auth.guard'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
 import { AuthService, ValidatedUser } from './auth.service'
-import { Public } from '../shared/decorators/public.decorator'
+import { Public } from '../shared/decorators/auth.decorators'
 import { CsrfExempt, CsrfGuard } from '../security/csrf.guard'
 import { FastifyRequest } from 'fastify'
+import { LoginDto, RefreshTokenDto, RegisterDto } from './dto/auth.dto'
+import { SuccessResponseUtil } from '../shared/utils/success-response.util'
 
 @Controller('auth')
 @UseGuards(CsrfGuard)
@@ -30,7 +33,7 @@ export class AuthController {
 	// Profile updates available at: PUT /api/v1/users/profile
 
 	@Get('me')
-	@UseGuards(JwtAuthGuard)
+	@UseGuards(UnifiedAuthGuard)
 	async getCurrentUser(@CurrentUser() user: ValidatedUser) {
 		// Dynamically resolve UsersService to avoid circular dependency
 		const { UsersService } = await import('../users/users.service')
@@ -53,7 +56,7 @@ export class AuthController {
 	@CsrfExempt() // Token refresh uses existing authentication
 	@Throttle({ default: { limit: 20, ttl: 60000 } })
 	@HttpCode(HttpStatus.OK)
-	async refreshToken(@Body() body: { refresh_token: string }) {
+	async refreshToken(@Body(ValidationPipe) body: RefreshTokenDto) {
 		return this.authService.refreshToken(body.refresh_token)
 	}
 
@@ -68,7 +71,7 @@ export class AuthController {
 	@Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 login attempts per minute
 	@HttpCode(HttpStatus.OK)
 	async login(
-		@Body() body: { email: string; password: string },
+		@Body(ValidationPipe) body: LoginDto,
 		@Req() request: FastifyRequest
 	) {
 		const ip =
@@ -89,7 +92,7 @@ export class AuthController {
 	@Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 registration attempts per minute
 	@HttpCode(HttpStatus.CREATED)
 	async register(
-		@Body() body: { email: string; password: string; name: string }
+		@Body(ValidationPipe) body: RegisterDto
 	) {
 		return this.authService.createUser(body)
 	}
@@ -98,12 +101,12 @@ export class AuthController {
 	 * Logout endpoint
 	 */
 	@Post('logout')
-	@UseGuards(JwtAuthGuard)
+	@UseGuards(UnifiedAuthGuard)
 	@HttpCode(HttpStatus.OK)
 	async logout(@Req() request: FastifyRequest) {
 		const authHeader = request.headers.authorization
 		const token = authHeader?.split(' ')[1] || ''
 		await this.authService.logout(token)
-		return { success: true }
+		return SuccessResponseUtil.success()
 	}
 }
