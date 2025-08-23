@@ -3,8 +3,8 @@ import { StripeController } from './stripe.controller'
 import { StripeModule as BillingStripeModule } from '../billing/stripe.module'
 
 @Module({
-  imports: [BillingStripeModule],
-  controllers: [StripeController],
-  exports: []
+	imports: [BillingStripeModule],
+	controllers: [StripeController],
+	exports: []
 })
 export class StripeModule {}

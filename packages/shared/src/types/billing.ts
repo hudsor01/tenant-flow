@@ -219,7 +219,7 @@ import type { Stripe } from 'stripe'
 type StripeErrorType = string
 type StripeWebhookEvent = Stripe.Event
 
-// Note: Stripe element types (StripeElementEvent, StripeCardElementEvent, etc.) 
+// Note: Stripe element types (StripeElementEvent, StripeCardElementEvent, etc.)
 // are now available in './stripe' and can be imported when needed
 
 export interface StripeWebhookError {

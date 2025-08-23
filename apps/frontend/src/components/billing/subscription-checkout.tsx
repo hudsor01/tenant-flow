@@ -23,7 +23,7 @@ interface SubscriptionCheckoutProps {
 
 /**
  * Modern Subscription Checkout Component (2025)
- * 
+ *
  * Implements Stripe's latest best practices:
  * - Uses Confirmation Token pattern for security
  * - Embedded checkout (no redirects)
@@ -62,20 +62,23 @@ export function SubscriptionCheckout({
 
 		try {
 			// Step 1: Create Confirmation Token (Stripe's 2025 recommended approach)
-			const { error: confirmationError, confirmationToken } = await stripe.createConfirmationToken({
-				elements,
-				params: {
-					payment_method_data: {
-						billing_details: {
-							// Payment Element automatically collects billing details
-							// No need for custom billing name field
+			const { error: confirmationError, confirmationToken } =
+				await stripe.createConfirmationToken({
+					elements,
+					params: {
+						payment_method_data: {
+							billing_details: {
+								// Payment Element automatically collects billing details
+								// No need for custom billing name field
+							}
 						}
 					}
-				}
-			})
+				})
 
 			if (confirmationError) {
-				setErrorMessage(confirmationError.message || 'Payment validation failed')
+				setErrorMessage(
+					confirmationError.message || 'Payment validation failed'
+				)
 				return
 			}
 
@@ -97,17 +100,18 @@ export function SubscriptionCheckout({
 				})
 
 				if (actionError) {
-					setErrorMessage(actionError.message || 'Payment authentication failed')
+					setErrorMessage(
+						actionError.message || 'Payment authentication failed'
+					)
 					return
 				}
 			}
 
-			// Step 4: Success! 
+			// Step 4: Success!
 			setIsSuccess(true)
 			if (onSuccess) {
 				onSuccess(response.subscription.id)
 			}
-
 		} catch (error) {
 			const message =
 				error instanceof Error
@@ -129,15 +133,17 @@ export function SubscriptionCheckout({
 						Subscription Activated!
 					</CardTitle>
 					<CardDescription>
-						Welcome to {plan?.name}! Your subscription is now active.
+						Welcome to {plan?.name}! Your subscription is now
+						active.
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="text-center">
-					<p className="text-muted-foreground text-sm mb-4">
-						You'll receive a confirmation email shortly with your subscription details.
+					<p className="text-muted-foreground mb-4 text-sm">
+						You'll receive a confirmation email shortly with your
+						subscription details.
 					</p>
-					<Button 
-						onClick={() => window.location.href = '/dashboard'}
+					<Button
+						onClick={() => (window.location.href = '/dashboard')}
 						className="w-full"
 					>
 						Continue to Dashboard
@@ -162,7 +168,7 @@ export function SubscriptionCheckout({
 						</span>
 					)}
 					<br />
-					<div className="flex items-center justify-center gap-1 mt-2">
+					<div className="mt-2 flex items-center justify-center gap-1">
 						<Shield className="h-4 w-4" />
 						<span>Secure checkout powered by Stripe</span>
 					</div>
@@ -187,12 +193,12 @@ export function SubscriptionCheckout({
 								// Native billing details collection (replaces custom fields)
 								fields: {
 									billingDetails: {
-										name: 'auto',    // Stripe handles name collection
-										email: 'auto',   // Stripe handles email collection  
-										phone: 'never',  // Don't collect phone for subscriptions
+										name: 'auto', // Stripe handles name collection
+										email: 'auto', // Stripe handles email collection
+										phone: 'never', // Don't collect phone for subscriptions
 										address: {
-											country: 'auto',     // Required for tax calculation
-											postalCode: 'auto'   // Required for card validation
+											country: 'auto', // Required for tax calculation
+											postalCode: 'auto' // Required for card validation
 										}
 									}
 								},
@@ -214,9 +220,9 @@ export function SubscriptionCheckout({
 								// Optimized payment method order
 								paymentMethodOrder: [
 									'card',
-									'apple_pay', 
+									'apple_pay',
 									'google_pay',
-									'link',        // Stripe Link for returning customers
+									'link', // Stripe Link for returning customers
 									'paypal'
 								]
 							}}
@@ -226,9 +232,7 @@ export function SubscriptionCheckout({
 					{/* Error message */}
 					{errorMessage && (
 						<Alert variant="destructive">
-							<AlertDescription>
-								{errorMessage}
-							</AlertDescription>
+							<AlertDescription>{errorMessage}</AlertDescription>
 						</Alert>
 					)}
 
@@ -264,13 +268,16 @@ export function SubscriptionCheckout({
 					</div>
 
 					{/* Enhanced security indicators */}
-					<div className="text-center space-y-2">
+					<div className="space-y-2 text-center">
 						<div className="text-muted-foreground flex items-center justify-center gap-2 text-sm">
 							<Shield className="h-4 w-4" />
-							<span>256-bit SSL encryption • PCI DSS compliant</span>
+							<span>
+								256-bit SSL encryption • PCI DSS compliant
+							</span>
 						</div>
-						<p className="text-xs text-muted-foreground">
-							Your payment information is processed securely by Stripe.
+						<p className="text-muted-foreground text-xs">
+							Your payment information is processed securely by
+							Stripe.
 							<br />
 							We don't store your payment details.
 						</p>

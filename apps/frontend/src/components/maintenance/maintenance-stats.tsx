@@ -25,9 +25,15 @@ function MaintenanceStatsSkeleton() {
 function calculateMaintenanceStats(requests: MaintenanceRequest[]) {
 	const safeRequests = Array.isArray(requests) ? requests : []
 	const totalRequests = safeRequests.length
-	const openRequests = safeRequests.filter(request => request.status === 'OPEN').length
-	const inProgressRequests = safeRequests.filter(request => request.status === 'IN_PROGRESS').length
-	const completedRequests = safeRequests.filter(request => request.status === 'COMPLETED').length
+	const openRequests = safeRequests.filter(
+		request => request.status === 'OPEN'
+	).length
+	const inProgressRequests = safeRequests.filter(
+		request => request.status === 'IN_PROGRESS'
+	).length
+	const completedRequests = safeRequests.filter(
+		request => request.status === 'COMPLETED'
+	).length
 
 	// Calculate urgent/high priority requests
 	const urgentRequests = safeRequests.filter(
@@ -109,13 +115,14 @@ function MaintenanceStatsUI({ stats }: MaintenanceStatsUIProps) {
 							<p className="text-muted-foreground text-xs">
 								{stat.description}
 							</p>
-							{stat.title === 'Open' && stats.urgentRequests > 0 && (
-								<div className="mt-1">
-									<span className="text-xs font-medium text-red-600">
-										{stats.urgentRequests} urgent
-									</span>
-								</div>
-							)}
+							{stat.title === 'Open' &&
+								stats.urgentRequests > 0 && (
+									<div className="mt-1">
+										<span className="text-xs font-medium text-red-600">
+											{stats.urgentRequests} urgent
+										</span>
+									</div>
+								)}
 						</CardContent>
 					</Card>
 				)
@@ -140,7 +147,6 @@ export function MaintenanceStats() {
 	if (error) {
 		throw error
 	}
-
 
 	// Calculate stats using pure function
 	const stats = calculateMaintenanceStats(maintenanceRequests || [])

@@ -10,7 +10,7 @@ export function HeroSection() {
 			<div className="relative mx-auto max-w-7xl px-6 lg:px-8">
 				<div className="mx-auto max-w-4xl text-center">
 					{/* Compact announcement badge */}
-					<div className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 text-sm text-gray-600 shadow-sm mb-6">
+					<div className="mb-6 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 text-sm text-gray-600 shadow-sm">
 						<div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
 						<span>New: AI-Powered Lease Generator</span>
 						<ArrowRight className="h-3 w-3" />
@@ -26,7 +26,8 @@ export function HeroSection() {
 
 					{/* Compact subtitle */}
 					<p className="mx-auto mt-6 max-w-2xl text-lg leading-7 text-gray-600">
-						The all-in-one platform trusted by 10,000+ property managers to save 10+ hours per week
+						The all-in-one platform trusted by 10,000+ property
+						managers to save 10+ hours per week
 					</p>
 
 					{/* Compact CTA section */}

@@ -66,7 +66,9 @@ export default function BlogHeaderSection({
 							<Calendar className="h-4 w-4" />
 							<time>
 								{article.publishedAt
-									? new Date(article.publishedAt).toLocaleDateString('en-US', {
+									? new Date(
+											article.publishedAt
+										).toLocaleDateString('en-US', {
 											year: 'numeric',
 											month: 'long',
 											day: 'numeric'

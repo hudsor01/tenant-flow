@@ -17,10 +17,7 @@ export function HeroButtons() {
 				</Button>
 			</Link>
 			<Link href="/demo">
-				<Button
-					size="default"
-					variant="outline"
-				>
+				<Button size="default" variant="outline">
 					<Calendar className="mr-2 h-4 w-4" />
 					Book a Demo
 				</Button>

@@ -30,7 +30,9 @@ export function generateTexasLeaseHTML(data: TexasLeaseData): string {
 
 	const fullAddress = `${data.propertyAddress}${data.unitNumber ? `, ${data.unitNumber}` : ''}`
 	const tenantList = data.tenantNames
-		.map((t: string | { name: string }) => (typeof t === 'string' ? t : t.name))
+		.map((t: string | { name: string }) =>
+			typeof t === 'string' ? t : t.name
+		)
 		.join(' and ')
 	const signatureDate = formatDateForSignature(data.leaseStartDate)
 	const holdOverRent = Math.round(data.rentAmount * 1.1) // 10% increase for holdover
@@ -41,7 +43,9 @@ export function generateTexasLeaseHTML(data: TexasLeaseData): string {
 		data.tenantNames.length > 1
 			? data.tenantNames
 					.slice(1)
-					.map((t: string | { name: string }) => (typeof t === 'string' ? t : t.name))
+					.map((t: string | { name: string }) =>
+						typeof t === 'string' ? t : t.name
+					)
 					.join(', ')
 			: ''
 
@@ -350,7 +354,9 @@ export function generateTexasLeaseText(data: TexasLeaseData): string {
 
 	const fullAddress = `${data.propertyAddress}${data.unitNumber ? `, ${data.unitNumber}` : ''}, ${data.city}, ${data.state} ${data.zipCode}`
 	const tenantList = data.tenantNames
-		.map((t: string | { name: string }) => (typeof t === 'string' ? t : t.name))
+		.map((t: string | { name: string }) =>
+			typeof t === 'string' ? t : t.name
+		)
 		.join(', ')
 	const currentDate = new Date().toLocaleDateString('en-US')
 

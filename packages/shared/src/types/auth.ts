@@ -73,7 +73,7 @@ export interface SecureUserMetadata {
 }
 
 // Authentication error types
-export type AuthErrorCode = 
+export type AuthErrorCode =
 	| 'INVALID_CREDENTIALS'
 	| 'USER_NOT_FOUND'
 	| 'EMAIL_NOT_VERIFIED'
@@ -94,7 +94,7 @@ export interface AuthError {
 	details?: Record<string, string | number | boolean>
 }
 
-// Authentication related types  
+// Authentication related types
 export interface AuthSession {
 	access_token: string
 	refresh_token: string

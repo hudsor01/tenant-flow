@@ -39,7 +39,7 @@ export function StyledCheckoutForm({
 	// returnUrl is handled by the backend when creating the session
 	// The new API doesn't need it passed here
 	void returnUrl
-	
+
 	return (
 		<CheckoutForm
 			clientSecret={clientSecret}

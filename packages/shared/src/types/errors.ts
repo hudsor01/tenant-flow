@@ -90,11 +90,7 @@ export interface PaymentError extends BaseError {
 // Loader errors (for data loading failures)
 export interface LoaderError extends BaseError {
 	type: 'LOADER_ERROR'
-	code:
-		| 'LOAD_FAILED'
-		| 'MISSING_DEPENDENCY'
-		| 'INVALID_CONFIG'
-		| 'TIMEOUT'
+	code: 'LOAD_FAILED' | 'MISSING_DEPENDENCY' | 'INVALID_CONFIG' | 'TIMEOUT'
 }
 
 // Union type for all possible errors

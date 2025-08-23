@@ -32,7 +32,8 @@ export function HostedCheckoutButton({
 		createCheckoutMutation.mutate({
 			planId: planType,
 			interval: billingInterval === 'annual' ? 'annual' : 'monthly',
-			successUrl: _successUrl || `${window.location.origin}/billing/success`,
+			successUrl:
+				_successUrl || `${window.location.origin}/billing/success`,
 			cancelUrl: _cancelUrl || `${window.location.origin}/pricing`
 		})
 	}

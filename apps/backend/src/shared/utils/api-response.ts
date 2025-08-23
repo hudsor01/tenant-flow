@@ -10,12 +10,12 @@ export function createSuccessResponse<T = unknown>(
 	data: T,
 	message = 'Operation completed successfully'
 ): ControllerApiResponse<T> {
-return {
-success: true,
-data,
-message,
-timestamp: new Date()
-}
+	return {
+		success: true,
+		data,
+		message,
+		timestamp: new Date()
+	}
 }
 
 /**

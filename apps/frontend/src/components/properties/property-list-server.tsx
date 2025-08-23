@@ -128,9 +128,7 @@ async function PropertyStatsComponent() {
 		<div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
 			<Card>
 				<CardContent className="p-4">
-					<div className="text-2xl font-bold">
-						{stats.total || 0}
-					</div>
+					<div className="text-2xl font-bold">{stats.total || 0}</div>
 					<p className="text-muted-foreground text-sm">
 						Total Properties
 					</p>

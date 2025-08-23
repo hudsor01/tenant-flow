@@ -9,7 +9,7 @@
 
 import type {
 	ApiSuccessResponse as _ApiSuccessResponse,
-	ApiErrorResponse as _ApiErrorResponse, 
+	ApiErrorResponse as _ApiErrorResponse,
 	ApiPaginatedResponse
 } from './responses'
 
