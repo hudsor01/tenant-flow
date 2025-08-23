@@ -49,7 +49,7 @@ export interface Unit {
 	securityDeposit?: number
 	description?: string
 	amenities?: string[]
-	status: UnitStatus | string // Allow both enum and string for flexibility
+	status: UnitStatus
 	lastInspectionDate: Date | null
 	createdAt: Date
 	updatedAt: Date
