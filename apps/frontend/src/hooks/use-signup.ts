@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/clients'
-import { signInWithGoogle } from '@/lib/clients/supabase-oauth'
+import { supabase } from '@/lib/supabase/client'
 import type { AuthError } from '@repo/shared'
 
 interface SignupData {
@@ -75,10 +74,15 @@ export function useSignup({
 		setError(null)
 
 		try {
-			const result = await signInWithGoogle()
+			const result = await supabase.auth.signInWithOAuth({
+				provider: 'google',
+				options: {
+					redirectTo: `${window.location.origin}/auth/callback?type=signup&redirect=${redirectTo}`
+				}
+			})
 
-			if (!result.success) {
-				throw new Error(result.error || 'Failed to sign up with Google')
+			if (result.error) {
+				throw new Error(result.error.message || 'Failed to sign up with Google')
 			}
 			// If successful, Supabase will redirect to the callback URL
 		} catch (error) {

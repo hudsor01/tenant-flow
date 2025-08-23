@@ -8,7 +8,7 @@ import {
 	AnimatePresence,
 	useDragControls,
 	type PanInfo
-} from 'framer-motion'
+} from '@/lib/lazy-motion'
 import { logger } from '@/lib/logger'
 import {
 	SidebarProvider,
@@ -37,7 +37,7 @@ import {
 	Activity
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { useDashboardStats } from '@/hooks/api/use-dashboard'
+import { useDashboardOverview } from '@/hooks/api/use-dashboard'
 import { cn } from '@/lib/utils'
 
 const getNavigationItems = (stats?: {
@@ -58,7 +58,7 @@ const getNavigationItems = (stats?: {
 		name: 'Properties',
 		href: '/properties',
 		icon: Building,
-		badge: stats?.properties?.totalProperties || null,
+		badge: stats?.properties?.totalProperties ?? null,
 		badgeColor: 'bg-blue-100 text-blue-700'
 	},
 	{
@@ -66,7 +66,7 @@ const getNavigationItems = (stats?: {
 		name: 'Tenants',
 		href: '/tenants',
 		icon: Users,
-		badge: stats?.tenants?.totalTenants || null,
+		badge: stats?.tenants?.totalTenants ?? null,
 		badgeColor: 'bg-green-100 text-green-700'
 	},
 	{
@@ -74,7 +74,7 @@ const getNavigationItems = (stats?: {
 		name: 'Leases',
 		href: '/leases',
 		icon: FileText,
-		badge: stats?.leases?.activeLeases || null,
+		badge: stats?.leases?.activeLeases ?? null,
 		badgeColor: 'bg-purple-100 text-purple-700'
 	},
 	{
@@ -82,9 +82,9 @@ const getNavigationItems = (stats?: {
 		name: 'Maintenance',
 		href: '/maintenance',
 		icon: Wrench,
-		badge: stats?.maintenanceRequests?.open || null,
+		badge: stats?.maintenanceRequests?.open ?? null,
 		badgeColor:
-			(stats?.maintenanceRequests?.open || 0) > 0
+			(stats?.maintenanceRequests?.open ?? 0) > 0
 				? 'bg-red-100 text-red-700'
 				: 'bg-gray-100 text-gray-700'
 	},
@@ -118,7 +118,7 @@ export function DashboardSidebar({
 	isMobile = false
 }: DashboardSidebarProps) {
 	const pathname = usePathname()
-	const { data: stats } = useDashboardStats()
+	const { data: stats } = useDashboardOverview()
 	const navigation = getNavigationItems(stats)
 	const dragControls = useDragControls()
 	const sidebarRef = useRef<HTMLDivElement>(null)
@@ -274,7 +274,7 @@ export function DashboardSidebar({
 												className="ml-auto rounded-full px-1.5 py-0.5 text-xs group-data-[collapsible=icon]:hidden"
 											>
 												{stats?.maintenanceRequests
-													?.open || 0}
+													?.open ?? 0}
 											</Badge>
 										)}
 									</Link>
@@ -466,13 +466,13 @@ export function DashboardSidebar({
 									<Bell className="h-5 w-5 text-gray-500" />
 									<span>Notifications</span>
 								</div>
-								{(stats?.maintenanceRequests?.open || 0) >
+								{(stats?.maintenanceRequests?.open ?? 0) >
 									0 && (
 									<Badge
 										variant="destructive"
 										className="rounded-full px-1.5 py-0.5 text-xs"
 									>
-										{stats?.maintenanceRequests?.open || 0}
+										{stats?.maintenanceRequests?.open ?? 0}
 									</Badge>
 								)}
 							</Link>

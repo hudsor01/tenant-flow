@@ -51,7 +51,7 @@ export class PropertiesController {
 			success: true,
 			data,
 			message: 'Properties retrieved successfully',
-			timestamp: new Date().toISOString()
+			timestamp: new Date()
 		}
 	}
 
@@ -70,7 +70,7 @@ export class PropertiesController {
 			success: true,
 			data,
 			message: 'Statistics retrieved successfully',
-			timestamp: new Date().toISOString()
+			timestamp: new Date()
 		}
 	}
 
@@ -91,7 +91,7 @@ export class PropertiesController {
 			success: true,
 			data,
 			message: 'Search completed successfully',
-			timestamp: new Date().toISOString()
+			timestamp: new Date()
 		}
 	}
 
@@ -113,7 +113,7 @@ export class PropertiesController {
 			success: true,
 			data,
 			message: 'Property retrieved successfully',
-			timestamp: new Date().toISOString()
+			timestamp: new Date()
 		}
 	}
 
@@ -139,7 +139,7 @@ export class PropertiesController {
 			success: true,
 			data,
 			message: 'Property created successfully',
-			timestamp: new Date().toISOString()
+			timestamp: new Date()
 		}
 	}
 
@@ -166,7 +166,7 @@ export class PropertiesController {
 			success: true,
 			data,
 			message: 'Property updated successfully',
-			timestamp: new Date().toISOString()
+			timestamp: new Date()
 		}
 	}
 
@@ -190,7 +190,7 @@ export class PropertiesController {
 			success: true,
 			data: null,
 			message: 'Property deleted successfully',
-			timestamp: new Date().toISOString()
+			timestamp: new Date()
 		}
 	}
 }

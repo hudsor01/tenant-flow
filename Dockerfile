@@ -46,9 +46,9 @@ COPY . .
 RUN rm -rf .git .github docs *.md apps/frontend apps/storybook
 
 # Build-time optimizations
-# 1096MB memory: Prevents OOM during TypeScript compilation on Railway
+# 1024MB memory: Optimized based on project complexity analysis (reduced from 1096MB)
 # Disable telemetry: Faster builds, no data collection
-ENV NODE_OPTIONS="--max-old-space-size=1096" \
+ENV NODE_OPTIONS="--max-old-space-size=1024" \
     TURBO_TELEMETRY_DISABLED=1
 
 # Build shared and database packages first, then backend
@@ -108,12 +108,12 @@ USER nodejs
 # NODE_ENV=production: Enables production optimizations in Node.js and libraries
 # DOCKER_CONTAINER=true: Signals containerized environment to application
 # --enable-source-maps: Better error debugging in production
-# --max-old-space-size=256: Optimized for Railway's memory constraints
+# --max-old-space-size=264: Optimized based on project analysis (+3% from 256MB for stability)
 # UV_THREADPOOL_SIZE=2: Reduced thread pool for Railway's CPU allocation
 # NODE_NO_WARNINGS=1: Cleaner logs, reduced overhead
 ENV NODE_ENV=production \
     DOCKER_CONTAINER=true \
-    NODE_OPTIONS="--enable-source-maps --max-old-space-size=256" \
+    NODE_OPTIONS="--enable-source-maps --max-old-space-size=264" \
     UV_THREADPOOL_SIZE=2 \
     NODE_NO_WARNINGS=1
 

@@ -11,17 +11,17 @@ export function HeroButtons() {
 				<Button
 					size="default"
 					className="bg-blue-600 text-white hover:bg-blue-700"
-					rightIcon={<ArrowRight className="h-4 w-4" />}
 				>
 					Start Free Trial
+					<ArrowRight className="ml-2 h-4 w-4" />
 				</Button>
 			</Link>
 			<Link href="/demo">
 				<Button
 					size="default"
 					variant="outline"
-					leftIcon={<Calendar className="h-4 w-4" />}
 				>
+					<Calendar className="mr-2 h-4 w-4" />
 					Book a Demo
 				</Button>
 			</Link>

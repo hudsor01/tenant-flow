@@ -1,222 +1,235 @@
+'use client'
+
 /**
- * Form Field Components - Server Components
- *
- * Reusable form field patterns with consistent styling
- * Server components for optimal performance
+ * Reusable form field components
+ * Common form patterns following DRY principles
  */
 
-import React from 'react'
-import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Checkbox } from '@/components/ui/checkbox'
 
-// ============================================================================
-// BASE FORM FIELD
-// ============================================================================
-
-interface FormFieldProps {
+export interface FormFieldProps {
 	label: string
 	name: string
-	required?: boolean
 	error?: string
-	hint?: string
+	required?: boolean
 	className?: string
-	children: React.ReactNode
 }
 
-export function FormField({
-	label,
-	name,
-	required = false,
-	error,
-	hint,
-	className,
-	children
-}: FormFieldProps) {
+export interface TextFieldProps extends FormFieldProps {
+	type?: 'text' | 'email' | 'tel' | 'url'
+	placeholder?: string
+	defaultValue?: string
+	maxLength?: number
+}
+
+export interface NumberFieldProps extends FormFieldProps {
+	placeholder?: string
+	defaultValue?: number
+	min?: number
+	max?: number
+	step?: number
+}
+
+export interface TextareaFieldProps extends FormFieldProps {
+	placeholder?: string
+	defaultValue?: string
+	rows?: number
+	maxLength?: number
+}
+
+export interface SelectFieldProps extends FormFieldProps {
+	placeholder?: string
+	defaultValue?: string
+	options: Array<{ value: string; label: string }>
+}
+
+export interface CheckboxFieldProps extends FormFieldProps {
+	defaultChecked?: boolean
+	description?: string
+}
+
+export function TextField({ 
+	label, 
+	name, 
+	type = 'text', 
+	placeholder, 
+	defaultValue, 
+	error, 
+	required, 
+	maxLength,
+	className 
+}: TextFieldProps) {
 	return (
-		<div className={cn('space-y-2', className)}>
-			<Label htmlFor={name} className="text-sm font-medium">
+		<div className={`space-y-2 ${className || ''}`}>
+			<Label htmlFor={name}>
 				{label}
-				{required && <span className="ml-1 text-red-500">*</span>}
+				{required && <span className="text-red-500 ml-1">*</span>}
 			</Label>
-			{children}
-			{hint && <p className="text-muted-foreground text-xs">{hint}</p>}
-			{error && <p className="text-xs text-red-600">{error}</p>}
+			<Input
+				id={name}
+				name={name}
+				type={type}
+				placeholder={placeholder}
+				defaultValue={defaultValue}
+				required={required}
+				maxLength={maxLength}
+				className={error ? 'border-red-500' : ''}
+			/>
+			{error && (
+				<p className="text-sm text-red-600">{error}</p>
+			)}
 		</div>
 	)
 }
 
-// ============================================================================
-// TEXT FIELD
-// ============================================================================
-
-interface TextFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
-	label: string
-	name: string
-	required?: boolean
-	error?: string
-	hint?: string
-}
-
-export function TextField({
-	label,
-	name,
-	required = false,
-	error,
-	hint,
-	className,
-	...props
-}: TextFieldProps) {
-	// Extract aria-invalid to avoid type conflicts
-	const { 'aria-invalid': _ariaInvalid, ...restProps } = props as Record<
-		string,
-		unknown
-	>
-
+export function NumberField({ 
+	label, 
+	name, 
+	placeholder, 
+	defaultValue, 
+	error, 
+	required, 
+	min,
+	max,
+	step,
+	className 
+}: NumberFieldProps) {
 	return (
-		<FormField
-			label={label}
-			name={name}
-			required={required}
-			error={error}
-			hint={hint}
-			className={className}
-		>
+		<div className={`space-y-2 ${className || ''}`}>
+			<Label htmlFor={name}>
+				{label}
+				{required && <span className="text-red-500 ml-1">*</span>}
+			</Label>
 			<Input
 				id={name}
 				name={name}
-				aria-invalid={!!error}
-				aria-describedby={
-					error ? `${name}-error` : hint ? `${name}-hint` : undefined
-				}
-				{...restProps}
+				type="number"
+				placeholder={placeholder}
+				defaultValue={defaultValue}
+				required={required}
+				min={min}
+				max={max}
+				step={step}
+				className={error ? 'border-red-500' : ''}
 			/>
-		</FormField>
+			{error && (
+				<p className="text-sm text-red-600">{error}</p>
+			)}
+		</div>
 	)
 }
 
-// ============================================================================
-// TEXTAREA FIELD
-// ============================================================================
-
-interface TextareaFieldProps
-	extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
-	label: string
-	name: string
-	required?: boolean
-	error?: string
-	hint?: string
-}
-
-export function TextareaField({
-	label,
-	name,
-	required = false,
-	error,
-	hint,
-	className,
-	...props
+export function TextareaField({ 
+	label, 
+	name, 
+	placeholder, 
+	defaultValue, 
+	error, 
+	required, 
+	rows = 3,
+	maxLength,
+	className 
 }: TextareaFieldProps) {
 	return (
-		<FormField
-			label={label}
-			name={name}
-			required={required}
-			error={error}
-			hint={hint}
-			className={className}
-		>
+		<div className={`space-y-2 ${className || ''}`}>
+			<Label htmlFor={name}>
+				{label}
+				{required && <span className="text-red-500 ml-1">*</span>}
+			</Label>
 			<Textarea
 				id={name}
 				name={name}
-				aria-invalid={error ? true : false}
-				aria-describedby={
-					error ? `${name}-error` : hint ? `${name}-hint` : undefined
-				}
-				{...props}
+				placeholder={placeholder}
+				defaultValue={defaultValue}
+				required={required}
+				rows={rows}
+				maxLength={maxLength}
+				className={error ? 'border-red-500' : ''}
 			/>
-		</FormField>
+			{error && (
+				<p className="text-sm text-red-600">{error}</p>
+			)}
+		</div>
 	)
 }
 
-// ============================================================================
-// SELECT FIELD
-// ============================================================================
-
-interface SelectOption {
-	value: string
-	label: string
-	disabled?: boolean
-}
-
-interface SelectFieldProps {
-	label: string
-	name: string
-	options: SelectOption[]
-	placeholder?: string
-	required?: boolean
-	error?: string
-	hint?: string
-	className?: string
-	value?: string
-	onValueChange?: (value: string) => void
-}
-
-export function SelectField({
-	label,
-	name,
+export function SelectField({ 
+	label, 
+	name, 
+	placeholder, 
+	defaultValue, 
+	error, 
+	required,
 	options,
-	placeholder = 'Select an option',
-	required = false,
-	error,
-	hint,
-	className,
-	value,
-	onValueChange
+	className 
 }: SelectFieldProps) {
 	return (
-		<FormField
-			label={label}
-			name={name}
-			required={required}
-			error={error}
-			hint={hint}
-			className={className}
-		>
-			<Select value={value} onValueChange={onValueChange} name={name}>
-				<SelectTrigger
-					id={name}
-					aria-invalid={error ? true : false}
-					aria-describedby={
-						error
-							? `${name}-error`
-							: hint
-								? `${name}-hint`
-								: undefined
-					}
-				>
+		<div className={`space-y-2 ${className || ''}`}>
+			<Label htmlFor={name}>
+				{label}
+				{required && <span className="text-red-500 ml-1">*</span>}
+			</Label>
+			<Select name={name} defaultValue={defaultValue} required={required}>
+				<SelectTrigger className={error ? 'border-red-500' : ''}>
 					<SelectValue placeholder={placeholder} />
 				</SelectTrigger>
 				<SelectContent>
-					{options.map(option => (
-						<SelectItem
-							key={option.value}
-							value={option.value}
-							disabled={option.disabled}
-						>
+					{options.map((option) => (
+						<SelectItem key={option.value} value={option.value}>
 							{option.label}
 						</SelectItem>
 					))}
 				</SelectContent>
 			</Select>
-		</FormField>
+			{error && (
+				<p className="text-sm text-red-600">{error}</p>
+			)}
+		</div>
 	)
+}
+
+export function CheckboxField({ 
+	label, 
+	name, 
+	defaultChecked, 
+	error, 
+	required,
+	description,
+	className 
+}: CheckboxFieldProps) {
+	return (
+		<div className={`space-y-2 ${className || ''}`}>
+			<div className="flex items-center space-x-2">
+				<Checkbox
+					id={name}
+					name={name}
+					defaultChecked={defaultChecked}
+					required={required}
+				/>
+				<Label htmlFor={name} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+					{label}
+					{required && <span className="text-red-500 ml-1">*</span>}
+				</Label>
+			</div>
+			{description && (
+				<p className="text-sm text-gray-600">{description}</p>
+			)}
+			{error && (
+				<p className="text-sm text-red-600">{error}</p>
+			)}
+		</div>
+	)
+}
+
+// Export all field components
+export {
+	TextField as FormTextField,
+	NumberField as FormNumberField,
+	TextareaField as FormTextareaField,
+	SelectField as FormSelectField,
+	CheckboxField as FormCheckboxField
 }

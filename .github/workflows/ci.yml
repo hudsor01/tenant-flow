@@ -18,7 +18,7 @@ env:
 
 jobs:
   workflow-lint:
-    name: Workflow Lint
+    name: Workflow Lint & Type Safety
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -29,9 +29,29 @@ jobs:
           submodules: true
           ref: ${{ github.head_ref || github.sha }}
 
-      - name: Validate workflow files
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install validation dependencies
         run: |
-          echo "🔍 Validating GitHub workflow files..."
+          npm install -g tsx yaml
+          npm install typescript @types/node --no-save
+
+      - name: TypeScript-based workflow validation
+        run: |
+          echo "🔍 Validating GitHub workflow files with TypeScript..."
+          
+          # Run our TypeScript validation script
+          if [ -f ".github/scripts/validate-workflow-types.ts" ]; then
+            tsx .github/scripts/validate-workflow-types.ts
+          else
+            echo "⚠️ TypeScript validation script not found, falling back to basic validation"
+          fi
+
+      - name: Basic YAML structure validation
+        run: |
+          echo "🔍 Basic YAML structure validation..."
           
           # Check that all workflow files exist and have basic structure
           ERRORS=0
@@ -72,6 +92,11 @@ jobs:
             if grep -E "^\t" "$file" > /dev/null; then
               echo "❌ Tab characters found in $file (YAML requires spaces)"
               ERRORS=$((ERRORS + 1))
+            fi
+            
+            # Environment variable validation
+            if grep -q "NODE_VERSION" "$file" && ! grep -q "env:" "$file"; then
+              echo "⚠️ $file references NODE_VERSION but doesn't define env section"
             fi
             
             if [ $ERRORS -eq 0 ]; then
@@ -282,7 +307,6 @@ jobs:
         continue-on-error: true
         env:
           CI: true
-          NODE_ENV: test
           TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
           TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
@@ -346,7 +370,6 @@ jobs:
               ;; 
           esac
         env:
-          NODE_ENV: production
           TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
           TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
@@ -408,7 +431,6 @@ jobs:
           cd apps/backend
           npm run test:integration || echo "Backend integration tests completed with warnings"
         env:
-          NODE_ENV: test
           DATABASE_URL: postgresql://test:test@localhost:5432/test
         continue-on-error: true
 

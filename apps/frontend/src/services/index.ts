@@ -1,61 +1,11 @@
 /**
- * Service Layer Exports
+ * Service Layer Constants and Utilities
  *
- * Centralized exports for all services, making it easy to import
- * service interfaces and implementations throughout the application.
+ * Centralized business rules and constants for the application.
+ * Services have been replaced with direct React Query hooks.
  */
 
-// Service Interfaces
-export type {
-	AuthenticationService,
-	SignInCredentials,
-	PasswordValidationRules
-} from './authentication.service'
-export type { PropertyManagementService } from './property-management.service'
-export type { TenantManagementService } from './tenant-management.service'
-
-// Service Implementations
-export { DefaultAuthenticationService } from './authentication.service'
-export { DefaultPropertyManagementService } from './property-management.service'
-export { DefaultTenantManagementService } from './tenant-management.service'
-
-// Service Container
-export {
-	ServiceContainerFactory,
-	useServices,
-	useAuthService,
-	usePropertyService,
-	useTenantService,
-	services
-} from './service-container'
-
-export type { ServiceContainer } from './service-container'
-
-// Re-export repository interfaces for convenience
-export type {
-	AuthRepository,
-	PropertyRepository,
-	TenantRepository,
-	LeaseRepository,
-	MaintenanceRepository,
-	UnitRepository,
-	ActivityRepository,
-	BillingRepository,
-	FileRepository,
-	NotificationRepository,
-	SignUpData,
-	AuthResult,
-	PropertyStats,
-	Subscription,
-	CheckoutSession,
-	Usage,
-	BillingHistory,
-	FileUploadResult,
-	FileInfo,
-	NotificationTemplate,
-	SendNotificationInput,
-	CreateActivityInput
-} from '@/repositories/interfaces'
+// Authentication replaced with direct Supabase Auth actions in /lib/actions/auth-actions.ts
 
 /**
  * Business Rule Constants

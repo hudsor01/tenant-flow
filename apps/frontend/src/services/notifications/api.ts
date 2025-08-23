@@ -34,7 +34,7 @@ export class NotificationApiService {
 		}
 
 		try {
-			logger.info('Sending notification', undefined, {
+			logger.info('Sending notification', {
 				recipientId: notificationData.recipientId,
 				type: notificationData.type,
 				title: notificationData.title

@@ -148,7 +148,7 @@ export function PropertyBasicInfoSection({
 						<div className="flex items-center space-x-2">
 							<Home className="h-4 w-4 text-gray-600" />
 							<span className="text-sm text-gray-700">
-								This property has {numberOfUnits || 0} units.
+								This property has {numberOfUnits ?? 0} units.
 								Manage units from the property details page.
 							</span>
 						</div>

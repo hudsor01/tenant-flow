@@ -2,14 +2,14 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { signInWithGoogle } from '@/lib/clients/supabase-oauth'
+import { supabase } from '@/lib/supabase/client'
 import { toast } from 'sonner'
-import { motion } from '@/lib/framer-motion'
+import { motion } from '@/lib/lazy-motion'
 import { cn } from '@/lib/utils'
 
 interface OAuthProvidersProps {
 	disabled?: boolean
-	onProviderClick?: (provider: string) => void
+	onProviderClick?: (_provider: string) => void
 }
 
 export function OAuthProviders({
@@ -25,9 +25,14 @@ export function OAuthProviders({
 		onProviderClick?.('Google')
 		setIsGoogleLoading(true)
 		try {
-			const result = await signInWithGoogle()
-			if (!result.success) {
-				toast.error(result.error || 'Failed to sign in with Google')
+			const result = await supabase.auth.signInWithOAuth({
+				provider: 'google',
+				options: {
+					redirectTo: `${window.location.origin}/auth/callback`
+				}
+			})
+			if (result.error) {
+				toast.error(result.error.message ?? 'Failed to sign in with Google')
 				setIsGoogleLoading(false)
 			}
 			// If successful, Supabase will redirect to the callback URL

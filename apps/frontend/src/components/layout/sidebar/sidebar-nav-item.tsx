@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from '@/lib/lazy-motion'
 import { ChevronRight, Activity } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -18,7 +18,12 @@ import {
 	TooltipTrigger
 } from '@/components/ui/tooltip'
 import { useSidebar } from './sidebar-provider'
-import { springConfig } from '@/lib/animations'
+// Inline animation configs (removed lib/animations dependency)
+const springConfig = {
+	snappy: { type: 'spring' as const, stiffness: 400, damping: 30 },
+	gentle: { type: 'spring' as const, stiffness: 100, damping: 20 },
+	bouncy: { type: 'spring' as const, stiffness: 300, damping: 15 }
+}
 
 // Navigation items configuration
 interface NavItem {

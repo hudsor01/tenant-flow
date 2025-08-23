@@ -2,74 +2,60 @@
 import { z } from 'zod'
 
 // Enhanced validation with Zod patterns
-const positiveMoneyAmount = z
-	.number({
-		error: 'Must be a valid number'
-	})
+const positiveMoneyAmount = z.number()
 	.min(0, { message: 'Amount must be positive' })
 	.max(100000, { message: 'Amount exceeds maximum limit' })
 	.refine(Number.isFinite, { message: 'Must be a finite number' })
 
-const uuidString = z
-	.string({
-		error: 'Required field'
-	})
+const uuidString = z.string()
 	.regex(
 		/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
 		{ message: 'Must be a valid identifier' }
 	)
 
-const dateString = z
-	.string({
-		error: 'Date is required'
-	})
+const dateString = z.string()
 	.refine(val => /^\d{4}-\d{2}-\d{2}$/.test(val) || !isNaN(Date.parse(val)), {
 		message: 'Invalid date format'
 	})
 
-export const leaseStatusEnum = z.enum(
-	['ACTIVE', 'INACTIVE', 'EXPIRED', 'TERMINATED', 'DRAFT'],
-	{
-		error: 'Lease status is required'
-	}
-)
+export const leaseStatusEnum = z.enum([
+	'ACTIVE', 'INACTIVE', 'EXPIRED', 'TERMINATED', 'DRAFT'
+])
 
-export const leaseTypeEnum = z.enum(['FIXED', 'MONTH_TO_MONTH'], {
-	error: 'Lease type is required'
+export const leaseTypeEnum = z.enum(['FIXED', 'MONTH_TO_MONTH'])
+
+export const smokingPolicyEnum = z.enum(['ALLOWED', 'NOT_ALLOWED'])
+
+// Base lease object schema (without refinements)
+const leaseBaseSchema = z.object({
+	propertyId: uuidString,
+	unitId: uuidString.optional().or(z.null()),
+	tenantId: uuidString,
+	startDate: dateString,
+	endDate: dateString,
+	monthlyRent: positiveMoneyAmount,
+	securityDeposit: positiveMoneyAmount.default(0),
+	leaseTerm: z
+		.number()
+		.min(1, 'Lease term must be at least 1 month')
+		.max(60, 'Lease term cannot exceed 60 months')
+		.optional(),
+	status: leaseStatusEnum.default('DRAFT'),
+	leaseType: leaseTypeEnum.default('FIXED'),
+	petPolicy: z.string().optional(),
+	smokingPolicy: smokingPolicyEnum.optional(),
+	utilities: z.array(z.string()).optional().default([]),
+	additionalTerms: z.string().optional(),
+	lateFeeDays: z
+		.number()
+		.min(0, 'Late fee days must be positive')
+		.max(30, 'Late fee days cannot exceed 30')
+		.optional(),
+	lateFeeAmount: positiveMoneyAmount.optional()
 })
 
-export const smokingPolicyEnum = z.enum(['ALLOWED', 'NOT_ALLOWED'], {
-	error: 'Smoking policy is required'
-})
-
-// Main lease input schema
-export const leaseInputSchema = z
-	.object({
-		propertyId: uuidString,
-		unitId: uuidString.optional().or(z.null()),
-		tenantId: uuidString,
-		startDate: dateString,
-		endDate: dateString,
-		monthlyRent: positiveMoneyAmount,
-		securityDeposit: positiveMoneyAmount.default(0),
-		leaseTerm: z
-			.number()
-			.min(1, 'Lease term must be at least 1 month')
-			.max(60, 'Lease term cannot exceed 60 months')
-			.optional(),
-		status: leaseStatusEnum.default('DRAFT'),
-		leaseType: leaseTypeEnum.default('FIXED'),
-		petPolicy: z.string().optional(),
-		smokingPolicy: smokingPolicyEnum.optional(),
-		utilities: z.array(z.string()).optional().default([]),
-		additionalTerms: z.string().optional(),
-		lateFeeDays: z
-			.number()
-			.min(0, 'Late fee days must be positive')
-			.max(30, 'Late fee days cannot exceed 30')
-			.optional(),
-		lateFeeAmount: positiveMoneyAmount.optional()
-	})
+// Main lease input schema (with refinements)
+export const leaseInputSchema = leaseBaseSchema
 	.refine(
 		data => {
 			try {
@@ -107,7 +93,7 @@ export const leaseTerminationSchema = z.object({
 })
 
 // Lease update schema (for partial updates)
-export const leaseUpdateSchema = leaseInputSchema.partial()
+export const leaseUpdateSchema = leaseBaseSchema.partial()
 
 export type LeaseFormData = z.infer<typeof leaseInputSchema>
 export type LeaseRenewalData = z.infer<typeof leaseRenewalSchema>

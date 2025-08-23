@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Building, MapPin, Users, Plus } from 'lucide-react'
 import Link from 'next/link'
-import { PropertiesApi } from '@/lib/api/properties'
+import { propertyApi } from '@/lib/api/properties'
 import type { Property, PropertyStats } from '@repo/shared'
 
 // Loading skeleton for property cards
@@ -84,7 +84,7 @@ function PropertyCard({ property }: { property: Property }) {
 						</span>
 						<span className="flex items-center gap-2">
 							<Users className="h-4 w-4" />
-							{property.units?.length || 0} units
+							{property.units?.length ?? 0} units
 						</span>
 					</div>
 
@@ -106,8 +106,8 @@ function PropertyCard({ property }: { property: Property }) {
 }
 
 // Stats component
-async function PropertyStats() {
-	const stats = await PropertiesApi.getPropertyStats()
+async function PropertyStatsComponent() {
+	const stats = await propertyApi.getPropertyStats()
 
 	if (!stats) {
 		return (
@@ -129,9 +129,7 @@ async function PropertyStats() {
 			<Card>
 				<CardContent className="p-4">
 					<div className="text-2xl font-bold">
-						{(stats as unknown as PropertyStats)?.totalProperties ||
-							stats?.total ||
-							0}
+						{stats.total || 0}
 					</div>
 					<p className="text-muted-foreground text-sm">
 						Total Properties
@@ -141,9 +139,7 @@ async function PropertyStats() {
 			<Card>
 				<CardContent className="p-4">
 					<div className="text-2xl font-bold">
-						{(stats as unknown as PropertyStats)?.totalUnits ||
-							stats?.occupied + stats?.vacant ||
-							0}
+						{stats.occupiedUnits + stats.vacantUnits || 0}
 					</div>
 					<p className="text-muted-foreground text-sm">Total Units</p>
 				</CardContent>
@@ -151,9 +147,7 @@ async function PropertyStats() {
 			<Card>
 				<CardContent className="p-4">
 					<div className="text-2xl font-bold">
-						{(stats as unknown as PropertyStats)?.occupancyRate ||
-							0}
-						%
+						{stats.occupancyRate || 0}%
 					</div>
 					<p className="text-muted-foreground text-sm">
 						Occupancy Rate
@@ -166,7 +160,7 @@ async function PropertyStats() {
 
 // Properties list component
 async function PropertiesList() {
-	const properties = await PropertiesApi.getProperties()
+	const properties = await propertyApi.getAll()
 
 	if (!properties || properties.length === 0) {
 		return (
@@ -234,7 +228,7 @@ export default function PropertyListServer() {
 					</div>
 				}
 			>
-				<PropertyStats />
+				<PropertyStatsComponent />
 			</Suspense>
 
 			{/* Properties List */}

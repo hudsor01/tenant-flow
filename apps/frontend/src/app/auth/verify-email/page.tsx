@@ -1,6 +1,6 @@
 'use client'
 
-import type { Metadata } from '@/types/next.d'
+import type { Metadata as _Metadata } from '@/types/next.d'
 import { Suspense, useState, useTransition } from 'react'
 import { Mail, CheckCircle, ArrowRight, Loader2, RotateCcw, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
@@ -17,6 +17,9 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { supabase } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { logger } from '@/lib/logger'
+
+// Disable static generation for this auth page as it requires runtime Supabase client
+export const dynamic = 'force-dynamic'
 
 // Enhanced resend verification email with proper error handling and rate limiting
 async function resendVerificationEmail(email: string): Promise<{ success: boolean; message: string }> {
@@ -316,7 +319,7 @@ function VerifyEmailPageContent() {
 	const searchParams = useSearchParams()
 	const email = searchParams.get('email')
 
-	return <VerifyEmailContent email={email || undefined} />
+	return <VerifyEmailContent email={email ?? undefined} />
 }
 
 export default function VerifyEmailPage() {

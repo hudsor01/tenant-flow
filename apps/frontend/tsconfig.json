@@ -59,6 +59,7 @@
 		"**/*.tsx",
 		".next/types/**/*.ts",
 		"src/types/**/*.d.ts",
+		"src/types/jest-dom.d.ts",
 		"node_modules/@types/react/jsx-runtime.d.ts"
 	],
 	"exclude": [
@@ -67,15 +68,21 @@
 		"out",
 		"dist",
 		"build",
+		"scripts/**/*",
+		"src/test/**/*",
+		"src/test/**/*.ts",
+		"src/test/**/*.tsx",
+		"tests/**/*",
+		"**/__tests__/**/*",
 		"**/*.test.ts",
 		"**/*.test.tsx",
 		"**/*.spec.ts",
 		"**/*.spec.tsx",
-		"tests/**/*",
-		"**/__tests__/**/*",
-		"**/__tests__.disabled/**/*",
-		"src/test/**/*",
-		"scripts/**/*"
+		"coverage/**/*",
+		"*.config.js",
+		"*.config.mjs",
+		"jest.config.js",
+		"vitest.config.production.ts"
 	],
 	"references": [
 		{

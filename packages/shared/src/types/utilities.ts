@@ -222,15 +222,16 @@ export type OptionalNullable<T> = {
 
 // Import API response types from consolidated source
 import type {
-	ApiSuccessResponse,
-	ApiErrorResponse,
+	ApiSuccessResponse as _ApiSuccessResponse,
+	ApiErrorResponse as _ApiErrorResponse,
 	ApiPaginatedResponse
 } from './responses'
 
 /**
- * Standard API response wrapper - now uses consolidated types
+ * Standard API response wrapper - now uses consolidated types from errors.ts
+ * Note: ApiResponse is exported from errors.ts to avoid conflicts
  */
-export type ApiResponse<T = unknown> = ApiSuccessResponse<T> | ApiErrorResponse
+// export type ApiResponse<T = unknown> = ApiSuccessResponse<T> | ApiErrorResponse
 
 /**
  * Paginated API response - now uses consolidated types
@@ -288,12 +289,7 @@ export interface FormSubmissionState {
  */
 export type EventHandler<T = Event> = (event: T) => void
 
-/**
- * Async event handler type
- */
-export type AsyncEventHandler<T = Event> = (event: T) => Promise<void>
-
-// Frontend-specific event handlers moved to frontend-only.ts
+// AsyncEventHandler moved to frontend-only.ts to avoid duplication
 // Import from there when needed in frontend code
 
 // ========================
@@ -464,6 +460,64 @@ export type UploadStatus = 'idle' | 'uploading' | 'success' | 'error'
 
 // File upload state with File API moved to frontend-only.ts
 // Backend-compatible upload types remain here
+
+// ========================
+// Result Pattern Types
+// ========================
+
+/**
+ * Standard result pattern for service layer operations
+ */
+export interface Result<T = void> {
+	success: boolean
+	value?: T
+	error?: string
+	errors?: string[]
+}
+
+/**
+ * Business rule validation type
+ */
+export interface BusinessRule {
+	name: string
+	description: string
+	isValid: boolean
+	violationMessage?: string
+}
+
+/**
+ * Utility types for common patterns
+ */
+export type WithRequired<T, K extends keyof T> = T & Required<Pick<T, K>>
+export type WithOptional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
+
+/**
+ * Loading state type
+ */
+export interface LoadingState {
+	isLoading: boolean
+	error?: string | null
+}
+
+/**
+ * Pagination metadata
+ */
+export interface PaginationMeta {
+	page: number
+	limit: number
+	total: number
+	totalPages: number
+	hasNext: boolean
+	hasPrev: boolean
+}
+
+/**
+ * Offset-based pagination parameters
+ */
+export interface OffsetPaginationParams {
+	offset?: number
+	limit?: number
+}
 
 // ========================
 // Search and Filter Types

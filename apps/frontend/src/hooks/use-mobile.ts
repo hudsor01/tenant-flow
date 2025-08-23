@@ -1,22 +1,26 @@
-import * as React from 'react'
-import { LAYOUT_CONSTANTS } from '@/app/layout.constants'
+/**
+ * Mobile breakpoint hook
+ * Simple mobile detection based on screen width
+ */
 
-export function useIsMobile() {
-	const [isMobile, setIsMobile] = React.useState<boolean | undefined>(
-		undefined
-	)
+import { useState, useEffect } from 'react'
 
-	React.useEffect(() => {
-		const mql = window.matchMedia(
-			`(max-width: ${LAYOUT_CONSTANTS.MOBILE_BREAKPOINT - 1}px)`
-		)
-		const onChange = () => {
-			setIsMobile(window.innerWidth < LAYOUT_CONSTANTS.MOBILE_BREAKPOINT)
-		}
-		mql.addEventListener('change', onChange)
-		setIsMobile(window.innerWidth < LAYOUT_CONSTANTS.MOBILE_BREAKPOINT)
-		return () => mql.removeEventListener('change', onChange)
-	}, [])
+const MOBILE_BREAKPOINT = 768
 
-	return !!isMobile
+export function useIsMobile(): boolean {
+  const [isMobile, setIsMobile] = useState<boolean>(false)
+
+  useEffect(() => {
+    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
+    const onChange = () => {
+      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+    }
+
+    mql.addEventListener('change', onChange)
+    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+
+    return () => mql.removeEventListener('change', onChange)
+  }, [])
+
+  return isMobile
 }

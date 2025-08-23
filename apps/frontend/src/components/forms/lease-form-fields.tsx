@@ -193,7 +193,7 @@ export function LeaseFormFields({
 						onChange={e =>
 							handleInputChange(
 								'rentAmount',
-								parseFloat(e.target.value) || 0
+								parseFloat(e.target.value) ?? 0
 							)
 						}
 						className={errors.rentAmount ? 'border-red-500' : ''}
@@ -214,7 +214,7 @@ export function LeaseFormFields({
 						onChange={e =>
 							handleInputChange(
 								'securityDeposit',
-								parseFloat(e.target.value) || 0
+								parseFloat(e.target.value) ?? 0
 							)
 						}
 						className={
@@ -232,11 +232,11 @@ export function LeaseFormFields({
 					<Input
 						type="number"
 						min="0"
-						value={formData.lateFeeDays || 5}
+						value={formData.lateFeeDays ?? 5}
 						onChange={e =>
 							handleInputChange(
 								'lateFeeDays',
-								parseInt(e.target.value) || 5
+								parseInt(e.target.value) ?? 5
 							)
 						}
 						className={errors.lateFeeDays ? 'border-red-500' : ''}
@@ -253,11 +253,11 @@ export function LeaseFormFields({
 						type="number"
 						min="0"
 						step="0.01"
-						value={formData.lateFeeAmount || 50}
+						value={formData.lateFeeAmount ?? 50}
 						onChange={e =>
 							handleInputChange(
 								'lateFeeAmount',
-								parseFloat(e.target.value) || 50
+								parseFloat(e.target.value) ?? 50
 							)
 						}
 						className={errors.lateFeeAmount ? 'border-red-500' : ''}

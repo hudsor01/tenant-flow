@@ -23,7 +23,7 @@ interface UnitWithProperty extends Unit {
 interface UnitSelectorProps {
 	units: UnitWithProperty[]
 	selectedUnitId?: string
-	onValueChange: (value: string) => void
+	onValueChange: (_value: string) => void
 	error?: string
 }
 

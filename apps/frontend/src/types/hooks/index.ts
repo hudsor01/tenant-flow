@@ -226,7 +226,7 @@ export interface UseToggleReturn {
 	toggle: () => void
 	setTrue: () => void
 	setFalse: () => void
-	setValue: (value: boolean) => void
+	setValue: (_value: boolean) => void
 }
 
 /**
@@ -237,7 +237,7 @@ export interface UseCounterReturn {
 	increment: () => void
 	decrement: () => void
 	reset: () => void
-	set: (value: number) => void
+	set: (_value: number) => void
 }
 
 // ============================================
@@ -272,12 +272,12 @@ export interface UseFieldReturn<T = unknown> {
 	value: T
 	error: string | null
 	touched: boolean
-	setValue: (value: T) => void
-	setError: (error: string) => void
+	setValue: (_value: T) => void
+	setError: (_error: string) => void
 	clearError: () => void
 	onFocus: () => void
 	onBlur: () => void
-	onChange: (value: T) => void
+	onChange: (_value: T) => void
 }
 
 // ============================================
@@ -289,7 +289,7 @@ export interface UseFieldReturn<T = unknown> {
  */
 export interface UseLocalStorageReturn<T> {
 	value: T
-	setValue: (value: T | ((prev: T) => T)) => void
+	setValue: (_value: T | ((prev: T) => T)) => void
 	removeValue: () => void
 }
 
@@ -298,7 +298,7 @@ export interface UseLocalStorageReturn<T> {
  */
 export interface UseSessionStorageReturn<T> {
 	value: T
-	setValue: (value: T | ((prev: T) => T)) => void
+	setValue: (_value: T | ((prev: T) => T)) => void
 	removeValue: () => void
 }
 

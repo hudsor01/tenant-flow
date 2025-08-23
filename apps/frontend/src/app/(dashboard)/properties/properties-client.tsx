@@ -96,14 +96,14 @@ export function PropertiesClient({ className }: PropertiesClientProps) {
 				propertyId={selectedPropertyId}
 				open={drawerOpen}
 				onOpenChange={setDrawerOpen}
-				onEdit={() => handleEditProperty(selectedProperty || undefined)}
+				onEdit={() => handleEditProperty(selectedProperty ?? undefined)}
 				onDelete={handleDeleteProperty}
 			/>
 
 			<PropertyFormDialog
 				open={formDialogOpen}
 				onOpenChange={setFormDialogOpen}
-				property={selectedProperty || undefined}
+				property={selectedProperty ?? undefined}
 				mode={formMode}
 			/>
 

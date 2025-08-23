@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { FormSection } from '@/components/modals/base-form-modal'
-import type { LeaseFormData } from '@/hooks/useLeaseForm'
+import type { LeaseFormData } from '@/hooks/use-lease-form'
 
 interface LeaseTermsSectionProps {
 	form: UseFormReturn<LeaseFormData>
@@ -87,7 +87,7 @@ export function LeaseTermsSection({
 										{...field}
 										onChange={e =>
 											field.onChange(
-												parseFloat(e.target.value) || 0
+												parseFloat(e.target.value) ?? 0
 											)
 										}
 									/>
@@ -119,7 +119,7 @@ export function LeaseTermsSection({
 										{...field}
 										onChange={e =>
 											field.onChange(
-												parseFloat(e.target.value) || 0
+												parseFloat(e.target.value) ?? 0
 											)
 										}
 									/>

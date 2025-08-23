@@ -2,8 +2,6 @@ import { useState } from 'react'
 import { PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
 	Card,
 	CardContent,
@@ -11,43 +9,45 @@ import {
 	CardHeader,
 	CardTitle
 } from '@/components/ui/card'
-import { Loader2, CreditCard } from 'lucide-react'
-import { useCheckout } from '@/hooks/useCheckout'
+import { Loader2, CreditCard, Shield, CheckCircle } from 'lucide-react'
 import type { PLAN_TYPE } from '@repo/shared'
-import { getPlanWithUIMapping } from '@/lib/subscription-utils'
+import { PLANS } from '@repo/shared'
+import { apiClient } from '@/lib/api-client'
 
 interface SubscriptionCheckoutProps {
 	planType: keyof typeof PLAN_TYPE
 	billingInterval: 'monthly' | 'annual'
-	onSuccess?: (subscriptionId: string) => void
+	onSuccess?: (_subscriptionId: string) => void
 	onCancel?: () => void
 }
 
 /**
- * Integrated Subscription Checkout Component
- *
- * Combines your styled PaymentElement with direct subscription creation.
- * Uses the official Stripe pattern: create subscription with payment_behavior: 'default_incomplete'
- * then confirm payment with Elements.
+ * Modern Subscription Checkout Component (2025)
+ * 
+ * Implements Stripe's latest best practices:
+ * - Uses Confirmation Token pattern for security
+ * - Embedded checkout (no redirects)
+ * - Leverages Payment Element's native billing details collection
+ * - Follows Stripe's official subscription integration guide
  */
 export function SubscriptionCheckout({
 	planType,
 	billingInterval,
-	onSuccess: _onSuccess,
+	onSuccess,
 	onCancel
 }: SubscriptionCheckoutProps) {
 	const stripe = useStripe()
 	const elements = useElements()
-	const { createCheckoutSession, isLoading, error } = useCheckout()
 
-	const [billingName, setBillingName] = useState('')
 	const [errorMessage, setErrorMessage] = useState<string | null>(null)
 	const [isProcessing, setIsProcessing] = useState(false)
+	const [isSuccess, setIsSuccess] = useState(false)
 
 	// Get plan details for display
-	const plan = getPlanWithUIMapping(planType)
-	const price =
+	const plan = PLANS.find(p => p.id === planType)
+	const priceInCents =
 		billingInterval === 'annual' ? plan?.price.annual : plan?.price.monthly
+	const price = priceInCents ? Math.floor(priceInCents / 100) : 0
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
@@ -57,21 +57,57 @@ export function SubscriptionCheckout({
 			return
 		}
 
-		if (!billingName.trim()) {
-			setErrorMessage('Please enter your billing name.')
-			return
-		}
-
 		setIsProcessing(true)
 		setErrorMessage(null)
 
 		try {
-			// Use checkout session flow instead of direct subscription
-			await createCheckoutSession(
+			// Step 1: Create Confirmation Token (Stripe's 2025 recommended approach)
+			const { error: confirmationError, confirmationToken } = await stripe.createConfirmationToken({
+				elements,
+				params: {
+					payment_method_data: {
+						billing_details: {
+							// Payment Element automatically collects billing details
+							// No need for custom billing name field
+						}
+					}
+				}
+			})
+
+			if (confirmationError) {
+				setErrorMessage(confirmationError.message || 'Payment validation failed')
+				return
+			}
+
+			// Step 2: Send Confirmation Token to server to create and confirm subscription
+			const response = await apiClient.post<{
+				subscription: { id: string; status: string }
+				clientSecret?: string
+				requiresAction?: boolean
+			}>('/stripe/create-subscription', {
+				confirmationTokenId: confirmationToken.id,
 				planType,
-				billingInterval === 'annual' ? 'annual' : 'monthly'
-			)
-			// The checkout session will redirect to Stripe
+				billingInterval: billingInterval === 'annual' ? 'year' : 'month'
+			})
+
+			// Step 3: Handle any additional actions (3D Secure, etc.)
+			if (response.requiresAction && response.clientSecret) {
+				const { error: actionError } = await stripe.handleNextAction({
+					clientSecret: response.clientSecret
+				})
+
+				if (actionError) {
+					setErrorMessage(actionError.message || 'Payment authentication failed')
+					return
+				}
+			}
+
+			// Step 4: Success! 
+			setIsSuccess(true)
+			if (onSuccess) {
+				onSuccess(response.subscription.id)
+			}
+
 		} catch (error) {
 			const message =
 				error instanceof Error
@@ -81,6 +117,34 @@ export function SubscriptionCheckout({
 		} finally {
 			setIsProcessing(false)
 		}
+	}
+
+	// Show success state
+	if (isSuccess) {
+		return (
+			<Card className="mx-auto w-full max-w-md">
+				<CardHeader className="text-center">
+					<CardTitle className="flex items-center justify-center gap-2 text-green-600">
+						<CheckCircle className="h-6 w-6" />
+						Subscription Activated!
+					</CardTitle>
+					<CardDescription>
+						Welcome to {plan?.name}! Your subscription is now active.
+					</CardDescription>
+				</CardHeader>
+				<CardContent className="text-center">
+					<p className="text-muted-foreground text-sm mb-4">
+						You'll receive a confirmation email shortly with your subscription details.
+					</p>
+					<Button 
+						onClick={() => window.location.href = '/dashboard'}
+						className="w-full"
+					>
+						Continue to Dashboard
+					</Button>
+				</CardContent>
+			</Card>
+		)
 	}
 
 	return (
@@ -98,7 +162,10 @@ export function SubscriptionCheckout({
 						</span>
 					)}
 					<br />
-					Secure checkout powered by Stripe
+					<div className="flex items-center justify-center gap-1 mt-2">
+						<Shield className="h-4 w-4" />
+						<span>Secure checkout powered by Stripe</span>
+					</div>
 				</CardDescription>
 			</CardHeader>
 
@@ -107,57 +174,49 @@ export function SubscriptionCheckout({
 					onSubmit={e => void handleSubmit(e)}
 					className="space-y-6"
 				>
-					{/* Billing Name Input */}
-					<div className="space-y-2">
-						<Label htmlFor="billingName">Billing Name</Label>
-						<Input
-							id="billingName"
-							type="text"
-							placeholder="Enter your full name"
-							value={billingName}
-							onChange={e => setBillingName(e.target.value)}
-							disabled={isProcessing || isLoading}
-							required
-						/>
-					</div>
-
-					{/* Payment Element with your styling */}
+					{/* Enhanced Payment Element - Uses Stripe's native billing collection */}
 					<div className="border-border bg-card rounded-xl border p-6 shadow-sm">
 						<PaymentElement
 							options={{
+								// Layout configuration for optimal UX
 								layout: {
 									type: 'tabs',
 									defaultCollapsed: false,
 									spacedAccordionItems: true
 								},
+								// Native billing details collection (replaces custom fields)
 								fields: {
 									billingDetails: {
-										name: 'auto',
-										email: 'auto',
-										phone: 'never',
+										name: 'auto',    // Stripe handles name collection
+										email: 'auto',   // Stripe handles email collection  
+										phone: 'never',  // Don't collect phone for subscriptions
 										address: {
-											country: 'auto',
-											postalCode: 'auto'
+											country: 'auto',     // Required for tax calculation
+											postalCode: 'auto'   // Required for card validation
 										}
 									}
 								},
+								// Terms and conditions display
 								terms: {
 									card: 'auto',
 									applePay: 'auto',
 									googlePay: 'auto'
 								},
+								// Digital wallet configuration
 								wallets: {
 									applePay: 'auto',
 									googlePay: 'auto'
 								},
+								// Business context for better conversion
 								business: {
 									name: 'TenantFlow'
 								},
+								// Optimized payment method order
 								paymentMethodOrder: [
 									'card',
-									'apple_pay',
+									'apple_pay', 
 									'google_pay',
-									'link',
+									'link',        // Stripe Link for returning customers
 									'paypal'
 								]
 							}}
@@ -165,10 +224,10 @@ export function SubscriptionCheckout({
 					</div>
 
 					{/* Error message */}
-					{(errorMessage || error) && (
+					{errorMessage && (
 						<Alert variant="destructive">
 							<AlertDescription>
-								{errorMessage || error}
+								{errorMessage}
 							</AlertDescription>
 						</Alert>
 					)}
@@ -180,7 +239,7 @@ export function SubscriptionCheckout({
 								type="button"
 								variant="outline"
 								onClick={onCancel}
-								disabled={isProcessing || isLoading}
+								disabled={isProcessing}
 								className="flex-1"
 							>
 								Cancel
@@ -189,11 +248,11 @@ export function SubscriptionCheckout({
 
 						<Button
 							type="submit"
-							disabled={!stripe || isProcessing || isLoading}
+							disabled={!stripe || isProcessing}
 							className="bg-gradient-steel-soft hover:bg-gradient-steel-deep flex-1 text-white shadow-lg transition-all duration-300 hover:shadow-xl"
 							size="lg"
 						>
-							{isProcessing || isLoading ? (
+							{isProcessing ? (
 								<>
 									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 									Processing...
@@ -204,22 +263,17 @@ export function SubscriptionCheckout({
 						</Button>
 					</div>
 
-					{/* Security badge */}
-					<div className="text-muted-foreground flex items-center justify-center gap-2 text-sm">
-						<svg
-							className="h-4 w-4"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth={2}
-								d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-							/>
-						</svg>
-						<span>256-bit SSL encryption</span>
+					{/* Enhanced security indicators */}
+					<div className="text-center space-y-2">
+						<div className="text-muted-foreground flex items-center justify-center gap-2 text-sm">
+							<Shield className="h-4 w-4" />
+							<span>256-bit SSL encryption • PCI DSS compliant</span>
+						</div>
+						<p className="text-xs text-muted-foreground">
+							Your payment information is processed securely by Stripe.
+							<br />
+							We don't store your payment details.
+						</p>
 					</div>
 				</form>
 			</CardContent>

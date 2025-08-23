@@ -1,14 +1,33 @@
 {
   "recommendations": [
-    "denoland.vscode-deno",
+    // Essential
     "esbenp.prettier-vscode",
     "dbaeumer.vscode-eslint",
     "bradlc.vscode-tailwindcss",
-    "prisma.prisma",
-    "christian-kohler.path-intellisense",
-    "formulahendry.auto-rename-tag",
+    
+    // TypeScript/JavaScript
     "ms-vscode.vscode-typescript-next",
     "yoavbls.pretty-ts-errors",
-    "streetsidesoftware.code-spell-checker"
+    "usernamehw.errorlens",  // Show errors inline
+    
+    // React/Next.js
+    "formulahendry.auto-rename-tag",
+    "dsznajder.es7-react-js-snippets",
+    
+    // Database
+    "prisma.prisma",
+    
+    // Productivity
+    "christian-kohler.path-intellisense",
+    "streetsidesoftware.code-spell-checker",
+    "naumovs.color-highlight",  // Highlight colors in code
+    "eamodio.gitlens",  // Git superpowers
+    
+    // Optional but useful
+    "wix.vscode-import-cost",  // Show import sizes
+    "ms-vscode.vscode-typescript-next"
+  ],
+  "unwantedRecommendations": [
+    "denoland.vscode-deno"  // Not using Deno in this project
   ]
 }

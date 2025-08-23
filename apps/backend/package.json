@@ -9,8 +9,8 @@
 		"npm": ">=10.0.0"
 	},
 	"scripts": {
-		"build": "NODE_ENV=production NODE_OPTIONS='--max-old-space-size=4096' npx tsc -p tsconfig.build.json",
-		"build:docker": "NODE_ENV=production NODE_OPTIONS='--max-old-space-size=4096' npx tsc -p tsconfig.build.json",
+		"build": "NODE_OPTIONS='--max-old-space-size=4096' npx tsc -p tsconfig.build.json",
+		"build:docker": "NODE_OPTIONS='--max-old-space-size=4096' npx tsc -p tsconfig.build.json",
 		"build:tsc": "NODE_OPTIONS='--max-old-space-size=4096' tsc --build",
 		"dev": "NODE_OPTIONS='--max-old-space-size=4096' tsx watch src/main.ts",
 		"dev:old": "NODE_OPTIONS='--max-old-space-size=4096' tsx watch src/main.ts",

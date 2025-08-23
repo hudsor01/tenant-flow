@@ -2,14 +2,15 @@ import { useCallback, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { PlanType } from '@repo/shared'
 import type {
-	UserSubscription,
+	Subscription,
 	StripeSubscription
 } from '@repo/shared'
 import { apiClient } from '@/lib/api-client'
+import { queryKeys } from '@/lib/query-keys'
 
 interface SubscriptionManagementResult {
 	success: boolean
-	subscription?: UserSubscription
+	subscription?: Subscription
 	stripeSubscription?: StripeSubscription
 	checkoutUrl?: string
 	error?: string
@@ -134,13 +135,13 @@ export function useSubscriptionManagement(
 			if (result.success) {
 				// Invalidate subscription-related queries
 				queryClient.invalidateQueries({
-					queryKey: ['subscription', userId]
+					queryKey: queryKeys.subscriptions.user(userId)
 				})
 				queryClient.invalidateQueries({
-					queryKey: ['subscription-usage', userId]
+					queryKey: queryKeys.subscriptions.usage(userId)
 				})
 				queryClient.invalidateQueries({
-					queryKey: ['subscription-sync-state', userId]
+					queryKey: queryKeys.subscriptions.syncState(userId)
 				})
 			}
 		},
@@ -161,13 +162,13 @@ export function useSubscriptionManagement(
 			if (result.success) {
 				// Invalidate subscription-related queries
 				queryClient.invalidateQueries({
-					queryKey: ['subscription', userId]
+					queryKey: queryKeys.subscriptions.user(userId)
 				})
 				queryClient.invalidateQueries({
-					queryKey: ['subscription-usage', userId]
+					queryKey: queryKeys.subscriptions.usage(userId)
 				})
 				queryClient.invalidateQueries({
-					queryKey: ['subscription-sync-state', userId]
+					queryKey: queryKeys.subscriptions.syncState(userId)
 				})
 			}
 		},
@@ -188,13 +189,13 @@ export function useSubscriptionManagement(
 			if (result.success) {
 				// Invalidate subscription-related queries
 				queryClient.invalidateQueries({
-					queryKey: ['subscription', userId]
+					queryKey: queryKeys.subscriptions.user(userId)
 				})
 				queryClient.invalidateQueries({
-					queryKey: ['subscription-usage', userId]
+					queryKey: queryKeys.subscriptions.usage(userId)
 				})
 				queryClient.invalidateQueries({
-					queryKey: ['subscription-sync-state', userId]
+					queryKey: queryKeys.subscriptions.syncState(userId)
 				})
 			}
 		},
@@ -232,13 +233,13 @@ export function useSubscriptionManagement(
 			if (result.success) {
 				// Invalidate subscription-related queries
 				queryClient.invalidateQueries({
-					queryKey: ['subscription', userId]
+					queryKey: queryKeys.subscriptions.user(userId)
 				})
 				queryClient.invalidateQueries({
-					queryKey: ['subscription-usage', userId]
+					queryKey: queryKeys.subscriptions.usage(userId)
 				})
 				queryClient.invalidateQueries({
-					queryKey: ['subscription-sync-state', userId]
+					queryKey: queryKeys.subscriptions.syncState(userId)
 				})
 			}
 		},

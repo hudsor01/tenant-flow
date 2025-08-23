@@ -2,7 +2,7 @@
 
 import { useTransition } from 'react'
 import { logger } from '@/lib/logger'
-import { motion } from '@/lib/framer-motion'
+import { motion } from '@/lib/lazy-motion'
 import {
 	Building2,
 	Users,

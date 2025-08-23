@@ -7,16 +7,16 @@ import type { PropertyFormState } from '@/lib/actions/property-actions'
 interface PropertyFormActionsProps {
 	mode?: 'create' | 'edit'
 	isPending?: boolean
-	errors?: PropertyFormState['errors']
+	error?: string
 	onCancel?: () => void
 }
 
 interface FormErrorDisplayProps {
-	errors?: PropertyFormState['errors']
+	error?: string
 }
 
-function FormErrorDisplay({ errors }: FormErrorDisplayProps) {
-	if (!errors?._form) {
+function FormErrorDisplay({ error }: FormErrorDisplayProps) {
+	if (!error) {
 		return null
 	}
 
@@ -42,7 +42,7 @@ function FormErrorDisplay({ errors }: FormErrorDisplayProps) {
 						Form submission error
 					</h3>
 					<p className="text-destructive/80 mt-1 text-sm">
-						{errors._form[0]}
+						{error}
 					</p>
 				</div>
 			</div>
@@ -90,12 +90,12 @@ function ActionButtons({
 export function PropertyFormActions({
 	mode = 'create',
 	isPending,
-	errors,
+	error,
 	onCancel
 }: PropertyFormActionsProps) {
 	return (
 		<div className="border-border space-y-4 border-t pt-6">
-			<FormErrorDisplay errors={errors} />
+			<FormErrorDisplay error={error} />
 			<ActionButtons
 				mode={mode}
 				isPending={isPending}

@@ -18,7 +18,7 @@ export function GoogleSignupButton({
 			variant="outline"
 			className="h-11 w-full"
 			onClick={onSignup}
-			disabled={disabled || isLoading}
+			disabled={disabled ?? isLoading}
 		>
 			<GoogleIcon className="mr-2" size={16} />
 			{isLoading ? 'Connecting...' : 'Continue with Google'}

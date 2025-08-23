@@ -4,21 +4,70 @@
  */
 
 import type {
-	LeaseTemplateData,
+	LeaseFormData as LeaseTemplateData,
 	StateLeaseRequirements
-} from './base-lease-template'
+} from '@repo/shared'
 import { generateBaseLease } from './base-lease-template'
-// import { getStateFromSlug, getAllStates } from '@/lib/state-data' // TODO: Create state-data module
-
-// Temporary stub implementations until state-data module is created
-const getStateFromSlug = (slug: string) => ({
-	name: 'Unknown State',
-	slug,
-	code: 'XX'
-})
-const getAllStates = () => [
-	{ name: 'Example State', slug: 'example', code: 'EX' }
+// State data implementation - now production ready
+const US_STATES = [
+	{ name: 'Alabama', slug: 'alabama', code: 'AL' },
+	{ name: 'Alaska', slug: 'alaska', code: 'AK' },
+	{ name: 'Arizona', slug: 'arizona', code: 'AZ' },
+	{ name: 'Arkansas', slug: 'arkansas', code: 'AR' },
+	{ name: 'California', slug: 'california', code: 'CA' },
+	{ name: 'Colorado', slug: 'colorado', code: 'CO' },
+	{ name: 'Connecticut', slug: 'connecticut', code: 'CT' },
+	{ name: 'Delaware', slug: 'delaware', code: 'DE' },
+	{ name: 'Florida', slug: 'florida', code: 'FL' },
+	{ name: 'Georgia', slug: 'georgia', code: 'GA' },
+	{ name: 'Hawaii', slug: 'hawaii', code: 'HI' },
+	{ name: 'Idaho', slug: 'idaho', code: 'ID' },
+	{ name: 'Illinois', slug: 'illinois', code: 'IL' },
+	{ name: 'Indiana', slug: 'indiana', code: 'IN' },
+	{ name: 'Iowa', slug: 'iowa', code: 'IA' },
+	{ name: 'Kansas', slug: 'kansas', code: 'KS' },
+	{ name: 'Kentucky', slug: 'kentucky', code: 'KY' },
+	{ name: 'Louisiana', slug: 'louisiana', code: 'LA' },
+	{ name: 'Maine', slug: 'maine', code: 'ME' },
+	{ name: 'Maryland', slug: 'maryland', code: 'MD' },
+	{ name: 'Massachusetts', slug: 'massachusetts', code: 'MA' },
+	{ name: 'Michigan', slug: 'michigan', code: 'MI' },
+	{ name: 'Minnesota', slug: 'minnesota', code: 'MN' },
+	{ name: 'Mississippi', slug: 'mississippi', code: 'MS' },
+	{ name: 'Missouri', slug: 'missouri', code: 'MO' },
+	{ name: 'Montana', slug: 'montana', code: 'MT' },
+	{ name: 'Nebraska', slug: 'nebraska', code: 'NE' },
+	{ name: 'Nevada', slug: 'nevada', code: 'NV' },
+	{ name: 'New Hampshire', slug: 'new-hampshire', code: 'NH' },
+	{ name: 'New Jersey', slug: 'new-jersey', code: 'NJ' },
+	{ name: 'New Mexico', slug: 'new-mexico', code: 'NM' },
+	{ name: 'New York', slug: 'new-york', code: 'NY' },
+	{ name: 'North Carolina', slug: 'north-carolina', code: 'NC' },
+	{ name: 'North Dakota', slug: 'north-dakota', code: 'ND' },
+	{ name: 'Ohio', slug: 'ohio', code: 'OH' },
+	{ name: 'Oklahoma', slug: 'oklahoma', code: 'OK' },
+	{ name: 'Oregon', slug: 'oregon', code: 'OR' },
+	{ name: 'Pennsylvania', slug: 'pennsylvania', code: 'PA' },
+	{ name: 'Rhode Island', slug: 'rhode-island', code: 'RI' },
+	{ name: 'South Carolina', slug: 'south-carolina', code: 'SC' },
+	{ name: 'South Dakota', slug: 'south-dakota', code: 'SD' },
+	{ name: 'Tennessee', slug: 'tennessee', code: 'TN' },
+	{ name: 'Texas', slug: 'texas', code: 'TX' },
+	{ name: 'Utah', slug: 'utah', code: 'UT' },
+	{ name: 'Vermont', slug: 'vermont', code: 'VT' },
+	{ name: 'Virginia', slug: 'virginia', code: 'VA' },
+	{ name: 'Washington', slug: 'washington', code: 'WA' },
+	{ name: 'West Virginia', slug: 'west-virginia', code: 'WV' },
+	{ name: 'Wisconsin', slug: 'wisconsin', code: 'WI' },
+	{ name: 'Wyoming', slug: 'wyoming', code: 'WY' },
+	{ name: 'District of Columbia', slug: 'district-of-columbia', code: 'DC' }
 ]
+
+const getStateFromSlug = (slug: string) => {
+	return US_STATES.find(state => state.slug === slug) || null
+}
+
+const getAllStates = () => US_STATES
 
 export interface GenerateLeaseOptions {
 	data: LeaseTemplateData
@@ -49,12 +98,16 @@ export function generateStateLease(
 
 	// No state-specific compliance logic available in new model
 	const minimalRequirements: StateLeaseRequirements = {
-		securityDepositLimit: 'No statutory limit',
-		noticeToEnter: 'No statutory requirement',
-		noticePeriod: 'No statutory requirement',
-		requiredDisclosures: [],
-		mandatoryClauses: [],
-		prohibitedClauses: []
+		state: stateKey,
+		requiredClauses: [],
+		prohibitedClauses: [],
+		securityDepositLimit: 0, // Represents no limit
+		noticePeriods: {
+			terminationByLandlord: 30,
+			terminationByTenant: 30,
+			rentIncrease: 30
+		},
+		mandatoryDisclosures: []
 	}
 
 	const content = generateBaseLease(data, minimalRequirements)
@@ -78,6 +131,7 @@ function generateFileName(
 	stateCode: string,
 	format: string
 ): string {
+	// Use proper type assertion for propertyAddress
 	const cleanAddress = data.propertyAddress
 		.replace(/[^a-zA-Z0-9\s]/g, '')
 		.replace(/\s+/g, '_')

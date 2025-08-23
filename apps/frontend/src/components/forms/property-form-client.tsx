@@ -25,7 +25,7 @@ export function PropertyFormClient({
 	const {
 		formState,
 		isPending,
-		handleSubmit,
+		formAction,
 		amenities: _amenities,
 		updateAmenities
 	} = usePropertyFormServer({ property, mode, onSuccess })
@@ -50,7 +50,7 @@ export function PropertyFormClient({
 			property_id: property?.id
 		})
 
-		return handleSubmit(formData)
+		return formAction(formData)
 	}
 
 	return (
@@ -65,13 +65,13 @@ export function PropertyFormClient({
 					{/* Basic Property Information */}
 					<PropertyFormBasicInfo
 						property={property}
-						errors={formState.errors}
+						error={formState.error}
 					/>
 
 					{/* Property Features */}
 					<PropertyFormFeatures
 						property={property}
-						errors={formState.errors}
+						error={formState.error}
 						onAmenitiesChange={updateAmenities}
 					/>
 
@@ -79,7 +79,7 @@ export function PropertyFormClient({
 					<PropertyFormActions
 						mode={mode}
 						isPending={isPending}
-						errors={formState.errors}
+						error={formState.error}
 						onCancel={onCancel}
 					/>
 				</form>

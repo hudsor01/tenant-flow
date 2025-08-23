@@ -23,6 +23,9 @@ const nextConfig: NextConfig = {
 	poweredByHeader: false,
 	trailingSlash: false,
 	generateEtags: true,
+	outputFileTracingRoot: process.cwd().includes('tenant-flow')
+		? process.cwd().split('/tenant-flow')[0] + '/tenant-flow'
+		: process.cwd(),
 
 	// Build validation
 	eslint: {
@@ -59,8 +62,6 @@ const nextConfig: NextConfig = {
 
 	// Security headers
 	async headers() {
-		const isDev = process.env.NODE_ENV === 'development'
-
 		return [
 			{
 				source: '/:path*',
@@ -77,18 +78,14 @@ const nextConfig: NextConfig = {
 						key: 'Referrer-Policy',
 						value: 'strict-origin-when-cross-origin'
 					},
-					...(isDev
-						? []
-						: [
-								{
-									key: 'Strict-Transport-Security',
-									value: 'max-age=31536000; includeSubDomains; preload'
-								},
-								{
-									key: 'Content-Security-Policy',
-									value: "default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://us.i.posthog.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; connect-src 'self' https://api.tenantflow.app https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://us.i.posthog.com; frame-src https://js.stripe.com; frame-ancestors 'none';"
-								}
-							])
+					{
+						key: 'Strict-Transport-Security',
+						value: 'max-age=31536000; includeSubDomains; preload'
+					},
+					{
+						key: 'Content-Security-Policy',
+						value: "default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://us.i.posthog.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; connect-src 'self' https://api.tenantflow.app https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://us.i.posthog.com; frame-src https://js.stripe.com; frame-ancestors 'none';"
+					}
 				]
 			},
 			// Static asset caching
@@ -134,15 +131,15 @@ const nextConfig: NextConfig = {
 		]
 	},
 
-	// Experimental features
-	experimental: {
-		// Turbopack configuration for development
-		turbo: {
-			rules: {
-				'*.svg': {
-					loaders: ['@svgr/webpack'],
-					as: '*.js'
-				}
+	// Explicitly disable legacy error pages generation
+	pageExtensions: ['tsx', 'ts'],
+
+	// Turbopack configuration for development
+	turbopack: {
+		rules: {
+			'*.svg': {
+				loaders: ['@svgr/webpack'],
+				as: '*.js'
 			}
 		}
 	},

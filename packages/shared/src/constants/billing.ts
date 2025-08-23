@@ -3,7 +3,7 @@
  * Central source of truth for billing enums and constants
  */
 
-import type { BillingPeriod } from '../types/stripe-official'
+import type { BillingPeriod } from '../types/stripe'
 
 // Plan type enum
 export const PLAN_TYPE = {

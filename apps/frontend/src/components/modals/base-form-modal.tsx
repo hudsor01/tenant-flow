@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { motion } from '@/lib/framer-motion'
+import { motion } from '@/lib/lazy-motion'
 import type { LucideIcon } from 'lucide-react'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'

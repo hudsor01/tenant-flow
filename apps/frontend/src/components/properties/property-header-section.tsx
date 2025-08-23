@@ -1,4 +1,4 @@
-import { motion } from '@/lib/framer-motion'
+import { motion } from '@/lib/lazy-motion'
 import { Button } from '@/components/ui/button'
 import {
 	DropdownMenu,

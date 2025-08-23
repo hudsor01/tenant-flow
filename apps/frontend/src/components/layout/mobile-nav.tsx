@@ -2,10 +2,10 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { motion } from 'framer-motion'
+import { motion } from '@/lib/lazy-motion'
 import { Home, Building, Plus, BarChart3, User } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { useDashboardStats } from '@/hooks/api/use-dashboard'
+import { useDashboardOverview } from '@/hooks/api/use-dashboard'
 import { cn } from '@/lib/utils'
 
 const navigationItems = [
@@ -54,7 +54,7 @@ interface MobileNavProps {
 
 export function MobileNav({ className }: MobileNavProps) {
 	const pathname = usePathname()
-	const { data: stats } = useDashboardStats()
+	const { data: stats } = useDashboardOverview()
 
 	const getBadgeValue = (badgeKey?: string) => {
 		if (!badgeKey || !stats) return null

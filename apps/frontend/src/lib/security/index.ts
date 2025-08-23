@@ -9,22 +9,7 @@ import { logger } from '@/lib/logger'
 export { default as Security, withSecurity, withAuth } from './security'
 export type { UserRole, Permission } from './security'
 
-// Keep JWT validation (if still needed elsewhere)
-export {
-	validateJWT,
-	extractOrganizationId,
-	extractPermissions,
-	isTokenNearExpiration
-} from './jwt-validator'
-
-// Keep file upload security (if still needed elsewhere)
-export {
-	validateFile,
-	validateMultipleFiles,
-	quarantineFile,
-	getFileConfig,
-	updateFileConfig
-} from './file-upload-security'
+// JWT and file upload functions removed - use Supabase built-in features
 
 // Consolidated Security Configuration
 export interface SecurityConfig {

@@ -17,11 +17,11 @@ export function AvatarUploadSection({
 	onAvatarChange
 }: AvatarUploadSectionProps) {
 	const [previewUrl, setPreviewUrl] = useState<string | null>(
-		currentAvatar || null
+		currentAvatar ?? null
 	)
 
 	const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		const file = event.target.files?.[0] || null
+		const file = event.target.files?.[0] ?? null
 
 		if (file) {
 			const reader = new FileReader()
@@ -30,7 +30,7 @@ export function AvatarUploadSection({
 			}
 			reader.readAsDataURL(file)
 		} else {
-			setPreviewUrl(currentAvatar || null)
+			setPreviewUrl(currentAvatar ?? null)
 		}
 
 		onAvatarChange(file)
