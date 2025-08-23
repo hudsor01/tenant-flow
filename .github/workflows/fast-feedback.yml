@@ -96,7 +96,7 @@ jobs:
 
       - name: Install dependencies and tools
         run: |
-          npm install --prefer-offline --no-audit --no-fund
+          npm ci --prefer-offline --no-audit --no-fund
 
       - name: Clean test artifacts
         run: |
@@ -181,7 +181,7 @@ jobs:
 
       - name: Install dependencies and tools
         run: |
-          npm install --prefer-offline --no-audit --no-fund
+          npm ci --prefer-offline --no-audit --no-fund
 
       - name: Run core tests for ${{ matrix.app }}
         run: |
@@ -232,7 +232,7 @@ jobs:
 
       - name: Install dependencies and tools
         run: |
-          npm install --prefer-offline --no-audit --no-fund
+          npm ci --prefer-offline --no-audit --no-fund
 
       - name: Production Build Test (Turbo Best Practices)
         run: |
