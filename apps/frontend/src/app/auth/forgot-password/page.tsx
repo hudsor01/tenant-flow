@@ -1,4 +1,4 @@
-import type { Metadata } from '@/types/next.d'
+import type { Metadata } from 'next/types'
 import { Suspense } from 'react'
 import { SimpleForgotPasswordForm } from '@/components/forms/supabase-forgot-password-form'
 import { AuthLayout } from '@/components/layout/auth/layout'
@@ -10,9 +10,7 @@ export const metadata: Metadata = {
 		"Reset your TenantFlow account password. We'll send you secure reset instructions."
 }
 
-export default function ForgotPasswordPage({
-	searchParams
-}: {
+export default function ForgotPasswordPage(_props: {
 	searchParams: { error?: string }
 }) {
 	return (

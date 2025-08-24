@@ -190,7 +190,7 @@ export const transformPropertyFormData = (
 	amenities: string[]
 } => ({
 	name: data.name,
-	description: data.description || '',
+	description: data.description ?? '',
 	propertyType: data.propertyType,
 	address: data.address,
 	city: data.city,

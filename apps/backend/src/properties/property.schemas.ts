@@ -44,7 +44,7 @@ const propertyBaseSchema = z.object({
 		.string()
 		.max(2000, 'Description must be less than 2000 characters')
 		.optional()
-		.transform(val => val?.trim() || undefined),
+		.transform(val => val?.trim() ?? undefined),
 
 	propertyType: z
 		.enum(Object.values(PROPERTY_TYPE) as [PropertyType, ...PropertyType[]])
@@ -123,11 +123,7 @@ export const queryPropertySchema = z
 			.default(0)
 	})
 	.transform(data => ({
-		...data,
-		// Clean up undefined values
-		...Object.fromEntries(
-			Object.entries(data).filter(([_, value]) => value !== undefined)
-		)
+		...data
 	}))
 
 // Owner ID validation schema

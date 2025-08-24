@@ -33,7 +33,7 @@ export function DashboardStatsCards() {
 			currentStats: DashboardStats | undefined,
 			optimisticUpdate: Partial<DashboardStats>
 		) => {
-			if (!currentStats) return undefined
+			if (!currentStats) {return undefined}
 			return {
 				...currentStats,
 				...optimisticUpdate

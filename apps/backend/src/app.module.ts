@@ -9,18 +9,17 @@ import { ThrottlerExceptionFilter } from './shared/filters/throttler-exception.f
 import { SupabaseModule } from './database/supabase.module'
 import { AuthModule } from './auth/auth.module'
 import { PropertiesModule } from './properties/properties.module'
+import { UnitsModule } from './units/units.module'
 import { TenantsModule } from './tenants/tenants.module'
 import { LeasesModule } from './leases/leases.module'
-import { DocumentsModule } from './documents/documents.module'
 import { DashboardModule } from './dashboard/dashboard.module'
 import { MaintenanceModule } from './maintenance/maintenance.module'
 import { HealthModule } from './health/health.module'
-import { StripeModule } from './stripe/stripe.module'
-import { ContactModule } from './contact/contact.module'
+import { StripeModule } from './billing/stripe.module'
 import { NotificationsModule } from './notifications/notifications.module'
+import { EmailModule } from './emails/email.module'
 import { AnalyticsService } from './analytics/analytics.service'
 import { StripeService } from './billing/stripe.service'
-import { MetricsService } from './services/metrics.service'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 
@@ -59,24 +58,21 @@ import { AppService } from './app.service'
 		// Core CRUD modules
 		AuthModule,
 		PropertiesModule,
+		UnitsModule,
 		TenantsModule,
 		LeasesModule,
-		DocumentsModule,
 		DashboardModule,
 		MaintenanceModule,
 		HealthModule,
 		StripeModule,
-		ContactModule,
 		NotificationsModule,
-		MaintenanceModule,
-		DashboardModule
+		EmailModule
 	],
 	controllers: [AppController],
 	providers: [
 		AppService,
 		AnalyticsService,
 		StripeService,
-		MetricsService,
 		// Global rate limiting guard with proxy support
 		{
 			provide: APP_GUARD,

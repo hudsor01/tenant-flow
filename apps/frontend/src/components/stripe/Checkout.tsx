@@ -79,7 +79,7 @@ export function Checkout({
 			<div
 				className={`flex items-center justify-center p-8 ${className}`}
 			>
-				<div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
+				<div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600" />
 			</div>
 		)
 	}

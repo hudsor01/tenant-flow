@@ -141,7 +141,7 @@ export function DenseTable<TData, TValue>({
 							<Input
 								placeholder={searchPlaceholder}
 								value={globalFilter}
-								onChange={event =>
+								onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
 									setGlobalFilter(event.target.value)
 								}
 								className="h-8 w-[200px] pl-9 text-sm"
@@ -158,7 +158,7 @@ export function DenseTable<TData, TValue>({
 									.getColumn(searchKey)
 									?.getFilterValue() as string) ?? ''
 							}
-							onChange={event =>
+							onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
 								table
 									.getColumn(searchKey)
 									?.setFilterValue(event.target.value)
@@ -200,7 +200,7 @@ export function DenseTable<TData, TValue>({
 												key={column.id}
 												className="capitalize"
 												checked={column.getIsVisible()}
-												onCheckedChange={value =>
+												onCheckedChange={(value: boolean) =>
 													column.toggleVisibility(
 														!!value
 													)
@@ -413,7 +413,7 @@ function DenseTablePagination<TData>({
 					</p>
 					<Select
 						value={`${table.getState().pagination.pageSize}`}
-						onValueChange={value => {
+						onValueChange={(value: string) => {
 							table.setPageSize(Number(value))
 						}}
 					>
@@ -499,7 +499,7 @@ export function createSelectColumn<T>() {
 					table.getIsAllPageRowsSelected() ||
 					(table.getIsSomePageRowsSelected() && 'indeterminate')
 				}
-				onCheckedChange={value =>
+				onCheckedChange={(value: boolean) =>
 					table.toggleAllPageRowsSelected(!!value)
 				}
 				aria-label="Select all"
@@ -516,7 +516,7 @@ export function createSelectColumn<T>() {
 		}) => (
 			<Checkbox
 				checked={row.getIsSelected()}
-				onCheckedChange={value => row.toggleSelected(!!value)}
+				onCheckedChange={(value: boolean) => row.toggleSelected(!!value)}
 				aria-label="Select row"
 				className="translate-y-[1px]"
 			/>

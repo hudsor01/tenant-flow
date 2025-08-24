@@ -12,21 +12,11 @@
 /* ---break--- */
 
 /* Tailwind v4 custom variants using modern CSS */
-@custom-variant dark (&:is(.dark *));
-@custom-variant hover-focus (&:is(:hover, :focus));
-@custom-variant motion-safe (@media (prefers-reduced-motion: no-preference));
-@custom-variant motion-reduce (@media (prefers-reduced-motion: reduce));
-@custom-variant high-contrast (@media (prefers-contrast: high));
-@custom-variant container (@container);
 
 /* Container queries for responsive components */
-@custom-variant sm-container (@container (min-width: 384px));
-@custom-variant md-container (@container (min-width: 448px));
-@custom-variant lg-container (@container (min-width: 512px));
-@custom-variant xl-container (@container (min-width: 768px));
 
-/* Tailwind v4 @theme directive with enhanced design tokens */
-@theme {
+/* Enhanced design tokens for Tailwind v3 */
+:root {
 	/* === CONTAINER QUERIES === */
 	--breakpoint-xs: 20rem; /* 320px */
 	--breakpoint-sm: 24rem; /* 384px */
@@ -35,7 +25,6 @@
 	--breakpoint-xl: 48rem; /* 768px */
 	--breakpoint-2xl: 56rem; /* 896px */
 	/* === COLOR SYSTEM === */
-	/* Tailwind v4 expects color names without the 'color-' prefix in @theme */
 
 	/* Neutral Base Colors - Charcoal to White */
 	--background: oklch(0.98 0.001 240); /* Near white background */
@@ -226,120 +215,7 @@
 	);
 }
 
-@layer base {
-	/* CSS Custom Properties for component compatibility */
-	:root {
-		/* Convert OKLCH to HSL-compatible format for existing components */
-		--background: 0 0% 98%; /* Near white */
-		--foreground: 240 13% 15%; /* Deep charcoal */
-
-		--card: 0 0% 100%; /* Pure white */
-		--card-foreground: 240 13% 15%; /* Card text */
-
-		--popover: 0 0% 100%; /* Popover background */
-		--popover-foreground: 240 13% 15%; /* Popover text */
-
-		--primary: 235 26% 45%; /* Steel blue */
-		--primary-foreground: 0 0% 98%; /* White on primary */
-
-		--secondary: 240 13% 35%; /* Slate gray */
-		--secondary-foreground: 0 0% 98%; /* White on secondary */
-
-		--muted: 240 5% 96%; /* Light gray background */
-		--muted-foreground: 240 5% 45%; /* Medium gray text */
-
-		--accent: 200 23% 40%; /* Deep teal */
-		--accent-foreground: 0 0% 98%; /* White on accent */
-
-		--destructive: 25 50% 50%; /* Muted red */
-		--destructive-foreground: 0 0% 98%;
-
-		--border: 240 5% 91%; /* Light border */
-		--input: 240 5% 91%; /* Input border */
-		--ring: 235 26% 45%; /* Match primary */
-
-		--radius: 0.5rem; /* Default radius */
-
-		/* Chart colors */
-		--chart-1: 235 26% 45%; /* Steel blue */
-		--chart-2: 200 23% 40%; /* Deep teal */
-		--chart-3: 240 13% 35%; /* Slate gray */
-		--chart-4: 240 10% 55%; /* Light steel */
-		--chart-5: 240 8% 30%; /* Dark charcoal */
-	}
-
-	/* Base resets and defaults */
-	* {
-		border-color: hsl(var(--border));
-	}
-
-	html {
-		scroll-behavior: smooth;
-		-webkit-font-smoothing: antialiased;
-		-moz-osx-font-smoothing: grayscale;
-	}
-
-	body {
-		background-color: hsl(var(--background));
-		color: hsl(var(--foreground));
-		font-family: var(--font-family-body);
-		font-feature-settings: 'kern', 'liga', 'frac', 'tnum';
-		font-optical-sizing: auto;
-		line-height: var(--line-height-normal);
-	}
-
-	/* Typography - Clean and  */
-	h1,
-	h2,
-	h3,
-	h4,
-	h5,
-	h6 {
-		font-family: var(--font-family-heading);
-		font-weight: var(--font-weight-semibold);
-		letter-spacing: var(--letter-spacing-tight);
-		line-height: var(--line-height-tight);
-		color: hsl(var(--foreground));
-	}
-
-	h1 {
-		font-size: 3rem;
-	}
-	h2 {
-		font-size: 2.25rem;
-	}
-	h3 {
-		font-size: 1.875rem;
-	}
-	h4 {
-		font-size: 1.5rem;
-	}
-	h5 {
-		font-size: 1.25rem;
-	}
-	h6 {
-		font-size: 1.125rem;
-	}
-
-	/* Links - Subtle and  */
-	a {
-		color: hsl(var(--primary));
-		text-decoration: none;
-		transition: color 150ms ease;
-	}
-
-	a:hover {
-		opacity: 0.8;
-	}
-
-	/* Focus states - Clean and accessible */
-	:focus-visible {
-		outline: 2px solid hsl(var(--ring));
-		outline-offset: 2px;
-	}
-}
-
-@layer components {
+/* Components */
 	/* === GRADIENT DEFINITIONS === */
 	/* Masculine, subtle gradients */
 
@@ -820,9 +696,8 @@
 	.stack-xl {
 		gap: 3rem;
 	}
-}
 
-@layer utilities {
+/* Utilities */
 	/* === MODERN CSS UTILITY CLASSES === */
 
 	/* Text wrapping utilities */
@@ -1178,59 +1053,14 @@
 	.logo-enhanced:hover {
 		filter: drop-shadow(0 0 8px hsl(var(--primary) / 0.3));
 	}
-}
 
-/* ---break---
- */
-
-@theme inline {
-	--radius-sm: calc(var(--radius) - 4px);
-	--radius-md: calc(var(--radius) - 2px);
-	--radius-lg: var(--radius);
-	--radius-xl: calc(var(--radius) + 4px);
-	--color-background: var(--background);
-	--color-foreground: var(--foreground);
-	--color-card: var(--card);
-	--color-card-foreground: var(--card-foreground);
-	--color-popover: var(--popover);
-	--color-popover-foreground: var(--popover-foreground);
-	--color-primary: var(--primary);
-	--color-primary-foreground: var(--primary-foreground);
-	--color-secondary: var(--secondary);
-	--color-secondary-foreground: var(--secondary-foreground);
-	--color-muted: var(--muted);
-	--color-muted-foreground: var(--muted-foreground);
-	--color-accent: var(--accent);
-	--color-accent-foreground: var(--accent-foreground);
-	--color-destructive: var(--destructive);
-	--color-border: var(--border);
-	--color-input: var(--input);
-	--color-ring: var(--ring);
-	--color-chart-1: var(--chart-1);
-	--color-chart-2: var(--chart-2);
-	--color-chart-3: var(--chart-3);
-	--color-chart-4: var(--chart-4);
-	--color-chart-5: var(--chart-5);
-	--color-sidebar: var(--sidebar);
-	--color-sidebar-foreground: var(--sidebar-foreground);
-	--color-sidebar-primary: var(--sidebar-primary);
-	--color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-	--color-sidebar-accent: var(--sidebar-accent);
-	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-	--color-sidebar-border: var(--sidebar-border);
-	--color-sidebar-ring: var(--sidebar-ring);
-}
-
-/* ---break---
- */
-
-:root {
-	--radius: 0.625rem;
-	--background: oklch(1 0 0);
-	--foreground: oklch(0.145 0 0);
-	--card: oklch(1 0 0);
-	--card-foreground: oklch(0.145 0 0);
-	--popover: oklch(1 0 0);
+/* Dark mode variables */
+.dark {
+	--background: oklch(0.145 0 0);
+	--foreground: oklch(0.985 0 0);
+	--card: oklch(0.145 0 0);
+	--card-foreground: oklch(0.985 0 0);
+	--popover: oklch(0.145 0 0);
 	--popover-foreground: oklch(0.145 0 0);
 	--primary: oklch(0.205 0 0);
 	--primary-foreground: oklch(0.985 0 0);
@@ -1296,14 +1126,4 @@
 	--sidebar-ring: oklch(0.556 0 0);
 }
 
-/* ---break---
- */
-
-@layer base {
-	* {
-		@apply border-border;
-	}
-	body {
-		@apply bg-background text-foreground;
-	}
-}
+/* Modern theme styles complete */

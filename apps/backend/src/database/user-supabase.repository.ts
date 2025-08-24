@@ -2,7 +2,9 @@ import { Injectable } from '@nestjs/common'
 import { SupabaseService } from '../database/supabase.service'
 import type { Subscription, User } from '@repo/shared'
 
+// Ensure UserWithSubscription properly extends User with email property
 export interface UserWithSubscription extends User {
+	email: string // Explicitly ensure email property exists
 	Subscription?: Subscription[]
 }
 

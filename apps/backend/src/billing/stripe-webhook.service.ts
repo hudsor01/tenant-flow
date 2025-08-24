@@ -15,17 +15,9 @@ import { Injectable, Logger } from '@nestjs/common'
 import { SupabaseService } from '../database/supabase.service'
 import type { Stripe } from 'stripe'
 
-// Extended interfaces for Stripe objects with missing properties
-interface StripeInvoiceWithSubscription extends Stripe.Invoice {
-	subscription?: string | Stripe.Subscription | null
-}
-
-// Extended interface for Stripe Subscription with period properties
-// Note: These properties exist at runtime but are missing from the TypeScript definitions
-interface StripeSubscriptionWithPeriods extends Stripe.Subscription {
-	current_period_start: number
-	current_period_end: number
-}
+// Use native Stripe SDK types directly - no custom extensions needed
+// Stripe.Subscription already includes current_period_start and current_period_end
+// Stripe.Invoice already includes subscription property
 
 @Injectable()
 export class StripeWebhookService {
@@ -59,26 +51,22 @@ export class StripeWebhookService {
 
 		this.logger.log(`Processing webhook: ${event.type} (${event.id})`)
 
-		// Handle events based on type
+		// Handle events based on type using native Stripe types
 		switch (event.type) {
 			case 'customer.subscription.created':
 			case 'customer.subscription.updated':
 			case 'customer.subscription.deleted':
 				await this.handleSubscriptionChange(
-					event.data.object as StripeSubscriptionWithPeriods
+					event.data.object
 				)
 				break
 
 			case 'invoice.payment_failed':
-				await this.handlePaymentFailure(
-					event.data.object as Stripe.Invoice
-				)
+				await this.handlePaymentFailure(event.data.object)
 				break
 
 			case 'invoice.paid':
-				await this.handlePaymentSuccess(
-					event.data.object as Stripe.Invoice
-				)
+				await this.handlePaymentSuccess(event.data.object)
 				break
 
 			default:
@@ -90,7 +78,7 @@ export class StripeWebhookService {
 	 * Handle subscription changes - trust Stripe as source of truth
 	 */
 	private async handleSubscriptionChange(
-		subscription: StripeSubscriptionWithPeriods
+		subscription: Stripe.Subscription
 	): Promise<void> {
 		try {
 			// Find user by customer ID
@@ -136,17 +124,19 @@ export class StripeWebhookService {
 	 * Handle payment failures - Stripe Smart Retries will handle recovery
 	 */
 	private async handlePaymentFailure(
-		invoice: StripeInvoiceWithSubscription
+		invoice: Stripe.Invoice
 	): Promise<void> {
-		const subscription = invoice.subscription
-		if (!subscription) {
+		// Invoice subscription can be string, Subscription object, or null
+		const invoiceData = invoice as any
+		const subscriptionId = typeof invoiceData.subscription === 'string' 
+			? invoiceData.subscription 
+			: invoiceData.subscription?.id
+			
+		if (!subscriptionId) {
 			return
 		}
 
-		const subscriptionId =
-			typeof subscription === 'string' ? subscription : subscription.id
-
-		await this.updateSubscriptionStatus(subscriptionId || '', 'PAST_DUE')
+		await this.updateSubscriptionStatus(subscriptionId, 'PAST_DUE')
 		this.logger.log(
 			`Payment failed for subscription: ${subscriptionId}. Smart Retries will handle recovery.`
 		)
@@ -156,17 +146,19 @@ export class StripeWebhookService {
 	 * Handle payment success
 	 */
 	private async handlePaymentSuccess(
-		invoice: StripeInvoiceWithSubscription
+		invoice: Stripe.Invoice
 	): Promise<void> {
-		const subscription = invoice.subscription
-		if (!subscription) {
+		// Invoice subscription can be string, Subscription object, or null
+		const invoiceData = invoice as any
+		const subscriptionId = typeof invoiceData.subscription === 'string' 
+			? invoiceData.subscription 
+			: invoiceData.subscription?.id
+			
+		if (!subscriptionId) {
 			return
 		}
 
-		const subscriptionId =
-			typeof subscription === 'string' ? subscription : subscription.id
-
-		await this.updateSubscriptionStatus(subscriptionId || '', 'ACTIVE')
+		await this.updateSubscriptionStatus(subscriptionId, 'ACTIVE')
 		this.logger.log(`Payment succeeded for subscription: ${subscriptionId}`)
 	}
 
@@ -174,107 +166,91 @@ export class StripeWebhookService {
 	 * Upsert subscription to database - single source of truth from Stripe
 	 */
 	private async upsertSubscription(
-		stripeSubscription: StripeSubscriptionWithPeriods,
+		stripeSubscription: Stripe.Subscription,
 		userId: string
 	): Promise<void> {
-		// Convert Stripe subscription to our database format
+		// Access period dates through the correct property path
+		const periodStart = (stripeSubscription as any).current_period_start || 
+			Math.floor(Date.now() / 1000)
+		const periodEnd = (stripeSubscription as any).current_period_end || 
+			Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60
+
+		// Convert Stripe subscription to our database format with ISO strings
 		const subscription = {
 			userId,
 			stripeSubscriptionId: stripeSubscription.id,
-			stripeCustomerId:
-				typeof stripeSubscription.customer === 'string'
-					? stripeSubscription.customer
-					: stripeSubscription.customer.id,
-			status: stripeSubscription.status,
-			currentPeriodStart: new Date(
-				stripeSubscription.current_period_start * 1000
-			),
-			currentPeriodEnd: new Date(
-				stripeSubscription.current_period_end * 1000
-			),
-			createdAt: new Date(stripeSubscription.created * 1000),
-			updatedAt: new Date(),
+			stripeCustomerId: stripeSubscription.customer as string,
+			stripePriceId: stripeSubscription.items.data[0]?.price.id,
+			status: this.mapStripeStatus(stripeSubscription.status),
+			currentPeriodStart: new Date(periodStart * 1000).toISOString(),
+			currentPeriodEnd: new Date(periodEnd * 1000).toISOString(),
 			cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
 			canceledAt: stripeSubscription.canceled_at
-				? new Date(stripeSubscription.canceled_at * 1000)
+				? new Date(stripeSubscription.canceled_at * 1000).toISOString()
 				: null,
-			trialStart: stripeSubscription.trial_start
-				? new Date(stripeSubscription.trial_start * 1000)
-				: null,
-			trialEnd: stripeSubscription.trial_end
-				? new Date(stripeSubscription.trial_end * 1000)
-				: null,
-			planType:
-				(stripeSubscription.items.data[0]?.price?.lookup_key as
-					| 'FREETRIAL'
-					| 'STARTER'
-					| 'GROWTH'
-					| 'TENANTFLOW_MAX') || 'UNKNOWN',
-			stripePriceId:
-				stripeSubscription.items.data[0]?.price?.id ||
-				'UNKNOWN_PRICE_ID'
 		}
 
+		// Upsert to database
 		const { error } = await this.supabaseService
 			.getAdminClient()
 			.from('Subscription')
-			.upsert({
-				userId: userId,
-				stripeSubscriptionId: subscription.stripeSubscriptionId,
-				stripeCustomerId: subscription.stripeCustomerId,
-				status: subscription.status.toUpperCase() as
-					| 'ACTIVE'
-					| 'CANCELED'
-					| 'TRIALING'
-					| 'PAST_DUE'
-					| 'UNPAID'
-					| 'INCOMPLETE'
-					| 'INCOMPLETE_EXPIRED',
-				planType: subscription.planType,
-				stripePriceId: subscription.stripePriceId,
-				currentPeriodStart:
-					subscription.currentPeriodStart?.toISOString(),
-				currentPeriodEnd: subscription.currentPeriodEnd?.toISOString(),
-				cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
-				canceledAt: subscription.canceledAt?.toISOString(),
-				trialStart: subscription.trialStart?.toISOString(),
-				trialEnd: subscription.trialEnd?.toISOString(),
-				updatedAt: new Date().toISOString()
+			.upsert(subscription, {
+				onConflict: 'stripeSubscriptionId',
 			})
 
 		if (error) {
 			this.logger.error(`Failed to upsert subscription: ${error.message}`)
 			throw error
 		}
+
+		this.logger.log(`Updated subscription: ${stripeSubscription.id}`)
 	}
 
 	/**
-	 * Update subscription status only
+	 * Update subscription status
 	 */
 	private async updateSubscriptionStatus(
 		stripeSubscriptionId: string,
-		status: string
+		status: 'ACTIVE' | 'CANCELED' | 'TRIALING' | 'PAST_DUE' | 'UNPAID' | 'INCOMPLETE' | 'INCOMPLETE_EXPIRED'
 	): Promise<void> {
 		const { error } = await this.supabaseService
 			.getAdminClient()
 			.from('Subscription')
-			.update({
-				status: status as
-					| 'ACTIVE'
-					| 'CANCELED'
-					| 'TRIALING'
-					| 'PAST_DUE'
-					| 'UNPAID'
-					| 'INCOMPLETE'
-					| 'INCOMPLETE_EXPIRED',
-				updatedAt: new Date().toISOString()
-			})
+			.update({ status })
 			.eq('stripeSubscriptionId', stripeSubscriptionId)
 
 		if (error) {
-			this.logger.error(
-				`Failed to update subscription status: ${error.message}`
-			)
+			this.logger.error(`Failed to update subscription status: ${error.message}`)
+			throw error
 		}
+	}
+
+	/**
+	 * Map Stripe status to our status enum
+	 */
+	private mapStripeStatus(stripeStatus: Stripe.Subscription.Status): 
+		'ACTIVE' | 'CANCELED' | 'TRIALING' | 'PAST_DUE' | 'UNPAID' | 'INCOMPLETE' | 'INCOMPLETE_EXPIRED' {
+		const statusMap: Record<Stripe.Subscription.Status, 
+			'ACTIVE' | 'CANCELED' | 'TRIALING' | 'PAST_DUE' | 'UNPAID' | 'INCOMPLETE' | 'INCOMPLETE_EXPIRED'> = {
+			active: 'ACTIVE',
+			past_due: 'PAST_DUE',
+			canceled: 'CANCELED',
+			unpaid: 'UNPAID',
+			incomplete: 'INCOMPLETE',
+			incomplete_expired: 'INCOMPLETE_EXPIRED',
+			trialing: 'TRIALING',
+			paused: 'ACTIVE', // Map paused to ACTIVE as we don't have a PAUSED status
+		}
+
+		return statusMap[stripeStatus] || 'ACTIVE'
+	}
+
+	/**
+	 * Clean up old processed events periodically
+	 * Called externally via cron job
+	 */
+	clearProcessedEvents(): void {
+		this.processedEvents.clear()
+		this.logger.log('Cleared processed events cache')
 	}
 }

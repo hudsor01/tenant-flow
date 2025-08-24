@@ -67,18 +67,18 @@ export interface PropertyWithAnalytics {
 	id: string
 	name: string
 	address?: string
-	units: {
+	units: Array<{
 		id: string
 		unitNumber: string
 		rent?: number
-	}[]
-	leases: {
+	}>
+	leases: Array<{
 		id: string
 		status: string
 		rentAmount?: number
 		startDate?: string | Date
 		endDate?: string | Date
-	}[]
+	}>
 }
 
 export interface TopPayingTenant {

@@ -11,11 +11,7 @@
  * - Consistent error messages
  */
 
-import { 
-	createTypedSchema, 
-	schemaRegistry, 
-	type TypedJSONSchema 
-} from '../shared/types/fastify-type-provider'
+import type { JSONSchema } from '../shared/types/fastify-type-provider'
 import {
 	COMPANY_VALIDATION,
 	EMAIL_VALIDATION,
@@ -24,7 +20,7 @@ import {
 } from '../shared/constants/validation.constants'
 
 // Base email schema
-const emailSchema: TypedJSONSchema = {
+const emailSchema: JSONSchema = {
 	type: 'string',
 	format: 'email',
 	minLength: 1,
@@ -33,7 +29,7 @@ const emailSchema: TypedJSONSchema = {
 }
 
 // Base password schema
-const passwordSchema: TypedJSONSchema = {
+const passwordSchema: JSONSchema = {
 	type: 'string',
 	minLength: PASSWORD_VALIDATION.MIN_LENGTH,
 	pattern: PASSWORD_VALIDATION.REGEX.source,
@@ -41,7 +37,7 @@ const passwordSchema: TypedJSONSchema = {
 }
 
 // Name validation schema
-const nameSchema: TypedJSONSchema = {
+const nameSchema: JSONSchema = {
 	type: 'string',
 	minLength: NAME_VALIDATION.MIN_LENGTH,
 	maxLength: NAME_VALIDATION.MAX_LENGTH,
@@ -50,7 +46,7 @@ const nameSchema: TypedJSONSchema = {
 }
 
 // Company schema
-const companySchema: TypedJSONSchema = {
+const companySchema: JSONSchema = {
 	type: 'string',
 	maxLength: COMPANY_VALIDATION.MAX_LENGTH,
 	description: COMPANY_VALIDATION.MESSAGE
@@ -65,7 +61,7 @@ export interface LoginRequest {
 	rememberMe?: boolean
 }
 
-export const loginSchema = createTypedSchema<LoginRequest>({
+export const loginSchema: JSONSchema = {
 	type: 'object',
 	required: ['email', 'password'],
 	additionalProperties: false,
@@ -82,7 +78,7 @@ export const loginSchema = createTypedSchema<LoginRequest>({
 			description: 'Keep user logged in for extended period'
 		}
 	}
-})
+}
 
 /**
  * Registration request schema
@@ -95,7 +91,7 @@ export interface RegisterRequest {
 	acceptTerms?: boolean
 }
 
-export const registerSchema = createTypedSchema<RegisterRequest>({
+export const registerSchema: JSONSchema = {
 	type: 'object',
 	required: ['name', 'email', 'password'],
 	additionalProperties: false,
@@ -110,7 +106,7 @@ export const registerSchema = createTypedSchema<RegisterRequest>({
 			description: 'User acceptance of terms and conditions'
 		}
 	}
-})
+}
 
 /**
  * Refresh token request schema
@@ -119,7 +115,7 @@ export interface RefreshTokenRequest {
 	refresh_token: string
 }
 
-export const refreshTokenSchema = createTypedSchema<RefreshTokenRequest>({
+export const refreshTokenSchema: JSONSchema = {
 	type: 'object',
 	required: ['refresh_token'],
 	additionalProperties: false,
@@ -130,7 +126,7 @@ export const refreshTokenSchema = createTypedSchema<RefreshTokenRequest>({
 			description: 'Valid refresh token'
 		}
 	}
-})
+}
 
 /**
  * Forgot password request schema
@@ -139,14 +135,14 @@ export interface ForgotPasswordRequest {
 	email: string
 }
 
-export const forgotPasswordSchema = createTypedSchema<ForgotPasswordRequest>({
+export const forgotPasswordSchema: JSONSchema = {
 	type: 'object',
 	required: ['email'],
 	additionalProperties: false,
 	properties: {
 		email: emailSchema
 	}
-})
+}
 
 /**
  * Reset password request schema
@@ -157,7 +153,7 @@ export interface ResetPasswordRequest {
 	confirmPassword: string
 }
 
-export const resetPasswordSchema = createTypedSchema<ResetPasswordRequest>({
+export const resetPasswordSchema: JSONSchema = {
 	type: 'object',
 	required: ['token', 'newPassword', 'confirmPassword'],
 	additionalProperties: false,
@@ -174,7 +170,7 @@ export const resetPasswordSchema = createTypedSchema<ResetPasswordRequest>({
 			description: 'Password confirmation (must match newPassword)'
 		}
 	}
-})
+}
 
 /**
  * Change password request schema
@@ -185,7 +181,7 @@ export interface ChangePasswordRequest {
 	confirmPassword: string
 }
 
-export const changePasswordSchema = createTypedSchema<ChangePasswordRequest>({
+export const changePasswordSchema: JSONSchema = {
 	type: 'object',
 	required: ['currentPassword', 'newPassword', 'confirmPassword'],
 	additionalProperties: false,
@@ -202,7 +198,7 @@ export const changePasswordSchema = createTypedSchema<ChangePasswordRequest>({
 			description: 'Password confirmation (must match newPassword)'
 		}
 	}
-})
+}
 
 /**
  * Authentication response schema
@@ -225,7 +221,7 @@ export interface AuthResponse {
 	}
 }
 
-export const authResponseSchema = createTypedSchema<AuthResponse>({
+export const authResponseSchema: JSONSchema = {
 	type: 'object',
 	required: ['user', 'tokens'],
 	properties: {
@@ -253,7 +249,7 @@ export const authResponseSchema = createTypedSchema<AuthResponse>({
 			}
 		}
 	}
-})
+}
 
 /**
  * User profile response schema
@@ -271,7 +267,7 @@ export interface UserProfileResponse {
 	updatedAt: string
 }
 
-export const userProfileResponseSchema = createTypedSchema<UserProfileResponse>({
+export const userProfileResponseSchema: JSONSchema = {
 	type: 'object',
 	required: ['id', 'email', 'name', 'emailVerified', 'createdAt', 'updatedAt'],
 	properties: {
@@ -286,17 +282,10 @@ export const userProfileResponseSchema = createTypedSchema<UserProfileResponse>(
 		createdAt: { type: 'string', format: 'date-time' },
 		updatedAt: { type: 'string', format: 'date-time' }
 	}
-})
+}
 
-// Register all schemas with the global registry
-schemaRegistry.register('login', loginSchema)
-schemaRegistry.register('register', registerSchema)
-schemaRegistry.register('refresh-token', refreshTokenSchema)
-schemaRegistry.register('forgot-password', forgotPasswordSchema)
-schemaRegistry.register('reset-password', resetPasswordSchema)
-schemaRegistry.register('change-password', changePasswordSchema)
-schemaRegistry.register('auth-response', authResponseSchema)
-schemaRegistry.register('user-profile-response', userProfileResponseSchema)
+// Schemas are exported directly for use in NestJS controllers
+// No custom registry needed - use Fastify's native addSchema() if sharing is required
 
 // Export route schemas for controller usage
 export const authRouteSchemas = {

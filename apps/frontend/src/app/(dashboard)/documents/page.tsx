@@ -192,9 +192,12 @@ export default function DocumentsPage() {
 				<div className="relative flex-1">
 					<Search className="text-muted-foreground absolute top-2.5 left-2 h-4 w-4" />
 					<Input
+						aria-label="Search documents by name or property..."
 						placeholder="Search documents by name or property..."
 						value={searchTerm}
-						onChange={e => setSearchTerm(e.target.value)}
+						onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+							setSearchTerm(e.target.value)
+						}
 						className="pl-8"
 					/>
 				</div>

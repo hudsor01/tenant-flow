@@ -163,7 +163,7 @@ export function useLeaseManagement(
  */
 export function useLease(id: string, options?: { enabled?: boolean }) {
 	const leaseQuery = useLeaseAPI(id, options)
-	const { notifyError } = useNotificationSystem()
+	const {} = useNotificationSystem()
 
 	return {
 		lease: leaseQuery.data || null,

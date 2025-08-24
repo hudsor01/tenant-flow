@@ -16,14 +16,18 @@
 /* Enhanced focus for better accessibility */
 .btn-focus-enhanced {
 	@apply transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--background))];
+}
 
-	/* High contrast mode support */
-	@media (prefers-contrast: high) {
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+	.btn-focus-enhanced {
 		@apply focus-visible:ring-4;
 	}
+}
 
-	/* Reduced motion support */
-	@media (prefers-reduced-motion: reduce) {
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+	.btn-focus-enhanced {
 		@apply transition-none;
 	}
 }

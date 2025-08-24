@@ -63,7 +63,7 @@ export class DirectEmailService {
         throw new Error(`Resend error: ${error.message}`)
       }
 
-      this.logger.log(`Maintenance notification sent: ${data?.id}`)
+      this.logger.log(`Maintenance notification sent: ${data.id}`)
     } catch (error) {
       this.logger.error(`Failed to send maintenance notification: ${error}`)
       throw error
@@ -91,7 +91,7 @@ export class DirectEmailService {
         throw new Error(`Resend error: ${error.message}`)
       }
 
-      this.logger.log(`Simple email sent: ${data?.id}`)
+      this.logger.log(`Simple email sent: ${data.id}`)
     } catch (error) {
       this.logger.error(`Failed to send simple email: ${error}`)
       throw error

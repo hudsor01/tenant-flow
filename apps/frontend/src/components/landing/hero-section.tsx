@@ -11,7 +11,7 @@ export function HeroSection() {
 				<div className="mx-auto max-w-4xl text-center">
 					{/* Compact announcement badge */}
 					<div className="mb-6 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 text-sm text-gray-600 shadow-sm">
-						<div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
+						<div className="h-1.5 w-1.5 rounded-full bg-green-500" />
 						<span>New: AI-Powered Lease Generator</span>
 						<ArrowRight className="h-3 w-3" />
 					</div>

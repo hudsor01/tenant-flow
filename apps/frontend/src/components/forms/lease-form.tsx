@@ -12,7 +12,7 @@
 
 import React from 'react'
 import { LeaseFormClient } from './lease-form-client'
-import type { LeaseFormProps as BaseLeaseFormProps } from '@/types/components/forms'
+import type { UseLeaseFormProps as BaseLeaseFormProps } from '@repo/shared'
 
 // ============================================================================
 // MAIN LEASE FORM (SERVER COMPONENT)
@@ -21,6 +21,8 @@ import type { LeaseFormProps as BaseLeaseFormProps } from '@/types/components/fo
 // Extend base props to add component-specific props
 interface LeaseFormProps extends Omit<BaseLeaseFormProps, 'tenantId' | 'unitId'> {
 	preselectedUnitId?: string
+	onCancel?: () => void
+	className?: string
 	preselectedTenantId?: string
 }
 

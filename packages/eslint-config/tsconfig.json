@@ -1,5 +1,20 @@
 {
   "extends": "@repo/typescript-config/base.json",
-  "include": ["*.js"],
+  "compilerOptions": {
+    // allow JS files to be included without emitting output
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true
+  },
+  "include": [
+    "*.js",
+    "**/*.js",
+    "*.cjs",
+    "**/*.cjs",
+    "*.mjs",
+    "**/*.mjs",
+    "*.ts",
+    "**/*.ts"
+  ],
   "exclude": ["node_modules", "dist"]
 }

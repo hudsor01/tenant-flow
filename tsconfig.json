@@ -1,15 +1,16 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
-	"display": "TenantFlow Root Config",
+	"display": "TenantFlow Root Config - TypeScript Solution Mode",
 	"compilerOptions": {
+		"composite": false,
 		"strict": true,
 		"skipLibCheck": true,
 		"noEmit": true
 	},
 	"files": [],
 	"references": [
-		{ "path": "./packages/database" },
 		{ "path": "./packages/shared" },
+		{ "path": "./packages/database" },
 		{ "path": "./apps/frontend" },
 		{ "path": "./apps/backend" }
 	]

@@ -1,4 +1,4 @@
-import type { Metadata } from '@/types/next'
+import type { Metadata } from 'next/types'
 
 type Locale = 'en' | 'es' | 'fr' | 'de'
 

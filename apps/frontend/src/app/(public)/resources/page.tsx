@@ -131,7 +131,12 @@ const categories = [
 	{ id: 'webinar', label: 'Webinars', icon: PlayCircle }
 ]
 
-function ResourceCard({ resource }: { resource: Resource }) {
+interface ResourceCardProps {
+	resource: Resource
+	className?: string
+}
+
+function ResourceCard({ resource, className }: ResourceCardProps) {
 	const getCategoryIcon = (category: Resource['category']) => {
 		switch (category) {
 			case 'guide':
@@ -165,7 +170,7 @@ function ResourceCard({ resource }: { resource: Resource }) {
 			<Card
 				className={`to-muted/20 group h-full cursor-pointer border-0 bg-gradient-to-br from-white transition-all duration-300 hover:shadow-xl ${
 					resource.featured ? 'ring-primary/20 shadow-lg ring-2' : ''
-				}`}
+				} ${className || ''}`}
 			>
 				<CardHeader className="pb-4">
 					<div className="flex items-start justify-between">
@@ -360,7 +365,7 @@ export default function ResourcesPage() {
 							<Input
 								placeholder="Search resources..."
 								value={searchQuery}
-								onChange={e => setSearchQuery(e.target.value)}
+								onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
 								className="focus:border-primary focus:shadow-primary/10 h-12 border-2 pl-10 transition-all duration-200 focus:shadow-lg"
 							/>
 						</div>

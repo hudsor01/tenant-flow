@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import type { UseFormReturn } from 'react-hook-form'
 import { AvatarUploadSection } from './avatar-upload-section'
-import { logger } from '@/lib/logger'
+import { logger } from "@/lib/logger/logger"
 import { toast } from 'sonner'
 import type { User } from '@repo/shared'
 import type { ProfileFormData } from '@/hooks/use-edit-profile-data'
@@ -169,7 +169,7 @@ export function ProfileTabSection({
 				>
 					{form.formState.isSubmitting ? (
 						<>
-							<div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
+							<div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white" />
 							Updating...
 						</>
 					) : (

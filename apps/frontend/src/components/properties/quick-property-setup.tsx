@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { logger } from '@/lib/logger'
+import { logger } from "@/lib/logger/logger"
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -90,7 +90,7 @@ export default function QuickPropertySetup({
 			// 2. Create units for the property
 			const unitPromises = Array.from(
 				{ length: data.numberOfUnits },
-				(_, index) =>
+				async (_, index) =>
 					createUnit.mutateAsync({
 						propertyId: property.id,
 						unitNumber: (index + 1).toString(),

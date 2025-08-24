@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/actions/auth-actions'
-import { logger } from '@/lib/logger'
+import { logger } from "@/lib/logger/logger"
 
 interface ServerAuthGuardProps {
 	children: React.ReactNode

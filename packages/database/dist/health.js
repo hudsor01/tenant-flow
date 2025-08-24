@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkDatabaseConnection = checkDatabaseConnection;
-const supabase_js_1 = require("@supabase/supabase-js");
+import { createClient } from '@supabase/supabase-js';
 /**
  * Checks database connectivity using Supabase client
  *
@@ -23,7 +20,7 @@ const supabase_js_1 = require("@supabase/supabase-js");
  * }
  * ```
  */
-async function checkDatabaseConnection(supabaseUrl, supabaseKey) {
+export async function checkDatabaseConnection(supabaseUrl, supabaseKey) {
     try {
         if (!supabaseUrl || !supabaseKey) {
             return {
@@ -31,7 +28,7 @@ async function checkDatabaseConnection(supabaseUrl, supabaseKey) {
                 error: 'Missing Supabase configuration'
             };
         }
-        const supabase = (0, supabase_js_1.createClient)(supabaseUrl, supabaseKey);
+        const supabase = createClient(supabaseUrl, supabaseKey);
         // Perform a simple query to test connectivity
         const { error } = await supabase.from('User').select('id').limit(1);
         if (error) {

@@ -1,4 +1,4 @@
-import { logger } from '@/lib/logger/logger'
+import { logger } from "@/lib/logger/logger"
 
 /**
  * Basic Supabase configuration checker

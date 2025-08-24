@@ -42,7 +42,7 @@ export default function EditPropertyModal() {
 		}
 
 		if (params.id) {
-			fetchProperty()
+			void fetchProperty()
 		}
 	}, [params.id])
 

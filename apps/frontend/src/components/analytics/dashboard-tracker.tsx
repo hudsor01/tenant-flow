@@ -22,7 +22,7 @@ export function DashboardTracker({
 	const posthog = usePostHog()
 
 	useEffect(() => {
-		if (!posthog) return
+		if (!posthog) {return}
 
 		// Track dashboard view
 		posthog.capture('dashboard_viewed', {
@@ -36,7 +36,7 @@ export function DashboardTracker({
 	// Track specific dashboard interactions
 	const trackDashboardAction = useCallback(
 		(action: string, properties?: Record<string, unknown>) => {
-			if (!posthog) return
+			if (!posthog) {return}
 
 			posthog.capture('dashboard_action', {
 				action,

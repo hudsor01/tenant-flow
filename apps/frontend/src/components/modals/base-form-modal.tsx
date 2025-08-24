@@ -53,7 +53,7 @@ export function BaseFormModal({
 }: BaseFormModalProps) {
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault()
-		onSubmit?.()
+		void onSubmit?.()
 	}
 
 	return (

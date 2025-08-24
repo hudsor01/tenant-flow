@@ -1,10 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, BadRequestException, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common'
 import { SupabaseService } from '../database/supabase.service'
-import type { MaintenanceRequest } from '@repo/shared'
-import {
-	ErrorCode,
-	ErrorHandlerService
-} from '../services/error-handler.service'
+import { PRIORITY, REQUEST_STATUS, type MaintenanceRequest, type MaintenanceCategory } from '@repo/shared'
+
+type MaintenancePriority = (typeof PRIORITY)[keyof typeof PRIORITY]
+type MaintenanceStatus = (typeof REQUEST_STATUS)[keyof typeof REQUEST_STATUS]
 
 /**
  * IMPORTANT: Database Schema Reference
@@ -58,45 +57,23 @@ export interface MaintenanceQueryDto {
 	propertyId?: string
 	status?: MaintenanceStatus
 	priority?: MaintenancePriority
+	category?: MaintenanceCategory
 	assignedTo?: string
 	limit?: number
 	offset?: number
 }
 
-export enum MaintenancePriority {
-	LOW = 'LOW',
-	MEDIUM = 'MEDIUM',
-	HIGH = 'HIGH',
-	EMERGENCY = 'EMERGENCY'
-}
 
-export enum MaintenanceCategory {
-	PLUMBING = 'plumbing',
-	ELECTRICAL = 'electrical',
-	HVAC = 'hvac',
-	APPLIANCES = 'appliances',
-	GENERAL = 'general',
-	EMERGENCY = 'emergency'
-}
-
-export enum MaintenanceStatus {
-	OPEN = 'OPEN',
-	IN_PROGRESS = 'IN_PROGRESS',
-	COMPLETED = 'COMPLETED',
-	CANCELED = 'CANCELED',
-	ON_HOLD = 'ON_HOLD'
-}
 
 @Injectable()
 export class MaintenanceService {
 	private readonly logger = new Logger(MaintenanceService.name)
 
 	constructor(
-		private readonly supabaseService: SupabaseService,
-		private readonly errorHandler: ErrorHandlerService
+		private readonly supabaseService: SupabaseService
 	) {}
 
-	async create(ownerId: string, createDto: MaintenanceCreateDto): Promise<MaintenanceRequest> {
+	async createBasic(ownerId: string, createDto: MaintenanceCreateDto): Promise<MaintenanceRequest> {
 		try {
 			const client = this.supabaseService.getAdminClient()
 			
@@ -107,24 +84,23 @@ export class MaintenanceService {
 					title: createDto.title,
 					description: createDto.description,
 					category: createDto.category,
-					priority: createDto.priority || MaintenancePriority.MEDIUM,
-					status: createDto.status || MaintenanceStatus.OPEN,
+					priority: createDto.priority ?? PRIORITY.MEDIUM,
+					status: createDto.status ?? REQUEST_STATUS.OPEN,
 					preferredDate: createDto.preferredDate,
 					allowEntry: createDto.allowEntry ?? true,
 					contactPhone: createDto.contactPhone,
-					requestedBy: createDto.requestedBy || ownerId,
+					requestedBy: createDto.requestedBy ?? ownerId,
 					notes: createDto.notes
 				})
 				.select()
 				.single()
 
-			if (error) {
-				throw this.errorHandler.createBusinessError(
-					ErrorCode.STORAGE_ERROR,
-					'Failed to create maintenance request',
-					{ metadata: { error: error.message } }
-				)
-			}
+if (error) {
+throw new BadRequestException(
+'Failed to create maintenance request',
+{ cause: error, description: error.message }
+)
+}
 
 			return data as MaintenanceRequest
 		} catch (error) {
@@ -171,13 +147,12 @@ export class MaintenanceService {
 
 			const { data, error } = await queryBuilder
 
-			if (error) {
-				throw this.errorHandler.createBusinessError(
-					ErrorCode.STORAGE_ERROR,
-					'Failed to fetch maintenance requests',
-					{ metadata: { error: error.message } }
-				)
-			}
+if (error) {
+throw new BadRequestException(
+'Failed to fetch maintenance requests',
+{ cause: error, description: error.message }
+)
+}
 
 			return data as MaintenanceRequest[]
 		} catch (error) {
@@ -214,7 +189,7 @@ export class MaintenanceService {
 					throw new NotFoundException('Maintenance request not found')
 				}
 				this.logger.error('Error fetching maintenance request:', error)
-				throw new Error(`Failed to fetch maintenance request: ${error.message}`)
+				throw new Error(`Failed to fetch maintenance request: ${error instanceof Error ? error.message : String(error)}`)
 			}
 
 			return data
@@ -230,7 +205,7 @@ export class MaintenanceService {
 	async create(
 		createDto: MaintenanceCreateDto,
 		ownerId: string
-	): Promise<MaintenanceRequestWithRelations> {
+	): Promise<MaintenanceRequest> {
 		try {
 			const client = this.supabaseService.getAdminClient()
 
@@ -242,13 +217,23 @@ export class MaintenanceService {
 				.eq('property.ownerId', ownerId)
 				.single()
 
-			if (unitError || !unitCheck) {
+			if (unitError) {
+				this.logger.error('Error verifying unit:', { error: unitError, ownerId, unitId: createDto.unitId })
+				// Treat Supabase "row not found" code as a NotFound scenario  
+				if ('code' in unitError && unitError.code === 'PGRST116') {
+					throw new NotFoundException('Unit not found or access denied')
+				}
+				throw new InternalServerErrorException('Failed to verify unit')
+			}
+
+			// Ensure returned data actually contains the expected id
+			if (typeof unitCheck !== 'object' || !('id' in unitCheck)) {
 				throw new NotFoundException('Unit not found or access denied')
 			}
 
 			const maintenanceData = {
 				...createDto,
-				status: 'OPEN' as RequestStatus,
+				status: REQUEST_STATUS.OPEN,
 				allowEntry: createDto.allowEntry ?? false,
 				createdAt: new Date().toISOString(),
 				updatedAt: new Date().toISOString()
@@ -274,7 +259,7 @@ export class MaintenanceService {
 
 			if (error) {
 				this.logger.error('Error creating maintenance request:', error)
-				throw new Error(`Failed to create maintenance request: ${error.message}`)
+				throw new Error(`Failed to create maintenance request: ${error instanceof Error ? error.message : String(error)}`)
 			}
 
 			this.logger.log(`Created maintenance request: ${data.id}`)
@@ -292,15 +277,12 @@ export class MaintenanceService {
 		id: string,
 		updateDto: MaintenanceUpdateDto,
 		ownerId: string
-	): Promise<MaintenanceRequestWithRelations> {
+	): Promise<MaintenanceRequest> {
 		try {
 			const client = this.supabaseService.getAdminClient()
 
 			// First verify the maintenance request belongs to the owner
-			const existing = await this.findOne(id, ownerId)
-			if (!existing) {
-				throw new NotFoundException('Maintenance request not found')
-			}
+			await this.findOne(id, ownerId)
 
 			const updateData = {
 				...updateDto,
@@ -328,7 +310,7 @@ export class MaintenanceService {
 
 			if (error) {
 				this.logger.error('Error updating maintenance request:', error)
-				throw new Error(`Failed to update maintenance request: ${error.message}`)
+				throw new Error(`Failed to update maintenance request: ${error instanceof Error ? error.message : String(error)}`)
 			}
 
 			this.logger.log(`Updated maintenance request: ${id}`)
@@ -344,22 +326,19 @@ export class MaintenanceService {
 
 	async updateStatus(
 		id: string,
-		status: RequestStatus,
+		status: MaintenanceStatus,
 		ownerId: string
-	): Promise<MaintenanceRequestWithRelations> {
+	): Promise<MaintenanceRequest> {
 		try {
 			const client = this.supabaseService.getAdminClient()
 
 			// First verify the maintenance request belongs to the owner
-			const existing = await this.findOne(id, ownerId)
-			if (!existing) {
-				throw new NotFoundException('Maintenance request not found')
-			}
+			await this.findOne(id, ownerId)
 
 			const updateData = {
 				status,
 				updatedAt: new Date().toISOString(),
-				...(status === 'COMPLETED' && { completedAt: new Date().toISOString() })
+				...(status === REQUEST_STATUS.COMPLETED && { completedAt: new Date().toISOString() })
 			}
 
 			const { data, error } = await client
@@ -383,7 +362,7 @@ export class MaintenanceService {
 
 			if (error) {
 				this.logger.error('Error updating maintenance request status:', error)
-				throw new Error(`Failed to update maintenance request status: ${error.message}`)
+				throw new Error(`Failed to update maintenance request status: ${error instanceof Error ? error.message : String(error)}`)
 			}
 
 			this.logger.log(`Updated maintenance request status: ${id} -> ${status}`)
@@ -402,10 +381,7 @@ export class MaintenanceService {
 			const client = this.supabaseService.getAdminClient()
 
 			// First verify the maintenance request belongs to the owner
-			const existing = await this.findOne(id, ownerId)
-			if (!existing) {
-				throw new NotFoundException('Maintenance request not found')
-			}
+			await this.findOne(id, ownerId)
 
 			const { error } = await client
 				.from('MaintenanceRequest')
@@ -414,7 +390,7 @@ export class MaintenanceService {
 
 			if (error) {
 				this.logger.error('Error deleting maintenance request:', error)
-				throw new Error(`Failed to delete maintenance request: ${error.message}`)
+				throw new Error(`Failed to delete maintenance request: ${error instanceof Error ? error.message : String(error)}`)
 			}
 
 			this.logger.log(`Deleted maintenance request: ${id}`)
@@ -460,10 +436,10 @@ export class MaintenanceService {
 
 			if (error) {
 				this.logger.error('Error fetching maintenance stats:', error)
-				throw new Error(`Failed to fetch maintenance stats: ${error.message}`)
+				throw new Error(`Failed to fetch maintenance stats: ${error.message || String(error)}`)
 			}
 
-			const requests = data || []
+			const requests = data
 			const now = new Date()
 
 			const stats = {
@@ -497,7 +473,7 @@ export class MaintenanceService {
 
 			const requestsWithCost = requests.filter(r => r.actualCost)
 			if (requestsWithCost.length > 0) {
-				stats.totalCost = requestsWithCost.reduce((sum, r) => sum + (r.actualCost || 0), 0)
+				stats.totalCost = requestsWithCost.reduce((sum, r) => sum + (r.actualCost ?? 0), 0)
 				stats.averageCost = stats.totalCost / requestsWithCost.length
 			}
 

@@ -3,8 +3,8 @@
  * Ensures all API responses match expected schemas
  */
 
-import { z, type ZodSchema, ZodError } from 'zod'
-import { logger } from '@/lib/logger'
+import { z, type ZodTypeAny, ZodError } from 'zod'
+import { logger } from "@/lib/logger/logger"
 
 export class ApiResponseValidationError extends Error {
 	constructor(
@@ -30,7 +30,7 @@ export class ResponseValidator {
 	 * Validate API response against Zod schema
 	 */
 	static validate<T>(
-		schema: ZodSchema<T>,
+		schema: ZodTypeAny,
 		data: unknown,
 		schemaName: string,
 		options: ValidationOptions = {}
@@ -43,7 +43,7 @@ export class ResponseValidator {
 
 		try {
 			// Parse and validate the data
-			const result = schema.parse(data)
+			const result = schema.parse(data) as T
 
 			// Log successful validation in development
 			if (process.env.NODE_ENV === 'development') {
@@ -88,7 +88,7 @@ export class ResponseValidator {
 	/**
 	 * Create a safe validator that doesn't throw but logs issues
 	 */
-	static createSafeValidator<T>(schema: ZodSchema<T>, schemaName: string) {
+	static createSafeValidator<T>(schema: ZodTypeAny, schemaName: string) {
 		return (data: unknown): T => {
 			return this.validate(schema, data, schemaName, {
 				throwOnFailure: false,
@@ -101,7 +101,7 @@ export class ResponseValidator {
 	 * Validate array responses
 	 */
 	static validateArray<T>(
-		itemSchema: ZodSchema<T>,
+		itemSchema: ZodTypeAny,
 		data: unknown,
 		schemaName: string,
 		options: ValidationOptions = {}
@@ -114,7 +114,7 @@ export class ResponseValidator {
 	 * Validate optional/nullable responses
 	 */
 	static validateOptional<T>(
-		schema: ZodSchema<T>,
+		schema: ZodTypeAny,
 		data: unknown,
 		schemaName: string,
 		options: ValidationOptions = {}
@@ -126,7 +126,7 @@ export class ResponseValidator {
 	/**
 	 * Describe schema shape for error reporting
 	 */
-	private static describeSchema(schema: ZodSchema): Record<string, string> {
+	private static describeSchema(schema: ZodTypeAny): Record<string, string> {
 		try {
 			// Try to get schema shape description
 			if ('_def' in schema) {
@@ -181,7 +181,7 @@ export const commonValidators = {
 	/**
 	 * Standard API response wrapper
 	 */
-	apiResponse: <T>(dataSchema: ZodSchema<T>) =>
+	apiResponse: (dataSchema: ZodTypeAny) =>
 		z.object({
 			success: z.boolean(),
 			data: dataSchema,
@@ -192,7 +192,7 @@ export const commonValidators = {
 	/**
 	 * Paginated response
 	 */
-	paginatedResponse: <T>(itemSchema: ZodSchema<T>) =>
+	paginatedResponse: (itemSchema: ZodTypeAny) =>
 		z.object({
 			items: z.array(itemSchema),
 			total: z.number(),
@@ -215,7 +215,7 @@ export const commonValidators = {
 	/**
 	 * ID response for creation operations
 	 */
-	idResponse: z.object({
+		idResponse: z.object({
 		id: z.string(),
 		message: z.string().optional()
 	}),
@@ -232,7 +232,7 @@ export const commonValidators = {
 /**
  * Type-safe validator factory
  */
-export function createValidator<T>(schema: ZodSchema<T>, name: string) {
+export function createValidator(schema: ZodTypeAny, name: string) {
 	return {
 		validate: (data: unknown, options?: ValidationOptions) =>
 			ResponseValidator.validate(schema, data, name, options),

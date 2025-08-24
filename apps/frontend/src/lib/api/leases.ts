@@ -7,31 +7,11 @@ import type {
 	Lease,
 	CreateLeaseInput,
 	UpdateLeaseInput,
-	LeaseQuery
+	LeaseQuery,
+	LeaseStats
 } from '@repo/shared'
 
-export interface LeaseStats {
-	total: number
-	active: number
-	expired: number
-	expiringSoon: number
-}
 
-/**
- * Query keys for React Query caching
- */
-export const leaseKeys = {
-	all: ['leases'] as const,
-	lists: () => [...leaseKeys.all, 'list'] as const,
-	list: (filters?: LeaseQuery) => [...leaseKeys.lists(), filters] as const,
-	details: () => [...leaseKeys.all, 'detail'] as const,
-	detail: (id: string) => [...leaseKeys.details(), id] as const,
-	stats: () => [...leaseKeys.all, 'stats'] as const,
-	byProperty: (propertyId: string) =>
-		[...leaseKeys.all, 'by-property', propertyId] as const,
-	byTenant: (tenantId: string) =>
-		[...leaseKeys.all, 'by-tenant', tenantId] as const
-}
 
 /**
  * Leases API functions - Direct calls only
@@ -62,6 +42,26 @@ export const leaseApi = {
 
 	async getStats() {
 		return apiClient.get<LeaseStats>('/leases/stats')
+	},
+
+	async search(query: string) {
+		return apiClient.get<Lease[]>('/leases/search', { 
+			params: { q: query } 
+		})
+	},
+
+	async getExpiring(days = 30) {
+		return apiClient.get<Lease[]>('/leases/expiring', { 
+			params: { days } 
+		})
+	},
+
+	async getByUnit(unitId: string) {
+		return apiClient.get<Lease[]>(`/leases/by-unit/${unitId}`)
+	},
+
+	async getPdf(id: string) {
+		return apiClient.get<Blob>(`/leases/${id}/pdf`)
 	},
 
 	async renew(id: string, data: { endDate: string; newRent?: number }) {

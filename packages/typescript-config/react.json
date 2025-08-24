@@ -3,13 +3,16 @@
 	"display": "TenantFlow React TypeScript Config",
 	"extends": "./base.json",
 	"compilerOptions": {
-		"jsx": "react-jsx",
+		"jsx": "preserve",
 		"module": "ESNext",
-		"moduleResolution": "Bundler",
+		"moduleResolution": "node",
 		"noEmit": true,
 		"allowImportingTsExtensions": false,
 		"lib": ["ES2022", "DOM", "DOM.Iterable"],
 		"isolatedModules": true,
-		"useDefineForClassFields": true
+		"useDefineForClassFields": true,
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
+		"skipLibCheck": true
 	}
 }

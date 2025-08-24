@@ -34,6 +34,12 @@ export default function WelcomeEmail({
 					feature: 'Automated lease generation',
 					savings: 'Save 10+ hours per week'
 				}
+			case 'medium':
+				return {
+					tip: 'Automate your rent collection to reduce late payments by up to 40%.',
+					feature: 'Smart rent collection system',
+					savings: 'Save 15+ hours per week'
+				}
 			case 'large':
 				return {
 					tip: 'Implement bulk tenant communication to streamline your property management workflow.',

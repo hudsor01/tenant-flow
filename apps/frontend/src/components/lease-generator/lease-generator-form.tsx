@@ -9,7 +9,7 @@
 
 // RESTORED WORKING IMPLEMENTATION
 import React, { useState, useEffect } from 'react'
-import { logger } from '@/lib/logger'
+import { logger } from "@/lib/logger/logger"
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { usePostHog } from 'posthog-js/react'
@@ -169,7 +169,7 @@ export default function LeaseGeneratorFormComponent({
 
 		try {
 			// Convert tenant names array to the expected format for the lease generator
-			const tenantNamesForLeaseGenerator = data.tenantNames
+			const _tenantNamesForLeaseGenerator = data.tenantNames
 				.filter((tenant: { name: string }) => tenant.name.trim() !== '')
 				.map((tenant: { name: string }) => ({
 					name: tenant.name.trim()
@@ -362,16 +362,14 @@ export default function LeaseGeneratorFormComponent({
 					<TabsContent value="additional">
 						<AdditionalTermsSection
 							form={form}
-							utilitiesOptions={utilitiesOptions as string[]}
+							utilitiesOptions={utilitiesOptions}
 							selectedUtilities={selectedUtilities}
 							handleUtilityToggle={
 								handleUtilityToggle as (utility: string) => void
 							}
 							selectedFormat={selectedFormat}
 							setSelectedFormat={
-								setSelectedFormat as React.Dispatch<
-									React.SetStateAction<LeaseOutputFormat>
-								>
+								setSelectedFormat
 							}
 						/>
 					</TabsContent>

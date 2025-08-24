@@ -172,10 +172,7 @@ export async function signupClient(
 
     return {
       success: true,
-      message: 'Registration successful! Please check your email to verify your account.',
-      data: {
-        user: result.user
-      }
+      message: 'Registration successful! Please check your email to verify your account.'
     }
   } catch (error) {
     console.error('Registration error:', error)
@@ -247,10 +244,7 @@ export async function loginClient(
 
     return {
       success: true,
-      message: 'Login successful',
-      data: {
-        user: result.user
-      }
+      message: 'Login successful'
     }
   } catch (error) {
     console.error('Login error:', error)

@@ -24,7 +24,7 @@ export class SupabaseHealthIndicator {
 
 			if (!isHealthy) {
 				return indicator.down({
-					message: result.message || 'Database connection check',
+					message: result.message ?? 'Database connection check',
 					responseTime,
 					supabaseStatus: result.status,
 					hasUrl: !!process.env.SUPABASE_URL,
@@ -33,7 +33,7 @@ export class SupabaseHealthIndicator {
 			}
 
 			return indicator.up({
-				message: result.message || 'Database connection healthy',
+				message: result.message ?? 'Database connection healthy',
 				responseTime,
 				supabaseStatus: result.status,
 				hasUrl: !!process.env.SUPABASE_URL,
@@ -99,7 +99,7 @@ export class SupabaseHealthIndicator {
 		}
 	}
 
-	private createTimeoutPromise(timeoutMs: number): Promise<never> {
+	private async createTimeoutPromise(timeoutMs: number): Promise<never> {
 		return new Promise((_, reject) => {
 			setTimeout(() => {
 				reject(new Error(`Database timeout after ${timeoutMs}ms`))

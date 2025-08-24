@@ -54,10 +54,12 @@ export class LeasesService {
 		private supabaseService: SupabaseService
 	) {
 		// Get user-scoped client if token available, otherwise admin client
-		const token =
-			this.request.user?.supabaseToken ||
-			this.request.headers?.authorization?.replace('Bearer ', '')
+		// Safely read the Authorization header (may be undefined)
+		const authHeader = this.request.headers.authorization ?? ''
+		const headerToken = authHeader ? authHeader.replace(/^Bearer\s+/i, '') : undefined
+		const token = this.request.user?.supabaseToken ?? headerToken
 
+		// If token is falsy (undefined or empty string) use admin client
 		this.supabase = token
 			? this.supabaseService.getUserClient(token)
 			: this.supabaseService.getAdminClient()
@@ -135,7 +137,7 @@ export class LeasesService {
 			throw new BadRequestException(error.message)
 		}
 
-		return (data || []) as LeaseWithRelations[]
+		return data as LeaseWithRelations[]
 	}
 
 	/**
@@ -222,7 +224,7 @@ export class LeasesService {
 			endDate: new Date(dto.endDate).toISOString(),
 			rentAmount: dto.rentAmount,
 			securityDeposit: dto.securityDeposit,
-			status: (dto.status || 'DRAFT') as
+			status: dto.status as
 				| 'DRAFT'
 				| 'ACTIVE'
 				| 'EXPIRED'
@@ -268,13 +270,13 @@ export class LeasesService {
 		const existing = await this.findOne(id, ownerId)
 
 		// Validate dates if provided
-		if (dto.startDate || dto.endDate) {
-			const startDate = dto.startDate || existing.startDate
-			const endDate = dto.endDate || existing.endDate
+		if (dto.startDate ?? dto.endDate) {
+			const startDate = dto.startDate ?? existing.startDate
+			const endDate = dto.endDate ?? existing.endDate
 			this.validateLeaseDates(startDate, endDate)
 
 			// Check for conflicts if dates changed
-			if (dto.startDate || dto.endDate) {
+			if (dto.startDate ?? dto.endDate) {
 				await this.checkLeaseConflicts(
 					existing.unitId,
 					startDate,

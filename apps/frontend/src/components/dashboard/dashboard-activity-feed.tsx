@@ -15,12 +15,7 @@ import { cardVariants, activityItemVariants } from './dashboard-animations'
 // Use the type from the dashboard hooks for consistency
 interface ActivityItem {
 	id: string
-	type:
-		| 'tenant_added'
-		| 'lease_created'
-		| 'maintenance_request'
-		| 'payment_received'
-		| string
+	type: string
 	description: string
 	timestamp: Date | string
 	entityId?: string

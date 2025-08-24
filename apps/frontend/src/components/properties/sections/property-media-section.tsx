@@ -62,7 +62,7 @@ export function PropertyMediaSection({
 							width={400}
 							height={192}
 							className="h-48 w-full object-cover"
-							onError={e => {
+							onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
 								const target = e.target as HTMLImageElement
 								target.style.display = 'none'
 								const parentElement =

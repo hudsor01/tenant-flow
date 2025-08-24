@@ -57,7 +57,7 @@ export function MobileNav({ className }: MobileNavProps) {
 	const { data: stats } = useDashboardOverview()
 
 	const getBadgeValue = (badgeKey?: string) => {
-		if (!badgeKey || !stats) return null
+		if (!badgeKey || !stats) {return null}
 
 		const keys = badgeKey.split('.')
 		let value: unknown = stats

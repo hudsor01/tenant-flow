@@ -39,7 +39,6 @@ export function useThemeManager() {
 			const darkMode = window.matchMedia('(prefers-color-scheme: dark)')
 
 			const handleChange = (e: MediaQueryListEvent) => {
-				const systemTheme = e.matches ? 'dark' : 'light'
 				document.documentElement.classList.toggle('dark', e.matches)
 			}
 
@@ -215,7 +214,7 @@ export function useSessionManager() {
 
 	// Session expiry warning
 	useEffect(() => {
-		if (!session.sessionExpiry) return
+		if (!session.sessionExpiry) {return}
 
 		const checkExpiry = () => {
 			const now = new Date()
@@ -249,7 +248,7 @@ export function useSessionManager() {
 	}, [session.sessionExpiry, extendSession, clearSession])
 
 	const isSessionExpiringSoon = useCallback(() => {
-		if (!session.sessionExpiry) return false
+		if (!session.sessionExpiry) {return false}
 		const now = new Date()
 		const expiry = new Date(session.sessionExpiry)
 		const minutesLeft = Math.floor(
@@ -372,7 +371,7 @@ export function useConnectionManager() {
 			updateLastSync()
 			notifySuccess('Sync Complete', 'All data has been synchronized.')
 			return true
-		} catch (error) {
+		} catch {
 			notifyWarning(
 				'Sync Failed',
 				'Unable to synchronize data. Please try again.'
@@ -444,7 +443,11 @@ export function useStoreDebugger() {
 
 	return {
 		store,
-		logState: () => console.log('Current Store State:', store),
+		logState: () => {
+			if (typeof window !== 'undefined' && 'console' in window) {
+				console.info('Current Store State:', store)
+			}
+		},
 		clearStore: () => store.resetAppState()
 	}
 }

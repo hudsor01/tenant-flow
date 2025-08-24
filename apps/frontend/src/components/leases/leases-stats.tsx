@@ -30,7 +30,7 @@ function calculateLeaseStats(leases: Lease[]) {
 
 	// Calculate leases expiring within 30 days
 	const expiringSoon = leases.filter(lease => {
-		if (lease.status !== 'ACTIVE') return false
+		if (lease.status !== 'ACTIVE') {return false}
 		const endDate = new Date(lease.endDate)
 		const thirtyDaysFromNow = new Date()
 		thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30)

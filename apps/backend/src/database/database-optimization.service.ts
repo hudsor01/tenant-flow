@@ -11,8 +11,6 @@ interface IndexRecommendation {
 export class DatabaseOptimizationService {
 	private readonly logger = new Logger(DatabaseOptimizationService.name)
 
-	constructor() {}
-
 	/**
 	 * Apply database optimization indexes
 	 * Creates recommended indexes to improve query performance
@@ -91,7 +89,7 @@ export class DatabaseOptimizationService {
 	}> {
 		try {
 			// TODO: Fix type compatibility after RPC function is available
-			return { success: false, error: 'Index stats disabled - RPC function not available' }
+			return await Promise.resolve({ success: false, error: 'Index stats disabled - RPC function not available' })
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : String(error)
 			this.logger.error('Error getting index usage stats:', error)
@@ -116,7 +114,7 @@ export class DatabaseOptimizationService {
 	}> {
 		try {
 			// TODO: Fix type compatibility after RPC function is available
-			return { success: false, error: 'Slow query stats disabled - RPC function not available' }
+			return Promise.resolve({ success: false, error: 'Slow query stats disabled - RPC function not available' })
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : String(error)
 			this.logger.warn('Error getting slow query stats:', error)
@@ -145,7 +143,7 @@ export class DatabaseOptimizationService {
 				analyzed.push(table)
 			}
 
-			return { success: true, analyzed }
+			return Promise.resolve({ success: true, analyzed })
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : String(error)
 			this.logger.error('Error analyzing tables:', error)
@@ -166,7 +164,7 @@ export class DatabaseOptimizationService {
 			const overview = {
 				message: 'Performance overview disabled - RPC function not available'
 			}
-			return { success: true, overview }
+			return Promise.resolve({ success: true, overview })
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : String(error)
 			this.logger.error('Error getting performance overview:', error)
@@ -190,7 +188,7 @@ export class DatabaseOptimizationService {
 	}> {
 		try {
 			// TODO: Fix type compatibility after RPC function is available
-			return { success: false, error: 'Unused index detection disabled - RPC function not available' }
+			return Promise.resolve({ success: false, error: 'Unused index detection disabled - RPC function not available' })
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : String(error)
 			this.logger.error('Error finding unused indexes:', error)
@@ -228,7 +226,7 @@ export class DatabaseOptimizationService {
 				index_sizes: []
 			}
 			
-			return { success: true, health }
+			return Promise.resolve({ success: true, health })
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : String(error)
 			this.logger.error('Error getting health metrics:', error)

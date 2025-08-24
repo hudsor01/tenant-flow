@@ -12,6 +12,13 @@ import type {
 	UpdateUnitInput,
 	PropertyStats
 } from '@repo/shared'
+import { z } from 'zod'
+import {
+	PropertySchema,
+	PropertyArraySchema,
+	UnitArraySchema,
+	UnitSchema
+} from '@/lib/api/schemas/properties'
 
 /**
  * Query keys for React Query caching
@@ -40,33 +47,53 @@ export const propertyApi = {
 						.map(([key, value]) => [key, String(value)])
 				).toString()
 			: ''
-		return apiClient.get<Property[]>(
-			`/properties${params ? `?${params}` : ''}`
-		)
+		return apiClient.getValidated<Property[]>(`/properties${params ? `?${params}` : ''}`, PropertyArraySchema, 'Property[]')
 	},
 
 	async getById(id: string) {
-		return apiClient.get<Property>(`/properties/${id}`)
+		return apiClient.getValidated<Property>(`/properties/${id}`, PropertySchema, 'Property')
 	},
 
 	async create(data: CreatePropertyInput) {
-		return apiClient.post<Property>('/properties', data)
+		return apiClient.postValidated<Property>('/properties', PropertySchema, 'Property', data as Record<string, unknown>, undefined, { throwOnFailure: true })
 	},
 
 	async update(id: string, data: UpdatePropertyInput) {
-		return apiClient.put<Property>(`/properties/${id}`, data)
+		return apiClient.putValidated<Property>(`/properties/${id}`, PropertySchema, 'Property', data as Record<string, unknown>, undefined, { throwOnFailure: true })
 	},
 
 	async delete(id: string) {
-		return apiClient.delete<{ success: boolean }>(`/properties/${id}`)
+		return apiClient.deleteValidated<{ success: boolean }>(`/properties/${id}`, z.object({ success: z.boolean() }), 'PropertyDelete')
 	},
 
 	async getStats() {
-		return apiClient.get<PropertyStats>('/properties/stats')
+		return apiClient.getValidated<PropertyStats>(
+			'/properties/stats',
+			z.object({
+				totalUnits: z.number(),
+				occupiedUnits: z.number(),
+				vacantUnits: z.number(),
+				occupancyRate: z.number(),
+				totalMonthlyRent: z.number(),
+				potentialRent: z.number(),
+				total: z.number(),
+				singleFamily: z.number(),
+				multiFamily: z.number(),
+				commercial: z.number()
+			}),
+			'PropertyStats'
+		)
+	},
+
+	async search(query: string) {
+		return apiClient.get<Property[]>('/properties/search', { 
+			params: { q: query } 
+		})
 	},
 
 	async getUnits(propertyId: string) {
-		return apiClient.get<Unit[]>(`/properties/${propertyId}/units`)
+		// Use the units controller endpoint
+		return apiClient.getValidated<Unit[]>(`/units/by-property/${propertyId}`, UnitArraySchema, 'Unit[]')
 	},
 
 	async updateUnit(
@@ -74,17 +101,12 @@ export const propertyApi = {
 		unitId: string,
 		data: UpdateUnitInput
 	) {
-		return apiClient.put<Unit>(
-			`/properties/${propertyId}/units/${unitId}`,
-			data
-		)
+		// Use the units controller endpoint directly
+		return apiClient.putValidated<Unit>(`/units/${unitId}`, UnitSchema, 'Unit', data as Record<string, unknown>, undefined, { throwOnFailure: true })
 	},
 
 	async uploadImage(propertyId: string, formData: FormData) {
-		return apiClient.post<{ url: string }>(
-			`/properties/${propertyId}/images`,
-			formData
-		)
+		return apiClient.postValidated<{ url: string }>(`/properties/${propertyId}/images`, z.object({ url: z.string() }), 'UploadImage', formData)
 	},
 
 	async getPropertyStats() {

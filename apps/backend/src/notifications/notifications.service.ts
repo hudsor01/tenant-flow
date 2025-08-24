@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { SupabaseService } from '../database/supabase.service'
-import { EmailService } from '../email/email.service'
+import type { Database } from '@repo/shared/types/supabase-generated'
 import type { 
   MaintenanceNotificationData, 
   NotificationType,
@@ -12,8 +12,7 @@ export class NotificationsService {
   private readonly logger = new Logger(NotificationsService.name)
 
   constructor(
-    private readonly supabaseService: SupabaseService,
-    private readonly emailService: EmailService
+    private readonly supabaseService: SupabaseService
   ) {}
 
   /**
@@ -82,7 +81,7 @@ export class NotificationsService {
       message: `New maintenance request for ${propertyName} - Unit ${unitNumber}: ${title}`,
       type: this.getNotificationType(priority, true),
       priority: priority,
-      actionUrl: actionUrl || '/maintenance',
+      actionUrl: actionUrl ?? '/maintenance',
       maintenanceId: maintenanceId,
       data: {
         propertyName,
@@ -200,25 +199,13 @@ export class NotificationsService {
         .eq('id', notification.recipientId)
         .single()
 
-      if (error || !user?.email) {
+      if (error || !user.email) {
         this.logger.warn(`Could not find email for user ${notification.recipientId}`)
         return
       }
 
-      // Send email notification using EmailService
-      if (notification.data) {
-        await this.emailService.sendMaintenanceNotificationEmail(
-          user.email,
-          notification.data.requestTitle,
-          notification.data.propertyName,
-          notification.data.unitNumber,
-          notification.data.description,
-          notification.priority,
-          notification.actionUrl
-        )
-      }
-
-      this.logger.log(`Email notification sent to ${user.email} for ${notification.priority} priority maintenance request`)
+      // Email notifications removed for MVP - focus on in-app notifications only
+      this.logger.log(`In-app notification sent for user ${notification.recipientId} (email disabled for MVP)`)
     } catch (error) {
       this.logger.error('Failed to send immediate notification:', error)
       // Don't throw - notification was still stored in database
@@ -228,7 +215,7 @@ export class NotificationsService {
   /**
    * Get unread notifications for a user
    */
-  async getUnreadNotifications(userId: string) {
+  async getUnreadNotifications(userId: string): Promise<Database['public']['Tables']['InAppNotification']['Row'][]> {
     const { data, error } = await this.supabaseService.getAdminClient()
       .from('InAppNotification')
       .select('*')
@@ -246,7 +233,7 @@ export class NotificationsService {
   /**
    * Mark notification as read
    */
-  async markAsRead(notificationId: string, userId: string) {
+  async markAsRead(notificationId: string, userId: string): Promise<Database['public']['Tables']['InAppNotification']['Row']> {
     const { data, error } = await this.supabaseService.getAdminClient()
       .from('InAppNotification')
       .update({ isRead: true, readAt: new Date().toISOString() })
@@ -263,9 +250,31 @@ export class NotificationsService {
   }
 
   /**
+   * Cancel notification
+   */
+  async cancelNotification(notificationId: string, userId: string): Promise<Database['public']['Tables']['InAppNotification']['Row']> {
+    const { data, error } = await this.supabaseService.getAdminClient()
+      .from('InAppNotification')
+      .update({ 
+        metadata: { cancelled: true, cancelledAt: new Date().toISOString() }
+      })
+      .eq('id', notificationId)
+      .eq('userId', userId)
+      .select()
+      .single()
+
+    if (error) {
+      throw error
+    }
+
+    this.logger.log(`Notification ${notificationId} cancelled for user ${userId}`)
+    return data
+  }
+
+  /**
    * Delete old notifications
    */
-  async cleanupOldNotifications(daysToKeep = 30) {
+  async cleanupOldNotifications(daysToKeep = 30): Promise<void> {
     const cutoffDate = new Date()
     cutoffDate.setDate(cutoffDate.getDate() - daysToKeep)
 

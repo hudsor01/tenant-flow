@@ -51,7 +51,7 @@ import Link from 'next/link'
 function LeaseRow({ lease }: { lease: LeaseTableRow }) {
 	// Check if lease is expiring soon (within 30 days)
 	const isExpiringSoon =
-		lease.status === 'active' &&
+		lease.status === 'ACTIVE' &&
 		(() => {
 			const endDate = new Date(lease.endDate)
 			const thirtyDaysFromNow = new Date()
@@ -166,7 +166,7 @@ function LeaseRow({ lease }: { lease: LeaseTableRow }) {
 							Expiring Soon
 						</Badge>
 					)}
-					{isExpired && lease.status === 'active' && (
+					{isExpired && lease.status === 'ACTIVE' && (
 						<Badge
 							variant="outline"
 							className="border-red-600 text-xs text-red-600"

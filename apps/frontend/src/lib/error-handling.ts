@@ -3,7 +3,7 @@
  * Single source of truth for all error handling patterns using shared types
  */
 
-import { logger } from '@/lib/logger'
+import { logger } from "@/lib/logger/logger"
 import { toast } from 'sonner'
 import { sanitizeErrorMessage } from './auth/error-sanitizer'
 import type {
@@ -235,10 +235,10 @@ export function extractErrorMessage(error: unknown, context?: string): string {
     response?: { data?: { message?: string } }
   }
 
-  if (errorObj.response?.data?.message) return errorObj.response.data.message
-  if (errorObj.userMessage) return errorObj.userMessage
-  if (errorObj.message) return errorObj.message
-  if (typeof error === 'string') return error
+  if (errorObj.response?.data?.message) {return errorObj.response.data.message}
+  if (errorObj.userMessage) {return errorObj.userMessage}
+  if (errorObj.message) {return errorObj.message}
+  if (typeof error === 'string') {return error}
 
   // Default messages by error type
   const { type } = classifyError(error)
@@ -290,7 +290,7 @@ export function extractValidationErrors(error: unknown): Record<string, string[]
     errorObj.response?.data?.errors ||
     errorObj.fields ||
     errorObj.errors ||
-    {}
+    ({} as Record<string, string[]>)
   )
 }
 
@@ -361,14 +361,15 @@ export class ErrorHandler {
 
     // Log if needed
     if (logError && process.env.NODE_ENV !== 'production') {
-      logger.error('Error handled', {
-        type: appError.type,
-        message: appError.message,
+      const errorForLogging = new Error(appError.message)
+      errorForLogging.name = appError.type || 'UnhandledError'
+      logger.error('Error handled', errorForLogging, {
+        errorType: appError.type,
+        errorMessage: appError.message,
         code: appError.code,
         statusCode: appError.statusCode,
         context: appError.context,
-        severity: appError.severity,
-        stack: errorObj.stack
+        severity: appError.severity
       })
     }
 
@@ -564,7 +565,7 @@ export const handleError = (
   options?: Parameters<ErrorHandler['handle']>[1]
 ) => errorHandler.handle(error, options)
 
-export const handleAsync = <T>(
+export const handleAsync = async <T>(
   operation: () => Promise<T>,
   options?: Parameters<ErrorHandler['handle']>[1]
 ) => errorHandler.handleAsync(operation, options)
@@ -574,9 +575,6 @@ export const handleValidationError = (
   setFieldError?: (field: string, message: string) => void
 ) => errorHandler.handleValidationError(error, setFieldError)
 
-export const createErrorHandler = (context: string) => {
-  return (error: unknown) => handleError(error, { context })
-}
 
 export const handleAsyncError = (error: unknown, context?: string): ExtendedAppError => {
   return handleError(error, { context, showToast: false })
@@ -587,7 +585,6 @@ export function useErrorHandler() {
   return {
     handleError,
     handleAsync,
-    handleValidationError,
-    createErrorHandler
+    handleValidationError
   }
 }

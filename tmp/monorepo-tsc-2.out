@@ -1,0 +1,191 @@
+
+> tenantflow@1.0.0 typecheck
+> turbo run typecheck -- --noErrorTruncation
+
+turbo 2.5.6
+
+• Packages in scope: @repo/backend, @repo/database, @repo/emails, @repo/eslint-config, @repo/frontend, @repo/shared, @repo/tailwind-config, @repo/typescript-config
+• Running typecheck in 8 packages
+• Remote caching enabled
+@repo/emails:typecheck: cache hit, replaying logs 9c9d74b15e19a01e
+@repo/typescript-config:build: cache hit, replaying logs 6e43f1d8deaa0579
+@repo/typescript-config:build: 
+@repo/typescript-config:build: > @repo/typescript-config@0.1.0 build
+@repo/typescript-config:build: > echo 'TypeScript config built successfully'
+@repo/typescript-config:build: 
+@repo/typescript-config:build: TypeScript config built successfully
+@repo/emails:typecheck: 
+@repo/emails:typecheck: > @repo/emails@0.1.0 typecheck
+@repo/emails:typecheck: > tsc --noEmit --noErrorTruncation
+@repo/emails:typecheck: 
+@repo/tailwind-config:typecheck: cache hit, replaying logs 144e5087caf3616f
+@repo/tailwind-config:typecheck: 
+@repo/tailwind-config:typecheck: > @repo/tailwind-config@0.0.0 typecheck
+@repo/tailwind-config:typecheck: > echo 'No TypeScript files to check in tailwind config package' --noErrorTruncation
+@repo/tailwind-config:typecheck: 
+@repo/tailwind-config:typecheck: No TypeScript files to check in tailwind config package --noErrorTruncation
+@repo/typescript-config:typecheck: cache hit, replaying logs 69f7c9ded372dc98
+@repo/typescript-config:typecheck: 
+@repo/typescript-config:typecheck: > @repo/typescript-config@0.1.0 typecheck
+@repo/typescript-config:typecheck: > echo 'No TypeScript files to check in config package' --noErrorTruncation
+@repo/typescript-config:typecheck: 
+@repo/typescript-config:typecheck: No TypeScript files to check in config package --noErrorTruncation
+@repo/shared:typecheck: cache hit, replaying logs cb99f02328885987
+@repo/shared:typecheck: 
+@repo/shared:typecheck: > @repo/shared@0.1.0 typecheck
+@repo/shared:typecheck: > tsc --noEmit --noErrorTruncation
+@repo/shared:typecheck: 
+@repo/shared:build: cache hit, replaying logs e4bd90c2fb4418ca
+@repo/shared:build: 
+@repo/shared:build: > @repo/shared@0.1.0 build
+@repo/shared:build: > npm run build:cjs && npm run build:esm
+@repo/shared:build: 
+@repo/shared:build: 
+@repo/shared:build: > @repo/shared@0.1.0 build:cjs
+@repo/shared:build: > tsc -p tsconfig.build.json
+@repo/shared:build: 
+@repo/shared:build: 
+@repo/shared:build: > @repo/shared@0.1.0 build:esm
+@repo/shared:build: > tsc -p tsconfig.esm.json
+@repo/shared:build: 
+@repo/database:build: cache hit, replaying logs 94703725cd92a4c4
+@repo/database:build: 
+@repo/database:build: > @repo/database@0.1.0 build
+@repo/database:build: > npm run clean-dist && tsc --build
+@repo/database:build: 
+@repo/database:build: 
+@repo/database:build: > @repo/database@0.1.0 clean-dist
+@repo/database:build: > tsc --build --clean && rm -rf dist
+@repo/database:build: 
+@repo/database:typecheck: cache hit, replaying logs 56e536b717d727b8
+@repo/database:typecheck: 
+@repo/database:typecheck: > @repo/database@0.1.0 typecheck
+@repo/database:typecheck: > tsc --noEmit --noErrorTruncation
+@repo/database:typecheck: 
+@repo/backend:typecheck: cache miss, executing a8efbab9ff2797a4
+@repo/frontend:typecheck: cache miss, executing e3c729cc5cc80427
+@repo/frontend:typecheck: 
+@repo/frontend:typecheck: > @repo/frontend@0.1.0 typecheck
+@repo/frontend:typecheck: > tsc --noEmit --noErrorTruncation
+@repo/frontend:typecheck: 
+@repo/backend:typecheck: 
+@repo/backend:typecheck: > @repo/backend@0.0.2 typecheck
+@repo/backend:typecheck: > NODE_OPTIONS='--max-old-space-size=8192' tsc -p tsconfig.build.json --noEmit --incremental --skipLibCheck --noErrorTruncation
+@repo/backend:typecheck: 
+@repo/backend:typecheck: src/properties/properties.controller.ts(45,1): error TS1434: Unexpected keyword or identifier.
+@repo/backend:typecheck: src/properties/properties.controller.ts(45,8): error TS1068: Unexpected token. A constructor, method, accessor, or property was expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(45,13): error TS2457: Type alias name cannot be 'type'.
+@repo/backend:typecheck: src/properties/properties.controller.ts(45,31): error TS1434: Unexpected keyword or identifier.
+@repo/backend:typecheck: src/properties/properties.controller.ts(46,17): error TS1146: Declaration expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(47,15): error TS1109: Expression expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(47,16): error TS1005: ';' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(47,26): error TS1109: Expression expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(48,2): error TS1128: Declaration or statement expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(48,3): error TS1128: Declaration or statement expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(48,57): error TS1011: An element access expression should take an argument.
+@repo/backend:typecheck: src/properties/properties.controller.ts(49,9): error TS1005: ':' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(50,3): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(50,10): error TS1005: ':' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(64,7): error TS1146: Declaration expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(65,17): error TS1109: Expression expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(65,18): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(65,22): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(66,15): error TS1109: Expression expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(66,16): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(66,26): error TS1109: Expression expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(67,3): error TS1005: ';' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(68,9): error TS1005: ':' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(69,3): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(69,10): error TS1005: ':' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(80,7): error TS1146: Declaration expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(81,14): error TS1109: Expression expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(81,15): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(81,25): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(82,17): error TS1109: Expression expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(82,18): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(82,22): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(83,15): error TS1109: Expression expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(83,16): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(83,26): error TS1109: Expression expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(84,3): error TS1005: ';' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(84,57): error TS1011: An element access expression should take an argument.
+@repo/backend:typecheck: src/properties/properties.controller.ts(85,9): error TS1005: ':' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(90,3): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(90,10): error TS1005: ':' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(106,7): error TS1146: Declaration expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(107,30): error TS1109: Expression expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(107,31): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(107,33): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(108,17): error TS1109: Expression expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(108,18): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(108,22): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(109,15): error TS1109: Expression expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(109,16): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(109,26): error TS1109: Expression expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(110,3): error TS1005: ';' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(111,9): error TS1005: ':' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(116,3): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(116,10): error TS1005: ':' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(132,7): error TS1146: Declaration expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(133,10): error TS1109: Expression expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(133,11): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(133,28): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(134,17): error TS1109: Expression expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(134,18): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(134,22): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(135,15): error TS1109: Expression expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(135,16): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(135,26): error TS1109: Expression expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(136,3): error TS1005: ';' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(137,9): error TS1005: ':' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(142,3): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(142,10): error TS1005: ':' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(157,7): error TS1146: Declaration expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(158,30): error TS1109: Expression expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(158,31): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(158,33): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(159,10): error TS1109: Expression expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(159,11): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(159,28): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(160,17): error TS1109: Expression expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(160,18): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(160,22): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(161,15): error TS1109: Expression expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(161,16): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(161,26): error TS1109: Expression expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(162,3): error TS1005: ';' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(163,9): error TS1005: ':' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(169,3): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(169,10): error TS1005: ':' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(187,7): error TS1146: Declaration expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(188,30): error TS1109: Expression expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(188,31): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(188,33): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(189,17): error TS1109: Expression expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(189,18): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(189,22): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(190,15): error TS1109: Expression expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(190,16): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(190,26): error TS1109: Expression expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(191,3): error TS1005: ';' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(192,9): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(192,13): error TS1005: ':' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(193,3): error TS1005: ',' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(193,10): error TS1005: ':' expected.
+@repo/backend:typecheck: src/properties/properties.controller.ts(200,1): error TS1128: Declaration or statement expected.
+@repo/backend:typecheck: npm error Lifecycle script `typecheck` failed with error:
+@repo/backend:typecheck: npm error code 2
+@repo/backend:typecheck: npm error path /Users/richard/Developer/tenant-flow/apps/backend
+@repo/backend:typecheck: npm error workspace @repo/backend@0.0.2
+@repo/backend:typecheck: npm error location /Users/richard/Developer/tenant-flow/apps/backend
+@repo/backend:typecheck: npm error command failed
+@repo/backend:typecheck: npm error command sh -c NODE_OPTIONS='--max-old-space-size=8192' tsc -p tsconfig.build.json --noEmit --incremental --skipLibCheck --noErrorTruncation
+@repo/backend:typecheck: ERROR: command finished with error: command (/Users/richard/Developer/tenant-flow/apps/backend) /opt/homebrew/bin/npm run typecheck -- --noErrorTruncation exited (2)
+@repo/backend#typecheck: command (/Users/richard/Developer/tenant-flow/apps/backend) /opt/homebrew/bin/npm run typecheck -- --noErrorTruncation exited (2)
+
+ Tasks:    8 successful, 10 total
+Cached:    8 cached, 10 total
+  Time:    3.35s 
+Failed:    @repo/backend#typecheck
+
+ ERROR  run failed: command  exited (2)

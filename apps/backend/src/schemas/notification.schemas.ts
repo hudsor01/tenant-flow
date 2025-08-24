@@ -5,21 +5,17 @@
  * Replaces class-validator DTOs with type-safe schema definitions.
  */
 
-import { 
-	createTypedSchema, 
-	schemaRegistry, 
-	type TypedJSONSchema 
-} from '../shared/types/fastify-type-provider'
+import type { JSONSchema } from '../shared/types/fastify-type-provider'
 
 // Priority enum schema
-const prioritySchema: TypedJSONSchema = {
+const prioritySchema: JSONSchema = {
 	type: 'string',
 	enum: ['LOW', 'MEDIUM', 'HIGH', 'EMERGENCY'],
 	description: 'Notification priority level'
 }
 
 // Notification type schema
-const notificationTypeSchema: TypedJSONSchema = {
+const notificationTypeSchema: JSONSchema = {
 	type: 'string',
 	enum: [
 		'maintenance_request_created',
@@ -54,7 +50,7 @@ export interface CreateNotificationRequest {
 	data?: Record<string, unknown>
 }
 
-export const createNotificationSchema = createTypedSchema<CreateNotificationRequest>({
+export const createNotificationSchema: JSONSchema = {
 	type: 'object',
 	required: ['recipientId', 'title', 'message', 'type', 'priority'],
 	additionalProperties: false,
@@ -89,7 +85,7 @@ export const createNotificationSchema = createTypedSchema<CreateNotificationRequ
 			additionalProperties: true
 		}
 	}
-})
+}
 
 /**
  * Mark notification as read request
@@ -98,7 +94,7 @@ export interface MarkAsReadRequest {
 	notificationId: string
 }
 
-export const markAsReadSchema = createTypedSchema<MarkAsReadRequest>({
+export const markAsReadSchema: JSONSchema = {
 	type: 'object',
 	required: ['notificationId'],
 	additionalProperties: false,
@@ -109,7 +105,7 @@ export const markAsReadSchema = createTypedSchema<MarkAsReadRequest>({
 			description: 'ID of the notification to mark as read'
 		}
 	}
-})
+}
 
 /**
  * Get notifications query parameters
@@ -122,7 +118,7 @@ export interface GetNotificationsQuery {
 	type?: string
 }
 
-export const getNotificationsQuerySchema = createTypedSchema<GetNotificationsQuery>({
+export const getNotificationsQuerySchema: JSONSchema = {
 	type: 'object',
 	additionalProperties: false,
 	properties: {
@@ -147,7 +143,7 @@ export const getNotificationsQuerySchema = createTypedSchema<GetNotificationsQue
 		},
 		type: notificationTypeSchema
 	}
-})
+}
 
 /**
  * Notification response
@@ -166,7 +162,7 @@ export interface NotificationResponse {
 	updatedAt: string
 }
 
-export const notificationResponseSchema = createTypedSchema<NotificationResponse>({
+export const notificationResponseSchema: JSONSchema = {
 	type: 'object',
 	required: ['id', 'recipientId', 'title', 'message', 'type', 'priority', 'read', 'createdAt', 'updatedAt'],
 	properties: {
@@ -215,7 +211,7 @@ export const notificationResponseSchema = createTypedSchema<NotificationResponse
 			description: 'When the notification was last updated'
 		}
 	}
-})
+}
 
 /**
  * Notifications list response
@@ -231,7 +227,7 @@ export interface NotificationsListResponse {
 	unreadCount: number
 }
 
-export const notificationsListResponseSchema = createTypedSchema<NotificationsListResponse>({
+export const notificationsListResponseSchema: JSONSchema = {
 	type: 'object',
 	required: ['notifications', 'pagination', 'unreadCount'],
 	properties: {
@@ -270,7 +266,7 @@ export const notificationsListResponseSchema = createTypedSchema<NotificationsLi
 			description: 'Total number of unread notifications'
 		}
 	}
-})
+}
 
 /**
  * Maintenance notification specific data schema
@@ -282,7 +278,7 @@ export interface MaintenanceNotificationData {
 	requestTitle: string
 }
 
-export const maintenanceNotificationDataSchema = createTypedSchema<MaintenanceNotificationData>({
+export const maintenanceNotificationDataSchema: JSONSchema = {
 	type: 'object',
 	required: ['propertyName', 'unitNumber', 'description', 'requestTitle'],
 	properties: {
@@ -303,15 +299,10 @@ export const maintenanceNotificationDataSchema = createTypedSchema<MaintenanceNo
 			description: 'Title of the maintenance request'
 		}
 	}
-})
+}
 
-// Register schemas
-schemaRegistry.register('create-notification', createNotificationSchema)
-schemaRegistry.register('mark-as-read', markAsReadSchema)
-schemaRegistry.register('get-notifications-query', getNotificationsQuerySchema)
-schemaRegistry.register('notification-response', notificationResponseSchema)
-schemaRegistry.register('notifications-list-response', notificationsListResponseSchema)
-schemaRegistry.register('maintenance-notification-data', maintenanceNotificationDataSchema)
+// Schemas are exported directly for use in NestJS controllers
+// No custom registry needed - use Fastify's native addSchema() if sharing is required
 
 // Export route schemas for controller usage
 export const notificationRouteSchemas = {

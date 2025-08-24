@@ -31,7 +31,7 @@ const pageTitles: Record<string, string> = {
 const getBreadcrumbs = (pathname: string) => {
 	const segments = pathname.split('/').filter(Boolean)
 
-	if (segments.length <= 1) return []
+	if (segments.length <= 1) {return []}
 
 	const breadcrumbs = []
 	let currentPath = ''
@@ -39,7 +39,7 @@ const getBreadcrumbs = (pathname: string) => {
 	for (let i = 0; i < segments.length - 1; i++) {
 		currentPath += '/' + segments[i]
 		const segment = segments[i]
-		if (!segment) continue
+		if (!segment) {continue}
 		const title =
 			pageTitles[currentPath] ||
 			segment.charAt(0).toUpperCase() + segment.slice(1)

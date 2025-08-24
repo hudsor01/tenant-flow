@@ -28,7 +28,7 @@ const initialState: AuthFormState = {
 	success: false
 }
 
-type ClientErrors = {
+interface ClientErrors {
 	password?: string
 	confirmPassword?: string
 }
@@ -69,7 +69,7 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 		const v = validatePassword(pw)
 
 		const errs: ClientErrors = {}
-		if (!v.len8) errs.password = 'Password must be at least 8 characters.'
+		if (!v.len8) {errs.password = 'Password must be at least 8 characters.'}
 		if (!(v.upper && v.lower && v.num && v.sym)) {
 			errs.password =
 				errs.password ??
@@ -80,7 +80,7 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 		}
 
 		setClientErrors(errs)
-		if (Object.keys(errs).length > 0) return
+		if (Object.keys(errs).length > 0) {return}
 
 		startTransition(() => {
 			formAction(formData)
@@ -174,7 +174,7 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 									aria-invalid={!!clientErrors.password}
 									aria-describedby={passwordErrorId}
 									value={password}
-									onChange={e => setPassword(e.target.value)}
+									onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
 								/>
 								<button
 									type="button"
@@ -275,7 +275,7 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 									}
 									aria-describedby={confirmPasswordErrorId}
 									value={confirmPassword}
-									onChange={e =>
+									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
 										setConfirmPassword(e.target.value)
 									}
 								/>

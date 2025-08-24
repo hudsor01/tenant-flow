@@ -10,6 +10,7 @@
  */
 
 import React, { Suspense } from 'react'
+import { ErrorBoundary } from '@/components/error/error-boundary'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -52,15 +53,15 @@ interface StatCardProps {
  */
 async function getPropertyStats(): Promise<PropertyStatsData> {
   try {
-    // Server-side API call with caching
-    const response = await apiClient.get('/properties/stats', {
-      next: { 
-        revalidate: 300, // Cache for 5 minutes
-        tags: ['properties', 'stats'] 
-      }
-    })
-    
-    return response.data
+    // Server-side API call  
+    const response = await apiClient.get('/properties/stats')
+
+    if (response && typeof response === 'object' && 'data' in response) {
+      const typedResp = response as { data: unknown }
+      return typedResp.data as PropertyStatsData
+    }
+
+    throw new Error('Unexpected response shape from /properties/stats')
   } catch (error) {
     console.error('Failed to fetch property stats:', error)
     throw error
@@ -89,7 +90,7 @@ function StatsLoading() {
   )
 }
 
-function StatsError({ error: _error }: { error: Error }) {
+function StatsError({}: { error: Error }) {
   return (
     <Alert variant="destructive">
       <AlertTriangle className="h-4 w-4" />
@@ -224,9 +225,9 @@ async function StatsDisplay() {
 export function PropertiesStatsReact19() {
   return (
     <Suspense fallback={<StatsLoading />}>
-      <React.ErrorBoundary fallback={<StatsError error={new Error('Stats failed to load')} />}>
+      <ErrorBoundary fallback={({ error }) => <StatsError error={error} />}>
         <StatsDisplay />
-      </React.ErrorBoundary>
+      </ErrorBoundary>
     </Suspense>
   )
 }
@@ -242,10 +243,11 @@ export function PropertiesStatsReact19() {
 function RefreshButton({ onRefresh }: { onRefresh: () => void }) {
   const [isRefreshing, setIsRefreshing] = React.useState(false)
   
-  const handleRefresh = async () => {
+  const handleRefresh = () => {
     setIsRefreshing(true)
     try {
-      await onRefresh()
+      // onRefresh is synchronous; call and then clear loading indicator
+      (onRefresh())
     } finally {
       setIsRefreshing(false)
     }
@@ -268,15 +270,15 @@ export function PropertiesStatsWithRefresh() {
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold">Property Statistics</h2>
         <RefreshButton onRefresh={() => {
-          // Trigger revalidation
-          window.location.reload()
-        }} />
+              // Trigger revalidation
+              window.location.reload()
+            }} />
       </div>
       
       <Suspense fallback={<StatsLoading />}>
-        <React.ErrorBoundary fallback={<StatsError error={new Error('Stats failed to load')} />}>
+        <ErrorBoundary fallback={({ error }) => <StatsError error={error} />}>
           <StatsDisplay />
-        </React.ErrorBoundary>
+        </ErrorBoundary>
       </Suspense>
     </div>
   )

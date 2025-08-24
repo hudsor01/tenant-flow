@@ -9,10 +9,10 @@ type UserUpdate = Database['public']['Tables']['User']['Update']
 export class UsersService {
 	constructor(private readonly supabase: SupabaseService) {}
 
-	async findUserByEmail(email: string) {
+	async findUserByEmail(email: string): Promise<Database['public']['Tables']['User']['Row'] | null> {
 		const { data, error } = await this.supabase
 			.getAdminClient()
-			.from('users')
+			.from('User')
 			.select('*')
 			.eq('email', email)
 			.single()
@@ -24,7 +24,7 @@ export class UsersService {
 		return data
 	}
 
-	async createUser(userData: UserInsert) {
+	async createUser(userData: UserInsert): Promise<Database['public']['Tables']['User']['Row']> {
 		const { data, error } = await this.supabase
 			.getAdminClient()
 			.from('User')
@@ -39,7 +39,7 @@ export class UsersService {
 		return data
 	}
 
-	async updateUser(userId: string, userData: UserUpdate) {
+	async updateUser(userId: string, userData: UserUpdate): Promise<Database['public']['Tables']['User']['Row']> {
 		const { data, error } = await this.supabase
 			.getAdminClient()
 			.from('User')
@@ -55,10 +55,10 @@ export class UsersService {
 		return data
 	}
 
-	async getUserById(userId: string) {
+	async getUserById(userId: string): Promise<Database['public']['Tables']['User']['Row'] | null> {
 		const { data, error } = await this.supabase
 			.getAdminClient()
-			.from('users')
+			.from('User')
 			.select('*')
 			.eq('id', userId)
 			.single()

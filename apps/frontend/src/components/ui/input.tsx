@@ -5,14 +5,13 @@ import { AnimatePresence } from '@/lib/lazy-motion'
 import { AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-interface InputProps extends React.ComponentProps<'input'> {
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 	label?: string
 	error?: string
 	success?: string
 	floatingLabel?: boolean
 	showValidation?: boolean
 	characterCount?: boolean
-	maxLength?: number
 	// Accessibility props
 	'aria-label'?: string
 	'aria-describedby'?: string
@@ -71,10 +70,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
 		// Build aria-describedby attribute
 		const describedByIds: string[] = []
-		if (ariaDescribedBy) describedByIds.push(ariaDescribedBy)
-		if (hasError) describedByIds.push(errorId)
-		if (hasSuccess && !hasError) describedByIds.push(successId)
-		if (characterCount && maxLength) describedByIds.push(helpTextId)
+		if (ariaDescribedBy) {describedByIds.push(ariaDescribedBy)}
+		if (hasError) {describedByIds.push(errorId)}
+		if (hasSuccess && !hasError) {describedByIds.push(successId)}
+		if (characterCount && maxLength) {describedByIds.push(helpTextId)}
 		const describedBy =
 			describedByIds.length > 0 ? describedByIds.join(' ') : undefined
 
@@ -364,3 +363,4 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 Input.displayName = 'Input'
 
 export { Input }
+export type { InputProps }

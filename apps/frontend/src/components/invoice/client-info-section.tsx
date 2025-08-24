@@ -2,7 +2,15 @@ import { User } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import type { ClientInfoSectionProps } from '@/types/components'
+import type { UseFormRegister, FieldErrors } from 'react-hook-form'
+
+interface ClientInfoSectionProps {
+	register: UseFormRegister<Record<string, unknown>>
+	errors: FieldErrors<Record<string, unknown>>
+	clientState?: string
+	autoTaxRate?: number
+	stateTaxRates?: Record<string, number>
+}
 
 export function ClientInfoSection({
 	register,
@@ -42,7 +50,7 @@ export function ClientInfoSection({
 						/>
 						{errors.clientName && (
 							<p className="text-xs text-red-600">
-								{errors.clientName.message}
+								{errors.clientName.message!}
 							</p>
 						)}
 					</div>
@@ -65,7 +73,7 @@ export function ClientInfoSection({
 						/>
 						{errors.clientEmail && (
 							<p className="text-xs text-red-600">
-								{errors.clientEmail.message}
+								{errors.clientEmail.message!}
 							</p>
 						)}
 					</div>
@@ -108,13 +116,12 @@ export function ClientInfoSection({
 						/>
 						{errors.clientState && (
 							<p className="text-xs text-red-600">
-								{errors.clientState.message}
+								{errors.clientState.message!}
 							</p>
 						)}
 						{clientState &&
 							clientState.length === 2 &&
-							stateTaxRates[clientState.toUpperCase()] !==
-								undefined && (
+							stateTaxRates?.[clientState.toUpperCase()] !== undefined && (
 								<p className="text-xs text-green-600">
 									✓ Tax rate: {autoTaxRate}% for{' '}
 									{clientState.toUpperCase()}

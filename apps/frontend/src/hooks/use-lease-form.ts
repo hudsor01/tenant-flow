@@ -4,7 +4,7 @@
  */
 import { useState, useCallback } from 'react'
 import { z } from 'zod'
-import { logger } from '@/lib/logger'
+import { logger } from "@/lib/logger/logger"
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { leaseInputSchema } from '@repo/shared/validation/leases'
@@ -34,7 +34,7 @@ interface LeaseWithEnhancedData extends Omit<Lease, 'status'> {
 	lateFeeDays?: number
 	lateFeeAmount?: number
 	leaseTerms?: string
-	status?: LeaseStatus | string
+	status?: string
 	templateId?: string
 	signatureStatus?: 'UNSIGNED' | 'PENDING' | 'SIGNED'
 }
@@ -131,13 +131,13 @@ export function useLeaseForm(options: LeaseFormOptions = {}) {
 						'EXPIRED',
 						'TERMINATED'
 					] as const
-					if (enhancedLease.status === 'SIGNED') return 'ACTIVE'
+					if (enhancedLease.status === 'SIGNED') {return 'ACTIVE'}
 					if (
 						validStatuses.includes(
 							enhancedLease.status as (typeof validStatuses)[number]
 						)
 					)
-						return enhancedLease.status as (typeof validStatuses)[number]
+						{return enhancedLease.status as (typeof validStatuses)[number]}
 					return 'DRAFT'
 				})(),
 				templateId: enhancedLease.templateId,
@@ -156,7 +156,7 @@ export function useLeaseForm(options: LeaseFormOptions = {}) {
 
 	const onSubmit = useCallback(
 		async (data: LeaseFormData) => {
-			if (isSubmitting) return
+			if (isSubmitting) {return}
 
 			try {
 				setIsSubmitting(true)
@@ -240,7 +240,7 @@ export function useLeaseForm(options: LeaseFormOptions = {}) {
 	// Enhanced lease workflow functions
 	const generateFromTemplate = useCallback(
 		async (templateId: string, variables: Record<string, unknown>) => {
-			if (!lease?.id) return
+			if (!lease?.id) {return}
 
 			try {
 				setIsSubmitting(true)
@@ -273,7 +273,7 @@ export function useLeaseForm(options: LeaseFormOptions = {}) {
 
 	const transitionStatus = useCallback(
 		async (newStatus: LeaseStatus, reason?: string) => {
-			if (!lease?.id) return
+			if (!lease?.id) {return}
 
 			try {
 				setIsSubmitting(true)

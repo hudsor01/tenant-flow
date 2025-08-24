@@ -1,0 +1,29 @@
+Debugger listening on ws://127.0.0.1:50278/9fac520a-6bdb-404b-982c-2566428beb34
+For help, see: https://nodejs.org/en/docs/inspector
+Debugger attached.
+PASS backend src/shared/filters/__tests__/global-exception.filter.spec.ts
+  GlobalExceptionFilter
+    Request Body Sanitization
+      ✓ should redact password fields from request body (8 ms)
+      ✓ should redact token fields from request body (1 ms)
+      ✓ should redact nested sensitive fields (1 ms)
+      ✓ should handle null/undefined request body safely (1 ms)
+      ✓ should handle non-object request body safely (1 ms)
+      ✓ should handle circular reference in request body safely
+      ✓ should redact financial data fields
+    Exception Handling
+      ✓ should handle HTTP exceptions without logging sensitive data (1 ms)
+      ✓ should log sanitized data only for internal server errors (1 ms)
+
+PASS backend src/smoke.spec.ts
+  Backend Smoke Test
+    ✓ should pass basic smoke test (1 ms)
+    ✓ should have working test environment
+    ✓ should handle basic math (1 ms)
+
+Test Suites: 2 passed, 2 total
+Tests:       12 passed, 12 total
+Snapshots:   0 total
+Time:        0.532 s, estimated 1 s
+Ran all test suites.
+Waiting for the debugger to disconnect...

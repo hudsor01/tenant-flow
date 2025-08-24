@@ -98,14 +98,14 @@ export function createStandardError(
 ): StandardError {
 	return {
 		type,
-		severity: options.severity || ERROR_SEVERITY.MEDIUM,
+		severity: options.severity ?? ERROR_SEVERITY.MEDIUM,
 		message,
 		code: options.code,
 		details: options.details,
 		field: options.field,
 		context: options.context,
 		timestamp: new Date().toISOString(),
-		userMessage: options.userMessage || message,
+		userMessage: options.userMessage ?? message,
 		retryable: false
 	}
 }
@@ -118,7 +118,7 @@ export function createValidationError(
 	context?: Record<string, unknown>
 ): ValidationError {
 	const firstIssue = zodError.issues[0]
-	const field = firstIssue?.path.join('.') || 'unknown'
+	const field = firstIssue?.path.join('.') ?? 'unknown'
 
 	const fieldErrors: Record<string, string[]> = {}
 	zodError.issues.forEach(issue => {
@@ -139,7 +139,7 @@ export function createValidationError(
 		context,
 		timestamp: new Date().toISOString(),
 		userMessage:
-			firstIssue?.message || 'Please check your input and try again',
+			firstIssue?.message ?? 'Please check your input and try again',
 		retryable: false
 	}
 }
@@ -193,9 +193,9 @@ export function createBusinessLogicError(
 ): BusinessLogicError {
 	return {
 		type: ERROR_TYPES.BUSINESS_LOGIC,
-		severity: options.severity || ERROR_SEVERITY.MEDIUM,
+		severity: options.severity ?? ERROR_SEVERITY.MEDIUM,
 		message: `Business logic error in ${operation}: ${reason}`,
-		code: options.code || 'BUSINESS_LOGIC_ERROR',
+		code: options.code ?? 'BUSINESS_LOGIC_ERROR',
 		details: {
 			operation,
 			resource: options.resource,
@@ -203,7 +203,7 @@ export function createBusinessLogicError(
 		},
 		context: options.context,
 		timestamp: new Date().toISOString(),
-		userMessage: options.userMessage || reason,
+		userMessage: options.userMessage ?? reason,
 		retryable: false
 	}
 }
@@ -241,7 +241,7 @@ function getNetworkErrorMessage(
 		case 504:
 			return 'Service temporarily unavailable. Please try again later.'
 		default:
-			return originalMessage || 'An unexpected error occurred.'
+			return originalMessage ?? 'An unexpected error occurred.'
 	}
 }
 
@@ -359,6 +359,18 @@ export function isRetryableError(error: StandardError): boolean {
 
 		case ERROR_TYPES.EXTERNAL_SERVICE:
 			return true
+
+		case ERROR_TYPES.VALIDATION:
+		case ERROR_TYPES.NOT_FOUND:
+		case ERROR_TYPES.UNAUTHORIZED:
+		case ERROR_TYPES.PERMISSION_DENIED:
+		case ERROR_TYPES.BUSINESS_LOGIC:
+		case ERROR_TYPES.NETWORK_ERROR:
+		case ERROR_TYPES.SERVER_ERROR:
+		case ERROR_TYPES.AUTH_ERROR:
+		case ERROR_TYPES.VALIDATION_ERROR:
+		case ERROR_TYPES.UNKNOWN:
+			return false
 
 		default:
 			return false

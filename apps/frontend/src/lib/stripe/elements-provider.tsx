@@ -18,12 +18,12 @@ import {
 	type StripeElementsOptions
 } from '@stripe/stripe-js'
 import { useThemeManager } from '@/hooks/use-app-store'
-import { logger } from '../logger/logger'
+import { logger } from "@/lib/logger/logger"
 
 // Lazy load Stripe for better performance
 let stripePromise: Promise<Stripe | null> | null = null
 
-const getStripe = () => {
+const getStripe = async () => {
 	if (!stripePromise && typeof window !== 'undefined') {
 		const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 
@@ -64,20 +64,22 @@ export function EnhancedElementsProvider({
 	clientSecret,
 	appearance = 'default',
 	currency = 'usd',
-	amount,
+	amount: _amount,
 	mode = 'payment',
 	customerOptions
 }: EnhancedElementsProviderProps) {
 	const { effectiveTheme } = useThemeManager()
 	const [stripeError, setStripeError] = useState<string | null>(null)
 	const [isRetrying, setIsRetrying] = useState(false)
+	const [stripeInstance, setStripeInstance] = useState<Stripe | null>(null)
+	const [isLoading, setIsLoading] = useState(true)
 
 	// Enhanced appearance configuration with theme integration
 	const elementsAppearance = useMemo(() => {
 		const isDark = effectiveTheme === 'dark'
 
 		const baseAppearance = {
-			theme: (isDark ? 'night' : 'stripe') as 'night' | 'stripe',
+			theme: (isDark ? 'night' : 'stripe') as 'flat' | 'stripe' | 'night',
 
 			// Enhanced styling variables for 2025
 			variables: {
@@ -195,8 +197,7 @@ export function EnhancedElementsProvider({
 			appearance: elementsAppearance,
 
 			// Improved customer session support
-			...(customerOptions &&
-				customerOptions.customer &&
+			...(customerOptions?.customer &&
 				customerOptions.ephemeralKey && {
 					customerOptions: {
 						customer: customerOptions.customer,
@@ -249,10 +250,20 @@ export function EnhancedElementsProvider({
 
 	// Monitor Stripe loading state
 	useEffect(() => {
-		const stripe = getStripe()
-		if (stripe) {
-			stripe.catch(handleStripeError)
+		const loadStripeInstance = async () => {
+			try {
+				setIsLoading(true)
+				const stripe = await getStripe()
+				setStripeInstance(stripe)
+				setStripeError(null)
+			} catch (error) {
+				handleStripeError(error as Error)
+			} finally {
+				setIsLoading(false)
+			}
 		}
+		
+		void loadStripeInstance()
 	}, [])
 
 	// Show error state with retry option
@@ -279,7 +290,21 @@ export function EnhancedElementsProvider({
 				<button
 					onClick={() => {
 						setStripeError(null)
+						setIsRetrying(true)
 						stripePromise = null
+						// Reload Stripe
+						const loadStripeInstance = async () => {
+							try {
+								const stripe = await getStripe()
+								setStripeInstance(stripe)
+								setStripeError(null)
+							} catch (error) {
+								handleStripeError(error as Error)
+							} finally {
+								setIsRetrying(false)
+							}
+						}
+						void loadStripeInstance()
 					}}
 					className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
 				>
@@ -293,19 +318,18 @@ export function EnhancedElementsProvider({
 	if (isRetrying) {
 		return (
 			<div className="flex flex-col items-center justify-center p-8">
-				<div className="mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
+				<div className="mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600" />
 				<p className="text-gray-600">Reconnecting payment system...</p>
 			</div>
 		)
 	}
 
-	const stripe = getStripe()
-
-	if (!stripe) {
+	// Show loading state while Stripe is being initialized
+	if (isLoading || !stripeInstance) {
 		return (
 			<div className="flex items-center justify-center p-8">
 				<div className="text-center">
-					<div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
+					<div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600" />
 					<p className="text-gray-600">Loading payment system...</p>
 				</div>
 			</div>
@@ -314,7 +338,7 @@ export function EnhancedElementsProvider({
 
 	return (
 		<Elements
-			stripe={stripe}
+			stripe={stripeInstance}
 			options={elementsOptions}
 			key={`${effectiveTheme}-${appearance}-${mode}`} // Force re-render on theme/mode changes
 		>

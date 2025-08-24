@@ -3,7 +3,7 @@
  * Centralized configuration for the TenantFlow frontend
  */
 
-import { logger } from '@/lib/logger'
+import { logger } from "@/lib/logger/logger"
 
 export const config = {
 	api: {
