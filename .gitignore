@@ -272,7 +272,6 @@ temp/
 
 # Development files
 CLAUDE.md
-scripts/
 mcp.json
 .mcp.json
 

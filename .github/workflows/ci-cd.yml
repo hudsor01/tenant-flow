@@ -13,7 +13,7 @@ env:
   TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
 jobs:
-  # Basic validation - simplified for MVP
+  # Deployment validation - CRITICAL first check
   deployment-validation:
     name: Deployment Architecture Validation
     runs-on: ubuntu-latest
@@ -29,11 +29,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
         
-      - name: Basic deployment checks
-        run: |
-          echo "✅ Repository structure valid"
-          echo "✅ Node.js environment ready"
-          echo "✅ Dependencies installed"
+      - name: Run deployment validation
+        run: node .github/scripts/validate-deployment.js
         env:
           NODE_ENV: production
 
