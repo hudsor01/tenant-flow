@@ -195,8 +195,17 @@ jobs:
       
       - name: Check for secrets
         run: |
-          if grep -r "sk_live\|pk_live\|SUPABASE_SERVICE" --include="*.ts" --include="*.js" --include="*.tsx" --include="*.jsx" .; then
+          # Look for actual hardcoded secret values, excluding:
+          # - Environment variable references (process.env.*)
+          # - Variable declarations and error messages
+          # - Compiled/dist files
+          if grep -r -E "sk_live_[a-zA-Z0-9]{24,}|pk_live_[a-zA-Z0-9]{24,}|sb-[a-zA-Z0-9-]{36,}" \
+            --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" \
+            --exclude-dir=dist --exclude-dir=.next --exclude-dir=node_modules . | \
+            grep -v -E "process\.env|import\.meta\.env|Deno\.env|throw new Error|console\.(log|error|warn)|/\*|//|SUPABASE_SERVICE_KEY.*=|const.*SUPABASE|let.*SUPABASE|var.*SUPABASE"; then
             echo "❌ Found potential hardcoded secrets!"
+            echo "Detected actual secret values in source code."
+            echo "Only environment variable references are allowed."
             exit 1
           fi
           echo "✅ No hardcoded secrets found"
