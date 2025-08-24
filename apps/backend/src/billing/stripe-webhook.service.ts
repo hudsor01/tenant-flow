@@ -57,20 +57,24 @@ export class StripeWebhookService {
 			case 'customer.subscription.updated':
 			case 'customer.subscription.deleted':
 				await this.handleSubscriptionChange(
-					event.data.object
+					event.data.object as Stripe.Subscription
 				)
 				break
 
 			case 'invoice.payment_failed':
-				await this.handlePaymentFailure(event.data.object)
+				await this.handlePaymentFailure(event.data.object as Stripe.Invoice)
 				break
 
 			case 'invoice.paid':
-				await this.handlePaymentSuccess(event.data.object)
+				await this.handlePaymentSuccess(event.data.object as Stripe.Invoice)
 				break
 
 			default:
+				// Explicitly handle all other event types
+				// This satisfies TypeScript's exhaustiveness check
+				const _exhaustiveCheck: never = event.type as never
 				this.logger.debug(`Unhandled event type: ${event.type}`)
+				void _exhaustiveCheck // Use the variable to avoid unused warning
 		}
 	}
 

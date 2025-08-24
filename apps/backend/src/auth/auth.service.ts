@@ -46,7 +46,7 @@ function normalizeSupabaseUser(
 		updatedAt: new Date(supabaseUser.updatedAt).toISOString(),
 		emailVerified: true,
 		bio: supabaseUser.bio ?? null,
-		supabaseId: supabaseUser.supabaseId || supabaseUser.id,
+		supabaseId: supabaseUser.supabaseId ?? supabaseUser.id,
 		stripeCustomerId: supabaseUser.stripeCustomerId ?? null,
 		profileComplete: true,
 		lastLoginAt: new Date().toISOString(),
