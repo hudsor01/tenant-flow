@@ -2,9 +2,9 @@
 # check=error=true
 
 # ===== BASE STAGE =====
-# Node.js 24 on Debian Slim for SWC binary compatibility
+# Node.js 22 on Debian Slim for SWC binary compatibility
 # Debian provides better glibc support for Next.js SWC binaries
-FROM node:24-slim AS base
+FROM node:22-slim AS base
 
 # Install essential build dependencies only
 # python3, make, g++, curl: Required for native Node modules and health checks
@@ -86,7 +86,7 @@ RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-/root/.npm,targ
 
 # ===== RUNTIME STAGE =====
 # Final runtime image with security hardening and SWC compatibility
-FROM node:24-slim AS runtime
+FROM node:22-slim AS runtime
 
 # Create non-root user for security (Railway/Docker best practice)
 RUN groupadd -g 1001 nodejs && \
