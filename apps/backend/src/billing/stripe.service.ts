@@ -189,6 +189,7 @@ export class StripeService {
 		)
 
 		// Handle subscription events
+		// eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
 		switch (event.type) {
 			case 'customer.subscription.created':
 			case 'customer.subscription.updated':
@@ -209,15 +210,10 @@ export class StripeService {
 				}
 				break
 			}
-			default: {
-				// Explicitly handle all other event types
-				// This satisfies TypeScript's exhaustiveness check
-				const _exhaustiveCheck: never = event.type as never
+			default:
 				// Log unhandled event type for monitoring
 				this.logger.warn(`Unhandled webhook event type: ${event.type}`)
-				void _exhaustiveCheck // Use the variable to avoid unused warning
 				break
-			}
 		}
 
 		return event
