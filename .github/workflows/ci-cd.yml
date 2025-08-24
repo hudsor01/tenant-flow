@@ -173,7 +173,7 @@ jobs:
           context: .
           push: false
           tags: tenantflow:test
-          platforms: linux/x64
+          platforms: linux/amd64
           cache-from: type=gha
           cache-to: type=gha,mode=max
           target: builder
