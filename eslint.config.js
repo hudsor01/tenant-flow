@@ -40,14 +40,20 @@ export default [
 		}
 	},
 	
-	// Scripts directory
+	// Scripts directory (including .github scripts)
 	{
 		name: 'root/scripts',
-		files: ['scripts/**/*.js', 'scripts/**/*.mjs'],
+		files: ['scripts/**/*.{js,mjs,ts}', '.github/**/*.{js,mjs,ts}'],
 		rules: {
 			'no-console': 'off',
 			'@typescript-eslint/no-require-imports': 'off',
 			'@typescript-eslint/no-var-requires': 'off'
+		},
+		languageOptions: {
+			parserOptions: {
+				project: null, // Don't use TypeScript project for scripts
+				allowDefaultProject: true
+			}
 		}
 	},
 	
