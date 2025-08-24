@@ -2,6 +2,7 @@ import { FlatCompat } from '@eslint/eslintrc'
 import js from '@eslint/js'
 import nextPlugin from '@next/eslint-plugin-next'
 import typescriptParser from '@typescript-eslint/parser'
+import typescriptPlugin from '@typescript-eslint/eslint-plugin'
 
 const compat = new FlatCompat({
   baseDirectory: import.meta.dirname,
@@ -39,7 +40,8 @@ export default [
       }
     },
     plugins: {
-      '@next/next': nextPlugin
+      '@next/next': nextPlugin,
+      '@typescript-eslint': typescriptPlugin
     },
     rules: {
       // Next.js rules
