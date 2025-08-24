@@ -1,7 +1,6 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common'
+import { Injectable, Logger, UnauthorizedException, BadRequestException, InternalServerErrorException } from '@nestjs/common'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { SupabaseService } from '../database/supabase.service'
-import { ErrorHandlerService } from '../services/error-handler.service'
 import { SecurityMonitorService } from '../security/security-monitor.service'
 import type { AuthUser, UserRole } from '@repo/shared'
 import type { Database } from '@repo/shared/types/supabase-generated'
@@ -39,15 +38,15 @@ function normalizeSupabaseUser(
 	return {
 		id: supabaseUser.id,
 		email: supabaseUser.email,
-		name: supabaseUser.name || undefined,
-		avatarUrl: supabaseUser.avatarUrl || undefined,
-		role: (supabaseUser.role || 'OWNER') as UserRole,
+		name: supabaseUser.name ?? undefined,
+		avatarUrl: supabaseUser.avatarUrl ?? undefined,
+		role: supabaseUser.role as UserRole,
 		phone: supabaseUser.phone ?? null,
 		createdAt: new Date(supabaseUser.createdAt).toISOString(),
 		updatedAt: new Date(supabaseUser.updatedAt).toISOString(),
 		emailVerified: true,
 		bio: supabaseUser.bio ?? null,
-		supabaseId: supabaseUser.supabaseId ?? supabaseUser.id,
+		supabaseId: supabaseUser.supabaseId || supabaseUser.id,
 		stripeCustomerId: supabaseUser.stripeCustomerId ?? null,
 		profileComplete: true,
 		lastLoginAt: new Date().toISOString(),
@@ -62,7 +61,6 @@ export class AuthService {
 
 	constructor(
 		private readonly supabaseService: SupabaseService,
-		private readonly errorHandler: ErrorHandlerService,
 		// private readonly securityService: SimpleSecurityService,
 		private readonly securityMonitor: SecurityMonitorService
 	) {
@@ -70,7 +68,7 @@ export class AuthService {
 		const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 		if (!supabaseUrl || !supabaseServiceKey) {
-			throw this.errorHandler.createConfigError(
+			throw new InternalServerErrorException(
 				'Missing required Supabase configuration: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY'
 			)
 		}
@@ -101,7 +99,7 @@ export class AuthService {
 
 			if (error || !user) {
 				this.logger.warn('Token validation failed', {
-					errorType: error?.name
+					errorType: error?.name ?? 'unknown'
 				})
 				throw new UnauthorizedException('Invalid or expired token')
 			}
@@ -129,17 +127,17 @@ export class AuthService {
 	async syncUserWithDatabase(
 		supabaseUser: SupabaseUser
 	): Promise<ValidatedUser> {
-		if (!supabaseUser?.email) {
+		if (!supabaseUser.email) {
 			throw new UnauthorizedException('User email is required')
 		}
 
-		const { id: supabaseId, email, user_metadata } = supabaseUser
-		const metadata = user_metadata as Record<string, unknown>
-		const name = String(metadata?.name || metadata?.full_name || '')
-		const avatarUrl = metadata?.avatar_url
+		const { id: supabaseId, email, user_metadata: userMetadata } = supabaseUser
+		const metadata = userMetadata as Record<string, unknown>
+		const name = String(metadata.name ?? metadata.full_name ?? '')
+		const avatarUrl = metadata.avatar_url
 			? String(metadata.avatar_url)
 			: null
-		const phone = metadata?.phone ? String(metadata.phone) : null
+		const phone = metadata.phone ? String(metadata.phone) : null
 
 		const adminClient = this.supabaseService.getAdminClient()
 
@@ -159,18 +157,18 @@ export class AuthService {
 				name,
 				phone,
 				avatarUrl,
-				role: existingUser?.role || 'OWNER',
+				role: existingUser?.role ?? 'OWNER',
 				supabaseId,
 				createdAt:
-					existingUser?.createdAt ||
-					supabaseUser.created_at ||
+					existingUser?.createdAt ??
+					supabaseUser.created_at ??
 					new Date().toISOString(),
 				updatedAt: new Date().toISOString()
 			})
 			.select()
 			.single()
 
-		if (error || !user) {
+		if (error) {
 			throw new Error('Failed to sync user data')
 		}
 
@@ -192,7 +190,7 @@ export class AuthService {
 		return {
 			...normalizeSupabaseUser(user),
 			supabaseId,
-			stripeCustomerId: subscription?.stripeCustomerId || null
+			stripeCustomerId: subscription?.stripeCustomerId ?? null
 		}
 	}
 
@@ -225,7 +223,7 @@ export class AuthService {
 			.select()
 			.single()
 
-		if (error || !user) {
+		if (error) {
 			throw new Error('Failed to update user profile')
 		}
 		return { user: normalizeSupabaseUser(user) }
@@ -250,7 +248,14 @@ export class AuthService {
 		return user?.role === role
 	}
 
-	async getUserStats() {
+	async getUserStats(): Promise<{
+		total: number;
+		byRole: {
+			owners: number;
+			managers: number;
+			tenants: number;
+		};
+	}> {
 		const adminClient = this.supabaseService.getAdminClient()
 		const [totalResult, ownersResult, managersResult, tenantsResult] =
 			await Promise.all([
@@ -272,11 +277,11 @@ export class AuthService {
 			])
 
 		return {
-			total: totalResult.count || 0,
+			total: totalResult.count ?? 0,
 			byRole: {
-				owners: ownersResult.count || 0,
-				managers: managersResult.count || 0,
-				tenants: tenantsResult.count || 0
+				owners: ownersResult.count ?? 0,
+				managers: managersResult.count ?? 0,
+				tenants: tenantsResult.count ?? 0
 			}
 		}
 	}
@@ -291,46 +296,39 @@ export class AuthService {
 		refresh_token: string
 	}> {
 		if (!userData.email || !userData.name) {
-			throw this.errorHandler.createBusinessError(
-				'Email and name are required',
-				{ operation: 'createUser', resource: 'auth' }
-			)
+			throw new BadRequestException('Email and name are required')
 		}
 
 		if (userData.password) {
 			// Basic password validation (could be enhanced with proper validation library)
 			if (userData.password.length < 8) {
-				throw this.errorHandler.createBusinessError(
-					'Password must be at least 8 characters long',
-					{ operation: 'createUser', resource: 'auth' }
+				throw new BadRequestException(
+					'Password must be at least 8 characters long'
 				)
 			}
 		}
 
 		const { data, error } = await this.supabase.auth.admin.createUser({
 			email: userData.email,
-			password: userData.password || undefined,
+			password: userData.password ?? undefined,
 			email_confirm: false,
 			user_metadata: { name: userData.name, full_name: userData.name }
 		})
 
 		if (error) {
-			if (error.message?.includes('already registered')) {
-				throw this.errorHandler.createBusinessError(
-					'User with this email already exists',
-					{ operation: 'createUser', resource: 'auth' }
+			if (error.message.includes('already registered')) {
+				throw new BadRequestException(
+					'User with this email already exists'
 				)
 			}
-			throw this.errorHandler.createBusinessError(
-				error.message || 'Failed to create user account',
-				{ operation: 'createUser', resource: 'auth' }
-			)
+		throw new BadRequestException(
+			error.message
+		)
 		}
 
-		if (!data?.user?.id || !data?.user?.email) {
-			throw this.errorHandler.createBusinessError(
-				'Failed to create user account',
-				{ operation: 'createUser', resource: 'auth' }
+		if (!data.user.id || !data.user.email) {
+			throw new BadRequestException(
+				'Failed to create user account'
 			)
 		}
 
@@ -387,9 +385,8 @@ export class AuthService {
 		})
 
 		if (error || !data.session || !data.user) {
-			throw this.errorHandler.createBusinessError(
-				'Invalid or expired refresh token',
-				{ operation: 'refreshToken', resource: 'auth' }
+			throw new BadRequestException(
+				'Invalid or expired refresh token'
 			)
 		}
 
@@ -400,7 +397,7 @@ export class AuthService {
 		return {
 			access_token: data.session.access_token,
 			refresh_token: data.session.refresh_token,
-			expires_in: data.session.expires_in || 3600,
+			expires_in: data.session.expires_in,
 			user: validatedUser
 		}
 	}
@@ -422,7 +419,7 @@ export class AuthService {
 		})
 
 		// Rate limiting temporarily disabled
-		// const authAttempt = await this.securityMonitor.trackAuthAttempt(ip || 'unknown', email, false)
+		// const authAttempt = await this.securityMonitor.trackAuthAttempt(ip ?? 'unknown', email, false)
 		// if (authAttempt.blocked) {
 		//	this.securityMonitor.logSecurityEvent('BRUTE_FORCE_DETECTED', {
 		//		email,
@@ -430,7 +427,7 @@ export class AuthService {
 		//		severity: 'critical',
 		//		details: { action: 'login_blocked' }
 		//	})
-		//	throw this.errorHandler.createBusinessError(
+		//	throw new BadRequestException(
 		//		ErrorCode.TOO_MANY_REQUESTS,
 		//		'Too many failed login attempts. Please try again later.',
 		//		{ operation: 'login', resource: 'auth' }
@@ -442,8 +439,8 @@ export class AuthService {
 			password
 		})
 
-		if (error || !data.session || !data.user) {
-			// await this.securityMonitor.trackAuthAttempt(ip || 'unknown', email, false)
+		if (error) {
+			// await this.securityMonitor.trackAuthAttempt(ip ?? 'unknown', email, false)
 			this.securityMonitor.logSecurityEvent('AUTH_FAILURE', {
 				email,
 				ip,
@@ -453,23 +450,20 @@ export class AuthService {
 				}
 			})
 
-			if (error && error.message?.includes('Invalid login credentials')) {
-				throw this.errorHandler.createBusinessError(
-					'Invalid email or password',
-					{ operation: 'login', resource: 'auth' }
+			if (error.message.includes('Invalid login credentials')) {
+				throw new BadRequestException(
+					'Invalid email or password'
 				)
 			}
 
-			if (error?.message?.includes('Email not confirmed')) {
-				throw this.errorHandler.createBusinessError(
-					'Please verify your email address before signing in',
-					{ operation: 'login', resource: 'auth' }
+			if (error.message.includes('Email not confirmed')) {
+				throw new BadRequestException(
+					'Please verify your email address before signing in'
 				)
 			}
 
-			throw this.errorHandler.createBusinessError(
-				'Login failed',
-				{ operation: 'login', resource: 'auth' }
+			throw new BadRequestException(
+				'Login failed'
 			)
 		}
 
@@ -484,12 +478,12 @@ export class AuthService {
 			details: { operation: 'login' }
 		})
 
-		// await this.securityMonitor.trackAuthAttempt(ip || 'unknown', email, true)
+		// await this.securityMonitor.trackAuthAttempt(ip ?? 'unknown', email, true)
 
 		return {
 			access_token: data.session.access_token,
 			refresh_token: data.session.refresh_token,
-			expires_in: data.session.expires_in || 3600,
+			expires_in: data.session.expires_in,
 			user: validatedUser
 		}
 	}
@@ -501,9 +495,8 @@ export class AuthService {
 		const { data, error } = await this.supabase.auth.getSession()
 
 		if (error) {
-			throw this.errorHandler.createBusinessError(
-				'Authentication service connection failed',
-				{ operation: 'testConnection', resource: 'auth' }
+			throw new BadRequestException(
+				'Authentication service connection failed'
 			)
 		}
 
@@ -511,7 +504,7 @@ export class AuthService {
 			connected: true,
 			auth: {
 				session: data.session ? 'exists' : 'none',
-				url: process.env.SUPABASE_URL?.substring(0, 30) + '...'
+				url: process.env.SUPABASE_URL ? process.env.SUPABASE_URL.substring(0, 30) + '...' : 'not configured'
 			}
 		}
 	}

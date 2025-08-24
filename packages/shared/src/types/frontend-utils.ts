@@ -66,13 +66,13 @@ export function unitHasActiveLeases(unit: Unit): boolean {
  */
 export interface TenantWithLeaseAccess {
 	id: string
-	leases: {
+	leases: Array<{
 		unit?: {
 			property?: {
 				ownerId: string
 			}
 		}
-	}[]
+	}>
 }
 
 /**
@@ -104,7 +104,7 @@ export interface LeaseWithFullRelations extends Lease {
  * Get leases from tenant safely
  */
 export function getTenantLeases(tenant: TenantWithDetails): Lease[] {
-	return tenant.leases || []
+	return tenant.leases
 }
 
 /**
@@ -138,7 +138,7 @@ export function getPropertyRevenue(property: Property): number {
 	const units = getPropertyUnits(property)
 	return units.reduce((total, unit) => {
 		if (unitHasActiveLeases(unit)) {
-			return total + (unit.rent || 0)
+			return total + (unit.rent ?? 0)
 		}
 		return total
 	}, 0)

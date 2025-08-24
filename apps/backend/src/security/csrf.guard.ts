@@ -37,16 +37,15 @@ export class CsrfGuard implements CanActivate {
 			(request.headers['x-csrf-token'] as string) ||
 			(request.headers['x-xsrf-token'] as string)
 
-		const referer = request.headers.referer || request.headers.origin
-		const origin = request.headers.origin as string
+		const referer = request.headers.referer ?? request.headers.origin
+		const origin = request.headers.origin!
 
 		// Validate origin against allowed origins
 		const allowedOrigins = [
 			'https://tenantflow.app',
 			'https://www.tenantflow.app',
-			process.env.CORS_ORIGINS?.split(',') || []
+			...(process.env.CORS_ORIGINS?.split(',') ?? [])
 		]
-			.flat()
 			.filter(Boolean)
 
 		const isValidOrigin =

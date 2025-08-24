@@ -77,11 +77,11 @@ export interface StandardQueryDto extends BaseQueryOptions {
 export interface DTOValidationRules {
 	required: string[]
 	optional: string[]
-	businessRules?: {
+	businessRules?: Array<{
 		field: string
 		rule: (value: unknown) => boolean
 		message: string
-	}[]
+	}>
 	maxLengths?: Record<string, number>
 	patterns?: Record<string, RegExp>
 }

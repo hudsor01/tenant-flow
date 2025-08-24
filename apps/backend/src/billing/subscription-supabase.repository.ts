@@ -22,7 +22,7 @@ export class SubscriptionSupabaseRepository {
 		this.logger.warn(
 			'SubscriptionSupabaseRepository: findByIdWithSubscription - temporary implementation'
 		)
-		return null
+		return Promise.resolve(null)
 	}
 
 	async findByStripeCustomerId(
@@ -31,7 +31,7 @@ export class SubscriptionSupabaseRepository {
 		this.logger.warn(
 			'SubscriptionSupabaseRepository: findByStripeCustomerId - temporary implementation'
 		)
-		return null
+		return Promise.resolve(null)
 	}
 
 	async findByStripeSubscriptionId(
@@ -40,7 +40,7 @@ export class SubscriptionSupabaseRepository {
 		this.logger.warn(
 			'SubscriptionSupabaseRepository: findByStripeSubscriptionId - temporary implementation'
 		)
-		return null
+		return Promise.resolve(null)
 	}
 
 	async updateStatusByStripeId(
@@ -51,7 +51,7 @@ export class SubscriptionSupabaseRepository {
 		this.logger.warn(
 			'SubscriptionSupabaseRepository: updateStatusByStripeId - temporary implementation'
 		)
-		return null
+		return Promise.resolve(null)
 	}
 
 	async upsert(
@@ -61,7 +61,7 @@ export class SubscriptionSupabaseRepository {
 		this.logger.warn(
 			'SubscriptionSupabaseRepository: upsert - temporary implementation'
 		)
-		return null
+		return Promise.resolve(null)
 	}
 
 	async cancelSubscription(
@@ -72,6 +72,6 @@ export class SubscriptionSupabaseRepository {
 		this.logger.warn(
 			'SubscriptionSupabaseRepository: cancelSubscription - temporary implementation'
 		)
-		return null
+		return Promise.resolve(null)
 	}
 }

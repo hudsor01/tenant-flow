@@ -66,7 +66,7 @@ export const PaymentSuccessEmail = ({
               Your subscription is active and all features are available for use.
             </Text>
 
-            {(invoiceUrl || invoicePdf) && (
+            {(invoiceUrl ?? invoicePdf) && (
               <Section style={buttonContainer}>
                 {invoiceUrl && (
                   <Button

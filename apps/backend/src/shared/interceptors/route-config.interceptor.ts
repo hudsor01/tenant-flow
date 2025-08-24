@@ -20,7 +20,7 @@ import {
 } from '@nestjs/common'
 import { Observable } from 'rxjs'
 import { tap } from 'rxjs/operators'
-import { FastifyReply, FastifyRequest, RouteOptions } from 'fastify'
+import { FastifyReply, FastifyRequest, RouteOptions, FastifyInstance } from 'fastify'
 import type { FastifyRateLimitOptions } from '@fastify/rate-limit'
 
 export interface RouteConfig {
@@ -59,7 +59,7 @@ export class RouteConfigInterceptor implements NestInterceptor {
     const handler = context.getHandler()
 
     // Get route configuration from metadata
-    const routeConfig = Reflect.getMetadata('fastify:route-config', handler) as RouteConfig
+    const routeConfig = Reflect.getMetadata('fastify:route-config', handler) as RouteConfig | undefined
 
     if (routeConfig) {
       this.applyRouteConfig(request, reply, routeConfig)
@@ -79,16 +79,19 @@ export class RouteConfigInterceptor implements NestInterceptor {
     config: RouteConfig
   ): void {
     try {
+      // guard security to avoid TS possibly-undefined errors
+      const security = config.security
+
       // Apply security headers
-      if (config.security?.headers) {
-        Object.entries(config.security.headers).forEach(([header, value]) => {
+      if (security?.headers) {
+        Object.entries(security.headers).forEach(([header, value]) => {
           reply.header(header, value)
         })
       }
 
       // Apply security level presets
-      if (config.security?.level) {
-        this.applySecurityLevel(reply, config.security.level)
+      if (security?.level) {
+        this.applySecurityLevel(reply, security.level)
       }
 
       // Apply cache headers
@@ -106,7 +109,7 @@ export class RouteConfigInterceptor implements NestInterceptor {
         hasRateLimit: !!config.rateLimit,
         hasTimeout: !!config.connectionTimeout,
         hasCaching: !!config.cache,
-        securityLevel: config.security?.level
+        securityLevel: security?.level
       })
     } catch (error) {
       this.logger.warn(`Failed to apply route config for ${request.url}:`, error)
@@ -175,8 +178,8 @@ export class RouteConfigInterceptor implements NestInterceptor {
       // Apply timing analysis
       const routeTiming = (request as FastifyRequest & { routeTiming?: unknown }).routeTiming
       if (routeTiming && typeof routeTiming === 'object' && 'logSlowRequests' in routeTiming) {
-        const duration = Date.now() - ((request as FastifyRequest & { startTime?: number }).startTime || Date.now())
-        const threshold = (routeTiming as { slowThreshold?: number }).slowThreshold || 1000
+        const duration = Date.now() - ((request as FastifyRequest & { startTime?: number }).startTime ?? Date.now())
+        const threshold = (routeTiming as { slowThreshold?: number }).slowThreshold ?? 1000
 
         if (duration > threshold) {
           this.logger.warn(`Slow request detected`, {
@@ -209,10 +212,10 @@ export class FastifyRouteConfigPlugin {
    * Register route-specific configurations with Fastify
    * Call this from main.ts after NestJS app initialization
    */
-  static async registerRouteConfigs(
-    fastifyInstance: unknown,
+  static registerRouteConfigs(
+    fastifyInstance: FastifyInstance,
     routeConfigs: Map<string, RouteConfig>
-  ): Promise<void> {
+  ): void {
     try {
       // Hook into route registration to apply configurations
       fastifyInstance.addHook('onRoute', (routeOptions: RouteOptions) => {
@@ -237,17 +240,8 @@ export class FastifyRouteConfigPlugin {
   ): void {
     // Apply rate limiting configuration
     if (config.rateLimit) {
-      routeOptions.config = routeOptions.config || {}
+      routeOptions.config = routeOptions.config ?? {}
       routeOptions.config.rateLimit = config.rateLimit
-    }
-
-    // Apply timeout configurations
-    if (config.connectionTimeout) {
-      routeOptions.connectionTimeout = config.connectionTimeout
-    }
-
-    if (config.keepAliveTimeout) {
-      routeOptions.keepAliveTimeout = config.keepAliveTimeout
     }
 
     // Apply body limit
@@ -257,12 +251,26 @@ export class FastifyRouteConfigPlugin {
 
     // Apply compression settings
     if (config.compress !== undefined) {
-      routeOptions.preHandler = function(request, _reply) {
+      // Create preHandler array if it doesn't exist
+      const handlers = Array.isArray(routeOptions.preHandler) 
+        ? routeOptions.preHandler 
+        : routeOptions.preHandler 
+        ? [routeOptions.preHandler]
+        : []
+        
+      // Add compression handler
+      handlers.push(function(request: FastifyRequest, _reply: FastifyReply, done: () => void) {
         if (!config.compress) {
           // Disable compression for this route
-          request.raw.headers['accept-encoding'] = 'identity'
+          // raw.headers is a plain object on Node's IncomingMessage
+          ;(request.raw.headers as Record<string, string | undefined>)[
+            'accept-encoding'
+          ] = 'identity'
         }
-      }
+        done()
+      })
+      
+      routeOptions.preHandler = handlers
     }
   }
 }
@@ -321,7 +329,7 @@ export class RouteConfigUtils {
       rateLimit: {
         max: options.maxAttempts,
         timeWindow: options.timeWindow,
-        keyGenerator: (req) => `auth_${req.ip}`,
+        keyGenerator: (req: FastifyRequest) => `auth_${req.ip}`,
         errorResponseBuilder: () => ({
           statusCode: 429,
           error: 'Authentication Rate Limit',
@@ -330,7 +338,7 @@ export class RouteConfigUtils {
       },
       connectionTimeout: 15000,
       cache: { noCache: true },
-      security: { level: options.securityLevel || 'maximum' },
+      security: { level: options.securityLevel ?? 'maximum' },
       timing: { logSlowRequests: true, slowThreshold: 5000 }
     }
   }
@@ -346,8 +354,8 @@ export class RouteConfigUtils {
     return {
       rateLimit: {
         max: options.maxFiles,
-        timeWindow: options.timeWindow || '1 minute',
-        keyGenerator: (req) => `upload_${req.ip}`
+        timeWindow: options.timeWindow ?? '1 minute',
+        keyGenerator: (req: FastifyRequest) => `upload_${req.ip}`
       },
       bodyLimit: options.maxSize,
       connectionTimeout: 60000,
@@ -393,20 +401,12 @@ export class RouteConfigUtils {
       rateLimit: {
         max: options.maxRequests,
         timeWindow: '1 minute',
-        keyGenerator: (req) => `realtime_${req.ip}`
+        keyGenerator: (req: FastifyRequest) => `realtime_${req.ip}`
       },
-      connectionTimeout: options.timeout || 5000,
+      connectionTimeout: options.timeout ?? 5000,
       cache: { noCache: true },
       security: { level: 'basic' },
       timing: { logSlowRequests: true, slowThreshold: 1000 }
     }
   }
-}
-
-export {
-  RouteConfig,
-  RouteConfigInterceptor,
-  FastifyRouteConfigPlugin,
-  RouteConfigStore,
-  RouteConfigUtils
 }

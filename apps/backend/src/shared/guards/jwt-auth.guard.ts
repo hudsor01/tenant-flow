@@ -67,9 +67,9 @@ export class JwtAuthGuard implements CanActivate {
 		if (!token) {
 			this.logger.warn('Authentication token missing', {
 				method,
-				url: url?.substring(0, 100),
-				userAgent: request.headers['user-agent']?.substring(0, 100),
-				origin: request.headers.origin
+				url: url.substring(0, 100),
+				userAgent: request.headers['user-agent']?.substring(0, 100) ?? 'unknown',
+				origin: request.headers.origin ?? 'unknown'
 			})
 			throw new UnauthorizedException({
 				error: {
@@ -87,7 +87,7 @@ export class JwtAuthGuard implements CanActivate {
 		if (!this.isValidTokenFormat(token)) {
 			this.logger.warn('Invalid token format detected', {
 				method,
-				url: url?.substring(0, 100),
+				url: url.substring(0, 100),
 				tokenLength: token.length,
 				tokenPrefix: token.substring(0, 20),
 				ip: this.getClientIP(request)
@@ -102,30 +102,21 @@ export class JwtAuthGuard implements CanActivate {
 		}
 
 		try {
-			// Check if auth service is available
-			if (!this.authService) {
-				this.logger.error('AuthService not available in JwtAuthGuard')
-				throw new UnauthorizedException({
-					error: {
-						code: 'AUTH_SYSTEM_UNAVAILABLE',
-						message:
-							'Authentication system temporarily unavailable',
-						statusCode: 401
-					}
-				} satisfies AuthErrorResponse)
-			}
-
 			// Validate token with auth service
 			const user = await this.authService.validateTokenAndGetUser(token)
 
-			// Attach user to request for downstream handlers
-			request.user = user
+			// Attach user to request for downstream handlers with proper type safety
+			request.user = user as {
+				id: string
+				email: string
+				[key: string]: unknown
+			}
 
 			this.logger.debug('Token validation successful', {
 				userId: user.id,
 				userEmail: user.email,
 				method,
-				url: url?.substring(0, 100)
+				url: url.substring(0, 100)
 			})
 
 			return true
@@ -138,7 +129,7 @@ export class JwtAuthGuard implements CanActivate {
 						? error.constructor.name
 						: typeof error,
 				method,
-				url: url?.substring(0, 100),
+				url: url.substring(0, 100),
 				ip: this.getClientIP(request)
 			})
 
@@ -247,17 +238,17 @@ export class JwtAuthGuard implements CanActivate {
 			const ip = Array.isArray(forwardedFor)
 				? forwardedFor[0]
 				: forwardedFor.split(',')[0]
-			return ip?.trim() || 'unknown'
+			return ip.trim() ?? 'unknown'
 		}
 
 		if (cfConnectingIP) {
 			return Array.isArray(cfConnectingIP)
-				? cfConnectingIP[0] || 'unknown'
+				? cfConnectingIP[0] ?? 'unknown'
 				: cfConnectingIP
 		}
 
 		if (realIP) {
-			return Array.isArray(realIP) ? realIP[0] || 'unknown' : realIP
+			return Array.isArray(realIP) ? realIP[0] ?? 'unknown' : realIP
 		}
 
 		return request.ip || 'unknown'

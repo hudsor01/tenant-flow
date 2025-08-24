@@ -1,13 +1,15 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { notificationApi } from '@/lib/api/notifications-api'
-import type { Priority } from '@/services/notifications/types'
+import { toast } from 'sonner'
+import type { MaintenancePriority as Priority } from '@repo/shared'
+// NotificationData import removed as it's not used in this component
 
 /**
- * Hook for managing notifications
+ * Hook for managing notifications - Direct TanStack Query usage per CLAUDE.md
  */
 export function useNotifications() {
   const queryClient = useQueryClient()
-
+  
   // Get notifications query
   const {
     data: notifications,
@@ -16,7 +18,7 @@ export function useNotifications() {
     refetch
   } = useQuery({
     queryKey: ['notifications'],
-    queryFn: () => notificationApi.getNotifications()
+    queryFn: async () => notificationApi.getNotifications()
   })
 
   // Get unread notifications query
@@ -25,28 +27,36 @@ export function useNotifications() {
     isLoading: isLoadingUnread
   } = useQuery({
     queryKey: ['notifications', 'unread'],
-    queryFn: () => notificationApi.getNotifications({ unreadOnly: true })
+    queryFn: async () => notificationApi.getNotifications({ unreadOnly: true })
   })
 
-  // Create notification mutation
+  // Create notification mutation - DIRECT usage per CLAUDE.md
   const createNotificationMutation = useMutation({
     mutationFn: notificationApi.send.bind(notificationApi),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] })
+      toast.success('Notification sent successfully')
+      void queryClient.invalidateQueries({ queryKey: ['notifications'] })
+    },
+    onError: () => {
+      toast.error('Failed to send notification')
     }
   })
 
-  // Mark as read mutation
+  // Mark as read mutation - DIRECT usage per CLAUDE.md
   const markAsReadMutation = useMutation({
     mutationFn: notificationApi.markAsRead.bind(notificationApi),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] })
+      toast.success('Notification marked as read')
+      void queryClient.invalidateQueries({ queryKey: ['notifications'] })
+    },
+    onError: () => {
+      toast.error('Failed to mark notification as read')
     }
   })
 
-  // Create maintenance notification mutation
+  // Create maintenance notification mutation - DIRECT usage per CLAUDE.md
   const createMaintenanceNotificationMutation = useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       ownerId,
       title,
       description,
@@ -75,7 +85,11 @@ export function useNotifications() {
       actionUrl
     ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] })
+      toast.success('Maintenance notification created')
+      void queryClient.invalidateQueries({ queryKey: ['notifications'] })
+    },
+    onError: () => {
+      toast.error('Failed to create maintenance notification')
     }
   })
 

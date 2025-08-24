@@ -10,7 +10,7 @@ import {
 	ResponseValidator,
 	type ValidationOptions
 } from './api/response-validator'
-import type { ZodSchema } from 'zod'
+import type { ZodTypeAny } from 'zod'
 
 // Type-safe URLSearchParams utility
 export function createSearchParams(params: Record<string, unknown>): string {
@@ -136,7 +136,7 @@ class SimpleApiClient {
 
 			if (!response.ok) {
 				const errorText = await response.text()
-				let errorData: ControllerApiResponse<unknown> | undefined
+				let errorData: ControllerApiResponse | undefined
 
 				try {
 					errorData = JSON.parse(errorText)
@@ -152,7 +152,7 @@ class SimpleApiClient {
 					details: errorData ? { ...errorData } : undefined,
 					timestamp: new Date().toISOString()
 				}
-				throw apiError
+				throw new Error(`API Error: ${apiError.message}`)
 			}
 
 			const responseData: ControllerApiResponse<T> = await response.json()
@@ -220,7 +220,7 @@ class SimpleApiClient {
 	// Validated API methods with Zod schema validation
 	async getValidated<T>(
 		path: string,
-		schema: ZodSchema<T>,
+		schema: ZodTypeAny,
 		schemaName: string,
 		config?: RequestConfig,
 		validationOptions?: ValidationOptions
@@ -231,12 +231,12 @@ class SimpleApiClient {
 			data,
 			schemaName,
 			validationOptions
-		)
+	)
 	}
 
 	async postValidated<T>(
 		path: string,
-		schema: ZodSchema<T>,
+		schema: ZodTypeAny,
 		schemaName: string,
 		data?: Record<string, unknown> | FormData,
 		config?: RequestConfig,
@@ -253,12 +253,12 @@ class SimpleApiClient {
 			responseData,
 			schemaName,
 			validationOptions
-		)
+	)
 	}
 
 	async putValidated<T>(
 		path: string,
-		schema: ZodSchema<T>,
+		schema: ZodTypeAny,
 		schemaName: string,
 		data?: Record<string, unknown> | FormData,
 		config?: RequestConfig,
@@ -275,12 +275,12 @@ class SimpleApiClient {
 			responseData,
 			schemaName,
 			validationOptions
-		)
+	)
 	}
 
 	async patchValidated<T>(
 		path: string,
-		schema: ZodSchema<T>,
+		schema: ZodTypeAny,
 		schemaName: string,
 		data?: Record<string, unknown> | FormData,
 		config?: RequestConfig,
@@ -297,12 +297,12 @@ class SimpleApiClient {
 			responseData,
 			schemaName,
 			validationOptions
-		)
+	)
 	}
 
 	async deleteValidated<T>(
 		path: string,
-		schema: ZodSchema<T>,
+		schema: ZodTypeAny,
 		schemaName: string,
 		config?: RequestConfig,
 		validationOptions?: ValidationOptions
@@ -318,7 +318,7 @@ class SimpleApiClient {
 			responseData,
 			schemaName,
 			validationOptions
-		)
+	)
 	}
 
 	async healthCheck(): Promise<{ status: string; timestamp: string }> {

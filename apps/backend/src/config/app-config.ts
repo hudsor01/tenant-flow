@@ -7,14 +7,14 @@
 
 export const APP_CONFIG = {
 	// Application URLs
-	FRONTEND_URL: process.env.FRONTEND_URL || 'https://tenantflow.app',
+	FRONTEND_URL: process.env.FRONTEND_URL ?? 'https://tenantflow.app',
 
 	// API Configuration
-	API_PORT: process.env.PORT || '4600',
+	API_PORT: process.env.PORT ?? '4600',
 	API_PREFIX: '/api',
 
 	// CORS Configuration
-	ALLOWED_ORIGINS: process.env.CORS_ORIGINS?.split(',') || [
+	ALLOWED_ORIGINS: process.env.CORS_ORIGINS?.split(',') ?? [
 		'https://tenantflow.app'
 	],
 
@@ -31,8 +31,8 @@ export const APP_CONFIG = {
 		WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
 		// Portal return URL
 		PORTAL_RETURN_URL:
-			process.env.STRIPE_PORTAL_RETURN_URL ||
-			process.env.FRONTEND_URL ||
+			process.env.STRIPE_PORTAL_RETURN_URL ??
+			process.env.FRONTEND_URL ??
 			'https://tenantflow.app/settings/billing'
 	},
 
@@ -40,8 +40,8 @@ export const APP_CONFIG = {
 	EMAIL: {
 		RESEND_API_KEY: process.env.RESEND_API_KEY,
 		FROM_ADDRESS:
-			process.env.EMAIL_FROM_ADDRESS || 'noreply@tenantflow.app',
-		SUPPORT_EMAIL: process.env.SUPPORT_EMAIL || 'support@tenantflow.app'
+			process.env.EMAIL_FROM_ADDRESS ?? 'noreply@tenantflow.app',
+		SUPPORT_EMAIL: process.env.SUPPORT_EMAIL ?? 'support@tenantflow.app'
 	},
 
 	// Production Features (always enabled in stable version)
@@ -58,12 +58,12 @@ export const APP_CONFIG = {
 
 	// Security
 	JWT_SECRET: process.env.JWT_SECRET,
-	JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',
+	JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN ?? '7d',
 
 	// Rate Limiting
 	RATE_LIMIT: {
 		WINDOW_MS: 15 * 60 * 1000, // 15 minutes
-		MAX_REQUESTS: parseInt(process.env.RATE_LIMIT_MAX || '100', 10)
+		MAX_REQUESTS: parseInt(process.env.RATE_LIMIT_MAX ?? '100', 10)
 	}
 } as const
 

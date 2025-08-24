@@ -52,27 +52,20 @@ export class AuthServiceSupabase {
 	async syncUserWithDatabaseViaSupabase(
 		supabaseUser: SupabaseUser
 	): Promise<ValidatedUser> {
-		if (!supabaseUser) {
-			this.logger.error(
-				'syncUserWithDatabase called with undefined supabaseUser'
-			)
-			throw new Error('Supabase user is required')
-		}
-
 		this.logger.debug('syncUserWithDatabase called', {
 			hasUser: !!supabaseUser,
-			userId: supabaseUser?.id,
-			userEmail: supabaseUser?.email
+			userId: supabaseUser.id,
+			userEmail: supabaseUser.email
 		})
 
-		const { id: supabaseId, email, user_metadata } = supabaseUser
+		const { id: supabaseId, email, user_metadata: userMetadata } = supabaseUser
 
 		if (!email) {
 			throw new UnauthorizedException('User email is required')
 		}
 
-		const name = user_metadata?.name || user_metadata?.full_name || ''
-		const avatarUrl = user_metadata?.avatar_url || null
+		const name = userMetadata?.name ?? userMetadata?.full_name ?? ''
+		const avatarUrl = userMetadata?.avatar_url ?? null
 
 		try {
 			// First, try to get the existing user
@@ -98,10 +91,10 @@ export class AuthServiceSupabase {
 							role: 'OWNER',
 							supabaseId,
 							createdAt:
-								supabaseUser.created_at ||
+								supabaseUser.created_at ??
 								new Date().toISOString(),
 							updatedAt:
-								supabaseUser.updated_at ||
+								supabaseUser.updated_at ??
 								new Date().toISOString()
 						})
 						.select()
@@ -200,17 +193,17 @@ export class AuthServiceSupabase {
 		return {
 			id: validatedRow.id,
 			email: validatedRow.email,
-			name: validatedRow.name || undefined,
-			avatarUrl: validatedRow.avatarUrl || undefined,
+			name: validatedRow.name ?? undefined,
+			avatarUrl: validatedRow.avatarUrl ?? undefined,
 			role: validatedRow.role,
-			phone: validatedRow.phone || null,
+			phone: validatedRow.phone ?? null,
 			createdAt: toISOString(validatedRow.createdAt),
 			updatedAt: toISOString(validatedRow.updatedAt),
 			emailVerified: validatedRow.emailVerified ?? true,
-			bio: validatedRow.bio || null,
-			supabaseId: validatedRow.supabaseId || validatedRow.id,
+			bio: validatedRow.bio ?? null,
+			supabaseId: validatedRow.supabaseId ?? validatedRow.id,
 			stripeCustomerId: null,
-			organizationId: validatedRow.organizationId || null,
+			organizationId: validatedRow.organizationId ?? null,
 			profileComplete: true, // Assuming profile is complete if user exists
 			lastLoginAt: toISOString(validatedRow.updatedAt) // Using updatedAt as proxy for lastLoginAt
 		}

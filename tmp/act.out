@@ -1,0 +1,994 @@
+time="2025-08-24T14:26:51-05:00" level=info msg="Using docker host 'unix:///var/run/docker.sock', and daemon socket 'unix:///var/run/docker.sock'"
+[CI/CD Pipeline/Deployment Architecture Validation  ] ⭐ Run Set up job
+[Dependency Audit/Outdated Dependencies Check       ] ⭐ Run Set up job
+[Performance Monitoring/Bundle Size Analysis        ] ⭐ Run Set up job
+[CI/CD Pipeline/Deployment Architecture Validation  ] 🚀  Start image=catthehacker/ubuntu:act-latest
+[Dependency Audit/Outdated Dependencies Check       ] 🚀  Start image=catthehacker/ubuntu:act-latest
+[Dependency Audit/License Compliance Check          ] ⭐ Run Set up job
+[Dependency Audit/License Compliance Check          ] 🚀  Start image=catthehacker/ubuntu:act-latest
+[Performance Monitoring/Bundle Size Analysis        ] 🚀  Start image=catthehacker/ubuntu:act-latest
+[Test/test                                          ] ⭐ Run Set up job
+[Test/test                                          ] 🚀  Start image=catthehacker/ubuntu:act-latest
+[Dependency Audit/Bundle Size Analysis              ] ⭐ Run Set up job
+[Dependency Audit/Bundle Size Analysis              ] 🚀  Start image=catthehacker/ubuntu:act-latest
+[CI/test                                            ] ⭐ Run Set up job
+[CI/test                                            ] 🚀  Start image=catthehacker/ubuntu:act-latest
+[Dependency Audit/Security Vulnerability Scan       ] ⭐ Run Set up job
+[Dependency Audit/Security Vulnerability Scan       ] 🚀  Start image=catthehacker/ubuntu:act-latest
+[Performance Monitoring/API Performance Testing     ] ⭐ Run Set up job
+[Performance Monitoring/API Performance Testing     ] 🚀  Start image=catthehacker/ubuntu:act-latest
+[Performance Monitoring/Lighthouse Performance Audit] ⭐ Run Set up job
+[Performance Monitoring/Lighthouse Performance Audit] 🚀  Start image=catthehacker/ubuntu:act-latest
+[Performance Monitoring/Memory Usage Analysis       ] ⭐ Run Set up job
+[Fast Feedback - Development/Pre-Check              ] 🚧  Skipping unsupported platform -- Try running with `-P macos-latest=...`
+[Performance Monitoring/Memory Usage Analysis       ] 🚀  Start image=catthehacker/ubuntu:act-latest
+[CI/CD Pipeline/Deployment Architecture Validation  ]   🐳  docker pull image=catthehacker/ubuntu:act-latest platform=linux/amd64 username= forcePull=true
+[Dependency Audit/License Compliance Check          ]   🐳  docker pull image=catthehacker/ubuntu:act-latest platform=linux/amd64 username= forcePull=true
+[Test/test                                          ]   🐳  docker pull image=catthehacker/ubuntu:act-latest platform=linux/amd64 username= forcePull=true
+[Performance Monitoring/Lighthouse Performance Audit]   🐳  docker pull image=catthehacker/ubuntu:act-latest platform=linux/amd64 username= forcePull=true
+[CI/test                                            ]   🐳  docker pull image=catthehacker/ubuntu:act-latest platform=linux/amd64 username= forcePull=true
+[Dependency Audit/Security Vulnerability Scan       ]   🐳  docker pull image=catthehacker/ubuntu:act-latest platform=linux/amd64 username= forcePull=true
+[Dependency Audit/Bundle Size Analysis              ]   🐳  docker pull image=catthehacker/ubuntu:act-latest platform=linux/amd64 username= forcePull=true
+[Performance Monitoring/Memory Usage Analysis       ]   🐳  docker pull image=catthehacker/ubuntu:act-latest platform=linux/amd64 username= forcePull=true
+[Performance Monitoring/Bundle Size Analysis        ]   🐳  docker pull image=catthehacker/ubuntu:act-latest platform=linux/amd64 username= forcePull=true
+[Performance Monitoring/API Performance Testing     ]   🐳  docker pull image=catthehacker/ubuntu:act-latest platform=linux/amd64 username= forcePull=true
+[Dependency Audit/Outdated Dependencies Check       ]   🐳  docker pull image=catthehacker/ubuntu:act-latest platform=linux/amd64 username= forcePull=true
+[Dependency Audit/Security Vulnerability Scan       ] using DockerAuthConfig authentication for docker pull
+[CI/test                                            ] using DockerAuthConfig authentication for docker pull
+[CI/CD Pipeline/Deployment Architecture Validation  ] using DockerAuthConfig authentication for docker pull
+[Dependency Audit/License Compliance Check          ] using DockerAuthConfig authentication for docker pull
+[Performance Monitoring/Bundle Size Analysis        ] using DockerAuthConfig authentication for docker pull
+[Performance Monitoring/Memory Usage Analysis       ] using DockerAuthConfig authentication for docker pull
+[Performance Monitoring/API Performance Testing     ] using DockerAuthConfig authentication for docker pull
+[Test/test                                          ] using DockerAuthConfig authentication for docker pull
+[Performance Monitoring/Lighthouse Performance Audit] using DockerAuthConfig authentication for docker pull
+[Dependency Audit/Bundle Size Analysis              ] using DockerAuthConfig authentication for docker pull
+[Dependency Audit/Outdated Dependencies Check       ] using DockerAuthConfig authentication for docker pull
+[Dependency Audit/Outdated Dependencies Check       ]   🐳  docker create image=catthehacker/ubuntu:act-latest platform=linux/amd64 entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[Dependency Audit/Outdated Dependencies Check       ]   🐳  docker run image=catthehacker/ubuntu:act-latest platform=linux/amd64 entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[Performance Monitoring/Lighthouse Performance Audit]   🐳  docker create image=catthehacker/ubuntu:act-latest platform=linux/amd64 entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[Performance Monitoring/Lighthouse Performance Audit]   🐳  docker run image=catthehacker/ubuntu:act-latest platform=linux/amd64 entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[Dependency Audit/Outdated Dependencies Check       ]   🐳  docker exec cmd=[node --no-warnings -e console.log(process.execPath)] user= workdir=
+[Performance Monitoring/Bundle Size Analysis        ]   🐳  docker create image=catthehacker/ubuntu:act-latest platform=linux/amd64 entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[Performance Monitoring/API Performance Testing     ]   🐳  docker create image=catthehacker/ubuntu:act-latest platform=linux/amd64 entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[Performance Monitoring/API Performance Testing     ]   🐳  docker run image=catthehacker/ubuntu:act-latest platform=linux/amd64 entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[Performance Monitoring/Bundle Size Analysis        ]   🐳  docker run image=catthehacker/ubuntu:act-latest platform=linux/amd64 entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[Performance Monitoring/Lighthouse Performance Audit]   🐳  docker exec cmd=[node --no-warnings -e console.log(process.execPath)] user= workdir=
+[Dependency Audit/Outdated Dependencies Check       ]   ✅  Success - Set up job
+[Dependency Audit/Outdated Dependencies Check       ]   ☁  git clone 'https://github.com/actions/setup-node' # ref=v4
+[Performance Monitoring/Bundle Size Analysis        ]   🐳  docker exec cmd=[node --no-warnings -e console.log(process.execPath)] user= workdir=
+[Performance Monitoring/API Performance Testing     ]   🐳  docker exec cmd=[node --no-warnings -e console.log(process.execPath)] user= workdir=
+[Performance Monitoring/Lighthouse Performance Audit]   ✅  Success - Set up job
+[Performance Monitoring/Lighthouse Performance Audit]   ☁  git clone 'https://github.com/treosh/lighthouse-ci-action' # ref=v12
+[Performance Monitoring/Bundle Size Analysis        ]   ✅  Success - Set up job
+[Performance Monitoring/Bundle Size Analysis        ]   ☁  git clone 'https://github.com/actions/setup-node' # ref=v4
+[Performance Monitoring/API Performance Testing     ]   ✅  Success - Set up job
+[Performance Monitoring/API Performance Testing     ] ⭐ Run Main Checkout code
+[Performance Monitoring/API Performance Testing     ]   🐳  docker cp src=/Users/richard/Developer/tenant-flow/. dst=/Users/richard/Developer/tenant-flow
+[Dependency Audit/Outdated Dependencies Check       ] ⭐ Run Main Checkout code
+[Dependency Audit/Outdated Dependencies Check       ]   🐳  docker cp src=/Users/richard/Developer/tenant-flow/. dst=/Users/richard/Developer/tenant-flow
+[Performance Monitoring/Lighthouse Performance Audit] ⭐ Run Main Checkout code
+[Performance Monitoring/Bundle Size Analysis        ] ⭐ Run Main Checkout code
+[Dependency Audit/Outdated Dependencies Check       ]   ✅  Success - Main Checkout code [22.667764375s]
+[Performance Monitoring/API Performance Testing     ]   ✅  Success - Main Checkout code [22.90800225s]
+[Performance Monitoring/Lighthouse Performance Audit]   🐳  docker cp src=/Users/richard/Developer/tenant-flow/. dst=/Users/richard/Developer/tenant-flow
+[Performance Monitoring/Bundle Size Analysis        ]   🐳  docker cp src=/Users/richard/Developer/tenant-flow/. dst=/Users/richard/Developer/tenant-flow
+[Dependency Audit/License Compliance Check          ]   🐳  docker create image=catthehacker/ubuntu:act-latest platform=linux/amd64 entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[Dependency Audit/Bundle Size Analysis              ]   🐳  docker create image=catthehacker/ubuntu:act-latest platform=linux/amd64 entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[Dependency Audit/Security Vulnerability Scan       ]   🐳  docker create image=catthehacker/ubuntu:act-latest platform=linux/amd64 entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[CI/test                                            ]   🐳  docker create image=catthehacker/ubuntu:act-latest platform=linux/amd64 entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[Test/test                                          ]   🐳  docker create image=catthehacker/ubuntu:act-latest platform=linux/amd64 entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[CI/CD Pipeline/Deployment Architecture Validation  ]   🐳  docker create image=catthehacker/ubuntu:act-latest platform=linux/amd64 entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[Dependency Audit/License Compliance Check          ]   🐳  docker run image=catthehacker/ubuntu:act-latest platform=linux/amd64 entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[Dependency Audit/Bundle Size Analysis              ]   🐳  docker run image=catthehacker/ubuntu:act-latest platform=linux/amd64 entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[Performance Monitoring/Memory Usage Analysis       ]   🐳  docker create image=catthehacker/ubuntu:act-latest platform=linux/amd64 entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[Dependency Audit/Security Vulnerability Scan       ]   🐳  docker run image=catthehacker/ubuntu:act-latest platform=linux/amd64 entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[CI/test                                            ]   🐳  docker run image=catthehacker/ubuntu:act-latest platform=linux/amd64 entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[Test/test                                          ]   🐳  docker run image=catthehacker/ubuntu:act-latest platform=linux/amd64 entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[CI/CD Pipeline/Deployment Architecture Validation  ]   🐳  docker run image=catthehacker/ubuntu:act-latest platform=linux/amd64 entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[Dependency Audit/Outdated Dependencies Check       ] ⭐ Run Main Setup Node.js
+[Performance Monitoring/API Performance Testing     ] ⭐ Run Main Install k6
+[Dependency Audit/Outdated Dependencies Check       ]   🐳  docker cp src=/Users/richard/.cache/act/actions-setup-node@v4/ dst=/var/run/act/actions/actions-setup-node@v4/
+[Performance Monitoring/API Performance Testing     ]   🐳  docker exec cmd=[bash -e /var/run/act/workflow/1] user= workdir=
+[Performance Monitoring/Memory Usage Analysis       ]   🐳  docker run image=catthehacker/ubuntu:act-latest platform=linux/amd64 entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[CI/test                                            ]   🐳  docker exec cmd=[node --no-warnings -e console.log(process.execPath)] user= workdir=
+[Dependency Audit/License Compliance Check          ]   🐳  docker exec cmd=[node --no-warnings -e console.log(process.execPath)] user= workdir=
+[Dependency Audit/Security Vulnerability Scan       ]   🐳  docker exec cmd=[node --no-warnings -e console.log(process.execPath)] user= workdir=
+[Dependency Audit/Bundle Size Analysis              ]   🐳  docker exec cmd=[node --no-warnings -e console.log(process.execPath)] user= workdir=
+[Test/test                                          ]   🐳  docker exec cmd=[node --no-warnings -e console.log(process.execPath)] user= workdir=
+[CI/CD Pipeline/Deployment Architecture Validation  ]   🐳  docker exec cmd=[node --no-warnings -e console.log(process.execPath)] user= workdir=
+[Performance Monitoring/API Performance Testing     ]   | gpg: directory '/root/.gnupg' created
+[Performance Monitoring/API Performance Testing     ]   | gpg: keybox '/root/.gnupg/pubring.kbx' created
+[Performance Monitoring/API Performance Testing     ]   | gpg: /root/.gnupg/trustdb.gpg: trustdb created
+[Performance Monitoring/API Performance Testing     ]   | gpg: keybox '/usr/share/keyrings/k6-archive-keyring.gpg' created
+[Dependency Audit/Bundle Size Analysis              ]   ✅  Success - Set up job
+[Dependency Audit/Security Vulnerability Scan       ]   ✅  Success - Set up job
+[Dependency Audit/License Compliance Check          ]   ✅  Success - Set up job
+[Dependency Audit/Bundle Size Analysis              ]   ☁  git clone 'https://github.com/actions/setup-node' # ref=v4
+[Dependency Audit/Security Vulnerability Scan       ]   ☁  git clone 'https://github.com/actions/setup-node' # ref=v4
+[Dependency Audit/License Compliance Check          ]   ☁  git clone 'https://github.com/actions/setup-node' # ref=v4
+[CI/CD Pipeline/Deployment Architecture Validation  ]   ✅  Success - Set up job
+[Test/test                                          ]   ✅  Success - Set up job
+[CI/CD Pipeline/Deployment Architecture Validation  ]   ☁  git clone 'https://github.com/actions/setup-node' # ref=v4
+[Test/test                                          ]   ☁  git clone 'https://github.com/actions/setup-node' # ref=v4
+[Dependency Audit/Bundle Size Analysis              ] ⭐ Run Main Checkout code
+[Dependency Audit/Outdated Dependencies Check       ]   🐳  docker exec cmd=[/opt/acttoolcache/node/18.20.8/x64/bin/node /var/run/act/actions/actions-setup-node@v4/dist/setup/index.js] user= workdir=
+[Dependency Audit/Bundle Size Analysis              ]   🐳  docker cp src=/Users/richard/Developer/tenant-flow/. dst=/Users/richard/Developer/tenant-flow
+[Performance Monitoring/API Performance Testing     ]   | gpg: key 77C6C491D6AC1D69: public key "k6.io (key for signing binaries) <security@k6.io>" imported
+[Performance Monitoring/API Performance Testing     ]   | gpg: Total number processed: 1
+[Performance Monitoring/API Performance Testing     ]   | gpg:               imported: 1
+[Performance Monitoring/Memory Usage Analysis       ]   🐳  docker exec cmd=[node --no-warnings -e console.log(process.execPath)] user= workdir=
+[Performance Monitoring/API Performance Testing     ]   | deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main
+[CI/test                                            ]   ✅  Success - Set up job
+[CI/test                                            ]   ☁  git clone 'https://github.com/actions/setup-node' # ref=v4
+[Dependency Audit/Security Vulnerability Scan       ] ⭐ Run Main Checkout code
+[Dependency Audit/Security Vulnerability Scan       ]   🐳  docker cp src=/Users/richard/Developer/tenant-flow/. dst=/Users/richard/Developer/tenant-flow
+[Performance Monitoring/Memory Usage Analysis       ]   ✅  Success - Set up job
+[Performance Monitoring/Memory Usage Analysis       ]   ☁  git clone 'https://github.com/actions/setup-node' # ref=v4
+[Dependency Audit/Outdated Dependencies Check       ]   | Found in cache @ /opt/hostedtoolcache/node/22.18.0/x64
+[Dependency Audit/Outdated Dependencies Check       ]   ❓  ::group::Environment details
+[Dependency Audit/License Compliance Check          ] ⭐ Run Main Checkout code
+[Dependency Audit/License Compliance Check          ]   🐳  docker cp src=/Users/richard/Developer/tenant-flow/. dst=/Users/richard/Developer/tenant-flow
+[Performance Monitoring/API Performance Testing     ]   | Get:1 https://packages.microsoft.com/ubuntu/22.04/prod jammy InRelease [3632 B]
+[Performance Monitoring/API Performance Testing     ]   | Get:2 https://dl.k6.io/deb stable InRelease [4149 B]
+[Performance Monitoring/API Performance Testing     ]   | Get:3 http://security.ubuntu.com/ubuntu jammy-security InRelease [129 kB]
+[Performance Monitoring/API Performance Testing     ]   | Get:5 http://archive.ubuntu.com/ubuntu jammy InRelease [270 kB]
+[CI/CD Pipeline/Deployment Architecture Validation  ] ⭐ Run Main actions/checkout@v4
+[CI/CD Pipeline/Deployment Architecture Validation  ]   🐳  docker cp src=/Users/richard/Developer/tenant-flow/. dst=/Users/richard/Developer/tenant-flow
+[Performance Monitoring/API Performance Testing     ]   | Get:6 https://ppa.launchpadcontent.net/git-core/ppa/ubuntu jammy InRelease [24.6 kB]
+[Performance Monitoring/API Performance Testing     ]   | Get:7 http://archive.ubuntu.com/ubuntu jammy-updates InRelease [128 kB]
+[Performance Monitoring/API Performance Testing     ]   | Get:8 http://archive.ubuntu.com/ubuntu jammy-backports InRelease [127 kB]
+[Performance Monitoring/API Performance Testing     ]   | Get:4 https://packagecloud.io/github/git-lfs/ubuntu jammy InRelease [29.2 kB]
+[Test/test                                          ] ⭐ Run Main actions/checkout@v4
+[Test/test                                          ]   🐳  docker cp src=/Users/richard/Developer/tenant-flow/. dst=/Users/richard/Developer/tenant-flow
+[Dependency Audit/Outdated Dependencies Check       ]   | node: v22.18.0
+[Dependency Audit/Outdated Dependencies Check       ]   | npm: 10.9.3
+[Dependency Audit/Outdated Dependencies Check       ]   | yarn: 
+[Dependency Audit/Outdated Dependencies Check       ]   ❓  ::endgroup::
+[Dependency Audit/Outdated Dependencies Check       ]   | [command]/opt/hostedtoolcache/node/22.18.0/x64/bin/npm config get cache
+[CI/test                                            ] 🧪  Matrix: map[node-version:22.x]
+[CI/test                                            ] ⭐ Run Main actions/checkout@v4
+[CI/test                                            ]   🐳  docker cp src=/Users/richard/Developer/tenant-flow/. dst=/Users/richard/Developer/tenant-flow
+[Performance Monitoring/Memory Usage Analysis       ] ⭐ Run Main Checkout code
+[Performance Monitoring/Memory Usage Analysis       ]   🐳  docker cp src=/Users/richard/Developer/tenant-flow/. dst=/Users/richard/Developer/tenant-flow
+[Dependency Audit/Outdated Dependencies Check       ]   | /root/.npm
+[Dependency Audit/Outdated Dependencies Check       ]   ⚙  ***
+[Dependency Audit/Outdated Dependencies Check       ]   | Cache Size: ~1 MB (722939 B)
+[Dependency Audit/Outdated Dependencies Check       ]   | [command]/usr/bin/tar -xf /tmp/3bf37f5e-8769-4a43-9022-2d4c7786aa72/cache.tzst -P -C /Users/richard/Developer/tenant-flow --use-compress-program unzstd
+[Performance Monitoring/API Performance Testing     ]   | Get:9 https://packages.microsoft.com/ubuntu/22.04/prod jammy/main all Packages [1331 B]
+[Dependency Audit/Outdated Dependencies Check       ]   | Cache restored successfully
+[Dependency Audit/Outdated Dependencies Check       ]   | Cache restored from key: node-cache-linux-x64-npm-b93b73bc7f1173f2de0c08509656747298af040b8ed481e4cbd2d89d5942582c
+[Dependency Audit/Outdated Dependencies Check       ]   ❓ add-matcher /run/act/actions/actions-setup-node@v4/.github/tsc.json
+[Dependency Audit/Outdated Dependencies Check       ]   ❓ add-matcher /run/act/actions/actions-setup-node@v4/.github/eslint-stylish.json
+[Dependency Audit/Outdated Dependencies Check       ]   ❓ add-matcher /run/act/actions/actions-setup-node@v4/.github/eslint-compact.json
+[Dependency Audit/Outdated Dependencies Check       ]   ✅  Success - Main Setup Node.js [5.675654208s]
+[Performance Monitoring/API Performance Testing     ]   | Get:10 https://packages.microsoft.com/ubuntu/22.04/prod jammy/main amd64 Packages [242 kB]
+[Dependency Audit/Outdated Dependencies Check       ]   ⚙  ::set-output:: node-version=v22.18.0
+[Dependency Audit/Outdated Dependencies Check       ]   ⚙  ::set-output:: cache-hit=true
+[Dependency Audit/Outdated Dependencies Check       ]   ⚙  ::add-path:: /opt/hostedtoolcache/node/22.18.0/x64/bin
+[Dependency Audit/Outdated Dependencies Check       ] ⭐ Run Main Check for outdated packages
+[Dependency Audit/Outdated Dependencies Check       ]   🐳  docker exec cmd=[bash -e /var/run/act/workflow/2] user= workdir=
+[Performance Monitoring/API Performance Testing     ]   | Get:11 https://dl.k6.io/deb stable/main amd64 Packages [5189 B]
+[Dependency Audit/Outdated Dependencies Check       ]   ✅  Success - Main Check for outdated packages [2.942118083s]
+[Performance Monitoring/API Performance Testing     ]   | Get:12 http://archive.ubuntu.com/ubuntu jammy/multiverse amd64 Packages [266 kB]
+[Dependency Audit/Outdated Dependencies Check       ]   ⚙  Summary - ## 📦 Outdated Dependencies Report
+
+### Found 7 outdated packages
+
+#### Major Version Updates Available:
+```
+@nestjs/throttler: null → 6.4.0
+@supabase/supabase-js: null → 2.56.0
+class-validator: null → 0.14.2
+dompurify: null → 3.2.6
+jspdf: null → 3.0.1
+nest-winston: null → 1.10.2
+stripe: null → 18.4.0
+```
+[Dependency Audit/Outdated Dependencies Check       ] ⭐ Run Post Setup Node.js
+[Performance Monitoring/API Performance Testing     ]   | Get:13 http://archive.ubuntu.com/ubuntu jammy/main amd64 Packages [1792 kB]
+[Dependency Audit/Outdated Dependencies Check       ]   🐳  docker exec cmd=[/opt/acttoolcache/node/18.20.8/x64/bin/node /var/run/act/actions/actions-setup-node@v4/dist/cache-save/index.js] user= workdir=
+[Performance Monitoring/API Performance Testing     ]   | Get:14 http://archive.ubuntu.com/ubuntu jammy/universe amd64 Packages [17.5 MB]
+[Performance Monitoring/API Performance Testing     ]   | Get:15 http://archive.ubuntu.com/ubuntu jammy/restricted amd64 Packages [164 kB]
+[Dependency Audit/Outdated Dependencies Check       ]   | [command]/usr/bin/tar --posix -cf cache.tzst --exclude cache.tzst -P -C /Users/richard/Developer/tenant-flow --files-from manifest.txt --use-compress-program zstdmt
+[Performance Monitoring/Bundle Size Analysis        ]   ✅  Success - Main Checkout code [12.117596291s]
+[Dependency Audit/Outdated Dependencies Check       ]   | Cache Size: ~1 MB (723046 B)
+[Dependency Audit/Outdated Dependencies Check       ]   | Cache saved successfully
+[Dependency Audit/Outdated Dependencies Check       ]   | Cache saved with the key: node-cache-Linux-x64-npm-b93b73bc7f1173f2de0c08509656747298af040b8ed481e4cbd2d89d5942582c
+[Performance Monitoring/Bundle Size Analysis        ] ⭐ Run Main Setup Node.js
+[Dependency Audit/Outdated Dependencies Check       ]   ✅  Success - Post Setup Node.js [1.667688958s]
+[Performance Monitoring/Bundle Size Analysis        ]   🐳  docker cp src=/Users/richard/.cache/act/actions-setup-node@v4/ dst=/var/run/act/actions/actions-setup-node@v4/
+[Dependency Audit/Outdated Dependencies Check       ] ⭐ Run Complete job
+[Dependency Audit/Outdated Dependencies Check       ] Cleaning up container for job Outdated Dependencies Check
+[Performance Monitoring/Lighthouse Performance Audit]   ✅  Success - Main Checkout code [12.496347375s]
+[Performance Monitoring/API Performance Testing     ]   | Get:16 https://ppa.launchpadcontent.net/git-core/ppa/ubuntu jammy/main amd64 Packages [2991 B]
+[Performance Monitoring/Lighthouse Performance Audit] ⭐ Run Main Run Lighthouse CI
+[Performance Monitoring/Lighthouse Performance Audit]   🐳  docker cp src=/Users/richard/.cache/act/treosh-lighthouse-ci-action@v12/ dst=/var/run/act/actions/treosh-lighthouse-ci-action@v12/
+[Dependency Audit/Outdated Dependencies Check       ]   ✅  Success - Complete job
+[Dependency Audit/Outdated Dependencies Check       ] 🏁  Job succeeded
+[Performance Monitoring/API Performance Testing     ]   | Get:17 http://archive.ubuntu.com/ubuntu jammy-updates/restricted amd64 Packages [5430 kB]
+[Performance Monitoring/API Performance Testing     ]   | Get:18 http://archive.ubuntu.com/ubuntu jammy-updates/universe amd64 Packages [1575 kB]
+[Performance Monitoring/API Performance Testing     ]   | Get:19 http://archive.ubuntu.com/ubuntu jammy-updates/multiverse amd64 Packages [75.9 kB]
+[Performance Monitoring/API Performance Testing     ]   | Get:20 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 Packages [3569 kB]
+[Performance Monitoring/Bundle Size Analysis        ]   🐳  docker exec cmd=[/opt/acttoolcache/node/18.20.8/x64/bin/node /var/run/act/actions/actions-setup-node@v4/dist/setup/index.js] user= workdir=
+[Performance Monitoring/API Performance Testing     ]   | Get:21 http://security.ubuntu.com/ubuntu jammy-security/main amd64 Packages [3253 kB]
+[Performance Monitoring/Bundle Size Analysis        ]   | Found in cache @ /opt/hostedtoolcache/node/22.18.0/x64
+[Performance Monitoring/Bundle Size Analysis        ]   ❓  ::group::Environment details
+[Performance Monitoring/API Performance Testing     ]   | Get:22 http://security.ubuntu.com/ubuntu jammy-security/multiverse amd64 Packages [48.5 kB]
+[Performance Monitoring/API Performance Testing     ]   | Get:23 http://security.ubuntu.com/ubuntu jammy-security/universe amd64 Packages [1271 kB]
+[Performance Monitoring/API Performance Testing     ]   | Get:24 http://security.ubuntu.com/ubuntu jammy-security/restricted amd64 Packages [5235 kB]
+[Performance Monitoring/Bundle Size Analysis        ]   | node: v22.18.0
+[Performance Monitoring/Bundle Size Analysis        ]   | npm: 10.9.3
+[Performance Monitoring/Bundle Size Analysis        ]   | yarn: 
+[Performance Monitoring/Bundle Size Analysis        ]   ❓  ::endgroup::
+[Performance Monitoring/Bundle Size Analysis        ]   | [command]/opt/hostedtoolcache/node/22.18.0/x64/bin/npm config get cache
+[Performance Monitoring/API Performance Testing     ]   | Get:25 http://archive.ubuntu.com/ubuntu jammy-backports/universe amd64 Packages [35.2 kB]
+[Performance Monitoring/API Performance Testing     ]   | Get:26 http://archive.ubuntu.com/ubuntu jammy-backports/main amd64 Packages [83.2 kB]
+[Performance Monitoring/Bundle Size Analysis        ]   | /root/.npm
+[Dependency Audit/Bundle Size Analysis              ]   ✅  Success - Main Checkout code [16.078732667s]
+[Performance Monitoring/Bundle Size Analysis        ]   ⚙  ***
+[Performance Monitoring/Bundle Size Analysis        ]   | Cache Size: ~1 MB (723046 B)
+[Performance Monitoring/Bundle Size Analysis        ]   | [command]/usr/bin/tar -xf /tmp/afd32482-1ba5-4621-b3e5-fa3104679ffc/cache.tzst -P -C /Users/richard/Developer/tenant-flow --use-compress-program unzstd
+[Dependency Audit/Bundle Size Analysis              ] ⭐ Run Main Setup Node.js
+[Dependency Audit/Bundle Size Analysis              ]   🐳  docker cp src=/Users/richard/.cache/act/actions-setup-node@v4/ dst=/var/run/act/actions/actions-setup-node@v4/
+[Performance Monitoring/Bundle Size Analysis        ]   | Cache restored successfully
+[Performance Monitoring/Bundle Size Analysis        ]   | Cache restored from key: node-cache-linux-x64-npm-b93b73bc7f1173f2de0c08509656747298af040b8ed481e4cbd2d89d5942582c
+[Performance Monitoring/Bundle Size Analysis        ]   ❓ add-matcher /run/act/actions/actions-setup-node@v4/.github/tsc.json
+[Performance Monitoring/Bundle Size Analysis        ]   ❓ add-matcher /run/act/actions/actions-setup-node@v4/.github/eslint-stylish.json
+[Performance Monitoring/Bundle Size Analysis        ]   ❓ add-matcher /run/act/actions/actions-setup-node@v4/.github/eslint-compact.json
+[Performance Monitoring/Bundle Size Analysis        ]   ✅  Success - Main Setup Node.js [7.121519875s]
+[Performance Monitoring/Bundle Size Analysis        ]   ⚙  ::set-output:: node-version=v22.18.0
+[Performance Monitoring/Bundle Size Analysis        ]   ⚙  ::set-output:: cache-hit=true
+[Performance Monitoring/Bundle Size Analysis        ]   ⚙  ::add-path:: /opt/hostedtoolcache/node/22.18.0/x64/bin
+[Performance Monitoring/Bundle Size Analysis        ] ⭐ Run Main Install dependencies
+[Performance Monitoring/Bundle Size Analysis        ]   🐳  docker exec cmd=[bash -e /var/run/act/workflow/2] user= workdir=
+[Performance Monitoring/API Performance Testing     ]   | Get:27 https://packagecloud.io/github/git-lfs/ubuntu jammy/main amd64 Packages [2411 B]
+[Performance Monitoring/API Performance Testing     ]   | Fetched 41.2 MB in 16s (2574 kB/s)
+[Performance Monitoring/API Performance Testing     ]   | Reading package lists...
+[Dependency Audit/Security Vulnerability Scan       ]   ✅  Success - Main Checkout code [18.339846292s]
+[Dependency Audit/Security Vulnerability Scan       ] ⭐ Run Main Setup Node.js
+[Dependency Audit/Security Vulnerability Scan       ]   🐳  docker cp src=/Users/richard/.cache/act/actions-setup-node@v4/ dst=/var/run/act/actions/actions-setup-node@v4/
+[Dependency Audit/Bundle Size Analysis              ]   🐳  docker exec cmd=[/opt/acttoolcache/node/18.20.8/x64/bin/node /var/run/act/actions/actions-setup-node@v4/dist/setup/index.js] user= workdir=
+[Performance Monitoring/Memory Usage Analysis       ]   ✅  Success - Main Checkout code [16.744539542s]
+[Performance Monitoring/Memory Usage Analysis       ] ⭐ Run Main Setup Node.js
+[Dependency Audit/Bundle Size Analysis              ]   | Found in cache @ /opt/hostedtoolcache/node/22.18.0/x64
+[Dependency Audit/Bundle Size Analysis              ]   ❓  ::group::Environment details
+[Performance Monitoring/Memory Usage Analysis       ]   🐳  docker cp src=/Users/richard/.cache/act/actions-setup-node@v4/ dst=/var/run/act/actions/actions-setup-node@v4/
+[Performance Monitoring/API Performance Testing     ]   | Reading package lists...
+[Dependency Audit/License Compliance Check          ]   ✅  Success - Main Checkout code [19.722763459s]
+[Dependency Audit/License Compliance Check          ] ⭐ Run Main Setup Node.js
+[Dependency Audit/License Compliance Check          ]   🐳  docker cp src=/Users/richard/.cache/act/actions-setup-node@v4/ dst=/var/run/act/actions/actions-setup-node@v4/
+[Performance Monitoring/API Performance Testing     ]   | Building dependency tree...
+[Performance Monitoring/API Performance Testing     ]   | Reading state information...
+[Dependency Audit/Security Vulnerability Scan       ]   🐳  docker exec cmd=[/opt/acttoolcache/node/18.20.8/x64/bin/node /var/run/act/actions/actions-setup-node@v4/dist/setup/index.js] user= workdir=
+[Performance Monitoring/API Performance Testing     ]   | The following NEW packages will be installed:
+[Performance Monitoring/API Performance Testing     ]   |   k6
+[Dependency Audit/Bundle Size Analysis              ]   | node: v22.18.0
+[Dependency Audit/Bundle Size Analysis              ]   | npm: 10.9.3
+[Dependency Audit/Bundle Size Analysis              ]   | yarn: 
+[Dependency Audit/Bundle Size Analysis              ]   ❓  ::endgroup::
+[Dependency Audit/Bundle Size Analysis              ]   | [command]/opt/hostedtoolcache/node/22.18.0/x64/bin/npm config get cache
+[Performance Monitoring/API Performance Testing     ]   | 0 upgraded, 1 newly installed, 0 to remove and 31 not upgraded.
+[Performance Monitoring/API Performance Testing     ]   | Need to get 29.9 MB of archives.
+[Performance Monitoring/API Performance Testing     ]   | After this operation, 66.5 MB of additional disk space will be used.
+[Performance Monitoring/API Performance Testing     ]   | Get:1 https://dl.k6.io/deb stable/main amd64 k6 amd64 1.2.2 [29.9 MB]
+[Performance Monitoring/Lighthouse Performance Audit]   🐳  docker exec cmd=[/opt/acttoolcache/node/18.20.8/x64/bin/node /var/run/act/actions/treosh-lighthouse-ci-action@v12/src/index.js] user= workdir=
+[Dependency Audit/Security Vulnerability Scan       ]   | Found in cache @ /opt/hostedtoolcache/node/22.18.0/x64
+[Test/test                                          ]   ✅  Success - Main actions/checkout@v4 [20.44964925s]
+[Dependency Audit/Security Vulnerability Scan       ]   ❓  ::group::Environment details
+[Test/test                                          ] ⭐ Run Main Setup Node.js
+[Test/test                                          ]   🐳  docker cp src=/Users/richard/.cache/act/actions-setup-node@v4/ dst=/var/run/act/actions/actions-setup-node@v4/
+[CI/CD Pipeline/Deployment Architecture Validation  ]   ✅  Success - Main actions/checkout@v4 [21.386883042s]
+[Performance Monitoring/Memory Usage Analysis       ]   🐳  docker exec cmd=[/opt/acttoolcache/node/18.20.8/x64/bin/node /var/run/act/actions/actions-setup-node@v4/dist/setup/index.js] user= workdir=
+[Performance Monitoring/Lighthouse Performance Audit]   ❌  Failure - Main Run Lighthouse CI [13.379673375s]
+[CI/CD Pipeline/Deployment Architecture Validation  ] ⭐ Run Main Setup Node.js
+[Performance Monitoring/Lighthouse Performance Audit] failed to create exec: Error response from daemon: container fd53b86ecb76036f7c788ae9261f509af4adf491ed18fc5ac4d32744d619bee0 is not running
+Error response from daemon: No such container: fd53b86ecb76036f7c788ae9261f509af4adf491ed18fc5ac4d32744d619bee0
+Error response from daemon: No such container: fd53b86ecb76036f7c788ae9261f509af4adf491ed18fc5ac4d32744d619bee0
+[CI/CD Pipeline/Deployment Architecture Validation  ]   🐳  docker cp src=/Users/richard/.cache/act/actions-setup-node@v4/ dst=/var/run/act/actions/actions-setup-node@v4/
+[Performance Monitoring/Lighthouse Performance Audit] ⭐ Run Main Generate Performance Report
+[Performance Monitoring/Lighthouse Performance Audit]   ❌  Failure - Main Generate Performance Report [51.834875ms]
+[Dependency Audit/Bundle Size Analysis              ]   | /root/.npm
+[Performance Monitoring/Lighthouse Performance Audit] failed to copy content to container: Error response from daemon: No such container: fd53b86ecb76036f7c788ae9261f509af4adf491ed18fc5ac4d32744d619bee0
+Error response from daemon: No such container: fd53b86ecb76036f7c788ae9261f509af4adf491ed18fc5ac4d32744d619bee0
+Error response from daemon: No such container: fd53b86ecb76036f7c788ae9261f509af4adf491ed18fc5ac4d32744d619bee0
+[Performance Monitoring/Lighthouse Performance Audit] ⭐ Run Complete job
+[Performance Monitoring/Lighthouse Performance Audit]   ✅  Success - Complete job
+[Performance Monitoring/Lighthouse Performance Audit] 🏁  Job failed
+[Dependency Audit/Bundle Size Analysis              ]   ⚙  ***
+[Dependency Audit/Security Vulnerability Scan       ]   | node: v22.18.0
+[Dependency Audit/Security Vulnerability Scan       ]   | npm: 10.9.3
+[Dependency Audit/Security Vulnerability Scan       ]   | yarn: 
+[Dependency Audit/Security Vulnerability Scan       ]   ❓  ::endgroup::
+[Dependency Audit/Security Vulnerability Scan       ]   | [command]/opt/hostedtoolcache/node/22.18.0/x64/bin/npm config get cache
+[Dependency Audit/Bundle Size Analysis              ]   | Cache Size: ~1 MB (723046 B)
+[Dependency Audit/Bundle Size Analysis              ]   | [command]/usr/bin/tar -xf /tmp/44e61375-2fd4-473a-860c-ec13abfa8121/cache.tzst -P -C /Users/richard/Developer/tenant-flow --use-compress-program unzstd
+[Performance Monitoring/API Performance Testing     ]   | debconf: delaying package configuration, since apt-utils is not installed
+[Dependency Audit/License Compliance Check          ]   🐳  docker exec cmd=[/opt/acttoolcache/node/18.20.8/x64/bin/node /var/run/act/actions/actions-setup-node@v4/dist/setup/index.js] user= workdir=
+[Dependency Audit/Bundle Size Analysis              ]   | Cache restored successfully
+[Dependency Audit/Bundle Size Analysis              ]   | Cache restored from key: node-cache-linux-x64-npm-b93b73bc7f1173f2de0c08509656747298af040b8ed481e4cbd2d89d5942582c
+[Dependency Audit/Bundle Size Analysis              ]   ❓ add-matcher /run/act/actions/actions-setup-node@v4/.github/tsc.json
+[Dependency Audit/Bundle Size Analysis              ]   ❓ add-matcher /run/act/actions/actions-setup-node@v4/.github/eslint-stylish.json
+[Dependency Audit/Bundle Size Analysis              ]   ❓ add-matcher /run/act/actions/actions-setup-node@v4/.github/eslint-compact.json
+[Performance Monitoring/API Performance Testing     ]   | Fetched 29.9 MB in 1s (26.0 MB/s)
+[Dependency Audit/Bundle Size Analysis              ]   ✅  Success - Main Setup Node.js [8.047962375s]
+[Performance Monitoring/Memory Usage Analysis       ]   | Found in cache @ /opt/hostedtoolcache/node/22.18.0/x64
+[Performance Monitoring/Memory Usage Analysis       ]   ❓  ::group::Environment details
+[Dependency Audit/Bundle Size Analysis              ]   ⚙  ::set-output:: node-version=v22.18.0
+[Dependency Audit/Bundle Size Analysis              ]   ⚙  ::set-output:: cache-hit=true
+[Dependency Audit/Bundle Size Analysis              ]   ⚙  ::add-path:: /opt/hostedtoolcache/node/22.18.0/x64/bin
+[CI/test                                            ]   ✅  Success - Main actions/checkout@v4 [21.552333542s]
+[Dependency Audit/Bundle Size Analysis              ] ⭐ Run Main Install dependencies
+[CI/test                                            ] ⭐ Run Main Use Node.js 22.x
+[CI/test                                            ]   🐳  docker cp src=/Users/richard/.cache/act/actions-setup-node@v4/ dst=/var/run/act/actions/actions-setup-node@v4/
+[Dependency Audit/Bundle Size Analysis              ]   🐳  docker exec cmd=[bash -e /var/run/act/workflow/2] user= workdir=
+[Performance Monitoring/API Performance Testing     ]   | Selecting previously unselected package k6.
+[Dependency Audit/Security Vulnerability Scan       ]   | /root/.npm
+[Dependency Audit/Security Vulnerability Scan       ]   ⚙  ***
+[Dependency Audit/Security Vulnerability Scan       ]   | Cache Size: ~1 MB (723046 B)
+[Dependency Audit/Security Vulnerability Scan       ]   | [command]/usr/bin/tar -xf /tmp/05747a4d-db31-4ca0-8ca5-b2ef726dfb26/cache.tzst -P -C /Users/richard/Developer/tenant-flow --use-compress-program unzstd
+[Dependency Audit/License Compliance Check          ]   | Found in cache @ /opt/hostedtoolcache/node/22.18.0/x64
+[Dependency Audit/License Compliance Check          ]   ❓  ::group::Environment details
+[Performance Monitoring/API Performance Testing     ]   | (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 26702 files and directories currently installed.)
+[Performance Monitoring/API Performance Testing     ]   | Preparing to unpack .../archives/k6_1.2.2_amd64.deb ...
+[Performance Monitoring/API Performance Testing     ]   | Unpacking k6 (1.2.2) ...
+[Dependency Audit/Security Vulnerability Scan       ]   | Cache restored successfully
+[Dependency Audit/Security Vulnerability Scan       ]   | Cache restored from key: node-cache-linux-x64-npm-b93b73bc7f1173f2de0c08509656747298af040b8ed481e4cbd2d89d5942582c
+[Dependency Audit/Security Vulnerability Scan       ]   ❓ add-matcher /run/act/actions/actions-setup-node@v4/.github/tsc.json
+[Dependency Audit/Security Vulnerability Scan       ]   ❓ add-matcher /run/act/actions/actions-setup-node@v4/.github/eslint-stylish.json
+[Dependency Audit/Security Vulnerability Scan       ]   ❓ add-matcher /run/act/actions/actions-setup-node@v4/.github/eslint-compact.json
+[Dependency Audit/Security Vulnerability Scan       ]   ✅  Success - Main Setup Node.js [6.262272084s]
+[Performance Monitoring/Memory Usage Analysis       ]   | node: v22.18.0
+[Performance Monitoring/Memory Usage Analysis       ]   | npm: 10.9.3
+[Performance Monitoring/Memory Usage Analysis       ]   | yarn: 
+[Performance Monitoring/Memory Usage Analysis       ]   ❓  ::endgroup::
+[Dependency Audit/Security Vulnerability Scan       ]   ⚙  ::set-output:: node-version=v22.18.0
+[Dependency Audit/Security Vulnerability Scan       ]   ⚙  ::set-output:: cache-hit=true
+[Performance Monitoring/Memory Usage Analysis       ]   | [command]/opt/hostedtoolcache/node/22.18.0/x64/bin/npm config get cache
+[Dependency Audit/Security Vulnerability Scan       ]   ⚙  ::add-path:: /opt/hostedtoolcache/node/22.18.0/x64/bin
+[Dependency Audit/Security Vulnerability Scan       ] ⭐ Run Main Install dependencies
+[CI/CD Pipeline/Deployment Architecture Validation  ]   🐳  docker exec cmd=[/opt/acttoolcache/node/18.20.8/x64/bin/node /var/run/act/actions/actions-setup-node@v4/dist/setup/index.js] user= workdir=
+[Test/test                                          ]   🐳  docker exec cmd=[/opt/acttoolcache/node/18.20.8/x64/bin/node /var/run/act/actions/actions-setup-node@v4/dist/setup/index.js] user= workdir=
+[Dependency Audit/Security Vulnerability Scan       ]   🐳  docker exec cmd=[bash -e /var/run/act/workflow/2] user= workdir=
+[Performance Monitoring/Memory Usage Analysis       ]   | /root/.npm
+[Dependency Audit/License Compliance Check          ]   | node: v22.18.0
+[Dependency Audit/License Compliance Check          ]   | npm: 10.9.3
+[Dependency Audit/License Compliance Check          ]   | yarn: 
+[Dependency Audit/License Compliance Check          ]   ❓  ::endgroup::
+[CI/test                                            ]   🐳  docker exec cmd=[/opt/acttoolcache/node/18.20.8/x64/bin/node /var/run/act/actions/actions-setup-node@v4/dist/setup/index.js] user= workdir=
+[Dependency Audit/License Compliance Check          ]   | [command]/opt/hostedtoolcache/node/22.18.0/x64/bin/npm config get cache
+[Performance Monitoring/Memory Usage Analysis       ]   ⚙  ***
+[Performance Monitoring/Memory Usage Analysis       ]   | Cache Size: ~1 MB (723046 B)
+[CI/CD Pipeline/Deployment Architecture Validation  ]   | Found in cache @ /opt/hostedtoolcache/node/24.6.0/x64
+[CI/CD Pipeline/Deployment Architecture Validation  ]   ❓  ::group::Environment details
+[Performance Monitoring/Memory Usage Analysis       ]   | [command]/usr/bin/tar -xf /tmp/5d756640-9e3f-4e49-bcc2-6806f75b3f07/cache.tzst -P -C /Users/richard/Developer/tenant-flow --use-compress-program unzstd
+[Test/test                                          ]   | Found in cache @ /opt/hostedtoolcache/node/22.18.0/x64
+[Test/test                                          ]   ❓  ::group::Environment details
+[Performance Monitoring/Memory Usage Analysis       ]   | Cache restored successfully
+[Performance Monitoring/Memory Usage Analysis       ]   | Cache restored from key: node-cache-linux-x64-npm-b93b73bc7f1173f2de0c08509656747298af040b8ed481e4cbd2d89d5942582c
+[Performance Monitoring/Memory Usage Analysis       ]   ❓ add-matcher /run/act/actions/actions-setup-node@v4/.github/tsc.json
+[Performance Monitoring/Memory Usage Analysis       ]   ❓ add-matcher /run/act/actions/actions-setup-node@v4/.github/eslint-stylish.json
+[Performance Monitoring/Memory Usage Analysis       ]   ❓ add-matcher /run/act/actions/actions-setup-node@v4/.github/eslint-compact.json
+[Performance Monitoring/Memory Usage Analysis       ]   ✅  Success - Main Setup Node.js [5.670301292s]
+[Performance Monitoring/Memory Usage Analysis       ]   ⚙  ::set-output:: node-version=v22.18.0
+[Performance Monitoring/Memory Usage Analysis       ]   ⚙  ::set-output:: cache-hit=true
+[Performance Monitoring/Memory Usage Analysis       ]   ⚙  ::add-path:: /opt/hostedtoolcache/node/22.18.0/x64/bin
+[Performance Monitoring/Memory Usage Analysis       ] ⭐ Run Main Install dependencies
+[Performance Monitoring/Memory Usage Analysis       ]   🐳  docker exec cmd=[bash -e /var/run/act/workflow/2] user= workdir=
+[Dependency Audit/License Compliance Check          ]   | /root/.npm
+[Dependency Audit/License Compliance Check          ]   ⚙  ***
+[CI/test                                            ]   | Found in cache @ /opt/hostedtoolcache/node/22.18.0/x64
+[CI/test                                            ]   ❓  ::group::Environment details
+[Dependency Audit/License Compliance Check          ]   | Cache Size: ~1 MB (723046 B)
+[Dependency Audit/License Compliance Check          ]   | [command]/usr/bin/tar -xf /tmp/3fc2c0a7-5b09-4294-9720-7ea0a8be0bdf/cache.tzst -P -C /Users/richard/Developer/tenant-flow --use-compress-program unzstd
+[Dependency Audit/License Compliance Check          ]   | Cache restored successfully
+[Dependency Audit/License Compliance Check          ]   | Cache restored from key: node-cache-linux-x64-npm-b93b73bc7f1173f2de0c08509656747298af040b8ed481e4cbd2d89d5942582c
+[Dependency Audit/License Compliance Check          ]   ❓ add-matcher /run/act/actions/actions-setup-node@v4/.github/tsc.json
+[Dependency Audit/License Compliance Check          ]   ❓ add-matcher /run/act/actions/actions-setup-node@v4/.github/eslint-stylish.json
+[Dependency Audit/License Compliance Check          ]   ❓ add-matcher /run/act/actions/actions-setup-node@v4/.github/eslint-compact.json
+[Dependency Audit/License Compliance Check          ]   ✅  Success - Main Setup Node.js [5.707837416s]
+[Dependency Audit/License Compliance Check          ]   ⚙  ::set-output:: node-version=v22.18.0
+[Dependency Audit/License Compliance Check          ]   ⚙  ::set-output:: cache-hit=true
+[Dependency Audit/License Compliance Check          ]   ⚙  ::add-path:: /opt/hostedtoolcache/node/22.18.0/x64/bin
+[Dependency Audit/License Compliance Check          ] ⭐ Run Main Install dependencies
+[Test/test                                          ]   | node: v22.18.0
+[Test/test                                          ]   | npm: 10.9.3
+[Test/test                                          ]   | yarn: 
+[Test/test                                          ]   ❓  ::endgroup::
+[Test/test                                          ]   | [command]/opt/hostedtoolcache/node/22.18.0/x64/bin/npm config get cache
+[Performance Monitoring/API Performance Testing     ]   | Setting up k6 (1.2.2) ...
+[Dependency Audit/License Compliance Check          ]   🐳  docker exec cmd=[bash -e /var/run/act/workflow/2] user= workdir=
+[Performance Monitoring/API Performance Testing     ]   ✅  Success - Main Install k6 [28.749679083s]
+[Performance Monitoring/API Performance Testing     ] ⭐ Run Main Create k6 test script
+[Performance Monitoring/API Performance Testing     ]   🐳  docker exec cmd=[bash -e /var/run/act/workflow/2] user= workdir=
+[CI/test                                            ]   | node: v22.18.0
+[CI/test                                            ]   | npm: 10.9.3
+[CI/test                                            ]   | yarn: 
+[CI/test                                            ]   ❓  ::endgroup::
+[CI/test                                            ]   | [command]/opt/hostedtoolcache/node/22.18.0/x64/bin/npm config get cache
+[Performance Monitoring/API Performance Testing     ]   ✅  Success - Main Create k6 test script [175.643ms]
+[Test/test                                          ]   | /root/.npm
+[CI/CD Pipeline/Deployment Architecture Validation  ]   | node: v24.6.0
+[CI/CD Pipeline/Deployment Architecture Validation  ]   | npm: 11.5.1
+[CI/CD Pipeline/Deployment Architecture Validation  ]   | yarn: 
+[CI/CD Pipeline/Deployment Architecture Validation  ]   ❓  ::endgroup::
+[CI/CD Pipeline/Deployment Architecture Validation  ]   | [command]/opt/hostedtoolcache/node/24.6.0/x64/bin/npm config get cache
+[Performance Monitoring/API Performance Testing     ] ⭐ Run Main Run performance tests
+[Test/test                                          ]   ⚙  ***
+[Performance Monitoring/API Performance Testing     ]   🐳  docker exec cmd=[bash -e /var/run/act/workflow/3] user= workdir=
+[Test/test                                          ]   | Cache Size: ~1 MB (723046 B)
+[Test/test                                          ]   | [command]/usr/bin/tar -xf /tmp/e2fcc599-1f79-4970-82a9-2e1fca130be5/cache.tzst -P -C /Users/richard/Developer/tenant-flow --use-compress-program unzstd
+[Test/test                                          ]   | Cache restored successfully
+[Test/test                                          ]   | Cache restored from key: node-cache-linux-x64-npm-b93b73bc7f1173f2de0c08509656747298af040b8ed481e4cbd2d89d5942582c
+[Test/test                                          ]   ❓ add-matcher /run/act/actions/actions-setup-node@v4/.github/tsc.json
+[Test/test                                          ]   ❓ add-matcher /run/act/actions/actions-setup-node@v4/.github/eslint-stylish.json
+[Test/test                                          ]   ❓ add-matcher /run/act/actions/actions-setup-node@v4/.github/eslint-compact.json
+[Test/test                                          ]   ✅  Success - Main Setup Node.js [4.905024833s]
+[Test/test                                          ]   ⚙  ::set-output:: node-version=v22.18.0
+[Test/test                                          ]   ⚙  ::set-output:: cache-hit=true
+[Test/test                                          ]   ⚙  ::add-path:: /opt/hostedtoolcache/node/22.18.0/x64/bin
+[Test/test                                          ] ⭐ Run Main Install dependencies
+[CI/test                                            ]   | /root/.npm
+[Test/test                                          ]   🐳  docker exec cmd=[bash -e /var/run/act/workflow/2] user= workdir=
+[CI/test                                            ]   ⚙  ***
+[CI/test                                            ]   | Cache Size: ~1 MB (723046 B)
+[CI/test                                            ]   | [command]/usr/bin/tar -xf /tmp/f50a878b-cd69-4bda-a692-61622ff4fbe1/cache.tzst -P -C /Users/richard/Developer/tenant-flow --use-compress-program unzstd
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   |          /\      Grafana   /‾‾/  
+[Performance Monitoring/API Performance Testing     ]   |     /\  /  \     |\  __   /  /   
+[Performance Monitoring/API Performance Testing     ]   |    /  \/    \    | |/ /  /   ‾‾\ 
+[Performance Monitoring/API Performance Testing     ]   |   /          \   |   (  |  (‾)  |
+[Performance Monitoring/API Performance Testing     ]   |  / __________ \  |_|\_\  \_____/ 
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   |      execution: local
+[Performance Monitoring/API Performance Testing     ]   |         script: load-test.js
+[Performance Monitoring/API Performance Testing     ]   |         output: json (performance-results.json)
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   |      scenarios: (100.00%) 1 scenario, 20 max VUs, 2m30s max duration (incl. graceful stop):
+[Performance Monitoring/API Performance Testing     ]   |               * default: Up to 20 looping VUs for 2m0s over 3 stages (gracefulRampDown: 30s, gracefulStop: 30s)
+[Performance Monitoring/API Performance Testing     ]   | 
+[CI/test                                            ]   | Cache restored successfully
+[CI/test                                            ]   | Cache restored from key: node-cache-linux-x64-npm-b93b73bc7f1173f2de0c08509656747298af040b8ed481e4cbd2d89d5942582c
+[CI/test                                            ]   ❓ add-matcher /run/act/actions/actions-setup-node@v4/.github/tsc.json
+[CI/test                                            ]   ❓ add-matcher /run/act/actions/actions-setup-node@v4/.github/eslint-stylish.json
+[CI/test                                            ]   ❓ add-matcher /run/act/actions/actions-setup-node@v4/.github/eslint-compact.json
+[CI/test                                            ]   ✅  Success - Main Use Node.js 22.x [3.993460208s]
+[CI/test                                            ]   ⚙  ::set-output:: node-version=v22.18.0
+[CI/test                                            ]   ⚙  ::set-output:: cache-hit=true
+[CI/test                                            ]   ⚙  ::add-path:: /opt/hostedtoolcache/node/22.18.0/x64/bin
+[CI/test                                            ] ⭐ Run Main Install dependencies
+[CI/CD Pipeline/Deployment Architecture Validation  ]   | /root/.npm
+[CI/test                                            ]   🐳  docker exec cmd=[bash -e /var/run/act/workflow/2] user= workdir=
+[CI/CD Pipeline/Deployment Architecture Validation  ]   ⚙  ***
+[CI/CD Pipeline/Deployment Architecture Validation  ]   | Cache Size: ~1 MB (723046 B)
+[CI/CD Pipeline/Deployment Architecture Validation  ]   | [command]/usr/bin/tar -xf /tmp/f9ad21e4-262e-4be6-b85d-503e1fe5eddc/cache.tzst -P -C /Users/richard/Developer/tenant-flow --use-compress-program unzstd
+[CI/CD Pipeline/Deployment Architecture Validation  ]   | Cache restored successfully
+[CI/CD Pipeline/Deployment Architecture Validation  ]   | Cache restored from key: node-cache-linux-x64-npm-b93b73bc7f1173f2de0c08509656747298af040b8ed481e4cbd2d89d5942582c
+[CI/CD Pipeline/Deployment Architecture Validation  ]   ❓ add-matcher /run/act/actions/actions-setup-node@v4/.github/tsc.json
+[CI/CD Pipeline/Deployment Architecture Validation  ]   ❓ add-matcher /run/act/actions/actions-setup-node@v4/.github/eslint-stylish.json
+[CI/CD Pipeline/Deployment Architecture Validation  ]   ❓ add-matcher /run/act/actions/actions-setup-node@v4/.github/eslint-compact.json
+[CI/CD Pipeline/Deployment Architecture Validation  ]   ✅  Success - Main Setup Node.js [5.617775959s]
+[CI/CD Pipeline/Deployment Architecture Validation  ]   ⚙  ::set-output:: node-version=v24.6.0
+[CI/CD Pipeline/Deployment Architecture Validation  ]   ⚙  ::set-output:: cache-hit=true
+[CI/CD Pipeline/Deployment Architecture Validation  ]   ⚙  ::add-path:: /opt/hostedtoolcache/node/24.6.0/x64/bin
+[CI/CD Pipeline/Deployment Architecture Validation  ] ⭐ Run Main Install dependencies
+[CI/CD Pipeline/Deployment Architecture Validation  ]   🐳  docker exec cmd=[bash -e /var/run/act/workflow/2] user= workdir=
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m00.9s), 01/20 VUs, 0 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [   1% ] 01/20 VUs  0m00.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m01.9s), 02/20 VUs, 1 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [   2% ] 02/20 VUs  0m01.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m02.9s), 02/20 VUs, 2 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [   2% ] 02/20 VUs  0m02.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m03.9s), 03/20 VUs, 3 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [   3% ] 03/20 VUs  0m03.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m04.9s), 04/20 VUs, 6 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [   4% ] 04/20 VUs  0m04.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m05.9s), 04/20 VUs, 9 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [   5% ] 04/20 VUs  0m05.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m06.9s), 05/20 VUs, 12 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [   6% ] 05/20 VUs  0m06.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m07.9s), 06/20 VUs, 17 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [   7% ] 06/20 VUs  0m07.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m08.9s), 06/20 VUs, 19 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [   7% ] 06/20 VUs  0m08.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m09.9s), 07/20 VUs, 24 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [   8% ] 07/20 VUs  0m09.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m10.9s), 07/20 VUs, 29 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [   9% ] 07/20 VUs  0m10.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m11.9s), 08/20 VUs, 35 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  10% ] 08/20 VUs  0m11.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m12.9s), 09/20 VUs, 41 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  11% ] 09/20 VUs  0m12.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m13.9s), 09/20 VUs, 48 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  12% ] 09/20 VUs  0m13.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m14.9s), 10/20 VUs, 54 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  12% ] 10/20 VUs  0m14.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m15.9s), 11/20 VUs, 63 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  13% ] 11/20 VUs  0m15.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m16.9s), 11/20 VUs, 72 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  14% ] 11/20 VUs  0m16.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m17.9s), 12/20 VUs, 80 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  15% ] 12/20 VUs  0m17.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m18.9s), 12/20 VUs, 90 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  16% ] 12/20 VUs  0m18.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m19.9s), 13/20 VUs, 100 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  17% ] 13/20 VUs  0m19.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m20.9s), 14/20 VUs, 111 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  17% ] 14/20 VUs  0m20.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m21.9s), 14/20 VUs, 123 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  18% ] 14/20 VUs  0m21.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m22.9s), 15/20 VUs, 134 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  19% ] 15/20 VUs  0m22.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m23.9s), 16/20 VUs, 145 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  20% ] 16/20 VUs  0m23.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m24.9s), 16/20 VUs, 158 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  21% ] 16/20 VUs  0m24.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m25.9s), 17/20 VUs, 169 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  22% ] 17/20 VUs  0m25.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m26.9s), 18/20 VUs, 184 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  22% ] 18/20 VUs  0m26.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m27.9s), 18/20 VUs, 193 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  23% ] 18/20 VUs  0m27.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m28.9s), 19/20 VUs, 209 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  24% ] 19/20 VUs  0m28.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m29.9s), 19/20 VUs, 224 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  25% ] 19/20 VUs  0m29.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m30.9s), 20/20 VUs, 240 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  26% ] 20/20 VUs  0m30.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m31.9s), 20/20 VUs, 254 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  27% ] 20/20 VUs  0m31.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m32.9s), 20/20 VUs, 270 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  27% ] 20/20 VUs  0m32.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m33.9s), 20/20 VUs, 288 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  28% ] 20/20 VUs  0m33.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m34.9s), 20/20 VUs, 302 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  29% ] 20/20 VUs  0m34.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m35.9s), 20/20 VUs, 321 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  30% ] 20/20 VUs  0m35.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m36.9s), 20/20 VUs, 337 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  31% ] 20/20 VUs  0m36.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m37.9s), 20/20 VUs, 351 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  32% ] 20/20 VUs  0m37.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m38.9s), 20/20 VUs, 369 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  32% ] 20/20 VUs  0m38.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m39.9s), 20/20 VUs, 384 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  33% ] 20/20 VUs  0m39.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m40.9s), 20/20 VUs, 402 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  34% ] 20/20 VUs  0m40.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m41.9s), 20/20 VUs, 421 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  35% ] 20/20 VUs  0m41.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m42.9s), 20/20 VUs, 433 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  36% ] 20/20 VUs  0m42.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m43.9s), 20/20 VUs, 450 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  37% ] 20/20 VUs  0m43.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m44.9s), 20/20 VUs, 467 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  37% ] 20/20 VUs  0m44.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m45.9s), 20/20 VUs, 484 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  38% ] 20/20 VUs  0m45.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m46.9s), 20/20 VUs, 502 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  39% ] 20/20 VUs  0m46.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m47.9s), 20/20 VUs, 519 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  40% ] 20/20 VUs  0m47.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m48.9s), 20/20 VUs, 532 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  41% ] 20/20 VUs  0m48.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m49.9s), 20/20 VUs, 549 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  42% ] 20/20 VUs  0m49.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m50.9s), 20/20 VUs, 566 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  42% ] 20/20 VUs  0m50.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m51.9s), 20/20 VUs, 582 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  43% ] 20/20 VUs  0m51.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m52.9s), 20/20 VUs, 601 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  44% ] 20/20 VUs  0m52.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m53.9s), 20/20 VUs, 616 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  45% ] 20/20 VUs  0m53.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m54.9s), 20/20 VUs, 631 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  46% ] 20/20 VUs  0m54.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m55.9s), 20/20 VUs, 648 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  47% ] 20/20 VUs  0m55.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m56.9s), 20/20 VUs, 666 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  47% ] 20/20 VUs  0m56.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m57.9s), 20/20 VUs, 682 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  48% ] 20/20 VUs  0m57.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m58.9s), 20/20 VUs, 699 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  49% ] 20/20 VUs  0m58.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (0m59.9s), 20/20 VUs, 714 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  50% ] 20/20 VUs  0m59.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m00.9s), 20/20 VUs, 729 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  51% ] 20/20 VUs  1m00.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m01.9s), 20/20 VUs, 746 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  52% ] 20/20 VUs  1m01.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m02.9s), 20/20 VUs, 764 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  52% ] 20/20 VUs  1m02.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m03.9s), 20/20 VUs, 781 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  53% ] 20/20 VUs  1m03.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m04.9s), 20/20 VUs, 798 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  54% ] 20/20 VUs  1m04.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m05.9s), 20/20 VUs, 814 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  55% ] 20/20 VUs  1m05.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m06.9s), 20/20 VUs, 828 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  56% ] 20/20 VUs  1m06.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m07.9s), 20/20 VUs, 845 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  57% ] 20/20 VUs  1m07.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m08.9s), 20/20 VUs, 864 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  57% ] 20/20 VUs  1m08.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m09.9s), 20/20 VUs, 880 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  58% ] 20/20 VUs  1m09.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m10.9s), 20/20 VUs, 897 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  59% ] 20/20 VUs  1m10.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m11.9s), 20/20 VUs, 911 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  60% ] 20/20 VUs  1m11.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m12.9s), 20/20 VUs, 927 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  61% ] 20/20 VUs  1m12.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m13.9s), 20/20 VUs, 945 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  62% ] 20/20 VUs  1m13.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m14.9s), 20/20 VUs, 963 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  62% ] 20/20 VUs  1m14.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m15.9s), 20/20 VUs, 980 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  63% ] 20/20 VUs  1m15.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m16.9s), 20/20 VUs, 997 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  64% ] 20/20 VUs  1m16.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m17.9s), 20/20 VUs, 1010 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  65% ] 20/20 VUs  1m17.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m18.9s), 20/20 VUs, 1026 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  66% ] 20/20 VUs  1m18.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m19.9s), 20/20 VUs, 1045 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  67% ] 20/20 VUs  1m19.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m21.0s), 20/20 VUs, 1061 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  68% ] 20/20 VUs  1m21.0s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m21.9s), 20/20 VUs, 1075 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  68% ] 20/20 VUs  1m21.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m22.9s), 20/20 VUs, 1093 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  69% ] 20/20 VUs  1m22.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m23.9s), 20/20 VUs, 1109 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  70% ] 20/20 VUs  1m23.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m24.9s), 20/20 VUs, 1126 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  71% ] 20/20 VUs  1m24.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m25.9s), 20/20 VUs, 1143 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  72% ] 20/20 VUs  1m25.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m26.9s), 20/20 VUs, 1156 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  72% ] 20/20 VUs  1m26.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m27.9s), 20/20 VUs, 1175 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  73% ] 20/20 VUs  1m27.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m28.9s), 20/20 VUs, 1191 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  74% ] 20/20 VUs  1m28.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m29.9s), 20/20 VUs, 1207 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  75% ] 20/20 VUs  1m29.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m30.9s), 20/20 VUs, 1225 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  76% ] 20/20 VUs  1m30.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m31.9s), 20/20 VUs, 1241 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  77% ] 20/20 VUs  1m31.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m32.9s), 19/20 VUs, 1256 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  77% ] 19/20 VUs  1m32.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m33.9s), 19/20 VUs, 1273 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  78% ] 19/20 VUs  1m33.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m34.9s), 17/20 VUs, 1289 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  79% ] 17/20 VUs  1m34.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m35.9s), 17/20 VUs, 1304 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  80% ] 17/20 VUs  1m35.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m36.9s), 17/20 VUs, 1318 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  81% ] 17/20 VUs  1m36.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m37.9s), 15/20 VUs, 1331 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  82% ] 15/20 VUs  1m37.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m38.9s), 15/20 VUs, 1342 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  82% ] 15/20 VUs  1m38.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m39.9s), 14/20 VUs, 1355 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  83% ] 14/20 VUs  1m39.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m40.9s), 14/20 VUs, 1366 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  84% ] 14/20 VUs  1m40.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m41.9s), 13/20 VUs, 1378 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  85% ] 13/20 VUs  1m41.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m42.9s), 12/20 VUs, 1389 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  86% ] 12/20 VUs  1m42.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m43.9s), 12/20 VUs, 1397 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  87% ] 12/20 VUs  1m43.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m44.9s), 11/20 VUs, 1409 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  87% ] 11/20 VUs  1m44.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m45.9s), 11/20 VUs, 1418 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  88% ] 11/20 VUs  1m45.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m46.9s), 10/20 VUs, 1426 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  89% ] 10/20 VUs  1m46.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m47.9s), 09/20 VUs, 1435 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  90% ] 09/20 VUs  1m47.9s/2m00.0s
+[Dependency Audit/Security Vulnerability Scan       ]   ❌  Failure - Main Install dependencies [1m51.658815042s]
+[CI/test                                            ]   ❌  Failure - Main Install dependencies [1m48.489109166s]
+[Dependency Audit/Bundle Size Analysis              ]   ❌  Failure - Main Install dependencies [1m52.6419965s]
+[Test/test                                          ]   ❌  Failure - Main Install dependencies [1m49.037190458s]
+[CI/CD Pipeline/Deployment Architecture Validation  ]   ❌  Failure - Main Install dependencies [1m47.975065667s]
+[Dependency Audit/License Compliance Check          ]   ❌  Failure - Main Install dependencies [1m50.166546542s]
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m48.9s), 08/20 VUs, 1441 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  91% ] 08/20 VUs  1m48.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m49.9s), 08/20 VUs, 1447 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  92% ] 08/20 VUs  1m49.9s/2m00.0s
+[CI/CD Pipeline/Deployment Architecture Validation  ] exitcode '137': failure
+Error response from daemon: RWLayer of container 3643a585beeb3062e292ec27aea437bf2c032fbe21e229c8a483bffcd4c1d103 is unexpectedly nil
+Error response from daemon: RWLayer of container 3643a585beeb3062e292ec27aea437bf2c032fbe21e229c8a483bffcd4c1d103 is unexpectedly nil
+[Dependency Audit/Security Vulnerability Scan       ] exitcode '137': failure
+Error response from daemon: RWLayer of container 3183faa47bb4abe18d8419a56bcaa3894863327e50a80a225bd05a29e2c54037 is unexpectedly nil
+Error response from daemon: RWLayer of container 3183faa47bb4abe18d8419a56bcaa3894863327e50a80a225bd05a29e2c54037 is unexpectedly nil
+[Dependency Audit/License Compliance Check          ] exitcode '137': failure
+Error response from daemon: RWLayer of container 182900e8efb79b85666f7e1d1e90f632921dfe8208b1d7280cf33c4204b383af is unexpectedly nil
+Error response from daemon: RWLayer of container 182900e8efb79b85666f7e1d1e90f632921dfe8208b1d7280cf33c4204b383af is unexpectedly nil
+[CI/test                                            ] exitcode '137': failure
+Error response from daemon: RWLayer of container 7260c92a248c7fcf1f30e02b85d142d1185db9fc9f5d2eb2f4510173c400f7a9 is unexpectedly nil
+Error response from daemon: RWLayer of container 7260c92a248c7fcf1f30e02b85d142d1185db9fc9f5d2eb2f4510173c400f7a9 is unexpectedly nil
+[CI/CD Pipeline/Deployment Architecture Validation  ] ⭐ Run Complete job
+[Dependency Audit/License Compliance Check          ] ⭐ Run Complete job
+[CI/CD Pipeline/Deployment Architecture Validation  ]   ✅  Success - Complete job
+[CI/CD Pipeline/Deployment Architecture Validation  ] 🏁  Job failed
+[Dependency Audit/License Compliance Check          ]   ✅  Success - Complete job
+[Dependency Audit/License Compliance Check          ] 🏁  Job failed
+[Dependency Audit/Security Vulnerability Scan       ] ⭐ Run Complete job
+[Dependency Audit/Security Vulnerability Scan       ]   ✅  Success - Complete job
+[Dependency Audit/Security Vulnerability Scan       ] 🏁  Job failed
+[CI/test                                            ] ⭐ Run Complete job
+[CI/test                                            ]   ✅  Success - Complete job
+[CI/test                                            ] 🏁  Job failed
+[Dependency Audit/Bundle Size Analysis              ] exitcode '137': failure
+Error response from daemon: RWLayer of container 9c0c3726d671af90c47f47eaecb7a8b49b50264becb7feda95fda513620c91b6 is unexpectedly nil
+Error response from daemon: RWLayer of container 9c0c3726d671af90c47f47eaecb7a8b49b50264becb7feda95fda513620c91b6 is unexpectedly nil
+[Dependency Audit/Bundle Size Analysis              ] ⭐ Run Complete job
+[Dependency Audit/Bundle Size Analysis              ]   ✅  Success - Complete job
+[Dependency Audit/Bundle Size Analysis              ] 🏁  Job failed
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m50.9s), 07/20 VUs, 1455 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  92% ] 07/20 VUs  1m50.9s/2m00.0s
+[Test/test                                          ] exitcode '137': failure
+Error response from daemon: RWLayer of container 0b35cdb77e8e2b34394bc9e310563c21cbd86d8b8e20dce1791aec8b4771bc89 is unexpectedly nil
+Error response from daemon: RWLayer of container 0b35cdb77e8e2b34394bc9e310563c21cbd86d8b8e20dce1791aec8b4771bc89 is unexpectedly nil
+[Test/test                                          ] ⭐ Run Complete job
+[Test/test                                          ]   ✅  Success - Complete job
+[Test/test                                          ] 🏁  Job failed
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m51.9s), 06/20 VUs, 1460 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  93% ] 06/20 VUs  1m51.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m52.9s), 05/20 VUs, 1466 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  94% ] 05/20 VUs  1m52.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m53.9s), 05/20 VUs, 1469 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  95% ] 05/20 VUs  1m53.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m54.9s), 04/20 VUs, 1474 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  96% ] 04/20 VUs  1m54.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m55.9s), 03/20 VUs, 1477 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  97% ] 03/20 VUs  1m55.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m56.9s), 03/20 VUs, 1480 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  97% ] 03/20 VUs  1m56.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m57.9s), 03/20 VUs, 1482 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  98% ] 03/20 VUs  1m57.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m58.9s), 01/20 VUs, 1485 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [  99% ] 01/20 VUs  1m58.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (1m59.9s), 01/20 VUs, 1486 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default   [ 100% ] 01/20 VUs  1m59.9s/2m00.0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (2m00.9s), 01/20 VUs, 1486 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default ↓ [ 100% ] 01/20 VUs  2m0s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   |   █ THRESHOLDS 
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   |     http_req_duration
+[Performance Monitoring/API Performance Testing     ]   |     ✓ 'p(95)<500' p(95)=142.88ms
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   |     http_req_failed
+[Performance Monitoring/API Performance Testing     ]   |     ✗ 'rate<0.1' rate=100.00%
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   |   █ TOTAL RESULTS 
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   |     checks_total.......: 5948   49.119306/s
+[Performance Monitoring/API Performance Testing     ]   |     checks_succeeded...: 49.66% 2954 out of 5948
+[Performance Monitoring/API Performance Testing     ]   |     checks_failed......: 50.33% 2994 out of 5948
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   |     ✗ health check status is 200
+[Performance Monitoring/API Performance Testing     ]   |       ↳  0% — ✓ 0 / ✗ 1487
+[Performance Monitoring/API Performance Testing     ]   |     ✗ health check response time < 200ms
+[Performance Monitoring/API Performance Testing     ]   |       ↳  99% — ✓ 1474 / ✗ 13
+[Performance Monitoring/API Performance Testing     ]   |     ✗ API health status is 200
+[Performance Monitoring/API Performance Testing     ]   |       ↳  0% — ✓ 0 / ✗ 1487
+[Performance Monitoring/API Performance Testing     ]   |     ✗ API health response time < 300ms
+[Performance Monitoring/API Performance Testing     ]   |       ↳  99% — ✓ 1480 / ✗ 7
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   |     HTTP
+[Performance Monitoring/API Performance Testing     ]   |     http_req_duration....: avg=111.53ms min=99.26ms med=106.66ms max=631.51ms p(90)=120.96ms p(95)=142.88ms
+[Performance Monitoring/API Performance Testing     ]   |     http_req_failed......: 100.00% 2974 out of 2974
+[Performance Monitoring/API Performance Testing     ]   |     http_reqs............: 2974    24.559653/s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   |     EXECUTION
+[Performance Monitoring/API Performance Testing     ]   |     iteration_duration...: avg=1.22s    min=1.2s    med=1.21s    max=1.84s    p(90)=1.25s    p(95)=1.3s    
+[Performance Monitoring/API Performance Testing     ]   |     iterations...........: 1487    12.279827/s
+[Performance Monitoring/API Performance Testing     ]   |     vus..................: 1       min=1            max=20
+[Performance Monitoring/API Performance Testing     ]   |     vus_max..............: 20      min=20           max=20
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   |     NETWORK
+[Performance Monitoring/API Performance Testing     ]   |     data_received........: 1.4 MB  12 kB/s
+[Performance Monitoring/API Performance Testing     ]   |     data_sent............: 123 kB  1.0 kB/s
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | 
+[Performance Monitoring/API Performance Testing     ]   | running (2m01.1s), 00/20 VUs, 1487 complete and 0 interrupted iterations
+[Performance Monitoring/API Performance Testing     ]   | default ✓ [ 100% ] 00/20 VUs  2m0s
+[Performance Monitoring/API Performance Testing     ]   | time="2025-08-24T19:29:56Z" level=error msg="thresholds on metrics 'http_req_failed' have been crossed"
+[Performance Monitoring/API Performance Testing     ]   ✅  Success - Main Run performance tests [2m3.220407458s]
+[Performance Monitoring/Memory Usage Analysis       ]   | 
+[Performance Monitoring/Memory Usage Analysis       ]   | added 1831 packages in 2m
+[Performance Monitoring/Memory Usage Analysis       ]   ✅  Success - Main Install dependencies [2m7.522708167s]
+[Performance Monitoring/Bundle Size Analysis        ]   | 
+[Performance Monitoring/Bundle Size Analysis        ]   | added 1831 packages in 2m
+[Performance Monitoring/Bundle Size Analysis        ]   ✅  Success - Main Install dependencies [2m19.502435209s]
+[Performance Monitoring/Bundle Size Analysis        ] ⭐ Run Main Build shared packages
+[Performance Monitoring/API Performance Testing     ] ⭐ Run Main Generate API Performance Report
+[Performance Monitoring/Memory Usage Analysis       ] ⭐ Run Main Build project
+[Performance Monitoring/API Performance Testing     ]   🐳  docker exec cmd=[bash -e /var/run/act/workflow/4] user= workdir=
+[Performance Monitoring/Bundle Size Analysis        ]   🐳  docker exec cmd=[bash -e /var/run/act/workflow/3] user= workdir=
+[Performance Monitoring/Memory Usage Analysis       ]   🐳  docker exec cmd=[bash -e /var/run/act/workflow/3] user= workdir=
+[Performance Monitoring/API Performance Testing     ]   ✅  Success - Main Generate API Performance Report [248.225792ms]
+[Performance Monitoring/API Performance Testing     ]   ⚙  Summary - ## 🚀 API Performance Report
+
+### Endpoint Response Times
+| Endpoint | Target | P95 |
+|----------|--------|-----|
+| /health | < 200ms | ✅ |
+| /api/v1/health | < 300ms | ✅ |
+
+**Test Time:** 2025-08-24 19:30:15 UTC
+[Performance Monitoring/API Performance Testing     ] ⭐ Run Complete job
+[Performance Monitoring/API Performance Testing     ] Cleaning up container for job API Performance Testing
+[Performance Monitoring/Bundle Size Analysis        ]   | 
+[Performance Monitoring/Bundle Size Analysis        ]   | > tenantflow@1.0.0 build:shared
+[Performance Monitoring/Bundle Size Analysis        ]   | > npm run build:shared:fallback || turbo run build --filter=@repo/shared
+[Performance Monitoring/Bundle Size Analysis        ]   | 
+[Performance Monitoring/API Performance Testing     ]   ✅  Success - Complete job
+[Performance Monitoring/API Performance Testing     ] 🏁  Job succeeded
+[Performance Monitoring/Memory Usage Analysis       ]   | 
+[Performance Monitoring/Memory Usage Analysis       ]   | > tenantflow@1.0.0 build:shared
+[Performance Monitoring/Memory Usage Analysis       ]   | > npm run build:shared:fallback || turbo run build --filter=@repo/shared
+[Performance Monitoring/Memory Usage Analysis       ]   | 
+[Performance Monitoring/Bundle Size Analysis        ]   | 
+[Performance Monitoring/Bundle Size Analysis        ]   | > tenantflow@1.0.0 build:shared:fallback
+[Performance Monitoring/Bundle Size Analysis        ]   | > npm run build --workspace=@repo/shared
+[Performance Monitoring/Bundle Size Analysis        ]   | 
+[Performance Monitoring/Memory Usage Analysis       ]   | 
+[Performance Monitoring/Memory Usage Analysis       ]   | > tenantflow@1.0.0 build:shared:fallback
+[Performance Monitoring/Memory Usage Analysis       ]   | > npm run build --workspace=@repo/shared
+[Performance Monitoring/Memory Usage Analysis       ]   | 
+[Performance Monitoring/Bundle Size Analysis        ]   | 
+[Performance Monitoring/Bundle Size Analysis        ]   | > @repo/shared@0.1.0 build
+[Performance Monitoring/Bundle Size Analysis        ]   | > npm run build:cjs && npm run build:esm
+[Performance Monitoring/Bundle Size Analysis        ]   | 
+[Performance Monitoring/Memory Usage Analysis       ]   | 
+[Performance Monitoring/Memory Usage Analysis       ]   | > @repo/shared@0.1.0 build
+[Performance Monitoring/Memory Usage Analysis       ]   | > npm run build:cjs && npm run build:esm
+[Performance Monitoring/Memory Usage Analysis       ]   | 
+[Performance Monitoring/Bundle Size Analysis        ]   | 
+[Performance Monitoring/Bundle Size Analysis        ]   | > @repo/shared@0.1.0 build:cjs
+[Performance Monitoring/Bundle Size Analysis        ]   | > tsc -p tsconfig.build.json
+[Performance Monitoring/Bundle Size Analysis        ]   | 
+[Performance Monitoring/Memory Usage Analysis       ]   | 
+[Performance Monitoring/Memory Usage Analysis       ]   | > @repo/shared@0.1.0 build:cjs
+[Performance Monitoring/Memory Usage Analysis       ]   | > tsc -p tsconfig.build.json
+[Performance Monitoring/Memory Usage Analysis       ]   | 
+[Performance Monitoring/Bundle Size Analysis        ]   | 
+[Performance Monitoring/Bundle Size Analysis        ]   | > @repo/shared@0.1.0 build:esm
+[Performance Monitoring/Bundle Size Analysis        ]   | > tsc -p tsconfig.esm.json
+[Performance Monitoring/Bundle Size Analysis        ]   | 
+[Performance Monitoring/Memory Usage Analysis       ]   | 
+[Performance Monitoring/Memory Usage Analysis       ]   | > @repo/shared@0.1.0 build:esm
+[Performance Monitoring/Memory Usage Analysis       ]   | > tsc -p tsconfig.esm.json
+[Performance Monitoring/Memory Usage Analysis       ]   | 

@@ -44,19 +44,19 @@ export class DatabaseOptimizationCommand extends CommandRunner {
 		try {
 			switch (action) {
 				case 'apply':
-					await this.applyOptimizations(verbose || false)
+					await this.applyOptimizations(verbose ?? false)
 					break
 				case 'stats':
-					await this.showIndexStats(verbose || false)
+					await this.showIndexStats(verbose ?? false)
 					break
 				case 'analyze':
-					await this.analyzeTables(tables, verbose || false)
+					await this.analyzeTables(tables, verbose ?? false)
 					break
 				case 'health':
-					await this.performHealthCheck(verbose || false)
+					await this.performHealthCheck(verbose ?? false)
 					break
 				case 'unused':
-					await this.findUnusedIndexes(verbose || false)
+					await this.findUnusedIndexes(verbose ?? false)
 					break
 				default:
 					this.logger.error(`Unknown action: ${action}`)
@@ -171,7 +171,7 @@ export class DatabaseOptimizationCommand extends CommandRunner {
 			this.logger.log('🔍 Analyzing all main tables...')
 		}
 		
-		const result = await this.dbOptimizationService.analyzeTables(tableList?.join(','), verbose)
+		const result = await this.dbOptimizationService.analyzeTables(tableList?.join(',') ?? '', verbose)
 		
 		if (result.success) {
 			this.logger.log('✅ Table analysis completed successfully')

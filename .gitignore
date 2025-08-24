@@ -502,6 +502,8 @@ docker-compose.*.yml
 !**/*[Ss]ecret*.tsx
 !**/*[Ss]ecret*.ts
 !**/password-*.tsx
+!**/query-keys.ts
+!**/query-keys.tsx
 !**/secret-*.tsx
 !**/key-*.tsx
 !**/auth-token.decorator.ts

@@ -1,12 +1,7 @@
 import { Global, Module } from '@nestjs/common'
 import { 
-	ErrorResponseHooksService,
-	HooksIntegrationService,
-	RequestContextHooksService,
-	RequestContextService,
-	RouteScopedHooksService,
-	UnifiedFastifyHooksService
-} from './services'
+	RequestContextHooksService
+} from './services/request-context-hooks.service'
 
 /**
  * Hooks Module
@@ -18,20 +13,10 @@ import {
 @Global()
 @Module({
 	providers: [
-		RequestContextService,
-		RequestContextHooksService,
-		UnifiedFastifyHooksService,
-		RouteScopedHooksService,
-		ErrorResponseHooksService,
-		HooksIntegrationService
+		RequestContextHooksService
 	],
 	exports: [
-		RequestContextService,
-		RequestContextHooksService,
-		UnifiedFastifyHooksService,
-		RouteScopedHooksService,
-		ErrorResponseHooksService,
-		HooksIntegrationService
+		RequestContextHooksService
 	]
 })
 export class HooksModule {}
