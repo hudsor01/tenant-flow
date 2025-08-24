@@ -92,7 +92,11 @@ export function LeaseFormClient({
 	// Data hooks
 	const propertiesQuery = useProperties()
 	const tenantsQuery = useTenants()
-	const tenants = tenantsQuery.data || []
+	// Memoize tenants to prevent dependency changes
+	const tenants = useMemo(
+		() => tenantsQuery.data || [],
+		[tenantsQuery.data]
+	)
 	// Memoize properties to prevent render loop
 	const properties = useMemo(
 		() => propertiesQuery.data ?? [],
