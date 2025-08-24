@@ -17,7 +17,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { Image, MoreVertical, Trash2, Star, Eye, Upload } from 'lucide-react'
+import { Image as ImageIcon, MoreVertical, Trash2, Star, Eye, Upload } from 'lucide-react'
 import { toast } from 'sonner'
 import { motion } from '@/lib/lazy-motion'
 import type { Property } from '@repo/shared'
@@ -115,7 +115,7 @@ export default function PropertyImageGallery({
 			<Card className={className}>
 				<CardHeader>
 					<CardTitle className="flex items-center">
-						<Image className="mr-2 h-5 w-5" aria-hidden="true" />
+						<ImageIcon className="mr-2 h-5 w-5" aria-hidden="true" />
 						Property Images
 					</CardTitle>
 				</CardHeader>
@@ -157,7 +157,7 @@ export default function PropertyImageGallery({
 				<CardHeader>
 					<div className="flex items-center justify-between">
 						<CardTitle className="flex items-center">
-							<Image
+							<ImageIcon
 								className="mr-2 h-5 w-5"
 								aria-hidden="true"
 							/>
@@ -174,7 +174,7 @@ export default function PropertyImageGallery({
 				<CardContent>
 					{images.length === 0 ? (
 						<div className="py-12 text-center">
-							<Image
+							<ImageIcon
 								className="mx-auto mb-4 h-12 w-12 text-gray-400"
 								aria-hidden="true"
 							/>

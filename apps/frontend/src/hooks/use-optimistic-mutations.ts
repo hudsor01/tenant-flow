@@ -139,16 +139,13 @@ export function useOptimisticMutation<
 export function useOptimisticListOperations<T extends { id: string }>(queryKey: readonly unknown[]) {
 	const queryClient = useQueryClient()
 
-	// Helper: narrow Partial<T> to T for optimistic items. We only use this
-	// for temporary optimistic objects we create locally (with temp ids),
-	// so this cast is deliberate and safe in practice.
-	function asT(partial: Partial<T>): T {
-		return partial as unknown as T
-	}
-
 	const addOptimistic = useCallback(
 		(item: Partial<T>) => {
 			queryClient.setQueryData<T[]>(queryKey, old => {
+				// Helper: narrow Partial<T> to T for optimistic items
+				const asT = (partial: Partial<T>): T => {
+					return partial as unknown as T
+				}
 				const optimisticItem = asT({
 					id: `temp-${Date.now()}`,
 					...item,
