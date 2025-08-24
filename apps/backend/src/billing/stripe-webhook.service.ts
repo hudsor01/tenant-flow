@@ -52,29 +52,26 @@ export class StripeWebhookService {
 		this.logger.log(`Processing webhook: ${event.type} (${event.id})`)
 
 		// Handle events based on type using native Stripe types
+		// eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
 		switch (event.type) {
 			case 'customer.subscription.created':
 			case 'customer.subscription.updated':
 			case 'customer.subscription.deleted':
 				await this.handleSubscriptionChange(
-					event.data.object as Stripe.Subscription
+					event.data.object
 				)
 				break
 
 			case 'invoice.payment_failed':
-				await this.handlePaymentFailure(event.data.object as Stripe.Invoice)
+				await this.handlePaymentFailure(event.data.object)
 				break
 
 			case 'invoice.paid':
-				await this.handlePaymentSuccess(event.data.object as Stripe.Invoice)
+				await this.handlePaymentSuccess(event.data.object)
 				break
 
 			default:
-				// Explicitly handle all other event types
-				// This satisfies TypeScript's exhaustiveness check
-				const _exhaustiveCheck: never = event.type as never
 				this.logger.debug(`Unhandled event type: ${event.type}`)
-				void _exhaustiveCheck // Use the variable to avoid unused warning
 		}
 	}
 
