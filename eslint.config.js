@@ -40,10 +40,10 @@ export default [
 		}
 	},
 	
-	// Scripts directory (including .github scripts)
+	// Scripts directory (excluding .github scripts)
 	{
 		name: 'root/scripts',
-		files: ['scripts/**/*.{js,mjs,ts}', '.github/**/*.{js,mjs,ts}'],
+		files: ['scripts/**/*.{js,mjs,ts}'],
 		rules: {
 			'no-console': 'off',
 			'@typescript-eslint/no-require-imports': 'off',
@@ -55,6 +55,12 @@ export default [
 				allowDefaultProject: true
 			}
 		}
+	},
+	
+	// Ignore .github scripts entirely - CI specific scripts
+	{
+		name: 'root/github-scripts-ignore',
+		ignores: ['.github/**/*.ts', '.github/**/*.js']
 	},
 	
 	// Project-specific anti-pattern guards

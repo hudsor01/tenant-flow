@@ -57,12 +57,28 @@ authorized_keys
 *.asc
 
 # API keys and tokens
-**/api[_-]key*
-**/api[_-]secret*
-**/*[_-]token*
-**/*[_-]secret*
-**/credentials*
+# Actual secret files (not source code)
+**/api[_-]key*.txt
+**/api[_-]key*.json
+**/api[_-]secret*.txt
+**/api[_-]secret*.json
+**/*[_-]token*.txt
+**/*[_-]token*.json
+**/*[_-]secret*.txt
+**/*[_-]secret*.json
+**/credentials*.txt
+**/credentials*.json
 **/*.credentials
+
+# But explicitly allow TypeScript/JavaScript source files
+!**/*[_-]token*.ts
+!**/*[_-]token*.tsx
+!**/*[_-]token*.js
+!**/*[_-]token*.jsx
+!**/*[_-]secret*.ts
+!**/*[_-]secret*.tsx
+!**/api[_-]key*.ts
+!**/api[_-]key*.tsx
 .api-keys
 api-keys.*
 *.api-key
@@ -342,12 +358,28 @@ pids
 **/authorized_keys
 
 # API keys and tokens
-**/api[_-]key*
-**/api[_-]secret*
-**/*[_-]token*
-**/*[_-]secret*
-**/credentials*
+# Actual secret files (not source code)
+**/api[_-]key*.txt
+**/api[_-]key*.json
+**/api[_-]secret*.txt
+**/api[_-]secret*.json
+**/*[_-]token*.txt
+**/*[_-]token*.json
+**/*[_-]secret*.txt
+**/*[_-]secret*.json
+**/credentials*.txt
+**/credentials*.json
 **/*.credentials
+
+# But explicitly allow TypeScript/JavaScript source files
+!**/*[_-]token*.ts
+!**/*[_-]token*.tsx
+!**/*[_-]token*.js
+!**/*[_-]token*.jsx
+!**/*[_-]secret*.ts
+!**/*[_-]secret*.tsx
+!**/api[_-]key*.ts
+!**/api[_-]key*.tsx
 
 # Service accounts
 **/service[_-]account*
