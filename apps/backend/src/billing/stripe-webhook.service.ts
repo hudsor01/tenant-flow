@@ -52,7 +52,7 @@ export class StripeWebhookService {
 		this.logger.log(`Processing webhook: ${event.type} (${event.id})`)
 
 		// Handle events based on type using native Stripe types
-		// eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
+		 
 		switch (event.type) {
 			case 'customer.subscription.created':
 			case 'customer.subscription.updated':

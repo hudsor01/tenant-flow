@@ -189,7 +189,7 @@ export class StripeService {
 		)
 
 		// Handle subscription events
-		// eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
+		 
 		switch (event.type) {
 			case 'customer.subscription.created':
 			case 'customer.subscription.updated':

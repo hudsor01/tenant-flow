@@ -97,7 +97,7 @@ export class AuthService {
 				error
 			} = await this.supabase.auth.getUser(token)
 
-			// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+			 
 			if (error || !user) {
 				this.logger.warn('Token validation failed', {
 					errorType: error?.name ?? 'unknown'
@@ -385,7 +385,7 @@ export class AuthService {
 			refresh_token: refreshToken
 		})
 
-		// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+		 
 		if (error || !data.session || !data.user) {
 			throw new BadRequestException(
 				'Invalid or expired refresh token'

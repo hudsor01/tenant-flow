@@ -126,5 +126,8 @@
 		"workerDirectory": [
 			"../frontend/public"
 		]
+	},
+	"optionalDependencies": {
+		"@next/swc-linux-x64-gnu": "15.5.0"
 	}
 }
