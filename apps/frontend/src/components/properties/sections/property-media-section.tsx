@@ -20,7 +20,7 @@ export function PropertyMediaSection({
 	const imageUrl = form.watch('imageUrl')
 
 	return (
-		<FormSection icon={Image} title="Property Photo" delay={3}>
+		<FormSection icon={ImageIcon} title="Property Photo" delay={3}>
 			{/* Image URL Input */}
 			<div className="space-y-2">
 				<Label
