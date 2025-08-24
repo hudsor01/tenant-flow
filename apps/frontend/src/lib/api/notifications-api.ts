@@ -4,24 +4,13 @@
  */
 
 import { apiClient } from '../api-client'
-import type { NotificationData, CreateNotificationDto, Priority } from '../../services/notifications/types'
-import type { NotificationType } from '@repo/shared/types/notifications'
-
-/**
- * Local request/response shapes to bridge differences between frontend types and backend API.
- */
-type NotificationRequest = Partial<CreateNotificationDto> & {
-  recipientId?: string
-  actionUrl?: string
-  data?: Record<string, unknown>
-  // backend may accept additional fields; keep flexible
-}
-
-interface NotificationResponse {
-  id: string
-  sent: boolean
-  sentAt: string
-}
+import type { 
+	NotificationData, 
+	NotificationRequest, 
+	NotificationResponse
+} from '@repo/shared/types/notifications'
+import { NotificationType } from '@repo/shared/types/notifications'
+import type { MaintenancePriority as Priority } from '@repo/shared'
 
 export class NotificationApiService {
   private retryCount = 3
@@ -31,28 +20,20 @@ export class NotificationApiService {
    * Send a notification via backend API
    */
   async send(notificationData: NotificationRequest): Promise<NotificationResponse> {
-    const payload = {
+    const payload: NotificationRequest = {
       recipientId: notificationData.recipientId,
-      title: notificationData.title,
+      title: notificationData.title || '',
       message: notificationData.message || '',
-      // backend may accept arbitrary type strings; default to INFO for frontend compatibility
-      type: ('type' in notificationData && typeof notificationData.type === 'string' 
-        ? notificationData.type 
-        : 'INFO') as NotificationType,
+      type: notificationData.type || NotificationType.INFO,
       priority: notificationData.priority,
       actionUrl: notificationData.actionUrl,
       data: notificationData.data
     }
 
-    interface NotificationResponse {
-      id?: string
-      success?: boolean
-      [key: string]: unknown
-    }
-    const result = await apiClient.post<NotificationResponse>('/notifications', payload)
+    const result = await apiClient.post<{ id?: string; success?: boolean }>('/notifications', payload)
 
     return {
-      id: (result && (result.id as string)) || `notification_${Date.now()}`,
+      id: result?.id || `notification_${Date.now()}`,
       sent: true,
       sentAt: new Date().toISOString()
     }
@@ -112,8 +93,8 @@ export class NotificationApiService {
       title,
       message: description,
       priority,
-      // Use a frontend-compatible type value; backend can interpret via 'data' if needed
-      type: 'INFO',
+      // Use a valid NotificationType enum value
+      type: NotificationType.MAINTENANCE,
       actionUrl,
       data: {
         propertyName,

@@ -16,7 +16,7 @@ import {
 } from './index'
 import { DashboardErrorBoundary } from './dashboard-error-boundary'
 import { DashboardStatsLoading } from './dashboard-stats-loading'
-import { logger } from '@/lib/logger'
+import { logger } from "@/lib/logger/logger"
 
 function DashboardContent() {
 	const { user } = useAuth()
@@ -70,7 +70,7 @@ function DashboardContent() {
 
 	// Error handling - throw to be caught by error boundary
 	if (statsError || activitiesError) {
-		throw statsError || activitiesError
+		throw new Error(statsError?.message || activitiesError?.message || 'Dashboard loading failed')
 	}
 
 	return (

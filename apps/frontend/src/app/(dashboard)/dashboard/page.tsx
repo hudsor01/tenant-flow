@@ -6,7 +6,7 @@ import {
 	PropertiesTable,
 	QuickActions
 } from '@/components/dashboard/dashboard-client'
-import { EnhancedDashboardWidgets } from '@/components/dashboard/enhanced-dashboard-widgets'
+import { DashboardWidgets } from '@/components/dashboard/dashboard-widgets'
 import { DashboardTracker } from '@/components/analytics/dashboard-tracker'
 import type { Metadata } from 'next/types'
 
@@ -92,7 +92,7 @@ export default function DashboardPage() {
 						<div className="card-modern from-muted/40 to-muted/20 h-96 animate-pulse rounded-xl border bg-gradient-to-br" />
 					}
 				>
-					<EnhancedDashboardWidgets />
+					<DashboardWidgets />
 				</Suspense>
 
 				{/* Enhanced Content Grid */}

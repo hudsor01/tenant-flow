@@ -30,6 +30,46 @@
 			"import": "./dist/esm/types/*.js",
 			"require": "./dist/cjs/types/*.js"
 		},
+		"./types/api-inputs": {
+			"types": "./dist/cjs/types/api-inputs.d.ts",
+			"import": "./dist/esm/types/api-inputs.js",
+			"require": "./dist/cjs/types/api-inputs.js"
+		},
+		"./types/notifications": {
+			"types": "./dist/cjs/types/notifications.d.ts",
+			"import": "./dist/esm/types/notifications.js",
+			"require": "./dist/cjs/types/notifications.js"
+		},
+		"./types/supabase": {
+			"types": "./dist/cjs/types/supabase.d.ts",
+			"import": "./dist/esm/types/supabase.js",
+			"require": "./dist/cjs/types/supabase.js"
+		},
+		"./types/properties": {
+			"types": "./dist/cjs/types/properties.d.ts",
+			"import": "./dist/esm/types/properties.js",
+			"require": "./dist/cjs/types/properties.js"
+		},
+		"./types/tenants": {
+			"types": "./dist/cjs/types/tenants.d.ts",
+			"import": "./dist/esm/types/tenants.js",
+			"require": "./dist/cjs/types/tenants.js"
+		},
+		"./types/leases": {
+			"types": "./dist/cjs/types/leases.d.ts",
+			"import": "./dist/esm/types/leases.js",
+			"require": "./dist/cjs/types/leases.js"
+		},
+		"./types/maintenance": {
+			"types": "./dist/cjs/types/maintenance.d.ts",
+			"import": "./dist/esm/types/maintenance.js",
+			"require": "./dist/cjs/types/maintenance.js"
+		},
+		"./types/common": {
+			"types": "./dist/cjs/types/common.d.ts",
+			"import": "./dist/esm/types/common.js",
+			"require": "./dist/cjs/types/common.js"
+		},
 		"./constants": {
 			"types": "./dist/cjs/constants/index.d.ts",
 			"import": "./dist/esm/constants/index.js",
@@ -59,6 +99,16 @@
 			"types": "./dist/cjs/validation/*.d.ts",
 			"import": "./dist/esm/validation/*.js",
 			"require": "./dist/cjs/validation/*.js"
+		},
+		"./validation/properties": {
+			"types": "./dist/cjs/validation/properties.d.ts",
+			"import": "./dist/esm/validation/properties.js",
+			"require": "./dist/cjs/validation/properties.js"
+		},
+		"./validation/leases": {
+			"types": "./dist/cjs/validation/leases.d.ts",
+			"import": "./dist/esm/validation/leases.js",
+			"require": "./dist/cjs/validation/leases.js"
 		},
 		"./stripe": {
 			"types": "./dist/cjs/stripe/index.d.ts",
@@ -90,12 +140,12 @@
 			"import": "./dist/esm/patterns/*.js",
 			"require": "./dist/cjs/patterns/*.js"
 		},
-		"./domain": {
+		"./types/domain": {
 			"types": "./dist/cjs/types/domain.d.ts",
 			"import": "./dist/esm/types/domain.js",
 			"require": "./dist/cjs/types/domain.js"
 		},
-		"./utilities": {
+		"./types/utilities": {
 			"types": "./dist/cjs/types/utilities.d.ts",
 			"import": "./dist/esm/types/utilities.js",
 			"require": "./dist/cjs/types/utilities.js"
@@ -125,18 +175,22 @@
 	},
 	"dependencies": {
 		"@supabase/supabase-js": "^2.56.0",
-		"@tanstack/react-query": "^5.85.5",
-		"class-variance-authority": "^0.7.1",
-		"react-hook-form": "^7.62.0",
 		"stripe": "^18.4.0",
 		"zod": "^4.1.0"
+	},
+	"peerDependencies": {
+		"@tanstack/react-query": "^5.85.5",
+		"class-variance-authority": "^0.7.1",
+		"react-hook-form": "^7.62.0"
 	},
 	"devDependencies": {
 		"@repo/typescript-config": "*",
 		"@types/node": "^24.3.0",
 		"@types/react": "^19.1.11",
+		"class-variance-authority": "0.7.1",
 		"eslint": "9.34.0",
 		"globals": "16.3.0",
+		"react-hook-form": "7.62.0",
 		"typescript": "5.9.2",
 		"typescript-eslint": "8.40.0"
 	},

@@ -31,7 +31,7 @@ export function PropertyDeleteDialog({
 	const deleteProperty = useDeleteProperty()
 
 	const handleDelete = async () => {
-		if (!property) return
+		if (!property) {return}
 
 		try {
 			setError(null)
@@ -44,7 +44,7 @@ export function PropertyDeleteDialog({
 		}
 	}
 
-	if (!property) return null
+	if (!property) {return null}
 
 	const hasUnits = property.units && property.units.length > 0
 	const hasOccupiedUnits = property.units?.some(

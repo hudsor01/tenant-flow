@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { logger } from '@/lib/logger'
+import { logger } from "@/lib/logger/logger"
 import Image from 'next/image'
 import type { CreatePropertyInput, UpdatePropertyInput } from '@repo/shared'
 import type { PropertyFormProps, BaseComponentProps } from '@/types'
@@ -17,7 +17,11 @@ import {
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, Upload, X } from 'lucide-react'
-import { SupabaseFormField, PropertyTypeField } from './supabase-form-field'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Controller } from 'react-hook-form'
 import {
 	useCreateProperty,
 	useUpdateProperty
@@ -56,7 +60,7 @@ function PropertyImageUpload({
 		event: React.ChangeEvent<HTMLInputElement>
 	) => {
 		const file = event.target.files?.[0]
-		if (!file) return
+		if (!file) {return}
 
 		setUploading(true)
 		try {
@@ -130,65 +134,172 @@ function PropertyFormFields({ control }: PropertyFormFieldsProps) {
 	return (
 		<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 			<div className="md:col-span-2">
-				<SupabaseFormField
-					name="name"
+				<div className="space-y-2">
+					<Label htmlFor="name">Property Name *</Label>
+					<Controller
+						name="name"
+						control={control}
+						render={({ field, fieldState }) => (
+							<>
+								<Input
+									id="name"
+									placeholder="Enter property name"
+									{...field}
+								/>
+								{fieldState.error && (
+									<p className="text-sm text-destructive">
+										{fieldState.error.message}
+									</p>
+								)}
+							</>
+						)}
+					/>
+				</div>
+			</div>
+
+			<div className="md:col-span-2">
+				<div className="space-y-2">
+					<Label htmlFor="address">Address *</Label>
+					<Controller
+						name="address"
+						control={control}
+						render={({ field, fieldState }) => (
+							<>
+								<Input
+									id="address"
+									placeholder="Enter street address"
+									{...field}
+								/>
+								{fieldState.error && (
+									<p className="text-sm text-destructive">
+										{fieldState.error.message}
+									</p>
+								)}
+							</>
+						)}
+					/>
+				</div>
+			</div>
+
+			<div className="space-y-2">
+				<Label htmlFor="city">City *</Label>
+				<Controller
+					name="city"
 					control={control}
-					label="Property Name"
-					placeholder="Enter property name"
-					required
+					render={({ field, fieldState }) => (
+						<>
+							<Input
+								id="city"
+								placeholder="Enter city"
+								{...field}
+							/>
+							{fieldState.error && (
+								<p className="text-sm text-destructive">
+									{fieldState.error.message}
+								</p>
+							)}
+						</>
+					)}
+				/>
+			</div>
+
+			<div className="space-y-2">
+				<Label htmlFor="state">State *</Label>
+				<Controller
+					name="state"
+					control={control}
+					render={({ field, fieldState }) => (
+						<>
+							<Input
+								id="state"
+								placeholder="CA"
+								{...field}
+							/>
+							{fieldState.error && (
+								<p className="text-sm text-destructive">
+									{fieldState.error.message}
+								</p>
+							)}
+						</>
+					)}
+				/>
+			</div>
+
+			<div className="space-y-2">
+				<Label htmlFor="zipCode">ZIP Code *</Label>
+				<Controller
+					name="zipCode"
+					control={control}
+					render={({ field, fieldState }) => (
+						<>
+							<Input
+								id="zipCode"
+								placeholder="12345"
+								{...field}
+							/>
+							{fieldState.error && (
+								<p className="text-sm text-destructive">
+									{fieldState.error.message}
+								</p>
+							)}
+						</>
+					)}
+				/>
+			</div>
+
+			<div className="space-y-2">
+				<Label htmlFor="propertyType">Property Type *</Label>
+				<Controller
+					name="propertyType"
+					control={control}
+					render={({ field, fieldState }) => (
+						<>
+							<Select onValueChange={field.onChange} value={field.value}>
+								<SelectTrigger>
+									<SelectValue placeholder="Select property type" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="SINGLE_FAMILY">Single Family</SelectItem>
+									<SelectItem value="MULTI_FAMILY">Multi Family</SelectItem>
+									<SelectItem value="APARTMENT">Apartment</SelectItem>
+									<SelectItem value="CONDO">Condo</SelectItem>
+									<SelectItem value="TOWNHOUSE">Townhouse</SelectItem>
+									<SelectItem value="COMMERCIAL">Commercial</SelectItem>
+								</SelectContent>
+							</Select>
+							{fieldState.error && (
+								<p className="text-sm text-destructive">
+									{fieldState.error.message}
+								</p>
+							)}
+						</>
+					)}
 				/>
 			</div>
 
 			<div className="md:col-span-2">
-				<SupabaseFormField
-					name="address"
-					control={control}
-					label="Address"
-					placeholder="Enter street address"
-					required
-				/>
-			</div>
-
-			<SupabaseFormField
-				name="city"
-				control={control}
-				label="City"
-				placeholder="Enter city"
-				required
-			/>
-
-			<SupabaseFormField
-				name="state"
-				control={control}
-				label="State"
-				placeholder="CA"
-				required
-			/>
-
-			<SupabaseFormField
-				name="zipCode"
-				control={control}
-				label="ZIP Code"
-				placeholder="12345"
-				required
-			/>
-
-			<PropertyTypeField
-				name="propertyType"
-				control={control}
-				label="Property Type"
-				required
-			/>
-
-			<div className="md:col-span-2">
-				<SupabaseFormField
-					name="description"
-					control={control}
-					label="Description"
-					placeholder="Describe the property..."
-					multiline
-					rows={3}
-				/>
+				<div className="space-y-2">
+					<Label htmlFor="description">Description</Label>
+					<Controller
+						name="description"
+						control={control}
+						render={({ field, fieldState }) => (
+							<>
+								<Textarea
+									id="description"
+									placeholder="Describe the property..."
+									rows={3}
+									{...field}
+								/>
+								{fieldState.error && (
+									<p className="text-sm text-destructive">
+										{fieldState.error.message}
+									</p>
+								)}
+							</>
+						)}
+					/>
+				</div>
 			</div>
 		</div>
 	)
@@ -270,7 +381,7 @@ export function PropertyForm({
 	const handleUpdateProperty = async (
 		data: z.output<typeof propertyFormSchema>
 	) => {
-		if (!property) return
+		if (!property) {return}
 
 		const updateData: UpdatePropertyInput = {
 			name: data.name,

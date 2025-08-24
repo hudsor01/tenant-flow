@@ -77,32 +77,32 @@ export interface NotificationWithDetails extends NotificationData {
 
 // Complex query result types
 export interface PropertyWithUnits extends Property {
-	units: (Unit & {
+	units: Array<Unit & {
 		leases: Lease[]
-	})[]
+	}>
 }
 
 export interface PropertyWithUnitsAndLeases extends Property {
-	units: (Unit & {
-		leases: (Lease & {
+	units: Array<Unit & {
+		leases: Array<Lease & {
 			tenant: Tenant
-		})[]
-	})[]
+		}>
+	}>
 }
 
 export interface TenantWithLeases extends Tenant {
-	leases: (Lease & {
+	leases: Array<Lease & {
 		unit: Unit & {
 			property: Property
 		}
-	})[]
+	}>
 }
 
 export interface UnitWithProperty extends Unit {
 	property: Property
-	leases: (Lease & {
+	leases: Array<Lease & {
 		tenant: Tenant
-	})[]
+	}>
 }
 
 export interface LeaseWithRelations extends Lease {
@@ -111,7 +111,7 @@ export interface LeaseWithRelations extends Lease {
 	}
 	tenant: Tenant
 	documents: Document[]
-	reminders: {
+	reminders: Array<{
 		id: string
 		type:
 			| 'RENT_REMINDER'
@@ -130,18 +130,18 @@ export interface LeaseWithRelations extends Lease {
 		retryCount: number
 		createdAt: string
 		updatedAt: string
-	}[]
+	}>
 }
 
 export interface MaintenanceRequestWithRelations extends MaintenanceRequest {
 	unit: Unit & {
 		property: Property
-		leases: (Lease & {
+		leases: Array<Lease & {
 			tenant: Tenant
-		})[]
+		}>
 	}
 	expenses: Expense[]
-	files: {
+	files: Array<{
 		id: string
 		filename: string
 		originalName: string
@@ -152,17 +152,17 @@ export interface MaintenanceRequestWithRelations extends MaintenanceRequest {
 		propertyId: string | null
 		maintenanceRequestId: string | null
 		createdAt: string
-	}[]
+	}>
 }
 
 export interface UserWithProperties extends User {
-	properties: (Property & {
-		units: (Unit & {
-			leases: (Lease & {
+	properties: Array<Property & {
+		units: Array<Unit & {
+			leases: Array<Lease & {
 				tenant: Tenant
-			})[]
-		})[]
-	})[]
+			}>
+		}>
+	}>
 }
 
 export interface NotificationWithRelations extends NotificationData {

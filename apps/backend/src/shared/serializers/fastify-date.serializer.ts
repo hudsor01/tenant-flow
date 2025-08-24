@@ -62,14 +62,14 @@ export function registerDateSerializerForRoute(
   // Register for JSON responses only
   fastify.setSerializerCompiler(({ schema }) => {
     // Only apply to responses that include Date fields
-    if (schema && typeof schema === 'object' && 'properties' in schema) {
-      const hasDateFields = Object.values(schema.properties || {}).some(
+    if (typeof schema === 'object' && 'properties' in schema) {
+      const hasDateFields = Object.values(schema.properties ?? {}).some(
         (prop: unknown) => typeof prop === 'object' && prop !== null && 'type' in prop && prop.type === 'string' && 'format' in prop && prop.format === 'date-time'
       )
       
       if (hasDateFields) {
         return (data: unknown) => {
-          return JSON.stringify(data, (key, value) => {
+          return JSON.stringify(data, (_key, value) => {
             if (value instanceof Date) {
               return serializer.call(fastify, value)
             }

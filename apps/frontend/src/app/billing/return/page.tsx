@@ -51,7 +51,7 @@ function CheckoutReturnContent() {
       }
     }
 
-    fetchSession()
+    void fetchSession()
   }, [searchParams])
 
   if (loading) {

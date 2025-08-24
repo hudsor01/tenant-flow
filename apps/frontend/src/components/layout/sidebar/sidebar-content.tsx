@@ -129,7 +129,8 @@ const navItems: NavItem[] = [
 	},
 	{
 		title: 'Documents',
-		url: '/documents',
+		// Documents feature not yet implemented
+		url: '#',
 		icon: <FileText className="h-4 w-4" />,
 		description: 'Manage property documents and files',
 		shortcut: '⌘+Shift+D',
@@ -137,13 +138,15 @@ const navItems: NavItem[] = [
 		items: [
 			{
 				title: 'All Documents',
-				url: '/documents',
+				// Documents feature not yet implemented
+		url: '#',
 				icon: <FileText className="h-3 w-3" />,
 				description: 'View all uploaded documents'
 			},
 			{
 				title: 'Upload Document',
-				url: '/documents/upload',
+				// Upload feature not yet implemented
+				url: '#',
 				icon: <Plus className="h-3 w-3" />,
 				description: 'Upload new document or file'
 			}

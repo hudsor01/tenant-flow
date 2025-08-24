@@ -178,16 +178,16 @@ export function serializeSubscription(
 	return {
 		...subscription,
 		startDate: subscription.startDate.toISOString(),
-		endDate: subscription.endDate?.toISOString() || null,
-		cancelledAt: subscription.cancelledAt?.toISOString() || null,
+		endDate: subscription.endDate?.toISOString() ?? null,
+		cancelledAt: subscription.cancelledAt?.toISOString() ?? null,
 		createdAt: subscription.createdAt.toISOString(),
 		updatedAt: subscription.updatedAt.toISOString(),
 		currentPeriodStart:
-			subscription.currentPeriodStart?.toISOString() || null,
-		currentPeriodEnd: subscription.currentPeriodEnd?.toISOString() || null,
-		trialStart: subscription.trialStart?.toISOString() || null,
-		trialEnd: subscription.trialEnd?.toISOString() || null,
-		canceledAt: subscription.canceledAt?.toISOString() || null
+			subscription.currentPeriodStart?.toISOString() ?? null,
+		currentPeriodEnd: subscription.currentPeriodEnd?.toISOString() ?? null,
+		trialStart: subscription.trialStart?.toISOString() ?? null,
+		trialEnd: subscription.trialEnd?.toISOString() ?? null,
+		canceledAt: subscription.canceledAt?.toISOString() ?? null
 	}
 }
 
@@ -231,8 +231,8 @@ export function serializeInvoice(invoice: BaseInvoice): FrontendInvoice {
 	return {
 		...invoice,
 		invoiceDate: invoice.invoiceDate.toISOString(),
-		dueDate: invoice.dueDate?.toISOString() || null,
-		paidAt: invoice.paidAt?.toISOString() || undefined,
+		dueDate: invoice.dueDate?.toISOString() ?? null,
+		paidAt: invoice.paidAt?.toISOString() ?? undefined,
 		createdAt: invoice.createdAt.toISOString(),
 		updatedAt: invoice.updatedAt.toISOString()
 	}

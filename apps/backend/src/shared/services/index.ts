@@ -1,12 +1,5 @@
-export * from './request-context.service'
-export * from './request-context-hooks.service'
-export * from './example-service-with-context'
-
-// New Fastify hooks architecture
-export * from './unified-fastify-hooks.service'
-export * from './route-scoped-hooks.service'
-export * from './error-response-hooks.service'
-export * from './hooks-integration.service'
-
-// Performance monitoring
-export * from './performance-monitoring.service'
+// Only essential services remain after massive simplification
+export * from './database-transaction.service'
+export * from './validation.service'
+export * from './structured-logger.service'
+export * from './metrics.service'

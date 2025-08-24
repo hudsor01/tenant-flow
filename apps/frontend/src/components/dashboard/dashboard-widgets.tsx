@@ -259,7 +259,7 @@ function WidgetSkeleton() {
 	)
 }
 
-export function EnhancedDashboardWidgets() {
+export function DashboardWidgets() {
 	const { data: _stats } = useDashboardOverview()
 
 	return (

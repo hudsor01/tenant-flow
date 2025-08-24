@@ -47,6 +47,7 @@ export interface UpdatePasswordFormData {
 
 // Profile form types
 export interface ProfileFormData {
+	[key: string]: string | undefined
 	name: string
 	email: string
 	phone?: string

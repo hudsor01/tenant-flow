@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
-import type { PropertyFormState } from '@/lib/actions/property-actions'
+// PropertyFormState type removed as it's not used in this component
 
 interface PropertyFormActionsProps {
 	mode?: 'create' | 'edit'
