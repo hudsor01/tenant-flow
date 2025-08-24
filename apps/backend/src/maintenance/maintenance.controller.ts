@@ -13,13 +13,13 @@ import {
 	ValidationPipe
 } from '@nestjs/common'
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger'
-import { UnifiedAuthGuard } from '../shared/guards/unified-auth.guard'
+import { UnifiedAuthGuard } from '../shared/guards/auth.guard'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
 // import { Public } from '../shared/decorators/public.decorator' // Currently unused
 import type { ValidatedUser } from '../auth/auth.service'
-import { MaintenanceRequestWithRelations, MaintenanceService } from './maintenance.service'
-import { MaintenanceCreateDto, MaintenanceQueryDto, MaintenanceUpdateDto } from './dto'
-import type { ControllerApiResponse, RequestStatus } from '@repo/shared'
+import { MaintenanceService } from './maintenance.service'
+import type { MaintenanceCreateDto, MaintenanceUpdateDto, MaintenanceQueryDto, MaintenanceStatus } from './dto'
+import type { ControllerApiResponse, MaintenanceRequest } from '@repo/shared'
 import { UsageLimitsGuard } from '../shared/guards/usage-limits.guard'
 import { UsageLimit } from '../shared/decorators/usage-limits.decorator'
 
@@ -38,13 +38,13 @@ export class MaintenanceController {
 	async findAll(
 		@Query() query: MaintenanceQueryDto,
 		@CurrentUser() user: ValidatedUser
-	): Promise<ControllerApiResponse<MaintenanceRequestWithRelations[]>> {
+	): Promise<ControllerApiResponse<MaintenanceRequest[]>> {
 		const data = await this.maintenanceService.findAll(user.id, query)
 		return {
 			success: true,
 			data,
 			message: 'Maintenance requests retrieved successfully',
-			timestamp: new Date().toISOString()
+			timestamp: new Date()
 		}
 	}
 
@@ -60,7 +60,7 @@ export class MaintenanceController {
 			success: true,
 			data,
 			message: 'Statistics retrieved successfully',
-			timestamp: new Date().toISOString()
+			timestamp: new Date()
 		}
 	}
 
@@ -72,13 +72,13 @@ export class MaintenanceController {
 	async findOne(
 		@Param('id', ParseUUIDPipe) id: string,
 		@CurrentUser() user: ValidatedUser
-	): Promise<ControllerApiResponse<MaintenanceRequestWithRelations>> {
+	): Promise<ControllerApiResponse<MaintenanceRequest>> {
 		const data = await this.maintenanceService.findOne(id, user.id)
 		return {
 			success: true,
 			data,
 			message: 'Maintenance request retrieved successfully',
-			timestamp: new Date().toISOString()
+			timestamp: new Date()
 		}
 	}
 
@@ -92,13 +92,13 @@ export class MaintenanceController {
 	async create(
 		@Body() createMaintenanceDto: MaintenanceCreateDto,
 		@CurrentUser() user: ValidatedUser
-	): Promise<ControllerApiResponse<MaintenanceRequestWithRelations>> {
+	): Promise<ControllerApiResponse<MaintenanceRequest>> {
 		const data = await this.maintenanceService.create(createMaintenanceDto, user.id)
 		return {
 			success: true,
 			data,
 			message: 'Maintenance request created successfully',
-			timestamp: new Date().toISOString()
+			timestamp: new Date()
 		}
 	}
 
@@ -112,7 +112,7 @@ export class MaintenanceController {
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() updateMaintenanceDto: MaintenanceUpdateDto,
 		@CurrentUser() user: ValidatedUser
-	): Promise<ControllerApiResponse<MaintenanceRequestWithRelations>> {
+	): Promise<ControllerApiResponse<MaintenanceRequest>> {
 		const data = await this.maintenanceService.update(
 			id,
 			updateMaintenanceDto,
@@ -122,7 +122,7 @@ export class MaintenanceController {
 			success: true,
 			data,
 			message: 'Maintenance request updated successfully',
-			timestamp: new Date().toISOString()
+			timestamp: new Date()
 		}
 	}
 
@@ -133,15 +133,15 @@ export class MaintenanceController {
 	@ApiResponse({ status: 404, description: 'Maintenance request not found' })
 	async updateStatus(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Body('status') status: RequestStatus,
+		@Body('status') status: MaintenanceStatus,
 		@CurrentUser() user: ValidatedUser
-	): Promise<ControllerApiResponse<MaintenanceRequestWithRelations>> {
+	): Promise<ControllerApiResponse<MaintenanceRequest>> {
 		const data = await this.maintenanceService.updateStatus(id, status, user.id)
 		return {
 			success: true,
 			data,
 			message: 'Status updated successfully',
-			timestamp: new Date().toISOString()
+			timestamp: new Date()
 		}
 	}
 
@@ -159,7 +159,7 @@ export class MaintenanceController {
 			success: true,
 			data: null,
 			message: 'Maintenance request deleted successfully',
-			timestamp: new Date().toISOString()
+			timestamp: new Date()
 		}
 	}
 }

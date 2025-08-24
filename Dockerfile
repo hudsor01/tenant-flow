@@ -2,14 +2,19 @@
 # check=error=true
 
 # ===== BASE STAGE =====
-# Lightweight Node.js 24 on Alpine Linux for minimal footprint and security
-FROM node:24-alpine AS base
+# Node.js 24 on Debian Slim for SWC binary compatibility
+# Debian provides better glibc support for Next.js SWC binaries
+FROM node:24-slim AS base
 
 # Install essential build dependencies only
-# python3, make, g++: Required for native Node modules (bcrypt, sharp, etc.)
-# Removed curl: Using Node.js for health checks (saves 2.5MB + attack surface)
-RUN apk add --no-cache python3 make g++ && \
-    rm -rf /var/cache/apk/*
+# python3, make, g++, curl: Required for native Node modules and health checks
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    python3 \
+    make \
+    g++ \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -29,8 +34,9 @@ COPY packages/typescript-config/package.json ./packages/typescript-config/
 # Install all dependencies including dev dependencies for building
 # --mount=type=cache: Persist npm cache across builds (60-90s faster rebuilds)
 # npm ci: Use lockfile for deterministic, reproducible builds
+# --include=optional: Ensures platform-specific SWC binaries are installed
 RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-/root/.npm,target=/root/.npm \
-    npm ci --silent
+    npm ci --silent --include=optional
 
 # ===== BUILDER STAGE =====
 # Compile TypeScript to JavaScript with optimizations
@@ -74,16 +80,17 @@ COPY packages/typescript-config/package.json ./packages/typescript-config/
 
 # Fresh production dependency install with cache optimization
 # npm ci: Use lockfile for deterministic, reproducible builds
+# --include=optional: Ensures platform-specific runtime dependencies
 RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-/root/.npm,target=/root/.npm \
-    npm ci --omit=dev --silent
+    npm ci --omit=dev --silent --include=optional
 
 # ===== RUNTIME STAGE =====
-# Final minimal runtime image with security hardening
-FROM node:24-alpine AS runtime
+# Final runtime image with security hardening and SWC compatibility
+FROM node:24-slim AS runtime
 
 # Create non-root user for security (Railway/Docker best practice)
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001
+RUN groupadd -g 1001 nodejs && \
+    useradd -r -u 1001 -g nodejs nodejs
 
 WORKDIR /app
 
@@ -100,10 +107,8 @@ COPY --from=builder --chown=nodejs:nodejs /app/apps/backend/dist ./apps/backend/
 COPY --from=builder --chown=nodejs:nodejs /app/packages/shared/dist ./packages/shared/dist
 COPY --from=builder --chown=nodejs:nodejs /app/packages/database/dist ./packages/database/dist
 
-# Install curl for healthchecks and utilities
-USER root
-RUN apk add --no-cache curl
-USER nodejs
+# Install curl for healthchecks and utilities (already installed in base)
+# Debian slim has curl available through base stage
 
 # Runtime optimizations for Railway deployment
 # NODE_ENV=production: Enables production optimizations in Node.js and libraries

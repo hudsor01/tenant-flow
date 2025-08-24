@@ -21,7 +21,7 @@ export class AnalyticsService {
 		}
 	}
 
-	track(userId: string, event: string, properties?: Record<string, unknown>) {
+	track(userId: string, event: string, properties?: Record<string, unknown>): void {
 		if (!this.posthogKey) {
 			return
 		}

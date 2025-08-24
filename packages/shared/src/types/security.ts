@@ -126,7 +126,7 @@ export type SecureDataType =
 	| number
 	| boolean
 	| null
-	| (string | number | boolean | null)[]
+	| Array<string | number | boolean | null>
 	| Record<string, string | number | boolean | null>
 
 export interface SecurityValidationResult<

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { logger } from '@/lib/logger'
+import { logger } from "@/lib/logger/logger"
 import NextImage from 'next/image'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'

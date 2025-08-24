@@ -1,4 +1,5 @@
 {
+	"$schema": "https://json.schemastore.org/package",
 	"name": "@repo/typescript-config",
 	"version": "0.1.0",
 	"private": true,
@@ -21,6 +22,6 @@
 		"clean": "echo 'No build artifacts to clean in config package'"
 	},
 	"devDependencies": {
-		"eslint": "^9.17.0"
+		"eslint": "^9.34.0"
 	}
 }

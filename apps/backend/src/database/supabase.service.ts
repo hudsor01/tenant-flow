@@ -64,7 +64,7 @@ export class SupabaseService {
 	async checkConnection(): Promise<{ status: string; message?: string }> {
 		try {
 			const { error } = await this.adminClient
-				.from('users')
+				.from('User')
 				.select('count', { count: 'exact', head: true })
 
 			if (error) {

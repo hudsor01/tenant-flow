@@ -295,7 +295,7 @@ export class ValidationService {
 		const validationErrors = await validate(dto)
 
 		const errors: ValidationError[] = validationErrors.flatMap(error => 
-			Object.values(error.constraints || {}).map(message => ({
+			Object.values(error.constraints ?? {}).map(message => ({
 				field: error.property,
 				message,
 				value: error.value

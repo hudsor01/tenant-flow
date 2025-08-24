@@ -14,35 +14,12 @@ import {
 	Min
 } from 'class-validator'
 import { Transform } from 'class-transformer'
+import { MAINTENANCE_CATEGORY, PRIORITY, REQUEST_STATUS, type MaintenanceCategory } from '@repo/shared'
 
-export enum MaintenancePriority {
-	LOW = 'LOW',
-	MEDIUM = 'MEDIUM',
-	HIGH = 'HIGH',
-	EMERGENCY = 'EMERGENCY'
-}
+export type MaintenancePriority = (typeof PRIORITY)[keyof typeof PRIORITY]
+export type MaintenanceStatus = (typeof REQUEST_STATUS)[keyof typeof REQUEST_STATUS]
 
-export enum MaintenanceStatus {
-	OPEN = 'OPEN',
-	IN_PROGRESS = 'IN_PROGRESS',
-	COMPLETED = 'COMPLETED',
-	CANCELED = 'CANCELED',
-	ON_HOLD = 'ON_HOLD'
-}
-
-export enum MaintenanceCategory {
-	PLUMBING = 'PLUMBING',
-	ELECTRICAL = 'ELECTRICAL',
-	HVAC = 'HVAC',
-	APPLIANCES = 'APPLIANCES',
-	FLOORING = 'FLOORING',
-	PAINTING = 'PAINTING',
-	LANDSCAPING = 'LANDSCAPING',
-	SECURITY = 'SECURITY',
-	PEST_CONTROL = 'PEST_CONTROL',
-	GENERAL = 'GENERAL',
-	OTHER = 'OTHER'
-}
+export { MAINTENANCE_CATEGORY, PRIORITY as MaintenancePriorityEnum, REQUEST_STATUS as MaintenanceStatusEnum }
 
 export class MaintenanceCreateDto {
 	@ApiProperty({ 
@@ -63,18 +40,18 @@ export class MaintenanceCreateDto {
 
 	@ApiProperty({ 
 		description: 'Priority level of the request',
-		enum: MaintenancePriority,
-		example: MaintenancePriority.MEDIUM
+		enum: PRIORITY,
+		example: PRIORITY.MEDIUM
 	})
-	@IsEnum(MaintenancePriority)
+	@IsEnum(PRIORITY)
 	declare priority: MaintenancePriority
 
 	@ApiProperty({ 
 		description: 'Category of maintenance',
-		enum: MaintenanceCategory,
-		example: MaintenanceCategory.PLUMBING
+		enum: MAINTENANCE_CATEGORY,
+		example: MAINTENANCE_CATEGORY.PLUMBING
 	})
-	@IsEnum(MaintenanceCategory)
+	@IsEnum(MAINTENANCE_CATEGORY)
 	declare category: MaintenanceCategory
 
 	@ApiProperty({ 
@@ -175,26 +152,26 @@ export class MaintenanceUpdateDto {
 
 	@ApiPropertyOptional({ 
 		description: 'Priority level of the request',
-		enum: MaintenancePriority
+		enum: PRIORITY
 	})
 	@IsOptional()
-	@IsEnum(MaintenancePriority)
+	@IsEnum(PRIORITY)
 	priority?: MaintenancePriority
 
 	@ApiPropertyOptional({ 
 		description: 'Category of maintenance',
-		enum: MaintenanceCategory
+		enum: MAINTENANCE_CATEGORY
 	})
 	@IsOptional()
-	@IsEnum(MaintenanceCategory)
+	@IsEnum(MAINTENANCE_CATEGORY)
 	category?: MaintenanceCategory
 
 	@ApiPropertyOptional({ 
 		description: 'Status of the request',
-		enum: MaintenanceStatus
+		enum: REQUEST_STATUS
 	})
 	@IsOptional()
-	@IsEnum(MaintenanceStatus)
+	@IsEnum(REQUEST_STATUS)
 	status?: MaintenanceStatus
 
 	@ApiPropertyOptional({ 
@@ -295,26 +272,26 @@ export class MaintenanceUpdateDto {
 export class MaintenanceQueryDto {
 	@ApiPropertyOptional({ 
 		description: 'Filter by status',
-		enum: MaintenanceStatus
+		enum: REQUEST_STATUS
 	})
 	@IsOptional()
-	@IsEnum(MaintenanceStatus)
+	@IsEnum(REQUEST_STATUS)
 	status?: MaintenanceStatus
 
 	@ApiPropertyOptional({ 
 		description: 'Filter by priority',
-		enum: MaintenancePriority
+		enum: PRIORITY
 	})
 	@IsOptional()
-	@IsEnum(MaintenancePriority)
+	@IsEnum(PRIORITY)
 	priority?: MaintenancePriority
 
 	@ApiPropertyOptional({ 
 		description: 'Filter by category',
-		enum: MaintenanceCategory
+		enum: MAINTENANCE_CATEGORY
 	})
 	@IsOptional()
-	@IsEnum(MaintenanceCategory)
+	@IsEnum(MAINTENANCE_CATEGORY)
 	category?: MaintenanceCategory
 
 	@ApiPropertyOptional({ 

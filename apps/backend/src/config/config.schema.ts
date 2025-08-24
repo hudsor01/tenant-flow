@@ -279,7 +279,7 @@ export function validate(config: Record<string, unknown>) {
 
 	if (errors.length > 0) {
 		const errorMessages = errors.map((error: ValidationError) => {
-			const constraints = error.constraints || {}
+			const constraints = error.constraints ?? {}
 			return `${error.property}: ${Object.values(constraints).join(', ')}`
 		})
 		throw new Error(

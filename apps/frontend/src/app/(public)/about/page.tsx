@@ -1,4 +1,5 @@
-import type { Metadata } from 'next/types'
+'use client'
+
 import React from 'react'
 import { motion } from '@/lib/lazy-motion'
 import { Badge } from '@/components/ui/badge'
@@ -288,4 +289,8 @@ export function AboutContent() {
 			</section>
 		</div>
 	)
+}
+
+export default function AboutPage() {
+	return <AboutContent />
 }

@@ -14,7 +14,7 @@ import {
 	UserX
 } from 'lucide-react'
 import { formatCurrency } from '@repo/shared'
-import { logger } from '@/lib/logger'
+import { logger } from "@/lib/logger/logger"
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
@@ -36,12 +36,7 @@ import type { PropertyWithDetails } from '@repo/shared'
 import { UNIT_STATUS } from '@repo/shared'
 import { useDeleteProperty } from '@/hooks/api/use-properties'
 
-// Layout utility classes
-const flexLayouts = {
-	center: 'flex items-center justify-center',
-	centerVertical: 'flex items-center',
-	rowGap2: 'flex gap-2'
-}
+// Layout utility classes removed - use Tailwind directly instead of object patterns
 
 interface PropertyCardProps {
 	property: PropertyWithDetails

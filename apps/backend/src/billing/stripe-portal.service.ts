@@ -15,9 +15,10 @@
  * Replaces: stripe-billing.service.ts (878 lines) with ~50 lines
  */
 
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, Inject } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import Stripe from 'stripe'
+import type { CheckoutResponse, PortalResponse } from '@repo/shared'
 import type { EnvironmentVariables } from '../config/config.schema'
 import { UserSupabaseRepository } from '../database/user-supabase.repository'
 
@@ -28,13 +29,13 @@ export class StripePortalService {
 	private readonly frontendUrl: string
 
 	constructor(
-		private configService: ConfigService<EnvironmentVariables>,
+		@Inject(ConfigService) private configService: ConfigService<EnvironmentVariables>,
 		private userRepository: UserSupabaseRepository
 	) {
 		const secretKey = this.configService.get('STRIPE_SECRET_KEY', {
 			infer: true
 		})
-		if (!secretKey) {
+		if (secretKey === undefined) {
 			throw new Error('STRIPE_SECRET_KEY is required')
 		}
 
@@ -42,7 +43,7 @@ export class StripePortalService {
 			apiVersion: '2025-07-30.basil'
 		})
 
-		this.frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000'
+		this.frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000'
 	}
 
 	/**
@@ -54,7 +55,7 @@ export class StripePortalService {
 		priceId: string
 		successUrl?: string
 		cancelUrl?: string
-	}): Promise<{ url: string; sessionId: string }> {
+	}): Promise<CheckoutResponse> {
 		// Get or create Stripe customer
 		const user = await this.userRepository.findByIdWithSubscription(
 			params.userId
@@ -68,7 +69,7 @@ export class StripePortalService {
 		if (!customerId) {
 			const customer = await this.stripe.customers.create({
 				email: user.email,
-				name: user.name || undefined,
+				name: user.name ?? undefined,
 				metadata: { userId: params.userId }
 			})
 			customerId = customer.id
@@ -91,10 +92,10 @@ export class StripePortalService {
 			],
 			mode: 'subscription',
 			success_url:
-				params.successUrl ||
+				params.successUrl ??
 				`${this.frontendUrl}/dashboard?success=true`,
 			cancel_url:
-				params.cancelUrl || `${this.frontendUrl}/pricing?canceled=true`,
+				params.cancelUrl ?? `${this.frontendUrl}/pricing?canceled=true`,
 			// Allow promotion codes
 			allow_promotion_codes: true,
 			// Collect billing address for tax calculation
@@ -132,7 +133,7 @@ export class StripePortalService {
 	async createPortalSession(params: {
 		userId: string
 		returnUrl?: string
-	}): Promise<{ url: string }> {
+	}): Promise<PortalResponse> {
 		// Get user's Stripe customer ID
 		const user = await this.userRepository.findByIdWithSubscription(
 			params.userId
@@ -149,7 +150,7 @@ export class StripePortalService {
 		// Create portal session
 		const session = await this.stripe.billingPortal.sessions.create({
 			customer: customerId,
-			return_url: params.returnUrl || `${this.frontendUrl}/dashboard`
+			return_url: params.returnUrl ?? `${this.frontendUrl}/dashboard`
 		})
 
 		this.logger.log(`Created portal session for user: ${params.userId}`)

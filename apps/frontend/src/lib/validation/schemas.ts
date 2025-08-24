@@ -4,6 +4,8 @@
  */
 import { z } from 'zod'
 import { Security } from '../security'
+// Bring auth schemas from zod-schemas (frontend-local canonical auth schemas)
+import { loginSchema, signupSchema } from './zod-schemas'
 
 // Re-export shared validation schemas to avoid duplication
 export {
@@ -116,7 +118,7 @@ export const commonValidations = {
 		.instanceof(File)
 		.optional()
 		.refine(file => {
-			if (!file) return true
+			if (!file) {return true}
 			// Basic security checks using native File API
 			const maxSize = 10 * 1024 * 1024 // 10MB
 			const allowedTypes = [
@@ -130,9 +132,7 @@ export const commonValidations = {
 		}, 'File must be under 10MB and be a valid image, PDF, or text file')
 }
 
-// Common schema patterns for forms
-export const createFormSchema = <T extends z.ZodRawShape>(shape: T) =>
-	z.object(shape)
+// CLAUDE.md KISS: Using direct z.object() instead of custom abstraction
 
 // Re-export shared form schemas and add frontend-specific ones
 export {
@@ -143,32 +143,18 @@ export {
 	leaseInputSchema as leaseFormSchema
 } from '@repo/shared/validation'
 
-// Frontend-specific form schemas
-export const paymentFormSchema = createFormSchema({
+// Frontend-specific form schemas - DIRECT Zod usage per CLAUDE.md
+export const paymentFormSchema = z.object({
 	amount: commonValidations.currency,
 	dueDate: commonValidations.date,
 	description: commonValidations.description
 })
 
-// Auth schemas
-export const loginSchema = createFormSchema({
-	email: commonValidations.email,
-	password: z.string().min(1, 'Password is required')
-})
+// Auth schemas REMOVED - duplicates of zod-schemas.ts (DRY violation)
+// Use zod-schemas.ts instead for auth validation
 
-export const signupSchema = createFormSchema({
-	email: commonValidations.email,
-	password: z.string().min(8, 'Password must be at least 8 characters'),
-	confirmPassword: z.string().min(1, 'Please confirm your password'),
-	firstName: commonValidations.name,
-	lastName: commonValidations.name
-}).refine(data => data.password === data.confirmPassword, {
-	message: "Passwords don't match",
-	path: ['confirmPassword']
-})
-
-// Profile update schema
-export const profileUpdateSchema = createFormSchema({
+// Profile update schema - DIRECT Zod usage per CLAUDE.md KISS
+export const profileUpdateSchema = z.object({
 	name: commonValidations.name,
 	email: commonValidations.email,
 	phone: commonValidations.phone.optional(),
@@ -193,6 +179,7 @@ export type {
 } from '@repo/shared/validation'
 
 export type PaymentFormData = z.infer<typeof paymentFormSchema>
+// Re-export login/signup types for compatibility with older imports
 export type LoginData = z.infer<typeof loginSchema>
 export type SignupData = z.infer<typeof signupSchema>
 export type ProfileUpdateData = z.infer<typeof profileUpdateSchema>
