@@ -28,7 +28,8 @@
         "./src/*"
       ]
     },
-    "incremental": true
+    "incremental": true,
+    "types": ["node", "react", "react-dom"]
   },
   "include": [
     "next-env.d.ts",

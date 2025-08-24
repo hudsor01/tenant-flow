@@ -58,7 +58,7 @@ export class RolesGuard implements CanActivate {
 		}
 
 		// Handle role-based access
-		if (requiredRoles.length > 0) {
+		if (requiredRoles && requiredRoles.length > 0) {
 			return requiredRoles.some(role => user.role === role)
 		}
 
@@ -133,7 +133,7 @@ export class RolesGuard implements CanActivate {
 			typeof userObj.id === 'string' &&
 			typeof userObj.email === 'string' &&
 			typeof userObj.role === 'string' &&
-			['USER', 'ADMIN', 'SUPER_ADMIN'].includes(userObj.role)
+			['OWNER', 'MANAGER', 'TENANT', 'ADMIN'].includes(userObj.role)
 		)
 	}
 }

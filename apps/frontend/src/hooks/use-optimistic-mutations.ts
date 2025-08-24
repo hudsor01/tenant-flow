@@ -142,16 +142,12 @@ export function useOptimisticListOperations<T extends { id: string }>(queryKey: 
 	const addOptimistic = useCallback(
 		(item: Partial<T>) => {
 			queryClient.setQueryData<T[]>(queryKey, old => {
-				// Helper: narrow Partial<T> to T for optimistic items
-				const asT = (partial: Partial<T>): T => {
-					return partial as unknown as T
-				}
-				const optimisticItem = asT({
+				const optimisticItem = {
 					id: `temp-${Date.now()}`,
 					...item,
 					createdAt: new Date().toISOString(),
 					updatedAt: new Date().toISOString()
-				})
+				} as unknown as T
 
 				if (!old) return [optimisticItem]
 				return [optimisticItem, ...old]
