@@ -5,7 +5,7 @@ export const AuthToken = createParamDecorator(
 		const request = ctx.switchToHttp().getRequest()
 		const authHeader = request.headers.authorization
 
-		if (!authHeader?.startsWith('Bearer ')) {
+		if (!authHeader.startsWith('Bearer ')) {
 			return undefined
 		}
 

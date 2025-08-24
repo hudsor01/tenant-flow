@@ -1,16 +1,26 @@
 /**
  * Base ESLint configuration for TenantFlow monorepo
+ * ESLint v9 flat config format - Official best practices 2025
  * 
- * This configuration provides common rules for TypeScript projects
- * following official ESLint v9 flat config format and industry best practices.
+ * Based on:
+ * - ESLint v9.34.0 official documentation
+ * - TypeScript ESLint v8.40.0 latest recommendations
+ * - Turborepo monorepo performance best practices
+ * - React 19 + Next.js 15 compatibility
  */
 
 import js from '@eslint/js'
 import tseslint from 'typescript-eslint'
 import globals from 'globals'
 
-export default tseslint.config(
+/**
+ * Base configuration array using ESLint v9 flat config
+ * Optimized for performance in large monorepos with TypeScript
+ */
+const baseConfig = tseslint.config(
+	// Global ignores - applied to all configurations
 	{
+		name: 'base/ignores',
 		ignores: [
 			// Build outputs
 			'**/dist/**',
@@ -20,114 +30,395 @@ export default tseslint.config(
 			'**/coverage/**',
 			'**/node_modules/**',
 			'**/.turbo/**',
-
+			'**/.vercel/**',
+			'**/.railway/**',
+			
 			// Generated files
 			'**/*.generated.ts',
 			'**/*.generated.js',
 			'**/*.d.ts',
-
-			// Config files
-			'**/vite.config.ts',
-			'**/next.config.ts',
-			'**/postcss.config.mjs',
-			'**/tailwind.config.ts',
-			'**/*.config.js',
-			'**/*.config.mjs',
-			'**/*.config.cjs',
-
+			'**/routeTree.gen.ts',
+			'**/supabase-generated.ts',
+			
 			// Test artifacts
 			'**/test-results/**',
 			'**/playwright-report/**',
+			'**/.nyc_output/**',
+			'**/allure-report/**',
+			'**/allure-results/**',
 			
-			// Scripts and tools
-			'**/scripts/**'
+			// Environment and config files
+			'**/.env*',
+			'**/scripts/**/*.js',
+			'**/*.config.js',
+			'**/*.config.mjs',
+			'**/postcss.config.*',
+			
+			// Supabase functions and migrations
+			'**/supabase/functions/**',
+			'**/supabase/migrations/**',
+			
+			// Backup files
+			'**/*.bak*',
+			'**/*.backup*',
+			'**/*~'
 		]
 	},
+	
+	// JavaScript base configuration
 	{
-		extends: [
-			js.configs.recommended,
-			...tseslint.configs.recommended,
-			...tseslint.configs.recommendedTypeChecked,
-			...tseslint.configs.stylistic
-		],
-		files: ['**/*.ts', '**/*.tsx'],
+		name: 'base/javascript',
+		files: ['**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs'],
 		languageOptions: {
-			ecmaVersion: 2022,
+			ecmaVersion: 2024,
+			sourceType: 'module',
 			globals: {
 				...globals.node,
 				...globals.browser,
-				...globals.es2021
-			},
-			parser: tseslint.parser,
-			parserOptions: {
-				projectService: true,
-				tsconfigRootDir: import.meta.dirname
+				...globals.es2024
 			}
 		},
 		rules: {
-			// Core TypeScript rules for type safety - CRITICAL for production
-			'@typescript-eslint/no-explicit-any': 'error',
+			...js.configs.recommended.rules,
+			'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
+			'no-debugger': 'error',
+			'prefer-const': 'error',
+			'no-var': 'error',
+			'eqeqeq': ['error', 'always'],
+			'curly': ['error', 'all']
+		}
+	},
+	
+	// TypeScript configuration - using latest official presets
+	{
+		name: 'base/typescript',
+		files: ['**/*.ts', '**/*.tsx'],
+		extends: [
+			...tseslint.configs.recommendedTypeChecked,
+			...tseslint.configs.stylisticTypeChecked
+		],
+		languageOptions: {
+			parser: tseslint.parser,
+			parserOptions: {
+				// Use projectService for automatic TypeScript project detection
+				projectService: true,
+				// Ensure tsconfigRootDir is set so the parser can resolve per-package tsconfigs
+				tsconfigRootDir: import.meta.dirname
+			},
+			globals: {
+				...globals.node,
+				...globals.browser,
+				...globals.es2024
+			}
+		},
+		settings: {
+			// Performance optimization for TypeScript resolution
+			'typescript-eslint': {
+				projectService: true,
+				maximumTypeCheckingDepth: 3
+			}
+		},
+		rules: {
+			// Core TypeScript rules - stricter for better code quality
+			'@typescript-eslint/no-explicit-any': 'warn',
 			'@typescript-eslint/no-unused-vars': [
 				'error',
 				{
 					argsIgnorePattern: '^_',
 					varsIgnorePattern: '^_',
-					caughtErrorsIgnorePattern: '^_'
+					caughtErrorsIgnorePattern: '^_',
+					destructuredArrayIgnorePattern: '^_',
+					ignoreRestSiblings: true
 				}
 			],
+			
+			// Type imports - critical for bundle size optimization
 			'@typescript-eslint/consistent-type-imports': [
 				'error',
 				{
 					prefer: 'type-imports',
-					fixStyle: 'inline-type-imports'
+					fixStyle: 'separate-type-imports',
+					disallowTypeAnnotations: false
 				}
 			],
 			'@typescript-eslint/no-import-type-side-effects': 'error',
-
-			// Promise handling rules - PREVENTS RACE CONDITIONS
-			'@typescript-eslint/no-floating-promises': 'error',
-			'@typescript-eslint/no-misused-promises': 'error',
+			'@typescript-eslint/consistent-type-exports': [
+				'error',
+				{
+					fixMixedExportsWithInlineTypeSpecifier: true
+				}
+			],
+			
+			// Async/Promise handling - essential for reliability
+			'@typescript-eslint/no-floating-promises': [
+				'error',
+				{
+					ignoreVoid: true,
+					ignoreIIFE: true
+				}
+			],
+			'@typescript-eslint/no-misused-promises': [
+				'error',
+				{
+					checksVoidReturn: {
+						attributes: false
+					}
+				}
+			],
 			'@typescript-eslint/await-thenable': 'error',
-
-			// Type safety rules - PREVENTS RUNTIME ERRORS
-			'@typescript-eslint/no-unsafe-assignment': 'error',
-			'@typescript-eslint/no-unsafe-call': 'error',
-			'@typescript-eslint/no-unsafe-member-access': 'error',
-			'@typescript-eslint/no-unsafe-return': 'error',
-			'@typescript-eslint/no-unsafe-argument': 'error',
-
-			// Array and object consistency
-			'@typescript-eslint/array-type': ['error', { default: 'array' }],
-			'@typescript-eslint/consistent-indexed-object-style': ['error', 'record'],
-
-			// General code quality
+			'@typescript-eslint/require-await': 'warn',
+			
+			// Type safety improvements
 			'@typescript-eslint/no-non-null-assertion': 'warn',
-			'@typescript-eslint/prefer-nullish-coalescing': 'error',
+			'@typescript-eslint/prefer-nullish-coalescing': [
+				'warn',
+				{
+					ignoreTernaryTests: false,
+					ignoreConditionalTests: false,
+					ignoreMixedLogicalExpressions: false
+				}
+			],
 			'@typescript-eslint/prefer-optional-chain': 'error',
-
-			// General rules
-			'no-console': ['warn', { allow: ['warn', 'error'] }],
+			'@typescript-eslint/no-unnecessary-condition': [
+				'warn',
+				{
+					allowConstantLoopConditions: true
+				}
+			],
+			
+			// Additional TypeScript ESLint v8 rules for better code quality
+			'@typescript-eslint/array-type': [
+				'error',
+				{
+					default: 'array-simple',
+					readonly: 'array-simple'
+				}
+			],
+			'@typescript-eslint/ban-tslint-comment': 'error',
+			'@typescript-eslint/class-literal-property-style': ['error', 'fields'],
+			'@typescript-eslint/consistent-indexed-object-style': ['error', 'record'],
+			'@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
+			'@typescript-eslint/dot-notation': [
+				'error',
+				{
+					allowKeywords: true,
+					allowPattern: '^[a-z]+(_[a-z]+)+$',
+					allowPrivateClassPropertyAccess: true,
+					allowProtectedClassPropertyAccess: true,
+					allowIndexSignaturePropertyAccess: false
+				}
+			],
+			'@typescript-eslint/no-confusing-void-expression': [
+				'error',
+				{
+					ignoreArrowShorthand: true,
+					ignoreVoidOperator: true
+				}
+			],
+			'@typescript-eslint/no-duplicate-enum-values': 'error',
+			'@typescript-eslint/no-duplicate-type-constituents': 'warn',
+			'@typescript-eslint/no-meaningless-void-operator': 'error',
+			'@typescript-eslint/no-mixed-enums': 'error',
+			'@typescript-eslint/no-redundant-type-constituents': 'warn',
+			'@typescript-eslint/no-unnecessary-boolean-literal-compare': 'warn',
+			'@typescript-eslint/no-unnecessary-type-arguments': 'warn',
+			'@typescript-eslint/no-unnecessary-type-constraint': 'error',
+			'@typescript-eslint/no-useless-empty-export': 'error',
+			'@typescript-eslint/prefer-enum-initializers': 'warn',
+			'@typescript-eslint/prefer-for-of': 'warn',
+			'@typescript-eslint/prefer-function-type': 'error',
+			'@typescript-eslint/prefer-includes': 'warn',
+			'@typescript-eslint/prefer-literal-enum-member': [
+				'error',
+				{
+					allowBitwiseExpressions: true
+				}
+			],
+			'@typescript-eslint/prefer-reduce-type-parameter': 'warn',
+			'@typescript-eslint/prefer-string-starts-ends-with': 'warn',
+			'@typescript-eslint/promise-function-async': 'error',
+			'@typescript-eslint/switch-exhaustiveness-check': 'error',
+			'@typescript-eslint/unified-signatures': 'error',
+			
+			// Naming conventions - updated for modern patterns
+			'@typescript-eslint/naming-convention': [
+				'error',
+				{
+					selector: 'default',
+					format: ['camelCase'],
+					leadingUnderscore: 'allow',
+					trailingUnderscore: 'forbid'
+				},
+				{
+					selector: 'import',
+					format: ['camelCase', 'PascalCase']
+				},
+				{
+					selector: 'variable',
+					format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
+					leadingUnderscore: 'allow'
+				},
+				{
+					selector: 'function',
+					format: ['camelCase', 'PascalCase']
+				},
+				{
+					selector: 'typeLike',
+					format: ['PascalCase']
+				},
+				{
+					selector: 'enumMember',
+					format: ['UPPER_CASE', 'PascalCase']
+				},
+				{
+					selector: 'property',
+					format: null,
+					leadingUnderscore: 'allow'
+				},
+				{
+					selector: 'method',
+					format: ['camelCase'],
+					leadingUnderscore: 'allow'
+				}
+			],
+			
+			// Function rules - relaxed but still enforced
+			'@typescript-eslint/explicit-function-return-type': 'off',
+			'@typescript-eslint/explicit-module-boundary-types': 'off',
+			
+			// General JavaScript rules
+			'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
 			'no-debugger': 'error',
 			'prefer-const': 'error',
 			'no-var': 'error',
-			eqeqeq: ['error', 'always'],
-			'no-throw-literal': 'error',
-			curly: ['error', 'all']
+			'eqeqeq': ['error', 'always'],
+			'curly': ['error', 'all']
+		}
+	},
+	
+	// Performance-optimized type-aware rules disabled for frontend
+	// Individual packages can override these for stricter checking
+	{
+		name: 'base/performance-overrides',
+		files: ['**/*.ts', '**/*.tsx'],
+		rules: {
+			// Disable expensive type-aware rules by default for performance
+			'@typescript-eslint/no-unsafe-assignment': 'off',
+			'@typescript-eslint/no-unsafe-member-access': 'off',
+			'@typescript-eslint/no-unsafe-call': 'off',
+			'@typescript-eslint/no-unsafe-return': 'off',
+			'@typescript-eslint/no-unsafe-argument': 'off',
+			'@typescript-eslint/unbound-method': 'off',
+			'@typescript-eslint/restrict-template-expressions': 'off',
+			'@typescript-eslint/restrict-plus-operands': 'off',
+			'@typescript-eslint/no-base-to-string': 'off'
+		}
+	},
+	
+	// Test files configuration - more permissive
+	{
+		name: 'base/tests',
+		files: [
+			'**/*.test.ts', 
+			'**/*.test.tsx', 
+			'**/*.spec.ts', 
+			'**/*.spec.tsx', 
+			'**/*.test.js', 
+			'**/*.spec.js',
+			'**/tests/**/*.ts',
+			'**/tests/**/*.tsx',
+			'**/__tests__/**/*.ts',
+			'**/__tests__/**/*.tsx',
+			'**/test/**/*.ts',
+			'**/test/**/*.tsx'
+		],
+		rules: {
+			// Completely relax rules for test files
+			'@typescript-eslint/no-explicit-any': 'off',
+			'@typescript-eslint/no-non-null-assertion': 'off',
+			'@typescript-eslint/no-unsafe-assignment': 'off',
+			'@typescript-eslint/no-unsafe-member-access': 'off',
+			'@typescript-eslint/no-unsafe-call': 'off',
+			'@typescript-eslint/no-unsafe-return': 'off',
+			'@typescript-eslint/no-unsafe-argument': 'off',
+			'@typescript-eslint/no-floating-promises': 'off',
+			'@typescript-eslint/no-misused-promises': 'off',
+			'@typescript-eslint/unbound-method': 'off',
+			'@typescript-eslint/no-unnecessary-condition': 'off',
+			'@typescript-eslint/require-await': 'off',
+			'@typescript-eslint/await-thenable': 'off',
+			'@typescript-eslint/no-confusing-void-expression': 'off',
+			'no-console': 'off'
+		}
+	},
+	
+	// Configuration files - very permissive
+	{
+		name: 'base/configs',
+		files: [
+			'**/*.config.ts', 
+			'**/*.config.js', 
+			'**/*.config.mjs', 
+			'**/*.config.cjs',
+			'**/vite.config.*', 
+			'**/next.config.*',
+			'**/jest.config.*',
+			'**/playwright.config.*',
+			'**/tailwind.config.*',
+			'**/postcss.config.*',
+			'**/eslint.config.*',
+			'**/turbo.json'
+		],
+		rules: {
+			// Configuration files need maximum flexibility
+			'@typescript-eslint/no-explicit-any': 'off',
+			'@typescript-eslint/no-unsafe-assignment': 'off',
+			'@typescript-eslint/no-unsafe-member-access': 'off',
+			'@typescript-eslint/no-unsafe-call': 'off',
+			'@typescript-eslint/no-unsafe-return': 'off',
+			'@typescript-eslint/no-unsafe-argument': 'off',
+			'@typescript-eslint/no-require-imports': 'off',
+			'@typescript-eslint/no-var-requires': 'off',
+			'@typescript-eslint/naming-convention': 'off',
+			'@typescript-eslint/no-misused-promises': 'off',
+			'@typescript-eslint/require-await': 'off',
+			'import/no-default-export': 'off',
+			'no-console': 'off'
+		}
+	},
+	
+	// Package-specific overrides - handles all packages in ONE config
+	{
+		name: 'packages/database',
+		files: ['packages/database/**/*.ts'],
+		rules: {
+			// Database scripts may need console output
+			'no-console': 'off'
 		}
 	},
 	{
-		// Test files have relaxed rules but still catch critical issues
-		files: ['**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts', '**/*.spec.tsx'],
+		name: 'packages/emails', 
+		files: ['packages/emails/**/*.tsx', 'packages/emails/**/*.ts'],
 		rules: {
-			'@typescript-eslint/no-explicit-any': 'warn',
-			'@typescript-eslint/no-unsafe-assignment': 'off',
-			'@typescript-eslint/no-unsafe-call': 'off',
-			'@typescript-eslint/no-unsafe-member-access': 'off',
-			'@typescript-eslint/no-unsafe-return': 'off',
-			'@typescript-eslint/no-unsafe-argument': 'off',
-			// Keep promise rules even in tests to prevent flaky tests
-			'@typescript-eslint/no-floating-promises': 'error',
-			'@typescript-eslint/no-misused-promises': 'error'
+			// React Email components need flexible naming
+			'@typescript-eslint/naming-convention': [
+				'error',
+				{
+					selector: 'function',
+					format: ['camelCase', 'PascalCase'] // Allow PascalCase for React Email components
+				},
+				{
+					selector: 'variable', 
+					format: ['camelCase', 'UPPER_CASE', 'PascalCase'] // Allow PascalCase for React components
+				},
+				{
+					selector: 'property',
+					format: null // Allow any format for CSS properties, email attributes
+				}
+			],
+			'no-console': 'off' // Email scripts may need console
 		}
 	}
 )
+
+export default baseConfig

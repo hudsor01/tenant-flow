@@ -1,6 +1,4 @@
-import { Sidebar as DashboardSidebar } from '@/components/dashboard/dashboard-sidebar'
-
-// Default sidebar component
+// Default sidebar component - using layout-based sidebar instead
 export default function SidebarDefault() {
-	return <DashboardSidebar />
+	return null
 }

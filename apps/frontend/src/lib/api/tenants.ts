@@ -7,29 +7,17 @@ import type {
 	Tenant,
 	CreateTenantInput,
 	UpdateTenantInput,
-	TenantQuery
+	TenantQuery,
+	TenantStats
 } from '@repo/shared'
+import { z } from 'zod'
+import {
+	TenantSchema,
+	TenantArraySchema,
+	TenantStatsSchema
+} from '@/lib/api/schemas/tenants'
 
-export interface TenantStats {
-	total: number
-	active: number
-	inactive: number
-	newThisMonth: number
-}
 
-/**
- * Query keys for React Query caching
- */
-export const tenantKeys = {
-	all: ['tenants'] as const,
-	lists: () => [...tenantKeys.all, 'list'] as const,
-	list: (filters?: TenantQuery) => [...tenantKeys.lists(), filters] as const,
-	details: () => [...tenantKeys.all, 'detail'] as const,
-	detail: (id: string) => [...tenantKeys.details(), id] as const,
-	stats: () => [...tenantKeys.all, 'stats'] as const,
-	byProperty: (propertyId: string) =>
-		[...tenantKeys.all, 'by-property', propertyId] as const
-}
 
 /**
  * Tenants API functions - Direct calls only
@@ -45,32 +33,58 @@ export const tenantApi = {
 						.map(([key, value]) => [key, String(value)])
 				).toString()
 			: ''
-		return apiClient.get<Tenant[]>(`/tenants${params ? `?${params}` : ''}`)
+		return apiClient.getValidated<Tenant[]>(
+			`/tenants${params ? `?${params}` : ''}`,
+			TenantArraySchema,
+			'Tenant[]'
+		)
 	},
 
 	async getById(id: string) {
-		return apiClient.get<Tenant>(`/tenants/${id}`)
+	return apiClient.getValidated<Tenant>(`/tenants/${id}`, TenantSchema, 'Tenant')
 	},
 
 	async create(data: CreateTenantInput) {
-		return apiClient.post<Tenant>('/tenants', data)
+		return apiClient.postValidated<Tenant>(
+			'/tenants',
+			TenantSchema,
+			'Tenant',
+			data as Record<string, unknown>,
+			undefined,
+			{ throwOnFailure: true }
+		)
 	},
 
 	async update(id: string, data: UpdateTenantInput) {
-		return apiClient.put<Tenant>(`/tenants/${id}`, data)
+		return apiClient.putValidated<Tenant>(
+			`/tenants/${id}`,
+			TenantSchema,
+			'Tenant',
+			data as Record<string, unknown>,
+			undefined,
+			{ throwOnFailure: true }
+		)
 	},
 
 	async delete(id: string) {
-		await apiClient.delete<{ success: boolean }>(`/tenants/${id}`)
+			await apiClient.deleteValidated<{ success: boolean }>(
+				`/tenants/${id}`,
+				z.object({ success: z.boolean() }),
+				'TenantDelete'
+			)
 		// Return void to match hook expectations
 		return
 	},
 
 	async getStats() {
-		return apiClient.get<TenantStats>('/tenants/stats')
+	return apiClient.getValidated<TenantStats>('/tenants/stats', TenantStatsSchema, 'TenantStats')
+	},
+
+	async search(query: string) {
+	return apiClient.getValidated<Tenant[]>('/tenants/search', TenantArraySchema, 'Tenant[]', { params: { q: query } })
 	},
 
 	async getByProperty(propertyId: string) {
-		return apiClient.get<Tenant[]>(`/tenants/by-property/${propertyId}`)
+	return apiClient.getValidated<Tenant[]>(`/tenants/by-property/${propertyId}`, TenantArraySchema, 'Tenant[]')
 	}
 }

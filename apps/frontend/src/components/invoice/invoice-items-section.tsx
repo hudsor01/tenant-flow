@@ -10,7 +10,14 @@ import type {
 	UseFormGetValues
 } from 'react-hook-form'
 import type { CustomerInvoiceForm } from '@repo/shared'
-import type { InvoiceItem } from '@/types/components'
+// Local InvoiceItem type
+interface InvoiceItem {
+	id: string
+	description: string
+	quantity: number
+	unitPrice: number
+	total: number
+}
 
 // Extended props for the invoice items section
 interface InvoiceItemsSectionProps {
@@ -165,7 +172,7 @@ export function InvoiceItemsSection({
 				{/* Add Item Button - Aligned with quantity controls */}
 				<div className="mt-6">
 					<div className="grid grid-cols-12 gap-2">
-						<div className="col-span-5"></div>
+						<div className="col-span-5" />
 						<div className="col-span-3 flex justify-center">
 							<Button
 								type="button"
@@ -194,7 +201,7 @@ export function InvoiceItemsSection({
 								</div>
 							</Button>
 						</div>
-						<div className="col-span-4"></div>
+						<div className="col-span-4" />
 					</div>
 				</div>
 

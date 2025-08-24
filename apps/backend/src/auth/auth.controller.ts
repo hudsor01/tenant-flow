@@ -9,23 +9,24 @@ import {
 	UseGuards,
 	ValidationPipe
 } from '@nestjs/common'
-import { ModuleRef } from '@nestjs/core'
 import { Throttle } from '@nestjs/throttler'
-import { UnifiedAuthGuard } from '../shared/guards/unified-auth.guard'
+import { UnifiedAuthGuard } from '../shared/guards/auth.guard'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
-import { AuthService, ValidatedUser } from './auth.service'
+import { AuthService } from './auth.service'
 import { Public } from '../shared/decorators/auth.decorators'
+import type { ValidatedUser } from '@repo/shared'
 import { CsrfExempt, CsrfGuard } from '../security/csrf.guard'
-import { FastifyRequest } from 'fastify'
-import { LoginDto, RefreshTokenDto, RegisterDto } from './dto/auth.dto'
+import type { FastifyRequest } from 'fastify'
+import { UsersService } from '../users/users.service'
+import type { LoginDto, RefreshTokenDto, RegisterDto } from './dto/auth.dto'
 import { SuccessResponseUtil } from '../shared/utils/success-response.util'
 
 @Controller('auth')
 @UseGuards(CsrfGuard)
 export class AuthController {
 	constructor(
-		private readonly moduleRef: ModuleRef,
-		private readonly authService: AuthService
+		private readonly authService: AuthService,
+		private readonly usersService: UsersService
 	) {}
 
 	// Note: All auth operations are handled by Supabase directly
@@ -35,11 +36,7 @@ export class AuthController {
 	@Get('me')
 	@UseGuards(UnifiedAuthGuard)
 	async getCurrentUser(@CurrentUser() user: ValidatedUser) {
-		// Dynamically resolve UsersService to avoid circular dependency
-		const { UsersService } = await import('../users/users.service')
-		const usersService = this.moduleRef.get(UsersService, { strict: false })
-
-		const userProfile = await usersService.getUserById(user.id as string)
+		const userProfile = await this.usersService.getUserById(user.id)
 		if (!userProfile) {
 			throw new Error('User not found')
 		}
@@ -74,10 +71,8 @@ export class AuthController {
 		@Body(ValidationPipe) body: LoginDto,
 		@Req() request: FastifyRequest
 	) {
-		const ip =
-			request.ip ||
-			(request.headers['x-forwarded-for'] as string) ||
-			'unknown'
+		const forwardedFor = request.headers['x-forwarded-for']
+		const ip = request.ip ?? (Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor) ?? 'unknown'
 		return this.authService.login(body.email, body.password, ip)
 	}
 
@@ -105,7 +100,10 @@ export class AuthController {
 	@HttpCode(HttpStatus.OK)
 	async logout(@Req() request: FastifyRequest) {
 		const authHeader = request.headers.authorization
-		const token = authHeader?.split(' ')[1] || ''
+		if (!authHeader) {
+			throw new Error('No authorization header found')
+		}
+		const token = authHeader.split(' ')[1] ?? ''
 		await this.authService.logout(token)
 		return SuccessResponseUtil.success()
 	}

@@ -193,7 +193,7 @@ export const tenantFormSchema = z
 				? {
 						name: data.emergencyContactName,
 						phone: data.emergencyContactPhone,
-						relationship: data.emergencyContactRelationship || ''
+						relationship: data.emergencyContactRelationship ?? ''
 					}
 				: undefined
 	}))

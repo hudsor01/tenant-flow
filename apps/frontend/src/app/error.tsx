@@ -5,7 +5,7 @@ interface ErrorProps {
 	reset: () => void
 }
 
-export default function Error({ error, reset }: ErrorProps) {
+export default function Error({ reset }: ErrorProps) {
 	return (
 		<div className="flex min-h-screen items-center justify-center bg-gray-50">
 			<div className="mx-auto max-w-md space-y-6 px-4 text-center">

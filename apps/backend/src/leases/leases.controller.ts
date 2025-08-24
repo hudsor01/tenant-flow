@@ -13,18 +13,15 @@ import {
 	UsePipes,
 	ValidationPipe
 } from '@nestjs/common'
-import { FastifyReply } from 'fastify'
+import type { FastifyReply } from 'fastify'
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger'
-import { UnifiedAuthGuard } from '../shared/guards/unified-auth.guard'
+import { UnifiedAuthGuard } from '../shared/guards/auth.guard'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
-import { ValidatedUser } from '../auth/auth.service'
-import {
-	LeaseQueryOptions,
-	LeasesService,
-	LeaseWithRelations
-} from './leases.service'
+import type { ValidatedUser } from '../auth/auth.service'
+import { LeaseQueryOptions, LeasesService } from './leases.service'
+import type { LeaseWithRelations } from './leases.service'
 import { LeasePDFService } from '../pdf/lease-pdf.service'
-import { CreateLeaseDto, UpdateLeaseDto } from '../shared/types/dto-exports'
+import type { CreateLeaseDto, UpdateLeaseDto } from '../shared/types/dto-exports'
 import { UsageLimitsGuard } from '../shared/guards/usage-limits.guard'
 import { UsageLimit } from '../shared/decorators/usage-limits.decorator'
 import type { ControllerApiResponse } from '@repo/shared'
@@ -289,7 +286,7 @@ export class LeasesController {
 		@Query('branding') includeBranding?: string
 	): Promise<void> {
 		const options = {
-			format: format || 'Letter',
+			format: format ?? 'Letter',
 			includeBranding: includeBranding === 'true',
 			includePageNumbers: true
 		}

@@ -9,7 +9,7 @@
 
 import React, { useState, useTransition, useEffect, useMemo } from 'react'
 import { motion } from '@/lib/lazy-motion'
-import type { CreateLeaseInput, UpdateLeaseInput, Lease, Tenant } from '@repo/shared'
+import type { CreateLeaseInput, UpdateLeaseInput, Lease } from '@repo/shared'
 import { useCreateLease, useUpdateLease } from '@/hooks/api/use-leases'
 import { useProperties } from '@/hooks/api/use-properties'
 import { useTenants } from '@/hooks/api/use-tenants'
@@ -211,7 +211,7 @@ export function LeaseFormClient({
 		const endDate = formData.endDate ? new Date(formData.endDate) : null
 		const rentAmount = formData.rentAmount ?? 0
 
-		if (!startDate || !endDate) return null
+		if (!startDate || !endDate) {return null}
 
 		const months =
 			(endDate.getFullYear() - startDate.getFullYear()) * 12 +
@@ -246,10 +246,10 @@ export function LeaseFormClient({
 	const validateForm = (): boolean => {
 		const newErrors: Record<string, string> = {}
 
-		if (!formData.unitId) newErrors.unitId = 'Unit is required'
-		if (!formData.tenantId) newErrors.tenantId = 'Tenant is required'
-		if (!formData.startDate) newErrors.startDate = 'Start date is required'
-		if (!formData.endDate) newErrors.endDate = 'End date is required'
+		if (!formData.unitId) {newErrors.unitId = 'Unit is required'}
+		if (!formData.tenantId) {newErrors.tenantId = 'Tenant is required'}
+		if (!formData.startDate) {newErrors.startDate = 'Start date is required'}
+		if (!formData.endDate) {newErrors.endDate = 'End date is required'}
 		if (!formData.rentAmount || formData.rentAmount <= 0) {
 			newErrors.rentAmount = 'Rent amount must be greater than 0'
 		}

@@ -3,7 +3,7 @@ import { motion } from '@/lib/lazy-motion'
 import { Button } from '@/components/ui/button'
 import { ArrowUpRight } from 'lucide-react'
 // Removed blog-stubs imports - using placeholder data for unused component
-type BlogArticle = {
+interface BlogArticle {
 	slug: string
 	title: string
 	category: string
@@ -23,7 +23,7 @@ interface BlogSidebarSectionProps {
  * Clean design with generous whitespace
  */
 export default function BlogSidebarSection({
-	currentSlug,
+	currentSlug: _currentSlug,
 	fadeInUp
 }: BlogSidebarSectionProps) {
 	// Placeholder data for unused component - blog functionality removed

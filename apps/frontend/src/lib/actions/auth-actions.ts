@@ -5,39 +5,11 @@
 
 'use server'
 
-import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { createServerClient } from '@supabase/ssr'
-import type { Database } from '@repo/shared/types/supabase'
-import { config } from '@/lib/config'
-
-async function createServerSupabaseClient() {
-	const cookieStore = await cookies()
-
-	return createServerClient<Database>(
-		config.supabase.url,
-		config.supabase.anonKey,
-		{
-			cookies: {
-				getAll() {
-					return cookieStore.getAll()
-				},
-				setAll(cookiesToSet) {
-					try {
-						cookiesToSet.forEach(({ name, value, options }) => {
-							cookieStore.set(name, value, options)
-						})
-					} catch {
-						// Cookie setting can fail in certain contexts
-					}
-				}
-			}
-		}
-	)
-}
+import { createActionClient } from '@/lib/supabase/action-client'
 
 export async function getCurrentUser() {
-	const supabase = await createServerSupabaseClient()
+	const supabase = await createActionClient()
 	const {
 		data: { user }
 	} = await supabase.auth.getUser()
@@ -45,8 +17,8 @@ export async function getCurrentUser() {
 }
 
 export async function signIn(email: string, password: string) {
-	const supabase = await createServerSupabaseClient()
-	const { data, error } = await supabase.auth.signInWithPassword({
+	const supabase = await createActionClient()
+	const { data: _data, error } = await supabase.auth.signInWithPassword({
 		email,
 		password
 	})
@@ -63,8 +35,8 @@ export async function signUp(
 	password: string,
 	fullName?: string
 ) {
-	const supabase = await createServerSupabaseClient()
-	const { data, error } = await supabase.auth.signUp({
+	const supabase = await createActionClient()
+	const { data: _data, error } = await supabase.auth.signUp({
 		email,
 		password,
 		options: {
@@ -86,13 +58,13 @@ export async function signUp(
 }
 
 export async function signOut() {
-	const supabase = await createServerSupabaseClient()
+	const supabase = await createActionClient()
 	await supabase.auth.signOut()
 	redirect('/auth/login')
 }
 
 export async function forgotPassword(email: string) {
-	const supabase = await createServerSupabaseClient()
+	const supabase = await createActionClient()
 
 	// Use environment variable or fallback to default URL
 	const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tenantflow.app'
@@ -110,7 +82,7 @@ export async function forgotPassword(email: string) {
 }
 
 export async function updatePassword(newPassword: string) {
-	const supabase = await createServerSupabaseClient()
+	const supabase = await createActionClient()
 	const { error } = await supabase.auth.updateUser({
 		password: newPassword
 	})
@@ -127,19 +99,19 @@ export async function updateProfile(
 	formData: FormData
 ): Promise<AuthFormState> {
 	try {
-		const supabase = await createServerSupabaseClient()
+		const supabase = await createActionClient()
 
-		const updates: { [key: string]: string } = {}
+		const updates: Record<string, string> = {}
 
 		const name = formData.get('name') as string
 		const phone = formData.get('phone') as string
 		const bio = formData.get('bio') as string
 		const company = formData.get('company') as string
 
-		if (name) updates.full_name = name
-		if (phone) updates.phone = phone
-		if (bio) updates.bio = bio
-		if (company) updates.company = company
+		if (name) {updates.full_name = name}
+		if (phone) {updates.phone = phone}
+		if (bio) {updates.bio = bio}
+		if (company) {updates.company = company}
 
 		const { error } = await supabase.auth.updateUser({
 			data: updates
@@ -166,7 +138,7 @@ export async function updateProfile(
 }
 
 export async function deleteAccount() {
-	const supabase = await createServerSupabaseClient()
+	const supabase = await createActionClient()
 	const {
 		data: { user }
 	} = await supabase.auth.getUser()
@@ -256,6 +228,6 @@ export const updatePasswordAction = updatePassword
 export interface AuthFormState {
 	success: boolean
 	error?: string
-	errors?: { [key: string]: string[] }
+	errors?: Record<string, string[]>
 	message?: string
 }

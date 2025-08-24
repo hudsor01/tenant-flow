@@ -5,7 +5,7 @@
  * including component props, variants, themes, accessibility, and layout types.
  */
 
-import type { VariantProps } from 'class-variance-authority'
+// Remove frontend-specific dependency - use generic variant interface instead
 
 // Framework-agnostic types for shared package compatibility
 type ReactNode = unknown
@@ -531,9 +531,9 @@ export interface DropdownMenuItem {
 // ============================================================================
 
 /**
- * Extract variant props from a component
+ * Extract variant props from a component - generic implementation
  */
-export type ExtractVariantProps<T> = T extends VariantProps<infer U> ? U : never
+export type ExtractVariantProps<T> = T extends Record<string, unknown> ? T : never
 
 /**
  * Make all properties optional except specified ones
