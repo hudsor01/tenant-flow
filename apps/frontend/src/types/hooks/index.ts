@@ -9,6 +9,9 @@ import type {
 	ErrorResponse,
 	MaybePromise
 } from '../core/common'
+import type { Property } from '@repo/shared'
+import type { Tenant } from '@repo/shared'
+import type { User, AuthSession, LoginCredentials, SignupCredentials } from '../auth'
 
 // ============================================
 // API Hook Return Types
@@ -97,8 +100,8 @@ export interface UsePropertiesReturn extends PaginatedApiHookState {
  * Property hook return type (single)
  */
 export interface UsePropertyReturn extends BaseApiHookState {
-	property: unknown | null
-	updateProperty: (data: unknown) => Promise<unknown>
+	property: Property | null
+	updateProperty: (data: Partial<Property>) => Promise<Property>
 	deleteProperty: () => Promise<void>
 }
 
@@ -106,14 +109,24 @@ export interface UsePropertyReturn extends BaseApiHookState {
  * Tenants hook return type
  */
 export interface UseTenantsReturn extends PaginatedApiHookState {
-	tenants: unknown[]
-	createTenant: (data: unknown) => Promise<unknown>
-	updateTenant: (id: string, data: unknown) => Promise<unknown>
+	tenants: Tenant[]
+	createTenant: (data: Partial<Tenant>) => Promise<Tenant>
+	updateTenant: (id: string, data: Partial<Tenant>) => Promise<Tenant>
 	deleteTenant: (id: string) => Promise<void>
-	filters: unknown
-	setFilters: (filters: unknown) => void
+	filters: TenantFilters
+	setFilters: (filters: TenantFilters) => void
 	sorting: SortParams
 	setSorting: (sorting: SortParams) => void
+}
+
+// ============================================
+// Filter Types
+// ============================================
+
+export interface TenantFilters {
+	search?: string
+	status?: string
+	invitationStatus?: string
 }
 
 /**
@@ -159,12 +172,12 @@ export interface UseMaintenanceRequestsReturn extends PaginatedApiHookState {
  * Auth hook return type
  */
 export interface UseAuthReturn {
-	user: unknown | null
-	session: unknown | null
+	user: User | null
+	session: AuthSession | null
 	loading: boolean
 	isAuthenticated: boolean
-	signIn: (credentials: unknown) => Promise<unknown>
-	signUp: (credentials: unknown) => Promise<unknown>
+	signIn: (credentials: LoginCredentials) => Promise<User>
+	signUp: (credentials: SignupCredentials) => Promise<User>
 	signOut: () => Promise<void>
 	resetPassword: (email: string) => Promise<void>
 	updatePassword: (password: string) => Promise<void>

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, BadRequestException, Logger } from '@nestjs/common'
 import { PropertiesService } from '../properties/properties.service'
 import { TenantsService } from '../tenants/tenants.service'
 import { LeasesService } from '../leases/leases.service'
@@ -9,10 +9,6 @@ import type {
 } from '@repo/shared/types/api'
 import type { PropertyStats } from '@repo/shared/types/properties'
 import type { TenantStats } from '@repo/shared/types/tenants'
-import {
-	ErrorCode,
-	ErrorHandlerService
-} from '../services/error-handler.service'
 
 export interface DashboardActivity {
 	activities: {
@@ -33,8 +29,7 @@ export class DashboardService {
 	constructor(
 		private readonly propertiesService: PropertiesService,
 		private readonly tenantsService: TenantsService,
-		private readonly leasesService: LeasesService,
-		private readonly errorHandler: ErrorHandlerService
+		private readonly leasesService: LeasesService
 	) {}
 
 	/**
@@ -55,9 +50,9 @@ export class DashboardService {
 
 			// Map to PropertyStats interface
 			const properties: PropertyStats = {
-				totalUnits: rawPropertyStats.totalUnits || 0,
-				occupiedUnits: rawPropertyStats.occupiedUnits || 0,
-				vacantUnits: rawPropertyStats.vacantUnits || 0,
+				totalUnits: rawPropertyStats.totalUnits,
+				occupiedUnits: rawPropertyStats.occupiedUnits,
+				vacantUnits: rawPropertyStats.vacantUnits,
 				occupancyRate:
 					rawPropertyStats.totalUnits > 0
 						? Math.round(
@@ -66,13 +61,13 @@ export class DashboardService {
 									100
 							)
 						: 0,
-				totalMonthlyRent: rawPropertyStats.totalMonthlyRent || 0,
-				potentialRent: rawPropertyStats.totalMonthlyRent || 0, // TODO: Calculate actual potential rent
-				totalProperties: rawPropertyStats.total || 0,
-				totalRent: rawPropertyStats.totalMonthlyRent || 0,
-				collectedRent: rawPropertyStats.totalMonthlyRent || 0, // TODO: Calculate actual collected rent
+				totalMonthlyRent: rawPropertyStats.totalMonthlyRent,
+				potentialRent: rawPropertyStats.totalMonthlyRent, // TODO: Calculate actual potential rent
+				totalProperties: rawPropertyStats.total,
+				totalRent: rawPropertyStats.totalMonthlyRent,
+				collectedRent: rawPropertyStats.totalMonthlyRent, // TODO: Calculate actual collected rent
 				pendingRent: 0, // TODO: Calculate pending rent
-				total: rawPropertyStats.total || 0,
+				total: rawPropertyStats.total,
 				singleFamily: 0, // TODO: Calculate from property types
 				multiFamily: 0, // TODO: Calculate from property types
 				commercial: 0 // TODO: Calculate from property types
@@ -80,27 +75,27 @@ export class DashboardService {
 
 			// Map to TenantStats interface
 			const tenants: TenantStats = {
-				totalTenants: rawTenantStats.total || 0,
-				activeTenants: rawTenantStats.active || 0,
-				inactiveTenants: rawTenantStats.inactive || 0,
+				totalTenants: rawTenantStats.total,
+				activeTenants: rawTenantStats.active,
+				inactiveTenants: rawTenantStats.inactive,
 				pendingInvitations: 0, // TODO: Add actual pending invitations count
-				total: rawTenantStats.total || 0
+				total: rawTenantStats.total
 			}
 
 			// Map to UnitStats interface
 			const units: UnitStats = {
-				totalUnits: rawPropertyStats.totalUnits || 0,
-				availableUnits: rawPropertyStats.vacantUnits || 0,
-				occupiedUnits: rawPropertyStats.occupiedUnits || 0,
+				totalUnits: rawPropertyStats.totalUnits,
+				availableUnits: rawPropertyStats.vacantUnits,
+				occupiedUnits: rawPropertyStats.occupiedUnits,
 				maintenanceUnits: 0, // TODO: Add maintenance units calculation
 				averageRent:
 					rawPropertyStats.totalUnits > 0
 						? rawPropertyStats.totalMonthlyRent /
 							rawPropertyStats.totalUnits
 						: 0,
-				total: rawPropertyStats.totalUnits || 0,
-				occupied: rawPropertyStats.occupiedUnits || 0,
-				vacant: rawPropertyStats.vacantUnits || 0,
+				total: rawPropertyStats.totalUnits,
+				occupied: rawPropertyStats.occupiedUnits,
+				vacant: rawPropertyStats.vacantUnits,
 				occupancyRate:
 					rawPropertyStats.totalUnits > 0
 						? Math.round(
@@ -113,13 +108,13 @@ export class DashboardService {
 
 			// Map to LeaseStats interface
 			const leases: LeaseStats = {
-				totalLeases: rawLeaseStats.total || 0,
-				activeLeases: rawLeaseStats.active || 0,
-				expiredLeases: rawLeaseStats.expired || 0,
-				pendingLeases: rawLeaseStats.draft || 0,
-				totalRentRoll: rawPropertyStats.totalMonthlyRent || 0,
-				total: rawLeaseStats.total || 0,
-				active: rawLeaseStats.active || 0
+				totalLeases: rawLeaseStats.total,
+				activeLeases: rawLeaseStats.active,
+				expiredLeases: rawLeaseStats.expired,
+				pendingLeases: rawLeaseStats.draft,
+				totalRentRoll: rawPropertyStats.totalMonthlyRent,
+				total: rawLeaseStats.total,
+				active: rawLeaseStats.active
 			}
 
 			const dashboardStats: DashboardStats = {
@@ -154,14 +149,8 @@ export class DashboardService {
 				error: error instanceof Error ? error.message : String(error)
 			})
 
-			throw this.errorHandler.createBusinessError(
-				ErrorCode.INTERNAL_SERVER_ERROR,
-				'Failed to retrieve dashboard statistics',
-				{
-					operation: 'getStats',
-					resource: 'dashboard',
-					metadata: { userId }
-				}
+			throw new BadRequestException(
+				'Failed to retrieve dashboard statistics'
 			)
 		}
 	}
@@ -169,10 +158,10 @@ export class DashboardService {
 	/**
 	 * Get recent activity feed
 	 */
-	async getActivity(
+	getActivity(
 		userId: string,
 		authToken?: string
-	): Promise<DashboardActivity> {
+	): DashboardActivity {
 		try {
 			// TODO: Implement actual activity feed from database
 			// For now, return empty activity feed
@@ -190,14 +179,8 @@ export class DashboardService {
 				error: error instanceof Error ? error.message : String(error)
 			})
 
-			throw this.errorHandler.createBusinessError(
-				ErrorCode.INTERNAL_SERVER_ERROR,
-				'Failed to retrieve dashboard activity',
-				{
-					operation: 'getActivity',
-					resource: 'dashboard',
-					metadata: { userId }
-				}
+			throw new BadRequestException(
+				'Failed to retrieve dashboard activity'
 			)
 		}
 	}

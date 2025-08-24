@@ -158,26 +158,24 @@ class FrontendLogger implements ILogger {
 				windowWithPostHog.posthog.capture(event.event, event.properties)
 			}
 
-			// Sentry integration for errors
-			if (
-				level === 'error' &&
-				typeof window !== 'undefined' &&
-				(window as unknown as { Sentry?: unknown }).Sentry
-			) {
-				const sentry = (
-					window as unknown as {
-						Sentry: {
-							captureMessage: (
-								msg: string,
-								opts: { level: string; extra: LogContext }
-							) => void
-						}
+			// Sentry integration for errors (guarded for environments without Sentry)
+			if (level === 'error' && typeof window !== 'undefined' && 'Sentry' in window) {
+				const maybeSentry = (window as Window & { Sentry?: unknown }).Sentry
+				if (
+					maybeSentry &&
+					typeof (maybeSentry as { captureMessage?: unknown }).captureMessage === 'function'
+				) {
+					const sentry = maybeSentry as {
+						captureMessage: (
+							msg: string,
+							opts: { level: string; extra: LogContext }
+						) => void
 					}
-				).Sentry
-				sentry.captureMessage(message, {
-					level: 'error',
-					extra: context ?? {}
-				})
+					sentry.captureMessage(message, {
+						level: 'error',
+						extra: context ?? {}
+					})
+				}
 			}
 		} catch (analyticsError) {
 			// Silently fail analytics - don't break the app
@@ -192,10 +190,18 @@ class FrontendLogger implements ILogger {
 	 */
 	child(context: LogContext): FrontendLogger {
 		const childLogger = new FrontendLogger()
-		// Store context for future use
-		;(
-			childLogger as unknown as { defaultContext: LogContext }
-		).defaultContext = context
+		// Store context for future use (attach non-enumerable property)
+		try {
+			Object.defineProperty(childLogger, '__defaultContext', {
+				value: context,
+				writable: true,
+				enumerable: false
+			})
+		} catch {
+			// Fallback - not critical (keep as minimal typed record)
+			const rec = childLogger as { __defaultContext?: unknown }
+			rec.__defaultContext = context
+		}
 		return childLogger
 	}
 

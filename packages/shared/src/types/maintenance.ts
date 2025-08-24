@@ -83,7 +83,7 @@ export interface MaintenanceRequest {
 			name: string
 		}
 	}
-	Expense?: {
+	Expense?: Array<{
 		id: string
 		propertyId: string
 		maintenanceId: string | null
@@ -96,8 +96,8 @@ export interface MaintenanceRequest {
 		vendorContact: string | null
 		createdAt: string
 		updatedAt: string
-	}[]
-	files?: {
+	}>
+	files?: Array<{
 		id: string
 		filename: string
 		originalName: string
@@ -108,7 +108,7 @@ export interface MaintenanceRequest {
 		propertyId: string | null
 		maintenanceRequestId: string | null
 		createdAt: string
-	}[]
+	}>
 }
 
 // Extended maintenance types with relations

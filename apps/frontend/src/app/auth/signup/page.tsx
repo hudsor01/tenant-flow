@@ -1,4 +1,4 @@
-import type { Metadata } from '@/types/next.d'
+import type { Metadata } from 'next/types'
 import { Suspense } from 'react'
 import { SimpleSignupForm } from '@/components/forms/supabase-signup-form'
 import { AuthLayout } from '@/components/layout/auth/layout'

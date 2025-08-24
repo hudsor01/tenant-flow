@@ -1,6 +1,6 @@
 import { Download, Eye, Mail } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import type { InvoiceActionsProps } from '@/types/components'
+import type { InvoiceActionsProps } from '@/types'
 
 export function InvoiceActions({
 	onGenerateInvoice,

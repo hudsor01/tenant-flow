@@ -7,7 +7,7 @@ export * from './use-tenants'
 
 // Advanced business hooks (migrated from backup)
 export * from './use-lease-management'
-export * from './use-maintenance'
+// export * from './use-maintenance' // Maintenance feature removed
 
 // Server action and optimistic update hooks
 export * from '@/hooks/use-server-action'

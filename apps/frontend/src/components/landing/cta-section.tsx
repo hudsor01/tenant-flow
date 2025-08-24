@@ -46,9 +46,9 @@ export function CtaSection() {
 		<section className="from-primary relative overflow-hidden bg-gradient-to-br via-purple-600 to-pink-600 px-4 py-24 text-white">
 			{/* Enhanced background effects */}
 			<div className="absolute inset-0">
-				<div className="animate-blob absolute top-10 left-10 h-96 w-96 rounded-full bg-white/10 blur-3xl"></div>
-				<div className="animate-blob animation-delay-2000 absolute right-10 bottom-10 h-96 w-96 rounded-full bg-white/10 blur-3xl"></div>
-				<div className="animate-blob animation-delay-4000 absolute top-1/2 left-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-white/5 blur-3xl"></div>
+				<div className="animate-blob absolute top-10 left-10 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
+				<div className="animate-blob animation-delay-2000 absolute right-10 bottom-10 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
+				<div className="animate-blob animation-delay-4000 absolute top-1/2 left-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-white/5 blur-3xl" />
 			</div>
 
 			<div className="relative z-10 container mx-auto max-w-5xl text-center">

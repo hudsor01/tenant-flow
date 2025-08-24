@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { logger } from '@/lib/logger'
+import { logger } from "@/lib/logger/logger"
 import { useRouter } from 'next/navigation'
 import { motion } from '@/lib/lazy-motion'
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react'
@@ -9,7 +9,7 @@ import { supabase } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
 // Removed debug-auth import - using logger directly
-import { queryKeys } from '@/lib/query-keys'
+import { queryKeys } from '@/lib/react-query/query-keys'
 import type { Session, AuthError } from '@supabase/supabase-js'
 
 type ProcessingState = 'loading' | 'success' | 'error'
@@ -63,7 +63,7 @@ export function SupabaseAuthProcessor() {
 				)
 				// Redirect immediately to dashboard
 				setTimeout(() => {
-					void router.push('/dashboard')
+					router.push('/dashboard')
 				}, 100)
 				return
 			}
@@ -132,7 +132,7 @@ export function SupabaseAuthProcessor() {
 						)
 
 						setTimeout(() => {
-							void router.push('/dashboard')
+							router.push('/dashboard')
 						}, 500)
 						return
 					}
@@ -150,7 +150,7 @@ export function SupabaseAuthProcessor() {
 						)
 
 						setTimeout(() => {
-							void router.push('/auth/login')
+							router.push('/auth/login')
 						}, 3000)
 						return
 					}
@@ -266,7 +266,7 @@ export function SupabaseAuthProcessor() {
 
 							// Navigate to dashboard
 							setTimeout(() => {
-								void router.push('/dashboard')
+								router.push('/dashboard')
 							}, 500)
 							return
 						} else {
@@ -304,7 +304,7 @@ export function SupabaseAuthProcessor() {
 							)
 
 							setTimeout(() => {
-								void router.push('/dashboard')
+								router.push('/dashboard')
 							}, 1000)
 							return
 						}
@@ -329,7 +329,7 @@ export function SupabaseAuthProcessor() {
 						const { data, error } =
 							await supabase.auth.exchangeCodeForSession(code)
 
-						if (error) throw error
+						if (error) {throw error}
 
 						if (data.session && mounted) {
 							// Invalidate auth queries to ensure fresh user data
@@ -344,7 +344,7 @@ export function SupabaseAuthProcessor() {
 							})
 
 							toast.success('Successfully signed in!')
-							void router.push('/dashboard')
+							router.push('/dashboard')
 							return
 						}
 					} catch (err) {
@@ -368,7 +368,7 @@ export function SupabaseAuthProcessor() {
 								'Please use the same browser you signed up with'
 							)
 							setTimeout(
-								() => void router.push('/auth/login'),
+								() => router.push('/auth/login'),
 								3000
 							)
 							return
@@ -403,7 +403,7 @@ export function SupabaseAuthProcessor() {
 					throw sessionError
 				}
 
-				if (!mounted) return
+				if (!mounted) {return}
 
 				if (session?.user) {
 					// Invalidate auth queries to ensure fresh user data
@@ -419,7 +419,7 @@ export function SupabaseAuthProcessor() {
 					})
 
 					toast.success('Successfully signed in!')
-					void router.push('/dashboard')
+					router.push('/dashboard')
 				} else if (isEmailConfirmation) {
 					// This is an email confirmation that succeeded
 					setStatus({
@@ -444,7 +444,7 @@ export function SupabaseAuthProcessor() {
 						toast.success(
 							'Email confirmed! Please sign in to continue.'
 						)
-						void router.push('/auth/login?emailConfirmed=true')
+						router.push('/auth/login?emailConfirmed=true')
 					}, 1500)
 				} else {
 					// No session found - redirect to login
@@ -455,11 +455,11 @@ export function SupabaseAuthProcessor() {
 					})
 
 					setTimeout(() => {
-						void router.push('/auth/login')
+						router.push('/auth/login')
 					}, 2000)
 				}
 			} catch (error) {
-				if (!mounted) return
+				if (!mounted) {return}
 
 				logger.error(
 					'Auth processing error:',
@@ -479,7 +479,7 @@ export function SupabaseAuthProcessor() {
 				toast.error('Authentication failed')
 
 				setTimeout(() => {
-					void router.push('/auth/login')
+					router.push('/auth/login')
 				}, 2000)
 			} finally {
 				// Always clear the processing flag
@@ -499,7 +499,7 @@ export function SupabaseAuthProcessor() {
 					details: 'Taking too long, please try again'
 				})
 				toast.error('Authentication timeout')
-				void router.push('/auth/login')
+				router.push('/auth/login')
 			}
 		}, 20000) // 20 second timeout - balance between reliability and UX
 
@@ -601,7 +601,7 @@ export function SupabaseAuthProcessor() {
 							className="mt-4"
 						>
 							<button
-								onClick={() => void router.push('/auth/login')}
+								onClick={() => router.push('/auth/login')}
 								className="text-primary hover:text-primary/80 font-semibold underline transition-colors"
 							>
 								Return to login

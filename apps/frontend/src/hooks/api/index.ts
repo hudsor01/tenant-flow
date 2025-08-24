@@ -15,7 +15,7 @@ export * from './use-leases'
 // Units
 export * from './use-units'
 
-// Maintenance
+// Maintenance - Restored with proper type-safe stub implementation
 export * from './use-maintenance'
 
 // Dashboard

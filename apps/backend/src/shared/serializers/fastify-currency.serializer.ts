@@ -93,7 +93,7 @@ export function createCurrencySerializer(options: CurrencySerializerOptions = {}
           EUR: '€',
           GBP: '£'
         }
-        const symbol = symbols[currency] || currency
+        const symbol = symbols[currency] ?? currency
         return `${symbol}${displayAmount}`
       }
       
@@ -123,17 +123,18 @@ export function registerCurrencySerializerForRoute(
   
   fastify.setSerializerCompiler(({ schema }) => {
     // Check if schema contains currency-related fields
-    if (schema && typeof schema === 'object' && 'properties' in schema) {
-      const hasCurrencyFields = Object.keys(schema.properties || {}).some(key => 
+    const schemaObj = schema as { properties?: Record<string, unknown> }
+    if (schemaObj.properties) {
+      const hasCurrencyFields = Object.keys(schemaObj.properties).some(key => 
         key.includes('amount') || 
         key.includes('price') || 
         key.includes('rent') || 
         key.includes('cost') ||
         key === 'currency' ||
         key === 'revenue'
-      )
-      
-      if (hasCurrencyFields) {
+        )
+        
+        if (hasCurrencyFields) {
         return (data: unknown) => {
           return JSON.stringify(data, (key, value) => {
             // Apply currency serialization to relevant fields

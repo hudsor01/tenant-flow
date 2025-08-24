@@ -1,7 +1,6 @@
-import { Inject, Injectable, Logger } from '@nestjs/common'
+import { Inject, Injectable, Logger, BadRequestException, InternalServerErrorException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
-import { ErrorHandlerService } from '../services/error-handler.service'
 import * as path from 'path'
 
 // Custom type that matches what we're returning
@@ -20,8 +19,7 @@ export class StorageService {
 	private readonly supabase: SupabaseClient
 
 	constructor(
-		@Inject(ConfigService) private configService: ConfigService,
-		private errorHandler: ErrorHandlerService
+		@Inject(ConfigService) private configService: ConfigService
 	) {
 		const supabaseUrl = this.configService.get<string>('SUPABASE_URL')
 		const supabaseServiceKey = this.configService.get<string>(
@@ -29,9 +27,8 @@ export class StorageService {
 		)
 
 		if (!supabaseUrl || !supabaseServiceKey) {
-			throw this.errorHandler.createBusinessError(
-				'Supabase configuration missing: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY required',
-				{ operation: 'constructor', resource: 'storage' }
+			throw new InternalServerErrorException(
+				'Supabase configuration missing: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY required'
 			)
 		}
 
@@ -54,9 +51,8 @@ export class StorageService {
 			normalized.includes('/../') ||
 			normalized === '..'
 		) {
-			throw this.errorHandler.createBusinessError(
-				'Invalid file path detected',
-				{ operation: 'validateFilePath', resource: 'file' }
+			throw new BadRequestException(
+				'Invalid file path detected'
 			)
 		}
 
@@ -84,9 +80,8 @@ export class StorageService {
 			hasDangerousChars ||
 			dangerousExtensions.test(filename)
 		) {
-			throw this.errorHandler.createBusinessError(
-				'Invalid file name or extension',
-				{ operation: 'validateFileName', resource: 'file' }
+			throw new BadRequestException(
+				'Invalid file name or extension'
 			)
 		}
 
@@ -110,12 +105,13 @@ export class StorageService {
 		const safePath = this.validateFilePath(filePath)
 		const filename = path.basename(safePath)
 		this.validateFileName(filename)
+		
 		const { error } = await this.supabase.storage
 			.from(bucket)
 			.upload(safePath, file, {
 				contentType: options?.contentType,
-				cacheControl: options?.cacheControl || '3600',
-				upsert: options?.upsert || false
+				cacheControl: options?.cacheControl ?? '3600',
+				upsert: options?.upsert ?? false
 			})
 
 		if (error) {
@@ -125,13 +121,8 @@ export class StorageService {
 				path: safePath,
 				bucket
 			})
-			throw this.errorHandler.createBusinessError(
-				'Failed to upload file',
-				{
-					operation: 'uploadFile',
-					resource: 'file',
-					metadata: { bucket, path: safePath, error: error.message }
-				}
+			throw new BadRequestException(
+				`Failed to upload file: ${error.message}`
 			)
 		}
 
@@ -140,9 +131,9 @@ export class StorageService {
 		return {
 			url: publicUrl,
 			path: safePath,
-			filename: safePath.split('/').pop() || safePath,
+			filename: safePath.split('/').pop() ?? safePath,
 			size: file.length,
-			mimeType: options?.contentType || 'application/octet-stream',
+			mimeType: options?.contentType ?? 'application/octet-stream',
 			bucket
 		}
 	}
@@ -173,13 +164,8 @@ export class StorageService {
 				path: safePath,
 				bucket
 			})
-			throw this.errorHandler.createBusinessError(
-				'Failed to delete file',
-				{
-					operation: 'deleteFile',
-					resource: 'file',
-					metadata: { bucket, path: safePath, error: error.message }
-				}
+			throw new BadRequestException(
+				`Failed to delete file: ${error.message}`
 			)
 		}
 
@@ -189,7 +175,7 @@ export class StorageService {
 	/**
 	 * List files in a bucket/folder
 	 */
-	async listFiles(bucket: string, folder?: string) {
+	async listFiles(bucket: string, folder?: string): Promise<{ name: string; id?: string; updated_at?: string; created_at?: string; last_accessed_at?: string; metadata?: Record<string, unknown> }[]> {
 		const { data, error } = await this.supabase.storage
 			.from(bucket)
 			.list(folder)
@@ -201,21 +187,12 @@ export class StorageService {
 				bucket,
 				folder
 			})
-			throw this.errorHandler.createBusinessError(
-				'Failed to list files',
-				{
-					operation: 'listFiles',
-					resource: 'file',
-					metadata: {
-						bucket,
-						folder: folder || null,
-						error: error.message
-					}
-				}
+			throw new BadRequestException(
+				`Failed to list files: ${error.message}`
 			)
 		}
 
-		return data
+		return data ?? []
 	}
 
 	/**

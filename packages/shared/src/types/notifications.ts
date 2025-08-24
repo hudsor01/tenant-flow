@@ -1,14 +1,30 @@
 // Notification types for TenantFlow application
 
-import type { WebSocketMessage } from './websocket'
-
 // Notification type enum
 export enum NotificationType {
 	MAINTENANCE = 'MAINTENANCE',
 	LEASE = 'LEASE',
 	PAYMENT = 'PAYMENT',
 	GENERAL = 'GENERAL',
-	SYSTEM = 'SYSTEM'
+	SYSTEM = 'SYSTEM',
+	INFO = 'INFO' // Add INFO for compatibility
+}
+
+// API Request/Response types (consolidated from frontend)
+export interface NotificationRequest {
+	type: NotificationType
+	title: string
+	message: string
+	recipientId?: string
+	actionUrl?: string
+	data?: Record<string, unknown>
+	priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT' | 'EMERGENCY'
+}
+
+export interface NotificationResponse {
+	id: string
+	sent: boolean
+	sentAt: string
 }
 
 export interface NotificationData {
@@ -28,6 +44,14 @@ export interface NotificationWebSocketMessage {
 	type: string
 	data: Record<string, string | number | boolean | null>
 	timestamp?: Date | string
+	id?: string
+}
+
+// Base WebSocket message type
+export interface WebSocketMessage {
+	type: string
+	data: Record<string, unknown>
+	timestamp?: string
 	id?: string
 }
 

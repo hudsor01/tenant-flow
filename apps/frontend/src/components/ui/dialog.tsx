@@ -83,7 +83,7 @@ function DialogContent({
 					className
 				)}
 				// Ensure dialog receives focus for screen readers
-				onOpenAutoFocus={event => {
+				onOpenAutoFocus={(event: Event) => {
 					// Let Radix handle focus management
 					event.preventDefault()
 				}}

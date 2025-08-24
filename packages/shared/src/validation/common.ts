@@ -175,52 +175,6 @@ export const auditFieldsSchema = z.object({
 	updatedAt: z.date()
 })
 
-// ===== UTILITY FUNCTIONS =====
-
-// Create a paginated response schema for any data type
-export const createPaginatedResponseSchema = <T extends z.ZodTypeAny>(
-	itemSchema: T
-): z.ZodObject<{
-	data: z.ZodArray<T>
-	pagination: typeof paginationResponseSchema
-}> =>
-	z.object({
-		data: z.array(itemSchema),
-		pagination: paginationResponseSchema
-	})
-
-// Create a standard API response schema
-export const createApiResponseSchema = <T extends z.ZodTypeAny>(
-	dataSchema: T
-): z.ZodObject<{
-	success: z.ZodBoolean
-	data: z.ZodOptional<T>
-	error: z.ZodOptional<z.ZodString>
-	message: z.ZodOptional<z.ZodString>
-}> =>
-	z.object({
-		success: z.boolean(),
-		data: dataSchema.optional(),
-		error: z.string().optional(),
-		message: z.string().optional()
-	})
-
-// Create a list response with total count
-export const createListResponseSchema = <T extends z.ZodTypeAny>(
-	itemSchema: T
-): z.ZodObject<{
-	items: z.ZodArray<T>
-	totalCount: z.ZodNumber
-	page: z.ZodNumber
-	pageSize: z.ZodNumber
-}> =>
-	z.object({
-		items: z.array(itemSchema),
-		totalCount: z.number(),
-		page: z.number(),
-		pageSize: z.number(),
-		totalPages: z.number()
-	})
 
 // ===== REACT 19 ACTION STATE SCHEMAS =====
 

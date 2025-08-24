@@ -3,7 +3,7 @@
  * Tracks key business metrics and user actions
  */
 
-import { type PostHog } from 'posthog-js'
+import type { PostHog } from 'posthog-js'
 
 export interface BusinessEvent {
 	event: string
@@ -37,7 +37,7 @@ export const trackPropertyEvent = (
 	posthog: PostHog | null,
 	event: PropertyEvent
 ) => {
-	if (!posthog) return
+	if (!posthog) {return}
 
 	posthog.capture(event.event, {
 		category: 'property',
@@ -53,7 +53,7 @@ export const trackPropertyEvent = (
  * Track lease-related business events
  */
 export const trackLeaseEvent = (posthog: PostHog | null, event: LeaseEvent) => {
-	if (!posthog) return
+	if (!posthog) {return}
 
 	posthog.capture(event.event, {
 		category: 'lease',
@@ -73,7 +73,7 @@ export const trackTenantEvent = (
 	posthog: PostHog | null,
 	event: TenantEvent
 ) => {
-	if (!posthog) return
+	if (!posthog) {return}
 
 	posthog.capture(event.event, {
 		category: 'tenant',
@@ -119,28 +119,28 @@ export type BusinessEventType =
  */
 export const useBusinessEvents = () => {
 	// This is a placeholder - integrate with actual PostHog hook when available
-	const trackEvent = (event: BusinessEvent) => {
-		console.log('Business event tracked:', event)
+	const trackEvent = (_event: BusinessEvent) => {
+		// TODO: Implement actual tracking when PostHog integration is complete
 	}
 
-	const trackPropertyCreated = (propertyData: Record<string, unknown>) => {
-		console.log('Property created event tracked:', propertyData)
+	const trackPropertyCreated = (_propertyData: Record<string, unknown>) => {
+		// TODO: Implement actual tracking when PostHog integration is complete
 	}
 
-	const trackPropertyUpdated = (propertyData: Record<string, unknown>) => {
-		console.log('Property updated event tracked:', propertyData)
+	const trackPropertyUpdated = (_propertyData: Record<string, unknown>) => {
+		// TODO: Implement actual tracking when PostHog integration is complete
 	}
 
-	const trackLeaseCreated = (leaseData: Record<string, unknown>) => {
-		console.log('Lease created event tracked:', leaseData)
+	const trackLeaseCreated = (_leaseData: Record<string, unknown>) => {
+		// TODO: Implement actual tracking when PostHog integration is complete
 	}
 
-	const trackTenantCreated = (tenantData: Record<string, unknown>) => {
-		console.log('Tenant created event tracked:', tenantData)
+	const trackTenantCreated = (_tenantData: Record<string, unknown>) => {
+		// TODO: Implement actual tracking when PostHog integration is complete
 	}
 
-	const trackUserError = (error: Record<string, unknown>) => {
-		console.log('User error tracked:', error)
+	const trackUserError = (_error: Record<string, unknown>) => {
+		// TODO: Implement actual tracking when PostHog integration is complete
 	}
 
 	return {
@@ -160,18 +160,18 @@ export const useBusinessEvents = () => {
 export const useInteractionTracking = () => {
 	// This is a placeholder - integrate with actual analytics when available
 	const trackInteraction = (
-		interaction: string,
-		properties?: Record<string, unknown>
+		_interaction: string,
+		_properties?: Record<string, unknown>
 	) => {
-		console.log('Interaction tracked:', interaction, properties)
+		// TODO: Implement actual tracking when analytics integration is complete
 	}
 
 	const trackFormSubmission = (
-		formType: string,
-		success: boolean,
-		errors?: string[]
+		_formType: string,
+		_success: boolean,
+		_errors?: string[]
 	) => {
-		console.log('Form submission tracked:', { formType, success, errors })
+		// TODO: Implement actual tracking when analytics integration is complete
 	}
 
 	return { trackInteraction, trackFormSubmission }

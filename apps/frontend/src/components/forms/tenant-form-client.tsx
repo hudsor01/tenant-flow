@@ -8,7 +8,7 @@
 'use client'
 
 import React, { useState, useTransition, useEffect } from 'react'
-import { logger } from '@/lib/logger'
+import { logger } from "@/lib/logger/logger"
 import { motion } from '@/lib/lazy-motion'
 import { useRouter } from 'next/navigation'
 import type { CreateTenantInput, UpdateTenantInput, Tenant } from '@repo/shared'

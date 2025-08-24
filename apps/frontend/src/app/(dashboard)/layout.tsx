@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import type { Metadata } from '@/types/next.d'
+import type { Metadata } from 'next/types'
 import { CommandPaletteProvider } from '@/hooks/use-command-palette'
 import { QueryProvider } from '@/providers/query-provider'
 import { PHProvider } from '@/providers/posthog-provider'
@@ -9,7 +9,7 @@ import { PostHogErrorBoundary } from '@/components/analytics/posthog-error-bound
 import { ServerAuthGuard } from '@/components/auth/server-auth-guard'
 import { ProtectedRouteGuard } from '@/components/auth/protected-route-guard'
 import { Navigation } from '@/components/dashboard/dashboard-navigation'
-import { DashboardSidebar } from '@/components/dashboard/dashboard-sidebar'
+// Dashboard sidebar removed - using simpler layout
 import { OfflineBanner } from '@/components/ui/offline-indicator'
 import { Loader2 } from 'lucide-react'
 
@@ -69,7 +69,9 @@ export default function DashboardLayout({
 											>
 												<aside className="hidden w-64 bg-white shadow-sm md:block">
 													{sidebar ?? (
-														<DashboardSidebar />
+														<div className="p-4">
+															<p className="text-gray-500 text-sm">Navigation</p>
+														</div>
 													)}
 												</aside>
 											</Suspense>
