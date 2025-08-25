@@ -28,6 +28,7 @@ COPY . .
 RUN rm -rf .git .github docs *.md apps/frontend apps/storybook
 
 ENV NODE_ENV=production
+RUN npm run build:shared
 RUN npm run build:backend
 
 FROM node:24-alpine AS runtime
