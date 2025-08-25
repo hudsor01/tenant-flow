@@ -8,7 +8,6 @@ import { SupabaseModule } from '../database/supabase.module'
 import { StripeModule } from '../billing/stripe.module'
 import { UsersModule } from '../users/users.module'
 import { CommonModule } from '../shared/common.module'
-import { SecurityMonitorService } from '../security/security-monitor.service'
 
 @Global()
 @Module({
@@ -22,8 +21,7 @@ import { SecurityMonitorService } from '../security/security-monitor.service'
 	controllers: [AuthController, AuthWebhookController],
 	providers: [
 		AuthService,
-		JwtAuthGuard,
-		SecurityMonitorService
+		JwtAuthGuard
 	],
 	exports: [AuthService, JwtAuthGuard]
 })

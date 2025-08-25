@@ -37,7 +37,7 @@ export class LeasePDFService {
 			// Convert to PDF
 			const pdfBuffer = await this.pdfGenerator.generatePDF(htmlContent, {
 				format: 'A4',
-				margin: { top: 50, bottom: 50, left: 50, right: 50 }
+				margin: { top: '50px', bottom: '50px', left: '50px', right: '50px' }
 			})
 
 			const filename = `lease-${leaseId}.pdf`

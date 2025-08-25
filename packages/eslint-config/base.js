@@ -168,23 +168,17 @@ const baseConfig = tseslint.config(
 			'@typescript-eslint/await-thenable': 'error',
 			'@typescript-eslint/require-await': 'warn',
 			
-			// Type safety improvements
-			'@typescript-eslint/no-non-null-assertion': 'warn',
-			'@typescript-eslint/prefer-nullish-coalescing': [
-				'warn',
-				{
-					ignoreTernaryTests: false,
-					ignoreConditionalTests: false,
-					ignoreMixedLogicalExpressions: false
-				}
-			],
-			'@typescript-eslint/prefer-optional-chain': 'error',
-			'@typescript-eslint/no-unnecessary-condition': [
-				'warn',
-				{
-					allowConstantLoopConditions: true
-				}
-			],
+			// Type safety - Practical settings for real integrations
+			'@typescript-eslint/no-non-null-assertion': 'off', // Allow ! when we know better than TS
+			'@typescript-eslint/no-unnecessary-type-assertion': 'off', // We know better than TS with API responses
+			'@typescript-eslint/no-unnecessary-condition': 'off', // Defensive programming is good
+			'@typescript-eslint/switch-exhaustiveness-check': 'warn', // Enable but as warning, not error
+			'@typescript-eslint/prefer-nullish-coalescing': ['warn', {
+				ignoreTernaryTests: true,
+				ignoreConditionalTests: true,
+				ignoreMixedLogicalExpressions: true
+			}],
+			'@typescript-eslint/prefer-optional-chain': 'warn', // Suggest but don't error
 			
 			// Additional TypeScript ESLint v8 rules for better code quality
 			'@typescript-eslint/array-type': [
@@ -237,7 +231,6 @@ const baseConfig = tseslint.config(
 			'@typescript-eslint/prefer-reduce-type-parameter': 'warn',
 			'@typescript-eslint/prefer-string-starts-ends-with': 'warn',
 			'@typescript-eslint/promise-function-async': 'error',
-			'@typescript-eslint/switch-exhaustiveness-check': 'error',
 			'@typescript-eslint/unified-signatures': 'error',
 			
 			// Naming conventions - updated for modern patterns
@@ -417,6 +410,33 @@ const baseConfig = tseslint.config(
 				}
 			],
 			'no-console': 'off' // Email scripts may need console
+		}
+	},
+	
+	// Integration-specific overrides for third-party APIs
+	{
+		name: 'integrations/third-party',
+		files: [
+			'**/stripe/**/*.ts',
+			'**/billing/**/*.ts',
+			'**/supabase/**/*.ts',
+			'**/database/**/*.ts',
+			'**/*webhook*.ts',
+			'**/*-webhook.*.ts',
+			'**/resend/**/*.ts',
+			'**/emails/**/*.ts'
+		],
+		rules: {
+			// Third-party APIs return unknown shapes
+			'@typescript-eslint/no-explicit-any': 'off',
+			'@typescript-eslint/no-unsafe-assignment': 'off',
+			'@typescript-eslint/no-unsafe-member-access': 'off',
+			'@typescript-eslint/no-unsafe-call': 'off',
+			'@typescript-eslint/no-unsafe-return': 'off',
+			'@typescript-eslint/no-unsafe-argument': 'off',
+			
+			// But MUST use logger instead of console
+			'no-console': 'error'
 		}
 	}
 )

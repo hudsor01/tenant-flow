@@ -19,6 +19,7 @@
 		"**/*.spec.ts",
 		"**/*.test.ts",
 		"src/test/**/*",
+		"src/test-setup.ts",
 		"src/auth/auth-production-diagnostic.ts",
 		"src/test-utils/**/*",
 		"src/queues/__tests__/**/*",

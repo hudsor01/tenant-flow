@@ -28,7 +28,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci --prefer-offline
+        run: npm ci --prefer-offline --no-audit
 
       - name: Run npm audit
         id: npm_audit
@@ -86,7 +86,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci --prefer-offline
+        run: npm ci --prefer-offline --no-audit
 
       - name: Check licenses
         run: |
@@ -165,7 +165,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci --prefer-offline
+        run: npm ci --prefer-offline --no-audit
 
       - name: Build and analyze
         run: |

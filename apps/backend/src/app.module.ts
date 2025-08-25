@@ -17,7 +17,7 @@ import { MaintenanceModule } from './maintenance/maintenance.module'
 import { HealthModule } from './health/health.module'
 import { StripeModule } from './billing/stripe.module'
 import { NotificationsModule } from './notifications/notifications.module'
-import { EmailModule } from './emails/email.module'
+import { WebhooksModule } from './webhooks/webhooks.module'
 import { AnalyticsService } from './analytics/analytics.service'
 import { StripeService } from './billing/stripe.service'
 import { AppController } from './app.controller'
@@ -66,7 +66,7 @@ import { AppService } from './app.service'
 		HealthModule,
 		StripeModule,
 		NotificationsModule,
-		EmailModule
+		WebhooksModule
 	],
 	controllers: [AppController],
 	providers: [

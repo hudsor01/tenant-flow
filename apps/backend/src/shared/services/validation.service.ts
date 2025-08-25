@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
 import { validate } from 'class-validator'
 import { type ClassConstructor, plainToClass } from 'class-transformer'
+import { z } from 'zod'
 
 /**
  * Validation result interface
@@ -44,6 +45,46 @@ export class ValidationService {
 	private static readonly PHONE_PATTERNS = {
 		US: /^\+?1?[-.\s]?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})$/,
 		INTERNATIONAL: /^\+?[1-9]\d{1,14}$/
+	}
+
+	/**
+	 * Zod schemas for enhanced validation
+	 */
+	private static readonly ZOD_SCHEMAS = {
+		email: z.string().email('Invalid email format'),
+		
+		password: z.string()
+			.min(8, 'Password must be at least 8 characters long')
+			.regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+			.regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+			.regex(/[0-9]/, 'Password must contain at least one number')
+			.regex(/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/, 'Password must contain at least one special character'),
+		
+		phoneUS: z.string().regex(/^\+?1?[-.\s]?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})$/, 'Invalid US phone number format'),
+		
+		phoneInternational: z.string().regex(/^\+?[1-9]\d{1,14}$/, 'Invalid international phone number format'),
+		
+		uuid: z.string().uuid('Invalid UUID format'),
+		
+		url: z.string().url('Invalid URL format'),
+		
+		positiveNumber: z.number().positive('Must be a positive number'),
+		
+		dateString: z.string().datetime('Invalid date format'),
+		
+		nonEmptyString: z.string().min(1, 'Field cannot be empty').trim(),
+		
+		currency: z.enum(['USD', 'EUR', 'GBP', 'CAD', 'AUD'], {
+			message: 'Invalid currency code'
+		}),
+		
+		priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'EMERGENCY'], {
+			message: 'Invalid priority level'
+		}),
+		
+		userRole: z.enum(['OWNER', 'MANAGER', 'TENANT', 'ADMIN'], {
+			message: 'Invalid user role'
+		})
 	}
 
 	/**
@@ -395,5 +436,71 @@ export class ValidationService {
 				errors
 			}
 		}
+	}
+
+	/**
+	 * Validate using Zod schemas with better error messages
+	 */
+	validateWithZod<T>(
+		schema: z.ZodSchema<T>,
+		data: unknown,
+		fieldName = 'field'
+	): ValidationResult {
+		try {
+			schema.parse(data)
+			return { isValid: true, errors: [] }
+		} catch (error) {
+			if (error instanceof z.ZodError) {
+				const errors: ValidationError[] = error.issues.map((err: z.ZodIssue) => ({
+					field: err.path.join('.') || fieldName,
+					message: err.message,
+					value: data
+				}))
+				return { isValid: false, errors }
+			}
+			
+			return {
+				isValid: false,
+				errors: [{
+					field: fieldName,
+					message: 'Validation failed',
+					value: data
+				}]
+			}
+		}
+	}
+
+	/**
+	 * Quick validation methods using Zod schemas
+	 */
+	validateEmailZod(email: string): ValidationResult {
+		return this.validateWithZod(ValidationService.ZOD_SCHEMAS.email, email, 'email')
+	}
+
+	validatePasswordZod(password: string): ValidationResult {
+		return this.validateWithZod(ValidationService.ZOD_SCHEMAS.password, password, 'password')
+	}
+
+	validateUUIDZod(uuid: string): ValidationResult {
+		return this.validateWithZod(ValidationService.ZOD_SCHEMAS.uuid, uuid, 'uuid')
+	}
+
+	validateURLZod(url: string): ValidationResult {
+		return this.validateWithZod(ValidationService.ZOD_SCHEMAS.url, url, 'url')
+	}
+
+	validatePriorityZod(priority: string): ValidationResult {
+		return this.validateWithZod(ValidationService.ZOD_SCHEMAS.priority, priority, 'priority')
+	}
+
+	validateUserRoleZod(role: string): ValidationResult {
+		return this.validateWithZod(ValidationService.ZOD_SCHEMAS.userRole, role, 'role')
+	}
+
+	/**
+	 * Get Zod schemas for external use
+	 */
+	getZodSchemas() {
+		return ValidationService.ZOD_SCHEMAS
 	}
 }

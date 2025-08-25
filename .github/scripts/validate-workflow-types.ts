@@ -269,8 +269,8 @@ const validationRules: ValidationRule[] = [
 				for (let i = 0; i < job.steps.length; i++) {
 					const step = job.steps[i]
 					
-					if (step.uses.startsWith('actions/checkout')) {
-						if (!step.with.['fetch-depth']) {
+					if (step.uses?.startsWith('actions/checkout')) {
+						if (!step.with?.['fetch-depth']) {
 							results.push({
 								type: 'info',
 								message: 'Consider setting fetch-depth for checkout action for performance',
@@ -280,8 +280,8 @@ const validationRules: ValidationRule[] = [
 					}
 
 					// Check for setup-node
-					if (step.uses.startsWith('actions/setup-node')) {
-						if (!step.with.['node-version']) {
+					if (step.uses?.startsWith('actions/setup-node')) {
+						if (!step.with?.['node-version']) {
 							results.push({
 								type: 'warning',
 								message: 'setup-node should specify node-version',
@@ -307,12 +307,12 @@ const validationRules: ValidationRule[] = [
 
 				for (const step of job.steps) {
 					// Check for caching
-					if (step.uses.includes('cache')) {
+					if (step.uses?.includes('cache')) {
 						hasCaching = true
 					}
 
 					// Check for npm ci vs npm install
-					if (step.run.includes('npm install') && !step.run.includes('npm ci')) {
+					if (step.run?.includes('npm install') && !step.run?.includes('npm ci')) {
 						results.push({
 							type: 'warning',
 							message: 'Consider using "npm ci" instead of "npm install" for faster, deterministic builds',
@@ -331,7 +331,7 @@ const validationRules: ValidationRule[] = [
 				}
 
 				// Check for matrix strategy
-				if (job.strategy.matrix && !job.strategy['fail-fast']) {
+				if (job.strategy?.matrix && !job.strategy?.['fail-fast']) {
 					results.push({
 						type: 'info',
 						message: 'Consider setting fail-fast: false for matrix jobs to see all failures',

@@ -218,6 +218,19 @@ npm run test:production   # Production readiness
 - **Zustand**: Minimal re-renders, selective subscriptions
 - **Bundle Splitting**: Automatic via Next.js
 
+### Logging Architecture
+
+- **Current**: NestJS Logger (uses console methods, simple and working)
+- **Available**: Pino (comes FREE with Fastify, 5x faster, JSON output)
+- **Decision**: Use NestJS Logger by default (KISS principle)
+- **When to use Pino**: Only if you need:
+  - JSON logs for production parsing
+  - Request ID tracking (automatic with Pino)
+  - High-frequency logging performance
+  - PII redaction features
+- **How to access Pino**: `request.log` in controllers (it's already there!)
+- **Note**: We removed winston/nest-winston - they were unused dependencies
+
 ### Database Architecture
 
 - **Supabase PostgreSQL**: Primary database with RLS

@@ -201,7 +201,7 @@
 				"!**/*.test.*",
 				"!**/*.spec.*"
 			],
-			"outputs": [".tsbuildinfo"],
+			"outputs": [],
 			"cache": true,
 			"persistent": false
 		},
@@ -215,7 +215,7 @@
 				"!**/*.test.*",
 				"!**/*.spec.*"
 			],
-			"outputs": [".tsbuildinfo"],
+			"outputs": [],
 			"cache": true,
 			"persistent": false
 		},
