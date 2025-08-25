@@ -24,6 +24,10 @@
 	"scripts": {
 		"dev": "turbo run dev",
 		"build": "turbo run build",
+		"build:shared": "turbo run build --filter=@repo/shared",
+		"build:database": "turbo run build --filter=@repo/database",
+		"build:backend": "turbo run build --filter=@repo/backend",
+		"build:frontend": "turbo run build --filter=@repo/frontend",
 		"lint": "turbo run lint",
 		"typecheck": "turbo run typecheck",
 		"test": "turbo run test",
