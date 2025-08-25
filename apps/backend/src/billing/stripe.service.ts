@@ -199,7 +199,7 @@ export class StripeService {
 			// Cancellation notification is handled in cancelSubscription method or webhook handler in controller
 		} else if (event.type === 'customer.subscription.trial_will_end') {
 			// Notification removed for MVP - focus on core CRUD functionality
-			const trialSubscription = event.data.object as Stripe.Subscription
+			const trialSubscription = event.data.object
 			const userId = trialSubscription.metadata?.userId
 			if (userId && trialSubscription.trial_end) {
 				this.logger.log(`Trial ending for user ${userId}, subscription ${trialSubscription.id}`)
