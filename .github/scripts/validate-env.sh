@@ -43,6 +43,7 @@ check_var() {
         fi
         echo -e "${GREEN}✓ $var_name is set${NC}"
         return 0
+        
     fi
 }
 

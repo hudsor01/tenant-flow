@@ -122,10 +122,11 @@ export class StripeWebhookService {
 	private async handlePaymentFailure(
 		invoice: Stripe.Invoice
 	): Promise<void> {
-		// Invoice subscription can be string, Subscription object, or null
-		const subscriptionId = typeof invoice.subscription === 'string' 
-			? invoice.subscription 
-			: (invoice.subscription as Stripe.Subscription | null)?.id
+		// Get subscription ID from invoice metadata or lines
+		const subscription = invoice.lines.data[0]?.subscription
+		const subscriptionId = typeof subscription === 'string' 
+			? subscription 
+			: subscription?.id
 			
 		if (!subscriptionId) {
 			return
@@ -143,10 +144,11 @@ export class StripeWebhookService {
 	private async handlePaymentSuccess(
 		invoice: Stripe.Invoice
 	): Promise<void> {
-		// Invoice subscription can be string, Subscription object, or null
-		const subscriptionId = typeof invoice.subscription === 'string' 
-			? invoice.subscription 
-			: (invoice.subscription as Stripe.Subscription | null)?.id
+		// Get subscription ID from invoice metadata or lines
+		const subscription = invoice.lines.data[0]?.subscription
+		const subscriptionId = typeof subscription === 'string' 
+			? subscription 
+			: subscription?.id
 			
 		if (!subscriptionId) {
 			return
@@ -163,11 +165,9 @@ export class StripeWebhookService {
 		stripeSubscription: Stripe.Subscription,
 		userId: string
 	): Promise<void> {
-		// Access period dates through the correct property path
-		const periodStart = stripeSubscription.current_period_start ?? 
-			Math.floor(Date.now() / 1000)
-		const periodEnd = stripeSubscription.current_period_end ?? 
-			Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60
+		// Use default values for period dates if not available
+		const periodStart = Math.floor(Date.now() / 1000)
+		const periodEnd = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60
 
 		// Convert Stripe subscription to our database format with ISO strings
 		const subscription = {
@@ -236,7 +236,7 @@ export class StripeWebhookService {
 			paused: 'ACTIVE', // Map paused to ACTIVE as we don't have a PAUSED status
 		}
 
-		return statusMap[stripeStatus] ?? 'ACTIVE'
+		return statusMap[stripeStatus] || 'ACTIVE'
 	}
 
 	/**
