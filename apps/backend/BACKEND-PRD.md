@@ -263,6 +263,45 @@ sequenceDiagram
 - **Webhook handling** for subscription events
 - **Payment method updates**
 
+#### 6.2.1 Webhook Best Practices
+
+**HTTP Status Code Standards:**
+- **200 OK**: Processing succeeded completely
+- **400 Bad Request**: Invalid payload or validation failed
+- **401 Unauthorized**: Invalid webhook signature
+- **500 Internal Server Error**: Processing failed (triggers Stripe retries)
+
+**Implementation Guidelines:**
+- Let validation errors throw appropriate HTTP status codes
+- Let processing errors propagate as 500 status codes
+- Only return 200 when webhook processing actually succeeds
+- Stripe will automatically retry failed webhooks (5xx status codes)
+- This enables proper webhook health monitoring and debugging
+
+#### 6.2.2 Technical Implementation
+
+**NestJS + Fastify Integration:**
+- Uses native `@Res() reply: FastifyReply` for direct response control
+- Enabled `{ rawBody: true }` in main.ts for webhook signature verification
+- Uses `reply.code().send()` instead of NestJS exceptions for proper status codes
+- Maintains NestJS architecture while leveraging Fastify's native performance
+
+**JSX Support Configuration:**
+- Backend tsconfig.json configured with `"jsx": "react-jsx"`
+- Added React types and emails package reference for shared templates
+- Enables direct import of React Email templates from `@repo/emails/*`
+
+**Email Strategy (Hybrid Approach):**
+- `invoice.payment_failed`: Logging only (prevents email spam from repeated failures)
+- `invoice.payment_succeeded`: Simple HTML email (critical success confirmation)
+- `customer.subscription.deleted`: Simple HTML email (important state change)
+- `customer.subscription.trial_will_end`: Simple HTML email (actionable notification)
+
+**Error Handling:**
+- No error swallowing - all exceptions propagate properly
+- Proper Stripe customer validation with type guards
+- Comprehensive logging for debugging and monitoring
+
 ---
 
 ## 7. Analytics & Monitoring

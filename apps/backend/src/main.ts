@@ -2,14 +2,14 @@ import 'reflect-metadata'
 import * as dotenv from 'dotenv'
 dotenv.config()
 import { NestFactory } from '@nestjs/core'
-import { Logger, ValidationPipe } from '@nestjs/common'
+import { ValidationPipe } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { AppModule } from './app.module'
 import {
 	FastifyAdapter,
 	type NestFastifyApplication
 } from '@nestjs/platform-fastify'
-import type { FastifyInstance } from 'fastify' // added to type the healthCheck parameter
+import pino from 'pino'
 import helmet from '@fastify/helmet'
 import compress from '@fastify/compress'
 import etag from '@fastify/etag'
@@ -24,34 +24,63 @@ import env from '@fastify/env'
 import multipart from '@fastify/multipart'
 import { corsOptions } from './config/cors.options'
 import { GlobalExceptionFilter } from './shared/filters/global-exception.filter'
-import { RequestContextHooksService } from './shared/services/request-context-hooks.service'
 
 async function bootstrap() {
-	const logger = new Logger('Bootstrap')
+	// Create bootstrap Pino logger (before Fastify is available)
+	const logger = pino({
+		level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+		transport: process.env.NODE_ENV !== 'production' ? {
+			target: 'pino-pretty',
+			options: {
+				colorize: true,
+				translateTime: 'HH:MM:ss Z',
+				ignore: 'pid,hostname'
+			}
+		} : undefined,
+		base: { component: 'Bootstrap' }
+	})
 
-	logger.log('=== TENANTFLOW BACKEND STARTUP ===')
-	logger.log(`Node.js version: ${process.version}`)
-	logger.log(`Environment: ${process.env.NODE_ENV}`)
-	logger.log(`Docker Container: ${process.env.DOCKER_CONTAINER ?? 'false'}`)
-	logger.log(
+	logger.info('=== TENANTFLOW BACKEND STARTUP ===')
+	logger.info(`Node.js version: ${process.version}`)
+	logger.info(`Environment: ${process.env.NODE_ENV}`)
+	logger.info(`Docker Container: ${process.env.DOCKER_CONTAINER ?? 'false'}`)
+	logger.info(
 		`Railway Environment: ${process.env.RAILWAY_ENVIRONMENT ?? 'none'}`
 	)
-	logger.log(`Target Port: ${process.env.PORT ?? 4600}`)
+	logger.info(`Target Port: ${process.env.PORT ?? 4600}`)
 
-	logger.log('Creating NestJS application...')
-	const fastifyAdapter = new FastifyAdapter({ trustProxy: true, bodyLimit: 10485760 })
+	logger.info('Creating NestJS application...')
+	const fastifyAdapter = new FastifyAdapter({ 
+		trustProxy: true, 
+		bodyLimit: 10485760,
+		logger: {
+			level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+			transport: process.env.NODE_ENV !== 'production' ? {
+				target: 'pino-pretty',
+				options: {
+					colorize: true,
+					translateTime: 'HH:MM:ss Z',
+					ignore: 'pid,hostname'
+				}
+			} : undefined
+		}
+	})
 	const app = await NestFactory.create<NestFastifyApplication>(
 		AppModule,
-		fastifyAdapter
+		fastifyAdapter,
+		{ 
+			rawBody: true, // Enable raw body for webhook signature verification
+			logger: false // Disable NestJS logger in favor of Pino
+		}
 	)
-	logger.log('NestJS application created successfully')
+	logger.info('NestJS application created successfully')
 
 	const configService = app.get(ConfigService)
 
-	logger.log('Configuring application middleware...')
+	logger.info('Configuring application middleware...')
 
 	// Core configuration
-	logger.log('Setting global prefix: api/v1')
+	logger.info('Setting global prefix: api/v1')
 	app.setGlobalPrefix('api/v1', {
 		exclude: [
 			{ path: 'health', method: 0 },
@@ -63,12 +92,12 @@ async function bootstrap() {
 	})
 
 	// Configure CORS using centralized configuration
-	logger.log('Configuring CORS...')
+	logger.info('Configuring CORS...')
 	app.enableCors(corsOptions)
-	logger.log('CORS enabled')
+	logger.info('CORS enabled')
 
 	// Use NestJS native validation pipe with better configuration
-	logger.log('Setting up validation pipes...')
+	logger.info('Setting up validation pipes...')
 	app.useGlobalPipes(
 		new ValidationPipe({
 			whitelist: true, // Strip properties not in DTO
@@ -81,12 +110,12 @@ async function bootstrap() {
 	)
 
 	// Use NestJS native global exception filter (replaces custom ErrorHandlerService)
-	logger.log('Setting up global exception filters...')
+	logger.info('Setting up global exception filters...')
 	app.useGlobalFilters(new GlobalExceptionFilter())
-	logger.log('Global exception filters registered')
+	logger.info('Global exception filters registered')
 
 	// Core Fastify plugins - optimized order for performance and security
-	logger.log('Registering Fastify core plugins...')
+	logger.info('Registering Fastify core plugins...')
 	
 	// 1. Environment validation (fail fast if config invalid)
 	await app.register(env, {
@@ -103,7 +132,7 @@ async function bootstrap() {
 		},
 		dotenv: false // Already handled by dotenv.config()
 	})
-	logger.log('Environment validation registered')
+	logger.info('Environment validation registered')
 
 	// 2. Request context for correlation IDs and tracing
 	await app.register(requestContext, {
@@ -119,17 +148,14 @@ async function bootstrap() {
 		},
 		hook: 'onRequest' // Initialize context early in request lifecycle
 	})
-	logger.log('Request context plugin registered')
+	logger.info('Request context plugin registered')
 	
-	// Initialize request context hooks (after request context plugin)
-	const contextHooksService = new RequestContextHooksService()
-	contextHooksService.registerContextHooks(app.getHttpAdapter().getInstance())
-	logger.log('Request context hooks registered')
+	// Request context hooks removed - using Fastify native hooks directly if needed
 
 	// Native performance monitoring via Railway logs - zero custom code needed
-	logger.log('Performance monitoring: Railway native metrics enabled')
-	logger.log('Memory monitoring: Railway native CPU/RAM tracking enabled')  
-	logger.log('Request context: NestJS AsyncLocalStorage enabled')
+	logger.info('Performance monitoring: Railway native metrics enabled')
+	logger.info('Memory monitoring: Railway native CPU/RAM tracking enabled')  
+	logger.info('Request context: NestJS AsyncLocalStorage enabled')
 
 	// 3. Cookie support for session management
 	await app.register(cookie, {
@@ -142,9 +168,9 @@ async function bootstrap() {
 			maxAge: 24 * 60 * 60 * 1000 // 24 hours
 		}
 	})
-	logger.log('Cookie support registered')
+	logger.info('Cookie support registered')
 
-	// 4. CSRF protection at Fastify level
+	// 4. CSRF protection at Fastify level (exclude webhook endpoints)
 	await app.register(csrfProtection, {
 		cookieOpts: {
 			httpOnly: true,
@@ -153,6 +179,10 @@ async function bootstrap() {
 		},
 		sessionPlugin: '@fastify/cookie',
 		getToken: (req) => {
+			// Skip CSRF for webhook endpoints
+			if (req.url?.includes('/webhook')) {
+				return undefined
+			}
 			const csrfToken = req.headers['x-csrf-token']
 			const xsrfToken = req.headers['x-xsrf-token']
 			if (typeof csrfToken === 'string') {return csrfToken}
@@ -161,7 +191,7 @@ async function bootstrap() {
 		},
 		cookieKey: '_csrf'
 	})
-	logger.log('CSRF protection registered')
+	logger.info('CSRF protection registered')
 
 	// 5. Multipart support for file uploads
 	await app.register(multipart, {
@@ -175,7 +205,7 @@ async function bootstrap() {
 		},
 		attachFieldsToBody: 'keyValues' // Attach non-file fields to body
 	})
-	logger.log('Multipart support registered (file uploads)')
+	logger.info('Multipart support registered (file uploads)')
 
 	// 6. Response compression (after request parsing, before response generation)
 	await app.register(compress, {
@@ -195,14 +225,14 @@ async function bootstrap() {
 			}
 		}
 	})
-	logger.log('Compression plugin registered (gzip/brotli)')
+	logger.info('Compression plugin registered (gzip/brotli)')
 
 	// 7. ETag generation for efficient caching
 	await app.register(etag, {
 		algorithm: 'fnv1a', // Faster than MD5, good distribution
 		weak: true // Use weak ETags for better performance
 	})
-	logger.log('ETag plugin registered (fnv1a)')
+	logger.info('ETag plugin registered (fnv1a)')
 
 	// 8. Rate limiting (more granular than NestJS throttler)
 	await app.register(rateLimit, {
@@ -248,38 +278,50 @@ async function bootstrap() {
 			logger.warn(`Rate limit exceeded for ${key}: ${req.ip}`)
 		}
 	})
-	logger.log('Rate limiting plugin registered (100 req/min)')
+	logger.info('Rate limiting plugin registered (100 req/min)')
 
 	// 9. Sensible utilities (adds useful request/response helpers)
 	await app.register(sensible)
-	logger.log('Sensible utilities plugin registered')
+	logger.info('Sensible utilities plugin registered')
 
 	// 10. Load monitoring and shedding
+	// Configure @fastify/under-pressure following official documentation
+	// This provides automatic "Service Unavailable" responses under high load
 	await app.register(underPressure, {
 		maxEventLoopDelay: 1000, // 1 second max event loop delay
-		maxHeapUsedBytes: 1073741824, // 1GB max heap (adjusted for Railway)
-		maxRssBytes: 1342177280, // 1.25GB max RSS (adjusted for Railway)
+		maxHeapUsedBytes: parseInt(process.env.MAX_HEAP_BYTES || '1073741824'), // 1GB default
+		maxRssBytes: parseInt(process.env.MAX_RSS_BYTES || '1342177280'), // 1.25GB default
 		maxEventLoopUtilization: 0.98, // 98% max event loop utilization
 		retryAfter: 50, // Tell clients to retry after 50ms
 		message: 'Service temporarily unavailable due to high load',
-		healthCheck: async (fastify: FastifyInstance) => {
-			// Enhanced health check with actual service verification
+		// On-demand health check - ONLY runs when /health/pressure endpoint is called
+		// No automatic interval checks - perfect for deployments!
+		healthCheck: async () => {
 			try {
-				const configService = app.get(ConfigService)
-				const supabaseUrl = configService.get('SUPABASE_URL')
-				// Lightweight async readiness check to satisfy typings and linting
-				await fastify.ready()
-				// Return boolean indicating basic dependency presence
-				return !!supabaseUrl
-			} catch (error) {
-				logger.error('Health check failed:', error)
+				// Quick event loop responsiveness check
+				const start = Date.now()
+				await new Promise(resolve => setImmediate(resolve))
+				if (Date.now() - start > 100) return false // 100ms threshold
+				
+				// Memory percentage check (more reliable than fixed MB)
+				const mem = process.memoryUsage()
+				const heapPercent = (mem.heapUsed / mem.heapTotal) * 100
+				if (heapPercent > 95) return false // 95% heap usage threshold
+				
+				return true
+			} catch {
 				return false
 			}
 		},
-		healthCheckInterval: 5000, // Check every 5 seconds
-		exposeStatusRoute: '/health/pressure' // Expose pressure metrics
+		// NO healthCheckInterval - health check ONLY runs on-demand via endpoint
+		exposeStatusRoute: {
+			url: '/health/pressure',
+			routeOpts: {
+				logLevel: 'warn' // Only log warnings for pressure endpoint
+			}
+		}
 	})
-	logger.log('Under pressure plugin registered (load monitoring)')
+	logger.info('Under pressure plugin registered (load monitoring)')
 
 	// 11. Circuit breaker for external calls
 	await app.register(circuitBreaker, {
@@ -290,7 +332,7 @@ async function bootstrap() {
 			logger.warn(`Circuit breaker opened for ${req.url} - external service failures detected`)
 		}
 	})
-	logger.log('Circuit breaker plugin registered')
+	logger.info('Circuit breaker plugin registered')
 
 	// 12. Security middleware (register last to protect all routes)
 	await app.register(helmet, {
@@ -313,72 +355,72 @@ async function bootstrap() {
 			preload: true
 		}
 	})
-	logger.log('Security middleware registered (enhanced CSP)')
+	logger.info('Security middleware registered (enhanced CSP)')
 
 	// Initialize Fastify Type Providers for schema-driven validation
-	logger.log('Initializing Fastify Type Providers...')
+	logger.info('Initializing Fastify Type Providers...')
 	try {
 		const { initializeTypeProviders, validateEnvironment } = await import('./setup-type-providers.js')
 		
 		// Validate environment with schema
 		const env = validateEnvironment()
-		logger.log(`✅ Environment validated (NODE_ENV: ${env.NODE_ENV})`)
+		logger.info(`✅ Environment validated (NODE_ENV: ${env.NODE_ENV})`)
 		
 		// Setup type providers
 		await initializeTypeProviders(fastifyAdapter)
-		logger.log('✅ Fastify Type Providers initialized successfully')
+		logger.info('✅ Fastify Type Providers initialized successfully')
 		
 	} catch (typeProviderError) {
-		logger.error('❌ Failed to initialize Type Providers:', typeProviderError)
+		logger.error('❌ Failed to initialize Type Providers: ' + String(typeProviderError))
 		// Continue without type providers in case of setup failure
 		logger.warn('⚠️  Continuing without schema-driven type inference')
 	}
 
 	// Liveness probe handled by HealthController
-	logger.log('Enabling graceful shutdown hooks...')
+	logger.info('Enabling graceful shutdown hooks...')
 	app.enableShutdownHooks()
 
 	// Start server
 	const port = configService.get('PORT', 4600)
-	logger.log(`Preparing to start server on port ${port}...`)
+	logger.info(`Preparing to start server on port ${port}...`)
 
 	try {
-		logger.log(`Binding to 0.0.0.0:${port}...`)
+		logger.info(`Binding to 0.0.0.0:${port}...`)
 		await app.listen(port, '0.0.0.0')
 
-		logger.log('=== SERVER STARTUP SUCCESSFUL ===')
-		logger.log(`🚀 Server listening on 0.0.0.0:${port}`)
-		logger.log(`🌍 Environment: ${process.env.NODE_ENV}`)
-		logger.log(
+		logger.info('=== SERVER STARTUP SUCCESSFUL ===')
+		logger.info(`🚀 Server listening on 0.0.0.0:${port}`)
+		logger.info(`🌍 Environment: ${process.env.NODE_ENV}`)
+		logger.info(
 			`📦 Docker Container: ${process.env.DOCKER_CONTAINER ?? 'false'}`
 		)
-		logger.log(
+		logger.info(
 			`🚄 Railway Environment: ${process.env.RAILWAY_ENVIRONMENT ?? 'none'}`
 		)
-		logger.log(
+		logger.info(
 			`💾 Memory usage: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`
 		)
-		logger.log(`⏱️  Startup time: ${process.uptime()}s`)
+		logger.info(`⏱️  Startup time: ${process.uptime()}s`)
 
 		// Health check endpoints
-		logger.log('=== HEALTH CHECK ENDPOINTS ===')
-		logger.log(
+		logger.info('=== HEALTH CHECK ENDPOINTS ===')
+		logger.info(
 			`✅ Ping (bulletproof): http://localhost:${port}/health/ping`
 		)
-		logger.log(`🔍 Full health check: http://localhost:${port}/health`)
-		logger.log(`📊 Debug info: http://localhost:${port}/health/debug`)
-		logger.log(`🚀 Readiness probe: http://localhost:${port}/health/ready`)
+		logger.info(`🔍 Full health check: http://localhost:${port}/health`)
+		logger.info(`📊 Debug info: http://localhost:${port}/health/debug`)
+		logger.info(`🚀 Readiness probe: http://localhost:${port}/health/ready`)
 
 		// External URLs (if not local)
 		if (process.env.RAILWAY_ENVIRONMENT ?? process.env.VERCEL_ENV) {
-			logger.log('=== EXTERNAL ENDPOINTS ===')
-			logger.log(
+			logger.info('=== EXTERNAL ENDPOINTS ===')
+			logger.info(
 				`🌐 External health: https://api.tenantflow.app/health/ping`
 			)
-			logger.log(`🌐 External API: https://api.tenantflow.app/api/v1/`)
+			logger.info(`🌐 External API: https://api.tenantflow.app/api/v1/`)
 		}
 
-		logger.log('=== READY FOR TRAFFIC ===')
+		logger.info('=== READY FOR TRAFFIC ===')
 	} catch (error: unknown) {
 		logger.error('=== SERVER STARTUP FAILED ===')
 		logger.error(`❌ Failed to start server on port ${port}`)
@@ -409,7 +451,18 @@ async function bootstrap() {
 }
 
 bootstrap().catch((err: unknown) => {
-	const logger = new Logger('Bootstrap')
+	const logger = pino({
+		level: 'error',
+		transport: process.env.NODE_ENV !== 'production' ? {
+			target: 'pino-pretty',
+			options: {
+				colorize: true,
+				translateTime: 'HH:MM:ss Z',
+				ignore: 'pid,hostname'
+			}
+		} : undefined,
+		base: { component: 'Bootstrap-Error' }
+	})
 	
 	const error = err instanceof Error ? err : new Error(String(err))
 
@@ -418,7 +471,7 @@ bootstrap().catch((err: unknown) => {
 	logger.error(`Error type: ${error.constructor.name}`)
 	logger.error(`Error message: ${error.message}`)
 	logger.error(`Error code: ${(error as any).code ?? 'unknown'}`)
-	logger.error(`Stack trace:`, error.stack)
+	logger.error(`Stack trace: ${error.stack ?? 'No stack trace available'}`)
 
 	logger.error('=== ENVIRONMENT AUDIT ===')
 	logger.error(`NODE_ENV: ${process.env.NODE_ENV ?? 'undefined'}`)
