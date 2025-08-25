@@ -151,5 +151,12 @@
 		"turbo": "2.5.6",
 		"typescript": "5.9.2",
 		"typescript-eslint": "8.40.0"
+	},
+	"optionalDependencies": {
+		"turbo-darwin-arm64": "2.5.6",
+		"turbo-darwin-x64": "2.5.6", 
+		"turbo-linux-arm64-gnu": "2.5.6",
+		"turbo-linux-x64-gnu": "2.5.6",
+		"turbo-win32-x64": "2.5.6"
 	}
 }

@@ -17,7 +17,7 @@ COPY packages/tailwind-config/package.json ./packages/tailwind-config/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 
 
-RUN rm -f package-lock.json && npm install --silent
+RUN npm ci --prefer-offline --no-audit
 
 FROM base AS builder
 WORKDIR /app
