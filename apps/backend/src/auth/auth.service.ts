@@ -100,6 +100,7 @@ export class AuthService {
 			// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
 			if (error || !user) {
 				this.logger.warn('Token validation failed', {
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 					errorType: error?.name ?? 'unknown'
 				})
 				throw new UnauthorizedException('Invalid or expired token')
