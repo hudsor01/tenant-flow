@@ -112,17 +112,13 @@ jobs:
             ${{ runner.os }}-turbo-
       
 <<<<<<< HEAD
-      - name: Install dependencies (enforced no optional)
-        env:
-          NPM_CONFIG_OPTIONAL: "false"
-        run: npm ci --prefer-offline --no-audit --omit=optional
-=======
-      - name: Install dependencies
+      - name: Install dependencies with isomorphic lockfile support
         run: |
+          echo "Using isomorphic lockfile architecture for cross-platform compatibility"
           npm cache clean --force
           npm ci --prefer-offline --no-audit
       
-      - name: Verify Turbo installation
+      - name: Verify Turbo installation  
         run: |
           echo "Checking Turbo binary availability..."
           if ! command -v turbo &> /dev/null; then
