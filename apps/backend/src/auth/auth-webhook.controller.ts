@@ -12,7 +12,7 @@ import { StripeService } from '../billing/stripe.service'
 // Removed SubscriptionsManagerService - replaced by StripeWebhookService
 import { UsersService } from '../users/users.service'
 import { Public } from '../shared/decorators/public.decorator'
-import { CsrfExempt } from '../security/csrf.guard'
+// CSRF protection is handled at Fastify level - webhooks are exempt by nature
 
 interface SupabaseWebhookEvent {
 	type: 'INSERT' | 'UPDATE' | 'DELETE'
@@ -44,8 +44,7 @@ export class AuthWebhookController {
 
 	@Post('supabase')
 	@Public()
-	@CsrfExempt()
-	// Global rate limiting is sufficient for webhooks
+	// CSRF and rate limiting handled at Fastify level for webhooks
 	@HttpCode(200)
 	async handleSupabaseAuthWebhook(
 		@Body() event: SupabaseWebhookEvent,

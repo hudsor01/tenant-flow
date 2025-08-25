@@ -4,9 +4,11 @@
  * This service handles Stripe webhook events and updates our database accordingly.
  * Following Stripe's best practices:
  * - Trust webhooks as the single source of truth
- * - Handle events asynchronously
- * - Return 2xx quickly before complex logic
  * - Handle duplicate events via event IDs
+ * - Return appropriate HTTP status codes:
+ *   - 200: Processing succeeded
+ *   - 400: Bad payload/validation failed
+ *   - 500: Server/processing error (triggers Stripe retries)
  *
  * Replaces: subscription-sync.service.ts (779 lines) with ~100 lines
  */
@@ -30,7 +32,7 @@ export class StripeWebhookService {
 
 	/**
 	 * Main webhook handler - processes Stripe events
-	 * Returns quickly with 2xx, actual processing happens async
+	 * Returns 200 on success, throws errors for proper HTTP status codes
 	 */
 	async handleWebhook(event: Stripe.Event): Promise<void> {
 		// Check for duplicate events
@@ -55,19 +57,16 @@ export class StripeWebhookService {
 		if (event.type === 'customer.subscription.created' ||
 		    event.type === 'customer.subscription.updated' ||
 		    event.type === 'customer.subscription.deleted') {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 			await this.handleSubscriptionChange(
-				event.data.object as any
+				event.data.object
 			)
 		} else if (event.type === 'invoice.payment_failed') {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 			await this.handlePaymentFailure(
-				event.data.object as any
+				event.data.object
 			)
 		} else if (event.type === 'invoice.paid') {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 			await this.handlePaymentSuccess(
-				event.data.object as any
+				event.data.object
 			)
 		} else {
 			// Other event types are ignored
@@ -81,50 +80,47 @@ export class StripeWebhookService {
 	private async handleSubscriptionChange(
 		subscription: Stripe.Subscription
 	): Promise<void> {
-		try {
-			// Validate subscription object
-			if (!subscription.id || !subscription.customer) {
-				this.logger.warn('Invalid subscription object received')
-				return
-			}
+		// Validate subscription object - throw 400 for bad data
+		if (!subscription.id || !subscription.customer) {
+			this.logger.warn('Invalid subscription object received')
+			throw new Error('Invalid subscription object: missing id or customer')
+		}
 
-			// Find user by customer ID
-			const customerId =
-				typeof subscription.customer === 'string'
-					? subscription.customer
-					: subscription.customer.id
+		// Find user by customer ID
+		const customerId =
+			typeof subscription.customer === 'string'
+				? subscription.customer
+				: subscription.customer.id
 
-			const { data: user } = await this.supabaseService
+		const { data: user } = await this.supabaseService
+			.getAdminClient()
+			.from('User')
+			.select('id')
+			.eq('stripeCustomerId', customerId)
+			.single()
+
+		if (!user) {
+			// Try finding by subscription table
+			const { data: sub } = await this.supabaseService
 				.getAdminClient()
-				.from('User')
-				.select('id')
+				.from('Subscription')
+				.select('userId')
 				.eq('stripeCustomerId', customerId)
 				.single()
 
-			if (!user) {
-				// Try finding by subscription table
-				const { data: sub } = await this.supabaseService
-					.getAdminClient()
-					.from('Subscription')
-					.select('userId')
-					.eq('stripeCustomerId', customerId)
-					.single()
-
-				if (!sub) {
-					this.logger.warn(
-						`No user found for customer: ${customerId}`
-					)
-					return
-				}
-
-				await this.upsertSubscription(subscription, sub.userId)
-			} else {
-				await this.upsertSubscription(subscription, user.id)
+			if (!sub) {
+				this.logger.warn(
+					`No user found for customer: ${customerId}`
+				)
+				throw new Error(`No user found for customer: ${customerId}`)
 			}
-		} catch (error) {
-			this.logger.error(`Failed to handle subscription change: ${error}`)
-			throw error // Let Stripe retry
+
+			await this.upsertSubscription(subscription, sub.userId)
+		} else {
+			await this.upsertSubscription(subscription, user.id)
 		}
+
+		this.logger.log(`Successfully processed subscription change: ${subscription.id}`)
 	}
 
 	/**
@@ -133,11 +129,11 @@ export class StripeWebhookService {
 	private async handlePaymentFailure(
 		invoice: Stripe.Invoice
 	): Promise<void> {
-		// Validate invoice object  
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		// Validate invoice object - throw 400 for bad data
+		 
 		if (!invoice.lines?.data?.length) {
 			this.logger.warn('Invalid invoice object received')
-			return
+			throw new Error('Invalid invoice object: missing lines data')
 		}
 
 		// Get subscription ID from invoice metadata or lines
@@ -147,7 +143,7 @@ export class StripeWebhookService {
 			: subscription?.id
 
 		if (!subscriptionId) {
-			return
+			throw new Error('Invoice missing subscription ID')
 		}
 
 		await this.updateSubscriptionStatus(subscriptionId, 'PAST_DUE')
@@ -162,11 +158,11 @@ export class StripeWebhookService {
 	private async handlePaymentSuccess(
 		invoice: Stripe.Invoice
 	): Promise<void> {
-		// Validate invoice object  
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		// Validate invoice object - throw 400 for bad data
+		 
 		if (!invoice.lines?.data?.length) {
 			this.logger.warn('Invalid invoice object received')
-			return
+			throw new Error('Invalid invoice object: missing lines data')
 		}
 
 		// Get subscription ID from invoice metadata or lines
@@ -176,7 +172,7 @@ export class StripeWebhookService {
 			: subscription?.id
 
 		if (!subscriptionId) {
-			return
+			throw new Error('Invoice missing subscription ID')
 		}
 
 		await this.updateSubscriptionStatus(subscriptionId, 'ACTIVE')
@@ -261,7 +257,7 @@ export class StripeWebhookService {
 			paused: 'ACTIVE', // Map paused to ACTIVE as we don't have a PAUSED status
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		 
 		return statusMap[stripeStatus] ?? 'ACTIVE'
 	}
 

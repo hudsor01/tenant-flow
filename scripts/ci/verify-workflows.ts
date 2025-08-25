@@ -14,7 +14,7 @@
  */
 
 import { promises as fs } from 'fs'
-import path from 'path'
+import * as path from 'path'
 
 export interface WorkflowDiagnosticsResult {
   ok: boolean
@@ -89,7 +89,7 @@ export class CIValidator {
 
       // Detect anonymous conditional entries inside with block like:
       //   ${{ something }}
-      const anonLine = withBlock.split('\n').find((ln) => ln.trim().startsWith('${{')
+      const anonLine = withBlock.split('\n').find((ln) => ln.trim().startsWith('${{'))
       if (anonLine) {
         problems.push(`${filename}: anonymous GH conditional found inside 'with:' block: "${anonLine.trim()}". Use explicit keys (e.g. ref:) instead.`)
       }
