@@ -5,8 +5,8 @@ import {
   Post,
   Req
 } from '@nestjs/common'
-import type { RawBodyRequest } from '@nestjs/common'
-import type { FastifyRequest } from 'fastify'
+import * as common from '@nestjs/common'
+import { FastifyRequest } from 'fastify'
 import { Resend } from 'resend'
 import Stripe from 'stripe'
 import { ConfigService } from '@nestjs/config'
@@ -57,10 +57,15 @@ export class UnifiedWebhookController {
   @Public()
   @CsrfExempt()
   async handleStripeWebhook(
-    @Req() req: RawBodyRequest<FastifyRequest>,
+    @Req() req: common.RawBodyRequest<FastifyRequest>,
     @Headers('stripe-signature') signature: string
   ): Promise<{ received: boolean }> {
     try {
+      if (!signature) {
+        this.logger.warn('Missing stripe-signature header')
+        throw new Error('Missing stripe-signature header')
+      }
+
       // Verify webhook signature
       const event = this.stripe.webhooks.constructEvent(
         req.rawBody!,
@@ -70,19 +75,37 @@ export class UnifiedWebhookController {
 
       this.logger.log(`Processing Stripe webhook: ${event.type}`)
 
-      // Route to specific handlers
+      // Validate event.data.object before casting/handling
+      const obj = event.data?.object as unknown
+
       switch (event.type) {
         case 'invoice.payment_failed':
-          await this.handlePaymentFailed(event.data.object)
+          if (!this.isStripeInvoice(obj)) {
+            this.logger.warn(`Invalid invoice payload for ${event.type}`)
+            break
+          }
+          await this.handlePaymentFailed(obj)
           break
         case 'invoice.payment_succeeded':
-          await this.handlePaymentSucceeded(event.data.object)
+          if (!this.isStripeInvoice(obj)) {
+            this.logger.warn(`Invalid invoice payload for ${event.type}`)
+            break
+          }
+          await this.handlePaymentSucceeded(obj)
           break
         case 'customer.subscription.deleted':
-          await this.handleSubscriptionCanceled(event.data.object)
+          if (!this.isStripeSubscription(obj)) {
+            this.logger.warn(`Invalid subscription payload for ${event.type}`)
+            break
+          }
+          await this.handleSubscriptionCanceled(obj)
           break
         case 'customer.subscription.trial_will_end':
-          await this.handleTrialEnding(event.data.object)
+          if (!this.isStripeSubscription(obj)) {
+            this.logger.warn(`Invalid subscription payload for ${event.type}`)
+            break
+          }
+          await this.handleTrialEnding(obj)
           break
         default:
           this.logger.log(`Unhandled webhook type: ${event.type}`)
@@ -90,16 +113,44 @@ export class UnifiedWebhookController {
 
       return { received: true }
     } catch (error) {
-      this.logger.error(`Webhook processing failed: ${error}`)
+      const msg = error instanceof Error ? error.message : String(error)
+      this.logger.error(`Webhook processing failed: ${msg}`)
       throw error
     }
   }
 
+  // Lightweight runtime type-guards to avoid unsafe casts
+  private isStripeInvoice(obj: unknown): obj is Stripe.Invoice {
+    if (!obj || typeof obj !== 'object') return false
+    const anyObj = obj as any
+    // basic checks: has currency and either amount_due or amount_paid
+    return typeof anyObj.currency === 'string' &&
+      (typeof anyObj.amount_due === 'number' || typeof anyObj.amount_paid === 'number')
+  }
+
+  private isStripeSubscription(obj: unknown): obj is Stripe.Subscription {
+    if (!obj || typeof obj !== 'object') return false
+    const anyObj = obj as any
+    // basic checks: has id and customer (string or object with id)
+    const hasCustomerId = typeof anyObj.customer === 'string' ||
+      (typeof anyObj.customer === 'object' && typeof anyObj.customer?.id === 'string')
+    return typeof anyObj.id === 'string' && hasCustomerId
+  }
+
   private async handlePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
     try {
-      const customer = await this.stripe.customers.retrieve(invoice.customer as string)
+      // resolve customer id safely (invoice.customer can be string or object)
+      const customerId = typeof invoice.customer === 'string'
+        ? invoice.customer
+        : (invoice.customer as any)?.id
+      if (!customerId) {
+        this.logger.warn(`No customer id on invoice`)
+        return
+      }
+
+      const customer = await this.stripe.customers.retrieve(customerId)
       if (customer.deleted) {
-        this.logger.warn(`Customer not found: ${invoice.customer}`)
+        this.logger.warn(`Customer not found: ${customerId}`)
         return
       }
 
@@ -132,7 +183,12 @@ export class UnifiedWebhookController {
 
   private async handlePaymentSucceeded(invoice: Stripe.Invoice): Promise<void> {
     try {
-      const customer = await this.stripe.customers.retrieve(invoice.customer as string)
+      const customerId = typeof invoice.customer === 'string'
+        ? invoice.customer
+        : (invoice.customer as any)?.id
+      if (!customerId) { return }
+
+      const customer = await this.stripe.customers.retrieve(customerId)
       if (customer.deleted) {return}
 
       const email = customer.email
@@ -159,7 +215,12 @@ export class UnifiedWebhookController {
 
   private async handleSubscriptionCanceled(subscription: Stripe.Subscription): Promise<void> {
     try {
-      const customer = await this.stripe.customers.retrieve(subscription.customer as string)
+      const customerId = typeof subscription.customer === 'string'
+        ? subscription.customer
+        : (subscription.customer as any)?.id
+      if (!customerId) {return}
+
+      const customer = await this.stripe.customers.retrieve(customerId)
       if (customer.deleted) {return}
 
       const email = customer.email
@@ -185,7 +246,12 @@ export class UnifiedWebhookController {
 
   private async handleTrialEnding(subscription: Stripe.Subscription): Promise<void> {
     try {
-      const customer = await this.stripe.customers.retrieve(subscription.customer as string)
+      const customerId = typeof subscription.customer === 'string'
+        ? subscription.customer
+        : (subscription.customer as any)?.id
+      if (!customerId) {return}
+
+      const customer = await this.stripe.customers.retrieve(customerId)
       if (customer.deleted) {return}
 
       const email = customer.email
