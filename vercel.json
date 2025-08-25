@@ -1,6 +1,6 @@
 {
 	"$schema": "https://openapi.vercel.sh/vercel.json",
-	"installCommand": "npm ci",
+	"installCommand": "npm ci --omit=optional",
 	"buildCommand": "NODE_OPTIONS='--max-old-space-size=6144' npm run build:shared && NODE_OPTIONS='--max-old-space-size=6144' npm run build:frontend",
 	"framework": "nextjs",
 	"outputDirectory": "apps/frontend/.next",
