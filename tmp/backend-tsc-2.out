@@ -1,4 +1,0 @@
-
-> @repo/backend@0.0.2 typecheck
-> NODE_OPTIONS='--max-old-space-size=8192' tsc -p tsconfig.build.json --noEmit --incremental --skipLibCheck
-
