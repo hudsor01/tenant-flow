@@ -7,6 +7,10 @@
 		"skipLibCheck": true,
 		"noEmit": true
 	},
+	"include": [
+		".github/**/*.ts",
+		"scripts/**/*.ts"
+	],
 	"files": [],
 	"references": [
 		{ "path": "./packages/shared" },
