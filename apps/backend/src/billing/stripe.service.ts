@@ -188,32 +188,25 @@ export class StripeService {
 			webhookSecret
 		)
 
-		// Handle subscription events
-		 
-		switch (event.type) {
-			case 'customer.subscription.created':
-			case 'customer.subscription.updated':
-				// Update user subscription status in Supabase
-				this.logger.log('Subscription event:', event.type)
-				break
-			case 'customer.subscription.deleted':
-				// Log subscription deletion
-				this.logger.log('Subscription deleted:', event.type)
-				// Cancellation notification is handled in cancelSubscription method or webhook handler in controller
-				break
-			case 'customer.subscription.trial_will_end': {
-				// Notification removed for MVP - focus on core CRUD functionality
-				const trialSubscription = event.data.object
-				const userId = trialSubscription.metadata.userId
-				if (userId && trialSubscription.trial_end) {
-					this.logger.log(`Trial ending for user ${userId}, subscription ${trialSubscription.id}`)
-				}
-				break
+		// Handle subscription events - only process events we care about
+		if (event.type === 'customer.subscription.created' ||
+		    event.type === 'customer.subscription.updated') {
+			// Update user subscription status in Supabase
+			this.logger.log('Subscription event:', event.type)
+		} else if (event.type === 'customer.subscription.deleted') {
+			// Log subscription deletion
+			this.logger.log('Subscription deleted:', event.type)
+			// Cancellation notification is handled in cancelSubscription method or webhook handler in controller
+		} else if (event.type === 'customer.subscription.trial_will_end') {
+			// Notification removed for MVP - focus on core CRUD functionality
+			const trialSubscription = event.data.object as Stripe.Subscription
+			const userId = trialSubscription.metadata?.userId
+			if (userId && trialSubscription.trial_end) {
+				this.logger.log(`Trial ending for user ${userId}, subscription ${trialSubscription.id}`)
 			}
-			default:
-				// Log unhandled event type for monitoring
-				this.logger.warn(`Unhandled webhook event type: ${event.type}`)
-				break
+		} else {
+			// Log unhandled event type for monitoring
+			this.logger.warn(`Unhandled webhook event type: ${event.type}`)
 		}
 
 		return event

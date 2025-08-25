@@ -53,28 +53,20 @@ export class StripeWebhookService {
 
 		// Handle events based on type using native Stripe types
 		 
-		// We only handle specific events - no exhaustive check needed
-		switch (event.type) {
-			case 'customer.subscription.created':
-			case 'customer.subscription.updated':
-			case 'customer.subscription.deleted':
-				await this.handleSubscriptionChange(
-					event.data.object as Stripe.Subscription
-				)
-				break
-
-			case 'invoice.payment_failed':
-				await this.handlePaymentFailure(event.data.object as Stripe.Invoice)
-				break
-
-			case 'invoice.paid':
-				await this.handlePaymentSuccess(event.data.object as Stripe.Invoice)
-				break
-
-			default:
-				// Other event types are ignored
-				this.logger.debug(`Unhandled event type: ${event.type}`)
-				break
+		// Handle only specific webhook events we care about
+		if (event.type === 'customer.subscription.created' ||
+		    event.type === 'customer.subscription.updated' ||
+		    event.type === 'customer.subscription.deleted') {
+			await this.handleSubscriptionChange(
+				event.data.object as Stripe.Subscription
+			)
+		} else if (event.type === 'invoice.payment_failed') {
+			await this.handlePaymentFailure(event.data.object as Stripe.Invoice)
+		} else if (event.type === 'invoice.paid') {
+			await this.handlePaymentSuccess(event.data.object as Stripe.Invoice)
+		} else {
+			// Other event types are ignored
+			this.logger.debug(`Unhandled event type: ${event.type}`)
 		}
 	}
 
