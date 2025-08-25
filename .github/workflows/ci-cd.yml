@@ -11,6 +11,8 @@ env:
   NODE_VERSION: '24'
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+  # Enable Turbo telemetry
+  TURBO_TELEMETRY_DISABLED: 0
 
 jobs:
   # Deployment validation - CRITICAL first check
@@ -126,18 +128,25 @@ jobs:
           else
             echo "✅ Turbo available: $(turbo --version)"
           fi
+          
+      - name: Show Turbo cache status
+        run: |
+          echo "🔍 Turbo Configuration:"
+          echo "TURBO_TOKEN: $(if [ -n "$TURBO_TOKEN" ]; then echo 'Set'; else echo 'Not set'; fi)"
+          echo "TURBO_TEAM: $(if [ -n "$TURBO_TEAM" ]; then echo 'Set'; else echo 'Not set'; fi)"
+          npx turbo run build --dry-run --affected || echo "No affected packages for build"
       
       - name: Build shared packages
         run: |
           npm run build:database
           npm run build:shared
       
-      - name: Run linting
-        run: npm run lint
+      - name: Run linting (affected packages only)
+        run: npx turbo run lint --affected
         continue-on-error: false
       
-      - name: Run type checking
-        run: npm run typecheck
+      - name: Run type checking (affected packages only)
+        run: npx turbo run check-types --affected
         continue-on-error: false
       
       - name: Build frontend
@@ -152,8 +161,8 @@ jobs:
       - name: Build backend
         run: npm run build:backend
       
-      - name: Run unit tests
-        run: npm run test:unit
+      - name: Run unit tests (affected packages only)
+        run: npx turbo run test:unit --affected
         continue-on-error: false
       
       - name: Upload build artifacts
