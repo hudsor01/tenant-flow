@@ -111,7 +111,7 @@ jobs:
       - name: Install dependencies
         run: |
           npm cache clean --force
-          npm ci --prefer-offline --no-audit --include=optional
+          npm ci --prefer-offline --no-audit --omit=optional
       
       - name: Verify Turbo installation
         run: |
