@@ -4,7 +4,6 @@
 	"buildCommand": "NODE_OPTIONS='--max-old-space-size=6144' npm run build:shared && NODE_OPTIONS='--max-old-space-size=6144' npm run build:frontend",
 	"framework": "nextjs",
 	"outputDirectory": "apps/frontend/.next",
-	"ignoreCommand": "echo 'Building for deployment stability'",
 	"redirects": [
 		{
 			"source": "/home",
