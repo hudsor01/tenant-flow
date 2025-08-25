@@ -111,9 +111,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-turbo-
       
-      - name: Install dependencies with isomorphic lockfile support
+      - name: Install dependencies with platform override
         run: |
-          echo "Using isomorphic lockfile architecture for cross-platform compatibility"
+          echo "Blocking incompatible Darwin binary in Linux CI environment"
+          export NPM_CONFIG_OVERRIDE_TURBO_DARWIN_ARM64="false"
           npm ci --prefer-offline --no-audit
       
       - name: Verify Turbo installation  

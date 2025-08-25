@@ -101,6 +101,7 @@
 		"sonner": "2.0.7",
 		"tailwind-merge": "^3.3.1",
 		"tailwindcss-animate": "^1.0.7",
+		"turbo-darwin-arm64": "2.5.6",
 		"victory-vendor": "37.3.6",
 		"web-vitals": "^5.1.0",
 		"zod": "^4.1.0",
@@ -150,12 +151,5 @@
 		"turbo": "2.5.6",
 		"typescript": "5.9.2",
 		"typescript-eslint": "8.40.0"
-	},
-	"optionalDependencies": {
-		"turbo-darwin-arm64": "2.5.6",
-		"turbo-darwin-x64": "2.5.6", 
-		"turbo-linux-arm64-gnu": "2.5.6",
-		"turbo-linux-x64-gnu": "2.5.6",
-		"turbo-win32-x64": "2.5.6"
 	}
 }
