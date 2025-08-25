@@ -170,14 +170,14 @@ export class EnvironmentVariables {
 	@IsEmail()
 	FROM_EMAIL?: string
 
-	// Resend
-	@IsOptional()
-	@IsString()
-	RESEND_API_KEY?: string
+	// Email service configuration (disabled for MVP)
+	// @IsOptional()
+	// @IsString()
+	// RESEND_API_KEY?: string
 
-	@IsOptional()
-	@IsEmail()
-	RESEND_FROM_EMAIL?: string = 'noreply@tenantflow.app'
+	// @IsOptional()
+	// @IsEmail()
+	// RESEND_FROM_EMAIL?: string = 'noreply@tenantflow.app'
 
 	// Analytics
 	@IsOptional()
@@ -204,6 +204,15 @@ export class EnvironmentVariables {
 	ENABLE_RATE_LIMITING = true
 
 	// Rate limiting is configured directly in code for simplicity
+
+	// Health Check & Performance Monitoring
+	@IsOptional()
+	@IsNumberString()
+	MAX_HEAP_BYTES?: string // Default: 1073741824 (1GB)
+
+	@IsOptional()
+	@IsNumberString()
+	MAX_RSS_BYTES?: string // Default: 1342177280 (1.25GB)
 
 	// Platform Detection (optional)
 	@IsOptional()

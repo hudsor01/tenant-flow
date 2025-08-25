@@ -1,34 +1,35 @@
 import {
   Controller,
   Headers,
+  Inject,
   Logger,
   Post,
-  Req
+  Req,
+  Res
 } from '@nestjs/common'
-import * as common from '@nestjs/common'
-import { FastifyRequest } from 'fastify'
-import { Resend } from 'resend'
+import type { FastifyRequest, FastifyReply } from 'fastify'
+import type { RawBodyRequest } from '@nestjs/common'
 import Stripe from 'stripe'
 import { ConfigService } from '@nestjs/config'
 import { Public } from '../shared/decorators/public.decorator'
-import { CsrfExempt } from '../security/csrf.guard'
 import type { EnvironmentVariables } from '../config/config.schema'
 
-// Email template imports (will be created)
-import { PaymentFailedEmail } from '../emails/payment-failed-email'
-import { PaymentSuccessEmail } from '../emails/payment-success-email'
-import { SubscriptionCanceledEmail } from '../emails/subscription-canceled-email'
 
 @Controller('webhooks')
 export class UnifiedWebhookController {
   private readonly logger = new Logger(UnifiedWebhookController.name)
-  private readonly stripe: Stripe
-  private readonly resend: Resend
-  private readonly webhookSecret: string
+  private stripe: Stripe | null = null
+  private webhookSecret: string | null = null
 
   constructor(
-    private readonly configService: ConfigService<EnvironmentVariables>
-  ) {
+    @Inject(ConfigService) private readonly configService: ConfigService<EnvironmentVariables>
+  ) {}
+
+  private initializeServices(): void {
+    if (this.stripe && this.webhookSecret !== null) {
+      return // Already initialized
+    }
+
     // Initialize Stripe
     const stripeKey = this.configService.get('STRIPE_SECRET_KEY', { infer: true })
     if (!stripeKey) {
@@ -39,13 +40,6 @@ export class UnifiedWebhookController {
       typescript: true
     })
 
-    // Initialize Resend
-    const resendKey = this.configService.get('RESEND_API_KEY', { infer: true })
-    if (!resendKey) {
-      throw new Error('RESEND_API_KEY is required')
-    }
-    this.resend = new Resend(resendKey)
-
     // Webhook secret
     this.webhookSecret = this.configService.get('STRIPE_WEBHOOK_SECRET', { infer: true }) ?? ''
     if (!this.webhookSecret) {
@@ -55,67 +49,103 @@ export class UnifiedWebhookController {
 
   @Post('stripe')
   @Public()
-  @CsrfExempt()
   async handleStripeWebhook(
-    @Req() req: common.RawBodyRequest<FastifyRequest>,
-    @Headers('stripe-signature') signature: string
-  ): Promise<{ received: boolean }> {
-    try {
-      if (!signature) {
-        this.logger.warn('Missing stripe-signature header')
-        throw new Error('Missing stripe-signature header')
-      }
+    @Headers('stripe-signature') signature: string,
+    @Req() request: RawBodyRequest<FastifyRequest>,
+    @Res() reply: FastifyReply
+  ): Promise<void> {
+    // Initialize services lazily on first request
+    this.initializeServices()
 
-      // Verify webhook signature
-      const event = this.stripe.webhooks.constructEvent(
-        req.rawBody!,
+    // Validate signature header - use Fastify native response
+    if (!signature) {
+      this.logger.warn('Missing stripe-signature header')
+      return reply.code(401).send({ 
+        error: 'Unauthorized',
+        message: 'Missing stripe-signature header' 
+      })
+    }
+
+    // Verify webhook signature using NestJS rawBody support
+    let event: Stripe.Event
+    try {
+      if (!this.stripe || !this.webhookSecret) {
+        throw new Error('Stripe not initialized')
+      }
+      
+      if (!request.rawBody) {
+        throw new Error('No raw body found in request')
+      }
+      
+      event = this.stripe.webhooks.constructEvent(
+        request.rawBody, // NestJS built-in raw body support
         signature,
         this.webhookSecret
       )
-
-      this.logger.log(`Processing Stripe webhook: ${event.type}`)
-
-      // Validate event.data.object before casting/handling
-      const obj = event.data?.object as unknown
-
-      switch (event.type) {
-        case 'invoice.payment_failed':
-          if (!this.isStripeInvoice(obj)) {
-            this.logger.warn(`Invalid invoice payload for ${event.type}`)
-            break
-          }
-          await this.handlePaymentFailed(obj)
-          break
-        case 'invoice.payment_succeeded':
-          if (!this.isStripeInvoice(obj)) {
-            this.logger.warn(`Invalid invoice payload for ${event.type}`)
-            break
-          }
-          await this.handlePaymentSucceeded(obj)
-          break
-        case 'customer.subscription.deleted':
-          if (!this.isStripeSubscription(obj)) {
-            this.logger.warn(`Invalid subscription payload for ${event.type}`)
-            break
-          }
-          await this.handleSubscriptionCanceled(obj)
-          break
-        case 'customer.subscription.trial_will_end':
-          if (!this.isStripeSubscription(obj)) {
-            this.logger.warn(`Invalid subscription payload for ${event.type}`)
-            break
-          }
-          await this.handleTrialEnding(obj)
-          break
-        default:
-          this.logger.log(`Unhandled webhook type: ${event.type}`)
-      }
-
-      return { received: true }
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error)
+      this.logger.warn(`Invalid webhook signature: ${msg}`)
+      return reply.code(401).send({ 
+        error: 'Unauthorized',
+        message: `Invalid webhook signature: ${msg}` 
+      })
+    }
+
+    this.logger.log(`Processing Stripe webhook: ${event.type}`)
+
+    // Validate event structure
+    if (!event.data?.object) {
+      this.logger.warn('Invalid webhook event structure')
+      return reply.code(400).send({ 
+        error: 'Bad Request',
+        message: 'Invalid webhook event structure' 
+      })
+    }
+
+    try {
+      // Process webhook events
+      await this.processWebhookEvent(event)
+      
+      // Fastify native success response - proper status code for monitoring
+      return reply.code(200).send({ received: true })
+    } catch (error) {
+      // Fastify native error response - 500 triggers Stripe retries
+      const msg = error instanceof Error ? error.message : String(error)
       this.logger.error(`Webhook processing failed: ${msg}`)
-      throw error
+      return reply.code(500).send({ error: 'Processing failed' })
+    }
+  }
+
+  private async processWebhookEvent(event: Stripe.Event): Promise<void> {
+    const obj = event.data.object as unknown
+
+    switch (event.type) {
+      case 'invoice.payment_failed':
+        if (!this.isStripeInvoice(obj)) {
+          throw new Error(`Invalid invoice payload for ${event.type}`)
+        }
+        await this.handlePaymentFailed(obj)
+        break
+      case 'invoice.payment_succeeded':
+        if (!this.isStripeInvoice(obj)) {
+          throw new Error(`Invalid invoice payload for ${event.type}`)
+        }
+        await this.handlePaymentSucceeded(obj)
+        break
+      case 'customer.subscription.deleted':
+        if (!this.isStripeSubscription(obj)) {
+          throw new Error(`Invalid subscription payload for ${event.type}`)
+        }
+        await this.handleSubscriptionCanceled(obj)
+        break
+      case 'customer.subscription.trial_will_end':
+        if (!this.isStripeSubscription(obj)) {
+          throw new Error(`Invalid subscription payload for ${event.type}`)
+        }
+        await this.handleTrialEnding(obj)
+        break
+      default:
+        this.logger.log(`Unhandled webhook type: ${event.type}`)
     }
   }
 
@@ -138,140 +168,108 @@ export class UnifiedWebhookController {
   }
 
   private async handlePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
-    try {
-      // resolve customer id safely (invoice.customer can be string or object)
-      const customerId = typeof invoice.customer === 'string'
-        ? invoice.customer
-        : (invoice.customer as any)?.id
-      if (!customerId) {
-        this.logger.warn(`No customer id on invoice`)
-        return
-      }
-
-      const customer = await this.stripe.customers.retrieve(customerId)
-      if (customer.deleted) {
-        this.logger.warn(`Customer not found: ${customerId}`)
-        return
-      }
-
-      const email = customer.email
-      if (!email) {
-        this.logger.warn(`No email for customer: ${customer.id}`)
-        return
-      }
-
-      // Send email directly via Resend
-      await this.resend.emails.send({
-        from: 'TenantFlow <noreply@tenantflow.app>',
-        to: [email],
-        subject: `Payment Failed - ${invoice.currency.toUpperCase()} ${(invoice.amount_due / 100).toFixed(2)}`,
-        react: PaymentFailedEmail({
-          customerEmail: email,
-          amount: invoice.amount_due,
-          currency: invoice.currency,
-          attemptCount: invoice.attempt_count || 1,
-          invoiceUrl: invoice.hosted_invoice_url ?? null,
-          isLastAttempt: (invoice.attempt_count || 1) >= 3
-        })
-      })
-
-      this.logger.log(`Payment failed email sent to ${email}`)
-    } catch (error) {
-      this.logger.error(`Failed to handle payment failed: ${error}`)
+    // Get customer ID safely
+    const customerId = typeof invoice.customer === 'string'
+      ? invoice.customer
+      : (invoice.customer as Stripe.Customer)?.id
+    
+    if (!customerId) {
+      throw new Error('Invoice missing customer ID')
     }
+
+    // Retrieve customer with proper type handling
+    if (!this.stripe) {
+      throw new Error('Stripe not initialized')
+    }
+    const customer = await this.stripe.customers.retrieve(customerId)
+    if ('deleted' in customer && customer.deleted) {
+      throw new Error(`Customer deleted: ${customerId}`)
+    }
+
+    // Type guard ensures we have a real Customer object
+    const email = (customer as Stripe.Customer).email
+    if (!email) {
+      throw new Error(`No email for customer: ${customerId}`)
+    }
+
+    this.logger.log(`Payment failed for customer ${email} - amount: ${invoice.currency.toUpperCase()} ${(invoice.amount_due / 100).toFixed(2)}`)
   }
 
   private async handlePaymentSucceeded(invoice: Stripe.Invoice): Promise<void> {
-    try {
-      const customerId = typeof invoice.customer === 'string'
-        ? invoice.customer
-        : (invoice.customer as any)?.id
-      if (!customerId) { return }
-
-      const customer = await this.stripe.customers.retrieve(customerId)
-      if (customer.deleted) {return}
-
-      const email = customer.email
-      if (!email) {return}
-
-      await this.resend.emails.send({
-        from: 'TenantFlow <noreply@tenantflow.app>',
-        to: [email],
-        subject: `Payment Receipt - ${invoice.currency.toUpperCase()} ${(invoice.amount_paid / 100).toFixed(2)}`,
-        react: PaymentSuccessEmail({
-          customerEmail: email,
-          amount: invoice.amount_paid,
-          currency: invoice.currency,
-          invoiceUrl: invoice.hosted_invoice_url ?? null,
-          invoicePdf: invoice.invoice_pdf ?? null
-        })
-      })
-
-      this.logger.log(`Payment success email sent to ${email}`)
-    } catch (error) {
-      this.logger.error(`Failed to handle payment succeeded: ${error}`)
+    const customerId = typeof invoice.customer === 'string'
+      ? invoice.customer
+      : (invoice.customer as Stripe.Customer)?.id
+      
+    if (!customerId) {
+      throw new Error('Invoice missing customer ID')
     }
+
+    if (!this.stripe) {
+      throw new Error('Stripe not initialized')
+    }
+    const customer = await this.stripe.customers.retrieve(customerId)
+    if ('deleted' in customer && customer.deleted) {
+      throw new Error(`Customer deleted: ${customerId}`)
+    }
+
+    const email = (customer as Stripe.Customer).email
+    if (!email) {
+      throw new Error(`No email for customer: ${customerId}`)
+    }
+
+    // TODO: Send payment success email when email service is implemented
+    this.logger.log(`Payment succeeded for customer ${email} - amount: ${invoice.currency.toUpperCase()} ${(invoice.amount_paid / 100).toFixed(2)}`)
   }
 
   private async handleSubscriptionCanceled(subscription: Stripe.Subscription): Promise<void> {
-    try {
-      const customerId = typeof subscription.customer === 'string'
-        ? subscription.customer
-        : (subscription.customer as any)?.id
-      if (!customerId) {return}
-
-      const customer = await this.stripe.customers.retrieve(customerId)
-      if (customer.deleted) {return}
-
-      const email = customer.email
-      if (!email) {return}
-
-      await this.resend.emails.send({
-        from: 'TenantFlow <noreply@tenantflow.app>',
-        to: [email],
-        subject: 'Your TenantFlow Subscription Has Been Canceled',
-        react: SubscriptionCanceledEmail({
-          customerEmail: email,
-          subscriptionId: subscription.id,
-          cancelAtPeriodEnd: subscription.cancel_at_period_end,
-          currentPeriodEnd: (subscription as { current_period_end?: number }).current_period_end ? new Date(((subscription as { current_period_end?: number }).current_period_end ?? 0) * 1000) : null
-        })
-      })
-
-      this.logger.log(`Subscription canceled email sent to ${email}`)
-    } catch (error) {
-      this.logger.error(`Failed to handle subscription canceled: ${error}`)
+    const customerId = typeof subscription.customer === 'string'
+      ? subscription.customer
+      : (subscription.customer as Stripe.Customer)?.id
+      
+    if (!customerId) {
+      throw new Error('Subscription missing customer ID')
     }
+
+    if (!this.stripe) {
+      throw new Error('Stripe not initialized')
+    }
+    const customer = await this.stripe.customers.retrieve(customerId)
+    if ('deleted' in customer && customer.deleted) {
+      throw new Error(`Customer deleted: ${customerId}`)
+    }
+
+    const email = (customer as Stripe.Customer).email
+    if (!email) {
+      throw new Error(`No email for customer: ${customerId}`)
+    }
+
+    // TODO: Send subscription cancellation email when email service is implemented
+    this.logger.log(`Subscription canceled for customer ${email} - subscription: ${subscription.id}`)
   }
 
   private async handleTrialEnding(subscription: Stripe.Subscription): Promise<void> {
-    try {
-      const customerId = typeof subscription.customer === 'string'
-        ? subscription.customer
-        : (subscription.customer as any)?.id
-      if (!customerId) {return}
-
-      const customer = await this.stripe.customers.retrieve(customerId)
-      if (customer.deleted) {return}
-
-      const email = customer.email
-      if (!email) {return}
-
-      // Simple trial ending notification
-      await this.resend.emails.send({
-        from: 'TenantFlow <noreply@tenantflow.app>',
-        to: [email],
-        subject: 'Your Free Trial Ends Soon',
-        html: `
-          <h2>Your TenantFlow trial ends in 3 days</h2>
-          <p>Add a payment method to continue using all features.</p>
-          <a href="${process.env.FRONTEND_URL}/billing" style="background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px;">Update Payment Method</a>
-        `
-      })
-
-      this.logger.log(`Trial ending email sent to ${email}`)
-    } catch (error) {
-      this.logger.error(`Failed to handle trial ending: ${error}`)
+    const customerId = typeof subscription.customer === 'string'
+      ? subscription.customer
+      : (subscription.customer as Stripe.Customer)?.id
+      
+    if (!customerId) {
+      throw new Error('Subscription missing customer ID')
     }
+
+    if (!this.stripe) {
+      throw new Error('Stripe not initialized')
+    }
+    const customer = await this.stripe.customers.retrieve(customerId)
+    if ('deleted' in customer && customer.deleted) {
+      throw new Error(`Customer deleted: ${customerId}`)
+    }
+
+    const email = (customer as Stripe.Customer).email
+    if (!email) {
+      throw new Error(`No email for customer: ${customerId}`)
+    }
+
+    // TODO: Send trial ending email when email service is implemented
+    this.logger.log(`Trial ending for customer ${email} - subscription: ${subscription.id}`)
   }
 }

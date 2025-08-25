@@ -1,7 +1,6 @@
 import { Injectable, Logger, UnauthorizedException, BadRequestException, InternalServerErrorException } from '@nestjs/common'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { SupabaseService } from '../database/supabase.service'
-import { SecurityMonitorService } from '../security/security-monitor.service'
 import type { AuthUser, UserRole } from '@repo/shared'
 import type { Database } from '@repo/shared/types/supabase-generated'
 
@@ -60,9 +59,7 @@ export class AuthService {
 	private readonly supabase: SupabaseClient
 
 	constructor(
-		private readonly supabaseService: SupabaseService,
-		// private readonly securityService: SimpleSecurityService,
-		private readonly securityMonitor: SecurityMonitorService
+		private readonly supabaseService: SupabaseService
 	) {
 		const supabaseUrl = process.env.SUPABASE_URL
 		const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -97,10 +94,8 @@ export class AuthService {
 				error
 			} = await this.supabase.auth.getUser(token)
 
-			// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
 			if (error || !user) {
 				this.logger.warn('Token validation failed', {
-					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 					errorType: error?.name ?? 'unknown'
 				})
 				throw new UnauthorizedException('Invalid or expired token')
@@ -386,7 +381,7 @@ export class AuthService {
 			refresh_token: refreshToken
 		})
 
-		// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+		 
 		if (error || !data.session || !data.user) {
 			throw new BadRequestException(
 				'Invalid or expired refresh token'
@@ -415,16 +410,10 @@ export class AuthService {
 		expires_in: number
 		user: ValidatedUser
 	}> {
-		this.securityMonitor.logSecurityEvent('AUTH_ATTEMPT', {
-			email,
-			ip,
-			details: { operation: 'login' }
-		})
+		this.logger.log(`Auth attempt for email: ${email} from IP: ${ip}`)
 
 		// Rate limiting temporarily disabled
-		// const authAttempt = await this.securityMonitor.trackAuthAttempt(ip ?? 'unknown', email, false)
 		// if (authAttempt.blocked) {
-		//	this.securityMonitor.logSecurityEvent('BRUTE_FORCE_DETECTED', {
 		//		email,
 		//		ip,
 		//		severity: 'critical',
@@ -443,15 +432,7 @@ export class AuthService {
 		})
 
 		if (error) {
-			// await this.securityMonitor.trackAuthAttempt(ip ?? 'unknown', email, false)
-			this.securityMonitor.logSecurityEvent('AUTH_FAILURE', {
-				email,
-				ip,
-				details: {
-					error:
-						error instanceof Error ? error.message : 'Unknown error'
-				}
-			})
+			this.logger.warn(`Auth failure for email: ${email} from IP: ${ip} - ${error.message}`)
 
 			if (error.message.includes('Invalid login credentials')) {
 				throw new BadRequestException(
@@ -474,14 +455,8 @@ export class AuthService {
 			data.session.access_token
 		)
 
-		this.securityMonitor.logSecurityEvent('AUTH_SUCCESS', {
-			userId: validatedUser.id,
-			email: validatedUser.email,
-			ip,
-			details: { operation: 'login' }
-		})
+		this.logger.log(`Auth success for user: ${validatedUser.id} from IP: ${ip}`)
 
-		// await this.securityMonitor.trackAuthAttempt(ip ?? 'unknown', email, true)
 
 		return {
 			access_token: data.session.access_token,
