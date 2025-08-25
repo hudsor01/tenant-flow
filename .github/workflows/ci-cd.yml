@@ -111,11 +111,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-turbo-
       
-<<<<<<< HEAD
       - name: Install dependencies with isomorphic lockfile support
         run: |
           echo "Using isomorphic lockfile architecture for cross-platform compatibility"
-          npm cache clean --force
           npm ci --prefer-offline --no-audit
       
       - name: Verify Turbo installation  
@@ -127,7 +125,6 @@ jobs:
           else
             echo "✅ Turbo available: $(turbo --version)"
           fi
->>>>>>> 06669031 (test: verify CI/CD pipeline with all fixes)
       
       - name: Build shared packages
         run: |
