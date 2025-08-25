@@ -47,7 +47,7 @@ module.exports = {
 	},
 	
 	// Test setup
-	setupFilesAfterEnv: ['<rootDir>/test/setup.ts'],
+	setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts'],
 	testTimeout: 15000,
 	maxWorkers: 1, // Prevents database conflicts during parallel test execution
 	
