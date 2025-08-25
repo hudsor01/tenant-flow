@@ -4,6 +4,7 @@
   "version": "0.2.0",
   "type": "module",
   "description": "Shared ESLint configurations for TenantFlow monorepo - 2025 optimized",
+  "packageManager": "npm@10.0.0",
   "main": "base.js",
   "exports": {
     "./base": "./base.js",
