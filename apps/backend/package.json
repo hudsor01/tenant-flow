@@ -2,7 +2,6 @@
 	"$schema": "https://json.schemastore.org/package",
 	"name": "@repo/backend",
 	"version": "0.0.2",
-	"author": "",
 	"private": true,
 	"license": "UNLICENSED",
 	"engines": {
