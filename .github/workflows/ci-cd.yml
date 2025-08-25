@@ -27,7 +27,7 @@ jobs:
           cache: npm
       
       - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit --omit=optional
+        run: npm ci --prefer-offline --no-audit
         
       - name: Run deployment validation
         run: node .github/scripts/validate-deployment.js
@@ -111,7 +111,7 @@ jobs:
       - name: Install dependencies
         run: |
           npm cache clean --force
-          npm ci --prefer-offline --no-audit --omit=optional
+          npm ci --prefer-offline --no-audit
       
       - name: Verify Turbo installation
         run: |
@@ -231,7 +231,7 @@ jobs:
         run: |
           echo "✅ Ready for Vercel deployment"
           echo "Build command: npm run build:shared && npx turbo run build --filter=@repo/frontend"
-          echo "Install command: npm ci --prefer-offline --no-audit --omit=optional"
+          echo "Install command: npm ci --prefer-offline --no-audit"
       
       - name: Check Railway readiness
         run: |
