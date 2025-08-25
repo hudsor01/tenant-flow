@@ -157,6 +157,8 @@ jobs:
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL || 'https://api.placeholder.com' }}
           NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL || 'https://placeholder.com' }}
           NEXT_SWC_BINARY_TARGET: x86_64-unknown-linux-gnu
+          SKIP_YARN_COREPACK_CHECK: 1
+          COREPACK_ENABLE_STRICT: 0
       
       - name: Build backend
         run: npm run build:backend

@@ -3,6 +3,7 @@
 	"name": "@repo/frontend",
 	"version": "0.1.0",
 	"private": true,
+	"packageManager": "npm@10.0.0",
 	"engines": {
 		"node": ">=22.0.0",
 		"npm": ">=10.0.0"

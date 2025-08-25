@@ -13,6 +13,7 @@
 		}
 	},
 	"private": true,
+	"packageManager": "npm@10.0.0",
 	"exports": {
 		".": {
 			"types": "./dist/cjs/index.d.ts",
