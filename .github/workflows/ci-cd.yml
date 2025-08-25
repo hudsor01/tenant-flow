@@ -102,8 +102,10 @@ jobs:
           echo "NEXT_SWC_BINARY_TARGET=x86_64-unknown-linux-gnu" >> $GITHUB_ENV
           npm config set target_platform linux
           npm config set target_arch x64
-          # Disable Corepack to avoid packageManager enforcement in CI
+          # Disable Corepack completely to avoid packageManager misinterpretation
           echo "COREPACK_ENABLE_DOWNLOAD_PROMPT=0" >> $GITHUB_ENV
+          echo "COREPACK_ENABLE_STRICT=0" >> $GITHUB_ENV
+          corepack disable || true
       
       - name: Cache Turbo
         uses: actions/cache@v4
