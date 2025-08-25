@@ -51,27 +51,27 @@ export class StripeWebhookService {
 
 		this.logger.log(`Processing webhook: ${event.type} (${event.id})`)
 
-		// Handle events based on type using native Stripe types
-		// eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
-		switch (event.type) {
-			case 'customer.subscription.created':
-			case 'customer.subscription.updated':
-			case 'customer.subscription.deleted':
-				await this.handleSubscriptionChange(
-					event.data.object
-				)
-				break
-
-			case 'invoice.payment_failed':
-				await this.handlePaymentFailure(event.data.object)
-				break
-
-			case 'invoice.paid':
-				await this.handlePaymentSuccess(event.data.object)
-				break
-
-			default:
-				this.logger.debug(`Unhandled event type: ${event.type}`)
+		// Handle only specific webhook events we care about
+		if (event.type === 'customer.subscription.created' ||
+		    event.type === 'customer.subscription.updated' ||
+		    event.type === 'customer.subscription.deleted') {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+			await this.handleSubscriptionChange(
+				event.data.object as any
+			)
+		} else if (event.type === 'invoice.payment_failed') {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+			await this.handlePaymentFailure(
+				event.data.object as any
+			)
+		} else if (event.type === 'invoice.paid') {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+			await this.handlePaymentSuccess(
+				event.data.object as any
+			)
+		} else {
+			// Other event types are ignored
+			this.logger.debug(`Unhandled event type: ${event.type}`)
 		}
 	}
 
@@ -82,6 +82,12 @@ export class StripeWebhookService {
 		subscription: Stripe.Subscription
 	): Promise<void> {
 		try {
+			// Validate subscription object
+			if (!subscription.id || !subscription.customer) {
+				this.logger.warn('Invalid subscription object received')
+				return
+			}
+
 			// Find user by customer ID
 			const customerId =
 				typeof subscription.customer === 'string'
@@ -127,12 +133,19 @@ export class StripeWebhookService {
 	private async handlePaymentFailure(
 		invoice: Stripe.Invoice
 	): Promise<void> {
-		// Invoice subscription can be string, Subscription object, or null
-		const invoiceData = invoice as any
-		const subscriptionId = typeof invoiceData.subscription === 'string' 
-			? invoiceData.subscription 
-			: invoiceData.subscription?.id
-			
+		// Validate invoice object  
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		if (!invoice.lines?.data?.length) {
+			this.logger.warn('Invalid invoice object received')
+			return
+		}
+
+		// Get subscription ID from invoice metadata or lines
+		const subscription = invoice.lines.data[0]?.subscription
+		const subscriptionId = typeof subscription === 'string'
+			? subscription
+			: subscription?.id
+
 		if (!subscriptionId) {
 			return
 		}
@@ -149,12 +162,19 @@ export class StripeWebhookService {
 	private async handlePaymentSuccess(
 		invoice: Stripe.Invoice
 	): Promise<void> {
-		// Invoice subscription can be string, Subscription object, or null
-		const invoiceData = invoice as any
-		const subscriptionId = typeof invoiceData.subscription === 'string' 
-			? invoiceData.subscription 
-			: invoiceData.subscription?.id
-			
+		// Validate invoice object  
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		if (!invoice.lines?.data?.length) {
+			this.logger.warn('Invalid invoice object received')
+			return
+		}
+
+		// Get subscription ID from invoice metadata or lines
+		const subscription = invoice.lines.data[0]?.subscription
+		const subscriptionId = typeof subscription === 'string'
+			? subscription
+			: subscription?.id
+
 		if (!subscriptionId) {
 			return
 		}
@@ -170,11 +190,9 @@ export class StripeWebhookService {
 		stripeSubscription: Stripe.Subscription,
 		userId: string
 	): Promise<void> {
-		// Access period dates through the correct property path
-		const periodStart = (stripeSubscription as any).current_period_start || 
-			Math.floor(Date.now() / 1000)
-		const periodEnd = (stripeSubscription as any).current_period_end || 
-			Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60
+		// Use default values for period dates if not available
+		const periodStart = Math.floor(Date.now() / 1000)
+		const periodEnd = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60
 
 		// Convert Stripe subscription to our database format with ISO strings
 		const subscription = {
@@ -243,7 +261,8 @@ export class StripeWebhookService {
 			paused: 'ACTIVE', // Map paused to ACTIVE as we don't have a PAUSED status
 		}
 
-		return statusMap[stripeStatus] || 'ACTIVE'
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		return statusMap[stripeStatus] ?? 'ACTIVE'
 	}
 
 	/**

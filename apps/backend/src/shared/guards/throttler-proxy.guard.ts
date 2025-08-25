@@ -35,14 +35,12 @@ export class ThrottlerProxyGuard extends ThrottlerGuard {
 		}
 
 		if (forwardedFor) {
-			// X-Forwarded-For can be comma-separated list, get first IP
 			const ips = Array.isArray(forwardedFor)
 				? forwardedFor[0]
 				: forwardedFor
 			return Promise.resolve(ips.split(',')[0].trim() || 'unknown')
 		}
 
-		// Fallback to direct connection IP
 		return Promise.resolve(req.ip ?? req.socket?.remoteAddress ?? 'unknown')
 	}
 }
