@@ -123,10 +123,9 @@ export class StripeWebhookService {
 		invoice: Stripe.Invoice
 	): Promise<void> {
 		// Invoice subscription can be string, Subscription object, or null
-		const invoiceData = invoice as any
-		const subscriptionId = typeof invoiceData.subscription === 'string' 
-			? invoiceData.subscription 
-			: invoiceData.subscription?.id
+		const subscriptionId = typeof invoice.subscription === 'string' 
+			? invoice.subscription 
+			: (invoice.subscription as Stripe.Subscription | null)?.id
 			
 		if (!subscriptionId) {
 			return
@@ -145,10 +144,9 @@ export class StripeWebhookService {
 		invoice: Stripe.Invoice
 	): Promise<void> {
 		// Invoice subscription can be string, Subscription object, or null
-		const invoiceData = invoice as any
-		const subscriptionId = typeof invoiceData.subscription === 'string' 
-			? invoiceData.subscription 
-			: invoiceData.subscription?.id
+		const subscriptionId = typeof invoice.subscription === 'string' 
+			? invoice.subscription 
+			: (invoice.subscription as Stripe.Subscription | null)?.id
 			
 		if (!subscriptionId) {
 			return
@@ -166,9 +164,9 @@ export class StripeWebhookService {
 		userId: string
 	): Promise<void> {
 		// Access period dates through the correct property path
-		const periodStart = (stripeSubscription as any).current_period_start || 
+		const periodStart = stripeSubscription.current_period_start ?? 
 			Math.floor(Date.now() / 1000)
-		const periodEnd = (stripeSubscription as any).current_period_end || 
+		const periodEnd = stripeSubscription.current_period_end ?? 
 			Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60
 
 		// Convert Stripe subscription to our database format with ISO strings
@@ -238,7 +236,7 @@ export class StripeWebhookService {
 			paused: 'ACTIVE', // Map paused to ACTIVE as we don't have a PAUSED status
 		}
 
-		return statusMap[stripeStatus] || 'ACTIVE'
+		return statusMap[stripeStatus] ?? 'ACTIVE'
 	}
 
 	/**

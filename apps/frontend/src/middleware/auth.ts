@@ -4,7 +4,7 @@ import { type NextRequest, NextResponse } from 'next/server'
  * Edge-compatible auth middleware for route protection
  * Note: We check for auth session cookies directly to avoid Edge Runtime incompatibility
  */
-export async function authMiddleware(request: NextRequest) {
+export function authMiddleware(request: NextRequest) {
 	const response = NextResponse.next()
 	const pathname = request.nextUrl.pathname
 
@@ -33,7 +33,7 @@ export async function authMiddleware(request: NextRequest) {
 	}
 
 	// Check for auth session cookie (Edge-compatible)
-	const sessionCookie = request.cookies.get('sb-auth-token') || 
+	const sessionCookie = request.cookies.get('sb-auth-token') ?? 
 		request.cookies.get(`sb-${process.env.NEXT_PUBLIC_SUPABASE_URL?.replace('https://', '').split('.')[0]}-auth-token`)
 
 	if (!sessionCookie) {
@@ -45,13 +45,7 @@ export async function authMiddleware(request: NextRequest) {
 
 	// For admin routes, we'll check permissions in the page component
 	// since we can't use Supabase client in Edge Runtime
-	if (pathname.startsWith('/admin')) {
-		// Admin permission check will be done client-side or in Server Components
-		// We just check for basic auth here
-		if (!sessionCookie) {
-			return NextResponse.redirect(new URL('/unauthorized', request.url))
-		}
-	}
+	// Admin permission check will be done client-side or in Server Components
 
 	return response
 }
