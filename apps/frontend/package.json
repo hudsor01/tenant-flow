@@ -18,6 +18,7 @@
 		"build:production": "next build",
 		"export": "next export",
 		"typecheck": "tsc --noEmit",
+		"check-types": "tsc --noEmit",
 		"test": "jest --passWithNoTests",
 		"test:unit": "jest --passWithNoTests",
 		"test:minimal": "jest --config jest.config.minimal.js",
