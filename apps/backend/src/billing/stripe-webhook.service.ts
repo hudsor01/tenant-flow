@@ -53,6 +53,7 @@ export class StripeWebhookService {
 
 		// Handle events based on type using native Stripe types
 		 
+		// We only handle specific events - no exhaustive check needed
 		switch (event.type) {
 			case 'customer.subscription.created':
 			case 'customer.subscription.updated':
@@ -71,10 +72,9 @@ export class StripeWebhookService {
 				break
 
 			default:
-				// Exhaustive check - explicitly ignore other event types
-				const _exhaustiveCheck: never = event.type as never
-				void _exhaustiveCheck
+				// Other event types are ignored
 				this.logger.debug(`Unhandled event type: ${event.type}`)
+				break
 		}
 	}
 
