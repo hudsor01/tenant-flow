@@ -5,7 +5,7 @@
 import { z } from 'zod'
 import { Security } from '../security'
 // Bring auth schemas from zod-schemas (frontend-local canonical auth schemas)
-import { loginSchema, signupSchema } from './zod-schemas'
+import type { loginSchema, signupSchema } from './zod-schemas'
 
 // Re-export shared validation schemas to avoid duplication
 export {
