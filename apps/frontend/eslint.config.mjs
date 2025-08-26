@@ -11,14 +11,13 @@
 import { FlatCompat } from '@eslint/eslintrc'
 import baseConfig from '@repo/eslint-config/base'
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
-import tseslint from 'typescript-eslint'
 
 // Next.js official compatibility layer for flat config
 const compat = new FlatCompat({
   baseDirectory: import.meta.dirname,
 })
 
-export default tseslint.config(
+export default [
   // Use shared base configuration (ignores, JavaScript, TypeScript base rules)
   ...baseConfig,
   
@@ -46,20 +45,12 @@ export default tseslint.config(
     ]
   },
   
-  // Next.js official configuration (following Next.js docs)
+  // Next.js configuration - use only core-web-vitals to avoid TypeScript plugin conflicts
   ...compat.config({
-    extends: ['next/core-web-vitals', 'next/typescript'],
+    extends: ['next/core-web-vitals'],
     rules: {
       // Disable problematic React rules that block builds
       'react/no-unescaped-entities': 'off', // Allow apostrophes and quotes in JSX text
-      '@typescript-eslint/ban-ts-comment': 'warn', // Allow @ts-ignore but with warnings
-      
-      // Disable TypeScript unsafe warnings for React forms and dynamic data
-      '@typescript-eslint/no-unsafe-assignment': 'off',
-      '@typescript-eslint/no-unsafe-member-access': 'off',
-      '@typescript-eslint/no-unsafe-call': 'off',
-      '@typescript-eslint/no-unsafe-return': 'off',
-      '@typescript-eslint/no-unsafe-argument': 'off',
     }
   }),
   
@@ -149,4 +140,4 @@ export default tseslint.config(
       'no-console': 'off'
     }
   }
-)
+]

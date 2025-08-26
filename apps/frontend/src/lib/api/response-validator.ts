@@ -4,7 +4,7 @@
  */
 
 import { z, type ZodTypeAny, ZodError } from 'zod'
-import { logger } from "@/lib/logger/logger"
+import { logger } from '@/lib/logger/logger'
 
 export class ApiResponseValidationError extends Error {
 	constructor(
@@ -215,7 +215,7 @@ export const commonValidators = {
 	/**
 	 * ID response for creation operations
 	 */
-		idResponse: z.object({
+	idResponse: z.object({
 		id: z.string(),
 		message: z.string().optional()
 	}),

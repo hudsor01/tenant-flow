@@ -19,7 +19,7 @@ export function UpgradePromptModal({
 				<div className="relative p-6">
 					<button
 						onClick={onClose}
-						className="hover:bg-muted absolute top-4 right-4 rounded-full p-2 transition-colors"
+						className="hover:bg-muted absolute right-4 top-4 rounded-full p-2 transition-colors"
 					>
 						<X className="h-4 w-4" />
 					</button>

@@ -70,7 +70,7 @@ export const SidebarToggle: React.FC<SidebarToggleProps> = ({
 export const FloatingSidebarToggle: React.FC<
 	Omit<SidebarToggleProps, 'variant'>
 > = props => (
-	<div className="fixed top-4 left-4 z-50">
+	<div className="fixed left-4 top-4 z-50">
 		<SidebarToggle {...props} variant="floating" />
 	</div>
 )

@@ -5,9 +5,7 @@ import { SupabaseModule } from '../database/supabase.module'
 @Module({
 	imports: [SupabaseModule],
 	controllers: [MaintenanceController],
-	providers: [
-		MaintenanceService
-	],
+	providers: [MaintenanceService],
 	exports: [MaintenanceService]
 })
 export class MaintenanceModule {}

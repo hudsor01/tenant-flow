@@ -1,9 +1,9 @@
 /**
  * Authentication Schemas
- * 
+ *
  * JSON Schema definitions for authentication endpoints.
  * These schemas replace class-validator DTOs and provide automatic TypeScript type inference.
- * 
+ *
  * Benefits:
  * - Single source of truth for validation and types
  * - Automatic TypeScript type inference
@@ -33,7 +33,8 @@ const passwordSchema: JSONSchema = {
 	type: 'string',
 	minLength: PASSWORD_VALIDATION.MIN_LENGTH,
 	pattern: PASSWORD_VALIDATION.REGEX.source,
-	description: 'Password must contain uppercase, lowercase, number and special character'
+	description:
+		'Password must contain uppercase, lowercase, number and special character'
 }
 
 // Name validation schema
@@ -41,8 +42,9 @@ const nameSchema: JSONSchema = {
 	type: 'string',
 	minLength: NAME_VALIDATION.MIN_LENGTH,
 	maxLength: NAME_VALIDATION.MAX_LENGTH,
-	pattern: '^[a-zA-Z\\s\\-\\.\']+$',
-	description: 'Name must contain only letters, spaces, hyphens, periods, and apostrophes'
+	pattern: "^[a-zA-Z\\s\\-\\.']+$",
+	description:
+		'Name must contain only letters, spaces, hyphens, periods, and apostrophes'
 }
 
 // Company schema
@@ -227,7 +229,14 @@ export const authResponseSchema: JSONSchema = {
 	properties: {
 		user: {
 			type: 'object',
-			required: ['id', 'email', 'name', 'emailVerified', 'createdAt', 'updatedAt'],
+			required: [
+				'id',
+				'email',
+				'name',
+				'emailVerified',
+				'createdAt',
+				'updatedAt'
+			],
 			properties: {
 				id: { type: 'string', format: 'uuid' },
 				email: { type: 'string', format: 'email' },
@@ -269,7 +278,14 @@ export interface UserProfileResponse {
 
 export const userProfileResponseSchema: JSONSchema = {
 	type: 'object',
-	required: ['id', 'email', 'name', 'emailVerified', 'createdAt', 'updatedAt'],
+	required: [
+		'id',
+		'email',
+		'name',
+		'emailVerified',
+		'createdAt',
+		'updatedAt'
+	],
 	properties: {
 		id: { type: 'string', format: 'uuid' },
 		email: { type: 'string', format: 'email' },

@@ -199,7 +199,7 @@ export function PricingComparison() {
 												{plan.name}
 											</h3>
 											<div className="text-2xl font-bold text-gray-900">
-												${plan.monthly.amount / 100}
+												${plan.price.monthly / 100}
 												<span className="text-sm font-normal text-gray-600">
 													/month
 												</span>
@@ -275,29 +275,29 @@ export function PricingComparison() {
 										Properties:
 									</span>
 									<span className="font-medium text-gray-900">
-										{plan.limits.properties === -1
+										{plan.propertyLimit === -1
 											? 'Unlimited'
-											: plan.limits.properties}
+											: plan.propertyLimit}
 									</span>
 								</div>
 								<div className="flex justify-between">
 									<span className="text-gray-600">
-										Units:
+										Storage:
 									</span>
 									<span className="font-medium text-gray-900">
-										{plan.limits.units === -1
+										{plan.storageLimit === -1
 											? 'Unlimited'
-											: plan.limits.units}
+											: `${plan.storageLimit / 1000}GB`}
 									</span>
 								</div>
 								<div className="flex justify-between">
 									<span className="text-gray-600">
-										Team members:
+										API Calls:
 									</span>
 									<span className="font-medium text-gray-900">
-										{plan.limits.users === -1
+										{plan.apiCallLimit === -1
 											? 'Unlimited'
-											: plan.limits.users}
+											: plan.apiCallLimit.toLocaleString()}
 									</span>
 								</div>
 							</div>

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useOptimistic } from 'react'
-import { logger } from "@/lib/logger/logger"
+import { logger } from '@/lib/logger/logger'
 import { motion, AnimatePresence } from '@/lib/lazy-motion'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -100,7 +100,7 @@ export default function ContactPage() {
 			// const { apiClient } = await import('@/lib/api-client')
 			// Contact form temporarily disabled - would send email via Resend
 			// await emailService.send(formData)
-			logger.info('Contact form submitted', { 
+			logger.info('Contact form submitted', {
 				name: formData.name,
 				email: formData.email,
 				subject: formData.subject,
@@ -134,7 +134,7 @@ export default function ContactPage() {
 	return (
 		<div className="from-background to-muted/20 min-h-screen bg-gradient-to-b">
 			{/* Hero Section */}
-			<section className="px-4 pt-24 pb-16">
+			<section className="px-4 pb-16 pt-24">
 				<div className="mx-auto max-w-7xl">
 					<div className="mb-16 text-center">
 						<motion.div
@@ -153,7 +153,7 @@ export default function ContactPage() {
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ duration: 0.6, delay: 0.1 }}
-							className="text-foreground mb-6 text-5xl leading-tight font-bold lg:text-6xl"
+							className="text-foreground mb-6 text-5xl font-bold leading-tight lg:text-6xl"
 						>
 							Let's{' '}
 							<span className="from-primary via-accent to-success bg-gradient-to-r bg-clip-text text-transparent">
@@ -417,7 +417,9 @@ export default function ContactPage() {
 															value={
 																formData.name
 															}
-															onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+															onChange={(
+																e: React.ChangeEvent<HTMLInputElement>
+															) =>
 																handleInputChange(
 																	'name',
 																	e.target
@@ -443,7 +445,9 @@ export default function ContactPage() {
 															value={
 																formData.email
 															}
-															onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+															onChange={(
+																e: React.ChangeEvent<HTMLInputElement>
+															) =>
 																handleInputChange(
 																	'email',
 																	e.target
@@ -468,7 +472,9 @@ export default function ContactPage() {
 														id="subject"
 														placeholder="Brief description of your inquiry"
 														value={formData.subject}
-														onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+														onChange={(
+															e: React.ChangeEvent<HTMLInputElement>
+														) =>
 															handleInputChange(
 																'subject',
 																e.target.value
@@ -491,7 +497,9 @@ export default function ContactPage() {
 														id="message"
 														placeholder="Tell us more about your inquiry..."
 														value={formData.message}
-														onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+														onChange={(
+															e: React.ChangeEvent<HTMLTextAreaElement>
+														) =>
 															handleInputChange(
 																'message',
 																e.target.value

@@ -104,7 +104,7 @@ export async function apiGet<T>(
 	signal?: AbortSignal
 ): Promise<T> {
 	const authHeaders = await getAuthHeaders()
-	
+
 	const response = await fetch(buildApiUrl(path, params), {
 		method: 'GET',
 		headers: {
@@ -143,11 +143,7 @@ export async function apiMutate<T>(
 	const response = await fetch(buildApiUrl(path, params), {
 		method,
 		headers,
-		body: isFormData
-			? data
-			: data
-				? JSON.stringify(data)
-				: undefined,
+		body: isFormData ? data : data ? JSON.stringify(data) : undefined,
 		credentials: 'include',
 		signal
 	})

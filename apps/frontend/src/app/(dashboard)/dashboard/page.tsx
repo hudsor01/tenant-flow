@@ -33,8 +33,8 @@ export default function DashboardPage() {
 									Dashboard
 								</h1>
 								<p className="text-muted-foreground text-base font-medium sm:text-lg">
-									Welcome back! Here&apos;s an overview of your
-									property portfolio.
+									Welcome back! Here&apos;s an overview of
+									your property portfolio.
 								</p>
 							</div>
 

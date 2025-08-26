@@ -72,7 +72,7 @@ export function PartiesInfoSection({ form }: PartiesInfoSectionProps) {
 								Email Address *
 							</Label>
 							<div className="relative">
-								<Mail className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
+								<Mail className="text-muted-foreground absolute left-3 top-3 h-4 w-4" />
 								<Input
 									id="landlordEmail"
 									type="email"
@@ -104,7 +104,7 @@ export function PartiesInfoSection({ form }: PartiesInfoSectionProps) {
 								</span>
 							</Label>
 							<div className="relative">
-								<Phone className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
+								<Phone className="text-muted-foreground absolute left-3 top-3 h-4 w-4" />
 								<Input
 									id="landlordPhone"
 									type="tel"
@@ -123,7 +123,7 @@ export function PartiesInfoSection({ form }: PartiesInfoSectionProps) {
 								Mailing Address *
 							</Label>
 							<div className="relative">
-								<MapPin className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
+								<MapPin className="text-muted-foreground absolute left-3 top-3 h-4 w-4" />
 								<Input
 									id="landlordAddress"
 									placeholder="123 Business St, City, State 12345"

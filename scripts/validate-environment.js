@@ -2,14 +2,14 @@
 
 /**
  * Environment Variable Validation Script for TenantFlow
- * 
+ *
  * This script validates that all required environment variables are set
  * and meet security requirements. Run this before deployment to ensure
  * proper configuration.
- * 
+ *
  * Usage:
  *   node scripts/validate-environment.js [environment]
- * 
+ *
  * Environment: development, staging, production (default: development)
  */
 
@@ -28,11 +28,12 @@ const COLORS = {
 }
 
 const log = {
-	info: (msg) => console.log(`${COLORS.blue}ℹ${COLORS.reset} ${msg}`),
-	success: (msg) => console.log(`${COLORS.green}✅${COLORS.reset} ${msg}`),
-	warning: (msg) => console.log(`${COLORS.yellow}⚠️${COLORS.reset} ${msg}`),
-	error: (msg) => console.log(`${COLORS.red}❌${COLORS.reset} ${msg}`),
-	title: (msg) => console.log(`${COLORS.bold}${COLORS.cyan}🔒 ${msg}${COLORS.reset}\n`)
+	info: msg => console.log(`${COLORS.blue}ℹ${COLORS.reset} ${msg}`),
+	success: msg => console.log(`${COLORS.green}✅${COLORS.reset} ${msg}`),
+	warning: msg => console.log(`${COLORS.yellow}⚠️${COLORS.reset} ${msg}`),
+	error: msg => console.log(`${COLORS.red}❌${COLORS.reset} ${msg}`),
+	title: msg =>
+		console.log(`${COLORS.bold}${COLORS.cyan}🔒 ${msg}${COLORS.reset}\n`)
 }
 
 // Required environment variables by environment
@@ -40,7 +41,10 @@ const REQUIRED_VARS = {
 	development: {
 		NODE_ENV: { required: true, values: ['development'] },
 		PORT: { required: false, default: '4600' },
-		SUPABASE_URL: { required: true, pattern: /^https:\/\/.+\.supabase\.co$/ },
+		SUPABASE_URL: {
+			required: true,
+			pattern: /^https:\/\/.+\.supabase\.co$/
+		},
 		SUPABASE_ANON_KEY: { required: true, minLength: 100 },
 		SUPABASE_SERVICE_ROLE_KEY: { required: true, minLength: 100 },
 		JWT_SECRET: { required: true, minLength: 32 },
@@ -50,7 +54,10 @@ const REQUIRED_VARS = {
 	staging: {
 		NODE_ENV: { required: true, values: ['staging', 'production'] },
 		PORT: { required: false, default: '4600' },
-		SUPABASE_URL: { required: true, pattern: /^https:\/\/.+\.supabase\.co$/ },
+		SUPABASE_URL: {
+			required: true,
+			pattern: /^https:\/\/.+\.supabase\.co$/
+		},
 		SUPABASE_ANON_KEY: { required: true, minLength: 100 },
 		SUPABASE_SERVICE_ROLE_KEY: { required: true, minLength: 100 },
 		JWT_SECRET: { required: true, minLength: 32 },
@@ -63,7 +70,10 @@ const REQUIRED_VARS = {
 	production: {
 		NODE_ENV: { required: true, values: ['production'] },
 		PORT: { required: false, default: '4600' },
-		SUPABASE_URL: { required: true, pattern: /^https:\/\/.+\.supabase\.co$/ },
+		SUPABASE_URL: {
+			required: true,
+			pattern: /^https:\/\/.+\.supabase\.co$/
+		},
 		SUPABASE_ANON_KEY: { required: true, minLength: 100 },
 		SUPABASE_SERVICE_ROLE_KEY: { required: true, minLength: 100 },
 		JWT_SECRET: { required: true, minLength: 64 }, // Longer for production
@@ -75,7 +85,7 @@ const REQUIRED_VARS = {
 		// Additional production requirements
 		COOKIE_SECRET: { required: true, minLength: 32 },
 		DATABASE_URL: { required: false }, // Optional: direct DB connection
-		REDIS_URL: { required: false }     // Optional: Redis for caching
+		REDIS_URL: { required: false } // Optional: Redis for caching
 	}
 }
 
@@ -91,13 +101,13 @@ const SECURITY_CHECKS = {
 		'default',
 		'test-secret'
 	],
-	
+
 	// Check for development keys in production
 	developmentPatterns: [
-		/^sk_test_/,    // Stripe test keys
-		/localhost/,    // Local URLs
+		/^sk_test_/, // Stripe test keys
+		/localhost/, // Local URLs
 		/127\.0\.0\.1/, // Local IPs
-		/\.test$/       // Test domains
+		/\.test$/ // Test domains
 	]
 }
 
@@ -106,50 +116,62 @@ const SECURITY_CHECKS = {
  */
 function validateVariable(name, value, config, environment) {
 	const issues = []
-	
+
 	// Check if required variable is missing
 	if (config.required && !value) {
 		issues.push(`Missing required variable: ${name}`)
 		return issues
 	}
-	
+
 	// Use default if not set and not required
 	if (!value && config.default) {
 		process.env[name] = config.default
 		log.info(`Using default value for ${name}: ${config.default}`)
 		value = config.default
 	}
-	
+
 	// Skip further checks if variable is not set and not required
 	if (!value) return issues
-	
+
 	// Length validation
 	if (config.minLength && value.length < config.minLength) {
-		issues.push(`${name} is too short (minimum ${config.minLength} characters)`)
+		issues.push(
+			`${name} is too short (minimum ${config.minLength} characters)`
+		)
 	}
-	
+
 	// Pattern validation
 	if (config.pattern && !config.pattern.test(value)) {
 		issues.push(`${name} doesn't match required pattern`)
 	}
-	
+
 	// Value enumeration validation
 	if (config.values && !config.values.includes(value)) {
 		issues.push(`${name} must be one of: ${config.values.join(', ')}`)
 	}
-	
+
 	// Security checks
-	if (SECURITY_CHECKS.weakSecrets.some(weak => value.toLowerCase().includes(weak))) {
+	if (
+		SECURITY_CHECKS.weakSecrets.some(weak =>
+			value.toLowerCase().includes(weak)
+		)
+	) {
 		issues.push(`${name} appears to contain a weak/default secret`)
 	}
-	
+
 	// Production-specific security checks
 	if (environment === 'production') {
-		if (SECURITY_CHECKS.developmentPatterns.some(pattern => pattern.test(value))) {
-			issues.push(`${name} appears to be a development/test value in production`)
+		if (
+			SECURITY_CHECKS.developmentPatterns.some(pattern =>
+				pattern.test(value)
+			)
+		) {
+			issues.push(
+				`${name} appears to be a development/test value in production`
+			)
 		}
 	}
-	
+
 	return issues
 }
 
@@ -157,9 +179,14 @@ function validateVariable(name, value, config, environment) {
  * Check for environment files and warn about their presence
  */
 function checkEnvironmentFiles() {
-	const envFiles = ['.env', '.env.local', '.env.development', '.env.production']
+	const envFiles = [
+		'.env',
+		'.env.local',
+		'.env.development',
+		'.env.production'
+	]
 	const foundFiles = []
-	
+
 	for (const file of envFiles) {
 		try {
 			readFileSync(resolve(file))
@@ -168,13 +195,15 @@ function checkEnvironmentFiles() {
 			// File doesn't exist, which is good for production
 		}
 	}
-	
+
 	if (foundFiles.length > 0) {
 		log.warning(`Found environment files: ${foundFiles.join(', ')}`)
 		log.warning('Ensure these files are not committed to version control')
-		log.warning('Use platform-specific environment variable management in production')
+		log.warning(
+			'Use platform-specific environment variable management in production'
+		)
 	}
-	
+
 	return foundFiles
 }
 
@@ -184,11 +213,13 @@ function checkEnvironmentFiles() {
 function generateTemplate(environment) {
 	const config = REQUIRED_VARS[environment]
 	const template = []
-	
-	template.push(`# TenantFlow Environment Variables - ${environment.toUpperCase()}`)
+
+	template.push(
+		`# TenantFlow Environment Variables - ${environment.toUpperCase()}`
+	)
 	template.push(`# Generated: ${new Date().toISOString()}`)
 	template.push('')
-	
+
 	for (const [name, settings] of Object.entries(config)) {
 		if (settings.required) {
 			template.push(`${name}=<required>`)
@@ -196,7 +227,7 @@ function generateTemplate(environment) {
 			template.push(`# ${name}=${settings.default || '<optional>'}`)
 		}
 	}
-	
+
 	return template.join('\n')
 }
 
@@ -205,31 +236,38 @@ function generateTemplate(environment) {
  */
 function validateEnvironment(targetEnvironment = 'development') {
 	log.title('TenantFlow Environment Variable Validation')
-	
+
 	// Validate environment parameter
 	if (!REQUIRED_VARS[targetEnvironment]) {
 		log.error(`Unknown environment: ${targetEnvironment}`)
-		log.info(`Available environments: ${Object.keys(REQUIRED_VARS).join(', ')}`)
+		log.info(
+			`Available environments: ${Object.keys(REQUIRED_VARS).join(', ')}`
+		)
 		process.exit(1)
 	}
-	
+
 	log.info(`Validating environment: ${targetEnvironment}`)
 	log.info(`Current NODE_ENV: ${process.env.NODE_ENV || 'undefined'}`)
-	
+
 	const config = REQUIRED_VARS[targetEnvironment]
 	const allIssues = []
 	let validCount = 0
-	
+
 	// Check environment files
 	checkEnvironmentFiles()
 	console.log('')
-	
+
 	// Validate each required variable
 	log.info('Validating environment variables:')
 	for (const [name, settings] of Object.entries(config)) {
 		const value = process.env[name]
-		const issues = validateVariable(name, value, settings, targetEnvironment)
-		
+		const issues = validateVariable(
+			name,
+			value,
+			settings,
+			targetEnvironment
+		)
+
 		if (issues.length === 0) {
 			const displayValue = value ? '✓' : '(default)'
 			log.success(`${name}: ${displayValue}`)
@@ -241,14 +279,14 @@ function validateEnvironment(targetEnvironment = 'development') {
 			}
 		}
 	}
-	
+
 	console.log('')
-	
+
 	// Summary
 	const totalVars = Object.keys(config).length
 	if (allIssues.length === 0) {
 		log.success(`All ${totalVars} environment variables are valid! 🎉`)
-		
+
 		// Additional production recommendations
 		if (targetEnvironment === 'production') {
 			console.log('')
@@ -259,14 +297,18 @@ function validateEnvironment(targetEnvironment = 'development') {
 			log.info('• Enable secret scanning in CI/CD')
 			log.info('• Use platform-native secret management')
 		}
-		
+
 		return true
 	} else {
-		log.error(`Found ${allIssues.length} issues with environment configuration`)
+		log.error(
+			`Found ${allIssues.length} issues with environment configuration`
+		)
 		log.info(`${validCount}/${totalVars} variables are valid`)
-		
+
 		// Generate template if many variables are missing
-		const missingRequired = allIssues.filter(issue => issue.includes('Missing required')).length
+		const missingRequired = allIssues.filter(issue =>
+			issue.includes('Missing required')
+		).length
 		if (missingRequired > 2) {
 			console.log('')
 			log.info('Environment template:')
@@ -274,7 +316,7 @@ function validateEnvironment(targetEnvironment = 'development') {
 			console.log(generateTemplate(targetEnvironment))
 			console.log('---')
 		}
-		
+
 		return false
 	}
 }

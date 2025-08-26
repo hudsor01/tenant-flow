@@ -54,7 +54,7 @@ export function TestimonialsSection() {
 				</div>
 
 				<div className="grid gap-8 md:grid-cols-3">
-					{testimonials.map((testimonial) => (
+					{testimonials.map(testimonial => (
 						<Card
 							key={testimonial.name}
 							className="p-6 transition-all hover:shadow-xl"
@@ -73,7 +73,7 @@ export function TestimonialsSection() {
 								</Badge>
 							</div>
 
-							<p className="mb-4 text-gray-600 italic">
+							<p className="mb-4 italic text-gray-600">
 								"{testimonial.content}"
 							</p>
 

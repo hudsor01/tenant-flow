@@ -9,6 +9,7 @@ import { AuthLayout } from '@/components/layout/auth/layout'
 import { SimpleLoginForm } from '@/components/forms/supabase-login-form'
 import { getCurrentUser } from '@/lib/actions/auth-actions'
 import { AuthRedirect } from '@/components/auth/auth-redirect'
+import { SkeletonForm } from '@/components/ui/skeleton'
 
 export const metadata: Metadata = {
 	title: 'Sign In | TenantFlow',
@@ -51,7 +52,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 		>
 			<Suspense
 				fallback={
-					<div className="bg-muted h-[400px] animate-pulse rounded-lg" />
+					<div className="mx-auto w-full max-w-md">
+						<SkeletonForm />
+					</div>
 				}
 			>
 				<SimpleLoginForm redirectTo={redirectTo} />

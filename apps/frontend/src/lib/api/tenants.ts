@@ -17,8 +17,6 @@ import {
 	TenantStatsSchema
 } from '@/lib/api/schemas/tenants'
 
-
-
 /**
  * Tenants API functions - Direct calls only
  */
@@ -41,7 +39,11 @@ export const tenantApi = {
 	},
 
 	async getById(id: string) {
-	return apiClient.getValidated<Tenant>(`/tenants/${id}`, TenantSchema, 'Tenant')
+		return apiClient.getValidated<Tenant>(
+			`/tenants/${id}`,
+			TenantSchema,
+			'Tenant'
+		)
 	},
 
 	async create(data: CreateTenantInput) {
@@ -67,24 +69,37 @@ export const tenantApi = {
 	},
 
 	async delete(id: string) {
-			await apiClient.deleteValidated<{ success: boolean }>(
-				`/tenants/${id}`,
-				z.object({ success: z.boolean() }),
-				'TenantDelete'
-			)
+		await apiClient.deleteValidated<{ success: boolean }>(
+			`/tenants/${id}`,
+			z.object({ success: z.boolean() }),
+			'TenantDelete'
+		)
 		// Return void to match hook expectations
 		return
 	},
 
 	async getStats() {
-	return apiClient.getValidated<TenantStats>('/tenants/stats', TenantStatsSchema, 'TenantStats')
+		return apiClient.getValidated<TenantStats>(
+			'/tenants/stats',
+			TenantStatsSchema,
+			'TenantStats'
+		)
 	},
 
 	async search(query: string) {
-	return apiClient.getValidated<Tenant[]>('/tenants/search', TenantArraySchema, 'Tenant[]', { params: { q: query } })
+		return apiClient.getValidated<Tenant[]>(
+			'/tenants/search',
+			TenantArraySchema,
+			'Tenant[]',
+			{ params: { q: query } }
+		)
 	},
 
 	async getByProperty(propertyId: string) {
-	return apiClient.getValidated<Tenant[]>(`/tenants/by-property/${propertyId}`, TenantArraySchema, 'Tenant[]')
+		return apiClient.getValidated<Tenant[]>(
+			`/tenants/by-property/${propertyId}`,
+			TenantArraySchema,
+			'Tenant[]'
+		)
 	}
 }

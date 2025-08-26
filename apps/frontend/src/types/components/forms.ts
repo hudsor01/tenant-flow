@@ -10,7 +10,7 @@ import type {
 	AsyncSubmitHandler
 } from '../core/common'
 import type { PropertyFormData, TenantFormData } from '@repo/shared/validation'
-import type { Property, Tenant } from '@repo/shared'
+import type { Property, Tenant, Unit, MaintenanceRequest } from '@repo/shared'
 
 // ============================================
 // Base Form Props
@@ -67,6 +67,30 @@ export interface TenantFormProps
 		FormWithErrorProps {
 	tenant?: Tenant
 	initialData?: Partial<TenantFormData>
+	title?: string
+	description?: string
+}
+
+/**
+ * Unit form component props - USED
+ */
+export interface UnitFormProps
+	extends FormWithSuccessProps<Unit>,
+		FormWithErrorProps {
+	unit?: Unit
+	mode?: FormMode
+	title?: string
+	description?: string
+}
+
+/**
+ * Maintenance form component props - USED
+ */
+export interface MaintenanceFormProps
+	extends FormWithSuccessProps<MaintenanceRequest>,
+		FormWithErrorProps {
+	request?: MaintenanceRequest
+	mode?: FormMode
 	title?: string
 	description?: string
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { logger } from "@/lib/logger/logger"
+import { logger } from '@/lib/logger/logger'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -288,7 +288,7 @@ export default function QuickPropertySetup({
 									Base Rent (per unit) *
 								</Label>
 								<div className="relative">
-									<span className="absolute top-2.5 left-3 text-gray-500">
+									<span className="absolute left-3 top-2.5 text-gray-500">
 										$
 									</span>
 									<Input

@@ -58,8 +58,12 @@ export const generateInvoicePDF = (invoice: CustomerInvoiceForm): Blob => {
 	// Status badge (if available)
 	if ('status' in invoice && invoice.status) {
 		let badgeColor: [number, number, number] = grayColor
-		if (invoice.status === 'PAID') {badgeColor = greenColor}
-		if (invoice.status === 'OVERDUE') {badgeColor = [231, 76, 60]}
+		if (invoice.status === 'PAID') {
+			badgeColor = greenColor
+		}
+		if (invoice.status === 'OVERDUE') {
+			badgeColor = [231, 76, 60]
+		}
 
 		doc.setFillColor(...badgeColor)
 		doc.rect(rightCol, 56, 25, 6, 'F')

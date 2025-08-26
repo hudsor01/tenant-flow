@@ -68,7 +68,9 @@ export class JwtAuthGuard implements CanActivate {
 			this.logger.warn('Authentication token missing', {
 				method,
 				url: url.substring(0, 100),
-				userAgent: request.headers['user-agent']?.substring(0, 100) ?? 'unknown',
+				userAgent:
+					request.headers['user-agent']?.substring(0, 100) ??
+					'unknown',
 				origin: request.headers.origin ?? 'unknown'
 			})
 			throw new UnauthorizedException({
@@ -243,12 +245,12 @@ export class JwtAuthGuard implements CanActivate {
 
 		if (cfConnectingIP) {
 			return Array.isArray(cfConnectingIP)
-				? cfConnectingIP[0] ?? 'unknown'
+				? (cfConnectingIP[0] ?? 'unknown')
 				: cfConnectingIP
 		}
 
 		if (realIP) {
-			return Array.isArray(realIP) ? realIP[0] ?? 'unknown' : realIP
+			return Array.isArray(realIP) ? (realIP[0] ?? 'unknown') : realIP
 		}
 
 		return request.ip || 'unknown'

@@ -9,9 +9,8 @@ export * from './use-tenants'
 export * from './use-lease-management'
 // export * from './use-maintenance' // Maintenance feature removed
 
-// Server action and optimistic update hooks
+// Server action hooks
 export * from '@/hooks/use-server-action'
-export * from '@/hooks/use-optimistic-data'
 
 // Auth form hooks
 export * from './use-signup'

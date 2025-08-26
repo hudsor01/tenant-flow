@@ -107,21 +107,21 @@ export const billingApi = {
 		successUrl?: string
 		cancelUrl?: string
 	}) {
-			return apiClient.postValidated<{ url: string; sessionId?: string }>(
-				'/stripe/checkout',
-				CheckoutSessionResponseSchema,
-				'CheckoutSession',
-				data as Record<string, unknown>
-			)
+		return apiClient.postValidated<{ url: string; sessionId?: string }>(
+			'/stripe/checkout',
+			CheckoutSessionResponseSchema,
+			'CheckoutSession',
+			data as Record<string, unknown>
+		)
 	},
 
 	async createPortalSession(data?: { returnUrl?: string }) {
-			return apiClient.postValidated<{ url: string }>(
-				'/stripe/portal',
-				PortalSessionResponseSchema,
-				'PortalSession',
-				data as Record<string, unknown>
-			)
+		return apiClient.postValidated<{ url: string }>(
+			'/stripe/portal',
+			PortalSessionResponseSchema,
+			'PortalSession',
+			data as Record<string, unknown>
+		)
 	},
 
 	async createSubscription(data: {
@@ -129,16 +129,16 @@ export const billingApi = {
 		planType: string
 		billingInterval: 'month' | 'year'
 	}) {
-			return apiClient.postValidated<{
-				subscription: { id: string; status: string }
-				clientSecret?: string
-				requiresAction?: boolean
-			}>(
-				'/stripe/create-subscription',
-				SubscriptionResponseSchema,
-				'CreateSubscription',
-				data as Record<string, unknown>
-			)
+		return apiClient.postValidated<{
+			subscription: { id: string; status: string }
+			clientSecret?: string
+			requiresAction?: boolean
+		}>(
+			'/stripe/create-subscription',
+			SubscriptionResponseSchema,
+			'CreateSubscription',
+			data as Record<string, unknown>
+		)
 	},
 
 	// Invoices - Managed through Stripe Customer Portal

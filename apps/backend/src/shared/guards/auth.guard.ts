@@ -29,7 +29,9 @@ export class UnifiedAuthGuard implements CanActivate {
 	) {}
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
-		const request = context.switchToHttp().getRequest<AuthenticatedRequest>()
+		const request = context
+			.switchToHttp()
+			.getRequest<AuthenticatedRequest>()
 
 		// Check if route is public
 		const isPublic = this.reflector.getAllAndOverride<boolean>(
@@ -56,7 +58,9 @@ export class UnifiedAuthGuard implements CanActivate {
 		return true
 	}
 
-	private async authenticateUser(request: AuthenticatedRequest): Promise<ValidatedUser> {
+	private async authenticateUser(
+		request: AuthenticatedRequest
+	): Promise<ValidatedUser> {
 		const token = this.extractToken(request)
 
 		if (!token) {
@@ -72,29 +76,44 @@ export class UnifiedAuthGuard implements CanActivate {
 		}
 	}
 
-	private checkRoleAccess(context: ExecutionContext, user: ValidatedUser): void {
-		const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>('roles', [
-			context.getHandler(),
-			context.getClass()
-		])
+	private checkRoleAccess(
+		context: ExecutionContext,
+		user: ValidatedUser
+	): void {
+		const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(
+			'roles',
+			[context.getHandler(), context.getClass()]
+		)
 
-		if (requiredRoles && requiredRoles.length > 0 && !requiredRoles.includes(user.role)) {
-			throw new ForbiddenException(`Access denied. Required roles: ${requiredRoles.join(', ')}`)
+		if (
+			requiredRoles &&
+			requiredRoles.length > 0 &&
+			!requiredRoles.includes(user.role)
+		) {
+			throw new ForbiddenException(
+				`Access denied. Required roles: ${requiredRoles.join(', ')}`
+			)
 		}
 	}
 
-	private checkAdminAccess(context: ExecutionContext, user: ValidatedUser): void {
-		const adminOnly = this.reflector.getAllAndOverride<boolean>('admin-only', [
-			context.getHandler(),
-			context.getClass()
-		])
+	private checkAdminAccess(
+		context: ExecutionContext,
+		user: ValidatedUser
+	): void {
+		const adminOnly = this.reflector.getAllAndOverride<boolean>(
+			'admin-only',
+			[context.getHandler(), context.getClass()]
+		)
 
 		if (adminOnly && user.role !== 'ADMIN') {
 			throw new ForbiddenException('Administrator privileges required')
 		}
 	}
 
-	private validateTenantIsolation(request: AuthenticatedRequest, user: ValidatedUser): void {
+	private validateTenantIsolation(
+		request: AuthenticatedRequest,
+		user: ValidatedUser
+	): void {
 		// Admins can access all tenants
 		if (user.role === 'ADMIN') {
 			return
@@ -114,7 +133,9 @@ export class UnifiedAuthGuard implements CanActivate {
 				userOrg: user.organizationId,
 				requestedOrg: requestedOrgId
 			})
-			throw new ForbiddenException('Cannot access resources from other organizations')
+			throw new ForbiddenException(
+				'Cannot access resources from other organizations'
+			)
 		}
 	}
 
@@ -126,7 +147,9 @@ export class UnifiedAuthGuard implements CanActivate {
 		return authHeader.substring(7).trim()
 	}
 
-	private extractOrganizationId(request: AuthenticatedRequest): string | null {
+	private extractOrganizationId(
+		request: AuthenticatedRequest
+	): string | null {
 		const params = request.params as Record<string, string> | undefined
 		const query = request.query as Record<string, string> | undefined
 		const body = request.body as Record<string, unknown> | undefined
@@ -134,7 +157,9 @@ export class UnifiedAuthGuard implements CanActivate {
 		return (
 			params?.organizationId ??
 			query?.organizationId ??
-			(typeof body?.organizationId === 'string' ? body.organizationId : null)
+			(typeof body?.organizationId === 'string'
+				? body.organizationId
+				: null)
 		)
 	}
 }

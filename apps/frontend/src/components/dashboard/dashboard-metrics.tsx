@@ -49,7 +49,7 @@ function MetricCard({
 		>
 			{/* Subtle geometric pattern overlay */}
 			<div className="absolute inset-0 opacity-5">
-				<div className="absolute top-0 right-0 h-32 w-32 translate-x-16 -translate-y-16 rounded-full bg-white/10" />
+				<div className="absolute right-0 top-0 h-32 w-32 -translate-y-16 translate-x-16 rounded-full bg-white/10" />
 				<div className="absolute bottom-0 left-0 h-24 w-24 -translate-x-12 translate-y-12 rounded-full bg-white/5" />
 			</div>
 
@@ -77,7 +77,7 @@ function MetricCard({
 				</div>
 
 				<div className="space-y-1">
-					<h3 className="text-sm font-medium tracking-wide text-white/70 uppercase">
+					<h3 className="text-sm font-medium uppercase tracking-wide text-white/70">
 						{title}
 					</h3>
 					<p className="text-3xl font-bold text-white">{value}</p>

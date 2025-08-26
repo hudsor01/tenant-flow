@@ -24,14 +24,17 @@ export const nonNegativeNumberSchema = z
 export const requiredStringField = (fieldName: string) =>
 	z.string().min(1, `${fieldName} is required`)
 
-export const requiredName = requiredString
-	.max(100, 'Name cannot exceed 100 characters')
+export const requiredName = requiredString.max(
+	100,
+	'Name cannot exceed 100 characters'
+)
 
-export const requiredTitle = requiredString
-	.max(200, 'Title too long')
+export const requiredTitle = requiredString.max(200, 'Title too long')
 
-export const requiredDescription = requiredString
-	.max(1000, 'Description too long')
+export const requiredDescription = requiredString.max(
+	1000,
+	'Description too long'
+)
 
 // ===== PAGINATION SCHEMAS =====
 // Backend-compatible pagination schemas
@@ -175,7 +178,6 @@ export const auditFieldsSchema = z.object({
 	createdAt: z.date(),
 	updatedAt: z.date()
 })
-
 
 // ===== REACT 19 ACTION STATE SCHEMAS =====
 

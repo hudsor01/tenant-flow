@@ -25,7 +25,8 @@ async function verifyEmailConfiguration() {
 	console.log('   - SUPABASE_ANON_KEY:', SUPABASE_ANON_KEY ? '✅' : '❌')
 	console.log('   - RESEND_API_KEY:', RESEND_API_KEY ? '✅' : '❌')
 
-	const projectRef = SUPABASE_URL?.split('.')[0]?.replace('https://', '') || 'unknown'
+	const projectRef =
+		SUPABASE_URL?.split('.')[0]?.replace('https://', '') || 'unknown'
 	console.log('   - Project Reference:', projectRef)
 
 	console.log('\n2️⃣  Configuration Links:')

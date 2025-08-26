@@ -54,20 +54,16 @@ export class StripeWebhookService {
 		this.logger.log(`Processing webhook: ${event.type} (${event.id})`)
 
 		// Handle only specific webhook events we care about
-		if (event.type === 'customer.subscription.created' ||
-		    event.type === 'customer.subscription.updated' ||
-		    event.type === 'customer.subscription.deleted') {
-			await this.handleSubscriptionChange(
-				event.data.object
-			)
+		if (
+			event.type === 'customer.subscription.created' ||
+			event.type === 'customer.subscription.updated' ||
+			event.type === 'customer.subscription.deleted'
+		) {
+			await this.handleSubscriptionChange(event.data.object)
 		} else if (event.type === 'invoice.payment_failed') {
-			await this.handlePaymentFailure(
-				event.data.object
-			)
+			await this.handlePaymentFailure(event.data.object)
 		} else if (event.type === 'invoice.paid') {
-			await this.handlePaymentSuccess(
-				event.data.object
-			)
+			await this.handlePaymentSuccess(event.data.object)
 		} else {
 			// Other event types are ignored
 			this.logger.debug(`Unhandled event type: ${event.type}`)
@@ -83,7 +79,9 @@ export class StripeWebhookService {
 		// Validate subscription object - throw 400 for bad data
 		if (!subscription.id || !subscription.customer) {
 			this.logger.warn('Invalid subscription object received')
-			throw new Error('Invalid subscription object: missing id or customer')
+			throw new Error(
+				'Invalid subscription object: missing id or customer'
+			)
 		}
 
 		// Find user by customer ID
@@ -109,9 +107,7 @@ export class StripeWebhookService {
 				.single()
 
 			if (!sub) {
-				this.logger.warn(
-					`No user found for customer: ${customerId}`
-				)
+				this.logger.warn(`No user found for customer: ${customerId}`)
 				throw new Error(`No user found for customer: ${customerId}`)
 			}
 
@@ -120,17 +116,17 @@ export class StripeWebhookService {
 			await this.upsertSubscription(subscription, user.id)
 		}
 
-		this.logger.log(`Successfully processed subscription change: ${subscription.id}`)
+		this.logger.log(
+			`Successfully processed subscription change: ${subscription.id}`
+		)
 	}
 
 	/**
 	 * Handle payment failures - Stripe Smart Retries will handle recovery
 	 */
-	private async handlePaymentFailure(
-		invoice: Stripe.Invoice
-	): Promise<void> {
+	private async handlePaymentFailure(invoice: Stripe.Invoice): Promise<void> {
 		// Validate invoice object - throw 400 for bad data
-		 
+
 		if (!invoice.lines?.data?.length) {
 			this.logger.warn('Invalid invoice object received')
 			throw new Error('Invalid invoice object: missing lines data')
@@ -138,9 +134,8 @@ export class StripeWebhookService {
 
 		// Get subscription ID from invoice metadata or lines
 		const subscription = invoice.lines.data[0]?.subscription
-		const subscriptionId = typeof subscription === 'string'
-			? subscription
-			: subscription?.id
+		const subscriptionId =
+			typeof subscription === 'string' ? subscription : subscription?.id
 
 		if (!subscriptionId) {
 			throw new Error('Invoice missing subscription ID')
@@ -155,11 +150,9 @@ export class StripeWebhookService {
 	/**
 	 * Handle payment success
 	 */
-	private async handlePaymentSuccess(
-		invoice: Stripe.Invoice
-	): Promise<void> {
+	private async handlePaymentSuccess(invoice: Stripe.Invoice): Promise<void> {
 		// Validate invoice object - throw 400 for bad data
-		 
+
 		if (!invoice.lines?.data?.length) {
 			this.logger.warn('Invalid invoice object received')
 			throw new Error('Invalid invoice object: missing lines data')
@@ -167,9 +160,8 @@ export class StripeWebhookService {
 
 		// Get subscription ID from invoice metadata or lines
 		const subscription = invoice.lines.data[0]?.subscription
-		const subscriptionId = typeof subscription === 'string'
-			? subscription
-			: subscription?.id
+		const subscriptionId =
+			typeof subscription === 'string' ? subscription : subscription?.id
 
 		if (!subscriptionId) {
 			throw new Error('Invoice missing subscription ID')
@@ -202,7 +194,7 @@ export class StripeWebhookService {
 			cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
 			canceledAt: stripeSubscription.canceled_at
 				? new Date(stripeSubscription.canceled_at * 1000).toISOString()
-				: null,
+				: null
 		}
 
 		// Upsert to database
@@ -210,7 +202,7 @@ export class StripeWebhookService {
 			.getAdminClient()
 			.from('Subscription')
 			.upsert(subscription, {
-				onConflict: 'stripeSubscriptionId',
+				onConflict: 'stripeSubscriptionId'
 			})
 
 		if (error) {
@@ -226,7 +218,14 @@ export class StripeWebhookService {
 	 */
 	private async updateSubscriptionStatus(
 		stripeSubscriptionId: string,
-		status: 'ACTIVE' | 'CANCELED' | 'TRIALING' | 'PAST_DUE' | 'UNPAID' | 'INCOMPLETE' | 'INCOMPLETE_EXPIRED'
+		status:
+			| 'ACTIVE'
+			| 'CANCELED'
+			| 'TRIALING'
+			| 'PAST_DUE'
+			| 'UNPAID'
+			| 'INCOMPLETE'
+			| 'INCOMPLETE_EXPIRED'
 	): Promise<void> {
 		const { error } = await this.supabaseService
 			.getAdminClient()
@@ -235,7 +234,9 @@ export class StripeWebhookService {
 			.eq('stripeSubscriptionId', stripeSubscriptionId)
 
 		if (error) {
-			this.logger.error(`Failed to update subscription status: ${error.message}`)
+			this.logger.error(
+				`Failed to update subscription status: ${error.message}`
+			)
 			throw error
 		}
 	}
@@ -243,10 +244,26 @@ export class StripeWebhookService {
 	/**
 	 * Map Stripe status to our status enum
 	 */
-	private mapStripeStatus(stripeStatus: Stripe.Subscription.Status): 
-		'ACTIVE' | 'CANCELED' | 'TRIALING' | 'PAST_DUE' | 'UNPAID' | 'INCOMPLETE' | 'INCOMPLETE_EXPIRED' {
-		const statusMap: Record<Stripe.Subscription.Status, 
-			'ACTIVE' | 'CANCELED' | 'TRIALING' | 'PAST_DUE' | 'UNPAID' | 'INCOMPLETE' | 'INCOMPLETE_EXPIRED'> = {
+	private mapStripeStatus(
+		stripeStatus: Stripe.Subscription.Status
+	):
+		| 'ACTIVE'
+		| 'CANCELED'
+		| 'TRIALING'
+		| 'PAST_DUE'
+		| 'UNPAID'
+		| 'INCOMPLETE'
+		| 'INCOMPLETE_EXPIRED' {
+		const statusMap: Record<
+			Stripe.Subscription.Status,
+			| 'ACTIVE'
+			| 'CANCELED'
+			| 'TRIALING'
+			| 'PAST_DUE'
+			| 'UNPAID'
+			| 'INCOMPLETE'
+			| 'INCOMPLETE_EXPIRED'
+		> = {
 			active: 'ACTIVE',
 			past_due: 'PAST_DUE',
 			canceled: 'CANCELED',
@@ -254,10 +271,9 @@ export class StripeWebhookService {
 			incomplete: 'INCOMPLETE',
 			incomplete_expired: 'INCOMPLETE_EXPIRED',
 			trialing: 'TRIALING',
-			paused: 'ACTIVE', // Map paused to ACTIVE as we don't have a PAUSED status
+			paused: 'ACTIVE' // Map paused to ACTIVE as we don't have a PAUSED status
 		}
 
-		 
 		return statusMap[stripeStatus] ?? 'ACTIVE'
 	}
 

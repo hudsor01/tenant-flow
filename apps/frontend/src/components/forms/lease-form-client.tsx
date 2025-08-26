@@ -93,10 +93,7 @@ export function LeaseFormClient({
 	const propertiesQuery = useProperties()
 	const tenantsQuery = useTenants()
 	// Memoize tenants to prevent dependency changes
-	const tenants = useMemo(
-		() => tenantsQuery.data || [],
-		[tenantsQuery.data]
-	)
+	const tenants = useMemo(() => tenantsQuery.data || [], [tenantsQuery.data])
 	// Memoize properties to prevent render loop
 	const properties = useMemo(
 		() => propertiesQuery.data ?? [],
@@ -215,7 +212,9 @@ export function LeaseFormClient({
 		const endDate = formData.endDate ? new Date(formData.endDate) : null
 		const rentAmount = formData.rentAmount ?? 0
 
-		if (!startDate || !endDate) {return null}
+		if (!startDate || !endDate) {
+			return null
+		}
 
 		const months =
 			(endDate.getFullYear() - startDate.getFullYear()) * 12 +
@@ -250,10 +249,18 @@ export function LeaseFormClient({
 	const validateForm = (): boolean => {
 		const newErrors: Record<string, string> = {}
 
-		if (!formData.unitId) {newErrors.unitId = 'Unit is required'}
-		if (!formData.tenantId) {newErrors.tenantId = 'Tenant is required'}
-		if (!formData.startDate) {newErrors.startDate = 'Start date is required'}
-		if (!formData.endDate) {newErrors.endDate = 'End date is required'}
+		if (!formData.unitId) {
+			newErrors.unitId = 'Unit is required'
+		}
+		if (!formData.tenantId) {
+			newErrors.tenantId = 'Tenant is required'
+		}
+		if (!formData.startDate) {
+			newErrors.startDate = 'Start date is required'
+		}
+		if (!formData.endDate) {
+			newErrors.endDate = 'End date is required'
+		}
 		if (!formData.rentAmount || formData.rentAmount <= 0) {
 			newErrors.rentAmount = 'Rent amount must be greater than 0'
 		}

@@ -70,7 +70,7 @@ function TenantRow({ tenant }: { tenant: TenantWithLeases }) {
 						</AvatarFallback>
 					</Avatar>
 					<div className="space-y-1">
-						<p className="leading-none font-medium">
+						<p className="font-medium leading-none">
 							{tenant.name}
 						</p>
 						<div className="text-muted-foreground flex items-center gap-1 text-sm">

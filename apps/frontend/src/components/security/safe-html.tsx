@@ -38,7 +38,9 @@ export const SafeHTML: React.FC<SafeHTMLProps> = ({
 }) => {
 	// Memoize the sanitized HTML to avoid re-sanitizing on every render
 	const sanitizedHTML = useMemo(() => {
-		if (!html) {return ''}
+		if (!html) {
+			return ''
+		}
 
 		// Default safe configuration
 		const defaultOptions = {
@@ -152,7 +154,9 @@ export const sanitizeHTML = (
 	html: string,
 	options?: Record<string, unknown>
 ): string => {
-	if (!html) {return ''}
+	if (!html) {
+		return ''
+	}
 
 	return DOMPurify.sanitize(html, {
 		ALLOWED_TAGS: [

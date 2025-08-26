@@ -8,8 +8,13 @@
 'use client'
 
 import React, { useTransition, useEffect } from 'react'
-import { logger } from "@/lib/logger/logger"
-import { useForm, useController, type Control, type FieldPath } from 'react-hook-form'
+import { logger } from '@/lib/logger/logger'
+import {
+	useForm,
+	useController,
+	type Control,
+	type FieldPath
+} from 'react-hook-form'
 import type { CreateTenantInput, UpdateTenantInput } from '@repo/shared'
 import type { TenantFormProps } from '@/types'
 import { useCreateTenant, useUpdateTenant } from '@/hooks/api/use-tenants'
@@ -27,16 +32,16 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Save, X, User, AlertCircle } from 'lucide-react'
 
 // Form Field Component using direct RHF
-function FormField({ 
-	name, 
-	control, 
-	label, 
-	type = 'text', 
-	placeholder, 
-	required = false, 
-	multiline = false, 
+function FormField({
+	name,
+	control,
+	label,
+	type = 'text',
+	placeholder,
+	required = false,
+	multiline = false,
 	rows = 3,
-	description 
+	description
 }: {
 	name: FieldPath<CreateTenantInput | UpdateTenantInput>
 	control: Control<CreateTenantInput | UpdateTenantInput>
@@ -73,7 +78,8 @@ function FormField({
 					rows={rows}
 					value={String(field.value ?? '')}
 					className={cn(
-						error && 'border-destructive focus-visible:ring-destructive'
+						error &&
+							'border-destructive focus-visible:ring-destructive'
 					)}
 				/>
 			) : (
@@ -84,7 +90,8 @@ function FormField({
 					placeholder={placeholder}
 					value={String(field.value ?? '')}
 					className={cn(
-						error && 'border-destructive focus-visible:ring-destructive'
+						error &&
+							'border-destructive focus-visible:ring-destructive'
 					)}
 				/>
 			)}
@@ -99,7 +106,11 @@ function FormField({
 }
 
 // Section Component
-function FormSection({ title, description, children }: {
+function FormSection({
+	title,
+	description,
+	children
+}: {
 	title: string
 	description: string
 	children: React.ReactNode
@@ -139,21 +150,22 @@ export function TenantForm({
 
 	// React Hook Form setup - simplified to match API interface
 	const form = useForm<CreateTenantInput | UpdateTenantInput>({
-		defaultValues: isEditing && tenant
-			? {
-				name: tenant.name ?? '',
-				email: tenant.email ?? '',
-				phone: tenant.phone ?? '',
-				emergencyContact: tenant.emergencyContact ?? '',
-				notes: ''
-			}
-			: {
-				name: '',
-				email: '',
-				phone: '',
-				emergencyContact: '',
-				notes: ''
-			},
+		defaultValues:
+			isEditing && tenant
+				? {
+						name: tenant.name ?? '',
+						email: tenant.email ?? '',
+						phone: tenant.phone ?? '',
+						emergencyContact: tenant.emergencyContact ?? '',
+						notes: ''
+					}
+				: {
+						name: '',
+						email: '',
+						phone: '',
+						emergencyContact: '',
+						notes: ''
+					},
 		mode: 'onChange'
 	})
 
@@ -183,11 +195,13 @@ export function TenantForm({
 			tenant_id: tenant?.id
 		})
 
-	startTransition(async () => {
+		startTransition(async () => {
 			try {
 				if (isEditing) {
 					// Update existing tenant
-					if (!tenant) {throw new Error('Tenant missing for update')}
+					if (!tenant) {
+						throw new Error('Tenant missing for update')
+					}
 
 					const fd = formData as UpdateTenantInput
 					const tenantData: UpdateTenantInput = {
@@ -220,7 +234,8 @@ export function TenantForm({
 						notes: fd.notes ?? undefined
 					}
 
-					const newTenant = await createMutation.mutateAsync(tenantData)
+					const newTenant =
+						await createMutation.mutateAsync(tenantData)
 
 					trackEvent('tenant_created', {
 						tenant_id: newTenant.id,
@@ -278,14 +293,23 @@ export function TenantForm({
 		onClose?.({} as React.MouseEvent)
 	}
 
-	const isLoading = isSubmitting || createMutation.isPending || updateMutation.isPending || isPending
+	const isLoading =
+		isSubmitting ||
+		createMutation.isPending ||
+		updateMutation.isPending ||
+		isPending
 	const mutation = isEditing ? updateMutation : createMutation
 
 	return (
 		<div className={cn('mx-auto w-full max-w-2xl', className)}>
 			<Card>
 				<CardContent className="p-6">
-					<form onSubmit={(e) => { void handleSubmit(onSubmit)(e) }} className="space-y-6">
+					<form
+						onSubmit={e => {
+							void handleSubmit(onSubmit)(e)
+						}}
+						className="space-y-6"
+					>
 						{/* Form Header */}
 						<div>
 							<div className="mb-2 flex items-center gap-3">
@@ -293,8 +317,12 @@ export function TenantForm({
 									<User className="text-primary h-4 w-4 dark:text-blue-400" />
 								</div>
 								<div>
-									<h2 className="text-xl font-semibold">{title}</h2>
-									<p className="text-muted-foreground text-sm">{description}</p>
+									<h2 className="text-xl font-semibold">
+										{title}
+									</h2>
+									<p className="text-muted-foreground text-sm">
+										{description}
+									</p>
 								</div>
 							</div>
 						</div>
@@ -304,7 +332,8 @@ export function TenantForm({
 							<div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-900/20">
 								<AlertCircle className="h-4 w-4 flex-shrink-0 text-red-600 dark:text-red-400" />
 								<p className="text-sm text-red-700 dark:text-red-300">
-									{mutation.error.message || 'An error occurred. Please try again.'}
+									{mutation.error.message ||
+										'An error occurred. Please try again.'}
 								</p>
 							</div>
 						)}
@@ -397,12 +426,16 @@ export function TenantForm({
 								{isLoading ? (
 									<div className="flex items-center gap-2">
 										<div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-										{isEditing ? 'Updating...' : 'Creating...'}
+										{isEditing
+											? 'Updating...'
+											: 'Creating...'}
 									</div>
 								) : (
 									<div className="flex items-center gap-2">
 										<Save className="h-4 w-4" />
-										{isEditing ? 'Update Tenant' : 'Create Tenant'}
+										{isEditing
+											? 'Update Tenant'
+											: 'Create Tenant'}
 									</div>
 								)}
 							</Button>

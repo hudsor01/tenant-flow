@@ -24,9 +24,7 @@ const nextConfig: NextConfig = {
 	poweredByHeader: false,
 	trailingSlash: false,
 	generateEtags: true,
-	outputFileTracingRoot: process.cwd().includes('tenant-flow')
-		? process.cwd().split('/tenant-flow')[0] + '/tenant-flow'
-		: process.cwd(),
+	outputFileTracingRoot: path.join(__dirname, '../../'),
 
 	// Disable experimental CSS optimization
 	experimental: {
@@ -144,7 +142,7 @@ const nextConfig: NextConfig = {
 
 	// Turbopack configuration for development
 	turbopack: {
-		// Point to monorepo root to fix package resolution in monorepo  
+		// Point to monorepo root to fix package resolution in monorepo
 		root: path.join(__dirname, '../../'),
 		rules: {
 			'*.svg': {

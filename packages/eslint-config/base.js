@@ -11,7 +11,7 @@ export default tseslint.config(
 	// Use standard recommended configurations
 	js.configs.recommended,
 	...tseslint.configs.recommended,
-	
+
 	// Global ignores
 	{
 		ignores: [
@@ -30,7 +30,7 @@ export default tseslint.config(
 			'**/supabase/migrations/**'
 		]
 	},
-	
+
 	// TypeScript configuration
 	{
 		files: ['**/*.ts', '**/*.tsx'],
@@ -49,30 +49,41 @@ export default tseslint.config(
 		rules: {
 			// Core security and quality rules
 			'@typescript-eslint/no-explicit-any': 'error',
-			'@typescript-eslint/no-unused-vars': ['error', { 
-				argsIgnorePattern: '^_', 
-				varsIgnorePattern: '^_' 
-			}],
-			'@typescript-eslint/consistent-type-imports': ['error', {
-				prefer: 'type-imports'
-			}],
+			'@typescript-eslint/no-unused-vars': [
+				'error',
+				{
+					argsIgnorePattern: '^_',
+					varsIgnorePattern: '^_'
+				}
+			],
+			'@typescript-eslint/consistent-type-imports': [
+				'error',
+				{
+					prefer: 'type-imports'
+				}
+			],
 			'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
 			'prefer-const': 'error',
 			'no-var': 'error',
-			'eqeqeq': ['error', 'always']
+			eqeqeq: ['error', 'always']
 		}
 	},
-	
+
 	// Test files - relaxed rules
 	{
-		files: ['**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts', '**/*.spec.tsx'],
+		files: [
+			'**/*.test.ts',
+			'**/*.test.tsx',
+			'**/*.spec.ts',
+			'**/*.spec.tsx'
+		],
 		rules: {
 			'@typescript-eslint/no-explicit-any': 'off',
 			'@typescript-eslint/no-unused-vars': 'off',
 			'no-console': 'off'
 		}
 	},
-	
+
 	// Config files - very permissive
 	{
 		files: ['**/*.config.ts', '**/*.config.js', '**/*.config.mjs'],

@@ -71,13 +71,24 @@ export const dashboardApi = {
 			const activities = await this.getRecentActivity(limit)
 			return activities.map(activity => ({
 				id: activity.id,
-				type: this.mapActivityTypeToTaskType(activity.type || 'maintenance'),
+				type: this.mapActivityTypeToTaskType(
+					activity.type || 'maintenance'
+				),
 				title: activity.description || activity.action,
 				description: activity.description || activity.action,
 				dueDate: new Date(activity.createdAt),
-				priority: (activity.priority || 'medium') as 'low' | 'medium' | 'high',
-				propertyId: activity.entityType === 'property' ? activity.entityId : undefined,
-				tenantId: activity.entityType === 'tenant' ? activity.entityId : undefined
+				priority: (activity.priority || 'medium') as
+					| 'low'
+					| 'medium'
+					| 'high',
+				propertyId:
+					activity.entityType === 'property'
+						? activity.entityId
+						: undefined,
+				tenantId:
+					activity.entityType === 'tenant'
+						? activity.entityId
+						: undefined
 			}))
 		} catch {
 			// Fallback to empty array if endpoint fails
@@ -88,18 +99,18 @@ export const dashboardApi = {
 	// Helper to map activity types to task types
 	mapActivityTypeToTaskType(activityType: string): UpcomingTask['type'] {
 		const mapping: Record<string, UpcomingTask['type']> = {
-			'lease': 'lease_expiry',
-			'rent': 'rent_due', 
-			'maintenance': 'maintenance',
-			'tenant': 'inspection'
+			lease: 'lease_expiry',
+			rent: 'rent_due',
+			maintenance: 'maintenance',
+			tenant: 'inspection'
 		}
 		return mapping[activityType] || 'maintenance'
 	},
 
 	async getRecentActivity(limit = 20) {
 		// Backend has /dashboard/activity endpoint
-		return apiClient.get<ActivityItem[]>('/dashboard/activity', { 
-			params: { limit } 
+		return apiClient.get<ActivityItem[]>('/dashboard/activity', {
+			params: { limit }
 		})
 	},
 
@@ -111,7 +122,11 @@ export const dashboardApi = {
 			const alerts = []
 
 			// Generate alerts based on stats data
-			if (stats.properties && stats.properties.occupancyRate && stats.properties.occupancyRate < 70) {
+			if (
+				stats.properties &&
+				stats.properties.occupancyRate &&
+				stats.properties.occupancyRate < 70
+			) {
 				alerts.push({
 					id: 'low-occupancy',
 					type: 'warning',
@@ -121,7 +136,11 @@ export const dashboardApi = {
 				})
 			}
 
-			if (stats.maintenanceRequests && stats.maintenanceRequests.open && stats.maintenanceRequests.open > 5) {
+			if (
+				stats.maintenanceRequests &&
+				stats.maintenanceRequests.open &&
+				stats.maintenanceRequests.open > 5
+			) {
 				alerts.push({
 					id: 'pending-maintenance',
 					type: 'warning',
@@ -144,23 +163,33 @@ export const dashboardApi = {
 		try {
 			const stats = await this.getStats()
 			const now = new Date()
-			
+
 			// Generate mock time-series data points based on period
-			const dataPoints = period === 'week' ? 7 : period === 'month' ? 30 : 365
+			const dataPoints =
+				period === 'week' ? 7 : period === 'month' ? 30 : 365
 			const metrics = []
-			
+
 			for (let i = dataPoints - 1; i >= 0; i--) {
 				const date = new Date(now)
 				date.setDate(date.getDate() - i)
-				
+
 				metrics.push({
 					date: date.toISOString(),
-					occupancyRate: stats.properties?.occupancyRate ? Math.max(0, stats.properties.occupancyRate + (Math.random() - 0.5) * 10) : 0,
-					totalRevenue: stats.revenue?.monthly ? stats.revenue.monthly / dataPoints * (0.8 + Math.random() * 0.4) : 0,
+					occupancyRate: stats.properties?.occupancyRate
+						? Math.max(
+								0,
+								stats.properties.occupancyRate +
+									(Math.random() - 0.5) * 10
+							)
+						: 0,
+					totalRevenue: stats.revenue?.monthly
+						? (stats.revenue.monthly / dataPoints) *
+							(0.8 + Math.random() * 0.4)
+						: 0,
 					maintenanceCount: Math.floor(Math.random() * 3)
 				})
 			}
-			
+
 			return metrics
 		} catch {
 			// Fallback to empty array if stats endpoint fails

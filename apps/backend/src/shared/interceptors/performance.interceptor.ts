@@ -1,7 +1,13 @@
-import { Injectable, NestInterceptor, ExecutionContext, CallHandler, Logger } from '@nestjs/common';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
-import { getRequestContext } from '../context/request-context';
+import {
+	Injectable,
+	NestInterceptor,
+	ExecutionContext,
+	CallHandler,
+	Logger
+} from '@nestjs/common'
+import { Observable } from 'rxjs'
+import { tap } from 'rxjs/operators'
+import { getRequestContext } from '../context/request-context'
 
 /**
  * Simple performance logging using NestJS interceptors + Railway logs
@@ -9,32 +15,45 @@ import { getRequestContext } from '../context/request-context';
  */
 @Injectable()
 export class PerformanceInterceptor implements NestInterceptor {
-  private readonly logger = new Logger('Performance');
+	private readonly logger = new Logger('Performance')
 
-  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
-    const startTime = Date.now();
+	intercept(
+		context: ExecutionContext,
+		next: CallHandler
+	): Observable<unknown> {
+		const startTime = Date.now()
 
-    return next.handle().pipe(
-      tap({
-        next: () => this.logTiming(context, startTime, 'success'),
-        error: () => this.logTiming(context, startTime, 'error'),
-      }),
-    );
-  }
+		return next.handle().pipe(
+			tap({
+				next: () => this.logTiming(context, startTime, 'success'),
+				error: () => this.logTiming(context, startTime, 'error')
+			})
+		)
+	}
 
-  private logTiming(context: ExecutionContext, startTime: number, status: string) {
-    const duration = Date.now() - startTime;
-    const req = context.switchToHttp().getRequest();
-    const ctx = getRequestContext();
+	private logTiming(
+		context: ExecutionContext,
+		startTime: number,
+		status: string
+	) {
+		const duration = Date.now() - startTime
+		const req = context.switchToHttp().getRequest<{
+			method: string
+			url: string
+		}>()
+		const ctx = getRequestContext()
 
-    // Railway will aggregate these logs automatically
-    if (duration > 1000) {
-      this.logger.warn(`Slow request: ${req.method} ${req.url} - ${duration}ms`, {
-        correlationId: ctx?.correlationId,
-        userId: ctx?.userId,
-        status,
-        duration,
-      });
-    }
-  }
+		// Railway will aggregate these logs automatically
+		if (duration > 1000) {
+			this.logger.warn(
+				`Slow request: ${req.method} ${req.url} - ${duration}ms`,
+				{
+					correlationId: ctx?.correlationId,
+					userId: ctx?.userId,
+					status,
+					duration
+				}
+			)
+		}
+	}
 }

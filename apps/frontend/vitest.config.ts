@@ -1,6 +1,6 @@
-import { defineConfig } from 'vitest/config';
-import react from '@vitejs/plugin-react';
-import path from 'path';
+import { defineConfig } from 'vitest/config'
+import react from '@vitejs/plugin-react'
+import path from 'path'
 
 export default defineConfig({
 	plugins: [react()],
@@ -28,36 +28,40 @@ export default defineConfig({
 			provider: 'v8',
 			reporter: ['text', 'lcov', 'html'],
 			reportsDirectory: './coverage',
-			include: [
-				'src/**/*.{ts,tsx}',
-			],
+			include: ['src/**/*.{ts,tsx}'],
 			exclude: [
 				'src/**/*.stories.{ts,tsx}',
 				'src/**/*.test.{ts,tsx}',
 				'src/**/*.spec.{ts,tsx}',
 				'src/test/**',
-				'src/**/*.d.ts',
+				'src/**/*.d.ts'
 			],
 			thresholds: {
 				global: {
 					branches: 10,
 					functions: 10,
 					lines: 10,
-					statements: 10,
-				},
-			},
+					statements: 10
+				}
+			}
 		},
 		testTimeout: 10000,
-		hookTimeout: 10000,
+		hookTimeout: 10000
 	},
 	resolve: {
 		alias: {
 			'@': path.resolve(__dirname, './src'),
-			'@repo/shared': path.resolve(__dirname, '../../packages/shared/src'),
-			'@repo/test-utils': path.resolve(__dirname, '../../packages/test-utils/src'),
-		},
+			'@repo/shared': path.resolve(
+				__dirname,
+				'../../packages/shared/src'
+			),
+			'@repo/test-utils': path.resolve(
+				__dirname,
+				'../../packages/test-utils/src'
+			)
+		}
 	},
 	define: {
-		'process.env.NODE_ENV': '"test"',
-	},
-});
+		'process.env.NODE_ENV': '"test"'
+	}
+})

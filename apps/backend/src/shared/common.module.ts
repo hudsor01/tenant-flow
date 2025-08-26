@@ -8,11 +8,7 @@ import { UsageLimitsGuard } from './guards/usage-limits.guard'
  * Note: Security services removed - handled at Fastify level
  */
 @Module({
-	providers: [
-		UsageLimitsGuard
-	],
-	exports: [
-		UsageLimitsGuard
-	]
+	providers: [UsageLimitsGuard],
+	exports: [UsageLimitsGuard]
 })
 export class CommonModule {}

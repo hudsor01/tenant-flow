@@ -4,10 +4,11 @@ import {
 	Get,
 	HttpCode,
 	HttpStatus,
+	NotFoundException,
 	Post,
 	Req,
-	UseGuards,
-	ValidationPipe
+	UnauthorizedException,
+	UseGuards
 } from '@nestjs/common'
 import { Throttle } from '@nestjs/throttler'
 import { UnifiedAuthGuard } from '../shared/guards/auth.guard'
@@ -17,7 +18,9 @@ import { Public } from '../shared/decorators/auth.decorators'
 import type { ValidatedUser } from '@repo/shared'
 import type { FastifyRequest } from 'fastify'
 import { UsersService } from '../users/users.service'
-import type { LoginDto, RefreshTokenDto, RegisterDto } from './dto/auth.dto'
+import type { LoginDto, RefreshTokenDto, RegisterDto } from '@repo/shared'
+import { loginSchema, refreshTokenSchema, registerSchema } from '@repo/shared'
+import { ZodValidationPipe } from '../shared/pipes/zod-validation.pipe'
 
 @Controller('auth')
 export class AuthController {
@@ -35,7 +38,7 @@ export class AuthController {
 	async getCurrentUser(@CurrentUser() user: ValidatedUser) {
 		const userProfile = await this.usersService.getUserById(user.id)
 		if (!userProfile) {
-			throw new Error('User not found')
+			throw new NotFoundException('User not found')
 		}
 		return userProfile
 	}
@@ -49,7 +52,9 @@ export class AuthController {
 	@Public()
 	@Throttle({ default: { limit: 20, ttl: 60000 } })
 	@HttpCode(HttpStatus.OK)
-	async refreshToken(@Body(ValidationPipe) body: RefreshTokenDto) {
+	async refreshToken(
+		@Body(new ZodValidationPipe(refreshTokenSchema)) body: RefreshTokenDto
+	) {
 		return this.authService.refreshToken(body.refresh_token)
 	}
 
@@ -63,11 +68,14 @@ export class AuthController {
 	@Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 login attempts per minute
 	@HttpCode(HttpStatus.OK)
 	async login(
-		@Body(ValidationPipe) body: LoginDto,
+		@Body(new ZodValidationPipe(loginSchema)) body: LoginDto,
 		@Req() request: FastifyRequest
 	) {
 		const forwardedFor = request.headers['x-forwarded-for']
-		const ip = request.ip || (Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor) || 'unknown'
+		const ip =
+			request.ip ||
+			(Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor) ||
+			'unknown'
 		return this.authService.login(body.email, body.password, ip)
 	}
 
@@ -81,7 +89,7 @@ export class AuthController {
 	@Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 registration attempts per minute
 	@HttpCode(HttpStatus.CREATED)
 	async register(
-		@Body(ValidationPipe) body: RegisterDto
+		@Body(new ZodValidationPipe(registerSchema)) body: RegisterDto
 	) {
 		return this.authService.createUser(body)
 	}
@@ -95,11 +103,14 @@ export class AuthController {
 	async logout(@Req() request: FastifyRequest) {
 		const authHeader = request.headers.authorization
 		if (!authHeader) {
-			throw new Error('No authorization header found')
+			throw new UnauthorizedException('No authorization header found')
 		}
-		const token = authHeader.split(' ')[1] ?? ''
+		// NATIVE: Extract token with fallback to empty string (matches test expectations)
+		const token = authHeader.startsWith('Bearer ')
+			? authHeader.substring(7)
+			: ''
 		await this.authService.logout(token)
 		// Return native response - NestJS handles this automatically
-		return { success: true, message: 'Logged out successfully' }
+		return { success: true }
 	}
 }

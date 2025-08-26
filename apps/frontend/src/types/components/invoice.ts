@@ -31,7 +31,7 @@ export interface BusinessInfoSectionProps {
 	errors: FieldErrors<InvoiceFormData>
 }
 
-// Client Info Section Props  
+// Client Info Section Props
 export interface ClientInfoSectionProps {
 	register: UseFormRegister<InvoiceFormData>
 	errors: FieldErrors<InvoiceFormData>
@@ -55,7 +55,11 @@ export interface InvoiceDetailsProps {
 	items: InvoiceItem[]
 	onItemAdd: () => void
 	onItemRemove: (index: number) => void
-	onItemChange: (index: number, field: keyof InvoiceItem, value: string | number) => void
+	onItemChange: (
+		index: number,
+		field: keyof InvoiceItem,
+		value: string | number
+	) => void
 }
 
 // Invoice Item

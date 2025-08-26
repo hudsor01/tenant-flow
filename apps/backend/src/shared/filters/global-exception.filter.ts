@@ -26,9 +26,9 @@ interface AuthenticatedRequest extends FastifyRequest {
 /**
  * Global exception filter using native NestJS patterns
  * Replaces custom ErrorHandlerService with standard NestJS exception handling
- * 
+ *
  * Following CLAUDE.md RULE #3: No abstractions - direct NestJS usage only
- * 
+ *
  * SECURITY: Sanitizes request bodies before logging to prevent sensitive data exposure
  */
 @Catch()
@@ -48,7 +48,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 		const sensitiveFields = [
 			// Passwords
 			'password',
-			'currentPassword', 
+			'currentPassword',
 			'newPassword',
 			'confirmPassword',
 			'oldPassword',
@@ -82,22 +82,29 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
 		try {
 			const sanitized = JSON.parse(JSON.stringify(body))
-			
-			const redactSensitiveFields = (obj: Record<string, unknown>): void => {
+
+			const redactSensitiveFields = (
+				obj: Record<string, unknown>
+			): void => {
 				if (obj && typeof obj === 'object') {
 					for (const key in obj) {
-						if (obj.hasOwnProperty(key)) {
+						if (Object.prototype.hasOwnProperty.call(obj, key)) {
 							const lowerKey = key.toLowerCase()
-							
+
 							// Check if field name contains sensitive patterns
-							const isSensitive = sensitiveFields.some(pattern => 
+							const isSensitive = sensitiveFields.some(pattern =>
 								lowerKey.includes(pattern.toLowerCase())
 							)
-							
+
 							if (isSensitive) {
 								obj[key] = '[REDACTED]'
-							} else if (typeof obj[key] === 'object' && obj[key] !== null) {
-								redactSensitiveFields(obj[key] as Record<string, unknown>)
+							} else if (
+								typeof obj[key] === 'object' &&
+								obj[key] !== null
+							) {
+								redactSensitiveFields(
+									obj[key] as Record<string, unknown>
+								)
 							}
 						}
 					}
@@ -106,7 +113,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
 			redactSensitiveFields(sanitized)
 			return sanitized
-		} catch (_error) {
+		} catch {
 			// If sanitization fails, return safe fallback
 			return { error: 'Unable to sanitize request body' }
 		}
@@ -134,7 +141,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 		}
 	}
 
-
 	/**
 	 * Get HTTP status text for common status codes
 	 * Maps HTTP status codes to their standard text representations
@@ -145,19 +151,19 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 			100: 'Continue',
 			101: 'Switching Protocols',
 			102: 'Processing',
-			
+
 			// 2xx Success
 			200: 'OK',
 			201: 'Created',
 			202: 'Accepted',
 			204: 'No Content',
-			
+
 			// 3xx Redirection
 			300: 'Multiple Choices',
 			301: 'Moved Permanently',
 			302: 'Found',
 			304: 'Not Modified',
-			
+
 			// 4xx Client Errors
 			400: 'Bad Request',
 			401: 'Unauthorized',
@@ -187,7 +193,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 			429: 'Too Many Requests',
 			431: 'Request Header Fields Too Large',
 			451: 'Unavailable For Legal Reasons',
-			
+
 			// 5xx Server Errors
 			500: 'Internal Server Error',
 			501: 'Not Implemented',
@@ -201,7 +207,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 			510: 'Not Extended',
 			511: 'Network Authentication Required'
 		}
-		
+
 		return statusMap[status] || 'Unknown Status'
 	}
 
@@ -223,29 +229,34 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 				request.url,
 				exception.details
 			)
-			
+
 			this.logger.warn(
 				`Business rule violation: ${exception.code} - ${exception.message}`,
 				{ userId: request.user?.id, details: exception.details }
 			)
-			
+
 			response.status(exception.getStatus()).send(businessErrorResponse)
 			return
-			
 		} else if (exception instanceof HttpException) {
 			status = exception.getStatus()
 			const exceptionResponse = exception.getResponse()
-			
-			if (typeof exceptionResponse === 'object' && exceptionResponse !== null && !Array.isArray(exceptionResponse)) {
+
+			if (
+				typeof exceptionResponse === 'object' &&
+				exceptionResponse !== null &&
+				!Array.isArray(exceptionResponse)
+			) {
 				const responseObj = exceptionResponse as Record<string, unknown>
-				message = (typeof responseObj.message === 'string' 
-					? responseObj.message 
-					: Array.isArray(responseObj.message)
-						? responseObj.message.join(', ')
-						: exception.message)
-				error = (typeof responseObj.error === 'string' 
-					? responseObj.error 
-					: 'HTTP Exception')
+				message =
+					typeof responseObj.message === 'string'
+						? responseObj.message
+						: Array.isArray(responseObj.message)
+							? responseObj.message.join(', ')
+							: exception.message
+				error =
+					typeof responseObj.error === 'string'
+						? responseObj.error
+						: 'HTTP Exception'
 			} else {
 				message = String(exceptionResponse)
 				// Get the HTTP status text for common status codes
@@ -254,7 +265,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 		} else if (exception instanceof Error) {
 			status = HttpStatus.INTERNAL_SERVER_ERROR
 			message = 'Internal server error'
-			
+
 			// CRITICAL: Log full error details for production monitoring (with sanitized body)
 			this.logger.error(
 				`CRITICAL ERROR: ${exception.message}`,
@@ -267,14 +278,17 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 				}
 			)
 			error = 'Internal Server Error'
-			
+
 			// Log the actual error for debugging (not exposed to client)
-			this.logger.error(`Unhandled error: ${exception.message}`, exception.stack)
+			this.logger.error(
+				`Unhandled error: ${exception.message}`,
+				exception.stack
+			)
 		} else {
 			status = HttpStatus.INTERNAL_SERVER_ERROR
 			message = 'Internal server error'
 			error = 'Unknown Error'
-			
+
 			// Log unknown exceptions
 			this.logger.error('Unknown exception type:', exception)
 		}
@@ -291,16 +305,18 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
 		// Log error with context (but not sensitive details)
 		const errorName = typeof error === 'string' ? error : 'Error'
-		
+
 		// Safely extract logging values (handle mock objects in tests)
 		const safeMethod = (() => {
 			try {
-				return typeof request.method === 'string' ? request.method : 'UNKNOWN'
+				return typeof request.method === 'string'
+					? request.method
+					: 'UNKNOWN'
 			} catch {
 				return 'UNKNOWN'
 			}
 		})()
-		
+
 		const safeUrl = (() => {
 			try {
 				return typeof request.url === 'string' ? request.url : '/'
@@ -308,7 +324,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 				return '/'
 			}
 		})()
-		
+
 		const logContext: ErrorLogContext = {
 			method: safeMethod,
 			url: safeUrl,
@@ -318,7 +334,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 			userId: request.user?.id,
 			timestamp: new Date().toISOString()
 		}
-		
+
 		if (status >= (HttpStatus.INTERNAL_SERVER_ERROR as number)) {
 			this.logger.error(
 				`${logContext.method} ${logContext.url} - ${logContext.status} ${logContext.errorName}: ${logContext.message}`

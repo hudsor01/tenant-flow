@@ -64,7 +64,6 @@ export interface MaintenanceFilters {
 // Authentication Types (Frontend-Specific)
 // ============================================
 
-
 // ============================================
 // Dashboard/Analytics Types (Frontend-Specific)
 // ============================================

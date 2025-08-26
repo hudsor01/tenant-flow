@@ -56,7 +56,9 @@ function AmenityInput({ value, onChange, onAdd }: AmenityInputProps) {
 		<div className="flex gap-2">
 			<Input
 				value={value}
-				onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
+				onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+					onChange(e.target.value)
+				}
 				placeholder="Add an amenity"
 				onKeyDown={handleKeyDown}
 			/>

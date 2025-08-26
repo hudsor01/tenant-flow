@@ -137,13 +137,13 @@ export function DenseTable<TData, TValue>({
 				<div className="flex items-center gap-2">
 					{enableGlobalFilter && (
 						<div className="relative">
-							<Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+							<Search className="text-muted-foreground pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
 							<Input
 								placeholder={searchPlaceholder}
 								value={globalFilter}
-								onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-									setGlobalFilter(event.target.value)
-								}
+								onChange={(
+									event: React.ChangeEvent<HTMLInputElement>
+								) => setGlobalFilter(event.target.value)}
 								className="h-8 w-[200px] pl-9 text-sm"
 							/>
 						</div>
@@ -158,7 +158,9 @@ export function DenseTable<TData, TValue>({
 									.getColumn(searchKey)
 									?.getFilterValue() as string) ?? ''
 							}
-							onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+							onChange={(
+								event: React.ChangeEvent<HTMLInputElement>
+							) =>
 								table
 									.getColumn(searchKey)
 									?.setFilterValue(event.target.value)
@@ -200,7 +202,9 @@ export function DenseTable<TData, TValue>({
 												key={column.id}
 												className="capitalize"
 												checked={column.getIsVisible()}
-												onCheckedChange={(value: boolean) =>
+												onCheckedChange={(
+													value: boolean
+												) =>
 													column.toggleVisibility(
 														!!value
 													)
@@ -281,7 +285,7 @@ export function DenseTable<TData, TValue>({
 												{/* Column resize handle */}
 												<div
 													className={cn(
-														'hover:bg-primary/50 active:bg-primary absolute top-0 right-0 h-full w-1 cursor-col-resize bg-transparent select-none',
+														'hover:bg-primary/50 active:bg-primary absolute right-0 top-0 h-full w-1 cursor-col-resize select-none bg-transparent',
 														'opacity-0 group-hover:opacity-100'
 													)}
 													onMouseDown={header.getResizeHandler()}
@@ -516,7 +520,9 @@ export function createSelectColumn<T>() {
 		}) => (
 			<Checkbox
 				checked={row.getIsSelected()}
-				onCheckedChange={(value: boolean) => row.toggleSelected(!!value)}
+				onCheckedChange={(value: boolean) =>
+					row.toggleSelected(!!value)
+				}
 				aria-label="Select row"
 				className="translate-y-[1px]"
 			/>

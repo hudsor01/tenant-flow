@@ -87,7 +87,9 @@ export function SignupFormFields({
 					type="text"
 					required
 					value={name}
-					onChange={(e: React.ChangeEvent<HTMLInputElement>) => onFieldUpdate?.('name', e.target.value)}
+					onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+						onFieldUpdate?.('name', e.target.value)
+					}
 					className={errors.fullName ? 'border-red-500' : ''}
 					disabled={isLoading}
 				/>
@@ -105,7 +107,9 @@ export function SignupFormFields({
 					type="email"
 					required
 					value={email}
-					onChange={(e: React.ChangeEvent<HTMLInputElement>) => onFieldUpdate?.('email', e.target.value)}
+					onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+						onFieldUpdate?.('email', e.target.value)
+					}
 					className={errors.email ? 'border-red-500' : ''}
 					disabled={isLoading}
 				/>
@@ -123,7 +127,9 @@ export function SignupFormFields({
 					type={formState?.showPassword ? 'text' : 'password'}
 					required
 					value={password}
-					onChange={(e: React.ChangeEvent<HTMLInputElement>) => onFieldUpdate?.('password', e.target.value)}
+					onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+						onFieldUpdate?.('password', e.target.value)
+					}
 					className={errors.password ? 'border-red-500' : ''}
 					disabled={isLoading}
 					minLength={8}

@@ -22,9 +22,9 @@ import type {
 /**
  * Get current user profile - uses backend /auth/me endpoint
  */
-export function useCurrentUser(
-	options?: { enabled?: boolean }
-): UseQueryResult<User> {
+export function useCurrentUser(options?: {
+	enabled?: boolean
+}): UseQueryResult<User> {
 	return useQuery({
 		queryKey: authKeys.user(),
 		queryFn: () => authApi.getCurrentUser(),
@@ -54,15 +54,15 @@ export function useLogin(): UseMutationResult<
 	return useMutation({
 		mutationFn: (credentials: LoginCredentials) =>
 			authApi.login(credentials),
-		onSuccess: (data) => {
+		onSuccess: data => {
 			// Clear any cached data on successful login
 			queryClient.clear()
-			
+
 			// Cache the user data if provided
 			if (data.user) {
 				queryClient.setQueryData(authKeys.user(), data.user)
 			}
-			
+
 			toast.success('Successfully logged in!')
 		},
 		onError: (error: Error) => {
@@ -82,7 +82,7 @@ export function useRegister(): UseMutationResult<
 	return useMutation({
 		mutationFn: (credentials: RegisterCredentials) =>
 			authApi.register(credentials),
-		onSuccess: (data) => {
+		onSuccess: data => {
 			toast.success(data.message || 'Account created successfully!')
 		},
 		onError: (error: Error) => {
@@ -129,7 +129,7 @@ export function useRefreshToken(): UseMutationResult<
 	return useMutation({
 		mutationFn: (refreshData: RefreshTokenRequest) =>
 			authApi.refreshToken(refreshData),
-		onSuccess: (data) => {
+		onSuccess: data => {
 			// Update cached user data if provided
 			if (data.user) {
 				queryClient.setQueryData(authKeys.user(), data.user)
@@ -152,7 +152,11 @@ export function useIsAuthenticated(): {
 	isLoading: boolean
 	error: Error | null
 } {
-	const { data: user, isLoading, error } = useCurrentUser({
+	const {
+		data: user,
+		isLoading,
+		error
+	} = useCurrentUser({
 		enabled: true
 	})
 

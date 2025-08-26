@@ -1,45 +1,24 @@
-import { Injectable, NotFoundException, Logger, BadRequestException, InternalServerErrorException } from '@nestjs/common'
+/**
+ * 🚨 ULTRA-NATIVE SERVICE - DO NOT ADD ORCHESTRATION 🚨
+ *
+ * This file implements DIRECT PostgreSQL RPC calls ONLY:
+ * ✅ Single RPC call per method (<30 lines each)
+ * ✅ Direct Supabase client calls with automatic RLS
+ * ✅ Native NestJS exception handling only
+ *
+ * ❌ FORBIDDEN: Service orchestration, repositories, query builders
+ * ❌ FORBIDDEN: Custom error handlers, response formatters, data mappers
+ * ❌ FORBIDDEN: Business logic layers, validation services, helper methods
+ *
+ * See: apps/backend/ULTRA_NATIVE_ARCHITECTURE.md
+ */
+
+import { Injectable, Logger, BadRequestException } from '@nestjs/common'
 import { SupabaseService } from '../database/supabase.service'
-import type { 
-	Unit, 
-	UnitStats 
-} from '@repo/shared'
-import type { CreateUnitDto, UpdateUnitDto, UnitQueryDto } from './dto'
-import { UnitStatus } from './dto'
-
-// Database row type matching Supabase generated types
-interface UnitRow {
-	id: string
-	propertyId: string
-	unitNumber: string
-	bedrooms: number
-	bathrooms: number
-	squareFeet: number | null
-	rent: number // Generated types show this as 'rent', not 'monthly_rent'
-	lastInspectionDate: string | null
-	status: 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED'
-	createdAt: string
-	updatedAt: string
-}
-
-// Type for update operations
-interface UnitUpdateData {
-	unitNumber?: string
-	bedrooms?: number
-	bathrooms?: number
-	squareFeet?: number | null
-	rent?: number
-	status?: 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED'
-}
-
-// Type for unit stats query result
-interface UnitStatsRow {
-	status: 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED'
-	rent: number
-	Property: {
-		ownerId: string
-	}
-}
+import type {
+	CreateUnitRequest,
+	UpdateUnitRequest
+} from '../schemas/units.schema'
 
 @Injectable()
 export class UnitsService {
@@ -48,341 +27,181 @@ export class UnitsService {
 	constructor(private readonly supabaseService: SupabaseService) {}
 
 	/**
-	 * Get all units for a user (filtered by property ownership)
+	 * Get all units for a user using RPC
 	 */
-	async findAll(userId: string, query?: UnitQueryDto): Promise<Unit[]> {
-		try {
-			let supabaseQuery = this.supabaseService
-				.getAdminClient()
-				.from('Unit')
-				.select(`
-					*,
-					Property!inner(id, name, ownerId)
-				`)
-				.eq('Property.ownerId', userId)
+	async findAll(userId: string, query: Record<string, unknown>) {
+		const { data, error } = await this.supabaseService
+			.getAdminClient()
+			.rpc('get_user_units', {
+				p_user_id: userId,
+				p_property_id: query.propertyId as string | undefined,
+				p_status: query.status as string | undefined,
+				p_search: query.search as string | undefined,
+				p_limit: query.limit as number | undefined,
+				p_offset: query.offset as number | undefined,
+				p_sort_by: query.sortBy as string | undefined,
+				p_sort_order: query.sortOrder as string | undefined
+			})
 
-			// Apply filters
-			if (query?.propertyId) {
-				supabaseQuery = supabaseQuery.eq('propertyId', query.propertyId)
-			}
-			if (query?.status) {
-				supabaseQuery = supabaseQuery.eq('status', query.status as 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED')
-			}
-			if (query?.bedroomsMin) {
-				supabaseQuery = supabaseQuery.gte('bedrooms', query.bedroomsMin)
-			}
-			if (query?.bedroomsMax) {
-				supabaseQuery = supabaseQuery.lte('bedrooms', query.bedroomsMax)
-			}
-			if (query?.rentMin) {
-				supabaseQuery = supabaseQuery.gte('rent', query.rentMin)
-			}
-			if (query?.rentMax) {
-				supabaseQuery = supabaseQuery.lte('rent', query.rentMax)
-			}
-			if (query?.search) {
-				supabaseQuery = supabaseQuery.or(`unitNumber.ilike.%${query.search}%,description.ilike.%${query.search}%`)
-			}
-
-			// Apply pagination
-			if (query?.limit) {
-				supabaseQuery = supabaseQuery.limit(query.limit)
-			}
-			if (query?.offset) {
-				supabaseQuery = supabaseQuery.range(query.offset, query.offset + (query.limit || 10) - 1)
-			}
-
-			// Apply sorting
-			const sortBy = query?.sortBy || 'createdAt'
-			const sortOrder = query?.sortOrder || 'desc'
-			supabaseQuery = supabaseQuery.order(sortBy, { ascending: sortOrder === 'asc' })
-
-			const { data, error } = await supabaseQuery
-
-			if (error) {
-				this.logger.error('Error fetching units:', error)
-				throw new InternalServerErrorException(`Failed to fetch units: ${error.message}`)
-			}
-
-			return data?.map(row => this.mapToUnit(row as UnitRow)) || []
-		} catch (error) {
-			if (error instanceof InternalServerErrorException) {
-				throw error
-			}
-			this.logger.error('Error in findAll:', error)
-			throw new InternalServerErrorException('Failed to fetch units')
+		if (error) {
+			this.logger.error('Failed to get units', {
+				userId,
+				error: error.message
+			})
+			throw new BadRequestException('Failed to retrieve units')
 		}
+
+		return data
 	}
 
 	/**
-	 * Get units for a specific property
+	 * Get unit statistics using RPC
 	 */
-	async findByProperty(userId: string, propertyId: string): Promise<Unit[]> {
-		return this.findAll(userId, { propertyId })
-	}
+	async getStats(userId: string) {
+		const { data, error } = await this.supabaseService
+			.getAdminClient()
+			.rpc('get_unit_stats', { p_user_id: userId })
+			.single()
 
-	/**
-	 * Get a single unit by ID
-	 */
-	async findOne(userId: string, unitId: string): Promise<Unit> {
-		try {
-			const { data, error } = await this.supabaseService
-				.getAdminClient()
-				.from('Unit')
-				.select(`
-					*,
-					Property!inner(id, name, ownerId)
-				`)
-				.eq('id', unitId)
-				.eq('Property.ownerId', userId)
-				.single()
-
-			if (error) {
-				if (error.code === 'PGRST116') {
-					throw new NotFoundException(`Unit with ID ${unitId} not found`)
-				}
-				this.logger.error('Error fetching unit:', error)
-				throw new InternalServerErrorException(`Failed to fetch unit: ${error.message}`)
-			}
-
-			return this.mapToUnit(data as UnitRow)
-		} catch (error) {
-			if (error instanceof NotFoundException || error instanceof InternalServerErrorException) {
-				throw error
-			}
-			this.logger.error('Error in findOne:', error)
-			throw new InternalServerErrorException('Failed to fetch unit')
+		if (error) {
+			this.logger.error('Failed to get unit stats', {
+				userId,
+				error: error.message
+			})
+			throw new BadRequestException('Failed to retrieve unit statistics')
 		}
+
+		return data
 	}
 
 	/**
-	 * Create a new unit
+	 * Get units by property using RPC
 	 */
-	async create(userId: string, createUnitDto: CreateUnitDto): Promise<Unit> {
-		try {
-			// CRITICAL: Check unit limit to prevent abuse
-			const { count: unitCount } = await this.supabaseService
-				.getAdminClient()
-				.from('Unit')
-				.select('*', { count: 'exact', head: true })
-				.eq('propertyId', createUnitDto.propertyId)
-			
-			if (unitCount && unitCount >= 100) {
-				throw new BadRequestException('Maximum unit limit (100) reached for this property')
-			}
-			
-			// Verify user owns the property
-			const { data: property, error: propertyError } = await this.supabaseService
-				.getAdminClient()
-				.from('Property')
-				.select('id, ownerId')
-				.eq('id', createUnitDto.propertyId)
-				.eq('ownerId', userId)
-				.single()
+	async findByProperty(userId: string, propertyId: string) {
+		const { data, error } = await this.supabaseService
+			.getAdminClient()
+			.rpc('get_property_units', {
+				p_user_id: userId,
+				p_property_id: propertyId
+			})
 
-			if (propertyError || !property) {
-				throw new BadRequestException('Property not found or access denied')
-			}
-
-			// Check for duplicate unit number within property
-			const { data: existingUnit, error: duplicateError } = await this.supabaseService
-				.getAdminClient()
-				.from('Unit')
-				.select('id')
-				.eq('propertyId', createUnitDto.propertyId)
-				.eq('unitNumber', createUnitDto.unitNumber)
-				.maybeSingle()
-
-			if (duplicateError) {
-				this.logger.error('Error checking duplicate unit:', duplicateError)
-			}
-
-			if (existingUnit) {
-				throw new BadRequestException(`Unit number "${createUnitDto.unitNumber}" already exists for this property`)
-			}
-
-			const { data, error } = await this.supabaseService
-				.getAdminClient()
-				.from('Unit')
-				.insert({
-					propertyId: createUnitDto.propertyId,
-					unitNumber: createUnitDto.unitNumber,
-					bedrooms: createUnitDto.bedrooms,
-					bathrooms: createUnitDto.bathrooms,
-					squareFeet: createUnitDto.squareFeet,
-					rent: createUnitDto.rent,
-					status: createUnitDto.status || UnitStatus.VACANT
-				})
-				.select('*')
-				.single()
-
-			if (error) {
-				this.logger.error('Error creating unit:', error)
-				throw new InternalServerErrorException(`Failed to create unit: ${error.message}`)
-			}
-
-			return this.mapToUnit(data as UnitRow)
-		} catch (error) {
-			if (error instanceof BadRequestException || error instanceof InternalServerErrorException) {
-				throw error
-			}
-			this.logger.error('Error in create:', error)
-			throw new InternalServerErrorException('Failed to create unit')
+		if (error) {
+			this.logger.error('Failed to get property units', {
+				userId,
+				propertyId,
+				error: error.message
+			})
+			throw new BadRequestException('Failed to retrieve property units')
 		}
+
+		return data
 	}
 
 	/**
-	 * Update an existing unit
+	 * Get single unit using RPC
 	 */
-	async update(userId: string, unitId: string, updateUnitDto: UpdateUnitDto): Promise<Unit> {
-		try {
-			// Verify user owns the unit via property
-			const existingUnit = await this.findOne(userId, unitId)
-			if (!existingUnit) {
-				throw new NotFoundException(`Unit with ID ${unitId} not found`)
-			}
+	async findOne(userId: string, unitId: string) {
+		const { data, error } = await this.supabaseService
+			.getAdminClient()
+			.rpc('get_unit_by_id', {
+				p_user_id: userId,
+				p_unit_id: unitId
+			})
+			.single()
 
-			const updateData: UnitUpdateData = {}
-			if (updateUnitDto.unitNumber !== undefined) updateData.unitNumber = updateUnitDto.unitNumber
-			if (updateUnitDto.bedrooms !== undefined) updateData.bedrooms = updateUnitDto.bedrooms
-			if (updateUnitDto.bathrooms !== undefined) updateData.bathrooms = updateUnitDto.bathrooms
-			if (updateUnitDto.squareFeet !== undefined) updateData.squareFeet = updateUnitDto.squareFeet
-			if (updateUnitDto.rent !== undefined) updateData.rent = updateUnitDto.rent
-			if (updateUnitDto.status !== undefined) updateData.status = updateUnitDto.status
-
-			const { data, error } = await this.supabaseService
-				.getAdminClient()
-				.from('Unit')
-				.update(updateData)
-				.eq('id', unitId)
-				.select('*')
-				.single()
-
-			if (error) {
-				this.logger.error('Error updating unit:', error)
-				throw new InternalServerErrorException(`Failed to update unit: ${error.message}`)
-			}
-
-			return this.mapToUnit(data as UnitRow)
-		} catch (error) {
-			if (error instanceof NotFoundException || error instanceof InternalServerErrorException) {
-				throw error
-			}
-			this.logger.error('Error in update:', error)
-			throw new InternalServerErrorException('Failed to update unit')
+		if (error) {
+			this.logger.error('Failed to get unit', {
+				userId,
+				unitId,
+				error: error.message
+			})
+			return null
 		}
+
+		return data
 	}
 
 	/**
-	 * Delete a unit
+	 * Create unit using RPC
 	 */
-	async remove(userId: string, unitId: string): Promise<void> {
-		try {
-			// Verify user owns the unit via property
-			const existingUnit = await this.findOne(userId, unitId)
-			if (!existingUnit) {
-				throw new NotFoundException(`Unit with ID ${unitId} not found`)
-			}
+	async create(userId: string, createRequest: CreateUnitRequest) {
+		const { data, error } = await this.supabaseService
+			.getAdminClient()
+			.rpc('create_unit', {
+				p_user_id: userId,
+				p_property_id: createRequest.propertyId,
+				p_unit_number: createRequest.unitNumber,
+				p_bedrooms: createRequest.bedrooms,
+				p_bathrooms: createRequest.bathrooms,
+				p_square_feet: createRequest.squareFeet || undefined,
+				p_rent: createRequest.rent,
+				p_status: createRequest.status || 'VACANT'
+			})
+			.single()
 
-			const { error } = await this.supabaseService
-				.getAdminClient()
-				.from('Unit')
-				.delete()
-				.eq('id', unitId)
-
-			if (error) {
-				this.logger.error('Error deleting unit:', error)
-				throw new InternalServerErrorException(`Failed to delete unit: ${error.message}`)
-			}
-		} catch (error) {
-			if (error instanceof NotFoundException || error instanceof InternalServerErrorException) {
-				throw error
-			}
-			this.logger.error('Error in remove:', error)
-			throw new InternalServerErrorException('Failed to delete unit')
+		if (error) {
+			this.logger.error('Failed to create unit', {
+				userId,
+				error: error.message
+			})
+			throw new BadRequestException('Failed to create unit')
 		}
+
+		return data
 	}
 
 	/**
-	 * Get unit statistics for a user
+	 * Update unit using RPC
 	 */
-	async getStats(userId: string): Promise<UnitStats> {
-		try {
-			const { data, error } = await this.supabaseService
-				.getAdminClient()
-				.from('Unit')
-				.select(`
-					status,
-					rent,
-					Property!inner(ownerId)
-				`)
-				.eq('Property.ownerId', userId)
+	async update(
+		userId: string,
+		unitId: string,
+		updateRequest: UpdateUnitRequest
+	) {
+		const { data, error } = await this.supabaseService
+			.getAdminClient()
+			.rpc('update_unit', {
+				p_user_id: userId,
+				p_unit_id: unitId,
+				p_unit_number: updateRequest.unitNumber,
+				p_bedrooms: updateRequest.bedrooms,
+				p_bathrooms: updateRequest.bathrooms,
+				p_square_feet: updateRequest.squareFeet,
+				p_rent: updateRequest.rent,
+				p_status: updateRequest.status
+			})
+			.single()
 
-			if (error) {
-				this.logger.error('Error fetching unit stats:', error)
-				throw new InternalServerErrorException(`Failed to fetch unit stats: ${error.message}`)
-			}
-
-			const units = (data || []) as UnitStatsRow[]
-			const total = units.length
-			const occupied = units.filter(u => u.status === 'OCCUPIED').length
-			const vacant = units.filter(u => u.status === 'VACANT').length
-			const maintenance = units.filter(u => u.status === 'MAINTENANCE').length
-			const available = vacant + units.filter(u => u.status === 'RESERVED').length
-			
-			const rents = units.map(u => u.rent).filter((r): r is number => r !== null && r > 0)
-			const averageRent = rents.length > 0 ? rents.reduce((sum, rent) => sum + rent, 0) / rents.length : 0
-			const totalPotentialRent = rents.reduce((sum, rent) => sum + rent, 0)
-			const occupiedRents = units
-				.filter(u => u.status === 'OCCUPIED' && u.rent)
-				.map(u => u.rent)
-			const totalActualRent = occupiedRents.reduce((sum, rent) => sum + rent, 0)
-
-			return {
-				total,
-				occupied,
-				vacant,
-				maintenance,
-				available,
-				occupancyRate: total > 0 ? (occupied / total) * 100 : 0,
-				averageRent,
-				totalPotentialRent,
-				totalActualRent
-			}
-		} catch (error) {
-			if (error instanceof InternalServerErrorException) {
-				throw error
-			}
-			this.logger.error('Error in getStats:', error)
-			throw new InternalServerErrorException('Failed to fetch unit stats')
+		if (error) {
+			this.logger.error('Failed to update unit', {
+				userId,
+				unitId,
+				error: error.message
+			})
+			return null
 		}
+
+		return data
 	}
 
 	/**
-	 * Update unit availability status
+	 * Delete unit using RPC
 	 */
-	async updateAvailability(userId: string, unitId: string, available: boolean): Promise<Unit> {
-		const status = available ? UnitStatus.VACANT : UnitStatus.OCCUPIED
-		return this.update(userId, unitId, { status })
-	}
+	async remove(userId: string, unitId: string) {
+		const { error } = await this.supabaseService
+			.getAdminClient()
+			.rpc('delete_unit', {
+				p_user_id: userId,
+				p_unit_id: unitId
+			})
 
-	/**
-	 * Map database row to Unit interface
-	 */
-	private mapToUnit(data: UnitRow): Unit {
-		return {
-			id: data.id,
-			unitNumber: data.unitNumber,
-			propertyId: data.propertyId,
-			bedrooms: data.bedrooms,
-			bathrooms: data.bathrooms,
-			squareFeet: data.squareFeet,
-			rent: data.rent || undefined,
-			monthlyRent: data.rent || undefined, // Backwards compatibility - TO BE REMOVED
-			status: data.status,
-			lastInspectionDate: data.lastInspectionDate ? new Date(data.lastInspectionDate) : null,
-			createdAt: new Date(data.createdAt),
-			updatedAt: new Date(data.updatedAt)
+		if (error) {
+			this.logger.error('Failed to delete unit', {
+				userId,
+				unitId,
+				error: error.message
+			})
+			throw new BadRequestException('Failed to delete unit')
 		}
 	}
 }

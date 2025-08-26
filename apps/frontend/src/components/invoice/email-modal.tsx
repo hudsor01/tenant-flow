@@ -62,7 +62,9 @@ export function EmailModal({
 							id="emailTo"
 							type="email"
 							value={emailTo}
-							onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmailTo(e.target.value)}
+							onChange={(
+								e: React.ChangeEvent<HTMLInputElement>
+							) => setEmailTo(e.target.value)}
 							placeholder="client@tenantflow.app"
 							required
 						/>
@@ -73,7 +75,9 @@ export function EmailModal({
 						<Input
 							id="emailSubject"
 							value={emailSubject}
-							onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmailSubject(e.target.value)}
+							onChange={(
+								e: React.ChangeEvent<HTMLInputElement>
+							) => setEmailSubject(e.target.value)}
 							placeholder="Your Invoice from [Business Name]"
 							required
 						/>

@@ -34,16 +34,12 @@ export const pdfApi = {
 			status: string
 			timestamp: string
 			message?: string
-		}>(
-			'/pdf/health',
-			PDFHealthSchema,
-			'PDFHealth'
-		)
+		}>('/pdf/health', PDFHealthSchema, 'PDFHealth')
 	},
 
 	/**
 	 * Generate lease PDF - POST /pdf/lease
-	 * Note: This endpoint may not exist yet in backend, 
+	 * Note: This endpoint may not exist yet in backend,
 	 * but included for future expansion
 	 */
 	async generateLeasePDF(leaseId: string) {
@@ -54,18 +50,16 @@ export const pdfApi = {
 				downloadUrl?: string
 				message?: string
 				fileName?: string
-			}>(
-				'/pdf/lease',
-				PDFGenerationResponseSchema,
-				'PDFGeneration',
-				{ leaseId }
-			)
+			}>('/pdf/lease', PDFGenerationResponseSchema, 'PDFGeneration', {
+				leaseId
+			})
 		} catch (error) {
 			// If endpoint doesn't exist, provide fallback
 			console.warn('PDF generation endpoint not available:', error)
 			return {
 				success: false,
-				message: 'PDF generation service is not available. Please contact support.'
+				message:
+					'PDF generation service is not available. Please contact support.'
 			}
 		}
 	},
@@ -73,7 +67,10 @@ export const pdfApi = {
 	/**
 	 * Generate property report PDF - POST /pdf/property-report
 	 */
-	async generatePropertyReportPDF(propertyId: string, reportType: 'summary' | 'detailed' = 'summary') {
+	async generatePropertyReportPDF(
+		propertyId: string,
+		reportType: 'summary' | 'detailed' = 'summary'
+	) {
 		try {
 			return await apiClient.postValidated<{
 				success: boolean
@@ -92,7 +89,8 @@ export const pdfApi = {
 			console.warn('PDF generation endpoint not available:', error)
 			return {
 				success: false,
-				message: 'PDF generation service is not available. Please contact support.'
+				message:
+					'PDF generation service is not available. Please contact support.'
 			}
 		}
 	},
@@ -119,7 +117,8 @@ export const pdfApi = {
 			console.warn('PDF generation endpoint not available:', error)
 			return {
 				success: false,
-				message: 'PDF generation service is not available. Please contact support.'
+				message:
+					'PDF generation service is not available. Please contact support.'
 			}
 		}
 	},
@@ -151,7 +150,8 @@ export const pdfApi = {
 			console.warn('PDF generation endpoint not available:', error)
 			return {
 				success: false,
-				message: 'PDF generation service is not available. Please contact support.'
+				message:
+					'PDF generation service is not available. Please contact support.'
 			}
 		}
 	},
@@ -165,7 +165,7 @@ export const pdfApi = {
 			const { getSession } = await import('@/lib/supabase/client')
 			const { session } = await getSession()
 			const headers: Record<string, string> = {}
-			
+
 			if (session?.access_token) {
 				headers.Authorization = `Bearer ${session.access_token}`
 			}
@@ -173,7 +173,7 @@ export const pdfApi = {
 			// Use direct fetch for file downloads
 			const response = await fetch(`/api/pdf/download/${fileName}`, {
 				method: 'GET',
-				headers,
+				headers
 			})
 
 			if (!response.ok) {
@@ -183,7 +183,9 @@ export const pdfApi = {
 			return response.blob()
 		} catch (error) {
 			console.warn('PDF download endpoint not available:', error)
-			throw new Error('PDF download service is not available. Please contact support.')
+			throw new Error(
+				'PDF download service is not available. Please contact support.'
+			)
 		}
 	}
 }
@@ -195,10 +197,10 @@ export const pdfKeys = {
 	all: ['pdf'] as const,
 	health: () => [...pdfKeys.all, 'health'] as const,
 	lease: (leaseId: string) => [...pdfKeys.all, 'lease', leaseId] as const,
-	propertyReport: (propertyId: string, type: string) => 
+	propertyReport: (propertyId: string, type: string) =>
 		[...pdfKeys.all, 'property-report', propertyId, type] as const,
-	tenantReport: (tenantId: string) => 
+	tenantReport: (tenantId: string) =>
 		[...pdfKeys.all, 'tenant-report', tenantId] as const,
-	maintenanceReport: (params: Record<string, unknown>) => 
+	maintenanceReport: (params: Record<string, unknown>) =>
 		[...pdfKeys.all, 'maintenance-report', params] as const
 }

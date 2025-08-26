@@ -106,7 +106,9 @@ export function usePostHog() {
 	// Track custom events with consistent naming
 	const trackEvent = useCallback(
 		(event: TenantFlowEvent, properties?: EventProperties) => {
-			if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) {return}
+			if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) {
+				return
+			}
 
 			// Add consistent metadata to all events
 			const enrichedProperties = {
@@ -124,8 +126,9 @@ export function usePostHog() {
 	// Identify user with properties
 	const identifyUser = useCallback(
 		(user: User | null, organizationId?: string) => {
-			if (!posthog || !user || !process.env.NEXT_PUBLIC_POSTHOG_KEY)
-				{return}
+			if (!posthog || !user || !process.env.NEXT_PUBLIC_POSTHOG_KEY) {
+				return
+			}
 
 			posthog.identify(user.id, {
 				email: user.email,
@@ -138,7 +141,9 @@ export function usePostHog() {
 
 	// Reset user identification on logout
 	const resetUser = useCallback(() => {
-		if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) {return}
+		if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) {
+			return
+		}
 
 		posthog.reset()
 	}, [posthog])
@@ -146,7 +151,9 @@ export function usePostHog() {
 	// Track conversion goals
 	const trackConversion = useCallback(
 		(goalName: string, value?: number, properties?: EventProperties) => {
-			if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) {return}
+			if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) {
+				return
+			}
 
 			posthog.capture('conversion_goal', {
 				goal_name: goalName,
@@ -160,7 +167,9 @@ export function usePostHog() {
 	// Track errors with context
 	const trackError = useCallback(
 		(error: Error, context?: EventProperties) => {
-			if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) {return}
+			if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) {
+				return
+			}
 
 			const errorMessage =
 				error instanceof Error ? error.message : String(error)
@@ -183,7 +192,9 @@ export function usePostHog() {
 	// Track timing metrics
 	const trackTiming = useCallback(
 		(category: string, variable: string, time: number, label?: string) => {
-			if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) {return}
+			if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) {
+				return
+			}
 
 			posthog.capture('timing_metric', {
 				timing_category: category,

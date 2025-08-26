@@ -1,4 +1,9 @@
-import { Injectable, Logger, InternalServerErrorException, OnModuleDestroy } from '@nestjs/common'
+import {
+	Injectable,
+	Logger,
+	InternalServerErrorException,
+	OnModuleDestroy
+} from '@nestjs/common'
 import puppeteer, { type Browser, type PDFOptions } from 'puppeteer'
 
 /**
@@ -36,27 +41,32 @@ export class PDFGeneratorService implements OnModuleDestroy {
 	 * Generate PDF from HTML content
 	 */
 	async generatePDF(
-		htmlContent: string, 
+		htmlContent: string,
 		options?: {
 			format?: 'A4' | 'Letter' | 'Legal'
-			margin?: { top?: string; right?: string; bottom?: string; left?: string }
+			margin?: {
+				top?: string
+				right?: string
+				bottom?: string
+				left?: string
+			}
 			headerTemplate?: string
 			footerTemplate?: string
 			landscape?: boolean
 		}
 	): Promise<Buffer> {
-		this.logger.log('Generating PDF from HTML content', { 
-			contentLength: htmlContent.length, 
-			format: options?.format || 'A4' 
+		this.logger.log('Generating PDF from HTML content', {
+			contentLength: htmlContent.length,
+			format: options?.format || 'A4'
 		})
-		
+
 		try {
 			const browser = await this.getBrowser()
 			const page = await browser.newPage()
-			
+
 			// Set HTML content
 			await page.setContent(htmlContent, { waitUntil: 'networkidle0' })
-			
+
 			// PDF options with defaults
 			const pdfOptions: PDFOptions = {
 				format: options?.format || 'A4',
@@ -71,16 +81,17 @@ export class PDFGeneratorService implements OnModuleDestroy {
 				footerTemplate: options?.footerTemplate,
 				landscape: options?.landscape || false
 			}
-			
+
 			// Generate PDF buffer
 			const pdfBuffer = await page.pdf(pdfOptions)
-			
+
 			// Cleanup
 			await page.close()
-			
-			this.logger.log('PDF generated successfully', { sizeKB: Math.round(pdfBuffer.length / 1024) })
+
+			this.logger.log('PDF generated successfully', {
+				sizeKB: Math.round(pdfBuffer.length / 1024)
+			})
 			return Buffer.from(pdfBuffer)
-			
 		} catch (error) {
 			this.logger.error('Error generating PDF:', error)
 			throw new InternalServerErrorException('Failed to generate PDF')
@@ -147,12 +158,16 @@ export class PDFGeneratorService implements OnModuleDestroy {
 						</tr>
 					</thead>
 					<tbody>
-						${invoiceData.items.map(item => `
+						${invoiceData.items
+							.map(
+								item => `
 							<tr>
 								<td>${item.description}</td>
 								<td class="amount">${item.currency.toUpperCase()} ${(item.amount / 100).toFixed(2)}</td>
 							</tr>
-						`).join('')}
+						`
+							)
+							.join('')}
 						<tr class="total-row">
 							<td><strong>Total</strong></td>
 							<td class="amount"><strong>${invoiceData.total.currency.toUpperCase()} ${(invoiceData.total.amount / 100).toFixed(2)}</strong></td>
@@ -166,7 +181,7 @@ export class PDFGeneratorService implements OnModuleDestroy {
 			</body>
 			</html>
 		`
-		
+
 		return this.generatePDF(htmlTemplate, { format: 'A4' })
 	}
 
@@ -227,14 +242,18 @@ export class PDFGeneratorService implements OnModuleDestroy {
 					<p>The monthly rent amount is <strong>${leaseData.currency.toUpperCase()} ${leaseData.rentAmount.toFixed(2)}</strong>, due on the 1st day of each month.</p>
 				</div>
 				
-				${leaseData.terms && leaseData.terms.length > 0 ? `
+				${
+					leaseData.terms && leaseData.terms.length > 0
+						? `
 					<div class="section">
 						<div class="section-title">TERMS AND CONDITIONS</div>
 						<ol class="terms-list">
 							${leaseData.terms.map(term => `<li>${term}</li>`).join('')}
 						</ol>
 					</div>
-				` : ''}
+				`
+						: ''
+				}
 				
 				<div class="signatures">
 					<div class="section-title">SIGNATURES</div>
@@ -256,7 +275,7 @@ export class PDFGeneratorService implements OnModuleDestroy {
 			</body>
 			</html>
 		`
-		
+
 		return this.generatePDF(htmlTemplate, { format: 'A4' })
 	}
 

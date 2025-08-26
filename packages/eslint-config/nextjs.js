@@ -1,9 +1,9 @@
 /**
  * Next.js 15 specific ESLint configuration for TenantFlow frontend
  * ESLint v9 flat config format with React 19.1.1 optimization
- * 
+ *
  * Latest Updates:
- * - Next.js 15.5.0 with ESLint v9 flat config support  
+ * - Next.js 15.5.0 with ESLint v9 flat config support
  * - React 19.1.1 compatibility with new hooks and features
  * - Direct plugin usage for better compatibility
  * - Performance optimizations for Turbopack
@@ -19,14 +19,14 @@ import baseConfig from './base.js'
 
 export default [
 	...baseConfig,
-	
+
 	// Next.js 15 and React 19 Configuration
 	{
 		name: 'nextjs/core',
 		files: ['**/*.tsx', '**/*.jsx', '**/*.ts', '**/*.js'],
 		plugins: {
 			'@next/next': nextPlugin,
-			'react': reactPlugin,
+			react: reactPlugin,
 			'react-hooks': reactHooksPlugin,
 			'jsx-a11y': jsxA11yPlugin
 		},
@@ -60,27 +60,36 @@ export default [
 			// Next.js core rules
 			...nextPlugin.configs.recommended.rules,
 			...nextPlugin.configs['core-web-vitals'].rules,
-			
+
 			// React 19 specific rules
 			'react/no-unescaped-entities': 'off',
 			'react/prop-types': 'off', // TypeScript provides better type checking
 			'react/react-in-jsx-scope': 'off', // React 19 automatic JSX runtime
-			'react/jsx-no-target-blank': ['error', { 
-				enforceDynamicLinks: 'always',
-				warnOnSpreadAttributes: true
-			}],
+			'react/jsx-no-target-blank': [
+				'error',
+				{
+					enforceDynamicLinks: 'always',
+					warnOnSpreadAttributes: true
+				}
+			],
 			'react/jsx-key': [
-				'error', 
-				{ 
+				'error',
+				{
 					checkFragmentShorthand: true,
 					checkKeyMustBeforeSpread: true,
 					warnOnDuplicates: true
 				}
 			],
 			'react/no-array-index-key': 'warn',
-			'react/jsx-no-useless-fragment': ['warn', { allowExpressions: true }],
+			'react/jsx-no-useless-fragment': [
+				'warn',
+				{ allowExpressions: true }
+			],
 			'react/jsx-fragments': ['warn', 'syntax'],
-			'react/self-closing-comp': ['error', { component: true, html: true }],
+			'react/self-closing-comp': [
+				'error',
+				{ component: true, html: true }
+			],
 
 			// React Hooks rules for React 19
 			'react-hooks/rules-of-hooks': 'error',
@@ -88,7 +97,8 @@ export default [
 				'warn',
 				{
 					// React 19 new hooks
-					additionalHooks: '(useActionState|useOptimistic|useFormStatus|use|useTransition|useDeferredValue)'
+					additionalHooks:
+						'(useActionState|useOptimistic|useFormStatus|use|useTransition|useDeferredValue)'
 				}
 			],
 
@@ -123,7 +133,7 @@ export default [
 			'jsx-a11y/no-redundant-roles': 'warn'
 		}
 	},
-	
+
 	// Additional customizations for TenantFlow
 	{
 		name: 'nextjs/customizations',
@@ -134,10 +144,11 @@ export default [
 				'warn',
 				{
 					// React 19 new hooks
-					additionalHooks: '(useActionState|useOptimistic|useFormStatus|use|useTransition|useDeferredValue)'
+					additionalHooks:
+						'(useActionState|useOptimistic|useFormStatus|use|useTransition|useDeferredValue)'
 				}
 			],
-			
+
 			// Override naming convention for React components
 			'@typescript-eslint/naming-convention': [
 				'error',
@@ -179,17 +190,17 @@ export default [
 					leadingUnderscore: 'allow'
 				}
 			],
-			
+
 			// Console usage in frontend
 			'no-console': ['warn', { allow: ['warn', 'error'] }],
-			
+
 			// TypeScript adjustments for React components
 			'@typescript-eslint/explicit-function-return-type': 'off',
 			'@typescript-eslint/explicit-module-boundary-types': 'off',
 			'@typescript-eslint/no-empty-function': 'off'
 		}
 	},
-	
+
 	// Next.js App Router Server Components
 	{
 		name: 'nextjs/server-components',
@@ -224,12 +235,12 @@ export default [
 			'@typescript-eslint/promise-function-async': 'off'
 		}
 	},
-	
+
 	// API Routes and Route Handlers
 	{
 		name: 'nextjs/api-routes',
 		files: [
-			'**/app/api/**/*.ts', 
+			'**/app/api/**/*.ts',
 			'**/app/**/route.ts',
 			'**/pages/api/**/*.ts', // Legacy Pages Router support
 			'**/middleware.ts',

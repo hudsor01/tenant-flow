@@ -2,7 +2,7 @@ import { Lock, Save, Shield, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { logger } from "@/lib/logger/logger"
+import { logger } from '@/lib/logger/logger'
 import { toast } from 'sonner'
 import type { UseFormReturn } from 'react-hook-form'
 import type { PasswordFormData } from '@/hooks/use-edit-profile-data'
@@ -68,7 +68,7 @@ export function SecurityTabSection({
 						Current Password *
 					</Label>
 					<div className="relative">
-						<Lock className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+						<Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
 						<Input
 							id="currentPass"
 							type="password"
@@ -94,7 +94,7 @@ export function SecurityTabSection({
 						New Password *
 					</Label>
 					<div className="relative">
-						<Lock className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+						<Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
 						<Input
 							id="newPassword"
 							type="password"
@@ -120,7 +120,7 @@ export function SecurityTabSection({
 						Confirm New Password *
 					</Label>
 					<div className="relative">
-						<Lock className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+						<Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
 						<Input
 							id="confirmPass"
 							type="password"

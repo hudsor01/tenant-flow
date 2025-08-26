@@ -20,12 +20,14 @@ const AuthResponseSchema = z.object({
 		email: z.string().email(),
 		user_metadata: z.record(z.string(), z.unknown()).optional()
 	}),
-	session: z.object({
-		access_token: z.string(),
-		refresh_token: z.string(),
-		expires_in: z.number(),
-		expires_at: z.number().optional()
-	}).optional(),
+	session: z
+		.object({
+			access_token: z.string(),
+			refresh_token: z.string(),
+			expires_in: z.number(),
+			expires_at: z.number().optional()
+		})
+		.optional(),
 	message: z.string().optional()
 })
 

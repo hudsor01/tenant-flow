@@ -5,7 +5,7 @@
 
 // Suppress console warnings in tests unless VERBOSE is set
 if (!process.env.VERBOSE) {
-  console.warn = jest.fn()
+	console.warn = jest.fn()
 }
 
 // Set test environment
@@ -19,5 +19,5 @@ jest.setTimeout(15000)
 
 // Clean up after each test
 afterEach(() => {
-  jest.clearAllMocks()
+	jest.clearAllMocks()
 })

@@ -533,7 +533,8 @@ export interface DropdownMenuItem {
 /**
  * Extract variant props from a component - generic implementation
  */
-export type ExtractVariantProps<T> = T extends Record<string, unknown> ? T : never
+export type ExtractVariantProps<T> =
+	T extends Record<string, unknown> ? T : never
 
 /**
  * Make all properties optional except specified ones

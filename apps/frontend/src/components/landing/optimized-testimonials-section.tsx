@@ -73,7 +73,7 @@ export function OptimizedTestimonialsSection() {
 								</Badge>
 							</div>
 
-							<p className="mb-4 text-gray-600 italic">
+							<p className="mb-4 italic text-gray-600">
 								"{testimonial.content}"
 							</p>
 

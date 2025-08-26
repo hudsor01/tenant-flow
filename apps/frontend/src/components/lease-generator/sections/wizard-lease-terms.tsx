@@ -35,7 +35,7 @@ export function LeaseTermsSection({ form }: LeaseTermsSectionProps) {
 							Monthly Rent Amount *
 						</Label>
 						<div className="relative">
-							<DollarSign className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
+							<DollarSign className="text-muted-foreground absolute left-3 top-3 h-4 w-4" />
 							<Input
 								id="rentAmount"
 								type="number"
@@ -61,7 +61,7 @@ export function LeaseTermsSection({ form }: LeaseTermsSectionProps) {
 							Security Deposit *
 						</Label>
 						<div className="relative">
-							<DollarSign className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
+							<DollarSign className="text-muted-foreground absolute left-3 top-3 h-4 w-4" />
 							<Input
 								id="securityDeposit"
 								type="number"
@@ -206,7 +206,7 @@ export function LeaseTermsSection({ form }: LeaseTermsSectionProps) {
 							Late Fee Amount
 						</Label>
 						<div className="relative">
-							<DollarSign className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
+							<DollarSign className="text-muted-foreground absolute left-3 top-3 h-4 w-4" />
 							<Input
 								id="lateFeeAmount"
 								type="number"

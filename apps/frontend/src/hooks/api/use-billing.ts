@@ -171,7 +171,7 @@ export function useUpdateSubscription(): UseMutationResult<
 
 	return useMutation({
 		mutationFn: billingApi.updateSubscription,
-	onMutate: async _params => {
+		onMutate: async _params => {
 			// Cancel any outgoing refetches
 			await queryClient.cancelQueries({
 				queryKey: billingKeys.subscription()
@@ -209,8 +209,12 @@ export function useUpdateSubscription(): UseMutationResult<
 			void queryClient.invalidateQueries({
 				queryKey: billingKeys.subscription()
 			})
-			void queryClient.invalidateQueries({ queryKey: billingKeys.usage() })
-			void queryClient.invalidateQueries({ queryKey: billingKeys.invoices() })
+			void queryClient.invalidateQueries({
+				queryKey: billingKeys.usage()
+			})
+			void queryClient.invalidateQueries({
+				queryKey: billingKeys.invoices()
+			})
 		}
 	})
 }
@@ -273,8 +277,12 @@ export function useCancelSubscription(): UseMutationResult<
 			void queryClient.invalidateQueries({
 				queryKey: billingKeys.subscription()
 			})
-			void queryClient.invalidateQueries({ queryKey: billingKeys.usage() })
-			void queryClient.invalidateQueries({ queryKey: billingKeys.invoices() })
+			void queryClient.invalidateQueries({
+				queryKey: billingKeys.usage()
+			})
+			void queryClient.invalidateQueries({
+				queryKey: billingKeys.invoices()
+			})
 		}
 	})
 }
@@ -387,8 +395,9 @@ export function useDownloadInvoice(): UseMutationResult<
 	{ invoiceId: string; filename?: string }
 > {
 	return useMutation({
-		mutationFn: async ({ invoiceId }) => billingApi.downloadInvoice(invoiceId),
-	onSuccess: (data) => {
+		mutationFn: async ({ invoiceId }) =>
+			billingApi.downloadInvoice(invoiceId),
+		onSuccess: data => {
 			// Redirect to portal for invoice download
 			if (data.portalUrl) {
 				try {
@@ -401,9 +410,9 @@ export function useDownloadInvoice(): UseMutationResult<
 				toast.success(
 					'Redirecting to customer portal for invoice download'
 				)
-				} else {
-					toast.error('No portal URL available')
-				}
+			} else {
+				toast.error('No portal URL available')
+			}
 		},
 		onError: () => {
 			toast.error('Failed to download invoice.')

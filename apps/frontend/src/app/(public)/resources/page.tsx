@@ -313,7 +313,7 @@ export default function ResourcesPage() {
 	return (
 		<div className="from-background to-muted/20 min-h-screen bg-gradient-to-b">
 			{/* Hero Section */}
-			<section className="px-4 pt-24 pb-16">
+			<section className="px-4 pb-16 pt-24">
 				<div className="mx-auto max-w-7xl">
 					<div className="mb-16 text-center">
 						<motion.div
@@ -332,7 +332,7 @@ export default function ResourcesPage() {
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ duration: 0.6, delay: 0.1 }}
-							className="text-foreground mb-6 text-5xl leading-tight font-bold lg:text-6xl"
+							className="text-foreground mb-6 text-5xl font-bold leading-tight lg:text-6xl"
 						>
 							Learn &{' '}
 							<span className="from-primary via-accent to-success bg-gradient-to-r bg-clip-text text-transparent">
@@ -361,11 +361,13 @@ export default function ResourcesPage() {
 						className="mb-12 flex flex-col items-center justify-between gap-6 lg:flex-row"
 					>
 						<div className="relative max-w-md flex-1">
-							<Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
+							<Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
 							<Input
 								placeholder="Search resources..."
 								value={searchQuery}
-								onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+								onChange={(
+									e: React.ChangeEvent<HTMLInputElement>
+								) => setSearchQuery(e.target.value)}
 								className="focus:border-primary focus:shadow-primary/10 h-12 border-2 pl-10 transition-all duration-200 focus:shadow-lg"
 							/>
 						</div>

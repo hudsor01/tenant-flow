@@ -41,12 +41,9 @@ export class DashboardController {
 		status: 200,
 		description: 'Dashboard activity retrieved successfully'
 	})
-	getActivity(
-		@CurrentUser() user: ValidatedUser,
-		@AuthToken() authToken?: string
-	): ControllerApiResponse {
+	getActivity(@CurrentUser() user: ValidatedUser): ControllerApiResponse {
 		this.logger.log(`Getting dashboard activity for user ${user.id}`)
-		const data = this.dashboardService.getActivity(user.id, authToken)
+		const data = this.dashboardService.getActivity(user.id)
 		return {
 			success: true,
 			data,

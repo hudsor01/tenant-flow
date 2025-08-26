@@ -24,8 +24,11 @@ export function authMiddleware(request: NextRequest) {
 	]
 
 	// Check if route is public
-	const isPublicRoute = publicRoutes.some(route =>
-		pathname === route || pathname.startsWith('/api/') || pathname.startsWith('/_next/')
+	const isPublicRoute = publicRoutes.some(
+		route =>
+			pathname === route ||
+			pathname.startsWith('/api/') ||
+			pathname.startsWith('/_next/')
 	)
 
 	if (isPublicRoute) {
@@ -33,8 +36,11 @@ export function authMiddleware(request: NextRequest) {
 	}
 
 	// Check for auth session cookie (Edge-compatible)
-	const sessionCookie = request.cookies.get('sb-auth-token') ??
-		request.cookies.get(`sb-${process.env.NEXT_PUBLIC_SUPABASE_URL?.replace('https://', '').split('.')[0]}-auth-token`)
+	const sessionCookie =
+		request.cookies.get('sb-auth-token') ??
+		request.cookies.get(
+			`sb-${process.env.NEXT_PUBLIC_SUPABASE_URL?.replace('https://', '').split('.')[0]}-auth-token`
+		)
 
 	if (!sessionCookie) {
 		// Redirect to login for protected routes
@@ -52,7 +58,5 @@ export function authMiddleware(request: NextRequest) {
 
 // Routes that should be handled by this middleware
 export const config = {
-	matcher: [
-		'/((?!api|_next/static|_next/image|favicon.ico|public).*)'
-	]
+	matcher: ['/((?!api|_next/static|_next/image|favicon.ico|public).*)']
 }

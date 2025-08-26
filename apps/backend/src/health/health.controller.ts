@@ -20,7 +20,9 @@ export class HealthController {
 		this.logger.log(
 			`Health check started - Environment: ${process.env.NODE_ENV}`
 		)
-		return this.health.check([async () => this.supabase.pingCheck('database')])
+		return this.health.check([
+			async () => this.supabase.pingCheck('database')
+		])
 	}
 
 	@Get('ping')
@@ -40,7 +42,9 @@ export class HealthController {
 	@Public()
 	@HealthCheck()
 	async ready() {
-		return this.health.check([async () => this.supabase.quickPing('database')])
+		return this.health.check([
+			async () => this.supabase.quickPing('database')
+		])
 	}
 
 	@Get('debug')

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { logger } from "@/lib/logger/logger"
+import { logger } from '@/lib/logger/logger'
 import Image from 'next/image'
 import type { CreatePropertyInput, UpdatePropertyInput } from '@repo/shared'
 import type { PropertyFormProps, BaseComponentProps } from '@/types'
@@ -20,7 +20,13 @@ import { Loader2, Upload, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '@/components/ui/select'
 import { Controller } from 'react-hook-form'
 import {
 	useCreateProperty,
@@ -60,7 +66,9 @@ function PropertyImageUpload({
 		event: React.ChangeEvent<HTMLInputElement>
 	) => {
 		const file = event.target.files?.[0]
-		if (!file) {return}
+		if (!file) {
+			return
+		}
 
 		setUploading(true)
 		try {
@@ -90,7 +98,7 @@ function PropertyImageUpload({
 						<button
 							type="button"
 							onClick={() => onImageChange('')}
-							className="bg-destructive text-destructive-foreground absolute -top-2 -right-2 rounded-full p-1"
+							className="bg-destructive text-destructive-foreground absolute -right-2 -top-2 rounded-full p-1"
 						>
 							<X className="h-3 w-3" />
 						</button>
@@ -147,7 +155,7 @@ function PropertyFormFields({ control }: PropertyFormFieldsProps) {
 									{...field}
 								/>
 								{fieldState.error && (
-									<p className="text-sm text-destructive">
+									<p className="text-destructive text-sm">
 										{fieldState.error.message}
 									</p>
 								)}
@@ -171,7 +179,7 @@ function PropertyFormFields({ control }: PropertyFormFieldsProps) {
 									{...field}
 								/>
 								{fieldState.error && (
-									<p className="text-sm text-destructive">
+									<p className="text-destructive text-sm">
 										{fieldState.error.message}
 									</p>
 								)}
@@ -194,7 +202,7 @@ function PropertyFormFields({ control }: PropertyFormFieldsProps) {
 								{...field}
 							/>
 							{fieldState.error && (
-								<p className="text-sm text-destructive">
+								<p className="text-destructive text-sm">
 									{fieldState.error.message}
 								</p>
 							)}
@@ -210,13 +218,9 @@ function PropertyFormFields({ control }: PropertyFormFieldsProps) {
 					control={control}
 					render={({ field, fieldState }) => (
 						<>
-							<Input
-								id="state"
-								placeholder="CA"
-								{...field}
-							/>
+							<Input id="state" placeholder="CA" {...field} />
 							{fieldState.error && (
-								<p className="text-sm text-destructive">
+								<p className="text-destructive text-sm">
 									{fieldState.error.message}
 								</p>
 							)}
@@ -238,7 +242,7 @@ function PropertyFormFields({ control }: PropertyFormFieldsProps) {
 								{...field}
 							/>
 							{fieldState.error && (
-								<p className="text-sm text-destructive">
+								<p className="text-destructive text-sm">
 									{fieldState.error.message}
 								</p>
 							)}
@@ -254,21 +258,34 @@ function PropertyFormFields({ control }: PropertyFormFieldsProps) {
 					control={control}
 					render={({ field, fieldState }) => (
 						<>
-							<Select onValueChange={field.onChange} value={field.value}>
+							<Select
+								onValueChange={field.onChange}
+								value={field.value}
+							>
 								<SelectTrigger>
 									<SelectValue placeholder="Select property type" />
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value="SINGLE_FAMILY">Single Family</SelectItem>
-									<SelectItem value="MULTI_FAMILY">Multi Family</SelectItem>
-									<SelectItem value="APARTMENT">Apartment</SelectItem>
+									<SelectItem value="SINGLE_FAMILY">
+										Single Family
+									</SelectItem>
+									<SelectItem value="MULTI_FAMILY">
+										Multi Family
+									</SelectItem>
+									<SelectItem value="APARTMENT">
+										Apartment
+									</SelectItem>
 									<SelectItem value="CONDO">Condo</SelectItem>
-									<SelectItem value="TOWNHOUSE">Townhouse</SelectItem>
-									<SelectItem value="COMMERCIAL">Commercial</SelectItem>
+									<SelectItem value="TOWNHOUSE">
+										Townhouse
+									</SelectItem>
+									<SelectItem value="COMMERCIAL">
+										Commercial
+									</SelectItem>
 								</SelectContent>
 							</Select>
 							{fieldState.error && (
-								<p className="text-sm text-destructive">
+								<p className="text-destructive text-sm">
 									{fieldState.error.message}
 								</p>
 							)}
@@ -292,7 +309,7 @@ function PropertyFormFields({ control }: PropertyFormFieldsProps) {
 									{...field}
 								/>
 								{fieldState.error && (
-									<p className="text-sm text-destructive">
+									<p className="text-destructive text-sm">
 										{fieldState.error.message}
 									</p>
 								)}
@@ -381,7 +398,9 @@ export function PropertyForm({
 	const handleUpdateProperty = async (
 		data: z.output<typeof propertyFormSchema>
 	) => {
-		if (!property) {return}
+		if (!property) {
+			return
+		}
 
 		const updateData: UpdatePropertyInput = {
 			name: data.name,

@@ -15,7 +15,13 @@
  * Replaces: stripe-billing.service.ts (878 lines) with ~50 lines
  */
 
-import { Injectable, Logger, Inject } from '@nestjs/common'
+import {
+	Injectable,
+	Logger,
+	Inject,
+	NotFoundException,
+	InternalServerErrorException
+} from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import Stripe from 'stripe'
 import type { CheckoutResponse, PortalResponse } from '@repo/shared'
@@ -29,21 +35,30 @@ export class StripePortalService {
 	private readonly frontendUrl: string
 
 	constructor(
-		@Inject(ConfigService) private configService: ConfigService<EnvironmentVariables>,
+		@Inject(ConfigService)
+		private configService: ConfigService<EnvironmentVariables>,
 		private supabaseService: SupabaseService
 	) {
 		const secretKey = this.configService.get('STRIPE_SECRET_KEY', {
 			infer: true
 		})
 		if (secretKey === undefined) {
-			throw new Error('STRIPE_SECRET_KEY is required')
+			throw new InternalServerErrorException(
+				'STRIPE_SECRET_KEY is required'
+			)
 		}
 
 		this.stripe = new Stripe(secretKey, {
 			apiVersion: '2025-07-30.basil'
 		})
 
-		this.frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000'
+		const frontendUrl = this.configService.get('FRONTEND_URL', { infer: true })
+		if (!frontendUrl) {
+			throw new InternalServerErrorException(
+				'FRONTEND_URL is required for production deployment'
+			)
+		}
+		this.frontendUrl = frontendUrl
 	}
 
 	/**
@@ -63,9 +78,9 @@ export class StripePortalService {
 			.select('*, Subscription(*)')
 			.eq('id', params.userId)
 			.single()
-			
+
 		if (!user) {
-			throw new Error('User not found')
+			throw new NotFoundException('User not found')
 		}
 
 		let customerId = user.Subscription?.[0]?.stripeCustomerId
@@ -122,7 +137,9 @@ export class StripePortalService {
 		)
 
 		if (!session.url) {
-			throw new Error('Checkout session URL not available')
+			throw new InternalServerErrorException(
+				'Checkout session URL not available'
+			)
 		}
 
 		return {
@@ -147,12 +164,12 @@ export class StripePortalService {
 			.eq('id', params.userId)
 			.single()
 		if (!user) {
-			throw new Error('User not found')
+			throw new NotFoundException('User not found')
 		}
 
 		const customerId = user.Subscription?.[0]?.stripeCustomerId
 		if (!customerId) {
-			throw new Error('No Stripe customer found for user')
+			throw new NotFoundException('No Stripe customer found for user')
 		}
 
 		// Create portal session

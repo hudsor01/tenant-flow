@@ -70,14 +70,16 @@ export default function DashboardLayout({
 												<aside className="hidden w-64 bg-white shadow-sm md:block">
 													{sidebar ?? (
 														<div className="p-4">
-															<p className="text-gray-500 text-sm">Navigation</p>
+															<p className="text-sm text-gray-500">
+																Navigation
+															</p>
 														</div>
 													)}
 												</aside>
 											</Suspense>
 
 											{/* Main content area - improved mobile spacing */}
-											<main className="min-w-0 flex-1 pt-2 pb-20 md:p-6 md:pt-6 md:pb-6">
+											<main className="min-w-0 flex-1 pb-20 pt-2 md:p-6 md:pb-6 md:pt-6">
 												<Suspense
 													fallback={
 														<div className="flex h-64 items-center justify-center">

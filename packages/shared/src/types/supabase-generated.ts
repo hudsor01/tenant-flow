@@ -2258,6 +2258,338 @@ export type Database = {
           trial_end: string
         }[]
       }
+      // Ultra-Native RPC Functions - Auto-Generated
+      // Dashboard Functions
+      get_dashboard_stats: {
+        Args: { user_id_param: string }
+        Returns: Json
+      }
+      // Units Functions
+      get_user_units: {
+        Args: {
+          p_user_id: string
+          p_property_id?: string
+          p_status?: string
+          p_search?: string
+          p_limit?: number
+          p_offset?: number
+          p_sort_by?: string
+          p_sort_order?: string
+        }
+        Returns: Json
+      }
+      get_unit_stats: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
+      get_property_units: {
+        Args: { p_user_id: string; p_property_id: string }
+        Returns: Json
+      }
+      get_unit_by_id: {
+        Args: { p_user_id: string; p_unit_id: string }
+        Returns: Json
+      }
+      create_unit: {
+        Args: {
+          p_user_id: string
+          p_property_id: string
+          p_unit_number: string
+          p_bedrooms: number
+          p_bathrooms: number
+          p_square_feet?: number
+          p_rent?: number
+          p_status?: string
+        }
+        Returns: Json
+      }
+      update_unit: {
+        Args: {
+          p_user_id: string
+          p_unit_id: string
+          p_unit_number?: string
+          p_bedrooms?: number
+          p_bathrooms?: number
+          p_square_feet?: number
+          p_rent?: number
+          p_status?: string
+        }
+        Returns: Json
+      }
+      delete_unit: {
+        Args: { p_user_id: string; p_unit_id: string }
+        Returns: void
+      }
+      // Tenants Functions
+      get_user_tenants: {
+        Args: {
+          p_user_id: string
+          p_search?: string
+          p_invitation_status?: string
+          p_limit?: number
+          p_offset?: number
+          p_sort_by?: string
+          p_sort_order?: string
+        }
+        Returns: Json
+      }
+      get_tenant_stats: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
+      get_tenant_by_id: {
+        Args: { p_user_id: string; p_tenant_id: string }
+        Returns: Json
+      }
+      create_tenant: {
+        Args: {
+          p_user_id: string
+          p_name: string
+          p_email: string
+          p_phone?: string
+          p_emergency_contact?: string
+        }
+        Returns: Json
+      }
+      update_tenant: {
+        Args: {
+          p_user_id: string
+          p_tenant_id: string
+          p_name?: string
+          p_email?: string
+          p_phone?: string
+          p_emergency_contact?: string
+        }
+        Returns: Json
+      }
+      delete_tenant: {
+        Args: { p_user_id: string; p_tenant_id: string }
+        Returns: void
+      }
+      send_tenant_invitation: {
+        Args: { p_user_id: string; p_tenant_id: string }
+        Returns: Json
+      }
+      resend_tenant_invitation: {
+        Args: { p_user_id: string; p_tenant_id: string }
+        Returns: Json
+      }
+      // Leases Functions
+      get_user_leases: {
+        Args: {
+          p_user_id: string
+          p_tenant_id?: string
+          p_unit_id?: string
+          p_property_id?: string
+          p_status?: string
+          p_limit?: number
+          p_offset?: number
+          p_sort_by?: string
+          p_sort_order?: string
+        }
+        Returns: Json
+      }
+      get_lease_stats: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
+      get_expiring_leases: {
+        Args: { p_user_id: string; p_days?: number }
+        Returns: Json
+      }
+      get_lease_by_id: {
+        Args: { p_user_id: string; p_lease_id: string }
+        Returns: Json
+      }
+      create_lease: {
+        Args: {
+          p_user_id: string
+          p_tenant_id: string
+          p_unit_id: string
+          p_start_date: string
+          p_end_date: string
+          p_monthly_rent: number
+          p_security_deposit: number
+          p_payment_frequency?: string
+          p_status?: string
+        }
+        Returns: Json
+      }
+      update_lease: {
+        Args: {
+          p_user_id: string
+          p_lease_id: string
+          p_start_date?: string
+          p_end_date?: string
+          p_monthly_rent?: number
+          p_security_deposit?: number
+          p_payment_frequency?: string
+          p_status?: string
+        }
+        Returns: Json
+      }
+      delete_lease: {
+        Args: { p_user_id: string; p_lease_id: string }
+        Returns: void
+      }
+      renew_lease: {
+        Args: {
+          p_user_id: string
+          p_lease_id: string
+          p_new_end_date: string
+        }
+        Returns: Json
+      }
+      terminate_lease: {
+        Args: {
+          p_user_id: string
+          p_lease_id: string
+          p_reason?: string
+        }
+        Returns: Json
+      }
+      // Properties Functions
+      get_user_properties: {
+        Args: {
+          p_user_id: string
+          p_search?: string
+          p_limit?: number
+          p_offset?: number
+          p_sort_by?: string
+          p_sort_order?: string
+        }
+        Returns: Json
+      }
+      get_property_by_id: {
+        Args: {
+          p_user_id: string
+          p_property_id: string
+        }
+        Returns: Json
+      }
+      create_property: {
+        Args: {
+          p_user_id: string
+          p_name: string
+          p_address: string
+          p_type: string
+          p_units_count?: number
+          p_purchase_price?: number
+          p_purchase_date?: string
+          p_description?: string
+        }
+        Returns: Json
+      }
+      update_property: {
+        Args: {
+          p_user_id: string
+          p_property_id: string
+          p_name?: string
+          p_address?: string
+          p_type?: string
+          p_units_count?: number
+          p_purchase_price?: number
+          p_purchase_date?: string
+          p_description?: string
+        }
+        Returns: Json
+      }
+      delete_property: {
+        Args: {
+          p_user_id: string
+          p_property_id: string
+        }
+        Returns: void
+      }
+      get_property_stats: {
+        Args: {
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      // Maintenance Functions
+      get_user_maintenance: {
+        Args: {
+          p_user_id: string
+          p_unit_id?: string
+          p_property_id?: string
+          p_priority?: string
+          p_category?: string
+          p_status?: string
+          p_limit?: number
+          p_offset?: number
+          p_sort_by?: string
+          p_sort_order?: string
+        }
+        Returns: Json
+      }
+      get_maintenance_stats: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
+      get_urgent_maintenance: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
+      get_overdue_maintenance: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
+      get_maintenance_by_id: {
+        Args: { p_user_id: string; p_maintenance_id: string }
+        Returns: Json
+      }
+      create_maintenance: {
+        Args: {
+          p_user_id: string
+          p_unit_id: string
+          p_title: string
+          p_description: string
+          p_priority?: string
+          p_category?: string
+          p_scheduled_date?: string
+          p_estimated_cost?: number
+        }
+        Returns: Json
+      }
+      update_maintenance: {
+        Args: {
+          p_user_id: string
+          p_maintenance_id: string
+          p_title?: string
+          p_description?: string
+          p_priority?: string
+          p_category?: string
+          p_status?: string
+          p_scheduled_date?: string
+          p_completed_date?: string
+          p_estimated_cost?: number
+          p_actual_cost?: number
+          p_notes?: string
+        }
+        Returns: Json
+      }
+      delete_maintenance: {
+        Args: { p_user_id: string; p_maintenance_id: string }
+        Returns: void
+      }
+      complete_maintenance: {
+        Args: {
+          p_user_id: string
+          p_maintenance_id: string
+          p_actual_cost?: number
+          p_notes?: string
+        }
+        Returns: Json
+      }
+      cancel_maintenance: {
+        Args: {
+          p_user_id: string
+          p_maintenance_id: string
+          p_reason?: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       ActivityEntityType:

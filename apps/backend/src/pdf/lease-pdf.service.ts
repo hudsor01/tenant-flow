@@ -1,4 +1,8 @@
-import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common'
+import {
+	Injectable,
+	Logger,
+	InternalServerErrorException
+} from '@nestjs/common'
 import { PDFGeneratorService } from './pdf-generator.service'
 
 /**
@@ -14,34 +18,58 @@ export class LeasePDFService {
 	/**
 	 * Generate lease agreement PDF
 	 */
-	async generateLeasePDF(leaseData: Record<string, unknown>): Promise<Buffer> {
-		const result = await this.generateLeasePdf(String(leaseData.id || ''), String(leaseData.userId || ''), leaseData)
+	async generateLeasePDF(
+		leaseData: Record<string, unknown>
+	): Promise<Buffer> {
+		const result = await this.generateLeasePdf(
+			String(leaseData.id || ''),
+			String(leaseData.userId || ''),
+			leaseData
+		)
 		return result.buffer
 	}
 
 	/**
 	 * Generate lease PDF with ID and user context (for controller compatibility)
 	 */
-	async generateLeasePdf(leaseId: string, userId: string, options: Record<string, unknown>): Promise<{
+	async generateLeasePdf(
+		leaseId: string,
+		userId: string,
+		options: Record<string, unknown>
+	): Promise<{
 		buffer: Buffer
 		filename: string
 		mimeType: string
 		size: number
 	}> {
-		this.logger.log('Generating lease PDF for lease:', leaseId, 'user:', userId)
+		this.logger.log(
+			'Generating lease PDF for lease:',
+			leaseId,
+			'user:',
+			userId
+		)
 
 		try {
 			// Generate HTML content for the lease
-			const htmlContent = this.generateLeaseHTML({ id: leaseId, userId, ...options })
-			
+			const htmlContent = this.generateLeaseHTML({
+				id: leaseId,
+				userId,
+				...options
+			})
+
 			// Convert to PDF
 			const pdfBuffer = await this.pdfGenerator.generatePDF(htmlContent, {
 				format: 'A4',
-				margin: { top: '50px', bottom: '50px', left: '50px', right: '50px' }
+				margin: {
+					top: '50px',
+					bottom: '50px',
+					left: '50px',
+					right: '50px'
+				}
 			})
 
 			const filename = `lease-${leaseId}.pdf`
-			
+
 			this.logger.log('Lease PDF generated successfully')
 			return {
 				buffer: pdfBuffer,
@@ -51,7 +79,9 @@ export class LeasePDFService {
 			}
 		} catch (error) {
 			this.logger.error('Error generating lease PDF:', error)
-			throw new InternalServerErrorException('Failed to generate lease PDF')
+			throw new InternalServerErrorException(
+				'Failed to generate lease PDF'
+			)
 		}
 	}
 

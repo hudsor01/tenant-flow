@@ -38,12 +38,24 @@ export async function createPropertyAction(
 
 		// Basic validation
 		const errors: Record<string, string[]> = {}
-		if (!name?.trim()) {errors.name = ['Property name is required']}
-		if (!address?.trim()) {errors.address = ['Address is required']}
-		if (!city?.trim()) {errors.city = ['City is required']}
-		if (!state?.trim()) {errors.state = ['State is required']}
-		if (!zipCode?.trim()) {errors.zipCode = ['ZIP code is required']}
-		if (!propertyType) {errors.propertyType = ['Property type is required']}
+		if (!name?.trim()) {
+			errors.name = ['Property name is required']
+		}
+		if (!address?.trim()) {
+			errors.address = ['Address is required']
+		}
+		if (!city?.trim()) {
+			errors.city = ['City is required']
+		}
+		if (!state?.trim()) {
+			errors.state = ['State is required']
+		}
+		if (!zipCode?.trim()) {
+			errors.zipCode = ['ZIP code is required']
+		}
+		if (!propertyType) {
+			errors.propertyType = ['Property type is required']
+		}
 
 		if (Object.keys(errors).length > 0) {
 			return {

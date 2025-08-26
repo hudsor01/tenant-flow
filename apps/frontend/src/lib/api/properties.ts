@@ -47,23 +47,49 @@ export const propertyApi = {
 						.map(([key, value]) => [key, String(value)])
 				).toString()
 			: ''
-		return apiClient.getValidated<Property[]>(`/properties${params ? `?${params}` : ''}`, PropertyArraySchema, 'Property[]')
+		return apiClient.getValidated<Property[]>(
+			`/properties${params ? `?${params}` : ''}`,
+			PropertyArraySchema,
+			'Property[]'
+		)
 	},
 
 	async getById(id: string) {
-		return apiClient.getValidated<Property>(`/properties/${id}`, PropertySchema, 'Property')
+		return apiClient.getValidated<Property>(
+			`/properties/${id}`,
+			PropertySchema,
+			'Property'
+		)
 	},
 
 	async create(data: CreatePropertyInput) {
-		return apiClient.postValidated<Property>('/properties', PropertySchema, 'Property', data as Record<string, unknown>, undefined, { throwOnFailure: true })
+		return apiClient.postValidated<Property>(
+			'/properties',
+			PropertySchema,
+			'Property',
+			data as Record<string, unknown>,
+			undefined,
+			{ throwOnFailure: true }
+		)
 	},
 
 	async update(id: string, data: UpdatePropertyInput) {
-		return apiClient.putValidated<Property>(`/properties/${id}`, PropertySchema, 'Property', data as Record<string, unknown>, undefined, { throwOnFailure: true })
+		return apiClient.putValidated<Property>(
+			`/properties/${id}`,
+			PropertySchema,
+			'Property',
+			data as Record<string, unknown>,
+			undefined,
+			{ throwOnFailure: true }
+		)
 	},
 
 	async delete(id: string) {
-		return apiClient.deleteValidated<{ success: boolean }>(`/properties/${id}`, z.object({ success: z.boolean() }), 'PropertyDelete')
+		return apiClient.deleteValidated<{ success: boolean }>(
+			`/properties/${id}`,
+			z.object({ success: z.boolean() }),
+			'PropertyDelete'
+		)
 	},
 
 	async getStats() {
@@ -86,14 +112,18 @@ export const propertyApi = {
 	},
 
 	async search(query: string) {
-		return apiClient.get<Property[]>('/properties/search', { 
-			params: { q: query } 
+		return apiClient.get<Property[]>('/properties/search', {
+			params: { q: query }
 		})
 	},
 
 	async getUnits(propertyId: string) {
 		// Use the units controller endpoint
-		return apiClient.getValidated<Unit[]>(`/units/by-property/${propertyId}`, UnitArraySchema, 'Unit[]')
+		return apiClient.getValidated<Unit[]>(
+			`/units/by-property/${propertyId}`,
+			UnitArraySchema,
+			'Unit[]'
+		)
 	},
 
 	async updateUnit(
@@ -102,11 +132,23 @@ export const propertyApi = {
 		data: UpdateUnitInput
 	) {
 		// Use the units controller endpoint directly
-		return apiClient.putValidated<Unit>(`/units/${unitId}`, UnitSchema, 'Unit', data as Record<string, unknown>, undefined, { throwOnFailure: true })
+		return apiClient.putValidated<Unit>(
+			`/units/${unitId}`,
+			UnitSchema,
+			'Unit',
+			data as Record<string, unknown>,
+			undefined,
+			{ throwOnFailure: true }
+		)
 	},
 
 	async uploadImage(propertyId: string, formData: FormData) {
-		return apiClient.postValidated<{ url: string }>(`/properties/${propertyId}/images`, z.object({ url: z.string() }), 'UploadImage', formData)
+		return apiClient.postValidated<{ url: string }>(
+			`/properties/${propertyId}/images`,
+			z.object({ url: z.string() }),
+			'UploadImage',
+			formData
+		)
 	},
 
 	async getPropertyStats() {

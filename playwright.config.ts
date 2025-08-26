@@ -90,9 +90,27 @@ export default defineConfig({
 
 	/* Configure projects for major browsers */
 	projects: [
+		/* Setup project for authentication - Playwright 2024 best practice */
+		{
+			name: 'setup',
+			testMatch: /.*\.setup\.ts/
+		},
+		
 		/* Desktop Chrome - simplified for CI */
 		{
 			name: 'chromium',
+			use: {
+				...devices['Desktop Chrome'],
+				/* Use authenticated state from setup */
+				storageState: 'playwright/.auth/user.json'
+			},
+			dependencies: ['setup']
+		},
+		
+		/* Tests that don't need authentication */
+		{
+			name: 'chromium-no-auth',
+			testMatch: /.*\.(public|landing)\.spec\.ts/,
 			use: {
 				...devices['Desktop Chrome']
 			}

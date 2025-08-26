@@ -10,7 +10,7 @@ import {
 	CardHeader,
 	CardTitle
 } from '@/components/ui/card'
-import { logger } from "@/lib/logger/logger"
+import { logger } from '@/lib/logger/logger'
 import { useErrorHandler } from '@/lib/error-handling'
 import Link from 'next/link'
 
@@ -130,7 +130,7 @@ function DefaultErrorFallback({ error, resetError }: ErrorFallbackProps) {
 									<summary className="text-muted-foreground hover:text-foreground cursor-pointer text-xs">
 										Stack trace
 									</summary>
-									<pre className="text-muted-foreground mt-2 text-xs whitespace-pre-wrap">
+									<pre className="text-muted-foreground mt-2 whitespace-pre-wrap text-xs">
 										{error.stack}
 									</pre>
 								</details>

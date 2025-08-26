@@ -10,6 +10,6 @@ export function useFormState() {
 	return useState<FormState>({
 		isLoading: false,
 		error: null,
-		success: false,
+		success: false
 	})
 }

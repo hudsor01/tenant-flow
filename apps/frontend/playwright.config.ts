@@ -85,7 +85,7 @@ export default defineConfig({
 
 	webServer: process.env.CI ? undefined : {
 		command: 'npm run dev',
-		port: 3000,
+		port: 0, // NATIVE: Let Playwright auto-detect available port
 		reuseExistingServer: !process.env.CI,
 		timeout: 120 * 1000,
 		env: {

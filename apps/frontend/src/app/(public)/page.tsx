@@ -46,13 +46,13 @@ export default function HomePage(): React.ReactElement {
 			/>
 			<OAuthRedirectHandler />
 			<NavigationSection />
-			<HeroSection />
+			<HeroSection locale="en" />
 			<StatsSection />
-			<FeaturesSection />
+			<FeaturesSection locale="en" />
 			<TestimonialsSection />
 			<PricingSection />
 			<CTASection />
-			<FooterSection />
+			<FooterSection locale="en" />
 		</>
 	)
 }

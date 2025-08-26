@@ -14,7 +14,7 @@ import {
 	UserX
 } from 'lucide-react'
 import { formatCurrency } from '@repo/shared'
-import { logger } from "@/lib/logger/logger"
+import { logger } from '@/lib/logger/logger'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
@@ -143,7 +143,7 @@ export default function PropertyCard({
 					)}
 
 					{/* Actions Dropdown */}
-					<div className="absolute top-3 right-3">
+					<div className="absolute right-3 top-3">
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
 								<Button

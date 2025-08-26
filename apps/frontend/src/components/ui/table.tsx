@@ -22,7 +22,7 @@ const Table = React.forwardRef<HTMLTableElement, TableProps>(
 						<caption
 							className={cn(
 								'text-muted-foreground mt-4 text-sm',
-								captionSide === 'top' && 'mt-0 mb-4 caption-top'
+								captionSide === 'top' && 'mb-4 mt-0 caption-top'
 							)}
 						>
 							{caption}
@@ -126,7 +126,7 @@ const TableHead = React.forwardRef<HTMLTableCellElement, TableHeadProps>(
 					ref={ref}
 					className={cn(
 						'text-muted-foreground h-10 px-2 text-left align-middle font-medium [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]',
-						'hover:bg-muted/50 cursor-pointer transition-colors select-none',
+						'hover:bg-muted/50 cursor-pointer select-none transition-colors',
 						className
 					)}
 					onClick={handleClick}

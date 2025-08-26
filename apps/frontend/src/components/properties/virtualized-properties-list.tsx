@@ -20,24 +20,24 @@ export default function VirtualizedPropertiesList({
 }: VirtualizedPropertiesListProps) {
 	const handleEdit = useCallback(
 		(property: PropertyWithDetails) => {
-		if ('id' in property) {
-			const maybeId = property.id
-			if (typeof maybeId === 'string') {
-				onEdit?.(property as Property)
+			if ('id' in property) {
+				const maybeId = property.id
+				if (typeof maybeId === 'string') {
+					onEdit?.(property as Property)
+				}
 			}
-		}
 		},
 		[onEdit]
 	)
 
 	const handleView = useCallback(
 		(property: PropertyWithDetails) => {
-		if ('id' in property) {
-			const maybeId = property.id
-			if (typeof maybeId === 'string') {
-				onView?.(property as Property)
+			if ('id' in property) {
+				const maybeId = property.id
+				if (typeof maybeId === 'string') {
+					onView?.(property as Property)
+				}
 			}
-		}
 		},
 		[onView]
 	)

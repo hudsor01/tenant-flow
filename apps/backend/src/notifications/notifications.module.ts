@@ -4,9 +4,9 @@ import { NotificationsController } from './notifications.controller'
 import { SupabaseModule } from '../database/supabase.module'
 
 @Module({
-  imports: [SupabaseModule],
-  controllers: [NotificationsController],
-  providers: [NotificationsService],
-  exports: [NotificationsService]
+	imports: [SupabaseModule],
+	controllers: [NotificationsController],
+	providers: [NotificationsService],
+	exports: [NotificationsService]
 })
 export class NotificationsModule {}

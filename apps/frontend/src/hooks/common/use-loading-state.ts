@@ -3,7 +3,7 @@
  * Provides consistent loading state management across components
  */
 import { useState, useCallback } from 'react'
-import { logger } from "@/lib/logger/logger"
+import { logger } from '@/lib/logger/logger'
 
 export interface UseLoadingStateOptions {
 	initialLoading?: boolean
@@ -25,17 +25,18 @@ export function useLoadingState(options: UseLoadingStateOptions = {}) {
 				const result = await asyncFunction()
 				return result
 			} catch (err) {
-				const error = err instanceof Error ? err : new Error(String(err))
+				const error =
+					err instanceof Error ? err : new Error(String(err))
 				setError(error)
-				
+
 				if (logErrors) {
 					logger.error('Operation failed:', error)
 				}
-				
+
 				if (onError) {
 					onError(error)
 				}
-				
+
 				return null
 			} finally {
 				setIsLoading(false)

@@ -11,9 +11,11 @@ import { resolve } from 'path'
 // Load environment variables
 config({ path: resolve(process.cwd(), '.env.local') })
 
-const SUPABASE_PROJECT_REF = process.env.NEXT_PUBLIC_SUPABASE_URL?.split(
-	'.'
-)[0]?.replace('https://', '') || ''
+const SUPABASE_PROJECT_REF =
+	process.env.NEXT_PUBLIC_SUPABASE_URL?.split('.')[0]?.replace(
+		'https://',
+		''
+	) || ''
 const RESEND_API_KEY = process.env.RESEND_API_KEY || ''
 
 async function setupEmailConfiguration() {

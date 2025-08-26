@@ -96,7 +96,8 @@ class SimpleApiClient {
 		method: string,
 		path: string,
 		data?: unknown,
-		config?: RequestConfig
+		config?: RequestConfig,
+		retryCount = 0
 	): Promise<T> {
 		const authHeaders = await this.getAuthHeaders()
 		const isFormData = data instanceof FormData
@@ -181,7 +182,46 @@ class SimpleApiClient {
 				throw new Error('Request timeout')
 			}
 
+			// Retry logic for network errors in production
+			if (
+				retryCount < (this.config?.retries ?? 3) &&
+				this.shouldRetry(error)
+			) {
+				const delay =
+					(this.config?.retryDelay ?? 1000) * Math.pow(2, retryCount)
+				await new Promise(resolve => setTimeout(resolve, delay))
+				return this.makeRequest(
+					method,
+					path,
+					data,
+					config,
+					retryCount + 1
+				)
+			}
+
 			throw error
+		}
+	}
+
+	private shouldRetry(error: unknown): boolean {
+		if (!(error instanceof Error)) return false
+
+		// Retry on network errors, timeouts, and 5xx server errors
+		return (
+			error.name === 'AbortError' ||
+			error.message.includes('fetch') ||
+			error.message.includes('network') ||
+			error.message.includes('500') ||
+			error.message.includes('502') ||
+			error.message.includes('503') ||
+			error.message.includes('504')
+		)
+	}
+
+	private get config() {
+		return {
+			retries: config.api.retries,
+			retryDelay: config.api.retryDelay
 		}
 	}
 
@@ -231,7 +271,7 @@ class SimpleApiClient {
 			data,
 			schemaName,
 			validationOptions
-	)
+		)
 	}
 
 	async postValidated<T>(
@@ -253,7 +293,7 @@ class SimpleApiClient {
 			responseData,
 			schemaName,
 			validationOptions
-	)
+		)
 	}
 
 	async putValidated<T>(
@@ -275,7 +315,7 @@ class SimpleApiClient {
 			responseData,
 			schemaName,
 			validationOptions
-	)
+		)
 	}
 
 	async patchValidated<T>(
@@ -297,7 +337,7 @@ class SimpleApiClient {
 			responseData,
 			schemaName,
 			validationOptions
-	)
+		)
 	}
 
 	async deleteValidated<T>(
@@ -318,11 +358,44 @@ class SimpleApiClient {
 			responseData,
 			schemaName,
 			validationOptions
-	)
+		)
 	}
 
 	async healthCheck(): Promise<{ status: string; timestamp: string }> {
 		return this.get<{ status: string; timestamp: string }>('/health')
+	}
+
+	// Enhanced health check with connectivity validation
+	async validateConnectivity(): Promise<{
+		api: { status: 'connected' | 'error'; response?: unknown; error?: string }
+		config: { baseURL: string; timeout: number }
+	}> {
+		const result: {
+			api: { status: 'connected' | 'error'; response?: unknown; error?: string }
+			config: { baseURL: string; timeout: number }
+		} = {
+			api: { status: 'error', error: 'Unknown error' },
+			config: {
+				baseURL: this.baseURL,
+				timeout: this.timeout
+			}
+		}
+
+		try {
+			const response = await this.healthCheck()
+			result.api = {
+				status: 'connected',
+				response
+			}
+		} catch (error) {
+			result.api = {
+				status: 'error',
+				error:
+					error instanceof Error ? error.message : 'Connection failed'
+			}
+		}
+
+		return result
 	}
 }
 
