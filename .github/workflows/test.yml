@@ -11,7 +11,7 @@ jobs:
           node-version: '22'
       
       - name: Install dependencies
-        run: npm ci --omit=optional --prefer-offline --no-audit
+        run: npm ci --prefer-offline --no-audit
         
       - name: Build
         run: npm run build
