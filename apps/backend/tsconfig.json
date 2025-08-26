@@ -1,16 +1,11 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
-<<<<<<< HEAD
 	"display": "TenantFlow Backend TypeScript Config - Pure Project References",
-=======
-	"display": "TenantFlow Backend TypeScript Config",
->>>>>>> origin/main
 	"extends": "../../packages/typescript-config/nestjs.json",
 	"compilerOptions": {
 		"baseUrl": "./",
 		"outDir": "./dist",
 		"tsBuildInfoFile": "./.tsbuildinfo",
-<<<<<<< HEAD
 		"jsx": "react-jsx",
 		"types": ["node", "jest", "react"],
 		"skipLibCheck": true,
@@ -20,16 +15,6 @@
 		"declarationMap": true,
 		"incremental": true,
 		"noEmit": false
-=======
-		"jsx": "preserve",
-		"types": ["node", "reflect-metadata", "jest"],
-		"skipLibCheck": true,
-		"isolatedModules": false,
-		"paths": {
-			"@repo/shared": ["../../packages/shared/src"],
-			"@repo/shared/*": ["../../packages/shared/src/*"]
-		}
->>>>>>> origin/main
 	},
 	"include": ["src", "src/types/fastify.d.ts", "test/setup.ts"],
 	"exclude": [

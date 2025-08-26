@@ -1,15 +1,9 @@
 {
-<<<<<<< HEAD
 	"$schema": "https://json.schemastore.org/package",
 	"name": "@repo/database",
 	"version": "0.1.0",
 	"private": true,
 	"packageManager": "npm@10.0.0",
-=======
-	"name": "@repo/database",
-	"version": "0.1.0",
-	"private": true,
->>>>>>> origin/main
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
 	"exports": {
@@ -32,7 +26,6 @@
 	},
 	"devDependencies": {
 		"@repo/typescript-config": "*",
-<<<<<<< HEAD
 		"eslint": "9.34.0",
 		"globals": "16.3.0",
 		"typescript": "^5.9.2",
@@ -40,9 +33,6 @@
 	},
 	"overrides": {
 		"minimatch": "^3.1.2"
-=======
-		"typescript": "^5.3.3"
->>>>>>> origin/main
 	},
 	"dependencies": {
 		"@repo/shared": "*",

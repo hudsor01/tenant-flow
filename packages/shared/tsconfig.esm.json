@@ -30,7 +30,6 @@
 			"@tanstack/react-query/*": [
 				"../../node_modules/@tanstack/react-query/*"
 			],
-<<<<<<< HEAD
 			"react-hook-form": [
 				"node_modules/react-hook-form",
 				"../../node_modules/react-hook-form"
@@ -47,10 +46,6 @@
 				"node_modules/class-variance-authority/*",
 				"../../node_modules/class-variance-authority/*"
 			],
-=======
-			"react-hook-form": ["../../node_modules/react-hook-form"],
-			"react-hook-form/*": ["../../node_modules/react-hook-form/*"],
->>>>>>> origin/main
 			"*": ["node_modules/*", "../../node_modules/*"]
 		}
 	},
