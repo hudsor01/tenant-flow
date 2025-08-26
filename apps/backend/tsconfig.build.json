@@ -12,26 +12,17 @@
 		"noEmitOnError": false,
 		"noEmit": false,
 		"skipLibCheck": true,
-<<<<<<< HEAD
 		"types": ["node"]
-=======
-		"types": ["node", "reflect-metadata"]
->>>>>>> origin/main
 	},
 	"include": ["src/**/*.ts", "src/types/fastify.d.ts"],
 	"exclude": [
 		"**/*.spec.ts",
 		"**/*.test.ts",
 		"src/test/**/*",
-<<<<<<< HEAD
 		"src/test-setup.ts",
 		"src/auth/auth-production-diagnostic.ts",
 		"src/test-utils/**/*",
 		"src/shared/test-utils/**/*",
-=======
-		"src/auth/auth-production-diagnostic.ts",
-		"src/test-utils/**/*",
->>>>>>> origin/main
 		"src/queues/__tests__/**/*",
 		"src/**/__tests__/**/*"
 	],
