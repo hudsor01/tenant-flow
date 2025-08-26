@@ -8,13 +8,25 @@ jobs:
         uses: actions/setup-node@v4
         with:
           cache: 'npm'
-          node-version: '22'
+          node-version: '24'
       
-      - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit
+      - name: Install dependencies without turbo binaries
+        run: |
+          npm ci --prefer-offline --no-audit --ignore-optional
+        
+      - name: Install turbo globally
+        run: npm install -g turbo@2.5.6
         
       - name: Build
-        run: npm run build
+        run: turbo build
+        env:
+          NEXT_PUBLIC_API_URL: https://test-api.example.com
+          NEXT_PUBLIC_SUPABASE_URL: https://test.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: test-anon-key
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_123
+          NEXT_PUBLIC_POSTHOG_KEY: test-posthog
+          NEXT_PUBLIC_POSTHOG_HOST: https://app.posthog.com
+          NEXT_PUBLIC_APP_URL: https://test-app.example.com
 name: Test
 on:
   - push
