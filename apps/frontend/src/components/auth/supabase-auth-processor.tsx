@@ -1,7 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
+=======
+import { logger } from '@/lib/logger'
+>>>>>>> origin/main
 import { useRouter } from 'next/navigation'
 import { motion } from '@/lib/lazy-motion'
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react'
@@ -9,7 +13,11 @@ import { supabase } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
 // Removed debug-auth import - using logger directly
+<<<<<<< HEAD
 import { queryKeys } from '@/lib/react-query/query-keys'
+=======
+import { queryKeys } from '@/lib/query-keys'
+>>>>>>> origin/main
 import type { Session, AuthError } from '@supabase/supabase-js'
 
 type ProcessingState = 'loading' | 'success' | 'error'
@@ -63,7 +71,11 @@ export function SupabaseAuthProcessor() {
 				)
 				// Redirect immediately to dashboard
 				setTimeout(() => {
+<<<<<<< HEAD
 					router.push('/dashboard')
+=======
+					void router.push('/dashboard')
+>>>>>>> origin/main
 				}, 100)
 				return
 			}
@@ -132,7 +144,11 @@ export function SupabaseAuthProcessor() {
 						)
 
 						setTimeout(() => {
+<<<<<<< HEAD
 							router.push('/dashboard')
+=======
+							void router.push('/dashboard')
+>>>>>>> origin/main
 						}, 500)
 						return
 					}
@@ -150,7 +166,11 @@ export function SupabaseAuthProcessor() {
 						)
 
 						setTimeout(() => {
+<<<<<<< HEAD
 							router.push('/auth/login')
+=======
+							void router.push('/auth/login')
+>>>>>>> origin/main
 						}, 3000)
 						return
 					}
@@ -266,7 +286,11 @@ export function SupabaseAuthProcessor() {
 
 							// Navigate to dashboard
 							setTimeout(() => {
+<<<<<<< HEAD
 								router.push('/dashboard')
+=======
+								void router.push('/dashboard')
+>>>>>>> origin/main
 							}, 500)
 							return
 						} else {
@@ -304,7 +328,11 @@ export function SupabaseAuthProcessor() {
 							)
 
 							setTimeout(() => {
+<<<<<<< HEAD
 								router.push('/dashboard')
+=======
+								void router.push('/dashboard')
+>>>>>>> origin/main
 							}, 1000)
 							return
 						}
@@ -329,9 +357,13 @@ export function SupabaseAuthProcessor() {
 						const { data, error } =
 							await supabase.auth.exchangeCodeForSession(code)
 
+<<<<<<< HEAD
 						if (error) {
 							throw error
 						}
+=======
+						if (error) throw error
+>>>>>>> origin/main
 
 						if (data.session && mounted) {
 							// Invalidate auth queries to ensure fresh user data
@@ -346,7 +378,11 @@ export function SupabaseAuthProcessor() {
 							})
 
 							toast.success('Successfully signed in!')
+<<<<<<< HEAD
 							router.push('/dashboard')
+=======
+							void router.push('/dashboard')
+>>>>>>> origin/main
 							return
 						}
 					} catch (err) {
@@ -369,7 +405,14 @@ export function SupabaseAuthProcessor() {
 							toast.error(
 								'Please use the same browser you signed up with'
 							)
+<<<<<<< HEAD
 							setTimeout(() => router.push('/auth/login'), 3000)
+=======
+							setTimeout(
+								() => void router.push('/auth/login'),
+								3000
+							)
+>>>>>>> origin/main
 							return
 						}
 						throw err
@@ -402,9 +445,13 @@ export function SupabaseAuthProcessor() {
 					throw sessionError
 				}
 
+<<<<<<< HEAD
 				if (!mounted) {
 					return
 				}
+=======
+				if (!mounted) return
+>>>>>>> origin/main
 
 				if (session?.user) {
 					// Invalidate auth queries to ensure fresh user data
@@ -420,7 +467,11 @@ export function SupabaseAuthProcessor() {
 					})
 
 					toast.success('Successfully signed in!')
+<<<<<<< HEAD
 					router.push('/dashboard')
+=======
+					void router.push('/dashboard')
+>>>>>>> origin/main
 				} else if (isEmailConfirmation) {
 					// This is an email confirmation that succeeded
 					setStatus({
@@ -445,7 +496,11 @@ export function SupabaseAuthProcessor() {
 						toast.success(
 							'Email confirmed! Please sign in to continue.'
 						)
+<<<<<<< HEAD
 						router.push('/auth/login?emailConfirmed=true')
+=======
+						void router.push('/auth/login?emailConfirmed=true')
+>>>>>>> origin/main
 					}, 1500)
 				} else {
 					// No session found - redirect to login
@@ -456,6 +511,7 @@ export function SupabaseAuthProcessor() {
 					})
 
 					setTimeout(() => {
+<<<<<<< HEAD
 						router.push('/auth/login')
 					}, 2000)
 				}
@@ -463,6 +519,13 @@ export function SupabaseAuthProcessor() {
 				if (!mounted) {
 					return
 				}
+=======
+						void router.push('/auth/login')
+					}, 2000)
+				}
+			} catch (error) {
+				if (!mounted) return
+>>>>>>> origin/main
 
 				logger.error(
 					'Auth processing error:',
@@ -482,7 +545,11 @@ export function SupabaseAuthProcessor() {
 				toast.error('Authentication failed')
 
 				setTimeout(() => {
+<<<<<<< HEAD
 					router.push('/auth/login')
+=======
+					void router.push('/auth/login')
+>>>>>>> origin/main
 				}, 2000)
 			} finally {
 				// Always clear the processing flag
@@ -502,7 +569,11 @@ export function SupabaseAuthProcessor() {
 					details: 'Taking too long, please try again'
 				})
 				toast.error('Authentication timeout')
+<<<<<<< HEAD
 				router.push('/auth/login')
+=======
+				void router.push('/auth/login')
+>>>>>>> origin/main
 			}
 		}, 20000) // 20 second timeout - balance between reliability and UX
 
@@ -604,7 +675,11 @@ export function SupabaseAuthProcessor() {
 							className="mt-4"
 						>
 							<button
+<<<<<<< HEAD
 								onClick={() => router.push('/auth/login')}
+=======
+								onClick={() => void router.push('/auth/login')}
+>>>>>>> origin/main
 								className="text-primary hover:text-primary/80 font-semibold underline transition-colors"
 							>
 								Return to login

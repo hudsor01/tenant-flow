@@ -107,4 +107,8 @@ export interface AreaChartProps {
 	strokeColor?: string
 	showGrid?: boolean
 	showLegend?: boolean
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> origin/main

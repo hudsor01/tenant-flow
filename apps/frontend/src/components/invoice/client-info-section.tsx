@@ -2,6 +2,7 @@ import { User } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+<<<<<<< HEAD
 import type { UseFormRegister, FieldErrors } from 'react-hook-form'
 
 interface ClientInfoSectionProps {
@@ -11,6 +12,9 @@ interface ClientInfoSectionProps {
 	autoTaxRate?: number
 	stateTaxRates?: Record<string, number>
 }
+=======
+import type { ClientInfoSectionProps } from '@/types/components'
+>>>>>>> origin/main
 
 export function ClientInfoSection({
 	register,

@@ -77,6 +77,7 @@ export interface NotificationWithDetails extends NotificationData {
 
 // Complex query result types
 export interface PropertyWithUnits extends Property {
+<<<<<<< HEAD
 	units: Array<
 		Unit & {
 			leases: Lease[]
@@ -104,15 +105,42 @@ export interface TenantWithLeases extends Tenant {
 			}
 		}
 	>
+=======
+	units: (Unit & {
+		leases: Lease[]
+	})[]
+}
+
+export interface PropertyWithUnitsAndLeases extends Property {
+	units: (Unit & {
+		leases: (Lease & {
+			tenant: Tenant
+		})[]
+	})[]
+}
+
+export interface TenantWithLeases extends Tenant {
+	leases: (Lease & {
+		unit: Unit & {
+			property: Property
+		}
+	})[]
+>>>>>>> origin/main
 }
 
 export interface UnitWithProperty extends Unit {
 	property: Property
+<<<<<<< HEAD
 	leases: Array<
 		Lease & {
 			tenant: Tenant
 		}
 	>
+=======
+	leases: (Lease & {
+		tenant: Tenant
+	})[]
+>>>>>>> origin/main
 }
 
 export interface LeaseWithRelations extends Lease {
@@ -121,7 +149,11 @@ export interface LeaseWithRelations extends Lease {
 	}
 	tenant: Tenant
 	documents: Document[]
+<<<<<<< HEAD
 	reminders: Array<{
+=======
+	reminders: {
+>>>>>>> origin/main
 		id: string
 		type:
 			| 'RENT_REMINDER'
@@ -140,12 +172,17 @@ export interface LeaseWithRelations extends Lease {
 		retryCount: number
 		createdAt: string
 		updatedAt: string
+<<<<<<< HEAD
 	}>
+=======
+	}[]
+>>>>>>> origin/main
 }
 
 export interface MaintenanceRequestWithRelations extends MaintenanceRequest {
 	unit: Unit & {
 		property: Property
+<<<<<<< HEAD
 		leases: Array<
 			Lease & {
 				tenant: Tenant
@@ -154,6 +191,14 @@ export interface MaintenanceRequestWithRelations extends MaintenanceRequest {
 	}
 	expenses: Expense[]
 	files: Array<{
+=======
+		leases: (Lease & {
+			tenant: Tenant
+		})[]
+	}
+	expenses: Expense[]
+	files: {
+>>>>>>> origin/main
 		id: string
 		filename: string
 		originalName: string
@@ -164,6 +209,7 @@ export interface MaintenanceRequestWithRelations extends MaintenanceRequest {
 		propertyId: string | null
 		maintenanceRequestId: string | null
 		createdAt: string
+<<<<<<< HEAD
 	}>
 }
 
@@ -181,6 +227,19 @@ export interface UserWithProperties extends User {
 			>
 		}
 	>
+=======
+	}[]
+}
+
+export interface UserWithProperties extends User {
+	properties: (Property & {
+		units: (Unit & {
+			leases: (Lease & {
+				tenant: Tenant
+			})[]
+		})[]
+	})[]
+>>>>>>> origin/main
 }
 
 export interface NotificationWithRelations extends NotificationData {

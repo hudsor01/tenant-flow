@@ -20,9 +20,7 @@ export class HealthController {
 		this.logger.log(
 			`Health check started - Environment: ${process.env.NODE_ENV}`
 		)
-		return this.health.check([
-			async () => this.supabase.pingCheck('database')
-		])
+		return this.health.check([() => this.supabase.pingCheck('database')])
 	}
 
 	@Get('ping')
@@ -30,7 +28,7 @@ export class HealthController {
 	ping() {
 		return {
 			status: 'ok',
-			timestamp: new Date(),
+			timestamp: new Date().toISOString(),
 			uptime: Math.round(process.uptime()),
 			memory: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
 			env: process.env.NODE_ENV,
@@ -41,17 +39,15 @@ export class HealthController {
 	@Get('ready')
 	@Public()
 	@HealthCheck()
-	async ready() {
-		return this.health.check([
-			async () => this.supabase.quickPing('database')
-		])
+	ready() {
+		return this.health.check([() => this.supabase.quickPing('database')])
 	}
 
 	@Get('debug')
 	@Public()
 	debug() {
 		return {
-			timestamp: new Date(),
+			timestamp: new Date().toISOString(),
 			process: {
 				pid: process.pid,
 				uptime: Math.round(process.uptime()),

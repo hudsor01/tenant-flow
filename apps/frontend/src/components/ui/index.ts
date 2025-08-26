@@ -69,6 +69,10 @@ export { StatsCard } from './stats-card'
 // export * from './combobox'
 export * from './dashboard-stats'
 export * from './sidebar-toggle'
+<<<<<<< HEAD
+=======
+export * from './modal'
+>>>>>>> origin/main
 
 // Enhanced components
 // export * from './enhanced-button' // Component not implemented yet

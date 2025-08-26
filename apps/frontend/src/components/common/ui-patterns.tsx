@@ -15,7 +15,11 @@ import {
 } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+<<<<<<< HEAD
 // Separator imported but not yet used in current patterns
+=======
+import { Separator } from '@/components/ui/separator'
+>>>>>>> origin/main
 
 // ============================================================================
 // Layout Patterns

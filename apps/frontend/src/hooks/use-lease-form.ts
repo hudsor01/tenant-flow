@@ -4,7 +4,11 @@
  */
 import { useState, useCallback } from 'react'
 import { z } from 'zod'
+<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
+=======
+import { logger } from '@/lib/logger'
+>>>>>>> origin/main
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { leaseInputSchema } from '@repo/shared/validation/leases'
@@ -34,7 +38,11 @@ interface LeaseWithEnhancedData extends Omit<Lease, 'status'> {
 	lateFeeDays?: number
 	lateFeeAmount?: number
 	leaseTerms?: string
+<<<<<<< HEAD
 	status?: string
+=======
+	status?: LeaseStatus | string
+>>>>>>> origin/main
 	templateId?: string
 	signatureStatus?: 'UNSIGNED' | 'PENDING' | 'SIGNED'
 }
@@ -131,16 +139,25 @@ export function useLeaseForm(options: LeaseFormOptions = {}) {
 						'EXPIRED',
 						'TERMINATED'
 					] as const
+<<<<<<< HEAD
 					if (enhancedLease.status === 'SIGNED') {
 						return 'ACTIVE'
 					}
+=======
+					if (enhancedLease.status === 'SIGNED') return 'ACTIVE'
+>>>>>>> origin/main
 					if (
 						validStatuses.includes(
 							enhancedLease.status as (typeof validStatuses)[number]
 						)
+<<<<<<< HEAD
 					) {
 						return enhancedLease.status as (typeof validStatuses)[number]
 					}
+=======
+					)
+						return enhancedLease.status as (typeof validStatuses)[number]
+>>>>>>> origin/main
 					return 'DRAFT'
 				})(),
 				templateId: enhancedLease.templateId,
@@ -159,9 +176,13 @@ export function useLeaseForm(options: LeaseFormOptions = {}) {
 
 	const onSubmit = useCallback(
 		async (data: LeaseFormData) => {
+<<<<<<< HEAD
 			if (isSubmitting) {
 				return
 			}
+=======
+			if (isSubmitting) return
+>>>>>>> origin/main
 
 			try {
 				setIsSubmitting(true)
@@ -245,9 +266,13 @@ export function useLeaseForm(options: LeaseFormOptions = {}) {
 	// Enhanced lease workflow functions
 	const generateFromTemplate = useCallback(
 		async (templateId: string, variables: Record<string, unknown>) => {
+<<<<<<< HEAD
 			if (!lease?.id) {
 				return
 			}
+=======
+			if (!lease?.id) return
+>>>>>>> origin/main
 
 			try {
 				setIsSubmitting(true)
@@ -280,9 +305,13 @@ export function useLeaseForm(options: LeaseFormOptions = {}) {
 
 	const transitionStatus = useCallback(
 		async (newStatus: LeaseStatus, reason?: string) => {
+<<<<<<< HEAD
 			if (!lease?.id) {
 				return
 			}
+=======
+			if (!lease?.id) return
+>>>>>>> origin/main
 
 			try {
 				setIsSubmitting(true)

@@ -22,9 +22,13 @@ export function DashboardTracker({
 	const posthog = usePostHog()
 
 	useEffect(() => {
+<<<<<<< HEAD
 		if (!posthog) {
 			return
 		}
+=======
+		if (!posthog) return
+>>>>>>> origin/main
 
 		// Track dashboard view
 		posthog.capture('dashboard_viewed', {
@@ -38,9 +42,13 @@ export function DashboardTracker({
 	// Track specific dashboard interactions
 	const trackDashboardAction = useCallback(
 		(action: string, properties?: Record<string, unknown>) => {
+<<<<<<< HEAD
 			if (!posthog) {
 				return
 			}
+=======
+			if (!posthog) return
+>>>>>>> origin/main
 
 			posthog.capture('dashboard_action', {
 				action,
@@ -56,7 +64,11 @@ export function DashboardTracker({
 	// Expose tracking function via ref callback pattern
 	useEffect(() => {
 		// Store tracker function on window for easy access
+<<<<<<< HEAD
 		// @ts-expect-error - global augmentation would be overkill for this use case
+=======
+		// @ts-ignore - global augmentation would be overkill for this use case
+>>>>>>> origin/main
 		window.trackDashboardAction = trackDashboardAction
 	}, [trackDashboardAction])
 

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import {
 	Inject,
 	Injectable,
@@ -8,6 +9,12 @@ import {
 import { ConfigService } from '@nestjs/config'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@repo/shared/types/supabase-generated'
+=======
+import { Inject, Injectable, Logger } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import { ErrorHandlerService } from '../services/error-handler.service'
+>>>>>>> origin/main
 import * as path from 'path'
 
 // Custom type that matches what we're returning
@@ -25,15 +32,28 @@ export class StorageService {
 	private readonly logger = new Logger(StorageService.name)
 	private readonly supabase: SupabaseClient<Database>
 
+<<<<<<< HEAD
 	constructor(@Inject(ConfigService) private configService: ConfigService) {
+=======
+	constructor(
+		@Inject(ConfigService) private configService: ConfigService,
+		private errorHandler: ErrorHandlerService
+	) {
+>>>>>>> origin/main
 		const supabaseUrl = this.configService.get<string>('SUPABASE_URL')
 		const supabaseServiceKey = this.configService.get<string>(
 			'SUPABASE_SERVICE_ROLE_KEY'
 		)
 
 		if (!supabaseUrl || !supabaseServiceKey) {
+<<<<<<< HEAD
 			throw new InternalServerErrorException(
 				'Supabase configuration missing: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY required'
+=======
+			throw this.errorHandler.createBusinessError(
+				'Supabase configuration missing: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY required',
+				{ operation: 'constructor', resource: 'storage' }
+>>>>>>> origin/main
 			)
 		}
 
@@ -56,7 +76,14 @@ export class StorageService {
 			normalized.includes('/../') ||
 			normalized === '..'
 		) {
+<<<<<<< HEAD
 			throw new BadRequestException('Invalid file path detected')
+=======
+			throw this.errorHandler.createBusinessError(
+				'Invalid file path detected',
+				{ operation: 'validateFilePath', resource: 'file' }
+			)
+>>>>>>> origin/main
 		}
 
 		// Ensure path doesn't start with /
@@ -83,7 +110,14 @@ export class StorageService {
 			hasDangerousChars ||
 			dangerousExtensions.test(filename)
 		) {
+<<<<<<< HEAD
 			throw new BadRequestException('Invalid file name or extension')
+=======
+			throw this.errorHandler.createBusinessError(
+				'Invalid file name or extension',
+				{ operation: 'validateFileName', resource: 'file' }
+			)
+>>>>>>> origin/main
 		}
 
 		return filename
@@ -106,7 +140,10 @@ export class StorageService {
 		const safePath = this.validateFilePath(filePath)
 		const filename = path.basename(safePath)
 		this.validateFileName(filename)
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/main
 		const { error } = await this.supabase.storage
 			.from(bucket)
 			.upload(safePath, file, {
@@ -122,8 +159,18 @@ export class StorageService {
 				path: safePath,
 				bucket
 			})
+<<<<<<< HEAD
 			throw new BadRequestException(
 				`Failed to upload file: ${error.message}`
+=======
+			throw this.errorHandler.createBusinessError(
+				'Failed to upload file',
+				{
+					operation: 'uploadFile',
+					resource: 'file',
+					metadata: { bucket, path: safePath, error: error.message }
+				}
+>>>>>>> origin/main
 			)
 		}
 
@@ -132,7 +179,11 @@ export class StorageService {
 		return {
 			url: publicUrl,
 			path: safePath,
+<<<<<<< HEAD
 			filename: safePath.split('/').pop() ?? safePath,
+=======
+			filename: safePath.split('/').pop() || safePath,
+>>>>>>> origin/main
 			size: file.length,
 			mimeType: options?.contentType ?? 'application/octet-stream',
 			bucket
@@ -165,8 +216,18 @@ export class StorageService {
 				path: safePath,
 				bucket
 			})
+<<<<<<< HEAD
 			throw new BadRequestException(
 				`Failed to delete file: ${error.message}`
+=======
+			throw this.errorHandler.createBusinessError(
+				'Failed to delete file',
+				{
+					operation: 'deleteFile',
+					resource: 'file',
+					metadata: { bucket, path: safePath, error: error.message }
+				}
+>>>>>>> origin/main
 			)
 		}
 
@@ -200,8 +261,22 @@ export class StorageService {
 				bucket,
 				folder
 			})
+<<<<<<< HEAD
 			throw new BadRequestException(
 				`Failed to list files: ${error.message}`
+=======
+			throw this.errorHandler.createBusinessError(
+				'Failed to list files',
+				{
+					operation: 'listFiles',
+					resource: 'file',
+					metadata: {
+						bucket,
+						folder: folder || null,
+						error: error.message
+					}
+				}
+>>>>>>> origin/main
 			)
 		}
 

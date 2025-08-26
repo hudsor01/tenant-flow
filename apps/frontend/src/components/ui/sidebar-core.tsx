@@ -40,7 +40,11 @@ export function Sidebar({
 			<div
 				data-slot="sidebar"
 				className={cn(
+<<<<<<< HEAD
 					'bg-sidebar text-sidebar-foreground w-(--sidebar-width) flex h-full flex-col',
+=======
+					'bg-sidebar text-sidebar-foreground flex h-full w-(--sidebar-width) flex-col',
+>>>>>>> origin/main
 					className
 				)}
 				{...props}
@@ -86,12 +90,20 @@ export function Sidebar({
 			data-variant={variant}
 			data-collapsible={state === 'collapsed' ? collapsible : ''}
 			className={cn(
+<<<<<<< HEAD
 				'bg-sidebar text-sidebar-foreground w-(--sidebar-width) relative flex h-svh flex-col',
+=======
+				'bg-sidebar text-sidebar-foreground relative flex h-svh w-(--sidebar-width) flex-col',
+>>>>>>> origin/main
 				// Variants
 				variant === 'floating' &&
 					'border-sidebar-border bg-sidebar rounded-lg border shadow-md',
 				variant === 'inset' &&
+<<<<<<< HEAD
 					'border-sidebar-border w-(--sidebar-width-inset) inset-x-2 inset-y-2 rounded-lg border',
+=======
+					'border-sidebar-border inset-x-2 inset-y-2 w-(--sidebar-width-inset) rounded-lg border',
+>>>>>>> origin/main
 				// Collapsible
 				state === 'collapsed' &&
 					collapsible === 'icon' &&

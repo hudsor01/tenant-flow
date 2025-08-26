@@ -29,12 +29,19 @@ import { FormValidator } from '@/lib/validation/form-validator'
 import type { ProfileFormData } from '@/types/forms'
 import { toast } from 'sonner'
 import { apiClient } from '@/lib/api-client'
+<<<<<<< HEAD
 import { UpdateUserProfileSchema } from '@/lib/api/schemas/profile'
+=======
+>>>>>>> origin/main
 import { useAuth } from '@/hooks/use-auth'
 
 export function ProfileSettings() {
 	const { user } = useAuth()
+<<<<<<< HEAD
 
+=======
+	
+>>>>>>> origin/main
 	const {
 		values: profile,
 		handleChange,
@@ -51,6 +58,7 @@ export function ProfileSettings() {
 
 	const { execute: saveProfile, isLoading } = useApiCall(
 		async (data: ProfileFormData) => {
+<<<<<<< HEAD
 			// Validate and send, then validate the response shape
 			return await apiClient.putValidated(
 				'/api/v1/auth/profile',
@@ -58,6 +66,9 @@ export function ProfileSettings() {
 				'UpdateUserProfile',
 				data as Record<string, unknown>
 			)
+=======
+			return await apiClient.put('/api/v1/auth/profile', data)
+>>>>>>> origin/main
 		},
 		{
 			successMessage: 'Profile updated successfully',
@@ -68,6 +79,7 @@ export function ProfileSettings() {
 	// Load user data on mount
 	useEffect(() => {
 		if (user) {
+<<<<<<< HEAD
 			const asRecord = (u: unknown): Record<string, unknown> =>
 				typeof u === 'object' && u !== null
 					? (u as Record<string, unknown>)
@@ -83,6 +95,14 @@ export function ProfileSettings() {
 				phone: getStringFrom('phone'),
 				company: getStringFrom('company'),
 				address: getStringFrom('address')
+=======
+			setValues({
+				name: user.name || '',
+				email: user.email || '',
+				phone: user.phone || '',
+				company: user.company || '',
+				address: user.address || ''
+>>>>>>> origin/main
 			})
 		}
 	}, [user, setValues])

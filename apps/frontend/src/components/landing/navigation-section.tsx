@@ -36,7 +36,11 @@ export function NavigationSection(): React.ReactElement {
 			className={cn(
 				'fixed top-0 z-50 w-full transition-all duration-300',
 				'border-b border-gray-200/50 bg-white/95 backdrop-blur-md',
+<<<<<<< HEAD
 				scrollY > 50 && 'bg-white/98 border-gray-200/80 shadow-sm'
+=======
+				scrollY > 50 && 'border-gray-200/80 bg-white/98 shadow-sm'
+>>>>>>> origin/main
 			)}
 		>
 			<div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -70,7 +74,11 @@ export function NavigationSection(): React.ReactElement {
 
 							{/* Dropdown menu */}
 							{item.dropdown && (
+<<<<<<< HEAD
 								<div className="invisible absolute left-0 top-full mt-1 w-48 translate-y-2 transform rounded-xl border border-gray-200/50 bg-white/95 opacity-0 shadow-xl backdrop-blur-md transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+=======
+								<div className="invisible absolute top-full left-0 mt-1 w-48 translate-y-2 transform rounded-xl border border-gray-200/50 bg-white/95 opacity-0 shadow-xl backdrop-blur-md transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+>>>>>>> origin/main
 									<div className="py-2">
 										{item.dropdown.map(dropdownItem => (
 											<Link
@@ -120,7 +128,11 @@ export function NavigationSection(): React.ReactElement {
 			{/* Mobile menu */}
 			<div
 				className={cn(
+<<<<<<< HEAD
 					'bg-white/98 absolute left-0 right-0 top-full border-b border-gray-200/50 shadow-xl backdrop-blur-md transition-all duration-300 md:hidden',
+=======
+					'absolute top-full right-0 left-0 border-b border-gray-200/50 bg-white/98 shadow-xl backdrop-blur-md transition-all duration-300 md:hidden',
+>>>>>>> origin/main
 					mobileMenuOpen
 						? 'visible opacity-100'
 						: 'invisible opacity-0'
@@ -137,7 +149,11 @@ export function NavigationSection(): React.ReactElement {
 								{item.label}
 							</Link>
 							{item.dropdown && (
+<<<<<<< HEAD
 								<div className="ml-4 mt-2 space-y-2">
+=======
+								<div className="mt-2 ml-4 space-y-2">
+>>>>>>> origin/main
 									{item.dropdown.map(dropdownItem => (
 										<Link
 											key={dropdownItem.href}

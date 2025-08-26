@@ -17,7 +17,11 @@ import type {
 export interface PropertyFormState {
 	success: boolean
 	error?: string
+<<<<<<< HEAD
 	errors?: Record<string, string[]>
+=======
+	errors?: { [key: string]: string[] }
+>>>>>>> origin/main
 	message?: string
 	data?: Property
 }
@@ -37,6 +41,7 @@ export async function createPropertyAction(
 			formData.get('type')) as PropertyType
 
 		// Basic validation
+<<<<<<< HEAD
 		const errors: Record<string, string[]> = {}
 		if (!name?.trim()) {
 			errors.name = ['Property name is required']
@@ -56,6 +61,15 @@ export async function createPropertyAction(
 		if (!propertyType) {
 			errors.propertyType = ['Property type is required']
 		}
+=======
+		const errors: { [key: string]: string[] } = {}
+		if (!name?.trim()) errors.name = ['Property name is required']
+		if (!address?.trim()) errors.address = ['Address is required']
+		if (!city?.trim()) errors.city = ['City is required']
+		if (!state?.trim()) errors.state = ['State is required']
+		if (!zipCode?.trim()) errors.zipCode = ['ZIP code is required']
+		if (!propertyType) errors.propertyType = ['Property type is required']
+>>>>>>> origin/main
 
 		if (Object.keys(errors).length > 0) {
 			return {

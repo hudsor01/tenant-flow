@@ -3,7 +3,11 @@ import { motion } from '@/lib/lazy-motion'
 import { Button } from '@/components/ui/button'
 import { ArrowUpRight } from 'lucide-react'
 // Removed blog-stubs imports - using placeholder data for unused component
+<<<<<<< HEAD
 interface BlogArticle {
+=======
+type BlogArticle = {
+>>>>>>> origin/main
 	slug: string
 	title: string
 	category: string
@@ -23,7 +27,11 @@ interface BlogSidebarSectionProps {
  * Clean design with generous whitespace
  */
 export default function BlogSidebarSection({
+<<<<<<< HEAD
 	currentSlug: _currentSlug,
+=======
+	currentSlug,
+>>>>>>> origin/main
 	fadeInUp
 }: BlogSidebarSectionProps) {
 	// Placeholder data for unused component - blog functionality removed
@@ -44,7 +52,11 @@ export default function BlogSidebarSection({
 									href={`/blog/${article.slug}`}
 									className="group block"
 								>
+<<<<<<< HEAD
 									<h4 className="text-foreground group-hover:text-primary mb-2 text-sm font-medium leading-snug transition-colors">
+=======
+									<h4 className="text-foreground group-hover:text-primary mb-2 text-sm leading-snug font-medium transition-colors">
+>>>>>>> origin/main
 										{article.title}
 									</h4>
 									<p className="text-muted-foreground mb-2 text-xs">

@@ -1,9 +1,9 @@
 import { Controller, Get, Logger, UseGuards } from '@nestjs/common'
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
-import { UnifiedAuthGuard } from '../shared/guards/auth.guard'
+import { UnifiedAuthGuard } from '../shared/guards/unified-auth.guard'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
 import { AuthToken } from '../shared/decorators/auth-token.decorator'
-import type { ValidatedUser } from '../auth/auth.service'
+import { ValidatedUser } from '../auth/auth.service'
 import { DashboardService } from './dashboard.service'
 import type { ControllerApiResponse } from '@repo/shared'
 
@@ -31,7 +31,7 @@ export class DashboardController {
 			success: true,
 			data,
 			message: 'Dashboard statistics retrieved successfully',
-			timestamp: new Date()
+			timestamp: new Date().toISOString()
 		}
 	}
 
@@ -41,14 +41,17 @@ export class DashboardController {
 		status: 200,
 		description: 'Dashboard activity retrieved successfully'
 	})
-	getActivity(@CurrentUser() user: ValidatedUser): ControllerApiResponse {
+	async getActivity(
+		@CurrentUser() user: ValidatedUser,
+		@AuthToken() authToken?: string
+	): Promise<ControllerApiResponse> {
 		this.logger.log(`Getting dashboard activity for user ${user.id}`)
-		const data = this.dashboardService.getActivity(user.id)
+		const data = await this.dashboardService.getActivity(user.id, authToken)
 		return {
 			success: true,
 			data,
 			message: 'Dashboard activity retrieved successfully',
-			timestamp: new Date()
+			timestamp: new Date().toISOString()
 		}
 	}
 }

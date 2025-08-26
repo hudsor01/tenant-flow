@@ -3,7 +3,11 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/use-auth'
+<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
+=======
+import { logger } from '@/lib/logger'
+>>>>>>> origin/main
 import { AuthLoadingSpinner } from './protected-route-guard'
 import type { UserRole } from '@repo/shared'
 
@@ -29,6 +33,7 @@ export function UnifiedAuthGuard({
 	const router = useRouter()
 
 	useEffect(() => {
+<<<<<<< HEAD
 		if (loading) {
 			return
 		}
@@ -37,6 +42,12 @@ export function UnifiedAuthGuard({
 		if (!requireAuth) {
 			return
 		}
+=======
+		if (loading) return
+
+		// If auth not required, render immediately
+		if (!requireAuth) return
+>>>>>>> origin/main
 
 		// Check authentication
 		if (!user) {
@@ -46,10 +57,17 @@ export function UnifiedAuthGuard({
 		}
 
 		// Check role requirements
+<<<<<<< HEAD
 		if (requiredRoles.length > 0 && !requiredRoles.includes(user.role)) {
 			logger.warn('User lacks required role', {
 				userRole: user.role,
 				requiredRoles
+=======
+		if (requiredRoles.length > 0 && !requiredRoles.includes(user.role as UserRole)) {
+			logger.warn('User lacks required role', { 
+				userRole: user.role, 
+				requiredRoles 
+>>>>>>> origin/main
 			})
 			router.push('/unauthorized')
 			return
@@ -61,6 +79,7 @@ export function UnifiedAuthGuard({
 			router.push('/unauthorized')
 			return
 		}
+<<<<<<< HEAD
 	}, [
 		user,
 		loading,
@@ -70,6 +89,9 @@ export function UnifiedAuthGuard({
 		redirectTo,
 		router
 	])
+=======
+	}, [user, loading, requireAuth, requiredRoles, adminOnly, redirectTo, router])
+>>>>>>> origin/main
 
 	// Show loading while checking auth
 	if (loading) {
@@ -87,7 +109,11 @@ export function UnifiedAuthGuard({
 	}
 
 	// Check role requirements
+<<<<<<< HEAD
 	if (requiredRoles.length > 0 && !requiredRoles.includes(user.role)) {
+=======
+	if (requiredRoles.length > 0 && !requiredRoles.includes(user.role as UserRole)) {
+>>>>>>> origin/main
 		return <AuthLoadingSpinner message="Access denied..." />
 	}
 
@@ -111,6 +137,7 @@ export function RequireAdmin({ children }: { children: React.ReactNode }) {
 	return <UnifiedAuthGuard adminOnly>{children}</UnifiedAuthGuard>
 }
 
+<<<<<<< HEAD
 export function RequireRole({
 	role,
 	children
@@ -122,3 +149,14 @@ export function RequireRole({
 		<UnifiedAuthGuard requiredRoles={[role]}>{children}</UnifiedAuthGuard>
 	)
 }
+=======
+export function RequireRole({ 
+	role, 
+	children 
+}: { 
+	role: UserRole
+	children: React.ReactNode 
+}) {
+	return <UnifiedAuthGuard requiredRoles={[role]}>{children}</UnifiedAuthGuard>
+}
+>>>>>>> origin/main

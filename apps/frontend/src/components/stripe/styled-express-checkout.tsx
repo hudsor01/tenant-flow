@@ -1,5 +1,9 @@
 import { ExpressCheckoutElement } from '@stripe/react-stripe-js'
+<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
+=======
+import { logger } from '@/lib/logger'
+>>>>>>> origin/main
 import { useState } from 'react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import type {
@@ -126,7 +130,11 @@ export function StyledExpressCheckout({
 			{/* Divider */}
 			<div className="relative">
 				<div className="absolute inset-0 flex items-center">
+<<<<<<< HEAD
 					<div className="border-border w-full border-t" />
+=======
+					<div className="border-border w-full border-t"></div>
+>>>>>>> origin/main
 				</div>
 				<div className="relative flex justify-center text-xs uppercase">
 					<span className="bg-background text-muted-foreground px-2">

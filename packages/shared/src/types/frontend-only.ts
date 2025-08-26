@@ -102,7 +102,11 @@ export interface AsProps<T extends React.ElementType = React.ElementType> {
 export interface FormProps
 	extends Omit<React.FormHTMLAttributes<HTMLFormElement>, 'action'> {
 	action?: FormAction
+<<<<<<< HEAD
 	onSubmit?: SubmitHandler
+=======
+	onSubmit?: SubmitHandler<HTMLFormElement>
+>>>>>>> origin/main
 }
 
 /**
@@ -122,7 +126,11 @@ export interface InputProps
 		React.InputHTMLAttributes<HTMLInputElement>,
 		'onChange' | 'onBlur' | 'onFocus'
 	> {
+<<<<<<< HEAD
 	onChange?: ChangeHandler
+=======
+	onChange?: ChangeHandler<HTMLInputElement>
+>>>>>>> origin/main
 	onBlur?: BlurHandler<HTMLInputElement>
 	onFocus?: FocusHandler<HTMLInputElement>
 }

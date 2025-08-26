@@ -14,11 +14,37 @@ import type {
 	Property,
 	PropertyQuery,
 	CreatePropertyInput,
+<<<<<<< HEAD
 	UpdatePropertyInput,
 	PropertyStats
 } from '@repo/shared'
 import { apiClient } from '@/lib/api-client'
 import { queryKeys } from '@/lib/react-query/query-keys'
+=======
+	UpdatePropertyInput
+} from '@repo/shared'
+import { apiClient } from '@/lib/api-client'
+
+// Query keys for properties
+export const propertyKeys = {
+	all: ['properties'] as const,
+	lists: () => [...propertyKeys.all, 'list'] as const,
+	list: (filters?: PropertyQuery) =>
+		[...propertyKeys.lists(), { filters }] as const,
+	details: () => [...propertyKeys.all, 'detail'] as const,
+	detail: (id: string) => [...propertyKeys.details(), id] as const,
+	stats: () => [...propertyKeys.all, 'stats'] as const
+}
+
+export interface PropertyStats {
+	total: number
+	occupied: number
+	vacant: number
+	occupancyRate: number
+	totalMonthlyRent: number
+	averageRent: number
+}
+>>>>>>> origin/main
 
 /**
  * Fetch list of properties with optional filters
@@ -26,10 +52,17 @@ import { queryKeys } from '@/lib/react-query/query-keys'
 export function useProperties(
 	query?: PropertyQuery,
 	options?: { enabled?: boolean }
+<<<<<<< HEAD
 ): UseQueryResult<Property[]> {
 	return useQuery({
 		queryKey: queryKeys.properties.list(query),
 		queryFn: async () =>
+=======
+): UseQueryResult<Property[], Error> {
+	return useQuery({
+		queryKey: propertyKeys.list(query),
+		queryFn: () =>
+>>>>>>> origin/main
 			apiClient.get<Property[]>('/properties', { params: query }),
 		enabled: options?.enabled ?? true,
 		staleTime: 5 * 60 * 1000, // 5 minutes
@@ -43,10 +76,17 @@ export function useProperties(
 export function useProperty(
 	id: string,
 	options?: { enabled?: boolean }
+<<<<<<< HEAD
 ): UseQueryResult<Property> {
 	return useQuery({
 		queryKey: queryKeys.properties.detail(id),
 		queryFn: async () => apiClient.get<Property>(`/properties/${id}`),
+=======
+): UseQueryResult<Property, Error> {
+	return useQuery({
+		queryKey: propertyKeys.detail(id),
+		queryFn: () => apiClient.get<Property>(`/properties/${id}`),
+>>>>>>> origin/main
 		enabled: Boolean(id) && (options?.enabled ?? true),
 		staleTime: 2 * 60 * 1000 // 2 minutes
 	})
@@ -55,10 +95,17 @@ export function useProperty(
 /**
  * Fetch property statistics
  */
+<<<<<<< HEAD
 export function usePropertyStats(): UseQueryResult<PropertyStats> {
 	return useQuery({
 		queryKey: queryKeys.properties.stats(),
 		queryFn: async () => apiClient.get<PropertyStats>('/properties/stats'),
+=======
+export function usePropertyStats(): UseQueryResult<PropertyStats, Error> {
+	return useQuery({
+		queryKey: propertyKeys.stats(),
+		queryFn: () => apiClient.get<PropertyStats>('/properties/stats'),
+>>>>>>> origin/main
 		staleTime: 2 * 60 * 1000, // 2 minutes
 		refetchInterval: 5 * 60 * 1000 // Auto-refresh every 5 minutes
 	})
@@ -75,6 +122,7 @@ export function useCreateProperty(): UseMutationResult<
 	const queryClient = useQueryClient()
 
 	return useMutation({
+<<<<<<< HEAD
 		mutationFn: async (data: CreatePropertyInput) =>
 			apiClient.post<Property>('/properties', data),
 		onMutate: async newProperty => {
@@ -86,15 +134,32 @@ export function useCreateProperty(): UseMutationResult<
 			// Snapshot the previous value
 			const previousProperties = queryClient.getQueryData(
 				queryKeys.properties.lists()
+=======
+		mutationFn: (data: CreatePropertyInput) =>
+			apiClient.post<Property>('/properties', data),
+		onMutate: async newProperty => {
+			// Cancel any outgoing refetches
+			await queryClient.cancelQueries({ queryKey: propertyKeys.lists() })
+
+			// Snapshot the previous value
+			const previousProperties = queryClient.getQueryData(
+				propertyKeys.lists()
+>>>>>>> origin/main
 			)
 
 			// Optimistically update all property lists
 			queryClient.setQueriesData(
+<<<<<<< HEAD
 				{ queryKey: queryKeys.properties.lists() },
 				(old: Property[] | undefined) => {
 					if (!old) {
 						return []
 					}
+=======
+				{ queryKey: propertyKeys.lists() },
+				(old: Property[] | undefined) => {
+					if (!old) return []
+>>>>>>> origin/main
 					return [
 						...old,
 						{
@@ -113,7 +178,11 @@ export function useCreateProperty(): UseMutationResult<
 			// Revert optimistic update on error
 			if (context?.previousProperties) {
 				queryClient.setQueriesData(
+<<<<<<< HEAD
 					{ queryKey: queryKeys.properties.lists() },
+=======
+					{ queryKey: propertyKeys.lists() },
+>>>>>>> origin/main
 					context.previousProperties
 				)
 			}
@@ -124,12 +193,17 @@ export function useCreateProperty(): UseMutationResult<
 		},
 		onSettled: () => {
 			// Always refetch after error or success
+<<<<<<< HEAD
 			void queryClient.invalidateQueries({
 				queryKey: queryKeys.properties.lists()
 			})
 			void queryClient.invalidateQueries({
 				queryKey: queryKeys.properties.stats()
 			})
+=======
+			queryClient.invalidateQueries({ queryKey: propertyKeys.lists() })
+			queryClient.invalidateQueries({ queryKey: propertyKeys.stats() })
+>>>>>>> origin/main
 		}
 	})
 }
@@ -145,11 +219,16 @@ export function useUpdateProperty(): UseMutationResult<
 	const queryClient = useQueryClient()
 
 	return useMutation({
+<<<<<<< HEAD
 		mutationFn: async ({ id, data }) =>
+=======
+		mutationFn: ({ id, data }) =>
+>>>>>>> origin/main
 			apiClient.put<Property>(`/properties/${id}`, data),
 		onMutate: async ({ id, data }) => {
 			// Cancel queries for this property
 			await queryClient.cancelQueries({
+<<<<<<< HEAD
 				queryKey: queryKeys.properties.detail(id)
 			})
 			await queryClient.cancelQueries({
@@ -167,13 +246,32 @@ export function useUpdateProperty(): UseMutationResult<
 			// Optimistically update property detail
 			queryClient.setQueryData(
 				queryKeys.properties.detail(id),
+=======
+				queryKey: propertyKeys.detail(id)
+			})
+			await queryClient.cancelQueries({ queryKey: propertyKeys.lists() })
+
+			// Snapshot the previous values
+			const previousProperty = queryClient.getQueryData(
+				propertyKeys.detail(id)
+			)
+			const previousList = queryClient.getQueryData(propertyKeys.lists())
+
+			// Optimistically update property detail
+			queryClient.setQueryData(
+				propertyKeys.detail(id),
+>>>>>>> origin/main
 				(old: Property | undefined) =>
 					old ? { ...old, ...data, updatedAt: new Date() } : undefined
 			)
 
 			// Optimistically update property in lists
 			queryClient.setQueriesData(
+<<<<<<< HEAD
 				{ queryKey: queryKeys.properties.lists() },
+=======
+				{ queryKey: propertyKeys.lists() },
+>>>>>>> origin/main
 				(old: Property[] | undefined) =>
 					old?.map(property =>
 						property.id === id
@@ -188,13 +286,21 @@ export function useUpdateProperty(): UseMutationResult<
 			// Revert optimistic updates on error
 			if (context?.previousProperty) {
 				queryClient.setQueryData(
+<<<<<<< HEAD
 					queryKeys.properties.detail(id),
+=======
+					propertyKeys.detail(id),
+>>>>>>> origin/main
 					context.previousProperty
 				)
 			}
 			if (context?.previousList) {
 				queryClient.setQueriesData(
+<<<<<<< HEAD
 					{ queryKey: queryKeys.properties.lists() },
+=======
+					{ queryKey: propertyKeys.lists() },
+>>>>>>> origin/main
 					context.previousList
 				)
 			}
@@ -205,6 +311,7 @@ export function useUpdateProperty(): UseMutationResult<
 		},
 		onSettled: (data, err, { id }) => {
 			// Refetch to ensure consistency
+<<<<<<< HEAD
 			void queryClient.invalidateQueries({
 				queryKey: queryKeys.properties.detail(id)
 			})
@@ -214,6 +321,11 @@ export function useUpdateProperty(): UseMutationResult<
 			void queryClient.invalidateQueries({
 				queryKey: queryKeys.properties.stats()
 			})
+=======
+			queryClient.invalidateQueries({ queryKey: propertyKeys.detail(id) })
+			queryClient.invalidateQueries({ queryKey: propertyKeys.lists() })
+			queryClient.invalidateQueries({ queryKey: propertyKeys.stats() })
+>>>>>>> origin/main
 		}
 	})
 }
@@ -225,6 +337,7 @@ export function useDeleteProperty(): UseMutationResult<void, Error, string> {
 	const queryClient = useQueryClient()
 
 	return useMutation({
+<<<<<<< HEAD
 		mutationFn: async (id: string) =>
 			apiClient.delete<void>(`/properties/${id}`),
 		onMutate: async id => {
@@ -241,6 +354,19 @@ export function useDeleteProperty(): UseMutationResult<void, Error, string> {
 			// Optimistically remove property from lists
 			queryClient.setQueriesData(
 				{ queryKey: queryKeys.properties.lists() },
+=======
+		mutationFn: (id: string) => apiClient.delete<void>(`/properties/${id}`),
+		onMutate: async id => {
+			// Cancel queries
+			await queryClient.cancelQueries({ queryKey: propertyKeys.lists() })
+
+			// Snapshot previous list
+			const previousList = queryClient.getQueryData(propertyKeys.lists())
+
+			// Optimistically remove property from lists
+			queryClient.setQueriesData(
+				{ queryKey: propertyKeys.lists() },
+>>>>>>> origin/main
 				(old: Property[] | undefined) =>
 					old?.filter(property => property.id !== id)
 			)
@@ -251,7 +377,11 @@ export function useDeleteProperty(): UseMutationResult<void, Error, string> {
 			// Revert optimistic update
 			if (context?.previousList) {
 				queryClient.setQueriesData(
+<<<<<<< HEAD
 					{ queryKey: queryKeys.properties.lists() },
+=======
+					{ queryKey: propertyKeys.lists() },
+>>>>>>> origin/main
 					context.previousList
 				)
 			}
@@ -262,12 +392,17 @@ export function useDeleteProperty(): UseMutationResult<void, Error, string> {
 		},
 		onSettled: () => {
 			// Refetch to ensure consistency
+<<<<<<< HEAD
 			void queryClient.invalidateQueries({
 				queryKey: queryKeys.properties.lists()
 			})
 			void queryClient.invalidateQueries({
 				queryKey: queryKeys.properties.stats()
 			})
+=======
+			queryClient.invalidateQueries({ queryKey: propertyKeys.lists() })
+			queryClient.invalidateQueries({ queryKey: propertyKeys.stats() })
+>>>>>>> origin/main
 		}
 	})
 }
@@ -279,9 +414,15 @@ export function usePrefetchProperty() {
 	const queryClient = useQueryClient()
 
 	return (id: string) => {
+<<<<<<< HEAD
 		void queryClient.prefetchQuery({
 			queryKey: queryKeys.properties.detail(id),
 			queryFn: async () => apiClient.get<Property>(`/properties/${id}`),
+=======
+		queryClient.prefetchQuery({
+			queryKey: propertyKeys.detail(id),
+			queryFn: () => apiClient.get<Property>(`/properties/${id}`),
+>>>>>>> origin/main
 			staleTime: 10 * 1000 // 10 seconds
 		})
 	}

@@ -18,7 +18,11 @@ export function AuthRedirect({ to }: AuthRedirectProps) {
 	return (
 		<div className="flex min-h-screen items-center justify-center">
 			<div className="text-center">
+<<<<<<< HEAD
 				<div className="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-b-2" />
+=======
+				<div className="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-b-2"></div>
+>>>>>>> origin/main
 				<p className="text-muted-foreground mt-2 text-sm">
 					Redirecting...
 				</p>

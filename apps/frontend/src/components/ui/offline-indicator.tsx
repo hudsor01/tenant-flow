@@ -103,6 +103,7 @@ export function OfflineIndicator({
 		| 'secondary'
 		| 'destructive'
 		| 'outline' => {
+<<<<<<< HEAD
 		if (!isOnline) {
 			return 'destructive'
 		}
@@ -112,13 +113,22 @@ export function OfflineIndicator({
 		if (hasOfflineData) {
 			return 'secondary'
 		}
+=======
+		if (!isOnline) return 'destructive'
+		if (hasFailedOperations) return 'destructive'
+		if (hasOfflineData) return 'secondary'
+>>>>>>> origin/main
 		return 'default'
 	}
 
 	const getConnectionQuality = () => {
+<<<<<<< HEAD
 		if (!isOnline) {
 			return 'Offline'
 		}
+=======
+		if (!isOnline) return 'Offline'
+>>>>>>> origin/main
 
 		const { effectiveType } = networkInfo
 		switch (effectiveType) {
@@ -306,7 +316,11 @@ export function OfflineIndicator({
 							{hasFailedOperations && (
 								<div className="flex gap-2">
 									<Button
+<<<<<<< HEAD
 										onClick={async () => processQueue()}
+=======
+										onClick={() => processQueue()}
+>>>>>>> origin/main
 										disabled={isProcessing}
 										variant="outline"
 										size="sm"
@@ -363,9 +377,13 @@ export function OfflineBanner() {
 		setShow(!isOnline || (hasOfflineData && isOnline && isProcessing))
 	}, [isOnline, hasOfflineData, isProcessing])
 
+<<<<<<< HEAD
 	if (!show) {
 		return null
 	}
+=======
+	if (!show) return null
+>>>>>>> origin/main
 
 	return (
 		<div
