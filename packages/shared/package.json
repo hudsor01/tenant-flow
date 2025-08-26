@@ -13,10 +13,7 @@
 		}
 	},
 	"private": true,
-<<<<<<< HEAD
 	"packageManager": "npm@10.0.0",
-=======
->>>>>>> origin/main
 	"exports": {
 		".": {
 			"types": "./dist/cjs/index.d.ts",
@@ -34,7 +31,6 @@
 			"import": "./dist/esm/types/*.js",
 			"require": "./dist/cjs/types/*.js"
 		},
-<<<<<<< HEAD
 		"./types/api-inputs": {
 			"types": "./dist/cjs/types/api-inputs.d.ts",
 			"import": "./dist/esm/types/api-inputs.js",
@@ -75,8 +71,6 @@
 			"import": "./dist/esm/types/common.js",
 			"require": "./dist/cjs/types/common.js"
 		},
-=======
->>>>>>> origin/main
 		"./constants": {
 			"types": "./dist/cjs/constants/index.d.ts",
 			"import": "./dist/esm/constants/index.js",
@@ -107,7 +101,6 @@
 			"import": "./dist/esm/validation/*.js",
 			"require": "./dist/cjs/validation/*.js"
 		},
-<<<<<<< HEAD
 		"./validation/properties": {
 			"types": "./dist/cjs/validation/properties.d.ts",
 			"import": "./dist/esm/validation/properties.js",
@@ -118,8 +111,6 @@
 			"import": "./dist/esm/validation/leases.js",
 			"require": "./dist/cjs/validation/leases.js"
 		},
-=======
->>>>>>> origin/main
 		"./stripe": {
 			"types": "./dist/cjs/stripe/index.d.ts",
 			"import": "./dist/esm/stripe/index.js",
@@ -150,20 +141,12 @@
 			"import": "./dist/esm/patterns/*.js",
 			"require": "./dist/cjs/patterns/*.js"
 		},
-<<<<<<< HEAD
 		"./types/domain": {
-=======
-		"./domain": {
->>>>>>> origin/main
 			"types": "./dist/cjs/types/domain.d.ts",
 			"import": "./dist/esm/types/domain.js",
 			"require": "./dist/cjs/types/domain.js"
 		},
-<<<<<<< HEAD
 		"./types/utilities": {
-=======
-		"./utilities": {
->>>>>>> origin/main
 			"types": "./dist/cjs/types/utilities.d.ts",
 			"import": "./dist/esm/types/utilities.js",
 			"require": "./dist/cjs/types/utilities.js"
@@ -193,7 +176,6 @@
 	},
 	"dependencies": {
 		"@supabase/supabase-js": "^2.56.0",
-<<<<<<< HEAD
 		"stripe": "^18.4.0",
 		"zod": "^4.1.0"
 	},
@@ -212,20 +194,6 @@
 		"globals": "16.3.0",
 		"playwright": "1.55.0",
 		"react-hook-form": "7.62.0",
-=======
-		"@tanstack/react-query": "^5.85.5",
-		"class-variance-authority": "^0.7.1",
-		"react-hook-form": "^7.62.0",
-		"stripe": "^18.4.0",
-		"zod": "^4.1.0"
-	},
-	"devDependencies": {
-		"@repo/typescript-config": "*",
-		"@types/node": "^24.3.0",
-		"@types/react": "^19.1.11",
-		"eslint": "9.34.0",
-		"globals": "16.3.0",
->>>>>>> origin/main
 		"typescript": "5.9.2",
 		"typescript-eslint": "8.40.0"
 	},
