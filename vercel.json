@@ -1,17 +1,9 @@
 {
 	"$schema": "https://openapi.vercel.sh/vercel.json",
-<<<<<<< HEAD
 	"installCommand": "npm ci --prefer-offline --no-audit",
 	"buildCommand": "npm run build",
 	"framework": "nextjs",
 	"outputDirectory": "apps/frontend/.next",
-=======
-	"installCommand": "npm ci",
-	"buildCommand": "NODE_OPTIONS='--max-old-space-size=6144' npm run build:shared && NODE_OPTIONS='--max-old-space-size=6144' npm run build:frontend",
-	"framework": "nextjs",
-	"outputDirectory": "apps/frontend/.next",
-	"ignoreCommand": "echo 'Building for deployment stability'",
->>>>>>> origin/main
 	"redirects": [
 		{
 			"source": "/home",
@@ -47,13 +39,10 @@
 		{
 			"source": "/health",
 			"destination": "/api/health"
-<<<<<<< HEAD
 		},
 		{
 			"source": "/api/backend/:path*",
 			"destination": "https://api.tenantflow.app/api/v1/:path*"
-=======
->>>>>>> origin/main
 		}
 	],
 	"headers": [

@@ -1,15 +1,9 @@
 {
-<<<<<<< HEAD
 	"$schema": "https://json.schemastore.org/package",
 	"name": "@repo/typescript-config",
 	"version": "0.1.0",
 	"private": true,
 	"packageManager": "npm@10.0.0",
-=======
-	"name": "@repo/typescript-config",
-	"version": "0.1.0",
-	"private": true,
->>>>>>> origin/main
 	"files": [
 		"*.json"
 	],
@@ -29,10 +23,6 @@
 		"clean": "echo 'No build artifacts to clean in config package'"
 	},
 	"devDependencies": {
-<<<<<<< HEAD
 		"eslint": "^9.34.0"
-=======
-		"eslint": "^9.17.0"
->>>>>>> origin/main
 	}
 }
