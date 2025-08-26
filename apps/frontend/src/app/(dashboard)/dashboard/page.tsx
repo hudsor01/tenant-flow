@@ -33,7 +33,7 @@ export default function DashboardPage() {
 									Dashboard
 								</h1>
 								<p className="text-muted-foreground text-base font-medium sm:text-lg">
-									Welcome back! Here's an overview of your
+									Welcome back! Here&apos;s an overview of your
 									property portfolio.
 								</p>
 							</div>
@@ -74,7 +74,7 @@ export default function DashboardPage() {
 				<Suspense
 					fallback={
 						<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-							{[...Array(4)].map((_, i) => (
+							{Array.from({ length: 4 }, (_, i) => (
 								<div
 									key={i}
 									className="card-modern from-muted/40 to-muted/20 h-32 animate-pulse rounded-xl border bg-gradient-to-br"
