@@ -19,8 +19,6 @@ import type { ValidatedUser } from '@repo/shared'
 import type { FastifyRequest } from 'fastify'
 import { UsersService } from '../users/users.service'
 import type { LoginDto, RefreshTokenDto, RegisterDto } from '@repo/shared'
-import { loginSchema, refreshTokenSchema, registerSchema } from '@repo/shared'
-import { ZodValidationPipe } from '../shared/pipes/zod-validation.pipe'
 
 @Controller('auth')
 export class AuthController {
@@ -52,9 +50,7 @@ export class AuthController {
 	@Public()
 	@Throttle({ default: { limit: 20, ttl: 60000 } })
 	@HttpCode(HttpStatus.OK)
-	async refreshToken(
-		@Body(new ZodValidationPipe(refreshTokenSchema)) body: RefreshTokenDto
-	) {
+	async refreshToken(@Body() body: RefreshTokenDto) {
 		return this.authService.refreshToken(body.refresh_token)
 	}
 
@@ -67,10 +63,7 @@ export class AuthController {
 	@Public()
 	@Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 login attempts per minute
 	@HttpCode(HttpStatus.OK)
-	async login(
-		@Body(new ZodValidationPipe(loginSchema)) body: LoginDto,
-		@Req() request: FastifyRequest
-	) {
+	async login(@Body() body: LoginDto, @Req() request: FastifyRequest) {
 		const forwardedFor = request.headers['x-forwarded-for']
 		const ip =
 			request.ip ||
@@ -88,9 +81,7 @@ export class AuthController {
 	@Public()
 	@Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 registration attempts per minute
 	@HttpCode(HttpStatus.CREATED)
-	async register(
-		@Body(new ZodValidationPipe(registerSchema)) body: RegisterDto
-	) {
+	async register(@Body() body: RegisterDto) {
 		return this.authService.createUser(body)
 	}
 
