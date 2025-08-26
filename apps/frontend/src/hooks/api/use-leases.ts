@@ -266,40 +266,7 @@ export function useDeleteLease(): UseMutationResult<void, Error, string> {
 	})
 }
 
-/**
- * Generate lease PDF
- */
-export function useGenerateLeasePDF(): UseMutationResult<
-	{ url: string },
-	Error,
-	string
-> {
-	return useMutation({
-		mutationFn: leaseApi.generatePDF,
-		onSuccess: data => {
-			// Trigger download
-			if (data.url) {
-				try {
-					const link = document.createElement('a')
-					link.href = data.url
-					link.download = 'lease.pdf'
-					link.target = '_blank'
-					document.body.appendChild(link)
-					link.click()
-					document.body.removeChild(link)
-
-					toast.success('Lease PDF generated successfully')
-				} catch (error) {
-					console.error('Download failed:', error)
-					window.open(data.url, '_blank')
-				}
-			}
-		},
-		onError: () => {
-			toast.error('Failed to generate lease PDF')
-		}
-	})
-}
+// Note: useGenerateLeasePDF is now available in use-pdf.ts for consistency with other PDF operations
 
 /**
  * Activate lease

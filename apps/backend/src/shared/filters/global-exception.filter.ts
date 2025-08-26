@@ -7,6 +7,21 @@ import {
 	Logger
 } from '@nestjs/common'
 import type { FastifyReply, FastifyRequest } from 'fastify'
+import type {
+	FastifyErrorResponse,
+	FastifyBusinessErrorResponse,
+	ErrorLogContext
+} from '@repo/shared'
+import { BusinessException } from '../exceptions'
+
+// Extend FastifyRequest to include user from JWT auth
+interface AuthenticatedRequest extends FastifyRequest {
+	user?: {
+		id: string
+		email?: string
+		role?: string
+	}
+}
 
 /**
  * Global exception filter using native NestJS patterns
@@ -68,7 +83,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 		try {
 			const sanitized = JSON.parse(JSON.stringify(body))
 			
-			const redactSensitiveFields = (obj: any): void => {
+			const redactSensitiveFields = (obj: Record<string, unknown>): void => {
 				if (obj && typeof obj === 'object') {
 					for (const key in obj) {
 						if (obj.hasOwnProperty(key)) {
@@ -82,7 +97,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 							if (isSensitive) {
 								obj[key] = '[REDACTED]'
 							} else if (typeof obj[key] === 'object' && obj[key] !== null) {
-								redactSensitiveFields(obj[key])
+								redactSensitiveFields(obj[key] as Record<string, unknown>)
 							}
 						}
 					}
@@ -96,6 +111,29 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 			return { error: 'Unable to sanitize request body' }
 		}
 	}
+
+	/**
+	 * Create business error response for domain-specific errors
+	 */
+	private createBusinessErrorResponse(
+		status: number,
+		message: string,
+		code: string,
+		path: string,
+		details?: Record<string, unknown>
+	): FastifyBusinessErrorResponse {
+		return {
+			success: false,
+			statusCode: status,
+			message,
+			error: this.getHttpStatusText(status),
+			timestamp: new Date().toISOString(),
+			path,
+			code,
+			details
+		}
+	}
+
 
 	/**
 	 * Get HTTP status text for common status codes
@@ -170,13 +208,31 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 	catch(exception: unknown, host: ArgumentsHost): void {
 		const ctx = host.switchToHttp()
 		const response = ctx.getResponse<FastifyReply>()
-		const request = ctx.getRequest<FastifyRequest>()
+		const request = ctx.getRequest<AuthenticatedRequest>()
 
 		let status: number
 		let message: string
 		let error: string
 
-		if (exception instanceof HttpException) {
+		if (exception instanceof BusinessException) {
+			// Handle business exceptions with structured error response
+			const businessErrorResponse = this.createBusinessErrorResponse(
+				exception.getStatus(),
+				exception.message,
+				exception.code,
+				request.url,
+				exception.details
+			)
+			
+			this.logger.warn(
+				`Business rule violation: ${exception.code} - ${exception.message}`,
+				{ userId: request.user?.id, details: exception.details }
+			)
+			
+			response.status(exception.getStatus()).send(businessErrorResponse)
+			return
+			
+		} else if (exception instanceof HttpException) {
 			status = exception.getStatus()
 			const exceptionResponse = exception.getResponse()
 			
@@ -207,7 +263,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 					path: request.url,
 					method: request.method,
 					body: this.sanitizeRequestBody(request.body),
-					userId: (request as any).user?.id
+					userId: request.user?.id
 				}
 			)
 			error = 'Internal Server Error'
@@ -223,8 +279,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 			this.logger.error('Unknown exception type:', exception)
 		}
 
-		// Standard error response format
-		const errorResponse = {
+		// Standard error response format using shared types
+		const errorResponse: FastifyErrorResponse = {
 			success: false,
 			statusCode: status,
 			message,
@@ -253,12 +309,14 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 			}
 		})()
 		
-		const logContext = {
+		const logContext: ErrorLogContext = {
 			method: safeMethod,
 			url: safeUrl,
 			status: Number(status) || 500,
 			errorName: String(errorName),
-			message: String(message || 'Unknown error')
+			message: String(message || 'Unknown error'),
+			userId: request.user?.id,
+			timestamp: new Date().toISOString()
 		}
 		
 		if (status >= (HttpStatus.INTERNAL_SERVER_ERROR as number)) {

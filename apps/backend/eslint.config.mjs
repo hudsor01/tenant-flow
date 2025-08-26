@@ -1,6 +1,6 @@
 /**
- * Backend ESLint Configuration - Mixed Turbo Approach
- * Uses centralized base config but with local TypeScript parsing to avoid dependency conflicts
+ * Backend ESLint Configuration - NestJS with Security Focus
+ * Extends shared base config with NestJS-specific overrides
  */
 
 import baseConfig from '@repo/eslint-config/base'
@@ -8,29 +8,21 @@ import tseslint from 'typescript-eslint'
 import globals from 'globals'
 
 export default tseslint.config(
-  // Use centralized base config for common rules (ignores, JavaScript only)
-  ...baseConfig.filter(config => 
-    config.name === 'base/ignores' || 
-    config.name === 'base/javascript'
-  ),
+  // Use shared base configuration (includes all TypeScript configs and security rules)
+  ...baseConfig,
   
-  // Local TypeScript configuration with correct dependency resolution
+  // Backend-specific TypeScript configuration overrides
   {
-    name: 'backend/typescript',
+    name: 'backend/nestjs-overrides',
     files: ['**/*.ts'],
-    extends: [
-      ...tseslint.configs.recommendedTypeChecked,
-      ...tseslint.configs.stylisticTypeChecked
-    ],
     languageOptions: {
-      parser: tseslint.parser,
       parserOptions: {
+        // Override to use backend-specific tsconfig
         project: ['./tsconfig.eslint.json'],
         tsconfigRootDir: import.meta.dirname
       },
       globals: {
-        ...globals.node,
-        ...globals.es2024,
+        // Additional Node.js specific globals (base already has node, browser, es2024)
         NodeJS: 'readonly',
         Buffer: 'readonly',
         process: 'readonly',
@@ -42,61 +34,34 @@ export default tseslint.config(
     settings: {
       'typescript-eslint': {
         projectService: true,
-        maximumTypeCheckingDepth: 5
+        maximumTypeCheckingDepth: 5 // Higher than base config's 3
       }
     },
     rules: {
-      // Backend logging is essential
+      // Backend logging is essential (override base config)
       'no-console': 'off',
       
-      // NestJS specific allowances
+      // NestJS framework allowances
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
-      '@typescript-eslint/no-empty-function': 'off',
-      '@typescript-eslint/no-empty-interface': [
-        'error',
-        {
-          allowSingleExtends: true
-        }
-      ],
+      '@typescript-eslint/no-empty-function': 'off', // NestJS decorators create empty methods
       '@typescript-eslint/no-namespace': 'off', // NestJS uses namespaces for decorators
       
-      // Performance overrides - disable expensive rules for existing codebase
+      // SECURITY: Keep most unsafe rules as warnings (not completely off) 
+      '@typescript-eslint/no-unsafe-assignment': 'warn', // Downgrade but keep active
+      '@typescript-eslint/no-unsafe-member-access': 'warn', // Downgrade but keep active
+      '@typescript-eslint/no-unsafe-call': 'warn', // Downgrade but keep active
+      '@typescript-eslint/no-unsafe-return': 'warn', // Downgrade but keep active
+      '@typescript-eslint/no-unsafe-argument': 'warn', // Downgrade but keep active
+      
+      // Performance-only overrides (these don't affect security)
       '@typescript-eslint/no-floating-promises': 'off',
       '@typescript-eslint/no-misused-promises': 'off',
       '@typescript-eslint/require-await': 'off',
-      '@typescript-eslint/no-unnecessary-condition': 'off',
       '@typescript-eslint/await-thenable': 'off',
-      '@typescript-eslint/naming-convention': 'off',
-      '@typescript-eslint/no-unsafe-assignment': 'off',
-      '@typescript-eslint/no-unsafe-member-access': 'off',
-      '@typescript-eslint/no-unsafe-call': 'off',
-      '@typescript-eslint/no-unsafe-return': 'off',
-      '@typescript-eslint/no-unsafe-argument': 'off',
-      '@typescript-eslint/restrict-template-expressions': 'off',
-      '@typescript-eslint/no-base-to-string': 'off',
-      '@typescript-eslint/no-redundant-type-constituents': 'off',
       '@typescript-eslint/unbound-method': 'off',
-      '@typescript-eslint/no-confusing-void-expression': 'off',
-      '@typescript-eslint/prefer-as-const': 'off',
-      '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'off',
-      '@typescript-eslint/no-unnecessary-type-arguments': 'off',
-      
-      // Disable exhaustiveness check since we handle default cases
-      '@typescript-eslint/switch-exhaustiveness-check': 'off',
-      
-      // Already using unknown in catch blocks
-      '@typescript-eslint/use-unknown-in-catch-callback-variable': 'off',
-      
-  // Return await not needed for already resolved promises
-  '@typescript-eslint/return-await': 'off',
-
-  // Allow unused variables that start with an underscore (common pattern for unused params)
-  '@typescript-eslint/no-unused-vars': ['error', { 'argsIgnorePattern': '^_', 'varsIgnorePattern': '^_', 'caughtErrorsIgnorePattern': '^_' }],
-
-  // Relax some stylistic/type rules to reduce noise during migration
-  '@typescript-eslint/prefer-nullish-coalescing': 'off',
-  '@typescript-eslint/no-explicit-any': 'off'
+      '@typescript-eslint/restrict-template-expressions': 'off',
+      '@typescript-eslint/no-base-to-string': 'off'
     }
   },
   

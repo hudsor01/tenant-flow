@@ -2,27 +2,15 @@ import { z } from 'zod'
 
 // ===== BASIC VALIDATION SCHEMAS =====
 
-export const uuidSchema = z
-	.string()
-	.min(1, { message: 'UUID is required' })
-	.refine(
-		val =>
-			/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-				val
-			),
-		{ message: 'Invalid UUID format' }
-	)
+// Most commonly used validation building blocks
+export const requiredString = z.string().min(1, 'This field is required')
 
-export const emailSchema = z
-	.string()
-	.min(1, { message: 'Email is required' })
-	.refine(val => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
-		message: 'Invalid email format'
-	})
+export const uuidSchema = z.string().uuid('Invalid ID format')
 
-export const nonEmptyStringSchema = z
-	.string()
-	.min(1, { message: 'This field is required' })
+export const emailSchema = z.string().email('Invalid email format')
+
+// Alias for backward compatibility
+export const nonEmptyStringSchema = requiredString
 
 export const positiveNumberSchema = z
 	.number()
@@ -31,6 +19,19 @@ export const positiveNumberSchema = z
 export const nonNegativeNumberSchema = z
 	.number()
 	.nonnegative({ message: 'Cannot be negative' })
+
+// Common string validation patterns with customizable messages
+export const requiredStringField = (fieldName: string) =>
+	z.string().min(1, `${fieldName} is required`)
+
+export const requiredName = requiredString
+	.max(100, 'Name cannot exceed 100 characters')
+
+export const requiredTitle = requiredString
+	.max(200, 'Title too long')
+
+export const requiredDescription = requiredString
+	.max(1000, 'Description too long')
 
 // ===== PAGINATION SCHEMAS =====
 // Backend-compatible pagination schemas

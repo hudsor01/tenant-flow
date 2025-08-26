@@ -15,7 +15,7 @@ export type * as Api from './api'
 export type * as FrontendOnly from './frontend-only'
 export type * as Performance from './performance'
 export type * as FileUpload from './file-upload'
-export type * as Utilities from './utilities'
+// Utilities removed - use native TypeScript features directly
 export type * as Errors from './errors'
 export type * as Supabase from './supabase'
 export type * as Database from './database'

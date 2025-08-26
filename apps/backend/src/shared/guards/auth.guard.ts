@@ -67,7 +67,7 @@ export class UnifiedAuthGuard implements CanActivate {
 			const user = await this.authService.validateTokenAndGetUser(token)
 			request.user = user
 			return user
-		} catch (_error) {
+		} catch {
 			throw new UnauthorizedException('Invalid authentication token')
 		}
 	}

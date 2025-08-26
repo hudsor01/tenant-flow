@@ -1,7 +1,6 @@
 {
   "extends": "@repo/typescript-config/base.json",
   "compilerOptions": {
-    // allow JS files to be included without emitting output
     "allowJs": true,
     "checkJs": false,
     "noEmit": true

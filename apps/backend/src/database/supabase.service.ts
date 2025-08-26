@@ -41,8 +41,8 @@ export class SupabaseService {
 	}
 
 	getUserClient(userToken: string): SupabaseClient<Database> {
-		const supabaseUrl = process.env.SUPABASE_URL
-		const supabaseAnonKey = process.env.SUPABASE_ANON_KEY
+		const supabaseUrl = this.configService.get('SUPABASE_URL', { infer: true })
+		const supabaseAnonKey = this.configService.get('SUPABASE_ANON_KEY', { infer: true })
 
 		if (!supabaseUrl || !supabaseAnonKey) {
 			throw new Error('Supabase configuration is missing for user client')

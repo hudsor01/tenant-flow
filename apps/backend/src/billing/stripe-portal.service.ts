@@ -20,7 +20,7 @@ import { ConfigService } from '@nestjs/config'
 import Stripe from 'stripe'
 import type { CheckoutResponse, PortalResponse } from '@repo/shared'
 import type { EnvironmentVariables } from '../config/config.schema'
-import { UserSupabaseRepository } from '../database/user-supabase.repository'
+import { SupabaseService } from '../database/supabase.service'
 
 @Injectable()
 export class StripePortalService {
@@ -30,7 +30,7 @@ export class StripePortalService {
 
 	constructor(
 		@Inject(ConfigService) private configService: ConfigService<EnvironmentVariables>,
-		private userRepository: UserSupabaseRepository
+		private supabaseService: SupabaseService
 	) {
 		const secretKey = this.configService.get('STRIPE_SECRET_KEY', {
 			infer: true
@@ -57,9 +57,13 @@ export class StripePortalService {
 		cancelUrl?: string
 	}): Promise<CheckoutResponse> {
 		// Get or create Stripe customer
-		const user = await this.userRepository.findByIdWithSubscription(
-			params.userId
-		)
+		const { data: user } = await this.supabaseService
+			.getAdminClient()
+			.from('User')
+			.select('*, Subscription(*)')
+			.eq('id', params.userId)
+			.single()
+			
 		if (!user) {
 			throw new Error('User not found')
 		}
@@ -75,10 +79,11 @@ export class StripePortalService {
 			customerId = customer.id
 
 			// Store customer ID for future use
-			await this.userRepository.updateStripeCustomerId(
-				params.userId,
-				customerId
-			)
+			await this.supabaseService
+				.getAdminClient()
+				.from('User')
+				.update({ stripeCustomerId: customerId })
+				.eq('id', params.userId)
 		}
 
 		// Create checkout session
@@ -135,9 +140,12 @@ export class StripePortalService {
 		returnUrl?: string
 	}): Promise<PortalResponse> {
 		// Get user's Stripe customer ID
-		const user = await this.userRepository.findByIdWithSubscription(
-			params.userId
-		)
+		const { data: user } = await this.supabaseService
+			.getAdminClient()
+			.from('User')
+			.select('*, Subscription(*)')
+			.eq('id', params.userId)
+			.single()
 		if (!user) {
 			throw new Error('User not found')
 		}
