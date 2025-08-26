@@ -107,15 +107,13 @@ function validateEnvironment(): ValidationResult {
 		}
 	}
 
-	// Development warnings
-	if (config.app.env === 'development') {
-		if (!process.env.NEXT_PUBLIC_API_URL) {
-			warnings.push({
-				variable: 'NEXT_PUBLIC_API_URL',
-				error: 'Will default to localhost:4600, ensure backend is running',
-				severity: 'warning'
-			})
-		}
+	// All environments require API_URL now
+	if (!process.env.NEXT_PUBLIC_API_URL) {
+		errors.push({
+			variable: 'NEXT_PUBLIC_API_URL',
+			error: 'Required for all deployments - no localhost fallbacks in production',
+			severity: 'error'
+		})
 	}
 
 	return {
