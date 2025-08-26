@@ -2,7 +2,11 @@ import { Building } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+<<<<<<< HEAD
 import type { BusinessInfoSectionProps } from '@/types'
+=======
+import type { BusinessInfoSectionProps } from '@/types/components'
+>>>>>>> origin/main
 
 export function BusinessInfoSection({
 	register,

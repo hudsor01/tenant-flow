@@ -158,6 +158,7 @@ class FrontendLogger implements ILogger {
 				windowWithPostHog.posthog.capture(event.event, event.properties)
 			}
 
+<<<<<<< HEAD
 			// Sentry integration for errors (guarded for environments without Sentry)
 			if (
 				level === 'error' &&
@@ -182,6 +183,28 @@ class FrontendLogger implements ILogger {
 						extra: context ?? {}
 					})
 				}
+=======
+			// Sentry integration for errors
+			if (
+				level === 'error' &&
+				typeof window !== 'undefined' &&
+				(window as unknown as { Sentry?: unknown }).Sentry
+			) {
+				const sentry = (
+					window as unknown as {
+						Sentry: {
+							captureMessage: (
+								msg: string,
+								opts: { level: string; extra: LogContext }
+							) => void
+						}
+					}
+				).Sentry
+				sentry.captureMessage(message, {
+					level: 'error',
+					extra: context ?? {}
+				})
+>>>>>>> origin/main
 			}
 		} catch (analyticsError) {
 			// Silently fail analytics - don't break the app
@@ -196,6 +219,7 @@ class FrontendLogger implements ILogger {
 	 */
 	child(context: LogContext): FrontendLogger {
 		const childLogger = new FrontendLogger()
+<<<<<<< HEAD
 		// Store context for future use (attach non-enumerable property)
 		try {
 			Object.defineProperty(childLogger, '__defaultContext', {
@@ -208,6 +232,12 @@ class FrontendLogger implements ILogger {
 			const rec = childLogger as { __defaultContext?: unknown }
 			rec.__defaultContext = context
 		}
+=======
+		// Store context for future use
+		;(
+			childLogger as unknown as { defaultContext: LogContext }
+		).defaultContext = context
+>>>>>>> origin/main
 		return childLogger
 	}
 

@@ -102,7 +102,11 @@ export function LeaseFormFields({
 				<FormField label="Select Unit" error={errors.unitId} required>
 					<Select
 						value={formData.unitId}
+<<<<<<< HEAD
 						onValueChange={(value: string) =>
+=======
+						onValueChange={value =>
+>>>>>>> origin/main
 							handleInputChange('unitId', value)
 						}
 					>
@@ -127,7 +131,11 @@ export function LeaseFormFields({
 				>
 					<Select
 						value={formData.tenantId}
+<<<<<<< HEAD
 						onValueChange={(value: string) =>
+=======
+						onValueChange={value =>
+>>>>>>> origin/main
 							handleInputChange('tenantId', value)
 						}
 					>
@@ -156,7 +164,11 @@ export function LeaseFormFields({
 					<Input
 						type="date"
 						value={formData.startDate}
+<<<<<<< HEAD
 						onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+=======
+						onChange={e =>
+>>>>>>> origin/main
 							handleInputChange('startDate', e.target.value)
 						}
 						className={errors.startDate ? 'border-red-500' : ''}
@@ -172,7 +184,11 @@ export function LeaseFormFields({
 					<Input
 						type="date"
 						value={formData.endDate}
+<<<<<<< HEAD
 						onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+=======
+						onChange={e =>
+>>>>>>> origin/main
 							handleInputChange('endDate', e.target.value)
 						}
 						className={errors.endDate ? 'border-red-500' : ''}
@@ -190,7 +206,11 @@ export function LeaseFormFields({
 						min="0"
 						step="0.01"
 						value={formData.rentAmount}
+<<<<<<< HEAD
 						onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+=======
+						onChange={e =>
+>>>>>>> origin/main
 							handleInputChange(
 								'rentAmount',
 								parseFloat(e.target.value) ?? 0
@@ -211,7 +231,11 @@ export function LeaseFormFields({
 						min="0"
 						step="0.01"
 						value={formData.securityDeposit}
+<<<<<<< HEAD
 						onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+=======
+						onChange={e =>
+>>>>>>> origin/main
 							handleInputChange(
 								'securityDeposit',
 								parseFloat(e.target.value) ?? 0
@@ -233,7 +257,11 @@ export function LeaseFormFields({
 						type="number"
 						min="0"
 						value={formData.lateFeeDays ?? 5}
+<<<<<<< HEAD
 						onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+=======
+						onChange={e =>
+>>>>>>> origin/main
 							handleInputChange(
 								'lateFeeDays',
 								parseInt(e.target.value) ?? 5
@@ -254,7 +282,11 @@ export function LeaseFormFields({
 						min="0"
 						step="0.01"
 						value={formData.lateFeeAmount ?? 50}
+<<<<<<< HEAD
 						onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+=======
+						onChange={e =>
+>>>>>>> origin/main
 							handleInputChange(
 								'lateFeeAmount',
 								parseFloat(e.target.value) ?? 50
@@ -270,7 +302,11 @@ export function LeaseFormFields({
 					<FormField label="Lease Status" error={errors.status}>
 						<Select
 							value={formData.status}
+<<<<<<< HEAD
 							onValueChange={(value: string) =>
+=======
+							onValueChange={value =>
+>>>>>>> origin/main
 								handleInputChange('status', value)
 							}
 						>
@@ -294,7 +330,11 @@ export function LeaseFormFields({
 			<FormField label="Additional Lease Terms" error={errors.leaseTerms}>
 				<Textarea
 					value={formData.leaseTerms}
+<<<<<<< HEAD
 					onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+=======
+					onChange={e =>
+>>>>>>> origin/main
 						handleInputChange('leaseTerms', e.target.value)
 					}
 					className={errors.leaseTerms ? 'border-red-500' : ''}

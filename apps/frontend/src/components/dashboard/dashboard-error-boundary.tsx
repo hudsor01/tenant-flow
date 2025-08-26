@@ -1,7 +1,11 @@
 'use client'
 
 import { Component, type ReactNode } from 'react'
+<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
+=======
+import { logger } from '@/lib/logger'
+>>>>>>> origin/main
 import {
 	Card,
 	CardContent,
@@ -41,7 +45,11 @@ export class DashboardErrorBoundary extends Component<Props, State> {
 		})
 	}
 
+<<<<<<< HEAD
 	override async render() {
+=======
+	override render() {
+>>>>>>> origin/main
 		if (this.state.hasError) {
 			// Check if it's an API error
 			const isApiError =

@@ -188,7 +188,11 @@ export function PricingComparison() {
 						{/* Table header */}
 						<thead>
 							<tr className="border-b border-gray-200">
+<<<<<<< HEAD
 								<th className="p-4 text-left" />
+=======
+								<th className="p-4 text-left"></th>
+>>>>>>> origin/main
 								{plans.map(plan => (
 									<th
 										key={plan.id}
@@ -199,7 +203,11 @@ export function PricingComparison() {
 												{plan.name}
 											</h3>
 											<div className="text-2xl font-bold text-gray-900">
+<<<<<<< HEAD
 												${plan.price.monthly / 100}
+=======
+												${plan.monthly.amount / 100}
+>>>>>>> origin/main
 												<span className="text-sm font-normal text-gray-600">
 													/month
 												</span>
@@ -275,29 +283,53 @@ export function PricingComparison() {
 										Properties:
 									</span>
 									<span className="font-medium text-gray-900">
+<<<<<<< HEAD
 										{plan.propertyLimit === -1
 											? 'Unlimited'
 											: plan.propertyLimit}
+=======
+										{plan.limits.properties === -1
+											? 'Unlimited'
+											: plan.limits.properties}
+>>>>>>> origin/main
 									</span>
 								</div>
 								<div className="flex justify-between">
 									<span className="text-gray-600">
+<<<<<<< HEAD
 										Storage:
 									</span>
 									<span className="font-medium text-gray-900">
 										{plan.storageLimit === -1
 											? 'Unlimited'
 											: `${plan.storageLimit / 1000}GB`}
+=======
+										Units:
+									</span>
+									<span className="font-medium text-gray-900">
+										{plan.limits.units === -1
+											? 'Unlimited'
+											: plan.limits.units}
+>>>>>>> origin/main
 									</span>
 								</div>
 								<div className="flex justify-between">
 									<span className="text-gray-600">
+<<<<<<< HEAD
 										API Calls:
 									</span>
 									<span className="font-medium text-gray-900">
 										{plan.apiCallLimit === -1
 											? 'Unlimited'
 											: plan.apiCallLimit.toLocaleString()}
+=======
+										Team members:
+									</span>
+									<span className="font-medium text-gray-900">
+										{plan.limits.users === -1
+											? 'Unlimited'
+											: plan.limits.users}
+>>>>>>> origin/main
 									</span>
 								</div>
 							</div>

@@ -11,7 +11,12 @@ import {
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+<<<<<<< HEAD
 // Unused UI components removed: Skeleton, Alert, AlertDescription, AlertTitle
+=======
+import { Skeleton } from '@/components/ui/skeleton'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+>>>>>>> origin/main
 import {
 	Table,
 	TableBody,
@@ -27,7 +32,11 @@ import {
 	Users,
 	MapPin,
 	Home,
+<<<<<<< HEAD
 	// AlertTriangle removed - unused
+=======
+	AlertTriangle,
+>>>>>>> origin/main
 	Plus,
 	MoreHorizontal
 } from 'lucide-react'
@@ -64,7 +73,11 @@ function PropertyRow({ property, onView, onEdit }: PropertyRowProps) {
 						<Building2 className="text-primary h-5 w-5" />
 					</div>
 					<div className="space-y-1">
+<<<<<<< HEAD
 						<p className="font-medium leading-none">
+=======
+						<p className="leading-none font-medium">
+>>>>>>> origin/main
 							{property.name}
 						</p>
 						<div className="text-muted-foreground flex items-center gap-1 text-sm">
@@ -109,7 +122,11 @@ function PropertyRow({ property, onView, onEdit }: PropertyRowProps) {
 					<Button
 						variant="ghost"
 						size="sm"
+<<<<<<< HEAD
 						onClick={(e: React.MouseEvent) => {
+=======
+						onClick={e => {
+>>>>>>> origin/main
 							e.stopPropagation()
 							onView?.(property)
 						}}
@@ -120,7 +137,11 @@ function PropertyRow({ property, onView, onEdit }: PropertyRowProps) {
 					<Button
 						variant="ghost"
 						size="sm"
+<<<<<<< HEAD
 						onClick={(e: React.MouseEvent) => {
+=======
+						onClick={e => {
+>>>>>>> origin/main
 							e.stopPropagation()
 							onEdit?.(property)
 						}}
@@ -240,9 +261,13 @@ function filterProperties(
 	searchQuery: string,
 	propertyType: string
 ): Property[] {
+<<<<<<< HEAD
 	if (!properties) {
 		return []
 	}
+=======
+	if (!properties) return []
+>>>>>>> origin/main
 
 	return properties.filter(property => {
 		const matchesSearch =

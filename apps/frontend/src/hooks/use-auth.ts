@@ -8,17 +8,28 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import { useAppStore } from '../stores/app-store'
+<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
 import { notifications } from '@/lib/toast'
 import type { AuthUser } from '@repo/shared'
+=======
+import { logger } from '@/lib/logger'
+import { notifications } from '@/lib/toast'
+import type { User } from '@repo/shared'
+>>>>>>> origin/main
 import type {
 	User as SupabaseUser,
 	AuthChangeEvent,
 	Session
 } from '@supabase/supabase-js'
 
+<<<<<<< HEAD
 // Map Supabase user to app AuthUser type
 function mapSupabaseUserToAppUser(supabaseUser: SupabaseUser): AuthUser {
+=======
+// Map Supabase user to app User type
+function mapSupabaseUserToAppUser(supabaseUser: SupabaseUser): User {
+>>>>>>> origin/main
 	return {
 		id: supabaseUser.id,
 		supabaseId: supabaseUser.id,
@@ -38,8 +49,12 @@ function mapSupabaseUserToAppUser(supabaseUser: SupabaseUser): AuthUser {
 		updatedAt: new Date(
 			supabaseUser.updated_at || new Date().toISOString()
 		),
+<<<<<<< HEAD
 		stripeCustomerId: null,
 		emailVerified: !!supabaseUser.email_confirmed_at
+=======
+		stripeCustomerId: null
+>>>>>>> origin/main
 	}
 }
 
@@ -103,16 +118,24 @@ export function useAuth() {
 			}
 		}
 
+<<<<<<< HEAD
 		void initializeAuth()
+=======
+		initializeAuth()
+>>>>>>> origin/main
 
 		// Listen for auth state changes - Direct Supabase usage
 		const {
 			data: { subscription }
 		} = supabase.auth.onAuthStateChange(
 			async (event: AuthChangeEvent, session: Session | null) => {
+<<<<<<< HEAD
 				if (!mounted) {
 					return
 				}
+=======
+				if (!mounted) return
+>>>>>>> origin/main
 
 				logger.debug('Auth state change event', {
 					component: 'useAuth',
@@ -189,7 +212,11 @@ export function useAuth() {
 			setLoading(true)
 			setError(null)
 
+<<<<<<< HEAD
 			const { data: _data, error: authError } =
+=======
+			const { data, error: authError } =
+>>>>>>> origin/main
 				await supabase.auth.signInWithPassword({
 					email,
 					password
@@ -222,6 +249,7 @@ export function useAuth() {
 				setLoading(true)
 				setError(null)
 
+<<<<<<< HEAD
 				const { data: _data, error: authError } =
 					await supabase.auth.signUp({
 						email,
@@ -233,6 +261,18 @@ export function useAuth() {
 							}
 						}
 					})
+=======
+				const { data, error: authError } = await supabase.auth.signUp({
+					email,
+					password,
+					options: {
+						data: {
+							name,
+							full_name: name
+						}
+					}
+				})
+>>>>>>> origin/main
 
 				if (authError) {
 					setError(authError.message)

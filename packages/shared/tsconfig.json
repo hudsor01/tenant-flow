@@ -1,6 +1,10 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
+<<<<<<< HEAD
 	"display": "TenantFlow Shared Package Config - Composite Root",
+=======
+	"display": "TenantFlow Shared Package Config",
+>>>>>>> origin/main
 	"compilerOptions": {
 		"target": "ES2022",
 		"lib": ["ES2022", "DOM", "DOM.Iterable"],
@@ -50,5 +54,9 @@
 	},
 	"include": ["src/**/*"],
 	"exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"],
+<<<<<<< HEAD
 	"references": []
+=======
+	"references": [{ "path": "../database" }]
+>>>>>>> origin/main
 }

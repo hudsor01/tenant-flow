@@ -23,7 +23,11 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { supabase } from '@/lib/supabase/client'
 import { toast } from 'sonner'
+<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
+=======
+import { logger } from '@/lib/logger'
+>>>>>>> origin/main
 
 // Disable static generation for this auth page as it requires runtime Supabase client
 export const dynamic = 'force-dynamic'

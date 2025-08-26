@@ -106,9 +106,13 @@ export function usePostHog() {
 	// Track custom events with consistent naming
 	const trackEvent = useCallback(
 		(event: TenantFlowEvent, properties?: EventProperties) => {
+<<<<<<< HEAD
 			if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) {
 				return
 			}
+=======
+			if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) return
+>>>>>>> origin/main
 
 			// Add consistent metadata to all events
 			const enrichedProperties = {
@@ -126,9 +130,14 @@ export function usePostHog() {
 	// Identify user with properties
 	const identifyUser = useCallback(
 		(user: User | null, organizationId?: string) => {
+<<<<<<< HEAD
 			if (!posthog || !user || !process.env.NEXT_PUBLIC_POSTHOG_KEY) {
 				return
 			}
+=======
+			if (!posthog || !user || !process.env.NEXT_PUBLIC_POSTHOG_KEY)
+				return
+>>>>>>> origin/main
 
 			posthog.identify(user.id, {
 				email: user.email,
@@ -141,9 +150,13 @@ export function usePostHog() {
 
 	// Reset user identification on logout
 	const resetUser = useCallback(() => {
+<<<<<<< HEAD
 		if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) {
 			return
 		}
+=======
+		if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) return
+>>>>>>> origin/main
 
 		posthog.reset()
 	}, [posthog])
@@ -151,9 +164,13 @@ export function usePostHog() {
 	// Track conversion goals
 	const trackConversion = useCallback(
 		(goalName: string, value?: number, properties?: EventProperties) => {
+<<<<<<< HEAD
 			if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) {
 				return
 			}
+=======
+			if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) return
+>>>>>>> origin/main
 
 			posthog.capture('conversion_goal', {
 				goal_name: goalName,
@@ -166,10 +183,15 @@ export function usePostHog() {
 
 	// Track errors with context
 	const trackError = useCallback(
+<<<<<<< HEAD
 		(error: Error, context?: EventProperties) => {
 			if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) {
 				return
 			}
+=======
+		(error: Error | unknown, context?: EventProperties) => {
+			if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) return
+>>>>>>> origin/main
 
 			const errorMessage =
 				error instanceof Error ? error.message : String(error)
@@ -192,9 +214,13 @@ export function usePostHog() {
 	// Track timing metrics
 	const trackTiming = useCallback(
 		(category: string, variable: string, time: number, label?: string) => {
+<<<<<<< HEAD
 			if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) {
 				return
 			}
+=======
+			if (!posthog || !process.env.NEXT_PUBLIC_POSTHOG_KEY) return
+>>>>>>> origin/main
 
 			posthog.capture('timing_metric', {
 				timing_category: category,

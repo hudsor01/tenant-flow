@@ -1,6 +1,10 @@
 /**
  * Properties Stats - React 19 Optimized Version
+<<<<<<< HEAD
  *
+=======
+ * 
+>>>>>>> origin/main
  * Demonstrates conversion from Client Component to Server Component with:
  * - Server-side data fetching
  * - Suspense boundaries for loading states
@@ -10,6 +14,7 @@
  */
 
 import React, { Suspense } from 'react'
+<<<<<<< HEAD
 import { ErrorBoundary } from '@/components/error/error-boundary'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -22,6 +27,12 @@ import {
 	TrendingUp,
 	TrendingDown
 } from 'lucide-react'
+=======
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Building2, Users, Home, AlertTriangle, TrendingUp, TrendingDown } from 'lucide-react'
+>>>>>>> origin/main
 import { cn } from '@/lib/utils'
 import { apiClient } from '@/lib/api-client'
 
@@ -30,6 +41,7 @@ import { apiClient } from '@/lib/api-client'
 // ============================================================================
 
 interface PropertyStatsData {
+<<<<<<< HEAD
 	total: number
 	occupied: number
 	vacant: number
@@ -48,6 +60,26 @@ interface StatCardProps {
 		value: number
 		direction: 'up' | 'down'
 	}
+=======
+  total: number
+  occupied: number
+  vacant: number
+  occupancyRate: number
+  monthlyChange?: number
+  revenue?: number
+}
+
+interface StatCardProps {
+  title: string
+  value: string | number
+  description: string
+  icon: React.ComponentType<{ className?: string }>
+  color: string
+  trend?: {
+    value: number
+    direction: 'up' | 'down'
+  }
+>>>>>>> origin/main
 }
 
 // ============================================================================
@@ -59,6 +91,7 @@ interface StatCardProps {
  * Replaces client-side usePropertyStats hook
  */
 async function getPropertyStats(): Promise<PropertyStatsData> {
+<<<<<<< HEAD
 	try {
 		// Server-side API call
 		const response = await apiClient.get('/properties/stats')
@@ -73,6 +106,22 @@ async function getPropertyStats(): Promise<PropertyStatsData> {
 		console.error('Failed to fetch property stats:', error)
 		throw error
 	}
+=======
+  try {
+    // Server-side API call with caching
+    const response = await apiClient.get('/properties/stats', {
+      next: { 
+        revalidate: 300, // Cache for 5 minutes
+        tags: ['properties', 'stats'] 
+      }
+    })
+    
+    return response.data
+  } catch (error) {
+    console.error('Failed to fetch property stats:', error)
+    throw error
+  }
+>>>>>>> origin/main
 }
 
 // ============================================================================
@@ -80,6 +129,7 @@ async function getPropertyStats(): Promise<PropertyStatsData> {
 // ============================================================================
 
 function StatsLoading() {
+<<<<<<< HEAD
 	return (
 		<div className="grid gap-4 md:grid-cols-3">
 			{[...Array(3)].map((_, i) => (
@@ -108,12 +158,42 @@ function StatsError({ error: _error }: { error: Error }) {
 			</AlertDescription>
 		</Alert>
 	)
+=======
+  return (
+    <div className="grid gap-4 md:grid-cols-3">
+      {[...Array(3)].map((_, i) => (
+        <Card key={i}>
+          <CardHeader className="space-y-2">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-8 w-32" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-4 w-16" />
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  )
+}
+
+function StatsError({ error: _error }: { error: Error }) {
+  return (
+    <Alert variant="destructive">
+      <AlertTriangle className="h-4 w-4" />
+      <AlertTitle>Error loading properties</AlertTitle>
+      <AlertDescription>
+        There was a problem loading your properties data. Please try again later.
+      </AlertDescription>
+    </Alert>
+  )
+>>>>>>> origin/main
 }
 
 // ============================================================================
 // STAT CARD COMPONENTS (Server Components)
 // ============================================================================
 
+<<<<<<< HEAD
 function StatCard({
 	title,
 	value,
@@ -155,6 +235,44 @@ function StatCard({
 			</CardContent>
 		</Card>
 	)
+=======
+function StatCard({ title, value, description, icon, color, trend }: StatCardProps) {
+  const Icon = icon
+  
+  return (
+    <Card className="transition-all hover:shadow-md">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">
+          {title}
+        </CardTitle>
+        <div className="flex items-center gap-2">
+          {trend && (
+            <div className={cn(
+              "flex items-center text-xs font-medium",
+              trend.direction === 'up' ? 'text-green-600' : 'text-red-600'
+            )}>
+              {trend.direction === 'up' ? (
+                <TrendingUp className="h-3 w-3 mr-1" />
+              ) : (
+                <TrendingDown className="h-3 w-3 mr-1" />
+              )}
+              {Math.abs(trend.value)}%
+            </div>
+          )}
+          <Icon className={cn('h-4 w-4', color)} />
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">
+          {value}
+        </div>
+        <p className="text-muted-foreground text-xs">
+          {description}
+        </p>
+      </CardContent>
+    </Card>
+  )
+>>>>>>> origin/main
 }
 
 // ============================================================================
@@ -162,6 +280,7 @@ function StatCard({
 // ============================================================================
 
 async function StatsDisplay() {
+<<<<<<< HEAD
 	// Server-side data fetching
 	const statsData = await getPropertyStats()
 
@@ -224,6 +343,65 @@ async function StatsDisplay() {
 			))}
 		</div>
 	)
+=======
+  // Server-side data fetching
+  const statsData = await getPropertyStats()
+  
+  const totalProperties = statsData.total || 0
+  const totalUnits = (statsData.occupied || 0) + (statsData.vacant || 0)
+  const occupiedUnits = statsData.occupied || 0
+  const occupancyRate = statsData.occupancyRate || 0
+  
+  // Calculate stat configurations
+  const statConfigs = [
+    {
+      title: 'Total Properties',
+      value: totalProperties,
+      description: `${totalUnits} total units`,
+      icon: Building2,
+      color: 'text-primary',
+      trend: statsData.monthlyChange ? {
+        value: statsData.monthlyChange,
+        direction: statsData.monthlyChange > 0 ? 'up' as const : 'down' as const
+      } : undefined
+    },
+    {
+      title: 'Occupancy Rate',
+      value: `${occupancyRate}%`,
+      description: `${occupiedUnits}/${totalUnits} occupied`,
+      icon: Home,
+      color:
+        occupancyRate >= 90
+          ? 'text-green-600'
+          : occupancyRate >= 70
+            ? 'text-yellow-600'
+            : 'text-red-600'
+    },
+    {
+      title: 'Active Tenants',
+      value: occupiedUnits,
+      description: 'Current tenants',
+      icon: Users,
+      color: 'text-purple-600'
+    }
+  ]
+  
+  return (
+    <div className="grid gap-4 md:grid-cols-3">
+      {statConfigs.map(stat => (
+        <StatCard
+          key={stat.title}
+          title={stat.title}
+          value={stat.value}
+          description={stat.description}
+          icon={stat.icon}
+          color={stat.color}
+          trend={stat.trend}
+        />
+      ))}
+    </div>
+  )
+>>>>>>> origin/main
 }
 
 // ============================================================================
@@ -232,7 +410,11 @@ async function StatsDisplay() {
 
 /**
  * React 19 Optimized Properties Stats Component
+<<<<<<< HEAD
  *
+=======
+ * 
+>>>>>>> origin/main
  * Server Component that:
  * - Fetches data on the server
  * - Uses Suspense for loading states
@@ -241,6 +423,7 @@ async function StatsDisplay() {
  * - Better SEO and performance
  */
 export function PropertiesStatsReact19() {
+<<<<<<< HEAD
 	return (
 		<Suspense fallback={<StatsLoading />}>
 			<ErrorBoundary
@@ -250,6 +433,15 @@ export function PropertiesStatsReact19() {
 			</ErrorBoundary>
 		</Suspense>
 	)
+=======
+  return (
+    <Suspense fallback={<StatsLoading />}>
+      <React.ErrorBoundary fallback={<StatsError error={new Error('Stats failed to load')} />}>
+        <StatsDisplay />
+      </React.ErrorBoundary>
+    </Suspense>
+  )
+>>>>>>> origin/main
 }
 
 // ============================================================================
@@ -261,6 +453,7 @@ export function PropertiesStatsReact19() {
  * Shows how to add minimal interactivity while keeping most content server-rendered
  */
 function RefreshButton({ onRefresh }: { onRefresh: () => void }) {
+<<<<<<< HEAD
 	const [isRefreshing, setIsRefreshing] = React.useState(false)
 
 	const handleRefresh = () => {
@@ -306,6 +499,48 @@ export function PropertiesStatsWithRefresh() {
 			</Suspense>
 		</div>
 	)
+=======
+  const [isRefreshing, setIsRefreshing] = React.useState(false)
+  
+  const handleRefresh = async () => {
+    setIsRefreshing(true)
+    try {
+      await onRefresh()
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
+  
+  return (
+    <button
+      onClick={handleRefresh}
+      disabled={isRefreshing}
+      className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+    >
+      {isRefreshing ? 'Refreshing...' : 'Refresh'}
+    </button>
+  )
+}
+
+export function PropertiesStatsWithRefresh() {
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-lg font-semibold">Property Statistics</h2>
+        <RefreshButton onRefresh={() => {
+          // Trigger revalidation
+          window.location.reload()
+        }} />
+      </div>
+      
+      <Suspense fallback={<StatsLoading />}>
+        <React.ErrorBoundary fallback={<StatsError error={new Error('Stats failed to load')} />}>
+          <StatsDisplay />
+        </React.ErrorBoundary>
+      </Suspense>
+    </div>
+  )
+>>>>>>> origin/main
 }
 
 export default PropertiesStatsReact19
@@ -346,4 +581,8 @@ MIGRATION STEPS:
 4. Add Error Boundary for error handling
 5. Test server-side rendering
 6. Add client islands only where needed (e.g., refresh button)
+<<<<<<< HEAD
 */
+=======
+*/
+>>>>>>> origin/main

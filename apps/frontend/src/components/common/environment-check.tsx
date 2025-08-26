@@ -82,7 +82,11 @@ export function EnvironmentCheck() {
 	// In development, show a small indicator
 	if (process.env.NODE_ENV === 'development' && !hasErrors && !showDetails) {
 		return (
+<<<<<<< HEAD
 			<div className="fixed bottom-4 right-4 z-50">
+=======
+			<div className="fixed right-4 bottom-4 z-50">
+>>>>>>> origin/main
 				<button
 					onClick={() => setShowDetails(true)}
 					className="flex items-center gap-2 rounded-md bg-green-50 px-3 py-2 text-sm text-green-800 shadow-sm hover:bg-green-100"

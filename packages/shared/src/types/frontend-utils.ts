@@ -47,12 +47,20 @@ export function unitHasActiveLeases(unit: Unit): boolean {
 	return (
 		'leases' in unit &&
 		Array.isArray(unit.leases) &&
+<<<<<<< HEAD
 		unit.leases.some(
 			(lease: unknown) =>
 				typeof lease === 'object' &&
 				lease !== null &&
 				'status' in lease &&
 				(lease as { status: unknown }).status === 'ACTIVE'
+=======
+		unit.leases.some((lease: unknown) => 
+			typeof lease === 'object' && 
+			lease !== null && 
+			'status' in lease && 
+			(lease as { status: unknown }).status === 'ACTIVE'
+>>>>>>> origin/main
 		)
 	)
 }
@@ -67,13 +75,21 @@ export function unitHasActiveLeases(unit: Unit): boolean {
  */
 export interface TenantWithLeaseAccess {
 	id: string
+<<<<<<< HEAD
 	leases: Array<{
+=======
+	leases: {
+>>>>>>> origin/main
 		unit?: {
 			property?: {
 				ownerId: string
 			}
 		}
+<<<<<<< HEAD
 	}>
+=======
+	}[]
+>>>>>>> origin/main
 }
 
 /**
@@ -105,7 +121,11 @@ export interface LeaseWithFullRelations extends Lease {
  * Get leases from tenant safely
  */
 export function getTenantLeases(tenant: TenantWithDetails): Lease[] {
+<<<<<<< HEAD
 	return tenant.leases
+=======
+	return tenant.leases || []
+>>>>>>> origin/main
 }
 
 /**
@@ -139,7 +159,11 @@ export function getPropertyRevenue(property: Property): number {
 	const units = getPropertyUnits(property)
 	return units.reduce((total, unit) => {
 		if (unitHasActiveLeases(unit)) {
+<<<<<<< HEAD
 			return total + (unit.rent ?? 0)
+=======
+			return total + (unit.rent || 0)
+>>>>>>> origin/main
 		}
 		return total
 	}, 0)

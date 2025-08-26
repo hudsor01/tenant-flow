@@ -257,9 +257,13 @@ export const getReducedMotionVariants = (
 	variants: Variants,
 	respectMotion = true
 ): Variants => {
+<<<<<<< HEAD
 	if (!respectMotion) {
 		return variants
 	}
+=======
+	if (!respectMotion) return variants
+>>>>>>> origin/main
 
 	// Check if user prefers reduced motion
 	const prefersReducedMotion =
@@ -267,9 +271,13 @@ export const getReducedMotionVariants = (
 			? window.matchMedia('(prefers-reduced-motion: reduce)').matches
 			: false
 
+<<<<<<< HEAD
 	if (!prefersReducedMotion) {
 		return variants
 	}
+=======
+	if (!prefersReducedMotion) return variants
+>>>>>>> origin/main
 
 	// Return simplified variants for reduced motion
 	const reducedVariants: Variants = {}

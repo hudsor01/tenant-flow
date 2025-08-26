@@ -36,6 +36,7 @@
 	}
 }
 
+<<<<<<< HEAD
 @keyframes shimmer {
 	0% {
 		background-position: -200% 0;
@@ -45,6 +46,8 @@
 	}
 }
 
+=======
+>>>>>>> origin/main
 .animate-blob {
 	animation: blob 7s infinite;
 }
@@ -58,10 +61,13 @@
 	animation: fade-in-up 0.6s ease-out forwards;
 }
 
+<<<<<<< HEAD
 .animate-shimmer {
 	animation: shimmer 2s infinite;
 }
 
+=======
+>>>>>>> origin/main
 .animation-delay-2000 {
 	animation-delay: 2s;
 }

@@ -46,9 +46,13 @@ export function SubscriptionCheckout({
 	// Get plan details for display
 	const plan = PLANS.find(p => p.id === planType)
 	const priceInCents =
+<<<<<<< HEAD
 		billingInterval === 'annual'
 			? plan?.price?.annual
 			: plan?.price?.monthly
+=======
+		billingInterval === 'annual' ? plan?.price.annual : plan?.price.monthly
+>>>>>>> origin/main
 	const price = priceInCents ? Math.floor(priceInCents / 100) : 0
 
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -111,7 +115,13 @@ export function SubscriptionCheckout({
 
 			// Step 4: Success!
 			setIsSuccess(true)
+<<<<<<< HEAD
 			onSuccess?.(response.subscription.id)
+=======
+			if (onSuccess) {
+				onSuccess(response.subscription.id)
+			}
+>>>>>>> origin/main
 		} catch (error) {
 			const message =
 				error instanceof Error

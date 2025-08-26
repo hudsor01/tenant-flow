@@ -1,5 +1,9 @@
 import { Suspense } from 'react'
+<<<<<<< HEAD
 import type { Metadata } from 'next/types'
+=======
+import type { Metadata } from '@/types/next.d'
+>>>>>>> origin/main
 import { CommandPaletteProvider } from '@/hooks/use-command-palette'
 import { QueryProvider } from '@/providers/query-provider'
 import { PHProvider } from '@/providers/posthog-provider'
@@ -9,7 +13,11 @@ import { PostHogErrorBoundary } from '@/components/analytics/posthog-error-bound
 import { ServerAuthGuard } from '@/components/auth/server-auth-guard'
 import { ProtectedRouteGuard } from '@/components/auth/protected-route-guard'
 import { Navigation } from '@/components/dashboard/dashboard-navigation'
+<<<<<<< HEAD
 // Dashboard sidebar removed - using simpler layout
+=======
+import { DashboardSidebar } from '@/components/dashboard/dashboard-sidebar'
+>>>>>>> origin/main
 import { OfflineBanner } from '@/components/ui/offline-indicator'
 import { Loader2 } from 'lucide-react'
 
@@ -69,17 +77,25 @@ export default function DashboardLayout({
 											>
 												<aside className="hidden w-64 bg-white shadow-sm md:block">
 													{sidebar ?? (
+<<<<<<< HEAD
 														<div className="p-4">
 															<p className="text-sm text-gray-500">
 																Navigation
 															</p>
 														</div>
+=======
+														<DashboardSidebar />
+>>>>>>> origin/main
 													)}
 												</aside>
 											</Suspense>
 
 											{/* Main content area - improved mobile spacing */}
+<<<<<<< HEAD
 											<main className="min-w-0 flex-1 pb-20 pt-2 md:p-6 md:pb-6 md:pt-6">
+=======
+											<main className="min-w-0 flex-1 pt-2 pb-20 md:p-6 md:pt-6 md:pb-6">
+>>>>>>> origin/main
 												<Suspense
 													fallback={
 														<div className="flex h-64 items-center justify-center">
