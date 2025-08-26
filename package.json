@@ -25,19 +25,26 @@
 	"scripts": {
 		"dev": "turbo run dev",
 		"build": "turbo run build",
-		"build:shared": "turbo run build --filter=@repo/shared",
-		"build:database": "turbo run build --filter=@repo/database",
-		"build:backend": "turbo run build --filter=@repo/backend",
-		"build:frontend": "turbo run build --filter=@repo/frontend",
 		"lint": "turbo run lint",
 		"typecheck": "turbo run typecheck",
 		"test": "turbo run test",
-		"format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
+		"test:unit": "turbo run test:unit",
+		"format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+		"format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+		"docs:packages": "find . -name 'package.json' -not -path '*/node_modules/*' | sort",
+		"docs:configs": "find . -name '*.config.*' -not -path '*/node_modules/*' | sort"
 	},
 	"devDependencies": {
+		"@commitlint/cli": "19.8.1",
+		"@commitlint/config-conventional": "19.8.1",
+		"@size-limit/preset-app": "11.2.0",
+		"@size-limit/webpack": "11.2.0",
+		"detect-secrets": "1.0.6",
 		"eslint": "^9.34.0",
 		"eslint-config-turbo": "^2.5.6",
 		"eslint-plugin-turbo": "^2.5.6",
+		"husky": "9.1.7",
+		"lint-staged": "16.1.5",
 		"prettier": "^3.6.2",
 		"typescript": "5.9.2"
 	},
@@ -58,5 +65,26 @@
 	},
 	"dependencies": {
 		"turbo": "2.5.6"
+	},
+	"optionalDependencies": {
+		"turbo-linux-64": "2.5.6",
+		"turbo-linux-arm64": "2.5.6"
+	},
+	"lint-staged": {
+		"*.{ts,tsx,js,jsx}": [
+			"eslint --fix --max-warnings 0",
+			"prettier --write"
+		],
+		"*.{json,md,yml,yaml}": [
+			"prettier --write"
+		],
+		"*.{ts,tsx}": [
+			"bash -c 'npm run typecheck'"
+		]
+	},
+	"commitlint": {
+		"extends": [
+			"@commitlint/config-conventional"
+		]
 	}
 }
