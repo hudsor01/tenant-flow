@@ -8,18 +8,11 @@ import { logger } from '@/lib/logger/logger'
 export const config = {
 	api: {
 		baseURL: (() => {
-			// Production environment - use custom domain
-			if (process.env.NEXT_PUBLIC_APP_ENV === 'production') {
-				return (
-					process.env.NEXT_PUBLIC_API_URL ||
-					'https://api.tenantflow.app/api/v1'
-				)
+			const apiUrl = process.env.NEXT_PUBLIC_API_URL
+			if (!apiUrl) {
+				throw new Error('NEXT_PUBLIC_API_URL is required for production deployment')
 			}
-			// Development environment - use local backend or Railway URL
-			return (
-				process.env.NEXT_PUBLIC_API_URL ||
-				'http://localhost:4600/api/v1'
-			)
+			return apiUrl
 		})(),
 		timeout: 30000,
 		healthCheckPath: '/health',

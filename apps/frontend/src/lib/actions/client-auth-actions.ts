@@ -4,6 +4,7 @@
  */
 
 import type { AuthFormState } from './auth-actions'
+import { logger } from '@/lib/logger/logger'
 
 /**
  * Client-safe update password action
@@ -61,7 +62,7 @@ export async function updatePasswordClient(
 			message: 'Password updated successfully'
 		}
 	} catch (error) {
-		console.error('Update password error:', error)
+		logger.error('Update password error:', error)
 		return {
 			success: false,
 			errors: {
@@ -110,7 +111,7 @@ export async function logoutClient(): Promise<{
 			message: 'Logged out successfully'
 		}
 	} catch (error) {
-		console.error('Logout error:', error)
+		logger.error('Logout error:', error)
 		return {
 			success: false,
 			message: 'An error occurred during logout'
@@ -188,7 +189,7 @@ export async function signupClient(
 				'Registration successful! Please check your email to verify your account.'
 		}
 	} catch (error) {
-		console.error('Registration error:', error)
+		logger.error('Registration error:', error)
 		return {
 			success: false,
 			errors: {
@@ -263,7 +264,7 @@ export async function loginClient(
 			message: 'Login successful'
 		}
 	} catch (error) {
-		console.error('Login error:', error)
+		logger.error('Login error:', error)
 		return {
 			success: false,
 			errors: {
@@ -317,7 +318,7 @@ export async function forgotPasswordClient(
 			message: 'Password reset instructions have been sent to your email'
 		}
 	} catch (error) {
-		console.error('Forgot password error:', error)
+		logger.error('Forgot password error:', error)
 		return {
 			success: false,
 			errors: {
