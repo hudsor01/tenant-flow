@@ -50,6 +50,7 @@
 		"@repo/shared": "*",
 		"@supabase/supabase-js": "^2.56.0",
 		"bcrypt": "^6.0.0",
+		"boxen": "5.1.2",
 		"cache-manager": "7.1.1",
 		"class-transformer": "0.5.1",
 		"class-validator": "0.14.2",
@@ -68,6 +69,7 @@
 		"reflect-metadata": "0.2.2",
 		"rxjs": "^7.8.2",
 		"stripe": "^18.4.0",
+		"turbo": "2.5.6",
 		"zod": "4.1.0"
 	},
 	"devDependencies": {
@@ -99,5 +101,8 @@
 	"overrides": {
 		"path-to-regexp": "^8.2.0",
 		"minimatch": "^3.1.2"
+	},
+	"optionalDependencies": {
+		"@esbuild/darwin-arm64": "0.25.9"
 	}
 }
