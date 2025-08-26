@@ -3,8 +3,8 @@ export * from './context/request-context'
 export * from './middleware/context.middleware'
 export * from './interceptors/performance.interceptor'
 
-// Essential services only
-export * from './services'
+// Services removed - using native NestJS/Fastify features directly
 export * from './decorators'
 export * from './guards'
 export * from './filters'
+export * from './exceptions'

@@ -18,7 +18,6 @@ import type { ValidatedUser } from '@repo/shared'
 import type { FastifyRequest } from 'fastify'
 import { UsersService } from '../users/users.service'
 import type { LoginDto, RefreshTokenDto, RegisterDto } from './dto/auth.dto'
-import { SuccessResponseUtil } from '../shared/utils/success-response.util'
 
 @Controller('auth')
 export class AuthController {
@@ -100,6 +99,7 @@ export class AuthController {
 		}
 		const token = authHeader.split(' ')[1] ?? ''
 		await this.authService.logout(token)
-		return SuccessResponseUtil.success()
+		// Return native response - NestJS handles this automatically
+		return { success: true, message: 'Logged out successfully' }
 	}
 }

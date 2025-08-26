@@ -3,7 +3,8 @@ import {
 	uuidSchema,
 	nonEmptyStringSchema,
 	emailSchema,
-	phoneSchema
+	phoneSchema,
+	requiredString
 } from './common'
 
 // Tenant status enum
@@ -163,8 +164,8 @@ export const tenantFormSchema = z
 			.string()
 			.min(1, 'Email is required')
 			.email('Please enter a valid email'),
-		firstName: z.string().min(1, 'First name is required'),
-		lastName: z.string().min(1, 'Last name is required'),
+		firstName: requiredString,
+		lastName: requiredString,
 		phone: z.string().optional(),
 		dateOfBirth: z.string().optional(),
 		propertyId: z.string().optional(),

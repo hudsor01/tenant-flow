@@ -25,6 +25,16 @@ import multipart from '@fastify/multipart'
 import { corsOptions } from './config/cors.options'
 import { GlobalExceptionFilter } from './shared/filters/global-exception.filter'
 
+// Node.js error interface with common error properties
+interface NodeError extends Error {
+	code?: string
+	errno?: number
+	syscall?: string
+	path?: string
+	address?: string
+	port?: number
+}
+
 async function bootstrap() {
 	// Create bootstrap Pino logger (before Fastify is available)
 	const logger = pino({
@@ -334,26 +344,41 @@ async function bootstrap() {
 	})
 	logger.info('Circuit breaker plugin registered')
 
-	// 12. Security middleware (register last to protect all routes)
+	// 12. Security middleware (register last to protect all routes) - ENHANCED
 	await app.register(helmet, {
+		// Enhanced Content Security Policy
 		contentSecurityPolicy: {
 			directives: {
 				defaultSrc: ["'self'"],
-				styleSrc: ["'self'", "'unsafe-inline'"],
+				styleSrc: ["'self'", "'unsafe-inline'"], // Required for some admin panels
 				scriptSrc: ["'self'"],
 				imgSrc: ["'self'", "data:", "https:"],
-				connectSrc: ["'self'", "https://api.stripe.com", "https://*.supabase.co"],
-				frameSrc: ["'self'", "https://js.stripe.com"],
+				connectSrc: [
+					"'self'", 
+					"https://api.stripe.com", 
+					"https://*.supabase.co",
+					"https://api.resend.com", // Email service
+					"https://api.posthog.com" // Analytics (if used)
+				],
+				frameSrc: ["'self'", "https://js.stripe.com", "https://checkout.stripe.com"],
 				baseUri: ["'self'"],
-				formAction: ["'self'"]
+				formAction: ["'self'"],
+				objectSrc: ["'none'"], // Prevent object/embed/applet
+				upgradeInsecureRequests: [], // Force HTTPS
+				frameAncestors: ["'none'"] // Prevent clickjacking (X-Frame-Options alternative)
 			}
 		},
 		crossOriginEmbedderPolicy: false, // Allows embedding for Stripe
+		// Enhanced HSTS
 		hsts: {
-			maxAge: 31536000, // 1 year
+			maxAge: 63072000, // 2 years (recommended by security experts)
 			includeSubDomains: true,
 			preload: true
-		}
+		},
+		// Basic security headers  
+		hidePoweredBy: true,
+		noSniff: true,
+		frameguard: { action: 'deny' }
 	})
 	logger.info('Security middleware registered (enhanced CSP)')
 
@@ -431,7 +456,7 @@ async function bootstrap() {
 			`Error message: ${error instanceof Error ? error.message : String(error)}`
 		)
 		logger.error(
-			`Error code: ${error instanceof Error && 'code' in error ? (error as Error & { code: string }).code : 'unknown'}`
+			`Error code: ${error instanceof Error && 'code' in error ? (error as NodeError).code : 'unknown'}`
 		)
 		logger.error(
 			`Stack trace: ${error instanceof Error ? error.stack : 'No stack'}`
@@ -470,7 +495,7 @@ bootstrap().catch((err: unknown) => {
 	logger.error(`❌ Application failed to start`)
 	logger.error(`Error type: ${error.constructor.name}`)
 	logger.error(`Error message: ${error.message}`)
-	logger.error(`Error code: ${(error as any).code ?? 'unknown'}`)
+	logger.error(`Error code: ${(error as NodeError).code ?? 'unknown'}`)
 	logger.error(`Stack trace: ${error.stack ?? 'No stack trace available'}`)
 
 	logger.error('=== ENVIRONMENT AUDIT ===')

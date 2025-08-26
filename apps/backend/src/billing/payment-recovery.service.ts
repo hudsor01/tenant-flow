@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { SubscriptionSupabaseRepository } from './subscription-supabase.repository'
+import { SupabaseService } from '../database/supabase.service'
+import type { Enums } from '@repo/shared/types/supabase-generated'
 
 /**
  * Minimal Payment Recovery Service
@@ -22,7 +23,7 @@ export class PaymentRecoveryService {
 	private readonly logger = new Logger(PaymentRecoveryService.name)
 
 	constructor(
-		private readonly subscriptionRepository: SubscriptionSupabaseRepository
+		private readonly supabaseService: SupabaseService
 	) {}
 
 	/**
@@ -37,10 +38,14 @@ export class PaymentRecoveryService {
 			return
 		}
 
-		await this.subscriptionRepository.updateStatusByStripeId(
-			subscriptionId,
-			'PAST_DUE'
-		)
+		await this.supabaseService
+			.getAdminClient()
+			.from('Subscription')
+			.update({
+				status: 'PAST_DUE' as Enums<'SubStatus'>,
+				updatedAt: new Date().toISOString()
+			})
+			.eq('stripeSubscriptionId', subscriptionId)
 
 		this.logger.log(
 			`Subscription ${subscriptionId} marked PAST_DUE. Stripe handling recovery.`
@@ -58,10 +63,14 @@ export class PaymentRecoveryService {
 			return
 		}
 
-		await this.subscriptionRepository.updateStatusByStripeId(
-			subscriptionId,
-			'ACTIVE'
-		)
+		await this.supabaseService
+			.getAdminClient()
+			.from('Subscription')
+			.update({
+				status: 'ACTIVE' as Enums<'SubStatus'>,
+				updatedAt: new Date().toISOString()
+			})
+			.eq('stripeSubscriptionId', subscriptionId)
 
 		this.logger.log(
 			`Subscription ${subscriptionId} recovered and marked ACTIVE.`

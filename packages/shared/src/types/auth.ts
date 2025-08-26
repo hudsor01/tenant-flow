@@ -49,6 +49,33 @@ export interface AuthUser extends User {
 	}
 }
 
+// Auth request/response types for API
+export interface LoginCredentials {
+	email: string
+	password: string
+}
+
+export interface RegisterCredentials {
+	email: string
+	password: string
+	fullName?: string
+}
+
+export interface AuthResponse {
+	user: User | AuthUser
+	session?: {
+		access_token: string
+		refresh_token: string
+		expires_in: number
+		expires_at?: number
+	}
+	message?: string
+}
+
+export interface RefreshTokenRequest {
+	refresh_token: string
+}
+
 // Secure subscription data type
 export interface SecureSubscriptionData {
 	status: SubscriptionStatus
@@ -100,23 +127,6 @@ export interface AuthSession {
 	refresh_token: string
 	expires_at: number
 	user: User
-}
-
-export interface AuthResponse {
-	user: {
-		id: string
-		email: string
-		name?: string
-		role: UserRole
-	}
-	message: string
-	session?: AuthSession
-}
-
-// Frontend-specific credential types
-export interface LoginCredentials {
-	email: string
-	password: string
 }
 
 export interface SignupCredentials {

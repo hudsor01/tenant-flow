@@ -19,7 +19,7 @@ import { plainToClass, Transform } from 'class-transformer'
 
 export class EnvironmentVariables {
 	// Application
-	@IsEnum(['development', 'production', 'test'])
+	@IsEnum(['development', 'production', 'testing'])
 	@IsOptional()
 	NODE_ENV = 'production'
 
@@ -169,15 +169,6 @@ export class EnvironmentVariables {
 	@IsOptional()
 	@IsEmail()
 	FROM_EMAIL?: string
-
-	// Email service configuration (disabled for MVP)
-	// @IsOptional()
-	// @IsString()
-	// RESEND_API_KEY?: string
-
-	// @IsOptional()
-	// @IsEmail()
-	// RESEND_FROM_EMAIL?: string = 'noreply@tenantflow.app'
 
 	// Analytics
 	@IsOptional()
