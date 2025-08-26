@@ -10,23 +10,47 @@
 			}
 		],
 		"paths": {
-			"@/*": ["./src/*"]
+			"@/*": ["./src/*"],
+			"@repo/shared": ["../../packages/shared/src"],
+			"@repo/shared/*": ["../../packages/shared/src/*"]
 		},
 		"types": ["node", "react", "react-dom"]
 	},
-	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+	"include": [
+		"next-env.d.ts",
+		"**/*.ts",
+		"**/*.tsx",
+		".next/types/**/*.ts",
+		"src/types/**/*.d.ts",
+		"src/types/jest-dom.d.ts",
+		"node_modules/@types/react/jsx-runtime.d.ts"
+	],
 	"exclude": [
 		"node_modules",
 		".next",
+		"out",
 		"dist",
+		"build",
+		"scripts/**/*",
 		"src/test/**/*",
+		"src/test/**/*.ts",
+		"src/test/**/*.tsx",
+		"tests/**/*",
 		"**/__tests__/**/*",
 		"**/*.test.ts",
 		"**/*.test.tsx",
 		"**/*.spec.ts",
 		"**/*.spec.tsx",
-		"vitest.config.ts",
+		"coverage/**/*",
+		"*.config.js",
+		"*.config.mjs",
 		"jest.config.js",
+		"vitest.config.production.ts",
 		"playwright.config.ts"
+	],
+	"references": [
+		{
+			"path": "../../packages/shared"
+		}
 	]
 }

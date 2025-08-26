@@ -3,7 +3,10 @@
 import { useActionState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+<<<<<<< HEAD
 import { Separator } from '@/components/ui/separator'
+=======
+>>>>>>> origin/main
 import {
 	Card,
 	CardContent,
@@ -12,10 +15,13 @@ import {
 	CardTitle
 } from '@/components/ui/card'
 import { loginFormAction } from '@/lib/actions/auth-actions'
+<<<<<<< HEAD
 import { OAuthProviders } from '@/components/auth/oauth-providers'
 import { Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
 import Link from 'next/link'
+=======
+>>>>>>> origin/main
 
 interface SimpleLoginFormProps {
 	redirectTo?: string
@@ -27,6 +33,7 @@ export function SimpleLoginForm({
 	const [state, formAction, isPending] = useActionState(loginFormAction, {
 		success: false
 	})
+<<<<<<< HEAD
 	const [showPassword, setShowPassword] = useState(false)
 
 	return (
@@ -115,18 +122,60 @@ export function SimpleLoginForm({
 
 					{state.error && (
 						<div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+=======
+
+	return (
+		<Card>
+			<CardHeader>
+				<CardTitle>Sign In</CardTitle>
+				<CardDescription>
+					Enter your credentials to continue
+				</CardDescription>
+			</CardHeader>
+			<CardContent>
+				<form action={formAction} className="space-y-4">
+					<input type="hidden" name="redirectTo" value={redirectTo} />
+
+					<div>
+						<Input
+							name="email"
+							type="email"
+							placeholder="Email"
+							required
+							disabled={isPending}
+						/>
+					</div>
+
+					<div>
+						<Input
+							name="password"
+							type="password"
+							placeholder="Password"
+							required
+							disabled={isPending}
+						/>
+					</div>
+
+					{state.error && (
+						<div className="text-sm text-red-600">
+>>>>>>> origin/main
 							{state.error}
 						</div>
 					)}
 
 					<Button
 						type="submit"
+<<<<<<< HEAD
 						className="h-11 w-full text-base font-semibold"
+=======
+						className="w-full"
+>>>>>>> origin/main
 						disabled={isPending}
 					>
 						{isPending ? 'Signing in...' : 'Sign In'}
 					</Button>
 				</form>
+<<<<<<< HEAD
 
 				{/* Sign up link */}
 				<div className="text-center text-sm">
@@ -140,6 +189,8 @@ export function SimpleLoginForm({
 						Sign up
 					</Link>
 				</div>
+=======
+>>>>>>> origin/main
 			</CardContent>
 		</Card>
 	)

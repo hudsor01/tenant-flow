@@ -17,6 +17,7 @@ interface BillingSuccessPageProps {
 }
 
 // Server-side metadata generation
+<<<<<<< HEAD
 export function generateMetadata(): Metadata {
 	// Cast the helper's return to Next's Metadata type to satisfy the expected type.
 	// Using `await` is safe whether the helper is sync or async.
@@ -25,12 +26,26 @@ export function generateMetadata(): Metadata {
 		'Your subscription has been activated successfully'
 	)
 	return meta
+=======
+export async function generateMetadata(): Promise<Metadata> {
+	// Cast the helper's return to Next's Metadata type to satisfy the expected type.
+	// Using `await` is safe whether the helper is sync or async.
+	const meta = await generateBillingMetadata(
+		'Payment Success',
+		'Your subscription has been activated successfully'
+	)
+	return meta as unknown as Metadata
+>>>>>>> origin/main
 }
 
 /**
  * Server Component - Load subscription data server-side
  */
+<<<<<<< HEAD
 function BillingSuccessContent({ sessionId }: { sessionId?: string }) {
+=======
+async function BillingSuccessContent({ sessionId }: { sessionId?: string }) {
+>>>>>>> origin/main
 	// For now, we'll pass through the session ID and let the client component handle verification
 	// This avoids the Supabase Edge Runtime issue during build
 	return (

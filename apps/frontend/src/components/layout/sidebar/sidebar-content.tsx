@@ -129,8 +129,12 @@ const navItems: NavItem[] = [
 	},
 	{
 		title: 'Documents',
+<<<<<<< HEAD
 		// Documents feature not yet implemented
 		url: '#',
+=======
+		url: '/documents',
+>>>>>>> origin/main
 		icon: <FileText className="h-4 w-4" />,
 		description: 'Manage property documents and files',
 		shortcut: '⌘+Shift+D',
@@ -138,15 +142,23 @@ const navItems: NavItem[] = [
 		items: [
 			{
 				title: 'All Documents',
+<<<<<<< HEAD
 				// Documents feature not yet implemented
 				url: '#',
+=======
+				url: '/documents',
+>>>>>>> origin/main
 				icon: <FileText className="h-3 w-3" />,
 				description: 'View all uploaded documents'
 			},
 			{
 				title: 'Upload Document',
+<<<<<<< HEAD
 				// Upload feature not yet implemented
 				url: '#',
+=======
+				url: '/documents/upload',
+>>>>>>> origin/main
 				icon: <Plus className="h-3 w-3" />,
 				description: 'Upload new document or file'
 			}
@@ -258,12 +270,21 @@ export function SidebarContent() {
 			{!collapsed && (
 				<div className="px-4 pb-4">
 					<div className="group relative">
+<<<<<<< HEAD
 						<Search className="text-sidebar-foreground/60 group-focus-within:text-primary absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transition-colors" />
 						<Input
 							placeholder="Search properties, tenants..."
 							className="bg-sidebar-accent/50 border-sidebar-border focus:bg-background focus:border-primary/50 h-9 w-full pl-9 pr-16 text-sm transition-all duration-200 focus:shadow-sm"
 						/>
 						<kbd className="text-sidebar-foreground/60 bg-sidebar-accent/80 border-sidebar-border absolute right-3 top-1/2 -translate-y-1/2 rounded border px-1.5 py-0.5 text-xs">
+=======
+						<Search className="text-sidebar-foreground/60 group-focus-within:text-primary absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transition-colors" />
+						<Input
+							placeholder="Search properties, tenants..."
+							className="bg-sidebar-accent/50 border-sidebar-border focus:bg-background focus:border-primary/50 h-9 w-full pr-16 pl-9 text-sm transition-all duration-200 focus:shadow-sm"
+						/>
+						<kbd className="text-sidebar-foreground/60 bg-sidebar-accent/80 border-sidebar-border absolute top-1/2 right-3 -translate-y-1/2 rounded border px-1.5 py-0.5 text-xs">
+>>>>>>> origin/main
 							⌘K
 						</kbd>
 					</div>

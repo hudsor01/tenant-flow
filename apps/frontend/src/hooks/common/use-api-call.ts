@@ -3,7 +3,11 @@
  * Provides consistent API call handling with loading and error states
  */
 import { useState, useCallback } from 'react'
+<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
+=======
+import { logger } from '@/lib/logger'
+>>>>>>> origin/main
 import { toast } from 'sonner'
 
 export interface UseApiCallOptions<TData = unknown> {
@@ -49,8 +53,12 @@ export function useApiCall<TData = unknown, TParams = unknown>(
 
 				return result
 			} catch (err) {
+<<<<<<< HEAD
 				const error =
 					err instanceof Error ? err : new Error(String(err))
+=======
+				const error = err instanceof Error ? err : new Error(String(err))
+>>>>>>> origin/main
 				setError(error)
 
 				logger.error('API call failed:', error)
@@ -68,6 +76,7 @@ export function useApiCall<TData = unknown, TParams = unknown>(
 				setIsLoading(false)
 			}
 		},
+<<<<<<< HEAD
 		[
 			apiFunction,
 			onSuccess,
@@ -76,6 +85,9 @@ export function useApiCall<TData = unknown, TParams = unknown>(
 			errorMessage,
 			showToast
 		]
+=======
+		[apiFunction, onSuccess, onError, successMessage, errorMessage, showToast]
+>>>>>>> origin/main
 	)
 
 	const reset = useCallback(() => {
@@ -91,4 +103,8 @@ export function useApiCall<TData = unknown, TParams = unknown>(
 		data,
 		reset
 	}
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> origin/main

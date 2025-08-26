@@ -3,7 +3,11 @@
  * Separated from components to avoid react-refresh warnings
  */
 
+<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
+=======
+import { logger } from '@/lib/logger'
+>>>>>>> origin/main
 
 // Hook for components to trigger boundary reset
 export function useBoundaryReset() {

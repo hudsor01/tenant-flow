@@ -3,7 +3,10 @@
 import { useState } from 'react'
 import { motion } from '@/lib/lazy-motion'
 import { useAuth } from '@/hooks/use-auth'
+<<<<<<< HEAD
 import type { ActivityItem, ActivityType } from '@repo/shared'
+=======
+>>>>>>> origin/main
 import {
 	useDashboardOverview,
 	useDashboardActivity
@@ -17,7 +20,11 @@ import {
 } from './index'
 import { DashboardErrorBoundary } from './dashboard-error-boundary'
 import { DashboardStatsLoading } from './dashboard-stats-loading'
+<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
+=======
+import { logger } from '@/lib/logger'
+>>>>>>> origin/main
 
 function DashboardContent() {
 	const { user } = useAuth()
@@ -71,11 +78,15 @@ function DashboardContent() {
 
 	// Error handling - throw to be caught by error boundary
 	if (statsError || activitiesError) {
+<<<<<<< HEAD
 		throw new Error(
 			statsError?.message ||
 				activitiesError?.message ||
 				'Dashboard loading failed'
 		)
+=======
+		throw statsError || activitiesError
+>>>>>>> origin/main
 	}
 
 	return (
@@ -110,11 +121,15 @@ function DashboardContent() {
 
 				{/* Recent Activity */}
 				<DashboardActivityFeed
+<<<<<<< HEAD
 					activities={
 						(activities?.filter(
 							activity => activity.type !== undefined
 						) as Array<ActivityItem & { type: ActivityType }>) ?? []
 					}
+=======
+					activities={activities ?? []}
+>>>>>>> origin/main
 					isLoading={isActivitiesLoading}
 				/>
 			</div>

@@ -1,5 +1,9 @@
 import { useState } from 'react'
+<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
+=======
+import { logger } from '@/lib/logger'
+>>>>>>> origin/main
 import NextImage from 'next/image'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -122,10 +126,14 @@ export default function PropertyImageGallery({
 			<Card className={className}>
 				<CardHeader>
 					<CardTitle className="flex items-center">
+<<<<<<< HEAD
 						<ImageIcon
 							className="mr-2 h-5 w-5"
 							aria-hidden="true"
 						/>
+=======
+						<Image className="mr-2 h-5 w-5" aria-hidden="true" />
+>>>>>>> origin/main
 						Property Images
 					</CardTitle>
 				</CardHeader>
@@ -167,7 +175,11 @@ export default function PropertyImageGallery({
 				<CardHeader>
 					<div className="flex items-center justify-between">
 						<CardTitle className="flex items-center">
+<<<<<<< HEAD
 							<ImageIcon
+=======
+							<Image
+>>>>>>> origin/main
 								className="mr-2 h-5 w-5"
 								aria-hidden="true"
 							/>
@@ -184,7 +196,11 @@ export default function PropertyImageGallery({
 				<CardContent>
 					{images.length === 0 ? (
 						<div className="py-12 text-center">
+<<<<<<< HEAD
 							<ImageIcon
+=======
+							<Image
+>>>>>>> origin/main
 								className="mx-auto mb-4 h-12 w-12 text-gray-400"
 								aria-hidden="true"
 							/>

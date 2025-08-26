@@ -66,9 +66,13 @@ export function TabNavigation({
 
 	// Auto-detect active tab from pathname if not explicitly set
 	const currentActive = React.useMemo(() => {
+<<<<<<< HEAD
 		if (activeTab) {
 			return activeTab
 		}
+=======
+		if (activeTab) return activeTab
+>>>>>>> origin/main
 
 		const matchingItem = items.find(
 			item => item.href && pathname.startsWith(item.href)

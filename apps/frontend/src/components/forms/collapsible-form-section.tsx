@@ -34,7 +34,11 @@ export function CollapsibleFormSection({
 	return (
 		<Card className={cn('w-full', className)}>
 			{title && (
+<<<<<<< HEAD
 				<CardHeader
+=======
+				<CardHeader 
+>>>>>>> origin/main
 					className="cursor-pointer select-none"
 					onClick={toggleExpanded}
 				>
@@ -44,7 +48,11 @@ export function CollapsibleFormSection({
 								{title}
 							</h3>
 							{description && (
+<<<<<<< HEAD
 								<p className="text-muted-foreground text-sm">
+=======
+								<p className="text-sm text-muted-foreground">
+>>>>>>> origin/main
 									{description}
 								</p>
 							)}
@@ -60,8 +68,18 @@ export function CollapsibleFormSection({
 				</CardHeader>
 			)}
 			{isExpanded && (
+<<<<<<< HEAD
 				<CardContent className="pt-0">{children}</CardContent>
 			)}
 		</Card>
 	)
 }
+=======
+				<CardContent className="pt-0">
+					{children}
+				</CardContent>
+			)}
+		</Card>
+	)
+}
+>>>>>>> origin/main

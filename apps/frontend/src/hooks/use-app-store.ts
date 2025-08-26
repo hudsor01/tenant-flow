@@ -39,6 +39,10 @@ export function useThemeManager() {
 			const darkMode = window.matchMedia('(prefers-color-scheme: dark)')
 
 			const handleChange = (e: MediaQueryListEvent) => {
+<<<<<<< HEAD
+=======
+				const systemTheme = e.matches ? 'dark' : 'light'
+>>>>>>> origin/main
 				document.documentElement.classList.toggle('dark', e.matches)
 			}
 
@@ -214,9 +218,13 @@ export function useSessionManager() {
 
 	// Session expiry warning
 	useEffect(() => {
+<<<<<<< HEAD
 		if (!session.sessionExpiry) {
 			return
 		}
+=======
+		if (!session.sessionExpiry) return
+>>>>>>> origin/main
 
 		const checkExpiry = () => {
 			const now = new Date()
@@ -250,9 +258,13 @@ export function useSessionManager() {
 	}, [session.sessionExpiry, extendSession, clearSession])
 
 	const isSessionExpiringSoon = useCallback(() => {
+<<<<<<< HEAD
 		if (!session.sessionExpiry) {
 			return false
 		}
+=======
+		if (!session.sessionExpiry) return false
+>>>>>>> origin/main
 		const now = new Date()
 		const expiry = new Date(session.sessionExpiry)
 		const minutesLeft = Math.floor(
@@ -375,7 +387,11 @@ export function useConnectionManager() {
 			updateLastSync()
 			notifySuccess('Sync Complete', 'All data has been synchronized.')
 			return true
+<<<<<<< HEAD
 		} catch {
+=======
+		} catch (error) {
+>>>>>>> origin/main
 			notifyWarning(
 				'Sync Failed',
 				'Unable to synchronize data. Please try again.'
@@ -447,11 +463,15 @@ export function useStoreDebugger() {
 
 	return {
 		store,
+<<<<<<< HEAD
 		logState: () => {
 			if (typeof window !== 'undefined' && 'console' in window) {
 				console.info('Current Store State:', store)
 			}
 		},
+=======
+		logState: () => console.log('Current Store State:', store),
+>>>>>>> origin/main
 		clearStore: () => store.resetAppState()
 	}
 }

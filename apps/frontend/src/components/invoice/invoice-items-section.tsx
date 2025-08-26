@@ -10,6 +10,7 @@ import type {
 	UseFormGetValues
 } from 'react-hook-form'
 import type { CustomerInvoiceForm } from '@repo/shared'
+<<<<<<< HEAD
 // Local InvoiceItem type
 interface InvoiceItem {
 	id: string
@@ -18,6 +19,9 @@ interface InvoiceItem {
 	unitPrice: number
 	total: number
 }
+=======
+import type { InvoiceItem } from '@/types/components'
+>>>>>>> origin/main
 
 // Extended props for the invoice items section
 interface InvoiceItemsSectionProps {

@@ -10,7 +10,11 @@ import {
 	ResponseValidator,
 	type ValidationOptions
 } from './api/response-validator'
+<<<<<<< HEAD
 import type { ZodTypeAny } from 'zod'
+=======
+import type { ZodSchema } from 'zod'
+>>>>>>> origin/main
 
 // Type-safe URLSearchParams utility
 export function createSearchParams(params: Record<string, unknown>): string {
@@ -96,8 +100,12 @@ class SimpleApiClient {
 		method: string,
 		path: string,
 		data?: unknown,
+<<<<<<< HEAD
 		config?: RequestConfig,
 		retryCount = 0
+=======
+		config?: RequestConfig
+>>>>>>> origin/main
 	): Promise<T> {
 		const authHeaders = await this.getAuthHeaders()
 		const isFormData = data instanceof FormData
@@ -137,7 +145,11 @@ class SimpleApiClient {
 
 			if (!response.ok) {
 				const errorText = await response.text()
+<<<<<<< HEAD
 				let errorData: ControllerApiResponse | undefined
+=======
+				let errorData: ControllerApiResponse<unknown> | undefined
+>>>>>>> origin/main
 
 				try {
 					errorData = JSON.parse(errorText)
@@ -153,7 +165,11 @@ class SimpleApiClient {
 					details: errorData ? { ...errorData } : undefined,
 					timestamp: new Date().toISOString()
 				}
+<<<<<<< HEAD
 				throw new Error(`API Error: ${apiError.message}`)
+=======
+				throw apiError
+>>>>>>> origin/main
 			}
 
 			const responseData: ControllerApiResponse<T> = await response.json()
@@ -182,6 +198,7 @@ class SimpleApiClient {
 				throw new Error('Request timeout')
 			}
 
+<<<<<<< HEAD
 			// Retry logic for network errors in production
 			if (
 				retryCount < (this.config?.retries ?? 3) &&
@@ -199,10 +216,13 @@ class SimpleApiClient {
 				)
 			}
 
+=======
+>>>>>>> origin/main
 			throw error
 		}
 	}
 
+<<<<<<< HEAD
 	private shouldRetry(error: unknown): boolean {
 		if (!(error instanceof Error)) return false
 
@@ -225,6 +245,8 @@ class SimpleApiClient {
 		}
 	}
 
+=======
+>>>>>>> origin/main
 	async get<T>(path: string, config?: RequestConfig): Promise<T> {
 		return this.makeRequest<T>('GET', path, undefined, config)
 	}
@@ -260,7 +282,11 @@ class SimpleApiClient {
 	// Validated API methods with Zod schema validation
 	async getValidated<T>(
 		path: string,
+<<<<<<< HEAD
 		schema: ZodTypeAny,
+=======
+		schema: ZodSchema<T>,
+>>>>>>> origin/main
 		schemaName: string,
 		config?: RequestConfig,
 		validationOptions?: ValidationOptions
@@ -276,7 +302,11 @@ class SimpleApiClient {
 
 	async postValidated<T>(
 		path: string,
+<<<<<<< HEAD
 		schema: ZodTypeAny,
+=======
+		schema: ZodSchema<T>,
+>>>>>>> origin/main
 		schemaName: string,
 		data?: Record<string, unknown> | FormData,
 		config?: RequestConfig,
@@ -298,7 +328,11 @@ class SimpleApiClient {
 
 	async putValidated<T>(
 		path: string,
+<<<<<<< HEAD
 		schema: ZodTypeAny,
+=======
+		schema: ZodSchema<T>,
+>>>>>>> origin/main
 		schemaName: string,
 		data?: Record<string, unknown> | FormData,
 		config?: RequestConfig,
@@ -320,7 +354,11 @@ class SimpleApiClient {
 
 	async patchValidated<T>(
 		path: string,
+<<<<<<< HEAD
 		schema: ZodTypeAny,
+=======
+		schema: ZodSchema<T>,
+>>>>>>> origin/main
 		schemaName: string,
 		data?: Record<string, unknown> | FormData,
 		config?: RequestConfig,
@@ -342,7 +380,11 @@ class SimpleApiClient {
 
 	async deleteValidated<T>(
 		path: string,
+<<<<<<< HEAD
 		schema: ZodTypeAny,
+=======
+		schema: ZodSchema<T>,
+>>>>>>> origin/main
 		schemaName: string,
 		config?: RequestConfig,
 		validationOptions?: ValidationOptions
@@ -364,6 +406,7 @@ class SimpleApiClient {
 	async healthCheck(): Promise<{ status: string; timestamp: string }> {
 		return this.get<{ status: string; timestamp: string }>('/health')
 	}
+<<<<<<< HEAD
 
 	// Enhanced health check with connectivity validation
 	async validateConnectivity(): Promise<{
@@ -397,6 +440,8 @@ class SimpleApiClient {
 
 		return result
 	}
+=======
+>>>>>>> origin/main
 }
 
 // Export singleton instance

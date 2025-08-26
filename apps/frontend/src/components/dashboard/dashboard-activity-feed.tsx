@@ -11,6 +11,7 @@ import {
 	Activity
 } from 'lucide-react'
 import { cardVariants, activityItemVariants } from './dashboard-animations'
+<<<<<<< HEAD
 import type { ActivityItem, ActivityType } from '@repo/shared'
 
 // Helper type for activities with required type field
@@ -20,6 +21,25 @@ type ActivityItemWithType = ActivityItem & {
 
 interface DashboardActivityFeedProps {
 	activities?: ActivityItemWithType[]
+=======
+
+// Use the type from the dashboard hooks for consistency
+interface ActivityItem {
+	id: string
+	type:
+		| 'tenant_added'
+		| 'lease_created'
+		| 'maintenance_request'
+		| 'payment_received'
+		| string
+	description: string
+	timestamp: Date | string
+	entityId?: string
+}
+
+interface DashboardActivityFeedProps {
+	activities?: ActivityItem[]
+>>>>>>> origin/main
 	isLoading?: boolean
 }
 
@@ -131,6 +151,7 @@ export function DashboardActivityFeed({
 									</div>
 									<div className="text-right">
 										<p className="text-xs text-white/40">
+<<<<<<< HEAD
 											{activity.createdAt
 												? new Date(
 														activity.createdAt
@@ -140,6 +161,14 @@ export function DashboardActivityFeed({
 															activity.timestamp
 														).toLocaleString()
 													: 'No date'}
+=======
+											{typeof activity.timestamp ===
+											'string'
+												? activity.timestamp
+												: new Date(
+														activity.timestamp
+													).toLocaleString()}
+>>>>>>> origin/main
 										</p>
 									</div>
 								</motion.div>

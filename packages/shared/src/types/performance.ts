@@ -415,11 +415,19 @@ export interface LoadBalancerConfig {
 		timeout: number
 		retries: number
 	}
+<<<<<<< HEAD
 	servers: Array<{
 		url: string
 		weight?: number
 		backup?: boolean
 	}>
+=======
+	servers: {
+		url: string
+		weight?: number
+		backup?: boolean
+	}[]
+>>>>>>> origin/main
 }
 
 // ========================

@@ -5,7 +5,11 @@
  * Processes events and emits notifications via SSE for client consumption.
  */
 import type Stripe from 'stripe'
+<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
+=======
+import { logger } from '../logger/logger'
+>>>>>>> origin/main
 
 export type StripeWebhookEvent =
 	| 'customer.subscription.created'
@@ -380,9 +384,13 @@ export async function processStripeWebhook(
  * Format currency amounts from Stripe (cents) to display format
  */
 function formatCurrency(amountInCents: number | null): string {
+<<<<<<< HEAD
 	if (!amountInCents) {
 		return '$0.00'
 	}
+=======
+	if (!amountInCents) return '$0.00'
+>>>>>>> origin/main
 	return `$${(amountInCents / 100).toFixed(2)}`
 }
 
@@ -390,9 +398,13 @@ function formatCurrency(amountInCents: number | null): string {
  * Validate webhook event structure
  */
 export function validateWebhookEvent(event: unknown): event is Stripe.Event {
+<<<<<<< HEAD
 	if (!event || typeof event !== 'object') {
 		return false
 	}
+=======
+	if (!event || typeof event !== 'object') return false
+>>>>>>> origin/main
 
 	const eventObj = event as Record<string, unknown>
 

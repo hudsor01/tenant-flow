@@ -7,7 +7,11 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Plus, X } from 'lucide-react'
 import type { Property } from '@repo/shared'
+<<<<<<< HEAD
 // PropertyFormState removed as it's not used in this component
+=======
+import type { PropertyFormState } from '@/lib/actions/property-actions'
+>>>>>>> origin/main
 
 interface PropertyFormFeaturesProps {
 	property?: Property
@@ -56,9 +60,13 @@ function AmenityInput({ value, onChange, onAdd }: AmenityInputProps) {
 		<div className="flex gap-2">
 			<Input
 				value={value}
+<<<<<<< HEAD
 				onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
 					onChange(e.target.value)
 				}
+=======
+				onChange={e => onChange(e.target.value)}
+>>>>>>> origin/main
 				placeholder="Add an amenity"
 				onKeyDown={handleKeyDown}
 			/>

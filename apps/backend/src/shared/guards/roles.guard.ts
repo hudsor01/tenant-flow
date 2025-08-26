@@ -40,13 +40,21 @@ export class RolesGuard implements CanActivate {
 			[context.getHandler(), context.getClass()]
 		)
 
+<<<<<<< HEAD
 		const request: RequestWithUser = context.switchToHttp().getRequest()
+=======
+		const request = context.switchToHttp().getRequest() as RequestWithUser
+>>>>>>> origin/main
 		const user = request.user
 
 		// Validate user object
 		if (!this.isValidUserObject(user)) {
 			this.logger.warn('Access denied: Invalid user object', {
+<<<<<<< HEAD
 				route: request.route?.path ?? 'unknown route',
+=======
+				route: request.route?.path,
+>>>>>>> origin/main
 				method: request.method
 			})
 			return false
@@ -58,7 +66,11 @@ export class RolesGuard implements CanActivate {
 		}
 
 		// Handle role-based access
+<<<<<<< HEAD
 		if (requiredRoles && requiredRoles.length > 0) {
+=======
+		if (requiredRoles) {
+>>>>>>> origin/main
 			return requiredRoles.some(role => user.role === role)
 		}
 
@@ -74,7 +86,11 @@ export class RolesGuard implements CanActivate {
 			this.logger.warn('Admin access denied: User is not admin', {
 				userId: user.id,
 				userRole: user.role,
+<<<<<<< HEAD
 				route: request.route?.path ?? 'unknown route'
+=======
+				route: request.route?.path
+>>>>>>> origin/main
 			})
 			return false
 		}
@@ -86,7 +102,11 @@ export class RolesGuard implements CanActivate {
 				{
 					userId: user.id,
 					userOrganizationId: user.organizationId,
+<<<<<<< HEAD
 					route: request.route?.path ?? 'unknown route',
+=======
+					route: request.route?.path,
+>>>>>>> origin/main
 					ip: request.ip
 				}
 			)
@@ -114,8 +134,13 @@ export class RolesGuard implements CanActivate {
 	private extractOrganizationId(request: RequestWithUser): string | null {
 		// Check URL parameters, query parameters, and request body
 		return (
+<<<<<<< HEAD
 			request.params?.organizationId ??
 			request.query?.organizationId ??
+=======
+			request.params?.organizationId ||
+			request.query?.organizationId ||
+>>>>>>> origin/main
 			(typeof request.body?.organizationId === 'string'
 				? request.body.organizationId
 				: null)
@@ -133,7 +158,26 @@ export class RolesGuard implements CanActivate {
 			typeof userObj.id === 'string' &&
 			typeof userObj.email === 'string' &&
 			typeof userObj.role === 'string' &&
+<<<<<<< HEAD
 			['OWNER', 'MANAGER', 'TENANT', 'ADMIN'].includes(userObj.role)
 		)
 	}
 }
+=======
+			['USER', 'ADMIN', 'SUPER_ADMIN'].includes(userObj.role)
+		)
+	}
+}
+
+// Decorator for admin-only routes
+export const AdminOnly = () => {
+	return (
+		_target: unknown,
+		_propertyKey: string,
+		descriptor: PropertyDescriptor
+	) => {
+		Reflect.defineMetadata('admin-only', true, descriptor.value)
+		return descriptor
+	}
+}
+>>>>>>> origin/main

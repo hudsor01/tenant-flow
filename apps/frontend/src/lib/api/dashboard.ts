@@ -3,10 +3,36 @@
  */
 
 import { apiClient } from '@/lib/api-client'
+<<<<<<< HEAD
 import type { DashboardStats, ActivityItem } from '@repo/shared'
 
 // Local types for dashboard-specific data (not implemented in backend yet)
 // Removed unused interfaces: PropertyMetric, PropertyTrend
+=======
+import type {
+	Property,
+	Tenant,
+	Lease,
+	MaintenanceRequest,
+	ActivityItem,
+	DashboardStats
+} from '@repo/shared'
+
+// Local types for dashboard-specific data (not implemented in backend yet)
+interface PropertyMetric {
+	id: string
+	name: string
+	value: number
+	change: number
+	period: string
+}
+
+interface PropertyTrend {
+	period: string
+	value: number
+	date: string
+}
+>>>>>>> origin/main
 
 export interface UpcomingTask {
 	id: string
@@ -65,6 +91,7 @@ export const dashboardApi = {
 	},
 
 	async getUpcomingTasks(limit = 10) {
+<<<<<<< HEAD
 		// Backend doesn't have dedicated tasks endpoint
 		// Use activity endpoint and transform to tasks format
 		try {
@@ -198,11 +225,39 @@ export const dashboardApi = {
 	},
 
 	async getOccupancyTrends(_months = 12) {
+=======
+		// Backend doesn't have tasks endpoint - return empty array
+		// This is handled gracefully by hooks with error fallbacks
+		return Promise.resolve([])
+	},
+
+	async getRecentActivity(limit = 20) {
+		// Backend has getActivity method but no HTTP endpoint
+		// Return empty array - handled gracefully by hooks
+		return Promise.resolve([])
+	},
+
+	async getAlerts() {
+		// Backend doesn't have alerts endpoint - return empty array
+		return Promise.resolve([])
+	},
+
+	async getMetrics(period: 'week' | 'month' | 'year' = 'month') {
+		// Backend doesn't have metrics endpoint - return empty array
+		return Promise.resolve([])
+	},
+
+	async getOccupancyTrends(months = 12) {
+>>>>>>> origin/main
 		// Backend doesn't have trends endpoints - return empty array
 		return Promise.resolve([])
 	},
 
+<<<<<<< HEAD
 	async getRevenueTrends(_months = 12) {
+=======
+	async getRevenueTrends(months = 12) {
+>>>>>>> origin/main
 		// Backend doesn't have trends endpoints - return empty array
 		return Promise.resolve([])
 	}

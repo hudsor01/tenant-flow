@@ -4,7 +4,11 @@ import type { ColumnDef } from '@tanstack/react-table'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Building2, Eye, Edit, Trash, MapPin, DollarSign } from 'lucide-react'
+<<<<<<< HEAD
 import type { Property } from '@repo/shared'
+=======
+import type { Property, PropertyType } from '@repo/shared'
+>>>>>>> origin/main
 import {
 	getPropertyTypeLabel,
 	formatCurrency as sharedFormatCurrency
@@ -15,16 +19,24 @@ import { createPropertyDeletionHandler } from '@/lib/utils/property-deletion'
 
 // Helper functions - unified with shared implementation
 function formatCurrency(amount: number | undefined | null): string {
+<<<<<<< HEAD
 	if (!amount) {
 		return '$0'
 	}
+=======
+	if (!amount) return '$0'
+>>>>>>> origin/main
 	return sharedFormatCurrency(amount, { maximumFractionDigits: 0 })
 }
 
 function calculateOccupancyRate(units?: { status: string }[]): number {
+<<<<<<< HEAD
 	if (!units || units.length === 0) {
 		return 0
 	}
+=======
+	if (!units || units.length === 0) return 0
+>>>>>>> origin/main
 	const occupiedUnits = units.filter(
 		unit => unit.status === 'OCCUPIED'
 	).length
@@ -34,9 +46,13 @@ function calculateOccupancyRate(units?: { status: string }[]): number {
 function calculateTotalRevenue(
 	units?: { monthlyRent?: number; rent?: number; status: string }[]
 ): number {
+<<<<<<< HEAD
 	if (!units) {
 		return 0
 	}
+=======
+	if (!units) return 0
+>>>>>>> origin/main
 	return units.reduce((total, unit) => {
 		if (unit.status === 'OCCUPIED') {
 			const rent = unit.monthlyRent ?? unit.rent ?? 0
@@ -49,6 +65,7 @@ function calculateTotalRevenue(
 function getStatusBadgeVariant(
 	occupancyRate: number
 ): 'default' | 'secondary' | 'destructive' | 'outline' {
+<<<<<<< HEAD
 	if (occupancyRate === 100) {
 		return 'default'
 	}
@@ -58,10 +75,16 @@ function getStatusBadgeVariant(
 	if (occupancyRate >= 50) {
 		return 'outline'
 	}
+=======
+	if (occupancyRate === 100) return 'default'
+	if (occupancyRate >= 80) return 'secondary'
+	if (occupancyRate >= 50) return 'outline'
+>>>>>>> origin/main
 	return 'destructive'
 }
 
 function getStatusLabel(occupancyRate: number): string {
+<<<<<<< HEAD
 	if (occupancyRate === 100) {
 		return 'Full'
 	}
@@ -74,6 +97,12 @@ function getStatusLabel(occupancyRate: number): string {
 	if (occupancyRate > 0) {
 		return 'Low'
 	}
+=======
+	if (occupancyRate === 100) return 'Full'
+	if (occupancyRate >= 80) return 'High'
+	if (occupancyRate >= 50) return 'Moderate'
+	if (occupancyRate > 0) return 'Low'
+>>>>>>> origin/main
 	return 'Vacant'
 }
 
@@ -226,7 +255,11 @@ export const propertyColumns: ColumnDef<Property>[] = [
 		header: 'Type',
 		size: 100,
 		cell: ({ row }) => {
+<<<<<<< HEAD
 			const type = row.original.propertyType
+=======
+			const type = row.original.propertyType as PropertyType
+>>>>>>> origin/main
 			return (
 				<span className="text-muted-foreground text-xs">
 					{getPropertyTypeLabel(type)}

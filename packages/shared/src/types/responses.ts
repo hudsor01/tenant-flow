@@ -83,11 +83,19 @@ export interface SubscriptionPreviewResponse {
 	prorationAmount: number
 	nextInvoiceTotal: number
 	effectiveDate: string
+<<<<<<< HEAD
 	lineItems: Array<{
 		description: string
 		amount: number
 		type: 'proration' | 'invoice_item'
 	}>
+=======
+	lineItems: {
+		description: string
+		amount: number
+		type: 'proration' | 'invoice_item'
+	}[]
+>>>>>>> origin/main
 }
 
 // ========================
@@ -118,7 +126,11 @@ export interface PropertyCreateResponse {
  */
 export interface PropertyListResponse {
 	success: boolean
+<<<<<<< HEAD
 	properties: Array<{
+=======
+	properties: {
+>>>>>>> origin/main
 		id: string
 		name: string
 		address: string
@@ -131,7 +143,11 @@ export interface PropertyListResponse {
 		monthlyRevenue?: number
 		imageUrl?: string
 		createdAt: string
+<<<<<<< HEAD
 	}>
+=======
+	}[]
+>>>>>>> origin/main
 	totalCount: number
 	hasMore: boolean
 }
@@ -179,7 +195,11 @@ export interface UnitCreateResponse {
  */
 export interface UnitListResponse {
 	success: boolean
+<<<<<<< HEAD
 	units: Array<{
+=======
+	units: {
+>>>>>>> origin/main
 		id: string
 		propertyId: string
 		unitNumber: string
@@ -189,7 +209,11 @@ export interface UnitListResponse {
 		status: string
 		tenantName?: string
 		leaseEndDate?: string
+<<<<<<< HEAD
 	}>
+=======
+	}[]
+>>>>>>> origin/main
 	totalCount: number
 }
 
@@ -220,7 +244,11 @@ export interface TenantCreateResponse {
  */
 export interface TenantListResponse {
 	success: boolean
+<<<<<<< HEAD
 	tenants: Array<{
+=======
+	tenants: {
+>>>>>>> origin/main
 		id: string
 		name: string
 		email: string
@@ -230,7 +258,11 @@ export interface TenantListResponse {
 		propertyName?: string
 		moveInDate?: string
 		leaseEndDate?: string
+<<<<<<< HEAD
 	}>
+=======
+	}[]
+>>>>>>> origin/main
 	totalCount: number
 }
 
@@ -273,7 +305,11 @@ export interface LeaseCreateResponse {
  */
 export interface LeaseListResponse {
 	success: boolean
+<<<<<<< HEAD
 	leases: Array<{
+=======
+	leases: {
+>>>>>>> origin/main
 		id: string
 		unitNumber: string
 		tenantName: string
@@ -282,7 +318,11 @@ export interface LeaseListResponse {
 		endDate: string
 		rentAmount: number
 		status: string
+<<<<<<< HEAD
 	}>
+=======
+	}[]
+>>>>>>> origin/main
 	totalCount: number
 }
 
@@ -313,7 +353,11 @@ export interface MaintenanceCreateResponse {
  */
 export interface MaintenanceListResponse {
 	success: boolean
+<<<<<<< HEAD
 	requests: Array<{
+=======
+	requests: {
+>>>>>>> origin/main
 		id: string
 		title: string
 		description: string
@@ -326,7 +370,11 @@ export interface MaintenanceListResponse {
 		createdAt: string
 		preferredDate?: string
 		assignedTo?: string
+<<<<<<< HEAD
 	}>
+=======
+	}[]
+>>>>>>> origin/main
 	totalCount: number
 }
 
@@ -367,7 +415,11 @@ export interface UsageMetricsResponse {
  */
 export interface ActivityFeedResponse {
 	success: boolean
+<<<<<<< HEAD
 	activities: Array<{
+=======
+	activities: {
+>>>>>>> origin/main
 		id: string
 		type: string
 		title: string
@@ -378,7 +430,11 @@ export interface ActivityFeedResponse {
 		userName: string
 		createdAt: string
 		metadata?: Record<string, unknown>
+<<<<<<< HEAD
 	}>
+=======
+	}[]
+>>>>>>> origin/main
 	hasMore: boolean
 }
 

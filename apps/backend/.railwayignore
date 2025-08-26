@@ -1,41 +1,71 @@
-# Railway Ignore File
-# Files and directories to ignore during Railway deployments
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs
+# NOTE: dist/ is needed for Railway deployment - do NOT ignore
+# dist/
+# **/dist/
+build/
+**/build/
+.next/
+**/.next/
+
+# Testing
+coverage/
+**/coverage/
+*.test.ts
+*.spec.ts
+**/__tests__/
+**/*.test.*
+**/*.spec.*
 
 # Development files
 .env.local
 .env.development
-.env.example
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Build artifacts
-node_modules/
-dist/
-build/
-*.tsbuildinfo
-
-# IDE files
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
+.DS_Store
 
-# Logs
-*.log
-logs/
-
-# Test files
-**/__tests__/**
-**/*.test.*
-**/*.spec.*
-coverage/
+# Git
+.git/
+.gitignore
 
 # Documentation
 *.md
 docs/
 
-# Configuration files
-.prettierrc*
-.eslintrc*
-tsconfig.json
+# Temporary files
+tmp/
+temp/
+*.tmp
 
-# Source files (only dist needed)
-src/
+# Frontend apps (we're only deploying backend)
+apps/frontend/
+apps/admin/
+
+# Packages we don't need for backend runtime
+packages/emails/
+packages/ui/
+
+# Turbo cache
+.turbo/
+**/.turbo/
+
+# TypeScript
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Other
+.eslintcache
+.prettierignore
+.prettierrc

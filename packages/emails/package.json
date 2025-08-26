@@ -1,0 +1,22 @@
+{
+	"name": "@repo/emails",
+	"version": "0.1.0",
+	"private": true,
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"scripts": {
+		"build": "tsc",
+		"dev": "tsc --watch",
+		"typecheck": "tsc --noEmit",
+		"lint": "eslint . --no-warn-ignored"
+	},
+	"dependencies": {
+		"@react-email/components": "^0.5.1",
+		"react": "^19.1.1"
+	},
+	"devDependencies": {
+		"@types/node": "^24.3.0",
+		"@types/react": "^19.1.10",
+		"typescript": "^5.3.3"
+	}
+}

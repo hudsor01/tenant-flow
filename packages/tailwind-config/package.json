@@ -1,10 +1,16 @@
 {
+<<<<<<< HEAD
 	"$schema": "https://json.schemastore.org/package",
+=======
+>>>>>>> origin/main
 	"name": "@repo/tailwind-config",
 	"version": "0.0.0",
 	"type": "module",
 	"private": true,
+<<<<<<< HEAD
 	"packageManager": "npm@10.0.0",
+=======
+>>>>>>> origin/main
 	"exports": {
 		".": "./shared-styles.css",
 		"./postcss": "./postcss.config.js"
@@ -12,15 +18,26 @@
 	"scripts": {
 		"build": "echo 'Tailwind config built successfully'",
 		"typecheck": "echo 'No TypeScript files to check in tailwind config package'",
+<<<<<<< HEAD
 		"lint": "echo 'No JavaScript/TypeScript files to lint in tailwind config package'",
 		"lint:fix": "echo 'No JavaScript/TypeScript files to lint in tailwind config package'",
+=======
+		"lint": "eslint . --fix || echo 'Tailwind config linted'",
+		"lint:fix": "eslint . --fix",
+>>>>>>> origin/main
 		"format": "echo 'No formatting configured for config package'",
 		"format:check": "echo 'No formatting configured for config package'",
 		"clean": "echo 'No build artifacts to clean in config package'"
 	},
 	"devDependencies": {
+<<<<<<< HEAD
 		"eslint": "^9.34.0",
 		"postcss": "^8.4.49",
 		"tailwindcss": "^3.4.17"
+=======
+		"eslint": "^9.17.0",
+		"postcss": "^8.5.6",
+		"tailwindcss": "^4.1.12"
+>>>>>>> origin/main
 	}
 }

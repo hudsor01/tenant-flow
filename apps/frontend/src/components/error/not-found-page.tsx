@@ -8,7 +8,11 @@ export function NotFoundPage() {
 			<div className="w-full max-w-2xl rounded-2xl bg-white p-8 shadow-xl md:p-12 dark:bg-slate-800">
 				<div className="flex flex-col items-center space-y-6 text-center">
 					<div className="relative">
+<<<<<<< HEAD
 						<div className="select-none text-[120px] font-bold text-slate-200 md:text-[180px] dark:text-slate-700">
+=======
+						<div className="text-[120px] font-bold text-slate-200 select-none md:text-[180px] dark:text-slate-700">
+>>>>>>> origin/main
 							404
 						</div>
 						<div className="absolute inset-0 flex items-center justify-center">

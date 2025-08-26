@@ -83,7 +83,11 @@ export interface MaintenanceRequest {
 			name: string
 		}
 	}
+<<<<<<< HEAD
 	Expense?: Array<{
+=======
+	Expense?: {
+>>>>>>> origin/main
 		id: string
 		propertyId: string
 		maintenanceId: string | null
@@ -96,8 +100,13 @@ export interface MaintenanceRequest {
 		vendorContact: string | null
 		createdAt: string
 		updatedAt: string
+<<<<<<< HEAD
 	}>
 	files?: Array<{
+=======
+	}[]
+	files?: {
+>>>>>>> origin/main
 		id: string
 		filename: string
 		originalName: string
@@ -108,7 +117,11 @@ export interface MaintenanceRequest {
 		propertyId: string | null
 		maintenanceRequestId: string | null
 		createdAt: string
+<<<<<<< HEAD
 	}>
+=======
+	}[]
+>>>>>>> origin/main
 }
 
 // Extended maintenance types with relations

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /**
  * Enhanced Skeleton Loading Component
  * Provides smooth loading states with multiple animation options
@@ -9,6 +10,20 @@ interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
 	variant?: 'default' | 'text' | 'circular' | 'rectangular'
 	animation?: 'pulse' | 'wave' | 'none'
 	lines?: number
+=======
+import { cn } from '@/lib/utils'
+
+function Skeleton({
+	className,
+	...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+	return (
+		<div
+			className={cn('bg-muted animate-pulse rounded-md', className)}
+			{...props}
+		/>
+	)
+>>>>>>> origin/main
 }
 
 function Skeleton({

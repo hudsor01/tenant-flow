@@ -3,7 +3,11 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/use-auth'
+<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
+=======
+import { logger } from '@/lib/logger'
+>>>>>>> origin/main
 import { Loader2 } from 'lucide-react'
 
 interface ProtectedRouteGuardProps {
@@ -41,6 +45,7 @@ export function ProtectedRouteGuard({
 
 	useEffect(() => {
 		// Don't do anything until auth is initialized
+<<<<<<< HEAD
 		if (!initialized) {
 			return
 		}
@@ -49,6 +54,12 @@ export function ProtectedRouteGuard({
 		if (!requireAuth) {
 			return
 		}
+=======
+		if (!initialized) return
+
+		// Don't check auth if protection is disabled
+		if (!requireAuth) return
+>>>>>>> origin/main
 
 		// If not loading and no user, redirect
 		if (!loading && !user && !isRedirecting) {
@@ -125,9 +136,13 @@ export function ReverseAuthGuard({
 
 	useEffect(() => {
 		// Don't do anything until auth is initialized
+<<<<<<< HEAD
 		if (!initialized) {
 			return
 		}
+=======
+		if (!initialized) return
+>>>>>>> origin/main
 
 		// If not loading and user exists, redirect
 		if (!loading && user && !isRedirecting) {
