@@ -3,7 +3,8 @@ import {
 	uuidSchema,
 	nonEmptyStringSchema,
 	positiveNumberSchema,
-	nonNegativeNumberSchema
+	nonNegativeNumberSchema,
+	requiredString
 } from './common'
 
 // Unit status enum
@@ -123,12 +124,12 @@ export type UnitStatus = z.infer<typeof unitStatusSchema>
 // Frontend-specific form schema (handles string inputs from HTML forms)
 export const unitFormSchema = z
 	.object({
-		propertyId: z.string().min(1, 'Property is required'),
-		unitNumber: z.string().min(1, 'Unit number is required'),
+		propertyId: requiredString,
+		unitNumber: requiredString,
 		bedrooms: z
 			.string()
 			.optional()
-			.transform(val => (val ? parseInt(val) : undefined)),
+			.transform(val => (val ? parseInt(val, 10) : undefined)),
 		bathrooms: z
 			.string()
 			.optional()
@@ -136,7 +137,7 @@ export const unitFormSchema = z
 		squareFootage: z
 			.string()
 			.optional()
-			.transform(val => (val ? parseInt(val) : undefined)),
+			.transform(val => (val ? parseInt(val, 10) : undefined)),
 		rent: z
 			.string()
 			.optional()

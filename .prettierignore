@@ -9,6 +9,14 @@ coverage/
 apps/frontend/src/routeTree.gen.ts
 apps/frontend/src/types/backend-app-router.d.ts
 packages/database/src/generated/
+*.generated.ts
+*.generated.js
+*.d.ts
+supabase-generated.ts
+
+# Supabase migrations and functions (SQL files)
+supabase/migrations/
+supabase/functions/
 
 # Node modules
 node_modules/

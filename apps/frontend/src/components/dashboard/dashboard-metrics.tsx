@@ -112,7 +112,7 @@ export function DashboardMetrics({ stats, isLoading }: DashboardMetricsProps) {
 		<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
 			<MetricCard
 				title="Total Properties"
-				value={stats?.properties?.totalUnits ?? 0}
+				value={stats?.properties?.total ?? 0}
 				subtitle={`${Math.round(stats?.properties?.occupancyRate ?? 0)}% occupancy rate`}
 				icon={Building2}
 				trend={{ value: 12, isPositive: true }}

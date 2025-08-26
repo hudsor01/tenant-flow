@@ -11,6 +11,21 @@ import type {
 	LeaseStats
 } from '@repo/shared'
 
+/**
+ * Query keys for React Query caching
+ */
+export const leaseKeys = {
+	all: ['leases'] as const,
+	lists: () => [...leaseKeys.all, 'list'] as const,
+	list: (filters?: LeaseQuery) => [...leaseKeys.lists(), filters] as const,
+	details: () => [...leaseKeys.all, 'detail'] as const,
+	detail: (id: string) => [...leaseKeys.details(), id] as const,
+	stats: () => [...leaseKeys.all, 'stats'] as const,
+	expiring: () => [...leaseKeys.all, 'expiring'] as const,
+	byUnit: (unitId: string) => [...leaseKeys.all, 'by-unit', unitId] as const,
+	byTenant: (tenantId: string) => [...leaseKeys.all, 'by-tenant', tenantId] as const,
+	pdf: (id: string) => [...leaseKeys.all, 'pdf', id] as const
+}
 
 
 /**

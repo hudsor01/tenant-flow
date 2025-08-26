@@ -1,5 +1,5 @@
 import { IsNumber, IsOptional, IsString, IsEnum, IsBoolean, Min, Max } from 'class-validator'
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger'
 import { Type } from 'class-transformer'
 
 /**
@@ -87,73 +87,9 @@ export class CreateUnitDto {
 }
 
 /**
- * DTO for updating an existing unit
+ * DTO for updating an existing unit - uses PartialType to avoid duplication
  */
-export class UpdateUnitDto {
-	@ApiPropertyOptional({ 
-		description: 'Unit number or identifier',
-		example: '1A' 
-	})
-	@IsOptional()
-	@IsString()
-	unitNumber?: string
-
-	@ApiPropertyOptional({ 
-		description: 'Number of bedrooms',
-		minimum: 0,
-		maximum: 20 
-	})
-	@IsOptional()
-	@IsNumber()
-	@Min(0)
-	@Max(20)
-	@Type(() => Number)
-	bedrooms?: number
-
-	@ApiPropertyOptional({ 
-		description: 'Number of bathrooms',
-		minimum: 0,
-		maximum: 10 
-	})
-	@IsOptional()
-	@IsNumber()
-	@Min(0)
-	@Max(10)
-	@Type(() => Number)
-	bathrooms?: number
-
-	@ApiPropertyOptional({ 
-		description: 'Square footage of the unit',
-		minimum: 1,
-		maximum: 50000 
-	})
-	@IsOptional()
-	@IsNumber()
-	@Min(1)
-	@Max(50000)
-	@Type(() => Number)
-	squareFeet?: number
-
-	@ApiPropertyOptional({ 
-		description: 'Monthly rent amount in dollars',
-		minimum: 0,
-		maximum: 100000 
-	})
-	@IsOptional()
-	@IsNumber()
-	@Min(0)
-	@Max(100000)
-	@Type(() => Number)
-	rent?: number
-
-	@ApiPropertyOptional({
-		description: 'Unit status',
-		enum: UnitStatus
-	})
-	@IsOptional()
-	@IsEnum(UnitStatus)
-	status?: UnitStatus
-}
+export class UpdateUnitDto extends PartialType(CreateUnitDto) {}
 
 /**
  * DTO for querying units with filters and pagination

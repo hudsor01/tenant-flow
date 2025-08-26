@@ -27,7 +27,7 @@ import type {
 	CreateSubscriptionDto
 } from './dto/checkout.dto'
 import { getPriceId } from '@repo/shared/stripe/config'
-import { UserSupabaseRepository } from '../database/user-supabase.repository'
+import { SupabaseService } from '../database/supabase.service'
 import type { BillingPeriod, PlanType } from '@repo/shared'
 
 export interface AuthenticatedUser {
@@ -44,7 +44,7 @@ export class StripeController {
 		private readonly stripeService: StripeService,
 		private readonly stripeWebhookService: StripeWebhookService,
 		private readonly stripePortalService: StripePortalService,
-		private readonly userRepository: UserSupabaseRepository
+		private readonly supabaseService: SupabaseService
 	) {}
 
 	@Post('checkout')
@@ -218,7 +218,13 @@ export class StripeController {
 
 		try {
 			// Step 1: Get or create Stripe customer
-			const existingUser = await this.userRepository.findById(user.id)
+			const { data: existingUser } = await this.supabaseService
+				.getAdminClient()
+				.from('User')
+				.select('*')
+				.eq('id', user.id)
+				.single()
+				
 			if (!existingUser) {
 				throw new Error('User not found')
 			}
@@ -233,10 +239,12 @@ export class StripeController {
 				customerId = customer.id
 
 				// Update user with Stripe customer ID
-				await this.userRepository.updateStripeCustomerId(
-					user.id,
-					customerId
-				)
+				await this.supabaseService
+					.getAdminClient()
+					.from('User')
+					.update({ stripeCustomerId: customerId })
+					.eq('id', user.id)
+					
 				this.logger.log(`Created new Stripe customer: ${customerId}`)
 			}
 

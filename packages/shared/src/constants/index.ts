@@ -20,9 +20,6 @@ export * from './auth'
 // Billing constants
 export * from './billing'
 
-// Stripe error constants
-export * from './stripe-errors'
-
 // Lease constants
 export * from './leases'
 

@@ -1,10 +1,10 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
-	"display": "TenantFlow NestJS TypeScript Config",
+	"display": "TenantFlow NestJS TypeScript Config - Node.js 20 Stable",
 	"extends": "./base.json",
 	"compilerOptions": {
-		"module": "NodeNext",
-		"moduleResolution": "NodeNext",
+		"module": "nodenext",
+		"moduleResolution": "nodenext",
 		"target": "ES2022",
 		"emitDecoratorMetadata": true,
 		"experimentalDecorators": true,
@@ -18,9 +18,10 @@
 		"noUnusedParameters": true,
 		"strictNullChecks": true,
 		"skipLibCheck": true,
-		"isolatedModules": false,
+		"isolatedModules": true,
 		"esModuleInterop": true,
-		"allowSyntheticDefaultImports": true
+		"allowSyntheticDefaultImports": true,
+		"verbatimModuleSyntax": false
 	},
 	"exclude": [
 		"node_modules",

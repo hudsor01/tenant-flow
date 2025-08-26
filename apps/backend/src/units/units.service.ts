@@ -22,6 +22,25 @@ interface UnitRow {
 	updatedAt: string
 }
 
+// Type for update operations
+interface UnitUpdateData {
+	unitNumber?: string
+	bedrooms?: number
+	bathrooms?: number
+	squareFeet?: number | null
+	rent?: number
+	status?: 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED'
+}
+
+// Type for unit stats query result
+interface UnitStatsRow {
+	status: 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED'
+	rent: number
+	Property: {
+		ownerId: string
+	}
+}
+
 @Injectable()
 export class UnitsService {
 	private readonly logger = new Logger(UnitsService.name)
@@ -223,7 +242,7 @@ export class UnitsService {
 				throw new NotFoundException(`Unit with ID ${unitId} not found`)
 			}
 
-			const updateData: Record<string, any> = {}
+			const updateData: UnitUpdateData = {}
 			if (updateUnitDto.unitNumber !== undefined) updateData.unitNumber = updateUnitDto.unitNumber
 			if (updateUnitDto.bedrooms !== undefined) updateData.bedrooms = updateUnitDto.bedrooms
 			if (updateUnitDto.bathrooms !== undefined) updateData.bathrooms = updateUnitDto.bathrooms
@@ -304,19 +323,19 @@ export class UnitsService {
 				throw new InternalServerErrorException(`Failed to fetch unit stats: ${error.message}`)
 			}
 
-			const units = data || []
+			const units = (data || []) as UnitStatsRow[]
 			const total = units.length
-			const occupied = units.filter((u: any) => u.status === 'OCCUPIED').length
-			const vacant = units.filter((u: any) => u.status === 'VACANT').length
-			const maintenance = units.filter((u: any) => u.status === 'MAINTENANCE').length
-			const available = vacant + units.filter((u: any) => u.status === 'RESERVED').length
+			const occupied = units.filter(u => u.status === 'OCCUPIED').length
+			const vacant = units.filter(u => u.status === 'VACANT').length
+			const maintenance = units.filter(u => u.status === 'MAINTENANCE').length
+			const available = vacant + units.filter(u => u.status === 'RESERVED').length
 			
-			const rents = units.map((u: any) => u.rent).filter((r): r is number => r !== null && r > 0)
+			const rents = units.map(u => u.rent).filter((r): r is number => r !== null && r > 0)
 			const averageRent = rents.length > 0 ? rents.reduce((sum, rent) => sum + rent, 0) / rents.length : 0
 			const totalPotentialRent = rents.reduce((sum, rent) => sum + rent, 0)
 			const occupiedRents = units
-				.filter((u: any) => u.status === 'OCCUPIED' && u.rent)
-				.map((u: any) => u.rent)
+				.filter(u => u.status === 'OCCUPIED' && u.rent)
+				.map(u => u.rent)
 			const totalActualRent = occupiedRents.reduce((sum, rent) => sum + rent, 0)
 
 			return {

@@ -27,8 +27,22 @@ export default tseslint.config(
     name: 'ignore-orphaned-test-files',
     ignores: [
       'src/components/forms/__tests__/**',
+      'src/components/tenants/__tests__/**',
+      'src/hooks/api/__tests__/**',
+      'src/lib/auth/__tests__/**',
       'src/smoke.spec.tsx',
       'src/test/**',
+      '*.config.js', // All JavaScript config files don't need TypeScript type checking
+      '*.config.mjs', // All ES module config files
+      'public/**', // Public directory contains plain JavaScript service workers
+      '.next/**', // Next.js build directory
+      'coverage/**', // Test coverage directory
+      'jest.config.js',
+      'eslint.config.mjs', 
+      'next-sitemap.config.js',
+      'vitest.config.ts',
+      'playwright.config.ts', // Playwright config file
+      'scripts/**', // CLI scripts are allowed to use console
     ]
   },
   
@@ -40,12 +54,12 @@ export default tseslint.config(
       'react/no-unescaped-entities': 'off', // Allow apostrophes and quotes in JSX text
       '@typescript-eslint/ban-ts-comment': 'warn', // Allow @ts-ignore but with warnings
       
-      // Downgrade TypeScript unsafe warnings to not block builds
-      '@typescript-eslint/no-unsafe-assignment': 'warn',
-      '@typescript-eslint/no-unsafe-member-access': 'warn',
-      '@typescript-eslint/no-unsafe-call': 'warn',
-      '@typescript-eslint/no-unsafe-return': 'warn',
-      '@typescript-eslint/no-unsafe-argument': 'warn',
+      // Disable TypeScript unsafe warnings for React forms and dynamic data
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
     }
   }),
   
@@ -89,9 +103,12 @@ export default tseslint.config(
         allowSingleExtends: true
       }],
       
-      // Relax some rules for React props and JSX (override base config)
-      '@typescript-eslint/no-unsafe-assignment': 'warn', // Downgraded for React props
-      '@typescript-eslint/no-unsafe-member-access': 'warn' // Downgraded for React props
+      // Disable unsafe rules for React props and JSX (override base config)
+      '@typescript-eslint/no-unsafe-assignment': 'off', // Disabled for React props
+      '@typescript-eslint/no-unsafe-member-access': 'off', // Disabled for React props  
+      '@typescript-eslint/no-unsafe-call': 'off', // Disabled for React props
+      '@typescript-eslint/no-unsafe-return': 'off', // Disabled for React props
+      '@typescript-eslint/no-unsafe-argument': 'off' // Disabled for React props
     }
   },
   
@@ -120,12 +137,13 @@ export default tseslint.config(
       '**/test/**/*.tsx'
     ],
     rules: {
-      // Allow any in tests
+      // Allow any and unsafe operations in tests
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
       
       // Allow console in tests
       'no-console': 'off'

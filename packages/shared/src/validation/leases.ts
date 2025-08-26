@@ -1,5 +1,6 @@
 // Lease validation schema for TenantFlow
 import { z } from 'zod'
+import { requiredString } from './common'
 
 // Enhanced validation with Zod patterns
 const positiveMoneyAmount = z
@@ -90,7 +91,7 @@ export const leaseRenewalSchema = z.object({
 // Lease termination schema
 export const leaseTerminationSchema = z.object({
 	terminationDate: dateString,
-	reason: z.string().min(1, 'Termination reason is required'),
+	reason: requiredString,
 	earlyTerminationFee: positiveMoneyAmount.optional(),
 	refundableDeposit: positiveMoneyAmount.optional(),
 	notes: z.string().optional()

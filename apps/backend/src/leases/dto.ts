@@ -6,7 +6,7 @@ import {
 	IsUUID,
 	Min
 } from 'class-validator'
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger'
 import { Type } from 'class-transformer'
 
 export class CreateLeaseDto {
@@ -71,72 +71,4 @@ export class CreateLeaseDto {
 	landlord_signature_date?: string
 }
 
-export class UpdateLeaseDto {
-	@ApiPropertyOptional({ description: 'Property ID' })
-	@IsOptional()
-	@IsUUID()
-	property_id?: string
-
-	@ApiPropertyOptional({ description: 'Tenant ID' })
-	@IsOptional()
-	@IsUUID()
-	tenant_id?: string
-
-	@ApiPropertyOptional({ description: 'Monthly rent amount' })
-	@IsOptional()
-	@IsNumber()
-	@Min(0)
-	@Type(() => Number)
-	rent_amount?: number
-
-	@ApiPropertyOptional({ description: 'Lease start date' })
-	@IsOptional()
-	@IsDateString()
-	start_date?: string
-
-	@ApiPropertyOptional({ description: 'Lease end date' })
-	@IsOptional()
-	@IsDateString()
-	end_date?: string
-
-	@ApiPropertyOptional({ description: 'Security deposit amount' })
-	@IsOptional()
-	@IsNumber()
-	@Min(0)
-	@Type(() => Number)
-	security_deposit?: number
-
-	@ApiPropertyOptional({ description: 'Days before late fee applies' })
-	@IsOptional()
-	@IsNumber()
-	@Min(0)
-	@Type(() => Number)
-	late_fee_grace_days?: number
-
-	@ApiPropertyOptional({ description: 'Daily late fee amount' })
-	@IsOptional()
-	@IsNumber()
-	@Min(0)
-	@Type(() => Number)
-	late_fee_amount?: number
-
-	@ApiPropertyOptional({ description: 'Tenant signature data' })
-	@IsOptional()
-	@IsString()
-	tenant_signature?: string
-
-	@ApiPropertyOptional({ description: 'Date tenant signed' })
-	@IsOptional()
-	@IsDateString()
-	tenant_signature_date?: string
-
-	@ApiPropertyOptional({ description: 'Landlord signature data' })
-	@IsOptional()
-	@IsString()
-	landlord_signature?: string
-
-	@ApiPropertyOptional({ description: 'Date landlord signed' })
-	@IsOptional()
-	@IsDateString()
-	landlord_signature_date?: string
-}
+export class UpdateLeaseDto extends PartialType(CreateLeaseDto) {}

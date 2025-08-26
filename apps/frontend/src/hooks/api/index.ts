@@ -21,5 +21,11 @@ export * from './use-maintenance'
 // Dashboard
 export * from './use-dashboard'
 
+// Authentication
+export * from './use-auth'
+
+// PDF Generation
+export * from './use-pdf'
+
 // Billing - Consolidated into useSubscription and useSubscriptionActions
 // export * from './use-billing' // DEPRECATED: Use ../useSubscription and ../useSubscriptionActions instead

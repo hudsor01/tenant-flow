@@ -12,6 +12,18 @@ import { resolve } from 'path'
 config({ path: resolve(process.cwd(), '.env.local') })
 config({ path: resolve(process.cwd(), '.env') })
 
+// Type definitions for health check response
+interface HealthCheckResponse {
+	status: 'healthy' | 'unhealthy'
+	timestamp: string
+	environment: string
+	checks: {
+		supabase_url: boolean
+		supabase_key: boolean
+	}
+	error?: string
+}
+
 async function runHealthCheck() {
 	console.log('🔍 Running Supabase Auth Health Check...\n')
 
@@ -32,54 +44,31 @@ async function runHealthCheck() {
 			throw new Error(`Health check returned ${response.status}`)
 		}
 
-		const data = await response.json()
+		const data: HealthCheckResponse = await response.json()
 
 		// Display results
 		console.log('='.repeat(60))
 		console.log('AUTH HEALTH CHECK RESULTS')
 		console.log('='.repeat(60))
-		console.log(`Overall Status: ${data.overall.toUpperCase()}`)
+		console.log(`Overall Status: ${data.status.toUpperCase()}`)
 		console.log(`Environment: ${data.environment}`)
 		console.log(`Timestamp: ${new Date(data.timestamp).toLocaleString()}`)
 		console.log('\nSystem Checks:')
 
-		Object.entries(data.checks).forEach(([name, check]: [string, any]) => {
-			const icon =
-				check.status === 'pass'
-					? '✅'
-					: check.status === 'warn'
-						? '⚠️'
-						: '❌'
-			const displayName = name.replace(/([A-Z])/g, ' $1').trim()
-			console.log(`  ${icon} ${displayName}: ${check.message}`)
-
-			if (check.details && process.env.VERBOSE) {
-				console.log(
-					`     Details: ${JSON.stringify(check.details, null, 2)}`
-				)
-			}
+		Object.entries(data.checks).forEach(([name, isHealthy]) => {
+			const icon = isHealthy ? '✅' : '❌'
+			const displayName = name.replace(/([A-Z_])/g, ' $1').trim()
+			console.log(`  ${icon} ${displayName}: ${isHealthy ? 'PASS' : 'FAIL'}`)
 		})
-
-		if (data.recommendations.length > 0) {
-			console.log('\n📋 Recommendations:')
-			data.recommendations.forEach((rec: string) => {
-				console.log(`  ${rec}`)
-			})
-		}
 
 		console.log('\n' + '='.repeat(60))
 
 		// Exit with appropriate code
-		if (data.overall === 'unhealthy') {
+		if (data.status === 'unhealthy') {
 			console.error(
 				'\n❌ Auth system is unhealthy. Please address the issues above.'
 			)
 			process.exit(1)
-		} else if (data.overall === 'degraded') {
-			console.warn(
-				'\n⚠️  Auth system is degraded. Consider addressing the warnings.'
-			)
-			process.exit(0)
 		} else {
 			console.log('\n✅ Auth system is healthy!')
 			process.exit(0)

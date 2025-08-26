@@ -1,6 +1,5 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common'
 import { SupabaseService } from '../database/supabase.service'
-import { ValidationService } from '../shared/services/validation.service'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import type { 
   MaintenanceNotificationData, 
@@ -8,14 +7,19 @@ import type {
   Priority 
 } from './dto/notification.dto'
 import { z } from 'zod'
+import { 
+  uuidSchema, 
+  requiredString, 
+  requiredTitle, 
+  requiredDescription 
+} from '@repo/shared/validation/common'
 
 @Injectable()
 export class NotificationsService {
   private readonly logger = new Logger(NotificationsService.name)
 
   constructor(
-    private readonly supabaseService: SupabaseService,
-    private readonly validationService: ValidationService
+    private readonly supabaseService: SupabaseService
   ) {}
 
   /**
@@ -23,31 +27,31 @@ export class NotificationsService {
    */
   private static readonly NOTIFICATION_SCHEMAS = {
     maintenanceNotification: z.object({
-      recipientId: z.string().uuid('Invalid recipient ID'),
-      title: z.string().min(1, 'Title cannot be empty').max(200, 'Title too long'),
-      message: z.string().min(1, 'Message cannot be empty').max(1000, 'Message too long'),
-      type: z.string().min(1, 'Type is required'),
+      recipientId: uuidSchema,
+      title: requiredTitle,
+      message: requiredDescription,
+      type: requiredString,
       priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'EMERGENCY'], {
         message: 'Invalid priority level'
       }),
       actionUrl: z.string().optional(),
-      maintenanceId: z.string().uuid('Invalid maintenance ID').optional(),
+      maintenanceId: uuidSchema.optional(),
       data: z.object({
-        propertyName: z.string().min(1, 'Property name cannot be empty'),
-        unitNumber: z.string().min(1, 'Unit number cannot be empty'),
+        propertyName: requiredString,
+        unitNumber: requiredString,
         description: z.string().max(200, 'Description too long'),
-        requestTitle: z.string().min(1, 'Request title cannot be empty')
+        requestTitle: requiredString
       })
     }),
 
     notificationInput: z.object({
-      ownerId: z.string().uuid('Invalid owner ID'),
-      title: z.string().min(1, 'Title cannot be empty').max(100, 'Title too long'),
-      description: z.string().min(1, 'Description cannot be empty').max(500, 'Description too long'),
+      ownerId: uuidSchema,
+      title: requiredTitle,
+      description: requiredDescription,
       priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'EMERGENCY']),
-      propertyName: z.string().min(1, 'Property name cannot be empty'),
-      unitNumber: z.string().min(1, 'Unit number cannot be empty'),
-      maintenanceId: z.string().uuid().optional(),
+      propertyName: requiredString,
+      unitNumber: requiredString,
+      maintenanceId: uuidSchema.optional(),
       actionUrl: z.string().url('Invalid URL format').optional()
     })
   }
@@ -110,24 +114,22 @@ export class NotificationsService {
     maintenanceId?: string,
     actionUrl?: string
   ): Promise<MaintenanceNotificationData> {
-    // Validate input data using Zod
-    const inputValidation = this.validationService.validateWithZod(
-      NotificationsService.NOTIFICATION_SCHEMAS.notificationInput,
-      {
-        ownerId,
-        title,
-        description,
-        priority,
-        propertyName,
-        unitNumber,
-        maintenanceId,
-        actionUrl
-      },
-      'notificationInput'
-    )
+    // Validate input data using Zod directly (no wrapper abstractions)
+    const validationResult = NotificationsService.NOTIFICATION_SCHEMAS.notificationInput.safeParse({
+      ownerId,
+      title,
+      description,
+      priority,
+      propertyName,
+      unitNumber,
+      maintenanceId,
+      actionUrl
+    })
 
-    if (!inputValidation.isValid) {
-      const errorMessages = inputValidation.errors.map(e => `${e.field}: ${e.message}`).join(', ')
+    if (!validationResult.success) {
+      const errorMessages = validationResult.error.issues
+        .map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`)
+        .join(', ')
       throw new BadRequestException(`Invalid notification input: ${errorMessages}`)
     }
 
@@ -149,15 +151,13 @@ export class NotificationsService {
       }
     }
 
-    // Validate notification data with Zod
-    const notificationValidation = this.validationService.validateWithZod(
-      NotificationsService.NOTIFICATION_SCHEMAS.maintenanceNotification,
-      notification,
-      'notification'
-    )
+    // Validate notification data with Zod directly (no wrapper abstractions)
+    const notificationValidation = NotificationsService.NOTIFICATION_SCHEMAS.maintenanceNotification.safeParse(notification)
 
-    if (!notificationValidation.isValid) {
-      const errorMessages = notificationValidation.errors.map(e => `${e.field}: ${e.message}`).join(', ')
+    if (!notificationValidation.success) {
+      const errorMessages = notificationValidation.error.issues
+        .map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`)
+        .join(', ')
       throw new BadRequestException(`Invalid notification data: ${errorMessages}`)
     }
 

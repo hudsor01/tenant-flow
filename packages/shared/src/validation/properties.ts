@@ -4,7 +4,8 @@ import {
 	nonEmptyStringSchema,
 	positiveNumberSchema,
 	nonNegativeNumberSchema,
-	urlSchema
+	urlSchema,
+	requiredString
 } from './common'
 import { PROPERTY_TYPE } from '../constants/properties'
 
@@ -141,7 +142,7 @@ export type PropertyStatusValidation = z.infer<typeof propertyStatusSchema>
 // Frontend-specific form schema (handles string inputs from HTML forms)
 // Clean schema for React Hook Form zodResolver compatibility
 export const propertyFormSchema = z.object({
-	name: z.string().min(1, 'Property name is required'),
+	name: requiredString,
 	description: z.string().optional(),
 	propertyType: z.enum([
 		PROPERTY_TYPE.SINGLE_FAMILY,
@@ -152,10 +153,10 @@ export const propertyFormSchema = z.object({
 		PROPERTY_TYPE.COMMERCIAL,
 		PROPERTY_TYPE.OTHER
 	]),
-	address: z.string().min(1, 'Address is required'),
-	city: z.string().min(1, 'City is required'),
-	state: z.string().min(1, 'State is required'),
-	zipCode: z.string().min(1, 'ZIP code is required'),
+	address: requiredString,
+	city: requiredString,
+	state: requiredString,
+	zipCode: requiredString,
 	bedrooms: z.string().optional(),
 	bathrooms: z.string().optional(),
 	squareFootage: z.string().optional(),
@@ -190,21 +191,20 @@ export const transformPropertyFormData = (
 	amenities: string[]
 } => ({
 	name: data.name,
-	description: data.description ?? '',
+	description: data.description || '',
 	propertyType: data.propertyType,
 	address: data.address,
 	city: data.city,
 	state: data.state,
 	zipCode: data.zipCode,
-	bedrooms: data.bedrooms ? parseInt(data.bedrooms) : undefined,
+	bedrooms: data.bedrooms ? parseInt(data.bedrooms, 10) : undefined,
 	bathrooms: data.bathrooms ? parseFloat(data.bathrooms) : undefined,
 	squareFootage: data.squareFootage
-		? parseInt(data.squareFootage)
+		? parseInt(data.squareFootage, 10)
 		: undefined,
 	rent: data.rent ? parseFloat(data.rent) : undefined,
 	deposit: data.deposit ? parseFloat(data.deposit) : undefined,
 	images: data.imageUrl ? [data.imageUrl] : [],
-	// Transform frontend UI fields to amenities array
 	amenities: [
 		...(data.hasGarage ? ['garage'] : []),
 		...(data.hasPool ? ['pool'] : [])

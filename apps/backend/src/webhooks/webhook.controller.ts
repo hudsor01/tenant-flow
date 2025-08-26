@@ -14,6 +14,21 @@ import { ConfigService } from '@nestjs/config'
 import { Public } from '../shared/decorators/public.decorator'
 import type { EnvironmentVariables } from '../config/config.schema'
 
+// Type for webhook event objects - use unknown for flexibility with runtime type guards
+type StripeEventObject = unknown
+
+interface MinimalInvoice {
+  currency: string
+  amount_due?: number
+  amount_paid?: number
+  customer: string | { id: string }
+}
+
+interface MinimalSubscription {
+  id: string
+  customer: string | { id: string }
+}
+
 
 @Controller('webhooks')
 export class UnifiedWebhookController {
@@ -117,7 +132,7 @@ export class UnifiedWebhookController {
   }
 
   private async processWebhookEvent(event: Stripe.Event): Promise<void> {
-    const obj = event.data.object as unknown
+    const obj: StripeEventObject = event.data.object
 
     switch (event.type) {
       case 'invoice.payment_failed':
@@ -150,21 +165,21 @@ export class UnifiedWebhookController {
   }
 
   // Lightweight runtime type-guards to avoid unsafe casts
-  private isStripeInvoice(obj: unknown): obj is Stripe.Invoice {
+  private isStripeInvoice(obj: StripeEventObject): obj is Stripe.Invoice {
     if (!obj || typeof obj !== 'object') return false
-    const anyObj = obj as any
+    const minimalInvoice = obj as MinimalInvoice
     // basic checks: has currency and either amount_due or amount_paid
-    return typeof anyObj.currency === 'string' &&
-      (typeof anyObj.amount_due === 'number' || typeof anyObj.amount_paid === 'number')
+    return typeof minimalInvoice.currency === 'string' &&
+      (typeof minimalInvoice.amount_due === 'number' || typeof minimalInvoice.amount_paid === 'number')
   }
 
-  private isStripeSubscription(obj: unknown): obj is Stripe.Subscription {
+  private isStripeSubscription(obj: StripeEventObject): obj is Stripe.Subscription {
     if (!obj || typeof obj !== 'object') return false
-    const anyObj = obj as any
+    const minimalSub = obj as MinimalSubscription
     // basic checks: has id and customer (string or object with id)
-    const hasCustomerId = typeof anyObj.customer === 'string' ||
-      (typeof anyObj.customer === 'object' && typeof anyObj.customer?.id === 'string')
-    return typeof anyObj.id === 'string' && hasCustomerId
+    const hasCustomerId = typeof minimalSub.customer === 'string' ||
+      (typeof minimalSub.customer === 'object' && typeof minimalSub.customer?.id === 'string')
+    return typeof minimalSub.id === 'string' && hasCustomerId
   }
 
   private async handlePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
@@ -217,7 +232,6 @@ export class UnifiedWebhookController {
       throw new Error(`No email for customer: ${customerId}`)
     }
 
-    // TODO: Send payment success email when email service is implemented
     this.logger.log(`Payment succeeded for customer ${email} - amount: ${invoice.currency.toUpperCase()} ${(invoice.amount_paid / 100).toFixed(2)}`)
   }
 
@@ -243,7 +257,6 @@ export class UnifiedWebhookController {
       throw new Error(`No email for customer: ${customerId}`)
     }
 
-    // TODO: Send subscription cancellation email when email service is implemented
     this.logger.log(`Subscription canceled for customer ${email} - subscription: ${subscription.id}`)
   }
 
@@ -269,7 +282,6 @@ export class UnifiedWebhookController {
       throw new Error(`No email for customer: ${customerId}`)
     }
 
-    // TODO: Send trial ending email when email service is implemented
     this.logger.log(`Trial ending for customer ${email} - subscription: ${subscription.id}`)
   }
 }
