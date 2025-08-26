@@ -52,7 +52,7 @@ export function InvoiceItemsSection({
 	formatCurrency
 }: InvoiceItemsSectionProps) {
 	return (
-		<Card className="group bg-card/80 flex flex-1 flex-col border-0 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl">
+		<Card className="bg-card/80 group flex flex-1 flex-col border-0 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl">
 			<CardHeader className="from-primary/5 to-accent/5 border-border/50 flex items-center justify-center border-b bg-gradient-to-r py-4">
 				<CardTitle className="text-foreground flex items-center justify-center gap-2 text-base">
 					<div className="bg-primary/10 group-hover:bg-primary/20 rounded-lg p-1.5 transition-colors">

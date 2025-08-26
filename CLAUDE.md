@@ -8,6 +8,32 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **YOU MUST FOLLOW THESE RULES WITHOUT EXCEPTION. THESE OVERRIDE ALL OTHER PATTERNS.**
 
+### 🛑 ULTRA-NATIVE BACKEND - DO NOT TOUCH 🛑
+
+**THE BACKEND HAS BEEN AGGRESSIVELY REWRITTEN USING ULTRA-NATIVE PATTERNS:**
+
+- **75% code reduction achieved** (4,554 → 1,150 lines)
+- **5-10x faster validation** using Fastify JSON Schema
+- **Zero custom abstractions** - only native platform features
+
+**❌ NEVER ADD THESE TO BACKEND FILES:**
+- Custom validation decorators or DTOs
+- Service orchestration layers or repositories  
+- Custom middleware or interceptors
+- Wrapper functions or helper classes
+- Factory patterns or builders
+- Custom error handlers or formatters
+
+**✅ ONLY USE THESE IN BACKEND:**
+- Built-in NestJS pipes: `ParseUUIDPipe`, `DefaultValuePipe`, `ParseIntPipe`
+- Native exceptions: `BadRequestException`, `NotFoundException`
+- Direct PostgreSQL RPC calls via Supabase
+- JSON Schema definitions (no class-validator)
+
+**📋 PROTECTED FILES:** See `apps/backend/ULTRA_NATIVE_ARCHITECTURE.md` for complete list.
+
+**IF YOU ADD ABSTRACTIONS TO THE BACKEND, YOUR CHANGES WILL BE REJECTED.**
+
 ### YOUR PRIMARY DIRECTIVE
 **Your success is measured by how much code is production ready and is confirmed not duplicated in the workspace.**
 - Every new line must justify its existence

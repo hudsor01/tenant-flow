@@ -83,14 +83,17 @@ export function PricingCards() {
 					{plans.map(plan => {
 						const price =
 							billingPeriod === 'monthly'
-								? plan.monthly
-								: plan.annual
+								? plan.price.monthly
+								: plan.price.annual
 						const savings =
 							billingPeriod === 'annual'
-								? getAnnualSavings(plan.id)
+								? getAnnualSavings(
+										plan.price.monthly,
+										plan.price.annual
+									)
 								: 0
-						const isPopular = plan.popular
-						const isRecommended = plan.recommended
+						const isPopular = plan.id === 'pro' // Pro plan is popular
+						const isRecommended = plan.id === 'pro' // Pro plan is recommended
 
 						return (
 							<Card
@@ -115,7 +118,7 @@ export function PricingCards() {
 									</div>
 								)}
 
-								<CardHeader className="pt-8 pb-8">
+								<CardHeader className="pb-8 pt-8">
 									<div className="text-center">
 										<h3 className="text-2xl font-bold text-gray-900">
 											{plan.name}
@@ -128,7 +131,10 @@ export function PricingCards() {
 										<div className="mt-6">
 											<div className="flex items-baseline justify-center">
 												<span className="text-5xl font-bold text-gray-900">
-													{formatPrice(price.amount)}
+													{formatPrice(
+														price,
+														billingPeriod
+													)}
 												</span>
 												<span className="ml-2 text-lg text-gray-600">
 													/
@@ -142,7 +148,10 @@ export function PricingCards() {
 												savings > 0 && (
 													<div className="mt-2 text-sm font-medium text-green-600">
 														Save{' '}
-														{formatPrice(savings)}{' '}
+														{formatPrice(
+															savings,
+															'annual'
+														)}{' '}
 														annually
 													</div>
 												)}
@@ -151,7 +160,8 @@ export function PricingCards() {
 												<div className="mt-2 text-sm text-gray-500">
 													or{' '}
 													{formatPrice(
-														plan.annual.amount
+														plan.price.annual,
+														'annual'
 													)}
 													/year
 												</div>
@@ -185,27 +195,21 @@ export function PricingCards() {
 											<div className="flex justify-between">
 												<span>Properties:</span>
 												<span className="font-medium">
-													{plan.limits.properties ===
-													-1
+													{plan.propertyLimit === -1
 														? 'Unlimited'
-														: plan.limits
-																.properties}
+														: plan.propertyLimit}
 												</span>
 											</div>
 											<div className="flex justify-between">
 												<span>Units:</span>
 												<span className="font-medium">
-													{plan.limits.units === -1
-														? 'Unlimited'
-														: plan.limits.units}
+													Unlimited
 												</span>
 											</div>
 											<div className="flex justify-between">
 												<span>Team members:</span>
 												<span className="font-medium">
-													{plan.limits.users === -1
-														? 'Unlimited'
-														: plan.limits.users}
+													Unlimited
 												</span>
 											</div>
 										</div>
@@ -214,7 +218,7 @@ export function PricingCards() {
 									{/* CTA Button */}
 									<Button
 										onClick={async () =>
-											handleGetStarted(plan.id)
+											handleGetStarted(plan.id as PlanType)
 										}
 										disabled={
 											createCheckoutMutation.isPending

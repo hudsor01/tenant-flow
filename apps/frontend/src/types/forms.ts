@@ -10,9 +10,9 @@ export interface FormState {
 	isDirty: boolean
 }
 
-export type FormErrors = Record<string, string[] | undefined>;
+export type FormErrors = Record<string, string[] | undefined>
 
-export type FormTouched = Record<string, boolean>;
+export type FormTouched = Record<string, boolean>
 
 // Auth form types
 export interface LoginFormData {
@@ -63,7 +63,13 @@ export interface PropertyFormData {
 	city: string
 	state: string
 	zipCode: string
-	type: 'SINGLE_FAMILY' | 'MULTI_FAMILY' | 'APARTMENT' | 'CONDO' | 'TOWNHOUSE' | 'COMMERCIAL'
+	type:
+		| 'SINGLE_FAMILY'
+		| 'MULTI_FAMILY'
+		| 'APARTMENT'
+		| 'CONDO'
+		| 'TOWNHOUSE'
+		| 'COMMERCIAL'
 	units?: number
 	rentAmount?: number
 	description?: string
@@ -97,7 +103,7 @@ export interface LeaseFormData {
 	terms?: string
 }
 
-// Maintenance form types  
+// Maintenance form types
 export interface MaintenanceFormData {
 	propertyId: string
 	unitId?: string
@@ -129,6 +135,14 @@ export interface FormFieldProps {
 	error?: string | string[]
 	touched?: boolean
 	value?: unknown
-	onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void
-	onBlur?: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void
+	onChange?: (
+		e: React.ChangeEvent<
+			HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+		>
+	) => void
+	onBlur?: (
+		e: React.FocusEvent<
+			HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+		>
+	) => void
 }

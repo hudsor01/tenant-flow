@@ -1,7 +1,7 @@
 'use server'
 
 import { PostHog } from 'posthog-node'
-import { logger } from "@/lib/logger/logger"
+import { logger } from '@/lib/logger/logger'
 import type { TenantFlowEvent } from '@/hooks/use-posthog'
 
 // Initialize PostHog for server-side tracking - only if key is available

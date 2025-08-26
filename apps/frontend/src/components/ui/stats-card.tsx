@@ -97,7 +97,7 @@ export function StatsCard({
 					</div>
 				</CardHeader>
 				<CardContent>
-					<Skeleton className="mb-2 h-10 w-24 @[250px]/card:h-12 @[250px]/card:w-32" />
+					<Skeleton className="@[250px]/card:h-12 @[250px]/card:w-32 mb-2 h-10 w-24" />
 					<Skeleton className="h-4 w-full" />
 				</CardContent>
 			</Card>
@@ -144,7 +144,7 @@ export function StatsCard({
 					<Badge
 						variant="secondary"
 						className={cn(
-							'absolute top-4 right-4 hidden items-center gap-1 text-xs font-medium @[200px]/card:flex',
+							'@[200px]/card:flex absolute right-4 top-4 hidden items-center gap-1 text-xs font-medium',
 							trendColor
 						)}
 					>
@@ -160,7 +160,7 @@ export function StatsCard({
 					{title}
 				</CardDescription>
 
-				<CardTitle className="font-display text-foreground text-2xl font-semibold tracking-tight tabular-nums @[250px]/card:text-3xl">
+				<CardTitle className="font-display text-foreground @[250px]/card:text-3xl text-2xl font-semibold tabular-nums tracking-tight">
 					{value}
 				</CardTitle>
 			</CardHeader>
@@ -180,7 +180,7 @@ export function StatsCard({
 
 			{(description || trend) && (
 				<CardFooter className="pt-0">
-					<div className="flex flex-col items-start gap-2 text-xs @[250px]/card:flex-row @[250px]/card:items-center @[250px]/card:justify-between">
+					<div className="@[250px]/card:flex-row @[250px]/card:items-center @[250px]/card:justify-between flex flex-col items-start gap-2 text-xs">
 						{description && (
 							<span className="text-muted-foreground font-medium">
 								{description}
@@ -189,7 +189,7 @@ export function StatsCard({
 						{trend && (
 							<div
 								className={cn(
-									'flex items-center gap-1 font-medium @[250px]/card:hidden',
+									'@[250px]/card:hidden flex items-center gap-1 font-medium',
 									trendColor
 								)}
 							>

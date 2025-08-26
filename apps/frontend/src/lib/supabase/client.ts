@@ -1,7 +1,7 @@
 import { createBrowserClient } from '@supabase/ssr'
-import { logger } from "@/lib/logger/logger"
+import { logger } from '@/lib/logger/logger'
 import { config } from '../config'
-import type { Database } from '@repo/shared/types/supabase'
+import type { Database } from '@repo/shared'
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
 
 // Use global variable to ensure single instance across all imports
@@ -65,7 +65,9 @@ export const supabase = (() => {
 	return new Proxy({} as SupabaseClientType, {
 		get(target, prop, receiver) {
 			instance ??= createClient()
-			return instance ? Reflect.get(instance as object, prop, receiver) : undefined
+			return instance
+				? Reflect.get(instance as object, prop, receiver)
+				: undefined
 		}
 	})
 })()
@@ -74,14 +76,16 @@ export const supabase = (() => {
 export const auth = new Proxy({} as object, {
 	get(target, prop, receiver) {
 		try {
-				// Accessing `supabase.auth` may return undefined when instance is not available
-				const candidate = supabase
-				if (!candidate || typeof candidate !== 'object') return undefined
-				const authTarget = (candidate as { auth?: unknown }).auth
-				return authTarget ? Reflect.get(authTarget as object, prop, receiver) : undefined
-			} catch {
-				return undefined
-			}
+			// Accessing `supabase.auth` may return undefined when instance is not available
+			const candidate = supabase
+			if (!candidate || typeof candidate !== 'object') return undefined
+			const authTarget = (candidate as { auth?: unknown }).auth
+			return authTarget
+				? Reflect.get(authTarget as object, prop, receiver)
+				: undefined
+		} catch {
+			return undefined
+		}
 	}
 })
 

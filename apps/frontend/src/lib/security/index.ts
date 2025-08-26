@@ -3,7 +3,7 @@
  * Production-ready security utilities with no conflicts
  */
 
-import { logger } from "@/lib/logger/logger"
+import { logger } from '@/lib/logger/logger'
 
 // Core Consolidated Security
 export { default as Security, withSecurity, withAuth } from './security'

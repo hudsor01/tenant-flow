@@ -215,7 +215,9 @@ class EnvConfig {
 
 	getAppUrl(path?: string): string {
 		const baseUrl = this.config.appUrl.replace(/\/+$/, '')
-		if (!path) {return baseUrl}
+		if (!path) {
+			return baseUrl
+		}
 		const cleanPath = path.replace(/^\/+/, '')
 		return `${baseUrl}/${cleanPath}`
 	}

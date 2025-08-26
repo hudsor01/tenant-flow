@@ -40,7 +40,6 @@ function PropertyCardSkeleton() {
 
 // Property card component
 function PropertyCard({ property }: { property: Property }) {
-
 	return (
 		<Card className="transition-shadow hover:shadow-md">
 			<CardHeader>

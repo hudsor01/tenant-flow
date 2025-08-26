@@ -488,7 +488,9 @@ export function CommandPalette() {
 
 	// Filter items based on search
 	const filteredGroups = React.useMemo(() => {
-		if (!search) {return groupedItems}
+		if (!search) {
+			return groupedItems
+		}
 
 		return groupedItems
 			.map(group => ({
@@ -557,7 +559,7 @@ export function CommandPalette() {
 							className="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-gray-500 disabled:cursor-not-allowed disabled:opacity-50"
 						/>
 						<div className="ml-auto flex items-center gap-1">
-							<kbd className="pointer-events-none inline-flex h-5 items-center gap-1 rounded border bg-gray-100 px-1.5 font-mono text-[10px] font-medium text-gray-600 select-none">
+							<kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-gray-100 px-1.5 font-mono text-[10px] font-medium text-gray-600">
 								<span className="text-xs">⌘</span>K
 							</kbd>
 						</div>

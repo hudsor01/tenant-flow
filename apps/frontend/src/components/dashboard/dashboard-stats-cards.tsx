@@ -33,7 +33,9 @@ export function DashboardStatsCards() {
 			currentStats: DashboardStats | undefined,
 			optimisticUpdate: Partial<DashboardStats>
 		) => {
-			if (!currentStats) {return undefined}
+			if (!currentStats) {
+				return undefined
+			}
 			return {
 				...currentStats,
 				...optimisticUpdate
@@ -165,7 +167,7 @@ export function DashboardStatsCards() {
 							</CardTitle>
 							<div
 								className={cn(
-									'rounded-xl p-2.5 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3',
+									'rounded-xl p-2.5 transition-all duration-300 group-hover:rotate-3 group-hover:scale-110',
 									'shadow-sm ring-1 ring-black/5 backdrop-blur-sm',
 									'group-hover:shadow-md',
 									stat.iconBg

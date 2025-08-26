@@ -6,7 +6,10 @@ import {
 	Post,
 	Req,
 	UsePipes,
-	ValidationPipe
+	ValidationPipe,
+	NotFoundException,
+	BadRequestException,
+	InternalServerErrorException
 } from '@nestjs/common'
 import type { RawBodyRequest } from '@nestjs/common'
 import {
@@ -22,10 +25,10 @@ import { StripeWebhookService } from './stripe-webhook.service'
 import { StripePortalService } from './stripe-portal.service'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
 import type {
-	CreateCheckoutDto,
-	CreatePortalDto,
+	CreateCheckoutRequest,
+	CreatePortalRequest,
 	CreateSubscriptionDto
-} from './dto/checkout.dto'
+} from '../schemas/stripe.schemas'
 import { getPriceId } from '@repo/shared/stripe/config'
 import { SupabaseService } from '../database/supabase.service'
 import type { BillingPeriod, PlanType } from '@repo/shared'
@@ -73,7 +76,7 @@ export class StripeController {
 		new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true })
 	)
 	async createCheckout(
-		@Body() dto: CreateCheckoutDto,
+		@Body() dto: CreateCheckoutRequest,
 		@CurrentUser() user: AuthenticatedUser
 	) {
 		this.logger.log(
@@ -88,7 +91,7 @@ export class StripeController {
 			)
 
 			if (!priceId) {
-				throw new Error(
+				throw new BadRequestException(
 					`No price ID found for plan ${dto.planId} with interval ${dto.interval}`
 				)
 			}
@@ -115,7 +118,7 @@ export class StripeController {
 				`Failed to create checkout session: ${error instanceof Error ? error.message : String(error)}`,
 				error instanceof Error ? error.stack : ''
 			)
-			throw new Error(
+			throw new InternalServerErrorException(
 				`Failed to create checkout session: ${error instanceof Error ? error.message : String(error)}`
 			)
 		}
@@ -143,7 +146,7 @@ export class StripeController {
 		new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true })
 	)
 	async createPortal(
-		@Body() dto: CreatePortalDto,
+		@Body() dto: CreatePortalRequest,
 		@CurrentUser() user: AuthenticatedUser
 	) {
 		this.logger.log(`Creating portal session for user ${user.id}`)
@@ -165,7 +168,7 @@ export class StripeController {
 				`Failed to create portal session: ${error instanceof Error ? error.message : String(error)}`,
 				error instanceof Error ? error.stack : ''
 			)
-			throw new Error(
+			throw new InternalServerErrorException(
 				`Failed to create portal session: ${error instanceof Error ? error.message : String(error)}`
 			)
 		}
@@ -224,9 +227,9 @@ export class StripeController {
 				.select('*')
 				.eq('id', user.id)
 				.single()
-				
+
 			if (!existingUser) {
-				throw new Error('User not found')
+				throw new NotFoundException('User not found')
 			}
 			let customerId = existingUser.stripeCustomerId
 
@@ -244,7 +247,7 @@ export class StripeController {
 					.from('User')
 					.update({ stripeCustomerId: customerId })
 					.eq('id', user.id)
-					
+
 				this.logger.log(`Created new Stripe customer: ${customerId}`)
 			}
 
@@ -254,16 +257,16 @@ export class StripeController {
 				dto.billingInterval as BillingPeriod
 			)
 			if (!priceId) {
-				throw new Error(
+				throw new BadRequestException(
 					`No price ID found for plan ${dto.planType} with interval ${dto.billingInterval}`
 				)
 			}
 
 			// Step 3: Create subscription using Confirmation Token
 			if (!customerId) {
-				throw new Error('Customer ID is required')
+				throw new BadRequestException('Customer ID is required')
 			}
-			
+
 			const subscription =
 				await this.stripeService.createSubscriptionWithConfirmationToken(
 					dto.confirmationTokenId,
@@ -317,7 +320,7 @@ export class StripeController {
 				`Failed to create subscription: ${error instanceof Error ? error.message : String(error)}`,
 				error instanceof Error ? error.stack : ''
 			)
-			throw new Error(
+			throw new InternalServerErrorException(
 				`Failed to create subscription: ${error instanceof Error ? error.message : String(error)}`
 			)
 		}
@@ -338,10 +341,12 @@ export class StripeController {
 
 		try {
 			if (!req.rawBody) {
-				throw new Error('No raw body found in request')
+				throw new BadRequestException('No raw body found in request')
 			}
 			if (!signature) {
-				throw new Error('No stripe signature found in headers')
+				throw new BadRequestException(
+					'No stripe signature found in headers'
+				)
 			}
 
 			// Verify the webhook signature
@@ -362,7 +367,7 @@ export class StripeController {
 				`Webhook processing failed: ${error instanceof Error ? error.message : String(error)}`,
 				error instanceof Error ? error.stack : ''
 			)
-			throw new Error(
+			throw new InternalServerErrorException(
 				`Webhook processing failed: ${error instanceof Error ? error.message : String(error)}`
 			)
 		}

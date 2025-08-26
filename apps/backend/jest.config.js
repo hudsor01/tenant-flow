@@ -4,7 +4,7 @@ module.exports = {
 	preset: 'ts-jest',
 	testEnvironment: 'node',
 	rootDir: '.',
-	
+
 	// Test discovery
 	testMatch: [
 		'<rootDir>/src/**/*.spec.ts',
@@ -13,7 +13,7 @@ module.exports = {
 		'<rootDir>/test/**/*.e2e-spec.ts'
 	],
 	testPathIgnorePatterns: ['/node_modules/', '/dist/', '/coverage/'],
-	
+
 	// Coverage configuration
 	collectCoverageFrom: [
 		'src/**/*.{ts,js}',
@@ -36,7 +36,7 @@ module.exports = {
 			statements: 20
 		}
 	},
-	
+
 	// Module resolution for monorepo
 	moduleNameMapper: {
 		'^@/(.*)$': '<rootDir>/src/$1',
@@ -47,22 +47,21 @@ module.exports = {
 		'^@repo/test-utils/(.*)$': '<rootDir>/../../packages/test-utils/src/$1',
 		'^@repo/test-utils$': '<rootDir>/../../packages/test-utils/src/index'
 	},
-	
+
 	// Test setup
 	setupFilesAfterEnv: [
-		'@repo/test-utils/setup/jest.setup',
-		'<rootDir>/src/test-setup.ts'
+		'<rootDir>/../../packages/test-utils/dist/setup/jest.setup.js'
 	],
 	testTimeout: 15000,
 	maxWorkers: 1, // Prevents database conflicts during parallel test execution
-	
+
 	// Jest configuration
 	verbose: true,
 	silent: false,
 	clearMocks: true,
 	restoreMocks: true,
 	resetMocks: true,
-	
+
 	// TypeScript configuration (updated to remove deprecations)
 	transform: {
 		'^.+\\.(ts|tsx)$': [
@@ -75,14 +74,12 @@ module.exports = {
 		]
 	},
 	moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
-	
+
 	// Performance
 	maxConcurrency: 5,
 	forceExit: true,
 	detectOpenHandles: true,
-	
+
 	// Ignore patterns
-	transformIgnorePatterns: [
-		'/node_modules/(?!(@supabase|@repo)/)'
-	]
+	transformIgnorePatterns: ['/node_modules/(?!(@supabase|@repo)/)']
 }

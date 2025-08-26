@@ -15,44 +15,53 @@ export function useFormState<T extends Record<string, unknown>>(
 	options: UseFormStateOptions<T>
 ) {
 	const { initialValues, validateOnChange = false, validator } = options
-	
+
 	const [values, setValues] = useState<T>(initialValues)
 	const [errors, setErrors] = useState<FormErrors>({})
 	const [touched, setTouched] = useState<Record<string, boolean>>({})
 	const [isSubmitting, setIsSubmitting] = useState(false)
 
 	const handleChange = useCallback(
-		(field: keyof T) => (
-			e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-		) => {
-			const value = e.target.type === 'checkbox' 
-				? (e.target as HTMLInputElement).checked 
-				: e.target.value
+		(field: keyof T) =>
+			(
+				e: ChangeEvent<
+					HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+				>
+			) => {
+				const value =
+					e.target.type === 'checkbox'
+						? (e.target as HTMLInputElement).checked
+						: e.target.value
 
-			setValues(prev => ({
-				...prev,
-				[field]: value
-			}))
+				setValues(prev => ({
+					...prev,
+					[field]: value
+				}))
 
-			if (validateOnChange && validator) {
-				const newValues = { ...values, [field]: value }
-				const newErrors = validator(newValues)
-				setErrors(newErrors)
-			}
-		},
+				if (validateOnChange && validator) {
+					const newValues = { ...values, [field]: value }
+					const newErrors = validator(newValues)
+					setErrors(newErrors)
+				}
+			},
 		[values, validateOnChange, validator]
 	)
 
-	const handleBlur = useCallback((field: keyof T) => () => {
-		setTouched(prev => ({
-			...prev,
-			[field]: true
-		}))
-	}, [])
+	const handleBlur = useCallback(
+		(field: keyof T) => () => {
+			setTouched(prev => ({
+				...prev,
+				[field]: true
+			}))
+		},
+		[]
+	)
 
 	const validate = useCallback(() => {
-		if (!validator) {return true}
-		
+		if (!validator) {
+			return true
+		}
+
 		const newErrors = validator(values)
 		setErrors(newErrors)
 		return Object.keys(newErrors).length === 0
@@ -72,12 +81,15 @@ export function useFormState<T extends Record<string, unknown>>(
 		}))
 	}, [])
 
-	const setFieldError = useCallback((field: string, error: string | undefined) => {
-		setErrors(prev => ({
-			...prev,
-			[field]: error ? [error] : undefined
-		}))
-	}, [])
+	const setFieldError = useCallback(
+		(field: string, error: string | undefined) => {
+			setErrors(prev => ({
+				...prev,
+				[field]: error ? [error] : undefined
+			}))
+		},
+		[]
+	)
 
 	return {
 		values,

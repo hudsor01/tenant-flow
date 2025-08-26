@@ -100,7 +100,7 @@ function LeaseRow({ lease }: { lease: LeaseTableRow }) {
 						<FileText className="text-primary h-5 w-5" />
 					</div>
 					<div className="space-y-1">
-						<p className="leading-none font-medium">
+						<p className="font-medium leading-none">
 							Lease #{lease.id.slice(-8)}
 						</p>
 						<div className="text-muted-foreground flex items-center gap-1 text-sm">

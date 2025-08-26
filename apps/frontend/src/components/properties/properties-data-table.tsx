@@ -64,7 +64,7 @@ function PropertyRow({ property, onView, onEdit }: PropertyRowProps) {
 						<Building2 className="text-primary h-5 w-5" />
 					</div>
 					<div className="space-y-1">
-						<p className="leading-none font-medium">
+						<p className="font-medium leading-none">
 							{property.name}
 						</p>
 						<div className="text-muted-foreground flex items-center gap-1 text-sm">
@@ -240,7 +240,9 @@ function filterProperties(
 	searchQuery: string,
 	propertyType: string
 ): Property[] {
-	if (!properties) {return []}
+	if (!properties) {
+		return []
+	}
 
 	return properties.filter(property => {
 		const matchesSearch =

@@ -15,9 +15,19 @@ const US_STATES: StateInfo[] = [
 	{ name: 'Alaska', slug: 'alaska', code: 'AK', fullName: 'Alaska' },
 	{ name: 'Arizona', slug: 'arizona', code: 'AZ', fullName: 'Arizona' },
 	{ name: 'Arkansas', slug: 'arkansas', code: 'AR', fullName: 'Arkansas' },
-	{ name: 'California', slug: 'california', code: 'CA', fullName: 'California' },
+	{
+		name: 'California',
+		slug: 'california',
+		code: 'CA',
+		fullName: 'California'
+	},
 	{ name: 'Colorado', slug: 'colorado', code: 'CO', fullName: 'Colorado' },
-	{ name: 'Connecticut', slug: 'connecticut', code: 'CT', fullName: 'Connecticut' },
+	{
+		name: 'Connecticut',
+		slug: 'connecticut',
+		code: 'CT',
+		fullName: 'Connecticut'
+	},
 	{ name: 'Delaware', slug: 'delaware', code: 'DE', fullName: 'Delaware' },
 	{ name: 'Florida', slug: 'florida', code: 'FL', fullName: 'Florida' },
 	{ name: 'Georgia', slug: 'georgia', code: 'GA', fullName: 'Georgia' },
@@ -31,34 +41,99 @@ const US_STATES: StateInfo[] = [
 	{ name: 'Louisiana', slug: 'louisiana', code: 'LA', fullName: 'Louisiana' },
 	{ name: 'Maine', slug: 'maine', code: 'ME', fullName: 'Maine' },
 	{ name: 'Maryland', slug: 'maryland', code: 'MD', fullName: 'Maryland' },
-	{ name: 'Massachusetts', slug: 'massachusetts', code: 'MA', fullName: 'Massachusetts' },
+	{
+		name: 'Massachusetts',
+		slug: 'massachusetts',
+		code: 'MA',
+		fullName: 'Massachusetts'
+	},
 	{ name: 'Michigan', slug: 'michigan', code: 'MI', fullName: 'Michigan' },
 	{ name: 'Minnesota', slug: 'minnesota', code: 'MN', fullName: 'Minnesota' },
-	{ name: 'Mississippi', slug: 'mississippi', code: 'MS', fullName: 'Mississippi' },
+	{
+		name: 'Mississippi',
+		slug: 'mississippi',
+		code: 'MS',
+		fullName: 'Mississippi'
+	},
 	{ name: 'Missouri', slug: 'missouri', code: 'MO', fullName: 'Missouri' },
 	{ name: 'Montana', slug: 'montana', code: 'MT', fullName: 'Montana' },
 	{ name: 'Nebraska', slug: 'nebraska', code: 'NE', fullName: 'Nebraska' },
 	{ name: 'Nevada', slug: 'nevada', code: 'NV', fullName: 'Nevada' },
-	{ name: 'New Hampshire', slug: 'new-hampshire', code: 'NH', fullName: 'New Hampshire' },
-	{ name: 'New Jersey', slug: 'new-jersey', code: 'NJ', fullName: 'New Jersey' },
-	{ name: 'New Mexico', slug: 'new-mexico', code: 'NM', fullName: 'New Mexico' },
+	{
+		name: 'New Hampshire',
+		slug: 'new-hampshire',
+		code: 'NH',
+		fullName: 'New Hampshire'
+	},
+	{
+		name: 'New Jersey',
+		slug: 'new-jersey',
+		code: 'NJ',
+		fullName: 'New Jersey'
+	},
+	{
+		name: 'New Mexico',
+		slug: 'new-mexico',
+		code: 'NM',
+		fullName: 'New Mexico'
+	},
 	{ name: 'New York', slug: 'new-york', code: 'NY', fullName: 'New York' },
-	{ name: 'North Carolina', slug: 'north-carolina', code: 'NC', fullName: 'North Carolina' },
-	{ name: 'North Dakota', slug: 'north-dakota', code: 'ND', fullName: 'North Dakota' },
+	{
+		name: 'North Carolina',
+		slug: 'north-carolina',
+		code: 'NC',
+		fullName: 'North Carolina'
+	},
+	{
+		name: 'North Dakota',
+		slug: 'north-dakota',
+		code: 'ND',
+		fullName: 'North Dakota'
+	},
 	{ name: 'Ohio', slug: 'ohio', code: 'OH', fullName: 'Ohio' },
 	{ name: 'Oklahoma', slug: 'oklahoma', code: 'OK', fullName: 'Oklahoma' },
 	{ name: 'Oregon', slug: 'oregon', code: 'OR', fullName: 'Oregon' },
-	{ name: 'Pennsylvania', slug: 'pennsylvania', code: 'PA', fullName: 'Pennsylvania' },
-	{ name: 'Rhode Island', slug: 'rhode-island', code: 'RI', fullName: 'Rhode Island' },
-	{ name: 'South Carolina', slug: 'south-carolina', code: 'SC', fullName: 'South Carolina' },
-	{ name: 'South Dakota', slug: 'south-dakota', code: 'SD', fullName: 'South Dakota' },
+	{
+		name: 'Pennsylvania',
+		slug: 'pennsylvania',
+		code: 'PA',
+		fullName: 'Pennsylvania'
+	},
+	{
+		name: 'Rhode Island',
+		slug: 'rhode-island',
+		code: 'RI',
+		fullName: 'Rhode Island'
+	},
+	{
+		name: 'South Carolina',
+		slug: 'south-carolina',
+		code: 'SC',
+		fullName: 'South Carolina'
+	},
+	{
+		name: 'South Dakota',
+		slug: 'south-dakota',
+		code: 'SD',
+		fullName: 'South Dakota'
+	},
 	{ name: 'Tennessee', slug: 'tennessee', code: 'TN', fullName: 'Tennessee' },
 	{ name: 'Texas', slug: 'texas', code: 'TX', fullName: 'Texas' },
 	{ name: 'Utah', slug: 'utah', code: 'UT', fullName: 'Utah' },
 	{ name: 'Vermont', slug: 'vermont', code: 'VT', fullName: 'Vermont' },
 	{ name: 'Virginia', slug: 'virginia', code: 'VA', fullName: 'Virginia' },
-	{ name: 'Washington', slug: 'washington', code: 'WA', fullName: 'Washington' },
-	{ name: 'West Virginia', slug: 'west-virginia', code: 'WV', fullName: 'West Virginia' },
+	{
+		name: 'Washington',
+		slug: 'washington',
+		code: 'WA',
+		fullName: 'Washington'
+	},
+	{
+		name: 'West Virginia',
+		slug: 'west-virginia',
+		code: 'WV',
+		fullName: 'West Virginia'
+	},
 	{ name: 'Wisconsin', slug: 'wisconsin', code: 'WI', fullName: 'Wisconsin' },
 	{ name: 'Wyoming', slug: 'wyoming', code: 'WY', fullName: 'Wyoming' }
 ]
@@ -89,9 +164,10 @@ export function getAllStates(): StateInfo[] {
  */
 export function searchStates(query: string): StateInfo[] {
 	const normalizedQuery = query.toLowerCase()
-	return US_STATES.filter(state => 
-		state.name.toLowerCase().includes(normalizedQuery) ||
-		state.slug.includes(normalizedQuery) ||
-		state.code.toLowerCase().includes(normalizedQuery)
+	return US_STATES.filter(
+		state =>
+			state.name.toLowerCase().includes(normalizedQuery) ||
+			state.slug.includes(normalizedQuery) ||
+			state.code.toLowerCase().includes(normalizedQuery)
 	)
 }

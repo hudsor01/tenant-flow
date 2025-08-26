@@ -34,7 +34,9 @@ export function LeaseTermsSection({
 	selectedProperty,
 	mode
 }: LeaseTermsSectionProps) {
-	if (!selectedProperty) {return null}
+	if (!selectedProperty) {
+		return null
+	}
 
 	return (
 		<FormSection icon={DollarSign} title="4. Lease Terms" delay={3}>
@@ -78,14 +80,16 @@ export function LeaseTermsSection({
 							<FormLabel>Monthly Rent *</FormLabel>
 							<FormControl>
 								<div className="relative">
-									<span className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2">
+									<span className="text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2">
 										$
 									</span>
 									<Input
 										type="number"
 										className="pl-8"
 										{...field}
-										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+										onChange={(
+											e: React.ChangeEvent<HTMLInputElement>
+										) =>
 											field.onChange(
 												parseFloat(e.target.value) ?? 0
 											)
@@ -110,14 +114,16 @@ export function LeaseTermsSection({
 							<FormLabel>Security Deposit *</FormLabel>
 							<FormControl>
 								<div className="relative">
-									<span className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2">
+									<span className="text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2">
 										$
 									</span>
 									<Input
 										type="number"
 										className="pl-8"
 										{...field}
-										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+										onChange={(
+											e: React.ChangeEvent<HTMLInputElement>
+										) =>
 											field.onChange(
 												parseFloat(e.target.value) ?? 0
 											)
@@ -147,7 +153,9 @@ export function LeaseTermsSection({
 									min="0"
 									max="30"
 									{...field}
-									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+									onChange={(
+										e: React.ChangeEvent<HTMLInputElement>
+									) =>
 										field.onChange(
 											parseInt(e.target.value) ||
 												undefined
@@ -172,7 +180,7 @@ export function LeaseTermsSection({
 							<FormLabel>Late Fee Amount</FormLabel>
 							<FormControl>
 								<div className="relative">
-									<span className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2">
+									<span className="text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2">
 										$
 									</span>
 									<Input
@@ -180,7 +188,9 @@ export function LeaseTermsSection({
 										className="pl-8"
 										min="0"
 										{...field}
-										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+										onChange={(
+											e: React.ChangeEvent<HTMLInputElement>
+										) =>
 											field.onChange(
 												parseFloat(e.target.value) ||
 													undefined

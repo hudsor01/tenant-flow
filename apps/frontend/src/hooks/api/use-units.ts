@@ -81,16 +81,22 @@ export function useCreateUnit(): UseMutationResult<
 		mutationFn: unitApi.create,
 		onMutate: async newUnit => {
 			// Cancel any outgoing refetches
-			await queryClient.cancelQueries({ queryKey: queryKeys.units.lists() })
+			await queryClient.cancelQueries({
+				queryKey: queryKeys.units.lists()
+			})
 
 			// Snapshot the previous value
-			const previousUnits = queryClient.getQueryData(queryKeys.units.lists())
+			const previousUnits = queryClient.getQueryData(
+				queryKeys.units.lists()
+			)
 
 			// Optimistically update all unit lists
 			queryClient.setQueriesData(
 				{ queryKey: queryKeys.units.lists() },
 				(old: Unit[] | undefined) => {
-					if (!old) {return []}
+					if (!old) {
+						return []
+					}
 					return [
 						...old,
 						{
@@ -120,7 +126,9 @@ export function useCreateUnit(): UseMutationResult<
 		},
 		onSettled: () => {
 			// Always refetch after error or success
-			void queryClient.invalidateQueries({ queryKey: queryKeys.units.lists() })
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.units.lists()
+			})
 		}
 	})
 }
@@ -139,12 +147,20 @@ export function useUpdateUnit(): UseMutationResult<
 		mutationFn: async ({ id, data }) => unitApi.update(id, data),
 		onMutate: async ({ id, data }) => {
 			// Cancel queries for this unit
-			await queryClient.cancelQueries({ queryKey: queryKeys.units.detail(id) })
-			await queryClient.cancelQueries({ queryKey: queryKeys.units.lists() })
+			await queryClient.cancelQueries({
+				queryKey: queryKeys.units.detail(id)
+			})
+			await queryClient.cancelQueries({
+				queryKey: queryKeys.units.lists()
+			})
 
 			// Snapshot the previous values
-			const previousUnit = queryClient.getQueryData(queryKeys.units.detail(id))
-			const previousList = queryClient.getQueryData(queryKeys.units.lists())
+			const previousUnit = queryClient.getQueryData(
+				queryKeys.units.detail(id)
+			)
+			const previousList = queryClient.getQueryData(
+				queryKeys.units.lists()
+			)
 
 			// Optimistically update unit detail
 			queryClient.setQueryData(
@@ -187,8 +203,12 @@ export function useUpdateUnit(): UseMutationResult<
 		},
 		onSettled: (data, err, { id }) => {
 			// Refetch to ensure consistency
-			void queryClient.invalidateQueries({ queryKey: queryKeys.units.detail(id) })
-			void queryClient.invalidateQueries({ queryKey: queryKeys.units.lists() })
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.units.detail(id)
+			})
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.units.lists()
+			})
 		}
 	})
 }
@@ -203,10 +223,14 @@ export function useDeleteUnit(): UseMutationResult<void, Error, string> {
 		mutationFn: unitApi.delete,
 		onMutate: async id => {
 			// Cancel queries
-			await queryClient.cancelQueries({ queryKey: queryKeys.units.lists() })
+			await queryClient.cancelQueries({
+				queryKey: queryKeys.units.lists()
+			})
 
 			// Snapshot previous list
-			const previousList = queryClient.getQueryData(queryKeys.units.lists())
+			const previousList = queryClient.getQueryData(
+				queryKeys.units.lists()
+			)
 
 			// Optimistically remove unit from lists
 			queryClient.setQueriesData(
@@ -231,7 +255,9 @@ export function useDeleteUnit(): UseMutationResult<void, Error, string> {
 		},
 		onSettled: () => {
 			// Refetch to ensure consistency
-			void queryClient.invalidateQueries({ queryKey: queryKeys.units.lists() })
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.units.lists()
+			})
 		}
 	})
 }
@@ -251,15 +277,23 @@ export function useUpdateUnitAvailability(): UseMutationResult<
 			unitApi.updateAvailability(id, isAvailable),
 		onMutate: async ({ id, isAvailable }) => {
 			// Cancel queries for this unit
-			await queryClient.cancelQueries({ queryKey: queryKeys.units.detail(id) })
-			await queryClient.cancelQueries({ queryKey: queryKeys.units.lists() })
+			await queryClient.cancelQueries({
+				queryKey: queryKeys.units.detail(id)
+			})
+			await queryClient.cancelQueries({
+				queryKey: queryKeys.units.lists()
+			})
 
 			// Snapshot the previous values
-			const previousUnit = queryClient.getQueryData(queryKeys.units.detail(id))
-			const previousList = queryClient.getQueryData(queryKeys.units.lists())
+			const previousUnit = queryClient.getQueryData(
+				queryKeys.units.detail(id)
+			)
+			const previousList = queryClient.getQueryData(
+				queryKeys.units.lists()
+			)
 
 			const newStatus = isAvailable ? 'VACANT' : 'OCCUPIED'
-			
+
 			// Optimistically update unit detail
 			queryClient.setQueryData(
 				queryKeys.units.detail(id),
@@ -275,7 +309,11 @@ export function useUpdateUnitAvailability(): UseMutationResult<
 				(old: Unit[] | undefined) =>
 					old?.map(unit =>
 						unit.id === id
-							? { ...unit, status: newStatus, updatedAt: new Date() }
+							? {
+									...unit,
+									status: newStatus,
+									updatedAt: new Date()
+								}
 							: unit
 					)
 			)
@@ -303,8 +341,12 @@ export function useUpdateUnitAvailability(): UseMutationResult<
 		},
 		onSettled: (data, err, { id }) => {
 			// Refetch to ensure consistency
-			void queryClient.invalidateQueries({ queryKey: queryKeys.units.detail(id) })
-			void queryClient.invalidateQueries({ queryKey: queryKeys.units.lists() })
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.units.detail(id)
+			})
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.units.lists()
+			})
 		}
 	})
 }
@@ -312,9 +354,9 @@ export function useUpdateUnitAvailability(): UseMutationResult<
 /**
  * Fetch unit statistics
  */
-export function useUnitStats(
-	options?: { enabled?: boolean }
-): UseQueryResult<UnitStats> {
+export function useUnitStats(options?: {
+	enabled?: boolean
+}): UseQueryResult<UnitStats> {
 	return useQuery({
 		queryKey: queryKeys.units.stats(),
 		queryFn: async () => unitApi.getStats(),

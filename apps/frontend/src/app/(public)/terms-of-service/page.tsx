@@ -70,7 +70,7 @@ export default function TermsOfServicePage() {
 												activities. The Service includes
 												but is not limited to:
 											</p>
-											<ul className="mt-2 ml-4 list-inside list-disc text-gray-700">
+											<ul className="ml-4 mt-2 list-inside list-disc text-gray-700">
 												<li>
 													Property and tenant
 													management tools
@@ -133,7 +133,7 @@ export default function TermsOfServicePage() {
 												accordance with these Terms. You
 												agree not to:
 											</p>
-											<ul className="mt-2 ml-4 list-inside list-disc text-gray-700">
+											<ul className="ml-4 mt-2 list-inside list-disc text-gray-700">
 												<li>
 													Use the Service in any way
 													that violates applicable

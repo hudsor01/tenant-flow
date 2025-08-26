@@ -5,7 +5,9 @@
  * Client-side utility to get CSRF token from meta tag
  */
 export function getClientCSRFToken(): string | null {
-	if (typeof document === 'undefined') {return null}
+	if (typeof document === 'undefined') {
+		return null
+	}
 
 	const metaTag = document.querySelector('meta[name="csrf-token"]')
 	return metaTag?.getAttribute('content') || null

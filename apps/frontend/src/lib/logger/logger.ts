@@ -159,11 +159,17 @@ class FrontendLogger implements ILogger {
 			}
 
 			// Sentry integration for errors (guarded for environments without Sentry)
-			if (level === 'error' && typeof window !== 'undefined' && 'Sentry' in window) {
-				const maybeSentry = (window as Window & { Sentry?: unknown }).Sentry
+			if (
+				level === 'error' &&
+				typeof window !== 'undefined' &&
+				'Sentry' in window
+			) {
+				const maybeSentry = (window as Window & { Sentry?: unknown })
+					.Sentry
 				if (
 					maybeSentry &&
-					typeof (maybeSentry as { captureMessage?: unknown }).captureMessage === 'function'
+					typeof (maybeSentry as { captureMessage?: unknown })
+						.captureMessage === 'function'
 				) {
 					const sentry = maybeSentry as {
 						captureMessage: (

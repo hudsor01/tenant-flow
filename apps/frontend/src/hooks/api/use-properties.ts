@@ -79,7 +79,9 @@ export function useCreateProperty(): UseMutationResult<
 			apiClient.post<Property>('/properties', data),
 		onMutate: async newProperty => {
 			// Cancel any outgoing refetches
-			await queryClient.cancelQueries({ queryKey: queryKeys.properties.lists() })
+			await queryClient.cancelQueries({
+				queryKey: queryKeys.properties.lists()
+			})
 
 			// Snapshot the previous value
 			const previousProperties = queryClient.getQueryData(
@@ -90,7 +92,9 @@ export function useCreateProperty(): UseMutationResult<
 			queryClient.setQueriesData(
 				{ queryKey: queryKeys.properties.lists() },
 				(old: Property[] | undefined) => {
-					if (!old) {return []}
+					if (!old) {
+						return []
+					}
 					return [
 						...old,
 						{
@@ -120,8 +124,12 @@ export function useCreateProperty(): UseMutationResult<
 		},
 		onSettled: () => {
 			// Always refetch after error or success
-			void queryClient.invalidateQueries({ queryKey: queryKeys.properties.lists() })
-			void queryClient.invalidateQueries({ queryKey: queryKeys.properties.stats() })
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.properties.lists()
+			})
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.properties.stats()
+			})
 		}
 	})
 }
@@ -144,13 +152,17 @@ export function useUpdateProperty(): UseMutationResult<
 			await queryClient.cancelQueries({
 				queryKey: queryKeys.properties.detail(id)
 			})
-			await queryClient.cancelQueries({ queryKey: queryKeys.properties.lists() })
+			await queryClient.cancelQueries({
+				queryKey: queryKeys.properties.lists()
+			})
 
 			// Snapshot the previous values
 			const previousProperty = queryClient.getQueryData(
 				queryKeys.properties.detail(id)
 			)
-			const previousList = queryClient.getQueryData(queryKeys.properties.lists())
+			const previousList = queryClient.getQueryData(
+				queryKeys.properties.lists()
+			)
 
 			// Optimistically update property detail
 			queryClient.setQueryData(
@@ -193,9 +205,15 @@ export function useUpdateProperty(): UseMutationResult<
 		},
 		onSettled: (data, err, { id }) => {
 			// Refetch to ensure consistency
-			void queryClient.invalidateQueries({ queryKey: queryKeys.properties.detail(id) })
-			void queryClient.invalidateQueries({ queryKey: queryKeys.properties.lists() })
-			void queryClient.invalidateQueries({ queryKey: queryKeys.properties.stats() })
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.properties.detail(id)
+			})
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.properties.lists()
+			})
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.properties.stats()
+			})
 		}
 	})
 }
@@ -207,13 +225,18 @@ export function useDeleteProperty(): UseMutationResult<void, Error, string> {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (id: string) => apiClient.delete<void>(`/properties/${id}`),
+		mutationFn: async (id: string) =>
+			apiClient.delete<void>(`/properties/${id}`),
 		onMutate: async id => {
 			// Cancel queries
-			await queryClient.cancelQueries({ queryKey: queryKeys.properties.lists() })
+			await queryClient.cancelQueries({
+				queryKey: queryKeys.properties.lists()
+			})
 
 			// Snapshot previous list
-			const previousList = queryClient.getQueryData(queryKeys.properties.lists())
+			const previousList = queryClient.getQueryData(
+				queryKeys.properties.lists()
+			)
 
 			// Optimistically remove property from lists
 			queryClient.setQueriesData(
@@ -239,8 +262,12 @@ export function useDeleteProperty(): UseMutationResult<void, Error, string> {
 		},
 		onSettled: () => {
 			// Refetch to ensure consistency
-			void queryClient.invalidateQueries({ queryKey: queryKeys.properties.lists() })
-			void queryClient.invalidateQueries({ queryKey: queryKeys.properties.stats() })
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.properties.lists()
+			})
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.properties.stats()
+			})
 		}
 	})
 }

@@ -35,7 +35,9 @@ export function TenantSelectionSection({
 	tenants,
 	selectedProperty
 }: TenantSelectionSectionProps) {
-	if (!selectedProperty) {return null}
+	if (!selectedProperty) {
+		return null
+	}
 
 	// For now, show all tenants since invitationStatus is not in the current schema
 	const acceptedTenants = tenants

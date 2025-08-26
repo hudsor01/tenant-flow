@@ -1,6 +1,6 @@
 /**
  * Notification Schemas
- * 
+ *
  * JSON Schema definitions for notification endpoints.
  * Replaces class-validator DTOs with type-safe schema definitions.
  */
@@ -164,7 +164,17 @@ export interface NotificationResponse {
 
 export const notificationResponseSchema: JSONSchema = {
 	type: 'object',
-	required: ['id', 'recipientId', 'title', 'message', 'type', 'priority', 'read', 'createdAt', 'updatedAt'],
+	required: [
+		'id',
+		'recipientId',
+		'title',
+		'message',
+		'type',
+		'priority',
+		'read',
+		'createdAt',
+		'updatedAt'
+	],
 	properties: {
 		id: {
 			type: 'string',

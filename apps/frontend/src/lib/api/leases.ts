@@ -3,6 +3,8 @@
  */
 
 import { apiClient, createSearchParams } from '@/lib/api-client'
+import { config } from '@/lib/config'
+import { getSession } from '@/lib/supabase/client'
 import type {
 	Lease,
 	CreateLeaseInput,
@@ -23,10 +25,10 @@ export const leaseKeys = {
 	stats: () => [...leaseKeys.all, 'stats'] as const,
 	expiring: () => [...leaseKeys.all, 'expiring'] as const,
 	byUnit: (unitId: string) => [...leaseKeys.all, 'by-unit', unitId] as const,
-	byTenant: (tenantId: string) => [...leaseKeys.all, 'by-tenant', tenantId] as const,
+	byTenant: (tenantId: string) =>
+		[...leaseKeys.all, 'by-tenant', tenantId] as const,
 	pdf: (id: string) => [...leaseKeys.all, 'pdf', id] as const
 }
-
 
 /**
  * Leases API functions - Direct calls only
@@ -60,14 +62,14 @@ export const leaseApi = {
 	},
 
 	async search(query: string) {
-		return apiClient.get<Lease[]>('/leases/search', { 
-			params: { q: query } 
+		return apiClient.get<Lease[]>('/leases/search', {
+			params: { q: query }
 		})
 	},
 
 	async getExpiring(days = 30) {
-		return apiClient.get<Lease[]>('/leases/expiring', { 
-			params: { days } 
+		return apiClient.get<Lease[]>('/leases/expiring', {
+			params: { days }
 		})
 	},
 
@@ -75,12 +77,48 @@ export const leaseApi = {
 		return apiClient.get<Lease[]>(`/leases/by-unit/${unitId}`)
 	},
 
-	async getPdf(id: string) {
-		return apiClient.get<Blob>(`/leases/${id}/pdf`)
+	async getPdf(
+		id: string,
+		options?: { format?: 'A4' | 'Letter' | 'Legal'; branding?: boolean }
+	) {
+		// Backend returns PDF buffer directly - construct query parameters
+		const queryParams: Record<string, string> = {}
+		if (options?.format) queryParams.format = options.format
+		if (options?.branding !== undefined)
+			queryParams.branding = String(options.branding)
+
+		// Use raw fetch for blob response since apiClient expects JSON
+		const { session } = await getSession()
+		const headers: Record<string, string> = {
+			Accept: 'application/pdf'
+		}
+
+		if (session?.access_token) {
+			headers['Authorization'] = `Bearer ${session.access_token}`
+		}
+
+		const params =
+			Object.keys(queryParams).length > 0
+				? `?${new URLSearchParams(queryParams).toString()}`
+				: ''
+
+		const response = await fetch(
+			`${config.api.baseURL}/leases/${id}/pdf${params}`,
+			{
+				headers,
+				credentials: 'include'
+			}
+		)
+
+		if (!response.ok) {
+			throw new Error(`Failed to generate PDF: ${response.statusText}`)
+		}
+
+		return response.blob()
 	},
 
 	async renew(id: string, data: { endDate: string; newRent?: number }) {
-		// Backend doesn't have renew endpoint - use update instead
+		// Backend doesn't have dedicated renew endpoint - use update instead
 		return apiClient.put<Lease>(`/leases/${id}`, {
 			endDate: data.endDate,
 			rentAmount: data.newRent
@@ -91,17 +129,17 @@ export const leaseApi = {
 		id: string,
 		data: { reason: string; terminationDate?: string }
 	) {
-		// Backend doesn't have terminate endpoint - use update to set status
+		// Backend doesn't have dedicated terminate endpoint - use update to set status
 		return apiClient.put<Lease>(`/leases/${id}`, {
-			status: 'terminated',
+			status: 'TERMINATED',
 			notes: data.reason,
 			endDate: data.terminationDate
 		})
 	},
 
 	async getByProperty(propertyId: string) {
-		// Backend doesn't have by-property endpoint directly
-		// Use the general getAll with property filter
+		// Backend doesn't have dedicated by-property endpoint
+		// Use the general getAll with property filter as workaround
 		return this.getAll({ propertyId })
 	},
 
@@ -109,19 +147,18 @@ export const leaseApi = {
 		return apiClient.get<Lease[]>(`/leases/by-tenant/${tenantId}`)
 	},
 
-	async generatePDF(id: string) {
-		// Use the correct PDF endpoint
-		const response = await apiClient.get<{
-			url: string
-			downloadUrl: string
-		}>(`/leases/${id}/pdf`)
-		return response
+	async generatePDF(
+		id: string,
+		options?: { format?: 'A4' | 'Letter' | 'Legal'; branding?: boolean }
+	) {
+		// Use the same method as getPdf for consistency
+		return this.getPdf(id, options)
 	},
 
 	async activate(id: string) {
-		// Backend doesn't have activate endpoint - use update to set status
+		// Backend doesn't have dedicated activate endpoint - use update to set status
 		return apiClient.put<Lease>(`/leases/${id}`, {
-			status: 'active'
+			status: 'ACTIVE'
 		})
 	}
 }

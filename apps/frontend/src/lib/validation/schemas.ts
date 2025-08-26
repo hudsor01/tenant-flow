@@ -118,7 +118,9 @@ export const commonValidations = {
 		.instanceof(File)
 		.optional()
 		.refine(file => {
-			if (!file) {return true}
+			if (!file) {
+				return true
+			}
 			// Basic security checks using native File API
 			const maxSize = 10 * 1024 * 1024 // 10MB
 			const allowedTypes = [

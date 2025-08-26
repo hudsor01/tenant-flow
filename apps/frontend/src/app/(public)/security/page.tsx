@@ -238,7 +238,7 @@ export function SecurityContent() {
 	return (
 		<div className="from-background to-muted/20 min-h-screen bg-gradient-to-b">
 			{/* Hero Section */}
-			<section className="px-4 pt-24 pb-16">
+			<section className="px-4 pb-16 pt-24">
 				<div className="mx-auto max-w-7xl">
 					<div className="mb-16 text-center">
 						<div className="mb-6">
@@ -258,7 +258,7 @@ export function SecurityContent() {
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ duration: 0.6, delay: 0.1 }}
-							className="text-foreground mb-6 text-5xl leading-tight font-bold lg:text-6xl"
+							className="text-foreground mb-6 text-5xl font-bold leading-tight lg:text-6xl"
 						>
 							Security &{' '}
 							<span className="from-success via-primary to-accent bg-gradient-to-r bg-clip-text text-transparent">

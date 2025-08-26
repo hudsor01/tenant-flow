@@ -12,6 +12,7 @@ import { StripeService } from '../billing/stripe.service'
 // Removed SubscriptionsManagerService - replaced by StripeWebhookService
 import { UsersService } from '../users/users.service'
 import { Public } from '../shared/decorators/public.decorator'
+import { getStripePriceId } from '@repo/shared'
 // CSRF protection is handled at Fastify level - webhooks are exempt by nature
 
 interface SupabaseWebhookEvent {
@@ -93,7 +94,9 @@ export class AuthWebhookController {
 		}
 	}
 
-	private async handleUserCreated(user: SupabaseWebhookEvent['record']): Promise<void> {
+	private async handleUserCreated(
+		user: SupabaseWebhookEvent['record']
+	): Promise<void> {
 		this.logger.log('Processing new user creation', {
 			userId: user.id,
 			email: user.email,
@@ -185,7 +188,7 @@ export class AuthWebhookController {
 					customer: customer.id,
 					items: [
 						{
-							price: 'price_1RtWFcP3WCR53Sdo5Li5xHiC'
+							price: getStripePriceId('FREETRIAL', 'monthly')
 						}
 					],
 					trial_period_days: 14,
@@ -210,8 +213,7 @@ export class AuthWebhookController {
 
 			// Create/update local subscription record with Stripe info
 			try {
-				// TODO: Replace with simplified webhook-based subscription handling
-				// Subscription management now handled entirely through Stripe webhooks
+				// Subscription management handled via Stripe webhooks after initial setup
 				this.logger.log(
 					`User created: ${userId}, subscription will be created via Stripe webhooks`
 				)
@@ -257,8 +259,7 @@ export class AuthWebhookController {
 		stripeCustomerId: string,
 		stripeSubscriptionId: string
 	): Promise<void> {
-		// TODO: Replace with webhook-based subscription handling
-		// Subscription updates now handled entirely through Stripe webhooks
+		// Subscription updates handled via webhooks after initial user creation
 		this.logger.log(
 			`Subscription ${stripeSubscriptionId} will be handled via webhooks`
 		)

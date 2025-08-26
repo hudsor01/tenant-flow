@@ -4,12 +4,22 @@
  */
 
 import baseConfig from '@repo/eslint-config/base'
-import tseslint from 'typescript-eslint'
 import globals from 'globals'
 
-export default tseslint.config(
+export default [
   // Use shared base configuration (includes all TypeScript configs and security rules)
   ...baseConfig,
+  
+  // Backend-specific ignores for files not in TypeScript project
+  {
+    name: 'backend/ignores',
+    ignores: [
+      'test/**/*',
+      'vitest.config.ts',
+      'jest.config.js'
+    ]
+  },
+  
   
   // Backend-specific TypeScript configuration overrides
   {
@@ -112,5 +122,50 @@ export default tseslint.config(
   '@typescript-eslint/no-unused-vars': 'off',
       'no-console': 'off'
     }
+  },
+  
+  // JavaScript files - Node.js environment
+  {
+    name: 'backend/javascript-node',
+    files: ['**/*.js', '**/*.mjs', '**/*.cjs'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        module: 'readonly',
+        exports: 'readonly',
+        require: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        process: 'readonly',
+        console: 'readonly',
+        Buffer: 'readonly'
+      },
+      ecmaVersion: 'latest',
+      sourceType: 'module'
+    },
+    rules: {
+      'no-undef': 'off', // Turn off since globals handles this
+      'no-console': 'off', // Allow console in Node.js scripts
+      '@typescript-eslint/no-require-imports': 'off', // Allow require in JS files
+      '@typescript-eslint/no-var-requires': 'off' // Allow var requires in JS files
+    }
+  },
+  
+  // Config files and scripts - very permissive
+  {
+    name: 'backend/config-scripts',
+    files: ['*.config.js', '*.config.mjs', '*.config.ts', 'scripts/**/*.js', 'scripts/**/*.mjs', 'scripts/**/*.ts'],
+    languageOptions: {
+      globals: {
+        ...globals.node
+      }
+    },
+    rules: {
+      'no-console': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/no-var-requires': 'off',
+      'no-undef': 'off'
+    }
   }
-)
+]

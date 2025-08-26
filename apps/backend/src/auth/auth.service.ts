@@ -1,4 +1,10 @@
-import { Injectable, Logger, UnauthorizedException, BadRequestException, InternalServerErrorException } from '@nestjs/common'
+import {
+	Injectable,
+	Logger,
+	UnauthorizedException,
+	BadRequestException,
+	InternalServerErrorException
+} from '@nestjs/common'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { SupabaseService } from '../database/supabase.service'
 import type { AuthUser, UserRole } from '@repo/shared'
@@ -56,11 +62,9 @@ function normalizeSupabaseUser(
 @Injectable()
 export class AuthService {
 	private readonly logger = new Logger(AuthService.name)
-	private readonly supabase: SupabaseClient
+	private readonly supabase: SupabaseClient<Database>
 
-	constructor(
-		private readonly supabaseService: SupabaseService
-	) {
+	constructor(private readonly supabaseService: SupabaseService) {
 		const supabaseUrl = process.env.SUPABASE_URL
 		const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
@@ -70,9 +74,13 @@ export class AuthService {
 			)
 		}
 
-		this.supabase = createClient(supabaseUrl, supabaseServiceKey, {
-			auth: { autoRefreshToken: false, persistSession: false }
-		})
+		this.supabase = createClient<Database>(
+			supabaseUrl,
+			supabaseServiceKey,
+			{
+				auth: { autoRefreshToken: false, persistSession: false }
+			}
+		)
 	}
 
 	async validateSupabaseToken(token: string): Promise<ValidatedUser> {
@@ -128,7 +136,11 @@ export class AuthService {
 			throw new UnauthorizedException('User email is required')
 		}
 
-		const { id: supabaseId, email, user_metadata: userMetadata } = supabaseUser
+		const {
+			id: supabaseId,
+			email,
+			user_metadata: userMetadata
+		} = supabaseUser
 		const metadata = userMetadata as Record<string, unknown>
 		const name = String(metadata.name ?? metadata.full_name ?? '')
 		const avatarUrl = metadata.avatar_url
@@ -166,7 +178,7 @@ export class AuthService {
 			.single()
 
 		if (error) {
-			throw new Error('Failed to sync user data')
+			throw new InternalServerErrorException('Failed to sync user data')
 		}
 
 		if (isNewUser) {
@@ -221,7 +233,9 @@ export class AuthService {
 			.single()
 
 		if (error) {
-			throw new Error('Failed to update user profile')
+			throw new InternalServerErrorException(
+				'Failed to update user profile'
+			)
 		}
 		return { user: normalizeSupabaseUser(user) }
 	}
@@ -246,12 +260,12 @@ export class AuthService {
 	}
 
 	async getUserStats(): Promise<{
-		total: number;
+		total: number
 		byRole: {
-			owners: number;
-			managers: number;
-			tenants: number;
-		};
+			owners: number
+			managers: number
+			tenants: number
+		}
 	}> {
 		const adminClient = this.supabaseService.getAdminClient()
 		const [totalResult, ownersResult, managersResult, tenantsResult] =
@@ -318,15 +332,11 @@ export class AuthService {
 					'User with this email already exists'
 				)
 			}
-		throw new BadRequestException(
-			error.message
-		)
+			throw new BadRequestException(error.message)
 		}
 
 		if (!data.user.id || !data.user.email) {
-			throw new BadRequestException(
-				'Failed to create user account'
-			)
+			throw new BadRequestException('Failed to create user account')
 		}
 
 		try {
@@ -381,11 +391,8 @@ export class AuthService {
 			refresh_token: refreshToken
 		})
 
-		 
 		if (error || !data.session || !data.user) {
-			throw new BadRequestException(
-				'Invalid or expired refresh token'
-			)
+			throw new BadRequestException('Invalid or expired refresh token')
 		}
 
 		const validatedUser = await this.validateSupabaseToken(
@@ -432,12 +439,12 @@ export class AuthService {
 		})
 
 		if (error) {
-			this.logger.warn(`Auth failure for email: ${email} from IP: ${ip} - ${error.message}`)
+			this.logger.warn(
+				`Auth failure for email: ${email} from IP: ${ip} - ${error.message}`
+			)
 
 			if (error.message.includes('Invalid login credentials')) {
-				throw new BadRequestException(
-					'Invalid email or password'
-				)
+				throw new BadRequestException('Invalid email or password')
 			}
 
 			if (error.message.includes('Email not confirmed')) {
@@ -446,17 +453,16 @@ export class AuthService {
 				)
 			}
 
-			throw new BadRequestException(
-				'Login failed'
-			)
+			throw new BadRequestException('Login failed')
 		}
 
 		const validatedUser = await this.validateSupabaseToken(
 			data.session.access_token
 		)
 
-		this.logger.log(`Auth success for user: ${validatedUser.id} from IP: ${ip}`)
-
+		this.logger.log(
+			`Auth success for user: ${validatedUser.id} from IP: ${ip}`
+		)
 
 		return {
 			access_token: data.session.access_token,
@@ -482,7 +488,9 @@ export class AuthService {
 			connected: true,
 			auth: {
 				session: data.session ? 'exists' : 'none',
-				url: process.env.SUPABASE_URL ? process.env.SUPABASE_URL.substring(0, 30) + '...' : 'not configured'
+				url: process.env.SUPABASE_URL
+					? process.env.SUPABASE_URL.substring(0, 30) + '...'
+					: 'not configured'
 			}
 		}
 	}

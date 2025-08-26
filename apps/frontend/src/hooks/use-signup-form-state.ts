@@ -31,15 +31,18 @@ export function useSignupFormState() {
 		success: false
 	})
 
-	const updateField = useCallback(<K extends keyof SignupFormState>(
-		field: K,
-		value: SignupFormState[K]
-	) => {
-		setFormState(prev => ({
-			...prev,
-			[field]: value
-		}))
-	}, [])
+	const updateField = useCallback(
+		<K extends keyof SignupFormState>(
+			field: K,
+			value: SignupFormState[K]
+		) => {
+			setFormState(prev => ({
+				...prev,
+				[field]: value
+			}))
+		},
+		[]
+	)
 
 	const togglePasswordVisibility = useCallback(() => {
 		setFormState(prev => ({

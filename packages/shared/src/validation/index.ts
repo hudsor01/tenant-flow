@@ -3,6 +3,7 @@
  * Common Zod schemas used across frontend and backend
  */
 
+export * from './auth'
 export * from './common'
 export * from './properties'
 export * from './tenants'

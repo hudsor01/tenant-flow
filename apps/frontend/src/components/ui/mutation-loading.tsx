@@ -242,12 +242,14 @@ export function GlobalMutationLoading({
 	mutatingCount,
 	position = 'top'
 }: GlobalMutationLoadingProps) {
-	if (!isMutating) {return null}
+	if (!isMutating) {
+		return null
+	}
 
 	return (
 		<div
 			className={cn(
-				'bg-primary/10 border-primary/20 fixed right-0 left-0 z-50',
+				'bg-primary/10 border-primary/20 fixed left-0 right-0 z-50',
 				position === 'top' ? 'top-0 border-b' : 'bottom-0 border-t'
 			)}
 		>
