@@ -52,7 +52,7 @@ export function DashboardTracker({
 	// Expose tracking function via ref callback pattern
 	useEffect(() => {
 		// Store tracker function on window for easy access
-		// @ts-ignore - global augmentation would be overkill for this use case
+		// @ts-expect-error - global augmentation would be overkill for this use case
 		window.trackDashboardAction = trackDashboardAction
 	}, [trackDashboardAction])
 

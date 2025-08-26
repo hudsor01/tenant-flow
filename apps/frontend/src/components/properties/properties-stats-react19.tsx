@@ -90,7 +90,7 @@ function StatsLoading() {
   )
 }
 
-function StatsError({}: { error: Error }) {
+function StatsError({ error: _error }: { error: Error }) {
   return (
     <Alert variant="destructive">
       <AlertTriangle className="h-4 w-4" />

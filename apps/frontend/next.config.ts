@@ -33,7 +33,8 @@ const nextConfig: NextConfig = {
 		optimizeCss: false
 	},
 
-	// Build validation
+	// Build validation - temporarily ignore ESLint warnings during builds
+	// TODO: Re-enable after fixing type safety warnings
 	eslint: {
 		ignoreDuringBuilds: true
 	},

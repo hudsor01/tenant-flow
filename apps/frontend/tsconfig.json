@@ -1,22 +1,8 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "TenantFlow Frontend - Next.js 15 + React 19",
+  "extends": "@repo/typescript-config/react.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "lib": [
-      "ES2022",
-      "DOM",
-      "DOM.Iterable"
-    ],
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "resolveJsonModule": true,
-    "allowJs": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "isolatedModules": true,
-    "skipLibCheck": true,
-    "jsx": "preserve",
-    "noEmit": true,
-    "strict": true,
     "baseUrl": ".",
     "plugins": [
       {
@@ -28,7 +14,6 @@
         "./src/*"
       ]
     },
-    "incremental": true,
     "types": ["node", "react", "react-dom"]
   },
   "include": [
@@ -46,6 +31,9 @@
     "**/*.test.ts",
     "**/*.test.tsx",
     "**/*.spec.ts",
-    "**/*.spec.tsx"
+    "**/*.spec.tsx",
+    "vitest.config.ts",
+    "jest.config.js",
+    "playwright.config.ts"
   ]
 }
