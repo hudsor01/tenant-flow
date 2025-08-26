@@ -10,14 +10,14 @@ jobs:
           cache: 'npm'
           node-version: '24'
       
-      - name: Install dependencies without turbo binaries
+      - name: Install dependencies
         run: |
-          npm ci --prefer-offline --no-audit --ignore-optional
+          npm ci --prefer-offline --no-audit --omit=optional
         
-      - name: Install turbo globally
+      - name: Install turbo globally for CI
         run: npm install -g turbo@2.5.6
         
-      - name: Build
+      - name: Build with global turbo
         run: turbo build
         env:
           NEXT_PUBLIC_API_URL: https://test-api.example.com
