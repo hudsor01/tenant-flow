@@ -69,7 +69,9 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 		const v = validatePassword(pw)
 
 		const errs: ClientErrors = {}
-		if (!v.len8) {errs.password = 'Password must be at least 8 characters.'}
+		if (!v.len8) {
+			errs.password = 'Password must be at least 8 characters.'
+		}
 		if (!(v.upper && v.lower && v.num && v.sym)) {
 			errs.password =
 				errs.password ??
@@ -80,7 +82,9 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 		}
 
 		setClientErrors(errs)
-		if (Object.keys(errs).length > 0) {return}
+		if (Object.keys(errs).length > 0) {
+			return
+		}
 
 		startTransition(() => {
 			formAction(formData)
@@ -174,11 +178,13 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 									aria-invalid={!!clientErrors.password}
 									aria-describedby={passwordErrorId}
 									value={password}
-									onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+									onChange={(
+										e: React.ChangeEvent<HTMLInputElement>
+									) => setPassword(e.target.value)}
 								/>
 								<button
 									type="button"
-									className="text-muted-foreground hover:text-foreground absolute top-1/2 right-2 -translate-y-1/2 rounded p-1"
+									className="text-muted-foreground hover:text-foreground absolute right-2 top-1/2 -translate-y-1/2 rounded p-1"
 									onClick={() => setShowPw(s => !s)}
 									aria-label={
 										showPw
@@ -275,13 +281,13 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 									}
 									aria-describedby={confirmPasswordErrorId}
 									value={confirmPassword}
-									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-										setConfirmPassword(e.target.value)
-									}
+									onChange={(
+										e: React.ChangeEvent<HTMLInputElement>
+									) => setConfirmPassword(e.target.value)}
 								/>
 								<button
 									type="button"
-									className="text-muted-foreground hover:text-foreground absolute top-1/2 right-2 -translate-y-1/2 rounded p-1"
+									className="text-muted-foreground hover:text-foreground absolute right-2 top-1/2 -translate-y-1/2 rounded p-1"
 									onClick={() => setShowPw2(s => !s)}
 									aria-label={
 										showPw2

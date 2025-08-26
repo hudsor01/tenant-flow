@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import type { UseFormReturn } from 'react-hook-form'
 import { AvatarUploadSection } from './avatar-upload-section'
-import { logger } from "@/lib/logger/logger"
+import { logger } from '@/lib/logger/logger'
 import { toast } from 'sonner'
 import type { User } from '@repo/shared'
 import type { ProfileFormData } from '@/hooks/use-edit-profile-data'
@@ -76,7 +76,7 @@ export function ProfileTabSection({
 						Full Name *
 					</Label>
 					<div className="relative">
-						<UserIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+						<UserIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
 						<Input
 							id="name"
 							placeholder="Enter your full name"
@@ -100,7 +100,7 @@ export function ProfileTabSection({
 						Phone Number
 					</Label>
 					<div className="relative">
-						<Phone className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+						<Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
 						<Input
 							id="phone"
 							type="tel"
@@ -128,7 +128,7 @@ export function ProfileTabSection({
 						Bio
 					</Label>
 					<div className="relative">
-						<FileText className="absolute top-3 left-3 h-4 w-4 text-gray-400" />
+						<FileText className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
 						<Textarea
 							id="bio"
 							placeholder="Tell us a bit about yourself..."

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { logger } from "@/lib/logger/logger"
+import { logger } from '@/lib/logger/logger'
 import { useRouter } from 'next/navigation'
 import { motion } from '@/lib/lazy-motion'
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react'
@@ -329,7 +329,9 @@ export function SupabaseAuthProcessor() {
 						const { data, error } =
 							await supabase.auth.exchangeCodeForSession(code)
 
-						if (error) {throw error}
+						if (error) {
+							throw error
+						}
 
 						if (data.session && mounted) {
 							// Invalidate auth queries to ensure fresh user data
@@ -367,10 +369,7 @@ export function SupabaseAuthProcessor() {
 							toast.error(
 								'Please use the same browser you signed up with'
 							)
-							setTimeout(
-								() => router.push('/auth/login'),
-								3000
-							)
+							setTimeout(() => router.push('/auth/login'), 3000)
 							return
 						}
 						throw err
@@ -403,7 +402,9 @@ export function SupabaseAuthProcessor() {
 					throw sessionError
 				}
 
-				if (!mounted) {return}
+				if (!mounted) {
+					return
+				}
 
 				if (session?.user) {
 					// Invalidate auth queries to ensure fresh user data
@@ -459,7 +460,9 @@ export function SupabaseAuthProcessor() {
 					}, 2000)
 				}
 			} catch (error) {
-				if (!mounted) {return}
+				if (!mounted) {
+					return
+				}
 
 				logger.error(
 					'Auth processing error:',

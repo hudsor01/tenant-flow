@@ -53,7 +53,9 @@ export function Navigation({
 
 	// Handle scroll for transparent nav
 	useEffect(() => {
-		if (!transparent) {return}
+		if (!transparent) {
+			return
+		}
 
 		const handleScroll = () => {
 			setScrolled(window.scrollY > 10)
@@ -120,7 +122,9 @@ export function Navigation({
 	}
 
 	const PublicNavigation = () => {
-		if (context !== 'public') {return null}
+		if (context !== 'public') {
+			return null
+		}
 
 		const toolsItems = [
 			{
@@ -188,7 +192,7 @@ export function Navigation({
 						<button
 							className={cn(
 								'flex items-center text-2xl font-medium transition-colors duration-200',
-								'focus-visible:ring-ring rounded-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
+								'focus-visible:ring-ring rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
 								transparent && !scrolled && context === 'public'
 									? 'text-white/90 hover:text-white'
 									: 'text-gray-600 hover:text-gray-900'
@@ -236,7 +240,7 @@ export function Navigation({
 									animate={{ opacity: 1, y: 0 }}
 									exit={{ opacity: 0, y: 5 }}
 									transition={{ duration: 0.15 }}
-									className="absolute top-full right-0 z-50 w-80 pt-2"
+									className="absolute right-0 top-full z-50 w-80 pt-2"
 								>
 									<div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl">
 										<div
@@ -264,10 +268,12 @@ export function Navigation({
 														<Link
 															key={index}
 															href={item.to}
-															className="group focus-visible:ring-ring flex items-center rounded-lg p-3 transition-colors duration-200 hover:bg-gray-50 focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset"
+															className="focus-visible:ring-ring group flex items-center rounded-lg p-3 transition-colors duration-200 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset"
 															role="menuitem"
 															tabIndex={0}
-															onKeyDown={(e: React.KeyboardEvent) => {
+															onKeyDown={(
+																e: React.KeyboardEvent
+															) => {
 																if (
 																	e.key ===
 																	'Escape'
@@ -338,7 +344,7 @@ export function Navigation({
 									damping: 25,
 									stiffness: 200
 								}}
-								className="absolute top-0 right-0 h-full w-80 border-l border-gray-200 bg-white shadow-xl"
+								className="absolute right-0 top-0 h-full w-80 border-l border-gray-200 bg-white shadow-xl"
 							>
 								{/* Header */}
 								<div className="flex items-center justify-between border-b border-gray-200 p-6">
@@ -573,7 +579,7 @@ export function Navigation({
 			return onSidebarToggle ? (
 				<button
 					onClick={onSidebarToggle}
-					className="focus-visible:ring-ring rounded-md p-2 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none lg:hidden"
+					className="focus-visible:ring-ring rounded-md p-2 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 lg:hidden"
 					aria-label="Toggle sidebar"
 					aria-expanded="false"
 				>
@@ -589,7 +595,7 @@ export function Navigation({
 			<button
 				className={cn(
 					'rounded-md p-2 transition-colors duration-200 lg:hidden',
-					'focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
+					'focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
 					transparent && !scrolled && context === 'public'
 						? 'text-white hover:bg-white/10'
 						: 'text-gray-600 hover:bg-gray-100'

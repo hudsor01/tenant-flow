@@ -31,7 +31,9 @@ export function createQueryClient(): QueryClient {
 				gcTime: 10 * 60 * 1000,
 				// Retry failed requests 3 times with exponential backoff
 				retry: (failureCount, error) => {
-					if (failureCount >= 3) {return false}
+					if (failureCount >= 3) {
+						return false
+					}
 					if (error instanceof Error) {
 						// Don't retry on 4xx errors except 408 (timeout) and 429 (rate limit)
 						if (

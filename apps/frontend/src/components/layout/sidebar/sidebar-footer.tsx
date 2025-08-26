@@ -63,7 +63,7 @@ export function SidebarFooter() {
 										repeat: onlineStatus ? Infinity : 0,
 										ease: 'easeInOut'
 									}}
-									className={`border-sidebar absolute -right-0.5 -bottom-0.5 h-3 w-3 rounded-full border-2 ${
+									className={`border-sidebar absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 ${
 										onlineStatus
 											? 'bg-green-500'
 											: 'bg-gray-400'
@@ -80,7 +80,7 @@ export function SidebarFooter() {
 											repeat: Infinity,
 											ease: 'easeInOut'
 										}}
-										className="border-sidebar absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full border bg-red-500"
+										className="border-sidebar absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border bg-red-500"
 									/>
 								)}
 							</Button>
@@ -190,7 +190,7 @@ export function SidebarFooter() {
 										repeat: onlineStatus ? Infinity : 0,
 										ease: 'easeInOut'
 									}}
-									className={`border-sidebar absolute -right-0.5 -bottom-0.5 h-3 w-3 rounded-full border-2 ${
+									className={`border-sidebar absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 ${
 										onlineStatus
 											? 'bg-green-500'
 											: 'bg-gray-400'
@@ -207,7 +207,7 @@ export function SidebarFooter() {
 											repeat: Infinity,
 											ease: 'easeInOut'
 										}}
-										className="border-sidebar absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full border bg-red-500"
+										className="border-sidebar absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border bg-red-500"
 									/>
 								)}
 							</div>

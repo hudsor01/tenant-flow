@@ -8,7 +8,7 @@
 	},
 	{
 		"name": "Frontend Bundle (Index)",
-		"path": "apps/frontend/.next/static/chunks/pages/index-*.js", 
+		"path": "apps/frontend/.next/static/chunks/pages/index-*.js",
 		"limit": "50 KB",
 		"webpack": false,
 		"why": "Home page bundle size check"

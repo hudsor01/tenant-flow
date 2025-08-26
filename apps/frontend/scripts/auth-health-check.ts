@@ -27,7 +27,8 @@ interface HealthCheckResponse {
 async function runHealthCheck() {
 	console.log('🔍 Running Supabase Auth Health Check...\n')
 
-	const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://api.tenantflow.app'
+	const baseUrl =
+		process.env.NEXT_PUBLIC_SITE_URL || 'http://api.tenantflow.app'
 	const healthUrl = `${baseUrl}/api/auth/health`
 
 	try {
@@ -58,7 +59,9 @@ async function runHealthCheck() {
 		Object.entries(data.checks).forEach(([name, isHealthy]) => {
 			const icon = isHealthy ? '✅' : '❌'
 			const displayName = name.replace(/([A-Z_])/g, ' $1').trim()
-			console.log(`  ${icon} ${displayName}: ${isHealthy ? 'PASS' : 'FAIL'}`)
+			console.log(
+				`  ${icon} ${displayName}: ${isHealthy ? 'PASS' : 'FAIL'}`
+			)
 		})
 
 		console.log('\n' + '='.repeat(60))

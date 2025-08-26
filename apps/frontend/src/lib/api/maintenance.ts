@@ -21,7 +21,9 @@ export const maintenanceApi = {
 		propertyId?: string
 		unitId?: string
 	}) {
-		return apiClient.get<MaintenanceRequest[]>('/maintenance-requests', { params })
+		return apiClient.get<MaintenanceRequest[]>('/maintenance-requests', {
+			params
+		})
 	},
 
 	async getById(id: string) {
@@ -37,11 +39,17 @@ export const maintenanceApi = {
 	},
 
 	async update(id: string, data: UpdateMaintenanceInput) {
-		return apiClient.put<MaintenanceRequest>(`/maintenance-requests/${id}`, data)
+		return apiClient.put<MaintenanceRequest>(
+			`/maintenance-requests/${id}`,
+			data
+		)
 	},
 
 	async updateStatus(id: string, status: MaintenanceStatus) {
-		return apiClient.put<MaintenanceRequest>(`/maintenance-requests/${id}/status`, { status })
+		return apiClient.put<MaintenanceRequest>(
+			`/maintenance-requests/${id}/status`,
+			{ status }
+		)
 	},
 
 	async delete(id: string) {

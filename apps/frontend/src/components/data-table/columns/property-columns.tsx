@@ -15,12 +15,16 @@ import { createPropertyDeletionHandler } from '@/lib/utils/property-deletion'
 
 // Helper functions - unified with shared implementation
 function formatCurrency(amount: number | undefined | null): string {
-	if (!amount) {return '$0'}
+	if (!amount) {
+		return '$0'
+	}
 	return sharedFormatCurrency(amount, { maximumFractionDigits: 0 })
 }
 
 function calculateOccupancyRate(units?: { status: string }[]): number {
-	if (!units || units.length === 0) {return 0}
+	if (!units || units.length === 0) {
+		return 0
+	}
 	const occupiedUnits = units.filter(
 		unit => unit.status === 'OCCUPIED'
 	).length
@@ -30,7 +34,9 @@ function calculateOccupancyRate(units?: { status: string }[]): number {
 function calculateTotalRevenue(
 	units?: { monthlyRent?: number; rent?: number; status: string }[]
 ): number {
-	if (!units) {return 0}
+	if (!units) {
+		return 0
+	}
 	return units.reduce((total, unit) => {
 		if (unit.status === 'OCCUPIED') {
 			const rent = unit.monthlyRent ?? unit.rent ?? 0
@@ -43,17 +49,31 @@ function calculateTotalRevenue(
 function getStatusBadgeVariant(
 	occupancyRate: number
 ): 'default' | 'secondary' | 'destructive' | 'outline' {
-	if (occupancyRate === 100) {return 'default'}
-	if (occupancyRate >= 80) {return 'secondary'}
-	if (occupancyRate >= 50) {return 'outline'}
+	if (occupancyRate === 100) {
+		return 'default'
+	}
+	if (occupancyRate >= 80) {
+		return 'secondary'
+	}
+	if (occupancyRate >= 50) {
+		return 'outline'
+	}
 	return 'destructive'
 }
 
 function getStatusLabel(occupancyRate: number): string {
-	if (occupancyRate === 100) {return 'Full'}
-	if (occupancyRate >= 80) {return 'High'}
-	if (occupancyRate >= 50) {return 'Moderate'}
-	if (occupancyRate > 0) {return 'Low'}
+	if (occupancyRate === 100) {
+		return 'Full'
+	}
+	if (occupancyRate >= 80) {
+		return 'High'
+	}
+	if (occupancyRate >= 50) {
+		return 'Moderate'
+	}
+	if (occupancyRate > 0) {
+		return 'Low'
+	}
 	return 'Vacant'
 }
 

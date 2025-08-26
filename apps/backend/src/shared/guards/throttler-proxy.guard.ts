@@ -23,15 +23,19 @@ export class ThrottlerProxyGuard extends ThrottlerGuard {
 
 		// Priority order: CF-Connecting-IP > X-Real-IP > X-Forwarded-For > req.ip
 		if (cfConnectingIp) {
-			return Promise.resolve(Array.isArray(cfConnectingIp)
-				? cfConnectingIp[0] ?? 'unknown'
-				: String(cfConnectingIp))
+			return Promise.resolve(
+				Array.isArray(cfConnectingIp)
+					? (cfConnectingIp[0] ?? 'unknown')
+					: String(cfConnectingIp)
+			)
 		}
 
 		if (realIp) {
-			return Promise.resolve(Array.isArray(realIp)
-				? realIp[0] ?? 'unknown'
-				: String(realIp))
+			return Promise.resolve(
+				Array.isArray(realIp)
+					? (realIp[0] ?? 'unknown')
+					: String(realIp)
+			)
 		}
 
 		if (forwardedFor) {

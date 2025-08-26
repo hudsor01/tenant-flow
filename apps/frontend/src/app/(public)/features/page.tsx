@@ -141,7 +141,7 @@ export default function FeaturesPage() {
 			</nav>
 
 			{/* Hero Section */}
-			<section className="bg-gradient-to-br from-blue-50 to-purple-50 px-4 pt-24 pb-12">
+			<section className="bg-gradient-to-br from-blue-50 to-purple-50 px-4 pb-12 pt-24">
 				<div className="container mx-auto text-center">
 					<Badge className="from-primary mb-6 bg-gradient-to-r to-purple-600 text-white">
 						<Sparkles className="mr-2 h-4 w-4" />

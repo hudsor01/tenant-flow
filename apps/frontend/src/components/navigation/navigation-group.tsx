@@ -39,7 +39,7 @@ export function NavigationGroup({
 				<div className="flex items-center justify-between">
 					<h3
 						className={cn(
-							'text-muted-foreground font-medium tracking-wide uppercase',
+							'text-muted-foreground font-medium uppercase tracking-wide',
 							variant === 'sidebar' ? 'px-3 text-xs' : 'text-sm'
 						)}
 					>

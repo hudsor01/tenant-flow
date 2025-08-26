@@ -3,14 +3,28 @@
  * Centralized configuration for the TenantFlow frontend
  */
 
-import { logger } from "@/lib/logger/logger"
+import { logger } from '@/lib/logger/logger'
 
 export const config = {
 	api: {
-		baseURL:
-			process.env.NEXT_PUBLIC_API_URL ||
-			'https://api.tenantflow.app/api/v1',
-		timeout: 30000
+		baseURL: (() => {
+			// Production environment - use custom domain
+			if (process.env.NEXT_PUBLIC_APP_ENV === 'production') {
+				return (
+					process.env.NEXT_PUBLIC_API_URL ||
+					'https://api.tenantflow.app/api/v1'
+				)
+			}
+			// Development environment - use local backend or Railway URL
+			return (
+				process.env.NEXT_PUBLIC_API_URL ||
+				'http://localhost:4600/api/v1'
+			)
+		})(),
+		timeout: 30000,
+		healthCheckPath: '/health',
+		retries: 3,
+		retryDelay: 1000
 	},
 	supabase: {
 		url: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
@@ -35,23 +49,59 @@ export const config = {
 	}
 } as const
 
-// Environment validation only in development and only after client hydration
-if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+// Environment validation with production-specific checks
+if (typeof window !== 'undefined') {
 	// Delay validation to avoid build-time warnings
 	setTimeout(() => {
 		const requiredEnvVars = [
 			'NEXT_PUBLIC_SUPABASE_URL',
 			'NEXT_PUBLIC_SUPABASE_ANON_KEY',
-			'NEXT_PUBLIC_API_URL',
-			'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY',
-			'NEXT_PUBLIC_POSTHOG_KEY',
-			'NEXT_PUBLIC_POSTHOG_HOST'
+			'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY'
 		] as const
 
-		for (const envVar of requiredEnvVars) {
-			if (!process.env[envVar]) {
-				logger.warn(`Missing required environment variable: ${envVar}`)
+		// Production-specific validation
+		if (config.app.env === 'production') {
+			const productionRequiredVars = [
+				...requiredEnvVars,
+				'NEXT_PUBLIC_API_URL',
+				'NEXT_PUBLIC_POSTHOG_KEY',
+				'NEXT_PUBLIC_POSTHOG_HOST'
+			] as const
+
+			for (const envVar of productionRequiredVars) {
+				if (!process.env[envVar]) {
+					logger.error(
+						`🚨 PRODUCTION ERROR: Missing required environment variable: ${envVar}`
+					)
+				}
+			}
+
+			// Validate API URL format in production
+			if (
+				process.env.NEXT_PUBLIC_API_URL &&
+				!process.env.NEXT_PUBLIC_API_URL.startsWith('https://')
+			) {
+				logger.error(
+					'🚨 PRODUCTION ERROR: API_URL must use HTTPS in production'
+				)
+			}
+		} else {
+			// Development validation (less strict)
+			for (const envVar of requiredEnvVars) {
+				if (!process.env[envVar]) {
+					logger.warn(`Missing environment variable: ${envVar}`)
+				}
 			}
 		}
+
+		// Log current configuration (excluding sensitive data)
+		logger.info('Configuration loaded:', {
+			api: {
+				baseURL: config.api.baseURL,
+				timeout: config.api.timeout
+			},
+			app: config.app,
+			features: config.features
+		})
 	}, 0)
 }

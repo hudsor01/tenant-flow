@@ -265,7 +265,10 @@ export function getSubscriptionCurrentPeriod(
 	start: Date
 	end: Date
 } | null {
-	if (!subscription.current_period_start || !subscription.current_period_end) {
+	if (
+		!subscription.current_period_start ||
+		!subscription.current_period_end
+	) {
 		return null
 	}
 
@@ -1276,9 +1279,9 @@ export interface StripeCustomerSession {
 		readonly payment_element?: {
 			readonly enabled: boolean
 			readonly features?: {
-				readonly payment_method_allow_redisplay_filters?: Array<| 'always'
-					| 'limited'
-					| 'unspecified'>
+				readonly payment_method_allow_redisplay_filters?: Array<
+					'always' | 'limited' | 'unspecified'
+				>
 				readonly payment_method_redisplay?: 'disabled' | 'enabled'
 				readonly payment_method_redisplay_limit?: number
 				readonly payment_method_remove?: 'disabled' | 'enabled'
@@ -1392,70 +1395,65 @@ export interface StripePaymentIntent {
 		readonly display_bank_transfer_instructions?: {
 			readonly amount_remaining?: number | null
 			readonly currency?: SupportedCurrency | null
-			readonly financial_addresses?:
-				| Array<{
-						readonly aba?: {
-							readonly account_holder_type?:
-								| 'company'
-								| 'individual'
-								| null
-							readonly account_number?: string | null
-							readonly account_type?:
-								| 'checking'
-								| 'savings'
-								| null
-							readonly bank_name?: string | null
-							readonly routing_number?: string | null
-						} | null
-						readonly iban?: {
-							readonly account_holder_name?: string | null
-							readonly bic?: string | null
-							readonly country?: string | null
-							readonly iban?: string | null
-						} | null
-						readonly sort_code?: {
-							readonly account_holder_name?: string | null
-							readonly account_number?: string | null
-							readonly sort_code?: string | null
-						} | null
-						readonly spei?: {
-							readonly bank_code?: string | null
-							readonly bank_name?: string | null
-							readonly clabe?: string | null
-						} | null
-						readonly supported_networks?:
-							| Array<| 'ach'
-									| 'bacs'
-									| 'domestic_wire_us'
-									| 'fps'
-									| 'sepa'
-									| 'spei'
-									| 'swift'
-									| 'zengin'>
-							| null
-						readonly swift?: {
-							readonly account_number?: string | null
-							readonly bank_name?: string | null
-							readonly swift_code?: string | null
-						} | null
-						readonly type:
-							| 'aba'
-							| 'iban'
-							| 'sort_code'
-							| 'spei'
-							| 'swift'
-							| 'zengin'
-						readonly zengin?: {
-							readonly account_holder_name?: string | null
-							readonly account_number?: string | null
-							readonly account_type?: string | null
-							readonly bank_code?: string | null
-							readonly bank_name?: string | null
-							readonly branch_code?: string | null
-							readonly branch_name?: string | null
-						} | null
-				  }>
-				| null
+			readonly financial_addresses?: Array<{
+				readonly aba?: {
+					readonly account_holder_type?:
+						| 'company'
+						| 'individual'
+						| null
+					readonly account_number?: string | null
+					readonly account_type?: 'checking' | 'savings' | null
+					readonly bank_name?: string | null
+					readonly routing_number?: string | null
+				} | null
+				readonly iban?: {
+					readonly account_holder_name?: string | null
+					readonly bic?: string | null
+					readonly country?: string | null
+					readonly iban?: string | null
+				} | null
+				readonly sort_code?: {
+					readonly account_holder_name?: string | null
+					readonly account_number?: string | null
+					readonly sort_code?: string | null
+				} | null
+				readonly spei?: {
+					readonly bank_code?: string | null
+					readonly bank_name?: string | null
+					readonly clabe?: string | null
+				} | null
+				readonly supported_networks?: Array<
+					| 'ach'
+					| 'bacs'
+					| 'domestic_wire_us'
+					| 'fps'
+					| 'sepa'
+					| 'spei'
+					| 'swift'
+					| 'zengin'
+				> | null
+				readonly swift?: {
+					readonly account_number?: string | null
+					readonly bank_name?: string | null
+					readonly swift_code?: string | null
+				} | null
+				readonly type:
+					| 'aba'
+					| 'iban'
+					| 'sort_code'
+					| 'spei'
+					| 'swift'
+					| 'zengin'
+				readonly zengin?: {
+					readonly account_holder_name?: string | null
+					readonly account_number?: string | null
+					readonly account_type?: string | null
+					readonly bank_code?: string | null
+					readonly bank_name?: string | null
+					readonly branch_code?: string | null
+					readonly branch_name?: string | null
+				} | null
+			}> | null
 			readonly hosted_instructions_url?: string | null
 			readonly reference?: string | null
 			readonly type:
@@ -1544,7 +1542,6 @@ export interface StripePaymentIntent {
 			| 'pix_display_qr_code'
 			| 'promptpay_display_qr_code'
 			| 'swish_handle_redirect_or_display_qr_code'
-			 
 			| 'verify_with_microdeposits'
 			| 'wechat_pay_display_qr_code'
 			| 'wechat_pay_redirect_to_android_app'
@@ -1717,15 +1714,15 @@ export interface StripePaymentIntent {
 				readonly eu_bank_transfer?: {
 					readonly country?: string | null
 				} | null
-				readonly requested_address_types?:
-					| Array<| 'aba'
-							| 'iban'
-							| 'sepa'
-							| 'sort_code'
-							| 'spei'
-							| 'swift'
-							| 'zengin'>
-					| null
+				readonly requested_address_types?: Array<
+					| 'aba'
+					| 'iban'
+					| 'sepa'
+					| 'sort_code'
+					| 'spei'
+					| 'swift'
+					| 'zengin'
+				> | null
 				readonly type?:
 					| 'eu_bank_transfer'
 					| 'gb_bank_transfer'
@@ -1829,19 +1826,16 @@ export interface StripePaymentIntent {
 		readonly us_bank_account?: {
 			readonly financial_connections?: {
 				readonly filters?: {
-					readonly account_subcategory?:
-						| Array<'checking' | 'savings'>
-						| null
+					readonly account_subcategory?: Array<
+						'checking' | 'savings'
+					> | null
 				} | null
-				readonly permissions?:
-					| Array<| 'balances'
-							| 'ownership'
-							| 'payment_method'
-							| 'transactions'>
-					| null
-				readonly prefetch?:
-					| Array<'balances' | 'ownership' | 'transactions'>
-					| null
+				readonly permissions?: Array<
+					'balances' | 'ownership' | 'payment_method' | 'transactions'
+				> | null
+				readonly prefetch?: Array<
+					'balances' | 'ownership' | 'transactions'
+				> | null
 				readonly return_url?: string | null
 			} | null
 			readonly mandate_options?: {
@@ -2124,20 +2118,17 @@ export interface StripeSetupIntent {
 		readonly us_bank_account?: {
 			readonly financial_connections?: {
 				readonly filters?: {
-					readonly account_subcategory?:
-						| Array<'checking' | 'savings'>
-						| null
+					readonly account_subcategory?: Array<
+						'checking' | 'savings'
+					> | null
 				} | null
 				readonly manual_entry?: Record<string, unknown> | null
-				readonly permissions?:
-					| Array<| 'balances'
-							| 'ownership'
-							| 'payment_method'
-							| 'transactions'>
-					| null
-				readonly prefetch?:
-					| Array<'balances' | 'ownership' | 'transactions'>
-					| null
+				readonly permissions?: Array<
+					'balances' | 'ownership' | 'payment_method' | 'transactions'
+				> | null
+				readonly prefetch?: Array<
+					'balances' | 'ownership' | 'transactions'
+				> | null
 				readonly return_url?: string | null
 			} | null
 			readonly mandate_options?: {
@@ -3065,9 +3056,9 @@ export interface StripeCharge {
 			readonly payer_id?: string | null
 			readonly payer_name?: string | null
 			readonly seller_protection?: {
-				readonly dispute_categories?:
-					| Array<'fraudulent' | 'product_not_received'>
-					| null
+				readonly dispute_categories?: Array<
+					'fraudulent' | 'product_not_received'
+				> | null
 				readonly status?:
 					| 'eligible'
 					| 'not_eligible'
@@ -3206,9 +3197,9 @@ export interface CreateCustomerSessionParams extends StripeApiRequestBase {
 		readonly payment_element?: {
 			readonly enabled: boolean
 			readonly features?: {
-				readonly payment_method_allow_redisplay_filters?: Array<| 'always'
-					| 'limited'
-					| 'unspecified'>
+				readonly payment_method_allow_redisplay_filters?: Array<
+					'always' | 'limited' | 'unspecified'
+				>
 				readonly payment_method_redisplay?: 'disabled' | 'enabled'
 				readonly payment_method_redisplay_limit?: number
 				readonly payment_method_remove?: 'disabled' | 'enabled'
@@ -3355,9 +3346,9 @@ export interface CreateCheckoutSessionParams extends StripeApiRequestBase {
 	readonly redirectOnCompletion?: 'always' | 'if_required' | 'never'
 	readonly returnUrl?: string
 	readonly savedPaymentMethodOptions?: {
-		readonly allowRedisplayFilters?: Array<| 'always'
-			| 'limited'
-			| 'unspecified'>
+		readonly allowRedisplayFilters?: Array<
+			'always' | 'limited' | 'unspecified'
+		>
 		readonly paymentMethodRemove?: 'disabled' | 'enabled'
 		readonly paymentMethodSave?: 'disabled' | 'enabled'
 	}
@@ -3563,13 +3554,15 @@ export interface CreateSubscriptionParams {
 			}
 			readonly usBankAccount?: {
 				readonly financialConnections?: {
-					readonly permissions?: Array<| 'balances'
+					readonly permissions?: Array<
+						| 'balances'
 						| 'ownership'
 						| 'payment_method'
-						| 'transactions'>
-					readonly prefetch?: Array<| 'balances'
-						| 'ownership'
-						| 'transactions'>
+						| 'transactions'
+					>
+					readonly prefetch?: Array<
+						'balances' | 'ownership' | 'transactions'
+					>
 					readonly returnUrl?: string
 				}
 				readonly verificationMethod?:
@@ -4050,7 +4043,9 @@ export interface NativeStripeSubscription
 /**
  * Map Stripe price ID to our plan type
  */
-function mapPriceIdToPlanType(priceId: string | null | undefined): PlanType | null {
+function mapPriceIdToPlanType(
+	priceId: string | null | undefined
+): PlanType | null {
 	if (!priceId) {
 		return null
 	}

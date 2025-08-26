@@ -27,7 +27,7 @@ export function PropertyLocationSection({
 					Street Address *
 				</Label>
 				<div className="relative">
-					<MapPin className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+					<MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
 					<Input
 						id="address"
 						placeholder="e.g., 123 Main Street"

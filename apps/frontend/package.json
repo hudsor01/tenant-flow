@@ -16,7 +16,10 @@
 		"typecheck": "tsc --noEmit",
 		"test": "jest --passWithNoTests",
 		"test:unit": "jest --passWithNoTests",
-		"test:e2e": "playwright test"
+		"test:e2e": "playwright test",
+		"validate-env": "tsx scripts/validate-env.ts",
+		"pre-deploy": "npm run validate-env && npm run lint && npm run typecheck",
+		"health-check": "tsx scripts/auth-health-check.ts"
 	},
 	"dependencies": {
 		"@hookform/resolvers": "^5.2.1",

@@ -139,7 +139,7 @@ const navItems: NavItem[] = [
 			{
 				title: 'All Documents',
 				// Documents feature not yet implemented
-		url: '#',
+				url: '#',
 				icon: <FileText className="h-3 w-3" />,
 				description: 'View all uploaded documents'
 			},
@@ -258,12 +258,12 @@ export function SidebarContent() {
 			{!collapsed && (
 				<div className="px-4 pb-4">
 					<div className="group relative">
-						<Search className="text-sidebar-foreground/60 group-focus-within:text-primary absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transition-colors" />
+						<Search className="text-sidebar-foreground/60 group-focus-within:text-primary absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transition-colors" />
 						<Input
 							placeholder="Search properties, tenants..."
-							className="bg-sidebar-accent/50 border-sidebar-border focus:bg-background focus:border-primary/50 h-9 w-full pr-16 pl-9 text-sm transition-all duration-200 focus:shadow-sm"
+							className="bg-sidebar-accent/50 border-sidebar-border focus:bg-background focus:border-primary/50 h-9 w-full pl-9 pr-16 text-sm transition-all duration-200 focus:shadow-sm"
 						/>
-						<kbd className="text-sidebar-foreground/60 bg-sidebar-accent/80 border-sidebar-border absolute top-1/2 right-3 -translate-y-1/2 rounded border px-1.5 py-0.5 text-xs">
+						<kbd className="text-sidebar-foreground/60 bg-sidebar-accent/80 border-sidebar-border absolute right-3 top-1/2 -translate-y-1/2 rounded border px-1.5 py-0.5 text-xs">
 							⌘K
 						</kbd>
 					</div>

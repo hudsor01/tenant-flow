@@ -22,7 +22,7 @@ export default function BlogHeaderSection({
 	fadeInUp
 }: BlogHeaderSectionProps) {
 	return (
-		<header className="relative pt-24 pb-16 sm:pt-32 sm:pb-20">
+		<header className="relative pb-16 pt-24 sm:pb-20 sm:pt-32">
 			<div className="mx-auto max-w-4xl px-6 lg:px-8">
 				<motion.div {...fadeInUp}>
 					{/* Back Navigation */}

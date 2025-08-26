@@ -10,7 +10,7 @@ import {
 } from '@tanstack/react-query'
 import { useState, useCallback, useRef } from 'react'
 import { toast } from 'sonner'
-import { logger } from "@/lib/logger/logger"
+import { logger } from '@/lib/logger/logger'
 
 interface MutationLoadingOptions<
 	TData = unknown,
@@ -221,7 +221,9 @@ export function usePropertyMutationLoading<T = unknown>(
 				const property = data as { name?: string } | null | undefined
 				return `Property "${property?.name || 'New property'}" created successfully`
 			}
-			if (operation === 'update') {return `Property updated successfully`}
+			if (operation === 'update') {
+				return `Property updated successfully`
+			}
 			return 'Property deleted successfully'
 		},
 		errorMessage: `Failed to ${operation} property`,
@@ -244,7 +246,9 @@ export function useTenantMutationLoading<T = unknown>(
 					| undefined
 				return `Tenant "${`${tenant?.firstName || ''} ${tenant?.lastName || ''}`.trim() || 'New tenant'}" added successfully`
 			}
-			if (operation === 'update') {return `Tenant updated successfully`}
+			if (operation === 'update') {
+				return `Tenant updated successfully`
+			}
 			return 'Tenant removed successfully'
 		},
 		errorMessage: `Failed to ${operation} tenant`,
@@ -260,8 +264,12 @@ export function useLeaseMutationLoading<T = unknown>(
 	return useMutationLoading(mutationFn, {
 		loadingMessage: `${operation === 'create' ? 'Creating' : operation === 'update' ? 'Updating' : 'Terminating'} lease...`,
 		successMessage: () => {
-			if (operation === 'create') {return 'Lease created successfully'}
-			if (operation === 'update') {return 'Lease updated successfully'}
+			if (operation === 'create') {
+				return 'Lease created successfully'
+			}
+			if (operation === 'update') {
+				return 'Lease updated successfully'
+			}
 			return 'Lease terminated successfully'
 		},
 		errorMessage: `Failed to ${operation} lease`,
@@ -277,10 +285,12 @@ export function useMaintenanceMutationLoading<T = unknown>(
 	return useMutationLoading(mutationFn, {
 		loadingMessage: `${operation === 'create' ? 'Submitting' : operation === 'update' ? 'Updating' : 'Canceling'} maintenance request...`,
 		successMessage: () => {
-			if (operation === 'create')
-				{return 'Maintenance request submitted successfully'}
-			if (operation === 'update')
-				{return 'Maintenance request updated successfully'}
+			if (operation === 'create') {
+				return 'Maintenance request submitted successfully'
+			}
+			if (operation === 'update') {
+				return 'Maintenance request updated successfully'
+			}
 			return 'Maintenance request canceled successfully'
 		},
 		errorMessage: `Failed to ${operation} maintenance request`,

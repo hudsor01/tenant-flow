@@ -1,6 +1,6 @@
 /**
  * Stripe/Billing Schemas
- * 
+ *
  * JSON Schema definitions for Stripe and billing endpoints.
  * Replaces class-validator DTOs with type-safe schema definitions.
  */
@@ -157,6 +157,30 @@ export const checkoutResponseSchema: JSONSchema = {
 }
 
 /**
+ * Create subscription with confirmation token request
+ */
+export interface CreateSubscriptionDto {
+	planType: string
+	billingInterval: 'monthly' | 'annual'
+	confirmationTokenId: string
+}
+
+export const createSubscriptionSchema: JSONSchema = {
+	type: 'object',
+	required: ['planType', 'billingInterval', 'confirmationTokenId'],
+	additionalProperties: false,
+	properties: {
+		planType: planIdSchema,
+		billingInterval: billingIntervalSchema,
+		confirmationTokenId: {
+			type: 'string',
+			pattern: '^cnf_[a-zA-Z0-9_]+$',
+			description: 'Stripe confirmation token ID for embedded checkout'
+		}
+	}
+}
+
+/**
  * Customer portal response
  */
 export interface PortalResponse {
@@ -195,15 +219,15 @@ export interface SubscriptionStatusResponse {
 export const subscriptionStatusResponseSchema: JSONSchema = {
 	type: 'object',
 	required: [
-		'id', 
-		'status', 
-		'planId', 
-		'planName', 
-		'interval', 
-		'currentPeriodStart', 
-		'currentPeriodEnd', 
-		'cancelAtPeriodEnd', 
-		'amount', 
+		'id',
+		'status',
+		'planId',
+		'planName',
+		'interval',
+		'currentPeriodStart',
+		'currentPeriodEnd',
+		'cancelAtPeriodEnd',
+		'amount',
 		'currency'
 	],
 	properties: {
@@ -286,7 +310,16 @@ export interface StripeWebhookEvent {
 
 export const stripeWebhookEventSchema: JSONSchema = {
 	type: 'object',
-	required: ['id', 'object', 'type', 'created', 'data', 'livemode', 'pending_webhooks', 'request'],
+	required: [
+		'id',
+		'object',
+		'type',
+		'created',
+		'data',
+		'livemode',
+		'pending_webhooks',
+		'request'
+	],
 	properties: {
 		id: {
 			type: 'string',
@@ -312,11 +345,13 @@ export const stripeWebhookEventSchema: JSONSchema = {
 			properties: {
 				object: {
 					type: 'object',
-					description: 'The object that was created, updated, or deleted'
+					description:
+						'The object that was created, updated, or deleted'
 				},
 				previous_attributes: {
 					type: 'object',
-					description: 'Previous attributes if this was an update event'
+					description:
+						'Previous attributes if this was an update event'
 				}
 			}
 		},

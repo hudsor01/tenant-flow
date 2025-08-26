@@ -11,8 +11,6 @@ import type {
 } from '@repo/shared'
 import { apiClient } from '../api-client'
 
-
-
 /**
  * Units API functions - Connected to backend units controller
  */
@@ -47,7 +45,12 @@ export const unitApi = {
 		return apiClient.get<Unit[]>(`/units/by-property/${propertyId}`)
 	},
 
-	async updateAvailability(unitId: string, available: boolean): Promise<Unit> {
-		return apiClient.put<Unit>(`/units/${unitId}/availability`, { available })
+	async updateAvailability(
+		unitId: string,
+		available: boolean
+	): Promise<Unit> {
+		return apiClient.put<Unit>(`/units/${unitId}/availability`, {
+			available
+		})
 	}
 }

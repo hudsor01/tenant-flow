@@ -77,32 +77,42 @@ export interface NotificationWithDetails extends NotificationData {
 
 // Complex query result types
 export interface PropertyWithUnits extends Property {
-	units: Array<Unit & {
-		leases: Lease[]
-	}>
+	units: Array<
+		Unit & {
+			leases: Lease[]
+		}
+	>
 }
 
 export interface PropertyWithUnitsAndLeases extends Property {
-	units: Array<Unit & {
-		leases: Array<Lease & {
-			tenant: Tenant
-		}>
-	}>
+	units: Array<
+		Unit & {
+			leases: Array<
+				Lease & {
+					tenant: Tenant
+				}
+			>
+		}
+	>
 }
 
 export interface TenantWithLeases extends Tenant {
-	leases: Array<Lease & {
-		unit: Unit & {
-			property: Property
+	leases: Array<
+		Lease & {
+			unit: Unit & {
+				property: Property
+			}
 		}
-	}>
+	>
 }
 
 export interface UnitWithProperty extends Unit {
 	property: Property
-	leases: Array<Lease & {
-		tenant: Tenant
-	}>
+	leases: Array<
+		Lease & {
+			tenant: Tenant
+		}
+	>
 }
 
 export interface LeaseWithRelations extends Lease {
@@ -136,9 +146,11 @@ export interface LeaseWithRelations extends Lease {
 export interface MaintenanceRequestWithRelations extends MaintenanceRequest {
 	unit: Unit & {
 		property: Property
-		leases: Array<Lease & {
-			tenant: Tenant
-		}>
+		leases: Array<
+			Lease & {
+				tenant: Tenant
+			}
+		>
 	}
 	expenses: Expense[]
 	files: Array<{
@@ -156,13 +168,19 @@ export interface MaintenanceRequestWithRelations extends MaintenanceRequest {
 }
 
 export interface UserWithProperties extends User {
-	properties: Array<Property & {
-		units: Array<Unit & {
-			leases: Array<Lease & {
-				tenant: Tenant
-			}>
-		}>
-	}>
+	properties: Array<
+		Property & {
+			units: Array<
+				Unit & {
+					leases: Array<
+						Lease & {
+							tenant: Tenant
+						}
+					>
+				}
+			>
+		}
+	>
 }
 
 export interface NotificationWithRelations extends NotificationData {

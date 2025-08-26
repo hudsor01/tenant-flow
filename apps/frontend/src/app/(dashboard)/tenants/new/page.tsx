@@ -46,7 +46,7 @@ export default function NewTenantPage() {
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
 							<div className="bg-primary/10 rounded-lg p-2">
-								<User className="h-5 w-5 text-primary" />
+								<User className="text-primary h-5 w-5" />
 							</div>
 							Tenant Information
 						</CardTitle>

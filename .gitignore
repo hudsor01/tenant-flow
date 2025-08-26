@@ -635,3 +635,4 @@ MIGRATION_*.md
 .netlify/
 
 
+playwright/.auth/

@@ -60,7 +60,7 @@ export function MobileNavigation({
 						exit={{ x: '-100%' }}
 						transition={{ duration: 0.3, ease: 'easeInOut' }}
 						className={cn(
-							'bg-card absolute top-0 left-0 h-full w-80 border-r shadow-lg',
+							'bg-card absolute left-0 top-0 h-full w-80 border-r shadow-lg',
 							className
 						)}
 					>

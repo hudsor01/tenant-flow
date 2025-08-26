@@ -1,6 +1,13 @@
-import { Inject, Injectable, Logger, BadRequestException, InternalServerErrorException } from '@nestjs/common'
+import {
+	Inject,
+	Injectable,
+	Logger,
+	BadRequestException,
+	InternalServerErrorException
+} from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import type { Database } from '@repo/shared/types/supabase-generated'
 import * as path from 'path'
 
 // Custom type that matches what we're returning
@@ -16,11 +23,9 @@ interface StorageUploadResult {
 @Injectable()
 export class StorageService {
 	private readonly logger = new Logger(StorageService.name)
-	private readonly supabase: SupabaseClient
+	private readonly supabase: SupabaseClient<Database>
 
-	constructor(
-		@Inject(ConfigService) private configService: ConfigService
-	) {
+	constructor(@Inject(ConfigService) private configService: ConfigService) {
 		const supabaseUrl = this.configService.get<string>('SUPABASE_URL')
 		const supabaseServiceKey = this.configService.get<string>(
 			'SUPABASE_SERVICE_ROLE_KEY'
@@ -32,7 +37,7 @@ export class StorageService {
 			)
 		}
 
-		this.supabase = createClient(supabaseUrl, supabaseServiceKey)
+		this.supabase = createClient<Database>(supabaseUrl, supabaseServiceKey)
 	}
 
 	/**
@@ -51,9 +56,7 @@ export class StorageService {
 			normalized.includes('/../') ||
 			normalized === '..'
 		) {
-			throw new BadRequestException(
-				'Invalid file path detected'
-			)
+			throw new BadRequestException('Invalid file path detected')
 		}
 
 		// Ensure path doesn't start with /
@@ -80,9 +83,7 @@ export class StorageService {
 			hasDangerousChars ||
 			dangerousExtensions.test(filename)
 		) {
-			throw new BadRequestException(
-				'Invalid file name or extension'
-			)
+			throw new BadRequestException('Invalid file name or extension')
 		}
 
 		return filename
@@ -105,7 +106,7 @@ export class StorageService {
 		const safePath = this.validateFilePath(filePath)
 		const filename = path.basename(safePath)
 		this.validateFileName(filename)
-		
+
 		const { error } = await this.supabase.storage
 			.from(bucket)
 			.upload(safePath, file, {
@@ -175,7 +176,19 @@ export class StorageService {
 	/**
 	 * List files in a bucket/folder
 	 */
-	async listFiles(bucket: string, folder?: string): Promise<{ name: string; id?: string; updated_at?: string; created_at?: string; last_accessed_at?: string; metadata?: Record<string, unknown> }[]> {
+	async listFiles(
+		bucket: string,
+		folder?: string
+	): Promise<
+		{
+			name: string
+			id?: string
+			updated_at?: string
+			created_at?: string
+			last_accessed_at?: string
+			metadata?: Record<string, unknown>
+		}[]
+	> {
 		const { data, error } = await this.supabase.storage
 			.from(bucket)
 			.list(folder)

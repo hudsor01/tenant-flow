@@ -1,5 +1,5 @@
 import { type PLAN_TYPE, PLANS } from '@repo/shared'
-import { logger } from "@/lib/logger/logger"
+import { logger } from '@/lib/logger/logger'
 
 interface PlanWithUIMapping {
 	id: string

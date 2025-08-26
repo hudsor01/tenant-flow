@@ -34,7 +34,7 @@ import { useAuth } from '@/hooks/use-auth'
 
 export function ProfileSettings() {
 	const { user } = useAuth()
-	
+
 	const {
 		values: profile,
 		handleChange,
@@ -52,7 +52,12 @@ export function ProfileSettings() {
 	const { execute: saveProfile, isLoading } = useApiCall(
 		async (data: ProfileFormData) => {
 			// Validate and send, then validate the response shape
-			return await apiClient.putValidated('/api/v1/auth/profile', UpdateUserProfileSchema, 'UpdateUserProfile', data as Record<string, unknown>)
+			return await apiClient.putValidated(
+				'/api/v1/auth/profile',
+				UpdateUserProfileSchema,
+				'UpdateUserProfile',
+				data as Record<string, unknown>
+			)
 		},
 		{
 			successMessage: 'Profile updated successfully',
@@ -63,20 +68,23 @@ export function ProfileSettings() {
 	// Load user data on mount
 	useEffect(() => {
 		if (user) {
-				const asRecord = (u: unknown): Record<string, unknown> => (typeof u === 'object' && u !== null ? (u as Record<string, unknown>) : {})
-				const record = asRecord(user)
-				const getStringFrom = (k: string) => {
-					const v = record[k]
-					return typeof v === 'string' ? v : ''
-				}
-				setValues({
-					name: getStringFrom('name'),
-					email: getStringFrom('email'),
-					phone: getStringFrom('phone'),
-					company: getStringFrom('company'),
-					address: getStringFrom('address')
-				})
+			const asRecord = (u: unknown): Record<string, unknown> =>
+				typeof u === 'object' && u !== null
+					? (u as Record<string, unknown>)
+					: {}
+			const record = asRecord(user)
+			const getStringFrom = (k: string) => {
+				const v = record[k]
+				return typeof v === 'string' ? v : ''
 			}
+			setValues({
+				name: getStringFrom('name'),
+				email: getStringFrom('email'),
+				phone: getStringFrom('phone'),
+				company: getStringFrom('company'),
+				address: getStringFrom('address')
+			})
+		}
 	}, [user, setValues])
 
 	const handleSave = async () => {
