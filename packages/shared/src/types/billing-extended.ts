@@ -157,9 +157,13 @@ export function checkPropertyLimitExceeded(
 	current: number,
 	limit: number
 ): boolean {
+<<<<<<< HEAD
 	if (limit === -1) {
 		return false
 	} // Unlimited
+=======
+	if (limit === -1) {return false} // Unlimited
+>>>>>>> origin/main
 	return current >= limit
 }
 
@@ -167,9 +171,13 @@ export function checkPropertyLimitExceeded(
  * Format plan price for display
  */
 export function formatPlanPrice(price: number): string {
+<<<<<<< HEAD
 	if (price === 0) {
 		return 'Free'
 	}
+=======
+	if (price === 0) {return 'Free'}
+>>>>>>> origin/main
 	return `$${price}/mo`
 }
 
@@ -182,6 +190,7 @@ export function serializeSubscription(
 	return {
 		...subscription,
 		startDate: subscription.startDate.toISOString(),
+<<<<<<< HEAD
 		endDate: subscription.endDate?.toISOString() ?? null,
 		cancelledAt: subscription.cancelledAt?.toISOString() ?? null,
 		createdAt: subscription.createdAt.toISOString(),
@@ -192,6 +201,18 @@ export function serializeSubscription(
 		trialStart: subscription.trialStart?.toISOString() ?? null,
 		trialEnd: subscription.trialEnd?.toISOString() ?? null,
 		canceledAt: subscription.canceledAt?.toISOString() ?? null
+=======
+		endDate: subscription.endDate?.toISOString() || null,
+		cancelledAt: subscription.cancelledAt?.toISOString() || null,
+		createdAt: subscription.createdAt.toISOString(),
+		updatedAt: subscription.updatedAt.toISOString(),
+		currentPeriodStart:
+			subscription.currentPeriodStart?.toISOString() || null,
+		currentPeriodEnd: subscription.currentPeriodEnd?.toISOString() || null,
+		trialStart: subscription.trialStart?.toISOString() || null,
+		trialEnd: subscription.trialEnd?.toISOString() || null,
+		canceledAt: subscription.canceledAt?.toISOString() || null
+>>>>>>> origin/main
 	}
 }
 
@@ -235,8 +256,13 @@ export function serializeInvoice(invoice: BaseInvoice): FrontendInvoice {
 	return {
 		...invoice,
 		invoiceDate: invoice.invoiceDate.toISOString(),
+<<<<<<< HEAD
 		dueDate: invoice.dueDate?.toISOString() ?? null,
 		paidAt: invoice.paidAt?.toISOString() ?? undefined,
+=======
+		dueDate: invoice.dueDate?.toISOString() || null,
+		paidAt: invoice.paidAt?.toISOString() || undefined,
+>>>>>>> origin/main
 		createdAt: invoice.createdAt.toISOString(),
 		updatedAt: invoice.updatedAt.toISOString()
 	}

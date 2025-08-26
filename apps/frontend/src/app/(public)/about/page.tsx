@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 'use client'
 
+=======
+import type { Metadata } from 'next/types'
+>>>>>>> origin/main
 import React from 'react'
 import { motion } from '@/lib/lazy-motion'
 import { Badge } from '@/components/ui/badge'
@@ -85,7 +89,11 @@ export function AboutContent() {
 	return (
 		<div className="from-background to-muted/20 min-h-screen bg-gradient-to-b">
 			{/* Hero Section */}
+<<<<<<< HEAD
 			<section className="px-4 pb-16 pt-24">
+=======
+			<section className="px-4 pt-24 pb-16">
+>>>>>>> origin/main
 				<div className="mx-auto max-w-7xl">
 					<div className="mb-16 text-center">
 						<motion.div
@@ -104,7 +112,11 @@ export function AboutContent() {
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ duration: 0.6, delay: 0.1 }}
+<<<<<<< HEAD
 							className="text-foreground mb-6 text-5xl font-bold leading-tight lg:text-6xl"
+=======
+							className="text-foreground mb-6 text-5xl leading-tight font-bold lg:text-6xl"
+>>>>>>> origin/main
 						>
 							Revolutionizing{' '}
 							<span className="from-primary via-accent to-success bg-gradient-to-r bg-clip-text text-transparent">
@@ -118,11 +130,19 @@ export function AboutContent() {
 							transition={{ duration: 0.6, delay: 0.2 }}
 							className="text-muted-foreground mx-auto max-w-3xl text-xl leading-relaxed"
 						>
+<<<<<<< HEAD
 							We&apos;re on a mission to simplify property
 							management for everyone. From individual landlords
 							to large property management companies, TenantFlow
 							makes it easy to manage properties, tenants, and
 							maintenance - all in one place.
+=======
+							We're on a mission to simplify property management
+							for everyone. From individual landlords to large
+							property management companies, TenantFlow makes it
+							easy to manage properties, tenants, and maintenance
+							- all in one place.
+>>>>>>> origin/main
 						</motion.p>
 					</div>
 
@@ -290,7 +310,10 @@ export function AboutContent() {
 		</div>
 	)
 }
+<<<<<<< HEAD
 
 export default function AboutPage() {
 	return <AboutContent />
 }
+=======
+>>>>>>> origin/main

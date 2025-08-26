@@ -1,21 +1,40 @@
 /**
  * Notification Schemas
+<<<<<<< HEAD
  *
+=======
+ * 
+>>>>>>> origin/main
  * JSON Schema definitions for notification endpoints.
  * Replaces class-validator DTOs with type-safe schema definitions.
  */
 
+<<<<<<< HEAD
 import type { JSONSchema } from '../shared/types/fastify-type-provider'
 
 // Priority enum schema
 const prioritySchema: JSONSchema = {
+=======
+import { 
+	createTypedSchema, 
+	schemaRegistry, 
+	type TypedJSONSchema 
+} from '../shared/types/fastify-type-provider'
+
+// Priority enum schema
+const prioritySchema: TypedJSONSchema = {
+>>>>>>> origin/main
 	type: 'string',
 	enum: ['LOW', 'MEDIUM', 'HIGH', 'EMERGENCY'],
 	description: 'Notification priority level'
 }
 
 // Notification type schema
+<<<<<<< HEAD
 const notificationTypeSchema: JSONSchema = {
+=======
+const notificationTypeSchema: TypedJSONSchema = {
+>>>>>>> origin/main
 	type: 'string',
 	enum: [
 		'maintenance_request_created',
@@ -50,7 +69,11 @@ export interface CreateNotificationRequest {
 	data?: Record<string, unknown>
 }
 
+<<<<<<< HEAD
 export const createNotificationSchema: JSONSchema = {
+=======
+export const createNotificationSchema = createTypedSchema<CreateNotificationRequest>({
+>>>>>>> origin/main
 	type: 'object',
 	required: ['recipientId', 'title', 'message', 'type', 'priority'],
 	additionalProperties: false,
@@ -85,7 +108,11 @@ export const createNotificationSchema: JSONSchema = {
 			additionalProperties: true
 		}
 	}
+<<<<<<< HEAD
 }
+=======
+})
+>>>>>>> origin/main
 
 /**
  * Mark notification as read request
@@ -94,7 +121,11 @@ export interface MarkAsReadRequest {
 	notificationId: string
 }
 
+<<<<<<< HEAD
 export const markAsReadSchema: JSONSchema = {
+=======
+export const markAsReadSchema = createTypedSchema<MarkAsReadRequest>({
+>>>>>>> origin/main
 	type: 'object',
 	required: ['notificationId'],
 	additionalProperties: false,
@@ -105,7 +136,11 @@ export const markAsReadSchema: JSONSchema = {
 			description: 'ID of the notification to mark as read'
 		}
 	}
+<<<<<<< HEAD
 }
+=======
+})
+>>>>>>> origin/main
 
 /**
  * Get notifications query parameters
@@ -118,7 +153,11 @@ export interface GetNotificationsQuery {
 	type?: string
 }
 
+<<<<<<< HEAD
 export const getNotificationsQuerySchema: JSONSchema = {
+=======
+export const getNotificationsQuerySchema = createTypedSchema<GetNotificationsQuery>({
+>>>>>>> origin/main
 	type: 'object',
 	additionalProperties: false,
 	properties: {
@@ -143,7 +182,11 @@ export const getNotificationsQuerySchema: JSONSchema = {
 		},
 		type: notificationTypeSchema
 	}
+<<<<<<< HEAD
 }
+=======
+})
+>>>>>>> origin/main
 
 /**
  * Notification response
@@ -162,6 +205,7 @@ export interface NotificationResponse {
 	updatedAt: string
 }
 
+<<<<<<< HEAD
 export const notificationResponseSchema: JSONSchema = {
 	type: 'object',
 	required: [
@@ -175,6 +219,11 @@ export const notificationResponseSchema: JSONSchema = {
 		'createdAt',
 		'updatedAt'
 	],
+=======
+export const notificationResponseSchema = createTypedSchema<NotificationResponse>({
+	type: 'object',
+	required: ['id', 'recipientId', 'title', 'message', 'type', 'priority', 'read', 'createdAt', 'updatedAt'],
+>>>>>>> origin/main
 	properties: {
 		id: {
 			type: 'string',
@@ -221,7 +270,11 @@ export const notificationResponseSchema: JSONSchema = {
 			description: 'When the notification was last updated'
 		}
 	}
+<<<<<<< HEAD
 }
+=======
+})
+>>>>>>> origin/main
 
 /**
  * Notifications list response
@@ -237,7 +290,11 @@ export interface NotificationsListResponse {
 	unreadCount: number
 }
 
+<<<<<<< HEAD
 export const notificationsListResponseSchema: JSONSchema = {
+=======
+export const notificationsListResponseSchema = createTypedSchema<NotificationsListResponse>({
+>>>>>>> origin/main
 	type: 'object',
 	required: ['notifications', 'pagination', 'unreadCount'],
 	properties: {
@@ -276,7 +333,11 @@ export const notificationsListResponseSchema: JSONSchema = {
 			description: 'Total number of unread notifications'
 		}
 	}
+<<<<<<< HEAD
 }
+=======
+})
+>>>>>>> origin/main
 
 /**
  * Maintenance notification specific data schema
@@ -288,7 +349,11 @@ export interface MaintenanceNotificationData {
 	requestTitle: string
 }
 
+<<<<<<< HEAD
 export const maintenanceNotificationDataSchema: JSONSchema = {
+=======
+export const maintenanceNotificationDataSchema = createTypedSchema<MaintenanceNotificationData>({
+>>>>>>> origin/main
 	type: 'object',
 	required: ['propertyName', 'unitNumber', 'description', 'requestTitle'],
 	properties: {
@@ -309,10 +374,22 @@ export const maintenanceNotificationDataSchema: JSONSchema = {
 			description: 'Title of the maintenance request'
 		}
 	}
+<<<<<<< HEAD
 }
 
 // Schemas are exported directly for use in NestJS controllers
 // No custom registry needed - use Fastify's native addSchema() if sharing is required
+=======
+})
+
+// Register schemas
+schemaRegistry.register('create-notification', createNotificationSchema)
+schemaRegistry.register('mark-as-read', markAsReadSchema)
+schemaRegistry.register('get-notifications-query', getNotificationsQuerySchema)
+schemaRegistry.register('notification-response', notificationResponseSchema)
+schemaRegistry.register('notifications-list-response', notificationsListResponseSchema)
+schemaRegistry.register('maintenance-notification-data', maintenanceNotificationDataSchema)
+>>>>>>> origin/main
 
 // Export route schemas for controller usage
 export const notificationRouteSchemas = {
@@ -348,4 +425,8 @@ export const notificationRouteSchemas = {
 			}
 		}
 	}
+<<<<<<< HEAD
 } as const
+=======
+} as const
+>>>>>>> origin/main

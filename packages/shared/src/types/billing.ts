@@ -4,10 +4,14 @@
  */
 
 // Import consolidated types from stripe.ts
+<<<<<<< HEAD
 import type { PlanType, BillingPeriod, SubscriptionSyncResult } from './stripe'
 
 // Re-export SubscriptionSyncResult for convenience
 export type { SubscriptionSyncResult }
+=======
+import type { PlanType, BillingPeriod } from './stripe'
+>>>>>>> origin/main
 
 export const PLAN_TYPE = {
 	FREETRIAL: 'FREETRIAL',
@@ -279,6 +283,7 @@ export interface SubscriptionData {
 	cancelAtPeriodEnd: boolean
 }
 
+<<<<<<< HEAD
 // Stripe webhook event types as a union type for type safety
 type StripeWebhookEventType =
 	| 'customer.subscription.created'
@@ -300,6 +305,37 @@ export type WebhookEventHandler = Record<
 	StripeWebhookEventType,
 	(event: StripeWebhookEvent) => Promise<void>
 >
+=======
+export interface WebhookEventHandler {
+	'customer.subscription.created': (
+		event: StripeWebhookEvent
+	) => Promise<void>
+	'customer.subscription.updated': (
+		event: StripeWebhookEvent
+	) => Promise<void>
+	'customer.subscription.deleted': (
+		event: StripeWebhookEvent
+	) => Promise<void>
+	'customer.subscription.trial_will_end': (
+		event: StripeWebhookEvent
+	) => Promise<void>
+	'customer.subscription.paused': (event: StripeWebhookEvent) => Promise<void>
+	'customer.subscription.resumed': (
+		event: StripeWebhookEvent
+	) => Promise<void>
+	'invoice.payment_succeeded': (event: StripeWebhookEvent) => Promise<void>
+	'invoice.payment_failed': (event: StripeWebhookEvent) => Promise<void>
+	'invoice.payment_action_required': (
+		event: StripeWebhookEvent
+	) => Promise<void>
+	'invoice.upcoming': (event: StripeWebhookEvent) => Promise<void>
+	'checkout.session.completed': (event: StripeWebhookEvent) => Promise<void>
+	'payment_intent.requires_action': (
+		event: StripeWebhookEvent
+	) => Promise<void>
+	'charge.failed': (event: StripeWebhookEvent) => Promise<void>
+}
+>>>>>>> origin/main
 
 // WebhookEventType is now imported from stripe.ts
 

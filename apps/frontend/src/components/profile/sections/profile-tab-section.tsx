@@ -5,7 +5,11 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import type { UseFormReturn } from 'react-hook-form'
 import { AvatarUploadSection } from './avatar-upload-section'
+<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
+=======
+import { logger } from '@/lib/logger'
+>>>>>>> origin/main
 import { toast } from 'sonner'
 import type { User } from '@repo/shared'
 import type { ProfileFormData } from '@/hooks/use-edit-profile-data'

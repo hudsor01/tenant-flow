@@ -10,7 +10,11 @@ export function PricingHero() {
 	return (
 		<section className="relative bg-gradient-to-b from-white via-gray-50/30 to-white py-24">
 			{/* Background pattern */}
+<<<<<<< HEAD
 			<div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgb(15_23_42_/_0.15)_1px,transparent_0)] [background-size:24px_24px] [mask-image:radial-gradient(circle_at_center,white,transparent_85%)]" />
+=======
+			<div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgb(15_23_42_/_0.15)_1px,transparent_0)] [mask-image:radial-gradient(circle_at_center,white,transparent_85%)] [background-size:24px_24px]" />
+>>>>>>> origin/main
 
 			<div className="relative mx-auto max-w-7xl px-4 text-center">
 				{/* Badge */}
@@ -25,7 +29,11 @@ export function PricingHero() {
 				</div>
 
 				{/* Main headline */}
+<<<<<<< HEAD
 				<h1 className="mb-6 text-5xl font-bold leading-tight text-gray-900 sm:text-6xl lg:text-7xl">
+=======
+				<h1 className="mb-6 text-5xl leading-tight font-bold text-gray-900 sm:text-6xl lg:text-7xl">
+>>>>>>> origin/main
 					Pricing that grows
 					<br />
 					<span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">

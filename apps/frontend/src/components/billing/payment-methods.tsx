@@ -206,7 +206,11 @@ interface PaymentMethodCardProps {
 	isDeleting?: boolean
 }
 
+<<<<<<< HEAD
 function _PaymentMethodCard({
+=======
+function PaymentMethodCard({
+>>>>>>> origin/main
 	paymentMethod,
 	isDefault,
 	onSetDefault,

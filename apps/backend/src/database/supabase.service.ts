@@ -9,10 +9,7 @@ export class SupabaseService {
 	private readonly logger = new Logger(SupabaseService.name)
 	private adminClient: SupabaseClient<Database>
 
-	constructor(
-		@Inject(ConfigService)
-		private readonly configService: ConfigService<EnvironmentVariables>
-	) {
+	constructor(@Inject(ConfigService) private readonly configService: ConfigService<EnvironmentVariables>) {
 		const supabaseUrl = this.configService.get('SUPABASE_URL', {
 			infer: true
 		})
@@ -44,12 +41,8 @@ export class SupabaseService {
 	}
 
 	getUserClient(userToken: string): SupabaseClient<Database> {
-		const supabaseUrl = this.configService.get('SUPABASE_URL', {
-			infer: true
-		})
-		const supabaseAnonKey = this.configService.get('SUPABASE_ANON_KEY', {
-			infer: true
-		})
+		const supabaseUrl = process.env.SUPABASE_URL
+		const supabaseAnonKey = process.env.SUPABASE_ANON_KEY
 
 		if (!supabaseUrl || !supabaseAnonKey) {
 			throw new Error('Supabase configuration is missing for user client')
@@ -71,7 +64,7 @@ export class SupabaseService {
 	async checkConnection(): Promise<{ status: string; message?: string }> {
 		try {
 			const { error } = await this.adminClient
-				.from('User')
+				.from('users')
 				.select('count', { count: 'exact', head: true })
 
 			if (error) {

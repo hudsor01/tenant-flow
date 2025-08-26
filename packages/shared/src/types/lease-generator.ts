@@ -9,8 +9,13 @@ import { requiredString } from '../validation/common'
 
 export const leaseFormSchema = z.object({
 	// Property Information
+<<<<<<< HEAD
 	propertyAddress: requiredString,
 	city: requiredString,
+=======
+	propertyAddress: z.string().min(1, 'Property address is required'),
+	city: z.string().min(1, 'City is required'),
+>>>>>>> origin/main
 	state: z.string().min(2, 'State is required'),
 	zipCode: z.string().min(5, 'Valid ZIP code is required'),
 	unitNumber: z.string().optional(),
@@ -28,10 +33,17 @@ export const leaseFormSchema = z.object({
 	squareFootage: z.number().optional(),
 
 	// Landlord Information
+<<<<<<< HEAD
 	landlordName: requiredString,
 	landlordEmail: z.string().email('Valid email is required'),
 	landlordPhone: z.string().optional(),
 	landlordAddress: requiredString,
+=======
+	landlordName: z.string().min(1, 'Landlord name is required'),
+	landlordEmail: z.string().email('Valid email is required'),
+	landlordPhone: z.string().optional(),
+	landlordAddress: z.string().min(1, 'Landlord address is required'),
+>>>>>>> origin/main
 
 	// Tenant Information
 	tenantNames: z
@@ -39,8 +51,13 @@ export const leaseFormSchema = z.object({
 		.min(1, 'At least one tenant is required'),
 
 	// Lease Terms
+<<<<<<< HEAD
 	leaseStartDate: requiredString,
 	leaseEndDate: requiredString,
+=======
+	leaseStartDate: z.string().min(1, 'Lease start date is required'),
+	leaseEndDate: z.string().min(1, 'Lease end date is required'),
+>>>>>>> origin/main
 	rentAmount: z.number().min(1, 'Rent amount must be greater than 0'),
 	securityDeposit: z.number().min(0, 'Security deposit cannot be negative'),
 
@@ -99,11 +116,16 @@ export type LeaseFormData = z.infer<typeof leaseFormSchema>
 
 // Component prop types for lease generator sections - using generic form interface
 export interface PropertyInfoSectionProps {
+<<<<<<< HEAD
 	form: GenericFormHandler<LeaseFormData>
+=======
+	form: UseFormReturn<LeaseFormData>
+>>>>>>> origin/main
 	supportedStates: string[]
 }
 
 export interface TenantInfoSectionProps {
+<<<<<<< HEAD
 	form: GenericFormHandler<LeaseFormData>
 }
 
@@ -130,6 +152,21 @@ export interface GenericFormHandler<T> {
 		isValid: boolean
 		isDirty: boolean
 	}
+=======
+	form: UseFormReturn<LeaseFormData>
+}
+
+export interface LeaseTermsSectionProps {
+	form: UseFormReturn<LeaseFormData>
+}
+
+export interface AdditionalTermsSectionProps {
+	form: UseFormReturn<LeaseFormData>
+}
+
+export interface PartiesInfoSectionProps {
+	form: UseFormReturn<LeaseFormData>
+>>>>>>> origin/main
 }
 
 // Additional types for lease generator functionality

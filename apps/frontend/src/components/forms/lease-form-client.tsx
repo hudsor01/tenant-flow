@@ -9,7 +9,11 @@
 
 import React, { useState, useTransition, useEffect, useMemo } from 'react'
 import { motion } from '@/lib/lazy-motion'
+<<<<<<< HEAD
 import type { CreateLeaseInput, UpdateLeaseInput, Lease } from '@repo/shared'
+=======
+import type { CreateLeaseInput, UpdateLeaseInput, Lease, Tenant } from '@repo/shared'
+>>>>>>> origin/main
 import { useCreateLease, useUpdateLease } from '@/hooks/api/use-leases'
 import { useProperties } from '@/hooks/api/use-properties'
 import { useTenants } from '@/hooks/api/use-tenants'
@@ -92,8 +96,12 @@ export function LeaseFormClient({
 	// Data hooks
 	const propertiesQuery = useProperties()
 	const tenantsQuery = useTenants()
+<<<<<<< HEAD
 	// Memoize tenants to prevent dependency changes
 	const tenants = useMemo(() => tenantsQuery.data || [], [tenantsQuery.data])
+=======
+	const tenants = tenantsQuery.data || []
+>>>>>>> origin/main
 	// Memoize properties to prevent render loop
 	const properties = useMemo(
 		() => propertiesQuery.data ?? [],
@@ -212,9 +220,13 @@ export function LeaseFormClient({
 		const endDate = formData.endDate ? new Date(formData.endDate) : null
 		const rentAmount = formData.rentAmount ?? 0
 
+<<<<<<< HEAD
 		if (!startDate || !endDate) {
 			return null
 		}
+=======
+		if (!startDate || !endDate) return null
+>>>>>>> origin/main
 
 		const months =
 			(endDate.getFullYear() - startDate.getFullYear()) * 12 +
@@ -249,6 +261,7 @@ export function LeaseFormClient({
 	const validateForm = (): boolean => {
 		const newErrors: Record<string, string> = {}
 
+<<<<<<< HEAD
 		if (!formData.unitId) {
 			newErrors.unitId = 'Unit is required'
 		}
@@ -261,6 +274,12 @@ export function LeaseFormClient({
 		if (!formData.endDate) {
 			newErrors.endDate = 'End date is required'
 		}
+=======
+		if (!formData.unitId) newErrors.unitId = 'Unit is required'
+		if (!formData.tenantId) newErrors.tenantId = 'Tenant is required'
+		if (!formData.startDate) newErrors.startDate = 'Start date is required'
+		if (!formData.endDate) newErrors.endDate = 'End date is required'
+>>>>>>> origin/main
 		if (!formData.rentAmount || formData.rentAmount <= 0) {
 			newErrors.rentAmount = 'Rent amount must be greater than 0'
 		}

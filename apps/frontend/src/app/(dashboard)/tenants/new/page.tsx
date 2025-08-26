@@ -5,7 +5,11 @@ import { ArrowLeft, User } from 'lucide-react'
 import Link from 'next/link'
 import { TenantForm } from '@/components/forms/tenant-form'
 import { PageTracker } from '@/components/analytics/page-tracker'
+<<<<<<< HEAD
 import type { Metadata } from 'next/types'
+=======
+import type { Metadata } from '@/types/next'
+>>>>>>> origin/main
 
 export const metadata: Metadata = {
 	title: 'Add New Tenant | TenantFlow',
@@ -46,7 +50,11 @@ export default function NewTenantPage() {
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
 							<div className="bg-primary/10 rounded-lg p-2">
+<<<<<<< HEAD
 								<User className="text-primary h-5 w-5" />
+=======
+								<User className="h-5 w-5 text-primary" />
+>>>>>>> origin/main
 							</div>
 							Tenant Information
 						</CardTitle>
@@ -61,11 +69,24 @@ export default function NewTenantPage() {
 								</div>
 							}
 						>
+<<<<<<< HEAD
 							<TenantForm mode="create" />
+=======
+							<TenantForm
+								mode="create"
+								onSuccess={() => {
+									// Redirect will be handled by the form component
+								}}
+							/>
+>>>>>>> origin/main
 						</Suspense>
 					</CardContent>
 				</Card>
 			</div>
 		</div>
 	)
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> origin/main

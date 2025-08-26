@@ -6,7 +6,11 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Building, MapPin, Users, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { propertyApi } from '@/lib/api/properties'
+<<<<<<< HEAD
 import type { Property } from '@repo/shared'
+=======
+import type { Property, PropertyStats } from '@repo/shared'
+>>>>>>> origin/main
 
 // Loading skeleton for property cards
 function PropertyCardSkeleton() {
@@ -40,6 +44,22 @@ function PropertyCardSkeleton() {
 
 // Property card component
 function PropertyCard({ property }: { property: Property }) {
+<<<<<<< HEAD
+=======
+	const _getStatusColor = (status: string) => {
+		switch (status) {
+			case 'active':
+				return 'bg-green-100 text-green-800'
+			case 'inactive':
+				return 'bg-red-100 text-red-800'
+			case 'maintenance':
+				return 'bg-yellow-100 text-yellow-800'
+			default:
+				return 'bg-gray-100 text-gray-800'
+		}
+	}
+
+>>>>>>> origin/main
 	return (
 		<Card className="transition-shadow hover:shadow-md">
 			<CardHeader>
@@ -124,7 +144,11 @@ async function PropertyStatsComponent() {
 			<Card>
 				<CardContent className="p-4">
 					<div className="text-2xl font-bold">
+<<<<<<< HEAD
 						{stats.occupied + stats.vacant || 0}
+=======
+						{stats.occupiedUnits + stats.vacantUnits || 0}
+>>>>>>> origin/main
 					</div>
 					<p className="text-muted-foreground text-sm">Total Units</p>
 				</CardContent>

@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { SupabaseService } from '../database/supabase.service'
-import type { Enums } from '@repo/shared/types/supabase-generated'
+import { SubscriptionSupabaseRepository } from './subscription-supabase.repository'
 
 /**
  * Minimal Payment Recovery Service
@@ -22,7 +21,9 @@ import type { Enums } from '@repo/shared/types/supabase-generated'
 export class PaymentRecoveryService {
 	private readonly logger = new Logger(PaymentRecoveryService.name)
 
-	constructor(private readonly supabaseService: SupabaseService) {}
+	constructor(
+		private readonly subscriptionRepository: SubscriptionSupabaseRepository
+	) {}
 
 	/**
 	 * Sync failed payment status from Stripe webhook
@@ -36,14 +37,10 @@ export class PaymentRecoveryService {
 			return
 		}
 
-		await this.supabaseService
-			.getAdminClient()
-			.from('Subscription')
-			.update({
-				status: 'PAST_DUE' as Enums<'SubStatus'>,
-				updatedAt: new Date().toISOString()
-			})
-			.eq('stripeSubscriptionId', subscriptionId)
+		await this.subscriptionRepository.updateStatusByStripeId(
+			subscriptionId,
+			'PAST_DUE'
+		)
 
 		this.logger.log(
 			`Subscription ${subscriptionId} marked PAST_DUE. Stripe handling recovery.`
@@ -61,14 +58,10 @@ export class PaymentRecoveryService {
 			return
 		}
 
-		await this.supabaseService
-			.getAdminClient()
-			.from('Subscription')
-			.update({
-				status: 'ACTIVE' as Enums<'SubStatus'>,
-				updatedAt: new Date().toISOString()
-			})
-			.eq('stripeSubscriptionId', subscriptionId)
+		await this.subscriptionRepository.updateStatusByStripeId(
+			subscriptionId,
+			'ACTIVE'
+		)
 
 		this.logger.log(
 			`Subscription ${subscriptionId} recovered and marked ACTIVE.`

@@ -3,6 +3,7 @@
  * All types related to customer invoices, invoice items, and invoice generation
  */
 
+<<<<<<< HEAD
 // Remove frontend-specific dependencies - use generic form types instead
 // Define CustomerInvoiceForm inline instead of importing
 export interface CustomerInvoiceForm {
@@ -56,6 +57,48 @@ export const getCustomerInvoiceStatusLabel = (
 	return labels[status] || status
 }
 
+=======
+import type { UseFormRegister, FieldErrors } from 'react-hook-form'
+import type { CustomerInvoiceForm } from './invoice-lead'
+
+// Customer invoice status enum
+export type CustomerInvoiceStatus =
+	| 'DRAFT'
+	| 'SENT'
+	| 'VIEWED'
+	| 'PAID'
+	| 'OVERDUE'
+	| 'CANCELLED'
+
+export const CUSTOMER_INVOICE_STATUS = {
+	DRAFT: 'DRAFT',
+	SENT: 'SENT',
+	VIEWED: 'VIEWED',
+	PAID: 'PAID',
+	OVERDUE: 'OVERDUE',
+	CANCELLED: 'CANCELLED'
+} as const
+
+export const CUSTOMER_INVOICE_STATUS_OPTIONS = Object.values(
+	CUSTOMER_INVOICE_STATUS
+)
+
+// Invoice status display helpers
+export const getCustomerInvoiceStatusLabel = (
+	status: CustomerInvoiceStatus
+): string => {
+	const labels: Record<CustomerInvoiceStatus, string> = {
+		DRAFT: 'Draft',
+		SENT: 'Sent',
+		VIEWED: 'Viewed',
+		PAID: 'Paid',
+		OVERDUE: 'Overdue',
+		CANCELLED: 'Cancelled'
+	}
+	return labels[status] || status
+}
+
+>>>>>>> origin/main
 export const getCustomerInvoiceStatusColor = (
 	status: CustomerInvoiceStatus
 ): string => {
@@ -133,6 +176,7 @@ export interface InvoiceLeadCapture {
 	converted: boolean
 	createdAt: Date
 	updatedAt: Date
+<<<<<<< HEAD
 }
 
 // Generic form register function type - framework agnostic
@@ -145,6 +189,13 @@ export type GenericFieldErrors<T> = {
 export interface InvoiceDetailsProps {
 	register: GenericFormRegister<CustomerInvoiceForm>
 	errors?: GenericFieldErrors<CustomerInvoiceForm>
+=======
+}
+
+export interface InvoiceDetailsProps {
+	register: UseFormRegister<CustomerInvoiceForm>
+	errors?: FieldErrors<CustomerInvoiceForm>
+>>>>>>> origin/main
 }
 
 export interface InvoiceActionsProps {
@@ -155,6 +206,7 @@ export interface InvoiceActionsProps {
 }
 
 export interface BusinessInfoSectionProps {
+<<<<<<< HEAD
 	register: GenericFormRegister<CustomerInvoiceForm>
 	errors?: GenericFieldErrors<CustomerInvoiceForm>
 }
@@ -162,6 +214,15 @@ export interface BusinessInfoSectionProps {
 export interface ClientInfoSectionProps {
 	register: GenericFormRegister<CustomerInvoiceForm>
 	errors?: GenericFieldErrors<CustomerInvoiceForm>
+=======
+	register: UseFormRegister<CustomerInvoiceForm>
+	errors?: FieldErrors<CustomerInvoiceForm>
+}
+
+export interface ClientInfoSectionProps {
+	register: UseFormRegister<CustomerInvoiceForm>
+	errors?: FieldErrors<CustomerInvoiceForm>
+>>>>>>> origin/main
 }
 
 export interface EmailModalProps {

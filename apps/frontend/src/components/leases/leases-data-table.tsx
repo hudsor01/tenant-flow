@@ -51,7 +51,11 @@ import Link from 'next/link'
 function LeaseRow({ lease }: { lease: LeaseTableRow }) {
 	// Check if lease is expiring soon (within 30 days)
 	const isExpiringSoon =
+<<<<<<< HEAD
 		lease.status === 'ACTIVE' &&
+=======
+		lease.status === 'active' &&
+>>>>>>> origin/main
 		(() => {
 			const endDate = new Date(lease.endDate)
 			const thirtyDaysFromNow = new Date()
@@ -100,7 +104,11 @@ function LeaseRow({ lease }: { lease: LeaseTableRow }) {
 						<FileText className="text-primary h-5 w-5" />
 					</div>
 					<div className="space-y-1">
+<<<<<<< HEAD
 						<p className="font-medium leading-none">
+=======
+						<p className="leading-none font-medium">
+>>>>>>> origin/main
 							Lease #{lease.id.slice(-8)}
 						</p>
 						<div className="text-muted-foreground flex items-center gap-1 text-sm">
@@ -166,7 +174,11 @@ function LeaseRow({ lease }: { lease: LeaseTableRow }) {
 							Expiring Soon
 						</Badge>
 					)}
+<<<<<<< HEAD
 					{isExpired && lease.status === 'ACTIVE' && (
+=======
+					{isExpired && lease.status === 'active' && (
+>>>>>>> origin/main
 						<Badge
 							variant="outline"
 							className="border-red-600 text-xs text-red-600"

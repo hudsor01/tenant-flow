@@ -29,12 +29,15 @@ export function LoginForm({
 	const handleLogin = async (e: React.FormEvent) => {
 		e.preventDefault()
 		const supabase = createClient()
+<<<<<<< HEAD
 
 		if (!supabase) {
 			setIsLoading(false)
 			setError('Authentication service unavailable')
 			return
 		}
+=======
+>>>>>>> origin/main
 		setIsLoading(true)
 		setError(null)
 
@@ -43,9 +46,13 @@ export function LoginForm({
 				email,
 				password
 			})
+<<<<<<< HEAD
 			if (error) {
 				throw error
 			}
+=======
+			if (error) throw error
+>>>>>>> origin/main
 			// Update this route to redirect to an authenticated route. The user already has an active session.
 			router.push('/protected')
 		} catch (error: unknown) {
@@ -67,11 +74,15 @@ export function LoginForm({
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
+<<<<<<< HEAD
 					<form
 						onSubmit={e => {
 							void handleLogin(e)
 						}}
 					>
+=======
+					<form onSubmit={handleLogin}>
+>>>>>>> origin/main
 						<div className="flex flex-col gap-6">
 							<div className="grid gap-2">
 								<Label htmlFor="email">Email</Label>
@@ -81,9 +92,13 @@ export function LoginForm({
 									placeholder="m@example.com"
 									required
 									value={email}
+<<<<<<< HEAD
 									onChange={(
 										e: React.ChangeEvent<HTMLInputElement>
 									) => setEmail(e.target.value)}
+=======
+									onChange={e => setEmail(e.target.value)}
+>>>>>>> origin/main
 								/>
 							</div>
 							<div className="grid gap-2">
@@ -101,9 +116,13 @@ export function LoginForm({
 									type="password"
 									required
 									value={password}
+<<<<<<< HEAD
 									onChange={(
 										e: React.ChangeEvent<HTMLInputElement>
 									) => setPassword(e.target.value)}
+=======
+									onChange={e => setPassword(e.target.value)}
+>>>>>>> origin/main
 								/>
 							</div>
 							{error && (

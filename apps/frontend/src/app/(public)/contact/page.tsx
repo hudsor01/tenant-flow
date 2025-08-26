@@ -1,7 +1,11 @@
 'use client'
 
 import React, { useState, useOptimistic } from 'react'
+<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
+=======
+import { logger } from '@/lib/logger'
+>>>>>>> origin/main
 import { motion, AnimatePresence } from '@/lib/lazy-motion'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -32,7 +36,11 @@ interface ContactForm {
 }
 
 interface ContactMethod {
+<<<<<<< HEAD
 	icon: React.ComponentType<{ className?: string }>
+=======
+	icon: React.ComponentType<React.SVGProps<SVGSVGElement>>
+>>>>>>> origin/main
 	title: string
 	description: string
 	contact: string
@@ -96,6 +104,7 @@ export default function ContactPage() {
 		setOptimisticSubmitted(true)
 
 		try {
+<<<<<<< HEAD
 			// Import available for future use
 			// const { apiClient } = await import('@/lib/api-client')
 			// Contact form temporarily disabled - would send email via Resend
@@ -106,6 +115,10 @@ export default function ContactPage() {
 				subject: formData.subject,
 				hasMessage: !!formData.message
 			})
+=======
+			const { apiClient } = await import('@/lib/api-client')
+			await apiClient.post('/api/v1/contact', formData as unknown as Record<string, unknown>)
+>>>>>>> origin/main
 
 			// Reset form on success
 			setFormData({
@@ -134,7 +147,11 @@ export default function ContactPage() {
 	return (
 		<div className="from-background to-muted/20 min-h-screen bg-gradient-to-b">
 			{/* Hero Section */}
+<<<<<<< HEAD
 			<section className="px-4 pb-16 pt-24">
+=======
+			<section className="px-4 pt-24 pb-16">
+>>>>>>> origin/main
 				<div className="mx-auto max-w-7xl">
 					<div className="mb-16 text-center">
 						<motion.div
@@ -153,7 +170,11 @@ export default function ContactPage() {
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ duration: 0.6, delay: 0.1 }}
+<<<<<<< HEAD
 							className="text-foreground mb-6 text-5xl font-bold leading-tight lg:text-6xl"
+=======
+							className="text-foreground mb-6 text-5xl leading-tight font-bold lg:text-6xl"
+>>>>>>> origin/main
 						>
 							Let's{' '}
 							<span className="from-primary via-accent to-success bg-gradient-to-r bg-clip-text text-transparent">
@@ -417,9 +438,13 @@ export default function ContactPage() {
 															value={
 																formData.name
 															}
+<<<<<<< HEAD
 															onChange={(
 																e: React.ChangeEvent<HTMLInputElement>
 															) =>
+=======
+															onChange={e =>
+>>>>>>> origin/main
 																handleInputChange(
 																	'name',
 																	e.target
@@ -445,9 +470,13 @@ export default function ContactPage() {
 															value={
 																formData.email
 															}
+<<<<<<< HEAD
 															onChange={(
 																e: React.ChangeEvent<HTMLInputElement>
 															) =>
+=======
+															onChange={e =>
+>>>>>>> origin/main
 																handleInputChange(
 																	'email',
 																	e.target
@@ -472,9 +501,13 @@ export default function ContactPage() {
 														id="subject"
 														placeholder="Brief description of your inquiry"
 														value={formData.subject}
+<<<<<<< HEAD
 														onChange={(
 															e: React.ChangeEvent<HTMLInputElement>
 														) =>
+=======
+														onChange={e =>
+>>>>>>> origin/main
 															handleInputChange(
 																'subject',
 																e.target.value
@@ -497,9 +530,13 @@ export default function ContactPage() {
 														id="message"
 														placeholder="Tell us more about your inquiry..."
 														value={formData.message}
+<<<<<<< HEAD
 														onChange={(
 															e: React.ChangeEvent<HTMLTextAreaElement>
 														) =>
+=======
+														onChange={e =>
+>>>>>>> origin/main
 															handleInputChange(
 																'message',
 																e.target.value
@@ -521,7 +558,11 @@ export default function ContactPage() {
 												>
 													{isSubmitting ? (
 														<>
+<<<<<<< HEAD
 															<div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white" />
+=======
+															<div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
+>>>>>>> origin/main
 															Sending...
 														</>
 													) : (

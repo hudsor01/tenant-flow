@@ -16,6 +16,7 @@
 /* Enhanced focus for better accessibility */
 .btn-focus-enhanced {
 	@apply transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--background))];
+<<<<<<< HEAD
 }
 
 /* High contrast mode support */
@@ -28,6 +29,16 @@
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
 	.btn-focus-enhanced {
+=======
+
+	/* High contrast mode support */
+	@media (prefers-contrast: high) {
+		@apply focus-visible:ring-4;
+	}
+
+	/* Reduced motion support */
+	@media (prefers-reduced-motion: reduce) {
+>>>>>>> origin/main
 		@apply transition-none;
 	}
 }

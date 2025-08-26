@@ -1,5 +1,9 @@
 import React, { useState } from 'react'
+<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
+=======
+import { logger } from '@/lib/logger'
+>>>>>>> origin/main
 import Image from 'next/image'
 import type { CreatePropertyInput, UpdatePropertyInput } from '@repo/shared'
 import type { PropertyFormProps, BaseComponentProps } from '@/types'
@@ -17,6 +21,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, Upload, X } from 'lucide-react'
+<<<<<<< HEAD
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -28,6 +33,9 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { Controller } from 'react-hook-form'
+=======
+import { SupabaseFormField, PropertyTypeField } from './supabase-form-field'
+>>>>>>> origin/main
 import {
 	useCreateProperty,
 	useUpdateProperty
@@ -66,9 +74,13 @@ function PropertyImageUpload({
 		event: React.ChangeEvent<HTMLInputElement>
 	) => {
 		const file = event.target.files?.[0]
+<<<<<<< HEAD
 		if (!file) {
 			return
 		}
+=======
+		if (!file) return
+>>>>>>> origin/main
 
 		setUploading(true)
 		try {
@@ -98,7 +110,11 @@ function PropertyImageUpload({
 						<button
 							type="button"
 							onClick={() => onImageChange('')}
+<<<<<<< HEAD
 							className="bg-destructive text-destructive-foreground absolute -right-2 -top-2 rounded-full p-1"
+=======
+							className="bg-destructive text-destructive-foreground absolute -top-2 -right-2 rounded-full p-1"
+>>>>>>> origin/main
 						>
 							<X className="h-3 w-3" />
 						</button>
@@ -142,6 +158,7 @@ function PropertyFormFields({ control }: PropertyFormFieldsProps) {
 	return (
 		<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 			<div className="md:col-span-2">
+<<<<<<< HEAD
 				<div className="space-y-2">
 					<Label htmlFor="name">Property Name *</Label>
 					<Controller
@@ -291,10 +308,19 @@ function PropertyFormFields({ control }: PropertyFormFieldsProps) {
 							)}
 						</>
 					)}
+=======
+				<SupabaseFormField
+					name="name"
+					control={control}
+					label="Property Name"
+					placeholder="Enter property name"
+					required
+>>>>>>> origin/main
 				/>
 			</div>
 
 			<div className="md:col-span-2">
+<<<<<<< HEAD
 				<div className="space-y-2">
 					<Label htmlFor="description">Description</Label>
 					<Controller
@@ -317,6 +343,57 @@ function PropertyFormFields({ control }: PropertyFormFieldsProps) {
 						)}
 					/>
 				</div>
+=======
+				<SupabaseFormField
+					name="address"
+					control={control}
+					label="Address"
+					placeholder="Enter street address"
+					required
+				/>
+			</div>
+
+			<SupabaseFormField
+				name="city"
+				control={control}
+				label="City"
+				placeholder="Enter city"
+				required
+			/>
+
+			<SupabaseFormField
+				name="state"
+				control={control}
+				label="State"
+				placeholder="CA"
+				required
+			/>
+
+			<SupabaseFormField
+				name="zipCode"
+				control={control}
+				label="ZIP Code"
+				placeholder="12345"
+				required
+			/>
+
+			<PropertyTypeField
+				name="propertyType"
+				control={control}
+				label="Property Type"
+				required
+			/>
+
+			<div className="md:col-span-2">
+				<SupabaseFormField
+					name="description"
+					control={control}
+					label="Description"
+					placeholder="Describe the property..."
+					multiline
+					rows={3}
+				/>
+>>>>>>> origin/main
 			</div>
 		</div>
 	)
@@ -398,9 +475,13 @@ export function PropertyForm({
 	const handleUpdateProperty = async (
 		data: z.output<typeof propertyFormSchema>
 	) => {
+<<<<<<< HEAD
 		if (!property) {
 			return
 		}
+=======
+		if (!property) return
+>>>>>>> origin/main
 
 		const updateData: UpdatePropertyInput = {
 			name: data.name,

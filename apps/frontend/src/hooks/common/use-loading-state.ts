@@ -3,7 +3,11 @@
  * Provides consistent loading state management across components
  */
 import { useState, useCallback } from 'react'
+<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
+=======
+import { logger } from '@/lib/logger'
+>>>>>>> origin/main
 
 export interface UseLoadingStateOptions {
 	initialLoading?: boolean
@@ -25,6 +29,7 @@ export function useLoadingState(options: UseLoadingStateOptions = {}) {
 				const result = await asyncFunction()
 				return result
 			} catch (err) {
+<<<<<<< HEAD
 				const error =
 					err instanceof Error ? err : new Error(String(err))
 				setError(error)
@@ -37,6 +42,19 @@ export function useLoadingState(options: UseLoadingStateOptions = {}) {
 					onError(error)
 				}
 
+=======
+				const error = err instanceof Error ? err : new Error(String(err))
+				setError(error)
+				
+				if (logErrors) {
+					logger.error('Operation failed:', error)
+				}
+				
+				if (onError) {
+					onError(error)
+				}
+				
+>>>>>>> origin/main
 				return null
 			} finally {
 				setIsLoading(false)
@@ -58,4 +76,8 @@ export function useLoadingState(options: UseLoadingStateOptions = {}) {
 		setIsLoading,
 		setError
 	}
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> origin/main

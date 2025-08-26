@@ -1,12 +1,22 @@
+<<<<<<< HEAD
 // apiClient import removed as it's not used directly in this file
+=======
+import { apiClient } from '@/lib/api-client'
+>>>>>>> origin/main
 /**
  * React Query hooks for Dashboard
  * Native TanStack Query implementation - no custom abstractions
  */
 import { useQuery, type UseQueryResult } from '@tanstack/react-query'
+<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
 import { dashboardApi, type UpcomingTask } from '@/lib/api/dashboard'
 import { queryKeys } from '@/lib/react-query/query-keys'
+=======
+import { logger } from '@/lib/logger'
+import { dashboardApi, type UpcomingTask } from '@/lib/api/dashboard'
+import { queryKeys } from '@/lib/query-keys'
+>>>>>>> origin/main
 import type { DashboardStats, ActivityItem } from '@repo/shared'
 
 /**
@@ -15,7 +25,11 @@ import type { DashboardStats, ActivityItem } from '@repo/shared'
 export function useDashboardOverview(options?: {
 	enabled?: boolean
 	refetchInterval?: number
+<<<<<<< HEAD
 }): UseQueryResult<DashboardStats> {
+=======
+}): UseQueryResult<DashboardStats, Error> {
+>>>>>>> origin/main
 	return useQuery({
 		queryKey: queryKeys.dashboard.overview(),
 		queryFn: async () => {
@@ -50,7 +64,11 @@ export function useDashboardOverview(options?: {
  */
 export function useDashboardActivity(options?: {
 	enabled?: boolean
+<<<<<<< HEAD
 }): UseQueryResult<ActivityItem[]> {
+=======
+}): UseQueryResult<ActivityItem[], Error> {
+>>>>>>> origin/main
 	return useQuery({
 		queryKey: queryKeys.dashboard.activity(),
 		queryFn: async () => {
@@ -74,7 +92,11 @@ export function useDashboardActivity(options?: {
  */
 export function useUpcomingTasks(options?: {
 	enabled?: boolean
+<<<<<<< HEAD
 }): UseQueryResult<UpcomingTask[]> {
+=======
+}): UseQueryResult<UpcomingTask[], Error> {
+>>>>>>> origin/main
 	return useQuery({
 		queryKey: queryKeys.dashboard.tasks(),
 		queryFn: async () => {
@@ -98,7 +120,11 @@ export function useUpcomingTasks(options?: {
  */
 export function useDashboardAlerts(options?: {
 	enabled?: boolean
+<<<<<<< HEAD
 }): UseQueryResult<unknown[]> {
+=======
+}): UseQueryResult<unknown[], Error> {
+>>>>>>> origin/main
 	return useQuery({
 		queryKey: queryKeys.dashboard.alerts(),
 		queryFn: async () => {

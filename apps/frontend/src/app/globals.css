@@ -1,6 +1,10 @@
+<<<<<<< HEAD
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+=======
+@import 'tailwindcss';
+>>>>>>> origin/main
 
 /* === DESIGN SYSTEM IMPORTS === */
 /* Optimized loading: critical styles first, then progressive enhancement */

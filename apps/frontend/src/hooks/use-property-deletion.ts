@@ -6,7 +6,11 @@
 import { useActionState } from 'react'
 import { deletePropertyAction } from '@/lib/actions/property-actions'
 import type { PropertyFormState } from '@/lib/actions/property-actions'
+<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
+=======
+import { logger } from '@/lib/logger'
+>>>>>>> origin/main
 
 interface PropertyDeletionConfig {
 	onSuccess?: () => void

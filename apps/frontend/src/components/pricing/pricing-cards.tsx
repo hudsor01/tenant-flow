@@ -83,6 +83,7 @@ export function PricingCards() {
 					{plans.map(plan => {
 						const price =
 							billingPeriod === 'monthly'
+<<<<<<< HEAD
 								? plan.price.monthly
 								: plan.price.annual
 						const savings =
@@ -94,6 +95,16 @@ export function PricingCards() {
 								: 0
 						const isPopular = plan.id === 'pro' // Pro plan is popular
 						const isRecommended = plan.id === 'pro' // Pro plan is recommended
+=======
+								? plan.monthly
+								: plan.annual
+						const savings =
+							billingPeriod === 'annual'
+								? getAnnualSavings(plan.id)
+								: 0
+						const isPopular = plan.popular
+						const isRecommended = plan.recommended
+>>>>>>> origin/main
 
 						return (
 							<Card
@@ -118,7 +129,11 @@ export function PricingCards() {
 									</div>
 								)}
 
+<<<<<<< HEAD
 								<CardHeader className="pb-8 pt-8">
+=======
+								<CardHeader className="pt-8 pb-8">
+>>>>>>> origin/main
 									<div className="text-center">
 										<h3 className="text-2xl font-bold text-gray-900">
 											{plan.name}
@@ -131,10 +146,14 @@ export function PricingCards() {
 										<div className="mt-6">
 											<div className="flex items-baseline justify-center">
 												<span className="text-5xl font-bold text-gray-900">
+<<<<<<< HEAD
 													{formatPrice(
 														price,
 														billingPeriod
 													)}
+=======
+													{formatPrice(price.amount)}
+>>>>>>> origin/main
 												</span>
 												<span className="ml-2 text-lg text-gray-600">
 													/
@@ -148,10 +167,14 @@ export function PricingCards() {
 												savings > 0 && (
 													<div className="mt-2 text-sm font-medium text-green-600">
 														Save{' '}
+<<<<<<< HEAD
 														{formatPrice(
 															savings,
 															'annual'
 														)}{' '}
+=======
+														{formatPrice(savings)}{' '}
+>>>>>>> origin/main
 														annually
 													</div>
 												)}
@@ -160,8 +183,12 @@ export function PricingCards() {
 												<div className="mt-2 text-sm text-gray-500">
 													or{' '}
 													{formatPrice(
+<<<<<<< HEAD
 														plan.price.annual,
 														'annual'
+=======
+														plan.annual.amount
+>>>>>>> origin/main
 													)}
 													/year
 												</div>
@@ -195,21 +222,41 @@ export function PricingCards() {
 											<div className="flex justify-between">
 												<span>Properties:</span>
 												<span className="font-medium">
+<<<<<<< HEAD
 													{plan.propertyLimit === -1
 														? 'Unlimited'
 														: plan.propertyLimit}
+=======
+													{plan.limits.properties ===
+													-1
+														? 'Unlimited'
+														: plan.limits
+																.properties}
+>>>>>>> origin/main
 												</span>
 											</div>
 											<div className="flex justify-between">
 												<span>Units:</span>
 												<span className="font-medium">
+<<<<<<< HEAD
 													Unlimited
+=======
+													{plan.limits.units === -1
+														? 'Unlimited'
+														: plan.limits.units}
+>>>>>>> origin/main
 												</span>
 											</div>
 											<div className="flex justify-between">
 												<span>Team members:</span>
 												<span className="font-medium">
+<<<<<<< HEAD
 													Unlimited
+=======
+													{plan.limits.users === -1
+														? 'Unlimited'
+														: plan.limits.users}
+>>>>>>> origin/main
 												</span>
 											</div>
 										</div>
@@ -217,8 +264,13 @@ export function PricingCards() {
 
 									{/* CTA Button */}
 									<Button
+<<<<<<< HEAD
 										onClick={async () =>
 											handleGetStarted(plan.id as PlanType)
+=======
+										onClick={() =>
+											handleGetStarted(plan.id)
+>>>>>>> origin/main
 										}
 										disabled={
 											createCheckoutMutation.isPending

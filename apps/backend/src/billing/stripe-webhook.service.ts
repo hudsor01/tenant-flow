@@ -4,11 +4,9 @@
  * This service handles Stripe webhook events and updates our database accordingly.
  * Following Stripe's best practices:
  * - Trust webhooks as the single source of truth
+ * - Handle events asynchronously
+ * - Return 2xx quickly before complex logic
  * - Handle duplicate events via event IDs
- * - Return appropriate HTTP status codes:
- *   - 200: Processing succeeded
- *   - 400: Bad payload/validation failed
- *   - 500: Server/processing error (triggers Stripe retries)
  *
  * Replaces: subscription-sync.service.ts (779 lines) with ~100 lines
  */
@@ -17,9 +15,17 @@ import { Injectable, Logger } from '@nestjs/common'
 import { SupabaseService } from '../database/supabase.service'
 import type { Stripe } from 'stripe'
 
-// Use native Stripe SDK types directly - no custom extensions needed
-// Stripe.Subscription already includes current_period_start and current_period_end
-// Stripe.Invoice already includes subscription property
+// Extended interfaces for Stripe objects with missing properties
+interface StripeInvoiceWithSubscription extends Stripe.Invoice {
+	subscription?: string | Stripe.Subscription | null
+}
+
+// Extended interface for Stripe Subscription with period properties
+// Note: These properties exist at runtime but are missing from the TypeScript definitions
+interface StripeSubscriptionWithPeriods extends Stripe.Subscription {
+	current_period_start: number
+	current_period_end: number
+}
 
 @Injectable()
 export class StripeWebhookService {
@@ -32,7 +38,7 @@ export class StripeWebhookService {
 
 	/**
 	 * Main webhook handler - processes Stripe events
-	 * Returns 200 on success, throws errors for proper HTTP status codes
+	 * Returns quickly with 2xx, actual processing happens async
 	 */
 	async handleWebhook(event: Stripe.Event): Promise<void> {
 		// Check for duplicate events
@@ -53,20 +59,30 @@ export class StripeWebhookService {
 
 		this.logger.log(`Processing webhook: ${event.type} (${event.id})`)
 
-		// Handle only specific webhook events we care about
-		if (
-			event.type === 'customer.subscription.created' ||
-			event.type === 'customer.subscription.updated' ||
-			event.type === 'customer.subscription.deleted'
-		) {
-			await this.handleSubscriptionChange(event.data.object)
-		} else if (event.type === 'invoice.payment_failed') {
-			await this.handlePaymentFailure(event.data.object)
-		} else if (event.type === 'invoice.paid') {
-			await this.handlePaymentSuccess(event.data.object)
-		} else {
-			// Other event types are ignored
-			this.logger.debug(`Unhandled event type: ${event.type}`)
+		// Handle events based on type
+		switch (event.type) {
+			case 'customer.subscription.created':
+			case 'customer.subscription.updated':
+			case 'customer.subscription.deleted':
+				await this.handleSubscriptionChange(
+					event.data.object as StripeSubscriptionWithPeriods
+				)
+				break
+
+			case 'invoice.payment_failed':
+				await this.handlePaymentFailure(
+					event.data.object as Stripe.Invoice
+				)
+				break
+
+			case 'invoice.paid':
+				await this.handlePaymentSuccess(
+					event.data.object as Stripe.Invoice
+				)
+				break
+
+			default:
+				this.logger.debug(`Unhandled event type: ${event.type}`)
 		}
 	}
 
@@ -74,74 +90,63 @@ export class StripeWebhookService {
 	 * Handle subscription changes - trust Stripe as source of truth
 	 */
 	private async handleSubscriptionChange(
-		subscription: Stripe.Subscription
+		subscription: StripeSubscriptionWithPeriods
 	): Promise<void> {
-		// Validate subscription object - throw 400 for bad data
-		if (!subscription.id || !subscription.customer) {
-			this.logger.warn('Invalid subscription object received')
-			throw new Error(
-				'Invalid subscription object: missing id or customer'
-			)
-		}
+		try {
+			// Find user by customer ID
+			const customerId =
+				typeof subscription.customer === 'string'
+					? subscription.customer
+					: subscription.customer.id
 
-		// Find user by customer ID
-		const customerId =
-			typeof subscription.customer === 'string'
-				? subscription.customer
-				: subscription.customer.id
-
-		const { data: user } = await this.supabaseService
-			.getAdminClient()
-			.from('User')
-			.select('id')
-			.eq('stripeCustomerId', customerId)
-			.single()
-
-		if (!user) {
-			// Try finding by subscription table
-			const { data: sub } = await this.supabaseService
+			const { data: user } = await this.supabaseService
 				.getAdminClient()
-				.from('Subscription')
-				.select('userId')
+				.from('User')
+				.select('id')
 				.eq('stripeCustomerId', customerId)
 				.single()
 
-			if (!sub) {
-				this.logger.warn(`No user found for customer: ${customerId}`)
-				throw new Error(`No user found for customer: ${customerId}`)
+			if (!user) {
+				// Try finding by subscription table
+				const { data: sub } = await this.supabaseService
+					.getAdminClient()
+					.from('Subscription')
+					.select('userId')
+					.eq('stripeCustomerId', customerId)
+					.single()
+
+				if (!sub) {
+					this.logger.warn(
+						`No user found for customer: ${customerId}`
+					)
+					return
+				}
+
+				await this.upsertSubscription(subscription, sub.userId)
+			} else {
+				await this.upsertSubscription(subscription, user.id)
 			}
-
-			await this.upsertSubscription(subscription, sub.userId)
-		} else {
-			await this.upsertSubscription(subscription, user.id)
+		} catch (error) {
+			this.logger.error(`Failed to handle subscription change: ${error}`)
+			throw error // Let Stripe retry
 		}
-
-		this.logger.log(
-			`Successfully processed subscription change: ${subscription.id}`
-		)
 	}
 
 	/**
 	 * Handle payment failures - Stripe Smart Retries will handle recovery
 	 */
-	private async handlePaymentFailure(invoice: Stripe.Invoice): Promise<void> {
-		// Validate invoice object - throw 400 for bad data
-
-		if (!invoice.lines?.data?.length) {
-			this.logger.warn('Invalid invoice object received')
-			throw new Error('Invalid invoice object: missing lines data')
+	private async handlePaymentFailure(
+		invoice: StripeInvoiceWithSubscription
+	): Promise<void> {
+		const subscription = invoice.subscription
+		if (!subscription) {
+			return
 		}
 
-		// Get subscription ID from invoice metadata or lines
-		const subscription = invoice.lines.data[0]?.subscription
 		const subscriptionId =
-			typeof subscription === 'string' ? subscription : subscription?.id
+			typeof subscription === 'string' ? subscription : subscription.id
 
-		if (!subscriptionId) {
-			throw new Error('Invoice missing subscription ID')
-		}
-
-		await this.updateSubscriptionStatus(subscriptionId, 'PAST_DUE')
+		await this.updateSubscriptionStatus(subscriptionId || '', 'PAST_DUE')
 		this.logger.log(
 			`Payment failed for subscription: ${subscriptionId}. Smart Retries will handle recovery.`
 		)
@@ -150,24 +155,18 @@ export class StripeWebhookService {
 	/**
 	 * Handle payment success
 	 */
-	private async handlePaymentSuccess(invoice: Stripe.Invoice): Promise<void> {
-		// Validate invoice object - throw 400 for bad data
-
-		if (!invoice.lines?.data?.length) {
-			this.logger.warn('Invalid invoice object received')
-			throw new Error('Invalid invoice object: missing lines data')
+	private async handlePaymentSuccess(
+		invoice: StripeInvoiceWithSubscription
+	): Promise<void> {
+		const subscription = invoice.subscription
+		if (!subscription) {
+			return
 		}
 
-		// Get subscription ID from invoice metadata or lines
-		const subscription = invoice.lines.data[0]?.subscription
 		const subscriptionId =
-			typeof subscription === 'string' ? subscription : subscription?.id
+			typeof subscription === 'string' ? subscription : subscription.id
 
-		if (!subscriptionId) {
-			throw new Error('Invoice missing subscription ID')
-		}
-
-		await this.updateSubscriptionStatus(subscriptionId, 'ACTIVE')
+		await this.updateSubscriptionStatus(subscriptionId || '', 'ACTIVE')
 		this.logger.log(`Payment succeeded for subscription: ${subscriptionId}`)
 	}
 
@@ -175,114 +174,107 @@ export class StripeWebhookService {
 	 * Upsert subscription to database - single source of truth from Stripe
 	 */
 	private async upsertSubscription(
-		stripeSubscription: Stripe.Subscription,
+		stripeSubscription: StripeSubscriptionWithPeriods,
 		userId: string
 	): Promise<void> {
-		// Use default values for period dates if not available
-		const periodStart = Math.floor(Date.now() / 1000)
-		const periodEnd = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60
-
-		// Convert Stripe subscription to our database format with ISO strings
+		// Convert Stripe subscription to our database format
 		const subscription = {
 			userId,
 			stripeSubscriptionId: stripeSubscription.id,
-			stripeCustomerId: stripeSubscription.customer as string,
-			stripePriceId: stripeSubscription.items.data[0]?.price.id,
-			status: this.mapStripeStatus(stripeSubscription.status),
-			currentPeriodStart: new Date(periodStart * 1000).toISOString(),
-			currentPeriodEnd: new Date(periodEnd * 1000).toISOString(),
+			stripeCustomerId:
+				typeof stripeSubscription.customer === 'string'
+					? stripeSubscription.customer
+					: stripeSubscription.customer.id,
+			status: stripeSubscription.status,
+			currentPeriodStart: new Date(
+				stripeSubscription.current_period_start * 1000
+			),
+			currentPeriodEnd: new Date(
+				stripeSubscription.current_period_end * 1000
+			),
+			createdAt: new Date(stripeSubscription.created * 1000),
+			updatedAt: new Date(),
 			cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
 			canceledAt: stripeSubscription.canceled_at
-				? new Date(stripeSubscription.canceled_at * 1000).toISOString()
-				: null
+				? new Date(stripeSubscription.canceled_at * 1000)
+				: null,
+			trialStart: stripeSubscription.trial_start
+				? new Date(stripeSubscription.trial_start * 1000)
+				: null,
+			trialEnd: stripeSubscription.trial_end
+				? new Date(stripeSubscription.trial_end * 1000)
+				: null,
+			planType:
+				(stripeSubscription.items.data[0]?.price?.lookup_key as
+					| 'FREETRIAL'
+					| 'STARTER'
+					| 'GROWTH'
+					| 'TENANTFLOW_MAX') || 'UNKNOWN',
+			stripePriceId:
+				stripeSubscription.items.data[0]?.price?.id ||
+				'UNKNOWN_PRICE_ID'
 		}
 
-		// Upsert to database
 		const { error } = await this.supabaseService
 			.getAdminClient()
 			.from('Subscription')
-			.upsert(subscription, {
-				onConflict: 'stripeSubscriptionId'
+			.upsert({
+				userId: userId,
+				stripeSubscriptionId: subscription.stripeSubscriptionId,
+				stripeCustomerId: subscription.stripeCustomerId,
+				status: subscription.status.toUpperCase() as
+					| 'ACTIVE'
+					| 'CANCELED'
+					| 'TRIALING'
+					| 'PAST_DUE'
+					| 'UNPAID'
+					| 'INCOMPLETE'
+					| 'INCOMPLETE_EXPIRED',
+				planType: subscription.planType,
+				stripePriceId: subscription.stripePriceId,
+				currentPeriodStart:
+					subscription.currentPeriodStart?.toISOString(),
+				currentPeriodEnd: subscription.currentPeriodEnd?.toISOString(),
+				cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+				canceledAt: subscription.canceledAt?.toISOString(),
+				trialStart: subscription.trialStart?.toISOString(),
+				trialEnd: subscription.trialEnd?.toISOString(),
+				updatedAt: new Date().toISOString()
 			})
 
 		if (error) {
 			this.logger.error(`Failed to upsert subscription: ${error.message}`)
 			throw error
 		}
-
-		this.logger.log(`Updated subscription: ${stripeSubscription.id}`)
 	}
 
 	/**
-	 * Update subscription status
+	 * Update subscription status only
 	 */
 	private async updateSubscriptionStatus(
 		stripeSubscriptionId: string,
-		status:
-			| 'ACTIVE'
-			| 'CANCELED'
-			| 'TRIALING'
-			| 'PAST_DUE'
-			| 'UNPAID'
-			| 'INCOMPLETE'
-			| 'INCOMPLETE_EXPIRED'
+		status: string
 	): Promise<void> {
 		const { error } = await this.supabaseService
 			.getAdminClient()
 			.from('Subscription')
-			.update({ status })
+			.update({
+				status: status as
+					| 'ACTIVE'
+					| 'CANCELED'
+					| 'TRIALING'
+					| 'PAST_DUE'
+					| 'UNPAID'
+					| 'INCOMPLETE'
+					| 'INCOMPLETE_EXPIRED',
+				updatedAt: new Date().toISOString()
+			})
 			.eq('stripeSubscriptionId', stripeSubscriptionId)
 
 		if (error) {
 			this.logger.error(
 				`Failed to update subscription status: ${error.message}`
 			)
-			throw error
 		}
-	}
-
-	/**
-	 * Map Stripe status to our status enum
-	 */
-	private mapStripeStatus(
-		stripeStatus: Stripe.Subscription.Status
-	):
-		| 'ACTIVE'
-		| 'CANCELED'
-		| 'TRIALING'
-		| 'PAST_DUE'
-		| 'UNPAID'
-		| 'INCOMPLETE'
-		| 'INCOMPLETE_EXPIRED' {
-		const statusMap: Record<
-			Stripe.Subscription.Status,
-			| 'ACTIVE'
-			| 'CANCELED'
-			| 'TRIALING'
-			| 'PAST_DUE'
-			| 'UNPAID'
-			| 'INCOMPLETE'
-			| 'INCOMPLETE_EXPIRED'
-		> = {
-			active: 'ACTIVE',
-			past_due: 'PAST_DUE',
-			canceled: 'CANCELED',
-			unpaid: 'UNPAID',
-			incomplete: 'INCOMPLETE',
-			incomplete_expired: 'INCOMPLETE_EXPIRED',
-			trialing: 'TRIALING',
-			paused: 'ACTIVE' // Map paused to ACTIVE as we don't have a PAUSED status
-		}
-
-		return statusMap[stripeStatus] ?? 'ACTIVE'
-	}
-
-	/**
-	 * Clean up old processed events periodically
-	 * Called externally via cron job
-	 */
-	clearProcessedEvents(): void {
-		this.processedEvents.clear()
-		this.logger.log('Cleared processed events cache')
 	}
 }

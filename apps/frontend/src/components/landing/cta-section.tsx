@@ -13,8 +13,11 @@ import {
 	Sparkles,
 	Star
 } from 'lucide-react'
+<<<<<<< HEAD
 import { usePostHog } from 'posthog-js/react'
 import { useCallback } from 'react'
+=======
+>>>>>>> origin/main
 
 const trustPoints = [
 	{
@@ -44,6 +47,7 @@ const trustPoints = [
 ]
 
 export function CtaSection() {
+<<<<<<< HEAD
 	const posthog = usePostHog()
 
 	const handleSignupClick = useCallback(() => {
@@ -62,16 +66,27 @@ export function CtaSection() {
 		})
 	}, [posthog])
 
+=======
+>>>>>>> origin/main
 	return (
 		<section className="from-primary relative overflow-hidden bg-gradient-to-br via-purple-600 to-pink-600 px-4 py-24 text-white">
 			{/* Enhanced background effects */}
 			<div className="absolute inset-0">
+<<<<<<< HEAD
 				<div className="animate-blob absolute left-10 top-10 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
 				<div className="animate-blob animation-delay-2000 absolute bottom-10 right-10 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
 				<div className="animate-blob animation-delay-4000 absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-white/5 blur-3xl" />
 			</div>
 
 			<div className="container relative z-10 mx-auto max-w-5xl text-center">
+=======
+				<div className="animate-blob absolute top-10 left-10 h-96 w-96 rounded-full bg-white/10 blur-3xl"></div>
+				<div className="animate-blob animation-delay-2000 absolute right-10 bottom-10 h-96 w-96 rounded-full bg-white/10 blur-3xl"></div>
+				<div className="animate-blob animation-delay-4000 absolute top-1/2 left-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-white/5 blur-3xl"></div>
+			</div>
+
+			<div className="relative z-10 container mx-auto max-w-5xl text-center">
+>>>>>>> origin/main
 				{/* Enhanced header with badge */}
 				<div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 backdrop-blur-sm">
 					<Sparkles className="h-4 w-4" />
@@ -80,7 +95,11 @@ export function CtaSection() {
 					</span>
 				</div>
 
+<<<<<<< HEAD
 				<h2 className="mb-6 text-4xl font-bold leading-tight md:text-6xl">
+=======
+				<h2 className="mb-6 text-4xl leading-tight font-bold md:text-6xl">
+>>>>>>> origin/main
 					Ready to Transform Your
 					<span className="block bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">
 						Property Management?
@@ -94,6 +113,7 @@ export function CtaSection() {
 
 				{/* Enhanced CTA buttons with glassmorphism */}
 				<div className="mb-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
+<<<<<<< HEAD
 					<Link
 						href="/auth/signup?source=cta"
 						className="w-full sm:w-auto"
@@ -103,6 +123,12 @@ export function CtaSection() {
 							className="hover:shadow-3xl group h-16 w-full min-w-[280px] rounded-xl bg-white px-8 text-lg font-semibold text-blue-700 shadow-2xl transition-all duration-300 hover:scale-105 hover:bg-gray-50 sm:w-auto"
 							onClick={handleSignupClick}
 							aria-label="Start your free 14-day trial - no credit card required"
+=======
+					<Link href="/auth/signup" className="w-full sm:w-auto">
+						<Button
+							size="lg"
+							className="hover:shadow-3xl group h-16 w-full min-w-[280px] rounded-xl bg-white px-8 text-lg font-semibold text-blue-700 shadow-2xl transition-all duration-300 hover:scale-105 hover:bg-gray-50 sm:w-auto"
+>>>>>>> origin/main
 						>
 							<span className="flex items-center justify-center gap-3">
 								Start Your Free Trial Now
@@ -111,16 +137,23 @@ export function CtaSection() {
 						</Button>
 					</Link>
 
+<<<<<<< HEAD
 					<Link
 						href="/contact?demo=true&source=cta"
 						className="w-full sm:w-auto"
 					>
+=======
+					<Link href="/contact" className="w-full sm:w-auto">
+>>>>>>> origin/main
 						<Button
 							size="lg"
 							variant="outline"
 							className="h-16 w-full min-w-[280px] rounded-xl border-2 border-white/30 bg-white/10 px-8 text-lg font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:border-white hover:bg-white/20 sm:w-auto"
+<<<<<<< HEAD
 							onClick={handleDemoClick}
 							aria-label="Schedule a personalized demo with our team"
+=======
+>>>>>>> origin/main
 						>
 							<span className="flex items-center justify-center gap-3">
 								<Phone className="h-5 w-5" />

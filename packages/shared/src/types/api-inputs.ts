@@ -5,6 +5,10 @@
  */
 
 import type { PLAN_TYPE } from '../constants/billing'
+<<<<<<< HEAD
+=======
+import type { PropertyType } from './properties'
+>>>>>>> origin/main
 import type { PropertyQuery, MaintenanceQuery } from './queries'
 import type { Lease } from './leases'
 import type { Property } from './properties'
@@ -77,8 +81,60 @@ export interface TrialParams {
 // Property API Inputs (Re-exported from properties.ts)
 // ========================
 
+<<<<<<< HEAD
 // Re-export authoritative Property input types to maintain backward compatibility
 export type { CreatePropertyInput, UpdatePropertyInput } from './properties'
+=======
+/**
+ * Input for creating a new property
+ * Used by property management hooks
+ * Field names must match backend DTO exactly (snake_case for backend compatibility)
+ */
+export interface CreatePropertyInput {
+	name: string
+	address: string
+	city: string
+	state: string
+	zipCode: string
+	description?: string
+	propertyType?: PropertyType
+	imageUrl?: string
+	unit_number?: string // Backend expects snake_case
+	total_units: number // Required field matching backend
+	units?: number // For unit creation count
+	bedrooms: number // Required field matching backend
+	bathrooms: number // Required field matching backend
+	square_footage?: number // Backend expects snake_case
+	has_pool?: boolean // Backend expects snake_case
+	stripeCustomerId?: string
+	[key: string]: unknown
+}
+
+/**
+ * Input for updating an existing property
+ * Used by property management hooks
+ * Field names must match backend DTO exactly (snake_case for backend compatibility)
+ */
+export interface UpdatePropertyInput {
+	name?: string
+	address?: string
+	city?: string
+	state?: string
+	zipCode?: string
+	description?: string
+	propertyType?: PropertyType
+	imageUrl?: string
+	unit_number?: string // Backend expects snake_case
+	total_units?: number // Backend expects snake_case
+	units?: number // For unit creation count
+	bedrooms?: number
+	bathrooms?: number
+	square_footage?: number // Backend expects snake_case
+	has_pool?: boolean // Backend expects snake_case
+	stripeCustomerId?: string
+	[key: string]: unknown
+}
+>>>>>>> origin/main
 
 /**
  * Query parameters for filtering properties (extends from queries.ts)

@@ -64,9 +64,13 @@ export function PropertyDetailsDrawer({
 		enabled: !!propertyId
 	})
 
+<<<<<<< HEAD
 	if (!propertyId) {
 		return null
 	}
+=======
+	if (!propertyId) return null
+>>>>>>> origin/main
 
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>

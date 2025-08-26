@@ -40,9 +40,13 @@ export class SubscriptionGuard implements CanActivate {
 			return true
 		}
 
+<<<<<<< HEAD
 		const request = context.switchToHttp().getRequest<{
 			user?: { id: string }
 		}>()
+=======
+		const request = context.switchToHttp().getRequest()
+>>>>>>> origin/main
 		const user = request.user
 
 		if (!user) {

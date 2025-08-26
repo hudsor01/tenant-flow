@@ -4,9 +4,15 @@
  * Replaces all console.log statements with structured logging
  */
 
+<<<<<<< HEAD
 import { logger as loggerInstance } from '@/lib/logger/logger'
 
 export { logger, FrontendLogger } from '@/lib/logger/logger'
+=======
+import { logger as loggerInstance } from './logger'
+
+export { logger, FrontendLogger } from './logger'
+>>>>>>> origin/main
 export type { ILogger, LogContext } from '@repo/shared'
 import type { LogContext } from '@repo/shared'
 

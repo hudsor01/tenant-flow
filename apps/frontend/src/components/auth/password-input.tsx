@@ -36,9 +36,13 @@ export function PasswordInput({
 					type={showPassword ? 'text' : 'password'}
 					placeholder={placeholder}
 					value={value}
+<<<<<<< HEAD
 					onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
 						onValueChange(e.target.value)
 					}
+=======
+					onChange={e => onValueChange(e.target.value)}
+>>>>>>> origin/main
 					required={required}
 					disabled={disabled}
 					className="h-11 pr-10"
@@ -46,7 +50,11 @@ export function PasswordInput({
 				<button
 					type="button"
 					onClick={onToggleVisibility}
+<<<<<<< HEAD
 					className="text-muted-foreground hover:text-foreground absolute right-3 top-1/2 -translate-y-1/2"
+=======
+					className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
+>>>>>>> origin/main
 					tabIndex={-1}
 				>
 					{showPassword ? (

@@ -89,7 +89,11 @@ export function CommandPalette() {
 	)
 	const { data: leases = [] } = useLeases({ limit: 10 }, { enabled: isOpen })
 	const { data: maintenance = [] } = useMaintenanceRequests(
+<<<<<<< HEAD
 		{},
+=======
+		{ limit: 10 },
+>>>>>>> origin/main
 		{ enabled: isOpen }
 	)
 
@@ -97,14 +101,23 @@ export function CommandPalette() {
 	const recentItems: CommandItem[] = []
 	const addRecentItem = useCallback(
 		(
+<<<<<<< HEAD
 			_item: Partial<CommandItem> & {
+=======
+			item: Partial<CommandItem> & {
+>>>>>>> origin/main
 				id: string
 				title: string
 				href?: string
 				type?: string
 			}
 		) => {
+<<<<<<< HEAD
 			// TODO: Implement persistent storage for recent items
+=======
+			// Would normally add to persistent storage
+			console.log('Adding recent item:', item)
+>>>>>>> origin/main
 		},
 		[]
 	)
@@ -387,7 +400,11 @@ export function CommandPalette() {
 
 	// Maintenance items
 	const maintenanceItems: CommandItem[] = maintenance.map(
+<<<<<<< HEAD
 		(request: MaintenanceRequest, index: number) => ({
+=======
+		(request: MaintenanceRequest, index) => ({
+>>>>>>> origin/main
 			id: `maintenance-${request.id}`,
 			title: request.title,
 			subtitle: request.status,
@@ -488,9 +505,13 @@ export function CommandPalette() {
 
 	// Filter items based on search
 	const filteredGroups = React.useMemo(() => {
+<<<<<<< HEAD
 		if (!search) {
 			return groupedItems
 		}
+=======
+		if (!search) return groupedItems
+>>>>>>> origin/main
 
 		return groupedItems
 			.map(group => ({
@@ -559,7 +580,11 @@ export function CommandPalette() {
 							className="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-gray-500 disabled:cursor-not-allowed disabled:opacity-50"
 						/>
 						<div className="ml-auto flex items-center gap-1">
+<<<<<<< HEAD
 							<kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-gray-100 px-1.5 font-mono text-[10px] font-medium text-gray-600">
+=======
+							<kbd className="pointer-events-none inline-flex h-5 items-center gap-1 rounded border bg-gray-100 px-1.5 font-mono text-[10px] font-medium text-gray-600 select-none">
+>>>>>>> origin/main
 								<span className="text-xs">⌘</span>K
 							</kbd>
 						</div>

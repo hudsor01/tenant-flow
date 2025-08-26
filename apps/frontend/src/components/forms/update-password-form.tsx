@@ -28,7 +28,11 @@ const initialState: AuthFormState = {
 	success: false
 }
 
+<<<<<<< HEAD
 interface ClientErrors {
+=======
+type ClientErrors = {
+>>>>>>> origin/main
 	password?: string
 	confirmPassword?: string
 }
@@ -69,9 +73,13 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 		const v = validatePassword(pw)
 
 		const errs: ClientErrors = {}
+<<<<<<< HEAD
 		if (!v.len8) {
 			errs.password = 'Password must be at least 8 characters.'
 		}
+=======
+		if (!v.len8) errs.password = 'Password must be at least 8 characters.'
+>>>>>>> origin/main
 		if (!(v.upper && v.lower && v.num && v.sym)) {
 			errs.password =
 				errs.password ??
@@ -82,9 +90,13 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 		}
 
 		setClientErrors(errs)
+<<<<<<< HEAD
 		if (Object.keys(errs).length > 0) {
 			return
 		}
+=======
+		if (Object.keys(errs).length > 0) return
+>>>>>>> origin/main
 
 		startTransition(() => {
 			formAction(formData)
@@ -178,6 +190,7 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 									aria-invalid={!!clientErrors.password}
 									aria-describedby={passwordErrorId}
 									value={password}
+<<<<<<< HEAD
 									onChange={(
 										e: React.ChangeEvent<HTMLInputElement>
 									) => setPassword(e.target.value)}
@@ -185,6 +198,13 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 								<button
 									type="button"
 									className="text-muted-foreground hover:text-foreground absolute right-2 top-1/2 -translate-y-1/2 rounded p-1"
+=======
+									onChange={e => setPassword(e.target.value)}
+								/>
+								<button
+									type="button"
+									className="text-muted-foreground hover:text-foreground absolute top-1/2 right-2 -translate-y-1/2 rounded p-1"
+>>>>>>> origin/main
 									onClick={() => setShowPw(s => !s)}
 									aria-label={
 										showPw
@@ -281,6 +301,7 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 									}
 									aria-describedby={confirmPasswordErrorId}
 									value={confirmPassword}
+<<<<<<< HEAD
 									onChange={(
 										e: React.ChangeEvent<HTMLInputElement>
 									) => setConfirmPassword(e.target.value)}
@@ -288,6 +309,15 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 								<button
 									type="button"
 									className="text-muted-foreground hover:text-foreground absolute right-2 top-1/2 -translate-y-1/2 rounded p-1"
+=======
+									onChange={e =>
+										setConfirmPassword(e.target.value)
+									}
+								/>
+								<button
+									type="button"
+									className="text-muted-foreground hover:text-foreground absolute top-1/2 right-2 -translate-y-1/2 rounded p-1"
+>>>>>>> origin/main
 									onClick={() => setShowPw2(s => !s)}
 									aria-label={
 										showPw2

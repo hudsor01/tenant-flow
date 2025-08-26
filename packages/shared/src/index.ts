@@ -13,6 +13,11 @@ export type {
 	Unit,
 	PropertyType,
 	UnitStatus,
+<<<<<<< HEAD
+=======
+	PropertyStats,
+	UnitStats,
+>>>>>>> origin/main
 	CreatePropertyInput,
 	UpdatePropertyInput
 } from './types/properties'
@@ -22,12 +27,20 @@ export type {
 	PropertyWithUnits,
 	PropertyWithDetails,
 	PropertyWithUnitsAndLeases,
+<<<<<<< HEAD
 	TenantWithLeases,
 	UnitWithDetails
 } from './types/relations'
 
 // Tenant Types
 export type { Tenant, InvitationStatus } from './types/tenants'
+=======
+	TenantWithLeases
+} from './types/relations'
+
+// Tenant Types
+export type { Tenant, TenantStats, InvitationStatus } from './types/tenants'
+>>>>>>> origin/main
 
 // Lease Types
 export type { Lease, LeaseStatus } from './types/leases'
@@ -35,6 +48,7 @@ export type { Lease, LeaseStatus } from './types/leases'
 // Maintenance Types
 export type {
 	MaintenanceRequest,
+<<<<<<< HEAD
 	MaintenanceRequestWithDetails,
 	Priority as MaintenancePriority,
 	RequestStatus as MaintenanceStatus
@@ -45,6 +59,11 @@ export {
 	getRequestStatusColor,
 	getRequestStatusLabel
 } from './types/maintenance'
+=======
+	Priority as MaintenancePriority,
+	RequestStatus as MaintenanceStatus
+} from './types/maintenance'
+>>>>>>> origin/main
 
 // API Input Types (all Create/Update inputs)
 export type {
@@ -56,12 +75,17 @@ export type {
 	UpdateUnitInput,
 	CreateMaintenanceInput,
 	UpdateMaintenanceInput,
+<<<<<<< HEAD
 	UpdateUserProfileInput,
 	UseLeaseFormProps
+=======
+	UpdateUserProfileInput
+>>>>>>> origin/main
 } from './types/api-inputs'
 
 // Blog Types
 export type { BlogArticleWithDetails } from './types/blog'
+<<<<<<< HEAD
 
 // Dashboard Stats
 export type { DashboardStats } from './types/api'
@@ -134,14 +158,66 @@ export type {
 
 // Auth Types
 export type {
+=======
+
+// Dashboard Stats
+export type { DashboardStats, ActivityItem } from './types/api'
+
+// Analytics Types
+export type {
+	PropertyMetric,
+	PropertyTrend,
+	PropertyAnalyticsSummary,
+	PortfolioAnalytics
+} from './types/analytics'
+
+// Query Types
+export type {
+	MaintenanceQuery,
+	PropertyQuery,
+	LeaseQuery,
+	TenantQuery,
+	UnitQuery
+} from './types/queries'
+
+// Billing Types
+export type {
+	Invoice,
+	PaymentMethod,
+	Plan,
+	SubStatus,
+	UpdateSubscriptionParams
+} from './types/billing'
+export type {
+	CreateCheckoutInput,
+	SubscriptionUpdateParams,
+	CreatePortalInput
+} from './types/api-inputs'
+export type { CheckoutResponse, PortalResponse } from './types/responses'
+export type {
+	PlanType,
+	BillingPeriod,
+	StripeSubscription,
+	StripeSubscriptionData,
+	StripeBillingInterval,
+	BillingInterval,
+	Subscription
+} from './types/stripe'
+
+// Auth Types
+export type {
+>>>>>>> origin/main
 	User,
 	AuthUser,
 	AuthError,
 	AuthErrorCode,
 	LoginCredentials,
+<<<<<<< HEAD
 	RegisterCredentials,
 	AuthResponse,
 	RefreshTokenRequest,
+=======
+>>>>>>> origin/main
 	SignupCredentials,
 	AuthSession,
 	ValidatedUser,
@@ -150,6 +226,7 @@ export type {
 	SupabaseJwtPayload
 } from './types/auth'
 
+<<<<<<< HEAD
 // Utility Types - using native TypeScript features only
 // WithRequired and WithOptional are now using native TypeScript patterns
 export type WithRequired<T, K extends keyof T> = T & Required<Pick<T, K>>
@@ -214,12 +291,33 @@ export type {
 	FileUploadError,
 	PaymentError,
 	ErrorContext
+=======
+// Utility Types
+export type {
+	WithRequired,
+	WithOptional,
+	LoadingState,
+	PaginationMeta,
+	OffsetPaginationParams,
+	DateRange,
+	TimePeriod,
+	FieldError,
+	FormErrors
+} from './types/utilities'
+
+// Error Response Types
+export type {
+	ErrorResponse,
+	SuccessResponse,
+	LoaderError
+>>>>>>> origin/main
 } from './types/errors'
 
 export type { ApiErrorResponse } from './types/responses'
 
 export type { ControllerApiResponse } from './types/errors'
 
+<<<<<<< HEAD
 // Fastify Error Types
 export type {
 	FastifyErrorResponse,
@@ -356,6 +454,124 @@ export interface BusinessRule {
 	isValid: boolean
 	violationMessage?: string
 }
+=======
+// Invoice Types
+export type { CustomerInvoiceForm, InvoiceItemForm } from './types/invoice-lead'
+
+// Lease Generator Types
+export type {
+	LeaseGeneratorForm,
+	LeaseOutputFormat,
+	LeaseFormData,
+	LeaseTemplateData,
+	StateLeaseRequirements
+} from './types/lease-generator'
+export { leaseFormSchema } from './types/lease-generator'
+
+// Backend Types
+export type { PerformanceMetrics, RequestContext } from './types/backend'
+
+// Export specific constants needed
+export { PLANS, PLAN_TYPE } from './constants/billing'
+export { PROPERTY_TYPE, UNIT_STATUS } from './constants/properties'
+export {
+	PRIORITY,
+	REQUEST_STATUS,
+	MAINTENANCE_CATEGORY
+} from './constants/maintenance'
+export type {
+	MaintenanceCategory,
+	Priority,
+	RequestStatus
+} from './constants/maintenance'
+
+// Export utility functions
+export { getPropertyTypeLabel } from './utils/properties'
+export { formatCurrency } from './utils/currency'
+
+// ============================================================================
+// Logger Types
+// ============================================================================
+
+export type {
+	ILogger,
+	LogContext,
+	LogEntry,
+	LoggerConfig,
+	AnalyticsEvent
+} from './types/logger'
+export { LogLevel } from './types/logger'
+
+// ============================================================================
+// Session Types
+// ============================================================================
+
+export type {
+	SessionData,
+	TokenPair,
+	SessionValidationResult,
+	SessionActivity
+} from './types/session'
+
+// ============================================================================
+// Domain Types
+// ============================================================================
+
+export type {
+	ValueObject,
+	Entity,
+	AggregateRoot,
+	DomainEvent,
+	Repository,
+	QueryRepository,
+	Specification,
+	Command,
+	Query,
+	CommandHandler,
+	QueryHandler,
+	DomainService,
+	Factory,
+	UnitOfWork,
+	BusinessRule
+} from './types/domain'
+
+export {
+	BaseValueObject,
+	BaseEntity,
+	BaseSpecification,
+	Result,
+	BusinessRuleValidationError,
+	Money,
+	Email,
+	PhoneNumber,
+	Address,
+	DomainError,
+	ValidationError,
+	NotFoundError,
+	ConflictError,
+	UnauthorizedError,
+	ForbiddenError,
+	createId
+} from './types/domain'
+
+export type {
+	Brand,
+	UserId,
+	PropertyId,
+	UnitId,
+	TenantId,
+	LeaseId,
+	MaintenanceRequestId,
+	OrganizationId,
+	DocumentId,
+	FileId,
+	ActivityId,
+	NotificationId,
+	ReminderLogId,
+	BlogArticleId,
+	CustomerInvoiceId
+} from './types/domain'
+>>>>>>> origin/main
 
 // ============================================================================
 // Type Aliases for Frontend Compatibility
@@ -364,6 +580,7 @@ export interface BusinessRule {
 export type { CreateCheckoutInput as CreateCheckoutSessionRequest } from './types/api-inputs'
 export type { CheckoutResponse as CreateCheckoutSessionResponse } from './types/responses'
 export type { SubStatus as SubscriptionStatus } from './types/billing'
+<<<<<<< HEAD
 
 // ============================================================================
 // Simple utility functions (minimal, non-abstract)
@@ -413,3 +630,5 @@ export * from './validation'
 // ============================================================================
 // No abstractions - Direct library usage only per CLAUDE.md
 // ============================================================================
+=======
+>>>>>>> origin/main

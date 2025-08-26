@@ -20,9 +20,13 @@ export function OAuthProviders({
 	const [isHovered, setIsHovered] = useState(false)
 
 	const handleGoogleLogin = async () => {
+<<<<<<< HEAD
 		if (disabled || isGoogleLoading) {
 			return
 		}
+=======
+		if (disabled || isGoogleLoading) return
+>>>>>>> origin/main
 
 		onProviderClick?.('Google')
 		setIsGoogleLoading(true)

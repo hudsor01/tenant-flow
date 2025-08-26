@@ -20,7 +20,11 @@ export function OptimizedHeroSection({ locale }: OptimizedHeroSectionProps) {
 	]
 
 	return (
+<<<<<<< HEAD
 		<section className="bg-gradient-to-b from-blue-50 to-white px-4 pb-20 pt-16">
+=======
+		<section className="bg-gradient-to-b from-blue-50 to-white px-4 pt-16 pb-20">
+>>>>>>> origin/main
 			<div className="container mx-auto text-center">
 				{/* Trust Indicators */}
 				<div className="mb-8 flex justify-center gap-8">

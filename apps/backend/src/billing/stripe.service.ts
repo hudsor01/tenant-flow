@@ -1,6 +1,6 @@
 /**
  * Stripe Service - Production-Ready Implementation
- *
+ * 
  * This service implements comprehensive Stripe functionality following best practices:
  * - Dependency injection with proper configuration
  * - Latest API version (2025-07-30.basil)
@@ -11,88 +11,74 @@
  * - Payment method management
  * - Usage-based billing support
  * - Idempotency key support for critical operations
- *
+ * 
  * Based on official Stripe documentation for Node.js/TypeScript
  */
 
-import {
-	Inject,
-	Injectable,
-	Logger,
-	InternalServerErrorException
+import { 
+  Inject, 
+  Injectable, 
+  Logger
 } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import Stripe from 'stripe'
 import type { EnvironmentVariables } from '../config/config.schema'
 import { SupabaseService } from '../database/supabase.service'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import { ErrorHandlerService } from '../services/error-handler.service'
+import { PaymentNotificationService } from './payment-notification.service'
+import type { Database } from '@repo/shared'
 
 @Injectable()
 export class StripeService {
-	private readonly logger = new Logger(StripeService.name)
-	private readonly stripe: Stripe
-	private readonly webhookSecret: string
-	private readonly maxRetries = 3
+  private readonly logger = new Logger(StripeService.name)
+  private readonly stripe: Stripe
+  private readonly webhookSecret: string
+  private readonly maxRetries = 3
 
-	constructor(
-		@Inject(ConfigService)
-		private readonly configService: ConfigService<EnvironmentVariables>,
-		private readonly supabaseService: SupabaseService
-	) {
-		// Initialize Stripe with best practices
-		const secretKey = this.configService.get('STRIPE_SECRET_KEY', {
-			infer: true
-		})
-		if (secretKey === undefined) {
-			throw new InternalServerErrorException(
-				'STRIPE_SECRET_KEY is required for Stripe initialization'
-			)
-		}
+  constructor(
+    @Inject(ConfigService) private readonly configService: ConfigService<EnvironmentVariables>,
+    private readonly supabaseService: SupabaseService,
+    private readonly errorHandler: ErrorHandlerService,
+    private readonly paymentNotificationService: PaymentNotificationService
+  ) {
+    // Initialize Stripe with best practices
+    const secretKey = this.configService.get('STRIPE_SECRET_KEY', { infer: true })
+    if (!secretKey) {
+      throw new Error('STRIPE_SECRET_KEY is required for Stripe initialization')
+    }
 
-		this.webhookSecret =
-			this.configService.get('STRIPE_WEBHOOK_SECRET', { infer: true }) ??
-			''
-		if (!this.webhookSecret) {
-			this.logger.warn(
-				'STRIPE_WEBHOOK_SECRET not configured - webhooks will not be verified'
-			)
-		}
+    this.webhookSecret = this.configService.get('STRIPE_WEBHOOK_SECRET', { infer: true }) || ''
+    if (!this.webhookSecret) {
+      this.logger.warn('STRIPE_WEBHOOK_SECRET not configured - webhooks will not be verified')
+    }
 
-		// Initialize with latest API version and recommended settings
-		this.stripe = new Stripe(secretKey, {
-			apiVersion: '2025-07-30.basil',
-			typescript: true,
-			maxNetworkRetries: this.maxRetries,
-			timeout: 80000, // 80 second timeout
-			telemetry: true, // Enable telemetry for better support
-			appInfo: {
-				name: 'TenantFlow',
-				version: '1.0.0',
-				url: 'https://tenantflow.app'
-			}
-		})
+    // Initialize with latest API version and recommended settings
+    this.stripe = new Stripe(secretKey, {
+      apiVersion: '2025-07-30.basil',
+      typescript: true,
+      maxNetworkRetries: this.maxRetries,
+      timeout: 80000, // 80 second timeout
+      telemetry: true, // Enable telemetry for better support
+      appInfo: {
+        name: 'TenantFlow',
+        version: '1.0.0',
+        url: 'https://tenantflow.app'
+      }
+    })
 
-		this.logger.log(
-			'Stripe service initialized with API version 2025-07-30.basil'
-		)
-	}
+    this.logger.log('Stripe service initialized with API version 2025-07-30.basil')
+  }
 
 	// Expose client for direct access when needed
-	get client(): Stripe {
+	get client() {
 		return this.stripe
 	}
 
-	async createCustomer(
-		email: string,
-		name?: string
-	): Promise<Stripe.Customer> {
+	async createCustomer(email: string, name?: string) {
 		return this.stripe.customers.create({ email, name })
 	}
 
-	async createSubscription(
-		customerId: string,
-		priceId: string
-	): Promise<Stripe.Subscription> {
+	async createSubscription(customerId: string, priceId: string) {
 		return this.stripe.subscriptions.create({
 			customer: customerId,
 			items: [{ price: priceId }],
@@ -100,20 +86,25 @@ export class StripeService {
 		})
 	}
 
-	async cancelSubscription(
-		subscriptionId: string,
-		userId?: string
-	): Promise<Stripe.Subscription> {
-		const canceledSubscription =
-			await this.stripe.subscriptions.cancel(subscriptionId)
-
-		// Notification removed for MVP - focus on core CRUD functionality
-		if (userId) {
-			this.logger.log(
-				`Subscription canceled for user ${userId}: ${canceledSubscription.id}`
-			)
+	async cancelSubscription(subscriptionId: string, userId?: string) {
+		const canceledSubscription = await this.stripe.subscriptions.cancel(subscriptionId)
+		
+		// If we have the userId, send cancellation notification
+		// Note: Stripe will also send its own cancellation email if configured
+		if (userId && canceledSubscription) {
+			// Type assertion to access current_period_end
+			const endTime = (canceledSubscription as { current_period_end?: number }).current_period_end
+			await this.paymentNotificationService.notifySubscriptionCanceled({
+				userId,
+				subscriptionId: canceledSubscription.id,
+				status: 'canceled',
+				amount: 0,
+				currency: 'usd',
+				cancelAtPeriodEnd: canceledSubscription.cancel_at_period_end,
+				currentPeriodEnd: endTime ? new Date(endTime * 1000) : new Date()
+			})
 		}
-
+		
 		return canceledSubscription
 	}
 
@@ -126,7 +117,7 @@ export class StripeService {
 		customerId: string,
 		priceId: string,
 		metadata?: Record<string, string>
-	): Promise<Stripe.Subscription> {
+	) {
 		try {
 			// Create the subscription with payment_behavior set to allow incomplete status
 			// This enables proper SCA handling per Stripe's 2025 best practices
@@ -138,7 +129,7 @@ export class StripeService {
 					save_default_payment_method: 'on_subscription'
 				},
 				expand: ['latest_invoice.payment_intent'],
-				metadata: metadata ?? {}
+				metadata: metadata || {}
 			})
 
 			this.logger.log(
@@ -168,7 +159,7 @@ export class StripeService {
 							paymentIntentId,
 							{
 								confirmation_token: confirmationTokenId,
-								return_url: `${process.env.FRONTEND_URL ?? 'https://tenantflow.app'}/billing/success`
+								return_url: `${process.env.FRONTEND_URL || 'https://tenantflow.app'}/billing/success`
 							}
 						)
 
@@ -199,14 +190,12 @@ export class StripeService {
 		}
 	}
 
-	handleWebhook(payload: Buffer, signature: string): Stripe.Event {
+	async handleWebhook(payload: Buffer, signature: string) {
 		const webhookSecret = this.configService.get('STRIPE_WEBHOOK_SECRET', {
 			infer: true
 		})
 		if (!webhookSecret) {
-			throw new InternalServerErrorException(
-				'STRIPE_WEBHOOK_SECRET is required'
-			)
+			throw new Error('STRIPE_WEBHOOK_SECRET is required')
 		}
 		const event = this.stripe.webhooks.constructEvent(
 			payload,
@@ -214,29 +203,31 @@ export class StripeService {
 			webhookSecret
 		)
 
-		// Handle subscription events - only process events we care about
-		if (
-			event.type === 'customer.subscription.created' ||
-			event.type === 'customer.subscription.updated'
-		) {
-			// Update user subscription status in Supabase
-			this.logger.log('Subscription event:', event.type)
-		} else if (event.type === 'customer.subscription.deleted') {
-			// Log subscription deletion
-			this.logger.log('Subscription deleted:', event.type)
-			// Cancellation notification is handled in cancelSubscription method or webhook handler in controller
-		} else if (event.type === 'customer.subscription.trial_will_end') {
-			// Notification removed for MVP - focus on core CRUD functionality
-			const trialSubscription = event.data.object
-			const userId = trialSubscription.metadata.userId // Remove optional chaining
-			if (userId && trialSubscription.trial_end) {
-				this.logger.log(
-					`Trial ending for user ${userId}, subscription ${trialSubscription.id}`
-				)
+		// Handle subscription events
+		switch (event.type) {
+			case 'customer.subscription.created':
+			case 'customer.subscription.updated':
+				// Update user subscription status in Supabase
+				this.logger.log('Subscription event:', event.type)
+				break
+			case 'customer.subscription.deleted':
+				// Log subscription deletion
+				this.logger.log('Subscription deleted:', event.type)
+				// Cancellation notification is handled in cancelSubscription method or webhook handler in controller
+				break
+			case 'customer.subscription.trial_will_end': {
+				// Handle trial ending notification
+				const trialSubscription = event.data.object as Stripe.Subscription
+				const userId = trialSubscription.metadata?.userId
+				if (userId && trialSubscription.trial_end) {
+					await this.paymentNotificationService.notifyTrialEnding(
+						userId,
+						trialSubscription.id,
+						new Date(trialSubscription.trial_end * 1000)
+					)
+				}
+				break
 			}
-		} else {
-			// Log unhandled event type for monitoring
-			this.logger.warn(`Unhandled webhook event type: ${event.type}`)
 		}
 
 		return event
@@ -255,36 +246,22 @@ export class StripeService {
 		trialEnd?: Date | null
 		cancelAtPeriodEnd: boolean
 		billingInterval: 'monthly' | 'annual'
-	}): Promise<{
-		success: boolean
-		action: 'created' | 'updated'
-		subscription: Database['public']['Tables']['Subscription']['Row']
-	}> {
+	}) {
 		this.logger.log('Creating/updating subscription:', subscriptionData)
-
+		
 		try {
 			const client = this.supabaseService.getAdminClient()
-
+			
 			// First check if subscription already exists
-			const { data: existingSubscription, error: fetchError } =
-				await client
-					.from('Subscription')
-					.select('id')
-					.eq(
-						'stripeSubscriptionId',
-						subscriptionData.stripeSubscriptionId
-					)
-					.single()
+			const { data: existingSubscription, error: fetchError } = await client
+				.from('Subscription')
+				.select('id')
+				.eq('stripeSubscriptionId', subscriptionData.stripeSubscriptionId)
+				.single()
 
-			if (fetchError && fetchError.code !== 'PGRST116') {
-				// PGRST116 = no rows found
-				this.logger.error(
-					'Error checking existing subscription:',
-					fetchError
-				)
-				throw new InternalServerErrorException(
-					`Failed to check existing subscription: ${fetchError.message}`
-				)
+			if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = no rows found
+				this.logger.error('Error checking existing subscription:', fetchError)
+				throw new Error(`Failed to check existing subscription: ${fetchError.message}`)
 			}
 
 			const subscriptionPayload = {
@@ -294,12 +271,10 @@ export class StripeService {
 				stripePriceId: subscriptionData.stripePriceId,
 				planId: subscriptionData.planId,
 				status: subscriptionData.status,
-				currentPeriodStart:
-					subscriptionData.currentPeriodStart.toISOString(),
-				currentPeriodEnd:
-					subscriptionData.currentPeriodEnd.toISOString(),
-				trialStart: subscriptionData.trialStart?.toISOString() ?? null,
-				trialEnd: subscriptionData.trialEnd?.toISOString() ?? null,
+				currentPeriodStart: subscriptionData.currentPeriodStart.toISOString(),
+				currentPeriodEnd: subscriptionData.currentPeriodEnd.toISOString(),
+				trialStart: subscriptionData.trialStart?.toISOString() || null,
+				trialEnd: subscriptionData.trialEnd?.toISOString() || null,
 				cancelAtPeriodEnd: subscriptionData.cancelAtPeriodEnd,
 				billingInterval: subscriptionData.billingInterval,
 				updatedAt: new Date().toISOString()
@@ -316,9 +291,7 @@ export class StripeService {
 
 				if (error) {
 					this.logger.error('Error updating subscription:', error)
-					throw new InternalServerErrorException(
-						`Failed to update subscription: ${error.message}`
-					)
+					throw new Error(`Failed to update subscription: ${error.message}`)
 				}
 
 				this.logger.log('Successfully updated subscription:', data.id)
@@ -336,20 +309,17 @@ export class StripeService {
 
 				if (error) {
 					this.logger.error('Error creating subscription:', error)
-					throw new InternalServerErrorException(
-						`Failed to create subscription: ${error.message}`
-					)
+					throw new Error(`Failed to create subscription: ${error.message}`)
 				}
 
 				this.logger.log('Successfully created subscription:', data.id)
 				return { success: true, action: 'created', subscription: data }
 			}
 		} catch (error) {
-			this.logger.error(
+			this.errorHandler.logError(
 				'StripeService.createOrUpdateSubscription failed',
 				{
-					error:
-						error instanceof Error ? error.message : String(error),
+					error: error as Error,
 					userId: subscriptionData.userId,
 					stripeSubscriptionId: subscriptionData.stripeSubscriptionId
 				}
@@ -395,16 +365,14 @@ export class StripeService {
 			// If we have a subscription ID, update its metadata with latest payment info
 			if (paymentData.stripeSubscriptionId) {
 				const client = this.supabaseService.getAdminClient()
-
+				
 				// Update subscription record with payment status
 				const { data: subscription, error } = await client
 					.from('Subscription')
 					.update({
 						lastPaymentStatus: paymentData.status,
 						lastPaymentAmount: paymentData.amount,
-						lastPaymentDate:
-							paymentData.paidAt?.toISOString() ??
-							new Date().toISOString(),
+						lastPaymentDate: paymentData.paidAt?.toISOString() || new Date().toISOString(),
 						metadata: {
 							lastInvoiceId: paymentData.stripeInvoiceId,
 							lastInvoiceUrl: paymentData.invoiceUrl,
@@ -414,22 +382,16 @@ export class StripeService {
 						},
 						updatedAt: new Date().toISOString()
 					})
-					.eq(
-						'stripeSubscriptionId',
-						paymentData.stripeSubscriptionId
-					)
+					.eq('stripeSubscriptionId', paymentData.stripeSubscriptionId)
 					.select()
 					.single()
 
 				if (error) {
-					this.logger.error(
-						'Failed to update subscription with payment info:',
-						error
-					)
+					this.logger.error('Failed to update subscription with payment info:', error)
 					// Don't throw - we still want to log the payment event
 				} else {
 					this.logger.log('Updated subscription with payment info', {
-						subscriptionId: subscription.id,
+						subscriptionId: subscription?.id,
 						status: paymentData.status
 					})
 				}
@@ -437,50 +399,53 @@ export class StripeService {
 
 			// For failed payments, trigger notification if needed
 			if (paymentData.status === 'failed') {
-				// Notification removed for MVP - focus on core CRUD functionality
-				this.logger.warn(
-					`Payment failed for user ${paymentData.userId}`,
-					{
-						subscriptionId: paymentData.stripeSubscriptionId,
-						amount: paymentData.amount,
-						attemptCount: paymentData.attemptCount
-					}
-				)
-
+				// Send payment failed notification (our custom in-app notification + optional custom email)
+				// Note: Stripe also sends its own failed payment email if configured in Dashboard
+				await this.paymentNotificationService.notifyPaymentFailed({
+					userId: paymentData.userId,
+					subscriptionId: paymentData.stripeSubscriptionId || '',
+					amount: paymentData.amount,
+					currency: paymentData.currency,
+					status: 'failed',
+					attemptCount: paymentData.attemptCount,
+					failureReason: paymentData.failureReason,
+					invoiceUrl: paymentData.invoiceUrl
+				})
+				
 				if (paymentData.attemptCount && paymentData.attemptCount >= 3) {
-					this.logger.warn(
-						'Payment failed after maximum attempts - subscription at risk',
-						{
-							...logContext,
-							attemptCount: paymentData.attemptCount,
-							failureReason: paymentData.failureReason
-						}
-					)
+					this.logger.warn('Payment failed after maximum attempts - subscription at risk', {
+						...logContext,
+						attemptCount: paymentData.attemptCount,
+						failureReason: paymentData.failureReason
+					})
 				}
 			}
-
-			// For successful payments, log success (notification removed for MVP)
+			
+			// For successful payments, send success notification
 			if (paymentData.status === 'succeeded') {
-				this.logger.log(
-					`Payment succeeded for user ${paymentData.userId}`,
-					{
-						subscriptionId: paymentData.stripeSubscriptionId,
-						amount: paymentData.amount,
-						currency: paymentData.currency
-					}
-				)
+				// Send payment success notification (our custom in-app notification)
+				// Note: Stripe automatically sends receipt emails if enabled in Dashboard
+				await this.paymentNotificationService.notifyPaymentSuccess({
+					userId: paymentData.userId,
+					subscriptionId: paymentData.stripeSubscriptionId || '',
+					amount: paymentData.amount,
+					currency: paymentData.currency,
+					status: 'succeeded',
+					invoiceUrl: paymentData.invoiceUrl,
+					invoicePdf: paymentData.invoicePdf
+				})
 			}
 
-			return {
-				success: true,
+			return { 
+				success: true, 
 				data: {
 					recorded: true,
 					...logContext
 				}
 			}
 		} catch (error) {
-			this.logger.error('Failed to record payment', {
-				error: error instanceof Error ? error.message : String(error),
+			this.errorHandler.logError('Failed to record payment', {
+				error: error as Error,
 				paymentData: logContext
 			})
 			return { success: false }

@@ -67,6 +67,7 @@ export interface FormModalProps<T = unknown> extends BaseModalProps {
 export interface FormField {
 	name: string
 	label: string
+<<<<<<< HEAD
 	type:
 		| 'text'
 		| 'email'
@@ -75,8 +76,15 @@ export interface FormField {
 		| 'textarea'
 		| 'select'
 		| 'checkbox'
+=======
+	type: 'text' | 'email' | 'password' | 'number' | 'textarea' | 'select' | 'checkbox'
+>>>>>>> origin/main
 	placeholder?: string
 	required?: boolean
 	options?: { value: string; label: string }[]
 	defaultValue?: string | number | boolean
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> origin/main

@@ -10,7 +10,11 @@ import {
 } from '@tanstack/react-query'
 import { useState, useCallback, useRef } from 'react'
 import { toast } from 'sonner'
+<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
+=======
+import { logger } from '@/lib/logger'
+>>>>>>> origin/main
 
 interface MutationLoadingOptions<
 	TData = unknown,
@@ -86,7 +90,11 @@ export function useMutationLoading<
 				toastId.current = toast.loading(loadingMessage)
 			}
 		},
+<<<<<<< HEAD
 		onSuccess: (data, _variables) => {
+=======
+		onSuccess: (data, variables) => {
+>>>>>>> origin/main
 			logger.info('Mutation completed successfully', {
 				mutationType,
 				data: process.env.NODE_ENV === 'development' ? data : '[hidden]'
@@ -221,9 +229,13 @@ export function usePropertyMutationLoading<T = unknown>(
 				const property = data as { name?: string } | null | undefined
 				return `Property "${property?.name || 'New property'}" created successfully`
 			}
+<<<<<<< HEAD
 			if (operation === 'update') {
 				return `Property updated successfully`
 			}
+=======
+			if (operation === 'update') return `Property updated successfully`
+>>>>>>> origin/main
 			return 'Property deleted successfully'
 		},
 		errorMessage: `Failed to ${operation} property`,
@@ -246,9 +258,13 @@ export function useTenantMutationLoading<T = unknown>(
 					| undefined
 				return `Tenant "${`${tenant?.firstName || ''} ${tenant?.lastName || ''}`.trim() || 'New tenant'}" added successfully`
 			}
+<<<<<<< HEAD
 			if (operation === 'update') {
 				return `Tenant updated successfully`
 			}
+=======
+			if (operation === 'update') return `Tenant updated successfully`
+>>>>>>> origin/main
 			return 'Tenant removed successfully'
 		},
 		errorMessage: `Failed to ${operation} tenant`,
@@ -264,12 +280,17 @@ export function useLeaseMutationLoading<T = unknown>(
 	return useMutationLoading(mutationFn, {
 		loadingMessage: `${operation === 'create' ? 'Creating' : operation === 'update' ? 'Updating' : 'Terminating'} lease...`,
 		successMessage: () => {
+<<<<<<< HEAD
 			if (operation === 'create') {
 				return 'Lease created successfully'
 			}
 			if (operation === 'update') {
 				return 'Lease updated successfully'
 			}
+=======
+			if (operation === 'create') return 'Lease created successfully'
+			if (operation === 'update') return 'Lease updated successfully'
+>>>>>>> origin/main
 			return 'Lease terminated successfully'
 		},
 		errorMessage: `Failed to ${operation} lease`,
@@ -285,12 +306,19 @@ export function useMaintenanceMutationLoading<T = unknown>(
 	return useMutationLoading(mutationFn, {
 		loadingMessage: `${operation === 'create' ? 'Submitting' : operation === 'update' ? 'Updating' : 'Canceling'} maintenance request...`,
 		successMessage: () => {
+<<<<<<< HEAD
 			if (operation === 'create') {
 				return 'Maintenance request submitted successfully'
 			}
 			if (operation === 'update') {
 				return 'Maintenance request updated successfully'
 			}
+=======
+			if (operation === 'create')
+				return 'Maintenance request submitted successfully'
+			if (operation === 'update')
+				return 'Maintenance request updated successfully'
+>>>>>>> origin/main
 			return 'Maintenance request canceled successfully'
 		},
 		errorMessage: `Failed to ${operation} maintenance request`,

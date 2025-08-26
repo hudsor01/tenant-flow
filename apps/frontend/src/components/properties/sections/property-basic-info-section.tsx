@@ -58,7 +58,11 @@ export function PropertyBasicInfoSection({
 				</Label>
 				<select
 					id="propertyType"
+<<<<<<< HEAD
 					className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring focus:border-primary flex h-10 w-full rounded-md border px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+=======
+					className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring focus:border-primary flex h-10 w-full rounded-md border px-3 py-2 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+>>>>>>> origin/main
 					{...form.register('propertyType')}
 				>
 					<option value="SINGLE_FAMILY">Single Family Home</option>

@@ -78,12 +78,20 @@ function DialogContent({
 			<DialogPrimitive.Content
 				data-slot="dialog-content"
 				className={cn(
+<<<<<<< HEAD
 					'bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed left-[50%] top-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg',
+=======
+					'bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg',
+>>>>>>> origin/main
 					'focus:outline-none',
 					className
 				)}
 				// Ensure dialog receives focus for screen readers
+<<<<<<< HEAD
 				onOpenAutoFocus={(event: Event) => {
+=======
+				onOpenAutoFocus={event => {
+>>>>>>> origin/main
 					// Let Radix handle focus management
 					event.preventDefault()
 				}}
@@ -94,8 +102,13 @@ function DialogContent({
 					<DialogPrimitive.Close
 						data-slot="dialog-close"
 						className={cn(
+<<<<<<< HEAD
 							"ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground rounded-xs focus:outline-hidden absolute right-4 top-4 opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 disabled:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
 							'focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2'
+=======
+							"ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+							'focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
+>>>>>>> origin/main
 						)}
 						aria-label="Close dialog"
 					>
@@ -141,7 +154,11 @@ function DialogTitle({
 	return (
 		<DialogPrimitive.Title
 			data-slot="dialog-title"
+<<<<<<< HEAD
 			className={cn('text-lg font-semibold leading-none', className)}
+=======
+			className={cn('text-lg leading-none font-semibold', className)}
+>>>>>>> origin/main
 			{...props}
 		/>
 	)

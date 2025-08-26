@@ -6,6 +6,7 @@ export enum NotificationType {
 	LEASE = 'LEASE',
 	PAYMENT = 'PAYMENT',
 	GENERAL = 'GENERAL',
+<<<<<<< HEAD
 	SYSTEM = 'SYSTEM',
 	INFO = 'INFO' // Add INFO for compatibility
 }
@@ -25,6 +26,9 @@ export interface NotificationResponse {
 	id: string
 	sent: boolean
 	sentAt: string
+=======
+	SYSTEM = 'SYSTEM'
+>>>>>>> origin/main
 }
 
 export interface NotificationData {
@@ -45,6 +49,7 @@ export interface NotificationWebSocketMessage {
 	data: Record<string, string | number | boolean | null>
 	timestamp?: Date | string
 	id?: string
+<<<<<<< HEAD
 }
 
 // Base WebSocket message type
@@ -53,6 +58,8 @@ export interface WebSocketMessage {
 	data: Record<string, unknown>
 	timestamp?: string
 	id?: string
+=======
+>>>>>>> origin/main
 }
 
 export interface WebSocketState {

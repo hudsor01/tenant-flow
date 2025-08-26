@@ -1,0 +1,16 @@
+{
+	"$schema": "https://json.schemastore.org/tsconfig",
+	"display": "TenantFlow Root Config",
+	"compilerOptions": {
+		"strict": true,
+		"skipLibCheck": true,
+		"noEmit": true
+	},
+	"files": [],
+	"references": [
+		{ "path": "./packages/database" },
+		{ "path": "./packages/shared" },
+		{ "path": "./apps/frontend" },
+		{ "path": "./apps/backend" }
+	]
+}

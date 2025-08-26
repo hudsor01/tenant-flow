@@ -1,5 +1,8 @@
 import type { NextConfig } from 'next/types'
+<<<<<<< HEAD
 import path from 'node:path'
+=======
+>>>>>>> origin/main
 
 // Webpack configuration for production builds
 interface WebpackConfig {
@@ -24,6 +27,7 @@ const nextConfig: NextConfig = {
 	poweredByHeader: false,
 	trailingSlash: false,
 	generateEtags: true,
+<<<<<<< HEAD
 	outputFileTracingRoot: path.join(__dirname, '../../'),
 
 	// Disable experimental CSS optimization
@@ -36,6 +40,15 @@ const nextConfig: NextConfig = {
 	// TODO: Re-enable after fixing type safety warnings
 	eslint: {
 		ignoreDuringBuilds: true
+=======
+	outputFileTracingRoot: process.cwd().includes('tenant-flow')
+		? process.cwd().split('/tenant-flow')[0] + '/tenant-flow'
+		: process.cwd(),
+
+	// Build validation
+	eslint: {
+		ignoreDuringBuilds: false
+>>>>>>> origin/main
 	},
 	typescript: {
 		ignoreBuildErrors: false
@@ -90,7 +103,11 @@ const nextConfig: NextConfig = {
 					},
 					{
 						key: 'Content-Security-Policy',
+<<<<<<< HEAD
 						value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://us.i.posthog.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; connect-src 'self' https://api.tenantflow.app https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://us.i.posthog.com; frame-src https://js.stripe.com; frame-ancestors 'none';"
+=======
+						value: "default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://us.i.posthog.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; connect-src 'self' https://api.tenantflow.app https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://us.i.posthog.com; frame-src https://js.stripe.com; frame-ancestors 'none';"
+>>>>>>> origin/main
 					}
 				]
 			},
@@ -142,8 +159,11 @@ const nextConfig: NextConfig = {
 
 	// Turbopack configuration for development
 	turbopack: {
+<<<<<<< HEAD
 		// Point to monorepo root to fix package resolution in monorepo
 		root: path.join(__dirname, '../../'),
+=======
+>>>>>>> origin/main
 		rules: {
 			'*.svg': {
 				loaders: ['@svgr/webpack'],

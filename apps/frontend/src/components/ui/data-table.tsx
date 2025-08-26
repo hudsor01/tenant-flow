@@ -131,9 +131,13 @@ export function EnhancedDataTable<TData, TValue>({
 										.getColumn(searchKey)
 										?.getFilterValue() as string) ?? ''
 								}
+<<<<<<< HEAD
 								onChange={(
 									event: React.ChangeEvent<HTMLInputElement>
 								) =>
+=======
+								onChange={event =>
+>>>>>>> origin/main
 									table
 										.getColumn(searchKey)
 										?.setFilterValue(event.target.value)
@@ -170,7 +174,11 @@ export function EnhancedDataTable<TData, TValue>({
 											key={column.id}
 											className="capitalize"
 											checked={column.getIsVisible()}
+<<<<<<< HEAD
 											onCheckedChange={(value: boolean) =>
+=======
+											onCheckedChange={value =>
+>>>>>>> origin/main
 												column.toggleVisibility(!!value)
 											}
 										>

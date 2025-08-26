@@ -15,18 +15,11 @@
  * Replaces: stripe-billing.service.ts (878 lines) with ~50 lines
  */
 
-import {
-	Injectable,
-	Logger,
-	Inject,
-	NotFoundException,
-	InternalServerErrorException
-} from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import Stripe from 'stripe'
-import type { CheckoutResponse, PortalResponse } from '@repo/shared'
 import type { EnvironmentVariables } from '../config/config.schema'
-import { SupabaseService } from '../database/supabase.service'
+import { UserSupabaseRepository } from '../database/user-supabase.repository'
 
 @Injectable()
 export class StripePortalService {
@@ -35,30 +28,21 @@ export class StripePortalService {
 	private readonly frontendUrl: string
 
 	constructor(
-		@Inject(ConfigService)
 		private configService: ConfigService<EnvironmentVariables>,
-		private supabaseService: SupabaseService
+		private userRepository: UserSupabaseRepository
 	) {
 		const secretKey = this.configService.get('STRIPE_SECRET_KEY', {
 			infer: true
 		})
-		if (secretKey === undefined) {
-			throw new InternalServerErrorException(
-				'STRIPE_SECRET_KEY is required'
-			)
+		if (!secretKey) {
+			throw new Error('STRIPE_SECRET_KEY is required')
 		}
 
 		this.stripe = new Stripe(secretKey, {
 			apiVersion: '2025-07-30.basil'
 		})
 
-		const frontendUrl = this.configService.get('FRONTEND_URL', { infer: true })
-		if (!frontendUrl) {
-			throw new InternalServerErrorException(
-				'FRONTEND_URL is required for production deployment'
-			)
-		}
-		this.frontendUrl = frontendUrl
+		this.frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000'
 	}
 
 	/**
@@ -70,17 +54,13 @@ export class StripePortalService {
 		priceId: string
 		successUrl?: string
 		cancelUrl?: string
-	}): Promise<CheckoutResponse> {
+	}): Promise<{ url: string; sessionId: string }> {
 		// Get or create Stripe customer
-		const { data: user } = await this.supabaseService
-			.getAdminClient()
-			.from('User')
-			.select('*, Subscription(*)')
-			.eq('id', params.userId)
-			.single()
-
+		const user = await this.userRepository.findByIdWithSubscription(
+			params.userId
+		)
 		if (!user) {
-			throw new NotFoundException('User not found')
+			throw new Error('User not found')
 		}
 
 		let customerId = user.Subscription?.[0]?.stripeCustomerId
@@ -88,17 +68,16 @@ export class StripePortalService {
 		if (!customerId) {
 			const customer = await this.stripe.customers.create({
 				email: user.email,
-				name: user.name ?? undefined,
+				name: user.name || undefined,
 				metadata: { userId: params.userId }
 			})
 			customerId = customer.id
 
 			// Store customer ID for future use
-			await this.supabaseService
-				.getAdminClient()
-				.from('User')
-				.update({ stripeCustomerId: customerId })
-				.eq('id', params.userId)
+			await this.userRepository.updateStripeCustomerId(
+				params.userId,
+				customerId
+			)
 		}
 
 		// Create checkout session
@@ -112,10 +91,10 @@ export class StripePortalService {
 			],
 			mode: 'subscription',
 			success_url:
-				params.successUrl ??
+				params.successUrl ||
 				`${this.frontendUrl}/dashboard?success=true`,
 			cancel_url:
-				params.cancelUrl ?? `${this.frontendUrl}/pricing?canceled=true`,
+				params.cancelUrl || `${this.frontendUrl}/pricing?canceled=true`,
 			// Allow promotion codes
 			allow_promotion_codes: true,
 			// Collect billing address for tax calculation
@@ -137,9 +116,7 @@ export class StripePortalService {
 		)
 
 		if (!session.url) {
-			throw new InternalServerErrorException(
-				'Checkout session URL not available'
-			)
+			throw new Error('Checkout session URL not available')
 		}
 
 		return {
@@ -155,27 +132,24 @@ export class StripePortalService {
 	async createPortalSession(params: {
 		userId: string
 		returnUrl?: string
-	}): Promise<PortalResponse> {
+	}): Promise<{ url: string }> {
 		// Get user's Stripe customer ID
-		const { data: user } = await this.supabaseService
-			.getAdminClient()
-			.from('User')
-			.select('*, Subscription(*)')
-			.eq('id', params.userId)
-			.single()
+		const user = await this.userRepository.findByIdWithSubscription(
+			params.userId
+		)
 		if (!user) {
-			throw new NotFoundException('User not found')
+			throw new Error('User not found')
 		}
 
 		const customerId = user.Subscription?.[0]?.stripeCustomerId
 		if (!customerId) {
-			throw new NotFoundException('No Stripe customer found for user')
+			throw new Error('No Stripe customer found for user')
 		}
 
 		// Create portal session
 		const session = await this.stripe.billingPortal.sessions.create({
 			customer: customerId,
-			return_url: params.returnUrl ?? `${this.frontendUrl}/dashboard`
+			return_url: params.returnUrl || `${this.frontendUrl}/dashboard`
 		})
 
 		this.logger.log(`Created portal session for user: ${params.userId}`)

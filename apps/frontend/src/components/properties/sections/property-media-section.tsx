@@ -30,8 +30,13 @@ export function PropertyMediaSection({
 					Property Image URL (Optional)
 				</Label>
 				<div className="relative">
+<<<<<<< HEAD
 					<ImageIcon
 						className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400"
+=======
+					<Image
+						className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400"
+>>>>>>> origin/main
 						aria-hidden="true"
 					/>
 					<Input
@@ -78,7 +83,11 @@ export function PropertyMediaSection({
 						/>
 						<div className="hidden h-48 w-full items-center justify-center border-2 border-dashed border-gray-300 bg-gray-100">
 							<div className="text-center">
+<<<<<<< HEAD
 								<ImageIcon
+=======
+								<Image
+>>>>>>> origin/main
 									className="mx-auto h-8 w-8 text-gray-400"
 									aria-hidden="true"
 								/>
@@ -94,7 +103,11 @@ export function PropertyMediaSection({
 			{/* Future Upload Section */}
 			<div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
 				<div className="flex items-start space-x-2">
+<<<<<<< HEAD
 					<ImageIcon
+=======
+					<Image
+>>>>>>> origin/main
 						className="text-primary mt-0.5 h-4 w-4"
 						aria-hidden="true"
 					/>

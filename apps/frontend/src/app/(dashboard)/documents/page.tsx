@@ -190,6 +190,7 @@ export default function DocumentsPage() {
 			{/* Search and Filters */}
 			<div className="flex flex-col gap-4 sm:flex-row">
 				<div className="relative flex-1">
+<<<<<<< HEAD
 					<Search className="text-muted-foreground absolute left-2 top-2.5 h-4 w-4" />
 					<Input
 						aria-label="Search documents by name or property..."
@@ -198,6 +199,13 @@ export default function DocumentsPage() {
 						onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
 							setSearchTerm(e.target.value)
 						}
+=======
+					<Search className="text-muted-foreground absolute top-2.5 left-2 h-4 w-4" />
+					<Input
+						placeholder="Search documents by name or property..."
+						value={searchTerm}
+						onChange={e => setSearchTerm(e.target.value)}
+>>>>>>> origin/main
 						className="pl-8"
 					/>
 				</div>

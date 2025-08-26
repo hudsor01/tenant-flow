@@ -5,7 +5,11 @@
 import { create } from 'zustand'
 import { devtools, persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
+<<<<<<< HEAD
 import type { AuthUser } from '@repo/shared'
+=======
+import type { User } from '@repo/shared'
+>>>>>>> origin/main
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -45,7 +49,11 @@ export interface UIPreferences {
 }
 
 export interface UserSession {
+<<<<<<< HEAD
 	user: AuthUser | null
+=======
+	user: User | null
+>>>>>>> origin/main
 	isAuthenticated: boolean
 	lastActivity: Date | null
 	sessionExpiry: Date | null
@@ -103,7 +111,11 @@ export interface AppState {
 	// ACTIONS - SESSION MANAGEMENT
 	// ============================================================================
 
+<<<<<<< HEAD
 	setUser: (user: AuthUser | null) => void
+=======
+	setUser: (user: User | null) => void
+>>>>>>> origin/main
 	updateLastActivity: () => void
 	clearSession: () => void
 	extendSession: (minutes: number) => void

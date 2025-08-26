@@ -4,6 +4,7 @@
  */
 
 // Core types
+<<<<<<< HEAD
 export type * from './core/common'
 export type * from './core/entities'
 
@@ -15,6 +16,16 @@ export type * from './components/invoice'
 
 // Hook types
 // (Avoid wildcard re-export to prevent duplicate symbol exports like TenantFilters)
+=======
+export * from './core/common'
+export * from './core/entities'
+
+// Component types (minimal, only used types)
+export * from './components/forms'
+
+// Hook types
+export * from './hooks'
+>>>>>>> origin/main
 
 // Re-export shared types for convenience
 export type {

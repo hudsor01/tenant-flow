@@ -12,6 +12,10 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
+<<<<<<< HEAD
+=======
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+>>>>>>> origin/main
 import {
 	Table,
 	TableBody,
@@ -28,7 +32,11 @@ import {
 	Phone,
 	Building,
 	Calendar,
+<<<<<<< HEAD
 	// AlertTriangle removed - unused
+=======
+	AlertTriangle,
+>>>>>>> origin/main
 	Plus
 } from 'lucide-react'
 import Link from 'next/link'
@@ -70,7 +78,11 @@ function TenantRow({ tenant }: { tenant: TenantWithLeases }) {
 						</AvatarFallback>
 					</Avatar>
 					<div className="space-y-1">
+<<<<<<< HEAD
 						<p className="font-medium leading-none">
+=======
+						<p className="leading-none font-medium">
+>>>>>>> origin/main
 							{tenant.name}
 						</p>
 						<div className="text-muted-foreground flex items-center gap-1 text-sm">

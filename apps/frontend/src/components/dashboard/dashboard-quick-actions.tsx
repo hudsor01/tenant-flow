@@ -1,7 +1,11 @@
 'use client'
 
 import { useTransition } from 'react'
+<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
+=======
+import { logger } from '@/lib/logger'
+>>>>>>> origin/main
 import { motion } from '@/lib/lazy-motion'
 import {
 	Building2,

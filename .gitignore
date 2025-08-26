@@ -1,24 +1,31 @@
 # ========================================
 # CRITICAL SECURITY - ENVIRONMENT & SECRETS
 # ========================================
-# direnv - local environment overrides
+# Environment files - NEVER commit ANY .env files
+.env
+.env.*
+*.env
+*.env.*
 .envrc
 .envrc.local
 */.envrc
 **/.envrc
-
-# Environment keys (legacy)
-.env.keys
-*/.env.keys
-**/.env.keys
 
 # Local environment files
 .env.local
 .env*.local
 *.local
 
-# NO EXCEPTIONS - We don't commit ANY .env files
-# Not even examples - they should be in documentation
+# Environment keys and credentials
+.env.keys
+*/.env.keys
+**/.env.keys
+.api-keys
+api-keys.*
+*.api-key
+.tokens
+tokens.*
+*.token
 
 # ========================================
 # SECRETS & CREDENTIALS (CRITICAL)
@@ -43,21 +50,20 @@ id_ecdsa*
 id_ed25519*
 *_rsa
 *_dsa
-*_ecdsa  
+*_ecdsa
 *_ed25519
-known_hosts
-authorized_keys
 **/*_rsa
 **/*_dsa
 **/*_ecdsa
 **/*_ed25519
+known_hosts
+authorized_keys
 
 # GPG keys
 *.gpg
 *.asc
 
-# API keys and tokens
-# Actual secret files (not source code)
+# API keys and tokens (actual secret files, not source code)
 **/api[_-]key*.txt
 **/api[_-]key*.json
 **/api[_-]secret*.txt
@@ -79,12 +85,12 @@ authorized_keys
 !**/*[_-]secret*.tsx
 !**/api[_-]key*.ts
 !**/api[_-]key*.tsx
-.api-keys
-api-keys.*
-*.api-key
-.tokens
-tokens.*
-*.token
+!**/query-keys.ts
+!**/query-keys.tsx
+!**/password-*.tsx
+!**/secret-*.tsx
+!**/key-*.tsx
+!**/auth-token.decorator.ts
 
 # Service accounts
 **/service[_-]account*
@@ -123,6 +129,14 @@ secret/
 secret.*
 secrets.*
 
+# Never allow password/secret/key patterns
+**/*[Pp]assword*
+**/*[Ss]ecret*
+**/*[Kk]ey*
+**/*actual[_-]password*
+**/*real[_-]secret*
+**/*private[_-]key*
+
 # ========================================
 # DEPENDENCIES
 # ========================================
@@ -141,15 +155,11 @@ jspm_packages/
 # ========================================
 # BUILD OUTPUTS
 # ========================================
-/build
-/dist
-/.next/
-/out/
-.nuxt
 dist/
 build/
 .next/
 out/
+.nuxt
 .turbo/
 *.tsbuildinfo
 **/*.tsbuildinfo
@@ -162,55 +172,75 @@ apps/*/dist/
 apps/*/.turbo/
 
 # Storybook
+storybook-static/
 **/storybook-static/
-apps/storybook/storybook-static/
+*storybook.log
+.storybook-out/
 
 # ========================================
 # LOGS & REPORTS
 # ========================================
-logs
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
+pnpm-debug.log*
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # ========================================
-# TESTING & COVERAGE - IGNORE ALL TEST FILES
+# TESTING & COVERAGE
 # ========================================
-# Test directories - IGNORE EVERYTHING
+# Test directories
+test/
+tests/
+e2e/
 **/test/**
 **/tests/**
 **/__tests__/**
+**/__mocks__/**
 **/e2e/**
+
+# Test files
 **/*.test.*
 **/*.spec.*
 **/*.e2e.*
 **/*.e2e-spec.*
-test/
-tests/
-e2e/
+*.mock.ts
+*.mock.tsx
+*.spec.ts
+*.spec.tsx
+*.test.ts
+*.test.tsx
 
-# Coverage and reports
+# Test results and coverage
 coverage/
+**/coverage/
 *.lcov
+*.coverage
 .nyc_output
 test-results/
-playwright-report/
-test-screenshots/
-test-videos/
-allure-results/
-
-# Test outputs in subdirectories
-**/coverage/
 **/test-results/
+playwright-report/
 **/playwright-report/
-**/allure-results/
+test-screenshots/
 **/test-screenshots/
+test-videos/
 **/test-videos/
-playwright.config.ts
+allure-results/
+**/allure-results/
+jest-results/
+test-results.json
+*.test-report.*
 
+# Test configurations
+playwright.config.ts
+playwright/.cache/
+playwright/.auth/
+tsconfig.spec.json
+tsconfig.test.json
+vitest.config.*.ts
 
 # ========================================
 # CACHING
@@ -239,7 +269,7 @@ $RECYCLE.BIN/
 **/*.swo
 
 # ========================================
-# IDE
+# IDE & EDITORS
 # ========================================
 .vscode/
 .vscode-test
@@ -250,12 +280,15 @@ $RECYCLE.BIN/
 # ========================================
 # DEPLOYMENT & CLOUD
 # ========================================
-.vercel
+.vercel/
+.railway/
+.netlify/
 
 # Docker
 docker-compose.override.yml
 docker-compose.*.yml
 docker-compose.secrets.yml
+!docker-compose.example.yml
 .dockerignore.local
 
 # Cloud provider configs
@@ -275,364 +308,75 @@ k8s-secrets.yaml
 # ========================================
 # PROJECT SPECIFIC
 # ========================================
-
 # Uploads (user data)
+uploads/
+avatars/
 /uploads/
 /avatars/
 /maintenance-files/
 /property-files/
 /tenant-files/
-uploads/
-avatars/
+/documents/
 temp/
 
 # Development files
 CLAUDE.md
+claude.md
 mcp.json
 .mcp.json
-
-# Test files that may contain hardcoded secrets
-test-signup-form.js
-test-supabase-auth.js
-
-# ========================================
-# BACKUP FILES (often contain secrets)
-# ========================================
-*.backup
-*.bak
-*.old
-*.orig
-*.tmp
-*.temp
-*.save
-
-# ========================================
-# RUNTIME FILES
-# ========================================
-pids
-*.pid
-*.seed
-*.pid.lock
-
-# ========================================
-# TURBO SPECIFIC
-# ========================================
-.turbo
-
-# ========================================
-# CRITICAL SECURITY - ENVIRONMENT & SECRETS
-# ========================================
-# RULE: Ignore ALL .env files by default
-.env
-.env.*
-
-# Double-check local files are NEVER committed
-.env.local
-.env.*.local
-*.local
-*.backup
-
-# ========================================
-# SECRETS & CREDENTIALS (CRITICAL)
-# ========================================
-# Private keys and certificates
-*.key
-*.pem
-*.crt
-*.csr
-*.p12
-*.pfx
-*.der
-*.cer
-
-# SSH keys
-**/id_rsa*
-**/id_dsa*
-**/id_ecdsa*
-**/id_ed25519*
-**/*_rsa
-**/*_dsa
-**/*_ecdsa
-**/*_ed25519
-**/known_hosts
-**/authorized_keys
-
-# API keys and tokens
-# Actual secret files (not source code)
-**/api[_-]key*.txt
-**/api[_-]key*.json
-**/api[_-]secret*.txt
-**/api[_-]secret*.json
-**/*[_-]token*.txt
-**/*[_-]token*.json
-**/*[_-]secret*.txt
-**/*[_-]secret*.json
-**/credentials*.txt
-**/credentials*.json
-**/*.credentials
-
-# But explicitly allow TypeScript/JavaScript source files
-!**/*[_-]token*.ts
-!**/*[_-]token*.tsx
-!**/*[_-]token*.js
-!**/*[_-]token*.jsx
-!**/*[_-]secret*.ts
-!**/*[_-]secret*.tsx
-!**/api[_-]key*.ts
-!**/api[_-]key*.tsx
-
-# Service accounts
-**/service[_-]account*
-**/gcp[_-]key*
-**/aws[_-]credentials*
-**/firebase[_-]admin*
-
-# Database URLs
-**/*connection[_-]string*
-**/*database[_-]url*
-**/*db[_-]password*
-
-# ========================================
-# DEPENDENCIES
-# ========================================
-node_modules/
-.pnp
-.pnp.js
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/sdks
-!.yarn/versions
-
-# ========================================
-# BUILD OUTPUTS
-# ========================================
-dist/
-build/
-.next/
-out/
-.turbo/
-*.tsbuildinfo
-
-# Package-specific builds
-apps/*/dist/
-apps/*/.next/
-apps/*/.turbo/
-packages/*/dist/
-packages/*/.turbo/
-
-# ========================================
-# LOGS & REPORTS
-# ========================================
-*.log
-logs/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
-report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
-
-# ========================================
-# TESTING & COVERAGE
-# ========================================
-coverage/
-*.lcov
-.nyc_output
-test-results/
-playwright-report/
-allure-results/
-**/__tests__/fixtures/secrets/
-
-# ========================================
-# CACHING
-# ========================================
-.npm
-.eslintcache
-.stylelintcache
-.cache
-.parcel-cache
-
-# ========================================
-# OS FILES
-# ========================================
-.DS_Store
-Thumbs.db
-desktop.ini
-$RECYCLE.BIN/
-*.swp
-*.swo
-*~
-
-# ========================================
-# IDE
-# ========================================
-.vscode/
-.idea/
-*.sublime-*
-.history/
-
-# ========================================
-# PROJECT SPECIFIC
-# ========================================
-
-# Uploads (user data)
-uploads/
-avatars/
-/documents/
-temp/
-
-# Documentation and project files
-docs/
 .claude
-CLAUDE.md
-claude.md
 ROADMAP.md
 roadmap.md
-.env.example
 backend_logs.json
 
-# IDE and configuration
-.vscode/
-playwright.config.ts
-
-# Monitoring files
-monitoring/
-
-# Deployment
-.vercel
-.netlify
-
-# Docker
-docker-compose.override.yml
-docker-compose.*.yml
-!docker-compose.example.yml
-
 # ========================================
-# BACKUP FILES (often contain secrets)
+# DOCUMENTATION & EXAMPLES
 # ========================================
-*.backup
-*.bak
-*.old
-*.orig
-*.tmp
-*.temp
-*.save
-*.swp
-*.swo
-
-# ========================================
-# NEVER ALLOW THESE PATTERNS
-# ========================================
-# Even if someone tries to force-add
-**/*[Pp]assword*
-**/*[Ss]ecret*
-**/*[Kk]ey*
-!**/*[Pp]assword*.tsx
-!**/*[Pp]assword*.ts
-!**/*[Ss]ecret*.tsx
-!**/*[Ss]ecret*.ts
-!**/password-*.tsx
-!**/query-keys.ts
-!**/query-keys.tsx
-!**/secret-*.tsx
-!**/key-*.tsx
-!**/auth-token.decorator.ts
-
-# But still block actual secret values
-**/*actual[_-]password*
-**/*real[_-]secret*
-**/*private[_-]key*
-.env*
-.flaskenv*
-!.env.project
-!.env.vault
-clinerules-bank/
-memory-bank/
 docs/
-.env.*
-
-*storybook.log
-.envrc
-*.md
-
-# ========================================
-# TEST FILES & ARTIFACTS
-# ========================================
-# Test results and coverage
-coverage/
-*.lcov
-*.coverage
-test-results/
-test-results.json
-*.test-report.*
-jest-results/
-playwright-report/
-playwright/.cache/
-
-# Test configurations
-tsconfig.spec.json
-tsconfig.test.json
-vitest.config.*.ts
-
-# Mock files
-**/__mocks__/
-**/__tests__/
-*.mock.ts
-*.mock.tsx
-*.spec.ts
-*.spec.tsx
-*.test.ts
-*.test.tsx
-
-# ========================================
-# EXAMPLES & DEMOS
-# ========================================
-*.example.*
-*.demo.*
-*.sample.*
-examples/
-demos/
-
-# ========================================
-# STORYBOOK
-# ========================================
-storybook-static/
-*storybook.log
-.storybook-out/
-
-# ========================================
-# DOCUMENTATION
-# ========================================
+documentation/
 *.md
 !README.md
 !LICENSE.md
-docs/
-documentation/
 ARCHITECTURE_*.md
 MIGRATION_*.md
 *_GUIDE.md
 *_PLAN.md
 *_ANALYSIS.md
 
+# Examples and demos
+*.example.*
+*.demo.*
+*.sample.*
+examples/
+demos/
+.env.example
+
 # ========================================
-# DUPLICATES & BACKUPS
+# BACKUP & TEMP FILES
 # ========================================
 *.backup
 *.bak
 *.old
-*.copy
 *.orig
+*.tmp
+*.temp
+*.save
+*.copy
 *-old.*
 *-copy.*
 *-backup.*
 
 # ========================================
-# DEPLOYMENT SPECIFIC
+# MONITORING & MISC
 # ========================================
-.vercel/
-.railway/
-.netlify/
+monitoring/
+clinerules-bank/
+memory-bank/
+pids
+*.pid
+*.seed
+*.pid.lock
 
-
-playwright/.auth/
+# Test files that may contain hardcoded secrets
+test-signup-form.js
+test-supabase-auth.js

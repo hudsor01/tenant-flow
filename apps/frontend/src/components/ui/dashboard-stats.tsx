@@ -1,7 +1,11 @@
 'use client'
 
 import * as React from 'react'
+<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
+=======
+import { logger } from '@/lib/logger'
+>>>>>>> origin/main
 import {
 	TrendingUp,
 	TrendingDown,
@@ -99,9 +103,13 @@ export function StatCard({
 	}
 
 	const getTrendIcon = () => {
+<<<<<<< HEAD
 		if (!trend) {
 			return null
 		}
+=======
+		if (!trend) return null
+>>>>>>> origin/main
 
 		if (trend.value > 0) {
 			return <ArrowUpRight className="h-4 w-4" />
@@ -113,9 +121,13 @@ export function StatCard({
 	}
 
 	const getTrendColor = () => {
+<<<<<<< HEAD
 		if (!trend) {
 			return 'text-muted-foreground'
 		}
+=======
+		if (!trend) return 'text-muted-foreground'
+>>>>>>> origin/main
 
 		if (trend.value > 0) {
 			return 'text-green-600 dark:text-green-400'

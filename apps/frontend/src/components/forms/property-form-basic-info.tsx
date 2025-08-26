@@ -12,7 +12,11 @@ import {
 } from '@/components/ui/select'
 import type { Property } from '@repo/shared'
 import { PROPERTY_TYPE } from '@repo/shared'
+<<<<<<< HEAD
 // PropertyFormState removed as it's not used in this component
+=======
+import type { PropertyFormState } from '@/lib/actions/property-actions'
+>>>>>>> origin/main
 
 interface PropertyFormBasicInfoProps {
 	property?: Property
@@ -31,7 +35,11 @@ const propertyTypes = [
 
 export function PropertyFormBasicInfo({
 	property,
+<<<<<<< HEAD
 	error: _error
+=======
+	error
+>>>>>>> origin/main
 }: PropertyFormBasicInfoProps) {
 	return (
 		<div className="space-y-6">

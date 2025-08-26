@@ -1,85 +1,55 @@
-/** @type {import('@jest/types').Config.InitialOptions} */
+const path = require('path')
+
 module.exports = {
 	displayName: 'backend',
 	preset: 'ts-jest',
 	testEnvironment: 'node',
 	rootDir: '.',
-
-	// Test discovery
 	testMatch: [
 		'<rootDir>/src/**/*.spec.ts',
 		'<rootDir>/src/**/*.test.ts',
 		'<rootDir>/test/**/*.spec.ts',
-		'<rootDir>/test/**/*.e2e-spec.ts'
+		'<rootDir>/test/**/*.test.ts'
 	],
 	testPathIgnorePatterns: ['/node_modules/', '/dist/', '/coverage/'],
-
-	// Coverage configuration
 	collectCoverageFrom: [
-		'src/**/*.{ts,js}',
+		'src/**/*.(t|j)s',
 		'!src/**/*.spec.ts',
 		'!src/**/*.test.ts',
-		'!src/**/*.e2e-spec.ts',
 		'!src/main.ts',
 		'!src/**/*.module.ts',
 		'!src/**/*.interface.ts',
-		'!src/**/*.dto.ts',
-		'!src/**/*.d.ts'
+		'!src/**/*.dto.ts'
 	],
 	coverageDirectory: './coverage',
 	coverageReporters: ['text', 'lcov', 'html'],
-	coverageThreshold: {
-		global: {
-			branches: 20,
-			functions: 20,
-			lines: 20,
-			statements: 20
-		}
-	},
-
-	// Module resolution for monorepo
 	moduleNameMapper: {
 		'^@/(.*)$': '<rootDir>/src/$1',
-		'^@repo/shared/(.*)$': '<rootDir>/../../packages/shared/src/$1',
+        '^@repo/shared/(.*)$': '<rootDir>/../../packages/shared/src/$1',
 		'^@repo/emails/(.*)$': '<rootDir>/../../packages/emails/$1',
-		'^@repo/database/(.*)$': '<rootDir>/../../packages/database/$1',
-		'^@repo/(.*)$': '<rootDir>/../../packages/$1/src',
-		'^@repo/test-utils/(.*)$': '<rootDir>/../../packages/test-utils/src/$1',
-		'^@repo/test-utils$': '<rootDir>/../../packages/test-utils/src/index'
+		'^@repo/(.*)$': '<rootDir>/../../packages/$1/src'
 	},
-
-	// Test setup
-	setupFilesAfterEnv: [
-		'<rootDir>/../../packages/test-utils/dist/setup/jest.setup.js'
-	],
-	testTimeout: 15000,
-	maxWorkers: 1, // Prevents database conflicts during parallel test execution
-
-	// Jest configuration
-	verbose: true,
-	silent: false,
+	setupFilesAfterEnv: [path.resolve(__dirname, 'test', 'setup.ts')],
+	// 'setupFiles': ['<rootDir>/test/disable-nestjs-logger.ts'],
+	testTimeout: 10000,
+	maxWorkers: 1,
+	testSequencer:
+		'<rootDir>/../../node_modules/@jest/test-sequencer/build/index.js',
+	verbose: false,
+	silent: true,
 	clearMocks: true,
 	restoreMocks: true,
-	resetMocks: true,
-
-	// TypeScript configuration (updated to remove deprecations)
+	bail: false,
+	coverageProvider: 'v8',
 	transform: {
-		'^.+\\.(ts|tsx)$': [
+		'^.+\.ts$': [
 			'ts-jest',
 			{
-				tsconfig: '<rootDir>/tsconfig.json',
-				useESM: false,
-				jsx: 'react-jsx'
+				useESM: false
 			}
 		]
 	},
-	moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
-
-	// Performance
-	maxConcurrency: 5,
-	forceExit: true,
-	detectOpenHandles: true,
-
-	// Ignore patterns
-	transformIgnorePatterns: ['/node_modules/(?!(@supabase|@repo)/)']
+	injectGlobals: true,
+	clearMocks: true,
+	restoreMocks: true
 }

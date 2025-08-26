@@ -1,9 +1,16 @@
 /**
  * Authentication Schemas
+<<<<<<< HEAD
  *
  * JSON Schema definitions for authentication endpoints.
  * These schemas replace class-validator DTOs and provide automatic TypeScript type inference.
  *
+=======
+ * 
+ * JSON Schema definitions for authentication endpoints.
+ * These schemas replace class-validator DTOs and provide automatic TypeScript type inference.
+ * 
+>>>>>>> origin/main
  * Benefits:
  * - Single source of truth for validation and types
  * - Automatic TypeScript type inference
@@ -11,7 +18,15 @@
  * - Consistent error messages
  */
 
+<<<<<<< HEAD
 import type { JSONSchema } from '../shared/types/fastify-type-provider'
+=======
+import { 
+	createTypedSchema, 
+	schemaRegistry, 
+	type TypedJSONSchema 
+} from '../shared/types/fastify-type-provider'
+>>>>>>> origin/main
 import {
 	COMPANY_VALIDATION,
 	EMAIL_VALIDATION,
@@ -20,7 +35,11 @@ import {
 } from '../shared/constants/validation.constants'
 
 // Base email schema
+<<<<<<< HEAD
 const emailSchema: JSONSchema = {
+=======
+const emailSchema: TypedJSONSchema = {
+>>>>>>> origin/main
 	type: 'string',
 	format: 'email',
 	minLength: 1,
@@ -29,6 +48,7 @@ const emailSchema: JSONSchema = {
 }
 
 // Base password schema
+<<<<<<< HEAD
 const passwordSchema: JSONSchema = {
 	type: 'string',
 	minLength: PASSWORD_VALIDATION.MIN_LENGTH,
@@ -49,6 +69,26 @@ const nameSchema: JSONSchema = {
 
 // Company schema
 const companySchema: JSONSchema = {
+=======
+const passwordSchema: TypedJSONSchema = {
+	type: 'string',
+	minLength: PASSWORD_VALIDATION.MIN_LENGTH,
+	pattern: PASSWORD_VALIDATION.REGEX.source,
+	description: 'Password must contain uppercase, lowercase, number and special character'
+}
+
+// Name validation schema
+const nameSchema: TypedJSONSchema = {
+	type: 'string',
+	minLength: NAME_VALIDATION.MIN_LENGTH,
+	maxLength: NAME_VALIDATION.MAX_LENGTH,
+	pattern: '^[a-zA-Z\\s\\-\\.\']+$',
+	description: 'Name must contain only letters, spaces, hyphens, periods, and apostrophes'
+}
+
+// Company schema
+const companySchema: TypedJSONSchema = {
+>>>>>>> origin/main
 	type: 'string',
 	maxLength: COMPANY_VALIDATION.MAX_LENGTH,
 	description: COMPANY_VALIDATION.MESSAGE
@@ -63,7 +103,11 @@ export interface LoginRequest {
 	rememberMe?: boolean
 }
 
+<<<<<<< HEAD
 export const loginSchema: JSONSchema = {
+=======
+export const loginSchema = createTypedSchema<LoginRequest>({
+>>>>>>> origin/main
 	type: 'object',
 	required: ['email', 'password'],
 	additionalProperties: false,
@@ -80,7 +124,11 @@ export const loginSchema: JSONSchema = {
 			description: 'Keep user logged in for extended period'
 		}
 	}
+<<<<<<< HEAD
 }
+=======
+})
+>>>>>>> origin/main
 
 /**
  * Registration request schema
@@ -93,7 +141,11 @@ export interface RegisterRequest {
 	acceptTerms?: boolean
 }
 
+<<<<<<< HEAD
 export const registerSchema: JSONSchema = {
+=======
+export const registerSchema = createTypedSchema<RegisterRequest>({
+>>>>>>> origin/main
 	type: 'object',
 	required: ['name', 'email', 'password'],
 	additionalProperties: false,
@@ -108,7 +160,11 @@ export const registerSchema: JSONSchema = {
 			description: 'User acceptance of terms and conditions'
 		}
 	}
+<<<<<<< HEAD
 }
+=======
+})
+>>>>>>> origin/main
 
 /**
  * Refresh token request schema
@@ -117,7 +173,11 @@ export interface RefreshTokenRequest {
 	refresh_token: string
 }
 
+<<<<<<< HEAD
 export const refreshTokenSchema: JSONSchema = {
+=======
+export const refreshTokenSchema = createTypedSchema<RefreshTokenRequest>({
+>>>>>>> origin/main
 	type: 'object',
 	required: ['refresh_token'],
 	additionalProperties: false,
@@ -128,7 +188,11 @@ export const refreshTokenSchema: JSONSchema = {
 			description: 'Valid refresh token'
 		}
 	}
+<<<<<<< HEAD
 }
+=======
+})
+>>>>>>> origin/main
 
 /**
  * Forgot password request schema
@@ -137,14 +201,22 @@ export interface ForgotPasswordRequest {
 	email: string
 }
 
+<<<<<<< HEAD
 export const forgotPasswordSchema: JSONSchema = {
+=======
+export const forgotPasswordSchema = createTypedSchema<ForgotPasswordRequest>({
+>>>>>>> origin/main
 	type: 'object',
 	required: ['email'],
 	additionalProperties: false,
 	properties: {
 		email: emailSchema
 	}
+<<<<<<< HEAD
 }
+=======
+})
+>>>>>>> origin/main
 
 /**
  * Reset password request schema
@@ -155,7 +227,11 @@ export interface ResetPasswordRequest {
 	confirmPassword: string
 }
 
+<<<<<<< HEAD
 export const resetPasswordSchema: JSONSchema = {
+=======
+export const resetPasswordSchema = createTypedSchema<ResetPasswordRequest>({
+>>>>>>> origin/main
 	type: 'object',
 	required: ['token', 'newPassword', 'confirmPassword'],
 	additionalProperties: false,
@@ -172,7 +248,11 @@ export const resetPasswordSchema: JSONSchema = {
 			description: 'Password confirmation (must match newPassword)'
 		}
 	}
+<<<<<<< HEAD
 }
+=======
+})
+>>>>>>> origin/main
 
 /**
  * Change password request schema
@@ -183,7 +263,11 @@ export interface ChangePasswordRequest {
 	confirmPassword: string
 }
 
+<<<<<<< HEAD
 export const changePasswordSchema: JSONSchema = {
+=======
+export const changePasswordSchema = createTypedSchema<ChangePasswordRequest>({
+>>>>>>> origin/main
 	type: 'object',
 	required: ['currentPassword', 'newPassword', 'confirmPassword'],
 	additionalProperties: false,
@@ -200,7 +284,11 @@ export const changePasswordSchema: JSONSchema = {
 			description: 'Password confirmation (must match newPassword)'
 		}
 	}
+<<<<<<< HEAD
 }
+=======
+})
+>>>>>>> origin/main
 
 /**
  * Authentication response schema
@@ -223,12 +311,17 @@ export interface AuthResponse {
 	}
 }
 
+<<<<<<< HEAD
 export const authResponseSchema: JSONSchema = {
+=======
+export const authResponseSchema = createTypedSchema<AuthResponse>({
+>>>>>>> origin/main
 	type: 'object',
 	required: ['user', 'tokens'],
 	properties: {
 		user: {
 			type: 'object',
+<<<<<<< HEAD
 			required: [
 				'id',
 				'email',
@@ -237,6 +330,9 @@ export const authResponseSchema: JSONSchema = {
 				'createdAt',
 				'updatedAt'
 			],
+=======
+			required: ['id', 'email', 'name', 'emailVerified', 'createdAt', 'updatedAt'],
+>>>>>>> origin/main
 			properties: {
 				id: { type: 'string', format: 'uuid' },
 				email: { type: 'string', format: 'email' },
@@ -258,7 +354,11 @@ export const authResponseSchema: JSONSchema = {
 			}
 		}
 	}
+<<<<<<< HEAD
 }
+=======
+})
+>>>>>>> origin/main
 
 /**
  * User profile response schema
@@ -276,6 +376,7 @@ export interface UserProfileResponse {
 	updatedAt: string
 }
 
+<<<<<<< HEAD
 export const userProfileResponseSchema: JSONSchema = {
 	type: 'object',
 	required: [
@@ -286,6 +387,11 @@ export const userProfileResponseSchema: JSONSchema = {
 		'createdAt',
 		'updatedAt'
 	],
+=======
+export const userProfileResponseSchema = createTypedSchema<UserProfileResponse>({
+	type: 'object',
+	required: ['id', 'email', 'name', 'emailVerified', 'createdAt', 'updatedAt'],
+>>>>>>> origin/main
 	properties: {
 		id: { type: 'string', format: 'uuid' },
 		email: { type: 'string', format: 'email' },
@@ -298,10 +404,24 @@ export const userProfileResponseSchema: JSONSchema = {
 		createdAt: { type: 'string', format: 'date-time' },
 		updatedAt: { type: 'string', format: 'date-time' }
 	}
+<<<<<<< HEAD
 }
 
 // Schemas are exported directly for use in NestJS controllers
 // No custom registry needed - use Fastify's native addSchema() if sharing is required
+=======
+})
+
+// Register all schemas with the global registry
+schemaRegistry.register('login', loginSchema)
+schemaRegistry.register('register', registerSchema)
+schemaRegistry.register('refresh-token', refreshTokenSchema)
+schemaRegistry.register('forgot-password', forgotPasswordSchema)
+schemaRegistry.register('reset-password', resetPasswordSchema)
+schemaRegistry.register('change-password', changePasswordSchema)
+schemaRegistry.register('auth-response', authResponseSchema)
+schemaRegistry.register('user-profile-response', userProfileResponseSchema)
+>>>>>>> origin/main
 
 // Export route schemas for controller usage
 export const authRouteSchemas = {
@@ -366,4 +486,8 @@ export const authRouteSchemas = {
 			200: userProfileResponseSchema
 		}
 	}
+<<<<<<< HEAD
 } as const
+=======
+} as const
+>>>>>>> origin/main

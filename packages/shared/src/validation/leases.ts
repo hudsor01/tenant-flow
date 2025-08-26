@@ -91,7 +91,11 @@ export const leaseRenewalSchema = z.object({
 // Lease termination schema
 export const leaseTerminationSchema = z.object({
 	terminationDate: dateString,
+<<<<<<< HEAD
 	reason: requiredString,
+=======
+	reason: z.string().min(1, 'Termination reason is required'),
+>>>>>>> origin/main
 	earlyTerminationFee: positiveMoneyAmount.optional(),
 	refundableDeposit: positiveMoneyAmount.optional(),
 	notes: z.string().optional()

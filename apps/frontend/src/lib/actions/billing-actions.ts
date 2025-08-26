@@ -49,7 +49,11 @@ export async function createCheckoutSession(
 
 export async function createPaymentIntent(
 	amount: number,
+<<<<<<< HEAD
 	currency = 'usd'
+=======
+	currency: string = 'usd'
+>>>>>>> origin/main
 ): Promise<BillingFormState> {
 	try {
 		const response = await apiClient.post<{

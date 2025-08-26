@@ -86,7 +86,11 @@ export function StyledPaymentElement({
 				<PaymentElement
 					options={{
 						layout: {
+<<<<<<< HEAD
 							type: layout,
+=======
+							type: layout as 'accordion' | 'tabs',
+>>>>>>> origin/main
 							defaultCollapsed: false,
 							spacedAccordionItems: true
 						},
