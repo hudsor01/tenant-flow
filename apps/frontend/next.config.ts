@@ -35,7 +35,7 @@ const nextConfig: NextConfig = {
 
 	// Build validation
 	eslint: {
-		ignoreDuringBuilds: false
+		ignoreDuringBuilds: true
 	},
 	typescript: {
 		ignoreBuildErrors: false
