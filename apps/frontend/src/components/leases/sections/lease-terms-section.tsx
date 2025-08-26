@@ -34,7 +34,7 @@ export function LeaseTermsSection({
 	selectedProperty,
 	mode
 }: LeaseTermsSectionProps) {
-	if (!selectedProperty) return null
+	if (!selectedProperty) {return null}
 
 	return (
 		<FormSection icon={DollarSign} title="4. Lease Terms" delay={3}>
@@ -85,7 +85,7 @@ export function LeaseTermsSection({
 										type="number"
 										className="pl-8"
 										{...field}
-										onChange={e =>
+										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
 											field.onChange(
 												parseFloat(e.target.value) ?? 0
 											)
@@ -117,7 +117,7 @@ export function LeaseTermsSection({
 										type="number"
 										className="pl-8"
 										{...field}
-										onChange={e =>
+										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
 											field.onChange(
 												parseFloat(e.target.value) ?? 0
 											)
@@ -147,7 +147,7 @@ export function LeaseTermsSection({
 									min="0"
 									max="30"
 									{...field}
-									onChange={e =>
+									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
 										field.onChange(
 											parseInt(e.target.value) ||
 												undefined
@@ -180,7 +180,7 @@ export function LeaseTermsSection({
 										className="pl-8"
 										min="0"
 										{...field}
-										onChange={e =>
+										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
 											field.onChange(
 												parseFloat(e.target.value) ||
 													undefined

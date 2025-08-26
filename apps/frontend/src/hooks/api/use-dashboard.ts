@@ -1,12 +1,12 @@
-import { apiClient } from '@/lib/api-client'
+// apiClient import removed as it's not used directly in this file
 /**
  * React Query hooks for Dashboard
  * Native TanStack Query implementation - no custom abstractions
  */
 import { useQuery, type UseQueryResult } from '@tanstack/react-query'
-import { logger } from '@/lib/logger'
+import { logger } from "@/lib/logger/logger"
 import { dashboardApi, type UpcomingTask } from '@/lib/api/dashboard'
-import { queryKeys } from '@/lib/query-keys'
+import { queryKeys } from '@/lib/react-query/query-keys'
 import type { DashboardStats, ActivityItem } from '@repo/shared'
 
 /**
@@ -15,7 +15,7 @@ import type { DashboardStats, ActivityItem } from '@repo/shared'
 export function useDashboardOverview(options?: {
 	enabled?: boolean
 	refetchInterval?: number
-}): UseQueryResult<DashboardStats, Error> {
+}): UseQueryResult<DashboardStats> {
 	return useQuery({
 		queryKey: queryKeys.dashboard.overview(),
 		queryFn: async () => {
@@ -50,7 +50,7 @@ export function useDashboardOverview(options?: {
  */
 export function useDashboardActivity(options?: {
 	enabled?: boolean
-}): UseQueryResult<ActivityItem[], Error> {
+}): UseQueryResult<ActivityItem[]> {
 	return useQuery({
 		queryKey: queryKeys.dashboard.activity(),
 		queryFn: async () => {
@@ -74,7 +74,7 @@ export function useDashboardActivity(options?: {
  */
 export function useUpcomingTasks(options?: {
 	enabled?: boolean
-}): UseQueryResult<UpcomingTask[], Error> {
+}): UseQueryResult<UpcomingTask[]> {
 	return useQuery({
 		queryKey: queryKeys.dashboard.tasks(),
 		queryFn: async () => {
@@ -98,7 +98,7 @@ export function useUpcomingTasks(options?: {
  */
 export function useDashboardAlerts(options?: {
 	enabled?: boolean
-}): UseQueryResult<unknown[], Error> {
+}): UseQueryResult<unknown[]> {
 	return useQuery({
 		queryKey: queryKeys.dashboard.alerts(),
 		queryFn: async () => {

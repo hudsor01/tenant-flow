@@ -3,7 +3,7 @@
  * Provides consistent API call handling with loading and error states
  */
 import { useState, useCallback } from 'react'
-import { logger } from '@/lib/logger'
+import { logger } from "@/lib/logger/logger"
 import { toast } from 'sonner'
 
 export interface UseApiCallOptions<TData = unknown> {

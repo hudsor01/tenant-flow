@@ -68,7 +68,7 @@ export function createOptimisticReducer<T extends { id: string }>() {
 	return (state: T[], action: OptimisticAction<T>): T[] => {
 		switch (action.type) {
 			case 'CREATE':
-				if (!action.data) return state
+				if (!action.data) {return state}
 				return [
 					...state,
 					{

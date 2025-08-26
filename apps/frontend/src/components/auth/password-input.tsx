@@ -36,7 +36,7 @@ export function PasswordInput({
 					type={showPassword ? 'text' : 'password'}
 					placeholder={placeholder}
 					value={value}
-					onChange={e => onValueChange(e.target.value)}
+					onChange={(e: React.ChangeEvent<HTMLInputElement>) => onValueChange(e.target.value)}
 					required={required}
 					disabled={disabled}
 					className="h-11 pr-10"

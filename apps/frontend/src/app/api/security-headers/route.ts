@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+// import type { NextRequest } from 'next/server'
 
 /**
  * Security headers endpoint
  * This is a workaround for middleware Edge Runtime limitations
  * Call this endpoint from the client to set security headers
  */
-export async function GET(_request: NextRequest) {
+export function GET() {
 	const response = NextResponse.json({ success: true })
 
 	// Security headers

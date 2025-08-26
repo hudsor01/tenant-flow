@@ -90,7 +90,7 @@ function LeaseTermCard({
 							<Label>Title</Label>
 							<Input
 								value={term.title}
-								onChange={e =>
+								onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
 									handleFieldChange('title', e.target.value)
 								}
 								placeholder="Enter term title"
@@ -120,7 +120,7 @@ function LeaseTermCard({
 								min="0"
 								step="0.01"
 								value={term.amount || ''}
-								onChange={e =>
+								onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
 									handleFieldChange(
 										'amount',
 										parseFloat(e.target.value) ?? 0

@@ -2,7 +2,7 @@ import { Lock, Save, Shield, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { logger } from '@/lib/logger'
+import { logger } from "@/lib/logger/logger"
 import { toast } from 'sonner'
 import type { UseFormReturn } from 'react-hook-form'
 import type { PasswordFormData } from '@/hooks/use-edit-profile-data'
@@ -172,7 +172,7 @@ export function SecurityTabSection({
 				>
 					{form.formState.isSubmitting ? (
 						<>
-							<div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
+							<div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white" />
 							Updating...
 						</>
 					) : (

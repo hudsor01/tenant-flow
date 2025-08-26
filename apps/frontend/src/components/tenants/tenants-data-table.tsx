@@ -12,7 +12,6 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import {
 	Table,
 	TableBody,
@@ -29,7 +28,7 @@ import {
 	Phone,
 	Building,
 	Calendar,
-	AlertTriangle,
+	// AlertTriangle removed - unused
 	Plus
 } from 'lucide-react'
 import Link from 'next/link'

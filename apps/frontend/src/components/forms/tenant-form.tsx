@@ -8,9 +8,8 @@
 'use client'
 
 import React, { useTransition, useEffect } from 'react'
-import { logger } from '@/lib/logger'
-import { useRouter } from 'next/navigation'
-import { useForm, useController } from 'react-hook-form'
+import { logger } from "@/lib/logger/logger"
+import { useForm, useController, type Control, type FieldPath } from 'react-hook-form'
 import type { CreateTenantInput, UpdateTenantInput } from '@repo/shared'
 import type { TenantFormProps } from '@/types'
 import { useCreateTenant, useUpdateTenant } from '@/hooks/api/use-tenants'
@@ -24,7 +23,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent } from '@/components/ui/primitives'
+import { Card, CardContent } from '@/components/ui/card'
 import { Save, X, User, AlertCircle } from 'lucide-react'
 
 // Form Field Component using direct RHF
@@ -39,8 +38,8 @@ function FormField({
 	rows = 3,
 	description 
 }: {
-	name: string
-	control: unknown
+	name: FieldPath<CreateTenantInput | UpdateTenantInput>
+	control: Control<CreateTenantInput | UpdateTenantInput>
 	label: string
 	type?: string
 	placeholder?: string
@@ -72,7 +71,7 @@ function FormField({
 					id={fieldId}
 					placeholder={placeholder}
 					rows={rows}
-					value={field.value || ''}
+					value={String(field.value ?? '')}
 					className={cn(
 						error && 'border-destructive focus-visible:ring-destructive'
 					)}
@@ -83,7 +82,7 @@ function FormField({
 					id={fieldId}
 					type={type}
 					placeholder={placeholder}
-					value={field.value || ''}
+					value={String(field.value ?? '')}
 					className={cn(
 						error && 'border-destructive focus-visible:ring-destructive'
 					)}
@@ -123,7 +122,6 @@ export function TenantForm({
 	onClose,
 	className
 }: TenantFormProps) {
-	const _router = useRouter()
 	const [isPending, startTransition] = useTransition()
 	const isEditing = mode === 'edit' && Boolean(tenant)
 	const { trackEvent } = usePostHog()
@@ -140,13 +138,13 @@ export function TenantForm({
 	const updateMutation = useUpdateTenant()
 
 	// React Hook Form setup - simplified to match API interface
-	const form = useForm({
+	const form = useForm<CreateTenantInput | UpdateTenantInput>({
 		defaultValues: isEditing && tenant
 			? {
-				name: tenant.name || '',
-				email: tenant.email || '',
-				phone: tenant.phone || '',
-				emergencyContact: tenant.emergencyContact || '',
+				name: tenant.name ?? '',
+				email: tenant.email ?? '',
+				phone: tenant.phone ?? '',
+				emergencyContact: tenant.emergencyContact ?? '',
 				notes: ''
 			}
 			: {
@@ -162,7 +160,7 @@ export function TenantForm({
 	const {
 		control,
 		handleSubmit,
-		formState: { _errors, isSubmitting },
+		formState: { isSubmitting },
 		reset
 	} = form
 
@@ -176,7 +174,7 @@ export function TenantForm({
 	}, [trackEvent, mode, tenant])
 
 	// Form submission handler using React Hook Form
-	const onSubmit = async (formData: unknown) => {
+	const onSubmit = (formData: CreateTenantInput | UpdateTenantInput) => {
 		// Track form submission attempt
 		trackEvent('form_submitted', {
 			form_type: 'tenant',
@@ -185,25 +183,26 @@ export function TenantForm({
 			tenant_id: tenant?.id
 		})
 
-		startTransition(async () => {
+	startTransition(async () => {
 			try {
-				// Transform form data to API format
-				const tenantData = {
-					name: formData.name,
-					email: formData.email,
-					phone: formData.phone || undefined,
-					emergencyContact: formData.emergencyContact || undefined,
-					notes: formData.notes || undefined
-				}
-
-				if (isEditing && tenant) {
+				if (isEditing) {
 					// Update existing tenant
+					if (!tenant) {throw new Error('Tenant missing for update')}
+
+					const fd = formData as UpdateTenantInput
+					const tenantData: UpdateTenantInput = {
+						name: fd.name,
+						email: fd.email,
+						phone: fd.phone ?? undefined,
+						emergencyContact: fd.emergencyContact ?? undefined,
+						notes: fd.notes ?? undefined
+					}
+
 					const updatedTenant = await updateMutation.mutateAsync({
 						id: tenant.id,
 						data: tenantData
 					})
 
-					// Track successful update
 					trackEvent('tenant_updated', {
 						tenant_id: updatedTenant.id,
 						form_type: 'tenant'
@@ -212,25 +211,30 @@ export function TenantForm({
 					onSuccess?.(updatedTenant)
 				} else {
 					// Create new tenant
+					const fd = formData as CreateTenantInput
+					const tenantData: CreateTenantInput = {
+						name: fd.name,
+						email: fd.email,
+						phone: fd.phone ?? undefined,
+						emergencyContact: fd.emergencyContact ?? undefined,
+						notes: fd.notes ?? undefined
+					}
+
 					const newTenant = await createMutation.mutateAsync(tenantData)
 
-					// Track successful creation
 					trackEvent('tenant_created', {
 						tenant_id: newTenant.id,
 						form_type: 'tenant'
 					})
 
-					// Track enhanced business event
 					trackTenantCreated({
 						tenant_id: newTenant.id
 					})
 
 					trackFormSubmission('tenant_form', true)
 					onSuccess?.(newTenant)
-				}
 
-				// Reset form for create mode
-				if (!isEditing) {
+					// Reset form for create mode
 					reset()
 				}
 			} catch (error) {
@@ -281,7 +285,7 @@ export function TenantForm({
 		<div className={cn('mx-auto w-full max-w-2xl', className)}>
 			<Card>
 				<CardContent className="p-6">
-					<form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+					<form onSubmit={(e) => { void handleSubmit(onSubmit)(e) }} className="space-y-6">
 						{/* Form Header */}
 						<div>
 							<div className="mb-2 flex items-center gap-3">

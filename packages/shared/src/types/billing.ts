@@ -4,7 +4,10 @@
  */
 
 // Import consolidated types from stripe.ts
-import type { PlanType, BillingPeriod } from './stripe'
+import type { PlanType, BillingPeriod, SubscriptionSyncResult } from './stripe'
+
+// Re-export SubscriptionSyncResult for convenience
+export type { SubscriptionSyncResult }
 
 export const PLAN_TYPE = {
 	FREETRIAL: 'FREETRIAL',
@@ -276,35 +279,27 @@ export interface SubscriptionData {
 	cancelAtPeriodEnd: boolean
 }
 
-export interface WebhookEventHandler {
-	'customer.subscription.created': (
-		event: StripeWebhookEvent
-	) => Promise<void>
-	'customer.subscription.updated': (
-		event: StripeWebhookEvent
-	) => Promise<void>
-	'customer.subscription.deleted': (
-		event: StripeWebhookEvent
-	) => Promise<void>
-	'customer.subscription.trial_will_end': (
-		event: StripeWebhookEvent
-	) => Promise<void>
-	'customer.subscription.paused': (event: StripeWebhookEvent) => Promise<void>
-	'customer.subscription.resumed': (
-		event: StripeWebhookEvent
-	) => Promise<void>
-	'invoice.payment_succeeded': (event: StripeWebhookEvent) => Promise<void>
-	'invoice.payment_failed': (event: StripeWebhookEvent) => Promise<void>
-	'invoice.payment_action_required': (
-		event: StripeWebhookEvent
-	) => Promise<void>
-	'invoice.upcoming': (event: StripeWebhookEvent) => Promise<void>
-	'checkout.session.completed': (event: StripeWebhookEvent) => Promise<void>
-	'payment_intent.requires_action': (
-		event: StripeWebhookEvent
-	) => Promise<void>
-	'charge.failed': (event: StripeWebhookEvent) => Promise<void>
-}
+// Stripe webhook event types as a union type for type safety
+type StripeWebhookEventType =
+	| 'customer.subscription.created'
+	| 'customer.subscription.updated'
+	| 'customer.subscription.deleted'
+	| 'customer.subscription.trial_will_end'
+	| 'customer.subscription.paused'
+	| 'customer.subscription.resumed'
+	| 'invoice.payment_succeeded'
+	| 'invoice.payment_failed'
+	| 'invoice.payment_action_required'
+	| 'invoice.upcoming'
+	| 'checkout.session.completed'
+	| 'payment_intent.requires_action'
+	| 'charge.failed'
+
+// Webhook event handler interface using Record type to avoid ESLint errors
+export type WebhookEventHandler = Record<
+	StripeWebhookEventType,
+	(event: StripeWebhookEvent) => Promise<void>
+>
 
 // WebhookEventType is now imported from stripe.ts
 

@@ -188,7 +188,7 @@ export function PricingComparison() {
 						{/* Table header */}
 						<thead>
 							<tr className="border-b border-gray-200">
-								<th className="p-4 text-left"></th>
+								<th className="p-4 text-left" />
 								{plans.map(plan => (
 									<th
 										key={plan.id}

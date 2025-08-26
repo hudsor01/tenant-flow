@@ -4,7 +4,7 @@
  */
 
 import { z } from 'zod'
-import type { UseFormReturn } from 'react-hook-form'
+// Remove frontend-specific dependency - use generic form type instead
 
 export const leaseFormSchema = z.object({
 	// Property Information
@@ -96,26 +96,39 @@ export const leaseFormSchema = z.object({
 
 export type LeaseFormData = z.infer<typeof leaseFormSchema>
 
-// Component prop types for lease generator sections
+// Component prop types for lease generator sections - using generic form interface
 export interface PropertyInfoSectionProps {
-	form: UseFormReturn<LeaseFormData>
+	form: GenericFormHandler<LeaseFormData>
 	supportedStates: string[]
 }
 
 export interface TenantInfoSectionProps {
-	form: UseFormReturn<LeaseFormData>
+	form: GenericFormHandler<LeaseFormData>
 }
 
 export interface LeaseTermsSectionProps {
-	form: UseFormReturn<LeaseFormData>
+	form: GenericFormHandler<LeaseFormData>
 }
 
 export interface AdditionalTermsSectionProps {
-	form: UseFormReturn<LeaseFormData>
+	form: GenericFormHandler<LeaseFormData>
 }
 
 export interface PartiesInfoSectionProps {
-	form: UseFormReturn<LeaseFormData>
+	form: GenericFormHandler<LeaseFormData>
+}
+
+// Generic form handler interface - framework agnostic
+export interface GenericFormHandler<T> {
+	setValue: (field: keyof T, value: unknown) => void
+	getValues: () => T
+	watch: (field?: keyof T) => unknown
+	register: (field: keyof T) => Record<string, unknown>
+	formState: {
+		errors: Record<string, { message?: string }>
+		isValid: boolean
+		isDirty: boolean
+	}
 }
 
 // Additional types for lease generator functionality

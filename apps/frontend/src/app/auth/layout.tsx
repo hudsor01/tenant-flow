@@ -1,4 +1,4 @@
-import type { Metadata } from '@/types/next.d'
+import type { Metadata } from 'next/types'
 import { ReverseAuthGuard } from '@/components/auth/protected-route-guard'
 
 export const metadata: Metadata = {

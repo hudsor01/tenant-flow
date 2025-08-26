@@ -33,7 +33,7 @@ export function useFormAnalytics({
 
   // DRY: Standard form error tracking  
   const trackFormError = useCallback(
-    (error: Error | unknown, additionalProperties?: AnalyticsProperties) => {
+    (error: Error, additionalProperties?: AnalyticsProperties) => {
       const errorMessage = error instanceof Error 
         ? error.message 
         : `${featureName} submission failed`
@@ -58,7 +58,7 @@ export function useFormAnalytics({
         trackFormSuccess(successProperties)
         return result
       } catch (error) {
-        trackFormError(error)
+        trackFormError(error instanceof Error ? error : new Error('Form submission failed'))
         throw error
       }
     },

@@ -137,13 +137,13 @@ export interface RLSTableConfig {
 	/** Whether to enable RLS on this table */
 	enableRLS: boolean
 	/** Policies to create for this table */
-	policies: {
+	policies: Array<{
 		name: string
 		operation: 'SELECT' | 'INSERT' | 'UPDATE' | 'DELETE' | 'ALL'
 		roles: string[]
 		condition: string
 		withCheck?: string
-	}[]
+	}>
 }
 
 /**
@@ -158,11 +158,11 @@ export interface TenantIsolationTest {
 	/** Whether tenant can only access their own data */
 	properlyIsolated: boolean
 	/** Any data leakage detected */
-	leakageDetected: {
+	leakageDetected: Array<{
 		table: string
 		unauthorizedAccess: boolean
 		details: string
-	}[]
+	}>
 	/** Test timestamp */
 	timestamp: string
 }

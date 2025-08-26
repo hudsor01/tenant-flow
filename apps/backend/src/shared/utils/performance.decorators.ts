@@ -6,7 +6,7 @@ const logger = new Logger('Performance')
 /**
  * Decorator to measure method execution time
  */
-export function MeasureMethod(thresholdMs = 100) {
+export function measureMethod(thresholdMs = 100) {
 	return function (
 		target: object,
 		propertyName: string | symbol,
@@ -25,7 +25,7 @@ export function MeasureMethod(thresholdMs = 100) {
 				const [seconds, nanoseconds] = process.hrtime(start)
 				const duration = seconds * 1000 + nanoseconds / 1000000
 
-				const className = target.constructor?.name || 'Unknown'
+				const className = target.constructor.name || 'Unknown'
 				if (duration > thresholdMs) {
 					logger.warn(
 						`${className}.${String(propertyName)} took ${duration.toFixed(2)}ms (threshold: ${thresholdMs}ms)`
@@ -41,7 +41,7 @@ export function MeasureMethod(thresholdMs = 100) {
 				const [seconds, nanoseconds] = process.hrtime(start)
 				const duration = seconds * 1000 + nanoseconds / 1000000
 
-				const className = target.constructor?.name || 'Unknown'
+				const className = target.constructor.name || 'Unknown'
 				logger.error(
 					`${className}.${String(propertyName)} failed after ${duration.toFixed(2)}ms`,
 					error
@@ -57,7 +57,7 @@ export function MeasureMethod(thresholdMs = 100) {
 /**
  * Decorator to add timeout to async methods
  */
-export function AsyncTimeout(timeoutMs: number, timeoutMessage?: string) {
+export function asyncTimeout(timeoutMs: number, timeoutMessage?: string) {
 	return function (
 		target: object,
 		propertyName: string | symbol,
@@ -71,9 +71,9 @@ export function AsyncTimeout(timeoutMs: number, timeoutMessage?: string) {
 		): Promise<unknown> {
 			const timeoutPromise = new Promise((_, reject) => {
 				setTimeout(() => {
-					const className = target.constructor?.name || 'Unknown'
+					const className = target.constructor.name || 'Unknown'
 					const message =
-						timeoutMessage ||
+						timeoutMessage ??
 						`Method ${className}.${String(propertyName)} timed out after ${timeoutMs}ms`
 					reject(new Error(message))
 				}, timeoutMs)

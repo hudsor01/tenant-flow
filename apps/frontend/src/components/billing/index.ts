@@ -12,5 +12,5 @@ export { CheckoutForm } from './checkout-form'
 export { CustomerPortalButton } from './customer-portal-button'
 
 // Checkout Wrapper Components
-export { SubscriptionCheckoutWrapper } from './subscription-checkout-wrapper'
+// Removed SubscriptionCheckoutWrapper - using SubscriptionCheckout directly (CLAUDE.md NO_ABSTRACTIONS)
 export { SubscriptionCheckout } from './subscription-checkout'

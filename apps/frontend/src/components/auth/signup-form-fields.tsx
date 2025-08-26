@@ -8,21 +8,21 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from '@/components/ui/select'
+// import {
+// 	Select,
+// 	SelectContent,
+// 	SelectItem,
+// 	SelectTrigger,
+// 	SelectValue
+// } from '@/components/ui/select'
 
-import type { FormState } from '@/hooks/use-form-state'
+import type { SignupFormState } from '@/hooks/use-signup-form-state'
 
 export interface SignupFormFieldsProps {
-	formState: FormState
-	onFieldUpdate: <K extends keyof FormState>(
+	formState: SignupFormState
+	onFieldUpdate: <K extends keyof SignupFormState>(
 		field: K,
-		value: FormState[K]
+		value: SignupFormState[K]
 	) => void
 	onTogglePasswordVisibility: () => void
 	onToggleConfirmPasswordVisibility: () => void
@@ -54,8 +54,8 @@ export interface SignupFormFieldsProps {
 export function SignupFormFields({
 	formState,
 	onFieldUpdate,
-	onTogglePasswordVisibility,
-	onToggleConfirmPasswordVisibility,
+	// onTogglePasswordVisibility,
+	// onToggleConfirmPasswordVisibility,
 	onEmailSubmit,
 	onGoogleSignup,
 	isLoading,
@@ -64,10 +64,10 @@ export function SignupFormFields({
 	defaultValues = {}
 }: SignupFormFieldsProps) {
 	// Use formState if available, otherwise fallback to defaultValues
-	const name = formState?.name ?? defaultValues.fullName ?? ''
-	const email = formState?.email ?? defaultValues.email ?? ''
-	const password = formState?.password ?? ''
-	const confirmPassword = formState?.confirmPassword ?? ''
+	const name = formState.name ?? defaultValues.fullName ?? ''
+	const email = formState.email ?? defaultValues.email ?? ''
+	const password = formState.password ?? ''
+	const confirmPassword = formState.confirmPassword ?? ''
 
 	return (
 		<form onSubmit={onEmailSubmit} className="space-y-4">
@@ -87,7 +87,7 @@ export function SignupFormFields({
 					type="text"
 					required
 					value={name}
-					onChange={e => onFieldUpdate?.('name', e.target.value)}
+					onChange={(e: React.ChangeEvent<HTMLInputElement>) => onFieldUpdate?.('name', e.target.value)}
 					className={errors.fullName ? 'border-red-500' : ''}
 					disabled={isLoading}
 				/>
@@ -105,7 +105,7 @@ export function SignupFormFields({
 					type="email"
 					required
 					value={email}
-					onChange={e => onFieldUpdate?.('email', e.target.value)}
+					onChange={(e: React.ChangeEvent<HTMLInputElement>) => onFieldUpdate?.('email', e.target.value)}
 					className={errors.email ? 'border-red-500' : ''}
 					disabled={isLoading}
 				/>
@@ -123,7 +123,7 @@ export function SignupFormFields({
 					type={formState?.showPassword ? 'text' : 'password'}
 					required
 					value={password}
-					onChange={e => onFieldUpdate?.('password', e.target.value)}
+					onChange={(e: React.ChangeEvent<HTMLInputElement>) => onFieldUpdate?.('password', e.target.value)}
 					className={errors.password ? 'border-red-500' : ''}
 					disabled={isLoading}
 					minLength={8}
@@ -142,7 +142,7 @@ export function SignupFormFields({
 					type={formState?.showConfirmPassword ? 'text' : 'password'}
 					required
 					value={confirmPassword}
-					onChange={e =>
+					onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
 						onFieldUpdate?.('confirmPassword', e.target.value)
 					}
 					className={errors.confirmPassword ? 'border-red-500' : ''}

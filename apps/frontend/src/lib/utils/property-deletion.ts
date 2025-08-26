@@ -7,7 +7,7 @@ import {
 	type PropertyFormState
 } from '@/lib/actions/property-actions'
 import { addCSRFTokenToFormData } from '@/lib/auth/csrf'
-import { logger } from '@/lib/logger'
+import { logger } from "@/lib/logger/logger"
 import { notifications, dismissToast } from '@/lib/toast'
 
 /**

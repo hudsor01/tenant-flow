@@ -16,9 +16,9 @@ import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { JwtAuthGuard } from '../shared/guards/jwt-auth.guard'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
 import { AuthToken } from '../shared/decorators/auth-token.decorator'
-import { ValidatedUser } from '../auth/auth.service'
+import type { ValidatedUser } from '../auth/auth.service'
 import { PropertiesService, PropertyWithRelations } from './properties.service'
-import {
+import type {
 	CreatePropertyDto,
 	UpdatePropertyDto
 } from '../shared/types/dto-exports'
@@ -42,10 +42,10 @@ export class PropertiesController {
 		status: 200,
 		description: 'Properties retrieved successfully'
 	})
-	async findAll(
-		@CurrentUser() user: ValidatedUser,
-		@AuthToken() authToken?: string
-	): Promise<ControllerApiResponse<PropertyWithRelations[]>> {
+		async findAll(
+			@CurrentUser() user: ValidatedUser,
+			@AuthToken() authToken?: string
+		): Promise<ControllerApiResponse<PropertyWithRelations[]>> {
 		const data = await this.propertiesService.findAll(user.id, authToken)
 		return {
 			success: true,

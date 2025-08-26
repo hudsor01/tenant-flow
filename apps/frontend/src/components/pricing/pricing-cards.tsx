@@ -213,7 +213,7 @@ export function PricingCards() {
 
 									{/* CTA Button */}
 									<Button
-										onClick={() =>
+										onClick={async () =>
 											handleGetStarted(plan.id)
 										}
 										disabled={

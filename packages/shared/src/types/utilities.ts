@@ -64,7 +64,7 @@ export type ValueOf<T> = T[keyof T]
  * Create a union type from array values
  */
 export type ArrayElement<T extends readonly unknown[]> =
-	T extends readonly (infer U)[] ? U : never
+	T extends ReadonlyArray<infer U> ? U : never
 
 /**
  * Create a type that represents a function with specific parameters
@@ -573,7 +573,7 @@ export interface FilterCondition {
 export interface SearchConfig<T extends string = string> {
 	query?: string
 	filters?: FilterCondition[]
-	sort?: SortConfig<T>[]
+	sort?: Array<SortConfig<T>>
 	page?: number
 	limit?: number
 }

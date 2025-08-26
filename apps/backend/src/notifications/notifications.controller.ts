@@ -1,6 +1,7 @@
 import { 
   Body, 
   Controller, 
+  Delete,
   Get, 
   Logger,
   Param, 
@@ -9,14 +10,13 @@ import {
   Query,
   UseGuards
 } from '@nestjs/common'
-import { UnifiedAuthGuard } from '../shared/guards/unified-auth.guard'
+import { UnifiedAuthGuard } from '../shared/guards/auth.guard'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
-import { ValidatedUser } from '../auth/auth.service'
+import type { ValidatedUser } from '../auth/auth.service'
 import { AdminOnly, Public } from '../shared/decorators/auth.decorators'
-import { ErrorHandlerService } from '../services/error-handler.service'
 import { NotificationsService } from './notifications.service'
-import { 
-  CreateNotificationDto, 
+import type {
+  CreateNotificationDto,
   GetNotificationsDto
 } from './dto/notification.dto'
 
@@ -26,8 +26,7 @@ export class NotificationsController {
   private readonly logger = new Logger(NotificationsController.name)
 
   constructor(
-    private readonly notificationsService: NotificationsService,
-    private readonly errorHandler: ErrorHandlerService
+    private readonly notificationsService: NotificationsService
   ) {}
 
   @Get()
@@ -40,26 +39,10 @@ export class NotificationsController {
       unreadOnly: query.unreadOnly
     })
 
-    try {
-      if (query.unreadOnly) {
-        const notifications = await this.notificationsService.getUnreadNotifications(user.id)
-        this.logger.log(`Retrieved ${notifications.length || 0} unread notifications for user ${user.id}`)
-        return notifications
-      }
-
-      // Get all notifications for user
-      const notifications = await this.notificationsService.getUnreadNotifications(user.id)
-      this.logger.log(`Retrieved ${notifications.length || 0} notifications for user ${user.id}`)
-      return notifications
-    } catch (error) {
-      this.logger.error(`Failed to get notifications for user ${user.id}`, error)
-      this.errorHandler.handleError(error, {
-        operation: 'getNotifications',
-        resource: 'notifications',
-        metadata: { userId: user.id, unreadOnly: query.unreadOnly }
-      })
-      throw error
-    }
+    // For now, only support unread notifications - can be extended later
+    const notifications = await this.notificationsService.getUnreadNotifications(user.id)
+    this.logger.log(`Retrieved ${notifications.length} notifications for user ${user.id}`)
+    return notifications
   }
 
   @Post()
@@ -86,9 +69,9 @@ export class NotificationsController {
         title,
         message,
         priority,
-        (data as Record<string, unknown>)?.propertyName as string || '',
-        (data as Record<string, unknown>)?.unitNumber as string || '',
-        (data as Record<string, unknown>)?.maintenanceId as string,
+        (data!).propertyName as string || '',
+        (data!).unitNumber as string || '',
+        (data!).maintenanceId as string,
         actionUrl
       )
       
@@ -122,9 +105,26 @@ export class NotificationsController {
     }
   }
 
+  @Delete(':id')
+  async cancelNotification(
+    @Param('id') notificationId: string,
+    @CurrentUser() user: ValidatedUser
+  ) {
+    this.logger.log(`User ${user.id} cancelling notification ${notificationId}`)
+
+    try {
+      const result = await this.notificationsService.cancelNotification(notificationId, user.id)
+      this.logger.log(`Notification ${notificationId} cancelled by user ${user.id}`)
+      return result
+    } catch (error) {
+      this.logger.error(`Failed to cancel notification ${notificationId} for user ${user.id}`, error)
+      throw error
+    }
+  }
+
   @Get('priority-info/:priority')
   @Public()
-  async getPriorityInfo(@Param('priority') priority: string) {
+  getPriorityInfo(@Param('priority') priority: string) {
     const priorityEnum = priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
     return {
       label: this.notificationsService.getPriorityLabel(priorityEnum),

@@ -113,7 +113,7 @@ export class PropertiesService {
 		const propertyData: PropertyInsert = {
 			...dto,
 			ownerId,
-			propertyType: (dto.propertyType ||
+			propertyType: (dto.propertyType ??
 				'SINGLE_FAMILY') as PropertyInsert['propertyType'],
 			createdAt: new Date().toISOString(),
 			updatedAt: new Date().toISOString()

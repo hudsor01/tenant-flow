@@ -4,7 +4,7 @@ import * as React from 'react'
 import { cn } from '@/lib/utils'
 import { ChevronUp, ChevronDown } from 'lucide-react'
 
-interface TableProps extends React.ComponentProps<'table'> {
+interface TableProps extends React.TableHTMLAttributes<HTMLTableElement> {
 	caption?: string
 	captionSide?: 'top' | 'bottom'
 }
@@ -38,7 +38,7 @@ Table.displayName = 'Table'
 
 const TableHeader = React.forwardRef<
 	HTMLTableSectionElement,
-	React.ComponentProps<'thead'>
+	React.HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
 	<thead ref={ref} className={cn('[&_tr]:border-b', className)} {...props} />
 ))
@@ -46,7 +46,7 @@ TableHeader.displayName = 'TableHeader'
 
 const TableBody = React.forwardRef<
 	HTMLTableSectionElement,
-	React.ComponentProps<'tbody'>
+	React.HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
 	<tbody
 		ref={ref}
@@ -58,7 +58,7 @@ TableBody.displayName = 'TableBody'
 
 const TableFooter = React.forwardRef<
 	HTMLTableSectionElement,
-	React.ComponentProps<'tfoot'>
+	React.HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
 	<tfoot
 		ref={ref}
@@ -71,7 +71,7 @@ const TableFooter = React.forwardRef<
 ))
 TableFooter.displayName = 'TableFooter'
 
-interface TableRowProps extends React.ComponentProps<'tr'> {
+interface TableRowProps extends React.HTMLAttributes<HTMLTableRowElement> {
 	selected?: boolean
 	onSelect?: () => void
 }
@@ -102,7 +102,7 @@ const TableRow = React.forwardRef<HTMLTableRowElement, TableRowProps>(
 )
 TableRow.displayName = 'TableRow'
 
-interface TableHeadProps extends React.ComponentProps<'th'> {
+interface TableHeadProps extends React.ThHTMLAttributes<HTMLTableCellElement> {
 	sortable?: boolean
 	sorted?: 'asc' | 'desc' | false
 	onSort?: () => void
@@ -175,7 +175,7 @@ TableHead.displayName = 'TableHead'
 
 const TableCell = React.forwardRef<
 	HTMLTableCellElement,
-	React.ComponentProps<'td'>
+	React.TdHTMLAttributes<HTMLTableCellElement>
 >(({ className, ...props }, ref) => (
 	<td
 		ref={ref}
@@ -191,7 +191,7 @@ TableCell.displayName = 'TableCell'
 function TableCaption({
 	className,
 	...props
-}: React.ComponentProps<'caption'>) {
+}: React.HTMLAttributes<HTMLTableCaptionElement>) {
 	return (
 		<caption
 			className={cn('text-muted-foreground mt-4 text-sm', className)}
@@ -210,3 +210,5 @@ export {
 	TableCell,
 	TableCaption
 }
+
+export type { TableProps, TableRowProps, TableHeadProps }

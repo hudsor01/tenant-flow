@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/use-auth'
-import { logger } from '@/lib/logger'
+import { logger } from "@/lib/logger/logger"
 import { AuthLoadingSpinner } from './protected-route-guard'
 import type { UserRole } from '@repo/shared'
 
@@ -29,10 +29,10 @@ export function UnifiedAuthGuard({
 	const router = useRouter()
 
 	useEffect(() => {
-		if (loading) return
+		if (loading) {return}
 
 		// If auth not required, render immediately
-		if (!requireAuth) return
+		if (!requireAuth) {return}
 
 		// Check authentication
 		if (!user) {
@@ -42,7 +42,7 @@ export function UnifiedAuthGuard({
 		}
 
 		// Check role requirements
-		if (requiredRoles.length > 0 && !requiredRoles.includes(user.role as UserRole)) {
+		if (requiredRoles.length > 0 && !requiredRoles.includes(user.role)) {
 			logger.warn('User lacks required role', { 
 				userRole: user.role, 
 				requiredRoles 
@@ -75,7 +75,7 @@ export function UnifiedAuthGuard({
 	}
 
 	// Check role requirements
-	if (requiredRoles.length > 0 && !requiredRoles.includes(user.role as UserRole)) {
+	if (requiredRoles.length > 0 && !requiredRoles.includes(user.role)) {
 		return <AuthLoadingSpinner message="Access denied..." />
 	}
 

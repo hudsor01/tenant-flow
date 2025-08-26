@@ -1,4 +1,4 @@
-import { Image } from 'lucide-react'
+import { Image as ImageIcon } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import NextImage from 'next/image'
@@ -20,7 +20,7 @@ export function PropertyMediaSection({
 	const imageUrl = form.watch('imageUrl')
 
 	return (
-		<FormSection icon={Image} title="Property Photo" delay={3}>
+		<FormSection icon={ImageIcon} title="Property Photo" delay={3}>
 			{/* Image URL Input */}
 			<div className="space-y-2">
 				<Label
@@ -30,7 +30,7 @@ export function PropertyMediaSection({
 					Property Image URL (Optional)
 				</Label>
 				<div className="relative">
-					<Image
+					<ImageIcon
 						className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400"
 						aria-hidden="true"
 					/>
@@ -62,7 +62,7 @@ export function PropertyMediaSection({
 							width={400}
 							height={192}
 							className="h-48 w-full object-cover"
-							onError={e => {
+							onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
 								const target = e.target as HTMLImageElement
 								target.style.display = 'none'
 								const parentElement =
@@ -76,7 +76,7 @@ export function PropertyMediaSection({
 						/>
 						<div className="hidden h-48 w-full items-center justify-center border-2 border-dashed border-gray-300 bg-gray-100">
 							<div className="text-center">
-								<Image
+								<ImageIcon
 									className="mx-auto h-8 w-8 text-gray-400"
 									aria-hidden="true"
 								/>
@@ -92,7 +92,7 @@ export function PropertyMediaSection({
 			{/* Future Upload Section */}
 			<div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
 				<div className="flex items-start space-x-2">
-					<Image
+					<ImageIcon
 						className="text-primary mt-0.5 h-4 w-4"
 						aria-hidden="true"
 					/>

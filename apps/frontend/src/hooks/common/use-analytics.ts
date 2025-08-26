@@ -111,7 +111,7 @@ export function useAnalytics(options: UseAnalyticsOptions = {}) {
   // User identification - simplified
   const identify = useCallback(
     (userId: string, properties?: Record<string, string | number | boolean>) => {
-      if (!isPostHogAvailable()) return
+      if (!isPostHogAvailable()) {return}
 
       posthog.identify(userId, {
         ...properties,
@@ -127,7 +127,7 @@ export function useAnalytics(options: UseAnalyticsOptions = {}) {
 
   // Reset user session
   const reset = useCallback(() => {
-    if (!isPostHogAvailable()) return
+    if (!isPostHogAvailable()) {return}
 
     posthog.reset()
 
@@ -150,7 +150,7 @@ export function useAnalytics(options: UseAnalyticsOptions = {}) {
 
   // Error tracking - simplified
   const trackError = useCallback(
-    (error: Error | unknown, context?: AnalyticsProperties) => {
+    (error: Error, context?: AnalyticsProperties) => {
       const errorMessage = error instanceof Error ? error.message : String(error)
       
       track('error_occurred', {

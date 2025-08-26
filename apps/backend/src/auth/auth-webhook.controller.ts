@@ -12,7 +12,7 @@ import { StripeService } from '../billing/stripe.service'
 // Removed SubscriptionsManagerService - replaced by StripeWebhookService
 import { UsersService } from '../users/users.service'
 import { Public } from '../shared/decorators/public.decorator'
-import { CsrfExempt } from '../security/csrf.guard'
+// CSRF protection is handled at Fastify level - webhooks are exempt by nature
 
 interface SupabaseWebhookEvent {
 	type: 'INSERT' | 'UPDATE' | 'DELETE'
@@ -44,19 +44,18 @@ export class AuthWebhookController {
 
 	@Post('supabase')
 	@Public()
-	@CsrfExempt()
-	// Global rate limiting is sufficient for webhooks
+	// CSRF and rate limiting handled at Fastify level for webhooks
 	@HttpCode(200)
 	async handleSupabaseAuthWebhook(
 		@Body() event: SupabaseWebhookEvent,
 		@Headers('authorization') _authHeader: string
-	) {
+	): Promise<{ success: boolean; message?: string; error?: string }> {
 		this.logger.debug('Received Supabase auth webhook', {
 			type: event.type,
 			table: event.table,
 			schema: event.schema,
-			userId: event.record?.id,
-			userEmail: event.record?.email
+			userId: event.record.id,
+			userEmail: event.record.email
 		})
 
 		// Verify webhook is from Supabase
@@ -76,7 +75,7 @@ export class AuthWebhookController {
 				event.table === 'users' &&
 				event.schema === 'auth'
 			) {
-				await this.handleUserUpdated(event.record)
+				this.handleUserUpdated(event.record)
 			}
 
 			return { success: true, message: 'Webhook processed successfully' }
@@ -94,7 +93,7 @@ export class AuthWebhookController {
 		}
 	}
 
-	private async handleUserCreated(user: SupabaseWebhookEvent['record']) {
+	private async handleUserCreated(user: SupabaseWebhookEvent['record']): Promise<void> {
 		this.logger.log('Processing new user creation', {
 			userId: user.id,
 			email: user.email,
@@ -107,14 +106,14 @@ export class AuthWebhookController {
 		}
 
 		const userName =
-			user.user_metadata?.name || user.user_metadata?.full_name || ''
+			user.user_metadata?.name ?? user.user_metadata?.full_name ?? ''
 
 		try {
 			// Sync user with local database
 			await this.authService.syncUserWithDatabase({
 				id: user.id,
 				email: user.email,
-				email_confirmed_at: user.email_confirmed_at || undefined,
+				email_confirmed_at: user.email_confirmed_at ?? undefined,
 				user_metadata: user.user_metadata,
 				created_at: user.created_at,
 				updated_at: user.updated_at
@@ -140,7 +139,7 @@ export class AuthWebhookController {
 		}
 	}
 
-	private async handleUserUpdated(user: SupabaseWebhookEvent['record']) {
+	private handleUserUpdated(user: SupabaseWebhookEvent['record']): void {
 		// Check if email was just confirmed
 		if (
 			user.email_confirmed_at &&
@@ -158,7 +157,7 @@ export class AuthWebhookController {
 		userId: string,
 		email: string,
 		name: string
-	) {
+	): Promise<void> {
 		try {
 			this.logger.log(
 				'Creating Stripe customer and subscription for new user',
@@ -257,7 +256,7 @@ export class AuthWebhookController {
 		userId: string,
 		stripeCustomerId: string,
 		stripeSubscriptionId: string
-	) {
+	): Promise<void> {
 		// TODO: Replace with webhook-based subscription handling
 		// Subscription updates now handled entirely through Stripe webhooks
 		this.logger.log(

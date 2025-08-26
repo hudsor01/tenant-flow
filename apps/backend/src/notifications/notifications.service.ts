@@ -1,11 +1,13 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, BadRequestException } from '@nestjs/common'
 import { SupabaseService } from '../database/supabase.service'
-import { EmailService } from '../email/email.service'
+import { ValidationService } from '../shared/services/validation.service'
+import type { Database } from '@repo/shared/types/supabase-generated'
 import type { 
   MaintenanceNotificationData, 
   NotificationType,
   Priority 
 } from './dto/notification.dto'
+import { z } from 'zod'
 
 @Injectable()
 export class NotificationsService {
@@ -13,8 +15,42 @@ export class NotificationsService {
 
   constructor(
     private readonly supabaseService: SupabaseService,
-    private readonly emailService: EmailService
+    private readonly validationService: ValidationService
   ) {}
+
+  /**
+   * Zod schemas for notification validation
+   */
+  private static readonly NOTIFICATION_SCHEMAS = {
+    maintenanceNotification: z.object({
+      recipientId: z.string().uuid('Invalid recipient ID'),
+      title: z.string().min(1, 'Title cannot be empty').max(200, 'Title too long'),
+      message: z.string().min(1, 'Message cannot be empty').max(1000, 'Message too long'),
+      type: z.string().min(1, 'Type is required'),
+      priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'EMERGENCY'], {
+        message: 'Invalid priority level'
+      }),
+      actionUrl: z.string().optional(),
+      maintenanceId: z.string().uuid('Invalid maintenance ID').optional(),
+      data: z.object({
+        propertyName: z.string().min(1, 'Property name cannot be empty'),
+        unitNumber: z.string().min(1, 'Unit number cannot be empty'),
+        description: z.string().max(200, 'Description too long'),
+        requestTitle: z.string().min(1, 'Request title cannot be empty')
+      })
+    }),
+
+    notificationInput: z.object({
+      ownerId: z.string().uuid('Invalid owner ID'),
+      title: z.string().min(1, 'Title cannot be empty').max(100, 'Title too long'),
+      description: z.string().min(1, 'Description cannot be empty').max(500, 'Description too long'),
+      priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'EMERGENCY']),
+      propertyName: z.string().min(1, 'Property name cannot be empty'),
+      unitNumber: z.string().min(1, 'Unit number cannot be empty'),
+      maintenanceId: z.string().uuid().optional(),
+      actionUrl: z.string().url('Invalid URL format').optional()
+    })
+  }
 
   /**
    * Get notification type based on maintenance priority and urgency
@@ -74,6 +110,27 @@ export class NotificationsService {
     maintenanceId?: string,
     actionUrl?: string
   ): Promise<MaintenanceNotificationData> {
+    // Validate input data using Zod
+    const inputValidation = this.validationService.validateWithZod(
+      NotificationsService.NOTIFICATION_SCHEMAS.notificationInput,
+      {
+        ownerId,
+        title,
+        description,
+        priority,
+        propertyName,
+        unitNumber,
+        maintenanceId,
+        actionUrl
+      },
+      'notificationInput'
+    )
+
+    if (!inputValidation.isValid) {
+      const errorMessages = inputValidation.errors.map(e => `${e.field}: ${e.message}`).join(', ')
+      throw new BadRequestException(`Invalid notification input: ${errorMessages}`)
+    }
+
     const priorityLabel = this.getPriorityLabel(priority)
 
     const notification: MaintenanceNotificationData = {
@@ -82,7 +139,7 @@ export class NotificationsService {
       message: `New maintenance request for ${propertyName} - Unit ${unitNumber}: ${title}`,
       type: this.getNotificationType(priority, true),
       priority: priority,
-      actionUrl: actionUrl || '/maintenance',
+      actionUrl: actionUrl ?? '/maintenance',
       maintenanceId: maintenanceId,
       data: {
         propertyName,
@@ -92,10 +149,16 @@ export class NotificationsService {
       }
     }
 
-    // Validate notification data
-    const errors = this.validateNotificationData(notification)
-    if (errors.length > 0) {
-      throw new Error(`Invalid notification data: ${errors.join(', ')}`)
+    // Validate notification data with Zod
+    const notificationValidation = this.validationService.validateWithZod(
+      NotificationsService.NOTIFICATION_SCHEMAS.maintenanceNotification,
+      notification,
+      'notification'
+    )
+
+    if (!notificationValidation.isValid) {
+      const errorMessages = notificationValidation.errors.map(e => `${e.field}: ${e.message}`).join(', ')
+      throw new BadRequestException(`Invalid notification data: ${errorMessages}`)
     }
 
     // Store notification in database using existing InAppNotification table
@@ -130,36 +193,6 @@ export class NotificationsService {
     return notification
   }
 
-  /**
-   * Validate notification data
-   */
-  validateNotificationData(
-    data: Partial<MaintenanceNotificationData>
-  ): string[] {
-    const errors: string[] = []
-
-    if (!data.recipientId) {
-      errors.push('Recipient ID is required')
-    }
-
-    if (!data.title) {
-      errors.push('Title is required')
-    }
-
-    if (!data.message) {
-      errors.push('Message is required')
-    }
-
-    if (!data.type) {
-      errors.push('Notification type is required')
-    }
-
-    if (!data.priority) {
-      errors.push('Priority is required')
-    }
-
-    return errors
-  }
 
   /**
    * Calculate notification timeout based on priority
@@ -200,25 +233,13 @@ export class NotificationsService {
         .eq('id', notification.recipientId)
         .single()
 
-      if (error || !user?.email) {
+      if (error || !user.email) {
         this.logger.warn(`Could not find email for user ${notification.recipientId}`)
         return
       }
 
-      // Send email notification using EmailService
-      if (notification.data) {
-        await this.emailService.sendMaintenanceNotificationEmail(
-          user.email,
-          notification.data.requestTitle,
-          notification.data.propertyName,
-          notification.data.unitNumber,
-          notification.data.description,
-          notification.priority,
-          notification.actionUrl
-        )
-      }
-
-      this.logger.log(`Email notification sent to ${user.email} for ${notification.priority} priority maintenance request`)
+      // Email notifications removed for MVP - focus on in-app notifications only
+      this.logger.log(`In-app notification sent for user ${notification.recipientId} (email disabled for MVP)`)
     } catch (error) {
       this.logger.error('Failed to send immediate notification:', error)
       // Don't throw - notification was still stored in database
@@ -228,7 +249,7 @@ export class NotificationsService {
   /**
    * Get unread notifications for a user
    */
-  async getUnreadNotifications(userId: string) {
+  async getUnreadNotifications(userId: string): Promise<Database['public']['Tables']['InAppNotification']['Row'][]> {
     const { data, error } = await this.supabaseService.getAdminClient()
       .from('InAppNotification')
       .select('*')
@@ -246,7 +267,7 @@ export class NotificationsService {
   /**
    * Mark notification as read
    */
-  async markAsRead(notificationId: string, userId: string) {
+  async markAsRead(notificationId: string, userId: string): Promise<Database['public']['Tables']['InAppNotification']['Row']> {
     const { data, error } = await this.supabaseService.getAdminClient()
       .from('InAppNotification')
       .update({ isRead: true, readAt: new Date().toISOString() })
@@ -263,9 +284,31 @@ export class NotificationsService {
   }
 
   /**
+   * Cancel notification
+   */
+  async cancelNotification(notificationId: string, userId: string): Promise<Database['public']['Tables']['InAppNotification']['Row']> {
+    const { data, error } = await this.supabaseService.getAdminClient()
+      .from('InAppNotification')
+      .update({ 
+        metadata: { cancelled: true, cancelledAt: new Date().toISOString() }
+      })
+      .eq('id', notificationId)
+      .eq('userId', userId)
+      .select()
+      .single()
+
+    if (error) {
+      throw error
+    }
+
+    this.logger.log(`Notification ${notificationId} cancelled for user ${userId}`)
+    return data
+  }
+
+  /**
    * Delete old notifications
    */
-  async cleanupOldNotifications(daysToKeep = 30) {
+  async cleanupOldNotifications(daysToKeep = 30): Promise<void> {
     const cutoffDate = new Date()
     cutoffDate.setDate(cutoffDate.getDate() - daysToKeep)
 

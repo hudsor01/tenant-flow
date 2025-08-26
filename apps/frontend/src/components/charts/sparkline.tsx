@@ -27,9 +27,9 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({
 	payload,
 	label: _label
 }) => {
-	if (active && payload && payload.length) {
+	if (active && payload?.length) {
 		const data = payload[0]
-		if (!data) return null
+		if (!data) {return null}
 		return (
 			<div className="rounded-md border border-gray-200 bg-white px-2 py-1 text-xs shadow-md">
 				<p className="font-medium text-gray-900">
@@ -96,7 +96,7 @@ export const Sparkline: React.FC<SparklineProps> = ({
 
 // Helper function to generate trend indicator
 export const getTrendIndicator = (data: { value: number }[]) => {
-	if (data.length < 2) return { direction: 'neutral' as const, percentage: 0 }
+	if (data.length < 2) {return { direction: 'neutral' as const, percentage: 0 }}
 
 	const firstValue = data[0]?.value ?? 0
 	const lastValue = data[data.length - 1]?.value ?? 0

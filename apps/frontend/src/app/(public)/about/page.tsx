@@ -1,4 +1,5 @@
-import type { Metadata } from 'next/types'
+'use client'
+
 import React from 'react'
 import { motion } from '@/lib/lazy-motion'
 import { Badge } from '@/components/ui/badge'
@@ -117,7 +118,7 @@ export function AboutContent() {
 							transition={{ duration: 0.6, delay: 0.2 }}
 							className="text-muted-foreground mx-auto max-w-3xl text-xl leading-relaxed"
 						>
-							We're on a mission to simplify property management
+							We&apos;re on a mission to simplify property management
 							for everyone. From individual landlords to large
 							property management companies, TenantFlow makes it
 							easy to manage properties, tenants, and maintenance
@@ -288,4 +289,8 @@ export function AboutContent() {
 			</section>
 		</div>
 	)
+}
+
+export default function AboutPage() {
+	return <AboutContent />
 }

@@ -1,3 +1,4 @@
+/* global clients */
 /**
  * Service Worker for TenantFlow
  * Optimizes caching and offline experience
@@ -41,13 +42,13 @@ const CRITICAL_ASSETS = [
  * Install event - cache critical assets
  */
 self.addEventListener('install', event => {
-	console.log('Service Worker: Installing...')
+	console.info('Service Worker: Installing...')
 
 	event.waitUntil(
 		caches
 			.open(STATIC_CACHE)
 			.then(cache => {
-				console.log('Service Worker: Caching critical assets')
+				console.info('Service Worker: Caching critical assets')
 				return cache.addAll(CRITICAL_ASSETS)
 			})
 			.then(() => self.skipWaiting())
@@ -64,7 +65,7 @@ self.addEventListener('install', event => {
  * Activate event - clean up old caches
  */
 self.addEventListener('activate', event => {
-	console.log('Service Worker: Activating...')
+	console.info('Service Worker: Activating...')
 
 	event.waitUntil(
 		caches
@@ -77,7 +78,7 @@ self.addEventListener('activate', event => {
 							cacheName !== STATIC_CACHE &&
 							cacheName !== API_CACHE
 						) {
-							console.log(
+							console.info(
 								'Service Worker: Deleting old cache',
 								cacheName
 							)
@@ -222,7 +223,7 @@ async function networkFirst(request, cacheName) {
 
 		return networkResponse
 	} catch (error) {
-		console.log('Network failed, trying cache:', error.message)
+		console.warn('Network failed, trying cache:', error.message)
 		const cachedResponse = await caches.match(request)
 
 		if (cachedResponse) {
@@ -260,7 +261,7 @@ async function staleWhileRevalidate(request, cacheName) {
 			return networkResponse
 		})
 		.catch(error => {
-			console.log('Background fetch failed:', error.message)
+			console.error('Background fetch failed:', error.message)
 		})
 
 	// Return cached response immediately if available
@@ -282,7 +283,7 @@ self.addEventListener('sync', event => {
 })
 
 async function handleBackgroundSync() {
-	console.log('Service Worker: Handling background sync')
+	console.info('Service Worker: Handling background sync')
 	// Implement retry logic for failed API calls
 }
 

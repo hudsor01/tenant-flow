@@ -1,4 +1,4 @@
-import type { Metadata } from '@/types/next.d'
+import type { Metadata } from 'next/types'
 
 interface BillingLayoutProps {
 	children: React.ReactNode

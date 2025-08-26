@@ -43,7 +43,7 @@ export function usePropertyFormServer({
 	const action =
 		mode === 'create'
 			? createProperty
-			: (prevState: PropertyFormState, formData: FormData) => {
+			: async (prevState: PropertyFormState, formData: FormData) => {
 					if (!property?.id) {
 						throw new Error('Property ID is required for update')
 					}

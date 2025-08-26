@@ -51,7 +51,7 @@ export function useFormState<T extends Record<string, unknown>>(
 	}, [])
 
 	const validate = useCallback(() => {
-		if (!validator) return true
+		if (!validator) {return true}
 		
 		const newErrors = validator(values)
 		setErrors(newErrors)

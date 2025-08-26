@@ -199,11 +199,11 @@ export const Result = {
 	}),
 
 	isSuccess: <T, E>(result: Result<T, E>): result is Success<T> => {
-		return result.success === true
+		return result.success
 	},
 
 	isFailure: <T, E>(result: Result<T, E>): result is Failure<E> => {
-		return result.success === false
+		return !result.success
 	}
 }
 
@@ -221,7 +221,7 @@ export class BusinessRuleValidationError extends Error {
 		public readonly brokenRule: BusinessRule,
 		message?: string
 	) {
-		super(message || brokenRule.message)
+		super(message ?? brokenRule.message)
 		this.name = 'BusinessRuleValidationError'
 	}
 }
@@ -238,9 +238,7 @@ export interface DomainService {
 // Factory Pattern
 // ========================
 
-export interface Factory<TEntity, TProps = unknown> {
-	create(props: TProps): Promise<TEntity> | TEntity
-}
+
 
 // ========================
 // Unit of Work Pattern
@@ -308,7 +306,7 @@ export class Money extends BaseValueObject<Money> {
 		if (amount < 0) {
 			throw new Error('Money amount cannot be negative')
 		}
-		if (!currency || currency.length !== 3) {
+		if (currency.length !== 3) {
 			throw new Error('Currency must be a valid 3-letter code')
 		}
 	}
@@ -377,12 +375,12 @@ export class Email extends BaseValueObject<Email> {
 
 	getDomain(): string {
 		const parts = this.value.split('@')
-		return parts[1] || ''
+		return parts[1] ?? ''
 	}
 
 	getLocalPart(): string {
 		const parts = this.value.split('@')
-		return parts[0] || ''
+		return parts[0] ?? ''
 	}
 }
 
@@ -422,11 +420,11 @@ export class Address extends BaseValueObject<Address> {
 		public readonly country = 'US'
 	) {
 		super()
-		if (!street?.trim()) {throw new Error('Street is required')}
-		if (!city?.trim()) {throw new Error('City is required')}
-		if (!state?.trim()) {throw new Error('State is required')}
-		if (!zipCode?.trim()) {throw new Error('ZIP code is required')}
-		if (!country?.trim()) {throw new Error('Country is required')}
+		if (!street.trim()) {throw new Error('Street is required')}
+		if (!city.trim()) {throw new Error('City is required')}
+		if (!state.trim()) {throw new Error('State is required')}
+		if (!zipCode.trim()) {throw new Error('ZIP code is required')}
+		if (!country.trim()) {throw new Error('Country is required')}
 	}
 
 	equals(other: Address): boolean {

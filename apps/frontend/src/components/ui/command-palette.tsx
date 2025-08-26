@@ -89,7 +89,7 @@ export function CommandPalette() {
 	)
 	const { data: leases = [] } = useLeases({ limit: 10 }, { enabled: isOpen })
 	const { data: maintenance = [] } = useMaintenanceRequests(
-		{ limit: 10 },
+		{},
 		{ enabled: isOpen }
 	)
 
@@ -97,15 +97,14 @@ export function CommandPalette() {
 	const recentItems: CommandItem[] = []
 	const addRecentItem = useCallback(
 		(
-			item: Partial<CommandItem> & {
+			_item: Partial<CommandItem> & {
 				id: string
 				title: string
 				href?: string
 				type?: string
 			}
 		) => {
-			// Would normally add to persistent storage
-			console.log('Adding recent item:', item)
+			// TODO: Implement persistent storage for recent items
 		},
 		[]
 	)
@@ -388,7 +387,7 @@ export function CommandPalette() {
 
 	// Maintenance items
 	const maintenanceItems: CommandItem[] = maintenance.map(
-		(request: MaintenanceRequest, index) => ({
+		(request: MaintenanceRequest, index: number) => ({
 			id: `maintenance-${request.id}`,
 			title: request.title,
 			subtitle: request.status,
@@ -489,7 +488,7 @@ export function CommandPalette() {
 
 	// Filter items based on search
 	const filteredGroups = React.useMemo(() => {
-		if (!search) return groupedItems
+		if (!search) {return groupedItems}
 
 		return groupedItems
 			.map(group => ({

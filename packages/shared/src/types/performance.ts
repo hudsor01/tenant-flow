@@ -415,11 +415,11 @@ export interface LoadBalancerConfig {
 		timeout: number
 		retries: number
 	}
-	servers: {
+	servers: Array<{
 		url: string
 		weight?: number
 		backup?: boolean
-	}[]
+	}>
 }
 
 // ========================

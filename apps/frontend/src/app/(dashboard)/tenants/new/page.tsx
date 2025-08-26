@@ -5,7 +5,7 @@ import { ArrowLeft, User } from 'lucide-react'
 import Link from 'next/link'
 import { TenantForm } from '@/components/forms/tenant-form'
 import { PageTracker } from '@/components/analytics/page-tracker'
-import type { Metadata } from '@/types/next'
+import type { Metadata } from 'next/types'
 
 export const metadata: Metadata = {
 	title: 'Add New Tenant | TenantFlow',
@@ -61,12 +61,7 @@ export default function NewTenantPage() {
 								</div>
 							}
 						>
-							<TenantForm
-								mode="create"
-								onSuccess={() => {
-									// Redirect will be handled by the form component
-								}}
-							/>
+							<TenantForm mode="create" />
 						</Suspense>
 					</CardContent>
 				</Card>

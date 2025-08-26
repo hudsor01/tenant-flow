@@ -49,11 +49,11 @@ export function Navigation({
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 	const [scrolled, setScrolled] = useState(false)
 	const pathname = usePathname()
-	const { user, logout } = useAuth()
+	const { user } = useAuth()
 
 	// Handle scroll for transparent nav
 	useEffect(() => {
-		if (!transparent) return
+		if (!transparent) {return}
 
 		const handleScroll = () => {
 			setScrolled(window.scrollY > 10)
@@ -120,7 +120,7 @@ export function Navigation({
 	}
 
 	const PublicNavigation = () => {
-		if (context !== 'public') return null
+		if (context !== 'public') {return null}
 
 		const toolsItems = [
 			{
@@ -267,7 +267,7 @@ export function Navigation({
 															className="group focus-visible:ring-ring flex items-center rounded-lg p-3 transition-colors duration-200 hover:bg-gray-50 focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset"
 															role="menuitem"
 															tabIndex={0}
-															onKeyDown={e => {
+															onKeyDown={(e: React.KeyboardEvent) => {
 																if (
 																	e.key ===
 																	'Escape'

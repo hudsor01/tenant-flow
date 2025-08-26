@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { logger } from '@/lib/logger'
+import { logger } from "@/lib/logger/logger"
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Building2, Mail, Phone, MapPin } from 'lucide-react'

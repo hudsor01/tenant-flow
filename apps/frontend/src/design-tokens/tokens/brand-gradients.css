@@ -1,0 +1,239 @@
+/**
+ * Brand Gradients - TenantFlow Design System
+ * 
+ * The "Simplify" brand gradient system for TenantFlow
+ * - Primary "Simplify" gradient for hero elements
+ * - Supporting gradients for visual hierarchy
+ * - Consistent brand application across components
+ */
+
+:root {
+	/* === PRIMARY BRAND GRADIENTS === */
+	
+	/* The "Simplify" Gradient - Primary brand expression */
+	--gradient-simplify: linear-gradient(
+		135deg,
+		oklch(0.45 0.16 235) 0%,    /* Steel Blue */
+		oklch(0.55 0.14 200) 35%,   /* Deep Teal */
+		oklch(0.48 0.12 180) 100%   /* Ocean Blue */
+	);
+	
+	/* Simplify gradient variants for different contexts */
+	--gradient-simplify-soft: linear-gradient(
+		135deg,
+		oklch(0.45 0.16 235 / 0.1) 0%,
+		oklch(0.55 0.14 200 / 0.08) 35%,
+		oklch(0.48 0.12 180 / 0.06) 100%
+	);
+	
+	--gradient-simplify-radial: radial-gradient(
+		ellipse at center,
+		oklch(0.45 0.16 235 / 0.08) 0%,
+		oklch(0.55 0.14 200 / 0.04) 50%,
+		transparent 100%
+	);
+	
+	/* === SUPPORTING BRAND GRADIENTS === */
+	
+	/* Professional gradient for CTAs and primary actions */
+	--gradient-primary: linear-gradient(
+		135deg,
+		oklch(0.52 0.18 235) 0%,     /* Primary brand */
+		oklch(0.44 0.18 235) 100%    /* Primary hover */
+	);
+	
+	/* Accent gradient for secondary actions */
+	--gradient-accent: linear-gradient(
+		135deg,
+		oklch(0.55 0.15 185) 0%,     /* Teal */
+		oklch(0.48 0.15 185) 100%    /* Teal darker */
+	);
+	
+	/* Success gradient for positive actions */
+	--gradient-success: linear-gradient(
+		135deg,
+		oklch(0.55 0.15 140) 0%,     /* Green */
+		oklch(0.48 0.15 140) 100%    /* Green darker */
+	);
+	
+	/* === TEXT GRADIENTS === */
+	
+	/* Primary text gradient for headings */
+	--gradient-text-simplify: linear-gradient(
+		135deg,
+		oklch(0.45 0.16 235),        /* Steel Blue */
+		oklch(0.55 0.14 200),        /* Deep Teal */
+		oklch(0.48 0.12 180)         /* Ocean Blue */
+	);
+	
+	/* Subtle text gradient for subheadings */
+	--gradient-text-subtle: linear-gradient(
+		135deg,
+		oklch(0.42 0.008 240),       /* Primary text */
+		oklch(0.52 0.007 240)        /* Secondary text */
+	);
+	
+	/* === BACKGROUND GRADIENTS === */
+	
+	/* Hero section background */
+	--gradient-hero-bg: linear-gradient(
+		135deg,
+		oklch(0.98 0.001 240) 0%,    /* Background */
+		oklch(0.97 0.002 235) 50%,   /* Slight blue tint */
+		oklch(0.98 0.001 200) 100%   /* Slight teal tint */
+	);
+	
+	/* Card hover gradients */
+	--gradient-card-hover: linear-gradient(
+		135deg,
+		oklch(1 0 0) 0%,             /* White */
+		oklch(0.98 0.001 235) 100%   /* Very light blue */
+	);
+	
+	/* === INTERACTIVE GRADIENTS === */
+	
+	/* Button hover states */
+	--gradient-button-primary-hover: linear-gradient(
+		135deg,
+		oklch(0.44 0.18 235) 0%,     /* Primary hover */
+		oklch(0.36 0.16 235) 100%    /* Primary active */
+	);
+	
+	/* Focus ring gradient */
+	--gradient-focus-ring: linear-gradient(
+		135deg,
+		oklch(0.52 0.18 235 / 0.3),  /* Primary focus */
+		oklch(0.55 0.14 200 / 0.2)   /* Accent focus */
+	);
+	
+	/* === CHART AND DATA GRADIENTS === */
+	
+	/* Chart color gradients for data visualization */
+	--gradient-chart-primary: linear-gradient(
+		180deg,
+		oklch(0.52 0.18 235) 0%,     /* Primary */
+		oklch(0.52 0.18 235 / 0.1) 100%
+	);
+	
+	--gradient-chart-accent: linear-gradient(
+		180deg,
+		oklch(0.55 0.15 185) 0%,     /* Teal */
+		oklch(0.55 0.15 185 / 0.1) 100%
+	);
+	
+	--gradient-chart-success: linear-gradient(
+		180deg,
+		oklch(0.55 0.15 140) 0%,     /* Green */
+		oklch(0.55 0.15 140 / 0.1) 100%
+	);
+	
+	/* === SHADOW GRADIENTS === */
+	
+	/* Brand-colored shadows for premium elements */
+	--shadow-simplify: 0 8px 25px -8px oklch(0.45 0.16 235 / 0.15);
+	--shadow-primary: 0 4px 6px -1px oklch(0.52 0.18 235 / 0.1);
+	--shadow-accent: 0 4px 6px -1px oklch(0.55 0.15 185 / 0.1);
+	
+	/* Glow effects for CTAs */
+	--glow-simplify: 0 0 20px -4px oklch(0.45 0.16 235 / 0.3);
+	--glow-primary: 0 0 15px -3px oklch(0.52 0.18 235 / 0.25);
+}
+
+/* === DARK MODE VARIANTS === */
+.dark {
+	/* Adjusted gradients for dark theme */
+	--gradient-simplify: linear-gradient(
+		135deg,
+		oklch(0.65 0.16 235) 0%,     /* Lighter for dark mode */
+		oklch(0.7 0.14 200) 35%,
+		oklch(0.68 0.12 180) 100%
+	);
+	
+	--gradient-hero-bg: linear-gradient(
+		135deg,
+		oklch(0.15 0.011 240) 0%,    /* Dark background */
+		oklch(0.16 0.01 235) 50%,
+		oklch(0.15 0.011 200) 100%
+	);
+	
+	--gradient-card-hover: linear-gradient(
+		135deg,
+		oklch(0.18 0.01 240) 0%,     /* Dark card */
+		oklch(0.19 0.009 235) 100%
+	);
+	
+	/* Enhanced shadows for dark mode */
+	--shadow-simplify: 0 8px 25px -8px oklch(0.65 0.16 235 / 0.2);
+	--glow-simplify: 0 0 20px -4px oklch(0.65 0.16 235 / 0.4);
+}
+
+/* === UTILITY CLASSES === */
+
+/* Background gradients */
+.bg-simplify {
+	background: var(--gradient-simplify);
+}
+
+.bg-simplify-soft {
+	background: var(--gradient-simplify-soft);
+}
+
+.bg-simplify-radial {
+	background: var(--gradient-simplify-radial);
+}
+
+.bg-hero {
+	background: var(--gradient-hero-bg);
+}
+
+/* Text gradients */
+.text-simplify {
+	background: var(--gradient-text-simplify);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+}
+
+.text-gradient-subtle {
+	background: var(--gradient-text-subtle);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+}
+
+/* Shadow utilities */
+.shadow-simplify {
+	box-shadow: var(--shadow-simplify);
+}
+
+.shadow-primary-brand {
+	box-shadow: var(--shadow-primary);
+}
+
+.shadow-accent-brand {
+	box-shadow: var(--shadow-accent);
+}
+
+/* Glow effects */
+.glow-simplify {
+	box-shadow: var(--glow-simplify);
+}
+
+.glow-primary {
+	box-shadow: var(--glow-primary);
+}
+
+/* Interactive hover states */
+.hover-simplify:hover {
+	background: var(--gradient-simplify);
+	color: white;
+	box-shadow: var(--shadow-simplify);
+	transition: all 0.3s ease;
+}
+
+/* Focus states with brand colors */
+.focus-simplify:focus-visible {
+	outline: 2px solid transparent;
+	box-shadow: 0 0 0 3px oklch(0.52 0.18 235 / 0.3);
+	border-color: oklch(0.52 0.18 235);
+}

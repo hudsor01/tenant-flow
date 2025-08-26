@@ -4,28 +4,12 @@
 
 import { apiClient } from '@/lib/api-client'
 import type {
-	Property,
-	Tenant,
-	Lease,
-	MaintenanceRequest,
 	ActivityItem,
 	DashboardStats
 } from '@repo/shared'
 
 // Local types for dashboard-specific data (not implemented in backend yet)
-interface PropertyMetric {
-	id: string
-	name: string
-	value: number
-	change: number
-	period: string
-}
-
-interface PropertyTrend {
-	period: string
-	value: number
-	date: string
-}
+// Removed unused interfaces: PropertyMetric, PropertyTrend
 
 export interface UpcomingTask {
 	id: string
@@ -83,16 +67,17 @@ export const dashboardApi = {
 		return apiClient.get<DashboardStats>('/dashboard/stats')
 	},
 
-	async getUpcomingTasks(limit = 10) {
+	async getUpcomingTasks(_limit = 10) {
 		// Backend doesn't have tasks endpoint - return empty array
 		// This is handled gracefully by hooks with error fallbacks
 		return Promise.resolve([])
 	},
 
 	async getRecentActivity(limit = 20) {
-		// Backend has getActivity method but no HTTP endpoint
-		// Return empty array - handled gracefully by hooks
-		return Promise.resolve([])
+		// Backend has /dashboard/activity endpoint
+		return apiClient.get<ActivityItem[]>('/dashboard/activity', { 
+			params: { limit } 
+		})
 	},
 
 	async getAlerts() {
@@ -100,17 +85,17 @@ export const dashboardApi = {
 		return Promise.resolve([])
 	},
 
-	async getMetrics(period: 'week' | 'month' | 'year' = 'month') {
+	async getMetrics(_period: 'week' | 'month' | 'year' = 'month') {
 		// Backend doesn't have metrics endpoint - return empty array
 		return Promise.resolve([])
 	},
 
-	async getOccupancyTrends(months = 12) {
+	async getOccupancyTrends(_months = 12) {
 		// Backend doesn't have trends endpoints - return empty array
 		return Promise.resolve([])
 	},
 
-	async getRevenueTrends(months = 12) {
+	async getRevenueTrends(_months = 12) {
 		// Backend doesn't have trends endpoints - return empty array
 		return Promise.resolve([])
 	}

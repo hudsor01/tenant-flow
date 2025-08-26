@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
 import type { PLAN_TYPE } from '@repo/shared'
-import { SubscriptionCheckoutWrapper } from './subscription-checkout-wrapper'
+import { SubscriptionCheckout } from './subscription-checkout'
 import {
 	Dialog,
 	DialogContent,
@@ -73,7 +73,7 @@ export function CheckoutButton({
 						</DialogDescription>
 					</DialogHeader>
 
-					<SubscriptionCheckoutWrapper
+					<SubscriptionCheckout
 						planType={planType}
 						billingInterval={billingInterval}
 						onSuccess={handleSuccess}

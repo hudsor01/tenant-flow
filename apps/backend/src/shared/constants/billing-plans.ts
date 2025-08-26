@@ -16,8 +16,7 @@ class BillingPlansManager {
 	private _plans?: Record<string, BillingPlan>
 
 	get plans(): Record<string, BillingPlan> {
-		if (!this._plans) {
-			this._plans = {
+		this._plans ??= {
 				[PLAN_TYPE.FREETRIAL]: {
 					id: PLAN_TYPE.FREETRIAL,
 					name: 'Free Trial',
@@ -63,7 +62,7 @@ class BillingPlansManager {
 					}
 				}
 			}
-		}
+
 		return this._plans
 	}
 }

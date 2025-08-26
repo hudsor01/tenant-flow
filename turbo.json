@@ -177,7 +177,7 @@
 			"persistent": false
 		},
 		"typecheck": {
-			"dependsOn": ["@repo/shared#build"],
+			"dependsOn": ["^build"],
 			"inputs": [
 				"**/*.ts",
 				"**/*.tsx",
@@ -187,12 +187,27 @@
 				"!.next/**",
 				"!coverage/**"
 			],
-			"outputs": [],
+			"outputs": [".tsbuildinfo", "*/.tsbuildinfo"],
+			"cache": true,
+			"persistent": false
+		},
+		"check-types": {
+			"dependsOn": ["^build"],
+			"inputs": [
+				"**/*.ts",
+				"**/*.tsx",
+				"tsconfig*.json",
+				"!node_modules/**",
+				"!dist/**",
+				"!.next/**",
+				"!coverage/**"
+			],
+			"outputs": [".tsbuildinfo", "*/.tsbuildinfo"],
 			"cache": true,
 			"persistent": false
 		},
 		"@repo/frontend#typecheck": {
-			"dependsOn": ["@repo/shared#build"],
+			"dependsOn": ["@repo/shared#build", "@repo/database#build"],
 			"inputs": [
 				"src/**",
 				"app/**",
@@ -229,7 +244,7 @@
 				"!**/*.test.*",
 				"!**/*.spec.*"
 			],
-			"outputs": [],
+			"outputs": ["dist/.tsbuildinfo"],
 			"cache": true,
 			"persistent": false
 		},

@@ -4,7 +4,7 @@
 
 import { cookies } from 'next/headers'
 import type { AuthFormState } from './auth-actions'
-import { registerAction } from './auth-actions'
+// registerAction removed - no longer exists in auth-actions
 
 /**
  * Update Password Server Action
@@ -102,12 +102,18 @@ export async function getCurrentUser() {
  * Signup Server Action
  */
 export async function signupAction(
-  prevState: AuthFormState,
-  formData: FormData
+  _prevState: AuthFormState,
+  _formData: FormData
 ): Promise<AuthFormState> {
-  // Use the existing registerAction
-  return registerAction(prevState, formData)
+  // Stub implementation - registerAction removed
+  return {
+    success: false,
+    error: 'Registration not implemented in extended actions'
+  }
 }
+
+// Alias for compatibility
+export const registerAction = signupAction
 
 /**
  * Forgot Password Server Action

@@ -10,7 +10,7 @@ import {
 	CardHeader,
 	CardTitle
 } from '@/components/ui/card'
-import { logger } from '@/lib/logger'
+import { logger } from "@/lib/logger/logger"
 import { useErrorHandler } from '@/lib/error-handling'
 import Link from 'next/link'
 
@@ -84,10 +84,10 @@ class ErrorBoundary extends React.Component<
 		})
 	}
 
-	override render() {
+	override async render() {
 		if (this.state.hasError) {
 			const FallbackComponent =
-				this.props.fallback || DefaultErrorFallback
+				this.props.fallback ?? DefaultErrorFallback
 			return (
 				<FallbackComponent
 					error={this.state.error ?? new Error('Unknown error')}

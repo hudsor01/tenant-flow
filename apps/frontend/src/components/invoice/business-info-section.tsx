@@ -2,7 +2,7 @@ import { Building } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import type { BusinessInfoSectionProps } from '@/types/components'
+import type { BusinessInfoSectionProps } from '@/types'
 
 export function BusinessInfoSection({
 	register,
@@ -42,7 +42,7 @@ export function BusinessInfoSection({
 						/>
 						{errors.businessName && (
 							<p className="text-xs text-red-400">
-								{errors.businessName.message}
+								{errors.businessName.message!}
 							</p>
 						)}
 					</div>
@@ -68,7 +68,7 @@ export function BusinessInfoSection({
 						/>
 						{errors.businessEmail && (
 							<p className="text-xs text-red-400">
-								{errors.businessEmail.message}
+								{errors.businessEmail.message!}
 							</p>
 						)}
 					</div>

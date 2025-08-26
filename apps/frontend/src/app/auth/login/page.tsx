@@ -3,7 +3,7 @@
  * Handles authentication flow with proper server/client separation
  */
 
-import type { Metadata } from '@/types/next.d'
+import type { Metadata } from 'next/types'
 import { Suspense } from 'react'
 import { AuthLayout } from '@/components/layout/auth/layout'
 import { SimpleLoginForm } from '@/components/forms/supabase-login-form'

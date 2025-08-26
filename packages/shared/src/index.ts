@@ -13,8 +13,6 @@ export type {
 	Unit,
 	PropertyType,
 	UnitStatus,
-	PropertyStats,
-	UnitStats,
 	CreatePropertyInput,
 	UpdatePropertyInput
 } from './types/properties'
@@ -28,7 +26,7 @@ export type {
 } from './types/relations'
 
 // Tenant Types
-export type { Tenant, TenantStats, InvitationStatus } from './types/tenants'
+export type { Tenant, InvitationStatus } from './types/tenants'
 
 // Lease Types
 export type { Lease, LeaseStatus } from './types/leases'
@@ -50,7 +48,8 @@ export type {
 	UpdateUnitInput,
 	CreateMaintenanceInput,
 	UpdateMaintenanceInput,
-	UpdateUserProfileInput
+	UpdateUserProfileInput,
+	UseLeaseFormProps
 } from './types/api-inputs'
 
 // Blog Types
@@ -58,6 +57,16 @@ export type { BlogArticleWithDetails } from './types/blog'
 
 // Dashboard Stats
 export type { DashboardStats, ActivityItem } from './types/api'
+
+// Statistics Types (centralized)
+export type {
+	BaseStats,
+	PropertyStats,
+	TenantStats, 
+	UnitStats,
+	LeaseStats,
+	MaintenanceStats
+} from './types/stats'
 
 // Analytics Types
 export type {
@@ -82,7 +91,8 @@ export type {
 	PaymentMethod,
 	Plan,
 	SubStatus,
-	UpdateSubscriptionParams
+	UpdateSubscriptionParams,
+	SubscriptionSyncResult
 } from './types/billing'
 export type {
 	CreateCheckoutInput,
@@ -132,7 +142,14 @@ export type {
 export type {
 	ErrorResponse,
 	SuccessResponse,
-	LoaderError
+	LoaderError,
+	AppError,
+	NetworkError,
+	ServerError,
+	BusinessError,
+	FileUploadError,
+	PaymentError,
+	ErrorContext
 } from './types/errors'
 
 export type { ApiErrorResponse } from './types/responses'
@@ -214,7 +231,7 @@ export type {
 	CommandHandler,
 	QueryHandler,
 	DomainService,
-	Factory,
+
 	UnitOfWork,
 	BusinessRule
 } from './types/domain'

@@ -3,7 +3,7 @@
  * Provides consistent loading UI for all mutation states
  */
 
-import { ButtonSpinner, Spinner, CenteredSpinner } from './spinner'
+import { ButtonSpinner, Spinner } from './spinner'
 import { Button } from './button'
 import { Card, CardContent } from './card'
 import { cn } from '@/lib/utils'
@@ -242,7 +242,7 @@ export function GlobalMutationLoading({
 	mutatingCount,
 	position = 'top'
 }: GlobalMutationLoadingProps) {
-	if (!isMutating) return null
+	if (!isMutating) {return null}
 
 	return (
 		<div
@@ -302,7 +302,7 @@ interface MutationFormProps {
 export function MutationForm({
 	children,
 	isLoading,
-	error,
+	error: _error,
 	onSubmit,
 	loadingMessage = 'Saving...',
 	className

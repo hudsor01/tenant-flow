@@ -55,7 +55,7 @@ export function useSignup({
 				}
 			})
 
-			if (error) throw error
+			if (error) {throw error}
 
 			if (authData.user) {
 				setSuccess(true)

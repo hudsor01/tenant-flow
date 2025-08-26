@@ -87,7 +87,7 @@ export function SEO({
 			const selector = useProperty
 				? `meta[property="${property}"]`
 				: `meta[name="${property}"]`
-			let tag = document.querySelector(selector) as HTMLMetaElement
+			let tag = document.querySelector(selector)!
 
 			if (!tag) {
 				tag = document.createElement('meta')
@@ -153,7 +153,7 @@ export function SEO({
 		if (canonical) {
 			let canonicalLink = document.querySelector(
 				'link[rel="canonical"]'
-			) as HTMLLinkElement
+			)!
 			if (!canonicalLink) {
 				canonicalLink = document.createElement('link')
 				canonicalLink.setAttribute('rel', 'canonical')

@@ -55,9 +55,10 @@ export class TenantsService {
 		private supabaseService: SupabaseService
 	) {
 		// Get user-scoped client if token available, otherwise admin client
+		const authHeader = this.request.headers.authorization
 		const token =
-			this.request.user?.supabaseToken ||
-			this.request.headers?.authorization?.replace('Bearer ', '')
+			this.request.user?.supabaseToken ??
+			(authHeader ? authHeader.replace('Bearer ', '') : undefined)
 
 		this.supabase = token
 			? this.supabaseService.getUserClient(token)
@@ -146,7 +147,7 @@ export class TenantsService {
 		const tenant = data as TenantWithRelations
 		const hasOwnership = tenant._Lease?.some(
 			lease => lease.Unit?.Property?.ownerId === ownerId
-		)
+		) ?? false
 
 		if (!hasOwnership) {
 			throw new NotFoundException(`Tenant not found`)
@@ -364,7 +365,7 @@ export class TenantsService {
 		for (const tenant of tenants) {
 			const hasActiveLeases = tenant._Lease?.some(
 				lease => lease.status === 'ACTIVE'
-			)
+			) ?? false
 
 			if (hasActiveLeases) {
 				stats.active++

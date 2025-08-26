@@ -1,7 +1,12 @@
 import { X } from 'lucide-react'
 import { Dialog, DialogContent } from '../ui/dialog'
 import { Button } from '../ui/button'
-import type { UpgradePromptModalProps } from '@/types'
+// Define props inline to avoid missing types
+interface UpgradePromptModalProps {
+	isOpen: boolean
+	onClose: () => void
+	reason?: string
+}
 
 export function UpgradePromptModal({
 	isOpen,

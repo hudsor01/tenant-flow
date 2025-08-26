@@ -6,7 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Building, MapPin, Users, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { propertyApi } from '@/lib/api/properties'
-import type { Property, PropertyStats } from '@repo/shared'
+import type { Property } from '@repo/shared'
 
 // Loading skeleton for property cards
 function PropertyCardSkeleton() {
@@ -137,7 +137,7 @@ async function PropertyStatsComponent() {
 			<Card>
 				<CardContent className="p-4">
 					<div className="text-2xl font-bold">
-						{stats.occupiedUnits + stats.vacantUnits || 0}
+						{stats.occupied + stats.vacant || 0}
 					</div>
 					<p className="text-muted-foreground text-sm">Total Units</p>
 				</CardContent>
