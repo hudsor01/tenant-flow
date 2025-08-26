@@ -1,7 +1,7 @@
 /**
  * NestJS + Fastify specific ESLint configuration for TenantFlow backend
  * ESLint v9 flat config with TypeScript ESLint v8.40.0 optimization
- * 
+ *
  * Latest Updates:
  * - Enhanced TypeScript ESLint v8 type-aware rules for better reliability
  * - NestJS 11+ and Fastify 11+ specific optimizations
@@ -15,7 +15,7 @@ import baseConfig from './base.js'
 
 export default tseslint.config(
 	...baseConfig,
-	
+
 	// Enhanced NestJS backend configuration with TypeScript ESLint v8
 	{
 		name: 'nestjs/backend',
@@ -63,7 +63,7 @@ export default tseslint.config(
 				}
 			],
 			'@typescript-eslint/no-namespace': 'off', // NestJS uses namespaces for decorators
-			
+
 			// Enhanced type-aware rules for backend safety
 			'@typescript-eslint/await-thenable': 'error',
 			'@typescript-eslint/no-for-in-array': 'error',
@@ -82,7 +82,7 @@ export default tseslint.config(
 			'@typescript-eslint/no-mixed-enums': 'error',
 			'@typescript-eslint/switch-exhaustiveness-check': 'error',
 			'@typescript-eslint/unified-signatures': 'error',
-			
+
 			// Backend-specific type checking (enable key safety rules)
 			'@typescript-eslint/no-unsafe-assignment': 'warn', // Warn instead of off for backend safety
 			'@typescript-eslint/no-unsafe-member-access': 'warn',
@@ -107,7 +107,7 @@ export default tseslint.config(
 			'no-return-await': 'off', // TypeScript handles this better
 			'@typescript-eslint/return-await': ['error', 'in-try-catch'],
 			'no-duplicate-imports': 'error',
-			
+
 			// Import organization (less strict for NestJS due to decorators)
 			'sort-imports': 'off', // Too strict for NestJS imports
 			'@typescript-eslint/consistent-type-imports': [
@@ -118,7 +118,7 @@ export default tseslint.config(
 					disallowTypeAnnotations: true
 				}
 			],
-			
+
 			// Enhanced async/Promise handling for backend reliability
 			'@typescript-eslint/no-floating-promises': [
 				'error',
@@ -140,11 +140,12 @@ export default tseslint.config(
 				}
 			],
 			'@typescript-eslint/promise-function-async': 'error', // Backend should be explicit about async
-			
+
 			// Enhanced error handling for backend
 			'@typescript-eslint/only-throw-error': 'error',
-			'@typescript-eslint/use-unknown-in-catch-callback-variable': 'error',
-			
+			'@typescript-eslint/use-unknown-in-catch-callback-variable':
+				'error',
+
 			// Performance optimizations
 			'@typescript-eslint/prefer-for-of': 'warn',
 			'@typescript-eslint/prefer-includes': 'warn',
@@ -158,7 +159,7 @@ export default tseslint.config(
 					ignoreMixedLogicalExpressions: true
 				}
 			],
-			
+
 			// Code quality with TypeScript ESLint v8
 			'@typescript-eslint/no-unnecessary-condition': 'warn',
 			'@typescript-eslint/no-unnecessary-type-arguments': 'warn',
@@ -172,7 +173,7 @@ export default tseslint.config(
 			'@typescript-eslint/no-unnecessary-qualifier': 'warn'
 		}
 	},
-	
+
 	// Controllers and Decorators with TypeScript ESLint
 	{
 		name: 'nestjs/controllers',
@@ -193,7 +194,7 @@ export default tseslint.config(
 			]
 		}
 	},
-	
+
 	// Services and Repositories with moderate TypeScript rules
 	{
 		name: 'nestjs/services',
@@ -229,20 +230,31 @@ export default tseslint.config(
 			]
 		}
 	},
-	
+
 	// DTOs and Entities with TypeScript ESLint
 	{
 		name: 'nestjs/dto-entities',
-		files: ['**/*.dto.ts', '**/*.entity.ts', '**/*.interface.ts', '**/*.schema.ts'],
+		files: [
+			'**/*.dto.ts',
+			'**/*.entity.ts',
+			'**/*.interface.ts',
+			'**/*.schema.ts'
+		],
 		rules: {
 			'@typescript-eslint/no-empty-interface': 'off',
 			'@typescript-eslint/no-unused-vars': 'off', // DTOs might have unused fields
 			'@typescript-eslint/no-explicit-any': 'off', // DTOs might need any for flexibility
-			'@typescript-eslint/consistent-indexed-object-style': ['warn', 'record'],
-			'@typescript-eslint/consistent-type-definitions': ['error', 'interface']
+			'@typescript-eslint/consistent-indexed-object-style': [
+				'warn',
+				'record'
+			],
+			'@typescript-eslint/consistent-type-definitions': [
+				'error',
+				'interface'
+			]
 		}
 	},
-	
+
 	// Modules and Configuration
 	{
 		name: 'nestjs/modules',
@@ -257,11 +269,17 @@ export default tseslint.config(
 			'@typescript-eslint/no-dynamic-delete': 'off'
 		}
 	},
-	
+
 	// Guards, Interceptors, Filters, Pipes - TypeScript ESLint optimized
 	{
 		name: 'nestjs/middleware',
-		files: ['**/*.guard.ts', '**/*.interceptor.ts', '**/*.filter.ts', '**/*.pipe.ts', '**/*.middleware.ts'],
+		files: [
+			'**/*.guard.ts',
+			'**/*.interceptor.ts',
+			'**/*.filter.ts',
+			'**/*.pipe.ts',
+			'**/*.middleware.ts'
+		],
 		rules: {
 			'@typescript-eslint/no-explicit-any': 'off',
 			'@typescript-eslint/explicit-function-return-type': 'off',
@@ -272,7 +290,7 @@ export default tseslint.config(
 			'@typescript-eslint/unbound-method': 'off'
 		}
 	},
-	
+
 	// Decorators with TypeScript ESLint
 	{
 		name: 'nestjs/decorators',
@@ -283,7 +301,7 @@ export default tseslint.config(
 			'@typescript-eslint/no-restricted-types': 'off'
 		}
 	},
-	
+
 	// Test files with TypeScript ESLint
 	{
 		name: 'nestjs/tests',
@@ -310,7 +328,7 @@ export default tseslint.config(
 			'no-console': 'off'
 		}
 	},
-	
+
 	// Migration files with TypeScript ESLint
 	{
 		name: 'nestjs/migrations',
@@ -324,7 +342,7 @@ export default tseslint.config(
 			'no-console': 'off'
 		}
 	},
-	
+
 	// CLI Commands with TypeScript ESLint
 	{
 		name: 'nestjs/commands',

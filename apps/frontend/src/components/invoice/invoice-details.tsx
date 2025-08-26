@@ -7,7 +7,7 @@ import type { InvoiceDetailsProps } from '@/types'
 
 export function InvoiceDetails({ register }: InvoiceDetailsProps) {
 	return (
-		<Card className="group bg-card/80 h-fit border-0 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl">
+		<Card className="bg-card/80 group h-fit border-0 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl">
 			<CardHeader className="from-primary/5 to-accent/5 border-border/50 flex items-center justify-center border-b bg-gradient-to-r py-4">
 				<CardTitle className="text-foreground flex items-center justify-center gap-3">
 					<div className="bg-primary/10 group-hover:bg-primary/20 rounded-lg p-2 transition-colors">
@@ -21,7 +21,7 @@ export function InvoiceDetails({ register }: InvoiceDetailsProps) {
 					<div className="flex items-center gap-4">
 						<Label
 							htmlFor="invoiceNumber"
-							className="text-sm font-medium whitespace-nowrap"
+							className="whitespace-nowrap text-sm font-medium"
 						>
 							Invoice Number
 						</Label>
@@ -35,7 +35,7 @@ export function InvoiceDetails({ register }: InvoiceDetailsProps) {
 					<div className="flex items-center gap-4">
 						<Label
 							htmlFor="dueDate"
-							className="text-sm font-medium whitespace-nowrap"
+							className="whitespace-nowrap text-sm font-medium"
 						>
 							Due Date
 						</Label>

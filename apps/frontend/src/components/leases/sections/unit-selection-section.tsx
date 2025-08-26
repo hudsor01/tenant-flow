@@ -43,7 +43,9 @@ export function UnitSelectionSection({
 	mode,
 	existingLeaseUnitId
 }: UnitSelectionSectionProps) {
-	if (!selectedProperty) {return null}
+	if (!selectedProperty) {
+		return null
+	}
 
 	const unitsToShow =
 		mode === 'edit'

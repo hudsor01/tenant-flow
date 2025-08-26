@@ -22,6 +22,7 @@
 		"src/test-setup.ts",
 		"src/auth/auth-production-diagnostic.ts",
 		"src/test-utils/**/*",
+		"src/shared/test-utils/**/*",
 		"src/queues/__tests__/**/*",
 		"src/**/__tests__/**/*"
 	],

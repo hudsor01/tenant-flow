@@ -36,6 +36,15 @@
 	}
 }
 
+@keyframes shimmer {
+	0% {
+		background-position: -200% 0;
+	}
+	100% {
+		background-position: 200% 0;
+	}
+}
+
 .animate-blob {
 	animation: blob 7s infinite;
 }
@@ -47,6 +56,10 @@
 
 .animate-fade-in-up {
 	animation: fade-in-up 0.6s ease-out forwards;
+}
+
+.animate-shimmer {
+	animation: shimmer 2s infinite;
 }
 
 .animation-delay-2000 {

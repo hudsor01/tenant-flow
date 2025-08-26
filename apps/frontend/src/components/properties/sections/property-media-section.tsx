@@ -31,7 +31,7 @@ export function PropertyMediaSection({
 				</Label>
 				<div className="relative">
 					<ImageIcon
-						className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400"
+						className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400"
 						aria-hidden="true"
 					/>
 					<Input
@@ -62,7 +62,9 @@ export function PropertyMediaSection({
 							width={400}
 							height={192}
 							className="h-48 w-full object-cover"
-							onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+							onError={(
+								e: React.SyntheticEvent<HTMLImageElement>
+							) => {
 								const target = e.target as HTMLImageElement
 								target.style.display = 'none'
 								const parentElement =

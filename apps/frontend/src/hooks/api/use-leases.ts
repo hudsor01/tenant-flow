@@ -107,16 +107,22 @@ export function useCreateLease(): UseMutationResult<
 		mutationFn: leaseApi.create,
 		onMutate: async newLease => {
 			// Cancel any outgoing refetches
-			await queryClient.cancelQueries({ queryKey: queryKeys.leases.lists() })
+			await queryClient.cancelQueries({
+				queryKey: queryKeys.leases.lists()
+			})
 
 			// Snapshot the previous value
-			const previousLeases = queryClient.getQueryData(queryKeys.leases.lists())
+			const previousLeases = queryClient.getQueryData(
+				queryKeys.leases.lists()
+			)
 
 			// Optimistically update all lease lists
 			queryClient.setQueriesData(
 				{ queryKey: queryKeys.leases.lists() },
 				(old: Lease[] | undefined) => {
-					if (!old) {return []}
+					if (!old) {
+						return []
+					}
 					return [
 						...old,
 						{
@@ -146,8 +152,12 @@ export function useCreateLease(): UseMutationResult<
 		},
 		onSettled: () => {
 			// Always refetch after error or success
-			void queryClient.invalidateQueries({ queryKey: queryKeys.leases.lists() })
-			void queryClient.invalidateQueries({ queryKey: queryKeys.leases.stats() })
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.leases.lists()
+			})
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.leases.stats()
+			})
 		}
 	})
 }
@@ -166,12 +176,20 @@ export function useUpdateLease(): UseMutationResult<
 		mutationFn: async ({ id, data }) => leaseApi.update(id, data),
 		onMutate: async ({ id, data }) => {
 			// Cancel queries for this lease
-			await queryClient.cancelQueries({ queryKey: queryKeys.leases.detail(id) })
-			await queryClient.cancelQueries({ queryKey: queryKeys.leases.lists() })
+			await queryClient.cancelQueries({
+				queryKey: queryKeys.leases.detail(id)
+			})
+			await queryClient.cancelQueries({
+				queryKey: queryKeys.leases.lists()
+			})
 
 			// Snapshot the previous values
-			const previousLease = queryClient.getQueryData(queryKeys.leases.detail(id))
-			const previousList = queryClient.getQueryData(queryKeys.leases.lists())
+			const previousLease = queryClient.getQueryData(
+				queryKeys.leases.detail(id)
+			)
+			const previousList = queryClient.getQueryData(
+				queryKeys.leases.lists()
+			)
 
 			// Optimistically update lease detail
 			queryClient.setQueryData(
@@ -214,9 +232,15 @@ export function useUpdateLease(): UseMutationResult<
 		},
 		onSettled: (data, err, { id }) => {
 			// Refetch to ensure consistency
-			void queryClient.invalidateQueries({ queryKey: queryKeys.leases.detail(id) })
-			void queryClient.invalidateQueries({ queryKey: queryKeys.leases.lists() })
-			void queryClient.invalidateQueries({ queryKey: queryKeys.leases.stats() })
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.leases.detail(id)
+			})
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.leases.lists()
+			})
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.leases.stats()
+			})
 		}
 	})
 }
@@ -231,10 +255,14 @@ export function useDeleteLease(): UseMutationResult<void, Error, string> {
 		mutationFn: leaseApi.delete,
 		onMutate: async id => {
 			// Cancel queries
-			await queryClient.cancelQueries({ queryKey: queryKeys.leases.lists() })
+			await queryClient.cancelQueries({
+				queryKey: queryKeys.leases.lists()
+			})
 
 			// Snapshot previous list
-			const previousList = queryClient.getQueryData(queryKeys.leases.lists())
+			const previousList = queryClient.getQueryData(
+				queryKeys.leases.lists()
+			)
 
 			// Optimistically remove lease from lists
 			queryClient.setQueriesData(
@@ -260,8 +288,12 @@ export function useDeleteLease(): UseMutationResult<void, Error, string> {
 		},
 		onSettled: () => {
 			// Refetch to ensure consistency
-			void queryClient.invalidateQueries({ queryKey: queryKeys.leases.lists() })
-			void queryClient.invalidateQueries({ queryKey: queryKeys.leases.stats() })
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.leases.lists()
+			})
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.leases.stats()
+			})
 		}
 	})
 }
@@ -283,8 +315,12 @@ export function useActivateLease(): UseMutationResult<Lease, Error, string> {
 			toast.error('Failed to activate lease')
 		},
 		onSettled: () => {
-			void queryClient.invalidateQueries({ queryKey: queryKeys.leases.lists() })
-			void queryClient.invalidateQueries({ queryKey: queryKeys.leases.stats() })
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.leases.lists()
+			})
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.leases.stats()
+			})
 		}
 	})
 }
@@ -300,7 +336,8 @@ export function useTerminateLease(): UseMutationResult<
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async ({ id, reason }) => leaseApi.terminate(id, { reason }),
+		mutationFn: async ({ id, reason }) =>
+			leaseApi.terminate(id, { reason }),
 		onSuccess: () => {
 			toast.success('Lease terminated successfully')
 		},
@@ -308,8 +345,12 @@ export function useTerminateLease(): UseMutationResult<
 			toast.error('Failed to terminate lease')
 		},
 		onSettled: () => {
-			void queryClient.invalidateQueries({ queryKey: queryKeys.leases.lists() })
-			void queryClient.invalidateQueries({ queryKey: queryKeys.leases.stats() })
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.leases.lists()
+			})
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.leases.stats()
+			})
 		}
 	})
 }
@@ -334,8 +375,12 @@ export function useRenewLease(): UseMutationResult<
 			toast.error('Failed to renew lease')
 		},
 		onSettled: () => {
-			void queryClient.invalidateQueries({ queryKey: queryKeys.leases.lists() })
-			void queryClient.invalidateQueries({ queryKey: queryKeys.leases.stats() })
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.leases.lists()
+			})
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.leases.stats()
+			})
 		}
 	})
 }

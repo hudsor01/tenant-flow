@@ -3,7 +3,7 @@
  * Consolidates duplicate formatDate implementations across lease templates
  */
 
-import { logger } from "@/lib/logger/logger"
+import { logger } from '@/lib/logger/logger'
 
 export interface DateFormatOptions {
 	format?: 'long' | 'short' | 'numeric'

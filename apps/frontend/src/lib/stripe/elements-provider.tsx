@@ -18,7 +18,7 @@ import {
 	type StripeElementsOptions
 } from '@stripe/stripe-js'
 import { useThemeManager } from '@/hooks/use-app-store'
-import { logger } from "@/lib/logger/logger"
+import { logger } from '@/lib/logger/logger'
 
 // Lazy load Stripe for better performance
 let stripePromise: Promise<Stripe | null> | null = null
@@ -262,7 +262,7 @@ export function EnhancedElementsProvider({
 				setIsLoading(false)
 			}
 		}
-		
+
 		void loadStripeInstance()
 	}, [])
 

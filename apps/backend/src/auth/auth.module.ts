@@ -19,11 +19,7 @@ import { CommonModule } from '../shared/common.module'
 		forwardRef(() => UsersModule)
 	],
 	controllers: [AuthController, AuthWebhookController],
-	providers: [
-		AuthService,
-		JwtAuthGuard
-	],
+	providers: [AuthService, JwtAuthGuard],
 	exports: [AuthService, JwtAuthGuard]
 })
- 
 export class AuthModule {}

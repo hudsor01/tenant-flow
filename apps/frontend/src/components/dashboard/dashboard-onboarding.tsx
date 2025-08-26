@@ -106,7 +106,7 @@ export function DashboardOnboarding() {
 	return (
 		<Card className="card-modern relative overflow-hidden border-blue-200 bg-gradient-to-br from-blue-50/80 via-indigo-50/40 to-purple-50/60 dark:border-blue-800 dark:from-blue-950/40 dark:via-indigo-950/20 dark:to-purple-950/30">
 			{/* Animated background elements */}
-			<div className="absolute top-0 right-0 h-32 w-32 animate-pulse rounded-full bg-gradient-to-br from-blue-400/10 to-purple-400/10 blur-2xl" />
+			<div className="absolute right-0 top-0 h-32 w-32 animate-pulse rounded-full bg-gradient-to-br from-blue-400/10 to-purple-400/10 blur-2xl" />
 			<div className="absolute bottom-0 left-0 h-24 w-24 animate-pulse rounded-full bg-gradient-to-tr from-indigo-400/10 to-blue-400/10 blur-xl delay-1000" />
 
 			<CardHeader className="relative pb-4">
@@ -172,7 +172,7 @@ export function DashboardOnboarding() {
 								)}
 							>
 								{/* Step number indicator */}
-								<div className="bg-background border-border absolute top-1/2 -left-2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border-2 text-xs font-bold">
+								<div className="bg-background border-border absolute -left-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border-2 text-xs font-bold">
 									{step.completed ? (
 										<CheckCircle2 className="h-3 w-3 text-green-600" />
 									) : (

@@ -2,7 +2,7 @@
  * Client-side CSRF token management
  */
 
-import { logger } from "@/lib/logger/logger"
+import { logger } from '@/lib/logger/logger'
 
 const TOKEN_CACHE_TIME = 60 * 60 * 1000 // 1 hour
 

@@ -19,7 +19,8 @@ import type { UseLeaseFormProps as BaseLeaseFormProps } from '@repo/shared'
 // ============================================================================
 
 // Extend base props to add component-specific props
-interface LeaseFormProps extends Omit<BaseLeaseFormProps, 'tenantId' | 'unitId'> {
+interface LeaseFormProps
+	extends Omit<BaseLeaseFormProps, 'tenantId' | 'unitId'> {
 	preselectedUnitId?: string
 	onCancel?: () => void
 	className?: string

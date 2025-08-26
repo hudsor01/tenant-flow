@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { logger } from "@/lib/logger/logger"
+import { logger } from '@/lib/logger/logger'
 import NextImage from 'next/image'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -17,7 +17,14 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { Image as ImageIcon, MoreVertical, Trash2, Star, Eye, Upload } from 'lucide-react'
+import {
+	Image as ImageIcon,
+	MoreVertical,
+	Trash2,
+	Star,
+	Eye,
+	Upload
+} from 'lucide-react'
 import { toast } from 'sonner'
 import { motion } from '@/lib/lazy-motion'
 import type { Property } from '@repo/shared'
@@ -115,7 +122,10 @@ export default function PropertyImageGallery({
 			<Card className={className}>
 				<CardHeader>
 					<CardTitle className="flex items-center">
-						<ImageIcon className="mr-2 h-5 w-5" aria-hidden="true" />
+						<ImageIcon
+							className="mr-2 h-5 w-5"
+							aria-hidden="true"
+						/>
 						Property Images
 					</CardTitle>
 				</CardHeader>
@@ -214,14 +224,14 @@ export default function PropertyImageGallery({
 
 										{/* Primary image badge */}
 										{isPrimaryImage(image.url) && (
-											<Badge className="absolute top-2 left-2 bg-yellow-500 text-white">
+											<Badge className="absolute left-2 top-2 bg-yellow-500 text-white">
 												<Star className="mr-1 h-3 w-3" />
 												Primary
 											</Badge>
 										)}
 
 										{/* Actions dropdown */}
-										<div className="absolute top-2 right-2 opacity-0 transition-opacity group-hover:opacity-100">
+										<div className="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100">
 											<DropdownMenu>
 												<DropdownMenuTrigger asChild>
 													<Button

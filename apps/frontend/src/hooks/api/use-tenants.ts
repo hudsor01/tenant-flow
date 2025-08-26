@@ -93,16 +93,22 @@ export function useCreateTenant(): UseMutationResult<
 		mutationFn: tenantApi.create,
 		onMutate: async newTenant => {
 			// Cancel any outgoing refetches
-			await queryClient.cancelQueries({ queryKey: queryKeys.tenants.lists() })
+			await queryClient.cancelQueries({
+				queryKey: queryKeys.tenants.lists()
+			})
 
 			// Snapshot the previous value
-			const previousTenants = queryClient.getQueryData(queryKeys.tenants.lists())
+			const previousTenants = queryClient.getQueryData(
+				queryKeys.tenants.lists()
+			)
 
 			// Optimistically update all tenant lists
 			queryClient.setQueriesData(
 				{ queryKey: queryKeys.tenants.lists() },
 				(old: Tenant[] | undefined) => {
-					if (!old) {return []}
+					if (!old) {
+						return []
+					}
 					return [
 						...old,
 						{
@@ -132,8 +138,12 @@ export function useCreateTenant(): UseMutationResult<
 		},
 		onSettled: () => {
 			// Always refetch after error or success
-			void queryClient.invalidateQueries({ queryKey: queryKeys.tenants.lists() })
-			void queryClient.invalidateQueries({ queryKey: queryKeys.tenants.stats() })
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.tenants.lists()
+			})
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.tenants.stats()
+			})
 		}
 	})
 }
@@ -152,14 +162,20 @@ export function useUpdateTenant(): UseMutationResult<
 		mutationFn: async ({ id, data }) => tenantApi.update(id, data),
 		onMutate: async ({ id, data }) => {
 			// Cancel queries for this tenant
-			await queryClient.cancelQueries({ queryKey: queryKeys.tenants.detail(id) })
-			await queryClient.cancelQueries({ queryKey: queryKeys.tenants.lists() })
+			await queryClient.cancelQueries({
+				queryKey: queryKeys.tenants.detail(id)
+			})
+			await queryClient.cancelQueries({
+				queryKey: queryKeys.tenants.lists()
+			})
 
 			// Snapshot the previous values
 			const previousTenant = queryClient.getQueryData(
 				queryKeys.tenants.detail(id)
 			)
-			const previousList = queryClient.getQueryData(queryKeys.tenants.lists())
+			const previousList = queryClient.getQueryData(
+				queryKeys.tenants.lists()
+			)
 
 			// Optimistically update tenant detail
 			queryClient.setQueryData(
@@ -202,9 +218,15 @@ export function useUpdateTenant(): UseMutationResult<
 		},
 		onSettled: (data, err, { id }) => {
 			// Refetch to ensure consistency
-			void queryClient.invalidateQueries({ queryKey: queryKeys.tenants.detail(id) })
-			void queryClient.invalidateQueries({ queryKey: queryKeys.tenants.lists() })
-			void queryClient.invalidateQueries({ queryKey: queryKeys.tenants.stats() })
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.tenants.detail(id)
+			})
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.tenants.lists()
+			})
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.tenants.stats()
+			})
 		}
 	})
 }
@@ -219,10 +241,14 @@ export function useDeleteTenant(): UseMutationResult<void, Error, string> {
 		mutationFn: tenantApi.delete,
 		onMutate: async id => {
 			// Cancel queries
-			await queryClient.cancelQueries({ queryKey: queryKeys.tenants.lists() })
+			await queryClient.cancelQueries({
+				queryKey: queryKeys.tenants.lists()
+			})
 
 			// Snapshot previous list
-			const previousList = queryClient.getQueryData(queryKeys.tenants.lists())
+			const previousList = queryClient.getQueryData(
+				queryKeys.tenants.lists()
+			)
 
 			// Optimistically remove tenant from lists
 			queryClient.setQueriesData(
@@ -248,8 +274,12 @@ export function useDeleteTenant(): UseMutationResult<void, Error, string> {
 		},
 		onSettled: () => {
 			// Refetch to ensure consistency
-			void queryClient.invalidateQueries({ queryKey: queryKeys.tenants.lists() })
-			void queryClient.invalidateQueries({ queryKey: queryKeys.tenants.stats() })
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.tenants.lists()
+			})
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.tenants.stats()
+			})
 		}
 	})
 }

@@ -108,10 +108,18 @@ export async function updateProfile(
 		const bio = formData.get('bio') as string
 		const company = formData.get('company') as string
 
-		if (name) {updates.full_name = name}
-		if (phone) {updates.phone = phone}
-		if (bio) {updates.bio = bio}
-		if (company) {updates.company = company}
+		if (name) {
+			updates.full_name = name
+		}
+		if (phone) {
+			updates.phone = phone
+		}
+		if (bio) {
+			updates.bio = bio
+		}
+		if (company) {
+			updates.company = company
+		}
 
 		const { error } = await supabase.auth.updateUser({
 			data: updates

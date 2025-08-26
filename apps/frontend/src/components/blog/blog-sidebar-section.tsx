@@ -44,7 +44,7 @@ export default function BlogSidebarSection({
 									href={`/blog/${article.slug}`}
 									className="group block"
 								>
-									<h4 className="text-foreground group-hover:text-primary mb-2 text-sm leading-snug font-medium transition-colors">
+									<h4 className="text-foreground group-hover:text-primary mb-2 text-sm font-medium leading-snug transition-colors">
 										{article.title}
 									</h4>
 									<p className="text-muted-foreground mb-2 text-xs">

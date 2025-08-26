@@ -4,7 +4,7 @@
  * Native TanStack Query implementation - no custom abstractions
  */
 import { useQuery, type UseQueryResult } from '@tanstack/react-query'
-import { logger } from "@/lib/logger/logger"
+import { logger } from '@/lib/logger/logger'
 import { dashboardApi, type UpcomingTask } from '@/lib/api/dashboard'
 import { queryKeys } from '@/lib/react-query/query-keys'
 import type { DashboardStats, ActivityItem } from '@repo/shared'

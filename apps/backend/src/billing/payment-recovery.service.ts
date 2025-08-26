@@ -22,9 +22,7 @@ import type { Enums } from '@repo/shared/types/supabase-generated'
 export class PaymentRecoveryService {
 	private readonly logger = new Logger(PaymentRecoveryService.name)
 
-	constructor(
-		private readonly supabaseService: SupabaseService
-	) {}
+	constructor(private readonly supabaseService: SupabaseService) {}
 
 	/**
 	 * Sync failed payment status from Stripe webhook

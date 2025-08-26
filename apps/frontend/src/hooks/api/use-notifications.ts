@@ -8,112 +8,112 @@ import type { MaintenancePriority as Priority } from '@repo/shared'
  * Hook for managing notifications - Direct TanStack Query usage per CLAUDE.md
  */
 export function useNotifications() {
-  const queryClient = useQueryClient()
-  
-  // Get notifications query
-  const {
-    data: notifications,
-    isLoading,
-    error,
-    refetch
-  } = useQuery({
-    queryKey: ['notifications'],
-    queryFn: async () => notificationApi.getNotifications()
-  })
+	const queryClient = useQueryClient()
 
-  // Get unread notifications query
-  const {
-    data: unreadNotifications,
-    isLoading: isLoadingUnread
-  } = useQuery({
-    queryKey: ['notifications', 'unread'],
-    queryFn: async () => notificationApi.getNotifications({ unreadOnly: true })
-  })
+	// Get notifications query
+	const {
+		data: notifications,
+		isLoading,
+		error,
+		refetch
+	} = useQuery({
+		queryKey: ['notifications'],
+		queryFn: async () => notificationApi.getNotifications()
+	})
 
-  // Create notification mutation - DIRECT usage per CLAUDE.md
-  const createNotificationMutation = useMutation({
-    mutationFn: notificationApi.send.bind(notificationApi),
-    onSuccess: () => {
-      toast.success('Notification sent successfully')
-      void queryClient.invalidateQueries({ queryKey: ['notifications'] })
-    },
-    onError: () => {
-      toast.error('Failed to send notification')
-    }
-  })
+	// Get unread notifications query
+	const { data: unreadNotifications, isLoading: isLoadingUnread } = useQuery({
+		queryKey: ['notifications', 'unread'],
+		queryFn: async () =>
+			notificationApi.getNotifications({ unreadOnly: true })
+	})
 
-  // Mark as read mutation - DIRECT usage per CLAUDE.md
-  const markAsReadMutation = useMutation({
-    mutationFn: notificationApi.markAsRead.bind(notificationApi),
-    onSuccess: () => {
-      toast.success('Notification marked as read')
-      void queryClient.invalidateQueries({ queryKey: ['notifications'] })
-    },
-    onError: () => {
-      toast.error('Failed to mark notification as read')
-    }
-  })
+	// Create notification mutation - DIRECT usage per CLAUDE.md
+	const createNotificationMutation = useMutation({
+		mutationFn: notificationApi.send.bind(notificationApi),
+		onSuccess: () => {
+			toast.success('Notification sent successfully')
+			void queryClient.invalidateQueries({ queryKey: ['notifications'] })
+		},
+		onError: () => {
+			toast.error('Failed to send notification')
+		}
+	})
 
-  // Create maintenance notification mutation - DIRECT usage per CLAUDE.md
-  const createMaintenanceNotificationMutation = useMutation({
-    mutationFn: async ({
-      ownerId,
-      title,
-      description,
-      priority,
-      propertyName,
-      unitNumber,
-      maintenanceId,
-      actionUrl
-    }: {
-      ownerId: string
-      title: string
-      description: string
-      priority: Priority
-      propertyName: string
-      unitNumber: string
-      maintenanceId?: string
-      actionUrl?: string
-    }) => notificationApi.createMaintenanceNotification(
-      ownerId,
-      title,
-      description,
-      priority,
-      propertyName,
-      unitNumber,
-      maintenanceId,
-      actionUrl
-    ),
-    onSuccess: () => {
-      toast.success('Maintenance notification created')
-      void queryClient.invalidateQueries({ queryKey: ['notifications'] })
-    },
-    onError: () => {
-      toast.error('Failed to create maintenance notification')
-    }
-  })
+	// Mark as read mutation - DIRECT usage per CLAUDE.md
+	const markAsReadMutation = useMutation({
+		mutationFn: notificationApi.markAsRead.bind(notificationApi),
+		onSuccess: () => {
+			toast.success('Notification marked as read')
+			void queryClient.invalidateQueries({ queryKey: ['notifications'] })
+		},
+		onError: () => {
+			toast.error('Failed to mark notification as read')
+		}
+	})
 
-  return {
-    // Data
-    notifications,
-    unreadNotifications,
-    
-    // Loading states
-    isLoading,
-    isLoadingUnread,
-    
-    // Error states
-    error,
-    
-    // Actions
-    createNotification: createNotificationMutation.mutate,
-    markAsRead: markAsReadMutation.mutate,
-    createMaintenanceNotification: createMaintenanceNotificationMutation.mutate,
-    refetch,
-    
-    // Mutation states
-    isCreating: createNotificationMutation.isPending,
-    isMarkingRead: markAsReadMutation.isPending,
-    isCreatingMaintenance: createMaintenanceNotificationMutation.isPending
-  }
+	// Create maintenance notification mutation - DIRECT usage per CLAUDE.md
+	const createMaintenanceNotificationMutation = useMutation({
+		mutationFn: async ({
+			ownerId,
+			title,
+			description,
+			priority,
+			propertyName,
+			unitNumber,
+			maintenanceId,
+			actionUrl
+		}: {
+			ownerId: string
+			title: string
+			description: string
+			priority: Priority
+			propertyName: string
+			unitNumber: string
+			maintenanceId?: string
+			actionUrl?: string
+		}) =>
+			notificationApi.createMaintenanceNotification(
+				ownerId,
+				title,
+				description,
+				priority,
+				propertyName,
+				unitNumber,
+				maintenanceId,
+				actionUrl
+			),
+		onSuccess: () => {
+			toast.success('Maintenance notification created')
+			void queryClient.invalidateQueries({ queryKey: ['notifications'] })
+		},
+		onError: () => {
+			toast.error('Failed to create maintenance notification')
+		}
+	})
+
+	return {
+		// Data
+		notifications,
+		unreadNotifications,
+
+		// Loading states
+		isLoading,
+		isLoadingUnread,
+
+		// Error states
+		error,
+
+		// Actions
+		createNotification: createNotificationMutation.mutate,
+		markAsRead: markAsReadMutation.mutate,
+		createMaintenanceNotification:
+			createMaintenanceNotificationMutation.mutate,
+		refetch,
+
+		// Mutation states
+		isCreating: createNotificationMutation.isPending,
+		isMarkingRead: markAsReadMutation.isPending,
+		isCreatingMaintenance: createMaintenanceNotificationMutation.isPending
+	}
 }

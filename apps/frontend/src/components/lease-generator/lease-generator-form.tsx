@@ -9,7 +9,7 @@
 
 // RESTORED WORKING IMPLEMENTATION
 import React, { useState, useEffect } from 'react'
-import { logger } from "@/lib/logger/logger"
+import { logger } from '@/lib/logger/logger'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { usePostHog } from 'posthog-js/react'
@@ -368,9 +368,7 @@ export default function LeaseGeneratorFormComponent({
 								handleUtilityToggle as (utility: string) => void
 							}
 							selectedFormat={selectedFormat}
-							setSelectedFormat={
-								setSelectedFormat
-							}
+							setSelectedFormat={setSelectedFormat}
 						/>
 					</TabsContent>
 				</Tabs>

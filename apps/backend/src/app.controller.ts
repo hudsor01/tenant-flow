@@ -3,8 +3,6 @@ import { Public } from './shared/decorators/public.decorator'
 
 @Controller()
 export class AppController {
-
-
 	@Get('api')
 	@Public()
 	getHello(): string {

@@ -151,9 +151,7 @@ export function SEO({
 
 		// Update canonical link
 		if (canonical) {
-			let canonicalLink = document.querySelector(
-				'link[rel="canonical"]'
-			)!
+			let canonicalLink = document.querySelector('link[rel="canonical"]')!
 			if (!canonicalLink) {
 				canonicalLink = document.createElement('link')
 				canonicalLink.setAttribute('rel', 'canonical')

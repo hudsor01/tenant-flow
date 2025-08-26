@@ -39,14 +39,17 @@ async function bootstrap() {
 	// Create bootstrap Pino logger (before Fastify is available)
 	const logger = pino({
 		level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-		transport: process.env.NODE_ENV !== 'production' ? {
-			target: 'pino-pretty',
-			options: {
-				colorize: true,
-				translateTime: 'HH:MM:ss Z',
-				ignore: 'pid,hostname'
-			}
-		} : undefined,
+		transport:
+			process.env.NODE_ENV !== 'production'
+				? {
+						target: 'pino-pretty',
+						options: {
+							colorize: true,
+							translateTime: 'HH:MM:ss Z',
+							ignore: 'pid,hostname'
+						}
+					}
+				: undefined,
 		base: { component: 'Bootstrap' }
 	})
 
@@ -60,25 +63,28 @@ async function bootstrap() {
 	logger.info(`Target Port: ${process.env.PORT ?? 4600}`)
 
 	logger.info('Creating NestJS application...')
-	const fastifyAdapter = new FastifyAdapter({ 
-		trustProxy: true, 
+	const fastifyAdapter = new FastifyAdapter({
+		trustProxy: true,
 		bodyLimit: 10485760,
 		logger: {
 			level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-			transport: process.env.NODE_ENV !== 'production' ? {
-				target: 'pino-pretty',
-				options: {
-					colorize: true,
-					translateTime: 'HH:MM:ss Z',
-					ignore: 'pid,hostname'
-				}
-			} : undefined
+			transport:
+				process.env.NODE_ENV !== 'production'
+					? {
+							target: 'pino-pretty',
+							options: {
+								colorize: true,
+								translateTime: 'HH:MM:ss Z',
+								ignore: 'pid,hostname'
+							}
+						}
+					: undefined
 		}
 	})
 	const app = await NestFactory.create<NestFastifyApplication>(
 		AppModule,
 		fastifyAdapter,
-		{ 
+		{
 			rawBody: true, // Enable raw body for webhook signature verification
 			logger: false // Disable NestJS logger in favor of Pino
 		}
@@ -126,14 +132,17 @@ async function bootstrap() {
 
 	// Core Fastify plugins - optimized order for performance and security
 	logger.info('Registering Fastify core plugins...')
-	
+
 	// 1. Environment validation (fail fast if config invalid)
 	await app.register(env, {
 		schema: {
 			type: 'object',
 			required: ['NODE_ENV'],
 			properties: {
-				NODE_ENV: { type: 'string', enum: ['development', 'production', 'test'] },
+				NODE_ENV: {
+					type: 'string',
+					enum: ['development', 'production', 'test']
+				},
 				PORT: { type: 'string', default: '4600' },
 				SUPABASE_URL: { type: 'string' },
 				SUPABASE_SERVICE_ROLE_KEY: { type: 'string' },
@@ -147,8 +156,10 @@ async function bootstrap() {
 	// 2. Request context for correlation IDs and tracing
 	await app.register(requestContext, {
 		defaultStoreValues: {
-			correlationId: () => `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-			traceId: () => `trace_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+			correlationId: () =>
+				`req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+			traceId: () =>
+				`trace_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
 			startTime: () => Date.now(),
 			timing: () => ({ startTime: Date.now() }),
 			// Request metadata will be populated by hooks
@@ -159,12 +170,12 @@ async function bootstrap() {
 		hook: 'onRequest' // Initialize context early in request lifecycle
 	})
 	logger.info('Request context plugin registered')
-	
+
 	// Request context hooks removed - using Fastify native hooks directly if needed
 
 	// Native performance monitoring via Railway logs - zero custom code needed
 	logger.info('Performance monitoring: Railway native metrics enabled')
-	logger.info('Memory monitoring: Railway native CPU/RAM tracking enabled')  
+	logger.info('Memory monitoring: Railway native CPU/RAM tracking enabled')
 	logger.info('Request context: NestJS AsyncLocalStorage enabled')
 
 	// 3. Cookie support for session management
@@ -188,15 +199,19 @@ async function bootstrap() {
 			sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax'
 		},
 		sessionPlugin: '@fastify/cookie',
-		getToken: (req) => {
+		getToken: req => {
 			// Skip CSRF for webhook endpoints
 			if (req.url?.includes('/webhook')) {
 				return undefined
 			}
 			const csrfToken = req.headers['x-csrf-token']
 			const xsrfToken = req.headers['x-xsrf-token']
-			if (typeof csrfToken === 'string') {return csrfToken}
-			if (typeof xsrfToken === 'string') {return xsrfToken}
+			if (typeof csrfToken === 'string') {
+				return csrfToken
+			}
+			if (typeof xsrfToken === 'string') {
+				return xsrfToken
+			}
 			return undefined
 		},
 		cookieKey: '_csrf'
@@ -207,7 +222,7 @@ async function bootstrap() {
 	await app.register(multipart, {
 		limits: {
 			fieldNameSize: 100, // Max field name size
-			fieldSize: 100, // Max field value size  
+			fieldSize: 100, // Max field value size
 			fields: 10, // Max number of non-file fields
 			fileSize: 10485760, // 10MB max file size (matches body limit)
 			files: 5, // Max number of file fields
@@ -252,23 +267,34 @@ async function bootstrap() {
 		cache: 10000, // Cache up to 10k IP addresses
 		allowList: ['127.0.0.1', '::1'], // Whitelist local IPs
 		continueExceeding: true, // Don't ban, just rate limit
-		keyGenerator: (req) => {
+		keyGenerator: req => {
 			// Enhanced key generation for better rate limiting
 			const forwarded = req.headers['x-forwarded-for']
 			const realIP = req.headers['x-real-ip']
 			const remoteAddress = req.socket.remoteAddress
 
 			// Normalize possible header shapes to single values
-			const forwardedValue = Array.isArray(forwarded) ? forwarded[0] : forwarded
+			const forwardedValue = Array.isArray(forwarded)
+				? forwarded[0]
+				: forwarded
 			const realIpValue = Array.isArray(realIP) ? realIP[0] : realIP
 
 			// Prefer the first entry of x-forwarded-for (if present), otherwise fallback
 			let clientIp = 'unknown'
-			if (typeof forwardedValue === 'string' && forwardedValue.trim() !== '') {
+			if (
+				typeof forwardedValue === 'string' &&
+				forwardedValue.trim() !== ''
+			) {
 				clientIp = forwardedValue.split(',')[0].trim()
-			} else if (typeof realIpValue === 'string' && realIpValue.trim() !== '') {
+			} else if (
+				typeof realIpValue === 'string' &&
+				realIpValue.trim() !== ''
+			) {
 				clientIp = realIpValue.trim()
-			} else if (typeof remoteAddress === 'string' && remoteAddress.trim() !== '') {
+			} else if (
+				typeof remoteAddress === 'string' &&
+				remoteAddress.trim() !== ''
+			) {
 				clientIp = remoteAddress
 			}
 
@@ -312,12 +338,12 @@ async function bootstrap() {
 				const start = Date.now()
 				await new Promise(resolve => setImmediate(resolve))
 				if (Date.now() - start > 100) return false // 100ms threshold
-				
+
 				// Memory percentage check (more reliable than fixed MB)
 				const mem = process.memoryUsage()
 				const heapPercent = (mem.heapUsed / mem.heapTotal) * 100
 				if (heapPercent > 95) return false // 95% heap usage threshold
-				
+
 				return true
 			} catch {
 				return false
@@ -338,8 +364,10 @@ async function bootstrap() {
 		threshold: 5, // Open circuit after 5 failures
 		timeout: 10000, // 10 second timeout
 		resetTimeout: 30000, // Reset after 30 seconds
-		onCircuitOpen: (req) => {
-			logger.warn(`Circuit breaker opened for ${req.url} - external service failures detected`)
+		onCircuitOpen: req => {
+			logger.warn(
+				`Circuit breaker opened for ${req.url} - external service failures detected`
+			)
 		}
 	})
 	logger.info('Circuit breaker plugin registered')
@@ -352,15 +380,19 @@ async function bootstrap() {
 				defaultSrc: ["'self'"],
 				styleSrc: ["'self'", "'unsafe-inline'"], // Required for some admin panels
 				scriptSrc: ["'self'"],
-				imgSrc: ["'self'", "data:", "https:"],
+				imgSrc: ["'self'", 'data:', 'https:'],
 				connectSrc: [
-					"'self'", 
-					"https://api.stripe.com", 
-					"https://*.supabase.co",
-					"https://api.resend.com", // Email service
-					"https://api.posthog.com" // Analytics (if used)
+					"'self'",
+					'https://api.stripe.com',
+					'https://*.supabase.co',
+					'https://api.resend.com', // Email service
+					'https://api.posthog.com' // Analytics (if used)
 				],
-				frameSrc: ["'self'", "https://js.stripe.com", "https://checkout.stripe.com"],
+				frameSrc: [
+					"'self'",
+					'https://js.stripe.com',
+					'https://checkout.stripe.com'
+				],
 				baseUri: ["'self'"],
 				formAction: ["'self'"],
 				objectSrc: ["'none'"], // Prevent object/embed/applet
@@ -375,7 +407,7 @@ async function bootstrap() {
 			includeSubDomains: true,
 			preload: true
 		},
-		// Basic security headers  
+		// Basic security headers
 		hidePoweredBy: true,
 		noSniff: true,
 		frameguard: { action: 'deny' }
@@ -385,18 +417,22 @@ async function bootstrap() {
 	// Initialize Fastify Type Providers for schema-driven validation
 	logger.info('Initializing Fastify Type Providers...')
 	try {
-		const { initializeTypeProviders, validateEnvironment } = await import('./setup-type-providers.js')
-		
+		const { initializeTypeProviders, validateEnvironment } = await import(
+			'./setup-type-providers.js'
+		)
+
 		// Validate environment with schema
 		const env = validateEnvironment()
 		logger.info(`✅ Environment validated (NODE_ENV: ${env.NODE_ENV})`)
-		
+
 		// Setup type providers
 		await initializeTypeProviders(fastifyAdapter)
 		logger.info('✅ Fastify Type Providers initialized successfully')
-		
 	} catch (typeProviderError) {
-		logger.error('❌ Failed to initialize Type Providers: ' + String(typeProviderError))
+		logger.error(
+			'❌ Failed to initialize Type Providers: ' +
+				String(typeProviderError)
+		)
 		// Continue without type providers in case of setup failure
 		logger.warn('⚠️  Continuing without schema-driven type inference')
 	}
@@ -406,7 +442,9 @@ async function bootstrap() {
 	app.enableShutdownHooks()
 
 	// Start server
-	const port = configService.get('PORT', 4600)
+	const portValue = configService.get<string | number>('PORT', 4600)
+	const port =
+		typeof portValue === 'string' ? parseInt(portValue, 10) : portValue
 	logger.info(`Preparing to start server on port ${port}...`)
 
 	try {
@@ -429,20 +467,20 @@ async function bootstrap() {
 
 		// Health check endpoints
 		logger.info('=== HEALTH CHECK ENDPOINTS ===')
-		logger.info(
-			`✅ Ping (bulletproof): http://localhost:${port}/health/ping`
-		)
-		logger.info(`🔍 Full health check: http://localhost:${port}/health`)
-		logger.info(`📊 Debug info: http://localhost:${port}/health/debug`)
-		logger.info(`🚀 Readiness probe: http://localhost:${port}/health/ready`)
+		const baseUrl = process.env.NODE_ENV === 'production' 
+			? 'https://api.tenantflow.app' 
+			: `http://localhost:${port}`
+		
+		logger.info(`✅ Ping (bulletproof): ${baseUrl}/health/ping`)
+		logger.info(`🔍 Full health check: ${baseUrl}/health`)
+		logger.info(`📊 Debug info: ${baseUrl}/health/debug`)
+		logger.info(`🚀 Readiness probe: ${baseUrl}/health/ready`)
 
-		// External URLs (if not local)
-		if (process.env.RAILWAY_ENVIRONMENT ?? process.env.VERCEL_ENV) {
-			logger.info('=== EXTERNAL ENDPOINTS ===')
-			logger.info(
-				`🌐 External health: https://api.tenantflow.app/health/ping`
-			)
-			logger.info(`🌐 External API: https://api.tenantflow.app/api/v1/`)
+		// External URLs for production
+		if (process.env.NODE_ENV === 'production') {
+			logger.info('=== PRODUCTION ENDPOINTS ===')
+			logger.info(`🌐 API Base: https://api.tenantflow.app/api/v1/`)
+			logger.info(`🔒 Environment: ${process.env.RAILWAY_ENVIRONMENT || 'production'}`)
 		}
 
 		logger.info('=== READY FOR TRAFFIC ===')
@@ -478,17 +516,20 @@ async function bootstrap() {
 bootstrap().catch((err: unknown) => {
 	const logger = pino({
 		level: 'error',
-		transport: process.env.NODE_ENV !== 'production' ? {
-			target: 'pino-pretty',
-			options: {
-				colorize: true,
-				translateTime: 'HH:MM:ss Z',
-				ignore: 'pid,hostname'
-			}
-		} : undefined,
+		transport:
+			process.env.NODE_ENV !== 'production'
+				? {
+						target: 'pino-pretty',
+						options: {
+							colorize: true,
+							translateTime: 'HH:MM:ss Z',
+							ignore: 'pid,hostname'
+						}
+					}
+				: undefined,
 		base: { component: 'Bootstrap-Error' }
 	})
-	
+
 	const error = err instanceof Error ? err : new Error(String(err))
 
 	logger.error('=== BOOTSTRAP CATASTROPHIC FAILURE ===')
@@ -528,5 +569,3 @@ bootstrap().catch((err: unknown) => {
 	logger.error('=== APPLICATION WILL EXIT ===')
 	process.exit(1)
 })
-
-

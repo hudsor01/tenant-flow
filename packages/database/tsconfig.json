@@ -49,9 +49,7 @@
 	},
 	"include": ["src/**/*"],
 	"exclude": ["node_modules", "dist", "src/generated"],
-	"references": [
-		{ "path": "../shared" }
-	],
+	"references": [{ "path": "../shared" }],
 	"ts-node": {
 		"swc": true
 	}

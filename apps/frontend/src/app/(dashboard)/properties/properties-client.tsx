@@ -64,11 +64,13 @@ export function PropertiesClient({ className }: PropertiesClientProps) {
 			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 				<div className="flex flex-1 gap-2">
 					<div className="relative max-w-sm flex-1">
-						<Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+						<Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
 						<Input
 							placeholder="Search properties..."
 							value={searchQuery}
-							onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+							onChange={(
+								e: React.ChangeEvent<HTMLInputElement>
+							) => setSearchQuery(e.target.value)}
 							className="pl-10"
 						/>
 					</div>

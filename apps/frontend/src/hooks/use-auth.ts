@@ -8,7 +8,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import { useAppStore } from '../stores/app-store'
-import { logger } from "@/lib/logger/logger"
+import { logger } from '@/lib/logger/logger'
 import { notifications } from '@/lib/toast'
 import type { AuthUser } from '@repo/shared'
 import type {
@@ -110,7 +110,9 @@ export function useAuth() {
 			data: { subscription }
 		} = supabase.auth.onAuthStateChange(
 			async (event: AuthChangeEvent, session: Session | null) => {
-				if (!mounted) {return}
+				if (!mounted) {
+					return
+				}
 
 				logger.debug('Auth state change event', {
 					component: 'useAuth',
@@ -220,16 +222,17 @@ export function useAuth() {
 				setLoading(true)
 				setError(null)
 
-				const { data: _data, error: authError } = await supabase.auth.signUp({
-					email,
-					password,
-					options: {
-						data: {
-							name,
-							full_name: name
+				const { data: _data, error: authError } =
+					await supabase.auth.signUp({
+						email,
+						password,
+						options: {
+							data: {
+								name,
+								full_name: name
+							}
 						}
-					}
-				})
+					})
 
 				if (authError) {
 					setError(authError.message)

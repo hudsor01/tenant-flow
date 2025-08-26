@@ -17,7 +17,7 @@ import {
 } from './index'
 import { DashboardErrorBoundary } from './dashboard-error-boundary'
 import { DashboardStatsLoading } from './dashboard-stats-loading'
-import { logger } from "@/lib/logger/logger"
+import { logger } from '@/lib/logger/logger'
 
 function DashboardContent() {
 	const { user } = useAuth()
@@ -71,7 +71,11 @@ function DashboardContent() {
 
 	// Error handling - throw to be caught by error boundary
 	if (statsError || activitiesError) {
-		throw new Error(statsError?.message || activitiesError?.message || 'Dashboard loading failed')
+		throw new Error(
+			statsError?.message ||
+				activitiesError?.message ||
+				'Dashboard loading failed'
+		)
 	}
 
 	return (
@@ -106,7 +110,11 @@ function DashboardContent() {
 
 				{/* Recent Activity */}
 				<DashboardActivityFeed
-					activities={activities?.filter(activity => activity.type !== undefined) as Array<ActivityItem & { type: ActivityType }> ?? []}
+					activities={
+						(activities?.filter(
+							activity => activity.type !== undefined
+						) as Array<ActivityItem & { type: ActivityType }>) ?? []
+					}
 					isLoading={isActivitiesLoading}
 				/>
 			</div>

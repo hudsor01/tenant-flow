@@ -84,7 +84,7 @@ export function Navigation({ className }: NavigationProps) {
 				{/* Desktop Search - Command Palette Trigger */}
 				<div className="hidden max-w-md flex-1 items-center gap-4 md:flex">
 					<div className="relative flex-1">
-						<Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
+						<Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
 						<Input
 							placeholder="Search properties, tenants... (⌘K)"
 							className="cursor-pointer pl-10"
@@ -162,7 +162,7 @@ export function Navigation({ className }: NavigationProps) {
 						>
 							<DropdownMenuLabel className="font-normal">
 								<div className="flex flex-col space-y-1">
-									<p className="text-sm leading-none font-medium">
+									<p className="text-sm font-medium leading-none">
 										{user?.name || 'User'}
 									</p>
 									<p className="text-muted-foreground text-xs leading-none">
@@ -210,8 +210,11 @@ export function Navigation({ className }: NavigationProps) {
 			{/* Mobile Sidebar - replaced with simpler navigation */}
 			{isMobileSidebarOpen && (
 				<div className="fixed inset-0 z-50 bg-black bg-opacity-50 md:hidden">
-					<div className="bg-white w-64 h-full p-4">
-						<button onClick={() => setIsMobileSidebarOpen(false)} className="mb-4">
+					<div className="h-full w-64 bg-white p-4">
+						<button
+							onClick={() => setIsMobileSidebarOpen(false)}
+							className="mb-4"
+						>
 							Close
 						</button>
 						<p className="text-gray-500">Navigation menu</p>

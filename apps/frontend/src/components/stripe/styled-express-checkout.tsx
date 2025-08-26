@@ -1,5 +1,5 @@
 import { ExpressCheckoutElement } from '@stripe/react-stripe-js'
-import { logger } from "@/lib/logger/logger"
+import { logger } from '@/lib/logger/logger'
 import { useState } from 'react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import type {

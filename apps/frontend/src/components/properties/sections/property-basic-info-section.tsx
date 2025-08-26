@@ -33,7 +33,7 @@ export function PropertyBasicInfoSection({
 					Property Name *
 				</Label>
 				<div className="relative">
-					<Building2 className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+					<Building2 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
 					<Input
 						id="name"
 						placeholder="e.g., Sunset Apartments, 123 Main St"
@@ -58,7 +58,7 @@ export function PropertyBasicInfoSection({
 				</Label>
 				<select
 					id="propertyType"
-					className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring focus:border-primary flex h-10 w-full rounded-md border px-3 py-2 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+					className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring focus:border-primary flex h-10 w-full rounded-md border px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
 					{...form.register('propertyType')}
 				>
 					<option value="SINGLE_FAMILY">Single Family Home</option>

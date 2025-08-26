@@ -44,7 +44,7 @@ export function useGenerateLeasePDF(): UseMutationResult<
 > {
 	return useMutation({
 		mutationFn: (leaseId: string) => pdfApi.generateLeasePDF(leaseId),
-		onSuccess: (data) => {
+		onSuccess: data => {
 			if (data.success) {
 				toast.success('Lease PDF generated successfully!')
 				// Auto-download if URL is provided
@@ -78,7 +78,7 @@ export function useGeneratePropertyReportPDF(): UseMutationResult<
 	return useMutation({
 		mutationFn: ({ propertyId, reportType = 'summary' }) =>
 			pdfApi.generatePropertyReportPDF(propertyId, reportType),
-		onSuccess: (data) => {
+		onSuccess: data => {
 			if (data.success) {
 				toast.success('Property report generated successfully!')
 				// Auto-download if URL is provided
@@ -110,8 +110,9 @@ export function useGenerateTenantReportPDF(): UseMutationResult<
 	string
 > {
 	return useMutation({
-		mutationFn: (tenantId: string) => pdfApi.generateTenantReportPDF(tenantId),
-		onSuccess: (data) => {
+		mutationFn: (tenantId: string) =>
+			pdfApi.generateTenantReportPDF(tenantId),
+		onSuccess: data => {
 			if (data.success) {
 				toast.success('Tenant report generated successfully!')
 				// Auto-download if URL is provided
@@ -148,8 +149,8 @@ export function useGenerateMaintenanceReportPDF(): UseMutationResult<
 	}
 > {
 	return useMutation({
-		mutationFn: (params) => pdfApi.generateMaintenanceReportPDF(params),
-		onSuccess: (data) => {
+		mutationFn: params => pdfApi.generateMaintenanceReportPDF(params),
+		onSuccess: data => {
 			if (data.success) {
 				toast.success('Maintenance report generated successfully!')
 				// Auto-download if URL is provided
@@ -177,12 +178,14 @@ export function useDownloadPDF(): UseMutationResult<Blob, Error, string> {
 			const url = window.URL.createObjectURL(blob)
 			const link = document.createElement('a')
 			link.href = url
-			link.download = fileName.includes('.pdf') ? fileName : `${fileName}.pdf`
+			link.download = fileName.includes('.pdf')
+				? fileName
+				: `${fileName}.pdf`
 			document.body.appendChild(link)
 			link.click()
 			link.remove()
 			window.URL.revokeObjectURL(url)
-			
+
 			toast.success('PDF downloaded successfully!')
 		},
 		onError: (error: Error) => {
@@ -202,7 +205,7 @@ export function usePDFOperations() {
 	const downloadPDF = useDownloadPDF()
 	const health = usePDFHealth()
 
-	const isGenerating = 
+	const isGenerating =
 		generateLease.isPending ||
 		generatePropertyReport.isPending ||
 		generateTenantReport.isPending ||
@@ -217,12 +220,12 @@ export function usePDFOperations() {
 		generateTenantReport: generateTenantReport.mutate,
 		generateMaintenanceReport: generateMaintenanceReport.mutate,
 		downloadPDF: downloadPDF.mutate,
-		
+
 		// Status
 		isGenerating,
 		isDownloading,
 		isHealthy: health.data?.status === 'ok',
-		
+
 		// Async versions for programmatic use
 		generateLeaseAsync: generateLease.mutateAsync,
 		generatePropertyReportAsync: generatePropertyReport.mutateAsync,

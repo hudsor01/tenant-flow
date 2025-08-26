@@ -9,7 +9,7 @@
 import { useEffect, useCallback, useRef } from 'react'
 import { toast } from 'sonner'
 import { useNotificationSystem } from '@/hooks/use-app-store'
-import { logger } from "@/lib/logger/logger"
+import { logger } from '@/lib/logger/logger'
 import type { WebhookNotification } from './webhook-server-processor'
 
 export interface WebhookClientOptions {

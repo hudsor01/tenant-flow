@@ -22,7 +22,8 @@ export type {
 	PropertyWithUnits,
 	PropertyWithDetails,
 	PropertyWithUnitsAndLeases,
-	TenantWithLeases
+	TenantWithLeases,
+	UnitWithDetails
 } from './types/relations'
 
 // Tenant Types
@@ -34,8 +35,15 @@ export type { Lease, LeaseStatus } from './types/leases'
 // Maintenance Types
 export type {
 	MaintenanceRequest,
+	MaintenanceRequestWithDetails,
 	Priority as MaintenancePriority,
 	RequestStatus as MaintenanceStatus
+} from './types/maintenance'
+export {
+	getPriorityColor,
+	getPriorityLabel,
+	getRequestStatusColor,
+	getRequestStatusLabel
 } from './types/maintenance'
 
 // API Input Types (all Create/Update inputs)
@@ -61,11 +69,22 @@ export type { DashboardStats } from './types/api'
 // Activity Types
 export type { ActivityItem, ActivityType } from './types/activity'
 
+// Notification Types
+export type { 
+	NotificationRequest,
+	NotificationResponse,
+	NotificationData
+} from './types/notifications'
+export { NotificationType } from './types/notifications'
+
+// Supabase Types
+export type { Database } from './types/supabase-generated'
+
 // Statistics Types (centralized)
 export type {
 	BaseStats,
 	PropertyStats,
-	TenantStats, 
+	TenantStats,
 	UnitStats,
 	LeaseStats,
 	MaintenanceStats
@@ -134,7 +153,8 @@ export type {
 // Utility Types - using native TypeScript features only
 // WithRequired and WithOptional are now using native TypeScript patterns
 export type WithRequired<T, K extends keyof T> = T & Required<Pick<T, K>>
-export type WithOptional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
+export type WithOptional<T, K extends keyof T> = Omit<T, K> &
+	Partial<Pick<T, K>>
 
 // Essential shared types
 export interface LoadingState {
@@ -235,6 +255,14 @@ export type { PerformanceMetrics, RequestContext } from './types/backend'
 
 // Export specific constants needed
 export { PLANS, PLAN_TYPE } from './constants/billing'
+
+// Stripe Configuration (uses existing types)
+export {
+	STRIPE_PRICE_IDS,
+	STRIPE_PRODUCT_IDS,
+	getStripePriceId,
+	getStripeProductId
+} from './stripe/plans'
 export { PROPERTY_TYPE, UNIT_STATUS } from './constants/properties'
 export {
 	PRIORITY,
@@ -301,7 +329,8 @@ export const createId = {
 	unit: (id: string): UnitId => id as UnitId,
 	tenant: (id: string): TenantId => id as TenantId,
 	lease: (id: string): LeaseId => id as LeaseId,
-	maintenanceRequest: (id: string): MaintenanceRequestId => id as MaintenanceRequestId,
+	maintenanceRequest: (id: string): MaintenanceRequestId =>
+		id as MaintenanceRequestId,
 	organization: (id: string): OrganizationId => id as OrganizationId,
 	document: (id: string): DocumentId => id as DocumentId,
 	file: (id: string): FileId => id as FileId,
@@ -341,7 +370,10 @@ export type { SubStatus as SubscriptionStatus } from './types/billing'
 // ============================================================================
 
 // Simple currency formatter
-export function formatCurrency(amount: number, options?: Intl.NumberFormatOptions): string {
+export function formatCurrency(
+	amount: number,
+	options?: Intl.NumberFormatOptions
+): string {
 	return new Intl.NumberFormat('en-US', {
 		style: 'currency',
 		currency: 'USD',
@@ -365,12 +397,14 @@ export function getPropertyTypeLabel(type: string): string {
 		case 'commercial':
 			return 'Commercial'
 		default:
-			return type.charAt(0).toUpperCase() + type.slice(1).replace(/_/g, ' ')
+			return (
+				type.charAt(0).toUpperCase() + type.slice(1).replace(/_/g, ' ')
+			)
 	}
 }
 
 // ============================================================================
-// Validation Schemas 
+// Validation Schemas
 // ============================================================================
 
 // Export all validation schemas for frontend/backend use

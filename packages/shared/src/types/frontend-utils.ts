@@ -47,11 +47,12 @@ export function unitHasActiveLeases(unit: Unit): boolean {
 	return (
 		'leases' in unit &&
 		Array.isArray(unit.leases) &&
-		unit.leases.some((lease: unknown) => 
-			typeof lease === 'object' && 
-			lease !== null && 
-			'status' in lease && 
-			(lease as { status: unknown }).status === 'ACTIVE'
+		unit.leases.some(
+			(lease: unknown) =>
+				typeof lease === 'object' &&
+				lease !== null &&
+				'status' in lease &&
+				(lease as { status: unknown }).status === 'ACTIVE'
 		)
 	)
 }
