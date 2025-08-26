@@ -3,6 +3,8 @@
  * Server actions for handling Stripe embedded checkout flows
  */
 
+import { logger } from '@/lib/logger/logger'
+
 /**
  * Handle checkout return from Stripe embedded checkout
  */
@@ -39,7 +41,7 @@ export async function handleCheckoutReturn(sessionId: string): Promise<{
 
 		return { success: true, session }
 	} catch (error) {
-		console.error('Error handling checkout return:', error)
+		logger.error('Error handling checkout return:', error)
 		return { success: false, error: 'Unknown error occurred' }
 	}
 }
@@ -67,7 +69,7 @@ export async function createEmbeddedCheckoutSession(priceId: string) {
 
 		return await response.json()
 	} catch (error) {
-		console.error('Error creating checkout session:', error)
+		logger.error('Error creating checkout session:', error)
 		throw error
 	}
 }
