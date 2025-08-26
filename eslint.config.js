@@ -6,13 +6,15 @@
  * following Turborepo best practices for monorepo configuration
  */
 
+import { defineConfig } from 'eslint/config'
 import baseConfig from './packages/eslint-config/base.js'
 
 /**
  * Root-level configuration with project-specific overrides
  * Extends the base configuration from @repo/eslint-config
+ * Using official ESLint 9 defineConfig() helper
  */
-export default [
+export default defineConfig([
 	// Use the shared base configuration
 	...baseConfig,
 	
@@ -22,23 +24,12 @@ export default [
 		files: ['*.js', '*.mjs', '*.ts'],
 		rules: {
 			// Allow console in root scripts
-			'no-console': 'off',
-			'@typescript-eslint/no-explicit-any': 'off'
+			'no-console': 'off'
+			// NOTE: Removed @typescript-eslint/no-explicit-any override - now enforced
 		}
 	},
 
 	// Note: TypeScript project resolution is handled in packages/eslint-config/base.js
-
-	// Ensure parser resolves tsconfig files from repo root for packages that expect it
-	{
-		name: 'root/tsconfig-rootdir',
-		files: ['**/*.{ts,tsx}'],
-		languageOptions: {
-			parserOptions: {
-				tsconfigRootDir: import.meta.dirname
-			}
-		}
-	},
 	
 	// Scripts directory (excluding .github scripts)
 	{
@@ -63,9 +54,9 @@ export default [
 		ignores: ['.github/**/*.ts', '.github/**/*.js']
 	},
 	
-	// Project-specific anti-pattern guards
+	// Project-specific anti-pattern guards and SECURITY RULES
 	{
-		name: 'root/anti-patterns',
+		name: 'root/anti-patterns-and-security',
 		files: ['**/*.ts', '**/*.tsx'],
 		ignores: ['**/*.test.*', '**/*.spec.*', '**/*.config.*'],
 		rules: {
@@ -92,7 +83,31 @@ export default [
 						}
 					]
 				}
-			]
+			],
+			
+			// SECURITY: Prevent dangerous global variables
+			'no-restricted-globals': [
+				'error',
+				{
+					name: 'eval',
+					message: 'eval() is dangerous and should not be used'
+				},
+				{
+					name: 'document',
+					message: 'Use proper DOM sanitization instead of direct document access'
+				}
+			],
+			
+			// SECURITY: Prevent dangerous syntax
+			'no-eval': 'error',
+			'no-implied-eval': 'error',
+			'no-script-url': 'error',
+			'no-new-func': 'error',
+			
+			// SECURITY: Additional safety measures
+			'no-prototype-builtins': 'error',
+			'guard-for-in': 'error',
+			'radix': 'error'
 		}
 	}
-]
+])

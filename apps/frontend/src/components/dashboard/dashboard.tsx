@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { motion } from '@/lib/lazy-motion'
 import { useAuth } from '@/hooks/use-auth'
+import type { ActivityItem, ActivityType } from '@repo/shared'
 import {
 	useDashboardOverview,
 	useDashboardActivity
@@ -105,7 +106,7 @@ function DashboardContent() {
 
 				{/* Recent Activity */}
 				<DashboardActivityFeed
-					activities={activities ?? []}
+					activities={activities?.filter(activity => activity.type !== undefined) as Array<ActivityItem & { type: ActivityType }> ?? []}
 					isLoading={isActivitiesLoading}
 				/>
 			</div>

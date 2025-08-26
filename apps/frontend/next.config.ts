@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next/types'
+import path from 'node:path'
 
 // Webpack configuration for production builds
 interface WebpackConfig {
@@ -143,6 +144,8 @@ const nextConfig: NextConfig = {
 
 	// Turbopack configuration for development
 	turbopack: {
+		// Point to monorepo root to fix package resolution in monorepo  
+		root: path.join(__dirname, '../../'),
 		rules: {
 			'*.svg': {
 				loaders: ['@svgr/webpack'],

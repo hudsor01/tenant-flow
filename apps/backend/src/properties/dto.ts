@@ -1,5 +1,5 @@
 import { IsNumber, IsOptional, IsString, Min } from 'class-validator'
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger'
 import { Type } from 'class-transformer'
 
 export class CreatePropertyDto {
@@ -88,95 +88,7 @@ export class CreatePropertyDto {
 	has_pool?: boolean
 }
 
-export class UpdatePropertyDto {
-	@ApiPropertyOptional({ description: 'Property name' })
-	@IsOptional()
-	@IsString()
-	name?: string
-
-	@ApiPropertyOptional({ description: 'Property address' })
-	@IsOptional()
-	@IsString()
-	address?: string
-
-	@ApiPropertyOptional({ description: 'City' })
-	@IsOptional()
-	@IsString()
-	city?: string
-
-	@ApiPropertyOptional({ description: 'State' })
-	@IsOptional()
-	@IsString()
-	state?: string
-
-	@ApiPropertyOptional({ description: 'ZIP code' })
-	@IsOptional()
-	@IsString()
-	zipCode?: string
-
-	@ApiPropertyOptional({ description: 'Property description' })
-	@IsOptional()
-	@IsString()
-	description?: string
-
-	@ApiPropertyOptional({ description: 'Property image URL' })
-	@IsOptional()
-	@IsString()
-	imageUrl?: string
-
-	@ApiPropertyOptional({
-		description: 'Property type',
-		enum: ['SINGLE_FAMILY', 'MULTI_UNIT', 'APARTMENT', 'COMMERCIAL']
-	})
-	@IsOptional()
-	@IsString()
-	propertyType?: 'SINGLE_FAMILY' | 'MULTI_UNIT' | 'APARTMENT' | 'COMMERCIAL'
-
-	@ApiPropertyOptional({
-		description: 'Unit number for multi-unit properties'
-	})
-	@IsOptional()
-	@IsString()
-	unit_number?: string
-
-	@ApiPropertyOptional({ description: 'Total number of units' })
-	@IsOptional()
-	@IsNumber()
-	@Min(1)
-	@Type(() => Number)
-	total_units?: number
-
-	@ApiPropertyOptional({ description: 'Number of units to create' })
-	@IsOptional()
-	@IsNumber()
-	@Min(1)
-	@Type(() => Number)
-	units?: number
-
-	@ApiPropertyOptional({ description: 'Number of bedrooms' })
-	@IsOptional()
-	@IsNumber()
-	@Min(0)
-	@Type(() => Number)
-	bedrooms?: number
-
-	@ApiPropertyOptional({ description: 'Number of bathrooms' })
-	@IsOptional()
-	@IsNumber()
-	@Min(0)
-	@Type(() => Number)
-	bathrooms?: number
-
-	@ApiPropertyOptional({ description: 'Square footage' })
-	@IsOptional()
-	@IsNumber()
-	@Type(() => Number)
-	square_footage?: number
-
-	@ApiPropertyOptional({ description: 'Has pool amenity' })
-	@IsOptional()
-	has_pool?: boolean
-}
+export class UpdatePropertyDto extends PartialType(CreatePropertyDto) {}
 
 export class PropertyQueryDto {
 	@ApiPropertyOptional({ description: 'Search query' })

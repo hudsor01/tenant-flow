@@ -4,12 +4,13 @@
  */
 
 import { z } from 'zod'
+import { requiredString } from '../validation/common'
 // Remove frontend-specific dependency - use generic form type instead
 
 export const leaseFormSchema = z.object({
 	// Property Information
-	propertyAddress: z.string().min(1, 'Property address is required'),
-	city: z.string().min(1, 'City is required'),
+	propertyAddress: requiredString,
+	city: requiredString,
 	state: z.string().min(2, 'State is required'),
 	zipCode: z.string().min(5, 'Valid ZIP code is required'),
 	unitNumber: z.string().optional(),
@@ -27,10 +28,10 @@ export const leaseFormSchema = z.object({
 	squareFootage: z.number().optional(),
 
 	// Landlord Information
-	landlordName: z.string().min(1, 'Landlord name is required'),
+	landlordName: requiredString,
 	landlordEmail: z.string().email('Valid email is required'),
 	landlordPhone: z.string().optional(),
-	landlordAddress: z.string().min(1, 'Landlord address is required'),
+	landlordAddress: requiredString,
 
 	// Tenant Information
 	tenantNames: z
@@ -38,8 +39,8 @@ export const leaseFormSchema = z.object({
 		.min(1, 'At least one tenant is required'),
 
 	// Lease Terms
-	leaseStartDate: z.string().min(1, 'Lease start date is required'),
-	leaseEndDate: z.string().min(1, 'Lease end date is required'),
+	leaseStartDate: requiredString,
+	leaseEndDate: requiredString,
 	rentAmount: z.number().min(1, 'Rent amount must be greater than 0'),
 	securityDeposit: z.number().min(0, 'Security deposit cannot be negative'),
 
