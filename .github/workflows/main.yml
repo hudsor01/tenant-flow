@@ -1,0 +1,52 @@
+# Simple CI/CD Pipeline
+# Following MVP philosophy: Build → Test → Deploy
+# No over-engineering, just verify the product works
+
+name: Build and Deploy
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    env:
+      TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci --include=optional
+
+    - name: Run TypeScript check
+      run: npm run typecheck
+
+    - name: Run tests
+      run: npm run test
+
+    - name: Build project
+      run: npm run build
+
+    - name: Verify build outputs exist
+      run: |
+        if [ ! -d "apps/frontend/.next" ]; then
+          echo "Frontend build failed"
+          exit 1
+        fi
+        if [ ! -d "apps/backend/dist" ]; then
+          echo "Backend build failed" 
+          exit 1
+        fi
+        echo "✅ Build verification passed"
