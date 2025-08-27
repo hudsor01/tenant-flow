@@ -36,7 +36,7 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import type { PropertyFormProps } from '@/types'
+import type { PropertyFormProps } from '@repo/shared/types/properties'
 import type { PropertyFormData } from '@repo/shared/validation'
 
 type PropertyFormDialogProps = PropertyFormProps & {

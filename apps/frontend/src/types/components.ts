@@ -3,55 +3,55 @@
  * All types moved to @repo/shared/types/ui for centralization
  */
 
-// Use shared component prop types
+// Use shared component prop types that actually exist
 export type {
-	// Navigation Components
+	// Navigation Components (available in shared)
 	NavigationLinkProps,
 	NavigationGroupProps,
 	BreadcrumbsProps,
 	TabNavigationProps,
 	MobileNavigationProps,
 
-	// Maintenance Components  
+	// Maintenance Components (available in shared)
 	MaintenanceDetailProps,
 	PrioritySelectorProps,
 	UnitSelectorProps,
 	CategorySelectorProps,
 
-	// Invoice Components
+	// Invoice Components (available in shared)
 	InvoiceDetailsProps,
 	InvoiceActionsProps,
 	InvoiceItem,
 	InvoiceItemsSectionProps,
 	ClientInfoSectionProps,
 
-	// Auth Components
+	// Auth Components (available in shared)
 	AuthGuardProps,
 	GoogleSignupButtonProps,
 
-	// Domain Components
+	// Domain Components (available in shared)
 	PropertyCardProps,
 	TenantCardProps,
 	LeaseCardProps,
 
-	// Blog Components
+	// Blog Components (available in shared)
 	BlogContentSectionProps,
 	BlogSidebarProps,
 
-	// SEO Components
+	// SEO Components (available in shared)
 	LocalBusinessSchemaProps,
 
-	// Error Components
+	// Error Components (available in shared)
 	ErrorBoundaryProps,
 
-	// Security Components  
+	// Security Components (available in shared)
 	SafeHTMLProps,
 
-	// Common UI Components
+	// Common UI Components (available in shared)
 	LoadingSkeletonProps,
 	EmptyStateProps,
 
-	// Base Props
+	// Base Props (available in shared)
 	BaseProps,
 	ModalProps,
 	FormProps,

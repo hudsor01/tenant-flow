@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common'
 import { PinoLogger } from 'nestjs-pino'
 // Email service removed for MVP - will add later
 import { SupabaseService } from '../database/supabase.service'
-import { NotificationType } from '@repo/shared'
+import { NotificationType } from '@repo/shared/types/notifications'
 
 // Use shared type instead of local interface
-import type { PaymentNotificationData } from '@repo/shared'
+import type { PaymentNotificationData } from '@repo/shared/types/billing'
 
 @Injectable()
 export class PaymentNotificationService {

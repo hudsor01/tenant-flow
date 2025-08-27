@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button'
-import type { InvoiceActionsProps } from '@/types'
+import type { InvoiceActionsProps } from '@repo/shared/types/ui'
 
 export function InvoiceActions({
 	onGenerateInvoice,

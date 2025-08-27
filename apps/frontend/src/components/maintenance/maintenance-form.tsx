@@ -18,14 +18,12 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
-import { 
-	FormSection, 
-	OptimisticFeedback, 
-	SuccessFeedback, 
-	ErrorFeedback,
-	useOptimisticForm,
-	type FormState
-} from '@/components/ui/form'
+// Form state type - simple, no abstractions
+type FormState = {
+	success: boolean
+	error?: string
+	message?: string
+}
 
 // Types for form props
 interface MaintenanceFormProps {
@@ -56,12 +54,11 @@ export function MaintenanceForm({
 		? 'Update maintenance request details and status'
 		: 'Submit a new maintenance request for your property'
 
-	// Shared optimistic form hook
-	const { optimisticItem, addOptimisticUpdate } = useOptimisticForm({
-		items: requests,
-		isEditing,
-		currentItem: request
-	})
+	// Simple optimistic state - no abstractions, using React 19 native
+	const [optimisticItem, addOptimistic] = React.useOptimistic(
+		request,
+		(state, newRequest: MaintenanceRequest) => newRequest
+	)
 
 	// Server action with form state
 	async function formAction(
@@ -134,19 +131,19 @@ export function MaintenanceForm({
 
 	return (
 		<div className={cn('mx-auto w-full max-w-2xl', className)}>
-			{/* Shared optimistic feedback */}
-			<OptimisticFeedback
-				isVisible={Boolean(optimisticItem)}
-				isEditing={isEditing}
-				entityName="request"
-			/>
+			{/* Simple optimistic feedback - using UnoCSS classes */}
+			{optimisticItem && (
+				<div className="mb-4 p-4 bg-blue-50 text-blue-800 rounded">
+					{isEditing ? 'Updating' : 'Creating'} request...
+				</div>
+			)}
 
-			{/* Shared success feedback */}
-			<SuccessFeedback
-				isVisible={Boolean(formState.success)}
-				isEditing={isEditing}
-				entityName="Request"
-			/>
+			{/* Simple success feedback */}
+			{formState.success && (
+				<div className="mb-4 p-4 bg-green-50 text-green-800 rounded">
+					Request {isEditing ? 'updated' : 'created'} successfully!
+				</div>
+			)}
 
 			<Card>
 				<CardHeader>
@@ -165,15 +162,18 @@ export function MaintenanceForm({
 
 				<CardContent>
 					<form action={formDispatch} className="space-y-6">
-						{/* Shared error display */}
-						<ErrorFeedback error={formState.error} />
+						{/* Simple error display - UnoCSS classes */}
+						{formState.error && (
+							<div className="mb-4 p-4 bg-red-50 text-red-800 rounded">
+								{formState.error}
+							</div>
+						)}
 
 						{/* Property & Unit Selection */}
 						{!isEditing && (
-							<FormSection
-								title="Location"
-								description="Select the property and unit for this request"
-							>
+							<div className="space-y-2">
+								<h3 className="text-lg font-semibold">Location</h3>
+								<p className="text-sm text-muted-foreground">Select the property and unit for this request</p>
 								<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 									<div className="space-y-2">
 										<Label htmlFor="propertyId">
@@ -223,14 +223,13 @@ export function MaintenanceForm({
 										</Select>
 									</div>
 								</div>
-							</FormSection>
+							</div>
 						)}
 
 						{/* Request Details Section */}
-						<FormSection
-							title="Request Details"
-							description="Describe the maintenance issue and its priority"
-						>
+						<div className="space-y-2">
+							<h3 className="text-lg font-semibold">Request Details</h3>
+							<p className="text-sm text-muted-foreground">Describe the maintenance issue and its priority</p>
 							<div className="space-y-4">
 								<div className="space-y-2">
 									<Label htmlFor="title">
@@ -317,14 +316,13 @@ export function MaintenanceForm({
 									</div>
 								</div>
 							</div>
-						</FormSection>
+						</div>
 
 						{/* Status Update Section (Edit Mode) */}
 						{isEditing && (
-							<FormSection
-								title="Status Update"
-								description="Update the current status of this request"
-							>
+							<div className="space-y-2">
+								<h3 className="text-lg font-semibold">Status Update</h3>
+								<p className="text-sm text-muted-foreground">Update the current status of this request</p>
 								<div className="space-y-2">
 									<Label htmlFor="status">
 										Status
@@ -348,14 +346,13 @@ export function MaintenanceForm({
 										</SelectContent>
 									</Select>
 								</div>
-							</FormSection>
+							</div>
 						)}
 
 						{/* Additional Information Section */}
-						<FormSection
-							title="Additional Information"
-							description="Optional scheduling and cost information"
-						>
+						<div className="space-y-2">
+							<h3 className="text-lg font-semibold">Additional Information</h3>
+							<p className="text-sm text-muted-foreground">Optional scheduling and cost information</p>
 							<div className="space-y-4">
 								<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 									<div className="space-y-2">
@@ -416,7 +413,7 @@ export function MaintenanceForm({
 									</Label>
 								</div>
 							</div>
-						</FormSection>
+						</div>
 
 						{/* Form Actions */}
 						<div className="flex items-center justify-end gap-3 border-t pt-4">

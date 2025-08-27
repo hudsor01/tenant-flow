@@ -29,7 +29,7 @@ import {
 	ApiResponse
 } from '@nestjs/swagger'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
-import type { ValidatedUser } from '@repo/shared'
+import type { ValidatedUser } from '@repo/shared/types/auth'
 import { MaintenanceService } from './maintenance.service'
 import type {
 	CreateMaintenanceRequest,

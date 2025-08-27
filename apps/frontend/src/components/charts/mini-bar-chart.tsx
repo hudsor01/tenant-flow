@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { BarChart, Bar, ResponsiveContainer, Tooltip, Cell } from 'recharts'
-import type { MiniBarChartProps, CustomTooltipProps } from '@/types'
+import type { MiniBarChartProps, CustomTooltipProps } from '@repo/shared/types/ui'
 
 const CustomTooltip: React.FC<CustomTooltipProps> = ({
 	active,

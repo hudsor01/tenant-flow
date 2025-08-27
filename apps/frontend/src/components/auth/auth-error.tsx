@@ -1,6 +1,6 @@
-import type { BaseComponentProps } from '@/types'
+import type { BaseProps } from '@repo/shared/types/ui'
 
-interface AuthErrorProps extends BaseComponentProps {
+interface AuthErrorProps extends BaseProps {
 	message: string
 	type?: 'error' | 'warning'
 }

@@ -1,6 +1,6 @@
 import { createParamDecorator, type ExecutionContext } from '@nestjs/common'
 import type { FastifyRequest } from 'fastify'
-import type { AuthUser } from '@repo/shared'
+import type { AuthUser } from '@repo/shared/types/auth'
 
 interface AuthenticatedRequest extends FastifyRequest {
 	user?: AuthUser

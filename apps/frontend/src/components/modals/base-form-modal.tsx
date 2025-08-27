@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dialog'
 import { ButtonSpinner } from '@/components/ui/spinner'
 import { modalVariants, fieldVariants } from './modal-constants'
-import type { BaseFormModalProps as BaseFormModalPropsType } from '@/types'
+import type { BaseFormModalProps as BaseFormModalPropsType } from '@repo/shared/types/ui'
 
 // Extend the base type with additional properties
 interface BaseFormModalProps extends BaseFormModalPropsType {

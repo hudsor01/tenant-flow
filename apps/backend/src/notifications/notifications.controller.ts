@@ -12,12 +12,12 @@ import {
 import { PinoLogger } from 'nestjs-pino'
 import { AuthGuard } from '../shared/guards/auth.guard'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
-import type { ValidatedUser } from '@repo/shared'
+import type { ValidatedUser } from '@repo/shared/types/auth'
 import { AdminOnly, Public } from '../shared/decorators/auth.decorators'
 import { NotificationsService } from './notifications.service'
 // Ultra-native: Define inline types instead of DTOs
 // Use shared types instead of local interfaces
-import type { GetNotificationOptions, CreateNotificationRequest } from '@repo/shared'
+import type { GetNotificationOptions, CreateNotificationRequest } from '@repo/shared/types/notifications'
 
 @Controller('notifications')
 @UseGuards(AuthGuard)

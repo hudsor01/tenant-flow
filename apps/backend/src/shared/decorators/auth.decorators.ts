@@ -1,5 +1,5 @@
 import { SetMetadata } from '@nestjs/common'
-import type { UserRole } from '@repo/shared'
+import type { UserRole } from '@repo/shared/types/auth'
 
 // Simple decorators for the auth requirements
 export const Roles = (...roles: UserRole[]) => SetMetadata('roles', roles)

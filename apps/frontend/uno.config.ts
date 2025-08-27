@@ -302,13 +302,22 @@ export default defineConfig({
       }
     },
     
-    // Print variant
+    // Print variant using proper UnoCSS variant API
     {
       name: 'print',
       match(matcher) {
-        return matcher === 'print' ? {} : undefined
-      },
-      selector: (s: string) => `@media print { ${s} }`
+        if (matcher === 'print') {
+          return {
+            matcher: '',
+            body: (body) => {
+              return {
+                body,
+                parent: '@media print'
+              }
+            }
+          }
+        }
+      }
     }
   ],
 
