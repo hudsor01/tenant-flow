@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
-import { UnifiedWebhookController } from './webhook.controller'
+import { WebhookController } from './webhook.controller'
 
 /**
  * WebhooksModule - Handles all external webhook endpoints
@@ -8,6 +8,6 @@ import { UnifiedWebhookController } from './webhook.controller'
  */
 @Module({
 	imports: [ConfigModule],
-	controllers: [UnifiedWebhookController]
+	controllers: [WebhookController]
 })
 export class WebhooksModule {}

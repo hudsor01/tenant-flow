@@ -1,535 +1,424 @@
 /**
- * Billing and subscription management types
- * All types related to subscriptions, plans, invoices, and billing
+ * BILLING TYPES - All Stripe and subscription-related interfaces
+ * CONSOLIDATED from 20+ scattered billing/Stripe definitions
  */
 
-// Import consolidated types from stripe.ts
-<<<<<<< HEAD
-import type { PlanType, BillingPeriod, SubscriptionSyncResult } from './stripe'
+// =============================================================================
+// SUBSCRIPTION TYPES - CONSOLIDATED duplicates
+// =============================================================================
 
-// Re-export SubscriptionSyncResult for convenience
-export type { SubscriptionSyncResult }
-=======
-import type { PlanType, BillingPeriod } from './stripe'
->>>>>>> origin/main
-
-export const PLAN_TYPE = {
-	FREETRIAL: 'FREETRIAL',
-	STARTER: 'STARTER',
-	GROWTH: 'GROWTH',
-	TENANTFLOW_MAX: 'TENANTFLOW_MAX'
-} as const
-
-export type SubStatus =
-	| 'INCOMPLETE'
-	| 'INCOMPLETE_EXPIRED'
-	| 'TRIALING'
-	| 'ACTIVE'
-	| 'PAST_DUE'
-	| 'CANCELED'
-	| 'UNPAID'
-	| 'PAUSED'
-
-export interface Plan {
-	id: PlanType
-	uiId: string
-	name: string
-	description: string
-	price: {
-		monthly: number
-		annual: number
-	}
-	features: string[]
-	propertyLimit: number
-	storageLimit: number
-	apiCallLimit: number
-	priority: boolean
-	subscription?: string
-	stripePriceIds: {
-		monthly: string | null
-		annual: string | null
-	}
-}
-
-// Backend service-specific plan interface for simplified operations
-export interface ServicePlan {
-	id: PlanType
-	name: string
-	price: number
-	propertyLimit: number
-	stripePriceIds: {
-		monthly: string | null
-		annual: string | null
-	}
-}
-
-// Plan configuration interface
-export interface PlanConfig {
-	id: string
-	name: string
-	description: string
-	price: {
-		monthly: number
-		annual: number
-	}
-	features: string[]
-	propertyLimit: number
-	storageLimit: number
-	apiCallLimit: number
-	priority: boolean
-}
-
-// User plan type that extends plan config
-export interface UserPlan extends PlanConfig {
-	billingPeriod: BillingPeriod
-	status: SubStatus
-	currentPeriodStart?: Date
-	currentPeriodEnd?: Date
-}
-
-// Plan display helpers
-export const getPlanTypeLabel = (plan: PlanType): string => {
-	const labels: Record<PlanType, string> = {
-		FREETRIAL: 'Free Trial',
-		STARTER: 'Starter',
-		GROWTH: 'Growth',
-		TENANTFLOW_MAX: 'TenantFlow Max'
-	}
-	return labels[plan] || plan
-}
-
-// Subscription entity types
 export interface Subscription {
-	id: string
-	userId: string
-	plan: string
-	planType?: PlanType | null
-	status: string
-	startDate: Date
-	endDate: Date | null
-	cancelledAt: Date | null
-	stripeCustomerId: string | null
-	stripeSubscriptionId: string | null
-	stripePriceId: string | null
-	planId: string | null
-	billingPeriod: BillingPeriod | null
-	currentPeriodStart: Date | null
-	currentPeriodEnd: Date | null
-	trialStart: Date | null
-	trialEnd: Date | null
-	cancelAtPeriodEnd: boolean | null
-	canceledAt: Date | null
-	createdAt: Date
-	updatedAt: Date
+  id: string
+  user_id: string
+  stripe_subscription_id: string
+  stripe_customer_id: string
+  status: SubscriptionStatus
+  plan_id: string
+  current_period_start: string
+  current_period_end: string
+  trial_end?: string
+  created_at: string
+  updated_at: string
 }
 
-export interface Invoice {
-	id: string
-	userId: string
-	subscriptionId: string | null
-	stripeInvoiceId: string
-	amountPaid: number
-	amountDue: number
-	currency: string
-	status: string
-	invoiceDate: Date
-	dueDate: Date | null
-	paidAt: Date | null
-	invoiceUrl: string | null
-	invoicePdf: string | null
-	description: string | null
-	createdAt: Date
-	updatedAt: Date
+// CONSOLIDATED from multiple files that defined variations
+export type SubscriptionStatus = 
+  | 'active' 
+  | 'canceled' 
+  | 'incomplete' 
+  | 'incomplete_expired' 
+  | 'past_due' 
+  | 'trialing' 
+  | 'unpaid'
+
+export type BillingInterval = 'month' | 'year'
+
+// =============================================================================
+// USER FORM DATA - CONSOLIDATED from frontend Stripe forms  
+// =============================================================================
+
+export interface UserFormData {
+	fullName: string
+	email: string
+	password: string
 }
 
-// Stripe configuration types - 4-tier system
-export interface StripePricing {
-	id: string
-	priceFree: string
-	priceStarter: string
-	priceGrowth: string
-	priceEnterprise: string
-	productFree: string
-	productStarter: string
-	productGrowth: string
-	productEnterprise: string
-	pricingTableId: string
-	customerPortalUrl: string
-	isActive: boolean
-	createdAt: Date
-	updatedAt: Date
-}
+// =============================================================================
+// STRIPE ELEMENTS & PROVIDER TYPES - CONSOLIDATED from frontend
+// Note: EnhancedElementsProviderProps moved to ui.ts due to React dependency
+// =============================================================================
 
-// Cleaned up - removed unused TrialConfig and ProductTierConfig types
+// =============================================================================
+// STRIPE WEBHOOK TYPES - CONSOLIDATED from frontend webhook processors
+// =============================================================================
 
-export interface WebhookEvent {
-	id: string
-	stripeEventId: string
-	eventType: string
-	processed: boolean
-	processingTime: number | null
-	errorMessage: string | null
-	retryCount: number
-	createdAt: Date
-	updatedAt: Date
-}
-
-// Note: Plan interface is now imported as BillingPlan from types-core
-
-// Simple usage metrics interface
-export interface UsageMetrics {
-	properties: number
-	tenants?: number
-	maintenanceRequests?: number
-	limits?: {
-		properties?: number | string
-		tenants?: number | string
-		maintenanceRequests?: number | string
-	}
-}
-
-// Billing history interface
-export interface BillingHistory {
-	invoices: Invoice[]
-	totalSpent: number
-	currentBalance: number
-}
-
-// Subscription create request/response types
-export interface SubscriptionCreateRequest {
-	planId: PlanType
-	paymentMethodId?: string
-}
-
-export interface SubscriptionCreateResponse {
-	subscription: Subscription
-	clientSecret?: string
-	requiresPaymentMethod: boolean
-	success: boolean
-	subscriptionId?: string
-}
-
-// Customer portal types
-export interface CustomerPortalRequest {
-	returnUrl?: string
-}
-
-export interface CustomerPortalResponse {
-	url: string
-}
-
-// Direct subscription parameters (moved to api-inputs.ts)
-// Note: DirectSubscriptionParams is now available in @repo/shared/types/api-inputs
-
-// Import Stripe types from the official Stripe SDK
-import type { Stripe } from 'stripe'
-type StripeErrorType = string
-type StripeWebhookEvent = Stripe.Event
-
-// Note: Stripe element types (StripeElementEvent, StripeCardElementEvent, etc.)
-// are now available in './stripe' and can be imported when needed
-
-export interface StripeWebhookError {
-	type: StripeErrorType
-	message: string
-	stack?: string
-}
-
-// Stripe-specific backend types (consolidated from apps/backend/src/stripe/types)
-//
-// IMPLEMENTATION NOTE: For backend services, use official Stripe types directly:
-//
-// ```typescript
-// import Stripe from 'stripe'
-//
-// // Use official types for service methods:
-// async createCheckoutSession(params: CreateCheckoutSessionParams): Promise<Stripe.Checkout.Session>
-// async handleWebhook(event: Stripe.Event): Promise<void>
-// async createCustomer(params: Stripe.CustomerCreateParams): Promise<Stripe.Customer>
-// ```
-//
-// The types below are for shared contracts between frontend/backend
-// Note: Stripe types are conditionally imported only when available
-
-// Checkout session parameters - aligned with Stripe's API structure
-export interface CreateCheckoutSessionParams {
-	userId: string
-	planType: PlanType
-	billingInterval: 'monthly' | 'annual'
-	collectPaymentMethod?: boolean
-	successUrl: string
-	cancelUrl: string
-	uiMode?: 'embedded' | 'hosted'
-	priceId?: string
-	// Additional Stripe-compatible fields
-	mode?: 'payment' | 'subscription' | 'setup'
-	currency?: string
-	locale?: string
-}
-
-export interface CreatePortalSessionParams {
-	customerId: string
-	returnUrl: string
-}
-
-export interface SubscriptionData {
-	userId: string
-	stripeCustomerId: string
-	stripeSubscriptionId: string
-	planType: PlanType
-	status: SubStatus
-	trialEndsAt?: Date
-	currentPeriodEnd: Date
-	cancelAtPeriodEnd: boolean
-}
-
-<<<<<<< HEAD
-// Stripe webhook event types as a union type for type safety
-type StripeWebhookEventType =
+// Consolidate webhook event types - COMPREHENSIVE from all webhook files
+export type StripeWebhookEventType =
 	| 'customer.subscription.created'
 	| 'customer.subscription.updated'
 	| 'customer.subscription.deleted'
-	| 'customer.subscription.trial_will_end'
-	| 'customer.subscription.paused'
-	| 'customer.subscription.resumed'
 	| 'invoice.payment_succeeded'
 	| 'invoice.payment_failed'
-	| 'invoice.payment_action_required'
-	| 'invoice.upcoming'
-	| 'checkout.session.completed'
-	| 'payment_intent.requires_action'
-	| 'charge.failed'
+	| 'payment_intent.succeeded'
+	| 'payment_intent.payment_failed'
+	| 'customer.updated'
+	| 'payment_method.attached'
+	| 'payment_method.detached'
 
-// Webhook event handler interface using Record type to avoid ESLint errors
-export type WebhookEventHandler = Record<
-	StripeWebhookEventType,
-	(event: StripeWebhookEvent) => Promise<void>
->
-=======
-export interface WebhookEventHandler {
-	'customer.subscription.created': (
-		event: StripeWebhookEvent
-	) => Promise<void>
-	'customer.subscription.updated': (
-		event: StripeWebhookEvent
-	) => Promise<void>
-	'customer.subscription.deleted': (
-		event: StripeWebhookEvent
-	) => Promise<void>
-	'customer.subscription.trial_will_end': (
-		event: StripeWebhookEvent
-	) => Promise<void>
-	'customer.subscription.paused': (event: StripeWebhookEvent) => Promise<void>
-	'customer.subscription.resumed': (
-		event: StripeWebhookEvent
-	) => Promise<void>
-	'invoice.payment_succeeded': (event: StripeWebhookEvent) => Promise<void>
-	'invoice.payment_failed': (event: StripeWebhookEvent) => Promise<void>
-	'invoice.payment_action_required': (
-		event: StripeWebhookEvent
-	) => Promise<void>
-	'invoice.upcoming': (event: StripeWebhookEvent) => Promise<void>
-	'checkout.session.completed': (event: StripeWebhookEvent) => Promise<void>
-	'payment_intent.requires_action': (
-		event: StripeWebhookEvent
-	) => Promise<void>
-	'charge.failed': (event: StripeWebhookEvent) => Promise<void>
-}
->>>>>>> origin/main
-
-// WebhookEventType is now imported from stripe.ts
-
-export const STRIPE_ERRORS = {
-	CUSTOMER_NOT_FOUND: 'Customer not found',
-	SUBSCRIPTION_NOT_FOUND: 'Subscription not found',
-	INVALID_PRICE_ID: 'Invalid price ID',
-	WEBHOOK_SIGNATURE_INVALID: 'Invalid webhook signature',
-	CONFIGURATION_ERROR: 'Stripe configuration error',
-	RATE_LIMIT_EXCEEDED: 'Rate limit exceeded',
-	PAYMENT_DECLINED: 'Payment declined',
-	AUTHENTICATION_FAILED: 'Authentication failed',
-	INVALID_REQUEST: 'Invalid request parameters',
-	API_CONNECTION_ERROR: 'API connection error',
-	CARD_DECLINED: 'Card declined',
-	PROCESSING_ERROR: 'Processing error'
-} as const
-
-export interface PreviewInvoiceParams {
-	userId: string
-	newPriceId: string
-	prorationDate?: Date
+export interface WebhookNotification {
+	id: string
+	type: 'success' | 'error' | 'info' | 'warning'
+	title: string
+	message: string
+	timestamp: Date
+	metadata?: Record<string, unknown>
 }
 
-export interface UpdateSubscriptionParams extends Record<string, unknown> {
-	userId: string
-	newPriceId: string
-	prorationBehavior?: 'create_prorations' | 'none' | 'always_invoice'
-	prorationDate?: Date
-	allowIncomplete?: boolean
-	planId?: string
+export interface WebhookProcessorFunction {
+event: StripeWebhookEventType
+processor: (event: unknown) => Promise<WebhookNotification[]>
 }
 
-// Subscription upgrade/downgrade preview
-export interface SubscriptionChangePreview {
-	prorationAmount: number
-	immediateCharge: number
-	nextBillingAmount: number
-	nextBillingDate: Date
-	creditApplied: number
+export interface WebhookProcessor {
+	processWebhook(event: StripeWebhookEventType, data: unknown): Promise<void>
+	validateWebhook(body: string, signature: string): boolean
 }
 
-// Stripe Element event types moved to stripe.ts for consolidation
-// Import these types from './stripe' if needed
+// =============================================================================
+// STRIPE TYPES - CONSOLIDATED from backend schemas
+// =============================================================================
 
-// ========================
-// Payment Method Types
-// ========================
+export interface CreateCheckoutRequest {
+  priceId: string
+  successUrl: string
+  cancelUrl: string
+  customerEmail?: string
+}
 
-/**
- * Payment method type compatible with Stripe's PaymentMethod
- * Simplified version for shared usage between frontend and backend
- */
+export interface CreateEmbeddedCheckoutRequest {
+  priceId: string
+  returnUrl: string
+  customerEmail?: string
+}
+
+export interface CreatePortalRequest {
+  returnUrl: string
+}
+
+export interface CheckoutResponse {
+  sessionId?: string
+  clientSecret?: string
+  url?: string
+}
+
+export interface PortalResponse {
+  url: string
+}
+
+export interface SubscriptionStatusResponse {
+  status: SubscriptionStatus
+  currentPeriodEnd: string
+  trialEnd?: string
+  plan: {
+    id: string
+    name: string
+    price: number
+    interval: BillingInterval
+  }
+}
+
+/* =============================================================================
+   STRIPE WEBHOOK EVENTS (from backend) - use canonical type from stripe.ts
+   ============================================================================= */
+import type { StripeWebhookEvent as CoreStripeWebhookEvent } from './stripe'
+export type StripeWebhookEvent = CoreStripeWebhookEvent
+
+export type StripeErrorType = 
+  | 'card_error'
+  | 'invalid_request_error'  
+  | 'api_error'
+  | 'authentication_error'
+  | 'rate_limit_error'
+
+// =============================================================================
+// PAYMENT TYPES
+// =============================================================================
+
 export interface PaymentMethod {
-	id: string
-	object: 'payment_method'
-	type: string
-	created: number
-	customer: string | null
-	livemode: boolean
-	metadata: Record<string, string>
-	card?: {
-		brand: string
-		last4: string
-		exp_month: number
-		exp_year: number
-		funding: string
-		country: string | null
-	}
-	billing_details: {
-		address: {
-			city: string | null
-			country: string | null
-			line1: string | null
-			line2: string | null
-			postal_code: string | null
-			state: string | null
-		}
-		email: string | null
-		name: string | null
-		phone: string | null
-	}
-	isDefault?: boolean
+  id: string
+  type: 'card'
+  card?: {
+    brand: string
+    last4: string
+    exp_month: number
+    exp_year: number
+  }
 }
 
-// ========================
-// Enhanced Usage & Metrics
-// ========================
-
-/**
- * Enhanced usage metrics with detailed tracking
- * Extends basic UsageMetrics with comprehensive usage data
- */
-export interface UsageMetricsExtended extends UsageMetrics {
-	id: string
-	userId: string
-	month: string // YYYY-MM format
-	leaseGenerationsCount: number
-	createdAt: Date
-	updatedAt: Date
+export interface Invoice {
+  id: string
+  amount_due: number
+  amount_paid: number
+  currency: string
+  status: InvoiceStatus
+  created: number
+  due_date?: number
+  hosted_invoice_url?: string
+  invoice_pdf?: string
 }
 
-/**
- * Detailed usage metrics for comprehensive tracking
- * Used for dashboard analytics and billing calculations
- */
-export interface DetailedUsageMetrics {
-	propertiesCount: number
-	tenantsCount: number
-	leasesCount: number
-	storageUsedMB: number
-	apiCallsCount: number
-	leaseGenerationsCount: number
-	month: string
+export type InvoiceStatus = 
+  | 'draft'
+  | 'open' 
+  | 'paid'
+  | 'uncollectible'
+  | 'void'
+
+// =============================================================================
+// BILLING PLAN TYPES
+// =============================================================================
+
+export interface BillingPlan {
+  id: string
+  name: string
+  description: string
+  price: number
+  interval: BillingInterval
+  features: string[]
+  limits: {
+    properties: number
+    units: number
+    tenants: number
+    storage: string
+  }
+  stripePriceId: string
+  popular?: boolean
 }
 
-/**
- * Plan limits interface for subscription enforcement
- * Defines the maximum allowed usage for each plan tier
- */
-export interface PlanLimits {
-	properties: number
-	tenants: number
-	storage: number
-	apiCalls: number
+export interface PlanWithUIMapping extends BillingPlan {
+  buttonText: string
+  ctaVariant: 'primary' | 'secondary'
+  badge?: string
 }
 
-/**
- * Limit checks interface for real-time validation
- * Indicates which limits have been exceeded
- */
-export interface LimitChecks {
-	propertiesExceeded: boolean
-	tenantsExceeded: boolean
-	storageExceeded: boolean
-	apiCallsExceeded: boolean
+// =============================================================================
+// USAGE & LIMITS
+// =============================================================================
+
+export interface UsageLimits {
+  properties: { used: number; limit: number }
+  units: { used: number; limit: number }
+  tenants: { used: number; limit: number }
+  storage: { used: number; limit: string }
 }
 
-/**
- * Combined usage data with limits and checks
- * Provides complete usage context with enforcement data
- */
-export interface UsageData extends DetailedUsageMetrics {
-	limits: PlanLimits | null
-	limitChecks: LimitChecks | null
+export interface BillingUsage {
+  period: {
+    start: string
+    end: string
+  }
+  limits: UsageLimits
+  overages: {
+    properties: number
+    units: number
+    tenants: number
+  }
 }
 
-/**
- * Billing history event for audit trail
- * Tracks all billing-related activities and changes
- */
+// =============================================================================
+// EMAIL TYPES - CONSOLIDATED from email templates
+// =============================================================================
+
+export interface PaymentSuccessEmailProps {
+  customerName: string
+  amount: number
+  currency: string
+  invoiceUrl: string
+  planName: string
+}
+
+export interface PaymentFailedEmailProps {
+  customerName: string
+  amount: number
+  currency: string
+  retryUrl: string
+  updatePaymentUrl: string
+}
+
+export interface SubscriptionCanceledEmailProps {
+  customerName: string
+  planName: string
+  endDate: string
+  reactivateUrl: string
+}
+
+// =============================================================================
+// LEGACY TYPE ALIASES - For backward compatibility during migration
+// =============================================================================
+
+export type Plan = BillingPlan
+export type SubStatus = SubscriptionStatus
+export type SubscriptionCreateRequest = CreateCheckoutRequest
+export type SubscriptionCreateResponse = CheckoutResponse
+
+// Legacy interfaces for extended billing - keeping during transition
+export interface UpdateSubscriptionParams {
+  subscriptionId: string
+  priceId?: string
+  quantity?: number
+}
+
+export interface SubscriptionSyncResult {
+  success: boolean
+  subscription?: Subscription
+  error?: string
+}
+
+// Missing types referenced in billing-extended.ts
+export interface UsageMetricsExtended {
+  period: string
+  usage: number
+  limit: number
+  percentage: number
+}
+
 export interface BillingHistoryEvent {
-	id: string
-	userId: string
-	type:
-		| 'subscription_created'
-		| 'subscription_updated'
-		| 'subscription_canceled'
-		| 'payment_succeeded'
-		| 'payment_failed'
-		| 'invoice_created'
-	description: string
-	amount?: number
-	currency?: string
-	stripeEventId?: string
-	metadata?: Record<string, string | number | boolean>
-	createdAt: Date
+  id: string
+  type: 'payment' | 'subscription_change' | 'invoice'
+  date: string
+  description: string
+  amount?: number
 }
 
-// Local subscription data interface (renamed from useSubscription.ts to avoid conflicts)
-export interface LocalSubscriptionData {
-	id: string
-	userId: string
-	status: string
-	planId: string | null
-	stripeSubscriptionId: string | null
-	stripeCustomerId: string | null
-	currentPeriodStart: Date | null
-	currentPeriodEnd: Date | null
-	cancelAtPeriodEnd: boolean | null
-	trialStart: Date | null
-	trialEnd: Date | null
-	createdAt: Date
-	updatedAt: Date
+// =============================================================================
+// PAYMENT NOTIFICATIONS - CONSOLIDATED from backend services
+// =============================================================================
+
+export interface PaymentNotificationData {
+userId: string
+subscriptionId: string
+amount: number
+currency: string
+status: 'succeeded' | 'failed' | 'canceled'
+attemptCount?: number
+failureReason?: string
+invoiceUrl?: string | null
+invoicePdf?: string | null
+cancelAtPeriodEnd?: boolean
+currentPeriodEnd?: Date
 }
 
-// Enhanced user plan interface (renamed from frontend to avoid conflicts)
-export interface EnhancedUserPlan extends Omit<Plan, 'subscription'> {
-	id: keyof typeof PLAN_TYPE
-	billingPeriod: 'monthly' | 'annual'
-	status: string
-	subscription: LocalSubscriptionData | null
-	isActive: boolean
-	trialDaysRemaining: number
-	accessExpiresAt: Date | null
-	statusReason: string
+export interface AuthenticatedUser {
+	id: string
+	email: string
+}
+
+// =============================================================================
+// WEBHOOK MINIMAL TYPES - CONSOLIDATED from backend webhook controller
+// =============================================================================
+
+export interface MinimalInvoice {
+	currency: string
+	amount_due?: number
+	amount_paid?: number
+	customer: string | { id: string }
+}
+
+export interface MinimalSubscription {
+	id: string
+	customer: string | { id: string }
+}
+
+// =============================================================================
+// ADDITIONAL BILLING TYPES - MIGRATED from inline definitions
+// =============================================================================
+
+export interface CreateSubscriptionDto {
+	priceId: string
+	customerId?: string
+	trialDays?: number
+}
+
+export interface BillingFormState {
+	success: boolean
+	error?: string
+	message?: string
+}
+
+export interface StripeInvoiceWithSubscription {
+	id: string
+	subscription?: MinimalSubscription
+	customer: string | { id: string }
+	amount_due: number
+	amount_paid: number
+	currency: string
+	status: InvoiceStatus
+}
+
+export interface StripeSubscriptionWithPeriods {
+	id: string
+	customer: string | { id: string }
+	current_period_start: number
+	current_period_end: number
+	trial_start?: number
+	trial_end?: number
+	status: SubscriptionStatus
+}
+
+// =============================================================================
+// SUBSCRIPTION EVENTS - MIGRATED from backend subscription.events.ts
+// =============================================================================
+
+export enum SubscriptionEventType {
+	SUBSCRIPTION_CREATED = 'subscription.created',
+	SUBSCRIPTION_UPDATED = 'subscription.updated', 
+	SUBSCRIPTION_CANCELED = 'subscription.canceled',
+	TRIAL_WILL_END = 'subscription.trial_will_end',
+	PAYMENT_FAILED = 'invoice.payment_failed',
+	PAYMENT_SUCCEEDED = 'invoice.payment_succeeded'
+}
+
+export interface BaseSubscriptionEvent {
+	eventType: SubscriptionEventType
+	userId: string
+	subscriptionId: string
+	timestamp: Date
+}
+
+export interface SubscriptionCreatedEvent extends BaseSubscriptionEvent {
+	eventType: SubscriptionEventType.SUBSCRIPTION_CREATED
+	planId: string
+	trialEnd?: Date
+}
+
+export interface SubscriptionUpdatedEvent extends BaseSubscriptionEvent {
+	eventType: SubscriptionEventType.SUBSCRIPTION_UPDATED
+	previousPlanId: string
+	newPlanId: string
+	proratedAmount?: number
+}
+
+export interface SubscriptionCanceledEvent extends BaseSubscriptionEvent {
+	eventType: SubscriptionEventType.SUBSCRIPTION_CANCELED
+	cancellationReason?: string
+	endOfBillingPeriod: Date
+	immediateCancel: boolean
+}
+
+export interface TrialWillEndEvent extends BaseSubscriptionEvent {
+	eventType: SubscriptionEventType.TRIAL_WILL_END
+	trialEndDate: Date
+	daysRemaining: number
+}
+
+export interface PaymentFailedEvent extends BaseSubscriptionEvent {
+	eventType: SubscriptionEventType.PAYMENT_FAILED
+	attemptCount: number
+	nextRetryDate?: Date
+}
+
+export interface PaymentSucceededEvent extends BaseSubscriptionEvent {
+	eventType: SubscriptionEventType.PAYMENT_SUCCEEDED
+	amountPaid: number
+	currency: string
 }

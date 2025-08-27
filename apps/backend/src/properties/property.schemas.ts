@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { PROPERTY_TYPE, type PropertyType } from '@repo/shared'
 
 /**
- * Unified Property Validation Schemas
+ * Property Validation Schemas
  * Single source of truth for all property validation
  */
 
@@ -44,11 +44,7 @@ const propertyBaseSchema = z.object({
 		.string()
 		.max(2000, 'Description must be less than 2000 characters')
 		.optional()
-<<<<<<< HEAD
 		.transform(val => val?.trim() ?? undefined),
-=======
-		.transform(val => val?.trim() || undefined),
->>>>>>> origin/main
 
 	propertyType: z
 		.enum(Object.values(PROPERTY_TYPE) as [PropertyType, ...PropertyType[]])
@@ -127,15 +123,7 @@ export const queryPropertySchema = z
 			.default(0)
 	})
 	.transform(data => ({
-<<<<<<< HEAD
 		...data
-=======
-		...data,
-		// Clean up undefined values
-		...Object.fromEntries(
-			Object.entries(data).filter(([_, value]) => value !== undefined)
-		)
->>>>>>> origin/main
 	}))
 
 // Owner ID validation schema

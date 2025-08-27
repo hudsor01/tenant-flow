@@ -1,19 +1,11 @@
-export interface LoginDto {
-	email: string
-	password: string
-}
+/**
+ * Backend DTO types - NOW USING SHARED TYPES
+ * All auth types moved to @repo/shared for centralization
+ */
 
-export interface SignupDto {
-	email: string
-	password: string
-	name: string
-}
-
-export interface AuthResponse {
-	user: {
-		id: string
-		email: string
-		name: string
-	}
-	token: string
-}
+// Use shared auth types instead of local DTOs
+export type {
+	LoginCredentials as LoginDto,
+	SignupCredentials as SignupDto,
+	AuthResponse
+} from '@repo/shared'

@@ -55,7 +55,7 @@ export interface MockResponse {
  */
 export function createMockResponse(): MockResponse {
 	const response: MockResponse = {
-		status: jest.fn(),
+		status: jest.fn() as jest.Mock<MockResponse>,
 		send: jest.fn(),
 		header: jest.fn(),
 		code: jest.fn()

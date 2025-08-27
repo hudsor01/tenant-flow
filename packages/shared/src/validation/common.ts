@@ -2,7 +2,6 @@ import { z } from 'zod'
 
 // ===== BASIC VALIDATION SCHEMAS =====
 
-<<<<<<< HEAD
 // Most commonly used validation building blocks
 export const requiredString = z.string().min(1, 'This field is required')
 
@@ -36,37 +35,6 @@ export const requiredDescription = requiredString.max(
 	1000,
 	'Description too long'
 )
-=======
-export const uuidSchema = z
-	.string()
-	.min(1, { message: 'UUID is required' })
-	.refine(
-		val =>
-			/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-				val
-			),
-		{ message: 'Invalid UUID format' }
-	)
-
-export const emailSchema = z
-	.string()
-	.min(1, { message: 'Email is required' })
-	.refine(val => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
-		message: 'Invalid email format'
-	})
-
-export const nonEmptyStringSchema = z
-	.string()
-	.min(1, { message: 'This field is required' })
-
-export const positiveNumberSchema = z
-	.number()
-	.positive({ message: 'Must be a positive number' })
-
-export const nonNegativeNumberSchema = z
-	.number()
-	.nonnegative({ message: 'Cannot be negative' })
->>>>>>> origin/main
 
 // ===== PAGINATION SCHEMAS =====
 // Backend-compatible pagination schemas
@@ -213,7 +181,6 @@ export const auditFieldsSchema = z.object({
 
 // ===== REACT 19 ACTION STATE SCHEMAS =====
 
-<<<<<<< HEAD
 // Secure action data schema with specific allowed types
 export const actionDataSchema = z.union([
 	z.string().max(10000, 'Action data string too long'),
@@ -238,79 +205,6 @@ export const actionStateSchema = z.object({
 	data: actionDataSchema.optional()
 })
 
-=======
-// Create a paginated response schema for any data type
-export const createPaginatedResponseSchema = <T extends z.ZodTypeAny>(
-	itemSchema: T
-): z.ZodObject<{
-	data: z.ZodArray<T>
-	pagination: typeof paginationResponseSchema
-}> =>
-	z.object({
-		data: z.array(itemSchema),
-		pagination: paginationResponseSchema
-	})
-
-// Create a standard API response schema
-export const createApiResponseSchema = <T extends z.ZodTypeAny>(
-	dataSchema: T
-): z.ZodObject<{
-	success: z.ZodBoolean
-	data: z.ZodOptional<T>
-	error: z.ZodOptional<z.ZodString>
-	message: z.ZodOptional<z.ZodString>
-}> =>
-	z.object({
-		success: z.boolean(),
-		data: dataSchema.optional(),
-		error: z.string().optional(),
-		message: z.string().optional()
-	})
-
-// Create a list response with total count
-export const createListResponseSchema = <T extends z.ZodTypeAny>(
-	itemSchema: T
-): z.ZodObject<{
-	items: z.ZodArray<T>
-	totalCount: z.ZodNumber
-	page: z.ZodNumber
-	pageSize: z.ZodNumber
-}> =>
-	z.object({
-		items: z.array(itemSchema),
-		totalCount: z.number(),
-		page: z.number(),
-		pageSize: z.number(),
-		totalPages: z.number()
-	})
-
-// ===== REACT 19 ACTION STATE SCHEMAS =====
-
-// Secure action data schema with specific allowed types
-export const actionDataSchema = z.union([
-	z.string().max(10000, 'Action data string too long'),
-	z.number().finite('Action data number must be finite'),
-	z.boolean(),
-	z.null(),
-	z
-		.object({})
-		.passthrough()
-		.refine(obj => {
-			const jsonStr = JSON.stringify(obj)
-			return jsonStr.length <= 50000 // 50KB limit
-		}, 'Action data object too large'),
-	z.array(z.unknown()).max(1000, 'Too many items in action data array')
-])
-
-export const actionStateSchema = z.object({
-	success: z.boolean().optional(),
-	loading: z.boolean().optional(),
-	error: z.string().max(1000, 'Error message too long').optional(),
-	message: z.string().max(1000, 'Message too long').optional(),
-	data: actionDataSchema.optional()
-})
-
->>>>>>> origin/main
 export const formActionStateSchema = actionStateSchema.extend({
 	fieldErrors: z.record(z.string(), z.array(z.string())).optional()
 })
