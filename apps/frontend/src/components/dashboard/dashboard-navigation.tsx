@@ -17,7 +17,7 @@ import { useCommandPalette } from '@/hooks/use-command-palette'
 // Dashboard sidebar removed - using layout-based sidebar
 import { OfflineIndicator } from '@/components/ui/offline-indicator'
 import Link from 'next/link'
-import { logoutAction } from '@/lib/actions/auth-actions'
+import { logoutAction } from '@/app/actions/auth'
 import { useTransition } from 'react'
 import { toast } from 'sonner'
 

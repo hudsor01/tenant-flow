@@ -21,11 +21,18 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import type { LeaseTerm } from './lease-form-client'
 
 // ============================================================================
 // INTERFACES
 // ============================================================================
+
+// LeaseTerm type defined inline - no need for external dependency
+interface LeaseTerm {
+	type: 'clause' | 'fee' | 'rule'
+	title: string
+	description: string
+	amount?: number
+}
 
 interface LeaseTermsSectionProps {
 	terms: LeaseTerm[]

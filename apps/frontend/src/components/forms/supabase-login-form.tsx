@@ -11,7 +11,7 @@ import {
 	CardHeader,
 	CardTitle
 } from '@/components/ui/card'
-import { loginFormAction } from '@/lib/actions/auth-actions'
+import { loginFormAction } from '@/app/actions/auth'
 import { OAuthProviders } from '@/components/auth/oauth-providers'
 import { useState } from 'react'
 import Link from 'next/link'
