@@ -58,8 +58,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # Install with standard npm ci
-          npm ci
+          # Install with npm ci (includes optional deps by default)
+          npm ci --no-fund --no-audit
 
       - name: Run ESLint
         run: |
@@ -89,8 +89,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # Install with standard npm ci
-          npm ci
+          # Install with npm ci (includes optional deps by default)
+          npm ci --no-fund --no-audit
 
       - name: Build all packages
         run: npm run build
@@ -131,8 +131,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # Install with standard npm ci
-          npm ci
+          # Install with npm ci (includes optional deps by default)
+          npm ci --no-fund --no-audit
 
       - name: Run tests
         run: npm run test || echo "Tests not configured yet"
