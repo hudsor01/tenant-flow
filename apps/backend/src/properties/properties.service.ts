@@ -14,13 +14,8 @@ import type {
 	UpdatePropertyRequest
 } from '../schemas/properties.schema'
 import type {
-	Property,
-	Unit
-} from '@repo/shared/types/database'
-
-export interface PropertyWithRelations extends Property {
-	Unit?: Unit[]
-}
+	PropertyWithUnits
+} from '@repo/shared'
 
 /**
  * Properties service - Direct Supabase implementation following KISS principle
@@ -243,5 +238,103 @@ export class PropertiesService {
 		}
 
 		return data
+	}
+
+	/**
+	 * Get all properties with their units for stat calculations
+	 * Direct query with units relation
+	 */
+	async findAllWithUnits(
+		userId: string,
+		query: { search: string | null; limit: number; offset: number }
+	): Promise<PropertyWithUnits[]> {
+		// Build the query for properties with units using proper table names
+		const { data, error } = await this.supabaseService
+			.getAdminClient()
+			.from('Property')
+			.select(`
+				id,
+				name,
+				address,
+				city,
+				state,
+				zip,
+				description,
+				status,
+				created_at,
+				updated_at,
+				user_id,
+				Unit (
+					id,
+					unit_number,
+					status,
+					monthly_rent,
+					property_id
+				)
+			`)
+			.eq('user_id', userId)
+			.order('created_at', { ascending: false })
+			.range(query.offset, query.offset + query.limit - 1)
+			.ilike('name', query.search ? `%${query.search}%` : '%')
+
+		if (error) {
+			this.logger.error(
+				{
+					error: {
+						message: error.message,
+						code: error.code,
+						hint: error.hint
+					},
+					userId,
+					query
+				},
+				'Failed to get properties with units'
+			)
+			throw new BadRequestException('Failed to retrieve properties')
+		}
+
+		// Transform to PropertyWithUnits type from @repo/shared
+		// Map database fields to match shared type interface  
+		// KISS principle: simple type annotation for raw query result
+		const properties = (data || []) as Array<{
+			id: string
+			name: string
+			address: string
+			city: string
+			state: string
+			zip: string
+			description: string | null
+			status: string
+			created_at: string
+			updated_at: string
+			user_id: string
+			Unit?: Array<{
+				id: string
+				unit_number: string
+				status: string
+				monthly_rent: number | null
+				property_id: string
+			}>
+		}>
+		
+		return properties.map(property => ({
+			id: property.id,
+			name: property.name,
+			address: property.address,
+			city: property.city,
+			state: property.state,
+			zip: property.zip,
+			description: property.description,
+			status: property.status,
+			created_at: property.created_at,
+			updated_at: property.updated_at,
+			user_id: property.user_id,
+			units: (property.Unit || []).map(unit => ({
+				id: unit.id,
+				name: unit.unit_number, // Map unit_number to name for UI display
+				status: unit.status,
+				rent: unit.monthly_rent || 0
+			}))
+		}))
 	}
 }
