@@ -3,6 +3,7 @@
  * ARCHITECTURE: React 19 useOptimistic is the ONLY pattern - no legacy TanStack Query mutations
  * PURE: Combines native React 19 optimistic updates with TanStack Query Suspense
  */
+import { useState } from 'react'
 import {
 	useSuspenseQuery,
 	useQueryClient,

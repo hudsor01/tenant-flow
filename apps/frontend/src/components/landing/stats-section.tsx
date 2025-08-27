@@ -1,3 +1,4 @@
+import { Clock,TrendingUp,Zap,Star } from 'lucide-react'
 
 const benefits = [
 	{ metric: '10+', label: 'Hours Saved Weekly', icon: Clock },

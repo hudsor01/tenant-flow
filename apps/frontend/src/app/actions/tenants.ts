@@ -204,8 +204,8 @@ export async function getTenantStats(): Promise<TenantStats> {
   return {
     totalTenants: totalTenants || 0,
     activeTenants: activeTenants || 0,
-    pendingApplications: 0, // Calculate if needed
-    recentActivity: [] // Fetch if needed
+    inactiveTenants: 0,
+    newTenants: 0
   }
 }
 

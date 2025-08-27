@@ -77,10 +77,10 @@ export async function createUnit(formData: FormData): Promise<Unit> {
   const unitData = {
     property_id: formData.get('property_id') as string,
     unit_number: formData.get('unit_number') as string,
-    floor: parseInt(formData.get('floor', 10) as string) || null,
-    bedrooms: parseInt(formData.get('bedrooms', 10) as string) || 1,
+    floor: parseInt(formData.get('floor') as string, 10) || null,
+    bedrooms: parseInt(formData.get('bedrooms') as string, 10) || 1,
     bathrooms: parseFloat(formData.get('bathrooms') as string) || 1,
-    square_feet: parseInt(formData.get('square_feet', 10) as string) || null,
+    square_feet: parseInt(formData.get('square_feet') as string, 10) || null,
     monthly_rent: parseFloat(formData.get('monthly_rent') as string),
     status: formData.get('status') as string || 'VACANT',
     amenities: formData.has('amenities')
@@ -104,6 +104,58 @@ export async function createUnit(formData: FormData): Promise<Unit> {
   }
 
   revalidatePath('/units')
+  revalidatePath('/properties')
+  revalidatePath('/dashboard')
+  revalidateTag('units')
+
+  return data
+}
+
+/**
+ * NATIVE Server Action: Update unit
+ */
+export async function updateUnit(
+  id: string,
+  formData: FormData
+): Promise<Unit> {
+  const supabase = await createActionClient()
+  
+  const unitData = {
+    unit_number: formData.get('unitNumber') as string,
+    unit_type: formData.get('unitType') as string || 'STUDIO',
+    square_feet: formData.has('squareFeet') 
+      ? parseInt(formData.get('squareFeet') as string, 10)
+      : null,
+    bedrooms: formData.has('bedrooms')
+      ? parseInt(formData.get('bedrooms') as string, 10)
+      : null,
+    bathrooms: formData.has('bathrooms')
+      ? parseFloat(formData.get('bathrooms') as string)
+      : null,
+    monthly_rent: formData.has('monthlyRent')
+      ? parseFloat(formData.get('monthlyRent') as string)
+      : null,
+    description: formData.get('description') as string || null,
+    status: formData.get('isOccupied') === 'on' ? 'OCCUPIED' : 'VACANT'
+  }
+  
+  const { data, error } = await supabase
+    .from('units')
+    .update(unitData)
+    .eq('id', id)
+    .select(`
+      *,
+      property:properties(*)
+    `)
+    .single()
+
+  if (error || !data) {
+    console.error('Failed to update unit:', error)
+    throw new Error('Failed to update unit')
+  }
+
+  revalidatePath('/units')
+  revalidatePath(`/units/${id}`)
   revalidatePath('/properties')
   revalidatePath('/dashboard')
   revalidateTag('units')
@@ -175,8 +227,8 @@ export async function getUnitStats(): Promise<UnitStats> {
 
   return {
     totalUnits: totalUnits || 0,
+    availableUnits: vacantUnits || 0,
     occupiedUnits: occupiedUnits || 0,
-    vacantUnits: vacantUnits || 0,
     maintenanceUnits: maintenanceUnits || 0,
     occupancyRate
   }

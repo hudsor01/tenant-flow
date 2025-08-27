@@ -138,7 +138,7 @@ export function useDashboardAlerts(options?: {
  * 
  * function DashboardOverview() {
  *   const stats = use(createDashboardOverviewPromise())
- *   return <div>Properties: {stats.properties.totalProperties}</div>
+ *   return <div>Properties: {stats.totalPropertiesProperties}</div>
  * }
  * ```
  */
