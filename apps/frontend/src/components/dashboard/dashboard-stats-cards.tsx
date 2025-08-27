@@ -1,5 +1,5 @@
 'use client'
-
+import { Building2,Users,FileText,Wrench } from 'lucide-react'
 import { useOptimistic, useTransition } from 'react'
 import { useDashboardOverview } from '@/hooks/api/use-dashboard'
 import { 
@@ -68,8 +68,8 @@ export function DashboardStatsCards() {
 	const statCards = [
 		{
 			title: 'Total Properties',
-			value: currentStats?.properties?.totalProperties ?? 0,
-			description: `${currentStats?.properties?.occupancyRate ?? 0}% occupancy`,
+			value: currentStats?.totalProperties ?? 0,
+			description: `${currentStats?.occupancyRate ?? 0}% occupancy`,
 			icon: Building2,
 			color: 'primary',
 			bgColor: 'bg-simplify-soft',
@@ -81,7 +81,7 @@ export function DashboardStatsCards() {
 		},
 		{
 			title: 'Active Tenants',
-			value: currentStats?.tenants?.totalTenants ?? 0,
+			value: currentStats?.totalTenants ?? 0,
 			description: 'Active tenants',
 			icon: Users,
 			color: 'success',
@@ -93,9 +93,9 @@ export function DashboardStatsCards() {
 			change: '+8%'
 		},
 		{
-			title: 'Active Leases',
-			value: currentStats?.leases?.totalLeases ?? 0,
-			description: 'Active leases',
+			title: 'Total Units',
+			value: currentStats?.totalUnits ?? 0,
+			description: 'Total units',
 			icon: FileText,
 			color: 'accent',
 			bgColor: 'bg-gradient-to-br from-teal-50 to-teal-100/50',
