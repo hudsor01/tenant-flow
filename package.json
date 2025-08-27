@@ -125,7 +125,14 @@
 		"turbo-darwin-64": "2.5.6",
 		"turbo-darwin-arm64": "2.5.6",
 		"turbo-linux-64": "2.5.6",
-		"turbo-linux-arm64": "2.5.6"
+		"turbo-linux-arm64": "2.5.6",
+		"@rollup/rollup-android-arm-eabi": "4.48.1",
+		"@rollup/rollup-darwin-arm64": "4.48.1",
+		"@rollup/rollup-linux-arm64": "4.48.1",
+		"@rollup/rollup-linux-x64": "4.48.1",
+		"@rollup/rollup-win32-arm64": "4.48.1",
+		"@rollup/rollup-win32-ia32": "4.48.1",
+		"@rollup/rollup-win32-x64-msvc": "4.48.1"
 	},
 	"lint-staged": {
 		"*.{ts,tsx}": [
