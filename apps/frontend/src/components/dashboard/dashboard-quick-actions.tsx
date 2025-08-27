@@ -156,7 +156,7 @@ export function DashboardQuickActions({
 								color={action.color}
 							/>
 						)
-					))}
+					)})}
 				</div>
 			</div>
 		</motion.div>
