@@ -159,7 +159,7 @@ export function MobileNav({ className }: MobileNavProps) {
 									damping: 25
 								}}
 							>
-								<i className={cn(stat.icon, 'inline-block', cn(
+								<i className={cn(item.icon, 'inline-block', cn(
 										'mb-1 h-5 w-5 transition-colors duration-200',
 										isActive
 											? 'text-primary'
