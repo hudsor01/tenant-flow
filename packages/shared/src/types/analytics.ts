@@ -8,6 +8,48 @@ export type AnalyticsEventData = Record<
 	string | number | boolean | null
 >
 
+// =============================================================================
+// BUSINESS EVENT TRACKING - CONSOLIDATED from frontend analytics
+// =============================================================================
+
+export interface BusinessEvent {
+	event: string
+	properties?: Record<string, string | number | boolean>
+	userId?: string
+}
+
+export interface PropertyEvent extends BusinessEvent {
+	propertyId?: string
+	propertyType?: string
+	address?: string
+}
+
+export interface LeaseEvent extends BusinessEvent {
+	leaseId?: string
+	propertyId?: string
+	tenantId?: string
+	leaseStatus?: string
+}
+
+export interface TenantEvent extends BusinessEvent {
+	tenantId?: string
+	propertyId?: string
+	tenantStatus?: string
+}
+
+export type BusinessEventType =
+	| 'property_created'
+	| 'property_updated'
+	| 'property_deleted'
+	| 'lease_created'
+	| 'lease_updated'
+	| 'lease_signed'
+	| 'lease_expired'
+	| 'tenant_added'
+	| 'tenant_updated'
+	| 'maintenance_created'
+	| 'payment_received'
+
 export interface PropertyMetric {
 	propertyId: string
 	propertyName: string
@@ -67,31 +109,18 @@ export interface PropertyWithAnalytics {
 	id: string
 	name: string
 	address?: string
-<<<<<<< HEAD
 	units: Array<{
 		id: string
 		unitNumber: string
 		rent?: number
 	}>
 	leases: Array<{
-=======
-	units: {
-		id: string
-		unitNumber: string
-		rent?: number
-	}[]
-	leases: {
->>>>>>> origin/main
 		id: string
 		status: string
 		rentAmount?: number
 		startDate?: string | Date
 		endDate?: string | Date
-<<<<<<< HEAD
 	}>
-=======
-	}[]
->>>>>>> origin/main
 }
 
 export interface TopPayingTenant {

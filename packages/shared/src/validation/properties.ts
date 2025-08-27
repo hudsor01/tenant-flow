@@ -4,12 +4,8 @@ import {
 	nonEmptyStringSchema,
 	positiveNumberSchema,
 	nonNegativeNumberSchema,
-<<<<<<< HEAD
 	urlSchema,
 	requiredString
-=======
-	urlSchema
->>>>>>> origin/main
 } from './common'
 import { PROPERTY_TYPE } from '../constants/properties'
 
@@ -146,11 +142,7 @@ export type PropertyStatusValidation = z.infer<typeof propertyStatusSchema>
 // Frontend-specific form schema (handles string inputs from HTML forms)
 // Clean schema for React Hook Form zodResolver compatibility
 export const propertyFormSchema = z.object({
-<<<<<<< HEAD
 	name: requiredString,
-=======
-	name: z.string().min(1, 'Property name is required'),
->>>>>>> origin/main
 	description: z.string().optional(),
 	propertyType: z.enum([
 		PROPERTY_TYPE.SINGLE_FAMILY,
@@ -161,17 +153,10 @@ export const propertyFormSchema = z.object({
 		PROPERTY_TYPE.COMMERCIAL,
 		PROPERTY_TYPE.OTHER
 	]),
-<<<<<<< HEAD
 	address: requiredString,
 	city: requiredString,
 	state: requiredString,
 	zipCode: requiredString,
-=======
-	address: z.string().min(1, 'Address is required'),
-	city: z.string().min(1, 'City is required'),
-	state: z.string().min(1, 'State is required'),
-	zipCode: z.string().min(1, 'ZIP code is required'),
->>>>>>> origin/main
 	bedrooms: z.string().optional(),
 	bathrooms: z.string().optional(),
 	squareFootage: z.string().optional(),
@@ -212,25 +197,14 @@ export const transformPropertyFormData = (
 	city: data.city,
 	state: data.state,
 	zipCode: data.zipCode,
-<<<<<<< HEAD
 	bedrooms: data.bedrooms ? parseInt(data.bedrooms, 10) : undefined,
 	bathrooms: data.bathrooms ? parseFloat(data.bathrooms) : undefined,
 	squareFootage: data.squareFootage
 		? parseInt(data.squareFootage, 10)
-=======
-	bedrooms: data.bedrooms ? parseInt(data.bedrooms) : undefined,
-	bathrooms: data.bathrooms ? parseFloat(data.bathrooms) : undefined,
-	squareFootage: data.squareFootage
-		? parseInt(data.squareFootage)
->>>>>>> origin/main
 		: undefined,
 	rent: data.rent ? parseFloat(data.rent) : undefined,
 	deposit: data.deposit ? parseFloat(data.deposit) : undefined,
 	images: data.imageUrl ? [data.imageUrl] : [],
-<<<<<<< HEAD
-=======
-	// Transform frontend UI fields to amenities array
->>>>>>> origin/main
 	amenities: [
 		...(data.hasGarage ? ['garage'] : []),
 		...(data.hasPool ? ['pool'] : [])

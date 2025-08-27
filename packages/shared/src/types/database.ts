@@ -39,21 +39,7 @@ export type SubscriptionUpdate = Tables['Subscription']['Update']
 export type MaintenanceRequestUpdate = Tables['MaintenanceRequest']['Update']
 export type DocumentUpdate = Tables['Document']['Update']
 
-<<<<<<< HEAD
 // Repository interface removed - use native Supabase client methods directly
-=======
-// ============================================================================
-// Repository Interface
-// ============================================================================
-
-export interface BaseRepository<T, TInsert, TUpdate> {
-	findById(id: string): Promise<T | null>
-	findAll(options?: Record<string, unknown>): Promise<T[]>
-	create(data: TInsert): Promise<T>
-	update(id: string, data: TUpdate): Promise<T | null>
-	delete(id: string): Promise<boolean>
-}
->>>>>>> origin/main
 
 // ============================================================================
 // Utility Types for Database Operations
@@ -64,3 +50,38 @@ export type Nullable<T> = T | null | undefined
 export type DatabaseRow<T extends keyof Tables> = Tables[T]['Row']
 export type DatabaseInsert<T extends keyof Tables> = Tables[T]['Insert']
 export type DatabaseUpdate<T extends keyof Tables> = Tables[T]['Update']
+
+// Database Health Check Types (from packages/database)
+export interface DatabaseHealthResult {
+  healthy: boolean
+  error?: string
+}
+
+// =============================================================================
+// ENVIRONMENT & CONFIG TYPES - MIGRATED from backend config files
+// =============================================================================
+
+// MIGRATED from apps/backend/src/config/env.validation.ts
+export interface RequiredEnvVars {
+  DATABASE_URL: string
+  DIRECT_URL: string
+  JWT_SECRET: string
+  SUPABASE_URL: string
+  SUPABASE_SERVICE_ROLE_KEY: string
+  SUPABASE_JWT_SECRET: string
+  CORS_ORIGINS: string
+}
+
+// MIGRATED from apps/backend/src/cli/database-optimization.command.ts
+export interface DatabaseOptimizationOptions {
+  action: 'apply' | 'stats' | 'analyze' | 'health' | 'unused'
+  tables?: string
+  verbose?: boolean
+}
+
+// MIGRATED from apps/backend/src/setup-type-providers.ts
+export interface EnvironmentConfig {
+  NODE_ENV: string
+  PORT: number
+  DATABASE_URL?: string
+}

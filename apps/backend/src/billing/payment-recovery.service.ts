@@ -1,4 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
+import { PinoLogger } from 'nestjs-pino'
 import { SubscriptionSupabaseRepository } from './subscription-supabase.repository'
 
 /**
@@ -19,11 +20,12 @@ import { SubscriptionSupabaseRepository } from './subscription-supabase.reposito
  */
 @Injectable()
 export class PaymentRecoveryService {
-	private readonly logger = new Logger(PaymentRecoveryService.name)
-
 	constructor(
-		private readonly subscriptionRepository: SubscriptionSupabaseRepository
-	) {}
+		private readonly subscriptionRepository: SubscriptionSupabaseRepository,
+		private readonly logger: PinoLogger
+	) {
+		// PinoLogger context handled automatically via app-level configuration
+	}
 
 	/**
 	 * Sync failed payment status from Stripe webhook
@@ -42,7 +44,7 @@ export class PaymentRecoveryService {
 			'PAST_DUE'
 		)
 
-		this.logger.log(
+		this.logger.info(
 			`Subscription ${subscriptionId} marked PAST_DUE. Stripe handling recovery.`
 		)
 	}
@@ -63,7 +65,7 @@ export class PaymentRecoveryService {
 			'ACTIVE'
 		)
 
-		this.logger.log(
+		this.logger.info(
 			`Subscription ${subscriptionId} recovered and marked ACTIVE.`
 		)
 	}

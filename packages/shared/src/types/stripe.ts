@@ -17,17 +17,12 @@ import type { Stripe as StripeSDK } from 'stripe'
 
 /**
  * Official Stripe Subscription type (when available)
-<<<<<<< HEAD
  * Extended to include current_period properties that are confirmed in Stripe API docs
  */
 export type StripeSubscription = StripeSDK.Subscription & {
 	current_period_start?: number
 	current_period_end?: number
 }
-=======
- */
-export type StripeSubscription = StripeSDK.Subscription
->>>>>>> origin/main
 
 /**
  * Official Stripe Customer type (when available)
@@ -41,15 +36,10 @@ export type StripeInvoice = StripeSDK.Invoice
 
 /**
  * Official Stripe PaymentMethod type (when available)
-<<<<<<< HEAD
  * Use this instead of custom PaymentMethod interfaces
  */
 export type StripePaymentMethod = StripeSDK.PaymentMethod
 export type PaymentMethod = StripePaymentMethod
-=======
- */
-export type StripePaymentMethod = StripeSDK.PaymentMethod
->>>>>>> origin/main
 
 /**
  * Official Stripe Price type (when available)
@@ -99,7 +89,6 @@ export type StripeCurrency = 'usd' | 'eur' | 'gbp' | 'cad' | 'aud' | 'jpy'
  * Stripe Billing interval enumeration
  */
 export type StripeBillingInterval = 'day' | 'week' | 'month' | 'year'
-export type BillingInterval = StripeBillingInterval
 
 /**
  * Stripe Payment method types enumeration
@@ -190,11 +179,7 @@ export interface StripeSubscriptionData {
 	customer: string
 	items: {
 		object: 'list'
-<<<<<<< HEAD
 		data: Array<{
-=======
-		data: {
->>>>>>> origin/main
 			id: string
 			price: {
 				id: string
@@ -207,11 +192,7 @@ export interface StripeSubscriptionData {
 				}
 			}
 			quantity: number
-<<<<<<< HEAD
 		}>
-=======
-		}[]
->>>>>>> origin/main
 	}
 	metadata?: Record<string, string>
 }
@@ -271,11 +252,7 @@ export function isSubscriptionPaused(
 export function willCancelAtPeriodEnd(
 	subscription: StripeSubscription
 ): boolean {
-<<<<<<< HEAD
 	return subscription.cancel_at_period_end
-=======
-	return subscription.cancel_at_period_end === true
->>>>>>> origin/main
 }
 
 /**
@@ -287,26 +264,16 @@ export function getSubscriptionCurrentPeriod(
 	start: Date
 	end: Date
 } | null {
-<<<<<<< HEAD
 	if (
 		!subscription.current_period_start ||
 		!subscription.current_period_end
 	) {
-=======
-	const sub = subscription as any
-	if (!sub.current_period_start || !sub.current_period_end) {
->>>>>>> origin/main
 		return null
 	}
 
 	return {
-<<<<<<< HEAD
 		start: new Date(subscription.current_period_start * 1000),
 		end: new Date(subscription.current_period_end * 1000)
-=======
-		start: new Date(sub.current_period_start * 1000),
-		end: new Date(sub.current_period_end * 1000)
->>>>>>> origin/main
 	}
 }
 
@@ -314,13 +281,9 @@ export function getSubscriptionCurrentPeriod(
  * Check if subscription is in trial
  */
 export function isInTrial(subscription: StripeSubscription): boolean {
-<<<<<<< HEAD
 	if (!subscription.trial_end) {
 		return false
 	}
-=======
-	if (!subscription.trial_end) {return false}
->>>>>>> origin/main
 	return new Date(subscription.trial_end * 1000) > new Date()
 }
 
@@ -330,13 +293,9 @@ export function isInTrial(subscription: StripeSubscription): boolean {
 export function getTrialDaysRemaining(
 	subscription: StripeSubscription
 ): number {
-<<<<<<< HEAD
 	if (!subscription.trial_end) {
 		return 0
 	}
-=======
-	if (!subscription.trial_end) {return 0}
->>>>>>> origin/main
 
 	const trialEnd = new Date(subscription.trial_end * 1000)
 	const now = new Date()
@@ -375,11 +334,7 @@ export function getSubscriptionStatus(
 export function getSubscriptionPriceId(
 	subscription: StripeSubscription
 ): string | null {
-<<<<<<< HEAD
 	return subscription.items.data[0]?.price.id ?? null
-=======
-	return subscription.items?.data?.[0]?.price?.id || null
->>>>>>> origin/main
 }
 
 /**
@@ -388,11 +343,7 @@ export function getSubscriptionPriceId(
 export function getSubscriptionQuantity(
 	subscription: StripeSubscription
 ): number | null {
-<<<<<<< HEAD
 	return subscription.items.data[0]?.quantity ?? null
-=======
-	return subscription.items?.data?.[0]?.quantity || null
->>>>>>> origin/main
 }
 
 /**
@@ -401,11 +352,7 @@ export function getSubscriptionQuantity(
 export function getSubscriptionInterval(
 	subscription: StripeSubscription
 ): string | null {
-<<<<<<< HEAD
 	return subscription.items.data[0]?.price.recurring?.interval ?? null
-=======
-	return subscription.items?.data?.[0]?.price?.recurring?.interval || null
->>>>>>> origin/main
 }
 
 /**
@@ -454,7 +401,6 @@ export function getSubscriptionEndDate(
 export function calculateSubscriptionMRR(
 	subscription: StripeSubscription
 ): number {
-<<<<<<< HEAD
 	const item = subscription.items.data[0]
 	if (!item?.price) {
 		return 0
@@ -462,13 +408,6 @@ export function calculateSubscriptionMRR(
 
 	const amount = item.price.unit_amount ?? 0
 	const quantity = item.quantity ?? 1
-=======
-	const item = subscription.items?.data?.[0]
-	if (!item?.price) {return 0}
-
-	const amount = item.price.unit_amount || 0
-	const quantity = item.quantity || 1
->>>>>>> origin/main
 	const interval = item.price.recurring?.interval
 
 	// Convert to monthly recurring revenue
@@ -481,11 +420,8 @@ export function calculateSubscriptionMRR(
 			return ((amount * quantity) / 100) * 4.33 // Convert weekly to monthly
 		case 'day':
 			return ((amount * quantity) / 100) * 30 // Convert daily to monthly
-<<<<<<< HEAD
 		case undefined:
 			return 0 // One-time payment, no recurring revenue
-=======
->>>>>>> origin/main
 		default:
 			return 0
 	}
@@ -498,13 +434,9 @@ export function formatSubscriptionPeriod(
 	subscription: StripeSubscription
 ): string {
 	const period = getSubscriptionCurrentPeriod(subscription)
-<<<<<<< HEAD
 	if (!period) {
 		return 'Unknown period'
 	}
-=======
-	if (!period) {return 'Unknown period'}
->>>>>>> origin/main
 
 	return `${period.start.toLocaleDateString()} - ${period.end.toLocaleDateString()}`
 }
@@ -514,13 +446,9 @@ export function formatSubscriptionPeriod(
  */
 export function getDaysUntilRenewal(subscription: StripeSubscription): number {
 	const period = getSubscriptionCurrentPeriod(subscription)
-<<<<<<< HEAD
 	if (!period) {
 		return 0
 	}
-=======
-	if (!period) {return 0}
->>>>>>> origin/main
 
 	const now = new Date()
 	const diffTime = period.end.getTime() - now.getTime()
@@ -817,6 +745,11 @@ export const BILLING_PERIODS = {
 
 export type BillingPeriod =
 	(typeof BILLING_PERIODS)[keyof typeof BILLING_PERIODS]
+
+/**
+ * Billing interval type (alias for BillingPeriod)
+ */
+export type BillingInterval = BillingPeriod
 
 /**
  * Subscription statuses aligned with Stripe's subscription status values
@@ -1350,17 +1283,9 @@ export interface StripeCustomerSession {
 		readonly payment_element?: {
 			readonly enabled: boolean
 			readonly features?: {
-<<<<<<< HEAD
 				readonly payment_method_allow_redisplay_filters?: Array<
 					'always' | 'limited' | 'unspecified'
 				>
-=======
-				readonly payment_method_allow_redisplay_filters?: (
-					| 'always'
-					| 'limited'
-					| 'unspecified'
-				)[]
->>>>>>> origin/main
 				readonly payment_method_redisplay?: 'disabled' | 'enabled'
 				readonly payment_method_redisplay_limit?: number
 				readonly payment_method_remove?: 'disabled' | 'enabled'
@@ -1374,700 +1299,6 @@ export interface StripeCustomerSession {
 }
 
 /**
-<<<<<<< HEAD
-=======
- * Comprehensive Stripe Invoice interface based on official API
- * @deprecated Use the SDK type alias StripeInvoice instead
- * @internal Not exported - kept for reference only
- */
-// eslint-disable-next-line @typescript-eslint/naming-convention
-interface _StripeInvoiceDetailed {
-	readonly id: string
-	readonly object: 'invoice'
-	readonly account_country?: string | null
-	readonly account_name?: string | null
-	readonly account_tax_ids?: string[] | null
-	readonly amount_due: number
-	readonly amount_paid: number
-	readonly amount_remaining: number
-	readonly amount_shipping: number
-	readonly application?: string | null
-	readonly application_fee_amount?: number | null
-	readonly attempt_count: number
-	readonly attempted: boolean
-	readonly auto_advance?: boolean
-	readonly automatic_tax: {
-		readonly enabled: boolean
-		readonly liability?: {
-			readonly account?: string | null
-			readonly type: 'account' | 'self'
-		} | null
-		readonly status?:
-			| 'complete'
-			| 'failed'
-			| 'requires_location_inputs'
-			| null
-	}
-	readonly billing_reason?:
-		| 'automatic_pending_invoice_item_invoice'
-		| 'manual'
-		| 'quote_accept'
-		| 'subscription'
-		| 'subscription_create'
-		| 'subscription_cycle'
-		| 'subscription_threshold'
-		| 'subscription_update'
-		| 'upcoming'
-		| null
-	readonly charge?: string | null
-	readonly collection_method: CollectionMethod
-	readonly created: number
-	readonly currency: SupportedCurrency
-	readonly custom_fields?:
-		| {
-				readonly name: string
-				readonly value: string
-		  }[]
-		| null
-	readonly customer?: string | StripeCustomer | null
-	readonly customer_address?: {
-		readonly city?: string | null
-		readonly country?: string | null
-		readonly line1?: string | null
-		readonly line2?: string | null
-		readonly postal_code?: string | null
-		readonly state?: string | null
-	} | null
-	readonly customer_email?: string | null
-	readonly customer_name?: string | null
-	readonly customer_phone?: string | null
-	readonly customer_shipping?: {
-		readonly address?: {
-			readonly city?: string | null
-			readonly country?: string | null
-			readonly line1?: string | null
-			readonly line2?: string | null
-			readonly postal_code?: string | null
-			readonly state?: string | null
-		} | null
-		readonly carrier?: string | null
-		readonly name?: string | null
-		readonly phone?: string | null
-		readonly tracking_number?: string | null
-	} | null
-	readonly customer_tax_exempt?: 'exempt' | 'none' | 'reverse' | null
-	readonly customer_tax_ids?:
-		| {
-				readonly type:
-					| 'ad_nrt'
-					| 'ae_trn'
-					| 'ar_cuit'
-					| 'au_abn'
-					| 'au_arn'
-					| 'bg_uic'
-					| 'bh_vat'
-					| 'bo_tin'
-					| 'br_cnpj'
-					| 'br_cpf'
-					| 'ca_bn'
-					| 'ca_gst_hst'
-					| 'ca_pst_bc'
-					| 'ca_pst_mb'
-					| 'ca_pst_sk'
-					| 'ca_qst'
-					| 'ch_vat'
-					| 'cl_tin'
-					| 'cn_tin'
-					| 'co_nit'
-					| 'cr_tin'
-					| 'do_rcn'
-					| 'ec_ruc'
-					| 'eg_tin'
-					| 'es_cif'
-					| 'eu_oss_vat'
-					| 'eu_vat'
-					| 'gb_vat'
-					| 'ge_vat'
-					| 'hk_br'
-					| 'hu_tin'
-					| 'id_npwp'
-					| 'il_vat'
-					| 'in_gst'
-					| 'is_vat'
-					| 'jp_cn'
-					| 'jp_rn'
-					| 'jp_trn'
-					| 'ke_pin'
-					| 'kr_brn'
-					| 'kz_bin'
-					| 'li_uid'
-					| 'mx_rfc'
-					| 'my_frp'
-					| 'my_itn'
-					| 'my_sst'
-					| 'ng_tin'
-					| 'no_vat'
-					| 'no_voec'
-					| 'nz_gst'
-					| 'om_vat'
-					| 'pe_ruc'
-					| 'ph_tin'
-					| 'ro_tin'
-					| 'rs_pib'
-					| 'ru_inn'
-					| 'ru_kpp'
-					| 'sa_vat'
-					| 'sg_gst'
-					| 'sg_uen'
-					| 'si_tin'
-					| 'sv_nit'
-					| 'th_vat'
-					| 'tr_tin'
-					| 'tw_vat'
-					| 'ua_vat'
-					| 'us_ein'
-					| 'uy_ruc'
-					| 've_rif'
-					| 'vn_tin'
-					| 'za_vat'
-				readonly value?: string | null
-		  }[]
-		| null
-	readonly default_payment_method?: string | null
-	readonly default_source?: string | null
-	readonly default_tax_rates: {
-		readonly id: string
-		readonly object: 'tax_rate'
-		readonly active: boolean
-		readonly country?: string | null
-		readonly created: number
-		readonly description?: string | null
-		readonly display_name: string
-		readonly effective_percentage?: number | null
-		readonly inclusive: boolean
-		readonly jurisdiction?: string | null
-		readonly jurisdiction_level?:
-			| 'city'
-			| 'country'
-			| 'county'
-			| 'district'
-			| 'multiple'
-			| 'state'
-			| null
-		readonly livemode: boolean
-		readonly metadata: Record<string, string>
-		readonly percentage: number
-		readonly state?: string | null
-		readonly tax_type?:
-			| 'amusement_tax'
-			| 'communications_tax'
-			| 'gst'
-			| 'hst'
-			| 'igst'
-			| 'jct'
-			| 'lease_tax'
-			| 'pst'
-			| 'qst'
-			| 'rst'
-			| 'sales_tax'
-			| 'vat'
-			| null
-	}[]
-	readonly description?: string | null
-	readonly discount?: {
-		readonly id: string
-		readonly object: 'discount'
-		readonly checkout_session?: string | null
-		readonly coupon: {
-			readonly id: string
-			readonly object: 'coupon'
-			readonly amount_off?: number | null
-			readonly applies_to?: {
-				readonly products: string[]
-			} | null
-			readonly created: number
-			readonly currency?: SupportedCurrency | null
-			readonly currency_options?: Record<
-				string,
-				{
-					readonly amount_off: number
-				}
-			>
-			readonly duration: 'forever' | 'once' | 'repeating'
-			readonly duration_in_months?: number | null
-			readonly livemode: boolean
-			readonly max_redemptions?: number | null
-			readonly metadata: Record<string, string>
-			readonly name?: string | null
-			readonly percent_off?: number | null
-			readonly redeem_by?: number | null
-			readonly times_redeemed: number
-			readonly valid: boolean
-		}
-		readonly customer?: string | null
-		readonly end?: number | null
-		readonly invoice?: string | null
-		readonly invoice_item?: string | null
-		readonly promotion_code?: string | null
-		readonly start: number
-		readonly subscription?: string | null
-		readonly subscription_item?: string | null
-	} | null
-	readonly due_date?: number | null
-	readonly effective_at?: number | null
-	readonly ending_balance?: number | null
-	readonly footer?: string | null
-	readonly from_invoice?: {
-		readonly action: 'revision'
-		readonly invoice: string
-	} | null
-	readonly hosted_invoice_url?: string | null
-	readonly invoice_pdf?: string | null
-	readonly issuer: {
-		readonly account?: string | null
-		readonly type: 'account' | 'self'
-	}
-	readonly last_finalization_error?: {
-		readonly code?: string
-		readonly doc_url?: string
-		readonly message?: string
-		readonly param?: string
-		readonly type:
-			| 'api_error'
-			| 'card_error'
-			| 'idempotency_error'
-			| 'invalid_request_error'
-	} | null
-	readonly latest_revision?: string | null
-	readonly lines: {
-		readonly object: 'list'
-		readonly data: {
-			readonly id: string
-			readonly object: 'line_item'
-			readonly amount: number
-			readonly amount_excluding_tax?: number | null
-			readonly currency: SupportedCurrency
-			readonly description?: string | null
-			readonly discount_amounts?:
-				| {
-						readonly amount: number
-						readonly discount: string
-				  }[]
-				| null
-			readonly discountable: boolean
-			readonly discounts?: string[] | null
-			readonly invoice_item?: string
-			readonly livemode: boolean
-			readonly metadata: Record<string, string>
-			readonly period: {
-				readonly end: number
-				readonly start: number
-			}
-			readonly plan?: {
-				readonly id: string
-				readonly object: 'plan'
-				readonly active: boolean
-				readonly aggregate_usage?:
-					| 'last_during_period'
-					| 'last_ever'
-					| 'max'
-					| 'sum'
-					| null
-				readonly amount?: number | null
-				readonly amount_decimal?: string | null
-				readonly billing_scheme: 'per_unit' | 'tiered'
-				readonly created: number
-				readonly currency: SupportedCurrency
-				readonly interval: 'day' | 'month' | 'week' | 'year'
-				readonly interval_count: number
-				readonly livemode: boolean
-				readonly metadata: Record<string, string>
-				readonly nickname?: string | null
-				readonly product?: string | null
-				readonly tiers?:
-					| {
-							readonly flat_amount?: number | null
-							readonly flat_amount_decimal?: string | null
-							readonly unit_amount?: number | null
-							readonly unit_amount_decimal?: string | null
-							readonly up_to?: number | 'inf' | null
-					  }[]
-					| null
-				readonly tiers_mode?: 'graduated' | 'volume' | null
-				readonly transform_usage?: {
-					readonly divide_by: number
-					readonly round: 'down' | 'up'
-				} | null
-				readonly trial_period_days?: number | null
-				readonly usage_type: 'licensed' | 'metered'
-			} | null
-			readonly price?: {
-				readonly id: string
-				readonly object: 'price'
-				readonly active: boolean
-				readonly billing_scheme: 'per_unit' | 'tiered'
-				readonly created: number
-				readonly currency: SupportedCurrency
-				readonly custom_unit_amount?: {
-					readonly maximum?: number | null
-					readonly minimum?: number | null
-					readonly preset?: number | null
-				} | null
-				readonly livemode: boolean
-				readonly lookup_key?: string | null
-				readonly metadata: Record<string, string>
-				readonly nickname?: string | null
-				readonly product: string
-				readonly recurring?: {
-					readonly aggregate_usage?:
-						| 'sum'
-						| 'last_during_period'
-						| 'last_ever'
-						| 'max'
-						| null
-					readonly interval: 'day' | 'week' | 'month' | 'year'
-					readonly interval_count: number
-					readonly trial_period_days?: number | null
-					readonly usage_type: 'licensed' | 'metered'
-				} | null
-				readonly tax_behavior?:
-					| 'exclusive'
-					| 'inclusive'
-					| 'unspecified'
-					| null
-				readonly tiers?:
-					| {
-							readonly flat_amount?: number | null
-							readonly flat_amount_decimal?: string | null
-							readonly unit_amount?: number | null
-							readonly unit_amount_decimal?: string | null
-							readonly up_to?: number | 'inf' | null
-					  }[]
-					| null
-				readonly tiers_mode?: 'graduated' | 'volume' | null
-				readonly transform_quantity?: {
-					readonly divide_by: number
-					readonly round: 'down' | 'up'
-				} | null
-				readonly type: 'one_time' | 'recurring'
-				readonly unit_amount?: number | null
-				readonly unit_amount_decimal?: string | null
-			} | null
-			readonly proration: boolean
-			readonly proration_details?: {
-				readonly credited_items?: {
-					readonly invoice: string
-					readonly invoice_line_items: string[]
-				} | null
-			} | null
-			readonly quantity?: number | null
-			readonly subscription?: string | null
-			readonly subscription_item?: string | null
-			readonly tax_amounts?:
-				| {
-						readonly amount: number
-						readonly inclusive: boolean
-						readonly tax_rate: string
-						readonly taxability_reason?:
-							| 'customer_exempt'
-							| 'not_collecting'
-							| 'not_subject_to_tax'
-							| 'not_supported'
-							| 'portion_product_exempt'
-							| 'portion_reduced_rated'
-							| 'portion_standard_rated'
-							| 'product_exempt'
-							| 'product_exempt_holiday'
-							| 'proportionally_rated'
-							| 'reduced_rated'
-							| 'reverse_charge'
-							| 'standard_rated'
-							| 'taxable_basis_reduced'
-							| 'zero_rated'
-							| null
-						readonly taxable_amount?: number | null
-				  }[]
-				| null
-			readonly tax_rates: {
-				readonly id: string
-				readonly object: 'tax_rate'
-				readonly active: boolean
-				readonly country?: string | null
-				readonly created: number
-				readonly description?: string | null
-				readonly display_name: string
-				readonly effective_percentage?: number | null
-				readonly inclusive: boolean
-				readonly jurisdiction?: string | null
-				readonly jurisdiction_level?:
-					| 'city'
-					| 'country'
-					| 'county'
-					| 'district'
-					| 'multiple'
-					| 'state'
-					| null
-				readonly livemode: boolean
-				readonly metadata: Record<string, string>
-				readonly percentage: number
-				readonly state?: string | null
-				readonly tax_type?:
-					| 'amusement_tax'
-					| 'communications_tax'
-					| 'gst'
-					| 'hst'
-					| 'igst'
-					| 'jct'
-					| 'lease_tax'
-					| 'pst'
-					| 'qst'
-					| 'rst'
-					| 'sales_tax'
-					| 'vat'
-					| null
-			}[]
-			readonly type: 'invoice_item' | 'subscription'
-			readonly unit_amount_excluding_tax?: string | null
-		}[]
-		readonly has_more: boolean
-		readonly total_count: number
-		readonly url: string
-	}
-	readonly livemode: boolean
-	readonly metadata: Record<string, string>
-	readonly next_payment_attempt?: number | null
-	readonly number?: string | null
-	readonly on_behalf_of?: string | null
-	readonly paid: boolean
-	readonly paid_out_of_band: boolean
-	readonly payment_intent?: string | null
-	readonly payment_settings: {
-		readonly default_mandate?: string | null
-		readonly payment_method_options?: {
-			readonly acss_debit?: {
-				readonly mandate_options?: {
-					readonly transaction_type?: 'business' | 'personal' | null
-				}
-				readonly verification_method?:
-					| 'automatic'
-					| 'instant'
-					| 'microdeposits'
-					| null
-			} | null
-			readonly bancontact?: {
-				readonly preferred_language?: 'de' | 'en' | 'fr' | 'nl' | null
-			} | null
-			readonly card?: {
-				readonly installments?: {
-					readonly enabled?: boolean | null
-					readonly plan?: {
-						readonly count: number
-						readonly interval: 'month'
-						readonly type: 'fixed_count'
-					} | null
-				} | null
-				readonly request_three_d_secure?:
-					| 'any'
-					| 'automatic'
-					| 'challenge'
-					| null
-			} | null
-			readonly customer_balance?: {
-				readonly bank_transfer?: {
-					readonly eu_bank_transfer?: {
-						readonly country: string
-					} | null
-					readonly type?: string | null
-				} | null
-				readonly funding_type?: 'bank_transfer' | null
-			} | null
-			readonly konbini?: Record<string, never> | null
-			readonly sepa_debit?: Record<string, never> | null
-			readonly us_bank_account?: {
-				readonly financial_connections?: {
-					readonly filters?: {
-						readonly account_subcategory?:
-							| ('checking' | 'savings')[]
-							| null
-					} | null
-					readonly permissions?:
-						| (
-								| 'balances'
-								| 'ownership'
-								| 'payment_method'
-								| 'transactions'
-						  )[]
-						| null
-					readonly prefetch?:
-						| ('balances' | 'ownership' | 'transactions')[]
-						| null
-					readonly return_url?: string | null
-				} | null
-				readonly verification_method?:
-					| 'automatic'
-					| 'instant'
-					| 'microdeposits'
-					| null
-			} | null
-		} | null
-		readonly payment_method_types?: PaymentMethodType[] | null
-	}
-	readonly period_end: number
-	readonly period_start: number
-	readonly post_payment_credit_notes_amount: number
-	readonly pre_payment_credit_notes_amount: number
-	readonly quote?: string | null
-	readonly receipt_number?: string | null
-	readonly rendering?: {
-		readonly amount_tax_display?:
-			| 'exclude_tax'
-			| 'include_inclusive_tax'
-			| null
-		readonly pdf?: {
-			readonly page_size?: 'a4' | 'auto' | 'letter' | null
-		} | null
-		readonly template?: string | null
-		readonly template_version?: number | null
-	} | null
-	readonly shipping_cost?: {
-		readonly amount_subtotal: number
-		readonly amount_tax: number
-		readonly amount_total: number
-		readonly shipping_rate?: string | null
-		readonly taxes?:
-			| {
-					readonly amount: number
-					readonly rate: {
-						readonly id: string
-						readonly object: 'tax_rate'
-						readonly active: boolean
-						readonly country?: string | null
-						readonly created: number
-						readonly description?: string | null
-						readonly display_name: string
-						readonly effective_percentage?: number | null
-						readonly inclusive: boolean
-						readonly jurisdiction?: string | null
-						readonly jurisdiction_level?:
-							| 'city'
-							| 'country'
-							| 'county'
-							| 'district'
-							| 'multiple'
-							| 'state'
-							| null
-						readonly livemode: boolean
-						readonly metadata: Record<string, string>
-						readonly percentage: number
-						readonly state?: string | null
-						readonly tax_type?:
-							| 'amusement_tax'
-							| 'communications_tax'
-							| 'gst'
-							| 'hst'
-							| 'igst'
-							| 'jct'
-							| 'lease_tax'
-							| 'pst'
-							| 'qst'
-							| 'rst'
-							| 'sales_tax'
-							| 'vat'
-							| null
-					}
-					readonly taxability_reason?:
-						| 'customer_exempt'
-						| 'not_collecting'
-						| 'not_subject_to_tax'
-						| 'not_supported'
-						| 'portion_product_exempt'
-						| 'portion_reduced_rated'
-						| 'portion_standard_rated'
-						| 'product_exempt'
-						| 'product_exempt_holiday'
-						| 'proportionally_rated'
-						| 'reduced_rated'
-						| 'reverse_charge'
-						| 'standard_rated'
-						| 'taxable_basis_reduced'
-						| 'zero_rated'
-						| null
-					readonly taxable_amount?: number | null
-			  }[]
-			| null
-	} | null
-	readonly shipping_details?: {
-		readonly address?: {
-			readonly city?: string | null
-			readonly country?: string | null
-			readonly line1?: string | null
-			readonly line2?: string | null
-			readonly postal_code?: string | null
-			readonly state?: string | null
-		} | null
-		readonly carrier?: string | null
-		readonly name?: string | null
-		readonly phone?: string | null
-		readonly tracking_number?: string | null
-	} | null
-	readonly starting_balance: number
-	readonly statement_descriptor?: string | null
-	readonly status?: InvoiceStatus | null
-	readonly status_transitions: {
-		readonly finalized_at?: number | null
-		readonly marked_uncollectible_at?: number | null
-		readonly paid_at?: number | null
-		readonly voided_at?: number | null
-	}
-	readonly subscription?: string | null
-	readonly subscription_details?: {
-		readonly metadata?: Record<string, string> | null
-	} | null
-	readonly subscription_proration_date?: number | null
-	readonly subtotal: number
-	readonly subtotal_excluding_tax?: number | null
-	readonly tax?: number | null
-	readonly test_clock?: string | null
-	readonly total: number
-	readonly total_discount_amounts?:
-		| {
-				readonly amount: number
-				readonly discount: string
-		  }[]
-		| null
-	readonly total_excluding_tax?: number | null
-	readonly total_tax_amounts: {
-		readonly amount: number
-		readonly inclusive: boolean
-		readonly tax_rate: string
-		readonly taxability_reason?:
-			| 'customer_exempt'
-			| 'not_collecting'
-			| 'not_subject_to_tax'
-			| 'not_supported'
-			| 'portion_product_exempt'
-			| 'portion_reduced_rated'
-			| 'portion_standard_rated'
-			| 'product_exempt'
-			| 'product_exempt_holiday'
-			| 'proportionally_rated'
-			| 'reduced_rated'
-			| 'reverse_charge'
-			| 'standard_rated'
-			| 'taxable_basis_reduced'
-			| 'zero_rated'
-			| null
-		readonly taxable_amount?: number | null
-	}[]
-	readonly transfer_data?: {
-		readonly amount?: number | null
-		readonly destination: string
-	} | null
-	readonly webhooks_delivered_at?: number | null
-}
-
-/**
->>>>>>> origin/main
  * Comprehensive Stripe Payment Intent interface based on official API
  */
 export interface StripePaymentIntent {
@@ -2168,7 +1399,6 @@ export interface StripePaymentIntent {
 		readonly display_bank_transfer_instructions?: {
 			readonly amount_remaining?: number | null
 			readonly currency?: SupportedCurrency | null
-<<<<<<< HEAD
 			readonly financial_addresses?: Array<{
 				readonly aba?: {
 					readonly account_holder_type?:
@@ -2228,74 +1458,6 @@ export interface StripePaymentIntent {
 					readonly branch_name?: string | null
 				} | null
 			}> | null
-=======
-			readonly financial_addresses?:
-				| {
-						readonly aba?: {
-							readonly account_holder_type?:
-								| 'company'
-								| 'individual'
-								| null
-							readonly account_number?: string | null
-							readonly account_type?:
-								| 'checking'
-								| 'savings'
-								| null
-							readonly bank_name?: string | null
-							readonly routing_number?: string | null
-						} | null
-						readonly iban?: {
-							readonly account_holder_name?: string | null
-							readonly bic?: string | null
-							readonly country?: string | null
-							readonly iban?: string | null
-						} | null
-						readonly sort_code?: {
-							readonly account_holder_name?: string | null
-							readonly account_number?: string | null
-							readonly sort_code?: string | null
-						} | null
-						readonly spei?: {
-							readonly bank_code?: string | null
-							readonly bank_name?: string | null
-							readonly clabe?: string | null
-						} | null
-						readonly supported_networks?:
-							| (
-									| 'ach'
-									| 'bacs'
-									| 'domestic_wire_us'
-									| 'fps'
-									| 'sepa'
-									| 'spei'
-									| 'swift'
-									| 'zengin'
-							  )[]
-							| null
-						readonly swift?: {
-							readonly account_number?: string | null
-							readonly bank_name?: string | null
-							readonly swift_code?: string | null
-						} | null
-						readonly type:
-							| 'aba'
-							| 'iban'
-							| 'sort_code'
-							| 'spei'
-							| 'swift'
-							| 'zengin'
-						readonly zengin?: {
-							readonly account_holder_name?: string | null
-							readonly account_number?: string | null
-							readonly account_type?: string | null
-							readonly bank_code?: string | null
-							readonly bank_name?: string | null
-							readonly branch_code?: string | null
-							readonly branch_name?: string | null
-						} | null
-				  }[]
-				| null
->>>>>>> origin/main
 			readonly hosted_instructions_url?: string | null
 			readonly reference?: string | null
 			readonly type:
@@ -2384,10 +1546,6 @@ export interface StripePaymentIntent {
 			| 'pix_display_qr_code'
 			| 'promptpay_display_qr_code'
 			| 'swish_handle_redirect_or_display_qr_code'
-<<<<<<< HEAD
-=======
-			 
->>>>>>> origin/main
 			| 'verify_with_microdeposits'
 			| 'wechat_pay_display_qr_code'
 			| 'wechat_pay_redirect_to_android_app'
@@ -2514,11 +1672,7 @@ export interface StripePaymentIntent {
 				readonly interval_count?: number | null
 				readonly reference?: string | null
 				readonly start_date?: number | null
-<<<<<<< HEAD
 				readonly supported_types?: Array<'india'> | null
-=======
-				readonly supported_types?: 'india'[] | null
->>>>>>> origin/main
 			} | null
 			readonly network?:
 				| 'amex'
@@ -2564,7 +1718,6 @@ export interface StripePaymentIntent {
 				readonly eu_bank_transfer?: {
 					readonly country?: string | null
 				} | null
-<<<<<<< HEAD
 				readonly requested_address_types?: Array<
 					| 'aba'
 					| 'iban'
@@ -2574,19 +1727,6 @@ export interface StripePaymentIntent {
 					| 'swift'
 					| 'zengin'
 				> | null
-=======
-				readonly requested_address_types?:
-					| (
-							| 'aba'
-							| 'iban'
-							| 'sepa'
-							| 'sort_code'
-							| 'spei'
-							| 'swift'
-							| 'zengin'
-					  )[]
-					| null
->>>>>>> origin/main
 				readonly type?:
 					| 'eu_bank_transfer'
 					| 'gb_bank_transfer'
@@ -2690,7 +1830,6 @@ export interface StripePaymentIntent {
 		readonly us_bank_account?: {
 			readonly financial_connections?: {
 				readonly filters?: {
-<<<<<<< HEAD
 					readonly account_subcategory?: Array<
 						'checking' | 'savings'
 					> | null
@@ -2701,23 +1840,6 @@ export interface StripePaymentIntent {
 				readonly prefetch?: Array<
 					'balances' | 'ownership' | 'transactions'
 				> | null
-=======
-					readonly account_subcategory?:
-						| ('checking' | 'savings')[]
-						| null
-				} | null
-				readonly permissions?:
-					| (
-							| 'balances'
-							| 'ownership'
-							| 'payment_method'
-							| 'transactions'
-					  )[]
-					| null
-				readonly prefetch?:
-					| ('balances' | 'ownership' | 'transactions')[]
-					| null
->>>>>>> origin/main
 				readonly return_url?: string | null
 			} | null
 			readonly mandate_options?: {
@@ -2810,11 +1932,7 @@ export interface StripeSetupIntent {
 	readonly created: number
 	readonly customer?: string | null
 	readonly description?: string | null
-<<<<<<< HEAD
 	readonly flow_directions?: Array<'inbound' | 'outbound'> | null
-=======
-	readonly flow_directions?: ('inbound' | 'outbound')[] | null
->>>>>>> origin/main
 	readonly last_setup_error?: {
 		readonly code?: string | null
 		readonly decline_code?: string | null
@@ -2880,11 +1998,7 @@ export interface StripeSetupIntent {
 			readonly currency?: 'cad' | 'usd' | null
 			readonly mandate_options?: {
 				readonly custom_mandate_url?: string | null
-<<<<<<< HEAD
 				readonly default_for?: Array<'invoice' | 'subscription'> | null
-=======
-				readonly default_for?: ('invoice' | 'subscription')[] | null
->>>>>>> origin/main
 				readonly interval_description?: string | null
 				readonly payment_schedule?:
 					| 'combined'
@@ -2928,11 +2042,7 @@ export interface StripeSetupIntent {
 				readonly interval_count?: number | null
 				readonly reference?: string | null
 				readonly start_date?: number | null
-<<<<<<< HEAD
 				readonly supported_types?: Array<'india'> | null
-=======
-				readonly supported_types?: 'india'[] | null
->>>>>>> origin/main
 			} | null
 			readonly network?:
 				| 'amex'
@@ -2954,7 +2064,6 @@ export interface StripeSetupIntent {
 				| null
 		} | null
 		readonly card_present?: {
-<<<<<<< HEAD
 			readonly mandate_options?: {
 				readonly amount?: number | null
 				readonly amount_type?: 'fixed' | 'maximum' | null
@@ -2991,10 +2100,6 @@ export interface StripeSetupIntent {
 				| 'automatic'
 				| 'challenge'
 				| null
-=======
-			readonly request_extended_authorization?: boolean | null
-			readonly request_incremental_authorization_support?: boolean | null
->>>>>>> origin/main
 		} | null
 		readonly cashapp?: {
 			readonly mandate_options?: {
@@ -3017,7 +2122,6 @@ export interface StripeSetupIntent {
 		readonly us_bank_account?: {
 			readonly financial_connections?: {
 				readonly filters?: {
-<<<<<<< HEAD
 					readonly account_subcategory?: Array<
 						'checking' | 'savings'
 					> | null
@@ -3029,24 +2133,6 @@ export interface StripeSetupIntent {
 				readonly prefetch?: Array<
 					'balances' | 'ownership' | 'transactions'
 				> | null
-=======
-					readonly account_subcategory?:
-						| ('checking' | 'savings')[]
-						| null
-				} | null
-				readonly manual_entry?: Record<string, unknown> | null
-				readonly permissions?:
-					| (
-							| 'balances'
-							| 'ownership'
-							| 'payment_method'
-							| 'transactions'
-					  )[]
-					| null
-				readonly prefetch?:
-					| ('balances' | 'ownership' | 'transactions')[]
-					| null
->>>>>>> origin/main
 				readonly return_url?: string | null
 			} | null
 			readonly mandate_options?: {
@@ -3237,11 +2323,7 @@ export interface StripeDispute {
 	readonly id: string
 	readonly object: 'dispute'
 	readonly amount: number
-<<<<<<< HEAD
 	readonly balance_transactions: Array<{
-=======
-	readonly balance_transactions: {
->>>>>>> origin/main
 		readonly id: string
 		readonly object: 'balance_transaction'
 		readonly amount: number
@@ -3251,11 +2333,7 @@ export interface StripeDispute {
 		readonly description?: string | null
 		readonly exchange_rate?: number | null
 		readonly fee: number
-<<<<<<< HEAD
 		readonly fee_details: Array<{
-=======
-		readonly fee_details: {
->>>>>>> origin/main
 			readonly amount: number
 			readonly currency: SupportedCurrency
 			readonly description?: string | null
@@ -3264,11 +2342,7 @@ export interface StripeDispute {
 				| 'payment_method_passthrough_fee'
 				| 'stripe_fee'
 				| 'tax'
-<<<<<<< HEAD
 		}>
-=======
-		}[]
->>>>>>> origin/main
 		readonly net: number
 		readonly reporting_category:
 			| 'advance'
@@ -3344,11 +2418,7 @@ export interface StripeDispute {
 			| 'transfer_cancel'
 			| 'transfer_failure'
 			| 'transfer_refund'
-<<<<<<< HEAD
 	}>
-=======
-	}[]
->>>>>>> origin/main
 	readonly charge: string
 	readonly created: number
 	readonly currency: SupportedCurrency
@@ -3990,15 +3060,9 @@ export interface StripeCharge {
 			readonly payer_id?: string | null
 			readonly payer_name?: string | null
 			readonly seller_protection?: {
-<<<<<<< HEAD
 				readonly dispute_categories?: Array<
 					'fraudulent' | 'product_not_received'
 				> | null
-=======
-				readonly dispute_categories?:
-					| ('fraudulent' | 'product_not_received')[]
-					| null
->>>>>>> origin/main
 				readonly status?:
 					| 'eligible'
 					| 'not_eligible'
@@ -4137,17 +3201,9 @@ export interface CreateCustomerSessionParams extends StripeApiRequestBase {
 		readonly payment_element?: {
 			readonly enabled: boolean
 			readonly features?: {
-<<<<<<< HEAD
 				readonly payment_method_allow_redisplay_filters?: Array<
 					'always' | 'limited' | 'unspecified'
 				>
-=======
-				readonly payment_method_allow_redisplay_filters?: (
-					| 'always'
-					| 'limited'
-					| 'unspecified'
-				)[]
->>>>>>> origin/main
 				readonly payment_method_redisplay?: 'disabled' | 'enabled'
 				readonly payment_method_redisplay_limit?: number
 				readonly payment_method_remove?: 'disabled' | 'enabled'
@@ -4191,11 +3247,7 @@ export interface CreateCheckoutSessionParams extends StripeApiRequestBase {
 		readonly promotions?: 'auto' | 'none'
 		readonly termsOfService?: 'none' | 'required'
 	}
-<<<<<<< HEAD
 	readonly customFields?: Array<{
-=======
-	readonly customFields?: {
->>>>>>> origin/main
 		readonly key: string
 		readonly label: {
 			readonly custom: string
@@ -4203,17 +3255,10 @@ export interface CreateCheckoutSessionParams extends StripeApiRequestBase {
 		}
 		readonly type: 'dropdown' | 'numeric' | 'text'
 		readonly dropdown?: {
-<<<<<<< HEAD
 			readonly options: Array<{
 				readonly label: string
 				readonly value: string
 			}>
-=======
-			readonly options: {
-				readonly label: string
-				readonly value: string
-			}[]
->>>>>>> origin/main
 		}
 		readonly numeric?: {
 			readonly maximumLength?: number
@@ -4224,11 +3269,7 @@ export interface CreateCheckoutSessionParams extends StripeApiRequestBase {
 			readonly maximumLength?: number
 			readonly minimumLength?: number
 		}
-<<<<<<< HEAD
 	}>
-=======
-	}[]
->>>>>>> origin/main
 	readonly customText?: {
 		readonly afterSubmit?: {
 			readonly message: string
@@ -4254,17 +3295,10 @@ export interface CreateCheckoutSessionParams extends StripeApiRequestBase {
 		readonly enabled: boolean
 		readonly invoiceData?: {
 			readonly accountTaxIds?: string[]
-<<<<<<< HEAD
 			readonly customFields?: Array<{
 				readonly name: string
 				readonly value: string
 			}>
-=======
-			readonly customFields?: {
-				readonly name: string
-				readonly value: string
-			}[]
->>>>>>> origin/main
 			readonly description?: string
 			readonly footer?: string
 			readonly issuer?: {
@@ -4316,28 +3350,16 @@ export interface CreateCheckoutSessionParams extends StripeApiRequestBase {
 	readonly redirectOnCompletion?: 'always' | 'if_required' | 'never'
 	readonly returnUrl?: string
 	readonly savedPaymentMethodOptions?: {
-<<<<<<< HEAD
 		readonly allowRedisplayFilters?: Array<
 			'always' | 'limited' | 'unspecified'
 		>
-=======
-		readonly allowRedisplayFilters?: (
-			| 'always'
-			| 'limited'
-			| 'unspecified'
-		)[]
->>>>>>> origin/main
 		readonly paymentMethodRemove?: 'disabled' | 'enabled'
 		readonly paymentMethodSave?: 'disabled' | 'enabled'
 	}
 	readonly shippingAddressCollection?: {
 		readonly allowedCountries: string[]
 	}
-<<<<<<< HEAD
 	readonly shippingOptions?: Array<{
-=======
-	readonly shippingOptions?: {
->>>>>>> origin/main
 		readonly shippingRateData?: {
 			readonly deliveryEstimate?: {
 				readonly maximum?: {
@@ -4370,11 +3392,7 @@ export interface CreateCheckoutSessionParams extends StripeApiRequestBase {
 			readonly type: 'fixed_amount'
 		}
 		readonly shippingRate?: string
-<<<<<<< HEAD
 	}>
-=======
-	}[]
->>>>>>> origin/main
 	readonly submitType?: 'auto' | 'book' | 'donate' | 'pay'
 	readonly subscriptionData?: {
 		readonly applicationFeePercent?: number
@@ -4444,22 +3462,13 @@ export interface UpdateSubscriptionParams {
  */
 export interface CreateSubscriptionParams {
 	readonly customerId: string
-<<<<<<< HEAD
 	readonly items: Array<{
-=======
-	readonly items: {
->>>>>>> origin/main
 		readonly price: string
 		readonly quantity?: number
 		readonly metadata?: Record<string, string>
 		readonly taxRates?: string[]
-<<<<<<< HEAD
 	}>
 	readonly addInvoiceItems?: Array<{
-=======
-	}[]
-	readonly addInvoiceItems?: {
->>>>>>> origin/main
 		readonly price?: string
 		readonly priceData?: {
 			readonly currency: SupportedCurrency
@@ -4473,11 +3482,7 @@ export interface CreateSubscriptionParams {
 		}
 		readonly quantity?: number
 		readonly taxRates?: string[]
-<<<<<<< HEAD
 	}>
-=======
-	}[]
->>>>>>> origin/main
 	readonly applicationFeePercent?: number
 	readonly automaticTax?: {
 		readonly enabled: boolean
@@ -4553,28 +3558,15 @@ export interface CreateSubscriptionParams {
 			}
 			readonly usBankAccount?: {
 				readonly financialConnections?: {
-<<<<<<< HEAD
 					readonly permissions?: Array<
-=======
-					readonly permissions?: (
->>>>>>> origin/main
 						| 'balances'
 						| 'ownership'
 						| 'payment_method'
 						| 'transactions'
-<<<<<<< HEAD
 					>
 					readonly prefetch?: Array<
 						'balances' | 'ownership' | 'transactions'
 					>
-=======
-					)[]
-					readonly prefetch?: (
-						| 'balances'
-						| 'ownership'
-						| 'transactions'
-					)[]
->>>>>>> origin/main
 					readonly returnUrl?: string
 				}
 				readonly verificationMethod?:
@@ -4640,43 +3632,7 @@ export interface CreateSubscriptionResponse {
 // Payment Method Types
 // ========================
 
-<<<<<<< HEAD
 // PaymentMethod type is now defined using native Stripe SDK at the top of the file
-=======
-/**
- * Simplified payment method interface for cross-platform usage
- */
-export interface PaymentMethod {
-	readonly id: string
-	readonly object: 'payment_method'
-	readonly type: string
-	readonly created: number
-	readonly customer: string | null
-	readonly livemode: boolean
-	readonly metadata: Record<string, string>
-	readonly card?: {
-		readonly brand: string
-		readonly last4: string
-		readonly exp_month: number
-		readonly exp_year: number
-		readonly funding: string
-		readonly country: string | null
-	}
-	readonly billing_details: {
-		readonly address: {
-			readonly city: string | null
-			readonly country: string | null
-			readonly line1: string | null
-			readonly line2: string | null
-			readonly postal_code: string | null
-			readonly state: string | null
-		}
-		readonly email: string | null
-		readonly name: string | null
-		readonly phone: string | null
-	}
-}
->>>>>>> origin/main
 
 /**
  * Payment method error with detailed context
@@ -4937,30 +3893,18 @@ export function stripeSubscriptionToSubscription(
 	userId: string
 ): Subscription {
 	// Extract the first price item (we only support single-item subscriptions)
-<<<<<<< HEAD
 	const subscriptionItem = stripeSubscription.items.data[0]
-=======
-	const subscriptionItem = stripeSubscription.items?.data?.[0]
->>>>>>> origin/main
 	const price = subscriptionItem?.price
 	const priceId = price?.id ?? null
 
 	// Map Stripe plan to our plan types
-<<<<<<< HEAD
 	const planType = mapPriceIdToPlanType(priceId) ?? 'STARTER'
-=======
-	const planType = mapPriceIdToPlanType(priceId ?? undefined) ?? 'STARTER'
->>>>>>> origin/main
 
 	// Extract customer ID (Stripe customer can be expanded or just ID)
 	const customerId =
 		typeof stripeSubscription.customer === 'string'
 			? stripeSubscription.customer
-<<<<<<< HEAD
 			: stripeSubscription.customer.id
-=======
-			: (stripeSubscription.customer?.id ?? null)
->>>>>>> origin/main
 
 	// Determine billing period from price recurring information
 	const billingPeriod = price?.recurring
@@ -4971,15 +3915,9 @@ export function stripeSubscriptionToSubscription(
 		id: stripeSubscription.id,
 		userId,
 		planType,
-<<<<<<< HEAD
 		planId: String(stripeSubscription.metadata.planId ?? ''),
 		billingPeriod: billingPeriod,
 		stripeCustomerId: String(customerId),
-=======
-		planId: String(stripeSubscription.metadata?.planId ?? ''),
-		billingPeriod: billingPeriod,
-		stripeCustomerId: String(customerId ?? ''),
->>>>>>> origin/main
 		stripeSubscriptionId: stripeSubscription.id,
 		stripePriceId: String(priceId ?? ''),
 		status: normalizeSubscriptionStatus(stripeSubscription.status),
@@ -5001,7 +3939,6 @@ export function stripeSubscriptionToSubscription(
 			: null,
 		createdAt: unixTimestampToDate(stripeSubscription.created),
 		updatedAt: new Date(),
-<<<<<<< HEAD
 		metadata: stripeSubscription.metadata as Record<string, string>
 	}
 }
@@ -5156,181 +4093,6 @@ function determineBillingPeriod(
 
 	return null
 }
-=======
-		metadata: (stripeSubscription.metadata as Record<string, string>) ?? {}
-	}
-}
->>>>>>> origin/main
-
-// ========================
-// Error Types
-// ========================
-
-/**
- * Stripe-related error types
- */
-export interface StripeError extends Error {
-	type: string
-	code?: string
-	decline_code?: string
-	param?: string
-}
-
-/**
-<<<<<<< HEAD
- * Type guard for Stripe errors
- */
-export function isStripeError(error: unknown): error is StripeError {
-	return (
-		typeof error === 'object' &&
-		error !== null &&
-		'message' in error &&
-		typeof (error as StripeError).message === 'string' &&
-		'type' in error &&
-		typeof (error as StripeError).type === 'string'
-	)
-}
-
-// ========================
-// Additional Types for Frontend Compatibility
-// ========================
-
-/**
- * Subscription state for UI representation
- */
-export type SubscriptionState =
-	| 'active'
-	| 'trialing'
-	| 'past_due'
-	| 'canceled'
-	| 'incomplete'
-
-/**
-=======
- * Stripe subscription data for API operations
- * Used when working directly with Stripe API responses
- */
-export interface StripeSubscriptionData {
-	id: string
-	object: 'subscription'
-	status: StripeSubscriptionStatus
-	current_period_start: number
-	current_period_end: number
-	cancel_at_period_end: boolean
-	canceled_at?: number | null
-	trial_start?: number | null
-	trial_end?: number | null
-	created: number
-	customer: string
-	items: {
-		object: 'list'
-		data: {
-			id: string
-			price: {
-				id: string
-				product: string
-				unit_amount: number
-				currency: StripeCurrency
-				recurring?: {
-					interval: StripeBillingInterval
-					interval_count: number
-				}
-			}
-			quantity: number
-		}[]
-	}
-	metadata?: Record<string, string>
-}
-
-/**
- * Payment method information for TenantFlow
- */
-export interface PaymentMethodInfo {
-	id: string
-	type: StripePaymentMethodType
-	card?: {
-		brand: string
-		last4: string
-		exp_month: number
-		exp_year: number
-		funding: string
-	}
-	billing_details?: {
-		name?: string | null
-		email?: string | null
-	}
-	isDefault: boolean
-}
-
-/**
- * Invoice information for TenantFlow
- */
-export interface InvoiceInfo {
-	id: string
-	stripeInvoiceId: string
-	amountPaid: number
-	amountDue: number
-	currency: StripeCurrency
-	status: 'draft' | 'open' | 'paid' | 'uncollectible' | 'void'
-	invoiceDate: Date
-	dueDate: Date | null
-	paidAt: Date | null
-	hostedInvoiceUrl?: string | null
-	invoicePdf?: string | null
-}
-
-/**
- * Native Stripe Subscription type - uses official Stripe SDK types
- * This ensures compatibility with the official Stripe API
- */
-export interface NativeStripeSubscription
-	extends Omit<
-		StripeSDK.Subscription,
-		'canceled_at' | 'trial_start' | 'trial_end'
-	> {
-	// These properties exist in API responses with correct types
-	current_period_start: number
-	current_period_end: number
-	trial_start: number | null
-	trial_end: number | null
-	cancel_at_period_end: boolean
-	canceled_at: number | null
-}
-
-/**
- * Map Stripe price ID to our plan type
- */
-function mapPriceIdToPlanType(priceId: string | undefined): PlanType | null {
-	if (!priceId) return null
-
-	// Map based on price ID patterns (customize based on your Stripe setup)
-	if (priceId.includes('starter') || priceId.includes('basic'))
-		return 'STARTER'
-	if (priceId.includes('growth') || priceId.includes('pro')) return 'GROWTH'
-	if (priceId.includes('max') || priceId.includes('enterprise'))
-		return 'TENANTFLOW_MAX'
-	if (priceId.includes('trial') || priceId.includes('free'))
-		return 'FREETRIAL'
-
-	return null
-}
-
-/**
- * Determine billing period from native Stripe price object
- */
-function determineBillingPeriod(
-	price: StripeSDK.Price
-): 'monthly' | 'annual' | null {
-	if (!price.recurring) return null
-
-	const interval = price.recurring.interval
-	const intervalCount = price.recurring.interval_count ?? 1
-
-	if (interval === 'month' && intervalCount === 1) return 'monthly'
-	if (interval === 'year' && intervalCount === 1) return 'annual'
-
-	return null
-}
 
 // ========================
 // Error Types
@@ -5375,7 +4137,6 @@ export type SubscriptionState =
 	| 'incomplete'
 
 /**
->>>>>>> origin/main
  * Usage metrics for billing
  */
 export interface BillingUsageMetrics {

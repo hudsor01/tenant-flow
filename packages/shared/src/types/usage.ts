@@ -58,23 +58,13 @@ export interface BasicUsageMetrics {
 export interface LeadAnalytics {
 	totalLeads: number
 	uniqueEmails: number
-<<<<<<< HEAD
 	topStates: Array<{ state: string; count: number }>
 	topSources: Array<{ source: string; count: number }>
 	conversionsByPeriod: Array<{
-=======
-	topStates: { state: string; count: number }[]
-	topSources: { source: string; count: number }[]
-	conversionsByPeriod: {
->>>>>>> origin/main
 		period: string
 		leads: number
 		signups: number
 		conversionRate: number
-<<<<<<< HEAD
 	}>
-=======
-	}[]
->>>>>>> origin/main
 	recentLeads: UsageLeaseGeneratorRecord[]
 }
