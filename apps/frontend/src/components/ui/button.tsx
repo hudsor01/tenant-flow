@@ -98,4 +98,13 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
 Button.displayName = 'Button'
 
+// Export variants for compatibility with existing components
+export const buttonVariants = (props: { variant?: ButtonVariant; size?: ButtonSize }) => {
+	return cn(
+		baseClasses,
+		variantClasses[props.variant || 'default'],
+		sizeClasses[props.size || 'default']
+	)
+}
+
 export { Button }
