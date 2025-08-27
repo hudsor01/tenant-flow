@@ -11,14 +11,15 @@ import {
 	UseGuards
 } from '@nestjs/common'
 import { Throttle } from '@nestjs/throttler'
-import { UnifiedAuthGuard } from '../shared/guards/auth.guard'
+import { AuthGuard } from '../shared/guards/auth.guard'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
 import { AuthService } from './auth.service'
 import { Public } from '../shared/decorators/auth.decorators'
 import type { ValidatedUser } from '@repo/shared'
 import type { FastifyRequest } from 'fastify'
 import { UsersService } from '../users/users.service'
-import type { LoginDto, RefreshTokenDto, RegisterDto } from '@repo/shared'
+// Using native Fastify JSON Schema validation - no DTOs needed
+// Validation is handled by Fastify schema at route level
 
 @Controller('auth')
 export class AuthController {
@@ -32,7 +33,7 @@ export class AuthController {
 	// Profile updates available at: PUT /api/v1/users/profile
 
 	@Get('me')
-	@UseGuards(UnifiedAuthGuard)
+	@UseGuards(AuthGuard)
 	async getCurrentUser(@CurrentUser() user: ValidatedUser) {
 		const userProfile = await this.usersService.getUserById(user.id)
 		if (!userProfile) {
@@ -50,7 +51,7 @@ export class AuthController {
 	@Public()
 	@Throttle({ default: { limit: 20, ttl: 60000 } })
 	@HttpCode(HttpStatus.OK)
-	async refreshToken(@Body() body: RefreshTokenDto) {
+	async refreshToken(@Body() body: { refresh_token: string }) {
 		return this.authService.refreshToken(body.refresh_token)
 	}
 
@@ -63,7 +64,7 @@ export class AuthController {
 	@Public()
 	@Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 login attempts per minute
 	@HttpCode(HttpStatus.OK)
-	async login(@Body() body: LoginDto, @Req() request: FastifyRequest) {
+	async login(@Body() body: { email: string; password: string }, @Req() request: FastifyRequest) {
 		const forwardedFor = request.headers['x-forwarded-for']
 		const ip =
 			request.ip ||
@@ -81,15 +82,21 @@ export class AuthController {
 	@Public()
 	@Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 registration attempts per minute
 	@HttpCode(HttpStatus.CREATED)
-	async register(@Body() body: RegisterDto) {
-		return this.authService.createUser(body)
+	async register(@Body() body: { email: string; password: string; firstName: string; lastName: string }) {
+		// Transform firstName/lastName to name for service compatibility
+		const userData = {
+			email: body.email,
+			password: body.password,
+			name: `${body.firstName} ${body.lastName}`.trim()
+		}
+		return this.authService.createUser(userData)
 	}
 
 	/**
 	 * Logout endpoint
 	 */
 	@Post('logout')
-	@UseGuards(UnifiedAuthGuard)
+	@UseGuards(AuthGuard)
 	@HttpCode(HttpStatus.OK)
 	async logout(@Req() request: FastifyRequest) {
 		const authHeader = request.headers.authorization

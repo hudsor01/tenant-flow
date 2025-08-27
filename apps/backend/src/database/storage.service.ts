@@ -1,63 +1,27 @@
-<<<<<<< HEAD
 import {
-	Inject,
 	Injectable,
-	Logger,
-	BadRequestException,
-	InternalServerErrorException
+	BadRequestException
 } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { PinoLogger } from 'nestjs-pino'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@repo/shared/types/supabase-generated'
-=======
-import { Inject, Injectable, Logger } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
-import { createClient, SupabaseClient } from '@supabase/supabase-js'
-import { ErrorHandlerService } from '../services/error-handler.service'
->>>>>>> origin/main
+import type { StorageUploadResult, FileUploadOptions, StorageEntityType, StorageFileType } from '@repo/shared'
 import * as path from 'path'
+import { SupabaseService } from './supabase.service'
 
-// Custom type that matches what we're returning
-interface StorageUploadResult {
-	url: string
-	path: string
-	filename: string
-	size: number
-	mimeType: string
-	bucket: string
-}
+// StorageUploadResult now imported from @repo/shared to eliminate duplication
 
 @Injectable()
 export class StorageService {
-	private readonly logger = new Logger(StorageService.name)
-	private readonly supabase: SupabaseClient<Database>
-
-<<<<<<< HEAD
-	constructor(@Inject(ConfigService) private configService: ConfigService) {
-=======
 	constructor(
-		@Inject(ConfigService) private configService: ConfigService,
-		private errorHandler: ErrorHandlerService
+		private readonly supabaseService: SupabaseService,
+		private readonly logger: PinoLogger
 	) {
->>>>>>> origin/main
-		const supabaseUrl = this.configService.get<string>('SUPABASE_URL')
-		const supabaseServiceKey = this.configService.get<string>(
-			'SUPABASE_SERVICE_ROLE_KEY'
-		)
+		// PinoLogger context handled automatically via app-level configuration
+	}
 
-		if (!supabaseUrl || !supabaseServiceKey) {
-<<<<<<< HEAD
-			throw new InternalServerErrorException(
-				'Supabase configuration missing: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY required'
-=======
-			throw this.errorHandler.createBusinessError(
-				'Supabase configuration missing: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY required',
-				{ operation: 'constructor', resource: 'storage' }
->>>>>>> origin/main
-			)
-		}
-
-		this.supabase = createClient<Database>(supabaseUrl, supabaseServiceKey)
+	private get supabase(): SupabaseClient<Database> {
+		return this.supabaseService.getAdminClient()
 	}
 
 	/**
@@ -76,14 +40,7 @@ export class StorageService {
 			normalized.includes('/../') ||
 			normalized === '..'
 		) {
-<<<<<<< HEAD
 			throw new BadRequestException('Invalid file path detected')
-=======
-			throw this.errorHandler.createBusinessError(
-				'Invalid file path detected',
-				{ operation: 'validateFilePath', resource: 'file' }
-			)
->>>>>>> origin/main
 		}
 
 		// Ensure path doesn't start with /
@@ -110,14 +67,7 @@ export class StorageService {
 			hasDangerousChars ||
 			dangerousExtensions.test(filename)
 		) {
-<<<<<<< HEAD
 			throw new BadRequestException('Invalid file name or extension')
-=======
-			throw this.errorHandler.createBusinessError(
-				'Invalid file name or extension',
-				{ operation: 'validateFileName', resource: 'file' }
-			)
->>>>>>> origin/main
 		}
 
 		return filename
@@ -130,20 +80,13 @@ export class StorageService {
 		bucket: string,
 		filePath: string,
 		file: Buffer,
-		options?: {
-			contentType?: string
-			cacheControl?: string
-			upsert?: boolean
-		}
+		options?: FileUploadOptions
 	): Promise<StorageUploadResult> {
 		// SECURITY: Validate and sanitize the file path
 		const safePath = this.validateFilePath(filePath)
 		const filename = path.basename(safePath)
 		this.validateFileName(filename)
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/main
 		const { error } = await this.supabase.storage
 			.from(bucket)
 			.upload(safePath, file, {
@@ -159,18 +102,8 @@ export class StorageService {
 				path: safePath,
 				bucket
 			})
-<<<<<<< HEAD
 			throw new BadRequestException(
 				`Failed to upload file: ${error.message}`
-=======
-			throw this.errorHandler.createBusinessError(
-				'Failed to upload file',
-				{
-					operation: 'uploadFile',
-					resource: 'file',
-					metadata: { bucket, path: safePath, error: error.message }
-				}
->>>>>>> origin/main
 			)
 		}
 
@@ -179,11 +112,7 @@ export class StorageService {
 		return {
 			url: publicUrl,
 			path: safePath,
-<<<<<<< HEAD
 			filename: safePath.split('/').pop() ?? safePath,
-=======
-			filename: safePath.split('/').pop() || safePath,
->>>>>>> origin/main
 			size: file.length,
 			mimeType: options?.contentType ?? 'application/octet-stream',
 			bucket
@@ -216,18 +145,8 @@ export class StorageService {
 				path: safePath,
 				bucket
 			})
-<<<<<<< HEAD
 			throw new BadRequestException(
 				`Failed to delete file: ${error.message}`
-=======
-			throw this.errorHandler.createBusinessError(
-				'Failed to delete file',
-				{
-					operation: 'deleteFile',
-					resource: 'file',
-					metadata: { bucket, path: safePath, error: error.message }
-				}
->>>>>>> origin/main
 			)
 		}
 
@@ -261,22 +180,8 @@ export class StorageService {
 				bucket,
 				folder
 			})
-<<<<<<< HEAD
 			throw new BadRequestException(
 				`Failed to list files: ${error.message}`
-=======
-			throw this.errorHandler.createBusinessError(
-				'Failed to list files',
-				{
-					operation: 'listFiles',
-					resource: 'file',
-					metadata: {
-						bucket,
-						folder: folder || null,
-						error: error.message
-					}
-				}
->>>>>>> origin/main
 			)
 		}
 
@@ -299,7 +204,7 @@ export class StorageService {
 	 * Get storage path for different entity types
 	 */
 	getStoragePath(
-		entityType: 'property' | 'tenant' | 'maintenance' | 'user',
+		entityType: StorageEntityType,
 		entityId: string,
 		filename: string
 	): string {
@@ -310,7 +215,7 @@ export class StorageService {
 	/**
 	 * Get appropriate bucket for file type
 	 */
-	getBucket(fileType: 'document' | 'image' | 'avatar'): string {
+	getBucket(fileType: StorageFileType): string {
 		switch (fileType) {
 			case 'avatar':
 				return 'avatars'

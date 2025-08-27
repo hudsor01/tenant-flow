@@ -1,96 +1,132 @@
 /**
- * Tenant management types
- * All types related to tenants and tenant management
+ * TENANT TYPES - All tenant-related interfaces
+ * CONSOLIDATED from 8+ scattered tenant definitions (including duplicate InvitationStatus)
  */
 
-// Tenant entity types
+// =============================================================================
+// CORE TENANT ENTITY  
+// =============================================================================
+
 export interface Tenant {
-	id: string
-	name: string
-	email: string
-	phone: string | null
-	emergencyContact: string | null
-	userId: string | null
-	invitationStatus: InvitationStatus
-	createdAt: Date
-	updatedAt: Date
+  id: string
+  first_name: string
+  last_name: string
+  email: string
+  phone?: string
+  status: TenantStatus
+  created_at: string
+  updated_at: string
+  user_id: string
 }
 
+export type TenantStatus = 'ACTIVE' | 'INACTIVE' | 'TERMINATED'
+
+// CONSOLIDATED from multiple files that defined this
 export type InvitationStatus = 'PENDING' | 'SENT' | 'ACCEPTED' | 'EXPIRED'
 
-export const INVITATION_STATUS = {
-	PENDING: 'PENDING' as const,
-	SENT: 'SENT' as const,
-	ACCEPTED: 'ACCEPTED' as const,
-	EXPIRED: 'EXPIRED' as const
+// =============================================================================
+// TENANT API TYPES - CONSOLIDATED from backend schemas
+// =============================================================================
+
+export interface CreateTenantRequest {
+  first_name: string
+  last_name: string
+  email: string
+  phone?: string
 }
 
-export const INVITATION_STATUS_OPTIONS = Object.values(INVITATION_STATUS)
-
-// Extended tenant types with relations
-
-// Minimal property type for tenant contexts
-export interface TenantProperty {
-	id: string
-	name: string
-	address: string
-	[key: string]: string | number | boolean | null | undefined
+export interface UpdateTenantRequest {
+  first_name?: string
+  last_name?: string
+  email?: string
+  phone?: string
+  status?: TenantStatus
 }
 
-// Minimal unit type for tenant contexts
-export interface TenantUnit {
-	id: string
-	unitNumber: string
-	property: TenantProperty
-	[key: string]: string | number | boolean | null | undefined | TenantProperty
+export interface TenantQueryRequest {
+  status?: TenantStatus
+  search?: string
+  page?: number
+  limit?: number
 }
 
-// Minimal lease type for tenant contexts
-export interface TenantLease {
-	id: string
-	status: string
-	unit: TenantUnit
-	unitId: string
-	[key: string]: string | number | boolean | null | undefined | TenantUnit
+// =============================================================================
+// TENANT WITH RELATIONS - for API responses
+// =============================================================================
+
+export interface TenantWithLeases extends Tenant {
+  leases?: Array<{
+    id: string
+    property_name: string
+    unit_name?: string
+    start_date: string
+    end_date: string
+    status: string
+  }>
 }
 
-// Tenant with associated leases (simplified version)
-export interface SimpleTenantWithLeases {
-	id: string
-	name: string
-	email: string
-	phone: string | null
-	emergencyContact: string | null
-	userId: string | null
-	invitationStatus: InvitationStatus
-	createdAt: Date
-	updatedAt: Date
-	leases?: TenantLease[]
-}
+// =============================================================================
+// TENANT STATS & AGGREGATIONS
+// =============================================================================
 
-// Tenant with current unit and lease info
-export interface TenantWithUnitAndLease extends Tenant {
-	currentLease: TenantLease | undefined
-	currentUnit: TenantUnit | undefined
-	currentProperty: TenantProperty | undefined
-}
-
-// Current lease information helper type
-export interface CurrentLeaseInfo {
-	currentLease: TenantLease | undefined
-	currentUnit: TenantUnit | undefined
-	currentProperty: TenantProperty | undefined
-}
-
-// Tenant statistics for dashboard and analytics
 export interface TenantStats {
+  totalTenants: number
+  activeTenants: number
+  inactiveTenants: number
+  newTenants: number
+}
+
+// =============================================================================
+// TENANT FORM TYPES
+// =============================================================================
+
+export interface TenantFormData {
+  first_name: string
+  last_name: string
+  email: string
+  phone?: string
+}
+
+export interface TenantFormProps {
+  initialData?: Partial<Tenant>
+  onSubmit: (data: TenantFormData) => void
+  isLoading?: boolean
+}
+
+// =============================================================================
+// TENANT INVITATIONS
+// =============================================================================
+
+export interface TenantInvitation {
+  id: string
+  email: string
+  first_name?: string
+  last_name?: string
+  status: InvitationStatus
+  expires_at: string
+  created_at: string
+}
+
+export interface CreateInvitationRequest {
+  email: string
+  first_name?: string
+  last_name?: string
+}
+
+// =============================================================================
+// ADDITIONAL TENANT TYPES - MIGRATED from inline definitions
+// =============================================================================
+
+export interface TenantWithRelations extends Tenant {
+	leases?: unknown[]
+	properties?: unknown[]
+	maintenanceRequests?: unknown[]
+}
+
+export interface TenantStatsResult {
 	totalTenants: number
 	activeTenants: number
 	inactiveTenants: number
-	pendingInvitations: number
-	// Additional properties needed by tests
-	total: number
+	newThisMonth: number
+	recentActivity: unknown[]
 }
-
-// Note: For complex relations, import from relations file to avoid circular imports
-// import type { TenantWithDetails } from '@repo/shared/src/relations'

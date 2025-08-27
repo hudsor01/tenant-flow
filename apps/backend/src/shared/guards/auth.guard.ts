@@ -9,7 +9,8 @@ import {
 import { Reflector } from '@nestjs/core'
 import type { FastifyRequest } from 'fastify'
 import type { UserRole } from '@repo/shared'
-import { AuthService, ValidatedUser } from '../../auth/auth.service'
+import { AuthService } from '../../auth/auth.service'
+import type { ValidatedUser } from '@repo/shared'
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator'
 
 interface AuthenticatedRequest extends FastifyRequest {
@@ -17,11 +18,11 @@ interface AuthenticatedRequest extends FastifyRequest {
 }
 
 /**
- * Unified Auth Guard - handles JWT auth, roles, and organization isolation
+ * Auth Guard - handles JWT auth, roles, and organization isolation
  */
 @Injectable()
-export class UnifiedAuthGuard implements CanActivate {
-	private readonly logger = new Logger(UnifiedAuthGuard.name)
+export class AuthGuard implements CanActivate {
+	private readonly logger = new Logger(AuthGuard.name)
 
 	constructor(
 		private readonly authService: AuthService,
@@ -29,9 +30,7 @@ export class UnifiedAuthGuard implements CanActivate {
 	) {}
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
-		const request = context
-			.switchToHttp()
-			.getRequest<AuthenticatedRequest>()
+		const request = context.switchToHttp().getRequest<AuthenticatedRequest>()
 
 		// Check if route is public
 		const isPublic = this.reflector.getAllAndOverride<boolean>(
@@ -58,9 +57,7 @@ export class UnifiedAuthGuard implements CanActivate {
 		return true
 	}
 
-	private async authenticateUser(
-		request: AuthenticatedRequest
-	): Promise<ValidatedUser> {
+	private async authenticateUser(request: AuthenticatedRequest): Promise<ValidatedUser> {
 		const token = this.extractToken(request)
 
 		if (!token) {
@@ -76,44 +73,29 @@ export class UnifiedAuthGuard implements CanActivate {
 		}
 	}
 
-	private checkRoleAccess(
-		context: ExecutionContext,
-		user: ValidatedUser
-	): void {
-		const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(
-			'roles',
-			[context.getHandler(), context.getClass()]
-		)
+	private checkRoleAccess(context: ExecutionContext, user: ValidatedUser): void {
+		const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>('roles', [
+			context.getHandler(),
+			context.getClass()
+		])
 
-		if (
-			requiredRoles &&
-			requiredRoles.length > 0 &&
-			!requiredRoles.includes(user.role)
-		) {
-			throw new ForbiddenException(
-				`Access denied. Required roles: ${requiredRoles.join(', ')}`
-			)
+		if (requiredRoles && user.role && !requiredRoles.includes(user.role as UserRole)) {
+			throw new ForbiddenException(`Access denied. Required roles: ${requiredRoles.join(', ')}`)
 		}
 	}
 
-	private checkAdminAccess(
-		context: ExecutionContext,
-		user: ValidatedUser
-	): void {
-		const adminOnly = this.reflector.getAllAndOverride<boolean>(
-			'admin-only',
-			[context.getHandler(), context.getClass()]
-		)
+	private checkAdminAccess(context: ExecutionContext, user: ValidatedUser): void {
+		const adminOnly = this.reflector.getAllAndOverride<boolean>('admin-only', [
+			context.getHandler(),
+			context.getClass()
+		])
 
 		if (adminOnly && user.role !== 'ADMIN') {
 			throw new ForbiddenException('Administrator privileges required')
 		}
 	}
 
-	private validateTenantIsolation(
-		request: AuthenticatedRequest,
-		user: ValidatedUser
-	): void {
+	private validateTenantIsolation(request: AuthenticatedRequest, user: ValidatedUser): void {
 		// Admins can access all tenants
 		if (user.role === 'ADMIN') {
 			return
@@ -133,9 +115,7 @@ export class UnifiedAuthGuard implements CanActivate {
 				userOrg: user.organizationId,
 				requestedOrg: requestedOrgId
 			})
-			throw new ForbiddenException(
-				'Cannot access resources from other organizations'
-			)
+			throw new ForbiddenException('Cannot access resources from other organizations')
 		}
 	}
 
@@ -144,22 +124,18 @@ export class UnifiedAuthGuard implements CanActivate {
 		if (!authHeader?.startsWith('Bearer ')) {
 			return undefined
 		}
-		return authHeader.substring(7).trim()
+		return authHeader.substring(7).trim() || undefined
 	}
 
-	private extractOrganizationId(
-		request: AuthenticatedRequest
-	): string | null {
+	private extractOrganizationId(request: AuthenticatedRequest): string | null {
 		const params = request.params as Record<string, string> | undefined
 		const query = request.query as Record<string, string> | undefined
 		const body = request.body as Record<string, unknown> | undefined
 
 		return (
-			params?.organizationId ??
-			query?.organizationId ??
-			(typeof body?.organizationId === 'string'
-				? body.organizationId
-				: null)
+			params?.organizationId ||
+			query?.organizationId ||
+			(typeof body?.organizationId === 'string' ? body.organizationId : null)
 		)
 	}
 }

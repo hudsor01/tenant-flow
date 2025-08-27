@@ -1,45 +1,20 @@
 import {
 	Injectable,
-	Logger,
 	UnauthorizedException,
 	BadRequestException,
 	InternalServerErrorException
 } from '@nestjs/common'
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { PinoLogger } from 'nestjs-pino'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { SupabaseService } from '../database/supabase.service'
-import type { AuthUser, UserRole } from '@repo/shared'
+import type { UserRole, SupabaseUser, AuthServiceValidatedUser } from '@repo/shared'
 import type { Database } from '@repo/shared/types/supabase-generated'
 
-export interface SupabaseUser {
-	id: string
-	email?: string
-	email_confirmed_at?: string
-	user_metadata?: {
-		name?: string
-		full_name?: string
-		avatar_url?: string
-	}
-	created_at?: string
-	updated_at?: string
-}
-
-export interface ValidatedUser
-	extends Omit<AuthUser, 'createdAt' | 'updatedAt' | 'name' | 'avatarUrl'> {
-	name: string | undefined
-	avatarUrl: string | undefined
-	createdAt: string
-	updatedAt: string
-	stripeCustomerId: string | null
-	supabaseId: string
-	bio: string | null
-	profileComplete: boolean
-	lastLoginAt: string
-	[key: string]: unknown
-}
+// Types now imported from @repo/shared to eliminate duplication
 
 function normalizeSupabaseUser(
 	supabaseUser: Database['public']['Tables']['User']['Row']
-): ValidatedUser {
+): AuthServiceValidatedUser {
 	return {
 		id: supabaseUser.id,
 		email: supabaseUser.email,
@@ -47,43 +22,32 @@ function normalizeSupabaseUser(
 		avatarUrl: supabaseUser.avatarUrl ?? undefined,
 		role: supabaseUser.role as UserRole,
 		phone: supabaseUser.phone ?? null,
-		createdAt: new Date(supabaseUser.createdAt).toISOString(),
-		updatedAt: new Date(supabaseUser.updatedAt).toISOString(),
+		createdAt: new Date(supabaseUser.createdAt),
+		updatedAt: new Date(supabaseUser.updatedAt),
 		emailVerified: true,
 		bio: supabaseUser.bio ?? null,
 		supabaseId: supabaseUser.supabaseId ?? supabaseUser.id,
-		stripeCustomerId: supabaseUser.stripeCustomerId ?? null,
+		stripeCustomerId: supabaseUser.stripeCustomerId ?? undefined,
 		profileComplete: true,
-		lastLoginAt: new Date().toISOString(),
-		organizationId: null
+		lastLoginAt: new Date(),
+		organizationId: undefined
 	}
 }
 
 @Injectable()
 export class AuthService {
-	private readonly logger = new Logger(AuthService.name)
-	private readonly supabase: SupabaseClient<Database>
-
-	constructor(private readonly supabaseService: SupabaseService) {
-		const supabaseUrl = process.env.SUPABASE_URL
-		const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-		if (!supabaseUrl || !supabaseServiceKey) {
-			throw new InternalServerErrorException(
-				'Missing required Supabase configuration: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY'
-			)
-		}
-
-		this.supabase = createClient<Database>(
-			supabaseUrl,
-			supabaseServiceKey,
-			{
-				auth: { autoRefreshToken: false, persistSession: false }
-			}
-		)
+	constructor(
+		private readonly supabaseService: SupabaseService,
+		private readonly logger: PinoLogger
+	) {
+		// PinoLogger context handled automatically via app-level configuration
 	}
 
-	async validateSupabaseToken(token: string): Promise<ValidatedUser> {
+	private get supabase(): SupabaseClient<Database> {
+		return this.supabaseService.getAdminClient()
+	}
+
+	async validateSupabaseToken(token: string): Promise<AuthServiceValidatedUser> {
 		if (!token || typeof token !== 'string') {
 			throw new UnauthorizedException('Invalid token format')
 		}
@@ -131,7 +95,7 @@ export class AuthService {
 
 	async syncUserWithDatabase(
 		supabaseUser: SupabaseUser
-	): Promise<ValidatedUser> {
+	): Promise<AuthServiceValidatedUser> {
 		if (!supabaseUser.email) {
 			throw new UnauthorizedException('User email is required')
 		}
@@ -182,7 +146,7 @@ export class AuthService {
 		}
 
 		if (isNewUser) {
-			this.logger.log('New user created', {
+			this.logger.info('New user created', {
 				userId: supabaseId,
 				email,
 				name
@@ -199,13 +163,13 @@ export class AuthService {
 		return {
 			...normalizeSupabaseUser(user),
 			supabaseId,
-			stripeCustomerId: subscription?.stripeCustomerId ?? null
+			stripeCustomerId: subscription?.stripeCustomerId ?? undefined
 		}
 	}
 
 	async getUserBySupabaseId(
 		supabaseId: string
-	): Promise<ValidatedUser | null> {
+	): Promise<AuthServiceValidatedUser | null> {
 		const adminClient = this.supabaseService.getAdminClient()
 		const { data: user } = await adminClient
 			.from('User')
@@ -223,7 +187,7 @@ export class AuthService {
 			bio?: string
 			avatarUrl?: string
 		}
-	): Promise<{ user: ValidatedUser }> {
+	): Promise<{ user: AuthServiceValidatedUser }> {
 		const adminClient = this.supabaseService.getAdminClient()
 		const { data: user, error } = await adminClient
 			.from('User')
@@ -240,11 +204,11 @@ export class AuthService {
 		return { user: normalizeSupabaseUser(user) }
 	}
 
-	async validateTokenAndGetUser(token: string): Promise<ValidatedUser> {
+	async validateTokenAndGetUser(token: string): Promise<AuthServiceValidatedUser> {
 		return this.validateSupabaseToken(token)
 	}
 
-	async getUserByEmail(email: string): Promise<ValidatedUser | null> {
+	async getUserByEmail(email: string): Promise<AuthServiceValidatedUser | null> {
 		const adminClient = this.supabaseService.getAdminClient()
 		const { data: user } = await adminClient
 			.from('User')
@@ -385,7 +349,7 @@ export class AuthService {
 		access_token: string
 		refresh_token: string
 		expires_in: number
-		user: ValidatedUser
+		user: AuthServiceValidatedUser
 	}> {
 		const { data, error } = await this.supabase.auth.refreshSession({
 			refresh_token: refreshToken
@@ -415,9 +379,9 @@ export class AuthService {
 		access_token: string
 		refresh_token: string
 		expires_in: number
-		user: ValidatedUser
+		user: AuthServiceValidatedUser
 	}> {
-		this.logger.log(`Auth attempt for email: ${email} from IP: ${ip}`)
+		this.logger.info(`Auth attempt for email: ${email} from IP: ${ip}`)
 
 		// Rate limiting temporarily disabled
 		// if (authAttempt.blocked) {
@@ -460,7 +424,7 @@ export class AuthService {
 			data.session.access_token
 		)
 
-		this.logger.log(
+		this.logger.info(
 			`Auth success for user: ${validatedUser.id} from IP: ${ip}`
 		)
 
