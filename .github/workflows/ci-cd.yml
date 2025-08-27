@@ -63,11 +63,13 @@ jobs:
 
       - name: Run ESLint
         run: |
-          # Run lint but skip frontend due to minimatch issue with Node 24
-          npm run lint --filter='!@repo/frontend' || true
+          # Run lint on all packages except frontend (minimatch issue with Node 24)
+          turbo run lint --filter='!@repo/frontend'
 
       - name: Check TypeScript
         run: |
+          # Increase memory for TypeScript compilation
+          export NODE_OPTIONS="--max-old-space-size=8192"
           npm run build:shared
           npm run typecheck
 
@@ -93,7 +95,9 @@ jobs:
           npm ci --no-fund --no-audit
 
       - name: Build all packages
-        run: npm run build
+        run: |
+          export NODE_OPTIONS="--max-old-space-size=8192"
+          npm run build
         env:
           # Minimal env vars needed for build
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
