@@ -1,6 +1,5 @@
 import { motion } from '@/lib/lazy-motion'
 import { Card, CardContent } from '@/components/ui/card'
-import { DollarSign, Home, UserCheck, UserX } from 'lucide-react'
 import { formatCurrency } from '@repo/shared'
 
 interface PropertyStatsSectionProps {
@@ -35,7 +34,7 @@ export default function PropertyStatsSection({
 			<Card>
 				<CardContent className="flex items-center p-6">
 					<div className="mr-4 flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100">
-						<Home className="text-primary h-6 w-6" />
+						<i className="i-lucide-home inline-block text-primary h-6 w-6"  />
 					</div>
 					<div>
 						<p className="text-muted-foreground text-sm">
@@ -49,7 +48,7 @@ export default function PropertyStatsSection({
 			<Card>
 				<CardContent className="flex items-center p-6">
 					<div className="mr-4 flex h-12 w-12 items-center justify-center rounded-lg bg-green-100">
-						<UserCheck className="h-6 w-6 text-green-600" />
+						<i className="i-lucide-user-check inline-block h-6 w-6 text-green-600"  />
 					</div>
 					<div>
 						<p className="text-muted-foreground text-sm">
@@ -68,7 +67,7 @@ export default function PropertyStatsSection({
 			<Card>
 				<CardContent className="flex items-center p-6">
 					<div className="mr-4 flex h-12 w-12 items-center justify-center rounded-lg bg-orange-100">
-						<UserX className="h-6 w-6 text-orange-600" />
+						<i className="i-lucide-user-x inline-block h-6 w-6 text-orange-600"  />
 					</div>
 					<div>
 						<p className="text-muted-foreground text-sm">Vacant</p>
@@ -82,7 +81,7 @@ export default function PropertyStatsSection({
 			<Card>
 				<CardContent className="flex items-center p-6">
 					<div className="mr-4 flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100">
-						<DollarSign className="h-6 w-6 text-purple-600" />
+						<i className="i-lucide-dollar-sign inline-block h-6 w-6 text-purple-600"  />
 					</div>
 					<div>
 						<p className="text-muted-foreground text-sm">

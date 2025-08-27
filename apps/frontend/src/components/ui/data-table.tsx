@@ -13,14 +13,6 @@ import {
 	getSortedRowModel,
 	useReactTable
 } from '@tanstack/react-table'
-import {
-	ArrowUpDown,
-	ChevronDown,
-	MoreHorizontal,
-	Filter,
-	Download,
-	Plus
-} from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -131,13 +123,9 @@ export function EnhancedDataTable<TData, TValue>({
 										.getColumn(searchKey)
 										?.getFilterValue() as string) ?? ''
 								}
-<<<<<<< HEAD
 								onChange={(
 									event: React.ChangeEvent<HTMLInputElement>
 								) =>
-=======
-								onChange={event =>
->>>>>>> origin/main
 									table
 										.getColumn(searchKey)
 										?.setFilterValue(event.target.value)
@@ -155,9 +143,9 @@ export function EnhancedDataTable<TData, TValue>({
 								size="sm"
 								className="h-10"
 							>
-								<Filter className="mr-2 h-4 w-4" />
+								<i className="i-lucide-filter inline-block mr-2 h-4 w-4"  />
 								Columns
-								<ChevronDown className="ml-2 h-4 w-4" />
+								<i className="i-lucide-chevron-down inline-block ml-2 h-4 w-4"  />
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end" className="w-[200px]">
@@ -174,11 +162,7 @@ export function EnhancedDataTable<TData, TValue>({
 											key={column.id}
 											className="capitalize"
 											checked={column.getIsVisible()}
-<<<<<<< HEAD
 											onCheckedChange={(value: boolean) =>
-=======
-											onCheckedChange={value =>
->>>>>>> origin/main
 												column.toggleVisibility(!!value)
 											}
 										>
@@ -199,13 +183,13 @@ export function EnhancedDataTable<TData, TValue>({
 							onClick={onExport}
 							className="h-10"
 						>
-							<Download className="mr-2 h-4 w-4" />
+							<i className="i-lucide-download inline-block mr-2 h-4 w-4"  />
 							Export
 						</Button>
 					)}
 					{enableAdd && (
 						<Button onClick={onAdd} size="sm" className="h-10">
-							<Plus className="mr-2 h-4 w-4" />
+							<i className="i-lucide-plus inline-block mr-2 h-4 w-4"  />
 							Add New
 						</Button>
 					)}
@@ -381,7 +365,7 @@ export function createSortableHeader<_T>(
 			)}
 		>
 			{title}
-			<ArrowUpDown className="ml-2 h-4 w-4" />
+			<i className="i-lucide-arrowupdown inline-block ml-2 h-4 w-4"  />
 		</Button>
 	)
 }
@@ -408,7 +392,7 @@ export function createActionsColumn<T>(
 					<DropdownMenuTrigger asChild>
 						<Button variant="ghost" className="h-8 w-8 p-0">
 							<span className="sr-only">Open menu</span>
-							<MoreHorizontal className="h-4 w-4" />
+							<i className="i-lucide-more-horizontal inline-block h-4 w-4"  />
 						</Button>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align="end" className="w-[160px]">

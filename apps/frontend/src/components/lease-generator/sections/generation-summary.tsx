@@ -15,7 +15,6 @@ import {
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { FileText, Download } from 'lucide-react'
 import type { LeaseOutputFormat, LeaseFormData } from '@repo/shared'
 
 interface GenerationSummaryProps {
@@ -37,7 +36,7 @@ export function GenerationSummary({
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<FileText className="h-5 w-5" />
+						<i className="i-lucide-file-text inline-block h-5 w-5"  />
 						Lease Summary
 					</CardTitle>
 					<CardDescription>
@@ -101,7 +100,7 @@ export function GenerationSummary({
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Download className="h-5 w-5" />
+						<i className="i-lucide-download inline-block h-5 w-5"  />
 						Output Format
 					</CardTitle>
 					<CardDescription>

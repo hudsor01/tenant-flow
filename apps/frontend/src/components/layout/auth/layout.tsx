@@ -1,11 +1,3 @@
-import {
-	Sparkles,
-	Shield,
-	TrendingUp,
-	Star,
-	CheckCircle,
-	Zap
-} from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { AuthLayoutClient } from './layout-client'
@@ -44,22 +36,22 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 	heroContent,
 	features = [
 		{
-			icon: <Shield className="h-5 w-5" />,
+			icon: <i className="i-lucide-shield inline-block h-5 w-5"  />,
 			title: 'Enterprise Security',
 			description: 'SOC 2 compliant with bank-level encryption'
 		},
 		{
-			icon: <TrendingUp className="h-5 w-5" />,
+			icon: <i className="i-lucide-trending-up inline-block h-5 w-5"  />,
 			title: 'Boost ROI by 60%',
 			description: 'Streamline operations and increase profitability'
 		},
 		{
-			icon: <Sparkles className="h-5 w-5" />,
+			icon: <i className="i-lucide-sparkles inline-block h-5 w-5"  />,
 			title: 'AI-Powered Insights',
 			description: 'Smart analytics and predictive maintenance'
 		},
 		{
-			icon: <Star className="h-5 w-5" />,
+			icon: <i className="i-lucide-star inline-block h-5 w-5"  />,
 			title: 'Trusted by 10K+ Properties',
 			description: 'Join property managers who love TenantFlow'
 		}
@@ -69,37 +61,22 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 		<div className="from-background via-background/95 to-muted/30 relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-gradient-to-br px-4 py-8 md:px-8 lg:px-12 lg:py-12 xl:px-16">
 			{/* Enhanced background patterns with modern gradients */}
 			<div className="from-primary/8 via-accent/5 to-success/8 absolute inset-0 bg-gradient-to-br" />
-<<<<<<< HEAD
 			<div className="from-primary/15 via-accent/10 absolute right-0 top-0 h-96 w-96 animate-pulse rounded-full bg-gradient-to-bl to-transparent blur-3xl" />
-=======
-			<div className="from-primary/15 via-accent/10 absolute top-0 right-0 h-96 w-96 animate-pulse rounded-full bg-gradient-to-bl to-transparent blur-3xl" />
->>>>>>> origin/main
 			<div
 				className="from-success/15 via-primary/10 absolute bottom-0 left-0 h-64 w-64 animate-pulse rounded-full bg-gradient-to-tr to-transparent blur-3xl"
 				style={{ animationDelay: '1s' }}
 			/>
 			<div
-<<<<<<< HEAD
 				className="from-accent/8 to-success/8 absolute left-1/2 top-1/2 h-80 w-80 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-gradient-to-r blur-3xl"
-=======
-				className="from-accent/8 to-success/8 absolute top-1/2 left-1/2 h-80 w-80 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-gradient-to-r blur-3xl"
->>>>>>> origin/main
 				style={{ animationDelay: '2s' }}
 			/>
 
 			{/* Floating animation elements */}
 			<div
-<<<<<<< HEAD
 				className="bg-primary/40 absolute right-20 top-20 h-2 w-2 animate-bounce rounded-full"
 				style={{ animationDelay: '0.5s' }}
 			/>
 			<div className="bg-accent/50 absolute right-32 top-32 h-1 w-1 animate-ping rounded-full" />
-=======
-				className="bg-primary/40 absolute top-20 right-20 h-2 w-2 animate-bounce rounded-full"
-				style={{ animationDelay: '0.5s' }}
-			/>
-			<div className="bg-accent/50 absolute top-32 right-32 h-1 w-1 animate-ping rounded-full" />
->>>>>>> origin/main
 			<div
 				className="bg-success/30 absolute bottom-32 left-16 h-3 w-3 animate-pulse rounded-full"
 				style={{ animationDelay: '1.5s' }}
@@ -138,13 +115,13 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 						{/* Trust indicators */}
 						<div className="border-border/30 mt-6 flex items-center justify-center space-x-6 border-t pt-4">
 							<div className="text-muted-foreground flex items-center space-x-2 text-xs">
-								<Shield className="text-success h-4 w-4" />
+								<i className="i-lucide-shield inline-block text-success h-4 w-4"  />
 								<span className="font-medium">
 									SOC 2 Certified
 								</span>
 							</div>
 							<div className="text-muted-foreground flex items-center space-x-2 text-xs">
-								<CheckCircle className="text-success h-4 w-4" />
+								<i className="i-lucide-checkcircle inline-block text-success h-4 w-4"  />
 								<span className="font-medium">
 									10K+ Properties
 								</span>
@@ -164,11 +141,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 			{/* Enhanced gradient overlay with modern colors */}
 			<div className="from-primary/40 via-accent/30 to-success/35 absolute inset-0 z-10 bg-gradient-to-br" />
 			<div className="absolute inset-0 z-20 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />
-<<<<<<< HEAD
 			<div className="via-primary/10 to-accent/15 z-15 absolute inset-0 bg-gradient-to-r from-transparent" />
-=======
-			<div className="via-primary/10 to-accent/15 absolute inset-0 z-15 bg-gradient-to-r from-transparent" />
->>>>>>> origin/main
 
 			{/* Hero image */}
 			<Image
@@ -180,23 +153,15 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 			/>
 
 			{/* Hero content with enhanced styling */}
-<<<<<<< HEAD
 			<div className="absolute bottom-0 left-0 right-0 z-30 p-10 text-white">
-=======
-			<div className="absolute right-0 bottom-0 left-0 z-30 p-10 text-white">
->>>>>>> origin/main
 				<div className="max-w-lg">
 					{/* Enhanced hero title with gradient text */}
 					<div className="mb-6">
 						<div className="mb-4 inline-flex items-center rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium backdrop-blur-md">
-							<Star className="mr-2 h-4 w-4 text-amber-300" />
+							<i className="i-lucide-star inline-block mr-2 h-4 w-4 text-amber-300"  />
 							<span>Rated #1 Property Management Platform</span>
 						</div>
-<<<<<<< HEAD
 						<h2 className="mb-4 bg-gradient-to-r from-white via-white/95 to-white/90 bg-clip-text text-4xl font-bold leading-tight text-transparent lg:text-5xl">
-=======
-						<h2 className="mb-4 bg-gradient-to-r from-white via-white/95 to-white/90 bg-clip-text text-4xl leading-tight font-bold text-transparent lg:text-5xl">
->>>>>>> origin/main
 							{heroContent?.title ??
 								'Transform Your Property Management'}
 						</h2>
@@ -238,7 +203,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 											key={i}
 											className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white/30 bg-gradient-to-r from-white/20 to-white/10"
 										>
-											<CheckCircle className="text-success h-4 w-4" />
+											<i className="i-lucide-checkcircle inline-block text-success h-4 w-4"  />
 										</div>
 									))}
 								</div>
@@ -247,7 +212,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 								</span>
 							</div>
 							<div className="flex items-center space-x-2">
-								<Zap className="text-accent h-4 w-4" />
+								<i className="i-lucide-zap inline-block text-accent h-4 w-4"  />
 								<span className="text-white/90">
 									60% Faster Operations
 								</span>
@@ -259,7 +224,6 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 
 			{/* Enhanced floating elements with better animations */}
 			<div
-<<<<<<< HEAD
 				className="from-accent to-success absolute right-20 top-20 h-3 w-3 animate-bounce rounded-full bg-gradient-to-r shadow-lg"
 				style={{ animationDelay: '0.5s' }}
 			/>
@@ -274,22 +238,6 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 			/>
 			<div
 				className="absolute right-28 top-1/3 h-2 w-2 animate-bounce rounded-full bg-white/30"
-=======
-				className="from-accent to-success absolute top-20 right-20 h-3 w-3 animate-bounce rounded-full bg-gradient-to-r shadow-lg"
-				style={{ animationDelay: '0.5s' }}
-			/>
-			<div className="from-primary to-accent absolute top-40 right-40 h-2 w-2 animate-ping rounded-full bg-gradient-to-r" />
-			<div
-				className="from-success to-primary absolute right-16 bottom-40 h-4 w-4 animate-pulse rounded-full bg-gradient-to-r shadow-lg"
-				style={{ animationDelay: '1.5s' }}
-			/>
-			<div
-				className="absolute top-1/2 right-12 h-1 w-1 animate-pulse rounded-full bg-white/50"
-				style={{ animationDelay: '2s' }}
-			/>
-			<div
-				className="absolute top-1/3 right-28 h-2 w-2 animate-bounce rounded-full bg-white/30"
->>>>>>> origin/main
 				style={{ animationDelay: '2.5s' }}
 			/>
 		</div>

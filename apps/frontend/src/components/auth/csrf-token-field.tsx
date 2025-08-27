@@ -16,21 +16,13 @@ export function CSRFTokenField() {
 
 		// Fetch CSRF token on mount
 		getCSRFToken()
-<<<<<<< HEAD
 			.then(fetchedToken => {
-=======
-			.then((fetchedToken) => {
->>>>>>> origin/main
 				if (mounted) {
 					setToken(fetchedToken)
 					setLoading(false)
 				}
 			})
-<<<<<<< HEAD
 			.catch(error => {
-=======
-			.catch((error) => {
->>>>>>> origin/main
 				if (mounted) {
 					console.warn('Failed to fetch CSRF token:', error)
 					setLoading(false)

@@ -3,12 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/use-auth'
-<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
-=======
-import { logger } from '@/lib/logger'
->>>>>>> origin/main
-import { Loader2 } from 'lucide-react'
 
 interface ProtectedRouteGuardProps {
 	children: React.ReactNode
@@ -31,7 +26,7 @@ export function ProtectedRouteGuard({
 	fallback = (
 		<div className="flex min-h-screen items-center justify-center bg-gray-50">
 			<div className="text-center">
-				<Loader2 className="text-primary mx-auto h-8 w-8 animate-spin" />
+				<i className="i-lucide-loader-2 inline-block text-primary mx-auto h-8 w-8 animate-spin"  />
 				<p className="text-muted-foreground mt-2 text-sm">
 					Checking authentication...
 				</p>
@@ -45,7 +40,6 @@ export function ProtectedRouteGuard({
 
 	useEffect(() => {
 		// Don't do anything until auth is initialized
-<<<<<<< HEAD
 		if (!initialized) {
 			return
 		}
@@ -54,12 +48,6 @@ export function ProtectedRouteGuard({
 		if (!requireAuth) {
 			return
 		}
-=======
-		if (!initialized) return
-
-		// Don't check auth if protection is disabled
-		if (!requireAuth) return
->>>>>>> origin/main
 
 		// If not loading and no user, redirect
 		if (!loading && !user && !isRedirecting) {
@@ -100,7 +88,7 @@ export function ProtectedRouteGuard({
 		return (
 			<div className="flex min-h-screen items-center justify-center bg-gray-50">
 				<div className="text-center">
-					<Loader2 className="text-primary mx-auto h-8 w-8 animate-spin" />
+					<i className="i-lucide-loader-2 inline-block text-primary mx-auto h-8 w-8 animate-spin"  />
 					<p className="text-muted-foreground mt-2 text-sm">
 						Redirecting to login...
 					</p>
@@ -124,7 +112,7 @@ export function ReverseAuthGuard({
 	fallback = (
 		<div className="flex min-h-screen items-center justify-center bg-white">
 			<div className="text-center">
-				<Loader2 className="text-primary mx-auto h-8 w-8 animate-spin" />
+				<i className="i-lucide-loader-2 inline-block text-primary mx-auto h-8 w-8 animate-spin"  />
 				<p className="text-muted-foreground mt-2 text-sm">Loading...</p>
 			</div>
 		</div>
@@ -136,13 +124,9 @@ export function ReverseAuthGuard({
 
 	useEffect(() => {
 		// Don't do anything until auth is initialized
-<<<<<<< HEAD
 		if (!initialized) {
 			return
 		}
-=======
-		if (!initialized) return
->>>>>>> origin/main
 
 		// If not loading and user exists, redirect
 		if (!loading && user && !isRedirecting) {
@@ -168,7 +152,7 @@ export function ReverseAuthGuard({
 		return (
 			<div className="flex min-h-screen items-center justify-center bg-white">
 				<div className="text-center">
-					<Loader2 className="text-primary mx-auto h-8 w-8 animate-spin" />
+					<i className="i-lucide-loader-2 inline-block text-primary mx-auto h-8 w-8 animate-spin"  />
 					<p className="text-muted-foreground mt-2 text-sm">
 						Redirecting to dashboard...
 					</p>
@@ -192,7 +176,7 @@ export function AuthLoadingSpinner({
 	return (
 		<div className="flex min-h-screen items-center justify-center bg-gray-50">
 			<div className="text-center">
-				<Loader2 className="text-primary mx-auto h-8 w-8 animate-spin" />
+				<i className="i-lucide-loader-2 inline-block text-primary mx-auto h-8 w-8 animate-spin"  />
 				<p className="text-muted-foreground mt-2 text-sm">{message}</p>
 			</div>
 		</div>

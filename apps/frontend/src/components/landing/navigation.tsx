@@ -5,7 +5,6 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Building2 } from 'lucide-react'
 
 interface OptimizedNavigationProps {
 	locale: string
@@ -19,7 +18,7 @@ export function OptimizedNavigation({ locale }: OptimizedNavigationProps) {
 					href={`/${locale}`}
 					className="flex items-center space-x-2"
 				>
-					<Building2 className="text-primary h-8 w-8" />
+					<i className="i-lucide-building-2 inline-block text-primary h-8 w-8"  />
 					<span className="text-xl font-bold text-gray-900">
 						TenantFlow
 					</span>

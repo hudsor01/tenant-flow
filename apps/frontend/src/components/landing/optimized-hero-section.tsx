@@ -1,11 +1,9 @@
 /**
- * Optimized Hero Section - Server Component
- * Static hero with trust indicators and main value proposition
+ * Optimized Hero Section - React 19 + Next.js 15 Server Component
+ * Static hero with trust indicators and modern UnoCSS styling
  */
 
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { ArrowRight, Star } from 'lucide-react'
 
 interface OptimizedHeroSectionProps {
 	locale: string
@@ -20,71 +18,66 @@ export function OptimizedHeroSection({ locale }: OptimizedHeroSectionProps) {
 	]
 
 	return (
-<<<<<<< HEAD
 		<section className="bg-gradient-to-b from-blue-50 to-white px-4 pb-20 pt-16">
-=======
-		<section className="bg-gradient-to-b from-blue-50 to-white px-4 pt-16 pb-20">
->>>>>>> origin/main
-			<div className="container mx-auto text-center">
-				{/* Trust Indicators */}
-				<div className="mb-8 flex justify-center gap-8">
-					<div className="flex items-center gap-1">
+			<div className="w-container-lg mx-auto text-center">
+				{/* Trust Indicators - UnoCSS styling */}
+				<div className="mb-8 center gap-8">
+					<div className="hstack gap-1">
 						{[...Array(5)].map((_, i) => (
-							<Star
-								key={i}
-								className="h-5 w-5 fill-yellow-400 text-yellow-400"
-							/>
+							<i className="i-lucide-star inline-block h-5 w-5 fill-yellow-400 text-yellow-400" key={i} />
 						))}
-						<span className="ml-2 font-medium text-gray-600">
+						<span className="ml-2 font-medium text-neutral-600">
 							4.9/5 (2,847 reviews)
 						</span>
 					</div>
 				</div>
 
-				{/* Main Value Prop */}
-				<h1 className="mb-6 text-5xl font-bold text-gray-900 md:text-6xl lg:text-7xl">
+				{/* Main Value Prop - Modern typography */}
+				<h1 className="mb-6 text-5xl font-bold text-neutral-900 md:text-6xl lg:text-7xl">
 					Property Management
-					<span className="text-primary block">
+					<span className="text-brand-500 block">
 						Without the Headache
 					</span>
 				</h1>
 
-				<p className="mx-auto mb-8 max-w-3xl text-xl text-gray-600 md:text-2xl">
+				<p className="mx-auto mb-8 w-container-md text-xl text-neutral-600 md:text-2xl">
 					Join 10,000+ property managers saving 10 hours per week with
 					automated rent collection, maintenance tracking, and tenant
 					portals.
 				</p>
 
-				{/* Single CTA with urgency */}
+				{/* CTA with React 19 + UnoCSS patterns */}
 				<div className="mb-6">
-					<Link href={`/${locale}/signup`}>
-						<Button
-							size="lg"
-							className="h-auto transform bg-orange-500 px-10 py-6 text-lg font-semibold text-white shadow-lg transition-all hover:-translate-y-1 hover:bg-orange-600 hover:shadow-xl"
-						>
-							Start Your 14-Day Free Trial
-							<ArrowRight className="ml-2 h-5 w-5" />
-						</Button>
+					<Link 
+						href={`/${locale}/signup`}
+						className="inline-block"
+					>
+						<button className="btn-primary text-lg px-10 py-6 transform hover:(-translate-y-1 shadow-xl) transition-all duration-300">
+							<span className="hstack">
+								Start Your 14-Day Free Trial
+								<i className="i-lucide-arrow-right inline-block h-5 w-5"  />
+							</span>
+						</button>
 					</Link>
-					<p className="mt-3 text-sm text-gray-500">
+					<p className="mt-3 text-sm text-neutral-500">
 						No credit card required • Setup in 5 minutes • Cancel
 						anytime
 					</p>
-					<p className="mt-2 text-sm font-semibold text-orange-600">
+					<p className="mt-2 text-sm font-semibold text-warning">
 						🔥 437 property managers started their trial this week
 					</p>
 				</div>
 
-				{/* Social Proof Logos */}
+				{/* Social Proof - Simplified */}
 				<div className="mt-12">
-					<p className="mb-4 text-sm text-gray-500">
+					<p className="mb-4 text-sm text-neutral-500">
 						Trusted by leading property management companies
 					</p>
-					<div className="flex items-center justify-center gap-8 opacity-60 grayscale">
+					<div className="hstack justify-center gap-8 opacity-60 grayscale">
 						{trustLogos.map(logo => (
 							<div
 								key={logo.name}
-								className="text-lg font-semibold text-gray-400"
+								className="text-lg font-semibold text-neutral-400"
 							>
 								{logo.name}
 							</div>

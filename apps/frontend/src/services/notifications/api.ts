@@ -8,7 +8,7 @@ import type {
 	NotificationData,
 	NotificationResponse,
 	MaintenanceNotificationData
-} from '@/services/notifications/types'
+} from '@repo/shared'
 import {
 	generateNotificationId,
 	validateNotificationData

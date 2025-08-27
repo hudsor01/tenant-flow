@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Mail, Send, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -50,7 +49,7 @@ export function EmailModal({
 			<DialogContent className="sm:max-w-[500px]">
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">
-						<Mail className="text-primary h-5 w-5" />
+						<i className="i-lucide-mail inline-block text-primary h-5 w-5"  />
 						Prepare Email Invoice
 					</DialogTitle>
 				</DialogHeader>
@@ -103,7 +102,7 @@ Best regards,
 
 					<div className="mt-4 flex justify-end gap-3">
 						<Button variant="outline" onClick={onClose}>
-							<X className="mr-2 h-4 w-4" />
+							<i className="i-lucide-x inline-block mr-2 h-4 w-4"  />
 							Cancel
 						</Button>
 						<Button
@@ -111,7 +110,7 @@ Best regards,
 							disabled={!emailTo || !emailSubject}
 							className="bg-primary hover:bg-primary/90"
 						>
-							<Send className="mr-2 h-4 w-4" />
+							<i className="i-lucide-send inline-block mr-2 h-4 w-4"  />
 							Send Invoice
 						</Button>
 					</div>

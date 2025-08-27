@@ -6,26 +6,6 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import {
-	BookOpen,
-	FileText,
-	Video,
-	Download,
-	Search,
-	Filter,
-	ExternalLink,
-	Clock,
-	Eye,
-	Star,
-	Sparkles,
-	PlayCircle,
-	Code,
-	HelpCircle,
-	Users,
-	ArrowRight,
-	Lightbulb,
-	MessageCircle
-} from 'lucide-react'
 import Link from 'next/link'
 
 interface Resource {
@@ -122,45 +102,41 @@ const resources: Resource[] = [
 ]
 
 const categories = [
-	{ id: 'all', label: 'All Resources', icon: BookOpen },
-	{ id: 'guide', label: 'Guides', icon: FileText },
-	{ id: 'video', label: 'Videos', icon: Video },
-	{ id: 'template', label: 'Templates', icon: Download },
-	{ id: 'api', label: 'API Docs', icon: Code },
-	{ id: 'blog', label: 'Blog Posts', icon: Lightbulb },
-	{ id: 'webinar', label: 'Webinars', icon: PlayCircle }
+	{ id: 'all', label: 'All Resources', icon: 'i-lucide-book-open' },
+	{ id: 'guide', label: 'Guides', icon: 'i-lucide-file-text' },
+	{ id: 'video', label: 'Videos', icon: 'i-lucide-video' },
+	{ id: 'template', label: 'Templates', icon: 'i-lucide-download' },
+	{ id: 'api', label: 'API Docs', icon: 'i-lucide-code' },
+	{ id: 'blog', label: 'Blog Posts', icon: 'i-lucide-lightbulb' },
+	{ id: 'webinar', label: 'Webinars', icon: 'i-lucide-play-circle' }
 ]
 
-<<<<<<< HEAD
 interface ResourceCardProps {
 	resource: Resource
 	className?: string
 }
 
 function ResourceCard({ resource, className }: ResourceCardProps) {
-=======
-function ResourceCard({ resource }: { resource: Resource }) {
->>>>>>> origin/main
 	const getCategoryIcon = (category: Resource['category']) => {
 		switch (category) {
 			case 'guide':
-				return FileText
+				return 'i-lucide-file-text'
 			case 'video':
-				return Video
+				return 'i-lucide-video'
 			case 'template':
-				return Download
+				return 'i-lucide-download'
 			case 'api':
-				return Code
+				return 'i-lucide-code'
 			case 'blog':
-				return Lightbulb
+				return 'i-lucide-lightbulb'
 			case 'webinar':
-				return PlayCircle
+				return 'i-lucide-play-circle'
 			default:
-				return BookOpen
+				return 'i-lucide-book-open'
 		}
 	}
 
-	const CategoryIcon = getCategoryIcon(resource.category)
+	const categoryIcon = getCategoryIcon(resource.category)
 
 	return (
 		<motion.div
@@ -174,11 +150,7 @@ function ResourceCard({ resource }: { resource: Resource }) {
 			<Card
 				className={`to-muted/20 group h-full cursor-pointer border-0 bg-gradient-to-br from-white transition-all duration-300 hover:shadow-xl ${
 					resource.featured ? 'ring-primary/20 shadow-lg ring-2' : ''
-<<<<<<< HEAD
 				} ${className || ''}`}
-=======
-				}`}
->>>>>>> origin/main
 			>
 				<CardHeader className="pb-4">
 					<div className="flex items-start justify-between">
@@ -190,8 +162,8 @@ function ResourceCard({ resource }: { resource: Resource }) {
 										: 'from-muted to-muted-foreground/20 bg-gradient-to-br'
 								}`}
 							>
-								<CategoryIcon
-									className={`h-5 w-5 ${resource.type === 'premium' ? 'text-white' : 'text-muted-foreground'}`}
+								<i
+									className={`${categoryIcon} inline-block h-5 w-5 ${resource.type === 'premium' ? 'text-white' : 'text-muted-foreground'}`}
 								/>
 							</div>
 							<div>
@@ -218,7 +190,7 @@ function ResourceCard({ resource }: { resource: Resource }) {
 							</div>
 						</div>
 						<div className="flex items-center space-x-1">
-							<Star className="h-4 w-4 fill-current text-yellow-500" />
+							<i className="i-lucide-star inline-block h-4 w-4 fill-current text-yellow-500"  />
 							<span className="text-muted-foreground text-sm">
 								{resource.rating}
 							</span>
@@ -238,11 +210,11 @@ function ResourceCard({ resource }: { resource: Resource }) {
 					<div className="text-muted-foreground mb-4 flex items-center justify-between text-sm">
 						<div className="flex items-center space-x-4">
 							<div className="flex items-center space-x-1">
-								<Clock className="h-4 w-4" />
+								<i className="i-lucide-clock inline-block h-4 w-4"  />
 								<span>{resource.readTime}</span>
 							</div>
 							<div className="flex items-center space-x-1">
-								<Eye className="h-4 w-4" />
+								<i className="i-lucide-eye inline-block h-4 w-4"  />
 								<span>{resource.views}</span>
 							</div>
 						</div>
@@ -274,7 +246,7 @@ function ResourceCard({ resource }: { resource: Resource }) {
 								{resource.downloadUrl ? (
 									<>
 										Download
-										<Download className="ml-2 h-4 w-4 transition-transform group-hover/btn:translate-y-0.5" />
+										<i className="i-lucide-download inline-block ml-2 h-4 w-4 transition-transform group-hover/btn:translate-y-0.5"  />
 									</>
 								) : (
 									<>
@@ -282,7 +254,7 @@ function ResourceCard({ resource }: { resource: Resource }) {
 										resource.category === 'webinar'
 											? 'Watch'
 											: 'Read'}
-										<ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
+										<i className="i-lucide-arrow-right inline-block ml-2 h-4 w-4 transition-transform group-hover/btn:translate-x-1"  />
 									</>
 								)}
 							</Link>
@@ -290,7 +262,7 @@ function ResourceCard({ resource }: { resource: Resource }) {
 						{resource.href && (
 							<Link href={resource.href}>
 								<Button variant="ghost" size="sm">
-									<ExternalLink className="h-4 w-4" />
+									<i className="i-lucide-external-link inline-block h-4 w-4"  />
 								</Button>
 							</Link>
 						)}
@@ -321,11 +293,7 @@ export default function ResourcesPage() {
 	return (
 		<div className="from-background to-muted/20 min-h-screen bg-gradient-to-b">
 			{/* Hero Section */}
-<<<<<<< HEAD
 			<section className="px-4 pb-16 pt-24">
-=======
-			<section className="px-4 pt-24 pb-16">
->>>>>>> origin/main
 				<div className="mx-auto max-w-7xl">
 					<div className="mb-16 text-center">
 						<motion.div
@@ -335,7 +303,7 @@ export default function ResourcesPage() {
 							className="mb-6"
 						>
 							<Badge className="from-primary via-accent to-success border-0 bg-gradient-to-r px-6 py-2 text-sm font-semibold text-white shadow-lg">
-								<Sparkles className="mr-2 h-4 w-4" />
+								<i className="i-lucide-sparkles inline-block mr-2 h-4 w-4"  />
 								Resource Hub
 							</Badge>
 						</motion.div>
@@ -344,11 +312,7 @@ export default function ResourcesPage() {
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ duration: 0.6, delay: 0.1 }}
-<<<<<<< HEAD
 							className="text-foreground mb-6 text-5xl font-bold leading-tight lg:text-6xl"
-=======
-							className="text-foreground mb-6 text-5xl leading-tight font-bold lg:text-6xl"
->>>>>>> origin/main
 						>
 							Learn &{' '}
 							<span className="from-primary via-accent to-success bg-gradient-to-r bg-clip-text text-transparent">
@@ -377,28 +341,19 @@ export default function ResourcesPage() {
 						className="mb-12 flex flex-col items-center justify-between gap-6 lg:flex-row"
 					>
 						<div className="relative max-w-md flex-1">
-<<<<<<< HEAD
-							<Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
+							<i className="i-lucide-search inline-block text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform"  />
 							<Input
 								placeholder="Search resources..."
 								value={searchQuery}
 								onChange={(
 									e: React.ChangeEvent<HTMLInputElement>
 								) => setSearchQuery(e.target.value)}
-=======
-							<Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
-							<Input
-								placeholder="Search resources..."
-								value={searchQuery}
-								onChange={e => setSearchQuery(e.target.value)}
->>>>>>> origin/main
 								className="focus:border-primary focus:shadow-primary/10 h-12 border-2 pl-10 transition-all duration-200 focus:shadow-lg"
 							/>
 						</div>
 
 						<div className="flex flex-wrap gap-2">
 							{categories.map(category => {
-								const IconComponent = category.icon
 								return (
 									<Button
 										key={category.id}
@@ -413,7 +368,7 @@ export default function ResourcesPage() {
 										}
 										className="flex items-center space-x-2"
 									>
-										<IconComponent className="h-4 w-4" />
+										<i className={`${category.icon} inline-block h-4 w-4`} />
 										<span>{category.label}</span>
 									</Button>
 								)
@@ -496,7 +451,7 @@ export default function ResourcesPage() {
 									variant="outline"
 									className="flex items-center space-x-2"
 								>
-									<Filter className="h-4 w-4" />
+									<i className="i-lucide-filter inline-block h-4 w-4"  />
 									<span>Sort by Popular</span>
 								</Button>
 							)}
@@ -528,7 +483,7 @@ export default function ResourcesPage() {
 								className="py-12 text-center"
 							>
 								<div className="bg-muted mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full">
-									<HelpCircle className="text-muted-foreground h-8 w-8" />
+									<i className="i-lucide-help-circle inline-block text-muted-foreground h-8 w-8"  />
 								</div>
 								<h3 className="text-foreground mb-4 text-2xl font-semibold">
 									No resources found
@@ -563,7 +518,7 @@ export default function ResourcesPage() {
 					>
 						<div className="mb-8">
 							<div className="from-primary to-accent mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br">
-								<Users className="h-8 w-8 text-white" />
+								<i className="i-lucide-users inline-block h-8 w-8 text-white"  />
 							</div>
 							<h2 className="text-foreground mb-6 text-4xl font-bold">
 								Need More Help?
@@ -578,25 +533,24 @@ export default function ResourcesPage() {
 						<div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
 							{[
 								{
-									icon: MessageCircle,
+									icon: 'i-lucide-message-circle',
 									title: 'Live Chat',
 									description:
 										'Get instant help from our team'
 								},
 								{
-									icon: Video,
+									icon: 'i-lucide-video',
 									title: '1-on-1 Training',
 									description:
 										'Schedule personalized onboarding'
 								},
 								{
-									icon: Users,
+									icon: 'i-lucide-users',
 									title: 'Community Forum',
 									description:
 										'Connect with other property owners'
 								}
 							].map(option => {
-								const IconComponent = option.icon
 								return (
 									<Card
 										key={option.title}
@@ -604,7 +558,7 @@ export default function ResourcesPage() {
 									>
 										<CardContent className="p-6 text-center">
 											<div className="from-primary to-accent mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br">
-												<IconComponent className="h-6 w-6 text-white" />
+												<i className={`${option.icon} inline-block h-6 w-6 text-white`} />
 											</div>
 											<h3 className="text-foreground mb-2 font-semibold">
 												{option.title}
@@ -627,7 +581,7 @@ export default function ResourcesPage() {
 							>
 								<Link href="/contact">
 									Contact Support
-									<ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+									<i className="i-lucide-arrow-right inline-block ml-2 h-4 w-4 transition-transform group-hover:translate-x-1"  />
 								</Link>
 							</Button>
 							<Button asChild variant="outline" size="lg">

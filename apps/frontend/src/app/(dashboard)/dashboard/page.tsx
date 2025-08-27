@@ -1,16 +1,10 @@
 import { Suspense } from 'react'
 import { DashboardErrorBoundary } from '@/components/dashboard/dashboard-error-boundary'
-import {
-	OnboardingBanner,
-	DashboardStats,
-	PropertiesTable,
-	QuickActions
-} from '@/components/dashboard/dashboard-client'
-<<<<<<< HEAD
+import { DashboardOnboarding } from '@/components/dashboard/dashboard-onboarding'
+import { DashboardStatsCards } from '@/components/dashboard/dashboard-stats-cards'
+import { DashboardRecentActivity } from '@/components/dashboard/dashboard-recent-activity'
+import { DashboardQuickActions } from '@/components/dashboard/dashboard-quick-actions'
 import { DashboardWidgets } from '@/components/dashboard/dashboard-widgets'
-=======
-import { EnhancedDashboardWidgets } from '@/components/dashboard/enhanced-dashboard-widgets'
->>>>>>> origin/main
 import { DashboardTracker } from '@/components/analytics/dashboard-tracker'
 import type { Metadata } from 'next/types'
 
@@ -37,13 +31,8 @@ export default function DashboardPage() {
 									Dashboard
 								</h1>
 								<p className="text-muted-foreground text-base font-medium sm:text-lg">
-<<<<<<< HEAD
 									Welcome back! Here&apos;s an overview of
 									your property portfolio.
-=======
-									Welcome back! Here's an overview of your
-									property portfolio.
->>>>>>> origin/main
 								</p>
 							</div>
 
@@ -76,18 +65,14 @@ export default function DashboardPage() {
 						<div className="card-modern from-muted/50 to-muted/30 h-32 animate-pulse rounded-xl border bg-gradient-to-br" />
 					}
 				>
-					<OnboardingBanner />
+					<DashboardOnboarding />
 				</Suspense>
 
 				{/* Enhanced Stats Grid */}
 				<Suspense
 					fallback={
 						<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-<<<<<<< HEAD
 							{Array.from({ length: 4 }, (_, i) => (
-=======
-							{[...Array(4)].map((_, i) => (
->>>>>>> origin/main
 								<div
 									key={i}
 									className="card-modern from-muted/40 to-muted/20 h-32 animate-pulse rounded-xl border bg-gradient-to-br"
@@ -96,7 +81,7 @@ export default function DashboardPage() {
 						</div>
 					}
 				>
-					<DashboardStats />
+					<DashboardStatsCards />
 				</Suspense>
 
 				{/* Enhanced Dashboard Widgets */}
@@ -105,11 +90,7 @@ export default function DashboardPage() {
 						<div className="card-modern from-muted/40 to-muted/20 h-96 animate-pulse rounded-xl border bg-gradient-to-br" />
 					}
 				>
-<<<<<<< HEAD
 					<DashboardWidgets />
-=======
-					<EnhancedDashboardWidgets />
->>>>>>> origin/main
 				</Suspense>
 
 				{/* Enhanced Content Grid */}
@@ -121,7 +102,7 @@ export default function DashboardPage() {
 								<div className="card-modern from-muted/40 to-muted/20 h-80 animate-pulse rounded-xl border bg-gradient-to-br" />
 							}
 						>
-							<PropertiesTable />
+							<DashboardRecentActivity />
 						</Suspense>
 					</div>
 
@@ -132,7 +113,7 @@ export default function DashboardPage() {
 								<div className="card-modern from-muted/40 to-muted/20 h-80 animate-pulse rounded-xl border bg-gradient-to-br" />
 							}
 						>
-							<QuickActions />
+							<DashboardQuickActions />
 						</Suspense>
 					</div>
 				</div>

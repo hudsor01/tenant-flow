@@ -1,4 +1,3 @@
-import { ArrowRight, Shield, Zap, Users, Play } from 'lucide-react'
 import { HeroButtons } from './hero-buttons'
 
 export function HeroSection() {
@@ -13,7 +12,7 @@ export function HeroSection() {
 					<div className="mb-6 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 text-sm text-gray-600 shadow-sm">
 						<div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
 						<span>New: AI-Powered Lease Generator</span>
-						<ArrowRight className="h-3 w-3" />
+						<i className="i-lucide-arrow-right inline-block h-3 w-3"  />
 					</div>
 
 					{/* Compact typography */}
@@ -34,7 +33,7 @@ export function HeroSection() {
 					<div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
 						<HeroButtons />
 						<button className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50">
-							<Play className="h-4 w-4" />
+							<i className="i-lucide-play inline-block h-4 w-4"  />
 							Watch Demo
 						</button>
 					</div>
@@ -42,15 +41,15 @@ export function HeroSection() {
 					{/* Compact trust indicators */}
 					<div className="mt-12 flex flex-wrap items-center justify-center gap-6 text-sm text-gray-600">
 						<div className="flex items-center gap-2">
-							<Shield className="h-4 w-4 text-emerald-500" />
+							<i className="i-lucide-shield inline-block h-4 w-4 text-emerald-500"  />
 							<span>14-day free trial</span>
 						</div>
 						<div className="flex items-center gap-2">
-							<Zap className="h-4 w-4 text-blue-500" />
+							<i className="i-lucide-zap inline-block h-4 w-4 text-blue-500"  />
 							<span>5-minute setup</span>
 						</div>
 						<div className="flex items-center gap-2">
-							<Users className="h-4 w-4 text-purple-500" />
+							<i className="i-lucide-users inline-block h-4 w-4 text-purple-500"  />
 							<span>Join 10,000+ users</span>
 						</div>
 					</div>

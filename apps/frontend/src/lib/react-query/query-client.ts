@@ -31,13 +31,9 @@ export function createQueryClient(): QueryClient {
 				gcTime: 10 * 60 * 1000,
 				// Retry failed requests 3 times with exponential backoff
 				retry: (failureCount, error) => {
-<<<<<<< HEAD
 					if (failureCount >= 3) {
 						return false
 					}
-=======
-					if (failureCount >= 3) return false
->>>>>>> origin/main
 					if (error instanceof Error) {
 						// Don't retry on 4xx errors except 408 (timeout) and 429 (rate limit)
 						if (
@@ -69,75 +65,9 @@ export function createQueryClient(): QueryClient {
 	})
 }
 
-<<<<<<< HEAD
 // Import centralized query keys
 import { queryKeys } from './query-keys'
 export { queryKeys }
-=======
-/**
- * Query key factory for consistent key generation
- */
-export const queryKeys = {
-	all: ['tenantflow'] as const,
-
-	// Auth
-	auth: () => [...queryKeys.all, 'auth'] as const,
-	session: () => [...queryKeys.auth(), 'session'] as const,
-	user: () => [...queryKeys.auth(), 'user'] as const,
-
-	// Properties
-	properties: () => [...queryKeys.all, 'properties'] as const,
-	propertyList: (filters?: Record<string, unknown>) =>
-		[...queryKeys.properties(), 'list', filters] as const,
-	propertyDetail: (id: string) =>
-		[...queryKeys.properties(), 'detail', id] as const,
-	propertyStats: () => [...queryKeys.properties(), 'stats'] as const,
-
-	// Tenants
-	tenants: () => [...queryKeys.all, 'tenants'] as const,
-	tenantList: (filters?: Record<string, unknown>) =>
-		[...queryKeys.tenants(), 'list', filters] as const,
-	tenantDetail: (id: string) =>
-		[...queryKeys.tenants(), 'detail', id] as const,
-
-	// Leases
-	leases: () => [...queryKeys.all, 'leases'] as const,
-	leaseList: (filters?: Record<string, unknown>) =>
-		[...queryKeys.leases(), 'list', filters] as const,
-	leaseDetail: (id: string) => [...queryKeys.leases(), 'detail', id] as const,
-	leasesByProperty: (propertyId: string) =>
-		[...queryKeys.leases(), 'by-property', propertyId] as const,
-
-	// Units
-	units: () => [...queryKeys.all, 'units'] as const,
-	unitList: (filters?: Record<string, unknown>) =>
-		[...queryKeys.units(), 'list', filters] as const,
-	unitDetail: (id: string) => [...queryKeys.units(), 'detail', id] as const,
-	unitsByProperty: (propertyId: string) =>
-		[...queryKeys.units(), 'by-property', propertyId] as const,
-
-	// Maintenance
-	maintenance: () => [...queryKeys.all, 'maintenance'] as const,
-	maintenanceList: (filters?: Record<string, unknown>) =>
-		[...queryKeys.maintenance(), 'list', filters] as const,
-	maintenanceDetail: (id: string) =>
-		[...queryKeys.maintenance(), 'detail', id] as const,
-
-	// Dashboard
-	dashboard: () => [...queryKeys.all, 'dashboard'] as const,
-	dashboardStats: () => [...queryKeys.dashboard(), 'stats'] as const,
-	dashboardOverview: () => [...queryKeys.dashboard(), 'overview'] as const,
-	dashboardActivity: () => [...queryKeys.dashboard(), 'activity'] as const,
-
-	// Billing
-	billing: () => [...queryKeys.all, 'billing'] as const,
-	subscription: () => [...queryKeys.billing(), 'subscription'] as const,
-	invoices: (limit?: number) =>
-		[...queryKeys.billing(), 'invoices', limit] as const,
-	paymentMethods: () => [...queryKeys.billing(), 'payment-methods'] as const,
-	usage: () => [...queryKeys.billing(), 'usage'] as const
-} as const
->>>>>>> origin/main
 
 /**
  * Mutation key factory for consistent mutation identification

@@ -2,14 +2,6 @@
 
 // Removed unused Metadata import
 import { Suspense, useState, useTransition } from 'react'
-import {
-	Mail,
-	CheckCircle,
-	ArrowRight,
-	Loader2,
-	RotateCcw,
-	AlertCircle
-} from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -23,11 +15,7 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { supabase } from '@/lib/supabase/client'
 import { toast } from 'sonner'
-<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
-=======
-import { logger } from '@/lib/logger'
->>>>>>> origin/main
 
 // Disable static generation for this auth page as it requires runtime Supabase client
 export const dynamic = 'force-dynamic'
@@ -203,7 +191,7 @@ function VerifyEmailContent({ email }: VerifyEmailContentProps) {
 			<Card className="w-full max-w-md border-0 bg-white/95 shadow-2xl backdrop-blur-sm">
 				<CardHeader className="space-y-2 pb-8 text-center">
 					<div className="mx-auto mb-4 flex h-16 w-16 animate-pulse items-center justify-center rounded-full bg-blue-100">
-						<Mail className="text-primary h-8 w-8" />
+						<i className="i-lucide-mail inline-block text-primary h-8 w-8"  />
 					</div>
 					<CardTitle className="text-3xl font-bold">
 						Check Your Email
@@ -232,9 +220,9 @@ function VerifyEmailContent({ email }: VerifyEmailContentProps) {
 							}
 						>
 							{message.type === 'error' ? (
-								<AlertCircle className="h-4 w-4" />
+								<i className="i-lucide-alert-circle inline-block h-4 w-4"  />
 							) : (
-								<CheckCircle className="h-4 w-4" />
+								<i className="i-lucide-checkcircle inline-block h-4 w-4"  />
 							)}
 							<AlertDescription>{message.text}</AlertDescription>
 						</Alert>
@@ -242,7 +230,7 @@ function VerifyEmailContent({ email }: VerifyEmailContentProps) {
 
 					<div className="space-y-4">
 						<div className="flex items-start gap-3">
-							<CheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600" />
+							<i className="i-lucide-checkcircle inline-block mt-0.5 h-5 w-5 flex-shrink-0 text-green-600"  />
 							<div className="space-y-1">
 								<p className="text-sm font-medium">
 									Check your inbox
@@ -256,7 +244,7 @@ function VerifyEmailContent({ email }: VerifyEmailContentProps) {
 						</div>
 
 						<div className="flex items-start gap-3">
-							<CheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600" />
+							<i className="i-lucide-checkcircle inline-block mt-0.5 h-5 w-5 flex-shrink-0 text-green-600"  />
 							<div className="space-y-1">
 								<p className="text-sm font-medium">
 									Complete your setup
@@ -269,7 +257,7 @@ function VerifyEmailContent({ email }: VerifyEmailContentProps) {
 						</div>
 
 						<div className="flex items-start gap-3">
-							<CheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600" />
+							<i className="i-lucide-checkcircle inline-block mt-0.5 h-5 w-5 flex-shrink-0 text-green-600"  />
 							<div className="space-y-1">
 								<p className="text-sm font-medium">
 									Check your spam folder
@@ -303,12 +291,12 @@ function VerifyEmailContent({ email }: VerifyEmailContentProps) {
 							>
 								{isPending ? (
 									<>
-										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
 										Sending...
 									</>
 								) : (
 									<>
-										<RotateCcw className="mr-2 h-4 w-4" />
+										<i className="i-lucide-rotateccw inline-block mr-2 h-4 w-4"  />
 										{getResendButtonText()}
 									</>
 								)}
@@ -335,7 +323,7 @@ function VerifyEmailContent({ email }: VerifyEmailContentProps) {
 							className="text-primary hover:text-primary/80 inline-flex items-center gap-2 text-sm font-medium transition-colors"
 						>
 							Back to login
-							<ArrowRight className="h-4 w-4" />
+							<i className="i-lucide-arrow-right inline-block h-4 w-4"  />
 						</Link>
 
 						<div className="text-xs text-gray-500">
@@ -373,7 +361,7 @@ export default function VerifyEmailPage() {
 					<Card className="w-full max-w-md border-0 bg-white/95 shadow-2xl backdrop-blur-sm">
 						<CardContent className="flex items-center justify-center p-8">
 							<div className="space-y-4 text-center">
-								<Loader2 className="mx-auto h-8 w-8 animate-spin text-blue-600" />
+								<i className="i-lucide-loader-2 inline-block mx-auto h-8 w-8 animate-spin text-blue-600"  />
 								<p className="text-muted-foreground text-sm">
 									Loading...
 								</p>

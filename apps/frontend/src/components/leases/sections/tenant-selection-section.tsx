@@ -1,5 +1,4 @@
 import type { UseFormReturn } from 'react-hook-form'
-import { User } from 'lucide-react'
 import {
 	FormControl,
 	FormDescription,
@@ -68,7 +67,7 @@ export function TenantSelectionSection({
 									>
 										<div className="flex items-center space-x-3">
 											<div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
-												<User className="text-primary h-4 w-4" />
+												<i className="i-lucide-user inline-block text-primary h-4 w-4"  />
 											</div>
 											<div>
 												<p className="font-medium">

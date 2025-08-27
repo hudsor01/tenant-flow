@@ -1,5 +1,4 @@
 import { createBrowserClient } from '@supabase/ssr'
-<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
 import { config } from '../config'
 import type { Database } from '@repo/shared'
@@ -16,23 +15,6 @@ declare global {
 let client: SupabaseClientType | null | undefined
 
 export function createClient(): SupabaseClientType | null {
-=======
-import { logger } from '@/lib/logger'
-import { config } from '../config'
-import type { Database } from '@repo/shared/types/supabase'
-import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
-
-// Use global variable to ensure single instance across all imports
-declare global {
-	var __supabaseClient:
-		| ReturnType<typeof createBrowserClient<Database>>
-		| undefined
-}
-
-let client: ReturnType<typeof createBrowserClient<Database>> | undefined
-
-export function createClient() {
->>>>>>> origin/main
 	// Check for global instance first to prevent multiple instances
 	if (typeof window !== 'undefined' && globalThis.__supabaseClient) {
 		return globalThis.__supabaseClient
@@ -52,15 +34,8 @@ export function createClient() {
 					component: 'lib_supabase_client.ts'
 				}
 			)
-<<<<<<< HEAD
 			// Return null to signal no client can be built in this environment
 			return null
-=======
-			// Return a mock client that will be replaced at runtime
-			return null as unknown as ReturnType<
-				typeof createBrowserClient<Database>
-			>
->>>>>>> origin/main
 		}
 
 		client = createBrowserClient<Database>(url, anonKey, {
@@ -86,7 +61,6 @@ export function createClient() {
 // Export a lazy-initialized singleton for backward compatibility
 // This will only initialize when actually used, not at module load time
 export const supabase = (() => {
-<<<<<<< HEAD
 	let instance: SupabaseClientType | null | undefined
 	return new Proxy({} as SupabaseClientType, {
 		get(target, prop, receiver) {
@@ -94,21 +68,11 @@ export const supabase = (() => {
 			return instance
 				? Reflect.get(instance as object, prop, receiver)
 				: undefined
-=======
-	let instance: ReturnType<typeof createClient> | undefined
-	return new Proxy({} as ReturnType<typeof createClient>, {
-		get(target, prop, receiver) {
-			if (!instance) {
-				instance = createClient()
-			}
-			return instance ? Reflect.get(instance, prop, receiver) : undefined
->>>>>>> origin/main
 		}
 	})
 })()
 
 // Export auth helpers - also lazy-initialized
-<<<<<<< HEAD
 export const auth = new Proxy({} as object, {
 	get(target, prop, receiver) {
 		try {
@@ -122,11 +86,6 @@ export const auth = new Proxy({} as object, {
 		} catch {
 			return undefined
 		}
-=======
-export const auth = new Proxy({} as typeof supabase.auth, {
-	get(target, prop, receiver) {
-		return Reflect.get(supabase.auth, prop, receiver)
->>>>>>> origin/main
 	}
 })
 

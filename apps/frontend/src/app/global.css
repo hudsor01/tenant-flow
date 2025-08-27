@@ -1,0 +1,110 @@
+/* UnoCSS Global Styles - Native CSS Features Only */
+
+/* 
+ * Native CSS Features Only
+ * No frameworks, no abstractions, just web standards
+ */
+
+/* CSS Layers for cascade management */
+@layer base, components, utilities;
+
+/* Native CSS Custom Properties */
+@layer base {
+  :root {
+    /* Native color-scheme for automatic dark mode handling */
+    color-scheme: light dark;
+    
+    /* Next.js optimized font variables */
+    --font-sans: var(--font-inter, system-ui, -apple-system, sans-serif);
+    --font-mono: var(--font-mono, 'Courier New', monospace);
+    
+    /* Native smooth scrolling */
+    scroll-behavior: smooth;
+    
+    /* Better text rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    
+    /* Prevent text size adjustment on mobile */
+    -webkit-text-size-adjust: 100%;
+  }
+  
+  /* Native focus-visible for better accessibility */
+  :focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+  
+  /* Remove default focus for mouse users */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+  
+  /* Native smooth transitions for color scheme changes */
+  * {
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  /* Respect user motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Container Queries - Component-level responsive design */
+@layer components {
+  /* Container setup for responsive components */
+  .container-card { container-type: inline-size; }
+  .container-sidebar { container-type: inline-size; }
+  .container-table { container-type: inline-size; }
+  .container-form { container-type: inline-size; }
+  .container-modal { container-type: size; }
+}
+
+/* Native CSS features that enhance UnoCSS */
+@layer utilities {
+  /* Modern text wrapping */
+  .text-balance { text-wrap: balance; }
+  .text-pretty { text-wrap: pretty; }
+  
+  /* Native scroll snap */
+  .snap-x { scroll-snap-type: x mandatory; }
+  .snap-y { scroll-snap-type: y mandatory; }
+  .snap-both { scroll-snap-type: both mandatory; }
+  .snap-start { scroll-snap-align: start; }
+  .snap-center { scroll-snap-align: center; }
+  .snap-end { scroll-snap-align: end; }
+  
+  /* Native aspect ratios */
+  .aspect-video { aspect-ratio: 16 / 9; }
+  .aspect-square { aspect-ratio: 1 / 1; }
+  
+  /* Native masonry layout (future CSS) */
+  @supports (grid-template-rows: masonry) {
+    .grid-masonry {
+      grid-template-rows: masonry;
+    }
+  }
+  
+  /* Native backdrop filters */
+  .backdrop-blur { backdrop-filter: blur(10px); }
+  .backdrop-saturate { backdrop-filter: saturate(180%); }
+  
+  /* Native conic gradients for charts */
+  .gradient-conic {
+    background: conic-gradient(
+      from 180deg at 50% 50%,
+      var(--un-color-brand-500) 0deg,
+      var(--un-color-brand-600) 90deg,
+      var(--un-color-brand-700) 180deg,
+      var(--un-color-brand-600) 270deg,
+      var(--un-color-brand-500) 360deg
+    );
+  }
+}

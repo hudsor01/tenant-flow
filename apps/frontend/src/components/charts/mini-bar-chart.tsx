@@ -9,17 +9,11 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({
 	payload,
 	label
 }) => {
-<<<<<<< HEAD
 	if (active && payload?.length) {
 		const data = payload[0]
 		if (!data) {
 			return null
 		}
-=======
-	if (active && payload && payload.length) {
-		const data = payload[0]
-		if (!data) return null
->>>>>>> origin/main
 		return (
 			<div className="rounded-md border border-gray-200 bg-white px-2 py-1 text-xs shadow-md">
 				<p className="mb-1 font-medium text-gray-900">{label}</p>
@@ -65,7 +59,6 @@ export const MiniBarChart: React.FC<MiniBarChartProps> = ({
 				>
 					{showTooltip && <Tooltip content={<CustomTooltip />} />}
 					<Bar dataKey="value" radius={[barRadius, barRadius, 0, 0]}>
-<<<<<<< HEAD
 						{data?.map(
 							(
 								entry: {
@@ -86,17 +79,6 @@ export const MiniBarChart: React.FC<MiniBarChartProps> = ({
 								/>
 							)
 						)}
-=======
-						{data?.map((entry, index) => (
-							<Cell
-								key={`cell-${index}`}
-								fill={
-									entry.color ??
-									defaultColors[index % defaultColors.length]
-								}
-							/>
-						))}
->>>>>>> origin/main
 					</Bar>
 				</BarChart>
 			</ResponsiveContainer>

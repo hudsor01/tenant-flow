@@ -58,12 +58,8 @@ export const queryKeys = {
 		lists: () => [...queryKeys.units.all(), 'list'] as const,
 		list: (params?: Record<string, unknown>) =>
 			[...queryKeys.units.all(), 'list', params] as const,
-<<<<<<< HEAD
 		detail: (id: string) =>
 			[...queryKeys.units.all(), 'detail', id] as const,
-=======
-		detail: (id: string) => [...queryKeys.units.all(), 'detail', id] as const,
->>>>>>> origin/main
 		byProperty: (propertyId: string) =>
 			[...queryKeys.units.all(), 'by-property', propertyId] as const,
 		stats: () => [...queryKeys.units.all(), 'stats'] as const
@@ -75,12 +71,8 @@ export const queryKeys = {
 		lists: () => [...queryKeys.leases.all(), 'list'] as const,
 		list: (params?: Record<string, unknown>) =>
 			[...queryKeys.leases.all(), 'list', params] as const,
-<<<<<<< HEAD
 		detail: (id: string) =>
 			[...queryKeys.leases.all(), 'detail', id] as const,
-=======
-		detail: (id: string) => [...queryKeys.leases.all(), 'detail', id] as const,
->>>>>>> origin/main
 		byProperty: (propertyId: string) =>
 			[...queryKeys.leases.all(), 'by-property', propertyId] as const,
 		byTenant: (tenantId: string) =>
@@ -98,15 +90,11 @@ export const queryKeys = {
 			[...queryKeys.maintenance.all(), 'detail', id] as const,
 		stats: () => [...queryKeys.maintenance.all(), 'stats'] as const,
 		byProperty: (propertyId: string) =>
-<<<<<<< HEAD
 			[
 				...queryKeys.maintenance.all(),
 				'by-property',
 				propertyId
 			] as const,
-=======
-			[...queryKeys.maintenance.all(), 'by-property', propertyId] as const,
->>>>>>> origin/main
 		byTenant: (tenantId: string) =>
 			[...queryKeys.maintenance.all(), 'by-tenant', tenantId] as const
 	},
@@ -126,12 +114,8 @@ export const queryKeys = {
 	// Billing
 	billing: {
 		all: () => [...queryKeys.all, 'billing'] as const,
-<<<<<<< HEAD
 		subscription: () =>
 			[...queryKeys.billing.all(), 'subscription'] as const,
-=======
-		subscription: () => [...queryKeys.billing.all(), 'subscription'] as const,
->>>>>>> origin/main
 		invoices: (limit?: number) =>
 			[...queryKeys.billing.all(), 'invoices', limit] as const,
 		paymentMethods: () =>
@@ -220,8 +204,4 @@ export const cacheConfig = {
 		staleTime: 1000 * 60 * 10, // 10 minutes
 		gcTime: 1000 * 60 * 60 // 1 hour
 	}
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> origin/main

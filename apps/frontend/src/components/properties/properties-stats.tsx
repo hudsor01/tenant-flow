@@ -1,10 +1,7 @@
-'use client'
-
 import { useProperties } from '@/hooks/api/use-properties'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Building2, Users, Home, AlertTriangle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export function PropertiesStats() {
@@ -28,7 +25,7 @@ export function PropertiesStats() {
 	if (error) {
 		return (
 			<Alert variant="destructive">
-				<AlertTriangle className="h-4 w-4" />
+				<i className="i-lucide-alert-triangle inline-block h-4 w-4"  />
 				<AlertTitle>Error loading properties</AlertTitle>
 				<AlertDescription>
 					There was a problem loading your properties data.

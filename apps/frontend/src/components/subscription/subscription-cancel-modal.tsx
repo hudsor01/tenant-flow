@@ -12,7 +12,6 @@ import { Button } from '../ui/button'
 import { Textarea } from '../ui/textarea'
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group'
 import { Label } from '../ui/label'
-import { AlertTriangleIcon, CheckIcon, XIcon } from 'lucide-react'
 import { useSubscriptionCancellation } from '../../hooks/useSubscriptionActions'
 import { LoadingSpinner } from '../ui/loading-spinner'
 import type { PlanType } from '@repo/shared'
@@ -97,7 +96,7 @@ export function SubscriptionCancelModal({
 				<DialogContent className="sm:max-w-md">
 					<div className="flex flex-col items-center py-6 text-center">
 						<div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-							<CheckIcon className="h-6 w-6 text-green-600" />
+							<i className="i-lucide-checkicon inline-block h-6 w-6 text-green-600"  />
 						</div>
 						<h3 className="mb-2 text-lg font-semibold">
 							Cancellation Processed
@@ -268,7 +267,7 @@ export function SubscriptionCancelModal({
 			<DialogContent className="sm:max-w-lg">
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">
-						<AlertTriangleIcon className="h-5 w-5 text-orange-600" />
+						<i className="i-lucide-alerttriangleicon inline-block h-5 w-5 text-orange-600"  />
 						Confirm Cancellation
 					</DialogTitle>
 				</DialogHeader>
@@ -360,7 +359,7 @@ export function SubscriptionCancelModal({
 					{cancelError && (
 						<div className="rounded-lg border border-red-200 bg-red-50 p-4">
 							<div className="flex items-center gap-2">
-								<XIcon className="h-4 w-4 text-red-600" />
+								<i className="i-lucide-xicon inline-block h-4 w-4 text-red-600"  />
 								<span className="text-sm text-red-600">
 									{cancelError.message ||
 										'Cancellation failed. Please try again.'}

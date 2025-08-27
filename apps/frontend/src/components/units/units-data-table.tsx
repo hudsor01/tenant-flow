@@ -1,5 +1,3 @@
-'use client'
-
 import { useUnits } from '@/hooks/api/use-units'
 import {
 	Card,
@@ -19,16 +17,6 @@ import {
 	TableHeader,
 	TableRow
 } from '@/components/ui/table'
-import {
-	Building,
-	Eye,
-	Edit3,
-	Home,
-	Users,
-	DollarSign,
-	Ruler,
-	Plus
-} from 'lucide-react'
 import Link from 'next/link'
 import type { UnitWithDetails } from '@repo/shared'
 
@@ -80,14 +68,14 @@ function UnitRow({ unit }: { unit: UnitWithDetails }) {
 			<TableCell>
 				<div className="flex items-center gap-3">
 					<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
-						<Home className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+						<i className="i-lucide-home inline-block h-4 w-4 text-blue-600 dark:text-blue-400"  />
 					</div>
 					<div className="space-y-1">
 						<p className="font-medium leading-none">
 							Unit {unit.unitNumber}
 						</p>
 						<div className="text-muted-foreground flex items-center gap-1 text-sm">
-							<Building className="h-3 w-3" />
+							<i className="i-lucide-building inline-block h-3 w-3"  />
 							{unit.property?.name || 'Unknown Property'}
 						</div>
 					</div>
@@ -95,19 +83,19 @@ function UnitRow({ unit }: { unit: UnitWithDetails }) {
 			</TableCell>
 			<TableCell>
 				<div className="flex items-center gap-1 text-sm">
-					<Users className="text-muted-foreground h-3 w-3" />
+					<i className="i-lucide-users inline-block text-muted-foreground h-3 w-3"  />
 					{unit.bedrooms}BR / {unit.bathrooms}BA
 				</div>
 			</TableCell>
 			<TableCell>
 				<div className="flex items-center gap-1 text-sm">
-					<Ruler className="text-muted-foreground h-3 w-3" />
+					<i className="i-lucide-ruler inline-block text-muted-foreground h-3 w-3"  />
 					{formatSquareFeet(unit.squareFeet)}
 				</div>
 			</TableCell>
 			<TableCell>
 				<div className="flex items-center gap-1 text-sm">
-					<DollarSign className="text-muted-foreground h-3 w-3" />
+					<i className="i-lucide-dollar-sign inline-block text-muted-foreground h-3 w-3"  />
 					{formatRent(unit.monthlyRent || unit.rent)}
 				</div>
 			</TableCell>
@@ -116,12 +104,12 @@ function UnitRow({ unit }: { unit: UnitWithDetails }) {
 				<div className="flex items-center gap-2">
 					<Link href={`/units/${unit.id}`}>
 						<Button variant="ghost" size="sm">
-							<Eye className="h-4 w-4" />
+							<i className="i-lucide-eye inline-block h-4 w-4"  />
 						</Button>
 					</Link>
 					<Link href={`/units/${unit.id}/edit`}>
 						<Button variant="ghost" size="sm">
-							<Edit3 className="h-4 w-4" />
+							<i className="i-lucide-edit-3 inline-block h-4 w-4"  />
 						</Button>
 					</Link>
 				</div>
@@ -167,7 +155,7 @@ function UnitsTableUI({ units }: UnitsTableUIProps) {
 				</CardHeader>
 				<CardContent>
 					<div className="flex flex-col items-center justify-center py-12 text-center">
-						<Home className="text-muted-foreground/50 mb-4 h-16 w-16" />
+						<i className="i-lucide-home inline-block text-muted-foreground/50 mb-4 h-16 w-16"  />
 						<h3 className="mb-2 text-lg font-medium">
 							No units yet
 						</h3>
@@ -177,7 +165,7 @@ function UnitsTableUI({ units }: UnitsTableUIProps) {
 						</p>
 						<Link href="/units/new">
 							<Button>
-								<Plus className="mr-2 h-4 w-4" />
+								<i className="i-lucide-plus inline-block mr-2 h-4 w-4"  />
 								Add First Unit
 							</Button>
 						</Link>
@@ -199,7 +187,7 @@ function UnitsTableUI({ units }: UnitsTableUIProps) {
 					</div>
 					<Link href="/units/new">
 						<Button size="sm">
-							<Plus className="mr-2 h-4 w-4" />
+							<i className="i-lucide-plus inline-block mr-2 h-4 w-4"  />
 							Add Unit
 						</Button>
 					</Link>

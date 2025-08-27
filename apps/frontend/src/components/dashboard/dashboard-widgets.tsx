@@ -1,5 +1,3 @@
-'use client'
-
 import { Suspense } from 'react'
 import { motion } from '@/lib/lazy-motion'
 import {
@@ -13,23 +11,6 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
-import {
-	BarChart3,
-	TrendingUp,
-	TrendingDown,
-	AlertTriangle,
-	Calendar,
-	DollarSign,
-	Users,
-	Building2,
-	Activity,
-	Clock,
-	CheckCircle2,
-	XCircle,
-	ArrowUpRight,
-	ArrowDownRight,
-	Eye
-} from 'lucide-react'
 import { useDashboardOverview } from '@/hooks/api/use-dashboard'
 import { cn } from '@/lib/utils'
 import { AreaChart, Area, ResponsiveContainer } from 'recharts'
@@ -259,11 +240,7 @@ function WidgetSkeleton() {
 	)
 }
 
-<<<<<<< HEAD
 export function DashboardWidgets() {
-=======
-export function EnhancedDashboardWidgets() {
->>>>>>> origin/main
 	const { data: _stats } = useDashboardOverview()
 
 	return (
@@ -296,7 +273,7 @@ export function EnhancedDashboardWidgets() {
 										ease: 'linear'
 									}}
 								>
-									<Activity className="group-hover:text-primary h-5 w-5 text-gray-400 transition-colors" />
+									<i className="i-lucide-activity inline-block group-hover:text-primary h-5 w-5 text-gray-400 transition-colors"  />
 								</motion.div>
 							</div>
 						</CardHeader>
@@ -357,7 +334,7 @@ export function EnhancedDashboardWidgets() {
 													whileHover={{ opacity: 1 }}
 													className="opacity-0 transition-opacity group-hover/item:opacity-100"
 												>
-													<Eye className="h-3 w-3 text-gray-400" />
+													<i className="i-lucide-eye inline-block h-3 w-3 text-gray-400"  />
 												</motion.div>
 											</div>
 										</div>
@@ -382,11 +359,7 @@ export function EnhancedDashboardWidgets() {
 											ease: 'easeInOut'
 										}}
 									>
-<<<<<<< HEAD
-										<ArrowUpRight className="ml-2 h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-=======
-										<ArrowUpRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
->>>>>>> origin/main
+										<i className="i-lucide-arrowupright inline-block ml-2 h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"  />
 									</motion.div>
 								</Button>
 							</motion.div>
@@ -407,7 +380,7 @@ export function EnhancedDashboardWidgets() {
 								Current occupancy by property
 							</CardDescription>
 						</div>
-						<Building2 className="h-5 w-5 text-gray-400" />
+						<i className="i-lucide-building-2 inline-block h-5 w-5 text-gray-400"  />
 					</div>
 				</CardHeader>
 				<CardContent className="space-y-4">
@@ -437,9 +410,9 @@ export function EnhancedDashboardWidgets() {
 										{property.rate}%
 									</span>
 									{property.rate >= 90 ? (
-										<TrendingUp className="h-4 w-4 text-green-600" />
+										<i className="i-lucide-trending-up inline-block h-4 w-4 text-green-600"  />
 									) : (
-										<TrendingDown className="h-4 w-4 text-red-600" />
+										<i className="i-lucide-trending-down inline-block h-4 w-4 text-red-600"  />
 									)}
 								</div>
 							</div>
@@ -472,7 +445,7 @@ export function EnhancedDashboardWidgets() {
 									)}
 									%
 								</span>
-								<TrendingUp className="h-4 w-4 text-green-600" />
+								<i className="i-lucide-trending-up inline-block h-4 w-4 text-green-600"  />
 							</div>
 						</div>
 
@@ -499,7 +472,7 @@ export function EnhancedDashboardWidgets() {
 								Important items requiring attention
 							</CardDescription>
 						</div>
-						<Clock className="h-5 w-5 text-gray-400" />
+						<i className="i-lucide-clock inline-block h-5 w-5 text-gray-400"  />
 					</div>
 				</CardHeader>
 				<CardContent className="space-y-4">
@@ -534,7 +507,7 @@ export function EnhancedDashboardWidgets() {
 								</p>
 							</div>
 							<Button variant="ghost" size="sm">
-								<Eye className="h-4 w-4" />
+								<i className="i-lucide-eye inline-block h-4 w-4"  />
 							</Button>
 						</div>
 					))}
@@ -544,7 +517,7 @@ export function EnhancedDashboardWidgets() {
 						className="w-full text-sm text-gray-600 hover:text-gray-900"
 					>
 						View all tasks
-						<Calendar className="ml-2 h-4 w-4" />
+						<i className="i-lucide-calendar inline-block ml-2 h-4 w-4"  />
 					</Button>
 				</CardContent>
 			</Card>
@@ -565,7 +538,7 @@ export function EnhancedDashboardWidgets() {
 							<Button variant="outline" size="sm">
 								This Month
 							</Button>
-							<BarChart3 className="h-5 w-5 text-gray-400" />
+							<i className="i-lucide-bar-chart-3 inline-block h-5 w-5 text-gray-400"  />
 						</div>
 					</div>
 				</CardHeader>
@@ -582,7 +555,7 @@ export function EnhancedDashboardWidgets() {
 							</div>
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-1 text-xs">
-									<ArrowUpRight className="h-3 w-3 text-green-600" />
+									<i className="i-lucide-arrowupright inline-block h-3 w-3 text-green-600"  />
 									<span className="text-green-600">
 										+12.3%
 									</span>
@@ -608,7 +581,7 @@ export function EnhancedDashboardWidgets() {
 							</div>
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-1 text-xs">
-									<ArrowDownRight className="h-3 w-3 text-red-600" />
+									<i className="i-lucide-arrowdownright inline-block h-3 w-3 text-red-600"  />
 									<span className="text-red-600">+5.8%</span>
 								</div>
 								<div className="w-16">
@@ -633,7 +606,7 @@ export function EnhancedDashboardWidgets() {
 							</div>
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-1 text-xs">
-									<ArrowUpRight className="text-primary h-3 w-3" />
+									<i className="i-lucide-arrowupright inline-block text-primary h-3 w-3"  />
 									<span className="text-primary">+15.2%</span>
 								</div>
 								<div className="w-16">
@@ -658,7 +631,7 @@ export function EnhancedDashboardWidgets() {
 							</div>
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-1 text-xs">
-									<ArrowUpRight className="h-3 w-3 text-green-600" />
+									<i className="i-lucide-arrowupright inline-block h-3 w-3 text-green-600"  />
 									<span className="text-green-600">
 										+2.1%
 									</span>
@@ -694,13 +667,13 @@ export function EnhancedDashboardWidgets() {
 								Items requiring immediate attention
 							</CardDescription>
 						</div>
-						<AlertTriangle className="h-5 w-5 text-orange-400" />
+						<i className="i-lucide-alert-triangle inline-block h-5 w-5 text-orange-400"  />
 					</div>
 				</CardHeader>
 				<CardContent className="space-y-4">
 					<div className="space-y-3">
 						<div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-3">
-							<XCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-600" />
+							<i className="i-lucide-xcircle inline-block mt-0.5 h-5 w-5 flex-shrink-0 text-red-600"  />
 							<div>
 								<p className="text-sm font-medium text-red-900">
 									Overdue Rent
@@ -719,7 +692,7 @@ export function EnhancedDashboardWidgets() {
 						</div>
 
 						<div className="flex items-start gap-3 rounded-lg border border-orange-200 bg-orange-50 p-3">
-							<AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-orange-600" />
+							<i className="i-lucide-alert-triangle inline-block mt-0.5 h-5 w-5 flex-shrink-0 text-orange-600"  />
 							<div>
 								<p className="text-sm font-medium text-orange-900">
 									Maintenance Pending
@@ -738,7 +711,7 @@ export function EnhancedDashboardWidgets() {
 						</div>
 
 						<div className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-3">
-							<Calendar className="text-primary mt-0.5 h-5 w-5 flex-shrink-0" />
+							<i className="i-lucide-calendar inline-block text-primary mt-0.5 h-5 w-5 flex-shrink-0"  />
 							<div>
 								<p className="text-sm font-medium text-blue-900">
 									Lease Expiring
