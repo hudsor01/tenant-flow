@@ -1,5 +1,3 @@
-'use client'
-
 import { useLeases } from '@/hooks/api/use-leases'
 import type { Lease } from '@repo/shared'
 
@@ -34,28 +32,12 @@ import {
 	TableHeader,
 	TableRow
 } from '@/components/ui/table'
-import {
-	FileText,
-	Eye,
-	Edit3,
-	Download,
-	Building,
-	User,
-	Calendar,
-	DollarSign,
-	AlertTriangle,
-	Plus
-} from 'lucide-react'
 import Link from 'next/link'
 
 function LeaseRow({ lease }: { lease: LeaseTableRow }) {
 	// Check if lease is expiring soon (within 30 days)
 	const isExpiringSoon =
-<<<<<<< HEAD
 		lease.status === 'ACTIVE' &&
-=======
-		lease.status === 'active' &&
->>>>>>> origin/main
 		(() => {
 			const endDate = new Date(lease.endDate)
 			const thirtyDaysFromNow = new Date()
@@ -101,18 +83,14 @@ function LeaseRow({ lease }: { lease: LeaseTableRow }) {
 			<TableCell>
 				<div className="flex items-center gap-3">
 					<div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-lg">
-						<FileText className="text-primary h-5 w-5" />
+						<i className="i-lucide-file-text inline-block text-primary h-5 w-5"  />
 					</div>
 					<div className="space-y-1">
-<<<<<<< HEAD
 						<p className="font-medium leading-none">
-=======
-						<p className="leading-none font-medium">
->>>>>>> origin/main
 							Lease #{lease.id.slice(-8)}
 						</p>
 						<div className="text-muted-foreground flex items-center gap-1 text-sm">
-							<Calendar className="h-3 w-3" />
+							<i className="i-lucide-calendar inline-block h-3 w-3"  />
 							{new Date(
 								lease.startDate
 							).toLocaleDateString()} -{' '}
@@ -124,7 +102,7 @@ function LeaseRow({ lease }: { lease: LeaseTableRow }) {
 			<TableCell>
 				{lease.tenant ? (
 					<div className="flex items-center gap-1 text-sm">
-						<User className="text-muted-foreground h-3 w-3" />
+						<i className="i-lucide-user inline-block text-muted-foreground h-3 w-3"  />
 						{lease.tenant.name}
 					</div>
 				) : (
@@ -136,7 +114,7 @@ function LeaseRow({ lease }: { lease: LeaseTableRow }) {
 			<TableCell>
 				{lease.unit?.property ? (
 					<div className="flex items-center gap-1 text-sm">
-						<Building className="text-muted-foreground h-3 w-3" />
+						<i className="i-lucide-building inline-block text-muted-foreground h-3 w-3"  />
 						<div className="space-y-1">
 							<p className="font-medium">
 								{lease.unit.property.name}
@@ -154,7 +132,7 @@ function LeaseRow({ lease }: { lease: LeaseTableRow }) {
 			</TableCell>
 			<TableCell>
 				<div className="flex items-center gap-1">
-					<DollarSign className="text-muted-foreground h-3 w-3" />$
+					<i className="i-lucide-dollar-sign inline-block text-muted-foreground h-3 w-3"  />$
 					{lease.rentAmount?.toLocaleString() || '0'}/month
 				</div>
 			</TableCell>
@@ -174,11 +152,7 @@ function LeaseRow({ lease }: { lease: LeaseTableRow }) {
 							Expiring Soon
 						</Badge>
 					)}
-<<<<<<< HEAD
 					{isExpired && lease.status === 'ACTIVE' && (
-=======
-					{isExpired && lease.status === 'active' && (
->>>>>>> origin/main
 						<Badge
 							variant="outline"
 							className="border-red-600 text-xs text-red-600"
@@ -192,16 +166,16 @@ function LeaseRow({ lease }: { lease: LeaseTableRow }) {
 				<div className="flex items-center gap-2">
 					<Link href={`/leases/${lease.id}`}>
 						<Button variant="ghost" size="sm">
-							<Eye className="h-4 w-4" />
+							<i className="i-lucide-eye inline-block h-4 w-4"  />
 						</Button>
 					</Link>
 					<Link href={`/leases/${lease.id}/edit`}>
 						<Button variant="ghost" size="sm">
-							<Edit3 className="h-4 w-4" />
+							<i className="i-lucide-edit-3 inline-block h-4 w-4"  />
 						</Button>
 					</Link>
 					<Button variant="ghost" size="sm">
-						<Download className="h-4 w-4" />
+						<i className="i-lucide-download inline-block h-4 w-4"  />
 					</Button>
 				</div>
 			</TableCell>
@@ -260,7 +234,7 @@ export function LeasesDataTable() {
 				</CardHeader>
 				<CardContent>
 					<Alert variant="destructive">
-						<AlertTriangle className="h-4 w-4" />
+						<i className="i-lucide-alert-triangle inline-block h-4 w-4"  />
 						<AlertTitle>Error loading leases</AlertTitle>
 						<AlertDescription>
 							There was a problem loading your leases. Please try
@@ -283,7 +257,7 @@ export function LeasesDataTable() {
 				</CardHeader>
 				<CardContent>
 					<div className="flex flex-col items-center justify-center py-12 text-center">
-						<FileText className="text-muted-foreground/50 mb-4 h-16 w-16" />
+						<i className="i-lucide-file-text inline-block text-muted-foreground/50 mb-4 h-16 w-16"  />
 						<h3 className="mb-2 text-lg font-medium">
 							No leases yet
 						</h3>
@@ -293,7 +267,7 @@ export function LeasesDataTable() {
 						</p>
 						<Link href="/leases/new">
 							<Button>
-								<Plus className="mr-2 h-4 w-4" />
+								<i className="i-lucide-plus inline-block mr-2 h-4 w-4"  />
 								Create First Lease
 							</Button>
 						</Link>
@@ -315,7 +289,7 @@ export function LeasesDataTable() {
 					</div>
 					<Link href="/leases/new">
 						<Button size="sm">
-							<Plus className="mr-2 h-4 w-4" />
+							<i className="i-lucide-plus inline-block mr-2 h-4 w-4"  />
 							Create Lease
 						</Button>
 					</Link>

@@ -33,7 +33,6 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2, AlertTriangle, Wrench } from 'lucide-react'
 import { useCreateMaintenanceRequest } from '@/hooks/api/use-maintenance'
 import { useProperties } from '@/hooks/api/use-properties'
 import { useUnits } from '@/hooks/api/use-units'
@@ -94,7 +93,7 @@ export function MaintenanceRequestModal({
 				<DialogHeader>
 					<div className="flex items-center gap-3">
 						<div className="bg-orange-100 rounded-lg p-2">
-							<Wrench className="h-5 w-5 text-orange-600" />
+							<i className="i-lucide-wrench inline-block h-5 w-5 text-orange-600"  />
 						</div>
 						<div>
 							<DialogTitle>Schedule Maintenance Request</DialogTitle>
@@ -107,7 +106,7 @@ export function MaintenanceRequestModal({
 
 				{error && (
 					<Alert variant="destructive">
-						<AlertTriangle className="h-4 w-4" />
+						<i className="i-lucide-alert-triangle inline-block h-4 w-4"  />
 						<AlertDescription>{error}</AlertDescription>
 					</Alert>
 				)}
@@ -380,12 +379,12 @@ export function MaintenanceRequestModal({
 							>
 								{isLoading ? (
 									<>
-										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
 										Creating...
 									</>
 								) : (
 									<>
-										<Wrench className="mr-2 h-4 w-4" />
+										<i className="i-lucide-wrench inline-block mr-2 h-4 w-4"  />
 										Create Request
 									</>
 								)}

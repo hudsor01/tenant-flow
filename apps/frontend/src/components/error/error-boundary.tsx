@@ -1,7 +1,6 @@
 import React from 'react'
 import { QueryErrorResetBoundary } from '@tanstack/react-query'
 import { ErrorBoundary as ReactErrorBoundary } from 'react-error-boundary'
-import { AlertTriangle, RefreshCw, Home } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
 	Card,
@@ -109,7 +108,7 @@ function DefaultErrorFallback({ error, resetError }: ErrorFallbackProps) {
 			<Card className="w-full max-w-md">
 				<CardHeader className="text-center">
 					<div className="bg-destructive/10 mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
-						<AlertTriangle className="text-destructive h-6 w-6" />
+						<i className="i-lucide-alert-triangle inline-block text-destructive h-6 w-6"  />
 					</div>
 					<CardTitle className="text-lg font-semibold">
 						Something went wrong
@@ -139,7 +138,7 @@ function DefaultErrorFallback({ error, resetError }: ErrorFallbackProps) {
 					)}
 					<div className="flex gap-2">
 						<Button onClick={resetError} className="flex-1">
-							<RefreshCw className="mr-2 h-4 w-4" />
+							<i className="i-lucide-refreshcw inline-block mr-2 h-4 w-4"  />
 							Try Again
 						</Button>
 						<Button
@@ -147,7 +146,7 @@ function DefaultErrorFallback({ error, resetError }: ErrorFallbackProps) {
 							onClick={() => (window.location.href = '/')}
 							className="flex-1"
 						>
-							<Home className="mr-2 h-4 w-4" />
+							<i className="i-lucide-home inline-block mr-2 h-4 w-4"  />
 							Go Home
 						</Button>
 					</div>
@@ -181,7 +180,7 @@ function PageErrorFallback({ resetError }: ErrorFallbackProps) {
 	return (
 		<div className="container mx-auto px-4 py-16 text-center">
 			<div className="mx-auto max-w-md">
-				<AlertTriangle className="text-destructive mx-auto mb-4 h-12 w-12" />
+				<i className="i-lucide-alert-triangle inline-block text-destructive mx-auto mb-4 h-12 w-12"  />
 				<h1 className="text-foreground mb-2 text-2xl font-bold">
 					Page Error
 				</h1>
@@ -191,14 +190,14 @@ function PageErrorFallback({ resetError }: ErrorFallbackProps) {
 				</p>
 				<div className="flex justify-center gap-2">
 					<Button onClick={resetError}>
-						<RefreshCw className="mr-2 h-4 w-4" />
+						<i className="i-lucide-refreshcw inline-block mr-2 h-4 w-4"  />
 						Reload Page
 					</Button>
 					<Button
 						variant="outline"
 						onClick={() => (window.location.href = '/')}
 					>
-						<Home className="mr-2 h-4 w-4" />
+						<i className="i-lucide-home inline-block mr-2 h-4 w-4"  />
 						Go Home
 					</Button>
 				</div>
@@ -226,7 +225,7 @@ function QueryErrorFallback({
 		<Card className="mx-auto max-w-md">
 			<CardHeader className="text-center">
 				<div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-					<AlertTriangle className="h-6 w-6 text-red-600" />
+					<i className="i-lucide-alert-triangle inline-block h-6 w-6 text-red-600"  />
 				</div>
 				<CardTitle className="text-red-900">
 					Data Loading Error
@@ -243,13 +242,13 @@ function QueryErrorFallback({
 							className="w-full"
 							variant="outline"
 						>
-							<RefreshCw className="mr-2 h-4 w-4" />
+							<i className="i-lucide-refreshcw inline-block mr-2 h-4 w-4"  />
 							Try again
 						</Button>
 					)}
 				<Button asChild className="w-full" variant="secondary">
 					<Link href="/dashboard">
-						<Home className="mr-2 h-4 w-4" />
+						<i className="i-lucide-home inline-block mr-2 h-4 w-4"  />
 						Go to Dashboard
 					</Link>
 				</Button>
@@ -330,7 +329,7 @@ function SectionErrorFallback({
 		return (
 			<div className="rounded border border-red-200 bg-red-50 p-4">
 				<div className="flex items-center gap-2">
-					<AlertTriangle className="h-4 w-4 text-red-600" />
+					<i className="i-lucide-alert-triangle inline-block h-4 w-4 text-red-600"  />
 					<span className="text-sm text-red-800">
 						Unable to load {sectionName}
 					</span>
@@ -345,7 +344,7 @@ function SectionErrorFallback({
 							variant="outline"
 							className="mt-2"
 						>
-							<RefreshCw className="mr-1 h-3 w-3" />
+							<i className="i-lucide-refreshcw inline-block mr-1 h-3 w-3"  />
 							Retry
 						</Button>
 					)}
@@ -357,7 +356,7 @@ function SectionErrorFallback({
 		<Card className="border-red-200">
 			<CardHeader className="pb-3">
 				<div className="flex items-center gap-2">
-					<AlertTriangle className="h-5 w-5 text-red-600" />
+					<i className="i-lucide-alert-triangle inline-block h-5 w-5 text-red-600"  />
 					<CardTitle className="text-base">
 						Error loading {sectionName}
 					</CardTitle>
@@ -371,7 +370,7 @@ function SectionErrorFallback({
 						size="sm"
 						variant="outline"
 					>
-						<RefreshCw className="mr-2 h-4 w-4" />
+						<i className="i-lucide-refreshcw inline-block mr-2 h-4 w-4"  />
 						Try again
 					</Button>
 				</CardContent>
@@ -424,7 +423,7 @@ export function NetworkErrorBoundary({
 					<Card className="mx-auto max-w-md">
 						<CardHeader className="text-center">
 							<div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100">
-								<AlertTriangle className="h-6 w-6 text-yellow-600" />
+								<i className="i-lucide-alert-triangle inline-block h-6 w-6 text-yellow-600"  />
 							</div>
 							<CardTitle className="text-yellow-900">
 								{isOffline
@@ -442,7 +441,7 @@ export function NetworkErrorBoundary({
 								onClick={resetErrorBoundary}
 								className="w-full"
 							>
-								<RefreshCw className="mr-2 h-4 w-4" />
+								<i className="i-lucide-refreshcw inline-block mr-2 h-4 w-4"  />
 								{isOffline ? 'Try again' : 'Retry connection'}
 							</Button>
 						</CardContent>

@@ -1,6 +1,9 @@
 import { clsx, type ClassValue } from 'clsx'
-import { twMerge } from 'tailwind-merge'
 
+/**
+ * Combine class names with proper precedence.
+ * UnoCSS handles specificity naturally, no merge needed.
+ */
 export function cn(...inputs: ClassValue[]) {
-	return twMerge(clsx(inputs))
+	return clsx(inputs)
 }

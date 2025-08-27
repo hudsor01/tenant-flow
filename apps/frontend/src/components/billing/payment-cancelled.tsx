@@ -9,13 +9,6 @@ import {
 	CardTitle
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import {
-	XCircle,
-	ArrowLeft,
-	MessageCircle,
-	HelpCircle,
-	ExternalLink
-} from 'lucide-react'
 
 /**
  * Client Component - PaymentCancelled
@@ -28,7 +21,7 @@ export function PaymentCancelled() {
 		<div className="space-y-8">
 			{/* Cancel Header */}
 			<div className="text-center">
-				<XCircle className="text-muted-foreground mx-auto mb-4 h-16 w-16 opacity-60" />
+				<i className="i-lucide-xcircle inline-block text-muted-foreground mx-auto mb-4 h-16 w-16 opacity-60"  />
 				<h1 className="mb-2 text-4xl font-bold">Checkout Cancelled</h1>
 				<p className="text-muted-foreground text-xl">
 					Your subscription setup was cancelled. No charges were made.
@@ -51,7 +44,7 @@ export function PaymentCancelled() {
 							className="w-full"
 							size="lg"
 						>
-							<ArrowLeft className="mr-2 h-5 w-5" />
+							<i className="i-lucide-arrow-left inline-block mr-2 h-5 w-5"  />
 							Return to Pricing
 						</Button>
 
@@ -79,7 +72,7 @@ export function PaymentCancelled() {
 				<CardContent>
 					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 						<HelpOption
-							icon={MessageCircle}
+							icon=<i className="i-lucide-message-circle inline-block" />
 							title="Chat with Sales"
 							description="Get personalized recommendations for your portfolio"
 							action={() =>
@@ -144,7 +137,7 @@ export function PaymentCancelled() {
 								className="group"
 							>
 								Email Support
-								<ExternalLink className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+								<i className="i-lucide-external-link inline-block ml-2 h-4 w-4 transition-transform group-hover:translate-x-1"  />
 							</Button>
 							<Button
 								onClick={() =>
@@ -153,7 +146,7 @@ export function PaymentCancelled() {
 								className="group"
 							>
 								Book a Demo
-								<ExternalLink className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+								<i className="i-lucide-external-link inline-block ml-2 h-4 w-4 transition-transform group-hover:translate-x-1"  />
 							</Button>
 						</div>
 					</div>
@@ -194,7 +187,7 @@ function HelpOption({
 						{description}
 					</p>
 				</div>
-				<ExternalLink className="text-muted-foreground group-hover:text-primary h-4 w-4 opacity-0 transition-all group-hover:translate-x-1 group-hover:opacity-100" />
+				<i className="i-lucide-external-link inline-block text-muted-foreground group-hover:text-primary h-4 w-4 opacity-0 transition-all group-hover:translate-x-1 group-hover:opacity-100"  />
 			</div>
 		</button>
 	)

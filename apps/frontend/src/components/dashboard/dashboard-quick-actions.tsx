@@ -1,20 +1,8 @@
 'use client'
 
 import { useTransition } from 'react'
-<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
-=======
-import { logger } from '@/lib/logger'
->>>>>>> origin/main
 import { motion } from '@/lib/lazy-motion'
-import {
-	Building2,
-	Users,
-	Wrench,
-	FileText,
-	Plus,
-	Activity
-} from 'lucide-react'
 import { cardVariants } from './dashboard-animations'
 
 interface QuickActionProps {
@@ -68,7 +56,7 @@ function QuickAction({
 					</p>
 				</div>
 				<div className="bg-primary/10 group-hover:bg-primary/20 rounded-lg p-2 opacity-50 transition-all duration-300 group-hover:opacity-100">
-					<Plus className="text-primary h-4 w-4" />
+					<i className="i-lucide-plus inline-block text-primary h-4 w-4"  />
 				</div>
 			</div>
 		</motion.button>
@@ -151,7 +139,7 @@ export function DashboardQuickActions({
 			<div className="card-modern bg-card rounded-xl border p-6 backdrop-blur-sm">
 				<h3 className="text-foreground mb-6 flex items-center text-xl font-semibold">
 					<div className="bg-primary/10 border-primary/20 mr-3 rounded-xl border p-2">
-						<Activity className="text-primary h-5 w-5" />
+						<i className="i-lucide-activity inline-block text-primary h-5 w-5"  />
 					</div>
 					Quick Actions
 				</h3>

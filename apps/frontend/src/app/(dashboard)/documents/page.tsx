@@ -1,16 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import {
-	FileText,
-	Upload,
-	Search,
-	Filter,
-	MoreHorizontal,
-	Download,
-	Trash2,
-	Eye
-} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -112,7 +102,7 @@ export default function DocumentsPage() {
 					</p>
 				</div>
 				<Button>
-					<Upload className="mr-2 h-4 w-4" />
+					<i className="i-lucide-upload inline-block mr-2 h-4 w-4"  />
 					Upload Document
 				</Button>
 			</div>
@@ -124,7 +114,7 @@ export default function DocumentsPage() {
 						<CardTitle className="text-sm font-medium">
 							Total Documents
 						</CardTitle>
-						<FileText className="text-muted-foreground h-4 w-4" />
+						<i className="i-lucide-file-text inline-block text-muted-foreground h-4 w-4"  />
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">
@@ -138,7 +128,7 @@ export default function DocumentsPage() {
 						<CardTitle className="text-sm font-medium">
 							Total Size
 						</CardTitle>
-						<FileText className="text-muted-foreground h-4 w-4" />
+						<i className="i-lucide-file-text inline-block text-muted-foreground h-4 w-4"  />
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">
@@ -152,7 +142,7 @@ export default function DocumentsPage() {
 						<CardTitle className="text-sm font-medium">
 							Document Types
 						</CardTitle>
-						<Filter className="text-muted-foreground h-4 w-4" />
+						<i className="i-lucide-filter inline-block text-muted-foreground h-4 w-4"  />
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">
@@ -166,7 +156,7 @@ export default function DocumentsPage() {
 						<CardTitle className="text-sm font-medium">
 							Recent Uploads
 						</CardTitle>
-						<Upload className="text-muted-foreground h-4 w-4" />
+						<i className="i-lucide-upload inline-block text-muted-foreground h-4 w-4"  />
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">
@@ -190,8 +180,7 @@ export default function DocumentsPage() {
 			{/* Search and Filters */}
 			<div className="flex flex-col gap-4 sm:flex-row">
 				<div className="relative flex-1">
-<<<<<<< HEAD
-					<Search className="text-muted-foreground absolute left-2 top-2.5 h-4 w-4" />
+					<i className="i-lucide-search inline-block text-muted-foreground absolute left-2 top-2.5 h-4 w-4"  />
 					<Input
 						aria-label="Search documents by name or property..."
 						placeholder="Search documents by name or property..."
@@ -199,13 +188,6 @@ export default function DocumentsPage() {
 						onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
 							setSearchTerm(e.target.value)
 						}
-=======
-					<Search className="text-muted-foreground absolute top-2.5 left-2 h-4 w-4" />
-					<Input
-						placeholder="Search documents by name or property..."
-						value={searchTerm}
-						onChange={e => setSearchTerm(e.target.value)}
->>>>>>> origin/main
 						className="pl-8"
 					/>
 				</div>
@@ -259,7 +241,7 @@ export default function DocumentsPage() {
 									<TableRow key={document.id}>
 										<TableCell>
 											<div className="flex items-center space-x-2">
-												<FileText className="text-muted-foreground h-4 w-4" />
+												<i className="i-lucide-file-text inline-block text-muted-foreground h-4 w-4"  />
 												<span className="font-medium">
 													{document.name}
 												</span>
@@ -304,20 +286,20 @@ export default function DocumentsPage() {
 														variant="ghost"
 														className="h-8 w-8 p-0"
 													>
-														<MoreHorizontal className="h-4 w-4" />
+														<i className="i-lucide-more-horizontal inline-block h-4 w-4"  />
 													</Button>
 												</DropdownMenuTrigger>
 												<DropdownMenuContent align="end">
 													<DropdownMenuItem>
-														<Eye className="mr-2 h-4 w-4" />
+														<i className="i-lucide-eye inline-block mr-2 h-4 w-4"  />
 														View
 													</DropdownMenuItem>
 													<DropdownMenuItem>
-														<Download className="mr-2 h-4 w-4" />
+														<i className="i-lucide-download inline-block mr-2 h-4 w-4"  />
 														Download
 													</DropdownMenuItem>
 													<DropdownMenuItem className="text-destructive">
-														<Trash2 className="mr-2 h-4 w-4" />
+														<i className="i-lucide-trash-2 inline-block mr-2 h-4 w-4"  />
 														Delete
 													</DropdownMenuItem>
 												</DropdownMenuContent>

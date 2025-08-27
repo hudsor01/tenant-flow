@@ -6,15 +6,9 @@
 import { useState } from 'react'
 import { updateProfileAction } from '@/lib/actions/auth-actions'
 import type { AuthFormState } from '@/lib/actions/auth-actions'
-<<<<<<< HEAD
 import type { UpdateUserProfileInput } from '@repo/shared'
 import { addCSRFTokenToFormData } from '@/lib/auth/csrf'
 import { logger } from '@/lib/logger/logger'
-=======
-import type { UpdateUserProfileInput } from '@repo/shared/types/api-inputs'
-import { addCSRFTokenToFormData } from '@/lib/auth/csrf'
-import { logger } from '@/lib/logger'
->>>>>>> origin/main
 
 export interface ProfileData {
 	name: string
@@ -46,7 +40,6 @@ export function useEditProfileData() {
 			// Create FormData for server action
 			const formData = new FormData()
 			formData.append('name', data.name || '')
-<<<<<<< HEAD
 			if (data.phone) {
 				formData.append('phone', data.phone)
 			}
@@ -56,11 +49,6 @@ export function useEditProfileData() {
 			if (data.company) {
 				formData.append('company', data.company)
 			}
-=======
-			if (data.phone) formData.append('phone', data.phone)
-			if (data.bio) formData.append('bio', data.bio)
-			if (data.company) formData.append('company', data.company)
->>>>>>> origin/main
 
 			// Add CSRF token for security
 			addCSRFTokenToFormData(formData)

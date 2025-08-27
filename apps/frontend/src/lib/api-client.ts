@@ -1,7 +1,8 @@
 /**
- * Simplified API Client using native fetch
- * Eliminates Axios dependency and complex interceptor patterns
- * Includes runtime response validation with Zod schemas
+ * Native API Client with React 19 use() Hook Support
+ * OVERWRITTEN: Eliminates Axios dependency and complex interceptor patterns
+ * + Includes runtime response validation with Zod schemas
+ * + React 19 use() hook promise streaming for components
  */
 import { config } from './config'
 import { getSession } from './supabase/client'
@@ -10,11 +11,7 @@ import {
 	ResponseValidator,
 	type ValidationOptions
 } from './api/response-validator'
-<<<<<<< HEAD
 import type { ZodTypeAny } from 'zod'
-=======
-import type { ZodSchema } from 'zod'
->>>>>>> origin/main
 
 // Type-safe URLSearchParams utility
 export function createSearchParams(params: Record<string, unknown>): string {
@@ -39,18 +36,14 @@ export function createSearchParams(params: Record<string, unknown>): string {
 	return searchParams.toString()
 }
 
-export interface ApiError {
-	message: string
-	code?: string
-	details?: Record<string, unknown>
-	timestamp?: string
-}
+// Import shared API client types
+import type {
+	FrontendApiError as ApiError,
+	RequestConfig
+} from '@repo/shared'
 
-export interface RequestConfig {
-	params?: Record<string, string | number | boolean | string[] | undefined>
-	headers?: Record<string, string>
-	signal?: AbortSignal
-}
+// Re-export for backward compatibility
+export type { ApiError, RequestConfig }
 
 class SimpleApiClient {
 	private baseURL: string
@@ -100,12 +93,8 @@ class SimpleApiClient {
 		method: string,
 		path: string,
 		data?: unknown,
-<<<<<<< HEAD
 		config?: RequestConfig,
 		retryCount = 0
-=======
-		config?: RequestConfig
->>>>>>> origin/main
 	): Promise<T> {
 		const authHeaders = await this.getAuthHeaders()
 		const isFormData = data instanceof FormData
@@ -145,11 +134,7 @@ class SimpleApiClient {
 
 			if (!response.ok) {
 				const errorText = await response.text()
-<<<<<<< HEAD
 				let errorData: ControllerApiResponse | undefined
-=======
-				let errorData: ControllerApiResponse<unknown> | undefined
->>>>>>> origin/main
 
 				try {
 					errorData = JSON.parse(errorText)
@@ -165,11 +150,7 @@ class SimpleApiClient {
 					details: errorData ? { ...errorData } : undefined,
 					timestamp: new Date().toISOString()
 				}
-<<<<<<< HEAD
 				throw new Error(`API Error: ${apiError.message}`)
-=======
-				throw apiError
->>>>>>> origin/main
 			}
 
 			const responseData: ControllerApiResponse<T> = await response.json()
@@ -198,7 +179,6 @@ class SimpleApiClient {
 				throw new Error('Request timeout')
 			}
 
-<<<<<<< HEAD
 			// Retry logic for network errors in production
 			if (
 				retryCount < (this.config?.retries ?? 3) &&
@@ -216,13 +196,10 @@ class SimpleApiClient {
 				)
 			}
 
-=======
->>>>>>> origin/main
 			throw error
 		}
 	}
 
-<<<<<<< HEAD
 	private shouldRetry(error: unknown): boolean {
 		if (!(error instanceof Error)) return false
 
@@ -245,8 +222,6 @@ class SimpleApiClient {
 		}
 	}
 
-=======
->>>>>>> origin/main
 	async get<T>(path: string, config?: RequestConfig): Promise<T> {
 		return this.makeRequest<T>('GET', path, undefined, config)
 	}
@@ -279,14 +254,54 @@ class SimpleApiClient {
 		return this.makeRequest<T>('DELETE', path, undefined, config)
 	}
 
+	// ==================
+	// REACT 19 use() HOOK PROMISE STREAMING
+	// ==================
+	
+	/**
+	 * React 19 use() compatible promise for GET requests
+	 * Components can consume this directly with use() hook
+	 */
+	promise<T>(path: string, config?: RequestConfig): Promise<T> {
+		return this.makeRequest<T>('GET', path, undefined, config)
+	}
+
+	/**
+	 * React 19 use() compatible promise for POST requests
+	 * Components can consume this directly with use() hook
+	 */
+	promisePost<T>(
+		path: string, 
+		data?: unknown, 
+		config?: RequestConfig
+	): Promise<T> {
+		return this.makeRequest<T>('POST', path, data, config)
+	}
+
+	/**
+	 * React 19 use() compatible promise for PUT requests
+	 * Components can consume this directly with use() hook
+	 */
+	promisePut<T>(
+		path: string, 
+		data?: unknown, 
+		config?: RequestConfig
+	): Promise<T> {
+		return this.makeRequest<T>('PUT', path, data, config)
+	}
+
+	/**
+	 * React 19 use() compatible promise for DELETE requests
+	 * Components can consume this directly with use() hook
+	 */
+	promiseDelete<T>(path: string, config?: RequestConfig): Promise<T> {
+		return this.makeRequest<T>('DELETE', path, undefined, config)
+	}
+
 	// Validated API methods with Zod schema validation
 	async getValidated<T>(
 		path: string,
-<<<<<<< HEAD
 		schema: ZodTypeAny,
-=======
-		schema: ZodSchema<T>,
->>>>>>> origin/main
 		schemaName: string,
 		config?: RequestConfig,
 		validationOptions?: ValidationOptions
@@ -302,11 +317,7 @@ class SimpleApiClient {
 
 	async postValidated<T>(
 		path: string,
-<<<<<<< HEAD
 		schema: ZodTypeAny,
-=======
-		schema: ZodSchema<T>,
->>>>>>> origin/main
 		schemaName: string,
 		data?: Record<string, unknown> | FormData,
 		config?: RequestConfig,
@@ -328,11 +339,7 @@ class SimpleApiClient {
 
 	async putValidated<T>(
 		path: string,
-<<<<<<< HEAD
 		schema: ZodTypeAny,
-=======
-		schema: ZodSchema<T>,
->>>>>>> origin/main
 		schemaName: string,
 		data?: Record<string, unknown> | FormData,
 		config?: RequestConfig,
@@ -354,11 +361,7 @@ class SimpleApiClient {
 
 	async patchValidated<T>(
 		path: string,
-<<<<<<< HEAD
 		schema: ZodTypeAny,
-=======
-		schema: ZodSchema<T>,
->>>>>>> origin/main
 		schemaName: string,
 		data?: Record<string, unknown> | FormData,
 		config?: RequestConfig,
@@ -380,11 +383,7 @@ class SimpleApiClient {
 
 	async deleteValidated<T>(
 		path: string,
-<<<<<<< HEAD
 		schema: ZodTypeAny,
-=======
-		schema: ZodSchema<T>,
->>>>>>> origin/main
 		schemaName: string,
 		config?: RequestConfig,
 		validationOptions?: ValidationOptions
@@ -406,7 +405,6 @@ class SimpleApiClient {
 	async healthCheck(): Promise<{ status: string; timestamp: string }> {
 		return this.get<{ status: string; timestamp: string }>('/health')
 	}
-<<<<<<< HEAD
 
 	// Enhanced health check with connectivity validation
 	async validateConnectivity(): Promise<{
@@ -440,8 +438,6 @@ class SimpleApiClient {
 
 		return result
 	}
-=======
->>>>>>> origin/main
 }
 
 // Export singleton instance

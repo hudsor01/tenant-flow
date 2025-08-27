@@ -4,13 +4,22 @@ import type {
 } from '@repo/shared'
 import jsPDF from 'jspdf'
 import { format } from 'date-fns'
+import { prepareInvoiceForPdf } from '@/lib/actions/invoice-actions'
 
 // Enhanced PDF generation with lead magnet features
-export const generateInvoicePDF = (invoice: CustomerInvoiceForm): Blob => {
+// BUSINESS LOGIC MOVED TO BACKEND: All financial calculations now use server actions
+export const generateInvoicePDF = async (invoice: CustomerInvoiceForm): Promise<Blob> => {
 	const doc = new jsPDF()
 
-	// Use invoice directly (already normalized)
-	const normalizedInvoice = invoice
+	// BUSINESS LOGIC MOVED TO BACKEND: Use server action for all financial calculations
+	const invoicePrep = await prepareInvoiceForPdf(invoice)
+	
+	if (!invoicePrep.success || !invoicePrep.data) {
+		throw new Error(invoicePrep.error || 'Failed to prepare invoice calculations')
+	}
+
+	// Use server-calculated normalized invoice
+	const normalizedInvoice = invoicePrep.data as any
 
 	// Set up styling
 	doc.setFont('helvetica')
@@ -184,8 +193,9 @@ export const generateInvoicePDF = (invoice: CustomerInvoiceForm): Blob => {
 		doc.text(splitDesc, 25, yPos)
 		doc.text(item.quantity.toString(), 120, yPos)
 		doc.text(`$${item.unitPrice?.toFixed(2) || '0.00'}`, 140, yPos)
+		// MOVED TO BACKEND: Line total calculation now comes from server
 		doc.text(
-			`$${((item.quantity ?? 0) * (item.unitPrice ?? 0)).toFixed(2)}`,
+			`$${(item.lineTotal ?? 0).toFixed(2)}`,
 			165,
 			yPos
 		)
@@ -292,7 +302,7 @@ export const generateInvoicePDF = (invoice: CustomerInvoiceForm): Blob => {
 	return doc.output('blob')
 }
 
-export const previewInvoicePDF = (invoice: CustomerInvoiceForm): string => {
-	const pdfBlob = generateInvoicePDF(invoice)
+export const previewInvoicePDF = async (invoice: CustomerInvoiceForm): Promise<string> => {
+	const pdfBlob = await generateInvoicePDF(invoice)
 	return URL.createObjectURL(pdfBlob)
 }

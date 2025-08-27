@@ -2,14 +2,6 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import {
-	Building2,
-	Calendar,
-	Clock,
-	ArrowRight,
-	User,
-	Sparkles
-} from 'lucide-react'
 
 const blogPosts = [
 	{
@@ -81,7 +73,7 @@ export default function BlogPage() {
 						href="/"
 						className="group flex items-center space-x-2"
 					>
-						<Building2 className="text-primary h-8 w-8 transition-transform group-hover:scale-110" />
+						<i className="i-lucide-building-2 inline-block text-primary h-8 w-8 transition-transform group-hover:scale-110"  />
 						<span className="from-primary bg-gradient-to-r to-purple-600 bg-clip-text text-xl font-bold text-transparent">
 							TenantFlow
 						</span>
@@ -93,14 +85,10 @@ export default function BlogPage() {
 			</nav>
 
 			{/* Hero Section */}
-<<<<<<< HEAD
 			<section className="bg-gradient-to-br from-blue-50 to-purple-50 px-4 pb-12 pt-24">
-=======
-			<section className="bg-gradient-to-br from-blue-50 to-purple-50 px-4 pt-24 pb-12">
->>>>>>> origin/main
 				<div className="container mx-auto text-center">
 					<Badge className="from-primary mb-6 bg-gradient-to-r to-purple-600 text-white">
-						<Sparkles className="mr-2 h-4 w-4" />
+						<i className="i-lucide-sparkles inline-block mr-2 h-4 w-4"  />
 						Property Management Insights
 					</Badge>
 					<h1 className="mb-6 bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-5xl font-bold text-transparent">
@@ -126,7 +114,7 @@ export default function BlogPage() {
 							<div className="md:flex">
 								<div className="md:w-1/2">
 									<div className="flex h-64 items-center justify-center bg-gradient-to-br from-blue-400 to-purple-400 md:h-full">
-										<Building2 className="h-20 w-20 text-white opacity-50" />
+										<i className="i-lucide-building-2 inline-block h-20 w-20 text-white opacity-50"  />
 									</div>
 								</div>
 								<div className="p-8 md:w-1/2">
@@ -142,23 +130,23 @@ export default function BlogPage() {
 									<div className="flex items-center justify-between">
 										<div className="flex items-center space-x-4 text-sm text-gray-500">
 											<div className="flex items-center">
-												<User className="mr-1 h-4 w-4" />
+												<i className="i-lucide-user inline-block mr-1 h-4 w-4"  />
 												{featuredPost.author}
 											</div>
 											<div className="flex items-center">
-												<Calendar className="mr-1 h-4 w-4" />
+												<i className="i-lucide-calendar inline-block mr-1 h-4 w-4"  />
 												{new Date(
 													featuredPost.date
 												).toLocaleDateString()}
 											</div>
 											<div className="flex items-center">
-												<Clock className="mr-1 h-4 w-4" />
+												<i className="i-lucide-clock inline-block mr-1 h-4 w-4"  />
 												{featuredPost.readTime}
 											</div>
 										</div>
 										<Button className="group">
 											Read More
-											<ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+											<i className="i-lucide-arrow-right inline-block ml-2 h-4 w-4 transition-transform group-hover:translate-x-1"  />
 										</Button>
 									</div>
 								</div>
@@ -184,7 +172,7 @@ export default function BlogPage() {
 										className="overflow-hidden transition-shadow duration-300 hover:shadow-lg"
 									>
 										<div className="flex h-48 items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300">
-											<Building2 className="h-12 w-12 text-gray-400" />
+											<i className="i-lucide-building-2 inline-block h-12 w-12 text-gray-400"  />
 										</div>
 										<CardContent className="p-6">
 											<Badge className="mb-3 bg-gray-100 text-xs text-gray-700">
@@ -214,7 +202,7 @@ export default function BlogPage() {
 												className="group w-full"
 											>
 												Read Article
-												<ArrowRight className="ml-2 h-3 w-3 transition-transform group-hover:translate-x-1" />
+												<i className="i-lucide-arrow-right inline-block ml-2 h-3 w-3 transition-transform group-hover:translate-x-1"  />
 											</Button>
 										</CardContent>
 									</Card>
@@ -311,7 +299,7 @@ export default function BlogPage() {
 								className="text-primary inline-flex items-center bg-white hover:bg-gray-100"
 							>
 								Start Free Trial
-								<ArrowRight className="ml-2 h-5 w-5" />
+								<i className="i-lucide-arrow-right inline-block ml-2 h-5 w-5"  />
 							</Button>
 						</Link>
 						<Link href="/features">

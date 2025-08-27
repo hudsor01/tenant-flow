@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 import type { Metadata } from 'next/types'
-=======
-import type { Metadata } from '@/types/next'
->>>>>>> origin/main
 
 type Locale = 'en' | 'es' | 'fr' | 'de'
 

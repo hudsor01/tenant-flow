@@ -7,7 +7,7 @@ import {
 	DialogHeader,
 	DialogTitle
 } from '@/components/ui/dialog'
-import { PropertyEditForm } from '@/components/properties/property-edit-form'
+import { PropertyForm } from '@/components/properties/property-form'
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import type { Property } from '@repo/shared'
@@ -42,11 +42,7 @@ export default function EditPropertyModal() {
 		}
 
 		if (params.id) {
-<<<<<<< HEAD
 			void fetchProperty()
-=======
-			fetchProperty()
->>>>>>> origin/main
 		}
 	}, [params.id])
 
@@ -89,7 +85,7 @@ export default function EditPropertyModal() {
 						Update property information and settings
 					</DialogDescription>
 				</DialogHeader>
-				<PropertyEditForm property={property} />
+				<PropertyForm property={property} properties={[]} />
 			</DialogContent>
 		</Dialog>
 	)

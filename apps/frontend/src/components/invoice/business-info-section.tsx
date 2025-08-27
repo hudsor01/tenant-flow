@@ -1,12 +1,7 @@
-import { Building } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-<<<<<<< HEAD
 import type { BusinessInfoSectionProps } from '@/types'
-=======
-import type { BusinessInfoSectionProps } from '@/types/components'
->>>>>>> origin/main
 
 export function BusinessInfoSection({
 	register,
@@ -17,7 +12,7 @@ export function BusinessInfoSection({
 			<CardHeader className="from-primary/10 flex items-center justify-center border-b border-white/20 bg-gradient-to-r to-indigo-500/10 py-4">
 				<CardTitle className="flex items-center justify-center gap-2 text-base text-white">
 					<div className="bg-primary/20 group-hover:bg-primary/30 rounded-lg p-1.5 transition-colors">
-						<Building className="h-4 w-4 text-blue-300" />
+						<i className="i-lucide-building inline-block h-4 w-4 text-blue-300"  />
 					</div>
 					<span className="font-serif">Sender</span>
 				</CardTitle>

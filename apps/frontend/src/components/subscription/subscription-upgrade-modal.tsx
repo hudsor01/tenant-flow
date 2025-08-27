@@ -10,7 +10,6 @@ import {
 } from '../ui/dialog'
 import { Button } from '../ui/button'
 import { Badge } from '../ui/badge'
-import { CheckIcon, XIcon, ArrowUpIcon, CreditCardIcon } from 'lucide-react'
 import { useSubscriptionActions } from '../../hooks/useSubscriptionActions'
 import { LoadingSpinner } from '../ui/loading-spinner'
 import type { PlanType } from '@repo/shared'
@@ -152,7 +151,7 @@ export function SubscriptionUpgradeModal({
 				<DialogContent className="sm:max-w-md">
 					<div className="flex flex-col items-center py-6 text-center">
 						<div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-							<CheckIcon className="h-6 w-6 text-green-600" />
+							<i className="i-lucide-checkicon inline-block h-6 w-6 text-green-600"  />
 						</div>
 						<h3 className="mb-2 text-lg font-semibold">
 							Upgrade Successful!
@@ -175,7 +174,7 @@ export function SubscriptionUpgradeModal({
 			<DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">
-						<ArrowUpIcon className="h-5 w-5" />
+						<i className="i-lucide-arrowupicon inline-block h-5 w-5"  />
 						Upgrade Your Subscription
 					</DialogTitle>
 				</DialogHeader>
@@ -273,7 +272,7 @@ export function SubscriptionUpgradeModal({
 												key={index}
 												className="flex items-start gap-2"
 											>
-												<CheckIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600" />
+												<i className="i-lucide-checkicon inline-block mt-0.5 h-4 w-4 flex-shrink-0 text-green-600"  />
 												<span className="text-sm">
 													{feature}
 												</span>
@@ -315,7 +314,7 @@ export function SubscriptionUpgradeModal({
 					{upgradeError && (
 						<div className="rounded-lg border border-red-200 bg-red-50 p-4">
 							<div className="flex items-center gap-2">
-								<XIcon className="h-4 w-4 text-red-600" />
+								<i className="i-lucide-xicon inline-block h-4 w-4 text-red-600"  />
 								<span className="text-sm text-red-600">
 									{upgradeError.message ||
 										'Upgrade failed. Please try again.'}
@@ -345,7 +344,7 @@ export function SubscriptionUpgradeModal({
 							</>
 						) : (
 							<>
-								<CreditCardIcon className="h-4 w-4" />
+								<i className="i-lucide-creditcardicon inline-block h-4 w-4"  />
 								Upgrade Now
 								{selectedPlanOption && (
 									<span className="ml-2">

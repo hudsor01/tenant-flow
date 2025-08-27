@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Plus, Search, Filter } from 'lucide-react'
 import Link from 'next/link'
 import { UnitsDataTable } from '@/components/units/units-data-table'
 import { UnitsStats } from '@/components/units/units-stats'
@@ -28,12 +27,12 @@ function UnitsHeader() {
 			</div>
 			<div className="flex gap-2">
 				<Button variant="outline" size="sm">
-					<Filter className="mr-2 h-4 w-4" />
+					<i className="i-lucide-filter inline-block mr-2 h-4 w-4"  />
 					Filter
 				</Button>
 				<Link href="/units/new">
 					<Button size="sm">
-						<Plus className="mr-2 h-4 w-4" />
+						<i className="i-lucide-plus inline-block mr-2 h-4 w-4"  />
 						Add Unit
 					</Button>
 				</Link>
@@ -48,14 +47,14 @@ function UnitsSearch() {
 			<CardContent className="p-4">
 				<div className="flex gap-4">
 					<div className="relative flex-1">
-						<Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
+						<i className="i-lucide-search inline-block text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform"  />
 						<Input
 							placeholder="Search units by number, property, or status..."
 							className="pl-10"
 						/>
 					</div>
 					<Button variant="outline">
-						<Filter className="mr-2 h-4 w-4" />
+						<i className="i-lucide-filter inline-block mr-2 h-4 w-4"  />
 						Filters
 					</Button>
 				</div>

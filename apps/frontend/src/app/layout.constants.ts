@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import type { Metadata } from 'next/types'
 
 // Local Viewport type definition since it's not exported from Next.js
@@ -12,9 +11,6 @@ export interface Viewport {
 	viewportFit?: 'auto' | 'contain' | 'cover'
 	themeColor?: string | { color: string; media?: string }[]
 }
-=======
-import type { Metadata, Viewport } from '@/types/next'
->>>>>>> origin/main
 
 export const LAYOUT_CONSTANTS = {
 	SIDEBAR_WIDTH: 256,

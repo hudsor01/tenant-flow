@@ -1,6 +1,5 @@
 'use client'
 
-import { AlertTriangle } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import {
 	Select,
@@ -9,8 +8,7 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '@/components/ui/select'
-import { PRIORITY } from '@repo/shared'
-import type { Priority } from '@/services/notifications/types'
+import { PRIORITY, type Priority } from '@repo/shared'
 
 interface PrioritySelectorProps {
 	value?: Priority
@@ -38,7 +36,7 @@ export function PrioritySelector({
 					<div className="mr-2 h-2 w-2 rounded-full bg-orange-500" />
 				)
 			case 'EMERGENCY':
-				return <AlertTriangle className="mr-2 h-4 w-4 text-red-500" />
+				return <i className="i-lucide-alert-triangle inline-block mr-2 h-4 w-4 text-red-500"  />
 			default:
 				return <div className="mr-2 h-2 w-2 rounded-full bg-gray-500" />
 		}

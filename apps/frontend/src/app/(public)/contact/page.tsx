@@ -1,11 +1,7 @@
 'use client'
 
 import React, { useState, useOptimistic } from 'react'
-<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
-=======
-import { logger } from '@/lib/logger'
->>>>>>> origin/main
 import { motion, AnimatePresence } from '@/lib/lazy-motion'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -13,19 +9,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import {
-	Mail,
-	Phone,
-	Clock,
-	MessageCircle,
-	Send,
-	CheckCircle,
-	HeadphonesIcon,
-	Sparkles,
-	Users,
-	Zap,
-	Shield
-} from 'lucide-react'
 
 interface ContactForm {
 	name: string
@@ -36,11 +19,7 @@ interface ContactForm {
 }
 
 interface ContactMethod {
-<<<<<<< HEAD
-	icon: React.ComponentType<{ className?: string }>
-=======
-	icon: React.ComponentType<React.SVGProps<SVGSVGElement>>
->>>>>>> origin/main
+	icon: string
 	title: string
 	description: string
 	contact: string
@@ -65,7 +44,7 @@ export default function ContactPage() {
 
 	const contactMethods: ContactMethod[] = [
 		{
-			icon: Mail,
+			icon: 'i-lucide-mail',
 			title: 'Email Support',
 			description: 'Get help with any questions or issues',
 			contact: 'support@tenantflow.app',
@@ -73,7 +52,7 @@ export default function ContactPage() {
 			gradient: 'from-primary to-primary'
 		},
 		{
-			icon: Phone,
+			icon: 'i-lucide-phone',
 			title: 'Phone Support',
 			description: 'Speak directly with our team',
 			contact: '+1 (555) 123-4567',
@@ -81,7 +60,7 @@ export default function ContactPage() {
 			gradient: 'from-green-500 to-green-600'
 		},
 		{
-			icon: MessageCircle,
+			icon: 'i-lucide-message-circle',
 			title: 'Live Chat',
 			description: 'Instant help when you need it',
 			contact: 'Available in app',
@@ -89,7 +68,7 @@ export default function ContactPage() {
 			gradient: 'from-purple-500 to-purple-600'
 		},
 		{
-			icon: HeadphonesIcon,
+			icon: 'i-lucide-headphones',
 			title: 'Sales Inquiry',
 			description: 'Learn more about our solutions',
 			contact: 'sales@tenantflow.app',
@@ -104,7 +83,6 @@ export default function ContactPage() {
 		setOptimisticSubmitted(true)
 
 		try {
-<<<<<<< HEAD
 			// Import available for future use
 			// const { apiClient } = await import('@/lib/api-client')
 			// Contact form temporarily disabled - would send email via Resend
@@ -115,10 +93,6 @@ export default function ContactPage() {
 				subject: formData.subject,
 				hasMessage: !!formData.message
 			})
-=======
-			const { apiClient } = await import('@/lib/api-client')
-			await apiClient.post('/api/v1/contact', formData as unknown as Record<string, unknown>)
->>>>>>> origin/main
 
 			// Reset form on success
 			setFormData({
@@ -147,11 +121,7 @@ export default function ContactPage() {
 	return (
 		<div className="from-background to-muted/20 min-h-screen bg-gradient-to-b">
 			{/* Hero Section */}
-<<<<<<< HEAD
 			<section className="px-4 pb-16 pt-24">
-=======
-			<section className="px-4 pt-24 pb-16">
->>>>>>> origin/main
 				<div className="mx-auto max-w-7xl">
 					<div className="mb-16 text-center">
 						<motion.div
@@ -161,7 +131,7 @@ export default function ContactPage() {
 							className="mb-6"
 						>
 							<Badge className="from-primary via-accent to-success border-0 bg-gradient-to-r px-6 py-2 text-sm font-semibold text-white shadow-lg">
-								<Sparkles className="mr-2 h-4 w-4" />
+								<i className="i-lucide-sparkles inline-block mr-2 h-4 w-4"  />
 								Contact Us
 							</Badge>
 						</motion.div>
@@ -170,11 +140,7 @@ export default function ContactPage() {
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ duration: 0.6, delay: 0.1 }}
-<<<<<<< HEAD
 							className="text-foreground mb-6 text-5xl font-bold leading-tight lg:text-6xl"
-=======
-							className="text-foreground mb-6 text-5xl leading-tight font-bold lg:text-6xl"
->>>>>>> origin/main
 						>
 							Let's{' '}
 							<span className="from-primary via-accent to-success bg-gradient-to-r bg-clip-text text-transparent">
@@ -217,7 +183,6 @@ export default function ContactPage() {
 							</div>
 
 							{contactMethods.map((method, index) => {
-								const IconComponent = method.icon
 								return (
 									<motion.div
 										key={method.title}
@@ -234,7 +199,7 @@ export default function ContactPage() {
 													<div
 														className={`h-12 w-12 bg-gradient-to-br ${method.gradient} flex items-center justify-center rounded-full transition-transform duration-300 group-hover:scale-110`}
 													>
-														<IconComponent className="h-6 w-6 text-white" />
+														<i className={`${method.icon} inline-block h-6 w-6 text-white`} />
 													</div>
 													<div className="flex-1">
 														<h3 className="text-foreground mb-1 font-semibold">
@@ -268,7 +233,7 @@ export default function ContactPage() {
 								<Card className="from-accent/5 to-primary/5 border-0 bg-gradient-to-br">
 									<CardContent className="p-6">
 										<div className="mb-4 flex items-center space-x-3">
-											<Clock className="text-accent h-6 w-6" />
+											<i className="i-lucide-clock inline-block text-accent h-6 w-6"  />
 											<h3 className="text-foreground font-semibold">
 												Office Hours
 											</h3>
@@ -335,7 +300,7 @@ export default function ContactPage() {
 												className="py-12 text-center"
 											>
 												<div className="from-success to-accent mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br">
-													<CheckCircle className="h-8 w-8 text-white" />
+													<i className="i-lucide-checkcircle inline-block h-8 w-8 text-white"  />
 												</div>
 												<h3 className="text-foreground mb-4 text-2xl font-semibold">
 													Message Sent!
@@ -377,21 +342,19 @@ export default function ContactPage() {
 															{
 																value: 'sales',
 																label: 'Sales Inquiry',
-																icon: Users
+																icon: 'i-lucide-users'
 															},
 															{
 																value: 'support',
 																label: 'Technical Support',
-																icon: Zap
+																icon: 'i-lucide-zap'
 															},
 															{
 																value: 'general',
 																label: 'General Question',
-																icon: Shield
+																icon: 'i-lucide-shield'
 															}
 														].map(option => {
-															const IconComponent =
-																option.icon
 															return (
 																<button
 																	key={
@@ -411,7 +374,7 @@ export default function ContactPage() {
 																			: 'border-input hover:border-accent/50 text-muted-foreground hover:text-foreground'
 																	}`}
 																>
-																	<IconComponent className="mx-auto mb-2 h-5 w-5" />
+																	<i className={`${option.icon} inline-block mx-auto mb-2 h-5 w-5`} />
 																	<div className="text-sm font-medium">
 																		{
 																			option.label
@@ -438,13 +401,9 @@ export default function ContactPage() {
 															value={
 																formData.name
 															}
-<<<<<<< HEAD
 															onChange={(
 																e: React.ChangeEvent<HTMLInputElement>
 															) =>
-=======
-															onChange={e =>
->>>>>>> origin/main
 																handleInputChange(
 																	'name',
 																	e.target
@@ -470,13 +429,9 @@ export default function ContactPage() {
 															value={
 																formData.email
 															}
-<<<<<<< HEAD
 															onChange={(
 																e: React.ChangeEvent<HTMLInputElement>
 															) =>
-=======
-															onChange={e =>
->>>>>>> origin/main
 																handleInputChange(
 																	'email',
 																	e.target
@@ -501,13 +456,9 @@ export default function ContactPage() {
 														id="subject"
 														placeholder="Brief description of your inquiry"
 														value={formData.subject}
-<<<<<<< HEAD
 														onChange={(
 															e: React.ChangeEvent<HTMLInputElement>
 														) =>
-=======
-														onChange={e =>
->>>>>>> origin/main
 															handleInputChange(
 																'subject',
 																e.target.value
@@ -530,13 +481,9 @@ export default function ContactPage() {
 														id="message"
 														placeholder="Tell us more about your inquiry..."
 														value={formData.message}
-<<<<<<< HEAD
 														onChange={(
 															e: React.ChangeEvent<HTMLTextAreaElement>
 														) =>
-=======
-														onChange={e =>
->>>>>>> origin/main
 															handleInputChange(
 																'message',
 																e.target.value
@@ -558,17 +505,13 @@ export default function ContactPage() {
 												>
 													{isSubmitting ? (
 														<>
-<<<<<<< HEAD
 															<div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white" />
-=======
-															<div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
->>>>>>> origin/main
 															Sending...
 														</>
 													) : (
 														<>
 															Send Message
-															<Send className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+															<i className="i-lucide-send inline-block ml-2 h-4 w-4 transition-transform group-hover:translate-x-1"  />
 														</>
 													)}
 												</Button>

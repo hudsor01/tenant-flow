@@ -2,11 +2,7 @@
  * Client-side CSRF token management
  */
 
-<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
-=======
-import { logger } from '@/lib/logger'
->>>>>>> origin/main
 
 const TOKEN_CACHE_TIME = 60 * 60 * 1000 // 1 hour
 
@@ -40,11 +36,7 @@ export async function getCSRFToken(): Promise<string> {
 			throw new Error(`Failed to fetch CSRF token: ${response.status}`)
 		}
 
-<<<<<<< HEAD
 		const data: { token: string } = await response.json()
-=======
-		const data = await response.json()
->>>>>>> origin/main
 		const token = data.token
 
 		if (!token) {

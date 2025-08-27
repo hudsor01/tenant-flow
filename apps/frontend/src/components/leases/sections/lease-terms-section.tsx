@@ -1,5 +1,4 @@
 import type { UseFormReturn } from 'react-hook-form'
-import { DollarSign } from 'lucide-react'
 import {
 	FormControl,
 	FormDescription,
@@ -39,7 +38,7 @@ export function LeaseTermsSection({
 	}
 
 	return (
-		<FormSection icon={DollarSign} title="4. Lease Terms" delay={3}>
+		<FormSection icon=<i className="i-lucide-dollar-sign inline-block" /> title="4. Lease Terms" delay={3}>
 			<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 				{/* Start Date */}
 				<FormField
@@ -153,13 +152,9 @@ export function LeaseTermsSection({
 									min="0"
 									max="30"
 									{...field}
-<<<<<<< HEAD
 									onChange={(
 										e: React.ChangeEvent<HTMLInputElement>
 									) =>
-=======
-									onChange={e =>
->>>>>>> origin/main
 										field.onChange(
 											parseInt(e.target.value) ||
 												undefined
@@ -184,11 +179,7 @@ export function LeaseTermsSection({
 							<FormLabel>Late Fee Amount</FormLabel>
 							<FormControl>
 								<div className="relative">
-<<<<<<< HEAD
 									<span className="text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2">
-=======
-									<span className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2">
->>>>>>> origin/main
 										$
 									</span>
 									<Input
@@ -196,13 +187,9 @@ export function LeaseTermsSection({
 										className="pl-8"
 										min="0"
 										{...field}
-<<<<<<< HEAD
 										onChange={(
 											e: React.ChangeEvent<HTMLInputElement>
 										) =>
-=======
-										onChange={e =>
->>>>>>> origin/main
 											field.onChange(
 												parseFloat(e.target.value) ||
 													undefined

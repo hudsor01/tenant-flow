@@ -9,7 +9,6 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '@/components/ui/select'
-import { Calendar, DollarSign } from 'lucide-react'
 import type { LeaseFormData } from '@repo/shared'
 
 interface LeaseTermsSectionProps {
@@ -21,7 +20,7 @@ export function LeaseTermsSection({ form }: LeaseTermsSectionProps) {
 		<Card>
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2">
-					<Calendar className="text-primary h-5 w-5" />
+					<i className="i-lucide-calendar inline-block text-primary h-5 w-5"  />
 					Lease Terms & Payment
 				</CardTitle>
 			</CardHeader>
@@ -35,16 +34,12 @@ export function LeaseTermsSection({ form }: LeaseTermsSectionProps) {
 							Monthly Rent Amount *
 						</Label>
 						<div className="relative">
-<<<<<<< HEAD
-							<DollarSign className="text-muted-foreground absolute left-3 top-3 h-4 w-4" />
-=======
-							<DollarSign className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
->>>>>>> origin/main
+							<i className="i-lucide-dollar-sign inline-block text-muted-foreground absolute left-3 top-3 h-4 w-4"  />
 							<Input
 								id="rentAmount"
 								type="number"
 								placeholder="1500"
-								className={`pl-9 ${form.formState.errors.rentAmount ? 'border-destructive' : ''}`}
+								className={`pl-9 ${form.formState.errors.rentAmount ? 'input-error' : ''}`}
 								{...form.register('rentAmount', {
 									valueAsNumber: true
 								})}
@@ -65,16 +60,12 @@ export function LeaseTermsSection({ form }: LeaseTermsSectionProps) {
 							Security Deposit *
 						</Label>
 						<div className="relative">
-<<<<<<< HEAD
-							<DollarSign className="text-muted-foreground absolute left-3 top-3 h-4 w-4" />
-=======
-							<DollarSign className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
->>>>>>> origin/main
+							<i className="i-lucide-dollar-sign inline-block text-muted-foreground absolute left-3 top-3 h-4 w-4"  />
 							<Input
 								id="securityDeposit"
 								type="number"
 								placeholder="1500"
-								className={`pl-9 ${form.formState.errors.securityDeposit ? 'border-destructive' : ''}`}
+								className={`pl-9 ${form.formState.errors.securityDeposit ? 'input-error' : ''}`}
 								{...form.register('securityDeposit', {
 									valueAsNumber: true
 								})}
@@ -214,11 +205,7 @@ export function LeaseTermsSection({ form }: LeaseTermsSectionProps) {
 							Late Fee Amount
 						</Label>
 						<div className="relative">
-<<<<<<< HEAD
-							<DollarSign className="text-muted-foreground absolute left-3 top-3 h-4 w-4" />
-=======
-							<DollarSign className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
->>>>>>> origin/main
+							<i className="i-lucide-dollar-sign inline-block text-muted-foreground absolute left-3 top-3 h-4 w-4"  />
 							<Input
 								id="lateFeeAmount"
 								type="number"

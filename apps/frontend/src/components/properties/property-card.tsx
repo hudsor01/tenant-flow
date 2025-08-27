@@ -1,24 +1,8 @@
 import { useCallback, useMemo } from 'react'
 import { motion } from '@/lib/lazy-motion'
 import Image from 'next/image'
-import {
-	Building2,
-	MapPin,
-	DollarSign,
-	MoreVertical,
-	Edit3,
-	Trash2,
-	Eye,
-	Home,
-	UserCheck,
-	UserX
-} from 'lucide-react'
 import { formatCurrency } from '@repo/shared'
-<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
-=======
-import { logger } from '@/lib/logger'
->>>>>>> origin/main
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
@@ -40,16 +24,7 @@ import type { PropertyWithDetails } from '@repo/shared'
 import { UNIT_STATUS } from '@repo/shared'
 import { useDeleteProperty } from '@/hooks/api/use-properties'
 
-<<<<<<< HEAD
 // Layout utility classes removed - use Tailwind directly instead of object patterns
-=======
-// Layout utility classes
-const flexLayouts = {
-	center: 'flex items-center justify-center',
-	centerVertical: 'flex items-center',
-	rowGap2: 'flex gap-2'
-}
->>>>>>> origin/main
 
 interface PropertyCardProps {
 	property: PropertyWithDetails
@@ -151,7 +126,7 @@ export default function PropertyCard({
 						/>
 					) : (
 						<div className="flex h-full w-full items-center justify-center">
-							<Building2 className="h-16 w-16 text-white/70" />
+							<i className="i-lucide-building-2 inline-block h-16 w-16 text-white/70"  />
 						</div>
 					)}
 
@@ -164,18 +139,18 @@ export default function PropertyCard({
 									size="icon"
 									className="h-8 w-8 border border-white/20 bg-white/10 text-white backdrop-blur-sm transition-colors hover:bg-white/20"
 								>
-									<MoreVertical className="h-4 w-4" />
+									<i className="i-lucide-more-vertical inline-block h-4 w-4"  />
 								</Button>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent align="end" className="w-48">
 								<DropdownMenuLabel>Actions</DropdownMenuLabel>
 								<DropdownMenuSeparator />
 								<DropdownMenuItem onClick={handleView}>
-									<Eye className="mr-2 h-4 w-4" />
+									<i className="i-lucide-eye inline-block mr-2 h-4 w-4"  />
 									View Details
 								</DropdownMenuItem>
 								<DropdownMenuItem onClick={handleEdit}>
-									<Edit3 className="mr-2 h-4 w-4" />
+									<i className="i-lucide-edit-3 inline-block mr-2 h-4 w-4"  />
 									Edit Property
 								</DropdownMenuItem>
 								<DropdownMenuSeparator />
@@ -196,7 +171,7 @@ export default function PropertyCard({
 									}}
 									className="text-red-600 hover:bg-red-50 hover:text-red-700"
 								>
-									<Trash2 className="mr-2 h-4 w-4" />
+									<i className="i-lucide-trash-2 inline-block mr-2 h-4 w-4"  />
 									Delete Property
 								</DropdownMenuItem>
 							</DropdownMenuContent>
@@ -227,7 +202,7 @@ export default function PropertyCard({
 								{property.name}
 							</CardTitle>
 							<CardDescription className="flex items-center">
-								<MapPin className="mr-1 h-4 w-4" />
+								<i className="i-lucide-map-pin inline-block mr-1 h-4 w-4"  />
 								{property.address}, {property.city},{' '}
 								{property.state} {property.zipCode}
 							</CardDescription>
@@ -251,7 +226,7 @@ export default function PropertyCard({
 						{/* Total Units */}
 						<div className="flex items-center rounded-lg bg-blue-50 p-3">
 							<div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100">
-								<Home className="text-primary h-4 w-4" />
+								<i className="i-lucide-home inline-block text-primary h-4 w-4"  />
 							</div>
 							<div>
 								<p className="text-caption text-muted-foreground">
@@ -266,7 +241,7 @@ export default function PropertyCard({
 						{/* Occupied Units */}
 						<div className="flex items-center rounded-lg bg-green-50 p-3">
 							<div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-green-100">
-								<UserCheck className="h-4 w-4 text-green-600" />
+								<i className="i-lucide-user-check inline-block h-4 w-4 text-green-600"  />
 							</div>
 							<div>
 								<p className="text-caption text-muted-foreground">
@@ -281,7 +256,7 @@ export default function PropertyCard({
 						{/* Vacant Units */}
 						<div className="flex items-center rounded-lg bg-orange-50 p-3">
 							<div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-orange-100">
-								<UserX className="h-4 w-4 text-orange-600" />
+								<i className="i-lucide-user-x inline-block h-4 w-4 text-orange-600"  />
 							</div>
 							<div>
 								<p className="text-caption text-muted-foreground">
@@ -296,7 +271,7 @@ export default function PropertyCard({
 						{/* Monthly Revenue */}
 						<div className="flex items-center rounded-lg bg-purple-50 p-3">
 							<div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100">
-								<DollarSign className="h-4 w-4 text-purple-600" />
+								<i className="i-lucide-dollar-sign inline-block h-4 w-4 text-purple-600"  />
 							</div>
 							<div>
 								<p className="text-caption text-muted-foreground">
@@ -317,7 +292,7 @@ export default function PropertyCard({
 							className="flex-1 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
 							onClick={() => onView?.(property)}
 						>
-							<Eye className="mr-2 h-4 w-4" />
+							<i className="i-lucide-eye inline-block mr-2 h-4 w-4"  />
 							View Details
 						</Button>
 						<Button
@@ -326,7 +301,7 @@ export default function PropertyCard({
 							className="flex-1 transition-colors hover:border-green-200 hover:bg-green-50 hover:text-green-700"
 							onClick={() => onEdit?.(property)}
 						>
-							<Edit3 className="mr-2 h-4 w-4" />
+							<i className="i-lucide-edit-3 inline-block mr-2 h-4 w-4"  />
 							Edit
 						</Button>
 					</div>

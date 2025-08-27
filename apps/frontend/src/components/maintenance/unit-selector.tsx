@@ -1,6 +1,5 @@
 'use client'
 
-import { Home } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import {
 	Select,
@@ -44,7 +43,7 @@ export function UnitSelector({
 					{units.map(unit => (
 						<SelectItem key={unit.id} value={unit.id}>
 							<div className="flex items-center">
-								<Home className="mr-2 h-4 w-4" />
+								<i className="i-lucide-home inline-block mr-2 h-4 w-4"  />
 								{unit.property?.name || 'Unknown Property'} -
 								Unit {unit.unitNumber}
 							</div>

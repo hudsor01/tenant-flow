@@ -1,25 +1,23 @@
 /**
- * Form Components - Next.js 15 Architecture
- *
- * Decomposed from monolithic form-patterns.tsx into focused components:
- * - Server components for static form structure
- * - Client islands for specific interactive behaviors
- * - Single responsibility principle for maintainability
+ * Form Components - Native React 19 + Next.js 15 Architecture
+ * CONSOLIDATED: Removed duplicate and legacy components
+ * Using ONLY native React 19 useActionState patterns
  */
 
-// Form Container & Layout (minimal components)
+// Form Container & Layout
 export { FormContainer } from './form-container'
 export { FormLoadingOverlay } from './form-loading-overlay'
+export { CollapsibleFormSection } from './collapsible-form-section'
 
-// Form Components
-export { PropertyForm } from './property-form'
-export { PropertyFormBasicInfo } from './property-form-basic-info'
-export { PropertyFormFeatures } from './property-form-features'
-export { PropertyFormActions } from './property-form-actions'
-export { PropertyFormClient } from './property-form-client'
-export { LeaseForm } from './lease-form'
+// Form Fields & Sections  
+export { SupabaseFormField } from './supabase-form-field'
+export { LeaseTermsSection } from './lease-terms-section'
 
-// New React Query Optimized Components
-export { TenantForm } from './tenant-form'
-export { TenantFormClient } from './tenant-form-client'
-export { TenantFormFields } from './tenant-form-fields'
+// Auth Forms (using native React 19 useActionState)
+export { SimpleLoginForm } from './supabase-login-form'
+export { SimpleSignupForm } from './supabase-signup-form'
+export { ForgotPasswordForm } from './supabase-forgot-password-form'
+export { UpdatePasswordForm } from './update-password-form'
+
+// Contact Form
+export { ContactForm } from './contact-form'

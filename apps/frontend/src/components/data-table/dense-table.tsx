@@ -14,17 +14,6 @@ import {
 	useReactTable,
 	type Table as TanstackTable
 } from '@tanstack/react-table'
-import {
-	ArrowUpDown,
-	ChevronDown,
-	MoreHorizontal,
-	Search,
-	Filter,
-	ChevronLeft,
-	ChevronRight,
-	ChevronsLeft,
-	ChevronsRight
-} from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -137,23 +126,13 @@ export function DenseTable<TData, TValue>({
 				<div className="flex items-center gap-2">
 					{enableGlobalFilter && (
 						<div className="relative">
-<<<<<<< HEAD
-							<Search className="text-muted-foreground pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+							<i className="i-lucide-search inline-block text-muted-foreground pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"  />
 							<Input
 								placeholder={searchPlaceholder}
 								value={globalFilter}
 								onChange={(
 									event: React.ChangeEvent<HTMLInputElement>
 								) => setGlobalFilter(event.target.value)}
-=======
-							<Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-							<Input
-								placeholder={searchPlaceholder}
-								value={globalFilter}
-								onChange={event =>
-									setGlobalFilter(event.target.value)
-								}
->>>>>>> origin/main
 								className="h-8 w-[200px] pl-9 text-sm"
 							/>
 						</div>
@@ -168,13 +147,9 @@ export function DenseTable<TData, TValue>({
 									.getColumn(searchKey)
 									?.getFilterValue() as string) ?? ''
 							}
-<<<<<<< HEAD
 							onChange={(
 								event: React.ChangeEvent<HTMLInputElement>
 							) =>
-=======
-							onChange={event =>
->>>>>>> origin/main
 								table
 									.getColumn(searchKey)
 									?.setFilterValue(event.target.value)
@@ -194,9 +169,9 @@ export function DenseTable<TData, TValue>({
 									size="sm"
 									className="h-8 text-sm"
 								>
-									<Filter className="mr-1 h-3 w-3" />
+									<i className="i-lucide-filter inline-block mr-1 h-3 w-3"  />
 									Columns
-									<ChevronDown className="ml-1 h-3 w-3" />
+									<i className="i-lucide-chevron-down inline-block ml-1 h-3 w-3"  />
 								</Button>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent
@@ -216,13 +191,9 @@ export function DenseTable<TData, TValue>({
 												key={column.id}
 												className="capitalize"
 												checked={column.getIsVisible()}
-<<<<<<< HEAD
 												onCheckedChange={(
 													value: boolean
 												) =>
-=======
-												onCheckedChange={value =>
->>>>>>> origin/main
 													column.toggleVisibility(
 														!!value
 													)
@@ -296,18 +267,14 @@ export function DenseTable<TData, TValue>({
 																header.getContext()
 															)}
 													{header.column.getCanSort() && (
-														<ArrowUpDown className="h-3 w-3 opacity-50" />
+														<i className="i-lucide-arrowupdown inline-block h-3 w-3 opacity-50"  />
 													)}
 												</div>
 
 												{/* Column resize handle */}
 												<div
 													className={cn(
-<<<<<<< HEAD
 														'hover:bg-primary/50 active:bg-primary absolute right-0 top-0 h-full w-1 cursor-col-resize select-none bg-transparent',
-=======
-														'hover:bg-primary/50 active:bg-primary absolute top-0 right-0 h-full w-1 cursor-col-resize bg-transparent select-none',
->>>>>>> origin/main
 														'opacity-0 group-hover:opacity-100'
 													)}
 													onMouseDown={header.getResizeHandler()}
@@ -439,11 +406,7 @@ function DenseTablePagination<TData>({
 					</p>
 					<Select
 						value={`${table.getState().pagination.pageSize}`}
-<<<<<<< HEAD
 						onValueChange={(value: string) => {
-=======
-						onValueChange={value => {
->>>>>>> origin/main
 							table.setPageSize(Number(value))
 						}}
 					>
@@ -481,7 +444,7 @@ function DenseTablePagination<TData>({
 							onClick={() => table.setPageIndex(0)}
 							disabled={!table.getCanPreviousPage()}
 						>
-							<ChevronsLeft className="h-3 w-3" />
+							<i className="i-lucide-chevronsleft inline-block h-3 w-3"  />
 						</Button>
 						<Button
 							variant="outline"
@@ -490,7 +453,7 @@ function DenseTablePagination<TData>({
 							onClick={() => table.previousPage()}
 							disabled={!table.getCanPreviousPage()}
 						>
-							<ChevronLeft className="h-3 w-3" />
+							<i className="i-lucide-chevron-left inline-block h-3 w-3"  />
 						</Button>
 						<Button
 							variant="outline"
@@ -499,7 +462,7 @@ function DenseTablePagination<TData>({
 							onClick={() => table.nextPage()}
 							disabled={!table.getCanNextPage()}
 						>
-							<ChevronRight className="h-3 w-3" />
+							<i className="i-lucide-chevron-right inline-block h-3 w-3"  />
 						</Button>
 						<Button
 							variant="outline"
@@ -510,7 +473,7 @@ function DenseTablePagination<TData>({
 							}
 							disabled={!table.getCanNextPage()}
 						>
-							<ChevronsRight className="h-3 w-3" />
+							<i className="i-lucide-chevronsright inline-block h-3 w-3"  />
 						</Button>
 					</div>
 				</div>
@@ -529,11 +492,7 @@ export function createSelectColumn<T>() {
 					table.getIsAllPageRowsSelected() ||
 					(table.getIsSomePageRowsSelected() && 'indeterminate')
 				}
-<<<<<<< HEAD
 				onCheckedChange={(value: boolean) =>
-=======
-				onCheckedChange={value =>
->>>>>>> origin/main
 					table.toggleAllPageRowsSelected(!!value)
 				}
 				aria-label="Select all"
@@ -550,13 +509,9 @@ export function createSelectColumn<T>() {
 		}) => (
 			<Checkbox
 				checked={row.getIsSelected()}
-<<<<<<< HEAD
 				onCheckedChange={(value: boolean) =>
 					row.toggleSelected(!!value)
 				}
-=======
-				onCheckedChange={value => row.toggleSelected(!!value)}
->>>>>>> origin/main
 				aria-label="Select row"
 				className="translate-y-[1px]"
 			/>
@@ -588,7 +543,7 @@ export function createActionsColumn<T>(
 						<DropdownMenuTrigger asChild>
 							<Button variant="ghost" className="h-6 w-6 p-0">
 								<span className="sr-only">Open menu</span>
-								<MoreHorizontal className="h-3 w-3" />
+								<i className="i-lucide-more-horizontal inline-block h-3 w-3"  />
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end" className="w-[160px]">

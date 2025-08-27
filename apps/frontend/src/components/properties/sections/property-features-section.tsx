@@ -1,4 +1,3 @@
-import { Home, Car, Waves } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import { FormSection } from '@/components/modals/base-form-modal'
 import type { UseFormReturn } from 'react-hook-form'
@@ -33,7 +32,7 @@ export function PropertyFeaturesSection({
 							{...form.register('hasGarage')}
 						/>
 						<div className="flex items-center space-x-2">
-							<Car className="h-4 w-4 text-gray-600" />
+							<i className="i-lucide-car inline-block h-4 w-4 text-gray-600"  />
 							<Label
 								htmlFor="hasGarage"
 								className="cursor-pointer text-sm text-gray-700"
@@ -52,7 +51,7 @@ export function PropertyFeaturesSection({
 							{...form.register('hasPool')}
 						/>
 						<div className="flex items-center space-x-2">
-							<Waves className="h-4 w-4 text-gray-600" />
+							<i className="i-lucide-waves inline-block h-4 w-4 text-gray-600"  />
 							<Label
 								htmlFor="hasPool"
 								className="cursor-pointer text-sm text-gray-700"

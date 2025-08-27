@@ -1,5 +1,4 @@
 import { Button } from '@/components/ui/button'
-import { Building2, ArrowLeft } from 'lucide-react'
 
 interface PropertyErrorStateProps {
 	onBackToProperties: () => void
@@ -14,13 +13,13 @@ export default function PropertyErrorState({
 }: PropertyErrorStateProps) {
 	return (
 		<div className="flex min-h-[300px] flex-col items-center justify-center sm:min-h-[400px]">
-			<Building2 className="text-muted-foreground mb-4 h-12 w-12" />
+			<i className="i-lucide-building-2 inline-block text-muted-foreground mb-4 h-12 w-12"  />
 			<h3 className="text-lg font-semibold">Property not found</h3>
 			<p className="text-muted-foreground mt-2">
 				The property you&apos;re looking for doesn&apos;t exist.
 			</p>
 			<Button onClick={onBackToProperties} className="mt-4">
-				<ArrowLeft className="mr-2 h-4 w-4" />
+				<i className="i-lucide-arrow-left inline-block mr-2 h-4 w-4"  />
 				Back to Properties
 			</Button>
 		</div>

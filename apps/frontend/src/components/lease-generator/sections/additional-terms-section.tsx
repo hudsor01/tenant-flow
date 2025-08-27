@@ -1,5 +1,4 @@
 import type { UseFormReturn } from 'react-hook-form'
-import { DollarSign, Download, FileText } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -77,7 +76,7 @@ function AdditionalTermsSection({
 							<div>
 								<Label htmlFor="petDeposit">Pet Deposit</Label>
 								<div className="relative">
-									<DollarSign className="text-muted-foreground absolute left-3 top-3 h-4 w-4" />
+									<i className="i-lucide-dollar-sign inline-block text-muted-foreground absolute left-3 top-3 h-4 w-4"  />
 									<Input
 										id="petDeposit"
 										type="number"
@@ -190,7 +189,7 @@ function AdditionalTermsSection({
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Download className="h-5 w-5" />
+						<i className="i-lucide-download inline-block h-5 w-5"  />
 						Download Format
 					</CardTitle>
 				</CardHeader>
@@ -216,7 +215,7 @@ function AdditionalTermsSection({
 										: 'border-border'
 								}`}
 							>
-								<FileText className="mx-auto mb-2 h-8 w-8" />
+								<i className="i-lucide-file-text inline-block mx-auto mb-2 h-8 w-8"  />
 								<div className="font-medium">PDF</div>
 								<div className="text-muted-foreground text-xs">
 									Ready to print
@@ -244,7 +243,7 @@ function AdditionalTermsSection({
 										: 'border-border'
 								}`}
 							>
-								<FileText className="mx-auto mb-2 h-8 w-8" />
+								<i className="i-lucide-file-text inline-block mx-auto mb-2 h-8 w-8"  />
 								<div className="font-medium">Word Doc</div>
 								<div className="text-muted-foreground text-xs">
 									Editable
@@ -272,7 +271,7 @@ function AdditionalTermsSection({
 										: 'border-border'
 								}`}
 							>
-								<Download className="mx-auto mb-2 h-8 w-8" />
+								<i className="i-lucide-download inline-block mx-auto mb-2 h-8 w-8"  />
 								<div className="font-medium">Both (ZIP)</div>
 								<div className="text-muted-foreground text-xs">
 									PDF + Word

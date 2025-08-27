@@ -1,317 +1,138 @@
 /**
- * React Query hooks for Properties
- * Direct React Query usage with built-in optimistic updates
+ * React 19 + TanStack Query v5 Properties Hooks - Pure useOptimistic Implementation
+ * ARCHITECTURE: React 19 useOptimistic is the ONLY pattern - no legacy TanStack Query mutations
+ * PURE: Combines native React 19 optimistic updates with TanStack Query Suspense
  */
 import {
-	useQuery,
-	useMutation,
+	useSuspenseQuery,
 	useQueryClient,
-	type UseQueryResult,
-	type UseMutationResult
+	type UseSuspenseQueryResult
 } from '@tanstack/react-query'
-import { toast } from 'sonner'
 import type {
 	Property,
 	PropertyQuery,
 	CreatePropertyInput,
-<<<<<<< HEAD
 	UpdatePropertyInput,
 	PropertyStats
 } from '@repo/shared'
 import { apiClient } from '@/lib/api-client'
 import { queryKeys } from '@/lib/react-query/query-keys'
-=======
-	UpdatePropertyInput
-} from '@repo/shared'
-import { apiClient } from '@/lib/api-client'
+import { useOptimisticList, useOptimisticItem } from '@/hooks/use-react19-optimistic'
 
-// Query keys for properties
-export const propertyKeys = {
-	all: ['properties'] as const,
-	lists: () => [...propertyKeys.all, 'list'] as const,
-	list: (filters?: PropertyQuery) =>
-		[...propertyKeys.lists(), { filters }] as const,
-	details: () => [...propertyKeys.all, 'detail'] as const,
-	detail: (id: string) => [...propertyKeys.details(), id] as const,
-	stats: () => [...propertyKeys.all, 'stats'] as const
-}
-
-export interface PropertyStats {
-	total: number
-	occupied: number
-	vacant: number
-	occupancyRate: number
-	totalMonthlyRent: number
-	averageRent: number
-}
->>>>>>> origin/main
+// ============================================================================
+// PURE DATA HOOKS - TanStack Query Suspense (No Optimistic Logic)
+// ============================================================================
 
 /**
- * Fetch list of properties with optional filters
+ * PURE: useSuspenseQuery for properties list - data always available
  */
 export function useProperties(
-	query?: PropertyQuery,
-	options?: { enabled?: boolean }
-<<<<<<< HEAD
-): UseQueryResult<Property[]> {
-	return useQuery({
+	query?: PropertyQuery
+): UseSuspenseQueryResult<Property[]> {
+	return useSuspenseQuery({
 		queryKey: queryKeys.properties.list(query),
 		queryFn: async () =>
-=======
-): UseQueryResult<Property[], Error> {
-	return useQuery({
-		queryKey: propertyKeys.list(query),
-		queryFn: () =>
->>>>>>> origin/main
 			apiClient.get<Property[]>('/properties', { params: query }),
-		enabled: options?.enabled ?? true,
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000 // 10 minutes
 	})
 }
 
 /**
- * Fetch single property by ID
+ * PURE: useSuspenseQuery for single property - no loading states needed
  */
-export function useProperty(
-	id: string,
-	options?: { enabled?: boolean }
-<<<<<<< HEAD
-): UseQueryResult<Property> {
-	return useQuery({
+export function useProperty(id: string): UseSuspenseQueryResult<Property> {
+	return useSuspenseQuery({
 		queryKey: queryKeys.properties.detail(id),
 		queryFn: async () => apiClient.get<Property>(`/properties/${id}`),
-=======
-): UseQueryResult<Property, Error> {
-	return useQuery({
-		queryKey: propertyKeys.detail(id),
-		queryFn: () => apiClient.get<Property>(`/properties/${id}`),
->>>>>>> origin/main
-		enabled: Boolean(id) && (options?.enabled ?? true),
 		staleTime: 2 * 60 * 1000 // 2 minutes
 	})
 }
 
 /**
- * Fetch property statistics
+ * PURE: useSuspenseQuery for property statistics - perfect for dashboards
  */
-<<<<<<< HEAD
-export function usePropertyStats(): UseQueryResult<PropertyStats> {
-	return useQuery({
+export function usePropertyStats(): UseSuspenseQueryResult<PropertyStats> {
+	return useSuspenseQuery({
 		queryKey: queryKeys.properties.stats(),
 		queryFn: async () => apiClient.get<PropertyStats>('/properties/stats'),
-=======
-export function usePropertyStats(): UseQueryResult<PropertyStats, Error> {
-	return useQuery({
-		queryKey: propertyKeys.stats(),
-		queryFn: () => apiClient.get<PropertyStats>('/properties/stats'),
->>>>>>> origin/main
 		staleTime: 2 * 60 * 1000, // 2 minutes
 		refetchInterval: 5 * 60 * 1000 // Auto-refresh every 5 minutes
 	})
 }
 
+// ============================================================================
+// REACT 19 OPTIMISTIC MUTATIONS - Pure useOptimistic Integration
+// ============================================================================
+
 /**
- * Create new property with optimistic updates
+ * React 19 useOptimistic for Properties List - Replaces TanStack Query onMutate
  */
-export function useCreateProperty(): UseMutationResult<
-	Property,
-	Error,
-	CreatePropertyInput
-> {
+export function usePropertiesOptimistic(query?: PropertyQuery) {
+	const { data: serverProperties } = useProperties(query)
 	const queryClient = useQueryClient()
 
-	return useMutation({
-<<<<<<< HEAD
-		mutationFn: async (data: CreatePropertyInput) =>
-			apiClient.post<Property>('/properties', data),
-		onMutate: async newProperty => {
-			// Cancel any outgoing refetches
-			await queryClient.cancelQueries({
-				queryKey: queryKeys.properties.lists()
-			})
-
-			// Snapshot the previous value
-			const previousProperties = queryClient.getQueryData(
-				queryKeys.properties.lists()
-=======
-		mutationFn: (data: CreatePropertyInput) =>
-			apiClient.post<Property>('/properties', data),
-		onMutate: async newProperty => {
-			// Cancel any outgoing refetches
-			await queryClient.cancelQueries({ queryKey: propertyKeys.lists() })
-
-			// Snapshot the previous value
-			const previousProperties = queryClient.getQueryData(
-				propertyKeys.lists()
->>>>>>> origin/main
-			)
-
-			// Optimistically update all property lists
-			queryClient.setQueriesData(
-<<<<<<< HEAD
-				{ queryKey: queryKeys.properties.lists() },
-				(old: Property[] | undefined) => {
-					if (!old) {
-						return []
-					}
-=======
-				{ queryKey: propertyKeys.lists() },
-				(old: Property[] | undefined) => {
-					if (!old) return []
->>>>>>> origin/main
-					return [
-						...old,
-						{
-							...newProperty,
-							id: `temp-${Date.now()}`,
-							createdAt: new Date(),
-							updatedAt: new Date()
-						} as Property
-					]
-				}
-			)
-
-			return { previousProperties }
-		},
-		onError: (err, newProperty, context) => {
-			// Revert optimistic update on error
-			if (context?.previousProperties) {
-				queryClient.setQueriesData(
-<<<<<<< HEAD
-					{ queryKey: queryKeys.properties.lists() },
-=======
-					{ queryKey: propertyKeys.lists() },
->>>>>>> origin/main
-					context.previousProperties
-				)
-			}
-			toast.error('Failed to create property')
-		},
+	// React 19 useOptimistic for instant feedback
+	const optimistic = useOptimisticList(serverProperties, {
+		successMessage: (property: Property) => `${property.name || 'Property'} saved successfully`,
+		errorMessage: 'Failed to save property',
 		onSuccess: () => {
-			toast.success('Property created successfully')
-		},
-		onSettled: () => {
-			// Always refetch after error or success
-<<<<<<< HEAD
+			// Invalidate server cache after successful operations
 			void queryClient.invalidateQueries({
 				queryKey: queryKeys.properties.lists()
 			})
 			void queryClient.invalidateQueries({
 				queryKey: queryKeys.properties.stats()
 			})
-=======
-			queryClient.invalidateQueries({ queryKey: propertyKeys.lists() })
-			queryClient.invalidateQueries({ queryKey: propertyKeys.stats() })
->>>>>>> origin/main
 		}
 	})
+
+	// Server action wrappers
+	const createPropertyServer = async (data: CreatePropertyInput): Promise<Property> => {
+		return await apiClient.post<Property>('/properties', data)
+	}
+
+	const updatePropertyServer = async (id: string, data: UpdatePropertyInput): Promise<Property> => {
+		return await apiClient.put<Property>(`/properties/${id}`, data)
+	}
+
+	const deletePropertyServer = async (id: string): Promise<void> => {
+		await apiClient.delete<void>(`/properties/${id}`)
+	}
+
+	return {
+		// React 19 optimistic state
+		properties: optimistic.items,
+		isPending: optimistic.isPending,
+		isOptimistic: optimistic.isOptimistic,
+		pendingCount: optimistic.pendingCount,
+
+		// React 19 optimistic actions
+		createProperty: (data: CreatePropertyInput) => 
+			optimistic.optimisticCreate(data, createPropertyServer),
+		updateProperty: (id: string, data: UpdatePropertyInput) => 
+			optimistic.optimisticUpdate(id, data, updatePropertyServer),
+		deleteProperty: (id: string) => 
+			optimistic.optimisticDelete(id, () => deletePropertyServer(id)),
+		
+		// Utility actions
+		revertAll: optimistic.revertAll
+	}
 }
 
 /**
- * Update property with optimistic updates
+ * React 19 useOptimistic for Single Property - Pure item updates
  */
-export function useUpdateProperty(): UseMutationResult<
-	Property,
-	Error,
-	{ id: string; data: UpdatePropertyInput }
-> {
+export function usePropertyOptimistic(id: string) {
+	const { data: serverProperty } = useProperty(id)
 	const queryClient = useQueryClient()
 
-	return useMutation({
-<<<<<<< HEAD
-		mutationFn: async ({ id, data }) =>
-=======
-		mutationFn: ({ id, data }) =>
->>>>>>> origin/main
-			apiClient.put<Property>(`/properties/${id}`, data),
-		onMutate: async ({ id, data }) => {
-			// Cancel queries for this property
-			await queryClient.cancelQueries({
-<<<<<<< HEAD
-				queryKey: queryKeys.properties.detail(id)
-			})
-			await queryClient.cancelQueries({
-				queryKey: queryKeys.properties.lists()
-			})
-
-			// Snapshot the previous values
-			const previousProperty = queryClient.getQueryData(
-				queryKeys.properties.detail(id)
-			)
-			const previousList = queryClient.getQueryData(
-				queryKeys.properties.lists()
-			)
-
-			// Optimistically update property detail
-			queryClient.setQueryData(
-				queryKeys.properties.detail(id),
-=======
-				queryKey: propertyKeys.detail(id)
-			})
-			await queryClient.cancelQueries({ queryKey: propertyKeys.lists() })
-
-			// Snapshot the previous values
-			const previousProperty = queryClient.getQueryData(
-				propertyKeys.detail(id)
-			)
-			const previousList = queryClient.getQueryData(propertyKeys.lists())
-
-			// Optimistically update property detail
-			queryClient.setQueryData(
-				propertyKeys.detail(id),
->>>>>>> origin/main
-				(old: Property | undefined) =>
-					old ? { ...old, ...data, updatedAt: new Date() } : undefined
-			)
-
-			// Optimistically update property in lists
-			queryClient.setQueriesData(
-<<<<<<< HEAD
-				{ queryKey: queryKeys.properties.lists() },
-=======
-				{ queryKey: propertyKeys.lists() },
->>>>>>> origin/main
-				(old: Property[] | undefined) =>
-					old?.map(property =>
-						property.id === id
-							? { ...property, ...data, updatedAt: new Date() }
-							: property
-					)
-			)
-
-			return { previousProperty, previousList }
-		},
-		onError: (err, { id }, context) => {
-			// Revert optimistic updates on error
-			if (context?.previousProperty) {
-				queryClient.setQueryData(
-<<<<<<< HEAD
-					queryKeys.properties.detail(id),
-=======
-					propertyKeys.detail(id),
->>>>>>> origin/main
-					context.previousProperty
-				)
-			}
-			if (context?.previousList) {
-				queryClient.setQueriesData(
-<<<<<<< HEAD
-					{ queryKey: queryKeys.properties.lists() },
-=======
-					{ queryKey: propertyKeys.lists() },
->>>>>>> origin/main
-					context.previousList
-				)
-			}
-			toast.error('Failed to update property')
-		},
+	// React 19 useOptimistic for single property
+	const optimistic = useOptimisticItem(serverProperty, {
+		successMessage: 'Property updated successfully',
+		errorMessage: 'Failed to update property',
 		onSuccess: () => {
-			toast.success('Property updated successfully')
-		},
-		onSettled: (data, err, { id }) => {
-			// Refetch to ensure consistency
-<<<<<<< HEAD
+			// Invalidate related caches
 			void queryClient.invalidateQueries({
 				queryKey: queryKeys.properties.detail(id)
 			})
@@ -321,109 +142,53 @@ export function useUpdateProperty(): UseMutationResult<
 			void queryClient.invalidateQueries({
 				queryKey: queryKeys.properties.stats()
 			})
-=======
-			queryClient.invalidateQueries({ queryKey: propertyKeys.detail(id) })
-			queryClient.invalidateQueries({ queryKey: propertyKeys.lists() })
-			queryClient.invalidateQueries({ queryKey: propertyKeys.stats() })
->>>>>>> origin/main
 		}
 	})
+
+	// Server action wrapper
+	const updatePropertyServer = async (data: UpdatePropertyInput): Promise<Property> => {
+		return await apiClient.put<Property>(`/properties/${id}`, data)
+	}
+
+	return {
+		// React 19 optimistic state
+		property: optimistic.item,
+		isPending: optimistic.isPending,
+		isOptimistic: optimistic.isOptimistic,
+
+		// React 19 optimistic actions
+		updateProperty: (data: UpdatePropertyInput) => 
+			optimistic.optimisticUpdate(data, updatePropertyServer),
+		revert: optimistic.revert
+	}
 }
 
-/**
- * Delete property with optimistic updates
- */
-export function useDeleteProperty(): UseMutationResult<void, Error, string> {
-	const queryClient = useQueryClient()
 
-	return useMutation({
-<<<<<<< HEAD
-		mutationFn: async (id: string) =>
-			apiClient.delete<void>(`/properties/${id}`),
-		onMutate: async id => {
-			// Cancel queries
-			await queryClient.cancelQueries({
-				queryKey: queryKeys.properties.lists()
-			})
-
-			// Snapshot previous list
-			const previousList = queryClient.getQueryData(
-				queryKeys.properties.lists()
-			)
-
-			// Optimistically remove property from lists
-			queryClient.setQueriesData(
-				{ queryKey: queryKeys.properties.lists() },
-=======
-		mutationFn: (id: string) => apiClient.delete<void>(`/properties/${id}`),
-		onMutate: async id => {
-			// Cancel queries
-			await queryClient.cancelQueries({ queryKey: propertyKeys.lists() })
-
-			// Snapshot previous list
-			const previousList = queryClient.getQueryData(propertyKeys.lists())
-
-			// Optimistically remove property from lists
-			queryClient.setQueriesData(
-				{ queryKey: propertyKeys.lists() },
->>>>>>> origin/main
-				(old: Property[] | undefined) =>
-					old?.filter(property => property.id !== id)
-			)
-
-			return { previousList }
-		},
-		onError: (err, id, context) => {
-			// Revert optimistic update
-			if (context?.previousList) {
-				queryClient.setQueriesData(
-<<<<<<< HEAD
-					{ queryKey: queryKeys.properties.lists() },
-=======
-					{ queryKey: propertyKeys.lists() },
->>>>>>> origin/main
-					context.previousList
-				)
-			}
-			toast.error('Failed to delete property')
-		},
-		onSuccess: () => {
-			toast.success('Property deleted successfully')
-		},
-		onSettled: () => {
-			// Refetch to ensure consistency
-<<<<<<< HEAD
-			void queryClient.invalidateQueries({
-				queryKey: queryKeys.properties.lists()
-			})
-			void queryClient.invalidateQueries({
-				queryKey: queryKeys.properties.stats()
-			})
-=======
-			queryClient.invalidateQueries({ queryKey: propertyKeys.lists() })
-			queryClient.invalidateQueries({ queryKey: propertyKeys.stats() })
->>>>>>> origin/main
-		}
-	})
-}
+// ============================================================================
+// PREFETCH UTILITIES
+// ============================================================================
 
 /**
- * Prefetch property data (for hover effects, etc.)
+ * PURE: Enhanced prefetch for Suspense patterns - ensures data available when component mounts
  */
 export function usePrefetchProperty() {
 	const queryClient = useQueryClient()
 
 	return (id: string) => {
-<<<<<<< HEAD
 		void queryClient.prefetchQuery({
 			queryKey: queryKeys.properties.detail(id),
 			queryFn: async () => apiClient.get<Property>(`/properties/${id}`),
-=======
-		queryClient.prefetchQuery({
-			queryKey: propertyKeys.detail(id),
-			queryFn: () => apiClient.get<Property>(`/properties/${id}`),
->>>>>>> origin/main
 			staleTime: 10 * 1000 // 10 seconds
 		})
 	}
 }
+
+// ============================================================================
+// EXPORTS - React 19 Pure Implementation
+// ============================================================================
+
+// REACT 19: Pure useOptimistic patterns (exported directly above)
+
+// REACT 19: Pure data fetching (exported directly above)
+
+// REACT 19: Utilities (exported directly above)

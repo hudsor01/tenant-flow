@@ -2,7 +2,6 @@ import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ExternalLink } from 'lucide-react'
 // Temporary mock for state data
 const getAllStates = () => [
 	{ value: 'california', label: 'California', code: 'CA' },
@@ -57,7 +56,7 @@ export function StateLeaseLinks({ className }: StateLeaseLinksProps) {
 									variant="default"
 								>
 									Generate {state.label} Lease
-									<ExternalLink className="ml-2 h-4 w-4" />
+									<i className="i-lucide-external-link inline-block ml-2 h-4 w-4"  />
 								</Button>
 							</Link>
 						</CardContent>

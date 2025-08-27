@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 import type { Metadata } from 'next/types'
-=======
-import type { Metadata } from '@/types/next.d'
->>>>>>> origin/main
 
 interface BillingLayoutProps {
 	children: React.ReactNode

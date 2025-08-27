@@ -1,9 +1,8 @@
 import { Suspense } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, Home } from 'lucide-react'
 import Link from 'next/link'
-import { UnitForm } from '@/components/forms/unit-form'
+import { UnitForm } from '@/components/units/unit-form'
 import { PageTracker } from '@/components/analytics/page-tracker'
 import type { Metadata } from 'next/types'
 
@@ -18,7 +17,7 @@ function NewUnitHeader() {
 			<div className="flex items-center space-x-4">
 				<Link href="/units">
 					<Button variant="outline" size="sm">
-						<ArrowLeft className="mr-2 h-4 w-4" />
+						<i className="i-lucide-arrow-left inline-block mr-2 h-4 w-4"  />
 						Back to Units
 					</Button>
 				</Link>
@@ -46,7 +45,7 @@ export default function NewUnitPage() {
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
 							<div className="bg-primary/10 rounded-lg p-2">
-								<Home className="text-primary h-5 w-5" />
+								<i className="i-lucide-home inline-block text-primary h-5 w-5"  />
 							</div>
 							Unit Information
 						</CardTitle>
@@ -61,7 +60,7 @@ export default function NewUnitPage() {
 								</div>
 							}
 						>
-							<UnitForm mode="create" />
+							<UnitForm units={[]} properties={[]} />
 						</Suspense>
 					</CardContent>
 				</Card>

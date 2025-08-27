@@ -17,14 +17,6 @@ import {
 	CardTitle
 } from '@/components/ui/card'
 import { useUpdateMaintenanceStatus } from '@/hooks/api/use-maintenance'
-import {
-	Clock,
-	Wrench,
-	CheckCircle2,
-	XCircle,
-	Loader2,
-	Pause
-} from 'lucide-react'
 import type { MaintenanceRequest, RequestStatus } from '@repo/shared'
 
 interface MaintenanceStatusUpdateProps {
@@ -41,31 +33,31 @@ const statusOptions: {
 	{
 		value: 'OPEN',
 		label: 'Open',
-		icon: <Clock className="h-4 w-4" />,
+		icon: <i className="i-lucide-clock inline-block h-4 w-4"  />,
 		description: 'Request is waiting to be addressed'
 	},
 	{
 		value: 'IN_PROGRESS',
 		label: 'In Progress',
-		icon: <Wrench className="h-4 w-4" />,
+		icon: <i className="i-lucide-wrench inline-block h-4 w-4"  />,
 		description: 'Work is actively being done'
 	},
 	{
 		value: 'COMPLETED',
 		label: 'Completed',
-		icon: <CheckCircle2 className="h-4 w-4" />,
+		icon: <i className="i-lucide-checkcircle2 inline-block h-4 w-4"  />,
 		description: 'Work has been finished'
 	},
 	{
 		value: 'CANCELED',
 		label: 'Cancelled',
-		icon: <XCircle className="h-4 w-4" />,
+		icon: <i className="i-lucide-xcircle inline-block h-4 w-4"  />,
 		description: 'Request has been cancelled'
 	},
 	{
 		value: 'ON_HOLD',
 		label: 'On Hold',
-		icon: <Pause className="h-4 w-4" />,
+		icon: <i className="i-lucide-pause inline-block h-4 w-4"  />,
 		description: 'Request is temporarily paused'
 	}
 ]
@@ -170,7 +162,7 @@ export function MaintenanceStatusUpdate({
 						className="flex-1"
 					>
 						{updateStatus.isPending && (
-							<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+							<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
 						)}
 						Update Status
 					</Button>

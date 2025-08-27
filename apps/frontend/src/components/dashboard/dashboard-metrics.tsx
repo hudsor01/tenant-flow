@@ -1,7 +1,4 @@
-'use client'
-
 import { motion } from '@/lib/lazy-motion'
-import { Building2, Users, Wrench, DollarSign, TrendingUp } from 'lucide-react'
 import { cardVariants } from './dashboard-animations'
 import type { DashboardStats } from '@repo/shared'
 
@@ -9,7 +6,7 @@ interface MetricCardProps {
 	title: string
 	value: string | number
 	subtitle: string
-	icon: React.ComponentType<{ className?: string }>
+	icon: string
 	trend?: { value: number; isPositive: boolean }
 	color: 'navy' | 'steel' | 'emerald' | 'gold'
 	index: number
@@ -19,7 +16,7 @@ function MetricCard({
 	title,
 	value,
 	subtitle,
-	icon: Icon,
+	icon,
 	trend,
 	color,
 	index
@@ -49,11 +46,7 @@ function MetricCard({
 		>
 			{/* Subtle geometric pattern overlay */}
 			<div className="absolute inset-0 opacity-5">
-<<<<<<< HEAD
 				<div className="absolute right-0 top-0 h-32 w-32 -translate-y-16 translate-x-16 rounded-full bg-white/10" />
-=======
-				<div className="absolute top-0 right-0 h-32 w-32 translate-x-16 -translate-y-16 rounded-full bg-white/10" />
->>>>>>> origin/main
 				<div className="absolute bottom-0 left-0 h-24 w-24 -translate-x-12 translate-y-12 rounded-full bg-white/5" />
 			</div>
 
@@ -62,7 +55,7 @@ function MetricCard({
 					<div
 						className={`rounded-lg bg-white/10 p-3 ${iconColors[color]}`}
 					>
-						<Icon className="h-6 w-6" />
+						<i className={`${icon} h-6 w-6`} />
 					</div>
 					{trend && (
 						<div
@@ -72,20 +65,14 @@ function MetricCard({
 									: 'text-red-400'
 							}`}
 						>
-							<TrendingUp
-								className={`mr-1 h-4 w-4 ${!trend.isPositive ? 'rotate-180' : ''}`}
-							/>
+							<i className={`i-lucide-trending-up mr-1 h-4 w-4 ${!trend.isPositive ? 'rotate-180' : ''}`} />
 							{trend.value}%
 						</div>
 					)}
 				</div>
 
 				<div className="space-y-1">
-<<<<<<< HEAD
 					<h3 className="text-sm font-medium uppercase tracking-wide text-white/70">
-=======
-					<h3 className="text-sm font-medium tracking-wide text-white/70 uppercase">
->>>>>>> origin/main
 						{title}
 					</h3>
 					<p className="text-3xl font-bold text-white">{value}</p>
@@ -120,13 +107,9 @@ export function DashboardMetrics({ stats, isLoading }: DashboardMetricsProps) {
 		<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
 			<MetricCard
 				title="Total Properties"
-<<<<<<< HEAD
 				value={stats?.properties?.total ?? 0}
-=======
-				value={stats?.properties?.totalUnits ?? 0}
->>>>>>> origin/main
 				subtitle={`${Math.round(stats?.properties?.occupancyRate ?? 0)}% occupancy rate`}
-				icon={Building2}
+				icon="i-lucide-building-2"
 				trend={{ value: 12, isPositive: true }}
 				color="navy"
 				index={0}
@@ -135,7 +118,7 @@ export function DashboardMetrics({ stats, isLoading }: DashboardMetricsProps) {
 				title="Active Tenants"
 				value={stats?.tenants?.activeTenants ?? 0}
 				subtitle={`${stats?.leases?.activeLeases ?? 0} active leases`}
-				icon={Users}
+				icon="i-lucide-users"
 				trend={{ value: 8, isPositive: true }}
 				color="steel"
 				index={1}
@@ -144,7 +127,7 @@ export function DashboardMetrics({ stats, isLoading }: DashboardMetricsProps) {
 				title="Maintenance Requests"
 				value={stats?.maintenanceRequests?.open ?? 0}
 				subtitle={`${stats?.maintenanceRequests?.inProgress ?? 0} in progress`}
-				icon={Wrench}
+				icon="i-lucide-wrench"
 				trend={{ value: 5, isPositive: false }}
 				color="emerald"
 				index={2}
@@ -153,7 +136,7 @@ export function DashboardMetrics({ stats, isLoading }: DashboardMetricsProps) {
 				title="Monthly Revenue"
 				value={`$${(stats?.leases?.totalRentRoll ?? 0).toLocaleString()}`}
 				subtitle="Total rent roll"
-				icon={DollarSign}
+				icon="i-lucide-dollar-sign"
 				trend={{
 					value: 5,
 					isPositive: true

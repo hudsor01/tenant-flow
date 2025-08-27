@@ -11,24 +11,10 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import {
-	Bell,
-	Search,
-	User,
-	Settings,
-	LogOut,
-	Command,
-	Menu,
-	Building
-} from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/hooks/use-auth'
 import { useCommandPalette } from '@/hooks/use-command-palette'
-<<<<<<< HEAD
 // Dashboard sidebar removed - using layout-based sidebar
-=======
-import { DashboardSidebar } from './dashboard-sidebar'
->>>>>>> origin/main
 import { OfflineIndicator } from '@/components/ui/offline-indicator'
 import Link from 'next/link'
 import { logoutAction } from '@/lib/actions/auth-actions'
@@ -50,11 +36,7 @@ export function Navigation({ className }: NavigationProps) {
 			try {
 				await logoutAction()
 				// Server action will handle redirect
-<<<<<<< HEAD
 			} catch {
-=======
-			} catch (error) {
->>>>>>> origin/main
 				toast.error('Failed to sign out')
 			}
 		})
@@ -78,13 +60,13 @@ export function Navigation({ className }: NavigationProps) {
 						className="h-8 w-8 p-0"
 						aria-label="Open navigation menu"
 					>
-						<Menu className="h-5 w-5" />
+						<i className="i-lucide-menu inline-block h-5 w-5"  />
 					</Button>
 					<Link
 						href="/dashboard"
 						className="flex items-center gap-2 transition-all hover:scale-105"
 					>
-						<Building className="text-primary h-6 w-6" />
+						<i className="i-lucide-building inline-block text-primary h-6 w-6"  />
 						<span className="text-lg font-bold">TenantFlow</span>
 					</Link>
 				</div>
@@ -92,11 +74,7 @@ export function Navigation({ className }: NavigationProps) {
 				{/* Desktop Search - Command Palette Trigger */}
 				<div className="hidden max-w-md flex-1 items-center gap-4 md:flex">
 					<div className="relative flex-1">
-<<<<<<< HEAD
-						<Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
-=======
-						<Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
->>>>>>> origin/main
+						<i className="i-lucide-search inline-block text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform"  />
 						<Input
 							placeholder="Search properties, tenants... (⌘K)"
 							className="cursor-pointer pl-10"
@@ -111,7 +89,7 @@ export function Navigation({ className }: NavigationProps) {
 						onClick={handleSearchClick}
 						className="hidden items-center gap-2 lg:flex"
 					>
-						<Command className="h-4 w-4" />
+						<i className="i-lucide-command inline-block h-4 w-4"  />
 						<span className="text-muted-foreground text-xs">
 							⌘K
 						</span>
@@ -128,7 +106,7 @@ export function Navigation({ className }: NavigationProps) {
 						className="h-8 w-8 p-0 md:hidden"
 						aria-label="Search"
 					>
-						<Search className="h-4 w-4" />
+						<i className="i-lucide-search inline-block h-4 w-4"  />
 					</Button>
 
 					{/* Offline Indicator */}
@@ -141,7 +119,7 @@ export function Navigation({ className }: NavigationProps) {
 						className="h-8 w-8 p-0"
 						aria-label="Notifications"
 					>
-						<Bell className="h-4 w-4 sm:h-5 sm:w-5" />
+						<i className="i-lucide-bell inline-block h-4 w-4 sm:h-5 sm:w-5"  />
 					</Button>
 
 					{/* User Menu */}
@@ -174,11 +152,7 @@ export function Navigation({ className }: NavigationProps) {
 						>
 							<DropdownMenuLabel className="font-normal">
 								<div className="flex flex-col space-y-1">
-<<<<<<< HEAD
 									<p className="text-sm font-medium leading-none">
-=======
-									<p className="text-sm leading-none font-medium">
->>>>>>> origin/main
 										{user?.name || 'User'}
 									</p>
 									<p className="text-muted-foreground text-xs leading-none">
@@ -192,7 +166,7 @@ export function Navigation({ className }: NavigationProps) {
 									href="/profile"
 									className="cursor-pointer"
 								>
-									<User className="mr-2 h-4 w-4" />
+									<i className="i-lucide-user inline-block mr-2 h-4 w-4"  />
 									<span>Profile</span>
 								</Link>
 							</DropdownMenuItem>
@@ -201,7 +175,7 @@ export function Navigation({ className }: NavigationProps) {
 									href="/settings"
 									className="cursor-pointer"
 								>
-									<Settings className="mr-2 h-4 w-4" />
+									<i className="i-lucide-settings inline-block mr-2 h-4 w-4"  />
 									<span>Settings</span>
 								</Link>
 							</DropdownMenuItem>
@@ -211,7 +185,7 @@ export function Navigation({ className }: NavigationProps) {
 								onClick={handleLogout}
 								disabled={isLoggingOut}
 							>
-								<LogOut className="mr-2 h-4 w-4" />
+								<i className="i-lucide-log-out inline-block mr-2 h-4 w-4"  />
 								<span>
 									{isLoggingOut
 										? 'Signing out...'
@@ -223,7 +197,6 @@ export function Navigation({ className }: NavigationProps) {
 				</div>
 			</header>
 
-<<<<<<< HEAD
 			{/* Mobile Sidebar - replaced with simpler navigation */}
 			{isMobileSidebarOpen && (
 				<div className="fixed inset-0 z-50 bg-black bg-opacity-50 md:hidden">
@@ -238,14 +211,6 @@ export function Navigation({ className }: NavigationProps) {
 					</div>
 				</div>
 			)}
-=======
-			{/* Mobile Sidebar */}
-			<DashboardSidebar
-				isOpen={isMobileSidebarOpen}
-				onClose={() => setIsMobileSidebarOpen(false)}
-				isMobile={true}
-			/>
->>>>>>> origin/main
 		</>
 	)
 }

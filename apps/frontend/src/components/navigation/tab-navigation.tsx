@@ -66,13 +66,9 @@ export function TabNavigation({
 
 	// Auto-detect active tab from pathname if not explicitly set
 	const currentActive = React.useMemo(() => {
-<<<<<<< HEAD
 		if (activeTab) {
 			return activeTab
 		}
-=======
-		if (activeTab) return activeTab
->>>>>>> origin/main
 
 		const matchingItem = items.find(
 			item => item.href && pathname.startsWith(item.href)
@@ -83,10 +79,7 @@ export function TabNavigation({
 	return (
 		<nav className={cn(TAB_VARIANTS[variant], className)}>
 			<div
-				className={cn(
-					'flex',
-					variant === 'pills' ? 'space-x-1' : 'space-x-0'
-				)}
+				className={variant === 'pills' ? 'tab-pills' : 'tab-default'}
 			>
 				{items.map(item => {
 					const isActive = item.id === currentActive

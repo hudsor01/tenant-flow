@@ -5,7 +5,6 @@
 
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Star } from 'lucide-react'
 
 export function OptimizedTestimonialsSection() {
 	const testimonials = [
@@ -62,10 +61,7 @@ export function OptimizedTestimonialsSection() {
 							<div className="mb-4 flex items-start justify-between">
 								<div className="flex items-center gap-1">
 									{[...Array(5)].map((_, i) => (
-										<Star
-											key={i}
-											className="h-4 w-4 fill-yellow-400 text-yellow-400"
-										/>
+										<i className="i-lucide-star inline-block h-4 w-4 fill-yellow-400 text-yellow-400" key={i} />
 									))}
 								</div>
 								<Badge className="bg-green-100 text-xs text-green-700">
@@ -73,11 +69,7 @@ export function OptimizedTestimonialsSection() {
 								</Badge>
 							</div>
 
-<<<<<<< HEAD
 							<p className="mb-4 italic text-gray-600">
-=======
-							<p className="mb-4 text-gray-600 italic">
->>>>>>> origin/main
 								"{testimonial.content}"
 							</p>
 

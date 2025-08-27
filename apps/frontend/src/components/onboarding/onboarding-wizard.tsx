@@ -18,15 +18,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import {
-	Building2,
-	Users,
-	FileText,
-	CheckCircle2,
-	ArrowRight,
-	Sparkles,
-	Home
-} from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 interface OnboardingStep {
@@ -109,13 +100,9 @@ export function OnboardingWizard() {
 
 	const progress = ((currentStep + 1) / steps.length) * 100
 	const step = steps[currentStep]
-<<<<<<< HEAD
 	if (!step) {
 		return null
 	}
-=======
-	if (!step) return null
->>>>>>> origin/main
 	const Icon = step.icon
 
 	const handleNext = () => {
@@ -160,7 +147,7 @@ export function OnboardingWizard() {
 					{currentStep === 0 && (
 						<div className="space-y-4">
 							<Alert>
-								<Sparkles className="h-4 w-4" />
+								<i className="i-lucide-sparkles inline-block h-4 w-4"  />
 								<AlertDescription>
 									TenantFlow helps you manage properties,
 									tenants, and leases all in one place. This
@@ -171,7 +158,7 @@ export function OnboardingWizard() {
 
 							<div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
 								<div className="p-4 text-center">
-									<Building2 className="text-primary mx-auto mb-2 h-8 w-8" />
+									<i className="i-lucide-building-2 inline-block text-primary mx-auto mb-2 h-8 w-8"  />
 									<div className="font-medium">
 										Properties
 									</div>
@@ -180,14 +167,14 @@ export function OnboardingWizard() {
 									</div>
 								</div>
 								<div className="p-4 text-center">
-									<Users className="mx-auto mb-2 h-8 w-8 text-green-600" />
+									<i className="i-lucide-users inline-block mx-auto mb-2 h-8 w-8 text-green-600"  />
 									<div className="font-medium">Tenants</div>
 									<div className="text-muted-foreground text-sm">
 										Track tenant information
 									</div>
 								</div>
 								<div className="p-4 text-center">
-									<FileText className="mx-auto mb-2 h-8 w-8 text-purple-600" />
+									<i className="i-lucide-file-text inline-block mx-auto mb-2 h-8 w-8 text-purple-600"  />
 									<div className="font-medium">Leases</div>
 									<div className="text-muted-foreground text-sm">
 										Handle lease agreements
@@ -200,7 +187,7 @@ export function OnboardingWizard() {
 					{currentStep === steps.length - 1 && (
 						<div className="space-y-4">
 							<Alert className="border-green-200 bg-green-50 dark:bg-green-950/20">
-								<CheckCircle2 className="h-4 w-4 text-green-600" />
+								<i className="i-lucide-checkcircle2 inline-block h-4 w-4 text-green-600"  />
 								<AlertDescription className="text-green-800 dark:text-green-200">
 									Congratulations! Your property management
 									system is ready to use.
@@ -209,19 +196,19 @@ export function OnboardingWizard() {
 
 							<div className="mt-6 space-y-3">
 								<div className="bg-muted/50 flex items-center gap-3 rounded-lg p-3">
-									<CheckCircle2 className="h-5 w-5 text-green-600" />
+									<i className="i-lucide-checkcircle2 inline-block h-5 w-5 text-green-600"  />
 									<span>
 										Property management system configured
 									</span>
 								</div>
 								<div className="bg-muted/50 flex items-center gap-3 rounded-lg p-3">
-									<CheckCircle2 className="h-5 w-5 text-green-600" />
+									<i className="i-lucide-checkcircle2 inline-block h-5 w-5 text-green-600"  />
 									<span>
 										Ready to add properties and tenants
 									</span>
 								</div>
 								<div className="bg-muted/50 flex items-center gap-3 rounded-lg p-3">
-									<CheckCircle2 className="h-5 w-5 text-green-600" />
+									<i className="i-lucide-checkcircle2 inline-block h-5 w-5 text-green-600"  />
 									<span>Dashboard and reports available</span>
 								</div>
 							</div>
@@ -257,7 +244,7 @@ export function OnboardingWizard() {
 
 						<Button onClick={handleAction}>
 							{step.action}
-							<ArrowRight className="ml-2 h-4 w-4" />
+							<i className="i-lucide-arrow-right inline-block ml-2 h-4 w-4"  />
 						</Button>
 					</div>
 				</CardFooter>

@@ -294,7 +294,7 @@ export function useSubscriptionActions(): SubscriptionActionsHook {
         logger.info('Subscription synced successfully', {
           component: 'useSubscriptionActions',
           userId,
-          changes: result.changes?.length || 0
+          message: result.message || 'Sync completed'
         })
       }
     },
@@ -314,8 +314,13 @@ export function useSubscriptionActions(): SubscriptionActionsHook {
         throw new Error('Either priceId or planId is required')
       }
       
-      const { apiClient } = await import('@/lib/api-client')
-      const response = await apiClient.createCheckoutSession(data)
+      const { billingApi } = await import('@/lib/api/billing')
+      const response = await billingApi.createCheckoutSession({
+        planId: data.planId || data.priceId || data.planType || '',
+        interval: (data.billingInterval === 'yearly' ? 'annual' : data.billingInterval || 'monthly') as 'monthly' | 'annual',
+        successUrl: data.successUrl,
+        cancelUrl: data.cancelUrl
+      })
       
       // Validate response
       if (!response.url || !response.sessionId) {
@@ -386,8 +391,8 @@ export function useSubscriptionActions(): SubscriptionActionsHook {
         ...(prefillEmail && { prefillEmail })
       }
       
-      const { apiClient } = await import('@/lib/api-client')
-      const result = await apiClient.createPortalSession(portalData)
+      const { billingApi } = await import('@/lib/api/billing')
+      const result = await billingApi.createPortalSession(portalData)
       
       if (!result.url) {
         throw new Error('Invalid portal session response')
@@ -427,8 +432,12 @@ export function useSubscriptionActions(): SubscriptionActionsHook {
         throw new Error('Either priceId or planId is required for subscription update')
       }
       
-      const { apiClient } = await import('@/lib/api-client')
-      return await apiClient.updateSubscription(data)
+      const { billingApi } = await import('@/lib/api/billing')
+      return await billingApi.updateSubscription({
+        newPriceId: data.newPriceId || data.priceId || '',
+        userId: data.subscriptionId || '',
+        prorationBehavior: data.prorationBehavior
+      })
     },
     onSuccess: () => {
       invalidateCaches()
@@ -454,12 +463,12 @@ export function useSubscriptionActions(): SubscriptionActionsHook {
         throw new Error('Valid payment method ID is required')
       }
       
-      const { apiClient } = await import('@/lib/api-client')
-      const result = await apiClient.addPaymentMethod(paymentMethodId)
+      const { billingApi } = await import('@/lib/api/billing')
+      const result = await billingApi.addPaymentMethod(paymentMethodId)
       
       // Set as default if requested
-      if (setAsDefault && result.id) {
-        await apiClient.setDefaultPaymentMethod(result.id)
+      if (setAsDefault && result.portalUrl) {
+        await billingApi.setDefaultPaymentMethod(paymentMethodId)
       }
       
       return result
@@ -488,8 +497,8 @@ export function useSubscriptionActions(): SubscriptionActionsHook {
         throw new Error('Payment method ID is required')
       }
       
-      const { apiClient } = await import('@/lib/api-client')
-      return await apiClient.setDefaultPaymentMethod(paymentMethodId)
+      const { billingApi } = await import('@/lib/api/billing')
+      return await billingApi.setDefaultPaymentMethod(paymentMethodId)
     },
     onSuccess: () => {
       invalidateCaches()

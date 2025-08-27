@@ -2,18 +2,6 @@
 
 import * as React from 'react'
 import { motion } from '@/lib/lazy-motion'
-import {
-	Building2,
-	X,
-	ChevronDown,
-	Check,
-	Plus,
-	Settings,
-	Users,
-	Building,
-	Crown,
-	Sparkles
-} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -87,13 +75,13 @@ export function SidebarHeader() {
 	const getWorkspaceIcon = (type: Workspace['type']) => {
 		switch (type) {
 			case 'personal':
-				return <Users className="h-4 w-4" />
+				return <i className="i-lucide-users inline-block h-4 w-4"  />
 			case 'team':
-				return <Building className="h-4 w-4" />
+				return <i className="i-lucide-building inline-block h-4 w-4"  />
 			case 'enterprise':
-				return <Crown className="h-4 w-4" />
+				return <i className="i-lucide-crown inline-block h-4 w-4"  />
 			default:
-				return <Building2 className="h-4 w-4" />
+				return <i className="i-lucide-building-2 inline-block h-4 w-4"  />
 		}
 	}
 
@@ -166,7 +154,7 @@ export function SidebarHeader() {
 					className="ml-auto h-8 w-8 lg:hidden"
 					onClick={() => setCollapsed(!collapsed)}
 				>
-					<X className="h-4 w-4" />
+					<i className="i-lucide-x inline-block h-4 w-4"  />
 				</Button>
 			</div>
 		)
@@ -248,7 +236,7 @@ export function SidebarHeader() {
 											}
 										}}
 									>
-										<Sparkles className="h-3 w-3 text-purple-500" />
+										<i className="i-lucide-sparkles inline-block h-3 w-3 text-purple-500"  />
 									</motion.div>
 								)}
 							</div>
@@ -272,7 +260,7 @@ export function SidebarHeader() {
 								ease: 'easeInOut'
 							}}
 						>
-							<ChevronDown className="text-sidebar-foreground/60 h-4 w-4" />
+							<i className="i-lucide-chevron-down inline-block text-sidebar-foreground/60 h-4 w-4"  />
 						</motion.div>
 					</Button>
 				</DropdownMenuTrigger>
@@ -307,7 +295,7 @@ export function SidebarHeader() {
 										{workspace.name}
 									</p>
 									{workspace.isActive && (
-										<Check className="h-4 w-4 text-green-600" />
+										<i className="i-lucide-check inline-block h-4 w-4 text-green-600"  />
 									)}
 									{workspace.type === 'enterprise' && (
 										<Badge
@@ -332,12 +320,12 @@ export function SidebarHeader() {
 					<DropdownMenuSeparator />
 
 					<DropdownMenuItem className="flex cursor-pointer items-center gap-2">
-						<Plus className="h-4 w-4" />
+						<i className="i-lucide-plus inline-block h-4 w-4"  />
 						<span>Create Workspace</span>
 					</DropdownMenuItem>
 
 					<DropdownMenuItem className="flex cursor-pointer items-center gap-2">
-						<Settings className="h-4 w-4" />
+						<i className="i-lucide-settings inline-block h-4 w-4"  />
 						<span>Workspace Settings</span>
 					</DropdownMenuItem>
 				</DropdownMenuContent>
@@ -349,7 +337,7 @@ export function SidebarHeader() {
 				className="ml-2 h-8 w-8 lg:hidden"
 				onClick={() => setCollapsed(!collapsed)}
 			>
-				<X className="h-4 w-4" />
+				<i className="i-lucide-x inline-block h-4 w-4"  />
 			</Button>
 		</div>
 	)

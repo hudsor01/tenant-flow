@@ -1,5 +1,3 @@
-'use client'
-
 import {
 	Card,
 	CardContent,
@@ -10,7 +8,6 @@ import {
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Palette, Monitor, Sun, Moon } from 'lucide-react'
 
 export function AppearanceSettings() {
 	return (
@@ -18,7 +15,7 @@ export function AppearanceSettings() {
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Palette className="h-5 w-5" />
+						<i className="i-lucide-palette inline-block h-5 w-5"  />
 						Appearance
 					</CardTitle>
 					<CardDescription>
@@ -38,7 +35,7 @@ export function AppearanceSettings() {
 									htmlFor="light"
 									className="flex cursor-pointer items-center gap-2"
 								>
-									<Sun className="h-4 w-4" />
+									<i className="i-lucide-sun inline-block h-4 w-4"  />
 									Light
 								</Label>
 							</div>
@@ -48,7 +45,7 @@ export function AppearanceSettings() {
 									htmlFor="dark"
 									className="flex cursor-pointer items-center gap-2"
 								>
-									<Moon className="h-4 w-4" />
+									<i className="i-lucide-moon inline-block h-4 w-4"  />
 									Dark
 								</Label>
 							</div>
@@ -58,7 +55,7 @@ export function AppearanceSettings() {
 									htmlFor="system"
 									className="flex cursor-pointer items-center gap-2"
 								>
-									<Monitor className="h-4 w-4" />
+									<i className="i-lucide-monitor inline-block h-4 w-4"  />
 									System
 								</Label>
 							</div>

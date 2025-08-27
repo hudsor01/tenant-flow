@@ -94,7 +94,11 @@ if (typeof window !== 'undefined') {
 				timeout: config.api.timeout
 			},
 			app: config.app,
-			features: config.features
+			features: config.features,
+			supabase: {
+				url: config.supabase.url ? config.supabase.url.slice(0, 30) + '...' : 'MISSING',
+				anonKey: config.supabase.anonKey ? config.supabase.anonKey.slice(0, 20) + '...' : 'MISSING'
+			}
 		})
 	}, 0)
 }

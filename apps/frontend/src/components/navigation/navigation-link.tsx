@@ -79,10 +79,7 @@ export function NavigationLink({
 		<>
 			{showIcons && item.icon && (
 				<span
-					className={cn(
-						'shrink-0',
-						variant === 'sidebar' ? 'h-5 w-5' : 'h-4 w-4'
-					)}
+					className={variant === 'sidebar' ? 'icon-nav-sidebar' : 'icon-nav-default'}
 				>
 					{item.icon}
 				</span>
@@ -121,11 +118,7 @@ export function NavigationLink({
 		>
 			{content}
 			{variant === 'horizontal' && isActive && (
-<<<<<<< HEAD
 				<div className="bg-primary absolute bottom-0 left-0 right-0 h-0.5" />
-=======
-				<div className="bg-primary absolute right-0 bottom-0 left-0 h-0.5" />
->>>>>>> origin/main
 			)}
 		</LinkComponent>
 	)

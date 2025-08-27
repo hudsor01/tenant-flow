@@ -4,11 +4,7 @@ import { NextResponse } from 'next/server'
  * GET /api/auth/health
  * Simple health check endpoint
  */
-<<<<<<< HEAD
 export function GET() {
-=======
-export async function GET() {
->>>>>>> origin/main
 	try {
 		// Simple health check - just verify env vars exist
 		const hasSupabaseUrl = !!process.env.NEXT_PUBLIC_SUPABASE_URL

@@ -1,9 +1,8 @@
 import { Suspense } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, Wrench } from 'lucide-react'
 import Link from 'next/link'
-import { MaintenanceForm } from '@/components/forms/maintenance-form'
+import { MaintenanceForm } from '@/components/maintenance/maintenance-form'
 import { PageTracker } from '@/components/analytics/page-tracker'
 import type { Metadata } from 'next/types'
 
@@ -18,7 +17,7 @@ function NewMaintenanceHeader() {
 			<div className="flex items-center space-x-4">
 				<Link href="/maintenance">
 					<Button variant="outline" size="sm">
-						<ArrowLeft className="mr-2 h-4 w-4" />
+						<i className="i-lucide-arrow-left inline-block mr-2 h-4 w-4"  />
 						Back to Maintenance
 					</Button>
 				</Link>
@@ -46,7 +45,7 @@ export default function NewMaintenancePage() {
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
 							<div className="bg-primary/10 rounded-lg p-2">
-								<Wrench className="text-primary h-5 w-5" />
+								<i className="i-lucide-wrench inline-block text-primary h-5 w-5"  />
 							</div>
 							Request Information
 						</CardTitle>
@@ -61,7 +60,7 @@ export default function NewMaintenancePage() {
 								</div>
 							}
 						>
-							<MaintenanceForm mode="create" />
+							<MaintenanceForm requests={[]} properties={[]} units={[]} />
 						</Suspense>
 					</CardContent>
 				</Card>

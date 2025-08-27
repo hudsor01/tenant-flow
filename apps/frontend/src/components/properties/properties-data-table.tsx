@@ -10,13 +10,9 @@ import {
 	CardTitle
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+
 import { Badge } from '@/components/ui/badge'
-<<<<<<< HEAD
 // Unused UI components removed: Skeleton, Alert, AlertDescription, AlertTitle
-=======
-import { Skeleton } from '@/components/ui/skeleton'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
->>>>>>> origin/main
 import {
 	Table,
 	TableBody,
@@ -25,21 +21,6 @@ import {
 	TableHeader,
 	TableRow
 } from '@/components/ui/table'
-import {
-	Building2,
-	Eye,
-	Edit3,
-	Users,
-	MapPin,
-	Home,
-<<<<<<< HEAD
-	// AlertTriangle removed - unused
-=======
-	AlertTriangle,
->>>>>>> origin/main
-	Plus,
-	MoreHorizontal
-} from 'lucide-react'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -70,18 +51,14 @@ function PropertyRow({ property, onView, onEdit }: PropertyRowProps) {
 			>
 				<div className="flex items-center gap-3">
 					<div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-lg">
-						<Building2 className="text-primary h-5 w-5" />
+						<i className="i-lucide-building-2 inline-block text-primary h-5 w-5"  />
 					</div>
 					<div className="space-y-1">
-<<<<<<< HEAD
 						<p className="font-medium leading-none">
-=======
-						<p className="leading-none font-medium">
->>>>>>> origin/main
 							{property.name}
 						</p>
 						<div className="text-muted-foreground flex items-center gap-1 text-sm">
-							<MapPin className="h-3 w-3" />
+							<i className="i-lucide-map-pin inline-block h-3 w-3"  />
 							{property.address}
 						</div>
 					</div>
@@ -94,13 +71,13 @@ function PropertyRow({ property, onView, onEdit }: PropertyRowProps) {
 			</TableCell>
 			<TableCell>
 				<div className="flex items-center gap-1">
-					<Home className="text-muted-foreground h-3 w-3" />
+					<i className="i-lucide-home inline-block text-muted-foreground h-3 w-3"  />
 					{totalUnits}
 				</div>
 			</TableCell>
 			<TableCell>
 				<div className="flex items-center gap-1">
-					<Users className="text-muted-foreground h-3 w-3" />
+					<i className="i-lucide-users inline-block text-muted-foreground h-3 w-3"  />
 					{occupiedUnits}
 				</div>
 			</TableCell>
@@ -122,32 +99,24 @@ function PropertyRow({ property, onView, onEdit }: PropertyRowProps) {
 					<Button
 						variant="ghost"
 						size="sm"
-<<<<<<< HEAD
 						onClick={(e: React.MouseEvent) => {
-=======
-						onClick={e => {
->>>>>>> origin/main
 							e.stopPropagation()
 							onView?.(property)
 						}}
 						aria-label={`View ${property.name}`}
 					>
-						<Eye className="h-4 w-4" />
+						<i className="i-lucide-eye inline-block h-4 w-4"  />
 					</Button>
 					<Button
 						variant="ghost"
 						size="sm"
-<<<<<<< HEAD
 						onClick={(e: React.MouseEvent) => {
-=======
-						onClick={e => {
->>>>>>> origin/main
 							e.stopPropagation()
 							onEdit?.(property)
 						}}
 						aria-label={`Edit ${property.name}`}
 					>
-						<Edit3 className="h-4 w-4" />
+						<i className="i-lucide-edit-3 inline-block h-4 w-4"  />
 					</Button>
 				</div>
 			</TableCell>
@@ -174,14 +143,14 @@ function PropertyCard({ property, onView, onEdit }: PropertyCardProps) {
 				<div className="flex items-start justify-between">
 					<div className="flex items-center gap-3">
 						<div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-lg">
-							<Building2 className="text-primary h-5 w-5" />
+							<i className="i-lucide-building-2 inline-block text-primary h-5 w-5"  />
 						</div>
 						<div className="space-y-1">
 							<CardTitle className="text-base leading-none">
 								{property.name}
 							</CardTitle>
 							<div className="text-muted-foreground flex items-center gap-1 text-sm">
-								<MapPin className="h-3 w-3" />
+								<i className="i-lucide-map-pin inline-block h-3 w-3"  />
 								{property.address}
 							</div>
 						</div>
@@ -193,20 +162,20 @@ function PropertyCard({ property, onView, onEdit }: PropertyCardProps) {
 								size="sm"
 								className="h-8 w-8 p-0"
 							>
-								<MoreHorizontal className="h-4 w-4" />
+								<i className="i-lucide-more-horizontal inline-block h-4 w-4"  />
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end">
 							<DropdownMenuItem
 								onClick={() => onView?.(property)}
 							>
-								<Eye className="mr-2 h-4 w-4" />
+								<i className="i-lucide-eye inline-block mr-2 h-4 w-4"  />
 								View Details
 							</DropdownMenuItem>
 							<DropdownMenuItem
 								onClick={() => onEdit?.(property)}
 							>
-								<Edit3 className="mr-2 h-4 w-4" />
+								<i className="i-lucide-edit-3 inline-block mr-2 h-4 w-4"  />
 								Edit Property
 							</DropdownMenuItem>
 						</DropdownMenuContent>
@@ -233,14 +202,14 @@ function PropertyCard({ property, onView, onEdit }: PropertyCardProps) {
 					</div>
 					<div className="grid grid-cols-2 gap-4 text-sm">
 						<div className="flex items-center gap-1">
-							<Home className="text-muted-foreground h-3 w-3" />
+							<i className="i-lucide-home inline-block text-muted-foreground h-3 w-3"  />
 							<span className="text-muted-foreground">
 								Units:
 							</span>
 							<span className="font-medium">{totalUnits}</span>
 						</div>
 						<div className="flex items-center gap-1">
-							<Users className="text-muted-foreground h-3 w-3" />
+							<i className="i-lucide-users inline-block text-muted-foreground h-3 w-3"  />
 							<span className="text-muted-foreground">
 								Tenants:
 							</span>
@@ -261,13 +230,9 @@ function filterProperties(
 	searchQuery: string,
 	propertyType: string
 ): Property[] {
-<<<<<<< HEAD
 	if (!properties) {
 		return []
 	}
-=======
-	if (!properties) return []
->>>>>>> origin/main
 
 	return properties.filter(property => {
 		const matchesSearch =
@@ -309,7 +274,7 @@ function PropertiesTableUI({
 				</CardHeader>
 				<CardContent>
 					<div className="flex flex-col items-center justify-center py-12 text-center">
-						<Building2 className="text-muted-foreground/50 mb-4 h-16 w-16" />
+						<i className="i-lucide-building-2 inline-block text-muted-foreground/50 mb-4 h-16 w-16"  />
 						<h3 className="mb-2 text-lg font-medium">
 							{hasFilters
 								? 'No properties found'

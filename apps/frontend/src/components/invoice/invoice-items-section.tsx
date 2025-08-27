@@ -1,4 +1,3 @@
-import { Plus, Minus, FileText } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,7 +9,6 @@ import type {
 	UseFormGetValues
 } from 'react-hook-form'
 import type { CustomerInvoiceForm } from '@repo/shared'
-<<<<<<< HEAD
 // Local InvoiceItem type
 interface InvoiceItem {
 	id: string
@@ -19,9 +17,6 @@ interface InvoiceItem {
 	unitPrice: number
 	total: number
 }
-=======
-import type { InvoiceItem } from '@/types/components'
->>>>>>> origin/main
 
 // Extended props for the invoice items section
 interface InvoiceItemsSectionProps {
@@ -60,7 +55,7 @@ export function InvoiceItemsSection({
 			<CardHeader className="from-primary/5 to-accent/5 border-border/50 flex items-center justify-center border-b bg-gradient-to-r py-4">
 				<CardTitle className="text-foreground flex items-center justify-center gap-2 text-base">
 					<div className="bg-primary/10 group-hover:bg-primary/20 rounded-lg p-1.5 transition-colors">
-						<FileText className="text-primary h-4 w-4" />
+						<i className="i-lucide-file-text inline-block text-primary h-4 w-4"  />
 					</div>
 					<span className="font-serif">Invoice Items</span>
 				</CardTitle>
@@ -118,7 +113,7 @@ export function InvoiceItemsSection({
 										}}
 										className="h-10 w-10 p-0"
 									>
-										<Minus className="h-4 w-4" />
+										<i className="i-lucide-minus inline-block h-4 w-4"  />
 									</Button>
 									<div className="w-16 text-center text-sm font-medium">
 										{watchedItems[index]?.quantity ?? 0}
@@ -139,7 +134,7 @@ export function InvoiceItemsSection({
 										}}
 										className="h-10 w-10 p-0"
 									>
-										<Plus className="h-4 w-4" />
+										<i className="i-lucide-plus inline-block h-4 w-4"  />
 									</Button>
 								</div>
 							</div>
@@ -200,7 +195,7 @@ export function InvoiceItemsSection({
 								className="bg-primary/10 border-primary/20 text-primary hover:bg-primary hover:text-primary-foreground h-10 w-full max-w-[140px] transition-colors"
 							>
 								<div className="flex items-center gap-2">
-									<Plus className="h-4 w-4" />
+									<i className="i-lucide-plus inline-block h-4 w-4"  />
 									<span>Add Item</span>
 								</div>
 							</Button>

@@ -1,4 +1,3 @@
-import { AlertCircle } from 'lucide-react'
 import type { BaseComponentProps } from '@/types'
 
 interface AuthErrorProps extends BaseComponentProps {
@@ -16,7 +15,7 @@ export function AuthError({ message, type = 'error' }: AuthErrorProps) {
 	return (
 		<div className={`${bgClass} ${borderClass} rounded-md border p-3`}>
 			<div className="flex items-center gap-2">
-				<AlertCircle className={`h-4 w-4 ${iconClass}`} />
+				<i className={`i-lucide-alert-circle h-4 w-4 ${iconClass}`} />
 				<p className={`text-sm ${textClass}`}>{message}</p>
 			</div>
 		</div>

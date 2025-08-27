@@ -18,20 +18,12 @@ import {
 	type StripeElementsOptions
 } from '@stripe/stripe-js'
 import { useThemeManager } from '@/hooks/use-app-store'
-<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
-=======
-import { logger } from '../logger/logger'
->>>>>>> origin/main
 
 // Lazy load Stripe for better performance
 let stripePromise: Promise<Stripe | null> | null = null
 
-<<<<<<< HEAD
 const getStripe = async () => {
-=======
-const getStripe = () => {
->>>>>>> origin/main
 	if (!stripePromise && typeof window !== 'undefined') {
 		const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 
@@ -51,18 +43,9 @@ const getStripe = () => {
 	return stripePromise
 }
 
-export interface EnhancedElementsProviderProps {
-	children: React.ReactNode
-	clientSecret?: string
-	appearance?: 'default' | 'minimal' | 'night'
-	currency?: string
-	amount?: number
-	mode?: 'payment' | 'setup' | 'subscription'
-	customerOptions?: {
-		customer?: string
-		ephemeralKey?: string
-	}
-}
+// Use shared UI types
+import type { EnhancedElementsProviderProps } from '@repo/shared'
+export type { EnhancedElementsProviderProps }
 
 /**
  * Enhanced Stripe Elements Provider with 2025 best practices
@@ -72,33 +55,22 @@ export function EnhancedElementsProvider({
 	clientSecret,
 	appearance = 'default',
 	currency = 'usd',
-<<<<<<< HEAD
 	amount: _amount,
-=======
-	amount,
->>>>>>> origin/main
 	mode = 'payment',
 	customerOptions
 }: EnhancedElementsProviderProps) {
 	const { effectiveTheme } = useThemeManager()
 	const [stripeError, setStripeError] = useState<string | null>(null)
 	const [isRetrying, setIsRetrying] = useState(false)
-<<<<<<< HEAD
 	const [stripeInstance, setStripeInstance] = useState<Stripe | null>(null)
 	const [isLoading, setIsLoading] = useState(true)
-=======
->>>>>>> origin/main
 
 	// Enhanced appearance configuration with theme integration
 	const elementsAppearance = useMemo(() => {
 		const isDark = effectiveTheme === 'dark'
 
 		const baseAppearance = {
-<<<<<<< HEAD
 			theme: (isDark ? 'night' : 'stripe') as 'flat' | 'stripe' | 'night',
-=======
-			theme: (isDark ? 'night' : 'stripe') as 'night' | 'stripe',
->>>>>>> origin/main
 
 			// Enhanced styling variables for 2025
 			variables: {
@@ -216,12 +188,7 @@ export function EnhancedElementsProvider({
 			appearance: elementsAppearance,
 
 			// Improved customer session support
-<<<<<<< HEAD
 			...(customerOptions?.customer &&
-=======
-			...(customerOptions &&
-				customerOptions.customer &&
->>>>>>> origin/main
 				customerOptions.ephemeralKey && {
 					customerOptions: {
 						customer: customerOptions.customer,
@@ -274,7 +241,6 @@ export function EnhancedElementsProvider({
 
 	// Monitor Stripe loading state
 	useEffect(() => {
-<<<<<<< HEAD
 		const loadStripeInstance = async () => {
 			try {
 				setIsLoading(true)
@@ -289,12 +255,6 @@ export function EnhancedElementsProvider({
 		}
 
 		void loadStripeInstance()
-=======
-		const stripe = getStripe()
-		if (stripe) {
-			stripe.catch(handleStripeError)
-		}
->>>>>>> origin/main
 	}, [])
 
 	// Show error state with retry option
@@ -321,7 +281,6 @@ export function EnhancedElementsProvider({
 				<button
 					onClick={() => {
 						setStripeError(null)
-<<<<<<< HEAD
 						setIsRetrying(true)
 						stripePromise = null
 						// Reload Stripe
@@ -337,9 +296,6 @@ export function EnhancedElementsProvider({
 							}
 						}
 						void loadStripeInstance()
-=======
-						stripePromise = null
->>>>>>> origin/main
 					}}
 					className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
 				>
@@ -353,32 +309,18 @@ export function EnhancedElementsProvider({
 	if (isRetrying) {
 		return (
 			<div className="flex flex-col items-center justify-center p-8">
-<<<<<<< HEAD
 				<div className="mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600" />
-=======
-				<div className="mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
->>>>>>> origin/main
 				<p className="text-gray-600">Reconnecting payment system...</p>
 			</div>
 		)
 	}
 
-<<<<<<< HEAD
 	// Show loading state while Stripe is being initialized
 	if (isLoading || !stripeInstance) {
 		return (
 			<div className="flex items-center justify-center p-8">
 				<div className="text-center">
 					<div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600" />
-=======
-	const stripe = getStripe()
-
-	if (!stripe) {
-		return (
-			<div className="flex items-center justify-center p-8">
-				<div className="text-center">
-					<div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
->>>>>>> origin/main
 					<p className="text-gray-600">Loading payment system...</p>
 				</div>
 			</div>
@@ -387,11 +329,7 @@ export function EnhancedElementsProvider({
 
 	return (
 		<Elements
-<<<<<<< HEAD
 			stripe={stripeInstance}
-=======
-			stripe={stripe}
->>>>>>> origin/main
 			options={elementsOptions}
 			key={`${effectiveTheme}-${appearance}-${mode}`} // Force re-render on theme/mode changes
 		>

@@ -1,9 +1,5 @@
 import { useState } from 'react'
-<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
-=======
-import { logger } from '@/lib/logger'
->>>>>>> origin/main
 import NextImage from 'next/image'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -21,14 +17,6 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import {
-	Image as ImageIcon,
-	MoreVertical,
-	Trash2,
-	Star,
-	Eye,
-	Upload
-} from 'lucide-react'
 import { toast } from 'sonner'
 import { motion } from '@/lib/lazy-motion'
 import type { Property } from '@repo/shared'
@@ -126,14 +114,10 @@ export default function PropertyImageGallery({
 			<Card className={className}>
 				<CardHeader>
 					<CardTitle className="flex items-center">
-<<<<<<< HEAD
 						<ImageIcon
 							className="mr-2 h-5 w-5"
 							aria-hidden="true"
 						/>
-=======
-						<Image className="mr-2 h-5 w-5" aria-hidden="true" />
->>>>>>> origin/main
 						Property Images
 					</CardTitle>
 				</CardHeader>
@@ -175,11 +159,7 @@ export default function PropertyImageGallery({
 				<CardHeader>
 					<div className="flex items-center justify-between">
 						<CardTitle className="flex items-center">
-<<<<<<< HEAD
 							<ImageIcon
-=======
-							<Image
->>>>>>> origin/main
 								className="mr-2 h-5 w-5"
 								aria-hidden="true"
 							/>
@@ -187,7 +167,7 @@ export default function PropertyImageGallery({
 						</CardTitle>
 						{onUploadClick && (
 							<Button onClick={onUploadClick} size="sm">
-								<Upload className="mr-2 h-4 w-4" />
+								<i className="i-lucide-upload inline-block mr-2 h-4 w-4"  />
 								Upload Images
 							</Button>
 						)}
@@ -196,11 +176,7 @@ export default function PropertyImageGallery({
 				<CardContent>
 					{images.length === 0 ? (
 						<div className="py-12 text-center">
-<<<<<<< HEAD
 							<ImageIcon
-=======
-							<Image
->>>>>>> origin/main
 								className="mx-auto mb-4 h-12 w-12 text-gray-400"
 								aria-hidden="true"
 							/>
@@ -212,7 +188,7 @@ export default function PropertyImageGallery({
 							</p>
 							{onUploadClick && (
 								<Button onClick={onUploadClick}>
-									<Upload className="mr-2 h-4 w-4" />
+									<i className="i-lucide-upload inline-block mr-2 h-4 w-4"  />
 									Upload First Image
 								</Button>
 							)}
@@ -241,7 +217,7 @@ export default function PropertyImageGallery({
 										{/* Primary image badge */}
 										{isPrimaryImage(image.url) && (
 											<Badge className="absolute left-2 top-2 bg-yellow-500 text-white">
-												<Star className="mr-1 h-3 w-3" />
+												<i className="i-lucide-star inline-block mr-1 h-3 w-3"  />
 												Primary
 											</Badge>
 										)}
@@ -255,7 +231,7 @@ export default function PropertyImageGallery({
 														variant="secondary"
 														className="h-8 w-8 p-0"
 													>
-														<MoreVertical className="h-4 w-4" />
+														<i className="i-lucide-more-vertical inline-block h-4 w-4"  />
 													</Button>
 												</DropdownMenuTrigger>
 												<DropdownMenuContent align="end">
@@ -266,7 +242,7 @@ export default function PropertyImageGallery({
 															)
 														}
 													>
-														<Eye className="mr-2 h-4 w-4" />
+														<i className="i-lucide-eye inline-block mr-2 h-4 w-4"  />
 														View Full Size
 													</DropdownMenuItem>
 													{!isPrimaryImage(
@@ -283,7 +259,7 @@ export default function PropertyImageGallery({
 																setPrimaryImage.isPending
 															}
 														>
-															<Star className="mr-2 h-4 w-4" />
+															<i className="i-lucide-star inline-block mr-2 h-4 w-4"  />
 															Set as Primary
 														</DropdownMenuItem>
 													)}
@@ -295,7 +271,7 @@ export default function PropertyImageGallery({
 														}
 														className="text-red-600"
 													>
-														<Trash2 className="mr-2 h-4 w-4" />
+														<i className="i-lucide-trash-2 inline-block mr-2 h-4 w-4"  />
 														Delete
 													</DropdownMenuItem>
 												</DropdownMenuContent>

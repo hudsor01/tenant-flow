@@ -6,7 +6,6 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown, ChevronUp } from 'lucide-react'
 
 const faqs = [
 	{
@@ -76,9 +75,9 @@ export function PricingFAQ() {
 									{faq.question}
 								</h3>
 								{openIndex === index ? (
-									<ChevronUp className="h-5 w-5 flex-shrink-0 text-gray-500" />
+									<i className="i-lucide-chevron-up inline-block h-5 w-5 flex-shrink-0 text-gray-500"  />
 								) : (
-									<ChevronDown className="h-5 w-5 flex-shrink-0 text-gray-500" />
+									<i className="i-lucide-chevron-down inline-block h-5 w-5 flex-shrink-0 text-gray-500"  />
 								)}
 							</button>
 

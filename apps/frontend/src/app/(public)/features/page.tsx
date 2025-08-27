@@ -2,25 +2,10 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import {
-	Building2,
-	Users,
-	FileText,
-	CreditCard,
-	Wrench,
-	BarChart3,
-	ArrowRight,
-	CheckCircle,
-	Sparkles,
-	Shield,
-	Zap,
-	Clock,
-	Smartphone
-} from 'lucide-react'
 
 const features = [
 	{
-		icon: Building2,
+		icon: 'i-lucide-building-2',
 		title: 'Property Management',
 		description:
 			'Comprehensive property portfolio management with occupancy tracking',
@@ -33,7 +18,7 @@ const features = [
 		gradient: 'from-primary to-cyan-500'
 	},
 	{
-		icon: Users,
+		icon: 'i-lucide-users',
 		title: 'Tenant Portal',
 		description:
 			'Self-service portal for tenants to manage their rental experience',
@@ -46,7 +31,7 @@ const features = [
 		gradient: 'from-purple-500 to-pink-500'
 	},
 	{
-		icon: CreditCard,
+		icon: 'i-lucide-credit-card',
 		title: 'Online Payments',
 		description: 'Secure payment processing with automated reminders',
 		details: [
@@ -58,7 +43,7 @@ const features = [
 		gradient: 'from-green-500 to-emerald-500'
 	},
 	{
-		icon: FileText,
+		icon: 'i-lucide-file-text',
 		title: 'Digital Leases',
 		description: 'Create, sign, and manage lease agreements electronically',
 		details: [
@@ -70,7 +55,7 @@ const features = [
 		gradient: 'from-orange-500 to-red-500'
 	},
 	{
-		icon: Wrench,
+		icon: 'i-lucide-wrench',
 		title: 'Maintenance Tracking',
 		description:
 			'Streamlined maintenance request and work order management',
@@ -83,7 +68,7 @@ const features = [
 		gradient: 'from-pink-500 to-rose-500'
 	},
 	{
-		icon: BarChart3,
+		icon: 'i-lucide-bar-chart-3',
 		title: 'Analytics & Reports',
 		description: 'Comprehensive financial and operational reporting',
 		details: [
@@ -98,22 +83,22 @@ const features = [
 
 const additionalFeatures = [
 	{
-		icon: Smartphone,
+		icon: 'i-lucide-smartphone',
 		title: 'Mobile App',
 		description: 'Manage properties on-the-go with our mobile application'
 	},
 	{
-		icon: Shield,
+		icon: 'i-lucide-shield',
 		title: 'Security & Compliance',
 		description: 'Bank-level security with compliance reporting'
 	},
 	{
-		icon: Zap,
+		icon: 'i-lucide-zap',
 		title: 'API Integration',
 		description: 'Connect with your favorite tools via our robust API'
 	},
 	{
-		icon: Clock,
+		icon: 'i-lucide-clock',
 		title: '24/7 Support',
 		description: 'Round-the-clock customer support and assistance'
 	}
@@ -129,7 +114,7 @@ export default function FeaturesPage() {
 						href="/"
 						className="group flex items-center space-x-2"
 					>
-						<Building2 className="text-primary h-8 w-8 transition-transform group-hover:scale-110" />
+						<i className="i-lucide-building-2 inline-block text-primary h-8 w-8 transition-transform group-hover:scale-110"  />
 						<span className="from-primary bg-gradient-to-r to-purple-600 bg-clip-text text-xl font-bold text-transparent">
 							TenantFlow
 						</span>
@@ -141,14 +126,10 @@ export default function FeaturesPage() {
 			</nav>
 
 			{/* Hero Section */}
-<<<<<<< HEAD
 			<section className="bg-gradient-to-br from-blue-50 to-purple-50 px-4 pb-12 pt-24">
-=======
-			<section className="bg-gradient-to-br from-blue-50 to-purple-50 px-4 pt-24 pb-12">
->>>>>>> origin/main
 				<div className="container mx-auto text-center">
 					<Badge className="from-primary mb-6 bg-gradient-to-r to-purple-600 text-white">
-						<Sparkles className="mr-2 h-4 w-4" />
+						<i className="i-lucide-sparkles inline-block mr-2 h-4 w-4"  />
 						Complete Feature Set
 					</Badge>
 					<h1 className="mb-6 bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-5xl font-bold text-transparent">
@@ -167,7 +148,6 @@ export default function FeaturesPage() {
 				<div className="container mx-auto">
 					<div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
 						{features.map((feature, index) => {
-							const Icon = feature.icon
 							return (
 								<Card
 									key={index}
@@ -177,7 +157,7 @@ export default function FeaturesPage() {
 										<div
 											className={`h-14 w-14 rounded-xl bg-gradient-to-br ${feature.gradient} mb-6 flex items-center justify-center`}
 										>
-											<Icon className="h-7 w-7 text-white" />
+											<i className={`${feature.icon} h-7 w-7 inline-block text-white`} />
 										</div>
 										<h3 className="mb-3 text-xl font-semibold text-gray-900">
 											{feature.title}
@@ -192,7 +172,7 @@ export default function FeaturesPage() {
 														key={idx}
 														className="flex items-center text-sm text-gray-600"
 													>
-														<CheckCircle className="mr-2 h-4 w-4 flex-shrink-0 text-green-500" />
+														<i className="i-lucide-check-circle inline-block mr-2 h-4 w-4 flex-shrink-0 text-green-500" />
 														{detail}
 													</li>
 												)
@@ -220,13 +200,12 @@ export default function FeaturesPage() {
 					</div>
 					<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
 						{additionalFeatures.map((feature, index) => {
-							const Icon = feature.icon
 							return (
 								<Card
 									key={index}
 									className="p-6 text-center transition-shadow hover:shadow-lg"
 								>
-									<Icon className="text-primary mx-auto mb-4 h-8 w-8" />
+									<i className={`${feature.icon} text-primary mx-auto mb-4 h-8 w-8 inline-block`} />
 									<h3 className="mb-2 font-semibold">
 										{feature.title}
 									</h3>
@@ -256,7 +235,7 @@ export default function FeaturesPage() {
 								className="text-primary inline-flex items-center bg-white hover:bg-gray-100"
 							>
 								Start Free Trial
-								<ArrowRight className="ml-2 h-5 w-5" />
+								<i className="i-lucide-arrow-right inline-block ml-2 h-5 w-5"  />
 							</Button>
 						</Link>
 						<Link href="/pricing">

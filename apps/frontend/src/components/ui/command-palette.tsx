@@ -29,20 +29,6 @@ import { useRouter } from 'next/navigation'
 import { Command as CommandPrimitive } from 'cmdk'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
-import {
-	Home,
-	Building,
-	Users,
-	FileText,
-	Wrench,
-	BarChart3,
-	Settings,
-	Plus,
-	Search,
-	Activity,
-	Bell,
-	User
-} from 'lucide-react'
 // cn utility removed as not used in this component
 import { useProperties } from '@/hooks/api/use-properties'
 import { useTenants } from '@/hooks/api/use-tenants'
@@ -89,11 +75,7 @@ export function CommandPalette() {
 	)
 	const { data: leases = [] } = useLeases({ limit: 10 }, { enabled: isOpen })
 	const { data: maintenance = [] } = useMaintenanceRequests(
-<<<<<<< HEAD
 		{},
-=======
-		{ limit: 10 },
->>>>>>> origin/main
 		{ enabled: isOpen }
 	)
 
@@ -101,23 +83,14 @@ export function CommandPalette() {
 	const recentItems: CommandItem[] = []
 	const addRecentItem = useCallback(
 		(
-<<<<<<< HEAD
 			_item: Partial<CommandItem> & {
-=======
-			item: Partial<CommandItem> & {
->>>>>>> origin/main
 				id: string
 				title: string
 				href?: string
 				type?: string
 			}
 		) => {
-<<<<<<< HEAD
 			// TODO: Implement persistent storage for recent items
-=======
-			// Would normally add to persistent storage
-			console.log('Adding recent item:', item)
->>>>>>> origin/main
 		},
 		[]
 	)
@@ -400,11 +373,7 @@ export function CommandPalette() {
 
 	// Maintenance items
 	const maintenanceItems: CommandItem[] = maintenance.map(
-<<<<<<< HEAD
 		(request: MaintenanceRequest, index: number) => ({
-=======
-		(request: MaintenanceRequest, index) => ({
->>>>>>> origin/main
 			id: `maintenance-${request.id}`,
 			title: request.title,
 			subtitle: request.status,
@@ -505,13 +474,9 @@ export function CommandPalette() {
 
 	// Filter items based on search
 	const filteredGroups = React.useMemo(() => {
-<<<<<<< HEAD
 		if (!search) {
 			return groupedItems
 		}
-=======
-		if (!search) return groupedItems
->>>>>>> origin/main
 
 		return groupedItems
 			.map(group => ({
@@ -572,7 +537,7 @@ export function CommandPalette() {
 			<DialogContent className="max-w-2xl p-0">
 				<CommandPrimitive className="rounded-lg border border-gray-200 shadow-md">
 					<div className="flex items-center border-b px-3">
-						<Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+						<i className="i-lucide-search inline-block mr-2 h-4 w-4 shrink-0 opacity-50"  />
 						<CommandPrimitive.Input
 							placeholder="Search for commands, properties, tenants..."
 							value={search}
@@ -580,11 +545,7 @@ export function CommandPalette() {
 							className="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-gray-500 disabled:cursor-not-allowed disabled:opacity-50"
 						/>
 						<div className="ml-auto flex items-center gap-1">
-<<<<<<< HEAD
 							<kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-gray-100 px-1.5 font-mono text-[10px] font-medium text-gray-600">
-=======
-							<kbd className="pointer-events-none inline-flex h-5 items-center gap-1 rounded border bg-gray-100 px-1.5 font-mono text-[10px] font-medium text-gray-600 select-none">
->>>>>>> origin/main
 								<span className="text-xs">⌘</span>K
 							</kbd>
 						</div>
@@ -592,7 +553,7 @@ export function CommandPalette() {
 					<CommandPrimitive.List className="max-h-[400px] overflow-y-auto">
 						{filteredGroups.length === 0 && (
 							<CommandPrimitive.Empty className="flex flex-col items-center justify-center py-6 text-center">
-								<Search className="mb-2 h-8 w-8 text-gray-400" />
+								<i className="i-lucide-search inline-block mb-2 h-8 w-8 text-gray-400"  />
 								<p className="text-sm text-gray-500">
 									No results found.
 								</p>

@@ -367,13 +367,9 @@ export function useBlogArticleData() {
 			blogArticles.filter(article => article.category === category),
 		getRelatedArticles: (articleId: string, limit = 3) => {
 			const article = blogArticles.find(a => a.id === articleId)
-<<<<<<< HEAD
 			if (!article) {
 				return []
 			}
-=======
-			if (!article) return []
->>>>>>> origin/main
 
 			return blogArticles
 				.filter(

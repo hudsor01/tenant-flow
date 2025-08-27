@@ -11,21 +11,7 @@ import {
 } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { billingApi, billingKeys } from '@/lib/api/billing'
-<<<<<<< HEAD
 import type { PaymentMethod, Subscription } from '@repo/shared'
-=======
-import type {
-	Invoice,
-	PaymentMethod,
-	UpdateSubscriptionParams,
-	Subscription,
-	CheckoutResponse,
-	PortalResponse,
-	// UsageMetrics, // TODO: Define this type when needed
-	CreateCheckoutInput as CreateCheckoutSessionParams,
-	CreatePortalInput as CreatePortalSessionParams
-} from '@repo/shared'
->>>>>>> origin/main
 
 // Portal redirect response type for operations handled through Stripe Portal
 interface PortalRedirectResponse {
@@ -39,11 +25,7 @@ interface PortalRedirectResponse {
 export function useSubscription(options?: {
 	enabled?: boolean
 	refetchInterval?: number
-<<<<<<< HEAD
 }): UseQueryResult<Subscription> {
-=======
-}): UseQueryResult<Subscription, Error> {
->>>>>>> origin/main
 	return useQuery({
 		queryKey: billingKeys.subscription(),
 		queryFn: billingApi.getSubscription,
@@ -60,11 +42,7 @@ export function useSubscription(options?: {
 export function useInvoices(options?: {
 	enabled?: boolean
 	refetchInterval?: number
-<<<<<<< HEAD
 }): UseQueryResult<PortalRedirectResponse> {
-=======
-}): UseQueryResult<PortalRedirectResponse, Error> {
->>>>>>> origin/main
 	return useQuery({
 		queryKey: billingKeys.invoices(),
 		queryFn: billingApi.getInvoices,
@@ -79,11 +57,7 @@ export function useInvoices(options?: {
  */
 export function usePaymentMethods(options?: {
 	enabled?: boolean
-<<<<<<< HEAD
 }): UseQueryResult<PortalRedirectResponse> {
-=======
-}): UseQueryResult<PortalRedirectResponse, Error> {
->>>>>>> origin/main
 	return useQuery({
 		queryKey: billingKeys.paymentMethods(),
 		queryFn: billingApi.getPaymentMethods,
@@ -95,11 +69,7 @@ export function usePaymentMethods(options?: {
 /**
  * Fetch usage metrics
  */
-<<<<<<< HEAD
 export function useUsageMetrics(_options?: {
-=======
-export function useUsageMetrics(options?: {
->>>>>>> origin/main
 	enabled?: boolean
 	refetchInterval?: number
 }) {
@@ -108,11 +78,7 @@ export function useUsageMetrics(options?: {
 		data: undefined,
 		isLoading: false,
 		error: null,
-<<<<<<< HEAD
 		refetch: async () => Promise.resolve({ data: undefined })
-=======
-		refetch: () => Promise.resolve({ data: undefined })
->>>>>>> origin/main
 	}
 }
 
@@ -120,11 +86,7 @@ export function useUsageMetrics(options?: {
  * Create checkout session for new subscription
  */
 export function useCreateCheckoutSession(): UseMutationResult<
-<<<<<<< HEAD
 	{ url: string; sessionId?: string },
-=======
-	{ url: string; sessionId: string },
->>>>>>> origin/main
 	Error,
 	{
 		planId: string
@@ -150,11 +112,7 @@ export function useCreateCheckoutSession(): UseMutationResult<
 			}
 
 			// Invalidate subscription data
-<<<<<<< HEAD
 			void queryClient.invalidateQueries({
-=======
-			queryClient.invalidateQueries({
->>>>>>> origin/main
 				queryKey: billingKeys.subscription()
 			})
 		},
@@ -168,21 +126,13 @@ export function useCreateCheckoutSession(): UseMutationResult<
  * Create customer portal session
  */
 export function useCreatePortalSession(): UseMutationResult<
-<<<<<<< HEAD
 	{ url?: string },
-=======
-	PortalResponse,
->>>>>>> origin/main
 	Error,
 	{ returnUrl?: string; prefillEmail?: string } | undefined
 > {
 	return useMutation({
 		mutationFn: async data => {
-<<<<<<< HEAD
 			const portalData: { returnUrl?: string; prefillEmail?: string } = {
-=======
-			const portalData: CreatePortalSessionParams = {
->>>>>>> origin/main
 				returnUrl: data?.returnUrl || window.location.origin,
 				...(data?.prefillEmail && { prefillEmail: data.prefillEmail })
 			}
@@ -221,11 +171,7 @@ export function useUpdateSubscription(): UseMutationResult<
 
 	return useMutation({
 		mutationFn: billingApi.updateSubscription,
-<<<<<<< HEAD
 		onMutate: async _params => {
-=======
-		onMutate: async params => {
->>>>>>> origin/main
 			// Cancel any outgoing refetches
 			await queryClient.cancelQueries({
 				queryKey: billingKeys.subscription()
@@ -260,7 +206,6 @@ export function useUpdateSubscription(): UseMutationResult<
 		},
 		onSettled: () => {
 			// Always refetch after error or success
-<<<<<<< HEAD
 			void queryClient.invalidateQueries({
 				queryKey: billingKeys.subscription()
 			})
@@ -270,13 +215,6 @@ export function useUpdateSubscription(): UseMutationResult<
 			void queryClient.invalidateQueries({
 				queryKey: billingKeys.invoices()
 			})
-=======
-			queryClient.invalidateQueries({
-				queryKey: billingKeys.subscription()
-			})
-			queryClient.invalidateQueries({ queryKey: billingKeys.usage() })
-			queryClient.invalidateQueries({ queryKey: billingKeys.invoices() })
->>>>>>> origin/main
 		}
 	})
 }
@@ -336,7 +274,6 @@ export function useCancelSubscription(): UseMutationResult<
 		},
 		onSettled: () => {
 			// Always refetch after error or success
-<<<<<<< HEAD
 			void queryClient.invalidateQueries({
 				queryKey: billingKeys.subscription()
 			})
@@ -346,13 +283,6 @@ export function useCancelSubscription(): UseMutationResult<
 			void queryClient.invalidateQueries({
 				queryKey: billingKeys.invoices()
 			})
-=======
-			queryClient.invalidateQueries({
-				queryKey: billingKeys.subscription()
-			})
-			queryClient.invalidateQueries({ queryKey: billingKeys.usage() })
-			queryClient.invalidateQueries({ queryKey: billingKeys.invoices() })
->>>>>>> origin/main
 		}
 	})
 }
@@ -368,11 +298,7 @@ export function useAddPaymentMethod(): UseMutationResult<
 	const queryClient = useQueryClient()
 
 	return useMutation({
-<<<<<<< HEAD
 		mutationFn: async ({ paymentMethodId }) => {
-=======
-		mutationFn: async ({ paymentMethodId, setAsDefault = false }) => {
->>>>>>> origin/main
 			const result = await billingApi.addPaymentMethod(paymentMethodId)
 
 			// Note: setAsDefault is handled through the portal
@@ -389,17 +315,10 @@ export function useAddPaymentMethod(): UseMutationResult<
 			toast.error('Failed to add payment method')
 		},
 		onSettled: () => {
-<<<<<<< HEAD
 			void queryClient.invalidateQueries({
 				queryKey: billingKeys.paymentMethods()
 			})
 			void queryClient.invalidateQueries({
-=======
-			queryClient.invalidateQueries({
-				queryKey: billingKeys.paymentMethods()
-			})
-			queryClient.invalidateQueries({
->>>>>>> origin/main
 				queryKey: billingKeys.subscription()
 			})
 		}
@@ -417,11 +336,7 @@ export function useUpdatePaymentMethod(): UseMutationResult<
 	const queryClient = useQueryClient()
 
 	return useMutation({
-<<<<<<< HEAD
 		mutationFn: async ({ paymentMethodId }) =>
-=======
-		mutationFn: ({ paymentMethodId }) =>
->>>>>>> origin/main
 			billingApi.setDefaultPaymentMethod(paymentMethodId),
 		onMutate: async ({ paymentMethodId }) => {
 			// Cancel any outgoing refetches
@@ -461,17 +376,10 @@ export function useUpdatePaymentMethod(): UseMutationResult<
 		},
 		onSettled: () => {
 			// Always refetch after error or success
-<<<<<<< HEAD
 			void queryClient.invalidateQueries({
 				queryKey: billingKeys.paymentMethods()
 			})
 			void queryClient.invalidateQueries({
-=======
-			queryClient.invalidateQueries({
-				queryKey: billingKeys.paymentMethods()
-			})
-			queryClient.invalidateQueries({
->>>>>>> origin/main
 				queryKey: billingKeys.subscription()
 			})
 		}
@@ -487,14 +395,9 @@ export function useDownloadInvoice(): UseMutationResult<
 	{ invoiceId: string; filename?: string }
 > {
 	return useMutation({
-<<<<<<< HEAD
 		mutationFn: async ({ invoiceId }) =>
 			billingApi.downloadInvoice(invoiceId),
 		onSuccess: data => {
-=======
-		mutationFn: ({ invoiceId }) => billingApi.downloadInvoice(invoiceId),
-		onSuccess: (data, { invoiceId, filename }) => {
->>>>>>> origin/main
 			// Redirect to portal for invoice download
 			if (data.portalUrl) {
 				try {

@@ -1,5 +1,3 @@
-'use client'
-
 import { useTenants } from '@/hooks/api/use-tenants'
 import {
 	Card,
@@ -12,10 +10,6 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
-<<<<<<< HEAD
-=======
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
->>>>>>> origin/main
 import {
 	Table,
 	TableBody,
@@ -24,21 +18,6 @@ import {
 	TableHeader,
 	TableRow
 } from '@/components/ui/table'
-import {
-	Users,
-	Eye,
-	Edit3,
-	Mail,
-	Phone,
-	Building,
-	Calendar,
-<<<<<<< HEAD
-	// AlertTriangle removed - unused
-=======
-	AlertTriangle,
->>>>>>> origin/main
-	Plus
-} from 'lucide-react'
 import Link from 'next/link'
 import type { TenantWithLeases } from '@repo/shared'
 
@@ -78,15 +57,11 @@ function TenantRow({ tenant }: { tenant: TenantWithLeases }) {
 						</AvatarFallback>
 					</Avatar>
 					<div className="space-y-1">
-<<<<<<< HEAD
 						<p className="font-medium leading-none">
-=======
-						<p className="leading-none font-medium">
->>>>>>> origin/main
 							{tenant.name}
 						</p>
 						<div className="text-muted-foreground flex items-center gap-1 text-sm">
-							<Mail className="h-3 w-3" />
+							<i className="i-lucide-mail inline-block h-3 w-3"  />
 							{tenant.email}
 						</div>
 					</div>
@@ -95,7 +70,7 @@ function TenantRow({ tenant }: { tenant: TenantWithLeases }) {
 			<TableCell>
 				{tenant.phone ? (
 					<div className="flex items-center gap-1 text-sm">
-						<Phone className="text-muted-foreground h-3 w-3" />
+						<i className="i-lucide-phone inline-block text-muted-foreground h-3 w-3"  />
 						{tenant.phone}
 					</div>
 				) : (
@@ -123,7 +98,7 @@ function TenantRow({ tenant }: { tenant: TenantWithLeases }) {
 			<TableCell>
 				{property ? (
 					<div className="flex items-center gap-1 text-sm">
-						<Building className="text-muted-foreground h-3 w-3" />
+						<i className="i-lucide-building inline-block text-muted-foreground h-3 w-3"  />
 						<span
 							className="max-w-[150px] truncate"
 							title={property.name}
@@ -140,7 +115,7 @@ function TenantRow({ tenant }: { tenant: TenantWithLeases }) {
 			<TableCell>
 				{activeLease ? (
 					<div className="flex items-center gap-1 text-sm">
-						<Calendar className="text-muted-foreground h-3 w-3" />
+						<i className="i-lucide-calendar inline-block text-muted-foreground h-3 w-3"  />
 						{new Date(activeLease.endDate).toLocaleDateString()}
 					</div>
 				) : (
@@ -151,12 +126,12 @@ function TenantRow({ tenant }: { tenant: TenantWithLeases }) {
 				<div className="flex items-center gap-2">
 					<Link href={`/tenants/${tenant.id}`}>
 						<Button variant="ghost" size="sm">
-							<Eye className="h-4 w-4" />
+							<i className="i-lucide-eye inline-block h-4 w-4"  />
 						</Button>
 					</Link>
 					<Link href={`/tenants/${tenant.id}/edit`}>
 						<Button variant="ghost" size="sm">
-							<Edit3 className="h-4 w-4" />
+							<i className="i-lucide-edit-3 inline-block h-4 w-4"  />
 						</Button>
 					</Link>
 				</div>
@@ -200,7 +175,7 @@ function TenantsTableUI({ tenants }: TenantsTableUIProps) {
 				</CardHeader>
 				<CardContent>
 					<div className="flex flex-col items-center justify-center py-12 text-center">
-						<Users className="text-muted-foreground/50 mb-4 h-16 w-16" />
+						<i className="i-lucide-users inline-block text-muted-foreground/50 mb-4 h-16 w-16"  />
 						<h3 className="mb-2 text-lg font-medium">
 							No tenants yet
 						</h3>
@@ -210,7 +185,7 @@ function TenantsTableUI({ tenants }: TenantsTableUIProps) {
 						</p>
 						<Link href="/tenants/new">
 							<Button>
-								<Plus className="mr-2 h-4 w-4" />
+								<i className="i-lucide-plus mr-2 h-4 w-4" />
 								Add First Tenant
 							</Button>
 						</Link>
@@ -232,7 +207,7 @@ function TenantsTableUI({ tenants }: TenantsTableUIProps) {
 					</div>
 					<Link href="/tenants/new">
 						<Button size="sm">
-							<Plus className="mr-2 h-4 w-4" />
+							<i className="i-lucide-plus mr-2 h-4 w-4" />
 							Add Tenant
 						</Button>
 					</Link>

@@ -1,326 +1,146 @@
 /**
- * React Query hooks for Leases
- * Native TanStack Query implementation - no custom abstractions
+ * React 19 + TanStack Query v5 Leases Hooks - Pure useOptimistic Implementation
+ * ARCHITECTURE: React 19 useOptimistic is the ONLY pattern - no legacy TanStack Query mutations
+ * PURE: Combines native React 19 optimistic updates with TanStack Query Suspense
  */
 import {
-	useQuery,
-	useMutation,
+	useSuspenseQuery,
 	useQueryClient,
-	type UseQueryResult,
-	type UseMutationResult
+	type UseSuspenseQueryResult
 } from '@tanstack/react-query'
-import { toast } from 'sonner'
-<<<<<<< HEAD
-import { leaseApi } from '@/lib/api/leases'
-import type { LeaseStats } from '@repo/shared'
-import { queryKeys } from '@/lib/react-query/query-keys'
-=======
-import { leaseApi, leaseKeys, type LeaseStats } from '@/lib/api/leases'
->>>>>>> origin/main
 import type {
 	Lease,
 	LeaseQuery,
 	CreateLeaseInput,
-	UpdateLeaseInput
+	UpdateLeaseInput,
+	LeaseStats
 } from '@repo/shared'
+import { leaseApi } from '@/lib/api/leases'
+import { queryKeys } from '@/lib/react-query/query-keys'
+import { useOptimisticList, useOptimisticItem } from '@/hooks/use-react19-optimistic'
+
+// ============================================================================
+// PURE DATA HOOKS - TanStack Query Suspense (No Optimistic Logic)
+// ============================================================================
 
 /**
- * Fetch list of leases with optional filters
+ * PURE: useSuspenseQuery for leases list - data always available
  */
-export function useLeases(
-	query?: LeaseQuery,
-	options?: { enabled?: boolean }
-<<<<<<< HEAD
-): UseQueryResult<Lease[]> {
-	return useQuery({
+export function useLeases(query?: LeaseQuery): UseSuspenseQueryResult<Lease[]> {
+	return useSuspenseQuery({
 		queryKey: queryKeys.leases.list(query),
 		queryFn: async () => leaseApi.getAll(query),
-=======
-): UseQueryResult<Lease[], Error> {
-	return useQuery({
-		queryKey: leaseKeys.list(query),
-		queryFn: () => leaseApi.getAll(query),
->>>>>>> origin/main
-		enabled: options?.enabled ?? true,
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000 // 10 minutes
 	})
 }
 
 /**
- * Fetch single lease by ID
+ * PURE: useSuspenseQuery for single lease - no loading states needed
  */
-export function useLease(
-	id: string,
-	options?: { enabled?: boolean }
-<<<<<<< HEAD
-): UseQueryResult<Lease> {
-	return useQuery({
+export function useLease(id: string): UseSuspenseQueryResult<Lease> {
+	return useSuspenseQuery({
 		queryKey: queryKeys.leases.detail(id),
 		queryFn: async () => leaseApi.getById(id),
-=======
-): UseQueryResult<Lease, Error> {
-	return useQuery({
-		queryKey: leaseKeys.detail(id),
-		queryFn: () => leaseApi.getById(id),
->>>>>>> origin/main
-		enabled: Boolean(id) && (options?.enabled ?? true),
 		staleTime: 2 * 60 * 1000 // 2 minutes
 	})
 }
 
 /**
- * Fetch leases by property ID
+ * PURE: useSuspenseQuery for leases by property - data always available
  */
-export function useLeasesByProperty(
-	propertyId: string,
-	options?: { enabled?: boolean }
-<<<<<<< HEAD
-): UseQueryResult<Lease[]> {
-	return useQuery({
+export function useLeasesByProperty(propertyId: string): UseSuspenseQueryResult<Lease[]> {
+	return useSuspenseQuery({
 		queryKey: queryKeys.leases.byProperty(propertyId),
 		queryFn: async () => leaseApi.getByProperty(propertyId),
-=======
-): UseQueryResult<Lease[], Error> {
-	return useQuery({
-		queryKey: leaseKeys.byProperty(propertyId),
-		queryFn: () => leaseApi.getByProperty(propertyId),
->>>>>>> origin/main
-		enabled: Boolean(propertyId) && (options?.enabled ?? true),
 		staleTime: 2 * 60 * 1000 // 2 minutes
 	})
 }
 
 /**
- * Fetch leases by tenant ID
+ * PURE: useSuspenseQuery for lease statistics - perfect for dashboards
  */
-export function useLeasesByTenant(
-	tenantId: string,
-	options?: { enabled?: boolean }
-<<<<<<< HEAD
-): UseQueryResult<Lease[]> {
-	return useQuery({
-		queryKey: queryKeys.leases.byTenant(tenantId),
-		queryFn: async () => leaseApi.getByTenant(tenantId),
-=======
-): UseQueryResult<Lease[], Error> {
-	return useQuery({
-		queryKey: leaseKeys.byTenant(tenantId),
-		queryFn: () => leaseApi.getByTenant(tenantId),
->>>>>>> origin/main
-		enabled: Boolean(tenantId) && (options?.enabled ?? true),
-		staleTime: 2 * 60 * 1000 // 2 minutes
-	})
-}
-
-/**
- * Fetch lease statistics
- */
-<<<<<<< HEAD
-export function useLeaseStats(): UseQueryResult<LeaseStats> {
-	return useQuery({
+export function useLeaseStats(): UseSuspenseQueryResult<LeaseStats> {
+	return useSuspenseQuery({
 		queryKey: queryKeys.leases.stats(),
-=======
-export function useLeaseStats(): UseQueryResult<LeaseStats, Error> {
-	return useQuery({
-		queryKey: leaseKeys.stats(),
->>>>>>> origin/main
-		queryFn: leaseApi.getStats,
+		queryFn: async () => leaseApi.getStats(),
 		staleTime: 2 * 60 * 1000, // 2 minutes
 		refetchInterval: 5 * 60 * 1000 // Auto-refresh every 5 minutes
 	})
 }
 
+// ============================================================================
+// REACT 19 OPTIMISTIC MUTATIONS - Pure useOptimistic Integration
+// ============================================================================
+
 /**
- * Create new lease with optimistic updates
+ * React 19 useOptimistic for Leases List - Replaces TanStack Query onMutate
  */
-export function useCreateLease(): UseMutationResult<
-	Lease,
-	Error,
-	CreateLeaseInput
-> {
+export function useLeasesOptimistic(query?: LeaseQuery) {
+	const { data: serverLeases } = useLeases(query)
 	const queryClient = useQueryClient()
 
-	return useMutation({
-		mutationFn: leaseApi.create,
-		onMutate: async newLease => {
-			// Cancel any outgoing refetches
-<<<<<<< HEAD
-			await queryClient.cancelQueries({
-				queryKey: queryKeys.leases.lists()
-			})
-
-			// Snapshot the previous value
-			const previousLeases = queryClient.getQueryData(
-				queryKeys.leases.lists()
-			)
-
-			// Optimistically update all lease lists
-			queryClient.setQueriesData(
-				{ queryKey: queryKeys.leases.lists() },
-				(old: Lease[] | undefined) => {
-					if (!old) {
-						return []
-					}
-=======
-			await queryClient.cancelQueries({ queryKey: leaseKeys.lists() })
-
-			// Snapshot the previous value
-			const previousLeases = queryClient.getQueryData(leaseKeys.lists())
-
-			// Optimistically update all lease lists
-			queryClient.setQueriesData(
-				{ queryKey: leaseKeys.lists() },
-				(old: Lease[] | undefined) => {
-					if (!old) return []
->>>>>>> origin/main
-					return [
-						...old,
-						{
-							...newLease,
-							id: `temp-${Date.now()}`,
-							createdAt: new Date(),
-							updatedAt: new Date()
-						} as Lease
-					]
-				}
-			)
-
-			return { previousLeases }
-		},
-		onError: (err, newLease, context) => {
-			// Revert optimistic update on error
-			if (context?.previousLeases) {
-				queryClient.setQueriesData(
-<<<<<<< HEAD
-					{ queryKey: queryKeys.leases.lists() },
-=======
-					{ queryKey: leaseKeys.lists() },
->>>>>>> origin/main
-					context.previousLeases
-				)
-			}
-			toast.error('Failed to create lease')
-		},
+	// React 19 useOptimistic for instant feedback
+	const optimistic = useOptimisticList(serverLeases, {
+		successMessage: (lease: Lease) => `Lease for ${lease.property?.name || 'property'} saved successfully`,
+		errorMessage: 'Failed to save lease',
 		onSuccess: () => {
-			toast.success('Lease created successfully')
-		},
-		onSettled: () => {
-			// Always refetch after error or success
-<<<<<<< HEAD
+			// Invalidate server cache after successful operations
 			void queryClient.invalidateQueries({
 				queryKey: queryKeys.leases.lists()
 			})
 			void queryClient.invalidateQueries({
 				queryKey: queryKeys.leases.stats()
 			})
-=======
-			queryClient.invalidateQueries({ queryKey: leaseKeys.lists() })
-			queryClient.invalidateQueries({ queryKey: leaseKeys.stats() })
->>>>>>> origin/main
 		}
 	})
+
+	// Server action wrappers
+	const createLeaseServer = async (data: CreateLeaseInput): Promise<Lease> => {
+		return await leaseApi.create(data)
+	}
+
+	const updateLeaseServer = async (id: string, data: UpdateLeaseInput): Promise<Lease> => {
+		return await leaseApi.update(id, data)
+	}
+
+	const deleteLeaseServer = async (id: string): Promise<void> => {
+		await leaseApi.delete(id)
+	}
+
+	return {
+		// React 19 optimistic state
+		leases: optimistic.items,
+		isPending: optimistic.isPending,
+		isOptimistic: optimistic.isOptimistic,
+		pendingCount: optimistic.pendingCount,
+
+		// React 19 optimistic actions
+		createLease: (data: CreateLeaseInput) => 
+			optimistic.optimisticCreate(data, createLeaseServer),
+		updateLease: (id: string, data: UpdateLeaseInput) => 
+			optimistic.optimisticUpdate(id, data, updateLeaseServer),
+		deleteLease: (id: string) => 
+			optimistic.optimisticDelete(id, () => deleteLeaseServer(id)),
+		
+		// Utility actions
+		revertAll: optimistic.revertAll
+	}
 }
 
 /**
- * Update lease with optimistic updates
+ * React 19 useOptimistic for Single Lease - Pure item updates
  */
-export function useUpdateLease(): UseMutationResult<
-	Lease,
-	Error,
-	{ id: string; data: UpdateLeaseInput }
-> {
+export function useLeaseOptimistic(id: string) {
+	const { data: serverLease } = useLease(id)
 	const queryClient = useQueryClient()
 
-	return useMutation({
-<<<<<<< HEAD
-		mutationFn: async ({ id, data }) => leaseApi.update(id, data),
-		onMutate: async ({ id, data }) => {
-			// Cancel queries for this lease
-			await queryClient.cancelQueries({
-				queryKey: queryKeys.leases.detail(id)
-			})
-			await queryClient.cancelQueries({
-				queryKey: queryKeys.leases.lists()
-			})
-
-			// Snapshot the previous values
-			const previousLease = queryClient.getQueryData(
-				queryKeys.leases.detail(id)
-			)
-			const previousList = queryClient.getQueryData(
-				queryKeys.leases.lists()
-			)
-
-			// Optimistically update lease detail
-			queryClient.setQueryData(
-				queryKeys.leases.detail(id),
-=======
-		mutationFn: ({ id, data }) => leaseApi.update(id, data),
-		onMutate: async ({ id, data }) => {
-			// Cancel queries for this lease
-			await queryClient.cancelQueries({ queryKey: leaseKeys.detail(id) })
-			await queryClient.cancelQueries({ queryKey: leaseKeys.lists() })
-
-			// Snapshot the previous values
-			const previousLease = queryClient.getQueryData(leaseKeys.detail(id))
-			const previousList = queryClient.getQueryData(leaseKeys.lists())
-
-			// Optimistically update lease detail
-			queryClient.setQueryData(
-				leaseKeys.detail(id),
->>>>>>> origin/main
-				(old: Lease | undefined) =>
-					old ? { ...old, ...data, updatedAt: new Date() } : undefined
-			)
-
-			// Optimistically update lease in lists
-			queryClient.setQueriesData(
-<<<<<<< HEAD
-				{ queryKey: queryKeys.leases.lists() },
-=======
-				{ queryKey: leaseKeys.lists() },
->>>>>>> origin/main
-				(old: Lease[] | undefined) =>
-					old?.map(lease =>
-						lease.id === id
-							? { ...lease, ...data, updatedAt: new Date() }
-							: lease
-					)
-			)
-
-			return { previousLease, previousList }
-		},
-		onError: (err, { id }, context) => {
-			// Revert optimistic updates on error
-			if (context?.previousLease) {
-				queryClient.setQueryData(
-<<<<<<< HEAD
-					queryKeys.leases.detail(id),
-=======
-					leaseKeys.detail(id),
->>>>>>> origin/main
-					context.previousLease
-				)
-			}
-			if (context?.previousList) {
-				queryClient.setQueriesData(
-<<<<<<< HEAD
-					{ queryKey: queryKeys.leases.lists() },
-=======
-					{ queryKey: leaseKeys.lists() },
->>>>>>> origin/main
-					context.previousList
-				)
-			}
-			toast.error('Failed to update lease')
-		},
+	// React 19 useOptimistic for single lease
+	const optimistic = useOptimisticItem(serverLease, {
+		successMessage: 'Lease updated successfully',
+		errorMessage: 'Failed to update lease',
 		onSuccess: () => {
-			toast.success('Lease updated successfully')
-		},
-		onSettled: (data, err, { id }) => {
-			// Refetch to ensure consistency
-<<<<<<< HEAD
+			// Invalidate related caches
 			void queryClient.invalidateQueries({
 				queryKey: queryKeys.leases.detail(id)
 			})
@@ -330,231 +150,53 @@ export function useUpdateLease(): UseMutationResult<
 			void queryClient.invalidateQueries({
 				queryKey: queryKeys.leases.stats()
 			})
-=======
-			queryClient.invalidateQueries({ queryKey: leaseKeys.detail(id) })
-			queryClient.invalidateQueries({ queryKey: leaseKeys.lists() })
-			queryClient.invalidateQueries({ queryKey: leaseKeys.stats() })
->>>>>>> origin/main
 		}
 	})
+
+	// Server action wrapper
+	const updateLeaseServer = async (data: UpdateLeaseInput): Promise<Lease> => {
+		return await leaseApi.update(id, data)
+	}
+
+	return {
+		// React 19 optimistic state
+		lease: optimistic.item,
+		isPending: optimistic.isPending,
+		isOptimistic: optimistic.isOptimistic,
+
+		// React 19 optimistic actions
+		updateLease: (data: UpdateLeaseInput) => 
+			optimistic.optimisticUpdate(data, updateLeaseServer),
+		revert: optimistic.revert
+	}
 }
 
+
+// ============================================================================
+// PREFETCH UTILITIES
+// ============================================================================
+
 /**
- * Delete lease with optimistic updates
+ * PURE: Enhanced prefetch for Suspense patterns - ensures data available when component mounts
  */
-export function useDeleteLease(): UseMutationResult<void, Error, string> {
+export function usePrefetchLease() {
 	const queryClient = useQueryClient()
 
-	return useMutation({
-		mutationFn: leaseApi.delete,
-		onMutate: async id => {
-			// Cancel queries
-<<<<<<< HEAD
-			await queryClient.cancelQueries({
-				queryKey: queryKeys.leases.lists()
-			})
-
-			// Snapshot previous list
-			const previousList = queryClient.getQueryData(
-				queryKeys.leases.lists()
-			)
-
-			// Optimistically remove lease from lists
-			queryClient.setQueriesData(
-				{ queryKey: queryKeys.leases.lists() },
-=======
-			await queryClient.cancelQueries({ queryKey: leaseKeys.lists() })
-
-			// Snapshot previous list
-			const previousList = queryClient.getQueryData(leaseKeys.lists())
-
-			// Optimistically remove lease from lists
-			queryClient.setQueriesData(
-				{ queryKey: leaseKeys.lists() },
->>>>>>> origin/main
-				(old: Lease[] | undefined) =>
-					old?.filter(lease => lease.id !== id)
-			)
-
-			return { previousList }
-		},
-		onError: (err, id, context) => {
-			// Revert optimistic update
-			if (context?.previousList) {
-				queryClient.setQueriesData(
-<<<<<<< HEAD
-					{ queryKey: queryKeys.leases.lists() },
-=======
-					{ queryKey: leaseKeys.lists() },
->>>>>>> origin/main
-					context.previousList
-				)
-			}
-			toast.error('Failed to delete lease')
-		},
-		onSuccess: () => {
-			toast.success('Lease deleted successfully')
-		},
-		onSettled: () => {
-			// Refetch to ensure consistency
-<<<<<<< HEAD
-			void queryClient.invalidateQueries({
-				queryKey: queryKeys.leases.lists()
-			})
-			void queryClient.invalidateQueries({
-				queryKey: queryKeys.leases.stats()
-			})
-=======
-			queryClient.invalidateQueries({ queryKey: leaseKeys.lists() })
-			queryClient.invalidateQueries({ queryKey: leaseKeys.stats() })
->>>>>>> origin/main
-		}
-	})
+	return (id: string) => {
+		void queryClient.prefetchQuery({
+			queryKey: queryKeys.leases.detail(id),
+			queryFn: async () => leaseApi.getById(id),
+			staleTime: 10 * 1000 // 10 seconds
+		})
+	}
 }
 
-<<<<<<< HEAD
-// Note: useGenerateLeasePDF is now available in use-pdf.ts for consistency with other PDF operations
-=======
-/**
- * Generate lease PDF
- */
-export function useGenerateLeasePDF(): UseMutationResult<
-	{ url: string },
-	Error,
-	string
-> {
-	return useMutation({
-		mutationFn: leaseApi.generatePDF,
-		onSuccess: data => {
-			// Trigger download
-			if (data.url) {
-				try {
-					const link = document.createElement('a')
-					link.href = data.url
-					link.download = 'lease.pdf'
-					link.target = '_blank'
-					document.body.appendChild(link)
-					link.click()
-					document.body.removeChild(link)
+// ============================================================================
+// EXPORTS - React 19 Pure Implementation
+// ============================================================================
 
-					toast.success('Lease PDF generated successfully')
-				} catch (error) {
-					console.error('Download failed:', error)
-					window.open(data.url, '_blank')
-				}
-			}
-		},
-		onError: () => {
-			toast.error('Failed to generate lease PDF')
-		}
-	})
-}
->>>>>>> origin/main
+// REACT 19: Pure useOptimistic patterns (exported directly above)
 
-/**
- * Activate lease
- */
-export function useActivateLease(): UseMutationResult<Lease, Error, string> {
-	const queryClient = useQueryClient()
+// REACT 19: Pure data fetching (exported directly above)
 
-	return useMutation({
-		mutationFn: leaseApi.activate,
-		onSuccess: () => {
-			toast.success('Lease activated successfully')
-		},
-		onError: () => {
-			toast.error('Failed to activate lease')
-		},
-		onSettled: () => {
-<<<<<<< HEAD
-			void queryClient.invalidateQueries({
-				queryKey: queryKeys.leases.lists()
-			})
-			void queryClient.invalidateQueries({
-				queryKey: queryKeys.leases.stats()
-			})
-=======
-			queryClient.invalidateQueries({ queryKey: leaseKeys.lists() })
-			queryClient.invalidateQueries({ queryKey: leaseKeys.stats() })
->>>>>>> origin/main
-		}
-	})
-}
-
-/**
- * Terminate lease
- */
-export function useTerminateLease(): UseMutationResult<
-	Lease,
-	Error,
-	{ id: string; reason: string }
-> {
-	const queryClient = useQueryClient()
-
-	return useMutation({
-<<<<<<< HEAD
-		mutationFn: async ({ id, reason }) =>
-			leaseApi.terminate(id, { reason }),
-=======
-		mutationFn: ({ id, reason }) => leaseApi.terminate(id, { reason }),
->>>>>>> origin/main
-		onSuccess: () => {
-			toast.success('Lease terminated successfully')
-		},
-		onError: () => {
-			toast.error('Failed to terminate lease')
-		},
-		onSettled: () => {
-<<<<<<< HEAD
-			void queryClient.invalidateQueries({
-				queryKey: queryKeys.leases.lists()
-			})
-			void queryClient.invalidateQueries({
-				queryKey: queryKeys.leases.stats()
-			})
-=======
-			queryClient.invalidateQueries({ queryKey: leaseKeys.lists() })
-			queryClient.invalidateQueries({ queryKey: leaseKeys.stats() })
->>>>>>> origin/main
-		}
-	})
-}
-
-/**
- * Renew lease
- */
-export function useRenewLease(): UseMutationResult<
-	Lease,
-	Error,
-	{ id: string; endDate: string; newRent?: number }
-> {
-	const queryClient = useQueryClient()
-
-	return useMutation({
-<<<<<<< HEAD
-		mutationFn: async ({ id, endDate, newRent }) =>
-=======
-		mutationFn: ({ id, endDate, newRent }) =>
->>>>>>> origin/main
-			leaseApi.renew(id, { endDate, newRent }),
-		onSuccess: () => {
-			toast.success('Lease renewed successfully')
-		},
-		onError: () => {
-			toast.error('Failed to renew lease')
-		},
-		onSettled: () => {
-<<<<<<< HEAD
-			void queryClient.invalidateQueries({
-				queryKey: queryKeys.leases.lists()
-			})
-			void queryClient.invalidateQueries({
-				queryKey: queryKeys.leases.stats()
-			})
-=======
-			queryClient.invalidateQueries({ queryKey: leaseKeys.lists() })
-			queryClient.invalidateQueries({ queryKey: leaseKeys.stats() })
->>>>>>> origin/main
-		}
-	})
-}
+// REACT 19: Utilities (exported directly above)

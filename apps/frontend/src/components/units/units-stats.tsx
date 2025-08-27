@@ -1,9 +1,6 @@
-'use client'
-
 import { useUnitStats } from '@/hooks/api/use-units'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Home, HomeIcon, Wrench, DollarSign } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { UnitStats } from '@repo/shared'
 
@@ -107,7 +104,7 @@ function UnitsStatsUI({ stats }: UnitsStatsUIProps) {
 						<CardTitle className="text-sm font-medium">
 							Average Rent
 						</CardTitle>
-						<DollarSign className="h-4 w-4 text-green-600" />
+						<i className="i-lucide-dollar-sign inline-block h-4 w-4 text-green-600"  />
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">
@@ -124,7 +121,7 @@ function UnitsStatsUI({ stats }: UnitsStatsUIProps) {
 						<CardTitle className="text-sm font-medium">
 							Total Monthly Revenue
 						</CardTitle>
-						<DollarSign className="h-4 w-4 text-green-600" />
+						<i className="i-lucide-dollar-sign inline-block h-4 w-4 text-green-600"  />
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">

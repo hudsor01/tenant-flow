@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Search, Plus, Filter } from 'lucide-react'
 import { PropertiesDataTable } from '@/components/properties/properties-data-table'
 import { PropertyDetailsDrawer } from '@/components/properties/property-details-drawer'
 import { PropertyFormDialog } from '@/components/properties/property-form-dialog'
@@ -64,31 +63,23 @@ export function PropertiesClient({ className }: PropertiesClientProps) {
 			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 				<div className="flex flex-1 gap-2">
 					<div className="relative max-w-sm flex-1">
-<<<<<<< HEAD
-						<Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+						<i className="i-lucide-search inline-block text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"  />
 						<Input
 							placeholder="Search properties..."
 							value={searchQuery}
 							onChange={(
 								e: React.ChangeEvent<HTMLInputElement>
 							) => setSearchQuery(e.target.value)}
-=======
-						<Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-						<Input
-							placeholder="Search properties..."
-							value={searchQuery}
-							onChange={e => setSearchQuery(e.target.value)}
->>>>>>> origin/main
 							className="pl-10"
 						/>
 					</div>
 					<Button variant="outline" size="sm">
-						<Filter className="mr-2 h-4 w-4" />
+						<i className="i-lucide-filter inline-block mr-2 h-4 w-4"  />
 						Filter
 					</Button>
 				</div>
 				<Button onClick={handleAddProperty} size="sm">
-					<Plus className="mr-2 h-4 w-4" />
+					<i className="i-lucide-plus inline-block mr-2 h-4 w-4"  />
 					Add Property
 				</Button>
 			</div>

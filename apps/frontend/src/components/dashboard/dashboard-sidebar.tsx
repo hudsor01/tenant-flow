@@ -23,19 +23,6 @@ import {
 	SidebarMenuButton,
 	SidebarTrigger
 } from '@/components/ui/sidebar'
-import {
-	Home,
-	Building,
-	Users,
-	FileText,
-	Wrench,
-	BarChart3,
-	Settings,
-	LogOut,
-	User,
-	Bell,
-	Activity
-} from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { useDashboardOverview } from '@/hooks/api/use-dashboard'
 import { cn } from '@/lib/utils'
@@ -186,7 +173,7 @@ export function DashboardSidebar({
 							className="flex items-center gap-2 px-2 transition-all hover:scale-105"
 						>
 							<div className="relative">
-								<Building className="text-primary h-8 w-8" />
+								<i className="i-lucide-building inline-block text-primary h-8 w-8"  />
 								{/* Activity pulse indicator */}
 								<div className="absolute -top-1 -right-1 h-3 w-3 animate-pulse rounded-full bg-green-500 group-data-[collapsible=icon]:hidden" />
 							</div>
@@ -260,7 +247,7 @@ export function DashboardSidebar({
 										href="/notifications"
 										className="relative"
 									>
-										<Bell className="h-4 w-4" />
+										<i className="i-lucide-bell inline-block h-4 w-4"  />
 										<span>Notifications</span>
 										{/* Notification badge */}
 										{(stats?.maintenanceRequests?.open ||
@@ -285,7 +272,7 @@ export function DashboardSidebar({
 							<SidebarMenuItem>
 								<SidebarMenuButton asChild tooltip="Activity">
 									<Link href="/activity">
-										<Activity className="h-4 w-4" />
+										<i className="i-lucide-activity inline-block h-4 w-4"  />
 										<span>Activity</span>
 									</Link>
 								</SidebarMenuButton>
@@ -298,7 +285,7 @@ export function DashboardSidebar({
 										href="/profile"
 										className="transition-all hover:scale-[1.02]"
 									>
-										<User className="h-4 w-4" />
+										<i className="i-lucide-user inline-block h-4 w-4"  />
 										<span>Profile</span>
 									</Link>
 								</SidebarMenuButton>
@@ -315,7 +302,7 @@ export function DashboardSidebar({
 										}
 										className="w-full transition-all hover:scale-[1.02] hover:text-red-600"
 									>
-										<LogOut className="h-4 w-4" />
+										<i className="i-lucide-log-out inline-block h-4 w-4"  />
 										<span>Logout</span>
 									</button>
 								</SidebarMenuButton>
@@ -380,7 +367,7 @@ export function DashboardSidebar({
 								className="flex items-center gap-3 transition-all hover:scale-105"
 							>
 								<div className="relative">
-									<Building className="text-primary h-10 w-10" />
+									<i className="i-lucide-building inline-block text-primary h-10 w-10"  />
 									<div className="absolute -top-1 -right-1 h-3 w-3 animate-pulse rounded-full bg-green-500" />
 								</div>
 								<div>
@@ -463,7 +450,7 @@ export function DashboardSidebar({
 								className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50"
 							>
 								<div className="flex items-center gap-3">
-									<Bell className="h-5 w-5 text-gray-500" />
+									<i className="i-lucide-bell inline-block h-5 w-5 text-gray-500"  />
 									<span>Notifications</span>
 								</div>
 								{(stats?.maintenanceRequests?.open ?? 0) >
@@ -483,7 +470,7 @@ export function DashboardSidebar({
 								onClick={handleNavigation}
 								className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50"
 							>
-								<Activity className="h-5 w-5 text-gray-500" />
+								<i className="i-lucide-activity inline-block h-5 w-5 text-gray-500"  />
 								<span>Activity</span>
 							</Link>
 
@@ -493,7 +480,7 @@ export function DashboardSidebar({
 								onClick={handleNavigation}
 								className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50"
 							>
-								<User className="h-5 w-5 text-gray-500" />
+								<i className="i-lucide-user inline-block h-5 w-5 text-gray-500"  />
 								<span>Profile</span>
 							</Link>
 
@@ -507,7 +494,7 @@ export function DashboardSidebar({
 								}}
 								className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-red-600 transition-all hover:bg-red-50"
 							>
-								<LogOut className="h-5 w-5" />
+								<i className="i-lucide-log-out inline-block h-5 w-5"  />
 								<span>Logout</span>
 							</button>
 						</div>

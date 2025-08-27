@@ -1,7 +1,5 @@
 import type { ReactNode } from 'react'
 import { motion } from '@/lib/lazy-motion'
-import type { LucideIcon } from 'lucide-react'
-import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
 	Dialog,
@@ -17,7 +15,7 @@ import type { BaseFormModalProps as BaseFormModalPropsType } from '@/types'
 
 // Extend the base type with additional properties
 interface BaseFormModalProps extends BaseFormModalPropsType {
-	icon?: LucideIcon
+	icon?: string
 	iconBgColor?: string
 	iconColor?: string
 	isSubmitting?: boolean
@@ -39,7 +37,7 @@ export function BaseFormModal({
 	onClose,
 	title,
 	description,
-	icon: Icon,
+	icon,
 	iconBgColor = 'bg-blue-100',
 	iconColor = 'text-primary',
 	children,
@@ -69,11 +67,11 @@ export function BaseFormModal({
 				>
 					<DialogHeader className="pb-4">
 						<div className="flex items-center space-x-2">
-							{Icon && (
+							{icon && (
 								<div
 									className={`flex h-10 w-10 items-center justify-center ${iconBgColor} rounded-lg`}
 								>
-									<Icon className={`h-5 w-5 ${iconColor}`} />
+									<i className={`${icon} h-5 w-5 ${iconColor}`} />
 								</div>
 							)}
 							<div className="flex-1">
@@ -100,7 +98,7 @@ export function BaseFormModal({
 									onClick={onClose}
 									disabled={isSubmitting}
 								>
-									<X className="mr-2 h-4 w-4" />
+									<i className="i-lucide-x inline-block mr-2 h-4 w-4"  />
 									{cancelLabel}
 								</Button>
 								<Button
@@ -125,12 +123,12 @@ export function BaseFormModal({
 
 // Helper component for form sections with consistent styling
 export function FormSection({
-	icon: Icon,
+	icon,
 	title,
 	children,
 	delay = 0
 }: {
-	icon: LucideIcon
+	icon: string
 	title: string
 	children: ReactNode
 	delay?: number
@@ -144,7 +142,7 @@ export function FormSection({
 			className="space-y-4"
 		>
 			<div className="flex items-center space-x-2 border-b border-gray-200 pb-2">
-				<Icon className="h-4 w-4 text-gray-600" />
+				<i className={`${icon} h-4 w-4 text-gray-600`} />
 				<h3 className="font-medium text-gray-900">{title}</h3>
 			</div>
 			{children}

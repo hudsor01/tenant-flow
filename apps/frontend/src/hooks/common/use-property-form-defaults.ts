@@ -7,7 +7,6 @@ import type { Property } from '@repo/shared'
  * Eliminates duplicate default value logic across property form components
  */
 export function usePropertyFormDefaults(property?: Property): PropertyFormData {
-<<<<<<< HEAD
 	return useMemo(
 		() =>
 			property
@@ -32,29 +31,3 @@ export function usePropertyFormDefaults(property?: Property): PropertyFormData {
 		[property]
 	)
 }
-=======
-  return useMemo(
-    () => 
-      property
-        ? {
-            name: property.name || '',
-            description: property.description || undefined,
-            propertyType: property.propertyType || 'SINGLE_FAMILY',
-            address: property.address || '',
-            city: property.city || '',
-            state: property.state || '',
-            zipCode: property.zipCode || ''
-          }
-        : {
-            name: '',
-            description: undefined,
-            propertyType: 'SINGLE_FAMILY',
-            address: '',
-            city: '',
-            state: '',
-            zipCode: ''
-          },
-    [property]
-  )
-}
->>>>>>> origin/main

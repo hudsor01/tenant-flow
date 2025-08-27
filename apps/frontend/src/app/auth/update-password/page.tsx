@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 import type { Metadata } from 'next/types'
-=======
-import type { Metadata } from '@/types/next.d'
->>>>>>> origin/main
 import { Suspense } from 'react'
 import { UpdatePasswordForm } from '@/components/forms/update-password-form'
 import { AuthLayout } from '@/components/layout/auth/layout'

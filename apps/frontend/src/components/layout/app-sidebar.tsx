@@ -32,11 +32,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
 
 			<aside
 				className={cn(
-<<<<<<< HEAD
 					'border-sidebar-border bg-sidebar text-sidebar-foreground fixed left-0 top-0 z-50 flex h-screen flex-col border-r',
-=======
-					'border-sidebar-border bg-sidebar text-sidebar-foreground fixed top-0 left-0 z-50 flex h-screen flex-col border-r',
->>>>>>> origin/main
 					'bg-subtle-pattern backdrop-blur-sm',
 					'transition-all duration-300 ease-out',
 					'shadow-lg lg:shadow-none',

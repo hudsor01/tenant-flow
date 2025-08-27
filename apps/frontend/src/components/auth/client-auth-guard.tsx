@@ -1,11 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
-=======
-import { logger } from '@/lib/logger'
->>>>>>> origin/main
 import { useRouter } from 'next/navigation'
 import { getCurrentUser } from '@/lib/actions/auth-actions'
 import type { User } from '@supabase/supabase-js'
@@ -26,11 +22,7 @@ export function ClientAuthGuard({
 	fallback = (
 		<div className="flex min-h-screen items-center justify-center">
 			<div className="text-center">
-<<<<<<< HEAD
 				<div className="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-b-2" />
-=======
-				<div className="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-b-2"></div>
->>>>>>> origin/main
 				<p className="text-muted-foreground mt-2 text-sm">Loading...</p>
 			</div>
 		</div>
@@ -61,11 +53,7 @@ export function ClientAuthGuard({
 			}
 		}
 
-<<<<<<< HEAD
 		void checkAuth()
-=======
-		checkAuth()
->>>>>>> origin/main
 	}, [router, redirectTo])
 
 	if (isLoading) {
@@ -77,11 +65,7 @@ export function ClientAuthGuard({
 		return (
 			<div className="flex min-h-screen items-center justify-center">
 				<div className="text-center">
-<<<<<<< HEAD
 					<div className="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-b-2" />
-=======
-					<div className="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-b-2"></div>
->>>>>>> origin/main
 					<p className="text-muted-foreground mt-2 text-sm">
 						Redirecting to dashboard...
 					</p>

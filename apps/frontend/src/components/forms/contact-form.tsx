@@ -12,7 +12,6 @@ import {
 	CardHeader,
 	CardTitle
 } from '@/components/ui/card'
-import { Mail, Phone, Calendar, CheckCircle, Send } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
 
@@ -113,7 +112,7 @@ export function ContactForm({
 							className="py-8 text-center"
 						>
 							<div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-								<CheckCircle className="h-8 w-8 text-green-600" />
+								<i className="i-lucide-checkcircle inline-block h-8 w-8 text-green-600"  />
 							</div>
 							<h3 className="mb-2 text-xl font-semibold">
 								Message Sent!
@@ -301,7 +300,7 @@ export function ContactForm({
 										{inquiryType === 'demo'
 											? 'Request Demo'
 											: 'Send Message'}
-										<Send className="ml-2 h-4 w-4" />
+										<i className="i-lucide-send inline-block ml-2 h-4 w-4"  />
 									</>
 								)}
 							</Button>
@@ -310,15 +309,15 @@ export function ContactForm({
 							<div className="border-t pt-4">
 								<div className="text-muted-foreground flex flex-wrap items-center justify-center gap-4 text-xs">
 									<div className="flex items-center gap-1">
-										<CheckCircle className="h-3 w-3" />
+										<i className="i-lucide-checkcircle inline-block h-3 w-3"  />
 										<span>No spam, ever</span>
 									</div>
 									<div className="flex items-center gap-1">
-										<CheckCircle className="h-3 w-3" />
+										<i className="i-lucide-checkcircle inline-block h-3 w-3"  />
 										<span>24-hour response</span>
 									</div>
 									<div className="flex items-center gap-1">
-										<CheckCircle className="h-3 w-3" />
+										<i className="i-lucide-checkcircle inline-block h-3 w-3"  />
 										<span>Free consultation</span>
 									</div>
 								</div>

@@ -12,7 +12,6 @@ import type {
 	UpdateUnitInput,
 	PropertyStats
 } from '@repo/shared'
-<<<<<<< HEAD
 import { z } from 'zod'
 import {
 	PropertySchema,
@@ -20,8 +19,6 @@ import {
 	UnitArraySchema,
 	UnitSchema
 } from '@/lib/api/schemas/properties'
-=======
->>>>>>> origin/main
 
 /**
  * Query keys for React Query caching
@@ -50,20 +47,14 @@ export const propertyApi = {
 						.map(([key, value]) => [key, String(value)])
 				).toString()
 			: ''
-<<<<<<< HEAD
 		return apiClient.getValidated<Property[]>(
 			`/properties${params ? `?${params}` : ''}`,
 			PropertyArraySchema,
 			'Property[]'
-=======
-		return apiClient.get<Property[]>(
-			`/properties${params ? `?${params}` : ''}`
->>>>>>> origin/main
 		)
 	},
 
 	async getById(id: string) {
-<<<<<<< HEAD
 		return apiClient.getValidated<Property>(
 			`/properties/${id}`,
 			PropertySchema,
@@ -133,29 +124,6 @@ export const propertyApi = {
 			UnitArraySchema,
 			'Unit[]'
 		)
-=======
-		return apiClient.get<Property>(`/properties/${id}`)
-	},
-
-	async create(data: CreatePropertyInput) {
-		return apiClient.post<Property>('/properties', data)
-	},
-
-	async update(id: string, data: UpdatePropertyInput) {
-		return apiClient.put<Property>(`/properties/${id}`, data)
-	},
-
-	async delete(id: string) {
-		return apiClient.delete<{ success: boolean }>(`/properties/${id}`)
-	},
-
-	async getStats() {
-		return apiClient.get<PropertyStats>('/properties/stats')
-	},
-
-	async getUnits(propertyId: string) {
-		return apiClient.get<Unit[]>(`/properties/${propertyId}/units`)
->>>>>>> origin/main
 	},
 
 	async updateUnit(
@@ -163,7 +131,6 @@ export const propertyApi = {
 		unitId: string,
 		data: UpdateUnitInput
 	) {
-<<<<<<< HEAD
 		// Use the units controller endpoint directly
 		return apiClient.putValidated<Unit>(
 			`/units/${unitId}`,
@@ -172,24 +139,14 @@ export const propertyApi = {
 			data as Record<string, unknown>,
 			undefined,
 			{ throwOnFailure: true }
-=======
-		return apiClient.put<Unit>(
-			`/properties/${propertyId}/units/${unitId}`,
-			data
->>>>>>> origin/main
 		)
 	},
 
 	async uploadImage(propertyId: string, formData: FormData) {
-<<<<<<< HEAD
 		return apiClient.postValidated<{ url: string }>(
 			`/properties/${propertyId}/images`,
 			z.object({ url: z.string() }),
 			'UploadImage',
-=======
-		return apiClient.post<{ url: string }>(
-			`/properties/${propertyId}/images`,
->>>>>>> origin/main
 			formData
 		)
 	},

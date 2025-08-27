@@ -10,12 +10,6 @@ export function useFormState() {
 	return useState<FormState>({
 		isLoading: false,
 		error: null,
-<<<<<<< HEAD
 		success: false
 	})
 }
-=======
-		success: false,
-	})
-}
->>>>>>> origin/main

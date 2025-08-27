@@ -1,48 +1,31 @@
-<<<<<<< HEAD
-'use client'
-
-=======
-import type { Metadata } from 'next/types'
->>>>>>> origin/main
 import React from 'react'
 import { motion } from '@/lib/lazy-motion'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import {
-	Building2,
-	Users,
-	Target,
-	Zap,
-	Heart,
-	Shield,
-	Award,
-	ArrowRight,
-	Sparkles
-} from 'lucide-react'
 import Link from 'next/link'
 
 const values = [
 	{
-		icon: Target,
+		icon: 'i-lucide-target',
 		title: 'User-Focused',
 		description:
 			'Every feature starts with understanding your actual needs, not what we think you need.'
 	},
 	{
-		icon: Zap,
+		icon: 'i-lucide-zap',
 		title: 'Lightning Fast',
 		description:
 			'Time is money. Our platform is optimized for speed so you can work efficiently.'
 	},
 	{
-		icon: Heart,
+		icon: 'i-lucide-heart',
 		title: 'Built with Care',
 		description:
 			'We obsess over the details so you can focus on growing your business.'
 	},
 	{
-		icon: Shield,
+		icon: 'i-lucide-shield',
 		title: 'Secure & Reliable',
 		description:
 			'Bank-level security and 99.9% uptime guarantee. Your data is safe with us.'
@@ -52,16 +35,15 @@ const values = [
 // Server Component for static content
 function CompanyStats() {
 	const stats = [
-		{ label: 'Properties Managed', value: '10K+', icon: Building2 },
-		{ label: 'Happy Property Owners', value: '2.5K+', icon: Users },
-		{ label: 'Years of Experience', value: '8+', icon: Award },
-		{ label: 'Uptime Guarantee', value: '99.9%', icon: Shield }
+		{ label: 'Properties Managed', value: '10K+', icon: 'i-lucide-building-2' },
+		{ label: 'Happy Property Owners', value: '2.5K+', icon: 'i-lucide-users' },
+		{ label: 'Years of Experience', value: '8+', icon: 'i-lucide-award' },
+		{ label: 'Uptime Guarantee', value: '99.9%', icon: 'i-lucide-shield' }
 	]
 
 	return (
 		<div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
 			{stats.map(stat => {
-				const IconComponent = stat.icon
 				return (
 					<Card
 						key={stat.label}
@@ -69,7 +51,7 @@ function CompanyStats() {
 					>
 						<CardContent className="p-6 text-center">
 							<div className="bg-primary/10 mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
-								<IconComponent className="text-primary h-6 w-6" />
+								<i className={`${stat.icon} text-primary h-6 w-6 inline-block`} />
 							</div>
 							<div className="text-foreground mb-2 text-3xl font-bold">
 								{stat.value}
@@ -89,11 +71,7 @@ export function AboutContent() {
 	return (
 		<div className="from-background to-muted/20 min-h-screen bg-gradient-to-b">
 			{/* Hero Section */}
-<<<<<<< HEAD
 			<section className="px-4 pb-16 pt-24">
-=======
-			<section className="px-4 pt-24 pb-16">
->>>>>>> origin/main
 				<div className="mx-auto max-w-7xl">
 					<div className="mb-16 text-center">
 						<motion.div
@@ -103,7 +81,7 @@ export function AboutContent() {
 							className="mb-6"
 						>
 							<Badge className="from-primary via-accent to-success border-0 bg-gradient-to-r px-6 py-2 text-sm font-semibold text-white shadow-lg">
-								<Sparkles className="mr-2 h-4 w-4" />
+								<i className="i-lucide-sparkles inline-block mr-2 h-4 w-4"  />
 								About TenantFlow
 							</Badge>
 						</motion.div>
@@ -112,11 +90,7 @@ export function AboutContent() {
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ duration: 0.6, delay: 0.1 }}
-<<<<<<< HEAD
 							className="text-foreground mb-6 text-5xl font-bold leading-tight lg:text-6xl"
-=======
-							className="text-foreground mb-6 text-5xl leading-tight font-bold lg:text-6xl"
->>>>>>> origin/main
 						>
 							Revolutionizing{' '}
 							<span className="from-primary via-accent to-success bg-gradient-to-r bg-clip-text text-transparent">
@@ -130,19 +104,11 @@ export function AboutContent() {
 							transition={{ duration: 0.6, delay: 0.2 }}
 							className="text-muted-foreground mx-auto max-w-3xl text-xl leading-relaxed"
 						>
-<<<<<<< HEAD
 							We&apos;re on a mission to simplify property
 							management for everyone. From individual landlords
 							to large property management companies, TenantFlow
 							makes it easy to manage properties, tenants, and
 							maintenance - all in one place.
-=======
-							We're on a mission to simplify property management
-							for everyone. From individual landlords to large
-							property management companies, TenantFlow makes it
-							easy to manage properties, tenants, and maintenance
-							- all in one place.
->>>>>>> origin/main
 						</motion.p>
 					</div>
 
@@ -234,7 +200,6 @@ export function AboutContent() {
 
 					<div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
 						{values.map((value, index) => {
-							const IconComponent = value.icon
 							return (
 								<motion.div
 									key={value.title}
@@ -249,7 +214,7 @@ export function AboutContent() {
 									<Card className="h-full border-0 bg-white/80 backdrop-blur-sm transition-all duration-300 hover:shadow-lg">
 										<CardContent className="p-6 text-center">
 											<div className="from-primary to-accent mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br">
-												<IconComponent className="h-8 w-8 text-white" />
+												<i className={`${value.icon} h-8 w-8 inline-block text-white`} />
 											</div>
 											<h3 className="text-foreground mb-3 text-xl font-semibold">
 												{value.title}
@@ -293,7 +258,7 @@ export function AboutContent() {
 											className="group"
 										>
 											Start Free Trial
-											<ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+											<i className="i-lucide-arrow-right inline-block ml-2 h-4 w-4 transition-transform group-hover:translate-x-1"  />
 										</Button>
 									</Link>
 									<Link href="/contact">
@@ -310,10 +275,7 @@ export function AboutContent() {
 		</div>
 	)
 }
-<<<<<<< HEAD
 
 export default function AboutPage() {
 	return <AboutContent />
 }
-=======
->>>>>>> origin/main

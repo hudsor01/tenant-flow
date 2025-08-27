@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-=======
->>>>>>> origin/main
 const nextJest = require('next/jest')
 
 /** @type {import('next/jest').Config} */
@@ -58,17 +55,10 @@ const customJestConfig = {
 	coverageReporters: ['text', 'lcov', 'html'],
 	coverageThreshold: {
 		global: {
-<<<<<<< HEAD
 			branches: 10,
 			functions: 10,
 			lines: 10,
 			statements: 10
-=======
-			branches: 50,
-			functions: 50,
-			lines: 50,
-			statements: 50
->>>>>>> origin/main
 		}
 	},
 	testTimeout: 10000,

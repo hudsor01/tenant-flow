@@ -1,5 +1,3 @@
-'use client'
-
 import { motion } from '@/lib/lazy-motion'
 
 interface AuthLayoutClientProps {

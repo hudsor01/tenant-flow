@@ -5,61 +5,34 @@
 import { create } from 'zustand'
 import { devtools, persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
-<<<<<<< HEAD
 import type { AuthUser } from '@repo/shared'
-=======
-import type { User } from '@repo/shared'
->>>>>>> origin/main
 
 // ============================================================================
 // TYPES & INTERFACES
 // ============================================================================
 
-export type Theme = 'light' | 'dark' | 'system'
-export type NotificationLevel = 'info' | 'success' | 'warning' | 'error'
+// Use shared types instead of local interfaces
+import type { 
+	AppNotification,
+	RecentActivity,
+	UIPreferences,
+	UserSession,
+	AppState,
+	NotificationLevel,
+	Theme
+} from '@repo/shared'
 
-export interface AppNotification {
-	id: string
-	level: NotificationLevel
-	title: string
-	message: string
-	timestamp: Date
-	read: boolean
-	autoHide?: boolean
-	duration?: number
+export type { 
+	AppNotification,
+	RecentActivity,
+	UIPreferences,
+	UserSession,
+	AppState,
+	NotificationLevel,
+	Theme
 }
 
-export interface RecentActivity {
-	id: string
-	type: string
-	description: string
-	timestamp: Date
-	userId?: string
-	resourceId?: string
-	resourceType?: string
-}
-
-export interface UIPreferences {
-	theme: Theme
-	sidebarOpen: boolean
-	compactMode: boolean
-	showWelcome: boolean
-	language: string
-	timezone: string
-}
-
-export interface UserSession {
-<<<<<<< HEAD
-	user: AuthUser | null
-=======
-	user: User | null
->>>>>>> origin/main
-	isAuthenticated: boolean
-	lastActivity: Date | null
-	sessionExpiry: Date | null
-}
-
-export interface AppState {
+interface LocalAppState extends AppState {
 	// ============================================================================
 	// STATE
 	// ============================================================================
@@ -111,11 +84,7 @@ export interface AppState {
 	// ACTIONS - SESSION MANAGEMENT
 	// ============================================================================
 
-<<<<<<< HEAD
 	setUser: (user: AuthUser | null) => void
-=======
-	setUser: (user: User | null) => void
->>>>>>> origin/main
 	updateLastActivity: () => void
 	clearSession: () => void
 	extendSession: (minutes: number) => void
