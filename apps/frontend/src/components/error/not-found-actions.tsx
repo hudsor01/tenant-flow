@@ -1,7 +1,6 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { ArrowLeft } from 'lucide-react'
 
 /**
  * NotFoundActions - Client component for interactive actions
@@ -23,7 +22,7 @@ export function NotFoundActions() {
 			variant="outline"
 			className="flex w-full items-center justify-center gap-2"
 		>
-			<ArrowLeft className="h-4 w-4" />
+			<i className="i-lucide-arrow-left inline-block h-4 w-4"  />
 			Go Back
 		</Button>
 	)

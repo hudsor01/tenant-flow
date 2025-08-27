@@ -3,7 +3,6 @@
 import { useEffect, useState, useTransition } from 'react'
 import { useActionState } from 'react'
 import { useRouter } from 'next/navigation'
-import { CheckCircle, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
 	Card,
@@ -28,11 +27,7 @@ const initialState: AuthFormState = {
 	success: false
 }
 
-<<<<<<< HEAD
 interface ClientErrors {
-=======
-type ClientErrors = {
->>>>>>> origin/main
 	password?: string
 	confirmPassword?: string
 }
@@ -73,13 +68,9 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 		const v = validatePassword(pw)
 
 		const errs: ClientErrors = {}
-<<<<<<< HEAD
 		if (!v.len8) {
 			errs.password = 'Password must be at least 8 characters.'
 		}
-=======
-		if (!v.len8) errs.password = 'Password must be at least 8 characters.'
->>>>>>> origin/main
 		if (!(v.upper && v.lower && v.num && v.sym)) {
 			errs.password =
 				errs.password ??
@@ -90,13 +81,9 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 		}
 
 		setClientErrors(errs)
-<<<<<<< HEAD
 		if (Object.keys(errs).length > 0) {
 			return
 		}
-=======
-		if (Object.keys(errs).length > 0) return
->>>>>>> origin/main
 
 		startTransition(() => {
 			formAction(formData)
@@ -129,7 +116,7 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<div className="flex items-center gap-2 rounded-md border border-green-200 bg-green-50 p-3">
-							<CheckCircle className="h-5 w-5 text-green-600" />
+							<i className="i-lucide-checkcircle inline-block h-5 w-5 text-green-600"  />
 							<p className="text-sm text-green-800">
 								Password updated successfully! Redirecting to
 								sign in...
@@ -165,7 +152,7 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 					{state.error && (
 						<div className="bg-destructive/10 border-destructive/20 rounded-md border p-3">
 							<div className="flex items-center gap-2">
-								<AlertCircle className="text-destructive h-4 w-4" />
+								<i className="i-lucide-alert-circle inline-block text-destructive h-4 w-4"  />
 								<p className="text-destructive text-sm">
 									{state.error}
 								</p>
@@ -190,7 +177,6 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 									aria-invalid={!!clientErrors.password}
 									aria-describedby={passwordErrorId}
 									value={password}
-<<<<<<< HEAD
 									onChange={(
 										e: React.ChangeEvent<HTMLInputElement>
 									) => setPassword(e.target.value)}
@@ -198,13 +184,6 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 								<button
 									type="button"
 									className="text-muted-foreground hover:text-foreground absolute right-2 top-1/2 -translate-y-1/2 rounded p-1"
-=======
-									onChange={e => setPassword(e.target.value)}
-								/>
-								<button
-									type="button"
-									className="text-muted-foreground hover:text-foreground absolute top-1/2 right-2 -translate-y-1/2 rounded p-1"
->>>>>>> origin/main
 									onClick={() => setShowPw(s => !s)}
 									aria-label={
 										showPw
@@ -218,9 +197,9 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 									}
 								>
 									{showPw ? (
-										<EyeOff className="h-4 w-4" />
+										<i className="i-lucide-eye-off inline-block h-4 w-4"  />
 									) : (
-										<Eye className="h-4 w-4" />
+										<i className="i-lucide-eye inline-block h-4 w-4"  />
 									)}
 								</button>
 							</div>
@@ -301,7 +280,6 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 									}
 									aria-describedby={confirmPasswordErrorId}
 									value={confirmPassword}
-<<<<<<< HEAD
 									onChange={(
 										e: React.ChangeEvent<HTMLInputElement>
 									) => setConfirmPassword(e.target.value)}
@@ -309,15 +287,6 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 								<button
 									type="button"
 									className="text-muted-foreground hover:text-foreground absolute right-2 top-1/2 -translate-y-1/2 rounded p-1"
-=======
-									onChange={e =>
-										setConfirmPassword(e.target.value)
-									}
-								/>
-								<button
-									type="button"
-									className="text-muted-foreground hover:text-foreground absolute top-1/2 right-2 -translate-y-1/2 rounded p-1"
->>>>>>> origin/main
 									onClick={() => setShowPw2(s => !s)}
 									aria-label={
 										showPw2
@@ -331,9 +300,9 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 									}
 								>
 									{showPw2 ? (
-										<EyeOff className="h-4 w-4" />
+										<i className="i-lucide-eye-off inline-block h-4 w-4"  />
 									) : (
-										<Eye className="h-4 w-4" />
+										<i className="i-lucide-eye inline-block h-4 w-4"  />
 									)}
 								</button>
 							</div>
@@ -361,7 +330,7 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 						>
 							{isPending ? (
 								<span className="inline-flex items-center gap-2">
-									<Loader2 className="h-4 w-4 animate-spin" />
+									<i className="i-lucide-loader-2 inline-block h-4 w-4 animate-spin"  />
 									Updating password…
 								</span>
 							) : (

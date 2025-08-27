@@ -3,11 +3,7 @@
  * Synchronizes Zustand store with React Query cache
  */
 
-<<<<<<< HEAD
 import type { QueryClient } from '@tanstack/react-query'
-=======
-import { type QueryClient } from '@tanstack/react-query'
->>>>>>> origin/main
 
 export interface QuerySyncOptions {
 	queryClient: QueryClient
@@ -34,11 +30,7 @@ export function createQuerySync<T>(options: QuerySyncOptions) {
 
 		// Invalidate query to trigger refetch
 		invalidateQuery: () => {
-<<<<<<< HEAD
 			void queryClient.invalidateQueries({ queryKey })
-=======
-			queryClient.invalidateQueries({ queryKey })
->>>>>>> origin/main
 		},
 
 		// Remove data from query cache

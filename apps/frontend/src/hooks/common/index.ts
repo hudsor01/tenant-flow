@@ -13,7 +13,6 @@ export { useApiCall } from './use-api-call'
 export type { UseApiCallOptions } from './use-api-call'
 
 export { useAnalytics } from './use-analytics'
-<<<<<<< HEAD
 export type {
 	UseAnalyticsOptions,
 	UseAnalyticsReturn,
@@ -24,15 +23,3 @@ export type {
 // DRY: Form-related analytics and utilities
 export { useFormAnalytics } from './use-form-analytics'
 export { usePropertyFormDefaults } from './use-property-form-defaults'
-=======
-export type { 
-  UseAnalyticsOptions,
-  UseAnalyticsReturn,
-  EssentialAnalyticsEvent,
-  AnalyticsProperties 
-} from './use-analytics'
-
-// DRY: Form-related analytics and utilities 
-export { useFormAnalytics } from './use-form-analytics'
-export { usePropertyFormDefaults } from './use-property-form-defaults'
->>>>>>> origin/main

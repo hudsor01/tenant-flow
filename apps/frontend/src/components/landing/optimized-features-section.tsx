@@ -7,7 +7,6 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Clock, TrendingUp, Users, Play } from 'lucide-react'
 
 interface OptimizedFeaturesSectionProps {
 	locale: string
@@ -94,7 +93,7 @@ export function OptimizedFeaturesSection({
 							variant="outline"
 							className="border-primary text-primary border-2 hover:bg-blue-50"
 						>
-							<Play className="mr-2 h-4 w-4" />
+							<i className="i-lucide-play inline-block mr-2 h-4 w-4"  />
 							Watch 2-Minute Demo
 						</Button>
 					</Link>

@@ -7,7 +7,6 @@
 
 import * as React from 'react'
 import Link from 'next/link'
-import { ChevronRight, Home } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { BreadcrumbItem } from './types'
 
@@ -20,7 +19,7 @@ interface BreadcrumbsProps {
 
 export function Breadcrumbs({
 	items,
-	separator = <ChevronRight className="text-muted-foreground h-4 w-4" />,
+	separator = <i className="i-lucide-chevron-right inline-block text-muted-foreground h-4 w-4"  />,
 	className,
 	homeIcon = true
 }: BreadcrumbsProps) {
@@ -29,7 +28,7 @@ export function Breadcrumbs({
 				{
 					label: 'Home',
 					href: '/',
-					icon: <Home className="h-4 w-4" />
+					icon: <i className="i-lucide-home inline-block h-4 w-4"  />
 				},
 				...items
 			]

@@ -1,15 +1,10 @@
 import { Suspense } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, User } from 'lucide-react'
 import Link from 'next/link'
-import { TenantForm } from '@/components/forms/tenant-form'
+import { TenantForm } from '@/components/tenants/tenant-form'
 import { PageTracker } from '@/components/analytics/page-tracker'
-<<<<<<< HEAD
 import type { Metadata } from 'next/types'
-=======
-import type { Metadata } from '@/types/next'
->>>>>>> origin/main
 
 export const metadata: Metadata = {
 	title: 'Add New Tenant | TenantFlow',
@@ -22,7 +17,7 @@ function NewTenantHeader() {
 			<div className="flex items-center space-x-4">
 				<Link href="/tenants">
 					<Button variant="outline" size="sm">
-						<ArrowLeft className="mr-2 h-4 w-4" />
+						<i className="i-lucide-arrow-left inline-block mr-2 h-4 w-4"  />
 						Back to Tenants
 					</Button>
 				</Link>
@@ -50,11 +45,7 @@ export default function NewTenantPage() {
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
 							<div className="bg-primary/10 rounded-lg p-2">
-<<<<<<< HEAD
-								<User className="text-primary h-5 w-5" />
-=======
-								<User className="h-5 w-5 text-primary" />
->>>>>>> origin/main
+								<i className="i-lucide-user inline-block text-primary h-5 w-5"  />
 							</div>
 							Tenant Information
 						</CardTitle>
@@ -69,24 +60,11 @@ export default function NewTenantPage() {
 								</div>
 							}
 						>
-<<<<<<< HEAD
-							<TenantForm mode="create" />
-=======
-							<TenantForm
-								mode="create"
-								onSuccess={() => {
-									// Redirect will be handled by the form component
-								}}
-							/>
->>>>>>> origin/main
+							<TenantForm tenants={[]} />
 						</Suspense>
 					</CardContent>
 				</Card>
 			</div>
 		</div>
 	)
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> origin/main

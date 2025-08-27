@@ -1,5 +1,4 @@
 import type { UseFormReturn } from 'react-hook-form'
-import { Building } from 'lucide-react'
 import {
 	FormControl,
 	FormField,
@@ -32,7 +31,7 @@ export function PropertySelectionSection({
 	properties
 }: PropertySelectionSectionProps) {
 	return (
-		<FormSection icon={Building} title="1. Select Property" delay={0}>
+		<FormSection icon=<i className="i-lucide-building inline-block" /> title="1. Select Property" delay={0}>
 			<FormField
 				control={form.control}
 				name="propertyId"
@@ -57,7 +56,7 @@ export function PropertySelectionSection({
 									>
 										<div className="flex items-center space-x-3">
 											<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
-												<Building className="text-primary h-5 w-5" />
+												<i className="i-lucide-building inline-block text-primary h-5 w-5"  />
 											</div>
 											<div>
 												<p className="font-medium">

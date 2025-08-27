@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion } from '@/lib/lazy-motion'
-import { Home, Building, Plus, BarChart3, User } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { useDashboardOverview } from '@/hooks/api/use-dashboard'
 import { cn } from '@/lib/utils'
@@ -57,13 +56,9 @@ export function MobileNav({ className }: MobileNavProps) {
 	const { data: stats } = useDashboardOverview()
 
 	const getBadgeValue = (badgeKey?: string) => {
-<<<<<<< HEAD
 		if (!badgeKey || !stats) {
 			return null
 		}
-=======
-		if (!badgeKey || !stats) return null
->>>>>>> origin/main
 
 		const keys = badgeKey.split('.')
 		let value: unknown = stats
@@ -81,11 +76,7 @@ export function MobileNav({ className }: MobileNavProps) {
 	return (
 		<nav
 			className={cn(
-<<<<<<< HEAD
 				'fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-white md:hidden',
-=======
-				'fixed right-0 bottom-0 left-0 z-50 border-t border-gray-200 bg-white md:hidden',
->>>>>>> origin/main
 				'safe-area-pb', // Add safe area padding for devices with home indicators
 				className
 			)}
@@ -182,11 +173,7 @@ export function MobileNav({ className }: MobileNavProps) {
 									<motion.div
 										initial={{ scale: 0 }}
 										animate={{ scale: 1 }}
-<<<<<<< HEAD
 										className="absolute -right-1 -top-1"
-=======
-										className="absolute -top-1 -right-1"
->>>>>>> origin/main
 									>
 										<Badge
 											variant="secondary"
@@ -215,11 +202,7 @@ export function MobileNav({ className }: MobileNavProps) {
 							{/* Active indicator */}
 							{isActive && (
 								<motion.div
-<<<<<<< HEAD
 									className="bg-primary absolute left-1/2 top-0 h-1 w-1 rounded-full"
-=======
-									className="bg-primary absolute top-0 left-1/2 h-1 w-1 rounded-full"
->>>>>>> origin/main
 									initial={{ scale: 0, x: '-50%' }}
 									animate={{ scale: 1 }}
 									transition={{

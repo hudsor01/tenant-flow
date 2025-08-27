@@ -8,13 +8,9 @@ export function OAuthRedirectHandler() {
 
 	useEffect(() => {
 		// Only run on client side
-<<<<<<< HEAD
 		if (typeof window === 'undefined') {
 			return
 		}
-=======
-		if (typeof window === 'undefined') return
->>>>>>> origin/main
 
 		// Check if this is an OAuth callback
 		const params = new URLSearchParams(window.location.search)

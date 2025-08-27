@@ -3,11 +3,10 @@
  * Provides instant UI feedback while mutations are processing
  */
 
-import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
 import { toast } from 'sonner'
 import { logger } from '@/lib/logger'
-import { queryKeys } from '@/lib/query-keys'
 
 interface OptimisticMutationOptions<TData, TVariables> {
 	mutationFn: (variables: TVariables) => Promise<TData>
@@ -179,8 +178,7 @@ export function useOptimisticMutation<
  * Generic optimistic list operations
  */
 export function useOptimisticList<T extends { id: string }>(
-	queryKey: readonly unknown[],
-	entityName: string
+	queryKey: readonly unknown[]
 ) {
 	const queryClient = useQueryClient()
 

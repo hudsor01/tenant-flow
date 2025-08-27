@@ -36,7 +36,6 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2, AlertTriangle } from 'lucide-react'
 import type { PropertyFormProps } from '@/types'
 import type { PropertyFormData } from '@repo/shared/validation'
 
@@ -117,7 +116,7 @@ export function PropertyFormDialog({
 
 				{error && (
 					<Alert variant="destructive">
-						<AlertTriangle className="h-4 w-4" />
+						<i className="i-lucide-alert-triangle inline-block h-4 w-4"  />
 						<AlertDescription>{error}</AlertDescription>
 					</Alert>
 				)}
@@ -291,7 +290,7 @@ export function PropertyFormDialog({
 							>
 								{isLoading ? (
 									<>
-										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
 										{mode === 'edit'
 											? 'Updating...'
 											: 'Creating...'}

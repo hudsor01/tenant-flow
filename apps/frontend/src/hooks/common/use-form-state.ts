@@ -15,18 +15,13 @@ export function useFormState<T extends Record<string, unknown>>(
 	options: UseFormStateOptions<T>
 ) {
 	const { initialValues, validateOnChange = false, validator } = options
-<<<<<<< HEAD
 
-=======
-	
->>>>>>> origin/main
 	const [values, setValues] = useState<T>(initialValues)
 	const [errors, setErrors] = useState<FormErrors>({})
 	const [touched, setTouched] = useState<Record<string, boolean>>({})
 	const [isSubmitting, setIsSubmitting] = useState(false)
 
 	const handleChange = useCallback(
-<<<<<<< HEAD
 		(field: keyof T) =>
 			(
 				e: ChangeEvent<
@@ -67,39 +62,6 @@ export function useFormState<T extends Record<string, unknown>>(
 			return true
 		}
 
-=======
-		(field: keyof T) => (
-			e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-		) => {
-			const value = e.target.type === 'checkbox' 
-				? (e.target as HTMLInputElement).checked 
-				: e.target.value
-
-			setValues(prev => ({
-				...prev,
-				[field]: value
-			}))
-
-			if (validateOnChange && validator) {
-				const newValues = { ...values, [field]: value }
-				const newErrors = validator(newValues)
-				setErrors(newErrors)
-			}
-		},
-		[values, validateOnChange, validator]
-	)
-
-	const handleBlur = useCallback((field: keyof T) => () => {
-		setTouched(prev => ({
-			...prev,
-			[field]: true
-		}))
-	}, [])
-
-	const validate = useCallback(() => {
-		if (!validator) return true
-		
->>>>>>> origin/main
 		const newErrors = validator(values)
 		setErrors(newErrors)
 		return Object.keys(newErrors).length === 0
@@ -119,7 +81,6 @@ export function useFormState<T extends Record<string, unknown>>(
 		}))
 	}, [])
 
-<<<<<<< HEAD
 	const setFieldError = useCallback(
 		(field: string, error: string | undefined) => {
 			setErrors(prev => ({
@@ -129,14 +90,6 @@ export function useFormState<T extends Record<string, unknown>>(
 		},
 		[]
 	)
-=======
-	const setFieldError = useCallback((field: string, error: string | undefined) => {
-		setErrors(prev => ({
-			...prev,
-			[field]: error ? [error] : undefined
-		}))
-	}, [])
->>>>>>> origin/main
 
 	return {
 		values,
@@ -153,8 +106,4 @@ export function useFormState<T extends Record<string, unknown>>(
 		setErrors,
 		setIsSubmitting
 	}
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> origin/main

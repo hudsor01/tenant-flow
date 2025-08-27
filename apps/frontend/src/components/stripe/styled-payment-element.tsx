@@ -1,7 +1,6 @@
 import { PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2 } from 'lucide-react'
 import { useState } from 'react'
 
 interface StyledPaymentElementProps {
@@ -86,11 +85,7 @@ export function StyledPaymentElement({
 				<PaymentElement
 					options={{
 						layout: {
-<<<<<<< HEAD
 							type: layout,
-=======
-							type: layout as 'accordion' | 'tabs',
->>>>>>> origin/main
 							defaultCollapsed: false,
 							spacedAccordionItems: true
 						},
@@ -151,7 +146,7 @@ export function StyledPaymentElement({
 			>
 				{isProcessing ? (
 					<>
-						<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+						<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
 						Processing...
 					</>
 				) : (

@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 /* global clients */
-=======
->>>>>>> origin/main
 /**
  * Service Worker for TenantFlow
  * Optimizes caching and offline experience
@@ -45,21 +42,13 @@ const CRITICAL_ASSETS = [
  * Install event - cache critical assets
  */
 self.addEventListener('install', event => {
-<<<<<<< HEAD
 	console.info('Service Worker: Installing...')
-=======
-	console.log('Service Worker: Installing...')
->>>>>>> origin/main
 
 	event.waitUntil(
 		caches
 			.open(STATIC_CACHE)
 			.then(cache => {
-<<<<<<< HEAD
 				console.info('Service Worker: Caching critical assets')
-=======
-				console.log('Service Worker: Caching critical assets')
->>>>>>> origin/main
 				return cache.addAll(CRITICAL_ASSETS)
 			})
 			.then(() => self.skipWaiting())
@@ -76,11 +65,7 @@ self.addEventListener('install', event => {
  * Activate event - clean up old caches
  */
 self.addEventListener('activate', event => {
-<<<<<<< HEAD
 	console.info('Service Worker: Activating...')
-=======
-	console.log('Service Worker: Activating...')
->>>>>>> origin/main
 
 	event.waitUntil(
 		caches
@@ -93,11 +78,7 @@ self.addEventListener('activate', event => {
 							cacheName !== STATIC_CACHE &&
 							cacheName !== API_CACHE
 						) {
-<<<<<<< HEAD
 							console.info(
-=======
-							console.log(
->>>>>>> origin/main
 								'Service Worker: Deleting old cache',
 								cacheName
 							)
@@ -242,11 +223,7 @@ async function networkFirst(request, cacheName) {
 
 		return networkResponse
 	} catch (error) {
-<<<<<<< HEAD
 		console.warn('Network failed, trying cache:', error.message)
-=======
-		console.log('Network failed, trying cache:', error.message)
->>>>>>> origin/main
 		const cachedResponse = await caches.match(request)
 
 		if (cachedResponse) {
@@ -284,11 +261,7 @@ async function staleWhileRevalidate(request, cacheName) {
 			return networkResponse
 		})
 		.catch(error => {
-<<<<<<< HEAD
 			console.error('Background fetch failed:', error.message)
-=======
-			console.log('Background fetch failed:', error.message)
->>>>>>> origin/main
 		})
 
 	// Return cached response immediately if available
@@ -310,11 +283,7 @@ self.addEventListener('sync', event => {
 })
 
 async function handleBackgroundSync() {
-<<<<<<< HEAD
 	console.info('Service Worker: Handling background sync')
-=======
-	console.log('Service Worker: Handling background sync')
->>>>>>> origin/main
 	// Implement retry logic for failed API calls
 }
 

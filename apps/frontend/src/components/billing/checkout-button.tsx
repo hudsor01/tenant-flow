@@ -1,12 +1,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Loader2 } from 'lucide-react'
 import type { PLAN_TYPE } from '@repo/shared'
-<<<<<<< HEAD
 import { SubscriptionCheckout } from './subscription-checkout'
-=======
-import { SubscriptionCheckoutWrapper } from './subscription-checkout-wrapper'
->>>>>>> origin/main
 import {
 	Dialog,
 	DialogContent,
@@ -58,7 +53,7 @@ export function CheckoutButton({
 			>
 				{isLoading ? (
 					<>
-						<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+						<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
 						Loading...
 					</>
 				) : (
@@ -77,11 +72,7 @@ export function CheckoutButton({
 						</DialogDescription>
 					</DialogHeader>
 
-<<<<<<< HEAD
 					<SubscriptionCheckout
-=======
-					<SubscriptionCheckoutWrapper
->>>>>>> origin/main
 						planType={planType}
 						billingInterval={billingInterval}
 						onSuccess={handleSuccess}

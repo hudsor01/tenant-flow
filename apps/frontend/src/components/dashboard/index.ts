@@ -14,12 +14,7 @@ export {
 // Main dashboard component
 export { default as Dashboard } from './dashboard'
 
-<<<<<<< HEAD
 // Sidebar component removed - using layout sidebar instead
-=======
-// Sidebar component
-export { Sidebar as DashboardSidebar } from './dashboard-sidebar'
->>>>>>> origin/main
 
 // Types - re-export from shared package and dashboard API
 export type { DashboardStats, ActivityItem } from '@repo/shared'

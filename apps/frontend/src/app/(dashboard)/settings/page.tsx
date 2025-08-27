@@ -2,7 +2,6 @@ import { Suspense } from 'react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { User, Bell, Shield, CreditCard, Palette, Database } from 'lucide-react'
 import { ProfileSettings } from '@/components/settings/profile-settings'
 import { NotificationSettings } from '@/components/settings/notification-settings'
 import { SecuritySettings } from '@/components/settings/security-settings'
@@ -68,14 +67,14 @@ export default function SettingsPage() {
 							value="profile"
 							className="flex items-center gap-2"
 						>
-							<User className="h-4 w-4" />
+							<i className="i-lucide-user inline-block h-4 w-4"  />
 							<span className="hidden sm:inline">Profile</span>
 						</TabsTrigger>
 						<TabsTrigger
 							value="notifications"
 							className="flex items-center gap-2"
 						>
-							<Bell className="h-4 w-4" />
+							<i className="i-lucide-bell inline-block h-4 w-4"  />
 							<span className="hidden sm:inline">
 								Notifications
 							</span>
@@ -84,28 +83,28 @@ export default function SettingsPage() {
 							value="security"
 							className="flex items-center gap-2"
 						>
-							<Shield className="h-4 w-4" />
+							<i className="i-lucide-shield inline-block h-4 w-4"  />
 							<span className="hidden sm:inline">Security</span>
 						</TabsTrigger>
 						<TabsTrigger
 							value="billing"
 							className="flex items-center gap-2"
 						>
-							<CreditCard className="h-4 w-4" />
+							<i className="i-lucide-credit-card inline-block h-4 w-4"  />
 							<span className="hidden sm:inline">Billing</span>
 						</TabsTrigger>
 						<TabsTrigger
 							value="appearance"
 							className="flex items-center gap-2"
 						>
-							<Palette className="h-4 w-4" />
+							<i className="i-lucide-palette inline-block h-4 w-4"  />
 							<span className="hidden sm:inline">Appearance</span>
 						</TabsTrigger>
 						<TabsTrigger
 							value="data"
 							className="flex items-center gap-2"
 						>
-							<Database className="h-4 w-4" />
+							<i className="i-lucide-database inline-block h-4 w-4"  />
 							<span className="hidden sm:inline">Data</span>
 						</TabsTrigger>
 					</TabsList>

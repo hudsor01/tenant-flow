@@ -1,9 +1,5 @@
 import { useState, useEffect } from 'react'
-<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
-=======
-import { logger } from '@/lib/logger'
->>>>>>> origin/main
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { usePostHog } from 'posthog-js/react'
@@ -17,14 +13,6 @@ import {
 } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import {
-	FileText,
-	CheckCircle,
-	CreditCard,
-	ChevronLeft,
-	ChevronRight,
-	Download
-} from 'lucide-react'
 import { toast } from 'sonner'
 // Temporary mock for state data
 const getAllStates = () => [
@@ -357,7 +345,7 @@ export default function LeaseGeneratorWizard({
 				<CardHeader>
 					<div className="flex items-center justify-between">
 						<div className="flex items-center space-x-3">
-							<FileText className="text-primary h-7 w-7" />
+							<i className="i-lucide-file-text inline-block text-primary h-7 w-7"  />
 							<div>
 								<CardTitle className="text-xl">
 									State-Compliant Lease Generator
@@ -371,7 +359,7 @@ export default function LeaseGeneratorWizard({
 						<div className="text-right">
 							{usageRemaining > 0 ? (
 								<Badge variant="secondary" className="text-sm">
-									<CheckCircle className="mr-1 h-4 w-4" />
+									<i className="i-lucide-checkcircle inline-block mr-1 h-4 w-4"  />
 									{usageRemaining} free use
 									{usageRemaining > 1 ? 's' : ''} remaining
 								</Badge>
@@ -380,7 +368,7 @@ export default function LeaseGeneratorWizard({
 									variant="destructive"
 									className="text-sm"
 								>
-									<CreditCard className="mr-1 h-4 w-4" />
+									<i className="i-lucide-credit-card inline-block mr-1 h-4 w-4"  />
 									Payment required
 								</Badge>
 							)}
@@ -404,7 +392,8 @@ export default function LeaseGeneratorWizard({
 							{STEPS.map((step, index) => (
 								<div
 									key={step.id}
-									className={`text-center ${index <= currentStepIndex ? 'text-primary' : 'text-muted-foreground'}`}
+									className="highlight-text text-center" 
+							data-active={index <= currentStepIndex}
 								>
 									<div className="text-xs font-medium">
 										{step.title}
@@ -447,7 +436,7 @@ export default function LeaseGeneratorWizard({
 								disabled={currentStepIndex === 0}
 								className="flex items-center gap-2"
 							>
-								<ChevronLeft className="h-4 w-4" />
+								<i className="i-lucide-chevron-left inline-block h-4 w-4"  />
 								Previous
 							</Button>
 
@@ -464,7 +453,7 @@ export default function LeaseGeneratorWizard({
 										</>
 									) : (
 										<>
-											<Download className="h-4 w-4" />
+											<i className="i-lucide-download inline-block h-4 w-4"  />
 											Generate Lease
 										</>
 									)}
@@ -492,7 +481,7 @@ export default function LeaseGeneratorWizard({
 									className="flex items-center gap-2"
 								>
 									Next
-									<ChevronRight className="h-4 w-4" />
+									<i className="i-lucide-chevron-right inline-block h-4 w-4"  />
 								</Button>
 							)}
 						</div>

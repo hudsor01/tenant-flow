@@ -1,5 +1,4 @@
 import type { UseFormReturn } from 'react-hook-form'
-import { MapPin } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -32,7 +31,7 @@ export function PropertyInfoSection({
 		<Card>
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2">
-					<MapPin className="h-5 w-5" />
+					<i className="i-lucide-map-pin inline-block h-5 w-5"  />
 					Property Information
 				</CardTitle>
 			</CardHeader>
@@ -63,7 +62,7 @@ export function PropertyInfoSection({
 							id="city"
 							placeholder="Los Angeles"
 							{...register('city')}
-							className={errors.city ? 'border-red-500' : ''}
+							className={errors.city ? 'input-error-red' : ''}
 						/>
 						{errors.city && (
 							<p className="text-sm text-red-500">
@@ -83,7 +82,7 @@ export function PropertyInfoSection({
 							}
 						>
 							<SelectTrigger
-								className={errors.state ? 'border-red-500' : ''}
+								className={errors.state ? 'input-error-red' : ''}
 							>
 								<SelectValue placeholder="Select a state" />
 							</SelectTrigger>
@@ -111,7 +110,7 @@ export function PropertyInfoSection({
 							id="zipCode"
 							placeholder="90210"
 							{...register('zipCode')}
-							className={errors.zipCode ? 'border-red-500' : ''}
+							className={errors.zipCode ? 'input-error-red' : ''}
 						/>
 						{errors.zipCode && (
 							<p className="text-sm text-red-500">

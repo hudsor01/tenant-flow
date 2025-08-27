@@ -1,16 +1,9 @@
-<<<<<<< HEAD
 import type { Metadata } from 'next/types'
-=======
-import type { Metadata } from '@/types/next.d'
->>>>>>> origin/main
 import { Suspense } from 'react'
 import { SimpleForgotPasswordForm } from '@/components/forms/supabase-forgot-password-form'
 import { AuthLayout } from '@/components/layout/auth/layout'
 import { ClientAuthGuard } from '@/components/auth/client-auth-guard'
-<<<<<<< HEAD
 import { SkeletonForm } from '@/components/ui/skeleton'
-=======
->>>>>>> origin/main
 
 export const metadata: Metadata = {
 	title: 'Reset Password | TenantFlow',
@@ -18,13 +11,7 @@ export const metadata: Metadata = {
 		"Reset your TenantFlow account password. We'll send you secure reset instructions."
 }
 
-<<<<<<< HEAD
 export default function ForgotPasswordPage(_props: {
-=======
-export default function ForgotPasswordPage({
-	searchParams
-}: {
->>>>>>> origin/main
 	searchParams: { error?: string }
 }) {
 	return (
@@ -46,13 +33,9 @@ export default function ForgotPasswordPage({
 			>
 				<Suspense
 					fallback={
-<<<<<<< HEAD
 						<div className="w-full max-w-md mx-auto">
 							<SkeletonForm />
 						</div>
-=======
-						<div className="bg-muted h-[300px] animate-pulse rounded-lg" />
->>>>>>> origin/main
 					}
 				>
 					<SimpleForgotPasswordForm />

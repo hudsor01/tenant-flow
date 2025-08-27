@@ -1,58 +1,53 @@
 /**
- * Central type exports
- * Single source of truth for all application types
+ * Central type exports - NOW USING SHARED TYPES
+ * All types moved to @repo/shared for centralization
  */
 
-// Core types
-<<<<<<< HEAD
-export type * from './core/common'
-export type * from './core/entities'
+// Import all types from shared package - this eliminates local type duplication
+export type * from '@repo/shared'
 
-// Component types (minimal, only used types)
-export type * from './components/forms'
-export type * from './components/charts'
-export type * from './components/modals'
-export type * from './components/invoice'
-
-// Hook types
-// (Avoid wildcard re-export to prevent duplicate symbol exports like TenantFilters)
-=======
-export * from './core/common'
-export * from './core/entities'
-
-// Component types (minimal, only used types)
-export * from './components/forms'
-
-// Hook types
-export * from './hooks'
->>>>>>> origin/main
-
-// Re-export shared types for convenience
+// Re-export specific frequently used types for convenience
 export type {
-	// Entity types
+	// Core Entity types
 	Property,
 	Tenant,
 	Lease,
 	Unit,
 	MaintenanceRequest,
 	User,
+	AuthUser,
 
 	// Auth types
 	AuthError,
-	AuthSession,
+	AuthErrorCode,
 	LoginCredentials,
 	SignupCredentials,
+	ValidatedUser,
 
-	// Enums
+	// Form data types
+	LoginFormData,
+	SignupFormData,
+	PropertyFormData,
+	TenantFormData,
+	LeaseFormData,
+	MaintenanceFormData,
+
+	// Component prop types
+	BaseProps,
+	FormProps,
+	TableProps,
+	PropertyCardProps,
+	TenantCardProps,
+	LeaseCardProps,
+
+	// Enums and constants
 	PropertyType,
 	UnitStatus,
 	LeaseStatus,
-	MaintenancePriority,
+	Priority as MaintenancePriority,
 	MaintenanceStatus,
 
-	// Input types
-	CreatePropertyInput,
-	UpdatePropertyInput,
+	// API Input types
 	CreateTenantInput,
 	UpdateTenantInput,
 	CreateLeaseInput,
@@ -60,5 +55,11 @@ export type {
 	CreateUnitInput,
 	UpdateUnitInput,
 	CreateMaintenanceInput,
-	UpdateMaintenanceInput
+	UpdateMaintenanceInput,
+
+	// Common types
+	ApiResponse,
+	LoadingState,
+	FormState,
+	ErrorResponse
 } from '@repo/shared'

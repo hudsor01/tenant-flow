@@ -1,171 +1,50 @@
 /**
- * Common form type definitions
- * Centralizes all form-related types to eliminate duplication
+ * Form type definitions - NOW USING SHARED TYPES
+ * All types moved to @repo/shared for centralization
+ * 
+ * NOTE: Schema change from camelCase to snake_case to align with database
+ * - firstName → first_name
+ * - lastName → last_name  
+ * - propertyId → property_id
+ * - tenantId → tenant_id
+ * - unitId → unit_id
+ * - startDate → start_date
+ * - endDate → end_date
+ * - rentAmount → monthly_rent
+ * - securityDeposit → security_deposit
+ * - paymentDue → payment_due_day
  */
 
-// Base form types
-export interface FormState {
-	isSubmitting: boolean
-	isValid: boolean
-	isDirty: boolean
-}
+// Base form state types - use shared FormState from common types
+export type {
+	FormState,
+	FormField
+} from '@repo/shared'
 
-<<<<<<< HEAD
+// Create local FormErrors and FormTouched for frontend-specific usage
 export type FormErrors = Record<string, string[] | undefined>
-
 export type FormTouched = Record<string, boolean>
-=======
-export type FormErrors = Record<string, string[] | undefined>;
 
-export type FormTouched = Record<string, boolean>;
->>>>>>> origin/main
+// Auth form types - use shared auth form types
+export type {
+	LoginFormData,
+	SignupFormData,
+	ForgotPasswordFormData,
+	ResetPasswordFormData,
+	UpdatePasswordFormData,
+	ProfileFormData,
+	ContactFormData
+} from '@repo/shared'
 
-// Auth form types
-export interface LoginFormData {
-	email: string
-	password: string
-	rememberMe?: boolean
-}
+// Domain form types - use shared domain form types
+export type {
+	PropertyFormData,
+	TenantFormData,
+	LeaseFormData,
+	MaintenanceFormData
+} from '@repo/shared'
 
-export interface SignupFormData {
-	email: string
-	password: string
-	confirmPassword: string
-	fullName: string
-	companyName?: string
-	acceptTerms: boolean
-}
-
-export interface ForgotPasswordFormData {
-	email: string
-}
-
-export interface ResetPasswordFormData {
-	password: string
-	confirmPassword: string
-}
-
-export interface UpdatePasswordFormData {
-	currentPassword: string
-	newPassword: string
-	confirmPassword: string
-}
-
-// Profile form types
-export interface ProfileFormData {
-<<<<<<< HEAD
-	[key: string]: string | undefined
-=======
->>>>>>> origin/main
-	name: string
-	email: string
-	phone?: string
-	company?: string
-	address?: string
-	avatar?: string
-}
-
-// Property form types
-export interface PropertyFormData {
-	name: string
-	address: string
-	city: string
-	state: string
-	zipCode: string
-<<<<<<< HEAD
-	type:
-		| 'SINGLE_FAMILY'
-		| 'MULTI_FAMILY'
-		| 'APARTMENT'
-		| 'CONDO'
-		| 'TOWNHOUSE'
-		| 'COMMERCIAL'
-=======
-	type: 'SINGLE_FAMILY' | 'MULTI_FAMILY' | 'APARTMENT' | 'CONDO' | 'TOWNHOUSE' | 'COMMERCIAL'
->>>>>>> origin/main
-	units?: number
-	rentAmount?: number
-	description?: string
-	amenities?: string[]
-	images?: string[]
-}
-
-// Tenant form types
-export interface TenantFormData {
-	firstName: string
-	lastName: string
-	email: string
-	phone: string
-	emergencyContact?: {
-		name: string
-		phone: string
-		relationship: string
-	}
-}
-
-// Lease form types
-export interface LeaseFormData {
-	propertyId: string
-	tenantId: string
-	unitId?: string
-	startDate: string
-	endDate: string
-	rentAmount: number
-	securityDeposit: number
-	paymentDue: number
-	terms?: string
-}
-
-<<<<<<< HEAD
-// Maintenance form types
-=======
-// Maintenance form types  
->>>>>>> origin/main
-export interface MaintenanceFormData {
-	propertyId: string
-	unitId?: string
-	tenantId?: string
-	title: string
-	description: string
-	priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
-	category: string
-	images?: string[]
-}
-
-// Contact form types
-export interface ContactFormData {
-	name: string
-	email: string
-	subject: string
-	message: string
-	phone?: string
-}
-
-// Form field props
-export interface FormFieldProps {
-	name: string
-	label?: string
-	placeholder?: string
-	type?: string
-	required?: boolean
-	disabled?: boolean
-	error?: string | string[]
-	touched?: boolean
-	value?: unknown
-<<<<<<< HEAD
-	onChange?: (
-		e: React.ChangeEvent<
-			HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-		>
-	) => void
-	onBlur?: (
-		e: React.FocusEvent<
-			HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-		>
-	) => void
-}
-=======
-	onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void
-	onBlur?: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void
-}
->>>>>>> origin/main
+// Form field props - use shared UI form field props
+export type {
+	FormFieldProps
+} from '@repo/shared'

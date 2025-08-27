@@ -15,17 +15,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import {
-	AlertTriangle,
-	Building,
-	Calendar,
-	Clock,
-	Edit,
-	Home,
-	Loader2,
-	Trash2,
-	User
-} from 'lucide-react'
 import { MaintenanceStatusUpdate } from './maintenance-status-update'
 import {
 	AlertDialog,
@@ -102,7 +91,7 @@ export function MaintenanceDetail({
 	if (isLoading) {
 		return (
 			<div className="flex items-center justify-center p-8">
-				<Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
+				<i className="i-lucide-loader-2 inline-block text-muted-foreground h-8 w-8 animate-spin"  />
 				<span className="text-muted-foreground ml-2">
 					Loading maintenance request...
 				</span>
@@ -151,7 +140,7 @@ export function MaintenanceDetail({
 									)}
 								>
 									{request.priority === 'EMERGENCY' && (
-										<AlertTriangle className="mr-1 h-3 w-3" />
+										<i className="i-lucide-alert-triangle inline-block mr-1 h-3 w-3"  />
 									)}
 									<span className="capitalize">
 										{request.priority.toLowerCase()}
@@ -176,7 +165,7 @@ export function MaintenanceDetail({
 									size="sm"
 									onClick={onEdit}
 								>
-									<Edit className="mr-1 h-4 w-4" />
+									<i className="i-lucide-edit inline-block mr-1 h-4 w-4"  />
 									Edit
 								</Button>
 							)}
@@ -187,7 +176,7 @@ export function MaintenanceDetail({
 									setShowStatusUpdate(!showStatusUpdate)
 								}
 							>
-								<Clock className="mr-1 h-4 w-4" />
+								<i className="i-lucide-clock inline-block mr-1 h-4 w-4"  />
 								Update Status
 							</Button>
 							<AlertDialog>
@@ -197,7 +186,7 @@ export function MaintenanceDetail({
 										size="sm"
 										className="text-red-600 hover:text-red-700"
 									>
-										<Trash2 className="mr-1 h-4 w-4" />
+										<i className="i-lucide-trash-2 inline-block mr-1 h-4 w-4"  />
 										Delete
 									</Button>
 								</AlertDialogTrigger>
@@ -222,7 +211,7 @@ export function MaintenanceDetail({
 											disabled={deleteRequest.isPending}
 										>
 											{deleteRequest.isPending && (
-												<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+												<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
 											)}
 											Delete
 										</AlertDialogAction>
@@ -245,7 +234,7 @@ export function MaintenanceDetail({
 					<div className="grid grid-cols-2 gap-4 text-sm">
 						<div className="space-y-2">
 							<div className="text-muted-foreground flex items-center">
-								<Building className="mr-2 h-4 w-4" />
+								<i className="i-lucide-building inline-block mr-2 h-4 w-4"  />
 								<span>Property:</span>
 							</div>
 							<p className="font-medium">
@@ -256,7 +245,7 @@ export function MaintenanceDetail({
 
 						<div className="space-y-2">
 							<div className="text-muted-foreground flex items-center">
-								<Home className="mr-2 h-4 w-4" />
+								<i className="i-lucide-home inline-block mr-2 h-4 w-4"  />
 								<span>Unit:</span>
 							</div>
 							<p className="font-medium">
@@ -266,7 +255,7 @@ export function MaintenanceDetail({
 
 						<div className="space-y-2">
 							<div className="text-muted-foreground flex items-center">
-								<User className="mr-2 h-4 w-4" />
+								<i className="i-lucide-user inline-block mr-2 h-4 w-4"  />
 								<span>Submitted by:</span>
 							</div>
 							<p className="font-medium">
@@ -276,7 +265,7 @@ export function MaintenanceDetail({
 
 						<div className="space-y-2">
 							<div className="text-muted-foreground flex items-center">
-								<Calendar className="mr-2 h-4 w-4" />
+								<i className="i-lucide-calendar inline-block mr-2 h-4 w-4"  />
 								<span>Created:</span>
 							</div>
 							<p className="font-medium">

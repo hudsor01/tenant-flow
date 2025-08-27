@@ -1,5 +1,3 @@
-'use client'
-
 /**
  * LazyMotion configuration for optimized animations
  * Only loads the features we actually use
@@ -18,13 +16,8 @@ import type {
 	PanInfo as FramerPanInfo
 } from 'framer-motion'
 
-<<<<<<< HEAD
 // Export the lazy motion component with proper typing
 export const motion: typeof m = m
-=======
-// Export the lazy motion component
-export const motion = m
->>>>>>> origin/main
 
 // Export AnimatePresence directly
 export { AnimatePresence }

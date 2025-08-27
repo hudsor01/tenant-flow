@@ -101,7 +101,9 @@ export function SupabaseFormField<TFormData extends FieldValues = FieldValues>({
 			setIsValidating(true)
 			try {
 				const supabase = createClient()
-				const { data, error } = await supabase
+				// Type assertion for dynamic table name - Supabase expects literal types
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const { data, error } = await (supabase as any)
 					.from(validation.table!)
 					.select('id')
 					.eq(validation.column!, value)
@@ -245,7 +247,7 @@ export function PropertyTypeField<TFormData extends FieldValues = FieldValues>({
 	className
 }: PropertyTypeFieldProps<TFormData>) {
 	const {
-		field: { onChange, onBlur, value },
+		field: { onChange, value },
 		fieldState: { error }
 	} = useController({
 		name,

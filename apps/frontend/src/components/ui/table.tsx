@@ -2,13 +2,8 @@
 
 import * as React from 'react'
 import { cn } from '@/lib/utils'
-import { ChevronUp, ChevronDown } from 'lucide-react'
 
-<<<<<<< HEAD
 interface TableProps extends React.TableHTMLAttributes<HTMLTableElement> {
-=======
-interface TableProps extends React.ComponentProps<'table'> {
->>>>>>> origin/main
 	caption?: string
 	captionSide?: 'top' | 'bottom'
 }
@@ -26,11 +21,7 @@ const Table = React.forwardRef<HTMLTableElement, TableProps>(
 						<caption
 							className={cn(
 								'text-muted-foreground mt-4 text-sm',
-<<<<<<< HEAD
 								captionSide === 'top' && 'mb-4 mt-0 caption-top'
-=======
-								captionSide === 'top' && 'mt-0 mb-4 caption-top'
->>>>>>> origin/main
 							)}
 						>
 							{caption}
@@ -46,11 +37,7 @@ Table.displayName = 'Table'
 
 const TableHeader = React.forwardRef<
 	HTMLTableSectionElement,
-<<<<<<< HEAD
 	React.HTMLAttributes<HTMLTableSectionElement>
-=======
-	React.ComponentProps<'thead'>
->>>>>>> origin/main
 >(({ className, ...props }, ref) => (
 	<thead ref={ref} className={cn('[&_tr]:border-b', className)} {...props} />
 ))
@@ -58,11 +45,7 @@ TableHeader.displayName = 'TableHeader'
 
 const TableBody = React.forwardRef<
 	HTMLTableSectionElement,
-<<<<<<< HEAD
 	React.HTMLAttributes<HTMLTableSectionElement>
-=======
-	React.ComponentProps<'tbody'>
->>>>>>> origin/main
 >(({ className, ...props }, ref) => (
 	<tbody
 		ref={ref}
@@ -74,11 +57,7 @@ TableBody.displayName = 'TableBody'
 
 const TableFooter = React.forwardRef<
 	HTMLTableSectionElement,
-<<<<<<< HEAD
 	React.HTMLAttributes<HTMLTableSectionElement>
-=======
-	React.ComponentProps<'tfoot'>
->>>>>>> origin/main
 >(({ className, ...props }, ref) => (
 	<tfoot
 		ref={ref}
@@ -91,11 +70,7 @@ const TableFooter = React.forwardRef<
 ))
 TableFooter.displayName = 'TableFooter'
 
-<<<<<<< HEAD
 interface TableRowProps extends React.HTMLAttributes<HTMLTableRowElement> {
-=======
-interface TableRowProps extends React.ComponentProps<'tr'> {
->>>>>>> origin/main
 	selected?: boolean
 	onSelect?: () => void
 }
@@ -126,11 +101,7 @@ const TableRow = React.forwardRef<HTMLTableRowElement, TableRowProps>(
 )
 TableRow.displayName = 'TableRow'
 
-<<<<<<< HEAD
 interface TableHeadProps extends React.ThHTMLAttributes<HTMLTableCellElement> {
-=======
-interface TableHeadProps extends React.ComponentProps<'th'> {
->>>>>>> origin/main
 	sortable?: boolean
 	sorted?: 'asc' | 'desc' | false
 	onSort?: () => void
@@ -154,11 +125,7 @@ const TableHead = React.forwardRef<HTMLTableCellElement, TableHeadProps>(
 					ref={ref}
 					className={cn(
 						'text-muted-foreground h-10 px-2 text-left align-middle font-medium [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]',
-<<<<<<< HEAD
 						'hover:bg-muted/50 cursor-pointer select-none transition-colors',
-=======
-						'hover:bg-muted/50 cursor-pointer transition-colors select-none',
->>>>>>> origin/main
 						className
 					)}
 					onClick={handleClick}
@@ -167,22 +134,18 @@ const TableHead = React.forwardRef<HTMLTableCellElement, TableHeadProps>(
 					<div className="flex items-center gap-2">
 						{children}
 						<div className="flex flex-col">
-							<ChevronUp
-								className={cn(
+							<i className="i-lucide-chevron-up inline-block" className={cn(
 									'h-3 w-3 transition-opacity',
 									sorted === 'asc'
 										? 'opacity-100'
 										: 'opacity-30'
-								)}
-							/>
-							<ChevronDown
-								className={cn(
+								)} />
+							<i className="i-lucide-chevron-down inline-block" className={cn(
 									'h-3 w-3 transition-opacity',
 									sorted === 'desc'
 										? 'opacity-100'
 										: 'opacity-30'
-								)}
-							/>
+								)} />
 						</div>
 					</div>
 				</th>
@@ -207,11 +170,7 @@ TableHead.displayName = 'TableHead'
 
 const TableCell = React.forwardRef<
 	HTMLTableCellElement,
-<<<<<<< HEAD
 	React.TdHTMLAttributes<HTMLTableCellElement>
-=======
-	React.ComponentProps<'td'>
->>>>>>> origin/main
 >(({ className, ...props }, ref) => (
 	<td
 		ref={ref}
@@ -227,11 +186,7 @@ TableCell.displayName = 'TableCell'
 function TableCaption({
 	className,
 	...props
-<<<<<<< HEAD
 }: React.HTMLAttributes<HTMLTableCaptionElement>) {
-=======
-}: React.ComponentProps<'caption'>) {
->>>>>>> origin/main
 	return (
 		<caption
 			className={cn('text-muted-foreground mt-4 text-sm', className)}

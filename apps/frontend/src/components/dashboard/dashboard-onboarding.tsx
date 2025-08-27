@@ -11,14 +11,6 @@ import {
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import {
-	Sparkles,
-	CheckCircle2,
-	Building2,
-	Users,
-	FileText,
-	ArrowRight
-} from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
@@ -106,18 +98,14 @@ export function DashboardOnboarding() {
 	return (
 		<Card className="card-modern relative overflow-hidden border-blue-200 bg-gradient-to-br from-blue-50/80 via-indigo-50/40 to-purple-50/60 dark:border-blue-800 dark:from-blue-950/40 dark:via-indigo-950/20 dark:to-purple-950/30">
 			{/* Animated background elements */}
-<<<<<<< HEAD
 			<div className="absolute right-0 top-0 h-32 w-32 animate-pulse rounded-full bg-gradient-to-br from-blue-400/10 to-purple-400/10 blur-2xl" />
-=======
-			<div className="absolute top-0 right-0 h-32 w-32 animate-pulse rounded-full bg-gradient-to-br from-blue-400/10 to-purple-400/10 blur-2xl" />
->>>>>>> origin/main
 			<div className="absolute bottom-0 left-0 h-24 w-24 animate-pulse rounded-full bg-gradient-to-tr from-indigo-400/10 to-blue-400/10 blur-xl delay-1000" />
 
 			<CardHeader className="relative pb-4">
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-3">
 						<div className="bg-primary/10 rounded-xl border border-blue-200 p-2">
-							<Sparkles className="text-primary h-5 w-5 animate-pulse" />
+							<i className="i-lucide-sparkles inline-block text-primary h-5 w-5 animate-pulse"  />
 						</div>
 						<div>
 							<CardTitle className="text-foreground text-lg font-semibold">
@@ -176,13 +164,9 @@ export function DashboardOnboarding() {
 								)}
 							>
 								{/* Step number indicator */}
-<<<<<<< HEAD
 								<div className="bg-background border-border absolute -left-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border-2 text-xs font-bold">
-=======
-								<div className="bg-background border-border absolute top-1/2 -left-2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border-2 text-xs font-bold">
->>>>>>> origin/main
 									{step.completed ? (
-										<CheckCircle2 className="h-3 w-3 text-green-600" />
+										<i className="i-lucide-checkcircle2 inline-block h-3 w-3 text-green-600"  />
 									) : (
 										<span className="text-muted-foreground">
 											{index + 1}
@@ -238,7 +222,7 @@ export function DashboardOnboarding() {
 											className="focus-modern"
 										>
 											Start
-											<ArrowRight className="ml-2 h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+											<i className="i-lucide-arrow-right inline-block ml-2 h-3 w-3 transition-transform group-hover:translate-x-0.5"  />
 										</Link>
 									</Button>
 								)}

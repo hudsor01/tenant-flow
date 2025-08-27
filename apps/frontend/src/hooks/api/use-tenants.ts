@@ -1,314 +1,135 @@
-<<<<<<< HEAD
-// apiClient import removed as it's not used directly in this file
-=======
-import { apiClient } from '@/lib/api-client'
->>>>>>> origin/main
 /**
- * React Query hooks for Tenants
- * Native TanStack Query implementation - no custom abstractions
+ * React 19 + TanStack Query v5 Tenants Hooks - Pure useOptimistic Implementation
+ * ARCHITECTURE: React 19 useOptimistic is the ONLY pattern - no legacy TanStack Query mutations
+ * PURE: Combines native React 19 optimistic updates with TanStack Query Suspense
  */
 import {
-	useQuery,
-	useMutation,
+	useSuspenseQuery,
 	useQueryClient,
-	type UseQueryResult,
-	type UseMutationResult
+	type UseSuspenseQueryResult
 } from '@tanstack/react-query'
-import { toast } from 'sonner'
-<<<<<<< HEAD
-import { tenantApi } from '@/lib/api/tenants'
-import type { TenantStats } from '@repo/shared'
-=======
-import { tenantApi, tenantKeys, type TenantStats } from '@/lib/api/tenants'
->>>>>>> origin/main
 import type {
 	Tenant,
 	TenantQuery,
 	CreateTenantInput,
-	UpdateTenantInput
+	UpdateTenantInput,
+	TenantStats
 } from '@repo/shared'
-<<<<<<< HEAD
+import { tenantApi } from '@/lib/api/tenants'
 import { queryKeys } from '@/lib/react-query/query-keys'
-=======
->>>>>>> origin/main
+import { useOptimisticList, useOptimisticItem } from '@/hooks/use-react19-optimistic'
+
+// ============================================================================
+// PURE DATA HOOKS - TanStack Query Suspense (No Optimistic Logic)
+// ============================================================================
 
 /**
- * Fetch list of tenants with optional filters
+ * PURE: useSuspenseQuery for tenants list - data always available
  */
-export function useTenants(
-	query?: TenantQuery,
-	options?: { enabled?: boolean }
-<<<<<<< HEAD
-): UseQueryResult<Tenant[]> {
-	return useQuery({
+export function useTenants(query?: TenantQuery): UseSuspenseQueryResult<Tenant[]> {
+	return useSuspenseQuery({
 		queryKey: queryKeys.tenants.list(query),
 		queryFn: async () => tenantApi.getAll(query),
-=======
-): UseQueryResult<Tenant[], Error> {
-	return useQuery({
-		queryKey: tenantKeys.list(query),
-		queryFn: () => tenantApi.getAll(query),
->>>>>>> origin/main
-		enabled: options?.enabled ?? true,
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000 // 10 minutes
 	})
 }
 
 /**
- * Fetch single tenant by ID
+ * PURE: useSuspenseQuery for single tenant - no loading states needed
  */
-export function useTenant(
-	id: string,
-	options?: { enabled?: boolean }
-<<<<<<< HEAD
-): UseQueryResult<Tenant> {
-	return useQuery({
+export function useTenant(id: string): UseSuspenseQueryResult<Tenant> {
+	return useSuspenseQuery({
 		queryKey: queryKeys.tenants.detail(id),
 		queryFn: async () => tenantApi.getById(id),
-=======
-): UseQueryResult<Tenant, Error> {
-	return useQuery({
-		queryKey: tenantKeys.detail(id),
-		queryFn: () => tenantApi.getById(id),
->>>>>>> origin/main
-		enabled: Boolean(id) && (options?.enabled ?? true),
 		staleTime: 2 * 60 * 1000 // 2 minutes
 	})
 }
 
 /**
- * Fetch tenant statistics
+ * PURE: useSuspenseQuery for tenant statistics - perfect for dashboards
  */
-<<<<<<< HEAD
-export function useTenantStats(): UseQueryResult<TenantStats> {
-	return useQuery({
+export function useTenantStats(): UseSuspenseQueryResult<TenantStats> {
+	return useSuspenseQuery({
 		queryKey: queryKeys.tenants.stats(),
-=======
-export function useTenantStats(): UseQueryResult<TenantStats, Error> {
-	return useQuery({
-		queryKey: tenantKeys.stats(),
->>>>>>> origin/main
-		queryFn: tenantApi.getStats,
+		queryFn: async () => tenantApi.getStats(),
 		staleTime: 2 * 60 * 1000, // 2 minutes
 		refetchInterval: 5 * 60 * 1000 // Auto-refresh every 5 minutes
 	})
 }
 
-/**
- * Fetch tenants by property ID
- */
-export function useTenantsByProperty(
-	propertyId: string,
-	options?: { enabled?: boolean }
-<<<<<<< HEAD
-): UseQueryResult<Tenant[]> {
-	return useQuery({
-		queryKey: queryKeys.tenants.byProperty(propertyId),
-		queryFn: async () => tenantApi.getByProperty(propertyId),
-=======
-): UseQueryResult<Tenant[], Error> {
-	return useQuery({
-		queryKey: tenantKeys.byProperty(propertyId),
-		queryFn: () => tenantApi.getByProperty(propertyId),
->>>>>>> origin/main
-		enabled: Boolean(propertyId) && (options?.enabled ?? true),
-		staleTime: 5 * 60 * 1000 // 5 minutes
-	})
-}
+// ============================================================================
+// REACT 19 OPTIMISTIC MUTATIONS - Pure useOptimistic Integration
+// ============================================================================
 
 /**
- * Create new tenant with optimistic updates
+ * React 19 useOptimistic for Tenants List - Replaces TanStack Query onMutate
  */
-export function useCreateTenant(): UseMutationResult<
-	Tenant,
-	Error,
-	CreateTenantInput
-> {
+export function useTenantsOptimistic(query?: TenantQuery) {
+	const { data: serverTenants } = useTenants(query)
 	const queryClient = useQueryClient()
 
-	return useMutation({
-		mutationFn: tenantApi.create,
-		onMutate: async newTenant => {
-			// Cancel any outgoing refetches
-<<<<<<< HEAD
-			await queryClient.cancelQueries({
-				queryKey: queryKeys.tenants.lists()
-			})
-
-			// Snapshot the previous value
-			const previousTenants = queryClient.getQueryData(
-				queryKeys.tenants.lists()
-			)
-
-			// Optimistically update all tenant lists
-			queryClient.setQueriesData(
-				{ queryKey: queryKeys.tenants.lists() },
-				(old: Tenant[] | undefined) => {
-					if (!old) {
-						return []
-					}
-=======
-			await queryClient.cancelQueries({ queryKey: tenantKeys.lists() })
-
-			// Snapshot the previous value
-			const previousTenants = queryClient.getQueryData(tenantKeys.lists())
-
-			// Optimistically update all tenant lists
-			queryClient.setQueriesData(
-				{ queryKey: tenantKeys.lists() },
-				(old: Tenant[] | undefined) => {
-					if (!old) return []
->>>>>>> origin/main
-					return [
-						...old,
-						{
-							...newTenant,
-							id: `temp-${Date.now()}`,
-							createdAt: new Date(),
-							updatedAt: new Date()
-						} as Tenant
-					]
-				}
-			)
-
-			return { previousTenants }
-		},
-		onError: (err, newTenant, context) => {
-			// Revert optimistic update on error
-			if (context?.previousTenants) {
-				queryClient.setQueriesData(
-<<<<<<< HEAD
-					{ queryKey: queryKeys.tenants.lists() },
-=======
-					{ queryKey: tenantKeys.lists() },
->>>>>>> origin/main
-					context.previousTenants
-				)
-			}
-			toast.error('Failed to create tenant')
-		},
+	// React 19 useOptimistic for instant feedback
+	const optimistic = useOptimisticList(serverTenants, {
+		successMessage: (tenant: Tenant) => `${tenant.firstName || 'Tenant'} ${tenant.lastName || ''} saved successfully`,
+		errorMessage: 'Failed to save tenant',
 		onSuccess: () => {
-			toast.success('Tenant created successfully')
-		},
-		onSettled: () => {
-			// Always refetch after error or success
-<<<<<<< HEAD
+			// Invalidate server cache after successful operations
 			void queryClient.invalidateQueries({
 				queryKey: queryKeys.tenants.lists()
 			})
 			void queryClient.invalidateQueries({
 				queryKey: queryKeys.tenants.stats()
 			})
-=======
-			queryClient.invalidateQueries({ queryKey: tenantKeys.lists() })
-			queryClient.invalidateQueries({ queryKey: tenantKeys.stats() })
->>>>>>> origin/main
 		}
 	})
+
+	// Server action wrappers
+	const createTenantServer = async (data: CreateTenantInput): Promise<Tenant> => {
+		return await tenantApi.create(data)
+	}
+
+	const updateTenantServer = async (id: string, data: UpdateTenantInput): Promise<Tenant> => {
+		return await tenantApi.update(id, data)
+	}
+
+	const deleteTenantServer = async (id: string): Promise<void> => {
+		await tenantApi.delete(id)
+	}
+
+	return {
+		// React 19 optimistic state
+		tenants: optimistic.items,
+		isPending: optimistic.isPending,
+		isOptimistic: optimistic.isOptimistic,
+		pendingCount: optimistic.pendingCount,
+
+		// React 19 optimistic actions
+		createTenant: (data: CreateTenantInput) => 
+			optimistic.optimisticCreate(data, createTenantServer),
+		updateTenant: (id: string, data: UpdateTenantInput) => 
+			optimistic.optimisticUpdate(id, data, updateTenantServer),
+		deleteTenant: (id: string) => 
+			optimistic.optimisticDelete(id, () => deleteTenantServer(id)),
+		
+		// Utility actions
+		revertAll: optimistic.revertAll
+	}
 }
 
 /**
- * Update tenant with optimistic updates
+ * React 19 useOptimistic for Single Tenant - Pure item updates
  */
-export function useUpdateTenant(): UseMutationResult<
-	Tenant,
-	Error,
-	{ id: string; data: UpdateTenantInput }
-> {
+export function useTenantOptimistic(id: string) {
+	const { data: serverTenant } = useTenant(id)
 	const queryClient = useQueryClient()
 
-	return useMutation({
-<<<<<<< HEAD
-		mutationFn: async ({ id, data }) => tenantApi.update(id, data),
-		onMutate: async ({ id, data }) => {
-			// Cancel queries for this tenant
-			await queryClient.cancelQueries({
-				queryKey: queryKeys.tenants.detail(id)
-			})
-			await queryClient.cancelQueries({
-				queryKey: queryKeys.tenants.lists()
-			})
-
-			// Snapshot the previous values
-			const previousTenant = queryClient.getQueryData(
-				queryKeys.tenants.detail(id)
-			)
-			const previousList = queryClient.getQueryData(
-				queryKeys.tenants.lists()
-			)
-
-			// Optimistically update tenant detail
-			queryClient.setQueryData(
-				queryKeys.tenants.detail(id),
-=======
-		mutationFn: ({ id, data }) => tenantApi.update(id, data),
-		onMutate: async ({ id, data }) => {
-			// Cancel queries for this tenant
-			await queryClient.cancelQueries({ queryKey: tenantKeys.detail(id) })
-			await queryClient.cancelQueries({ queryKey: tenantKeys.lists() })
-
-			// Snapshot the previous values
-			const previousTenant = queryClient.getQueryData(
-				tenantKeys.detail(id)
-			)
-			const previousList = queryClient.getQueryData(tenantKeys.lists())
-
-			// Optimistically update tenant detail
-			queryClient.setQueryData(
-				tenantKeys.detail(id),
->>>>>>> origin/main
-				(old: Tenant | undefined) =>
-					old ? { ...old, ...data, updatedAt: new Date() } : undefined
-			)
-
-			// Optimistically update tenant in lists
-			queryClient.setQueriesData(
-<<<<<<< HEAD
-				{ queryKey: queryKeys.tenants.lists() },
-=======
-				{ queryKey: tenantKeys.lists() },
->>>>>>> origin/main
-				(old: Tenant[] | undefined) =>
-					old?.map(tenant =>
-						tenant.id === id
-							? { ...tenant, ...data, updatedAt: new Date() }
-							: tenant
-					)
-			)
-
-			return { previousTenant, previousList }
-		},
-		onError: (err, { id }, context) => {
-			// Revert optimistic updates on error
-			if (context?.previousTenant) {
-				queryClient.setQueryData(
-<<<<<<< HEAD
-					queryKeys.tenants.detail(id),
-=======
-					tenantKeys.detail(id),
->>>>>>> origin/main
-					context.previousTenant
-				)
-			}
-			if (context?.previousList) {
-				queryClient.setQueriesData(
-<<<<<<< HEAD
-					{ queryKey: queryKeys.tenants.lists() },
-=======
-					{ queryKey: tenantKeys.lists() },
->>>>>>> origin/main
-					context.previousList
-				)
-			}
-			toast.error('Failed to update tenant')
-		},
+	// React 19 useOptimistic for single tenant
+	const optimistic = useOptimisticItem(serverTenant, {
+		successMessage: 'Tenant updated successfully',
+		errorMessage: 'Failed to update tenant',
 		onSuccess: () => {
-			toast.success('Tenant updated successfully')
-		},
-		onSettled: (data, err, { id }) => {
-			// Refetch to ensure consistency
-<<<<<<< HEAD
+			// Invalidate related caches
 			void queryClient.invalidateQueries({
 				queryKey: queryKeys.tenants.detail(id)
 			})
@@ -318,84 +139,53 @@ export function useUpdateTenant(): UseMutationResult<
 			void queryClient.invalidateQueries({
 				queryKey: queryKeys.tenants.stats()
 			})
-=======
-			queryClient.invalidateQueries({ queryKey: tenantKeys.detail(id) })
-			queryClient.invalidateQueries({ queryKey: tenantKeys.lists() })
-			queryClient.invalidateQueries({ queryKey: tenantKeys.stats() })
->>>>>>> origin/main
 		}
 	})
+
+	// Server action wrapper
+	const updateTenantServer = async (data: UpdateTenantInput): Promise<Tenant> => {
+		return await tenantApi.update(id, data)
+	}
+
+	return {
+		// React 19 optimistic state
+		tenant: optimistic.item,
+		isPending: optimistic.isPending,
+		isOptimistic: optimistic.isOptimistic,
+
+		// React 19 optimistic actions
+		updateTenant: (data: UpdateTenantInput) => 
+			optimistic.optimisticUpdate(data, updateTenantServer),
+		revert: optimistic.revert
+	}
 }
+
+
+// ============================================================================
+// PREFETCH UTILITIES
+// ============================================================================
 
 /**
- * Delete tenant with optimistic updates
+ * PURE: Enhanced prefetch for Suspense patterns - ensures data available when component mounts
  */
-export function useDeleteTenant(): UseMutationResult<void, Error, string> {
+export function usePrefetchTenant() {
 	const queryClient = useQueryClient()
 
-	return useMutation({
-		mutationFn: tenantApi.delete,
-		onMutate: async id => {
-			// Cancel queries
-<<<<<<< HEAD
-			await queryClient.cancelQueries({
-				queryKey: queryKeys.tenants.lists()
-			})
-
-			// Snapshot previous list
-			const previousList = queryClient.getQueryData(
-				queryKeys.tenants.lists()
-			)
-
-			// Optimistically remove tenant from lists
-			queryClient.setQueriesData(
-				{ queryKey: queryKeys.tenants.lists() },
-=======
-			await queryClient.cancelQueries({ queryKey: tenantKeys.lists() })
-
-			// Snapshot previous list
-			const previousList = queryClient.getQueryData(tenantKeys.lists())
-
-			// Optimistically remove tenant from lists
-			queryClient.setQueriesData(
-				{ queryKey: tenantKeys.lists() },
->>>>>>> origin/main
-				(old: Tenant[] | undefined) =>
-					old?.filter(tenant => tenant.id !== id)
-			)
-
-			return { previousList }
-		},
-		onError: (err, id, context) => {
-			// Revert optimistic update
-			if (context?.previousList) {
-				queryClient.setQueriesData(
-<<<<<<< HEAD
-					{ queryKey: queryKeys.tenants.lists() },
-=======
-					{ queryKey: tenantKeys.lists() },
->>>>>>> origin/main
-					context.previousList
-				)
-			}
-			toast.error('Failed to delete tenant')
-		},
-		onSuccess: () => {
-			toast.success('Tenant deleted successfully')
-		},
-		onSettled: () => {
-			// Refetch to ensure consistency
-<<<<<<< HEAD
-			void queryClient.invalidateQueries({
-				queryKey: queryKeys.tenants.lists()
-			})
-			void queryClient.invalidateQueries({
-				queryKey: queryKeys.tenants.stats()
-			})
-=======
-			queryClient.invalidateQueries({ queryKey: tenantKeys.lists() })
-			queryClient.invalidateQueries({ queryKey: tenantKeys.stats() })
->>>>>>> origin/main
-		}
-	})
+	return (id: string) => {
+		void queryClient.prefetchQuery({
+			queryKey: queryKeys.tenants.detail(id),
+			queryFn: async () => tenantApi.getById(id),
+			staleTime: 10 * 1000 // 10 seconds
+		})
+	}
 }
+
+// ============================================================================
+// EXPORTS - React 19 Pure Implementation
+// ============================================================================
+
+// REACT 19: Pure useOptimistic patterns (exported directly above)
+
+// REACT 19: Pure data fetching (exported directly above) 
+
+// REACT 19: Utilities (exported directly above)

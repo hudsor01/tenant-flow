@@ -1,10 +1,5 @@
-import { Download, Eye, Mail } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-<<<<<<< HEAD
 import type { InvoiceActionsProps } from '@/types'
-=======
-import type { InvoiceActionsProps } from '@/types/components'
->>>>>>> origin/main
 
 export function InvoiceActions({
 	onGenerateInvoice,
@@ -19,7 +14,7 @@ export function InvoiceActions({
 				size="lg"
 			>
 				<div className="flex items-center gap-2">
-					<Download className="h-4 w-4" />
+					<i className="i-lucide-download inline-block h-4 w-4"  />
 					<span>Generate Invoice</span>
 				</div>
 			</Button>
@@ -30,7 +25,7 @@ export function InvoiceActions({
 				className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 font-semibold shadow-lg transition-all duration-200 hover:shadow-xl"
 			>
 				<div className="flex items-center gap-2">
-					<Eye className="h-4 w-4" />
+					<i className="i-lucide-eye inline-block h-4 w-4"  />
 					<span>Preview</span>
 				</div>
 			</Button>
@@ -41,7 +36,7 @@ export function InvoiceActions({
 				className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 font-semibold shadow-lg transition-all duration-200 hover:shadow-xl"
 			>
 				<div className="flex items-center gap-2">
-					<Mail className="h-4 w-4" />
+					<i className="i-lucide-mail inline-block h-4 w-4"  />
 					<span>Prepare Email</span>
 				</div>
 			</Button>

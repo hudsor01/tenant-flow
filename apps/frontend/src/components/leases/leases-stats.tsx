@@ -1,9 +1,6 @@
-'use client'
-
 import { useLeases } from '@/hooks/api/use-leases'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { FileText, CheckCircle, Calendar, DollarSign } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Lease } from '@repo/shared'
 
@@ -30,13 +27,9 @@ function calculateLeaseStats(leases: Lease[]) {
 
 	// Calculate leases expiring within 30 days
 	const expiringSoon = leases.filter(lease => {
-<<<<<<< HEAD
 		if (lease.status !== 'ACTIVE') {
 			return false
 		}
-=======
-		if (lease.status !== 'ACTIVE') return false
->>>>>>> origin/main
 		const endDate = new Date(lease.endDate)
 		const thirtyDaysFromNow = new Date()
 		thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30)

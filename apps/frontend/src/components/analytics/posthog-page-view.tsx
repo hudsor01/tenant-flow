@@ -11,13 +11,9 @@ export function PostHogPageView() {
 	const prevPathRef = useRef<string>('')
 
 	useEffect(() => {
-<<<<<<< HEAD
 		if (!posthog || !pathname) {
 			return
 		}
-=======
-		if (!posthog || !pathname) return
->>>>>>> origin/main
 
 		// Build the full URL
 		let url = window.origin + pathname
