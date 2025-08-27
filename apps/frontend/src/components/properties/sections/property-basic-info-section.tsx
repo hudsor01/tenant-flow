@@ -22,7 +22,7 @@ export function PropertyBasicInfoSection({
 	mode
 }: PropertyBasicInfoSectionProps) {
 	return (
-		<FormSection icon=<i className="i-lucide-building-2 inline-block" /> title="Basic Information" delay={0}>
+		<FormSection icon="i-lucide-building-2" title="Basic Information" delay={0}>
 			{/* Property Name */}
 			<div className="space-y-2">
 				<Label

@@ -10,8 +10,8 @@ import {
 	type UseMutationResult
 } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { get, post } from '@/lib/api-client-temp'
-import { queryKeys } from '@/lib/react-query/query-keys'
+import { apiClient } from '@/lib/api-client'
+import { queryKeys } from '@/lib/query-keys'
 import type { PaymentMethod, Subscription } from '@repo/shared'
 
 // Portal redirect response type for operations handled through Stripe Portal
@@ -29,7 +29,7 @@ export function useSubscription(options?: {
 }): UseQueryResult<Subscription> {
 	return useQuery({
 		queryKey: queryKeys.billing.subscription(),
-		queryFn: () => get<Subscription>('/api/billing/subscription'),
+		queryFn: () => apiClient.get<Subscription>('/api/billing/subscription'),
 		enabled: options?.enabled ?? true,
 		refetchInterval: options?.refetchInterval,
 		staleTime: 5 * 60 * 1000, // 5 minutes
@@ -46,7 +46,7 @@ export function useInvoices(options?: {
 }): UseQueryResult<PortalRedirectResponse> {
 	return useQuery({
 		queryKey: queryKeys.billing.invoices(),
-		queryFn: () => get<PortalRedirectResponse>('/api/billing/invoices'),
+		queryFn: () => apiClient.get<PortalRedirectResponse>('/api/billing/invoices'),
 		enabled: options?.enabled ?? true,
 		refetchInterval: options?.refetchInterval,
 		staleTime: 10 * 60 * 1000 // 10 minutes
@@ -61,7 +61,7 @@ export function usePaymentMethods(options?: {
 }): UseQueryResult<PortalRedirectResponse> {
 	return useQuery({
 		queryKey: queryKeys.billing.paymentMethods(),
-		queryFn: () => get<PortalRedirectResponse>('/api/billing/payment-methods'),
+		queryFn: () => apiClient.get<PortalRedirectResponse>('/api/billing/payment-methods'),
 		enabled: options?.enabled ?? true,
 		staleTime: 10 * 60 * 1000 // 10 minutes
 	})
@@ -104,7 +104,7 @@ export function useCreateCheckoutSession(): UseMutationResult<
 			interval: 'monthly' | 'annual'
 			successUrl?: string
 			cancelUrl?: string
-		}) => post<{ url: string; sessionId?: string }>('/api/billing/checkout', data),
+		}) => apiClient.post<{ url: string; sessionId?: string }>('/api/billing/checkout', data),
 		onSuccess: data => {
 			// Redirect to checkout
 			const checkoutUrl = data.url
@@ -142,7 +142,7 @@ export function useCreatePortalSession(): UseMutationResult<
 				returnUrl: data?.returnUrl || window.location.origin,
 				...(data?.prefillEmail && { prefillEmail: data.prefillEmail })
 			}
-			return post<{ url?: string }>('/api/billing/portal', portalData)
+			return apiClient.post<{ url?: string }>('/api/billing/portal', portalData)
 		},
 		onSuccess: data => {
 			// Redirect to portal
@@ -180,7 +180,7 @@ export function useUpdateSubscription(): UseMutationResult<
 			newPriceId: string
 			userId: string
 			prorationBehavior?: 'create_prorations' | 'none' | 'always_invoice'
-		}) => post<PortalRedirectResponse>('/api/billing/subscription', params),
+		}) => apiClient.post<PortalRedirectResponse>('/api/billing/subscription', params),
 		onMutate: async _params => {
 			// Cancel any outgoing refetches
 			await queryClient.cancelQueries({
@@ -189,12 +189,12 @@ export function useUpdateSubscription(): UseMutationResult<
 
 			// Snapshot the previous value
 			const previousSubscription = queryClient.getQueryData(
-				billingKeys.subscription()
+				queryKeys.billing.subscription()
 			)
 
 			// Optimistically update subscription
 			queryClient.setQueryData(
-				billingKeys.subscription(),
+				queryKeys.billing.subscription(),
 				(old: Subscription | undefined) =>
 					old ? { ...old, status: 'ACTIVE' as const } : undefined
 			)
@@ -205,7 +205,7 @@ export function useUpdateSubscription(): UseMutationResult<
 			// Revert optimistic update on error
 			if (context?.previousSubscription) {
 				queryClient.setQueryData(
-					billingKeys.subscription(),
+					queryKeys.billing.subscription(),
 					context.previousSubscription
 				)
 			}
@@ -241,7 +241,7 @@ export function useCancelSubscription(): UseMutationResult<
 
 	return useMutation({
 		mutationFn: async () => {
-			return post<{ message: string }>('/api/billing/subscription/cancel', {})
+			return apiClient.post<{ message: string }>('/api/billing/subscription/cancel', {})
 		},
 		onMutate: async () => {
 			// Cancel any outgoing refetches
@@ -251,12 +251,12 @@ export function useCancelSubscription(): UseMutationResult<
 
 			// Snapshot the previous value
 			const previousSubscription = queryClient.getQueryData(
-				billingKeys.subscription()
+				queryKeys.billing.subscription()
 			)
 
 			// Optimistically update subscription
 			queryClient.setQueryData(
-				billingKeys.subscription(),
+				queryKeys.billing.subscription(),
 				(old: Subscription | undefined) =>
 					old
 						? {
@@ -273,7 +273,7 @@ export function useCancelSubscription(): UseMutationResult<
 			// Revert optimistic update on error
 			if (context?.previousSubscription) {
 				queryClient.setQueryData(
-					billingKeys.subscription(),
+					queryKeys.billing.subscription(),
 					context.previousSubscription
 				)
 			}
@@ -309,7 +309,7 @@ export function useAddPaymentMethod(): UseMutationResult<
 
 	return useMutation({
 		mutationFn: async ({ paymentMethodId }) => {
-			const result = await post<PortalRedirectResponse>('/api/billing/payment-methods', { paymentMethodId })
+			const result = await apiClient.post<PortalRedirectResponse>('/api/billing/payment-methods', { paymentMethodId })
 
 			// Note: setAsDefault is handled through the portal
 
@@ -344,7 +344,7 @@ export function useUpdatePaymentMethod(): UseMutationResult<
 
 	return useMutation({
 		mutationFn: async ({ paymentMethodId }) =>
-			post<PortalRedirectResponse>('/api/billing/payment-methods/default', { paymentMethodId }),
+			apiClient.post<PortalRedirectResponse>('/api/billing/payment-methods/default', { paymentMethodId }),
 		onMutate: async ({ paymentMethodId }) => {
 			// Cancel any outgoing refetches
 			await queryClient.cancelQueries({
@@ -353,12 +353,12 @@ export function useUpdatePaymentMethod(): UseMutationResult<
 
 			// Snapshot the previous value
 			const previousPaymentMethods = queryClient.getQueryData(
-				billingKeys.paymentMethods()
+				queryKeys.billing.paymentMethods()
 			)
 
 			// Optimistically update payment methods
 			queryClient.setQueryData(
-				billingKeys.paymentMethods(),
+				queryKeys.billing.paymentMethods(),
 				(old: PaymentMethod[] | undefined) =>
 					old?.map(pm => ({
 						...pm,
@@ -372,7 +372,7 @@ export function useUpdatePaymentMethod(): UseMutationResult<
 			// Revert optimistic update on error
 			if (context?.previousPaymentMethods) {
 				queryClient.setQueryData(
-					billingKeys.paymentMethods(),
+					queryKeys.billing.paymentMethods(),
 					context.previousPaymentMethods
 				)
 			}

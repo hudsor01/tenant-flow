@@ -2,7 +2,7 @@
 
 import { useCallback } from 'react'
 import { usePostHog } from './use-posthog'
-import type { Database } from '@repo/shared'
+import type { Database, PropertyWithUnits } from '@repo/shared'
 
 // Define types directly from Database schema - NO DUPLICATION
 type Property = Database['public']['Tables']['Property']['Row']
@@ -11,12 +11,13 @@ export function usePropertyTracking() {
 	const { trackEvent } = usePostHog()
 
 	const trackPropertyView = useCallback(
-		(property: Property) => {
+		(property: PropertyWithUnits | Property) => {
 			trackEvent('property_viewed', {
 				property_id: property.id,
 				property_name: property.name,
 				property_type: property.propertyType,
-				units: property.units
+				units_count: ('units' in property && property.units) ? property.units.length : 
+							('totalUnits' in property && property.totalUnits) ? property.totalUnits : 0
 			})
 		},
 		[trackEvent]

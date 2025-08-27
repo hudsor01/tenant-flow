@@ -8,14 +8,20 @@ import {
 	useQueryClient,
 	type UseQueryResult
 } from '@tanstack/react-query'
-import type {
-	MaintenanceRequestApiResponse,
-	MaintenanceStats,
-	CreateMaintenanceInput,
-	UpdateMaintenanceInput,
-	MaintenanceStatus
-} from '@repo/shared'
-import { get, post, put, del } from '@/lib/api-client'
+import type { Database, MaintenanceRequestApiResponse, MaintenanceQuery } from '@repo/shared'
+
+// Use Database types directly - no duplication
+type MaintenanceRequest = Database['public']['Tables']['MaintenanceRequest']['Row']
+type MaintenanceStats = {
+	total: number
+	pending: number
+	inProgress: number 
+	completed: number
+}
+type CreateMaintenanceInput = Database['public']['Tables']['MaintenanceRequest']['Insert']
+type UpdateMaintenanceInput = Database['public']['Tables']['MaintenanceRequest']['Update']
+type RequestStatus = Database['public']['Enums']['RequestStatus']
+import { apiClient } from '@/lib/api-client'
 import { queryKeys } from '@/lib/query-keys'
 
 // ============================================================================
@@ -26,16 +32,11 @@ import { queryKeys } from '@/lib/query-keys'
  * Standard useQuery for maintenance requests
  */
 export function useMaintenanceRequests(
-	params?: {
-		status?: MaintenanceStatus
-		priority?: string
-		propertyId?: string
-		unitId?: string
-	}
+	params?: MaintenanceQuery
 ): UseQueryResult<MaintenanceRequestApiResponse[]> {
 	return useQuery({
 		queryKey: queryKeys.maintenance.list(params),
-		queryFn: async () => get<MaintenanceRequestApiResponse[]>('/api/maintenance'),
+		queryFn: async () => apiClient.get<MaintenanceRequestApiResponse[]>('/api/maintenance'),
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000 // 10 minutes
 	})
@@ -47,7 +48,7 @@ export function useMaintenanceRequests(
 export function useMaintenanceRequest(id: string): UseQueryResult<MaintenanceRequest> {
 	return useQuery({
 		queryKey: queryKeys.maintenance.detail(id),
-		queryFn: async () => get<MaintenanceRequest>(`/api/maintenance/${id}`),
+		queryFn: async () => apiClient.get<MaintenanceRequest>(`/api/maintenance/${id}`),
 		staleTime: 2 * 60 * 1000, // 2 minutes
 		enabled: !!id
 	})

@@ -67,7 +67,7 @@ export function OptimizedFeaturesSection({
 						>
 							<div className="mb-4 flex items-start justify-between">
 								<div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100">
-									<feature.icon className="text-primary h-6 w-6" />
+									<i className={`${feature.icon} inline-block text-primary h-6 w-6`} />
 								</div>
 								<div className="text-right">
 									<div className="text-2xl font-bold text-green-600">

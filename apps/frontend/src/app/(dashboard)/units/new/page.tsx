@@ -60,7 +60,7 @@ export default function NewUnitPage() {
 								</div>
 							}
 						>
-							<UnitForm units={[]} properties={[]} />
+							<UnitForm properties={[]} />
 						</Suspense>
 					</CardContent>
 				</Card>

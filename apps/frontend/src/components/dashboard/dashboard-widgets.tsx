@@ -280,7 +280,6 @@ export function DashboardWidgets() {
 						</CardHeader>
 						<CardContent className="space-y-4">
 							{recentActivity.map((activity, index) => {
-								const Icon = activity.icon
 								const colorClasses = {
 									green: 'text-green-600 bg-gradient-to-br from-green-50 to-green-100',
 									orange: 'text-orange-600 bg-gradient-to-br from-orange-50 to-orange-100',
@@ -317,7 +316,7 @@ export function DashboardWidgets() {
 												transition: { duration: 0.2 }
 											}}
 										>
-											<Icon className="h-4 w-4" />
+											<i className={`${activity.icon} inline-block h-4 w-4`} />
 										</motion.div>
 										<div className="min-w-0 flex-1">
 											<p className="text-sm font-medium text-gray-900 transition-colors group-hover/item:text-gray-800">

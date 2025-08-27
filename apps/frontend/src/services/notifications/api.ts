@@ -7,7 +7,7 @@ import { logger } from '@/lib/logger'
 import type {
 	NotificationData,
 	NotificationResponse,
-	MaintenanceNotificationPayload
+	MaintenanceNotificationData
 } from '@repo/shared'
 import {
 	generateNotificationId,
@@ -25,7 +25,7 @@ export class NotificationApiService {
 		notificationData: NotificationData
 	): Promise<NotificationResponse> {
 		const validation = validateNotificationData(
-			notificationData as MaintenanceNotificationPayload
+			notificationData as MaintenanceNotificationData
 		)
 		if (!Array.isArray(validation) && validation) {
 			throw new Error('Invalid notification data')

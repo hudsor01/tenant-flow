@@ -80,7 +80,10 @@ export function MaintenanceStatusUpdate({
 		if (selectedStatus === request.status) return
 
 		try {
-			await updateRequest.mutate(request.id, { status: selectedStatus })
+			await updateRequest.mutate(request.id, {
+				status: selectedStatus,
+				completedAt: selectedStatus === 'COMPLETED' ? new Date() : undefined
+			})
 			onUpdate?.()
 		} catch (error) {
 			console.error('Failed to update maintenance request status:', error)

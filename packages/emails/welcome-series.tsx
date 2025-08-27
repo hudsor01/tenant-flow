@@ -1,19 +1,12 @@
 import * as React from 'react'
 import {
-	Body,
 	Button,
-	Container,
-	Head,
 	Heading,
-	Hr,
-	Html,
-	Img,
 	Link,
-	Preview,
 	Section,
-	Text,
-	Tailwind
+	Text
 } from '@react-email/components'
+import BaseEmailTemplate from './base-email-template'
 
 interface WelcomeEmailProps {
 	firstName?: string
@@ -52,28 +45,12 @@ export default function WelcomeEmail({
 	const content = getPersonalizedContent()
 
 	return (
-		<Html>
-			<Head />
-			<Preview>
-				Welcome to TenantFlow - Your Property Management Journey Starts
-				Here
-			</Preview>
-			<Tailwind>
-				<Body className="bg-gray-50 font-sans">
-					<Container className="mx-auto max-w-2xl px-4 py-8">
-						{/* Header */}
-						<Section className="rounded-t-lg border-b border-gray-200 bg-white px-8 py-6">
-							<Img
-								src="https://tenantflow.app/logo-email.png"
-								width="180"
-								height="60"
-								alt="TenantFlow"
-								className="mx-auto"
-							/>
-						</Section>
-
-						{/* Main Content */}
-						<Section className="bg-white px-8 py-6">
+		<BaseEmailTemplate
+			previewText="Welcome to TenantFlow - Your Property Management Journey Starts Here"
+			footerMessage="Best regards"
+			footerSignature="The TenantFlow Team"
+			unsubscribeText={`You're receiving this because you signed up for TenantFlow from ${source}.`}
+		>
 							<Heading className="mb-4 text-2xl font-bold text-gray-800">
 								Welcome to TenantFlow, {firstName}! 🏠
 							</Heading>
@@ -161,30 +138,6 @@ export default function WelcomeEmail({
 									for instant support.
 								</Text>
 							</Section>
-						</Section>
-
-						{/* Footer */}
-						<Section className="rounded-b-lg bg-gray-100 px-8 py-6 text-center">
-							<Text className="mb-2 text-sm text-gray-500">
-								Best regards,
-								<br />
-								The TenantFlow Team
-							</Text>
-							<Hr className="my-4 border-gray-300" />
-							<Text className="text-xs text-gray-400">
-								You're receiving this because you signed up for
-								TenantFlow from {source}.{' '}
-								<Link
-									href="https://tenantflow.app/unsubscribe"
-									className="text-gray-400 underline"
-								>
-									Unsubscribe
-								</Link>
-							</Text>
-						</Section>
-					</Container>
-				</Body>
-			</Tailwind>
-		</Html>
+		</BaseEmailTemplate>
 	)
 }

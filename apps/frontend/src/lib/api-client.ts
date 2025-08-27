@@ -13,28 +13,6 @@ import {
 import type { ZodTypeAny } from 'zod/v4'
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
 
-// Type-safe URLSearchParams utility
-export function createSearchParams(params: Record<string, unknown>): string {
-	const searchParams = new URLSearchParams()
-
-	Object.entries(params).forEach(([key, value]) => {
-		if (value !== undefined && value !== null && value !== '') {
-			// Handle arrays by joining with comma
-			if (Array.isArray(value)) {
-				const filteredArray = value.filter(
-					v => v !== undefined && v !== null && v !== ''
-				)
-				if (filteredArray.length > 0) {
-					searchParams.append(key, filteredArray.join(','))
-				}
-			} else {
-				searchParams.append(key, String(value))
-			}
-		}
-	})
-
-	return searchParams.toString()
-}
 
 class SimpleApiClient {
 	private baseURL: string

@@ -64,25 +64,25 @@ export function ContactForm({
 		{
 			value: 'demo',
 			label: 'Schedule a Demo',
-			icon: 'i-lucide-calendar',
+			icon: () => <i className="i-lucide-calendar inline-block" />,
 			description: 'See TenantFlow in action'
 		},
 		{
 			value: 'sales',
 			label: 'Sales Inquiry',
-			icon: 'i-lucide-phone',
+			icon: () => <i className="i-lucide-phone inline-block" />,
 			description: 'Learn about pricing & features'
 		},
 		{
 			value: 'support',
 			label: 'Technical Support',
-			icon: 'i-lucide-mail',
+			icon: () => <i className="i-lucide-mail inline-block" />,
 			description: 'Get help with your account'
 		},
 		{
 			value: 'general',
 			label: 'General Question',
-			icon: 'i-lucide-check-circle',
+			icon: () => <i className="i-lucide-check-circle inline-block" />,
 			description: 'Other inquiries'
 		}
 	]
@@ -169,14 +169,16 @@ export function ContactForm({
 												}`}
 											>
 												<div className="flex items-start space-x-3">
-													<IconComponent
+													<div
 														className={`mt-0.5 h-5 w-5 ${
 															inquiryType ===
 															type.value
 																? 'text-primary'
 																: 'text-muted-foreground'
 														}`}
-													/>
+													>
+														<IconComponent />
+													</div>
 													<div>
 														<div className="text-sm font-medium">
 															{type.label}

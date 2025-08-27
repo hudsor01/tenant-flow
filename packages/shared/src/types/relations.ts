@@ -29,7 +29,15 @@ export interface PropertyWithDetails extends Property {
 export interface UnitWithDetails extends Unit {
 	property: Property
 	leases: Lease[]
+	currentLease?: Lease
+	tenant?: Tenant
 	maintenanceRequests: MaintenanceRequest[]
+	
+	// Computed fields
+	isOccupied?: boolean
+	monthlyRent?: number
+	leaseEndDate?: string
+	tenantName?: string
 }
 
 // Tenant relations
@@ -73,6 +81,15 @@ export interface MaintenanceWithDetails extends MaintenanceRequest {
 	unit: UnitWithDetails
 }
 
+export interface MaintenanceRequestWithDetails extends MaintenanceRequest {
+	unit: Unit & {
+		property: Property
+	}
+	tenant?: Tenant
+	// Flattened fields for compatibility with MaintenanceRequestApiResponse
+	unitNumber: string
+}
+
 // Notification relations
 export interface NotificationWithDetails extends NotificationData {
 	property: Property | null
@@ -81,11 +98,51 @@ export interface NotificationWithDetails extends NotificationData {
 
 // Complex query result types
 export interface PropertyWithUnits extends Property {
-	units: Array<
-		Unit & {
-			leases: Lease[]
-		}
-	>
+	// Core relations - units is optional since not all queries include it
+	units?: Unit[]
+	
+	// Computed fields that components expect
+	totalUnits?: number
+	occupiedUnits?: number
+	availableUnits?: number
+	monthlyRent?: number
+	monthlyRevenue?: number
+	squareFeet?: number
+	totalSize?: number  // Alias for squareFeet
+	bedrooms?: number
+	bathrooms?: number
+	yearBuilt?: number
+	securityDeposit?: number
+	
+	// Property management fields
+	manager?: string
+	managerId?: string
+	managerName?: string
+	managerEmail?: string
+	managerPhone?: string
+	
+	// Amenities and features
+	amenities?: string[]
+	petsAllowed?: boolean
+	parkingSpaces?: number
+	
+	// Remove conflicting status field - use the database PropertyStatus instead
+	occupancyRate?: number
+	averageRent?: number
+	rentAmount?: number  // Alias for monthlyRent
+	
+	// Financial calculations
+	totalMonthlyRent?: number
+	potentialMonthlyRent?: number
+	
+	// UI-specific fields  
+	images?: string[]
+	notes?: string
+	
+	// Lease-related computed fields
+	activeLeases?: number
+	expiringSoon?: number
+	vacantUnits?: number
 }
 
 export interface PropertyWithUnitsAndLeases extends Property {
@@ -203,4 +260,104 @@ export interface NotificationWithRelations extends NotificationData {
 				}
 		  })
 		| null
+}
+
+// =============================================================================
+// ADDITIONAL TYPES FOR COMPONENT COMPATIBILITY
+// =============================================================================
+
+/**
+ * PropertyWithFullDetails - Complete property with all relations for detailed views
+ */
+export interface PropertyWithFullDetails extends PropertyWithUnits {
+	owner?: User
+	leases?: LeaseWithDetails[]
+	tenants?: TenantWithDetails[]
+	maintenanceRequests?: MaintenanceRequestWithDetails[]
+	
+	// Extended analytics
+	averageRent?: number
+	totalRevenue?: number
+	expiredLeases?: number
+	pendingMaintenance?: number
+}
+
+/**
+ * PropertySummary - Minimal property data for lists and cards
+ */
+export interface PropertySummary {
+	id: string
+	name: string
+	address: string
+	city: string
+	state: string
+	imageUrl: string | null
+	totalUnits?: number
+	occupiedUnits?: number
+	monthlyRent?: number
+	monthlyRevenue?: number
+}
+
+/**
+ * PropertyFormData - Data structure for property forms
+ */
+export interface PropertyFormData {
+	name: string
+	address: string
+	city: string
+	state: string
+	zipCode: string
+	propertyType: Database['public']['Enums']['PropertyType']
+	description?: string
+	imageUrl?: string
+	
+	// Form-specific computed fields
+	totalUnits?: number
+	monthlyRent?: number
+	squareFeet?: number
+	bedrooms?: number
+	bathrooms?: number
+	yearBuilt?: number
+	manager?: string
+	amenities?: string[]
+	petsAllowed?: boolean
+	parkingSpaces?: number
+}
+
+/**
+ * PropertyStatsExtended - Property statistics for dashboard
+ */
+export interface PropertyStatsExtended {
+	total: number
+	active: number
+	inactive: number
+	maintenance: number
+	totalUnits: number
+	occupiedUnits: number
+	vacantUnits: number
+	occupancyRate: number
+	totalRevenue: number
+	averageRent: number
+}
+
+/**
+ * PropertySearchResult - Property with search relevance
+ */
+export interface PropertySearchResult extends PropertyWithUnits {
+	searchScore?: number
+	highlightedFields?: string[]
+}
+
+/**
+ * PropertyFilters - Common property filtering options
+ */
+export interface PropertyFilters {
+	propertyType?: Database['public']['Enums']['PropertyType']
+	status?: 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE'
+	minUnits?: number
+	maxUnits?: number
+	minRent?: number
+	maxRent?: number
+	city?: string
+	state?: string
 }

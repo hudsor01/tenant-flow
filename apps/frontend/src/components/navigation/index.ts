@@ -16,4 +16,4 @@ export { Pagination } from './pagination'
 export { MobileNavigation } from './mobile-navigation'
 
 // Types
-export type { NavItem, BreadcrumbItem, TabItem } from './types'
+export type { NavItem, BreadcrumbItem, TabItem } from '@repo/shared'

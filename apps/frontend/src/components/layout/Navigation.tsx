@@ -275,8 +275,8 @@ export function Navigation({
 															}}
 														>
 															<div className="mr-3 rounded-lg bg-blue-50 p-2 transition-colors group-hover:bg-blue-100">
-																<item.icon
-																	className="text-primary h-4 w-4"
+																<i
+																	className={`${item.icon} text-primary h-4 w-4`}
 																	aria-hidden="true"
 																/>
 															</div>
@@ -457,7 +457,7 @@ export function Navigation({
 														href={item.to}
 														className="hover:text-primary group flex items-center rounded-lg p-3 text-gray-600 transition-colors duration-200 hover:bg-gray-50"
 													>
-														<item.icon className="text-primary mr-3 h-4 w-4 transition-colors group-hover:text-blue-700" />
+														<i className={`${item.icon} text-primary mr-3 h-4 w-4 transition-colors group-hover:text-blue-700`} />
 														<div className="min-w-0 flex-1">
 															<div className="text-sm font-medium">
 																{item.label}

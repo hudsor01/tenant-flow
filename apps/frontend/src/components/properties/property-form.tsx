@@ -9,10 +9,9 @@
 import React, { useOptimistic, startTransition } from 'react'
 import { useActionState } from 'react'
 import { createProperty, updateProperty } from '@/app/actions/properties'
-import type { Database } from '@repo/shared/types/supabase-generated'
-
-// Define types directly from Database schema - NO DUPLICATION
-type Property = Database['public']['Tables']['Property']['Row']
+import type { PropertyWithUnits, PropertyFormData, Database, FormState } from '@repo/shared'
+ 
+type Property = PropertyWithUnits
 type PropertyStatus = Database['public']['Enums']['PropertyStatus']
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -25,40 +24,6 @@ import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
 import { SuccessFeedback, ErrorFeedback, OptimisticFeedback } from '@/components/ui/feedback'
 
-// Form state interface
-interface FormState {
-	success?: boolean
-	error?: string
-}
-
-// Simple Form Section component
-function FormSection({
-	title,
-	description,
-	children,
-	icon: Icon
-}: {
-	title: string
-	description?: string
-	children: React.ReactNode
-	icon?: React.ElementType
-}) {
-	return (
-		<div className="space-y-4">
-			<div className={Icon ? 'flex items-center gap-2' : ''}>
-				{Icon && <Icon className="h-4 w-4 text-muted-foreground" />}
-				<div>
-					<h3 className="text-lg font-medium">{title}</h3>
-					{description && (
-						<p className="text-muted-foreground text-sm">{description}</p>
-					)}
-				</div>
-			</div>
-			{children}
-		</div>
-	)
-}
-
 // Types for form props
 interface PropertyFormProps {
 	property?: Property
@@ -67,6 +32,8 @@ interface PropertyFormProps {
 	onClose?: () => void
 	className?: string
 }
+
+
 
 /**
  * Native React 19 Property Form using shared components
@@ -92,26 +59,31 @@ export function PropertyForm({
 				// Update existing property optimistically
 				return currentProperties.map(p =>
 					p.id === property.id
-						? { ...p, ...newProperty, status: 'updating' as PropertyStatus }
+						? { ...p, ...newProperty }
 						: p
 				)
 			}
 			// Add new property optimistically
 			const tempProperty: Property = {
-				id: `temp-${ Date.now() }`,
+				// Base database fields
+				id: `temp-${Date.now()}`,
 				name: newProperty.name || 'New Property',
 				address: newProperty.address || '',
 				city: newProperty.city || '',
 				state: newProperty.state || '',
 				zipCode: newProperty.zipCode || '',
-				propertyType: newProperty.propertyType || 'SINGLE_FAMILY',
-				status: 'creating' as PropertyStatus,
+				propertyType: (newProperty.propertyType as Database['public']['Enums']['PropertyType']) || 'SINGLE_FAMILY',
+				description: newProperty.description || null,
+				imageUrl: null,
+				ownerId: '',
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString(),
+				
+				// PropertyWithUnits computed fields
+				units: [],
 				totalUnits: 1,
-				monthlyRent: 0,
-				createdAt: new Date(),
-				updatedAt: new Date(),
-				organizationId: ''
-			} as unknown as Property
+				monthlyRent: 0
+			}
 			return [...currentProperties, tempProperty]
 		}
 	)
@@ -123,13 +95,13 @@ export function PropertyForm({
 	) {
 		try {
 			// Extract form values using native FormData API
-			const propertyData = {
+			const propertyData: PropertyFormData = {
 				name: formData.get('name') as string,
 				address: formData.get('address') as string,
 				city: formData.get('city') as string,
 				state: formData.get('state') as string,
 				zipCode: formData.get('zipCode') as string,
-				propertyType: formData.get('propertyType') as string,
+				propertyType: formData.get('propertyType') as Database['public']['Enums']['PropertyType'],
 				description: formData.get('description') as string,
 				monthlyRent: formData.has('monthlyRent') 
 					? parseFloat(formData.get('monthlyRent') as string)
@@ -149,15 +121,13 @@ export function PropertyForm({
 				yearBuilt: formData.has('yearBuilt')
 					? parseInt(formData.get('yearBuilt') as string, 10)
 					: undefined,
-				hasParking: formData.get('hasParking') === 'on',
-				hasLaundry: formData.get('hasLaundry') === 'on',
-				petsAllowed: formData.get('petsAllowed') === 'on'
 			}
 
 			// Add optimistic update
-			startTransition(() => addOptimisticProperty( propertyData ))
+			// cast to Partial<Property> so the optimistic reducer accepts a partial update
+			startTransition(() => addOptimisticProperty(propertyData as Partial<Property>))
 
-			// Call server action
+			// Call server action with FormData
 			let result: Property
 			if (isEditing && property) {
 				result = await updateProperty(property.id, formData)
@@ -189,8 +159,8 @@ export function PropertyForm({
 
 	// Find the optimistic property if creating/updating
 	const optimisticProperty = !isEditing
-		? optimisticProperties.find(p => (p as Property & { status: string }).status === 'creating')
-		: optimisticProperties.find(p => p.id === property?.id && (p as Property & { status: string }).status === 'updating')
+		? optimisticProperties.find(p => p.id.startsWith('temp-'))
+		: optimisticProperties.find(p => p.id === property?.id)
 
 	// Property type options
 	const propertyTypes = [
@@ -210,7 +180,9 @@ export function PropertyForm({
 					className="mb-4"
 					isEditing={isEditing}
 					entityName="property"
-				/>
+				>
+					{isEditing ? 'Updating property...' : 'Creating property...'}
+				</OptimisticFeedback>
 			)}
 
 			{/* Success feedback */}
@@ -245,11 +217,14 @@ export function PropertyForm({
 						)}
 
 						{/* Basic Information Section */}
-						<FormSection
-							title="Basic Information"
-							description="Essential property details"
-							icon={Home}
-						>
+						<div className="space-y-4">
+							<div className="flex items-center gap-2">
+								<i className="i-lucide-home h-4 w-4 text-muted-foreground" />
+								<div>
+									<h3 className="text-lg font-medium">Basic Information</h3>
+									<p className="text-muted-foreground text-sm">Essential property details</p>
+								</div>
+							</div>
 							<div className="space-y-4">
 								<div className="space-y-2">
 									<Label htmlFor="name">
@@ -302,7 +277,7 @@ export function PropertyForm({
 											name="totalUnits"
 											type="number"
 											min="1"
-											defaultValue={property?.totalUnits || '1'}
+											defaultValue={property?.totalUnits?.toString() || '1'}
 											required
 											disabled={isPending}
 										/>
@@ -317,22 +292,25 @@ export function PropertyForm({
 										id="description"
 										name="description"
 										rows={4}
-										defaultValue={property?.description}
+										defaultValue={property?.description ?? ''}
 										placeholder="Describe the property features, amenities, etc."
 										disabled={isPending}
 									/>
 								</div>
 							</div>
-						</FormSection>
+						</div>
 
 						<Separator />
 
 						{/* Location Section */}
-						<FormSection
-							title="Location"
-							description="Property address and location details"
-							icon={MapPin}
-						>
+						<div className="space-y-4">
+							<div className="flex items-center gap-2">
+								<i className="i-lucide-map-pin h-4 w-4 text-muted-foreground" />
+								<div>
+									<h3 className="text-lg font-medium">Location</h3>
+									<p className="text-muted-foreground text-sm">Property address and location details</p>
+								</div>
+							</div>
 							<div className="space-y-4">
 								<div className="space-y-2">
 									<Label htmlFor="address">
@@ -402,15 +380,19 @@ export function PropertyForm({
 									</div>
 								</div>
 							</div>
-						</FormSection>
+						</div>
 
 						<Separator />
 
 						{/* Financial Information */}
-						<FormSection
-							title="Financial Information"
-							description="Rental rates and financial details"
-						>
+						<div className="space-y-4">
+							<div className="flex items-center gap-2">
+								<i className="i-lucide-dollar-sign h-4 w-4 text-muted-foreground" />
+								<div>
+									<h3 className="text-lg font-medium">Financial Information</h3>
+									<p className="text-muted-foreground text-sm">Rental rates and financial details</p>
+								</div>
+							</div>
 							<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 								<div className="space-y-2">
 									<Label htmlFor="monthlyRent">
@@ -444,15 +426,19 @@ export function PropertyForm({
 									/>
 								</div>
 							</div>
-						</FormSection>
+						</div>
 
 						<Separator />
 
 						{/* Property Details */}
-						<FormSection
-							title="Property Details"
-							description="Size and specifications"
-						>
+						<div className="space-y-4">
+							<div className="flex items-center gap-2">
+								<i className="i-lucide-ruler h-4 w-4 text-muted-foreground" />
+								<div>
+									<h3 className="text-lg font-medium">Property Details</h3>
+									<p className="text-muted-foreground text-sm">Size and specifications</p>
+								</div>
+							</div>
 							<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
 								<div className="space-y-2">
 									<Label htmlFor="squareFeet">
@@ -516,15 +502,19 @@ export function PropertyForm({
 									/>
 								</div>
 							</div>
-						</FormSection>
+						</div>
 
 						<Separator />
 
 						{/* Amenities Section */}
-						<FormSection
-							title="Amenities"
-							description="Available features and amenities"
-						>
+						<div className="space-y-4">
+							<div className="flex items-center gap-2">
+								<i className="i-lucide-star h-4 w-4 text-muted-foreground" />
+								<div>
+									<h3 className="text-lg font-medium">Amenities</h3>
+									<p className="text-muted-foreground text-sm">Available features and amenities</p>
+								</div>
+							</div>
 							<div className="space-y-4">
 								<div className="flex items-center space-x-2">
 									<Switch
@@ -562,7 +552,7 @@ export function PropertyForm({
 									</Label>
 								</div>
 							</div>
-						</FormSection>
+						</div>
 
 						{/* Form Actions */}
 						<div className="flex items-center justify-end gap-3 border-t pt-4">

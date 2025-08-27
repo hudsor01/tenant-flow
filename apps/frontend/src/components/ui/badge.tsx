@@ -13,25 +13,26 @@ const badgeClasses = {
 	}
 }
 
-function Badge({
-	className,
-	variant = 'default',
-	asChild = false,
-	...props
-}: React.ComponentProps<'span'> & {
-	variant?: keyof typeof badgeClasses.variants
-	asChild?: boolean
-}) {
+const Badge = React.forwardRef<
+	HTMLSpanElement,
+	React.ComponentProps<'span'> & {
+		variant?: keyof typeof badgeClasses.variants
+		asChild?: boolean
+	}
+>(({ className, variant = 'default', asChild = false, ...props }, ref) => {
 	const Comp = asChild ? Slot : 'span'
 	const variantClasses = badgeClasses.variants[variant]
 
 	return (
 		<Comp
+			ref={ref}
 			data-slot="badge"
 			className={cn(badgeClasses.base, variantClasses, className)}
 			{...props}
 		/>
 	)
-}
+})
+
+Badge.displayName = 'Badge'
 
 export { Badge }

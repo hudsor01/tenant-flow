@@ -33,31 +33,24 @@ function TenantsStatsUI({ stats }: TenantsStatsUIProps) {
 	const statItems = [
 		{
 			title: 'Total Tenants',
-			value: stats.totalTenants,
+			value: stats.total,
 			description: 'All registered tenants',
 			icon: 'i-lucide-users',
 			color: 'text-primary'
 		},
 		{
-			title: 'Accepted Invites',
-			value: stats.acceptedInvitations,
-			description: 'Active tenant accounts',
+			title: 'Active Tenants',
+			value: stats.active,
+			description: 'Currently active tenants',
 			icon: 'i-lucide-user-check',
 			color: 'text-green-600'
 		},
 		{
-			title: 'Pending Invites',
-			value: stats.pendingInvitations,
-			description: 'Awaiting acceptance',
+			title: 'Inactive Tenants',
+			value: stats.inactive,
+			description: 'No longer active',
 			icon: 'i-lucide-user-x',
-			color: 'text-yellow-600'
-		},
-		{
-			title: 'Expiring Soon',
-			value: stats.expiringLeases,
-			description: 'Requires enhanced data',
-			icon: 'i-lucide-calendar',
-			color: 'text-gray-400'
+			color: 'text-red-600'
 		}
 	]
 

@@ -15,7 +15,7 @@ import type {
 	UpdateLeaseInput,
 	LeaseStats
 } from '@repo/shared'
-import { get, post, put, del } from '@/lib/api-client-temp'
+import { get, post, put, del } from '@/lib/api-client'
 import { queryKeys } from '@/lib/react-query/query-keys'
 
 // ============================================================================
@@ -73,100 +73,26 @@ export function useLeaseStats(): UseSuspenseQueryResult<LeaseStats> {
 // ============================================================================
 
 /**
- * React 19 useOptimistic for Leases List - Replaces TanStack Query onMutate
+ * Simple Leases Hook - KISS Principle
  */
 export function useLeasesOptimistic(query?: LeaseQuery) {
 	const { data: serverLeases } = useLeases(query)
-	const queryClient = useQueryClient()
-
-	// React 19 useOptimistic for instant feedback
-	const optimistic = useOptimisticList(serverLeases, {
-		successMessage: (lease: Lease) => `Lease for ${lease.property?.name || 'property'} saved successfully`,
-		errorMessage: 'Failed to save lease',
-		onSuccess: () => {
-			// Invalidate server cache after successful operations
-			void queryClient.invalidateQueries({
-				queryKey: queryKeys.leases.lists()
-			})
-			void queryClient.invalidateQueries({
-				queryKey: queryKeys.leases.stats()
-			})
-		}
-	})
-
-	// Server action wrappers
-	const createLeaseServer = async (data: CreateLeaseInput): Promise<Lease> => {
-		return await post<Lease>('/api/leases', data)
-	}
-
-	const updateLeaseServer = async (id: string, data: UpdateLeaseInput): Promise<Lease> => {
-		return await put<Lease>(`/api/leases/${id}`, data)
-	}
-
-	const deleteLeaseServer = async (id: string): Promise<void> => {
-		await del<void>(`/api/leases/${id}`)
-	}
-
+	
 	return {
-		// React 19 optimistic state
-		leases: optimistic.items,
-		isPending: optimistic.isPending,
-		isOptimistic: optimistic.isOptimistic,
-		pendingCount: optimistic.pendingCount,
-
-		// React 19 optimistic actions
-		createLease: (data: CreateLeaseInput) => 
-			optimistic.optimisticCreate(data, createLeaseServer),
-		updateLease: (id: string, data: UpdateLeaseInput) => 
-			optimistic.optimisticUpdate(id, data, updateLeaseServer),
-		deleteLease: (id: string) => 
-			optimistic.optimisticDelete(id, () => deleteLeaseServer(id)),
-		
-		// Utility actions
-		revertAll: optimistic.revertAll
+		leases: serverLeases,
+		isPending: false
 	}
 }
 
 /**
- * React 19 useOptimistic for Single Lease - Pure item updates
+ * Simple Lease Hook - KISS Principle
  */
 export function useLeaseOptimistic(id: string) {
 	const { data: serverLease } = useLease(id)
-	const queryClient = useQueryClient()
-
-	// React 19 useOptimistic for single lease
-	const optimistic = useOptimisticItem(serverLease, {
-		successMessage: 'Lease updated successfully',
-		errorMessage: 'Failed to update lease',
-		onSuccess: () => {
-			// Invalidate related caches
-			void queryClient.invalidateQueries({
-				queryKey: queryKeys.leases.detail(id)
-			})
-			void queryClient.invalidateQueries({
-				queryKey: queryKeys.leases.lists()
-			})
-			void queryClient.invalidateQueries({
-				queryKey: queryKeys.leases.stats()
-			})
-		}
-	})
-
-	// Server action wrapper
-	const updateLeaseServer = async (data: UpdateLeaseInput): Promise<Lease> => {
-		return await put<Lease>(`/api/leases/${id}`, data)
-	}
-
+	
 	return {
-		// React 19 optimistic state
-		lease: optimistic.item,
-		isPending: optimistic.isPending,
-		isOptimistic: optimistic.isOptimistic,
-
-		// React 19 optimistic actions
-		updateLease: (data: UpdateLeaseInput) => 
-			optimistic.optimisticUpdate(data, updateLeaseServer),
-		revert: optimistic.revert
+		lease: serverLease,
+		isPending: false
 	}
 }
 

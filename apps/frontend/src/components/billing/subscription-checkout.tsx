@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/card'
 import type { PLAN_TYPE } from '@repo/shared'
 import { PLANS } from '@repo/shared'
-import { post } from '@/lib/api-client-temp'
+import { post } from '@/lib/api-client'
 
 interface SubscriptionCheckoutProps {
 	planType: keyof typeof PLAN_TYPE

@@ -3,18 +3,34 @@
 import React from 'react'
 import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useActionStateForm } from '@/hooks/use-action-state-form'
+import { useActionStateForm, type FormState } from '@/hooks/use-action-state-form'
 import { FormContainer, FormInput, FormSubmit, FormError } from '@/components/ui/form-action-state'
-import { quickPropertySetupAction } from '@/app/actions/properties'
+import { createProperty } from '@/app/actions/properties'
+import type { PropertyWithUnits } from '@repo/shared'
 
 export default function QuickPropertySetup({ onComplete }: { onComplete?: (propertyId: string) => void }) {
 	const [isComplete, setIsComplete] = React.useState(false)
 	
+	// Wrapper action to match useActionStateForm signature
+	const wrappedCreateProperty = async (
+		prevState: FormState<PropertyWithUnits>,
+		formData: FormData
+	): Promise<FormState<PropertyWithUnits>> => {
+		try {
+			const result = await createProperty(formData)
+			return { success: true, data: result }
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : 'Failed to create property'
+			return { success: false, error: errorMessage }
+		}
+	}
+	
 	const form = useActionStateForm({
-		action: quickPropertySetupAction,
+		action: wrappedCreateProperty,
 		onSuccess: (data) => {
 			setIsComplete(true)
-			onComplete?.(data.propertyId)
+			// data is PropertyWithUnits from createProperty action
+			onComplete?.(data?.id)
 		},
 		onError: toast.error
 	})

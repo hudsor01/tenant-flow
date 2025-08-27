@@ -131,7 +131,7 @@ export function CtaSection() {
 								<div
 									className={`mx-auto mb-4 h-12 w-12 bg-gradient-to-br ${point.gradient} flex items-center justify-center rounded-xl shadow-lg transition-transform duration-300 group-hover:scale-110`}
 								>
-									<point.icon className="h-6 w-6 text-white" />
+									<i className={`${point.icon} inline-block h-6 w-6 text-white`} />
 								</div>
 								<p className="mb-1 font-semibold text-white">
 									{point.title}

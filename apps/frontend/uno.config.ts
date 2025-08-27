@@ -321,7 +321,20 @@ export default defineConfig({
   safelist: [
     'dark',
     ...['blue', 'green', 'red', 'orange'].map(color => `text-${color}-500`),
-    ...['sm', 'base', 'lg', 'xl', '2xl'].map(size => `text-${size}`)
+    ...['sm', 'base', 'lg', 'xl', '2xl'].map(size => `text-${size}`),
+    // Icons used dynamically in components
+    'i-lucide-calendar',
+    'i-lucide-phone',
+    'i-lucide-mail',
+    'i-lucide-check-circle',
+    'i-lucide-clock',
+    'i-lucide-trending-up',
+    'i-lucide-users',
+    'i-lucide-dollar-sign',
+    'i-lucide-shield',
+    'i-lucide-bell',
+    'i-lucide-home',
+    'i-lucide-sparkles'
   ],
 
   // Blocklist - never generate these classes

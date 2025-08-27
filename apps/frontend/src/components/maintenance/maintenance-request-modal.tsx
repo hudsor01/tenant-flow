@@ -36,6 +36,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useCreateMaintenanceRequest } from '@/hooks/api/use-maintenance'
 import { useProperties } from '@/hooks/api/use-properties'
 import { useUnits } from '@/hooks/api/use-units'
+import { useUnitsByProperty } from '@/hooks/api/use-units'
 
 interface MaintenanceRequestModalProps {
 	open: boolean
@@ -53,10 +54,10 @@ export function MaintenanceRequestModal({
 	
 	// State for property selection to load units
 	const [selectedPropertyId, setSelectedPropertyId] = useState<string>('')
-	const { data: units } = useUnits(selectedPropertyId)
+	const { data: units } = useUnitsByProperty(selectedPropertyId)
 
 	const form = useForm<MaintenanceRequestFormData>({
-		resolver: zodResolver(maintenanceRequestFormSchema),
+		resolver: zodResolver(maintenanceRequestFormSchema) as any,
 		defaultValues: {
 			title: '',
 			description: '',
@@ -78,7 +79,17 @@ export function MaintenanceRequestModal({
 		try {
 			setError(null)
 
-			await createMaintenance.mutateAsync(formData)
+			// Transform form data to match mutation requirements
+			const mutationData = {
+				...formData,
+				priority: formData.priority || 'MEDIUM', // required field
+				category: formData.category || 'GENERAL', // required field
+				images: [] as string[], // required field
+				scheduledDate: formData.scheduledDate ? new Date(formData.scheduledDate) : undefined,
+				estimatedCost: formData.estimatedCost ? parseFloat(formData.estimatedCost) : undefined
+			}
+
+			await createMaintenance.mutateAsync(mutationData)
 
 			onOpenChange(false)
 			form.reset()
@@ -113,12 +124,12 @@ export function MaintenanceRequestModal({
 
 				<Form {...form}>
 					<form
-						onSubmit={form.handleSubmit(onSubmit)}
+						onSubmit={form.handleSubmit(onSubmit as any)}
 						className="space-y-6"
 					>
 						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 							<FormField
-								control={form.control}
+								control={form.control as any}
 								name="title"
 								render={({ field }) => (
 									<FormItem className="sm:col-span-2">
@@ -163,7 +174,7 @@ export function MaintenanceRequestModal({
 									</div>
 									
 									<FormField
-										control={form.control}
+										control={form.control as any}
 										name="unitId"
 										render={({ field }) => (
 											<FormItem>
@@ -177,7 +188,7 @@ export function MaintenanceRequestModal({
 															<SelectValue placeholder="Select unit" />
 														</SelectTrigger>
 														<SelectContent>
-															{units?.map(unit => (
+															{units?.map((unit: any) => (
 																<SelectItem
 																	key={unit.id}
 																	value={unit.id}
@@ -196,7 +207,7 @@ export function MaintenanceRequestModal({
 							</div>
 
 							<FormField
-								control={form.control}
+								control={form.control as any}
 								name="category"
 								render={({ field }) => (
 									<FormItem>
@@ -230,7 +241,7 @@ export function MaintenanceRequestModal({
 							/>
 
 							<FormField
-								control={form.control}
+								control={form.control as any}
 								name="priority"
 								render={({ field }) => (
 									<FormItem>
@@ -257,7 +268,7 @@ export function MaintenanceRequestModal({
 							/>
 
 							<FormField
-								control={form.control}
+								control={form.control as any}
 								name="estimatedCost"
 								render={({ field }) => (
 									<FormItem>
@@ -281,7 +292,7 @@ export function MaintenanceRequestModal({
 						</div>
 
 						<FormField
-							control={form.control}
+							control={form.control as any}
 							name="description"
 							render={({ field }) => (
 								<FormItem>
@@ -304,7 +315,7 @@ export function MaintenanceRequestModal({
 
 						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 							<FormField
-								control={form.control}
+								control={form.control as any}
 								name="scheduledDate"
 								render={({ field }) => (
 									<FormItem>
@@ -324,7 +335,7 @@ export function MaintenanceRequestModal({
 							/>
 
 							<FormField
-								control={form.control}
+								control={form.control as any}
 								name="accessInstructions"
 								render={({ field }) => (
 									<FormItem>
@@ -345,7 +356,7 @@ export function MaintenanceRequestModal({
 						</div>
 
 						<FormField
-							control={form.control}
+							control={form.control as any}
 							name="notes"
 							render={({ field }) => (
 								<FormItem>

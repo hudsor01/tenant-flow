@@ -25,6 +25,16 @@ export type { FetchResponse } from './utils/api-client'
 export type { Database } from './types/supabase-generated'
 export { Constants } from './types/supabase-generated'
 
+// Import constants for creating derived types
+import { Constants as ImportedConstants } from './types/supabase-generated'
+
+// Export enum constants for easier usage
+export const PRIORITY = ImportedConstants.public.Enums.Priority
+export type Priority = typeof PRIORITY[number]
+
+export const UNIT_STATUS = ImportedConstants.public.Enums.UnitStatus
+export type UnitStatus = typeof UNIT_STATUS[number]
+
 // ============================================================================
 // Utility Functions Only
 // ============================================================================
@@ -58,6 +68,28 @@ export type {
 	FastifyBusinessErrorResponse,
 	ErrorLogContext 
 } from './types/fastify-errors'
+
+// Export error types for frontend
+export type {
+	AppError,
+	AuthError,
+	ValidationError,
+	NetworkError,
+	ServerError,
+	BusinessError,
+	FileUploadError,
+	PaymentError,
+	ErrorContext
+} from './types/errors'
+
+// Export logger types
+export type {
+	ILogger,
+	LogContext,
+	AnalyticsEvent,
+	LogEntry,
+	LoggerConfig
+} from './types/logger'
 
 // Export maintenance constants and types from validation
 export { 
@@ -94,6 +126,59 @@ export const MAINTENANCE_CATEGORY = {
 
 export type MaintenanceCategory = keyof typeof MAINTENANCE_CATEGORY
 
+// Export unit validation types
+export type {
+	UnitInput,
+	UnitUpdate,
+	UnitQuery,
+	UnitFormData,
+	UnitFormOutput
+} from './validation/units'
+
+// Export unit schemas for components
+export { unitInputSchema, unitUpdateSchema, unitQuerySchema, unitStatusSchema, unitFormSchema } from './validation/units'
+
+// Export property validation types
+export type {
+	PropertyInput,
+	PropertyUpdate,
+	PropertyQuery
+} from './validation/properties'
+
+// Export property schemas for components
+export { propertyInputSchema, propertyUpdateSchema, propertyQuerySchema, propertyStatusSchema } from './validation/properties'
+
+// Export lease validation types
+export type {
+	CreateLeaseInput,
+	UpdateLeaseInput,
+	LeaseInput,
+	LeaseQuery
+} from './validation/leases'
+
+// Export tenant validation types
+export type {
+	TenantInput,
+	TenantQuery
+} from './validation/tenants'
+
+// Import types for aliases
+import type { UnitInput, UnitUpdate } from './validation/units'
+import type { PropertyInput, PropertyUpdate } from './validation/properties'
+import type { TenantInput, TenantUpdate } from './validation/tenants'
+import type { MaintenanceRequestInput, MaintenanceRequestUpdate } from './validation/maintenance'
+
+// Create aliases for frontend compatibility
+export type CreateUnitRequest = UnitInput
+export type CreateUnitInput = UnitInput
+export type CreatePropertyInput = PropertyInput
+export type UpdatePropertyInput = PropertyUpdate
+export type CreateTenantInput = TenantInput
+export type UpdateTenantInput = TenantUpdate
+export type CreateMaintenanceInput = MaintenanceRequestInput
+export type UpdateMaintenanceInput = MaintenanceRequestUpdate
+export type UpdateUnitInput = UnitUpdate
+
 // Export auth types
 export type { 
 	User, 
@@ -101,8 +186,16 @@ export type {
 	ValidatedUser, 
 	AuthServiceValidatedUser, 
 	SupabaseUser,
-	AuthUser
+	AuthUser,
+	LoginCredentials,
+	RegisterCredentials,
+	AuthResponse,
+	RefreshTokenRequest,
+	AuthFormState
 } from './types/auth'
+
+// Export auth constants for runtime usage
+export { USER_ROLE, USER_ROLE_OPTIONS } from './constants/auth'
 
 // Export database entity types
 export type { 
@@ -142,11 +235,20 @@ export type { PaymentMethod } from './types/stripe'
 export type { 
 	PropertyWithUnits,
 	PropertyWithDetails,
+	PropertyWithFullDetails,
+	PropertySummary,
+	PropertyFormData,
+	PropertyStatsExtended,
+	PropertySearchResult,
+	PropertyFilters,
 	UnitWithDetails,
 	UnitWithProperty,
 	MaintenanceRequestWithRelations,
+	MaintenanceRequestWithDetails,
 	LeaseWithDetails,
-	LeaseWithRelations
+	LeaseWithRelations,
+	TenantWithLeases,
+	TenantWithDetails
 } from './types/relations'
 
 // Export notification types (use Database enums instead of custom types)
@@ -171,15 +273,40 @@ export type {
 	Theme
 } from './types/frontend'
 
+// Export frontend utility types
+export type {
+	NavItem,
+	TabItem,
+	BreadcrumbItem
+} from './types/frontend-utils'
+
+// Export UI component props
+export type {
+	EnhancedElementsProviderProps,
+	UnitFormProps,
+	FormState,
+	FormErrors
+} from './types/ui'
+
 // Export API response types
-export type { ControllerApiResponse, MaintenanceRequestApiResponse } from './types/api'
+export type { 
+	ControllerApiResponse, 
+	MaintenanceRequestApiResponse,
+	UpdateUserProfileInput
+} from './types/api'
 
 // Export webhook types for Stripe integration
 export type {
 	StripeWebhookEventType,
+	StripeWebhookEvent,
 	WebhookNotification,
-	WebhookProcessorFunction
+	WebhookProcessorFunction,
+	StripeWebhookProcessor
 } from './types/webhook'
+
+// Export analytics types
+export type { TenantFlowEvent } from './types/analytics'
+
 
 // ============================================================================
 // STOP - No more type duplications allowed beyond this point  

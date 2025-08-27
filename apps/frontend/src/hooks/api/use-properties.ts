@@ -17,7 +17,7 @@ import type {
 	UpdatePropertyInput,
 	PropertyStats
 } from '@repo/shared'
-import { get, post, put, del } from '@/lib/api-client-temp'
+import { get, post, put, del } from '@/lib/api-client'
 import { queryKeys } from '@/lib/react-query/query-keys'
 
 // ============================================================================
@@ -52,12 +52,12 @@ export function useProperties(
 }
 
 /**
- * PURE: useSuspenseQuery for single property - no loading states needed
+ * PURE: useSuspenseQuery for single property with units - no loading states needed
  */
-export function useProperty(id: string): UseSuspenseQueryResult<Property> {
+export function useProperty(id: string): UseSuspenseQueryResult<PropertyWithUnits> {
 	return useSuspenseQuery({
 		queryKey: queryKeys.properties.detail(id),
-		queryFn: async () => get<Property>(`/api/properties/${id}`),
+		queryFn: async () => get<PropertyWithUnits>(`/api/properties/${id}`),
 		staleTime: 2 * 60 * 1000 // 2 minutes
 	})
 }
@@ -79,100 +79,68 @@ export function usePropertyStats(): UseSuspenseQueryResult<PropertyStats> {
 // ============================================================================
 
 /**
- * React 19 useOptimistic for Properties List - Replaces TanStack Query onMutate
+ * Simple Properties Hook - KISS Principle: Use direct patterns in components
+ * REMOVED: Complex optimistic abstractions
+ * PATTERN: Components should use useOptimistic directly
  */
 export function usePropertiesOptimistic(query?: PropertyQuery) {
 	const { data: serverProperties } = useProperties(query)
 	const queryClient = useQueryClient()
-
-	// React 19 useOptimistic for instant feedback
-	const optimistic = useOptimisticList(serverProperties, {
-		successMessage: (property: Property) => `${property.name || 'Property'} saved successfully`,
-		errorMessage: 'Failed to save property',
-		onSuccess: () => {
-			// Invalidate server cache after successful operations
-			void queryClient.invalidateQueries({
-				queryKey: queryKeys.properties.lists()
-			})
-			void queryClient.invalidateQueries({
-				queryKey: queryKeys.properties.stats()
-			})
-		}
-	})
-
-	// Server action wrappers
-	const createPropertyServer = async (data: CreatePropertyInput): Promise<Property> => {
-		return await post<Property>('/api/properties', data)
+	
+	const createProperty = async (input: CreatePropertyInput) => {
+		const result = await post<PropertyWithUnits>('/api/properties', input)
+		await queryClient.invalidateQueries({
+			queryKey: queryKeys.properties.lists()
+		})
+		await queryClient.invalidateQueries({
+			queryKey: queryKeys.properties.stats()
+		})
+		return result
 	}
-
-	const updatePropertyServer = async (id: string, data: UpdatePropertyInput): Promise<Property> => {
-		return await put<Property>(`/api/properties/${id}`, data)
+	
+	const updateProperty = async (id: string, input: UpdatePropertyInput) => {
+		const result = await put<PropertyWithUnits>(`/api/properties/${id}`, input)
+		await queryClient.invalidateQueries({
+			queryKey: queryKeys.properties.detail(id)
+		})
+		await queryClient.invalidateQueries({
+			queryKey: queryKeys.properties.lists()
+		})
+		await queryClient.invalidateQueries({
+			queryKey: queryKeys.properties.stats()
+		})
+		return result
 	}
-
-	const deletePropertyServer = async (id: string): Promise<void> => {
-		await del<void>(`/api/properties/${id}`)
+	
+	const deleteProperty = async (id: string) => {
+		const result = await del(`/api/properties/${id}`)
+		await queryClient.invalidateQueries({
+			queryKey: queryKeys.properties.lists()
+		})
+		await queryClient.invalidateQueries({
+			queryKey: queryKeys.properties.stats()
+		})
+		return result
 	}
-
+	
 	return {
-		// React 19 optimistic state
-		properties: optimistic.items,
-		isPending: optimistic.isPending,
-		isOptimistic: optimistic.isOptimistic,
-		pendingCount: optimistic.pendingCount,
-
-		// React 19 optimistic actions
-		createProperty: (data: CreatePropertyInput) => 
-			optimistic.optimisticCreate(data, createPropertyServer),
-		updateProperty: (id: string, data: UpdatePropertyInput) => 
-			optimistic.optimisticUpdate(id, data, updatePropertyServer),
-		deleteProperty: (id: string) => 
-			optimistic.optimisticDelete(id, () => deletePropertyServer(id)),
-		
-		// Utility actions
-		revertAll: optimistic.revertAll
+		properties: serverProperties,
+		isPending: false,
+		createProperty,
+		updateProperty,
+		deleteProperty
 	}
 }
 
 /**
- * React 19 useOptimistic for Single Property - Pure item updates
+ * Simple Property Hook - KISS Principle
  */
 export function usePropertyOptimistic(id: string) {
 	const { data: serverProperty } = useProperty(id)
-	const queryClient = useQueryClient()
-
-	// React 19 useOptimistic for single property
-	const optimistic = useOptimisticItem(serverProperty, {
-		successMessage: 'Property updated successfully',
-		errorMessage: 'Failed to update property',
-		onSuccess: () => {
-			// Invalidate related caches
-			void queryClient.invalidateQueries({
-				queryKey: queryKeys.properties.detail(id)
-			})
-			void queryClient.invalidateQueries({
-				queryKey: queryKeys.properties.lists()
-			})
-			void queryClient.invalidateQueries({
-				queryKey: queryKeys.properties.stats()
-			})
-		}
-	})
-
-	// Server action wrapper
-	const updatePropertyServer = async (data: UpdatePropertyInput): Promise<Property> => {
-		return await put<Property>(`/api/properties/${id}`, data)
-	}
-
+	
 	return {
-		// React 19 optimistic state
-		property: optimistic.item,
-		isPending: optimistic.isPending,
-		isOptimistic: optimistic.isOptimistic,
-
-		// React 19 optimistic actions
-		updateProperty: (data: UpdatePropertyInput) => 
-			optimistic.optimisticUpdate(data, updatePropertyServer),
-		revert: optimistic.revert
+		property: serverProperty,
+		isPending: false
 	}
 }
 

@@ -137,17 +137,18 @@ function Calendar({
 					return (
 						<div
 							data-slot="calendar"
-							ref={rootRef}
+							ref={rootRef as React.Ref<HTMLDivElement>}
 							className={cn(className)}
 							{...props}
 						/>
 					)
 				},
 				Chevron: ({ className, orientation }) => {
-					const iconMap = {
+					const iconMap: Record<string, string> = {
 						left: 'i-lucide-chevron-left',
 						right: 'i-lucide-chevron-right',
-						down: 'i-lucide-chevron-down'
+						down: 'i-lucide-chevron-down',
+						up: 'i-lucide-chevron-up'
 					}
 					
 					const iconClass = iconMap[orientation || 'down'] || iconMap.down

@@ -88,7 +88,7 @@ export function BaseFormModal({
 					</DialogHeader>
 
 					<form onSubmit={handleSubmit} className="space-y-6">
-						{children}
+						{children as React.ReactNode}
 
 						{!hideFooter && (
 							<DialogFooter className="border-t border-gray-200 pt-6">

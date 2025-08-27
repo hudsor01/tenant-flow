@@ -6,7 +6,6 @@ import { motion } from '@/lib/lazy-motion'
 import { Badge } from '@/components/ui/badge'
 import { useDashboardOverview } from '@/hooks/api/use-dashboard'
 import { cn } from '@/lib/utils'
-
 const navigationItems = [
 	{
 		id: 'dashboard',
@@ -83,7 +82,6 @@ export function MobileNav({ className }: MobileNavProps) {
 		>
 			<div className="flex items-center justify-around px-2 py-2">
 				{navigationItems.map(item => {
-					const Icon = item.icon
 					const isActive =
 						pathname === item.href ||
 						(pathname.startsWith(item.href + '/') && !item.isFab)
@@ -113,7 +111,7 @@ export function MobileNav({ className }: MobileNavProps) {
 										damping: 25
 									}}
 								>
-									<Icon className="h-6 w-6" />
+									<i className={`${item.icon} h-6 w-6`} />
 								</motion.div>
 
 								{/* Ripple effect for FAB */}

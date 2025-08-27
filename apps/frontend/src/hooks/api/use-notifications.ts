@@ -1,7 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { get, post, put } from '@/lib/api-client-temp'
+import { apiClient } from '@/lib/api-client'
 import { toast } from 'sonner'
-import type { MaintenancePriority as Priority, Notification, CreateNotificationRequest } from '@repo/shared'
+// Use Database types directly - no duplication
+type AppNotification = Database['public']['Tables']['InAppNotification']['Row'] 
+type CreateNotificationRequest = Database['public']['Tables']['InAppNotification']['Insert']
+import type { Database } from '@repo/shared'
+type Priority = Database['public']['Enums']['Priority']
 
 /**
  * Hook for managing notifications - Direct TanStack Query usage per CLAUDE.md
@@ -17,19 +21,19 @@ export function useNotifications() {
 		refetch
 	} = useQuery({
 		queryKey: ['notifications'],
-		queryFn: async () => get<Notification[]>('/api/notifications')
+		queryFn: async () => apiClient.get<AppNotification[]>('/api/notifications')
 	})
 
 	// Get unread notifications query
 	const { data: unreadNotifications, isLoading: isLoadingUnread } = useQuery({
 		queryKey: ['notifications', 'unread'],
 		queryFn: async () =>
-			get<Notification[]>('/api/notifications?unreadOnly=true')
+			apiClient.get<AppNotification[]>('/api/notifications?unreadOnly=true')
 	})
 
 	// Create notification mutation - DIRECT usage per CLAUDE.md
 	const createNotificationMutation = useMutation({
-		mutationFn: (data: CreateNotificationRequest) => post<Notification>('/api/notifications', data),
+		mutationFn: (data: CreateNotificationRequest) => apiClient.post<AppNotification>('/api/notifications', data),
 		onSuccess: () => {
 			toast.success('Notification sent successfully')
 			void queryClient.invalidateQueries({ queryKey: ['notifications'] })
@@ -41,7 +45,7 @@ export function useNotifications() {
 
 	// Mark as read mutation - DIRECT usage per CLAUDE.md
 	const markAsReadMutation = useMutation({
-		mutationFn: (id: string) => put<Notification>(`/api/notifications/${id}/read`, {}),
+		mutationFn: (id: string) => apiClient.put<AppNotification>(`/api/notifications/${id}/read`, {}),
 		onSuccess: () => {
 			toast.success('Notification marked as read')
 			void queryClient.invalidateQueries({ queryKey: ['notifications'] })
@@ -72,7 +76,7 @@ export function useNotifications() {
 			maintenanceId?: string
 			actionUrl?: string
 		}) =>
-			notificationApi.createMaintenanceNotification(
+			apiClient.post<AppNotification>('/api/notifications/maintenance', {
 				ownerId,
 				title,
 				description,
@@ -81,7 +85,7 @@ export function useNotifications() {
 				unitNumber,
 				maintenanceId,
 				actionUrl
-			),
+			}),
 		onSuccess: () => {
 			toast.success('Maintenance notification created')
 			void queryClient.invalidateQueries({ queryKey: ['notifications'] })

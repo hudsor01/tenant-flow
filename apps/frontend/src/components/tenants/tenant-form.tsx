@@ -6,10 +6,10 @@
 
 'use client'
 
-import React from 'react'
+import React, { useOptimistic, startTransition } from 'react'
 import { useActionState } from 'react'
 import { createTenant, updateTenant } from '@/app/actions/tenants'
-import type { Database } from '@repo/shared'
+import type { Database, FormState } from '@repo/shared'
 
 // Define types directly from Database schema - NO DUPLICATION
 type Tenant = Database['public']['Tables']['Tenant']['Row']
@@ -19,14 +19,15 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
-import { 
-	FormSection, 
-	OptimisticFeedback, 
-	SuccessFeedback, 
-	ErrorFeedback,
-	useOptimisticForm,
-	type FormState
+import {
+Form,
+FormControl,
+FormField,
+FormItem,
+FormLabel,
+FormMessage
 } from '@/components/ui/form'
+import { SuccessFeedback, ErrorFeedback, OptimisticFeedback } from '@/components/ui/feedback'
 
 // Types for form props
 interface TenantFormProps {
@@ -58,12 +59,38 @@ export function TenantForm({
 		? 'Update tenant information and contact details'
 		: 'Add a new tenant to your property management system'
 
-	// Shared optimistic form hook
-	const { optimisticItem, addOptimisticUpdate } = useOptimisticForm({
-		items: tenants,
-		isEditing,
-		currentItem: tenant
-	})
+ // React useOptimistic for optimistic updates
+const [optimisticTenants, addOptimisticTenant] = useOptimistic(
+tenants,
+(currentTenants: Tenant[], newTenant: Partial<Tenant>) => {
+if (isEditing && tenant) {
+return currentTenants.map(t =>
+t.id === tenant.id
+? { ...t, ...newTenant }
+: t
+)
+}
+// Add new optimistic tenant
+const tempTenant: Tenant = {
+id: `temp-${Date.now()}`,
+name: newTenant.name || 'New Tenant',
+email: newTenant.email || '',
+phone: newTenant.phone || null,
+emergencyContact: newTenant.emergencyContact || null,
+// Notes field removed - not in current schema
+avatarUrl: null,
+createdAt: new Date().toISOString(),
+updatedAt: new Date().toISOString(),
+userId: null
+}
+return [...currentTenants, tempTenant]
+}
+)
+
+// Find optimistic item
+const optimisticItem = !isEditing
+? optimisticTenants.find(t => t.id.startsWith('temp-'))
+: optimisticTenants.find(t => t.id === tenant?.id)
 
 	// Server action with form state
 	async function formAction(
@@ -77,11 +104,11 @@ export function TenantForm({
 				email: formData.get('email') as string,
 				phone: (formData.get('phone') as string) || undefined,
 				emergencyContact: (formData.get('emergencyContact') as string) || undefined,
-				notes: (formData.get('notes') as string) || undefined
+				// Notes field not in current Tenant schema
 			}
 
 			// Add optimistic update
-			addOptimisticUpdate(tenantData)
+			startTransition(() => addOptimisticTenant(tenantData))
 
 			// Call server action
 			let result: Tenant
@@ -107,23 +134,27 @@ export function TenantForm({
 	}
 
 	// React 19 useActionState for form state management
-	const [formState, formDispatch, isPending] = useActionState(formAction, {})
+	const initialFormState: FormState = { success: false }
+	const [formState, formDispatch, isPending] = useActionState<FormState, FormData>(
+		formAction,
+		initialFormState
+	)
 
 	return (
 		<div className={cn('mx-auto w-full max-w-2xl', className)}>
-			{/* Shared optimistic feedback */}
-			<OptimisticFeedback
-				isVisible={Boolean(optimisticItem)}
-				isEditing={isEditing}
-				entityName="tenant"
-			/>
+{/* Shared optimistic feedback */}
+{optimisticItem && (
+<OptimisticFeedback isEditing={isEditing} entityName="tenant" className="mb-4">
+	{isEditing ? 'Updating tenant...' : 'Creating tenant...'}
+</OptimisticFeedback>
+)}
 
-			{/* Shared success feedback */}
-			<SuccessFeedback
-				isVisible={Boolean(formState.success)}
-				isEditing={isEditing}
-				entityName="Tenant"
-			/>
+{/* Shared success feedback */}
+{formState.success && (
+<SuccessFeedback className="mb-4">
+Tenant {isEditing ? 'updated' : 'created'} successfully!
+</SuccessFeedback>
+)}
 
 			<Card>
 				<CardContent className="p-6">
@@ -145,14 +176,18 @@ export function TenantForm({
 							</div>
 						</div>
 
-						{/* Shared error display */}
-						<ErrorFeedback error={formState.error} />
+{/* Shared error display */}
+{formState.error && <ErrorFeedback>{formState.error}</ErrorFeedback>}
 
-						{/* Basic Information Section - using shared FormSection */}
-						<FormSection
-							title="Basic Information"
-							description="Primary tenant details and contact information"
-						>
+						{/* Basic Information Section */}
+						<div className="space-y-4">
+							<div className="flex items-center gap-2">
+								<i className="i-lucide-user h-4 w-4 text-muted-foreground" />
+								<div>
+									<h3 className="text-lg font-medium">Basic Information</h3>
+									<p className="text-muted-foreground text-sm">Primary tenant details and contact information</p>
+								</div>
+							</div>
 							<div className="grid grid-cols-1 gap-6">
 								<div className="space-y-2">
 									<Label htmlFor="name">
@@ -192,7 +227,7 @@ export function TenantForm({
 										id="phone"
 										name="phone"
 										type="tel"
-										defaultValue={tenant?.phone}
+										defaultValue={tenant?.phone ?? ''}
 										placeholder="(555) 123-4567"
 										disabled={isPending}
 									/>
@@ -206,25 +241,15 @@ export function TenantForm({
 										id="emergencyContact"
 										name="emergencyContact"
 										type="text"
-										defaultValue={tenant?.emergencyContact}
+										defaultValue={tenant?.emergencyContact ?? ''}
 										placeholder="Emergency contact name and phone"
 										disabled={isPending}
 									/>
 								</div>
 
-								<div className="space-y-2">
-									<Label htmlFor="notes">Notes</Label>
-									<Textarea
-										id="notes"
-										name="notes"
-										rows={4}
-										defaultValue={tenant?.notes}
-										placeholder="Additional notes about tenant..."
-										disabled={isPending}
-									/>
-								</div>
+								{/* Notes field removed - not in current Tenant schema */}
 							</div>
-						</FormSection>
+						</div>
 
 						{/* Form Actions */}
 						<div className="flex items-center justify-end gap-3 border-t pt-4">

@@ -3,9 +3,8 @@
  * CONSOLIDATED from 150+ scattered Props interfaces across frontend
  */
 
-// Use generic type instead of React-specific ReactNode for better compatibility
-// This allows the shared package to work in non-React environments (like backend)
-type ReactNode = string | number | boolean | null | undefined | ReactNode[] | { [key: string]: unknown }
+// Use generic ReactNode type to avoid React dependency in shared package
+export type ReactNode = any
 
 // =============================================================================
 // COMMON UI PATTERNS - BASE PROPS
@@ -953,4 +952,22 @@ export interface DenseTablePaginationProps<_TData = unknown> {
 		getCanPreviousPage: () => boolean
 		getCanNextPage: () => boolean
 	}
+}
+
+// =============================================================================
+// FORM STATE MANAGEMENT TYPES
+// =============================================================================
+
+export interface FormState<T = unknown> {
+	data?: T
+	error?: string
+	errors?: Record<string, string[]>
+	success: boolean
+	message?: string
+	loading?: boolean
+}
+
+export interface FormErrors<T = Record<string, unknown>> {
+	global?: string
+	fields?: { [K in keyof T]?: string[] }
 }

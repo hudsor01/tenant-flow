@@ -10,15 +10,12 @@ import {
 import { PropertyForm } from '@/components/properties/property-form'
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import type { Database } from '@repo/shared'
-
-// Define types directly from Database schema - NO DUPLICATION
-type Property = Database['public']['Tables']['Property']['Row']
+import type { PropertyWithUnits } from '@repo/shared'
 
 // Client Component for modal content
 export default function EditPropertyModal() {
 	const params = useParams()
-	const [property, setProperty] = useState<Property | null>(null)
+	const [property, setProperty] = useState<PropertyWithUnits | null>(null)
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
 

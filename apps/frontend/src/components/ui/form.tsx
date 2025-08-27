@@ -156,17 +156,11 @@ function FormMessage({ className, ...props }: React.ComponentProps<'p'>) {
 	)
 }
 
-// Add compatibility exports for the revolutionary transformation
 export const useOptimisticForm = useFormField // Alias for compatibility
-export const OptimisticFeedback = FormMessage // Maps to form message
-export const SuccessFeedback = ({ className, ...props }: React.ComponentProps<'p'>) => (
-	<p className={cn('text-green-600 text-sm', className)} {...props} />
-)
-export const ErrorFeedback = ({ className, ...props }: React.ComponentProps<'p'>) => (
-	<p className={cn('text-red-600 text-sm', className)} {...props} />
-)
+// NOTE: Feedback components are defined in `feedback.tsx`. Keep form exports focused on form primitives.
+// Avoid exporting SuccessFeedback / ErrorFeedback / OptimisticFeedback here to prevent duplicate export conflicts
 export const FormSection = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cn('space-y-4 p-4 border rounded-lg', className)} {...props} />
+<div className={cn('space-y-4 p-4 border rounded-lg', className)} {...props} />
 )
 
 export {
