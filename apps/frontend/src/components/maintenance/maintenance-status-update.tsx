@@ -49,7 +49,7 @@ const statusOptions: {
 	{
 		value: 'COMPLETED',
 		label: 'Completed',
-		icon: <i className="i-lucide-checkcircle2 inline-block h-4 w-4"  />,
+		icon: <i className="i-lucide-check-circle-2 inline-block h-4 w-4"  />,
 		description: 'Work has been finished'
 	},
 	{

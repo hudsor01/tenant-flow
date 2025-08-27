@@ -76,7 +76,7 @@ export function PaymentSuccess({
 				<div
 					className={`transition-all duration-1000 ${showConfetti ? 'animate-bounce' : ''}`}
 				>
-					<i className="i-lucide-checkcircle2 inline-block mx-auto mb-4 h-16 w-16 text-green-500"  />
+					<i className="i-lucide-check-circle-2 inline-block mx-auto mb-4 h-16 w-16 text-green-500"  />
 				</div>
 				<h1 className="from-primary to-primary/70 mb-2 bg-gradient-to-r bg-clip-text text-4xl font-bold text-transparent">
 					Welcome to TenantFlow!
@@ -153,7 +153,7 @@ export function PaymentSuccess({
 													key={index}
 													className="flex items-center gap-2 text-sm"
 												>
-													<i className="i-lucide-checkcircle2 inline-block h-4 w-4 shrink-0 text-green-500"  />
+													<i className="i-lucide-check-circle-2 inline-block h-4 w-4 shrink-0 text-green-500"  />
 													<span>{feature}</span>
 												</div>
 											)
@@ -230,13 +230,11 @@ function QuickActions() {
 										: 'bg-muted'
 								}`}
 							>
-								<action.icon
-									className={`h-5 w-5 ${
+								<i className={`${action.icon} inline-block h-5 w-5 ${
 										action.primary
 											? 'text-primary'
 											: 'text-muted-foreground'
-									}`}
-								/>
+									}`} />
 							</div>
 							<div>
 								<p className="group-hover:text-primary font-medium transition-colors">

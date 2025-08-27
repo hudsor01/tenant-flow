@@ -184,7 +184,6 @@ export function DashboardSidebar({
 							<SidebarGroupContent>
 								<SidebarMenu>
 									{navigation.map(item => {
-										const Icon = item.icon
 										const isActive =
 											pathname === item.href ||
 											pathname.startsWith(item.href + '/')
@@ -202,7 +201,7 @@ export function DashboardSidebar({
 														className="flex w-full items-center justify-between"
 													>
 														<div className="flex items-center gap-2">
-															<Icon className="h-4 w-4" />
+															<i className={`${item.icon} inline-block h-4 w-4`} />
 															<span>
 																{item.name}
 															</span>
@@ -380,7 +379,6 @@ export function DashboardSidebar({
 						<div className="flex-1 overflow-y-auto py-4">
 							<nav className="space-y-1 px-4">
 								{navigation.map(item => {
-									const Icon = item.icon
 									const isActive =
 										pathname === item.href ||
 										pathname.startsWith(item.href + '/')
@@ -404,12 +402,13 @@ export function DashboardSidebar({
 												)}
 											>
 												<div className="flex items-center gap-3">
-													<i className={cn(stat.icon, 'inline-block', cn(
-															'h-5 w-5',
+													<i className={cn(
+															item.icon,
+															'inline-block h-5 w-5',
 															isActive
 																? 'text-primary'
 																: 'text-gray-500'
-														))} />
+														)} />
 													<span>{item.name}</span>
 												</div>
 

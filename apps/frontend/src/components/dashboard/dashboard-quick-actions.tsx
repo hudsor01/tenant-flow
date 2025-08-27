@@ -144,15 +144,18 @@ export function DashboardQuickActions({
 					Quick Actions
 				</h3>
 				<div className="space-y-4">
-					{defaultQuickActions.map(action => (
-						<QuickAction
-							key={action.title}
-							title={action.title}
-							description={action.description}
-							icon={action.icon}
-							onClick={actionHandlers[action.action]}
-							color={action.color}
-						/>
+					{defaultQuickActions.map(action => {
+						const IconComponent = () => <i className={`${action.icon} inline-block h-5 w-5`} />
+						return (
+							<QuickAction
+								key={action.title}
+								title={action.title}
+								description={action.description}
+								icon={IconComponent}
+								onClick={actionHandlers[action.action]}
+								color={action.color}
+							/>
+						)
 					))}
 				</div>
 			</div>

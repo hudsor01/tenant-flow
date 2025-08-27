@@ -103,8 +103,6 @@ export function OnboardingWizard() {
 	if (!step) {
 		return null
 	}
-	const Icon = step.icon
-
 	const handleNext = () => {
 		if (currentStep < steps.length - 1) {
 			setCurrentStep(currentStep + 1)
@@ -133,7 +131,7 @@ export function OnboardingWizard() {
 			<Card className="w-full max-w-2xl">
 				<CardHeader className="text-center">
 					<div className="bg-primary/10 mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
-						<Icon className="text-primary h-6 w-6" />
+						<i className={`${step.icon} text-primary inline-block h-6 w-6`} />
 					</div>
 					<CardTitle className="text-2xl">{step.title}</CardTitle>
 					<CardDescription className="mt-2 text-base">
@@ -187,7 +185,7 @@ export function OnboardingWizard() {
 					{currentStep === steps.length - 1 && (
 						<div className="space-y-4">
 							<Alert className="border-green-200 bg-green-50 dark:bg-green-950/20">
-								<i className="i-lucide-checkcircle2 inline-block h-4 w-4 text-green-600"  />
+								<i className="i-lucide-check-circle-2 inline-block h-4 w-4 text-green-600"  />
 								<AlertDescription className="text-green-800 dark:text-green-200">
 									Congratulations! Your property management
 									system is ready to use.
@@ -196,19 +194,19 @@ export function OnboardingWizard() {
 
 							<div className="mt-6 space-y-3">
 								<div className="bg-muted/50 flex items-center gap-3 rounded-lg p-3">
-									<i className="i-lucide-checkcircle2 inline-block h-5 w-5 text-green-600"  />
+									<i className="i-lucide-check-circle-2 inline-block h-5 w-5 text-green-600"  />
 									<span>
 										Property management system configured
 									</span>
 								</div>
 								<div className="bg-muted/50 flex items-center gap-3 rounded-lg p-3">
-									<i className="i-lucide-checkcircle2 inline-block h-5 w-5 text-green-600"  />
+									<i className="i-lucide-check-circle-2 inline-block h-5 w-5 text-green-600"  />
 									<span>
 										Ready to add properties and tenants
 									</span>
 								</div>
 								<div className="bg-muted/50 flex items-center gap-3 rounded-lg p-3">
-									<i className="i-lucide-checkcircle2 inline-block h-5 w-5 text-green-600"  />
+									<i className="i-lucide-check-circle-2 inline-block h-5 w-5 text-green-600"  />
 									<span>Dashboard and reports available</span>
 								</div>
 							</div>
@@ -217,7 +215,7 @@ export function OnboardingWizard() {
 
 					{currentStep > 0 && currentStep < steps.length - 1 && (
 						<div className="bg-muted/50 rounded-lg p-6 text-center">
-							<Icon className="text-primary mx-auto mb-4 h-12 w-12" />
+							<i className={`${step.icon} text-primary mx-auto mb-4 inline-block h-12 w-12`} />
 							<p className="text-muted-foreground text-sm">
 								Click the button below to{' '}
 								{step.action.toLowerCase()}

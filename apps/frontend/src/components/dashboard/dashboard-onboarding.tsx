@@ -151,7 +151,6 @@ export function DashboardOnboarding() {
 
 				<div className="grid gap-3">
 					{steps.map((step, index) => {
-						const Icon = step.icon
 						return (
 							<div
 								key={step.id}
@@ -166,7 +165,7 @@ export function DashboardOnboarding() {
 								{/* Step number indicator */}
 								<div className="bg-background border-border absolute -left-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border-2 text-xs font-bold">
 									{step.completed ? (
-										<i className="i-lucide-checkcircle2 inline-block h-3 w-3 text-green-600"  />
+										<i className="i-lucide-check-circle-2 inline-block h-3 w-3 text-green-600"  />
 									) : (
 										<span className="text-muted-foreground">
 											{index + 1}
@@ -183,12 +182,13 @@ export function DashboardOnboarding() {
 												: 'bg-primary/10 border-primary/20 group-hover:bg-primary/20 border'
 										)}
 									>
-										<i className={cn(stat.icon, 'inline-block', cn(
-												'h-4 w-4 transition-colors duration-300',
+										<i className={cn(
+												step.icon,
+												'inline-block h-4 w-4 transition-colors duration-300',
 												step.completed
 													? 'text-green-600'
 													: 'text-primary group-hover:text-primary/80'
-											))} />
+											)} />
 									</div>
 									<div>
 										<span
