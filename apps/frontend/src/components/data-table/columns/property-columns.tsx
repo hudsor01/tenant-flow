@@ -3,7 +3,7 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
-import type { PropertyWithStats } from '@repo/shared'
+import type { Property as PropertyWithStats } from '@repo/shared'
 import {
 	getPropertyTypeLabel,
 	formatCurrency as sharedFormatCurrency
