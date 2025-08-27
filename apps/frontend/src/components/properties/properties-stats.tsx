@@ -1,3 +1,5 @@
+'use client'
+
 import { useProperties } from '@/hooks/api/use-properties'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'

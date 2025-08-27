@@ -9,7 +9,10 @@ import {
 	CardTitle
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { HelpCircle } from 'lucide-react'
+
+// Icon components using UnoCSS
+const MessageCircleIcon = () => <i className="i-lucide-message-circle" />
+const HelpCircle = () => <i className="i-lucide-help-circle" />
 
 /**
  * Client Component - PaymentCancelled
@@ -73,7 +76,7 @@ export function PaymentCancelled() {
 				<CardContent>
 					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 						<HelpOption
-							icon=<i className="i-lucide-message-circle inline-block" />
+							icon={MessageCircleIcon}
 							title="Chat with Sales"
 							description="Get personalized recommendations for your portfolio"
 							action={() =>
