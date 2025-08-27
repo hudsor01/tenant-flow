@@ -32,7 +32,7 @@ export type {
 	Theme
 }
 
-interface LocalAppState extends AppState {
+interface LocalAppState {
 	// ============================================================================
 	// STATE
 	// ============================================================================
@@ -171,7 +171,7 @@ const initialState = {
 // ZUSTAND STORE WITH MAXIMUM PERFORMANCE FEATURES
 // ============================================================================
 
-export const useAppStore = create<AppState>()(
+export const useAppStore = create<LocalAppState>()(
 	// Enable Redux DevTools for debugging
 	devtools(
 		// Add subscription capabilities for computed values
@@ -179,7 +179,7 @@ export const useAppStore = create<AppState>()(
 			// Add persistence for UI preferences
 			persist(
 				// Add Immer for immutable updates (performance + safety)
-				immer<AppState>((set, get) => ({
+				immer<LocalAppState>((set, get) => ({
 					...initialState,
 
 					// ============================================================================
@@ -203,7 +203,7 @@ export const useAppStore = create<AppState>()(
 					// UI PREFERENCES ACTIONS
 					// ============================================================================
 
-					setTheme: theme => {
+					setTheme: (theme: Theme) => {
 						set(state => {
 							state.ui.theme = theme
 						})
@@ -221,7 +221,7 @@ export const useAppStore = create<AppState>()(
 						})
 					},
 
-					updatePreferences: preferences => {
+					updatePreferences: (preferences: Partial<UIPreferences>) => {
 						set(state => {
 							Object.assign(state.ui, preferences)
 						})
@@ -231,7 +231,7 @@ export const useAppStore = create<AppState>()(
 					// SESSION MANAGEMENT ACTIONS
 					// ============================================================================
 
-					setUser: user => {
+					setUser: (user: AuthUser | null) => {
 						set(state => {
 							state.session.user = user
 							state.session.isAuthenticated = !!user
@@ -266,7 +266,7 @@ export const useAppStore = create<AppState>()(
 						})
 					},
 
-					extendSession: minutes => {
+					extendSession: (minutes: number) => {
 						set(state => {
 							if (state.session.sessionExpiry) {
 								state.session.sessionExpiry = new Date(
@@ -281,7 +281,7 @@ export const useAppStore = create<AppState>()(
 					// NOTIFICATION ACTIONS (High-Performance)
 					// ============================================================================
 
-					addNotification: notification => {
+					addNotification: (notification: Omit<AppNotification, 'id' | 'timestamp'>) => {
 						const id = `notification-${Date.now()}-${Math.random()}`
 						set(state => {
 							const newNotification: AppNotification = {
@@ -358,13 +358,13 @@ export const useAppStore = create<AppState>()(
 					// MODAL MANAGEMENT ACTIONS
 					// ============================================================================
 
-					openModal: name => {
+					openModal: (name: string) => {
 						set(state => {
 							state.modals[name] = true
 						})
 					},
 
-					closeModal: name => {
+					closeModal: (name: string) => {
 						set(state => {
 							state.modals[name] = false
 						})
@@ -378,7 +378,7 @@ export const useAppStore = create<AppState>()(
 						})
 					},
 
-					toggleModal: name => {
+					toggleModal: (name: string) => {
 						set(state => {
 							state.modals[name] = !state.modals[name]
 						})
@@ -388,13 +388,13 @@ export const useAppStore = create<AppState>()(
 					// CACHE MANAGEMENT ACTIONS
 					// ============================================================================
 
-					setSelectedProperty: id => {
+					setSelectedProperty: (id: string | null) => {
 						set(state => {
 							state.cache.selectedPropertyId = id
 						})
 					},
 
-					setSelectedTenant: id => {
+					setSelectedTenant: (id: string | null) => {
 						set(state => {
 							state.cache.selectedTenantId = id
 						})
@@ -433,7 +433,7 @@ export const useAppStore = create<AppState>()(
 					// CONNECTION STATE ACTIONS
 					// ============================================================================
 
-					setOnlineStatus: isOnline => {
+					setOnlineStatus: (isOnline: boolean) => {
 						set(state => {
 							state.isOnline = isOnline
 						})
@@ -449,7 +449,7 @@ export const useAppStore = create<AppState>()(
 					// BULK OPERATIONS (Performance Optimized)
 					// ============================================================================
 
-					bulkUpdateNotifications: updates => {
+					bulkUpdateNotifications: (updates: { id: string; read: boolean }[]) => {
 						set(state => {
 							updates.forEach(({ id, read }) => {
 								const notification = state.notifications.find(
