@@ -1,8 +1,18 @@
 import React, { useMemo, useCallback } from 'react'
 import { motion } from '@/lib/lazy-motion'
 import PropertyCard from './property-card'
-import type { Property } from '@repo/shared'
-import type { PropertyWithDetails } from '@repo/shared'
+import type { Database } from '@repo/shared'
+
+// Define types directly from Database schema - NO DUPLICATION
+type Property = Database['public']['Tables']['Property']['Row']
+type Unit = Database['public']['Tables']['Unit']['Row']
+
+// Define local interface for component needs
+interface PropertyWithDetails extends Property {
+	units?: Unit[]
+	totalUnits?: number
+	occupiedUnits?: number
+}
 
 interface VirtualizedPropertiesListProps {
 	properties: PropertyWithDetails[]

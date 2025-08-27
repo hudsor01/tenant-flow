@@ -2,10 +2,12 @@
 // Purpose: Shared API DTOs and response types for frontend and backend.
 
 import type { User } from './auth'
-import type { Lease } from './leases'
-import type { Property, Unit, PropertyStats } from './properties'
-import type { Tenant, TenantStats } from './tenants'
-import type { MaintenanceRequest as _MaintenanceRequest } from './maintenance'
+import type { Database } from './supabase-generated'
+type Lease = Database['public']['Tables']['Lease']['Row']
+type Property = Database['public']['Tables']['Property']['Row']
+type Unit = Database['public']['Tables']['Unit']['Row']
+type Tenant = Database['public']['Tables']['Tenant']['Row']
+// MaintenanceRequest type available if needed: Database['public']['Tables']['MaintenanceRequest']['Row']
 import type { NotificationData as _NotificationData } from './notifications'
 import type {
 	AppError as _AppError,
@@ -21,6 +23,8 @@ import type {
 	ApiResponse as _CentralizedApiResponse,
 	ControllerApiResponse as _ControllerApiResponse
 } from './errors'
+
+export type { _ControllerApiResponse as ControllerApiResponse }
 import type {
 	CheckoutResponse as _CheckoutResponse,
 	PortalResponse as _CreatePortalSessionResponse,
@@ -216,8 +220,18 @@ export type {
 
 // Dashboard statistics
 export interface DashboardStats {
-	properties: PropertyStats
-	tenants: TenantStats
+	properties: {
+		total: number
+		owned: number
+		rented: number
+		available: number
+		maintenance: number
+	}
+	tenants: {
+		total: number
+		active: number
+		inactive: number
+	}
 	units: UnitStats
 	leases: LeaseStats
 	maintenanceRequests: {
@@ -396,7 +410,7 @@ export interface FormState {
 	errors?: Record<string, string>
 }
 
-export interface UseActionStateFormOptions<T = any> {
+export interface UseActionStateFormOptions<T = Record<string, unknown>> {
 	resetOnSuccess?: boolean
 	validateOnChange?: boolean
 	onSuccess?: (data: T) => void
@@ -450,4 +464,52 @@ export interface UseApiCallOptions<TData = unknown> {
 export interface UseLoadingStateOptions {
 	initialLoading?: boolean
 	timeout?: number
+}
+
+// ============================================================================
+// RPC API RESPONSE TYPES - Match actual flattened database query responses
+// ============================================================================
+
+// MaintenanceRequest with flattened joined data (from get_user_maintenance RPC)
+export interface MaintenanceRequestApiResponse {
+	// MaintenanceRequest fields
+	id: string
+	title: string
+	description: string
+	priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
+	status: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELED' | 'ON_HOLD'
+	category: string | null
+	unitId: string
+	actualCost: number | null
+	allowEntry: boolean
+	assignedTo: string | null
+	completedAt: string | null
+	contactPhone: string | null
+	createdAt: string
+	estimatedCost: number | null
+	notes: string | null
+	photos: string[] | null
+	preferredDate: string | null
+	requestedBy: string | null
+	updatedAt: string
+	
+	// Flattened Unit fields (joined from Unit table)
+	unitNumber: string
+	unitBedrooms?: number
+	unitBathrooms?: number
+	unitRent?: number
+	unitStatus?: 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED'
+	
+	// Flattened Property fields (joined from Property table via Unit)
+	propertyId?: string
+	propertyName?: string
+	propertyAddress?: string
+	propertyCity?: string
+	propertyState?: string
+	propertyType?: 'SINGLE_FAMILY' | 'MULTI_UNIT' | 'APARTMENT' | 'COMMERCIAL' | 'CONDO' | 'TOWNHOUSE' | 'OTHER'
+	
+	// Flattened Tenant fields (optional, joined when available)
+	tenantName?: string
+	tenantEmail?: string 
+	tenantPhone?: string
 }

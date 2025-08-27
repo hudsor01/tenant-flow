@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common'
 import { PinoLogger } from 'nestjs-pino'
 import { SupabaseService } from '../database/supabase.service'
-import type { Subscription } from '@repo/shared/types/billing'
+import type { Database } from '@repo/shared'
+
+type Subscription = Database['public']['Tables']['Subscription']['Row']
 
 /**
  * Temporary minimal implementation of SubscriptionSupabaseRepository

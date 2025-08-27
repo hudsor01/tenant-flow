@@ -11,10 +11,10 @@
  */
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, type ReactElement } from 'react'
 import { useStripe, useElements, PaymentElement } from '@stripe/react-stripe-js'
 import { useQueryClient } from '@tanstack/react-query'
-import { billingKeys } from '@/lib/api/billing'
+import { queryKeys } from '@/lib/react-query/query-keys'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -30,7 +30,7 @@ import { usePaymentMethods } from '@/hooks/api/use-billing'
 import { useNotificationSystem } from '@/hooks/use-app-store'
 import type { PaymentMethod } from '@repo/shared'
 import { EnhancedElementsProvider } from '@/lib/stripe/elements-provider'
-import { apiClient } from '@/lib/api-client'
+import { post } from '@/lib/api-client-temp'
 
 interface AddPaymentMethodProps {
 	onSuccess?: () => void
@@ -63,10 +63,10 @@ function AddPaymentMethodForm({ onSuccess, onCancel }: AddPaymentMethodProps) {
 
 			try {
 				// Create Setup Intent for secure payment method collection
-				const setupIntentResponse = await apiClient.post<{
+				const setupIntentResponse = await post<{
 					clientSecret: string
 					setupIntentId: string
-				}>('/billing/setup-intent')
+				}>('/api/billing/setup-intent', {})
 
 				// Confirm Setup Intent with payment method
 				const { error: confirmError } = await stripe.confirmSetup({
@@ -87,7 +87,7 @@ function AddPaymentMethodForm({ onSuccess, onCancel }: AddPaymentMethodProps) {
 
 				// Success - invalidate payment methods query
 				await queryClient.invalidateQueries({
-					queryKey: billingKeys.paymentMethods()
+					queryKey: queryKeys.billing.paymentMethods()
 				})
 
 				notifySuccess(
@@ -203,7 +203,7 @@ function _PaymentMethodCard({
 	onDelete,
 	isUpdating = false,
 	isDeleting = false
-}: PaymentMethodCardProps) {
+}: PaymentMethodCardProps): ReactElement | null {
 	const getBrandIcon = (brand: string) => {
 		// You could return actual brand SVG icons here
 		const brandColors = {
@@ -300,7 +300,7 @@ function _PaymentMethodCard({
 /**
  * Main Enhanced Payment Methods Component
  */
-export function EnhancedPaymentMethods() {
+export function EnhancedPaymentMethods(): ReactElement {
 	const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
 	const { data: portalData, isLoading, error } = usePaymentMethods()
 

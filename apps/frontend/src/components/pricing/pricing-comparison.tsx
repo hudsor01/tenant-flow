@@ -229,7 +229,7 @@ export function PricingComparison() {
 									</tr>
 
 									{/* Category features */}
-									{category.features.map((feature, index) => (
+									{category.features.map((feature, _index) => (
 										<tr
 											key={feature.name}
 											className="table-striped"

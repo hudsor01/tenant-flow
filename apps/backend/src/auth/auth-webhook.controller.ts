@@ -6,11 +6,12 @@ import {
 	Post
 } from '@nestjs/common'
 import { PinoLogger } from 'nestjs-pino'
+import { getPriceId } from '@repo/shared'
 import { AuthService } from './auth.service'
 import { StripeService } from '../billing/stripe.service'
 import { UsersService } from '../users/users.service'
 import { Public } from '../shared/decorators/public.decorator'
-import { getPriceId } from '@repo/shared'
+// Remove non-existent import - define function locally if needed
 
 interface SupabaseWebhookEvent {
 	type: 'INSERT' | 'UPDATE' | 'DELETE'
@@ -108,15 +109,20 @@ export class AuthWebhookController {
 			user.user_metadata?.name ?? user.user_metadata?.full_name ?? ''
 
 		try {
-			// Sync user with local database
-			await this.authService.syncUserWithDatabase({
+			// Transform webhook user to Supabase User format
+			const supabaseUser = {
 				id: user.id,
-				email: user.email,
-				email_confirmed_at: user.email_confirmed_at ?? undefined,
-				user_metadata: user.user_metadata,
+				email: user.email || '',
 				created_at: user.created_at,
-				updated_at: user.updated_at
-			})
+				updated_at: user.updated_at,
+				email_confirmed_at: user.email_confirmed_at || null,
+				user_metadata: user.user_metadata || {},
+				app_metadata: {},
+				aud: 'authenticated'
+			}
+			
+			// Sync user with local database
+			await this.authService.syncUserWithDatabase(supabaseUser as any)
 
 			// Create Stripe customer and free trial subscription for new user
 			await this.createSubscription(user.id, user.email, userName)

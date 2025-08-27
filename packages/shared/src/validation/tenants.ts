@@ -6,14 +6,10 @@ import {
 	phoneSchema,
 	requiredString
 } from './common'
+import { Constants } from '../types/supabase-generated'
 
-// Tenant status enum
-export const tenantStatusSchema = z.enum([
-	'ACTIVE',
-	'INACTIVE',
-	'PENDING',
-	'FORMER'
-])
+// Tenant status enum - uses auto-generated Supabase enums
+export const tenantStatusSchema = z.enum(Constants.public.Enums.TenantStatus as readonly [string, ...string[]])
 
 // Emergency contact schema
 export const emergencyContactSchema = z
@@ -102,7 +98,7 @@ export const tenantInputSchema = tenantBaseSchema.refine(
 export const tenantSchema = tenantBaseSchema.extend({
 	id: uuidSchema,
 	ownerId: uuidSchema,
-	status: tenantStatusSchema.default('PENDING'),
+	status: tenantStatusSchema.default('PENDING' as const),
 	createdAt: z.date(),
 	updatedAt: z.date()
 })

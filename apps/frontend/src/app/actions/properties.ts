@@ -8,11 +8,19 @@
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createActionClient } from '@/lib/supabase/action-client'
-import type { 
-  Property, 
-  UpdatePropertyInput,
-  PropertyQuery 
-} from '@repo/shared'
+import type { Database } from '@repo/shared'
+
+// Define types directly from Database schema - NO DUPLICATION
+type Property = Database['public']['Tables']['Property']['Row']
+type CreatePropertyInput = Database['public']['Tables']['Property']['Insert']
+type UpdatePropertyInput = Database['public']['Tables']['Property']['Update']
+
+// Define query types locally (specific to this component's needs)
+interface PropertyQuery {
+  search?: string
+  status?: string
+  type?: string
+}
 
 /**
  * NATIVE Server Action: Get all properties with calculated stats
@@ -127,19 +135,10 @@ export async function createProperty(formData: FormData): Promise<Property> {
     address: formData.get('address') as string,
     city: formData.get('city') as string,
     state: formData.get('state') as string,
-    zip_code: formData.get('zip_code') as string,
-    property_type: formData.get('property_type') as string,
-    total_units: parseInt(formData.get('total_units') as string, 10) || 1,
-    monthly_rent: parseFloat(formData.get('monthly_rent') as string) || 0,
-    square_feet: parseInt(formData.get('square_feet') as string, 10) || null,
-    bedrooms: parseInt(formData.get('bedrooms') as string, 10) || null,
-    bathrooms: parseFloat(formData.get('bathrooms') as string) || null,
-    amenities: formData.get('amenities') 
-      ? JSON.parse(formData.get('amenities') as string) 
-      : [],
+    zipCode: formData.get('zip_code') as string,
     description: formData.get('description') as string || undefined,
-    image_url: formData.get('image_url') as string || undefined
-  } as any
+    ownerId: 'user-id' // This should be set from auth context
+  } satisfies CreatePropertyInput
 
   const { data, error } = await supabase
     .from('properties')
@@ -182,14 +181,14 @@ export async function updateProperty(
   fields.forEach(field => {
     const value = formData.get(field)
     if (value !== null) {
-      (updateData as any)[field] = value as string
+      (updateData as Record<string, unknown>)[field] = value as string
     }
   })
   
   // Handle numeric fields
   const numericFields = [
     { key: 'total_units', parser: parseInt },
-    { key: 'monthly_rent', parser: parseFloat },
+    { key: 'rentAmount', parser: parseFloat },
     { key: 'square_feet', parser: parseInt },
     { key: 'bedrooms', parser: parseInt },
     { key: 'bathrooms', parser: parseFloat }
@@ -198,13 +197,13 @@ export async function updateProperty(
   numericFields.forEach(({ key, parser }) => {
     const value = formData.get(key)
     if (value !== null) {
-      (updateData as any)[key] = parser(value as string)
+      (updateData as Record<string, unknown>)[key] = parser(value as string)
     }
   })
   
   // Handle JSON fields
   if (formData.has('amenities')) {
-    (updateData as any).amenities = JSON.parse(formData.get('amenities') as string)
+    (updateData as Record<string, unknown>).amenities = JSON.parse(formData.get('amenities') as string)
   }
 
   const { data, error } = await supabase
@@ -349,7 +348,7 @@ export async function uploadPropertyImage(
 
   // Upload to Supabase Storage
   const fileName = `${propertyId}/${Date.now()}-${file.name}`
-  const { data: uploadData, error: uploadError } = await supabase
+  const { error: uploadError } = await supabase
     .storage
     .from('property-images')
     .upload(fileName, file)

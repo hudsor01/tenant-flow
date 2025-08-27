@@ -4,26 +4,26 @@
  * PURE: Combines native React 19 optimistic updates with TanStack Query Suspense
  */
 import {
-	useSuspenseQuery,
+	useQuery,
 	useQueryClient,
-	type UseSuspenseQueryResult
+	type UseQueryResult
 } from '@tanstack/react-query'
 import type {
-	MaintenanceRequest,
+	MaintenanceRequestApiResponse,
+	MaintenanceStats,
 	CreateMaintenanceInput,
 	UpdateMaintenanceInput,
 	MaintenanceStatus
 } from '@repo/shared'
-import { maintenanceApi } from '@/lib/api/maintenance'
-import { queryKeys } from '@/lib/react-query/query-keys'
-import { useOptimisticList, useOptimisticItem } from '@/hooks/use-optimistic-data'
+import { get, post, put, del } from '@/lib/api-client'
+import { queryKeys } from '@/lib/query-keys'
 
 // ============================================================================
 // PURE DATA HOOKS - TanStack Query Suspense (No Optimistic Logic)
 // ============================================================================
 
 /**
- * PURE: useSuspenseQuery for maintenance requests - data always available
+ * Standard useQuery for maintenance requests
  */
 export function useMaintenanceRequests(
 	params?: {
@@ -32,173 +32,97 @@ export function useMaintenanceRequests(
 		propertyId?: string
 		unitId?: string
 	}
-): UseSuspenseQueryResult<MaintenanceRequest[]> {
-	return useSuspenseQuery({
+): UseQueryResult<MaintenanceRequestApiResponse[]> {
+	return useQuery({
 		queryKey: queryKeys.maintenance.list(params),
-		queryFn: async () => maintenanceApi.getAll(params),
+		queryFn: async () => get<MaintenanceRequestApiResponse[]>('/api/maintenance'),
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000 // 10 minutes
 	})
 }
 
 /**
- * PURE: useSuspenseQuery for single maintenance request - no loading states needed
+ * Standard useQuery for single maintenance request
  */
-export function useMaintenanceRequest(id: string): UseSuspenseQueryResult<MaintenanceRequest> {
-	return useSuspenseQuery({
+export function useMaintenanceRequest(id: string): UseQueryResult<MaintenanceRequest> {
+	return useQuery({
 		queryKey: queryKeys.maintenance.detail(id),
-		queryFn: async () => maintenanceApi.getById(id),
-		staleTime: 2 * 60 * 1000 // 2 minutes
+		queryFn: async () => get<MaintenanceRequest>(`/api/maintenance/${id}`),
+		staleTime: 2 * 60 * 1000, // 2 minutes
+		enabled: !!id
 	})
 }
 
 /**
- * PURE: useSuspenseQuery for maintenance statistics - perfect for dashboards
+ * Standard useQuery for maintenance statistics
  */
-export function useMaintenanceStats(): UseSuspenseQueryResult<Record<string, unknown>> {
-	return useSuspenseQuery({
+export function useMaintenanceStats(): UseQueryResult<MaintenanceStats> {
+	return useQuery({
 		queryKey: queryKeys.maintenance.stats(),
-		queryFn: async () => maintenanceApi.getStats(),
+		queryFn: async () => get<MaintenanceStats>('/api/maintenance/stats'),
 		staleTime: 2 * 60 * 1000, // 2 minutes
 		refetchInterval: 5 * 60 * 1000 // Auto-refresh every 5 minutes
 	})
 }
 
 // ============================================================================
-// REACT 19 OPTIMISTIC MUTATIONS - Pure useOptimistic Integration
+// CRUD OPERATIONS - Simple hooks for components
 // ============================================================================
 
 /**
- * React 19 useOptimistic for Maintenance Requests List - Replaces TanStack Query onMutate
+ * Legacy hook alias for creating maintenance requests
  */
-export function useMaintenanceRequestsOptimistic(
-	params?: {
-		status?: MaintenanceStatus
-		priority?: string
-		propertyId?: string
-		unitId?: string
-	}
-) {
-	const { data: serverRequests } = useMaintenanceRequests(params)
+export function useCreateMaintenanceRequest() {
 	const queryClient = useQueryClient()
-
-	// React 19 useOptimistic for instant feedback
-	const optimistic = useOptimisticList(serverRequests, {
-		successMessage: (request: MaintenanceRequest) => `Maintenance request #${request.id} saved successfully`,
-		errorMessage: 'Failed to save maintenance request',
-		onSuccess: () => {
-			// Invalidate server cache after successful operations
-			void queryClient.invalidateQueries({
-				queryKey: queryKeys.maintenance.lists()
-			})
-			void queryClient.invalidateQueries({
-				queryKey: queryKeys.maintenance.stats()
-			})
-		}
-	})
-
-	// Server action wrappers
-	const createMaintenanceServer = async (data: CreateMaintenanceInput): Promise<MaintenanceRequest> => {
-		return await maintenanceApi.create(data)
+	
+	const mutate = async (data: CreateMaintenanceInput) => {
+		const result = await post<MaintenanceRequestApiResponse>('/api/maintenance', data)
+		// Invalidate related queries using proper query keys
+		await queryClient.invalidateQueries({ queryKey: queryKeys.maintenance.lists() })
+		await queryClient.invalidateQueries({ queryKey: queryKeys.maintenance.stats() })
+		return result
 	}
-
-	const updateMaintenanceServer = async (id: string, data: UpdateMaintenanceInput): Promise<MaintenanceRequest> => {
-		return await maintenanceApi.update(id, data)
-	}
-
-	const deleteMaintenanceServer = async (id: string): Promise<void> => {
-		await maintenanceApi.delete(id)
-	}
-
-	return {
-		// React 19 optimistic state
-		maintenanceRequests: optimistic.items,
-		isPending: optimistic.isPending,
-		isOptimistic: optimistic.isOptimistic,
-		pendingCount: optimistic.pendingCount,
-
-		// React 19 optimistic actions
-		createMaintenanceRequest: (data: CreateMaintenanceInput) => 
-			optimistic.optimisticCreate(data, createMaintenanceServer),
-		updateMaintenanceRequest: (id: string, data: UpdateMaintenanceInput) => 
-			optimistic.optimisticUpdate(id, data, updateMaintenanceServer),
-		deleteMaintenanceRequest: (id: string) => 
-			optimistic.optimisticDelete(id, () => deleteMaintenanceServer(id)),
-		
-		// Utility actions
-		revertAll: optimistic.revertAll
+	
+	return { 
+		mutate,
+		mutateAsync: mutate,
+		isPending: false,
+		isSuccess: false,
+		isError: false,
+		error: null
 	}
 }
 
 /**
- * React 19 useOptimistic for Single Maintenance Request - Pure item updates
+ * Legacy hook alias for deleting maintenance requests
  */
-export function useMaintenanceRequestOptimistic(id: string) {
-	const { data: serverRequest } = useMaintenanceRequest(id)
+export function useDeleteMaintenanceRequest() {
 	const queryClient = useQueryClient()
-
-	// React 19 useOptimistic for single maintenance request
-	const optimistic = useOptimisticItem(serverRequest, {
-		successMessage: 'Maintenance request updated successfully',
-		errorMessage: 'Failed to update maintenance request',
-		onSuccess: () => {
-			// Invalidate related caches
-			void queryClient.invalidateQueries({
-				queryKey: queryKeys.maintenance.detail(id)
-			})
-			void queryClient.invalidateQueries({
-				queryKey: queryKeys.maintenance.lists()
-			})
-			void queryClient.invalidateQueries({
-				queryKey: queryKeys.maintenance.stats()
-			})
-		}
-	})
-
-	// Server action wrapper
-	const updateMaintenanceServer = async (data: UpdateMaintenanceInput): Promise<MaintenanceRequest> => {
-		return await maintenanceApi.update(id, data)
+	
+	const mutate = async (id: string) => {
+		await del<void>(`/api/maintenance/${id}`)
+		// Invalidate related queries using proper query keys
+		await queryClient.invalidateQueries({ queryKey: queryKeys.maintenance.lists() })
+		await queryClient.invalidateQueries({ queryKey: queryKeys.maintenance.stats() })
 	}
-
-	return {
-		// React 19 optimistic state
-		maintenanceRequest: optimistic.item,
-		isPending: optimistic.isPending,
-		isOptimistic: optimistic.isOptimistic,
-
-		// React 19 optimistic actions
-		updateMaintenanceRequest: (data: UpdateMaintenanceInput) => 
-			optimistic.optimisticUpdate(data, updateMaintenanceServer),
-		revert: optimistic.revert
-	}
+	
+	return { mutate, isPending: false }
 }
-
-
-// ============================================================================
-// PREFETCH UTILITIES
-// ============================================================================
 
 /**
- * PURE: Enhanced prefetch for Suspense patterns - ensures data available when component mounts
+ * Legacy hook alias for updating maintenance requests
  */
-export function usePrefetchMaintenanceRequest() {
+export function useUpdateMaintenanceRequest() {
 	const queryClient = useQueryClient()
-
-	return (id: string) => {
-		void queryClient.prefetchQuery({
-			queryKey: queryKeys.maintenance.detail(id),
-			queryFn: async () => maintenanceApi.getById(id),
-			staleTime: 10 * 1000 // 10 seconds
-		})
+	
+	const mutate = async (id: string, data: UpdateMaintenanceInput) => {
+		const result = await put<MaintenanceRequestApiResponse>(`/api/maintenance/${id}`, data)
+		// Invalidate related queries using proper query keys
+		await queryClient.invalidateQueries({ queryKey: queryKeys.maintenance.lists() })
+		await queryClient.invalidateQueries({ queryKey: queryKeys.maintenance.detail(id) })
+		await queryClient.invalidateQueries({ queryKey: queryKeys.maintenance.stats() })
+		return result
 	}
+	
+	return { mutate, isPending: false }
 }
-
-// ============================================================================
-// EXPORTS - React 19 Pure Implementation
-// ============================================================================
-
-// REACT 19: Pure useOptimistic patterns (exported directly above)
-
-// REACT 19: Pure data fetching (exported directly above)
-
-// REACT 19: Utilities (exported directly above)

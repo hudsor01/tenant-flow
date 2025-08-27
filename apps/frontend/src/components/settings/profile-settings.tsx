@@ -16,10 +16,10 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { useFormState, useApiCall } from '@/hooks/common'
 import { FormValidator } from '@/lib/validation/form-validator'
-import type { ProfileFormData } from '@/types/forms'
+import type { ProfileFormData } from '@repo/shared/types/auth'
 import { toast } from 'sonner'
-import { apiClient } from '@/lib/api-client'
-import { UpdateUserProfileSchema } from '@/lib/api/schemas/profile'
+
+
 import { useAuth } from '@/hooks/use-auth'
 
 export function ProfileSettings() {

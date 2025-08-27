@@ -5,7 +5,10 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/use-auth'
 import { logger } from '@/lib/logger/logger'
 import { AuthLoadingSpinner } from './protected-route-guard'
-import type { UserRole } from '@repo/shared'
+import type { Database } from '@repo/shared'
+
+// Define types directly from Database schema - NO DUPLICATION
+type UserRole = Database['public']['Enums']['UserRole']
 
 interface UnifiedAuthGuardProps {
 	children: React.ReactNode

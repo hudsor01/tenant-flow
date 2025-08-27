@@ -2,7 +2,7 @@ import { Suspense } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { UnitForm } from '@/components/units/unit-form'
+import { UnitForm } from '@/components/properties/units/unit-form'
 import { PageTracker } from '@/components/analytics/page-tracker'
 import type { Metadata } from 'next/types'
 

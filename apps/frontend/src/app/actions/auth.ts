@@ -8,6 +8,14 @@
 import { redirect } from 'next/navigation'
 import { createActionClient } from '@/lib/supabase/action-client'
 
+// Form state type
+export interface AuthFormState {
+	success: boolean
+	error?: string
+	errors?: Record<string, string[]>;
+	message?: string
+}
+
 export async function getCurrentUser() {
 	const supabase = await createActionClient()
 	const {
@@ -231,11 +239,3 @@ export const signup = signUp
 export const logoutAction = signOut
 export const updateProfileAction = updateProfile
 export const updatePasswordAction = updatePassword
-
-// Form state type
-export interface AuthFormState {
-	success: boolean
-	error?: string
-	errors?: Record<string, string[]>
-	message?: string
-}

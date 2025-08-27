@@ -6,14 +6,10 @@ import {
 	nonNegativeNumberSchema,
 	requiredString
 } from './common'
+import { Constants } from '../types/supabase-generated'
 
-// Unit status enum
-export const unitStatusSchema = z.enum([
-	'VACANT',
-	'OCCUPIED',
-	'MAINTENANCE',
-	'UNAVAILABLE'
-])
+// Unit status enum - uses auto-generated Supabase enums
+export const unitStatusSchema = z.enum(Constants.public.Enums.UnitStatus as readonly [string, ...string[]])
 
 // Base unit input schema (for forms and API creation)
 export const unitInputSchema = z.object({
@@ -62,7 +58,7 @@ export const unitInputSchema = z.object({
 export const unitSchema = unitInputSchema.extend({
 	id: uuidSchema,
 	ownerId: uuidSchema,
-	status: unitStatusSchema.default('VACANT'),
+	status: unitStatusSchema.default('VACANT' as const),
 	createdAt: z.date(),
 	updatedAt: z.date()
 })

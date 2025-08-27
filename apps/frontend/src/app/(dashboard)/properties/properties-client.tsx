@@ -7,7 +7,10 @@ import { PropertiesDataTable } from '@/components/properties/properties-data-tab
 import { PropertyDetailsDrawer } from '@/components/properties/property-details-drawer'
 import { PropertyFormDialog } from '@/components/properties/property-form-dialog'
 import { PropertyDeleteDialog } from '@/components/properties/property-delete-dialog'
-import type { Property } from '@repo/shared'
+import type { Database } from '@repo/shared'
+
+// Define types directly from Database schema - NO DUPLICATION
+type Property = Database['public']['Tables']['Property']['Row']
 
 interface PropertiesClientProps {
 	className?: string

@@ -12,7 +12,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
-import type { TabItem } from './types'
+import type { TabItem } from '@repo/shared/types/frontend-utils'
 
 const TAB_VARIANTS = {
 	default: 'border-b',

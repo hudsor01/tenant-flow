@@ -12,7 +12,7 @@ import { motion } from '@/lib/lazy-motion'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { NavigationLink } from './navigation-link'
-import type { NavItem } from './types'
+import type { NavItem } from '@repo/shared/types/frontend-utils'
 
 interface MobileNavigationProps {
 	items: NavItem[]

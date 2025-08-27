@@ -107,8 +107,8 @@ export function DashboardMetrics({ stats, isLoading }: DashboardMetricsProps) {
 		<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
 			<MetricCard
 				title="Total Properties"
-				value={stats?.totalProperties ?? 0}
-				subtitle={`${Math.round(stats?.occupancyRate ?? 0)}% occupancy rate`}
+				value={stats?.properties?.total ?? 0}
+				subtitle={`${Math.round(stats?.units?.occupancyRate ?? 0)}% occupancy rate`}
 				icon="i-lucide-building-2"
 				trend={{ value: 12, isPositive: true }}
 				color="navy"
@@ -116,8 +116,8 @@ export function DashboardMetrics({ stats, isLoading }: DashboardMetricsProps) {
 			/>
 			<MetricCard
 				title="Active Tenants"
-				value={stats?.totalTenants ?? 0}
-				subtitle={`${stats?.totalUnits ?? 0} total units`}
+				value={stats?.tenants?.total ?? 0}
+				subtitle={`${stats?.units?.total ?? 0} total units`}
 				icon="i-lucide-users"
 				trend={{ value: 8, isPositive: true }}
 				color="steel"
@@ -125,7 +125,7 @@ export function DashboardMetrics({ stats, isLoading }: DashboardMetricsProps) {
 			/>
 			<MetricCard
 				title="Maintenance Requests"
-				value={stats?.maintenanceRequests ?? 0}
+				value={stats?.maintenance?.total ?? 0}
 				subtitle="Active requests"
 				icon="i-lucide-wrench"
 				trend={{ value: 5, isPositive: false }}
@@ -134,7 +134,7 @@ export function DashboardMetrics({ stats, isLoading }: DashboardMetricsProps) {
 			/>
 			<MetricCard
 				title="Monthly Revenue"
-				value={`$${(stats?.totalRevenue ?? 0).toLocaleString()}`}
+				value={`$${(stats?.revenue?.total ?? 0).toLocaleString()}`}
 				subtitle="Total revenue"
 				icon="i-lucide-dollar-sign"
 				trend={{

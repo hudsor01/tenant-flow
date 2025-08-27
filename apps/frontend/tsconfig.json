@@ -11,8 +11,8 @@
 		],
 		"paths": {
 			"@/*": ["./src/*"],
-			"@repo/shared": ["../../packages/shared/src"],
-			"@repo/shared/*": ["../../packages/shared/src/*"]
+			"@repo/shared": ["../../packages/shared/dist/cjs"],
+			"@repo/shared/*": ["../../packages/shared/dist/cjs/*"]
 		},
 		"types": ["node", "react", "react-dom"],
 		"jsx": "preserve",

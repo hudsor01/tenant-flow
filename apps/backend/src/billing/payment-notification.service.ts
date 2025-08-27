@@ -2,10 +2,11 @@ import { Injectable } from '@nestjs/common'
 import { PinoLogger } from 'nestjs-pino'
 // Email service removed for MVP - will add later
 import { SupabaseService } from '../database/supabase.service'
-import { NotificationType } from '@repo/shared/types/notifications'
+// NotificationType will be defined as needed locally
 
-// Use shared type instead of local interface
-import type { PaymentNotificationData } from '@repo/shared/types/billing'
+// Use shared types instead of local interfaces
+import type { PaymentNotificationData } from '../shared/types/billing.types'
+import { NotificationType } from '../shared/types/billing.types'
 
 @Injectable()
 export class PaymentNotificationService {
@@ -235,7 +236,7 @@ export class PaymentNotificationService {
         return
       }
       
-      const endDateFormatted = currentPeriodEnd ? currentPeriodEnd.toLocaleDateString() : 'immediately'
+      const endDateFormatted = currentPeriodEnd ? new Date(currentPeriodEnd).toLocaleDateString() : 'immediately'
       
       // Create in-app notification
       const { error: notificationError } = await this.supabaseService.getAdminClient()
@@ -251,7 +252,7 @@ export class PaymentNotificationService {
           metadata: {
             subscriptionId,
             cancelAtPeriodEnd,
-            currentPeriodEnd: currentPeriodEnd?.toISOString(),
+            currentPeriodEnd: currentPeriodEnd,
             actionUrl: '/billing'
           },
           isRead: false

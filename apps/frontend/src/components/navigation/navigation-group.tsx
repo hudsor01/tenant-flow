@@ -11,7 +11,7 @@ import { motion } from '@/lib/lazy-motion'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { NavigationLink } from './navigation-link'
-import type { NavItem } from './types'
+import type { NavItem } from '@repo/shared/types/frontend-utils'
 
 interface NavigationGroupProps {
 	title?: string
@@ -51,7 +51,8 @@ export function NavigationGroup({
 							onClick={() => setIsOpen(!isOpen)}
 							className="h-6 w-6 p-0"
 						>
-							<i className="i-lucide-chevron-right inline-block" className={cn(
+							<i className={cn(
+								'i-lucide-chevron-right inline-block',
 									'h-3 w-3 transition-transform duration-200',
 									isOpen && 'rotate-90'
 								)} />

@@ -1,7 +1,7 @@
 import { createBrowserClient } from '@supabase/ssr'
 import { logger } from '@/lib/logger/logger'
 import { config } from '../config'
-import type { Database } from '@repo/shared'
+import type { Database } from '@repo/shared/types/supabase-generated'
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
 
 // Use global variable to ensure single instance across all imports

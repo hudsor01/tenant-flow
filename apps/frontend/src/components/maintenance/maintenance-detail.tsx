@@ -27,6 +27,12 @@ import {
 	AlertDialogTitle,
 	AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
+import {
+	getPriorityColor,
+	getPriorityLabel,
+	getRequestStatusColor,
+	getRequestStatusLabel
+} from '@repo/shared'
 
 interface MaintenanceDetailProps {
 	requestId: string
@@ -51,41 +57,9 @@ export function MaintenanceDetail({
 	const deleteRequest = useDeleteMaintenanceRequest()
 
 	const handleDelete = () => {
-		deleteRequest.mutate(requestId, {
-			onSuccess: () => {
-				onDeleted?.()
-			}
-		})
-	}
-
-	const getPriorityColor = (priority: string) => {
-		switch (priority.toLowerCase()) {
-			case 'low':
-				return 'bg-green-100 text-green-800 border-green-200'
-			case 'medium':
-				return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-			case 'high':
-				return 'bg-orange-100 text-orange-800 border-orange-200'
-			case 'emergency':
-				return 'bg-red-100 text-red-800 border-red-200'
-			default:
-				return 'bg-gray-100 text-gray-800 border-gray-200'
-		}
-	}
-
-	const getStatusColor = (status: string) => {
-		switch (status.toLowerCase()) {
-			case 'pending':
-				return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-			case 'in_progress':
-				return 'bg-blue-100 text-blue-800 border-blue-200'
-			case 'completed':
-				return 'bg-green-100 text-green-800 border-green-200'
-			case 'cancelled':
-				return 'bg-gray-100 text-gray-800 border-gray-200'
-			default:
-				return 'bg-gray-100 text-gray-800 border-gray-200'
-		}
+		deleteRequest.mutate(requestId)
+		// Success handling should be in the hook itself
+		onDeleted?.()
 	}
 
 	if (isLoading) {
@@ -135,23 +109,17 @@ export function MaintenanceDetail({
 							</CardTitle>
 							<div className="flex items-center space-x-3">
 								<Badge
-									className={getPriorityColor(
-										request.priority
-									)}
+									className={getPriorityColor(request.priority)}
 								>
 									{request.priority === 'EMERGENCY' && (
 										<i className="i-lucide-alert-triangle inline-block mr-1 h-3 w-3"  />
 									)}
-									<span className="capitalize">
-										{request.priority.toLowerCase()}
-									</span>
+									{getPriorityLabel(request.priority)}
 								</Badge>
 								<Badge
-									className={getStatusColor(request.status)}
+									className={getRequestStatusColor(request.status)}
 								>
-									<span className="capitalize">
-										{request.status.replace('_', ' ')}
-									</span>
+									{getRequestStatusLabel(request.status)}
 								</Badge>
 								<Badge variant="outline">
 									{request.category}
@@ -238,8 +206,7 @@ export function MaintenanceDetail({
 								<span>Property:</span>
 							</div>
 							<p className="font-medium">
-								{request.Unit?.property?.name ||
-									'Unknown Property'}
+								Property Info Not Available
 							</p>
 						</div>
 
@@ -249,7 +216,7 @@ export function MaintenanceDetail({
 								<span>Unit:</span>
 							</div>
 							<p className="font-medium">
-								Unit {request.Unit?.unitNumber || 'Unknown'}
+								Unit {request.unitId || 'Unknown'}
 							</p>
 						</div>
 

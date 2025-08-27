@@ -7,7 +7,9 @@ import { logger } from '@/lib/logger/logger'
 
 // Core Consolidated Security
 export { default as Security, withSecurity, withAuth } from './security'
-export type { UserRole, Permission } from './security'
+
+// Re-export types from shared package
+export type { UserRole, Permission } from '@repo/shared'
 
 // JWT and file upload functions removed - use Supabase built-in features
 

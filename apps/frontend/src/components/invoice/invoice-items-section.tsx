@@ -6,27 +6,24 @@ import type {
 	UseFormRegister,
 	UseFieldArrayReturn,
 	UseFormSetValue,
-	UseFormGetValues
+	UseFormGetValues,
+	FieldArrayPath,
+	FieldPath,
+	FieldValues
 } from 'react-hook-form'
-import type { CustomerInvoiceForm } from '@repo/shared'
-// Local InvoiceItem type
-interface InvoiceItem {
-	id: string
-	description: string
-	quantity: number
-	unitPrice: number
-	total: number
-}
+import type { CustomerInvoiceForm, CustomerInvoiceItem } from '@repo/shared/types/invoices' // Import CustomerInvoiceItem
+
+// Removed local InvoiceItem type definition
 
 // Extended props for the invoice items section
 interface InvoiceItemsSectionProps {
 	register: UseFormRegister<CustomerInvoiceForm>
-	fields: InvoiceItem[]
-	append: UseFieldArrayReturn<CustomerInvoiceForm, 'items'>['append']
-	remove: UseFieldArrayReturn<CustomerInvoiceForm, 'items'>['remove']
+	fields: CustomerInvoiceItem[] // Changed to CustomerInvoiceItem[]
+	append: UseFieldArrayReturn<CustomerInvoiceForm, 'items', 'id'>['append'] // Corrected type
+	remove: UseFieldArrayReturn<CustomerInvoiceForm, 'items', 'id'>['remove'] // Corrected type
 	setValue: UseFormSetValue<CustomerInvoiceForm>
 	getValues: UseFormGetValues<CustomerInvoiceForm>
-	watchedItems: InvoiceItem[]
+	watchedItems: CustomerInvoiceItem[] // Changed to CustomerInvoiceItem[]
 	subtotal: number
 	taxAmount: number
 	total: number
@@ -86,7 +83,7 @@ export function InvoiceItemsSection({
 						>
 							<div className="col-span-5">
 								<Input
-									{...register(`items.${index}.description`)}
+									{...register(`items.${index}.description` as const)}
 									placeholder="Description of service/product"
 									className="h-10 text-sm"
 								/>
@@ -100,11 +97,11 @@ export function InvoiceItemsSection({
 										onClick={() => {
 											const currentQty =
 												getValues(
-													`items.${index}.quantity`
+													`items.${index}.quantity` as const
 												) ?? 0
 											if (currentQty > 1) {
 												setValue(
-													`items.${index}.quantity`,
+													`items.${index}.quantity` as const,
 													currentQty - 1
 												)
 											} else {
@@ -125,10 +122,10 @@ export function InvoiceItemsSection({
 										onClick={() => {
 											const currentQty =
 												getValues(
-													`items.${index}.quantity`
+													`items.${index}.quantity` as const
 												) ?? 0
 											setValue(
-												`items.${index}.quantity`,
+												`items.${index}.quantity` as const,
 												currentQty + 1
 											)
 										}}
@@ -143,7 +140,7 @@ export function InvoiceItemsSection({
 									type="number"
 									step="0.01"
 									min="0"
-									{...register(`items.${index}.unitPrice`, {
+									{...register(`items.${index}.unitPrice` as const, {
 										valueAsNumber: true
 									})}
 									placeholder="0.00"
@@ -184,13 +181,7 @@ export function InvoiceItemsSection({
 										quantity: 1,
 										unitPrice: 0,
 										total: 0
-									} as {
-										id: string
-										description: string
-										quantity: number
-										unitPrice: number
-										total: number
-									})
+									} as CustomerInvoiceItem)
 								}
 								className="bg-primary/10 border-primary/20 text-primary hover:bg-primary hover:text-primary-foreground h-10 w-full max-w-[140px] transition-colors"
 							>

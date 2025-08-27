@@ -7,12 +7,28 @@
 
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { createActionClient } from '@/lib/supabase/action-client'
-import type { 
-  Lease, 
-  UpdateLeaseInput,
-  LeaseQuery,
-  LeaseStats 
-} from '@repo/shared'
+import type { Database } from '@repo/shared'
+
+// Define types directly from Database schema - NO DUPLICATION
+type Lease = Database['public']['Tables']['Lease']['Row']
+type CreateLeaseInput = Database['public']['Tables']['Lease']['Insert']
+type UpdateLeaseInput = Database['public']['Tables']['Lease']['Update']
+
+// Define local interfaces for component needs
+interface LeaseQuery {
+  search?: string
+  status?: string
+  propertyId?: string
+  tenantId?: string
+}
+
+interface LeaseStats {
+  total: number
+  active: number
+  expired: number
+  pending: number
+  totalRentRoll: number
+}
 
 /**
  * NATIVE Server Action: Get all leases with caching
@@ -84,20 +100,18 @@ export async function createLease(formData: FormData): Promise<Lease> {
   const supabase = await createActionClient()
   
   // Direct database insert - no validation needed (server action pattern)
-  const dbLeaseData = {
-    tenant_id: formData.get('tenant_id') as string,
-    property_id: formData.get('property_id') as string,
-    unit_id: formData.get('unit_id') as string || null,
-    start_date: formData.get('start_date') as string,
-    end_date: formData.get('end_date') as string,
-    monthly_rent: parseFloat(formData.get('monthly_rent') as string),
-    security_deposit: parseFloat(formData.get('security_deposit') as string) || 0,
-    payment_due_day: parseInt(formData.get('payment_due_day') as string, 10) || 1,
-    lease_type: formData.get('lease_type') as string || 'FIXED_TERM',
-    status: 'PENDING',
-    terms: formData.get('terms') as string || null,
-    special_conditions: formData.get('special_conditions') as string || null
-  } as any // Type assertion for database schema
+  const rentAmountStr = formData.get('rentAmount') as string
+  const securityDepositStr = formData.get('security_deposit') as string
+  
+  const dbLeaseData: CreateLeaseInput = {
+    tenantId: formData.get('tenant_id') as string,
+    unitId: formData.get('unit_id') as string,
+    startDate: formData.get('start_date') as string,
+    endDate: formData.get('end_date') as string,
+    rentAmount: parseFloat(rentAmountStr || '0'),
+    securityDeposit: securityDepositStr ? parseFloat(securityDepositStr) : 0,
+    terms: formData.get('terms') as string || undefined
+  }
 
   const { data, error } = await supabase
     .from('leases')
@@ -133,32 +147,28 @@ export async function updateLease(
   
   const updateData: UpdateLeaseInput = {}
   
-  // String fields
-  const stringFields = ['status', 'lease_type', 'terms', 'special_conditions']
-  stringFields.forEach(field => {
-    if (formData.has(field)) {
-      updateData[field] = formData.get(field) as string
-    }
-  })
-  
-  // Date fields
-  const dateFields = ['start_date', 'end_date']
-  dateFields.forEach(field => {
-    if (formData.has(field)) {
-      updateData[field] = formData.get(field) as string
-    }
-  })
+  // Update specific fields directly to avoid dynamic access
+  if (formData.has('status')) {
+    updateData.status = formData.get('status') as 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED'
+  }
+  if (formData.has('terms')) {
+    updateData.terms = formData.get('terms') as string
+  }
+  if (formData.has('startDate')) {
+    updateData.startDate = formData.get('startDate') as string
+  }
+  if (formData.has('endDate')) {
+    updateData.endDate = formData.get('endDate') as string
+  }
   
   // Numeric fields
-  if (formData.has('monthly_rent')) {
-    updateData.monthly_rent = parseFloat(formData.get('monthly_rent') as string)
+  if (formData.has('rentAmount')) {
+    updateData.rentAmount = parseFloat(formData.get('rentAmount') as string)
   }
   if (formData.has('security_deposit')) {
-    updateData.security_deposit = parseFloat(formData.get('security_deposit') as string)
+    updateData.securityDeposit = parseFloat(formData.get('security_deposit') as string)
   }
-  if (formData.has('payment_due_day')) {
-    updateData.payment_due_day = parseInt(formData.get('payment_due_day') as string, 10)
-  }
+  // payment_due_day doesn't exist in Lease table - removing
 
   const { data, error } = await supabase
     .from('leases')
@@ -299,17 +309,17 @@ export async function getLeaseStats(): Promise<LeaseStats> {
   const thirtyDaysFromNow = new Date()
   thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30)
   
-  const { count: expiringSoon } = await supabase
+  const { count: _expiringSoon } = await supabase
     .from('leases')
     .select('*', { count: 'exact', head: true })
     .eq('status', 'ACTIVE')
     .lte('end_date', thirtyDaysFromNow.toISOString())
 
   return {
-    activeLeases: activeLeases || 0,
-    expiredLeases: expiredLeases || 0,
-    pendingLeases: pendingLeases || 0,
-    expiringSoon: expiringSoon || 0,
-    totalRevenue: 0 // Calculate if needed
+    total: (activeLeases || 0) + (expiredLeases || 0) + (pendingLeases || 0),
+    active: activeLeases || 0,
+    expired: expiredLeases || 0,
+    pending: pendingLeases || 0,
+    totalRentRoll: 0 // Calculate if needed from active leases
   }
 }

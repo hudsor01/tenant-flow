@@ -10,7 +10,10 @@ import {
 import { PropertyForm } from '@/components/properties/property-form'
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import type { Property } from '@repo/shared'
+import type { Database } from '@repo/shared'
+
+// Define types directly from Database schema - NO DUPLICATION
+type Property = Database['public']['Tables']['Property']['Row']
 
 // Client Component for modal content
 export default function EditPropertyModal() {

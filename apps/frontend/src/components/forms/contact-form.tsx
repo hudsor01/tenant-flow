@@ -1,5 +1,5 @@
 'use client'
-import { Calendar,Phone,Mail,CheckCircle } from 'lucide-react'
+
 import { useState, useActionState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -64,29 +64,28 @@ export function ContactForm({
 		{
 			value: 'demo',
 			label: 'Schedule a Demo',
-			icon: Calendar,
+			icon: 'i-lucide-calendar',
 			description: 'See TenantFlow in action'
 		},
 		{
 			value: 'sales',
 			label: 'Sales Inquiry',
-			icon: Phone,
+			icon: 'i-lucide-phone',
 			description: 'Learn about pricing & features'
 		},
 		{
 			value: 'support',
 			label: 'Technical Support',
-			icon: Mail,
+			icon: 'i-lucide-mail',
 			description: 'Get help with your account'
 		},
 		{
 			value: 'general',
 			label: 'General Question',
-			icon: CheckCircle,
+			icon: 'i-lucide-check-circle',
 			description: 'Other inquiries'
 		}
 	]
-
 
 	return (
 		<Card className="mx-auto w-full max-w-2xl">

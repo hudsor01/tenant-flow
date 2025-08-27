@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useActionStateForm } from '@/hooks/use-action-state-form'
 import { FormContainer, FormInput, FormSubmit, FormError } from '@/components/ui/form-action-state'
-import { quickPropertySetupAction } from '@/lib/actions/property-actions'
+import { quickPropertySetupAction } from '@/app/actions/properties'
 
 export default function QuickPropertySetup({ onComplete }: { onComplete?: (propertyId: string) => void }) {
 	const [isComplete, setIsComplete] = React.useState(false)

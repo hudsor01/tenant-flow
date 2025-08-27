@@ -10,7 +10,8 @@ import {
 	type UseMutationResult
 } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { authApi, authKeys } from '@/lib/api/auth'
+import { get } from '@/lib/api-client-temp'
+import { queryKeys } from '@/lib/react-query/query-keys'
 import type {
 	User,
 	LoginCredentials,
@@ -26,8 +27,8 @@ export function useCurrentUser(options?: {
 	enabled?: boolean
 }): UseQueryResult<User> {
 	return useQuery({
-		queryKey: authKeys.user(),
-		queryFn: () => authApi.getCurrentUser(),
+		queryKey: queryKeys.auth.user(),
+		queryFn: () => get<User>('/api/auth/me'),
 		enabled: options?.enabled ?? true,
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000, // 10 minutes
@@ -60,7 +61,7 @@ export function useLogin(): UseMutationResult<
 
 			// Cache the user data if provided
 			if (data.user) {
-				queryClient.setQueryData(authKeys.user(), data.user)
+				queryClient.setQueryData(queryKeys.auth.user(), data.user)
 			}
 
 			toast.success('Successfully logged in!')
@@ -132,7 +133,7 @@ export function useRefreshToken(): UseMutationResult<
 		onSuccess: data => {
 			// Update cached user data if provided
 			if (data.user) {
-				queryClient.setQueryData(authKeys.user(), data.user)
+				queryClient.setQueryData(queryKeys.auth.user(), data.user)
 			}
 		},
 		onError: (error: Error) => {

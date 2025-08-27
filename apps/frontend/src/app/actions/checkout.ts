@@ -1,7 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { apiClient } from '@/lib/api-client'
+import { post } from '@repo/shared/utils/api-client'
 
 interface CheckoutFormState {
 	success: boolean
@@ -23,8 +23,8 @@ export async function createCheckoutSession(
 			couponId: formData.get('couponId') as string | undefined
 		}
 
-		const response = await apiClient.post<{ url: string }>(
-			'/billing/checkout',
+		const response = await post<{ url: string }>(
+			'/api/billing/checkout',
 			data
 		)
 

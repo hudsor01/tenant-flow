@@ -11,7 +11,7 @@ export function HeroSection() {
 					{/* Compact announcement badge */}
 					<div className="mb-6 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 text-sm text-gray-600 shadow-sm">
 						<div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
-						<span>New: AI-Powered Lease Generator</span>
+						<span>New: AI-Powered Property Insights</span>
 						<i className="i-lucide-arrow-right inline-block h-3 w-3"  />
 					</div>
 

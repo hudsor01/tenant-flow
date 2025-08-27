@@ -71,6 +71,11 @@
 			"import": "./dist/esm/types/common.js",
 			"require": "./dist/cjs/types/common.js"
 		},
+		"./types/auth": {
+			"types": "./dist/cjs/types/auth.d.ts",
+			"import": "./dist/esm/types/auth.js",
+			"require": "./dist/cjs/types/auth.js"
+		},
 		"./constants": {
 			"types": "./dist/cjs/constants/index.d.ts",
 			"import": "./dist/esm/constants/index.js",
@@ -181,27 +186,25 @@
 	},
 	"peerDependencies": {
 		"@tanstack/react-query": "^5.85.5",
-		"class-variance-authority": "^0.7.1",
 		"react-hook-form": "^7.62.0"
 	},
 	"devDependencies": {
 		"@playwright/test": "1.55.0",
 		"@repo/typescript-config": "*",
 		"@types/node": "^24.3.0",
-		"@types/react": "^19.1.11",
-		"class-variance-authority": "0.7.1",
+		"@types/react": "19.1.12",
 		"eslint": "9.34.0",
 		"globals": "16.3.0",
 		"playwright": "1.55.0",
 		"react-hook-form": "7.62.0",
 		"typescript": "5.9.2",
-		"typescript-eslint": "8.40.0"
+		"typescript-eslint": "8.41.0"
 	},
 	"overrides": {
-		"minimatch": "^3.1.2"
+		"minimatch": "^10.0.3"
 	},
 	"optionalDependencies": {
 		"@esbuild/linux-x64": "0.25.9",
-		"@rollup/rollup-linux-x64-gnu": "4.48.0"
+		"@rollup/rollup-linux-x64-gnu": "4.49.0"
 	}
 }

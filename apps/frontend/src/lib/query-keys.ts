@@ -54,9 +54,11 @@ export const queryKeys = {
 
 	// Maintenance
 	maintenance: {
-		requests: () => ['maintenance', 'requests'] as const,
+		lists: () => ['maintenance', 'list'] as const,
 		list: (params?: Record<string, unknown>) =>
-			['maintenance', 'list', params] as const
+			['maintenance', 'list', params] as const,
+		detail: (id: string) => ['maintenance', 'detail', id] as const,
+		stats: () => ['maintenance', 'stats'] as const
 	},
 
 	// Financial

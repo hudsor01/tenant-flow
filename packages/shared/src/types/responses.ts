@@ -4,8 +4,6 @@
  * These types define the structure of data returned from backend endpoints
  */
 
-// Removed unused PLAN_TYPE import
-
 // ========================
 // Subscription API Responses
 // ========================

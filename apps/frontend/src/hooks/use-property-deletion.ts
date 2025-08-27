@@ -4,8 +4,7 @@
  */
 
 import { useActionState } from 'react'
-import { deletePropertyAction } from '@/lib/actions/property-actions'
-import type { PropertyFormState } from '@/lib/actions/property-actions'
+import { deleteProperty as deletePropertyAction } from '@/app/actions/properties'
 import { logger } from '@/lib/logger/logger'
 
 interface PropertyDeletionConfig {
@@ -14,7 +13,7 @@ interface PropertyDeletionConfig {
 }
 
 export function usePropertyDeletion(config: PropertyDeletionConfig = {}) {
-	const initialState: PropertyFormState = { success: false }
+	const initialState = { success: false }
 	const [state, formAction, isPending] = useActionState(
 		deletePropertyAction,
 		initialState

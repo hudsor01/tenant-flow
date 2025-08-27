@@ -8,9 +8,8 @@ import {
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import type { FastifyRequest } from 'fastify'
-import type { UserRole } from '@repo/shared/types/auth'
+import type { UserRole, ValidatedUser } from '@repo/shared'
 import { AuthService } from '../../auth/auth.service'
-import type { ValidatedUser } from '@repo/shared/types/auth'
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator'
 
 interface AuthenticatedRequest extends FastifyRequest {

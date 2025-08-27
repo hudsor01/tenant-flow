@@ -1,4 +1,4 @@
-import { CheckCircle2,AlertTriangle,DollarSign,Users } from 'lucide-react'
+
 import { Suspense } from 'react'
 import { motion } from '@/lib/lazy-motion'
 import {
@@ -26,7 +26,7 @@ const recentActivity = [
 		title: 'New lease signed',
 		description: 'John Doe signed lease for Sunset Apartments Unit 4A',
 		time: '2 hours ago',
-		icon: CheckCircle2,
+		icon: 'i-lucide-check-circle-2',
 		color: 'green'
 	},
 	{
@@ -35,7 +35,7 @@ const recentActivity = [
 		title: 'Maintenance request',
 		description: 'Plumbing issue reported at Oakwood Complex',
 		time: '4 hours ago',
-		icon: AlertTriangle,
+		icon: 'i-lucide-alert-triangle',
 		color: 'orange'
 	},
 	{
@@ -44,7 +44,7 @@ const recentActivity = [
 		title: 'Payment received',
 		description: '$2,400 rent payment from Maple Heights',
 		time: '6 hours ago',
-		icon: DollarSign,
+		icon: 'i-lucide-dollar-sign',
 		color: 'blue'
 	},
 	{
@@ -53,7 +53,7 @@ const recentActivity = [
 		title: 'New tenant inquiry',
 		description: 'Jane Smith inquired about Garden View Unit 2B',
 		time: '8 hours ago',
-		icon: Users,
+		icon: 'i-lucide-users',
 		color: 'purple'
 	}
 ]

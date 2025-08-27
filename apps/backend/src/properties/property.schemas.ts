@@ -1,5 +1,9 @@
 import { z } from 'zod'
-import { PROPERTY_TYPE, type PropertyType } from '@repo/shared'
+import type { Database } from '@repo/shared'
+import { Constants } from '@repo/shared'
+
+// Define types directly from Database schema - NO DUPLICATION
+type PropertyType = Database['public']['Enums']['PropertyType']
 
 /**
  * Property Validation Schemas
@@ -47,8 +51,8 @@ const propertyBaseSchema = z.object({
 		.transform(val => val?.trim() ?? undefined),
 
 	propertyType: z
-		.enum(Object.values(PROPERTY_TYPE) as [PropertyType, ...PropertyType[]])
-		.default(PROPERTY_TYPE.SINGLE_FAMILY),
+		.enum(Constants.public.Enums.PropertyType as readonly [PropertyType, ...PropertyType[]])
+		.default('SINGLE_FAMILY' as const),
 
 	imageUrl: z
 		.string()
@@ -91,7 +95,7 @@ export const queryPropertySchema = z
 	.object({
 		propertyType: z
 			.enum(
-				Object.values(PROPERTY_TYPE) as [
+				Constants.public.Enums.PropertyType as readonly [
 					PropertyType,
 					...PropertyType[]
 				]

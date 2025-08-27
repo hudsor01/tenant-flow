@@ -123,7 +123,7 @@ export default function BlogContentSection({
 								size="lg"
 								className="w-full"
 							>
-								Try Lease Generator
+								Try Invoice Generator
 							</Button>
 						</Link>
 					</Flex>

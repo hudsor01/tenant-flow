@@ -6,10 +6,14 @@
 
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { createActionClient } from '@/lib/supabase/action-client'
-import type { 
-  MaintenanceRequest,
-  MaintenanceStatus
-} from '@repo/shared'
+import type { Database } from '@repo/shared'
+
+// Define types directly from Database schema - NO DUPLICATION
+type MaintenanceRequest = Database['public']['Tables']['MaintenanceRequest']['Row']
+type CreateMaintenanceInput = Database['public']['Tables']['MaintenanceRequest']['Insert']
+type _UpdateMaintenanceInput = Database['public']['Tables']['MaintenanceRequest']['Update']
+type MaintenanceStatus = Database['public']['Enums']['RequestStatus']
+type Priority = Database['public']['Enums']['Priority']
 
 /**
  * NATIVE Server Action: Get maintenance requests
@@ -65,18 +69,13 @@ export async function createMaintenanceRequest(
   
   // Direct database insert - no type validation needed
   const requestData = {
-    property_id: formData.get('property_id') as string,
-    unit_id: formData.get('unit_id') as string || null,
-    tenant_id: formData.get('tenant_id') as string || null,
+    unitId: formData.get('unit_id') as string,
     title: formData.get('title') as string,
     description: formData.get('description') as string,
-    priority: formData.get('priority') as string || 'MEDIUM',
     category: formData.get('category') as string || 'GENERAL',
-    status: 'OPEN',
-    estimated_cost: formData.has('estimated_cost') 
-      ? parseFloat(formData.get('estimated_cost') as string)
-      : null
-  } as any
+    priority: formData.get('priority') as Priority || 'MEDIUM',
+    status: formData.get('status') as MaintenanceStatus || 'OPEN'
+  } satisfies CreateMaintenanceInput
 
   const { data, error } = await supabase
     .from('maintenance_requests')
@@ -110,7 +109,7 @@ export async function updateMaintenanceStatus(
 ): Promise<MaintenanceRequest> {
   const supabase = await createActionClient()
   
-  const updateData: any = { status }
+  const updateData: { status: MaintenanceStatus; completed_at?: string } = { status }
   
   if (status === 'COMPLETED') {
     updateData.completed_at = new Date().toISOString()

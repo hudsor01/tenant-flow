@@ -15,9 +15,8 @@ import type {
 	UpdateLeaseInput,
 	LeaseStats
 } from '@repo/shared'
-import { leaseApi } from '@/lib/api/leases'
+import { get, post, put, del } from '@/lib/api-client-temp'
 import { queryKeys } from '@/lib/react-query/query-keys'
-import { useOptimisticList, useOptimisticItem } from '@/hooks/use-optimistic-data'
 
 // ============================================================================
 // PURE DATA HOOKS - TanStack Query Suspense (No Optimistic Logic)
@@ -29,7 +28,7 @@ import { useOptimisticList, useOptimisticItem } from '@/hooks/use-optimistic-dat
 export function useLeases(query?: LeaseQuery): UseSuspenseQueryResult<Lease[]> {
 	return useSuspenseQuery({
 		queryKey: queryKeys.leases.list(query),
-		queryFn: async () => leaseApi.getAll(query),
+		queryFn: async () => get<Lease[]>('/api/leases'),
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000 // 10 minutes
 	})
@@ -41,7 +40,7 @@ export function useLeases(query?: LeaseQuery): UseSuspenseQueryResult<Lease[]> {
 export function useLease(id: string): UseSuspenseQueryResult<Lease> {
 	return useSuspenseQuery({
 		queryKey: queryKeys.leases.detail(id),
-		queryFn: async () => leaseApi.getById(id),
+		queryFn: async () => get<Lease>(`/api/leases/${id}`),
 		staleTime: 2 * 60 * 1000 // 2 minutes
 	})
 }
@@ -52,7 +51,7 @@ export function useLease(id: string): UseSuspenseQueryResult<Lease> {
 export function useLeasesByProperty(propertyId: string): UseSuspenseQueryResult<Lease[]> {
 	return useSuspenseQuery({
 		queryKey: queryKeys.leases.byProperty(propertyId),
-		queryFn: async () => leaseApi.getByProperty(propertyId),
+		queryFn: async () => get<Lease[]>(`/api/properties/${propertyId}/leases`),
 		staleTime: 2 * 60 * 1000 // 2 minutes
 	})
 }
@@ -63,7 +62,7 @@ export function useLeasesByProperty(propertyId: string): UseSuspenseQueryResult<
 export function useLeaseStats(): UseSuspenseQueryResult<LeaseStats> {
 	return useSuspenseQuery({
 		queryKey: queryKeys.leases.stats(),
-		queryFn: async () => leaseApi.getStats(),
+		queryFn: async () => get<LeaseStats>('/api/leases/stats'),
 		staleTime: 2 * 60 * 1000, // 2 minutes
 		refetchInterval: 5 * 60 * 1000 // Auto-refresh every 5 minutes
 	})
@@ -97,15 +96,15 @@ export function useLeasesOptimistic(query?: LeaseQuery) {
 
 	// Server action wrappers
 	const createLeaseServer = async (data: CreateLeaseInput): Promise<Lease> => {
-		return await leaseApi.create(data)
+		return await post<Lease>('/api/leases', data)
 	}
 
 	const updateLeaseServer = async (id: string, data: UpdateLeaseInput): Promise<Lease> => {
-		return await leaseApi.update(id, data)
+		return await put<Lease>(`/api/leases/${id}`, data)
 	}
 
 	const deleteLeaseServer = async (id: string): Promise<void> => {
-		await leaseApi.delete(id)
+		await del<void>(`/api/leases/${id}`)
 	}
 
 	return {
@@ -155,7 +154,7 @@ export function useLeaseOptimistic(id: string) {
 
 	// Server action wrapper
 	const updateLeaseServer = async (data: UpdateLeaseInput): Promise<Lease> => {
-		return await leaseApi.update(id, data)
+		return await put<Lease>(`/api/leases/${id}`, data)
 	}
 
 	return {
@@ -185,7 +184,7 @@ export function usePrefetchLease() {
 	return (id: string) => {
 		void queryClient.prefetchQuery({
 			queryKey: queryKeys.leases.detail(id),
-			queryFn: async () => leaseApi.getById(id),
+			queryFn: async () => get<Lease>(`/api/leases/${id}`),
 			staleTime: 10 * 1000 // 10 seconds
 		})
 	}

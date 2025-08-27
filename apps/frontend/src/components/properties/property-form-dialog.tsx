@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { propertyFormSchema } from '@repo/shared/validation'
+import { z } from 'zod'
 import { usePropertiesOptimistic } from '@/hooks/api/use-properties'
 import {
 	Dialog,
@@ -33,8 +33,30 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import type { PropertyFormProps } from '@repo/shared/types/properties'
-import type { PropertyFormData } from '@repo/shared/validation'
+import type { Database } from '@repo/shared'
+
+// Define types directly from Database schema - NO DUPLICATION
+type Property = Database['public']['Tables']['Property']['Row']
+type _PropertyType = Database['public']['Enums']['PropertyType']
+
+// Define local schema for form validation
+const propertyFormSchema = z.object({
+	name: z.string().min(1, 'Property name is required'),
+	address: z.string().min(1, 'Address is required'),
+	city: z.string().min(1, 'City is required'),
+	state: z.string().min(1, 'State is required'),
+	zipCode: z.string().min(1, 'Zip code is required'),
+	propertyType: z.enum(['SINGLE_FAMILY', 'MULTI_UNIT', 'APARTMENT', 'COMMERCIAL', 'CONDO', 'OTHER'] as const),
+	description: z.string().optional()
+})
+
+type PropertyFormData = z.infer<typeof propertyFormSchema>
+
+// Define local interfaces for component needs
+interface PropertyFormProps {
+	property?: Property
+	mode: 'create' | 'edit'
+}
 
 type PropertyFormDialogProps = PropertyFormProps & {
 	open: boolean

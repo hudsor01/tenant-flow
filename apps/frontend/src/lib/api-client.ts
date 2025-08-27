@@ -6,12 +6,12 @@
  */
 import { config } from './config'
 import { getSession } from './supabase/client'
-import type { ControllerApiResponse } from '@repo/shared'
+import type { FrontendApiError as ApiError, RequestConfig, ValidationOptions } from '@repo/shared/types/api'
 import {
-	ResponseValidator,
-	type ValidationOptions
+	ResponseValidator
 } from './api/response-validator'
-import type { ZodTypeAny } from 'zod'
+import type { ZodTypeAny } from 'zod/v4'
+import type { ControllerApiResponse } from '@repo/shared/types/errors'
 
 // Type-safe URLSearchParams utility
 export function createSearchParams(params: Record<string, unknown>): string {
@@ -35,15 +35,6 @@ export function createSearchParams(params: Record<string, unknown>): string {
 
 	return searchParams.toString()
 }
-
-// Import shared API client types
-import type {
-	FrontendApiError as ApiError,
-	RequestConfig
-} from '@repo/shared'
-
-// Re-export for backward compatibility
-export type { ApiError, RequestConfig }
 
 class SimpleApiClient {
 	private baseURL: string
@@ -443,3 +434,9 @@ class SimpleApiClient {
 // Export singleton instance
 export const apiClient = new SimpleApiClient()
 export default apiClient
+
+// Convenience exports for backward compatibility
+export const get = apiClient.get.bind(apiClient)
+export const post = apiClient.post.bind(apiClient)
+export const put = apiClient.put.bind(apiClient)
+export const del = apiClient.delete.bind(apiClient)

@@ -241,13 +241,6 @@
 			"cache": true,
 			"persistent": false
 		},
-		"@repo/tailwind-config#typecheck": {
-			"dependsOn": [],
-			"inputs": ["*.js", "package.json"],
-			"outputs": [],
-			"cache": true,
-			"persistent": false
-		},
 		"@repo/typescript-config#typecheck": {
 			"dependsOn": [],
 			"inputs": ["*.json", "package.json"],

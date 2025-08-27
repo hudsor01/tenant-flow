@@ -166,7 +166,9 @@ export interface HealthCheckResponse {
 }
 
 export interface LocalAppState extends AppState {
-	// Extended local state properties if needed
+	// Local state properties - currently identical to AppState
+	// KISS principle: keep simple until we need extensions
+	readonly _localState?: never // Marker property to distinguish from AppState
 }
 
 // Optimistic state management (React 19 patterns)
@@ -180,13 +182,7 @@ export interface OptimisticConfig<T> {
 	removeOptimistic: (id: string) => void
 }
 
-// Form state management
-export interface UseActionStateFormOptions<T = any> {
-	resetOnSuccess?: boolean
-	validateOnChange?: boolean
-	onSuccess?: (data: T) => void
-	onError?: (errors: Record<string, string>) => void
-}
+// Form state management - imported from api.ts to avoid duplication
 
 export interface UseActionStateFormReturn {
 	formState: FormState

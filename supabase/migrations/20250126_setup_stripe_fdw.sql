@@ -282,7 +282,7 @@ BEGIN
     'totalUnits', COALESCE(SUM(CASE WHEN units IS NOT NULL THEN (units->>'total')::int ELSE 0 END), 0),
     'occupiedUnits', COALESCE(SUM(CASE WHEN units IS NOT NULL THEN (units->>'occupied')::int ELSE 0 END), 0),
     'vacantUnits', COALESCE(SUM(CASE WHEN units IS NOT NULL THEN (units->>'vacant')::int ELSE 0 END), 0),
-    'totalMonthlyRent', COALESCE(SUM(CASE WHEN monthly_rent IS NOT NULL THEN monthly_rent ELSE 0 END), 0)
+    'totalMonthlyRent', COALESCE(SUM(CASE WHEN rentAmount IS NOT NULL THEN rentAmount ELSE 0 END), 0)
   ) INTO property_stats
   FROM properties 
   WHERE user_id = user_id_param;

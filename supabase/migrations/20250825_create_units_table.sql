@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS public.units (
     bedrooms INTEGER NOT NULL DEFAULT 1,
     bathrooms DECIMAL(3,1) NOT NULL DEFAULT 1.0,
     square_feet INTEGER NULL,
-    monthly_rent DECIMAL(10,2) NULL,
+    rentAmount DECIMAL(10,2) NULL,
     security_deposit DECIMAL(10,2) NULL,
     description TEXT NULL,
     amenities TEXT[] DEFAULT '{}',
@@ -108,7 +108,7 @@ BEGIN
             unit_number,
             bedrooms,
             bathrooms,
-            monthly_rent,
+            rentAmount,
             status
         ) VALUES (
             NEW.id,
@@ -118,7 +118,7 @@ BEGIN
             END,
             COALESCE(NEW.bedrooms, 1),
             COALESCE(NEW.bathrooms, 1.0),
-            NEW.monthly_rent,
+            NEW.rentAmount,
             'VACANT'
         );
     END IF;
@@ -144,7 +144,7 @@ COMMENT ON TABLE public.units IS 'Individual rental units within properties. Ess
 COMMENT ON COLUMN public.units.property_id IS 'Foreign key to properties table';
 COMMENT ON COLUMN public.units.unit_number IS 'Unit identifier (e.g., "1A", "Main House", "Apt 2")';
 COMMENT ON COLUMN public.units.status IS 'Current availability status: VACANT, OCCUPIED, MAINTENANCE, RESERVED';
-COMMENT ON COLUMN public.units.monthly_rent IS 'Monthly rent amount for this specific unit';
+COMMENT ON COLUMN public.units.rentAmount IS 'Monthly rent amount for this specific unit';
 COMMENT ON COLUMN public.units.amenities IS 'Array of unit-specific amenities';
 COMMENT ON COLUMN public.units.last_inspection_date IS 'Date of last unit inspection';
 

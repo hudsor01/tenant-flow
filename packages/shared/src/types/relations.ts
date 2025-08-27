@@ -4,11 +4,16 @@
  */
 
 import type { User } from './auth'
-import type { Property, Unit } from './properties'
-import type { Tenant, InvitationStatus } from './tenants'
-import type { Lease } from './leases'
-import type { Expense } from './properties'
-import type { MaintenanceRequest } from './maintenance'
+import type { Database } from './supabase-generated'
+
+// Define types properly from Database schema
+type Property = Database['public']['Tables']['Property']['Row']
+type Unit = Database['public']['Tables']['Unit']['Row']
+type Tenant = Database['public']['Tables']['Tenant']['Row']
+type Lease = Database['public']['Tables']['Lease']['Row']
+type MaintenanceRequest = Database['public']['Tables']['MaintenanceRequest']['Row']
+type InvitationStatus = 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'CANCELLED'
+
 import type { NotificationData } from './notifications'
 import type { Document } from './files'
 
@@ -66,7 +71,6 @@ export interface LeaseWithDetails extends Lease {
 // Maintenance relations
 export interface MaintenanceWithDetails extends MaintenanceRequest {
 	unit: UnitWithDetails
-	expenses: Expense[]
 }
 
 // Notification relations
@@ -152,7 +156,6 @@ export interface MaintenanceRequestWithRelations extends MaintenanceRequest {
 			}
 		>
 	}
-	expenses: Expense[]
 	files: Array<{
 		id: string
 		filename: string

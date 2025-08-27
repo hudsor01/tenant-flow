@@ -9,7 +9,10 @@
 import React from 'react'
 import { useActionState } from 'react'
 import { createTenant, updateTenant } from '@/app/actions/tenants'
-import type { Tenant } from '@repo/shared'
+import type { Database } from '@repo/shared'
+
+// Define types directly from Database schema - NO DUPLICATION
+type Tenant = Database['public']['Tables']['Tenant']['Row']
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'

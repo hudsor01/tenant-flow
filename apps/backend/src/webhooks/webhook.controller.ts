@@ -20,7 +20,7 @@ import type { EnvironmentVariables } from '../config/config.schema'
 type StripeEventObject = unknown
 
 // Use shared types instead of local interfaces
-import type { MinimalInvoice, MinimalSubscription } from '@repo/shared/types/billing'
+import type { MinimalInvoice, MinimalSubscription } from '../shared/types/billing.types'
 
 @Controller('webhooks')
 export class WebhookController {

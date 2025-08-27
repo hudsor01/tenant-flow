@@ -9,7 +9,13 @@
 import React from 'react'
 import { useActionState } from 'react'
 import { createUnit, updateUnit } from '@/app/actions/units'
-import type { Unit, Property } from '@repo/shared'
+import type { 
+	Unit, 
+	Property, 
+	UnitFormProps,
+	UnitStatus,
+	CreateUnitRequest
+} from '@repo/shared'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,7 +23,6 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Switch } from '@/components/ui/switch'
 import { 
 	FormSection, 
 	OptimisticFeedback, 
@@ -27,8 +32,9 @@ import {
 	type FormState
 } from '@/components/ui/form'
 
-// Types for form props
-interface UnitFormProps {
+// Using shared UnitFormProps from @repo/shared
+// Additional local props for this component
+interface LocalUnitFormProps extends Omit<UnitFormProps, 'onSubmit'> {
 	unit?: Unit
 	units: Unit[]
 	properties: Property[]
@@ -47,7 +53,7 @@ export function UnitForm({
 	onSuccess,
 	onClose,
 	className
-}: UnitFormProps) {
+}: LocalUnitFormProps) {
 	const isEditing = Boolean(unit)
 	const title = isEditing ? 'Edit Unit' : 'Create New Unit'
 	const description = isEditing
@@ -67,25 +73,17 @@ export function UnitForm({
 		formData: FormData
 	) {
 		try {
-			// Extract form values using native FormData API
-			const unitData = {
+			// Extract form values using shared CreateUnitRequest interface
+			const unitData: CreateUnitRequest = {
 				propertyId: formData.get('propertyId') as string,
 				unitNumber: formData.get('unitNumber') as string,
-				unitType: formData.get('unitType') as string || 'STUDIO',
+				bedrooms: parseInt(formData.get('bedrooms') as string, 10) || 0,
+				bathrooms: parseFloat(formData.get('bathrooms') as string) || 0,
+				rent: parseFloat(formData.get('rent') as string) || 0,
 				squareFeet: formData.has('squareFeet') 
 					? parseInt(formData.get('squareFeet') as string, 10)
 					: undefined,
-				bedrooms: formData.has('bedrooms')
-					? parseInt(formData.get('bedrooms') as string, 10)
-					: undefined,
-				bathrooms: formData.has('bathrooms')
-					? parseFloat(formData.get('bathrooms') as string)
-					: undefined,
-				monthlyRent: formData.has('monthlyRent')
-					? parseFloat(formData.get('monthlyRent') as string)
-					: undefined,
-				description: formData.get('description') as string || undefined,
-				isOccupied: formData.get('isOccupied') === 'on'
+				status: formData.get('status') as UnitStatus || 'AVAILABLE'
 			}
 
 			// Add optimistic update
@@ -116,14 +114,6 @@ export function UnitForm({
 
 	// React 19 useActionState for form state management
 	const [formState, formDispatch, isPending] = useActionState(formAction, {})
-
-	const unitTypes = [
-		{ value: 'STUDIO', label: 'Studio' },
-		{ value: 'ONE_BEDROOM', label: '1 Bedroom' },
-		{ value: 'TWO_BEDROOM', label: '2 Bedroom' },
-		{ value: 'THREE_BEDROOM', label: '3 Bedroom' },
-		{ value: 'FOUR_BEDROOM', label: '4+ Bedroom' }
-	]
 
 	return (
 		<div className={cn('mx-auto w-full max-w-3xl', className)}>
@@ -208,28 +198,6 @@ export function UnitForm({
 								</div>
 
 								<div className="space-y-2">
-									<Label htmlFor="unitType">
-										Unit Type
-									</Label>
-									<Select 
-										name="unitType" 
-										defaultValue={unit?.unitType || 'STUDIO'}
-										disabled={isPending}
-									>
-										<SelectTrigger>
-											<SelectValue placeholder="Select unit type" />
-										</SelectTrigger>
-										<SelectContent>
-											{unitTypes.map(type => (
-												<SelectItem key={type.value} value={type.value}>
-													{type.label}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-								</div>
-
-								<div className="space-y-2">
 									<Label htmlFor="description">
 										Description
 									</Label>
@@ -249,7 +217,6 @@ export function UnitForm({
 						<FormSection
 							title="Unit Specifications"
 							description="Size and room details"
-							icon={Square}
 						>
 							<div className="grid grid-cols-1 gap-6 md:grid-cols-3">
 								<div className="space-y-2">
@@ -311,32 +278,44 @@ export function UnitForm({
 							description="Rental rate and financial details"
 						>
 							<div className="space-y-4">
-								<div className="space-y-2">
-									<Label htmlFor="monthlyRent">
-										Monthly Rent ($)
-									</Label>
-									<Input
-										id="monthlyRent"
-										name="monthlyRent"
-										type="number"
-										step="0.01"
-										min="0"
-										defaultValue={unit?.monthlyRent || ''}
-										placeholder="1250.00"
-										disabled={isPending}
-									/>
-								</div>
+								<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+									<div className="space-y-2">
+										<Label htmlFor="rent">
+											Monthly Rent ($) <span className="text-destructive ml-1">*</span>
+										</Label>
+										<Input
+											id="rent"
+											name="rent"
+											type="number"
+											step="0.01"
+											min="0"
+											defaultValue={unit?.rent || ''}
+											placeholder="1250.00"
+											disabled={isPending}
+											required
+										/>
+									</div>
 
-								<div className="flex items-center space-x-2">
-									<Switch
-										id="isOccupied"
-										name="isOccupied"
-										defaultChecked={unit?.isOccupied || false}
-										disabled={isPending}
-									/>
-									<Label htmlFor="isOccupied" className="cursor-pointer">
-										Currently Occupied
-									</Label>
+									<div className="space-y-2">
+										<Label htmlFor="status">
+											Status
+										</Label>
+										<Select 
+											name="status" 
+											defaultValue={unit?.status || 'AVAILABLE'}
+											disabled={isPending}
+										>
+											<SelectTrigger>
+												<SelectValue placeholder="Select status" />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="AVAILABLE">Available</SelectItem>
+												<SelectItem value="OCCUPIED">Occupied</SelectItem>
+												<SelectItem value="MAINTENANCE">Maintenance</SelectItem>
+												<SelectItem value="VACANT">Vacant</SelectItem>
+											</SelectContent>
+										</Select>
+									</div>
 								</div>
 							</div>
 						</FormSection>

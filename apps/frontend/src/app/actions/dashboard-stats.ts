@@ -9,7 +9,14 @@
 import { revalidateTag, revalidatePath } from 'next/cache'
 import { cache } from 'react'
 import { redirect } from 'next/navigation'
-import type { DashboardStats } from '@repo/shared'
+
+// Define local types for this action - NO DUPLICATION
+interface DashboardStats {
+	properties: { total: number; active: number; change: number }
+	tenants: { total: number; active: number; change: number }
+	revenue: { total: number; monthly: number; change: number }
+	maintenance: { total: number; pending: number; change: number }
+}
 
 // ============================================================================
 // PURE CACHED DATA FETCHING - Next.js 15 native cache
@@ -115,7 +122,7 @@ export async function refreshDashboardStatsAction(formData: FormData): Promise<{
  */
 export async function refreshStatAction(
 	statType: 'revenue' | 'properties' | 'tenants' | 'maintenance',
-	formData: FormData
+	_formData: FormData
 ): Promise<{ success: boolean; message?: string }> {
 	try {
 		// Pure tag mapping
@@ -158,7 +165,7 @@ export async function refreshStatAction(
 export async function updateStatOptimisticallyAction(
 	statType: string,
 	newValue: number,
-	formData: FormData
+	_formData: FormData
 ): Promise<{ success: boolean; value: number; message?: string }> {
 	try {
 		// Pure validation

@@ -3,11 +3,20 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
-import type { PropertyWithUnits } from '@repo/shared'
-import {
-	formatCurrency as sharedFormatCurrency,
-	getPropertyTypeLabel
-} from '@repo/shared'
+import type { Database } from '@repo/shared'
+
+// Define types directly from Database schema - NO DUPLICATION
+type Property = Database['public']['Tables']['Property']['Row']
+type Unit = Database['public']['Tables']['Unit']['Row']
+
+// Define local interface for component needs
+interface PropertyWithUnits extends Property {
+	units?: Unit[]
+}
+import { formatCurrency as sharedFormatCurrency } from '@repo/shared'
+
+// Use the Unit type that comes with PropertyWithUnits to avoid conflicts
+type PropertyUnit = NonNullable<PropertyWithUnits['units']>[0]
 import { createSelectColumn, createActionsColumn } from '../dense-table'
 import { cn } from '@/lib/utils'
 import { createPropertyDeletionHandler } from '@/lib/utils/property-deletion'
@@ -89,7 +98,7 @@ export const propertyColumns: ColumnDef<PropertyWithUnits>[] = [
 		size: 220,
 		cell: ({ row }) => {
 			const property = row.original
-			const fullAddress = `${property.address}, ${property.city}, ${property.state} ${property.zip}`
+			const fullAddress = `${property.address}, ${property.city}, ${property.state} ${property.zipCode}`
 
 			return (
 				<div className="flex min-w-0 items-center gap-2">
@@ -113,7 +122,7 @@ export const propertyColumns: ColumnDef<PropertyWithUnits>[] = [
 			const property = row.original
 			// Calculate stats from units if available
 			const totalUnits = property.units?.length ?? 0
-			const occupiedUnits = property.units?.filter((u: any) => u.status === 'OCCUPIED').length ?? 0
+			const occupiedUnits = property.units?.filter((u: PropertyUnit) => u.status === 'OCCUPIED').length ?? 0
 
 			return (
 				<div className="text-center">
@@ -133,7 +142,7 @@ export const propertyColumns: ColumnDef<PropertyWithUnits>[] = [
 			const property = row.original
 			// Calculate occupancy rate from units
 			const totalUnits = property.units?.length ?? 0
-			const occupiedUnits = property.units?.filter((u: any) => u.status === 'OCCUPIED').length ?? 0
+			const occupiedUnits = property.units?.filter((u: PropertyUnit) => u.status === 'OCCUPIED').length ?? 0
 			const occupancyRate = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
 
 			return (
@@ -171,7 +180,7 @@ export const propertyColumns: ColumnDef<PropertyWithUnits>[] = [
 		cell: ({ row }) => {
 			const property = row.original
 			// Calculate revenue from units
-			const totalRevenue = property.units?.reduce((sum: number, u: any) => {
+			const totalRevenue = property.units?.reduce((sum: number, u: PropertyUnit) => {
 				return u.status === 'OCCUPIED' ? sum + (u.rent || 0) : sum
 			}, 0) ?? 0
 
@@ -194,7 +203,7 @@ export const propertyColumns: ColumnDef<PropertyWithUnits>[] = [
 			const property = row.original
 			// Calculate occupancy rate from units
 			const totalUnits = property.units?.length ?? 0
-			const occupiedUnits = property.units?.filter((u: any) => u.status === 'OCCUPIED').length ?? 0
+			const occupiedUnits = property.units?.filter((u: PropertyUnit) => u.status === 'OCCUPIED').length ?? 0
 			const occupancyRate = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
 			const statusLabel = getStatusLabel(occupancyRate)
 			const variant = getStatusBadgeVariant(occupancyRate)
@@ -245,9 +254,9 @@ export const compactPropertyColumns: ColumnDef<PropertyWithUnits>[] = [
 			const property = row.original
 			// Calculate stats from units
 			const totalUnits = property.units?.length ?? 0
-			const occupiedUnits = property.units?.filter((u: any) => u.status === 'OCCUPIED').length ?? 0
+			const occupiedUnits = property.units?.filter((u: PropertyUnit) => u.status === 'OCCUPIED').length ?? 0
 			const occupancyRate = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
-			const revenue = property.units?.reduce((sum: number, u: any) => {
+			const revenue = property.units?.reduce((sum: number, u: PropertyUnit) => {
 				return u.status === 'OCCUPIED' ? sum + (u.rent || 0) : sum
 			}, 0) ?? 0
 

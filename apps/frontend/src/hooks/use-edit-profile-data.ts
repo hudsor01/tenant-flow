@@ -5,7 +5,7 @@
 
 import { useState } from 'react'
 import { updateProfileAction } from '@/app/actions/auth'
-import type { AuthFormState } from '@/app/actions/auth'
+import type { AuthFormState } from '@repo/shared/types/auth'
 import type { UpdateUserProfileInput } from '@repo/shared'
 import { addCSRFTokenToFormData } from '@/lib/auth/csrf'
 import { logger } from '@/lib/logger/logger'

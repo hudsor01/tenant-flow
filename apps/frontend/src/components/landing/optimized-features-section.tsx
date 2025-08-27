@@ -1,4 +1,4 @@
-import { Clock,TrendingUp,Users } from 'lucide-react'
+
 /**
  * Optimized Features Section - Server Component
  * Static feature showcase with stats and descriptions
@@ -18,7 +18,7 @@ export function OptimizedFeaturesSection({
 }: OptimizedFeaturesSectionProps) {
 	const features = [
 		{
-			icon: Clock,
+			icon: 'i-lucide-clock',
 			title: 'Save 10+ Hours Weekly',
 			description:
 				'Automate rent collection, maintenance requests, and tenant communications',
@@ -26,7 +26,7 @@ export function OptimizedFeaturesSection({
 			statLabel: 'Time Saved'
 		},
 		{
-			icon: TrendingUp,
+			icon: 'i-lucide-trending-up',
 			title: 'Increase Revenue 23%',
 			description:
 				'Reduce vacancy rates and collect rent faster with automated reminders',
@@ -34,7 +34,7 @@ export function OptimizedFeaturesSection({
 			statLabel: 'Collection Rate'
 		},
 		{
-			icon: Users,
+			icon: 'i-lucide-users',
 			title: 'Delight Your Tenants',
 			description:
 				'24/7 self-service portal for payments and maintenance requests',

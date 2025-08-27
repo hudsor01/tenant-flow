@@ -10,29 +10,29 @@ import { useActionState, useOptimistic, startTransition } from 'react'
 import type { FormEvent, ReactNode } from 'react'
 
 // Generic form state that matches server action return types
-export interface FormState {
+export interface FormState<T = unknown> {
 	success: boolean
 	error?: string
 	errors?: Record<string, string[]>
 	message?: string
-	data?: any
+	data?: T
 }
 
 // Initial empty form state
-const initialFormState: FormState = {
+const initialFormState: FormState<unknown> = {
 	success: false
 }
 
-export interface UseActionStateFormOptions<T = any> {
-	action: (prevState: FormState, formData: FormData) => Promise<FormState>
+export interface UseActionStateFormOptions<T = unknown> {
+	action: (prevState: FormState<T>, formData: FormData) => Promise<FormState<T>>
 	onSuccess?: (data: T) => void
 	onError?: (error: string) => void
 	resetOnSuccess?: boolean
 }
 
-export interface UseActionStateFormReturn {
+export interface UseActionStateFormReturn<T = unknown> {
 	// Form state from server action
-	state: FormState
+	state: FormState<T>
 	isPending: boolean
 	
 	// Form submission
@@ -54,12 +54,12 @@ export interface UseActionStateFormReturn {
  * React 19 useActionState Form Hook
  * Replaces React Hook Form with pure React 19 patterns
  */
-export function useActionStateForm<T = any>({
+export function useActionStateForm<T = unknown>({
 	action,
 	onSuccess,
 	onError,
 	resetOnSuccess = true
-}: UseActionStateFormOptions<T>): UseActionStateFormReturn {
+}: UseActionStateFormOptions<T>): UseActionStateFormReturn<T> {
 	
 	// React 19 useActionState - handles form submission and pending states
 	const [state, formAction, isPending] = useActionState(action, initialFormState)

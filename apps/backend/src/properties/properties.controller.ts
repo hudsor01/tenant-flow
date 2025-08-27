@@ -27,7 +27,7 @@ import { ThrottlerGuard } from '@nestjs/throttler'
 import { ApiTags } from '@nestjs/swagger'
 import { AuthGuard } from '../shared/guards/auth.guard'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
-import type { ValidatedUser } from '@repo/shared/types/auth'
+import type { ValidatedUser } from '@repo/shared'
 import { PropertiesService } from './properties.service'
 import type {
 	CreatePropertyRequest,
@@ -143,7 +143,7 @@ export class PropertiesController {
 		@Query('search', new DefaultValuePipe(null)) search: string | null,
 		@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
 		@Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset: number
-	) {
+	): Promise<unknown> {
 		return this.propertiesService.findAllWithUnits(user.id, {
 			search,
 			limit,

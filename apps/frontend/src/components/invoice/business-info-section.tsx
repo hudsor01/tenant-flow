@@ -3,9 +3,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 // Local type definition - following KISS principle
+import type { UseFormRegister, FieldErrors } from 'react-hook-form'
+
 interface BusinessInfoSectionProps {
-	register: any // React Hook Form register function
-	errors: Record<string, any> // Form errors
+	register: UseFormRegister<Record<string, unknown>> // React Hook Form register function
+	errors: FieldErrors // Form errors
 }
 
 export function BusinessInfoSection({
@@ -46,7 +48,7 @@ export function BusinessInfoSection({
 						/>
 						{errors.businessName && (
 							<p className="text-xs text-red-400">
-								{errors.businessName.message!}
+								{String(errors.businessName.message || errors.businessName || 'Business name is required')}
 							</p>
 						)}
 					</div>
@@ -72,7 +74,7 @@ export function BusinessInfoSection({
 						/>
 						{errors.businessEmail && (
 							<p className="text-xs text-red-400">
-								{errors.businessEmail.message!}
+								{String(errors.businessEmail.message || errors.businessEmail || 'Business email is required')}
 							</p>
 						)}
 					</div>

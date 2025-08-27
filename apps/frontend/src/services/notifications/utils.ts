@@ -2,7 +2,7 @@
  * Notification utility functions
  */
 
-import type { NotificationData } from './types'
+import type { NotificationData } from '@repo/shared'
 
 /**
  * Generate a unique notification ID

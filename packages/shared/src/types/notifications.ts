@@ -1,5 +1,7 @@
 // Notification types for TenantFlow application
-import type { Priority } from './maintenance'
+import type { Database } from './supabase-generated'
+
+type Priority = Database['public']['Enums']['Priority']
 
 // Notification type enum
 export enum NotificationType {

@@ -3,19 +3,20 @@ import { PinoLogger } from 'nestjs-pino'
 import { PropertiesService } from '../properties/properties.service'
 import { TenantsService } from '../tenants/tenants.service'
 import { LeasesService } from '../leases/leases.service'
-import type {
+import type { 
 	DashboardStats,
-	LeaseStats,
-	UnitStats
-} from '@repo/shared/types/api'
-import type { PropertyStats } from '@repo/shared/types/properties'
-import type { TenantStats } from '@repo/shared/types/tenants'
-/** Add safe raw types for backend service-to-shared shape differences */
-// Removed ErrorHandlerService - using native NestJS exceptions
+	PropertyStats,
+	TenantStats,
+	UnitStats,
+	LeaseStats
+} from '@repo/shared'
 
-type RawPropertyStats = Partial<PropertyStats & { vacantUnits?: number; totalMonthlyRent?: number; total?: number }>
+// Using shared stats types - NO DUPLICATION
+// Backend-specific raw types for service layer data mapping
 
-type RawTenantStats = Partial<TenantStats & { pendingInvitations?: number; total?: number }>
+type RawPropertyStats = { total?: number; vacantUnits?: number; totalMonthlyRent?: number }
+
+type RawTenantStats = { total?: number; active?: number; inactive?: number }
 
 export interface DashboardActivity {
 	activities: {
@@ -57,47 +58,39 @@ export class DashboardService {
 					this.leasesService.getStats(userId)
 				])
 
-/* Map to PropertyStats interface with frontend-dependent properties restored */
+// Map to PropertyStats interface
 const propertyData: RawPropertyStats = (rawPropertyStats ?? {}) as RawPropertyStats
-const totalUnits = propertyData?.totalUnits ?? 0
-const occupiedUnits = propertyData?.occupiedUnits ?? 0
-const availableUnits = propertyData?.availableUnits ?? propertyData?.vacantUnits ?? 0
+const totalUnits = propertyData?.total ?? 0
+const vacantUnits = propertyData?.vacantUnits ?? 0
 const totalMonthlyRent = propertyData?.totalMonthlyRent ?? 0
+const occupiedUnits = totalUnits - vacantUnits
 const properties: PropertyStats = {
-totalProperties: propertyData?.totalProperties ?? 0,
-activeProperties: propertyData?.activeProperties ?? 0,
-totalUnits,
-occupiedUnits,
-availableUnits,
-occupancyRate: totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
+	total: totalUnits,
+	owned: totalUnits,
+	rented: occupiedUnits,
+	available: vacantUnits,
+	maintenance: 0 // TODO: Add maintenance calculation
 }
 
 			// Map to TenantStats interface
 			const tenantData: RawTenantStats = (rawTenantStats ?? {}) as RawTenantStats
 			const tenants: TenantStats = {
-				totalTenants: tenantData?.totalTenants || 0,
-				activeTenants: tenantData?.activeTenants || 0,
-				inactiveTenants: tenantData?.inactiveTenants || 0,
-				newTenants: tenantData?.newTenants ?? 0
-											}
+				total: tenantData?.total || 0,
+				active: tenantData?.active || 0,
+				inactive: tenantData?.inactive || 0
+			}
 
 			// Map to UnitStats interface
 			const units: UnitStats = {
-				totalUnits: propertyData?.totalUnits || 0,
-				availableUnits: propertyData?.vacantUnits || 0,
-				occupiedUnits: propertyData?.occupiedUnits || 0,
+				totalUnits: totalUnits,
+				availableUnits: vacantUnits,
+				occupiedUnits: occupiedUnits,
 				maintenanceUnits: 0, // TODO: Add maintenance units calculation
-averageRent:
- totalUnits > 0
- ? totalMonthlyRent / totalUnits
- : 0,
-				total: propertyData?.totalUnits || 0,
-				occupied: propertyData?.occupiedUnits || 0,
-				vacant: propertyData?.vacantUnits || 0,
-occupancyRate:
- totalUnits > 0
- ? Math.round((occupiedUnits / totalUnits) * 100)
- : 0
+				averageRent: totalUnits > 0 ? totalMonthlyRent / totalUnits : 0,
+				total: totalUnits,
+				occupied: occupiedUnits,
+				vacant: vacantUnits,
+				occupancyRate: totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
 			}
 
 			// Map to LeaseStats interface
@@ -109,7 +102,9 @@ occupancyRate:
 				pendingLeases: leaseData?.pendingLeases || 0,
 				totalRentRoll: totalMonthlyRent || 0,
 				total: leaseData?.total || 0,
-				active: leaseData?.active || 0
+				active: leaseData?.active || 0,
+				expired: leaseData?.expired || 0,
+				pending: leaseData?.pending || 0
 			}
 
 			const dashboardStats: DashboardStats = {
@@ -117,6 +112,12 @@ occupancyRate:
 				tenants,
 				units,
 				leases,
+				maintenance: {
+					total: 0,
+					open: 0,
+					inProgress: 0,
+					completed: 0
+				},
 				maintenanceRequests: {
 					total: 0,
 					open: 0,
@@ -139,12 +140,12 @@ occupancyRate:
 					dashboard: {
 						userId,
 						hasAuthToken: !!authToken,
-stats: {
-totalProperties: dashboardStats.properties.totalProperties,
-totalTenants: dashboardStats.tenants.totalTenants,
-totalUnits: dashboardStats.units.total,
-totalLeases: dashboardStats.leases.total
-}
+					stats: {
+						totalProperties: dashboardStats.properties.total,
+						totalTenants: dashboardStats.tenants.total,
+						totalUnits: dashboardStats.units.total,
+						totalLeases: dashboardStats.leases.total
+					}
 					}
 				},
 				`Dashboard stats retrieved for user ${userId}`
