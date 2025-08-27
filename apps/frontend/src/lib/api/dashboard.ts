@@ -124,28 +124,28 @@ export const dashboardApi = {
 			// Generate alerts based on stats data
 			if (
 				stats.properties &&
-				stats.properties.occupancyRate &&
-				stats.properties.occupancyRate < 70
+				stats.occupancyRate &&
+				stats.occupancyRate < 70
 			) {
 				alerts.push({
 					id: 'low-occupancy',
 					type: 'warning',
 					title: 'Low Occupancy Rate',
-					message: `Current occupancy is ${stats.properties.occupancyRate}% - consider marketing vacant units`,
+					message: `Current occupancy is ${stats.occupancyRate}% - consider marketing vacant units`,
 					timestamp: new Date()
 				})
 			}
 
 			if (
 				stats.maintenanceRequests &&
-				stats.maintenanceRequests.open &&
-				stats.maintenanceRequests.open > 5
+				stats.maintenanceRequests &&
+				stats.maintenanceRequests > 5
 			) {
 				alerts.push({
 					id: 'pending-maintenance',
 					type: 'warning',
 					title: 'Open Maintenance Requests',
-					message: `${stats.maintenanceRequests.open} maintenance requests need attention`,
+					message: `${stats.maintenanceRequests} maintenance requests need attention`,
 					timestamp: new Date()
 				})
 			}
@@ -178,7 +178,7 @@ export const dashboardApi = {
 					occupancyRate: stats.properties?.occupancyRate
 						? Math.max(
 								0,
-								stats.properties.occupancyRate +
+								stats.occupancyRate +
 									(Math.random() - 0.5) * 10
 							)
 						: 0,

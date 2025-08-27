@@ -18,28 +18,28 @@ function DashboardStatsContent() {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 space-fluid-sm">
       <div className="card text-center">
         <div className="text-2xl font-bold text-brand-500">
-          {stats.properties?.totalProperties || 0}
+          {stats.totalProperties || 0}
         </div>
         <div className="text-neutral-600">Total Properties</div>
       </div>
       
       <div className="card text-center">
         <div className="text-2xl font-bold text-success">
-          {stats.tenants?.totalTenants || 0}
+          {stats.totalTenants || 0}
         </div>
         <div className="text-neutral-600">Active Tenants</div>
       </div>
       
       <div className="card text-center">
         <div className="text-2xl font-bold text-info">
-          {stats.leases?.activeLeases || 0}
+          {stats.totalUnits || 0}
         </div>
-        <div className="text-neutral-600">Active Leases</div>
+        <div className="text-neutral-600">Total Units</div>
       </div>
       
       <div className="card text-center">
         <div className="text-2xl font-bold text-warning">
-          {stats.maintenanceRequests?.open || 0}
+          {stats.maintenanceRequests || 0}
         </div>
         <div className="text-neutral-600">Open Requests</div>
       </div>

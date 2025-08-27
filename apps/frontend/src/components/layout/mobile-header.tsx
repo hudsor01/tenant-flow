@@ -72,7 +72,7 @@ export function MobileHeader({
 	const breadcrumbs = getBreadcrumbs(pathname)
 
 	// Calculate notification count
-	const notificationCount = stats?.maintenanceRequests?.open ?? 0
+	const notificationCount = stats?.maintenanceRequests ?? 0
 
 	// Close search on route change
 	useEffect(() => {

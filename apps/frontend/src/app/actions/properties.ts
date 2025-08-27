@@ -132,12 +132,12 @@ export async function updateProperty(
   const fields = [
     'name', 'address', 'city', 'state', 'zip_code', 
     'property_type', 'description', 'image_url'
-  ]
+  ] as const
   
   fields.forEach(field => {
     const value = formData.get(field)
     if (value !== null) {
-      updateData[field] = value as string
+      (updateData as any)[field] = value as string
     }
   })
   
@@ -153,13 +153,13 @@ export async function updateProperty(
   numericFields.forEach(({ key, parser }) => {
     const value = formData.get(key)
     if (value !== null) {
-      updateData[key] = parser(value as string)
+      (updateData as any)[key] = parser(value as string)
     }
   })
   
   // Handle JSON fields
   if (formData.has('amenities')) {
-    updateData.amenities = JSON.parse(formData.get('amenities') as string)
+    (updateData as any).amenities = JSON.parse(formData.get('amenities') as string)
   }
 
   const { data, error } = await supabase

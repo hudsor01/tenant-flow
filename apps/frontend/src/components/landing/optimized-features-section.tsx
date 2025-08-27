@@ -1,3 +1,4 @@
+import { Clock,TrendingUp,Users } from 'lucide-react'
 /**
  * Optimized Features Section - Server Component
  * Static feature showcase with stats and descriptions
