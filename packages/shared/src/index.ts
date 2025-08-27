@@ -24,7 +24,9 @@ export type {
 	PropertyStats,
 	PropertyWithUnits,
 	CreatePropertyRequest,
+	CreatePropertyInput,
 	UpdatePropertyRequest,
+	UpdatePropertyInput,
 	PropertyQueryRequest,
 	PropertyFormData,
 	PropertyFormProps

@@ -1,4 +1,4 @@
-import { PLAN_TYPE } from '@repo/shared/types/billing'
+import { PLAN_TYPE } from '@repo/shared'
 
 export interface BillingPlan {
 	id: string

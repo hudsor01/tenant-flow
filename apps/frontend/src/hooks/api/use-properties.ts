@@ -192,3 +192,64 @@ export function usePrefetchProperty() {
 // REACT 19: Pure data fetching (exported directly above)
 
 // REACT 19: Utilities (exported directly above)
+
+// ============================================================================
+// COMPATIBILITY EXPORTS - Bridge for components expecting mutation API
+// ============================================================================
+
+/**
+ * Compatibility wrapper for components expecting TanStack Query mutation API
+ */
+export function useCreateProperty() {
+	const queryClient = useQueryClient()
+	const [isPending, setIsPending] = useState(false)
+	
+	return {
+		isPending,
+		mutateAsync: async (data: CreatePropertyInput) => {
+			setIsPending(true)
+			try {
+				const result = await apiClient.post<Property>('/properties', data)
+				await queryClient.invalidateQueries({
+					queryKey: queryKeys.properties.lists()
+				})
+				await queryClient.invalidateQueries({
+					queryKey: queryKeys.properties.stats()
+				})
+				return result
+			} finally {
+				setIsPending(false)
+			}
+		}
+	}
+}
+
+/**
+ * Compatibility wrapper for components expecting TanStack Query mutation API
+ */
+export function useUpdateProperty() {
+	const queryClient = useQueryClient()
+	const [isPending, setIsPending] = useState(false)
+	
+	return {
+		isPending,
+		mutateAsync: async ({ id, data }: { id: string; data: UpdatePropertyInput }) => {
+			setIsPending(true)
+			try {
+				const result = await apiClient.put<Property>(`/properties/${id}`, data)
+				await queryClient.invalidateQueries({
+					queryKey: queryKeys.properties.detail(id)
+				})
+				await queryClient.invalidateQueries({
+					queryKey: queryKeys.properties.lists()
+				})
+				await queryClient.invalidateQueries({
+					queryKey: queryKeys.properties.stats()
+				})
+				return result
+			} finally {
+				setIsPending(false)
+			}
+		}
+	}
+}

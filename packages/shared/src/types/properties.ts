@@ -126,8 +126,10 @@ export interface PropertyFormData {
 }
 
 export interface PropertyFormProps {
+  property?: Property
+  mode?: 'create' | 'edit'
   initialData?: Partial<Property>
-  onSubmit: (data: PropertyFormData) => void
+  onSubmit?: (data: PropertyFormData) => void
   isLoading?: boolean
 }
 

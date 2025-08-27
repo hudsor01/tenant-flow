@@ -1,5 +1,6 @@
 import { Logger } from '@nestjs/common'
-import type { AsyncFunction } from '../types'
+
+type AsyncFunction = (...args: unknown[]) => Promise<unknown>
 
 const logger = new Logger('Performance')
 

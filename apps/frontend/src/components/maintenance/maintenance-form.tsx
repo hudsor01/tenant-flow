@@ -68,22 +68,26 @@ export function MaintenanceForm({
 		try {
 			// Extract form values using native FormData API
 			const requestData = {
-				propertyId: formData.get('propertyId') as string,
-				unitId: formData.get('unitId') as string,
+				property_id: formData.get('propertyId') as string,
+				unit_id: formData.get('unitId') as string,
 				title: formData.get('title') as string,
 				description: formData.get('description') as string,
 				priority: formData.get('priority') as string,
-				category: formData.get('category') as string,
-				estimatedCost: formData.has('estimatedCost') 
+				status: 'OPEN',
+				estimated_cost: formData.has('estimatedCost') 
 					? parseFloat(formData.get('estimatedCost') as string)
 					: undefined,
-				preferredDate: formData.get('preferredDate') as string || undefined,
-				contactPhone: formData.get('contactPhone') as string || undefined,
-				allowEntry: formData.get('allowEntry') === 'on'
+				preferred_date: formData.get('preferredDate') as string || undefined,
+				contact_phone: formData.get('contactPhone') as string || undefined,
+				allow_entry: formData.get('allowEntry') === 'on',
+				tenant_id: '',  // Will be set by server
+				id: '',  // Will be set by server
+				created_at: '',  // Will be set by server
+				updated_at: ''  // Will be set by server
 			}
 
 			// Add optimistic update
-			addOptimisticUpdate(requestData)
+			addOptimistic(requestData as MaintenanceRequest)
 
 			// Call server action
 			let result: MaintenanceRequest
@@ -111,7 +115,7 @@ export function MaintenanceForm({
 	}
 
 	// React 19 useActionState for form state management
-	const [formState, formDispatch, isPending] = useActionState(formAction, {})
+	const [formState, formDispatch, isPending] = useActionState(formAction, { success: false })
 
 	// Priority levels
 	const priorityLevels = [
@@ -182,7 +186,7 @@ export function MaintenanceForm({
 										</Label>
 										<Select 
 											name="propertyId" 
-											defaultValue={request?.propertyId}
+											defaultValue={request?.property_id}
 											disabled={isPending}
 											required
 										>
@@ -206,7 +210,7 @@ export function MaintenanceForm({
 										</Label>
 										<Select 
 											name="unitId" 
-											defaultValue={request?.unitId}
+											defaultValue={request?.unit_id}
 											disabled={isPending}
 											required
 										>
@@ -216,7 +220,7 @@ export function MaintenanceForm({
 											<SelectContent>
 												{units.map(unit => (
 													<SelectItem key={unit.id} value={unit.id}>
-														{unit.unitNumber}
+														{unit.name}
 													</SelectItem>
 												))}
 											</SelectContent>
@@ -297,7 +301,7 @@ export function MaintenanceForm({
 										</Label>
 										<Select 
 											name="category" 
-											defaultValue={request?.category || 'GENERAL'}
+											defaultValue={'GENERAL'}
 											disabled={isPending}
 											required
 										>
@@ -364,7 +368,7 @@ export function MaintenanceForm({
 											id="preferredDate"
 											name="preferredDate"
 											type="date"
-											defaultValue={request?.preferredDate}
+											defaultValue={request?.scheduled_date}
 											disabled={isPending}
 										/>
 									</div>
@@ -380,7 +384,7 @@ export function MaintenanceForm({
 											type="number"
 											step="0.01"
 											min="0"
-											defaultValue={request?.estimatedCost || ''}
+											defaultValue={request?.estimated_cost || ''}
 											placeholder="0.00"
 											disabled={isPending}
 										/>
@@ -395,7 +399,7 @@ export function MaintenanceForm({
 										id="contactPhone"
 										name="contactPhone"
 										type="tel"
-										defaultValue={request?.contactPhone || ''}
+										defaultValue={''}
 										placeholder="(555) 123-4567"
 										disabled={isPending}
 									/>
@@ -405,7 +409,7 @@ export function MaintenanceForm({
 									<Switch
 										id="allowEntry"
 										name="allowEntry"
-										defaultChecked={request?.allowEntry || false}
+										defaultChecked={false}
 										disabled={isPending}
 									/>
 									<Label htmlFor="allowEntry" className="cursor-pointer">

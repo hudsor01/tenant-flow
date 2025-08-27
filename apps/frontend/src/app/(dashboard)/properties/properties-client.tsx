@@ -103,7 +103,7 @@ export function PropertiesClient({ className }: PropertiesClientProps) {
 
 			<PropertyFormDialog
 				open={formDialogOpen}
-				onOpenChange={setFormDialogOpen}
+				onOpenChange={(open) => setFormDialogOpen(open)}
 				property={selectedProperty ?? undefined}
 				mode={formMode}
 			/>
