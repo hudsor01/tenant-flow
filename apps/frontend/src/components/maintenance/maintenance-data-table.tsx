@@ -18,7 +18,7 @@ import {
 	TableRow
 } from '@/components/ui/table'
 import Link from 'next/link'
-import type { Database, MaintenanceRequestApiResponse } from '@repo/shared'
+import type { Database, MaintenanceRequestWithDetails } from '@repo/shared'
 import {
 	getPriorityColor,
 	getPriorityLabel,
@@ -27,7 +27,7 @@ import {
 } from '@repo/shared'
 
 // Define types directly from API response - NO DUPLICATION
-type MaintenanceRequest = MaintenanceRequestApiResponse
+type MaintenanceRequest = MaintenanceRequestWithDetails
 type Priority = Database['public']['Enums']['Priority']
 type RequestStatus = Database['public']['Enums']['RequestStatus']
 
@@ -83,8 +83,8 @@ function MaintenanceRow({
 						</p>
 						<div className="text-muted-foreground flex items-center gap-1 text-sm">
 							<i className="i-lucide-home inline-block h-3 w-3"  />
-							{request.propertyName || 'Unknown Property'}{' '}
-							{request.unitNumber && `- Unit ${request.unitNumber}`}
+							{request.unit.property.name || 'Unknown Property'}{' '}
+							{request.unit.unitNumber && `- Unit ${request.unit.unitNumber}`}
 						</div>
 					</div>
 				</div>
@@ -261,7 +261,7 @@ export function MaintenanceDataTable() {
 
 	return (
 		<MaintenanceTableUI
-			requests={requests || []}
+			requests={requests as any || []}
 		/>
 	)
 }

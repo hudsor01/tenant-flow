@@ -16,7 +16,7 @@ export function PropertyLocationSection({
 	form
 }: Readonly<PropertyLocationSectionProps>) {
 	return (
-		<FormSection icon={MapPin} title="Location" delay={1}>
+		<FormSection icon="Location" title="Location" delay={1}>
 			{/* Street Address */}
 			<div className="space-y-2">
 				<Label

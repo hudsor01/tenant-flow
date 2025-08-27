@@ -93,7 +93,7 @@ export function MaintenanceForm({
 			}
 
 			// Add optimistic update
-			addOptimistic(requestData as MaintenanceRequest)
+			addOptimistic(requestData as any)
 
 			// Call server action
 			let result: MaintenanceRequest
@@ -192,7 +192,7 @@ export function MaintenanceForm({
 										</Label>
 										<Select 
 											name="propertyId" 
-											defaultValue={request?.propertyId}
+											defaultValue={(request as any)?.propertyId}
 											disabled={isPending}
 											required
 										>
@@ -226,7 +226,7 @@ export function MaintenanceForm({
 											<SelectContent>
 												{units.map(unit => (
 													<SelectItem key={unit.id} value={unit.id}>
-														{unit.name}
+														{unit.unitNumber}
 													</SelectItem>
 												))}
 											</SelectContent>
@@ -374,7 +374,7 @@ export function MaintenanceForm({
 											id="preferredDate"
 											name="preferredDate"
 											type="date"
-											defaultValue={request?.scheduledDate}
+											defaultValue={request?.preferredDate ?? ''}
 											disabled={isPending}
 										/>
 									</div>
@@ -390,7 +390,7 @@ export function MaintenanceForm({
 											type="number"
 											step="0.01"
 											min="0"
-											defaultValue={request?.estimatedCost || ''}
+											defaultValue={request?.estimatedCost?.toString() ?? ''}
 											placeholder="0.00"
 											disabled={isPending}
 										/>
@@ -405,7 +405,7 @@ export function MaintenanceForm({
 										id="contactPhone"
 										name="contactPhone"
 										type="tel"
-										defaultValue={''}
+										defaultValue=""
 										placeholder="(555) 123-4567"
 										disabled={isPending}
 									/>

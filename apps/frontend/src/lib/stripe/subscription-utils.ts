@@ -46,8 +46,7 @@ export function getPlanDisplayName(planType: keyof typeof PLAN_TYPE): string {
 }
 
 // Additional utilities for subscription modal
-// Use shared billing types
-export type { UserFormData } from '@repo/shared'
+// Use shared billing types - all types available from @repo/shared
 
 // Business logic validation and calculations moved to backend
 // Frontend only handles display formatting

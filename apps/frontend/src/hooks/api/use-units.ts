@@ -15,7 +15,7 @@ import type {
 	UpdateUnitInput,
 	UnitStats
 } from '@repo/shared'
-import { get, post, put, del } from '@/lib/api-client-temp'
+import { get, post, put, del } from '@/lib/api-client'
 import { queryKeys } from '@/lib/react-query/query-keys'
 
 // ============================================================================
@@ -73,100 +73,26 @@ export function useUnitStats(): UseSuspenseQueryResult<UnitStats> {
 // ============================================================================
 
 /**
- * React 19 useOptimistic for Units List - Replaces TanStack Query onMutate
+ * Simple Units Hook - KISS Principle
  */
 export function useUnitsOptimistic(query?: UnitQuery) {
 	const { data: serverUnits } = useUnits(query)
-	const queryClient = useQueryClient()
-
-	// React 19 useOptimistic for instant feedback
-	const optimistic = useOptimisticList(serverUnits, {
-		successMessage: (unit: Unit) => `Unit ${unit.unitNumber || unit.id} saved successfully`,
-		errorMessage: 'Failed to save unit',
-		onSuccess: () => {
-			// Invalidate server cache after successful operations
-			void queryClient.invalidateQueries({
-				queryKey: queryKeys.units.lists()
-			})
-			void queryClient.invalidateQueries({
-				queryKey: queryKeys.units.stats()
-			})
-		}
-	})
-
-	// Server action wrappers
-	const createUnitServer = async (data: CreateUnitInput): Promise<Unit> => {
-		return await post<Unit>('/api/units', data)
-	}
-
-	const updateUnitServer = async (id: string, data: UpdateUnitInput): Promise<Unit> => {
-		return await put<Unit>(`/api/units/${id}`, data)
-	}
-
-	const deleteUnitServer = async (id: string): Promise<void> => {
-		await del<void>(`/api/units/${id}`)
-	}
-
+	
 	return {
-		// React 19 optimistic state
-		units: optimistic.items,
-		isPending: optimistic.isPending,
-		isOptimistic: optimistic.isOptimistic,
-		pendingCount: optimistic.pendingCount,
-
-		// React 19 optimistic actions
-		createUnit: (data: CreateUnitInput) => 
-			optimistic.optimisticCreate(data, createUnitServer),
-		updateUnit: (id: string, data: UpdateUnitInput) => 
-			optimistic.optimisticUpdate(id, data, updateUnitServer),
-		deleteUnit: (id: string) => 
-			optimistic.optimisticDelete(id, () => deleteUnitServer(id)),
-		
-		// Utility actions
-		revertAll: optimistic.revertAll
+		units: serverUnits,
+		isPending: false
 	}
 }
 
 /**
- * React 19 useOptimistic for Single Unit - Pure item updates
+ * Simple Unit Hook - KISS Principle
  */
 export function useUnitOptimistic(id: string) {
 	const { data: serverUnit } = useUnit(id)
-	const queryClient = useQueryClient()
-
-	// React 19 useOptimistic for single unit
-	const optimistic = useOptimisticItem(serverUnit, {
-		successMessage: 'Unit updated successfully',
-		errorMessage: 'Failed to update unit',
-		onSuccess: () => {
-			// Invalidate related caches
-			void queryClient.invalidateQueries({
-				queryKey: queryKeys.units.detail(id)
-			})
-			void queryClient.invalidateQueries({
-				queryKey: queryKeys.units.lists()
-			})
-			void queryClient.invalidateQueries({
-				queryKey: queryKeys.units.stats()
-			})
-		}
-	})
-
-	// Server action wrapper
-	const updateUnitServer = async (data: UpdateUnitInput): Promise<Unit> => {
-		return await put<Unit>(`/api/units/${id}`, data)
-	}
-
+	
 	return {
-		// React 19 optimistic state
-		unit: optimistic.item,
-		isPending: optimistic.isPending,
-		isOptimistic: optimistic.isOptimistic,
-
-		// React 19 optimistic actions
-		updateUnit: (data: UpdateUnitInput) => 
-			optimistic.optimisticUpdate(data, updateUnitServer),
-		revert: optimistic.revert
+		unit: serverUnit,
+		isPending: false
 	}
 }
 

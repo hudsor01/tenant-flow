@@ -11,7 +11,7 @@
  */
 'use client'
 
-import { useState, useCallback, type ReactElement } from 'react'
+import { useState, useCallback, type ReactNode } from 'react'
 import { useStripe, useElements, PaymentElement } from '@stripe/react-stripe-js'
 import { useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/react-query/query-keys'
@@ -30,7 +30,7 @@ import { usePaymentMethods } from '@/hooks/api/use-billing'
 import { useNotificationSystem } from '@/hooks/use-app-store'
 import type { PaymentMethod } from '@repo/shared'
 import { EnhancedElementsProvider } from '@/lib/stripe/elements-provider'
-import { post } from '@/lib/api-client-temp'
+import { post } from '@/lib/api-client'
 
 interface AddPaymentMethodProps {
 	onSuccess?: () => void
@@ -203,7 +203,7 @@ function _PaymentMethodCard({
 	onDelete,
 	isUpdating = false,
 	isDeleting = false
-}: PaymentMethodCardProps): ReactElement | null {
+}: PaymentMethodCardProps): ReactNode {
 	const getBrandIcon = (brand: string) => {
 		// You could return actual brand SVG icons here
 		const brandColors = {
@@ -300,7 +300,7 @@ function _PaymentMethodCard({
 /**
  * Main Enhanced Payment Methods Component
  */
-export function EnhancedPaymentMethods(): ReactElement {
+export function EnhancedPaymentMethods(): ReactNode {
 	const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
 	const { data: portalData, isLoading, error } = usePaymentMethods()
 

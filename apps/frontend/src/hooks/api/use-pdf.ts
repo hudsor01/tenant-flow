@@ -9,7 +9,7 @@ import {
 	type UseMutationResult
 } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { get, post } from '@/lib/api-client-temp'
+import { get, post } from '@/lib/api-client'
 import { queryKeys } from '@/lib/react-query/query-keys'
 
 /**

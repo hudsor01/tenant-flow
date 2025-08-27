@@ -1,19 +1,12 @@
 import * as React from 'react'
 import {
-	Body,
 	Button,
-	Container,
-	Head,
 	Heading,
-	Hr,
-	Html,
-	Img,
 	Link,
-	Preview,
 	Section,
-	Text,
-	Tailwind
+	Text
 } from '@react-email/components'
+import BaseEmailTemplate from './base-email-template'
 
 interface PropertyTipsEmailProps {
 	firstName?: string
@@ -213,27 +206,12 @@ export default function PropertyTipsEmail({
 	]
 
 	return (
-		<Html>
-			<Head />
-			<Preview>
-				{categoryData.title} - {seasonalData.title} Tips from TenantFlow
-			</Preview>
-			<Tailwind>
-				<Body className="bg-gray-50 font-sans">
-					<Container className="mx-auto max-w-2xl px-4 py-8">
-						{/* Header */}
-						<Section className="rounded-t-lg border-b border-gray-200 bg-white px-8 py-6">
-							<Img
-								src="https://tenantflow.app/logo-email.png"
-								width="180"
-								height="60"
-								alt="TenantFlow"
-								className="mx-auto"
-							/>
-						</Section>
-
-						{/* Main Content */}
-						<Section className="bg-white px-8 py-6">
+		<BaseEmailTemplate
+			previewText={`${categoryData.title} - ${seasonalData.title} Tips from TenantFlow`}
+			footerMessage="Keep your properties profitable and well-maintained"
+			footerSignature="The TenantFlow Property Management Team"
+			unsubscribeText="Want different tips?"
+		>
 							<div className="mb-6 text-center">
 								<div className="mb-3 text-4xl">
 									{categoryData.emoji}
@@ -417,37 +395,6 @@ export default function PropertyTipsEmail({
 									lease renewal best practices. Stay tuned!
 								</Text>
 							</Section>
-						</Section>
-
-						{/* Footer */}
-						<Section className="rounded-b-lg bg-gray-100 px-8 py-6 text-center">
-							<Text className="mb-2 text-sm text-gray-500">
-								Keep your properties profitable and
-								well-maintained,
-								<br />
-								The TenantFlow Property Management Team
-							</Text>
-							<Hr className="my-4 border-gray-300" />
-							<Text className="text-xs text-gray-400">
-								Want different tips?{' '}
-								<Link
-									href="https://tenantflow.app/email-preferences"
-									className="text-gray-400 underline"
-								>
-									Update preferences
-								</Link>{' '}
-								|{' '}
-								<Link
-									href="https://tenantflow.app/unsubscribe"
-									className="text-gray-400 underline"
-								>
-									Unsubscribe
-								</Link>
-							</Text>
-						</Section>
-					</Container>
-				</Body>
-			</Tailwind>
-		</Html>
+		</BaseEmailTemplate>
 	)
 }

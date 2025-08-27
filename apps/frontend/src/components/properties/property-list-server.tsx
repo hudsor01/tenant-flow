@@ -4,11 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import Link from 'next/link'
-import { propertyApi } from '@/lib/api/properties'
-import type { Database } from '@repo/shared'
+import { apiClient } from '@repo/shared'
+import type { PropertyWithUnits } from '@repo/shared'
 
-// Define types directly from Database schema - NO DUPLICATION
-type Property = Database['public']['Tables']['Property']['Row']
+// Use PropertyWithUnits for components that need computed fields and relations
+type Property = PropertyWithUnits
 
 // Loading skeleton for property cards
 function PropertyCardSkeleton() {
@@ -96,7 +96,16 @@ function PropertyCard({ property }: { property: Property }) {
 
 // Stats component
 async function PropertyStatsComponent() {
-	const stats = await propertyApi.getPropertyStats()
+	const stats = await apiClient<{
+		total: number
+		active: number
+		inactive: number
+		totalUnits: number
+		occupiedUnits: number
+		vacantUnits: number
+		totalRevenue: number
+		occupancyRate: number
+	}>('/api/properties/stats')
 
 	if (!stats) {
 		return (
@@ -126,7 +135,7 @@ async function PropertyStatsComponent() {
 			<Card>
 				<CardContent className="p-4">
 					<div className="text-2xl font-bold">
-						{stats.occupied + stats.vacant || 0}
+						{stats.occupiedUnits + stats.vacantUnits || 0}
 					</div>
 					<p className="text-muted-foreground text-sm">Total Units</p>
 				</CardContent>
@@ -147,7 +156,7 @@ async function PropertyStatsComponent() {
 
 // Properties list component
 async function PropertiesList() {
-	const properties = await propertyApi.getAll()
+	const properties = await apiClient<PropertyWithUnits[]>('/api/properties')
 
 	if (!properties || properties.length === 0) {
 		return (

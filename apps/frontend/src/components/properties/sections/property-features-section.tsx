@@ -15,7 +15,7 @@ export function PropertyFeaturesSection({
 	form
 }: PropertyFeaturesSectionProps) {
 	return (
-		<FormSection icon={Home} title="Property Features" delay={2}>
+		<FormSection icon="Property Features" title="Property Features" delay={2}>
 			<div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
 				<p className="mb-4 text-sm text-gray-600">
 					Select the amenities and features available at this

@@ -10,7 +10,7 @@ import {
 } from '../ui/dialog'
 import { Button } from '../ui/button'
 import { Badge } from '../ui/badge'
-import { useSubscriptionActions } from '../../hooks/useSubscriptionActions'
+import { useCreateCheckoutSession, useUpdateSubscription } from '../../hooks/api/use-billing'
 import { LoadingSpinner } from '../ui/loading-spinner'
 import type { PlanType } from '@repo/shared'
 
@@ -90,8 +90,10 @@ export function SubscriptionUpgradeModal({
 	)
 	const [showConfirmation, setShowConfirmation] = useState(false)
 
-	const { upgradePlan, isUpgrading, upgradeError, lastResult } =
-		useSubscriptionActions()
+	const { mutateAsync: createCheckout, isPending: isUpgrading, error: upgradeError } =
+		useCreateCheckoutSession()
+		
+	const { mutateAsync: updateSubscription } = useUpdateSubscription()
 
 	// Filter plans to only show upgrades
 	const availablePlans = PLAN_OPTIONS.filter(plan => {
@@ -110,21 +112,19 @@ export function SubscriptionUpgradeModal({
 		if (!selectedPlan) return
 
 		try {
-			const result = await upgradePlan({
-				targetPlan: selectedPlan,
-				billingCycle,
+			const result = await updateSubscription({
+				newPriceId: selectedPlan,
+				userId: 'current', // Will be handled by backend auth
 				prorationBehavior: 'create_prorations'
 			})
 
-			if (result.success) {
-				setShowConfirmation(true)
-				setTimeout(() => {
-					onUpgradeSuccess?.()
-					onClose()
-					setShowConfirmation(false)
-					setSelectedPlan(null)
-				}, 2000)
-			}
+			setShowConfirmation(true)
+			setTimeout(() => {
+				onUpgradeSuccess?.()
+				onClose()
+				setShowConfirmation(false)
+				setSelectedPlan(null)
+			}, 2000)
 		} catch (error) {
 			console.error('Upgrade failed:', error)
 		}
@@ -145,7 +145,7 @@ export function SubscriptionUpgradeModal({
 			)
 		: 0
 
-	if (showConfirmation && lastResult?.success) {
+	if (showConfirmation) {
 		return (
 			<Dialog open={isOpen} onOpenChange={onClose}>
 				<DialogContent className="sm:max-w-md">

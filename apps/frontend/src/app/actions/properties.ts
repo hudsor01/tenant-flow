@@ -8,7 +8,7 @@
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createActionClient } from '@/lib/supabase/action-client'
-import type { Database } from '@repo/shared'
+import type { Database, PropertyWithUnits } from '@repo/shared'
 
 // Define types directly from Database schema - NO DUPLICATION
 type Property = Database['public']['Tables']['Property']['Row']
@@ -105,12 +105,15 @@ export async function getProperties(query?: PropertyQuery): Promise<Property[]> 
  * NATIVE Server Action: Get single property
  * Direct database access with RLS
  */
-export async function getProperty(id: string): Promise<Property> {
+export async function getProperty(id: string): Promise<PropertyWithUnits> {
   const supabase = await createActionClient()
   
   const { data, error } = await supabase
     .from('properties')
-    .select('*')
+    .select(`
+      *,
+      units (*)
+    `)
     .eq('id', id)
     .single()
 
@@ -119,14 +122,18 @@ export async function getProperty(id: string): Promise<Property> {
     throw new Error('Property not found')
   }
 
-  return data
+  // Transform to PropertyWithUnits
+  return {
+    ...data,
+    units: data.units || []
+  } as PropertyWithUnits
 }
 
 /**
  * NATIVE Server Action: Create property
  * Direct database insert with automatic revalidation
  */
-export async function createProperty(formData: FormData): Promise<Property> {
+export async function createProperty(formData: FormData): Promise<PropertyWithUnits> {
   const supabase = await createActionClient()
   
   // Extract and validate form data
@@ -143,7 +150,10 @@ export async function createProperty(formData: FormData): Promise<Property> {
   const { data, error } = await supabase
     .from('properties')
     .insert(propertyData)
-    .select()
+    .select(`
+      *,
+      units (*)
+    `)
     .single()
 
   if (error || !data) {
@@ -156,7 +166,11 @@ export async function createProperty(formData: FormData): Promise<Property> {
   revalidatePath('/dashboard')
   revalidateTag('properties')
 
-  return data
+  // Transform to PropertyWithUnits
+  return {
+    ...data,
+    units: data.units || []
+  } as PropertyWithUnits
 }
 
 /**
@@ -166,7 +180,7 @@ export async function createProperty(formData: FormData): Promise<Property> {
 export async function updateProperty(
   id: string,
   formData: FormData
-): Promise<Property> {
+): Promise<PropertyWithUnits> {
   const supabase = await createActionClient()
   
   // Build update data from form
@@ -210,7 +224,10 @@ export async function updateProperty(
     .from('properties')
     .update(updateData)
     .eq('id', id)
-    .select()
+    .select(`
+      *,
+      units (*)
+    `)
     .single()
 
   if (error || !data) {
@@ -225,7 +242,11 @@ export async function updateProperty(
   revalidateTag('properties')
   revalidateTag(`property-${id}`)
 
-  return data
+  // Transform to PropertyWithUnits
+  return {
+    ...data,
+    units: data.units || []
+  } as PropertyWithUnits
 }
 
 /**

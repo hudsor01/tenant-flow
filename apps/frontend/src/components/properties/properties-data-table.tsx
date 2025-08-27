@@ -28,15 +28,17 @@ import {
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import Link from 'next/link'
+import type { PropertyWithUnits } from '@repo/shared'
 import type { Database } from '@repo/shared'
 
-// Define types directly from Database schema - NO DUPLICATION
+// Define Property type for local use
 type Property = Database['public']['Tables']['Property']['Row']
 
+// Use relation type that includes units for property data table
 interface PropertyRowProps {
-	property: Property
-	onView?: (property: Property) => void
-	onEdit?: (property: Property) => void
+	property: PropertyWithUnits
+	onView?: (property: PropertyWithUnits) => void
+	onEdit?: (property: PropertyWithUnits) => void
 }
 
 function PropertyRow({ property, onView, onEdit }: PropertyRowProps) {
@@ -69,7 +71,7 @@ function PropertyRow({ property, onView, onEdit }: PropertyRowProps) {
 			</TableCell>
 			<TableCell>
 				<Badge variant="secondary" className="capitalize">
-					{property.status || 'ACTIVE'}
+					{property.propertyType || 'ACTIVE'}
 				</Badge>
 			</TableCell>
 			<TableCell>
@@ -128,9 +130,9 @@ function PropertyRow({ property, onView, onEdit }: PropertyRowProps) {
 }
 
 interface PropertyCardProps {
-	property: Property
-	onView?: (property: Property) => void
-	onEdit?: (property: Property) => void
+	property: PropertyWithUnits
+	onView?: (property: PropertyWithUnits) => void
+	onEdit?: (property: PropertyWithUnits) => void
 }
 
 function PropertyCard({ property, onView, onEdit }: PropertyCardProps) {
@@ -189,7 +191,7 @@ function PropertyCard({ property, onView, onEdit }: PropertyCardProps) {
 				<div className="space-y-3">
 					<div className="flex items-center gap-4">
 						<Badge variant="secondary" className="capitalize">
-							{property.status || 'ACTIVE'}
+							{property.propertyType || 'ACTIVE'}
 						</Badge>
 						<Badge
 							variant={
@@ -229,10 +231,10 @@ function PropertyCard({ property, onView, onEdit }: PropertyCardProps) {
 
 // Filter properties based on search and type criteria
 function filterProperties(
-	properties: Property[] | undefined,
+	properties: PropertyWithUnits[] | undefined,
 	searchQuery: string,
 	_propertyType: string
-): Property[] {
+): PropertyWithUnits[] {
 	if (!properties) {
 		return []
 	}
@@ -254,10 +256,10 @@ function filterProperties(
 }
 
 interface PropertiesTableUIProps {
-	properties: Property[]
+	properties: PropertyWithUnits[]
 	hasFilters: boolean
-	onViewProperty?: (property: Property) => void
-	onEditProperty?: (property: Property) => void
+	onViewProperty?: (property: PropertyWithUnits) => void
+	onEditProperty?: (property: PropertyWithUnits) => void
 }
 
 function PropertiesTableUI({
@@ -326,7 +328,7 @@ function PropertiesTableUI({
 			<CardContent>
 				{/* Mobile Card View */}
 				<div className="space-y-4 md:hidden">
-					{properties.map((property: Property) => (
+					{properties.map((property: PropertyWithUnits) => (
 						<PropertyCard
 							key={property.id}
 							property={property}
@@ -353,7 +355,7 @@ function PropertiesTableUI({
 								</TableRow>
 							</TableHeader>
 							<TableBody>
-								{properties.map((property: Property) => (
+								{properties.map((property: PropertyWithUnits) => (
 									<PropertyRow
 										key={property.id}
 										property={property}
@@ -381,8 +383,8 @@ function PropertiesTableUI({
 interface PropertiesDataTableProps {
 	searchQuery?: string
 	propertyType?: string
-	onViewProperty?: (property: Property) => void
-	onEditProperty?: (property: Property) => void
+	onViewProperty?: (property: PropertyWithUnits) => void
+	onEditProperty?: (property: PropertyWithUnits) => void
 }
 
 export function PropertiesDataTable({

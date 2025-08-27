@@ -12,7 +12,7 @@ import { Button } from '../ui/button'
 import { Textarea } from '../ui/textarea'
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group'
 import { Label } from '../ui/label'
-import { useSubscriptionCancellation } from '../../hooks/useSubscriptionActions'
+import { useCancelSubscription } from '../../hooks/api/use-billing'
 import { LoadingSpinner } from '../ui/loading-spinner'
 import type { PlanType } from '@repo/shared'
 
@@ -44,31 +44,28 @@ export function SubscriptionCancelModal({
 	const [step, setStep] = useState<
 		'reason' | 'retention' | 'confirm' | 'success'
 	>('reason')
-	const [cancelAt, setCancelAt] = useState<'immediate' | 'end_of_period'>(
-		'end_of_period'
-	)
+	const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState<boolean>(true)
 	const [reason, setReason] = useState('')
 	const [feedback, setFeedback] = useState('')
 	const [showRetention, setShowRetention] = useState(true)
 
-	const { cancelImmediately, cancelAtPeriodEnd, isCanceling, cancelError } =
-		useSubscriptionCancellation(userId)
+	const { mutateAsync: cancelSubscription, isPending: isCanceling, error: cancelError } = 
+		useCancelSubscription()
 
 	const handleCancel = async () => {
 		try {
-			const result =
-				cancelAt === 'immediate'
-					? await cancelImmediately(reason, feedback)
-					: await cancelAtPeriodEnd(reason, feedback)
+			await cancelSubscription({
+				cancelAtPeriodEnd: cancelAtPeriodEnd,
+				reason,
+				feedback
+			})
 
-			if (result.success) {
-				setStep('success')
-				setTimeout(() => {
-					onCancelSuccess?.()
-					onClose()
-					resetState()
-				}, 3000)
-			}
+			setStep('success')
+			setTimeout(() => {
+				onCancelSuccess?.()
+				onClose()
+				resetState()
+			}, 3000)
 		} catch (error) {
 			console.error('Cancellation failed:', error)
 		}
@@ -102,7 +99,7 @@ export function SubscriptionCancelModal({
 							Cancellation Processed
 						</h3>
 						<p className="mb-4 text-gray-600">
-							{cancelAt === 'immediate'
+							{!cancelAtPeriodEnd
 								? 'Your subscription has been canceled immediately.'
 								: 'Your subscription will be canceled at the end of your billing period.'}
 						</p>

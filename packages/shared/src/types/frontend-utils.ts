@@ -18,3 +18,10 @@ export interface TabItem {
 	badge?: string | number
 	disabled?: boolean
 }
+
+export interface BreadcrumbItem {
+	label: string
+	href?: string
+	current?: boolean
+	icon?: React.ReactNode
+}
