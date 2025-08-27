@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label'
 import { logger } from '@/lib/logger/logger'
 import { toast } from 'sonner'
 import type { UseFormReturn } from 'react-hook-form'
-import type { PasswordFormData } from '@/hooks/use-edit-profile-data'
+import type { PasswordFormData } from '@repo/shared/types/frontend'
 
 interface SecurityTabSectionProps {
 	form: UseFormReturn<PasswordFormData>

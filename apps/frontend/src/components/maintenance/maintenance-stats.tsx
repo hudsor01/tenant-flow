@@ -41,28 +41,28 @@ function MaintenanceStatsUI({ stats }: MaintenanceStatsUIProps) {
 			title: 'Total Requests',
 			value: stats.total,
 			description: 'All maintenance requests',
-			icon: ClipboardList,
+			icon: 'i-lucide-clipboard-list',
 			color: 'text-primary'
 		},
 		{
 			title: 'Open Requests',
 			value: stats.open,
 			description: 'Awaiting action',
-			icon: Wrench,
+			icon: 'i-lucide-wrench',
 			color: 'text-yellow-600'
 		},
 		{
 			title: 'In Progress',
 			value: stats.inProgress,
 			description: 'Being worked on',
-			icon: PlayCircle,
+			icon: 'i-lucide-play-circle',
 			color: 'text-blue-600'
 		},
 		{
 			title: 'Completed',
 			value: stats.completed,
 			description: 'Successfully resolved',
-			icon: CheckCircle,
+			icon: 'i-lucide-check-circle',
 			color: 'text-green-600'
 		}
 	]
@@ -71,7 +71,6 @@ function MaintenanceStatsUI({ stats }: MaintenanceStatsUIProps) {
 		<div className="space-y-6">
 			<div className="grid gap-4 md:grid-cols-4">
 				{statItems.map(stat => {
-					const Icon = stat.icon
 					return (
 						<Card
 							key={stat.title}
@@ -81,7 +80,7 @@ function MaintenanceStatsUI({ stats }: MaintenanceStatsUIProps) {
 								<CardTitle className="text-sm font-medium">
 									{stat.title}
 								</CardTitle>
-								<Icon className={cn('h-4 w-4', stat.color)} />
+								<i className={cn(stat.icon, 'inline-block h-4 w-4', stat.color)} />
 							</CardHeader>
 							<CardContent>
 								<div className="text-2xl font-bold">

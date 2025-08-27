@@ -3,13 +3,10 @@
  * Helper functions for maintenance priority and status display
  */
 
-type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
-type RequestStatus =
-	| 'OPEN'
-	| 'IN_PROGRESS'
-	| 'COMPLETED'
-	| 'CANCELED'
-	| 'ON_HOLD'
+import type { Database } from '../types/supabase-generated'
+
+type Priority = Database['public']['Enums']['Priority']
+type RequestStatus = Database['public']['Enums']['RequestStatus']
 
 export const getPriorityLabel = (priority: Priority): string => {
 	const labels: Record<Priority, string> = {

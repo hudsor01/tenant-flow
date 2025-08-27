@@ -19,7 +19,10 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
 import { motion } from '@/lib/lazy-motion'
-import type { Property } from '@repo/shared'
+import type { Database } from '@repo/shared'
+
+// Define types directly from Database schema - NO DUPLICATION
+type Property = Database['public']['Tables']['Property']['Row']
 
 // Property image interface for gallery display
 interface PropertyImage {
@@ -114,8 +117,8 @@ export default function PropertyImageGallery({
 			<Card className={className}>
 				<CardHeader>
 					<CardTitle className="flex items-center">
-						<ImageIcon
-							className="mr-2 h-5 w-5"
+						<span
+							className="i-lucide-image mr-2 h-5 w-5"
 							aria-hidden="true"
 						/>
 						Property Images
@@ -159,8 +162,8 @@ export default function PropertyImageGallery({
 				<CardHeader>
 					<div className="flex items-center justify-between">
 						<CardTitle className="flex items-center">
-							<ImageIcon
-								className="mr-2 h-5 w-5"
+							<span
+								className="i-lucide-image mr-2 h-5 w-5"
 								aria-hidden="true"
 							/>
 							Property Images ({images.length})
@@ -176,8 +179,8 @@ export default function PropertyImageGallery({
 				<CardContent>
 					{images.length === 0 ? (
 						<div className="py-12 text-center">
-							<ImageIcon
-								className="mx-auto mb-4 h-12 w-12 text-gray-400"
+							<span
+								className="i-lucide-image mx-auto mb-4 h-12 w-12 text-gray-400"
 								aria-hidden="true"
 							/>
 							<h3 className="mb-2 text-lg font-semibold text-gray-800">

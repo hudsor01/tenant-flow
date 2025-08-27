@@ -944,7 +944,7 @@ export interface DenseTableProps<TData, TValue> {
 	className?: string
 }
 
-export interface DenseTablePaginationProps<TData> {
+export interface DenseTablePaginationProps<_TData = unknown> {
 	table: {
 		getPageCount: () => number
 		getState: () => { pagination: { pageIndex: number; pageSize: number } }

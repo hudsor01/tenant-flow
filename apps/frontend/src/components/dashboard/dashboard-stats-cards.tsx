@@ -1,5 +1,5 @@
 'use client'
-import { Building2,Users,FileText,Wrench } from 'lucide-react'
+
 import { useOptimistic, useTransition } from 'react'
 import { useDashboardOverview } from '@/hooks/api/use-dashboard'
 import { 
@@ -68,9 +68,9 @@ export function DashboardStatsCards() {
 	const statCards = [
 		{
 			title: 'Total Properties',
-			value: currentStats?.totalProperties ?? 0,
-			description: `${currentStats?.occupancyRate ?? 0}% occupancy`,
-			icon: Building2,
+			value: currentStats?.properties?.total ?? 0,
+			description: `${currentStats?.units?.occupancyRate ?? 0}% occupancy`,
+			icon: 'i-lucide-building-2',
 			color: 'primary',
 			bgColor: 'bg-simplify-soft',
 			iconColor: 'text-white',
@@ -81,9 +81,9 @@ export function DashboardStatsCards() {
 		},
 		{
 			title: 'Active Tenants',
-			value: currentStats?.totalTenants ?? 0,
+			value: currentStats?.tenants?.total ?? 0,
 			description: 'Active tenants',
-			icon: Users,
+			icon: 'i-lucide-users',
 			color: 'success',
 			bgColor: 'bg-gradient-to-br from-green-50 to-green-100/50',
 			iconColor: 'text-white',
@@ -94,9 +94,9 @@ export function DashboardStatsCards() {
 		},
 		{
 			title: 'Total Units',
-			value: currentStats?.totalUnits ?? 0,
+			value: currentStats?.units?.total ?? 0,
 			description: 'Total units',
-			icon: FileText,
+			icon: 'i-lucide-file-text',
 			color: 'accent',
 			bgColor: 'bg-gradient-to-br from-teal-50 to-teal-100/50',
 			iconColor: 'text-white',
@@ -107,9 +107,9 @@ export function DashboardStatsCards() {
 		},
 		{
 			title: 'Maintenance',
-			value: 0,
+			value: currentStats?.maintenance?.total ?? 0,
 			description: 'Maintenance requests',
-			icon: Wrench,
+			icon: 'i-lucide-wrench',
 			color: 'warning',
 			bgColor: 'bg-gradient-to-br from-orange-50 to-orange-100/50',
 			iconColor: 'text-white',
@@ -123,8 +123,6 @@ export function DashboardStatsCards() {
 	return (
 		<StatsGrid columns={4} className={cn(isPending && 'opacity-75')}>
 			{statCards.map((stat, index) => {
-				const Icon = stat.icon
-
 				return (
 					<Stats
 						key={stat.title}
@@ -148,7 +146,7 @@ export function DashboardStatsCards() {
 									'rounded-xl p-2.5 shadow-sm ring-1 ring-black/5',
 									stat.iconBg
 								)}>
-									<Icon className={cn('h-4 w-4', stat.iconColor)} />
+									<i className={cn(stat.icon, 'inline-block', cn('h-4 w-4', stat.iconColor))} />
 								</div>
 							}
 							action={

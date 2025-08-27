@@ -18,4 +18,4 @@ export {
 
 // Types - re-export from shared package and dashboard API
 export type { DashboardStats, ActivityItem } from '@repo/shared'
-export type { UpcomingTask } from '@/lib/api/dashboard'
+export type { UpcomingTask } from '@/hooks/api/use-dashboard'

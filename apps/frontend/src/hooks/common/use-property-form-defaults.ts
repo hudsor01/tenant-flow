@@ -1,6 +1,9 @@
 import { useMemo } from 'react'
 import type { PropertyFormData } from '@repo/shared/validation/properties'
-import type { Property } from '@repo/shared'
+import type { Database } from '@repo/shared'
+
+// Define types directly from Database schema - NO DUPLICATION
+type Property = Database['public']['Tables']['Property']['Row']
 
 /**
  * DRY: Reusable Property Form Default Values

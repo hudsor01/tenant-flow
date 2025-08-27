@@ -1,13 +1,16 @@
 import { useLeases } from '@/hooks/api/use-leases'
-import type { Lease } from '@repo/shared'
+import type { Database } from '@repo/shared'
 
-// Local type for what we expect from the API
+  type Lease = Database['public']['Tables']['Lease']['Row']
+
+// Local type for what we expect from the API - using correct database field names
 type LeaseTableRow = Lease & {
 	tenant?: {
-		name: string
+		first_name: string
+		last_name: string
 	}
 	unit?: {
-		unitNumber: string
+		name: string
 		property?: {
 			name: string
 		}
@@ -103,7 +106,7 @@ function LeaseRow({ lease }: { lease: LeaseTableRow }) {
 				{lease.tenant ? (
 					<div className="flex items-center gap-1 text-sm">
 						<i className="i-lucide-user inline-block text-muted-foreground h-3 w-3"  />
-						{lease.tenant.name}
+						{lease.tenant.first_name} {lease.tenant.last_name}
 					</div>
 				) : (
 					<span className="text-muted-foreground">
@@ -120,7 +123,7 @@ function LeaseRow({ lease }: { lease: LeaseTableRow }) {
 								{lease.unit.property.name}
 							</p>
 							<p className="text-muted-foreground text-xs">
-								Unit {lease.unit.unitNumber}
+								Unit {lease.unit.name}
 							</p>
 						</div>
 					</div>

@@ -8,6 +8,8 @@
 
 import { defineConfig } from 'eslint/config'
 import baseConfig from './packages/eslint-config/base.js'
+import noInlineTypes from './.eslint/rules/no-inline-types.js'
+import noBarrelExports from './.eslint/rules/no-barrel-exports.js'
 
 /**
  * Root-level configuration with project-specific overrides
@@ -52,6 +54,43 @@ export default defineConfig([
 	{
 		name: 'root/github-scripts-ignore',
 		ignores: ['.github/**/*.ts', '.github/**/*.js']
+	},
+
+	// Type centralization enforcement - ONLY for application code
+	{
+		name: 'apps/type-centralization',
+		files: [
+			'apps/frontend/**/*.{ts,tsx}',
+			'apps/backend/**/*.ts'
+		],
+		ignores: [
+			'**/*.test.*', 
+			'**/*.spec.*', 
+			'**/*.config.*',
+			'**/*.d.ts',
+			'**/node_modules/**',
+			'**/dist/**',
+			'**/build/**'
+		],
+		plugins: {
+			'type-centralization': {
+				rules: {
+					'no-inline-types': noInlineTypes,
+					'no-barrel-exports': noBarrelExports
+				}
+			}
+		},
+		rules: {
+			// Warn instead of error during transition period
+			'type-centralization/no-inline-types': 'warn',
+			'type-centralization/no-barrel-exports': ['warn', {
+				allowedBarrels: [
+					'packages/shared/src/index.ts',
+					'apps/frontend/src/components/ui/index.ts', // UI component library
+					'apps/frontend/src/hooks/api/index.ts' // API hooks barrel for convenience
+				]
+			}]
+		}
 	},
 
 	// Project-specific anti-pattern guards and SECURITY RULES

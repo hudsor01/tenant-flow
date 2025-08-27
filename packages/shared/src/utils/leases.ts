@@ -3,7 +3,9 @@
  * Helper functions for lease status display and management
  */
 
-type LeaseStatus = 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED'
+import type { Database } from '../types/supabase-generated'
+
+type LeaseStatus = Database['public']['Enums']['LeaseStatus']
 
 export const getLeaseStatusLabel = (status: LeaseStatus): string => {
 	const labels: Record<LeaseStatus, string> = {

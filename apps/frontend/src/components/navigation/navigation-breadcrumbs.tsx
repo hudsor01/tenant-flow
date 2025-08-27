@@ -8,7 +8,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import type { BreadcrumbItem } from './types'
+import type { BreadcrumbItem } from '@repo/shared/types/frontend-utils'
 
 interface BreadcrumbsProps {
 	items: BreadcrumbItem[]

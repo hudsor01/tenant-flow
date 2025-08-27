@@ -6,7 +6,18 @@
 
 'use server'
 
-import type { CustomerInvoiceForm, InvoiceItemForm } from '@repo/shared'
+// Define local types for this action - NO DUPLICATION
+interface InvoiceItemForm {
+	description: string
+	quantity: number
+	unitPrice: number
+}
+
+interface CustomerInvoiceForm {
+	items?: InvoiceItemForm[]
+	taxRate?: number
+	[key: string]: unknown
+}
 
 export interface InvoiceCalculations {
 	items: Array<{
@@ -168,7 +179,7 @@ export async function calculateLineItem(
 			success: true,
 			lineTotal
 		}
-	} catch (error) {
+	} catch {
 		return {
 			success: false,
 			error: 'Failed to calculate line item'

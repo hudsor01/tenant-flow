@@ -11,9 +11,15 @@ import {
 	type UseSuspenseQueryResult 
 } from '@tanstack/react-query'
 import { logger } from '@/lib/logger/logger'
-import { dashboardApi, type UpcomingTask } from '@/lib/api/dashboard'
+// UpcomingTask type - define locally since API module doesn't exist
+export type UpcomingTask = {
+	id: string
+	title: string
+	dueDate: string
+	priority: string
+}
 import { queryKeys } from '@/lib/react-query/query-keys'
-import { apiClient } from '@/lib/api-client'
+import { get } from '@/lib/api-client-temp'
 import type { DashboardStats, ActivityItem } from '@repo/shared'
 
 /**
@@ -27,7 +33,7 @@ export function useDashboardOverview(options?: {
 		queryKey: queryKeys.dashboard.overview(),
 		queryFn: async () => {
 			try {
-				const response = await dashboardApi.getOverview()
+				const response = await get<DashboardStats>('/api/dashboard/overview')
 				return response
 			} catch {
 				// Return default data on error to allow UI to render
@@ -38,10 +44,11 @@ export function useDashboardOverview(options?: {
 					}
 				)
 				return {
-					properties: { totalProperties: 0, occupancyRate: 0 },
-					tenants: { totalTenants: 0 },
-					leases: { activeLeases: 0, expiredLeases: 0 },
-					maintenanceRequests: { open: 0 }
+					properties: { total: 0, owned: 0, rented: 0, available: 0, maintenance: 0 },
+					tenants: { total: 0, active: 0, inactive: 0 },
+					units: { total: 0, occupied: 0, vacant: 0, occupancyRate: 0, averageRent: 0, totalUnits: 0, availableUnits: 0, occupiedUnits: 0, maintenanceUnits: 0 },
+					leases: { total: 0, active: 0, expired: 0, pending: 0, totalLeases: 0, activeLeases: 0, expiredLeases: 0, pendingLeases: 0 },
+					maintenance: { total: 0, open: 0, inProgress: 0, completed: 0 }
 				} as DashboardStats
 			}
 		},
@@ -62,7 +69,7 @@ export function useDashboardActivity(options?: {
 		queryKey: queryKeys.dashboard.activity(),
 		queryFn: async () => {
 			try {
-				return await dashboardApi.getRecentActivity()
+				return await get<ActivityItem[]>('/api/dashboard/activity')
 			} catch {
 				logger.warn('Dashboard activity API unavailable', {
 					component: 'useDashboardActivity'
@@ -86,7 +93,7 @@ export function useUpcomingTasks(options?: {
 		queryKey: queryKeys.dashboard.tasks(),
 		queryFn: async () => {
 			try {
-				return await dashboardApi.getUpcomingTasks()
+				return await get<UpcomingTask[]>('/api/dashboard/tasks')
 			} catch {
 				logger.warn('Dashboard tasks API unavailable', {
 					component: 'useUpcomingTasks'
@@ -110,7 +117,7 @@ export function useDashboardAlerts(options?: {
 		queryKey: queryKeys.dashboard.alerts(),
 		queryFn: async () => {
 			try {
-				return await dashboardApi.getAlerts()
+				return await get<unknown[]>('/api/dashboard/alerts')
 			} catch {
 				logger.warn('Dashboard alerts API unavailable', {
 					component: 'useDashboardAlerts'
@@ -143,7 +150,7 @@ export function useDashboardAlerts(options?: {
  * ```
  */
 export function createDashboardOverviewPromise(): Promise<DashboardStats> {
-	return apiClient.promise<DashboardStats>('/dashboard/overview')
+	return get<DashboardStats>('/api/dashboard/overview')
 }
 
 /**
@@ -151,7 +158,7 @@ export function createDashboardOverviewPromise(): Promise<DashboardStats> {
  * Eliminates TanStack Query when you don't need caching
  */
 export function createDashboardActivityPromise(): Promise<ActivityItem[]> {
-	return apiClient.promise<ActivityItem[]>('/dashboard/activity')
+	return get<ActivityItem[]>('/api/dashboard/activity')
 }
 
 /**
@@ -159,7 +166,7 @@ export function createDashboardActivityPromise(): Promise<ActivityItem[]> {
  * Stream data directly to components without hooks layer
  */
 export function createUpcomingTasksPromise(): Promise<UpcomingTask[]> {
-	return apiClient.promise<UpcomingTask[]>('/dashboard/tasks')
+	return get<UpcomingTask[]>('/api/dashboard/tasks')
 }
 
 /**
@@ -167,7 +174,7 @@ export function createUpcomingTasksPromise(): Promise<UpcomingTask[]> {
  * Components can use this for real-time streaming updates
  */
 export function createDashboardAlertsPromise(): Promise<unknown[]> {
-	return apiClient.promise<unknown[]>('/dashboard/alerts')
+	return get<unknown[]>('/api/dashboard/alerts')
 }
 
 /**
@@ -177,7 +184,7 @@ export function createDashboardAlertsPromise(): Promise<unknown[]> {
 export function useDashboardOverviewSuspense(): UseSuspenseQueryResult<DashboardStats> {
 	return useSuspenseQuery({
 		queryKey: queryKeys.dashboard.overview(),
-		queryFn: async () => dashboardApi.getOverview(),
+		queryFn: async () => get<DashboardStats>('/api/dashboard/overview'),
 		staleTime: 2 * 60 * 1000,
 		gcTime: 5 * 60 * 1000
 	})

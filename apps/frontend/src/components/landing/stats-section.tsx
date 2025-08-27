@@ -1,10 +1,10 @@
-import { Clock,TrendingUp,Zap,Star } from 'lucide-react'
+
 
 const benefits = [
-	{ metric: '10+', label: 'Hours Saved Weekly', icon: Clock },
-	{ metric: '99%', label: 'On-Time Payments', icon: TrendingUp },
-	{ metric: '85%', label: 'Less Admin Work', icon: Zap },
-	{ metric: '4.9★', label: 'Customer Rating', icon: Star }
+	{ metric: '10+', label: 'Hours Saved Weekly', icon: 'i-lucide-clock' },
+	{ metric: '99%', label: 'On-Time Payments', icon: 'i-lucide-trending-up' },
+	{ metric: '85%', label: 'Less Admin Work', icon: 'i-lucide-zap' },
+	{ metric: '4.9★', label: 'Customer Rating', icon: 'i-lucide-star' }
 ]
 
 export function StatsSection() {

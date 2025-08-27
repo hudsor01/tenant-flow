@@ -6,38 +6,16 @@ import {
 	urlSchema,
 	requiredString
 } from './common'
+import { Constants } from '../types/supabase-generated'
 
-// Maintenance priority enum
-export const maintenancePrioritySchema = z.enum([
-	'LOW',
-	'MEDIUM',
-	'HIGH',
-	'EMERGENCY'
-])
+// Maintenance priority enum - uses auto-generated Supabase enums
+export const maintenancePrioritySchema = z.enum(Constants.public.Enums.Priority as readonly [string, ...string[]])
 
-// Maintenance status enum
-export const maintenanceStatusSchema = z.enum([
-	'OPEN',
-	'IN_PROGRESS',
-	'COMPLETED',
-	'CANCELED',
-	'ON_HOLD'
-])
+// Maintenance status enum - uses auto-generated Supabase enums
+export const maintenanceStatusSchema = z.enum(Constants.public.Enums.RequestStatus as readonly [string, ...string[]])
 
-// Maintenance category enum
-export const maintenanceCategorySchema = z.enum([
-	'PLUMBING',
-	'ELECTRICAL',
-	'HVAC',
-	'APPLIANCES',
-	'FLOORING',
-	'PAINTING',
-	'LANDSCAPING',
-	'SECURITY',
-	'PEST_CONTROL',
-	'GENERAL',
-	'OTHER'
-])
+// Maintenance category enum - uses auto-generated Supabase enums
+export const maintenanceCategorySchema = z.enum(Constants.public.Enums.MaintenanceCategory as readonly [string, ...string[]])
 
 // Base maintenance request input schema (for forms and API creation)
 export const maintenanceRequestInputSchema = z.object({
@@ -49,9 +27,9 @@ export const maintenanceRequestInputSchema = z.object({
 		.min(10, 'Description must be at least 10 characters')
 		.max(2000, 'Description cannot exceed 2000 characters'),
 
-	priority: maintenancePrioritySchema.default('MEDIUM'),
+	priority: maintenancePrioritySchema.default('MEDIUM' as const),
 
-	category: maintenanceCategorySchema.default('GENERAL'),
+	category: maintenanceCategorySchema.default('GENERAL' as const),
 
 	unitId: uuidSchema,
 
@@ -94,7 +72,7 @@ export const maintenanceRequestInputSchema = z.object({
 export const maintenanceRequestSchema = maintenanceRequestInputSchema.extend({
 	id: uuidSchema,
 	ownerId: uuidSchema,
-	status: maintenanceStatusSchema.default('OPEN'),
+	status: maintenanceStatusSchema.default('OPEN' as const),
 
 	// Completion info
 	completedAt: z.date().optional(),

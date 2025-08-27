@@ -1,8 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { notificationApi } from '@/lib/api/notifications-api'
+import { get, post, put } from '@/lib/api-client-temp'
 import { toast } from 'sonner'
-import type { MaintenancePriority as Priority } from '@repo/shared'
-// NotificationData import removed as it's not used in this component
+import type { MaintenancePriority as Priority, Notification, CreateNotificationRequest } from '@repo/shared'
 
 /**
  * Hook for managing notifications - Direct TanStack Query usage per CLAUDE.md
@@ -18,19 +17,19 @@ export function useNotifications() {
 		refetch
 	} = useQuery({
 		queryKey: ['notifications'],
-		queryFn: async () => notificationApi.getNotifications()
+		queryFn: async () => get<Notification[]>('/api/notifications')
 	})
 
 	// Get unread notifications query
 	const { data: unreadNotifications, isLoading: isLoadingUnread } = useQuery({
 		queryKey: ['notifications', 'unread'],
 		queryFn: async () =>
-			notificationApi.getNotifications({ unreadOnly: true })
+			get<Notification[]>('/api/notifications?unreadOnly=true')
 	})
 
 	// Create notification mutation - DIRECT usage per CLAUDE.md
 	const createNotificationMutation = useMutation({
-		mutationFn: notificationApi.send.bind(notificationApi),
+		mutationFn: (data: CreateNotificationRequest) => post<Notification>('/api/notifications', data),
 		onSuccess: () => {
 			toast.success('Notification sent successfully')
 			void queryClient.invalidateQueries({ queryKey: ['notifications'] })
@@ -42,7 +41,7 @@ export function useNotifications() {
 
 	// Mark as read mutation - DIRECT usage per CLAUDE.md
 	const markAsReadMutation = useMutation({
-		mutationFn: notificationApi.markAsRead.bind(notificationApi),
+		mutationFn: (id: string) => put<Notification>(`/api/notifications/${id}/read`, {}),
 		onSuccess: () => {
 			toast.success('Notification marked as read')
 			void queryClient.invalidateQueries({ queryKey: ['notifications'] })

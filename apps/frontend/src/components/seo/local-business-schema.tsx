@@ -102,7 +102,7 @@ export function LocalBusinessSchema({
 						bestRating: '5'
 					},
 					reviewBody:
-						'TenantFlow has completely transformed how I manage my rental properties. The lease generator alone has saved me hours of work.'
+						'TenantFlow has completely transformed how I manage my rental properties. The maintenance tracking and tenant management features have saved me hours of work.'
 				},
 				{
 					'@type': 'Review',

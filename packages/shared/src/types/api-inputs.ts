@@ -6,8 +6,11 @@
 
 import type { PLAN_TYPE } from '../constants/billing'
 import type { PropertyQuery, MaintenanceQuery } from './queries'
-import type { Lease } from './leases'
-import type { Property } from './properties'
+import type { Database } from './supabase-generated'
+
+// Define types properly from Database schema
+type Lease = Database['public']['Tables']['Lease']['Row']
+type Property = Database['public']['Tables']['Property']['Row']
 
 // ========================
 // Subscription API Inputs
@@ -80,8 +83,9 @@ export interface TrialParams {
 // Property API Inputs (Re-exported from properties.ts)
 // ========================
 
-// Re-export authoritative Property input types to maintain backward compatibility
-export type { CreatePropertyInput, UpdatePropertyInput } from './properties'
+// Define property input types from Database schema
+export type CreatePropertyInput = Database['public']['Tables']['Property']['Insert']
+export type UpdatePropertyInput = Database['public']['Tables']['Property']['Update']
 
 /**
  * Query parameters for filtering properties (extends from queries.ts)

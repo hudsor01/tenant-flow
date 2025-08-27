@@ -7,12 +7,25 @@
 
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { createActionClient } from '@/lib/supabase/action-client'
-import type { 
-  Tenant, 
-  UpdateTenantInput,
-  TenantQuery,
-  TenantStats 
-} from '@repo/shared'
+import type { Database } from '@repo/shared'
+
+// Define types directly from Database schema - NO DUPLICATION
+type Tenant = Database['public']['Tables']['Tenant']['Row']
+type CreateTenantInput = Database['public']['Tables']['Tenant']['Insert']
+type UpdateTenantInput = Database['public']['Tables']['Tenant']['Update']
+
+// Define local interfaces for component needs
+interface TenantQuery {
+  search?: string
+  status?: string
+  propertyId?: string
+}
+
+interface TenantStats {
+  total: number
+  active: number
+  inactive: number
+}
 
 /**
  * NATIVE Server Action: Get all tenants
@@ -78,22 +91,15 @@ export async function getTenant(id: string): Promise<Tenant> {
 export async function createTenant(formData: FormData): Promise<Tenant> {
   const supabase = await createActionClient()
   
-  // Direct database insert - no type validation needed
+  // Direct database insert - convert to camelCase for TypeScript interface
+  const firstName = formData.get('first_name') as string
+  const lastName = formData.get('last_name') as string
   const tenantData = {
-    first_name: formData.get('first_name') as string,
-    last_name: formData.get('last_name') as string,
+    name: `${firstName} ${lastName}`.trim(),
     email: formData.get('email') as string,
-    phone: formData.get('phone') as string,
-    date_of_birth: formData.get('date_of_birth') as string || null,
-    ssn_last_four: formData.get('ssn_last_four') as string || null,
-    emergency_contact_name: formData.get('emergency_contact_name') as string || null,
-    emergency_contact_phone: formData.get('emergency_contact_phone') as string || null,
-    employment_status: formData.get('employment_status') as string || null,
-    employer_name: formData.get('employer_name') as string || null,
-    annual_income: parseFloat(formData.get('annual_income') as string) || null,
-    move_in_date: formData.get('move_in_date') as string || null,
-    notes: formData.get('notes') as string || undefined
-  } as any
+    phone: formData.get('phone') as string || null,
+    emergencyContact: (formData.get('emergency_contact') as string) || null
+  } satisfies CreateTenantInput
 
   const { data, error } = await supabase
     .from('tenants')
@@ -124,24 +130,18 @@ export async function updateTenant(
   
   const updateData: UpdateTenantInput = {}
   
-  // Extract string fields
-  const stringFields = [
-    'first_name', 'last_name', 'email', 'phone',
-    'ssn_last_four', 'emergency_contact_name', 
-    'emergency_contact_phone', 'employment_status',
-    'employer_name', 'notes', 'date_of_birth', 'move_in_date'
-  ]
-  
-  stringFields.forEach(field => {
-    const value = formData.get(field)
-    if (value !== null) {
-      updateData[field] = value as string
-    }
-  })
-  
-  // Handle numeric fields
-  if (formData.has('annual_income')) {
-    updateData.annual_income = parseFloat(formData.get('annual_income') as string)
+  // Update specific fields directly to avoid dynamic access
+  if (formData.has('name')) {
+    updateData.name = formData.get('name') as string
+  }
+  if (formData.has('email')) {
+    updateData.email = formData.get('email') as string
+  }
+  if (formData.has('phone')) {
+    updateData.phone = formData.get('phone') as string
+  }
+  if (formData.has('emergencyContact')) {
+    updateData.emergencyContact = formData.get('emergencyContact') as string
   }
 
   const { data, error } = await supabase
@@ -202,10 +202,9 @@ export async function getTenantStats(): Promise<TenantStats> {
     .eq('status', 'ACTIVE')
 
   return {
-    totalTenants: totalTenants || 0,
-    activeTenants: activeTenants || 0,
-    inactiveTenants: 0,
-    newTenants: 0
+    total: totalTenants || 0,
+    active: activeTenants || 0,
+    inactive: 0
   }
 }
 

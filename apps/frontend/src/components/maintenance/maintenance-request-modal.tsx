@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { maintenanceRequestFormSchema } from '@repo/shared/validation'
-import type { MaintenanceRequestFormData } from '@repo/shared/validation'
+import { maintenanceRequestFormSchema } from '@repo/shared'
+import type { MaintenanceRequestFormData } from '@repo/shared'
 import {
 	Dialog,
 	DialogContent,

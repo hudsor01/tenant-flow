@@ -5,7 +5,8 @@ import { toast } from 'sonner'
 import { supabase } from '../lib/supabase/client'
 import { AuthApi } from '../lib/auth-api'
 import { logger } from '@/lib/logger'
-import type { User, AuthError, LoginCredentials, SignupCredentials } from '../types/auth'
+import type { User, LoginCredentials, SignupCredentials } from '@repo/shared/types/auth'
+import type { AuthError } from '@repo/shared/types/auth-errors'
 
 interface AuthContextType {
   // State

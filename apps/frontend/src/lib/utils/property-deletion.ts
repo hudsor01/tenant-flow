@@ -2,11 +2,7 @@
  * Property deletion utilities for secure mutation-based operations
  */
 
-import {
-	deletePropertyAction,
-	type PropertyFormState
-} from '@/lib/actions/property-actions'
-import { addCSRFTokenToFormData } from '@/lib/auth/csrf'
+import { deleteProperty } from '@/app/actions/properties'
 import { logger } from '@/lib/logger/logger'
 import { notifications, dismissToast } from '@/lib/toast'
 
@@ -32,37 +28,20 @@ export async function deletePropertyWithConfirmation(property: {
 			propertyName: property.name
 		})
 
-		// Create FormData for server action
-		const formData = new FormData()
-		formData.append('propertyId', property.id)
-
-		// Add CSRF token for security
-		addCSRFTokenToFormData(formData)
-
 		// Show loading toast
 		const loadingToast = notifications.loading('Deleting property...')
 
-		// Execute server action
-		const initialState: PropertyFormState = { success: false }
-		const result = await deletePropertyAction(initialState, formData)
+		// Execute server action - deleteProperty expects just the ID string
+		await deleteProperty(property.id)
 
 		// Dismiss loading toast
 		dismissToast(loadingToast)
 
-		if (result.success) {
-			logger.info('Property deleted successfully', {
-				propertyId: property.id
-			})
-			notifications.success('Property deleted successfully')
-
-			// Redirect will happen automatically via server action
-		} else if (result.errors?._form?.[0]) {
-			const errorMessage = result.errors._form[0]
-			logger.error('Property deletion failed', new Error(errorMessage), {
-				propertyId: property.id
-			})
-			notifications.error(errorMessage)
-		}
+		// Server action handles success/error - just log completion
+		logger.info('Property deletion action completed', {
+			propertyId: property.id
+		})
+		notifications.success('Property deleted successfully')
 	} catch (error) {
 		const errorMessage =
 			error instanceof Error ? error.message : 'Failed to delete property'

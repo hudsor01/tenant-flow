@@ -10,8 +10,8 @@ import {
 	CardTitle
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-
 import { Badge } from '@/components/ui/badge'
+// UnoCSS icons used instead of lucide-react
 // Unused UI components removed: Skeleton, Alert, AlertDescription, AlertTitle
 import {
 	Table,
@@ -28,7 +28,10 @@ import {
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import Link from 'next/link'
-import type { Property } from '@repo/shared'
+import type { Database } from '@repo/shared'
+
+// Define types directly from Database schema - NO DUPLICATION
+type Property = Database['public']['Tables']['Property']['Row']
 
 interface PropertyRowProps {
 	property: Property
@@ -228,7 +231,7 @@ function PropertyCard({ property, onView, onEdit }: PropertyCardProps) {
 function filterProperties(
 	properties: Property[] | undefined,
 	searchQuery: string,
-	propertyType: string
+	_propertyType: string
 ): Property[] {
 	if (!properties) {
 		return []
@@ -288,7 +291,7 @@ function PropertiesTableUI({
 						{!hasFilters && (
 							<Link href="/properties/new">
 								<Button>
-									<Plus className="mr-2 h-4 w-4" />
+									<span className="i-lucide-plus mr-2 h-4 w-4" />
 									Add First Property
 								</Button>
 							</Link>
@@ -311,7 +314,7 @@ function PropertiesTableUI({
 					</div>
 					<Link href="/properties/new">
 						<Button size="sm">
-							<Plus className="mr-2 h-4 w-4" />
+							<span className="i-lucide-plus mr-2 h-4 w-4" />
 							<span className="hidden sm:inline">
 								Add Property
 							</span>

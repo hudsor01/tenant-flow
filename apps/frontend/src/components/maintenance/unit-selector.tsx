@@ -8,7 +8,10 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '@/components/ui/select'
-import type { Unit } from '@repo/shared'
+import type { Database } from '@repo/shared'
+
+// Define types directly from Database schema - NO DUPLICATION
+type Unit = Database['public']['Tables']['Unit']['Row']
 
 interface UnitWithProperty extends Unit {
 	property: {

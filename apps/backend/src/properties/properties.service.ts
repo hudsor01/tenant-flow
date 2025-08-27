@@ -13,9 +13,9 @@ import type {
 	CreatePropertyRequest,
 	UpdatePropertyRequest
 } from '../schemas/properties.schema'
-import type {
-	PropertyWithUnits
-} from '@repo/shared'
+import type { Database, PropertyWithUnits } from '@repo/shared'
+
+// PropertyWithUnits imported above from @repo/shared - NO DUPLICATION
 
 /**
  * Properties service - Direct Supabase implementation following KISS principle
@@ -248,7 +248,7 @@ export class PropertiesService {
 		userId: string,
 		query: { search: string | null; limit: number; offset: number }
 	): Promise<PropertyWithUnits[]> {
-		// Build the query for properties with units using proper table names
+		// Build the query for properties with units using actual database column names
 		const { data, error } = await this.supabaseService
 			.getAdminClient()
 			.from('Property')
@@ -258,22 +258,22 @@ export class PropertiesService {
 				address,
 				city,
 				state,
-				zip,
+				zipCode,
 				description,
-				status,
-				created_at,
-				updated_at,
-				user_id,
+				propertyType,
+				createdAt,
+				updatedAt,
+				ownerId,
 				Unit (
 					id,
-					unit_number,
+					unitNumber,
 					status,
-					monthly_rent,
-					property_id
+					rent,
+					propertyId
 				)
 			`)
-			.eq('user_id', userId)
-			.order('created_at', { ascending: false })
+			.eq('ownerId', userId)
+			.order('createdAt', { ascending: false })
 			.range(query.offset, query.offset + query.limit - 1)
 			.ilike('name', query.search ? `%${query.search}%` : '%')
 
@@ -296,24 +296,28 @@ export class PropertiesService {
 		// Transform to PropertyWithUnits type from @repo/shared
 		// Map database fields to match shared type interface  
 		// KISS principle: simple type annotation for raw query result
+		// Map actual database schema to expected interface
 		const properties = (data || []) as Array<{
 			id: string
 			name: string
 			address: string
 			city: string
 			state: string
-			zip: string
+			zipCode: string // Database uses zipCode, not zip
 			description: string | null
-			status: string
-			created_at: string
-			updated_at: string
-			user_id: string
+			propertyType: string // Database uses propertyType, not status
+			createdAt: string // Database uses camelCase
+			updatedAt: string // Database uses camelCase
+			ownerId: string // Database uses ownerId, not user_id
 			Unit?: Array<{
 				id: string
-				unit_number: string
+				unitNumber: string // Database uses camelCase
 				status: string
-				monthly_rent: number | null
-				property_id: string
+				rent: number | null // Database uses rent, not rentAmount
+				propertyId: string // Database uses propertyId
+				description?: string | null // Unit description field
+				createdAt?: string // Unit creation timestamp
+				updatedAt?: string // Unit update timestamp
 			}>
 		}>
 		
@@ -323,17 +327,27 @@ export class PropertiesService {
 			address: property.address,
 			city: property.city,
 			state: property.state,
-			zip: property.zip,
-			description: property.description,
-			status: property.status,
-			created_at: property.created_at,
-			updated_at: property.updated_at,
-			user_id: property.user_id,
+			zipCode: property.zipCode, // Keep zipCode as in Database Property type
+			description: property.description, // Keep as nullable per Database Property type
+			propertyType: property.propertyType as Database['public']['Enums']['PropertyType'], // Cast to proper enum type
+			createdAt: property.createdAt, // Keep camelCase to match Database Property type
+			updatedAt: property.updatedAt, // Keep camelCase to match Database Property type
+			ownerId: property.ownerId, // Keep ownerId to match Database Property type
+			imageUrl: null, // Add required imageUrl property (default to null)
 			units: (property.Unit || []).map(unit => ({
 				id: unit.id,
-				name: unit.unit_number, // Map unit_number to name for UI display
-				status: unit.status,
-				rent: unit.monthly_rent || 0
+				propertyId: unit.propertyId, // Keep propertyId to match Database Unit type
+				unitNumber: unit.unitNumber, // Keep unitNumber to match Database Unit type
+				rent: unit.rent || 0, // Keep rent field
+				status: unit.status as Database['public']['Enums']['UnitStatus'], // Cast to proper enum type
+				createdAt: unit.createdAt || new Date().toISOString(), // Keep camelCase 
+				updatedAt: unit.updatedAt || new Date().toISOString(), // Keep camelCase
+
+				bedrooms: 0, // Default value
+				bathrooms: 0, // Default value
+				squareFeet: null, // Optional field
+				lastInspectionDate: null, // Optional field
+				leases: [] // Required by PropertyWithUnits relation type
 			}))
 		}))
 	}
