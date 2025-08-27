@@ -132,4 +132,22 @@ export class PropertiesController {
 	async getStats(@CurrentUser() user: ValidatedUser) {
 		return this.propertiesService.getStats(user.id)
 	}
+
+	/**
+	 * Get all properties with their units
+	 * Returns properties with units for frontend stat calculations
+	 */
+	@Get('with-units')
+	async findAllWithUnits(
+		@CurrentUser() user: ValidatedUser,
+		@Query('search', new DefaultValuePipe(null)) search: string | null,
+		@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+		@Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset: number
+	) {
+		return this.propertiesService.findAllWithUnits(user.id, {
+			search,
+			limit,
+			offset
+		})
+	}
 }
