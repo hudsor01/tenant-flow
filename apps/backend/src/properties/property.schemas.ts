@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { PROPERTY_TYPE, type PropertyType } from '@repo/shared/types/properties'
+import { PROPERTY_TYPE, type PropertyType } from '@repo/shared'
 
 /**
  * Property Validation Schemas
