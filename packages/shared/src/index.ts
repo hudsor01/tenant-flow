@@ -223,7 +223,7 @@ export type {
 	FileUpload,
 	// StorageUploadResult - exported from storage.ts instead
 	// ValidationError - already exported from domain types below
-	// FormState - exported from api.ts instead to avoid duplication
+	FormState,  // Now exporting FormState for frontend usage
 	ValidationResult,
 	ErrorResponse,
 	FormField
@@ -522,6 +522,12 @@ export type {
 // Export utility functions
 export { getPropertyTypeLabel } from './utils/properties'
 export { formatCurrency } from './utils/currency'
+export {
+	getPriorityLabel,
+	getPriorityColor,
+	getRequestStatusLabel,
+	getRequestStatusColor
+} from './utils/maintenance'
 
 // Export Stripe configuration functions
 export { getPriceId, getAllPlans, formatPrice, getAnnualSavings } from './stripe/config'

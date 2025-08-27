@@ -15,7 +15,7 @@ import { AuthGuard } from '../shared/guards/auth.guard'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
 import { AuthService } from './auth.service'
 import { Public } from '../shared/decorators/auth.decorators'
-import type { ValidatedUser } from '@repo/shared'
+import type { ValidatedUser } from '@repo/shared/types/auth'
 import type { FastifyRequest } from 'fastify'
 import { UsersService } from '../users/users.service'
 // Using native Fastify JSON Schema validation - no DTOs needed

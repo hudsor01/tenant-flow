@@ -5,7 +5,7 @@ import {
 import { PinoLogger } from 'nestjs-pino'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@repo/shared/types/supabase-generated'
-import type { StorageUploadResult, FileUploadOptions, StorageEntityType, StorageFileType } from '@repo/shared'
+import type { StorageUploadResult, FileUploadOptions, StorageEntityType, StorageFileType } from '@repo/shared/types/storage'
 import * as path from 'path'
 import { SupabaseService } from './supabase.service'
 

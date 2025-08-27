@@ -27,7 +27,7 @@ import { ThrottlerGuard } from '@nestjs/throttler'
 import { ApiTags } from '@nestjs/swagger'
 import { AuthGuard } from '../shared/guards/auth.guard'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
-import type { ValidatedUser } from '@repo/shared'
+import type { ValidatedUser } from '@repo/shared/types/auth'
 import { PropertiesService } from './properties.service'
 import type {
 	CreatePropertyRequest,

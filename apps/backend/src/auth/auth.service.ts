@@ -7,7 +7,7 @@ import {
 import { PinoLogger } from 'nestjs-pino'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { SupabaseService } from '../database/supabase.service'
-import type { UserRole, SupabaseUser, AuthServiceValidatedUser } from '@repo/shared'
+import type { UserRole, SupabaseUser, AuthServiceValidatedUser } from '@repo/shared/types/auth'
 import type { Database } from '@repo/shared/types/supabase-generated'
 
 // Types now imported from @repo/shared to eliminate duplication

@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import type { BusinessInfoSectionProps } from '@/types'
+import type { BusinessInfoSectionProps } from '@repo/shared/types/ui'
 
 export function BusinessInfoSection({
 	register,
