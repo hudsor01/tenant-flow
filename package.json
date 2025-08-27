@@ -102,7 +102,7 @@
 		"@supabase/supabase-js": "2.56.0",
 		"class-validator": "0.14.2",
 		"dompurify": "3.2.6",
-		"jspdf": "3.0.1",
+		"jspdf": "^3.0.2",
 		"nest-winston": "^1.10.2",
 		"stripe": "18.4.0"
 	},
