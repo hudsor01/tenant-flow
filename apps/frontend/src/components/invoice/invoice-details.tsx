@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import type { InvoiceDetailsProps } from '@/types'
+import type { InvoiceDetailsProps } from '@repo/shared/types/ui'
 
 export function InvoiceDetails({ register }: InvoiceDetailsProps) {
 	return (
