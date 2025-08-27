@@ -4,10 +4,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { propertyFormSchema } from '@repo/shared/validation'
-import {
-	useCreateProperty,
-	useUpdateProperty
-} from '@/hooks/api/use-properties'
+import { usePropertiesOptimistic } from '@/hooks/api/use-properties'
 import {
 	Dialog,
 	DialogContent,
@@ -52,8 +49,8 @@ export function PropertyFormDialog({
 }: PropertyFormDialogProps) {
 	const [error, setError] = useState<string | null>(null)
 
-	const createProperty = useCreateProperty()
-	const updateProperty = useUpdateProperty()
+	// Use React 19 optimistic hook
+	const { createProperty, updateProperty, isPending } = usePropertiesOptimistic()
 
 	const form = useForm<PropertyFormData>({
 		resolver: zodResolver(propertyFormSchema),
@@ -67,8 +64,6 @@ export function PropertyFormDialog({
 			description: property?.description || ''
 		}
 	})
-
-	const isLoading = createProperty.isPending || updateProperty.isPending
 
 	async function onSubmit(formData: PropertyFormData) {
 		try {
@@ -85,12 +80,9 @@ export function PropertyFormDialog({
 			}
 
 			if (mode === 'edit' && property) {
-				await updateProperty.mutateAsync({
-					id: property.id,
-					data: apiData
-				})
+				await updateProperty(property.id, apiData)
 			} else {
-				await createProperty.mutateAsync(apiData)
+				await createProperty(apiData)
 			}
 
 			onOpenChange(false)
@@ -285,10 +277,10 @@ export function PropertyFormDialog({
 							</Button>
 							<Button
 								type="submit"
-								disabled={isLoading}
+								disabled={isPending}
 								className="w-full sm:w-auto"
 							>
-								{isLoading ? (
+								{isPending ? (
 									<>
 										<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
 										{mode === 'edit'
