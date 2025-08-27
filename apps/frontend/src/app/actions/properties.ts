@@ -84,10 +84,10 @@ export async function createProperty(formData: FormData): Promise<Property> {
     state: formData.get('state') as string,
     zip_code: formData.get('zip_code') as string,
     property_type: formData.get('property_type') as string,
-    total_units: parseInt(formData.get('total_units', 10) as string) || 1,
+    total_units: parseInt(formData.get('total_units') as string, 10) || 1,
     monthly_rent: parseFloat(formData.get('monthly_rent') as string) || 0,
-    square_feet: parseInt(formData.get('square_feet', 10) as string) || null,
-    bedrooms: parseInt(formData.get('bedrooms', 10) as string) || null,
+    square_feet: parseInt(formData.get('square_feet') as string, 10) || null,
+    bedrooms: parseInt(formData.get('bedrooms') as string, 10) || null,
     bathrooms: parseFloat(formData.get('bathrooms') as string) || null,
     amenities: formData.get('amenities') 
       ? JSON.parse(formData.get('amenities') as string) 

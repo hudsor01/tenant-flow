@@ -34,7 +34,7 @@ jobs:
       run: npm run build:shared
 
     - name: Run TypeScript check
-      run: npm run typecheck -- --force
+      run: npm run typecheck
 
     - name: Run tests
       run: npm run test

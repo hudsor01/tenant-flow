@@ -5,7 +5,8 @@ import { AuthGuard } from '../shared/guards/auth.guard'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
 import { AuthToken } from '../shared/decorators/auth-token.decorator'
 import { DashboardService } from './dashboard.service'
-import type { ControllerApiResponse, AuthServiceValidatedUser } from '@repo/shared/types/auth'
+import type { ControllerApiResponse } from '@repo/shared/types/errors'
+import type { AuthServiceValidatedUser } from '@repo/shared/types/auth'
 
 @ApiTags('dashboard')
 @Controller('dashboard')
