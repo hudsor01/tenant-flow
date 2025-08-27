@@ -1,10 +1,13 @@
+'use client'
+
 /**
  * Modern Dashboard - React 19 + Next.js 15 Patterns
  * Uses native Suspense, use() hook, and Server Components
  */
 
 import { Suspense } from 'react'
-import { useDashboardData, usePropertiesData } from '@/hooks/use-react19-data'
+import { useDashboardOverview } from '@/hooks/api/use-dashboard'
+import { useProperties } from '@/hooks/api/use-properties'
 import type { DashboardStats, Property } from '@repo/shared'
 
 /**
@@ -12,7 +15,7 @@ import type { DashboardStats, Property } from '@repo/shared'
  * Automatically suspends during data loading
  */
 function DashboardStatsContent() {
-  const stats = useDashboardData() as DashboardStats
+  const { data: stats } = useDashboardOverview()
   
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 space-fluid-sm">
@@ -51,7 +54,7 @@ function DashboardStatsContent() {
  * Properties Overview - React 19 data fetching
  */
 function PropertiesOverviewContent() {
-  const properties = usePropertiesData() as Property[]
+  const { data: properties } = useProperties()
   
   return (
     <div className="card">

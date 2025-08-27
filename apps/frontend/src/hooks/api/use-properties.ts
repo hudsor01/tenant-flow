@@ -11,6 +11,7 @@ import {
 } from '@tanstack/react-query'
 import type {
 	Property,
+	PropertyWithUnits,
 	PropertyQuery,
 	CreatePropertyInput,
 	UpdatePropertyInput,
@@ -18,25 +19,37 @@ import type {
 } from '@repo/shared'
 import { apiClient } from '@/lib/api-client'
 import { queryKeys } from '@/lib/react-query/query-keys'
-import { useOptimisticList, useOptimisticItem } from '@/hooks/use-react19-optimistic'
+import { useOptimisticList, useOptimisticItem } from '@/hooks/use-optimistic-data'
 
 // ============================================================================
 // PURE DATA HOOKS - TanStack Query Suspense (No Optimistic Logic)
 // ============================================================================
 
 /**
- * PURE: useSuspenseQuery for properties list - data always available
+ * PURE: useSuspenseQuery for properties with units - includes calculated stats
+ * This is the primary hook for fetching properties with their units for stat calculations
  */
-export function useProperties(
+export function usePropertiesWithUnits(
 	query?: PropertyQuery
-): UseSuspenseQueryResult<Property[]> {
+): UseSuspenseQueryResult<PropertyWithUnits[]> {
 	return useSuspenseQuery({
 		queryKey: queryKeys.properties.list(query),
 		queryFn: async () =>
-			apiClient.get<Property[]>('/properties', { params: query }),
+			apiClient.get<PropertyWithUnits[]>('/properties/with-units', { params: query }),
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000 // 10 minutes
 	})
+}
+
+/**
+ * PURE: useSuspenseQuery for properties list - data always available
+ * Legacy hook - prefer usePropertiesWithUnits for components that need stats
+ */
+export function useProperties(
+	query?: PropertyQuery
+): UseSuspenseQueryResult<PropertyWithUnits[]> {
+	// Use the with-units endpoint to get properties with their units
+	return usePropertiesWithUnits(query)
 }
 
 /**

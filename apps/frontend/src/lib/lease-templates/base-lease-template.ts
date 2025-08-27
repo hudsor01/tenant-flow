@@ -1,133 +1,153 @@
 /**
- * Base lease template that can be customized for different states
- * This serves as the foundation for all state-specific lease agreements
+ * Base lease template generator
+ * Uses native template literals and simple data transformation
  */
 
-// Base lease template utilities and types
+import type { LeaseGeneratorForm, StateLeaseRequirements } from '@repo/shared'
 
-import type {
-	LeaseFormData as LeaseTemplateData,
-	StateLeaseRequirements
-} from '@repo/shared'
-import { formatLeaseDate } from '@/lib/utils/date-formatting'
+// Native date formatter
+const formatDate = (date: Date | string) => {
+  const d = typeof date === 'string' ? new Date(date) : date
+  return d.toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  })
+}
+
+// Native ordinal suffix
+const getOrdinal = (n: number) => {
+  const s = ['th', 'st', 'nd', 'rd']
+  const v = n % 100
+  return n + (s[(v - 20) % 10] || s[v] || s[0])
+}
 
 export function generateBaseLease(
-	data: LeaseTemplateData,
-	stateRequirements: StateLeaseRequirements
+  data: LeaseGeneratorForm,
+  stateRequirements: StateLeaseRequirements
 ): string {
-	const currentDate = new Date().toLocaleDateString()
-	// Handle both string[] and {name: string}[] formats for tenant names
-	const tenantList =
-		data.tenantNames
-			?.map((t: string | { name: string }) =>
-				typeof t === 'string' ? t : t.name
-			)
-			.join(', ') || 'Tenant'
-	const utilitiesList =
-		data.utilitiesIncluded?.length > 0
-			? data.utilitiesIncluded.join(', ')
-			: 'None included'
+  // Simple destructuring with defaults - using actual field names from schema
+  const {
+    landlordName = 'Landlord',
+    tenantNames = [],
+    propertyAddress = '',
+    unitNumber = '',
+    city = '',
+    state = '',
+    zipCode = '',
+    leaseStartDate,
+    leaseEndDate,
+    rentAmount = 0,
+    paymentDueDate = 1,
+    paymentMethod = 'check',
+    paymentAddress = '',
+    securityDeposit = 0,
+    utilitiesIncluded = [],
+    petPolicy = 'not_allowed',
+    petDeposit = 0,
+    maintenanceResponsibility = 'landlord',  // Note: different field name
+    lateFeeAmount = 0,  // Note: different field name
+    lateFeeDays = 5,    // Note: different field name
+    additionalTerms = '',
+    specialProvisions = ''
+  } = data
 
-	return `
-RESIDENTIAL LEASE AGREEMENT
+  // Native array methods for tenant names
+  const tenants = tenantNames.map(t => t.name).join(', ') || 'Tenant'
+  const utilities = utilitiesIncluded.join(', ') || 'None included'
+  const address = unitNumber ? `${propertyAddress}, Unit ${unitNumber}` : propertyAddress
+  
+  // Native template literal for the lease
+  return `RESIDENTIAL LEASE AGREEMENT
 
-This Lease Agreement ("Agreement") is entered into on ${currentDate}, between ${data.landlordName} ("Landlord") and ${tenantList} ("Tenant(s)") for the property located at:
+This Lease Agreement ("Agreement") is entered into on ${formatDate(new Date())}, between ${landlordName} ("Landlord") and ${tenants} ("Tenant(s)") for the property located at:
 
-${data.propertyAddress}${data.unitNumber ? `, Unit ${data.unitNumber}` : ''}
-${data.city}, ${data.state} ${data.zipCode}
+${address}
+${city}, ${state} ${zipCode}
 
 TERMS AND CONDITIONS:
 
 1. LEASE TERM
-The lease term begins on ${formatLeaseDate(data.leaseStartDate)} and ends on ${formatLeaseDate(data.leaseEndDate)}.
+The lease term begins on ${formatDate(leaseStartDate)} and ends on ${formatDate(leaseEndDate)}.
 
 2. RENT
-Monthly rent is $${data.rentAmount.toLocaleString()}, due on the ${data.paymentDueDate}${data.paymentDueDate === 1 ? 'st' : data.paymentDueDate === 2 ? 'nd' : data.paymentDueDate === 3 ? 'rd' : 'th'} of each month.
-
-Payment Method: ${data.paymentMethod.replace('_', ' ').toUpperCase()}
-${data.paymentAddress ? `Payment Address: ${data.paymentAddress}` : ''}
+Monthly rent is $${rentAmount.toLocaleString()}, due on the ${getOrdinal(paymentDueDate)} of each month.
+Payment Method: ${paymentMethod.replace(/_/g, ' ').toUpperCase()}
+${paymentAddress ? `Payment Address: ${paymentAddress}` : ''}
 
 3. SECURITY DEPOSIT
-Security deposit: $${data.securityDeposit.toLocaleString()}
-${stateRequirements.securityDepositLimit && stateRequirements.securityDepositLimit > 0 ? `\nState Limit: ${stateRequirements.securityDepositLimit}` : ''}
+Security deposit: $${securityDeposit.toLocaleString()}
+${stateRequirements.securityDepositLimit ? `State Limit: ${stateRequirements.securityDepositLimit} months' rent` : ''}
+${stateRequirements.securityDepositReturnPeriod ? `Return Period: Within ${stateRequirements.securityDepositReturnPeriod} days` : ''}
 
-4. LATE FEES
-Late fee of $${data.lateFeeAmount} applies after ${data.lateFeeDays} days past due date.
+4. UTILITIES
+Included utilities: ${utilities}
 
-5. UTILITIES
-The following utilities are included in rent: ${utilitiesList}
+5. PET POLICY
+${petPolicy}
+${petDeposit > 0 ? `Pet deposit: $${petDeposit.toLocaleString()}` : ''}
 
-6. PET POLICY
-${data.petPolicy === 'allowed' ? 'Pets are allowed.' : data.petPolicy === 'with_deposit' ? `Pets allowed with additional deposit of $${data.petDeposit ?? 0}.` : 'No pets allowed.'}
+6. MAINTENANCE
+Maintenance responsibilities: ${maintenanceResponsibility.replace(/_/g, ' ')}
 
-7. SMOKING POLICY
-${data.smokingPolicy === 'allowed' ? 'Smoking is permitted.' : 'No smoking allowed on the premises.'}
+7. LATE FEES
+Late fee: $${lateFeeAmount} after ${lateFeeDays} day grace period
 
-8. MAINTENANCE RESPONSIBILITY
-${data.maintenanceResponsibility === 'landlord' ? 'Landlord is responsible for major repairs and maintenance.' : data.maintenanceResponsibility === 'tenant' ? 'Tenant is responsible for all maintenance and repairs.' : 'Maintenance responsibilities are shared between landlord and tenant.'}
+8. ADDITIONAL TERMS
+${additionalTerms || 'No additional terms specified'}
 
-9. ENTRY NOTICE
-Landlord must provide proper notice before entering the premises as required by state law.
+${specialProvisions ? `9. SPECIAL PROVISIONS\n${specialProvisions}\n` : ''}
 
-10. LEASE TERMINATION
-${stateRequirements.noticePeriods.terminationByTenant} days notice required by tenant for lease termination.
-${stateRequirements.noticePeriods.terminationByLandlord} days notice required by landlord for lease termination.
+${stateRequirements.mandatoryDisclosures?.length ? `REQUIRED STATE DISCLOSURES:\n${stateRequirements.mandatoryDisclosures.join('\n')}\n` : ''}
 
-${
-	stateRequirements.mandatoryDisclosures &&
-	stateRequirements.mandatoryDisclosures.length > 0
-		? `
-REQUIRED DISCLOSURES:
-${stateRequirements.mandatoryDisclosures.map((disclosure: string) => `• ${disclosure}`).join('\n')}
-`
-		: ''
+SIGNATURES:
+
+_________________________    Date: __________
+Landlord: ${landlordName}
+
+${tenantNames.map((t, i) => `_________________________    Date: __________
+Tenant ${i + 1}: ${t.name}`).join('\n\n')}
+
+${stateRequirements.witnessRequired ? `
+WITNESSES:
+
+_________________________    Date: __________
+Witness 1
+
+_________________________    Date: __________  
+Witness 2` : ''}
+
+${stateRequirements.notarizationRequired ? `
+NOTARY ACKNOWLEDGMENT:
+
+State of ${state}
+County of _____________
+
+Subscribed and sworn before me this _____ day of _________, 20___
+
+_________________________
+Notary Public
+My commission expires: __________` : ''}`
 }
 
-${
-	stateRequirements.requiredClauses &&
-	stateRequirements.requiredClauses.length > 0
-		? `
-STATE-SPECIFIC PROVISIONS:
-${stateRequirements.requiredClauses.map((clause: string) => `• ${clause}`).join('\n')}
-`
-		: ''
+// Export a simplified validation function using native features
+export function validateLeaseData(data: Partial<LeaseGeneratorForm>): string[] {
+  const errors: string[] = []
+  
+  // Native validation checks
+  if (!data.landlordName?.trim()) errors.push('Landlord name is required')
+  if (!data.tenantNames?.length) errors.push('At least one tenant is required')
+  if (!data.propertyAddress?.trim()) errors.push('Property address is required')
+  if (!data.rentAmount || data.rentAmount <= 0) errors.push('Valid rent amount is required')
+  if (!data.leaseStartDate) errors.push('Lease start date is required')
+  if (!data.leaseEndDate) errors.push('Lease end date is required')
+  
+  // Native date validation
+  if (data.leaseStartDate && data.leaseEndDate) {
+    const start = new Date(data.leaseStartDate)
+    const end = new Date(data.leaseEndDate)
+    if (end <= start) errors.push('Lease end date must be after start date')
+  }
+  
+  return errors
 }
-
-${
-	data.additionalTerms
-		? `
-ADDITIONAL TERMS:
-${data.additionalTerms}
-`
-		: ''
-}
-
-LANDLORD CONTACT INFORMATION:
-Name: ${data.landlordName}
-Email: ${data.landlordEmail}
-${data.landlordPhone ? `Phone: ${data.landlordPhone}` : ''}
-Address: ${data.landlordAddress}
-
-By signing below, both parties agree to the terms and conditions of this lease agreement.
-
-Landlord Signature: _________________________ Date: _________
-${data.landlordName}
-
-${data.tenantNames
-	.map(
-		(tenant: string | { name: string }) => `
-Tenant Signature: _________________________ Date: _________
-${typeof tenant === 'string' ? tenant : tenant.name}
-`
-	)
-	.join('')}
-
-This lease agreement was generated on ${formatLeaseDate(new Date().toISOString())} and complies with ${data.state} state laws and regulations.
-`
-}
-
-// Re-export types for sibling modules
-export type {
-	LeaseFormData as LeaseTemplateData,
-	StateLeaseRequirements
-} from '@repo/shared'

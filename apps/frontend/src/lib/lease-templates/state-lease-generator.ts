@@ -4,7 +4,7 @@
  */
 
 import type {
-	LeaseFormData as LeaseTemplateData,
+	LeaseGeneratorForm,
 	StateLeaseRequirements
 } from '@repo/shared'
 import { generateBaseLease } from './base-lease-template'
@@ -70,7 +70,7 @@ const getStateFromSlug = (slug: string) => {
 const getAllStates = () => US_STATES
 
 export interface GenerateLeaseOptions {
-	data: LeaseTemplateData
+	data: LeaseGeneratorForm
 	stateKey: string
 	format: 'pdf' | 'docx' | 'html'
 }
@@ -127,7 +127,7 @@ export function generateStateLease(
  * Generates appropriate filename for the lease document
  */
 function generateFileName(
-	data: LeaseTemplateData,
+	data: LeaseGeneratorForm,
 	stateCode: string,
 	format: string
 ): string {

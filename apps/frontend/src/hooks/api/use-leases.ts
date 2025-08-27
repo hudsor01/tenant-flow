@@ -17,7 +17,7 @@ import type {
 } from '@repo/shared'
 import { leaseApi } from '@/lib/api/leases'
 import { queryKeys } from '@/lib/react-query/query-keys'
-import { useOptimisticList, useOptimisticItem } from '@/hooks/use-react19-optimistic'
+import { useOptimisticList, useOptimisticItem } from '@/hooks/use-optimistic-data'
 
 // ============================================================================
 // PURE DATA HOOKS - TanStack Query Suspense (No Optimistic Logic)

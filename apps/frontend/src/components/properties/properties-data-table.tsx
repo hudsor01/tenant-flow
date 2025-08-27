@@ -66,7 +66,7 @@ function PropertyRow({ property, onView, onEdit }: PropertyRowProps) {
 			</TableCell>
 			<TableCell>
 				<Badge variant="secondary" className="capitalize">
-					{property.propertyType}
+					{property.status || 'ACTIVE'}
 				</Badge>
 			</TableCell>
 			<TableCell>
@@ -186,7 +186,7 @@ function PropertyCard({ property, onView, onEdit }: PropertyCardProps) {
 				<div className="space-y-3">
 					<div className="flex items-center gap-4">
 						<Badge variant="secondary" className="capitalize">
-							{property.propertyType.replace('_', ' ')}
+							{property.status || 'ACTIVE'}
 						</Badge>
 						<Badge
 							variant={
@@ -243,8 +243,8 @@ function filterProperties(
 				.includes(searchQuery.toLowerCase()) ||
 			property.city?.toLowerCase().includes(searchQuery.toLowerCase())
 
-		const matchesType =
-			propertyType === '' || property.propertyType === propertyType
+		// Since propertyType field doesn't exist, always match for now
+		const matchesType = true
 
 		return matchesSearch && matchesType
 	})

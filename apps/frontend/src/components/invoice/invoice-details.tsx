@@ -2,7 +2,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import type { InvoiceDetailsProps } from '@repo/shared/types/ui'
+
+// Local type definition - following KISS principle
+interface InvoiceDetailsProps {
+	register: any // React Hook Form register function
+}
 
 export function InvoiceDetails({ register }: InvoiceDetailsProps) {
 	return (
