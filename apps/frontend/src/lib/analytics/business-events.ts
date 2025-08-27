@@ -9,6 +9,7 @@ import type { TenantFlowEvent } from '@repo/shared/types/analytics'
 
 // Local analytics types (analytics specific)
 interface BusinessEvent {
+	event: string // The actual event name for tracking
 	type: string
 	userId?: string
 	properties?: Record<string, unknown>
@@ -18,16 +19,21 @@ interface BusinessEvent {
 interface PropertyEvent extends BusinessEvent {
 	propertyId: string
 	propertyName?: string
+	propertyType?: string
+	address?: string
 }
 
 interface LeaseEvent extends BusinessEvent {
 	leaseId: string
 	propertyId?: string
+	tenantId?: string
+	leaseStatus?: string
 }
 
 interface TenantEvent extends BusinessEvent {
 	tenantId: string
 	propertyId?: string
+	tenantStatus?: string
 }
 
 type BusinessEventType = 

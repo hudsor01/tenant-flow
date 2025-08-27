@@ -5,7 +5,7 @@
  */
 
 import { type NextRequest, NextResponse } from 'next/server'
-import { UserRole, Permission } from '@repo/shared'
+import { UserRole, USER_ROLE, Permission } from '@repo/shared'
 
 // ===========================
 // TYPES AND INTERFACES
@@ -30,7 +30,7 @@ interface AuthContext {
 
 export class Security {
 	private static rolePermissions: Record<UserRole, Permission[]> = {
-		[UserRole.ADMIN]: [
+		[USER_ROLE.ADMIN]: [
 			Permission.READ_PROPERTIES,
 			Permission.WRITE_PROPERTIES,
 			Permission.READ_TENANTS,
@@ -41,7 +41,7 @@ export class Security {
 			Permission.WRITE_FINANCIAL,
 			Permission.ADMIN_ACCESS
 		],
-		[UserRole.OWNER]: [
+		[USER_ROLE.OWNER]: [
 			Permission.READ_PROPERTIES,
 			Permission.WRITE_PROPERTIES,
 			Permission.READ_TENANTS,
@@ -50,7 +50,7 @@ export class Security {
 			Permission.WRITE_MAINTENANCE,
 			Permission.READ_FINANCIAL
 		],
-		[UserRole.MANAGER]: [
+		[USER_ROLE.MANAGER]: [
 			Permission.READ_PROPERTIES,
 			Permission.WRITE_PROPERTIES,
 			Permission.READ_TENANTS,
@@ -59,7 +59,7 @@ export class Security {
 			Permission.WRITE_MAINTENANCE,
 			Permission.READ_FINANCIAL
 		],
-		[UserRole.TENANT]: [
+		[USER_ROLE.TENANT]: [
 			Permission.READ_MAINTENANCE,
 			Permission.WRITE_MAINTENANCE
 		]
@@ -220,7 +220,7 @@ export class Security {
 		resourceOwnerId?: string
 	): boolean {
 		// Admin has access to everything
-		if (userRole === UserRole.ADMIN) {
+		if (userRole === USER_ROLE.ADMIN) {
 			return true
 		}
 
@@ -232,7 +232,7 @@ export class Security {
 		// User-level access control (own resources)
 		if (resourceOwnerId && userId && userId !== resourceOwnerId) {
 			// Only managers and above can access other users' resources
-			const managerRoles = [UserRole.ADMIN, UserRole.MANAGER]
+			const managerRoles: UserRole[] = [USER_ROLE.ADMIN, USER_ROLE.MANAGER, USER_ROLE.OWNER]
 			return managerRoles.includes(userRole)
 		}
 

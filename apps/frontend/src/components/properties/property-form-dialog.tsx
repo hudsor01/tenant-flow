@@ -33,22 +33,14 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import type { Database } from '@repo/shared'
+import { propertyInputSchema, type Database } from '@repo/shared'
 
 // Define types directly from Database schema - NO DUPLICATION
 type Property = Database['public']['Tables']['Property']['Row']
 type _PropertyType = Database['public']['Enums']['PropertyType']
 
-// Define local schema for form validation
-const propertyFormSchema = z.object({
-	name: z.string().min(1, 'Property name is required'),
-	address: z.string().min(1, 'Address is required'),
-	city: z.string().min(1, 'City is required'),
-	state: z.string().min(1, 'State is required'),
-	zipCode: z.string().min(1, 'Zip code is required'),
-	propertyType: z.enum(['SINGLE_FAMILY', 'MULTI_UNIT', 'APARTMENT', 'COMMERCIAL', 'CONDO', 'OTHER'] as const),
-	description: z.string().optional()
-})
+// Use shared validation schema - NO DUPLICATION
+const propertyFormSchema = propertyInputSchema
 
 type PropertyFormData = z.infer<typeof propertyFormSchema>
 
@@ -74,7 +66,7 @@ export function PropertyFormDialog({
 	// Use React 19 optimistic hook
 	const { createProperty, updateProperty, isPending } = usePropertiesOptimistic()
 
-	const form = useForm<PropertyFormData>({
+	const form = useForm({
 		resolver: zodResolver(propertyFormSchema),
 		defaultValues: {
 			name: property?.name || '',

@@ -62,7 +62,8 @@ export function useActionStateForm<T = unknown>({
 }: UseActionStateFormOptions<T>): UseActionStateFormReturn<T> {
 	
 	// React 19 useActionState - handles form submission and pending states
-	const [state, formAction, isPending] = useActionState(action, initialFormState)
+	const initialState: FormState<T> = { success: false }
+	const [state, formAction, isPending] = useActionState(action, initialState)
 	
 	// React 19 useOptimistic - for clearing field errors optimistically
 	const [optimisticState, setOptimisticState] = useOptimistic(
@@ -118,8 +119,8 @@ export function useActionStateForm<T = unknown>({
 	}
 	
 	// Handle success/error callbacks
-	if (state.success && state.data && onSuccess && !isPending) {
-		onSuccess(state.data)
+	if (state.success && state.data !== undefined && onSuccess && !isPending) {
+		onSuccess(state.data as T)
 		
 		if (resetOnSuccess) {
 			// Form will be reset by server action revalidation

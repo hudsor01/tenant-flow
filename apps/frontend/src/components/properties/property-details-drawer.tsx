@@ -23,10 +23,10 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { format } from 'date-fns'
-import type { Database } from '@repo/shared'
+import type { PropertyWithUnits } from '@repo/shared'
 
-// Define types directly from Database schema - NO DUPLICATION
-type Property = Database['public']['Tables']['Property']['Row']
+// Use PropertyWithUnits which includes units relation
+type Property = PropertyWithUnits
 
 interface PropertyDetailsDrawerProps {
 	propertyId: string | null
@@ -44,17 +44,13 @@ export function PropertyDetailsDrawer({
 	onDelete
 }: PropertyDetailsDrawerProps) {
 	const [activeTab, setActiveTab] = useState('overview')
-	const {
-		data: property,
-		isLoading,
-		error
-	} = useProperty(propertyId || '', {
-		enabled: !!propertyId
-	})
-
+	
+	// Don't render if no propertyId to avoid suspense boundary issues
 	if (!propertyId) {
 		return null
 	}
+
+	const { data: property, isLoading, error } = useProperty(propertyId)
 
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
@@ -187,20 +183,18 @@ function PropertyOverview({ property }: { property: Property }) {
 						</div>
 						<div>
 							<p className="text-muted-foreground text-sm">
-								Year Built
+								Owner ID
 							</p>
 							<p className="font-medium">
-								{property.yearBuilt || 'N/A'}
+								{property.ownerId}
 							</p>
 						</div>
 						<div>
 							<p className="text-muted-foreground text-sm">
-								Total Size
+								Total Units
 							</p>
 							<p className="font-medium">
-								{property.totalSize
-									? `${property.totalSize} sq ft`
-									: 'N/A'}
+								{property.units?.length || 0} units
 							</p>
 						</div>
 						<div>
@@ -281,30 +275,26 @@ function PropertyOverview({ property }: { property: Property }) {
 
 			<Card>
 				<CardHeader>
-					<CardTitle>Property Manager</CardTitle>
+					<CardTitle>Property Details</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<div className="flex items-center gap-3">
-						<div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-full">
-							<i className="i-lucide-user inline-block text-primary h-5 w-5"  />
+					<div className="space-y-4">
+						<div className="flex items-center justify-between">
+							<span className="text-muted-foreground text-sm">
+								Status
+							</span>
+							<Badge variant="secondary" className="capitalize">
+								Active
+							</Badge>
 						</div>
-						<div className="flex-1">
-							<p className="font-medium">
-								{property.manager?.name || 'Not Assigned'}
-							</p>
-							{property.manager && (
-								<div className="text-muted-foreground mt-1 flex items-center gap-4 text-sm">
-									<span className="flex items-center gap-1">
-										<i className="i-lucide-phone inline-block h-3 w-3"  />
-										{property.manager.phone}
-									</span>
-									<span className="flex items-center gap-1">
-										<i className="i-lucide-mail inline-block h-3 w-3"  />
-										{property.manager.email}
-									</span>
-								</div>
-							)}
-						</div>
+						{property.description && (
+							<div>
+								<p className="text-muted-foreground text-sm mb-1">
+									Description
+								</p>
+								<p className="text-sm">{property.description}</p>
+							</div>
+						)}
 					</div>
 				</CardContent>
 			</Card>
@@ -366,7 +356,7 @@ function PropertyUnits({ property }: { property: Property }) {
 									{unit.status}
 								</Badge>
 								<p className="mt-1 text-sm font-medium">
-									${unit.rentAmount}/mo
+									${unit.rent}/mo
 								</p>
 							</div>
 						</div>
@@ -381,12 +371,12 @@ function PropertyFinancials({ property }: { property: Property }) {
 	const totalMonthlyRent =
 		property.units?.reduce(
 			(sum, unit) =>
-				unit.status === 'OCCUPIED' ? sum + (unit.rentAmount ?? 0) : sum,
+				unit.status === 'OCCUPIED' ? sum + (unit.rent ?? 0) : sum,
 			0
 		) ?? 0
 	const potentialMonthlyRent =
 		property.units?.reduce(
-			(sum, unit) => sum + (unit.rentAmount ?? 0),
+			(sum, unit) => sum + (unit.rent ?? 0),
 			0
 		) ?? 0
 

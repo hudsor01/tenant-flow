@@ -15,8 +15,26 @@ export interface WebhookNotification {
 	metadata?: Record<string, unknown>
 }
 
-// Webhook processor function type
-export interface WebhookProcessorFunction {
+// Webhook processor function type - generic for extensibility
+export interface WebhookProcessorFunction<T = unknown> {
 	event: string
-	processor: (event: unknown) => Promise<WebhookNotification[]>
+	processor: (event: T) => Promise<WebhookNotification[]>
+}
+
+// Stripe-specific webhook processor with proper Stripe event typing
+export interface StripeWebhookProcessor {
+	event: string
+	processor: (event: StripeWebhookEvent) => Promise<WebhookNotification[]>
+}
+
+// Stripe webhook event structure (simplified)
+export interface StripeWebhookEvent {
+	id: string
+	type: string
+	data: {
+		object: unknown
+		previous_attributes?: Record<string, unknown>
+	}
+	created: number
+	livemode: boolean
 }

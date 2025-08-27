@@ -19,7 +19,7 @@ interface NotificationSetting {
 	description: string
 	email: boolean
 	push: boolean
-	icon: React.ComponentType<{ className?: string }>
+	icon: string // UnoCSS icon class name
 }
 
 export function NotificationSettings() {
@@ -32,7 +32,7 @@ export function NotificationSettings() {
 			description: 'Get notified when rent is paid or overdue',
 			email: true,
 			push: true,
-			icon: DollarSign
+			icon: 'i-lucide-dollar-sign'
 		},
 		{
 			id: 'lease_expiry',
@@ -40,7 +40,7 @@ export function NotificationSettings() {
 			description: 'Alerts when leases are expiring soon',
 			email: true,
 			push: false,
-			icon: Calendar
+			icon: 'i-lucide-calendar'
 		},
 		{
 			id: 'maintenance_requests',
@@ -48,7 +48,7 @@ export function NotificationSettings() {
 			description: 'New maintenance requests from tenants',
 			email: true,
 			push: true,
-			icon: Wrench
+			icon: 'i-lucide-wrench'
 		},
 		{
 			id: 'tenant_messages',
@@ -56,7 +56,7 @@ export function NotificationSettings() {
 			description: 'Messages and communications from tenants',
 			email: false,
 			push: true,
-			icon: Users
+			icon: 'i-lucide-users'
 		},
 		{
 			id: 'urgent_issues',
@@ -64,7 +64,7 @@ export function NotificationSettings() {
 			description: 'High priority maintenance or emergency alerts',
 			email: true,
 			push: true,
-			icon: AlertTriangle
+			icon: 'i-lucide-alert-triangle'
 		}
 	])
 
@@ -122,7 +122,6 @@ export function NotificationSettings() {
 						<Separator />
 
 						{settings.map(setting => {
-							const Icon = setting.icon
 							return (
 								<div
 									key={setting.id}
@@ -130,7 +129,7 @@ export function NotificationSettings() {
 								>
 									<div className="space-y-1">
 										<div className="flex items-center gap-2">
-											<Icon className="text-muted-foreground h-4 w-4" />
+											<i className={`${setting.icon} text-muted-foreground h-4 w-4`} />
 											<Label className="font-medium">
 												{setting.label}
 											</Label>

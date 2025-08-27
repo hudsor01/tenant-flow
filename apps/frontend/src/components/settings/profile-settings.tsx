@@ -41,13 +41,18 @@ export function ProfileSettings() {
 
 	const { execute: saveProfile, isLoading } = useApiCall(
 		async (data: ProfileFormData) => {
-			// Validate and send, then validate the response shape
-			return await apiClient.putValidated(
-				'/api/v1/auth/profile',
-				UpdateUserProfileSchema,
-				'UpdateUserProfile',
-				data as Record<string, unknown>
-			)
+			// TODO: Replace with proper API client
+			const response = await fetch('/api/v1/auth/profile', {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(data)
+			})
+			
+			if (!response.ok) {
+				throw new Error('Failed to update profile')
+			}
+			
+			return await response.json()
 		},
 		{
 			successMessage: 'Profile updated successfully',

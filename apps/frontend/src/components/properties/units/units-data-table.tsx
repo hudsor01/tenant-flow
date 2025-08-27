@@ -29,6 +29,8 @@ type UnitDisplayData = Unit & {
 		name: string
 		address: string
 	}
+	// Add monthlyRent as alias for rent to handle legacy references
+	monthlyRent?: number
 }
 
 function UnitRow({ unit }: { unit: UnitDisplayData }) {
@@ -107,7 +109,7 @@ function UnitRow({ unit }: { unit: UnitDisplayData }) {
 			<TableCell>
 				<div className="flex items-center gap-1 text-sm">
 					<i className="i-lucide-dollar-sign inline-block text-muted-foreground h-3 w-3"  />
-					{formatRent(unit.monthlyRent || unit.rent)}
+					{formatRent(unit.rent)}
 				</div>
 			</TableCell>
 			<TableCell>{getStatusBadge(unit.status)}</TableCell>
@@ -151,7 +153,7 @@ function UnitsTableSkeleton() {
 }
 
 interface UnitsTableUIProps {
-	units: UnitWithDetails[]
+	units: UnitDisplayData[]
 }
 
 function UnitsTableUI({ units }: UnitsTableUIProps) {
@@ -264,5 +266,5 @@ export function UnitsDataTable() {
 		throw error
 	}
 
-	return <UnitsTableUI units={(units as UnitWithDetails[]) || []} />
+	return <UnitsTableUI units={(units as UnitDisplayData[]) || []} />
 }

@@ -333,7 +333,7 @@ export function EnhancedElementsProvider({
 			options={elementsOptions}
 			key={`${effectiveTheme}-${appearance}-${mode}`} // Force re-render on theme/mode changes
 		>
-			{children}
+			{children as React.ReactNode}
 		</Elements>
 	)
 }

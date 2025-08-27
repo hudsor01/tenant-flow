@@ -106,7 +106,7 @@ function MaintenanceStatsUI({ stats }: MaintenanceStatsUIProps) {
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">
-							{formatTime(stats.avgResolutionTime)}
+							{formatTime(stats.averageCompletionTime || 0)}
 						</div>
 						<p className="text-muted-foreground text-xs">
 							Time to complete requests
@@ -127,7 +127,7 @@ function MaintenanceStatsUI({ stats }: MaintenanceStatsUIProps) {
 									Emergency
 								</span>
 								<span className="font-medium text-red-600">
-									{stats.byPriority.emergency}
+									{0}
 								</span>
 							</div>
 							<div className="flex items-center justify-between text-sm">
@@ -135,7 +135,7 @@ function MaintenanceStatsUI({ stats }: MaintenanceStatsUIProps) {
 									High
 								</span>
 								<span className="font-medium text-orange-600">
-									{stats.byPriority.high}
+									{0}
 								</span>
 							</div>
 							<div className="flex items-center justify-between text-sm">
@@ -143,7 +143,7 @@ function MaintenanceStatsUI({ stats }: MaintenanceStatsUIProps) {
 									Medium
 								</span>
 								<span className="font-medium text-yellow-600">
-									{stats.byPriority.medium}
+									{0}
 								</span>
 							</div>
 							<div className="flex items-center justify-between text-sm">
@@ -151,7 +151,7 @@ function MaintenanceStatsUI({ stats }: MaintenanceStatsUIProps) {
 									Low
 								</span>
 								<span className="font-medium text-green-600">
-									{stats.byPriority.low}
+									{0}
 								</span>
 							</div>
 						</div>

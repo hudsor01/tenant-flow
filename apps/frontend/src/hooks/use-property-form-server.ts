@@ -1,13 +1,12 @@
 'use client'
 
-import { useState } from 'react'
-import { useServerAction } from '@/hooks'
+import { useState, useActionState } from 'react'
 import {
 	createProperty,
 	updateProperty
 } from '@/app/actions/properties'
 import { toast } from 'sonner'
-import type { Database, FormState } from '@repo/shared'
+import type { Database, PropertyWithUnits } from '@repo/shared'
 
 // Define types directly from Database schema - NO DUPLICATION
 type Property = Database['public']['Tables']['Property']['Row']
@@ -18,9 +17,15 @@ interface UsePropertyFormServerProps {
 	onSuccess?: () => void
 }
 
+interface PropertyFormState {
+	success: boolean
+	error?: string
+	property?: PropertyWithUnits
+}
+
 interface PropertyFormServerHookReturn {
 	// Form state and submission
-	formState: FormState
+	formState: PropertyFormState
 	isPending: boolean
 	formAction: (formData: FormData) => void
 
@@ -32,7 +37,7 @@ interface PropertyFormServerHookReturn {
 	mode: 'create' | 'edit'
 }
 
-const initialState: FormState = { success: false }
+const initialState: PropertyFormState = { success: false }
 
 export function usePropertyFormServer({
 	property,
@@ -41,24 +46,22 @@ export function usePropertyFormServer({
 }: UsePropertyFormServerProps): PropertyFormServerHookReturn {
 	const [amenities, setAmenities] = useState<string[]>([])
 
-	// Determine the server action based on mode
-	const action =
-		mode === 'create'
-			? createProperty
-			: async (prevState: FormState, formData: FormData) => {
-					if (!property?.id) {
-						throw new Error('Property ID is required for update')
-					}
-					return updateProperty(property.id, prevState, formData)
+	// Wrapper action to match useActionState signature
+	const wrappedAction = async (
+		prevState: PropertyFormState,
+		formData: FormData
+	): Promise<PropertyFormState> => {
+		try {
+			let result: PropertyWithUnits
+			if (mode === 'create') {
+				result = await createProperty(formData)
+			} else {
+				if (!property?.id) {
+					throw new Error('Property ID is required for update')
 				}
+				result = await updateProperty(property.id, formData)
+			}
 
-	// Use server action hook for form state management
-	const {
-		state: formState,
-		formAction,
-		isPending
-	} = useServerAction(action, initialState, {
-		onSuccess: () => {
 			const successMessage =
 				mode === 'create'
 					? 'Property created successfully'
@@ -66,9 +69,20 @@ export function usePropertyFormServer({
 
 			toast.success(successMessage)
 			onSuccess?.()
-		},
-		showToast: false // Handle toast manually above
-	})
+
+			return { success: true, property: result }
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : 'Failed to save property'
+			toast.error(errorMessage)
+			return { success: false, error: errorMessage }
+		}
+	}
+
+	// Use React 19's useActionState for form state management
+	const [formState, formAction, isPending] = useActionState(
+		wrappedAction,
+		initialState
+	)
 
 	const wrappedFormAction = (formData: FormData) => {
 		// Add amenities to form data
