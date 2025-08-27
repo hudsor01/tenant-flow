@@ -1,5 +1,5 @@
 'use client'
-import { DollarSign,Shield,Bell,Home } from 'lucide-react'
+
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -8,25 +8,25 @@ import { useCallback } from 'react'
 
 const trustPoints = [
 	{
-		icon: DollarSign,
+		icon: 'i-lucide-dollar-sign',
 		title: 'Free Trial',
 		subtitle: '14 days, no CC required',
 		gradient: 'from-green-400 to-emerald-500'
 	},
 	{
-		icon: Shield,
+		icon: 'i-lucide-shield',
 		title: 'Secure',
 		subtitle: 'Bank-level encryption',
 		gradient: 'from-blue-400 to-cyan-500'
 	},
 	{
-		icon: Bell,
+		icon: 'i-lucide-bell',
 		title: '24/7 Support',
 		subtitle: 'Always here to help',
 		gradient: 'from-purple-400 to-pink-500'
 	},
 	{
-		icon: Home,
+		icon: 'i-lucide-home',
 		title: '10,000+ Users',
 		subtitle: 'Trusted nationwide',
 		gradient: 'from-orange-400 to-red-500'

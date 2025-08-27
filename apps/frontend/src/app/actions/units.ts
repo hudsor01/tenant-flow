@@ -6,11 +6,28 @@
 
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { createActionClient } from '@/lib/supabase/action-client'
-import type { 
-  Unit,
-  UnitQuery,
-  UnitStats
-} from '@repo/shared'
+import type { Database } from '@repo/shared'
+
+// Define types directly from Database schema - NO DUPLICATION
+type Unit = Database['public']['Tables']['Unit']['Row']
+type CreateUnitInput = Database['public']['Tables']['Unit']['Insert']
+type _UpdateUnitInput = Database['public']['Tables']['Unit']['Update']
+type UnitStatus = Database['public']['Enums']['UnitStatus']
+
+// Define local interfaces for component needs  
+interface UnitQuery {
+  search?: string
+  status?: string
+  propertyId?: string
+}
+
+interface UnitStats {
+  total: number
+  occupied: number
+  vacant: number
+  maintenance: number
+  occupancyRate: number
+}
 
 /**
  * NATIVE Server Action: Get all units
@@ -73,21 +90,16 @@ export async function getUnit(id: string): Promise<Unit> {
 export async function createUnit(formData: FormData): Promise<Unit> {
   const supabase = await createActionClient()
   
-  // Direct database insert - no type validation needed
-  const unitData = {
-    property_id: formData.get('property_id') as string,
-    unit_number: formData.get('unit_number') as string,
-    floor: parseInt(formData.get('floor') as string, 10) || null,
+  // Direct database insert - use camelCase for Supabase generated types
+  const unitData: CreateUnitInput = {
+    propertyId: formData.get('property_id') as string,
+    unitNumber: formData.get('unit_number') as string,
     bedrooms: parseInt(formData.get('bedrooms') as string, 10) || 1,
     bathrooms: parseFloat(formData.get('bathrooms') as string) || 1,
-    square_feet: parseInt(formData.get('square_feet') as string, 10) || null,
-    monthly_rent: parseFloat(formData.get('monthly_rent') as string),
-    status: formData.get('status') as string || 'VACANT',
-    amenities: formData.has('amenities')
-      ? JSON.parse(formData.get('amenities') as string)
-      : [],
-    notes: formData.get('notes') as string || null
-  } as any
+    squareFeet: parseInt(formData.get('square_feet') as string, 10) || undefined,
+    rent: parseFloat(formData.get('rent') as string) || 0,
+    status: (formData.get('status') as UnitStatus) || 'VACANT'
+  }
 
   const { data, error } = await supabase
     .from('units')
@@ -132,7 +144,7 @@ export async function updateUnit(
     bathrooms: formData.has('bathrooms')
       ? parseFloat(formData.get('bathrooms') as string)
       : null,
-    monthly_rent: formData.has('monthlyRent')
+    rentAmount: formData.has('monthlyRent')
       ? parseFloat(formData.get('monthlyRent') as string)
       : null,
     description: formData.get('description') as string || null,
@@ -226,10 +238,10 @@ export async function getUnitStats(): Promise<UnitStats> {
     : 0
 
   return {
-    totalUnits: totalUnits || 0,
-    availableUnits: vacantUnits || 0,
-    occupiedUnits: occupiedUnits || 0,
-    maintenanceUnits: maintenanceUnits || 0,
+    total: totalUnits || 0,
+    vacant: vacantUnits || 0,
+    occupied: occupiedUnits || 0,
+    maintenance: maintenanceUnits || 0,
     occupancyRate
   }
 }

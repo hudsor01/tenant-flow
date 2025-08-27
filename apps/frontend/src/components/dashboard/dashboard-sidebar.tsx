@@ -1,5 +1,5 @@
 'use client'
-import { Home,Building,Users,FileText,Wrench,BarChart3,Settings } from 'lucide-react'
+
 import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -33,41 +33,41 @@ const getNavigationItems = (stats?: DashboardStats) => [
 		id: 'dashboard',
 		name: 'Dashboard',
 		href: '/dashboard',
-		icon: Home,
+		icon: 'i-lucide-home',
 		badge: null
 	},
 	{
 		id: 'properties',
 		name: 'Properties',
 		href: '/properties',
-		icon: Building,
-		badge: stats?.totalProperties ?? null,
+		icon: 'i-lucide-building',
+		badge: stats?.properties?.total ?? null,
 		badgeColor: 'bg-blue-100 text-blue-700'
 	},
 	{
 		id: 'tenants',
 		name: 'Tenants',
 		href: '/tenants',
-		icon: Users,
-		badge: stats?.totalTenants ?? null,
+		icon: 'i-lucide-users',
+		badge: stats?.tenants?.total ?? null,
 		badgeColor: 'bg-green-100 text-green-700'
 	},
 	{
 		id: 'leases',
 		name: 'Leases',
 		href: '/leases',
-		icon: FileText,
-		badge: stats?.totalUnits ?? null,
+		icon: 'i-lucide-file-text',
+		badge: stats?.units?.total ?? null,
 		badgeColor: 'bg-purple-100 text-purple-700'
 	},
 	{
 		id: 'maintenance',
 		name: 'Maintenance',
 		href: '/maintenance',
-		icon: Wrench,
-		badge: stats?.maintenanceRequests ?? null,
+		icon: 'i-lucide-wrench',
+		badge: stats?.maintenance?.total ?? null,
 		badgeColor:
-			(stats?.maintenanceRequests ?? 0) > 0
+			(stats?.maintenance?.total ?? 0) > 0
 				? 'bg-red-100 text-red-700'
 				: 'bg-gray-100 text-gray-700'
 	},
@@ -75,14 +75,14 @@ const getNavigationItems = (stats?: DashboardStats) => [
 		id: 'reports',
 		name: 'Reports',
 		href: '/reports',
-		icon: BarChart3,
+		icon: 'i-lucide-bar-chart-3',
 		badge: null
 	},
 	{
 		id: 'settings',
 		name: 'Settings',
 		href: '/settings',
-		icon: Settings,
+		icon: 'i-lucide-settings',
 		badge: null
 	}
 ]
@@ -246,17 +246,17 @@ export function DashboardSidebar({
 										<i className="i-lucide-bell inline-block h-4 w-4"  />
 										<span>Notifications</span>
 										{/* Notification badge */}
-										{(stats?.maintenanceRequests ||
+										{(stats?.maintenance?.total ||
 											0) > 0 && (
 											<div className="absolute -top-1 -right-1 hidden h-2 w-2 rounded-full bg-red-500 group-data-[collapsible=icon]:block" />
 										)}
-										{(stats?.maintenanceRequests ||
+										{(stats?.maintenance?.total ||
 											0) > 0 && (
 											<Badge
 												variant="destructive"
 												className="ml-auto rounded-full px-1.5 py-0.5 text-xs group-data-[collapsible=icon]:hidden"
 											>
-												{stats?.maintenanceRequests ?? 0}
+												{stats?.maintenance?.total ?? 0}
 											</Badge>
 										)}
 									</Link>
@@ -404,14 +404,12 @@ export function DashboardSidebar({
 												)}
 											>
 												<div className="flex items-center gap-3">
-													<Icon
-														className={cn(
+													<i className={cn(stat.icon, 'inline-block', cn(
 															'h-5 w-5',
 															isActive
 																? 'text-primary'
 																: 'text-gray-500'
-														)}
-													/>
+														))} />
 													<span>{item.name}</span>
 												</div>
 
@@ -448,13 +446,13 @@ export function DashboardSidebar({
 									<i className="i-lucide-bell inline-block h-5 w-5 text-gray-500"  />
 									<span>Notifications</span>
 								</div>
-								{(stats?.maintenanceRequests ?? 0) >
+								{(stats?.maintenance?.total ?? 0) >
 									0 && (
 									<Badge
 										variant="destructive"
 										className="rounded-full px-1.5 py-0.5 text-xs"
 									>
-										{stats?.maintenanceRequests ?? 0}
+										{stats?.maintenance?.total ?? 0}
 									</Badge>
 								)}
 							</Link>

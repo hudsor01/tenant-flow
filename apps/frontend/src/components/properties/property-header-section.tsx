@@ -8,7 +8,18 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import type { PropertyWithUnitsAndLeases } from '@repo/shared'
+import type { Database } from '@repo/shared'
+
+// Define types directly from Database schema - NO DUPLICATION
+type Property = Database['public']['Tables']['Property']['Row']
+type Unit = Database['public']['Tables']['Unit']['Row']
+type Lease = Database['public']['Tables']['Lease']['Row']
+
+// Define local interface for component needs
+interface PropertyWithUnitsAndLeases extends Property {
+	units?: Unit[]
+	leases?: Lease[]
+}
 
 interface PropertyHeaderSectionProps {
 	property: PropertyWithUnitsAndLeases

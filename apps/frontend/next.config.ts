@@ -3,14 +3,15 @@ import path from 'node:path'
 
 // Webpack configuration for production builds
 interface WebpackConfig {
-	ignoreWarnings?: {
-		module: RegExp
-		message: RegExp
-	}[]
-	resolve?: {
-		fallback?: Record<string, boolean>
-	}
-	plugins?: unknown[]
+ignoreWarnings?: {
+module: RegExp
+message: RegExp
+}[]
+resolve?: {
+fallback?: Record<string, boolean>
+alias?: Record<string, string>
+}
+plugins?: unknown[]
 }
 
 interface WebpackContext {
@@ -55,9 +56,8 @@ const nextConfig: NextConfig = {
 	},
 
 	// Build validation - temporarily ignore ESLint warnings during builds
-	// TODO: Re-enable after fixing type safety warnings
 	eslint: {
-		ignoreDuringBuilds: true
+		ignoreDuringBuilds: false
 	},
 	typescript: {
 		ignoreBuildErrors: false
@@ -180,12 +180,24 @@ const nextConfig: NextConfig = {
 		const typedContext = context as WebpackContext
 		const { isServer } = typedContext
 
-		// Suppress Supabase websocket warnings in all builds
-		typedConfig.ignoreWarnings = [
-			...(typedConfig.ignoreWarnings || []),
-			{ module: /websocket-factory/, message: /Critical dependency/ },
-			{ module: /@supabase/, message: /Critical dependency/ }
-		]
+ // Suppress Supabase websocket warnings in all builds
+ typedConfig.ignoreWarnings = [
+ ...(typedConfig.ignoreWarnings || []),
+ { module: /websocket-factory/, message: /Critical dependency/ },
+ { module: /@supabase/, message: /Critical dependency/ }
+ ]
+
+ // Resolve `@repo/shared` to the shared source during dev/build so both TypeScript
+ // path aliases and the bundler resolve to the same files (prevents runtime import failures)
+ if (!typedConfig.resolve) {
+   typedConfig.resolve = {}
+ }
+ // Merge any existing alias config
+ // Note: webpack alias does not support glob wildcards; mapping the package root is sufficient
+ typedConfig.resolve.alias = {
+   ...(typedConfig.resolve.alias || {}),
+   '@repo/shared': path.join(__dirname, '../../packages/shared/src')
+ }
 
 		// Client-side fallbacks for production
 		if (!isServer) {

@@ -10,7 +10,18 @@ import {
 } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import type { MaintenanceRequest, MaintenanceQuery } from '@repo/shared'
+import type { Database, MaintenanceRequestApiResponse } from '@repo/shared'
+
+// Define types directly from API response - NO DUPLICATION
+type MaintenanceRequest = MaintenanceRequestApiResponse
+
+// Define local interface for component needs
+interface MaintenanceQuery {
+	search?: string
+	status?: string
+	priority?: string
+	propertyId?: string
+}
 
 interface MaintenanceListProps {
 	query?: MaintenanceQuery
@@ -182,12 +193,12 @@ export function MaintenanceList({
 						<div className="text-muted-foreground flex items-center justify-between text-sm">
 							<div className="flex items-center space-x-4">
 								<span>Category: {request.category}</span>
-								{request.Unit && (
-									<span>Unit: {request.Unit.unitNumber}</span>
+								{request.unitNumber && (
+									<span>Unit: {request.unitNumber}</span>
 								)}
-								{request.Unit?.property && (
+								{request.propertyName && (
 									<span>
-										Property: {request.Unit.property.name}
+										Property: {request.propertyName}
 									</span>
 								)}
 							</div>

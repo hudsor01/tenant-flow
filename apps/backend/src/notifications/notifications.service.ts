@@ -2,7 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common'
 import { PinoLogger } from 'nestjs-pino'
 import { SupabaseService } from '../database/supabase.service'
 import type { Database } from '@repo/shared/types/supabase-generated'
-import type { MaintenanceNotificationPayload } from '@repo/shared/types/maintenance'
+import type { MaintenanceNotificationData } from '@repo/shared'
 import { z } from 'zod'
 import {
 	uuidSchema,
@@ -114,7 +114,7 @@ export class NotificationsService {
 		unitNumber: string,
 		maintenanceId?: string,
 		actionUrl?: string
-	): Promise<MaintenanceNotificationPayload> {
+	): Promise<MaintenanceNotificationData> {
 		// Validate input data using Zod directly (no wrapper abstractions)
 		const validationResult =
 			NotificationsService.NOTIFICATION_SCHEMAS.notificationInput.safeParse(
@@ -204,7 +204,7 @@ export class NotificationsService {
 			await this.sendImmediateNotification(notification)
 		}
 
-		return notification as unknown as MaintenanceNotificationPayload
+		return notification as unknown as MaintenanceNotificationData
 	}
 
 	/**

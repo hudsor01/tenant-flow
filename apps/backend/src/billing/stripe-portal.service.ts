@@ -65,7 +65,7 @@ export class StripePortalService {
 			throw new NotFoundException('User not found')
 		}
 
-		let customerId = user.Subscription?.[0]?.stripe_customer_id
+		let customerId = user.Subscription?.[0]?.stripeCustomerId
 
 		if (!customerId) {
 			const customer = await this.stripe.customers.create({
@@ -143,7 +143,7 @@ export class StripePortalService {
 			throw new NotFoundException('User not found')
 		}
 
-		const customerId = user.Subscription?.[0]?.stripe_customer_id
+		const customerId = user.Subscription?.[0]?.stripeCustomerId
 		if (!customerId) {
 			throw new BadRequestException('No Stripe customer found for user')
 		}

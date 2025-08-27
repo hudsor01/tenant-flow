@@ -9,7 +9,11 @@
 import React, { useOptimistic, startTransition } from 'react'
 import { useActionState } from 'react'
 import { createProperty, updateProperty } from '@/app/actions/properties'
-import type { Property } from '@repo/shared'
+import type { Database } from '@repo/shared/types/supabase-generated'
+
+// Define types directly from Database schema - NO DUPLICATION
+type Property = Database['public']['Tables']['Property']['Row']
+type PropertyStatus = Database['public']['Enums']['PropertyStatus']
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -88,26 +92,26 @@ export function PropertyForm({
 				// Update existing property optimistically
 				return currentProperties.map(p =>
 					p.id === property.id
-						? { ...p, ...newProperty, status: 'updating' as any }
+						? { ...p, ...newProperty, status: 'updating' as PropertyStatus }
 						: p
 				)
 			}
 			// Add new property optimistically
 			const tempProperty: Property = {
-				id: `temp-${Date.now()}`,
+				id: `temp-${ Date.now() }`,
 				name: newProperty.name || 'New Property',
 				address: newProperty.address || '',
 				city: newProperty.city || '',
 				state: newProperty.state || '',
 				zipCode: newProperty.zipCode || '',
 				propertyType: newProperty.propertyType || 'SINGLE_FAMILY',
-				status: 'creating' as any,
+				status: 'creating' as PropertyStatus,
 				totalUnits: 1,
 				monthlyRent: 0,
 				createdAt: new Date(),
 				updatedAt: new Date(),
 				organizationId: ''
-			} as Property
+			} as unknown as Property
 			return [...currentProperties, tempProperty]
 		}
 	)
@@ -151,9 +155,7 @@ export function PropertyForm({
 			}
 
 			// Add optimistic update
-			startTransition(() => {
-				addOptimisticProperty(propertyData)
-			})
+			startTransition(() => addOptimisticProperty( propertyData ))
 
 			// Call server action
 			let result: Property
@@ -179,12 +181,16 @@ export function PropertyForm({
 	}
 
 	// React 19 useActionState for form state management
-	const [formState, formDispatch, isPending] = useActionState(formAction, {})
+	const initialFormState: FormState = { success: false }
+	const [formState, formDispatch, isPending] = useActionState<FormState, FormData>(
+		formAction,
+		initialFormState
+	)
 
 	// Find the optimistic property if creating/updating
 	const optimisticProperty = !isEditing
-		? optimisticProperties.find(p => (p as any).status === 'creating')
-		: optimisticProperties.find(p => p.id === property?.id && (p as any).status === 'updating')
+		? optimisticProperties.find(p => (p as Property & { status: string }).status === 'creating')
+		: optimisticProperties.find(p => p.id === property?.id && (p as Property & { status: string }).status === 'updating')
 
 	// Property type options
 	const propertyTypes = [

@@ -15,9 +15,8 @@ import type {
 	UpdateTenantInput,
 	TenantStats
 } from '@repo/shared'
-import { tenantApi } from '@/lib/api/tenants'
+import { get, post, put, del } from '@/lib/api-client-temp'
 import { queryKeys } from '@/lib/react-query/query-keys'
-import { useOptimisticList, useOptimisticItem } from '@/hooks/use-optimistic-data'
 
 // ============================================================================
 // PURE DATA HOOKS - TanStack Query Suspense (No Optimistic Logic)
@@ -29,7 +28,7 @@ import { useOptimisticList, useOptimisticItem } from '@/hooks/use-optimistic-dat
 export function useTenants(query?: TenantQuery): UseSuspenseQueryResult<Tenant[]> {
 	return useSuspenseQuery({
 		queryKey: queryKeys.tenants.list(query),
-		queryFn: async () => tenantApi.getAll(query),
+		queryFn: async () => get<Tenant[]>('/api/tenants'),
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000 // 10 minutes
 	})
@@ -41,7 +40,7 @@ export function useTenants(query?: TenantQuery): UseSuspenseQueryResult<Tenant[]
 export function useTenant(id: string): UseSuspenseQueryResult<Tenant> {
 	return useSuspenseQuery({
 		queryKey: queryKeys.tenants.detail(id),
-		queryFn: async () => tenantApi.getById(id),
+		queryFn: async () => get<Tenant>(`/api/tenants/${id}`),
 		staleTime: 2 * 60 * 1000 // 2 minutes
 	})
 }
@@ -52,7 +51,7 @@ export function useTenant(id: string): UseSuspenseQueryResult<Tenant> {
 export function useTenantStats(): UseSuspenseQueryResult<TenantStats> {
 	return useSuspenseQuery({
 		queryKey: queryKeys.tenants.stats(),
-		queryFn: async () => tenantApi.getStats(),
+		queryFn: async () => get<TenantStats>('/api/tenants/stats'),
 		staleTime: 2 * 60 * 1000, // 2 minutes
 		refetchInterval: 5 * 60 * 1000 // Auto-refresh every 5 minutes
 	})
@@ -86,15 +85,15 @@ export function useTenantsOptimistic(query?: TenantQuery) {
 
 	// Server action wrappers
 	const createTenantServer = async (data: CreateTenantInput): Promise<Tenant> => {
-		return await tenantApi.create(data)
+		return await post<Tenant>('/api/tenants', data)
 	}
 
 	const updateTenantServer = async (id: string, data: UpdateTenantInput): Promise<Tenant> => {
-		return await tenantApi.update(id, data)
+		return await put<Tenant>(`/api/tenants/${id}`, data)
 	}
 
 	const deleteTenantServer = async (id: string): Promise<void> => {
-		await tenantApi.delete(id)
+		await del<void>(`/api/tenants/${id}`)
 	}
 
 	return {
@@ -144,7 +143,7 @@ export function useTenantOptimistic(id: string) {
 
 	// Server action wrapper
 	const updateTenantServer = async (data: UpdateTenantInput): Promise<Tenant> => {
-		return await tenantApi.update(id, data)
+		return await put<Tenant>(`/api/tenants/${id}`, data)
 	}
 
 	return {
@@ -174,7 +173,7 @@ export function usePrefetchTenant() {
 	return (id: string) => {
 		void queryClient.prefetchQuery({
 			queryKey: queryKeys.tenants.detail(id),
-			queryFn: async () => tenantApi.getById(id),
+			queryFn: async () => get<Tenant>(`/api/tenants/${id}`),
 			staleTime: 10 * 1000 // 10 seconds
 		})
 	}

@@ -24,7 +24,7 @@ interface OnboardingStep {
 	id: string
 	title: string
 	description: string
-	icon: React.ElementType
+	icon: string // Changed from React.ElementType to string for UnoCSS icons
 	action: string
 	href: string
 	completed: boolean
@@ -41,7 +41,7 @@ export function OnboardingWizard() {
 			title: 'Welcome to TenantFlow!',
 			description:
 				"Let's get your property management system set up in just a few steps.",
-			icon: Sparkles,
+			icon: 'i-lucide-sparkles',
 			action: 'Get Started',
 			href: '#',
 			completed: false
@@ -51,7 +51,7 @@ export function OnboardingWizard() {
 			title: 'Add Your First Property',
 			description:
 				'Start by adding a property you manage. You can add more later.',
-			icon: Building2,
+			icon: 'i-lucide-building-2',
 			action: 'Add Property',
 			href: '/properties/new',
 			completed: false
@@ -61,7 +61,7 @@ export function OnboardingWizard() {
 			title: 'Set Up Units',
 			description:
 				'Add units or rooms to your property for detailed management.',
-			icon: Home,
+			icon: 'i-lucide-home',
 			action: 'Add Units',
 			href: '/properties',
 			completed: false
@@ -71,7 +71,7 @@ export function OnboardingWizard() {
 			title: 'Add Tenants',
 			description:
 				'Add your current tenants to start tracking leases and payments.',
-			icon: Users,
+			icon: 'i-lucide-users',
 			action: 'Add Tenant',
 			href: '/tenants/new',
 			completed: false
@@ -81,7 +81,7 @@ export function OnboardingWizard() {
 			title: 'Create a Lease',
 			description:
 				'Set up lease agreements to track rent and tenant information.',
-			icon: FileText,
+			icon: 'i-lucide-file-text',
 			action: 'Create Lease',
 			href: '/leases/new',
 			completed: false
@@ -91,7 +91,7 @@ export function OnboardingWizard() {
 			title: "You're All Set!",
 			description:
 				'Your property management system is ready. Explore the dashboard to see everything in action.',
-			icon: CheckCircle2,
+			icon: 'i-lucide-check-circle-2',
 			action: 'Go to Dashboard',
 			href: '/dashboard',
 			completed: false

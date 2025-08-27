@@ -16,14 +16,16 @@ import { Label } from '@/components/ui/label'
 // 	SelectValue
 // } from '@/components/ui/select'
 
-import type { SignupFormState } from '@/hooks/use-signup-form-state'
+import type { SignupFormState, SignupData } from '@repo/shared/types/frontend' // Added SignupData
+import type { SignupFormData } from '@repo/shared/types/auth' // Added SignupFormData
 
 export interface SignupFormFieldsProps {
 	formState: SignupFormState
-	onFieldUpdate: <K extends keyof SignupFormState>(
+	onFieldUpdate: <K extends keyof SignupData>( // Changed to keyof SignupData
 		field: K,
-		value: SignupFormState[K]
+		value: SignupData[K]
 	) => void
+    onConfirmPasswordUpdate: (value: string) => void; // Added for confirmPassword
 	onTogglePasswordVisibility: () => void
 	onToggleConfirmPasswordVisibility: () => void
 	onEmailSubmit: (e: React.FormEvent) => void
@@ -49,11 +51,15 @@ export interface SignupFormFieldsProps {
 		companySize?: string
 		phone?: string
 	}
+    showPassword?: boolean;
+    showConfirmPassword?: boolean;
+    confirmPasswordValue: string; // Added to pass confirmPassword value
 }
 
 export function SignupFormFields({
 	formState,
 	onFieldUpdate,
+    onConfirmPasswordUpdate, // Added
 	// onTogglePasswordVisibility,
 	// onToggleConfirmPasswordVisibility,
 	onEmailSubmit,
@@ -61,13 +67,16 @@ export function SignupFormFields({
 	isLoading,
 	error,
 	errors = {},
-	defaultValues = {}
+	defaultValues = {},
+    showPassword,
+    showConfirmPassword,
+    confirmPasswordValue // Added
 }: SignupFormFieldsProps) {
 	// Use formState if available, otherwise fallback to defaultValues
-	const name = formState.name ?? defaultValues.fullName ?? ''
-	const email = formState.email ?? defaultValues.email ?? ''
-	const password = formState.password ?? ''
-	const confirmPassword = formState.confirmPassword ?? ''
+	const name = formState.data.fullName ?? defaultValues.fullName ?? ''
+	const email = formState.data.email ?? defaultValues.email ?? ''
+	const password = formState.data.password ?? ''
+	const confirmPassword = confirmPasswordValue ?? '' // Use confirmPasswordValue prop
 
 	return (
 		<form onSubmit={onEmailSubmit} className="space-y-4">
@@ -88,7 +97,7 @@ export function SignupFormFields({
 					required
 					value={name}
 					onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-						onFieldUpdate?.('name', e.target.value)
+						onFieldUpdate?.('fullName', e.target.value)
 					}
 					className={errors.fullName ? 'input-error-red' : ''}
 					disabled={isLoading}
@@ -124,7 +133,7 @@ export function SignupFormFields({
 				<Input
 					id="password"
 					name="password"
-					type={formState?.showPassword ? 'text' : 'password'}
+					type={showPassword ? 'text' : 'password'}
 					required
 					value={password}
 					onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -145,11 +154,11 @@ export function SignupFormFields({
 				<Input
 					id="confirmPassword"
 					name="confirmPassword"
-					type={formState?.showConfirmPassword ? 'text' : 'password'}
+					type={showConfirmPassword ? 'text' : 'password'}
 					required
 					value={confirmPassword}
 					onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-						onFieldUpdate?.('confirmPassword', e.target.value)
+						onConfirmPasswordUpdate?.(e.target.value)
 					}
 					className={errors.confirmPassword ? 'input-error-red' : ''}
 					disabled={isLoading}

@@ -19,10 +19,10 @@ BEGIN
       'totalUnits', COALESCE(unit_stats.total_units, 0),
       'occupiedUnits', COALESCE(unit_stats.occupied_units, 0),
       'vacantUnits', COALESCE(unit_stats.vacant_units, 0),
-      'totalMonthlyRent', COALESCE(unit_stats.total_monthly_rent, 0),
-      'potentialRent', COALESCE(unit_stats.total_monthly_rent, 0),
-      'totalRent', COALESCE(unit_stats.total_monthly_rent, 0),
-      'collectedRent', COALESCE(unit_stats.total_monthly_rent, 0),
+      'totalMonthlyRent', COALESCE(unit_stats.total_rentAmount, 0),
+      'potentialRent', COALESCE(unit_stats.total_rentAmount, 0),
+      'totalRent', COALESCE(unit_stats.total_rentAmount, 0),
+      'collectedRent', COALESCE(unit_stats.total_rentAmount, 0),
       'pendingRent', 0,
       'occupancyRate', CASE 
         WHEN COALESCE(unit_stats.total_units, 0) > 0 
@@ -47,7 +47,7 @@ BEGIN
       'maintenanceUnits', 0,
       'averageRent', CASE 
         WHEN COALESCE(unit_stats.total_units, 0) > 0 
-        THEN ROUND(COALESCE(unit_stats.total_monthly_rent, 0) / unit_stats.total_units, 2)
+        THEN ROUND(COALESCE(unit_stats.total_rentAmount, 0) / unit_stats.total_units, 2)
         ELSE 0 
       END,
       'occupancyRate', CASE 
@@ -63,7 +63,7 @@ BEGIN
       'activeLeases', COALESCE(lease_stats.active, 0),
       'expiredLeases', COALESCE(lease_stats.expired, 0),
       'pendingLeases', COALESCE(lease_stats.draft, 0),
-      'totalRentRoll', COALESCE(unit_stats.total_monthly_rent, 0)
+      'totalRentRoll', COALESCE(unit_stats.total_rentAmount, 0)
     ),
     'maintenanceRequests', json_build_object(
       'total', 0,
@@ -76,9 +76,9 @@ BEGIN
       'unread', 0
     ),
     'revenue', json_build_object(
-      'total', COALESCE(unit_stats.total_monthly_rent, 0),
-      'monthly', COALESCE(unit_stats.total_monthly_rent, 0),
-      'collected', COALESCE(unit_stats.total_monthly_rent, 0)
+      'total', COALESCE(unit_stats.total_rentAmount, 0),
+      'monthly', COALESCE(unit_stats.total_rentAmount, 0),
+      'collected', COALESCE(unit_stats.total_rentAmount, 0)
     )
   ) INTO result
   FROM (
@@ -97,7 +97,7 @@ BEGIN
       COUNT(u.*) as total_units,
       COUNT(u.*) FILTER (WHERE u."status" = 'OCCUPIED') as occupied_units,
       COUNT(u.*) FILTER (WHERE u."status" = 'VACANT') as vacant_units,
-      COALESCE(SUM(u."rent"), 0) as total_monthly_rent
+      COALESCE(SUM(u."rent"), 0) as total_rentAmount
     FROM "Property" p
     LEFT JOIN "Unit" u ON p."id" = u."propertyId"
     WHERE p."ownerId" = user_id_param

@@ -13,7 +13,10 @@ import {
 	AlertDialogTitle
 } from '@/components/ui/alert-dialog'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import type { Property } from '@repo/shared'
+import type { Database } from '@repo/shared'
+
+// Define types directly from Database schema - NO DUPLICATION
+type Property = Database['public']['Tables']['Property']['Row']
 
 interface PropertyDeleteDialogProps {
 	open: boolean

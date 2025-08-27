@@ -117,11 +117,13 @@ export class StripeService {
 			await this.paymentNotificationService.notifySubscriptionCanceled({
 				userId,
 				subscriptionId: canceledSubscription.id,
+				customerId: canceledSubscription.customer as string,
 				status: 'canceled',
 				amount: 0,
 				currency: 'usd',
+				paymentDate: new Date().toISOString(),
 				cancelAtPeriodEnd: canceledSubscription.cancel_at_period_end,
-				currentPeriodEnd: endTime ? new Date(endTime * 1000) : new Date()
+				currentPeriodEnd: endTime ? new Date(endTime * 1000).toISOString() : new Date().toISOString()
 			})
 		}
 		
@@ -436,12 +438,14 @@ export class StripeService {
 				await this.paymentNotificationService.notifyPaymentFailed({
 					userId: paymentData.userId,
 					subscriptionId: paymentData.stripeSubscriptionId || '',
+					customerId: paymentData.stripeCustomerId || '',
 					amount: paymentData.amount,
 					currency: paymentData.currency,
 					status: 'failed',
-					attemptCount: paymentData.attemptCount,
-					failureReason: paymentData.failureReason,
-					invoiceUrl: paymentData.invoiceUrl
+					paymentDate: paymentData.paidAt?.toISOString() || new Date().toISOString(),
+					attemptCount: paymentData.attemptCount || 0,
+					failureReason: paymentData.failureReason || undefined,
+					invoiceUrl: paymentData.invoiceUrl || undefined
 				})
 				
 				if (paymentData.attemptCount && paymentData.attemptCount >= 3) {
@@ -460,11 +464,13 @@ export class StripeService {
 				await this.paymentNotificationService.notifyPaymentSuccess({
 					userId: paymentData.userId,
 					subscriptionId: paymentData.stripeSubscriptionId || '',
+					customerId: paymentData.stripeCustomerId || '',
 					amount: paymentData.amount,
 					currency: paymentData.currency,
 					status: 'succeeded',
-					invoiceUrl: paymentData.invoiceUrl,
-					invoicePdf: paymentData.invoicePdf
+					paymentDate: paymentData.paidAt?.toISOString() || new Date().toISOString(),
+					invoiceUrl: paymentData.invoiceUrl || undefined,
+					invoicePdf: paymentData.invoicePdf || undefined
 				})
 			}
 

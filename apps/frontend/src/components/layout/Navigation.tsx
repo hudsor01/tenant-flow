@@ -1,5 +1,5 @@
 'use client'
-import { FileText,Calculator,Wrench } from 'lucide-react'
+
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
@@ -114,30 +114,31 @@ export function Navigation({
 		}
 
 		const toolsItems = [
-			{
-				to: '/tools/lease-generator',
-				label: 'Lease Generator',
-				description: 'Create state-specific rental leases',
-				icon: FileText,
-				badge: 'Popular'
-			},
+			// Lease Generator temporarily removed - see GitHub issue #202
+			// {
+			// 	to: '/tools/lease-generator',
+			// 	label: 'Lease Generator',
+			// 	description: 'Create state-specific rental leases',
+			// 	icon: FileText,
+			// 	badge: 'Popular'
+			// },
 			{
 				to: '/tools/invoice-generator',
 				label: 'Invoice Generator',
 				description: 'Generate professional invoice templates',
-				icon: Calculator
+				icon: 'i-lucide-calculator'
 			},
 			{
 				to: '/tools/rent-calculator',
 				label: 'Rent Calculator',
 				description: 'Calculate optimal rental prices',
-				icon: Calculator
+				icon: 'i-lucide-calculator'
 			},
 			{
 				to: '/tools/maintenance-tracker',
 				label: 'Maintenance Tracker',
 				description: 'Track property maintenance requests',
-				icon: Wrench
+				icon: 'i-lucide-wrench'
 			}
 		]
 
@@ -209,7 +210,8 @@ export function Navigation({
 							id="resources-button"
 						>
 							Tools
-							<i className="i-lucide-chevron-down inline-block" className={cn(
+							<i className={cn(
+								'i-lucide-chevron-down inline-block',
 									'ml-1 h-4 w-4 transition-transform duration-200',
 									activeMenu === 'resources'
 										? 'rotate-180'

@@ -31,7 +31,7 @@ import {
 import { ThrottlerGuard } from '@nestjs/throttler'
 import { AuthGuard } from '../shared/guards/auth.guard'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
-import type { ValidatedUser } from '@repo/shared/types/auth'
+import type { ValidatedUser } from '@repo/shared'
 import { UnitsService } from './units.service'
 import type {
 	CreateUnitRequest,

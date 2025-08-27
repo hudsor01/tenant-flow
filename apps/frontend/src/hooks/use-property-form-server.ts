@@ -4,11 +4,13 @@ import { useState } from 'react'
 import { useServerAction } from '@/hooks'
 import {
 	createProperty,
-	updateProperty,
-	type PropertyFormState
-} from '@/lib/actions/property-actions'
+	updateProperty
+} from '@/app/actions/properties'
 import { toast } from 'sonner'
-import type { Property } from '@repo/shared'
+import type { Database, FormState } from '@repo/shared'
+
+// Define types directly from Database schema - NO DUPLICATION
+type Property = Database['public']['Tables']['Property']['Row']
 
 interface UsePropertyFormServerProps {
 	property?: Property
@@ -18,7 +20,7 @@ interface UsePropertyFormServerProps {
 
 interface PropertyFormServerHookReturn {
 	// Form state and submission
-	formState: PropertyFormState
+	formState: FormState
 	isPending: boolean
 	formAction: (formData: FormData) => void
 
@@ -30,7 +32,7 @@ interface PropertyFormServerHookReturn {
 	mode: 'create' | 'edit'
 }
 
-const initialState: PropertyFormState = { success: false }
+const initialState: FormState = { success: false }
 
 export function usePropertyFormServer({
 	property,
@@ -43,7 +45,7 @@ export function usePropertyFormServer({
 	const action =
 		mode === 'create'
 			? createProperty
-			: async (prevState: PropertyFormState, formData: FormData) => {
+			: async (prevState: FormState, formData: FormData) => {
 					if (!property?.id) {
 						throw new Error('Property ID is required for update')
 					}

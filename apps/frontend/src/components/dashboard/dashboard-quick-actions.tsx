@@ -1,5 +1,5 @@
 'use client'
-import { Building2,Users,Wrench,FileText } from 'lucide-react'
+
 import { useTransition } from 'react'
 import { logger } from '@/lib/logger/logger'
 import { motion } from '@/lib/lazy-motion'
@@ -74,28 +74,28 @@ const defaultQuickActions = [
 	{
 		title: 'Add Property',
 		description: 'Register a new property to your portfolio',
-		icon: Building2,
+		icon: 'i-lucide-building-2',
 		color: 'navy' as const,
 		action: 'onAddProperty' as const
 	},
 	{
 		title: 'New Tenant',
 		description: 'Onboard a new tenant to your system',
-		icon: Users,
+		icon: 'i-lucide-users',
 		color: 'steel' as const,
 		action: 'onNewTenant' as const
 	},
 	{
 		title: 'Schedule Maintenance',
 		description: 'Create a maintenance request or task',
-		icon: Wrench,
+		icon: 'i-lucide-wrench',
 		color: 'emerald' as const,
 		action: 'onScheduleMaintenance' as const
 	},
 	{
 		title: 'Generate Report',
 		description: 'Create financial or operational reports',
-		icon: FileText,
+		icon: 'i-lucide-file-text',
 		color: 'gold' as const,
 		action: 'onGenerateReport' as const
 	}

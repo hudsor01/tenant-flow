@@ -28,6 +28,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 
 // LeaseTerm type defined inline - no need for external dependency
 interface LeaseTerm {
+	id: string
 	type: 'clause' | 'fee' | 'rule'
 	title: string
 	description: string

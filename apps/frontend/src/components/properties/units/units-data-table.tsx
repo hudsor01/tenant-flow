@@ -18,9 +18,20 @@ import {
 	TableRow
 } from '@/components/ui/table'
 import Link from 'next/link'
-import type { UnitWithDetails } from '@repo/shared'
+import type { Database } from '@repo/shared'
 
-function UnitRow({ unit }: { unit: UnitWithDetails }) {
+// Define types directly from Database schema - NO DUPLICATION
+type Unit = Database['public']['Tables']['Unit']['Row']
+
+// Use UnitWithProperty instead of UnitWithDetails for better type alignment
+type UnitDisplayData = Unit & {
+	property?: {
+		name: string
+		address: string
+	}
+}
+
+function UnitRow({ unit }: { unit: UnitDisplayData }) {
 	// Get status styling
 	const getStatusBadge = (status: string) => {
 		switch (status) {

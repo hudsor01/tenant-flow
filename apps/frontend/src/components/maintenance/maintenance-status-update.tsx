@@ -16,8 +16,12 @@ import {
 	CardHeader,
 	CardTitle
 } from '@/components/ui/card'
-import { useUpdateMaintenanceStatus } from '@/hooks/api/use-maintenance'
-import type { MaintenanceRequest, RequestStatus } from '@repo/shared'
+import { useUpdateMaintenanceRequest } from '@/hooks/api/use-maintenance'
+import type { Database } from '@repo/shared'
+
+// Define types directly from Database schema - NO DUPLICATION
+type MaintenanceRequest = Database['public']['Tables']['MaintenanceRequest']['Row']
+type RequestStatus = Database['public']['Enums']['RequestStatus']
 
 interface MaintenanceStatusUpdateProps {
 	request: MaintenanceRequest
@@ -70,19 +74,17 @@ export function MaintenanceStatusUpdate({
 		request.status
 	)
 
-	const updateStatus = useUpdateMaintenanceStatus()
+	const updateRequest = useUpdateMaintenanceRequest()
 
-	const handleStatusUpdate = () => {
+	const handleStatusUpdate = async () => {
 		if (selectedStatus === request.status) return
 
-		updateStatus.mutate(
-			{ id: request.id, status: selectedStatus },
-			{
-				onSuccess: () => {
-					onUpdate?.()
-				}
-			}
-		)
+		try {
+			await updateRequest.mutate(request.id, { status: selectedStatus })
+			onUpdate?.()
+		} catch (error) {
+			console.error('Failed to update maintenance request status:', error)
+		}
 	}
 
 	const currentStatus = statusOptions.find(
@@ -158,10 +160,10 @@ export function MaintenanceStatusUpdate({
 				<div className="flex space-x-2">
 					<Button
 						onClick={handleStatusUpdate}
-						disabled={!hasChanged || updateStatus.isPending}
+						disabled={!hasChanged || updateRequest.isPending}
 						className="flex-1"
 					>
-						{updateStatus.isPending && (
+						{updateRequest.isPending && (
 							<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
 						)}
 						Update Status
@@ -171,7 +173,7 @@ export function MaintenanceStatusUpdate({
 						<Button
 							variant="outline"
 							onClick={() => setSelectedStatus(request.status)}
-							disabled={updateStatus.isPending}
+							disabled={updateRequest.isPending}
 						>
 							Reset
 						</Button>

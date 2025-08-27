@@ -15,9 +15,8 @@ import type {
 	UpdateUnitInput,
 	UnitStats
 } from '@repo/shared'
-import { unitApi } from '@/lib/api/units'
+import { get, post, put, del } from '@/lib/api-client-temp'
 import { queryKeys } from '@/lib/react-query/query-keys'
-import { useOptimisticList, useOptimisticItem } from '@/hooks/use-optimistic-data'
 
 // ============================================================================
 // PURE DATA HOOKS - TanStack Query Suspense (No Optimistic Logic)
@@ -29,7 +28,7 @@ import { useOptimisticList, useOptimisticItem } from '@/hooks/use-optimistic-dat
 export function useUnits(query?: UnitQuery): UseSuspenseQueryResult<Unit[]> {
 	return useSuspenseQuery({
 		queryKey: queryKeys.units.list(query),
-		queryFn: async () => unitApi.getAll(query),
+		queryFn: async () => get<Unit[]>('/api/units'),
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000 // 10 minutes
 	})
@@ -41,7 +40,7 @@ export function useUnits(query?: UnitQuery): UseSuspenseQueryResult<Unit[]> {
 export function useUnit(id: string): UseSuspenseQueryResult<Unit> {
 	return useSuspenseQuery({
 		queryKey: queryKeys.units.detail(id),
-		queryFn: async () => unitApi.getById(id),
+		queryFn: async () => get<Unit>(`/api/units/${id}`),
 		staleTime: 2 * 60 * 1000 // 2 minutes
 	})
 }
@@ -52,7 +51,7 @@ export function useUnit(id: string): UseSuspenseQueryResult<Unit> {
 export function useUnitsByProperty(propertyId: string): UseSuspenseQueryResult<Unit[]> {
 	return useSuspenseQuery({
 		queryKey: queryKeys.units.byProperty(propertyId),
-		queryFn: async () => unitApi.getByProperty(propertyId),
+		queryFn: async () => get<Unit[]>(`/api/properties/${propertyId}/units`),
 		staleTime: 2 * 60 * 1000 // 2 minutes
 	})
 }
@@ -63,7 +62,7 @@ export function useUnitsByProperty(propertyId: string): UseSuspenseQueryResult<U
 export function useUnitStats(): UseSuspenseQueryResult<UnitStats> {
 	return useSuspenseQuery({
 		queryKey: queryKeys.units.stats(),
-		queryFn: async () => unitApi.getStats(),
+		queryFn: async () => get<UnitStats>('/api/units/stats'),
 		staleTime: 2 * 60 * 1000, // 2 minutes
 		refetchInterval: 5 * 60 * 1000 // Auto-refresh every 5 minutes
 	})
@@ -97,15 +96,15 @@ export function useUnitsOptimistic(query?: UnitQuery) {
 
 	// Server action wrappers
 	const createUnitServer = async (data: CreateUnitInput): Promise<Unit> => {
-		return await unitApi.create(data)
+		return await post<Unit>('/api/units', data)
 	}
 
 	const updateUnitServer = async (id: string, data: UpdateUnitInput): Promise<Unit> => {
-		return await unitApi.update(id, data)
+		return await put<Unit>(`/api/units/${id}`, data)
 	}
 
 	const deleteUnitServer = async (id: string): Promise<void> => {
-		await unitApi.delete(id)
+		await del<void>(`/api/units/${id}`)
 	}
 
 	return {
@@ -155,7 +154,7 @@ export function useUnitOptimistic(id: string) {
 
 	// Server action wrapper
 	const updateUnitServer = async (data: UpdateUnitInput): Promise<Unit> => {
-		return await unitApi.update(id, data)
+		return await put<Unit>(`/api/units/${id}`, data)
 	}
 
 	return {
@@ -185,7 +184,7 @@ export function usePrefetchUnit() {
 	return (id: string) => {
 		void queryClient.prefetchQuery({
 			queryKey: queryKeys.units.detail(id),
-			queryFn: async () => unitApi.getById(id),
+			queryFn: async () => get<Unit>(`/api/units/${id}`),
 			staleTime: 10 * 1000 // 10 seconds
 		})
 	}

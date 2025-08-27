@@ -1,11 +1,28 @@
 /**
- * Backend DTO types - NOW USING SHARED TYPES
- * All auth types moved to @repo/shared for centralization
+ * Backend DTO types - Define locally
+ * Using Database types directly for authentication
  */
 
-// Use shared auth types instead of local DTOs
-export type {
-	LoginCredentials as LoginDto,
-	SignupCredentials as SignupDto,
-	AuthResponse
-} from '@repo/shared'
+import type { Database } from '@repo/shared'
+
+// Define auth types locally from Database schema
+export interface LoginDto {
+	email: string
+	password: string
+}
+
+export interface SignupDto {
+	email: string
+	password: string
+	name?: string
+}
+
+export interface AuthResponse {
+	user: Database['public']['Tables']['User']['Row']
+	session: {
+		access_token: string
+		refresh_token: string
+		expires_in: number
+		token_type: string
+	}
+}

@@ -4,8 +4,10 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 
 // Local type definition - following KISS principle
+import type { UseFormRegister } from 'react-hook-form'
+
 interface InvoiceDetailsProps {
-	register: any // React Hook Form register function
+	register: UseFormRegister<Record<string, unknown>> // React Hook Form register function
 }
 
 export function InvoiceDetails({ register }: InvoiceDetailsProps) {

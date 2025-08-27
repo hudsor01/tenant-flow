@@ -17,6 +17,7 @@ export interface CustomerInvoiceForm {
 	taxRate: number
 	taxAmount: number
 	total: number
+	items: CustomerInvoiceItem[] // Added this line
 }
 
 // Customer invoice status enum

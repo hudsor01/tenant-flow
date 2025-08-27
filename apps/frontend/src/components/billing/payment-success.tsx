@@ -1,5 +1,5 @@
 'use client'
-import { Home,Users,FileText } from 'lucide-react'
+
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
@@ -182,20 +182,20 @@ function QuickActions() {
 
 	const actions = [
 		{
-			icon: Home,
+			icon: 'i-lucide-home',
 			title: 'Add your first property',
 			description: 'Start by adding property details and units',
 			action: () => router.push('/properties?action=add'),
 			primary: true
 		},
 		{
-			icon: Users,
+			icon: 'i-lucide-users',
 			title: 'Invite tenants',
 			description: 'Send invitations to your tenants to join the portal',
 			action: () => router.push('/tenants?action=invite')
 		},
 		{
-			icon: FileText,
+			icon: 'i-lucide-file-text',
 			title: 'Create a lease',
 			description: 'Set up lease agreements and track important dates',
 			action: () => router.push('/leases?action=create')
