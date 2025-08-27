@@ -406,7 +406,6 @@ export type {
 	ServerActionState,
 	UseServerActionOptions,
 	ActionResult,
-	FormState,
 	UseActionStateFormOptions,
 	ErrorSeverity,
 	ErrorType,
