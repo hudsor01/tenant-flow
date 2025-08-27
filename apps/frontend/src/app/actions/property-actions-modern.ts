@@ -44,7 +44,7 @@ export async function createPropertyAction(formData: FormData) {
     redirect('/properties')
     
   } catch (error) {
-    logger.error('Property creation failed', { error })
+    logger.error('Property creation failed', error instanceof Error ? error : new Error(String(error)))
     throw error
   }
 }
@@ -79,7 +79,7 @@ export async function updatePropertyAction(
     redirect('/properties')
     
   } catch (error) {
-    logger.error('Property update failed', { error, propertyId })
+    logger.error('Property update failed', error instanceof Error ? error : new Error(String(error)), { propertyId })
     throw error
   }
 }
@@ -100,7 +100,7 @@ export async function deletePropertyAction(propertyId: string) {
     return { success: true }
     
   } catch (error) {
-    logger.error('Property deletion failed', { error, propertyId })
+    logger.error('Property deletion failed', error instanceof Error ? error : new Error(String(error)), { propertyId })
     throw error
   }
 }

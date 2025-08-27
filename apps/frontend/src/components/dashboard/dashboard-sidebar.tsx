@@ -1,5 +1,5 @@
 'use client'
-
+import { Home,Building,Users,FileText,Wrench,BarChart3,Settings } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -26,13 +26,9 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { useDashboardOverview } from '@/hooks/api/use-dashboard'
 import { cn } from '@/lib/utils'
+import type { DashboardStats } from '@repo/shared'
 
-const getNavigationItems = (stats?: {
-	properties?: { totalProperties?: number }
-	tenants?: { totalTenants?: number }
-	leases?: { activeLeases?: number }
-	maintenanceRequests?: { open?: number }
-}) => [
+const getNavigationItems = (stats?: DashboardStats) => [
 	{
 		id: 'dashboard',
 		name: 'Dashboard',
@@ -45,7 +41,7 @@ const getNavigationItems = (stats?: {
 		name: 'Properties',
 		href: '/properties',
 		icon: Building,
-		badge: stats?.properties?.totalProperties ?? null,
+		badge: stats?.totalProperties ?? null,
 		badgeColor: 'bg-blue-100 text-blue-700'
 	},
 	{
@@ -53,7 +49,7 @@ const getNavigationItems = (stats?: {
 		name: 'Tenants',
 		href: '/tenants',
 		icon: Users,
-		badge: stats?.tenants?.totalTenants ?? null,
+		badge: stats?.totalTenants ?? null,
 		badgeColor: 'bg-green-100 text-green-700'
 	},
 	{
@@ -61,7 +57,7 @@ const getNavigationItems = (stats?: {
 		name: 'Leases',
 		href: '/leases',
 		icon: FileText,
-		badge: stats?.leases?.activeLeases ?? null,
+		badge: stats?.totalUnits ?? null,
 		badgeColor: 'bg-purple-100 text-purple-700'
 	},
 	{
@@ -69,9 +65,9 @@ const getNavigationItems = (stats?: {
 		name: 'Maintenance',
 		href: '/maintenance',
 		icon: Wrench,
-		badge: stats?.maintenanceRequests?.open ?? null,
+		badge: stats?.maintenanceRequests ?? null,
 		badgeColor:
-			(stats?.maintenanceRequests?.open ?? 0) > 0
+			(stats?.maintenanceRequests ?? 0) > 0
 				? 'bg-red-100 text-red-700'
 				: 'bg-gray-100 text-gray-700'
 	},
@@ -250,18 +246,17 @@ export function DashboardSidebar({
 										<i className="i-lucide-bell inline-block h-4 w-4"  />
 										<span>Notifications</span>
 										{/* Notification badge */}
-										{(stats?.maintenanceRequests?.open ||
+										{(stats?.maintenanceRequests ||
 											0) > 0 && (
 											<div className="absolute -top-1 -right-1 hidden h-2 w-2 rounded-full bg-red-500 group-data-[collapsible=icon]:block" />
 										)}
-										{(stats?.maintenanceRequests?.open ||
+										{(stats?.maintenanceRequests ||
 											0) > 0 && (
 											<Badge
 												variant="destructive"
 												className="ml-auto rounded-full px-1.5 py-0.5 text-xs group-data-[collapsible=icon]:hidden"
 											>
-												{stats?.maintenanceRequests
-													?.open ?? 0}
+												{stats?.maintenanceRequests ?? 0}
 											</Badge>
 										)}
 									</Link>
@@ -453,13 +448,13 @@ export function DashboardSidebar({
 									<i className="i-lucide-bell inline-block h-5 w-5 text-gray-500"  />
 									<span>Notifications</span>
 								</div>
-								{(stats?.maintenanceRequests?.open ?? 0) >
+								{(stats?.maintenanceRequests ?? 0) >
 									0 && (
 									<Badge
 										variant="destructive"
 										className="rounded-full px-1.5 py-0.5 text-xs"
 									>
-										{stats?.maintenanceRequests?.open ?? 0}
+										{stats?.maintenanceRequests ?? 0}
 									</Badge>
 								)}
 							</Link>

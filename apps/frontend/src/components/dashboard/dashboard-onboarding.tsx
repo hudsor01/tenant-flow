@@ -1,5 +1,5 @@
 'use client'
-
+import { Building2,Users,FileText } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useDashboardOverview } from '@/hooks/api/use-dashboard'
 import {
@@ -33,21 +33,21 @@ function useOnboardingProgress() {
 		{
 			id: 'property',
 			label: 'Add a property',
-			completed: (stats?.properties?.totalProperties ?? 0) > 0,
+			completed: (stats?.totalProperties ?? 0) > 0,
 			href: '/properties/new',
 			icon: Building2
 		},
 		{
 			id: 'tenant',
 			label: 'Add a tenant',
-			completed: (stats?.tenants?.totalTenants ?? 0) > 0,
+			completed: (stats?.totalTenants ?? 0) > 0,
 			href: '/tenants/new',
 			icon: Users
 		},
 		{
 			id: 'lease',
 			label: 'Create a lease',
-			completed: (stats?.leases?.totalLeases ?? 0) > 0,
+			completed: (stats?.totalUnits ?? 0) > 0,
 			href: '/leases/new',
 			icon: FileText
 		}
