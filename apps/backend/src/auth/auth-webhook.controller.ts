@@ -3,17 +3,14 @@ import {
 	Controller,
 	Headers,
 	HttpCode,
-	Logger,
 	Post
 } from '@nestjs/common'
-// Rate limiting handled globally
+import { PinoLogger } from 'nestjs-pino'
 import { AuthService } from './auth.service'
 import { StripeService } from '../billing/stripe.service'
-// Removed SubscriptionsManagerService - replaced by StripeWebhookService
 import { UsersService } from '../users/users.service'
 import { Public } from '../shared/decorators/public.decorator'
-import { getStripePriceId } from '@repo/shared'
-// CSRF protection is handled at Fastify level - webhooks are exempt by nature
+import { getPriceId } from '@repo/shared'
 
 interface SupabaseWebhookEvent {
 	type: 'INSERT' | 'UPDATE' | 'DELETE'
@@ -35,18 +32,18 @@ interface SupabaseWebhookEvent {
 
 @Controller('webhooks/auth')
 export class AuthWebhookController {
-	private readonly logger = new Logger(AuthWebhookController.name)
-
 	constructor(
 		private authService: AuthService,
 		private stripeService: StripeService,
-		private usersService: UsersService
-	) {}
+		private usersService: UsersService,
+		private readonly logger: PinoLogger
+	) {
+		// PinoLogger context handled automatically via app-level configuration
+	}
 
 	@Post('supabase')
 	@Public()
-	// CSRF and rate limiting handled at Fastify level for webhooks
-	@HttpCode(200)
+		@HttpCode(200)
 	async handleSupabaseAuthWebhook(
 		@Body() event: SupabaseWebhookEvent,
 		@Headers('authorization') _authHeader: string
@@ -61,7 +58,6 @@ export class AuthWebhookController {
 
 		// Verify webhook is from Supabase
 		try {
-			// Handle user creation
 			if (
 				event.type === 'INSERT' &&
 				event.table === 'users' &&
@@ -97,7 +93,7 @@ export class AuthWebhookController {
 	private async handleUserCreated(
 		user: SupabaseWebhookEvent['record']
 	): Promise<void> {
-		this.logger.log('Processing new user creation', {
+		this.logger.info('Processing new user creation', {
 			userId: user.id,
 			email: user.email,
 			hasMetadata: !!user.user_metadata
@@ -126,7 +122,7 @@ export class AuthWebhookController {
 			await this.createSubscription(user.id, user.email, userName)
 
 			// Send welcome email (EmailService disabled)
-			this.logger.log(
+			this.logger.info(
 				'Welcome email would be sent (EmailService disabled)',
 				{
 					email: user.email,
@@ -148,7 +144,7 @@ export class AuthWebhookController {
 			user.email_confirmed_at &&
 			!user.email_confirmed_at.includes('1970')
 		) {
-			this.logger.log('User email confirmed', {
+			this.logger.info('User email confirmed', {
 				userId: user.id,
 				email: user.email,
 				confirmedAt: user.email_confirmed_at
@@ -162,7 +158,7 @@ export class AuthWebhookController {
 		name: string
 	): Promise<void> {
 		try {
-			this.logger.log(
+			this.logger.info(
 				'Creating Stripe customer and subscription for new user',
 				{
 					userId,
@@ -177,7 +173,7 @@ export class AuthWebhookController {
 				name
 			)
 
-			this.logger.log('Stripe customer created successfully', {
+			this.logger.info('Stripe customer created successfully', {
 				userId,
 				customerId: customer.id
 			})
@@ -188,7 +184,7 @@ export class AuthWebhookController {
 					customer: customer.id,
 					items: [
 						{
-							price: getStripePriceId('FREETRIAL', 'monthly')
+							price: getPriceId('FREETRIAL', 'monthly')
 						}
 					],
 					trial_period_days: 14,
@@ -204,7 +200,7 @@ export class AuthWebhookController {
 					}
 				})
 
-			this.logger.log('Stripe subscription created successfully', {
+			this.logger.info('Stripe subscription created successfully', {
 				userId,
 				subscriptionId: stripeSubscription.id,
 				status: stripeSubscription.status,
@@ -214,7 +210,7 @@ export class AuthWebhookController {
 			// Create/update local subscription record with Stripe info
 			try {
 				// Subscription management handled via Stripe webhooks after initial setup
-				this.logger.log(
+				this.logger.info(
 					`User created: ${userId}, subscription will be created via Stripe webhooks`
 				)
 				await this.updateSubscriptionWithStripeData(
@@ -223,7 +219,7 @@ export class AuthWebhookController {
 					stripeSubscription.id
 				)
 
-				this.logger.log('Local subscription updated with Stripe data', {
+				this.logger.info('Local subscription updated with Stripe data', {
 					userId,
 					stripeSubscriptionId: stripeSubscription.id
 				})
@@ -260,7 +256,7 @@ export class AuthWebhookController {
 		stripeSubscriptionId: string
 	): Promise<void> {
 		// Subscription updates handled via webhooks after initial user creation
-		this.logger.log(
+		this.logger.info(
 			`Subscription ${stripeSubscriptionId} will be handled via webhooks`
 		)
 

@@ -2,13 +2,13 @@ import {
 	Controller,
 	Headers,
 	Inject,
-	Logger,
 	Post,
 	Req,
 	Res,
 	InternalServerErrorException,
 	BadRequestException
 } from '@nestjs/common'
+import { PinoLogger } from 'nestjs-pino'
 import type { FastifyRequest, FastifyReply } from 'fastify'
 import type { RawBodyRequest } from '@nestjs/common'
 import Stripe from 'stripe'
@@ -19,28 +19,21 @@ import type { EnvironmentVariables } from '../config/config.schema'
 // Type for webhook event objects - use unknown for flexibility with runtime type guards
 type StripeEventObject = unknown
 
-interface MinimalInvoice {
-	currency: string
-	amount_due?: number
-	amount_paid?: number
-	customer: string | { id: string }
-}
-
-interface MinimalSubscription {
-	id: string
-	customer: string | { id: string }
-}
+// Use shared types instead of local interfaces
+import type { MinimalInvoice, MinimalSubscription } from '@repo/shared'
 
 @Controller('webhooks')
-export class UnifiedWebhookController {
-	private readonly logger = new Logger(UnifiedWebhookController.name)
+export class WebhookController {
 	private stripe: Stripe | null = null
 	private webhookSecret: string | null = null
 
 	constructor(
 		@Inject(ConfigService)
-		private readonly configService: ConfigService<EnvironmentVariables>
-	) {}
+		private readonly configService: ConfigService<EnvironmentVariables>,
+		private readonly logger: PinoLogger
+	) {
+		// PinoLogger context handled automatically via app-level configuration
+	}
 
 	private initializeServices(): void {
 		if (this.stripe && this.webhookSecret !== null) {
@@ -114,7 +107,7 @@ export class UnifiedWebhookController {
 			})
 		}
 
-		this.logger.log(`Processing Stripe webhook: ${event.type}`)
+		this.logger.info(`Processing Stripe webhook: ${event.type}`)
 
 		// Validate event structure
 		if (!event.data?.object) {
@@ -176,7 +169,7 @@ export class UnifiedWebhookController {
 				await this.handleTrialEnding(obj)
 				break
 			default:
-				this.logger.log(`Unhandled webhook type: ${event.type}`)
+				this.logger.info(`Unhandled webhook type: ${event.type}`)
 		}
 	}
 
@@ -233,7 +226,7 @@ export class UnifiedWebhookController {
 			)
 		}
 
-		this.logger.log(
+		this.logger.warn(
 			`Payment failed for customer ${email} - amount: ${invoice.currency.toUpperCase()} ${(invoice.amount_due / 100).toFixed(2)}`
 		)
 	}
@@ -265,7 +258,7 @@ export class UnifiedWebhookController {
 			)
 		}
 
-		this.logger.log(
+		this.logger.info(
 			`Payment succeeded for customer ${email} - amount: ${invoice.currency.toUpperCase()} ${(invoice.amount_paid / 100).toFixed(2)}`
 		)
 	}
@@ -297,7 +290,7 @@ export class UnifiedWebhookController {
 			)
 		}
 
-		this.logger.log(
+		this.logger.info(
 			`Subscription canceled for customer ${email} - subscription: ${subscription.id}`
 		)
 	}
@@ -329,7 +322,7 @@ export class UnifiedWebhookController {
 			)
 		}
 
-		this.logger.log(
+		this.logger.info(
 			`Trial ending for customer ${email} - subscription: ${subscription.id}`
 		)
 	}

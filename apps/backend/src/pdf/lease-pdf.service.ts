@@ -1,9 +1,8 @@
-<<<<<<< HEAD
 import {
 	Injectable,
-	Logger,
 	InternalServerErrorException
 } from '@nestjs/common'
+import { PinoLogger } from 'nestjs-pino'
 import { PDFGeneratorService } from './pdf-generator.service'
 
 /**
@@ -12,9 +11,12 @@ import { PDFGeneratorService } from './pdf-generator.service'
  */
 @Injectable()
 export class LeasePDFService {
-	private readonly logger = new Logger(LeasePDFService.name)
-
-	constructor(private readonly pdfGenerator: PDFGeneratorService) {}
+	constructor(
+		private readonly pdfGenerator: PDFGeneratorService,
+		private readonly logger: PinoLogger
+	) {
+		// PinoLogger context handled automatically via app-level configuration
+	}
 
 	/**
 	 * Generate lease agreement PDF
@@ -43,7 +45,7 @@ export class LeasePDFService {
 		mimeType: string
 		size: number
 	}> {
-		this.logger.log(
+		this.logger.info(
 			'Generating lease PDF for lease:',
 			leaseId,
 			'user:',
@@ -71,7 +73,7 @@ export class LeasePDFService {
 
 			const filename = `lease-${leaseId}.pdf`
 
-			this.logger.log('Lease PDF generated successfully')
+			this.logger.info('Lease PDF generated successfully')
 			return {
 				buffer: pdfBuffer,
 				filename,
@@ -116,27 +118,4 @@ export class LeasePDFService {
 			</html>
 		`
 	}
-=======
-import { Injectable } from '@nestjs/common'
-import type { PDFGenerationResult } from './pdf-generator.service'
-
-/**
- * Lease PDF service - temporarily simplified for compilation
- * Will be fully restored after basic build is working
- */
-@Injectable()
-export class LeasePDFService {
-	async generateLeasePdf(
-		_leaseId?: string,
-		_userId?: string,
-		_options?: Record<string, unknown>
-	): Promise<PDFGenerationResult> {
-		return {
-			filename: 'lease.pdf',
-			mimeType: 'application/pdf',
-			size: 0,
-			buffer: Buffer.from([])
-		}
-	}
->>>>>>> origin/main
 }

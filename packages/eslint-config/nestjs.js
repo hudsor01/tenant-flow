@@ -1,6 +1,5 @@
 /**
  * NestJS + Fastify specific ESLint configuration for TenantFlow backend
-<<<<<<< HEAD
  * ESLint v9 flat config with TypeScript ESLint v8.40.0 optimization
  *
  * Latest Updates:
@@ -14,7 +13,7 @@ import globals from 'globals'
 import tseslint from 'typescript-eslint'
 import baseConfig from './base.js'
 
-export default tseslint.config(
+export default /** @type {import('eslint').Linter.FlatConfig[]} */ (tseslint.config(
 	...baseConfig,
 
 	// Enhanced NestJS backend configuration with TypeScript ESLint v8
@@ -84,7 +83,7 @@ export default tseslint.config(
 			'@typescript-eslint/switch-exhaustiveness-check': 'error',
 			'@typescript-eslint/unified-signatures': 'error',
 
-			// Backend-specific type checking (enable key safety rules)
+			// Backend-specific type checking (enable key safety rules))
 			'@typescript-eslint/no-unsafe-assignment': 'warn', // Warn instead of off for backend safety
 			'@typescript-eslint/no-unsafe-member-access': 'warn',
 			'@typescript-eslint/no-unsafe-call': 'warn',
@@ -166,10 +165,9 @@ export default tseslint.config(
 			'@typescript-eslint/no-unnecessary-type-arguments': 'warn',
 			'@typescript-eslint/prefer-reduce-type-parameter': 'warn',
 			'@typescript-eslint/prefer-return-this-type': 'error',
-			'@typescript-eslint/no-useless-empty-export': 'error',
-			'@typescript-eslint/no-require-imports': 'error',
-			'@typescript-eslint/no-duplicate-enum-values': 'error',
-			'@typescript-eslint/no-duplicate-type-constituents': 'warn',
+'@typescript-eslint/no-useless-empty-export': 'error',
+'@typescript-eslint/no-require-imports': 'error',
+'@typescript-eslint/no-duplicate-type-constituents': 'warn',
 			'@typescript-eslint/no-redundant-type-constituents': 'warn',
 			'@typescript-eslint/no-unnecessary-qualifier': 'warn'
 		}
@@ -352,73 +350,6 @@ export default tseslint.config(
 			'no-console': 'off', // CLI commands need console
 			'@typescript-eslint/no-floating-promises': 'off',
 			'@typescript-eslint/no-explicit-any': 'warn'
-		}
-	}
-)
-=======
- * 
- * Extends base configuration with NestJS and Node.js specific rules
- * following official NestJS TypeScript starter best practices.
- */
-
-import globals from 'globals'
-import baseConfig from './base.js'
-
-export default [
-	...baseConfig,
-	{
-		files: ['**/*.ts'],
-		languageOptions: {
-			globals: {
-				...globals.node,
-				...globals.jest
-			}
-		},
-		rules: {
-			// NestJS and backend specific rules
-			'@typescript-eslint/explicit-function-return-type': 'off',
-			'@typescript-eslint/explicit-module-boundary-types': 'off',
-			'@typescript-eslint/no-empty-function': 'off',
-			'@typescript-eslint/no-empty-interface': 'off',
-
-			// Backend logging is acceptable
-			'no-console': ['warn', { allow: ['warn', 'error', 'info', 'log'] }],
-
-			// Backend specific best practices
-			'no-return-await': 'error',
-			'no-duplicate-imports': 'error',
-			'sort-imports': [
-				'error',
-				{
-					ignoreCase: true,
-					ignoreDeclarationSort: true,
-					ignoreMemberSort: false,
-					memberSyntaxSortOrder: ['none', 'all', 'multiple', 'single']
-				}
-			]
-		}
-	},
-	{
-		// Service and controller files
-		files: ['**/*.service.ts', '**/*.controller.ts'],
-		rules: {
-			'@typescript-eslint/explicit-function-return-type': 'off',
-			'@typescript-eslint/no-explicit-any': 'warn' // Slightly relaxed for decorators
-		}
-	},
-	{
-		// Configuration and module files
-		files: ['**/*.config.ts', '**/*.module.ts'],
-		rules: {
-			'@typescript-eslint/no-explicit-any': 'off' // Config files may need any types
-		}
-	},
-	{
-		// DTO and entity files
-		files: ['**/*.dto.ts', '**/*.entity.ts', '**/*.interface.ts'],
-		rules: {
-			'@typescript-eslint/no-empty-interface': 'off' // DTOs may have empty interfaces
-		}
-	}
-]
->>>>>>> origin/main
+}
+}
+))

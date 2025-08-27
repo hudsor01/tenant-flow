@@ -22,11 +22,7 @@ import {
  */
 export const InvoiceItemSchema = z.object({
 	id: z.string(),
-<<<<<<< HEAD
 	description: requiredString,
-=======
-	description: z.string().min(1, 'Description is required'),
->>>>>>> origin/main
 	quantity: z.number().min(0.01, 'Quantity must be greater than 0'),
 	unitPrice: z.number().min(0, 'Unit price must be positive'),
 	total: z.number()
@@ -37,11 +33,7 @@ export const InvoiceItemSchema = z.object({
  */
 export const CustomerInvoiceSchema = z.object({
 	// Invoice Details
-<<<<<<< HEAD
 	invoiceNumber: requiredString,
-=======
-	invoiceNumber: z.string().min(1, 'Invoice number is required'),
->>>>>>> origin/main
 	issueDate: z.date(),
 	dueDate: z.date(),
 	status: z
@@ -49,11 +41,7 @@ export const CustomerInvoiceSchema = z.object({
 		.default('DRAFT'),
 
 	// Business Information (From)
-<<<<<<< HEAD
 	businessName: requiredString,
-=======
-	businessName: z.string().min(1, 'Business name is required'),
->>>>>>> origin/main
 	businessEmail: z.string().email('Valid business email is required'),
 	businessAddress: z.string().optional(),
 	businessCity: z.string().optional(),
@@ -63,13 +51,8 @@ export const CustomerInvoiceSchema = z.object({
 	businessLogo: z.string().optional(),
 
 	// Client Information (To)
-<<<<<<< HEAD
 	clientName: requiredString,
 	clientEmail: emailSchema,
-=======
-	clientName: z.string().min(1, 'Client name is required'),
-	clientEmail: z.string().email('Valid client email is required'),
->>>>>>> origin/main
 	clientAddress: z.string().optional(),
 	clientCity: z.string().optional(),
 	clientState: z.string().optional(),
@@ -89,11 +72,7 @@ export const CustomerInvoiceSchema = z.object({
 	total: z.number().default(0),
 
 	// Lead Magnet Features
-<<<<<<< HEAD
 	emailCaptured: emailSchema.optional(),
-=======
-	emailCaptured: z.string().email().optional(),
->>>>>>> origin/main
 	downloadCount: z.number().default(0),
 	isProVersion: z.boolean().default(false)
 })

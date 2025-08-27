@@ -1,4 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, InternalServerErrorException } from '@nestjs/common'
+import { PinoLogger } from 'nestjs-pino'
 import { PropertiesService } from '../properties/properties.service'
 import { TenantsService } from '../tenants/tenants.service'
 import { LeasesService } from '../leases/leases.service'
@@ -9,10 +10,12 @@ import type {
 } from '@repo/shared/types/api'
 import type { PropertyStats } from '@repo/shared/types/properties'
 import type { TenantStats } from '@repo/shared/types/tenants'
-import {
-	ErrorCode,
-	ErrorHandlerService
-} from '../services/error-handler.service'
+/** Add safe raw types for backend service-to-shared shape differences */
+// Removed ErrorHandlerService - using native NestJS exceptions
+
+type RawPropertyStats = Partial<PropertyStats & { vacantUnits?: number; totalMonthlyRent?: number; total?: number }>
+
+type RawTenantStats = Partial<TenantStats & { pendingInvitations?: number; total?: number }>
 
 export interface DashboardActivity {
 	activities: {
@@ -28,14 +31,15 @@ export interface DashboardActivity {
 
 @Injectable()
 export class DashboardService {
-	private readonly logger = new Logger(DashboardService.name)
-
 	constructor(
 		private readonly propertiesService: PropertiesService,
 		private readonly tenantsService: TenantsService,
 		private readonly leasesService: LeasesService,
-		private readonly errorHandler: ErrorHandlerService
-	) {}
+		private readonly logger: PinoLogger
+		// Removed errorHandler - using native NestJS patterns
+	) {
+		// PinoLogger context handled automatically via app-level configuration
+	}
 
 	/**
 	 * Get comprehensive dashboard statistics
@@ -53,73 +57,59 @@ export class DashboardService {
 					this.leasesService.getStats(userId)
 				])
 
-			// Map to PropertyStats interface
-			const properties: PropertyStats = {
-				totalUnits: rawPropertyStats.totalUnits || 0,
-				occupiedUnits: rawPropertyStats.occupiedUnits || 0,
-				vacantUnits: rawPropertyStats.vacantUnits || 0,
-				occupancyRate:
-					rawPropertyStats.totalUnits > 0
-						? Math.round(
-								(rawPropertyStats.occupiedUnits /
-									rawPropertyStats.totalUnits) *
-									100
-							)
-						: 0,
-				totalMonthlyRent: rawPropertyStats.totalMonthlyRent || 0,
-				potentialRent: rawPropertyStats.totalMonthlyRent || 0, // TODO: Calculate actual potential rent
-				totalProperties: rawPropertyStats.total || 0,
-				totalRent: rawPropertyStats.totalMonthlyRent || 0,
-				collectedRent: rawPropertyStats.totalMonthlyRent || 0, // TODO: Calculate actual collected rent
-				pendingRent: 0, // TODO: Calculate pending rent
-				total: rawPropertyStats.total || 0,
-				singleFamily: 0, // TODO: Calculate from property types
-				multiFamily: 0, // TODO: Calculate from property types
-				commercial: 0 // TODO: Calculate from property types
-			}
+/* Map to PropertyStats interface with frontend-dependent properties restored */
+const propertyData: RawPropertyStats = (rawPropertyStats ?? {}) as RawPropertyStats
+const totalUnits = propertyData?.totalUnits ?? 0
+const occupiedUnits = propertyData?.occupiedUnits ?? 0
+const availableUnits = propertyData?.availableUnits ?? propertyData?.vacantUnits ?? 0
+const totalMonthlyRent = propertyData?.totalMonthlyRent ?? 0
+const properties: PropertyStats = {
+totalProperties: propertyData?.totalProperties ?? 0,
+activeProperties: propertyData?.activeProperties ?? 0,
+totalUnits,
+occupiedUnits,
+availableUnits,
+occupancyRate: totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
+}
 
 			// Map to TenantStats interface
+			const tenantData: RawTenantStats = (rawTenantStats ?? {}) as RawTenantStats
 			const tenants: TenantStats = {
-				totalTenants: rawTenantStats.total || 0,
-				activeTenants: rawTenantStats.active || 0,
-				inactiveTenants: rawTenantStats.inactive || 0,
-				pendingInvitations: 0, // TODO: Add actual pending invitations count
-				total: rawTenantStats.total || 0
-			}
+				totalTenants: tenantData?.totalTenants || 0,
+				activeTenants: tenantData?.activeTenants || 0,
+				inactiveTenants: tenantData?.inactiveTenants || 0,
+				newTenants: tenantData?.newTenants ?? 0
+											}
 
 			// Map to UnitStats interface
 			const units: UnitStats = {
-				totalUnits: rawPropertyStats.totalUnits || 0,
-				availableUnits: rawPropertyStats.vacantUnits || 0,
-				occupiedUnits: rawPropertyStats.occupiedUnits || 0,
+				totalUnits: propertyData?.totalUnits || 0,
+				availableUnits: propertyData?.vacantUnits || 0,
+				occupiedUnits: propertyData?.occupiedUnits || 0,
 				maintenanceUnits: 0, // TODO: Add maintenance units calculation
-				averageRent:
-					rawPropertyStats.totalUnits > 0
-						? rawPropertyStats.totalMonthlyRent /
-							rawPropertyStats.totalUnits
-						: 0,
-				total: rawPropertyStats.totalUnits || 0,
-				occupied: rawPropertyStats.occupiedUnits || 0,
-				vacant: rawPropertyStats.vacantUnits || 0,
-				occupancyRate:
-					rawPropertyStats.totalUnits > 0
-						? Math.round(
-								(rawPropertyStats.occupiedUnits /
-									rawPropertyStats.totalUnits) *
-									100
-							)
-						: 0
+averageRent:
+ totalUnits > 0
+ ? totalMonthlyRent / totalUnits
+ : 0,
+				total: propertyData?.totalUnits || 0,
+				occupied: propertyData?.occupiedUnits || 0,
+				vacant: propertyData?.vacantUnits || 0,
+occupancyRate:
+ totalUnits > 0
+ ? Math.round((occupiedUnits / totalUnits) * 100)
+ : 0
 			}
 
 			// Map to LeaseStats interface
+			const leaseData = rawLeaseStats as unknown as LeaseStats
 			const leases: LeaseStats = {
-				totalLeases: rawLeaseStats.total || 0,
-				activeLeases: rawLeaseStats.active || 0,
-				expiredLeases: rawLeaseStats.expired || 0,
-				pendingLeases: rawLeaseStats.draft || 0,
-				totalRentRoll: rawPropertyStats.totalMonthlyRent || 0,
-				total: rawLeaseStats.total || 0,
-				active: rawLeaseStats.active || 0
+				totalLeases: leaseData?.totalLeases || 0,
+				activeLeases: leaseData?.activeLeases || 0,
+				expiredLeases: leaseData?.expiredLeases || 0,
+				pendingLeases: leaseData?.pendingLeases || 0,
+				totalRentRoll: totalMonthlyRent || 0,
+				total: leaseData?.total || 0,
+				active: leaseData?.active || 0
 			}
 
 			const dashboardStats: DashboardStats = {
@@ -144,24 +134,40 @@ export class DashboardService {
 				}
 			}
 
-			this.logger.log(`Dashboard stats retrieved for user ${userId}`, {
-				authToken
-			})
+			this.logger.info(
+				{
+					dashboard: {
+						userId,
+						hasAuthToken: !!authToken,
+stats: {
+totalProperties: dashboardStats.properties.totalProperties,
+totalTenants: dashboardStats.tenants.totalTenants,
+totalUnits: dashboardStats.units.total,
+totalLeases: dashboardStats.leases.total
+}
+					}
+				},
+				`Dashboard stats retrieved for user ${userId}`
+			)
 			return dashboardStats
 		} catch (error) {
-			this.logger.error('Failed to get dashboard stats', {
-				userId,
-				error: error instanceof Error ? error.message : String(error)
-			})
-
-			throw this.errorHandler.createBusinessError(
-				ErrorCode.INTERNAL_SERVER_ERROR,
-				'Failed to retrieve dashboard statistics',
+			this.logger.error(
 				{
-					operation: 'getStats',
-					resource: 'dashboard',
-					metadata: { userId }
-				}
+					error: {
+						name: error instanceof Error ? error.constructor.name : 'Unknown',
+						message: error instanceof Error ? error.message : String(error),
+						stack: process.env.NODE_ENV !== 'production' && error instanceof Error ? error.stack : undefined
+					},
+					dashboard: {
+						userId,
+						hasAuthToken: !!authToken
+					}
+				},
+				'Failed to get dashboard stats'
+			)
+
+			throw new InternalServerErrorException(
+				'Failed to retrieve dashboard statistics'
 			)
 		}
 	}
@@ -180,7 +186,7 @@ export class DashboardService {
 				activities: []
 			}
 
-			this.logger.log(`Dashboard activity retrieved for user ${userId}`, {
+			this.logger.info(`Dashboard activity retrieved for user ${userId}`, {
 				authToken
 			})
 			return activities
@@ -190,14 +196,8 @@ export class DashboardService {
 				error: error instanceof Error ? error.message : String(error)
 			})
 
-			throw this.errorHandler.createBusinessError(
-				ErrorCode.INTERNAL_SERVER_ERROR,
-				'Failed to retrieve dashboard activity',
-				{
-					operation: 'getActivity',
-					resource: 'dashboard',
-					metadata: { userId }
-				}
+			throw new InternalServerErrorException(
+				'Failed to retrieve dashboard activity'
 			)
 		}
 	}

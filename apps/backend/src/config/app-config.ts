@@ -7,7 +7,6 @@
 
 export const APP_CONFIG = {
 	// Application URLs
-<<<<<<< HEAD
 	FRONTEND_URL: process.env.FRONTEND_URL ?? 'https://tenantflow.app',
 
 	// API Configuration
@@ -16,16 +15,6 @@ export const APP_CONFIG = {
 
 	// CORS Configuration
 	ALLOWED_ORIGINS: process.env.CORS_ORIGINS?.split(',') ?? [
-=======
-	FRONTEND_URL: process.env.FRONTEND_URL || 'https://tenantflow.app',
-
-	// API Configuration
-	API_PORT: process.env.PORT || '4600',
-	API_PREFIX: '/api',
-
-	// CORS Configuration
-	ALLOWED_ORIGINS: process.env.CORS_ORIGINS?.split(',') || [
->>>>>>> origin/main
 		'https://tenantflow.app'
 	],
 
@@ -42,13 +31,8 @@ export const APP_CONFIG = {
 		WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
 		// Portal return URL
 		PORTAL_RETURN_URL:
-<<<<<<< HEAD
 			process.env.STRIPE_PORTAL_RETURN_URL ??
 			process.env.FRONTEND_URL ??
-=======
-			process.env.STRIPE_PORTAL_RETURN_URL ||
-			process.env.FRONTEND_URL ||
->>>>>>> origin/main
 			'https://tenantflow.app/settings/billing'
 	},
 
@@ -79,11 +63,7 @@ export const APP_CONFIG = {
 	// Rate Limiting
 	RATE_LIMIT: {
 		WINDOW_MS: 15 * 60 * 1000, // 15 minutes
-<<<<<<< HEAD
 		MAX_REQUESTS: parseInt(process.env.RATE_LIMIT_MAX ?? '100', 10)
-=======
-		MAX_REQUESTS: parseInt(process.env.RATE_LIMIT_MAX || '100', 10)
->>>>>>> origin/main
 	}
 } as const
 

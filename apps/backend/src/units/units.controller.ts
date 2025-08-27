@@ -29,7 +29,7 @@ import {
 	NotFoundException
 } from '@nestjs/common'
 import { ThrottlerGuard } from '@nestjs/throttler'
-import { UnifiedAuthGuard } from '../shared/guards/auth.guard'
+import { AuthGuard } from '../shared/guards/auth.guard'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
 import type { ValidatedUser } from '@repo/shared'
 import { UnitsService } from './units.service'
@@ -39,7 +39,7 @@ import type {
 } from '../schemas/units.schema'
 
 @Controller('units')
-@UseGuards(ThrottlerGuard, UnifiedAuthGuard)
+@UseGuards(ThrottlerGuard, AuthGuard)
 export class UnitsController {
 	constructor(private readonly unitsService: UnitsService) {}
 

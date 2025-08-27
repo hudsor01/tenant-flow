@@ -199,28 +199,16 @@ export interface BlogAnalytics {
 	draftArticles: number
 	totalViews: number
 	averageReadTime: number
-<<<<<<< HEAD
 	topCategories: Array<{
 		category: BlogCategory
 		count: number
 	}>
 	recentActivity: Array<{
-=======
-	topCategories: {
-		category: BlogCategory
-		count: number
-	}[]
-	recentActivity: {
->>>>>>> origin/main
 		id: string
 		title: string
 		action: 'created' | 'updated' | 'published'
 		timestamp: Date
-<<<<<<< HEAD
 	}>
-=======
-	}[]
->>>>>>> origin/main
 }
 
 // Blog SEO data

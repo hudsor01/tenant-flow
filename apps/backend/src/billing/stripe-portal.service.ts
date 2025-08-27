@@ -15,27 +15,29 @@
  * Replaces: stripe-billing.service.ts (878 lines) with ~50 lines
  */
 
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, BadRequestException, InternalServerErrorException, NotFoundException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { PinoLogger } from 'nestjs-pino'
 import Stripe from 'stripe'
 import type { EnvironmentVariables } from '../config/config.schema'
 import { UserSupabaseRepository } from '../database/user-supabase.repository'
 
 @Injectable()
 export class StripePortalService {
-	private readonly logger = new Logger(StripePortalService.name)
 	private readonly stripe: Stripe
 	private readonly frontendUrl: string
 
 	constructor(
 		private configService: ConfigService<EnvironmentVariables>,
-		private userRepository: UserSupabaseRepository
+		private userRepository: UserSupabaseRepository,
+		private readonly logger: PinoLogger
 	) {
+		// PinoLogger context handled automatically via app-level configuration
 		const secretKey = this.configService.get('STRIPE_SECRET_KEY', {
 			infer: true
 		})
 		if (!secretKey) {
-			throw new Error('STRIPE_SECRET_KEY is required')
+			throw new InternalServerErrorException('STRIPE_SECRET_KEY is required')
 		}
 
 		this.stripe = new Stripe(secretKey, {
@@ -60,10 +62,10 @@ export class StripePortalService {
 			params.userId
 		)
 		if (!user) {
-			throw new Error('User not found')
+			throw new NotFoundException('User not found')
 		}
 
-		let customerId = user.Subscription?.[0]?.stripeCustomerId
+		let customerId = user.Subscription?.[0]?.stripe_customer_id
 
 		if (!customerId) {
 			const customer = await this.stripe.customers.create({
@@ -111,12 +113,12 @@ export class StripePortalService {
 			}
 		})
 
-		this.logger.log(
+		this.logger.info(
 			`Created checkout session: ${session.id} for user: ${params.userId}`
 		)
 
 		if (!session.url) {
-			throw new Error('Checkout session URL not available')
+			throw new InternalServerErrorException('Checkout session URL not available')
 		}
 
 		return {
@@ -138,12 +140,12 @@ export class StripePortalService {
 			params.userId
 		)
 		if (!user) {
-			throw new Error('User not found')
+			throw new NotFoundException('User not found')
 		}
 
-		const customerId = user.Subscription?.[0]?.stripeCustomerId
+		const customerId = user.Subscription?.[0]?.stripe_customer_id
 		if (!customerId) {
-			throw new Error('No Stripe customer found for user')
+			throw new BadRequestException('No Stripe customer found for user')
 		}
 
 		// Create portal session
@@ -152,7 +154,7 @@ export class StripePortalService {
 			return_url: params.returnUrl || `${this.frontendUrl}/dashboard`
 		})
 
-		this.logger.log(`Created portal session for user: ${params.userId}`)
+		this.logger.info(`Created portal session for user: ${params.userId}`)
 
 		return { url: session.url }
 	}

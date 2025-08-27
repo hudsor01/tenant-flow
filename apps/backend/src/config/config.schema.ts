@@ -24,7 +24,7 @@ export class EnvironmentVariables {
 	NODE_ENV = 'production'
 
 	@IsOptional()
-	@Transform(({ value }) => (value ? parseInt(value, 10) : 4600))
+	@Transform(({ value }) => (value ? parseInt(String(value), 10) : 4600))
 	PORT = 4600
 
 	// Database

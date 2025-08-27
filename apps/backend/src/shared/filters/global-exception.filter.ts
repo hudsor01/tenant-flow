@@ -4,8 +4,9 @@ import {
 	ExceptionFilter,
 	HttpException,
 	HttpStatus,
-	Logger
+	Injectable
 } from '@nestjs/common'
+import { PinoLogger } from 'nestjs-pino'
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import type {
 	FastifyErrorResponse,
@@ -24,16 +25,22 @@ interface AuthenticatedRequest extends FastifyRequest {
 }
 
 /**
- * Global exception filter using native NestJS patterns
- * Replaces custom ErrorHandlerService with standard NestJS exception handling
+ * Global exception filter using ultra-fast Pino logging with request context
+ * Replaces custom ErrorHandlerService with native NestJS + Pino integration
  *
- * Following CLAUDE.md RULE #3: No abstractions - direct NestJS usage only
- *
+ * PERFORMANCE: Uses Pino (5-10x faster than Winston/NestJS Logger)
+ * CONTEXT: Automatic request context correlation via nestjs-pino
  * SECURITY: Sanitizes request bodies before logging to prevent sensitive data exposure
+ * 
+ * Following CLAUDE.md RULE #3: No abstractions - native platform features only
  */
 @Catch()
+@Injectable()
 export class GlobalExceptionFilter implements ExceptionFilter {
-	private readonly logger = new Logger(GlobalExceptionFilter.name)
+	constructor(private readonly logger: PinoLogger) {
+		// Set context for this logger instance
+		// PinoLogger context handled automatically via app-level configuration
+	}
 
 	/**
 	 * Sanitize request body to prevent logging sensitive data
@@ -81,7 +88,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 		]
 
 		try {
-			const sanitized = JSON.parse(JSON.stringify(body))
+			const sanitized = JSON.parse(JSON.stringify(body)) as Record<string, unknown>
 
 			const redactSensitiveFields = (
 				obj: Record<string, unknown>
@@ -230,9 +237,17 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 				exception.details
 			)
 
+			// Use Pino structured logging with automatic request context
 			this.logger.warn(
-				`Business rule violation: ${exception.code} - ${exception.message}`,
-				{ userId: request.user?.id, details: exception.details }
+				{ 
+					businessException: {
+						code: exception.code,
+						message: exception.message,
+						details: exception.details
+					},
+					userId: request.user?.id 
+				},
+				`Business rule violation: ${exception.code}`
 			)
 
 			response.status(exception.getStatus()).send(businessErrorResponse)
@@ -266,31 +281,34 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 			status = HttpStatus.INTERNAL_SERVER_ERROR
 			message = 'Internal server error'
 
-			// CRITICAL: Log full error details for production monitoring (with sanitized body)
+			// CRITICAL: Use Pino structured logging for production monitoring  
 			this.logger.error(
-				`CRITICAL ERROR: ${exception.message}`,
-				exception.stack,
 				{
-					path: request.url,
-					method: request.method,
-					body: this.sanitizeRequestBody(request.body),
+					error: {
+						name: exception.constructor.name,
+						message: exception.message,
+						stack: process.env.NODE_ENV !== 'production' ? exception.stack : undefined
+					},
+					request: {
+						method: request.method,
+						path: request.url,
+						body: this.sanitizeRequestBody(request.body)
+					},
 					userId: request.user?.id
-				}
+				},
+				`CRITICAL ERROR: ${exception.message}`
 			)
 			error = 'Internal Server Error'
-
-			// Log the actual error for debugging (not exposed to client)
-			this.logger.error(
-				`Unhandled error: ${exception.message}`,
-				exception.stack
-			)
 		} else {
 			status = HttpStatus.INTERNAL_SERVER_ERROR
 			message = 'Internal server error'
 			error = 'Unknown Error'
 
-			// Log unknown exceptions
-			this.logger.error('Unknown exception type:', exception)
+			// Log unknown exceptions with Pino structured format
+			this.logger.error(
+				{ unknownException: exception },
+				'Unknown exception type encountered'
+			)
 		}
 
 		// Standard error response format using shared types
@@ -335,13 +353,16 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 			timestamp: new Date().toISOString()
 		}
 
+		// Use Pino structured logging for final error summary (with automatic request context)
 		if (status >= (HttpStatus.INTERNAL_SERVER_ERROR as number)) {
 			this.logger.error(
-				`${logContext.method} ${logContext.url} - ${logContext.status} ${logContext.errorName}: ${logContext.message}`
+				logContext,
+				`${logContext.method} ${logContext.url} - ${logContext.status} ${logContext.errorName}`
 			)
 		} else {
 			this.logger.warn(
-				`${logContext.method} ${logContext.url} - ${logContext.status} ${logContext.errorName}: ${logContext.message}`
+				logContext,
+				`${logContext.method} ${logContext.url} - ${logContext.status} ${logContext.errorName}`
 			)
 		}
 

@@ -18,19 +18,20 @@
 import { 
   Inject, 
   Injectable, 
-  Logger
+  InternalServerErrorException,
+  BadRequestException
 } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import Stripe from 'stripe'
 import type { EnvironmentVariables } from '../config/config.schema'
 import { SupabaseService } from '../database/supabase.service'
-import { ErrorHandlerService } from '../services/error-handler.service'
+// Removed ErrorHandlerService - using native NestJS exceptions
 import { PaymentNotificationService } from './payment-notification.service'
+import { PinoLogger } from 'nestjs-pino'
 import type { Database } from '@repo/shared'
 
 @Injectable()
 export class StripeService {
-  private readonly logger = new Logger(StripeService.name)
   private readonly stripe: Stripe
   private readonly webhookSecret: string
   private readonly maxRetries = 3
@@ -38,18 +39,28 @@ export class StripeService {
   constructor(
     @Inject(ConfigService) private readonly configService: ConfigService<EnvironmentVariables>,
     private readonly supabaseService: SupabaseService,
-    private readonly errorHandler: ErrorHandlerService,
-    private readonly paymentNotificationService: PaymentNotificationService
+    // Removed errorHandler - using native NestJS patterns
+    private readonly paymentNotificationService: PaymentNotificationService,
+    private readonly logger: PinoLogger
   ) {
+    // PinoLogger context handled automatically via app-level configuration
     // Initialize Stripe with best practices
     const secretKey = this.configService.get('STRIPE_SECRET_KEY', { infer: true })
     if (!secretKey) {
-      throw new Error('STRIPE_SECRET_KEY is required for Stripe initialization')
+      throw new InternalServerErrorException('STRIPE_SECRET_KEY is required for Stripe initialization')
     }
 
     this.webhookSecret = this.configService.get('STRIPE_WEBHOOK_SECRET', { infer: true }) || ''
     if (!this.webhookSecret) {
-      this.logger.warn('STRIPE_WEBHOOK_SECRET not configured - webhooks will not be verified')
+      this.logger.warn(
+        { 
+          stripe: { 
+            webhookSecretConfigured: false,
+            webhookVerificationDisabled: true 
+          } 
+        },
+        'STRIPE_WEBHOOK_SECRET not configured - webhooks will not be verified'
+      )
     }
 
     // Initialize with latest API version and recommended settings
@@ -66,7 +77,16 @@ export class StripeService {
       }
     })
 
-    this.logger.log('Stripe service initialized with API version 2025-07-30.basil')
+    this.logger.info(
+      { 
+        stripe: { 
+          apiVersion: '2025-07-30.basil',
+          initialized: true,
+          webhookSecretConfigured: !!this.webhookSecret
+        } 
+      },
+      'Stripe service initialized with API version 2025-07-30.basil'
+    )
   }
 
 	// Expose client for direct access when needed
@@ -132,7 +152,7 @@ export class StripeService {
 				metadata: metadata || {}
 			})
 
-			this.logger.log(
+			this.logger.info(
 				`Subscription created: ${subscription.id}, status: ${subscription.status}`
 			)
 
@@ -163,7 +183,7 @@ export class StripeService {
 							}
 						)
 
-					this.logger.log(
+					this.logger.info(
 						`Payment confirmed: ${confirmedPayment.id}, status: ${confirmedPayment.status}`
 					)
 
@@ -190,12 +210,12 @@ export class StripeService {
 		}
 	}
 
-	async handleWebhook(payload: Buffer, signature: string) {
+	async handleWebhook(payload: Buffer, signature: string): Promise<Stripe.Event> {
 		const webhookSecret = this.configService.get('STRIPE_WEBHOOK_SECRET', {
 			infer: true
 		})
 		if (!webhookSecret) {
-			throw new Error('STRIPE_WEBHOOK_SECRET is required')
+			throw new BadRequestException('STRIPE_WEBHOOK_SECRET is required')
 		}
 		const event = this.stripe.webhooks.constructEvent(
 			payload,
@@ -208,11 +228,11 @@ export class StripeService {
 			case 'customer.subscription.created':
 			case 'customer.subscription.updated':
 				// Update user subscription status in Supabase
-				this.logger.log('Subscription event:', event.type)
+				this.logger.info('Subscription event:', event.type)
 				break
 			case 'customer.subscription.deleted':
 				// Log subscription deletion
-				this.logger.log('Subscription deleted:', event.type)
+				this.logger.info('Subscription deleted:', event.type)
 				// Cancellation notification is handled in cancelSubscription method or webhook handler in controller
 				break
 			case 'customer.subscription.trial_will_end': {
@@ -247,7 +267,7 @@ export class StripeService {
 		cancelAtPeriodEnd: boolean
 		billingInterval: 'monthly' | 'annual'
 	}) {
-		this.logger.log('Creating/updating subscription:', subscriptionData)
+		this.logger.info('Creating/updating subscription:', subscriptionData)
 		
 		try {
 			const client = this.supabaseService.getAdminClient()
@@ -260,8 +280,20 @@ export class StripeService {
 				.single()
 
 			if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = no rows found
-				this.logger.error('Error checking existing subscription:', fetchError)
-				throw new Error(`Failed to check existing subscription: ${fetchError.message}`)
+				this.logger.error(
+					{
+						error: {
+							name: fetchError.constructor.name,
+							message: fetchError.message,
+							code: fetchError.code
+						},
+						subscription: {
+							stripeSubscriptionId: subscriptionData.stripeSubscriptionId
+						}
+					},
+					'Error checking existing subscription'
+				)
+				throw new InternalServerErrorException(`Failed to check existing subscription: ${fetchError.message}`)
 			}
 
 			const subscriptionPayload = {
@@ -291,10 +323,10 @@ export class StripeService {
 
 				if (error) {
 					this.logger.error('Error updating subscription:', error)
-					throw new Error(`Failed to update subscription: ${error.message}`)
+					throw new InternalServerErrorException(`Failed to update subscription: ${error.message}`)
 				}
 
-				this.logger.log('Successfully updated subscription:', data.id)
+				this.logger.info('Successfully updated subscription:', data.id)
 				return { success: true, action: 'updated', subscription: data }
 			} else {
 				// Create new subscription
@@ -309,17 +341,17 @@ export class StripeService {
 
 				if (error) {
 					this.logger.error('Error creating subscription:', error)
-					throw new Error(`Failed to create subscription: ${error.message}`)
+					throw new InternalServerErrorException(`Failed to create subscription: ${error.message}`)
 				}
 
-				this.logger.log('Successfully created subscription:', data.id)
+				this.logger.info('Successfully created subscription:', data.id)
 				return { success: true, action: 'created', subscription: data }
 			}
 		} catch (error) {
-			this.errorHandler.logError(
+			this.logger.error(
 				'StripeService.createOrUpdateSubscription failed',
 				{
-					error: error as Error,
+					error: error,
 					userId: subscriptionData.userId,
 					stripeSubscriptionId: subscriptionData.stripeSubscriptionId
 				}
@@ -360,7 +392,7 @@ export class StripeService {
 
 		try {
 			// Log payment event for audit trail
-			this.logger.log('Payment event recorded', logContext)
+			this.logger.info('Payment event recorded', logContext)
 
 			// If we have a subscription ID, update its metadata with latest payment info
 			if (paymentData.stripeSubscriptionId) {
@@ -390,7 +422,7 @@ export class StripeService {
 					this.logger.error('Failed to update subscription with payment info:', error)
 					// Don't throw - we still want to log the payment event
 				} else {
-					this.logger.log('Updated subscription with payment info', {
+					this.logger.info('Updated subscription with payment info', {
 						subscriptionId: subscription?.id,
 						status: paymentData.status
 					})
@@ -444,8 +476,8 @@ export class StripeService {
 				}
 			}
 		} catch (error) {
-			this.errorHandler.logError('Failed to record payment', {
-				error: error as Error,
+			this.logger.error('Failed to record payment', {
+				error: error,
 				paymentData: logContext
 			})
 			return { success: false }

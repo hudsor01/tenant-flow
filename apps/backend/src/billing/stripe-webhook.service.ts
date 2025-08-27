@@ -11,7 +11,8 @@
  * Replaces: subscription-sync.service.ts (779 lines) with ~100 lines
  */
 
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
+import { PinoLogger } from 'nestjs-pino'
 import { SupabaseService } from '../database/supabase.service'
 import type { Stripe } from 'stripe'
 
@@ -29,12 +30,15 @@ interface StripeSubscriptionWithPeriods extends Stripe.Subscription {
 
 @Injectable()
 export class StripeWebhookService {
-	private readonly logger = new Logger(StripeWebhookService.name)
-
 	// Track processed events to handle duplicates
 	private readonly processedEvents = new Set<string>()
 
-	constructor(private readonly supabaseService: SupabaseService) {}
+	constructor(
+		private readonly supabaseService: SupabaseService,
+		private readonly logger: PinoLogger
+	) {
+		// PinoLogger context handled automatically via app-level configuration
+	}
 
 	/**
 	 * Main webhook handler - processes Stripe events
@@ -43,7 +47,16 @@ export class StripeWebhookService {
 	async handleWebhook(event: Stripe.Event): Promise<void> {
 		// Check for duplicate events
 		if (this.processedEvents.has(event.id)) {
-			this.logger.log(`Skipping duplicate event: ${event.id}`)
+			this.logger.info(
+				{
+					webhook: {
+						eventId: event.id,
+						type: event.type,
+						duplicate: true
+					}
+				},
+				`Skipping duplicate event: ${event.id}`
+			)
 			return
 		}
 
@@ -57,7 +70,7 @@ export class StripeWebhookService {
 			}
 		}
 
-		this.logger.log(`Processing webhook: ${event.type} (${event.id})`)
+		this.logger.info(`Processing webhook: ${event.type} (${event.id})`)
 
 		// Handle events based on type
 		switch (event.type) {
@@ -147,7 +160,7 @@ export class StripeWebhookService {
 			typeof subscription === 'string' ? subscription : subscription.id
 
 		await this.updateSubscriptionStatus(subscriptionId || '', 'PAST_DUE')
-		this.logger.log(
+		this.logger.warn(
 			`Payment failed for subscription: ${subscriptionId}. Smart Retries will handle recovery.`
 		)
 	}
@@ -167,7 +180,7 @@ export class StripeWebhookService {
 			typeof subscription === 'string' ? subscription : subscription.id
 
 		await this.updateSubscriptionStatus(subscriptionId || '', 'ACTIVE')
-		this.logger.log(`Payment succeeded for subscription: ${subscriptionId}`)
+		this.logger.info(`Payment succeeded for subscription: ${subscriptionId}`)
 	}
 
 	/**

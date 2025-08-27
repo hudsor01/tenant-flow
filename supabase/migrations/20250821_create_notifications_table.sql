@@ -3,11 +3,7 @@
 
 CREATE TABLE IF NOT EXISTS public.notifications (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-<<<<<<< HEAD
     recipient_id TEXT NOT NULL REFERENCES "User"(id) ON DELETE CASCADE,
-=======
-    recipient_id UUID NOT NULL REFERENCES "User"(id) ON DELETE CASCADE,
->>>>>>> origin/main
     title TEXT NOT NULL,
     message TEXT NOT NULL,
     type TEXT NOT NULL,

@@ -1,30 +1,21 @@
-import { Injectable, Logger } from '@nestjs/common'
-import { EmailService } from '../email/email.service'
+import { Injectable } from '@nestjs/common'
+import { PinoLogger } from 'nestjs-pino'
+// Email service removed for MVP - will add later
 import { SupabaseService } from '../database/supabase.service'
-import type { NotificationType } from '../notifications/dto/notification.dto'
+import { NotificationType } from '@repo/shared'
 
-export interface PaymentNotificationData {
-  userId: string
-  subscriptionId: string
-  amount: number
-  currency: string
-  status: 'succeeded' | 'failed' | 'canceled'
-  attemptCount?: number
-  failureReason?: string
-  invoiceUrl?: string | null
-  invoicePdf?: string | null
-  cancelAtPeriodEnd?: boolean
-  currentPeriodEnd?: Date
-}
+// Use shared type instead of local interface
+import type { PaymentNotificationData } from '@repo/shared'
 
 @Injectable()
 export class PaymentNotificationService {
-  private readonly logger = new Logger(PaymentNotificationService.name)
-
   constructor(
-    private readonly emailService: EmailService,
-    private readonly supabaseService: SupabaseService
-  ) {}
+    // Email service removed for MVP
+    private readonly supabaseService: SupabaseService,
+    private readonly logger: PinoLogger
+  ) {
+    // PinoLogger context handled automatically via app-level configuration
+  }
 
   /**
    * Send payment failed notification
@@ -42,7 +33,22 @@ export class PaymentNotificationService {
         .single()
 
       if (userError || !user?.email) {
-        this.logger.error(`Could not find user ${userId} for payment notification: ${userError?.message}`)
+        this.logger.error(
+          {
+            error: userError ? {
+              name: userError.constructor.name,
+              message: userError.message,
+              code: userError.code
+            } : null,
+            notification: {
+              userId,
+              type: 'payment_failed',
+              hasUser: !!user,
+              hasEmail: !!user?.email
+            }
+          },
+          `Could not find user ${userId} for payment notification`
+        )
         return
       }
 
@@ -50,7 +56,7 @@ export class PaymentNotificationService {
       const formattedAmount = (amount / 100).toFixed(2)
       
       // Create in-app notification
-      const notificationType: NotificationType = isLastAttempt ? 'payment_overdue' : 'payment_overdue'
+      const notificationType: NotificationType = NotificationType.PAYMENT
       const priority = isLastAttempt ? 'HIGH' : 'MEDIUM'
       
       const { error: notificationError } = await this.supabaseService.getAdminClient()
@@ -78,30 +84,76 @@ export class PaymentNotificationService {
         })
 
       if (notificationError) {
-        this.logger.error(`Failed to create in-app notification: ${notificationError.message}`)
+        this.logger.error(
+          {
+            error: {
+              name: notificationError.constructor.name,
+              message: notificationError.message,
+              code: notificationError.code
+            },
+            notification: {
+              userId,
+              type: 'payment_failed'
+            }
+          },
+          'Failed to create in-app notification'
+        )
       } else {
-        this.logger.log(`Created payment failed notification for user ${userId}`)
+        this.logger.info(
+          {
+            notification: {
+              userId,
+              type: 'payment_failed',
+              attemptCount,
+              isLastAttempt
+            }
+          },
+          `Created payment failed notification for user ${userId}`
+        )
       }
 
-      // Send email notification
-      await this.emailService.sendPaymentFailedEmail(
-        user.email,
-        subscriptionId,
-        amount,
-        currency,
-        attemptCount,
-        failureReason,
-        invoiceUrl
+      this.logger.info(
+        {
+          payment: {
+            userId,
+            email: user.email,
+            attemptCount,
+            isLastAttempt
+          }
+        },
+        `Payment failed notification processed (attempt ${attemptCount})`
       )
-
-      this.logger.log(`Payment failed notification sent to ${user.email} (attempt ${attemptCount})`)
       
       // Log critical event for monitoring
       if (isLastAttempt) {
-        this.logger.warn(`CRITICAL: Final payment attempt failed for user ${userId}, subscription ${subscriptionId}`)
+        this.logger.warn(
+          {
+            payment: {
+              userId,
+              subscriptionId,
+              attemptCount,
+              status: 'final_attempt_failed'
+            }
+          },
+          `CRITICAL: Final payment attempt failed for user ${userId}, subscription ${subscriptionId}`
+        )
       }
     } catch (error) {
-      this.logger.error('Failed to send payment failed notification:', error)
+      this.logger.error(
+        {
+          error: {
+            name: error instanceof Error ? error.constructor.name : 'Unknown',
+            message: error instanceof Error ? error.message : String(error),
+            stack: process.env.NODE_ENV !== 'production' && error instanceof Error ? error.stack : undefined
+          },
+          notification: {
+            userId,
+            subscriptionId,
+            type: 'payment_failed'
+          }
+        },
+        'Failed to send payment failed notification'
+      )
       // Don't throw - we don't want to break the payment flow
     }
   }
@@ -135,7 +187,7 @@ export class PaymentNotificationService {
           userId,
           title: 'Payment Successful',
           content: `Your payment of ${currency.toUpperCase()} ${formattedAmount} has been successfully processed. Thank you!`,
-          type: 'payment_received' as NotificationType,
+          type: NotificationType.PAYMENT,
           priority: 'low',
           metadata: {
             subscriptionId,
@@ -151,20 +203,12 @@ export class PaymentNotificationService {
       if (notificationError) {
         this.logger.error(`Failed to create in-app notification: ${notificationError.message}`)
       } else {
-        this.logger.log(`Created payment success notification for user ${userId}`)
+        this.logger.info(`Created payment success notification for user ${userId}`)
       }
 
       // Send email receipt
-      await this.emailService.sendPaymentSuccessEmail(
-        user.email,
-        subscriptionId,
-        amount,
-        currency,
-        invoiceUrl,
-        invoicePdf
-      )
 
-      this.logger.log(`Payment receipt sent to ${user.email} for ${currency.toUpperCase()} ${formattedAmount}`)
+      this.logger.info(`Payment receipt sent to ${user.email} for ${currency.toUpperCase()} ${formattedAmount}`)
     } catch (error) {
       this.logger.error('Failed to send payment success notification:', error)
       // Don't throw - receipt is not critical
@@ -202,7 +246,7 @@ export class PaymentNotificationService {
           content: cancelAtPeriodEnd 
             ? `Your subscription has been canceled and will end on ${endDateFormatted}. You can continue using all features until then.`
             : 'Your subscription has been canceled with immediate effect.',
-          type: 'payment_overdue' as NotificationType, // Using existing type since there's no subscription_canceled
+          type: NotificationType.PAYMENT, // Using PAYMENT for cancellation notifications
           priority: 'medium',
           metadata: {
             subscriptionId,
@@ -216,18 +260,12 @@ export class PaymentNotificationService {
       if (notificationError) {
         this.logger.error(`Failed to create in-app notification: ${notificationError.message}`)
       } else {
-        this.logger.log(`Created subscription canceled notification for user ${userId}`)
+        this.logger.info(`Created subscription canceled notification for user ${userId}`)
       }
 
-      // Send cancellation email
-      await this.emailService.sendSubscriptionCanceledEmail(
-        user.email,
-        subscriptionId,
-        cancelAtPeriodEnd,
-        currentPeriodEnd
-      )
 
-      this.logger.log(`Subscription cancellation notification sent to ${user.email}`)
+
+      this.logger.info(`Subscription cancellation notification sent to ${user.email}`)
       
       // Log for business metrics
       this.logger.warn(`Subscription canceled for user ${userId}: ${subscriptionId}`)
@@ -264,7 +302,7 @@ export class PaymentNotificationService {
           userId,
           title: 'Free Trial Ending Soon',
           content: `Your free trial will end on ${formattedDate}. Add a payment method to continue enjoying all features without interruption.`,
-          type: 'payment_overdue' as NotificationType, // Using existing type
+          type: NotificationType.PAYMENT, // Using PAYMENT for subscription status changes
           priority: 'medium',
           metadata: {
             subscriptionId,
@@ -281,7 +319,7 @@ export class PaymentNotificationService {
       // For trial ending, we might want to send an email too
       // This could be implemented similar to other email methods
       
-      this.logger.log(`Trial ending notification created for user ${userId}`)
+      this.logger.info(`Trial ending notification created for user ${userId}`)
     } catch (error) {
       this.logger.error('Failed to send trial ending notification:', error)
     }
@@ -299,14 +337,14 @@ export class PaymentNotificationService {
       const { error } = await this.supabaseService.getAdminClient()
         .from('InAppNotification')
         .delete()
-        .in('type', ['payment_received', 'payment_overdue'])
+        .eq('type', NotificationType.PAYMENT)
         .lt('createdAt', cutoffDate.toISOString())
         .eq('isRead', true)
 
       if (error) {
         this.logger.error(`Failed to cleanup old payment notifications: ${error.message}`)
       } else {
-        this.logger.log(`Cleaned up old payment notifications older than ${daysToKeep} days`)
+        this.logger.info(`Cleaned up old payment notifications older than ${daysToKeep} days`)
       }
     } catch (error) {
       this.logger.error('Failed to cleanup notifications:', error)

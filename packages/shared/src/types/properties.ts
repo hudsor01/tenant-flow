@@ -1,159 +1,153 @@
 /**
- * Property management types
- * All types related to properties, units, and property management
+ * PROPERTY TYPES - All property-related interfaces
+ * CONSOLIDATED from 15+ scattered property definitions
  */
 
-import type { PROPERTY_TYPE, UNIT_STATUS } from '../constants/properties'
+// =============================================================================
+// CORE PROPERTY ENTITY
+// =============================================================================
 
-// Types derived from constants
-export type PropertyType = (typeof PROPERTY_TYPE)[keyof typeof PROPERTY_TYPE]
-export type UnitStatus = (typeof UNIT_STATUS)[keyof typeof UNIT_STATUS]
-
-// Display helpers are now in utils/properties.ts to avoid duplication
-
-// Property entity types
 export interface Property {
-	id: string
-	name: string
-	address: string
-	city: string
-	state: string
-	zipCode: string
-	description: string | null
-	imageUrl: string | null
-	ownerId: string
-	propertyType: PropertyType
-	yearBuilt?: number | null
-	totalSize?: number | null
-	createdAt: Date
-	updatedAt: Date
-	// Optional relations
-	units?: Unit[]
-	manager?: {
-		name: string
-		email: string
-		phone: string
-	} | null
+  id: string
+  name: string
+  address: string
+  city: string
+  state: string
+  zip: string
+  description?: string
+  status: PropertyStatus
+  created_at: string
+  updated_at: string
+  user_id: string
+  ownerId?: string  // Legacy field for frontend-utils.ts compatibility
 }
+
+export type PropertyStatus = 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE'
+
+// =============================================================================
+// PROPERTY API TYPES - CONSOLIDATED from backend schemas
+// =============================================================================
+
+export interface CreatePropertyRequest {
+  name: string
+  address: string
+  city: string
+  state: string
+  zip: string
+  description?: string
+}
+
+export interface UpdatePropertyRequest {
+  name?: string
+  address?: string
+  city?: string
+  state?: string
+  zip?: string
+  description?: string
+  status?: PropertyStatus
+}
+
+export interface PropertyQueryRequest {
+  status?: PropertyStatus
+  search?: string
+  page?: number
+  limit?: number
+}
+
+// =============================================================================
+// PROPERTY STATS & AGGREGATIONS
+// =============================================================================
+
+export interface PropertyStats {
+  totalProperties: number
+  activeProperties: number
+  totalUnits: number
+  occupiedUnits: number
+  availableUnits: number
+  occupancyRate: number
+  // Frontend-dependent properties (required by dashboard components)
+  totalMonthlyRent?: number
+  potentialRent?: number
+  totalRent?: number
+  collectedRent?: number
+  pendingRent?: number
+  total?: number
+  singleFamily?: number
+  multiFamily?: number
+  commercial?: number
+}
+
+export interface PropertyWithUnits extends Property {
+  units?: Array<{
+    id: string
+    name: string
+    status: string
+    rent: number
+  }>
+}
+
+// =============================================================================
+// LEGACY COMPATIBILITY - Unit type referenced in some files
+// =============================================================================
 
 export interface Unit {
-	id: string
-	unitNumber: string
-	propertyId: string
-	bedrooms: number
-	bathrooms: number
-	squareFeet: number | null
-	rent?: number // For backwards compatibility with monthlyRent
-	monthlyRent?: number // Primary field used by API
-	rentAmount?: number // Another alias for rent/monthlyRent
-	securityDeposit?: number
-	description?: string
-	amenities?: string[]
-	status: UnitStatus
-	lastInspectionDate: Date | null
-	createdAt: Date
-	updatedAt: Date
+  id: string
+  property_id: string
+  name: string
+  description?: string
+  rent: number
+  status: string
+  created_at: string
+  updated_at: string
 }
 
-export interface Inspection {
-	id: string
-	propertyId: string
-	unitId: string | null
-	inspectorId: string
-	type: string
-	scheduledDate: Date
-	completedDate: Date | null
-	status: string
-	notes: string | null
-	reportUrl: string | null
-	createdAt: Date
-	updatedAt: Date
-}
-
+// Legacy type aliases
 export interface Expense {
-	id: string
-	propertyId: string
-	maintenanceId: string | null
-	amount: number
-	category: string
-	description: string
-	date: Date
-	receiptUrl: string | null
-	vendorName: string | null
-	vendorContact: string | null
-	createdAt: Date
-	updatedAt: Date
+  id: string
+  property_id: string
+  amount: number
+  description: string
+  category: string
+  date: string
 }
 
-// Extended property types with relations are defined in relations.ts
-// to avoid circular imports and provide full relation details
-// See: PropertyWithUnitsAndLeases, PropertyWithDetails, UnitWithDetails
+// =============================================================================
+// PROPERTY FORM TYPES
+// =============================================================================
 
-// Property statistics for dashboard and detail views
-export interface PropertyStats {
-	totalUnits: number
-	occupiedUnits: number
-	vacantUnits: number
-	occupancyRate: number
-	totalMonthlyRent: number
-	potentialRent: number
-	totalProperties?: number
-	totalRent?: number
-	collectedRent?: number
-	pendingRent?: number
-	// Additional properties needed by tests
-	total: number
-	singleFamily: number
-	multiFamily: number
-	commercial: number
-	growth?: number
+export interface PropertyFormData {
+  name: string
+  address: string
+  city: string
+  state: string
+  zip: string
+  description: string
+  features: string[]
 }
 
-// Unit statistics for dashboard and analytics
-export interface UnitStats {
-	total: number
-	occupied: number
-	vacant: number
-	maintenance: number
-	available: number
-	occupancyRate: number
-	averageRent: number
-	totalPotentialRent: number
-	totalActualRent: number
+export interface PropertyFormProps {
+  initialData?: Partial<Property>
+  onSubmit: (data: PropertyFormData) => void
+  isLoading?: boolean
 }
 
-// Property input types for API operations
-export interface CreatePropertyInput extends Record<string, unknown> {
-	name: string
-	address: string
-	city: string
-	state: string
-	zipCode: string
-	description?: string
-	imageUrl?: string
-	propertyType: PropertyType
-	yearBuilt?: number
-	totalSize?: number
+// =============================================================================
+// LEGACY COMPATIBILITY - For api-inputs.ts and other files during migration
+// =============================================================================
+
+export type CreatePropertyInput = CreatePropertyRequest
+export type UpdatePropertyInput = UpdatePropertyRequest
+
+// =============================================================================
+// ADDITIONAL PROPERTY TYPES - MIGRATED from inline definitions
+// =============================================================================
+
+// MIGRATED from apps/backend/src/properties/properties.service.ts
+export interface PropertyWithRelations extends Property {
+	Unit?: Unit[]  // Note: capitalized to match backend PostgreSQL naming
 }
 
-export interface UpdatePropertyInput extends Record<string, unknown> {
-	name?: string
-	address?: string
-	city?: string
-	state?: string
-	zipCode?: string
-	description?: string
-	imageUrl?: string
-	propertyType?: PropertyType
-	yearBuilt?: number
-	totalSize?: number
-}
-
-// Property creation and management entitlements
-export interface PropertyEntitlements {
-	isLoading: boolean
-	canCreateProperties: boolean
-	canCreateTenants: boolean
-	canCreateUnits: boolean
-	subscription: unknown // SubscriptionData | undefined but using unknown to avoid import issues
-}
+// Property DTOs (Data Transfer Objects) from backend schemas
+export type CreatePropertyDto = CreatePropertyRequest
+export type UpdatePropertyDto = UpdatePropertyRequest  
+export type QueryPropertyDto = PropertyQueryRequest

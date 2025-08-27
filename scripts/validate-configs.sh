@@ -122,7 +122,7 @@ phase_2() {
     if [ -d "$workspace" ]; then
       echo -e "\n${YELLOW}Checking $workspace...${NC}"
       cd "$workspace"
-      if npx tsc --noEmit 2>&1 | tee /tmp/tsc-output.log; then
+      if turbo run typecheck 2>&1 | tee /tmp/tsc-output.log; then
         log_success "$workspace - TypeScript check passed"
       else
         ERROR_COUNT=$(grep -c "error TS" /tmp/tsc-output.log || echo "0")
@@ -183,7 +183,7 @@ phase_4() {
   # Check if frontend builds
   echo -e "\n${YELLOW}Testing frontend build...${NC}"
   cd apps/frontend
-  if timeout 60 npx next build --no-lint > /tmp/frontend-build.log 2>&1; then
+  if timeout 60 turbo run build > /tmp/frontend-build.log 2>&1; then
     log_success "Frontend build check passed"
   else
     log_warning "Frontend build check failed or timed out"
@@ -194,7 +194,7 @@ phase_4() {
   # Check if backend builds
   echo -e "\n${YELLOW}Testing backend build...${NC}"
   cd apps/backend
-  if npx tsc -p tsconfig.build.json --noEmit > /tmp/backend-build.log 2>&1; then
+  if turbo run typecheck > /tmp/backend-build.log 2>&1; then
     log_success "Backend build check passed"
   else
     log_warning "Backend build check failed"

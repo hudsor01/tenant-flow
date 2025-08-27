@@ -1,15 +1,19 @@
-import { Inject, Injectable, Logger } from '@nestjs/common'
+import { Injectable, InternalServerErrorException, Inject } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { PinoLogger } from 'nestjs-pino'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import type { EnvironmentVariables } from '../config/config.schema'
 
 @Injectable()
 export class SupabaseService {
-	private readonly logger = new Logger(SupabaseService.name)
 	private adminClient: SupabaseClient<Database>
 
-	constructor(@Inject(ConfigService) private readonly configService: ConfigService<EnvironmentVariables>) {
+	constructor(
+		@Inject(ConfigService) private readonly configService: ConfigService<EnvironmentVariables>,
+		private readonly logger: PinoLogger
+	) {
+		// PinoLogger context handled automatically via app-level configuration
 		const supabaseUrl = this.configService.get('SUPABASE_URL', {
 			infer: true
 		})
@@ -19,7 +23,7 @@ export class SupabaseService {
 		)
 
 		if (!supabaseUrl || !supabaseServiceKey) {
-			throw new Error('Supabase configuration is missing')
+			throw new InternalServerErrorException('Supabase configuration is missing')
 		}
 
 		this.adminClient = createClient<Database>(
@@ -33,7 +37,7 @@ export class SupabaseService {
 			}
 		)
 
-		this.logger.log('Supabase service initialized successfully')
+		this.logger.info('Supabase service initialized successfully')
 	}
 
 	getAdminClient(): SupabaseClient<Database> {
@@ -45,7 +49,7 @@ export class SupabaseService {
 		const supabaseAnonKey = process.env.SUPABASE_ANON_KEY
 
 		if (!supabaseUrl || !supabaseAnonKey) {
-			throw new Error('Supabase configuration is missing for user client')
+			throw new InternalServerErrorException('Supabase configuration is missing for user client')
 		}
 
 		return createClient<Database>(supabaseUrl, supabaseAnonKey, {
@@ -64,7 +68,7 @@ export class SupabaseService {
 	async checkConnection(): Promise<{ status: string; message?: string }> {
 		try {
 			const { error } = await this.adminClient
-				.from('users')
+				.from('User')
 				.select('count', { count: 'exact', head: true })
 
 			if (error) {

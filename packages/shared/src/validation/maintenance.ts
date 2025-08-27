@@ -3,12 +3,8 @@ import {
 	uuidSchema,
 	nonEmptyStringSchema,
 	nonNegativeNumberSchema,
-<<<<<<< HEAD
 	urlSchema,
 	requiredString
-=======
-	urlSchema
->>>>>>> origin/main
 } from './common'
 
 // Maintenance priority enum
@@ -206,19 +202,11 @@ export type MaintenanceCategoryValidation = z.infer<
 // Frontend-specific form schema (handles string inputs from HTML forms)
 export const maintenanceRequestFormSchema = z
 	.object({
-<<<<<<< HEAD
 		title: requiredString,
 		description: requiredString,
 		priority: z.string().default('MEDIUM'),
 		category: z.string().default('GENERAL'),
 		unitId: requiredString,
-=======
-		title: z.string().min(1, 'Title is required'),
-		description: z.string().min(1, 'Description is required'),
-		priority: z.string().default('MEDIUM'),
-		category: z.string().default('GENERAL'),
-		unitId: z.string().min(1, 'Unit is required'),
->>>>>>> origin/main
 		tenantId: z.string().optional().or(z.literal('')),
 		assignedTo: z.string().optional().or(z.literal('')),
 		estimatedCost: z
@@ -254,11 +242,7 @@ export const maintenanceCommentSchema = z.object({
 		.string()
 		.min(1, 'Comment is required')
 		.max(1000, 'Comment too long'),
-<<<<<<< HEAD
 	maintenanceRequestId: uuidSchema
-=======
-	maintenanceRequestId: z.string().uuid()
->>>>>>> origin/main
 })
 export type MaintenanceRequestData = MaintenanceRequest
 

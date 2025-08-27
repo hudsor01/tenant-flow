@@ -11,12 +11,8 @@ export const PASSWORD_VALIDATION = {
 	REGEX: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
 	MESSAGES: {
 		MIN_LENGTH: 'Password must be at least 8 characters',
-<<<<<<< HEAD
 		COMPLEXITY:
 			'Password must contain uppercase, lowercase, number and special character'
-=======
-		COMPLEXITY: 'Password must contain uppercase, lowercase, number and special character'
->>>>>>> origin/main
 	}
 } as const
 
@@ -45,8 +41,4 @@ export const NAME_VALIDATION = {
 export const COMPANY_VALIDATION = {
 	MAX_LENGTH: 100,
 	MESSAGE: 'Company name must be less than 100 characters'
-<<<<<<< HEAD
 } as const
-=======
-} as const
->>>>>>> origin/main

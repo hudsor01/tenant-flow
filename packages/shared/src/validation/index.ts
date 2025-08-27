@@ -17,14 +17,11 @@ export {
 	uuidSchema,
 	emailSchema,
 	nonEmptyStringSchema,
-<<<<<<< HEAD
 	requiredString,
 	requiredStringField,
 	requiredName,
 	requiredTitle,
 	requiredDescription,
-=======
->>>>>>> origin/main
 	positiveNumberSchema,
 	nonNegativeNumberSchema,
 	dateStringSchema,
@@ -59,13 +56,5 @@ export {
 	webhookDeliverySchema,
 	// Response schemas
 	successResponseSchema,
-<<<<<<< HEAD
 	errorResponseSchema
-=======
-	errorResponseSchema,
-	// Utility functions
-	createPaginatedResponseSchema,
-	createApiResponseSchema,
-	createListResponseSchema
->>>>>>> origin/main
 } from './common'

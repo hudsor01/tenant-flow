@@ -13,7 +13,8 @@
  * See: apps/backend/ULTRA_NATIVE_ARCHITECTURE.md
  */
 
-import { Injectable, Logger, BadRequestException } from '@nestjs/common'
+import { Injectable, BadRequestException } from '@nestjs/common'
+import { PinoLogger } from 'nestjs-pino'
 import { SupabaseService } from '../database/supabase.service'
 import type {
 	CreateUnitRequest,
@@ -22,9 +23,12 @@ import type {
 
 @Injectable()
 export class UnitsService {
-	private readonly logger = new Logger(UnitsService.name)
-
-	constructor(private readonly supabaseService: SupabaseService) {}
+	constructor(
+		private readonly supabaseService: SupabaseService,
+		private readonly logger: PinoLogger
+	) {
+		// PinoLogger context handled automatically via app-level configuration
+	}
 
 	/**
 	 * Get all units for a user using RPC

@@ -2,7 +2,6 @@ import {
 	Body,
 	Controller,
 	Headers,
-	Logger,
 	Post,
 	Req,
 	UsePipes,
@@ -19,7 +18,7 @@ import {
 	ApiTags
 } from '@nestjs/swagger'
 import type { FastifyRequest } from 'fastify'
-// import Stripe from 'stripe' // Using enhanced types from @repo/shared instead
+import { PinoLogger } from 'nestjs-pino'
 import { StripeService } from './stripe.service'
 import { StripeWebhookService } from './stripe-webhook.service'
 import { StripePortalService } from './stripe-portal.service'
@@ -33,22 +32,21 @@ import { getPriceId } from '@repo/shared/stripe/config'
 import { SupabaseService } from '../database/supabase.service'
 import type { BillingPeriod, PlanType } from '@repo/shared'
 
-export interface AuthenticatedUser {
-	id: string
-	email: string
-}
+// Use shared type instead of local interface
+import type { AuthenticatedUser } from '@repo/shared'
 
 @ApiTags('stripe')
 @Controller('stripe')
 export class StripeController {
-	private readonly logger = new Logger(StripeController.name)
-
 	constructor(
 		private readonly stripeService: StripeService,
 		private readonly stripeWebhookService: StripeWebhookService,
 		private readonly stripePortalService: StripePortalService,
-		private readonly supabaseService: SupabaseService
-	) {}
+		private readonly supabaseService: SupabaseService,
+		private readonly logger: PinoLogger
+	) {
+		// PinoLogger context handled automatically via app-level configuration
+	}
 
 	@Post('checkout')
 	@ApiOperation({
@@ -79,7 +77,14 @@ export class StripeController {
 		@Body() dto: CreateCheckoutRequest,
 		@CurrentUser() user: AuthenticatedUser
 	) {
-		this.logger.log(
+		this.logger.info(
+			{
+				checkout: {
+					userId: user.id,
+					planId: dto.planId,
+					interval: dto.interval
+				}
+			},
 			`Creating checkout for user ${user.id}, plan: ${dto.planId}`
 		)
 
@@ -110,13 +115,31 @@ export class StripeController {
 				}
 			)
 
-			this.logger.log(`Checkout session created: ${result.sessionId}`)
+			this.logger.info(
+				{
+					checkout: {
+						sessionId: result.sessionId,
+						userId: user.id
+					}
+				},
+				`Checkout session created: ${result.sessionId}`
+			)
 
 			return result
 		} catch (error: unknown) {
 			this.logger.error(
-				`Failed to create checkout session: ${error instanceof Error ? error.message : String(error)}`,
-				error instanceof Error ? error.stack : ''
+				{
+					error: {
+						name: error instanceof Error ? error.constructor.name : 'Unknown',
+						message: error instanceof Error ? error.message : String(error),
+						stack: process.env.NODE_ENV !== 'production' && error instanceof Error ? error.stack : undefined
+					},
+					checkout: {
+						userId: user.id,
+						planId: dto.planId
+					}
+				},
+				'Failed to create checkout session'
 			)
 			throw new InternalServerErrorException(
 				`Failed to create checkout session: ${error instanceof Error ? error.message : String(error)}`
@@ -149,7 +172,15 @@ export class StripeController {
 		@Body() dto: CreatePortalRequest,
 		@CurrentUser() user: AuthenticatedUser
 	) {
-		this.logger.log(`Creating portal session for user ${user.id}`)
+		this.logger.info(
+			{
+				portal: {
+					userId: user.id,
+					returnUrl: dto.returnUrl
+				}
+			},
+			`Creating portal session for user ${user.id}`
+		)
 
 		try {
 			// Use the simplified portal service
@@ -160,13 +191,30 @@ export class StripeController {
 					`${process.env.FRONTEND_URL ?? 'https://tenantflow.app'}/billing`
 			})
 
-			this.logger.log(`Portal session created for user ${user.id}`)
+			this.logger.info(
+				{
+					portal: {
+						userId: user.id,
+						url: result.url
+					}
+				},
+				`Portal session created for user ${user.id}`
+			)
 
 			return result
 		} catch (error: unknown) {
 			this.logger.error(
-				`Failed to create portal session: ${error instanceof Error ? error.message : String(error)}`,
-				error instanceof Error ? error.stack : ''
+				{
+					error: {
+						name: error instanceof Error ? error.constructor.name : 'Unknown',
+						message: error instanceof Error ? error.message : String(error),
+						stack: process.env.NODE_ENV !== 'production' && error instanceof Error ? error.stack : undefined
+					},
+					portal: {
+						userId: user.id
+					}
+				},
+				'Failed to create portal session'
 			)
 			throw new InternalServerErrorException(
 				`Failed to create portal session: ${error instanceof Error ? error.message : String(error)}`
@@ -215,7 +263,15 @@ export class StripeController {
 		@Body() dto: CreateSubscriptionDto,
 		@CurrentUser() user: AuthenticatedUser
 	) {
-		this.logger.log(
+		this.logger.info(
+			{
+				subscription: {
+					userId: user.id,
+					planType: dto.planType,
+					billingInterval: dto.billingInterval,
+					confirmationTokenId: dto.confirmationTokenId
+				}
+			},
 			`Creating subscription for user ${user.id}, plan: ${dto.planType}`
 		)
 
@@ -248,7 +304,16 @@ export class StripeController {
 					.update({ stripeCustomerId: customerId })
 					.eq('id', user.id)
 
-				this.logger.log(`Created new Stripe customer: ${customerId}`)
+				this.logger.info(
+					{
+						stripeCustomer: {
+							customerId,
+							userId: user.id,
+							email: user.email
+						}
+					},
+					`Created new Stripe customer: ${customerId}`
+				)
 			}
 
 			// Step 2: Get price ID from configuration
@@ -278,7 +343,16 @@ export class StripeController {
 					}
 				)
 
-			this.logger.log(
+			this.logger.info(
+				{
+					subscription: {
+						id: subscription.id,
+						status: subscription.status,
+						userId: user.id,
+						planType: dto.planType,
+						customerId
+					}
+				},
 				`Subscription created: ${subscription.id}, status: ${subscription.status}`
 			)
 
@@ -317,8 +391,19 @@ export class StripeController {
 			}
 		} catch (error: unknown) {
 			this.logger.error(
-				`Failed to create subscription: ${error instanceof Error ? error.message : String(error)}`,
-				error instanceof Error ? error.stack : ''
+				{
+					error: {
+						name: error instanceof Error ? error.constructor.name : 'Unknown',
+						message: error instanceof Error ? error.message : String(error),
+						stack: process.env.NODE_ENV !== 'production' && error instanceof Error ? error.stack : undefined
+					},
+					subscription: {
+						userId: user.id,
+						planType: dto.planType,
+						confirmationTokenId: dto.confirmationTokenId
+					}
+				},
+				'Failed to create subscription'
 			)
 			throw new InternalServerErrorException(
 				`Failed to create subscription: ${error instanceof Error ? error.message : String(error)}`
@@ -337,7 +422,7 @@ export class StripeController {
 		@Req() req: RawBodyRequest<FastifyRequest>,
 		@Headers('stripe-signature') signature: string
 	) {
-		this.logger.log('Received Stripe webhook')
+		this.logger.info('Received Stripe webhook')
 
 		try {
 			if (!req.rawBody) {
@@ -350,12 +435,21 @@ export class StripeController {
 			}
 
 			// Verify the webhook signature
-			const event = this.stripeService.handleWebhook(
+			const event = await this.stripeService.handleWebhook(
 				req.rawBody,
 				signature
 			)
 
-			this.logger.log(`Processing webhook event: ${event.type}`)
+			this.logger.info(
+				{
+					webhook: {
+						eventType: event.type,
+						eventId: event.id,
+						livemode: event.livemode
+					}
+				},
+				`Processing webhook event: ${event.type}`
+			)
 
 			// Delegate to the simplified webhook service
 			// Return 2xx quickly, actual processing happens async
@@ -364,8 +458,18 @@ export class StripeController {
 			return { received: true }
 		} catch (error: unknown) {
 			this.logger.error(
-				`Webhook processing failed: ${error instanceof Error ? error.message : String(error)}`,
-				error instanceof Error ? error.stack : ''
+				{
+					error: {
+						name: error instanceof Error ? error.constructor.name : 'Unknown',
+						message: error instanceof Error ? error.message : String(error),
+						stack: process.env.NODE_ENV !== 'production' && error instanceof Error ? error.stack : undefined
+					},
+					webhook: {
+						hasRawBody: !!req.rawBody,
+						hasSignature: !!signature
+					}
+				},
+				'Webhook processing failed'
 			)
 			throw new InternalServerErrorException(
 				`Webhook processing failed: ${error instanceof Error ? error.message : String(error)}`
