@@ -15,7 +15,52 @@ import type {
 } from '@repo/shared'
 
 /**
- * NATIVE Server Action: Get all properties
+ * NATIVE Server Action: Get all properties with calculated stats
+ * Direct database access with automatic RLS
+ * Returns properties with their units for stat calculations
+ */
+export async function getPropertiesWithStats(query?: PropertyQuery) {
+  const supabase = await createActionClient()
+  
+  // Fetch properties with their units and lease information
+  let request = supabase
+    .from('properties')
+    .select(`
+      *,
+      units (
+        id,
+        name,
+        status,
+        rent,
+        property_id
+      )
+    `)
+    .order('created_at', { ascending: false })
+
+  if (query?.search) {
+    request = request.ilike('name', `%${query.search}%`)
+  }
+  
+  if (query?.status) {
+    request = request.eq('status', query.status)
+  }
+
+  const { data: properties, error } = await request
+
+  if (error) {
+    console.error('Failed to fetch properties with units:', error)
+    throw new Error('Failed to fetch properties')
+  }
+
+  // Transform to PropertyWithUnits type
+  return (properties || []).map(property => ({
+    ...property,
+    units: property.units || []
+  }))
+}
+
+/**
+ * NATIVE Server Action: Get all properties (legacy - without units)
  * Direct database access with automatic RLS
  */
 export async function getProperties(query?: PropertyQuery): Promise<Property[]> {

@@ -2,7 +2,7 @@ import type { Metadata } from 'next/types'
 import { Suspense } from 'react'
 import { SimpleSignupForm } from '@/components/forms/supabase-signup-form'
 import { AuthLayout } from '@/components/layout/auth/layout'
-import { getCurrentUser } from '@/lib/actions/auth-actions'
+import { getCurrentUser } from '@/app/actions/auth'
 import { AuthRedirect } from '@/components/auth/auth-redirect'
 import { SkeletonForm } from '@/components/ui/skeleton'
 

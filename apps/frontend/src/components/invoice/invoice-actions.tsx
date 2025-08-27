@@ -1,5 +1,11 @@
 import { Button } from '@/components/ui/button'
-import type { InvoiceActionsProps } from '@repo/shared/types/ui'
+
+// Local type definition - following KISS principle
+interface InvoiceActionsProps {
+	onGenerateInvoice: () => void
+	onPreview: () => void
+	onPrepareEmail: () => void
+}
 
 export function InvoiceActions({
 	onGenerateInvoice,

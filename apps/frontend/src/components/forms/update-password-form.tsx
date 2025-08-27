@@ -16,7 +16,7 @@ import { Label } from '@/components/ui/label'
 import {
 	updatePasswordFormAction,
 	type AuthFormState
-} from '@/lib/actions/auth-actions'
+} from '@/app/actions/auth'
 import { AuthError } from '../auth/auth-error'
 
 interface UpdatePasswordFormProps {
