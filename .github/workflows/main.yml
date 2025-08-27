@@ -1,34 +1,43 @@
-# Minimal Build Check
-# Just verifies the code can install dependencies
-# TypeScript errors are being fixed separately
-
-name: Build and Deploy
+name: Production Deploy
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
-  basic-check:
-    name: ✅ Basic Check
+  deploy:
+    name: 🚀 Deploy to Production
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
       
-    - uses: actions/setup-node@v4
-      with:
-        node-version: 22
-        # REMOVED: cache: 'npm' - this was causing issues
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
       
-    - name: Install deps
-      run: npm ci --no-fund --no-audit
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit --no-fund
       
-    - name: Check shared builds
-      run: |
-        echo "✅ Dependencies installed"
-        npm run build:shared || echo "⚠️ Shared build has issues (expected)"
-        echo "✅ Basic check complete"
+      - name: Build for production
+        run: |
+          echo "📦 Building shared package..."
+          npm run build:shared
+          
+          echo "🏗️ Building backend for production..."
+          npm run build:backend
+          
+          echo "🎨 Building frontend for production..."
+          npm run build:frontend
+          
+          echo "✅ Production build complete!"
+      
+      - name: Deploy notification
+        run: |
+          echo "🚀 Build ready for deployment!"
+          echo "Backend: Railway will auto-deploy from this build"
+          echo "Frontend: Vercel will auto-deploy from this build"
