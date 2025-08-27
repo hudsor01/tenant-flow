@@ -190,7 +190,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 									<i className="i-lucide-alert-circle inline-block text-destructive animate-fade-in h-4 w-4"  />
 								)}
 								{hasSuccess && (
-									<i className="i-lucide-checkcircle2 inline-block animate-success h-4 w-4 text-green-500"  />
+									<i className="i-lucide-check-circle-2 inline-block animate-success h-4 w-4 text-green-500"  />
 								)}
 							</div>
 						)}
@@ -234,7 +234,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 										role="status"
 										aria-live="polite"
 									>
-										<i className="i-lucide-checkcircle2 inline-block h-3 w-3" aria-hidden="true" />
+										<i className="i-lucide-check-circle-2 inline-block h-3 w-3" aria-hidden="true" />
 										{success}
 									</p>
 								)}
@@ -296,7 +296,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 								<i className="i-lucide-alert-circle inline-block text-destructive animate-fade-in h-4 w-4"  />
 							)}
 							{hasSuccess && (
-								<i className="i-lucide-checkcircle2 inline-block animate-success h-4 w-4 text-green-500"  />
+								<i className="i-lucide-check-circle-2 inline-block animate-success h-4 w-4 text-green-500"  />
 							)}
 						</div>
 					)}
@@ -340,7 +340,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 									role="status"
 									aria-live="polite"
 								>
-									<i className="i-lucide-checkcircle2 inline-block h-3 w-3" aria-hidden="true" />
+									<i className="i-lucide-check-circle-2 inline-block h-3 w-3" aria-hidden="true" />
 									{success}
 								</p>
 							)}

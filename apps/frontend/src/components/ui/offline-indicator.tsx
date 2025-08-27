@@ -287,7 +287,7 @@ export function OfflineIndicator({
 										</>
 									) : (
 										<>
-											<i className="i-lucide-checkcircle2 inline-block mr-1 h-3 w-3"  />
+											<i className="i-lucide-check-circle-2 inline-block mr-1 h-3 w-3"  />
 											Sync Now
 										</>
 									)}
@@ -326,7 +326,7 @@ export function OfflineIndicator({
 						!isProcessing && (
 							<div className="border-t pt-4">
 								<div className="flex items-center gap-2 text-green-600">
-									<i className="i-lucide-checkcircle2 inline-block h-4 w-4"  />
+									<i className="i-lucide-check-circle-2 inline-block h-4 w-4"  />
 									<span className="text-xs font-medium">
 										All data synced
 									</span>
