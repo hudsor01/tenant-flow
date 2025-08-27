@@ -78,7 +78,7 @@ export function MaintenanceList({
 			case 'IN_PROGRESS':
 				return <i className="i-lucide-wrench inline-block h-3 w-3"  />
 			case 'COMPLETED':
-				return <i className="i-lucide-checkcircle2 inline-block h-3 w-3"  />
+				return <i className="i-lucide-check-circle-2 inline-block h-3 w-3"  />
 			case 'CANCELED':
 				return <i className="i-lucide-xcircle inline-block h-3 w-3"  />
 			default:
