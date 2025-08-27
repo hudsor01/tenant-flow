@@ -5,7 +5,7 @@ import {
 	Logger
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-import type { User, UserRole } from '@repo/shared/types/auth'
+import type { User, UserRole } from '@repo/shared'
 
 interface RequestWithUser {
 	user?: User & { organizationId?: string }

@@ -5,7 +5,7 @@
 
 import { Suspense } from 'react'
 import type { Metadata } from 'next/types'
-import { ModernDashboard } from '@/components/dashboard/dashboard-modern'
+import { DashboardStatsCards } from '@/components/dashboard/dashboard-stats-cards'
 import { ErrorBoundary } from 'react-error-boundary'
 
 // Static metadata for SEO optimization
@@ -70,7 +70,15 @@ export default function DashboardModernPage() {
   return (
     <ErrorBoundary FallbackComponent={DashboardError}>
       <Suspense fallback={<DashboardPageLoading />}>
-        <ModernDashboard />
+        <div className="min-h-screen bg-neutral-50">
+          <div className="p-8 space-fluid-lg">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-neutral-900">Dashboard</h1>
+              <p className="text-neutral-600">Welcome back to TenantFlow</p>
+            </div>
+            <DashboardStatsCards />
+          </div>
+        </div>
       </Suspense>
     </ErrorBoundary>
   )

@@ -120,15 +120,9 @@ export function DashboardActivityFeed({
 									</div>
 									<div className="text-right">
 										<p className="text-xs text-white/40">
-											{activity.createdAt
-												? new Date(
-														activity.createdAt
-													).toLocaleString()
-												: activity.timestamp
-													? new Date(
-															activity.timestamp
-														).toLocaleString()
-													: 'No date'}
+											{activity.timestamp
+												? new Date(activity.timestamp).toLocaleString()
+												: 'No date'}
 										</p>
 									</div>
 								</motion.div>

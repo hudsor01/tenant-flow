@@ -9,7 +9,13 @@
 import React from 'react'
 import { useActionState } from 'react'
 import { createLease, updateLease } from '@/app/actions/leases'
-import type { Lease, Property, Tenant, Unit } from '@repo/shared'
+import type { Database } from '@repo/shared'
+
+// Define types directly from Database schema - NO DUPLICATION
+type Lease = Database['public']['Tables']['Lease']['Row']
+type Property = Database['public']['Tables']['Property']['Row']
+type Tenant = Database['public']['Tables']['Tenant']['Row']
+type Unit = Database['public']['Tables']['Unit']['Row']
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,14 +23,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { 
-	FormSection, 
-	OptimisticFeedback, 
-	SuccessFeedback, 
-	ErrorFeedback,
-	useOptimisticForm,
-	type FormState
-} from '@/components/ui/react19-form'
+// Using native form elements - no abstractions needed
 
 // Types for form props
 interface LeaseFormProps {
@@ -43,50 +42,29 @@ interface LeaseFormProps {
  */
 export function LeaseForm({
 	lease,
-	leases,
 	properties,
 	tenants,
 	units,
 	onSuccess,
 	onClose,
 	className
-}: LeaseFormProps) {
+}: Omit<LeaseFormProps, 'leases'>) {
 	const isEditing = Boolean(lease)
 	const title = isEditing ? 'Edit Lease' : 'Create New Lease'
 	const description = isEditing
 		? 'Update lease terms and agreement details'
 		: 'Create a new lease agreement for your tenant'
 
-	// Shared optimistic form hook
-	const { optimisticItem, addOptimisticUpdate } = useOptimisticForm({
-		items: leases,
-		isEditing,
-		currentItem: lease
-	})
+	// Native React 19 optimistic updates - no custom hook needed
 
-	// Server action with form state
+	// Server action with simple form state (React 19 native)
 	async function formAction(
-		prevState: FormState,
+		prevState: { success: boolean; error?: string },
 		formData: FormData
-	) {
+	): Promise<{ success: boolean; error?: string }> {
 		try {
-			// Extract form values using native FormData API
-			const leaseData = {
-				tenantId: formData.get('tenantId') as string,
-				propertyId: formData.get('propertyId') as string,
-				unitId: formData.get('unitId') as string,
-				startDate: formData.get('startDate') as string,
-				endDate: formData.get('endDate') as string,
-				monthlyRent: parseFloat(formData.get('monthlyRent') as string),
-				securityDeposit: parseFloat(formData.get('securityDeposit') as string) || 0,
-				leaseType: formData.get('leaseType') as string || 'FIXED_TERM',
-				terms: formData.get('terms') as string || undefined,
-			}
-
-			// Add optimistic update
-			addOptimisticUpdate(leaseData)
-
-			// Call server action
+			// React 19 useActionState handles optimistic updates natively
+			// Call server action directly with FormData (no intermediate object needed)
 			let result: Lease
 			if (isEditing && lease) {
 				result = await updateLease(lease.id, formData)
@@ -109,8 +87,8 @@ export function LeaseForm({
 		}
 	}
 
-	// React 19 useActionState for form state management
-	const [formState, formDispatch, isPending] = useActionState(formAction, {})
+	// React 19 useActionState for form state management - simple initial state
+	const [formState, formDispatch, isPending] = useActionState(formAction, { success: false })
 
 	const leaseTypes = [
 		{ value: 'FIXED_TERM', label: 'Fixed Term' },
@@ -120,19 +98,17 @@ export function LeaseForm({
 
 	return (
 		<div className={cn('mx-auto w-full max-w-3xl', className)}>
-			{/* Shared optimistic feedback */}
-			<OptimisticFeedback
-				isVisible={Boolean(optimisticItem)}
-				isEditing={isEditing}
-				entityName="lease"
-			/>
-
-			{/* Shared success feedback */}
-			<SuccessFeedback
-				isVisible={Boolean(formState.success)}
-				isEditing={isEditing}
-				entityName="Lease"
-			/>
+			{/* Native form feedback */}
+			{formState.success && (
+				<div className="mb-4 rounded-md bg-green-50 p-3 text-sm text-green-600">
+					Lease {lease ? 'updated' : 'created'} successfully!
+				</div>
+			)}
+			{formState.error && (
+				<div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-600">
+					{formState.error}
+				</div>
+			)}
 
 			<Card>
 				<CardHeader>
@@ -151,14 +127,12 @@ export function LeaseForm({
 
 				<CardContent>
 					<form action={formDispatch} className="space-y-6">
-						{/* Shared error display */}
-						<ErrorFeedback error={formState.error} />
-
-						{/* Tenant & Property Selection - using shared FormSection */}
-						<FormSection
-							title="Lease Parties"
-							description="Select tenant, property, and unit for this lease"
-						>
+						{/* Tenant & Property Selection */}
+						<div className="space-y-4">
+							<div className="border-b border-border pb-2">
+								<h3 className="text-lg font-medium">Lease Parties</h3>
+								<p className="text-sm text-muted-foreground">Select tenant, property, and unit for this lease</p>
+							</div>
 							<div className="grid grid-cols-1 gap-6 md:grid-cols-3">
 								<div className="space-y-2">
 									<Label htmlFor="tenantId">
@@ -189,7 +163,7 @@ export function LeaseForm({
 									</Label>
 									<Select 
 										name="propertyId" 
-										defaultValue={lease?.propertyId}
+										defaultValue={properties.find(p => units.find(u => u.id === lease?.unitId)?.propertyId === p.id)?.id}
 										disabled={isPending}
 										required
 									>
@@ -229,14 +203,14 @@ export function LeaseForm({
 									</Select>
 								</div>
 							</div>
-						</FormSection>
+						</div>
 
 						{/* Lease Terms Section */}
-						<FormSection
-							title="Lease Terms"
-							description="Define the lease duration and type"
-							icon={Calendar}
-						>
+						<div className="space-y-4">
+							<div className="border-b border-border pb-2">
+								<h3 className="text-lg font-medium">Lease Terms</h3>
+								<p className="text-sm text-muted-foreground">Define the lease duration and type</p>
+							</div>
 							<div className="space-y-4">
 								<div className="grid grid-cols-1 gap-6 md:grid-cols-3">
 									<div className="space-y-2">
@@ -273,7 +247,7 @@ export function LeaseForm({
 										</Label>
 										<Select 
 											name="leaseType" 
-											defaultValue={lease?.leaseType || 'FIXED_TERM'}
+											defaultValue={lease?.status || 'DRAFT'}
 											disabled={isPending}
 										>
 											<SelectTrigger>
@@ -290,14 +264,14 @@ export function LeaseForm({
 									</div>
 								</div>
 							</div>
-						</FormSection>
+						</div>
 
 						{/* Financial Terms Section */}
-						<FormSection
-							title="Financial Terms"
-							description="Monthly rent and deposit amounts"
-							icon=<i className="i-lucide-dollar-sign inline-block" />
-						>
+						<div className="space-y-4">
+							<div className="border-b border-border pb-2">
+								<h3 className="text-lg font-medium">Financial Terms</h3>
+								<p className="text-sm text-muted-foreground">Monthly rent and deposit amounts</p>
+							</div>
 							<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 								<div className="space-y-2">
 									<Label htmlFor="monthlyRent">
@@ -309,7 +283,7 @@ export function LeaseForm({
 										type="number"
 										step="0.01"
 										min="0"
-										defaultValue={lease?.monthlyRent || ''}
+										defaultValue={lease?.rentAmount || ''}
 										placeholder="2500.00"
 										required
 										disabled={isPending}
@@ -332,13 +306,14 @@ export function LeaseForm({
 									/>
 								</div>
 							</div>
-						</FormSection>
+						</div>
 
 						{/* Additional Terms Section */}
-						<FormSection
-							title="Additional Terms"
-							description="Special conditions and lease clauses"
-						>
+						<div className="space-y-4">
+							<div className="border-b border-border pb-2">
+								<h3 className="text-lg font-medium">Additional Terms</h3>
+								<p className="text-sm text-muted-foreground">Special conditions and lease clauses</p>
+							</div>
 							<div className="space-y-2">
 								<Label htmlFor="terms">
 									Terms and Conditions
@@ -347,12 +322,12 @@ export function LeaseForm({
 									id="terms"
 									name="terms"
 									rows={6}
-									defaultValue={lease?.terms}
+									defaultValue={lease?.terms || undefined}
 									placeholder="Enter any special terms, conditions, or clauses for this lease..."
 									disabled={isPending}
 								/>
 							</div>
-						</FormSection>
+						</div>
 
 						{/* Form Actions */}
 						<div className="flex items-center justify-end gap-3 border-t pt-4">

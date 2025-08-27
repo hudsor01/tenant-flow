@@ -1,6 +1,7 @@
 // Lease validation schema for TenantFlow
 import { z } from 'zod'
 import { requiredString } from './common'
+import { Constants } from '../types/supabase-generated'
 
 // Enhanced validation with Zod patterns
 const positiveMoneyAmount = z
@@ -22,15 +23,10 @@ const dateString = z
 		message: 'Invalid date format'
 	})
 
-export const leaseStatusEnum = z.enum([
-	'ACTIVE',
-	'INACTIVE',
-	'EXPIRED',
-	'TERMINATED',
-	'DRAFT'
-])
+// Use auto-generated Supabase enums - single source of truth
+export const leaseStatusEnum = z.enum(Constants.public.Enums.LeaseStatus as readonly [string, ...string[]])
 
-export const leaseTypeEnum = z.enum(['FIXED', 'MONTH_TO_MONTH'])
+export const leaseTypeEnum = z.enum(Constants.public.Enums.LeaseType as readonly [string, ...string[]])
 
 export const smokingPolicyEnum = z.enum(['ALLOWED', 'NOT_ALLOWED'])
 
@@ -48,8 +44,8 @@ const leaseBaseSchema = z.object({
 		.min(1, 'Lease term must be at least 1 month')
 		.max(60, 'Lease term cannot exceed 60 months')
 		.optional(),
-	status: leaseStatusEnum.default('DRAFT'),
-	leaseType: leaseTypeEnum.default('FIXED'),
+	status: leaseStatusEnum.default('DRAFT' as const),
+	leaseType: leaseTypeEnum.default('FIXED_TERM' as const),
 	petPolicy: z.string().optional(),
 	smokingPolicy: smokingPolicyEnum.optional(),
 	utilities: z.array(z.string()).optional().default([]),

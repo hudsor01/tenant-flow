@@ -1,5 +1,5 @@
 'use client'
-import { Building2,Users,FileText } from 'lucide-react'
+
 import { useState, useEffect } from 'react'
 import { useDashboardOverview } from '@/hooks/api/use-dashboard'
 import {
@@ -33,23 +33,23 @@ function useOnboardingProgress() {
 		{
 			id: 'property',
 			label: 'Add a property',
-			completed: (stats?.totalProperties ?? 0) > 0,
+			completed: (stats?.properties?.total ?? 0) > 0,
 			href: '/properties/new',
-			icon: Building2
+			icon: 'i-lucide-building-2'
 		},
 		{
 			id: 'tenant',
 			label: 'Add a tenant',
-			completed: (stats?.totalTenants ?? 0) > 0,
+			completed: (stats?.tenants?.total ?? 0) > 0,
 			href: '/tenants/new',
-			icon: Users
+			icon: 'i-lucide-users'
 		},
 		{
 			id: 'lease',
 			label: 'Create a lease',
-			completed: (stats?.totalUnits ?? 0) > 0,
+			completed: (stats?.units?.total ?? 0) > 0,
 			href: '/leases/new',
-			icon: FileText
+			icon: 'i-lucide-file-text'
 		}
 	]
 
@@ -183,14 +183,12 @@ export function DashboardOnboarding() {
 												: 'bg-primary/10 border-primary/20 group-hover:bg-primary/20 border'
 										)}
 									>
-										<Icon
-											className={cn(
+										<i className={cn(stat.icon, 'inline-block', cn(
 												'h-4 w-4 transition-colors duration-300',
 												step.completed
 													? 'text-green-600'
 													: 'text-primary group-hover:text-primary/80'
-											)}
-										/>
+											))} />
 									</div>
 									<div>
 										<span

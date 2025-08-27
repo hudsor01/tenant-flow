@@ -2,7 +2,7 @@
 
 import { PostHog } from 'posthog-node'
 import { logger } from '@/lib/logger/logger'
-import type { TenantFlowEvent } from '@/hooks/use-posthog'
+import type { TenantFlowEvent } from '@repo/shared/types/analytics'
 
 // Initialize PostHog for server-side tracking - only if key is available
 const posthog = process.env.NEXT_PUBLIC_POSTHOG_KEY

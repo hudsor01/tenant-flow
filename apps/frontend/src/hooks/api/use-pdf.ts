@@ -9,7 +9,8 @@ import {
 	type UseMutationResult
 } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { pdfApi, pdfKeys } from '@/lib/api/pdf'
+import { get, post } from '@/lib/api-client-temp'
+import { queryKeys } from '@/lib/react-query/query-keys'
 
 /**
  * Check PDF service health
@@ -20,8 +21,12 @@ export function usePDFHealth(): UseQueryResult<{
 	message?: string
 }> {
 	return useQuery({
-		queryKey: pdfKeys.health(),
-		queryFn: () => pdfApi.checkHealth(),
+		queryKey: queryKeys.pdf.health(),
+		queryFn: () => get<{
+			status: string
+			timestamp: string
+			message?: string
+		}>('/api/pdf/health'),
 		staleTime: 2 * 60 * 1000, // 2 minutes
 		gcTime: 5 * 60 * 1000, // 5 minutes
 		retry: 2
@@ -43,7 +48,13 @@ export function useGenerateLeasePDF(): UseMutationResult<
 	string
 > {
 	return useMutation({
-		mutationFn: (leaseId: string) => pdfApi.generateLeasePDF(leaseId),
+		mutationFn: (leaseId: string) => post<{
+			success: boolean
+			pdfUrl?: string
+			downloadUrl?: string
+			message?: string
+			fileName?: string
+		}>('/api/pdf/lease', { leaseId }),
 		onSuccess: data => {
 			if (data.success) {
 				toast.success('Lease PDF generated successfully!')
@@ -77,7 +88,13 @@ export function useGeneratePropertyReportPDF(): UseMutationResult<
 > {
 	return useMutation({
 		mutationFn: ({ propertyId, reportType = 'summary' }) =>
-			pdfApi.generatePropertyReportPDF(propertyId, reportType),
+			post<{
+				success: boolean
+				pdfUrl?: string
+				downloadUrl?: string
+				message?: string
+				fileName?: string
+			}>('/api/pdf/property-report', { propertyId, reportType }),
 		onSuccess: data => {
 			if (data.success) {
 				toast.success('Property report generated successfully!')
@@ -111,7 +128,13 @@ export function useGenerateTenantReportPDF(): UseMutationResult<
 > {
 	return useMutation({
 		mutationFn: (tenantId: string) =>
-			pdfApi.generateTenantReportPDF(tenantId),
+			post<{
+				success: boolean
+				pdfUrl?: string
+				downloadUrl?: string
+				message?: string
+				fileName?: string
+			}>('/api/pdf/tenant-report', { tenantId }),
 		onSuccess: data => {
 			if (data.success) {
 				toast.success('Tenant report generated successfully!')
@@ -149,7 +172,13 @@ export function useGenerateMaintenanceReportPDF(): UseMutationResult<
 	}
 > {
 	return useMutation({
-		mutationFn: params => pdfApi.generateMaintenanceReportPDF(params),
+		mutationFn: (params) => post<{
+			success: boolean
+			pdfUrl?: string
+			downloadUrl?: string
+			message?: string
+			fileName?: string
+		}>('/api/pdf/maintenance-report', params),
 		onSuccess: data => {
 			if (data.success) {
 				toast.success('Maintenance report generated successfully!')
@@ -172,7 +201,11 @@ export function useGenerateMaintenanceReportPDF(): UseMutationResult<
  */
 export function useDownloadPDF(): UseMutationResult<Blob, Error, string> {
 	return useMutation({
-		mutationFn: (fileName: string) => pdfApi.downloadPDF(fileName),
+		mutationFn: async (fileName: string) => {
+			const response = await fetch(`/api/pdf/download/${fileName}`)
+			if (!response.ok) throw new Error('Download failed')
+			return response.blob()
+		},
 		onSuccess: (blob, fileName) => {
 			// Create download link for the blob
 			const url = window.URL.createObjectURL(blob)

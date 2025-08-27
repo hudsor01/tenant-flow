@@ -309,14 +309,10 @@ export default defineConfig({
         if (matcher === 'print') {
           return {
             matcher: '',
-            body: (body) => {
-              return {
-                body,
-                parent: '@media print'
-              }
-            }
+            selector: (s) => `@media print { ${s} }`
           }
         }
+        return undefined
       }
     }
   ],

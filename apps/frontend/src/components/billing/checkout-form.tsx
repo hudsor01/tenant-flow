@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState } from 'react'
-import { createCheckoutSession } from '@/lib/actions/checkout-action'
+import { createCheckoutSession } from '@/app/actions/billing'
 import {
 	Card,
 	CardContent,

@@ -5,28 +5,58 @@
 
 'use server'
 
-import { apiClient } from '@/lib/api-client'
+import { post } from '@repo/shared'
 import { redirect } from 'next/navigation'
+
+// Define local interface - no shared type needed for this simple case
+interface CreateCheckoutRequest {
+  priceId: string
+  successUrl?: string
+  cancelUrl?: string
+  trialPeriodDays?: number
+  couponId?: string
+}
 
 export interface BillingFormState {
 	success: boolean
 	error?: string
+	errors?: { _form?: string[]; [key: string]: string[] | undefined }
 	clientSecret?: string
 	sessionUrl?: string
 }
 
 export async function createCheckoutSession(
-	priceId: string
+	state: BillingFormState,
+	payload: FormData
 ): Promise<BillingFormState> {
 	try {
-		const response = await apiClient.post<{
+		const priceId = payload.get('priceId') as string
+		const successUrl = payload.get('successUrl') as string
+		const cancelUrl = payload.get('cancelUrl') as string
+		const trialPeriodDays = payload.get('trialPeriodDays')
+		const couponId = payload.get('couponId')
+
+		if (!priceId) {
+			return {
+				success: false,
+				errors: {
+					_form: ['Price ID is required']
+				}
+			}
+		}
+
+		const requestBody: CreateCheckoutRequest = {
+			priceId,
+			successUrl: successUrl || `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
+			cancelUrl: cancelUrl || `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
+			trialPeriodDays: trialPeriodDays ? parseInt(trialPeriodDays as string, 10) : undefined,
+			couponId: couponId as string | undefined
+		}
+
+		const response = await post<{
 			sessionId: string
 			sessionUrl: string
-		}>('/stripe/create-checkout-session', {
-			priceId,
-			successUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
-			cancelUrl: `${process.env.NEXT_PUBLIC_APP_URL}/pricing`
-		})
+		}>('/api/stripe/create-checkout-session', requestBody)
 
 		if (response.sessionUrl) {
 			redirect(response.sessionUrl)
@@ -39,10 +69,9 @@ export async function createCheckoutSession(
 	} catch (error) {
 		return {
 			success: false,
-			error:
-				error instanceof Error
-					? error.message
-					: 'Failed to create checkout session'
+			errors: {
+				_form: [error instanceof Error ? error.message : 'Failed to create checkout session']
+			}
 		}
 	}
 }
@@ -52,9 +81,9 @@ export async function createPaymentIntent(
 	currency = 'usd'
 ): Promise<BillingFormState> {
 	try {
-		const response = await apiClient.post<{
+		const response = await post<{
 			clientSecret: string
-		}>('/stripe/create-payment-intent', {
+		}>('/api/stripe/create-payment-intent', {
 			amount,
 			currency
 		})
@@ -76,9 +105,9 @@ export async function createPaymentIntent(
 
 export async function createPortalSession(): Promise<BillingFormState> {
 	try {
-		const response = await apiClient.post<{
+		const response = await post<{
 			url: string
-		}>('/stripe/create-portal-session', {
+		}>('/api/stripe/create-portal-session', {
 			returnUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`
 		})
 
@@ -97,6 +126,26 @@ export async function createPortalSession(): Promise<BillingFormState> {
 				error instanceof Error
 					? error.message
 					: 'Failed to create portal session'
+		}
+	}
+}
+
+export async function handleCheckoutReturn(sessionId: string) {
+	try {
+		const response = await post<{
+			session: unknown
+		}>('/api/stripe/checkout-session', {
+			sessionId
+		})
+
+		return {
+			success: true,
+			session: response.session
+		}
+	} catch (error) {
+		return {
+			success: false,
+			error: error instanceof Error ? error.message : 'Failed to retrieve session'
 		}
 	}
 }

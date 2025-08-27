@@ -3,7 +3,7 @@
  * Provides consistent form state management and validation
  */
 import { useState, useCallback, type ChangeEvent } from 'react'
-import type { FormErrors } from '@/types/forms'
+import type { FormErrors } from '@repo/shared/types/utilities'
 
 export interface UseFormStateOptions<T> {
 	initialValues: T

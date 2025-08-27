@@ -30,10 +30,10 @@ import type {
 } from '../schemas/stripe.schemas'
 import { getPriceId } from '@repo/shared/stripe/config'
 import { SupabaseService } from '../database/supabase.service'
-import type { BillingPeriod, PlanType } from '@repo/shared/types/stripe'
+import type { BillingPeriod, PlanType } from '@repo/shared'
 
 // Use shared type instead of local interface
-import type { AuthenticatedUser } from '@repo/shared/types/billing'
+import type { User as AuthenticatedUser } from '@repo/shared'
 
 @ApiTags('stripe')
 @Controller('stripe')

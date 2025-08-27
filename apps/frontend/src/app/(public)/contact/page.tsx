@@ -84,7 +84,7 @@ export default function ContactPage() {
 
 		try {
 			// Import available for future use
-			// const { apiClient } = await import('@/lib/api-client')
+			// const { apiClient } = await import('@/lib/api-client-temp')
 			// Contact form temporarily disabled - would send email via Resend
 			// await emailService.send(formData)
 			logger.info('Contact form submitted', {

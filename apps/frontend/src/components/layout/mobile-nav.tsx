@@ -1,5 +1,5 @@
 'use client'
-import { Home,Building,Plus,BarChart3,User } from 'lucide-react'
+
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion } from '@/lib/lazy-motion'
@@ -12,14 +12,14 @@ const navigationItems = [
 		id: 'dashboard',
 		name: 'Dashboard',
 		href: '/dashboard',
-		icon: Home,
+		icon: 'i-lucide-home',
 		shortName: 'Home'
 	},
 	{
 		id: 'properties',
 		name: 'Properties',
 		href: '/properties',
-		icon: Building,
+		icon: 'i-lucide-building',
 		shortName: 'Props',
 		badgeKey: 'properties.totalProperties'
 	},
@@ -27,7 +27,7 @@ const navigationItems = [
 		id: 'add',
 		name: 'Add',
 		href: '/properties/new',
-		icon: Plus,
+		icon: 'i-lucide-plus',
 		shortName: 'Add',
 		isFab: true
 	},
@@ -35,14 +35,14 @@ const navigationItems = [
 		id: 'reports',
 		name: 'Reports',
 		href: '/reports',
-		icon: BarChart3,
+		icon: 'i-lucide-bar-chart-3',
 		shortName: 'Reports'
 	},
 	{
 		id: 'profile',
 		name: 'Profile',
 		href: '/profile',
-		icon: User,
+		icon: 'i-lucide-user',
 		shortName: 'Profile'
 	}
 ]
@@ -159,14 +159,12 @@ export function MobileNav({ className }: MobileNavProps) {
 									damping: 25
 								}}
 							>
-								<Icon
-									className={cn(
+								<i className={cn(stat.icon, 'inline-block', cn(
 										'mb-1 h-5 w-5 transition-colors duration-200',
 										isActive
 											? 'text-primary'
 											: 'text-gray-500'
-									)}
-								/>
+									))} />
 
 								{/* Badge for item counts */}
 								{badgeValue && (

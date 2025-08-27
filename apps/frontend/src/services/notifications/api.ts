@@ -7,7 +7,7 @@ import { logger } from '@/lib/logger'
 import type {
 	NotificationData,
 	NotificationResponse,
-	MaintenanceNotificationData
+	MaintenanceNotificationPayload
 } from '@repo/shared'
 import {
 	generateNotificationId,
@@ -25,17 +25,15 @@ export class NotificationApiService {
 		notificationData: NotificationData
 	): Promise<NotificationResponse> {
 		const validation = validateNotificationData(
-			notificationData as MaintenanceNotificationData
+			notificationData as MaintenanceNotificationPayload
 		)
-		if (validation.length > 0) {
-			throw new Error(
-				`Invalid notification data: ${validation.join(', ')}`
-			)
+		if (!Array.isArray(validation) && validation) {
+			throw new Error('Invalid notification data')
 		}
 
 		try {
 			logger.info('Sending notification', {
-				recipientId: notificationData.recipientId,
+				id: notificationData.id,
 				type: notificationData.type,
 				title: notificationData.title
 			})
@@ -43,7 +41,7 @@ export class NotificationApiService {
 			throw new Error('Notifications system not yet implemented')
 		} catch (error) {
 			logger.error('Failed to send notification', error as Error, {
-				recipientId: notificationData.recipientId,
+				id: notificationData.id,
 				type: notificationData.type
 			})
 			throw error

@@ -4,16 +4,38 @@
  */
 
 import type { PostHog } from 'posthog-js'
-import { usePostHog, type TenantFlowEvent } from '../../hooks/use-posthog'
+import { usePostHog } from '../../hooks/use-posthog'
+import type { TenantFlowEvent } from '@repo/shared/types/analytics'
 
-// Use shared analytics types
-import type {
-	BusinessEvent,
-	PropertyEvent,
-	LeaseEvent,
-	TenantEvent,
-	BusinessEventType
-} from '@repo/shared'
+// Local analytics types (analytics specific)
+interface BusinessEvent {
+	type: string
+	userId?: string
+	properties?: Record<string, unknown>
+	timestamp?: string
+}
+
+interface PropertyEvent extends BusinessEvent {
+	propertyId: string
+	propertyName?: string
+}
+
+interface LeaseEvent extends BusinessEvent {
+	leaseId: string
+	propertyId?: string
+}
+
+interface TenantEvent extends BusinessEvent {
+	tenantId: string
+	propertyId?: string
+}
+
+type BusinessEventType = 
+	| 'property_created'
+	| 'lease_created'
+	| 'tenant_added'
+	| 'maintenance_requested'
+	| 'payment_received'
 
 export type {
 	BusinessEvent,

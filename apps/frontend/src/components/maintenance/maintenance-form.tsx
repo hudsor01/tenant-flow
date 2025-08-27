@@ -9,7 +9,13 @@
 import React from 'react'
 import { useActionState } from 'react'
 import { createMaintenanceRequest, updateMaintenanceStatus } from '@/app/actions/maintenance'
-import type { MaintenanceRequest, Property, Unit } from '@repo/shared'
+import type { Database } from '@repo/shared'
+
+// Define types directly from Database schema - NO DUPLICATION
+type MaintenanceRequest = Database['public']['Tables']['MaintenanceRequest']['Row']
+type Property = Database['public']['Tables']['Property']['Row']
+type Unit = Database['public']['Tables']['Unit']['Row']
+type MaintenanceStatus = Database['public']['Enums']['RequestStatus']
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -41,7 +47,7 @@ interface MaintenanceFormProps {
  */
 export function MaintenanceForm({
 	request,
-	requests,
+	requests: _requests,
 	properties,
 	units,
 	onSuccess,
@@ -68,22 +74,22 @@ export function MaintenanceForm({
 		try {
 			// Extract form values using native FormData API
 			const requestData = {
-				property_id: formData.get('propertyId') as string,
-				unit_id: formData.get('unitId') as string,
+				propertyId: formData.get('propertyId') as string,
+				unitId: formData.get('unitId') as string,
 				title: formData.get('title') as string,
 				description: formData.get('description') as string,
 				priority: formData.get('priority') as string,
 				status: 'OPEN',
-				estimated_cost: formData.has('estimatedCost') 
+				estimatedCost: formData.has('estimatedCost') 
 					? parseFloat(formData.get('estimatedCost') as string)
 					: undefined,
-				preferred_date: formData.get('preferredDate') as string || undefined,
-				contact_phone: formData.get('contactPhone') as string || undefined,
-				allow_entry: formData.get('allowEntry') === 'on',
-				tenant_id: '',  // Will be set by server
+				preferredDate: formData.get('preferredDate') as string || undefined,
+				contactPhone: formData.get('contactPhone') as string || undefined,
+				allowEntry: formData.get('allowEntry') === 'on',
+				tenantId: '',  // Will be set by server
 				id: '',  // Will be set by server
-				created_at: '',  // Will be set by server
-				updated_at: ''  // Will be set by server
+				createdAt: '',  // Will be set by server
+				updatedAt: ''  // Will be set by server
 			}
 
 			// Add optimistic update
@@ -94,7 +100,7 @@ export function MaintenanceForm({
 			if (isEditing && request) {
 				// For editing, we only update status via server action
 				const status = formData.get('status') as string
-				result = await updateMaintenanceStatus(request.id, status as any)
+				result = await updateMaintenanceStatus(request.id, status as MaintenanceStatus)
 			} else {
 				result = await createMaintenanceRequest(formData)
 			}
@@ -186,7 +192,7 @@ export function MaintenanceForm({
 										</Label>
 										<Select 
 											name="propertyId" 
-											defaultValue={request?.property_id}
+											defaultValue={request?.propertyId}
 											disabled={isPending}
 											required
 										>
@@ -210,7 +216,7 @@ export function MaintenanceForm({
 										</Label>
 										<Select 
 											name="unitId" 
-											defaultValue={request?.unit_id}
+											defaultValue={request?.unitId}
 											disabled={isPending}
 											required
 										>
@@ -368,7 +374,7 @@ export function MaintenanceForm({
 											id="preferredDate"
 											name="preferredDate"
 											type="date"
-											defaultValue={request?.scheduled_date}
+											defaultValue={request?.scheduledDate}
 											disabled={isPending}
 										/>
 									</div>
@@ -384,7 +390,7 @@ export function MaintenanceForm({
 											type="number"
 											step="0.01"
 											min="0"
-											defaultValue={request?.estimated_cost || ''}
+											defaultValue={request?.estimatedCost || ''}
 											placeholder="0.00"
 											disabled={isPending}
 										/>

@@ -407,7 +407,7 @@ CREATE OR REPLACE FUNCTION create_lease(
   p_unit_id UUID,
   p_start_date DATE,
   p_end_date DATE,
-  p_monthly_rent DECIMAL,
+  p_rentAmount DECIMAL,
   p_security_deposit DECIMAL,
   p_payment_frequency TEXT DEFAULT 'MONTHLY',
   p_status TEXT DEFAULT 'DRAFT'
@@ -449,7 +449,7 @@ BEGIN
     p_unit_id,
     p_start_date,
     p_end_date,
-    p_monthly_rent,
+    p_rentAmount,
     p_security_deposit,
     p_payment_frequency,
     p_status
@@ -468,7 +468,7 @@ CREATE OR REPLACE FUNCTION update_lease(
   p_lease_id UUID,
   p_start_date DATE DEFAULT NULL,
   p_end_date DATE DEFAULT NULL,
-  p_monthly_rent DECIMAL DEFAULT NULL,
+  p_rentAmount DECIMAL DEFAULT NULL,
   p_security_deposit DECIMAL DEFAULT NULL,
   p_payment_frequency TEXT DEFAULT NULL,
   p_status TEXT DEFAULT NULL
@@ -492,7 +492,7 @@ BEGIN
   SET 
     "startDate" = COALESCE(p_start_date, "startDate"),
     "endDate" = COALESCE(p_end_date, "endDate"),
-    "monthlyRent" = COALESCE(p_monthly_rent, "monthlyRent"),
+    "monthlyRent" = COALESCE(p_rentAmount, "monthlyRent"),
     "securityDeposit" = COALESCE(p_security_deposit, "securityDeposit"),
     "paymentFrequency" = COALESCE(p_payment_frequency, "paymentFrequency"),
     status = COALESCE(p_status, status),

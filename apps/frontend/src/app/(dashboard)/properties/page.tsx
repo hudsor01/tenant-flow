@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
-import { PropertiesStats } from '@/components/properties/properties-stats'
+import PropertyStatsSection from '@/components/properties/property-stats-section'
 import { PropertiesClient } from './properties-client'
 
 /**
@@ -61,7 +61,20 @@ export default function PropertiesPage() {
 					<div className="bg-muted h-32 animate-pulse rounded" />
 				}
 			>
-				<PropertiesStats />
+				<PropertyStatsSection 
+					stats={{
+						totalUnits: 0,
+						occupiedUnits: 0,
+						vacantUnits: 0,
+						occupancyRate: 0,
+						totalMonthlyRent: 0,
+						potentialRent: 0
+					}}
+					fadeInUp={{
+						initial: { opacity: 0, y: 20 },
+						animate: { opacity: 1, y: 0 }
+					}}
+				/>
 			</Suspense>
 
 			{/* Interactive content in client component */}

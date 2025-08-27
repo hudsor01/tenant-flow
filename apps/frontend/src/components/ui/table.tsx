@@ -134,13 +134,15 @@ const TableHead = React.forwardRef<HTMLTableCellElement, TableHeadProps>(
 					<div className="flex items-center gap-2">
 						{children}
 						<div className="flex flex-col">
-							<i className="i-lucide-chevron-up inline-block" className={cn(
+							<i className={cn(
+								'i-lucide-chevron-up inline-block',
 									'h-3 w-3 transition-opacity',
 									sorted === 'asc'
 										? 'opacity-100'
 										: 'opacity-30'
 								)} />
-							<i className="i-lucide-chevron-down inline-block" className={cn(
+							<i className={cn(
+								'i-lucide-chevron-down inline-block',
 									'h-3 w-3 transition-opacity',
 									sorted === 'desc'
 										? 'opacity-100'
