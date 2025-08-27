@@ -3,12 +3,12 @@
  * Provides consistent form state management and validation
  */
 import { useState, useCallback, type ChangeEvent } from 'react'
-import type { FormErrors } from '@repo/shared/types/utilities'
+import type { FormErrors } from '@repo/shared'
 
 export interface UseFormStateOptions<T> {
 	initialValues: T
 	validateOnChange?: boolean
-	validator?: (values: T) => FormErrors
+	validator?: (values: T) => FormErrors<T>
 }
 
 export function useFormState<T extends Record<string, unknown>>(
@@ -17,7 +17,7 @@ export function useFormState<T extends Record<string, unknown>>(
 	const { initialValues, validateOnChange = false, validator } = options
 
 	const [values, setValues] = useState<T>(initialValues)
-	const [errors, setErrors] = useState<FormErrors>({})
+	const [errors, setErrors] = useState<FormErrors<T>>({})
 	const [touched, setTouched] = useState<Record<string, boolean>>({})
 	const [isSubmitting, setIsSubmitting] = useState(false)
 

@@ -114,7 +114,7 @@ export function PropertiesClient({ className }: PropertiesClientProps) {
 			<PropertyDeleteDialog
 				open={deleteDialogOpen}
 				onOpenChange={setDeleteDialogOpen}
-				property={selectedProperty}
+				property={selectedProperty as any}
 			/>
 		</div>
 	)

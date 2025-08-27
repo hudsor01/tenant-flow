@@ -15,9 +15,6 @@ export const PLAN_TYPE = {
 
 export type PlanType = (typeof PLAN_TYPE)[keyof typeof PLAN_TYPE]
 
-// Billing period enum - imported from types/stripe for consistency
-// Values: 'monthly', 'annual' (lowercase to match Stripe API)
-
 // Subscription status enum
 export const SUB_STATUS = {
 	ACTIVE: 'ACTIVE',

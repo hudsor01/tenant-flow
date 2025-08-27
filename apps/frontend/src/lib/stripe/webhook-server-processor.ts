@@ -9,21 +9,22 @@ import { logger } from '@/lib/logger/logger'
 
 // Use shared billing types
 import type {
-	StripeWebhookEventType as StripeWebhookEvent,
+	StripeWebhookEventType,
+	StripeWebhookEvent,
 	WebhookNotification,
-	WebhookProcessorFunction as WebhookProcessor
+	StripeWebhookProcessor
 } from '@repo/shared'
 
-export type { StripeWebhookEvent, WebhookNotification, WebhookProcessor }
+export type { StripeWebhookEvent, WebhookNotification, StripeWebhookProcessor }
 
 /**
  * Server-side webhook event processors (no React hooks)
  */
-export const webhookProcessors: WebhookProcessor[] = [
+export const webhookProcessors: StripeWebhookProcessor[] = [
 	{
 		event: 'customer.subscription.created',
 		processor: async (
-			event: Stripe.Event
+			event: StripeWebhookEvent
 		): Promise<WebhookNotification[]> => {
 			const subscription = event.data.object as Stripe.Subscription
 			logger.info('Subscription created', {
@@ -50,7 +51,7 @@ export const webhookProcessors: WebhookProcessor[] = [
 	{
 		event: 'customer.subscription.updated',
 		processor: async (
-			event: Stripe.Event
+			event: StripeWebhookEvent
 		): Promise<WebhookNotification[]> => {
 			const subscription = event.data.object as Stripe.Subscription
 			const previousAttributes = event.data
@@ -127,7 +128,7 @@ export const webhookProcessors: WebhookProcessor[] = [
 	{
 		event: 'customer.subscription.deleted',
 		processor: async (
-			event: Stripe.Event
+			event: StripeWebhookEvent
 		): Promise<WebhookNotification[]> => {
 			const subscription = event.data.object as Stripe.Subscription
 			logger.info('Subscription deleted', {
@@ -151,7 +152,7 @@ export const webhookProcessors: WebhookProcessor[] = [
 	{
 		event: 'invoice.payment_succeeded',
 		processor: async (
-			event: Stripe.Event
+			event: StripeWebhookEvent
 		): Promise<WebhookNotification[]> => {
 			const invoice = event.data.object as Stripe.Invoice
 			logger.info('Invoice payment succeeded', { invoiceId: invoice.id })
@@ -179,7 +180,7 @@ export const webhookProcessors: WebhookProcessor[] = [
 	{
 		event: 'invoice.payment_failed',
 		processor: async (
-			event: Stripe.Event
+			event: StripeWebhookEvent
 		): Promise<WebhookNotification[]> => {
 			const invoice = event.data.object as Stripe.Invoice
 			logger.warn('Invoice payment failed', { invoiceId: invoice.id })
@@ -204,7 +205,7 @@ export const webhookProcessors: WebhookProcessor[] = [
 	{
 		event: 'customer.updated',
 		processor: async (
-			event: Stripe.Event
+			event: StripeWebhookEvent
 		): Promise<WebhookNotification[]> => {
 			const customer = event.data.object as Stripe.Customer
 			const previousAttributes = event.data
@@ -235,7 +236,7 @@ export const webhookProcessors: WebhookProcessor[] = [
 	{
 		event: 'payment_method.attached',
 		processor: async (
-			event: Stripe.Event
+			event: StripeWebhookEvent
 		): Promise<WebhookNotification[]> => {
 			const paymentMethod = event.data.object as Stripe.PaymentMethod
 			logger.info('Payment method attached', {
@@ -276,7 +277,7 @@ export const webhookProcessors: WebhookProcessor[] = [
 	{
 		event: 'payment_method.detached',
 		processor: async (
-			event: Stripe.Event
+			event: StripeWebhookEvent
 		): Promise<WebhookNotification[]> => {
 			const paymentMethod = event.data.object as Stripe.PaymentMethod
 			logger.info('Payment method detached', {
@@ -324,7 +325,7 @@ export async function processStripeWebhook(
 ): Promise<WebhookNotification[]> {
 	try {
 		const processor = webhookProcessors.find(
-			p => p.event === (event.type as StripeWebhookEvent)
+			p => p.event === event.type
 		)
 
 		if (processor) {

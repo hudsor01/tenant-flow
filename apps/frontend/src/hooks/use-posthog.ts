@@ -2,7 +2,7 @@
 
 import { usePostHog as usePostHogBase } from 'posthog-js/react'
 import { useCallback } from 'react'
-import type { User } from '@repo/shared'
+import type { User, TenantFlowEvent } from '@repo/shared'
 
 // Custom event types for TenantFlow
 

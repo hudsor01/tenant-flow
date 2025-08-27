@@ -376,3 +376,9 @@ export interface AuthContext {
 	permissions: Permission[]
 	roles: UserRole[]
 }
+
+// Form state type alias for auth forms
+export type AuthFormState = FormState<User>
+
+// Import FormState from UI types
+import type { FormState } from './ui'

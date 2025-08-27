@@ -116,13 +116,25 @@ const properties: PropertyStats = {
 					total: 0,
 					open: 0,
 					inProgress: 0,
-					completed: 0
+					completed: 0,
+					canceled: 0,
+					onHold: 0,
+					overdue: 0,
+					averageCompletionTime: 0,
+					totalCost: 0,
+					averageCost: 0
 				},
 				maintenanceRequests: {
 					total: 0,
 					open: 0,
 					inProgress: 0,
-					completed: 0
+					completed: 0,
+					canceled: 0,
+					onHold: 0,
+					overdue: 0,
+					averageCompletionTime: 0,
+					totalCost: 0,
+					averageCost: 0
 				},
 				notifications: {
 					total: 0,

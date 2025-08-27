@@ -17,9 +17,9 @@ const feedbackClasses = {
 }
 
 export interface FeedbackProps extends React.HTMLAttributes<HTMLDivElement> {
-	variant?: "success" | "error" | "loading" | "info"
-	icon?: React.ReactNode
-	children: React.ReactNode
+variant?: "success" | "error" | "loading" | "info"
+icon?: React.ReactNode
+children?: React.ReactNode
 }
 
 const Feedback = React.forwardRef<HTMLDivElement, FeedbackProps>(

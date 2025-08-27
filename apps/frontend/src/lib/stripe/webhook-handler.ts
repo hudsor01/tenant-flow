@@ -12,7 +12,7 @@ export {
 	webhookProcessors,
 	type StripeWebhookEvent,
 	type WebhookNotification,
-	type WebhookProcessor
+	type StripeWebhookProcessor
 } from './webhook-server-processor'
 
 // Re-export client-side components (React hooks enabled)

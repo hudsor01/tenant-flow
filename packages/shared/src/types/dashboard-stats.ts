@@ -45,13 +45,25 @@ export interface LeaseStats {
 	totalRentRoll?: number
 }
 
-// Maintenance statistics
+// Maintenance statistics - matches get_maintenance_stats RPC return
 export interface MaintenanceStats {
 	total: number
 	open: number
 	inProgress: number
 	completed: number
-	averageCompletionTime?: number
+	canceled: number
+	onHold: number
+	overdue: number
+	averageCompletionTime: number
+	totalCost: number
+	averageCost: number
+	// Legacy properties for backward compatibility
+	pending?: number
+	cancelled?: number
+	urgent?: number
+	avgEstimatedCost?: number
+	avgActualCost?: number
+	totalActualCost?: number
 }
 
 // Notification statistics

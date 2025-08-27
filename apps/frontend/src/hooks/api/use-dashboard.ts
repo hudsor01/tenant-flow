@@ -19,7 +19,7 @@ export type UpcomingTask = {
 	priority: string
 }
 import { queryKeys } from '@/lib/react-query/query-keys'
-import { get } from '@/lib/api-client-temp'
+import { get } from '@/lib/api-client'
 import type { DashboardStats, ActivityItem } from '@repo/shared'
 
 /**
