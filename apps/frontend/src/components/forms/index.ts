@@ -16,7 +16,7 @@ export { LeaseTermsSection } from './lease-terms-section'
 // Auth Forms (using native React 19 useActionState)
 export { SimpleLoginForm } from './supabase-login-form'
 export { SimpleSignupForm } from './supabase-signup-form'
-export { ForgotPasswordForm } from './supabase-forgot-password-form'
+export { SimpleForgotPasswordForm as ForgotPasswordForm } from './supabase-forgot-password-form'
 export { UpdatePasswordForm } from './update-password-form'
 
 // Contact Form

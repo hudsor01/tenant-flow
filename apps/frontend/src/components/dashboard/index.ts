@@ -12,7 +12,7 @@ export {
 } from './dashboard-animations'
 
 // Main dashboard component
-export { default as Dashboard } from './dashboard'
+// export { default as Dashboard } from './dashboard' // File doesn't exist
 
 // Sidebar component removed - using layout sidebar instead
 
