@@ -23,7 +23,6 @@ COPY package*.json turbo.json ./
 COPY apps/backend/package.json ./apps/backend/
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/database/package.json ./packages/database/
-COPY packages/tailwind-config/package.json ./packages/tailwind-config/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 
 # Install all dependencies including dev dependencies for building
@@ -69,7 +68,6 @@ COPY package*.json turbo.json ./
 COPY apps/backend/package.json ./apps/backend/
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/database/package.json ./packages/database/
-COPY packages/tailwind-config/package.json ./packages/tailwind-config/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 
 # Fresh production dependency install with cache optimization

@@ -9,15 +9,10 @@ import {
 	type UseQueryResult
 } from '@tanstack/react-query'
 import type { Database, MaintenanceRequestApiResponse, MaintenanceQuery } from '@repo/shared'
+import type { MaintenanceStats } from '@repo/shared/types/dashboard-stats'
 
 // Use Database types directly - no duplication
 type MaintenanceRequest = Database['public']['Tables']['MaintenanceRequest']['Row']
-type MaintenanceStats = {
-	total: number
-	pending: number
-	inProgress: number 
-	completed: number
-}
 type CreateMaintenanceInput = Database['public']['Tables']['MaintenanceRequest']['Insert']
 type UpdateMaintenanceInput = Database['public']['Tables']['MaintenanceRequest']['Update']
 type RequestStatus = Database['public']['Enums']['RequestStatus']

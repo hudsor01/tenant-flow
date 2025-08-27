@@ -45,6 +45,7 @@ export function SubscriptionCancelModal({
 		'reason' | 'retention' | 'confirm' | 'success'
 	>('reason')
 	const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState<boolean>(true)
+	const [cancelAt, setCancelAt] = useState<'immediate' | 'end_of_period'>('end_of_period')
 	const [reason, setReason] = useState('')
 	const [feedback, setFeedback] = useState('')
 	const [showRetention, setShowRetention] = useState(true)
@@ -56,8 +57,7 @@ export function SubscriptionCancelModal({
 		try {
 			await cancelSubscription({
 				cancelAtPeriodEnd: cancelAtPeriodEnd,
-				reason,
-				feedback
+				reason
 			})
 
 			setStep('success')
@@ -73,6 +73,7 @@ export function SubscriptionCancelModal({
 
 	const resetState = () => {
 		setStep('reason')
+		setCancelAtPeriodEnd(true)
 		setCancelAt('end_of_period')
 		setReason('')
 		setFeedback('')
