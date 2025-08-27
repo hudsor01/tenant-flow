@@ -1,5 +1,4 @@
 import type { UseFormReturn } from 'react-hook-form'
-import { Home, Building } from 'lucide-react'
 import {
 	FormControl,
 	FormDescription,
@@ -89,7 +88,7 @@ export function UnitSelectionSection({
 								<SelectContent>
 									<SelectItem value="">
 										<div className="flex items-center space-x-2">
-											<Building className="h-4 w-4" />
+											<i className="i-lucide-building inline-block h-4 w-4"  />
 											<span>Whole Property Lease</span>
 										</div>
 									</SelectItem>
@@ -102,7 +101,7 @@ export function UnitSelectionSection({
 											<div className="flex w-full items-center justify-between">
 												<div className="flex items-center space-x-3">
 													<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100">
-														<Home className="h-4 w-4 text-gray-600" />
+														<i className="i-lucide-home inline-block h-4 w-4 text-gray-600"  />
 													</div>
 													<div>
 														<p className="font-medium">

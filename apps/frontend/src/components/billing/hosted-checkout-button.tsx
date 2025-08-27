@@ -1,5 +1,4 @@
 import { Button } from '@/components/ui/button'
-import { Loader2 } from 'lucide-react'
 import { useCreateCheckoutSession } from '@/hooks/api/use-billing'
 import type { PlanType } from '@repo/shared'
 
@@ -46,7 +45,7 @@ export function HostedCheckoutButton({
 		>
 			{createCheckoutMutation.isPending ? (
 				<>
-					<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+					<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
 					Loading checkout...
 				</>
 			) : (

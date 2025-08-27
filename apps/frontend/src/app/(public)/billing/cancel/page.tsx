@@ -11,21 +11,12 @@ import {
 import { PaymentCancelled } from '@/components/billing/payment-cancelled'
 
 // Server-side metadata generation
-<<<<<<< HEAD
 export function generateMetadata(): Metadata {
 	const meta = generateBillingMetadata(
 		'Checkout Cancelled',
 		'Your checkout was cancelled - no charges were made'
 	)
 	return meta
-=======
-export async function generateMetadata(): Promise<Metadata> {
-	const meta = await generateBillingMetadata(
-		'Checkout Cancelled',
-		'Your checkout was cancelled - no charges were made'
-	)
-	return meta as unknown as Metadata
->>>>>>> origin/main
 }
 
 /**

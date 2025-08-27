@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { User, UserPlus, Minus, Mail, Phone, MapPin } from 'lucide-react'
 import type { LeaseFormData } from '@repo/shared'
 
 interface PartiesInfoSectionProps {
@@ -34,7 +33,7 @@ export function PartiesInfoSection({ form }: PartiesInfoSectionProps) {
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<User className="text-primary h-5 w-5" />
+						<i className="i-lucide-user inline-block text-primary h-5 w-5"  />
 						Landlord Information
 					</CardTitle>
 				</CardHeader>
@@ -72,16 +71,13 @@ export function PartiesInfoSection({ form }: PartiesInfoSectionProps) {
 								Email Address *
 							</Label>
 							<div className="relative">
-<<<<<<< HEAD
-								<Mail className="text-muted-foreground absolute left-3 top-3 h-4 w-4" />
-=======
-								<Mail className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
->>>>>>> origin/main
+								<i className="i-lucide-mail inline-block text-muted-foreground absolute left-3 top-3 h-4 w-4"  />
 								<Input
 									id="landlordEmail"
 									type="email"
 									placeholder="john@tenantflow.app"
-									className={`pl-9 ${form.formState.errors.landlordEmail ? 'border-destructive' : ''}`}
+									className="form-input pl-9"
+									data-error={!!form.formState.errors.landlordEmail}
 									{...form.register('landlordEmail')}
 								/>
 							</div>
@@ -108,11 +104,7 @@ export function PartiesInfoSection({ form }: PartiesInfoSectionProps) {
 								</span>
 							</Label>
 							<div className="relative">
-<<<<<<< HEAD
-								<Phone className="text-muted-foreground absolute left-3 top-3 h-4 w-4" />
-=======
-								<Phone className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
->>>>>>> origin/main
+								<i className="i-lucide-phone inline-block text-muted-foreground absolute left-3 top-3 h-4 w-4"  />
 								<Input
 									id="landlordPhone"
 									type="tel"
@@ -131,15 +123,11 @@ export function PartiesInfoSection({ form }: PartiesInfoSectionProps) {
 								Mailing Address *
 							</Label>
 							<div className="relative">
-<<<<<<< HEAD
-								<MapPin className="text-muted-foreground absolute left-3 top-3 h-4 w-4" />
-=======
-								<MapPin className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
->>>>>>> origin/main
+								<i className="i-lucide-map-pin inline-block text-muted-foreground absolute left-3 top-3 h-4 w-4"  />
 								<Input
 									id="landlordAddress"
 									placeholder="123 Business St, City, State 12345"
-									className={`pl-9 ${form.formState.errors.landlordAddress ? 'border-destructive' : ''}`}
+									className={`pl-9 ${form.formState.errors.landlordAddress ? 'input-error' : ''}`}
 									{...form.register('landlordAddress')}
 								/>
 							</div>
@@ -161,7 +149,7 @@ export function PartiesInfoSection({ form }: PartiesInfoSectionProps) {
 				<CardHeader>
 					<div className="flex items-center justify-between">
 						<CardTitle className="flex items-center gap-2">
-							<UserPlus className="text-primary h-5 w-5" />
+							<i className="i-lucide-user-plus inline-block text-primary h-5 w-5"  />
 							Tenant Information
 						</CardTitle>
 						<Button
@@ -171,7 +159,7 @@ export function PartiesInfoSection({ form }: PartiesInfoSectionProps) {
 							onClick={addTenant}
 							className="flex items-center gap-2"
 						>
-							<UserPlus className="h-4 w-4" />
+							<i className="i-lucide-user-plus inline-block h-4 w-4"  />
 							Add Tenant
 						</Button>
 					</div>
@@ -194,7 +182,7 @@ export function PartiesInfoSection({ form }: PartiesInfoSectionProps) {
 										onClick={() => removeTenant(index)}
 										className="text-destructive hover:text-destructive/80 h-6 w-6 p-0"
 									>
-										<Minus className="h-4 w-4" />
+										<i className="i-lucide-minus inline-block h-4 w-4"  />
 									</Button>
 								)}
 							</div>
@@ -234,7 +222,7 @@ export function PartiesInfoSection({ form }: PartiesInfoSectionProps) {
 
 					<div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4">
 						<div className="flex items-start gap-2">
-							<UserPlus className="mt-0.5 h-5 w-5 text-amber-600" />
+							<i className="i-lucide-user-plus inline-block mt-0.5 h-5 w-5 text-amber-600"  />
 							<div>
 								<h4 className="font-medium text-amber-900">
 									Multiple Tenants

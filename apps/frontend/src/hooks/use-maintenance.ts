@@ -25,8 +25,7 @@ import {
 import type {
 	CreateMaintenanceInput,
 	UpdateMaintenanceInput,
-	MaintenanceQuery,
-	MaintenanceRequest
+	MaintenanceQuery
 } from '@repo/shared'
 
 /**

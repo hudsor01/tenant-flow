@@ -3,11 +3,7 @@
  * Consolidates duplicate formatDate implementations across lease templates
  */
 
-<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
-=======
-import { logger } from '@/lib/logger'
->>>>>>> origin/main
 
 export interface DateFormatOptions {
 	format?: 'long' | 'short' | 'numeric'
@@ -31,11 +27,7 @@ export function formatLeaseDate(
 	try {
 		// Handle YYYY-MM-DD format by ensuring it's treated as local time
 		let date: Date
-<<<<<<< HEAD
 		if (/^\d{4}-\d{2}-\d{2}$/.exec(dateString)) {
-=======
-		if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
->>>>>>> origin/main
 			// Split date string to avoid timezone conversion issues
 			const [year, month, day] = dateString.split('-').map(Number)
 			date = new Date(year ?? 0, (month ?? 1) - 1, day ?? 1) // month is 0-indexed
@@ -75,11 +67,7 @@ export function formatSignatureDate(dateString: string): string {
 	try {
 		// Handle YYYY-MM-DD format by ensuring it's treated as local time
 		let date: Date
-<<<<<<< HEAD
 		if (/^\d{4}-\d{2}-\d{2}$/.exec(dateString)) {
-=======
-		if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
->>>>>>> origin/main
 			const [year, month, day] = dateString.split('-').map(Number)
 			date = new Date(year ?? 0, (month ?? 1) - 1, day ?? 1) // month is 0-indexed
 		} else {

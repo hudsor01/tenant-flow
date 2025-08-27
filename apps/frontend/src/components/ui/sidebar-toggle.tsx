@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
+import { useState } from 'react'
 import { motion } from '@/lib/lazy-motion'
-import { PanelLeftClose, PanelLeftOpen, Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils/css.utils'
 
@@ -23,6 +23,12 @@ export const SidebarToggle: React.FC<SidebarToggleProps> = ({
 		const newState = !collapsed
 		setCollapsed(newState)
 		onToggle?.(newState)
+	}
+
+	// Computed icon selection - KISS principle compliance (eliminates nested ternary)
+	const getSidebarIcon = () => {
+		if (variant === 'minimal') return 'i-lucide-menu inline-block h-4 w-4'
+		return collapsed ? 'i-lucide-panelleftopen inline-block h-5 w-5' : 'i-lucide-panelleftclose inline-block h-5 w-5'
 	}
 
 	const variants = {
@@ -54,13 +60,7 @@ export const SidebarToggle: React.FC<SidebarToggleProps> = ({
 				animate="rotate"
 				className="flex items-center justify-center"
 			>
-				{variant === 'minimal' ? (
-					<Menu className="h-4 w-4" />
-				) : collapsed ? (
-					<PanelLeftOpen className="h-5 w-5" />
-				) : (
-					<PanelLeftClose className="h-5 w-5" />
-				)}
+				<i className={getSidebarIcon()} />
 			</motion.div>
 		</Button>
 	)

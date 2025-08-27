@@ -9,11 +9,7 @@
 
 // RESTORED WORKING IMPLEMENTATION
 import React, { useState, useEffect } from 'react'
-<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
-=======
-import { logger } from '@/lib/logger'
->>>>>>> origin/main
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { usePostHog } from 'posthog-js/react'
@@ -27,17 +23,6 @@ import {
 } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import {
-	FileText,
-	Download,
-	Building,
-	User,
-	DollarSign,
-	CheckCircle,
-	CreditCard,
-	Loader2,
-	AlertTriangle
-} from 'lucide-react'
 import { toast } from 'sonner'
 import type {
 	LeaseGeneratorForm,
@@ -173,11 +158,7 @@ export default function LeaseGeneratorFormComponent({
 
 		try {
 			// Convert tenant names array to the expected format for the lease generator
-<<<<<<< HEAD
 			const _tenantNamesForLeaseGenerator = data.tenantNames
-=======
-			const tenantNamesForLeaseGenerator = data.tenantNames
->>>>>>> origin/main
 				.filter((tenant: { name: string }) => tenant.name.trim() !== '')
 				.map((tenant: { name: string }) => ({
 					name: tenant.name.trim()
@@ -269,7 +250,7 @@ export default function LeaseGeneratorFormComponent({
 				<CardHeader>
 					<div className="flex items-center justify-between">
 						<div className="flex items-center space-x-2">
-							<FileText className="text-primary h-6 w-6" />
+							<i className="i-lucide-file-text inline-block text-primary h-6 w-6"  />
 							<div>
 								<CardTitle>
 									Free Lease Agreement Generator
@@ -282,7 +263,7 @@ export default function LeaseGeneratorFormComponent({
 						<div className="text-right">
 							{usageRemaining > 0 ? (
 								<Badge variant="secondary" className="text-sm">
-									<CheckCircle className="mr-1 h-4 w-4" />
+									<i className="i-lucide-checkcircle inline-block mr-1 h-4 w-4"  />
 									{usageRemaining} free use
 									{usageRemaining > 1 ? 's' : ''} remaining
 								</Badge>
@@ -291,7 +272,7 @@ export default function LeaseGeneratorFormComponent({
 									variant="destructive"
 									className="text-sm"
 								>
-									<CreditCard className="mr-1 h-4 w-4" />
+									<i className="i-lucide-credit-card inline-block mr-1 h-4 w-4"  />
 									Payment required
 								</Badge>
 							)}
@@ -322,28 +303,28 @@ export default function LeaseGeneratorFormComponent({
 							value="property"
 							className="flex items-center gap-2"
 						>
-							<Building className="h-4 w-4" />
+							<i className="i-lucide-building inline-block h-4 w-4"  />
 							Property
 						</TabsTrigger>
 						<TabsTrigger
 							value="parties"
 							className="flex items-center gap-2"
 						>
-							<User className="h-4 w-4" />
+							<i className="i-lucide-user inline-block h-4 w-4"  />
 							Parties
 						</TabsTrigger>
 						<TabsTrigger
 							value="terms"
 							className="flex items-center gap-2"
 						>
-							<DollarSign className="h-4 w-4" />
+							<i className="i-lucide-dollar-sign inline-block h-4 w-4"  />
 							Terms
 						</TabsTrigger>
 						<TabsTrigger
 							value="additional"
 							className="flex items-center gap-2"
 						>
-							<FileText className="h-4 w-4" />
+							<i className="i-lucide-file-text inline-block h-4 w-4"  />
 							Additional
 						</TabsTrigger>
 					</TabsList>
@@ -370,25 +351,13 @@ export default function LeaseGeneratorFormComponent({
 					<TabsContent value="additional">
 						<AdditionalTermsSection
 							form={form}
-<<<<<<< HEAD
 							utilitiesOptions={utilitiesOptions}
-=======
-							utilitiesOptions={utilitiesOptions as string[]}
->>>>>>> origin/main
 							selectedUtilities={selectedUtilities}
 							handleUtilityToggle={
 								handleUtilityToggle as (utility: string) => void
 							}
 							selectedFormat={selectedFormat}
-<<<<<<< HEAD
 							setSelectedFormat={setSelectedFormat}
-=======
-							setSelectedFormat={
-								setSelectedFormat as React.Dispatch<
-									React.SetStateAction<LeaseOutputFormat>
-								>
-							}
->>>>>>> origin/main
 						/>
 					</TabsContent>
 				</Tabs>
@@ -400,7 +369,7 @@ export default function LeaseGeneratorFormComponent({
 							{requiresPayment && (
 								<div className="bg-destructive/10 border-destructive/20 rounded-lg border p-4">
 									<div className="text-destructive flex items-center justify-center gap-2">
-										<AlertTriangle className="h-5 w-5" />
+										<i className="i-lucide-alert-triangle inline-block h-5 w-5"  />
 										<span className="font-medium">
 											Payment Required
 										</span>
@@ -421,17 +390,17 @@ export default function LeaseGeneratorFormComponent({
 							>
 								{isGenerating ? (
 									<>
-										<Loader2 className="mr-2 h-5 w-5 animate-spin" />
+										<i className="i-lucide-loader-2 inline-block mr-2 h-5 w-5 animate-spin"  />
 										Generating Lease...
 									</>
 								) : requiresPayment ? (
 									<>
-										<CreditCard className="mr-2 h-5 w-5" />
+										<i className="i-lucide-credit-card inline-block mr-2 h-5 w-5"  />
 										Payment Required - $9.99
 									</>
 								) : (
 									<>
-										<Download className="mr-2 h-5 w-5" />
+										<i className="i-lucide-download inline-block mr-2 h-5 w-5"  />
 										Generate Lease Agreement
 									</>
 								)}

@@ -13,7 +13,6 @@ import {
 } from '@stripe/react-stripe-js'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Loader2 } from 'lucide-react'
 
 export interface CheckoutProps {
 	onSuccess?: () => void
@@ -79,11 +78,7 @@ export function Checkout({
 			<div
 				className={`flex items-center justify-center p-8 ${className}`}
 			>
-<<<<<<< HEAD
 				<div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600" />
-=======
-				<div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
->>>>>>> origin/main
 			</div>
 		)
 	}
@@ -110,7 +105,7 @@ export function Checkout({
 			>
 				{isProcessing ? (
 					<>
-						<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+						<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
 						Processing...
 					</>
 				) : (

@@ -1,17 +1,5 @@
-'use client'
-
 import { motion, AnimatePresence } from '@/lib/lazy-motion'
-import {
-	Clock,
-	Wrench,
-	Users,
-	FileText,
-	Calendar,
-	CheckCircle,
-	Activity
-} from 'lucide-react'
 import { cardVariants, activityItemVariants } from './dashboard-animations'
-<<<<<<< HEAD
 import type { ActivityItem, ActivityType } from '@repo/shared'
 
 // Helper type for activities with required type field
@@ -21,25 +9,6 @@ type ActivityItemWithType = ActivityItem & {
 
 interface DashboardActivityFeedProps {
 	activities?: ActivityItemWithType[]
-=======
-
-// Use the type from the dashboard hooks for consistency
-interface ActivityItem {
-	id: string
-	type:
-		| 'tenant_added'
-		| 'lease_created'
-		| 'maintenance_request'
-		| 'payment_received'
-		| string
-	description: string
-	timestamp: Date | string
-	entityId?: string
-}
-
-interface DashboardActivityFeedProps {
-	activities?: ActivityItem[]
->>>>>>> origin/main
 	isLoading?: boolean
 }
 
@@ -47,17 +16,17 @@ function ActivityIcon({ type }: { type: string }) {
 	switch (type) {
 		case 'maintenance_request':
 		case 'maintenance':
-			return <Wrench className="h-4 w-4" />
+			return <i className="i-lucide-wrench inline-block h-4 w-4"  />
 		case 'tenant_added':
 		case 'tenant':
-			return <Users className="h-4 w-4" />
+			return <i className="i-lucide-users inline-block h-4 w-4"  />
 		case 'lease_created':
 		case 'lease':
-			return <FileText className="h-4 w-4" />
+			return <i className="i-lucide-file-text inline-block h-4 w-4"  />
 		case 'payment_received':
-			return <CheckCircle className="h-4 w-4" />
+			return <i className="i-lucide-checkcircle inline-block h-4 w-4"  />
 		default:
-			return <Calendar className="h-4 w-4" />
+			return <i className="i-lucide-calendar inline-block h-4 w-4"  />
 	}
 }
 
@@ -92,7 +61,7 @@ export function DashboardActivityFeed({
 			<motion.div variants={cardVariants} className="lg:col-span-2">
 				<div className="rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
 					<h3 className="mb-6 flex items-center text-xl font-semibold text-white">
-						<Clock className="mr-2 h-5 w-5 text-[#60a5fa]" />
+						<i className="i-lucide-clock inline-block mr-2 h-5 w-5 text-[#60a5fa]"  />
 						Recent Activity
 					</h3>
 					<div className="space-y-4">
@@ -118,7 +87,7 @@ export function DashboardActivityFeed({
 		<motion.div variants={cardVariants} className="lg:col-span-2">
 			<div className="rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
 				<h3 className="mb-6 flex items-center text-xl font-semibold text-white">
-					<Clock className="mr-2 h-5 w-5 text-[#60a5fa]" />
+					<i className="i-lucide-clock inline-block mr-2 h-5 w-5 text-[#60a5fa]"  />
 					Recent Activity
 				</h3>
 
@@ -151,7 +120,6 @@ export function DashboardActivityFeed({
 									</div>
 									<div className="text-right">
 										<p className="text-xs text-white/40">
-<<<<<<< HEAD
 											{activity.createdAt
 												? new Date(
 														activity.createdAt
@@ -161,14 +129,6 @@ export function DashboardActivityFeed({
 															activity.timestamp
 														).toLocaleString()
 													: 'No date'}
-=======
-											{typeof activity.timestamp ===
-											'string'
-												? activity.timestamp
-												: new Date(
-														activity.timestamp
-													).toLocaleString()}
->>>>>>> origin/main
 										</p>
 									</div>
 								</motion.div>
@@ -177,7 +137,7 @@ export function DashboardActivityFeed({
 
 					{!Array.isArray(activities) || activities.length === 0 ? (
 						<div className="py-8 text-center">
-							<Activity className="mx-auto mb-4 h-12 w-12 text-white/20" />
+							<i className="i-lucide-activity inline-block mx-auto mb-4 h-12 w-12 text-white/20"  />
 							<p className="text-white/60">No recent activity</p>
 							<p className="text-sm text-white/40">
 								Activity will appear here as you manage your

@@ -1,5 +1,4 @@
 import React, { Suspense } from 'react'
-import { Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export type LoadingVariant = 'spinner' | 'skeleton' | 'minimal' | 'page'
@@ -31,7 +30,7 @@ function LoadingSpinner({
 					className
 				)}
 			>
-				<Loader2 className={cn('animate-spin', sizeClasses[size])} />
+				<i className={cn('i-lucide-loader-2 animate-spin', sizeClasses[size])} />
 			</div>
 		)
 	}
@@ -45,7 +44,7 @@ function LoadingSpinner({
 				)}
 			>
 				<div className="text-center">
-					<Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin" />
+					<i className="i-lucide-loader-2 inline-block mx-auto mb-4 h-8 w-8 animate-spin"  />
 					{message && (
 						<p className="text-muted-foreground">{message}</p>
 					)}
@@ -57,12 +56,10 @@ function LoadingSpinner({
 	return (
 		<div className={cn('flex items-center justify-center p-4', className)}>
 			<div className="text-center">
-				<Loader2
-					className={cn(
-						'mx-auto mb-2 animate-spin',
+				<i className={cn(
+						'i-lucide-loader-2 mx-auto mb-2 animate-spin',
 						sizeClasses[size]
-					)}
-				/>
+					)} />
 				{message && (
 					<p className="text-muted-foreground text-sm">{message}</p>
 				)}

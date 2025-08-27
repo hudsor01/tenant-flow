@@ -4,7 +4,6 @@
  */
 
 import { apiClient } from '@/lib/api-client'
-<<<<<<< HEAD
 import type {} from '@repo/shared'
 import {
 	CheckoutSessionResponseSchema,
@@ -14,28 +13,6 @@ import {
 
 // Actual response types from backend endpoints
 // Response interfaces are validated by Zod schemas in `/lib/api/schemas/billing`
-=======
-import type { Subscription, PaymentMethod, Invoice } from '@repo/shared'
-
-// Actual response types from backend endpoints
-interface CheckoutSessionResponse {
-	url: string
-	sessionId: string
-}
-
-interface PortalSessionResponse {
-	url: string
-}
-
-interface SubscriptionResponse {
-	subscription: {
-		id: string
-		status: string
-	}
-	clientSecret?: string
-	requiresAction?: boolean
-}
->>>>>>> origin/main
 
 /**
  * Query keys for React Query caching
@@ -61,11 +38,7 @@ export const billingApi = {
 		)
 	},
 
-<<<<<<< HEAD
 	async updateSubscription(_data: {
-=======
-	async updateSubscription(data: {
->>>>>>> origin/main
 		newPriceId: string
 		userId: string
 		prorationBehavior?: 'create_prorations' | 'none' | 'always_invoice'
@@ -99,11 +72,7 @@ export const billingApi = {
 		}
 	},
 
-<<<<<<< HEAD
 	async addPaymentMethod(_paymentMethodId: string) {
-=======
-	async addPaymentMethod(paymentMethodId: string) {
->>>>>>> origin/main
 		// Note: Adding payment methods is handled through Customer Portal
 		const portalSession = await this.createPortalSession()
 		return {
@@ -112,11 +81,7 @@ export const billingApi = {
 		}
 	},
 
-<<<<<<< HEAD
 	async setDefaultPaymentMethod(_paymentMethodId: string) {
-=======
-	async setDefaultPaymentMethod(paymentMethodId: string) {
->>>>>>> origin/main
 		// Note: Payment method management is handled through Stripe Customer Portal
 		// This method redirects to portal for payment method updates
 		const portalSession = await this.createPortalSession()
@@ -126,11 +91,7 @@ export const billingApi = {
 		}
 	},
 
-<<<<<<< HEAD
 	async removePaymentMethod(_paymentMethodId: string) {
-=======
-	async removePaymentMethod(paymentMethodId: string) {
->>>>>>> origin/main
 		// Note: Removing payment methods is handled through Customer Portal
 		const portalSession = await this.createPortalSession()
 		return {
@@ -146,7 +107,6 @@ export const billingApi = {
 		successUrl?: string
 		cancelUrl?: string
 	}) {
-<<<<<<< HEAD
 		return apiClient.postValidated<{ url: string; sessionId?: string }>(
 			'/stripe/checkout',
 			CheckoutSessionResponseSchema,
@@ -162,13 +122,6 @@ export const billingApi = {
 			'PortalSession',
 			data as Record<string, unknown>
 		)
-=======
-		return apiClient.post<CheckoutSessionResponse>('/stripe/checkout', data)
-	},
-
-	async createPortalSession(data?: { returnUrl?: string }) {
-		return apiClient.post<PortalSessionResponse>('/stripe/portal', data)
->>>>>>> origin/main
 	},
 
 	async createSubscription(data: {
@@ -176,7 +129,6 @@ export const billingApi = {
 		planType: string
 		billingInterval: 'month' | 'year'
 	}) {
-<<<<<<< HEAD
 		return apiClient.postValidated<{
 			subscription: { id: string; status: string }
 			clientSecret?: string
@@ -186,11 +138,6 @@ export const billingApi = {
 			SubscriptionResponseSchema,
 			'CreateSubscription',
 			data as Record<string, unknown>
-=======
-		return apiClient.post<SubscriptionResponse>(
-			'/stripe/create-subscription',
-			data
->>>>>>> origin/main
 		)
 	},
 
@@ -205,11 +152,7 @@ export const billingApi = {
 		}
 	},
 
-<<<<<<< HEAD
 	async downloadInvoice(_invoiceId: string) {
-=======
-	async downloadInvoice(invoiceId: string) {
->>>>>>> origin/main
 		// Note: Invoice downloads are handled through Customer Portal
 		const portalSession = await this.createPortalSession()
 		return {

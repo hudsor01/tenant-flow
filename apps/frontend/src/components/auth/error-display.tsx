@@ -4,13 +4,9 @@ interface ErrorDisplayProps {
 }
 
 export function ErrorDisplay({ error, className }: ErrorDisplayProps) {
-<<<<<<< HEAD
 	if (!error) {
 		return null
 	}
-=======
-	if (!error) return null
->>>>>>> origin/main
 
 	return (
 		<div

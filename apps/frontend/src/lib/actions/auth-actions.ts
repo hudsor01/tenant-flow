@@ -5,47 +5,11 @@
 
 'use server'
 
-<<<<<<< HEAD
 import { redirect } from 'next/navigation'
 import { createActionClient } from '@/lib/supabase/action-client'
 
 export async function getCurrentUser() {
 	const supabase = await createActionClient()
-=======
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
-import { createServerClient } from '@supabase/ssr'
-import type { Database } from '@repo/shared/types/supabase'
-import { config } from '@/lib/config'
-
-async function createServerSupabaseClient() {
-	const cookieStore = await cookies()
-
-	return createServerClient<Database>(
-		config.supabase.url,
-		config.supabase.anonKey,
-		{
-			cookies: {
-				getAll() {
-					return cookieStore.getAll()
-				},
-				setAll(cookiesToSet) {
-					try {
-						cookiesToSet.forEach(({ name, value, options }) => {
-							cookieStore.set(name, value, options)
-						})
-					} catch {
-						// Cookie setting can fail in certain contexts
-					}
-				}
-			}
-		}
-	)
-}
-
-export async function getCurrentUser() {
-	const supabase = await createServerSupabaseClient()
->>>>>>> origin/main
 	const {
 		data: { user }
 	} = await supabase.auth.getUser()
@@ -53,13 +17,8 @@ export async function getCurrentUser() {
 }
 
 export async function signIn(email: string, password: string) {
-<<<<<<< HEAD
 	const supabase = await createActionClient()
 	const { data: _data, error } = await supabase.auth.signInWithPassword({
-=======
-	const supabase = await createServerSupabaseClient()
-	const { data, error } = await supabase.auth.signInWithPassword({
->>>>>>> origin/main
 		email,
 		password
 	})
@@ -76,13 +35,8 @@ export async function signUp(
 	password: string,
 	fullName?: string
 ) {
-<<<<<<< HEAD
 	const supabase = await createActionClient()
 	const { data: _data, error } = await supabase.auth.signUp({
-=======
-	const supabase = await createServerSupabaseClient()
-	const { data, error } = await supabase.auth.signUp({
->>>>>>> origin/main
 		email,
 		password,
 		options: {
@@ -104,21 +58,13 @@ export async function signUp(
 }
 
 export async function signOut() {
-<<<<<<< HEAD
 	const supabase = await createActionClient()
-=======
-	const supabase = await createServerSupabaseClient()
->>>>>>> origin/main
 	await supabase.auth.signOut()
 	redirect('/auth/login')
 }
 
 export async function forgotPassword(email: string) {
-<<<<<<< HEAD
 	const supabase = await createActionClient()
-=======
-	const supabase = await createServerSupabaseClient()
->>>>>>> origin/main
 
 	// Use environment variable or fallback to default URL
 	const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tenantflow.app'
@@ -136,11 +82,7 @@ export async function forgotPassword(email: string) {
 }
 
 export async function updatePassword(newPassword: string) {
-<<<<<<< HEAD
 	const supabase = await createActionClient()
-=======
-	const supabase = await createServerSupabaseClient()
->>>>>>> origin/main
 	const { error } = await supabase.auth.updateUser({
 		password: newPassword
 	})
@@ -157,22 +99,15 @@ export async function updateProfile(
 	formData: FormData
 ): Promise<AuthFormState> {
 	try {
-<<<<<<< HEAD
 		const supabase = await createActionClient()
 
 		const updates: Record<string, string> = {}
-=======
-		const supabase = await createServerSupabaseClient()
-
-		const updates: { [key: string]: string } = {}
->>>>>>> origin/main
 
 		const name = formData.get('name') as string
 		const phone = formData.get('phone') as string
 		const bio = formData.get('bio') as string
 		const company = formData.get('company') as string
 
-<<<<<<< HEAD
 		if (name) {
 			updates.full_name = name
 		}
@@ -185,12 +120,6 @@ export async function updateProfile(
 		if (company) {
 			updates.company = company
 		}
-=======
-		if (name) updates.full_name = name
-		if (phone) updates.phone = phone
-		if (bio) updates.bio = bio
-		if (company) updates.company = company
->>>>>>> origin/main
 
 		const { error } = await supabase.auth.updateUser({
 			data: updates
@@ -217,11 +146,7 @@ export async function updateProfile(
 }
 
 export async function deleteAccount() {
-<<<<<<< HEAD
 	const supabase = await createActionClient()
-=======
-	const supabase = await createServerSupabaseClient()
->>>>>>> origin/main
 	const {
 		data: { user }
 	} = await supabase.auth.getUser()
@@ -266,7 +191,7 @@ export async function signupFormAction(
 ): Promise<AuthFormState> {
 	const email = formData.get('email') as string
 	const password = formData.get('password') as string
-	const fullName = formData.get('fullName') as string
+	const fullName = formData.get('name') as string
 
 	if (!email?.trim() || !password?.trim()) {
 		return {
@@ -311,10 +236,6 @@ export const updatePasswordAction = updatePassword
 export interface AuthFormState {
 	success: boolean
 	error?: string
-<<<<<<< HEAD
 	errors?: Record<string, string[]>
-=======
-	errors?: { [key: string]: string[] }
->>>>>>> origin/main
 	message?: string
 }

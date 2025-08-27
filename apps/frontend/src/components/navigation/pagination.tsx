@@ -60,13 +60,9 @@ export function Pagination({
 
 	const pages = totalPages > 1 ? getVisiblePages : []
 
-<<<<<<< HEAD
 	if (totalPages <= 1) {
 		return null
 	}
-=======
-	if (totalPages <= 1) return null
->>>>>>> origin/main
 
 	return (
 		<nav

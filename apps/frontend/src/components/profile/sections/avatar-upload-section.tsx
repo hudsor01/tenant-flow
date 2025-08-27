@@ -1,4 +1,3 @@
-import { Camera, Loader2 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -45,13 +44,13 @@ export function AvatarUploadSection({
 
 				{/* Upload Overlay */}
 				<div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity hover:opacity-100">
-					<Camera className="h-6 w-6 text-white" />
+					<i className="i-lucide-camera inline-block h-6 w-6 text-white"  />
 				</div>
 
 				{/* Loading Overlay */}
 				{avatarState.uploading && (
 					<div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/60">
-						<Loader2 className="h-6 w-6 animate-spin text-white" />
+						<i className="i-lucide-loader-2 inline-block h-6 w-6 animate-spin text-white"  />
 					</div>
 				)}
 			</div>
@@ -68,7 +67,7 @@ export function AvatarUploadSection({
 						asChild
 					>
 						<span>
-							<Camera className="mr-2 h-4 w-4" />
+							<i className="i-lucide-camera inline-block mr-2 h-4 w-4"  />
 							{avatarState.file ? 'Change Photo' : 'Upload Photo'}
 						</span>
 					</Button>

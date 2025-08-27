@@ -14,34 +14,17 @@ import { Label } from '@/components/ui/label'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import {
-	User,
-	Camera,
-	Mail,
-	Phone,
-	MapPin,
-	Building,
-	Save,
-	Loader2
-} from 'lucide-react'
 import { useFormState, useApiCall } from '@/hooks/common'
 import { FormValidator } from '@/lib/validation/form-validator'
 import type { ProfileFormData } from '@/types/forms'
 import { toast } from 'sonner'
 import { apiClient } from '@/lib/api-client'
-<<<<<<< HEAD
 import { UpdateUserProfileSchema } from '@/lib/api/schemas/profile'
-=======
->>>>>>> origin/main
 import { useAuth } from '@/hooks/use-auth'
 
 export function ProfileSettings() {
 	const { user } = useAuth()
-<<<<<<< HEAD
 
-=======
-	
->>>>>>> origin/main
 	const {
 		values: profile,
 		handleChange,
@@ -58,7 +41,6 @@ export function ProfileSettings() {
 
 	const { execute: saveProfile, isLoading } = useApiCall(
 		async (data: ProfileFormData) => {
-<<<<<<< HEAD
 			// Validate and send, then validate the response shape
 			return await apiClient.putValidated(
 				'/api/v1/auth/profile',
@@ -66,9 +48,6 @@ export function ProfileSettings() {
 				'UpdateUserProfile',
 				data as Record<string, unknown>
 			)
-=======
-			return await apiClient.put('/api/v1/auth/profile', data)
->>>>>>> origin/main
 		},
 		{
 			successMessage: 'Profile updated successfully',
@@ -79,7 +58,6 @@ export function ProfileSettings() {
 	// Load user data on mount
 	useEffect(() => {
 		if (user) {
-<<<<<<< HEAD
 			const asRecord = (u: unknown): Record<string, unknown> =>
 				typeof u === 'object' && u !== null
 					? (u as Record<string, unknown>)
@@ -95,14 +73,6 @@ export function ProfileSettings() {
 				phone: getStringFrom('phone'),
 				company: getStringFrom('company'),
 				address: getStringFrom('address')
-=======
-			setValues({
-				name: user.name || '',
-				email: user.email || '',
-				phone: user.phone || '',
-				company: user.company || '',
-				address: user.address || ''
->>>>>>> origin/main
 			})
 		}
 	}, [user, setValues])
@@ -131,7 +101,7 @@ export function ProfileSettings() {
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<User className="h-5 w-5" />
+						<i className="i-lucide-user inline-block h-5 w-5"  />
 						Profile Information
 					</CardTitle>
 					<CardDescription>
@@ -153,7 +123,7 @@ export function ProfileSettings() {
 						</Avatar>
 						<div className="space-y-2">
 							<Button variant="outline" size="sm">
-								<Camera className="mr-2 h-4 w-4" />
+								<i className="i-lucide-camera inline-block mr-2 h-4 w-4"  />
 								Change Photo
 							</Button>
 							<p className="text-muted-foreground text-sm">
@@ -182,7 +152,7 @@ export function ProfileSettings() {
 								htmlFor="email"
 								className="flex items-center gap-2"
 							>
-								<Mail className="h-4 w-4" />
+								<i className="i-lucide-mail inline-block h-4 w-4"  />
 								Email Address
 							</Label>
 							<Input
@@ -198,7 +168,7 @@ export function ProfileSettings() {
 								htmlFor="phone"
 								className="flex items-center gap-2"
 							>
-								<Phone className="h-4 w-4" />
+								<i className="i-lucide-phone inline-block h-4 w-4"  />
 								Phone Number
 							</Label>
 							<Input
@@ -217,7 +187,7 @@ export function ProfileSettings() {
 								htmlFor="company"
 								className="flex items-center gap-2"
 							>
-								<Building className="h-4 w-4" />
+								<i className="i-lucide-building inline-block h-4 w-4"  />
 								Company Name
 							</Label>
 							<Input
@@ -232,7 +202,7 @@ export function ProfileSettings() {
 								htmlFor="address"
 								className="flex items-center gap-2"
 							>
-								<MapPin className="h-4 w-4" />
+								<i className="i-lucide-map-pin inline-block h-4 w-4"  />
 								Business Address
 							</Label>
 							<Input
@@ -260,9 +230,9 @@ export function ProfileSettings() {
 						</div>
 						<Button onClick={handleSave} disabled={isLoading}>
 							{isLoading ? (
-								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+								<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
 							) : (
-								<Save className="mr-2 h-4 w-4" />
+								<i className="i-lucide-save inline-block mr-2 h-4 w-4"  />
 							)}
 							Save Changes
 						</Button>

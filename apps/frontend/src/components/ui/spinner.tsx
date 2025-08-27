@@ -1,8 +1,6 @@
 /**
- * Consolidated Spinner Component
- *
- * Replaces scattered custom spinner implementations throughout the codebase
- * with a unified, configurable component.
+ * Native UnoCSS Spinner Component
+ * Uses pure CSS icons for zero JavaScript bundle impact
  */
 
 import { cn } from '@/lib/utils'
@@ -10,48 +8,54 @@ import { cn } from '@/lib/utils'
 interface SpinnerProps {
 	size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 	color?: 'primary' | 'secondary' | 'white' | 'current' | 'red' | 'blue'
+	variant?: 'circle' | 'dots' | 'pulse' | 'ring'
 	className?: string
-}
-
-const sizeClasses = {
-	xs: 'h-3 w-3',
-	sm: 'h-4 w-4',
-	md: 'h-6 w-6',
-	lg: 'h-8 w-8',
-	xl: 'h-16 w-16'
-}
-
-const colorClasses = {
-	primary: 'border-primary border-t-transparent',
-	secondary: 'border-muted-foreground border-t-transparent',
-	white: 'border-white border-t-transparent',
-	current: 'border-current border-t-transparent',
-	red: 'border-red-400 border-t-transparent',
-	blue: 'border-[#60a5fa] border-t-transparent'
-}
-
-const borderWidthClasses = {
-	xs: 'border-2',
-	sm: 'border-2',
-	md: 'border-2',
-	lg: 'border-2',
-	xl: 'border-4'
 }
 
 export function Spinner({
 	size = 'md',
 	color = 'primary',
+	variant = 'circle',
 	className
 }: SpinnerProps) {
+	// Map sizes to UnoCSS icon sizes
+	const iconSizes = {
+		xs: 'text-xs',
+		sm: 'text-sm',
+		md: 'text-lg',
+		lg: 'text-2xl',
+		xl: 'text-5xl'
+	}
+	
+	// Map colors to UnoCSS color utilities
+	const colorMap = {
+		primary: 'text-blue-600',
+		secondary: 'text-gray-500',
+		white: 'text-white',
+		current: 'text-current',
+		red: 'text-red-500',
+		blue: 'text-blue-500'
+	}
+	
+	// Different spinner variants using various icon libraries
+	const spinnerIcons = {
+		circle: 'i-lucide-loader-2',
+		dots: 'i-svg-spinners-3-dots-fade',
+		pulse: 'i-svg-spinners-pulse-3',
+		ring: 'i-svg-spinners-ring-resize'
+	}
+	
 	return (
-		<div
+		<i 
 			className={cn(
-				'animate-spin rounded-full',
-				sizeClasses[size],
-				colorClasses[color],
-				borderWidthClasses[size],
+				spinnerIcons[variant],
+				'animate-spin inline-block',
+				iconSizes[size],
+				colorMap[color],
 				className
-			)}
+			)} 
+			aria-label="Loading"
+			role="status"
 		/>
 	)
 }
@@ -59,15 +63,17 @@ export function Spinner({
 // Helper components for common spinner use cases
 export function LoadingSpinner({
 	text = 'Loading...',
-	size = 'md'
+	size = 'md',
+	variant = 'circle' as SpinnerProps['variant']
 }: {
 	text?: string
 	size?: SpinnerProps['size']
+	variant?: SpinnerProps['variant']
 }) {
 	return (
 		<div className="flex items-center gap-2">
-			<Spinner size={size} />
-			<span className="text-muted-foreground text-sm">{text}</span>
+			<Spinner size={size} variant={variant} />
+			<span className="text-gray-600 text-sm">{text}</span>
 		</div>
 	)
 }
@@ -75,30 +81,38 @@ export function LoadingSpinner({
 export function CenteredSpinner({
 	size = 'lg',
 	text,
+	variant = 'circle' as SpinnerProps['variant'],
 	className
 }: {
 	size?: SpinnerProps['size']
 	text?: string
+	variant?: SpinnerProps['variant']
 	className?: string
 }) {
 	return (
 		<div className={cn('flex items-center justify-center p-8', className)}>
 			<div className="text-center">
-				<Spinner size={size} className="mx-auto" />
+				<Spinner size={size} variant={variant} className="mx-auto" />
 				{text && (
-					<p className="text-muted-foreground mt-2 text-sm">{text}</p>
+					<p className="text-gray-600 mt-2 text-sm">{text}</p>
 				)}
 			</div>
 		</div>
 	)
 }
 
-// Button loading state helper
-export function ButtonSpinner({ text = 'Loading...' }: { text?: string }) {
+// Button loading state helper with icon options
+export function ButtonSpinner({ 
+	text = 'Loading...',
+	variant = 'circle' as SpinnerProps['variant']
+}: { 
+	text?: string
+	variant?: SpinnerProps['variant']
+}) {
 	return (
-		<div className="flex items-center">
-			<Spinner size="sm" color="current" className="mr-2" />
-			{text}
+		<div className="inline-flex items-center gap-2">
+			<Spinner size="sm" color="current" variant={variant} />
+			<span>{text}</span>
 		</div>
 	)
 }

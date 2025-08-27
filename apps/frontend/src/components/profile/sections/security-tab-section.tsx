@@ -1,12 +1,7 @@
-import { Lock, Save, Shield, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-<<<<<<< HEAD
 import { logger } from '@/lib/logger/logger'
-=======
-import { logger } from '@/lib/logger'
->>>>>>> origin/main
 import { toast } from 'sonner'
 import type { UseFormReturn } from 'react-hook-form'
 import type { PasswordFormData } from '@/hooks/use-edit-profile-data'
@@ -47,7 +42,7 @@ export function SecurityTabSection({
 			{/* Security Information */}
 			<div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
 				<div className="flex items-start space-x-3">
-					<Shield className="text-primary mt-0.5 h-5 w-5" />
+					<i className="i-lucide-shield inline-block text-primary mt-0.5 h-5 w-5"  />
 					<div className="text-sm">
 						<p className="mb-1 font-medium text-blue-900">
 							Password Security
@@ -72,7 +67,7 @@ export function SecurityTabSection({
 						Current Password *
 					</Label>
 					<div className="relative">
-						<Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+						<i className="i-lucide-lock inline-block absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400"  />
 						<Input
 							id="currentPass"
 							type="password"
@@ -98,7 +93,7 @@ export function SecurityTabSection({
 						New Password *
 					</Label>
 					<div className="relative">
-						<Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+						<i className="i-lucide-lock inline-block absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400"  />
 						<Input
 							id="newPassword"
 							type="password"
@@ -124,7 +119,7 @@ export function SecurityTabSection({
 						Confirm New Password *
 					</Label>
 					<div className="relative">
-						<Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+						<i className="i-lucide-lock inline-block absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400"  />
 						<Input
 							id="confirmPass"
 							type="password"
@@ -145,7 +140,7 @@ export function SecurityTabSection({
 			{/* Security Warning */}
 			<div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
 				<div className="flex items-start space-x-3">
-					<AlertCircle className="mt-0.5 h-5 w-5 text-amber-600" />
+					<i className="i-lucide-alert-circle inline-block mt-0.5 h-5 w-5 text-amber-600"  />
 					<div className="text-sm">
 						<p className="mb-1 font-medium text-amber-900">
 							Important Security Note
@@ -181,7 +176,7 @@ export function SecurityTabSection({
 						</>
 					) : (
 						<>
-							<Save className="mr-2 h-4 w-4" />
+							<i className="i-lucide-save inline-block mr-2 h-4 w-4"  />
 							Update Password
 						</>
 					)}

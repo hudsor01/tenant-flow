@@ -12,18 +12,6 @@ import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import {
-	Bell,
-	Mail,
-	Smartphone,
-	AlertTriangle,
-	DollarSign,
-	Calendar,
-	Wrench,
-	Users,
-	Save,
-	Loader2
-} from 'lucide-react'
 
 interface NotificationSetting {
 	id: string
@@ -106,7 +94,7 @@ export function NotificationSettings() {
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Bell className="h-5 w-5" />
+						<i className="i-lucide-bell inline-block h-5 w-5"  />
 						Notification Preferences
 					</CardTitle>
 					<CardDescription>
@@ -122,11 +110,11 @@ export function NotificationSettings() {
 								Notification Type
 							</div>
 							<div className="flex items-center gap-2 text-sm font-medium">
-								<Mail className="h-4 w-4" />
+								<i className="i-lucide-mail inline-block h-4 w-4"  />
 								Email
 							</div>
 							<div className="flex items-center gap-2 text-sm font-medium">
-								<Smartphone className="h-4 w-4" />
+								<i className="i-lucide-smartphone inline-block h-4 w-4"  />
 								Push
 							</div>
 						</div>
@@ -187,9 +175,9 @@ export function NotificationSettings() {
 					<div className="flex justify-end">
 						<Button onClick={handleSave} disabled={isLoading}>
 							{isLoading ? (
-								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+								<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
 							) : (
-								<Save className="mr-2 h-4 w-4" />
+								<i className="i-lucide-save inline-block mr-2 h-4 w-4"  />
 							)}
 							Save Preferences
 						</Button>

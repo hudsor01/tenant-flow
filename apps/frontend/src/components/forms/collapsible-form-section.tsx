@@ -7,7 +7,6 @@
 
 import React, { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { ChevronDown, ChevronRight } from 'lucide-react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 
 interface CollapsibleFormSectionProps {
@@ -34,11 +33,7 @@ export function CollapsibleFormSection({
 	return (
 		<Card className={cn('w-full', className)}>
 			{title && (
-<<<<<<< HEAD
 				<CardHeader
-=======
-				<CardHeader 
->>>>>>> origin/main
 					className="cursor-pointer select-none"
 					onClick={toggleExpanded}
 				>
@@ -48,38 +43,24 @@ export function CollapsibleFormSection({
 								{title}
 							</h3>
 							{description && (
-<<<<<<< HEAD
 								<p className="text-muted-foreground text-sm">
-=======
-								<p className="text-sm text-muted-foreground">
->>>>>>> origin/main
 									{description}
 								</p>
 							)}
 						</div>
 						<div className="flex items-center">
 							{isExpanded ? (
-								<ChevronDown className="h-4 w-4 transition-transform" />
+								<i className="i-lucide-chevron-down inline-block h-4 w-4 transition-transform"  />
 							) : (
-								<ChevronRight className="h-4 w-4 transition-transform" />
+								<i className="i-lucide-chevron-right inline-block h-4 w-4 transition-transform"  />
 							)}
 						</div>
 					</div>
 				</CardHeader>
 			)}
 			{isExpanded && (
-<<<<<<< HEAD
 				<CardContent className="pt-0">{children}</CardContent>
 			)}
 		</Card>
 	)
 }
-=======
-				<CardContent className="pt-0">
-					{children}
-				</CardContent>
-			)}
-		</Card>
-	)
-}
->>>>>>> origin/main
