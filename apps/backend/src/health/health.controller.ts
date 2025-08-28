@@ -1,23 +1,31 @@
-import { Controller, Get, Logger } from '@nestjs/common'
+import { Controller, Get } from '@nestjs/common'
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus'
+import { PinoLogger } from 'nestjs-pino'
 import { hostname } from 'os'
 import { Public } from '../shared/decorators/public.decorator'
 import { SupabaseHealthIndicator } from './supabase.health'
 
 @Controller('health')
 export class HealthController {
-	private readonly logger = new Logger(HealthController.name)
-
 	constructor(
 		private readonly health: HealthCheckService,
-		private readonly supabase: SupabaseHealthIndicator
-	) {}
+		private readonly supabase: SupabaseHealthIndicator,
+		private readonly logger: PinoLogger
+	) {
+		// PinoLogger context handled automatically via app-level configuration
+	}
 
 	@Get()
 	@Public()
 	@HealthCheck()
 	async check() {
-		this.logger.log(
+		this.logger.info(
+			{
+				health: {
+					environment: process.env.NODE_ENV,
+					checkType: 'full'
+				}
+			},
 			`Health check started - Environment: ${process.env.NODE_ENV}`
 		)
 		return this.health.check([() => this.supabase.pingCheck('database')])

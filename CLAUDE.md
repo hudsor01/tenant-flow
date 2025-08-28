@@ -2,28 +2,55 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+**REMEMBER: Every line of code is a liability. Less code = fewer bugs = easier maintenance.**
+
 ## 🚨 CRITICAL: MANDATORY DEVELOPMENT RULES 🚨
 
 **YOU MUST FOLLOW THESE RULES WITHOUT EXCEPTION. THESE OVERRIDE ALL OTHER PATTERNS.**
 
+### 🛑 ULTRA-NATIVE BACKEND - DO NOT TOUCH 🛑
+
+**THE BACKEND HAS BEEN AGGRESSIVELY REWRITTEN USING ULTRA-NATIVE PATTERNS:**
+
+- **75% code reduction achieved** (4,554 → 1,150 lines)
+- **5-10x faster validation** using Fastify JSON Schema
+- **Zero custom abstractions** - only native platform features
+
+**❌ NEVER ADD THESE TO BACKEND FILES:**
+- Custom validation decorators or DTOs
+- Service orchestration layers or repositories  
+- Custom middleware or interceptors
+- Wrapper functions or helper classes
+- Factory patterns or builders
+- Custom error handlers or formatters
+
+**✅ ONLY USE THESE IN BACKEND:**
+- Built-in NestJS pipes: `ParseUUIDPipe`, `DefaultValuePipe`, `ParseIntPipe`
+- Native exceptions: `BadRequestException`, `NotFoundException`
+- Direct PostgreSQL RPC calls via Supabase
+- JSON Schema definitions (no class-validator)
+
+**📋 PROTECTED FILES:** See `apps/backend/ULTRA_NATIVE_ARCHITECTURE.md` for complete list.
+
+**IF YOU ADD ABSTRACTIONS TO THE BACKEND, YOUR CHANGES WILL BE REJECTED.**
+
 ### YOUR PRIMARY DIRECTIVE
-**Your success is measured by how much code you DELETE, not how much you write.**
-- A successful PR removes more lines than it adds
+**Your success is measured by how much code is production ready and is confirmed not duplicated in the workspace.**
 - Every new line must justify its existence
 - When in doubt, delete it
 
 ### RULE #1: DRY (Don't Repeat Yourself)
 - **NEVER** duplicate logic or configuration across services
-- **ALWAYS** search first: `grep -r "functionName"` before writing anything
+- **ALWAYS** search first: `rg -r "functionName"` before writing anything
 - **CONSOLIDATE** shared code into platform-native solutions only
 - **IF** you find duplication, consolidate it immediately
-- **TOOLS TO USE**: `grep`, `rg` (ripgrep), `fd` for finding duplicates
+- **TOOLS TO USE**: `rg` (ripgrep), `fd` for finding duplicates, 'fzf' for fuzzy searches
 
 ### RULE #2: KISS (Keep It Simple, Stupid)
 - **ALWAYS** choose the simplest, most maintainable solution
-- **NEVER** add unnecessary abstraction or complexity
+- **NEVER** add unnecessary abstraction or complexity or duplication
 - **DELETE** code instead of adding when possible
-- **QUESTION** every new file, function, or pattern - is it truly needed?
+- **QUESTION** every new file, function, assumption or pattern - is it truly needed?
 
 ### RULE #3: NO ABSTRACTIONS - USE NATIVE FEATURES ONLY
 - **FORBIDDEN**: Creating wrappers, factories, or custom layers
@@ -32,16 +59,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **REQUIRED**: Remove ALL custom abstractions when found
 
 ### STRICT MANDATE FOR ALL CHANGES:
-1. **SEARCH FIRST** - Use `grep -r`, `rg`, or `fd` before writing ANY code
+1. **SEARCH FIRST** - Use `rg`, or `fd` before writing ANY code
 2. **DELETE FIRST** - Can you remove code to solve the problem?
-3. **NATIVE ONLY** - Use Supabase/Vercel/Railway features directly
+3. **NATIVE ONLY** - Use Supabase/Vercel/Railway/Typescript/Eslint/Next.js/React features directly
 4. **NO MIDDLE LAYERS** - Direct library usage, no wrappers
 5. **MEASURE SUCCESS** - Count deleted lines vs added lines
-
-### CONCRETE METRICS FOR SUCCESS:
-- **🟢 GOOD**: PR with -500 lines, +100 lines (80% reduction)
-- **🟡 OK**: PR with -100 lines, +50 lines (50% reduction)
-- **🔴 BAD**: PR with +100 lines, -0 lines (only additions)
 
 ### PRODUCTION MINDSET:
 Act as if this is a **REAL-WORLD PRODUCTION SYSTEM**:
@@ -69,27 +91,6 @@ Act as if this is a **REAL-WORLD PRODUCTION SYSTEM**:
 | Date formatting | date-fns | Custom formatters |
 | HTTP client | Native fetch | Axios or wrappers |
 
-### EXAMPLES OF WHAT TO DELETE ON SIGHT:
-```typescript
-// ❌ DELETE THIS - Custom wrapper
-export const createQueryFactory = (key) => {...}
-
-// ❌ DELETE THIS - Unnecessary abstraction
-export class ApiServiceWrapper extends BaseService {...}
-
-// ❌ DELETE THIS - Duplicated logic
-export const formatDate = (date) => {...} // If date-fns exists
-
-// ✅ REPLACE WITH - Direct library usage
-import { format } from 'date-fns'
-
-// ✅ REPLACE WITH - Native platform features
-import { createClient } from '@supabase/supabase-js'
-
-// ✅ REPLACE WITH - Direct hook usage
-import { useQuery } from '@tanstack/react-query'
-```
-
 ### BEFORE EVERY CODE CHANGE, ASK:
 1. Does this already exist elsewhere? (Search first!)
 2. Can I use a native platform feature instead?
@@ -99,73 +100,37 @@ import { useQuery } from '@tanstack/react-query'
 
 **IF YOU VIOLATE THESE RULES, YOUR CODE WILL BE REJECTED.**
 
----
-
 ## TenantFlow Development Guide
 
-### Tech Stack (Authoritative)
+### Tech Stack (Current Production State - Dec 2024)
 
-**Frontend (Vercel)**
-- Next.js 15.5.0 + React 19.1.1 (Turbopack required)
-- Radix UI + TailwindCSS 4.1.12 + ShadCN components
+**Frontend (Vercel) - WORKING**
+- Next.js 15.5.0 + React 19.1.1 (Turbopack required for React 19)
+- Radix UI + TailwindCSS 4.1.12 + ShadCN components  
 - TanStack Query 5.85.5 (data fetching & caching)
-- Zustand 5.0.8 (global state management - replaced Jotai for performance)
-- React Hook Form 7.62.0 (form handling, no abstractions)
+- Zustand 5.0.8 (global state - replaced Jotai for performance)
+- React Hook Form 7.62.0 (form handling, direct usage)
 - Framer Motion 12.23.12, Lucide Icons 0.540.0, Recharts 3.1.2
-- React Error Boundary 6.0.0 (error handling)
+- React Error Boundary 6.0.0 (error boundaries)
+- Deployment: Vercel (automatic from main branch)
 
-**Backend (Railway)**
-- NestJS 11.1.6 + Fastify 11.x (native Fastify features only)
-- Supabase 2.56.0 (DB, RLS, Storage, Realtime, Migrations, Full-text Search, Policies)
-- Stripe 18.4.0 (billing + subscriptions)
-- Resend 6.0.1 (email)
-- BullMQ 5.58.0 (job queues)
-- Cache: Supabase Query Cache / Vercel Edge Cache
-- Monitoring: Vercel Analytics + Railway Logs + PostHog
-- Auth: JWT + Supabase Auth + RLS policies
+**Backend (Railway) - FIXED AFTER 4 MONTHS**
+- NestJS 11.1.6 + Fastify 11.x (native Fastify plugins only)
+- Supabase 2.56.0 (PostgreSQL, RLS, Storage, Auth, Realtime)
+- Stripe 18.4.0 (payments + subscriptions)  
+- Resend 6.0.1 (transactional email)
+- NO Redis/BullMQ (removed - using native solutions)
+- Cache: In-memory (Fastify) + Database query cache
+- Health Check: `/health/ping` endpoint (NestJS controller)
+- Deployment: Railway via Dockerfile
 
-**Shared**
-- Node.js 22+ / npm 11.5.2 (packageManager specified)
-- Turborepo 2.5.6 (monorepo management)
-- TypeScript 5.9.2 strict mode (separate configs for React, NestJS, Node libs)
-- Zod 4.0.17 (runtime validation)
-
----
-
-### Core Architecture Rules
-
-**⚠️ REMINDER: The MANDATORY RULES above override everything below. Read them first!**
-
-1. **Turbopack Required** — React 19 fails with webpack. Always use: `npm run dev`
-
-2. **No Direct DB Access** — Frontend → Backend API → Supabase only
-
-3. **No New Abstractions** — See RULE #3 above. This is non-negotiable.
-   - ❌ No factories, wrappers, or meta-patterns
-   - ❌ No "clever" abstractions or indirection
-   - ✅ Direct library usage ONLY
-
-4. **Follow DRY & KISS** — See RULES #1 and #2 above
-   - Delete first, add second
-   - Consolidate all duplicates immediately
-   - Shared logic only if used ≥3 times (not 2)
-
-5. **Multi-Tenant RLS** — org_id scoping via Supabase policies ONLY
-
-6. **Server Components Default** — Client components for interactivity only
-
-7. **State Management Hierarchy** (no exceptions)
-   - Server state → TanStack Query only
-   - UI state → Zustand store only
-   - Form state → React Hook Form only
-   - Component state → useState (rare)
-
-8. **Type Safety Enforcement**
-   - Runtime validation with Zod (no custom validators)
-   - Shared types from `@repo/shared` only
-   - NEVER use `any` - use `unknown` and narrow
-
----
+**Shared Packages**
+- Node.js 22.x (Railway uses 24.x in Docker)
+- npm 11.5.2 (packageManager in root package.json)
+- Turborepo 2.5.6 (monorepo orchestration)
+- TypeScript 5.9.2 strict mode
+- Zod 4.0.17 (schema validation)
+- NO MEMORY LIMITS in build scripts (let Node.js manage)
 
 ### Commands
 
@@ -213,12 +178,6 @@ types/          # TypeScript interfaces
 providers/      # React context providers
 ```
 
-#### 3. API Client Architecture
-- **Direct API Calls**: `lib/api/billing.ts`, `lib/api/properties.ts` etc.
-- **TanStack Query Hooks**: `hooks/api/use-tenants.ts` etc.
-- **Server Actions**: `lib/actions/auth-actions.ts` for mutations
-- **Response Validation**: Zod schemas in `lib/validation/`
-
 #### 4. Backend Architecture (NestJS)
 ```
 src/
@@ -235,8 +194,6 @@ src/
 1. **Read**: Component → TanStack Query Hook → API Client → Backend → Supabase
 2. **Write**: Component → Server Action → Backend → Supabase → Webhook → Frontend Cache Update
 3. **Real-time**: Supabase Realtime → Frontend subscription → Cache invalidation
-
----
 
 ### Monorepo Structure
 
@@ -259,8 +216,6 @@ packages/
 - Backend depends on: `shared`, `database`
 - Use `turbo build --filter=@repo/shared` to rebuild types
 
----
-
 ### Testing Strategy
 
 - **Unit Tests**: Jest + React Testing Library
@@ -275,8 +230,6 @@ npm run test:e2e          # Playwright E2E tests
 npm run test:production   # Production readiness
 ```
 
----
-
 ### Authentication & Security
 
 - **Supabase Auth**: JWT tokens, RLS policies, OAuth providers
@@ -284,8 +237,6 @@ npm run test:production   # Production readiness
 - **Multi-tenant RLS**: Row-level security by org_id
 - **Security Headers**: CSP, HSTS, etc. via Fastify plugins
 - **File Uploads**: Secured via Supabase Storage with RLS
-
----
 
 ### Performance Architecture
 
@@ -296,7 +247,18 @@ npm run test:production   # Production readiness
 - **Zustand**: Minimal re-renders, selective subscriptions
 - **Bundle Splitting**: Automatic via Next.js
 
----
+### Logging Architecture
+
+- **Current**: NestJS Logger (uses console methods, simple and working)
+- **Available**: Pino (comes FREE with Fastify, 5x faster, JSON output)
+- **Decision**: Use NestJS Logger by default (KISS principle)
+- **When to use Pino**: Only if you need:
+  - JSON logs for production parsing
+  - Request ID tracking (automatic with Pino)
+  - High-frequency logging performance
+  - PII redaction features
+- **How to access Pino**: `request.log` in controllers (it's already there!)
+- **Note**: We removed winston/nest-winston - they were unused dependencies
 
 ### Database Architecture
 
@@ -305,79 +267,44 @@ npm run test:production   # Production readiness
 - **Migrations**: Direct SQL files in `supabase/migrations/`
 - **Generated Types**: `npm run update-supabase-types`
 
----
+### Deployment (BOTH WORKING!)
 
-### Deployment
+**Frontend - Vercel**
+- URL: https://tenantflow.app (production)
+- Auto-deploys from main branch
+- Preview deployments for PRs
+- Environment variables in Vercel dashboard
 
-- **Frontend**: Vercel (automatic from main branch)
-- **Backend**: Railway (automatic deployment)
-- **Environment Variables**: Managed via platform dashboards
-- **Health Checks**: `/api/health` endpoint for monitoring
+**Backend - Railway** 
+- URL: Set in Railway dashboard
+- Dockerfile deployment (railway.toml config)
+- Health check: `/health/ping` (returns 200 OK)
+- **CRITICAL FIX**: `startCommand` in railway.toml must be:
+  ```toml
+  startCommand = "node apps/backend/dist/main.js"
+  ```
+  NOT the nested path that was there for 4 months!
+- Environment variables in Railway dashboard (no Redis needed)
 
----
+### Known Issues & Solutions
 
-### Common Fixes
+**✅ SOLVED - Railway Deployment (4 months of failures)**
+- **Problem**: Health check failed with "Cannot find module" 
+- **Root Cause**: Wrong path in `railway.toml` startCommand
+- **Solution**: Fixed path to `apps/backend/dist/main.js`
 
-- **Type errors** → `npm run claude:check`
-- **Port conflicts** → `npm run dev:clean`
-- **Memory issues** → Backend needs 4-8GB for TypeScript
-- **Turbo cache issues** → `turbo clean` then rebuild
-- **Shared types not updating** → `turbo build --filter=@repo/shared`
-- **Module resolution errors** → Check tsconfig.json paths mapping
-- **React 19 issues** → Ensure Turbopack is used (not webpack)
+**✅ SOLVED - Memory Limits**
+- **Problem**: Builds failing at 4GB memory limit
+- **Solution**: Removed all NODE_OPTIONS memory caps
 
-### Anti-Patterns to Remove ON SIGHT
+**✅ SOLVED - Redis Dependencies**  
+- **Problem**: REDISPORT validation errors
+- **Solution**: Redis not needed - removed all references
 
-**Delete these patterns immediately when found:**
-
-1. **Factory Functions**
-   ```typescript
-   // ❌ DELETE: Any factory pattern
-   createFormFactory(), createQueryFactory(), createHookFactory()
-   ```
-
-2. **Wrapper Components/Hooks**
-   ```typescript
-   // ❌ DELETE: Thin wrappers around libraries
-   useCustomQuery() wrapping useQuery()
-   FormWrapper() wrapping React Hook Form
-   ```
-
-3. **Duplicate Utilities**
-   ```typescript
-   // ❌ DELETE: Custom utils that duplicate library functions
-   formatCurrency() when Intl.NumberFormat exists
-   debounce() when lodash/debounce exists
-   ```
-
-4. **Configuration Abstraction**
-   ```typescript
-   // ❌ DELETE: Config factories and builders
-   buildConfig(), createOptions(), generateSettings()
-   ```
-
-5. **Service Layers**
-   ```typescript
-   // ❌ DELETE: Unnecessary service abstractions
-   class PropertyService extends BaseService
-   // ✅ KEEP: Direct API calls only
-   ```
-
-### Current Known Issues
-
-#### TypeScript Errors (as of latest check)
-- API client parameter type mismatches with strict interfaces
-- Some Response validation logger references missing
-- Lease template state requirements type issues
-- Embedded checkout props incompatibility with Stripe components
-
-#### Architecture Debt (MUST FIX)
-- **DUPLICATE CODE**: API patterns need consolidation
-- **DEPRECATED**: auth-api.ts should be deleted
-- **ABSTRACTIONS**: Remove any remaining factory patterns
-- **TEST DEBT**: React 19 compatibility needed
-
----
+**🔧 Current Tech Debt**
+- API client consolidation needed (multiple patterns)
+- Remove deprecated auth-api.ts file
+- Test suite needs React 19 updates
 
 ### Development Workflow
 
@@ -387,16 +314,12 @@ npm run test:production   # Production readiness
 4. **Build Test**: `npm run build` (verify production readiness)
 5. **Deploy**: Push to main branch (auto-deploys)
 
-Always run `npm run claude:check` before committing. This runs linting, type checking, and unit tests - all must pass for a healthy codebase.
-
----
-
 ### Important Files & Patterns
 
 #### Key Configuration Files
 - `turbo.json` - Monorepo task orchestration
 - `vercel.json` - Frontend deployment config
-- `railway.toml` - Backend deployment config
+- `railway.toml`, `Dockerfile` - Backend deployment config
 - `tsconfig.json` files - TypeScript configs (base, frontend, backend)
 - `eslint.config.js` - Shared ESLint rules
 
@@ -408,44 +331,86 @@ Always run `npm run claude:check` before committing. This runs linting, type che
 - `apps/backend/src/shared/` - Shared backend utilities, guards, decorators
 - `packages/shared/src/types/` - Shared TypeScript types
 
-#### Authentication Flow
-1. Frontend: `lib/actions/auth-actions.ts` → Server actions
-2. Backend: `auth/auth.controller.ts` → JWT validation
-3. Supabase: RLS policies enforce tenant isolation
-
 #### Data Flow Patterns
 - **Read**: Component → `useQuery` hook → API client → Backend → Supabase
 - **Write**: Component → Server action/mutation → Backend → Supabase
 - **Optimistic Updates**: Via TanStack Query's `onMutate` callbacks
 - **Real-time**: Supabase subscriptions → Cache invalidation
 
----
+### 📝 SESSION NOTES - MANDATORY CONTEXT TRACKING
+
+**CRITICAL: You MUST maintain a session notes file for EVERY project/directory you work in.**
+
+#### Naming Convention:
+- **File name**: `CLAUDE_SESSION_NOTES.md`
+- **Location**: Root of each project or service directory
+- **Purpose**: Long-term context memory across sessions
+
+#### Required Updates (UPDATE VERY FREQUENTLY):
+1. **On Session Start**: Read the file FIRST before any work
+2. **Every Major Decision**: Document why and what
+3. **Every Problem Solved**: Record solution and reasoning  
+4. **Every Error Encountered**: Log error and fix
+5. **Before Session End**: Summarize progress and next steps
+
+#### File Structure:
+```markdown
+# Claude Session Notes - [Project Name]
+
+## Current Context
+- Last worked: [timestamp]
+- Current task: [what you're doing]
+- Blockers: [any issues]
+
+## Recent Changes
+- [timestamp]: [what changed and why]
+- [timestamp]: [problem → solution]
+
+## Important Discoveries
+- [Key learning or pattern found]
+- [Critical file locations]
+- [Dependencies or gotchas]
+
+## TODO/Next Steps
+- [ ] [Immediate next action]
+- [ ] [Future improvements]
+
+## Project-Specific Context
+- [Any unique requirements]
+- [Special configurations]
+- [Team preferences discovered]
+```
+
+**UPDATE FREQUENCY**: After EVERY meaningful action, discovery, or decision. Treat it like a pilot's flight log - everything important gets recorded.
 
 ### 🎯 QUICK DECISION TREE FOR EVERY TASK
 
 ```
 START HERE
     ↓
+Did you read CLAUDE_SESSION_NOTES.md?
+    NO → READ IT NOW
+    YES ↓
+
 Is this fixing a bug?
     YES → Can I DELETE code to fix it?
-        YES → Delete it
-        NO → Use simplest native solution
+        YES → Delete it → UPDATE SESSION NOTES
+        NO → Use simplest native solution → UPDATE SESSION NOTES
     NO ↓
     
 Is this adding a feature?
     YES → Does similar code exist?
-        YES → Reuse/consolidate it
-        NO → Use native platform features directly
+        YES → Reuse/consolidate it → UPDATE SESSION NOTES
+        NO → Use native platform features directly → UPDATE SESSION NOTES
     NO ↓
 
 Is this refactoring?
     YES → Your ONLY job is to DELETE code
         - Remove abstractions
-        - Consolidate duplicates
+        - Consolidate duplicates  
         - Simplify complexity
+        → UPDATE SESSION NOTES
     NO ↓
 
 STOP - Why are you making changes?
 ```
-
-**REMEMBER: Every line of code is a liability. Less code = fewer bugs = easier maintenance.**

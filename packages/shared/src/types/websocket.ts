@@ -26,5 +26,3 @@ export interface MaintenanceUpdateMessage extends WebSocketMessage {
 
 // Union type for all specific message types
 export type TypedWebSocketMessage = MaintenanceUpdateMessage | WebSocketMessage
-
-// UseWebSocketOptions is defined in notifications.ts

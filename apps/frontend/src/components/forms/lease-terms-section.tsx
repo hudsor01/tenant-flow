@@ -21,12 +21,19 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Plus, Trash2, FileText, AlertCircle } from 'lucide-react'
-import type { LeaseTerm } from './lease-form-client'
 
 // ============================================================================
 // INTERFACES
 // ============================================================================
+
+// LeaseTerm type defined inline - no need for external dependency
+interface LeaseTerm {
+	id: string
+	type: 'clause' | 'fee' | 'rule'
+	title: string
+	description: string
+	amount?: number
+}
 
 interface LeaseTermsSectionProps {
 	terms: LeaseTerm[]
@@ -90,9 +97,9 @@ function LeaseTermCard({
 							<Label>Title</Label>
 							<Input
 								value={term.title}
-								onChange={e =>
-									handleFieldChange('title', e.target.value)
-								}
+								onChange={(
+									e: React.ChangeEvent<HTMLInputElement>
+								) => handleFieldChange('title', e.target.value)}
 								placeholder="Enter term title"
 							/>
 						</div>
@@ -120,7 +127,9 @@ function LeaseTermCard({
 								min="0"
 								step="0.01"
 								value={term.amount || ''}
-								onChange={e =>
+								onChange={(
+									e: React.ChangeEvent<HTMLInputElement>
+								) =>
 									handleFieldChange(
 										'amount',
 										parseFloat(e.target.value) ?? 0
@@ -139,7 +148,7 @@ function LeaseTermCard({
 					onClick={() => onRemove(index)}
 					className="text-destructive hover:text-destructive hover:bg-destructive/10"
 				>
-					<Trash2 className="h-4 w-4" />
+					<i className="i-lucide-trash-2 inline-block h-4 w-4"  />
 				</Button>
 			</div>
 		</Card>
@@ -218,7 +227,7 @@ export function LeaseTermsSection({ terms, onChange }: LeaseTermsSectionProps) {
 		<div className="space-y-6">
 			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-2">
-					<FileText className="h-4 w-4" />
+					<i className="i-lucide-file-text inline-block h-4 w-4"  />
 					<h3 className="text-lg font-semibold">
 						Lease Terms & Conditions
 					</h3>
@@ -248,7 +257,7 @@ export function LeaseTermsSection({ terms, onChange }: LeaseTermsSectionProps) {
 							})
 						}
 					>
-						<Plus className="mr-1 h-4 w-4" />
+						<i className="i-lucide-plus inline-block mr-1 h-4 w-4"  />
 						Add Term
 					</Button>
 				</div>
@@ -256,7 +265,7 @@ export function LeaseTermsSection({ terms, onChange }: LeaseTermsSectionProps) {
 
 			{terms.length === 0 && (
 				<Alert>
-					<AlertCircle className="h-4 w-4" />
+					<i className="i-lucide-alert-circle inline-block h-4 w-4"  />
 					<AlertDescription>
 						No lease terms added yet. Click "Add Default Terms" to
 						get started or "Add Term" to create a custom term.
@@ -289,7 +298,7 @@ export function LeaseTermsSection({ terms, onChange }: LeaseTermsSectionProps) {
 						}
 						className="text-muted-foreground hover:text-foreground"
 					>
-						<Plus className="mr-2 h-4 w-4" />
+						<i className="i-lucide-plus inline-block mr-2 h-4 w-4"  />
 						Add Another Term
 					</Button>
 				</div>

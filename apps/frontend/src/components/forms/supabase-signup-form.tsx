@@ -10,7 +10,7 @@ import {
 	CardHeader,
 	CardTitle
 } from '@/components/ui/card'
-import { signupFormAction } from '@/lib/actions/auth-actions'
+import { signupFormAction } from '@/app/actions/auth'
 
 interface SimpleSignupFormProps {
 	redirectTo?: string

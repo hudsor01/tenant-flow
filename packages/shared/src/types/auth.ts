@@ -49,6 +49,85 @@ export interface AuthUser extends User {
 	}
 }
 
+// =============================================================================
+// AUTH FORM DATA TYPES - CONSOLIDATED from frontend forms
+// =============================================================================
+
+export interface LoginFormData {
+	email: string
+	password: string
+	rememberMe?: boolean
+}
+
+export interface SignupFormData {
+	email: string
+	password: string
+	confirmPassword: string
+	fullName: string
+	companyName?: string
+	acceptTerms: boolean
+}
+
+export interface ForgotPasswordFormData {
+	email: string
+}
+
+export interface ResetPasswordFormData {
+	password: string
+	confirmPassword: string
+}
+
+export interface UpdatePasswordFormData {
+	currentPassword: string
+	newPassword: string
+	confirmPassword: string
+}
+
+export interface ProfileFormData {
+	[key: string]: string | undefined
+	name: string
+	email: string
+	phone?: string
+	company?: string
+	address?: string
+	avatar?: string
+}
+
+export interface ContactFormData {
+	name: string
+	email: string
+	subject: string
+	message: string
+	phone?: string
+}
+
+// Auth request/response types for API
+export interface LoginCredentials {
+	email: string
+	password: string
+}
+
+export interface RegisterCredentials {
+	email: string
+	password: string
+	fullName?: string
+}
+
+export interface AuthResponse {
+	user: User | AuthUser
+	session?: {
+		access_token: string
+		refresh_token: string
+		expires_in: number
+		expires_at?: number
+	}
+	message?: string
+}
+
+export interface RefreshTokenRequest {
+	refresh_token: string
+}
+
 // Secure subscription data type
 export interface SecureSubscriptionData {
 	status: SubscriptionStatus
@@ -102,23 +181,6 @@ export interface AuthSession {
 	user: User
 }
 
-export interface AuthResponse {
-	user: {
-		id: string
-		email: string
-		name?: string
-		role: UserRole
-	}
-	message: string
-	session?: AuthSession
-}
-
-// Frontend-specific credential types
-export interface LoginCredentials {
-	email: string
-	password: string
-}
-
 export interface SignupCredentials {
 	email: string
 	password: string
@@ -155,9 +217,9 @@ export interface ValidatedUser {
 	id: string
 	email: string
 	name?: string
-	role?: UserRole
-	organizationId?: string
-	stripeCustomerId?: string
+role?: UserRole
+organizationId?: string | null
+stripeCustomerId?: string
 	subscription?: SecureSubscriptionData
 	metadata?: SecureUserMetadata
 	emailVerified?: boolean
@@ -173,3 +235,150 @@ export interface ValidatedUser {
 		failedLoginAttempts?: number
 	}
 }
+
+// Supabase user structure (from Supabase auth.getUser())
+export interface SupabaseUser {
+	id: string
+	email?: string
+	email_confirmed_at?: string
+	user_metadata?: {
+		name?: string
+		full_name?: string
+		avatar_url?: string
+	}
+	created_at?: string
+	updated_at?: string
+}
+
+// Auth service validated user - extends base ValidatedUser with string dates for compatibility
+export interface AuthServiceValidatedUser
+extends Omit<ValidatedUser, 'createdAt' | 'updatedAt' | 'lastLoginAt' | 'name' | 'organizationId'> {
+name: string | undefined
+createdAt: Date
+updatedAt: Date
+supabaseId: string
+bio: string | null
+profileComplete: boolean
+lastLoginAt: Date
+organizationId: string | null | undefined
+[key: string]: unknown
+}
+
+// =============================================================================
+// ADDITIONAL AUTH TYPES - MIGRATED from inline definitions
+// =============================================================================
+
+// Backend auth request/response schemas
+export interface LoginRequest {
+	email: string
+	password: string
+	rememberMe?: boolean
+}
+
+export interface RegisterRequest {
+	email: string
+	password: string
+	fullName?: string
+	companyName?: string
+}
+
+export interface ForgotPasswordRequest {
+	email: string
+}
+
+export interface ResetPasswordRequest {
+	password: string
+	token: string
+}
+
+export interface ChangePasswordRequest {
+	currentPassword: string
+	newPassword: string
+}
+
+// Extended auth context and guard types
+// MIGRATED from apps/backend/src/shared/guards/auth.guard.ts
+export interface AuthenticatedRequest {
+	user: ValidatedUser
+	[key: string]: unknown
+}
+
+// MIGRATED from apps/backend/src/shared/guards/roles.guard.ts
+export interface RequestWithUser {
+	user?: User & { organizationId?: string }
+	params?: Record<string, string>
+	query?: Record<string, string>
+	body?: Record<string, unknown>
+	ip?: string
+}
+
+// MIGRATED from apps/backend/src/shared/guards/throttler-proxy.guard.ts
+export interface ThrottlerRequest {
+	headers: Record<string, string | string[] | undefined>
+	ip?: string
+	socket?: { remoteAddress?: string }
+}
+
+// MIGRATED from apps/backend/src/auth/auth-webhook.controller.ts  
+export interface SupabaseWebhookEvent {
+	type: 'INSERT' | 'UPDATE' | 'DELETE'
+	table: string
+	schema: 'auth' | 'public'
+	record: {
+		id: string
+		email?: string
+		email_confirmed_at?: string | null
+		user_metadata?: {
+			name?: string
+			full_name?: string
+		}
+		created_at: string
+		updated_at: string
+	}
+}
+
+export interface AuthContextType {
+	user: AuthUser | null
+	loading: boolean
+	signIn: (credentials: LoginCredentials) => Promise<void>
+	signOut: () => Promise<void>
+	signUp: (credentials: SignupCredentials) => Promise<void>
+}
+
+// Permission and role enums (consolidated from security.ts)
+
+export enum Permission {
+	READ_PROPERTIES = 'READ_PROPERTIES',
+	WRITE_PROPERTIES = 'WRITE_PROPERTIES',
+	DELETE_PROPERTIES = 'DELETE_PROPERTIES',
+	READ_TENANTS = 'READ_TENANTS',
+	WRITE_TENANTS = 'WRITE_TENANTS',
+	DELETE_TENANTS = 'DELETE_TENANTS',
+	READ_LEASES = 'READ_LEASES',
+	WRITE_LEASES = 'WRITE_LEASES',
+	DELETE_LEASES = 'DELETE_LEASES',
+	READ_MAINTENANCE = 'READ_MAINTENANCE',
+	WRITE_MAINTENANCE = 'WRITE_MAINTENANCE',
+	DELETE_MAINTENANCE = 'DELETE_MAINTENANCE',
+	MANAGE_BILLING = 'MANAGE_BILLING',
+	MANAGE_USERS = 'MANAGE_USERS'
+}
+
+// Security validation and context types
+export interface SecurityValidationResult {
+	isValid: boolean
+	errors: string[]
+	warnings: string[]
+}
+
+export interface AuthContext {
+	user: User | null
+	permissions: Permission[]
+	roles: UserRole[]
+}
+
+// Form state type alias for auth forms
+export type AuthFormState = FormState<User>
+
+// Import FormState from UI types
+import type { FormState } from './ui'

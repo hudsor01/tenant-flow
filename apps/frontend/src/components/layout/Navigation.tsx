@@ -14,20 +14,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { signOut } from '@/lib/actions/auth-actions'
-import {
-	FileText,
-	Calculator,
-	Wrench,
-	Menu,
-	X,
-	Settings,
-	UserCircle,
-	LogOut,
-	ChevronDown,
-	Sparkles,
-	ArrowRight
-} from 'lucide-react'
+import { signOut } from '@/app/actions/auth'
 import { useAuth } from '@/hooks/use-auth'
 import { cn } from '@/lib/utils/css.utils'
 import Link from 'next/link'
@@ -49,11 +36,13 @@ export function Navigation({
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 	const [scrolled, setScrolled] = useState(false)
 	const pathname = usePathname()
-	const { user, logout } = useAuth()
+	const { user } = useAuth()
 
 	// Handle scroll for transparent nav
 	useEffect(() => {
-		if (!transparent) return
+		if (!transparent) {
+			return
+		}
 
 		const handleScroll = () => {
 			setScrolled(window.scrollY > 10)
@@ -120,33 +109,36 @@ export function Navigation({
 	}
 
 	const PublicNavigation = () => {
-		if (context !== 'public') return null
+		if (context !== 'public') {
+			return null
+		}
 
 		const toolsItems = [
-			{
-				to: '/tools/lease-generator',
-				label: 'Lease Generator',
-				description: 'Create state-specific rental leases',
-				icon: FileText,
-				badge: 'Popular'
-			},
+			// Lease Generator temporarily removed - see GitHub issue #202
+			// {
+			// 	to: '/tools/lease-generator',
+			// 	label: 'Lease Generator',
+			// 	description: 'Create state-specific rental leases',
+			// 	icon: FileText,
+			// 	badge: 'Popular'
+			// },
 			{
 				to: '/tools/invoice-generator',
 				label: 'Invoice Generator',
 				description: 'Generate professional invoice templates',
-				icon: Calculator
+				icon: 'i-lucide-calculator'
 			},
 			{
 				to: '/tools/rent-calculator',
 				label: 'Rent Calculator',
 				description: 'Calculate optimal rental prices',
-				icon: Calculator
+				icon: 'i-lucide-calculator'
 			},
 			{
 				to: '/tools/maintenance-tracker',
 				label: 'Maintenance Tracker',
 				description: 'Track property maintenance requests',
-				icon: Wrench
+				icon: 'i-lucide-wrench'
 			}
 		]
 
@@ -188,7 +180,7 @@ export function Navigation({
 						<button
 							className={cn(
 								'flex items-center text-2xl font-medium transition-colors duration-200',
-								'focus-visible:ring-ring rounded-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
+								'focus-visible:ring-ring rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
 								transparent && !scrolled && context === 'public'
 									? 'text-white/90 hover:text-white'
 									: 'text-gray-600 hover:text-gray-900'
@@ -218,15 +210,14 @@ export function Navigation({
 							id="resources-button"
 						>
 							Tools
-							<ChevronDown
-								className={cn(
+							<i className={cn(
+								'i-lucide-chevron-down inline-block',
 									'ml-1 h-4 w-4 transition-transform duration-200',
 									activeMenu === 'resources'
 										? 'rotate-180'
 										: ''
 								)}
-								aria-hidden="true"
-							/>
+								aria-hidden="true" />
 						</button>
 
 						<AnimatePresence>
@@ -236,7 +227,7 @@ export function Navigation({
 									animate={{ opacity: 1, y: 0 }}
 									exit={{ opacity: 0, y: 5 }}
 									transition={{ duration: 0.15 }}
-									className="absolute top-full right-0 z-50 w-80 pt-2"
+									className="absolute right-0 top-full z-50 w-80 pt-2"
 								>
 									<div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl">
 										<div
@@ -249,10 +240,7 @@ export function Navigation({
 												className="mb-4 flex items-center text-sm font-semibold text-gray-900"
 												role="presentation"
 											>
-												<Sparkles
-													className="text-primary mr-2 h-4 w-4"
-													aria-hidden="true"
-												/>
+												<i className="i-lucide-sparkles inline-block text-primary mr-2 h-4 w-4" aria-hidden="true" />
 												Free Tools
 											</h3>
 											<div
@@ -264,10 +252,12 @@ export function Navigation({
 														<Link
 															key={index}
 															href={item.to}
-															className="group focus-visible:ring-ring flex items-center rounded-lg p-3 transition-colors duration-200 hover:bg-gray-50 focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset"
+															className="focus-visible:ring-ring group flex items-center rounded-lg p-3 transition-colors duration-200 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset"
 															role="menuitem"
 															tabIndex={0}
-															onKeyDown={e => {
+															onKeyDown={(
+																e: React.KeyboardEvent
+															) => {
 																if (
 																	e.key ===
 																	'Escape'
@@ -285,8 +275,8 @@ export function Navigation({
 															}}
 														>
 															<div className="mr-3 rounded-lg bg-blue-50 p-2 transition-colors group-hover:bg-blue-100">
-																<item.icon
-																	className="text-primary h-4 w-4"
+																<i
+																	className={`${item.icon} text-primary h-4 w-4`}
 																	aria-hidden="true"
 																/>
 															</div>
@@ -338,7 +328,7 @@ export function Navigation({
 									damping: 25,
 									stiffness: 200
 								}}
-								className="absolute top-0 right-0 h-full w-80 border-l border-gray-200 bg-white shadow-xl"
+								className="absolute right-0 top-0 h-full w-80 border-l border-gray-200 bg-white shadow-xl"
 							>
 								{/* Header */}
 								<div className="flex items-center justify-between border-b border-gray-200 p-6">
@@ -367,7 +357,7 @@ export function Navigation({
 										}
 										className="text-gray-500 hover:bg-gray-100 hover:text-gray-900"
 									>
-										<X className="h-5 w-5" />
+										<i className="i-lucide-x inline-block h-5 w-5"  />
 									</Button>
 								</div>
 
@@ -430,7 +420,7 @@ export function Navigation({
 												<Button className="bg-primary h-auto w-full justify-center rounded-lg border-0 p-4 font-medium text-white shadow-sm hover:bg-blue-700">
 													<span className="flex items-center">
 														Get Started
-														<ArrowRight className="ml-2 h-4 w-4" />
+														<i className="i-lucide-arrow-right inline-block ml-2 h-4 w-4"  />
 													</span>
 												</Button>
 											</Link>
@@ -440,7 +430,7 @@ export function Navigation({
 									{/* Tools Section */}
 									<div className="border-t border-gray-200 pt-6">
 										<h3 className="mb-4 flex items-center font-semibold text-gray-900">
-											<Sparkles className="text-primary mr-2 h-4 w-4" />
+											<i className="i-lucide-sparkles inline-block text-primary mr-2 h-4 w-4"  />
 											Free Tools
 										</h3>
 										<div className="space-y-2">
@@ -467,7 +457,7 @@ export function Navigation({
 														href={item.to}
 														className="hover:text-primary group flex items-center rounded-lg p-3 text-gray-600 transition-colors duration-200 hover:bg-gray-50"
 													>
-														<item.icon className="text-primary mr-3 h-4 w-4 transition-colors group-hover:text-blue-700" />
+														<i className={`${item.icon} text-primary mr-3 h-4 w-4 transition-colors group-hover:text-blue-700`} />
 														<div className="min-w-0 flex-1">
 															<div className="text-sm font-medium">
 																{item.label}
@@ -523,19 +513,19 @@ export function Navigation({
 										: '/tenant-dashboard'
 								}
 							>
-								<UserCircle className="mr-2 h-4 w-4" />
+								<i className="i-lucide-usercircle inline-block mr-2 h-4 w-4"  />
 								Profile
 							</Link>
 						</DropdownMenuItem>
 						{context === 'authenticated' && (
 							<DropdownMenuItem>
-								<Settings className="mr-2 h-4 w-4" />
+								<i className="i-lucide-settings inline-block mr-2 h-4 w-4"  />
 								Settings
 							</DropdownMenuItem>
 						)}
 						<DropdownMenuSeparator />
 						<DropdownMenuItem onClick={handleLogout}>
-							<LogOut className="mr-2 h-4 w-4" />
+							<i className="i-lucide-log-out inline-block mr-2 h-4 w-4"  />
 							Log out
 						</DropdownMenuItem>
 					</DropdownMenuContent>
@@ -573,14 +563,11 @@ export function Navigation({
 			return onSidebarToggle ? (
 				<button
 					onClick={onSidebarToggle}
-					className="focus-visible:ring-ring rounded-md p-2 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none lg:hidden"
+					className="focus-visible:ring-ring rounded-md p-2 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 lg:hidden"
 					aria-label="Toggle sidebar"
 					aria-expanded="false"
 				>
-					<Menu
-						className="h-5 w-5 text-gray-600"
-						aria-hidden="true"
-					/>
+					<i className="i-lucide-menu inline-block h-5 w-5 text-gray-600" aria-hidden="true" />
 				</button>
 			) : null
 		}
@@ -589,7 +576,7 @@ export function Navigation({
 			<button
 				className={cn(
 					'rounded-md p-2 transition-colors duration-200 lg:hidden',
-					'focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
+					'focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
 					transparent && !scrolled && context === 'public'
 						? 'text-white hover:bg-white/10'
 						: 'text-gray-600 hover:bg-gray-100'
@@ -602,9 +589,9 @@ export function Navigation({
 				aria-controls="mobile-menu"
 			>
 				{isMobileMenuOpen ? (
-					<X className="h-5 w-5" aria-hidden="true" />
+					<i className="i-lucide-x inline-block h-5 w-5" aria-hidden="true" />
 				) : (
-					<Menu className="h-5 w-5" aria-hidden="true" />
+					<i className="i-lucide-menu inline-block h-5 w-5" aria-hidden="true" />
 				)}
 			</button>
 		)

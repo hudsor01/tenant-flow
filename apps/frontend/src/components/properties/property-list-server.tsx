@@ -3,13 +3,15 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Building, MapPin, Users, Plus } from 'lucide-react'
 import Link from 'next/link'
-import { propertyApi } from '@/lib/api/properties'
-import type { Property, PropertyStats } from '@repo/shared'
+import { apiClient } from '@repo/shared'
+import type { PropertyWithUnits } from '@repo/shared'
+
+// Use Property_WithUnits for components that need computed fields and relations
+type Property_ = PropertyWithUnits
 
 // Loading skeleton for property cards
-function PropertyCardSkeleton() {
+function Property_CardSkeleton() {
 	return (
 		<Card>
 			<CardHeader>
@@ -38,21 +40,8 @@ function PropertyCardSkeleton() {
 	)
 }
 
-// Property card component
-function PropertyCard({ property }: { property: Property }) {
-	const _getStatusColor = (status: string) => {
-		switch (status) {
-			case 'active':
-				return 'bg-green-100 text-green-800'
-			case 'inactive':
-				return 'bg-red-100 text-red-800'
-			case 'maintenance':
-				return 'bg-yellow-100 text-yellow-800'
-			default:
-				return 'bg-gray-100 text-gray-800'
-		}
-	}
-
+// Property_ card component
+function Property_Card({ property }: { property: Property_ }) {
 	return (
 		<Card className="transition-shadow hover:shadow-md">
 			<CardHeader>
@@ -62,7 +51,7 @@ function PropertyCard({ property }: { property: Property }) {
 							{property.name}
 						</CardTitle>
 						<p className="text-muted-foreground flex items-center gap-1 text-sm">
-							<MapPin className="h-3 w-3" />
+							<i className="i-lucide-map-pin inline-block h-3 w-3"  />
 							{property.address}
 						</p>
 					</div>
@@ -78,12 +67,12 @@ function PropertyCard({ property }: { property: Property }) {
 				<div className="space-y-3">
 					<div className="flex items-center justify-between text-sm">
 						<span className="flex items-center gap-2">
-							<Building className="h-4 w-4" />
+							<i className="i-lucide-building inline-block h-4 w-4"  />
 							{property.propertyType?.replace('_', ' ') ||
-								'Property'}
+								'Property_'}
 						</span>
 						<span className="flex items-center gap-2">
-							<Users className="h-4 w-4" />
+							<i className="i-lucide-users inline-block h-4 w-4"  />
 							{property.units?.length ?? 0} units
 						</span>
 					</div>
@@ -106,8 +95,17 @@ function PropertyCard({ property }: { property: Property }) {
 }
 
 // Stats component
-async function PropertyStatsComponent() {
-	const stats = await propertyApi.getPropertyStats()
+async function Property_StatsComponent() {
+	const stats = await apiClient<{
+		total: number
+		active: number
+		inactive: number
+		totalUnits: number
+		occupiedUnits: number
+		vacantUnits: number
+		totalRevenue: number
+		occupancyRate: number
+	}>('/api/properties/stats')
 
 	if (!stats) {
 		return (
@@ -158,13 +156,13 @@ async function PropertyStatsComponent() {
 
 // Properties list component
 async function PropertiesList() {
-	const properties = await propertyApi.getAll()
+  const properties = await apiClient<PropertyWithUnits[]>('/api/properties')
 
 	if (!properties || properties.length === 0) {
 		return (
 			<Card>
 				<CardContent className="p-8 text-center">
-					<Building className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
+					<i className="i-lucide-building inline-block text-muted-foreground mx-auto mb-4 h-12 w-12"  />
 					<h3 className="mb-2 text-lg font-semibold">
 						No properties found
 					</h3>
@@ -173,8 +171,8 @@ async function PropertiesList() {
 					</p>
 					<Button asChild>
 						<Link href="/properties/new">
-							<Plus className="mr-2 h-4 w-4" />
-							Add Property
+							<i className="i-lucide-plus inline-block mr-2 h-4 w-4"  />
+							Add Property_
 						</Link>
 					</Button>
 				</CardContent>
@@ -185,14 +183,14 @@ async function PropertiesList() {
 	return (
 		<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
 			{properties.map(property => (
-				<PropertyCard key={property.id} property={property} />
+				<Property_Card key={property.id} property={property} />
 			))}
 		</div>
 	)
 }
 
 // Main server component
-export default function PropertyListServer() {
+export default function Property_ListServer() {
 	return (
 		<div className="space-y-6">
 			{/* Page Header */}
@@ -205,8 +203,8 @@ export default function PropertyListServer() {
 				</div>
 				<Button asChild>
 					<Link href="/properties/new">
-						<Plus className="mr-2 h-4 w-4" />
-						Add Property
+						<i className="i-lucide-plus inline-block mr-2 h-4 w-4"  />
+						Add Property_
 					</Link>
 				</Button>
 			</div>
@@ -226,7 +224,7 @@ export default function PropertyListServer() {
 					</div>
 				}
 			>
-				<PropertyStatsComponent />
+				<Property_StatsComponent />
 			</Suspense>
 
 			{/* Properties List */}
@@ -234,7 +232,7 @@ export default function PropertyListServer() {
 				fallback={
 					<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
 						{[1, 2, 3, 4, 5, 6].map(i => (
-							<PropertyCardSkeleton key={i} />
+							<Property_CardSkeleton key={i} />
 						))}
 					</div>
 				}

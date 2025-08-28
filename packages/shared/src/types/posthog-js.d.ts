@@ -48,7 +48,7 @@ declare module 'posthog-js/react' {
 	export function usePostHog(): PostHog
 	export function PostHogProvider(props: {
 		apiKey: string
-		children: React.ReactNode
+		children: any
 		options?: Record<string, string | boolean | number | undefined>
 	}): JSX.Element
 }

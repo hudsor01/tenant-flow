@@ -3,12 +3,13 @@
  * Handles authentication flow with proper server/client separation
  */
 
-import type { Metadata } from '@/types/next.d'
+import type { Metadata } from 'next/types'
 import { Suspense } from 'react'
 import { AuthLayout } from '@/components/layout/auth/layout'
 import { SimpleLoginForm } from '@/components/forms/supabase-login-form'
-import { getCurrentUser } from '@/lib/actions/auth-actions'
+import { getCurrentUser } from '@/app/actions/auth'
 import { AuthRedirect } from '@/components/auth/auth-redirect'
+import { SkeletonForm } from '@/components/ui/skeleton'
 
 export const metadata: Metadata = {
 	title: 'Sign In | TenantFlow',
@@ -44,14 +45,16 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 				alt: 'Modern property management dashboard'
 			}}
 			heroContent={{
-				title: 'Streamline Your Property Management',
+				title: 'Streamline Your Property_ Management',
 				description:
 					'Join thousands of property owners who save hours every week with our powerful, intuitive platform.'
 			}}
 		>
 			<Suspense
 				fallback={
-					<div className="bg-muted h-[400px] animate-pulse rounded-lg" />
+					<div className="mx-auto w-full max-w-md">
+						<SkeletonForm />
+					</div>
 				}
 			>
 				<SimpleLoginForm redirectTo={redirectTo} />

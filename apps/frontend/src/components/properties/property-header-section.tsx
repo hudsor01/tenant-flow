@@ -8,42 +8,40 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import {
-	ArrowLeft,
-	MapPin,
-	Edit,
-	Trash2,
-	MoreVertical,
-	Users
-} from 'lucide-react'
-import type { PropertyWithUnitsAndLeases } from '@repo/shared'
+import type { Property, Unit, Lease } from '@repo/shared'
 
-interface PropertyHeaderSectionProps {
-	property: PropertyWithUnitsAndLeases
+// Define local interface for component needs
+interface Property_WithUnitsAndLeases extends Property {
+	units?: Unit[]
+	leases?: Lease[]
+}
+
+interface Property_HeaderSectionProps {
+	property: Property_WithUnitsAndLeases
 	fadeInUp: {
 		initial: { opacity: number; y: number }
 		animate: { opacity: number; y: number }
 	}
 	onBackToProperties: () => void
-	onEditProperty: () => void
+	onEditProperty_: () => void
 	onInviteTenant: () => void
 	onDelete: () => void
 	isDeleting: boolean
 }
 
 /**
- * Property detail header section with navigation, title, and action menu
+ * Property_ detail header section with navigation, title, and action menu
  * Displays property name, address, and dropdown menu for property operations
  */
-export default function PropertyHeaderSection({
+export default function Property_HeaderSection({
 	property,
 	fadeInUp,
 	onBackToProperties,
-	onEditProperty,
+	onEditProperty_,
 	onInviteTenant,
 	onDelete,
 	isDeleting
-}: PropertyHeaderSectionProps) {
+}: Property_HeaderSectionProps) {
 	return (
 		<motion.div {...fadeInUp} className="flex items-center justify-between">
 			<div className="flex items-center space-x-4">
@@ -53,14 +51,14 @@ export default function PropertyHeaderSection({
 					onClick={onBackToProperties}
 					className="hover:bg-accent"
 				>
-					<ArrowLeft className="h-5 w-5" />
+					<i className="i-lucide-arrow-left inline-block h-5 w-5"  />
 				</Button>
 				<div>
 					<h1 className="text-3xl font-bold tracking-tight">
 						{property.name}
 					</h1>
 					<p className="text-muted-foreground mt-1 flex items-center">
-						<MapPin className="mr-1 h-4 w-4" />
+						<i className="i-lucide-map-pin inline-block mr-1 h-4 w-4"  />
 						{property.address}, {property.city}, {property.state}{' '}
 						{property.zipCode}
 					</p>
@@ -70,18 +68,18 @@ export default function PropertyHeaderSection({
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
 					<Button variant="outline" size="icon">
-						<MoreVertical className="h-4 w-4" />
+						<i className="i-lucide-more-vertical inline-block h-4 w-4"  />
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end">
-					<DropdownMenuLabel>Property Actions</DropdownMenuLabel>
+					<DropdownMenuLabel>Property_ Actions</DropdownMenuLabel>
 					<DropdownMenuSeparator />
-					<DropdownMenuItem onClick={onEditProperty}>
-						<Edit className="mr-2 h-4 w-4" />
-						Edit Property
+					<DropdownMenuItem onClick={onEditProperty_}>
+						<i className="i-lucide-edit inline-block mr-2 h-4 w-4"  />
+						Edit Property_
 					</DropdownMenuItem>
 					<DropdownMenuItem onClick={onInviteTenant}>
-						<Users className="mr-2 h-4 w-4" />
+						<i className="i-lucide-users inline-block mr-2 h-4 w-4"  />
 						Invite Tenant
 					</DropdownMenuItem>
 					<DropdownMenuSeparator />
@@ -90,8 +88,8 @@ export default function PropertyHeaderSection({
 						disabled={isDeleting}
 						className="text-destructive focus:text-destructive"
 					>
-						<Trash2 className="mr-2 h-4 w-4" />
-						{isDeleting ? 'Deleting...' : 'Delete Property'}
+						<i className="i-lucide-trash-2 inline-block mr-2 h-4 w-4"  />
+						{isDeleting ? 'Deleting...' : 'Delete Property_'}
 					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>

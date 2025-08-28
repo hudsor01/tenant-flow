@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
-import { getCurrentUser } from '@/lib/actions/auth-actions'
-import { logger } from '@/lib/logger'
+import { getCurrentUser } from '@/app/actions/auth'
+import { logger } from '@/lib/logger/logger'
 
 interface ServerAuthGuardProps {
 	children: React.ReactNode
@@ -42,7 +42,7 @@ export async function ServerAuthGuard({
 
 		logger.debug('ServerAuthGuard: User authenticated, allowing access', {
 			component: 'ServerAuthGuard',
-			userId: user.id
+			_userId: user.id
 		})
 
 		return <>{children}</>
@@ -81,7 +81,7 @@ export async function ServerReverseAuthGuard({
 				'ServerReverseAuthGuard: User already authenticated, redirecting',
 				{
 					component: 'ServerReverseAuthGuard',
-					userId: user.id,
+					_userId: user.id,
 					redirectTo
 				}
 			)

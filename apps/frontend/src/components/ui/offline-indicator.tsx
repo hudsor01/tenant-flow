@@ -6,15 +6,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import {
-	WifiOff,
-	Wifi,
-	CloudOff,
-	Cloud,
-	AlertCircle,
-	CheckCircle2,
-	Loader2
-} from 'lucide-react'
 import { Badge } from './badge'
 import { Button } from './button'
 import { Popover, PopoverContent, PopoverTrigger } from './popover'
@@ -60,22 +51,22 @@ export function OfflineIndicator({
 
 	const getStatusIcon = () => {
 		if (isProcessing) {
-			return <Loader2 className="h-4 w-4 animate-spin" />
+			return <i className="i-lucide-loader-2 inline-block h-4 w-4 animate-spin"  />
 		}
 
 		if (!isOnline) {
-			return <WifiOff className="h-4 w-4" />
+			return <i className="i-lucide-wifi-off inline-block h-4 w-4"  />
 		}
 
 		if (hasFailedOperations) {
-			return <AlertCircle className="h-4 w-4" />
+			return <i className="i-lucide-alert-circle inline-block h-4 w-4"  />
 		}
 
 		if (hasOfflineData) {
-			return <CloudOff className="h-4 w-4" />
+			return <i className="i-lucide-cloud-off inline-block h-4 w-4"  />
 		}
 
-		return <Wifi className="h-4 w-4" />
+		return <i className="i-lucide-wifi inline-block h-4 w-4"  />
 	}
 
 	const getStatusText = () => {
@@ -103,14 +94,22 @@ export function OfflineIndicator({
 		| 'secondary'
 		| 'destructive'
 		| 'outline' => {
-		if (!isOnline) return 'destructive'
-		if (hasFailedOperations) return 'destructive'
-		if (hasOfflineData) return 'secondary'
+		if (!isOnline) {
+			return 'destructive'
+		}
+		if (hasFailedOperations) {
+			return 'destructive'
+		}
+		if (hasOfflineData) {
+			return 'secondary'
+		}
 		return 'default'
 	}
 
 	const getConnectionQuality = () => {
-		if (!isOnline) return 'Offline'
+		if (!isOnline) {
+			return 'Offline'
+		}
 
 		const { effectiveType } = networkInfo
 		switch (effectiveType) {
@@ -171,9 +170,9 @@ export function OfflineIndicator({
 							</h4>
 							<div className="flex items-center gap-1">
 								{isOnline ? (
-									<Wifi className="h-4 w-4 text-green-500" />
+									<i className="i-lucide-wifi inline-block h-4 w-4 text-green-500"  />
 								) : (
-									<WifiOff className="h-4 w-4 text-red-500" />
+									<i className="i-lucide-wifi-off inline-block h-4 w-4 text-red-500"  />
 								)}
 								<span
 									className={cn(
@@ -220,14 +219,14 @@ export function OfflineIndicator({
 						isProcessing) && (
 						<div className="border-t pt-4">
 							<h4 className="mb-2 flex items-center gap-2 text-sm font-semibold">
-								<Cloud className="h-4 w-4" />
+								<i className="i-lucide-cloud inline-block h-4 w-4"  />
 								Sync Status
 							</h4>
 
 							{isProcessing && (
 								<div className="mb-3 space-y-2">
 									<div className="flex items-center gap-2">
-										<Loader2 className="h-3 w-3 animate-spin" />
+										<i className="i-lucide-loader-2 inline-block h-3 w-3 animate-spin"  />
 										<span className="text-muted-foreground text-xs">
 											Syncing pending changes...
 										</span>
@@ -283,12 +282,12 @@ export function OfflineIndicator({
 								>
 									{isProcessing ? (
 										<>
-											<Loader2 className="mr-1 h-3 w-3 animate-spin" />
+											<i className="i-lucide-loader-2 inline-block mr-1 h-3 w-3 animate-spin"  />
 											Syncing...
 										</>
 									) : (
 										<>
-											<CheckCircle2 className="mr-1 h-3 w-3" />
+											<i className="i-lucide-check-circle-2 inline-block mr-1 h-3 w-3"  />
 											Sync Now
 										</>
 									)}
@@ -298,7 +297,7 @@ export function OfflineIndicator({
 							{hasFailedOperations && (
 								<div className="flex gap-2">
 									<Button
-										onClick={() => processQueue()}
+										onClick={async () => processQueue()}
 										disabled={isProcessing}
 										variant="outline"
 										size="sm"
@@ -327,7 +326,7 @@ export function OfflineIndicator({
 						!isProcessing && (
 							<div className="border-t pt-4">
 								<div className="flex items-center gap-2 text-green-600">
-									<CheckCircle2 className="h-4 w-4" />
+									<i className="i-lucide-check-circle-2 inline-block h-4 w-4"  />
 									<span className="text-xs font-medium">
 										All data synced
 									</span>
@@ -355,7 +354,9 @@ export function OfflineBanner() {
 		setShow(!isOnline || (hasOfflineData && isOnline && isProcessing))
 	}, [isOnline, hasOfflineData, isProcessing])
 
-	if (!show) return null
+	if (!show) {
+		return null
+	}
 
 	return (
 		<div
@@ -367,9 +368,9 @@ export function OfflineBanner() {
 			<div className="mx-auto flex max-w-7xl items-center justify-between">
 				<div className="flex items-center gap-2">
 					{!isOnline ? (
-						<WifiOff className="h-4 w-4 text-red-600" />
+						<i className="i-lucide-wifi-off inline-block h-4 w-4 text-red-600"  />
 					) : (
-						<Loader2 className="h-4 w-4 animate-spin text-yellow-600" />
+						<i className="i-lucide-loader-2 inline-block h-4 w-4 animate-spin text-yellow-600"  />
 					)}
 					<span
 						className={cn(

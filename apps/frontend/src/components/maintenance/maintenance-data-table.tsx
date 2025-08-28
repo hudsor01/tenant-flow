@@ -11,7 +11,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import {
 	Table,
 	TableBody,
@@ -20,181 +19,104 @@ import {
 	TableHeader,
 	TableRow
 } from '@/components/ui/table'
-import {
-	Wrench,
-	Eye,
-	Edit3,
-	MessageSquare,
-	Building,
-	User,
-	Calendar,
-	AlertTriangle,
-	CheckCircle,
-	Clock,
-	Plus
-} from 'lucide-react'
 import Link from 'next/link'
-import type { MaintenanceRequest } from '@repo/shared'
+import type { MaintenanceRequestApiResponse } from '@repo/shared'
+import {
+	getPriorityColor,
+	getPriorityLabel,
+	getRequestStatusColor,
+	getRequestStatusLabel
+} from '@repo/shared'
 
-// Local type for what we expect from the API
-type MaintenanceTableRow = MaintenanceRequest & {
-	unit?: {
-		unitNumber: string
-		property?: {
-			name: string
-		}
-		leases?: {
-			tenant: {
-				name: string
-			}
-		}[]
-	}
-}
+// Use flattened API response shape from RPC
+type MaintenanceRequest = MaintenanceRequestApiResponse
+type Priority = MaintenanceRequest['priority']
+type RequestStatus = MaintenanceRequest['status']
 
-function MaintenanceRow({ request }: { request: MaintenanceTableRow }) {
-	const getPriorityColor = (priority: string) => {
-		switch (priority) {
-			case 'urgent':
-				return 'bg-red-500'
-			case 'high':
-				return 'bg-orange-500'
-			case 'medium':
-				return 'bg-yellow-500'
-			case 'low':
-				return 'bg-green-500'
-			default:
-				return 'bg-gray-500'
-		}
+function MaintenanceRow({
+	request
+}: {
+	request: MaintenanceRequest
+}) {
+	// Get status styling
+	const getStatusBadge = (status: RequestStatus) => {
+		const colorClass = getRequestStatusColor(status)
+		const label = getRequestStatusLabel(status)
+
+		return <Badge className={colorClass}>{label}</Badge>
 	}
 
-	const getStatusIcon = (status: string) => {
-		switch (status) {
-			case 'open':
-				return <Clock className="h-4 w-4" />
-			case 'in_progress':
-				return <AlertTriangle className="h-4 w-4" />
-			case 'completed':
-				return <CheckCircle className="h-4 w-4" />
-			default:
-				return <Wrench className="h-4 w-4" />
-		}
+	// Get priority styling
+	const getPriorityBadge = (priority: Priority) => {
+		const colorClass = getPriorityColor(priority)
+		const label = getPriorityLabel(priority)
+
+		return <Badge className={colorClass}>{label}</Badge>
 	}
 
-	const getStatusBadgeVariant = (status: string) => {
-		switch (status) {
-			case 'open':
-				return 'secondary'
-			case 'in_progress':
-				return 'default'
-			case 'completed':
-				return 'default'
-			case 'cancelled':
-				return 'outline'
-			default:
-				return 'secondary'
-		}
+	// Format currency
+	const formatCurrency = (amount?: number | null) => {
+		if (!amount) return 'Not set'
+		return new Intl.NumberFormat('en-US', {
+			style: 'currency',
+			currency: 'USD'
+		}).format(amount)
 	}
 
-	const getStatusColor = (status: string) => {
-		switch (status) {
-			case 'open':
-				return 'bg-orange-500'
-			case 'in_progress':
-				return 'bg-primary'
-			case 'completed':
-				return 'bg-green-500'
-			case 'cancelled':
-				return 'bg-gray-500'
-			default:
-				return 'bg-gray-500'
-		}
+	// Format date
+	const formatDate = (date: string) => {
+		return new Date(date).toLocaleDateString('en-US', {
+			month: 'short',
+			day: 'numeric',
+			year: 'numeric'
+		})
 	}
 
 	return (
 		<TableRow className="hover:bg-accent/50">
 			<TableCell>
 				<div className="flex items-center gap-3">
-					<div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-lg">
-						<Wrench className="text-primary h-5 w-5" />
+					<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/20">
+						<i className="i-lucide-wrench inline-block h-4 w-4 text-orange-600 dark:text-orange-400"  />
 					</div>
 					<div className="space-y-1">
-						<p
-							className="max-w-[200px] truncate leading-none font-medium"
-							title={request.title}
-						>
+						<p className="font-medium leading-none">
 							{request.title}
 						</p>
 						<div className="text-muted-foreground flex items-center gap-1 text-sm">
-							<Calendar className="h-3 w-3" />
-							{new Date(request.createdAt).toLocaleDateString()}
+							<i className="i-lucide-home inline-block h-3 w-3"  />
+                    {request.propertyName || 'Unknown Property_'}{' '}
+                    {request.unitNumber && `- Unit ${request.unitNumber}`}
 						</div>
 					</div>
 				</div>
 			</TableCell>
+			<TableCell>{getPriorityBadge(request.priority)}</TableCell>
+			<TableCell>{getStatusBadge(request.status)}</TableCell>
 			<TableCell>
-				<Badge
-					variant="outline"
-					className={`${getPriorityColor(request.priority)} border-transparent text-white capitalize`}
-				>
-					{request.priority}
-				</Badge>
-			</TableCell>
-			<TableCell>
-				<div className="flex items-center gap-1">
-					{getStatusIcon(request.status)}
-					<Badge
-						variant={getStatusBadgeVariant(request.status)}
-						className={`${getStatusColor(request.status)} text-white capitalize`}
-					>
-						{request.status.replace('_', ' ')}
-					</Badge>
+				<div className="flex items-center gap-1 text-sm">
+					<i className="i-lucide-calendar inline-block text-muted-foreground h-3 w-3"  />
+					{formatDate(request.createdAt)}
 				</div>
 			</TableCell>
 			<TableCell>
-				{request.unit?.property ? (
-					<div className="flex items-center gap-1 text-sm">
-						<Building className="text-muted-foreground h-3 w-3" />
-						<div className="space-y-1">
-							<p
-								className="max-w-[120px] truncate font-medium"
-								title={request.unit.property.name}
-							>
-								{request.unit.property.name}
-							</p>
-							<p className="text-muted-foreground text-xs">
-								Unit {request.unit.unitNumber}
-							</p>
-						</div>
-					</div>
-				) : (
-					<span className="text-muted-foreground">No property</span>
-				)}
-			</TableCell>
-			<TableCell>
-				{request.unit?.leases?.[0]?.tenant ? (
-					<div className="flex items-center gap-1 text-sm">
-						<User className="text-muted-foreground h-3 w-3" />
-						{request.unit.leases[0].tenant.name}
-					</div>
-				) : (
-					<span className="text-muted-foreground">No tenant</span>
-				)}
+				<div className="flex items-center gap-1 text-sm">
+					<i className="i-lucide-dollar-sign inline-block text-muted-foreground h-3 w-3"  />
+					{formatCurrency(request.estimatedCost)}
+				</div>
 			</TableCell>
 			<TableCell>
 				<div className="flex items-center gap-2">
 					<Link href={`/maintenance/${request.id}`}>
 						<Button variant="ghost" size="sm">
-							<Eye className="h-4 w-4" />
+							<i className="i-lucide-eye inline-block h-4 w-4"  />
 						</Button>
 					</Link>
 					<Link href={`/maintenance/${request.id}/edit`}>
 						<Button variant="ghost" size="sm">
-							<Edit3 className="h-4 w-4" />
+							<i className="i-lucide-edit-3 inline-block h-4 w-4"  />
 						</Button>
 					</Link>
-					<Button variant="ghost" size="sm">
-						<MessageSquare className="h-4 w-4" />
-					</Button>
 				</div>
 			</TableCell>
 		</TableRow>
@@ -208,91 +130,48 @@ function MaintenanceTableSkeleton() {
 				<div key={i} className="flex items-center space-x-4 p-4">
 					<Skeleton className="h-10 w-10 rounded-lg" />
 					<div className="flex-1 space-y-2">
-						<Skeleton className="h-4 w-[200px]" />
-						<Skeleton className="h-3 w-[150px]" />
+						<Skeleton className="h-4 w-[250px]" />
+						<Skeleton className="h-3 w-[180px]" />
 					</div>
-					<Skeleton className="h-6 w-16" />
 					<Skeleton className="h-6 w-20" />
+					<Skeleton className="h-6 w-16" />
 					<Skeleton className="h-4 w-[100px]" />
 					<Skeleton className="h-4 w-[80px]" />
-					<Skeleton className="h-8 w-24" />
+					<Skeleton className="h-8 w-16" />
 				</div>
 			))}
 		</div>
 	)
 }
 
-export function MaintenanceDataTable() {
-	const {
-		data: maintenanceRequests,
-		isLoading,
-		error
-	} = useMaintenanceRequests()
+interface MaintenanceTableUIProps {
+	requests: MaintenanceRequest[]
+}
 
-	if (isLoading) {
+function MaintenanceTableUI({ requests }: MaintenanceTableUIProps) {
+	if (!requests?.length) {
 		return (
 			<Card>
 				<CardHeader>
 					<CardTitle>Maintenance Requests</CardTitle>
 					<CardDescription>
-						Manage all maintenance requests and work orders
-					</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<MaintenanceTableSkeleton />
-				</CardContent>
-			</Card>
-		)
-	}
-
-	if (error) {
-		return (
-			<Card>
-				<CardHeader>
-					<CardTitle>Maintenance Requests</CardTitle>
-					<CardDescription>
-						Manage all maintenance requests and work orders
-					</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<Alert variant="destructive">
-						<AlertTriangle className="h-4 w-4" />
-						<AlertTitle>
-							Error loading maintenance requests
-						</AlertTitle>
-						<AlertDescription>
-							There was a problem loading your maintenance
-							requests. Please try refreshing the page.
-						</AlertDescription>
-					</Alert>
-				</CardContent>
-			</Card>
-		)
-	}
-
-	if (!maintenanceRequests?.length) {
-		return (
-			<Card>
-				<CardHeader>
-					<CardTitle>Maintenance Requests</CardTitle>
-					<CardDescription>
-						Manage all maintenance requests and work orders
+						Manage all your maintenance requests
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<div className="flex flex-col items-center justify-center py-12 text-center">
-						<Wrench className="text-muted-foreground/50 mb-4 h-16 w-16" />
+						<i className="i-lucide-wrench inline-block text-muted-foreground/50 mb-4 h-16 w-16"  />
 						<h3 className="mb-2 text-lg font-medium">
-							No maintenance requests
+							No maintenance requests yet
 						</h3>
 						<p className="text-muted-foreground mb-6 max-w-sm">
-							No maintenance requests have been submitted yet.
-							Create one to get started.
+							Get started by adding your first maintenance request
+							to track property issues.
 						</p>
 						<Link href="/maintenance/new">
 							<Button>
-								<Plus className="mr-2 h-4 w-4" />
-								Create First Request
+								<i className="i-lucide-plus inline-block mr-2 h-4 w-4"  />
+								Add First Request
 							</Button>
 						</Link>
 					</div>
@@ -308,13 +187,13 @@ export function MaintenanceDataTable() {
 					<div>
 						<CardTitle>Maintenance Requests</CardTitle>
 						<CardDescription>
-							Manage all maintenance requests and work orders
+							Manage all your maintenance requests
 						</CardDescription>
 					</div>
 					<Link href="/maintenance/new">
 						<Button size="sm">
-							<Plus className="mr-2 h-4 w-4" />
-							New Request
+							<i className="i-lucide-plus inline-block mr-2 h-4 w-4"  />
+							Add Request
 						</Button>
 					</Link>
 				</div>
@@ -327,25 +206,25 @@ export function MaintenanceDataTable() {
 								<TableHead>Request</TableHead>
 								<TableHead>Priority</TableHead>
 								<TableHead>Status</TableHead>
-								<TableHead>Property</TableHead>
-								<TableHead>Tenant</TableHead>
-								<TableHead className="w-[120px]">
+								<TableHead>Created</TableHead>
+								<TableHead>Estimated Cost</TableHead>
+								<TableHead className="w-[100px]">
 									Actions
 								</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-							{maintenanceRequests.map(request => (
+							{requests.map(request => (
 								<MaintenanceRow
 									key={request.id}
-									request={request as MaintenanceTableRow}
+									request={request}
 								/>
 							))}
 						</TableBody>
 					</Table>
 				</div>
 
-				{maintenanceRequests.length > 10 && (
+				{requests.length > 10 && (
 					<div className="flex items-center justify-center pt-4">
 						<Button variant="outline" size="sm">
 							Load more requests
@@ -354,5 +233,37 @@ export function MaintenanceDataTable() {
 				)}
 			</CardContent>
 		</Card>
+	)
+}
+
+export function MaintenanceDataTable() {
+	const { data: requests, isLoading, error } = useMaintenanceRequests()
+
+	// Loading state
+	if (isLoading) {
+		return (
+			<Card>
+				<CardHeader>
+					<CardTitle>Maintenance Requests</CardTitle>
+					<CardDescription>
+						Manage all your maintenance requests
+					</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<MaintenanceTableSkeleton />
+				</CardContent>
+			</Card>
+		)
+	}
+
+	// Error handling - throw to be caught by error boundary
+	if (error) {
+		throw error
+	}
+
+	return (
+		<MaintenanceTableUI
+			requests={requests || []}
+		/>
 	)
 }

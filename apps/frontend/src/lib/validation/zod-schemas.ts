@@ -97,7 +97,7 @@ export const signupSchema = z
 			.max(100, 'Last name is too long'),
 		acceptTerms: z
 			.boolean()
-			.refine(val => val === true, 'You must accept the terms of service')
+			.refine(val => val, 'You must accept the terms of service')
 	})
 	.refine(data => data.password === data.confirmPassword, {
 		message: 'Passwords do not match',
@@ -166,16 +166,5 @@ export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>
 export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>
 export type SearchInputData = z.infer<typeof searchInputSchema>
 
-// Legacy aliases for backwards compatibility (to be removed gradually)
-// Import and re-export directly from shared package
-export { propertyFormSchema as createPropertyFormSchema } from '@repo/shared/validation'
-export { unitFormSchema as createUnitFormSchema } from '@repo/shared/validation'
-export { tenantFormSchema as createTenantFormSchema } from '@repo/shared/validation'
-export { leaseInputSchema as createLeaseFormSchema } from '@repo/shared/validation'
-
-// Legacy type aliases - re-export from shared
-export type { PropertyFormData as PropertyFormInputData } from '@repo/shared/validation'
-export type { PropertyFormData as PropertyAPIData } from '@repo/shared/validation'
-export type { UnitFormData as CreateUnitFormData } from '@repo/shared/validation'
-export type { TenantFormData as CreateTenantFormData } from '@repo/shared/validation'
-export type { LeaseFormData as CreateLeaseFormData } from '@repo/shared/validation'
+// CLAUDE.md NO_ABSTRACTIONS: Legacy aliases DELETED
+// Use direct imports from @repo/shared/validation instead

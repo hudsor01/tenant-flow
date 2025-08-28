@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Upload, User } from 'lucide-react'
 
 interface AvatarUploadSectionProps {
 	currentAvatar?: string
@@ -26,7 +25,7 @@ export function AvatarUploadSection({
 		if (file) {
 			const reader = new FileReader()
 			reader.onload = () => {
-				setPreviewUrl(reader.result as string)
+				setPreviewUrl((reader.result as string) || null)
 			}
 			reader.readAsDataURL(file)
 		} else {
@@ -54,7 +53,7 @@ export function AvatarUploadSection({
 						alt={userName}
 					/>
 					<AvatarFallback>
-						{currentAvatar ? <User /> : getInitials(userName)}
+						{currentAvatar ? <i className="i-lucide-user inline-block"  /> : getInitials(userName)}
 					</AvatarFallback>
 				</Avatar>
 
@@ -67,7 +66,7 @@ export function AvatarUploadSection({
 							asChild
 						>
 							<span>
-								<Upload className="mr-2 h-4 w-4" />
+								<i className="i-lucide-upload inline-block mr-2 h-4 w-4"  />
 								Change Avatar
 							</span>
 						</Button>
