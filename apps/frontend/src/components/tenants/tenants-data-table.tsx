@@ -221,7 +221,7 @@ function TenantsTableUI({ tenants }: TenantsTableUIProps) {
 								<TableHead>Tenant</TableHead>
 								<TableHead>Phone</TableHead>
 								<TableHead>Status</TableHead>
-								<TableHead>Property</TableHead>
+								<TableHead>Property_</TableHead>
 								<TableHead>Lease End</TableHead>
 								<TableHead className="w-[100px]">
 									Actions

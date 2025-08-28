@@ -305,7 +305,7 @@ export function LeasesDataTable() {
 							<TableRow>
 								<TableHead>Lease</TableHead>
 								<TableHead>Tenant</TableHead>
-								<TableHead>Property</TableHead>
+								<TableHead>Property_</TableHead>
 								<TableHead>Rent</TableHead>
 								<TableHead>Status</TableHead>
 								<TableHead className="w-[120px]">

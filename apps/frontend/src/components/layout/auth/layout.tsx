@@ -31,7 +31,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 	description,
 	image = {
 		src: '/images/roi-up_to_the_right.jpg',
-		alt: 'Property Management Dashboard'
+		alt: 'Property_ Management Dashboard'
 	},
 	heroContent,
 	features = [
@@ -93,7 +93,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 						<div className="relative">
 							<Image
 								src="/tenant-flow-logo.png"
-								alt="TenantFlow - Property Management"
+								alt="TenantFlow - Property_ Management"
 								width={280}
 								height={90}
 								className="h-auto max-h-20 w-auto object-contain drop-shadow-lg"
@@ -159,11 +159,11 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 					<div className="mb-6">
 						<div className="mb-4 inline-flex items-center rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium backdrop-blur-md">
 							<i className="i-lucide-star inline-block mr-2 h-4 w-4 text-amber-300"  />
-							<span>Rated #1 Property Management Platform</span>
+							<span>Rated #1 Property_ Management Platform</span>
 						</div>
 						<h2 className="mb-4 bg-gradient-to-r from-white via-white/95 to-white/90 bg-clip-text text-4xl font-bold leading-tight text-transparent lg:text-5xl">
 							{heroContent?.title ??
-								'Transform Your Property Management'}
+								'Transform Your Property_ Management'}
 						</h2>
 						<p className="text-xl leading-relaxed text-white/90 opacity-90">
 							{heroContent?.description ??

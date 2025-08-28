@@ -45,7 +45,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 				alt: 'Modern property management dashboard'
 			}}
 			heroContent={{
-				title: 'Streamline Your Property Management',
+				title: 'Streamline Your Property_ Management',
 				description:
 					'Join thousands of property owners who save hours every week with our powerful, intuitive platform.'
 			}}

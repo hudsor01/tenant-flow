@@ -61,7 +61,7 @@ const recentActivity = [
 const upcomingTasks = [
 	{
 		id: 1,
-		title: 'Property inspection due',
+		title: 'Property_ inspection due',
 		property: 'Sunset Apartments',
 		dueDate: 'Tomorrow',
 		priority: 'high',

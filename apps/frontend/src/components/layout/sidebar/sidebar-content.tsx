@@ -33,13 +33,13 @@ const navItems: NavItem[] = [
 				description: 'View all properties in your portfolio'
 			},
 			{
-				title: 'Add Property',
+				title: 'Add Property_',
 				url: '/properties/new',
 				icon: <i className="i-lucide-plus inline-block h-3 w-3"  />,
 				description: 'Add a new property to your portfolio'
 			},
 			{
-				title: 'Property Types',
+				title: 'Property_ Types',
 				url: '/properties/types',
 				icon: <i className="i-lucide-building-2 inline-block h-3 w-3"  />,
 				description: 'Configure property categories'
@@ -196,7 +196,7 @@ const navItems: NavItem[] = [
 				title: 'Expenses',
 				url: '/finances/expenses',
 				icon: <i className="i-lucide-file-text inline-block h-3 w-3"  />,
-				description: 'Property expense management'
+				description: 'Property_ expense management'
 			},
 			{
 				title: 'Reports',
@@ -263,7 +263,7 @@ export function SidebarContent() {
 							className="h-8 flex-1 text-xs shadow-sm transition-all duration-200 hover:scale-105 hover:shadow-md active:scale-95"
 						>
 							<i className="i-lucide-plus inline-block mr-1 h-3 w-3"  />
-							Add Property
+							Add Property_
 						</Button>
 						<Button
 							variant="outline"

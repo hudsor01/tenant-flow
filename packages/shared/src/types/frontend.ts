@@ -115,8 +115,9 @@ export interface FrontendConfig {
 // PROVIDER TYPES - CONSOLIDATED from frontend providers
 // =============================================================================
 
+// Framework-agnostic children type that frontend can cast appropriately
 export interface ReactQueryProviderProps {
-	children: React.ReactNode
+	children: unknown // Will be React.ReactNode in frontend usage
 }
 
 // =============================================================================

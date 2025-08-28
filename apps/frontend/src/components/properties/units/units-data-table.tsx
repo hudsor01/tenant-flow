@@ -23,7 +23,7 @@ import type { Database } from '@repo/shared'
 // Define types directly from Database schema - NO DUPLICATION
 type Unit = Database['public']['Tables']['Unit']['Row']
 
-// Use UnitWithProperty instead of UnitWithDetails for better type alignment
+// Use UnitWithProperty_ instead of UnitWithDetails for better type alignment
 type UnitDisplayData = Unit & {
 	property?: {
 		name: string
@@ -89,7 +89,7 @@ function UnitRow({ unit }: { unit: UnitDisplayData }) {
 						</p>
 						<div className="text-muted-foreground flex items-center gap-1 text-sm">
 							<i className="i-lucide-building inline-block h-3 w-3"  />
-							{unit.property?.name || 'Unknown Property'}
+							{unit.property?.name || 'Unknown Property_'}
 						</div>
 					</div>
 				</div>

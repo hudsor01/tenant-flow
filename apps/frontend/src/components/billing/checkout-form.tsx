@@ -26,6 +26,8 @@ interface CheckoutFormProps {
  * Client Component - CheckoutForm
  * Uses server actions for secure checkout session creation
  */
+type CheckoutState = { success: boolean; errors?: { _form?: string[] } }
+
 export function CheckoutForm({
 	priceId,
 	planName,
@@ -35,12 +37,9 @@ export function CheckoutForm({
 	couponId,
 	className
 }: CheckoutFormProps) {
-	const [state, formAction, isPending] = useActionState(
+	const [state, formAction, isPending] = useActionState<CheckoutState, FormData>(
 		createCheckoutSession,
-		{
-			success: false,
-			errors: {}
-		}
+		{ success: false, errors: {} }
 	)
 
 	return (
@@ -161,7 +160,7 @@ export function CheckoutButton({
 	className,
 	children
 }: CheckoutButtonProps) {
-	const [state, formAction, isPending] = useActionState(
+	const [state, formAction, isPending] = useActionState<CheckoutState, FormData>(
 		createCheckoutSession,
 		{ success: false, errors: {} }
 	)

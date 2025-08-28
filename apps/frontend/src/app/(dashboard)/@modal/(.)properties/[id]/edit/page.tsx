@@ -7,29 +7,29 @@ import {
 	DialogHeader,
 	DialogTitle
 } from '@/components/ui/dialog'
-import { PropertyForm } from '@/components/properties/property-form'
+import { Property_Form } from '@/components/properties/property-form'
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import type { PropertyWithUnits } from '@repo/shared'
 
 // Client Component for modal content
-export default function EditPropertyModal() {
+export default function EditProperty_Modal() {
 	const params = useParams()
-	const [property, setProperty] = useState<PropertyWithUnits | null>(null)
+const [property, setProperty_] = useState<PropertyWithUnits | null>(null)
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
 
 	useEffect(() => {
-		async function fetchProperty() {
+		async function fetchProperty_() {
 			try {
 				setLoading(true)
 				// Fetch property data on client side to avoid build-time Supabase issues
 				const response = await fetch(`/api/properties/${params.id}`)
 				if (!response.ok) {
-					throw new Error('Property not found')
+					throw new Error('Property_ not found')
 				}
 				const propertyData = await response.json()
-				setProperty(propertyData)
+				setProperty_(propertyData)
 			} catch (err) {
 				setError(
 					err instanceof Error
@@ -42,7 +42,7 @@ export default function EditPropertyModal() {
 		}
 
 		if (params.id) {
-			void fetchProperty()
+			void fetchProperty_()
 		}
 	}, [params.id])
 
@@ -68,7 +68,7 @@ export default function EditPropertyModal() {
 					<DialogHeader>
 						<DialogTitle>Error</DialogTitle>
 						<DialogDescription>
-							{error ?? 'Property not found'}
+							{error ?? 'Property_ not found'}
 						</DialogDescription>
 					</DialogHeader>
 				</DialogContent>
@@ -85,7 +85,7 @@ export default function EditPropertyModal() {
 						Update property information and settings
 					</DialogDescription>
 				</DialogHeader>
-				<PropertyForm property={property} properties={[]} />
+				<Property_Form property={property} properties={[]} />
 			</DialogContent>
 		</Dialog>
 	)

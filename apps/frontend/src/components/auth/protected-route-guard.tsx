@@ -132,7 +132,7 @@ export function ReverseAuthGuard({
 		if (!loading && user && !isRedirecting) {
 			logger.debug('ReverseAuthGuard: Redirecting authenticated user', {
 				component: 'ReverseAuthGuard',
-				userId: user.id,
+				_userId: user.id,
 				redirectTo,
 				currentPath: window.location.pathname
 			})

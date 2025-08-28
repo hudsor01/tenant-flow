@@ -9,10 +9,7 @@ import React from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { createUnit, updateUnit } from '@/app/actions/units'
-import type { 
-	Unit, 
-	Property
-} from '@repo/shared'
+import type { Unit, Property } from '@repo/shared'
 import { z } from 'zod'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -24,7 +21,7 @@ import { Separator } from '@/components/ui/separator'
 import {
 	Form,
 	FormControl,
-	FormDescription,
+	_FormDescription,
 	FormField,
 	FormItem,
 	FormLabel,
@@ -35,7 +32,7 @@ import { toast } from 'sonner'
 
 // Simple form schema without transformations for React Hook Form compatibility
 const unitFormSchema = z.object({
-	propertyId: z.string().min(1, 'Property is required'),
+	propertyId: z.string().min(1, 'Property_ is required'),
 	unitNumber: z.string().min(1, 'Unit number is required'),
 	bedrooms: z.string().optional(),
 	bathrooms: z.string().optional(),
@@ -102,17 +99,17 @@ export function UnitForm({
 			})
 
 			// Call appropriate server action
-			let result: Unit
+			let _result: Unit
 			if (isEditing && unit) {
-				result = await updateUnit(unit.id, formData)
+				_result = await updateUnit(unit.id, formData)
 				toast.success('Unit updated successfully!')
 			} else {
-				result = await createUnit(formData)
+				_result = await createUnit(formData)
 				toast.success('Unit created successfully!')
 			}
 
 			setSubmitSuccess(true)
-			onSuccess?.(result)
+			onSuccess?.(_result)
 
 		} catch (error) {
 			const errorMessage = error instanceof Error 
@@ -190,7 +187,7 @@ export function UnitForm({
 										render={({ field }) => (
 											<FormItem>
 												<FormLabel>
-													Property <span className="text-destructive ml-1">*</span>
+													Property_ <span className="text-destructive ml-1">*</span>
 												</FormLabel>
 												<Select 
 													onValueChange={field.onChange} 

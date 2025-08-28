@@ -369,7 +369,7 @@ export function DashboardSidebar({
 										TenantFlow
 									</span>
 									<p className="mt-1 text-xs text-gray-500">
-										Property Management
+										Property_ Management
 									</p>
 								</div>
 							</Link>

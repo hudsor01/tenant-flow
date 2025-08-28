@@ -3,7 +3,6 @@
 	"compilerOptions": {
 		"target": "ES2022",
 		"lib": ["ES2022", "DOM"],
-		"types": ["node", "react"],
 		"module": "CommonJS",
 		"moduleResolution": "node",
 		"declaration": true,
@@ -22,6 +21,8 @@
 		"resolveJsonModule": true,
 		"baseUrl": ".",
 		"paths": {
+			"react": ["../../node_modules/react", "node_modules/react"],
+			"react/*": ["../../node_modules/react/*", "node_modules/react/*"],
 			"zod": ["../../node_modules/zod"],
 			"zod/*": ["../../node_modules/zod/*"],
 			"@tanstack/react-query": [

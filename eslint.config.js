@@ -6,7 +6,6 @@
  * following Turborepo best practices for monorepo configuration
  */
 
-import { defineConfig } from 'eslint/config'
 import baseConfig from './packages/eslint-config/base.js'
 import noInlineTypes from './.eslint/rules/no-inline-types.js'
 import noBarrelExports from './.eslint/rules/no-barrel-exports.js'
@@ -14,9 +13,9 @@ import noBarrelExports from './.eslint/rules/no-barrel-exports.js'
 /**
  * Root-level configuration with project-specific overrides
  * Extends the base configuration from @repo/eslint-config
- * Using official ESLint 9 defineConfig() helper
+ * Using ESLint 9 flat config format (no defineConfig wrapper needed)
  */
-export default defineConfig([
+export default [
 	// Use the shared base configuration
 	...baseConfig,
 
@@ -162,4 +161,4 @@ export default defineConfig([
 			radix: 'error'
 		}
 	}
-])
+]

@@ -10,7 +10,7 @@ const featureCategories = [
 		name: 'Core Features',
 		features: [
 			{
-				name: 'Property Management',
+				name: 'Property_ Management',
 				starter: true,
 				growth: true,
 				max: true

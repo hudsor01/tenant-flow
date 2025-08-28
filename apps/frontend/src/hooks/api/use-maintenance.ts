@@ -8,15 +8,14 @@ import {
 	useQueryClient,
 	type UseQueryResult
 } from '@tanstack/react-query'
-import type { Database, MaintenanceRequestApiResponse, MaintenanceQuery } from '@repo/shared'
+import type { Database, MaintenanceRequestApiResponse } from '@repo/shared'
 import type { MaintenanceStats } from '@repo/shared/types/dashboard-stats'
 
 // Use Database types directly - no duplication
 type MaintenanceRequest = Database['public']['Tables']['MaintenanceRequest']['Row']
 type CreateMaintenanceInput = Database['public']['Tables']['MaintenanceRequest']['Insert']
 type UpdateMaintenanceInput = Database['public']['Tables']['MaintenanceRequest']['Update']
-type RequestStatus = Database['public']['Enums']['RequestStatus']
-import { apiClient } from '@/lib/api-client'
+import { apiClient, get, post, put, del } from '@/lib/api-client'
 import { queryKeys } from '@/lib/query-keys'
 
 // ============================================================================
@@ -27,7 +26,7 @@ import { queryKeys } from '@/lib/query-keys'
  * Standard useQuery for maintenance requests
  */
 export function useMaintenanceRequests(
-	params?: MaintenanceQuery
+    params?: Record<string, unknown>
 ): UseQueryResult<MaintenanceRequestApiResponse[]> {
 	return useQuery({
 		queryKey: queryKeys.maintenance.list(params),
