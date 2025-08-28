@@ -52,6 +52,16 @@ interface NavigationLinkProps {
 	className?: string
 }
 
+function renderIcon(icon: NavItem['icon']) {
+	if (React.isValidElement(icon)) {
+		return icon
+	}
+	if (typeof icon === 'string') {
+		return <i className={icon} />
+	}
+	return <span>{String(icon)}</span>
+}
+
 export function NavigationLink({
 	item,
 	variant = 'horizontal',
@@ -81,11 +91,7 @@ export function NavigationLink({
 				<span
 					className={variant === 'sidebar' ? 'icon-nav-sidebar' : 'icon-nav-default'}
 				>
-					{React.isValidElement(item.icon)
-						? item.icon
-						: typeof item.icon === 'string'
-							? <i className={`${item.icon}`} />
-							: <span>{String(item.icon)}</span>}
+					{renderIcon(item.icon)}
 				</span>
 			) : null}
 

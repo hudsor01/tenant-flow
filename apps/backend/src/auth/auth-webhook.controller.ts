@@ -115,7 +115,7 @@ export class AuthWebhookController {
 				id: user.id,
 				aud: 'authenticated',
 				email: user.email || '',
-				email_confirmed_at: user.email_confirmed_at || undefined,
+				email_confirmed_at: user.email_confirmed_at ?? undefined,
 				user_metadata: user.user_metadata || {},
 				app_metadata: {},
 				created_at: user.created_at,

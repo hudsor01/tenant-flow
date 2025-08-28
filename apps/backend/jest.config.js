@@ -28,7 +28,7 @@ module.exports = {
         '^@repo/shared/(.*)$': '<rootDir>/../../packages/shared/src/$1',
 		'^@repo/(.*)$': '<rootDir>/../../packages/$1/src'
 	},
-	setupFilesAfterEnv: [path.resolve(__dirname, 'test', 'setup.ts')],
+	setupFilesAfterEnv: ['<rootDir>/test/setup.ts'],
 	// 'setupFiles': ['<rootDir>/test/disable-nestjs-logger.ts'],
 	testTimeout: 10000,
 	maxWorkers: 1,
