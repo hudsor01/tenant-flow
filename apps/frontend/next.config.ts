@@ -27,14 +27,14 @@ const nextConfig: NextConfig = {
 	trailingSlash: false,
 	generateEtags: true,
 	outputFileTracingRoot: path.join(__dirname, '../../'),
-
+	
 	// External packages for server components (Next.js 15)
 	serverExternalPackages: ['@react-email/components'],
 	
 	// Next.js 15 Experimental Features
 	experimental: {
-		// Optimize CSS handling
-		cssChunking: 'strict',
+		// Remove CSS chunking configuration to use Next.js defaults
+		// cssChunking: true, // commented out - let Next.js handle it automatically
 		optimizeCss: false,
 		
 		// Enable server actions optimizations
@@ -52,7 +52,10 @@ const nextConfig: NextConfig = {
 			'zod',
 			'date-fns',
 			'framer-motion'
-		]
+		],
+		
+		// Improve Vercel deployment compatibility (deprecated - moved to serverExternalPackages)
+		// serverComponentsExternalPackages: ['@react-email/components']
 	},
 
 	// Build validation - temporarily ignore ESLint warnings during builds
@@ -163,16 +166,18 @@ const nextConfig: NextConfig = {
 	pageExtensions: ['tsx', 'ts'],
 
 	// Turbopack configuration for development
-	turbopack: {
-		// Point to monorepo root to fix package resolution in monorepo
-		root: path.join(__dirname, '../../'),
-		rules: {
-			'*.svg': {
-				loaders: ['@svgr/webpack'],
-				as: '*.js'
+	...(process.env.NODE_ENV === 'development' && {
+		turbopack: {
+			// Point to monorepo root to fix package resolution in monorepo
+			root: path.join(__dirname, '../../'),
+			rules: {
+				'*.svg': {
+					loaders: ['@svgr/webpack'],
+					as: '*.js'
+				}
 			}
 		}
-	},
+	}),
 
 	// Webpack configuration for production builds
 	webpack: (config: unknown, context: unknown): unknown => {
