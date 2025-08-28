@@ -45,16 +45,14 @@ COPY . .
 RUN rm -rf .git .github docs *.md apps/frontend apps/storybook
 
 # Build-time optimizations
-# 1024MB memory: Optimized based on project complexity analysis (reduced from 1096MB)
-# Disable telemetry: Faster builds, no data collection
-ENV NODE_OPTIONS="--max-old-space-size=1024" \
+# Increase memory for Railway builds (they have more available)
+ENV NODE_OPTIONS="--max-old-space-size=2048" \
     TURBO_TELEMETRY_DISABLED=1
 
-# Build shared and database packages first, then backend
-RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-/app/.turbo,target=/app/.turbo \
-    cd packages/shared && npm run build && cd ../.. && \
-    cd packages/database && npm run build && cd ../.. && \
-    cd apps/backend && npm run build
+# Build all packages in sequence with proper error handling
+RUN cd packages/shared && npm run build && \
+    cd ../database && npm run build && \
+    cd ../../apps/backend && npm run build
 
 # ===== PRODUCTION DEPS STAGE =====
 # Clean production dependencies separate from build artifacts
