@@ -81,7 +81,7 @@ export function SubscriptionUpgradeModal({
 	isOpen,
 	onClose,
 	currentPlan,
-	_userId,
+	userId: _userId,
 	onUpgradeSuccess
 }: SubscriptionUpgradeModalProps) {
 	const [selectedPlan, setSelectedPlan] = useState<PlanType | null>(null)

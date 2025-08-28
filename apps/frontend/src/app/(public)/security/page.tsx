@@ -1,3 +1,5 @@
+'use client'
+
 import React from 'react'
 import { motion } from 'framer-motion'
 import { Badge } from '@/components/ui/badge'
@@ -163,7 +165,7 @@ function SecurityFeatures() {
 	)
 }
 
-export function SecurityContent() {
+export default function SecurityPage() {
 	const trustSignals = [
 		{
 			metric: '99.9%',

@@ -1,3 +1,5 @@
+'use client'
+
 import { Button } from '@/components/ui/button'
 import { useCreateCheckoutSession } from '@/hooks/api/use-billing'
 import type { PlanType } from '@repo/shared'

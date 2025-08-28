@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * Modern Pricing Cards Component
  * Inspired by Resend's clean card design and Stripe's interaction patterns
