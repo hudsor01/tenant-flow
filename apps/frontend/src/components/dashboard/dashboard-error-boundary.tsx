@@ -1,7 +1,7 @@
 'use client'
 
 import { Component, type ReactNode } from 'react'
-import { logger } from '@/lib/logger'
+import { logger } from '@/lib/logger/logger'
 import {
 	Card,
 	CardContent,
@@ -11,7 +11,6 @@ import {
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { AlertTriangle, RefreshCw, Home } from 'lucide-react'
 import Link from 'next/link'
 
 interface Props {
@@ -41,7 +40,7 @@ export class DashboardErrorBoundary extends Component<Props, State> {
 		})
 	}
 
-	override render() {
+	override async render() {
 		if (this.state.hasError) {
 			// Check if it's an API error
 			const isApiError =
@@ -53,7 +52,7 @@ export class DashboardErrorBoundary extends Component<Props, State> {
 				return (
 					<div className="container mx-auto max-w-4xl p-6">
 						<Alert className="mb-6">
-							<AlertTriangle className="h-4 w-4" />
+							<i className="i-lucide-alert-triangle inline-block h-4 w-4"  />
 							<AlertTitle>Limited Functionality</AlertTitle>
 							<AlertDescription>
 								Some features are currently unavailable. You can
@@ -116,7 +115,7 @@ export class DashboardErrorBoundary extends Component<Props, State> {
 										variant="secondary"
 										className="w-full"
 									>
-										<RefreshCw className="mr-2 h-4 w-4" />
+										<i className="i-lucide-refreshcw inline-block mr-2 h-4 w-4"  />
 										Retry Loading Dashboard
 									</Button>
 								</CardContent>
@@ -126,7 +125,7 @@ export class DashboardErrorBoundary extends Component<Props, State> {
 						<div className="mt-6 text-center">
 							<Link href="/">
 								<Button variant="ghost">
-									<Home className="mr-2 h-4 w-4" />
+									<i className="i-lucide-home inline-block mr-2 h-4 w-4"  />
 									Back to Home
 								</Button>
 							</Link>
@@ -152,7 +151,7 @@ export class DashboardErrorBoundary extends Component<Props, State> {
 									onClick={() => window.location.reload()}
 									className="w-full"
 								>
-									<RefreshCw className="mr-2 h-4 w-4" />
+									<i className="i-lucide-refreshcw inline-block mr-2 h-4 w-4"  />
 									Refresh Page
 								</Button>
 								<Link href="/" className="block">

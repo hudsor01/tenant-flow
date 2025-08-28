@@ -1,136 +1,171 @@
-import { 
-  Body, 
-  Controller, 
-  Get, 
-  Logger,
-  Param, 
-  Post, 
-  Put, 
-  Query,
-  UseGuards
+import {
+	Body,
+	Controller,
+	Delete,
+	Get,
+	Param,
+	Post,
+	Put,
+	Query,
+	UseGuards
 } from '@nestjs/common'
-import { UnifiedAuthGuard } from '../shared/guards/unified-auth.guard'
+import { PinoLogger } from 'nestjs-pino'
+import { AuthGuard } from '../shared/guards/auth.guard'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
-import { ValidatedUser } from '../auth/auth.service'
+import type { ValidatedUser } from '@repo/shared/types/auth'
 import { AdminOnly, Public } from '../shared/decorators/auth.decorators'
-import { ErrorHandlerService } from '../services/error-handler.service'
 import { NotificationsService } from './notifications.service'
-import { 
-  CreateNotificationDto, 
-  GetNotificationsDto
-} from './dto/notification.dto'
+// Ultra-native: Define inline types instead of DTOs
+// Use shared types instead of local interfaces
+import type { GetNotificationOptions, CreateNotificationRequest } from '@repo/shared/types/notifications'
 
 @Controller('notifications')
-@UseGuards(UnifiedAuthGuard)
+@UseGuards(AuthGuard)
 export class NotificationsController {
-  private readonly logger = new Logger(NotificationsController.name)
+	constructor(
+		private readonly notificationsService: NotificationsService,
+		private readonly logger: PinoLogger
+	) {
+		// PinoLogger context handled automatically via app-level configuration
+	}
 
-  constructor(
-    private readonly notificationsService: NotificationsService,
-    private readonly errorHandler: ErrorHandlerService
-  ) {}
+	@Get()
+	async getNotifications(
+		@Query() query: GetNotificationOptions,
+		@CurrentUser() user: ValidatedUser
+	) {
+		this.logger.info(`Getting notifications for user ${user.id}`, {
+			userId: user.id,
+			unreadOnly: query.unreadOnly
+		})
 
-  @Get()
-  async getNotifications(
-    @Query() query: GetNotificationsDto,
-    @CurrentUser() user: ValidatedUser
-  ) {
-    this.logger.log(`Getting notifications for user ${user.id}`, {
-      userId: user.id,
-      unreadOnly: query.unreadOnly
-    })
+		// For now, only support unread notifications - can be extended later
+		const notifications =
+			await this.notificationsService.getUnreadNotifications(user.id)
+		this.logger.info(
+			`Retrieved ${notifications.length} notifications for user ${user.id}`
+		)
+		return notifications
+	}
 
-    try {
-      if (query.unreadOnly) {
-        const notifications = await this.notificationsService.getUnreadNotifications(user.id)
-        this.logger.log(`Retrieved ${notifications.length || 0} unread notifications for user ${user.id}`)
-        return notifications
-      }
+	@Post()
+	@AdminOnly()
+	async createNotification(
+		@Body() createNotificationDto: CreateNotificationRequest,
+		@CurrentUser() user: ValidatedUser
+	) {
+		const { recipientId, title, message, priority, actionUrl, data } =
+			createNotificationDto
 
-      // Get all notifications for user
-      const notifications = await this.notificationsService.getUnreadNotifications(user.id)
-      this.logger.log(`Retrieved ${notifications.length || 0} notifications for user ${user.id}`)
-      return notifications
-    } catch (error) {
-      this.logger.error(`Failed to get notifications for user ${user.id}`, error)
-      this.errorHandler.handleError(error, {
-        operation: 'getNotifications',
-        resource: 'notifications',
-        metadata: { userId: user.id, unreadOnly: query.unreadOnly }
-      })
-      throw error
-    }
-  }
+		this.logger.info(
+			`Admin ${user.id} creating notification for user ${recipientId}`,
+			{
+				adminId: user.id,
+				recipientId,
+				title,
+				priority,
+				hasActionUrl: !!actionUrl
+			}
+		)
 
-  @Post()
-  @AdminOnly()
-  async createNotification(
-    @Body() createNotificationDto: CreateNotificationDto,
-    @CurrentUser() user: ValidatedUser
-  ) {
-    const { recipientId, title, message, priority, actionUrl, data } = createNotificationDto
-    
-    this.logger.log(`Admin ${user.id} creating notification for user ${recipientId}`, {
-      adminId: user.id,
-      recipientId,
-      title,
-      priority,
-      hasActionUrl: !!actionUrl
-    })
+		try {
+			// For now, we'll create a generic notification
+			// In the future, this could be expanded to handle different types
+			const notification =
+				await this.notificationsService.createMaintenanceNotification(
+					recipientId,
+					title,
+					message,
+					priority,
+					(data!.propertyName as string) || '',
+					(data!.unitNumber as string) || '',
+					data!.maintenanceId as string,
+					actionUrl
+				)
 
-    try {
-      // For now, we'll create a generic notification
-      // In the future, this could be expanded to handle different types
-      const notification = await this.notificationsService.createMaintenanceNotification(
-        recipientId,
-        title,
-        message,
-        priority,
-        (data as Record<string, unknown>)?.propertyName as string || '',
-        (data as Record<string, unknown>)?.unitNumber as string || '',
-        (data as Record<string, unknown>)?.maintenanceId as string,
-        actionUrl
-      )
-      
-      this.logger.log(`Notification created successfully`, {
-        recipientId,
-        priority,
-        title
-      })
-      
-      return notification
-    } catch (error) {
-      this.logger.error(`Failed to create notification for user ${recipientId}`, error)
-      throw error
-    }
-  }
+			this.logger.info(`Notification created successfully`, {
+				recipientId,
+				priority,
+				title
+			})
 
-  @Put(':id/read')
-  async markAsRead(
-    @Param('id') notificationId: string,
-    @CurrentUser() user: ValidatedUser
-  ) {
-    this.logger.log(`User ${user.id} marking notification ${notificationId} as read`)
+			return notification
+		} catch (error) {
+			this.logger.error(
+				`Failed to create notification for user ${recipientId}`,
+				error
+			)
+			throw error
+		}
+	}
 
-    try {
-      const result = await this.notificationsService.markAsRead(notificationId, user.id)
-      this.logger.log(`Notification ${notificationId} marked as read by user ${user.id}`)
-      return result
-    } catch (error) {
-      this.logger.error(`Failed to mark notification ${notificationId} as read for user ${user.id}`, error)
-      throw error
-    }
-  }
+	@Put(':id/read')
+	async markAsRead(
+		@Param('id') notificationId: string,
+		@CurrentUser() user: ValidatedUser
+	) {
+		this.logger.info(
+			`User ${user.id} marking notification ${notificationId} as read`
+		)
 
-  @Get('priority-info/:priority')
-  @Public()
-  async getPriorityInfo(@Param('priority') priority: string) {
-    const priorityEnum = priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
-    return {
-      label: this.notificationsService.getPriorityLabel(priorityEnum),
-      urgent: this.notificationsService.getNotificationUrgency(priorityEnum),
-      timeout: this.notificationsService.getNotificationTimeout(priorityEnum),
-      sendImmediately: this.notificationsService.shouldSendImmediately(priorityEnum)
-    }
-  }
+		try {
+			const result = await this.notificationsService.markAsRead(
+				notificationId,
+				user.id
+			)
+			this.logger.info(
+				`Notification ${notificationId} marked as read by user ${user.id}`
+			)
+			return result
+		} catch (error) {
+			this.logger.error(
+				`Failed to mark notification ${notificationId} as read for user ${user.id}`,
+				error
+			)
+			throw error
+		}
+	}
+
+	@Delete(':id')
+	async cancelNotification(
+		@Param('id') notificationId: string,
+		@CurrentUser() user: ValidatedUser
+	) {
+		this.logger.info(
+			`User ${user.id} cancelling notification ${notificationId}`
+		)
+
+		try {
+			const result = await this.notificationsService.cancelNotification(
+				notificationId,
+				user.id
+			)
+			this.logger.info(
+				`Notification ${notificationId} cancelled by user ${user.id}`
+			)
+			return result
+		} catch (error) {
+			this.logger.error(
+				`Failed to cancel notification ${notificationId} for user ${user.id}`,
+				error
+			)
+			throw error
+		}
+	}
+
+	@Get('priority-info/:priority')
+	@Public()
+	getPriorityInfo(@Param('priority') priority: string) {
+		const priorityEnum = priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
+		return {
+			label: this.notificationsService.getPriorityLabel(priorityEnum),
+			urgent: this.notificationsService.getNotificationUrgency(
+				priorityEnum
+			),
+			timeout:
+				this.notificationsService.getNotificationTimeout(priorityEnum),
+			sendImmediately:
+				this.notificationsService.shouldSendImmediately(priorityEnum)
+		}
+	}
 }

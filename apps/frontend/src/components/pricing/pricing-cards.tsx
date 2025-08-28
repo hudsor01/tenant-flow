@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * Modern Pricing Cards Component
  * Inspired by Resend's clean card design and Stripe's interaction patterns
@@ -6,7 +8,6 @@
 'use client'
 
 import { useState } from 'react'
-import { Check, ArrowRight, Star, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -20,11 +21,27 @@ import type { PlanType, BillingPeriod } from '@repo/shared'
 
 export function PricingCards() {
 	const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('monthly')
-	const createCheckoutMutation = useCreateCheckoutSession()
+	const _createCheckoutMutation = useCreateCheckoutSession()
 	const plans = getAllPlans()
 
+	// Computed class functions - KISS principle compliance
+	const getBillingToggleClasses = (isActive: boolean) => 
+		isActive 
+			? 'rounded-lg pad-md text-sm font-medium transition-colors bg-white text-gray-900 shadow-sm'
+			: 'rounded-lg pad-md text-sm font-medium transition-colors text-gray-600 hover:text-gray-900'
+
+	const getCardClasses = (isHighlighted: boolean) =>
+		isHighlighted
+			? 'relative overflow-hidden transition-default scale-105 border-2 border-blue-500 shadow-xl ring-4 ring-blue-50'
+			: 'relative overflow-hidden transition-default border border-gray-200 shadow-sm hover:border-gray-300 hover-lift'
+
+	const getCtaButtonClasses = (isHighlighted: boolean) =>
+		isHighlighted
+			? 'h-12 w-full text-base font-semibold transition-default bg-blue-600 text-white shadow-lg hover:bg-blue-700 hover:shadow-xl'
+			: 'h-12 w-full text-base font-semibold transition-default bg-gray-900 text-white hover:bg-gray-800'
+
 	const handleGetStarted = async (planId: PlanType) => {
-		createCheckoutMutation.mutate({
+		_createCheckoutMutation.mutate({
 			planId: planId,
 			interval: billingPeriod === 'monthly' ? 'monthly' : 'annual',
 			successUrl: `${window.location.origin}/billing/success`,
@@ -51,21 +68,13 @@ export function PricingCards() {
 					<div className="flex items-center rounded-xl border border-gray-200 bg-gray-50 p-1">
 						<button
 							onClick={() => setBillingPeriod('monthly')}
-							className={`rounded-lg px-6 py-2 text-sm font-medium transition-all ${
-								billingPeriod === 'monthly'
-									? 'bg-white text-gray-900 shadow-sm'
-									: 'text-gray-600 hover:text-gray-900'
-							}`}
+							className={getBillingToggleClasses(billingPeriod === 'monthly')}
 						>
 							Monthly
 						</button>
 						<button
 							onClick={() => setBillingPeriod('annual')}
-							className={`rounded-lg px-6 py-2 text-sm font-medium transition-all ${
-								billingPeriod === 'annual'
-									? 'bg-white text-gray-900 shadow-sm'
-									: 'text-gray-600 hover:text-gray-900'
-							}`}
+							className={getBillingToggleClasses(billingPeriod === 'annual')}
 						>
 							<span>Annual</span>
 							<Badge
@@ -83,30 +92,29 @@ export function PricingCards() {
 					{plans.map(plan => {
 						const price =
 							billingPeriod === 'monthly'
-								? plan.monthly
-								: plan.annual
+								? plan.price.monthly
+								: plan.price.annual
 						const savings =
 							billingPeriod === 'annual'
-								? getAnnualSavings(plan.id)
+								? getAnnualSavings(
+										plan.price.monthly,
+										plan.price.annual
+									)
 								: 0
-						const isPopular = plan.popular
-						const isRecommended = plan.recommended
+						const isPopular = plan.id === 'pro' // Pro plan is popular
+						const isRecommended = plan.id === 'pro' // Pro plan is recommended
 
 						return (
 							<Card
 								key={plan.id}
-								className={`relative overflow-hidden transition-all duration-200 ${
-									isPopular || isRecommended
-										? 'scale-105 border-2 border-blue-500 shadow-xl ring-4 ring-blue-50'
-										: 'border border-gray-200 shadow-sm hover:border-gray-300 hover:shadow-lg'
-								}`}
+								className={getCardClasses(isPopular || isRecommended)}
 							>
 								{/* Popular/Recommended badge */}
 								{(isPopular || isRecommended) && (
 									<div className="absolute -top-4 left-1/2 -translate-x-1/2">
 										<Badge className="bg-blue-600 px-4 py-1 font-medium text-white">
 											{isRecommended && (
-												<Star className="mr-1 h-3 w-3 fill-current" />
+												<i className="i-lucide-star inline-block mr-1 h-3 w-3 fill-current"  />
 											)}
 											{isRecommended
 												? 'Recommended'
@@ -115,7 +123,7 @@ export function PricingCards() {
 									</div>
 								)}
 
-								<CardHeader className="pt-8 pb-8">
+								<CardHeader className="pb-8 pt-8">
 									<div className="text-center">
 										<h3 className="text-2xl font-bold text-gray-900">
 											{plan.name}
@@ -128,7 +136,10 @@ export function PricingCards() {
 										<div className="mt-6">
 											<div className="flex items-baseline justify-center">
 												<span className="text-5xl font-bold text-gray-900">
-													{formatPrice(price.amount)}
+													{formatPrice(
+														price,
+														billingPeriod
+													)}
 												</span>
 												<span className="ml-2 text-lg text-gray-600">
 													/
@@ -142,7 +153,10 @@ export function PricingCards() {
 												savings > 0 && (
 													<div className="mt-2 text-sm font-medium text-green-600">
 														Save{' '}
-														{formatPrice(savings)}{' '}
+														{formatPrice(
+															savings,
+															'annual'
+														)}{' '}
 														annually
 													</div>
 												)}
@@ -151,7 +165,8 @@ export function PricingCards() {
 												<div className="mt-2 text-sm text-gray-500">
 													or{' '}
 													{formatPrice(
-														plan.annual.amount
+														plan.price.annual,
+														'annual'
 													)}
 													/year
 												</div>
@@ -168,7 +183,7 @@ export function PricingCards() {
 												key={index}
 												className="flex items-start gap-3"
 											>
-												<Check className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600" />
+												<i className="i-lucide-check inline-block mt-0.5 h-5 w-5 flex-shrink-0 text-green-600"  />
 												<span className="text-gray-700">
 													{feature}
 												</span>
@@ -185,27 +200,21 @@ export function PricingCards() {
 											<div className="flex justify-between">
 												<span>Properties:</span>
 												<span className="font-medium">
-													{plan.limits.properties ===
-													-1
+													{plan.propertyLimit === -1
 														? 'Unlimited'
-														: plan.limits
-																.properties}
+														: plan.propertyLimit}
 												</span>
 											</div>
 											<div className="flex justify-between">
 												<span>Units:</span>
 												<span className="font-medium">
-													{plan.limits.units === -1
-														? 'Unlimited'
-														: plan.limits.units}
+													Unlimited
 												</span>
 											</div>
 											<div className="flex justify-between">
 												<span>Team members:</span>
 												<span className="font-medium">
-													{plan.limits.users === -1
-														? 'Unlimited'
-														: plan.limits.users}
+													Unlimited
 												</span>
 											</div>
 										</div>
@@ -213,19 +222,15 @@ export function PricingCards() {
 
 									{/* CTA Button */}
 									<Button
-										onClick={() =>
-											handleGetStarted(plan.id)
+										onClick={async () =>
+											handleGetStarted(plan.id as PlanType)
 										}
 										disabled={
-											createCheckoutMutation.isPending
+											_createCheckoutMutation.isPending
 										}
-										className={`h-12 w-full text-base font-semibold transition-all ${
-											isPopular || isRecommended
-												? 'bg-blue-600 text-white shadow-lg hover:bg-blue-700 hover:shadow-xl'
-												: 'bg-gray-900 text-white hover:bg-gray-800'
-										}`}
+										className={getCtaButtonClasses(isPopular || isRecommended)}
 									>
-										{createCheckoutMutation.isPending ? (
+										{_createCheckoutMutation.isPending ? (
 											<div className="flex items-center gap-2">
 												<div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
 												Processing...
@@ -233,7 +238,7 @@ export function PricingCards() {
 										) : (
 											<div className="flex items-center gap-2">
 												Start free trial
-												<ArrowRight className="h-4 w-4" />
+												<i className="i-lucide-arrow-right inline-block h-4 w-4"  />
 											</div>
 										)}
 									</Button>
@@ -261,7 +266,7 @@ export function PricingCards() {
 						</p>
 						<Button variant="outline" size="lg" className="gap-2">
 							<span>Contact sales</span>
-							<ArrowRight className="h-4 w-4" />
+							<i className="i-lucide-arrow-right inline-block h-4 w-4"  />
 						</Button>
 					</div>
 				</div>
@@ -270,7 +275,7 @@ export function PricingCards() {
 				<div className="mt-16 text-center">
 					<div className="inline-flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-6 py-3">
 						<div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100">
-							<Zap className="h-4 w-4 text-green-600" />
+							<i className="i-lucide-zap inline-block h-4 w-4 text-green-600"  />
 						</div>
 						<div className="text-sm">
 							<span className="font-semibold text-green-800">

@@ -1,15 +1,25 @@
-import './globals.css'
+import type { Metadata } from 'next/types'
 
-export { viewport, metadata } from './layout.constants'
+export const metadata: Metadata = {
+	title: {
+		template: '%s | TenantFlow',
+		default: 'TenantFlow - Property_ Management Made Simple'
+	},
+	description:
+		'Modern property management software for landlords and property managers.',
+	robots: { index: true, follow: true } // Public pages should be indexed
+}
 
-export default function RootLayout({
-	children
-}: Readonly<{
+interface PublicLayoutProps {
 	children: React.ReactNode
-}>) {
-	return (
-		<html lang="en">
-			<body className="bg-white font-sans antialiased">{children}</body>
-		</html>
-	)
+}
+
+/**
+ * Layout for public pages (marketing, auth, etc.)
+ *
+ * Auth state is now handled globally by the app store and useAuth hook.
+ * No need for a separate AuthProvider wrapper.
+ */
+export default function PublicLayout({ children }: PublicLayoutProps) {
+	return <>{children}</>
 }

@@ -41,7 +41,7 @@ export function MetricCard({
 			<p className="mt-2 text-3xl font-semibold text-gray-900">{value}</p>
 			{change && (
 				<p
-					className={`mt-2 text-sm ${change.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}
+					className={`mt-2 text-sm ${change.startsWith('+') ? 'text-positive' : 'text-negative'}`}
 				>
 					{change} from last month
 				</p>

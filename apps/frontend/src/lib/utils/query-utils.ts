@@ -8,7 +8,9 @@
 export function filterQueryParams<T extends Record<string, unknown>>(
 	params?: T
 ): Record<string, string | number | boolean> | undefined {
-	if (!params) return undefined
+	if (!params) {
+		return undefined
+	}
 
 	const filtered: Record<string, string | number | boolean> = {}
 

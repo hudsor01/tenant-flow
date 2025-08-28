@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, Calendar } from 'lucide-react'
 
 export function HeroButtons() {
 	return (
@@ -13,12 +12,12 @@ export function HeroButtons() {
 					className="bg-blue-600 text-white hover:bg-blue-700"
 				>
 					Start Free Trial
-					<ArrowRight className="ml-2 h-4 w-4" />
+					<i className="i-lucide-arrow-right inline-block ml-2 h-4 w-4"  />
 				</Button>
 			</Link>
 			<Link href="/demo">
 				<Button size="default" variant="outline">
-					<Calendar className="mr-2 h-4 w-4" />
+					<i className="i-lucide-calendar inline-block mr-2 h-4 w-4"  />
 					Book a Demo
 				</Button>
 			</Link>

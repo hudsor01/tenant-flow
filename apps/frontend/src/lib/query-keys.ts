@@ -18,7 +18,8 @@ export const queryKeys = {
 	auth: {
 		all: () => ['auth'] as const,
 		profile: () => ['auth', 'profile'] as const,
-		session: () => ['auth', 'session'] as const
+		session: () => ['auth', 'session'] as const,
+		user: () => ['auth', 'user'] as const
 	},
 
 	// Properties
@@ -54,9 +55,20 @@ export const queryKeys = {
 
 	// Maintenance
 	maintenance: {
-		requests: () => ['maintenance', 'requests'] as const,
+		lists: () => ['maintenance', 'list'] as const,
 		list: (params?: Record<string, unknown>) =>
-			['maintenance', 'list', params] as const
+			['maintenance', 'list', params] as const,
+		detail: (id: string) => ['maintenance', 'detail', id] as const,
+		stats: () => ['maintenance', 'stats'] as const
+	},
+
+	// Billing
+	billing: {
+		subscription: () => ['billing', 'subscription'] as const,
+		invoices: () => ['billing', 'invoices'] as const,
+		paymentMethods: () => ['billing', 'payment-methods'] as const,
+		usage: () => ['billing', 'usage'] as const,
+		portal: () => ['billing', 'portal'] as const
 	},
 
 	// Financial
@@ -102,6 +114,14 @@ export const queryKeys = {
 		activity: () => ['dashboard', 'activity'] as const,
 		alerts: () => ['dashboard', 'alerts'] as const,
 		metrics: (period: string) => ['dashboard', 'metrics', period] as const,
+	},
+
+	// PDF
+	pdf: {
+		health: () => ['pdf', 'health'] as const,
+		generate: (type: string, id: string) => ['pdf', 'generate', type, id] as const,
+		invoice: (invoiceId: string) => ['pdf', 'invoice', invoiceId] as const,
+		lease: (leaseId: string) => ['pdf', 'lease', leaseId] as const
 	}
 }
 

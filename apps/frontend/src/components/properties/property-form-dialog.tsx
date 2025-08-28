@@ -3,11 +3,8 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { propertyFormSchema } from '@repo/shared/validation'
-import {
-	useCreateProperty,
-	useUpdateProperty
-} from '@/hooks/api/use-properties'
+import type { z } from 'zod'
+import { usePropertiesOptimistic } from '@/hooks/api/use-properties'
 import {
 	Dialog,
 	DialogContent,
@@ -19,7 +16,7 @@ import {
 import {
 	Form,
 	FormControl,
-	FormDescription,
+	_FormDescription,
 	FormField,
 	FormItem,
 	FormLabel,
@@ -36,27 +33,39 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2, AlertTriangle } from 'lucide-react'
-import type { PropertyFormProps } from '@/types'
-import type { PropertyFormData } from '@repo/shared/validation'
+import { propertyInputSchema, type Property } from '@repo/shared'
 
-type PropertyFormDialogProps = PropertyFormProps & {
+// Define types directly from Database schema - NO DUPLICATION
+type Property_ = Property
+
+// Use shared validation schema - NO DUPLICATION
+const propertyFormSchema = propertyInputSchema
+
+type Property_FormData = z.infer<typeof propertyFormSchema>
+
+// Define local interfaces for component needs
+interface Property_FormProps {
+	property?: Property_
+	mode: 'create' | 'edit'
+}
+
+type Property_FormDialogProps = Property_FormProps & {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 }
 
-export function PropertyFormDialog({
+export function Property_FormDialog({
 	open,
 	onOpenChange,
 	property,
 	mode
-}: PropertyFormDialogProps) {
+}: Property_FormDialogProps) {
 	const [error, setError] = useState<string | null>(null)
 
-	const createProperty = useCreateProperty()
-	const updateProperty = useUpdateProperty()
+	// Use React 19 optimistic hook
+    const { createProperty, updateProperty, isPending } = usePropertiesOptimistic()
 
-	const form = useForm<PropertyFormData>({
+	const form = useForm({
 		resolver: zodResolver(propertyFormSchema),
 		defaultValues: {
 			name: property?.name || '',
@@ -69,9 +78,7 @@ export function PropertyFormDialog({
 		}
 	})
 
-	const isLoading = createProperty.isPending || updateProperty.isPending
-
-	async function onSubmit(formData: PropertyFormData) {
+	async function onSubmit(formData: Property_FormData) {
 		try {
 			setError(null)
 
@@ -85,14 +92,11 @@ export function PropertyFormDialog({
 						: formData.description
 			}
 
-			if (mode === 'edit' && property) {
-				await updateProperty.mutateAsync({
-					id: property.id,
-					data: apiData
-				})
-			} else {
-				await createProperty.mutateAsync(apiData)
-			}
+            if (mode === 'edit' && property) {
+                await updateProperty(property.id, apiData)
+            } else {
+                await createProperty(apiData)
+            }
 
 			onOpenChange(false)
 			form.reset()
@@ -106,7 +110,7 @@ export function PropertyFormDialog({
 			<DialogContent className="max-h-[90vh] max-w-[95vw] overflow-y-auto sm:max-w-[600px]">
 				<DialogHeader>
 					<DialogTitle>
-						{mode === 'edit' ? 'Edit Property' : 'Add New Property'}
+						{mode === 'edit' ? 'Edit Property_' : 'Add New Property_'}
 					</DialogTitle>
 					<DialogDescription>
 						{mode === 'edit'
@@ -117,7 +121,7 @@ export function PropertyFormDialog({
 
 				{error && (
 					<Alert variant="destructive">
-						<AlertTriangle className="h-4 w-4" />
+						<i className="i-lucide-alert-triangle inline-block h-4 w-4"  />
 						<AlertDescription>{error}</AlertDescription>
 					</Alert>
 				)}
@@ -132,7 +136,7 @@ export function PropertyFormDialog({
 							name="name"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Property Name</FormLabel>
+									<FormLabel>Property_ Name</FormLabel>
 									<FormControl>
 										<Input
 											placeholder="e.g., Sunset Apartments"
@@ -149,7 +153,7 @@ export function PropertyFormDialog({
 							name="propertyType"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Property Type</FormLabel>
+									<FormLabel>Property_ Type</FormLabel>
 									<Select
 										onValueChange={field.onChange}
 										defaultValue={
@@ -266,10 +270,10 @@ export function PropertyFormDialog({
 											{...field}
 										/>
 									</FormControl>
-									<FormDescription>
+									<_FormDescription>
 										Add any additional information about the
 										property
-									</FormDescription>
+									</_FormDescription>
 									<FormMessage />
 								</FormItem>
 							)}
@@ -286,20 +290,20 @@ export function PropertyFormDialog({
 							</Button>
 							<Button
 								type="submit"
-								disabled={isLoading}
+								disabled={isPending}
 								className="w-full sm:w-auto"
 							>
-								{isLoading ? (
+								{isPending ? (
 									<>
-										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
 										{mode === 'edit'
 											? 'Updating...'
 											: 'Creating...'}
 									</>
 								) : mode === 'edit' ? (
-									'Update Property'
+									'Update Property_'
 								) : (
-									'Create Property'
+									'Create Property_'
 								)}
 							</Button>
 						</DialogFooter>

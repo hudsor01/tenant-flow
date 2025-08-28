@@ -23,68 +23,51 @@ import {
 	SidebarMenuButton,
 	SidebarTrigger
 } from '@/components/ui/sidebar'
-import {
-	Home,
-	Building,
-	Users,
-	FileText,
-	Wrench,
-	BarChart3,
-	Settings,
-	LogOut,
-	User,
-	Bell,
-	Activity
-} from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { useDashboardOverview } from '@/hooks/api/use-dashboard'
 import { cn } from '@/lib/utils'
+import type { DashboardStats } from '@repo/shared'
 
-const getNavigationItems = (stats?: {
-	properties?: { totalProperties?: number }
-	tenants?: { totalTenants?: number }
-	leases?: { activeLeases?: number }
-	maintenanceRequests?: { open?: number }
-}) => [
+const getNavigationItems = (stats?: DashboardStats) => [
 	{
 		id: 'dashboard',
 		name: 'Dashboard',
 		href: '/dashboard',
-		icon: Home,
+		icon: 'i-lucide-home',
 		badge: null
 	},
 	{
 		id: 'properties',
 		name: 'Properties',
 		href: '/properties',
-		icon: Building,
-		badge: stats?.properties?.totalProperties ?? null,
+		icon: 'i-lucide-building',
+		badge: stats?.properties?.total ?? null,
 		badgeColor: 'bg-blue-100 text-blue-700'
 	},
 	{
 		id: 'tenants',
 		name: 'Tenants',
 		href: '/tenants',
-		icon: Users,
-		badge: stats?.tenants?.totalTenants ?? null,
+		icon: 'i-lucide-users',
+		badge: stats?.tenants?.total ?? null,
 		badgeColor: 'bg-green-100 text-green-700'
 	},
 	{
 		id: 'leases',
 		name: 'Leases',
 		href: '/leases',
-		icon: FileText,
-		badge: stats?.leases?.activeLeases ?? null,
+		icon: 'i-lucide-file-text',
+		badge: stats?.units?.total ?? null,
 		badgeColor: 'bg-purple-100 text-purple-700'
 	},
 	{
 		id: 'maintenance',
 		name: 'Maintenance',
 		href: '/maintenance',
-		icon: Wrench,
-		badge: stats?.maintenanceRequests?.open ?? null,
+		icon: 'i-lucide-wrench',
+		badge: stats?.maintenance?.total ?? null,
 		badgeColor:
-			(stats?.maintenanceRequests?.open ?? 0) > 0
+			(stats?.maintenance?.total ?? 0) > 0
 				? 'bg-red-100 text-red-700'
 				: 'bg-gray-100 text-gray-700'
 	},
@@ -92,14 +75,14 @@ const getNavigationItems = (stats?: {
 		id: 'reports',
 		name: 'Reports',
 		href: '/reports',
-		icon: BarChart3,
+		icon: 'i-lucide-bar-chart-3',
 		badge: null
 	},
 	{
 		id: 'settings',
 		name: 'Settings',
 		href: '/settings',
-		icon: Settings,
+		icon: 'i-lucide-settings',
 		badge: null
 	}
 ]
@@ -186,7 +169,7 @@ export function DashboardSidebar({
 							className="flex items-center gap-2 px-2 transition-all hover:scale-105"
 						>
 							<div className="relative">
-								<Building className="text-primary h-8 w-8" />
+								<i className="i-lucide-building inline-block text-primary h-8 w-8"  />
 								{/* Activity pulse indicator */}
 								<div className="absolute -top-1 -right-1 h-3 w-3 animate-pulse rounded-full bg-green-500 group-data-[collapsible=icon]:hidden" />
 							</div>
@@ -201,7 +184,6 @@ export function DashboardSidebar({
 							<SidebarGroupContent>
 								<SidebarMenu>
 									{navigation.map(item => {
-										const Icon = item.icon
 										const isActive =
 											pathname === item.href ||
 											pathname.startsWith(item.href + '/')
@@ -219,7 +201,7 @@ export function DashboardSidebar({
 														className="flex w-full items-center justify-between"
 													>
 														<div className="flex items-center gap-2">
-															<Icon className="h-4 w-4" />
+															<i className={`${item.icon} inline-block h-4 w-4`} />
 															<span>
 																{item.name}
 															</span>
@@ -260,21 +242,20 @@ export function DashboardSidebar({
 										href="/notifications"
 										className="relative"
 									>
-										<Bell className="h-4 w-4" />
+										<i className="i-lucide-bell inline-block h-4 w-4"  />
 										<span>Notifications</span>
 										{/* Notification badge */}
-										{(stats?.maintenanceRequests?.open ||
+										{(stats?.maintenance?.total ||
 											0) > 0 && (
 											<div className="absolute -top-1 -right-1 hidden h-2 w-2 rounded-full bg-red-500 group-data-[collapsible=icon]:block" />
 										)}
-										{(stats?.maintenanceRequests?.open ||
+										{(stats?.maintenance?.total ||
 											0) > 0 && (
 											<Badge
 												variant="destructive"
 												className="ml-auto rounded-full px-1.5 py-0.5 text-xs group-data-[collapsible=icon]:hidden"
 											>
-												{stats?.maintenanceRequests
-													?.open ?? 0}
+												{stats?.maintenance?.total ?? 0}
 											</Badge>
 										)}
 									</Link>
@@ -285,7 +266,7 @@ export function DashboardSidebar({
 							<SidebarMenuItem>
 								<SidebarMenuButton asChild tooltip="Activity">
 									<Link href="/activity">
-										<Activity className="h-4 w-4" />
+										<i className="i-lucide-activity inline-block h-4 w-4"  />
 										<span>Activity</span>
 									</Link>
 								</SidebarMenuButton>
@@ -298,7 +279,7 @@ export function DashboardSidebar({
 										href="/profile"
 										className="transition-all hover:scale-[1.02]"
 									>
-										<User className="h-4 w-4" />
+										<i className="i-lucide-user inline-block h-4 w-4"  />
 										<span>Profile</span>
 									</Link>
 								</SidebarMenuButton>
@@ -315,7 +296,7 @@ export function DashboardSidebar({
 										}
 										className="w-full transition-all hover:scale-[1.02] hover:text-red-600"
 									>
-										<LogOut className="h-4 w-4" />
+										<i className="i-lucide-log-out inline-block h-4 w-4"  />
 										<span>Logout</span>
 									</button>
 								</SidebarMenuButton>
@@ -380,7 +361,7 @@ export function DashboardSidebar({
 								className="flex items-center gap-3 transition-all hover:scale-105"
 							>
 								<div className="relative">
-									<Building className="text-primary h-10 w-10" />
+									<i className="i-lucide-building inline-block text-primary h-10 w-10"  />
 									<div className="absolute -top-1 -right-1 h-3 w-3 animate-pulse rounded-full bg-green-500" />
 								</div>
 								<div>
@@ -388,7 +369,7 @@ export function DashboardSidebar({
 										TenantFlow
 									</span>
 									<p className="mt-1 text-xs text-gray-500">
-										Property Management
+										Property_ Management
 									</p>
 								</div>
 							</Link>
@@ -398,7 +379,6 @@ export function DashboardSidebar({
 						<div className="flex-1 overflow-y-auto py-4">
 							<nav className="space-y-1 px-4">
 								{navigation.map(item => {
-									const Icon = item.icon
 									const isActive =
 										pathname === item.href ||
 										pathname.startsWith(item.href + '/')
@@ -422,14 +402,13 @@ export function DashboardSidebar({
 												)}
 											>
 												<div className="flex items-center gap-3">
-													<Icon
-														className={cn(
-															'h-5 w-5',
+													<i className={cn(
+															item.icon,
+															'inline-block h-5 w-5',
 															isActive
 																? 'text-primary'
 																: 'text-gray-500'
-														)}
-													/>
+														)} />
 													<span>{item.name}</span>
 												</div>
 
@@ -463,16 +442,16 @@ export function DashboardSidebar({
 								className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50"
 							>
 								<div className="flex items-center gap-3">
-									<Bell className="h-5 w-5 text-gray-500" />
+									<i className="i-lucide-bell inline-block h-5 w-5 text-gray-500"  />
 									<span>Notifications</span>
 								</div>
-								{(stats?.maintenanceRequests?.open ?? 0) >
+								{(stats?.maintenance?.total ?? 0) >
 									0 && (
 									<Badge
 										variant="destructive"
 										className="rounded-full px-1.5 py-0.5 text-xs"
 									>
-										{stats?.maintenanceRequests?.open ?? 0}
+										{stats?.maintenance?.total ?? 0}
 									</Badge>
 								)}
 							</Link>
@@ -483,7 +462,7 @@ export function DashboardSidebar({
 								onClick={handleNavigation}
 								className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50"
 							>
-								<Activity className="h-5 w-5 text-gray-500" />
+								<i className="i-lucide-activity inline-block h-5 w-5 text-gray-500"  />
 								<span>Activity</span>
 							</Link>
 
@@ -493,7 +472,7 @@ export function DashboardSidebar({
 								onClick={handleNavigation}
 								className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50"
 							>
-								<User className="h-5 w-5 text-gray-500" />
+								<i className="i-lucide-user inline-block h-5 w-5 text-gray-500"  />
 								<span>Profile</span>
 							</Link>
 
@@ -507,7 +486,7 @@ export function DashboardSidebar({
 								}}
 								className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-red-600 transition-all hover:bg-red-50"
 							>
-								<LogOut className="h-5 w-5" />
+								<i className="i-lucide-log-out inline-block h-5 w-5"  />
 								<span>Logout</span>
 							</button>
 						</div>

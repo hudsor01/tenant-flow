@@ -53,23 +53,12 @@ export * from './table'
 // Command palette exports
 // export * from './command-palette'
 
-// Stats card exports
-export { StatsCard } from './stats-card'
+// Stats components - Base extensible components
+export * from './stats'
 
-// Dashboard components - avoiding conflicts with stats-card
-// export {
-//   StatsCard as DashboardStatsCard,
-//   PropertyDashboard,
-//   RecentActivityCard
-// } from './dashboard'
-
-// Other property management specific components
-// export * from './empty-state'
-// export * from './date-range-picker'
-// export * from './combobox'
-export * from './dashboard-stats'
+// Feedback components
+export * from './feedback'
 export * from './sidebar-toggle'
-export * from './modal'
 
 // Enhanced components
 // export * from './enhanced-button' // Component not implemented yet

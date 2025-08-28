@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common'
 import { SupabaseService } from '../database/supabase.service'
-import type { Subscription, User } from '@repo/shared'
+import type { Database } from '@repo/shared'
+
+// Define types directly from Database schema - NO DUPLICATION
+type User = Database['public']['Tables']['User']['Row']
+type Subscription = Database['public']['Tables']['Subscription']['Row']
+type UserRole = Database['public']['Enums']['UserRole']
 
 export interface UserWithSubscription extends User {
 	Subscription?: Subscription[]
@@ -23,9 +28,7 @@ export class UserSupabaseRepository {
 		return data
 			? {
 					...data,
-					organizationId: null,
-					createdAt: new Date(data.createdAt),
-					updatedAt: new Date(data.updatedAt)
+					role: data.role as UserRole // Cast database enum to TypeScript UserRole
 				}
 			: null
 	}
@@ -52,9 +55,7 @@ export class UserSupabaseRepository {
 		return data
 			? {
 					...data,
-					organizationId: null,
-					createdAt: new Date(data.createdAt),
-					updatedAt: new Date(data.updatedAt)
+					role: data.role as UserRole // Cast database enum to TypeScript UserRole
 				}
 			: null
 	}

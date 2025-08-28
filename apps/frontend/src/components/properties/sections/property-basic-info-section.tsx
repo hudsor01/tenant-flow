@@ -1,39 +1,38 @@
-import { Building2, Home, Users } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { FormSection } from '@/components/modals/base-form-modal'
 import type { UseFormReturn } from 'react-hook-form'
 import type { PropertyFormData } from '@repo/shared/validation'
 
-interface PropertyBasicInfoSectionProps {
-	form: UseFormReturn<PropertyFormData>
+interface Property_BasicInfoSectionProps {
+  form: UseFormReturn<PropertyFormData>
 	propertyType: string
 	numberOfUnits?: number
 	mode: 'create' | 'edit'
 }
 
 /**
- * Property basic information section component
+ * Property_ basic information section component
  * Handles property name, type selection, and unit configuration
  */
-export function PropertyBasicInfoSection({
+export function Property_BasicInfoSection({
 	form,
 	propertyType,
 	numberOfUnits,
 	mode
-}: PropertyBasicInfoSectionProps) {
+}: Property_BasicInfoSectionProps) {
 	return (
-		<FormSection icon={Building2} title="Basic Information" delay={0}>
-			{/* Property Name */}
+		<FormSection icon="i-lucide-building-2" title="Basic Information" delay={0}>
+			{/* Property_ Name */}
 			<div className="space-y-2">
 				<Label
 					htmlFor="name"
 					className="text-sm font-medium text-gray-700"
 				>
-					Property Name *
+					Property_ Name *
 				</Label>
 				<div className="relative">
-					<Building2 className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+					<i className="i-lucide-building-2 inline-block absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400"  />
 					<Input
 						id="name"
 						placeholder="e.g., Sunset Apartments, 123 Main St"
@@ -48,23 +47,23 @@ export function PropertyBasicInfoSection({
 				)}
 			</div>
 
-			{/* Property Type */}
+			{/* Property_ Type */}
 			<div className="space-y-2">
 				<Label
 					htmlFor="propertyType"
 					className="text-sm font-medium text-gray-700"
 				>
-					Property Type *
+					Property_ Type *
 				</Label>
 				<select
 					id="propertyType"
-					className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring focus:border-primary flex h-10 w-full rounded-md border px-3 py-2 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+					className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring focus:border-primary flex h-10 w-full rounded-md border px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
 					{...form.register('propertyType')}
 				>
 					<option value="SINGLE_FAMILY">Single Family Home</option>
 					<option value="MULTI_UNIT">Multi-Unit Building</option>
 					<option value="APARTMENT">Apartment Complex</option>
-					<option value="COMMERCIAL">Commercial Property</option>
+					<option value="COMMERCIAL">Commercial Property_</option>
 				</select>
 				{form.formState.errors.propertyType && (
 					<p className="text-sm text-red-600">
@@ -79,7 +78,7 @@ export function PropertyBasicInfoSection({
 					propertyType === 'APARTMENT') && (
 					<div className="space-y-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
 						<div className="flex items-center space-x-2">
-							<Users className="text-primary h-5 w-5" />
+							<i className="i-lucide-users inline-block text-primary h-5 w-5"  />
 							<h4 className="font-medium text-blue-900">
 								Multi-Unit Configuration
 							</h4>
@@ -146,7 +145,7 @@ export function PropertyBasicInfoSection({
 					propertyType === 'APARTMENT') && (
 					<div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
 						<div className="flex items-center space-x-2">
-							<Home className="h-4 w-4 text-gray-600" />
+							<i className="i-lucide-home inline-block h-4 w-4 text-gray-600"  />
 							<span className="text-sm text-gray-700">
 								This property has {numberOfUnits ?? 0} units.
 								Manage units from the property details page.

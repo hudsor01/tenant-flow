@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+
+# Initialize husky environment and run pre-commit hooks
+. "$(dirname "$0")/_/husky.sh"
+
+# Run all configured pre-commit hooks on staged files. If any hook fails,
+# the commit will be aborted and the error message displayed. The `-a`
+# flag runs the hooks on all files, which is useful in CI and for
+# developers who want a full audit before committing.
+npx --no-install pre-commit run -a

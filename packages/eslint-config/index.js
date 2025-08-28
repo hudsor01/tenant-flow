@@ -1,6 +1,6 @@
 /**
  * @repo/eslint-config
- * 
+ *
  * Shared ESLint configurations for TenantFlow monorepo
  * Following official Turborepo recommendations for optimal caching
  */

@@ -15,7 +15,6 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { DenseTable } from '@/components/data-table/dense-table'
 import { propertyColumns } from '@/components/data-table/columns/property-columns'
-import { AlertTriangle, ArrowRight, Activity } from 'lucide-react'
 import Link from 'next/link'
 
 /**
@@ -73,7 +72,7 @@ export function DashboardRecentActivity() {
 					variant="destructive"
 					className="border-red-200 bg-red-50"
 				>
-					<AlertTriangle className="h-4 w-4" />
+					<i className="i-lucide-alert-triangle inline-block h-4 w-4"  />
 					<AlertTitle>Error loading properties</AlertTitle>
 					<AlertDescription>
 						There was a problem loading your recent activity. Please
@@ -123,7 +122,7 @@ export function DashboardRecentActivity() {
 												ease: 'easeInOut'
 											}}
 										>
-											<ArrowRight className="ml-1 h-3 w-3 transition-transform group-hover/btn:translate-x-0.5" />
+											<i className="i-lucide-arrow-right inline-block ml-1 h-3 w-3 transition-transform group-hover/btn:translate-x-0.5"  />
 										</motion.div>
 									</Link>
 								</Button>
@@ -175,7 +174,7 @@ export function DashboardRecentActivity() {
 											ease: 'easeInOut'
 										}}
 									>
-										<Activity className="mx-auto mb-4 h-12 w-12 text-gray-300" />
+										<i className="i-lucide-activity inline-block mx-auto mb-4 h-12 w-12 text-gray-300"  />
 									</motion.div>
 									<p>No properties yet</p>
 									<motion.div
@@ -219,7 +218,7 @@ export function DashboardRecentActivity() {
 								{[
 									{
 										href: '/properties',
-										label: 'Add Property',
+										label: 'Add Property_',
 										delay: 0.1
 									},
 									{
@@ -264,7 +263,7 @@ export function DashboardRecentActivity() {
 														delay: index * 0.5
 													}}
 												>
-													<ArrowRight className="mr-2 h-4 w-4 transition-transform group-hover/action:translate-x-0.5" />
+													<i className="i-lucide-arrow-right inline-block mr-2 h-4 w-4 transition-transform group-hover/action:translate-x-0.5"  />
 												</motion.div>
 												{action.label}
 											</Link>

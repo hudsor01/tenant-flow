@@ -3,8 +3,22 @@
  * All types related to customer invoices, invoice items, and invoice generation
  */
 
-import type { UseFormRegister, FieldErrors } from 'react-hook-form'
-import type { CustomerInvoiceForm } from './invoice-lead'
+// Remove frontend-specific dependencies - use generic form types instead
+// Define CustomerInvoiceForm inline instead of importing
+export interface CustomerInvoiceForm {
+	businessName: string
+	businessEmail: string
+	clientName: string
+	clientEmail: string
+	invoiceNumber: string
+	issueDate: string
+	dueDate: string
+	subtotal: number
+	taxRate: number
+	taxAmount: number
+	total: number
+	items: CustomerInvoiceItem[] // Added this line
+}
 
 // Customer invoice status enum
 export type CustomerInvoiceStatus =
@@ -122,9 +136,16 @@ export interface InvoiceLeadCapture {
 	updatedAt: Date
 }
 
+// Generic form register function type - framework agnostic
+export type GenericFormRegister<T> = (field: keyof T) => Record<string, unknown>
+
+export type GenericFieldErrors<T> = {
+	[K in keyof T]?: { message?: string }
+}
+
 export interface InvoiceDetailsProps {
-	register: UseFormRegister<CustomerInvoiceForm>
-	errors?: FieldErrors<CustomerInvoiceForm>
+	register: GenericFormRegister<CustomerInvoiceForm>
+	errors?: GenericFieldErrors<CustomerInvoiceForm>
 }
 
 export interface InvoiceActionsProps {
@@ -135,13 +156,13 @@ export interface InvoiceActionsProps {
 }
 
 export interface BusinessInfoSectionProps {
-	register: UseFormRegister<CustomerInvoiceForm>
-	errors?: FieldErrors<CustomerInvoiceForm>
+	register: GenericFormRegister<CustomerInvoiceForm>
+	errors?: GenericFieldErrors<CustomerInvoiceForm>
 }
 
 export interface ClientInfoSectionProps {
-	register: UseFormRegister<CustomerInvoiceForm>
-	errors?: FieldErrors<CustomerInvoiceForm>
+	register: GenericFormRegister<CustomerInvoiceForm>
+	errors?: GenericFieldErrors<CustomerInvoiceForm>
 }
 
 export interface EmailModalProps {

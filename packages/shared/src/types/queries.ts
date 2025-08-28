@@ -3,7 +3,9 @@
  * These are domain types shared between frontend and backend
  */
 
-import type { RequestStatus } from './maintenance'
+import type { Database } from './supabase-generated'
+
+type RequestStatus = Database['public']['Enums']['RequestStatus']
 
 /**
  * Base query interface with common pagination params

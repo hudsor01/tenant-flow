@@ -8,17 +8,17 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import { useAppStore } from '../stores/app-store'
-import { logger } from '@/lib/logger'
+import { logger } from '@/lib/logger/logger'
 import { notifications } from '@/lib/toast'
-import type { User } from '@repo/shared'
+import type { AuthUser } from '@repo/shared'
 import type {
 	User as SupabaseUser,
 	AuthChangeEvent,
 	Session
 } from '@supabase/supabase-js'
 
-// Map Supabase user to app User type
-function mapSupabaseUserToAppUser(supabaseUser: SupabaseUser): User {
+// Map Supabase user to app AuthUser type
+function mapSupabaseUserToAppUser(supabaseUser: SupabaseUser): AuthUser {
 	return {
 		id: supabaseUser.id,
 		supabaseId: supabaseUser.id,
@@ -38,7 +38,8 @@ function mapSupabaseUserToAppUser(supabaseUser: SupabaseUser): User {
 		updatedAt: new Date(
 			supabaseUser.updated_at || new Date().toISOString()
 		),
-		stripeCustomerId: null
+		stripeCustomerId: null,
+		emailVerified: !!supabaseUser.email_confirmed_at
 	}
 }
 
@@ -102,14 +103,16 @@ export function useAuth() {
 			}
 		}
 
-		initializeAuth()
+		void initializeAuth()
 
 		// Listen for auth state changes - Direct Supabase usage
 		const {
 			data: { subscription }
 		} = supabase.auth.onAuthStateChange(
 			async (event: AuthChangeEvent, session: Session | null) => {
-				if (!mounted) return
+				if (!mounted) {
+					return
+				}
 
 				logger.debug('Auth state change event', {
 					component: 'useAuth',
@@ -186,7 +189,7 @@ export function useAuth() {
 			setLoading(true)
 			setError(null)
 
-			const { data, error: authError } =
+			const { data: _data, error: authError } =
 				await supabase.auth.signInWithPassword({
 					email,
 					password
@@ -219,16 +222,17 @@ export function useAuth() {
 				setLoading(true)
 				setError(null)
 
-				const { data, error: authError } = await supabase.auth.signUp({
-					email,
-					password,
-					options: {
-						data: {
-							name,
-							full_name: name
+				const { data: _data, error: authError } =
+					await supabase.auth.signUp({
+						email,
+						password,
+						options: {
+							data: {
+								name,
+								full_name: name
+							}
 						}
-					}
-				})
+					})
 
 				if (authError) {
 					setError(authError.message)

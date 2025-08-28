@@ -9,11 +9,10 @@
 
 import * as React from 'react'
 import { motion } from '@/lib/lazy-motion'
-import { Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { NavigationLink } from './navigation-link'
-import type { NavItem } from './types'
+import type { NavItem } from '@repo/shared/types/frontend-utils'
 
 interface MobileNavigationProps {
 	items: NavItem[]
@@ -32,7 +31,7 @@ export function MobileNavigation({
 
 	const defaultTrigger = (
 		<Button variant="ghost" size="icon" className="md:hidden">
-			<Menu className="h-5 w-5" />
+			<i className="i-lucide-menu inline-block h-5 w-5"  />
 		</Button>
 	)
 
@@ -60,7 +59,7 @@ export function MobileNavigation({
 						exit={{ x: '-100%' }}
 						transition={{ duration: 0.3, ease: 'easeInOut' }}
 						className={cn(
-							'bg-card absolute top-0 left-0 h-full w-80 border-r shadow-lg',
+							'bg-card absolute left-0 top-0 h-full w-80 border-r shadow-lg',
 							className
 						)}
 					>
@@ -75,7 +74,7 @@ export function MobileNavigation({
 									size="icon"
 									onClick={() => setIsOpen(false)}
 								>
-									<X className="h-5 w-5" />
+									<i className="i-lucide-x inline-block h-5 w-5"  />
 								</Button>
 							</div>
 

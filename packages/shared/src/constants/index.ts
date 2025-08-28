@@ -20,20 +20,7 @@ export * from './auth'
 // Billing constants
 export * from './billing'
 
-// Stripe error constants
-export * from './stripe-errors'
-
-// Lease constants
-export * from './leases'
-
-// Maintenance constants
-export * from './maintenance'
-
-// Property constants
-export * from './properties'
-
-// Tenant constants
-export * from './tenants'
+// Note: Enum constants removed - now using database-generated types from ../types/supabase-generated
 
 // Reminder constants
 export * from './reminders'

@@ -1,12 +1,4 @@
-// Subscription event types
-export enum SubscriptionEventType {
-	CREATED = 'subscription.created',
-	UPDATED = 'subscription.updated',
-	CANCELED = 'subscription.canceled',
-	TRIAL_WILL_END = 'subscription.trial_will_end',
-	PAYMENT_FAILED = 'subscription.payment_failed',
-	PAYMENT_SUCCEEDED = 'subscription.payment_succeeded'
-}
+// Subscription event types - event interfaces without needing enum import
 
 // Base event interface
 export interface BaseSubscriptionEvent {

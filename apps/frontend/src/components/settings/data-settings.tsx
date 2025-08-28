@@ -1,5 +1,3 @@
-'use client'
-
 import {
 	Card,
 	CardContent,
@@ -10,7 +8,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Database, Download, Upload, Trash2, AlertTriangle } from 'lucide-react'
 
 export function DataSettings() {
 	return (
@@ -18,7 +15,7 @@ export function DataSettings() {
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Database className="h-5 w-5" />
+						<i className="i-lucide-database inline-block h-5 w-5"  />
 						Data Management
 					</CardTitle>
 					<CardDescription>
@@ -43,7 +40,7 @@ export function DataSettings() {
 									className="w-full"
 									variant="outline"
 								>
-									<Download className="mr-2 h-4 w-4" />
+									<i className="i-lucide-download inline-block mr-2 h-4 w-4"  />
 									Export All Data
 								</Button>
 							</CardContent>
@@ -65,7 +62,7 @@ export function DataSettings() {
 									className="w-full"
 									variant="outline"
 								>
-									<Upload className="mr-2 h-4 w-4" />
+									<i className="i-lucide-upload inline-block mr-2 h-4 w-4"  />
 									Import Data
 								</Button>
 							</CardContent>
@@ -97,7 +94,7 @@ export function DataSettings() {
 					</Card>
 
 					<Alert variant="destructive">
-						<AlertTriangle className="h-4 w-4" />
+						<i className="i-lucide-alert-triangle inline-block h-4 w-4"  />
 						<AlertDescription>
 							<div className="space-y-3">
 								<p className="font-medium">Danger Zone</p>
@@ -107,7 +104,7 @@ export function DataSettings() {
 									undone.
 								</p>
 								<Button size="sm" variant="destructive">
-									<Trash2 className="mr-2 h-4 w-4" />
+									<i className="i-lucide-trash-2 inline-block mr-2 h-4 w-4"  />
 									Delete Account
 								</Button>
 							</div>

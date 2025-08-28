@@ -2,7 +2,10 @@ import { defineConfig, devices } from '@playwright/test'
 
 /**
  * Playwright configuration for E2E testing
- * Includes configuration for visual regression and multiple browsers
+ * MVP APPROACH: Single browser, simple setup following CLAUDE.md KISS principles
+ * - Chrome only (covers 90% of users)
+ * - No over-engineering with multiple browsers
+ * - Fast feedback for production confidence
  */
 export default defineConfig({
 	testDir: './tests/e2e',
@@ -21,78 +24,21 @@ export default defineConfig({
 			? process.env.VERCEL_URL 
 				? `https://${process.env.VERCEL_URL}` 
 				: 'https://tenantflow.app'
-			: 'http://localhost:3000',
+			: 'http://localhost:4500',
 		trace: 'on-first-retry',
 		screenshot: 'only-on-failure',
 		video: 'retain-on-failure'
 	},
 
 	projects: [
-		// Setup project for authentication (disabled - using demo route)
-		// {
-		//   name: 'setup',
-		//   testMatch: /.*\.setup\.ts/,
-		// },
 		{
-			name: 'chromium',
-			use: {
-				...devices['Desktop Chrome']
-				// storageState: 'playwright/.auth/user.json',
-			}
-			// dependencies: ['setup'],
-		},
-		{
-			name: 'firefox',
-			use: {
-				...devices['Desktop Firefox']
-				// storageState: 'playwright/.auth/user.json',
-			}
-			// dependencies: ['setup'],
-		},
-		{
-			name: 'webkit',
-			use: {
-				...devices['Desktop Safari']
-				// storageState: 'playwright/.auth/user.json',
-			}
-			// dependencies: ['setup'],
-		},
-		{
-			name: 'mobile-chrome',
-			use: {
-				...devices['Pixel 5']
-				// storageState: 'playwright/.auth/user.json',
-			}
-			// dependencies: ['setup'],
-		},
-		{
-			name: 'mobile-safari',
-			use: {
-				...devices['iPhone 12']
-				// storageState: 'playwright/.auth/user.json',
-			}
-			// dependencies: ['setup'],
-		},
-		{
-			name: 'tablet',
-			use: {
-				...devices['iPad (gen 7)']
-				// storageState: 'playwright/.auth/user.json',
-			}
-			// dependencies: ['setup'],
+			name: 'chromium-mvp',
+			use: { ...devices['Desktop Chrome'] }
 		}
 	],
 
-	webServer: process.env.CI ? undefined : {
-		command: 'npm run dev',
-		port: 3000,
-		reuseExistingServer: !process.env.CI,
-		timeout: 120 * 1000,
-		env: {
-			NODE_ENV: 'development',
-			NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://api.tenantflow.app/api'
-		}
-	},
+	// webServer disabled - run server manually for MVP approach
+	// This prevents port conflicts and gives more control over the dev environment
 
 	// Visual regression testing configuration
 	expect: {

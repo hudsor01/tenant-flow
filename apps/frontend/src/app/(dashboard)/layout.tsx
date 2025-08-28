@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import type { Metadata } from '@/types/next.d'
+import type { Metadata } from 'next/types'
 import { CommandPaletteProvider } from '@/hooks/use-command-palette'
 import { QueryProvider } from '@/providers/query-provider'
 import { PHProvider } from '@/providers/posthog-provider'
@@ -9,9 +9,8 @@ import { PostHogErrorBoundary } from '@/components/analytics/posthog-error-bound
 import { ServerAuthGuard } from '@/components/auth/server-auth-guard'
 import { ProtectedRouteGuard } from '@/components/auth/protected-route-guard'
 import { Navigation } from '@/components/dashboard/dashboard-navigation'
-import { DashboardSidebar } from '@/components/dashboard/dashboard-sidebar'
+// Dashboard sidebar removed - using simpler layout
 import { OfflineBanner } from '@/components/ui/offline-indicator'
-import { Loader2 } from 'lucide-react'
 
 export const metadata: Metadata = {
 	title: {
@@ -19,7 +18,7 @@ export const metadata: Metadata = {
 		default: 'Dashboard - TenantFlow'
 	},
 	description:
-		'Property management dashboard for landlords and property managers.',
+		'Property_ management dashboard for landlords and property managers.',
 	robots: { index: false, follow: false } // Private area
 }
 
@@ -69,17 +68,21 @@ export default function DashboardLayout({
 											>
 												<aside className="hidden w-64 bg-white shadow-sm md:block">
 													{sidebar ?? (
-														<DashboardSidebar />
+														<div className="p-4">
+															<p className="text-sm text-gray-500">
+																Navigation
+															</p>
+														</div>
 													)}
 												</aside>
 											</Suspense>
 
 											{/* Main content area - improved mobile spacing */}
-											<main className="min-w-0 flex-1 pt-2 pb-20 md:p-6 md:pt-6 md:pb-6">
+											<main className="min-w-0 flex-1 pb-20 pt-2 md:p-6 md:pb-6 md:pt-6">
 												<Suspense
 													fallback={
 														<div className="flex h-64 items-center justify-center">
-															<Loader2 className="h-8 w-8 animate-spin" />
+															<i className="i-lucide-loader-2 inline-block h-8 w-8 animate-spin"  />
 														</div>
 													}
 												>

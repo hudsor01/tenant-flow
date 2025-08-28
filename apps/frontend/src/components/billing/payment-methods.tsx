@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * Enhanced Payment Methods Management - Latest 2025 Stripe Patterns
  *
@@ -11,10 +13,10 @@
  */
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, type ReactNode } from 'react'
 import { useStripe, useElements, PaymentElement } from '@stripe/react-stripe-js'
 import { useQueryClient } from '@tanstack/react-query'
-import { billingKeys } from '@/lib/api/billing'
+import { queryKeys } from '@/lib/react-query/query-keys'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -26,21 +28,11 @@ import {
 	DialogTitle,
 	DialogTrigger
 } from '@/components/ui/dialog'
-import {
-	CreditCard,
-	Plus,
-	Trash2,
-	Check,
-	Star,
-	Lock,
-	Loader2,
-	AlertCircle
-} from 'lucide-react'
 import { usePaymentMethods } from '@/hooks/api/use-billing'
 import { useNotificationSystem } from '@/hooks/use-app-store'
 import type { PaymentMethod } from '@repo/shared'
 import { EnhancedElementsProvider } from '@/lib/stripe/elements-provider'
-import { apiClient } from '@/lib/api-client'
+import { post } from '@/lib/api-client'
 
 interface AddPaymentMethodProps {
 	onSuccess?: () => void
@@ -73,10 +65,10 @@ function AddPaymentMethodForm({ onSuccess, onCancel }: AddPaymentMethodProps) {
 
 			try {
 				// Create Setup Intent for secure payment method collection
-				const setupIntentResponse = await apiClient.post<{
+				const setupIntentResponse = await post<{
 					clientSecret: string
 					setupIntentId: string
-				}>('/billing/setup-intent')
+				}>('/api/billing/setup-intent', {})
 
 				// Confirm Setup Intent with payment method
 				const { error: confirmError } = await stripe.confirmSetup({
@@ -97,7 +89,7 @@ function AddPaymentMethodForm({ onSuccess, onCancel }: AddPaymentMethodProps) {
 
 				// Success - invalidate payment methods query
 				await queryClient.invalidateQueries({
-					queryKey: billingKeys.paymentMethods()
+					queryKey: queryKeys.billing.paymentMethods()
 				})
 
 				notifySuccess(
@@ -151,7 +143,7 @@ function AddPaymentMethodForm({ onSuccess, onCancel }: AddPaymentMethodProps) {
 
 			{error && (
 				<Alert variant="destructive">
-					<AlertCircle className="h-4 w-4" />
+					<i className="i-lucide-alert-circle inline-block h-4 w-4"  />
 					<AlertDescription>{error}</AlertDescription>
 				</Alert>
 			)}
@@ -174,12 +166,12 @@ function AddPaymentMethodForm({ onSuccess, onCancel }: AddPaymentMethodProps) {
 				>
 					{isProcessing ? (
 						<>
-							<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+							<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
 							Adding...
 						</>
 					) : (
 						<>
-							<Lock className="mr-2 h-4 w-4" />
+							<i className="i-lucide-lock inline-block mr-2 h-4 w-4"  />
 							Add Payment Method
 						</>
 					)}
@@ -187,7 +179,7 @@ function AddPaymentMethodForm({ onSuccess, onCancel }: AddPaymentMethodProps) {
 			</div>
 
 			<div className="text-center text-xs text-gray-500">
-				<Lock className="mr-1 inline h-3 w-3" />
+				<i className="i-lucide-lock inline-block mr-1 inline h-3 w-3"  />
 				Your payment information is encrypted and secure
 			</div>
 		</form>
@@ -206,14 +198,14 @@ interface PaymentMethodCardProps {
 	isDeleting?: boolean
 }
 
-function PaymentMethodCard({
+function _PaymentMethodCard({
 	paymentMethod,
 	isDefault,
 	onSetDefault,
 	onDelete,
 	isUpdating = false,
 	isDeleting = false
-}: PaymentMethodCardProps) {
+}: PaymentMethodCardProps): ReactNode {
 	const getBrandIcon = (brand: string) => {
 		// You could return actual brand SVG icons here
 		const brandColors = {
@@ -233,15 +225,14 @@ function PaymentMethodCard({
 
 	return (
 		<Card
-			className={`transition-all ${isDefault ? 'bg-blue-50 ring-2 ring-blue-500' : ''}`}
+			className="interactive-card transition-all"
+			data-selected={isDefault}
 		>
 			<CardContent className="p-4">
 				<div className="flex items-center justify-between">
 					<div className="flex items-center space-x-3">
 						<div className="flex items-center space-x-2">
-							<CreditCard
-								className={`h-6 w-6 ${getBrandIcon(card.brand)}`}
-							/>
+							<i className={`i-lucide-credit-card h-6 w-6 ${getBrandIcon(card.brand)}`} />
 							<div>
 								<div className="flex items-center space-x-2">
 									<span className="font-medium capitalize">
@@ -255,7 +246,7 @@ function PaymentMethodCard({
 											variant="default"
 											className="text-xs"
 										>
-											<Star className="mr-1 h-3 w-3" />
+											<i className="i-lucide-star inline-block mr-1 h-3 w-3"  />
 											Default
 										</Badge>
 									)}
@@ -278,10 +269,10 @@ function PaymentMethodCard({
 								disabled={isUpdating}
 							>
 								{isUpdating ? (
-									<Loader2 className="h-4 w-4 animate-spin" />
+									<i className="i-lucide-loader-2 inline-block h-4 w-4 animate-spin"  />
 								) : (
 									<>
-										<Check className="mr-1 h-4 w-4" />
+										<i className="i-lucide-check inline-block mr-1 h-4 w-4"  />
 										Set Default
 									</>
 								)}
@@ -296,9 +287,9 @@ function PaymentMethodCard({
 							className="text-red-600 hover:bg-red-50 hover:text-red-700"
 						>
 							{isDeleting ? (
-								<Loader2 className="h-4 w-4 animate-spin" />
+								<i className="i-lucide-loader-2 inline-block h-4 w-4 animate-spin"  />
 							) : (
-								<Trash2 className="h-4 w-4" />
+								<i className="i-lucide-trash-2 inline-block h-4 w-4"  />
 							)}
 						</Button>
 					</div>
@@ -311,7 +302,7 @@ function PaymentMethodCard({
 /**
  * Main Enhanced Payment Methods Component
  */
-export function EnhancedPaymentMethods() {
+export function EnhancedPaymentMethods(): ReactNode {
 	const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
 	const { data: portalData, isLoading, error } = usePaymentMethods()
 
@@ -347,7 +338,7 @@ export function EnhancedPaymentMethods() {
 				</CardHeader>
 				<CardContent>
 					<Alert variant="destructive">
-						<AlertCircle className="h-4 w-4" />
+						<i className="i-lucide-alert-circle inline-block h-4 w-4"  />
 						<AlertDescription>
 							Failed to load payment methods. Please try again.
 						</AlertDescription>
@@ -368,7 +359,7 @@ export function EnhancedPaymentMethods() {
 					>
 						<DialogTrigger asChild>
 							<Button>
-								<Plus className="mr-2 h-4 w-4" />
+								<i className="i-lucide-plus inline-block mr-2 h-4 w-4"  />
 								Add Payment Method
 							</Button>
 						</DialogTrigger>
@@ -389,7 +380,7 @@ export function EnhancedPaymentMethods() {
 
 			<CardContent>
 				<div className="py-8 text-center">
-					<CreditCard className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+					<i className="i-lucide-credit-card inline-block mx-auto mb-4 h-12 w-12 text-gray-400"  />
 					<h3 className="mb-2 text-lg font-medium text-gray-900">
 						Payment Methods
 					</h3>
@@ -407,12 +398,12 @@ export function EnhancedPaymentMethods() {
 					>
 						{isLoading ? (
 							<>
-								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+								<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
 								Loading...
 							</>
 						) : (
 							<>
-								<Lock className="mr-2 h-4 w-4" />
+								<i className="i-lucide-lock inline-block mr-2 h-4 w-4"  />
 								Open Customer Portal
 							</>
 						)}

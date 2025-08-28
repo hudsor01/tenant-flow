@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Plus, Search, Filter } from 'lucide-react'
 import Link from 'next/link'
 import { LeasesDataTable } from '@/components/leases/leases-data-table'
 import { LeasesStats } from '@/components/leases/leases-stats'
@@ -28,12 +27,12 @@ function LeasesHeader() {
 			</div>
 			<div className="flex gap-2">
 				<Button variant="outline" size="sm">
-					<Filter className="mr-2 h-4 w-4" />
+					<i className="i-lucide-filter inline-block mr-2 h-4 w-4"  />
 					Filter
 				</Button>
 				<Link href="/leases/new">
 					<Button size="sm">
-						<Plus className="mr-2 h-4 w-4" />
+						<i className="i-lucide-plus inline-block mr-2 h-4 w-4"  />
 						Create Lease
 					</Button>
 				</Link>
@@ -48,14 +47,14 @@ function LeasesSearch() {
 			<CardContent className="p-4">
 				<div className="flex gap-4">
 					<div className="relative flex-1">
-						<Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
+						<i className="i-lucide-search inline-block text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform"  />
 						<Input
 							placeholder="Search leases by tenant, property, or lease terms..."
 							className="pl-10"
 						/>
 					</div>
 					<Button variant="outline">
-						<Filter className="mr-2 h-4 w-4" />
+						<i className="i-lucide-filter inline-block mr-2 h-4 w-4"  />
 						Filters
 					</Button>
 				</div>

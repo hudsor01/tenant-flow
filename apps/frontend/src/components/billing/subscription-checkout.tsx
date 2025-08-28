@@ -9,10 +9,9 @@ import {
 	CardHeader,
 	CardTitle
 } from '@/components/ui/card'
-import { Loader2, CreditCard, Shield, CheckCircle } from 'lucide-react'
 import type { PLAN_TYPE } from '@repo/shared'
 import { PLANS } from '@repo/shared'
-import { apiClient } from '@/lib/api-client'
+import { post } from '@/lib/api-client'
 
 interface SubscriptionCheckoutProps {
 	planType: keyof typeof PLAN_TYPE
@@ -46,7 +45,9 @@ export function SubscriptionCheckout({
 	// Get plan details for display
 	const plan = PLANS.find(p => p.id === planType)
 	const priceInCents =
-		billingInterval === 'annual' ? plan?.price.annual : plan?.price.monthly
+		billingInterval === 'annual'
+			? plan?.price?.annual
+			: plan?.price?.monthly
 	const price = priceInCents ? Math.floor(priceInCents / 100) : 0
 
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -83,11 +84,11 @@ export function SubscriptionCheckout({
 			}
 
 			// Step 2: Send Confirmation Token to server to create and confirm subscription
-			const response = await apiClient.post<{
+			const response = await post<{
 				subscription: { id: string; status: string }
 				clientSecret?: string
 				requiresAction?: boolean
-			}>('/stripe/create-subscription', {
+			}>('/api/stripe/create-subscription', {
 				confirmationTokenId: confirmationToken.id,
 				planType,
 				billingInterval: billingInterval === 'annual' ? 'year' : 'month'
@@ -109,9 +110,7 @@ export function SubscriptionCheckout({
 
 			// Step 4: Success!
 			setIsSuccess(true)
-			if (onSuccess) {
-				onSuccess(response.subscription.id)
-			}
+			onSuccess?.(response.subscription.id)
 		} catch (error) {
 			const message =
 				error instanceof Error
@@ -129,7 +128,7 @@ export function SubscriptionCheckout({
 			<Card className="mx-auto w-full max-w-md">
 				<CardHeader className="text-center">
 					<CardTitle className="flex items-center justify-center gap-2 text-green-600">
-						<CheckCircle className="h-6 w-6" />
+						<i className="i-lucide-checkcircle inline-block h-6 w-6"  />
 						Subscription Activated!
 					</CardTitle>
 					<CardDescription>
@@ -157,7 +156,7 @@ export function SubscriptionCheckout({
 		<Card className="mx-auto w-full max-w-md">
 			<CardHeader className="text-center">
 				<CardTitle className="flex items-center justify-center gap-2">
-					<CreditCard className="h-5 w-5" />
+					<i className="i-lucide-credit-card inline-block h-5 w-5"  />
 					Subscribe to {plan?.name}
 				</CardTitle>
 				<CardDescription>
@@ -169,7 +168,7 @@ export function SubscriptionCheckout({
 					)}
 					<br />
 					<div className="mt-2 flex items-center justify-center gap-1">
-						<Shield className="h-4 w-4" />
+						<i className="i-lucide-shield inline-block h-4 w-4"  />
 						<span>Secure checkout powered by Stripe</span>
 					</div>
 				</CardDescription>
@@ -258,7 +257,7 @@ export function SubscriptionCheckout({
 						>
 							{isProcessing ? (
 								<>
-									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+									<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
 									Processing...
 								</>
 							) : (
@@ -270,7 +269,7 @@ export function SubscriptionCheckout({
 					{/* Enhanced security indicators */}
 					<div className="space-y-2 text-center">
 						<div className="text-muted-foreground flex items-center justify-center gap-2 text-sm">
-							<Shield className="h-4 w-4" />
+							<i className="i-lucide-shield inline-block h-4 w-4"  />
 							<span>
 								256-bit SSL encryption • PCI DSS compliant
 							</span>

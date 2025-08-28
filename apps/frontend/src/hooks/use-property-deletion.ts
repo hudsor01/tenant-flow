@@ -4,19 +4,41 @@
  */
 
 import { useActionState } from 'react'
-import { deletePropertyAction } from '@/lib/actions/property-actions'
-import type { PropertyFormState } from '@/lib/actions/property-actions'
-import { logger } from '@/lib/logger'
+import { deleteProperty as deletePropertyAction } from '@/app/actions/properties'
+import { logger } from '@/lib/logger/logger'
 
 interface PropertyDeletionConfig {
 	onSuccess?: () => void
 	onError?: (error: string) => void
 }
 
-export function usePropertyDeletion(config: PropertyDeletionConfig = {}) {
-	const initialState: PropertyFormState = { success: false }
+interface PropertyDeletionState {
+	success: boolean
+	error?: string
+}
+
+export function usePropertyDeletion(_config: PropertyDeletionConfig = {}) {
+	// Server action wrapper to match useActionState signature
+	const wrappedDeleteAction = async (
+		prevState: PropertyDeletionState,
+		formData: FormData
+	): Promise<PropertyDeletionState> => {
+		try {
+			const propertyId = formData.get('propertyId') as string
+			if (!propertyId) {
+				return { success: false, error: 'Property ID is required' }
+			}
+			await deletePropertyAction(propertyId)
+			return { success: true }
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : 'Failed to delete property'
+			return { success: false, error: errorMessage }
+		}
+	}
+
+	const initialState: PropertyDeletionState = { success: false }
 	const [state, formAction, isPending] = useActionState(
-		deletePropertyAction,
+		wrappedDeleteAction,
 		initialState
 	)
 
@@ -33,43 +55,28 @@ export function usePropertyDeletion(config: PropertyDeletionConfig = {}) {
 			return
 		}
 
-		try {
-			logger.info('Property deletion initiated', {
-				propertyId: property.id,
-				propertyName: property.name
-			})
+		logger.info('Property deletion initiated', {
+			propertyId: property.id,
+			propertyName: property.name
+		})
 
-			// Create FormData for server action
-			const formData = new FormData()
-			formData.append('propertyId', property.id)
+		// Create FormData for server action
+		const formData = new FormData()
+		formData.append('propertyId', property.id)
 
-			// Add CSRF token if available
-			const csrfToken = document
-				.querySelector('meta[name="csrf-token"]')
-				?.getAttribute('content')
-			if (csrfToken) {
-				formData.append('_token', csrfToken)
-			}
-
-			// Submit the form action - React 19 formAction handles FormData internally
-			formAction(formData)
-
-			// Note: State updates are handled by useActionState automatically
-			// Success/error handling should be done via useEffect or similar
-		} catch (error) {
-			const errorMessage =
-				error instanceof Error
-					? error.message
-					: 'Failed to delete property'
-			logger.error(
-				'Property deletion error',
-				error instanceof Error ? error : new Error(String(error)),
-				{
-					propertyId: property.id
-				}
-			)
-			config.onError?.(errorMessage)
+		// Add CSRF token if available
+		const csrfToken = document
+			.querySelector('meta[name="csrf-token"]')
+			?.getAttribute('content')
+		if (csrfToken) {
+			formData.append('_token', csrfToken)
 		}
+
+		// Submit the form action - React 19 formAction handles FormData internally
+		formAction(formData)
+
+		// Note: State updates are handled by useActionState automatically
+		// Success/error handling should be done via useEffect or similar
 	}
 
 	return {

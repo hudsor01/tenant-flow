@@ -1,6 +1,7 @@
 // Notification types for TenantFlow application
+import type { Database } from './supabase-generated'
 
-import type { WebSocketMessage } from './websocket'
+type Priority = Database['public']['Enums']['Priority']
 
 // Notification type enum
 export enum NotificationType {
@@ -8,19 +9,58 @@ export enum NotificationType {
 	LEASE = 'LEASE',
 	PAYMENT = 'PAYMENT',
 	GENERAL = 'GENERAL',
-	SYSTEM = 'SYSTEM'
+	SYSTEM = 'SYSTEM',
+	INFO = 'INFO' // Add INFO for compatibility
 }
 
-export interface NotificationData {
-	id: string
-	type: string
+// API Request/Response types (consolidated from frontend)
+export interface NotificationRequest {
+	type: NotificationType
 	title: string
 	message: string
-	userId: string
-	read: boolean
-	createdAt: Date | string
-	updatedAt: Date | string
-	metadata?: Record<string, string | number | boolean | null>
+	recipientId?: string
+	actionUrl?: string
+	data?: Record<string, unknown>
+	priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT' | 'EMERGENCY'
+}
+
+export interface NotificationResponse {
+	id: string
+	sent: boolean
+	sentAt: string
+	// Frontend API response format
+	success?: boolean
+	data?: NotificationData
+	error?: string
+}
+
+// Frontend notification data structure
+export interface NotificationData {
+  id: string
+  title: string
+  message: string
+  priority: Priority
+  type: 'INFO' | 'SUCCESS' | 'WARNING' | 'ERROR'
+  read: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface CreateNotificationDto {
+  title: string
+  message: string
+  priority?: Priority
+  type?: 'INFO' | 'SUCCESS' | 'WARNING' | 'ERROR'
+}
+
+export interface UpdateNotificationDto {
+  read?: boolean
+}
+
+export interface MaintenanceNotificationData extends NotificationData {
+  maintenanceRequestId?: string
+  propertyId?: string
+  unitId?: string
 }
 
 // WebSocket types for real-time notifications
@@ -28,6 +68,14 @@ export interface NotificationWebSocketMessage {
 	type: string
 	data: Record<string, string | number | boolean | null>
 	timestamp?: Date | string
+	id?: string
+}
+
+// Base WebSocket message type
+export interface WebSocketMessage {
+	type: string
+	data: Record<string, unknown>
+	timestamp?: string
 	id?: string
 }
 
@@ -87,4 +135,32 @@ export interface PushNotification {
 	badge?: string
 	tag?: string
 	data?: Record<string, string | number | boolean | null>
+}
+
+// =============================================================================
+// BACKEND NOTIFICATION CONTROLLER TYPES - CONSOLIDATED from backend
+// =============================================================================
+
+export interface GetNotificationOptions {
+	unreadOnly?: boolean
+	limit?: number
+	offset?: number
+}
+
+export interface CreateNotificationRequest {
+recipientId: string
+title: string
+message: string
+priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
+actionUrl?: string
+data?: Record<string, unknown>
+}
+
+export interface MaintenanceNotificationRequest {
+recipientId: string
+title: string
+message: string
+type: NotificationType
+unitId: string
+priority: Priority
 }

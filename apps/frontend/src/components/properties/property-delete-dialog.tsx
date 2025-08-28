@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useDeleteProperty } from '@/hooks/api/use-properties'
+import { usePropertiesOptimistic } from '@/hooks/api/use-properties'
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -13,29 +13,31 @@ import {
 	AlertDialogTitle
 } from '@/components/ui/alert-dialog'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2, AlertTriangle } from 'lucide-react'
-import type { Property } from '@repo/shared'
+import type { PropertyWithUnits } from '@repo/shared'
 
-interface PropertyDeleteDialogProps {
+interface Property_DeleteDialogProps {
 	open: boolean
 	onOpenChange: (open: boolean) => void
-	property: Property | null
+  property: PropertyWithUnits | null
 }
 
-export function PropertyDeleteDialog({
+export function Property_DeleteDialog({
 	open,
 	onOpenChange,
 	property
-}: PropertyDeleteDialogProps) {
+}: Property_DeleteDialogProps) {
 	const [error, setError] = useState<string | null>(null)
-	const deleteProperty = useDeleteProperty()
+	const propertiesOptimistic = usePropertiesOptimistic()
 
 	const handleDelete = async () => {
-		if (!property) return
+		if (!property) {
+			return
+		}
 
 		try {
 			setError(null)
-			await deleteProperty.mutateAsync(property.id)
+			// React 19 useOptimistic - instant feedback with automatic revert on error
+			await propertiesOptimistic.deleteProperty(property.id)
 			onOpenChange(false)
 		} catch (err) {
 			setError(
@@ -44,7 +46,9 @@ export function PropertyDeleteDialog({
 		}
 	}
 
-	if (!property) return null
+	if (!property) {
+		return null
+	}
 
 	const hasUnits = property.units && property.units.length > 0
 	const hasOccupiedUnits = property.units?.some(
@@ -55,7 +59,7 @@ export function PropertyDeleteDialog({
 		<AlertDialog open={open} onOpenChange={onOpenChange}>
 			<AlertDialogContent>
 				<AlertDialogHeader>
-					<AlertDialogTitle>Delete Property</AlertDialogTitle>
+					<AlertDialogTitle>Delete Property_</AlertDialogTitle>
 					<AlertDialogDescription>
 						Are you sure you want to delete{' '}
 						<strong>{property.name}</strong>?
@@ -64,7 +68,7 @@ export function PropertyDeleteDialog({
 
 				{hasOccupiedUnits && (
 					<Alert variant="destructive">
-						<AlertTriangle className="h-4 w-4" />
+						<i className="i-lucide-alert-triangle inline-block h-4 w-4"  />
 						<AlertDescription>
 							This property has occupied units. Please ensure all
 							tenants are relocated before deleting.
@@ -74,7 +78,7 @@ export function PropertyDeleteDialog({
 
 				{hasUnits && !hasOccupiedUnits && (
 					<Alert>
-						<AlertTriangle className="h-4 w-4" />
+						<i className="i-lucide-alert-triangle inline-block h-4 w-4"  />
 						<AlertDescription>
 							This property has {property.units?.length} unit(s)
 							that will also be deleted.
@@ -84,7 +88,7 @@ export function PropertyDeleteDialog({
 
 				{error && (
 					<Alert variant="destructive">
-						<AlertTriangle className="h-4 w-4" />
+						<i className="i-lucide-alert-triangle inline-block h-4 w-4"  />
 						<AlertDescription>{error}</AlertDescription>
 					</Alert>
 				)}
@@ -99,16 +103,16 @@ export function PropertyDeleteDialog({
 					<AlertDialogCancel>Cancel</AlertDialogCancel>
 					<AlertDialogAction
 						onClick={handleDelete}
-						disabled={deleteProperty.isPending || hasOccupiedUnits}
+						disabled={propertiesOptimistic.isPending || hasOccupiedUnits}
 						className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
 					>
-						{deleteProperty.isPending ? (
+						{propertiesOptimistic.isPending ? (
 							<>
-								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+								<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
 								Deleting...
 							</>
 						) : (
-							'Delete Property'
+							'Delete Property_'
 						)}
 					</AlertDialogAction>
 				</AlertDialogFooter>

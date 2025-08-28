@@ -1,7 +1,11 @@
-import { X } from 'lucide-react'
 import { Dialog, DialogContent } from '../ui/dialog'
 import { Button } from '../ui/button'
-import type { UpgradePromptModalProps } from '@/types'
+// Define props inline to avoid missing types
+interface UpgradePromptModalProps {
+	isOpen: boolean
+	onClose: () => void
+	reason?: string
+}
 
 export function UpgradePromptModal({
 	isOpen,
@@ -14,9 +18,9 @@ export function UpgradePromptModal({
 				<div className="relative p-6">
 					<button
 						onClick={onClose}
-						className="hover:bg-muted absolute top-4 right-4 rounded-full p-2 transition-colors"
+						className="hover:bg-muted absolute right-4 top-4 rounded-full p-2 transition-colors"
 					>
-						<X className="h-4 w-4" />
+						<i className="i-lucide-x inline-block h-4 w-4"  />
 					</button>
 
 					<div className="text-center">

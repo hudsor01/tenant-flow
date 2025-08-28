@@ -1,23 +1,22 @@
-import { MapPin } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { FormSection } from '@/components/modals/base-form-modal'
 import type { UseFormReturn } from 'react-hook-form'
 import type { PropertyFormData } from '@repo/shared/validation'
 
-interface PropertyLocationSectionProps {
-	form: UseFormReturn<PropertyFormData>
+interface Property_LocationSectionProps {
+  form: UseFormReturn<PropertyFormData>
 }
 
 /**
- * Property location section component
+ * Property_ location section component
  * Handles address, city, state, and ZIP code fields
  */
-export function PropertyLocationSection({
+export function Property_LocationSection({
 	form
-}: Readonly<PropertyLocationSectionProps>) {
+}: Readonly<Property_LocationSectionProps>) {
 	return (
-		<FormSection icon={MapPin} title="Location" delay={1}>
+		<FormSection icon="Location" title="Location" delay={1}>
 			{/* Street Address */}
 			<div className="space-y-2">
 				<Label
@@ -27,7 +26,7 @@ export function PropertyLocationSection({
 					Street Address *
 				</Label>
 				<div className="relative">
-					<MapPin className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+					<i className="i-lucide-map-pin inline-block absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400"  />
 					<Input
 						id="address"
 						placeholder="e.g., 123 Main Street"

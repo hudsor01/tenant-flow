@@ -80,13 +80,6 @@
 			"cache": true,
 			"persistent": false
 		},
-		"@repo/emails#build": {
-			"dependsOn": [],
-			"inputs": ["*.tsx", "*.ts", "tsconfig*.json", "package.json"],
-			"outputs": ["dist/**", ".turbo/**"],
-			"cache": true,
-			"persistent": false
-		},
 		"@repo/frontend#build": {
 			"dependsOn": ["@repo/shared#build", "@repo/database#build"],
 			"inputs": [
@@ -177,7 +170,7 @@
 			"persistent": false
 		},
 		"typecheck": {
-			"dependsOn": ["@repo/shared#build"],
+			"dependsOn": ["^build"],
 			"inputs": [
 				"**/*.ts",
 				"**/*.tsx",
@@ -187,12 +180,27 @@
 				"!.next/**",
 				"!coverage/**"
 			],
-			"outputs": [],
+			"outputs": [".tsbuildinfo", "*/.tsbuildinfo"],
+			"cache": true,
+			"persistent": false
+		},
+		"check-types": {
+			"dependsOn": ["^build"],
+			"inputs": [
+				"**/*.ts",
+				"**/*.tsx",
+				"tsconfig*.json",
+				"!node_modules/**",
+				"!dist/**",
+				"!.next/**",
+				"!coverage/**"
+			],
+			"outputs": [".tsbuildinfo", "*/.tsbuildinfo"],
 			"cache": true,
 			"persistent": false
 		},
 		"@repo/frontend#typecheck": {
-			"dependsOn": ["@repo/shared#build"],
+			"dependsOn": ["@repo/shared#build", "@repo/database#build"],
 			"inputs": [
 				"src/**",
 				"app/**",
@@ -229,21 +237,7 @@
 				"!**/*.test.*",
 				"!**/*.spec.*"
 			],
-			"outputs": [],
-			"cache": true,
-			"persistent": false
-		},
-		"@repo/emails#typecheck": {
-			"dependsOn": [],
-			"inputs": ["*.tsx", "*.ts", "tsconfig*.json", "package.json"],
-			"outputs": [],
-			"cache": true,
-			"persistent": false
-		},
-		"@repo/tailwind-config#typecheck": {
-			"dependsOn": [],
-			"inputs": ["*.js", "package.json"],
-			"outputs": [],
+			"outputs": ["dist/.tsbuildinfo"],
 			"cache": true,
 			"persistent": false
 		},
@@ -312,6 +306,25 @@
 			"outputs": ["coverage/**", "test-results/**"],
 			"persistent": false,
 			"env": ["DATABASE_URL", "CI"]
+		},
+		"test:vitest": {
+			"dependsOn": ["@repo/shared#build"],
+			"inputs": [
+				"src/**/*.test.ts",
+				"src/**/*.test.tsx",
+				"src/**/*.spec.ts",
+				"src/**/*.spec.tsx",
+				"tests/unit/**/*.test.ts",
+				"tests/unit/**/*.test.tsx",
+				"vitest.config.*",
+				"!coverage/**",
+				"!test-results/**",
+				"!**/node_modules/**"
+			],
+			"cache": true,
+			"outputs": ["coverage/**", "test-results/**"],
+			"persistent": false,
+			"env": ["CI"]
 		},
 		"test:coverage": {
 			"dependsOn": ["@repo/shared#build"],

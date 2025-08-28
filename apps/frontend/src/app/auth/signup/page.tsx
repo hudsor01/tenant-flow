@@ -1,9 +1,10 @@
-import type { Metadata } from '@/types/next.d'
+import type { Metadata } from 'next/types'
 import { Suspense } from 'react'
 import { SimpleSignupForm } from '@/components/forms/supabase-signup-form'
 import { AuthLayout } from '@/components/layout/auth/layout'
-import { getCurrentUser } from '@/lib/actions/auth-actions'
+import { getCurrentUser } from '@/app/actions/auth'
 import { AuthRedirect } from '@/components/auth/auth-redirect'
+import { SkeletonForm } from '@/components/ui/skeleton'
 
 export const metadata: Metadata = {
 	title: 'Sign Up | TenantFlow',
@@ -35,7 +36,7 @@ export default async function SignupPage({
 			side="right"
 			image={{
 				src: '/property-management-og.jpg',
-				alt: 'Property management platform'
+				alt: 'Property_ management platform'
 			}}
 			heroContent={{
 				title: 'Start Your 14-Day Free Trial',
@@ -45,7 +46,9 @@ export default async function SignupPage({
 		>
 			<Suspense
 				fallback={
-					<div className="bg-muted h-[500px] animate-pulse rounded-lg" />
+					<div className="mx-auto w-full max-w-md">
+						<SkeletonForm />
+					</div>
 				}
 			>
 				<SimpleSignupForm redirectTo={redirectTo} />

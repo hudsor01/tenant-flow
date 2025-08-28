@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from '@/lib/lazy-motion'
-import { Menu, Search, Bell, X, ChevronRight } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useDashboardOverview } from '@/hooks/api/use-dashboard'
@@ -13,7 +12,7 @@ import { cn } from '@/lib/utils'
 const pageTitles: Record<string, string> = {
 	'/dashboard': 'Dashboard',
 	'/properties': 'Properties',
-	'/properties/new': 'Add Property',
+	'/properties/new': 'Add Property_',
 	'/tenants': 'Tenants',
 	'/tenants/new': 'Add Tenant',
 	'/leases': 'Leases',
@@ -31,7 +30,9 @@ const pageTitles: Record<string, string> = {
 const getBreadcrumbs = (pathname: string) => {
 	const segments = pathname.split('/').filter(Boolean)
 
-	if (segments.length <= 1) return []
+	if (segments.length <= 1) {
+		return []
+	}
 
 	const breadcrumbs = []
 	let currentPath = ''
@@ -39,7 +40,9 @@ const getBreadcrumbs = (pathname: string) => {
 	for (let i = 0; i < segments.length - 1; i++) {
 		currentPath += '/' + segments[i]
 		const segment = segments[i]
-		if (!segment) continue
+		if (!segment) {
+			continue
+		}
 		const title =
 			pageTitles[currentPath] ||
 			segment.charAt(0).toUpperCase() + segment.slice(1)
@@ -69,7 +72,7 @@ export function MobileHeader({
 	const breadcrumbs = getBreadcrumbs(pathname)
 
 	// Calculate notification count
-	const notificationCount = stats?.maintenanceRequests?.open ?? 0
+	const notificationCount = stats?.maintenance?.total ?? 0
 
 	// Close search on route change
 	useEffect(() => {
@@ -91,7 +94,7 @@ export function MobileHeader({
 						variant="ghost"
 						size="sm"
 						onClick={onMenuToggle}
-						className="mr-2 -ml-2 p-2"
+						className="-ml-2 mr-2 p-2"
 						aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
 					>
 						<motion.div
@@ -99,9 +102,9 @@ export function MobileHeader({
 							transition={{ duration: 0.2 }}
 						>
 							{isMenuOpen ? (
-								<X className="h-5 w-5" />
+								<i className="i-lucide-x inline-block h-5 w-5"  />
 							) : (
-								<Menu className="h-5 w-5" />
+								<i className="i-lucide-menu inline-block h-5 w-5"  />
 							)}
 						</motion.div>
 					</Button>
@@ -119,11 +122,11 @@ export function MobileHeader({
 											{breadcrumb.title}
 										</span>
 										{index < breadcrumbs.length - 1 && (
-											<ChevronRight className="mx-1 h-3 w-3 flex-shrink-0" />
+											<i className="i-lucide-chevron-right inline-block mx-1 h-3 w-3 flex-shrink-0"  />
 										)}
 									</div>
 								))}
-								<ChevronRight className="mx-1 h-3 w-3 flex-shrink-0" />
+								<i className="i-lucide-chevron-right inline-block mx-1 h-3 w-3 flex-shrink-0"  />
 							</div>
 						)}
 
@@ -155,9 +158,9 @@ export function MobileHeader({
 							transition={{ duration: 0.2 }}
 						>
 							{isSearchOpen ? (
-								<X className="h-5 w-5" />
+								<i className="i-lucide-x inline-block h-5 w-5"  />
 							) : (
-								<Search className="h-5 w-5" />
+								<i className="i-lucide-search inline-block h-5 w-5"  />
 							)}
 						</motion.div>
 					</Button>
@@ -169,12 +172,12 @@ export function MobileHeader({
 						className="relative p-2"
 						aria-label={`Notifications${notificationCount > 0 ? ` (${notificationCount})` : ''}`}
 					>
-						<Bell className="h-5 w-5" />
+						<i className="i-lucide-bell inline-block h-5 w-5"  />
 						{notificationCount > 0 && (
 							<motion.div
 								initial={{ scale: 0 }}
 								animate={{ scale: 1 }}
-								className="absolute -top-0.5 -right-0.5"
+								className="absolute -right-0.5 -top-0.5"
 							>
 								<Badge
 									variant="destructive"
@@ -202,11 +205,11 @@ export function MobileHeader({
 					>
 						<div className="px-4 py-3">
 							<div className="relative">
-								<Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
+								<i className="i-lucide-search inline-block absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"  />
 								<input
 									type="text"
 									placeholder="Search properties, tenants, leases..."
-									className="focus:ring-primary w-full rounded-lg border border-gray-200 bg-white py-2 pr-4 pl-10 text-sm focus:border-transparent focus:ring-2 focus:outline-none"
+									className="focus:ring-primary w-full rounded-lg border border-gray-200 bg-white py-2 pl-10 pr-4 text-sm focus:border-transparent focus:outline-none focus:ring-2"
 									autoFocus
 								/>
 							</div>

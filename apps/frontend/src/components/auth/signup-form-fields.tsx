@@ -8,22 +8,24 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from '@/components/ui/select'
+// import {
+// 	Select,
+// 	SelectContent,
+// 	SelectItem,
+// 	SelectTrigger,
+// 	SelectValue
+// } from '@/components/ui/select'
 
-import type { FormState } from '@/hooks/use-form-state'
+import type { SignupFormState, SignupData } from '@repo/shared/types/frontend' // Added SignupData
+// Removed unused SignupFormData import
 
 export interface SignupFormFieldsProps {
-	formState: FormState
-	onFieldUpdate: <K extends keyof FormState>(
+	formState: SignupFormState
+	onFieldUpdate: <K extends keyof SignupData>( // Changed to keyof SignupData
 		field: K,
-		value: FormState[K]
+		value: SignupData[K]
 	) => void
+    onConfirmPasswordUpdate: (value: string) => void; // Added for confirmPassword
 	onTogglePasswordVisibility: () => void
 	onToggleConfirmPasswordVisibility: () => void
 	onEmailSubmit: (e: React.FormEvent) => void
@@ -49,25 +51,32 @@ export interface SignupFormFieldsProps {
 		companySize?: string
 		phone?: string
 	}
+    showPassword?: boolean;
+    showConfirmPassword?: boolean;
+    confirmPasswordValue: string; // Added to pass confirmPassword value
 }
 
 export function SignupFormFields({
 	formState,
 	onFieldUpdate,
-	onTogglePasswordVisibility,
-	onToggleConfirmPasswordVisibility,
+    onConfirmPasswordUpdate, // Added
+	// onTogglePasswordVisibility,
+	// onToggleConfirmPasswordVisibility,
 	onEmailSubmit,
 	onGoogleSignup,
 	isLoading,
 	error,
 	errors = {},
-	defaultValues = {}
+	defaultValues = {},
+    showPassword,
+    showConfirmPassword,
+    confirmPasswordValue // Added
 }: SignupFormFieldsProps) {
 	// Use formState if available, otherwise fallback to defaultValues
-	const name = formState?.name ?? defaultValues.fullName ?? ''
-	const email = formState?.email ?? defaultValues.email ?? ''
-	const password = formState?.password ?? ''
-	const confirmPassword = formState?.confirmPassword ?? ''
+	const name = formState.data.fullName ?? defaultValues.fullName ?? ''
+	const email = formState.data.email ?? defaultValues.email ?? ''
+	const password = formState.data.password ?? ''
+	const confirmPassword = confirmPasswordValue ?? '' // Use confirmPasswordValue prop
 
 	return (
 		<form onSubmit={onEmailSubmit} className="space-y-4">
@@ -87,8 +96,10 @@ export function SignupFormFields({
 					type="text"
 					required
 					value={name}
-					onChange={e => onFieldUpdate?.('name', e.target.value)}
-					className={errors.fullName ? 'border-red-500' : ''}
+					onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+						onFieldUpdate?.('fullName', e.target.value)
+					}
+					className={errors.fullName ? 'input-error-red' : ''}
 					disabled={isLoading}
 				/>
 				{errors.fullName && (
@@ -105,8 +116,10 @@ export function SignupFormFields({
 					type="email"
 					required
 					value={email}
-					onChange={e => onFieldUpdate?.('email', e.target.value)}
-					className={errors.email ? 'border-red-500' : ''}
+					onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+						onFieldUpdate?.('email', e.target.value)
+					}
+					className={errors.email ? 'input-error-red' : ''}
 					disabled={isLoading}
 				/>
 				{errors.email && (
@@ -120,11 +133,13 @@ export function SignupFormFields({
 				<Input
 					id="password"
 					name="password"
-					type={formState?.showPassword ? 'text' : 'password'}
+					type={showPassword ? 'text' : 'password'}
 					required
 					value={password}
-					onChange={e => onFieldUpdate?.('password', e.target.value)}
-					className={errors.password ? 'border-red-500' : ''}
+					onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+						onFieldUpdate?.('password', e.target.value)
+					}
+					className={errors.password ? 'input-error-red' : ''}
 					disabled={isLoading}
 					minLength={8}
 				/>
@@ -139,13 +154,13 @@ export function SignupFormFields({
 				<Input
 					id="confirmPassword"
 					name="confirmPassword"
-					type={formState?.showConfirmPassword ? 'text' : 'password'}
+					type={showConfirmPassword ? 'text' : 'password'}
 					required
 					value={confirmPassword}
-					onChange={e =>
-						onFieldUpdate?.('confirmPassword', e.target.value)
+					onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+						onConfirmPasswordUpdate?.(e.target.value)
 					}
-					className={errors.confirmPassword ? 'border-red-500' : ''}
+					className={errors.confirmPassword ? 'input-error-red' : ''}
 					disabled={isLoading}
 				/>
 				{errors.confirmPassword && (
@@ -157,7 +172,12 @@ export function SignupFormFields({
 
 			{/* Submit Button */}
 			<div className="space-y-4">
-				<Button type="submit" className="w-full" disabled={isLoading}>
+				<Button 
+					type="submit" 
+					className="loading-button w-full" 
+					disabled={isLoading}
+					data-loading={isLoading}
+				>
 					{isLoading ? 'Creating account...' : 'Create Account'}
 				</Button>
 

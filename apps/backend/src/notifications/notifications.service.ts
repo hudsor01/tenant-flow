@@ -1,282 +1,402 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, BadRequestException } from '@nestjs/common'
+import { PinoLogger } from 'nestjs-pino'
 import { SupabaseService } from '../database/supabase.service'
-import { EmailService } from '../email/email.service'
-import type { 
-  MaintenanceNotificationData, 
-  NotificationType,
-  Priority 
-} from './dto/notification.dto'
+import type { Database } from '@repo/shared/types/supabase-generated'
+import type { MaintenanceNotificationData } from '@repo/shared'
+import { z } from 'zod'
+import {
+	uuidSchema,
+	requiredString,
+	requiredTitle,
+	requiredDescription
+} from '@repo/shared/validation/common'
+
+type NotificationType = 'maintenance' | 'lease' | 'payment' | 'system'
+type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
 
 @Injectable()
 export class NotificationsService {
-  private readonly logger = new Logger(NotificationsService.name)
+	constructor(
+		private readonly supabaseService: SupabaseService,
+		private readonly logger: PinoLogger
+	) {
+		// PinoLogger context handled automatically via app-level configuration
+	}
 
-  constructor(
-    private readonly supabaseService: SupabaseService,
-    private readonly emailService: EmailService
-  ) {}
+	/**
+	 * Zod schemas for notification validation
+	 */
+	private static readonly NOTIFICATION_SCHEMAS = {
+		maintenanceNotification: z.object({
+			recipientId: uuidSchema,
+			title: requiredTitle,
+			message: requiredDescription,
+			type: requiredString,
+			priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'EMERGENCY'], {
+				message: 'Invalid priority level'
+			}),
+			actionUrl: z.string().optional(),
+			maintenanceId: uuidSchema.optional(),
+			data: z.object({
+				propertyName: requiredString,
+				unitNumber: requiredString,
+				description: z.string().max(200, 'Description too long'),
+				requestTitle: requiredString
+			})
+		}),
 
-  /**
-   * Get notification type based on maintenance priority and urgency
-   */
-  getNotificationType(
-    priority: Priority,
-    isNewRequest = false
-  ): NotificationType {
-    const baseType = isNewRequest
-      ? 'maintenance_request_created'
-      : 'maintenance_update'
+		notificationInput: z.object({
+			ownerId: uuidSchema,
+			title: requiredTitle,
+			description: requiredDescription,
+			priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'EMERGENCY']),
+			propertyName: requiredString,
+			unitNumber: requiredString,
+			maintenanceId: uuidSchema.optional(),
+			actionUrl: z.string().url('Invalid URL format').optional()
+		})
+	}
 
-    switch (priority) {
-      case 'EMERGENCY':
-        return `${baseType}_emergency` as NotificationType
-      case 'HIGH':
-        return `${baseType}_high` as NotificationType
-      case 'MEDIUM':
-        return `${baseType}_medium` as NotificationType
-      case 'LOW':
-        return `${baseType}_low` as NotificationType
-      default:
-        return baseType as NotificationType
-    }
-  }
+	/**
+	 * Get notification type based on maintenance priority and urgency
+	 */
+	getNotificationType(
+		priority: Priority,
+		isNewRequest = false
+	): NotificationType {
+		const baseType = isNewRequest
+			? 'maintenance_request_created'
+			: 'maintenance_update'
 
-  /**
-   * Get priority label for display
-   */
-  getPriorityLabel(priority: Priority): string {
-    const labels = {
-      EMERGENCY: 'Emergency',
-      HIGH: 'High Priority',
-      MEDIUM: 'Medium Priority',
-      LOW: 'Low Priority'
-    }
-    return labels[priority] || priority
-  }
+		switch (priority) {
+			case 'EMERGENCY':
+				return `${baseType}_emergency` as NotificationType
+			case 'HIGH':
+				return `${baseType}_high` as NotificationType
+			case 'MEDIUM':
+				return `${baseType}_medium` as NotificationType
+			case 'LOW':
+				return `${baseType}_low` as NotificationType
+			default:
+				return baseType as NotificationType
+		}
+	}
 
-  /**
-   * Get notification urgency for system processing
-   */
-  getNotificationUrgency(priority: Priority): boolean {
-    return priority === 'EMERGENCY' || priority === 'HIGH'
-  }
+	/**
+	 * Get priority label for display
+	 */
+	getPriorityLabel(priority: Priority): string {
+		const labels = {
+			EMERGENCY: 'Emergency',
+			HIGH: 'High Priority',
+			MEDIUM: 'Medium Priority',
+			LOW: 'Low Priority'
+		}
+		return labels[priority] || priority
+	}
 
-  /**
-   * Create and send maintenance notification
-   */
-  async createMaintenanceNotification(
-    ownerId: string,
-    title: string,
-    description: string,
-    priority: Priority,
-    propertyName: string,
-    unitNumber: string,
-    maintenanceId?: string,
-    actionUrl?: string
-  ): Promise<MaintenanceNotificationData> {
-    const priorityLabel = this.getPriorityLabel(priority)
+	/**
+	 * Get notification urgency for system processing
+	 */
+	getNotificationUrgency(priority: Priority): boolean {
+		return priority === 'EMERGENCY' || priority === 'HIGH'
+	}
 
-    const notification: MaintenanceNotificationData = {
-      recipientId: ownerId,
-      title: `${priorityLabel} Maintenance Request`,
-      message: `New maintenance request for ${propertyName} - Unit ${unitNumber}: ${title}`,
-      type: this.getNotificationType(priority, true),
-      priority: priority,
-      actionUrl: actionUrl || '/maintenance',
-      maintenanceId: maintenanceId,
-      data: {
-        propertyName,
-        unitNumber,
-        description: description.substring(0, 200), // Truncate for notification
-        requestTitle: title
-      }
-    }
+	/**
+	 * Create and send maintenance notification
+	 */
+	async createMaintenanceNotification(
+		ownerId: string,
+		title: string,
+		description: string,
+		priority: Priority,
+		propertyName: string,
+		unitNumber: string,
+		maintenanceId?: string,
+		actionUrl?: string
+	): Promise<MaintenanceNotificationData> {
+		// Validate input data using Zod directly (no wrapper abstractions)
+		const validationResult =
+			NotificationsService.NOTIFICATION_SCHEMAS.notificationInput.safeParse(
+				{
+					ownerId,
+					title,
+					description,
+					priority,
+					propertyName,
+					unitNumber,
+					maintenanceId,
+					actionUrl
+				}
+			)
 
-    // Validate notification data
-    const errors = this.validateNotificationData(notification)
-    if (errors.length > 0) {
-      throw new Error(`Invalid notification data: ${errors.join(', ')}`)
-    }
+		if (!validationResult.success) {
+			const errorMessages = validationResult.error.issues
+				.map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`)
+				.join(', ')
+			throw new BadRequestException(
+				`Invalid notification input: ${errorMessages}`
+			)
+		}
 
-    // Store notification in database using existing InAppNotification table
-    const { error } = await this.supabaseService.getAdminClient()
-      .from('InAppNotification')
-      .insert({
-        userId: notification.recipientId,
-        title: notification.title,
-        content: notification.message,
-        type: notification.type,
-        priority: notification.priority.toLowerCase(),
-        metadata: {
-          actionUrl: notification.actionUrl,
-          maintenanceId: notification.maintenanceId,
-          ...notification.data
-        },
-        maintenanceRequestId: notification.maintenanceId,
-        isRead: false
-      })
-      .select()
-      .single()
+		const priorityLabel = this.getPriorityLabel(priority)
 
-    if (error) {
-      throw error
-    }
+		const notification = {
+			recipientId: ownerId,
+			title: `${priorityLabel} Maintenance Request`,
+			message: `New maintenance request for ${propertyName} - Unit ${unitNumber}: ${title}`,
+			type: this.getNotificationType(priority, true),
+			priority: priority,
+			actionUrl: actionUrl ?? '/maintenance',
+			maintenanceId: maintenanceId || '',
+			unitId: '', // Will be populated when we have the actual unit ID
+			category: 'GENERAL', // Default category
+			data: {
+				propertyName,
+				unitNumber,
+				description: description.substring(0, 200), // Truncate for notification
+				requestTitle: title
+			}
+		}
 
-    // If high priority, trigger immediate sending
-    if (this.shouldSendImmediately(priority)) {
-      await this.sendImmediateNotification(notification)
-    }
+		// Validate notification data with Zod directly (no wrapper abstractions)
+		const notificationValidation =
+			NotificationsService.NOTIFICATION_SCHEMAS.maintenanceNotification.safeParse(
+				notification
+			)
 
-    return notification
-  }
+		if (!notificationValidation.success) {
+			const errorMessages = notificationValidation.error.issues
+				.map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`)
+				.join(', ')
+			throw new BadRequestException(
+				`Invalid notification data: ${errorMessages}`
+			)
+		}
 
-  /**
-   * Validate notification data
-   */
-  validateNotificationData(
-    data: Partial<MaintenanceNotificationData>
-  ): string[] {
-    const errors: string[] = []
+		// Store notification in database using existing InAppNotification table
+		const { error } = await this.supabaseService
+			.getAdminClient()
+			.from('InAppNotification')
+			.insert({
+				userId: notification.recipientId,
+				title: notification.title,
+				content: notification.message,
+				type: notification.type,
+				priority: notification.priority.toLowerCase(),
+				metadata: {
+					actionUrl: notification.actionUrl,
+					maintenanceId: notification.maintenanceId,
+					...notification.data
+				},
+				maintenanceRequestId: notification.maintenanceId,
+				isRead: false
+			})
+			.select()
+			.single()
 
-    if (!data.recipientId) {
-      errors.push('Recipient ID is required')
-    }
+		if (error) {
+			throw error
+		}
 
-    if (!data.title) {
-      errors.push('Title is required')
-    }
+		// If high priority, trigger immediate sending
+		if (this.shouldSendImmediately(priority)) {
+			await this.sendImmediateNotification(notification)
+		}
 
-    if (!data.message) {
-      errors.push('Message is required')
-    }
+		return notification as unknown as MaintenanceNotificationData
+	}
 
-    if (!data.type) {
-      errors.push('Notification type is required')
-    }
+	/**
+	 * Calculate notification timeout based on priority
+	 */
+	getNotificationTimeout(priority: Priority): number {
+		switch (priority) {
+			case 'EMERGENCY':
+				return 15000
+			case 'HIGH':
+				return 12000
+			case 'MEDIUM':
+				return 8000
+			case 'LOW':
+				return 5000
+			default:
+				return 8000
+		}
+	}
 
-    if (!data.priority) {
-      errors.push('Priority is required')
-    }
+	/**
+	 * Determine if notification should be sent immediately
+	 */
+	shouldSendImmediately(priority: Priority): boolean {
+		return priority === 'EMERGENCY' || priority === 'HIGH'
+	}
 
-    return errors
-  }
+	/**
+	 * Send immediate notification (email for high priority)
+	 */
+private async sendImmediateNotification(
+notification: { recipientId: string; type: string; title: string }
+): Promise<void> {
+		try {
+			// Get user email from database
+			const { data: user, error } = await this.supabaseService
+				.getAdminClient()
+				.from('User')
+				.select('email')
+				.eq('id', notification.recipientId)
+				.single()
 
-  /**
-   * Calculate notification timeout based on priority
-   */
-  getNotificationTimeout(priority: Priority): number {
-    switch (priority) {
-      case 'EMERGENCY':
-        return 15000
-      case 'HIGH':
-        return 12000
-      case 'MEDIUM':
-        return 8000
-      case 'LOW':
-        return 5000
-      default:
-        return 8000
-    }
-  }
+			if (error || !user.email) {
+				this.logger.warn(
+					{
+						notification: {
+							recipientId: notification.recipientId,
+							type: notification.type,
+							title: notification.title
+						},
+						user: {
+							found: !error,
+							hasEmail: !!user?.email
+						}
+					},
+					`Could not find email for user ${notification.recipientId}`
+				)
+				return
+			}
 
-  /**
-   * Determine if notification should be sent immediately
-   */
-  shouldSendImmediately(priority: Priority): boolean {
-    return priority === 'EMERGENCY' || priority === 'HIGH'
-  }
+			// Email notifications removed for MVP - focus on in-app notifications only
+			this.logger.info(
+				{
+					notification: {
+						recipientId: notification.recipientId,
+						type: notification.type,
+						title: notification.title
+					},
+					mvp: {
+						emailDisabled: true,
+						inAppOnly: true
+					}
+				},
+				`In-app notification sent for user ${notification.recipientId} (email disabled for MVP)`
+			)
+		} catch (error) {
+			this.logger.error(
+				{
+					error: {
+						name: error instanceof Error ? error.constructor.name : 'Unknown',
+						message: error instanceof Error ? error.message : String(error),
+						stack: process.env.NODE_ENV !== 'production' && error instanceof Error ? error.stack : undefined
+					},
+					notification: {
+						recipientId: notification.recipientId,
+						type: notification.type
+					}
+				},
+				'Failed to send immediate notification'
+			)
+			// Don't throw - notification was still stored in database
+		}
+	}
 
-  /**
-   * Send immediate notification (email for high priority)
-   */
-  private async sendImmediateNotification(
-    notification: MaintenanceNotificationData
-  ): Promise<void> {
-    try {
-      // Get user email from database
-      const { data: user, error } = await this.supabaseService.getAdminClient()
-        .from('User')
-        .select('email')
-        .eq('id', notification.recipientId)
-        .single()
+	/**
+	 * Get unread notifications for a user
+	 */
+	async getUnreadNotifications(
+		userId: string
+	): Promise<Database['public']['Tables']['InAppNotification']['Row'][]> {
+		const { data, error } = await this.supabaseService
+			.getAdminClient()
+			.from('InAppNotification')
+			.select('*')
+			.eq('userId', userId)
+			.eq('isRead', false)
+			.order('createdAt', { ascending: false })
 
-      if (error || !user?.email) {
-        this.logger.warn(`Could not find email for user ${notification.recipientId}`)
-        return
-      }
+		if (error) {
+			throw error
+		}
 
-      // Send email notification using EmailService
-      if (notification.data) {
-        await this.emailService.sendMaintenanceNotificationEmail(
-          user.email,
-          notification.data.requestTitle,
-          notification.data.propertyName,
-          notification.data.unitNumber,
-          notification.data.description,
-          notification.priority,
-          notification.actionUrl
-        )
-      }
+		return data
+	}
 
-      this.logger.log(`Email notification sent to ${user.email} for ${notification.priority} priority maintenance request`)
-    } catch (error) {
-      this.logger.error('Failed to send immediate notification:', error)
-      // Don't throw - notification was still stored in database
-    }
-  }
+	/**
+	 * Mark notification as read
+	 */
+	async markAsRead(
+		notificationId: string,
+		userId: string
+	): Promise<Database['public']['Tables']['InAppNotification']['Row']> {
+		const { data, error } = await this.supabaseService
+			.getAdminClient()
+			.from('InAppNotification')
+			.update({ isRead: true, readAt: new Date().toISOString() })
+			.eq('id', notificationId)
+			.eq('userId', userId)
+			.select()
+			.single()
 
-  /**
-   * Get unread notifications for a user
-   */
-  async getUnreadNotifications(userId: string) {
-    const { data, error } = await this.supabaseService.getAdminClient()
-      .from('InAppNotification')
-      .select('*')
-      .eq('userId', userId)
-      .eq('isRead', false)
-      .order('createdAt', { ascending: false })
+		if (error) {
+			throw error
+		}
 
-    if (error) {
-      throw error
-    }
+		return data
+	}
 
-    return data
-  }
+	/**
+	 * Cancel notification
+	 */
+	async cancelNotification(
+		notificationId: string,
+		userId: string
+	): Promise<Database['public']['Tables']['InAppNotification']['Row']> {
+		const { data, error } = await this.supabaseService
+			.getAdminClient()
+			.from('InAppNotification')
+			.update({
+				metadata: {
+					cancelled: true,
+					cancelledAt: new Date().toISOString()
+				}
+			})
+			.eq('id', notificationId)
+			.eq('userId', userId)
+			.select()
+			.single()
 
-  /**
-   * Mark notification as read
-   */
-  async markAsRead(notificationId: string, userId: string) {
-    const { data, error } = await this.supabaseService.getAdminClient()
-      .from('InAppNotification')
-      .update({ isRead: true, readAt: new Date().toISOString() })
-      .eq('id', notificationId)
-      .eq('userId', userId)
-      .select()
-      .single()
+		if (error) {
+			throw error
+		}
 
-    if (error) {
-      throw error
-    }
+		this.logger.info(
+			{
+				notification: {
+					id: notificationId,
+					userId,
+					action: 'cancelled'
+				}
+			},
+			`Notification ${notificationId} cancelled for user ${userId}`
+		)
+		return data
+	}
 
-    return data
-  }
+	/**
+	 * Delete old notifications
+	 */
+	async cleanupOldNotifications(daysToKeep = 30): Promise<void> {
+		const cutoffDate = new Date()
+		cutoffDate.setDate(cutoffDate.getDate() - daysToKeep)
 
-  /**
-   * Delete old notifications
-   */
-  async cleanupOldNotifications(daysToKeep = 30) {
-    const cutoffDate = new Date()
-    cutoffDate.setDate(cutoffDate.getDate() - daysToKeep)
+		const { error } = await this.supabaseService
+			.getAdminClient()
+			.from('InAppNotification')
+			.delete()
+			.lt('createdAt', cutoffDate.toISOString())
+			.eq('isRead', true)
 
-    const { error } = await this.supabaseService.getAdminClient()
-      .from('InAppNotification')
-      .delete()
-      .lt('createdAt', cutoffDate.toISOString())
-      .eq('isRead', true)
-
-    if (error) {
-      throw error
-    }
-  }
+		if (error) {
+			throw error
+		}
+	}
 }

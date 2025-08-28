@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og'
 
 // Image metadata
-export const alt = 'TenantFlow - Property Management Platform'
+export const alt = 'TenantFlow - Property_ Management Platform'
 export const size = {
 	width: 1200,
 	height: 630

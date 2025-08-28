@@ -2,7 +2,6 @@
 
 import * as React from 'react'
 import { motion, AnimatePresence } from '@/lib/lazy-motion'
-import { ChevronRight, Activity } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -104,7 +103,7 @@ export function SidebarNavItem({ item }: SidebarNavItemProps) {
 					{/* Activity indicator */}
 					{item.hasActivity && (
 						<motion.div
-							className="border-sidebar absolute -top-1 -right-1 h-3 w-3 rounded-full border-2 bg-red-500"
+							className="border-sidebar absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 bg-red-500"
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
 							transition={springConfig.bouncy}
@@ -170,7 +169,7 @@ export function SidebarNavItem({ item }: SidebarNavItemProps) {
 							<div className="relative">
 								{item.icon}
 								{item.hasActivity && (
-									<Activity className="absolute -top-1 -right-1 h-2 w-2 text-red-500" />
+									<i className="i-lucide-activity inline-block absolute -right-1 -top-1 h-2 w-2 text-red-500"  />
 								)}
 							</div>
 							<span className="flex-1 text-left font-medium">
@@ -201,7 +200,7 @@ export function SidebarNavItem({ item }: SidebarNavItemProps) {
 							animate={{ rotate: isOpen ? 90 : 0 }}
 							transition={springConfig.snappy}
 						>
-							<ChevronRight className="text-sidebar-foreground/60 h-4 w-4" />
+							<i className="i-lucide-chevron-right inline-block text-sidebar-foreground/60 h-4 w-4"  />
 						</motion.div>
 					</NavButton>
 				</CollapsibleTrigger>
@@ -216,7 +215,7 @@ export function SidebarNavItem({ item }: SidebarNavItemProps) {
 								transition={springConfig.gentle}
 								className="overflow-hidden"
 							>
-								<div className="border-sidebar-border/30 ml-5 space-y-1 border-l py-2 pr-3 pl-8">
+								<div className="border-sidebar-border/30 ml-5 space-y-1 border-l py-2 pl-8 pr-3">
 									{item.items?.map((subItem, index) => (
 										<motion.div
 											key={index}
@@ -255,7 +254,7 @@ export function SidebarNavItem({ item }: SidebarNavItemProps) {
 					{item.icon}
 					{item.hasActivity && (
 						<motion.div
-							className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-red-500"
+							className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-red-500"
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
 							transition={springConfig.bouncy}

@@ -3,16 +3,13 @@ import {
 	uuidSchema,
 	nonEmptyStringSchema,
 	emailSchema,
-	phoneSchema
+	phoneSchema,
+	requiredString
 } from './common'
+import { Constants } from '../types/supabase-generated'
 
-// Tenant status enum
-export const tenantStatusSchema = z.enum([
-	'ACTIVE',
-	'INACTIVE',
-	'PENDING',
-	'FORMER'
-])
+// Tenant status enum - uses auto-generated Supabase enums
+export const tenantStatusSchema = z.enum(Constants.public.Enums.TenantStatus as readonly [string, ...string[]])
 
 // Emergency contact schema
 export const emergencyContactSchema = z
@@ -101,7 +98,7 @@ export const tenantInputSchema = tenantBaseSchema.refine(
 export const tenantSchema = tenantBaseSchema.extend({
 	id: uuidSchema,
 	ownerId: uuidSchema,
-	status: tenantStatusSchema.default('PENDING'),
+	status: tenantStatusSchema.default('PENDING' as const),
 	createdAt: z.date(),
 	updatedAt: z.date()
 })
@@ -163,8 +160,8 @@ export const tenantFormSchema = z
 			.string()
 			.min(1, 'Email is required')
 			.email('Please enter a valid email'),
-		firstName: z.string().min(1, 'First name is required'),
-		lastName: z.string().min(1, 'Last name is required'),
+		firstName: requiredString,
+		lastName: requiredString,
 		phone: z.string().optional(),
 		dateOfBirth: z.string().optional(),
 		propertyId: z.string().optional(),
@@ -193,7 +190,7 @@ export const tenantFormSchema = z
 				? {
 						name: data.emergencyContactName,
 						phone: data.emergencyContactPhone,
-						relationship: data.emergencyContactRelationship || ''
+						relationship: data.emergencyContactRelationship ?? ''
 					}
 				: undefined
 	}))

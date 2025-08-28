@@ -1,12 +1,12 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
-	"display": "TenantFlow Database Package Config",
+	"display": "TenantFlow Database Package Config - Composite with Shared Dependency",
 	"compilerOptions": {
 		"target": "ES2022",
 		"lib": ["ES2022", "DOM", "DOM.Iterable"],
 		"moduleDetection": "force",
-		"module": "CommonJS",
-		"moduleResolution": "node",
+		"module": "ESNext",
+		"moduleResolution": "Bundler",
 		"resolveJsonModule": true,
 		"allowJs": true,
 		"checkJs": false,
@@ -14,7 +14,7 @@
 		"allowSyntheticDefaultImports": true,
 		"forceConsistentCasingInFileNames": true,
 		"verbatimModuleSyntax": false,
-		"isolatedModules": false,
+		"isolatedModules": true,
 		"incremental": true,
 		"skipLibCheck": true,
 		"skipDefaultLibCheck": true,
@@ -39,6 +39,7 @@
 		"allowUnreachableCode": false,
 		"outDir": "./dist",
 		"rootDir": "./src",
+		"baseUrl": ".",
 		"composite": true,
 		"declaration": true,
 		"declarationMap": true,
@@ -48,6 +49,7 @@
 	},
 	"include": ["src/**/*"],
 	"exclude": ["node_modules", "dist", "src/generated"],
+	"references": [{ "path": "../shared" }],
 	"ts-node": {
 		"swc": true
 	}

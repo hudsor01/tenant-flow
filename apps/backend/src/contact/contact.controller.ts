@@ -1,41 +1,21 @@
 import {
   Body,
   Controller,
-  Logger,
   Post,
   UsePipes,
-  ValidationPipe
+  ValidationPipe,
+  InternalServerErrorException
 } from '@nestjs/common'
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
-import { IsEmail, IsEnum, IsNotEmpty, IsString } from 'class-validator'
-import { SuccessResponseUtil } from '../shared/utils/success-response.util'
-
-// Contact form DTO
-export class ContactFormDto {
-  @IsNotEmpty()
-  @IsString()
-  name!: string
-
-  @IsNotEmpty()
-  @IsEmail()
-  email!: string
-
-  @IsNotEmpty()
-  @IsString()
-  subject!: string
-
-  @IsNotEmpty()
-  @IsString()
-  message!: string
-
-  @IsEnum(['sales', 'support', 'general'])
-  type!: 'sales' | 'support' | 'general'
-}
+import { PinoLogger } from 'nestjs-pino'
+import type { ContactFormRequest, ContactFormResponse } from '../schemas/contact.schemas'
 
 @ApiTags('contact')
 @Controller('contact')
 export class ContactController {
-  private readonly logger = new Logger(ContactController.name)
+  constructor(private readonly logger: PinoLogger) {
+    // PinoLogger context handled automatically via app-level configuration
+  }
 
   @Post()
   @ApiOperation({
@@ -53,23 +33,24 @@ export class ContactController {
       }
     }
   })
-  @UsePipes(new ValidationPipe({ transform: true }))
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   async submitContactForm(
-    @Body() dto: ContactFormDto
-  ): Promise<{ success: boolean; message: string }> {
-    this.logger.log(`Contact form submission from ${dto.email}`)
+    @Body() dto: ContactFormRequest
+  ): Promise<ContactFormResponse> {
+    this.logger.info(
+      {
+        contactForm: {
+          type: dto.type,
+          name: dto.name,
+          email: dto.email,
+          subject: dto.subject,
+          messageLength: dto.message.length
+        }
+      },
+      `Contact form submission from ${dto.email}`
+    )
 
     try {
-      // Log the contact form submission
-      this.logger.log({
-        type: dto.type,
-        name: dto.name,
-        email: dto.email,
-        subject: dto.subject,
-        message: dto.message,
-        timestamp: new Date().toISOString()
-      })
-
       // In production, this would:
       // 1. Send email notification to support team
       // 2. Store in database for tracking
@@ -77,15 +58,26 @@ export class ContactController {
       // 4. Create ticket in support system
 
       // For now, just log and return success
-      return SuccessResponseUtil.withMessage(
-        'Thank you for contacting us. We will get back to you within 4 hours.'
-      )
+      // Fastify hooks will automatically format this response with success: true
+      return {
+        message: 'Thank you for contacting us. We will get back to you within 4 hours.'
+      }
     } catch (error: unknown) {
       this.logger.error(
-        `Failed to process contact form: ${error instanceof Error ? error.message : String(error)}`,
-        error instanceof Error ? error.stack : ''
+        {
+          error: {
+            name: error instanceof Error ? error.constructor.name : 'Unknown',
+            message: error instanceof Error ? error.message : String(error),
+            stack: process.env.NODE_ENV !== 'production' && error instanceof Error ? error.stack : undefined
+          },
+          contactForm: {
+            email: dto.email,
+            type: dto.type
+          }
+        },
+        'Failed to process contact form submission'
       )
-      throw new Error('Failed to submit contact form')
+      throw new InternalServerErrorException('Failed to submit contact form')
     }
   }
 }

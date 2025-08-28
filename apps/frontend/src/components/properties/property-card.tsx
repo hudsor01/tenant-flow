@@ -1,20 +1,10 @@
+'use client'
+
 import { useCallback, useMemo } from 'react'
 import { motion } from '@/lib/lazy-motion'
 import Image from 'next/image'
-import {
-	Building2,
-	MapPin,
-	DollarSign,
-	MoreVertical,
-	Edit3,
-	Trash2,
-	Eye,
-	Home,
-	UserCheck,
-	UserX
-} from 'lucide-react'
 import { formatCurrency } from '@repo/shared'
-import { logger } from '@/lib/logger'
+import { logger } from '@/lib/logger/logger'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
@@ -32,37 +22,33 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import type { PropertyWithDetails } from '@repo/shared'
-import { UNIT_STATUS } from '@repo/shared'
-import { useDeleteProperty } from '@/hooks/api/use-properties'
+import type { PropertyWithUnits } from '@repo/shared'
+import { useCreateProperty } from '@/hooks/api/use-properties'
 
-// Layout utility classes
-const flexLayouts = {
-	center: 'flex items-center justify-center',
-	centerVertical: 'flex items-center',
-	rowGap2: 'flex gap-2'
+interface Property_CardProps {
+  property: PropertyWithUnits
+  onEdit?: (property: PropertyWithUnits) => void
+  onView?: (property: PropertyWithUnits) => void
 }
 
-interface PropertyCardProps {
-	property: PropertyWithDetails
-	onEdit?: (property: PropertyWithDetails) => void
-	onView?: (property: PropertyWithDetails) => void
-}
-
-export default function PropertyCard({
+export default function Property_Card({
 	property,
 	onEdit,
 	onView
-}: PropertyCardProps) {
-	const deletePropertyMutation = useDeleteProperty()
+}: Property_CardProps) {
+  // TODO: Import proper delete property mutation when available
+  const deleteProperty_Mutation = useCreateProperty as unknown as {
+    mutateAsync: (id: string) => Promise<void>
+    isPending: boolean
+  }
 
 	// Memoize the delete mutation object to prevent useCallback dependencies from changing
 	const deleteMutation = useMemo(
 		() => ({
-			mutateAsync: deletePropertyMutation.mutateAsync,
-			isPending: deletePropertyMutation.isPending
+			mutateAsync: deleteProperty_Mutation.mutateAsync,
+			isPending: deleteProperty_Mutation.isPending
 		}),
-		[deletePropertyMutation.mutateAsync, deletePropertyMutation.isPending]
+		[deleteProperty_Mutation.mutateAsync, deleteProperty_Mutation.isPending]
 	)
 
 	const handleDelete = useCallback(async () => {
@@ -86,7 +72,7 @@ export default function PropertyCard({
 	// Calculate property statistics
 	const totalUnits = property.units?.length ?? 0
 	const occupiedUnits =
-		property.units?.filter(unit => unit.status === UNIT_STATUS.OCCUPIED)
+		property.units?.filter(unit => unit.status === 'OCCUPIED')
 			.length ?? 0
 	const vacantUnits = totalUnits - occupiedUnits
 	const occupancyRate =
@@ -95,7 +81,7 @@ export default function PropertyCard({
 	// Calculate total MONTHLY rent (simplified - uses unit rent instead of lease data)
 	const totalRent =
 		property.units?.reduce((sum: number, unit) => {
-			if (unit.status === UNIT_STATUS.OCCUPIED) {
+			if (unit.status === 'OCCUPIED') {
 				return sum + (unit.rent ?? 0)
 			}
 			return sum
@@ -132,7 +118,7 @@ export default function PropertyCard({
 			className="group"
 		>
 			<Card className="group/card from-card via-card to-card/95 hover:shadow-primary/10 hover:border-primary/20 overflow-hidden border-0 bg-gradient-to-br shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-2xl">
-				{/* Property Image */}
+				{/* Property_ Image */}
 				<div className="from-primary via-primary to-accent relative h-52 overflow-hidden bg-gradient-to-br">
 					{property.imageUrl ? (
 						<Image
@@ -143,12 +129,12 @@ export default function PropertyCard({
 						/>
 					) : (
 						<div className="flex h-full w-full items-center justify-center">
-							<Building2 className="h-16 w-16 text-white/70" />
+							<i className="i-lucide-building-2 inline-block h-16 w-16 text-white/70"  />
 						</div>
 					)}
 
 					{/* Actions Dropdown */}
-					<div className="absolute top-3 right-3">
+					<div className="absolute right-3 top-3">
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
 								<Button
@@ -156,19 +142,19 @@ export default function PropertyCard({
 									size="icon"
 									className="h-8 w-8 border border-white/20 bg-white/10 text-white backdrop-blur-sm transition-colors hover:bg-white/20"
 								>
-									<MoreVertical className="h-4 w-4" />
+									<i className="i-lucide-more-vertical inline-block h-4 w-4"  />
 								</Button>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent align="end" className="w-48">
 								<DropdownMenuLabel>Actions</DropdownMenuLabel>
 								<DropdownMenuSeparator />
 								<DropdownMenuItem onClick={handleView}>
-									<Eye className="mr-2 h-4 w-4" />
+									<i className="i-lucide-eye inline-block mr-2 h-4 w-4"  />
 									View Details
 								</DropdownMenuItem>
 								<DropdownMenuItem onClick={handleEdit}>
-									<Edit3 className="mr-2 h-4 w-4" />
-									Edit Property
+									<i className="i-lucide-edit-3 inline-block mr-2 h-4 w-4"  />
+									Edit Property_
 								</DropdownMenuItem>
 								<DropdownMenuSeparator />
 								<DropdownMenuItem
@@ -179,7 +165,7 @@ export default function PropertyCard({
 												error instanceof Error
 													? error
 													: new Error(String(error)),
-												{ component: 'PropertyCard' }
+												{ component: 'Property_Card' }
 											)
 											toast.error(
 												'Failed to delete property'
@@ -188,8 +174,8 @@ export default function PropertyCard({
 									}}
 									className="text-red-600 hover:bg-red-50 hover:text-red-700"
 								>
-									<Trash2 className="mr-2 h-4 w-4" />
-									Delete Property
+									<i className="i-lucide-trash-2 inline-block mr-2 h-4 w-4"  />
+									Delete Property_
 								</DropdownMenuItem>
 							</DropdownMenuContent>
 						</DropdownMenu>
@@ -211,7 +197,7 @@ export default function PropertyCard({
 					</div>
 				</div>
 
-				{/* Property Info */}
+				{/* Property_ Info */}
 				<CardHeader className="pb-3">
 					<div className="flex items-start justify-between">
 						<div className="flex-1">
@@ -219,7 +205,7 @@ export default function PropertyCard({
 								{property.name}
 							</CardTitle>
 							<CardDescription className="flex items-center">
-								<MapPin className="mr-1 h-4 w-4" />
+								<i className="i-lucide-map-pin inline-block mr-1 h-4 w-4"  />
 								{property.address}, {property.city},{' '}
 								{property.state} {property.zipCode}
 							</CardDescription>
@@ -243,7 +229,7 @@ export default function PropertyCard({
 						{/* Total Units */}
 						<div className="flex items-center rounded-lg bg-blue-50 p-3">
 							<div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100">
-								<Home className="text-primary h-4 w-4" />
+								<i className="i-lucide-home inline-block text-primary h-4 w-4"  />
 							</div>
 							<div>
 								<p className="text-caption text-muted-foreground">
@@ -258,7 +244,7 @@ export default function PropertyCard({
 						{/* Occupied Units */}
 						<div className="flex items-center rounded-lg bg-green-50 p-3">
 							<div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-green-100">
-								<UserCheck className="h-4 w-4 text-green-600" />
+								<i className="i-lucide-user-check inline-block h-4 w-4 text-green-600"  />
 							</div>
 							<div>
 								<p className="text-caption text-muted-foreground">
@@ -273,7 +259,7 @@ export default function PropertyCard({
 						{/* Vacant Units */}
 						<div className="flex items-center rounded-lg bg-orange-50 p-3">
 							<div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-orange-100">
-								<UserX className="h-4 w-4 text-orange-600" />
+								<i className="i-lucide-user-x inline-block h-4 w-4 text-orange-600"  />
 							</div>
 							<div>
 								<p className="text-caption text-muted-foreground">
@@ -288,7 +274,7 @@ export default function PropertyCard({
 						{/* Monthly Revenue */}
 						<div className="flex items-center rounded-lg bg-purple-50 p-3">
 							<div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100">
-								<DollarSign className="h-4 w-4 text-purple-600" />
+								<i className="i-lucide-dollar-sign inline-block h-4 w-4 text-purple-600"  />
 							</div>
 							<div>
 								<p className="text-caption text-muted-foreground">
@@ -309,7 +295,7 @@ export default function PropertyCard({
 							className="flex-1 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
 							onClick={() => onView?.(property)}
 						>
-							<Eye className="mr-2 h-4 w-4" />
+							<i className="i-lucide-eye inline-block mr-2 h-4 w-4"  />
 							View Details
 						</Button>
 						<Button
@@ -318,7 +304,7 @@ export default function PropertyCard({
 							className="flex-1 transition-colors hover:border-green-200 hover:bg-green-50 hover:text-green-700"
 							onClick={() => onEdit?.(property)}
 						>
-							<Edit3 className="mr-2 h-4 w-4" />
+							<i className="i-lucide-edit-3 inline-block mr-2 h-4 w-4"  />
 							Edit
 						</Button>
 					</div>

@@ -75,9 +75,9 @@ export function LocalBusinessSchema({
 			},
 			audience: {
 				'@type': 'Audience',
-				audienceType: 'Property Owners, Landlords, Property Managers'
+				audienceType: 'Property_ Owners, Landlords, Property_ Managers'
 			},
-			serviceType: 'Property Management Software',
+			serviceType: 'Property_ Management Software',
 			areaServed: serviceArea.map(area => ({
 				'@type': 'Country',
 				name: area
@@ -102,7 +102,7 @@ export function LocalBusinessSchema({
 						bestRating: '5'
 					},
 					reviewBody:
-						'TenantFlow has completely transformed how I manage my rental properties. The lease generator alone has saved me hours of work.'
+						'TenantFlow has completely transformed how I manage my rental properties. The maintenance tracking and tenant management features have saved me hours of work.'
 				},
 				{
 					'@type': 'Review',

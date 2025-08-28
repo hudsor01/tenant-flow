@@ -3,11 +3,13 @@
  * These types represent the structure of data returned from backend routes
  */
 
-import type { MaintenanceRequest } from './maintenance'
-import type { Property } from './properties'
-import type { Tenant } from './tenants'
-import type { Unit } from './properties'
-import type { Lease } from './leases'
+import type { Database } from './supabase-generated'
+
+type MaintenanceRequest = Database['public']['Tables']['MaintenanceRequest']['Row']
+type Property = Database['public']['Tables']['Property']['Row']
+type Tenant = Database['public']['Tables']['Tenant']['Row']
+type Unit = Database['public']['Tables']['Unit']['Row']
+type Lease = Database['public']['Tables']['Lease']['Row']
 
 // Maintenance router outputs
 export interface MaintenanceRequestListOutput {
@@ -28,8 +30,6 @@ export interface PropertyListOutput {
 	page: number
 	limit: number
 }
-
-// Other router outputs can be added here as needed
 
 // Main RouterOutputs type
 export interface RouterOutputs {

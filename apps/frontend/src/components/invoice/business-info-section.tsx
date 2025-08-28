@@ -1,8 +1,14 @@
-import { Building } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import type { BusinessInfoSectionProps } from '@/types/components'
+
+// Local type definition - following KISS principle
+import type { UseFormRegister, FieldErrors } from 'react-hook-form'
+
+interface BusinessInfoSectionProps {
+	register: UseFormRegister<Record<string, unknown>> // React Hook Form register function
+	errors: FieldErrors // Form errors
+}
 
 export function BusinessInfoSection({
 	register,
@@ -13,7 +19,7 @@ export function BusinessInfoSection({
 			<CardHeader className="from-primary/10 flex items-center justify-center border-b border-white/20 bg-gradient-to-r to-indigo-500/10 py-4">
 				<CardTitle className="flex items-center justify-center gap-2 text-base text-white">
 					<div className="bg-primary/20 group-hover:bg-primary/30 rounded-lg p-1.5 transition-colors">
-						<Building className="h-4 w-4 text-blue-300" />
+						<i className="i-lucide-building inline-block h-4 w-4 text-blue-300"  />
 					</div>
 					<span className="font-serif">Sender</span>
 				</CardTitle>
@@ -42,7 +48,7 @@ export function BusinessInfoSection({
 						/>
 						{errors.businessName && (
 							<p className="text-xs text-red-400">
-								{errors.businessName.message}
+								{String(errors.businessName.message || errors.businessName || 'Business name is required')}
 							</p>
 						)}
 					</div>
@@ -68,7 +74,7 @@ export function BusinessInfoSection({
 						/>
 						{errors.businessEmail && (
 							<p className="text-xs text-red-400">
-								{errors.businessEmail.message}
+								{String(errors.businessEmail.message || errors.businessEmail || 'Business email is required')}
 							</p>
 						)}
 					</div>

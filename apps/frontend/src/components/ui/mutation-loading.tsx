@@ -1,13 +1,12 @@
 /**
- * Mutation Loading Components
- * Provides consistent loading UI for all mutation states
+ * Mutation Loading Components with Mixed Icon Sets
+ * Demonstrates using multiple icon libraries with UnoCSS
  */
 
-import { ButtonSpinner, Spinner, CenteredSpinner } from './spinner'
+import { ButtonSpinner, Spinner } from './spinner'
 import { Button } from './button'
 import { Card, CardContent } from './card'
 import { cn } from '@/lib/utils'
-import { AlertTriangle, CheckCircle, RefreshCw } from 'lucide-react'
 
 interface MutationLoadingProps {
 	isLoading: boolean
@@ -44,15 +43,16 @@ export function MutationLoading({
 				{isLoading && (
 					<>
 						<Spinner size="sm" />
-						<span className="text-muted-foreground">
+						<span className="text-gray-500">
 							{loadingMessage}
 						</span>
 					</>
 				)}
 				{error && (
 					<>
-						<AlertTriangle className="text-destructive h-4 w-4" />
-						<span className="text-destructive">
+						{/* Using Heroicons for warning */}
+						<i className="i-heroicons-exclamation-triangle text-red-500 h-4 w-4" />
+						<span className="text-red-500">
 							{errorMessage || error.message}
 						</span>
 						{onRetry && (
@@ -73,21 +73,22 @@ export function MutationLoading({
 
 	if (variant === 'overlay') {
 		return (
-			<div className="bg-background/50 absolute inset-0 z-10 flex items-center justify-center backdrop-blur-sm">
+			<div className="bg-white/50 dark:bg-gray-900/50 absolute inset-0 z-10 flex items-center justify-center backdrop-blur-sm">
 				{isLoading && (
 					<div className="flex flex-col items-center gap-2">
 						<Spinner size={size === 'sm' ? 'md' : 'lg'} />
-						<span className="text-muted-foreground text-sm">
+						<span className="text-gray-500 text-sm">
 							{loadingMessage}
 						</span>
 					</div>
 				)}
 				{error && (
-					<Card className="border-destructive/50 bg-destructive/5">
+					<Card className="border-red-200 bg-red-50">
 						<CardContent className="p-4">
 							<div className="mb-2 flex items-center gap-2">
-								<AlertTriangle className="text-destructive h-5 w-5" />
-								<span className="text-destructive font-medium">
+								{/* Using Phosphor icons for error */}
+								<i className="i-ph-warning-circle-bold text-red-500 h-5 w-5" />
+								<span className="text-red-600 font-medium">
 									Error
 								</span>
 							</div>
@@ -101,7 +102,8 @@ export function MutationLoading({
 										size="sm"
 										onClick={onRetry}
 									>
-										<RefreshCw className="mr-1 h-3 w-3" />
+										{/* Using Tabler icons for refresh */}
+										<i className="i-tabler-refresh mr-1 h-3 w-3" />
 										Retry
 									</Button>
 								)}
@@ -127,8 +129,8 @@ export function MutationLoading({
 		<Card
 			className={cn(
 				'border-dashed',
-				isLoading && 'border-primary/50 bg-primary/5',
-				error && 'border-destructive/50 bg-destructive/5'
+				isLoading && 'border-brand-500/50 bg-brand-50',
+				error && 'border-red-500/50 bg-red-50'
 			)}
 		>
 			<CardContent className="p-6">
@@ -138,18 +140,19 @@ export function MutationLoading({
 							size={size === 'sm' ? 'md' : 'lg'}
 							className="mb-3"
 						/>
-						<p className="text-muted-foreground text-sm">
+						<p className="text-gray-500 text-sm">
 							{loadingMessage}
 						</p>
 					</div>
 				)}
 				{error && (
 					<div className="text-center">
-						<AlertTriangle className="text-destructive mx-auto mb-3 h-8 w-8" />
-						<p className="text-destructive mb-1 font-medium">
+						{/* Using Material Design Icons for error state */}
+						<i className="i-mdi-alert-octagon text-red-500 mx-auto mb-3 h-8 w-8 block" />
+						<p className="text-red-600 mb-1 font-medium">
 							Operation Failed
 						</p>
-						<p className="text-muted-foreground mb-4 text-sm">
+						<p className="text-gray-500 mb-4 text-sm">
 							{errorMessage || error.message}
 						</p>
 						<div className="flex justify-center gap-2">
@@ -159,7 +162,8 @@ export function MutationLoading({
 									size="sm"
 									onClick={onRetry}
 								>
-									<RefreshCw className="mr-1 h-3 w-3" />
+									{/* Using Carbon icons for retry */}
+									<i className="i-carbon-reset mr-1 h-3 w-3" />
 									Try Again
 								</Button>
 							)}
@@ -199,7 +203,8 @@ export function MutationSuccess({
 	if (variant === 'inline') {
 		return (
 			<div className="flex items-center gap-2 text-sm">
-				<CheckCircle className="h-4 w-4 text-green-600" />
+				{/* Using Lucide for success */}
+				<i className="i-lucide-check-circle h-4 w-4 text-green-600" />
 				<span className="text-green-700">{message}</span>
 			</div>
 		)
@@ -209,7 +214,8 @@ export function MutationSuccess({
 		<Card className="border-green-200 bg-green-50">
 			<CardContent className="p-4">
 				<div className="flex items-center gap-2">
-					<CheckCircle className="h-5 w-5 text-green-600" />
+					{/* Using Heroicons for checkmark */}
+					<i className="i-heroicons-check-badge-solid h-5 w-5 text-green-600" />
 					<span className="font-medium text-green-800">Success</span>
 				</div>
 				<p className="mt-1 text-sm text-green-700">{message}</p>
@@ -242,19 +248,21 @@ export function GlobalMutationLoading({
 	mutatingCount,
 	position = 'top'
 }: GlobalMutationLoadingProps) {
-	if (!isMutating) return null
+	if (!isMutating) {
+		return null
+	}
 
 	return (
 		<div
 			className={cn(
-				'bg-primary/10 border-primary/20 fixed right-0 left-0 z-50',
+				'bg-brand-50 border-brand-200 fixed left-0 right-0 z-50',
 				position === 'top' ? 'top-0 border-b' : 'bottom-0 border-t'
 			)}
 		>
 			<div className="container mx-auto px-4 py-2">
 				<div className="flex items-center justify-center gap-2">
 					<Spinner size="sm" />
-					<span className="text-primary text-sm">
+					<span className="text-brand-600 text-sm">
 						{mutatingCount === 1
 							? 'Processing request...'
 							: `Processing ${mutatingCount} requests...`}
@@ -271,18 +279,27 @@ export function GlobalMutationLoading({
 interface LoadingButtonProps extends React.ComponentProps<typeof Button> {
 	isLoading?: boolean
 	loadingText?: string
+	loadingIcon?: string // Allow custom loading icon
 }
 
 export function LoadingButton({
 	isLoading = false,
 	loadingText = 'Loading...',
+	loadingIcon = 'i-lucide-loader-2', // Default to Lucide
 	disabled,
 	children,
 	...props
 }: LoadingButtonProps) {
 	return (
 		<Button disabled={disabled || isLoading} {...props}>
-			{isLoading ? <ButtonSpinner text={loadingText} /> : children}
+			{isLoading ? (
+				<>
+					<i className={`${loadingIcon} animate-spin h-4 w-4`} />
+					<span>{loadingText}</span>
+				</>
+			) : (
+				children
+			)}
 		</Button>
 	)
 }
@@ -302,7 +319,7 @@ interface MutationFormProps {
 export function MutationForm({
 	children,
 	isLoading,
-	error,
+	error: _error,
 	onSubmit,
 	loadingMessage = 'Saving...',
 	className
@@ -311,12 +328,13 @@ export function MutationForm({
 		<form onSubmit={onSubmit} className={cn('relative', className)}>
 			{children}
 
-			{/* Loading overlay for forms */}
+			{/* Loading overlay for forms with container query */}
 			{isLoading && (
-				<div className="bg-background/50 absolute inset-0 flex items-center justify-center rounded-lg backdrop-blur-sm">
+				<div className="bg-white/50 dark:bg-gray-900/50 absolute inset-0 flex items-center justify-center rounded-lg backdrop-blur-sm @container-sm:p-8">
 					<div className="flex flex-col items-center gap-2">
-						<Spinner size="md" />
-						<span className="text-muted-foreground text-sm">
+						{/* Using Radix Icons for form loading */}
+						<i className="i-radix-icons-update animate-spin h-8 w-8 text-brand-500" />
+						<span className="text-gray-500 text-sm @container-sm:text-base">
 							{loadingMessage}
 						</span>
 					</div>

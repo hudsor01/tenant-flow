@@ -1,3 +1,4 @@
+
 /**
  * Optimized Features Section - Server Component
  * Static feature showcase with stats and descriptions
@@ -7,7 +8,6 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Clock, TrendingUp, Users, Play } from 'lucide-react'
 
 interface OptimizedFeaturesSectionProps {
 	locale: string
@@ -18,7 +18,7 @@ export function OptimizedFeaturesSection({
 }: OptimizedFeaturesSectionProps) {
 	const features = [
 		{
-			icon: Clock,
+			icon: 'i-lucide-clock',
 			title: 'Save 10+ Hours Weekly',
 			description:
 				'Automate rent collection, maintenance requests, and tenant communications',
@@ -26,7 +26,7 @@ export function OptimizedFeaturesSection({
 			statLabel: 'Time Saved'
 		},
 		{
-			icon: TrendingUp,
+			icon: 'i-lucide-trending-up',
 			title: 'Increase Revenue 23%',
 			description:
 				'Reduce vacancy rates and collect rent faster with automated reminders',
@@ -34,7 +34,7 @@ export function OptimizedFeaturesSection({
 			statLabel: 'Collection Rate'
 		},
 		{
-			icon: Users,
+			icon: 'i-lucide-users',
 			title: 'Delight Your Tenants',
 			description:
 				'24/7 self-service portal for payments and maintenance requests',
@@ -67,7 +67,7 @@ export function OptimizedFeaturesSection({
 						>
 							<div className="mb-4 flex items-start justify-between">
 								<div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100">
-									<feature.icon className="text-primary h-6 w-6" />
+									<i className={`${feature.icon} inline-block text-primary h-6 w-6`} />
 								</div>
 								<div className="text-right">
 									<div className="text-2xl font-bold text-green-600">
@@ -94,7 +94,7 @@ export function OptimizedFeaturesSection({
 							variant="outline"
 							className="border-primary text-primary border-2 hover:bg-blue-50"
 						>
-							<Play className="mr-2 h-4 w-4" />
+							<i className="i-lucide-play inline-block mr-2 h-4 w-4"  />
 							Watch 2-Minute Demo
 						</Button>
 					</Link>

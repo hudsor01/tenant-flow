@@ -1,11 +1,10 @@
 'use client'
 
-import { useTenants } from '@/hooks/api/use-tenants'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Users, UserCheck, UserX, Calendar } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { Tenant } from '@repo/shared'
+import { useTenantStats } from '@/hooks/api/use-tenants'
+import type { TenantStats } from '@repo/shared'
 
 function TenantsStatsSkeleton() {
 	return (
@@ -22,74 +21,42 @@ function TenantsStatsSkeleton() {
 	)
 }
 
-function calculateTenantStats(tenants: Tenant[]) {
-	const totalTenants = tenants.length
-	const acceptedInvitations = tenants.filter(
-		tenant => tenant.invitationStatus === 'ACCEPTED'
-	).length
-	const pendingInvitations = tenants.filter(
-		tenant =>
-			tenant.invitationStatus === 'PENDING' ||
-			tenant.invitationStatus === 'SENT'
-	).length
-
-	// Without access to lease data, we cannot calculate expiring leases
-	// This would require using TenantWithLeases type from a different endpoint
-	const expiringLeases = 0
-
-	return {
-		totalTenants,
-		acceptedInvitations,
-		pendingInvitations,
-		expiringLeases
-	}
-}
+// REMOVED: Client-side calculation replaced by backend server action
+// Now using calculateTenantStats from tenant-stats-actions.ts
+// This ensures data consistency and can access lease data when available
 
 interface TenantsStatsUIProps {
-	stats: {
-		totalTenants: number
-		acceptedInvitations: number
-		pendingInvitations: number
-		expiringLeases: number
-	}
+	stats: TenantStats
 }
 
 function TenantsStatsUI({ stats }: TenantsStatsUIProps) {
 	const statItems = [
 		{
 			title: 'Total Tenants',
-			value: stats.totalTenants,
+			value: stats.total,
 			description: 'All registered tenants',
-			icon: Users,
+			icon: 'i-lucide-users',
 			color: 'text-primary'
 		},
 		{
-			title: 'Accepted Invites',
-			value: stats.acceptedInvitations,
-			description: 'Active tenant accounts',
-			icon: UserCheck,
+			title: 'Active Tenants',
+			value: stats.active,
+			description: 'Currently active tenants',
+			icon: 'i-lucide-user-check',
 			color: 'text-green-600'
 		},
 		{
-			title: 'Pending Invites',
-			value: stats.pendingInvitations,
-			description: 'Awaiting acceptance',
-			icon: UserX,
-			color: 'text-yellow-600'
-		},
-		{
-			title: 'Expiring Soon',
-			value: stats.expiringLeases,
-			description: 'Requires enhanced data',
-			icon: Calendar,
-			color: 'text-gray-400'
+			title: 'Inactive Tenants',
+			value: stats.inactive,
+			description: 'No longer active',
+			icon: 'i-lucide-user-x',
+			color: 'text-red-600'
 		}
 	]
 
 	return (
 		<div className="grid gap-4 md:grid-cols-4">
 			{statItems.map(stat => {
-				const Icon = stat.icon
 				return (
 					<Card
 						key={stat.title}
@@ -99,7 +66,7 @@ function TenantsStatsUI({ stats }: TenantsStatsUIProps) {
 							<CardTitle className="text-sm font-medium">
 								{stat.title}
 							</CardTitle>
-							<Icon className={cn('h-4 w-4', stat.color)} />
+							<i className={cn('h-4 w-4', stat.color, stat.icon)} />
 						</CardHeader>
 						<CardContent>
 							<div className="text-2xl font-bold">
@@ -117,20 +84,18 @@ function TenantsStatsUI({ stats }: TenantsStatsUIProps) {
 }
 
 export function TenantsStats() {
-	const { data: tenants, isLoading, error } = useTenants()
+	const { data: stats, error, isLoading } = useTenantStats()
 
 	// Loading state
 	if (isLoading) {
 		return <TenantsStatsSkeleton />
 	}
 
-	// Error handling - throw to be caught by error boundary
+	// Error handling - throw to be caught by error boundary  
 	if (error) {
 		throw error
 	}
 
-	// Calculate stats using pure function
-	const stats = calculateTenantStats(tenants || [])
-
+	// Stats fetched via hook
 	return <TenantsStatsUI stats={stats} />
 }

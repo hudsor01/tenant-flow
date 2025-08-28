@@ -17,13 +17,12 @@ export const SEO_CONFIGS = {
 			'property management pricing, rental software cost, property management plans'
 	},
 
-	leaseGenerator: {
-		title: 'Lease Agreement Generator',
-		description:
-			'Generate  lease agreements with our free lease generator. Create legally compliant rental agreements in minutes.',
-		keywords:
-			'lease agreement generator, rental agreement template, property lease forms'
-	},
+	// leaseGenerator: temporarily removed - see GitHub issue #202
+	// {
+	// 	title: 'Lease Agreement Generator',
+	// 	description: 'Generate lease agreements with our free lease generator. Create legally compliant rental agreements in minutes.',
+	// 	keywords: 'lease agreement generator, rental agreement template, property lease forms'
+	// },
 
 	login: {
 		title: 'Sign In',

@@ -268,7 +268,7 @@ graph LR
 	"property_id": "searchable select (required)",
 	"lease_start": "date (required)",
 	"lease_end": "date (required)",
-	"monthly_rent": "currency (required)",
+	"rentAmount": "currency (required)",
 	"security_deposit": "currency",
 	"status": "select (active|expired|terminated|pending)",
 	"emergency_contact": {

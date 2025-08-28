@@ -15,11 +15,17 @@ export * from './use-leases'
 // Units
 export * from './use-units'
 
-// Maintenance
+// Maintenance - Restored with proper type-safe stub implementation
 export * from './use-maintenance'
 
 // Dashboard
 export * from './use-dashboard'
 
-// Billing - Consolidated into useSubscription and useSubscriptionActions
-// export * from './use-billing' // DEPRECATED: Use ../useSubscription and ../useSubscriptionActions instead
+// Authentication
+export * from './use-auth'
+
+// PDF Generation
+export * from './use-pdf'
+
+// Billing hooks moved to root hooks directory for better organization
+// Now available as: useSubscription and useSubscriptionActions

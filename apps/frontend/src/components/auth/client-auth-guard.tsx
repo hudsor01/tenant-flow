@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { logger } from '@/lib/logger'
+import { logger } from '@/lib/logger/logger'
 import { useRouter } from 'next/navigation'
-import { getCurrentUser } from '@/lib/actions/auth-actions'
+import { getCurrentUser } from '@/app/actions/auth'
 import type { User } from '@supabase/supabase-js'
 
 interface ClientAuthGuardProps {
@@ -22,7 +22,7 @@ export function ClientAuthGuard({
 	fallback = (
 		<div className="flex min-h-screen items-center justify-center">
 			<div className="text-center">
-				<div className="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-b-2"></div>
+				<div className="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-b-2" />
 				<p className="text-muted-foreground mt-2 text-sm">Loading...</p>
 			</div>
 		</div>
@@ -53,7 +53,7 @@ export function ClientAuthGuard({
 			}
 		}
 
-		checkAuth()
+		void checkAuth()
 	}, [router, redirectTo])
 
 	if (isLoading) {
@@ -65,7 +65,7 @@ export function ClientAuthGuard({
 		return (
 			<div className="flex min-h-screen items-center justify-center">
 				<div className="text-center">
-					<div className="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-b-2"></div>
+					<div className="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-b-2" />
 					<p className="text-muted-foreground mt-2 text-sm">
 						Redirecting to dashboard...
 					</p>

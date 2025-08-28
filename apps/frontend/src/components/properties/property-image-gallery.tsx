@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { logger } from '@/lib/logger'
+import { logger } from '@/lib/logger/logger'
 import NextImage from 'next/image'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -17,13 +17,13 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { Image, MoreVertical, Trash2, Star, Eye, Upload } from 'lucide-react'
 import { toast } from 'sonner'
 import { motion } from '@/lib/lazy-motion'
 import type { Property } from '@repo/shared'
+type Property_ = Property
 
-// Property image interface for gallery display
-interface PropertyImage {
+// Property_ image interface for gallery display
+interface Property_Image {
 	id: string
 	name: string
 	url: string
@@ -31,21 +31,21 @@ interface PropertyImage {
 	createdAt?: Date
 }
 
-interface PropertyImageGalleryProps {
+interface Property_ImageGalleryProps {
 	propertyId: string
-	property?: Property
+	property?: Property_
 	onUploadClick?: () => void
 	className?: string
 }
 
-export default function PropertyImageGallery({
+export default function Property_ImageGallery({
 	propertyId,
 	property,
 	onUploadClick,
 	className
-}: Readonly<PropertyImageGalleryProps>) {
+}: Readonly<Property_ImageGalleryProps>) {
 	// Placeholder implementation - hooks not available
-	const images: PropertyImage[] = []
+	const images: Property_Image[] = []
 	const isLoading = false
 	const _error: { message: string } | null = null
 
@@ -115,8 +115,11 @@ export default function PropertyImageGallery({
 			<Card className={className}>
 				<CardHeader>
 					<CardTitle className="flex items-center">
-						<Image className="mr-2 h-5 w-5" aria-hidden="true" />
-						Property Images
+						<span
+							className="i-lucide-image mr-2 h-5 w-5"
+							aria-hidden="true"
+						/>
+						Property_ Images
 					</CardTitle>
 				</CardHeader>
 				<CardContent>
@@ -157,15 +160,15 @@ export default function PropertyImageGallery({
 				<CardHeader>
 					<div className="flex items-center justify-between">
 						<CardTitle className="flex items-center">
-							<Image
-								className="mr-2 h-5 w-5"
+							<span
+								className="i-lucide-image mr-2 h-5 w-5"
 								aria-hidden="true"
 							/>
-							Property Images ({images.length})
+							Property_ Images ({images.length})
 						</CardTitle>
 						{onUploadClick && (
 							<Button onClick={onUploadClick} size="sm">
-								<Upload className="mr-2 h-4 w-4" />
+								<i className="i-lucide-upload inline-block mr-2 h-4 w-4"  />
 								Upload Images
 							</Button>
 						)}
@@ -174,8 +177,8 @@ export default function PropertyImageGallery({
 				<CardContent>
 					{images.length === 0 ? (
 						<div className="py-12 text-center">
-							<Image
-								className="mx-auto mb-4 h-12 w-12 text-gray-400"
+							<span
+								className="i-lucide-image mx-auto mb-4 h-12 w-12 text-gray-400"
 								aria-hidden="true"
 							/>
 							<h3 className="mb-2 text-lg font-semibold text-gray-800">
@@ -186,7 +189,7 @@ export default function PropertyImageGallery({
 							</p>
 							{onUploadClick && (
 								<Button onClick={onUploadClick}>
-									<Upload className="mr-2 h-4 w-4" />
+									<i className="i-lucide-upload inline-block mr-2 h-4 w-4"  />
 									Upload First Image
 								</Button>
 							)}
@@ -204,7 +207,7 @@ export default function PropertyImageGallery({
 									<div className="relative aspect-square overflow-hidden rounded-lg border-2 border-gray-200 transition-colors hover:border-gray-300">
 										<NextImage
 											src={image.url}
-											alt={`Property image: ${image.name}`}
+											alt={`Property_ image: ${image.name}`}
 											fill
 											className="cursor-pointer object-cover transition-transform hover:scale-105"
 											onClick={() =>
@@ -214,14 +217,14 @@ export default function PropertyImageGallery({
 
 										{/* Primary image badge */}
 										{isPrimaryImage(image.url) && (
-											<Badge className="absolute top-2 left-2 bg-yellow-500 text-white">
-												<Star className="mr-1 h-3 w-3" />
+											<Badge className="absolute left-2 top-2 bg-yellow-500 text-white">
+												<i className="i-lucide-star inline-block mr-1 h-3 w-3"  />
 												Primary
 											</Badge>
 										)}
 
 										{/* Actions dropdown */}
-										<div className="absolute top-2 right-2 opacity-0 transition-opacity group-hover:opacity-100">
+										<div className="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100">
 											<DropdownMenu>
 												<DropdownMenuTrigger asChild>
 													<Button
@@ -229,7 +232,7 @@ export default function PropertyImageGallery({
 														variant="secondary"
 														className="h-8 w-8 p-0"
 													>
-														<MoreVertical className="h-4 w-4" />
+														<i className="i-lucide-more-vertical inline-block h-4 w-4"  />
 													</Button>
 												</DropdownMenuTrigger>
 												<DropdownMenuContent align="end">
@@ -240,7 +243,7 @@ export default function PropertyImageGallery({
 															)
 														}
 													>
-														<Eye className="mr-2 h-4 w-4" />
+														<i className="i-lucide-eye inline-block mr-2 h-4 w-4"  />
 														View Full Size
 													</DropdownMenuItem>
 													{!isPrimaryImage(
@@ -257,7 +260,7 @@ export default function PropertyImageGallery({
 																setPrimaryImage.isPending
 															}
 														>
-															<Star className="mr-2 h-4 w-4" />
+															<i className="i-lucide-star inline-block mr-2 h-4 w-4"  />
 															Set as Primary
 														</DropdownMenuItem>
 													)}
@@ -269,7 +272,7 @@ export default function PropertyImageGallery({
 														}
 														className="text-red-600"
 													>
-														<Trash2 className="mr-2 h-4 w-4" />
+														<i className="i-lucide-trash-2 inline-block mr-2 h-4 w-4"  />
 														Delete
 													</DropdownMenuItem>
 												</DropdownMenuContent>
@@ -299,7 +302,7 @@ export default function PropertyImageGallery({
 				>
 					<DialogContent className="max-w-4xl">
 						<DialogHeader>
-							<DialogTitle>Property Image</DialogTitle>
+							<DialogTitle>Property_ Image</DialogTitle>
 						</DialogHeader>
 						<div className="flex justify-center">
 							<div className="relative max-h-[70vh] max-w-full">

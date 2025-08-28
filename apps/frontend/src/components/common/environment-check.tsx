@@ -1,4 +1,3 @@
-import { AlertCircle, CheckCircle, XCircle } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
 interface EnvVar {
@@ -82,12 +81,12 @@ export function EnvironmentCheck() {
 	// In development, show a small indicator
 	if (process.env.NODE_ENV === 'development' && !hasErrors && !showDetails) {
 		return (
-			<div className="fixed right-4 bottom-4 z-50">
+			<div className="fixed bottom-4 right-4 z-50">
 				<button
 					onClick={() => setShowDetails(true)}
 					className="flex items-center gap-2 rounded-md bg-green-50 px-3 py-2 text-sm text-green-800 shadow-sm hover:bg-green-100"
 				>
-					<CheckCircle className="h-4 w-4" />
+					<i className="i-lucide-checkcircle inline-block h-4 w-4"  />
 					Environment OK
 				</button>
 			</div>
@@ -115,7 +114,7 @@ export function EnvironmentCheck() {
 							className="rounded-md p-1 hover:bg-gray-100"
 							aria-label="Close"
 						>
-							<XCircle className="h-5 w-5 text-gray-400" />
+							<i className="i-lucide-xcircle inline-block h-5 w-5 text-gray-400"  />
 						</button>
 					</div>
 
@@ -135,11 +134,11 @@ export function EnvironmentCheck() {
 									<div className="flex-1">
 										<div className="flex items-center gap-2">
 											{envVar.value ? (
-												<CheckCircle className="h-4 w-4 text-green-600" />
+												<i className="i-lucide-checkcircle inline-block h-4 w-4 text-green-600"  />
 											) : envVar.required ? (
-												<XCircle className="h-4 w-4 text-red-600" />
+												<i className="i-lucide-xcircle inline-block h-4 w-4 text-red-600"  />
 											) : (
-												<AlertCircle className="h-4 w-4 text-yellow-600" />
+												<i className="i-lucide-alert-circle inline-block h-4 w-4 text-yellow-600"  />
 											)}
 											<code className="font-mono text-sm">
 												{envVar.name}

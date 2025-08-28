@@ -5,7 +5,6 @@
 
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
-import { Building2 } from 'lucide-react'
 
 interface OptimizedFooterSectionProps {
 	locale: string
@@ -20,7 +19,7 @@ export function OptimizedFooterSection({
 				<div className="mb-8 grid gap-8 md:grid-cols-5">
 					<div className="md:col-span-2">
 						<div className="mb-4 flex items-center space-x-2">
-							<Building2 className="text-primary h-6 w-6" />
+							<i className="i-lucide-building-2 inline-block text-primary h-6 w-6"  />
 							<span className="font-bold text-white">
 								TenantFlow
 							</span>

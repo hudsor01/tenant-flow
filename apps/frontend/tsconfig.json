@@ -1,13 +1,13 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
-	"display": "TenantFlow Frontend TypeScript Config",
+	"display": "TenantFlow Frontend - Next.js 15 + React 19",
 	"compilerOptions": {
-		"baseUrl": ".",
+		// Base TypeScript configuration - inlined for Vercel compatibility
 		"target": "ES2022",
-		"lib": ["ES2022", "DOM", "DOM.Iterable", "ES6"],
+		"lib": ["ES2022", "DOM", "DOM.Iterable"],
 		"moduleDetection": "force",
 		"module": "ESNext",
-		"moduleResolution": "Bundler",
+		"moduleResolution": "bundler",
 		"resolveJsonModule": true,
 		"allowJs": true,
 		"checkJs": false,
@@ -39,9 +39,9 @@
 		"noPropertyAccessFromIndexSignature": false,
 		"allowUnusedLabels": false,
 		"allowUnreachableCode": false,
-		"noEmit": true,
-		"allowImportingTsExtensions": false,
-		"useDefineForClassFields": true,
+		
+		// Next.js and React specific configuration
+		"baseUrl": ".",
 		"plugins": [
 			{
 				"name": "next"
@@ -49,9 +49,14 @@
 		],
 		"paths": {
 			"@/*": ["./src/*"],
-			"@repo/shared": ["../../packages/shared/src"],
-			"@repo/shared/*": ["../../packages/shared/src/*"]
-		}
+			"@repo/shared": ["../../packages/shared/dist/cjs"],
+			"@repo/shared/*": ["../../packages/shared/dist/cjs/*"]
+		},
+		"types": ["node", "react", "react-dom"],
+		
+		// Build configuration - no emit for Next.js
+		"noEmit": true,
+		"allowImportingTsExtensions": false
 	},
 	"include": [
 		"next-env.d.ts",
@@ -82,7 +87,8 @@
 		"*.config.js",
 		"*.config.mjs",
 		"jest.config.js",
-		"vitest.config.production.ts"
+		"vitest.config.production.ts",
+		"playwright.config.ts"
 	],
 	"references": [
 		{

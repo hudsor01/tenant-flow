@@ -1,16 +1,8 @@
 'use client'
 
 import { useTransition } from 'react'
-import { logger } from '@/lib/logger'
+import { logger } from '@/lib/logger/logger'
 import { motion } from '@/lib/lazy-motion'
-import {
-	Building2,
-	Users,
-	Wrench,
-	FileText,
-	Plus,
-	Activity
-} from 'lucide-react'
 import { cardVariants } from './dashboard-animations'
 
 interface QuickActionProps {
@@ -64,7 +56,7 @@ function QuickAction({
 					</p>
 				</div>
 				<div className="bg-primary/10 group-hover:bg-primary/20 rounded-lg p-2 opacity-50 transition-all duration-300 group-hover:opacity-100">
-					<Plus className="text-primary h-4 w-4" />
+					<i className="i-lucide-plus inline-block text-primary h-4 w-4"  />
 				</div>
 			</div>
 		</motion.button>
@@ -72,7 +64,7 @@ function QuickAction({
 }
 
 interface QuickActionsPanelProps {
-	onAddProperty?: () => void
+	onAddProperty_?: () => void
 	onNewTenant?: () => void
 	onScheduleMaintenance?: () => void
 	onGenerateReport?: () => void
@@ -80,44 +72,44 @@ interface QuickActionsPanelProps {
 
 const defaultQuickActions = [
 	{
-		title: 'Add Property',
+		title: 'Add Property_',
 		description: 'Register a new property to your portfolio',
-		icon: Building2,
+		icon: 'i-lucide-building-2',
 		color: 'navy' as const,
-		action: 'onAddProperty' as const
+		action: 'onAddProperty_' as const
 	},
 	{
 		title: 'New Tenant',
 		description: 'Onboard a new tenant to your system',
-		icon: Users,
+		icon: 'i-lucide-users',
 		color: 'steel' as const,
 		action: 'onNewTenant' as const
 	},
 	{
 		title: 'Schedule Maintenance',
 		description: 'Create a maintenance request or task',
-		icon: Wrench,
+		icon: 'i-lucide-wrench',
 		color: 'emerald' as const,
 		action: 'onScheduleMaintenance' as const
 	},
 	{
 		title: 'Generate Report',
 		description: 'Create financial or operational reports',
-		icon: FileText,
+		icon: 'i-lucide-file-text',
 		color: 'gold' as const,
 		action: 'onGenerateReport' as const
 	}
 ]
 
 export function DashboardQuickActions({
-	onAddProperty,
+	onAddProperty_,
 	onNewTenant,
 	onScheduleMaintenance,
 	onGenerateReport
 }: QuickActionsPanelProps) {
 	const actionHandlers = {
-		onAddProperty:
-			onAddProperty ||
+		onAddProperty_:
+			onAddProperty_ ||
 			(() =>
 				logger.info('Add property clicked', {
 					component: 'dashboardquickactions'
@@ -147,21 +139,24 @@ export function DashboardQuickActions({
 			<div className="card-modern bg-card rounded-xl border p-6 backdrop-blur-sm">
 				<h3 className="text-foreground mb-6 flex items-center text-xl font-semibold">
 					<div className="bg-primary/10 border-primary/20 mr-3 rounded-xl border p-2">
-						<Activity className="text-primary h-5 w-5" />
+						<i className="i-lucide-activity inline-block text-primary h-5 w-5"  />
 					</div>
 					Quick Actions
 				</h3>
 				<div className="space-y-4">
-					{defaultQuickActions.map(action => (
-						<QuickAction
-							key={action.title}
-							title={action.title}
-							description={action.description}
-							icon={action.icon}
-							onClick={actionHandlers[action.action]}
-							color={action.color}
-						/>
-					))}
+					{defaultQuickActions.map(action => {
+						const IconComponent = () => <i className={`${action.icon} inline-block h-5 w-5`} />
+						return (
+							<QuickAction
+								key={action.title}
+								title={action.title}
+								description={action.description}
+								icon={IconComponent}
+								onClick={actionHandlers[action.action]}
+								color={action.color}
+							/>
+						)
+					})}
 				</div>
 			</div>
 		</motion.div>

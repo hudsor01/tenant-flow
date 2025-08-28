@@ -12,7 +12,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
-import type { NavItem } from './types'
+import type { NavItem } from '@repo/shared/types/frontend-utils'
 
 const VARIANT_STYLES = {
 	sidebar: {
@@ -52,6 +52,16 @@ interface NavigationLinkProps {
 	className?: string
 }
 
+function renderIcon(icon: NavItem['icon']) {
+	if (React.isValidElement(icon)) {
+		return icon
+	}
+	if (typeof icon === 'string') {
+		return <i className={icon} />
+	}
+	return <span>{String(icon)}</span>
+}
+
 export function NavigationLink({
 	item,
 	variant = 'horizontal',
@@ -77,16 +87,13 @@ export function NavigationLink({
 
 	const content = (
 		<>
-			{showIcons && item.icon && (
+			{showIcons && item.icon ? (
 				<span
-					className={cn(
-						'shrink-0',
-						variant === 'sidebar' ? 'h-5 w-5' : 'h-4 w-4'
-					)}
+					className={variant === 'sidebar' ? 'icon-nav-sidebar' : 'icon-nav-default'}
 				>
-					{item.icon}
+					{renderIcon(item.icon)}
 				</span>
-			)}
+			) : null}
 
 			<span
 				className={cn(
@@ -121,7 +128,7 @@ export function NavigationLink({
 		>
 			{content}
 			{variant === 'horizontal' && isActive && (
-				<div className="bg-primary absolute right-0 bottom-0 left-0 h-0.5" />
+				<div className="bg-primary absolute bottom-0 left-0 right-0 h-0.5" />
 			)}
 		</LinkComponent>
 	)

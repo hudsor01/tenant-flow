@@ -11,48 +11,52 @@ import { usePostHog } from 'posthog-js/react'
 interface DashboardTrackerProps {
 	section?: string
 	metrics?: Record<string, number>
-	userId?: string
+	_userId?: string
 }
 
 export function DashboardTracker({
 	section = 'main',
 	metrics = {},
-	userId
+	_userId
 }: DashboardTrackerProps) {
 	const posthog = usePostHog()
 
 	useEffect(() => {
-		if (!posthog) return
+		if (!posthog) {
+			return
+		}
 
 		// Track dashboard view
 		posthog.capture('dashboard_viewed', {
 			section,
-			user_id: userId,
+			user_id: _userId,
 			...metrics,
 			timestamp: new Date().toISOString()
 		})
-	}, [posthog, section, metrics, userId])
+	}, [posthog, section, metrics, _userId])
 
 	// Track specific dashboard interactions
 	const trackDashboardAction = useCallback(
 		(action: string, properties?: Record<string, unknown>) => {
-			if (!posthog) return
+			if (!posthog) {
+				return
+			}
 
 			posthog.capture('dashboard_action', {
 				action,
 				section,
-				user_id: userId,
+				user_id: _userId,
 				...properties,
 				timestamp: new Date().toISOString()
 			})
 		},
-		[posthog, section, userId]
+		[posthog, section, _userId]
 	)
 
 	// Expose tracking function via ref callback pattern
 	useEffect(() => {
 		// Store tracker function on window for easy access
-		// @ts-ignore - global augmentation would be overkill for this use case
+		// @ts-expect-error - global augmentation would be overkill for this use case
 		window.trackDashboardAction = trackDashboardAction
 	}, [trackDashboardAction])
 

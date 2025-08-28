@@ -1,8 +1,12 @@
 import { z } from 'zod'
-import { PROPERTY_TYPE, type PropertyType } from '@repo/shared'
+import type { Database } from '@repo/shared'
+import { Constants } from '@repo/shared'
+
+// Define types directly from Database schema - NO DUPLICATION
+type PropertyType = Database['public']['Enums']['PropertyType']
 
 /**
- * Unified Property Validation Schemas
+ * Property Validation Schemas
  * Single source of truth for all property validation
  */
 
@@ -44,11 +48,11 @@ const propertyBaseSchema = z.object({
 		.string()
 		.max(2000, 'Description must be less than 2000 characters')
 		.optional()
-		.transform(val => val?.trim() || undefined),
+		.transform(val => val?.trim() ?? undefined),
 
 	propertyType: z
-		.enum(Object.values(PROPERTY_TYPE) as [PropertyType, ...PropertyType[]])
-		.default(PROPERTY_TYPE.SINGLE_FAMILY),
+		.enum(Constants.public.Enums.PropertyType as readonly [PropertyType, ...PropertyType[]])
+		.default('SINGLE_FAMILY' as const),
 
 	imageUrl: z
 		.string()
@@ -91,7 +95,7 @@ export const queryPropertySchema = z
 	.object({
 		propertyType: z
 			.enum(
-				Object.values(PROPERTY_TYPE) as [
+				Constants.public.Enums.PropertyType as readonly [
 					PropertyType,
 					...PropertyType[]
 				]
@@ -123,11 +127,7 @@ export const queryPropertySchema = z
 			.default(0)
 	})
 	.transform(data => ({
-		...data,
-		// Clean up undefined values
-		...Object.fromEntries(
-			Object.entries(data).filter(([_, value]) => value !== undefined)
-		)
+		...data
 	}))
 
 // Owner ID validation schema

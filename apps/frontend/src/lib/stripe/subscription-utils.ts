@@ -1,5 +1,5 @@
 import { type PLAN_TYPE, PLANS } from '@repo/shared'
-import { logger } from '@/lib/logger'
+import { logger } from '@/lib/logger/logger'
 
 interface PlanWithUIMapping {
 	id: string
@@ -46,11 +46,7 @@ export function getPlanDisplayName(planType: keyof typeof PLAN_TYPE): string {
 }
 
 // Additional utilities for subscription modal
-export interface UserFormData {
-	fullName: string
-	email: string
-	password: string
-}
+// Use shared billing types - all types available from @repo/shared
 
 // Business logic validation and calculations moved to backend
 // Frontend only handles display formatting

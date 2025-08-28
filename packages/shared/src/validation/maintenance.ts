@@ -3,40 +3,19 @@ import {
 	uuidSchema,
 	nonEmptyStringSchema,
 	nonNegativeNumberSchema,
-	urlSchema
+	urlSchema,
+	requiredString
 } from './common'
+import { Constants } from '../types/supabase-generated'
 
-// Maintenance priority enum
-export const maintenancePrioritySchema = z.enum([
-	'LOW',
-	'MEDIUM',
-	'HIGH',
-	'EMERGENCY'
-])
+// Maintenance priority enum - uses auto-generated Supabase enums
+export const maintenancePrioritySchema = z.enum(Constants.public.Enums.Priority as readonly [string, ...string[]])
 
-// Maintenance status enum
-export const maintenanceStatusSchema = z.enum([
-	'OPEN',
-	'IN_PROGRESS',
-	'COMPLETED',
-	'CANCELED',
-	'ON_HOLD'
-])
+// Maintenance status enum - uses auto-generated Supabase enums
+export const maintenanceStatusSchema = z.enum(Constants.public.Enums.RequestStatus as readonly [string, ...string[]])
 
-// Maintenance category enum
-export const maintenanceCategorySchema = z.enum([
-	'PLUMBING',
-	'ELECTRICAL',
-	'HVAC',
-	'APPLIANCES',
-	'FLOORING',
-	'PAINTING',
-	'LANDSCAPING',
-	'SECURITY',
-	'PEST_CONTROL',
-	'GENERAL',
-	'OTHER'
-])
+// Maintenance category enum - uses auto-generated Supabase enums
+export const maintenanceCategorySchema = z.enum(Constants.public.Enums.MaintenanceCategory as readonly [string, ...string[]])
 
 // Base maintenance request input schema (for forms and API creation)
 export const maintenanceRequestInputSchema = z.object({
@@ -48,9 +27,9 @@ export const maintenanceRequestInputSchema = z.object({
 		.min(10, 'Description must be at least 10 characters')
 		.max(2000, 'Description cannot exceed 2000 characters'),
 
-	priority: maintenancePrioritySchema.default('MEDIUM'),
+	priority: maintenancePrioritySchema.default('MEDIUM' as const),
 
-	category: maintenanceCategorySchema.default('GENERAL'),
+	category: maintenanceCategorySchema.default('GENERAL' as const),
 
 	unitId: uuidSchema,
 
@@ -93,7 +72,7 @@ export const maintenanceRequestInputSchema = z.object({
 export const maintenanceRequestSchema = maintenanceRequestInputSchema.extend({
 	id: uuidSchema,
 	ownerId: uuidSchema,
-	status: maintenanceStatusSchema.default('OPEN'),
+	status: maintenanceStatusSchema.default('OPEN' as const),
 
 	// Completion info
 	completedAt: z.date().optional(),
@@ -201,11 +180,11 @@ export type MaintenanceCategoryValidation = z.infer<
 // Frontend-specific form schema (handles string inputs from HTML forms)
 export const maintenanceRequestFormSchema = z
 	.object({
-		title: z.string().min(1, 'Title is required'),
-		description: z.string().min(1, 'Description is required'),
+		title: requiredString,
+		description: requiredString,
 		priority: z.string().default('MEDIUM'),
 		category: z.string().default('GENERAL'),
-		unitId: z.string().min(1, 'Unit is required'),
+		unitId: requiredString,
 		tenantId: z.string().optional().or(z.literal('')),
 		assignedTo: z.string().optional().or(z.literal('')),
 		estimatedCost: z
@@ -241,7 +220,7 @@ export const maintenanceCommentSchema = z.object({
 		.string()
 		.min(1, 'Comment is required')
 		.max(1000, 'Comment too long'),
-	maintenanceRequestId: z.string().uuid()
+	maintenanceRequestId: uuidSchema
 })
 export type MaintenanceRequestData = MaintenanceRequest
 

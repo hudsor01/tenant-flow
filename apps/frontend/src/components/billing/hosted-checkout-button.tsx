@@ -1,5 +1,6 @@
+'use client'
+
 import { Button } from '@/components/ui/button'
-import { Loader2 } from 'lucide-react'
 import { useCreateCheckoutSession } from '@/hooks/api/use-billing'
 import type { PlanType } from '@repo/shared'
 
@@ -26,10 +27,10 @@ export function HostedCheckoutButton({
 	cancelUrl: _cancelUrl,
 	couponId: _couponId
 }: HostedCheckoutButtonProps) {
-	const createCheckoutMutation = useCreateCheckoutSession()
+	const _createCheckoutMutation = useCreateCheckoutSession()
 
 	const handleClick = async () => {
-		createCheckoutMutation.mutate({
+		_createCheckoutMutation.mutate({
 			planId: planType,
 			interval: billingInterval === 'annual' ? 'annual' : 'monthly',
 			successUrl:
@@ -41,12 +42,12 @@ export function HostedCheckoutButton({
 	return (
 		<Button
 			onClick={() => void handleClick()}
-			disabled={createCheckoutMutation.isPending}
+			disabled={_createCheckoutMutation.isPending}
 			className={className}
 		>
-			{createCheckoutMutation.isPending ? (
+			{_createCheckoutMutation.isPending ? (
 				<>
-					<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+					<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
 					Loading checkout...
 				</>
 			) : (

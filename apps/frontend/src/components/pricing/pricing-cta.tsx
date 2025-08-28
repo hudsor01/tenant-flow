@@ -3,7 +3,6 @@
  * Final call-to-action section at the bottom of pricing page
  */
 
-import { ArrowRight, Shield, Star, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export function PricingCTA() {
@@ -29,7 +28,7 @@ export function PricingCTA() {
 						className="bg-white px-8 py-4 text-lg font-semibold text-blue-600 shadow-lg transition-all hover:bg-gray-100 hover:shadow-xl"
 					>
 						<span>Start your free trial</span>
-						<ArrowRight className="ml-2 h-5 w-5" />
+						<i className="i-lucide-arrow-right inline-block ml-2 h-5 w-5"  />
 					</Button>
 
 					<Button
@@ -45,15 +44,15 @@ export function PricingCTA() {
 				<div className="mb-8 text-sm text-blue-200">
 					<div className="flex flex-wrap items-center justify-center gap-8">
 						<div className="flex items-center gap-2">
-							<Clock className="h-4 w-4" />
+							<i className="i-lucide-clock inline-block h-4 w-4"  />
 							<span>14-day free trial</span>
 						</div>
 						<div className="flex items-center gap-2">
-							<Shield className="h-4 w-4" />
+							<i className="i-lucide-shield inline-block h-4 w-4"  />
 							<span>No credit card required</span>
 						</div>
 						<div className="flex items-center gap-2">
-							<Star className="h-4 w-4" />
+							<i className="i-lucide-star inline-block h-4 w-4"  />
 							<span>Cancel anytime</span>
 						</div>
 					</div>

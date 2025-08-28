@@ -1,25 +1,21 @@
 /**
  * Stripe/Billing Schemas
- * 
+ *
  * JSON Schema definitions for Stripe and billing endpoints.
  * Replaces class-validator DTOs with type-safe schema definitions.
  */
 
-import { 
-	createTypedSchema, 
-	schemaRegistry, 
-	type TypedJSONSchema 
-} from '../shared/types/fastify-type-provider'
+import type { JSONSchema } from '../shared/types/fastify-type-provider'
 
 // Plan ID enum schema based on shared types
-const planIdSchema: TypedJSONSchema = {
+const planIdSchema: JSONSchema = {
 	type: 'string',
 	enum: ['STARTER', 'GROWTH', 'TENANTFLOW_MAX'],
 	description: 'Subscription plan identifier'
 }
 
 // Billing interval schema
-const billingIntervalSchema: TypedJSONSchema = {
+const billingIntervalSchema: JSONSchema = {
 	type: 'string',
 	enum: ['monthly', 'annual'],
 	description: 'Billing interval for subscription'
@@ -35,7 +31,7 @@ export interface CreateCheckoutRequest {
 	cancelUrl?: string
 }
 
-export const createCheckoutSchema = createTypedSchema<CreateCheckoutRequest>({
+export const createCheckoutSchema: JSONSchema = {
 	type: 'object',
 	required: ['planId', 'interval'],
 	additionalProperties: false,
@@ -53,7 +49,7 @@ export const createCheckoutSchema = createTypedSchema<CreateCheckoutRequest>({
 			description: 'URL to redirect to after cancelled checkout'
 		}
 	}
-})
+}
 
 /**
  * Create embedded checkout session request
@@ -67,7 +63,7 @@ export interface CreateEmbeddedCheckoutRequest {
 	metadata?: Record<string, string>
 }
 
-export const createEmbeddedCheckoutSchema = createTypedSchema<CreateEmbeddedCheckoutRequest>({
+export const createEmbeddedCheckoutSchema: JSONSchema = {
 	type: 'object',
 	required: ['priceId'],
 	additionalProperties: false,
@@ -109,7 +105,7 @@ export const createEmbeddedCheckoutSchema = createTypedSchema<CreateEmbeddedChec
 			description: 'Additional metadata for the checkout session'
 		}
 	}
-})
+}
 
 /**
  * Create customer portal session request
@@ -118,7 +114,7 @@ export interface CreatePortalRequest {
 	returnUrl?: string
 }
 
-export const createPortalSchema = createTypedSchema<CreatePortalRequest>({
+export const createPortalSchema: JSONSchema = {
 	type: 'object',
 	additionalProperties: false,
 	properties: {
@@ -128,7 +124,7 @@ export const createPortalSchema = createTypedSchema<CreatePortalRequest>({
 			description: 'URL to return to from customer portal'
 		}
 	}
-})
+}
 
 /**
  * Checkout session response
@@ -139,7 +135,7 @@ export interface CheckoutResponse {
 	clientSecret?: string
 }
 
-export const checkoutResponseSchema = createTypedSchema<CheckoutResponse>({
+export const checkoutResponseSchema: JSONSchema = {
 	type: 'object',
 	required: ['sessionId'],
 	properties: {
@@ -158,7 +154,31 @@ export const checkoutResponseSchema = createTypedSchema<CheckoutResponse>({
 			description: 'Client secret for embedded checkout'
 		}
 	}
-})
+}
+
+/**
+ * Create subscription with confirmation token request
+ */
+export interface CreateSubscriptionDto {
+	planType: string
+	billingInterval: 'monthly' | 'annual'
+	confirmationTokenId: string
+}
+
+export const createSubscriptionSchema: JSONSchema = {
+	type: 'object',
+	required: ['planType', 'billingInterval', 'confirmationTokenId'],
+	additionalProperties: false,
+	properties: {
+		planType: planIdSchema,
+		billingInterval: billingIntervalSchema,
+		confirmationTokenId: {
+			type: 'string',
+			pattern: '^cnf_[a-zA-Z0-9_]+$',
+			description: 'Stripe confirmation token ID for embedded checkout'
+		}
+	}
+}
 
 /**
  * Customer portal response
@@ -167,7 +187,7 @@ export interface PortalResponse {
 	url: string
 }
 
-export const portalResponseSchema = createTypedSchema<PortalResponse>({
+export const portalResponseSchema: JSONSchema = {
 	type: 'object',
 	required: ['url'],
 	properties: {
@@ -177,7 +197,7 @@ export const portalResponseSchema = createTypedSchema<PortalResponse>({
 			description: 'Customer portal URL'
 		}
 	}
-})
+}
 
 /**
  * Subscription status response
@@ -196,18 +216,18 @@ export interface SubscriptionStatusResponse {
 	currency: string
 }
 
-export const subscriptionStatusResponseSchema = createTypedSchema<SubscriptionStatusResponse>({
+export const subscriptionStatusResponseSchema: JSONSchema = {
 	type: 'object',
 	required: [
-		'id', 
-		'status', 
-		'planId', 
-		'planName', 
-		'interval', 
-		'currentPeriodStart', 
-		'currentPeriodEnd', 
-		'cancelAtPeriodEnd', 
-		'amount', 
+		'id',
+		'status',
+		'planId',
+		'planName',
+		'interval',
+		'currentPeriodStart',
+		'currentPeriodEnd',
+		'cancelAtPeriodEnd',
+		'amount',
 		'currency'
 	],
 	properties: {
@@ -266,7 +286,7 @@ export const subscriptionStatusResponseSchema = createTypedSchema<SubscriptionSt
 			description: 'Currency code (ISO 4217)'
 		}
 	}
-})
+}
 
 /**
  * Webhook event schema for Stripe webhooks
@@ -288,9 +308,18 @@ export interface StripeWebhookEvent {
 	}
 }
 
-export const stripeWebhookEventSchema = createTypedSchema<StripeWebhookEvent>({
+export const stripeWebhookEventSchema: JSONSchema = {
 	type: 'object',
-	required: ['id', 'object', 'type', 'created', 'data', 'livemode', 'pending_webhooks', 'request'],
+	required: [
+		'id',
+		'object',
+		'type',
+		'created',
+		'data',
+		'livemode',
+		'pending_webhooks',
+		'request'
+	],
 	properties: {
 		id: {
 			type: 'string',
@@ -316,11 +345,13 @@ export const stripeWebhookEventSchema = createTypedSchema<StripeWebhookEvent>({
 			properties: {
 				object: {
 					type: 'object',
-					description: 'The object that was created, updated, or deleted'
+					description:
+						'The object that was created, updated, or deleted'
 				},
 				previous_attributes: {
 					type: 'object',
-					description: 'Previous attributes if this was an update event'
+					description:
+						'Previous attributes if this was an update event'
 				}
 			}
 		},
@@ -347,16 +378,10 @@ export const stripeWebhookEventSchema = createTypedSchema<StripeWebhookEvent>({
 			}
 		}
 	}
-})
+}
 
-// Register schemas
-schemaRegistry.register('create-checkout', createCheckoutSchema)
-schemaRegistry.register('create-embedded-checkout', createEmbeddedCheckoutSchema)
-schemaRegistry.register('create-portal', createPortalSchema)
-schemaRegistry.register('checkout-response', checkoutResponseSchema)
-schemaRegistry.register('portal-response', portalResponseSchema)
-schemaRegistry.register('subscription-status-response', subscriptionStatusResponseSchema)
-schemaRegistry.register('stripe-webhook-event', stripeWebhookEventSchema)
+// Schemas are exported directly for use in NestJS controllers
+// No custom registry needed - use Fastify's native addSchema() if sharing is required
 
 // Export route schemas for controller usage
 export const stripeRouteSchemas = {

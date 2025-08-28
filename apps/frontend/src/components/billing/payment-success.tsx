@@ -11,14 +11,6 @@ import {
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import {
-	CheckCircle2,
-	Loader2,
-	ArrowRight,
-	FileText,
-	Users,
-	Home
-} from 'lucide-react'
 import { toast } from 'sonner'
 
 interface SubscriptionDetails {
@@ -68,7 +60,7 @@ export function PaymentSuccess({
 		return (
 			<div className="flex items-center justify-center py-16">
 				<div className="text-center">
-					<Loader2 className="text-primary mx-auto mb-4 h-12 w-12 animate-spin" />
+					<i className="i-lucide-loader-2 inline-block text-primary mx-auto mb-4 h-12 w-12 animate-spin"  />
 					<p className="text-muted-foreground text-lg">
 						Activating your subscription...
 					</p>
@@ -84,7 +76,7 @@ export function PaymentSuccess({
 				<div
 					className={`transition-all duration-1000 ${showConfetti ? 'animate-bounce' : ''}`}
 				>
-					<CheckCircle2 className="mx-auto mb-4 h-16 w-16 text-green-500" />
+					<i className="i-lucide-check-circle-2 inline-block mx-auto mb-4 h-16 w-16 text-green-500"  />
 				</div>
 				<h1 className="from-primary to-primary/70 mb-2 bg-gradient-to-r bg-clip-text text-4xl font-bold text-transparent">
 					Welcome to TenantFlow!
@@ -161,7 +153,7 @@ export function PaymentSuccess({
 													key={index}
 													className="flex items-center gap-2 text-sm"
 												>
-													<CheckCircle2 className="h-4 w-4 shrink-0 text-green-500" />
+													<i className="i-lucide-check-circle-2 inline-block h-4 w-4 shrink-0 text-green-500"  />
 													<span>{feature}</span>
 												</div>
 											)
@@ -190,20 +182,20 @@ function QuickActions() {
 
 	const actions = [
 		{
-			icon: Home,
+			icon: 'i-lucide-home',
 			title: 'Add your first property',
 			description: 'Start by adding property details and units',
 			action: () => router.push('/properties?action=add'),
 			primary: true
 		},
 		{
-			icon: Users,
+			icon: 'i-lucide-users',
 			title: 'Invite tenants',
 			description: 'Send invitations to your tenants to join the portal',
 			action: () => router.push('/tenants?action=invite')
 		},
 		{
-			icon: FileText,
+			icon: 'i-lucide-file-text',
 			title: 'Create a lease',
 			description: 'Set up lease agreements and track important dates',
 			action: () => router.push('/leases?action=create')
@@ -238,13 +230,11 @@ function QuickActions() {
 										: 'bg-muted'
 								}`}
 							>
-								<action.icon
-									className={`h-5 w-5 ${
+								<i className={`${action.icon} inline-block h-5 w-5 ${
 										action.primary
 											? 'text-primary'
 											: 'text-muted-foreground'
-									}`}
-								/>
+									}`} />
 							</div>
 							<div>
 								<p className="group-hover:text-primary font-medium transition-colors">
@@ -255,7 +245,7 @@ function QuickActions() {
 								</p>
 							</div>
 						</div>
-						<ArrowRight className="text-muted-foreground group-hover:text-primary h-5 w-5 transition-all group-hover:translate-x-1" />
+						<i className="i-lucide-arrow-right inline-block text-muted-foreground group-hover:text-primary h-5 w-5 transition-all group-hover:translate-x-1"  />
 					</button>
 				))}
 

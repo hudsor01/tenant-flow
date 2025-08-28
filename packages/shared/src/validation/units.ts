@@ -3,16 +3,13 @@ import {
 	uuidSchema,
 	nonEmptyStringSchema,
 	positiveNumberSchema,
-	nonNegativeNumberSchema
+	nonNegativeNumberSchema,
+	requiredString
 } from './common'
+import { Constants } from '../types/supabase-generated'
 
-// Unit status enum
-export const unitStatusSchema = z.enum([
-	'VACANT',
-	'OCCUPIED',
-	'MAINTENANCE',
-	'UNAVAILABLE'
-])
+// Unit status enum - uses auto-generated Supabase enums
+export const unitStatusSchema = z.enum(Constants.public.Enums.UnitStatus as readonly [string, ...string[]])
 
 // Base unit input schema (for forms and API creation)
 export const unitInputSchema = z.object({
@@ -61,7 +58,7 @@ export const unitInputSchema = z.object({
 export const unitSchema = unitInputSchema.extend({
 	id: uuidSchema,
 	ownerId: uuidSchema,
-	status: unitStatusSchema.default('VACANT'),
+	status: unitStatusSchema.default('VACANT' as const),
 	createdAt: z.date(),
 	updatedAt: z.date()
 })
@@ -123,12 +120,12 @@ export type UnitStatus = z.infer<typeof unitStatusSchema>
 // Frontend-specific form schema (handles string inputs from HTML forms)
 export const unitFormSchema = z
 	.object({
-		propertyId: z.string().min(1, 'Property is required'),
-		unitNumber: z.string().min(1, 'Unit number is required'),
+		propertyId: requiredString,
+		unitNumber: requiredString,
 		bedrooms: z
 			.string()
 			.optional()
-			.transform(val => (val ? parseInt(val) : undefined)),
+			.transform(val => (val ? parseInt(val, 10) : undefined)),
 		bathrooms: z
 			.string()
 			.optional()
@@ -136,7 +133,7 @@ export const unitFormSchema = z
 		squareFootage: z
 			.string()
 			.optional()
-			.transform(val => (val ? parseInt(val) : undefined)),
+			.transform(val => (val ? parseInt(val, 10) : undefined)),
 		rent: z
 			.string()
 			.optional()
