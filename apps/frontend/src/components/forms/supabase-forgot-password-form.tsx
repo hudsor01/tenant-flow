@@ -11,7 +11,7 @@ import {
 	CardHeader,
 	CardTitle
 } from '@/components/ui/card'
-import { forgotPassword } from '@/lib/actions/auth-actions'
+import { forgotPassword } from '@/app/actions/auth'
 
 function SubmitButton() {
 	const { pending } = useFormStatus()

@@ -1,14 +1,17 @@
 import type { NextConfig } from 'next/types'
+import path from 'node:path'
 
 // Webpack configuration for production builds
 interface WebpackConfig {
-	ignoreWarnings?: {
-		module: RegExp
-		message: RegExp
-	}[]
-	resolve?: {
-		fallback?: Record<string, boolean>
-	}
+ignoreWarnings?: {
+module: RegExp
+message: RegExp
+}[]
+resolve?: {
+fallback?: Record<string, boolean>
+alias?: Record<string, string>
+}
+plugins?: unknown[]
 }
 
 interface WebpackContext {
@@ -23,11 +26,39 @@ const nextConfig: NextConfig = {
 	poweredByHeader: false,
 	trailingSlash: false,
 	generateEtags: true,
-	outputFileTracingRoot: process.cwd().includes('tenant-flow')
-		? process.cwd().split('/tenant-flow')[0] + '/tenant-flow'
-		: process.cwd(),
+	outputFileTracingRoot: path.join(__dirname, '../../'),
+	
+	// External packages for server components (Next.js 15)
+	serverExternalPackages: ['@react-email/components'],
+	
+	// Next.js 15 Experimental Features
+	experimental: {
+		// Remove CSS chunking configuration to use Next.js defaults
+		// cssChunking: true, // commented out - let Next.js handle it automatically
+		optimizeCss: false,
+		
+		// Enable server actions optimizations
+		serverActions: {
+			bodySizeLimit: '2mb',
+			allowedOrigins: ['localhost:3000', 'tenantflow.app', '*.tenantflow.app']
+		},
+		
+		// Enable faster builds with module graph optimization
+		optimizePackageImports: [
+			'@radix-ui/react-*',
+			'@supabase/supabase-js',
+			'@tanstack/react-query',
+			'zustand',
+			'zod',
+			'date-fns',
+			'framer-motion'
+		],
+		
+		// Improve Vercel deployment compatibility (deprecated - moved to serverExternalPackages)
+		// serverComponentsExternalPackages: ['@react-email/components']
+	},
 
-	// Build validation
+	// Build validation - temporarily ignore ESLint warnings during builds
 	eslint: {
 		ignoreDuringBuilds: false
 	},
@@ -84,7 +115,7 @@ const nextConfig: NextConfig = {
 					},
 					{
 						key: 'Content-Security-Policy',
-						value: "default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://us.i.posthog.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; connect-src 'self' https://api.tenantflow.app https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://us.i.posthog.com; frame-src https://js.stripe.com; frame-ancestors 'none';"
+						value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://us.i.posthog.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; connect-src 'self' https://api.tenantflow.app https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://us.i.posthog.com; frame-src https://js.stripe.com; frame-ancestors 'none';"
 					}
 				]
 			},
@@ -135,14 +166,18 @@ const nextConfig: NextConfig = {
 	pageExtensions: ['tsx', 'ts'],
 
 	// Turbopack configuration for development
-	turbopack: {
-		rules: {
-			'*.svg': {
-				loaders: ['@svgr/webpack'],
-				as: '*.js'
+	...(process.env.NODE_ENV === 'development' && {
+		turbopack: {
+			// Point to monorepo root to fix package resolution in monorepo
+			root: path.join(__dirname, '../../'),
+			rules: {
+				'*.svg': {
+					loaders: ['@svgr/webpack'],
+					as: '*.js'
+				}
 			}
 		}
-	},
+	}),
 
 	// Webpack configuration for production builds
 	webpack: (config: unknown, context: unknown): unknown => {
@@ -150,12 +185,24 @@ const nextConfig: NextConfig = {
 		const typedContext = context as WebpackContext
 		const { isServer } = typedContext
 
-		// Suppress Supabase websocket warnings in all builds
-		typedConfig.ignoreWarnings = [
-			...(typedConfig.ignoreWarnings || []),
-			{ module: /websocket-factory/, message: /Critical dependency/ },
-			{ module: /@supabase/, message: /Critical dependency/ }
-		]
+ // Suppress Supabase websocket warnings in all builds
+ typedConfig.ignoreWarnings = [
+ ...(typedConfig.ignoreWarnings || []),
+ { module: /websocket-factory/, message: /Critical dependency/ },
+ { module: /@supabase/, message: /Critical dependency/ }
+ ]
+
+ // Resolve `@repo/shared` to the shared source during dev/build so both TypeScript
+ // path aliases and the bundler resolve to the same files (prevents runtime import failures)
+ if (!typedConfig.resolve) {
+   typedConfig.resolve = {}
+ }
+ // Merge any existing alias config
+ // Note: webpack alias does not support glob wildcards; mapping the package root is sufficient
+ typedConfig.resolve.alias = {
+   ...(typedConfig.resolve.alias || {}),
+   '@repo/shared': path.join(__dirname, '../../packages/shared/src')
+ }
 
 		// Client-side fallbacks for production
 		if (!isServer) {

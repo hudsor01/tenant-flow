@@ -1,4 +1,3 @@
-import { Plus, Minus, FileText } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,18 +8,19 @@ import type {
 	UseFormSetValue,
 	UseFormGetValues
 } from 'react-hook-form'
-import type { CustomerInvoiceForm } from '@repo/shared'
-import type { InvoiceItem } from '@/types/components'
+import type { CustomerInvoiceForm, CustomerInvoiceItem } from '@repo/shared/types/invoices' // Import CustomerInvoiceItem
+
+// Removed local InvoiceItem type definition
 
 // Extended props for the invoice items section
 interface InvoiceItemsSectionProps {
 	register: UseFormRegister<CustomerInvoiceForm>
-	fields: InvoiceItem[]
-	append: UseFieldArrayReturn<CustomerInvoiceForm, 'items'>['append']
-	remove: UseFieldArrayReturn<CustomerInvoiceForm, 'items'>['remove']
+	fields: CustomerInvoiceItem[] // Changed to CustomerInvoiceItem[]
+	append: UseFieldArrayReturn<CustomerInvoiceForm, 'items', 'id'>['append'] // Corrected type
+	remove: UseFieldArrayReturn<CustomerInvoiceForm, 'items', 'id'>['remove'] // Corrected type
 	setValue: UseFormSetValue<CustomerInvoiceForm>
 	getValues: UseFormGetValues<CustomerInvoiceForm>
-	watchedItems: InvoiceItem[]
+	watchedItems: CustomerInvoiceItem[] // Changed to CustomerInvoiceItem[]
 	subtotal: number
 	taxAmount: number
 	total: number
@@ -45,11 +45,11 @@ export function InvoiceItemsSection({
 	formatCurrency
 }: InvoiceItemsSectionProps) {
 	return (
-		<Card className="group bg-card/80 flex flex-1 flex-col border-0 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl">
+		<Card className="bg-card/80 group flex flex-1 flex-col border-0 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl">
 			<CardHeader className="from-primary/5 to-accent/5 border-border/50 flex items-center justify-center border-b bg-gradient-to-r py-4">
 				<CardTitle className="text-foreground flex items-center justify-center gap-2 text-base">
 					<div className="bg-primary/10 group-hover:bg-primary/20 rounded-lg p-1.5 transition-colors">
-						<FileText className="text-primary h-4 w-4" />
+						<i className="i-lucide-file-text inline-block text-primary h-4 w-4"  />
 					</div>
 					<span className="font-serif">Invoice Items</span>
 				</CardTitle>
@@ -80,7 +80,7 @@ export function InvoiceItemsSection({
 						>
 							<div className="col-span-5">
 								<Input
-									{...register(`items.${index}.description`)}
+									{...register(`items.${index}.description` as const)}
 									placeholder="Description of service/product"
 									className="h-10 text-sm"
 								/>
@@ -94,11 +94,11 @@ export function InvoiceItemsSection({
 										onClick={() => {
 											const currentQty =
 												getValues(
-													`items.${index}.quantity`
+													`items.${index}.quantity` as const
 												) ?? 0
 											if (currentQty > 1) {
 												setValue(
-													`items.${index}.quantity`,
+													`items.${index}.quantity` as const,
 													currentQty - 1
 												)
 											} else {
@@ -107,7 +107,7 @@ export function InvoiceItemsSection({
 										}}
 										className="h-10 w-10 p-0"
 									>
-										<Minus className="h-4 w-4" />
+										<i className="i-lucide-minus inline-block h-4 w-4"  />
 									</Button>
 									<div className="w-16 text-center text-sm font-medium">
 										{watchedItems[index]?.quantity ?? 0}
@@ -119,16 +119,16 @@ export function InvoiceItemsSection({
 										onClick={() => {
 											const currentQty =
 												getValues(
-													`items.${index}.quantity`
+													`items.${index}.quantity` as const
 												) ?? 0
 											setValue(
-												`items.${index}.quantity`,
+												`items.${index}.quantity` as const,
 												currentQty + 1
 											)
 										}}
 										className="h-10 w-10 p-0"
 									>
-										<Plus className="h-4 w-4" />
+										<i className="i-lucide-plus inline-block h-4 w-4"  />
 									</Button>
 								</div>
 							</div>
@@ -137,7 +137,7 @@ export function InvoiceItemsSection({
 									type="number"
 									step="0.01"
 									min="0"
-									{...register(`items.${index}.unitPrice`, {
+									{...register(`items.${index}.unitPrice` as const, {
 										valueAsNumber: true
 									})}
 									placeholder="0.00"
@@ -165,7 +165,7 @@ export function InvoiceItemsSection({
 				{/* Add Item Button - Aligned with quantity controls */}
 				<div className="mt-6">
 					<div className="grid grid-cols-12 gap-2">
-						<div className="col-span-5"></div>
+						<div className="col-span-5" />
 						<div className="col-span-3 flex justify-center">
 							<Button
 								type="button"
@@ -178,23 +178,17 @@ export function InvoiceItemsSection({
 										quantity: 1,
 										unitPrice: 0,
 										total: 0
-									} as {
-										id: string
-										description: string
-										quantity: number
-										unitPrice: number
-										total: number
-									})
+									} as CustomerInvoiceItem)
 								}
 								className="bg-primary/10 border-primary/20 text-primary hover:bg-primary hover:text-primary-foreground h-10 w-full max-w-[140px] transition-colors"
 							>
 								<div className="flex items-center gap-2">
-									<Plus className="h-4 w-4" />
+									<i className="i-lucide-plus inline-block h-4 w-4"  />
 									<span>Add Item</span>
 								</div>
 							</Button>
 						</div>
-						<div className="col-span-4"></div>
+						<div className="col-span-4" />
 					</div>
 				</div>
 

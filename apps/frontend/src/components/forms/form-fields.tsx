@@ -83,7 +83,7 @@ export function TextField({
 				defaultValue={defaultValue}
 				required={required}
 				maxLength={maxLength}
-				className={error ? 'border-red-500' : ''}
+				className={error ? 'input-error-red' : ''}
 			/>
 			{error && <p className="text-sm text-red-600">{error}</p>}
 		</div>
@@ -118,7 +118,7 @@ export function NumberField({
 				min={min}
 				max={max}
 				step={step}
-				className={error ? 'border-red-500' : ''}
+				className={error ? 'input-error-red' : ''}
 			/>
 			{error && <p className="text-sm text-red-600">{error}</p>}
 		</div>
@@ -150,7 +150,7 @@ export function TextareaField({
 				required={required}
 				rows={rows}
 				maxLength={maxLength}
-				className={error ? 'border-red-500' : ''}
+				className={error ? 'input-error-red' : ''}
 			/>
 			{error && <p className="text-sm text-red-600">{error}</p>}
 		</div>
@@ -174,7 +174,7 @@ export function SelectField({
 				{required && <span className="ml-1 text-red-500">*</span>}
 			</Label>
 			<Select name={name} defaultValue={defaultValue} required={required}>
-				<SelectTrigger className={error ? 'border-red-500' : ''}>
+				<SelectTrigger className={error ? 'input-error-red' : ''}>
 					<SelectValue placeholder={placeholder} />
 				</SelectTrigger>
 				<SelectContent>

@@ -1,142 +1,79 @@
-/**
- * Analytics types for property management metrics and insights
- * These are domain types shared between frontend and backend
- */
+export type TenantFlowEvent =
+	// Authentication Events
+	| 'user_signed_up'
+	| 'user_signed_in'
+	| 'user_signed_out'
+	| 'user_login_failed'
+	| 'user_signup_failed'
+	| 'user_oauth_failed'
+	| 'user_oauth_initiated'
+	| 'password_reset_requested'
+	| 'password_reset_completed'
+	| 'password_reset_failed'
+	| 'password_updated'
+	| 'profile_updated'
 
-export type AnalyticsEventData = Record<
-	string,
-	string | number | boolean | null
->
+	// Property Management Events
+	| 'property_created'
+	| 'property_updated'
+	| 'property_deleted'
+	| 'property_viewed'
 
-export interface PropertyMetric {
-	propertyId: string
-	propertyName: string
-	propertyAddress: string
-	totalUnits: number
-	occupiedUnits: number
-	occupancyRate: number
-	avgRentPerUnit: number
-	totalMonthlyRevenue: number
-	potentialRevenue: number
-	revenueEfficiency: number
-	avgTenancyLength: number
-	turnoverRate: number
-	maintenanceRequestsCount: number
-	avgMaintenanceResponseTime: number
-	maintenanceCostPerUnit: number
-	tenantSatisfactionScore: number
-	profitMargin: number
-	totalExpenses: number
-	netOperatingIncome: number
-	capRate: number
-	lastUpdated: string
-}
+	// Unit Management Events
+	| 'unit_created'
+	| 'unit_updated'
+	| 'unit_deleted'
+	| 'unit_viewed'
 
-export interface PropertyTrend {
-	propertyId: string
-	date: string
-	occupancyRate: number
-	revenue: number
-	expenses: number
-	netIncome: number
-	maintenanceRequests: number
-}
+	// Tenant Management Events
+	| 'tenant_created'
+	| 'tenant_updated'
+	| 'tenant_deleted'
+	| 'tenant_viewed'
+	| 'tenant_invited'
 
-export type ReportFrequency = 'daily' | 'weekly' | 'monthly'
+	// Lease Management Events
+	| 'lease_created'
+	| 'lease_updated'
+	| 'lease_renewed'
+	| 'lease_terminated'
+	| 'lease_viewed'
+	| 'lease_document_uploaded'
 
-export interface AnalyticsSettings {
-	enableAutomatedReports: boolean
-	reportFrequency: ReportFrequency
-	alertThresholds: {
-		occupancyDropPercent: number
-		maintenanceSpike: number
-		revenueDecline: number
-		expenseIncrease: number
-	}
-	benchmarkComparisons: boolean
-	includeMarketData: boolean
-}
+	// Maintenance Events
+	| 'maintenance_request_created'
+	| 'maintenance_request_updated'
+	| 'maintenance_request_completed'
+	| 'maintenance_request_viewed'
 
-export interface MaintenanceRequestAnalytics {
-	id: string
-	createdAt: string
-	resolvedAt?: string
-}
+	// Payment Events
+	| 'payment_initiated'
+	| 'payment_completed'
+	| 'payment_failed'
+	| 'subscription_upgraded'
+	| 'subscription_downgraded'
+	| 'subscription_cancelled'
 
-export interface PropertyWithAnalytics {
-	id: string
-	name: string
-	address?: string
-	units: {
-		id: string
-		unitNumber: string
-		rent?: number
-	}[]
-	leases: {
-		id: string
-		status: string
-		rentAmount?: number
-		startDate?: string | Date
-		endDate?: string | Date
-	}[]
-}
+	// Feature Usage Events
+	| 'dashboard_viewed'
+	| 'report_generated'
+	| 'document_uploaded'
+	| 'notification_sent'
+	| 'settings_updated'
 
-export interface TopPayingTenant {
-	tenantId: string
-	tenantName: string
-	totalAmount: number
-	paymentCount: number
-}
+	// Form Events
+	| 'form_viewed'
+	| 'form_submitted'
+	| 'form_validation_failed'
+	| 'form_submission_failed'
 
-/**
- * Analytics data aggregations
- */
-export interface PropertyAnalyticsSummary {
-	propertyId: string
-	periodStart: string
-	periodEnd: string
-	metrics: PropertyMetric
-	trends: PropertyTrend[]
-}
+	// Error Events
+	| 'error_occurred'
+	| 'api_error'
+	| 'validation_error'
 
-export interface PortfolioAnalytics {
-	ownerId: string
-	totalProperties: number
-	totalUnits: number
-	portfolioValue: number
-	avgOccupancyRate: number
-	totalMonthlyRevenue: number
-	totalOperatingExpenses: number
-	netOperatingIncome: number
-	properties: PropertyAnalyticsSummary[]
-}
-
-/**
- * Analytics query parameters
- */
-export interface AnalyticsQuery {
-	propertyId?: string
-	ownerId?: string
-	startDate?: string
-	endDate?: string
-	metricTypes?: string[]
-	includeTrends?: boolean
-}
-
-/**
- * Analytics report types
- */
-export interface AnalyticsReport {
-	id: string
-	type: 'property' | 'portfolio' | 'custom'
-	name: string
-	frequency: ReportFrequency
-	recipients: string[]
-	lastGenerated?: string
-	nextScheduled?: string
-	configuration: {
-		metrics: string[]
-		properties: string[]
-		format: 'pdf' | 'excel' | 'csv'
-	}
-}
+	// Security Events
+	| 'security_rate_limit_triggered'
+	| 'security_alert_distributed_attack'
+	| 'security_alert_credential_stuffing'
+	| 'security_rate_limit_stats'

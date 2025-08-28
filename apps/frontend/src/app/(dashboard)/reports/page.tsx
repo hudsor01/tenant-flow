@@ -9,15 +9,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import {
-	BarChart3,
-	Download,
-	TrendingUp,
-	DollarSign,
-	FileText,
-	Users,
-	Building
-} from 'lucide-react'
 import { PageTracker } from '@/components/analytics/page-tracker'
 import type { Metadata } from 'next/types'
 
@@ -44,7 +35,7 @@ function ReportsGrid() {
 		{
 			title: 'Financial Summary',
 			description: 'Revenue, expenses, and profit analysis',
-			icon: DollarSign,
+			icon: 'i-lucide-dollar-sign',
 			period: 'Monthly',
 			lastGenerated: '2 hours ago',
 			color: 'text-green-600',
@@ -53,7 +44,7 @@ function ReportsGrid() {
 		{
 			title: 'Occupancy Report',
 			description: 'Occupancy rates and vacancy analysis',
-			icon: Building,
+			icon: 'i-lucide-building',
 			period: 'Weekly',
 			lastGenerated: '1 day ago',
 			color: 'text-primary',
@@ -62,7 +53,7 @@ function ReportsGrid() {
 		{
 			title: 'Tenant Activity',
 			description: 'Tenant communications and interactions',
-			icon: Users,
+			icon: 'i-lucide-users',
 			period: 'Daily',
 			lastGenerated: '4 hours ago',
 			color: 'text-purple-600',
@@ -71,7 +62,7 @@ function ReportsGrid() {
 		{
 			title: 'Maintenance Report',
 			description: 'Maintenance costs and completion rates',
-			icon: BarChart3,
+			icon: 'i-lucide-bar-chart-3',
 			period: 'Monthly',
 			lastGenerated: '6 hours ago',
 			color: 'text-orange-600',
@@ -82,7 +73,6 @@ function ReportsGrid() {
 	return (
 		<div className="grid gap-6 md:grid-cols-2">
 			{reports.map(report => {
-				const Icon = report.icon
 				return (
 					<Card
 						key={report.title}
@@ -93,8 +83,8 @@ function ReportsGrid() {
 								<div
 									className={`rounded-lg p-3 ${report.bgColor}`}
 								>
-									<Icon
-										className={`h-6 w-6 ${report.color}`}
+									<i
+										className={`${report.icon} h-6 w-6 inline-block ${report.color}`}
 									/>
 								</div>
 								<Badge variant="secondary">
@@ -117,11 +107,11 @@ function ReportsGrid() {
 								</div>
 								<div className="flex gap-2">
 									<Button size="sm" variant="outline">
-										<BarChart3 className="mr-2 h-4 w-4" />
+										<i className="i-lucide-bar-chart-3 inline-block mr-2 h-4 w-4"  />
 										View
 									</Button>
 									<Button size="sm" variant="outline">
-										<Download className="h-4 w-4" />
+										<i className="i-lucide-download inline-block h-4 w-4"  />
 									</Button>
 								</div>
 							</div>
@@ -138,7 +128,7 @@ function QuickStats() {
 		<Card>
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2">
-					<TrendingUp className="h-5 w-5" />
+					<i className="i-lucide-trending-up inline-block h-5 w-5"  />
 					Quick Stats
 				</CardTitle>
 				<CardDescription>Key metrics for this month</CardDescription>
@@ -229,7 +219,7 @@ function RecentReports() {
 						>
 							<div className="flex items-center gap-3">
 								<div className="bg-primary/10 rounded-lg p-2">
-									<FileText className="text-primary h-4 w-4" />
+									<i className="i-lucide-file-text inline-block text-primary h-4 w-4"  />
 								</div>
 								<div className="space-y-1">
 									<p className="font-medium">{report.name}</p>
@@ -248,7 +238,7 @@ function RecentReports() {
 								</div>
 							</div>
 							<Button size="sm" variant="ghost">
-								<Download className="h-4 w-4" />
+								<i className="i-lucide-download inline-block h-4 w-4"  />
 							</Button>
 						</div>
 					))}

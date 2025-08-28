@@ -1,0 +1,1272 @@
+{
+  "timestamp": "2025-08-27T04:04:32.451Z",
+  "summary": {
+    "totalComponents": 330,
+    "clientComponents": 185,
+    "convertible": 36,
+    "forwardRefCount": 8,
+    "mustRemainClient": 149
+  },
+  "convertibleComponents": [
+    "lazy-motion",
+    "units-stats",
+    "units-data-table",
+    "tenants-stats",
+    "tenants-data-table",
+    "toggle",
+    "stats",
+    "separator",
+    "scroll-area",
+    "progress",
+    "modal",
+    "label",
+    "feedback",
+    "collapsible",
+    "avatar",
+    "security-settings",
+    "data-settings",
+    "billing-settings",
+    "appearance-settings",
+    "properties-stats",
+    "maintenance-stats",
+    "maintenance-data-table",
+    "leases-stats",
+    "leases-data-table",
+    "simplified-dashboard",
+    "dashboard-widgets",
+    "dashboard-recent-activity",
+    "dashboard-metrics",
+    "dashboard-client",
+    "dashboard-client-refactored",
+    "dashboard-activity-feed",
+    "oauth-loading-skeleton",
+    "page",
+    "page",
+    "sidebar-content",
+    "layout-client"
+  ],
+  "clientRequired": [
+    {
+      "file": "toaster-provider",
+      "reasons": [
+        "Filename contains \"provider\""
+      ]
+    },
+    {
+      "file": "react-query-provider",
+      "reasons": [
+        "Filename contains \"provider\"",
+        "Uses React hook: useState"
+      ]
+    },
+    {
+      "file": "query-provider",
+      "reasons": [
+        "Filename contains \"provider\"",
+        "Uses React hook: useState"
+      ]
+    },
+    {
+      "file": "posthog-provider",
+      "reasons": [
+        "Filename contains \"posthog-\"",
+        "Filename contains \"provider\"",
+        "Uses React hook: useEffect",
+        "Uses browser API: window",
+        "Uses browser API: navigator"
+      ]
+    },
+    {
+      "file": "auth-context",
+      "reasons": [
+        "Filename contains \"context\"",
+        "Uses React hook: useState",
+        "Uses React hook: useEffect",
+        "Uses React hook: useContext",
+        "Uses React hook: useCallback"
+      ]
+    },
+    {
+      "file": "use-command-palette",
+      "reasons": [
+        "Filename contains \"command-palette\"",
+        "Filename contains \"use\"",
+        "Uses React hook: useState",
+        "Uses React hook: useCallback",
+        "Uses browser API: localStorage"
+      ]
+    },
+    {
+      "file": "error",
+      "reasons": [
+        "Has event handlers: onClick="
+      ]
+    },
+    {
+      "file": "theme-toggle",
+      "reasons": [
+        "Filename contains \"theme-toggle\"",
+        "Has event handlers: onClick=, onClick=, onClick="
+      ]
+    },
+    {
+      "file": "theme-provider",
+      "reasons": [
+        "Filename contains \"provider\""
+      ]
+    },
+    {
+      "file": "login-form",
+      "reasons": [
+        "Filename contains \"form\"",
+        "Uses React hook: useState",
+        "Uses React hook: useRouter",
+        "Has event handlers: onSubmit=, onChange=, onChange="
+      ]
+    },
+    {
+      "file": "elements-provider",
+      "reasons": [
+        "Filename contains \"provider\"",
+        "Uses React hook: useState",
+        "Uses React hook: useEffect",
+        "Uses React hook: useMemo",
+        "Uses browser API: window",
+        "Uses browser API: setTimeout",
+        "Has event handlers: onClick="
+      ]
+    },
+    {
+      "file": "unit-form",
+      "reasons": [
+        "Filename contains \"form\"",
+        "Uses React hook: useOptimistic",
+        "Uses React hook: useActionState",
+        "Has event handlers: onClick="
+      ]
+    },
+    {
+      "file": "tenant-form",
+      "reasons": [
+        "Filename contains \"form\"",
+        "Uses React hook: useOptimistic",
+        "Uses React hook: useActionState",
+        "Has event handlers: onClick="
+      ]
+    },
+    {
+      "file": "subscription-upgrade-modal",
+      "reasons": [
+        "Uses React hook: useState",
+        "Uses browser API: setTimeout",
+        "Has event handlers: onOpenChange=, onOpenChange=, onClick="
+      ]
+    },
+    {
+      "file": "subscription-cancel-modal",
+      "reasons": [
+        "Uses React hook: useState",
+        "Uses browser API: setTimeout",
+        "Has event handlers: onOpenChange=, onOpenChange=, onValueChange="
+      ]
+    },
+    {
+      "file": "tooltip",
+      "reasons": [
+        "Filename contains \"tooltip\""
+      ]
+    },
+    {
+      "file": "tabs",
+      "reasons": [
+        "Filename contains \"tabs\""
+      ]
+    },
+    {
+      "file": "table",
+      "reasons": [
+        "Has event handlers: onClick=, onClick="
+      ]
+    },
+    {
+      "file": "switch",
+      "reasons": [
+        "Filename contains \"switch\""
+      ]
+    },
+    {
+      "file": "slider",
+      "reasons": [
+        "Filename contains \"slider\"",
+        "Uses React hook: useMemo"
+      ]
+    },
+    {
+      "file": "sidebar-provider",
+      "reasons": [
+        "Filename contains \"provider\"",
+        "Uses React hook: useState",
+        "Uses React hook: useEffect",
+        "Uses React hook: useContext",
+        "Uses React hook: useCallback",
+        "Uses React hook: useMemo",
+        "Uses browser API: window",
+        "Uses browser API: document",
+        "Uses browser API: addEventListener",
+        "Uses browser API: removeEventListener"
+      ]
+    },
+    {
+      "file": "sidebar-core",
+      "reasons": [
+        "Has event handlers: onOpenChange=, onClick="
+      ]
+    },
+    {
+      "file": "sheet",
+      "reasons": [
+        "Filename contains \"sheet\""
+      ]
+    },
+    {
+      "file": "select",
+      "reasons": [
+        "Filename contains \"select\""
+      ]
+    },
+    {
+      "file": "radio-group",
+      "reasons": [
+        "Filename contains \"radio\""
+      ]
+    },
+    {
+      "file": "popover",
+      "reasons": [
+        "Filename contains \"popover\""
+      ]
+    },
+    {
+      "file": "offline-indicator",
+      "reasons": [
+        "Filename contains \"offline-indicator\"",
+        "Uses React hook: useState",
+        "Uses React hook: useEffect",
+        "Has event handlers: onClick=, onClick=, onClick="
+      ]
+    },
+    {
+      "file": "input",
+      "reasons": [
+        "Filename contains \"input\"",
+        "Uses React hook: useState",
+        "Uses React hook: useEffect",
+        "Uses React hook: useId",
+        "Has event handlers: onChange=, onFocus=, onBlur="
+      ]
+    },
+    {
+      "file": "form",
+      "reasons": [
+        "Filename contains \"form\"",
+        "Uses React hook: useContext",
+        "Uses React hook: useId"
+      ]
+    },
+    {
+      "file": "form-action-state",
+      "reasons": [
+        "Filename contains \"form\"",
+        "Uses React hook: useActionState",
+        "Has event handlers: onSubmit=, onSubmit="
+      ]
+    },
+    {
+      "file": "dropdown-menu",
+      "reasons": [
+        "Filename contains \"dropdown\""
+      ]
+    },
+    {
+      "file": "dialog",
+      "reasons": [
+        "Filename contains \"dialog\"",
+        "Uses React hook: useEffect",
+        "Uses React hook: useCallback",
+        "Uses browser API: document",
+        "Uses browser API: addEventListener",
+        "Uses browser API: removeEventListener",
+        "Has event handlers: onOpenAutoFocus="
+      ]
+    },
+    {
+      "file": "data-table",
+      "reasons": [
+        "Uses React hook: useState",
+        "Has event handlers: onChange=, onCheckedChange=, onClick="
+      ]
+    },
+    {
+      "file": "command-palette",
+      "reasons": [
+        "Filename contains \"command-palette\"",
+        "Uses React hook: useState",
+        "Uses React hook: useEffect",
+        "Uses React hook: useCallback",
+        "Uses React hook: useMemo",
+        "Uses React hook: useRouter",
+        "Uses browser API: document",
+        "Uses browser API: addEventListener",
+        "Uses browser API: removeEventListener",
+        "Has event handlers: onOpenChange=, onValueChange=, onSelect="
+      ]
+    },
+    {
+      "file": "checkbox",
+      "reasons": [
+        "Filename contains \"checkbox\""
+      ]
+    },
+    {
+      "file": "chart",
+      "reasons": [
+        "Filename contains \"chart\"",
+        "Uses React hook: useContext",
+        "Uses React hook: useMemo",
+        "Uses React hook: useId"
+      ]
+    },
+    {
+      "file": "calendar",
+      "reasons": [
+        "Filename contains \"calendar\"",
+        "Uses React hook: useEffect",
+        "Uses React hook: useRef"
+      ]
+    },
+    {
+      "file": "button",
+      "reasons": [
+        "Filename contains \"button\""
+      ]
+    },
+    {
+      "file": "alert-dialog",
+      "reasons": [
+        "Filename contains \"dialog\""
+      ]
+    },
+    {
+      "file": "accordion",
+      "reasons": [
+        "Filename contains \"accordion\""
+      ]
+    },
+    {
+      "file": "CheckoutProvider",
+      "reasons": [
+        "Filename contains \"provider\""
+      ]
+    },
+    {
+      "file": "CheckoutForm",
+      "reasons": [
+        "Filename contains \"form\"",
+        "Has event handlers: onSuccess=, onError="
+      ]
+    },
+    {
+      "file": "Checkout",
+      "reasons": [
+        "Uses React hook: useState",
+        "Uses browser API: confirm",
+        "Has event handlers: onSubmit="
+      ]
+    },
+    {
+      "file": "profile-settings",
+      "reasons": [
+        "Filename contains \"file-\"",
+        "Uses React hook: useEffect",
+        "Has event handlers: onChange=, onChange=, onChange="
+      ]
+    },
+    {
+      "file": "notification-settings",
+      "reasons": [
+        "Uses React hook: useState",
+        "Uses browser API: setTimeout",
+        "Has event handlers: onCheckedChange=, onCheckedChange=, onClick="
+      ]
+    },
+    {
+      "file": "SEO",
+      "reasons": [
+        "Uses React hook: useEffect",
+        "Uses browser API: window",
+        "Uses browser API: document",
+        "Uses browser API: location"
+      ]
+    },
+    {
+      "file": "safe-html",
+      "reasons": [
+        "Uses React hook: useMemo",
+        "Uses browser API: window"
+      ]
+    },
+    {
+      "file": "csp-nonce-meta",
+      "reasons": [
+        "Uses browser API: window"
+      ]
+    },
+    {
+      "file": "quick-property-setup",
+      "reasons": [
+        "Uses React hook: useState",
+        "Has event handlers: onSubmit="
+      ]
+    },
+    {
+      "file": "property-form",
+      "reasons": [
+        "Filename contains \"form\"",
+        "Uses React hook: useOptimistic",
+        "Uses React hook: useActionState",
+        "Has event handlers: onClick="
+      ]
+    },
+    {
+      "file": "property-form-with-tracking",
+      "reasons": [
+        "Filename contains \"form\"",
+        "Uses React hook: useState",
+        "Uses React hook: useForm",
+        "Uses browser API: window",
+        "Uses browser API: location",
+        "Has event handlers: onSubmit=, onFocus=, onFocus="
+      ]
+    },
+    {
+      "file": "property-form-optimistic",
+      "reasons": [
+        "Filename contains \"form\"",
+        "Uses React hook: useTransition",
+        "Uses React hook: useOptimistic",
+        "Uses React hook: useActionState"
+      ]
+    },
+    {
+      "file": "property-form-dialog",
+      "reasons": [
+        "Filename contains \"dialog\"",
+        "Filename contains \"form\"",
+        "Uses React hook: useState",
+        "Uses React hook: useForm",
+        "Has event handlers: onOpenChange=, onSubmit=, onValueChange="
+      ]
+    },
+    {
+      "file": "property-edit-form",
+      "reasons": [
+        "Filename contains \"form\"",
+        "Has event handlers: onSuccess=, onCancel="
+      ]
+    },
+    {
+      "file": "property-details-drawer",
+      "reasons": [
+        "Uses React hook: useState",
+        "Has event handlers: onOpenChange=, onClick=, onClick="
+      ]
+    },
+    {
+      "file": "property-delete-dialog",
+      "reasons": [
+        "Filename contains \"dialog\"",
+        "Uses React hook: useState",
+        "Uses React hook: useOptimistic",
+        "Has event handlers: onOpenChange=, onClick="
+      ]
+    },
+    {
+      "file": "properties-data-table",
+      "reasons": [
+        "Has event handlers: onClick=, onClick=, onClick="
+      ]
+    },
+    {
+      "file": "pricing-faq",
+      "reasons": [
+        "Uses React hook: useState",
+        "Has event handlers: onClick="
+      ]
+    },
+    {
+      "file": "pricing-cards",
+      "reasons": [
+        "Uses React hook: useState",
+        "Has event handlers: onClick=, onClick=, onClick="
+      ]
+    },
+    {
+      "file": "onboarding-wizard",
+      "reasons": [
+        "Uses React hook: useState",
+        "Uses React hook: useRouter",
+        "Has event handlers: onClick=, onClick=, onClick="
+      ]
+    },
+    {
+      "file": "tab-navigation",
+      "reasons": [
+        "Uses React hook: useMemo",
+        "Uses React hook: usePathname",
+        "Has event handlers: onClick="
+      ]
+    },
+    {
+      "file": "navigation-link",
+      "reasons": [
+        "Uses React hook: usePathname"
+      ]
+    },
+    {
+      "file": "navigation-group",
+      "reasons": [
+        "Uses React hook: useState",
+        "Has event handlers: onClick="
+      ]
+    },
+    {
+      "file": "mobile-navigation",
+      "reasons": [
+        "Uses React hook: useState",
+        "Has event handlers: onClick=, onClick=, onClick="
+      ]
+    },
+    {
+      "file": "unit-selector",
+      "reasons": [
+        "Filename contains \"select\"",
+        "Has event handlers: onValueChange="
+      ]
+    },
+    {
+      "file": "priority-selector",
+      "reasons": [
+        "Filename contains \"select\"",
+        "Has event handlers: onValueChange="
+      ]
+    },
+    {
+      "file": "maintenance-status-update",
+      "reasons": [
+        "Uses React hook: useState",
+        "Has event handlers: onValueChange=, onClick=, onClick="
+      ]
+    },
+    {
+      "file": "maintenance-request-modal",
+      "reasons": [
+        "Uses React hook: useState",
+        "Uses React hook: useForm",
+        "Has event handlers: onOpenChange=, onSubmit=, onValueChange="
+      ]
+    },
+    {
+      "file": "maintenance-list",
+      "reasons": [
+        "Has event handlers: onClick=, onClick="
+      ]
+    },
+    {
+      "file": "maintenance-form",
+      "reasons": [
+        "Filename contains \"form\"",
+        "Uses React hook: useOptimistic",
+        "Uses React hook: useActionState",
+        "Has event handlers: onClick="
+      ]
+    },
+    {
+      "file": "maintenance-detail",
+      "reasons": [
+        "Uses React hook: useState",
+        "Has event handlers: onClick=, onClick=, onClick="
+      ]
+    },
+    {
+      "file": "category-selector",
+      "reasons": [
+        "Filename contains \"select\"",
+        "Has event handlers: onValueChange="
+      ]
+    },
+    {
+      "file": "lease-form",
+      "reasons": [
+        "Filename contains \"form\"",
+        "Uses React hook: useOptimistic",
+        "Uses React hook: useActionState",
+        "Has event handlers: onClick="
+      ]
+    },
+    {
+      "file": "mobile-nav",
+      "reasons": [
+        "Uses React hook: usePathname"
+      ]
+    },
+    {
+      "file": "mobile-header",
+      "reasons": [
+        "Uses React hook: useState",
+        "Uses React hook: useEffect",
+        "Uses React hook: usePathname",
+        "Has event handlers: onClick=, onClick="
+      ]
+    },
+    {
+      "file": "app-sidebar",
+      "reasons": [
+        "Has event handlers: onClick="
+      ]
+    },
+    {
+      "file": "Navigation",
+      "reasons": [
+        "Uses React hook: useState",
+        "Uses React hook: useEffect",
+        "Uses React hook: useRef",
+        "Uses React hook: usePathname",
+        "Uses browser API: window",
+        "Uses browser API: document",
+        "Uses browser API: setTimeout",
+        "Uses browser API: clearTimeout",
+        "Uses browser API: addEventListener",
+        "Uses browser API: removeEventListener",
+        "Has event handlers: onMouseEnter=, onMouseLeave=, onClick="
+      ]
+    },
+    {
+      "file": "navigation-section",
+      "reasons": [
+        "Uses React hook: useState",
+        "Uses React hook: useEffect",
+        "Uses browser API: window",
+        "Uses browser API: addEventListener",
+        "Uses browser API: removeEventListener",
+        "Has event handlers: onScroll =, onClick=, onClick="
+      ]
+    },
+    {
+      "file": "hero-buttons",
+      "reasons": [
+        "Filename contains \"button\""
+      ]
+    },
+    {
+      "file": "footer-section",
+      "reasons": [
+        "Uses React hook: useState",
+        "Has event handlers: onSubmit=, onChange="
+      ]
+    },
+    {
+      "file": "cta-section",
+      "reasons": [
+        "Uses React hook: useCallback",
+        "Uses browser API: location",
+        "Has event handlers: onClick=, onClick="
+      ]
+    },
+    {
+      "file": "update-password-form",
+      "reasons": [
+        "Filename contains \"form\"",
+        "Uses React hook: useState",
+        "Uses React hook: useEffect",
+        "Uses React hook: useTransition",
+        "Uses React hook: useActionState",
+        "Uses React hook: useRouter",
+        "Uses browser API: setTimeout",
+        "Uses browser API: clearTimeout",
+        "Has event handlers: onSubmit =, onChange=, onClick="
+      ]
+    },
+    {
+      "file": "tenant-form-client",
+      "reasons": [
+        "Filename contains \"form\"",
+        "Uses React hook: useState",
+        "Uses React hook: useEffect",
+        "Uses React hook: useTransition",
+        "Uses React hook: useOptimistic",
+        "Uses React hook: useRouter",
+        "Uses browser API: window",
+        "Uses browser API: location",
+        "Has event handlers: onSubmit=, onChange=, onClick="
+      ]
+    },
+    {
+      "file": "supabase-signup-form",
+      "reasons": [
+        "Filename contains \"form\"",
+        "Uses React hook: useActionState"
+      ]
+    },
+    {
+      "file": "supabase-login-form",
+      "reasons": [
+        "Filename contains \"form\"",
+        "Uses React hook: useState",
+        "Uses React hook: useActionState",
+        "Has event handlers: onClick="
+      ]
+    },
+    {
+      "file": "supabase-form-field",
+      "reasons": [
+        "Filename contains \"form\"",
+        "Uses React hook: useState",
+        "Uses React hook: useEffect",
+        "Uses browser API: setTimeout",
+        "Uses browser API: clearTimeout",
+        "Has event handlers: onChange=, onBlur=, onValueChange="
+      ]
+    },
+    {
+      "file": "supabase-forgot-password-form",
+      "reasons": [
+        "Filename contains \"form\"",
+        "Uses React hook: useState",
+        "Uses React hook: useFormStatus"
+      ]
+    },
+    {
+      "file": "property-form-features",
+      "reasons": [
+        "Filename contains \"form\"",
+        "Uses React hook: useState",
+        "Has event handlers: onClick=, onChange=, onKeyDown="
+      ]
+    },
+    {
+      "file": "property-form-client",
+      "reasons": [
+        "Filename contains \"form\"",
+        "Uses React hook: useEffect",
+        "Has event handlers: onAmenitiesChange=, onCancel="
+      ]
+    },
+    {
+      "file": "property-form-basic-info",
+      "reasons": [
+        "Filename contains \"form\""
+      ]
+    },
+    {
+      "file": "property-form-actions",
+      "reasons": [
+        "Filename contains \"form\"",
+        "Has event handlers: onClick=, onCancel="
+      ]
+    },
+    {
+      "file": "lease-terms-section",
+      "reasons": [
+        "Uses React hook: useState",
+        "Has event handlers: onValueChange=, onChange=, onChange="
+      ]
+    },
+    {
+      "file": "lease-form-client",
+      "reasons": [
+        "Filename contains \"form\"",
+        "Uses React hook: useState",
+        "Uses React hook: useEffect",
+        "Uses React hook: useMemo",
+        "Uses React hook: useTransition",
+        "Uses browser API: window",
+        "Uses browser API: location",
+        "Has event handlers: onSubmit=, onChange=, onChange="
+      ]
+    },
+    {
+      "file": "form-loading-overlay",
+      "reasons": [
+        "Filename contains \"form\""
+      ]
+    },
+    {
+      "file": "form-fields",
+      "reasons": [
+        "Filename contains \"form\""
+      ]
+    },
+    {
+      "file": "contact-form",
+      "reasons": [
+        "Filename contains \"form\"",
+        "Uses React hook: useState",
+        "Uses React hook: useActionState",
+        "Uses browser API: window",
+        "Uses browser API: location",
+        "Uses browser API: setTimeout",
+        "Has event handlers: onClick=, onClick="
+      ]
+    },
+    {
+      "file": "collapsible-form-section",
+      "reasons": [
+        "Filename contains \"form\"",
+        "Uses React hook: useState",
+        "Has event handlers: onClick="
+      ]
+    },
+    {
+      "file": "not-found-actions",
+      "reasons": [
+        "Uses browser API: window",
+        "Uses browser API: location",
+        "Uses browser API: history",
+        "Has event handlers: onClick="
+      ]
+    },
+    {
+      "file": "dense-table",
+      "reasons": [
+        "Uses React hook: useState",
+        "Has event handlers: onChange=, onChange=, onCheckedChange="
+      ]
+    },
+    {
+      "file": "dashboard",
+      "reasons": [
+        "Uses React hook: useState",
+        "Uses browser API: window",
+        "Uses browser API: location",
+        "Has event handlers: onPeriodChange=, onAddProperty=, onNewTenant="
+      ]
+    },
+    {
+      "file": "dashboard-stats",
+      "reasons": [
+        "Uses React hook: useOptimistic"
+      ]
+    },
+    {
+      "file": "dashboard-stats-stream",
+      "reasons": [
+        "Uses React hook: useTransition",
+        "Uses React hook: useOptimistic",
+        "Uses browser API: fetch",
+        "Has event handlers: onClick=, onClick="
+      ]
+    },
+    {
+      "file": "dashboard-stats-refresh",
+      "reasons": [
+        "Uses React hook: useTransition",
+        "Uses React hook: useOptimistic",
+        "Uses React hook: useActionState",
+        "Has event handlers: onClick="
+      ]
+    },
+    {
+      "file": "dashboard-stats-optimistic",
+      "reasons": [
+        "Uses React hook: useOptimistic",
+        "Has event handlers: onClick=, onClick=, onClick="
+      ]
+    },
+    {
+      "file": "dashboard-stats-cards",
+      "reasons": [
+        "Uses React hook: useTransition",
+        "Uses React hook: useOptimistic"
+      ]
+    },
+    {
+      "file": "dashboard-sidebar",
+      "reasons": [
+        "Uses React hook: useEffect",
+        "Uses React hook: useRef",
+        "Uses React hook: usePathname",
+        "Uses browser API: document",
+        "Uses browser API: addEventListener",
+        "Uses browser API: removeEventListener",
+        "Has event handlers: onClick=, onClick=, onDragEnd="
+      ]
+    },
+    {
+      "file": "dashboard-quick-actions",
+      "reasons": [
+        "Uses React hook: useTransition",
+        "Has event handlers: onClick=, onClick="
+      ]
+    },
+    {
+      "file": "dashboard-onboarding",
+      "reasons": [
+        "Uses React hook: useState",
+        "Uses React hook: useEffect",
+        "Uses browser API: window",
+        "Uses browser API: localStorage",
+        "Has event handlers: onClick="
+      ]
+    },
+    {
+      "file": "dashboard-navigation",
+      "reasons": [
+        "Uses React hook: useState",
+        "Uses React hook: useTransition",
+        "Has event handlers: onClick=, onClick=, onFocus="
+      ]
+    },
+    {
+      "file": "dashboard-header",
+      "reasons": [
+        "Has event handlers: onClick="
+      ]
+    },
+    {
+      "file": "dashboard-error-boundary",
+      "reasons": [
+        "Uses browser API: window",
+        "Uses browser API: location",
+        "Has event handlers: onClick=, onClick=",
+        "Class component (needs refactoring)"
+      ]
+    },
+    {
+      "file": "ui-patterns",
+      "reasons": [
+        "Has event handlers: onClick=, onClick="
+      ]
+    },
+    {
+      "file": "sparkline",
+      "reasons": [
+        "Filename contains \"sparkline\""
+      ]
+    },
+    {
+      "file": "mini-bar-chart",
+      "reasons": [
+        "Filename contains \"chart\"",
+        "Filename contains \"bar-chart\""
+      ]
+    },
+    {
+      "file": "pricing-table",
+      "reasons": [
+        "Uses React hook: useEffect",
+        "Uses browser API: document"
+      ]
+    },
+    {
+      "file": "payment-success",
+      "reasons": [
+        "Uses React hook: useState",
+        "Uses React hook: useEffect",
+        "Uses React hook: useRouter",
+        "Uses browser API: window",
+        "Uses browser API: location",
+        "Uses browser API: setTimeout",
+        "Uses browser API: clearTimeout",
+        "Has event handlers: onClick=, onClick=, onClick="
+      ]
+    },
+    {
+      "file": "payment-methods",
+      "reasons": [
+        "Uses React hook: useState",
+        "Uses React hook: useCallback",
+        "Uses React hook: useQueryClient",
+        "Uses browser API: window",
+        "Uses browser API: location",
+        "Uses browser API: history",
+        "Has event handlers: onSubmit=, onClick=, onClick="
+      ]
+    },
+    {
+      "file": "payment-cancelled",
+      "reasons": [
+        "Uses React hook: useRouter",
+        "Uses browser API: window",
+        "Uses browser API: location",
+        "Has event handlers: onClick=, onClick=, onClick="
+      ]
+    },
+    {
+      "file": "checkout-form",
+      "reasons": [
+        "Filename contains \"form\"",
+        "Uses React hook: useActionState"
+      ]
+    },
+    {
+      "file": "supabase-auth-processor",
+      "reasons": [
+        "Filename contains \"supabase-auth\"",
+        "Uses React hook: useState",
+        "Uses React hook: useEffect",
+        "Uses React hook: useQueryClient",
+        "Uses React hook: useRouter",
+        "Uses browser API: window",
+        "Uses browser API: location",
+        "Uses browser API: history",
+        "Uses browser API: setTimeout",
+        "Uses browser API: clearTimeout",
+        "Has event handlers: onClick="
+      ]
+    },
+    {
+      "file": "signup-form-fields",
+      "reasons": [
+        "Filename contains \"form\"",
+        "Has event handlers: onSubmit=, onChange=, onChange="
+      ]
+    },
+    {
+      "file": "protected-route-guard",
+      "reasons": [
+        "Uses React hook: useState",
+        "Uses React hook: useEffect",
+        "Uses React hook: useRouter",
+        "Uses browser API: window",
+        "Uses browser API: location"
+      ]
+    },
+    {
+      "file": "oauth-redirect-handler",
+      "reasons": [
+        "Filename contains \"auth-redirect\"",
+        "Uses React hook: useEffect",
+        "Uses React hook: useRouter",
+        "Uses browser API: window",
+        "Uses browser API: location"
+      ]
+    },
+    {
+      "file": "oauth-providers",
+      "reasons": [
+        "Filename contains \"provider\"",
+        "Uses React hook: useState",
+        "Has event handlers: onClick=, onMouseEnter=, onMouseLeave="
+      ]
+    },
+    {
+      "file": "csrf-token-field",
+      "reasons": [
+        "Uses React hook: useState",
+        "Uses React hook: useEffect"
+      ]
+    },
+    {
+      "file": "client-auth-guard",
+      "reasons": [
+        "Filename contains \"auth-guard\"",
+        "Uses React hook: useState",
+        "Uses React hook: useEffect",
+        "Uses React hook: useRouter"
+      ]
+    },
+    {
+      "file": "auth-redirect",
+      "reasons": [
+        "Filename contains \"auth-redirect\"",
+        "Uses React hook: useEffect",
+        "Uses React hook: useRouter"
+      ]
+    },
+    {
+      "file": "auth-guard",
+      "reasons": [
+        "Filename contains \"auth-guard\"",
+        "Uses React hook: useEffect",
+        "Uses React hook: useRouter"
+      ]
+    },
+    {
+      "file": "track-button",
+      "reasons": [
+        "Filename contains \"button\"",
+        "Has event handlers: onClick="
+      ]
+    },
+    {
+      "file": "posthog-user-provider",
+      "reasons": [
+        "Filename contains \"posthog-\"",
+        "Filename contains \"use\"",
+        "Filename contains \"provider\"",
+        "Uses React hook: useEffect",
+        "Uses browser API: sessionStorage"
+      ]
+    },
+    {
+      "file": "posthog-page-view",
+      "reasons": [
+        "Filename contains \"posthog-\"",
+        "Uses React hook: useEffect",
+        "Uses React hook: useRef",
+        "Uses React hook: usePathname",
+        "Uses React hook: useSearchParams",
+        "Uses browser API: window",
+        "Uses browser API: document",
+        "Uses browser API: screen"
+      ]
+    },
+    {
+      "file": "posthog-error-boundary",
+      "reasons": [
+        "Filename contains \"posthog-\"",
+        "Has event handlers: onClick=",
+        "Class component (needs refactoring)"
+      ]
+    },
+    {
+      "file": "page-tracker",
+      "reasons": [
+        "Uses React hook: useEffect",
+        "Uses React hook: usePathname",
+        "Uses React hook: useSearchParams",
+        "Uses browser API: document"
+      ]
+    },
+    {
+      "file": "dashboard-tracker",
+      "reasons": [
+        "Uses React hook: useEffect",
+        "Uses React hook: useCallback",
+        "Uses browser API: window"
+      ]
+    },
+    {
+      "file": "dashboard-metrics-tracker",
+      "reasons": [
+        "Uses React hook: useEffect",
+        "Uses React hook: useRef"
+      ]
+    },
+    {
+      "file": "page",
+      "reasons": [
+        "Uses React hook: useState",
+        "Uses React hook: useEffect",
+        "Uses React hook: useRouter",
+        "Uses React hook: useSearchParams",
+        "Has event handlers: onClick=, onClick=, onClick="
+      ]
+    },
+    {
+      "file": "page",
+      "reasons": [
+        "Uses React hook: useState",
+        "Uses React hook: useTransition",
+        "Uses React hook: useSearchParams",
+        "Uses browser API: confirm",
+        "Has event handlers: onClick="
+      ]
+    },
+    {
+      "file": "page",
+      "reasons": [
+        "Uses React hook: useState",
+        "Has event handlers: onChange=, onClick=, onClick="
+      ]
+    },
+    {
+      "file": "page",
+      "reasons": [
+        "Uses React hook: useState",
+        "Uses React hook: useOptimistic",
+        "Has event handlers: onClick=, onSubmit=, onClick="
+      ]
+    },
+    {
+      "file": "properties-client",
+      "reasons": [
+        "Uses React hook: useState",
+        "Has event handlers: onChange=, onClick=, onViewProperty="
+      ]
+    },
+    {
+      "file": "page",
+      "reasons": [
+        "Uses React hook: useState",
+        "Uses browser API: document",
+        "Has event handlers: onChange=, onValueChange="
+      ]
+    },
+    {
+      "file": "sidebar-trigger",
+      "reasons": [
+        "Has event handlers: onClick="
+      ]
+    },
+    {
+      "file": "sidebar-provider",
+      "reasons": [
+        "Filename contains \"provider\"",
+        "Uses React hook: useState",
+        "Uses React hook: useEffect",
+        "Uses React hook: useContext",
+        "Uses React hook: useCallback",
+        "Uses browser API: window",
+        "Uses browser API: localStorage",
+        "Uses browser API: addEventListener",
+        "Uses browser API: removeEventListener"
+      ]
+    },
+    {
+      "file": "sidebar-nav-item",
+      "reasons": [
+        "Uses React hook: useState",
+        "Uses React hook: useEffect",
+        "Uses browser API: window",
+        "Uses browser API: localStorage",
+        "Has event handlers: onOpenChange="
+      ]
+    },
+    {
+      "file": "sidebar-header",
+      "reasons": [
+        "Uses React hook: useState",
+        "Has event handlers: onClick=, onClick=, onClick="
+      ]
+    },
+    {
+      "file": "sidebar-footer",
+      "reasons": [
+        "Uses React hook: useState"
+      ]
+    },
+    {
+      "file": "app-sidebar",
+      "reasons": [
+        "Has event handlers: onClick="
+      ]
+    },
+    {
+      "file": "property-columns",
+      "reasons": [
+        "Uses browser API: window",
+        "Uses browser API: location"
+      ]
+    },
+    {
+      "file": "page",
+      "reasons": [
+        "Uses React hook: useState",
+        "Uses React hook: useEffect",
+        "Uses React hook: useParams",
+        "Uses browser API: fetch"
+      ]
+    }
+  ]
+}

@@ -17,7 +17,11 @@ export function isOnline(): boolean {
  * Listen for online/offline events
  */
 export function onOnlineStatusChange(callback: (isOnline: boolean) => void) {
-	if (typeof window === 'undefined') return () => {}
+	if (typeof window === 'undefined') {
+		return () => {
+			// No cleanup needed for server-side rendering
+		}
+	}
 
 	const handleOnline = () => callback(true)
 	const handleOffline = () => callback(false)
@@ -123,7 +127,7 @@ export function useOfflineSupport() {
 	return {
 		isOnline: online,
 		queueSize,
-		processQueue: () => offlineQueue.processQueue(),
+		processQueue: async () => offlineQueue.processQueue(),
 		clearQueue: () => offlineQueue.clear()
 	}
 }

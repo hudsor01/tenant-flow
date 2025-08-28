@@ -10,15 +10,18 @@ import {
 } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-	Loader2,
-	AlertTriangle,
-	Clock,
-	CheckCircle2,
-	XCircle,
-	Wrench
-} from 'lucide-react'
-import type { MaintenanceRequest, MaintenanceQuery } from '@repo/shared'
+import type { MaintenanceRequestApiResponse } from '@repo/shared'
+
+// Define types directly from API response - NO DUPLICATION
+type MaintenanceRequest = MaintenanceRequestApiResponse
+
+// Define local interface for component needs
+interface MaintenanceQuery {
+	search?: string
+	status?: string
+	priority?: string
+	propertyId?: string
+}
 
 interface MaintenanceListProps {
 	query?: MaintenanceQuery
@@ -29,12 +32,12 @@ export function MaintenanceList({
 	query,
 	onRequestClick
 }: MaintenanceListProps) {
-	const {
-		data: requests = [],
-		isLoading,
-		error,
-		refetch
-	} = useMaintenanceRequests(query)
+    const {
+        data: requests = [],
+        isLoading,
+        error,
+        refetch
+    } = useMaintenanceRequests(query as unknown as Record<string, unknown>)
 
 	const getPriorityColor = (priority: string) => {
 		switch (priority.toLowerCase()) {
@@ -71,22 +74,22 @@ export function MaintenanceList({
 	const getStatusIcon = (status: string) => {
 		switch (status.toUpperCase()) {
 			case 'OPEN':
-				return <Clock className="h-3 w-3" />
+				return <i className="i-lucide-clock inline-block h-3 w-3"  />
 			case 'IN_PROGRESS':
-				return <Wrench className="h-3 w-3" />
+				return <i className="i-lucide-wrench inline-block h-3 w-3"  />
 			case 'COMPLETED':
-				return <CheckCircle2 className="h-3 w-3" />
+				return <i className="i-lucide-check-circle-2 inline-block h-3 w-3"  />
 			case 'CANCELED':
-				return <XCircle className="h-3 w-3" />
+				return <i className="i-lucide-xcircle inline-block h-3 w-3"  />
 			default:
-				return <Clock className="h-3 w-3" />
+				return <i className="i-lucide-clock inline-block h-3 w-3"  />
 		}
 	}
 
 	const getPriorityIcon = (priority: string) => {
 		switch (priority.toLowerCase()) {
 			case 'emergency':
-				return <AlertTriangle className="h-3 w-3" />
+				return <i className="i-lucide-alert-triangle inline-block h-3 w-3"  />
 			default:
 				return null
 		}
@@ -95,7 +98,7 @@ export function MaintenanceList({
 	if (isLoading) {
 		return (
 			<div className="flex items-center justify-center p-8">
-				<Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
+				<i className="i-lucide-loader-2 inline-block text-muted-foreground h-8 w-8 animate-spin"  />
 				<span className="text-muted-foreground ml-2">
 					Loading maintenance requests...
 				</span>
@@ -131,7 +134,7 @@ export function MaintenanceList({
 		return (
 			<Card>
 				<CardContent className="flex flex-col items-center justify-center p-8">
-					<Wrench className="text-muted-foreground mb-4 h-12 w-12" />
+					<i className="i-lucide-wrench inline-block text-muted-foreground mb-4 h-12 w-12"  />
 					<CardTitle className="text-muted-foreground text-center text-lg">
 						No maintenance requests found
 					</CardTitle>
@@ -190,12 +193,12 @@ export function MaintenanceList({
 						<div className="text-muted-foreground flex items-center justify-between text-sm">
 							<div className="flex items-center space-x-4">
 								<span>Category: {request.category}</span>
-								{request.Unit && (
-									<span>Unit: {request.Unit.unitNumber}</span>
+								{request.unitNumber && (
+									<span>Unit: {request.unitNumber}</span>
 								)}
-								{request.Unit?.property && (
+								{request.propertyName && (
 									<span>
-										Property: {request.Unit.property.name}
+										Property_: {request.propertyName}
 									</span>
 								)}
 							</div>

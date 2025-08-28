@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { logger } from '@/lib/logger'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Building2, Mail, Phone, MapPin } from 'lucide-react'
 
 export function FooterSection() {
 	const [email, setEmail] = useState('')
@@ -25,7 +24,7 @@ export function FooterSection() {
 				<div className="mb-8 grid gap-8 md:grid-cols-5">
 					<div className="md:col-span-2">
 						<div className="mb-4 flex items-center space-x-2">
-							<Building2 className="text-primary h-6 w-6" />
+							<i className="i-lucide-building-2 inline-block text-primary h-6 w-6"  />
 							<span className="font-bold text-white">
 								TenantFlow
 							</span>
@@ -56,7 +55,7 @@ export function FooterSection() {
 									type="submit"
 									className="bg-primary hover:bg-blue-700"
 								>
-									<Mail className="h-4 w-4" />
+									<i className="i-lucide-mail inline-block h-4 w-4"  />
 								</Button>
 							</form>
 						</div>
@@ -211,15 +210,15 @@ export function FooterSection() {
 						</p>
 						<div className="flex items-center space-x-4 text-sm">
 							<div className="flex items-center">
-								<MapPin className="mr-1 h-4 w-4" />
+								<i className="i-lucide-map-pin inline-block mr-1 h-4 w-4"  />
 								San Francisco, CA
 							</div>
 							<div className="flex items-center">
-								<Phone className="mr-1 h-4 w-4" />
+								<i className="i-lucide-phone inline-block mr-1 h-4 w-4"  />
 								1-800-TENANT
 							</div>
 							<div className="flex items-center">
-								<Mail className="mr-1 h-4 w-4" />
+								<i className="i-lucide-mail inline-block mr-1 h-4 w-4"  />
 								hello@tenantflow.app
 							</div>
 						</div>

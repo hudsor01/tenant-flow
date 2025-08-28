@@ -74,10 +74,10 @@
 			]
 		},
 		{
-			"name": "Lease Generator",
-			"short_name": "Leases",
-			"description": "Generate lease agreements",
-			"url": "/lease-generator?utm_source=pwa",
+			"name": "Invoices",
+			"short_name": "Invoices",
+			"description": "Generate property invoices",
+			"url": "/invoice-generator?utm_source=pwa",
 			"icons": [
 				{
 					"src": "/shortcut-leases.png",

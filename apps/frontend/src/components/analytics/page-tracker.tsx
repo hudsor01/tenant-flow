@@ -27,7 +27,9 @@ export function PageTracker({
 	const searchParams = useSearchParams()
 
 	useEffect(() => {
-		if (!posthog) return
+		if (!posthog) {
+			return
+		}
 
 		// Track page view
 		posthog.capture('$pageview', {

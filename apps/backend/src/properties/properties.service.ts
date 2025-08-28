@@ -1,26 +1,21 @@
-import {
-	BadRequestException,
-	Injectable,
-	Logger,
-	NotFoundException
-} from '@nestjs/common'
-import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Database } from '@repo/shared/types/supabase-generated'
+/**
+ * Properties Service - Ultra-Native Implementation
+ *
+ * Uses PostgreSQL RPC functions for ALL operations
+ * No complex orchestration - just direct DB calls with RLS
+ * Each method is <30 lines (just RPC call + error handling)
+ */
+
+import { Injectable, BadRequestException } from '@nestjs/common'
+import { PinoLogger } from 'nestjs-pino'
 import { SupabaseService } from '../database/supabase.service'
-import {
-	CreatePropertyDto,
-	UpdatePropertyDto
-} from '../shared/types/dto-exports'
+import type {
+	CreatePropertyRequest,
+	UpdatePropertyRequest
+} from '../schemas/properties.schema'
+import type { Database, PropertyWithUnits } from '@repo/shared'
 
-type Property = Database['public']['Tables']['Property']['Row']
-type PropertyInsert = Database['public']['Tables']['Property']['Insert']
-type PropertyUpdate = Database['public']['Tables']['Property']['Update']
-type Unit = Database['public']['Tables']['Unit']['Row']
-type UnitInsert = Database['public']['Tables']['Unit']['Insert']
-
-export interface PropertyWithRelations extends Property {
-	Unit?: Unit[]
-}
+// PropertyWithUnits imported above from @repo/shared - NO DUPLICATION
 
 /**
  * Properties service - Direct Supabase implementation following KISS principle
@@ -29,353 +24,331 @@ export interface PropertyWithRelations extends Property {
  */
 @Injectable()
 export class PropertiesService {
-	private readonly logger = new Logger(PropertiesService.name)
-
-	constructor(private supabaseService: SupabaseService) {}
-
-	/**
-	 * Get Supabase client with proper auth context
-	 */
-	private getClient(authToken?: string): SupabaseClient<Database> {
-		return authToken
-			? this.supabaseService.getUserClient(authToken)
-			: this.supabaseService.getAdminClient()
+	constructor(
+		private readonly supabaseService: SupabaseService,
+		private readonly logger: PinoLogger
+	) {
+		// PinoLogger context handled automatically via app-level configuration
 	}
 
 	/**
-	 * Get all properties for an owner
+	 * Get all properties for a user using RPC
 	 */
 	async findAll(
-		ownerId: string,
-		authToken?: string
-	): Promise<PropertyWithRelations[]> {
-		const supabase = this.getClient(authToken)
-		const { data, error } = await supabase
-			.from('Property')
-			.select(
-				`
-				*,
-				Unit (*)
-			`
-			)
-			.eq('ownerId', ownerId)
-			.order('createdAt', { ascending: false })
-
-		if (error) {
-			this.logger.error('Failed to fetch properties:', error)
-			throw new BadRequestException(error.message)
-		}
-
-		return data as PropertyWithRelations[]
-	}
-
-	/**
-	 * Get single property by ID
-	 */
-	async findOne(
-		id: string,
-		ownerId: string,
-		authToken?: string
-	): Promise<PropertyWithRelations> {
-		const supabase = this.getClient(authToken)
-		const { data, error } = await supabase
-			.from('Property')
-			.select(
-				`
-				*,
-				Unit (*)
-			`
-			)
-			.eq('id', id)
-			.eq('ownerId', ownerId)
-			.single()
-
-		if (error) {
-			if (error.code === 'PGRST116') {
-				throw new NotFoundException(`Property not found`)
-			}
-			this.logger.error('Failed to fetch property:', error)
-			throw new BadRequestException(error.message)
-		}
-
-		return data as PropertyWithRelations
-	}
-
-	/**
-	 * Create new property
-	 */
-	async create(
-		dto: CreatePropertyDto,
-		ownerId: string,
-		authToken?: string
-	): Promise<PropertyWithRelations> {
-		const supabase = this.getClient(authToken)
-		const propertyData: PropertyInsert = {
-			...dto,
-			ownerId,
-			propertyType: (dto.propertyType ||
-				'SINGLE_FAMILY') as PropertyInsert['propertyType'],
-			createdAt: new Date().toISOString(),
-			updatedAt: new Date().toISOString()
-		}
-
-		// Start a transaction for property with units
-		if (dto.units && Number(dto.units) > 0) {
-			return this.createWithUnits(
-				propertyData,
-				Number(dto.units),
-				authToken
-			)
-		}
-
-		// Create simple property
-		const { data, error } = await supabase
-			.from('Property')
-			.insert(propertyData)
-			.select(
-				`
-				*,
-				Unit (*)
-			`
-			)
-			.single()
-
-		if (error) {
-			this.logger.error('Failed to create property:', error)
-			throw new BadRequestException(error.message)
-		}
-
-		this.logger.log(`Property created: ${data.id}`)
-		return data as PropertyWithRelations
-	}
-
-	/**
-	 * Create property with units
-	 */
-	private async createWithUnits(
-		propertyData: PropertyInsert,
-		unitCount: number,
-		authToken?: string
-	): Promise<PropertyWithRelations> {
-		const supabase = this.getClient(authToken)
-		// Create property first
-		const { data: property, error: propertyError } = await supabase
-			.from('Property')
-			.insert(propertyData)
-			.select()
-			.single()
-
-		if (propertyError) {
-			this.logger.error('Failed to create property:', propertyError)
-			throw new BadRequestException(propertyError.message)
-		}
-
-		// Create units
-		const units: UnitInsert[] = Array.from(
-			{ length: unitCount },
-			(_, i) => ({
-				propertyId: property.id,
-				unitNumber: `Unit ${i + 1}`,
-				bedrooms: 1,
-				bathrooms: 1,
-				rent: 1000,
-				status: 'VACANT' as const,
-				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString()
+		userId: string,
+		query: { search: string | null; limit: number; offset: number }
+	) {
+		const { data, error } = await this.supabaseService
+			.getAdminClient()
+			.rpc('get_user_properties', {
+				p_user_id: userId,
+				p_search: query.search || undefined,
+				p_limit: query.limit,
+				p_offset: query.offset
 			})
-		)
 
-		const { error: unitsError } = await supabase.from('Unit').insert(units)
-
-		if (unitsError) {
-			// Rollback property creation
-			await supabase.from('Property').delete().eq('id', property.id)
-			this.logger.error('Failed to create units:', unitsError)
-			throw new BadRequestException(unitsError.message)
+		if (error) {
+			this.logger.error(
+				{
+					error: {
+						message: error.message,
+						code: error.code,
+						hint: error.hint
+					},
+					userId,
+					query
+				},
+				'Failed to get properties via RPC'
+			)
+			throw new BadRequestException('Failed to retrieve properties')
 		}
 
-		// Return property with units
-		return this.findOne(property.id, property.ownerId, authToken)
+		return data || []
 	}
 
 	/**
-	 * Update property
+	 * Get single property using RPC
+	 */
+	async findOne(userId: string, propertyId: string) {
+		const { data, error } = await this.supabaseService
+			.getAdminClient()
+			.rpc('get_property_by_id', {
+				p_user_id: userId,
+				p_property_id: propertyId
+			})
+			.single()
+
+		if (error) {
+			this.logger.error(
+				{
+					error: {
+						message: error.message,
+						code: error.code,
+						hint: error.hint
+					},
+					userId,
+					propertyId
+				},
+				'Failed to get property by ID via RPC'
+			)
+			return null
+		}
+
+		return data
+	}
+
+	/**
+	 * Create property using RPC
+	 */
+	async create(userId: string, createRequest: CreatePropertyRequest) {
+		const { data, error } = await this.supabaseService
+			.getAdminClient()
+			.rpc('create_property', {
+				p_user_id: userId,
+				p_name: createRequest.name,
+				p_address: `${createRequest.address}, ${createRequest.city}, ${createRequest.state} ${createRequest.zipCode}`,
+				p_type: createRequest.propertyType || 'SINGLE_FAMILY',
+				p_description: createRequest.description
+			})
+			.single()
+
+		if (error) {
+			this.logger.error(
+				{
+					error: {
+						message: error.message,
+						code: error.code,
+						hint: error.hint
+					},
+					userId,
+					createRequest: {
+						name: createRequest.name,
+						address: createRequest.address,
+						propertyType: createRequest.propertyType
+					}
+				},
+				'Failed to create property via RPC'
+			)
+			throw new BadRequestException('Failed to create property')
+		}
+
+		return data
+	}
+
+	/**
+	 * Update property using RPC
 	 */
 	async update(
-		id: string,
-		dto: UpdatePropertyDto,
-		ownerId: string,
-		authToken?: string
-	): Promise<PropertyWithRelations> {
-		const supabase = this.getClient(authToken)
-		// Verify ownership
-		await this.findOne(id, ownerId, authToken)
-
-		const updateData: PropertyUpdate = {
-			...dto,
-			updatedAt: new Date().toISOString()
-		}
-
-		const { data, error } = await supabase
-			.from('Property')
-			.update(updateData)
-			.eq('id', id)
-			.eq('ownerId', ownerId)
-			.select(
-				`
-				*,
-				Unit (*)
-			`
-			)
+		userId: string,
+		propertyId: string,
+		updateRequest: UpdatePropertyRequest
+	) {
+		const { data, error } = await this.supabaseService
+			.getAdminClient()
+			.rpc('update_property', {
+				p_user_id: userId,
+				p_property_id: propertyId,
+				p_name: updateRequest.name,
+				p_address: updateRequest.address
+					? `${updateRequest.address}${updateRequest.city ? `, ${updateRequest.city}` : ''}${updateRequest.state ? `, ${updateRequest.state}` : ''}${updateRequest.zipCode ? ` ${updateRequest.zipCode}` : ''}`
+					: undefined,
+				p_type: updateRequest.propertyType,
+				p_description: updateRequest.description
+			})
 			.single()
 
 		if (error) {
-			this.logger.error('Failed to update property:', error)
-			throw new BadRequestException(error.message)
-		}
-
-		this.logger.log(`Property updated: ${id}`)
-		return data as PropertyWithRelations
-	}
-
-	/**
-	 * Delete property
-	 */
-	async remove(
-		id: string,
-		ownerId: string,
-		authToken?: string
-	): Promise<void> {
-		const supabase = this.getClient(authToken)
-		// Verify ownership
-		const property = await this.findOne(id, ownerId, authToken)
-
-		// Check for active leases
-		const { data: leases } = await supabase
-			.from('Lease')
-			.select('id')
-			.eq('propertyId', id)
-			.eq('status', 'ACTIVE')
-			.limit(1)
-
-		if (leases && leases.length > 0) {
-			throw new BadRequestException(
-				'Cannot delete property with active leases'
-			)
-		}
-
-		// Delete units first (cascade)
-		if (property.Unit && property.Unit.length > 0) {
-			const { error: unitsError } = await supabase
-				.from('Unit')
-				.delete()
-				.eq('propertyId', id)
-
-			if (unitsError) {
-				this.logger.error('Failed to delete units:', unitsError)
-				throw new BadRequestException(unitsError.message)
-			}
-		}
-
-		// Delete property
-		const { error } = await supabase
-			.from('Property')
-			.delete()
-			.eq('id', id)
-			.eq('ownerId', ownerId)
-
-		if (error) {
-			this.logger.error('Failed to delete property:', error)
-			throw new BadRequestException(error.message)
-		}
-
-		this.logger.log(`Property deleted: ${id}`)
-	}
-
-	/**
-	 * Get property statistics
-	 */
-	async getStats(
-		ownerId: string,
-		authToken?: string
-	): Promise<{
-		total: number
-		singleFamily: number
-		multiFamily: number
-		commercial: number
-		totalUnits: number
-		occupiedUnits: number
-		vacantUnits: number
-		totalMonthlyRent: number
-	}> {
-		const properties = await this.findAll(ownerId, authToken)
-
-		const stats = {
-			total: properties.length,
-			singleFamily: 0,
-			multiFamily: 0,
-			commercial: 0,
-			totalUnits: 0,
-			occupiedUnits: 0,
-			vacantUnits: 0,
-			totalMonthlyRent: 0
-		}
-
-		for (const property of properties) {
-			// Count property types
-			if (property.propertyType === 'SINGLE_FAMILY') {
-				stats.singleFamily++
-			} else if (property.propertyType === 'MULTI_UNIT') {
-				stats.multiFamily++
-			} else if (property.propertyType === 'COMMERCIAL') {
-				stats.commercial++
-			}
-
-			// Count units
-			if (property.Unit) {
-				stats.totalUnits += property.Unit.length
-				for (const unit of property.Unit) {
-					if (unit.status === 'OCCUPIED') {
-						stats.occupiedUnits++
-						stats.totalMonthlyRent += unit.rent || 0
-					} else {
-						stats.vacantUnits++
+			this.logger.error(
+				{
+					error: {
+						message: error.message,
+						code: error.code,
+						hint: error.hint
+					},
+					userId,
+					propertyId,
+					updateRequest: {
+						name: updateRequest.name,
+						address: updateRequest.address,
+						propertyType: updateRequest.propertyType
 					}
-				}
-			}
+				},
+				'Failed to update property via RPC'
+			)
+			return null
 		}
 
-		return stats
+		return data
 	}
 
 	/**
-	 * Search properties
+	 * Delete property using RPC
 	 */
-	async search(
-		ownerId: string,
-		searchTerm: string,
-		authToken?: string
-	): Promise<PropertyWithRelations[]> {
-		const supabase = this.getClient(authToken)
-		const { data, error } = await supabase
-			.from('Property')
-			.select(
-				`
-				*,
-				Unit (*)
-			`
-			)
-			.eq('ownerId', ownerId)
-			.or(
-				`name.ilike.%${searchTerm}%,address.ilike.%${searchTerm}%,city.ilike.%${searchTerm}%`
-			)
-			.order('createdAt', { ascending: false })
+	async remove(userId: string, propertyId: string) {
+		const { error } = await this.supabaseService
+			.getAdminClient()
+			.rpc('delete_property', {
+				p_user_id: userId,
+				p_property_id: propertyId
+			})
 
 		if (error) {
-			this.logger.error('Failed to search properties:', error)
-			throw new BadRequestException(error.message)
+			this.logger.error(
+				{
+					error: {
+						message: error.message,
+						code: error.code,
+						hint: error.hint
+					},
+					userId,
+					propertyId
+				},
+				'Failed to delete property via RPC'
+			)
+			throw new BadRequestException('Failed to delete property')
 		}
 
-		return data as PropertyWithRelations[]
+		return { success: true, message: 'Property deleted successfully' }
+	}
+
+	/**
+	 * Get property statistics using RPC
+	 */
+	async getStats(userId: string) {
+		const { data, error } = await this.supabaseService
+			.getAdminClient()
+			.rpc('get_property_stats', { p_user_id: userId })
+			.single()
+
+		if (error) {
+			this.logger.error(
+				{
+					error: {
+						message: error.message,
+						code: error.code,
+						hint: error.hint
+					},
+					userId
+				},
+				'Failed to get property stats via RPC'
+			)
+			throw new BadRequestException(
+				'Failed to retrieve property statistics'
+			)
+		}
+
+		return data
+	}
+
+	/**
+	 * Get all properties with their units for stat calculations
+	 * Direct query with units relation
+	 */
+	async findAllWithUnits(
+		userId: string,
+		query: { search: string | null; limit: number; offset: number }
+	): Promise<PropertyWithUnits[]> {
+		// Build the query for properties with units using actual database column names
+		const { data, error } = await this.supabaseService
+			.getAdminClient()
+			.from('Property')
+			.select(`
+				id,
+				name,
+				address,
+				city,
+				state,
+				zipCode,
+				description,
+				propertyType,
+				createdAt,
+				updatedAt,
+				ownerId,
+				Unit (
+					id,
+					unitNumber,
+					status,
+					rent,
+					propertyId
+				)
+			`)
+			.eq('ownerId', userId)
+			.order('createdAt', { ascending: false })
+			.range(query.offset, query.offset + query.limit - 1)
+			.ilike('name', query.search ? `%${query.search}%` : '%')
+
+		if (error) {
+			this.logger.error(
+				{
+					error: {
+						message: error.message,
+						code: error.code,
+						hint: error.hint
+					},
+					userId,
+					query
+				},
+				'Failed to get properties with units'
+			)
+			throw new BadRequestException('Failed to retrieve properties')
+		}
+
+		// Transform to PropertyWithUnits type from @repo/shared
+		// Map database fields to match shared type interface  
+		// KISS principle: simple type annotation for raw query result
+		// Map actual database schema to expected interface
+		const properties = (data || []) as Array<{
+			id: string
+			name: string
+			address: string
+			city: string
+			state: string
+			zipCode: string // Database uses zipCode, not zip
+			description: string | null
+			propertyType: string // Database uses propertyType, not status
+			createdAt: string // Database uses camelCase
+			updatedAt: string // Database uses camelCase
+			ownerId: string // Database uses ownerId, not user_id
+			Unit?: Array<{
+				id: string
+				unitNumber: string // Database uses camelCase
+				status: string
+				rent: number | null // Database uses rent, not rentAmount
+				propertyId: string // Database uses propertyId
+				description?: string | null // Unit description field
+				createdAt?: string // Unit creation timestamp
+				updatedAt?: string // Unit update timestamp
+			}>
+		}>
+		
+		return properties.map(property => ({
+			id: property.id,
+			name: property.name,
+			address: property.address,
+			city: property.city,
+			state: property.state,
+			zipCode: property.zipCode, // Keep zipCode as in Database Property type
+			description: property.description, // Keep as nullable per Database Property type
+			propertyType: property.propertyType as Database['public']['Enums']['PropertyType'], // Cast to proper enum type
+			createdAt: property.createdAt, // Keep camelCase to match Database Property type
+			updatedAt: property.updatedAt, // Keep camelCase to match Database Property type
+			ownerId: property.ownerId, // Keep ownerId to match Database Property type
+			imageUrl: null, // Add required imageUrl property (default to null)
+			units: (property.Unit || []).map(unit => ({
+				id: unit.id,
+				propertyId: unit.propertyId, // Keep propertyId to match Database Unit type
+				unitNumber: unit.unitNumber, // Keep unitNumber to match Database Unit type
+				rent: unit.rent || 0, // Keep rent field
+				status: unit.status as Database['public']['Enums']['UnitStatus'], // Cast to proper enum type
+				createdAt: unit.createdAt || new Date().toISOString(), // Keep camelCase 
+				updatedAt: unit.updatedAt || new Date().toISOString(), // Keep camelCase
+
+				bedrooms: 0, // Default value
+				bathrooms: 0, // Default value
+				squareFeet: null, // Optional field
+				lastInspectionDate: null, // Optional field
+				leases: [] // Required by PropertyWithUnits relation type
+			}))
+		}))
 	}
 }

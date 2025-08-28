@@ -1,6 +1,5 @@
 'use client'
 
-import { Home } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import {
 	Select,
@@ -9,9 +8,12 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '@/components/ui/select'
-import type { Unit } from '@repo/shared'
+import type { Database } from '@repo/shared'
 
-interface UnitWithProperty extends Unit {
+// Define types directly from Database schema - NO DUPLICATION
+type Unit = Database['public']['Tables']['Unit']['Row']
+
+interface UnitWithProperty_ extends Unit {
 	property: {
 		id: string
 		name: string
@@ -21,7 +23,7 @@ interface UnitWithProperty extends Unit {
 }
 
 interface UnitSelectorProps {
-	units: UnitWithProperty[]
+	units: UnitWithProperty_[]
 	selectedUnitId?: string
 	onValueChange: (_value: string) => void
 	error?: string
@@ -35,7 +37,7 @@ export function UnitSelector({
 }: UnitSelectorProps) {
 	return (
 		<div className="space-y-2">
-			<Label htmlFor="unitId">Property & Unit</Label>
+			<Label htmlFor="unitId">Property_ & Unit</Label>
 			<Select value={selectedUnitId} onValueChange={onValueChange}>
 				<SelectTrigger className="w-full">
 					<SelectValue placeholder="Select a property and unit" />
@@ -44,8 +46,8 @@ export function UnitSelector({
 					{units.map(unit => (
 						<SelectItem key={unit.id} value={unit.id}>
 							<div className="flex items-center">
-								<Home className="mr-2 h-4 w-4" />
-								{unit.property?.name || 'Unknown Property'} -
+								<i className="i-lucide-home inline-block mr-2 h-4 w-4"  />
+								{unit.property?.name || 'Unknown Property_'} -
 								Unit {unit.unitNumber}
 							</div>
 						</SelectItem>

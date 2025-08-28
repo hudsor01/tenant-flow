@@ -12,8 +12,7 @@ import { Button } from '../ui/button'
 import { Textarea } from '../ui/textarea'
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group'
 import { Label } from '../ui/label'
-import { AlertTriangleIcon, CheckIcon, XIcon } from 'lucide-react'
-import { useSubscriptionCancellation } from '../../hooks/useSubscriptionActions'
+import { useCancelSubscription } from '../../hooks/api/use-billing'
 import { LoadingSpinner } from '../ui/loading-spinner'
 import type { PlanType } from '@repo/shared'
 
@@ -21,7 +20,7 @@ interface SubscriptionCancelModalProps {
 	isOpen: boolean
 	onClose: () => void
 	currentPlan: PlanType
-	userId: string
+	_userId: string
 	onCancelSuccess?: () => void
 }
 
@@ -39,37 +38,34 @@ export function SubscriptionCancelModal({
 	isOpen,
 	onClose,
 	currentPlan,
-	userId,
+	_userId,
 	onCancelSuccess
 }: SubscriptionCancelModalProps) {
 	const [step, setStep] = useState<
 		'reason' | 'retention' | 'confirm' | 'success'
 	>('reason')
-	const [cancelAt, setCancelAt] = useState<'immediate' | 'end_of_period'>(
-		'end_of_period'
-	)
+	const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState<boolean>(true)
+	const [cancelAt, setCancelAt] = useState<'immediate' | 'end_of_period'>('end_of_period')
 	const [reason, setReason] = useState('')
 	const [feedback, setFeedback] = useState('')
 	const [showRetention, setShowRetention] = useState(true)
 
-	const { cancelImmediately, cancelAtPeriodEnd, isCanceling, cancelError } =
-		useSubscriptionCancellation(userId)
+	const { mutateAsync: cancelSubscription, isPending: isCanceling, error: cancelError } = 
+		useCancelSubscription()
 
 	const handleCancel = async () => {
 		try {
-			const result =
-				cancelAt === 'immediate'
-					? await cancelImmediately(reason, feedback)
-					: await cancelAtPeriodEnd(reason, feedback)
+			await cancelSubscription({
+				cancelAtPeriodEnd: cancelAtPeriodEnd,
+				reason
+			})
 
-			if (result.success) {
-				setStep('success')
-				setTimeout(() => {
-					onCancelSuccess?.()
-					onClose()
-					resetState()
-				}, 3000)
-			}
+			setStep('success')
+			setTimeout(() => {
+				onCancelSuccess?.()
+				onClose()
+				resetState()
+			}, 3000)
 		} catch (error) {
 			console.error('Cancellation failed:', error)
 		}
@@ -77,6 +73,7 @@ export function SubscriptionCancelModal({
 
 	const resetState = () => {
 		setStep('reason')
+		setCancelAtPeriodEnd(true)
 		setCancelAt('end_of_period')
 		setReason('')
 		setFeedback('')
@@ -97,13 +94,13 @@ export function SubscriptionCancelModal({
 				<DialogContent className="sm:max-w-md">
 					<div className="flex flex-col items-center py-6 text-center">
 						<div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-							<CheckIcon className="h-6 w-6 text-green-600" />
+							<i className="i-lucide-checkicon inline-block h-6 w-6 text-green-600"  />
 						</div>
 						<h3 className="mb-2 text-lg font-semibold">
 							Cancellation Processed
 						</h3>
 						<p className="mb-4 text-gray-600">
-							{cancelAt === 'immediate'
+							{!cancelAtPeriodEnd
 								? 'Your subscription has been canceled immediately.'
 								: 'Your subscription will be canceled at the end of your billing period.'}
 						</p>
@@ -268,7 +265,7 @@ export function SubscriptionCancelModal({
 			<DialogContent className="sm:max-w-lg">
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">
-						<AlertTriangleIcon className="h-5 w-5 text-orange-600" />
+						<i className="i-lucide-alerttriangleicon inline-block h-5 w-5 text-orange-600"  />
 						Confirm Cancellation
 					</DialogTitle>
 				</DialogHeader>
@@ -360,7 +357,7 @@ export function SubscriptionCancelModal({
 					{cancelError && (
 						<div className="rounded-lg border border-red-200 bg-red-50 p-4">
 							<div className="flex items-center gap-2">
-								<XIcon className="h-4 w-4 text-red-600" />
+								<i className="i-lucide-xicon inline-block h-4 w-4 text-red-600"  />
 								<span className="text-sm text-red-600">
 									{cancelError.message ||
 										'Cancellation failed. Please try again.'}

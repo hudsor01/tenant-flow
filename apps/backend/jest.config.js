@@ -1,4 +1,9 @@
 const path = require('path')
+const fs = require('fs')
+
+// Check if setup file exists
+const setupFile = path.resolve(__dirname, 'test/setup.ts')
+const setupFilesAfterEnv = fs.existsSync(setupFile) ? [setupFile] : []
 
 module.exports = {
 	displayName: 'backend',
@@ -26,10 +31,9 @@ module.exports = {
 	moduleNameMapper: {
 		'^@/(.*)$': '<rootDir>/src/$1',
         '^@repo/shared/(.*)$': '<rootDir>/../../packages/shared/src/$1',
-		'^@repo/emails/(.*)$': '<rootDir>/../../packages/emails/$1',
 		'^@repo/(.*)$': '<rootDir>/../../packages/$1/src'
 	},
-	setupFilesAfterEnv: [path.resolve(__dirname, 'test', 'setup.ts')],
+	setupFilesAfterEnv,
 	// 'setupFiles': ['<rootDir>/test/disable-nestjs-logger.ts'],
 	testTimeout: 10000,
 	maxWorkers: 1,

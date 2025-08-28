@@ -5,13 +5,12 @@
 
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Star } from 'lucide-react'
 
 export function OptimizedTestimonialsSection() {
 	const testimonials = [
 		{
 			name: 'Sarah Mitchell',
-			role: 'Property Manager',
+			role: 'Property_ Manager',
 			company: 'Mitchell Properties (47 units)',
 			content:
 				'TenantFlow saved me 15 hours per week. The automated rent collection alone paid for itself in the first month.',
@@ -49,7 +48,7 @@ export function OptimizedTestimonialsSection() {
 						CUSTOMER SUCCESS
 					</Badge>
 					<h2 className="mb-4 text-4xl font-bold text-gray-900">
-						Real Results from Real Property Managers
+						Real Results from Real Property_ Managers
 					</h2>
 				</div>
 
@@ -62,10 +61,7 @@ export function OptimizedTestimonialsSection() {
 							<div className="mb-4 flex items-start justify-between">
 								<div className="flex items-center gap-1">
 									{[...Array(5)].map((_, i) => (
-										<Star
-											key={i}
-											className="h-4 w-4 fill-yellow-400 text-yellow-400"
-										/>
+										<i className="i-lucide-star inline-block h-4 w-4 fill-yellow-400 text-yellow-400" key={i} />
 									))}
 								</div>
 								<Badge className="bg-green-100 text-xs text-green-700">
@@ -73,7 +69,7 @@ export function OptimizedTestimonialsSection() {
 								</Badge>
 							</div>
 
-							<p className="mb-4 text-gray-600 italic">
+							<p className="mb-4 italic text-gray-600">
 								"{testimonial.content}"
 							</p>
 

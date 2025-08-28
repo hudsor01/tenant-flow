@@ -13,11 +13,16 @@ function generateCSRFToken(): string {
 	return randomBytes(TOKEN_LENGTH).toString('hex')
 }
 
+// CSRF response type for type safety
+interface CSRFResponse {
+	token: string
+}
+
 /**
  * GET /api/auth/csrf
  * Get or create CSRF token
  */
-export async function GET() {
+export async function GET(): Promise<NextResponse<CSRFResponse>> {
 	const cookieStore = await cookies()
 
 	// Check if token already exists

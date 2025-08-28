@@ -48,7 +48,7 @@ export interface SupabaseFormFieldProps<
 	rows?: number
 }
 
-export interface PropertyTypeFieldProps<
+export interface Property_TypeFieldProps<
 	TFormData extends FieldValues = FieldValues
 > {
 	label: string
@@ -101,7 +101,9 @@ export function SupabaseFormField<TFormData extends FieldValues = FieldValues>({
 			setIsValidating(true)
 			try {
 				const supabase = createClient()
-				const { data, error } = await supabase
+				// Type assertion for dynamic table name - Supabase expects literal types
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const { data, error } = await (supabase as any)
 					.from(validation.table!)
 					.select('id')
 					.eq(validation.column!, value)
@@ -235,17 +237,17 @@ export function SupabaseFormField<TFormData extends FieldValues = FieldValues>({
 	)
 }
 
-// Property Type Field Component
-export function PropertyTypeField<TFormData extends FieldValues = FieldValues>({
+// Property_ Type Field Component
+export function Property_TypeField<TFormData extends FieldValues = FieldValues>({
 	label,
 	name,
 	control,
 	defaultValue,
 	required,
 	className
-}: PropertyTypeFieldProps<TFormData>) {
+}: Property_TypeFieldProps<TFormData>) {
 	const {
-		field: { onChange, onBlur, value },
+		field: { onChange, value },
 		fieldState: { error }
 	} = useController({
 		name,

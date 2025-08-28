@@ -13,7 +13,6 @@ import {
 } from '@stripe/react-stripe-js'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Loader2 } from 'lucide-react'
 
 export interface CheckoutProps {
 	onSuccess?: () => void
@@ -51,16 +50,16 @@ export function Checkout({
 
 		try {
 			// Confirm the payment using the checkout session
-			const result = await checkout.confirm({
+			const _result = await checkout.confirm({
 				redirect: 'if_required' // Stay on page if possible
 			})
 
-			// Check the result type
-			if (result.type === 'error') {
+			// Check the _result type
+			if (_result.type === 'error') {
 				const errorMessage = 'Payment failed'
 				setErrorMessage(errorMessage)
 				onError?.(errorMessage)
-			} else if (result.type === 'success') {
+			} else if (_result.type === 'success') {
 				// Payment succeeded
 				onSuccess?.()
 			}
@@ -79,7 +78,7 @@ export function Checkout({
 			<div
 				className={`flex items-center justify-center p-8 ${className}`}
 			>
-				<div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
+				<div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600" />
 			</div>
 		)
 	}
@@ -106,7 +105,7 @@ export function Checkout({
 			>
 				{isProcessing ? (
 					<>
-						<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+						<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
 						Processing...
 					</>
 				) : (

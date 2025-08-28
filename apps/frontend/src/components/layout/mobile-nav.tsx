@@ -3,24 +3,22 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion } from '@/lib/lazy-motion'
-import { Home, Building, Plus, BarChart3, User } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { useDashboardOverview } from '@/hooks/api/use-dashboard'
 import { cn } from '@/lib/utils'
-
 const navigationItems = [
 	{
 		id: 'dashboard',
 		name: 'Dashboard',
 		href: '/dashboard',
-		icon: Home,
+		icon: 'i-lucide-home',
 		shortName: 'Home'
 	},
 	{
 		id: 'properties',
 		name: 'Properties',
 		href: '/properties',
-		icon: Building,
+		icon: 'i-lucide-building',
 		shortName: 'Props',
 		badgeKey: 'properties.totalProperties'
 	},
@@ -28,7 +26,7 @@ const navigationItems = [
 		id: 'add',
 		name: 'Add',
 		href: '/properties/new',
-		icon: Plus,
+		icon: 'i-lucide-plus',
 		shortName: 'Add',
 		isFab: true
 	},
@@ -36,14 +34,14 @@ const navigationItems = [
 		id: 'reports',
 		name: 'Reports',
 		href: '/reports',
-		icon: BarChart3,
+		icon: 'i-lucide-bar-chart-3',
 		shortName: 'Reports'
 	},
 	{
 		id: 'profile',
 		name: 'Profile',
 		href: '/profile',
-		icon: User,
+		icon: 'i-lucide-user',
 		shortName: 'Profile'
 	}
 ]
@@ -57,7 +55,9 @@ export function MobileNav({ className }: MobileNavProps) {
 	const { data: stats } = useDashboardOverview()
 
 	const getBadgeValue = (badgeKey?: string) => {
-		if (!badgeKey || !stats) return null
+		if (!badgeKey || !stats) {
+			return null
+		}
 
 		const keys = badgeKey.split('.')
 		let value: unknown = stats
@@ -75,14 +75,13 @@ export function MobileNav({ className }: MobileNavProps) {
 	return (
 		<nav
 			className={cn(
-				'fixed right-0 bottom-0 left-0 z-50 border-t border-gray-200 bg-white md:hidden',
+				'fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-white md:hidden',
 				'safe-area-pb', // Add safe area padding for devices with home indicators
 				className
 			)}
 		>
 			<div className="flex items-center justify-around px-2 py-2">
 				{navigationItems.map(item => {
-					const Icon = item.icon
 					const isActive =
 						pathname === item.href ||
 						(pathname.startsWith(item.href + '/') && !item.isFab)
@@ -112,7 +111,7 @@ export function MobileNav({ className }: MobileNavProps) {
 										damping: 25
 									}}
 								>
-									<Icon className="h-6 w-6" />
+									<i className={`${item.icon} h-6 w-6`} />
 								</motion.div>
 
 								{/* Ripple effect for FAB */}
@@ -158,21 +157,19 @@ export function MobileNav({ className }: MobileNavProps) {
 									damping: 25
 								}}
 							>
-								<Icon
-									className={cn(
+								<i className={cn(item.icon, 'inline-block', cn(
 										'mb-1 h-5 w-5 transition-colors duration-200',
 										isActive
 											? 'text-primary'
 											: 'text-gray-500'
-									)}
-								/>
+									))} />
 
 								{/* Badge for item counts */}
 								{badgeValue && (
 									<motion.div
 										initial={{ scale: 0 }}
 										animate={{ scale: 1 }}
-										className="absolute -top-1 -right-1"
+										className="absolute -right-1 -top-1"
 									>
 										<Badge
 											variant="secondary"
@@ -201,7 +198,7 @@ export function MobileNav({ className }: MobileNavProps) {
 							{/* Active indicator */}
 							{isActive && (
 								<motion.div
-									className="bg-primary absolute top-0 left-1/2 h-1 w-1 rounded-full"
+									className="bg-primary absolute left-1/2 top-0 h-1 w-1 rounded-full"
 									initial={{ scale: 0, x: '-50%' }}
 									animate={{ scale: 1 }}
 									transition={{

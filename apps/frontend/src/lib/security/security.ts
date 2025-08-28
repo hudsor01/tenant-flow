@@ -5,32 +5,12 @@
  */
 
 import { type NextRequest, NextResponse } from 'next/server'
+import type { UserRole} from '@repo/shared';
+import { USER_ROLE, Permission } from '@repo/shared'
 
 // ===========================
 // TYPES AND INTERFACES
 // ===========================
-
-export enum UserRole {
-	SUPER_ADMIN = 'SUPER_ADMIN',
-	ADMIN = 'ADMIN',
-	PROPERTY_MANAGER = 'PROPERTY_MANAGER',
-	PROPERTY_OWNER = 'PROPERTY_OWNER',
-	TENANT = 'TENANT',
-	MAINTENANCE_STAFF = 'MAINTENANCE_STAFF',
-	READONLY_USER = 'READONLY_USER'
-}
-
-export enum Permission {
-	READ_PROPERTIES = 'READ_PROPERTIES',
-	WRITE_PROPERTIES = 'WRITE_PROPERTIES',
-	READ_TENANTS = 'READ_TENANTS',
-	WRITE_TENANTS = 'WRITE_TENANTS',
-	READ_MAINTENANCE = 'READ_MAINTENANCE',
-	WRITE_MAINTENANCE = 'WRITE_MAINTENANCE',
-	READ_FINANCIAL = 'READ_FINANCIAL',
-	WRITE_FINANCIAL = 'WRITE_FINANCIAL',
-	ADMIN_ACCESS = 'ADMIN_ACCESS'
-}
 
 interface SecurityValidationResult {
 	valid: boolean
@@ -51,8 +31,7 @@ interface AuthContext {
 
 export class Security {
 	private static rolePermissions: Record<UserRole, Permission[]> = {
-		[UserRole.SUPER_ADMIN]: Object.values(Permission),
-		[UserRole.ADMIN]: [
+		[USER_ROLE.ADMIN]: [
 			Permission.READ_PROPERTIES,
 			Permission.WRITE_PROPERTIES,
 			Permission.READ_TENANTS,
@@ -63,7 +42,7 @@ export class Security {
 			Permission.WRITE_FINANCIAL,
 			Permission.ADMIN_ACCESS
 		],
-		[UserRole.PROPERTY_MANAGER]: [
+		[USER_ROLE.OWNER]: [
 			Permission.READ_PROPERTIES,
 			Permission.WRITE_PROPERTIES,
 			Permission.READ_TENANTS,
@@ -72,26 +51,18 @@ export class Security {
 			Permission.WRITE_MAINTENANCE,
 			Permission.READ_FINANCIAL
 		],
-		[UserRole.PROPERTY_OWNER]: [
+		[USER_ROLE.MANAGER]: [
 			Permission.READ_PROPERTIES,
+			Permission.WRITE_PROPERTIES,
 			Permission.READ_TENANTS,
+			Permission.WRITE_TENANTS,
 			Permission.READ_MAINTENANCE,
+			Permission.WRITE_MAINTENANCE,
 			Permission.READ_FINANCIAL
 		],
-		[UserRole.TENANT]: [
+		[USER_ROLE.TENANT]: [
 			Permission.READ_MAINTENANCE,
 			Permission.WRITE_MAINTENANCE
-		],
-		[UserRole.MAINTENANCE_STAFF]: [
-			Permission.READ_PROPERTIES,
-			Permission.READ_MAINTENANCE,
-			Permission.WRITE_MAINTENANCE
-		],
-		[UserRole.READONLY_USER]: [
-			Permission.READ_PROPERTIES,
-			Permission.READ_TENANTS,
-			Permission.READ_MAINTENANCE,
-			Permission.READ_FINANCIAL
 		]
 	}
 
@@ -249,8 +220,8 @@ export class Security {
 		userId?: string,
 		resourceOwnerId?: string
 	): boolean {
-		// Super admin has access to everything
-		if (userRole === UserRole.SUPER_ADMIN) {
+		// Admin has access to everything
+		if (userRole === USER_ROLE.ADMIN) {
 			return true
 		}
 
@@ -262,7 +233,7 @@ export class Security {
 		// User-level access control (own resources)
 		if (resourceOwnerId && userId && userId !== resourceOwnerId) {
 			// Only managers and above can access other users' resources
-			const managerRoles = [UserRole.ADMIN, UserRole.PROPERTY_MANAGER]
+			const managerRoles: UserRole[] = [USER_ROLE.ADMIN, USER_ROLE.MANAGER, USER_ROLE.OWNER]
 			return managerRoles.includes(userRole)
 		}
 
