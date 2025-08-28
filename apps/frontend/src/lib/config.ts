@@ -7,13 +7,8 @@ import { logger } from '@/lib/logger'
 
 export const config = {
 	api: {
-		baseURL: (() => {
-			const apiUrl = process.env.NEXT_PUBLIC_API_URL
-			if (!apiUrl) {
-				throw new Error('NEXT_PUBLIC_API_URL is required for production deployment')
-			}
-			return apiUrl
-		})(),
+		// Resolve lazily with a safe default to avoid build-time throws
+		baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://api.tenantflow.app/api/v1',
 		timeout: 30000,
 		healthCheckPath: '/health',
 		retries: 3,

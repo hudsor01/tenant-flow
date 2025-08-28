@@ -95,11 +95,11 @@ export function TabNavigation({
 
 					const content = (
 						<div className="flex items-center gap-2">
-							{item.icon && (
+							{item.icon ? (
 								<span className="h-4 w-4 shrink-0">
-									{item.icon as React.ReactNode}
+									{React.isValidElement(item.icon) ? item.icon : <span>{String(item.icon)}</span>}
 								</span>
-							)}
+							) : null}
 							{item.label}
 							{item.badge && (
 								<Badge variant="secondary">{item.badge}</Badge>

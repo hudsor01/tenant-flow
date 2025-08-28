@@ -5,7 +5,6 @@ import { DashboardStatsCards } from '@/components/dashboard/dashboard-stats-card
 import { DashboardRecentActivity } from '@/components/dashboard/dashboard-recent-activity'
 import { DashboardQuickActions } from '@/components/dashboard/dashboard-quick-actions'
 import { DashboardWidgets } from '@/components/dashboard/dashboard-widgets'
-import { DashboardTracker } from '@/components/analytics/dashboard-tracker'
 import type { Metadata } from 'next/types'
 
 export const metadata: Metadata = {
@@ -17,7 +16,6 @@ export const metadata: Metadata = {
 export default function DashboardPage() {
 	return (
 		<DashboardErrorBoundary>
-			<DashboardTracker />
 			<div className="mx-auto max-w-[1400px] flex-1 space-y-6 p-3 sm:space-y-8 sm:p-4 md:p-6 lg:p-8">
 				{/* Enhanced Page Header */}
 				<div className="relative">

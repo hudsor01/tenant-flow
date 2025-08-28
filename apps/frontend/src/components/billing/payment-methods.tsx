@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * Enhanced Payment Methods Management - Latest 2025 Stripe Patterns
  *

@@ -1,18 +1,12 @@
 /**
  * Modern Dashboard Page - Next.js 15 + React 19
- * Server Component with optimized data loading
+ * Client Component with error boundary
  */
+'use client'
 
 import { Suspense } from 'react'
-import type { Metadata } from 'next/types'
 import { DashboardStatsCards } from '@/components/dashboard/dashboard-stats-cards'
 import { ErrorBoundary } from 'react-error-boundary'
-
-// Static metadata for SEO optimization
-export const metadata: Metadata = {
-  title: 'Dashboard | TenantFlow',
-  description: 'Property_ management dashboard with real-time insights'
-}
 
 // Error fallback component
 function DashboardError({ error, resetErrorBoundary }: {

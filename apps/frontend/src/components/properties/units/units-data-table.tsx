@@ -1,3 +1,5 @@
+'use client'
+
 import { useUnits } from '@/hooks/api/use-units'
 import {
 	Card,

@@ -77,13 +77,17 @@ export function NavigationLink({
 
 	const content = (
 		<>
-			{showIcons && item.icon && (
+			{showIcons && item.icon ? (
 				<span
 					className={variant === 'sidebar' ? 'icon-nav-sidebar' : 'icon-nav-default'}
 				>
-					{item.icon as React.ReactNode}
+					{React.isValidElement(item.icon)
+						? item.icon
+						: typeof item.icon === 'string'
+							? <i className={`${item.icon}`} />
+							: <span>{String(item.icon)}</span>}
 				</span>
-			)}
+			) : null}
 
 			<span
 				className={cn(

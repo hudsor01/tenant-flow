@@ -46,11 +46,11 @@ export function Breadcrumbs({
 					<React.Fragment key={`${item.href}-${index}`}>
 						{index > 0 && separator}
 						<div className="flex items-center">
-							{item.icon && (
+							{item.icon ? (
 								<span className="text-muted-foreground mr-2">
-									{item.icon as React.ReactNode}
+									{React.isValidElement(item.icon) ? item.icon : <span>{String(item.icon)}</span>}
 								</span>
-							)}
+							) : null}
 							{item.href && !isLast ? (
 								<Link
 									href={item.href}

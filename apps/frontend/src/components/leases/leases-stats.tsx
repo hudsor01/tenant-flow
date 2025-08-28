@@ -1,3 +1,5 @@
+'use client'
+
 import { useLeases } from '@/hooks/api/use-leases'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'

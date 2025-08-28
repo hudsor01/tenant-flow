@@ -1,10 +1,21 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: CI/CD Pipeline
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - develop
+
 env:
   NODE_VERSION: '24'
+
 jobs:
   build-and-test:
     name: Build and Test
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -12,8 +23,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          cache: 'npm'
           node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci --prefer-offline --no-audit
@@ -24,14 +35,8 @@ jobs:
       - name: Build backend
         run: npm run build:backend
 
-      - continue-on-error: true
+      - name: Run tests
+        continue-on-error: true
         env:
           CI: true
-        name: Run tests
         run: npm run test:unit
-    timeout-minutes: 15
-    name: CI/CD Pipeline
-on:
-  pull_request:
-  push:
-    branches: [main, develop]
