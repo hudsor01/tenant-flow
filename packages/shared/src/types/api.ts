@@ -95,6 +95,7 @@ export interface UpdateUserProfileInput {
 	bio?: string | null
 	avatarUrl?: string | null
 	fullName?: string | null
+	company?: string | null
 }
 
 // Note: Property, Tenant, Unit, and Lease input types are defined in api-inputs.ts

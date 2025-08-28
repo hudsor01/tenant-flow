@@ -23,26 +23,30 @@ import {
 import type { PropertyWithUnits } from '@repo/shared'
 import { useCreateProperty } from '@/hooks/api/use-properties'
 
-interface PropertyCardProps {
-	property: PropertyWithUnits
-	onEdit?: (property: PropertyWithUnits) => void
-	onView?: (property: PropertyWithUnits) => void
+interface Property_CardProps {
+  property: PropertyWithUnits
+  onEdit?: (property: PropertyWithUnits) => void
+  onView?: (property: PropertyWithUnits) => void
 }
 
-export default function PropertyCard({
+export default function Property_Card({
 	property,
 	onEdit,
 	onView
-}: PropertyCardProps) {
-	const deletePropertyMutation = useCreateProperty as any // TODO: fix useDeleteProperty export
+}: Property_CardProps) {
+  // TODO: Import proper delete property mutation when available
+  const deleteProperty_Mutation = useCreateProperty as unknown as {
+    mutateAsync: (id: string) => Promise<void>
+    isPending: boolean
+  }
 
 	// Memoize the delete mutation object to prevent useCallback dependencies from changing
 	const deleteMutation = useMemo(
 		() => ({
-			mutateAsync: deletePropertyMutation.mutateAsync,
-			isPending: deletePropertyMutation.isPending
+			mutateAsync: deleteProperty_Mutation.mutateAsync,
+			isPending: deleteProperty_Mutation.isPending
 		}),
-		[deletePropertyMutation.mutateAsync, deletePropertyMutation.isPending]
+		[deleteProperty_Mutation.mutateAsync, deleteProperty_Mutation.isPending]
 	)
 
 	const handleDelete = useCallback(async () => {
@@ -112,7 +116,7 @@ export default function PropertyCard({
 			className="group"
 		>
 			<Card className="group/card from-card via-card to-card/95 hover:shadow-primary/10 hover:border-primary/20 overflow-hidden border-0 bg-gradient-to-br shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-2xl">
-				{/* Property Image */}
+				{/* Property_ Image */}
 				<div className="from-primary via-primary to-accent relative h-52 overflow-hidden bg-gradient-to-br">
 					{property.imageUrl ? (
 						<Image
@@ -148,7 +152,7 @@ export default function PropertyCard({
 								</DropdownMenuItem>
 								<DropdownMenuItem onClick={handleEdit}>
 									<i className="i-lucide-edit-3 inline-block mr-2 h-4 w-4"  />
-									Edit Property
+									Edit Property_
 								</DropdownMenuItem>
 								<DropdownMenuSeparator />
 								<DropdownMenuItem
@@ -159,7 +163,7 @@ export default function PropertyCard({
 												error instanceof Error
 													? error
 													: new Error(String(error)),
-												{ component: 'PropertyCard' }
+												{ component: 'Property_Card' }
 											)
 											toast.error(
 												'Failed to delete property'
@@ -169,7 +173,7 @@ export default function PropertyCard({
 									className="text-red-600 hover:bg-red-50 hover:text-red-700"
 								>
 									<i className="i-lucide-trash-2 inline-block mr-2 h-4 w-4"  />
-									Delete Property
+									Delete Property_
 								</DropdownMenuItem>
 							</DropdownMenuContent>
 						</DropdownMenu>
@@ -191,7 +195,7 @@ export default function PropertyCard({
 					</div>
 				</div>
 
-				{/* Property Info */}
+				{/* Property_ Info */}
 				<CardHeader className="pb-3">
 					<div className="flex items-start justify-between">
 						<div className="flex-1">

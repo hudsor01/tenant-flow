@@ -43,9 +43,13 @@ const getStripe = async () => {
 	return stripePromise
 }
 
-// Use shared UI types
-import type { EnhancedElementsProviderProps } from '@repo/shared'
-export type { EnhancedElementsProviderProps }
+// Use shared UI types with proper React children typing
+import type { EnhancedElementsProviderProps as SharedEnhancedElementsProviderProps } from '@repo/shared'
+
+// Override children type for React compatibility
+export interface EnhancedElementsProviderProps extends Omit<SharedEnhancedElementsProviderProps, 'children'> {
+	children?: React.ReactNode
+}
 
 /**
  * Enhanced Stripe Elements Provider with 2025 best practices

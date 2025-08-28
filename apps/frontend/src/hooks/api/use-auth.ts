@@ -27,7 +27,7 @@ export function useCurrentUser(options?: {
 	enabled?: boolean
 }): UseQueryResult<User> {
 	return useQuery({
-		queryKey: queryKeys.auth.user(),
+		queryKey: queryKeys.auth.profile(),
 		queryFn: () => apiClient.get<User>('/api/auth/me'),
 		enabled: options?.enabled ?? true,
 		staleTime: 5 * 60 * 1000, // 5 minutes
@@ -61,7 +61,7 @@ export function useLogin(): UseMutationResult<
 
 			// Cache the user data if provided
 			if (data.user) {
-				queryClient.setQueryData(queryKeys.auth.user(), data.user)
+				queryClient.setQueryData(queryKeys.auth.profile(), data.user)
 			}
 
 			toast.success('Successfully logged in!')
@@ -133,7 +133,7 @@ export function useRefreshToken(): UseMutationResult<
 		onSuccess: data => {
 			// Update cached user data if provided
 			if (data.user) {
-				queryClient.setQueryData(queryKeys.auth.user(), data.user)
+				queryClient.setQueryData(queryKeys.auth.profile(), data.user)
 			}
 		},
 		onError: (error: Error) => {

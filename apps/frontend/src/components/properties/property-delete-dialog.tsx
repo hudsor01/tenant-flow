@@ -15,17 +15,17 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import type { PropertyWithUnits } from '@repo/shared'
 
-interface PropertyDeleteDialogProps {
+interface Property_DeleteDialogProps {
 	open: boolean
 	onOpenChange: (open: boolean) => void
-	property: PropertyWithUnits | null
+  property: PropertyWithUnits | null
 }
 
-export function PropertyDeleteDialog({
+export function Property_DeleteDialog({
 	open,
 	onOpenChange,
 	property
-}: PropertyDeleteDialogProps) {
+}: Property_DeleteDialogProps) {
 	const [error, setError] = useState<string | null>(null)
 	const propertiesOptimistic = usePropertiesOptimistic()
 
@@ -59,7 +59,7 @@ export function PropertyDeleteDialog({
 		<AlertDialog open={open} onOpenChange={onOpenChange}>
 			<AlertDialogContent>
 				<AlertDialogHeader>
-					<AlertDialogTitle>Delete Property</AlertDialogTitle>
+					<AlertDialogTitle>Delete Property_</AlertDialogTitle>
 					<AlertDialogDescription>
 						Are you sure you want to delete{' '}
 						<strong>{property.name}</strong>?
@@ -112,7 +112,7 @@ export function PropertyDeleteDialog({
 								Deleting...
 							</>
 						) : (
-							'Delete Property'
+							'Delete Property_'
 						)}
 					</AlertDialogAction>
 				</AlertDialogFooter>

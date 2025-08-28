@@ -48,7 +48,7 @@ export interface SupabaseFormFieldProps<
 	rows?: number
 }
 
-export interface PropertyTypeFieldProps<
+export interface Property_TypeFieldProps<
 	TFormData extends FieldValues = FieldValues
 > {
 	label: string
@@ -237,15 +237,15 @@ export function SupabaseFormField<TFormData extends FieldValues = FieldValues>({
 	)
 }
 
-// Property Type Field Component
-export function PropertyTypeField<TFormData extends FieldValues = FieldValues>({
+// Property_ Type Field Component
+export function Property_TypeField<TFormData extends FieldValues = FieldValues>({
 	label,
 	name,
 	control,
 	defaultValue,
 	required,
 	className
-}: PropertyTypeFieldProps<TFormData>) {
+}: Property_TypeFieldProps<TFormData>) {
 	const {
 		field: { onChange, value },
 		fieldState: { error }

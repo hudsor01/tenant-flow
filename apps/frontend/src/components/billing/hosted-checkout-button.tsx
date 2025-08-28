@@ -25,10 +25,10 @@ export function HostedCheckoutButton({
 	cancelUrl: _cancelUrl,
 	couponId: _couponId
 }: HostedCheckoutButtonProps) {
-	const createCheckoutMutation = useCreateCheckoutSession()
+	const _createCheckoutMutation = useCreateCheckoutSession()
 
 	const handleClick = async () => {
-		createCheckoutMutation.mutate({
+		_createCheckoutMutation.mutate({
 			planId: planType,
 			interval: billingInterval === 'annual' ? 'annual' : 'monthly',
 			successUrl:
@@ -40,10 +40,10 @@ export function HostedCheckoutButton({
 	return (
 		<Button
 			onClick={() => void handleClick()}
-			disabled={createCheckoutMutation.isPending}
+			disabled={_createCheckoutMutation.isPending}
 			className={className}
 		>
-			{createCheckoutMutation.isPending ? (
+			{_createCheckoutMutation.isPending ? (
 				<>
 					<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
 					Loading checkout...

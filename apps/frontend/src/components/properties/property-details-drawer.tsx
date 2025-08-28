@@ -25,10 +25,10 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { format } from 'date-fns'
 import type { PropertyWithUnits } from '@repo/shared'
 
-// Use PropertyWithUnits which includes units relation
-type Property = PropertyWithUnits
+// Use Property_WithUnits which includes units relation
+type Property_ = PropertyWithUnits
 
-interface PropertyDetailsDrawerProps {
+interface Property_DetailsDrawerProps {
 	propertyId: string | null
 	open: boolean
 	onOpenChange: (open: boolean) => void
@@ -36,21 +36,22 @@ interface PropertyDetailsDrawerProps {
 	onDelete?: () => void
 }
 
-export function PropertyDetailsDrawer({
+export function Property_DetailsDrawer({
 	propertyId,
 	open,
 	onOpenChange,
 	onEdit,
 	onDelete
-}: PropertyDetailsDrawerProps) {
+}: Property_DetailsDrawerProps) {
 	const [activeTab, setActiveTab] = useState('overview')
+	
+	// Call hook unconditionally to follow React rules
+	const { data: property, isLoading, error } = useProperty(propertyId || '')
 	
 	// Don't render if no propertyId to avoid suspense boundary issues
 	if (!propertyId) {
 		return null
 	}
-
-	const { data: property, isLoading, error } = useProperty(propertyId)
 
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
@@ -126,25 +127,25 @@ export function PropertyDetailsDrawer({
 							</TabsList>
 
 							<TabsContent value="overview" className="space-y-4">
-								<PropertyOverview property={property} />
+								<Property_Overview property={property} />
 							</TabsContent>
 
 							<TabsContent value="units" className="space-y-4">
-								<PropertyUnits property={property} />
+								<Property_Units property={property} />
 							</TabsContent>
 
 							<TabsContent
 								value="financials"
 								className="space-y-4"
 							>
-								<PropertyFinancials property={property} />
+								<Property_Financials property={property} />
 							</TabsContent>
 
 							<TabsContent
 								value="documents"
 								className="space-y-4"
 							>
-								<PropertyDocuments property={property} />
+								<Property_Documents property={property} />
 							</TabsContent>
 						</Tabs>
 					</ScrollArea>
@@ -154,7 +155,7 @@ export function PropertyDetailsDrawer({
 	)
 }
 
-function PropertyOverview({ property }: { property: Property }) {
+function Property_Overview({ property }: { property: Property_ }) {
 	const totalUnits = property.units?.length ?? 0
 	const occupiedUnits =
 		property.units?.filter(unit => unit.status === 'OCCUPIED').length ?? 0
@@ -166,13 +167,13 @@ function PropertyOverview({ property }: { property: Property }) {
 		<>
 			<Card>
 				<CardHeader>
-					<CardTitle>Property Information</CardTitle>
+					<CardTitle>Property_ Information</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-4">
 					<div className="grid grid-cols-2 gap-4">
 						<div>
 							<p className="text-muted-foreground text-sm">
-								Property Type
+								Property_ Type
 							</p>
 							<Badge
 								variant="secondary"
@@ -275,7 +276,7 @@ function PropertyOverview({ property }: { property: Property }) {
 
 			<Card>
 				<CardHeader>
-					<CardTitle>Property Details</CardTitle>
+					<CardTitle>Property_ Details</CardTitle>
 				</CardHeader>
 				<CardContent>
 					<div className="space-y-4">
@@ -302,7 +303,7 @@ function PropertyOverview({ property }: { property: Property }) {
 	)
 }
 
-function PropertyUnits({ property }: { property: Property }) {
+function Property_Units({ property }: { property: Property_ }) {
 	const units = property.units ?? []
 
 	if (units.length === 0) {
@@ -367,7 +368,7 @@ function PropertyUnits({ property }: { property: Property }) {
 	)
 }
 
-function PropertyFinancials({ property }: { property: Property }) {
+function Property_Financials({ property }: { property: Property_ }) {
 	const totalMonthlyRent =
 		property.units?.reduce(
 			(sum, unit) =>
@@ -436,13 +437,13 @@ function PropertyFinancials({ property }: { property: Property }) {
 	)
 }
 
-function PropertyDocuments({ property: _property }: { property: Property }) {
+function Property_Documents({ property: _property }: { property: Property_ }) {
 	return (
 		<Card>
 			<CardHeader>
 				<CardTitle>Documents</CardTitle>
 				<CardDescription>
-					Property related documents and files
+					Property_ related documents and files
 				</CardDescription>
 			</CardHeader>
 			<CardContent>

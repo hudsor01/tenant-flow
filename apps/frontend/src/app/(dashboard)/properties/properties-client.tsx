@@ -4,13 +4,13 @@ import { useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { PropertiesDataTable } from '@/components/properties/properties-data-table'
-import { PropertyDetailsDrawer } from '@/components/properties/property-details-drawer'
-import { PropertyFormDialog } from '@/components/properties/property-form-dialog'
-import { PropertyDeleteDialog } from '@/components/properties/property-delete-dialog'
-import type { Database } from '@repo/shared'
+import { Property_DetailsDrawer } from '@/components/properties/property-details-drawer'
+import { Property_FormDialog } from '@/components/properties/property-form-dialog'
+import { Property_DeleteDialog } from '@/components/properties/property-delete-dialog'
+import type { PropertyWithUnits } from '@repo/shared'
 
-// Define types directly from Database schema - NO DUPLICATION
-type Property = Database['public']['Tables']['Property']['Row']
+// Define local alias
+type Property_ = PropertyWithUnits
 
 interface PropertiesClientProps {
 	className?: string
@@ -24,10 +24,10 @@ export function PropertiesClient({ className }: PropertiesClientProps) {
 	// Client-only state
 	const [searchQuery, setSearchQuery] = useState('')
 	const [propertyType] = useState<string>('')
-	const [selectedProperty, setSelectedProperty] = useState<Property | null>(
+	const [selectedProperty_, setSelectedProperty_] = useState<Property_ | null>(
 		null
 	)
-	const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(
+	const [selectedProperty_Id, setSelectedProperty_Id] = useState<string | null>(
 		null
 	)
 	const [formDialogOpen, setFormDialogOpen] = useState(false)
@@ -36,27 +36,27 @@ export function PropertiesClient({ className }: PropertiesClientProps) {
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
 	// Event handlers
-	const handleAddProperty = () => {
+	const handleAddProperty_ = () => {
 		setFormMode('create')
-		setSelectedProperty(null)
+		setSelectedProperty_(null)
 		setFormDialogOpen(true)
 	}
 
-	const handleEditProperty = (property?: Property) => {
+	const handleEditProperty_ = (property?: Property_) => {
 		if (property) {
-			setSelectedProperty(property)
+			setSelectedProperty_(property)
 			setFormMode('edit')
 			setFormDialogOpen(true)
 		}
 	}
 
-	const handleViewProperty = (property: Property) => {
-		setSelectedProperty(property)
-		setSelectedPropertyId(property.id)
+	const handleViewProperty_ = (property: Property_) => {
+		setSelectedProperty_(property)
+		setSelectedProperty_Id(property.id)
 		setDrawerOpen(true)
 	}
 
-	const handleDeleteProperty = () => {
+	const handleDeleteProperty_ = () => {
 		setDeleteDialogOpen(true)
 	}
 
@@ -81,9 +81,9 @@ export function PropertiesClient({ className }: PropertiesClientProps) {
 						Filter
 					</Button>
 				</div>
-				<Button onClick={handleAddProperty} size="sm">
+				<Button onClick={handleAddProperty_} size="sm">
 					<i className="i-lucide-plus inline-block mr-2 h-4 w-4"  />
-					Add Property
+					Add Property_
 				</Button>
 			</div>
 
@@ -91,31 +91,31 @@ export function PropertiesClient({ className }: PropertiesClientProps) {
 			<PropertiesDataTable
 				searchQuery={searchQuery}
 				propertyType={propertyType}
-				onViewProperty={handleViewProperty}
-				onEditProperty={handleEditProperty}
+				onViewProperty_={handleViewProperty_}
+				onEditProperty_={handleEditProperty_}
 			/>
 
 			{/* Modals and Drawers */}
-			<PropertyDetailsDrawer
-				propertyId={selectedPropertyId}
+			<Property_DetailsDrawer
+				propertyId={selectedProperty_Id}
 				open={drawerOpen}
 				onOpenChange={setDrawerOpen}
-				onEdit={() => handleEditProperty(selectedProperty ?? undefined)}
-				onDelete={handleDeleteProperty}
+				onEdit={() => handleEditProperty_(selectedProperty_ ?? undefined)}
+				onDelete={handleDeleteProperty_}
 			/>
 
-			<PropertyFormDialog
+			<Property_FormDialog
 				open={formDialogOpen}
 				onOpenChange={(open) => setFormDialogOpen(open)}
-				property={selectedProperty ?? undefined}
+				property={selectedProperty_ ?? undefined}
 				mode={formMode}
 			/>
 
-			<PropertyDeleteDialog
-				open={deleteDialogOpen}
-				onOpenChange={setDeleteDialogOpen}
-				property={selectedProperty as any}
-			/>
+            <Property_DeleteDialog
+                open={deleteDialogOpen}
+                onOpenChange={setDeleteDialogOpen}
+                property={selectedProperty_ ?? null}
+            />
 		</div>
 	)
 }

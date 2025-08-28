@@ -8,17 +8,17 @@ import { FormContainer, FormInput, FormSubmit, FormError } from '@/components/ui
 import { createProperty } from '@/app/actions/properties'
 import type { PropertyWithUnits } from '@repo/shared'
 
-export default function QuickPropertySetup({ onComplete }: { onComplete?: (propertyId: string) => void }) {
+export default function QuickProperty_Setup({ onComplete }: { onComplete?: (propertyId: string) => void }) {
 	const [isComplete, setIsComplete] = React.useState(false)
 	
 	// Wrapper action to match useActionStateForm signature
-	const wrappedCreateProperty = async (
-		prevState: FormState<PropertyWithUnits>,
+  const wrappedCreateProperty_ = async (
+    prevState: FormState<PropertyWithUnits>,
 		formData: FormData
-	): Promise<FormState<PropertyWithUnits>> => {
+  ): Promise<FormState<PropertyWithUnits>> => {
 		try {
-			const result = await createProperty(formData)
-			return { success: true, data: result }
+    		const _result = await createProperty(formData)
+			return { success: true, data: _result }
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : 'Failed to create property'
 			return { success: false, error: errorMessage }
@@ -26,10 +26,10 @@ export default function QuickPropertySetup({ onComplete }: { onComplete?: (prope
 	}
 	
 	const form = useActionStateForm({
-		action: wrappedCreateProperty,
+		action: wrappedCreateProperty_,
 		onSuccess: (data) => {
 			setIsComplete(true)
-			// data is PropertyWithUnits from createProperty action
+      // data is PropertyWithUnits from createProperty action
 			onComplete?.(data?.id)
 		},
 		onError: toast.error
@@ -39,7 +39,7 @@ export default function QuickPropertySetup({ onComplete }: { onComplete?: (prope
 		return (
 			<div className="py-8 text-center">
 				<i className="i-lucide-check inline-block mx-auto mb-4 h-16 w-16 text-green-600"  />
-				<h3 className="mb-2 text-lg font-semibold">Property Created!</h3>
+				<h3 className="mb-2 text-lg font-semibold">Property_ Created!</h3>
 				<p className="mb-4 text-sm text-gray-600">Ready for tenants and leases</p>
 			</div>
 		)
@@ -57,7 +57,7 @@ export default function QuickPropertySetup({ onComplete }: { onComplete?: (prope
 				<FormContainer onSubmit={form.handleSubmit}>
 					{form.state.error && <FormError error={form.state.error} />}
 					
-					<FormInput name="name" label="Property Name" required placeholder="Sunset Apartments" />
+					<FormInput name="name" label="Property_ Name" required placeholder="Sunset Apartments" />
 					<FormInput name="address" label="Address" required placeholder="123 Main Street" />
 					
 					<div className="grid grid-cols-2 gap-4">
@@ -78,7 +78,7 @@ export default function QuickPropertySetup({ onComplete }: { onComplete?: (prope
 					</div>
 
 					<FormSubmit isPending={form.isPending} className="w-full">
-						Create Property
+						Create Property_
 					</FormSubmit>
 				</FormContainer>
 			</CardContent>

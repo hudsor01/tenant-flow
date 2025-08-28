@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
+import type { z } from 'zod'
 import { usePropertiesOptimistic } from '@/hooks/api/use-properties'
 import {
 	Dialog,
@@ -16,7 +16,7 @@ import {
 import {
 	Form,
 	FormControl,
-	FormDescription,
+	_FormDescription,
 	FormField,
 	FormItem,
 	FormLabel,
@@ -33,38 +33,37 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { propertyInputSchema, type Database } from '@repo/shared'
+import { propertyInputSchema, type Property } from '@repo/shared'
 
 // Define types directly from Database schema - NO DUPLICATION
-type Property = Database['public']['Tables']['Property']['Row']
-type _PropertyType = Database['public']['Enums']['PropertyType']
+type Property_ = Property
 
 // Use shared validation schema - NO DUPLICATION
 const propertyFormSchema = propertyInputSchema
 
-type PropertyFormData = z.infer<typeof propertyFormSchema>
+type Property_FormData = z.infer<typeof propertyFormSchema>
 
 // Define local interfaces for component needs
-interface PropertyFormProps {
-	property?: Property
+interface Property_FormProps {
+	property?: Property_
 	mode: 'create' | 'edit'
 }
 
-type PropertyFormDialogProps = PropertyFormProps & {
+type Property_FormDialogProps = Property_FormProps & {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 }
 
-export function PropertyFormDialog({
+export function Property_FormDialog({
 	open,
 	onOpenChange,
 	property,
 	mode
-}: PropertyFormDialogProps) {
+}: Property_FormDialogProps) {
 	const [error, setError] = useState<string | null>(null)
 
 	// Use React 19 optimistic hook
-	const { createProperty, updateProperty, isPending } = usePropertiesOptimistic()
+    const { createProperty, updateProperty, isPending } = usePropertiesOptimistic()
 
 	const form = useForm({
 		resolver: zodResolver(propertyFormSchema),
@@ -79,7 +78,7 @@ export function PropertyFormDialog({
 		}
 	})
 
-	async function onSubmit(formData: PropertyFormData) {
+	async function onSubmit(formData: Property_FormData) {
 		try {
 			setError(null)
 
@@ -93,11 +92,11 @@ export function PropertyFormDialog({
 						: formData.description
 			}
 
-			if (mode === 'edit' && property) {
-				await updateProperty(property.id, apiData)
-			} else {
-				await createProperty(apiData)
-			}
+            if (mode === 'edit' && property) {
+                await updateProperty(property.id, apiData)
+            } else {
+                await createProperty(apiData)
+            }
 
 			onOpenChange(false)
 			form.reset()
@@ -111,7 +110,7 @@ export function PropertyFormDialog({
 			<DialogContent className="max-h-[90vh] max-w-[95vw] overflow-y-auto sm:max-w-[600px]">
 				<DialogHeader>
 					<DialogTitle>
-						{mode === 'edit' ? 'Edit Property' : 'Add New Property'}
+						{mode === 'edit' ? 'Edit Property_' : 'Add New Property_'}
 					</DialogTitle>
 					<DialogDescription>
 						{mode === 'edit'
@@ -137,7 +136,7 @@ export function PropertyFormDialog({
 							name="name"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Property Name</FormLabel>
+									<FormLabel>Property_ Name</FormLabel>
 									<FormControl>
 										<Input
 											placeholder="e.g., Sunset Apartments"
@@ -154,7 +153,7 @@ export function PropertyFormDialog({
 							name="propertyType"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Property Type</FormLabel>
+									<FormLabel>Property_ Type</FormLabel>
 									<Select
 										onValueChange={field.onChange}
 										defaultValue={
@@ -271,10 +270,10 @@ export function PropertyFormDialog({
 											{...field}
 										/>
 									</FormControl>
-									<FormDescription>
+									<_FormDescription>
 										Add any additional information about the
 										property
-									</FormDescription>
+									</_FormDescription>
 									<FormMessage />
 								</FormItem>
 							)}
@@ -302,9 +301,9 @@ export function PropertyFormDialog({
 											: 'Creating...'}
 									</>
 								) : mode === 'edit' ? (
-									'Update Property'
+									'Update Property_'
 								) : (
-									'Create Property'
+									'Create Property_'
 								)}
 							</Button>
 						</DialogFooter>

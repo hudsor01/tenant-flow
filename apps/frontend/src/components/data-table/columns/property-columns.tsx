@@ -3,20 +3,16 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
-import type { Database } from '@repo/shared'
-
-// Define types directly from Database schema - NO DUPLICATION
-type Property = Database['public']['Tables']['Property']['Row']
-type Unit = Database['public']['Tables']['Unit']['Row']
+import type { Property, Unit } from '@repo/shared'
 
 // Define local interface for component needs
-interface PropertyWithUnits extends Property {
+interface Property_WithUnits extends Property {
 	units?: Unit[]
 }
 import { formatCurrency as sharedFormatCurrency } from '@repo/shared'
 
-// Use the Unit type that comes with PropertyWithUnits to avoid conflicts
-type PropertyUnit = NonNullable<PropertyWithUnits['units']>[0]
+// Use the Unit type that comes with Property_WithUnits to avoid conflicts
+type Property_Unit = NonNullable<Property_WithUnits['units']>[0]
 import { createSelectColumn, createActionsColumn } from '../dense-table'
 import { cn } from '@/lib/utils'
 import { createPropertyDeletionHandler } from '@/lib/utils/property-deletion'
@@ -64,13 +60,13 @@ function getStatusLabel(occupancyRate: number): string {
 // Use property.stats which comes from backend calculations in property-actions.ts
 // This ensures data consistency and prevents duplication of business logic
 
-// Column definitions - PropertyWithUnits includes units array for calculating stats
-export const propertyColumns: ColumnDef<PropertyWithUnits>[] = [
-	createSelectColumn<PropertyWithUnits>(),
+// Column definitions - Property_WithUnits includes units array for calculating stats
+export const propertyColumns: ColumnDef<Property_WithUnits>[] = [
+	createSelectColumn<Property_WithUnits>(),
 
 	{
 		accessorKey: 'name',
-		header: 'Property',
+		header: 'Property_',
 		size: 200,
 		cell: ({ row }) => {
 			const property = row.original
@@ -122,7 +118,7 @@ export const propertyColumns: ColumnDef<PropertyWithUnits>[] = [
 			const property = row.original
 			// Calculate stats from units if available
 			const totalUnits = property.units?.length ?? 0
-			const occupiedUnits = property.units?.filter((u: PropertyUnit) => u.status === 'OCCUPIED').length ?? 0
+			const occupiedUnits = property.units?.filter((u: Property_Unit) => u.status === 'OCCUPIED').length ?? 0
 
 			return (
 				<div className="text-center">
@@ -142,7 +138,7 @@ export const propertyColumns: ColumnDef<PropertyWithUnits>[] = [
 			const property = row.original
 			// Calculate occupancy rate from units
 			const totalUnits = property.units?.length ?? 0
-			const occupiedUnits = property.units?.filter((u: PropertyUnit) => u.status === 'OCCUPIED').length ?? 0
+			const occupiedUnits = property.units?.filter((u: Property_Unit) => u.status === 'OCCUPIED').length ?? 0
 			const occupancyRate = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
 
 			return (
@@ -180,7 +176,7 @@ export const propertyColumns: ColumnDef<PropertyWithUnits>[] = [
 		cell: ({ row }) => {
 			const property = row.original
 			// Calculate revenue from units
-			const totalRevenue = property.units?.reduce((sum: number, u: PropertyUnit) => {
+			const totalRevenue = property.units?.reduce((sum: number, u: Property_Unit) => {
 				return u.status === 'OCCUPIED' ? sum + (u.rent || 0) : sum
 			}, 0) ?? 0
 
@@ -203,7 +199,7 @@ export const propertyColumns: ColumnDef<PropertyWithUnits>[] = [
 			const property = row.original
 			// Calculate occupancy rate from units
 			const totalUnits = property.units?.length ?? 0
-			const occupiedUnits = property.units?.filter((u: PropertyUnit) => u.status === 'OCCUPIED').length ?? 0
+			const occupiedUnits = property.units?.filter((u: Property_Unit) => u.status === 'OCCUPIED').length ?? 0
 			const occupancyRate = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
 			const statusLabel = getStatusLabel(occupancyRate)
 			const variant = getStatusBadgeVariant(occupancyRate)
@@ -216,10 +212,10 @@ export const propertyColumns: ColumnDef<PropertyWithUnits>[] = [
 		}
 	},
 
-	// Property type column removed - not in base Property interface
+	// Property_ type column removed - not in base Property_ interface
 	// Following KISS principle - only show data that exists
 
-	createActionsColumn<PropertyWithUnits>([
+	createActionsColumn<Property_WithUnits>([
 		{
 			label: 'View',
 			onClick: property => {
@@ -244,19 +240,19 @@ export const propertyColumns: ColumnDef<PropertyWithUnits>[] = [
 ]
 
 // Alternative simplified columns for mobile/compact views
-export const compactPropertyColumns: ColumnDef<PropertyWithUnits>[] = [
-	createSelectColumn<PropertyWithUnits>(),
+export const compactPropertyColumns: ColumnDef<Property_WithUnits>[] = [
+	createSelectColumn<Property_WithUnits>(),
 
 	{
 		accessorKey: 'name',
-		header: 'Property',
+		header: 'Property_',
 		cell: ({ row }) => {
 			const property = row.original
 			// Calculate stats from units
 			const totalUnits = property.units?.length ?? 0
-			const occupiedUnits = property.units?.filter((u: PropertyUnit) => u.status === 'OCCUPIED').length ?? 0
+			const occupiedUnits = property.units?.filter((u: Property_Unit) => u.status === 'OCCUPIED').length ?? 0
 			const occupancyRate = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
-			const revenue = property.units?.reduce((sum: number, u: PropertyUnit) => {
+			const revenue = property.units?.reduce((sum: number, u: Property_Unit) => {
 				return u.status === 'OCCUPIED' ? sum + (u.rent || 0) : sum
 			}, 0) ?? 0
 
@@ -281,7 +277,7 @@ export const compactPropertyColumns: ColumnDef<PropertyWithUnits>[] = [
 		}
 	},
 
-	createActionsColumn<PropertyWithUnits>([
+	createActionsColumn<Property_WithUnits>([
 		{
 			label: 'View',
 			onClick: property => {

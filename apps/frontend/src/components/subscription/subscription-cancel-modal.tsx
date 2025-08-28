@@ -20,7 +20,7 @@ interface SubscriptionCancelModalProps {
 	isOpen: boolean
 	onClose: () => void
 	currentPlan: PlanType
-	userId: string
+	_userId: string
 	onCancelSuccess?: () => void
 }
 
@@ -38,7 +38,7 @@ export function SubscriptionCancelModal({
 	isOpen,
 	onClose,
 	currentPlan,
-	userId,
+	_userId,
 	onCancelSuccess
 }: SubscriptionCancelModalProps) {
 	const [step, setStep] = useState<

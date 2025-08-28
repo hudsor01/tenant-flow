@@ -1,5 +1,5 @@
 /**
- * React 19 Property Form with useOptimistic + Server Actions
+ * React 19 Property_ Form with useOptimistic + Server Actions
  * OVERWRITTEN: Native patterns only - NO React Hook Form, NO TanStack Query
  * Uses shared React 19 form components - DRY compliant
  */
@@ -9,10 +9,12 @@
 import React, { useOptimistic, startTransition } from 'react'
 import { useActionState } from 'react'
 import { createProperty, updateProperty } from '@/app/actions/properties'
-import type { PropertyWithUnits, PropertyFormData, Database, FormState } from '@repo/shared'
+import type { PropertyWithUnits, Database } from '@repo/shared'
+import type { PropertyFormData } from '@repo/shared/validation'
+import type { FormState } from '@repo/shared/types/ui'
  
-type Property = PropertyWithUnits
-type PropertyStatus = Database['public']['Enums']['PropertyStatus']
+type Property_ = PropertyWithUnits
+// No direct DB enum dependency — rely on shared validation unions
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -25,10 +27,10 @@ import { Separator } from '@/components/ui/separator'
 import { SuccessFeedback, ErrorFeedback, OptimisticFeedback } from '@/components/ui/feedback'
 
 // Types for form props
-interface PropertyFormProps {
-	property?: Property
-	properties: Property[]
-	onSuccess?: (property: Property) => void
+interface Property_FormProps {
+	property?: Property_
+	properties: Property_[]
+	onSuccess?: (property: Property_) => void
 	onClose?: () => void
 	className?: string
 }
@@ -36,55 +38,55 @@ interface PropertyFormProps {
 
 
 /**
- * Native React 19 Property Form using shared components
+ * Native React 19 Property_ Form using shared components
  */
-export function PropertyForm({
+export function Property_Form({
 	property,
 	properties,
 	onSuccess,
 	onClose,
 	className
-}: PropertyFormProps) {
+}: Property_FormProps) {
 	const isEditing = Boolean(property)
-	const title = isEditing ? 'Edit Property' : 'Create New Property'
+	const title = isEditing ? 'Edit Property_' : 'Create New Property_'
 	const description = isEditing
 		? 'Update property details and information'
 		: 'Add a new property to your portfolio'
 
 	// React 19 useOptimistic for instant UI updates
-	const [optimisticProperties, addOptimisticProperty] = useOptimistic(
+	const [optimisticProperties, addOptimisticProperty_] = useOptimistic(
 		properties,
-		(currentProperties: Property[], newProperty: Partial<Property>) => {
+		(currentProperties: Property_[], newProperty_: Partial<Property_>) => {
 			if (isEditing && property) {
 				// Update existing property optimistically
 				return currentProperties.map(p =>
 					p.id === property.id
-						? { ...p, ...newProperty }
+						? { ...p, ...newProperty_ }
 						: p
 				)
 			}
 			// Add new property optimistically
-			const tempProperty: Property = {
+    const tempProperty_: Property_ = {
 				// Base database fields
 				id: `temp-${Date.now()}`,
-				name: newProperty.name || 'New Property',
-				address: newProperty.address || '',
-				city: newProperty.city || '',
-				state: newProperty.state || '',
-				zipCode: newProperty.zipCode || '',
-				propertyType: (newProperty.propertyType as Database['public']['Enums']['PropertyType']) || 'SINGLE_FAMILY',
-				description: newProperty.description || null,
+				name: newProperty_.name || 'New Property_',
+				address: newProperty_.address || '',
+				city: newProperty_.city || '',
+				state: newProperty_.state || '',
+				zipCode: newProperty_.zipCode || '',
+        propertyType: (newProperty_.propertyType as Database['public']['Enums']['PropertyType']) || 'SINGLE_FAMILY',
+				description: newProperty_.description || null,
 				imageUrl: null,
 				ownerId: '',
 				createdAt: new Date().toISOString(),
 				updatedAt: new Date().toISOString(),
 				
-				// PropertyWithUnits computed fields
+				// Property_WithUnits computed fields
 				units: [],
 				totalUnits: 1,
 				monthlyRent: 0
 			}
-			return [...currentProperties, tempProperty]
+			return [...currentProperties, tempProperty_]
 		}
 	)
 
@@ -101,42 +103,36 @@ export function PropertyForm({
 				city: formData.get('city') as string,
 				state: formData.get('state') as string,
 				zipCode: formData.get('zipCode') as string,
-				propertyType: formData.get('propertyType') as Database['public']['Enums']['PropertyType'],
-				description: formData.get('description') as string,
-				monthlyRent: formData.has('monthlyRent') 
-					? parseFloat(formData.get('monthlyRent') as string)
-					: undefined,
-				totalUnits: formData.has('totalUnits')
-					? parseInt(formData.get('totalUnits') as string, 10)
-					: 1,
-				squareFeet: formData.has('squareFeet')
-					? parseInt(formData.get('squareFeet') as string, 10)
-					: undefined,
-				bedrooms: formData.has('bedrooms')
-					? parseInt(formData.get('bedrooms') as string, 10)
-					: undefined,
-				bathrooms: formData.has('bathrooms')
-					? parseFloat(formData.get('bathrooms') as string)
-					: undefined,
-				yearBuilt: formData.has('yearBuilt')
-					? parseInt(formData.get('yearBuilt') as string, 10)
-					: undefined,
+				propertyType: formData.get('propertyType') as PropertyFormData['propertyType'],
+				description: formData.get('description') as string || undefined,
+				// Use the correct field names from PropertyFormData
+				rent: formData.get('monthlyRent') as string || undefined,
+				deposit: formData.get('securityDeposit') as string || undefined,
+				squareFootage: formData.get('squareFeet') as string || undefined,
+				bedrooms: formData.get('bedrooms') as string || undefined,
+				bathrooms: formData.get('bathrooms') as string || undefined,
+				// Additional optional fields
+				imageUrl: undefined, // Can be added later
+				hasGarage: false,
+				hasPool: false,
+				numberOfUnits: formData.get('totalUnits') as string || undefined,
+				createUnitsNow: false
 			}
 
 			// Add optimistic update
-			// cast to Partial<Property> so the optimistic reducer accepts a partial update
-			startTransition(() => addOptimisticProperty(propertyData as Partial<Property>))
+			// cast to Partial<Property_> so the optimistic reducer accepts a partial update
+			startTransition(() => addOptimisticProperty_(propertyData as Partial<Property_>))
 
 			// Call server action with FormData
-			let result: Property
+			let _result: Property_
 			if (isEditing && property) {
-				result = await updateProperty(property.id, formData)
+				_result = await updateProperty(property.id, formData)
 			} else {
-				result = await createProperty(formData)
+				_result = await createProperty(formData)
 			}
 
 			// Success callback
-			onSuccess?.(result)
+			onSuccess?.(_result)
 
 			return { success: true }
 		} catch (error) {
@@ -158,24 +154,25 @@ export function PropertyForm({
 	)
 
 	// Find the optimistic property if creating/updating
-	const optimisticProperty = !isEditing
+	const optimisticProperty_ = !isEditing
 		? optimisticProperties.find(p => p.id.startsWith('temp-'))
 		: optimisticProperties.find(p => p.id === property?.id)
 
-	// Property type options
-	const propertyTypes = [
-		{ value: 'SINGLE_FAMILY', label: 'Single Family' },
-		{ value: 'MULTI_FAMILY', label: 'Multi Family' },
-		{ value: 'APARTMENT', label: 'Apartment' },
-		{ value: 'CONDO', label: 'Condominium' },
-		{ value: 'TOWNHOUSE', label: 'Townhouse' },
-		{ value: 'COMMERCIAL', label: 'Commercial' }
-	]
+	// Property_ type options
+    const propertyTypes = [
+        { value: 'SINGLE_FAMILY', label: 'Single Family' },
+        { value: 'MULTI_UNIT', label: 'Multi Unit' },
+        { value: 'APARTMENT', label: 'Apartment' },
+        { value: 'CONDO', label: 'Condominium' },
+        { value: 'TOWNHOUSE', label: 'Townhouse' },
+        { value: 'COMMERCIAL', label: 'Commercial' },
+        { value: 'OTHER', label: 'Other' }
+    ]
 
 	return (
 		<div className={cn('mx-auto w-full max-w-3xl', className)}>
 			{/* Optimistic feedback */}
-			{optimisticProperty && (
+			{optimisticProperty_ && (
 				<OptimisticFeedback 
 					className="mb-4"
 					isEditing={isEditing}
@@ -188,7 +185,7 @@ export function PropertyForm({
 			{/* Success feedback */}
 			{formState.success && (
 				<SuccessFeedback className="mb-4">
-					Property {isEditing ? 'updated' : 'created'} successfully!
+					Property_ {isEditing ? 'updated' : 'created'} successfully!
 				</SuccessFeedback>
 			)}
 
@@ -228,7 +225,7 @@ export function PropertyForm({
 							<div className="space-y-4">
 								<div className="space-y-2">
 									<Label htmlFor="name">
-										Property Name
+										Property_ Name
 										<span className="text-destructive ml-1">*</span>
 									</Label>
 									<Input
@@ -245,7 +242,7 @@ export function PropertyForm({
 								<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 									<div className="space-y-2">
 										<Label htmlFor="propertyType">
-											Property Type
+											Property_ Type
 											<span className="text-destructive ml-1">*</span>
 										</Label>
 										<Select 
@@ -308,7 +305,7 @@ export function PropertyForm({
 								<i className="i-lucide-map-pin h-4 w-4 text-muted-foreground" />
 								<div>
 									<h3 className="text-lg font-medium">Location</h3>
-									<p className="text-muted-foreground text-sm">Property address and location details</p>
+									<p className="text-muted-foreground text-sm">Property_ address and location details</p>
 								</div>
 							</div>
 							<div className="space-y-4">
@@ -430,12 +427,12 @@ export function PropertyForm({
 
 						<Separator />
 
-						{/* Property Details */}
+						{/* Property_ Details */}
 						<div className="space-y-4">
 							<div className="flex items-center gap-2">
 								<i className="i-lucide-ruler h-4 w-4 text-muted-foreground" />
 								<div>
-									<h3 className="text-lg font-medium">Property Details</h3>
+									<h3 className="text-lg font-medium">Property_ Details</h3>
 									<p className="text-muted-foreground text-sm">Size and specifications</p>
 								</div>
 							</div>
@@ -579,7 +576,7 @@ export function PropertyForm({
 								) : (
 									<div className="flex items-center gap-2">
 										<i className="i-lucide-save inline-block h-4 w-4"  />
-										{isEditing ? 'Update Property' : 'Create Property'}
+										{isEditing ? 'Update Property_' : 'Create Property_'}
 									</div>
 								)}
 							</Button>

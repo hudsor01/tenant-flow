@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils'
 const pageTitles: Record<string, string> = {
 	'/dashboard': 'Dashboard',
 	'/properties': 'Properties',
-	'/properties/new': 'Add Property',
+	'/properties/new': 'Add Property_',
 	'/tenants': 'Tenants',
 	'/tenants/new': 'Add Tenant',
 	'/leases': 'Leases',

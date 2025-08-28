@@ -34,7 +34,7 @@ export function OptimizedHeroSection({ locale }: OptimizedHeroSectionProps) {
 
 				{/* Main Value Prop - Modern typography */}
 				<h1 className="mb-6 text-5xl font-bold text-neutral-900 md:text-6xl lg:text-7xl">
-					Property Management
+					Property_ Management
 					<span className="text-brand-500 block">
 						Without the Headache
 					</span>

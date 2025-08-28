@@ -25,7 +25,7 @@ export function AvatarUploadSection({
 		if (file) {
 			const reader = new FileReader()
 			reader.onload = () => {
-				setPreviewUrl(reader.result as string)
+				setPreviewUrl((reader.result as string) || null)
 			}
 			reader.readAsDataURL(file)
 		} else {

@@ -3,19 +3,19 @@ import { FormSection } from '@/components/modals/base-form-modal'
 import type { UseFormReturn } from 'react-hook-form'
 import type { PropertyFormData } from '@repo/shared/validation'
 
-interface PropertyFeaturesSectionProps {
-	form: UseFormReturn<PropertyFormData>
+interface Property_FeaturesSectionProps {
+  form: UseFormReturn<PropertyFormData>
 }
 
 /**
- * Property features section component
+ * Property_ features section component
  * Handles amenities and property features (only shown in edit mode)
  */
-export function PropertyFeaturesSection({
+export function Property_FeaturesSection({
 	form
-}: PropertyFeaturesSectionProps) {
+}: Property_FeaturesSectionProps) {
 	return (
-		<FormSection icon="Property Features" title="Property Features" delay={2}>
+		<FormSection icon="Property_ Features" title="Property_ Features" delay={2}>
 			<div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
 				<p className="mb-4 text-sm text-gray-600">
 					Select the amenities and features available at this

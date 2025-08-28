@@ -134,7 +134,7 @@ export function PricingHero() {
 								Sarah Chen
 							</div>
 							<div className="text-sm text-gray-600">
-								Property Manager, BlueSky Realty
+								Property_ Manager, BlueSky Realty
 							</div>
 						</div>
 					</div>

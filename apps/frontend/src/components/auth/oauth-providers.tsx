@@ -27,15 +27,15 @@ export function OAuthProviders({
 		onProviderClick?.('Google')
 		setIsGoogleLoading(true)
 		try {
-			const result = await supabase.auth.signInWithOAuth({
+			const _result = await supabase.auth.signInWithOAuth({
 				provider: 'google',
 				options: {
 					redirectTo: `${window.location.origin}/auth/callback`
 				}
 			})
-			if (result.error) {
+			if (_result.error) {
 				toast.error(
-					result.error.message ?? 'Failed to sign in with Google'
+					_result.error.message ?? 'Failed to sign in with Google'
 				)
 				setIsGoogleLoading(false)
 			}

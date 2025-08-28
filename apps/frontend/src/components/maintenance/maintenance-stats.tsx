@@ -2,7 +2,7 @@ import { useMaintenanceStats } from '@/hooks/api/use-maintenance'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
-import type { MaintenanceStats } from '@repo/shared'
+import type { MaintenanceStats } from '@repo/shared/types/dashboard-stats'
 
 function MaintenanceStatsSkeleton() {
 	return (

@@ -11,7 +11,7 @@ import { ErrorBoundary } from 'react-error-boundary'
 // Static metadata for SEO optimization
 export const metadata: Metadata = {
   title: 'Dashboard | TenantFlow',
-  description: 'Property management dashboard with real-time insights'
+  description: 'Property_ management dashboard with real-time insights'
 }
 
 // Error fallback component

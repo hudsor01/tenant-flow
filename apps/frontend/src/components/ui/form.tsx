@@ -173,3 +173,6 @@ export {
 	FormMessage,
 	FormField
 }
+
+// Export compatibility alias for components using _FormDescription
+export { FormDescription as _FormDescription }

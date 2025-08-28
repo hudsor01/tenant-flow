@@ -218,7 +218,7 @@ export function DashboardRecentActivity() {
 								{[
 									{
 										href: '/properties',
-										label: 'Add Property',
+										label: 'Add Property_',
 										delay: 0.1
 									},
 									{

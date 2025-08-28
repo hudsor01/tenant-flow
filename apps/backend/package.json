@@ -46,6 +46,7 @@
 		"@nestjs/swagger": "^11.2.0",
 		"@nestjs/terminus": "11.0.0",
 		"@nestjs/throttler": "6.4.0",
+		"@react-email/components": "0.5.1",
 		"@repo/database": "*",
 		"@repo/shared": "*",
 		"@supabase/supabase-js": "^2.56.0",

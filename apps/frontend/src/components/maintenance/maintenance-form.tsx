@@ -13,7 +13,7 @@ import type { Database } from '@repo/shared'
 
 // Define types directly from Database schema - NO DUPLICATION
 type MaintenanceRequest = Database['public']['Tables']['MaintenanceRequest']['Row']
-type Property = Database['public']['Tables']['Property']['Row']
+type Property_ = Database['public']['Tables']['Property']['Row']
 type Unit = Database['public']['Tables']['Unit']['Row']
 type MaintenanceStatus = Database['public']['Enums']['RequestStatus']
 import { cn } from '@/lib/utils'
@@ -35,7 +35,7 @@ type FormState = {
 interface MaintenanceFormProps {
 	request?: MaintenanceRequest
 	requests: MaintenanceRequest[]
-	properties: Property[]
+	properties: Property_[]
 	units: Unit[]
 	onSuccess?: (request: MaintenanceRequest) => void
 	onClose?: () => void
@@ -72,41 +72,47 @@ export function MaintenanceForm({
 		formData: FormData
 	) {
 		try {
-			// Extract form values using native FormData API
-			const requestData = {
-				propertyId: formData.get('propertyId') as string,
-				unitId: formData.get('unitId') as string,
+			// Create optimistic request data matching MaintenanceRequest structure
+			const optimisticRequest: Partial<MaintenanceRequest> = {
+				id: crypto.randomUUID(), // Temporary ID for optimistic update
 				title: formData.get('title') as string,
 				description: formData.get('description') as string,
-				priority: formData.get('priority') as string,
-				status: 'OPEN',
-				estimatedCost: formData.has('estimatedCost') 
-					? parseFloat(formData.get('estimatedCost') as string)
-					: undefined,
-				preferredDate: formData.get('preferredDate') as string || undefined,
-				contactPhone: formData.get('contactPhone') as string || undefined,
+				priority: formData.get('priority') as Database['public']['Enums']['Priority'],
+				status: 'OPEN' as Database['public']['Enums']['RequestStatus'],
+				unitId: formData.get('unitId') as string,
+				estimatedCost: formData.has('estimatedCost') && formData.get('estimatedCost') 
+					? parseFloat(formData.get('estimatedCost') as string) 
+					: null,
+				preferredDate: formData.get('preferredDate') as string || null,
+				contactPhone: formData.get('contactPhone') as string || null,
 				allowEntry: formData.get('allowEntry') === 'on',
-				tenantId: '',  // Will be set by server
-				id: '',  // Will be set by server
-				createdAt: '',  // Will be set by server
-				updatedAt: ''  // Will be set by server
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString(),
+				// Fields with default null values
+				actualCost: null,
+				assignedTo: null,
+				category: formData.get('category') as string || null,
+				completedAt: null,
+				notes: null,
+				photos: null,
+				requestedBy: null
 			}
 
 			// Add optimistic update
-			addOptimistic(requestData as any)
+			addOptimistic(optimisticRequest as MaintenanceRequest)
 
 			// Call server action
-			let result: MaintenanceRequest
+			let _result: MaintenanceRequest
 			if (isEditing && request) {
 				// For editing, we only update status via server action
 				const status = formData.get('status') as string
-				result = await updateMaintenanceStatus(request.id, status as MaintenanceStatus)
+				_result = await updateMaintenanceStatus(request.id, status as MaintenanceStatus)
 			} else {
-				result = await createMaintenanceRequest(formData)
+				_result = await createMaintenanceRequest(formData)
 			}
 
 			// Success callback
-			onSuccess?.(result)
+			onSuccess?.(_result)
 
 			return { success: true }
 		} catch (error) {
@@ -179,7 +185,7 @@ export function MaintenanceForm({
 							</div>
 						)}
 
-						{/* Property & Unit Selection */}
+						{/* Property_ & Unit Selection */}
 						{!isEditing && (
 							<div className="space-y-2">
 								<h3 className="text-lg font-semibold">Location</h3>
@@ -187,12 +193,12 @@ export function MaintenanceForm({
 								<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 									<div className="space-y-2">
 										<Label htmlFor="propertyId">
-											Property
+											Property_
 											<span className="text-destructive ml-1">*</span>
 										</Label>
 										<Select 
 											name="propertyId" 
-											defaultValue={(request as any)?.propertyId}
+											defaultValue={properties.find(p => units.find(u => u.id === request?.unitId)?.propertyId === p.id)?.id}
 											disabled={isPending}
 											required
 										>

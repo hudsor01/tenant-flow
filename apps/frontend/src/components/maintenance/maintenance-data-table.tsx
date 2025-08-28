@@ -18,7 +18,7 @@ import {
 	TableRow
 } from '@/components/ui/table'
 import Link from 'next/link'
-import type { Database, MaintenanceRequestWithDetails } from '@repo/shared'
+import type { MaintenanceRequestApiResponse } from '@repo/shared'
 import {
 	getPriorityColor,
 	getPriorityLabel,
@@ -26,10 +26,10 @@ import {
 	getRequestStatusLabel
 } from '@repo/shared'
 
-// Define types directly from API response - NO DUPLICATION
-type MaintenanceRequest = MaintenanceRequestWithDetails
-type Priority = Database['public']['Enums']['Priority']
-type RequestStatus = Database['public']['Enums']['RequestStatus']
+// Use flattened API response shape from RPC
+type MaintenanceRequest = MaintenanceRequestApiResponse
+type Priority = MaintenanceRequest['priority']
+type RequestStatus = MaintenanceRequest['status']
 
 function MaintenanceRow({
 	request
@@ -83,8 +83,8 @@ function MaintenanceRow({
 						</p>
 						<div className="text-muted-foreground flex items-center gap-1 text-sm">
 							<i className="i-lucide-home inline-block h-3 w-3"  />
-							{request.unit.property.name || 'Unknown Property'}{' '}
-							{request.unit.unitNumber && `- Unit ${request.unit.unitNumber}`}
+                    {request.propertyName || 'Unknown Property_'}{' '}
+                    {request.unitNumber && `- Unit ${request.unitNumber}`}
 						</div>
 					</div>
 				</div>
@@ -143,7 +143,7 @@ function MaintenanceTableSkeleton() {
 }
 
 interface MaintenanceTableUIProps {
-	requests: MaintenanceRequestWithDetails[]
+	requests: MaintenanceRequest[]
 }
 
 function MaintenanceTableUI({ requests }: MaintenanceTableUIProps) {
@@ -261,7 +261,7 @@ export function MaintenanceDataTable() {
 
 	return (
 		<MaintenanceTableUI
-			requests={requests as any || []}
+			requests={requests || []}
 		/>
 	)
 }

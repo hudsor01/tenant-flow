@@ -50,16 +50,16 @@ export function Checkout({
 
 		try {
 			// Confirm the payment using the checkout session
-			const result = await checkout.confirm({
+			const _result = await checkout.confirm({
 				redirect: 'if_required' // Stay on page if possible
 			})
 
-			// Check the result type
-			if (result.type === 'error') {
+			// Check the _result type
+			if (_result.type === 'error') {
 				const errorMessage = 'Payment failed'
 				setErrorMessage(errorMessage)
 				onError?.(errorMessage)
-			} else if (result.type === 'success') {
+			} else if (_result.type === 'success') {
 				// Payment succeeded
 				onSuccess?.()
 			}

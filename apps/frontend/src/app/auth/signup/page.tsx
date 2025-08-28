@@ -36,7 +36,7 @@ export default async function SignupPage({
 			side="right"
 			image={{
 				src: '/property-management-og.jpg',
-				alt: 'Property management platform'
+				alt: 'Property_ management platform'
 			}}
 			heroContent={{
 				title: 'Start Your 14-Day Free Trial',

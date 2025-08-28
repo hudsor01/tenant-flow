@@ -42,6 +42,36 @@
 		"outDir": "./dist",
 		"rootDir": "./src",
 		"baseUrl": ".",
+		"paths": {
+			"react": ["../../node_modules/react", "node_modules/react"],
+			"react/*": ["../../node_modules/react/*", "node_modules/react/*"],
+			"zod": ["../../node_modules/zod"],
+			"zod/*": ["../../node_modules/zod/*"],
+			"@tanstack/react-query": [
+				"../../node_modules/@tanstack/react-query"
+			],
+			"@tanstack/react-query/*": [
+				"../../node_modules/@tanstack/react-query/*"
+			],
+			"react-hook-form": [
+				"node_modules/react-hook-form",
+				"../../node_modules/react-hook-form"
+			],
+			"react-hook-form/*": [
+				"node_modules/react-hook-form/*",
+				"../../node_modules/react-hook-form/*"
+			],
+			"class-variance-authority": [
+				"node_modules/class-variance-authority",
+				"../../node_modules/class-variance-authority"
+			],
+			"class-variance-authority/*": [
+				"node_modules/class-variance-authority/*",
+				"../../node_modules/class-variance-authority/*"
+			],
+			"*": ["node_modules/*", "../../node_modules/*"]
+		},
+		"typeRoots": ["./node_modules/@types", "../../node_modules/@types"],
 		"noEmit": false,
 		"declaration": true,
 		"declarationMap": true,
@@ -49,6 +79,6 @@
 		"tsBuildInfoFile": "./dist/.tsbuildinfo"
 	},
 	"include": ["src/**/*"],
-	"exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"],
+	"exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts", "src/types/frontend-only.ts"],
 	"references": []
 }

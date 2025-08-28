@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 		default: 'Dashboard - TenantFlow'
 	},
 	description:
-		'Property management dashboard for landlords and property managers.',
+		'Property_ management dashboard for landlords and property managers.',
 	robots: { index: false, follow: false } // Private area
 }
 

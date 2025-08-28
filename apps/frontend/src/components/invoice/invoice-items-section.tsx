@@ -6,10 +6,7 @@ import type {
 	UseFormRegister,
 	UseFieldArrayReturn,
 	UseFormSetValue,
-	UseFormGetValues,
-	FieldArrayPath,
-	FieldPath,
-	FieldValues
+	UseFormGetValues
 } from 'react-hook-form'
 import type { CustomerInvoiceForm, CustomerInvoiceItem } from '@repo/shared/types/invoices' // Import CustomerInvoiceItem
 

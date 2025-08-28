@@ -4,32 +4,32 @@ import { FormSection } from '@/components/modals/base-form-modal'
 import type { UseFormReturn } from 'react-hook-form'
 import type { PropertyFormData } from '@repo/shared/validation'
 
-interface PropertyBasicInfoSectionProps {
-	form: UseFormReturn<PropertyFormData>
+interface Property_BasicInfoSectionProps {
+  form: UseFormReturn<PropertyFormData>
 	propertyType: string
 	numberOfUnits?: number
 	mode: 'create' | 'edit'
 }
 
 /**
- * Property basic information section component
+ * Property_ basic information section component
  * Handles property name, type selection, and unit configuration
  */
-export function PropertyBasicInfoSection({
+export function Property_BasicInfoSection({
 	form,
 	propertyType,
 	numberOfUnits,
 	mode
-}: PropertyBasicInfoSectionProps) {
+}: Property_BasicInfoSectionProps) {
 	return (
 		<FormSection icon="i-lucide-building-2" title="Basic Information" delay={0}>
-			{/* Property Name */}
+			{/* Property_ Name */}
 			<div className="space-y-2">
 				<Label
 					htmlFor="name"
 					className="text-sm font-medium text-gray-700"
 				>
-					Property Name *
+					Property_ Name *
 				</Label>
 				<div className="relative">
 					<i className="i-lucide-building-2 inline-block absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400"  />
@@ -47,13 +47,13 @@ export function PropertyBasicInfoSection({
 				)}
 			</div>
 
-			{/* Property Type */}
+			{/* Property_ Type */}
 			<div className="space-y-2">
 				<Label
 					htmlFor="propertyType"
 					className="text-sm font-medium text-gray-700"
 				>
-					Property Type *
+					Property_ Type *
 				</Label>
 				<select
 					id="propertyType"
@@ -63,7 +63,7 @@ export function PropertyBasicInfoSection({
 					<option value="SINGLE_FAMILY">Single Family Home</option>
 					<option value="MULTI_UNIT">Multi-Unit Building</option>
 					<option value="APARTMENT">Apartment Complex</option>
-					<option value="COMMERCIAL">Commercial Property</option>
+					<option value="COMMERCIAL">Commercial Property_</option>
 				</select>
 				{form.formState.errors.propertyType && (
 					<p className="text-sm text-red-600">

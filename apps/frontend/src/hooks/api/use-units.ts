@@ -11,11 +11,9 @@ import {
 import type {
 	Unit,
 	UnitQuery,
-	CreateUnitInput,
-	UpdateUnitInput,
 	UnitStats
 } from '@repo/shared'
-import { get, post, put, del } from '@/lib/api-client'
+import { get } from '@/lib/api-client'
 import { queryKeys } from '@/lib/react-query/query-keys'
 
 // ============================================================================

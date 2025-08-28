@@ -123,6 +123,12 @@ export const queryKeys = {
 		usage: () => [...queryKeys.billing.all(), 'usage'] as const
 	},
 
+	// PDF
+	pdf: {
+		all: () => [...queryKeys.all, 'pdf'] as const,
+		health: () => [...queryKeys.pdf.all(), 'health'] as const
+	},
+
 	// Notifications
 	notifications: {
 		all: () => [...queryKeys.all, 'notifications'] as const,

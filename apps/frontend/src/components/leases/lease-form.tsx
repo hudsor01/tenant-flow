@@ -13,7 +13,7 @@ import type { Database } from '@repo/shared'
 
 // Define types directly from Database schema - NO DUPLICATION
 type Lease = Database['public']['Tables']['Lease']['Row']
-type Property = Database['public']['Tables']['Property']['Row']
+type Property_ = Database['public']['Tables']['Property']['Row']
 type Tenant = Database['public']['Tables']['Tenant']['Row']
 type Unit = Database['public']['Tables']['Unit']['Row']
 import { cn } from '@/lib/utils'
@@ -29,7 +29,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 interface LeaseFormProps {
 	lease?: Lease
 	leases: Lease[]
-	properties: Property[]
+	properties: Property_[]
 	tenants: Tenant[]
 	units: Unit[]
 	onSuccess?: (lease: Lease) => void
@@ -65,15 +65,15 @@ export function LeaseForm({
 		try {
 			// React 19 useActionState handles optimistic updates natively
 			// Call server action directly with FormData (no intermediate object needed)
-			let result: Lease
+			let _result: Lease
 			if (isEditing && lease) {
-				result = await updateLease(lease.id, formData)
+				_result = await updateLease(lease.id, formData)
 			} else {
-				result = await createLease(formData)
+				_result = await createLease(formData)
 			}
 
 			// Success callback
-			onSuccess?.(result)
+			onSuccess?.(_result)
 
 			return { success: true }
 		} catch (error) {
@@ -127,7 +127,7 @@ export function LeaseForm({
 
 				<CardContent>
 					<form action={formDispatch} className="space-y-6">
-						{/* Tenant & Property Selection */}
+						{/* Tenant & Property_ Selection */}
 						<div className="space-y-4">
 							<div className="border-b border-border pb-2">
 								<h3 className="text-lg font-medium">Lease Parties</h3>
@@ -159,7 +159,7 @@ export function LeaseForm({
 
 								<div className="space-y-2">
 									<Label htmlFor="propertyId">
-										Property <span className="text-destructive ml-1">*</span>
+										Property_ <span className="text-destructive ml-1">*</span>
 									</Label>
 									<Select 
 										name="propertyId" 

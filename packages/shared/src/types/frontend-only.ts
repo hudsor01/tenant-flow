@@ -4,6 +4,9 @@
  * Updated for React 19 compatibility
  */
 
+// Type definitions that rely on React namespace
+// These will work when React types are available in the consuming app
+
 // ========================
 // React 19 Event and Handler Types (Frontend Only)
 // ========================
@@ -12,7 +15,7 @@
  * Change event handler for form inputs
  * React 19 compatible with proper typing
  */
-export type ChangeHandler<T = HTMLInputElement> = (
+export type ChangeHandler<T extends HTMLElement = HTMLInputElement> = (
 	event: React.ChangeEvent<T>
 ) => void
 
@@ -20,13 +23,15 @@ export type ChangeHandler<T = HTMLInputElement> = (
  * Click event handler
  * React 19 compatible with proper typing
  */
-export type ClickHandler<T = HTMLElement> = (event: React.MouseEvent<T>) => void
+export type ClickHandler<T extends HTMLElement = HTMLElement> = (
+	event: React.MouseEvent<T>
+) => void
 
 /**
  * Submit event handler
  * React 19 compatible with proper typing
  */
-export type SubmitHandler<T = HTMLFormElement> = (
+export type SubmitHandler<T extends HTMLElement = HTMLFormElement> = (
 	event: React.FormEvent<T>
 ) => void
 
@@ -49,7 +54,7 @@ export type FormAction = string | ((formData: FormData) => void | Promise<void>)
  * Event handler with optional preventDefault
  * Common pattern for form submissions
  */
-export type PreventableEventHandler<T = React.FormEvent> = (
+export type PreventableEventHandler<T extends Event = Event> = (
 	event: T
 ) => void | Promise<void>
 
@@ -57,26 +62,30 @@ export type PreventableEventHandler<T = React.FormEvent> = (
  * Generic async event handler
  * For async operations triggered by user events
  */
-export type AsyncEventHandler<T = React.SyntheticEvent> = (
+export type AsyncEventHandler<T extends Event = Event> = (
 	event: T
 ) => Promise<void>
 
 /**
  * Keyboard event handler
  */
-export type KeyboardHandler<T = HTMLElement> = (
+export type KeyboardHandler<T extends HTMLElement = HTMLElement> = (
 	event: React.KeyboardEvent<T>
 ) => void
 
 /**
  * Focus event handler
  */
-export type FocusHandler<T = HTMLElement> = (event: React.FocusEvent<T>) => void
+export type FocusHandler<T extends HTMLElement = HTMLElement> = (
+	event: React.FocusEvent<T>
+) => void
 
 /**
  * Blur event handler
  */
-export type BlurHandler<T = HTMLElement> = (event: React.FocusEvent<T>) => void
+export type BlurHandler<T extends HTMLElement = HTMLElement> = (
+	event: React.FocusEvent<T>
+) => void
 
 // ========================
 // React 19 Component Prop Types (Frontend Only)
@@ -92,24 +101,22 @@ export type WithChildren<T = Record<string, unknown>> = T & {
 /**
  * Props for components that can be rendered as different elements
  */
-export interface AsProps<T extends React.ElementType = React.ElementType> {
+export interface AsProps<T = React.ComponentType> {
 	as?: T
 }
 
 /**
  * Form props for React 19 with action support
  */
-export interface FormProps
-	extends Omit<React.FormHTMLAttributes<HTMLFormElement>, 'action'> {
+export interface FormProps {
 	action?: FormAction
-	onSubmit?: SubmitHandler
+	onSubmit?: SubmitHandler<HTMLFormElement>
 }
 
 /**
  * Button props for React 19 with formAction support
  */
-export interface ButtonProps
-	extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'formAction'> {
+export interface ButtonProps {
 	formAction?: FormAction
 	onClick?: ClickHandler<HTMLButtonElement>
 }
@@ -117,12 +124,8 @@ export interface ButtonProps
 /**
  * Input props with proper event handlers
  */
-export interface InputProps
-	extends Omit<
-		React.InputHTMLAttributes<HTMLInputElement>,
-		'onChange' | 'onBlur' | 'onFocus'
-	> {
-	onChange?: ChangeHandler
+export interface InputProps {
+	onChange?: ChangeHandler<HTMLInputElement>
 	onBlur?: BlurHandler<HTMLInputElement>
 	onFocus?: FocusHandler<HTMLInputElement>
 }
@@ -130,11 +133,7 @@ export interface InputProps
 /**
  * Select props with proper event handlers
  */
-export interface SelectProps
-	extends Omit<
-		React.SelectHTMLAttributes<HTMLSelectElement>,
-		'onChange' | 'onBlur' | 'onFocus'
-	> {
+export interface SelectProps {
 	onChange?: ChangeHandler<HTMLSelectElement>
 	onBlur?: BlurHandler<HTMLSelectElement>
 	onFocus?: FocusHandler<HTMLSelectElement>
@@ -143,11 +142,7 @@ export interface SelectProps
 /**
  * Textarea props with proper event handlers
  */
-export interface TextareaProps
-	extends Omit<
-		React.TextareaHTMLAttributes<HTMLTextAreaElement>,
-		'onChange' | 'onBlur' | 'onFocus'
-	> {
+export interface TextareaProps {
 	onChange?: ChangeHandler<HTMLTextAreaElement>
 	onBlur?: BlurHandler<HTMLTextAreaElement>
 	onFocus?: FocusHandler<HTMLTextAreaElement>

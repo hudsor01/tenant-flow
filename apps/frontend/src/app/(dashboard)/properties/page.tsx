@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
-import PropertyStatsSection from '@/components/properties/property-stats-section'
+import Property_StatsSection from '@/components/properties/property-stats-section'
 import { PropertiesClient } from './properties-client'
 
 /**
@@ -61,7 +61,7 @@ export default function PropertiesPage() {
 					<div className="bg-muted h-32 animate-pulse rounded" />
 				}
 			>
-				<PropertyStatsSection 
+				<Property_StatsSection 
 					stats={{
 						totalUnits: 0,
 						occupiedUnits: 0,

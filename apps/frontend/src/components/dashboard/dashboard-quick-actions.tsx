@@ -64,7 +64,7 @@ function QuickAction({
 }
 
 interface QuickActionsPanelProps {
-	onAddProperty?: () => void
+	onAddProperty_?: () => void
 	onNewTenant?: () => void
 	onScheduleMaintenance?: () => void
 	onGenerateReport?: () => void
@@ -72,11 +72,11 @@ interface QuickActionsPanelProps {
 
 const defaultQuickActions = [
 	{
-		title: 'Add Property',
+		title: 'Add Property_',
 		description: 'Register a new property to your portfolio',
 		icon: 'i-lucide-building-2',
 		color: 'navy' as const,
-		action: 'onAddProperty' as const
+		action: 'onAddProperty_' as const
 	},
 	{
 		title: 'New Tenant',
@@ -102,14 +102,14 @@ const defaultQuickActions = [
 ]
 
 export function DashboardQuickActions({
-	onAddProperty,
+	onAddProperty_,
 	onNewTenant,
 	onScheduleMaintenance,
 	onGenerateReport
 }: QuickActionsPanelProps) {
 	const actionHandlers = {
-		onAddProperty:
-			onAddProperty ||
+		onAddProperty_:
+			onAddProperty_ ||
 			(() =>
 				logger.info('Add property clicked', {
 					component: 'dashboardquickactions'

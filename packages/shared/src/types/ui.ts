@@ -3,8 +3,17 @@
  * CONSOLIDATED from 150+ scattered Props interfaces across frontend
  */
 
-// Use generic ReactNode type to avoid React dependency in shared package
-export type ReactNode = any
+// Define ReactNode without importing React to avoid build dependency issues
+// This keeps the shared package React-agnostic while maintaining type compatibility
+// ReactNode can be string, number, boolean, null, undefined, or nested array of these
+export type ReactNode = 
+  | string 
+  | number 
+  | boolean 
+  | null 
+  | undefined 
+  | ReactNode[]
+  | { key?: string | number; props?: Record<string, unknown>; type?: unknown }
 
 // =============================================================================
 // COMMON UI PATTERNS - BASE PROPS
@@ -226,6 +235,36 @@ export interface FormField {
 	defaultValue?: string | number | boolean
 }
 
+/**
+ * Event type for form input changes
+ * Compatible with both native and React synthetic events
+ */
+export interface FormChangeEvent {
+	target: {
+		name: string
+		value: string | number | boolean
+		type?: string
+		checked?: boolean
+		files?: FileList | null
+	}
+	preventDefault?: () => void
+	stopPropagation?: () => void
+}
+
+/**
+ * Event type for form input blur/focus
+ * Compatible with both native and React synthetic events
+ */
+export interface FormFocusEvent {
+	target: {
+		name: string
+		value: string | number | boolean
+		type?: string
+	}
+	preventDefault?: () => void
+	stopPropagation?: () => void
+}
+
 // Form field props for React components
 export interface FormFieldProps {
 	name: string
@@ -237,16 +276,8 @@ export interface FormFieldProps {
 	error?: string | string[]
 	touched?: boolean
 	value?: unknown
-	onChange?: (
-		e: React.ChangeEvent<
-			HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-		>
-	) => void
-	onBlur?: (
-		e: React.FocusEvent<
-			HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-		>
-	) => void
+	onChange?: (e: FormChangeEvent) => void
+	onBlur?: (e: FormFocusEvent) => void
 }
 
 // =============================================================================

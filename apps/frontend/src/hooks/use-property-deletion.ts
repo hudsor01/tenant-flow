@@ -17,7 +17,7 @@ interface PropertyDeletionState {
 	error?: string
 }
 
-export function usePropertyDeletion(config: PropertyDeletionConfig = {}) {
+export function usePropertyDeletion(_config: PropertyDeletionConfig = {}) {
 	// Server action wrapper to match useActionState signature
 	const wrappedDeleteAction = async (
 		prevState: PropertyDeletionState,

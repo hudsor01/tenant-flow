@@ -10,7 +10,7 @@ import {
 	type UseMutationResult
 } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { apiClient } from '@/lib/api-client'
+import { apiClient, get } from '@/lib/api-client'
 import { queryKeys } from '@/lib/query-keys'
 import type { PaymentMethod, Subscription } from '@repo/shared'
 

@@ -141,23 +141,23 @@ function VerifyEmailContent({ email }: VerifyEmailContentProps) {
 		startTransition(async () => {
 			try {
 				setMessage(null)
-				const result = await resendVerificationEmail(email)
+				const _result = await resendVerificationEmail(email)
 
 				setResendAttempts(prev => prev + 1)
 				setLastResendTime(Date.now())
 
 				setMessage({
-					type: result.success ? 'success' : 'error',
-					text: result.message
+					type: _result.success ? 'success' : 'error',
+					text: _result.message
 				})
 
-				if (result.success) {
+				if (_result.success) {
 					toast.success('Verification email sent!', {
 						description: 'Please check your inbox and spam folder.'
 					})
 				} else {
 					toast.error('Failed to send email', {
-						description: result.message
+						description: _result.message
 					})
 				}
 			} catch {

@@ -7,11 +7,11 @@ import Link from 'next/link'
 import { apiClient } from '@repo/shared'
 import type { PropertyWithUnits } from '@repo/shared'
 
-// Use PropertyWithUnits for components that need computed fields and relations
-type Property = PropertyWithUnits
+// Use Property_WithUnits for components that need computed fields and relations
+type Property_ = PropertyWithUnits
 
 // Loading skeleton for property cards
-function PropertyCardSkeleton() {
+function Property_CardSkeleton() {
 	return (
 		<Card>
 			<CardHeader>
@@ -40,8 +40,8 @@ function PropertyCardSkeleton() {
 	)
 }
 
-// Property card component
-function PropertyCard({ property }: { property: Property }) {
+// Property_ card component
+function Property_Card({ property }: { property: Property_ }) {
 	return (
 		<Card className="transition-shadow hover:shadow-md">
 			<CardHeader>
@@ -69,7 +69,7 @@ function PropertyCard({ property }: { property: Property }) {
 						<span className="flex items-center gap-2">
 							<i className="i-lucide-building inline-block h-4 w-4"  />
 							{property.propertyType?.replace('_', ' ') ||
-								'Property'}
+								'Property_'}
 						</span>
 						<span className="flex items-center gap-2">
 							<i className="i-lucide-users inline-block h-4 w-4"  />
@@ -95,7 +95,7 @@ function PropertyCard({ property }: { property: Property }) {
 }
 
 // Stats component
-async function PropertyStatsComponent() {
+async function Property_StatsComponent() {
 	const stats = await apiClient<{
 		total: number
 		active: number
@@ -156,7 +156,7 @@ async function PropertyStatsComponent() {
 
 // Properties list component
 async function PropertiesList() {
-	const properties = await apiClient<PropertyWithUnits[]>('/api/properties')
+  const properties = await apiClient<PropertyWithUnits[]>('/api/properties')
 
 	if (!properties || properties.length === 0) {
 		return (
@@ -172,7 +172,7 @@ async function PropertiesList() {
 					<Button asChild>
 						<Link href="/properties/new">
 							<i className="i-lucide-plus inline-block mr-2 h-4 w-4"  />
-							Add Property
+							Add Property_
 						</Link>
 					</Button>
 				</CardContent>
@@ -183,14 +183,14 @@ async function PropertiesList() {
 	return (
 		<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
 			{properties.map(property => (
-				<PropertyCard key={property.id} property={property} />
+				<Property_Card key={property.id} property={property} />
 			))}
 		</div>
 	)
 }
 
 // Main server component
-export default function PropertyListServer() {
+export default function Property_ListServer() {
 	return (
 		<div className="space-y-6">
 			{/* Page Header */}
@@ -204,7 +204,7 @@ export default function PropertyListServer() {
 				<Button asChild>
 					<Link href="/properties/new">
 						<i className="i-lucide-plus inline-block mr-2 h-4 w-4"  />
-						Add Property
+						Add Property_
 					</Link>
 				</Button>
 			</div>
@@ -224,7 +224,7 @@ export default function PropertyListServer() {
 					</div>
 				}
 			>
-				<PropertyStatsComponent />
+				<Property_StatsComponent />
 			</Suspense>
 
 			{/* Properties List */}
@@ -232,7 +232,7 @@ export default function PropertyListServer() {
 				fallback={
 					<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
 						{[1, 2, 3, 4, 5, 6].map(i => (
-							<PropertyCardSkeleton key={i} />
+							<Property_CardSkeleton key={i} />
 						))}
 					</div>
 				}

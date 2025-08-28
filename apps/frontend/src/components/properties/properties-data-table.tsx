@@ -1,7 +1,7 @@
 'use client'
 
 import { useProperties } from '@/hooks/api/use-properties'
-import { PropertyListLoading } from './property-list-loading'
+import { Property_ListLoading } from './property-list-loading'
 import {
 	Card,
 	CardContent,
@@ -29,19 +29,15 @@ import {
 } from '@/components/ui/dropdown-menu'
 import Link from 'next/link'
 import type { PropertyWithUnits } from '@repo/shared'
-import type { Database } from '@repo/shared'
-
-// Define Property type for local use
-type Property = Database['public']['Tables']['Property']['Row']
 
 // Use relation type that includes units for property data table
-interface PropertyRowProps {
-	property: PropertyWithUnits
-	onView?: (property: PropertyWithUnits) => void
-	onEdit?: (property: PropertyWithUnits) => void
+interface Property_RowProps {
+  property: PropertyWithUnits
+  onView?: (property: PropertyWithUnits) => void
+  onEdit?: (property: PropertyWithUnits) => void
 }
 
-function PropertyRow({ property, onView, onEdit }: PropertyRowProps) {
+function Property_Row({ property, onView, onEdit }: Property_RowProps) {
 	const totalUnits = property.units?.length ?? 0
 	const occupiedUnits =
 		property.units?.filter(unit => unit.status === 'OCCUPIED').length ?? 0
@@ -129,13 +125,13 @@ function PropertyRow({ property, onView, onEdit }: PropertyRowProps) {
 	)
 }
 
-interface PropertyCardProps {
-	property: PropertyWithUnits
-	onView?: (property: PropertyWithUnits) => void
-	onEdit?: (property: PropertyWithUnits) => void
+interface Property_CardProps {
+  property: PropertyWithUnits
+  onView?: (property: PropertyWithUnits) => void
+  onEdit?: (property: PropertyWithUnits) => void
 }
 
-function PropertyCard({ property, onView, onEdit }: PropertyCardProps) {
+function Property_Card({ property, onView, onEdit }: Property_CardProps) {
 	const totalUnits = property.units?.length ?? 0
 	const occupiedUnits =
 		property.units?.filter(unit => unit.status === 'OCCUPIED').length ?? 0
@@ -181,7 +177,7 @@ function PropertyCard({ property, onView, onEdit }: PropertyCardProps) {
 								onClick={() => onEdit?.(property)}
 							>
 								<i className="i-lucide-edit-3 inline-block mr-2 h-4 w-4"  />
-								Edit Property
+								Edit Property_
 							</DropdownMenuItem>
 						</DropdownMenuContent>
 					</DropdownMenu>
@@ -227,11 +223,11 @@ function PropertyCard({ property, onView, onEdit }: PropertyCardProps) {
 	)
 }
 
-// Moved to separate pure component - use PropertyListLoading instead
+// Moved to separate pure component - use Property_ListLoading instead
 
 // Filter properties based on search and type criteria
 function filterProperties(
-	properties: PropertyWithUnits[] | undefined,
+  properties: PropertyWithUnits[] | undefined,
 	searchQuery: string,
 	_propertyType: string
 ): PropertyWithUnits[] {
@@ -256,17 +252,17 @@ function filterProperties(
 }
 
 interface PropertiesTableUIProps {
-	properties: PropertyWithUnits[]
+  properties: PropertyWithUnits[]
 	hasFilters: boolean
-	onViewProperty?: (property: PropertyWithUnits) => void
-	onEditProperty?: (property: PropertyWithUnits) => void
+  onViewProperty_?: (property: PropertyWithUnits) => void
+  onEditProperty_?: (property: PropertyWithUnits) => void
 }
 
 function PropertiesTableUI({
 	properties,
 	hasFilters,
-	onViewProperty,
-	onEditProperty
+	onViewProperty_,
+	onEditProperty_
 }: PropertiesTableUIProps) {
 	if (!properties.length) {
 		return (
@@ -294,7 +290,7 @@ function PropertiesTableUI({
 							<Link href="/properties/new">
 								<Button>
 									<span className="i-lucide-plus mr-2 h-4 w-4" />
-									Add First Property
+									Add First Property_
 								</Button>
 							</Link>
 						)}
@@ -318,7 +314,7 @@ function PropertiesTableUI({
 						<Button size="sm">
 							<span className="i-lucide-plus mr-2 h-4 w-4" />
 							<span className="hidden sm:inline">
-								Add Property
+								Add Property_
 							</span>
 							<span className="sm:hidden">Add</span>
 						</Button>
@@ -328,12 +324,12 @@ function PropertiesTableUI({
 			<CardContent>
 				{/* Mobile Card View */}
 				<div className="space-y-4 md:hidden">
-					{properties.map((property: PropertyWithUnits) => (
-						<PropertyCard
+          {properties.map((property: PropertyWithUnits) => (
+						<Property_Card
 							key={property.id}
 							property={property}
-							onView={onViewProperty}
-							onEdit={onEditProperty}
+							onView={onViewProperty_}
+							onEdit={onEditProperty_}
 						/>
 					))}
 				</div>
@@ -344,7 +340,7 @@ function PropertiesTableUI({
 						<Table>
 							<TableHeader>
 								<TableRow>
-									<TableHead>Property</TableHead>
+									<TableHead>Property_</TableHead>
 									<TableHead>Type</TableHead>
 									<TableHead>Units</TableHead>
 									<TableHead>Tenants</TableHead>
@@ -355,12 +351,12 @@ function PropertiesTableUI({
 								</TableRow>
 							</TableHeader>
 							<TableBody>
-								{properties.map((property: PropertyWithUnits) => (
-									<PropertyRow
+                    {properties.map((property: PropertyWithUnits) => (
+									<Property_Row
 										key={property.id}
 										property={property}
-										onView={onViewProperty}
-										onEdit={onEditProperty}
+										onView={onViewProperty_}
+										onEdit={onEditProperty_}
 									/>
 								))}
 							</TableBody>
@@ -383,15 +379,15 @@ function PropertiesTableUI({
 interface PropertiesDataTableProps {
 	searchQuery?: string
 	propertyType?: string
-	onViewProperty?: (property: PropertyWithUnits) => void
-	onEditProperty?: (property: PropertyWithUnits) => void
+	onViewProperty_?: (property: PropertyWithUnits) => void
+	onEditProperty_?: (property: PropertyWithUnits) => void
 }
 
 export function PropertiesDataTable({
 	searchQuery = '',
 	propertyType = '',
-	onViewProperty,
-	onEditProperty
+	onViewProperty_,
+	onEditProperty_
 }: PropertiesDataTableProps) {
 	const { data: properties, isLoading, error } = useProperties()
 
@@ -406,7 +402,7 @@ export function PropertiesDataTable({
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<PropertyListLoading />
+					<Property_ListLoading />
 				</CardContent>
 			</Card>
 		)
@@ -429,8 +425,8 @@ export function PropertiesDataTable({
 		<PropertiesTableUI
 			properties={filteredProperties}
 			hasFilters={hasFilters}
-			onViewProperty={onViewProperty}
-			onEditProperty={onEditProperty}
+			onViewProperty_={onViewProperty_}
+			onEditProperty_={onEditProperty_}
 		/>
 	)
 }

@@ -59,7 +59,7 @@ export function CommandPalette() {
 
 	// Quick actions
 	const quickActions = [
-		{ title: 'Add Property', path: '/properties/new', keywords: 'create new property' },
+		{ title: 'Add Property_', path: '/properties/new', keywords: 'create new property' },
 		{ title: 'Add Tenant', path: '/tenants/new', keywords: 'create new tenant' },
 		{ title: 'Create Lease', path: '/leases/new', keywords: 'new lease agreement' },
 		{ title: 'New Maintenance Request', path: '/maintenance/new', keywords: 'repair request' }
@@ -130,7 +130,7 @@ export function CommandPalette() {
 
 					{filteredNavigation.length === 0 && filteredActions.length === 0 && (
 						<div className="px-3 py-8 text-center text-sm text-muted-foreground">
-							No results found for "{search}"
+							No _results found for "{search}"
 						</div>
 					)}
 				</div>

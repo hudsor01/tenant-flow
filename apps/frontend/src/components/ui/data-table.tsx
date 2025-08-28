@@ -280,7 +280,7 @@ export function EnhancedDataTable<TData, TValue>({
 										</div>
 										<div className="space-y-1">
 											<p className="text-lg font-semibold">
-												No results found
+												No _results found
 											</p>
 											<p className="text-sm">
 												Try adjusting your search or
@@ -442,7 +442,7 @@ export function createActionsColumn<T>(
 	}
 }
 
-// Property management specific select column
+// Property_ management specific select column
 export function createSelectColumn<_T>() {
 	return {
 		id: 'select',

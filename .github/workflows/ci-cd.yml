@@ -1,42 +1,37 @@
-name: Build & Deploy
-
-on:
-  push:
-    branches: [main, develop, test/**]
-  pull_request:
-    branches: [main]
-
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+env:
+  NODE_VERSION: '24'
 jobs:
-  build:
-    name: 🚀 Build & Test
+  build-and-test:
+    name: Build and Test
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
-      - name: Setup Node.js 24
+
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 24
           cache: 'npm'
-      
+          node-version: ${{ env.NODE_VERSION }}
+
       - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit --no-fund
-      
-      - name: Build packages
-        run: |
-          echo "📦 Building shared package..."
-          npm run build:shared
-          
-          echo "🏗️ Building backend..."
-          npm run build:backend
-          
-          echo "✅ Build successful!"
-      
-      - name: Run tests
-        run: |
-          echo "🧪 Running unit tests..."
-          npm run test:unit || echo "⚠️ Some tests may be failing - continuing build"
-          echo "✅ Tests completed"
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Build shared package
+        run: npm run build:shared
+
+      - name: Build backend
+        run: npm run build:backend
+
+      - continue-on-error: true
+        env:
+          CI: true
+        name: Run tests
+        run: npm run test:unit
+    timeout-minutes: 15
+    name: CI/CD Pipeline
+on:
+  pull_request:
+  push:
+    branches: [main, develop]

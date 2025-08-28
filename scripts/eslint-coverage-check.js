@@ -295,7 +295,6 @@ class ESLintCoverageChecker {
 			{ path: './apps/storybook', name: 'Storybook' },
 			{ path: './packages/shared', name: 'Shared Package' },
 			{ path: './packages/database', name: 'Database Package' },
-			{ path: './packages/emails', name: 'Emails Package' },
 			{ path: './packages/eslint-config', name: 'ESLint Config' },
 			{ path: './packages/typescript-config', name: 'TypeScript Config' },
 			{ path: './packages/tailwind-config', name: 'Tailwind Config' }

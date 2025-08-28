@@ -48,7 +48,7 @@ export function Breadcrumbs({
 						<div className="flex items-center">
 							{item.icon && (
 								<span className="text-muted-foreground mr-2">
-									{item.icon}
+									{item.icon as React.ReactNode}
 								</span>
 							)}
 							{item.href && !isLast ? (

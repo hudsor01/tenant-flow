@@ -48,11 +48,11 @@ export function OnboardingWizard() {
 		},
 		{
 			id: 'property',
-			title: 'Add Your First Property',
+			title: 'Add Your First Property_',
 			description:
 				'Start by adding a property you manage. You can add more later.',
 			icon: 'i-lucide-building-2',
-			action: 'Add Property',
+			action: 'Add Property_',
 			href: '/properties/new',
 			completed: false
 		},
@@ -196,7 +196,7 @@ export function OnboardingWizard() {
 								<div className="bg-muted/50 flex items-center gap-3 rounded-lg p-3">
 									<i className="i-lucide-check-circle-2 inline-block h-5 w-5 text-green-600"  />
 									<span>
-										Property management system configured
+										Property_ management system configured
 									</span>
 								</div>
 								<div className="bg-muted/50 flex items-center gap-3 rounded-lg p-3">

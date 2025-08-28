@@ -6,13 +6,13 @@ import { Badge } from '@/components/ui/badge'
 const features = [
 	{
 		icon: 'i-lucide-building-2',
-		title: 'Property Management',
+		title: 'Property_ Management',
 		description:
 			'Comprehensive property portfolio management with occupancy tracking',
 		details: [
 			'Multi-property dashboard',
 			'Unit availability tracking',
-			'Property maintenance scheduling',
+			'Property_ maintenance scheduling',
 			'Digital property records'
 		],
 		gradient: 'from-primary to-cyan-500'

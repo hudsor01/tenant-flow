@@ -19,7 +19,7 @@ export interface FormState<T = unknown> {
 }
 
 // Initial empty form state
-const initialFormState: FormState<unknown> = {
+const _initialFormState: FormState<unknown> = {
 	success: false
 }
 
@@ -68,13 +68,17 @@ export function useActionStateForm<T = unknown>({
 	// React 19 useOptimistic - for clearing field errors optimistically
 	const [optimisticState, setOptimisticState] = useOptimistic(
 		state,
-		(currentState, clearField: string) => ({
-			...currentState,
-			errors: currentState.errors ? {
-				...currentState.errors,
-				[clearField]: undefined
-			} : undefined
-		})
+		(currentState, clearField: string) => {
+			if (!currentState.errors) return currentState
+			
+			// Create a new errors object without the cleared field
+			const { [clearField]: _removed, ...remainingErrors } = currentState.errors
+			
+			return {
+				...currentState,
+				errors: Object.keys(remainingErrors).length > 0 ? remainingErrors : undefined
+			}
+		}
 	)
 	
 	// Handle form submission with proper event handling

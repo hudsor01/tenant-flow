@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import type { Database, MaintenanceRequestApiResponse } from '@repo/shared'
+import type { MaintenanceRequestApiResponse } from '@repo/shared'
 
 // Define types directly from API response - NO DUPLICATION
 type MaintenanceRequest = MaintenanceRequestApiResponse
@@ -32,12 +32,12 @@ export function MaintenanceList({
 	query,
 	onRequestClick
 }: MaintenanceListProps) {
-	const {
-		data: requests = [],
-		isLoading,
-		error,
-		refetch
-	} = useMaintenanceRequests(query)
+    const {
+        data: requests = [],
+        isLoading,
+        error,
+        refetch
+    } = useMaintenanceRequests(query as unknown as Record<string, unknown>)
 
 	const getPriorityColor = (priority: string) => {
 		switch (priority.toLowerCase()) {
@@ -198,7 +198,7 @@ export function MaintenanceList({
 								)}
 								{request.propertyName && (
 									<span>
-										Property: {request.propertyName}
+										Property_: {request.propertyName}
 									</span>
 								)}
 							</div>

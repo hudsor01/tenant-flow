@@ -72,7 +72,7 @@ export default function TermsOfServicePage() {
 											</p>
 											<ul className="ml-4 mt-2 list-inside list-disc text-gray-700">
 												<li>
-													Property and tenant
+													Property_ and tenant
 													management tools
 												</li>
 												<li>

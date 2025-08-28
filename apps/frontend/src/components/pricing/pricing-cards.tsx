@@ -19,7 +19,7 @@ import type { PlanType, BillingPeriod } from '@repo/shared'
 
 export function PricingCards() {
 	const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('monthly')
-	const createCheckoutMutation = useCreateCheckoutSession()
+	const _createCheckoutMutation = useCreateCheckoutSession()
 	const plans = getAllPlans()
 
 	// Computed class functions - KISS principle compliance
@@ -39,7 +39,7 @@ export function PricingCards() {
 			: 'h-12 w-full text-base font-semibold transition-default bg-gray-900 text-white hover:bg-gray-800'
 
 	const handleGetStarted = async (planId: PlanType) => {
-		createCheckoutMutation.mutate({
+		_createCheckoutMutation.mutate({
 			planId: planId,
 			interval: billingPeriod === 'monthly' ? 'monthly' : 'annual',
 			successUrl: `${window.location.origin}/billing/success`,
@@ -224,11 +224,11 @@ export function PricingCards() {
 											handleGetStarted(plan.id as PlanType)
 										}
 										disabled={
-											createCheckoutMutation.isPending
+											_createCheckoutMutation.isPending
 										}
 										className={getCtaButtonClasses(isPopular || isRecommended)}
 									>
-										{createCheckoutMutation.isPending ? (
+										{_createCheckoutMutation.isPending ? (
 											<div className="flex items-center gap-2">
 												<div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
 												Processing...

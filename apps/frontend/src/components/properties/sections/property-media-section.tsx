@@ -5,28 +5,28 @@ import { FormSection } from '@/components/modals/base-form-modal'
 import type { UseFormReturn } from 'react-hook-form'
 import type { PropertyFormData } from '@repo/shared/validation'
 
-interface PropertyMediaSectionProps {
-	form: UseFormReturn<PropertyFormData>
+interface Property_MediaSectionProps {
+  form: UseFormReturn<PropertyFormData>
 }
 
 /**
- * Property media section component
+ * Property_ media section component
  * Handles property image URL and future file upload functionality
  */
-export function PropertyMediaSection({
+export function Property_MediaSection({
 	form
-}: Readonly<PropertyMediaSectionProps>) {
+}: Readonly<Property_MediaSectionProps>) {
 	const imageUrl = form.watch('imageUrl')
 
 	return (
-		<FormSection icon="i-lucide-image" title="Property Photo" delay={3}>
+		<FormSection icon="i-lucide-image" title="Property_ Photo" delay={3}>
 			{/* Image URL Input */}
 			<div className="space-y-2">
 				<Label
 					htmlFor="imageUrl"
 					className="text-sm font-medium text-gray-700"
 				>
-					Property Image URL (Optional)
+					Property_ Image URL (Optional)
 				</Label>
 				<div className="relative">
 					<i className="i-lucide-image absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" aria-hidden="true" />
@@ -54,7 +54,7 @@ export function PropertyMediaSection({
 					<div className="overflow-hidden rounded-lg border border-gray-200">
 						<NextImage
 							src={imageUrl}
-							alt="Property preview"
+							alt="Property_ preview"
 							width={400}
 							height={192}
 							className="h-48 w-full object-cover"

@@ -215,19 +215,40 @@ export interface DatabaseQueryCache {
 // Component Lazy Loading
 // ========================
 
+/**
+ * Lazy loading placeholder content
+ * Can be a string message, HTML string, or component function
+ */
+export type LazyPlaceholder = string | (() => string) | { render: () => string }
+
+/**
+ * Lazy loading fallback content for errors
+ */
+export type LazyFallback = string | (() => string) | { render: () => string }
+
+/**
+ * Loading state indicator
+ */
+export type LoadingIndicator = string | (() => string) | { render: () => string }
+
+/**
+ * Error display component
+ */
+export type ErrorDisplay = string | ((error: Error) => string) | { render: (error: Error) => string }
+
 export interface LazyLoadConfig {
 	rootMargin?: string
 	threshold?: number | number[]
 	triggerOnce?: boolean
-	placeholder?: React.ComponentType
-	fallback?: React.ComponentType<{ error: Error }>
+	placeholder?: LazyPlaceholder
+	fallback?: LazyFallback
 }
 
 export interface LazyComponentOptions {
 	preload?: boolean
 	prefetch?: boolean
-	loading?: React.ComponentType
-	error?: React.ComponentType<{ error: Error; retry: () => void }>
+	loading?: LoadingIndicator
+	error?: ErrorDisplay
 	timeout?: number
 	retries?: number
 }

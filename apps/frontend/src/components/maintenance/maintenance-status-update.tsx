@@ -82,7 +82,7 @@ export function MaintenanceStatusUpdate({
 		try {
 			await updateRequest.mutate(request.id, {
 				status: selectedStatus,
-				completedAt: selectedStatus === 'COMPLETED' ? new Date() : undefined
+				completedAt: selectedStatus === 'COMPLETED' ? new Date().toISOString() : undefined
 			})
 			onUpdate?.()
 		} catch (error) {
