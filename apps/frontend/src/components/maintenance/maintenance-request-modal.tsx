@@ -3,8 +3,24 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { maintenanceRequestFormSchema } from '@repo/shared'
-import type { MaintenanceRequestFormData } from '@repo/shared'
+import { z } from 'zod'
+
+// Simple form schema without transform to avoid React Hook Form type issues
+const maintenanceFormSchema = z.object({
+    title: z.string().min(1, 'Title is required'),
+    description: z.string().min(1, 'Description is required'),
+    priority: z.string().min(1, 'Priority is required'),
+    category: z.string().min(1, 'Category is required'),
+    unitId: z.string().min(1, 'Unit selection is required'),
+    tenantId: z.string().optional(),
+    assignedTo: z.string().optional(),
+    estimatedCost: z.string().optional(),
+    scheduledDate: z.string().optional(),
+    accessInstructions: z.string().optional(),
+    notes: z.string().optional()
+})
+
+type MaintenanceFormData = z.infer<typeof maintenanceFormSchema>
 import {
 	Dialog,
 	DialogContent,
@@ -16,7 +32,7 @@ import {
 import {
 	Form,
 	FormControl,
-	FormDescription,
+	_FormDescription,
 	FormField,
 	FormItem,
 	FormLabel,
@@ -35,7 +51,8 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useCreateMaintenanceRequest } from '@/hooks/api/use-maintenance'
 import { useProperties } from '@/hooks/api/use-properties'
-import { useUnits } from '@/hooks/api/use-units'
+import type { Unit } from '@repo/shared'
+// Removed unused useUnits import
 import { useUnitsByProperty } from '@/hooks/api/use-units'
 
 interface MaintenanceRequestModalProps {
@@ -53,41 +70,45 @@ export function MaintenanceRequestModal({
 	const { data: properties } = useProperties()
 	
 	// State for property selection to load units
-	const [selectedPropertyId, setSelectedPropertyId] = useState<string>('')
-	const { data: units } = useUnitsByProperty(selectedPropertyId)
+	const [selectedProperty_Id, setSelectedProperty_Id] = useState<string>('')
+    const { data: units } = useUnitsByProperty(selectedProperty_Id)
 
-	const form = useForm<MaintenanceRequestFormData>({
-		resolver: zodResolver(maintenanceRequestFormSchema) as any,
-		defaultValues: {
-			title: '',
-			description: '',
-			priority: 'MEDIUM',
-			category: 'GENERAL',
-			unitId: '',
-			tenantId: '',
-			assignedTo: '',
-			estimatedCost: '',
-			scheduledDate: '',
-			accessInstructions: '',
-			notes: ''
-		}
-	})
+    const form = useForm<MaintenanceFormData>({
+        resolver: zodResolver(maintenanceFormSchema),
+        defaultValues: {
+            title: '',
+            description: '',
+            priority: 'MEDIUM',
+            category: 'GENERAL',
+            unitId: '',
+            tenantId: '',
+            assignedTo: '',
+            estimatedCost: '',
+            scheduledDate: '',
+            accessInstructions: '',
+            notes: ''
+        }
+    })
 
 	const isLoading = createMaintenance.isPending
 
-	async function onSubmit(formData: MaintenanceRequestFormData) {
+    async function onSubmit(formData: MaintenanceFormData) {
 		try {
 			setError(null)
 
 			// Transform form data to match mutation requirements
-			const mutationData = {
-				...formData,
-				priority: formData.priority || 'MEDIUM', // required field
-				category: formData.category || 'GENERAL', // required field
-				images: [] as string[], // required field
-				scheduledDate: formData.scheduledDate ? new Date(formData.scheduledDate) : undefined,
-				estimatedCost: formData.estimatedCost ? parseFloat(formData.estimatedCost) : undefined
-			}
+            const mutationData = {
+                ...formData,
+                priority: (formData.priority || 'MEDIUM') as 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY', // required field
+                category: formData.category || 'GENERAL', // required field
+                images: [] as string[], // required field
+                scheduledDate: formData.scheduledDate ? new Date(formData.scheduledDate) : undefined,
+                estimatedCost: formData.estimatedCost ? parseFloat(formData.estimatedCost) : undefined,
+                tenantId: formData.tenantId === '' ? undefined : formData.tenantId,
+                assignedTo: formData.assignedTo === '' ? undefined : formData.assignedTo,
+                accessInstructions: formData.accessInstructions === '' ? undefined : formData.accessInstructions,
+                notes: formData.notes === '' ? undefined : formData.notes
+            }
 
 			await createMaintenance.mutateAsync(mutationData)
 
@@ -124,12 +145,12 @@ export function MaintenanceRequestModal({
 
 				<Form {...form}>
 					<form
-						onSubmit={form.handleSubmit(onSubmit as any)}
+						onSubmit={form.handleSubmit(onSubmit)}
 						className="space-y-6"
 					>
 						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 							<FormField
-								control={form.control as any}
+								control={form.control}
 								name="title"
 								render={({ field }) => (
 									<FormItem className="sm:col-span-2">
@@ -146,16 +167,16 @@ export function MaintenanceRequestModal({
 							/>
 
 							<div className="sm:col-span-2">
-								<FormLabel>Property & Unit</FormLabel>
+								<FormLabel>Property_ & Unit</FormLabel>
 								<div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
 									<div>
 										<Select
 											onValueChange={(value) => {
-												setSelectedPropertyId(value)
+												setSelectedProperty_Id(value)
 												// Reset unit selection when property changes
 												form.setValue('unitId', '')
 											}}
-											value={selectedPropertyId}
+											value={selectedProperty_Id}
 										>
 											<SelectTrigger>
 												<SelectValue placeholder="Select property first" />
@@ -174,7 +195,7 @@ export function MaintenanceRequestModal({
 									</div>
 									
 									<FormField
-										control={form.control as any}
+										control={form.control}
 										name="unitId"
 										render={({ field }) => (
 											<FormItem>
@@ -182,13 +203,13 @@ export function MaintenanceRequestModal({
 													<Select
 														onValueChange={field.onChange}
 														value={field.value}
-														disabled={!selectedPropertyId}
+														disabled={!selectedProperty_Id}
 													>
 														<SelectTrigger>
 															<SelectValue placeholder="Select unit" />
 														</SelectTrigger>
 														<SelectContent>
-															{units?.map((unit: any) => (
+														{units?.map((unit: Unit) => (
 																<SelectItem
 																	key={unit.id}
 																	value={unit.id}
@@ -207,7 +228,7 @@ export function MaintenanceRequestModal({
 							</div>
 
 							<FormField
-								control={form.control as any}
+								control={form.control}
 								name="category"
 								render={({ field }) => (
 									<FormItem>
@@ -241,7 +262,7 @@ export function MaintenanceRequestModal({
 							/>
 
 							<FormField
-								control={form.control as any}
+								control={form.control}
 								name="priority"
 								render={({ field }) => (
 									<FormItem>
@@ -268,7 +289,7 @@ export function MaintenanceRequestModal({
 							/>
 
 							<FormField
-								control={form.control as any}
+								control={form.control}
 								name="estimatedCost"
 								render={({ field }) => (
 									<FormItem>
@@ -282,9 +303,9 @@ export function MaintenanceRequestModal({
 												{...field}
 											/>
 										</FormControl>
-										<FormDescription>
+										<_FormDescription>
 											Enter estimated cost in dollars
-										</FormDescription>
+										</_FormDescription>
 										<FormMessage />
 									</FormItem>
 								)}
@@ -292,7 +313,7 @@ export function MaintenanceRequestModal({
 						</div>
 
 						<FormField
-							control={form.control as any}
+							control={form.control}
 							name="description"
 							render={({ field }) => (
 								<FormItem>
@@ -305,9 +326,9 @@ export function MaintenanceRequestModal({
 											{...field}
 										/>
 									</FormControl>
-									<FormDescription>
+									<_FormDescription>
 										Provide detailed information about the issue
-									</FormDescription>
+									</_FormDescription>
 									<FormMessage />
 								</FormItem>
 							)}
@@ -315,7 +336,7 @@ export function MaintenanceRequestModal({
 
 						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 							<FormField
-								control={form.control as any}
+								control={form.control}
 								name="scheduledDate"
 								render={({ field }) => (
 									<FormItem>
@@ -326,16 +347,16 @@ export function MaintenanceRequestModal({
 												{...field}
 											/>
 										</FormControl>
-										<FormDescription>
+										<_FormDescription>
 											When would you like this completed?
-										</FormDescription>
+										</_FormDescription>
 										<FormMessage />
 									</FormItem>
 								)}
 							/>
 
 							<FormField
-								control={form.control as any}
+								control={form.control}
 								name="accessInstructions"
 								render={({ field }) => (
 									<FormItem>
@@ -346,9 +367,9 @@ export function MaintenanceRequestModal({
 												{...field}
 											/>
 										</FormControl>
-										<FormDescription>
+										<_FormDescription>
 											How should maintenance access the property?
-										</FormDescription>
+										</_FormDescription>
 										<FormMessage />
 									</FormItem>
 								)}
@@ -356,7 +377,7 @@ export function MaintenanceRequestModal({
 						</div>
 
 						<FormField
-							control={form.control as any}
+							control={form.control}
 							name="notes"
 							render={({ field }) => (
 								<FormItem>
