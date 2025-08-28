@@ -372,22 +372,25 @@ async function bootstrap() {
 		max: 100, // 100 requests per window (aligns with NestJS config)
 		timeWindow: '1 minute',
 		cache: 10000, // Cache up to 10k IP addresses
-		allowList: [
-			'127.0.0.1', 
-			'::1',
-			'100.64.0.0/10', // Railway's internal CIDR range (100.64.0.0 - 100.127.255.255)
-			'10.0.0.0/8' // Common private network range
-		], // Whitelist local and Railway IPs
-		continueExceeding: true, // Don't ban, just rate limit
-		skip: (req: FastifyRequest) => {
+		allowList: (req: FastifyRequest, key: string) => {
 			// Skip rate limiting for health check endpoints
 			const path = req.url
-			return !!(path === '/health' || 
-			         path === '/health/ping' || 
-			         path === '/health/ready' ||
-			         path === '/health/pressure' ||
-			         path?.startsWith('/health/'))
+			const isHealthCheck = !!(path === '/health' || 
+			                        path === '/health/ping' || 
+			                        path === '/health/ready' ||
+			                        path === '/health/pressure' ||
+			                        path?.startsWith('/health/'))
+			
+			// Skip for health checks or whitelisted IPs
+			const whitelistedIPs = [
+				'127.0.0.1', 
+				'::1',
+				// Railway's internal IP (extracted from key if needed)
+			]
+			
+			return isHealthCheck || whitelistedIPs.includes(key)
 		},
+		continueExceeding: true, // Don't ban, just rate limit
 		keyGenerator: req => {
 			// Enhanced key generation for better rate limiting
 			const forwarded = req.headers['x-forwarded-for']
