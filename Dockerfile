@@ -54,7 +54,7 @@ ENV NODE_OPTIONS="--max-old-space-size=1024" \
 RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-/app/.turbo,target=/app/.turbo \
     cd packages/shared && npm run build && cd ../.. && \
     cd packages/database && npm run build && cd ../.. && \
-    cd apps/backend && npm run build:docker
+    cd apps/backend && npm run build
 
 # ===== PRODUCTION DEPS STAGE =====
 # Clean production dependencies separate from build artifacts
@@ -199,4 +199,4 @@ HEALTHCHECK --interval=20s --timeout=8s --start-period=90s --retries=5 \
     req.end();"
 
 # Direct Node.js execution
-CMD ["node", "apps/backend/dist/apps/backend/src/main.js"]
+CMD ["node", "apps/backend/dist/main.js"]
