@@ -164,6 +164,11 @@ const nextConfig: NextConfig = {
 
 	// Explicitly disable legacy error pages generation
 	pageExtensions: ['tsx', 'ts'],
+	
+	// Fix for client-reference-manifest.js issues with route groups
+	outputFileTracingIncludes: {
+		'/': ['./src/app/(public)/**/*'],
+	},
 
 	// Turbopack configuration for development
 	...(process.env.NODE_ENV === 'development' && {
