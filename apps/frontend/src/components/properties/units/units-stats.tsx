@@ -44,21 +44,21 @@ function UnitsStatsUI({ stats }: UnitsStatsUIProps) {
 			value: stats.occupiedUnits,
 			description: `${formatPercentage(stats.occupancyRate)} occupancy`,
 			icon: 'i-lucide-home',
-			color: 'text-green-600'
+			color: 'text-green-6'
 		},
 		{
 			title: 'Available Units',
 			value: stats.availableUnits,
 			description: 'Ready for tenants',
 			icon: 'i-lucide-home',
-			color: 'text-blue-600'
+			color: 'text-blue-6'
 		},
 		{
 			title: 'In Maintenance',
 			value: stats.maintenanceUnits,
 			description: 'Under repair',
 			icon: 'i-lucide-wrench',
-			color: 'text-orange-600'
+			color: 'text-orange-6'
 		}
 	]
 

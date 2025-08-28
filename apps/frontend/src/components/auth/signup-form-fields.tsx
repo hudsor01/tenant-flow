@@ -82,7 +82,7 @@ export function SignupFormFields({
 		<form onSubmit={onEmailSubmit} className="space-y-4">
 			{/* Error Display */}
 			{error && (
-				<div className="rounded-md bg-red-50 p-3 text-sm text-red-600">
+				<div className="rounded-md bg-red-1 p-3 text-sm text-red-6">
 					{error}
 				</div>
 			)}
@@ -103,7 +103,7 @@ export function SignupFormFields({
 					disabled={isLoading}
 				/>
 				{errors.fullName && (
-					<p className="text-sm text-red-600">{errors.fullName[0]}</p>
+					<p className="text-sm text-red-6">{errors.fullName[0]}</p>
 				)}
 			</div>
 
@@ -123,7 +123,7 @@ export function SignupFormFields({
 					disabled={isLoading}
 				/>
 				{errors.email && (
-					<p className="text-sm text-red-600">{errors.email[0]}</p>
+					<p className="text-sm text-red-6">{errors.email[0]}</p>
 				)}
 			</div>
 
@@ -144,7 +144,7 @@ export function SignupFormFields({
 					minLength={8}
 				/>
 				{errors.password && (
-					<p className="text-sm text-red-600">{errors.password[0]}</p>
+					<p className="text-sm text-red-6">{errors.password[0]}</p>
 				)}
 			</div>
 
@@ -164,7 +164,7 @@ export function SignupFormFields({
 					disabled={isLoading}
 				/>
 				{errors.confirmPassword && (
-					<p className="text-sm text-red-600">
+					<p className="text-sm text-red-6">
 						{errors.confirmPassword[0]}
 					</p>
 				)}

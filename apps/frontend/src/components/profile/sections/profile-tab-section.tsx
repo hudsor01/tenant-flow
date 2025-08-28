@@ -70,12 +70,12 @@ export function ProfileTabSection({
 				<div className="space-y-2">
 					<Label
 						htmlFor="name"
-						className="text-sm font-medium text-gray-700"
+						className="text-sm font-medium text-gray-7"
 					>
 						Full Name *
 					</Label>
 					<div className="relative">
-						<i className="i-lucide-usericon inline-block absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400"  />
+						<i className="i-lucide-usericon absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-4"  />
 						<Input
 							id="name"
 							placeholder="Enter your full name"
@@ -84,7 +84,7 @@ export function ProfileTabSection({
 						/>
 					</div>
 					{form.formState.errors.name && (
-						<p className="text-sm text-red-600">
+						<p className="text-sm text-red-6">
 							{form.formState.errors.name.message}
 						</p>
 					)}
@@ -94,12 +94,12 @@ export function ProfileTabSection({
 				<div className="space-y-2">
 					<Label
 						htmlFor="phone"
-						className="text-sm font-medium text-gray-700"
+						className="text-sm font-medium text-gray-7"
 					>
 						Phone Number
 					</Label>
 					<div className="relative">
-						<i className="i-lucide-phone inline-block absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400"  />
+						<i className="i-lucide-phone absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-4"  />
 						<Input
 							id="phone"
 							type="tel"
@@ -109,11 +109,11 @@ export function ProfileTabSection({
 						/>
 					</div>
 					{form.formState.errors.phone && (
-						<p className="text-sm text-red-600">
+						<p className="text-sm text-red-6">
 							{form.formState.errors.phone.message}
 						</p>
 					)}
-					<p className="text-xs text-gray-500">
+					<p className="text-xs text-gray-5">
 						Optional: Used for important account notifications
 					</p>
 				</div>
@@ -122,12 +122,12 @@ export function ProfileTabSection({
 				<div className="space-y-2">
 					<Label
 						htmlFor="bio"
-						className="text-sm font-medium text-gray-700"
+						className="text-sm font-medium text-gray-7"
 					>
 						Bio
 					</Label>
 					<div className="relative">
-						<i className="i-lucide-file-text inline-block absolute left-3 top-3 h-4 w-4 text-gray-400"  />
+						<i className="i-lucide-file-text absolute left-3 top-3 h-4 w-4 text-gray-4"  />
 						<Textarea
 							id="bio"
 							placeholder="Tell us a bit about yourself..."
@@ -136,11 +136,11 @@ export function ProfileTabSection({
 						/>
 					</div>
 					{form.formState.errors.bio && (
-						<p className="text-sm text-red-600">
+						<p className="text-sm text-red-6">
 							{form.formState.errors.bio.message}
 						</p>
 					)}
-					<p className="text-xs text-gray-500">
+					<p className="text-xs text-gray-5">
 						Optional: Max 500 characters. This appears on your
 						tenant portal.
 					</p>
@@ -164,7 +164,7 @@ export function ProfileTabSection({
 					disabled={
 						form.formState.isSubmitting || avatarState.uploading
 					}
-					className="bg-primary hover:bg-blue-700"
+					className="bg-primary hover:bg-blue-7"
 				>
 					{form.formState.isSubmitting ? (
 						<>
@@ -173,7 +173,7 @@ export function ProfileTabSection({
 						</>
 					) : (
 						<>
-							<i className="i-lucide-save inline-block mr-2 h-4 w-4"  />
+							<i className="i-lucide-save mr-2 h-4 w-4"  />
 							Save Changes
 						</>
 					)}

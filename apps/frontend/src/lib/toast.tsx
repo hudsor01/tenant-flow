@@ -35,7 +35,7 @@ export const notifications = {
 			...TOAST_CONFIG,
 			description: options?.description,
 			action: options?.action,
-			icon: <i className="i-lucide-checkcircle inline-block h-5 w-5"  />,
+			icon: <i className="i-lucide-checkcircle h-5 w-5"  />,
 			style: {
 				...TOAST_CONFIG.style,
 				background: 'rgba(240, 253, 244, 0.95)',
@@ -59,7 +59,7 @@ export const notifications = {
 			duration: 6000, // Longer duration for errors
 			description: options?.description,
 			action: options?.action,
-			icon: <i className="i-lucide-xcircle inline-block h-5 w-5"  />,
+			icon: <i className="i-lucide-xcircle h-5 w-5"  />,
 			style: {
 				...TOAST_CONFIG.style,
 				background: 'rgba(254, 242, 242, 0.95)',
@@ -82,7 +82,7 @@ export const notifications = {
 			...TOAST_CONFIG,
 			description: options?.description,
 			action: options?.action,
-			icon: <i className="i-lucide-alert-circle inline-block h-5 w-5"  />,
+			icon: <i className="i-lucide-alert-circle h-5 w-5"  />,
 			style: {
 				...TOAST_CONFIG.style,
 				background: 'rgba(255, 247, 237, 0.95)',
@@ -105,7 +105,7 @@ export const notifications = {
 			...TOAST_CONFIG,
 			description: options?.description,
 			action: options?.action,
-			icon: <i className="i-lucide-info inline-block h-5 w-5"  />,
+			icon: <i className="i-lucide-info h-5 w-5"  />,
 			style: {
 				...TOAST_CONFIG.style,
 				background: 'rgba(239, 246, 255, 0.95)',
@@ -122,7 +122,7 @@ export const notifications = {
 			...TOAST_CONFIG,
 			duration: Infinity, // Keep until dismissed
 			description: options?.description,
-			icon: <i className="i-lucide-loader-2 inline-block h-5 w-5 animate-spin"  />,
+			icon: <i className="i-lucide-loader-2 h-5 w-5 animate-spin"  />,
 			style: {
 				...TOAST_CONFIG.style,
 				background: 'rgba(248, 250, 252, 0.95)',
@@ -214,7 +214,7 @@ export const stripeNotifications = {
 		return toast.success('Free trial activated!', {
 			...TOAST_CONFIG,
 			description: `You now have ${trialDays} days of full access to explore all features.`,
-			icon: <i className="i-lucide-sparkles inline-block h-5 w-5"  />,
+			icon: <i className="i-lucide-sparkles h-5 w-5"  />,
 			style: {
 				...TOAST_CONFIG.style,
 				background:
@@ -251,7 +251,7 @@ export const stripeNotifications = {
 			duration?: number
 		}
 	) => {
-		const icon = <i className="i-lucide-credit-card inline-block h-5 w-5"  />
+		const icon = <i className="i-lucide-credit-card h-5 w-5"  />
 
 		return toast[options?.type || 'info'](message, {
 			...TOAST_CONFIG,

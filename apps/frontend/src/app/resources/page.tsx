@@ -163,7 +163,7 @@ function ResourceCard({ resource, className }: ResourceCardProps) {
 								}`}
 							>
 								<i
-									className={`${categoryIcon} inline-block h-5 w-5 ${resource.type === 'premium' ? 'text-white' : 'text-muted-foreground'}`}
+									className={`${categoryIcon}  h-5 w-5 ${resource.type === 'premium' ? 'text-white' : 'text-muted-foreground'}`}
 								/>
 							</div>
 							<div>
@@ -190,7 +190,7 @@ function ResourceCard({ resource, className }: ResourceCardProps) {
 							</div>
 						</div>
 						<div className="flex items-center space-x-1">
-							<i className="i-lucide-star inline-block h-4 w-4 fill-current text-yellow-500"  />
+							<i className="i-lucide-star  h-4 w-4 fill-current text-yellow-5"  />
 							<span className="text-muted-foreground text-sm">
 								{resource.rating}
 							</span>
@@ -210,11 +210,11 @@ function ResourceCard({ resource, className }: ResourceCardProps) {
 					<div className="text-muted-foreground mb-4 flex items-center justify-between text-sm">
 						<div className="flex items-center space-x-4">
 							<div className="flex items-center space-x-1">
-								<i className="i-lucide-clock inline-block h-4 w-4"  />
+								<i className="i-lucide-clock  h-4 w-4"  />
 								<span>{resource.readTime}</span>
 							</div>
 							<div className="flex items-center space-x-1">
-								<i className="i-lucide-eye inline-block h-4 w-4"  />
+								<i className="i-lucide-eye  h-4 w-4"  />
 								<span>{resource.views}</span>
 							</div>
 						</div>
@@ -246,7 +246,7 @@ function ResourceCard({ resource, className }: ResourceCardProps) {
 								{resource.downloadUrl ? (
 									<>
 										Download
-										<i className="i-lucide-download inline-block ml-2 h-4 w-4 transition-transform group-hover/btn:translate-y-0.5"  />
+										<i className="i-lucide-download  ml-2 h-4 w-4 transition-transform group-hover/btn:translate-y-0.5"  />
 									</>
 								) : (
 									<>
@@ -254,7 +254,7 @@ function ResourceCard({ resource, className }: ResourceCardProps) {
 										resource.category === 'webinar'
 											? 'Watch'
 											: 'Read'}
-										<i className="i-lucide-arrow-right inline-block ml-2 h-4 w-4 transition-transform group-hover/btn:translate-x-1"  />
+										<i className="i-lucide-arrow-right  ml-2 h-4 w-4 transition-transform group-hover/btn:translate-x-1"  />
 									</>
 								)}
 							</Link>
@@ -262,7 +262,7 @@ function ResourceCard({ resource, className }: ResourceCardProps) {
 						{resource.href && (
 							<Link href={resource.href}>
 								<Button variant="ghost" size="sm">
-									<i className="i-lucide-external-link inline-block h-4 w-4"  />
+									<i className="i-lucide-external-link  h-4 w-4"  />
 								</Button>
 							</Link>
 						)}
@@ -303,7 +303,7 @@ export default function ResourcesPage() {
 							className="mb-6"
 						>
 							<Badge className="from-primary via-accent to-success border-0 bg-gradient-to-r px-6 py-2 text-sm font-semibold text-white shadow-lg">
-								<i className="i-lucide-sparkles inline-block mr-2 h-4 w-4"  />
+								<i className="i-lucide-sparkles  mr-2 h-4 w-4"  />
 								Resource Hub
 							</Badge>
 						</motion.div>
@@ -341,7 +341,7 @@ export default function ResourcesPage() {
 						className="mb-12 flex flex-col items-center justify-between gap-6 lg:flex-row"
 					>
 						<div className="relative max-w-md flex-1">
-							<i className="i-lucide-search inline-block text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform"  />
+							<i className="i-lucide-search  text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform"  />
 							<Input
 								placeholder="Search resources..."
 								value={searchQuery}
@@ -368,7 +368,7 @@ export default function ResourcesPage() {
 										}
 										className="flex items-center space-x-2"
 									>
-										<i className={`${category.icon} inline-block h-4 w-4`} />
+										<i className={`${category.icon}  h-4 w-4`} />
 										<span>{category.label}</span>
 									</Button>
 								)
@@ -451,7 +451,7 @@ export default function ResourcesPage() {
 									variant="outline"
 									className="flex items-center space-x-2"
 								>
-									<i className="i-lucide-filter inline-block h-4 w-4"  />
+									<i className="i-lucide-filter  h-4 w-4"  />
 									<span>Sort by Popular</span>
 								</Button>
 							)}
@@ -483,7 +483,7 @@ export default function ResourcesPage() {
 								className="py-12 text-center"
 							>
 								<div className="bg-muted mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full">
-									<i className="i-lucide-help-circle inline-block text-muted-foreground h-8 w-8"  />
+									<i className="i-lucide-help-circle  text-muted-foreground h-8 w-8"  />
 								</div>
 								<h3 className="text-foreground mb-4 text-2xl font-semibold">
 									No resources found
@@ -518,7 +518,7 @@ export default function ResourcesPage() {
 					>
 						<div className="mb-8">
 							<div className="from-primary to-accent mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br">
-								<i className="i-lucide-users inline-block h-8 w-8 text-white"  />
+								<i className="i-lucide-users  h-8 w-8 text-white"  />
 							</div>
 							<h2 className="text-foreground mb-6 text-4xl font-bold">
 								Need More Help?
@@ -558,7 +558,7 @@ export default function ResourcesPage() {
 									>
 										<CardContent className="p-6 text-center">
 											<div className="from-primary to-accent mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br">
-												<i className={`${option.icon} inline-block h-6 w-6 text-white`} />
+												<i className={`${option.icon}  h-6 w-6 text-white`} />
 											</div>
 											<h3 className="text-foreground mb-2 font-semibold">
 												{option.title}
@@ -581,7 +581,7 @@ export default function ResourcesPage() {
 							>
 								<Link href="/contact">
 									Contact Support
-									<i className="i-lucide-arrow-right inline-block ml-2 h-4 w-4 transition-transform group-hover:translate-x-1"  />
+									<i className="i-lucide-arrow-right  ml-2 h-4 w-4 transition-transform group-hover:translate-x-1"  />
 								</Link>
 							</Button>
 							<Button asChild variant="outline" size="lg">

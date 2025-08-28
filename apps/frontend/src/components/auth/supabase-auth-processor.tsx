@@ -516,15 +516,15 @@ export function SupabaseAuthProcessor() {
 		switch (status.state) {
 			case 'loading':
 				return (
-					<i className="i-lucide-loader-2 inline-block text-primary h-12 w-12 animate-spin"  />
+					<i className="i-lucide-loader-2 text-primary h-12 w-12 animate-spin"  />
 				)
 			case 'success':
-				return <i className="i-lucide-checkcircle inline-block h-12 w-12 text-green-500"  />
+				return <i className="i-lucide-checkcircle h-12 w-12 text-green-5"  />
 			case 'error':
-				return <i className="i-lucide-xcircle inline-block h-12 w-12 text-red-500"  />
+				return <i className="i-lucide-xcircle h-12 w-12 text-red-5"  />
 			default:
 				return (
-					<i className="i-lucide-loader-2 inline-block text-primary h-12 w-12 animate-spin"  />
+					<i className="i-lucide-loader-2 text-primary h-12 w-12 animate-spin"  />
 				)
 		}
 	}
@@ -534,16 +534,16 @@ export function SupabaseAuthProcessor() {
 			case 'loading':
 				return 'border-primary/20 bg-primary/5'
 			case 'success':
-				return 'border-green-200 bg-green-50'
+				return 'border-green-2 bg-green-1'
 			case 'error':
-				return 'border-red-200 bg-red-50'
+				return 'border-red-2 bg-red-1'
 			default:
-				return 'border-gray-200 bg-gray-50'
+				return 'border-gray-2 bg-gray-1'
 		}
 	}
 
 	return (
-		<div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 px-4">
+		<div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-1 via-white to-purple-1 px-4">
 			<motion.div
 				initial={{ opacity: 0, scale: 0.95 }}
 				animate={{ opacity: 1, scale: 1 }}
@@ -581,7 +581,7 @@ export function SupabaseAuthProcessor() {
 							transition={{ delay: 0.4 }}
 							className="mt-4"
 						>
-							<div className="h-1 w-full overflow-hidden rounded-full bg-gray-200">
+							<div className="h-1 w-full overflow-hidden rounded-full bg-gray-2">
 								<motion.div
 									className="bg-primary h-full rounded-full"
 									initial={{ width: 0 }}

@@ -75,7 +75,7 @@ export function MobileNav({ className }: MobileNavProps) {
 	return (
 		<nav
 			className={cn(
-				'fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-white md:hidden',
+				'fixed bottom-0 left-0 right-0 z-50 border-t border-gray-2 bg-white md:hidden',
 				'safe-area-pb', // Add safe area padding for devices with home indicators
 				className
 			)}
@@ -100,7 +100,7 @@ export function MobileNav({ className }: MobileNavProps) {
 										'flex h-14 w-14 items-center justify-center rounded-full',
 										'bg-primary text-white shadow-lg',
 										'transform transition-all duration-200 ease-out',
-										'hover:scale-105 hover:bg-blue-700 active:scale-95'
+										'hover:scale-105 hover:bg-blue-7 active:scale-95'
 									)}
 									whileTap={{ scale: 0.9 }}
 									whileHover={{ scale: 1.05 }}
@@ -117,7 +117,7 @@ export function MobileNav({ className }: MobileNavProps) {
 								{/* Ripple effect for FAB */}
 								{isActive && (
 									<motion.div
-										className="bg-primary absolute inset-0 rounded-full opacity-20"
+										className="bg-primary absolute inset-0 rounded-full op-20"
 										initial={{ scale: 0 }}
 										animate={{ scale: 1.2 }}
 										transition={{
@@ -142,7 +142,7 @@ export function MobileNav({ className }: MobileNavProps) {
 								'rounded-lg hover:bg-gray-50',
 								isActive
 									? 'text-primary'
-									: 'text-gray-600 hover:text-gray-900'
+									: 'text-gray-6 hover:text-gray-9'
 							)}
 						>
 							<motion.div
@@ -161,7 +161,7 @@ export function MobileNav({ className }: MobileNavProps) {
 										'mb-1 h-5 w-5 transition-colors duration-200',
 										isActive
 											? 'text-primary'
-											: 'text-gray-500'
+											: 'text-gray-5'
 									))} />
 
 								{/* Badge for item counts */}
@@ -173,7 +173,7 @@ export function MobileNav({ className }: MobileNavProps) {
 									>
 										<Badge
 											variant="secondary"
-											className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] text-red-700"
+											className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-1 px-1.5 py-0.5 text-[10px] text-red-7"
 										>
 											{badgeValue > 99
 												? '99+'
@@ -189,7 +189,7 @@ export function MobileNav({ className }: MobileNavProps) {
 									'max-w-full truncate text-[10px] leading-none transition-colors duration-200',
 									isActive
 										? 'text-primary font-semibold'
-										: 'text-gray-500'
+										: 'text-gray-5'
 								)}
 							>
 								{item.shortName}
@@ -215,7 +215,7 @@ export function MobileNav({ className }: MobileNavProps) {
 			</div>
 
 			{/* Background blur effect for better readability */}
-			<div className="absolute inset-0 -z-10 border-t border-gray-200 bg-white/80 backdrop-blur-md" />
+			<div className="absolute inset-0 -z-10 border-t border-gray-2 bg-white/80 backdrop-blur-md" />
 		</nav>
 	)
 }

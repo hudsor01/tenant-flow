@@ -38,9 +38,9 @@ export default function QuickPropertySetup({ onCompleteAction }: { onCompleteAct
 	if (isComplete) {
 		return (
 			<div className="py-8 text-center">
-				<i className="i-lucide-check inline-block mx-auto mb-4 h-16 w-16 text-green-600"  />
+				<i className="i-lucide-check mx-auto mb-4 h-16 w-16 text-green-6"  />
 				<h3 className="mb-2 text-lg font-semibold">Property Created!</h3>
-				<p className="mb-4 text-sm text-gray-600">Ready for tenants and leases</p>
+				<p className="mb-4 text-sm text-gray-6">Ready for tenants and leases</p>
 			</div>
 		)
 	}
@@ -49,7 +49,7 @@ export default function QuickPropertySetup({ onCompleteAction }: { onCompleteAct
 		<Card className="w-full max-w-lg">
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2">
-					<i className="i-lucide-building-2 inline-block h-4 w-4"  />
+					<i className="i-lucide-building-2 h-4 w-4"  />
 					Quick Setup
 				</CardTitle>
 			</CardHeader>

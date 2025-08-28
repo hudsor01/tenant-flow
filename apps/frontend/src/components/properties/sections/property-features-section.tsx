@@ -16,8 +16,8 @@ export function Property_FeaturesSection({
 }: Property_FeaturesSectionProps) {
 	return (
 		<FormSection icon="Property_ Features" title="Property_ Features" delay={2}>
-			<div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-				<p className="mb-4 text-sm text-gray-600">
+			<div className="rounded-lg border border-gray-2 bg-gray-50 p-4">
+				<p className="mb-4 text-sm text-gray-6">
 					Select the amenities and features available at this
 					property:
 				</p>
@@ -28,14 +28,14 @@ export function Property_FeaturesSection({
 						<input
 							type="checkbox"
 							id="hasGarage"
-							className="text-primary focus:ring-primary rounded border-gray-300"
+							className="text-primary focus:ring-primary rounded border-gray-3"
 							{...form.register('hasGarage')}
 						/>
 						<div className="flex items-center space-x-2">
-							<i className="i-lucide-car inline-block h-4 w-4 text-gray-600"  />
+							<i className="i-lucide-car h-4 w-4 text-gray-6"  />
 							<Label
 								htmlFor="hasGarage"
-								className="cursor-pointer text-sm text-gray-700"
+								className="cursor-pointer text-sm text-gray-7"
 							>
 								Garage or Covered Parking
 							</Label>
@@ -47,14 +47,14 @@ export function Property_FeaturesSection({
 						<input
 							type="checkbox"
 							id="hasPool"
-							className="text-primary focus:ring-primary rounded border-gray-300"
+							className="text-primary focus:ring-primary rounded border-gray-3"
 							{...form.register('hasPool')}
 						/>
 						<div className="flex items-center space-x-2">
-							<i className="i-lucide-waves inline-block h-4 w-4 text-gray-600"  />
+							<i className="i-lucide-waves h-4 w-4 text-gray-6"  />
 							<Label
 								htmlFor="hasPool"
-								className="cursor-pointer text-sm text-gray-700"
+								className="cursor-pointer text-sm text-gray-7"
 							>
 								Swimming Pool
 							</Label>
@@ -62,7 +62,7 @@ export function Property_FeaturesSection({
 					</div>
 				</div>
 
-				<p className="mt-4 text-xs text-gray-500">
+				<p className="mt-4 text-xs text-gray-5">
 					💡 These features will be displayed on lease documents and
 					tenant portals.
 				</p>

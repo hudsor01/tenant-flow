@@ -51,14 +51,14 @@ export default function Property_HeaderSection({
 					onClick={onBackToProperties}
 					className="hover:bg-accent"
 				>
-					<i className="i-lucide-arrow-left inline-block h-5 w-5"  />
+					<i className="i-lucide-arrow-left h-5 w-5"  />
 				</Button>
 				<div>
 					<h1 className="text-3xl font-bold tracking-tight">
 						{property.name}
 					</h1>
 					<p className="text-muted-foreground mt-1 flex items-center">
-						<i className="i-lucide-map-pin inline-block mr-1 h-4 w-4"  />
+						<i className="i-lucide-map-pin mr-1 h-4 w-4"  />
 						{property.address}, {property.city}, {property.state}{' '}
 						{property.zipCode}
 					</p>
@@ -68,18 +68,18 @@ export default function Property_HeaderSection({
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
 					<Button variant="outline" size="icon">
-						<i className="i-lucide-more-vertical inline-block h-4 w-4"  />
+						<i className="i-lucide-more-vertical h-4 w-4"  />
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end">
 					<DropdownMenuLabel>Property_ Actions</DropdownMenuLabel>
 					<DropdownMenuSeparator />
 					<DropdownMenuItem onClick={onEditProperty_}>
-						<i className="i-lucide-edit inline-block mr-2 h-4 w-4"  />
+						<i className="i-lucide-edit mr-2 h-4 w-4"  />
 						Edit Property_
 					</DropdownMenuItem>
 					<DropdownMenuItem onClick={onInviteTenant}>
-						<i className="i-lucide-users inline-block mr-2 h-4 w-4"  />
+						<i className="i-lucide-users mr-2 h-4 w-4"  />
 						Invite Tenant
 					</DropdownMenuItem>
 					<DropdownMenuSeparator />
@@ -88,7 +88,7 @@ export default function Property_HeaderSection({
 						disabled={isDeleting}
 						className="text-destructive focus:text-destructive"
 					>
-						<i className="i-lucide-trash-2 inline-block mr-2 h-4 w-4"  />
+						<i className="i-lucide-trash-2 mr-2 h-4 w-4"  />
 						{isDeleting ? 'Deleting...' : 'Delete Property_'}
 					</DropdownMenuItem>
 				</DropdownMenuContent>

@@ -73,7 +73,7 @@ export const propertyColumns: ColumnDef<Property_WithUnits>[] = [
 			return (
 				<div className="flex min-w-0 items-center gap-2">
 					<div className="bg-primary/10 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded">
-						<i className="i-lucide-building-2 inline-block text-primary h-3 w-3"  />
+						<i className="i-lucide-building-2 text-primary h-3 w-3"  />
 					</div>
 					<div className="min-w-0 flex-1">
 						<Link
@@ -98,7 +98,7 @@ export const propertyColumns: ColumnDef<Property_WithUnits>[] = [
 
 			return (
 				<div className="flex min-w-0 items-center gap-2">
-					<i className="i-lucide-map-pin inline-block text-muted-foreground h-3 w-3 flex-shrink-0"  />
+					<i className="i-lucide-map-pin text-muted-foreground h-3 w-3 flex-shrink-0"  />
 					<span
 						className="text-muted-foreground truncate text-xs"
 						title={fullAddress}
@@ -148,14 +148,14 @@ export const propertyColumns: ColumnDef<Property_WithUnits>[] = [
 							<div
 								className={cn(
 									'h-full transition-all duration-300',
-									occupancyRate === 100 && 'bg-green-500',
+									occupancyRate === 100 && 'bg-green-5',
 									occupancyRate >= 80 &&
 										occupancyRate < 100 &&
-										'bg-primary',
+										'bg-blue-5',
 									occupancyRate >= 50 &&
 										occupancyRate < 80 &&
-										'bg-yellow-500',
-									occupancyRate < 50 && 'bg-red-500'
+										'bg-yellow-5',
+									occupancyRate < 50 && 'bg-red-5'
 								)}
 								style={{ width: `${occupancyRate}%` }}
 							/>
@@ -182,7 +182,7 @@ export const propertyColumns: ColumnDef<Property_WithUnits>[] = [
 
 			return (
 				<div className="flex items-center gap-1">
-					<i className="i-lucide-dollar-sign inline-block text-muted-foreground h-3 w-3"  />
+					<i className="i-lucide-dollar-sign text-muted-foreground h-3 w-3"  />
 					<span className="text-xs font-medium">
 						{formatCurrency(totalRevenue)}
 					</span>
@@ -221,19 +221,19 @@ export const propertyColumns: ColumnDef<Property_WithUnits>[] = [
 			onClick: property => {
 				window.location.href = `/properties/${property.id}`
 			},
-			icon: <i className="i-lucide-eye inline-block h-3 w-3"  />
+			icon: <i className="i-lucide-eye h-3 w-3"  />
 		},
 		{
 			label: 'Edit',
 			onClick: property => {
 				window.location.href = `/properties/${property.id}/edit`
 			},
-			icon: <i className="i-lucide-edit inline-block h-3 w-3"  />
+			icon: <i className="i-lucide-edit h-3 w-3"  />
 		},
 		{
 			label: 'Delete',
 			onClick: createPropertyDeletionHandler(),
-			icon: <i className="i-lucide-trash inline-block h-3 w-3"  />,
+			icon: <i className="i-lucide-trash h-3 w-3"  />,
 			variant: 'destructive' as const
 		}
 	])
@@ -259,7 +259,7 @@ export const compactPropertyColumns: ColumnDef<Property_WithUnits>[] = [
 			return (
 				<div className="space-y-1">
 					<div className="flex items-center gap-2">
-						<i className="i-lucide-building-2 inline-block text-primary h-3 w-3 flex-shrink-0"  />
+						<i className="i-lucide-building-2 text-primary h-3 w-3 flex-shrink-0"  />
 						<Link
 							href={`/properties/${property.id}`}
 							className="text-foreground hover:text-primary truncate text-sm font-medium"
@@ -283,14 +283,14 @@ export const compactPropertyColumns: ColumnDef<Property_WithUnits>[] = [
 			onClick: property => {
 				window.location.href = `/properties/${property.id}`
 			},
-			icon: <i className="i-lucide-eye inline-block h-3 w-3"  />
+			icon: <i className="i-lucide-eye h-3 w-3"  />
 		},
 		{
 			label: 'Edit',
 			onClick: property => {
 				window.location.href = `/properties/${property.id}/edit`
 			},
-			icon: <i className="i-lucide-edit inline-block h-3 w-3"  />
+			icon: <i className="i-lucide-edit h-3 w-3"  />
 		}
 	])
 ]

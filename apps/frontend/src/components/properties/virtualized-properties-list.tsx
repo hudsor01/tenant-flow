@@ -85,7 +85,7 @@ export default function VirtualizedPropertiesList({
 	// For large lists, show simplified grid with pagination notice
 	return (
 		<div className="w-full">
-			<div className="mb-4 text-sm text-gray-600">
+			<div className="mb-4 text-sm text-gray-6">
 				Showing first 50 of {properties.length} properties. Use filters
 				to narrow _results.
 			</div>

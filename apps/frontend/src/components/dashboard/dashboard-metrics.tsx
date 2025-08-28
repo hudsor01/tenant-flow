@@ -61,8 +61,8 @@ function MetricCard({
 						<div
 							className={`flex items-center text-sm font-medium ${
 								trend.isPositive
-									? 'text-emerald-400'
-									: 'text-red-400'
+									? 'text-emerald-4'
+									: 'text-red-4'
 							}`}
 						>
 							<i className={`i-lucide-trending-up mr-1 h-4 w-4 ${!trend.isPositive ? 'rotate-180' : ''}`} />

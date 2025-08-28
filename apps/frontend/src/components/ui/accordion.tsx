@@ -40,7 +40,7 @@ function AccordionTrigger({
 				{...props}
 			>
 				{children}
-				<i className="i-lucide-chevrondownicon inline-block text-muted-foreground pointer-events-none w-4 h-4 shrink-0 translate-y-0.5 transition-transform duration-200"  />
+				<i className="i-lucide-chevron-down text-muted-foreground pointer-events-none w-4 h-4 shrink-0 translate-y-0.5 transition-transform duration-200" />
 			</AccordionPrimitive.Trigger>
 		</AccordionPrimitive.Header>
 	)

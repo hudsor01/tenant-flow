@@ -43,7 +43,7 @@ function SelectTrigger({
 		>
 			{children}
 			<SelectPrimitive.Icon asChild>
-				<i className="i-lucide-chevrondownicon inline-block w-4 h-4 opacity-50"  />
+				<i className="i-lucide-chevrondownicon w-4 h-4 opacity-50"  />
 			</SelectPrimitive.Icon>
 		</SelectPrimitive.Trigger>
 	)
@@ -116,7 +116,7 @@ function SelectItem({
 		>
 			<span className="absolute right-2 flex w-3 h-3.5 items-center justify-center">
 				<SelectPrimitive.ItemIndicator>
-					<i className="i-lucide-checkicon inline-block w-4 h-4"  />
+					<i className="i-lucide-checkicon w-4 h-4"  />
 				</SelectPrimitive.ItemIndicator>
 			</span>
 			<SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
@@ -153,7 +153,7 @@ function SelectScrollUpButton({
 			)}
 			{...props}
 		>
-			<i className="i-lucide-chevronupicon inline-block w-4 h-4"  />
+			<i className="i-lucide-chevronupicon w-4 h-4"  />
 		</SelectPrimitive.ScrollUpButton>
 	)
 }
@@ -171,7 +171,7 @@ function SelectScrollDownButton({
 			)}
 			{...props}
 		>
-			<i className="i-lucide-chevrondownicon inline-block w-4 h-4"  />
+			<i className="i-lucide-chevrondownicon w-4 h-4"  />
 		</SelectPrimitive.ScrollDownButton>
 	)
 }

@@ -76,15 +76,15 @@ function MaintenanceRow({
 		<TableRow className="hover:bg-accent/50">
 			<TableCell>
 				<div className="flex items-center gap-3">
-					<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/20">
-						<i className="i-lucide-wrench inline-block h-4 w-4 text-orange-600 dark:text-orange-400"  />
+					<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-1 dark:bg-orange-9/20">
+						<i className="i-lucide-wrench h-4 w-4 text-orange-6 dark:text-orange-4"  />
 					</div>
 					<div className="space-y-1">
 						<p className="font-medium leading-none">
 							{request.title}
 						</p>
 						<div className="text-muted-foreground flex items-center gap-1 text-sm">
-							<i className="i-lucide-home inline-block h-3 w-3"  />
+							<i className="i-lucide-home h-3 w-3"  />
                     {request.propertyName || 'Unknown Property_'}{' '}
                     {request.unitNumber && `- Unit ${request.unitNumber}`}
 						</div>
@@ -95,13 +95,13 @@ function MaintenanceRow({
 			<TableCell>{getStatusBadge(request.status)}</TableCell>
 			<TableCell>
 				<div className="flex items-center gap-1 text-sm">
-					<i className="i-lucide-calendar inline-block text-muted-foreground h-3 w-3"  />
+					<i className="i-lucide-calendar text-muted-foreground h-3 w-3"  />
 					{formatDate(request.createdAt)}
 				</div>
 			</TableCell>
 			<TableCell>
 				<div className="flex items-center gap-1 text-sm">
-					<i className="i-lucide-dollar-sign inline-block text-muted-foreground h-3 w-3"  />
+					<i className="i-lucide-dollar-sign text-muted-foreground h-3 w-3"  />
 					{formatCurrency(request.estimatedCost)}
 				</div>
 			</TableCell>
@@ -109,12 +109,12 @@ function MaintenanceRow({
 				<div className="flex items-center gap-2">
 					<Link href={`/maintenance/${request.id}`}>
 						<Button variant="ghost" size="sm">
-							<i className="i-lucide-eye inline-block h-4 w-4"  />
+							<i className="i-lucide-eye h-4 w-4"  />
 						</Button>
 					</Link>
 					<Link href={`/maintenance/${request.id}/edit`}>
 						<Button variant="ghost" size="sm">
-							<i className="i-lucide-edit-3 inline-block h-4 w-4"  />
+							<i className="i-lucide-edit-3 h-4 w-4"  />
 						</Button>
 					</Link>
 				</div>
@@ -160,7 +160,7 @@ function MaintenanceTableUI({ requests }: MaintenanceTableUIProps) {
 				</CardHeader>
 				<CardContent>
 					<div className="flex flex-col items-center justify-center py-12 text-center">
-						<i className="i-lucide-wrench inline-block text-muted-foreground/50 mb-4 h-16 w-16"  />
+						<i className="i-lucide-wrench text-muted-foreground/50 mb-4 h-16 w-16"  />
 						<h3 className="mb-2 text-lg font-medium">
 							No maintenance requests yet
 						</h3>
@@ -170,7 +170,7 @@ function MaintenanceTableUI({ requests }: MaintenanceTableUIProps) {
 						</p>
 						<Link href="/maintenance/new">
 							<Button>
-								<i className="i-lucide-plus inline-block mr-2 h-4 w-4"  />
+								<i className="i-lucide-plus mr-2 h-4 w-4"  />
 								Add First Request
 							</Button>
 						</Link>
@@ -192,7 +192,7 @@ function MaintenanceTableUI({ requests }: MaintenanceTableUIProps) {
 					</div>
 					<Link href="/maintenance/new">
 						<Button size="sm">
-							<i className="i-lucide-plus inline-block mr-2 h-4 w-4"  />
+							<i className="i-lucide-plus mr-2 h-4 w-4"  />
 							Add Request
 						</Button>
 					</Link>

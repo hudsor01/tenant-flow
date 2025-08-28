@@ -1,19 +1,20 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiClient } from '@/lib/api-client'
+import { supabase } from '@/lib/supabase/client'
 import { toast } from 'sonner'
-// Use Database types directly - no duplication
-type AppNotification = Database['public']['Tables']['InAppNotification']['Row'] 
-type CreateNotificationRequest = Database['public']['Tables']['InAppNotification']['Insert']
 import type { Database } from '@repo/shared'
-type Priority = Database['public']['Enums']['Priority']
+
+// Use NATIVE Supabase types - no duplication
+type AppNotification = Database['public']['Tables']['notifications']['Row']
+type CreateNotificationRequest = Database['public']['Tables']['notifications']['Insert']
 
 /**
- * Hook for managing notifications - Direct TanStack Query usage per CLAUDE.md
+ * NATIVE Supabase Hook for managing notifications - Direct database access per CLAUDE.md
+ * NO backend endpoints needed - uses native Supabase client directly
  */
 export function useNotifications() {
 	const queryClient = useQueryClient()
 
-	// Get notifications query
+	// NATIVE Supabase query - get notifications
 	const {
 		data: notifications,
 		isLoading,
@@ -21,19 +22,44 @@ export function useNotifications() {
 		refetch
 	} = useQuery({
 		queryKey: ['notifications'],
-		queryFn: async () => apiClient.get<AppNotification[]>('/api/notifications')
+		queryFn: async () => {
+			const { data, error } = await supabase
+				.from('notifications')
+				.select('*')
+				.order('created_at', { ascending: false })
+			
+			if (error) throw error
+			return data as AppNotification[]
+		}
 	})
 
-	// Get unread notifications query
+	// NATIVE Supabase query - get unread notifications only
 	const { data: unreadNotifications, isLoading: isLoadingUnread } = useQuery({
 		queryKey: ['notifications', 'unread'],
-		queryFn: async () =>
-			apiClient.get<AppNotification[]>('/api/notifications?unreadOnly=true')
+		queryFn: async () => {
+			const { data, error } = await supabase
+				.from('notifications')
+				.select('*')
+				.eq('is_read', false)
+				.order('created_at', { ascending: false })
+			
+			if (error) throw error
+			return data as AppNotification[]
+		}
 	})
 
-	// Create notification mutation - DIRECT usage per CLAUDE.md
+	// NATIVE Supabase create notification mutation - Direct database access
 	const createNotificationMutation = useMutation({
-		mutationFn: (data: CreateNotificationRequest) => apiClient.post<AppNotification>('/api/notifications', data),
+		mutationFn: async (data: CreateNotificationRequest) => {
+			const { data: result, error } = await supabase
+				.from('notifications')
+				.insert(data)
+				.select('*')
+				.single()
+			
+			if (error) throw error
+			return result as AppNotification
+		},
 		onSuccess: () => {
 			toast.success('Notification sent successfully')
 			void queryClient.invalidateQueries({ queryKey: ['notifications'] })
@@ -43,9 +69,22 @@ export function useNotifications() {
 		}
 	})
 
-	// Mark as read mutation - DIRECT usage per CLAUDE.md
+	// NATIVE Supabase mark as read mutation - Direct database update
 	const markAsReadMutation = useMutation({
-		mutationFn: (id: string) => apiClient.put<AppNotification>(`/api/notifications/${id}/read`, {}),
+		mutationFn: async (id: string) => {
+			const { data, error } = await supabase
+				.from('notifications')
+				.update({ 
+					is_read: true, 
+					read_at: new Date().toISOString() 
+				})
+				.eq('id', id)
+				.select('*')
+				.single()
+			
+			if (error) throw error
+			return data as AppNotification
+		},
 		onSuccess: () => {
 			toast.success('Notification marked as read')
 			void queryClient.invalidateQueries({ queryKey: ['notifications'] })
@@ -55,7 +94,7 @@ export function useNotifications() {
 		}
 	})
 
-	// Create maintenance notification mutation - DIRECT usage per CLAUDE.md
+	// NATIVE Supabase maintenance notification mutation - Direct database insert
 	const createMaintenanceNotificationMutation = useMutation({
 		mutationFn: async ({
 			ownerId,
@@ -70,22 +109,37 @@ export function useNotifications() {
 			ownerId: string
 			title: string
 			description: string
-			priority: Priority
+			priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
 			propertyName: string
 			unitNumber: string
 			maintenanceId?: string
 			actionUrl?: string
-		}) =>
-			apiClient.post<AppNotification>('/api/notifications/maintenance', {
-				ownerId,
-				title,
-				description,
-				priority,
-				propertyName,
-				unitNumber,
-				maintenanceId,
-				actionUrl
-			}),
+		}) => {
+			// Build notification message with property context
+			const message = `${description} at ${propertyName}${unitNumber ? ` - Unit ${unitNumber}` : ''}`
+			
+			const { data, error } = await supabase
+				.from('notifications')
+				.insert({
+					recipient_id: ownerId,
+					title,
+					message,
+					type: 'maintenance_request',
+					priority: priority.toUpperCase(),
+					action_url: actionUrl,
+					data: {
+						propertyName,
+						unitNumber,
+						maintenanceId,
+						originalDescription: description
+					}
+				})
+				.select('*')
+				.single()
+			
+			if (error) throw error
+			return data as AppNotification
+		},
 		onSuccess: () => {
 			toast.success('Maintenance notification created')
 			void queryClient.invalidateQueries({ queryKey: ['notifications'] })

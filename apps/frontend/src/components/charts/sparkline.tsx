@@ -33,14 +33,14 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({
 			return null
 		}
 		return (
-			<div className="rounded-md border border-gray-200 bg-white px-2 py-1 text-xs shadow-md">
-				<p className="font-medium text-gray-900">
+			<div className="rounded-md border border-gray-2 bg-white px-2 py-1 text-xs shadow-md">
+				<p className="font-medium text-gray-9">
 					{typeof data.value === 'number'
 						? data.value.toLocaleString()
 						: data.value}
 				</p>
 				{data?.payload?.date && (
-					<p className="text-gray-500">{data.payload.date}</p>
+					<p className="text-gray-5">{data.payload.date}</p>
 				)}
 			</div>
 		)
@@ -125,11 +125,11 @@ export const TrendBadge: React.FC<{
 	const getColorClass = () => {
 		switch (direction) {
 			case 'up':
-				return 'text-green-600 bg-green-50 border-green-200'
+				return 'text-green-6 bg-green-50 border-green-2'
 			case 'down':
-				return 'text-red-600 bg-red-50 border-red-200'
+				return 'text-red-6 bg-red-50 border-red-2'
 			default:
-				return 'text-gray-600 bg-gray-50 border-gray-200'
+				return 'text-gray-6 bg-gray-50 border-gray-2'
 		}
 	}
 

@@ -50,9 +50,9 @@ export function CollapsibleFormSection({
 						</div>
 						<div className="flex items-center">
 							{isExpanded ? (
-								<i className="i-lucide-chevron-down inline-block h-4 w-4 transition-transform"  />
+								<i className="i-lucide-chevron-down  h-4 w-4 transition-transform"  />
 							) : (
-								<i className="i-lucide-chevron-right inline-block h-4 w-4 transition-transform"  />
+								<i className="i-lucide-chevron-right  h-4 w-4 transition-transform"  />
 							)}
 						</div>
 					</div>

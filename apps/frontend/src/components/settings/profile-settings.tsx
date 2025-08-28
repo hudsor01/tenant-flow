@@ -106,7 +106,7 @@ export function ProfileSettings() {
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<i className="i-lucide-user inline-block h-5 w-5"  />
+						<i className="i-lucide-user h-5 w-5"  />
 						Profile Information
 					</CardTitle>
 					<CardDescription>
@@ -128,7 +128,7 @@ export function ProfileSettings() {
 						</Avatar>
 						<div className="space-y-2">
 							<Button variant="outline" size="sm">
-								<i className="i-lucide-camera inline-block mr-2 h-4 w-4"  />
+								<i className="i-lucide-camera mr-2 h-4 w-4"  />
 								Change Photo
 							</Button>
 							<p className="text-muted-foreground text-sm">
@@ -157,7 +157,7 @@ export function ProfileSettings() {
 								htmlFor="email"
 								className="flex items-center gap-2"
 							>
-								<i className="i-lucide-mail inline-block h-4 w-4"  />
+								<i className="i-lucide-mail h-4 w-4"  />
 								Email Address
 							</Label>
 							<Input
@@ -173,7 +173,7 @@ export function ProfileSettings() {
 								htmlFor="phone"
 								className="flex items-center gap-2"
 							>
-								<i className="i-lucide-phone inline-block h-4 w-4"  />
+								<i className="i-lucide-phone h-4 w-4"  />
 								Phone Number
 							</Label>
 							<Input
@@ -192,7 +192,7 @@ export function ProfileSettings() {
 								htmlFor="company"
 								className="flex items-center gap-2"
 							>
-								<i className="i-lucide-building inline-block h-4 w-4"  />
+								<i className="i-lucide-building h-4 w-4"  />
 								Company Name
 							</Label>
 							<Input
@@ -207,7 +207,7 @@ export function ProfileSettings() {
 								htmlFor="address"
 								className="flex items-center gap-2"
 							>
-								<i className="i-lucide-map-pin inline-block h-4 w-4"  />
+								<i className="i-lucide-map-pin h-4 w-4"  />
 								Business Address
 							</Label>
 							<Input
@@ -227,7 +227,7 @@ export function ProfileSettings() {
 								Account Status
 							</p>
 							<div className="flex items-center gap-2">
-								<Badge className="bg-green-500">Active</Badge>
+								<Badge className="bg-green-5">Active</Badge>
 								<span className="text-muted-foreground text-sm">
 									Premium Plan
 								</span>
@@ -235,9 +235,9 @@ export function ProfileSettings() {
 						</div>
 						<Button onClick={handleSave} disabled={isLoading}>
 							{isLoading ? (
-								<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
+								<i className="i-lucide-loader-2 mr-2 h-4 w-4 animate-spin"  />
 							) : (
-								<i className="i-lucide-save inline-block mr-2 h-4 w-4"  />
+								<i className="i-lucide-save mr-2 h-4 w-4"  />
 							)}
 							Save Changes
 						</Button>

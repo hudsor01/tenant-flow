@@ -24,9 +24,9 @@ export function ProtectedRouteGuard({
 	redirectTo = '/auth/login',
 	requireAuth = true,
 	fallback = (
-		<div className="flex min-h-screen items-center justify-center bg-gray-50">
+		<div className="flex min-h-screen items-center justify-center bg-gray-1">
 			<div className="text-center">
-				<i className="i-lucide-loader-2 inline-block text-primary mx-auto h-8 w-8 animate-spin"  />
+				<i className="i-lucide-loader-2  text-primary mx-auto h-8 w-8 animate-spin"  />
 				<p className="text-muted-foreground mt-2 text-sm">
 					Checking authentication...
 				</p>
@@ -86,9 +86,9 @@ export function ProtectedRouteGuard({
 	// Show loading state while redirecting
 	if (isRedirecting || !user) {
 		return (
-			<div className="flex min-h-screen items-center justify-center bg-gray-50">
+			<div className="flex min-h-screen items-center justify-center bg-gray-1">
 				<div className="text-center">
-					<i className="i-lucide-loader-2 inline-block text-primary mx-auto h-8 w-8 animate-spin"  />
+					<i className="i-lucide-loader-2  text-primary mx-auto h-8 w-8 animate-spin"  />
 					<p className="text-muted-foreground mt-2 text-sm">
 						Redirecting to login...
 					</p>
@@ -112,7 +112,7 @@ export function ReverseAuthGuard({
 	fallback = (
 		<div className="flex min-h-screen items-center justify-center bg-white">
 			<div className="text-center">
-				<i className="i-lucide-loader-2 inline-block text-primary mx-auto h-8 w-8 animate-spin"  />
+				<i className="i-lucide-loader-2  text-primary mx-auto h-8 w-8 animate-spin"  />
 				<p className="text-muted-foreground mt-2 text-sm">Loading...</p>
 			</div>
 		</div>
@@ -152,7 +152,7 @@ export function ReverseAuthGuard({
 		return (
 			<div className="flex min-h-screen items-center justify-center bg-white">
 				<div className="text-center">
-					<i className="i-lucide-loader-2 inline-block text-primary mx-auto h-8 w-8 animate-spin"  />
+					<i className="i-lucide-loader-2  text-primary mx-auto h-8 w-8 animate-spin"  />
 					<p className="text-muted-foreground mt-2 text-sm">
 						Redirecting to dashboard...
 					</p>
@@ -174,9 +174,9 @@ export function AuthLoadingSpinner({
 	message?: string
 }) {
 	return (
-		<div className="flex min-h-screen items-center justify-center bg-gray-50">
+		<div className="flex min-h-screen items-center justify-center bg-gray-1">
 			<div className="text-center">
-				<i className="i-lucide-loader-2 inline-block text-primary mx-auto h-8 w-8 animate-spin"  />
+				<i className="i-lucide-loader-2  text-primary mx-auto h-8 w-8 animate-spin"  />
 				<p className="text-muted-foreground mt-2 text-sm">{message}</p>
 			</div>
 		</div>

@@ -63,7 +63,7 @@ function TenantRow({ tenant }: { tenant: TenantWithLeases }) {
 							{tenant.name}
 						</p>
 						<div className="text-muted-foreground flex items-center gap-1 text-sm">
-							<i className="i-lucide-mail inline-block h-3 w-3"  />
+							<i className="i-lucide-mail h-3 w-3"  />
 							{tenant.email}
 						</div>
 					</div>
@@ -72,7 +72,7 @@ function TenantRow({ tenant }: { tenant: TenantWithLeases }) {
 			<TableCell>
 				{tenant.phone ? (
 					<div className="flex items-center gap-1 text-sm">
-						<i className="i-lucide-phone inline-block text-muted-foreground h-3 w-3"  />
+						<i className="i-lucide-phone text-muted-foreground h-3 w-3"  />
 						{tenant.phone}
 					</div>
 				) : (
@@ -84,14 +84,14 @@ function TenantRow({ tenant }: { tenant: TenantWithLeases }) {
 					variant={
 						tenantStatus === 'active' ? 'default' : 'secondary'
 					}
-					className={tenantStatus === 'active' ? 'bg-green-500' : ''}
+					className={tenantStatus === 'active' ? 'bg-green-5' : ''}
 				>
 					{tenantStatus}
 				</Badge>
 				{isExpiringSoon && (
 					<Badge
 						variant="outline"
-						className="ml-2 border-orange-600 text-orange-600"
+						className="ml-2 border-orange-6 text-orange-6"
 					>
 						Expiring Soon
 					</Badge>
@@ -100,7 +100,7 @@ function TenantRow({ tenant }: { tenant: TenantWithLeases }) {
 			<TableCell>
 				{property ? (
 					<div className="flex items-center gap-1 text-sm">
-						<i className="i-lucide-building inline-block text-muted-foreground h-3 w-3"  />
+						<i className="i-lucide-building text-muted-foreground h-3 w-3"  />
 						<span
 							className="max-w-[150px] truncate"
 							title={property.name}
@@ -117,7 +117,7 @@ function TenantRow({ tenant }: { tenant: TenantWithLeases }) {
 			<TableCell>
 				{activeLease ? (
 					<div className="flex items-center gap-1 text-sm">
-						<i className="i-lucide-calendar inline-block text-muted-foreground h-3 w-3"  />
+						<i className="i-lucide-calendar text-muted-foreground h-3 w-3"  />
 						{new Date(activeLease.endDate).toLocaleDateString()}
 					</div>
 				) : (
@@ -128,12 +128,12 @@ function TenantRow({ tenant }: { tenant: TenantWithLeases }) {
 				<div className="flex items-center gap-2">
 					<Link href={`/tenants/${tenant.id}`}>
 						<Button variant="ghost" size="sm">
-							<i className="i-lucide-eye inline-block h-4 w-4"  />
+							<i className="i-lucide-eye h-4 w-4"  />
 						</Button>
 					</Link>
 					<Link href={`/tenants/${tenant.id}/edit`}>
 						<Button variant="ghost" size="sm">
-							<i className="i-lucide-edit-3 inline-block h-4 w-4"  />
+							<i className="i-lucide-edit-3 h-4 w-4"  />
 						</Button>
 					</Link>
 				</div>
@@ -177,7 +177,7 @@ function TenantsTableUI({ tenants }: TenantsTableUIProps) {
 				</CardHeader>
 				<CardContent>
 					<div className="flex flex-col items-center justify-center py-12 text-center">
-						<i className="i-lucide-users inline-block text-muted-foreground/50 mb-4 h-16 w-16"  />
+						<i className="i-lucide-users text-muted-foreground/50 mb-4 h-16 w-16"  />
 						<h3 className="mb-2 text-lg font-medium">
 							No tenants yet
 						</h3>

@@ -113,7 +113,7 @@ function AddPaymentMethodForm({ onSuccess, onCancel }: AddPaymentMethodProps) {
 
 	return (
 		<form onSubmit={handleSubmit} className="space-y-6">
-			<div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+			<div className="rounded-lg border border-gray-2 bg-gray-50 p-4">
 				<PaymentElement
 					options={{
 						layout: {
@@ -143,7 +143,7 @@ function AddPaymentMethodForm({ onSuccess, onCancel }: AddPaymentMethodProps) {
 
 			{error && (
 				<Alert variant="destructive">
-					<i className="i-lucide-alert-circle inline-block h-4 w-4"  />
+					<i className="i-lucide-alert-circle h-4 w-4"  />
 					<AlertDescription>{error}</AlertDescription>
 				</Alert>
 			)}
@@ -166,20 +166,20 @@ function AddPaymentMethodForm({ onSuccess, onCancel }: AddPaymentMethodProps) {
 				>
 					{isProcessing ? (
 						<>
-							<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
+							<i className="i-lucide-loader-2 mr-2 h-4 w-4 animate-spin"  />
 							Adding...
 						</>
 					) : (
 						<>
-							<i className="i-lucide-lock inline-block mr-2 h-4 w-4"  />
+							<i className="i-lucide-lock mr-2 h-4 w-4"  />
 							Add Payment Method
 						</>
 					)}
 				</Button>
 			</div>
 
-			<div className="text-center text-xs text-gray-500">
-				<i className="i-lucide-lock inline-block mr-1 inline h-3 w-3"  />
+			<div className="text-center text-xs text-gray-5">
+				<i className="i-lucide-lock mr-1 inline h-3 w-3"  />
 				Your payment information is encrypted and secure
 			</div>
 		</form>
@@ -209,12 +209,12 @@ function _PaymentMethodCard({
 	const getBrandIcon = (brand: string) => {
 		// You could return actual brand SVG icons here
 		const brandColors = {
-			visa: 'text-blue-600',
-			mastercard: 'text-red-500',
-			amex: 'text-green-600',
-			discover: 'text-orange-500'
+			visa: 'text-blue-6',
+			mastercard: 'text-red-5',
+			amex: 'text-green-6',
+			discover: 'text-orange-5'
 		}
-		return brandColors[brand as keyof typeof brandColors] || 'text-gray-500'
+		return brandColors[brand as keyof typeof brandColors] || 'text-gray-5'
 	}
 
 	if (paymentMethod.type !== 'card' || !paymentMethod.card) {
@@ -238,7 +238,7 @@ function _PaymentMethodCard({
 									<span className="font-medium capitalize">
 										{card.brand}
 									</span>
-									<span className="text-gray-500">
+									<span className="text-gray-5">
 										•••• {card.last4}
 									</span>
 									{isDefault && (
@@ -246,12 +246,12 @@ function _PaymentMethodCard({
 											variant="default"
 											className="text-xs"
 										>
-											<i className="i-lucide-star inline-block mr-1 h-3 w-3"  />
+											<i className="i-lucide-star mr-1 h-3 w-3"  />
 											Default
 										</Badge>
 									)}
 								</div>
-								<div className="text-sm text-gray-500">
+								<div className="text-sm text-gray-5">
 									Expires{' '}
 									{String(card.exp_month).padStart(2, '0')}/
 									{card.exp_year}
@@ -269,10 +269,10 @@ function _PaymentMethodCard({
 								disabled={isUpdating}
 							>
 								{isUpdating ? (
-									<i className="i-lucide-loader-2 inline-block h-4 w-4 animate-spin"  />
+									<i className="i-lucide-loader-2 h-4 w-4 animate-spin"  />
 								) : (
 									<>
-										<i className="i-lucide-check inline-block mr-1 h-4 w-4"  />
+										<i className="i-lucide-check mr-1 h-4 w-4"  />
 										Set Default
 									</>
 								)}
@@ -284,12 +284,12 @@ function _PaymentMethodCard({
 							variant="outline"
 							onClick={onDelete}
 							disabled={isDeleting}
-							className="text-red-600 hover:bg-red-50 hover:text-red-700"
+							className="text-red-6 hover:bg-red-50 hover:text-red-7"
 						>
 							{isDeleting ? (
-								<i className="i-lucide-loader-2 inline-block h-4 w-4 animate-spin"  />
+								<i className="i-lucide-loader-2 h-4 w-4 animate-spin"  />
 							) : (
-								<i className="i-lucide-trash-2 inline-block h-4 w-4"  />
+								<i className="i-lucide-trash-2 h-4 w-4"  />
 							)}
 						</Button>
 					</div>
@@ -321,7 +321,7 @@ export function EnhancedPaymentMethods(): ReactNode {
 						{[1, 2].map(i => (
 							<div
 								key={i}
-								className="h-20 animate-pulse rounded-lg bg-gray-100"
+								className="h-20 animate-pulse rounded-lg bg-gray-1"
 							/>
 						))}
 					</div>
@@ -338,7 +338,7 @@ export function EnhancedPaymentMethods(): ReactNode {
 				</CardHeader>
 				<CardContent>
 					<Alert variant="destructive">
-						<i className="i-lucide-alert-circle inline-block h-4 w-4"  />
+						<i className="i-lucide-alert-circle h-4 w-4"  />
 						<AlertDescription>
 							Failed to load payment methods. Please try again.
 						</AlertDescription>
@@ -359,7 +359,7 @@ export function EnhancedPaymentMethods(): ReactNode {
 					>
 						<DialogTrigger asChild>
 							<Button>
-								<i className="i-lucide-plus inline-block mr-2 h-4 w-4"  />
+								<i className="i-lucide-plus mr-2 h-4 w-4"  />
 								Add Payment Method
 							</Button>
 						</DialogTrigger>
@@ -380,11 +380,11 @@ export function EnhancedPaymentMethods(): ReactNode {
 
 			<CardContent>
 				<div className="py-8 text-center">
-					<i className="i-lucide-credit-card inline-block mx-auto mb-4 h-12 w-12 text-gray-400"  />
-					<h3 className="mb-2 text-lg font-medium text-gray-900">
+					<i className="i-lucide-credit-card mx-auto mb-4 h-12 w-12 text-gray-4"  />
+					<h3 className="mb-2 text-lg font-medium text-gray-9">
 						Payment Methods
 					</h3>
-					<p className="mb-4 text-gray-500">
+					<p className="mb-4 text-gray-5">
 						Manage your payment methods, billing history, and
 						subscription details through the secure customer portal.
 					</p>
@@ -398,18 +398,18 @@ export function EnhancedPaymentMethods(): ReactNode {
 					>
 						{isLoading ? (
 							<>
-								<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
+								<i className="i-lucide-loader-2 mr-2 h-4 w-4 animate-spin"  />
 								Loading...
 							</>
 						) : (
 							<>
-								<i className="i-lucide-lock inline-block mr-2 h-4 w-4"  />
+								<i className="i-lucide-lock mr-2 h-4 w-4"  />
 								Open Customer Portal
 							</>
 						)}
 					</Button>
 					{portalData?.message && (
-						<p className="mt-2 text-sm text-gray-600">
+						<p className="mt-2 text-sm text-gray-6">
 							{portalData.message}
 						</p>
 					)}

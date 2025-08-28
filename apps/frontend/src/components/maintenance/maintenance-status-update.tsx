@@ -37,31 +37,31 @@ const statusOptions: {
 	{
 		value: 'OPEN',
 		label: 'Open',
-		icon: <i className="i-lucide-clock inline-block h-4 w-4"  />,
+		icon: <i className="i-lucide-clock h-4 w-4"  />,
 		description: 'Request is waiting to be addressed'
 	},
 	{
 		value: 'IN_PROGRESS',
 		label: 'In Progress',
-		icon: <i className="i-lucide-wrench inline-block h-4 w-4"  />,
+		icon: <i className="i-lucide-wrench h-4 w-4"  />,
 		description: 'Work is actively being done'
 	},
 	{
 		value: 'COMPLETED',
 		label: 'Completed',
-		icon: <i className="i-lucide-check-circle-2 inline-block h-4 w-4"  />,
+		icon: <i className="i-lucide-check-circle-2 h-4 w-4"  />,
 		description: 'Work has been finished'
 	},
 	{
 		value: 'CANCELED',
 		label: 'Cancelled',
-		icon: <i className="i-lucide-xcircle inline-block h-4 w-4"  />,
+		icon: <i className="i-lucide-xcircle h-4 w-4"  />,
 		description: 'Request has been cancelled'
 	},
 	{
 		value: 'ON_HOLD',
 		label: 'On Hold',
-		icon: <i className="i-lucide-pause inline-block h-4 w-4"  />,
+		icon: <i className="i-lucide-pause h-4 w-4"  />,
 		description: 'Request is temporarily paused'
 	}
 ]
@@ -146,8 +146,8 @@ export function MaintenanceStatusUpdate({
 				</div>
 
 				{hasChanged && (
-					<div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
-						<p className="text-sm text-blue-800">
+					<div className="rounded-lg border border-blue-2 bg-blue-50 p-3">
+						<p className="text-sm text-blue-8">
 							Status will change from{' '}
 							<span className="font-medium">
 								{currentStatus?.label}
@@ -167,7 +167,7 @@ export function MaintenanceStatusUpdate({
 						className="flex-1"
 					>
 						{updateRequest.isPending && (
-							<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
+							<i className="i-lucide-loader-2 mr-2 h-4 w-4 animate-spin"  />
 						)}
 						Update Status
 					</Button>

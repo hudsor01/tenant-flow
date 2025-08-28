@@ -15,9 +15,9 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({
 			return null
 		}
 		return (
-			<div className="rounded-md border border-gray-200 bg-white px-2 py-1 text-xs shadow-md">
-				<p className="mb-1 font-medium text-gray-900">{label}</p>
-				<p className="text-gray-600">
+			<div className="rounded-md border border-gray-2 bg-white px-2 py-1 text-xs shadow-md">
+				<p className="mb-1 font-medium text-gray-9">{label}</p>
+				<p className="text-gray-6">
 					{typeof data.value === 'number'
 						? data.value.toLocaleString()
 						: data.value}
@@ -93,14 +93,14 @@ export const MiniBarChartSkeleton: React.FC<{
 }> = ({ height = 60, className = '' }) => {
 	return (
 		<div
-			className={`animate-pulse rounded bg-gray-200 ${className}`}
+			className={`animate-pulse rounded bg-gray-2 ${className}`}
 			style={{ height, width: '100%' }}
 		>
 			<div className="flex h-full items-end justify-between px-1 pb-1">
 				{[...Array(5)].map((_, i) => (
 					<div
 						key={i}
-						className="rounded-sm bg-gray-300"
+						className="rounded-sm bg-gray-3"
 						style={{
 							width: '16%',
 							height: `${Math.random() * 60 + 20}%`

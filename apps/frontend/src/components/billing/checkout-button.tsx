@@ -53,7 +53,7 @@ export function CheckoutButton({
 			>
 				{isLoading ? (
 					<>
-						<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
+						<i className="i-lucide-loader-2 mr-2 h-4 w-4 animate-spin"  />
 						Loading...
 					</>
 				) : (

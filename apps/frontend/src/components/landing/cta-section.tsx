@@ -1,3 +1,7 @@
+/**
+ * CTA Section - Client Component
+ * Using semantic tokens and gradients for consistency
+ */
 'use client'
 
 import Link from 'next/link'
@@ -11,25 +15,25 @@ const trustPoints = [
 		icon: 'i-lucide-dollar-sign',
 		title: 'Free Trial',
 		subtitle: '14 days, no CC required',
-		gradient: 'from-green-400 to-emerald-500'
+		gradient: 'from-success/80 to-success'
 	},
 	{
 		icon: 'i-lucide-shield',
 		title: 'Secure',
 		subtitle: 'Bank-level encryption',
-		gradient: 'from-blue-400 to-cyan-500'
+		gradient: 'from-primary/80 to-primary'
 	},
 	{
 		icon: 'i-lucide-bell',
 		title: '24/7 Support',
 		subtitle: 'Always here to help',
-		gradient: 'from-purple-400 to-pink-500'
+		gradient: 'from-accent/80 to-accent'
 	},
 	{
 		icon: 'i-lucide-home',
 		title: '10,000+ Users',
 		subtitle: 'Trusted nationwide',
-		gradient: 'from-orange-400 to-red-500'
+		gradient: 'from-warning/80 to-warning'
 	}
 ]
 
@@ -53,7 +57,7 @@ export function CtaSection() {
 	}, [posthog])
 
 	return (
-		<section className="from-primary relative overflow-hidden bg-gradient-to-br via-purple-600 to-pink-600 px-4 py-24 text-white">
+		<section className="relative overflow-hidden bg-gradient-to-br from-primary via-accent to-primary/80 px-4 py-24 text-white">
 			{/* Enhanced background effects */}
 			<div className="absolute inset-0">
 				<div className="animate-blob absolute left-10 top-10 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
@@ -64,16 +68,16 @@ export function CtaSection() {
 			<div className="container relative z-10 mx-auto max-w-5xl text-center">
 				{/* Enhanced header with badge */}
 				<div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 backdrop-blur-sm">
-					<i className="i-lucide-sparkles inline-block h-4 w-4"  />
+					<i className="i-lucide-sparkles h-4 w-4" />
 					<span className="text-sm font-medium">
-						Join 10,000+ Property_ Managers
+						Join 10,000+ Property Managers
 					</span>
 				</div>
 
 				<h2 className="mb-6 text-4xl font-bold leading-tight md:text-6xl">
 					Ready to Transform Your
-					<span className="block bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">
-						Property_ Management?
+					<span className="block bg-gradient-to-r from-warning to-warning/70 bg-clip-text text-transparent">
+						Property Management?
 					</span>
 				</h2>
 
@@ -90,13 +94,13 @@ export function CtaSection() {
 					>
 						<Button
 							size="lg"
-							className="hover:shadow-3xl group h-16 w-full min-w-[280px] rounded-xl bg-white px-8 text-lg font-semibold text-blue-700 shadow-2xl transition-all duration-300 hover:scale-105 hover:bg-gray-50 sm:w-auto"
+							className="hover:shadow-3xl group h-16 w-full min-w-[280px] rounded-xl bg-white px-8 text-lg font-semibold text-primary shadow-2xl transition-all duration-300 hover:scale-105 hover:bg-base1 sm:w-auto"
 							onClick={handleSignupClick}
 							aria-label="Start your free 14-day trial - no credit card required"
 						>
 							<span className="flex items-center justify-center gap-3">
 								Start Your Free Trial Now
-								<i className="i-lucide-arrow-right inline-block h-5 w-5 transition-transform group-hover:translate-x-1"  />
+								<i className="i-lucide-arrow-right h-5 w-5 transition-transform group-hover:translate-x-1" />
 							</span>
 						</Button>
 					</Link>
@@ -113,7 +117,7 @@ export function CtaSection() {
 							aria-label="Schedule a personalized demo with our team"
 						>
 							<span className="flex items-center justify-center gap-3">
-								<i className="i-lucide-phone inline-block h-5 w-5"  />
+								<i className="i-lucide-phone h-5 w-5" />
 								Schedule a Demo
 							</span>
 						</Button>
@@ -125,7 +129,7 @@ export function CtaSection() {
 					{trustPoints.map((point, index) => (
 						<Card
 							key={index}
-							className="group border-white/20 bg-white/10 text-white backdrop-blur-sm transition-all duration-300 hover:bg-white/15"
+							className="group border-white/20 bg-white/10 text-white backdrop-blur-sm transition-all duration-300 hover:bg-white/20"
 						>
 							<CardContent className="p-6 text-center">
 								<div
@@ -149,7 +153,7 @@ export function CtaSection() {
 					<div className="flex items-center gap-2">
 						<div className="flex">
 							{[...Array(5)].map((_, i) => (
-								<i className="i-lucide-star inline-block h-4 w-4 fill-yellow-300 text-yellow-300" key={i} />
+								<i className="i-lucide-star h-4 w-4 fill-warning text-warning" key={i} />
 							))}
 						</div>
 						<span className="text-sm">
