@@ -29,6 +29,7 @@ import { UserSupabaseRepository } from '../database/user-supabase.repository'
 	exports: [
 		StripeService,
 		PaymentRecoveryService,
+		PaymentNotificationService,
 		StripeWebhookService,
 		StripePortalService
 	]

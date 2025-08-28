@@ -1,5 +1,12 @@
 /* UnoCSS Global Styles - Native CSS Features Only */
 
+/* Import UnoCSS directives */
+@import '@unocss/reset/tailwind.css';
+
+/* UnoCSS utility imports - handled by webpack plugin */
+@unocss preflights;
+@unocss default;
+
 /* 
  * Native CSS Features Only
  * No frameworks, no abstractions, just web standards
