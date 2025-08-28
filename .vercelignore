@@ -49,6 +49,7 @@ railway.json
 # Scripts not needed in production
 scripts
 !apps/frontend/scripts/analyze-bundle.js
+!apps/frontend/scripts/fix-client-manifest.js
 
 # Documentation
 docs
