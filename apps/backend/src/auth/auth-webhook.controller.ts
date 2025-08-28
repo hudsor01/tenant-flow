@@ -11,6 +11,7 @@ import { AuthService } from './auth.service'
 import { StripeService } from '../billing/stripe.service'
 import { UsersService } from '../users/users.service'
 import { Public } from '../shared/decorators/public.decorator'
+import type { User as SupabaseUser } from '@supabase/supabase-js'
 // Remove non-existent import - define function locally if needed
 
 interface SupabaseWebhookEvent {
@@ -110,19 +111,46 @@ export class AuthWebhookController {
 
 		try {
 			// Transform webhook user to Supabase User format
-			const supabaseUser = {
+			const supabaseUser: SupabaseUser = {
 				id: user.id,
+				aud: 'authenticated',
 				email: user.email || '',
-				created_at: user.created_at,
-				updated_at: user.updated_at,
 				email_confirmed_at: user.email_confirmed_at || null,
 				user_metadata: user.user_metadata || {},
 				app_metadata: {},
-				aud: 'authenticated'
+				created_at: user.created_at,
+				updated_at: user.updated_at,
+				phone: null,
+				phone_confirmed_at: null,
+				confirmation_sent_at: null,
+				confirmed_at: null,
+				email_change_sent_at: null,
+				new_email: null,
+				invited_at: null,
+				action_link: null,
+				email_change: null,
+				email_change_confirm_status: 0,
+				banned_until: null,
+				recovery_sent_at: null,
+				new_phone: null,
+				phone_change: null,
+				phone_change_token: null,
+				phone_change_sent_at: null,
+				confirmed_phone_change_at: null,
+				email_change_token_new: null,
+				email_change_token_current: null,
+				phone_confirmed_at: null,
+				unconfirmed_phone: null,
+				unconfirmed_email: null,
+				last_sign_in_at: null,
+				role: null,
+				identities: null,
+				is_anonymous: false,
+				factors: null
 			}
 			
 			// Sync user with local database
-			await this.authService.syncUserWithDatabase(supabaseUser as any)
+			await this.authService.syncUserWithDatabase(supabaseUser)
 
 			// Create Stripe customer and free trial subscription for new user
 			await this.createSubscription(user.id, user.email, userName)
