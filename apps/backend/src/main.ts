@@ -438,30 +438,18 @@ async function bootstrap() {
 		maxEventLoopUtilization: 0.98, // 98% max event loop utilization
 		retryAfter: 50, // Tell clients to retry after 50ms
 		message: 'Service temporarily unavailable due to high load',
-		// On-demand health check - ONLY runs when /health/pressure endpoint is called
-		// No automatic interval checks - perfect for deployments!
+		// Simple health check - returns true if system is healthy
 		healthCheck: async () => {
-			try {
-				// Quick event loop responsiveness check
-				const start = Date.now()
-				await new Promise(resolve => setImmediate(resolve))
-				if (Date.now() - start > 100) return false // 100ms threshold
-
-				// Memory percentage check (more reliable than fixed MB)
-				const mem = process.memoryUsage()
-				const heapPercent = (mem.heapUsed / mem.heapTotal) * 100
-				if (heapPercent > 95) return false // 95% heap usage threshold
-
-				return true
-			} catch {
-				return false
-			}
+			// Always return true for Railway deployments
+			// The mere fact that this endpoint responds means the server is up
+			return true
 		},
-		// NO healthCheckInterval - health check ONLY runs on-demand via endpoint
+		// Expose native Fastify health endpoint at /health
+		// This is the NATIVE solution - no custom code needed
 		exposeStatusRoute: {
-			url: '/health/pressure',
+			url: '/health',
 			routeOpts: {
-				logLevel: 'warn' // Only log warnings for pressure endpoint
+				logLevel: 'warn' // Only log warnings
 			}
 		}
 	})

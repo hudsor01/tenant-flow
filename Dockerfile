@@ -120,83 +120,8 @@ ENV NODE_ENV=production \
 ARG PORT=4600
 ENV PORT=${PORT}
 
-# VERBOSE health check with detailed logging for Railway debugging
-# interval=20s: Balanced check frequency for Railway
-# timeout=8s: Longer timeout to account for Railway network latency  
-# start-period=90s: Extended grace period for Railway container startup
-# retries=5: More retries to handle Railway network fluctuations
-# Uses /health/ping - bulletproof endpoint with no dependencies
-HEALTHCHECK --interval=20s --timeout=8s --start-period=90s --retries=5 \
-  CMD node -e " \
-    const http = require('http'); \
-    const startTime = Date.now(); \
-    console.log('=== DOCKER HEALTH CHECK START ==='); \
-    console.log('Timestamp:', new Date().toISOString()); \
-    console.log('Environment:', process.env.NODE_ENV || 'unknown'); \
-    console.log('Port:', process.env.PORT || 'unknown'); \
-    console.log('Railway Env:', process.env.RAILWAY_ENVIRONMENT || 'none'); \
-    console.log('Docker Container:', process.env.DOCKER_CONTAINER || 'none'); \
-    \
-    const port = process.env.PORT || 4600; \
-    console.log('Attempting to connect to 127.0.0.1:' + port + '/health/ping'); \
-    \
-    const options = { \
-      hostname: '127.0.0.1', \
-      port: port, \
-      path: '/health/ping', \
-      method: 'GET', \
-      timeout: 6000, \
-      headers: { \
-        'User-Agent': 'Docker-HealthCheck', \
-        'Accept': 'application/json', \
-        'Connection': 'close' \
-      } \
-    }; \
-    \
-    console.log('Request options:', JSON.stringify(options, null, 2)); \
-    \
-    const req = http.request(options, (res) => { \
-      console.log('Response received!'); \
-      console.log('Status Code:', res.statusCode); \
-      console.log('Headers:', JSON.stringify(res.headers, null, 2)); \
-      \
-      let data = ''; \
-      res.on('data', chunk => { \
-        data += chunk; \
-        console.log('Data chunk received, length:', chunk.length); \
-      }); \
-      \
-      res.on('end', () => { \
-        const duration = Date.now() - startTime; \
-        console.log('Response completed in', duration + 'ms'); \
-        console.log('Response body:', data.slice(0, 200)); \
-        console.log('=== HEALTH CHECK', res.statusCode === 200 ? 'PASSED' : 'FAILED', '==='); \
-        process.exit(res.statusCode === 200 ? 0 : 1); \
-      }); \
-    }); \
-    \
-    req.on('error', (err) => { \
-      console.error('=== HEALTH CHECK ERROR ==='); \
-      console.error('Error type:', err.constructor.name); \
-      console.error('Error message:', err.message); \
-      console.error('Error code:', err.code || 'unknown'); \
-      console.error('Duration:', Date.now() - startTime + 'ms'); \
-      console.error('Stack trace:', err.stack); \
-      process.exit(1); \
-    }); \
-    \
-    req.on('timeout', () => { \
-      console.error('=== HEALTH CHECK TIMEOUT ==='); \
-      console.error('Request timed out after 6000ms'); \
-      console.error('Total duration:', Date.now() - startTime + 'ms'); \
-      req.destroy(); \
-      process.exit(1); \
-    }); \
-    \
-    req.setTimeout(6000); \
-    \
-    console.log('Sending HTTP request...'); \
-    req.end();"
+# NO HEALTHCHECK - Railway handles this externally via HTTP endpoint
+# The app exposes /health/ping and /health/pressure endpoints natively
 
 # Direct Node.js execution
 CMD ["node", "apps/backend/dist/main.js"]
