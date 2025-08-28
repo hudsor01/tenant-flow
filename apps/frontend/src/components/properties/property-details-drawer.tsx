@@ -60,14 +60,14 @@ export function Property_DetailsDrawer({
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-3">
 							<div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-lg">
-								<i className="i-lucide-building-2 inline-block text-primary h-5 w-5"  />
+								<i className="i-lucide-building-2 text-primary h-5 w-5"  />
 							</div>
 							<div>
 								<SheetTitle>
 									{property?.name || 'Loading...'}
 								</SheetTitle>
 								<SheetDescription className="mt-1 flex items-center gap-1">
-									<i className="i-lucide-map-pin inline-block h-3 w-3"  />
+									<i className="i-lucide-map-pin h-3 w-3"  />
 									{property?.address || 'Loading address...'}
 								</SheetDescription>
 							</div>
@@ -79,7 +79,7 @@ export function Property_DetailsDrawer({
 								onClick={onEdit}
 								aria-label="Edit property"
 							>
-								<i className="i-lucide-edit-3 inline-block h-4 w-4"  />
+								<i className="i-lucide-edit-3 h-4 w-4"  />
 							</Button>
 							<Button
 								variant="outline"
@@ -87,7 +87,7 @@ export function Property_DetailsDrawer({
 								onClick={onDelete}
 								aria-label="Delete property"
 							>
-								<i className="i-lucide-trash-2 inline-block h-4 w-4"  />
+								<i className="i-lucide-trash-2 h-4 w-4"  />
 							</Button>
 						</div>
 					</div>
@@ -103,7 +103,7 @@ export function Property_DetailsDrawer({
 
 				{error && (
 					<Alert variant="destructive" className="mt-6">
-						<i className="i-lucide-alert-triangle inline-block h-4 w-4"  />
+						<i className="i-lucide-alert-triangle h-4 w-4"  />
 						<AlertDescription>
 							Failed to load property details. Please try again.
 						</AlertDescription>
@@ -238,9 +238,9 @@ function Property_Overview({ property }: { property: Property_ }) {
 									{occupancyRate}%
 								</Badge>
 								{occupancyRate >= 90 ? (
-									<i className="i-lucide-trending-up inline-block h-4 w-4 text-green-600" data-testid="trending-up-icon" />
+									<i className="i-lucide-trending-up h-4 w-4 text-green-6" data-testid="trending-up-icon" />
 								) : (
-									<i className="i-lucide-trending-down inline-block h-4 w-4 text-red-600" data-testid="trending-down-icon" />
+									<i className="i-lucide-trending-down h-4 w-4 text-red-6" data-testid="trending-down-icon" />
 								)}
 							</div>
 						</div>
@@ -254,7 +254,7 @@ function Property_Overview({ property }: { property: Property_ }) {
 								</p>
 							</div>
 							<div>
-								<p className="text-2xl font-bold text-green-600">
+								<p className="text-2xl font-bold text-green-6">
 									{occupiedUnits}
 								</p>
 								<p className="text-muted-foreground text-xs">
@@ -262,7 +262,7 @@ function Property_Overview({ property }: { property: Property_ }) {
 								</p>
 							</div>
 							<div>
-								<p className="text-2xl font-bold text-yellow-600">
+								<p className="text-2xl font-bold text-yellow-6">
 									{vacantUnits}
 								</p>
 								<p className="text-muted-foreground text-xs">
@@ -311,7 +311,7 @@ function Property_Units({ property }: { property: Property_ }) {
 			<Card>
 				<CardContent className="py-8">
 					<div className="text-center">
-						<i className="i-lucide-home inline-block text-muted-foreground/50 mx-auto mb-3 h-12 w-12"  />
+						<i className="i-lucide-home text-muted-foreground/50 mx-auto mb-3 h-12 w-12"  />
 						<p className="text-muted-foreground">
 							No units added yet
 						</p>
@@ -332,7 +332,7 @@ function Property_Units({ property }: { property: Property_ }) {
 						<div className="flex items-center justify-between">
 							<div className="flex items-center gap-3">
 								<div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg">
-									<i className="i-lucide-home inline-block text-primary h-4 w-4"  />
+									<i className="i-lucide-home text-primary h-4 w-4"  />
 								</div>
 								<div>
 									<p className="font-medium">
@@ -393,7 +393,7 @@ function Property_Financials({ property }: { property: Property_ }) {
 							<span className="text-muted-foreground text-sm">
 								Current Monthly Revenue
 							</span>
-							<span className="text-xl font-bold text-green-600">
+							<span className="text-xl font-bold text-green-6">
 								${totalMonthlyRent.toLocaleString()}
 							</span>
 						</div>
@@ -409,7 +409,7 @@ function Property_Financials({ property }: { property: Property_ }) {
 							<span className="text-muted-foreground text-sm">
 								Revenue Loss (Vacancy)
 							</span>
-							<span className="text-lg font-medium text-red-600">
+							<span className="text-lg font-medium text-red-6">
 								-$
 								{(
 									potentialMonthlyRent - totalMonthlyRent
@@ -426,7 +426,7 @@ function Property_Financials({ property }: { property: Property_ }) {
 				</CardHeader>
 				<CardContent>
 					<div className="py-8 text-center">
-						<i className="i-lucide-dollar-sign inline-block text-muted-foreground/50 mx-auto mb-3 h-12 w-12"  />
+						<i className="i-lucide-dollar-sign text-muted-foreground/50 mx-auto mb-3 h-12 w-12"  />
 						<p className="text-muted-foreground">
 							No recent transactions
 						</p>
@@ -448,7 +448,7 @@ function Property_Documents({ property: _property }: { property: Property_ }) {
 			</CardHeader>
 			<CardContent>
 				<div className="py-8 text-center">
-					<i className="i-lucide-file-text inline-block text-muted-foreground/50 mx-auto mb-3 h-12 w-12"  />
+					<i className="i-lucide-file-text text-muted-foreground/50 mx-auto mb-3 h-12 w-12"  />
 					<p className="text-muted-foreground">
 						No documents uploaded
 					</p>

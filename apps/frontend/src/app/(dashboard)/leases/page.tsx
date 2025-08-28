@@ -27,12 +27,12 @@ function LeasesHeader() {
 			</div>
 			<div className="flex gap-2">
 				<Button variant="outline" size="sm">
-					<i className="i-lucide-filter inline-block mr-2 h-4 w-4"  />
+					<i className="i-lucide-filter  mr-2 h-4 w-4"  />
 					Filter
 				</Button>
 				<Link href="/leases/new">
 					<Button size="sm">
-						<i className="i-lucide-plus inline-block mr-2 h-4 w-4"  />
+						<i className="i-lucide-plus  mr-2 h-4 w-4"  />
 						Create Lease
 					</Button>
 				</Link>
@@ -47,14 +47,14 @@ function LeasesSearch() {
 			<CardContent className="p-4">
 				<div className="flex gap-4">
 					<div className="relative flex-1">
-						<i className="i-lucide-search inline-block text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform"  />
+						<i className="i-lucide-search  text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform"  />
 						<Input
 							placeholder="Search leases by tenant, property, or lease terms..."
 							className="pl-10"
 						/>
 					</div>
 					<Button variant="outline">
-						<i className="i-lucide-filter inline-block mr-2 h-4 w-4"  />
+						<i className="i-lucide-filter  mr-2 h-4 w-4"  />
 						Filters
 					</Button>
 				</div>

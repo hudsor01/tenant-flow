@@ -53,7 +53,7 @@ function CompanyStats() {
 					>
 						<CardContent className="p-6 text-center">
 							<div className="bg-primary/10 mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
-								<i className={`${stat.icon} text-primary h-6 w-6 inline-block`} />
+								<i className={`${stat.icon} text-primary h-6 w-6 `} />
 							</div>
 							<div className="text-foreground mb-2 text-3xl font-bold">
 								{stat.value}
@@ -83,7 +83,7 @@ export function AboutContent() {
 							className="mb-6"
 						>
 							<Badge className="from-primary via-accent to-success border-0 bg-gradient-to-r px-6 py-2 text-sm font-semibold text-white shadow-lg">
-								<i className="i-lucide-sparkles inline-block mr-2 h-4 w-4"  />
+								<i className="i-lucide-sparkles  mr-2 h-4 w-4"  />
 								About TenantFlow
 							</Badge>
 						</motion.div>
@@ -216,7 +216,7 @@ export function AboutContent() {
 									<Card className="h-full border-0 bg-white/80 backdrop-blur-sm transition-all duration-300 hover:shadow-lg">
 										<CardContent className="p-6 text-center">
 											<div className="from-primary to-accent mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br">
-												<i className={`${value.icon} h-8 w-8 inline-block text-white`} />
+												<i className={`${value.icon} h-8 w-8  text-white`} />
 											</div>
 											<h3 className="text-foreground mb-3 text-xl font-semibold">
 												{value.title}
@@ -260,7 +260,7 @@ export function AboutContent() {
 											className="group"
 										>
 											Start Free Trial
-											<i className="i-lucide-arrow-right inline-block ml-2 h-4 w-4 transition-transform group-hover:translate-x-1"  />
+											<i className="i-lucide-arrow-right  ml-2 h-4 w-4 transition-transform group-hover:translate-x-1"  />
 										</Button>
 									</Link>
 									<Link href="/contact">

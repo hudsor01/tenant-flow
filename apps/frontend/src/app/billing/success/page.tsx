@@ -49,7 +49,7 @@ function BillingSuccessLoading() {
 	return (
 		<div className="flex items-center justify-center py-16">
 			<div className="text-center">
-				<i className="i-lucide-loader-2 inline-block text-primary mx-auto mb-4 h-12 w-12 animate-spin"  />
+				<i className="i-lucide-loader-2 text-primary mx-auto mb-4 h-12 w-12 animate-spin"  />
 				<p className="text-muted-foreground text-lg">
 					Activating your subscription...
 				</p>

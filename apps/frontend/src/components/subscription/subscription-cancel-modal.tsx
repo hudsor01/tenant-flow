@@ -93,18 +93,18 @@ export function SubscriptionCancelModal({
 			<Dialog open={isOpen} onOpenChange={handleClose}>
 				<DialogContent className="sm:max-w-md">
 					<div className="flex flex-col items-center py-6 text-center">
-						<div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-							<i className="i-lucide-checkicon inline-block h-6 w-6 text-green-600"  />
+						<div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-1">
+							<i className="i-lucide-checkicon h-6 w-6 text-green-6"  />
 						</div>
 						<h3 className="mb-2 text-lg font-semibold">
 							Cancellation Processed
 						</h3>
-						<p className="mb-4 text-gray-600">
+						<p className="mb-4 text-gray-6">
 							{!cancelAtPeriodEnd
 								? 'Your subscription has been canceled immediately.'
 								: 'Your subscription will be canceled at the end of your billing period.'}
 						</p>
-						<p className="text-sm text-gray-500">
+						<p className="text-sm text-gray-5">
 							You can reactivate anytime from your account
 							settings.
 						</p>
@@ -124,7 +124,7 @@ export function SubscriptionCancelModal({
 					</DialogHeader>
 
 					<div className="space-y-4">
-						<p className="text-gray-600">
+						<p className="text-gray-6">
 							We'd love to understand why you're leaving so we can
 							improve our service.
 						</p>
@@ -207,11 +207,11 @@ export function SubscriptionCancelModal({
 
 					<div className="space-y-4">
 						{offer ? (
-							<div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-								<h4 className="mb-2 font-medium text-blue-900">
+							<div className="rounded-lg border border-blue-2 bg-blue-50 p-4">
+								<h4 className="mb-2 font-medium text-blue-9">
 									{offer.title}
 								</h4>
-								<p className="mb-3 text-blue-800">
+								<p className="mb-3 text-blue-8">
 									{offer.offer}
 								</p>
 								<Button size="sm" className="mr-2">
@@ -223,14 +223,14 @@ export function SubscriptionCancelModal({
 								<h4 className="mb-2 font-medium">
 									We're sorry to see you go
 								</h4>
-								<p className="text-gray-600">
+								<p className="text-gray-6">
 									Your feedback helps us improve. Thank you
 									for being a customer.
 								</p>
 							</div>
 						)}
 
-						<div className="text-sm text-gray-600">
+						<div className="text-sm text-gray-6">
 							<p>If you still want to cancel, you can:</p>
 							<ul className="mt-2 ml-5 list-disc">
 								<li>
@@ -265,18 +265,18 @@ export function SubscriptionCancelModal({
 			<DialogContent className="sm:max-w-lg">
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">
-						<i className="i-lucide-alerttriangleicon inline-block h-5 w-5 text-orange-600"  />
+						<i className="i-lucide-alerttriangleicon h-5 w-5 text-orange-6"  />
 						Confirm Cancellation
 					</DialogTitle>
 				</DialogHeader>
 
 				<div className="space-y-4">
-					<div className="rounded-lg border border-orange-200 bg-orange-50 p-4">
-						<h4 className="mb-2 font-medium text-orange-900">
+					<div className="rounded-lg border border-orange-2 bg-orange-1 p-4">
+						<h4 className="mb-2 font-medium text-orange-9">
 							You're about to cancel your {currentPlan}{' '}
 							subscription
 						</h4>
-						<p className="text-sm text-orange-800">
+						<p className="text-sm text-orange-8">
 							This action cannot be undone, but you can always
 							resubscribe later.
 						</p>
@@ -309,7 +309,7 @@ export function SubscriptionCancelModal({
 										At the end of billing period
 										(Recommended)
 									</Label>
-									<p className="mt-1 text-sm text-gray-600">
+									<p className="mt-1 text-sm text-gray-6">
 										You'll keep access until your current
 										billing period ends, then your
 										subscription will be canceled.
@@ -330,7 +330,7 @@ export function SubscriptionCancelModal({
 									>
 										Immediately
 									</Label>
-									<p className="mt-1 text-sm text-gray-600">
+									<p className="mt-1 text-sm text-gray-6">
 										Your subscription will be canceled right
 										away and you'll lose access immediately.
 									</p>
@@ -355,10 +355,10 @@ export function SubscriptionCancelModal({
 
 					{/* Error Display */}
 					{cancelError && (
-						<div className="rounded-lg border border-red-200 bg-red-50 p-4">
+						<div className="rounded-lg border border-red-2 bg-red-50 p-4">
 							<div className="flex items-center gap-2">
-								<i className="i-lucide-xicon inline-block h-4 w-4 text-red-600"  />
-								<span className="text-sm text-red-600">
+								<i className="i-lucide-xicon h-4 w-4 text-red-6"  />
+								<span className="text-sm text-red-6">
 									{cancelError.message ||
 										'Cancellation failed. Please try again.'}
 								</span>

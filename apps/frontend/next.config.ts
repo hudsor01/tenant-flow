@@ -1,6 +1,5 @@
 import type { NextConfig } from 'next/types'
 import path from 'node:path'
-import UnoCSS from '@unocss/webpack'
 
 // Webpack configuration for production builds
 interface WebpackConfig {
@@ -218,11 +217,8 @@ const nextConfig: NextConfig = {
 			}
 		}
 
-		// Add UnoCSS webpack plugin
-		if (!typedConfig.plugins) {
-			typedConfig.plugins = []
-		}
-		typedConfig.plugins.push(UnoCSS())
+		// UnoCSS is now handled by PostCSS, not webpack
+		// Removed webpack plugin to prevent conflicts
 
 		return typedConfig
 	}

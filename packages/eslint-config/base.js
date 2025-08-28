@@ -27,7 +27,9 @@ export default /** @type {import('eslint').Linter.FlatConfig[]} */ (tseslint.con
 			'**/*.generated.ts',
 			'**/*.d.ts',
 			'**/supabase/functions/**',
-			'**/supabase/migrations/**'
+			'**/supabase/migrations/**',
+			'**/types/frontend-only.ts',
+			'**/test/production-api.test.ts'
 		]
 	},
 

@@ -52,14 +52,14 @@ function Property_Row({ property, onView, onEdit }: Property_RowProps) {
 			>
 				<div className="flex items-center gap-3">
 					<div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-lg">
-						<i className="i-lucide-building-2 inline-block text-primary h-5 w-5"  />
+						<i className="i-lucide-building-2 text-primary h-5 w-5"  />
 					</div>
 					<div className="space-y-1">
 						<p className="font-medium leading-none">
 							{property.name}
 						</p>
 						<div className="text-muted-foreground flex items-center gap-1 text-sm">
-							<i className="i-lucide-map-pin inline-block h-3 w-3"  />
+							<i className="i-lucide-map-pin h-3 w-3"  />
 							{property.address}
 						</div>
 					</div>
@@ -72,13 +72,13 @@ function Property_Row({ property, onView, onEdit }: Property_RowProps) {
 			</TableCell>
 			<TableCell>
 				<div className="flex items-center gap-1">
-					<i className="i-lucide-home inline-block text-muted-foreground h-3 w-3"  />
+					<i className="i-lucide-home text-muted-foreground h-3 w-3"  />
 					{totalUnits}
 				</div>
 			</TableCell>
 			<TableCell>
 				<div className="flex items-center gap-1">
-					<i className="i-lucide-users inline-block text-muted-foreground h-3 w-3"  />
+					<i className="i-lucide-users text-muted-foreground h-3 w-3"  />
 					{occupiedUnits}
 				</div>
 			</TableCell>
@@ -106,7 +106,7 @@ function Property_Row({ property, onView, onEdit }: Property_RowProps) {
 						}}
 						aria-label={`View ${property.name}`}
 					>
-						<i className="i-lucide-eye inline-block h-4 w-4"  />
+						<i className="i-lucide-eye h-4 w-4"  />
 					</Button>
 					<Button
 						variant="ghost"
@@ -117,7 +117,7 @@ function Property_Row({ property, onView, onEdit }: Property_RowProps) {
 						}}
 						aria-label={`Edit ${property.name}`}
 					>
-						<i className="i-lucide-edit-3 inline-block h-4 w-4"  />
+						<i className="i-lucide-edit-3 h-4 w-4"  />
 					</Button>
 				</div>
 			</TableCell>
@@ -144,14 +144,14 @@ function Property_Card({ property, onView, onEdit }: Property_CardProps) {
 				<div className="flex items-start justify-between">
 					<div className="flex items-center gap-3">
 						<div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-lg">
-							<i className="i-lucide-building-2 inline-block text-primary h-5 w-5"  />
+							<i className="i-lucide-building-2 text-primary h-5 w-5"  />
 						</div>
 						<div className="space-y-1">
 							<CardTitle className="text-base leading-none">
 								{property.name}
 							</CardTitle>
 							<div className="text-muted-foreground flex items-center gap-1 text-sm">
-								<i className="i-lucide-map-pin inline-block h-3 w-3"  />
+								<i className="i-lucide-map-pin h-3 w-3"  />
 								{property.address}
 							</div>
 						</div>
@@ -163,20 +163,20 @@ function Property_Card({ property, onView, onEdit }: Property_CardProps) {
 								size="sm"
 								className="h-8 w-8 p-0"
 							>
-								<i className="i-lucide-more-horizontal inline-block h-4 w-4"  />
+								<i className="i-lucide-more-horizontal h-4 w-4"  />
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end">
 							<DropdownMenuItem
 								onClick={() => onView?.(property)}
 							>
-								<i className="i-lucide-eye inline-block mr-2 h-4 w-4"  />
+								<i className="i-lucide-eye mr-2 h-4 w-4"  />
 								View Details
 							</DropdownMenuItem>
 							<DropdownMenuItem
 								onClick={() => onEdit?.(property)}
 							>
-								<i className="i-lucide-edit-3 inline-block mr-2 h-4 w-4"  />
+								<i className="i-lucide-edit-3 mr-2 h-4 w-4"  />
 								Edit Property_
 							</DropdownMenuItem>
 						</DropdownMenuContent>
@@ -203,14 +203,14 @@ function Property_Card({ property, onView, onEdit }: Property_CardProps) {
 					</div>
 					<div className="grid grid-cols-2 gap-4 text-sm">
 						<div className="flex items-center gap-1">
-							<i className="i-lucide-home inline-block text-muted-foreground h-3 w-3"  />
+							<i className="i-lucide-home text-muted-foreground h-3 w-3"  />
 							<span className="text-muted-foreground">
 								Units:
 							</span>
 							<span className="font-medium">{totalUnits}</span>
 						</div>
 						<div className="flex items-center gap-1">
-							<i className="i-lucide-users inline-block text-muted-foreground h-3 w-3"  />
+							<i className="i-lucide-users text-muted-foreground h-3 w-3"  />
 							<span className="text-muted-foreground">
 								Tenants:
 							</span>
@@ -275,7 +275,7 @@ function PropertiesTableUI({
 				</CardHeader>
 				<CardContent>
 					<div className="flex flex-col items-center justify-center py-12 text-center">
-						<i className="i-lucide-building-2 inline-block text-muted-foreground/50 mb-4 h-16 w-16"  />
+						<i className="i-lucide-building-2 text-muted-foreground/50 mb-4 h-16 w-16"  />
 						<h3 className="mb-2 text-lg font-medium">
 							{hasFilters
 								? 'No properties found'

@@ -143,9 +143,9 @@ export function EnhancedDataTable<TData, TValue>({
 								size="sm"
 								className="h-10"
 							>
-								<i className="i-lucide-filter inline-block mr-2 h-4 w-4"  />
+								<i className="i-lucide-filter mr-2 h-4 w-4"  />
 								Columns
-								<i className="i-lucide-chevron-down inline-block ml-2 h-4 w-4"  />
+								<i className="i-lucide-chevron-down ml-2 h-4 w-4"  />
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end" className="w-[200px]">
@@ -183,13 +183,13 @@ export function EnhancedDataTable<TData, TValue>({
 							onClick={onExport}
 							className="h-10"
 						>
-							<i className="i-lucide-download inline-block mr-2 h-4 w-4"  />
+							<i className="i-lucide-download mr-2 h-4 w-4"  />
 							Export
 						</Button>
 					)}
 					{enableAdd && (
 						<Button onClick={onAdd} size="sm" className="h-10">
-							<i className="i-lucide-plus inline-block mr-2 h-4 w-4"  />
+							<i className="i-lucide-plus mr-2 h-4 w-4"  />
 							Add New
 						</Button>
 					)}
@@ -275,7 +275,7 @@ export function EnhancedDataTable<TData, TValue>({
 									className="font-heading text-muted-foreground h-32 text-center"
 								>
 									<div className="flex flex-col items-center gap-3">
-										<div className="text-6xl opacity-50">
+										<div className="text-6xl op-50">
 											📭
 										</div>
 										<div className="space-y-1">
@@ -365,7 +365,7 @@ export function createSortableHeader<_T>(
 			)}
 		>
 			{title}
-			<i className="i-lucide-arrowupdown inline-block ml-2 h-4 w-4"  />
+			<i className="i-lucide-arrowupdown ml-2 h-4 w-4"  />
 		</Button>
 	)
 }
@@ -392,7 +392,7 @@ export function createActionsColumn<T>(
 					<DropdownMenuTrigger asChild>
 						<Button variant="ghost" className="h-8 w-8 p-0">
 							<span className="sr-only">Open menu</span>
-							<i className="i-lucide-more-horizontal inline-block h-4 w-4"  />
+							<i className="i-lucide-more-horizontal h-4 w-4"  />
 						</Button>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align="end" className="w-[160px]">

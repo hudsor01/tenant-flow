@@ -107,7 +107,7 @@ export function LoginForm({
 								/>
 							</div>
 							{error && (
-								<p className="text-sm text-red-500">{error}</p>
+								<p className="text-sm text-red-5">{error}</p>
 							)}
 							<Button
 								type="submit"

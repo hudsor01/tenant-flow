@@ -82,7 +82,7 @@ export function MobileHeader({
 	return (
 		<header
 			className={cn(
-				'sticky top-0 z-40 border-b border-gray-200 bg-white md:hidden',
+				'sticky top-0 z-40 border-b border-gray-2 bg-white md:hidden',
 				'safe-area-pt', // Add safe area padding for notched devices
 				className
 			)}
@@ -102,9 +102,9 @@ export function MobileHeader({
 							transition={{ duration: 0.2 }}
 						>
 							{isMenuOpen ? (
-								<i className="i-lucide-x inline-block h-5 w-5"  />
+								<i className="i-lucide-x h-5 w-5"  />
 							) : (
-								<i className="i-lucide-menu inline-block h-5 w-5"  />
+								<i className="i-lucide-menu h-5 w-5"  />
 							)}
 						</motion.div>
 					</Button>
@@ -112,7 +112,7 @@ export function MobileHeader({
 					<div className="min-w-0 flex-1">
 						{/* Breadcrumbs for nested pages */}
 						{breadcrumbs.length > 0 && (
-							<div className="mb-1 flex items-center text-sm text-gray-500">
+							<div className="mb-1 flex items-center text-sm text-gray-5">
 								{breadcrumbs.map((breadcrumb, index) => (
 									<div
 										key={breadcrumb.href}
@@ -122,17 +122,17 @@ export function MobileHeader({
 											{breadcrumb.title}
 										</span>
 										{index < breadcrumbs.length - 1 && (
-											<i className="i-lucide-chevron-right inline-block mx-1 h-3 w-3 flex-shrink-0"  />
+											<i className="i-lucide-chevron-right mx-1 h-3 w-3 flex-shrink-0"  />
 										)}
 									</div>
 								))}
-								<i className="i-lucide-chevron-right inline-block mx-1 h-3 w-3 flex-shrink-0"  />
+								<i className="i-lucide-chevron-right mx-1 h-3 w-3 flex-shrink-0"  />
 							</div>
 						)}
 
 						{/* Main page title */}
 						<motion.h1
-							className="truncate text-lg font-semibold text-gray-900"
+							className="truncate text-lg font-semibold text-gray-9"
 							key={currentTitle}
 							initial={{ opacity: 0, x: -10 }}
 							animate={{ opacity: 1, x: 0 }}
@@ -158,9 +158,9 @@ export function MobileHeader({
 							transition={{ duration: 0.2 }}
 						>
 							{isSearchOpen ? (
-								<i className="i-lucide-x inline-block h-5 w-5"  />
+								<i className="i-lucide-x h-5 w-5"  />
 							) : (
-								<i className="i-lucide-search inline-block h-5 w-5"  />
+								<i className="i-lucide-search h-5 w-5"  />
 							)}
 						</motion.div>
 					</Button>
@@ -172,7 +172,7 @@ export function MobileHeader({
 						className="relative p-2"
 						aria-label={`Notifications${notificationCount > 0 ? ` (${notificationCount})` : ''}`}
 					>
-						<i className="i-lucide-bell inline-block h-5 w-5"  />
+						<i className="i-lucide-bell h-5 w-5"  />
 						{notificationCount > 0 && (
 							<motion.div
 								initial={{ scale: 0 }}
@@ -201,15 +201,15 @@ export function MobileHeader({
 						animate={{ height: 'auto', opacity: 1 }}
 						exit={{ height: 0, opacity: 0 }}
 						transition={{ duration: 0.2 }}
-						className="border-t border-gray-100 bg-gray-50"
+						className="border-t border-gray-1 bg-gray-50"
 					>
 						<div className="px-4 py-3">
 							<div className="relative">
-								<i className="i-lucide-search inline-block absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"  />
+								<i className="i-lucide-search absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-4"  />
 								<input
 									type="text"
 									placeholder="Search properties, tenants, leases..."
-									className="focus:ring-primary w-full rounded-lg border border-gray-200 bg-white py-2 pl-10 pr-4 text-sm focus:border-transparent focus:outline-none focus:ring-2"
+									className="focus:ring-primary w-full rounded-lg border border-gray-2 bg-white py-2 pl-10 pr-4 text-sm focus:border-transparent focus:outline-none focus:ring-2"
 									autoFocus
 								/>
 							</div>
@@ -224,7 +224,7 @@ export function MobileHeader({
 								].map(suggestion => (
 									<button
 										key={suggestion}
-										className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs text-gray-600 transition-colors hover:bg-gray-50"
+										className="rounded-full border border-gray-2 bg-white px-3 py-1 text-xs text-gray-6 transition-colors hover:bg-gray-50"
 									>
 										{suggestion}
 									</button>
