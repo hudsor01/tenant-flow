@@ -11,6 +11,7 @@
 import baseConfig from '@repo/eslint-config/base'
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
 import reactPlugin from 'eslint-plugin-react'
+import nextPlugin from '@next/eslint-plugin-next'
 
 export default [
   // Use shared base configuration (ignores, JavaScript, TypeScript base rules)
@@ -42,18 +43,23 @@ export default [
     ]
   },
   
-  // Next.js configuration - simplified without legacy compat layer
+  // Next.js configuration with official plugin
   {
     name: 'frontend/next-core-rules',
     files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
     plugins: {
-      react: reactPlugin
+      react: reactPlugin,
+      '@next/next': nextPlugin
     },
     rules: {
-      // Core Next.js rules without legacy config system
+      // Core Next.js rules
       'react/no-unescaped-entities': 'off', // Allow apostrophes and quotes in JSX text
       'react/jsx-key': 'error', // Require key prop in lists
-      // Note: @next/next rules require the Next.js plugin which we're avoiding for compatibility
+      '@next/next/no-html-link-for-pages': 'error',
+      '@next/next/no-img-element': 'warn', // Suggest using next/image
+      '@next/next/no-sync-scripts': 'error',
+      '@next/next/no-head-import-in-document': 'error',
+      '@next/next/no-duplicate-head': 'error'
     }
   },
   
