@@ -36,12 +36,12 @@ function CheckoutReturnContent() {
 
 		const fetchSession = async () => {
 			try {
-				const result = await handleCheckoutReturn(sessionId)
+				const _result = await handleCheckoutReturn(sessionId)
 
-				if (result.success && result.session) {
-					setSession(result.session as CheckoutSession)
+				if (_result.success && _result.session) {
+					setSession(_result.session as CheckoutSession)
 				} else {
-					setError(result.error || 'Failed to retrieve session')
+					setError(_result.error || 'Failed to retrieve session')
 				}
 			} catch (err) {
 				setError(

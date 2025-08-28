@@ -11,13 +11,13 @@ import { usePostHog } from 'posthog-js/react'
 interface DashboardTrackerProps {
 	section?: string
 	metrics?: Record<string, number>
-	userId?: string
+	_userId?: string
 }
 
 export function DashboardTracker({
 	section = 'main',
 	metrics = {},
-	userId
+	_userId
 }: DashboardTrackerProps) {
 	const posthog = usePostHog()
 
@@ -29,11 +29,11 @@ export function DashboardTracker({
 		// Track dashboard view
 		posthog.capture('dashboard_viewed', {
 			section,
-			user_id: userId,
+			user_id: _userId,
 			...metrics,
 			timestamp: new Date().toISOString()
 		})
-	}, [posthog, section, metrics, userId])
+	}, [posthog, section, metrics, _userId])
 
 	// Track specific dashboard interactions
 	const trackDashboardAction = useCallback(
@@ -45,12 +45,12 @@ export function DashboardTracker({
 			posthog.capture('dashboard_action', {
 				action,
 				section,
-				user_id: userId,
+				user_id: _userId,
 				...properties,
 				timestamp: new Date().toISOString()
 			})
 		},
-		[posthog, section, userId]
+		[posthog, section, _userId]
 	)
 
 	// Expose tracking function via ref callback pattern

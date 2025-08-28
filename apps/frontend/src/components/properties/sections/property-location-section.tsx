@@ -4,17 +4,17 @@ import { FormSection } from '@/components/modals/base-form-modal'
 import type { UseFormReturn } from 'react-hook-form'
 import type { PropertyFormData } from '@repo/shared/validation'
 
-interface PropertyLocationSectionProps {
-	form: UseFormReturn<PropertyFormData>
+interface Property_LocationSectionProps {
+  form: UseFormReturn<PropertyFormData>
 }
 
 /**
- * Property location section component
+ * Property_ location section component
  * Handles address, city, state, and ZIP code fields
  */
-export function PropertyLocationSection({
+export function Property_LocationSection({
 	form
-}: Readonly<PropertyLocationSectionProps>) {
+}: Readonly<Property_LocationSectionProps>) {
 	return (
 		<FormSection icon="Location" title="Location" delay={1}>
 			{/* Street Address */}

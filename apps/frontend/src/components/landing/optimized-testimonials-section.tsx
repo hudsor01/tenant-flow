@@ -10,7 +10,7 @@ export function OptimizedTestimonialsSection() {
 	const testimonials = [
 		{
 			name: 'Sarah Mitchell',
-			role: 'Property Manager',
+			role: 'Property_ Manager',
 			company: 'Mitchell Properties (47 units)',
 			content:
 				'TenantFlow saved me 15 hours per week. The automated rent collection alone paid for itself in the first month.',
@@ -48,7 +48,7 @@ export function OptimizedTestimonialsSection() {
 						CUSTOMER SUCCESS
 					</Badge>
 					<h2 className="mb-4 text-4xl font-bold text-gray-900">
-						Real Results from Real Property Managers
+						Real Results from Real Property_ Managers
 					</h2>
 				</div>
 

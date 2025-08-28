@@ -343,7 +343,7 @@ export function DenseTable<TData, TValue>({
 											colSpan={columns.length}
 											className="text-muted-foreground h-24 text-center text-sm"
 										>
-											No results found.
+											No _results found.
 										</td>
 									</tr>
 								)}

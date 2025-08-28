@@ -3,7 +3,7 @@ import type { Metadata } from 'next/types'
 export const metadata: Metadata = {
 	title: {
 		template: '%s | TenantFlow',
-		default: 'TenantFlow - Property Management Made Simple'
+		default: 'TenantFlow - Property_ Management Made Simple'
 	},
 	description:
 		'Modern property management software for landlords and property managers.',

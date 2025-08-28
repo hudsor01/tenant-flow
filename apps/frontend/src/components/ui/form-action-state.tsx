@@ -39,18 +39,21 @@ export function FormField({
 			)}
 			
 			{/* Clone children to add field props */}
-			{React.Children.map(children, child => 
-				React.isValidElement(child) 
-					? React.cloneElement(child, {
-						...child.props,
-						id: fieldId,
-						name,
-						disabled,
-						'aria-invalid': Boolean(error),
-						'aria-describedby': error ? errorId : undefined
-					})
-					: child
-			)}
+            {React.Children.map(children, child => {
+                if (!React.isValidElement(child)) {
+                    return child
+                }
+                
+                const childProps: Record<string, unknown> = {
+                    id: fieldId,
+                    name,
+                    disabled,
+                    'aria-invalid': Boolean(error),
+                    'aria-describedby': error ? errorId : undefined
+                }
+                
+                return React.cloneElement(child, childProps)
+            })}
 			
 			{error && <FormError error={error} id={errorId} />}
 		</div>

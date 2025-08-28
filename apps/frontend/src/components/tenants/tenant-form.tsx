@@ -16,17 +16,8 @@ type Tenant = Database['public']['Tables']['Tenant']['Row']
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
-import {
-Form,
-FormControl,
-FormField,
-FormItem,
-FormLabel,
-FormMessage
-} from '@/components/ui/form'
 import { SuccessFeedback, ErrorFeedback, OptimisticFeedback } from '@/components/ui/feedback'
 
 // Types for form props
@@ -111,15 +102,15 @@ const optimisticItem = !isEditing
 			startTransition(() => addOptimisticTenant(tenantData))
 
 			// Call server action
-			let result: Tenant
+			let _result: Tenant
 			if (isEditing && tenant) {
-				result = await updateTenant(tenant.id, formData)
+				_result = await updateTenant(tenant.id, formData)
 			} else {
-				result = await createTenant(formData)
+				_result = await createTenant(formData)
 			}
 
 			// Success callback
-			onSuccess?.(result)
+			onSuccess?.(_result)
 
 			return { success: true }
 		} catch (error) {

@@ -75,9 +75,9 @@ export function LocalBusinessSchema({
 			},
 			audience: {
 				'@type': 'Audience',
-				audienceType: 'Property Owners, Landlords, Property Managers'
+				audienceType: 'Property_ Owners, Landlords, Property_ Managers'
 			},
-			serviceType: 'Property Management Software',
+			serviceType: 'Property_ Management Software',
 			areaServed: serviceArea.map(area => ({
 				'@type': 'Country',
 				name: area

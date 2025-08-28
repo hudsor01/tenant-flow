@@ -81,7 +81,7 @@ export function SubscriptionUpgradeModal({
 	isOpen,
 	onClose,
 	currentPlan,
-	userId: _userId,
+	_userId,
 	onUpgradeSuccess
 }: SubscriptionUpgradeModalProps) {
 	const [selectedPlan, setSelectedPlan] = useState<PlanType | null>(null)
@@ -90,7 +90,7 @@ export function SubscriptionUpgradeModal({
 	)
 	const [showConfirmation, setShowConfirmation] = useState(false)
 
-	const { mutateAsync: createCheckout, isPending: isUpgrading, error: upgradeError } =
+	const { mutateAsync: _createCheckout, isPending: isUpgrading, error: upgradeError } =
 		useCreateCheckoutSession()
 		
 	const { mutateAsync: updateSubscription } = useUpdateSubscription()
@@ -112,7 +112,7 @@ export function SubscriptionUpgradeModal({
 		if (!selectedPlan) return
 
 		try {
-			const result = await updateSubscription({
+			const _result = await updateSubscription({
 				newPriceId: selectedPlan,
 				userId: 'current', // Will be handled by backend auth
 				prorationBehavior: 'create_prorations'

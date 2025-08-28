@@ -5,7 +5,8 @@
  */
 
 import { type NextRequest, NextResponse } from 'next/server'
-import { UserRole, USER_ROLE, Permission } from '@repo/shared'
+import type { UserRole} from '@repo/shared';
+import { USER_ROLE, Permission } from '@repo/shared'
 
 // ===========================
 // TYPES AND INTERFACES

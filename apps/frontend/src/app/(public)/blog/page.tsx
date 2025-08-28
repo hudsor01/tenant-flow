@@ -6,13 +6,13 @@ import { Badge } from '@/components/ui/badge'
 const blogPosts = [
 	{
 		id: 1,
-		title: '10 Essential Property Management Tips for New Landlords',
+		title: '10 Essential Property_ Management Tips for New Landlords',
 		excerpt:
 			'Starting your property management journey? Here are the key strategies that successful landlords use to maximize returns and keep tenants happy.',
 		author: 'Sarah Johnson',
 		date: '2024-01-15',
 		readTime: '8 min read',
-		category: 'Property Management',
+		category: 'Property_ Management',
 		image: '/api/placeholder/400/250',
 		featured: true
 	},
@@ -52,7 +52,7 @@ const blogPosts = [
 ]
 
 const categories = [
-	'Property Management',
+	'Property_ Management',
 	'Tenant Management',
 	'Maintenance',
 	'Financial Planning',
@@ -89,7 +89,7 @@ export default function BlogPage() {
 				<div className="container mx-auto text-center">
 					<Badge className="from-primary mb-6 bg-gradient-to-r to-purple-600 text-white">
 						<i className="i-lucide-sparkles inline-block mr-2 h-4 w-4"  />
-						Property Management Insights
+						Property_ Management Insights
 					</Badge>
 					<h1 className="mb-6 bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-5xl font-bold text-transparent">
 						TenantFlow Blog
@@ -287,7 +287,7 @@ export default function BlogPage() {
 			<section className="from-primary bg-gradient-to-r to-purple-600 px-4 py-20 text-white">
 				<div className="container mx-auto text-center">
 					<h2 className="mb-4 text-4xl font-bold">
-						Ready to Streamline Your Property Management?
+						Ready to Streamline Your Property_ Management?
 					</h2>
 					<p className="mb-8 text-xl text-blue-100">
 						Put these insights into action with TenantFlow

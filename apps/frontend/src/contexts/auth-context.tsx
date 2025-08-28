@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase/client'
 import { apiClient } from '@/lib/api-client'
 import { logger } from '@/lib/logger'
 import type { User, LoginCredentials, SignupCredentials } from '@repo/shared/types/auth'
-import { isAuthError, type TypedAuthError } from '@repo/shared/types/auth-errors'
+import { type TypedAuthError } from '@repo/shared/types/auth-errors'
 
 interface AuthContextType {
   // State
@@ -86,7 +86,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 name: session.user.user_metadata?.name,
                 avatarUrl: session.user.user_metadata?.avatar_url,
                 role: session.user.user_metadata?.role || 'TENANT',
-                emailVerified: !!session.user.email_confirmed_at,
                 createdAt: new Date(session.user.created_at || Date.now()),
                 updatedAt: new Date(session.user.updated_at || Date.now()),
                 supabaseId: session.user.id,
@@ -144,9 +143,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(true)
       setError(null)
 
-      const result = await apiClient.post<{message: string}>('/api/auth/signup', credentials)
-      toast.success(result.message)
-      return { success: true, message: result.message }
+      const _result = await apiClient.post<{message: string}>('/api/auth/signup', credentials)
+      toast.success(_result.message)
+      return { success: true, message: _result.message }
     } catch (error: unknown) {
       const authError: TypedAuthError = {
         name: 'AuthError',
@@ -165,7 +164,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = useCallback(async () => {
     try {
       setLoading(true)
-      await apiClient.post<{}>('/api/auth/logout', {})
+      await apiClient.post<Record<string, never>>('/api/auth/logout', {})
       setUser(null)
       setError(null)
       toast.success('Logged out successfully')
@@ -189,9 +188,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(true)
       setError(null)
 
-      const result = await apiClient.post<{message: string}>('/api/auth/reset-password', { email })
-      toast.success(result.message)
-      return { success: true, message: result.message }
+      const _result = await apiClient.post<{message: string}>('/api/auth/reset-password', { email })
+      toast.success(_result.message)
+      return { success: true, message: _result.message }
     } catch (error: unknown) {
       const authError: TypedAuthError = {
         name: 'AuthError',

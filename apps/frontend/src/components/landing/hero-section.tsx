@@ -11,13 +11,13 @@ export function HeroSection() {
 					{/* Compact announcement badge */}
 					<div className="mb-6 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 text-sm text-gray-600 shadow-sm">
 						<div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
-						<span>New: AI-Powered Property Insights</span>
+						<span>New: AI-Powered Property_ Insights</span>
 						<i className="i-lucide-arrow-right inline-block h-3 w-3"  />
 					</div>
 
 					{/* Compact typography */}
 					<h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
-						<span className="block">Property Management</span>
+						<span className="block">Property_ Management</span>
 						<span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
 							Made Simple
 						</span>

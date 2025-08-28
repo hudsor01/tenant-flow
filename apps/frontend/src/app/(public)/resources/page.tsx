@@ -26,7 +26,7 @@ interface Resource {
 const resources: Resource[] = [
 	{
 		id: '1',
-		title: 'Complete Property Management Setup Guide',
+		title: 'Complete Property_ Management Setup Guide',
 		description:
 			'Step-by-step walkthrough to get your first property listed and tenants organized in under 30 minutes.',
 		category: 'guide',
@@ -64,7 +64,7 @@ const resources: Resource[] = [
 	},
 	{
 		id: '4',
-		title: 'Property Management API Documentation',
+		title: 'Property_ Management API Documentation',
 		description:
 			'Complete API reference for integrating TenantFlow with your existing systems and tools.',
 		category: 'api',
@@ -89,7 +89,7 @@ const resources: Resource[] = [
 	},
 	{
 		id: '6',
-		title: 'Advanced Property Analytics Webinar',
+		title: 'Advanced Property_ Analytics Webinar',
 		description:
 			"Learn how to use TenantFlow's analytics to make data-driven decisions and increase profitability.",
 		category: 'webinar',
@@ -476,7 +476,7 @@ export default function ResourcesPage() {
 							</motion.div>
 						) : (
 							<motion.div
-								key="no-results"
+								key="no-_results"
 								initial={{ opacity: 0 }}
 								animate={{ opacity: 1 }}
 								exit={{ opacity: 0 }}

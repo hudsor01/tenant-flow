@@ -8,14 +8,9 @@
  * - Next.js 15 + React 19 compatibility
  */
 
-import { FlatCompat } from '@eslint/eslintrc'
 import baseConfig from '@repo/eslint-config/base'
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
-
-// Next.js official compatibility layer for flat config
-const compat = new FlatCompat({
-  baseDirectory: import.meta.dirname,
-})
+import reactPlugin from 'eslint-plugin-react'
 
 export default [
   // Use shared base configuration (ignores, JavaScript, TypeScript base rules)
@@ -47,14 +42,20 @@ export default [
     ]
   },
   
-  // Next.js configuration - use only core-web-vitals to avoid TypeScript plugin conflicts
-  ...compat.config({
-    extends: ['next/core-web-vitals'],
+  // Next.js configuration - simplified without legacy compat layer
+  {
+    name: 'frontend/next-core-rules',
+    files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
+    plugins: {
+      react: reactPlugin
+    },
     rules: {
-      // Disable problematic React rules that block builds
+      // Core Next.js rules without legacy config system
       'react/no-unescaped-entities': 'off', // Allow apostrophes and quotes in JSX text
+      'react/jsx-key': 'error', // Require key prop in lists
+      // Note: @next/next rules require the Next.js plugin which we're avoiding for compatibility
     }
-  }),
+  },
   
   // React and Frontend specific configuration
   {

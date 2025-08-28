@@ -203,10 +203,10 @@ export function MaintenanceDetail({
 						<div className="space-y-2">
 							<div className="text-muted-foreground flex items-center">
 								<i className="i-lucide-building inline-block mr-2 h-4 w-4"  />
-								<span>Property:</span>
+								<span>Property_:</span>
 							</div>
 							<p className="font-medium">
-								Property Info Not Available
+								Property_ Info Not Available
 							</p>
 						</div>
 
