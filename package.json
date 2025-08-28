@@ -65,6 +65,8 @@
 		"typecheck:watch": "turbo run typecheck -- --watch",
 		"test": "turbo run test:unit",
 		"test:unit": "turbo run test:unit",
+		"test:production": "./test-production-connection.sh",
+		"test:api": "cd apps/frontend && npm test -- test/production-api.test.ts",
 		"generate": "echo 'Code generation available through individual tools: npm run update-supabase-types, npm run secrets:generate'",
 		"update-supabase-types": "npx supabase gen types typescript --project-id \"bshjmbshupiibfiewpxb\" --schema public > packages/shared/src/types/supabase-generated.ts",
 		"docs:packages": "find . -name 'package.json' -not -path '*/node_modules/*' | sort",

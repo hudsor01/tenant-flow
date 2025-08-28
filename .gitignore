@@ -380,3 +380,4 @@ pids
 # Test files that may contain hardcoded secrets
 test-signup-form.js
 test-supabase-auth.js
+.vercel
