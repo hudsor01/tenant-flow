@@ -379,7 +379,7 @@ async function bootstrap() {
 			'10.0.0.0/8' // Common private network range
 		], // Whitelist local and Railway IPs
 		continueExceeding: true, // Don't ban, just rate limit
-		skip: req => {
+		skip: (req: FastifyRequest) => {
 			// Skip rate limiting for health check endpoints
 			const path = req.url
 			return !!(path === '/health' || 

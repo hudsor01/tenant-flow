@@ -1,33 +1,25 @@
-import './global.css'
-import { Inter, JetBrains_Mono } from 'next/font/google'
+import type { Metadata } from 'next/types'
 
-export { viewport, metadata } from './layout.constants'
+export const metadata: Metadata = {
+	title: {
+		template: '%s | TenantFlow',
+		default: 'TenantFlow - Property_ Management Made Simple'
+	},
+	description:
+		'Modern property management software for landlords and property managers.',
+	robots: { index: true, follow: true } // Public pages should be indexed
+}
 
-// Optimize font loading with Next.js native font optimization
-const inter = Inter({
-	subsets: ['latin'],
-	variable: '--font-inter',
-	display: 'swap',
-	preload: true,
-	fallback: ['system-ui', '-apple-system', 'sans-serif']
-})
-
-const jetbrainsMono = JetBrains_Mono({
-	subsets: ['latin'],
-	variable: '--font-mono',
-	display: 'swap',
-	preload: true,
-	fallback: ['Courier New', 'monospace']
-})
-
-export default function RootLayout({
-	children
-}: Readonly<{
+interface PublicLayoutProps {
 	children: React.ReactNode
-}>) {
-	return (
-		<html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
-			<body className="bg-white font-sans antialiased">{children}</body>
-		</html>
-	)
+}
+
+/**
+ * Layout for public pages (marketing, auth, etc.)
+ *
+ * Auth state is now handled globally by the app store and useAuth hook.
+ * No need for a separate AuthProvider wrapper.
+ */
+export default function PublicLayout({ children }: PublicLayoutProps) {
+	return <>{children}</>
 }
