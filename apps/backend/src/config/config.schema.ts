@@ -251,7 +251,7 @@ export class EnvironmentVariables {
 	REDISPASSWORD?: string
 
 	@IsOptional()
-	@IsNumberString()
+	@Transform(({ value }) => value ? String(value) : undefined)
 	REDISPORT?: string
 
 	@IsOptional()

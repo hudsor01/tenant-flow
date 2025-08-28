@@ -102,32 +102,35 @@ Act as if this is a **REAL-WORLD PRODUCTION SYSTEM**:
 
 ## TenantFlow Development Guide
 
-### Tech Stack (Authoritative)
+### Tech Stack (Current Production State - Dec 2024)
 
-**Frontend (Vercel)**
-- Next.js 15.5.0 + React 19.1.1 (Turbopack required)
-- Radix UI + TailwindCSS 4.1.12 + ShadCN components
+**Frontend (Vercel) - WORKING**
+- Next.js 15.5.0 + React 19.1.1 (Turbopack required for React 19)
+- Radix UI + TailwindCSS 4.1.12 + ShadCN components  
 - TanStack Query 5.85.5 (data fetching & caching)
-- Zustand 5.0.8 (global state management - replaced Jotai for performance)
-- React Hook Form 7.62.0 (form handling, no abstractions)
+- Zustand 5.0.8 (global state - replaced Jotai for performance)
+- React Hook Form 7.62.0 (form handling, direct usage)
 - Framer Motion 12.23.12, Lucide Icons 0.540.0, Recharts 3.1.2
-- React Error Boundary 6.0.0 (error handling)
+- React Error Boundary 6.0.0 (error boundaries)
+- Deployment: Vercel (automatic from main branch)
 
-**Backend (Railway)**
-- NestJS 11.1.6 + Fastify 11.x (native Fastify features only)
-- Supabase 2.56.0 (DB, RLS, Storage, Realtime, Migrations, Full-text Search, Policies)
-- Stripe 18.4.0 (billing + subscriptions)
-- Resend 6.0.1 (email)
-- BullMQ 5.58.0 (job queues)
-- Cache: Supabase Query Cache / Vercel Edge Cache
-- Monitoring: Vercel Analytics + Railway Logs + PostHog
-- Auth: JWT + Supabase Auth + RLS policies
+**Backend (Railway) - FIXED AFTER 4 MONTHS**
+- NestJS 11.1.6 + Fastify 11.x (native Fastify plugins only)
+- Supabase 2.56.0 (PostgreSQL, RLS, Storage, Auth, Realtime)
+- Stripe 18.4.0 (payments + subscriptions)  
+- Resend 6.0.1 (transactional email)
+- NO Redis/BullMQ (removed - using native solutions)
+- Cache: In-memory (Fastify) + Database query cache
+- Health Check: `/health/ping` endpoint (NestJS controller)
+- Deployment: Railway via Dockerfile
 
-**Shared**
-- Node.js 22+ / npm 11.5.2 (packageManager specified)
-- Turborepo 2.5.6 (monorepo management)
-- TypeScript 5.9.2 strict mode (separate configs for React, NestJS, Node libs)
-- Zod 4.0.17 (runtime validation)
+**Shared Packages**
+- Node.js 22.x (Railway uses 24.x in Docker)
+- npm 11.5.2 (packageManager in root package.json)
+- Turborepo 2.5.6 (monorepo orchestration)
+- TypeScript 5.9.2 strict mode
+- Zod 4.0.17 (schema validation)
+- NO MEMORY LIMITS in build scripts (let Node.js manage)
 
 ### Commands
 
@@ -264,18 +267,44 @@ npm run test:production   # Production readiness
 - **Migrations**: Direct SQL files in `supabase/migrations/`
 - **Generated Types**: `npm run update-supabase-types`
 
-### Deployment
+### Deployment (BOTH WORKING!)
 
-- **Frontend**: Vercel (automatic from main branch)
-- **Backend**: Railway (automatic deployment)
-- **Environment Variables**: Managed via platform dashboards and direnv (.envrc)
-- **Health Checks**: `/api/health` endpoint for monitoring
+**Frontend - Vercel**
+- URL: https://tenantflow.app (production)
+- Auto-deploys from main branch
+- Preview deployments for PRs
+- Environment variables in Vercel dashboard
 
-#### Architecture Debt (MUST FIX)
-- **DUPLICATE CODE**: API patterns need consolidation
-- **DEPRECATED**: auth-api.ts should be deleted
-- **ABSTRACTIONS**: Remove any remaining factory patterns
-- **TEST DEBT**: React 19 compatibility needed
+**Backend - Railway** 
+- URL: Set in Railway dashboard
+- Dockerfile deployment (railway.toml config)
+- Health check: `/health/ping` (returns 200 OK)
+- **CRITICAL FIX**: `startCommand` in railway.toml must be:
+  ```toml
+  startCommand = "node apps/backend/dist/main.js"
+  ```
+  NOT the nested path that was there for 4 months!
+- Environment variables in Railway dashboard (no Redis needed)
+
+### Known Issues & Solutions
+
+**✅ SOLVED - Railway Deployment (4 months of failures)**
+- **Problem**: Health check failed with "Cannot find module" 
+- **Root Cause**: Wrong path in `railway.toml` startCommand
+- **Solution**: Fixed path to `apps/backend/dist/main.js`
+
+**✅ SOLVED - Memory Limits**
+- **Problem**: Builds failing at 4GB memory limit
+- **Solution**: Removed all NODE_OPTIONS memory caps
+
+**✅ SOLVED - Redis Dependencies**  
+- **Problem**: REDISPORT validation errors
+- **Solution**: Redis not needed - removed all references
+
+**🔧 Current Tech Debt**
+- API client consolidation needed (multiple patterns)
+- Remove deprecated auth-api.ts file
+- Test suite needs React 19 updates
 
 ### Development Workflow
 
