@@ -27,8 +27,8 @@ export const SidebarToggle: React.FC<SidebarToggleProps> = ({
 
 	// Computed icon selection - KISS principle compliance (eliminates nested ternary)
 	const getSidebarIcon = () => {
-		if (variant === 'minimal') return 'i-lucide-menu inline-block h-4 w-4'
-		return collapsed ? 'i-lucide-panelleftopen inline-block h-5 w-5' : 'i-lucide-panelleftclose inline-block h-5 w-5'
+		if (variant === 'minimal') return 'i-lucide-menu h-4 w-4'
+		return collapsed ? 'i-lucide-panelleftopen h-5 w-5' : 'i-lucide-panelleftclose h-5 w-5'
 	}
 
 	const variants = {

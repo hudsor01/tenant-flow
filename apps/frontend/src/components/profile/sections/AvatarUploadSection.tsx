@@ -53,7 +53,7 @@ export function AvatarUploadSection({
 						alt={userName}
 					/>
 					<AvatarFallback>
-						{currentAvatar ? <i className="i-lucide-user inline-block"  /> : getInitials(userName)}
+						{currentAvatar ? <i className="i-lucide-user"  /> : getInitials(userName)}
 					</AvatarFallback>
 				</Avatar>
 
@@ -66,7 +66,7 @@ export function AvatarUploadSection({
 							asChild
 						>
 							<span>
-								<i className="i-lucide-upload inline-block mr-2 h-4 w-4"  />
+								<i className="i-lucide-upload mr-2 h-4 w-4"  />
 								Change Avatar
 							</span>
 						</Button>

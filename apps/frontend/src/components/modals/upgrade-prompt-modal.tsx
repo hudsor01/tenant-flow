@@ -20,7 +20,7 @@ export function UpgradePromptModal({
 						onClick={onClose}
 						className="hover:bg-muted absolute right-4 top-4 rounded-full p-2 transition-colors"
 					>
-						<i className="i-lucide-x inline-block h-4 w-4"  />
+						<i className="i-lucide-x h-4 w-4"  />
 					</button>
 
 					<div className="text-center">

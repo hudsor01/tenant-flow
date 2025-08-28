@@ -48,17 +48,18 @@ async function bootstrap() {
 	// Create bootstrap Pino logger (before Fastify is available)
 	const logger = pino({
 		level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-		transport:
-			process.env.NODE_ENV !== 'production'
-				? {
-						target: 'pino-pretty',
-						options: {
-							colorize: true,
-							translateTime: 'HH:MM:ss Z',
-							ignore: 'pid,hostname'
-						}
-					}
-				: undefined,
+		// Temporarily disable pino-pretty transport for development
+		// transport:
+		// 	process.env.NODE_ENV !== 'production'
+		// 		? {
+		// 				target: 'pino-pretty',
+		// 				options: {
+		// 					colorize: true,
+		// 					translateTime: 'HH:MM:ss Z',
+		// 					ignore: 'pid,hostname'
+		// 				}
+		// 			}
+		// 		: undefined,
 		base: { component: 'Bootstrap' }
 	})
 
@@ -76,18 +77,19 @@ async function bootstrap() {
 		trustProxy: true,
 		bodyLimit: 10485760,
 		logger: {
-			level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-			transport:
-				process.env.NODE_ENV !== 'production'
-					? {
-							target: 'pino-pretty',
-							options: {
-								colorize: true,
-								translateTime: 'HH:MM:ss Z',
-								ignore: 'pid,hostname'
-							}
-						}
-					: undefined
+			level: process.env.NODE_ENV === 'production' ? 'info' : 'debug'
+			// Temporarily disable pino-pretty
+			// transport:
+			// 	process.env.NODE_ENV !== 'production'
+			// 		? {
+			// 				target: 'pino-pretty',
+			// 				options: {
+			// 					colorize: true,
+			// 					translateTime: 'HH:MM:ss Z',
+			// 					ignore: 'pid,hostname'
+			// 				}
+			// 			}
+			// 		: undefined
 		}
 	})
 	const app = await NestFactory.create<NestFastifyApplication>(
@@ -629,17 +631,18 @@ async function bootstrap() {
 bootstrap().catch((err: unknown) => {
 	const logger = pino({
 		level: 'error',
-		transport:
-			process.env.NODE_ENV !== 'production'
-				? {
-						target: 'pino-pretty',
-						options: {
-							colorize: true,
-							translateTime: 'HH:MM:ss Z',
-							ignore: 'pid,hostname'
-						}
-					}
-				: undefined,
+		// Temporarily disable pino-pretty
+		// transport:
+		// 	process.env.NODE_ENV !== 'production'
+		// 		? {
+		// 				target: 'pino-pretty',
+		// 				options: {
+		// 					colorize: true,
+		// 					translateTime: 'HH:MM:ss Z',
+		// 					ignore: 'pid,hostname'
+		// 				}
+		// 			}
+		// 		: undefined,
 		base: { component: 'Bootstrap-Error' }
 	})
 

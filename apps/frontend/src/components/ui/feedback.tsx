@@ -9,10 +9,10 @@ import { cn } from '@/lib/utils'
 const feedbackClasses = {
 	base: "flex items-center gap-2 rounded-lg border p-3 text-sm",
 	variants: {
-		success: "status-success dark:border-green-800 dark:bg-green-900/20 dark:text-green-300",
-		error: "status-error dark:border-red-800 dark:bg-red-900/20 dark:text-red-300", 
-		loading: "status-info dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300",
-		info: "status-neutral dark:border-gray-800 dark:bg-gray-900/20 dark:text-gray-300"
+		success: "status-success dark:border-green-8 dark:bg-green-9/20 dark:text-green-3",
+		error: "status-error dark:border-red-8 dark:bg-red-9/20 dark:text-red-3", 
+		loading: "status-info dark:border-blue-8 dark:bg-blue-9/20 dark:text-blue-3",
+		info: "status-neutral dark:border-gray-8 dark:bg-gray-9/20 dark:text-gray-3"
 	}
 }
 

@@ -62,11 +62,11 @@ export function OAuthProviders({
 					variant="outline"
 					className={cn(
 						'group relative h-12 w-full overflow-hidden border-2 text-base font-semibold transition-all duration-300',
-						'border-input hover:border-primary/30 bg-white hover:bg-gray-50/80',
+						'border-input hover:border-primary/30 bg-white hover:bg-gray-1/80',
 						'hover:shadow-primary/10 shadow-sm hover:shadow-lg',
 						'focus:border-primary focus:shadow-primary/20 focus:shadow-lg',
 						isGoogleLoading && 'animate-pulse',
-						disabled && 'cursor-not-allowed opacity-50'
+						disabled && 'cursor-not-allowed op-50'
 					)}
 					onClick={handleGoogleLogin}
 					disabled={disabled || isGoogleLoading}
@@ -75,7 +75,7 @@ export function OAuthProviders({
 				>
 					{/* Subtle background animation */}
 					<motion.div
-						className="absolute inset-0 bg-gradient-to-r from-blue-50/30 via-green-50/30 to-red-50/30 opacity-0 group-hover:opacity-100"
+						className="absolute inset-0 bg-gradient-to-r from-blue-1/30 via-green-1/30 to-red-1/30 op-0 group-hover:op-100"
 						animate={{
 							opacity: isHovered ? 0.5 : 0,
 							scale: isHovered ? 1.05 : 1
@@ -146,7 +146,7 @@ export function OAuthProviders({
 
 					{/* Enhanced shimmer effect */}
 					<motion.div
-						className="absolute inset-0 -skew-x-12 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100"
+						className="absolute inset-0 -skew-x-12 bg-gradient-to-r from-transparent via-white/20 to-transparent op-0 group-hover:op-100"
 						animate={{ x: isHovered ? '100%' : '-100%' }}
 						transition={{ duration: 0.8, ease: 'easeInOut' }}
 					/>

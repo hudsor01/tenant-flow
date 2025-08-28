@@ -275,17 +275,17 @@ export function DashboardWidgets() {
 										ease: 'linear'
 									}}
 								>
-									<i className="i-lucide-activity inline-block group-hover:text-primary h-5 w-5 text-gray-400 transition-colors"  />
+									<i className="i-lucide-activity group-hover:text-primary h-5 w-5 text-gray-4 transition-colors"  />
 								</motion.div>
 							</div>
 						</CardHeader>
 						<CardContent className="space-y-4">
 							{recentActivity.map((activity, index) => {
 								const colorClasses = {
-									green: 'text-green-600 bg-gradient-to-br from-green-50 to-green-100',
-									orange: 'text-orange-600 bg-gradient-to-br from-orange-50 to-orange-100',
-									blue: 'text-primary bg-gradient-to-br from-blue-50 to-blue-100',
-									purple: 'text-purple-600 bg-gradient-to-br from-purple-50 to-purple-100'
+									green: 'text-green-6 bg-gradient-to-br from-green-1 to-green-2',
+									orange: 'text-orange-6 bg-gradient-to-br from-orange-1 to-orange-2',
+									blue: 'text-primary bg-gradient-to-br from-blue-1 to-blue-2',
+									purple: 'text-purple-6 bg-gradient-to-br from-purple-1 to-purple-2'
 								}
 
 								return (
@@ -302,7 +302,7 @@ export function DashboardWidgets() {
 											x: 5,
 											transition: { duration: 0.2 }
 										}}
-										className="group/item flex cursor-pointer items-start gap-3 rounded-lg p-3 transition-all duration-200 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100/50"
+										className="group/item flex cursor-pointer items-start gap-3 rounded-lg p-3 transition-all duration-200 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-1/50"
 									>
 										<motion.div
 											className={cn(
@@ -317,17 +317,17 @@ export function DashboardWidgets() {
 												transition: { duration: 0.2 }
 											}}
 										>
-											<i className={`${activity.icon} inline-block h-4 w-4`} />
+											<i className={`${activity.icon} h-4 w-4`} />
 										</motion.div>
 										<div className="min-w-0 flex-1">
-											<p className="text-sm font-medium text-gray-900 transition-colors group-hover/item:text-gray-800">
+											<p className="text-sm font-medium text-gray-9 transition-colors group-hover/item:text-gray-8">
 												{activity.title}
 											</p>
-											<p className="mt-1 text-xs text-gray-600 transition-colors group-hover/item:text-gray-700">
+											<p className="mt-1 text-xs text-gray-6 transition-colors group-hover/item:text-gray-7">
 												{activity.description}
 											</p>
 											<div className="mt-2 flex items-center justify-between">
-												<p className="text-xs text-gray-400 transition-colors group-hover/item:text-gray-600">
+												<p className="text-xs text-gray-4 transition-colors group-hover/item:text-gray-6">
 													{activity.time}
 												</p>
 												<motion.div
@@ -335,7 +335,7 @@ export function DashboardWidgets() {
 													whileHover={{ opacity: 1 }}
 													className="opacity-0 transition-opacity group-hover/item:opacity-100"
 												>
-													<i className="i-lucide-eye inline-block h-3 w-3 text-gray-400"  />
+													<i className="i-lucide-eye h-3 w-3 text-gray-4"  />
 												</motion.div>
 											</div>
 										</div>
@@ -349,7 +349,7 @@ export function DashboardWidgets() {
 							>
 								<Button
 									variant="ghost"
-									className="group w-full text-sm text-gray-600 hover:text-gray-900"
+									className="group w-full text-sm text-gray-6 hover:text-gray-9"
 								>
 									View all activity
 									<motion.div
@@ -360,7 +360,7 @@ export function DashboardWidgets() {
 											ease: 'easeInOut'
 										}}
 									>
-										<i className="i-lucide-arrowupright inline-block ml-2 h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"  />
+										<i className="i-lucide-arrowupright ml-2 h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"  />
 									</motion.div>
 								</Button>
 							</motion.div>
@@ -381,7 +381,7 @@ export function DashboardWidgets() {
 								Current occupancy by property
 							</CardDescription>
 						</div>
-						<i className="i-lucide-building-2 inline-block h-5 w-5 text-gray-400"  />
+						<i className="i-lucide-building-2 h-5 w-5 text-gray-4"  />
 					</div>
 				</CardHeader>
 				<CardContent className="space-y-4">
@@ -389,10 +389,10 @@ export function DashboardWidgets() {
 						<div key={property.name} className="space-y-3">
 							<div className="flex items-center justify-between">
 								<div>
-									<p className="text-sm font-medium text-gray-900">
+									<p className="text-sm font-medium text-gray-9">
 										{property.name}
 									</p>
-									<p className="text-xs text-gray-500">
+									<p className="text-xs text-gray-5">
 										{property.occupied}/{property.total}{' '}
 										units occupied
 									</p>
@@ -402,18 +402,18 @@ export function DashboardWidgets() {
 										className={cn(
 											'text-sm font-semibold',
 											property.rate >= 90
-												? 'text-green-600'
+												? 'text-green-6'
 												: property.rate >= 80
-													? 'text-orange-600'
-													: 'text-red-600'
+													? 'text-orange-6'
+													: 'text-red-6'
 										)}
 									>
 										{property.rate}%
 									</span>
 									{property.rate >= 90 ? (
-										<i className="i-lucide-trending-up inline-block h-4 w-4 text-green-600"  />
+										<i className="i-lucide-trending-up h-4 w-4 text-green-6"  />
 									) : (
-										<i className="i-lucide-trending-down inline-block h-4 w-4 text-red-600"  />
+										<i className="i-lucide-trending-down h-4 w-4 text-red-6"  />
 									)}
 								</div>
 							</div>
@@ -422,22 +422,22 @@ export function DashboardWidgets() {
 								className={cn(
 									'h-2',
 									property.rate >= 90
-										? 'bg-green-100'
+										? 'bg-green-2'
 										: property.rate >= 80
-											? 'bg-orange-100'
-											: 'bg-red-100'
+											? 'bg-orange-2'
+											: 'bg-red-2'
 								)}
 							/>
 						</div>
 					))}
 
-					<div className="space-y-3 border-t border-gray-100 pt-2">
+					<div className="space-y-3 border-t border-gray-1 pt-2">
 						<div className="flex items-center justify-between text-sm">
-							<span className="font-medium text-gray-700">
+							<span className="font-medium text-gray-7">
 								Overall Average
 							</span>
 							<div className="flex items-center gap-2">
-								<span className="font-semibold text-green-600">
+								<span className="font-semibold text-green-6">
 									{Math.round(
 										occupancyData.reduce(
 											(acc, p) => acc + p.rate,
@@ -446,7 +446,7 @@ export function DashboardWidgets() {
 									)}
 									%
 								</span>
-								<i className="i-lucide-trending-up inline-block h-4 w-4 text-green-600"  />
+								<i className="i-lucide-trending-up h-4 w-4 text-green-6"  />
 							</div>
 						</div>
 
@@ -473,18 +473,18 @@ export function DashboardWidgets() {
 								Important items requiring attention
 							</CardDescription>
 						</div>
-						<i className="i-lucide-clock inline-block h-5 w-5 text-gray-400"  />
+						<i className="i-lucide-clock h-5 w-5 text-gray-4"  />
 					</div>
 				</CardHeader>
 				<CardContent className="space-y-4">
 					{upcomingTasks.map(task => (
 						<div
 							key={task.id}
-							className="flex items-center gap-3 rounded-lg border border-gray-100 p-3 transition-colors hover:border-gray-200"
+							className="flex items-center gap-3 rounded-lg border border-gray-1 p-3 transition-colors hover:border-gray-2"
 						>
 							<div className="flex-1">
 								<div className="mb-1 flex items-center gap-2">
-									<p className="text-sm font-medium text-gray-900">
+									<p className="text-sm font-medium text-gray-9">
 										{task.title}
 									</p>
 									<Badge
@@ -500,25 +500,25 @@ export function DashboardWidgets() {
 										{task.priority}
 									</Badge>
 								</div>
-								<p className="text-xs text-gray-600">
+								<p className="text-xs text-gray-6">
 									{task.property}
 								</p>
-								<p className="mt-1 text-xs text-gray-400">
+								<p className="mt-1 text-xs text-gray-4">
 									Due {task.dueDate}
 								</p>
 							</div>
 							<Button variant="ghost" size="sm">
-								<i className="i-lucide-eye inline-block h-4 w-4"  />
+								<i className="i-lucide-eye h-4 w-4"  />
 							</Button>
 						</div>
 					))}
 
 					<Button
 						variant="ghost"
-						className="w-full text-sm text-gray-600 hover:text-gray-900"
+						className="w-full text-sm text-gray-6 hover:text-gray-9"
 					>
 						View all tasks
-						<i className="i-lucide-calendar inline-block ml-2 h-4 w-4"  />
+						<i className="i-lucide-calendar ml-2 h-4 w-4"  />
 					</Button>
 				</CardContent>
 			</Card>
@@ -539,7 +539,7 @@ export function DashboardWidgets() {
 							<Button variant="outline" size="sm">
 								This Month
 							</Button>
-							<i className="i-lucide-bar-chart-3 inline-block h-5 w-5 text-gray-400"  />
+							<i className="i-lucide-bar-chart-3 h-5 w-5 text-gray-4"  />
 						</div>
 					</div>
 				</CardHeader>
@@ -547,17 +547,17 @@ export function DashboardWidgets() {
 					<div className="mb-6 grid grid-cols-2 gap-6 md:grid-cols-4">
 						<div className="space-y-3">
 							<div className="space-y-1">
-								<p className="text-sm text-gray-500">
+								<p className="text-sm text-gray-5">
 									Total Revenue
 								</p>
-								<p className="text-2xl font-bold text-green-600">
+								<p className="text-2xl font-bold text-green-6">
 									$24,580
 								</p>
 							</div>
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-1 text-xs">
-									<i className="i-lucide-arrowupright inline-block h-3 w-3 text-green-600"  />
-									<span className="text-green-600">
+									<i className="i-lucide-arrowupright h-3 w-3 text-green-6"  />
+									<span className="text-green-6">
 										+12.3%
 									</span>
 								</div>
@@ -573,17 +573,17 @@ export function DashboardWidgets() {
 
 						<div className="space-y-3">
 							<div className="space-y-1">
-								<p className="text-sm text-gray-500">
+								<p className="text-sm text-gray-5">
 									Operating Expenses
 								</p>
-								<p className="text-2xl font-bold text-red-600">
+								<p className="text-2xl font-bold text-red-6">
 									$8,240
 								</p>
 							</div>
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-1 text-xs">
-									<i className="i-lucide-arrowdownright inline-block h-3 w-3 text-red-600"  />
-									<span className="text-red-600">+5.8%</span>
+									<i className="i-lucide-arrowdownright h-3 w-3 text-red-6"  />
+									<span className="text-red-6">+5.8%</span>
 								</div>
 								<div className="w-16">
 									<Sparkline
@@ -598,7 +598,7 @@ export function DashboardWidgets() {
 
 						<div className="space-y-3">
 							<div className="space-y-1">
-								<p className="text-sm text-gray-500">
+								<p className="text-sm text-gray-5">
 									Net Income
 								</p>
 								<p className="text-primary text-2xl font-bold">
@@ -607,7 +607,7 @@ export function DashboardWidgets() {
 							</div>
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-1 text-xs">
-									<i className="i-lucide-arrowupright inline-block text-primary h-3 w-3"  />
+									<i className="i-lucide-arrowupright text-primary h-3 w-3"  />
 									<span className="text-primary">+15.2%</span>
 								</div>
 								<div className="w-16">
@@ -623,17 +623,17 @@ export function DashboardWidgets() {
 
 						<div className="space-y-3">
 							<div className="space-y-1">
-								<p className="text-sm text-gray-500">
+								<p className="text-sm text-gray-5">
 									Collection Rate
 								</p>
-								<p className="text-2xl font-bold text-green-600">
+								<p className="text-2xl font-bold text-green-6">
 									96.8%
 								</p>
 							</div>
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-1 text-xs">
-									<i className="i-lucide-arrowupright inline-block h-3 w-3 text-green-600"  />
-									<span className="text-green-600">
+									<i className="i-lucide-arrowupright h-3 w-3 text-green-6"  />
+									<span className="text-green-6">
 										+2.1%
 									</span>
 								</div>
@@ -650,7 +650,7 @@ export function DashboardWidgets() {
 					</div>
 
 					{/* Interactive Revenue Chart */}
-					<div className="h-48 rounded-xl border border-gray-200 p-4">
+					<div className="h-48 rounded-xl border border-gray-2 p-4">
 						<FinancialChart />
 					</div>
 				</CardContent>
@@ -668,62 +668,62 @@ export function DashboardWidgets() {
 								Items requiring immediate attention
 							</CardDescription>
 						</div>
-						<i className="i-lucide-alert-triangle inline-block h-5 w-5 text-orange-400"  />
+						<i className="i-lucide-alert-triangle h-5 w-5 text-orange-4"  />
 					</div>
 				</CardHeader>
 				<CardContent className="space-y-4">
 					<div className="space-y-3">
-						<div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-3">
-							<i className="i-lucide-xcircle inline-block mt-0.5 h-5 w-5 flex-shrink-0 text-red-600"  />
+						<div className="flex items-start gap-3 rounded-lg border border-red-2 bg-red-1 p-3">
+							<i className="i-lucide-xcircle mt-0.5 h-5 w-5 flex-shrink-0 text-red-6"  />
 							<div>
-								<p className="text-sm font-medium text-red-900">
+								<p className="text-sm font-medium text-red-9">
 									Overdue Rent
 								</p>
-								<p className="mt-1 text-xs text-red-700">
+								<p className="mt-1 text-xs text-red-7">
 									3 tenants have overdue payments
 								</p>
 								<Button
 									variant="ghost"
 									size="sm"
-									className="mt-2 h-auto p-0 text-red-700 hover:text-red-900"
+									className="mt-2 h-auto p-0 text-red-7 hover:text-red-9"
 								>
 									View details →
 								</Button>
 							</div>
 						</div>
 
-						<div className="flex items-start gap-3 rounded-lg border border-orange-200 bg-orange-50 p-3">
-							<i className="i-lucide-alert-triangle inline-block mt-0.5 h-5 w-5 flex-shrink-0 text-orange-600"  />
+						<div className="flex items-start gap-3 rounded-lg border border-orange-2 bg-orange-1 p-3">
+							<i className="i-lucide-alert-triangle mt-0.5 h-5 w-5 flex-shrink-0 text-orange-6"  />
 							<div>
-								<p className="text-sm font-medium text-orange-900">
+								<p className="text-sm font-medium text-orange-9">
 									Maintenance Pending
 								</p>
-								<p className="mt-1 text-xs text-orange-700">
+								<p className="mt-1 text-xs text-orange-7">
 									5 requests awaiting assignment
 								</p>
 								<Button
 									variant="ghost"
 									size="sm"
-									className="mt-2 h-auto p-0 text-orange-700 hover:text-orange-900"
+									className="mt-2 h-auto p-0 text-orange-7 hover:text-orange-9"
 								>
 									Assign now →
 								</Button>
 							</div>
 						</div>
 
-						<div className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-3">
-							<i className="i-lucide-calendar inline-block text-primary mt-0.5 h-5 w-5 flex-shrink-0"  />
+						<div className="flex items-start gap-3 rounded-lg border border-blue-2 bg-blue-1 p-3">
+							<i className="i-lucide-calendar text-primary mt-0.5 h-5 w-5 flex-shrink-0"  />
 							<div>
-								<p className="text-sm font-medium text-blue-900">
+								<p className="text-sm font-medium text-blue-9">
 									Lease Expiring
 								</p>
-								<p className="mt-1 text-xs text-blue-700">
+								<p className="mt-1 text-xs text-blue-7">
 									2 leases expire within 30 days
 								</p>
 								<Button
 									variant="ghost"
 									size="sm"
-									className="mt-2 h-auto p-0 text-blue-700 hover:text-blue-900"
+									className="mt-2 h-auto p-0 text-blue-7 hover:text-blue-9"
 								>
 									Schedule renewal →
 								</Button>

@@ -33,8 +33,8 @@ export default function Property_StatsSection({
 		>
 			<Card>
 				<CardContent className="flex items-center p-6">
-					<div className="mr-4 flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100">
-						<i className="i-lucide-home inline-block text-primary h-6 w-6"  />
+					<div className="mr-4 flex h-12 w-12 items-center justify-center rounded-lg bg-blue-1">
+						<i className="i-lucide-home text-primary h-6 w-6"  />
 					</div>
 					<div>
 						<p className="text-muted-foreground text-sm">
@@ -47,8 +47,8 @@ export default function Property_StatsSection({
 
 			<Card>
 				<CardContent className="flex items-center p-6">
-					<div className="mr-4 flex h-12 w-12 items-center justify-center rounded-lg bg-green-100">
-						<i className="i-lucide-user-check inline-block h-6 w-6 text-green-600"  />
+					<div className="mr-4 flex h-12 w-12 items-center justify-center rounded-lg bg-green-1">
+						<i className="i-lucide-user-check h-6 w-6 text-green-6"  />
 					</div>
 					<div>
 						<p className="text-muted-foreground text-sm">
@@ -57,7 +57,7 @@ export default function Property_StatsSection({
 						<p className="text-2xl font-bold">
 							{stats.occupiedUnits}
 						</p>
-						<p className="text-xs text-green-600">
+						<p className="text-xs text-green-6">
 							{stats.occupancyRate}% occupancy
 						</p>
 					</div>
@@ -66,8 +66,8 @@ export default function Property_StatsSection({
 
 			<Card>
 				<CardContent className="flex items-center p-6">
-					<div className="mr-4 flex h-12 w-12 items-center justify-center rounded-lg bg-orange-100">
-						<i className="i-lucide-user-x inline-block h-6 w-6 text-orange-600"  />
+					<div className="mr-4 flex h-12 w-12 items-center justify-center rounded-lg bg-orange-1">
+						<i className="i-lucide-user-x h-6 w-6 text-orange-6"  />
 					</div>
 					<div>
 						<p className="text-muted-foreground text-sm">Vacant</p>
@@ -80,8 +80,8 @@ export default function Property_StatsSection({
 
 			<Card>
 				<CardContent className="flex items-center p-6">
-					<div className="mr-4 flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100">
-						<i className="i-lucide-dollar-sign inline-block h-6 w-6 text-purple-600"  />
+					<div className="mr-4 flex h-12 w-12 items-center justify-center rounded-lg bg-purple-1">
+						<i className="i-lucide-dollar-sign h-6 w-6 text-purple-6"  />
 					</div>
 					<div>
 						<p className="text-muted-foreground text-sm">

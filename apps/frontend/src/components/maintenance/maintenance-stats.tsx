@@ -51,21 +51,21 @@ function MaintenanceStatsUI({ stats }: MaintenanceStatsUIProps) {
 			value: stats.open,
 			description: 'Awaiting action',
 			icon: 'i-lucide-wrench',
-			color: 'text-yellow-600'
+			color: 'text-yellow-6'
 		},
 		{
 			title: 'In Progress',
 			value: stats.inProgress,
 			description: 'Being worked on',
 			icon: 'i-lucide-play-circle',
-			color: 'text-blue-600'
+			color: 'text-blue-6'
 		},
 		{
 			title: 'Completed',
 			value: stats.completed,
 			description: 'Successfully resolved',
 			icon: 'i-lucide-check-circle',
-			color: 'text-green-600'
+			color: 'text-green-6'
 		}
 	]
 
@@ -104,7 +104,7 @@ function MaintenanceStatsUI({ stats }: MaintenanceStatsUIProps) {
 						<CardTitle className="text-sm font-medium">
 							Avg Resolution Time
 						</CardTitle>
-						<i className="i-lucide-clock inline-block h-4 w-4 text-blue-600"  />
+						<i className="i-lucide-clock h-4 w-4 text-blue-6"  />
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">
@@ -128,7 +128,7 @@ function MaintenanceStatsUI({ stats }: MaintenanceStatsUIProps) {
 								<span className="text-muted-foreground">
 									Emergency
 								</span>
-								<span className="font-medium text-red-600">
+								<span className="font-medium text-red-6">
 									{0}
 								</span>
 							</div>
@@ -136,7 +136,7 @@ function MaintenanceStatsUI({ stats }: MaintenanceStatsUIProps) {
 								<span className="text-muted-foreground">
 									High
 								</span>
-								<span className="font-medium text-orange-600">
+								<span className="font-medium text-orange-6">
 									{0}
 								</span>
 							</div>
@@ -144,7 +144,7 @@ function MaintenanceStatsUI({ stats }: MaintenanceStatsUIProps) {
 								<span className="text-muted-foreground">
 									Medium
 								</span>
-								<span className="font-medium text-yellow-600">
+								<span className="font-medium text-yellow-6">
 									{0}
 								</span>
 							</div>
@@ -152,7 +152,7 @@ function MaintenanceStatsUI({ stats }: MaintenanceStatsUIProps) {
 								<span className="text-muted-foreground">
 									Low
 								</span>
-								<span className="font-medium text-green-600">
+								<span className="font-medium text-green-6">
 									{0}
 								</span>
 							</div>

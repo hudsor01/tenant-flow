@@ -19,7 +19,7 @@ interface BreadcrumbsProps {
 
 export function Breadcrumbs({
 	items,
-	separator = <i className="i-lucide-chevron-right inline-block text-muted-foreground h-4 w-4"  />,
+	separator = <i className="i-lucide-chevron-right text-muted-foreground h-4 w-4"  />,
 	className,
 	homeIcon = true
 }: BreadcrumbsProps) {
@@ -28,7 +28,7 @@ export function Breadcrumbs({
 				{
 					label: 'Home',
 					href: '/',
-					icon: <i className="i-lucide-home inline-block h-4 w-4"  />
+					icon: <i className="i-lucide-home h-4 w-4"  />
 				},
 				...items
 			]

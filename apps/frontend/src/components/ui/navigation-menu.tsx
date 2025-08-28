@@ -70,7 +70,7 @@ function NavigationMenuTrigger({
 			{...props}
 		>
 			{children}{' '}
-			<i className="i-lucide-chevrondownicon inline-block relative top-[1px] ml-1 w-3 h-3 transition duration-300 group-data-[state=open]:rotate-180" aria-hidden="true" />
+			<i className="i-lucide-chevron-down relative top-[1px] ml-1 w-3 h-3 transition duration-300 group-data-[state=open]:rotate-180" aria-hidden="true" />
 		</NavigationMenuPrimitive.Trigger>
 	)
 }

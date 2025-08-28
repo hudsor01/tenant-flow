@@ -150,17 +150,17 @@ export function SubscriptionUpgradeModal({
 			<Dialog open={isOpen} onOpenChange={onClose}>
 				<DialogContent className="sm:max-w-md">
 					<div className="flex flex-col items-center py-6 text-center">
-						<div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-							<i className="i-lucide-checkicon inline-block h-6 w-6 text-green-600"  />
+						<div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-1">
+							<i className="i-lucide-check h-6 w-6 text-green-6"  />
 						</div>
 						<h3 className="mb-2 text-lg font-semibold">
 							Upgrade Successful!
 						</h3>
-						<p className="mb-4 text-gray-600">
+						<p className="mb-4 text-gray-6">
 							Your subscription has been upgraded to{' '}
 							{selectedPlanOption?.name}.
 						</p>
-						<p className="text-sm text-gray-500">
+						<p className="text-sm text-gray-5">
 							Redirecting to your dashboard...
 						</p>
 					</div>
@@ -174,7 +174,7 @@ export function SubscriptionUpgradeModal({
 			<DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">
-						<i className="i-lucide-arrowupicon inline-block h-5 w-5"  />
+						<i className="i-lucide-arrowupicon h-5 w-5"  />
 						Upgrade Your Subscription
 					</DialogTitle>
 				</DialogHeader>
@@ -182,12 +182,12 @@ export function SubscriptionUpgradeModal({
 				<div className="space-y-6">
 					{/* Billing Toggle */}
 					<div className="flex items-center justify-center">
-						<div className="flex rounded-lg bg-gray-100 p-1">
+						<div className="flex rounded-lg bg-gray-1 p-1">
 							<button
 								className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
 									billingCycle === 'monthly'
-										? 'bg-white text-gray-900 shadow-sm'
-										: 'text-gray-600 hover:text-gray-900'
+										? 'bg-white text-gray-9 shadow-sm'
+										: 'text-gray-6 hover:text-gray-9'
 								}`}
 								onClick={() => setBillingCycle('monthly')}
 							>
@@ -196,8 +196,8 @@ export function SubscriptionUpgradeModal({
 							<button
 								className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
 									billingCycle === 'annual'
-										? 'bg-white text-gray-900 shadow-sm'
-										: 'text-gray-600 hover:text-gray-900'
+										? 'bg-white text-gray-9 shadow-sm'
+										: 'text-gray-6 hover:text-gray-9'
 								}`}
 								onClick={() => setBillingCycle('annual')}
 							>
@@ -227,9 +227,9 @@ export function SubscriptionUpgradeModal({
 									key={plan.type}
 									className={`relative cursor-pointer rounded-lg border p-6 transition-all ${
 										isSelected
-											? 'border-primary bg-blue-50 ring-2 ring-blue-200'
-											: 'border-gray-200 hover:border-gray-300'
-									} ${plan.recommended ? 'ring-2 ring-blue-100' : ''}`}
+											? 'border-primary bg-blue-50 ring-2 ring-blue-2'
+											: 'border-gray-2 hover:border-gray-3'
+									} ${plan.recommended ? 'ring-2 ring-blue-1' : ''}`}
 									onClick={() => setSelectedPlan(plan.type)}
 								>
 									{plan.recommended && (
@@ -242,7 +242,7 @@ export function SubscriptionUpgradeModal({
 										<h3 className="text-lg font-semibold">
 											{plan.name}
 										</h3>
-										<p className="mt-1 text-sm text-gray-600">
+										<p className="mt-1 text-sm text-gray-6">
 											{plan.description}
 										</p>
 									</div>
@@ -251,11 +251,11 @@ export function SubscriptionUpgradeModal({
 										<div className="text-3xl font-bold">
 											${price}
 										</div>
-										<div className="text-sm text-gray-600">
+										<div className="text-sm text-gray-6">
 											{billingCycle === 'annual' ? (
 												<>
 													per year
-													<div className="text-xs text-gray-500">
+													<div className="text-xs text-gray-5">
 														(${monthlyEquivalent}
 														/month)
 													</div>
@@ -272,7 +272,7 @@ export function SubscriptionUpgradeModal({
 												key={index}
 												className="flex items-start gap-2"
 											>
-												<i className="i-lucide-checkicon inline-block mt-0.5 h-4 w-4 flex-shrink-0 text-green-600"  />
+												<i className="i-lucide-check mt-0.5 h-4 w-4 flex-shrink-0 text-green-6"  />
 												<span className="text-sm">
 													{feature}
 												</span>
@@ -303,7 +303,7 @@ export function SubscriptionUpgradeModal({
 						<h4 className="mb-2 font-medium">
 							Current Plan: {currentPlan}
 						</h4>
-						<p className="text-sm text-gray-600">
+						<p className="text-sm text-gray-6">
 							You'll be upgraded immediately and charged a
 							prorated amount for the remainder of your billing
 							period.
@@ -312,10 +312,10 @@ export function SubscriptionUpgradeModal({
 
 					{/* Error Display */}
 					{upgradeError && (
-						<div className="rounded-lg border border-red-200 bg-red-50 p-4">
+						<div className="rounded-lg border border-red-2 bg-red-50 p-4">
 							<div className="flex items-center gap-2">
-								<i className="i-lucide-xicon inline-block h-4 w-4 text-red-600"  />
-								<span className="text-sm text-red-600">
+								<i className="i-lucide-x h-4 w-4 text-red-6"  />
+								<span className="text-sm text-red-6">
 									{upgradeError.message ||
 										'Upgrade failed. Please try again.'}
 								</span>
@@ -344,7 +344,7 @@ export function SubscriptionUpgradeModal({
 							</>
 						) : (
 							<>
-								<i className="i-lucide-creditcardicon inline-block h-4 w-4"  />
+								<i className="i-lucide-creditcardicon h-4 w-4"  />
 								Upgrade Now
 								{selectedPlanOption && (
 									<span className="ml-2">

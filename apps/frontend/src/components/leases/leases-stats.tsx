@@ -79,21 +79,21 @@ function LeasesStatsUI({ stats }: LeasesStatsUIProps) {
 			value: stats.activeLeases,
 			description: 'Currently in effect',
 			icon: 'i-lucide-check-circle',
-			color: 'text-green-600'
+			color: 'text-green-6'
 		},
 		{
 			title: 'Expiring Soon',
 			value: stats.expiringSoon,
 			description: 'Within 30 days',
 			icon: 'i-lucide-calendar',
-			color: stats.expiringSoon > 0 ? 'text-orange-600' : 'text-gray-600'
+			color: stats.expiringSoon > 0 ? 'text-orange-6' : 'text-gray-6'
 		},
 		{
 			title: 'Monthly Revenue',
 			value: `$${stats.totalMonthlyRent.toLocaleString()}`,
 			description: 'From active leases',
 			icon: 'i-lucide-dollar-sign',
-			color: 'text-green-600'
+			color: 'text-green-6'
 		}
 	]
 
