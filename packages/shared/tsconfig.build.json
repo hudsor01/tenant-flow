@@ -19,6 +19,8 @@
 		"forceConsistentCasingInFileNames": true,
 		"isolatedModules": true,
 		"resolveJsonModule": true,
+		"types": ["react"],
+		"typeRoots": ["../../node_modules/@types"],
 		"baseUrl": ".",
 		"paths": {
 			"react": ["../../node_modules/react", "node_modules/react"],
@@ -48,8 +50,7 @@
 				"../../node_modules/class-variance-authority/*"
 			],
 			"*": ["node_modules/*", "../../node_modules/*"]
-		},
-		"typeRoots": ["./node_modules/@types", "../../node_modules/@types"]
+		}
 	},
 	"include": ["src/**/*"],
 	"exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"]
