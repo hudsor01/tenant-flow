@@ -1,6 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
+import { PinoLogger } from 'nestjs-pino'
 import { SupabaseService } from '../database/supabase.service'
-import type { Subscription } from '@repo/shared'
+import type { Database } from '@repo/shared'
+
+type Subscription = Database['public']['Tables']['Subscription']['Row']
 
 /**
  * Temporary minimal implementation of SubscriptionSupabaseRepository
@@ -9,9 +12,11 @@ import type { Subscription } from '@repo/shared'
  */
 @Injectable()
 export class SubscriptionSupabaseRepository {
-	private readonly logger = new Logger(SubscriptionSupabaseRepository.name)
-
-	constructor(private readonly _supabaseService: SupabaseService) {
+	constructor(
+		private readonly _supabaseService: SupabaseService,
+		private readonly logger: PinoLogger
+	) {
+		// PinoLogger context handled automatically via app-level configuration
 		// Service will be used when implementing actual database operations
 		void this._supabaseService // Prevent unused variable warning
 	}
@@ -20,6 +25,12 @@ export class SubscriptionSupabaseRepository {
 		_userId: string
 	): Promise<Subscription | null> {
 		this.logger.warn(
+			{
+				repository: {
+					method: 'findByIdWithSubscription',
+					status: 'temporary_implementation'
+				}
+			},
 			'SubscriptionSupabaseRepository: findByIdWithSubscription - temporary implementation'
 		)
 		return null

@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { CheckCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const pricingPlans = [
@@ -116,7 +115,7 @@ export function PricingSection() {
 							<ul className="mt-6 space-y-2 text-sm text-gray-600">
 								{plan.features.map((feature, idx) => (
 									<li key={idx} className="flex gap-x-2">
-										<CheckCircle className="mt-0.5 h-4 w-4 flex-none text-blue-600" />
+										<i className="i-lucide-checkcircle inline-block mt-0.5 h-4 w-4 flex-none text-blue-600"  />
 										{feature}
 									</li>
 								))}

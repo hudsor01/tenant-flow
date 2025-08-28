@@ -4,7 +4,9 @@ interface ErrorDisplayProps {
 }
 
 export function ErrorDisplay({ error, className }: ErrorDisplayProps) {
-	if (!error) return null
+	if (!error) {
+		return null
+	}
 
 	return (
 		<div

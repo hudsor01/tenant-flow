@@ -4,27 +4,15 @@ import {
 	nonEmptyStringSchema,
 	positiveNumberSchema,
 	nonNegativeNumberSchema,
-	urlSchema
+	urlSchema,
+	requiredString
 } from './common'
-import { PROPERTY_TYPE } from '../constants/properties'
+import { Constants } from '../types/supabase-generated'
 
-// Property type schema - uses single source from constants
-export const propertyTypeSchema = z.enum([
-	PROPERTY_TYPE.SINGLE_FAMILY,
-	PROPERTY_TYPE.MULTI_UNIT,
-	PROPERTY_TYPE.APARTMENT,
-	PROPERTY_TYPE.CONDO,
-	PROPERTY_TYPE.TOWNHOUSE,
-	PROPERTY_TYPE.COMMERCIAL,
-	PROPERTY_TYPE.OTHER
-])
+// Property type schema - uses auto-generated Supabase enums
+export const propertyTypeSchema = z.enum(Constants.public.Enums.PropertyType as readonly [string, ...string[]])
 
-export const propertyStatusSchema = z.enum([
-	'ACTIVE',
-	'INACTIVE',
-	'MAINTENANCE',
-	'DRAFT'
-])
+export const propertyStatusSchema = z.enum(Constants.public.Enums.PropertyStatus as readonly [string, ...string[]])
 
 // Base property input schema (for forms and API creation)
 export const propertyInputSchema = z.object({
@@ -141,21 +129,13 @@ export type PropertyStatusValidation = z.infer<typeof propertyStatusSchema>
 // Frontend-specific form schema (handles string inputs from HTML forms)
 // Clean schema for React Hook Form zodResolver compatibility
 export const propertyFormSchema = z.object({
-	name: z.string().min(1, 'Property name is required'),
+	name: requiredString,
 	description: z.string().optional(),
-	propertyType: z.enum([
-		PROPERTY_TYPE.SINGLE_FAMILY,
-		PROPERTY_TYPE.MULTI_UNIT,
-		PROPERTY_TYPE.APARTMENT,
-		PROPERTY_TYPE.CONDO,
-		PROPERTY_TYPE.TOWNHOUSE,
-		PROPERTY_TYPE.COMMERCIAL,
-		PROPERTY_TYPE.OTHER
-	]),
-	address: z.string().min(1, 'Address is required'),
-	city: z.string().min(1, 'City is required'),
-	state: z.string().min(1, 'State is required'),
-	zipCode: z.string().min(1, 'ZIP code is required'),
+	propertyType: z.enum(Constants.public.Enums.PropertyType as readonly [string, ...string[]]),
+	address: requiredString,
+	city: requiredString,
+	state: requiredString,
+	zipCode: requiredString,
 	bedrooms: z.string().optional(),
 	bathrooms: z.string().optional(),
 	squareFootage: z.string().optional(),
@@ -196,15 +176,14 @@ export const transformPropertyFormData = (
 	city: data.city,
 	state: data.state,
 	zipCode: data.zipCode,
-	bedrooms: data.bedrooms ? parseInt(data.bedrooms) : undefined,
+	bedrooms: data.bedrooms ? parseInt(data.bedrooms, 10) : undefined,
 	bathrooms: data.bathrooms ? parseFloat(data.bathrooms) : undefined,
 	squareFootage: data.squareFootage
-		? parseInt(data.squareFootage)
+		? parseInt(data.squareFootage, 10)
 		: undefined,
 	rent: data.rent ? parseFloat(data.rent) : undefined,
 	deposit: data.deposit ? parseFloat(data.deposit) : undefined,
 	images: data.imageUrl ? [data.imageUrl] : [],
-	// Transform frontend UI fields to amenities array
 	amenities: [
 		...(data.hasGarage ? ['garage'] : []),
 		...(data.hasPool ? ['pool'] : [])

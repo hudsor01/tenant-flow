@@ -12,7 +12,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
-import type { TabItem } from './types'
+import type { TabItem } from '@repo/shared/types/frontend-utils'
 
 const TAB_VARIANTS = {
 	default: 'border-b',
@@ -66,7 +66,9 @@ export function TabNavigation({
 
 	// Auto-detect active tab from pathname if not explicitly set
 	const currentActive = React.useMemo(() => {
-		if (activeTab) return activeTab
+		if (activeTab) {
+			return activeTab
+		}
 
 		const matchingItem = items.find(
 			item => item.href && pathname.startsWith(item.href)
@@ -77,10 +79,7 @@ export function TabNavigation({
 	return (
 		<nav className={cn(TAB_VARIANTS[variant], className)}>
 			<div
-				className={cn(
-					'flex',
-					variant === 'pills' ? 'space-x-1' : 'space-x-0'
-				)}
+				className={variant === 'pills' ? 'tab-pills' : 'tab-default'}
 			>
 				{items.map(item => {
 					const isActive = item.id === currentActive
@@ -96,11 +95,11 @@ export function TabNavigation({
 
 					const content = (
 						<div className="flex items-center gap-2">
-							{item.icon && (
+							{item.icon ? (
 								<span className="h-4 w-4 shrink-0">
-									{item.icon}
+									{React.isValidElement(item.icon) ? item.icon : <span>{String(item.icon)}</span>}
 								</span>
-							)}
+							) : null}
 							{item.label}
 							{item.badge && (
 								<Badge variant="secondary">{item.badge}</Badge>

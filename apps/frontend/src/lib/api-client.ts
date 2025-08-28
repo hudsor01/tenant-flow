@@ -1,52 +1,18 @@
 /**
- * Simplified API Client using native fetch
- * Eliminates Axios dependency and complex interceptor patterns
- * Includes runtime response validation with Zod schemas
+ * Native API Client with React 19 use() Hook Support
+ * OVERWRITTEN: Eliminates Axios dependency and complex interceptor patterns
+ * + Includes runtime response validation with Zod schemas
+ * + React 19 use() hook promise streaming for components
  */
 import { config } from './config'
 import { getSession } from './supabase/client'
-import type { ControllerApiResponse } from '@repo/shared'
+import type { FrontendApiError as ApiError, RequestConfig, ValidationOptions } from '@repo/shared/types/api'
 import {
-	ResponseValidator,
-	type ValidationOptions
+	ResponseValidator
 } from './api/response-validator'
-import type { ZodSchema } from 'zod'
+import type { ZodTypeAny } from 'zod/v4'
+import type { ControllerApiResponse } from '@repo/shared/types/errors'
 
-// Type-safe URLSearchParams utility
-export function createSearchParams(params: Record<string, unknown>): string {
-	const searchParams = new URLSearchParams()
-
-	Object.entries(params).forEach(([key, value]) => {
-		if (value !== undefined && value !== null && value !== '') {
-			// Handle arrays by joining with comma
-			if (Array.isArray(value)) {
-				const filteredArray = value.filter(
-					v => v !== undefined && v !== null && v !== ''
-				)
-				if (filteredArray.length > 0) {
-					searchParams.append(key, filteredArray.join(','))
-				}
-			} else {
-				searchParams.append(key, String(value))
-			}
-		}
-	})
-
-	return searchParams.toString()
-}
-
-export interface ApiError {
-	message: string
-	code?: string
-	details?: Record<string, unknown>
-	timestamp?: string
-}
-
-export interface RequestConfig {
-	params?: Record<string, string | number | boolean | string[] | undefined>
-	headers?: Record<string, string>
-	signal?: AbortSignal
-}
 
 class SimpleApiClient {
 	private baseURL: string
@@ -96,7 +62,8 @@ class SimpleApiClient {
 		method: string,
 		path: string,
 		data?: unknown,
-		config?: RequestConfig
+		config?: RequestConfig,
+		retryCount = 0
 	): Promise<T> {
 		const authHeaders = await this.getAuthHeaders()
 		const isFormData = data instanceof FormData
@@ -136,7 +103,7 @@ class SimpleApiClient {
 
 			if (!response.ok) {
 				const errorText = await response.text()
-				let errorData: ControllerApiResponse<unknown> | undefined
+				let errorData: ControllerApiResponse | undefined
 
 				try {
 					errorData = JSON.parse(errorText)
@@ -152,7 +119,7 @@ class SimpleApiClient {
 					details: errorData ? { ...errorData } : undefined,
 					timestamp: new Date().toISOString()
 				}
-				throw apiError
+				throw new Error(`API Error: ${apiError.message}`)
 			}
 
 			const responseData: ControllerApiResponse<T> = await response.json()
@@ -181,7 +148,46 @@ class SimpleApiClient {
 				throw new Error('Request timeout')
 			}
 
+			// Retry logic for network errors in production
+			if (
+				retryCount < (this.config?.retries ?? 3) &&
+				this.shouldRetry(error)
+			) {
+				const delay =
+					(this.config?.retryDelay ?? 1000) * Math.pow(2, retryCount)
+				await new Promise(resolve => setTimeout(resolve, delay))
+				return this.makeRequest(
+					method,
+					path,
+					data,
+					config,
+					retryCount + 1
+				)
+			}
+
 			throw error
+		}
+	}
+
+	private shouldRetry(error: unknown): boolean {
+		if (!(error instanceof Error)) return false
+
+		// Retry on network errors, timeouts, and 5xx server errors
+		return (
+			error.name === 'AbortError' ||
+			error.message.includes('fetch') ||
+			error.message.includes('network') ||
+			error.message.includes('500') ||
+			error.message.includes('502') ||
+			error.message.includes('503') ||
+			error.message.includes('504')
+		)
+	}
+
+	private get config() {
+		return {
+			retries: config.api.retries,
+			retryDelay: config.api.retryDelay
 		}
 	}
 
@@ -217,10 +223,54 @@ class SimpleApiClient {
 		return this.makeRequest<T>('DELETE', path, undefined, config)
 	}
 
+	// ==================
+	// REACT 19 use() HOOK PROMISE STREAMING
+	// ==================
+	
+	/**
+	 * React 19 use() compatible promise for GET requests
+	 * Components can consume this directly with use() hook
+	 */
+	promise<T>(path: string, config?: RequestConfig): Promise<T> {
+		return this.makeRequest<T>('GET', path, undefined, config)
+	}
+
+	/**
+	 * React 19 use() compatible promise for POST requests
+	 * Components can consume this directly with use() hook
+	 */
+	promisePost<T>(
+		path: string, 
+		data?: unknown, 
+		config?: RequestConfig
+	): Promise<T> {
+		return this.makeRequest<T>('POST', path, data, config)
+	}
+
+	/**
+	 * React 19 use() compatible promise for PUT requests
+	 * Components can consume this directly with use() hook
+	 */
+	promisePut<T>(
+		path: string, 
+		data?: unknown, 
+		config?: RequestConfig
+	): Promise<T> {
+		return this.makeRequest<T>('PUT', path, data, config)
+	}
+
+	/**
+	 * React 19 use() compatible promise for DELETE requests
+	 * Components can consume this directly with use() hook
+	 */
+	promiseDelete<T>(path: string, config?: RequestConfig): Promise<T> {
+		return this.makeRequest<T>('DELETE', path, undefined, config)
+	}
+
 	// Validated API methods with Zod schema validation
 	async getValidated<T>(
 		path: string,
-		schema: ZodSchema<T>,
+		schema: ZodTypeAny,
 		schemaName: string,
 		config?: RequestConfig,
 		validationOptions?: ValidationOptions
@@ -236,7 +286,7 @@ class SimpleApiClient {
 
 	async postValidated<T>(
 		path: string,
-		schema: ZodSchema<T>,
+		schema: ZodTypeAny,
 		schemaName: string,
 		data?: Record<string, unknown> | FormData,
 		config?: RequestConfig,
@@ -258,7 +308,7 @@ class SimpleApiClient {
 
 	async putValidated<T>(
 		path: string,
-		schema: ZodSchema<T>,
+		schema: ZodTypeAny,
 		schemaName: string,
 		data?: Record<string, unknown> | FormData,
 		config?: RequestConfig,
@@ -280,7 +330,7 @@ class SimpleApiClient {
 
 	async patchValidated<T>(
 		path: string,
-		schema: ZodSchema<T>,
+		schema: ZodTypeAny,
 		schemaName: string,
 		data?: Record<string, unknown> | FormData,
 		config?: RequestConfig,
@@ -302,7 +352,7 @@ class SimpleApiClient {
 
 	async deleteValidated<T>(
 		path: string,
-		schema: ZodSchema<T>,
+		schema: ZodTypeAny,
 		schemaName: string,
 		config?: RequestConfig,
 		validationOptions?: ValidationOptions
@@ -324,8 +374,47 @@ class SimpleApiClient {
 	async healthCheck(): Promise<{ status: string; timestamp: string }> {
 		return this.get<{ status: string; timestamp: string }>('/health')
 	}
+
+	// Enhanced health check with connectivity validation
+	async validateConnectivity(): Promise<{
+		api: { status: 'connected' | 'error'; response?: unknown; error?: string }
+		config: { baseURL: string; timeout: number }
+	}> {
+		const result: {
+			api: { status: 'connected' | 'error'; response?: unknown; error?: string }
+			config: { baseURL: string; timeout: number }
+		} = {
+			api: { status: 'error', error: 'Unknown error' },
+			config: {
+				baseURL: this.baseURL,
+				timeout: this.timeout
+			}
+		}
+
+		try {
+			const response = await this.healthCheck()
+			result.api = {
+				status: 'connected',
+				response
+			}
+		} catch (error) {
+			result.api = {
+				status: 'error',
+				error:
+					error instanceof Error ? error.message : 'Connection failed'
+			}
+		}
+
+		return result
+	}
 }
 
 // Export singleton instance
 export const apiClient = new SimpleApiClient()
 export default apiClient
+
+// Convenience exports for backward compatibility
+export const get = apiClient.get.bind(apiClient)
+export const post = apiClient.post.bind(apiClient)
+export const put = apiClient.put.bind(apiClient)
+export const del = apiClient.delete.bind(apiClient)

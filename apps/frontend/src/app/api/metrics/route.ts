@@ -2,7 +2,7 @@
  * Simple metrics endpoint
  * Provides basic metrics in Prometheus format
  */
-export async function GET() {
+export function GET() {
 	try {
 		const timestamp = Date.now()
 		const environment = process.env.NODE_ENV || 'unknown'

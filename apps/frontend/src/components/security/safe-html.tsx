@@ -2,9 +2,13 @@
 
 import React, { useMemo } from 'react'
 import DOMPurify from 'dompurify'
-import type { SafeHTMLProps as BaseSafeHTMLProps } from '@/types'
-
-interface SafeHTMLProps extends Omit<BaseSafeHTMLProps, 'allowedTags' | 'allowedAttributes'> {
+interface SafeHTMLProps {
+	/** HTML content to sanitize and render */
+	html: string
+	/** HTML tag to render the content in */
+	as?: keyof React.JSX.IntrinsicElements
+	/** Additional CSS classes */
+	className?: string
 	/**
 	 * DOMPurify configuration options
 	 * @see https://github.com/cure53/DOMPurify#can-i-configure-dompurify
@@ -34,7 +38,9 @@ export const SafeHTML: React.FC<SafeHTMLProps> = ({
 }) => {
 	// Memoize the sanitized HTML to avoid re-sanitizing on every render
 	const sanitizedHTML = useMemo(() => {
-		if (!html) return ''
+		if (!html) {
+			return ''
+		}
 
 		// Default safe configuration
 		const defaultOptions = {
@@ -148,7 +154,9 @@ export const sanitizeHTML = (
 	html: string,
 	options?: Record<string, unknown>
 ): string => {
-	if (!html) return ''
+	if (!html) {
+		return ''
+	}
 
 	return DOMPurify.sanitize(html, {
 		ALLOWED_TAGS: [

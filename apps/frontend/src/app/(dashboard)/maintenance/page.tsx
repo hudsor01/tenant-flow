@@ -3,16 +3,16 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Plus, Search, Filter } from 'lucide-react'
 import Link from 'next/link'
 import { MaintenanceDataTable } from '@/components/maintenance/maintenance-data-table'
 import { MaintenanceStats } from '@/components/maintenance/maintenance-stats'
 import { PageTracker } from '@/components/analytics/page-tracker'
-import { type Metadata } from 'next/types'
+import type { Metadata } from 'next/types'
 
 export const metadata: Metadata = {
 	title: 'Maintenance | TenantFlow',
-	description: 'Manage maintenance requests and track work orders'
+	description:
+		'Manage your property maintenance requests and track completion'
 }
 
 function MaintenanceHeader() {
@@ -23,18 +23,18 @@ function MaintenanceHeader() {
 					Maintenance
 				</h1>
 				<p className="text-muted-foreground">
-					Manage maintenance requests and track work orders
+					Manage maintenance requests and track completion status
 				</p>
 			</div>
 			<div className="flex gap-2">
 				<Button variant="outline" size="sm">
-					<Filter className="mr-2 h-4 w-4" />
+					<i className="i-lucide-filter inline-block mr-2 h-4 w-4"  />
 					Filter
 				</Button>
 				<Link href="/maintenance/new">
 					<Button size="sm">
-						<Plus className="mr-2 h-4 w-4" />
-						New Request
+						<i className="i-lucide-plus inline-block mr-2 h-4 w-4"  />
+						Add Request
 					</Button>
 				</Link>
 			</div>
@@ -48,14 +48,14 @@ function MaintenanceSearch() {
 			<CardContent className="p-4">
 				<div className="flex gap-4">
 					<div className="relative flex-1">
-						<Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
+						<i className="i-lucide-search inline-block text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform"  />
 						<Input
-							placeholder="Search requests by property, tenant, or description..."
+							placeholder="Search requests by title, unit, or status..."
 							className="pl-10"
 						/>
 					</div>
 					<Button variant="outline">
-						<Filter className="mr-2 h-4 w-4" />
+						<i className="i-lucide-filter inline-block mr-2 h-4 w-4"  />
 						Filters
 					</Button>
 				</div>
@@ -88,10 +88,10 @@ function MaintenanceLoadingSkeleton() {
 								key={i}
 								className="flex items-center space-x-4"
 							>
-								<Skeleton className="h-12 w-12" />
+								<Skeleton className="h-12 w-12 rounded-lg" />
 								<div className="flex-1 space-y-2">
 									<Skeleton className="h-4 w-[250px]" />
-									<Skeleton className="h-4 w-[200px]" />
+									<Skeleton className="h-4 w-[180px]" />
 								</div>
 							</div>
 						))}

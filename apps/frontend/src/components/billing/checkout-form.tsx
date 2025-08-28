@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState } from 'react'
-import { createCheckoutSession } from '@/lib/actions/checkout-action'
+import { createCheckoutSession } from '@/app/actions/billing'
 import {
 	Card,
 	CardContent,
@@ -11,7 +11,6 @@ import {
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2, CreditCard, Shield } from 'lucide-react'
 
 interface CheckoutFormProps {
 	priceId: string
@@ -27,6 +26,8 @@ interface CheckoutFormProps {
  * Client Component - CheckoutForm
  * Uses server actions for secure checkout session creation
  */
+type CheckoutState = { success: boolean; errors?: { _form?: string[] } }
+
 export function CheckoutForm({
 	priceId,
 	planName,
@@ -36,19 +37,16 @@ export function CheckoutForm({
 	couponId,
 	className
 }: CheckoutFormProps) {
-	const [state, formAction, isPending] = useActionState(
+	const [state, formAction, isPending] = useActionState<CheckoutState, FormData>(
 		createCheckoutSession,
-		{
-			success: false,
-			errors: {}
-		}
+		{ success: false, errors: {} }
 	)
 
 	return (
 		<Card className={className}>
 			<CardHeader className="text-center">
 				<CardTitle className="flex items-center justify-center gap-2">
-					<CreditCard className="h-5 w-5" />
+					<i className="i-lucide-credit-card inline-block h-5 w-5"  />
 					Subscribe to {planName}
 				</CardTitle>
 				<CardDescription>
@@ -111,7 +109,7 @@ export function CheckoutForm({
 					>
 						{isPending ? (
 							<>
-								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+								<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
 								Creating Checkout...
 							</>
 						) : (
@@ -125,7 +123,7 @@ export function CheckoutForm({
 
 					{/* Security notice */}
 					<div className="text-muted-foreground flex items-center justify-center gap-2 text-sm">
-						<Shield className="h-4 w-4" />
+						<i className="i-lucide-shield inline-block h-4 w-4"  />
 						<span>Secured by 256-bit SSL encryption</span>
 					</div>
 				</form>
@@ -162,7 +160,7 @@ export function CheckoutButton({
 	className,
 	children
 }: CheckoutButtonProps) {
-	const [state, formAction, isPending] = useActionState(
+	const [state, formAction, isPending] = useActionState<CheckoutState, FormData>(
 		createCheckoutSession,
 		{ success: false, errors: {} }
 	)
@@ -197,7 +195,7 @@ export function CheckoutButton({
 			>
 				{isPending ? (
 					<>
-						<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+						<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
 						Loading...
 					</>
 				) : (

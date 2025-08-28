@@ -1,9 +1,8 @@
 import Link from 'next/link'
 import { motion } from '@/lib/lazy-motion'
 import { Button } from '@/components/ui/button'
-import { ArrowUpRight } from 'lucide-react'
 // Removed blog-stubs imports - using placeholder data for unused component
-type BlogArticle = {
+interface BlogArticle {
 	slug: string
 	title: string
 	category: string
@@ -23,7 +22,7 @@ interface BlogSidebarSectionProps {
  * Clean design with generous whitespace
  */
 export default function BlogSidebarSection({
-	currentSlug,
+	currentSlug: _currentSlug,
 	fadeInUp
 }: BlogSidebarSectionProps) {
 	// Placeholder data for unused component - blog functionality removed
@@ -44,7 +43,7 @@ export default function BlogSidebarSection({
 									href={`/blog/${article.slug}`}
 									className="group block"
 								>
-									<h4 className="text-foreground group-hover:text-primary mb-2 text-sm leading-snug font-medium transition-colors">
+									<h4 className="text-foreground group-hover:text-primary mb-2 text-sm font-medium leading-snug transition-colors">
 										{article.title}
 									</h4>
 									<p className="text-muted-foreground mb-2 text-xs">
@@ -52,7 +51,7 @@ export default function BlogSidebarSection({
 									</p>
 									<div className="text-primary flex items-center text-xs transition-all group-hover:gap-2">
 										Read article
-										<ArrowUpRight className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100" />
+										<i className="i-lucide-arrowupright inline-block h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100"  />
 									</div>
 								</Link>
 							</article>

@@ -23,7 +23,6 @@ COPY package*.json turbo.json ./
 COPY apps/backend/package.json ./apps/backend/
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/database/package.json ./packages/database/
-COPY packages/tailwind-config/package.json ./packages/tailwind-config/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 
 # Install all dependencies including dev dependencies for building
@@ -45,17 +44,13 @@ COPY . .
 # Remove unnecessary files to reduce build context and layer size
 RUN rm -rf .git .github docs *.md apps/frontend apps/storybook
 
-# Build-time optimizations
-# 1024MB memory: Optimized based on project complexity analysis (reduced from 1096MB)
-# Disable telemetry: Faster builds, no data collection
-ENV NODE_OPTIONS="--max-old-space-size=1024" \
-    TURBO_TELEMETRY_DISABLED=1
+# Disable telemetry for faster builds
+ENV TURBO_TELEMETRY_DISABLED=1
 
-# Build shared and database packages first, then backend
-RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-/app/.turbo,target=/app/.turbo \
-    cd packages/shared && npm run build && cd ../.. && \
-    cd packages/database && npm run build && cd ../.. && \
-    cd apps/backend && npm run build:docker
+# Build all packages in sequence with proper error handling
+RUN cd packages/shared && npm run build && \
+    cd ../database && npm run build && \
+    cd ../../apps/backend && npm run build
 
 # ===== PRODUCTION DEPS STAGE =====
 # Clean production dependencies separate from build artifacts
@@ -69,7 +64,6 @@ COPY package*.json turbo.json ./
 COPY apps/backend/package.json ./apps/backend/
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/database/package.json ./packages/database/
-COPY packages/tailwind-config/package.json ./packages/tailwind-config/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 
 # Fresh production dependency install with cache optimization
@@ -105,100 +99,18 @@ USER root
 RUN apk add --no-cache curl
 USER nodejs
 
-# Runtime optimizations for Railway deployment
+# Runtime environment for Railway deployment
 # NODE_ENV=production: Enables production optimizations in Node.js and libraries
 # DOCKER_CONTAINER=true: Signals containerized environment to application
-# --enable-source-maps: Better error debugging in production
-# --max-old-space-size=264: Optimized based on project analysis (+3% from 256MB for stability)
-# UV_THREADPOOL_SIZE=2: Reduced thread pool for Railway's CPU allocation
-# NODE_NO_WARNINGS=1: Cleaner logs, reduced overhead
 ENV NODE_ENV=production \
-    DOCKER_CONTAINER=true \
-    NODE_OPTIONS="--enable-source-maps --max-old-space-size=264" \
-    UV_THREADPOOL_SIZE=2 \
-    NODE_NO_WARNINGS=1
+    DOCKER_CONTAINER=true
 
 # Railway PORT injection with fallback
 ARG PORT=4600
 ENV PORT=${PORT}
 
-# VERBOSE health check with detailed logging for Railway debugging
-# interval=20s: Balanced check frequency for Railway
-# timeout=8s: Longer timeout to account for Railway network latency  
-# start-period=90s: Extended grace period for Railway container startup
-# retries=5: More retries to handle Railway network fluctuations
-# Uses /health/ping - bulletproof endpoint with no dependencies
-HEALTHCHECK --interval=20s --timeout=8s --start-period=90s --retries=5 \
-  CMD node -e " \
-    const http = require('http'); \
-    const startTime = Date.now(); \
-    console.log('=== DOCKER HEALTH CHECK START ==='); \
-    console.log('Timestamp:', new Date().toISOString()); \
-    console.log('Environment:', process.env.NODE_ENV || 'unknown'); \
-    console.log('Port:', process.env.PORT || 'unknown'); \
-    console.log('Railway Env:', process.env.RAILWAY_ENVIRONMENT || 'none'); \
-    console.log('Docker Container:', process.env.DOCKER_CONTAINER || 'none'); \
-    \
-    const port = process.env.PORT || 4600; \
-    console.log('Attempting to connect to 127.0.0.1:' + port + '/health/ping'); \
-    \
-    const options = { \
-      hostname: '127.0.0.1', \
-      port: port, \
-      path: '/health/ping', \
-      method: 'GET', \
-      timeout: 6000, \
-      headers: { \
-        'User-Agent': 'Docker-HealthCheck', \
-        'Accept': 'application/json', \
-        'Connection': 'close' \
-      } \
-    }; \
-    \
-    console.log('Request options:', JSON.stringify(options, null, 2)); \
-    \
-    const req = http.request(options, (res) => { \
-      console.log('Response received!'); \
-      console.log('Status Code:', res.statusCode); \
-      console.log('Headers:', JSON.stringify(res.headers, null, 2)); \
-      \
-      let data = ''; \
-      res.on('data', chunk => { \
-        data += chunk; \
-        console.log('Data chunk received, length:', chunk.length); \
-      }); \
-      \
-      res.on('end', () => { \
-        const duration = Date.now() - startTime; \
-        console.log('Response completed in', duration + 'ms'); \
-        console.log('Response body:', data.slice(0, 200)); \
-        console.log('=== HEALTH CHECK', res.statusCode === 200 ? 'PASSED' : 'FAILED', '==='); \
-        process.exit(res.statusCode === 200 ? 0 : 1); \
-      }); \
-    }); \
-    \
-    req.on('error', (err) => { \
-      console.error('=== HEALTH CHECK ERROR ==='); \
-      console.error('Error type:', err.constructor.name); \
-      console.error('Error message:', err.message); \
-      console.error('Error code:', err.code || 'unknown'); \
-      console.error('Duration:', Date.now() - startTime + 'ms'); \
-      console.error('Stack trace:', err.stack); \
-      process.exit(1); \
-    }); \
-    \
-    req.on('timeout', () => { \
-      console.error('=== HEALTH CHECK TIMEOUT ==='); \
-      console.error('Request timed out after 6000ms'); \
-      console.error('Total duration:', Date.now() - startTime + 'ms'); \
-      req.destroy(); \
-      process.exit(1); \
-    }); \
-    \
-    req.setTimeout(6000); \
-    \
-    console.log('Sending HTTP request...'); \
-    req.end();"
+# NO HEALTHCHECK - Railway handles this externally via HTTP endpoint
+# The app exposes /health/ping and /health/pressure endpoints natively
 
 # Direct Node.js execution
-CMD ["node", "apps/backend/dist/apps/backend/src/main.js"]
+CMD ["node", "apps/backend/dist/main.js"]

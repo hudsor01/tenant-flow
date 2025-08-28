@@ -1,19 +1,23 @@
-import { Controller, Get, Logger, UseGuards } from '@nestjs/common'
+import { Controller, Get, UseGuards } from '@nestjs/common'
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
-import { UnifiedAuthGuard } from '../shared/guards/unified-auth.guard'
+import { PinoLogger } from 'nestjs-pino'
+import { AuthGuard } from '../shared/guards/auth.guard'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
 import { AuthToken } from '../shared/decorators/auth-token.decorator'
-import { ValidatedUser } from '../auth/auth.service'
 import { DashboardService } from './dashboard.service'
-import type { ControllerApiResponse } from '@repo/shared'
+import type { ControllerApiResponse } from '@repo/shared/types/errors'
+import type { AuthServiceValidatedUser } from '@repo/shared'
 
 @ApiTags('dashboard')
 @Controller('dashboard')
-@UseGuards(UnifiedAuthGuard)
+@UseGuards(AuthGuard)
 export class DashboardController {
-	private readonly logger = new Logger(DashboardController.name)
-
-	constructor(private readonly dashboardService: DashboardService) {}
+	constructor(
+		private readonly dashboardService: DashboardService,
+		private readonly logger: PinoLogger
+	) {
+		// PinoLogger context handled automatically via app-level configuration
+	}
 
 	@Get('stats')
 	@ApiOperation({ summary: 'Get dashboard statistics' })
@@ -22,16 +26,24 @@ export class DashboardController {
 		description: 'Dashboard statistics retrieved successfully'
 	})
 	async getStats(
-		@CurrentUser() user: ValidatedUser,
+		@CurrentUser() user: AuthServiceValidatedUser,
 		@AuthToken() authToken?: string
 	): Promise<ControllerApiResponse> {
-		this.logger.log(`Getting dashboard stats for user ${user.id}`)
+		this.logger.info(
+			{
+				dashboard: {
+					userId: user.id,
+					action: 'getStats'
+				}
+			},
+			`Getting dashboard stats for user ${user.id}`
+		)
 		const data = await this.dashboardService.getStats(user.id, authToken)
 		return {
 			success: true,
 			data,
 			message: 'Dashboard statistics retrieved successfully',
-			timestamp: new Date().toISOString()
+			timestamp: new Date()
 		}
 	}
 
@@ -42,16 +54,16 @@ export class DashboardController {
 		description: 'Dashboard activity retrieved successfully'
 	})
 	async getActivity(
-		@CurrentUser() user: ValidatedUser,
+		@CurrentUser() user: AuthServiceValidatedUser,
 		@AuthToken() authToken?: string
 	): Promise<ControllerApiResponse> {
-		this.logger.log(`Getting dashboard activity for user ${user.id}`)
+		this.logger.info(`Getting dashboard activity for user ${user.id}`)
 		const data = await this.dashboardService.getActivity(user.id, authToken)
 		return {
 			success: true,
 			data,
 			message: 'Dashboard activity retrieved successfully',
-			timestamp: new Date().toISOString()
+			timestamp: new Date()
 		}
 	}
 }

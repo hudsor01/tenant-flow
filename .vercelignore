@@ -9,6 +9,12 @@
 !README.md
 .DS_Store
 
+# Build outputs - prevent warning about uploading .next
+.next
+**/.next
+**/dist
+**/build
+
 # Test files
 **/*.test.*
 **/*.spec.*

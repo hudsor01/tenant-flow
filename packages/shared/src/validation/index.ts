@@ -3,6 +3,7 @@
  * Common Zod schemas used across frontend and backend
  */
 
+export * from './auth'
 export * from './common'
 export * from './properties'
 export * from './tenants'
@@ -16,6 +17,11 @@ export {
 	uuidSchema,
 	emailSchema,
 	nonEmptyStringSchema,
+	requiredString,
+	requiredStringField,
+	requiredName,
+	requiredTitle,
+	requiredDescription,
 	positiveNumberSchema,
 	nonNegativeNumberSchema,
 	dateStringSchema,
@@ -50,9 +56,5 @@ export {
 	webhookDeliverySchema,
 	// Response schemas
 	successResponseSchema,
-	errorResponseSchema,
-	// Utility functions
-	createPaginatedResponseSchema,
-	createApiResponseSchema,
-	createListResponseSchema
+	errorResponseSchema
 } from './common'

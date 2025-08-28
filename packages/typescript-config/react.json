@@ -1,15 +1,19 @@
 {
-	"$schema": "https://json.schemastore.org/tsconfig",
-	"display": "TenantFlow React TypeScript Config",
-	"extends": "./base.json",
-	"compilerOptions": {
-		"jsx": "react-jsx",
-		"module": "ESNext",
-		"moduleResolution": "Bundler",
-		"noEmit": true,
-		"allowImportingTsExtensions": false,
-		"lib": ["ES2022", "DOM", "DOM.Iterable"],
-		"isolatedModules": true,
-		"useDefineForClassFields": true
-	}
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "TenantFlow React TypeScript Config - Next.js 15 Compatible",
+  "extends": "./base.json",
+  "compilerOptions": {
+    "jsx": "preserve",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "allowImportingTsExtensions": false,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "isolatedModules": true,
+    "useDefineForClassFields": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "verbatimModuleSyntax": false
+  }
 }

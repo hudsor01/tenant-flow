@@ -2,15 +2,6 @@
 
 import * as React from 'react'
 import { motion } from '@/lib/lazy-motion'
-import {
-	ChevronDown,
-	User,
-	LogOut,
-	Settings,
-	Bell,
-	Shield,
-	Zap
-} from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -63,7 +54,7 @@ export function SidebarFooter() {
 										repeat: onlineStatus ? Infinity : 0,
 										ease: 'easeInOut'
 									}}
-									className={`border-sidebar absolute -right-0.5 -bottom-0.5 h-3 w-3 rounded-full border-2 ${
+									className={`border-sidebar absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 ${
 										onlineStatus
 											? 'bg-green-500'
 											: 'bg-gray-400'
@@ -80,7 +71,7 @@ export function SidebarFooter() {
 											repeat: Infinity,
 											ease: 'easeInOut'
 										}}
-										className="border-sidebar absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full border bg-red-500"
+										className="border-sidebar absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border bg-red-500"
 									/>
 								)}
 							</Button>
@@ -108,7 +99,7 @@ export function SidebarFooter() {
 											variant="outline"
 											className="px-1.5 py-0 text-xs"
 										>
-											<Shield className="mr-1 h-2.5 w-2.5" />
+											<i className="i-lucide-shield inline-block mr-1 h-2.5 w-2.5"  />
 											Admin
 										</Badge>
 									</div>
@@ -117,7 +108,7 @@ export function SidebarFooter() {
 									</p>
 									<div className="mt-1 flex items-center gap-1">
 										<div
-											className={`h-2 w-2 rounded-full ${onlineStatus ? 'bg-green-500' : 'bg-gray-400'}`}
+											className="status-indicator" data-online={onlineStatus}
 										/>
 										<span className="text-muted-foreground text-xs">
 											{onlineStatus
@@ -130,28 +121,28 @@ export function SidebarFooter() {
 						</DropdownMenuLabel>
 						<DropdownMenuSeparator />
 						<DropdownMenuItem className="cursor-pointer">
-							<User className="mr-2 h-4 w-4" />
+							<i className="i-lucide-user inline-block mr-2 h-4 w-4"  />
 							Profile
 						</DropdownMenuItem>
 						<DropdownMenuItem className="cursor-pointer">
-							<Settings className="mr-2 h-4 w-4" />
+							<i className="i-lucide-settings inline-block mr-2 h-4 w-4"  />
 							Settings
 						</DropdownMenuItem>
 						<DropdownMenuItem className="relative cursor-pointer">
-							<Bell className="mr-2 h-4 w-4" />
+							<i className="i-lucide-bell inline-block mr-2 h-4 w-4"  />
 							Notifications
 							{hasUnreadNotifications && (
 								<Badge
 									variant="destructive"
 									className="ml-auto h-5 min-w-[1.25rem] px-1.5 py-0 text-xs"
 								>
-									<Zap className="h-2.5 w-2.5" />
+									<i className="i-lucide-zap inline-block h-2.5 w-2.5"  />
 								</Badge>
 							)}
 						</DropdownMenuItem>
 						<DropdownMenuSeparator />
 						<DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-600">
-							<LogOut className="mr-2 h-4 w-4" />
+							<i className="i-lucide-log-out inline-block mr-2 h-4 w-4"  />
 							Sign out
 						</DropdownMenuItem>
 					</DropdownMenuContent>
@@ -190,7 +181,7 @@ export function SidebarFooter() {
 										repeat: onlineStatus ? Infinity : 0,
 										ease: 'easeInOut'
 									}}
-									className={`border-sidebar absolute -right-0.5 -bottom-0.5 h-3 w-3 rounded-full border-2 ${
+									className={`border-sidebar absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 ${
 										onlineStatus
 											? 'bg-green-500'
 											: 'bg-gray-400'
@@ -207,7 +198,7 @@ export function SidebarFooter() {
 											repeat: Infinity,
 											ease: 'easeInOut'
 										}}
-										className="border-sidebar absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full border bg-red-500"
+										className="border-sidebar absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border bg-red-500"
 									/>
 								)}
 							</div>
@@ -220,16 +211,16 @@ export function SidebarFooter() {
 										variant="outline"
 										className="ml-auto px-1.5 py-0 text-xs"
 									>
-										<Shield className="mr-1 h-2.5 w-2.5" />
+										<i className="i-lucide-shield inline-block mr-1 h-2.5 w-2.5"  />
 										Admin
 									</Badge>
 								</div>
 								<span className="text-sidebar-foreground/60 text-xs">
-									Property Manager
+									Property_ Manager
 								</span>
 								<div className="mt-0.5 flex items-center gap-1">
 									<div
-										className={`h-1.5 w-1.5 rounded-full ${onlineStatus ? 'bg-green-500' : 'bg-gray-400'}`}
+										className={onlineStatus ? 'h-1.5 w-1.5 rounded-full bg-green-500' : 'h-1.5 w-1.5 rounded-full bg-gray-400'}
 									/>
 									<span className="text-sidebar-foreground/40 text-xs">
 										{onlineStatus ? 'Online' : 'Offline'}
@@ -246,7 +237,7 @@ export function SidebarFooter() {
 									ease: 'easeInOut'
 								}}
 							>
-								<ChevronDown className="text-sidebar-foreground/60 group-hover:text-sidebar-foreground h-4 w-4 transition-colors" />
+								<i className="i-lucide-chevron-down inline-block text-sidebar-foreground/60 group-hover:text-sidebar-foreground h-4 w-4 transition-colors"  />
 							</motion.div>
 						</Button>
 					</motion.div>
@@ -269,7 +260,7 @@ export function SidebarFooter() {
 										variant="outline"
 										className="px-1.5 py-0 text-xs"
 									>
-										<Shield className="mr-1 h-2.5 w-2.5" />
+										<i className="i-lucide-shield inline-block mr-1 h-2.5 w-2.5"  />
 										Admin
 									</Badge>
 								</div>
@@ -278,7 +269,7 @@ export function SidebarFooter() {
 								</p>
 								<div className="mt-1 flex items-center gap-1">
 									<div
-										className={`h-2 w-2 rounded-full ${onlineStatus ? 'bg-green-500' : 'bg-gray-400'}`}
+										className="status-indicator" data-online={onlineStatus}
 									/>
 									<span className="text-muted-foreground text-xs">
 										{onlineStatus ? 'Online' : 'Offline'}
@@ -289,28 +280,28 @@ export function SidebarFooter() {
 					</DropdownMenuLabel>
 					<DropdownMenuSeparator />
 					<DropdownMenuItem className="cursor-pointer">
-						<User className="mr-2 h-4 w-4" />
+						<i className="i-lucide-user inline-block mr-2 h-4 w-4"  />
 						Profile
 					</DropdownMenuItem>
 					<DropdownMenuItem className="cursor-pointer">
-						<Settings className="mr-2 h-4 w-4" />
+						<i className="i-lucide-settings inline-block mr-2 h-4 w-4"  />
 						Settings
 					</DropdownMenuItem>
 					<DropdownMenuItem className="relative cursor-pointer">
-						<Bell className="mr-2 h-4 w-4" />
+						<i className="i-lucide-bell inline-block mr-2 h-4 w-4"  />
 						Notifications
 						{hasUnreadNotifications && (
 							<Badge
 								variant="destructive"
 								className="ml-auto h-5 min-w-[1.25rem] px-1.5 py-0 text-xs"
 							>
-								<Zap className="h-2.5 w-2.5" />
+								<i className="i-lucide-zap inline-block h-2.5 w-2.5"  />
 							</Badge>
 						)}
 					</DropdownMenuItem>
 					<DropdownMenuSeparator />
 					<DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-600">
-						<LogOut className="mr-2 h-4 w-4" />
+						<i className="i-lucide-log-out inline-block mr-2 h-4 w-4"  />
 						Sign out
 					</DropdownMenuItem>
 				</DropdownMenuContent>

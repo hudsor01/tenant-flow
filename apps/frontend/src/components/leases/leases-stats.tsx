@@ -3,9 +3,10 @@
 import { useLeases } from '@/hooks/api/use-leases'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { FileText, CheckCircle, Calendar, DollarSign } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { Lease } from '@repo/shared'
+import type { Database } from '@repo/shared'
+
+  type Lease = Database['public']['Tables']['Lease']['Row']
 
 function LeasesStatsSkeleton() {
 	return (
@@ -30,7 +31,9 @@ function calculateLeaseStats(leases: Lease[]) {
 
 	// Calculate leases expiring within 30 days
 	const expiringSoon = leases.filter(lease => {
-		if (lease.status !== 'ACTIVE') return false
+		if (lease.status !== 'ACTIVE') {
+			return false
+		}
 		const endDate = new Date(lease.endDate)
 		const thirtyDaysFromNow = new Date()
 		thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30)
@@ -68,37 +71,35 @@ function LeasesStatsUI({ stats }: LeasesStatsUIProps) {
 			title: 'Total Leases',
 			value: stats.totalLeases,
 			description: `${stats.activeLeases} currently active`,
-			icon: FileText,
+			icon: 'i-lucide-file-text',
 			color: 'text-primary'
 		},
 		{
 			title: 'Active Leases',
 			value: stats.activeLeases,
 			description: 'Currently in effect',
-			icon: CheckCircle,
+			icon: 'i-lucide-check-circle',
 			color: 'text-green-600'
 		},
 		{
 			title: 'Expiring Soon',
 			value: stats.expiringSoon,
 			description: 'Within 30 days',
-			icon: Calendar,
+			icon: 'i-lucide-calendar',
 			color: stats.expiringSoon > 0 ? 'text-orange-600' : 'text-gray-600'
 		},
 		{
 			title: 'Monthly Revenue',
 			value: `$${stats.totalMonthlyRent.toLocaleString()}`,
 			description: 'From active leases',
-			icon: DollarSign,
+			icon: 'i-lucide-dollar-sign',
 			color: 'text-green-600'
 		}
 	]
 
 	return (
 		<div className="grid gap-4 md:grid-cols-4">
-			{statItems.map(stat => {
-				const Icon = stat.icon
-				return (
+			{statItems.map(stat => (
 					<Card
 						key={stat.title}
 						className="transition-all hover:shadow-md"
@@ -107,7 +108,7 @@ function LeasesStatsUI({ stats }: LeasesStatsUIProps) {
 							<CardTitle className="text-sm font-medium">
 								{stat.title}
 							</CardTitle>
-							<Icon className={cn('h-4 w-4', stat.color)} />
+							<i className={cn(stat.icon, 'inline-block h-4 w-4', stat.color)} />
 						</CardHeader>
 						<CardContent>
 							<div className="text-2xl font-bold">
@@ -118,8 +119,7 @@ function LeasesStatsUI({ stats }: LeasesStatsUIProps) {
 							</p>
 						</CardContent>
 					</Card>
-				)
-			})}
+			))}
 		</div>
 	)
 }

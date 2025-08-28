@@ -1,6 +1,6 @@
 /**
- * Minimal Button Component
- * Basic button with essential variants only
+ * Native Button Component with UnoCSS
+ * No CVA, no external dependencies, just UnoCSS shortcuts
  */
 
 'use client'
@@ -8,54 +8,45 @@
 import * as React from 'react'
 import { Slot } from '@radix-ui/react-slot'
 import { cn } from '@/lib/utils'
-import { Loader2 } from 'lucide-react'
-import { cva, type VariantProps } from 'class-variance-authority'
 
-const buttonVariants = cva(
-	'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
-	{
-		variants: {
-			variant: {
-				default:
-					'bg-primary text-primary-foreground hover:bg-primary/90',
-				destructive:
-					'bg-destructive text-destructive-foreground hover:bg-destructive/90',
-				outline:
-					'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
-				secondary:
-					'bg-secondary text-secondary-foreground hover:bg-secondary/80',
-				ghost: 'hover:bg-accent hover:text-accent-foreground',
-				link: 'text-primary underline-offset-4 hover:underline',
-				premium:
-					'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 shadow-lg'
-			},
-			size: {
-				default: 'h-10 px-4 py-2',
-				sm: 'h-9 rounded-md px-3',
-				lg: 'h-11 rounded-md px-8',
-				icon: 'h-10 w-10'
-			}
-		},
-		defaultVariants: {
-			variant: 'default',
-			size: 'default'
-		}
-	}
-)
+// Native variant types without CVA
+export type ButtonVariant = 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link' | 'premium'
+export type ButtonSize = 'default' | 'sm' | 'lg' | 'icon'
 
-export interface ButtonProps
-	extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-		VariantProps<typeof buttonVariants> {
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+	variant?: ButtonVariant
+	size?: ButtonSize
 	asChild?: boolean
 	loading?: boolean
 }
+
+// UnoCSS class maps - will be converted to shortcuts in uno.config.ts
+const variantClasses: Record<ButtonVariant, string> = {
+	default: 'bg-brand-500 text-white hover:bg-brand-600',
+	destructive: 'bg-red-500 text-white hover:bg-red-600',
+	outline: 'border border-gray-300 bg-white hover:bg-gray-50',
+	secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200',
+	ghost: 'hover:bg-gray-100 hover:text-gray-900',
+	link: 'text-brand-500 underline-offset-4 hover:underline',
+	premium: 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 shadow-lg'
+}
+
+const sizeClasses: Record<ButtonSize, string> = {
+	default: 'h-10 px-4 py-2 text-sm',
+	sm: 'h-9 px-3 text-xs',
+	lg: 'h-11 px-8 text-base',
+	icon: 'h-10 w-10 p-0'
+}
+
+// Base button classes using UnoCSS utilities
+const baseClasses = 'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg font-medium transition-all duration-fast focus-visible:(outline-none ring-2 ring-brand-500 ring-offset-2) disabled:(pointer-events-none opacity-50) [&_svg]:(pointer-events-none size-4 shrink-0)'
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 	(
 		{
 			className,
-			variant,
-			size,
+			variant = 'default',
+			size = 'default',
 			asChild = false,
 			loading,
 			disabled,
@@ -66,12 +57,19 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 	) => {
 		const Comp = asChild ? Slot : 'button'
 
+		// Build complete className
+		const classes = cn(
+			baseClasses,
+			variantClasses[variant],
+			sizeClasses[size],
+			className
+		)
+
 		// When using asChild, we can't add extra elements like the loading spinner
-		// The Slot component requires exactly one child element
 		if (asChild) {
 			return (
 				<Comp
-					className={cn(buttonVariants({ variant, size, className }))}
+					className={classes}
 					ref={ref}
 					disabled={disabled || loading}
 					{...props}
@@ -83,17 +81,30 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
 		return (
 			<Comp
-				className={cn(buttonVariants({ variant, size, className }))}
+				className={classes}
 				ref={ref}
 				disabled={disabled || loading}
+				aria-busy={loading}
 				{...props}
 			>
-				{loading && <Loader2 className="h-4 w-4 animate-spin" />}
+				{loading && (
+					<i className="i-lucide-loader-2 animate-spin" aria-label="Loading" />
+				)}
 				{children}
 			</Comp>
 		)
 	}
 )
+
 Button.displayName = 'Button'
 
-export { Button, buttonVariants }
+// Export variants for compatibility with existing components
+export const buttonVariants = (props: { variant?: ButtonVariant; size?: ButtonSize }) => {
+	return cn(
+		baseClasses,
+		variantClasses[props.variant || 'default'],
+		sizeClasses[props.size || 'default']
+	)
+}
+
+export { Button }

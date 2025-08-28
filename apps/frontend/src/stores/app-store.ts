@@ -5,53 +5,34 @@
 import { create } from 'zustand'
 import { devtools, persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
-import type { User } from '@repo/shared'
+import type { AuthUser } from '@repo/shared'
 
 // ============================================================================
 // TYPES & INTERFACES
 // ============================================================================
 
-export type Theme = 'light' | 'dark' | 'system'
-export type NotificationLevel = 'info' | 'success' | 'warning' | 'error'
+// Use shared types instead of local interfaces
+import type { 
+	AppNotification,
+	RecentActivity,
+	UIPreferences,
+	UserSession,
+	AppState,
+	NotificationLevel,
+	Theme
+} from '@repo/shared'
 
-export interface AppNotification {
-	id: string
-	level: NotificationLevel
-	title: string
-	message: string
-	timestamp: Date
-	read: boolean
-	autoHide?: boolean
-	duration?: number
+export type { 
+	AppNotification,
+	RecentActivity,
+	UIPreferences,
+	UserSession,
+	AppState,
+	NotificationLevel,
+	Theme
 }
 
-export interface RecentActivity {
-	id: string
-	type: string
-	description: string
-	timestamp: Date
-	userId?: string
-	resourceId?: string
-	resourceType?: string
-}
-
-export interface UIPreferences {
-	theme: Theme
-	sidebarOpen: boolean
-	compactMode: boolean
-	showWelcome: boolean
-	language: string
-	timezone: string
-}
-
-export interface UserSession {
-	user: User | null
-	isAuthenticated: boolean
-	lastActivity: Date | null
-	sessionExpiry: Date | null
-}
-
-export interface AppState {
+interface LocalAppState {
 	// ============================================================================
 	// STATE
 	// ============================================================================
@@ -103,7 +84,7 @@ export interface AppState {
 	// ACTIONS - SESSION MANAGEMENT
 	// ============================================================================
 
-	setUser: (user: User | null) => void
+	setUser: (user: AuthUser | null) => void
 	updateLastActivity: () => void
 	clearSession: () => void
 	extendSession: (minutes: number) => void
@@ -190,7 +171,7 @@ const initialState = {
 // ZUSTAND STORE WITH MAXIMUM PERFORMANCE FEATURES
 // ============================================================================
 
-export const useAppStore = create<AppState>()(
+export const useAppStore = create<LocalAppState>()(
 	// Enable Redux DevTools for debugging
 	devtools(
 		// Add subscription capabilities for computed values
@@ -198,7 +179,7 @@ export const useAppStore = create<AppState>()(
 			// Add persistence for UI preferences
 			persist(
 				// Add Immer for immutable updates (performance + safety)
-				immer<AppState>((set, get) => ({
+				immer<LocalAppState>((set, get) => ({
 					...initialState,
 
 					// ============================================================================
@@ -222,7 +203,7 @@ export const useAppStore = create<AppState>()(
 					// UI PREFERENCES ACTIONS
 					// ============================================================================
 
-					setTheme: theme => {
+					setTheme: (theme: Theme) => {
 						set(state => {
 							state.ui.theme = theme
 						})
@@ -240,7 +221,7 @@ export const useAppStore = create<AppState>()(
 						})
 					},
 
-					updatePreferences: preferences => {
+					updatePreferences: (preferences: Partial<UIPreferences>) => {
 						set(state => {
 							Object.assign(state.ui, preferences)
 						})
@@ -250,7 +231,7 @@ export const useAppStore = create<AppState>()(
 					// SESSION MANAGEMENT ACTIONS
 					// ============================================================================
 
-					setUser: user => {
+					setUser: (user: AuthUser | null) => {
 						set(state => {
 							state.session.user = user
 							state.session.isAuthenticated = !!user
@@ -285,7 +266,7 @@ export const useAppStore = create<AppState>()(
 						})
 					},
 
-					extendSession: minutes => {
+					extendSession: (minutes: number) => {
 						set(state => {
 							if (state.session.sessionExpiry) {
 								state.session.sessionExpiry = new Date(
@@ -300,7 +281,7 @@ export const useAppStore = create<AppState>()(
 					// NOTIFICATION ACTIONS (High-Performance)
 					// ============================================================================
 
-					addNotification: notification => {
+					addNotification: (notification: Omit<AppNotification, 'id' | 'timestamp'>) => {
 						const id = `notification-${Date.now()}-${Math.random()}`
 						set(state => {
 							const newNotification: AppNotification = {
@@ -377,13 +358,13 @@ export const useAppStore = create<AppState>()(
 					// MODAL MANAGEMENT ACTIONS
 					// ============================================================================
 
-					openModal: name => {
+					openModal: (name: string) => {
 						set(state => {
 							state.modals[name] = true
 						})
 					},
 
-					closeModal: name => {
+					closeModal: (name: string) => {
 						set(state => {
 							state.modals[name] = false
 						})
@@ -397,7 +378,7 @@ export const useAppStore = create<AppState>()(
 						})
 					},
 
-					toggleModal: name => {
+					toggleModal: (name: string) => {
 						set(state => {
 							state.modals[name] = !state.modals[name]
 						})
@@ -407,13 +388,13 @@ export const useAppStore = create<AppState>()(
 					// CACHE MANAGEMENT ACTIONS
 					// ============================================================================
 
-					setSelectedProperty: id => {
+					setSelectedProperty: (id: string | null) => {
 						set(state => {
 							state.cache.selectedPropertyId = id
 						})
 					},
 
-					setSelectedTenant: id => {
+					setSelectedTenant: (id: string | null) => {
 						set(state => {
 							state.cache.selectedTenantId = id
 						})
@@ -452,7 +433,7 @@ export const useAppStore = create<AppState>()(
 					// CONNECTION STATE ACTIONS
 					// ============================================================================
 
-					setOnlineStatus: isOnline => {
+					setOnlineStatus: (isOnline: boolean) => {
 						set(state => {
 							state.isOnline = isOnline
 						})
@@ -468,7 +449,7 @@ export const useAppStore = create<AppState>()(
 					// BULK OPERATIONS (Performance Optimized)
 					// ============================================================================
 
-					bulkUpdateNotifications: updates => {
+					bulkUpdateNotifications: (updates: { id: string; read: boolean }[]) => {
 						set(state => {
 							updates.forEach(({ id, read }) => {
 								const notification = state.notifications.find(

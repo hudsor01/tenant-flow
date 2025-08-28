@@ -1,8 +1,15 @@
-import { User } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import type { ClientInfoSectionProps } from '@/types/components'
+import type { UseFormRegister, FieldErrors } from 'react-hook-form'
+
+interface ClientInfoSectionProps {
+	register: UseFormRegister<Record<string, unknown>>
+	errors: FieldErrors<Record<string, unknown>>
+	clientState?: string
+	autoTaxRate?: number
+	stateTaxRates?: Record<string, number>
+}
 
 export function ClientInfoSection({
 	register,
@@ -12,11 +19,11 @@ export function ClientInfoSection({
 	stateTaxRates
 }: ClientInfoSectionProps) {
 	return (
-		<Card className="group bg-card/80 border-0 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl">
+		<Card className="bg-card/80 group border-0 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl">
 			<CardHeader className="from-primary/5 to-accent/5 border-border/50 flex items-center justify-center border-b bg-gradient-to-r py-4">
 				<CardTitle className="text-foreground flex items-center justify-center gap-2 text-base">
 					<div className="bg-primary/10 group-hover:bg-primary/20 rounded-lg p-1.5 transition-colors">
-						<User className="text-primary h-4 w-4" />
+						<i className="i-lucide-user inline-block text-primary h-4 w-4"  />
 					</div>
 					<span className="font-serif">Recipient</span>
 				</CardTitle>
@@ -42,7 +49,7 @@ export function ClientInfoSection({
 						/>
 						{errors.clientName && (
 							<p className="text-xs text-red-600">
-								{errors.clientName.message}
+								{errors.clientName.message!}
 							</p>
 						)}
 					</div>
@@ -65,7 +72,7 @@ export function ClientInfoSection({
 						/>
 						{errors.clientEmail && (
 							<p className="text-xs text-red-600">
-								{errors.clientEmail.message}
+								{errors.clientEmail.message!}
 							</p>
 						)}
 					</div>
@@ -108,12 +115,12 @@ export function ClientInfoSection({
 						/>
 						{errors.clientState && (
 							<p className="text-xs text-red-600">
-								{errors.clientState.message}
+								{errors.clientState.message!}
 							</p>
 						)}
 						{clientState &&
 							clientState.length === 2 &&
-							stateTaxRates[clientState.toUpperCase()] !==
+							stateTaxRates?.[clientState.toUpperCase()] !==
 								undefined && (
 								<p className="text-xs text-green-600">
 									✓ Tax rate: {autoTaxRate}% for{' '}

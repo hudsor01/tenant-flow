@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, InternalServerErrorException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { PinoLogger } from 'nestjs-pino'
 import { Resend } from 'resend'
 import type { EnvironmentVariables } from '../config/config.schema'
 import { MaintenanceRequestEmail } from './maintenance-request-email'
@@ -12,22 +13,32 @@ import { MaintenanceRequestEmail } from './maintenance-request-email'
  */
 @Injectable()
 export class DirectEmailService {
-  private readonly logger = new Logger(DirectEmailService.name)
   private readonly resend: Resend
   private readonly fromAddress: string
 
   constructor(
-    private readonly configService: ConfigService<EnvironmentVariables>
+    private readonly configService: ConfigService<EnvironmentVariables>,
+    private readonly logger: PinoLogger
   ) {
+    // PinoLogger context handled automatically via app-level configuration
     const resendKey = this.configService.get('RESEND_API_KEY', { infer: true })
     if (!resendKey) {
-      throw new Error('RESEND_API_KEY is required for email functionality')
+      throw new InternalServerErrorException('RESEND_API_KEY is required for email functionality')
     }
 
     this.resend = new Resend(resendKey)
     this.fromAddress = 'TenantFlow <noreply@tenantflow.app>'
     
-    this.logger.log('Direct email service initialized with Resend')
+    this.logger.info(
+      {
+        email: {
+          provider: 'resend',
+          initialized: true,
+          fromAddress: this.fromAddress
+        }
+      },
+      'Direct email service initialized with Resend'
+    )
   }
 
   /**
@@ -60,12 +71,37 @@ export class DirectEmailService {
       })
 
       if (error) {
-        throw new Error(`Resend error: ${error.message}`)
+        throw new InternalServerErrorException(`Resend error: ${error.message}`)
       }
 
-      this.logger.log(`Maintenance notification sent: ${data?.id}`)
+      this.logger.info(
+        {
+          email: {
+            type: 'maintenance_notification',
+            messageId: data?.id,
+            to: params.to,
+            priority: params.priority,
+            property: params.propertyName
+          }
+        },
+        `Maintenance notification sent: ${data?.id}`
+      )
     } catch (error) {
-      this.logger.error(`Failed to send maintenance notification: ${error}`)
+      this.logger.error(
+        {
+          error: {
+            name: error instanceof Error ? error.constructor.name : 'Unknown',
+            message: error instanceof Error ? error.message : String(error),
+            stack: process.env.NODE_ENV !== 'production' && error instanceof Error ? error.stack : undefined
+          },
+          email: {
+            type: 'maintenance_notification',
+            to: params.to,
+            priority: params.priority
+          }
+        },
+        'Failed to send maintenance notification'
+      )
       throw error
     }
   }
@@ -88,10 +124,10 @@ export class DirectEmailService {
       })
 
       if (error) {
-        throw new Error(`Resend error: ${error.message}`)
+        throw new InternalServerErrorException(`Resend error: ${error.message}`)
       }
 
-      this.logger.log(`Simple email sent: ${data?.id}`)
+      this.logger.info(`Simple email sent: ${data?.id}`)
     } catch (error) {
       this.logger.error(`Failed to send simple email: ${error}`)
       throw error

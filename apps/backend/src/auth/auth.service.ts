@@ -1,86 +1,53 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common'
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import {
+	Injectable,
+	UnauthorizedException,
+	BadRequestException,
+	InternalServerErrorException
+} from '@nestjs/common'
+import { PinoLogger } from 'nestjs-pino'
+import type { SupabaseClient, User as SupabaseUser } from '@supabase/supabase-js'
 import { SupabaseService } from '../database/supabase.service'
-import { ErrorHandlerService } from '../services/error-handler.service'
-import { SecurityMonitorService } from '../security/security-monitor.service'
-import type { AuthUser, UserRole } from '@repo/shared'
+import type { UserRole, AuthServiceValidatedUser } from '@repo/shared'
 import type { Database } from '@repo/shared/types/supabase-generated'
 
-export interface SupabaseUser {
-	id: string
-	email?: string
-	email_confirmed_at?: string
-	user_metadata?: {
-		name?: string
-		full_name?: string
-		avatar_url?: string
-	}
-	created_at?: string
-	updated_at?: string
-}
-
-export interface ValidatedUser
-	extends Omit<AuthUser, 'createdAt' | 'updatedAt' | 'name' | 'avatarUrl'> {
-	name: string | undefined
-	avatarUrl: string | undefined
-	createdAt: string
-	updatedAt: string
-	stripeCustomerId: string | null
-	supabaseId: string
-	bio: string | null
-	profileComplete: boolean
-	lastLoginAt: string
-	[key: string]: unknown
-}
+// Types now imported from @repo/shared to eliminate duplication
 
 function normalizeSupabaseUser(
 	supabaseUser: Database['public']['Tables']['User']['Row']
-): ValidatedUser {
+): AuthServiceValidatedUser {
 	return {
 		id: supabaseUser.id,
 		email: supabaseUser.email,
-		name: supabaseUser.name || undefined,
-		avatarUrl: supabaseUser.avatarUrl || undefined,
-		role: (supabaseUser.role || 'OWNER') as UserRole,
+		name: supabaseUser.name ?? undefined,
+		avatarUrl: supabaseUser.avatarUrl ?? undefined,
+		role: supabaseUser.role as UserRole,
 		phone: supabaseUser.phone ?? null,
-		createdAt: new Date(supabaseUser.createdAt).toISOString(),
-		updatedAt: new Date(supabaseUser.updatedAt).toISOString(),
+		createdAt: new Date(supabaseUser.createdAt),
+		updatedAt: new Date(supabaseUser.updatedAt),
 		emailVerified: true,
 		bio: supabaseUser.bio ?? null,
 		supabaseId: supabaseUser.supabaseId ?? supabaseUser.id,
-		stripeCustomerId: supabaseUser.stripeCustomerId ?? null,
+		stripeCustomerId: supabaseUser.stripeCustomerId ?? undefined,
 		profileComplete: true,
-		lastLoginAt: new Date().toISOString(),
-		organizationId: null
+		lastLoginAt: new Date(),
+		organizationId: undefined
 	}
 }
 
 @Injectable()
 export class AuthService {
-	private readonly logger = new Logger(AuthService.name)
-	private readonly supabase: SupabaseClient
-
 	constructor(
 		private readonly supabaseService: SupabaseService,
-		private readonly errorHandler: ErrorHandlerService,
-		// private readonly securityService: SimpleSecurityService,
-		private readonly securityMonitor: SecurityMonitorService
+		private readonly logger: PinoLogger
 	) {
-		const supabaseUrl = process.env.SUPABASE_URL
-		const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-		if (!supabaseUrl || !supabaseServiceKey) {
-			throw this.errorHandler.createConfigError(
-				'Missing required Supabase configuration: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY'
-			)
-		}
-
-		this.supabase = createClient(supabaseUrl, supabaseServiceKey, {
-			auth: { autoRefreshToken: false, persistSession: false }
-		})
+		// PinoLogger context handled automatically via app-level configuration
 	}
 
-	async validateSupabaseToken(token: string): Promise<ValidatedUser> {
+	private get supabase(): SupabaseClient<Database> {
+		return this.supabaseService.getAdminClient()
+	}
+
+	async validateSupabaseToken(token: string): Promise<AuthServiceValidatedUser> {
 		if (!token || typeof token !== 'string') {
 			throw new UnauthorizedException('Invalid token format')
 		}
@@ -101,7 +68,7 @@ export class AuthService {
 
 			if (error || !user) {
 				this.logger.warn('Token validation failed', {
-					errorType: error?.name
+					errorType: error?.name ?? 'unknown'
 				})
 				throw new UnauthorizedException('Invalid or expired token')
 			}
@@ -128,18 +95,22 @@ export class AuthService {
 
 	async syncUserWithDatabase(
 		supabaseUser: SupabaseUser
-	): Promise<ValidatedUser> {
-		if (!supabaseUser?.email) {
+	): Promise<AuthServiceValidatedUser> {
+		if (!supabaseUser.email) {
 			throw new UnauthorizedException('User email is required')
 		}
 
-		const { id: supabaseId, email, user_metadata } = supabaseUser
-		const metadata = user_metadata as Record<string, unknown>
-		const name = String(metadata?.name || metadata?.full_name || '')
-		const avatarUrl = metadata?.avatar_url
+		const {
+			id: supabaseId,
+			email,
+			user_metadata: userMetadata
+		} = supabaseUser
+		const metadata = userMetadata as Record<string, unknown>
+		const name = String(metadata.name ?? metadata.full_name ?? '')
+		const avatarUrl = metadata.avatar_url
 			? String(metadata.avatar_url)
 			: null
-		const phone = metadata?.phone ? String(metadata.phone) : null
+		const phone = metadata.phone ? String(metadata.phone) : null
 
 		const adminClient = this.supabaseService.getAdminClient()
 
@@ -159,23 +130,23 @@ export class AuthService {
 				name,
 				phone,
 				avatarUrl,
-				role: existingUser?.role || 'OWNER',
+				role: existingUser?.role ?? 'OWNER',
 				supabaseId,
 				createdAt:
-					existingUser?.createdAt ||
-					supabaseUser.created_at ||
+					existingUser?.createdAt ??
+					supabaseUser.created_at ??
 					new Date().toISOString(),
 				updatedAt: new Date().toISOString()
 			})
 			.select()
 			.single()
 
-		if (error || !user) {
-			throw new Error('Failed to sync user data')
+		if (error) {
+			throw new InternalServerErrorException('Failed to sync user data')
 		}
 
 		if (isNewUser) {
-			this.logger.log('New user created', {
+			this.logger.info('New user created', {
 				userId: supabaseId,
 				email,
 				name
@@ -192,13 +163,13 @@ export class AuthService {
 		return {
 			...normalizeSupabaseUser(user),
 			supabaseId,
-			stripeCustomerId: subscription?.stripeCustomerId || null
+			stripeCustomerId: subscription?.stripeCustomerId ?? undefined
 		}
 	}
 
 	async getUserBySupabaseId(
 		supabaseId: string
-	): Promise<ValidatedUser | null> {
+	): Promise<AuthServiceValidatedUser | null> {
 		const adminClient = this.supabaseService.getAdminClient()
 		const { data: user } = await adminClient
 			.from('User')
@@ -216,7 +187,7 @@ export class AuthService {
 			bio?: string
 			avatarUrl?: string
 		}
-	): Promise<{ user: ValidatedUser }> {
+	): Promise<{ user: AuthServiceValidatedUser }> {
 		const adminClient = this.supabaseService.getAdminClient()
 		const { data: user, error } = await adminClient
 			.from('User')
@@ -225,17 +196,19 @@ export class AuthService {
 			.select()
 			.single()
 
-		if (error || !user) {
-			throw new Error('Failed to update user profile')
+		if (error) {
+			throw new InternalServerErrorException(
+				'Failed to update user profile'
+			)
 		}
 		return { user: normalizeSupabaseUser(user) }
 	}
 
-	async validateTokenAndGetUser(token: string): Promise<ValidatedUser> {
+	async validateTokenAndGetUser(token: string): Promise<AuthServiceValidatedUser> {
 		return this.validateSupabaseToken(token)
 	}
 
-	async getUserByEmail(email: string): Promise<ValidatedUser | null> {
+	async getUserByEmail(email: string): Promise<AuthServiceValidatedUser | null> {
 		const adminClient = this.supabaseService.getAdminClient()
 		const { data: user } = await adminClient
 			.from('User')
@@ -250,7 +223,14 @@ export class AuthService {
 		return user?.role === role
 	}
 
-	async getUserStats() {
+	async getUserStats(): Promise<{
+		total: number
+		byRole: {
+			owners: number
+			managers: number
+			tenants: number
+		}
+	}> {
 		const adminClient = this.supabaseService.getAdminClient()
 		const [totalResult, ownersResult, managersResult, tenantsResult] =
 			await Promise.all([
@@ -272,11 +252,11 @@ export class AuthService {
 			])
 
 		return {
-			total: totalResult.count || 0,
+			total: totalResult.count ?? 0,
 			byRole: {
-				owners: ownersResult.count || 0,
-				managers: managersResult.count || 0,
-				tenants: tenantsResult.count || 0
+				owners: ownersResult.count ?? 0,
+				managers: managersResult.count ?? 0,
+				tenants: tenantsResult.count ?? 0
 			}
 		}
 	}
@@ -291,47 +271,36 @@ export class AuthService {
 		refresh_token: string
 	}> {
 		if (!userData.email || !userData.name) {
-			throw this.errorHandler.createBusinessError(
-				'Email and name are required',
-				{ operation: 'createUser', resource: 'auth' }
-			)
+			throw new BadRequestException('Email and name are required')
 		}
 
 		if (userData.password) {
 			// Basic password validation (could be enhanced with proper validation library)
 			if (userData.password.length < 8) {
-				throw this.errorHandler.createBusinessError(
-					'Password must be at least 8 characters long',
-					{ operation: 'createUser', resource: 'auth' }
+				throw new BadRequestException(
+					'Password must be at least 8 characters long'
 				)
 			}
 		}
 
 		const { data, error } = await this.supabase.auth.admin.createUser({
 			email: userData.email,
-			password: userData.password || undefined,
+			password: userData.password ?? undefined,
 			email_confirm: false,
 			user_metadata: { name: userData.name, full_name: userData.name }
 		})
 
 		if (error) {
-			if (error.message?.includes('already registered')) {
-				throw this.errorHandler.createBusinessError(
-					'User with this email already exists',
-					{ operation: 'createUser', resource: 'auth' }
+			if (error.message.includes('already registered')) {
+				throw new BadRequestException(
+					'User with this email already exists'
 				)
 			}
-			throw this.errorHandler.createBusinessError(
-				error.message || 'Failed to create user account',
-				{ operation: 'createUser', resource: 'auth' }
-			)
+			throw new BadRequestException(error.message)
 		}
 
-		if (!data?.user?.id || !data?.user?.email) {
-			throw this.errorHandler.createBusinessError(
-				'Failed to create user account',
-				{ operation: 'createUser', resource: 'auth' }
-			)
+		if (!data.user.id || !data.user.email) {
+			throw new BadRequestException('Failed to create user account')
 		}
 
 		try {
@@ -380,17 +349,14 @@ export class AuthService {
 		access_token: string
 		refresh_token: string
 		expires_in: number
-		user: ValidatedUser
+		user: AuthServiceValidatedUser
 	}> {
 		const { data, error } = await this.supabase.auth.refreshSession({
 			refresh_token: refreshToken
 		})
 
 		if (error || !data.session || !data.user) {
-			throw this.errorHandler.createBusinessError(
-				'Invalid or expired refresh token',
-				{ operation: 'refreshToken', resource: 'auth' }
-			)
+			throw new BadRequestException('Invalid or expired refresh token')
 		}
 
 		const validatedUser = await this.validateSupabaseToken(
@@ -400,7 +366,7 @@ export class AuthService {
 		return {
 			access_token: data.session.access_token,
 			refresh_token: data.session.refresh_token,
-			expires_in: data.session.expires_in || 3600,
+			expires_in: data.session.expires_in,
 			user: validatedUser
 		}
 	}
@@ -413,24 +379,18 @@ export class AuthService {
 		access_token: string
 		refresh_token: string
 		expires_in: number
-		user: ValidatedUser
+		user: AuthServiceValidatedUser
 	}> {
-		this.securityMonitor.logSecurityEvent('AUTH_ATTEMPT', {
-			email,
-			ip,
-			details: { operation: 'login' }
-		})
+		this.logger.info(`Auth attempt for email: ${email} from IP: ${ip}`)
 
 		// Rate limiting temporarily disabled
-		// const authAttempt = await this.securityMonitor.trackAuthAttempt(ip || 'unknown', email, false)
 		// if (authAttempt.blocked) {
-		//	this.securityMonitor.logSecurityEvent('BRUTE_FORCE_DETECTED', {
 		//		email,
 		//		ip,
 		//		severity: 'critical',
 		//		details: { action: 'login_blocked' }
 		//	})
-		//	throw this.errorHandler.createBusinessError(
+		//	throw new BadRequestException(
 		//		ErrorCode.TOO_MANY_REQUESTS,
 		//		'Too many failed login attempts. Please try again later.',
 		//		{ operation: 'login', resource: 'auth' }
@@ -442,54 +402,36 @@ export class AuthService {
 			password
 		})
 
-		if (error || !data.session || !data.user) {
-			// await this.securityMonitor.trackAuthAttempt(ip || 'unknown', email, false)
-			this.securityMonitor.logSecurityEvent('AUTH_FAILURE', {
-				email,
-				ip,
-				details: {
-					error:
-						error instanceof Error ? error.message : 'Unknown error'
-				}
-			})
-
-			if (error && error.message?.includes('Invalid login credentials')) {
-				throw this.errorHandler.createBusinessError(
-					'Invalid email or password',
-					{ operation: 'login', resource: 'auth' }
-				)
-			}
-
-			if (error?.message?.includes('Email not confirmed')) {
-				throw this.errorHandler.createBusinessError(
-					'Please verify your email address before signing in',
-					{ operation: 'login', resource: 'auth' }
-				)
-			}
-
-			throw this.errorHandler.createBusinessError(
-				'Login failed',
-				{ operation: 'login', resource: 'auth' }
+		if (error) {
+			this.logger.warn(
+				`Auth failure for email: ${email} from IP: ${ip} - ${error.message}`
 			)
+
+			if (error.message.includes('Invalid login credentials')) {
+				throw new BadRequestException('Invalid email or password')
+			}
+
+			if (error.message.includes('Email not confirmed')) {
+				throw new BadRequestException(
+					'Please verify your email address before signing in'
+				)
+			}
+
+			throw new BadRequestException('Login failed')
 		}
 
 		const validatedUser = await this.validateSupabaseToken(
 			data.session.access_token
 		)
 
-		this.securityMonitor.logSecurityEvent('AUTH_SUCCESS', {
-			userId: validatedUser.id,
-			email: validatedUser.email,
-			ip,
-			details: { operation: 'login' }
-		})
-
-		// await this.securityMonitor.trackAuthAttempt(ip || 'unknown', email, true)
+		this.logger.info(
+			`Auth success for user: ${validatedUser.id} from IP: ${ip}`
+		)
 
 		return {
 			access_token: data.session.access_token,
 			refresh_token: data.session.refresh_token,
-			expires_in: data.session.expires_in || 3600,
+			expires_in: data.session.expires_in,
 			user: validatedUser
 		}
 	}
@@ -501,9 +443,8 @@ export class AuthService {
 		const { data, error } = await this.supabase.auth.getSession()
 
 		if (error) {
-			throw this.errorHandler.createBusinessError(
-				'Authentication service connection failed',
-				{ operation: 'testConnection', resource: 'auth' }
+			throw new BadRequestException(
+				'Authentication service connection failed'
 			)
 		}
 
@@ -511,7 +452,9 @@ export class AuthService {
 			connected: true,
 			auth: {
 				session: data.session ? 'exists' : 'none',
-				url: process.env.SUPABASE_URL?.substring(0, 30) + '...'
+				url: process.env.SUPABASE_URL
+					? process.env.SUPABASE_URL.substring(0, 30) + '...'
+					: 'not configured'
 			}
 		}
 	}

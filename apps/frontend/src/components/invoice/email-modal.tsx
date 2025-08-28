@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Mail, Send, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -50,7 +49,7 @@ export function EmailModal({
 			<DialogContent className="sm:max-w-[500px]">
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">
-						<Mail className="text-primary h-5 w-5" />
+						<i className="i-lucide-mail inline-block text-primary h-5 w-5"  />
 						Prepare Email Invoice
 					</DialogTitle>
 				</DialogHeader>
@@ -62,7 +61,9 @@ export function EmailModal({
 							id="emailTo"
 							type="email"
 							value={emailTo}
-							onChange={e => setEmailTo(e.target.value)}
+							onChange={(
+								e: React.ChangeEvent<HTMLInputElement>
+							) => setEmailTo(e.target.value)}
 							placeholder="client@tenantflow.app"
 							required
 						/>
@@ -73,7 +74,9 @@ export function EmailModal({
 						<Input
 							id="emailSubject"
 							value={emailSubject}
-							onChange={e => setEmailSubject(e.target.value)}
+							onChange={(
+								e: React.ChangeEvent<HTMLInputElement>
+							) => setEmailSubject(e.target.value)}
 							placeholder="Your Invoice from [Business Name]"
 							required
 						/>
@@ -99,7 +102,7 @@ Best regards,
 
 					<div className="mt-4 flex justify-end gap-3">
 						<Button variant="outline" onClick={onClose}>
-							<X className="mr-2 h-4 w-4" />
+							<i className="i-lucide-x inline-block mr-2 h-4 w-4"  />
 							Cancel
 						</Button>
 						<Button
@@ -107,7 +110,7 @@ Best regards,
 							disabled={!emailTo || !emailSubject}
 							className="bg-primary hover:bg-primary/90"
 						>
-							<Send className="mr-2 h-4 w-4" />
+							<i className="i-lucide-send inline-block mr-2 h-4 w-4"  />
 							Send Invoice
 						</Button>
 					</div>

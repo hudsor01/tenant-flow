@@ -156,6 +156,13 @@ function FormMessage({ className, ...props }: React.ComponentProps<'p'>) {
 	)
 }
 
+export const useOptimisticForm = useFormField // Alias for compatibility
+// NOTE: Feedback components are defined in `feedback.tsx`. Keep form exports focused on form primitives.
+// Avoid exporting SuccessFeedback / ErrorFeedback / OptimisticFeedback here to prevent duplicate export conflicts
+export const FormSection = ({ className, ...props }: React.ComponentProps<'div'>) => (
+<div className={cn('space-y-4 p-4 border rounded-lg', className)} {...props} />
+)
+
 export {
 	useFormField,
 	Form,
@@ -166,3 +173,6 @@ export {
 	FormMessage,
 	FormField
 }
+
+// Export compatibility alias for components using _FormDescription
+export { FormDescription as _FormDescription }

@@ -11,7 +11,8 @@ export const PASSWORD_VALIDATION = {
 	REGEX: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
 	MESSAGES: {
 		MIN_LENGTH: 'Password must be at least 8 characters',
-		COMPLEXITY: 'Password must contain uppercase, lowercase, number and special character'
+		COMPLEXITY:
+			'Password must contain uppercase, lowercase, number and special character'
 	}
 } as const
 

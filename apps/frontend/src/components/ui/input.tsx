@@ -2,17 +2,15 @@
 
 import * as React from 'react'
 import { AnimatePresence } from '@/lib/lazy-motion'
-import { AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-interface InputProps extends React.ComponentProps<'input'> {
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 	label?: string
 	error?: string
 	success?: string
 	floatingLabel?: boolean
 	showValidation?: boolean
 	characterCount?: boolean
-	maxLength?: number
 	// Accessibility props
 	'aria-label'?: string
 	'aria-describedby'?: string
@@ -71,10 +69,18 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
 		// Build aria-describedby attribute
 		const describedByIds: string[] = []
-		if (ariaDescribedBy) describedByIds.push(ariaDescribedBy)
-		if (hasError) describedByIds.push(errorId)
-		if (hasSuccess && !hasError) describedByIds.push(successId)
-		if (characterCount && maxLength) describedByIds.push(helpTextId)
+		if (ariaDescribedBy) {
+			describedByIds.push(ariaDescribedBy)
+		}
+		if (hasError) {
+			describedByIds.push(errorId)
+		}
+		if (hasSuccess && !hasError) {
+			describedByIds.push(successId)
+		}
+		if (characterCount && maxLength) {
+			describedByIds.push(helpTextId)
+		}
 		const describedBy =
 			describedByIds.length > 0 ? describedByIds.join(' ') : undefined
 
@@ -138,9 +144,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 						<label
 							htmlFor={actualId}
 							className={cn(
-								'text-muted-foreground pointer-events-none absolute top-2 left-3 origin-left transition-all duration-200',
+								'text-muted-foreground pointer-events-none absolute left-3 top-2 origin-left transition-all duration-200',
 								shouldFloat &&
-									'text-foreground top-1 scale-85 text-xs',
+									'text-foreground scale-85 top-1 text-xs',
 								hasError && 'text-destructive',
 								hasSuccess && 'text-green-600'
 							)}
@@ -159,7 +165,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 						<button
 							type="button"
 							onClick={() => setShowPassword(!showPassword)}
-							className="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute top-1/2 right-3 -translate-y-1/2 rounded-sm transition-colors duration-200 focus-visible:ring-2 focus-visible:outline-none"
+							className="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute right-3 top-1/2 -translate-y-1/2 rounded-sm transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2"
 							tabIndex={0}
 							aria-label={
 								showPassword ? 'Hide password' : 'Show password'
@@ -168,12 +174,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 							aria-controls={actualId}
 						>
 							{showPassword ? (
-								<EyeOff
-									className="h-4 w-4"
-									aria-hidden="true"
-								/>
+								<i className="i-lucide-eye-off inline-block h-4 w-4" aria-hidden="true" />
 							) : (
-								<Eye className="h-4 w-4" aria-hidden="true" />
+								<i className="i-lucide-eye inline-block h-4 w-4" aria-hidden="true" />
 							)}
 						</button>
 					)}
@@ -182,12 +185,12 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 					{showValidation &&
 						!isPasswordField &&
 						(hasError || hasSuccess) && (
-							<div className="absolute top-1/2 right-3 -translate-y-1/2">
+							<div className="absolute right-3 top-1/2 -translate-y-1/2">
 								{hasError && (
-									<AlertCircle className="text-destructive animate-fade-in h-4 w-4" />
+									<i className="i-lucide-alert-circle inline-block text-destructive animate-fade-in h-4 w-4"  />
 								)}
 								{hasSuccess && (
-									<CheckCircle2 className="animate-success h-4 w-4 text-green-500" />
+									<i className="i-lucide-check-circle-2 inline-block animate-success h-4 w-4 text-green-500"  />
 								)}
 							</div>
 						)}
@@ -197,7 +200,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 						<div
 							id={helpTextId}
 							className={cn(
-								'text-muted-foreground absolute top-full right-2 mt-1 text-xs transition-colors duration-200',
+								'text-muted-foreground absolute right-2 top-full mt-1 text-xs transition-colors duration-200',
 								String(internalValue).length >
 									maxLength * 0.8 && 'text-orange-500',
 								String(internalValue).length >= maxLength &&
@@ -220,10 +223,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 										role="alert"
 										aria-live="assertive"
 									>
-										<AlertCircle
-											className="h-3 w-3"
-											aria-hidden="true"
-										/>
+										<i className="i-lucide-alert-circle inline-block h-3 w-3" aria-hidden="true" />
 										{error}
 									</p>
 								)}
@@ -234,10 +234,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 										role="status"
 										aria-live="polite"
 									>
-										<CheckCircle2
-											className="h-3 w-3"
-											aria-hidden="true"
-										/>
+										<i className="i-lucide-check-circle-2 inline-block h-3 w-3" aria-hidden="true" />
 										{success}
 									</p>
 								)}
@@ -274,7 +271,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 					<button
 						type="button"
 						onClick={() => setShowPassword(!showPassword)}
-						className="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute top-1/2 right-3 -translate-y-1/2 rounded-sm transition-colors duration-200 focus-visible:ring-2 focus-visible:outline-none"
+						className="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute right-3 top-1/2 -translate-y-1/2 rounded-sm transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2"
 						tabIndex={0}
 						aria-label={
 							showPassword ? 'Hide password' : 'Show password'
@@ -283,9 +280,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 						aria-controls={actualId}
 					>
 						{showPassword ? (
-							<EyeOff className="h-4 w-4" aria-hidden="true" />
+							<i className="i-lucide-eye-off inline-block h-4 w-4" aria-hidden="true" />
 						) : (
-							<Eye className="h-4 w-4" aria-hidden="true" />
+							<i className="i-lucide-eye inline-block h-4 w-4" aria-hidden="true" />
 						)}
 					</button>
 				)}
@@ -294,12 +291,12 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 				{showValidation &&
 					!isPasswordField &&
 					(hasError || hasSuccess) && (
-						<div className="absolute top-1/2 right-3 -translate-y-1/2">
+						<div className="absolute right-3 top-1/2 -translate-y-1/2">
 							{hasError && (
-								<AlertCircle className="text-destructive animate-fade-in h-4 w-4" />
+								<i className="i-lucide-alert-circle inline-block text-destructive animate-fade-in h-4 w-4"  />
 							)}
 							{hasSuccess && (
-								<CheckCircle2 className="animate-success h-4 w-4 text-green-500" />
+								<i className="i-lucide-check-circle-2 inline-block animate-success h-4 w-4 text-green-500"  />
 							)}
 						</div>
 					)}
@@ -309,7 +306,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 					<div
 						id={helpTextId}
 						className={cn(
-							'text-muted-foreground absolute top-full right-2 mt-1 text-xs transition-colors duration-200',
+							'text-muted-foreground absolute right-2 top-full mt-1 text-xs transition-colors duration-200',
 							String(internalValue).length > maxLength * 0.8 &&
 								'text-orange-500',
 							String(internalValue).length >= maxLength &&
@@ -332,10 +329,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 									role="alert"
 									aria-live="assertive"
 								>
-									<AlertCircle
-										className="h-3 w-3"
-										aria-hidden="true"
-									/>
+									<i className="i-lucide-alert-circle inline-block h-3 w-3" aria-hidden="true" />
 									{error}
 								</p>
 							)}
@@ -346,10 +340,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 									role="status"
 									aria-live="polite"
 								>
-									<CheckCircle2
-										className="h-3 w-3"
-										aria-hidden="true"
-									/>
+									<i className="i-lucide-check-circle-2 inline-block h-3 w-3" aria-hidden="true" />
 									{success}
 								</p>
 							)}
@@ -364,3 +355,4 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 Input.displayName = 'Input'
 
 export { Input }
+export type { InputProps }

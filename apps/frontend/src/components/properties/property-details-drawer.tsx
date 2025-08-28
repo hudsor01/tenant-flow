@@ -22,25 +22,13 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import {
-	Building2,
-	MapPin,
-	Home,
-	DollarSign,
-	Phone,
-	Mail,
-	User,
-	FileText,
-	Edit3,
-	Trash2,
-	AlertTriangle,
-	TrendingUp,
-	TrendingDown
-} from 'lucide-react'
 import { format } from 'date-fns'
-import type { Property } from '@repo/shared'
+import type { PropertyWithUnits } from '@repo/shared'
 
-interface PropertyDetailsDrawerProps {
+// Use Property_WithUnits which includes units relation
+type Property_ = PropertyWithUnits
+
+interface Property_DetailsDrawerProps {
 	propertyId: string | null
 	open: boolean
 	onOpenChange: (open: boolean) => void
@@ -48,23 +36,22 @@ interface PropertyDetailsDrawerProps {
 	onDelete?: () => void
 }
 
-export function PropertyDetailsDrawer({
+export function Property_DetailsDrawer({
 	propertyId,
 	open,
 	onOpenChange,
 	onEdit,
 	onDelete
-}: PropertyDetailsDrawerProps) {
+}: Property_DetailsDrawerProps) {
 	const [activeTab, setActiveTab] = useState('overview')
-	const {
-		data: property,
-		isLoading,
-		error
-	} = useProperty(propertyId || '', {
-		enabled: !!propertyId
-	})
-
-	if (!propertyId) return null
+	
+	// Call hook unconditionally to follow React rules
+	const { data: property, isLoading, error } = useProperty(propertyId || '')
+	
+	// Don't render if no propertyId to avoid suspense boundary issues
+	if (!propertyId) {
+		return null
+	}
 
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
@@ -73,14 +60,14 @@ export function PropertyDetailsDrawer({
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-3">
 							<div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-lg">
-								<Building2 className="text-primary h-5 w-5" />
+								<i className="i-lucide-building-2 inline-block text-primary h-5 w-5"  />
 							</div>
 							<div>
 								<SheetTitle>
 									{property?.name || 'Loading...'}
 								</SheetTitle>
 								<SheetDescription className="mt-1 flex items-center gap-1">
-									<MapPin className="h-3 w-3" />
+									<i className="i-lucide-map-pin inline-block h-3 w-3"  />
 									{property?.address || 'Loading address...'}
 								</SheetDescription>
 							</div>
@@ -92,7 +79,7 @@ export function PropertyDetailsDrawer({
 								onClick={onEdit}
 								aria-label="Edit property"
 							>
-								<Edit3 className="h-4 w-4" />
+								<i className="i-lucide-edit-3 inline-block h-4 w-4"  />
 							</Button>
 							<Button
 								variant="outline"
@@ -100,7 +87,7 @@ export function PropertyDetailsDrawer({
 								onClick={onDelete}
 								aria-label="Delete property"
 							>
-								<Trash2 className="h-4 w-4" />
+								<i className="i-lucide-trash-2 inline-block h-4 w-4"  />
 							</Button>
 						</div>
 					</div>
@@ -116,7 +103,7 @@ export function PropertyDetailsDrawer({
 
 				{error && (
 					<Alert variant="destructive" className="mt-6">
-						<AlertTriangle className="h-4 w-4" />
+						<i className="i-lucide-alert-triangle inline-block h-4 w-4"  />
 						<AlertDescription>
 							Failed to load property details. Please try again.
 						</AlertDescription>
@@ -140,25 +127,25 @@ export function PropertyDetailsDrawer({
 							</TabsList>
 
 							<TabsContent value="overview" className="space-y-4">
-								<PropertyOverview property={property} />
+								<Property_Overview property={property} />
 							</TabsContent>
 
 							<TabsContent value="units" className="space-y-4">
-								<PropertyUnits property={property} />
+								<Property_Units property={property} />
 							</TabsContent>
 
 							<TabsContent
 								value="financials"
 								className="space-y-4"
 							>
-								<PropertyFinancials property={property} />
+								<Property_Financials property={property} />
 							</TabsContent>
 
 							<TabsContent
 								value="documents"
 								className="space-y-4"
 							>
-								<PropertyDocuments property={property} />
+								<Property_Documents property={property} />
 							</TabsContent>
 						</Tabs>
 					</ScrollArea>
@@ -168,7 +155,7 @@ export function PropertyDetailsDrawer({
 	)
 }
 
-function PropertyOverview({ property }: { property: Property }) {
+function Property_Overview({ property }: { property: Property_ }) {
 	const totalUnits = property.units?.length ?? 0
 	const occupiedUnits =
 		property.units?.filter(unit => unit.status === 'OCCUPIED').length ?? 0
@@ -180,13 +167,13 @@ function PropertyOverview({ property }: { property: Property }) {
 		<>
 			<Card>
 				<CardHeader>
-					<CardTitle>Property Information</CardTitle>
+					<CardTitle>Property_ Information</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-4">
 					<div className="grid grid-cols-2 gap-4">
 						<div>
 							<p className="text-muted-foreground text-sm">
-								Property Type
+								Property_ Type
 							</p>
 							<Badge
 								variant="secondary"
@@ -197,20 +184,18 @@ function PropertyOverview({ property }: { property: Property }) {
 						</div>
 						<div>
 							<p className="text-muted-foreground text-sm">
-								Year Built
+								Owner ID
 							</p>
 							<p className="font-medium">
-								{property.yearBuilt || 'N/A'}
+								{property.ownerId}
 							</p>
 						</div>
 						<div>
 							<p className="text-muted-foreground text-sm">
-								Total Size
+								Total Units
 							</p>
 							<p className="font-medium">
-								{property.totalSize
-									? `${property.totalSize} sq ft`
-									: 'N/A'}
+								{property.units?.length || 0} units
 							</p>
 						</div>
 						<div>
@@ -253,15 +238,9 @@ function PropertyOverview({ property }: { property: Property }) {
 									{occupancyRate}%
 								</Badge>
 								{occupancyRate >= 90 ? (
-									<TrendingUp
-										className="h-4 w-4 text-green-600"
-										data-testid="trending-up-icon"
-									/>
+									<i className="i-lucide-trending-up inline-block h-4 w-4 text-green-600" data-testid="trending-up-icon" />
 								) : (
-									<TrendingDown
-										className="h-4 w-4 text-red-600"
-										data-testid="trending-down-icon"
-									/>
+									<i className="i-lucide-trending-down inline-block h-4 w-4 text-red-600" data-testid="trending-down-icon" />
 								)}
 							</div>
 						</div>
@@ -297,30 +276,26 @@ function PropertyOverview({ property }: { property: Property }) {
 
 			<Card>
 				<CardHeader>
-					<CardTitle>Property Manager</CardTitle>
+					<CardTitle>Property_ Details</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<div className="flex items-center gap-3">
-						<div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-full">
-							<User className="text-primary h-5 w-5" />
+					<div className="space-y-4">
+						<div className="flex items-center justify-between">
+							<span className="text-muted-foreground text-sm">
+								Status
+							</span>
+							<Badge variant="secondary" className="capitalize">
+								Active
+							</Badge>
 						</div>
-						<div className="flex-1">
-							<p className="font-medium">
-								{property.manager?.name || 'Not Assigned'}
-							</p>
-							{property.manager && (
-								<div className="text-muted-foreground mt-1 flex items-center gap-4 text-sm">
-									<span className="flex items-center gap-1">
-										<Phone className="h-3 w-3" />
-										{property.manager.phone}
-									</span>
-									<span className="flex items-center gap-1">
-										<Mail className="h-3 w-3" />
-										{property.manager.email}
-									</span>
-								</div>
-							)}
-						</div>
+						{property.description && (
+							<div>
+								<p className="text-muted-foreground text-sm mb-1">
+									Description
+								</p>
+								<p className="text-sm">{property.description}</p>
+							</div>
+						)}
 					</div>
 				</CardContent>
 			</Card>
@@ -328,7 +303,7 @@ function PropertyOverview({ property }: { property: Property }) {
 	)
 }
 
-function PropertyUnits({ property }: { property: Property }) {
+function Property_Units({ property }: { property: Property_ }) {
 	const units = property.units ?? []
 
 	if (units.length === 0) {
@@ -336,7 +311,7 @@ function PropertyUnits({ property }: { property: Property }) {
 			<Card>
 				<CardContent className="py-8">
 					<div className="text-center">
-						<Home className="text-muted-foreground/50 mx-auto mb-3 h-12 w-12" />
+						<i className="i-lucide-home inline-block text-muted-foreground/50 mx-auto mb-3 h-12 w-12"  />
 						<p className="text-muted-foreground">
 							No units added yet
 						</p>
@@ -357,7 +332,7 @@ function PropertyUnits({ property }: { property: Property }) {
 						<div className="flex items-center justify-between">
 							<div className="flex items-center gap-3">
 								<div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg">
-									<Home className="text-primary h-4 w-4" />
+									<i className="i-lucide-home inline-block text-primary h-4 w-4"  />
 								</div>
 								<div>
 									<p className="font-medium">
@@ -382,7 +357,7 @@ function PropertyUnits({ property }: { property: Property }) {
 									{unit.status}
 								</Badge>
 								<p className="mt-1 text-sm font-medium">
-									${unit.rentAmount}/mo
+									${unit.rent}/mo
 								</p>
 							</div>
 						</div>
@@ -393,16 +368,16 @@ function PropertyUnits({ property }: { property: Property }) {
 	)
 }
 
-function PropertyFinancials({ property }: { property: Property }) {
+function Property_Financials({ property }: { property: Property_ }) {
 	const totalMonthlyRent =
 		property.units?.reduce(
 			(sum, unit) =>
-				unit.status === 'OCCUPIED' ? sum + (unit.rentAmount ?? 0) : sum,
+				unit.status === 'OCCUPIED' ? sum + (unit.rent ?? 0) : sum,
 			0
 		) ?? 0
 	const potentialMonthlyRent =
 		property.units?.reduce(
-			(sum, unit) => sum + (unit.rentAmount ?? 0),
+			(sum, unit) => sum + (unit.rent ?? 0),
 			0
 		) ?? 0
 
@@ -451,7 +426,7 @@ function PropertyFinancials({ property }: { property: Property }) {
 				</CardHeader>
 				<CardContent>
 					<div className="py-8 text-center">
-						<DollarSign className="text-muted-foreground/50 mx-auto mb-3 h-12 w-12" />
+						<i className="i-lucide-dollar-sign inline-block text-muted-foreground/50 mx-auto mb-3 h-12 w-12"  />
 						<p className="text-muted-foreground">
 							No recent transactions
 						</p>
@@ -462,18 +437,18 @@ function PropertyFinancials({ property }: { property: Property }) {
 	)
 }
 
-function PropertyDocuments({ property: _property }: { property: Property }) {
+function Property_Documents({ property: _property }: { property: Property_ }) {
 	return (
 		<Card>
 			<CardHeader>
 				<CardTitle>Documents</CardTitle>
 				<CardDescription>
-					Property related documents and files
+					Property_ related documents and files
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
 				<div className="py-8 text-center">
-					<FileText className="text-muted-foreground/50 mx-auto mb-3 h-12 w-12" />
+					<i className="i-lucide-file-text inline-block text-muted-foreground/50 mx-auto mb-3 h-12 w-12"  />
 					<p className="text-muted-foreground">
 						No documents uploaded
 					</p>

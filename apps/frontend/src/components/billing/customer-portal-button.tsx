@@ -1,5 +1,6 @@
+'use client'
+
 import { Button } from '@/components/ui/button'
-import { Loader2, CreditCard, Shield } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils/css.utils'
@@ -37,7 +38,7 @@ export function CustomerPortalButton({
 		<div className="space-y-3">
 			{showSecurityBadge && (
 				<div className="mb-2 flex items-center justify-center gap-2 text-sm text-gray-500">
-					<Shield className="h-4 w-4" />
+					<i className="i-lucide-shield inline-block h-4 w-4"  />
 					<span>Secure billing powered by Stripe</span>
 				</div>
 			)}
@@ -55,12 +56,12 @@ export function CustomerPortalButton({
 			>
 				{createPortalMutation.isPending ? (
 					<>
-						<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+						<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
 						Loading...
 					</>
 				) : (
 					<>
-						<CreditCard className="mr-2 h-4 w-4" />
+						<i className="i-lucide-credit-card inline-block mr-2 h-4 w-4"  />
 						{children}
 					</>
 				)}
