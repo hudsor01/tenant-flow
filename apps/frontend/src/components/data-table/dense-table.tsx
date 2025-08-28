@@ -126,7 +126,7 @@ export function DenseTable<TData, TValue>({
 				<div className="flex items-center gap-2">
 					{enableGlobalFilter && (
 						<div className="relative">
-							<i className="i-lucide-search inline-block text-muted-foreground pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"  />
+							<i className="i-lucide-search text-muted-foreground pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"  />
 							<Input
 								placeholder={searchPlaceholder}
 								value={globalFilter}
@@ -169,9 +169,9 @@ export function DenseTable<TData, TValue>({
 									size="sm"
 									className="h-8 text-sm"
 								>
-									<i className="i-lucide-filter inline-block mr-1 h-3 w-3"  />
+									<i className="i-lucide-filter mr-1 h-3 w-3"  />
 									Columns
-									<i className="i-lucide-chevron-down inline-block ml-1 h-3 w-3"  />
+									<i className="i-lucide-chevron-down ml-1 h-3 w-3"  />
 								</Button>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent
@@ -267,7 +267,7 @@ export function DenseTable<TData, TValue>({
 																header.getContext()
 															)}
 													{header.column.getCanSort() && (
-														<i className="i-lucide-arrowupdown inline-block h-3 w-3 opacity-50"  />
+														<i className="i-lucide-arrowupdown h-3 w-3 op-50"  />
 													)}
 												</div>
 
@@ -275,7 +275,7 @@ export function DenseTable<TData, TValue>({
 												<div
 													className={cn(
 														'hover:bg-primary/50 active:bg-primary absolute right-0 top-0 h-full w-1 cursor-col-resize select-none bg-transparent',
-														'opacity-0 group-hover:opacity-100'
+														'op-0 group-hover:op-100'
 													)}
 													onMouseDown={header.getResizeHandler()}
 													onTouchStart={header.getResizeHandler()}
@@ -444,7 +444,7 @@ function DenseTablePagination<TData>({
 							onClick={() => table.setPageIndex(0)}
 							disabled={!table.getCanPreviousPage()}
 						>
-							<i className="i-lucide-chevronsleft inline-block h-3 w-3"  />
+							<i className="i-lucide-chevronsleft h-3 w-3"  />
 						</Button>
 						<Button
 							variant="outline"
@@ -453,7 +453,7 @@ function DenseTablePagination<TData>({
 							onClick={() => table.previousPage()}
 							disabled={!table.getCanPreviousPage()}
 						>
-							<i className="i-lucide-chevron-left inline-block h-3 w-3"  />
+							<i className="i-lucide-chevron-left h-3 w-3"  />
 						</Button>
 						<Button
 							variant="outline"
@@ -462,7 +462,7 @@ function DenseTablePagination<TData>({
 							onClick={() => table.nextPage()}
 							disabled={!table.getCanNextPage()}
 						>
-							<i className="i-lucide-chevron-right inline-block h-3 w-3"  />
+							<i className="i-lucide-chevron-right h-3 w-3"  />
 						</Button>
 						<Button
 							variant="outline"
@@ -473,7 +473,7 @@ function DenseTablePagination<TData>({
 							}
 							disabled={!table.getCanNextPage()}
 						>
-							<i className="i-lucide-chevronsright inline-block h-3 w-3"  />
+							<i className="i-lucide-chevronsright h-3 w-3"  />
 						</Button>
 					</div>
 				</div>
@@ -538,12 +538,12 @@ export function createActionsColumn<T>(
 			const item = row.original
 
 			return (
-				<div className="opacity-0 transition-opacity group-hover:opacity-100">
+				<div className="op-0 transition-opacity group-hover:op-100">
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
 							<Button variant="ghost" className="h-6 w-6 p-0">
 								<span className="sr-only">Open menu</span>
-								<i className="i-lucide-more-horizontal inline-block h-3 w-3"  />
+								<i className="i-lucide-more-horizontal h-3 w-3"  />
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end" className="w-[160px]">

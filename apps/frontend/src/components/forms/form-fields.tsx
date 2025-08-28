@@ -73,7 +73,7 @@ export function TextField({
 		<div className={`space-y-2 ${className || ''}`}>
 			<Label htmlFor={name}>
 				{label}
-				{required && <span className="ml-1 text-red-500">*</span>}
+				{required && <span className="ml-1 text-red-5">*</span>}
 			</Label>
 			<Input
 				id={name}
@@ -85,7 +85,7 @@ export function TextField({
 				maxLength={maxLength}
 				className={error ? 'input-error-red' : ''}
 			/>
-			{error && <p className="text-sm text-red-600">{error}</p>}
+			{error && <p className="text-sm text-red-6">{error}</p>}
 		</div>
 	)
 }
@@ -106,7 +106,7 @@ export function NumberField({
 		<div className={`space-y-2 ${className || ''}`}>
 			<Label htmlFor={name}>
 				{label}
-				{required && <span className="ml-1 text-red-500">*</span>}
+				{required && <span className="ml-1 text-red-5">*</span>}
 			</Label>
 			<Input
 				id={name}
@@ -120,7 +120,7 @@ export function NumberField({
 				step={step}
 				className={error ? 'input-error-red' : ''}
 			/>
-			{error && <p className="text-sm text-red-600">{error}</p>}
+			{error && <p className="text-sm text-red-6">{error}</p>}
 		</div>
 	)
 }
@@ -140,7 +140,7 @@ export function TextareaField({
 		<div className={`space-y-2 ${className || ''}`}>
 			<Label htmlFor={name}>
 				{label}
-				{required && <span className="ml-1 text-red-500">*</span>}
+				{required && <span className="ml-1 text-red-5">*</span>}
 			</Label>
 			<Textarea
 				id={name}
@@ -152,7 +152,7 @@ export function TextareaField({
 				maxLength={maxLength}
 				className={error ? 'input-error-red' : ''}
 			/>
-			{error && <p className="text-sm text-red-600">{error}</p>}
+			{error && <p className="text-sm text-red-6">{error}</p>}
 		</div>
 	)
 }
@@ -171,7 +171,7 @@ export function SelectField({
 		<div className={`space-y-2 ${className || ''}`}>
 			<Label htmlFor={name}>
 				{label}
-				{required && <span className="ml-1 text-red-500">*</span>}
+				{required && <span className="ml-1 text-red-5">*</span>}
 			</Label>
 			<Select name={name} defaultValue={defaultValue} required={required}>
 				<SelectTrigger className={error ? 'input-error-red' : ''}>
@@ -185,7 +185,7 @@ export function SelectField({
 					))}
 				</SelectContent>
 			</Select>
-			{error && <p className="text-sm text-red-600">{error}</p>}
+			{error && <p className="text-sm text-red-6">{error}</p>}
 		</div>
 	)
 }
@@ -210,16 +210,16 @@ export function CheckboxField({
 				/>
 				<Label
 					htmlFor={name}
-					className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+					className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:op-70"
 				>
 					{label}
-					{required && <span className="ml-1 text-red-500">*</span>}
+					{required && <span className="ml-1 text-red-5">*</span>}
 				</Label>
 			</div>
 			{description && (
-				<p className="text-sm text-gray-600">{description}</p>
+				<p className="text-sm text-gray-6">{description}</p>
 			)}
-			{error && <p className="text-sm text-red-600">{error}</p>}
+			{error && <p className="text-sm text-red-6">{error}</p>}
 		</div>
 	)
 }

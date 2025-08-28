@@ -51,7 +51,7 @@ export default function BlogSidebarSection({
 									</p>
 									<div className="text-primary flex items-center text-xs transition-all group-hover:gap-2">
 										Read article
-										<i className="i-lucide-arrowupright inline-block h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100"  />
+										<i className="i-lucide-arrowupright h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100"  />
 									</div>
 								</Link>
 							</article>

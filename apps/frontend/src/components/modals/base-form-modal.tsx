@@ -38,7 +38,7 @@ export function BaseFormModal({
 	title,
 	description,
 	icon,
-	iconBgColor = 'bg-blue-100',
+	iconBgColor = 'bg-blue-1',
 	iconColor = 'text-primary',
 	children,
 	submitLabel = 'Save',
@@ -91,14 +91,14 @@ export function BaseFormModal({
 						{children as React.ReactNode}
 
 						{!hideFooter && (
-							<DialogFooter className="border-t border-gray-200 pt-6">
+							<DialogFooter className="border-t border-gray-2 pt-6">
 								<Button
 									type="button"
 									variant="outline"
 									onClick={onClose}
 									disabled={isSubmitting}
 								>
-									<i className="i-lucide-x inline-block mr-2 h-4 w-4"  />
+									<i className="i-lucide-x mr-2 h-4 w-4"  />
 									{cancelLabel}
 								</Button>
 								<Button
@@ -141,9 +141,9 @@ export function FormSection({
 			custom={delay}
 			className="space-y-4"
 		>
-			<div className="flex items-center space-x-2 border-b border-gray-200 pb-2">
-				<i className={`${icon} h-4 w-4 text-gray-600`} />
-				<h3 className="font-medium text-gray-900">{title}</h3>
+			<div className="flex items-center space-x-2 border-b border-gray-2 pb-2">
+				<i className={`${icon} h-4 w-4 text-gray-6`} />
+				<h3 className="font-medium text-gray-9">{title}</h3>
 			</div>
 			{children}
 		</motion.div>

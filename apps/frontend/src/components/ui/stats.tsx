@@ -46,9 +46,9 @@ const statsClasses = {
 	trend: {
 		base: 'inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium transition-colors',
 		direction: {
-			up: 'status-success dark:bg-green-900/20 dark:text-green-300',
-			down: 'status-error dark:bg-red-900/20 dark:text-red-300',
-			neutral: 'status-neutral dark:bg-gray-900/20 dark:text-gray-300'
+			up: 'status-success dark:bg-green-9/20 dark:text-green-3',
+			down: 'status-error dark:bg-red-9/20 dark:text-red-3',
+			neutral: 'status-neutral dark:bg-gray-9/20 dark:text-gray-3'
 		}
 	}
 }

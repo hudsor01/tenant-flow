@@ -52,7 +52,7 @@ export function NavigationGroup({
 							className="h-6 w-6 p-0"
 						>
 							<i className={cn(
-								'i-lucide-chevron-right inline-block',
+								'i-lucide-chevron-right',
 									'h-3 w-3 transition-transform duration-200',
 									isOpen && 'rotate-90'
 								)} />

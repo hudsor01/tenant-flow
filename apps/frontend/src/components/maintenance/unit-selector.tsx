@@ -46,7 +46,7 @@ export function UnitSelector({
 					{units.map(unit => (
 						<SelectItem key={unit.id} value={unit.id}>
 							<div className="flex items-center">
-								<i className="i-lucide-home inline-block mr-2 h-4 w-4"  />
+								<i className="i-lucide-home mr-2 h-4 w-4"  />
 								{unit.property?.name || 'Unknown Property_'} -
 								Unit {unit.unitNumber}
 							</div>

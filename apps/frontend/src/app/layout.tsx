@@ -1,12 +1,14 @@
 import type { Metadata, Viewport } from 'next/types'
-import { Inter } from 'next/font/google'
+import { Poppins } from 'next/font/google'
+import '@unocss/reset/tailwind.css'
 import './global.css'
+import { RootProviders } from '@/providers/root-providers'
 
-// Configure Inter font
-const inter = Inter({
+const poppins = Poppins({
 	subsets: ['latin'],
 	display: 'swap',
-	variable: '--font-inter'
+	variable: '--font-poppins',
+	weight: ['300', '400', '500', '600', '700']
 })
 
 export const metadata: Metadata = {
@@ -35,27 +37,18 @@ export const viewport: Viewport = {
 	]
 }
 
-interface RootLayoutProps {
-	children: React.ReactNode
-}
-
-/**
- * Root layout for the entire application
- * 
- * This is the main layout that wraps all pages in the app.
- * It includes:
- * - Global CSS and UnoCSS imports
- * - Font configuration
- * - HTML document structure
- * - Global providers will be added by specific route groups as needed
- */
-export default function RootLayout({ children }: RootLayoutProps) {
-	return (
-		<html lang="en" className={inter.variable} suppressHydrationWarning>
-			<head />
-			<body className="font-sans antialiased">
-				{children}
-			</body>
-		</html>
-	)
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode
+}>) {
+  return (
+    <html lang="en" className={poppins.variable} suppressHydrationWarning>
+      <body className="font-sans antialiased bg-background text-foreground">
+        <RootProviders>
+          {children}
+        </RootProviders>
+      </body>
+    </html>
+  )
 }

@@ -26,11 +26,11 @@ export function LoadingSpinner({
 			<div className="flex flex-col items-center space-y-2">
 				<div
 					className={cn(
-						'border-t-primary animate-spin rounded-full border-2 border-gray-300',
+						'border-t-primary animate-spin rounded-full border-2 border-gray-3',
 						sizeClasses[size]
 					)}
 				/>
-				{text && <p className="text-sm text-gray-600">{text}</p>}
+				{text && <p className="text-sm text-gray-6">{text}</p>}
 			</div>
 		</div>
 	)

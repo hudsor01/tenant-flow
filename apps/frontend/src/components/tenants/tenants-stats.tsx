@@ -43,14 +43,14 @@ function TenantsStatsUI({ stats }: TenantsStatsUIProps) {
 			value: stats.active,
 			description: 'Currently active tenants',
 			icon: 'i-lucide-user-check',
-			color: 'text-green-600'
+			color: 'text-green-6'
 		},
 		{
 			title: 'Inactive Tenants',
 			value: stats.inactive,
 			description: 'No longer active',
 			icon: 'i-lucide-user-x',
-			color: 'text-red-600'
+			color: 'text-red-6'
 		}
 	]
 

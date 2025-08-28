@@ -31,7 +31,7 @@ export function MobileNavigation({
 
 	const defaultTrigger = (
 		<Button variant="ghost" size="icon" className="md:hidden">
-			<i className="i-lucide-menu inline-block h-5 w-5"  />
+			<i className="i-lucide-menu h-5 w-5"  />
 		</Button>
 	)
 
@@ -74,7 +74,7 @@ export function MobileNavigation({
 									size="icon"
 									onClick={() => setIsOpen(false)}
 								>
-									<i className="i-lucide-x inline-block h-5 w-5"  />
+									<i className="i-lucide-x h-5 w-5"  />
 								</Button>
 							</div>
 

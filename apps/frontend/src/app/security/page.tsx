@@ -50,7 +50,7 @@ function ComplianceCertifications() {
 					>
 						<CardContent className="p-6 text-center">
 							<div className="bg-success/10 mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
-								<i className={`${cert.icon} inline-block text-success h-6 w-6`} />
+								<i className={`${cert.icon}  text-success h-6 w-6`} />
 							</div>
 							<h3 className="text-foreground mb-2 font-semibold">
 								{cert.title}
@@ -59,7 +59,7 @@ function ComplianceCertifications() {
 								{cert.description}
 							</p>
 							<div className="flex items-center justify-center space-x-2">
-								<i className="i-lucide-checkcircle inline-block text-success h-4 w-4"  />
+								<i className="i-lucide-checkcircle  text-success h-4 w-4"  />
 								<span className="text-success text-xs font-medium">
 									{cert.status}
 								</span>
@@ -135,7 +135,7 @@ function SecurityFeatures() {
 							<CardHeader className="pb-4">
 								<div className="flex items-center space-x-3">
 									<div className="from-primary to-accent flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br">
-										<i className={`${feature.icon} inline-block h-5 w-5 text-white`} />
+										<i className={`${feature.icon}  h-5 w-5 text-white`} />
 									</div>
 									<CardTitle className="text-foreground text-xl">
 										{feature.category}
@@ -149,7 +149,7 @@ function SecurityFeatures() {
 											key={itemIndex}
 											className="flex items-center space-x-3"
 										>
-											<i className="i-lucide-checkcircle inline-block text-success h-4 w-4 flex-shrink-0"  />
+											<i className="i-lucide-checkcircle  text-success h-4 w-4 flex-shrink-0"  />
 											<span className="text-muted-foreground">
 												{item}
 											</span>
@@ -229,7 +229,7 @@ export default function SecurityPage() {
 								transition={{ duration: 0.5 }}
 							>
 								<Badge className="from-success via-primary to-accent border-0 bg-gradient-to-r px-6 py-2 text-sm font-semibold text-white shadow-lg">
-									<i className="i-lucide-shield inline-block mr-2 h-4 w-4"  />
+									<i className="i-lucide-shield  mr-2 h-4 w-4"  />
 									Enterprise Security
 								</Badge>
 							</motion.div>
@@ -361,7 +361,7 @@ export default function SecurityPage() {
 								<CardContent className="p-8">
 									<div className="mb-6 flex items-center space-x-3">
 										<div className="from-primary to-accent flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br">
-											<i className="i-lucide-fingerprint inline-block h-6 w-6 text-white"  />
+											<i className="i-lucide-fingerprint  h-6 w-6 text-white"  />
 										</div>
 										<h3 className="text-foreground text-2xl font-bold">
 											Your Data, Your Control
@@ -369,28 +369,28 @@ export default function SecurityPage() {
 									</div>
 									<ul className="text-muted-foreground space-y-4">
 										<li className="flex items-start space-x-3">
-											<i className="i-lucide-checkcircle inline-block text-success mt-0.5 h-5 w-5 flex-shrink-0"  />
+											<i className="i-lucide-checkcircle  text-success mt-0.5 h-5 w-5 flex-shrink-0"  />
 											<span>
 												You own your data - we're just
 												the custodians
 											</span>
 										</li>
 										<li className="flex items-start space-x-3">
-											<i className="i-lucide-checkcircle inline-block text-success mt-0.5 h-5 w-5 flex-shrink-0"  />
+											<i className="i-lucide-checkcircle  text-success mt-0.5 h-5 w-5 flex-shrink-0"  />
 											<span>
 												Export your data anytime in
 												standard formats
 											</span>
 										</li>
 										<li className="flex items-start space-x-3">
-											<i className="i-lucide-checkcircle inline-block text-success mt-0.5 h-5 w-5 flex-shrink-0"  />
+											<i className="i-lucide-checkcircle  text-success mt-0.5 h-5 w-5 flex-shrink-0"  />
 											<span>
 												Request deletion and we'll
 												comply within 30 days
 											</span>
 										</li>
 										<li className="flex items-start space-x-3">
-											<i className="i-lucide-checkcircle inline-block text-success mt-0.5 h-5 w-5 flex-shrink-0"  />
+											<i className="i-lucide-checkcircle  text-success mt-0.5 h-5 w-5 flex-shrink-0"  />
 											<span>
 												Transparent data usage with
 												clear consent
@@ -411,7 +411,7 @@ export default function SecurityPage() {
 								<CardContent className="p-8">
 									<div className="mb-6 flex items-center space-x-3">
 										<div className="from-accent to-success flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br">
-											<i className="i-lucide-cloud inline-block h-6 w-6 text-white"  />
+											<i className="i-lucide-cloud  h-6 w-6 text-white"  />
 										</div>
 										<h3 className="text-foreground text-2xl font-bold">
 											Secure Infrastructure
@@ -419,28 +419,28 @@ export default function SecurityPage() {
 									</div>
 									<ul className="text-muted-foreground space-y-4">
 										<li className="flex items-start space-x-3">
-											<i className="i-lucide-checkcircle inline-block text-success mt-0.5 h-5 w-5 flex-shrink-0"  />
+											<i className="i-lucide-checkcircle  text-success mt-0.5 h-5 w-5 flex-shrink-0"  />
 											<span>
 												AWS infrastructure with SOC 2
 												compliance
 											</span>
 										</li>
 										<li className="flex items-start space-x-3">
-											<i className="i-lucide-checkcircle inline-block text-success mt-0.5 h-5 w-5 flex-shrink-0"  />
+											<i className="i-lucide-checkcircle  text-success mt-0.5 h-5 w-5 flex-shrink-0"  />
 											<span>
 												Automated daily backups with
 												encryption
 											</span>
 										</li>
 										<li className="flex items-start space-x-3">
-											<i className="i-lucide-checkcircle inline-block text-success mt-0.5 h-5 w-5 flex-shrink-0"  />
+											<i className="i-lucide-checkcircle  text-success mt-0.5 h-5 w-5 flex-shrink-0"  />
 											<span>
 												Disaster recovery with 4-hour
 												RTO
 											</span>
 										</li>
 										<li className="flex items-start space-x-3">
-											<i className="i-lucide-checkcircle inline-block text-success mt-0.5 h-5 w-5 flex-shrink-0"  />
+											<i className="i-lucide-checkcircle  text-success mt-0.5 h-5 w-5 flex-shrink-0"  />
 											<span>
 												Regular penetration testing &
 												vulnerability scans
@@ -509,7 +509,7 @@ export default function SecurityPage() {
 														{policy.description}
 													</p>
 													<div className="text-muted-foreground flex items-center space-x-2 text-xs">
-														<i className="i-lucide-clock inline-block h-3 w-3"  />
+														<i className="i-lucide-clock  h-3 w-3"  />
 														<span>
 															{policy.lastUpdated}
 														</span>
@@ -519,9 +519,9 @@ export default function SecurityPage() {
 													{policy.href.endsWith(
 														'.pdf'
 													) ? (
-														<i className="i-lucide-download inline-block text-muted-foreground group-hover:text-primary h-5 w-5 transition-colors"  />
+														<i className="i-lucide-download  text-muted-foreground group-hover:text-primary h-5 w-5 transition-colors"  />
 													) : (
-														<i className="i-lucide-external-link inline-block text-muted-foreground group-hover:text-primary h-5 w-5 transition-colors"  />
+														<i className="i-lucide-external-link  text-muted-foreground group-hover:text-primary h-5 w-5 transition-colors"  />
 													)}
 												</div>
 											</div>
@@ -547,7 +547,7 @@ export default function SecurityPage() {
 							<CardContent className="p-8">
 								<div className="mb-6 flex items-center justify-center space-x-3">
 									<div className="bg-warning/10 flex h-12 w-12 items-center justify-center rounded-full">
-										<i className="i-lucide-alert-triangle inline-block text-warning h-6 w-6"  />
+										<i className="i-lucide-alert-triangle  text-warning h-6 w-6"  />
 									</div>
 									<h2 className="text-foreground text-2xl font-bold">
 										Security Concerns?

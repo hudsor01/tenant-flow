@@ -1,4 +1,5 @@
 import { Injectable, BadRequestException } from '@nestjs/common'
+import { OnEvent } from '@nestjs/event-emitter'
 import { PinoLogger } from 'nestjs-pino'
 import { SupabaseService } from '../database/supabase.service'
 import type { Database } from '@repo/shared/types/supabase-generated'
@@ -10,6 +11,13 @@ import {
 	requiredTitle,
 	requiredDescription
 } from '@repo/shared/validation/common'
+import {
+	MaintenanceUpdatedEvent,
+	PaymentReceivedEvent,
+	PaymentFailedEvent,
+	TenantCreatedEvent,
+	LeaseExpiringEvent
+} from './events/notification.events'
 
 type NotificationType = 'maintenance' | 'lease' | 'payment' | 'system'
 type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
@@ -394,6 +402,258 @@ notification: { recipientId: string; type: string; title: string }
 			.delete()
 			.lt('createdAt', cutoffDate.toISOString())
 			.eq('isRead', true)
+
+		if (error) {
+			throw error
+		}
+	}
+
+	// ==================
+	// NATIVE EVENT LISTENERS - No Custom Abstractions
+	// ==================
+
+	/**
+	 * Handle maintenance update events
+	 */
+	@OnEvent('maintenance.updated')
+	async handleMaintenanceUpdated(event: MaintenanceUpdatedEvent) {
+		this.logger.info(
+			`Processing maintenance updated event for user ${event.userId}`,
+			{
+				maintenanceId: event.maintenanceId,
+				priority: event.priority,
+				status: event.status
+			}
+		)
+
+		try {
+			await this.createMaintenanceNotification(
+				event.userId,
+				event.title,
+				event.description,
+				event.priority,
+				event.propertyName,
+				event.unitNumber,
+				event.maintenanceId
+			)
+
+			this.logger.info(
+				`Maintenance notification created for user ${event.userId}`
+			)
+		} catch (error) {
+			this.logger.error(
+				`Failed to create maintenance notification for user ${event.userId}`,
+				error
+			)
+		}
+	}
+
+	/**
+	 * Handle payment received events
+	 */
+	@OnEvent('payment.received')
+	async handlePaymentReceived(event: PaymentReceivedEvent) {
+		this.logger.info(
+			`Processing payment received event for user ${event.userId}`,
+			{
+				subscriptionId: event.subscriptionId,
+				amount: event.amount,
+				currency: event.currency
+			}
+		)
+
+		try {
+			await this.createPaymentNotification(
+				event.userId,
+				'Payment Received',
+				event.description,
+				'MEDIUM',
+				'Subscription', // Generic property name for payments
+				event.subscriptionId,
+				event.subscriptionId
+			)
+
+			this.logger.info(
+				`Payment notification created for user ${event.userId}`
+			)
+		} catch (error) {
+			this.logger.error(
+				`Failed to create payment notification for user ${event.userId}`,
+				error
+			)
+		}
+	}
+
+	/**
+	 * Handle payment failed events
+	 */
+	@OnEvent('payment.failed')
+	async handlePaymentFailed(event: PaymentFailedEvent) {
+		this.logger.info(
+			`Processing payment failed event for user ${event.userId}`,
+			{
+				amount: event.amount,
+				reason: event.reason,
+				currency: event.currency
+			}
+		)
+
+		try {
+			await this.createPaymentNotification(
+				event.userId,
+				'Payment Failed',
+				event.reason,
+				'HIGH',
+				'Subscription', // Generic property name for payments
+				event.subscriptionId,
+				undefined,
+				'/billing/payment-methods'
+			)
+
+			this.logger.info(
+				`Payment failed notification created for user ${event.userId}`
+			)
+		} catch (error) {
+			this.logger.error(
+				`Failed to create payment failed notification for user ${event.userId}`,
+				error
+			)
+		}
+	}
+
+	/**
+	 * Handle tenant created events
+	 */
+	@OnEvent('tenant.created')
+	async handleTenantCreated(event: TenantCreatedEvent) {
+		this.logger.info(
+			`Processing tenant created event for user ${event.userId}`,
+			{
+				tenantName: event.tenantName,
+				tenantEmail: event.tenantEmail,
+				tenantId: event.tenantId
+			}
+		)
+
+		try {
+			await this.createSystemNotification(
+				event.userId,
+				'New Tenant Added',
+				event.description,
+				'LOW',
+				'/tenants'
+			)
+
+			this.logger.info(
+				`Tenant created notification sent for user ${event.userId}`
+			)
+		} catch (error) {
+			this.logger.error(
+				`Failed to create tenant notification for user ${event.userId}`,
+				error
+			)
+		}
+	}
+
+	/**
+	 * Handle lease expiring events
+	 */
+	@OnEvent('lease.expiring')
+	async handleLeaseExpiring(event: LeaseExpiringEvent) {
+		this.logger.info(
+			`Processing lease expiring event for user ${event.userId}`,
+			{
+				tenantName: event.tenantName,
+				daysUntilExpiry: event.daysUntilExpiry
+			}
+		)
+
+		const priority = event.daysUntilExpiry <= 7 ? 'HIGH' : 'MEDIUM'
+
+		try {
+			await this.createSystemNotification(
+				event.userId,
+				'Lease Expiring Soon',
+				`Lease for ${event.tenantName} at ${event.propertyName} - Unit ${event.unitNumber} expires in ${event.daysUntilExpiry} days`,
+				priority,
+				'/leases'
+			)
+
+			this.logger.info(
+				`Lease expiring notification sent for user ${event.userId}`
+			)
+		} catch (error) {
+			this.logger.error(
+				`Failed to create lease expiring notification for user ${event.userId}`,
+				error
+			)
+		}
+	}
+
+	// ==================
+	// HELPER METHODS FOR EVENT HANDLERS
+	// ==================
+
+	/**
+	 * Create payment notification
+	 */
+	private async createPaymentNotification(
+		userId: string,
+		title: string,
+		message: string,
+		priority: Priority,
+		propertyName: string,
+		unitNumber: string,
+		paymentId?: string,
+		actionUrl?: string
+	): Promise<void> {
+		const { error } = await this.supabaseService
+			.getAdminClient()
+			.from('InAppNotification')
+			.insert({
+				userId,
+				title,
+				content: message,
+				type: 'payment',
+				priority: priority.toLowerCase(),
+				metadata: {
+					actionUrl: actionUrl || '/billing',
+					paymentId,
+					propertyName,
+					unitNumber
+				},
+				isRead: false
+			})
+
+		if (error) {
+			throw error
+		}
+	}
+
+	/**
+	 * Create system notification
+	 */
+	private async createSystemNotification(
+		userId: string,
+		title: string,
+		message: string,
+		priority: Priority,
+		actionUrl?: string
+	): Promise<void> {
+		const { error } = await this.supabaseService
+			.getAdminClient()
+			.from('InAppNotification')
+			.insert({
+				userId,
+				title,
+				content: message,
+				type: 'system',
+				priority: priority.toLowerCase(),
+				metadata: {
+					actionUrl: actionUrl || '/dashboard'
+				},
+				isRead: false
+			})
 
 		if (error) {
 			throw error

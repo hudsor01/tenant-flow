@@ -162,7 +162,7 @@ export function SidebarMenuButton({
 	...props
 }: SidebarMenuButtonProps) {
 	const baseClasses =
-		'flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm font-medium transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus:bg-sidebar-accent focus:text-sidebar-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50'
+		'flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm font-medium transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus:bg-sidebar-accent focus:text-sidebar-accent-foreground focus:outline-none disabled:pointer-events-none disabled:op-50'
 	const activeClasses = isActive
 		? 'bg-sidebar-accent text-sidebar-accent-foreground'
 		: 'text-sidebar-foreground'
