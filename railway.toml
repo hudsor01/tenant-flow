@@ -4,8 +4,8 @@ dockerfilePath = "./Dockerfile"
 watchPaths = ["apps/backend/**", "packages/shared/**", "packages/database/**", "package.json", "turbo.json"]
 
 [deploy]
-startCommand = "node apps/backend/dist/apps/backend/src/main.js"
-healthcheckPath = "/health"
+startCommand = "node apps/backend/dist/main.js"
+healthcheckPath = "/health/ping"
 healthcheckTimeout = 60
 healthcheckInterval = 30
 restartPolicyType = "on_failure" 
