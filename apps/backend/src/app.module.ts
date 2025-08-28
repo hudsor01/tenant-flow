@@ -20,7 +20,6 @@ import { StripeModule } from './billing/stripe.module'
 import { NotificationsModule } from './notifications/notifications.module'
 import { WebhooksModule } from './webhooks/webhooks.module'
 import { AnalyticsService } from './analytics/analytics.service'
-import { StripeService } from './billing/stripe.service'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 
@@ -196,7 +195,6 @@ import { AppService } from './app.service'
 	providers: [
 		AppService,
 		AnalyticsService,
-		StripeService,
 		// Global rate limiting guard with proxy support
 		{
 			provide: APP_GUARD,
@@ -208,6 +206,6 @@ import { AppService } from './app.service'
 			useClass: ThrottlerExceptionFilter
 		}
 	],
-	exports: [AnalyticsService, StripeService]
+	exports: [AnalyticsService]
 })
 export class AppModule {}
