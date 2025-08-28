@@ -444,10 +444,10 @@ async function bootstrap() {
 			// The mere fact that this endpoint responds means the server is up
 			return true
 		},
-		// Expose native Fastify health endpoint at /health
-		// This is the NATIVE solution - no custom code needed
+		// Expose native Fastify health endpoint at /health/ping
+		// Railway expects this exact path
 		exposeStatusRoute: {
-			url: '/health',
+			url: '/health/ping',
 			routeOpts: {
 				logLevel: 'warn' // Only log warnings
 			}
