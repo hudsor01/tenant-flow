@@ -97,7 +97,7 @@ export default function BlogContentSection({
 			<Card className="from-primary/10 via-primary/5 to-accent/10 border-primary/20 bg-gradient-to-br">
 				<CardHeader className="pb-4">
 					<CardTitle className="text-2xl">
-						Ready to Streamline Your Property Management?
+						Ready to Streamline Your Property_ Management?
 					</CardTitle>
 				</CardHeader>
 				<CardContent>

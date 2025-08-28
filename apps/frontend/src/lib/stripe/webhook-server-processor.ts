@@ -9,7 +9,6 @@ import { logger } from '@/lib/logger/logger'
 
 // Use shared billing types
 import type {
-	StripeWebhookEventType,
 	StripeWebhookEvent,
 	WebhookNotification,
 	StripeWebhookProcessor

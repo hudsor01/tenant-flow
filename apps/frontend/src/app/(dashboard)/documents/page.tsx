@@ -51,7 +51,7 @@ const mockDocuments = [
 	},
 	{
 		id: '3',
-		name: 'Property Photos - Building A.zip',
+		name: 'Property_ Photos - Building A.zip',
 		type: 'Photos',
 		size: '15.6 MB',
 		uploaded: '2024-01-08',
@@ -216,7 +216,7 @@ export default function DocumentsPage() {
 							<TableRow>
 								<TableHead>Document</TableHead>
 								<TableHead>Type</TableHead>
-								<TableHead>Property/Unit</TableHead>
+								<TableHead>Property_/Unit</TableHead>
 								<TableHead>Size</TableHead>
 								<TableHead>Uploaded</TableHead>
 								<TableHead>Tags</TableHead>

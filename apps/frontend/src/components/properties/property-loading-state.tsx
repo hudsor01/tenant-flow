@@ -2,7 +2,7 @@
  * Loading state component for property detail page
  * Shows skeleton animation while property data is being fetched
  */
-export default function PropertyLoadingState() {
+export default function Property_LoadingState() {
 	return (
 		<div className="animate-pulse space-y-6">
 			<div className="flex items-center space-x-4">

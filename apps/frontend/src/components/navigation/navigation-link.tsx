@@ -81,7 +81,7 @@ export function NavigationLink({
 				<span
 					className={variant === 'sidebar' ? 'icon-nav-sidebar' : 'icon-nav-default'}
 				>
-					{item.icon}
+					{item.icon as React.ReactNode}
 				</span>
 			)}
 

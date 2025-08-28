@@ -438,7 +438,7 @@ export function useBulkOperations() {
 /**
  * Development debugging hook (removed in production builds)
  */
-export function useStoreDebugger() {
+export function useStoreDebugger(): { store: unknown; logState: () => void; clearStore: () => void } | null {
 	const store = useAppStore()
 
 	if (process.env.NODE_ENV !== 'development') {

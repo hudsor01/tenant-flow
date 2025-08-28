@@ -36,7 +36,7 @@ const values = [
 function CompanyStats() {
 	const stats = [
 		{ label: 'Properties Managed', value: '10K+', icon: 'i-lucide-building-2' },
-		{ label: 'Happy Property Owners', value: '2.5K+', icon: 'i-lucide-users' },
+		{ label: 'Happy Property_ Owners', value: '2.5K+', icon: 'i-lucide-users' },
 		{ label: 'Years of Experience', value: '8+', icon: 'i-lucide-award' },
 		{ label: 'Uptime Guarantee', value: '99.9%', icon: 'i-lucide-shield' }
 	]
@@ -94,7 +94,7 @@ export function AboutContent() {
 						>
 							Revolutionizing{' '}
 							<span className="from-primary via-accent to-success bg-gradient-to-r bg-clip-text text-transparent">
-								Property Management
+								Property_ Management
 							</span>
 						</motion.h1>
 
@@ -243,7 +243,7 @@ export function AboutContent() {
 						<Card className="from-primary/5 via-accent/5 to-success/5 border-0 bg-gradient-to-br backdrop-blur-sm">
 							<CardContent className="p-12">
 								<h2 className="text-foreground mb-6 text-4xl font-bold">
-									Ready to Transform Your Property Management?
+									Ready to Transform Your Property_ Management?
 								</h2>
 								<p className="text-muted-foreground mx-auto mb-8 max-w-2xl text-xl">
 									Join thousands of property owners who've

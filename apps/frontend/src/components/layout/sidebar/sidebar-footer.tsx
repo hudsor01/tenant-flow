@@ -216,7 +216,7 @@ export function SidebarFooter() {
 									</Badge>
 								</div>
 								<span className="text-sidebar-foreground/60 text-xs">
-									Property Manager
+									Property_ Manager
 								</span>
 								<div className="mt-0.5 flex items-center gap-1">
 									<div

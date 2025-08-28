@@ -78,80 +78,17 @@ export const supabaseAdmin: SupabaseClient<Database> = (() => {
 })()
 
 // ========================
-// Client Factory Functions
+// Direct Client Usage Only
 // ========================
-
-/**
- * Create a user-scoped client for specific operations
- * Useful for operations that need to respect RLS with a specific user context
- */
-export function createUserScopedClient(
-	accessToken: string
-): SupabaseClient<Database> {
-	if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-		throw new Error('Missing Supabase configuration')
-	}
-	return createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
-		global: {
-			headers: {
-				Authorization: `Bearer ${accessToken}`
-			}
-		},
-		auth: {
-			persistSession: false
-		},
-		db: {
-			schema: 'public'
-		}
-	})
-}
-
-/**
- * Create a client for specific schema (useful for multi-tenant setups)
- * Example: createSchemaClient('tenant_123')
- */
-export function createSchemaClient(
-	schema: 'public' = 'public'
-): SupabaseClient<Database, typeof schema> {
-	if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-		throw new Error('Missing Supabase configuration')
-	}
-	return createClient<Database, typeof schema>(
-		SUPABASE_URL,
-		SUPABASE_ANON_KEY,
-		{
-			db: {
-				schema: schema as 'public'
-			}
-		}
-	)
-}
+// ULTRA-NATIVE: Use supabaseClient and supabaseAdmin directly
+// No factory functions - violates KISS principle
 
 // ========================
 // Type-Safe Query Helpers
 // ========================
 
-/**
- * Helper to create type-safe queries with proper error handling
- *
- * Example:
- * const result = await createSafeQuery(
- *   supabaseClient.from('User').select('*').eq('id', userId)
- * )
- */
-export async function createSafeQuery<T>(
-	query: PromiseLike<{ data: T | null; error: unknown }>
-): Promise<{ data: T; error: null } | { data: null; error: unknown }> {
-	try {
-		const result = await query
-		if (result.error) {
-			return { data: null, error: result.error }
-		}
-		return { data: result.data as T, error: null }
-	} catch (error) {
-		return { data: null, error }
-	}
-}
+// ULTRA-NATIVE: Use Supabase query results directly
+// No wrapper functions - handle .data and .error inline
 
 // ========================
 // Common Query Patterns
@@ -194,59 +131,10 @@ export async function signOut(): Promise<{ error: AuthError | null }> {
 }
 
 // ========================
-// Multi-tenant Helpers
+// ULTRA-NATIVE Multi-tenant
 // ========================
-
-/**
- * Get organization-scoped data with automatic filtering
- * Ensures all queries are properly scoped to the user's organization
- */
-export class OrganizationScopedClient {
-	constructor(
-		private client: SupabaseClient<Database>,
-		private organizationId: string
-	) {}
-
-	/**
-	 * Query properties for the current organization
-	 */
-	properties(): ReturnType<SupabaseClient<Database>['from']> {
-		return this.client
-			.from('Property')
-			.select('*')
-			.eq('organizationId', this.organizationId)
-	}
-
-	/**
-	 * Query tenants for the current organization
-	 */
-	tenants(): ReturnType<SupabaseClient<Database>['from']> {
-		return this.client
-			.from('Tenant')
-			.select('*')
-			.eq('organizationId', this.organizationId)
-	}
-
-	/**
-	 * Query maintenance requests for the current organization
-	 */
-	maintenanceRequests(): ReturnType<SupabaseClient<Database>['from']> {
-		return this.client
-			.from('MaintenanceRequest')
-			.select('*')
-			.eq('organizationId', this.organizationId)
-	}
-}
-
-/**
- * Create an organization-scoped client for multi-tenant operations
- */
-export function createOrganizationClient(
-	organizationId: string,
-	client: SupabaseClient<Database> = supabaseClient
-): OrganizationScopedClient {
-	return new OrganizationScopedClient(client, organizationId)
-}
+// Use RLS policies directly - no wrapper classes
+// Example: supabaseClient.from('Property').select('*').eq('organizationId', orgId)
 
 // ========================
 // Type Exports

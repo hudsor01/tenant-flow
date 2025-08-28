@@ -19,13 +19,11 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
 import { motion } from '@/lib/lazy-motion'
-import type { Database } from '@repo/shared'
+import type { Property } from '@repo/shared'
+type Property_ = Property
 
-// Define types directly from Database schema - NO DUPLICATION
-type Property = Database['public']['Tables']['Property']['Row']
-
-// Property image interface for gallery display
-interface PropertyImage {
+// Property_ image interface for gallery display
+interface Property_Image {
 	id: string
 	name: string
 	url: string
@@ -33,21 +31,21 @@ interface PropertyImage {
 	createdAt?: Date
 }
 
-interface PropertyImageGalleryProps {
+interface Property_ImageGalleryProps {
 	propertyId: string
-	property?: Property
+	property?: Property_
 	onUploadClick?: () => void
 	className?: string
 }
 
-export default function PropertyImageGallery({
+export default function Property_ImageGallery({
 	propertyId,
 	property,
 	onUploadClick,
 	className
-}: Readonly<PropertyImageGalleryProps>) {
+}: Readonly<Property_ImageGalleryProps>) {
 	// Placeholder implementation - hooks not available
-	const images: PropertyImage[] = []
+	const images: Property_Image[] = []
 	const isLoading = false
 	const _error: { message: string } | null = null
 
@@ -121,7 +119,7 @@ export default function PropertyImageGallery({
 							className="i-lucide-image mr-2 h-5 w-5"
 							aria-hidden="true"
 						/>
-						Property Images
+						Property_ Images
 					</CardTitle>
 				</CardHeader>
 				<CardContent>
@@ -166,7 +164,7 @@ export default function PropertyImageGallery({
 								className="i-lucide-image mr-2 h-5 w-5"
 								aria-hidden="true"
 							/>
-							Property Images ({images.length})
+							Property_ Images ({images.length})
 						</CardTitle>
 						{onUploadClick && (
 							<Button onClick={onUploadClick} size="sm">
@@ -209,7 +207,7 @@ export default function PropertyImageGallery({
 									<div className="relative aspect-square overflow-hidden rounded-lg border-2 border-gray-200 transition-colors hover:border-gray-300">
 										<NextImage
 											src={image.url}
-											alt={`Property image: ${image.name}`}
+											alt={`Property_ image: ${image.name}`}
 											fill
 											className="cursor-pointer object-cover transition-transform hover:scale-105"
 											onClick={() =>
@@ -304,7 +302,7 @@ export default function PropertyImageGallery({
 				>
 					<DialogContent className="max-w-4xl">
 						<DialogHeader>
-							<DialogTitle>Property Image</DialogTitle>
+							<DialogTitle>Property_ Image</DialogTitle>
 						</DialogHeader>
 						<div className="flex justify-center">
 							<div className="relative max-h-[70vh] max-w-full">

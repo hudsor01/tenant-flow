@@ -17,7 +17,7 @@ import { Label } from '@/components/ui/label'
 // } from '@/components/ui/select'
 
 import type { SignupFormState, SignupData } from '@repo/shared/types/frontend' // Added SignupData
-import type { SignupFormData } from '@repo/shared/types/auth' // Added SignupFormData
+// Removed unused SignupFormData import
 
 export interface SignupFormFieldsProps {
 	formState: SignupFormState

@@ -2,7 +2,7 @@ import { motion } from '@/lib/lazy-motion'
 import { Card, CardContent } from '@/components/ui/card'
 import { formatCurrency } from '@repo/shared'
 
-interface PropertyStatsSectionProps {
+interface Property_StatsSectionProps {
 	stats: {
 		totalUnits: number
 		occupiedUnits: number
@@ -18,13 +18,13 @@ interface PropertyStatsSectionProps {
 }
 
 /**
- * Property overview statistics section with key metrics cards
+ * Property_ overview statistics section with key metrics cards
  * Displays total units, occupancy, vacancy, and revenue information
  */
-export default function PropertyStatsSection({
+export default function Property_StatsSection({
 	stats,
 	fadeInUp
-}: PropertyStatsSectionProps) {
+}: Property_StatsSectionProps) {
 	return (
 		<motion.div
 			{...fadeInUp}

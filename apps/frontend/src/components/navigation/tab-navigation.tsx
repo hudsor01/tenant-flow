@@ -97,7 +97,7 @@ export function TabNavigation({
 						<div className="flex items-center gap-2">
 							{item.icon && (
 								<span className="h-4 w-4 shrink-0">
-									{item.icon}
+									{item.icon as React.ReactNode}
 								</span>
 							)}
 							{item.label}
