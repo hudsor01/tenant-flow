@@ -5,10 +5,13 @@
 
 import { logger } from '@/lib/logger'
 
+// Default API URL for production fallback
+const DEFAULT_API_BASE_URL = 'https://api.tenantflow.app/api/v1' as const
+
 export const config = {
 	api: {
 		// Resolve lazily with a safe default to avoid build-time throws
-		baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://api.tenantflow.app/api/v1',
+		baseURL: process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_BASE_URL,
 		timeout: 30000,
 		healthCheckPath: '/health',
 		retries: 3,
