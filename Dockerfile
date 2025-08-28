@@ -44,10 +44,8 @@ COPY . .
 # Remove unnecessary files to reduce build context and layer size
 RUN rm -rf .git .github docs *.md apps/frontend apps/storybook
 
-# Build-time optimizations
-# Increase memory for Railway builds (they have more available)
-ENV NODE_OPTIONS="--max-old-space-size=2048" \
-    TURBO_TELEMETRY_DISABLED=1
+# Disable telemetry for faster builds
+ENV TURBO_TELEMETRY_DISABLED=1
 
 # Build all packages in sequence with proper error handling
 RUN cd packages/shared && npm run build && \
@@ -101,18 +99,11 @@ USER root
 RUN apk add --no-cache curl
 USER nodejs
 
-# Runtime optimizations for Railway deployment
+# Runtime environment for Railway deployment
 # NODE_ENV=production: Enables production optimizations in Node.js and libraries
 # DOCKER_CONTAINER=true: Signals containerized environment to application
-# --enable-source-maps: Better error debugging in production
-# --max-old-space-size=264: Optimized based on project analysis (+3% from 256MB for stability)
-# UV_THREADPOOL_SIZE=2: Reduced thread pool for Railway's CPU allocation
-# NODE_NO_WARNINGS=1: Cleaner logs, reduced overhead
 ENV NODE_ENV=production \
-    DOCKER_CONTAINER=true \
-    NODE_OPTIONS="--enable-source-maps --max-old-space-size=264" \
-    UV_THREADPOOL_SIZE=2 \
-    NODE_NO_WARNINGS=1
+    DOCKER_CONTAINER=true
 
 # Railway PORT injection with fallback
 ARG PORT=4600
