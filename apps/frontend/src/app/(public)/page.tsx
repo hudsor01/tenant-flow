@@ -1,14 +1,13 @@
 import type { Metadata } from 'next/types'
-import {
-	NavigationSection,
-	HeroSection,
-	StatsSection,
-	FeaturesSection,
-	TestimonialsSection,
-	PricingSection,
-	CTASection,
-	FooterSection
-} from '@/components/landing'
+import { OptimizedHeroSection as HeroSection } from '@/components/landing/optimized-hero-section'
+import { StatsSection } from '@/components/landing/stats-section'
+import { OptimizedFeaturesSection as FeaturesSection } from '@/components/landing/optimized-features-section'
+import { OptimizedTestimonialsSection as TestimonialsSection } from '@/components/landing/optimized-testimonials-section'
+import { PricingSection } from '@/components/landing/pricing-section'
+import { OptimizedFooterSection as FooterSection } from '@/components/landing/optimized-footer-section'
+// Import Client Components directly to avoid barrel export issues with client reference manifests  
+import { NavigationSection } from '@/components/landing/navigation-section'
+import { CtaSection as CTASection } from '@/components/landing/cta-section'
 import { SEO } from '@/components/seo/SEO'
 
 export const metadata: Metadata = {
