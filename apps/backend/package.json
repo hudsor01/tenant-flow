@@ -10,12 +10,12 @@
 		"npm": ">=10.0.0"
 	},
 	"scripts": {
-		"build": "NODE_OPTIONS='--max-old-space-size=4096' tsc -p tsconfig.build.json",
-		"dev": "NODE_OPTIONS='--max-old-space-size=4096' tsx watch src/main.ts",
-		"start": "node dist/apps/backend/src/main.js",
-		"start:prod": "node dist/apps/backend/src/main.js",
+		"build": "tsc -p tsconfig.build.json",
+		"dev": "tsx watch src/main.ts",
+		"start": "node dist/main.js",
+		"start:prod": "node dist/main.js",
 		"lint": "eslint . --fix --no-warn-ignored",
-		"typecheck": "NODE_OPTIONS='--max-old-space-size=8192' tsc -p tsconfig.build.json --noEmit --incremental --skipLibCheck",
+		"typecheck": "tsc -p tsconfig.build.json --noEmit --incremental --skipLibCheck",
 		"test": "jest",
 		"test:unit": "jest --testPathIgnorePatterns=\"integration|e2e\" --passWithNoTests",
 		"test:integration": "jest --testMatch=\"**/*.integration.spec.ts\" --passWithNoTests",
