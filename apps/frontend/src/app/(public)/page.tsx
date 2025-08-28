@@ -10,7 +10,6 @@ import {
 	FooterSection
 } from '@/components/landing'
 import { SEO } from '@/components/seo/SEO'
-import { OAuthRedirectHandler } from '@/components/auth/oauth-redirect-handler'
 
 export const metadata: Metadata = {
 	title: 'TenantFlow - Property_ Management Made Simple',
@@ -44,7 +43,6 @@ export default function HomePage(): React.ReactElement {
 					}
 				]}
 			/>
-			<OAuthRedirectHandler />
 			<NavigationSection />
 			<HeroSection locale="en" />
 			<StatsSection />
