@@ -1,3 +1,5 @@
+'use client'
+
 import { useMaintenanceRequests } from '@/hooks/api/use-maintenance'
 import {
 	Card,

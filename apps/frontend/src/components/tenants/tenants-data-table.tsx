@@ -1,3 +1,5 @@
+'use client'
+
 import { useTenants } from '@/hooks/api/use-tenants'
 import {
 	Card,

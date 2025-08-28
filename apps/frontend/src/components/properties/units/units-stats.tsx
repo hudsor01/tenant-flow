@@ -1,3 +1,5 @@
+'use client'
+
 import { useUnitStats } from '@/hooks/api/use-units'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'

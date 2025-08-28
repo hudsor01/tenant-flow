@@ -1,3 +1,5 @@
+'use client'
+
 import { useLeases } from '@/hooks/api/use-leases'
 import type { Database } from '@repo/shared'
 

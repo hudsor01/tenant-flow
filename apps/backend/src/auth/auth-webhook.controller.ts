@@ -110,43 +110,17 @@ export class AuthWebhookController {
 			user.user_metadata?.name ?? user.user_metadata?.full_name ?? ''
 
 		try {
-			// Transform webhook user to Supabase User format
+			// Transform webhook user to Supabase User format - only required fields
 			const supabaseUser: SupabaseUser = {
 				id: user.id,
 				aud: 'authenticated',
 				email: user.email || '',
-				email_confirmed_at: user.email_confirmed_at || null,
+				email_confirmed_at: user.email_confirmed_at || undefined,
 				user_metadata: user.user_metadata || {},
 				app_metadata: {},
 				created_at: user.created_at,
 				updated_at: user.updated_at,
-				phone: null,
-				phone_confirmed_at: null,
-				confirmation_sent_at: null,
-				confirmed_at: null,
-				email_change_sent_at: null,
-				new_email: null,
-				invited_at: null,
-				action_link: null,
-				email_change: null,
-				email_change_confirm_status: 0,
-				banned_until: null,
-				recovery_sent_at: null,
-				new_phone: null,
-				phone_change: null,
-				phone_change_token: null,
-				phone_change_sent_at: null,
-				confirmed_phone_change_at: null,
-				email_change_token_new: null,
-				email_change_token_current: null,
-				phone_confirmed_at: null,
-				unconfirmed_phone: null,
-				unconfirmed_email: null,
-				last_sign_in_at: null,
-				role: null,
-				identities: null,
-				is_anonymous: false,
-				factors: null
+				is_anonymous: false
 			}
 			
 			// Sync user with local database
