@@ -151,6 +151,25 @@ npm run build:frontend   # Build only frontend
 npm run build:backend    # Build only backend
 npm run build:shared     # Build shared package first
 turbo build --filter=@repo/shared  # Rebuild shared types
+
+# Testing Commands
+npm run test:integration  # API integration tests
+npm run test:e2e         # Playwright E2E tests
+npm run test:production  # Production readiness tests
+npm run test:api         # Test production API endpoints
+
+# Database & Schema
+npm run update-supabase-types  # Generate TypeScript types from Supabase schema
+
+# Secrets Management  
+npm run secrets:generate # Generate new encryption keys
+npm run secrets:check    # Check secret strength
+npm run secrets:export   # Export secrets for CI/CD
+
+# Single Package Commands (when working on specific packages)
+npm run build --filter=@repo/frontend    # Build only frontend
+npm run typecheck --filter=@repo/backend # Type check only backend
+npm run lint --filter=@repo/shared       # Lint only shared package
 ```
 
 ---
@@ -305,6 +324,7 @@ npm run test:production   # Production readiness
 - API client consolidation needed (multiple patterns)
 - Remove deprecated auth-api.ts file
 - Test suite needs React 19 updates
+- Webhook idempotency implementation needed (Stripe events can be delivered multiple times)
 
 ### Development Workflow
 
@@ -329,7 +349,11 @@ npm run test:production   # Production readiness
 - `apps/frontend/src/lib/supabase/client.ts` - Supabase client setup
 - `apps/frontend/src/lib/query-keys.ts` - TanStack Query cache keys
 - `apps/backend/src/shared/` - Shared backend utilities, guards, decorators
+- `apps/backend/src/billing/stripe-webhook.service.ts` - Stripe webhook processing
+- `apps/backend/src/webhooks/webhook.controller.ts` - Webhook endpoints
 - `packages/shared/src/types/` - Shared TypeScript types
+- `packages/shared/src/types/stripe.ts` - Stripe-specific types
+- `packages/shared/src/types/webhook.ts` - Webhook-specific types
 
 #### Data Flow Patterns
 - **Read**: Component → `useQuery` hook → API client → Backend → Supabase
