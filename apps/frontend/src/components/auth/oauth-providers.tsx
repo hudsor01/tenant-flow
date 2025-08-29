@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase/client'
 import { toast } from 'sonner'
-import { motion } from '@/lib/lazy-motion'
+import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 interface OAuthProvidersProps {

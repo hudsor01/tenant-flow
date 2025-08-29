@@ -128,8 +128,9 @@ export const useBusinessEvents = () => {
 		})
 	}
 
-	const trackPropertyCreated = (propertyData: Record<string, unknown>) => {
-		posthogTrackEvent('property_created', {
+	// Generic property event tracker - DRY principle
+	const trackPropertyEvent = (eventName: 'property_created' | 'property_updated', propertyData: Record<string, unknown>) => {
+		posthogTrackEvent(eventName, {
 			property_id: propertyData.id as string,
 			property_type: propertyData.type as string,
 			address: propertyData.address as string,
@@ -137,13 +138,12 @@ export const useBusinessEvents = () => {
 		})
 	}
 
+	const trackPropertyCreated = (propertyData: Record<string, unknown>) => {
+		trackPropertyEvent('property_created', propertyData)
+	}
+
 	const trackPropertyUpdated = (propertyData: Record<string, unknown>) => {
-		posthogTrackEvent('property_updated', {
-			property_id: propertyData.id as string,
-			property_type: propertyData.type as string,
-			address: propertyData.address as string,
-			...propertyData
-		})
+		trackPropertyEvent('property_updated', propertyData)
 	}
 
 	const trackLeaseCreated = (leaseData: Record<string, unknown>) => {

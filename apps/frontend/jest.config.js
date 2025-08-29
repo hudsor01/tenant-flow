@@ -32,6 +32,7 @@ const customJestConfig = {
 	testEnvironment: 'jest-environment-jsdom',
 	testMatch: [
 		'<rootDir>/src/**/*.(test|spec).(t|j)s?(x)',
+		'<rootDir>/scripts/**/*.(test|spec).(t|j)s?(x)',
 		'<rootDir>/tests/unit/**/*.(test|spec).(t|j)s?(x)'
 	],
 	testPathIgnorePatterns: [

@@ -10,8 +10,8 @@ import {
 	type UseMutationResult
 } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { apiClient, get } from '@/lib/api-client'
-import { queryKeys } from '@/lib/query-keys'
+import { get, post } from '@/lib/api-client'
+import { queryKeys } from '@/lib/react-query/query-keys'
 import type { PaymentMethod, Subscription } from '@repo/shared'
 
 // Portal redirect response type for operations handled through Stripe Portal
@@ -24,47 +24,60 @@ interface PortalRedirectResponse {
  * Fetch current user subscription
  */
 export function useSubscription(options?: {
-	enabled?: boolean
-	refetchInterval?: number
+    enabled?: boolean
+    refetchInterval?: number
 }): UseQueryResult<Subscription> {
-	return useQuery({
-		queryKey: queryKeys.billing.subscription(),
-		queryFn: () => apiClient.get<Subscription>('/api/billing/subscription'),
-		enabled: options?.enabled ?? true,
-		refetchInterval: options?.refetchInterval,
-		staleTime: 5 * 60 * 1000, // 5 minutes
-		gcTime: 10 * 60 * 1000 // 10 minutes
-	})
+    return useQuery({
+        queryKey: queryKeys.billing.subscription(),
+        queryFn: () => get<Subscription>('stripe/subscription'),
+        enabled: options?.enabled ?? true,
+        refetchInterval: options?.refetchInterval,
+        staleTime: 5 * 60 * 1000, // 5 minutes
+        gcTime: 10 * 60 * 1000 // 10 minutes
+    })
+}
+
+// Shared portal URL fetching function - DRY principle
+async function fetchPortalUrl(options?: {
+    returnUrl?: string
+    prefillEmail?: string
+}): Promise<PortalRedirectResponse> {
+    const portalData: { returnUrl?: string; prefillEmail?: string } = {
+        returnUrl: options?.returnUrl || (typeof window !== 'undefined' ? window.location.origin : undefined),
+        ...(options?.prefillEmail && { prefillEmail: options.prefillEmail })
+    }
+    const res = await post<{ url?: string }>('stripe/portal', portalData)
+    return { portalUrl: res.url ?? '', message: 'Open customer portal' }
 }
 
 /**
- * Fetch user invoices
+ * Fetch user invoices via portal
  */
 export function useInvoices(options?: {
-	enabled?: boolean
-	refetchInterval?: number
+    enabled?: boolean
+    refetchInterval?: number
 }): UseQueryResult<PortalRedirectResponse> {
-	return useQuery({
-		queryKey: queryKeys.billing.invoices(),
-		queryFn: () => apiClient.get<PortalRedirectResponse>('/api/billing/invoices'),
-		enabled: options?.enabled ?? true,
-		refetchInterval: options?.refetchInterval,
-		staleTime: 10 * 60 * 1000 // 10 minutes
-	})
+    return useQuery({
+        queryKey: queryKeys.billing.invoices(),
+        queryFn: () => fetchPortalUrl(),
+        enabled: options?.enabled ?? true,
+        refetchInterval: options?.refetchInterval,
+        staleTime: 10 * 60 * 1000 // 10 minutes
+    })
 }
 
 /**
- * Fetch payment methods
+ * Fetch payment methods via portal
  */
 export function usePaymentMethods(options?: {
-	enabled?: boolean
+    enabled?: boolean
 }): UseQueryResult<PortalRedirectResponse> {
-	return useQuery({
-		queryKey: queryKeys.billing.paymentMethods(),
-		queryFn: () => apiClient.get<PortalRedirectResponse>('/api/billing/payment-methods'),
-		enabled: options?.enabled ?? true,
-		staleTime: 10 * 60 * 1000 // 10 minutes
-	})
+    return useQuery({
+        queryKey: queryKeys.billing.paymentMethods(),
+        queryFn: () => fetchPortalUrl(),
+        enabled: options?.enabled ?? true,
+        staleTime: 10 * 60 * 1000 // 10 minutes
+    })
 }
 
 /**
@@ -104,7 +117,7 @@ export function useCreateCheckoutSession(): UseMutationResult<
 			interval: 'monthly' | 'annual'
 			successUrl?: string
 			cancelUrl?: string
-		}) => apiClient.post<{ url: string; sessionId?: string }>('/api/billing/checkout', data),
+    }) => post<{ url: string; sessionId?: string }>('stripe/checkout', data),
 		onSuccess: data => {
 			// Redirect to checkout
 			const checkoutUrl = data.url
@@ -138,12 +151,9 @@ export function useCreatePortalSession(): UseMutationResult<
 > {
 	return useMutation({
 		mutationFn: async (data) => {
-			const portalData: { returnUrl?: string; prefillEmail?: string } = {
-				returnUrl: data?.returnUrl || window.location.origin,
-				...(data?.prefillEmail && { prefillEmail: data.prefillEmail })
-			}
-			return apiClient.post<{ url?: string }>('/api/billing/portal', portalData)
-		},
+            const response = await fetchPortalUrl(data)
+            return { url: response.portalUrl }
+        },
 		onSuccess: data => {
 			// Redirect to portal
 			if (data.url) {
@@ -176,11 +186,17 @@ export function useUpdateSubscription(): UseMutationResult<
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: (params: {
+		mutationFn: async (_params: {
 			newPriceId: string
 			userId: string
 			prorationBehavior?: 'create_prorations' | 'none' | 'always_invoice'
-		}) => apiClient.post<PortalRedirectResponse>('/api/billing/subscription', params),
+        }) => {
+			const response = await fetchPortalUrl()
+			return {
+				...response,
+				message: 'Redirecting to Stripe portal...'
+			}
+		},
 		onMutate: async _params => {
 			// Cancel any outgoing refetches
 			await queryClient.cancelQueries({
@@ -239,10 +255,14 @@ export function useCancelSubscription(): UseMutationResult<
 > {
 	const queryClient = useQueryClient()
 
-	return useMutation({
-		mutationFn: async () => {
-			return apiClient.post<{ message: string }>('/api/billing/subscription/cancel', {})
-		},
+    return useMutation({
+        mutationFn: async () => {
+            await fetchPortalUrl()
+            // Transform response to match expected return type
+            return {
+                message: 'Subscription cancellation will be processed through Stripe portal'
+            }
+        },
 		onMutate: async () => {
 			// Cancel any outgoing refetches
 			await queryClient.cancelQueries({
@@ -307,14 +327,8 @@ export function useAddPaymentMethod(): UseMutationResult<
 > {
 	const queryClient = useQueryClient()
 
-	return useMutation({
-		mutationFn: async ({ paymentMethodId }) => {
-			const result = await apiClient.post<PortalRedirectResponse>('/api/billing/payment-methods', { paymentMethodId })
-
-			// Note: setAsDefault is handled through the portal
-
-			return result
-		},
+    return useMutation({
+        mutationFn: () => fetchPortalUrl(),
 		onSuccess: () => {
 			toast.success('Payment method added successfully')
 		},
@@ -342,9 +356,14 @@ export function useUpdatePaymentMethod(): UseMutationResult<
 > {
 	const queryClient = useQueryClient()
 
-	return useMutation({
-		mutationFn: async ({ paymentMethodId }) =>
-			apiClient.post<PortalRedirectResponse>('/api/billing/payment-methods/default', { paymentMethodId }),
+    return useMutation({
+        mutationFn: async () => {
+            const response = await fetchPortalUrl()
+            return {
+                ...response,
+                message: 'Redirecting to Stripe portal to update payment method'
+            }
+        },
 		onMutate: async ({ paymentMethodId }) => {
 			// Cancel any outgoing refetches
 			await queryClient.cancelQueries({
@@ -397,32 +416,28 @@ export function useUpdatePaymentMethod(): UseMutationResult<
  * Download invoice
  */
 export function useDownloadInvoice(): UseMutationResult<
-	PortalRedirectResponse,
-	Error,
-	{ invoiceId: string; filename?: string }
+    PortalRedirectResponse,
+    Error,
+    { invoiceId: string; filename?: string }
 > {
-	return useMutation({
-		mutationFn: async ({ invoiceId }) =>
-			get<PortalRedirectResponse>(`/api/billing/invoices/${invoiceId}/download`),
-		onSuccess: data => {
-			// Redirect to portal for invoice download
-			if (data.portalUrl) {
-				try {
-					window.open(data.portalUrl, '_blank')
-				} catch (error) {
-					console.error('Failed to open portal:', error)
-					toast.error('Failed to open customer portal')
-				}
-
-				toast.success(
-					'Redirecting to customer portal for invoice download'
-				)
-			} else {
-				toast.error('No portal URL available')
-			}
-		},
-		onError: () => {
-			toast.error('Failed to download invoice.')
-		}
-	})
+    return useMutation({
+        mutationFn: () => fetchPortalUrl(),
+        onSuccess: data => {
+            const url = data.portalUrl
+            if (url) {
+                try {
+                    window.open(url, '_blank')
+                } catch (error) {
+                    console.error('Failed to open portal:', error)
+                    toast.error('Failed to open customer portal')
+                }
+                toast.success('Redirecting to customer portal for invoice download')
+            } else {
+                toast.error('No portal URL available')
+            }
+        },
+        onError: () => {
+            toast.error('Failed to download invoice.')
+        }
+    })
 }

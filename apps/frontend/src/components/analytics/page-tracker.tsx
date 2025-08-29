@@ -1,55 +1,35 @@
 'use client'
 
 /**
- * Page tracker component for analytics
- * Tracks page views and user interactions with PostHog
+ * ULTRA-SIMPLIFIED PageTracker - NO useSearchParams(), NO complex logic
+ * Uses only PostHog's native auto-tracking + custom event properties
  */
 
 import { useEffect } from 'react'
 import { usePostHog } from 'posthog-js/react'
-import { usePathname, useSearchParams } from 'next/navigation'
 
 interface PageTrackerProps {
-	pageTitle?: string
-	pageName?: string
+	pageName: string
 	pageCategory?: string
 	properties?: Record<string, string | number | boolean>
 }
 
-export function PageTracker({
-	pageTitle,
+export function PageTracker({ 
 	pageName,
-	pageCategory = 'dashboard',
-	properties = {}
+	pageCategory = 'dashboard', 
+	properties = {} 
 }: PageTrackerProps) {
 	const posthog = usePostHog()
-	const pathname = usePathname()
-	const searchParams = useSearchParams()
 
 	useEffect(() => {
-		if (!posthog) {
-			return
-		}
-
-		// Track page view
-		posthog.capture('$pageview', {
-			$current_url: `${pathname}${searchParams?.toString() ? `?${searchParams.toString()}` : ''}`,
-			page_title: pageTitle || pageName || document.title,
+		// PostHog auto-captures pageviews, we just add custom properties
+		posthog?.capture('page_view_custom', {
 			page_name: pageName,
 			page_category: pageCategory,
 			...properties
 		})
-	}, [
-		posthog,
-		pathname,
-		searchParams,
-		pageTitle,
-		pageName,
-		pageCategory,
-		properties
-	])
+	}, [posthog, pageName, pageCategory, properties])
 
-	// This component doesn't render anything
 	return null
 }
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { logger } from '@/lib/logger/logger'
 import { useRouter } from 'next/navigation'
-import { motion } from '@/lib/lazy-motion'
+import { motion } from 'framer-motion'
 import { supabase } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
