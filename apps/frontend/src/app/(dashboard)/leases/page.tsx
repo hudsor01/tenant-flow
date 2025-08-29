@@ -1,5 +1,11 @@
 'use client'
 
+// Disable static generation for this page to avoid build-time API calls
+// that rely on runtime auth/session. This forces dynamic rendering and
+// prevents Next.js from prerendering during `next build`.
+export const dynamic = 'force-dynamic'
+export const fetchCache = 'default-no-store'
+
 import { Suspense } from 'react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
