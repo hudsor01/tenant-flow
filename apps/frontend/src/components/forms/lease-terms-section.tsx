@@ -148,7 +148,7 @@ function LeaseTermCard({
 					onClick={() => onRemove(index)}
 					className="text-destructive hover:text-destructive hover:bg-destructive/10"
 				>
-					<i className="i-lucide-trash-2 inline-block h-4 w-4"  />
+					<i className="i-lucide-trash-2  h-4 w-4"  />
 				</Button>
 			</div>
 		</Card>
@@ -227,7 +227,7 @@ export function LeaseTermsSection({ terms, onChange }: LeaseTermsSectionProps) {
 		<div className="space-y-6">
 			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-2">
-					<i className="i-lucide-file-text inline-block h-4 w-4"  />
+					<i className="i-lucide-file-text  h-4 w-4"  />
 					<h3 className="text-lg font-semibold">
 						Lease Terms & Conditions
 					</h3>
@@ -257,7 +257,7 @@ export function LeaseTermsSection({ terms, onChange }: LeaseTermsSectionProps) {
 							})
 						}
 					>
-						<i className="i-lucide-plus inline-block mr-1 h-4 w-4"  />
+						<i className="i-lucide-plus  mr-1 h-4 w-4"  />
 						Add Term
 					</Button>
 				</div>
@@ -265,7 +265,7 @@ export function LeaseTermsSection({ terms, onChange }: LeaseTermsSectionProps) {
 
 			{terms.length === 0 && (
 				<Alert>
-					<i className="i-lucide-alert-circle inline-block h-4 w-4"  />
+					<i className="i-lucide-alert-circle  h-4 w-4"  />
 					<AlertDescription>
 						No lease terms added yet. Click "Add Default Terms" to
 						get started or "Add Term" to create a custom term.
@@ -298,7 +298,7 @@ export function LeaseTermsSection({ terms, onChange }: LeaseTermsSectionProps) {
 						}
 						className="text-muted-foreground hover:text-foreground"
 					>
-						<i className="i-lucide-plus inline-block mr-2 h-4 w-4"  />
+						<i className="i-lucide-plus  mr-2 h-4 w-4"  />
 						Add Another Term
 					</Button>
 				</div>

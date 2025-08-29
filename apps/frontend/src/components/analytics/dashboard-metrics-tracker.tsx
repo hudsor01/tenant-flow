@@ -37,8 +37,8 @@ export function MetricCard({
 			className="rounded-lg bg-white p-6 shadow"
 			data-track={`metric-${metricKey}`}
 		>
-			<h3 className="text-sm font-medium text-gray-500">{title}</h3>
-			<p className="mt-2 text-3xl font-semibold text-gray-900">{value}</p>
+			<h3 className="text-sm font-medium text-gray-5">{title}</h3>
+			<p className="mt-2 text-3xl font-semibold text-gray-9">{value}</p>
 			{change && (
 				<p
 					className={`mt-2 text-sm ${change.startsWith('+') ? 'text-positive' : 'text-negative'}`}

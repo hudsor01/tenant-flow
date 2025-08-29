@@ -8,7 +8,7 @@
 'use client'
 
 import * as React from 'react'
-import { motion } from '@/lib/lazy-motion'
+import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { NavigationLink } from './navigation-link'
@@ -31,7 +31,7 @@ export function MobileNavigation({
 
 	const defaultTrigger = (
 		<Button variant="ghost" size="icon" className="md:hidden">
-			<i className="i-lucide-menu inline-block h-5 w-5"  />
+			<i className="i-lucide-menu h-5 w-5"  />
 		</Button>
 	)
 
@@ -74,7 +74,7 @@ export function MobileNavigation({
 									size="icon"
 									onClick={() => setIsOpen(false)}
 								>
-									<i className="i-lucide-x inline-block h-5 w-5"  />
+									<i className="i-lucide-x h-5 w-5"  />
 								</Button>
 							</div>
 

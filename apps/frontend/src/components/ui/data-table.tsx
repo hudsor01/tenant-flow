@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { createActionColumn } from '@/components/data-table/data-table-action-factory'
 import {
 	type ColumnDef,
 	type ColumnFiltersState,
@@ -17,13 +18,12 @@ import {
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
-	DropdownMenu,
-	DropdownMenuCheckboxItem,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger
+    DropdownMenu,
+    DropdownMenuCheckboxItem,
+    DropdownMenuContent,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import {
@@ -143,9 +143,9 @@ export function EnhancedDataTable<TData, TValue>({
 								size="sm"
 								className="h-10"
 							>
-								<i className="i-lucide-filter inline-block mr-2 h-4 w-4"  />
+								<i className="i-lucide-filter mr-2 h-4 w-4"  />
 								Columns
-								<i className="i-lucide-chevron-down inline-block ml-2 h-4 w-4"  />
+								<i className="i-lucide-chevron-down ml-2 h-4 w-4"  />
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end" className="w-[200px]">
@@ -183,13 +183,13 @@ export function EnhancedDataTable<TData, TValue>({
 							onClick={onExport}
 							className="h-10"
 						>
-							<i className="i-lucide-download inline-block mr-2 h-4 w-4"  />
+							<i className="i-lucide-download mr-2 h-4 w-4"  />
 							Export
 						</Button>
 					)}
 					{enableAdd && (
 						<Button onClick={onAdd} size="sm" className="h-10">
-							<i className="i-lucide-plus inline-block mr-2 h-4 w-4"  />
+							<i className="i-lucide-plus mr-2 h-4 w-4"  />
 							Add New
 						</Button>
 					)}
@@ -275,7 +275,7 @@ export function EnhancedDataTable<TData, TValue>({
 									className="font-heading text-muted-foreground h-32 text-center"
 								>
 									<div className="flex flex-col items-center gap-3">
-										<div className="text-6xl opacity-50">
+										<div className="text-6xl op-50">
 											📭
 										</div>
 										<div className="space-y-1">
@@ -365,81 +365,49 @@ export function createSortableHeader<_T>(
 			)}
 		>
 			{title}
-			<i className="i-lucide-arrowupdown inline-block ml-2 h-4 w-4"  />
+			<i className="i-lucide-arrowupdown ml-2 h-4 w-4"  />
 		</Button>
 	)
 }
 
-export function createActionsColumn<T>(
-	onView?: (_item: T) => void,
-	onEdit?: (_item: T) => void,
-	onDelete?: (_item: T) => void,
-	customActions?: {
-		label: string
-		onClick: (_item: T) => void
-		icon?: React.ReactNode
-		variant?: 'default' | 'destructive'
-	}[]
+export function createActionsColumn<T extends { id: string }>(
+    onView?: (_item: T) => void,
+    onEdit?: (_item: T) => void,
+    onDelete?: (_item: T) => void,
+    customActions?: {
+        label: string
+        onClick: (_item: T) => void
+        icon?: React.ReactNode
+        variant?: 'default' | 'destructive'
+    }[]
 ) {
-	return {
-		id: 'actions',
-		enableHiding: false,
-		cell: ({ row }: { row: { original: T } }) => {
-			const item = row.original
+    // Delegate action cell rendering to consolidated factory (dropdown variant)
+    // to avoid duplicating menu markup  
+    // Map provided handlers into TableAction format
+    const actions: Array<{ label: string; onClick: (_item: T) => void; icon?: React.ReactNode; variant?: 'default' | 'destructive' }> = []
+    if (onView) actions.push({ label: 'View details', onClick: onView })
+    if (onEdit) actions.push({ label: 'Edit', onClick: onEdit })
+    if (customActions) actions.push(...customActions)
+    if (onDelete) actions.push({ label: 'Delete', onClick: onDelete, variant: 'destructive' })
 
-			return (
-				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<Button variant="ghost" className="h-8 w-8 p-0">
-							<span className="sr-only">Open menu</span>
-							<i className="i-lucide-more-horizontal inline-block h-4 w-4"  />
-						</Button>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent align="end" className="w-[160px]">
-						<DropdownMenuLabel>Actions</DropdownMenuLabel>
-						<DropdownMenuSeparator />
-						{onView && (
-							<DropdownMenuItem onClick={() => onView(item)}>
-								View details
-							</DropdownMenuItem>
-						)}
-						{onEdit && (
-							<DropdownMenuItem onClick={() => onEdit(item)}>
-								Edit
-							</DropdownMenuItem>
-						)}
-						{customActions?.map((action, index) => (
-							<DropdownMenuItem
-								key={index}
-								onClick={() => action.onClick(item)}
-								className={
-									action.variant === 'destructive'
-										? 'text-destructive focus:text-destructive'
-										: ''
-								}
-							>
-								{action.icon && (
-									<span className="mr-2">{action.icon}</span>
-								)}
-								{action.label}
-							</DropdownMenuItem>
-						))}
-						{onDelete && (
-							<>
-								<DropdownMenuSeparator />
-								<DropdownMenuItem
-									onClick={() => onDelete(item)}
-									className="text-destructive focus:text-destructive"
-								>
-									Delete
-								</DropdownMenuItem>
-							</>
-						)}
-					</DropdownMenuContent>
-				</DropdownMenu>
-			)
-		}
-	}
+    const Actions = createActionColumn<T>({
+        entity: 'item',
+        basePath: '',
+        actions: actions.map(a => ({
+            type: 'custom',
+            icon: '',
+            label: a.label,
+            onClick: (item: T) => a.onClick(item),
+            variant: a.variant === 'destructive' ? 'destructive' : 'ghost'
+        })),
+        variant: 'dropdown'
+    })
+
+    return {
+        id: 'actions',
+        enableHiding: false,
+        cell: ({ row }: { row: { original: T } }) => <Actions item={row.original} />
+    }
 }
 
 // Property_ management specific select column

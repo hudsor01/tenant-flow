@@ -163,22 +163,22 @@ export function PricingComparison() {
 	const renderFeatureValue = (value: boolean | string) => {
 		if (typeof value === 'boolean') {
 			return value ? (
-				<i className="i-lucide-check inline-block mx-auto h-5 w-5 text-green-600"  />
+				<i className="i-lucide-check mx-auto h-5 w-5 text-green-6"  />
 			) : (
-				<i className="i-lucide-x inline-block mx-auto h-5 w-5 text-gray-300"  />
+				<i className="i-lucide-x mx-auto h-5 w-5 text-gray-3"  />
 			)
 		}
-		return <span className="text-sm text-gray-600">{value}</span>
+		return <span className="text-sm text-gray-6">{value}</span>
 	}
 
 	return (
 		<section className="bg-white py-24">
 			<div className="mx-auto max-w-7xl px-4">
 				<div className="mb-16 text-center">
-					<h2 className="mb-4 text-4xl font-bold text-gray-900">
+					<h2 className="mb-4 text-4xl font-bold text-gray-9">
 						Compare all features
 					</h2>
-					<p className="text-lg text-gray-600">
+					<p className="text-lg text-gray-6">
 						See exactly what's included in each plan to find the
 						perfect fit for your needs.
 					</p>
@@ -188,7 +188,7 @@ export function PricingComparison() {
 					<table className="w-full border-collapse">
 						{/* Table header */}
 						<thead>
-							<tr className="border-b border-gray-200">
+							<tr className="border-b border-gray-2">
 								<th className="p-4 text-left" />
 								{plans.map(plan => (
 									<th
@@ -196,12 +196,12 @@ export function PricingComparison() {
 										className="p-4 text-center"
 									>
 										<div className="space-y-2">
-											<h3 className="text-lg font-semibold text-gray-900">
+											<h3 className="text-lg font-semibold text-gray-9">
 												{plan.name}
 											</h3>
-											<div className="text-2xl font-bold text-gray-900">
+											<div className="text-2xl font-bold text-gray-9">
 												${plan.price.monthly / 100}
-												<span className="text-sm font-normal text-gray-600">
+												<span className="text-sm font-normal text-gray-6">
 													/month
 												</span>
 											</div>
@@ -218,10 +218,10 @@ export function PricingComparison() {
 									{/* Category header */}
 									<tr
 										key={category.name}
-										className="border-b border-gray-100"
+										className="border-b border-gray-1"
 									>
 										<td
-											className="bg-gray-50 p-4 font-semibold text-gray-900"
+											className="bg-gray-50 p-4 font-semibold text-gray-9"
 											colSpan={4}
 										>
 											{category.name}
@@ -234,7 +234,7 @@ export function PricingComparison() {
 											key={feature.name}
 											className="table-striped"
 										>
-											<td className="p-4 text-gray-700">
+											<td className="p-4 text-gray-7">
 												{feature.name}
 											</td>
 											<td className="p-4 text-center">
@@ -265,37 +265,37 @@ export function PricingComparison() {
 					{plans.map(plan => (
 						<div
 							key={plan.id}
-							className="rounded-xl border border-gray-200 bg-white p-6 text-center shadow-sm"
+							className="rounded-xl border border-gray-2 bg-white p-6 text-center shadow-sm"
 						>
-							<h3 className="mb-4 text-lg font-semibold text-gray-900">
+							<h3 className="mb-4 text-lg font-semibold text-gray-9">
 								{plan.name} Limits
 							</h3>
 							<div className="space-y-3 text-sm">
 								<div className="flex justify-between">
-									<span className="text-gray-600">
+									<span className="text-gray-6">
 										Properties:
 									</span>
-									<span className="font-medium text-gray-900">
+									<span className="font-medium text-gray-9">
 										{plan.propertyLimit === -1
 											? 'Unlimited'
 											: plan.propertyLimit}
 									</span>
 								</div>
 								<div className="flex justify-between">
-									<span className="text-gray-600">
+									<span className="text-gray-6">
 										Storage:
 									</span>
-									<span className="font-medium text-gray-900">
+									<span className="font-medium text-gray-9">
 										{plan.storageLimit === -1
 											? 'Unlimited'
 											: `${plan.storageLimit / 1000}GB`}
 									</span>
 								</div>
 								<div className="flex justify-between">
-									<span className="text-gray-600">
+									<span className="text-gray-6">
 										API Calls:
 									</span>
-									<span className="font-medium text-gray-900">
+									<span className="font-medium text-gray-9">
 										{plan.apiCallLimit === -1
 											? 'Unlimited'
 											: plan.apiCallLimit.toLocaleString()}

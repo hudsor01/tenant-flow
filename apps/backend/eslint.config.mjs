@@ -105,7 +105,7 @@ export default [
     }
   },
   
-  // Test files - completely permissive  
+  // Test files - use production rules to catch bugs early
   {
     name: 'backend/tests',
     files: ['**/*.spec.ts', '**/*.test.ts', '**/*.e2e-spec.ts', 'test/**/*.ts'],
@@ -116,11 +116,14 @@ export default [
       }
     },
     rules: {
-      '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/ban-ts-comment': 'off',
-      '@typescript-eslint/no-non-null-assertion': 'off',
-  '@typescript-eslint/no-unused-vars': 'off',
-      'no-console': 'off'
+      // Only allow console in tests (for debugging)
+      'no-console': 'off',
+      // Test files are allowed to use unsafe operations for mocking
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off'
     }
   },
   

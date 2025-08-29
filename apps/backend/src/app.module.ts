@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { Module, RequestMethod } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { ScheduleModule } from '@nestjs/schedule'
@@ -24,6 +24,7 @@ import { AnalyticsService } from './analytics/analytics.service'
 import { StripeService } from './billing/stripe.service'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
+import { HEALTH_PATHS } from './shared/constants/routes'
 
 /**
  * Core App Module - KISS principle
@@ -152,10 +153,7 @@ import { AppService } from './app.service'
 			},
 			// Apply request context logging to all routes except health checks
 			exclude: [
-				{ method: 0, path: 'health' },
-				{ method: 0, path: 'health/ping' },
-				{ method: 0, path: 'health/ready' },
-				{ method: 0, path: 'health/debug' }
+				...HEALTH_PATHS.map(path => ({ method: RequestMethod.ALL, path }))
 			]
 		}),
 

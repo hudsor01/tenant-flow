@@ -10,12 +10,16 @@
 		"./base": "./base.js",
 		"./nextjs": "./nextjs.js",
 		"./nestjs": "./nestjs.js",
+		"./anti-duplication": "./anti-duplication.js",
+		"./rules/anti-duplication": "./rules/anti-duplication.js",
 		"./package.json": "./package.json"
 	},
 	"files": [
 		"base.js",
 		"nextjs.js",
-		"nestjs.js"
+		"nestjs.js",
+		"anti-duplication.js",
+		"rules/"
 	],
 	"devDependencies": {
 		"@eslint/js": "^9.34.0",
