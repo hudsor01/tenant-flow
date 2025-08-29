@@ -14,8 +14,7 @@ export default function robots(): MetadataRoute.Robots {
 					'/auth/login',
 					'/auth/signup',
 					'/privacy-policy',
-					'/terms-of-service',
-					'/tenant-portal'
+					'/terms-of-service'
 				],
 				disallow: [
 					'/dashboard/*',

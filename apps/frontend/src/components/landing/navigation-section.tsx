@@ -25,8 +25,8 @@ export function NavigationSection(): React.ReactElement {
 			href: '/resources',
 			label: 'Resources',
 			dropdown: [
-				{ href: '/guides', label: 'Guides' },
-				{ href: '/support', label: 'Support' }
+				{ href: '/resources', label: 'Guides' },
+				{ href: '/contact', label: 'Support' }
 			]
 		}
 	]

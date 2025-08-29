@@ -91,12 +91,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
 			priority: 0.4
 		},
 
-		// Tenant portal
-		{
-			url: `${baseUrl}/tenant-portal`,
-			lastModified: currentDate,
-			changeFrequency: 'monthly',
-			priority: 0.6
-		}
+		// (Removed legacy tenant portal entry)
 	]
 }

@@ -1,6 +1,7 @@
 import { Module, RequestMethod } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { EventEmitterModule } from '@nestjs/event-emitter'
+import { ScheduleModule } from '@nestjs/schedule'
 import { LoggerModule } from 'nestjs-pino'
 import { validate } from './config/config.schema'
 import { APP_FILTER, APP_GUARD } from '@nestjs/core'
@@ -166,6 +167,9 @@ import { HEALTH_PATHS } from './shared/constants/routes'
 			verboseMemoryLeak: false,
 			ignoreErrors: false
 		}),
+
+		// Scheduled jobs (cron)
+		ScheduleModule.forRoot(),
 
 		SupabaseModule,
 

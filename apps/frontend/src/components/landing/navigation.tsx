@@ -52,7 +52,7 @@ export function Navigation({ locale }: NavigationProps) {
 				</div>
 
 				<div className="flex items-center space-x-4">
-					<Link href={`/${locale}/login`}>
+					<Link href={`/auth/login`}>
 						<Button
 							variant="ghost"
 							className="hidden sm:inline-flex"
@@ -60,7 +60,7 @@ export function Navigation({ locale }: NavigationProps) {
 							Sign In
 						</Button>
 					</Link>
-					<Link href={`/${locale}/signup`}>
+					<Link href={`/auth/signup`}>
 						<Button className="bg-orange-5 font-semibold text-white hover:bg-orange-6">
 							Start Free Trial
 						</Button>
