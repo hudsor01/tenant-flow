@@ -19,6 +19,7 @@ import type {
 } from '@repo/shared'
 import { get, post, put, del } from '@/lib/api-client'
 import { queryKeys } from '@/lib/react-query/query-keys'
+import { API_ENDPOINTS } from '@/lib/constants/api-endpoints'
 
 // ============================================================================
 // PURE DATA HOOKS - TanStack Query Suspense (No Optimistic Logic)
@@ -34,7 +35,7 @@ export function usePropertiesWithUnits(
 	return useSuspenseQuery({
 		queryKey: queryKeys.properties.list(query),
 		queryFn: async () =>
-			get<PropertyWithUnits[]>('/api/properties/with-units'),
+			get<PropertyWithUnits[]>(API_ENDPOINTS.PROPERTIES.WITH_UNITS),
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000 // 10 minutes
 	})
@@ -57,7 +58,7 @@ export function useProperties(
 export function useProperty(id: string): UseSuspenseQueryResult<PropertyWithUnits> {
 	return useSuspenseQuery({
 		queryKey: queryKeys.properties.detail(id),
-		queryFn: async () => get<PropertyWithUnits>(`/api/properties/${id}`),
+		queryFn: async () => get<PropertyWithUnits>(API_ENDPOINTS.PROPERTIES.BY_ID(id)),
 		staleTime: 2 * 60 * 1000 // 2 minutes
 	})
 }
@@ -68,7 +69,7 @@ export function useProperty(id: string): UseSuspenseQueryResult<PropertyWithUnit
 export function usePropertyStats(): UseSuspenseQueryResult<PropertyStats> {
 	return useSuspenseQuery({
 		queryKey: queryKeys.properties.stats(),
-		queryFn: async () => get<PropertyStats>('/api/properties/stats'),
+		queryFn: async () => get<PropertyStats>(API_ENDPOINTS.PROPERTIES.STATS),
 		staleTime: 2 * 60 * 1000, // 2 minutes
 		refetchInterval: 5 * 60 * 1000 // Auto-refresh every 5 minutes
 	})
@@ -88,7 +89,7 @@ export function usePropertiesOptimistic(query?: PropertyQuery) {
 	const queryClient = useQueryClient()
 	
 	const createProperty = async (input: CreatePropertyInput) => {
-		const result = await post<PropertyWithUnits>('/api/properties', input)
+		const result = await post<PropertyWithUnits>(API_ENDPOINTS.PROPERTIES.BASE, input)
 		await queryClient.invalidateQueries({
 			queryKey: queryKeys.properties.lists()
 		})
@@ -99,7 +100,7 @@ export function usePropertiesOptimistic(query?: PropertyQuery) {
 	}
 	
 	const updateProperty = async (id: string, input: UpdatePropertyInput) => {
-		const result = await put<PropertyWithUnits>(`/api/properties/${id}`, input)
+		const result = await put<PropertyWithUnits>(API_ENDPOINTS.PROPERTIES.BY_ID(id), input)
 		await queryClient.invalidateQueries({
 			queryKey: queryKeys.properties.detail(id)
 		})
@@ -113,7 +114,7 @@ export function usePropertiesOptimistic(query?: PropertyQuery) {
 	}
 	
 	const deleteProperty = async (id: string) => {
-		const result = await del(`/api/properties/${id}`)
+		const result = await del(API_ENDPOINTS.PROPERTIES.BY_ID(id))
 		await queryClient.invalidateQueries({
 			queryKey: queryKeys.properties.lists()
 		})
@@ -151,18 +152,9 @@ export function usePropertyOptimistic(id: string) {
 
 /**
  * PURE: Enhanced prefetch for Suspense patterns - ensures data available when component mounts
+ * Uses generic implementation to avoid duplication
  */
-export function usePrefetchProperty() {
-	const queryClient = useQueryClient()
-
-	return (id: string) => {
-		void queryClient.prefetchQuery({
-			queryKey: queryKeys.properties.detail(id),
-			queryFn: async () => get<Property>(`/api/properties/${id}`),
-			staleTime: 10 * 1000 // 10 seconds
-		})
-	}
-}
+export { usePrefetchProperty } from './use-prefetch-resource'
 
 // ============================================================================
 // EXPORTS - React 19 Pure Implementation
@@ -190,7 +182,7 @@ export function useCreateProperty() {
 		mutateAsync: async (data: CreatePropertyInput) => {
 			setIsPending(true)
 			try {
-				const result = await post<Property>('/api/properties', data)
+				const result = await post<Property>(API_ENDPOINTS.PROPERTIES.BASE, data)
 				await queryClient.invalidateQueries({
 					queryKey: queryKeys.properties.lists()
 				})
@@ -217,7 +209,7 @@ export function useUpdateProperty() {
 		mutateAsync: async ({ id, data }: { id: string; data: UpdatePropertyInput }) => {
 			setIsPending(true)
 			try {
-				const result = await put<Property>(`/api/properties/${id}`, data)
+				const result = await put<Property>(API_ENDPOINTS.PROPERTIES.BY_ID(id), data)
 				await queryClient.invalidateQueries({
 					queryKey: queryKeys.properties.detail(id)
 				})

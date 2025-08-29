@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { toast } from 'sonner'
 import { supabase } from '../lib/supabase/client'
-import { apiClient } from '@/lib/api-client'
+import { get, post } from '@/lib/api-client'
 import { logger } from '@/lib/logger'
 import type { User, LoginCredentials, SignupCredentials } from '@repo/shared/types/auth'
 import { type TypedAuthError } from '@repo/shared/types/auth-errors'
@@ -36,7 +36,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const initializeAuth = async () => {
       try {
         setLoading(true)
-        const session = await apiClient.get<{user: User}>('/api/auth/session')
+        const session = await get<{user: User}>('/api/auth/session')
 
         if (mounted) {
           setUser(session?.user || null)
@@ -71,7 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setError(null)
         } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           try {
-            const authSession = await apiClient.get<{user: User}>('/api/auth/session')
+            const authSession = await get<{user: User}>('/api/auth/session')
             setUser(authSession?.user || null)
           } catch (backendError) {
             logger.warn('Backend sync failed:', {
@@ -118,7 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(true)
       setError(null)
 
-      const session = await apiClient.post<{user: User}>('/api/auth/login', credentials)
+      const session = await post<{user: User}>('/api/auth/login', credentials)
       setUser(session.user)
 
       toast.success('Welcome back!')
@@ -143,7 +143,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(true)
       setError(null)
 
-      const _result = await apiClient.post<{message: string}>('/api/auth/signup', credentials)
+      const _result = await post<{message: string}>('/api/auth/signup', credentials)
       toast.success(_result.message)
       return { success: true, message: _result.message }
     } catch (error: unknown) {
@@ -164,7 +164,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = useCallback(async () => {
     try {
       setLoading(true)
-      await apiClient.post<Record<string, never>>('/api/auth/logout', {})
+      await post<Record<string, never>>('/api/auth/logout', {})
       setUser(null)
       setError(null)
       toast.success('Logged out successfully')
@@ -188,7 +188,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(true)
       setError(null)
 
-      const _result = await apiClient.post<{message: string}>('/api/auth/reset-password', { email })
+      const _result = await post<{message: string}>('/api/auth/reset-password', { email })
       toast.success(_result.message)
       return { success: true, message: _result.message }
     } catch (error: unknown) {

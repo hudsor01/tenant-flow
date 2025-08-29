@@ -19,7 +19,7 @@ export function BusinessInfoSection({
 			<CardHeader className="from-primary/10 flex items-center justify-center border-b border-white/20 bg-gradient-to-r to-indigo-500/10 py-4">
 				<CardTitle className="flex items-center justify-center gap-2 text-base text-white">
 					<div className="bg-primary/20 group-hover:bg-primary/30 rounded-lg p-1.5 transition-colors">
-						<i className="i-lucide-building inline-block h-4 w-4 text-blue-300"  />
+						<i className="i-lucide-building h-4 w-4 text-blue-3"  />
 					</div>
 					<span className="font-serif">Sender</span>
 				</CardTitle>
@@ -44,10 +44,10 @@ export function BusinessInfoSection({
 								}
 							})}
 							placeholder="Your Business Name"
-							className="h-8 border-white/20 bg-white/10 text-sm text-white placeholder:text-white/60 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50"
+							className="h-8 border-white/20 bg-white/10 text-sm text-white placeholder:text-white/60 focus:border-blue-4 focus:ring-2 focus:ring-blue-4/50"
 						/>
 						{errors.businessName && (
-							<p className="text-xs text-red-400">
+							<p className="text-xs text-red-4">
 								{String(errors.businessName.message || errors.businessName || 'Business name is required')}
 							</p>
 						)}
@@ -70,10 +70,10 @@ export function BusinessInfoSection({
 								}
 							})}
 							placeholder="business@email.com"
-							className="h-8 border-white/20 bg-white/10 text-sm text-white placeholder:text-white/60 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50"
+							className="h-8 border-white/20 bg-white/10 text-sm text-white placeholder:text-white/60 focus:border-blue-4 focus:ring-2 focus:ring-blue-4/50"
 						/>
 						{errors.businessEmail && (
-							<p className="text-xs text-red-400">
+							<p className="text-xs text-red-4">
 								{String(errors.businessEmail.message || errors.businessEmail || 'Business email is required')}
 							</p>
 						)}
@@ -91,7 +91,7 @@ export function BusinessInfoSection({
 							id="businessAddress"
 							{...register('businessAddress')}
 							placeholder="123 Business Street"
-							className="h-8 border-white/20 bg-white/10 text-sm text-white placeholder:text-white/60 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50"
+							className="h-8 border-white/20 bg-white/10 text-sm text-white placeholder:text-white/60 focus:border-blue-4 focus:ring-2 focus:ring-blue-4/50"
 						/>
 					</div>
 					<div className="flex flex-col gap-1">
@@ -105,7 +105,7 @@ export function BusinessInfoSection({
 							id="businessPhone"
 							{...register('businessPhone')}
 							placeholder="(555) 123-4567"
-							className="h-8 border-white/20 bg-white/10 text-sm text-white placeholder:text-white/60 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50"
+							className="h-8 border-white/20 bg-white/10 text-sm text-white placeholder:text-white/60 focus:border-blue-4 focus:ring-2 focus:ring-blue-4/50"
 						/>
 					</div>
 				</div>
@@ -121,7 +121,7 @@ export function BusinessInfoSection({
 							id="businessCity"
 							{...register('businessCity')}
 							placeholder="City"
-							className="h-8 border-white/20 bg-white/10 text-sm text-white placeholder:text-white/60 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50"
+							className="h-8 border-white/20 bg-white/10 text-sm text-white placeholder:text-white/60 focus:border-blue-4 focus:ring-2 focus:ring-blue-4/50"
 						/>
 					</div>
 					<div className="flex flex-col gap-1">
@@ -136,7 +136,7 @@ export function BusinessInfoSection({
 							{...register('businessState')}
 							placeholder="ST"
 							maxLength={2}
-							className="h-8 border-white/20 bg-white/10 text-sm text-white placeholder:text-white/60 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50"
+							className="h-8 border-white/20 bg-white/10 text-sm text-white placeholder:text-white/60 focus:border-blue-4 focus:ring-2 focus:ring-blue-4/50"
 						/>
 					</div>
 					<div className="flex flex-col gap-1">
@@ -150,7 +150,7 @@ export function BusinessInfoSection({
 							id="businessZip"
 							{...register('businessZip')}
 							placeholder="12345"
-							className="h-8 border-white/20 bg-white/10 text-sm text-white placeholder:text-white/60 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50"
+							className="h-8 border-white/20 bg-white/10 text-sm text-white placeholder:text-white/60 focus:border-blue-4 focus:ring-2 focus:ring-blue-4/50"
 						/>
 					</div>
 				</div>

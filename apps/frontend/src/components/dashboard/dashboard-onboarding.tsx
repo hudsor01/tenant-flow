@@ -96,16 +96,16 @@ export function DashboardOnboarding() {
 	}
 
 	return (
-		<Card className="card-modern relative overflow-hidden border-blue-200 bg-gradient-to-br from-blue-50/80 via-indigo-50/40 to-purple-50/60 dark:border-blue-800 dark:from-blue-950/40 dark:via-indigo-950/20 dark:to-purple-950/30">
+		<Card className="card-modern relative overflow-hidden border-blue-2 bg-gradient-to-br from-blue-50/80 via-indigo-50/40 to-purple-50/60 dark:border-blue-8 dark:from-blue-950/40 dark:via-indigo-950/20 dark:to-purple-950/30">
 			{/* Animated background elements */}
-			<div className="absolute right-0 top-0 h-32 w-32 animate-pulse rounded-full bg-gradient-to-br from-blue-400/10 to-purple-400/10 blur-2xl" />
-			<div className="absolute bottom-0 left-0 h-24 w-24 animate-pulse rounded-full bg-gradient-to-tr from-indigo-400/10 to-blue-400/10 blur-xl delay-1000" />
+			<div className="absolute right-0 top-0 h-32 w-32 animate-pulse rounded-full bg-gradient-to-br from-blue-4/10 to-purple-400/10 blur-2xl" />
+			<div className="absolute bottom-0 left-0 h-24 w-24 animate-pulse rounded-full bg-gradient-to-tr from-indigo-400/10 to-blue-4/10 blur-xl delay-1000" />
 
 			<CardHeader className="relative pb-4">
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-3">
-						<div className="bg-primary/10 rounded-xl border border-blue-200 p-2">
-							<i className="i-lucide-sparkles inline-block text-primary h-5 w-5 animate-pulse"  />
+						<div className="bg-primary/10 rounded-xl border border-blue-2 p-2">
+							<i className="i-lucide-sparkles text-primary h-5 w-5 animate-pulse"  />
 						</div>
 						<div>
 							<CardTitle className="text-foreground text-lg font-semibold">
@@ -140,7 +140,7 @@ export function DashboardOnboarding() {
 					<div className="space-y-2">
 						<Progress
 							value={progressPercentage}
-							className="h-3 bg-blue-100 dark:bg-blue-950/50"
+							className="h-3 bg-blue-1 dark:bg-blue-950/50"
 						/>
 						<div className="text-muted-foreground flex justify-between text-xs">
 							<span>Getting started</span>
@@ -158,14 +158,14 @@ export function DashboardOnboarding() {
 									'group relative flex items-center justify-between rounded-xl p-4 transition-all duration-300',
 									'border backdrop-blur-sm',
 									step.completed
-										? 'border-green-300 bg-green-50/80 shadow-sm'
+										? 'border-green-3 bg-green-50/80 shadow-sm'
 										: 'bg-background/80 border-border hover:border-primary/30 hover:bg-muted/30 hover:-translate-y-0.5 hover:shadow-md'
 								)}
 							>
 								{/* Step number indicator */}
 								<div className="bg-background border-border absolute -left-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border-2 text-xs font-bold">
 									{step.completed ? (
-										<i className="i-lucide-check-circle-2 inline-block h-3 w-3 text-green-600"  />
+										<i className="i-lucide-check-circle-2 h-3 w-3 text-green-6"  />
 									) : (
 										<span className="text-muted-foreground">
 											{index + 1}
@@ -178,7 +178,7 @@ export function DashboardOnboarding() {
 										className={cn(
 											'rounded-lg p-2 transition-all duration-300',
 											step.completed
-												? 'border border-green-200 bg-green-100'
+												? 'border border-green-2 bg-green-1'
 												: 'bg-primary/10 border-primary/20 group-hover:bg-primary/20 border'
 										)}
 									>
@@ -186,7 +186,7 @@ export function DashboardOnboarding() {
 												step.icon,
 												'inline-block h-4 w-4 transition-colors duration-300',
 												step.completed
-													? 'text-green-600'
+													? 'text-green-6'
 													: 'text-primary group-hover:text-primary/80'
 											)} />
 									</div>
@@ -195,14 +195,14 @@ export function DashboardOnboarding() {
 											className={cn(
 												'text-sm font-semibold transition-colors duration-300',
 												step.completed
-													? 'text-green-700 dark:text-green-400'
+													? 'text-green-7 dark:text-green-4'
 													: 'text-foreground'
 											)}
 										>
 											{step.label}
 										</span>
 										{step.completed && (
-											<p className="text-xs font-medium text-green-600 dark:text-green-400">
+											<p className="text-xs font-medium text-green-6 dark:text-green-4">
 												Completed ✓
 											</p>
 										)}
@@ -220,7 +220,7 @@ export function DashboardOnboarding() {
 											className="focus-modern"
 										>
 											Start
-											<i className="i-lucide-arrow-right inline-block ml-2 h-3 w-3 transition-transform group-hover:translate-x-0.5"  />
+											<i className="i-lucide-arrow-right ml-2 h-3 w-3 transition-transform group-hover:translate-x-0.5"  />
 										</Link>
 									</Button>
 								)}

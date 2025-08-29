@@ -2,7 +2,7 @@
 
 import { useTransition } from 'react'
 import { logger } from '@/lib/logger/logger'
-import { motion } from '@/lib/lazy-motion'
+import { motion } from 'framer-motion'
 import { cardVariants } from './dashboard-animations'
 
 interface QuickActionProps {
@@ -44,7 +44,7 @@ function QuickAction({
 			className={`btn-modern card-modern bg-background/80 relative w-full rounded-xl border p-4 backdrop-blur-sm ${colorClasses[color]} var(--transition-normal) group text-left transition-all hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50`}
 		>
 			<div className="flex items-center space-x-4">
-				<div className="bg-primary/10 border-primary/20 group-hover:bg-primary/20 rounded-xl border p-3 transition-all duration-300 group-hover:scale-110">
+				<div className="bg-primary op-10 border-primary op-20 group-hover:bg-primary op-20 rounded-xl border p-3 transition-all duration-300 group-hover:scale-110">
 					<Icon className="text-primary h-5 w-5 transition-colors duration-300" />
 				</div>
 				<div className="flex-1">
@@ -55,8 +55,8 @@ function QuickAction({
 						{description}
 					</p>
 				</div>
-				<div className="bg-primary/10 group-hover:bg-primary/20 rounded-lg p-2 opacity-50 transition-all duration-300 group-hover:opacity-100">
-					<i className="i-lucide-plus inline-block text-primary h-4 w-4"  />
+				<div className="bg-primary op-10 group-hover:bg-primary op-20 rounded-lg p-2 op-50 transition-all duration-300 group-hover:op-100">
+					<i className="i-lucide-plus text-primary h-4 w-4"  />
 				</div>
 			</div>
 		</motion.button>
@@ -138,14 +138,14 @@ export function DashboardQuickActions({
 		<motion.div variants={cardVariants} className="lg:col-span-1">
 			<div className="card-modern bg-card rounded-xl border p-6 backdrop-blur-sm">
 				<h3 className="text-foreground mb-6 flex items-center text-xl font-semibold">
-					<div className="bg-primary/10 border-primary/20 mr-3 rounded-xl border p-2">
-						<i className="i-lucide-activity inline-block text-primary h-5 w-5"  />
+					<div className="bg-primary op-10 border-primary op-20 mr-3 rounded-xl border p-2">
+						<i className="i-lucide-activity text-primary h-5 w-5"  />
 					</div>
 					Quick Actions
 				</h3>
 				<div className="space-y-4">
 					{defaultQuickActions.map(action => {
-						const IconComponent = () => <i className={`${action.icon} inline-block h-5 w-5`} />
+						const IconComponent = () => <i className={`${action.icon} h-5 w-5`} />
 						return (
 							<QuickAction
 								key={action.title}

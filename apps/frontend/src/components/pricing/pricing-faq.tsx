@@ -49,10 +49,10 @@ export function PricingFAQ() {
 		<section className="bg-gray-50 py-24">
 			<div className="mx-auto max-w-4xl px-4">
 				<div className="mb-16 text-center">
-					<h2 className="mb-4 text-4xl font-bold text-gray-900">
+					<h2 className="mb-4 text-4xl font-bold text-gray-9">
 						Frequently asked questions
 					</h2>
-					<p className="text-lg text-gray-600">
+					<p className="text-lg text-gray-6">
 						Everything you need to know about our pricing and plans.
 					</p>
 				</div>
@@ -61,7 +61,7 @@ export function PricingFAQ() {
 					{faqs.map((faq, index) => (
 						<div
 							key={index}
-							className="rounded-xl border border-gray-200 bg-white shadow-sm transition-all hover:shadow-md"
+							className="rounded-xl border border-gray-2 bg-white shadow-sm transition-all hover:shadow-md"
 						>
 							<button
 								onClick={() =>
@@ -71,19 +71,19 @@ export function PricingFAQ() {
 								}
 								className="flex w-full items-center justify-between p-6 text-left"
 							>
-								<h3 className="pr-8 text-lg font-semibold text-gray-900">
+								<h3 className="pr-8 text-lg font-semibold text-gray-9">
 									{faq.question}
 								</h3>
 								{openIndex === index ? (
-									<i className="i-lucide-chevron-up inline-block h-5 w-5 flex-shrink-0 text-gray-500"  />
+									<i className="i-lucide-chevron-up h-5 w-5 flex-shrink-0 text-gray-5"  />
 								) : (
-									<i className="i-lucide-chevron-down inline-block h-5 w-5 flex-shrink-0 text-gray-500"  />
+									<i className="i-lucide-chevron-down h-5 w-5 flex-shrink-0 text-gray-5"  />
 								)}
 							</button>
 
 							{openIndex === index && (
-								<div className="border-t border-gray-100 px-6 pb-6">
-									<p className="pt-4 leading-relaxed text-gray-600">
+								<div className="border-t border-gray-1 px-6 pb-6">
+									<p className="pt-4 leading-relaxed text-gray-6">
 										{faq.answer}
 									</p>
 								</div>
@@ -94,19 +94,19 @@ export function PricingFAQ() {
 
 				{/* Contact support */}
 				<div className="mt-16 text-center">
-					<div className="rounded-xl border border-blue-200 bg-blue-50 p-8">
-						<h3 className="mb-3 text-xl font-semibold text-gray-900">
+					<div className="rounded-xl border border-blue-2 bg-blue-50 p-8">
+						<h3 className="mb-3 text-xl font-semibold text-gray-9">
 							Still have questions?
 						</h3>
-						<p className="mb-6 text-gray-600">
+						<p className="mb-6 text-gray-6">
 							Our support team is here to help you find the right
 							plan for your needs.
 						</p>
 						<div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-							<button className="rounded-lg bg-blue-600 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700">
+							<button className="rounded-lg bg-blue-6 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-7">
 								Contact Support
 							</button>
-							<button className="font-medium text-blue-600 transition-colors hover:text-blue-700">
+							<button className="font-medium text-blue-6 transition-colors hover:text-blue-7">
 								Schedule a Demo
 							</button>
 						</div>

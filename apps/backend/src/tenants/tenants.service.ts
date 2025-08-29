@@ -7,8 +7,10 @@
  */
 
 import { Injectable, BadRequestException } from '@nestjs/common'
+import { EventEmitter2 } from '@nestjs/event-emitter'
 import { PinoLogger } from 'nestjs-pino'
 import { SupabaseService } from '../database/supabase.service'
+import { TenantCreatedEvent } from '../notifications/events/notification.events'
 import type {
 	CreateTenantRequest,
 	UpdateTenantRequest
@@ -46,7 +48,8 @@ export interface TenantWithRelations extends Tenant {
 export class TenantsService {
 	constructor(
 		private readonly supabaseService: SupabaseService,
-		private readonly logger: PinoLogger
+		private readonly logger: PinoLogger,
+		private readonly eventEmitter: EventEmitter2
 	) {
 		// PinoLogger context handled automatically via app-level configuration
 	}
@@ -147,6 +150,25 @@ export class TenantsService {
 				error: error.message
 			})
 			throw new BadRequestException('Failed to create tenant')
+		}
+
+		// Emit tenant created event for notification service using native EventEmitter2
+		if (data) {
+			const tenantRecord = data as {
+				id: string
+				name: string
+				email: string
+			}
+			this.eventEmitter.emit(
+				'tenant.created',
+				new TenantCreatedEvent(
+					userId,
+					tenantRecord.id,
+					tenantRecord.name,
+					tenantRecord.email,
+					`New tenant ${tenantRecord.name} has been added to your property`
+				)
+			)
 		}
 
 		return data

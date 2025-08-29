@@ -1,7 +1,7 @@
 'use client'
 
 import { Suspense } from 'react'
-import { motion } from '@/lib/lazy-motion'
+import { motion } from 'framer-motion'
 import { useProperties } from '@/hooks/api/use-properties'
 import {
 	Card,
@@ -70,9 +70,9 @@ export function DashboardRecentActivity() {
 			>
 				<Alert
 					variant="destructive"
-					className="border-red-200 bg-red-50"
+					className="border-red-2 bg-red-50"
 				>
-					<i className="i-lucide-alert-triangle inline-block h-4 w-4"  />
+					<i className="i-lucide-alert-triangle h-4 w-4"  />
 					<AlertTitle>Error loading properties</AlertTitle>
 					<AlertDescription>
 						There was a problem loading your recent activity. Please
@@ -122,7 +122,7 @@ export function DashboardRecentActivity() {
 												ease: 'easeInOut'
 											}}
 										>
-											<i className="i-lucide-arrow-right inline-block ml-1 h-3 w-3 transition-transform group-hover/btn:translate-x-0.5"  />
+											<i className="i-lucide-arrow-right ml-1 h-3 w-3 transition-transform group-hover/btn:translate-x-0.5"  />
 										</motion.div>
 									</Link>
 								</Button>
@@ -174,7 +174,7 @@ export function DashboardRecentActivity() {
 											ease: 'easeInOut'
 										}}
 									>
-										<i className="i-lucide-activity inline-block mx-auto mb-4 h-12 w-12 text-gray-300"  />
+										<i className="i-lucide-activity mx-auto mb-4 h-12 w-12 text-gray-3"  />
 									</motion.div>
 									<p>No properties yet</p>
 									<motion.div
@@ -263,7 +263,7 @@ export function DashboardRecentActivity() {
 														delay: index * 0.5
 													}}
 												>
-													<i className="i-lucide-arrow-right inline-block mr-2 h-4 w-4 transition-transform group-hover/action:translate-x-0.5"  />
+													<i className="i-lucide-arrow-right mr-2 h-4 w-4 transition-transform group-hover/action:translate-x-0.5"  />
 												</motion.div>
 												{action.label}
 											</Link>

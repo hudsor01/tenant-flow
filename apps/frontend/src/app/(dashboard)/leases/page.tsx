@@ -1,3 +1,11 @@
+'use client'
+
+// Disable static generation for this page to avoid build-time API calls
+// that rely on runtime auth/session. This forces dynamic rendering and
+// prevents Next.js from prerendering during `next build`.
+export const dynamic = 'force-dynamic'
+export const fetchCache = 'default-no-store'
+
 import { Suspense } from 'react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -7,12 +15,6 @@ import Link from 'next/link'
 import { LeasesDataTable } from '@/components/leases/leases-data-table'
 import { LeasesStats } from '@/components/leases/leases-stats'
 import { PageTracker } from '@/components/analytics/page-tracker'
-import type { Metadata } from 'next/types'
-
-export const metadata: Metadata = {
-	title: 'Leases | TenantFlow',
-	description: 'Manage lease agreements and track rental terms'
-}
 
 function LeasesHeader() {
 	return (
@@ -27,12 +29,12 @@ function LeasesHeader() {
 			</div>
 			<div className="flex gap-2">
 				<Button variant="outline" size="sm">
-					<i className="i-lucide-filter inline-block mr-2 h-4 w-4"  />
+					<i className="i-lucide-filter  mr-2 h-4 w-4"  />
 					Filter
 				</Button>
 				<Link href="/leases/new">
 					<Button size="sm">
-						<i className="i-lucide-plus inline-block mr-2 h-4 w-4"  />
+						<i className="i-lucide-plus  mr-2 h-4 w-4"  />
 						Create Lease
 					</Button>
 				</Link>
@@ -47,14 +49,14 @@ function LeasesSearch() {
 			<CardContent className="p-4">
 				<div className="flex gap-4">
 					<div className="relative flex-1">
-						<i className="i-lucide-search inline-block text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform"  />
+						<i className="i-lucide-search  text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform"  />
 						<Input
 							placeholder="Search leases by tenant, property, or lease terms..."
 							className="pl-10"
 						/>
 					</div>
 					<Button variant="outline">
-						<i className="i-lucide-filter inline-block mr-2 h-4 w-4"  />
+						<i className="i-lucide-filter  mr-2 h-4 w-4"  />
 						Filters
 					</Button>
 				</div>

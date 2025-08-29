@@ -52,7 +52,7 @@ export class DashboardErrorBoundary extends Component<Props, State> {
 				return (
 					<div className="container mx-auto max-w-4xl p-6">
 						<Alert className="mb-6">
-							<i className="i-lucide-alert-triangle inline-block h-4 w-4"  />
+							<i className="i-lucide-alert-triangle h-4 w-4"  />
 							<AlertTitle>Limited Functionality</AlertTitle>
 							<AlertDescription>
 								Some features are currently unavailable. You can
@@ -115,7 +115,7 @@ export class DashboardErrorBoundary extends Component<Props, State> {
 										variant="secondary"
 										className="w-full"
 									>
-										<i className="i-lucide-refreshcw inline-block mr-2 h-4 w-4"  />
+										<i className="i-lucide-refreshcw mr-2 h-4 w-4"  />
 										Retry Loading Dashboard
 									</Button>
 								</CardContent>
@@ -125,7 +125,7 @@ export class DashboardErrorBoundary extends Component<Props, State> {
 						<div className="mt-6 text-center">
 							<Link href="/">
 								<Button variant="ghost">
-									<i className="i-lucide-home inline-block mr-2 h-4 w-4"  />
+									<i className="i-lucide-home mr-2 h-4 w-4"  />
 									Back to Home
 								</Button>
 							</Link>
@@ -151,7 +151,7 @@ export class DashboardErrorBoundary extends Component<Props, State> {
 									onClick={() => window.location.reload()}
 									className="w-full"
 								>
-									<i className="i-lucide-refreshcw inline-block mr-2 h-4 w-4"  />
+									<i className="i-lucide-refreshcw mr-2 h-4 w-4"  />
 									Refresh Page
 								</Button>
 								<Link href="/" className="block">

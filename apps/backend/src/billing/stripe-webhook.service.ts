@@ -12,8 +12,10 @@
  */
 
 import { Injectable } from '@nestjs/common'
+import { EventEmitter2 } from '@nestjs/event-emitter'
 import { PinoLogger } from 'nestjs-pino'
 import { SupabaseService } from '../database/supabase.service'
+import { PaymentReceivedEvent, PaymentFailedEvent } from '../notifications/events/notification.events'
 import type { Stripe } from 'stripe'
 
 // Extended interfaces for Stripe objects with missing properties
@@ -35,7 +37,8 @@ export class StripeWebhookService {
 
 	constructor(
 		private readonly supabaseService: SupabaseService,
-		private readonly logger: PinoLogger
+		private readonly logger: PinoLogger,
+		private readonly eventEmitter: EventEmitter2
 	) {
 		// PinoLogger context handled automatically via app-level configuration
 	}
@@ -163,6 +166,36 @@ export class StripeWebhookService {
 		this.logger.warn(
 			`Payment failed for subscription: ${subscriptionId}. Smart Retries will handle recovery.`
 		)
+
+		// Emit payment failed event for notification service using native EventEmitter2
+		try {
+			// Get user by customer ID to emit event
+			const customerId = typeof invoice.customer === 'string' ? invoice.customer : invoice.customer?.id
+			if (customerId) {
+				const { data: user } = await this.supabaseService
+					.getAdminClient()
+					.from('User')
+					.select('id, name, email')
+					.eq('stripeCustomerId', customerId)
+					.single()
+
+				if (user) {
+					this.eventEmitter.emit(
+						'payment.failed',
+						new PaymentFailedEvent(
+							user.id,
+							subscriptionId || '',
+							invoice.amount_due || 0,
+							invoice.currency || 'usd',
+							invoice.hosted_invoice_url || '',
+							`Payment failed for subscription ${subscriptionId}`
+						)
+					)
+				}
+			}
+		} catch (error) {
+			this.logger.error('Failed to emit payment failed event:', error)
+		}
 	}
 
 	/**
@@ -181,6 +214,36 @@ export class StripeWebhookService {
 
 		await this.updateSubscriptionStatus(subscriptionId || '', 'ACTIVE')
 		this.logger.info(`Payment succeeded for subscription: ${subscriptionId}`)
+
+		// Emit payment received event for notification service using native EventEmitter2
+		try {
+			// Get user by customer ID to emit event
+			const customerId = typeof invoice.customer === 'string' ? invoice.customer : invoice.customer?.id
+			if (customerId) {
+				const { data: user } = await this.supabaseService
+					.getAdminClient()
+					.from('User')
+					.select('id, name, email')
+					.eq('stripeCustomerId', customerId)
+					.single()
+
+				if (user) {
+					this.eventEmitter.emit(
+						'payment.received',
+						new PaymentReceivedEvent(
+							user.id,
+							subscriptionId || '',
+							invoice.amount_paid || 0,
+							invoice.currency || 'usd',
+							invoice.hosted_invoice_url || '',
+							`Payment of ${((invoice.amount_paid || 0) / 100).toFixed(2)} ${invoice.currency?.toUpperCase()} received successfully`
+						)
+					)
+				}
+			}
+		} catch (error) {
+			this.logger.error('Failed to emit payment received event:', error)
+		}
 	}
 
 	/**

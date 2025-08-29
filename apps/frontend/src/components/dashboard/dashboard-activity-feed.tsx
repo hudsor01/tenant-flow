@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from '@/lib/lazy-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { cardVariants, activityItemVariants } from './dashboard-animations'
 import type { ActivityItem, ActivityType } from '@repo/shared'
 
@@ -16,17 +16,17 @@ function ActivityIcon({ type }: { type: string }) {
 	switch (type) {
 		case 'maintenance_request':
 		case 'maintenance':
-			return <i className="i-lucide-wrench inline-block h-4 w-4"  />
+			return <i className="i-lucide-wrench h-4 w-4"  />
 		case 'tenant_added':
 		case 'tenant':
-			return <i className="i-lucide-users inline-block h-4 w-4"  />
+			return <i className="i-lucide-users h-4 w-4"  />
 		case 'lease_created':
 		case 'lease':
-			return <i className="i-lucide-file-text inline-block h-4 w-4"  />
+			return <i className="i-lucide-file-text h-4 w-4"  />
 		case 'payment_received':
-			return <i className="i-lucide-checkcircle inline-block h-4 w-4"  />
+			return <i className="i-lucide-checkcircle h-4 w-4"  />
 		default:
-			return <i className="i-lucide-calendar inline-block h-4 w-4"  />
+			return <i className="i-lucide-calendar h-4 w-4"  />
 	}
 }
 
@@ -36,17 +36,17 @@ function getActivityColorClasses(type: string) {
 	switch (type) {
 		case 'maintenance_request':
 		case 'maintenance':
-			return 'bg-emerald-500/20 text-emerald-400'
+			return 'bg-emerald-5/20 text-emerald-4'
 		case 'tenant_added':
 		case 'tenant':
-			return 'bg-primary/20 text-blue-400'
+			return 'bg-primary/20 text-blue-4'
 		case 'lease_created':
 		case 'lease':
-			return 'bg-purple-500/20 text-purple-400'
+			return 'bg-purple-5/20 text-purple-4'
 		case 'payment_received':
-			return 'bg-green-500/20 text-green-400'
+			return 'bg-green-5/20 text-green-4'
 		default:
-			return 'bg-gray-500/20 text-gray-400'
+			return 'bg-gray-5/20 text-gray-4'
 	}
 }
 
@@ -61,7 +61,7 @@ export function DashboardActivityFeed({
 			<motion.div variants={cardVariants} className="lg:col-span-2">
 				<div className="rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
 					<h3 className="mb-6 flex items-center text-xl font-semibold text-white">
-						<i className="i-lucide-clock inline-block mr-2 h-5 w-5 text-[#60a5fa]"  />
+						<i className="i-lucide-clock mr-2 h-5 w-5 text-[#60a5fa]"  />
 						Recent Activity
 					</h3>
 					<div className="space-y-4">
@@ -87,7 +87,7 @@ export function DashboardActivityFeed({
 		<motion.div variants={cardVariants} className="lg:col-span-2">
 			<div className="rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
 				<h3 className="mb-6 flex items-center text-xl font-semibold text-white">
-					<i className="i-lucide-clock inline-block mr-2 h-5 w-5 text-[#60a5fa]"  />
+					<i className="i-lucide-clock mr-2 h-5 w-5 text-[#60a5fa]"  />
 					Recent Activity
 				</h3>
 
@@ -131,7 +131,7 @@ export function DashboardActivityFeed({
 
 					{!Array.isArray(activities) || activities.length === 0 ? (
 						<div className="py-8 text-center">
-							<i className="i-lucide-activity inline-block mx-auto mb-4 h-12 w-12 text-white/20"  />
+							<i className="i-lucide-activity mx-auto mb-4 h-12 w-12 text-white/20"  />
 							<p className="text-white/60">No recent activity</p>
 							<p className="text-sm text-white/40">
 								Activity will appear here as you manage your

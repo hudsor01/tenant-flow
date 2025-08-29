@@ -70,11 +70,11 @@ export function FormError({ error, errors, className, ...props }: FormErrorProps
 	
 	return (
 		<div 
-			className={cn('flex items-center gap-2 text-sm text-red-600', className)} 
+			className={cn('flex items-center gap-2 text-sm text-red-6', className)} 
 			role="alert"
 			{...props}
 		>
-			<i className="i-lucide-alert-circle inline-block h-4 w-4 flex-shrink-0"  />
+			<i className="i-lucide-alert-circle h-4 w-4 flex-shrink-0"  />
 			<div>
 				{errorList.length === 1 ? (
 					<span>{errorList[0]}</span>
@@ -111,7 +111,7 @@ export function FormSubmit({
 		>
 			{isPending ? (
 				<div className="flex items-center gap-2">
-					<i className="i-lucide-loader-2 inline-block h-4 w-4 animate-spin"  />
+					<i className="i-lucide-loader-2 h-4 w-4 animate-spin"  />
 					{pendingText}
 				</div>
 			) : children}
@@ -128,14 +128,45 @@ interface FormInputProps extends React.ComponentProps<typeof Input> {
 	required?: boolean
 }
 
-export function FormInput({ label, error, required, name, className, ...props }: FormInputProps) {
+// Generic form control wrapper - DRY principle for Input/Textarea consistency
+function FormControl<T extends React.ElementType>({ 
+	Component, 
+	label, 
+	error, 
+	required, 
+	name, 
+	className, 
+	...props 
+}: { 
+	Component: T 
+	label?: string
+	error?: string
+	required?: boolean
+	name?: string
+	className?: string
+} & React.ComponentProps<T>) {
 	return (
 		<FormField name={name!} label={label} error={error} required={required}>
-			<Input 
-				className={cn(error && 'border-red-500 focus:border-red-500', className)}
+			<Component 
+				className={cn(error && 'border-red-5 focus:border-red-5', className)}
 				{...props} 
 			/>
 		</FormField>
+	)
+}
+
+ 
+export function FormInput({ label, error, required, name, className, ...props }: FormInputProps) {
+	return (
+		<FormControl
+			Component={Input}
+			label={label}
+			error={error}
+			required={required}
+			name={name}
+			className={className}
+			{...props}
+		/>
 	)
 }
 
@@ -148,14 +179,18 @@ interface FormTextareaProps extends React.ComponentProps<typeof Textarea> {
 	required?: boolean
 }
 
+// eslint-disable-next-line anti-duplication/no-duplicate-function-implementations
 export function FormTextarea({ label, error, required, name, className, ...props }: FormTextareaProps) {
 	return (
-		<FormField name={name!} label={label} error={error} required={required}>
-			<Textarea 
-				className={cn(error && 'border-red-500 focus:border-red-500', className)}
-				{...props} 
-			/>
-		</FormField>
+		<FormControl
+			Component={Textarea}
+			label={label}
+			error={error}
+			required={required}
+			name={name}
+			className={className}
+			{...props}
+		/>
 	)
 }
 
@@ -171,7 +206,7 @@ export function FormSuccess({ message, className }: FormSuccessProps) {
 	if (!message) return null
 	
 	return (
-		<div className={cn('rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800', className)}>
+		<div className={cn('rounded-lg border border-green-2 bg-green-50 p-4 text-sm text-green-8', className)}>
 			{message}
 		</div>
 	)

@@ -4,22 +4,22 @@ import { Button } from '@/components/ui/button'
 export function NotFoundPage() {
 	return (
 		<div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4 dark:from-slate-900 dark:to-slate-800">
-			<div className="w-full max-w-2xl rounded-2xl bg-white p-8 shadow-xl md:p-12 dark:bg-slate-800">
+			<div className="w-full max-w-2xl rounded-2xl bg-white p-8 shadow-xl md:p-12 dark:bg-slate-8">
 				<div className="flex flex-col items-center space-y-6 text-center">
 					<div className="relative">
-						<div className="select-none text-[120px] font-bold text-slate-200 md:text-[180px] dark:text-slate-700">
+						<div className="select-none text-[120px] font-bold text-slate-2 md:text-[180px] dark:text-slate-7">
 							404
 						</div>
 						<div className="absolute inset-0 flex items-center justify-center">
-							<i className="i-lucide-search inline-block h-20 w-20 text-slate-400 md:h-24 md:w-24 dark:text-slate-500"  />
+							<i className="i-lucide-search h-20 w-20 text-slate-4 md:h-24 md:w-24 dark:text-slate-5"  />
 						</div>
 					</div>
 
 					<div className="space-y-3">
-						<h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+						<h1 className="text-3xl font-bold text-slate-9 dark:text-slate-1">
 							Page Not Found
 						</h1>
-						<p className="max-w-md text-lg text-slate-600 dark:text-slate-400">
+						<p className="max-w-md text-lg text-slate-6 dark:text-slate-4">
 							The page you&apos;re looking for doesn&apos;t exist
 							or has been moved. Let&apos;s get you back on track.
 						</p>
@@ -28,7 +28,7 @@ export function NotFoundPage() {
 					<div className="flex flex-col gap-3 pt-4 sm:flex-row">
 						<Link href="/">
 							<Button className="flex items-center gap-2">
-								<i className="i-lucide-home inline-block h-4 w-4"  />
+								<i className="i-lucide-home h-4 w-4"  />
 								Go to Dashboard
 							</Button>
 						</Link>
@@ -37,12 +37,12 @@ export function NotFoundPage() {
 							variant="outline"
 							className="flex items-center gap-2"
 						>
-							<i className="i-lucide-arrow-left inline-block h-4 w-4"  />
+							<i className="i-lucide-arrow-left h-4 w-4"  />
 							Go Back
 						</Button>
 					</div>
 
-					<div className="pt-8 text-sm text-slate-500 dark:text-slate-400">
+					<div className="pt-8 text-sm text-slate-5 dark:text-slate-4">
 						<p>
 							Need help? Contact support at{' '}
 							<a

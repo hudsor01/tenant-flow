@@ -3,7 +3,7 @@
  * 
  * This service implements comprehensive Stripe functionality following best practices:
  * - Dependency injection with proper configuration
- * - Latest API version (2025-07-30.basil)
+ * - Latest API version (2025-08-27.basil)
  * - Comprehensive error handling and logging
  * - Webhook signature verification
  * - Customer portal integration
@@ -65,7 +65,7 @@ export class StripeService {
 
     // Initialize with latest API version and recommended settings
     this.stripe = new Stripe(secretKey, {
-      apiVersion: '2025-07-30.basil',
+      apiVersion: '2025-08-27.basil',
       typescript: true,
       maxNetworkRetries: this.maxRetries,
       timeout: 80000, // 80 second timeout
@@ -80,12 +80,12 @@ export class StripeService {
     this.logger.info(
       { 
         stripe: { 
-          apiVersion: '2025-07-30.basil',
+          apiVersion: '2025-08-27.basil',
           initialized: true,
           webhookSecretConfigured: !!this.webhookSecret
         } 
       },
-      'Stripe service initialized with API version 2025-07-30.basil'
+      'Stripe service initialized with API version 2025-08-27.basil'
     )
   }
 

@@ -16,9 +16,6 @@ import { ConfigService } from '@nestjs/config'
 import { Public } from '../shared/decorators/public.decorator'
 import type { EnvironmentVariables } from '../config/config.schema'
 
-// Type for webhook event objects - use unknown for flexibility with runtime type guards
-type StripeEventObject = unknown
-
 // Use shared types instead of local interfaces
 import type { MinimalInvoice, MinimalSubscription } from '../shared/types/billing.types'
 
@@ -49,10 +46,10 @@ export class WebhookController {
 				'STRIPE_SECRET_KEY is required'
 			)
 		}
-		this.stripe = new Stripe(stripeKey, {
-			apiVersion: '2025-07-30.basil',
-			typescript: true
-		})
+        this.stripe = new Stripe(stripeKey, {
+            apiVersion: '2025-08-27.basil',
+            typescript: true
+        })
 
 		// Webhook secret
 		this.webhookSecret =
@@ -133,7 +130,7 @@ export class WebhookController {
 	}
 
 	private async processWebhookEvent(event: Stripe.Event): Promise<void> {
-		const obj: StripeEventObject = event.data.object
+		const obj = event.data.object
 
 		switch (event.type) {
 			case 'invoice.payment_failed':
@@ -174,7 +171,7 @@ export class WebhookController {
 	}
 
 	// Lightweight runtime type-guards to avoid unsafe casts
-	private isStripeInvoice(obj: StripeEventObject): obj is Stripe.Invoice {
+	private isStripeInvoice(obj: Stripe.Event.Data.Object): obj is Stripe.Invoice {
 		if (!obj || typeof obj !== 'object') return false
 		const minimalInvoice = obj as MinimalInvoice
 		// basic checks: has currency and either amount_due or amount_paid
@@ -186,7 +183,7 @@ export class WebhookController {
 	}
 
 	private isStripeSubscription(
-		obj: StripeEventObject
+		obj: Stripe.Event.Data.Object
 	): obj is Stripe.Subscription {
 		if (!obj || typeof obj !== 'object') return false
 		const minimalSub = obj as MinimalSubscription

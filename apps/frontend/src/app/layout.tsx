@@ -1,25 +1,55 @@
-import type { Metadata } from 'next/types'
+import type { Metadata, Viewport } from 'next/types'
+import '@unocss/reset/tailwind.css'
+import './global.css'
+import { RootProviders } from '@/providers/root-providers'
+import { Poppins } from 'next/font/google'
+
+// Use Google Fonts directly - no abstraction needed
+const poppins = Poppins({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-poppins',
+  weight: ['300', '400', '500', '600', '700']
+})
 
 export const metadata: Metadata = {
 	title: {
 		template: '%s | TenantFlow',
-		default: 'TenantFlow - Property_ Management Made Simple'
+		default: 'TenantFlow - Property Management Made Simple'
 	},
 	description:
 		'Modern property management software for landlords and property managers.',
-	robots: { index: true, follow: true } // Public pages should be indexed
+	robots: { index: true, follow: true },
+	icons: {
+		icon: '/favicon.ico',
+		shortcut: '/favicon-16x16.png',
+		apple: '/apple-touch-icon.png'
+	}
 }
 
-interface PublicLayoutProps {
-	children: React.ReactNode
+export const viewport: Viewport = {
+	width: 'device-width',
+	initialScale: 1,
+	maximumScale: 5,
+	userScalable: true,
+	themeColor: [
+		{ media: '(prefers-color-scheme: light)', color: 'white' },
+		{ media: '(prefers-color-scheme: dark)', color: '#0f0f23' }
+	]
 }
 
-/**
- * Layout for public pages (marketing, auth, etc.)
- *
- * Auth state is now handled globally by the app store and useAuth hook.
- * No need for a separate AuthProvider wrapper.
- */
-export default function PublicLayout({ children }: PublicLayoutProps) {
-	return <>{children}</>
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode
+}>) {
+  return (
+    <html lang="en" className={poppins.variable} suppressHydrationWarning>
+      <body className="font-sans antialiased bg-background text-foreground">
+        <RootProviders>
+          {children}
+        </RootProviders>
+      </body>
+    </html>
+  )
 }
