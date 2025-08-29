@@ -12,6 +12,7 @@
  */
 
 import { Injectable } from '@nestjs/common'
+import { Cron, CronExpression } from '@nestjs/schedule'
 import { PinoLogger } from 'nestjs-pino'
 import { SupabaseService } from '../database/supabase.service'
 import type { Stripe } from 'stripe'
@@ -30,9 +31,6 @@ interface StripeSubscriptionWithPeriods extends Stripe.Subscription {
 
 @Injectable()
 export class StripeWebhookService {
-	// Track processed events to handle duplicates
-	private readonly processedEvents = new Set<string>()
-
 	constructor(
 		private readonly supabaseService: SupabaseService,
 		private readonly logger: PinoLogger
@@ -41,12 +39,15 @@ export class StripeWebhookService {
 	}
 
 	/**
-	 * Main webhook handler - processes Stripe events
-	 * Returns quickly with 2xx, actual processing happens async
+	 * Main webhook handler - processes Stripe events synchronously
+	 * Returns 2xx after processing completes (Stripe's recommended pattern)
 	 */
 	async handleWebhook(event: Stripe.Event): Promise<void> {
-		// Check for duplicate events
-		if (this.processedEvents.has(event.id)) {
+		// Use insert-first idempotency gate: try to insert row at start
+		// On unique violation, treat as duplicate and exit
+		// If processing fails, delete the row so Stripe can retry
+		const isNewEvent = await this.tryMarkEventAsProcessing(event.id, event.type)
+		if (!isNewEvent) {
 			this.logger.info(
 				{
 					webhook: {
@@ -60,42 +61,44 @@ export class StripeWebhookService {
 			return
 		}
 
-		this.processedEvents.add(event.id)
-
-		// Clean up old events (keep last 1000)
-		if (this.processedEvents.size > 1000) {
-			const firstEvent = this.processedEvents.values().next().value
-			if (firstEvent) {
-				this.processedEvents.delete(firstEvent)
-			}
-		}
-
 		this.logger.info(`Processing webhook: ${event.type} (${event.id})`)
 
-		// Handle events based on type
-		switch (event.type) {
-			case 'customer.subscription.created':
-			case 'customer.subscription.updated':
-			case 'customer.subscription.deleted':
-				await this.handleSubscriptionChange(
-					event.data.object as StripeSubscriptionWithPeriods
-				)
-				break
+		try {
+			// Handle events based on type
+			switch (event.type) {
+				case 'customer.subscription.created':
+				case 'customer.subscription.updated':
+				case 'customer.subscription.deleted':
+					await this.handleSubscriptionChange(
+						event.data.object as StripeSubscriptionWithPeriods
+					)
+					break
 
-			case 'invoice.payment_failed':
-				await this.handlePaymentFailure(
-					event.data.object as Stripe.Invoice
-				)
-				break
+				case 'invoice.payment_failed':
+					await this.handlePaymentFailure(
+						event.data.object as Stripe.Invoice
+					)
+					break
 
-			case 'invoice.paid':
-				await this.handlePaymentSuccess(
-					event.data.object as Stripe.Invoice
-				)
-				break
+				case 'invoice.paid':
+					await this.handlePaymentSuccess(
+						event.data.object as Stripe.Invoice
+					)
+					break
 
-			default:
-				this.logger.debug(`Unhandled event type: ${event.type}`)
+				default:
+					this.logger.debug(`Unhandled event type: ${event.type}`)
+			}
+
+			// Processing successful - event remains marked as processed
+			this.logger.info(`Successfully processed webhook: ${event.type} (${event.id})`)
+		} catch (error) {
+			this.logger.error(`Failed to process webhook ${event.id}: ${error}`)
+			
+			// Remove the processed event record so Stripe can retry
+			await this.removeProcessedEvent(event.id)
+			
+			throw error // Let Stripe retry
 		}
 	}
 
@@ -288,6 +291,83 @@ export class StripeWebhookService {
 			this.logger.error(
 				`Failed to update subscription status: ${error.message}`
 			)
+		}
+	}
+
+	/**
+	 * Insert-first idempotency gate: try to insert event record
+	 * Returns true if new event (should process), false if duplicate (skip)
+	 */
+	private async tryMarkEventAsProcessing(stripeEventId: string, eventType: string): Promise<boolean> {
+		try {
+			const { error } = await this.supabaseService
+				.getAdminClient()
+				.from('processed_stripe_events')
+				.insert({
+					stripe_event_id: stripeEventId,
+					event_type: eventType
+				})
+
+			if (error) {
+				// Check if it's a unique constraint violation (duplicate event)
+				if (error.code === '23505') {
+					return false // Duplicate event - skip processing
+				}
+				
+				// Other database error - log but assume new event to avoid skipping
+				this.logger.error(`Failed to mark event for processing: ${error.message}`)
+				return true
+			}
+
+			return true // Successfully inserted - new event
+		} catch (error) {
+			this.logger.error(`Failed to mark event for processing: ${error}`)
+			return true // On error, assume new event to avoid skipping
+		}
+	}
+
+	/**
+	 * Remove processed event record (for failed processing, allowing Stripe retry)
+	 */
+	private async removeProcessedEvent(stripeEventId: string): Promise<void> {
+		try {
+			const { error } = await this.supabaseService
+				.getAdminClient()
+				.from('processed_stripe_events')
+				.delete()
+				.eq('stripe_event_id', stripeEventId)
+
+			if (error) {
+				this.logger.error(`Failed to remove processed event for retry: ${error.message}`)
+			}
+		} catch (error) {
+			this.logger.error(`Failed to remove processed event for retry: ${error}`)
+		}
+	}
+
+	/**
+	 * Cleanup old processed events (scheduled daily at 2 AM)
+	 * Keeps events for 30 days to handle Stripe's retry window
+	 */
+	@Cron(CronExpression.EVERY_DAY_AT_2AM)
+	async cleanupOldProcessedEvents(): Promise<void> {
+		try {
+			const cutoffDate = new Date()
+			cutoffDate.setDate(cutoffDate.getDate() - 30)
+
+			const { error } = await this.supabaseService
+				.getAdminClient()
+				.from('processed_stripe_events')
+				.delete()
+				.lt('processed_at', cutoffDate.toISOString())
+
+			if (error) {
+				this.logger.error(`Failed to cleanup old processed events: ${error.message}`)
+			} else {
+				this.logger.info('Cleaned up old processed events')
+			}
+		} catch (error) {
+			this.logger.error(`Failed to cleanup old processed events: ${error}`)
 		}
 	}
 }

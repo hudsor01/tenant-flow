@@ -2220,6 +2220,10 @@ export type Database = {
         Args: { p_maintenance_id: string; p_reason?: string; p_user_id: string }
         Returns: Json
       }
+      cleanup_old_notifications: {
+        Args: { days_to_keep?: number }
+        Returns: number
+      }
       complete_maintenance: {
         Args: {
           p_actual_cost?: number
@@ -2470,6 +2474,10 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: Json
       }
+      get_unread_notification_count: {
+        Args: { user_id: string }
+        Returns: number
+      }
       get_urgent_maintenance: {
         Args: { p_user_id: string }
         Returns: Json
@@ -2536,6 +2544,10 @@ export type Database = {
           p_user_id: string
         }
         Returns: Json
+      }
+      mark_all_notifications_read: {
+        Args: { user_id: string }
+        Returns: number
       }
       renew_lease: {
         Args: { p_lease_id: string; p_new_end_date: string; p_user_id: string }
