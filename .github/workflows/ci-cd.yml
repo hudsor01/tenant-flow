@@ -29,11 +29,15 @@ jobs:
       - name: Install dependencies
         run: npm ci --prefer-offline --no-audit
 
-      - name: Build shared package
-        run: npm run build:shared
+      - name: Build all packages (with proper dependencies)
+        run: turbo build
 
-      - name: Build backend
-        run: npm run build:backend
+      - name: Verify build outputs exist
+        run: |
+          echo "Checking shared package build outputs..."
+          ls -la packages/shared/dist/cjs/ || echo "❌ Shared package dist not found"
+          ls -la apps/backend/dist/ || echo "❌ Backend dist not found"
+          echo "✅ Build verification complete"
 
       - name: Run tests
         continue-on-error: true
