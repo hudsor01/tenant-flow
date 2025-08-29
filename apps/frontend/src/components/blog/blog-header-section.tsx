@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { motion } from '@/lib/lazy-motion'
+import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import type { BlogArticleWithDetails } from '@repo/shared'
 

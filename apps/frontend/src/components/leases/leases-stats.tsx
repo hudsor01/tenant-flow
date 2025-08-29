@@ -4,6 +4,7 @@ import { useLeases } from '@/hooks/api/use-leases'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
+import { handleStaticGenerationError } from '@/lib/utils/static-generation'
 import type { Database } from '@repo/shared'
 
   type Lease = Database['public']['Tables']['Lease']['Row']
@@ -132,9 +133,9 @@ export function LeasesStats() {
 		return <LeasesStatsSkeleton />
 	}
 
-	// Error handling - throw to be caught by error boundary
+	// Error handling - graceful fallback for static generation
 	if (error) {
-		throw error
+		return handleStaticGenerationError(error, <LeasesStatsSkeleton />)
 	}
 
 	// Calculate stats using pure function

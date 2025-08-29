@@ -1,3 +1,5 @@
+'use client'
+
 import { Suspense } from 'react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -7,13 +9,6 @@ import Link from 'next/link'
 import { MaintenanceDataTable } from '@/components/maintenance/maintenance-data-table'
 import { MaintenanceStats } from '@/components/maintenance/maintenance-stats'
 import { PageTracker } from '@/components/analytics/page-tracker'
-import type { Metadata } from 'next/types'
-
-export const metadata: Metadata = {
-	title: 'Maintenance | TenantFlow',
-	description:
-		'Manage your property maintenance requests and track completion'
-}
 
 function MaintenanceHeader() {
 	return (

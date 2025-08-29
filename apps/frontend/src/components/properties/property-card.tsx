@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useMemo } from 'react'
-import { motion } from '@/lib/lazy-motion'
+import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { formatCurrency } from '@repo/shared'
 import { logger } from '@/lib/logger/logger'

@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from '@/lib/lazy-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { cardVariants, activityItemVariants } from './dashboard-animations'
 import type { ActivityItem, ActivityType } from '@repo/shared'
 

@@ -5,7 +5,6 @@
  */
 import {
 	useSuspenseQuery,
-	useQueryClient,
 	type UseSuspenseQueryResult
 } from '@tanstack/react-query'
 import type {
@@ -101,18 +100,9 @@ export function useLeaseOptimistic(id: string) {
 
 /**
  * PURE: Enhanced prefetch for Suspense patterns - ensures data available when component mounts
+ * Uses generic implementation to avoid duplication
  */
-export function usePrefetchLease() {
-	const queryClient = useQueryClient()
-
-	return (id: string) => {
-		void queryClient.prefetchQuery({
-			queryKey: queryKeys.leases.detail(id),
-			queryFn: async () => get<Lease>(`/api/leases/${id}`),
-			staleTime: 10 * 1000 // 10 seconds
-		})
-	}
-}
+export { usePrefetchLease } from './use-prefetch-resource'
 
 // ============================================================================
 // EXPORTS - React 19 Pure Implementation

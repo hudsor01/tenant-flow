@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { motion } from '@/lib/lazy-motion'
+import { motion } from 'framer-motion'
 import { Box, Flex } from '@radix-ui/themes'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'

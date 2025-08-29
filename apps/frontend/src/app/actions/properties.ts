@@ -9,9 +9,11 @@ import { revalidatePath, revalidateTag } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createActionClient } from '@/lib/supabase/action-client'
 import type { Database, PropertyWithUnits } from '@repo/shared'
+import { processFormData, executeSupabaseAction, PROPERTY_FORM_FIELDS } from '@/lib/actions/form-action-factory'
 
 // Define types directly from Database schema - NO DUPLICATION
 type Property = Database['public']['Tables']['Property']['Row']
+type Unit = Database['public']['Tables']['Unit']['Row']
 type CreatePropertyInput = Database['public']['Tables']['Property']['Insert']
 type UpdatePropertyInput = Database['public']['Tables']['Property']['Update']
 
@@ -22,6 +24,33 @@ interface PropertyQuery {
   type?: string
 }
 
+// Shared error handling for property operations - DRY principle
+function handlePropertyError(operation: string, error: unknown): never {
+  console.error(`Failed to ${operation}:`, error)
+  throw new Error(`Failed to ${operation}`)
+}
+
+// Shared revalidation for property changes - DRY principle
+function revalidatePropertyPaths(propertyId?: string): void {
+  revalidatePath('/properties')
+  revalidatePath('/dashboard')
+  revalidateTag('properties')
+  
+  if (propertyId) {
+    revalidatePath(`/properties/${propertyId}`)
+    revalidateTag(`property-${propertyId}`)
+  }
+}
+
+// Shared response formatting for property operations - DRY principle
+function formatPropertyResponse(data: Property & { units?: Unit[] }): PropertyWithUnits {
+  return {
+    ...data,
+    units: data.units || []
+  } as PropertyWithUnits
+}
+
+
 /**
  * NATIVE Server Action: Get all properties with calculated stats
  * Direct database access with automatic RLS
@@ -30,7 +59,7 @@ interface PropertyQuery {
 export async function getPropertiesWithStats(query?: PropertyQuery) {
   const supabase = await createActionClient()
   
-  // Fetch properties with their units and lease information
+  // Use specialized select for units stats
   let request = supabase
     .from('properties')
     .select(`
@@ -45,6 +74,7 @@ export async function getPropertiesWithStats(query?: PropertyQuery) {
     `)
     .order('created_at', { ascending: false })
 
+  // Apply common filters
   if (query?.search) {
     request = request.ilike('name', `%${query.search}%`)
   }
@@ -56,15 +86,13 @@ export async function getPropertiesWithStats(query?: PropertyQuery) {
   const { data: properties, error } = await request
 
   if (error) {
-    console.error('Failed to fetch properties with units:', error)
-    throw new Error('Failed to fetch properties')
+    handlePropertyError('fetch properties with units', error)
   }
 
   // Transform to PropertyWithUnits type
-  return (properties || []).map(property => ({
-    ...property,
-    units: property.units || []
-  }))
+  return (properties || []).map((property: PropertyWithUnits) => 
+    formatPropertyResponse(property)
+  )
 }
 
 /**
@@ -94,8 +122,7 @@ export async function getProperties(query?: PropertyQuery): Promise<Property[]> 
   const { data, error } = await request
 
   if (error) {
-    console.error('Failed to fetch properties:', error)
-    throw new Error('Failed to fetch properties')
+    handlePropertyError('fetch properties', error)
   }
 
   return data || []
@@ -110,67 +137,46 @@ export async function getProperty(id: string): Promise<PropertyWithUnits> {
   
   const { data, error } = await supabase
     .from('properties')
-    .select(`
-      *,
-      units (*)
-    `)
+    .select(`*, units (*)`)
     .eq('id', id)
     .single()
 
   if (error || !data) {
-    console.error('Failed to fetch property:', error)
-    throw new Error('Property not found')
+    handlePropertyError('fetch property', error || new Error('Property not found'))
   }
 
   // Transform to PropertyWithUnits
-  return {
-    ...data,
-    units: data.units || []
-  } as PropertyWithUnits
+  return formatPropertyResponse(data)
 }
+
+// executePropertyAction was consolidated into executeSupabaseAction utility (removed unused function)
 
 /**
  * NATIVE Server Action: Create property
  * Direct database insert with automatic revalidation
  */
 export async function createProperty(formData: FormData): Promise<PropertyWithUnits> {
-  const supabase = await createActionClient()
-  
-  // Extract and validate form data
-  const propertyData = {
-    name: formData.get('name') as string,
-    address: formData.get('address') as string,
-    city: formData.get('city') as string,
-    state: formData.get('state') as string,
-    zipCode: formData.get('zip_code') as string,
-    description: formData.get('description') as string || undefined,
-    ownerId: 'user-id' // This should be set from auth context
-  } satisfies CreatePropertyInput
+  // Process form data using consolidated utility
+  const propertyData = processFormData<CreatePropertyInput>(formData, [
+    ...PROPERTY_FORM_FIELDS.filter(field => 
+      ['name', 'address', 'city', 'state', 'zip_code', 'description'].includes(field.key)
+    ),
+    { key: 'ownerId', defaultValue: 'user-id' } // TODO: Get from auth context
+  ])
 
-  const { data, error } = await supabase
-    .from('properties')
-    .insert(propertyData)
-    .select(`
-      *,
-      units (*)
-    `)
-    .single()
-
-  if (error || !data) {
-    console.error('Failed to create property:', error)
-    throw new Error('Failed to create property')
-  }
-
-  // Revalidate related paths
-  revalidatePath('/properties')
-  revalidatePath('/dashboard')
-  revalidateTag('properties')
-
-  // Transform to PropertyWithUnits
-  return {
-    ...data,
-    units: data.units || []
-  } as PropertyWithUnits
+  return executeSupabaseAction(
+    {
+      actionName: 'create property',
+      table: 'Property',
+      revalidatePaths: ['/properties', '/dashboard'],
+      transform: formatPropertyResponse
+    },
+    (supabase) => supabase
+      .from('properties')
+      .insert(propertyData)
+      .select(`*, units (*)`)
+      .single()
+  )
 }
 
 /**
@@ -181,72 +187,23 @@ export async function updateProperty(
   id: string,
   formData: FormData
 ): Promise<PropertyWithUnits> {
-  const supabase = await createActionClient()
-  
-  // Build update data from form
-  const updateData: UpdatePropertyInput = {}
-  
-  // Only include fields that are present in formData
-  const fields = [
-    'name', 'address', 'city', 'state', 'zip_code', 
-    'property_type', 'description', 'image_url'
-  ] as const
-  
-  fields.forEach(field => {
-    const value = formData.get(field)
-    if (value !== null) {
-      (updateData as Record<string, unknown>)[field] = value as string
-    }
-  })
-  
-  // Handle numeric fields
-  const numericFields = [
-    { key: 'total_units', parser: parseInt },
-    { key: 'rentAmount', parser: parseFloat },
-    { key: 'square_feet', parser: parseInt },
-    { key: 'bedrooms', parser: parseInt },
-    { key: 'bathrooms', parser: parseFloat }
-  ]
-  
-  numericFields.forEach(({ key, parser }) => {
-    const value = formData.get(key)
-    if (value !== null) {
-      (updateData as Record<string, unknown>)[key] = parser(value as string)
-    }
-  })
-  
-  // Handle JSON fields
-  if (formData.has('amenities')) {
-    (updateData as Record<string, unknown>).amenities = JSON.parse(formData.get('amenities') as string)
-  }
+  // Process form data using consolidated utility
+  const updateData = processFormData<UpdatePropertyInput>(formData, PROPERTY_FORM_FIELDS)
 
-  const { data, error } = await supabase
-    .from('properties')
-    .update(updateData)
-    .eq('id', id)
-    .select(`
-      *,
-      units (*)
-    `)
-    .single()
-
-  if (error || !data) {
-    console.error('Failed to update property:', error)
-    throw new Error('Failed to update property')
-  }
-
-  // Revalidate related paths
-  revalidatePath('/properties')
-  revalidatePath(`/properties/${id}`)
-  revalidatePath('/dashboard')
-  revalidateTag('properties')
-  revalidateTag(`property-${id}`)
-
-  // Transform to PropertyWithUnits
-  return {
-    ...data,
-    units: data.units || []
-  } as PropertyWithUnits
+  return executeSupabaseAction(
+    {
+      actionName: 'update property',
+      table: 'Property',
+      revalidatePaths: ['/properties', '/dashboard', `/properties/${id}`],
+      transform: formatPropertyResponse
+    },
+    (supabase) => supabase
+      .from('properties')
+      .update(updateData)
+      .eq('id', id)
+      .select(`*, units (*)`)
+      .single()
+  )
 }
 
 /**
@@ -262,55 +219,43 @@ export async function deleteProperty(id: string): Promise<void> {
     .eq('id', id)
 
   if (error) {
-    console.error('Failed to delete property:', error)
-    throw new Error('Failed to delete property')
+    handlePropertyError('delete property', error)
   }
 
   // Revalidate and redirect
-  revalidatePath('/properties')
-  revalidatePath('/dashboard')
-  revalidateTag('properties')
+  revalidatePropertyPaths()
   
   redirect('/properties')
 }
 
 /**
  * NATIVE Server Action: Get property statistics
- * Aggregated data with caching
+ * Aggregated data with caching - specialized for dashboard stats
  */
 export async function getPropertyStats() {
   const supabase = await createActionClient()
   
-  // Get total properties
-  const { count: totalProperties } = await supabase
-    .from('properties')
-    .select('*', { count: 'exact', head: true })
-
-  // Get occupied properties (units with active leases)
-  const { data: occupiedData } = await supabase
-    .from('properties')
-    .select(`
+  // Batch queries for better performance
+  const [
+    { count: totalProperties },
+    { data: occupiedData },
+    { count: openMaintenance }
+  ] = await Promise.all([
+    supabase.from('properties').select('*', { count: 'exact', head: true }),
+    supabase.from('properties').select(`
       id,
       units!inner(
         id,
-        leases!inner(
-          id,
-          status
-        )
+        leases!inner(id, status)
       )
-    `)
-    .eq('units.leases.status', 'ACTIVE')
+    `).eq('units.leases.status', 'ACTIVE'),
+    supabase.from('maintenance_requests').select('*', { count: 'exact', head: true }).eq('status', 'OPEN')
+  ])
 
   const occupiedProperties = occupiedData?.length || 0
   const occupancyRate = totalProperties 
     ? Math.round((occupiedProperties / totalProperties) * 100) 
     : 0
-
-  // Get maintenance stats
-  const { count: openMaintenance } = await supabase
-    .from('maintenance_requests')
-    .select('*', { count: 'exact', head: true })
-    .eq('status', 'OPEN')
 
   return {
     totalProperties: totalProperties || 0,

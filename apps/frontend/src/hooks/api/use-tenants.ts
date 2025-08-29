@@ -4,7 +4,6 @@
  */
 import {
 	useSuspenseQuery,
-	useQueryClient,
 	type UseSuspenseQueryResult
 } from '@tanstack/react-query'
 import type {
@@ -50,15 +49,6 @@ export function useTenantStats(): UseSuspenseQueryResult<TenantStats> {
 
 /**
  * Prefetch tenant data
+ * Uses generic implementation to avoid duplication
  */
-export function usePrefetchTenant() {
-	const queryClient = useQueryClient()
-
-	return (id: string) => {
-		void queryClient.prefetchQuery({
-			queryKey: queryKeys.tenants.detail(id),
-			queryFn: async () => get<Tenant>(`/api/tenants/${id}`),
-			staleTime: 10 * 1000
-		})
-	}
-}
+export { usePrefetchTenant } from './use-prefetch-resource'

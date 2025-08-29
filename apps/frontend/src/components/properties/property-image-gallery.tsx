@@ -18,7 +18,7 @@ import {
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
-import { motion } from '@/lib/lazy-motion'
+import { motion } from 'framer-motion'
 import type { Property } from '@repo/shared'
 type Property_ = Property
 

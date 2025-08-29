@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback } from 'react'
-import { motion } from '@/lib/lazy-motion'
+import { motion } from 'framer-motion'
 import Property_Card from './property-card'
 import type { Database, PropertyWithUnits } from '@repo/shared'
 

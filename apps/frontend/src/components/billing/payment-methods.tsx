@@ -65,10 +65,10 @@ function AddPaymentMethodForm({ onSuccess, onCancel }: AddPaymentMethodProps) {
 
 			try {
 				// Create Setup Intent for secure payment method collection
-				const setupIntentResponse = await post<{
-					clientSecret: string
-					setupIntentId: string
-				}>('/api/billing/setup-intent', {})
+                const setupIntentResponse = await post<{
+                    clientSecret: string
+                    setupIntentId: string
+                }>('stripe/setup-intent', {})
 
 				// Confirm Setup Intent with payment method
 				const { error: confirmError } = await stripe.confirmSetup({

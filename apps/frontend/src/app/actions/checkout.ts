@@ -23,10 +23,10 @@ export async function createCheckoutSession(
 			couponId: formData.get('couponId') as string | undefined
 		}
 
-		const response = await post<{ url: string }>(
-			'/api/billing/checkout',
-			data
-		)
+    const response = await post<{ url: string }>(
+        'stripe/checkout',
+        data
+    )
 
 		// Use Next.js native redirect instead of returning URL
 		redirect(response.url)

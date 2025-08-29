@@ -2,7 +2,7 @@
 
 import { useTransition } from 'react'
 import { logger } from '@/lib/logger/logger'
-import { motion } from '@/lib/lazy-motion'
+import { motion } from 'framer-motion'
 import { cardVariants } from './dashboard-animations'
 
 interface QuickActionProps {

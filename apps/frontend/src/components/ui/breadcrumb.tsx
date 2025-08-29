@@ -39,7 +39,6 @@ function BreadcrumbLink({
 }) {
     if (asChild) {
         return (
-            // @ts-expect-error - Radix Slot component has complex typing that conflicts with anchor props
             <Slot
                 className={cn('hover:text-foreground transition-colors', className)}
                 {...props}

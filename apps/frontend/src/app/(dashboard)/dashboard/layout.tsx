@@ -18,8 +18,6 @@ export const metadata: Metadata = {
 
 interface DashboardLayoutProps {
 	children: React.ReactNode
-	modal: React.ReactNode // Parallel route for @modal
-	sidebar: React.ReactNode // Parallel route for @sidebar
 }
 
 /**
@@ -27,9 +25,7 @@ interface DashboardLayoutProps {
  * Only auth guards and UI structure here (KISS principle)
  */
 export default function DashboardLayout({
-	children,
-	modal,
-	sidebar
+	children
 }: DashboardLayoutProps) {
 	return (
 		<ServerAuthGuard requireAuth={true}>
@@ -60,13 +56,11 @@ export default function DashboardLayout({
 							}
 						>
 							<aside className="hidden w-64 bg-card shadow-sm md:block">
-								{sidebar ?? (
-									<div className="p-4">
-										<p className="text-sm text-muted-foreground">
-											Navigation
-										</p>
-									</div>
-								)}
+								<div className="p-4">
+									<p className="text-sm text-muted-foreground">
+										Navigation
+									</p>
+								</div>
 							</aside>
 						</Suspense>
 
@@ -85,9 +79,6 @@ export default function DashboardLayout({
 							</Suspense>
 						</main>
 					</div>
-
-					{/* Modal parallel route */}
-					{modal}
 				</div>
 			</ProtectedRouteGuard>
 		</ServerAuthGuard>

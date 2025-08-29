@@ -8,7 +8,7 @@ import {
 	AnimatePresence,
 	useDragControls,
 	type PanInfo
-} from '@/lib/lazy-motion'
+} from 'framer-motion'
 import { logger } from '@/lib/logger'
 import {
 	SidebarProvider,

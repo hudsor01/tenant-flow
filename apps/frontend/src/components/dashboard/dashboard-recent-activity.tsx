@@ -1,7 +1,7 @@
 'use client'
 
 import { Suspense } from 'react'
-import { motion } from '@/lib/lazy-motion'
+import { motion } from 'framer-motion'
 import { useProperties } from '@/hooks/api/use-properties'
 import {
 	Card,

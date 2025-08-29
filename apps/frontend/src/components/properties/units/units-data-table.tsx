@@ -1,6 +1,7 @@
 'use client'
 
 import { useUnits } from '@/hooks/api/use-units'
+import { handleStaticGenerationError } from '@/lib/utils/static-generation'
 import {
 	Card,
 	CardContent,
@@ -263,9 +264,19 @@ export function UnitsDataTable() {
 		)
 	}
 
-	// Error handling - throw to be caught by error boundary
+	// Error handling - graceful fallback for static generation
 	if (error) {
-		throw error
+		return handleStaticGenerationError(error, (
+			<Card>
+				<CardHeader>
+					<CardTitle>Units</CardTitle>
+					<CardDescription>Loading units data...</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<UnitsTableSkeleton />
+				</CardContent>
+			</Card>
+		))
 	}
 
 	return <UnitsTableUI units={(units as UnitDisplayData[]) || []} />

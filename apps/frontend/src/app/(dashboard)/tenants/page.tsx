@@ -1,3 +1,5 @@
+'use client'
+
 import { Suspense } from 'react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -7,12 +9,6 @@ import Link from 'next/link'
 import { TenantsDataTable } from '@/components/tenants/tenants-data-table'
 import { TenantsStats } from '@/components/tenants/tenants-stats'
 import { PageTracker } from '@/components/analytics/page-tracker'
-import type { Metadata } from 'next/types'
-
-export const metadata: Metadata = {
-	title: 'Tenants | TenantFlow',
-	description: 'Manage your tenants and track lease status'
-}
 
 function TenantsHeader() {
 	return (

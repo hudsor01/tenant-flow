@@ -9,6 +9,7 @@
 import baseConfig from './packages/eslint-config/base.js'
 import noInlineTypes from './.eslint/rules/no-inline-types.js'
 import noBarrelExports from './.eslint/rules/no-barrel-exports.js'
+import antiDuplicationPlugin from './.eslint/plugins/anti-duplication.js'
 
 /**
  * Root-level configuration with project-specific overrides
@@ -89,6 +90,37 @@ export default [
 					'apps/frontend/src/hooks/api/index.ts' // API hooks barrel for convenience
 				]
 			}]
+		}
+	},
+
+	// Anti-duplication rules - Phase 3 of DRY/KISS enforcement 
+	{
+		name: 'root/anti-duplication',
+		files: ['**/*.ts', '**/*.tsx'],
+		ignores: [
+			'**/*.test.*', 
+			'**/*.spec.*', 
+			'**/*.config.*',
+			'**/*.d.ts',
+			'**/generated-*',
+			'.eslint/**',
+			// Shared package IS the source of schemas - don't flag it
+			'packages/shared/src/validation/**',
+			'packages/shared/src/types/**'
+		],
+		plugins: {
+			'anti-duplication': antiDuplicationPlugin
+		},
+		rules: {
+			// Enforce schema generation (error level - critical for single source of truth)
+			'anti-duplication/enforce-schema-generation': 'error',
+			'anti-duplication/no-manual-validation-schemas': 'error',
+			
+			// Prevent API duplication (error level - DRY principle)
+			'anti-duplication/no-duplicate-api-methods': 'error',
+			
+			// Enforce global loading (warn level - UX consistency)
+			'anti-duplication/enforce-global-loading': 'warn'
 		}
 	},
 

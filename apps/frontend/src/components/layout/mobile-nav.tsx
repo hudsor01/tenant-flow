@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { motion } from '@/lib/lazy-motion'
+import { motion } from 'framer-motion'
 import { Badge } from '@/components/ui/badge'
 import { useDashboardOverview } from '@/hooks/api/use-dashboard'
 import { cn } from '@/lib/utils'

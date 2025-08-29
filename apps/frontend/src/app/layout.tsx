@@ -1,14 +1,15 @@
 import type { Metadata, Viewport } from 'next/types'
-import { Poppins } from 'next/font/google'
 import '@unocss/reset/tailwind.css'
 import './global.css'
 import { RootProviders } from '@/providers/root-providers'
+import { Poppins } from 'next/font/google'
 
+// Use Google Fonts directly - no abstraction needed
 const poppins = Poppins({
-	subsets: ['latin'],
-	display: 'swap',
-	variable: '--font-poppins',
-	weight: ['300', '400', '500', '600', '700']
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-poppins',
+  weight: ['300', '400', '500', '600', '700']
 })
 
 export const metadata: Metadata = {

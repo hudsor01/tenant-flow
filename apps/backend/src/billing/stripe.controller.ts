@@ -1,14 +1,16 @@
 import {
-	Body,
-	Controller,
-	Headers,
-	Post,
-	Req,
-	UsePipes,
-	ValidationPipe,
-	NotFoundException,
-	BadRequestException,
-	InternalServerErrorException
+    Body,
+    Controller,
+    Headers,
+    Post,
+    Get,
+    Req,
+    UsePipes,
+    ValidationPipe,
+    NotFoundException,
+    BadRequestException,
+    InternalServerErrorException,
+    UseGuards
 } from '@nestjs/common'
 import type { RawBodyRequest } from '@nestjs/common'
 import {
@@ -23,6 +25,8 @@ import { StripeService } from './stripe.service'
 import { StripeWebhookService } from './stripe-webhook.service'
 import { StripePortalService } from './stripe-portal.service'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
+import { AuthGuard } from '../shared/guards/auth.guard'
+import { Public } from '../shared/decorators/public.decorator'
 import type {
 	CreateCheckoutRequest,
 	CreatePortalRequest,
@@ -36,6 +40,7 @@ import type { BillingPeriod, PlanType } from '@repo/shared'
 import type { User as AuthenticatedUser } from '@repo/shared'
 
 @ApiTags('stripe')
+@UseGuards(AuthGuard)
 @Controller('stripe')
 export class StripeController {
 	constructor(
@@ -46,7 +51,85 @@ export class StripeController {
 		private readonly logger: PinoLogger
 	) {
 		// PinoLogger context handled automatically via app-level configuration
-	}
+  }
+
+  @Get('subscription')
+  @ApiOperation({ summary: 'Get current user subscription' })
+  @ApiResponse({ status: 200, description: 'Returns latest subscription for user' })
+  @ApiResponse({ status: 404, description: 'Subscription not found' })
+  @ApiBearerAuth()
+  async getSubscription(@CurrentUser() user: AuthenticatedUser) {
+    this.logger.info(
+      { subscription: { userId: user.id } },
+      `Fetching subscription for user ${user.id}`
+    )
+
+    const client = this.supabaseService.getAdminClient()
+    const { data: sub, error } = await client
+      .from('Subscription')
+      .select('*')
+      .eq('userId', user.id)
+      .order('updatedAt', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (error) {
+      this.logger.error('Failed to fetch subscription', error)
+      throw new InternalServerErrorException('Failed to fetch subscription')
+    }
+
+    if (!sub) {
+      throw new NotFoundException('No subscription found')
+    }
+
+    return sub
+  }
+
+  @Post('setup-intent')
+  @ApiOperation({ summary: 'Create Setup Intent for adding a payment method' })
+  @ApiResponse({ status: 200, description: 'Returns setup intent client secret' })
+  @ApiBearerAuth()
+  async createSetupIntent(@CurrentUser() user: AuthenticatedUser) {
+    this.logger.info(
+      { setupIntent: { userId: user.id } },
+      `Creating setup intent for user ${user.id}`
+    )
+
+    // Ensure Stripe customer exists
+    const admin = this.supabaseService.getAdminClient()
+    const { data: existingUser, error: userErr } = await admin
+      .from('User')
+      .select('id, email, stripeCustomerId')
+      .eq('id', user.id)
+      .single()
+
+    if (userErr || !existingUser) {
+      throw new NotFoundException('User not found')
+    }
+
+    let customerId = existingUser.stripeCustomerId || undefined
+
+    if (!customerId) {
+      const customer = await this.stripeService.createCustomer(user.email, user.email)
+      customerId = customer.id
+      await admin
+        .from('User')
+        .update({ stripeCustomerId: customerId })
+        .eq('id', user.id)
+    }
+
+    // Create setup intent
+    const setupIntent = await this.stripeService.client.setupIntents.create({
+      customer: customerId,
+      payment_method_types: ['card'],
+      usage: 'off_session'
+    })
+
+    return {
+      clientSecret: setupIntent.client_secret,
+      setupIntentId: setupIntent.id
+    }
+  }
 
 	@Post('checkout')
 	@ApiOperation({
@@ -411,17 +494,18 @@ export class StripeController {
 		}
 	}
 
-	@Post('webhook')
-	@ApiOperation({
-		summary: 'Stripe webhook endpoint',
-		description: 'Handles Stripe webhook events with signature verification'
-	})
-	@ApiResponse({ status: 200, description: 'Webhook processed successfully' })
-	@ApiResponse({ status: 400, description: 'Invalid webhook signature' })
-	async handleWebhook(
-		@Req() req: RawBodyRequest<FastifyRequest>,
-		@Headers('stripe-signature') signature: string
-	) {
+  @Post('webhook')
+  @ApiOperation({
+    summary: 'Stripe webhook endpoint',
+    description: 'Handles Stripe webhook events with signature verification'
+  })
+  @ApiResponse({ status: 200, description: 'Webhook processed successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid webhook signature' })
+  @Public()
+  async handleWebhook(
+    @Req() req: RawBodyRequest<FastifyRequest>,
+    @Headers('stripe-signature') signature: string
+  ) {
 		this.logger.info('Received Stripe webhook')
 
 		try {

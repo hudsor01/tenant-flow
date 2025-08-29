@@ -1,7 +1,6 @@
 import { SetMetadata } from '@nestjs/common'
-import type { UserRole } from '@repo/shared/types/auth'
+export { Public } from './public.decorator'
+export { Roles } from './roles.decorator'
 
-// Simple decorators for the auth requirements
-export const Roles = (...roles: UserRole[]) => SetMetadata('roles', roles)
+// Simple decorators for the auth requirements (unified)
 export const AdminOnly = () => SetMetadata('admin-only', true)
-export const Public = () => SetMetadata('is-public', true)
