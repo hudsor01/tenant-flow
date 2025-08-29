@@ -13,6 +13,7 @@ import type {
 	LeaseStats
 } from '@repo/shared'
 import { get } from '@/lib/api-client'
+import { API_ENDPOINTS } from '@/lib/constants/api-endpoints'
 import { queryKeys } from '@/lib/react-query/query-keys'
 
 // ============================================================================
@@ -25,7 +26,7 @@ import { queryKeys } from '@/lib/react-query/query-keys'
 export function useLeases(query?: LeaseQuery): UseSuspenseQueryResult<Lease[]> {
 	return useSuspenseQuery({
 		queryKey: queryKeys.leases.list(query),
-		queryFn: async () => get<Lease[]>('/api/leases'),
+		queryFn: async () => get<Lease[]>(API_ENDPOINTS.LEASES.BASE),
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000 // 10 minutes
 	})
@@ -37,7 +38,7 @@ export function useLeases(query?: LeaseQuery): UseSuspenseQueryResult<Lease[]> {
 export function useLease(id: string): UseSuspenseQueryResult<Lease> {
 	return useSuspenseQuery({
 		queryKey: queryKeys.leases.detail(id),
-		queryFn: async () => get<Lease>(`/api/leases/${id}`),
+		queryFn: async () => get<Lease>(API_ENDPOINTS.LEASES.BY_ID(id)),
 		staleTime: 2 * 60 * 1000 // 2 minutes
 	})
 }
@@ -48,7 +49,7 @@ export function useLease(id: string): UseSuspenseQueryResult<Lease> {
 export function useLeasesByProperty(propertyId: string): UseSuspenseQueryResult<Lease[]> {
 	return useSuspenseQuery({
 		queryKey: queryKeys.leases.byProperty(propertyId),
-		queryFn: async () => get<Lease[]>(`/api/properties/${propertyId}/leases`),
+		queryFn: async () => get<Lease[]>(`properties/${propertyId}/leases`),
 		staleTime: 2 * 60 * 1000 // 2 minutes
 	})
 }
@@ -59,7 +60,7 @@ export function useLeasesByProperty(propertyId: string): UseSuspenseQueryResult<
 export function useLeaseStats(): UseSuspenseQueryResult<LeaseStats> {
 	return useSuspenseQuery({
 		queryKey: queryKeys.leases.stats(),
-		queryFn: async () => get<LeaseStats>('/api/leases/stats'),
+		queryFn: async () => get<LeaseStats>(API_ENDPOINTS.LEASES.STATS),
 		staleTime: 2 * 60 * 1000, // 2 minutes
 		refetchInterval: 5 * 60 * 1000 // Auto-refresh every 5 minutes
 	})
