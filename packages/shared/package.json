@@ -168,7 +168,7 @@
 		}
 	},
 	"scripts": {
-		"build": "echo 'Using existing build' && ls -la dist/cjs/ | head -2",
+		"build": "npm run clean && tsc -p tsconfig.build.json",
 		"build:cjs": "echo 'CJS build already exists'",
 		"build:esm": "echo 'ESM build skipped'",
 		"typecheck": "tsc --noEmit",
