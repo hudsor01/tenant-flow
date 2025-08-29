@@ -6,9 +6,7 @@
  */
 
 import React from 'react'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import {
 	Select,
 	SelectContent,
@@ -54,22 +52,7 @@ export interface BaseInputFieldProps extends FormFieldProps {
 	maxLength?: number
 }
 
-export interface TextFieldProps extends BaseInputFieldProps {
-	type?: 'text' | 'email' | 'tel' | 'url'
-	defaultValue?: string
-}
-
-export interface NumberFieldProps extends BaseInputFieldProps {
-	defaultValue?: number
-	min?: number
-	max?: number
-	step?: number
-}
-
-export interface TextareaFieldProps extends BaseInputFieldProps {
-	defaultValue?: string
-	rows?: number
-}
+// Deleted unused type interfaces - use BaseInputFieldProps directly with Input/Textarea
 
 export interface SelectFieldProps extends FormFieldProps {
 	placeholder?: string
@@ -82,130 +65,7 @@ export interface CheckboxFieldProps extends FormFieldProps {
 	description?: string
 }
 
-// Generic field wrapper - DRY principle for common field patterns
-function BaseField<T extends Record<string, unknown>>({
-	label,
-	name,
-	error,
-	required,
-	className,
-	children
-}: {
-	label: string
-	name: string
-	error?: string
-	required?: boolean
-	className?: string
-	children: React.ReactElement<T>
-}) {
-	return (
-		<FieldContainer
-			label={label}
-			name={name}
-			error={error}
-			required={required}
-			className={className}
-		>
-			{React.cloneElement(children, {
-				id: name,
-				name,
-				required,
-				className: error ? 'input-error-red' : '',
-				...children.props
-			})}
-		</FieldContainer>
-	)
-}
-
-export function TextField({
-	label,
-	name,
-	type = 'text',
-	placeholder,
-	defaultValue,
-	error,
-	required,
-	maxLength,
-	className
-}: TextFieldProps) {
-	return (
-		<BaseField
-			label={label}
-			name={name}
-			error={error}
-			required={required}
-			className={className}
-		>
-			<Input
-				type={type}
-				placeholder={placeholder}
-				defaultValue={defaultValue}
-				maxLength={maxLength}
-			/>
-		</BaseField>
-	)
-}
-
-export function NumberField({
-	label,
-	name,
-	placeholder,
-	defaultValue,
-	error,
-	required,
-	min,
-	max,
-	step,
-	className
-}: NumberFieldProps) {
-	return (
-		<BaseField
-			label={label}
-			name={name}
-			error={error}
-			required={required}
-			className={className}
-		>
-			<Input
-				type="number"
-				placeholder={placeholder}
-				defaultValue={defaultValue}
-				min={min}
-				max={max}
-				step={step}
-			/>
-		</BaseField>
-	)
-}
-
-export function TextareaField({
-	label,
-	name,
-	placeholder,
-	defaultValue,
-	error,
-	required,
-	rows = 3,
-	maxLength,
-	className
-}: TextareaFieldProps) {
-	return (
-		<BaseField
-			label={label}
-			name={name}
-			error={error}
-			required={required}
-			className={className}
-		>
-			<Textarea
-				placeholder={placeholder}
-				defaultValue={defaultValue}
-				rows={rows}
-				maxLength={maxLength}
-			/>
-		</BaseField>
-	)
-}
+// Deleted unused BaseField wrapper - use FieldContainer directly with UI components
 
 export function SelectField({
 	label,
@@ -275,11 +135,8 @@ export function CheckboxField({
 	)
 }
 
-// Export all field components
+// Export remaining field components - use BaseField with Input/Textarea for basic fields
 export {
-	TextField as FormTextField,
-	NumberField as FormNumberField,
-	TextareaField as FormTextareaField,
 	SelectField as FormSelectField,
 	CheckboxField as FormCheckboxField
 }

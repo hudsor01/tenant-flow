@@ -370,6 +370,132 @@ export default {
     'no-duplicate-function-implementations': noDuplicateFunctionImplementations,
     'no-repeated-config-patterns': noRepeatedConfigPatterns,  
     'no-similar-api-endpoints': noSimilarApiEndpoints,
-    'no-repeated-component-logic': noRepeatedComponentLogic
+    'no-repeated-component-logic': noRepeatedComponentLogic,
+    'no-wrapper-only': {
+      meta: {
+        type: 'problem',
+        docs: {
+          description: 'Disallow wrapper-only functions/components that add no behavior',
+          category: 'Best Practices',
+          recommended: false
+        },
+        schema: [
+          {
+            type: 'object',
+            properties: {
+              allowMarker: { type: 'string', default: '@wrapper-allowed' },
+              minLines: { type: 'number', default: 1 }
+            },
+            additionalProperties: false
+          }
+        ],
+        messages: {
+          wrapperOnly:
+            'Wrapper-only {{kind}} detected. Prefer parameterized utility/factory or direct composition instead.'
+        }
+      },
+      create(context) {
+        const options = context.options[0] || {}
+        const allowMarker = options.allowMarker || '@wrapper-allowed'
+        const minLines = typeof options.minLines === 'number' ? options.minLines : 1
+
+        function hasAllowMarker(node) {
+          const src = context.getSourceCode()
+          const comments = src.getCommentsBefore(node)
+          return comments?.some(c => c.value.includes(allowMarker)) || false
+        }
+
+        function isParamsMirror(params, arg) {
+          // Identifier referencing a param
+          if (arg.type === 'Identifier') {
+            return params.some(p => p.type === 'Identifier' && p.name === arg.name)
+          }
+          // Spread of props: ...props
+          if (arg.type === 'SpreadElement' && arg.argument.type === 'Identifier') {
+            return params.some(p => p.type === 'Identifier' && p.name === arg.argument.name)
+          }
+          // Object with literal or param value
+          if (arg.type === 'ObjectExpression') {
+            return arg.properties.every(p => {
+              if (p.type !== 'Property') return false
+              const v = p.value
+              if (v.type === 'Literal') return true
+              if (v.type === 'Identifier') return params.some(pp => pp.type === 'Identifier' && pp.name === v.name)
+              return false
+            })
+          }
+          return false
+        }
+
+        function bodyIsSingleReturn(block) {
+          if (block.type !== 'BlockStatement') return false
+          const body = block.body.filter(s => s.type !== 'EmptyStatement')
+          return body.length === 1 && body[0].type === 'ReturnStatement'
+        }
+
+        function isWrapperOnlyFunction(node) {
+          const src = context.getSourceCode()
+          const text = src.getText(node)
+          if (text.split('\n').length < minLines) return false
+
+          if (node.type === 'ArrowFunctionExpression' && node.expression) {
+            // Concise body: () => expr
+            const expr = node.body
+            if (expr.type === 'CallExpression') {
+              return expr.arguments.every(arg => isParamsMirror(node.params, arg))
+            }
+            if (expr.type === 'JSXElement') {
+              // JSX wrapper check on attributes only
+              const attrs = expr.openingElement.attributes
+              return attrs.every(a =>
+                (a.type === 'JSXSpreadAttribute' && a.argument.type === 'Identifier' &&
+                  node.params.some(p => p.type === 'Identifier' && p.name === a.argument.name)) ||
+                (a.type === 'JSXAttribute' && (
+                  (a.value && a.value.type === 'Literal') ||
+                  (a.value && a.value.type === 'JSXExpressionContainer' && a.value.expression.type === 'Identifier' &&
+                    node.params.some(p => p.type === 'Identifier' && p.name === a.value.expression.name))
+                ))
+              )
+            }
+            return false
+          }
+
+          if (node.body && bodyIsSingleReturn(node.body)) {
+            const ret = node.body.body[0]
+            const arg = ret.argument
+            if (!arg) return false
+            if (arg.type === 'CallExpression') {
+              return arg.arguments.every(a => isParamsMirror(node.params, a))
+            }
+            if (arg.type === 'JSXElement') {
+              const attrs = arg.openingElement.attributes
+              return attrs.every(a =>
+                (a.type === 'JSXSpreadAttribute' && a.argument.type === 'Identifier' &&
+                  node.params.some(p => p.type === 'Identifier' && p.name === a.argument.name)) ||
+                (a.type === 'JSXAttribute' && (
+                  (a.value && a.value.type === 'Literal') ||
+                  (a.value && a.value.type === 'JSXExpressionContainer' && a.value.expression.type === 'Identifier' &&
+                    node.params.some(p => p.type === 'Identifier' && p.name === a.value.expression.name))
+                ))
+              )
+            }
+          }
+          return false
+        }
+
+        function report(node, kind) {
+          context.report({ node, messageId: 'wrapperOnly', data: { kind } })
+        }
+
+        return {
+          'FunctionDeclaration, FunctionExpression, ArrowFunctionExpression'(node) {
+            if (hasAllowMarker(node)) return
+            if (isWrapperOnlyFunction(node)) {
+              report(node, node.type === 'ArrowFunctionExpression' ? 'arrow-function' : 'function')
+            }
+          }
+        }
+      }
+    }
   }
 };
