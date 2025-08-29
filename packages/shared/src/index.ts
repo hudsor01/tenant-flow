@@ -100,7 +100,6 @@ export {
 
 export type { 
 	MaintenanceRequestInput,
-	MaintenanceRequest,
 	MaintenanceRequestUpdate,
 	MaintenanceStats,
 	MaintenancePriorityValidation,
@@ -179,9 +178,27 @@ export type CreateMaintenanceInput = MaintenanceRequestInput
 export type UpdateMaintenanceInput = MaintenanceRequestUpdate
 export type UpdateUnitInput = UnitUpdate
 
-// Export auth types
+// Export auth types including User from supabase.ts
 export type { 
-	User, 
+	User,
+	Property,
+	Tenant,
+	Lease,
+	Unit,
+	Subscription,
+	Invoice,
+	MaintenanceRequest,
+	Document,
+	Activity,
+	TenantFlowNotification,
+	RentPayment,
+	PaymentMethod,
+	UserInsert,
+	PropertyInsert,
+	TenantInsert
+} from './types/supabase'
+
+export type { 
 	UserRole, 
 	ValidatedUser, 
 	AuthServiceValidatedUser, 
@@ -197,17 +214,19 @@ export type {
 // Export auth constants for runtime usage
 export { USER_ROLE, USER_ROLE_OPTIONS } from './constants/auth'
 
-// Export database entity types
-export type { 
-	Property, 
-	Tenant, 
-	Lease, 
-	Unit, 
-	PropertyInsert,
-	TenantInsert,
-	LeaseInsert,
-	UnitInsert
-} from './types/database'
+// ============================================================================
+// ULTRA-NATIVE: Import Supabase types directly from generated source
+// ============================================================================
+// 
+// Apps should import directly from generated types:
+//
+// import type { Tables, TablesInsert, Database } from '@repo/shared/types/supabase-generated'  
+// type User = Tables<'User'>
+// type Property = Tables<'Property'>
+// type UserInsert = TablesInsert<'User'>
+//
+// This eliminates unnecessary re-export layers and follows native patterns
+// ============================================================================
 
 // Export dashboard stats types for frontend/backend sharing
 export type {
@@ -228,8 +247,7 @@ export type { BlogArticleWithDetails } from './types/blog'
 // Export invoice types
 export type { CustomerInvoiceForm } from './types/invoices'
 
-// Export Stripe types
-export type { PaymentMethod } from './types/stripe'
+// Export Stripe types (PaymentMethod exported above from supabase types)
 
 // Export relation types that frontend needs
 export type { 
@@ -259,8 +277,7 @@ export type {
 	MaintenanceNotificationData
 } from './types/notifications'
 
-// Export Subscription type from database
-export type { Subscription } from './types/database'
+// Subscription now exported above from supabase.ts
 
 // Export frontend store and UI types
 export type {

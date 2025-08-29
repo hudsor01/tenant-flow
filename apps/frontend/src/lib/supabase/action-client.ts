@@ -54,6 +54,15 @@ export async function createActionClient(): Promise<any> {
 
   // Graceful fallback when Supabase is not configured (e.g., Preview or local static build)
   if (!url || !anon) {
+    // Shared error message for auth methods that require configuration
+    const AUTH_NOT_CONFIGURED_MESSAGE = 'Authentication is not configured in this environment.'
+    
+    // Shared error response factory for auth methods that return MinimalAuthResult
+    const createAuthError = () => ({
+      data: null,
+      error: { message: AUTH_NOT_CONFIGURED_MESSAGE }
+    })
+    
     const client: MinimalSupabaseClient = {
       auth: {
         async getUser() {
@@ -63,30 +72,21 @@ export async function createActionClient(): Promise<any> {
           return { data: { session: null }, error: null }
         },
         async signInWithPassword() {
-          return {
-            data: null,
-            error: { message: 'Authentication is not configured in this environment.' }
-          }
+          return createAuthError()
         },
         async signUp() {
-          return {
-            data: null,
-            error: { message: 'Authentication is not configured in this environment.' }
-          }
+          return createAuthError()
         },
         async signOut() {
           return { error: null }
         },
         async resetPasswordForEmail() {
           return {
-            error: { message: 'Authentication is not configured in this environment.' }
+            error: { message: AUTH_NOT_CONFIGURED_MESSAGE }
           }
         },
         async updateUser() {
-          return {
-            data: null,
-            error: { message: 'Authentication is not configured in this environment.' }
-          }
+          return createAuthError()
         }
       },
       from() {
