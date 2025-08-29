@@ -146,20 +146,9 @@ const nextConfig: NextConfig = {
 		]
 	},
 
-	// Basic redirects
+	// No legacy redirects; all links point to canonical routes
 	async redirects() {
-		return [
-			{
-				source: '/signin',
-				destination: '/auth/login',
-				permanent: true
-			},
-			{
-				source: '/signup',
-				destination: '/auth/signup',
-				permanent: false
-			}
-		]
+		return []
 	},
 
 	// Explicitly disable legacy error pages generation

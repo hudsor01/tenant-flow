@@ -89,7 +89,7 @@ export default function PricingPage() {
 									unitCode: 'MON'
 								},
 								availability: 'https://schema.org/InStock',
-								url: 'https://tenantflow.app/signup?plan=STARTER'
+								url: 'https://tenantflow.app/auth/signup?plan=STARTER'
 							},
 							{
 								'@type': 'Offer',
@@ -105,7 +105,7 @@ export default function PricingPage() {
 									unitCode: 'MON'
 								},
 								availability: 'https://schema.org/InStock',
-								url: 'https://tenantflow.app/signup?plan=GROWTH'
+								url: 'https://tenantflow.app/auth/signup?plan=GROWTH'
 							},
 							{
 								'@type': 'Offer',
@@ -121,7 +121,7 @@ export default function PricingPage() {
 									unitCode: 'MON'
 								},
 								availability: 'https://schema.org/InStock',
-								url: 'https://tenantflow.app/signup?plan=TENANTFLOW_MAX'
+								url: 'https://tenantflow.app/auth/signup?plan=TENANTFLOW_MAX'
 							}
 						],
 						aggregateRating: {

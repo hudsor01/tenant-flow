@@ -81,8 +81,8 @@ export function Navigation({
 		switch (context) {
 			case 'authenticated':
 				return '/dashboard'
-			case 'tenant-portal':
-				return '/tenant-dashboard'
+		case 'tenant-portal':
+			return '/'
 			default:
 				return '/'
 		}
@@ -422,7 +422,7 @@ export function Navigation({
 													(navItems.length + 2) * 0.1
 											}}
 										>
-											<Link href="/get-started">
+											<Link href="/auth/signup">
 												<Button className="bg-primary h-auto w-full justify-center rounded-lg border-0 p-4 font-medium text-white shadow-sm hover:bg-blue-7">
 													<span className="flex items-center">
 														Get Started
@@ -536,6 +536,7 @@ export function Navigation({
 						</DropdownMenuContent>
 					</DropdownMenu>
 					
+					{/* Restore avatar dropdown with Dashboard/Settings/Logout */}
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
 							<button className="rounded-full">
@@ -546,37 +547,27 @@ export function Navigation({
 							<DropdownMenuLabel>
 								<div className="flex flex-col space-y-1">
 									<p className="text-sm font-medium">
-										{user?.name ||
-											user?.email?.split('@')[0] ||
-											'User'}
+										{user?.name || user?.email?.split('@')[0] || 'User'}
 									</p>
-									<p className="text-muted-foreground text-xs">
-										{user?.email}
-									</p>
+									<p className="text-muted-foreground text-xs">{user?.email}</p>
 								</div>
 							</DropdownMenuLabel>
 							<DropdownMenuSeparator />
 							<DropdownMenuItem asChild>
-								<Link
-									href={
-										context === 'authenticated'
-											? '/profile'
-											: '/tenant-dashboard'
-									}
-								>
-									<i className="i-lucide-usercircle mr-2 h-4 w-4"  />
-									Profile
+								<Link href="/dashboard">
+									<i className="i-lucide-layout-dashboard mr-2 h-4 w-4" />
+									Dashboard
 								</Link>
 							</DropdownMenuItem>
-							{context === 'authenticated' && (
-								<DropdownMenuItem>
-									<i className="i-lucide-settings mr-2 h-4 w-4"  />
+							<DropdownMenuItem asChild>
+								<Link href="/settings">
+									<i className="i-lucide-settings mr-2 h-4 w-4" />
 									Settings
-								</DropdownMenuItem>
-							)}
+								</Link>
+							</DropdownMenuItem>
 							<DropdownMenuSeparator />
 							<DropdownMenuItem onClick={handleLogout}>
-								<i className="i-lucide-log-out mr-2 h-4 w-4"  />
+								<i className="i-lucide-log-out mr-2 h-4 w-4" />
 								Log out
 							</DropdownMenuItem>
 						</DropdownMenuContent>
@@ -598,7 +589,7 @@ export function Navigation({
 				>
 					Log in
 				</Link>
-				<Link href="/get-started">
+				<Link href="/auth/signup">
 					<Button
 						size="lg"
 						className="btn-brand px-8 py-3 text-xl font-medium shadow-xl"
