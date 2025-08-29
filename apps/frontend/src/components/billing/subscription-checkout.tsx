@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/card'
 import type { PLAN_TYPE } from '@repo/shared'
 import { PLANS } from '@repo/shared'
-import { post } from '@/lib/api-client'
+import { apiMutate } from '@/lib/utils/api-utils'
 
 interface SubscriptionCheckoutProps {
 	planType: keyof typeof PLAN_TYPE
@@ -84,11 +84,11 @@ export function SubscriptionCheckout({
 			}
 
 			// Step 2: Send Confirmation Token to server to create and confirm subscription
-			const response = await post<{
+			const response = await apiMutate<{
 				subscription: { id: string; status: string }
 				clientSecret?: string
 				requiresAction?: boolean
-			}>('/api/stripe/create-subscription', {
+			}>('POST', '/api/stripe/create-subscription', {
 				confirmationTokenId: confirmationToken.id,
 				planType,
 				billingInterval: billingInterval === 'annual' ? 'year' : 'month'

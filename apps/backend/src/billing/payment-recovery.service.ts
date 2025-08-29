@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { PinoLogger } from 'nestjs-pino'
-import { SubscriptionSupabaseRepository } from './subscription-supabase.repository'
+import { SupabaseService } from '../database/supabase.service'
 
 /**
  * Minimal Payment Recovery Service
@@ -21,7 +21,7 @@ import { SubscriptionSupabaseRepository } from './subscription-supabase.reposito
 @Injectable()
 export class PaymentRecoveryService {
 	constructor(
-		private readonly subscriptionRepository: SubscriptionSupabaseRepository,
+		private readonly supabaseService: SupabaseService,
 		private readonly logger: PinoLogger
 	) {
 		// PinoLogger context handled automatically via app-level configuration
@@ -39,10 +39,12 @@ export class PaymentRecoveryService {
 			return
 		}
 
-		await this.subscriptionRepository.updateStatusByStripeId(
-			subscriptionId,
-			'PAST_DUE'
-		)
+		// Direct Supabase update - no Repository abstraction
+		await this.supabaseService
+			.getAdminClient()
+			.from('Subscription')
+			.update({ status: 'PAST_DUE' })
+			.eq('stripeSubscriptionId', subscriptionId)
 
 		this.logger.info(
 			`Subscription ${subscriptionId} marked PAST_DUE. Stripe handling recovery.`
@@ -60,10 +62,12 @@ export class PaymentRecoveryService {
 			return
 		}
 
-		await this.subscriptionRepository.updateStatusByStripeId(
-			subscriptionId,
-			'ACTIVE'
-		)
+		// Direct Supabase update - no Repository abstraction
+		await this.supabaseService
+			.getAdminClient()
+			.from('Subscription')
+			.update({ status: 'ACTIVE' })
+			.eq('stripeSubscriptionId', subscriptionId)
 
 		this.logger.info(
 			`Subscription ${subscriptionId} recovered and marked ACTIVE.`

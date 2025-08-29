@@ -1,7 +1,7 @@
 // File: packages/shared/api.ts
 // Purpose: Shared API DTOs and response types for frontend and backend.
 
-import type { User } from './auth'
+import type { User } from './supabase'
 import type { Database } from './supabase-generated'
 type Lease = Database['public']['Tables']['Lease']['Row']
 type Property = Database['public']['Tables']['Property']['Row']
