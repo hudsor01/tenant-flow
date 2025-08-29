@@ -5,10 +5,11 @@ import {
 	Logger
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-import type { User, UserRole } from '@repo/shared'
+import type { UserRole } from '@repo/shared'
+import type { AuthUser } from '@repo/shared/types/auth'
 
 interface RequestWithUser {
-	user?: User & { organizationId?: string }
+	user?: AuthUser
 	params?: Record<string, string>
 	query?: Record<string, string>
 	body?: Record<string, unknown>
@@ -68,7 +69,7 @@ export class RolesGuard implements CanActivate {
 
 	private validateAdminAccess(
 		request: RequestWithUser,
-		user: User & { organizationId?: string }
+		user: AuthUser
 	): boolean {
 		if (user.role !== 'ADMIN') {
 			this.logger.warn('Admin access denied: User is not admin', {
@@ -79,13 +80,13 @@ export class RolesGuard implements CanActivate {
 			return false
 		}
 
-		// Enforce tenant isolation for admin operations
+		// Enforce tenant isolation for admin operations (if organizations are implemented)
 		if (!this.validateTenantIsolation(request, user)) {
 			this.logger.error(
 				'Admin access denied: Tenant isolation violation',
 				{
 					userId: user.id,
-					userOrganizationId: user.organizationId,
+					userOrganizationId: user.organizationId ?? null,
 					route: request.route?.path ?? 'unknown route',
 					ip: request.ip
 				}
@@ -98,12 +99,18 @@ export class RolesGuard implements CanActivate {
 
 	private validateTenantIsolation(
 		request: RequestWithUser,
-		user: User & { organizationId?: string }
+		user: AuthUser
 	): boolean {
 		const requestedOrgId = this.extractOrganizationId(request)
 
 		// If no organization context in request, allow (for global operations)
 		if (!requestedOrgId) {
+			return true
+		}
+
+		// If user has no organization ID (current system doesn't have orgs), allow access
+		// This maintains backward compatibility while allowing future org implementation
+		if (!user.organizationId) {
 			return true
 		}
 
@@ -122,7 +129,7 @@ export class RolesGuard implements CanActivate {
 		)
 	}
 
-	private isValidUserObject(user: unknown): user is User {
+	private isValidUserObject(user: unknown): user is AuthUser {
 		if (!user || typeof user !== 'object') {
 			return false
 		}

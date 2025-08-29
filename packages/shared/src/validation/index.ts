@@ -1,61 +1,28 @@
 /**
- * Shared validation schemas for TenantFlow
- * Common Zod schemas used across frontend and backend
+ * Validation Schema Exports
+ * Re-exports all validation schemas for @repo/shared/validation imports
  */
 
-// ❌ Auth schemas moved to generated files - see ./auth.ts for migration guide
-// export * from './auth' // REMOVED: Use generated schemas instead
+// Auth validation
+export * from './auth'
+
+// Common validation utilities
 export * from './common'
-export * from './properties'
-export * from './tenants'
-export * from './units'
-export * from './maintenance'
-export * from './leases'
+
+// Document validation
 export * from './documents'
 
-// Re-export specific schemas that are commonly used
-export {
-	uuidSchema,
-	emailSchema,
-	nonEmptyStringSchema,
-	requiredString,
-	requiredStringField,
-	requiredName,
-	requiredTitle,
-	requiredDescription,
-	positiveNumberSchema,
-	nonNegativeNumberSchema,
-	dateStringSchema,
-	// Pagination schemas
-	paginationSchema,
-	paginationQuerySchema,
-	paginationResponseSchema,
-	// React 19 Action State schemas
-	actionStateSchema,
-	formActionStateSchema,
-	serverActionResponseSchema,
-	// Enhanced common schemas
-	phoneSchema,
-	currencyAmountSchema,
-	percentageSchema,
-	urlSchema,
-	fileTypeSchema,
-	fileSizeSchema,
-	uploadedFileSchema,
-	addressSchema,
-	coordinatesSchema,
-	// Query schemas
-	sortSchema,
-	advancedSearchSchema,
-	timeRangeSchema,
-	baseQuerySchema,
-	// Bulk operation schemas
-	bulkOperationSchema,
-	bulkResponseSchema,
-	// Webhook schemas
-	webhookEventSchema,
-	webhookDeliverySchema,
-	// Response schemas
-	successResponseSchema,
-	errorResponseSchema
-} from './common'
+// Lease validation
+export * from './leases'
+
+// Maintenance validation
+export * from './maintenance'
+
+// Property validation
+export * from './properties'
+
+// Tenant validation
+export * from './tenants'
+
+// Unit validation
+export * from './units'

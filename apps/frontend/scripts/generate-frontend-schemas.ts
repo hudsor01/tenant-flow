@@ -26,10 +26,10 @@ type JSONSchema = any // Permissive typing for JSON Schema objects
 async function generateSchemas() {
   console.log('🔄 Generating frontend Zod schemas from backend JSON schemas...')
   
-  // Use native Node.js import with specific error handling
+  // Use native Node.js import from built backend files
   let backendSchemas: any
   try {
-    backendSchemas = await import('../../backend/src/schemas/auth.schemas')
+    backendSchemas = await import('../../backend/dist/schemas/auth.schemas.js')
     console.log('✅ Backend schemas imported successfully')
   } catch (error: any) {
     if (error.code === 'MODULE_NOT_FOUND') {
@@ -85,7 +85,7 @@ async function generateSchemas() {
       // Use existing json-schema-to-zod with basic error handling
       const zodCode = jsonSchemaToZod(jsonSchema, {
         name: name,
-        module: 'zod' // Use 'zod' for compatibility
+        module: 'none' // Use 'none' for compatibility
       })
       
       // Add export to the generated const declaration

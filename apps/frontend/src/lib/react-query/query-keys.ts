@@ -6,14 +6,31 @@
 // Base query keys
 const baseQueryKeys = ['tenantflow'] as const
 
-// Generic query key factory - DRY principle for common patterns
+// Ultra-simple approach - avoid complex typing, use type assertion
+function createNamespaceQueryKeys(namespace: string, keys: Record<string, string | ((params: unknown) => unknown)>) {
+	const base = () => [...baseQueryKeys, namespace] as const
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const result: Record<string, any> = { all: base }
+	
+	for (const [key, value] of Object.entries(keys)) {
+		if (typeof value === 'string') {
+			result[key] = () => [...base(), value] as const
+		} else if (typeof value === 'function') {
+			result[key] = (params?: unknown) => [...base(), key, params] as const
+		}
+	}
+	
+	return result
+}
+
+// Generic resource factory - DRY principle for resource CRUD patterns
 function createResourceQueryKeys(resource: string) {
 	const resourceBase = () => [...baseQueryKeys, resource] as const
 	
 	return {
 		all: resourceBase,
 		lists: () => [...resourceBase(), 'list'] as const,
-		list: (params?: Record<string, unknown>) =>
+		list: (params?: unknown) =>
 			[...resourceBase(), 'list', params] as const,
 		detail: (id: string) =>
 			[...resourceBase(), 'detail', id] as const,
@@ -29,12 +46,11 @@ export const queryKeys = {
 	all: baseQueryKeys,
 
 	// Authentication
-	auth: {
-		all: () => [...baseQueryKeys, 'auth'] as const,
-		session: () => [...baseQueryKeys, 'auth', 'session'] as const,
-		profile: () => [...baseQueryKeys, 'auth', 'profile'] as const,
-		user: () => [...baseQueryKeys, 'auth', 'user'] as const
-	},
+	auth: createNamespaceQueryKeys('auth', {
+		session: 'session',
+		profile: 'profile',
+		user: 'user'
+	}),
 
 	// Properties - using factory with extensions
 	properties: (() => {
@@ -76,41 +92,33 @@ export const queryKeys = {
 	maintenance: createResourceQueryKeys('maintenance'),
 
 	// Dashboard - custom pattern (different from resource pattern)
-	dashboard: {
-		all: () => [...baseQueryKeys, 'dashboard'] as const,
-		overview: () => [...baseQueryKeys, 'dashboard', 'overview'] as const,
-		stats: () => [...baseQueryKeys, 'dashboard', 'stats'] as const,
-		tasks: () => [...baseQueryKeys, 'dashboard', 'tasks'] as const,
-		activity: () => [...baseQueryKeys, 'dashboard', 'activity'] as const,
-		alerts: () => [...baseQueryKeys, 'dashboard', 'alerts'] as const,
-		metrics: (period: string) =>
-			[...baseQueryKeys, 'dashboard', 'metrics', period] as const
-	},
+	dashboard: createNamespaceQueryKeys('dashboard', {
+		overview: 'overview',
+		stats: 'stats',
+		tasks: 'tasks',
+		activity: 'activity',
+		alerts: 'alerts',
+		metrics: (period: unknown) => period
+	}),
 
 	// Billing
-	billing: {
-		all: () => [...baseQueryKeys, 'billing'] as const,
-		subscription: () => [...baseQueryKeys, 'billing', 'subscription'] as const,
-		invoices: (limit?: number) =>
-			[...baseQueryKeys, 'billing', 'invoices', limit] as const,
-		paymentMethods: () =>
-			[...baseQueryKeys, 'billing', 'payment-methods'] as const,
-		usage: () => [...baseQueryKeys, 'billing', 'usage'] as const
-	},
+	billing: createNamespaceQueryKeys('billing', {
+		subscription: 'subscription',
+		invoices: (limit: unknown) => limit,
+		paymentMethods: 'payment-methods',
+		usage: 'usage'
+	}),
 
 	// PDF
-	pdf: {
-		all: () => [...baseQueryKeys, 'pdf'] as const,
-		health: () => [...baseQueryKeys, 'pdf', 'health'] as const
-	},
+	pdf: createNamespaceQueryKeys('pdf', {
+		health: 'health'
+	}),
 
 	// Notifications
-	notifications: {
-		all: () => [...baseQueryKeys, 'notifications'] as const,
-		unread: () => [...baseQueryKeys, 'notifications', 'unread'] as const,
-		list: (params?: Record<string, unknown>) =>
-			[...baseQueryKeys, 'notifications', 'list', params] as const
-	}
+	notifications: createNamespaceQueryKeys('notifications', {
+		unread: 'unread',
+		list: (params: unknown) => params
+	})
 }
 
 /**

@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import {
 	Card,
 	CardContent,
@@ -14,10 +16,8 @@ import { Label } from '@/components/ui/label'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { useFormState, useApiCall } from '@/hooks/common'
-import { FormValidator } from '@/lib/validation/form-validator'
-import type { ProfileFormData } from '@repo/shared/types/auth'
-import { toast } from 'sonner'
+import { useApiCall } from '@/hooks/common'
+import { profileFormSchema, type ProfileFormData } from '@/lib/validation/schemas'
 
 
 import { useAuth } from '@/hooks/use-auth'
@@ -26,18 +26,24 @@ export function ProfileSettings() {
 	const { user } = useAuth()
 
 	const {
-		values: profile,
-		handleChange,
-		setValues
-	} = useFormState<ProfileFormData>({
-		initialValues: {
+		register,
+		handleSubmit,
+		formState: { errors, isSubmitting },
+		watch,
+		reset
+	} = useForm<ProfileFormData>({
+		resolver: zodResolver(profileFormSchema),
+		defaultValues: {
 			name: '',
 			email: '',
 			phone: '',
 			company: '',
-			address: ''
+			address: '',
+			avatar: ''
 		}
 	})
+
+	const profile = watch() // Watch all form values for reactive updates
 
 	const { execute: saveProfile, isLoading } = useApiCall(
 		async (data: ProfileFormData) => {
@@ -72,25 +78,20 @@ export function ProfileSettings() {
 				const v = record[k]
 				return typeof v === 'string' ? v : ''
 			}
-			setValues({
+			reset({
 				name: getStringFrom('name'),
 				email: getStringFrom('email'),
 				phone: getStringFrom('phone'),
 				company: getStringFrom('company'),
-				address: getStringFrom('address')
+				address: getStringFrom('address'),
+				avatar: getStringFrom('avatar')
 			})
 		}
-	}, [user, setValues])
+	}, [user, reset])
 
-	const handleSave = async () => {
-		// Basic UI validation
-		const emailError = FormValidator.validateEmail(profile.email)
-		if (emailError) {
-			toast.error(emailError)
-			return
-		}
-
-		await saveProfile(profile)
+	const onSubmit = async (data: ProfileFormData) => {
+		// Validation is automatically handled by zodResolver
+		await saveProfile(data)
 	}
 
 	// Parse name for initials
@@ -144,10 +145,12 @@ export function ProfileSettings() {
 						<Label htmlFor="name">Full Name</Label>
 						<Input
 							id="name"
-							value={profile.name}
-							onChange={handleChange('name')}
+							{...register('name')}
 							placeholder="Enter your full name"
 						/>
+						{errors.name && (
+							<p className="text-destructive text-sm mt-1">{errors.name.message}</p>
+						)}
 					</div>
 
 					{/* Contact Information */}
@@ -163,10 +166,12 @@ export function ProfileSettings() {
 							<Input
 								id="email"
 								type="email"
-								value={profile.email}
-								onChange={handleChange('email')}
+								{...register('email')}
 								placeholder="Enter your email"
 							/>
+							{errors.email && (
+								<p className="text-destructive text-sm mt-1">{errors.email.message}</p>
+							)}
 						</div>
 						<div className="space-y-2">
 							<Label
@@ -178,10 +183,12 @@ export function ProfileSettings() {
 							</Label>
 							<Input
 								id="phone"
-								value={profile.phone}
-								onChange={handleChange('phone')}
+								{...register('phone')}
 								placeholder="Enter your phone number"
 							/>
+							{errors.phone && (
+								<p className="text-destructive text-sm mt-1">{errors.phone.message}</p>
+							)}
 						</div>
 					</div>
 
@@ -197,8 +204,7 @@ export function ProfileSettings() {
 							</Label>
 							<Input
 								id="company"
-								value={profile.company}
-								onChange={handleChange('company')}
+								{...register('company')}
 								placeholder="Enter your company name"
 							/>
 						</div>
@@ -212,8 +218,7 @@ export function ProfileSettings() {
 							</Label>
 							<Input
 								id="address"
-								value={profile.address}
-								onChange={handleChange('address')}
+								{...register('address')}
 								placeholder="Enter your business address"
 							/>
 						</div>
@@ -233,8 +238,8 @@ export function ProfileSettings() {
 								</span>
 							</div>
 						</div>
-						<Button onClick={handleSave} disabled={isLoading}>
-							{isLoading ? (
+						<Button onClick={handleSubmit(onSubmit)} disabled={isLoading || isSubmitting}>
+							{(isLoading || isSubmitting) ? (
 								<i className="i-lucide-loader-2 mr-2 h-4 w-4 animate-spin"  />
 							) : (
 								<i className="i-lucide-save mr-2 h-4 w-4"  />

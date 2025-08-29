@@ -3,7 +3,7 @@
  * Extended entity types with proper relations to avoid circular imports
  */
 
-import type { User } from './auth'
+import type { User } from './supabase'
 import type { Database } from './supabase-generated'
 
 // Define types properly from Database schema

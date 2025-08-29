@@ -186,12 +186,31 @@ export const useAppStore = create<LocalAppState>()(
 			persist(
 				// Add Immer for immutable updates (performance + safety)
 				immer<LocalAppState>((set, get) => {
-					// Shared utility for updating unread count - DRY principle
-						const updateUnreadCount = (state: LocalAppState) => {
+					// ============================================================================
+					// SHARED UTILITIES - DRY PRINCIPLE
+					// ============================================================================
+					
+					// Shared utility for updating unread count
+					const updateUnreadCount = (state: LocalAppState) => {
 						state.unreadCount = state.notifications.filter(
 							(n: AppNotification) => !n.read
 						).length
 					}
+
+					// Generic state updater - eliminates 90% of anonymous function duplication
+					const updateState = <T>(updater: (state: LocalAppState) => T) => set(updater)
+
+					// Session state updater with common patterns
+					const updateSession = (updater: (session: UserSession) => void) => 
+						updateState(state => updater(state.session))
+
+					// Cache state updater with type safety
+					const updateCache = (updater: (cache: LocalAppState['cache']) => void) =>
+						updateState(state => updater(state.cache))
+
+					// Notification finder utility
+					const findNotification = (state: LocalAppState, id: string) =>
+						state.notifications.find((n: AppNotification) => n.id === id)
 
 					return {
 					...initialState,
@@ -218,25 +237,25 @@ export const useAppStore = create<LocalAppState>()(
 					// ============================================================================
 
 					setTheme: (theme: Theme) => {
-						set(state => {
+						updateState(state => {
 							state.ui.theme = theme
 						})
 					},
 
 					toggleSidebar: () => {
-						set(state => {
+						updateState(state => {
 							state.ui.sidebarOpen = !state.ui.sidebarOpen
 						})
 					},
 
 					toggleCompactMode: () => {
-						set(state => {
+						updateState(state => {
 							state.ui.compactMode = !state.ui.compactMode
 						})
 					},
 
 					updatePreferences: (preferences: Partial<UIPreferences>) => {
-						set(state => {
+						updateState(state => {
 							Object.assign(state.ui, preferences)
 						})
 					},
@@ -246,46 +265,47 @@ export const useAppStore = create<LocalAppState>()(
 					// ============================================================================
 
 					setUser: (user: AuthUser | null) => {
-						set(state => {
-							state.session.user = user
-							state.session.isAuthenticated = !!user
-							state.session.lastActivity = new Date()
-
-							if (user) {
-								// Extend session by 8 hours when user is set
-								state.session.sessionExpiry = new Date(
-									Date.now() + 8 * 60 * 60 * 1000
-								)
-							} else {
-								state.session.sessionExpiry = null
-							}
+						updateSession(session => {
+							session.user = user
+							session.isAuthenticated = !!user
+							session.lastActivity = new Date()
+							session.sessionExpiry = user 
+								? new Date(Date.now() + 8 * 60 * 60 * 1000)
+								: null
 						})
+						// Clear sensitive cache data when logging out
+						if (!user) {
+							updateCache(cache => {
+								cache.selectedPropertyId = null
+								cache.selectedTenantId = null
+							})
+						}
 					},
 
 					updateLastActivity: () => {
-						set(state => {
-							state.session.lastActivity = new Date()
+						updateSession(session => {
+							session.lastActivity = new Date()
 						})
 					},
 
 					clearSession: () => {
-						set(state => {
-							state.session.user = null
-							state.session.isAuthenticated = false
-							state.session.lastActivity = null
-							state.session.sessionExpiry = null
-							// Clear sensitive cache data
-							state.cache.selectedPropertyId = null
-							state.cache.selectedTenantId = null
+						updateSession(session => {
+							session.user = null
+							session.isAuthenticated = false
+							session.lastActivity = null
+							session.sessionExpiry = null
+						})
+						updateCache(cache => {
+							cache.selectedPropertyId = null
+							cache.selectedTenantId = null
 						})
 					},
 
 					extendSession: (minutes: number) => {
-						set(state => {
-							if (state.session.sessionExpiry) {
-								state.session.sessionExpiry = new Date(
-									state.session.sessionExpiry.getTime() +
-										minutes * 60 * 1000
+						updateSession(session => {
+							if (session.sessionExpiry) {
+								session.sessionExpiry = new Date(
+									session.sessionExpiry.getTime() + minutes * 60 * 1000
 								)
 							}
 						})
@@ -321,10 +341,8 @@ export const useAppStore = create<LocalAppState>()(
 					},
 
 					removeNotification: (id: string) => {
-						set(state => {
-							const index = state.notifications.findIndex(
-								(n: AppNotification) => n.id === id
-							)
+						updateState(state => {
+							const index = state.notifications.findIndex(n => n.id === id)
 							if (index > -1) {
 								state.notifications.splice(index, 1)
 								updateUnreadCount(state)
@@ -333,10 +351,8 @@ export const useAppStore = create<LocalAppState>()(
 					},
 
 					markNotificationRead: (id: string) => {
-						set(state => {
-							const notification = state.notifications.find(
-								(n: AppNotification) => n.id === id
-							)
+						updateState(state => {
+							const notification = findNotification(state, id)
 							if (notification && !notification.read) {
 								notification.read = true
 								updateUnreadCount(state)
@@ -345,18 +361,16 @@ export const useAppStore = create<LocalAppState>()(
 					},
 
 					markAllNotificationsRead: () => {
-						set(state => {
-							state.notifications.forEach(
-								(n: AppNotification) => {
-									n.read = true
-								}
-							)
+						updateState(state => {
+							state.notifications.forEach(n => {
+								n.read = true
+							})
 							state.unreadCount = 0
 						})
 					},
 
 					clearNotifications: () => {
-						set(state => {
+						updateState(state => {
 							state.notifications = []
 							state.unreadCount = 0
 						})
@@ -368,7 +382,7 @@ export const useAppStore = create<LocalAppState>()(
 
 					// Generic modal setter - DRY principle
 					setModalState: (name: string, isOpen: boolean) => {
-						set(state => {
+						updateState(state => {
 							state.modals[name] = isOpen
 						})
 					},
@@ -381,7 +395,7 @@ export const useAppStore = create<LocalAppState>()(
 					closeModal: (name: string) => get().setModalOpen(name, false),
 
 					closeAllModals: () => {
-						set(state => {
+						updateState(state => {
 							Object.keys(state.modals).forEach(key => {
 								state.modals[key] = false
 							})
@@ -389,7 +403,7 @@ export const useAppStore = create<LocalAppState>()(
 					},
 
 					toggleModal: (name: string) => {
-						set(state => {
+						updateState(state => {
 							state.modals[name] = !state.modals[name]
 						})
 					},
@@ -403,8 +417,7 @@ export const useAppStore = create<LocalAppState>()(
 						key: K,
 						value: LocalAppState['cache'][K]
 					) => {
-						set(state => {
-							const cache = state.cache as { [P in keyof LocalAppState['cache']]: LocalAppState['cache'][P] }
+						updateCache(cache => {
 							cache[key] = value as LocalAppState['cache'][K]
 						})
 					},
@@ -416,31 +429,27 @@ export const useAppStore = create<LocalAppState>()(
 						get().setCacheValue('selectedTenantId', id),
 
 					addRecentSearch: (search: string) => {
-						set(state => {
+						updateCache(cache => {
 							// Remove if exists, then add to beginning
-							state.cache.recentSearches = [
+							cache.recentSearches = [
 								search,
-								...state.cache.recentSearches.filter(
-									(s: string) => s !== search
-								)
+								...cache.recentSearches.filter(s => s !== search)
 							].slice(0, 10) // Keep only 10 recent searches
 						})
 					},
 
 					updateRecentActivity: (activity: RecentActivity[]) => {
-						set(state => {
-							state.cache.recentActivity = activity
+						updateCache(cache => {
+							cache.recentActivity = activity
 						})
 					},
 
 					clearCache: () => {
-						set(state => {
-							state.cache = {
-								selectedPropertyId: null,
-								selectedTenantId: null,
-								recentSearches: [],
-								recentActivity: []
-							}
+						updateCache(cache => {
+							cache.selectedPropertyId = null
+							cache.selectedTenantId = null
+							cache.recentSearches = []
+							cache.recentActivity = []
 						})
 					},
 
@@ -449,13 +458,13 @@ export const useAppStore = create<LocalAppState>()(
 					// ============================================================================
 
 					setOnlineStatus: (isOnline: boolean) => {
-						set(state => {
+						updateState(state => {
 							state.isOnline = isOnline
 						})
 					},
 
 					updateLastSync: () => {
-						set(state => {
+						updateState(state => {
 							state.lastSync = new Date()
 						})
 					},
@@ -465,11 +474,9 @@ export const useAppStore = create<LocalAppState>()(
 					// ============================================================================
 
 					bulkUpdateNotifications: (updates: { id: string; read: boolean }[]) => {
-						set(state => {
+						updateState(state => {
 							updates.forEach(({ id, read }) => {
-								const notification = state.notifications.find(
-									(n: AppNotification) => n.id === id
-								)
+								const notification = findNotification(state, id)
 								if (notification) {
 									notification.read = read
 								}

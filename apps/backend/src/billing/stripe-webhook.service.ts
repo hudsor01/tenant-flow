@@ -360,18 +360,17 @@ export class StripeWebhookService {
 	/**
 	 * Insert-first idempotency gate: try to insert event record
 	 * Returns true if new event (should process), false if duplicate (skip)
-	 * 
-	 * Note: Using 'as any' type assertion until migration is applied and types regenerated
 	 */
 	private async tryMarkEventAsProcessing(stripeEventId: string, eventType: string): Promise<boolean> {
 		try {
 			const { error } = await this.supabaseService
 				.getAdminClient()
-				.from('processed_stripe_events' as any)
+				.from('WebhookEvent')
 				.insert({
-					stripe_event_id: stripeEventId,
-					event_type: eventType
-				} as any)
+					stripeEventId: stripeEventId,
+					eventType: eventType,
+					processed: false
+				})
 
 			if (error) {
 				// Check if it's a unique constraint violation (duplicate event)
@@ -398,9 +397,9 @@ export class StripeWebhookService {
 		try {
 			const { error } = await this.supabaseService
 				.getAdminClient()
-				.from('processed_stripe_events' as any)
+				.from('WebhookEvent')
 				.delete()
-				.eq('stripe_event_id', stripeEventId)
+				.eq('stripeEventId', stripeEventId)
 
 			if (error) {
 				this.logger.error(`Failed to remove processed event for retry: ${error.message}`)
@@ -422,9 +421,9 @@ export class StripeWebhookService {
 
 			const { error } = await this.supabaseService
 				.getAdminClient()
-				.from('processed_stripe_events' as any)
+				.from('WebhookEvent')
 				.delete()
-				.lt('processed_at', cutoffDate.toISOString())
+				.lt('createdAt', cutoffDate.toISOString())
 
 			if (error) {
 				this.logger.error(`Failed to cleanup old processed events: ${error.message}`)

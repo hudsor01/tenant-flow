@@ -3,10 +3,22 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
-import type { Property, Unit } from '@repo/shared'
+import type { Unit } from '@repo/shared'
 
-// Define local interface for component needs
-interface Property_WithUnits extends Property {
+// Define local interface for component needs - explicitly include key fields to avoid type resolution issues
+interface Property_WithUnits {
+	id: string
+	name: string
+	address: string
+	city: string
+	state: string
+	zipCode: string
+	description: string | null
+	propertyType: string
+	imageUrl: string | null
+	ownerId: string
+	createdAt: string
+	updatedAt: string
 	units?: Unit[]
 }
 import { formatCurrency as sharedFormatCurrency } from '@repo/shared'

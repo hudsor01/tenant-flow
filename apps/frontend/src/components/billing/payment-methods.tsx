@@ -32,7 +32,7 @@ import { usePaymentMethods } from '@/hooks/api/use-billing'
 import { useNotificationSystem } from '@/hooks/use-app-store'
 import type { PaymentMethod } from '@repo/shared'
 import { EnhancedElementsProvider } from '@/lib/stripe/elements-provider'
-import { post } from '@/lib/api-client'
+import { apiMutate } from '@/lib/utils/api-utils'
 
 interface AddPaymentMethodProps {
 	onSuccess?: () => void
@@ -65,10 +65,10 @@ function AddPaymentMethodForm({ onSuccess, onCancel }: AddPaymentMethodProps) {
 
 			try {
 				// Create Setup Intent for secure payment method collection
-                const setupIntentResponse = await post<{
+                const setupIntentResponse = await apiMutate<{
                     clientSecret: string
                     setupIntentId: string
-                }>('stripe/setup-intent', {})
+                }>('POST', 'stripe/setup-intent', {})
 
 				// Confirm Setup Intent with payment method
 				const { error: confirmError } = await stripe.confirmSetup({
@@ -217,11 +217,17 @@ function _PaymentMethodCard({
 		return brandColors[brand as keyof typeof brandColors] || 'text-gray-5'
 	}
 
-	if (paymentMethod.type !== 'card' || !paymentMethod.card) {
+	if (paymentMethod.type !== 'card') {
 		return null
 	}
 
-	const { card } = paymentMethod
+	// Our database PaymentMethod has card details as direct properties
+	const card = {
+		brand: paymentMethod.brand,
+		last4: paymentMethod.lastFour,
+		exp_month: paymentMethod.expiryMonth,
+		exp_year: paymentMethod.expiryYear
+	}
 
 	return (
 		<Card
@@ -232,7 +238,7 @@ function _PaymentMethodCard({
 				<div className="flex items-center justify-between">
 					<div className="flex items-center space-x-3">
 						<div className="flex items-center space-x-2">
-							<i className={`i-lucide-credit-card h-6 w-6 ${getBrandIcon(card.brand)}`} />
+							<i className={`i-lucide-credit-card h-6 w-6 ${getBrandIcon(card.brand || 'card')}`} />
 							<div>
 								<div className="flex items-center space-x-2">
 									<span className="font-medium capitalize">

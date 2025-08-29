@@ -15,7 +15,7 @@ import type { MaintenanceStats } from '@repo/shared/types/dashboard-stats'
 type MaintenanceRequest = Database['public']['Tables']['MaintenanceRequest']['Row']
 type CreateMaintenanceInput = Database['public']['Tables']['MaintenanceRequest']['Insert']
 type UpdateMaintenanceInput = Database['public']['Tables']['MaintenanceRequest']['Update']
-import { get, post, put, del } from '@/lib/api-client'
+import { apiGet, apiMutate } from '@/lib/utils/api-utils'
 import { queryKeys } from '@/lib/react-query/query-keys'
 
 // ============================================================================
@@ -30,7 +30,7 @@ export function useMaintenanceRequests(
 ): UseQueryResult<MaintenanceRequestApiResponse[]> {
 	return useQuery({
 		queryKey: queryKeys.maintenance.list(params),
-		queryFn: async () => get<MaintenanceRequestApiResponse[]>('/api/maintenance'),
+		queryFn: async () => apiGet<MaintenanceRequestApiResponse[]>('/api/maintenance'),
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000 // 10 minutes
 	})
@@ -42,7 +42,7 @@ export function useMaintenanceRequests(
 export function useMaintenanceRequest(id: string): UseQueryResult<MaintenanceRequest> {
 	return useQuery({
 		queryKey: queryKeys.maintenance.detail(id),
-		queryFn: async () => get<MaintenanceRequest>(`/api/maintenance/${id}`),
+		queryFn: async () => apiGet<MaintenanceRequest>(`/api/maintenance/${id}`),
 		staleTime: 2 * 60 * 1000, // 2 minutes
 		enabled: !!id
 	})
@@ -54,7 +54,7 @@ export function useMaintenanceRequest(id: string): UseQueryResult<MaintenanceReq
 export function useMaintenanceStats(): UseQueryResult<MaintenanceStats> {
 	return useQuery({
 		queryKey: queryKeys.maintenance.stats(),
-		queryFn: async () => get<MaintenanceStats>('/api/maintenance/stats'),
+		queryFn: async () => apiGet<MaintenanceStats>('/api/maintenance/stats'),
 		staleTime: 2 * 60 * 1000, // 2 minutes
 		refetchInterval: 5 * 60 * 1000 // Auto-refresh every 5 minutes
 	})
@@ -71,7 +71,7 @@ export function useCreateMaintenanceRequest() {
 	const queryClient = useQueryClient()
 	
 	const mutate = async (data: CreateMaintenanceInput) => {
-		const result = await post<MaintenanceRequestApiResponse>('/api/maintenance', data)
+		const result = await apiMutate<MaintenanceRequestApiResponse>('POST', '/api/maintenance', data)
 		// Invalidate related queries using proper query keys
 		await queryClient.invalidateQueries({ queryKey: queryKeys.maintenance.lists() })
 		await queryClient.invalidateQueries({ queryKey: queryKeys.maintenance.stats() })
@@ -95,7 +95,7 @@ export function useDeleteMaintenanceRequest() {
 	const queryClient = useQueryClient()
 	
 	const mutate = async (id: string) => {
-		await del<void>(`/api/maintenance/${id}`)
+		await apiMutate<void>('DELETE', `/api/maintenance/${id}`)
 		// Invalidate related queries using proper query keys
 		await queryClient.invalidateQueries({ queryKey: queryKeys.maintenance.lists() })
 		await queryClient.invalidateQueries({ queryKey: queryKeys.maintenance.stats() })
@@ -111,7 +111,7 @@ export function useUpdateMaintenanceRequest() {
 	const queryClient = useQueryClient()
 	
 	const mutate = async (id: string, data: UpdateMaintenanceInput) => {
-		const result = await put<MaintenanceRequestApiResponse>(`/api/maintenance/${id}`, data)
+		const result = await apiMutate<MaintenanceRequestApiResponse>('PUT', `/api/maintenance/${id}`, data)
 		// Invalidate related queries using proper query keys
 		await queryClient.invalidateQueries({ queryKey: queryKeys.maintenance.lists() })
 		await queryClient.invalidateQueries({ queryKey: queryKeys.maintenance.detail(id) })

@@ -93,7 +93,7 @@ export function useNotificationRealtime(userId: string | null) {
 
 		// Cleanup any existing channel before creating new one
 		if (channelRef.current) {
-			supabase.removeChannel(channelRef.current)
+			channelRef.current.unsubscribe()
 			channelRef.current = null
 		}
 
@@ -142,7 +142,7 @@ export function useNotificationRealtime(userId: string | null) {
 			// Safely cleanup channel subscription
 			if (channelRef.current) {
 				try {
-					supabase.removeChannel(channelRef.current)
+					channelRef.current.unsubscribe()
 				} catch (error) {
 					// Silently handle cleanup errors (e.g., already closed)
 					console.info('Channel cleanup error (non-critical):', error)

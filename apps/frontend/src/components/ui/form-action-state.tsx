@@ -179,7 +179,7 @@ interface FormTextareaProps extends React.ComponentProps<typeof Textarea> {
 	required?: boolean
 }
 
-// eslint-disable-next-line anti-duplication/no-duplicate-function-implementations
+ 
 export function FormTextarea({ label, error, required, name, className, ...props }: FormTextareaProps) {
 	return (
 		<FormControl

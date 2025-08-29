@@ -8,40 +8,52 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import type { Property, Unit, Lease } from '@repo/shared'
+import type { Unit, Lease } from '@repo/shared'
 
-// Define local interface for component needs
-interface Property_WithUnitsAndLeases extends Property {
+// Define local interface for component needs - explicitly include key fields to avoid type resolution issues
+interface Property_WithUnitsAndLeases {
+	id: string
+	name: string
+	address: string
+	city: string
+	state: string
+	zipCode: string
+	description: string | null
+	propertyType: string
+	imageUrl: string | null
+	ownerId: string
+	createdAt: string
+	updatedAt: string
 	units?: Unit[]
 	leases?: Lease[]
 }
 
-interface Property_HeaderSectionProps {
+interface PropertyHeaderSectionProps {
 	property: Property_WithUnitsAndLeases
 	fadeInUp: {
 		initial: { opacity: number; y: number }
 		animate: { opacity: number; y: number }
 	}
 	onBackToProperties: () => void
-	onEditProperty_: () => void
+	onEditProperty: () => void
 	onInviteTenant: () => void
 	onDelete: () => void
 	isDeleting: boolean
 }
 
 /**
- * Property_ detail header section with navigation, title, and action menu
+ * Property detail header section with navigation, title, and action menu
  * Displays property name, address, and dropdown menu for property operations
  */
-export default function Property_HeaderSection({
+export default function PropertyHeaderSection({
 	property,
 	fadeInUp,
 	onBackToProperties,
-	onEditProperty_,
+	onEditProperty,
 	onInviteTenant,
 	onDelete,
 	isDeleting
-}: Property_HeaderSectionProps) {
+}: PropertyHeaderSectionProps) {
 	return (
 		<motion.div {...fadeInUp} className="flex items-center justify-between">
 			<div className="flex items-center space-x-4">
@@ -72,11 +84,11 @@ export default function Property_HeaderSection({
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end">
-					<DropdownMenuLabel>Property_ Actions</DropdownMenuLabel>
+					<DropdownMenuLabel>Property Actions</DropdownMenuLabel>
 					<DropdownMenuSeparator />
-					<DropdownMenuItem onClick={onEditProperty_}>
+					<DropdownMenuItem onClick={onEditProperty}>
 						<i className="i-lucide-edit mr-2 h-4 w-4"  />
-						Edit Property_
+						Edit Property
 					</DropdownMenuItem>
 					<DropdownMenuItem onClick={onInviteTenant}>
 						<i className="i-lucide-users mr-2 h-4 w-4"  />
@@ -89,7 +101,7 @@ export default function Property_HeaderSection({
 						className="text-destructive focus:text-destructive"
 					>
 						<i className="i-lucide-trash-2 mr-2 h-4 w-4"  />
-						{isDeleting ? 'Deleting...' : 'Delete Property_'}
+						{isDeleting ? 'Deleting...' : 'Delete Property'}
 					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>

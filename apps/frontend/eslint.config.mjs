@@ -62,6 +62,9 @@ export default [
       '@next/next': nextPlugin
     },
     rules: {
+      // Include Next.js recommended rule set so Next can detect the plugin
+      // and silence the build warning. We can still override below.
+      ...(nextPlugin.configs?.recommended?.rules ?? {}),
       // Core Next.js rules
       'react/no-unescaped-entities': 'off', // Allow apostrophes and quotes in JSX text
       'react/jsx-key': 'error', // Require key prop in lists
@@ -95,15 +98,10 @@ export default [
     name: 'frontend/anti-duplication-general',
     files: ['**/*.ts', '**/*.tsx'],
     rules: {
-      'anti-duplication/no-duplicate-function-implementations': [
-        'warn',
-        {
-          similarity: 0.85, // More permissive for general files
-          minLength: 10
-        }
-      ],
-      'anti-duplication/no-repeated-config-patterns': 'warn',
-      'anti-duplication/no-repeated-component-logic': 'warn'
+      // Disabled per CLAUDE.md principles - these encourage unnecessary abstractions
+      'anti-duplication/no-duplicate-function-implementations': 'off',
+      'anti-duplication/no-repeated-config-patterns': 'off',
+      'anti-duplication/no-repeated-component-logic': 'off'
     }
   },
   

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import Link from 'next/link'
-import { apiClient } from '@repo/shared'
+import { serverApiGet } from '@/lib/utils/api-server-utils'
 import type { PropertyWithUnits } from '@repo/shared'
 
 // Use Property_WithUnits for components that need computed fields and relations
@@ -96,7 +96,7 @@ function Property_Card({ property }: { property: Property_ }) {
 
 // Stats component
 async function Property_StatsComponent() {
-	const stats = await apiClient<{
+	const stats = await serverApiGet<{
 		total: number
 		active: number
 		inactive: number
@@ -156,7 +156,7 @@ async function Property_StatsComponent() {
 
 // Properties list component
 async function PropertiesList() {
-  const properties = await apiClient<PropertyWithUnits[]>('/api/properties')
+  const properties = await serverApiGet<PropertyWithUnits[]>('/api/properties')
 
 	if (!properties || properties.length === 0) {
 		return (

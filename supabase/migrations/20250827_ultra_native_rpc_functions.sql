@@ -400,7 +400,12 @@ BEGIN
     AND l.id = p_lease_id
   );
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;-- Create new lease
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Drop existing lease function to avoid parameter conflicts
+DROP FUNCTION IF EXISTS create_lease(UUID, UUID, UUID, DATE, DATE, DECIMAL, DECIMAL, TEXT, TEXT);
+
+-- Create new lease
 CREATE OR REPLACE FUNCTION create_lease(
   p_user_id UUID,
   p_tenant_id UUID,
@@ -462,7 +467,12 @@ BEGIN
   
   RETURN v_result;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;-- Update lease
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Drop existing update lease function to avoid parameter conflicts
+DROP FUNCTION IF EXISTS update_lease(UUID, UUID, DATE, DATE, DECIMAL, DECIMAL, TEXT, TEXT);
+
+-- Update lease
 CREATE OR REPLACE FUNCTION update_lease(
   p_user_id UUID,
   p_lease_id UUID,
