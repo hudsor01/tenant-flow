@@ -5,6 +5,10 @@
 
 // Import constants from the single source of truth
 import type { USER_ROLE } from '../constants/auth'
+import type { Tables } from './supabase-generated'
+
+// ULTRA-NATIVE: Use generated types directly
+type User = Tables<'User'>
 
 // User role type derived from constants
 export type UserRole = (typeof USER_ROLE)[keyof typeof USER_ROLE]
@@ -22,24 +26,11 @@ export type SubscriptionStatus =
 // User role display helpers are now imported from utils
 // This ensures single source of truth for these functions
 
-// User entity types
-export interface User {
-	id: string
-	supabaseId: string
-	stripeCustomerId: string | null
-	email: string
-	name: string | null
-	phone: string | null
-	bio: string | null
-	avatarUrl: string | null
-	role: UserRole
-	organizationId: string | null
-	createdAt: Date
-	updatedAt: Date
-}
+// User type now comes from generated Supabase types (see ../types/supabase.ts)
 
-export interface AuthUser extends User {
+export type AuthUser = User & {
 	emailVerified: boolean
+	organizationId?: string | null  // Optional - not implemented in current schema
 	organizationName?: string
 	permissions?: string[]
 	subscription?: {
@@ -47,6 +38,11 @@ export interface AuthUser extends User {
 		plan: string
 		expiresAt?: Date
 	}
+}
+
+// Type guard to check if user has organizationId (for when feature is implemented)
+export function hasOrganizationId(user: AuthUser): user is AuthUser & { organizationId: string } {
+	return typeof user.organizationId === 'string' && user.organizationId.length > 0
 }
 
 // =============================================================================

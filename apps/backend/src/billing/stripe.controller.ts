@@ -36,8 +36,8 @@ import { getPriceId } from '@repo/shared/stripe/config'
 import { SupabaseService } from '../database/supabase.service'
 import type { BillingPeriod, PlanType } from '@repo/shared'
 
-// Use shared type instead of local interface
-import type { User as AuthenticatedUser } from '@repo/shared'
+// Use proper auth type from shared
+import type { AuthUser } from '@repo/shared/types/auth'
 
 @ApiTags('stripe')
 @UseGuards(AuthGuard)
@@ -58,7 +58,7 @@ export class StripeController {
   @ApiResponse({ status: 200, description: 'Returns latest subscription for user' })
   @ApiResponse({ status: 404, description: 'Subscription not found' })
   @ApiBearerAuth()
-  async getSubscription(@CurrentUser() user: AuthenticatedUser) {
+  async getSubscription(@CurrentUser() user: AuthUser) {
     this.logger.info(
       { subscription: { userId: user.id } },
       `Fetching subscription for user ${user.id}`
@@ -89,7 +89,7 @@ export class StripeController {
   @ApiOperation({ summary: 'Create Setup Intent for adding a payment method' })
   @ApiResponse({ status: 200, description: 'Returns setup intent client secret' })
   @ApiBearerAuth()
-  async createSetupIntent(@CurrentUser() user: AuthenticatedUser) {
+  async createSetupIntent(@CurrentUser() user: AuthUser) {
     this.logger.info(
       { setupIntent: { userId: user.id } },
       `Creating setup intent for user ${user.id}`
@@ -158,7 +158,7 @@ export class StripeController {
 	)
 	async createCheckout(
 		@Body() dto: CreateCheckoutRequest,
-		@CurrentUser() user: AuthenticatedUser
+		@CurrentUser() user: AuthUser
 	) {
 		this.logger.info(
 			{
@@ -253,7 +253,7 @@ export class StripeController {
 	)
 	async createPortal(
 		@Body() dto: CreatePortalRequest,
-		@CurrentUser() user: AuthenticatedUser
+		@CurrentUser() user: AuthUser
 	) {
 		this.logger.info(
 			{
@@ -344,7 +344,7 @@ export class StripeController {
 	)
 	async createSubscription(
 		@Body() dto: CreateSubscriptionDto,
-		@CurrentUser() user: AuthenticatedUser
+		@CurrentUser() user: AuthUser
 	) {
 		this.logger.info(
 			{

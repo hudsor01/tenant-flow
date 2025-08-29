@@ -3,9 +3,9 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { toast } from 'sonner'
 import { supabase } from '../lib/supabase/client'
-import { get, post } from '@/lib/api-client'
+import { apiGet, apiMutate } from '@/lib/utils/api-utils'
 import { logger } from '@/lib/logger'
-import type { User, LoginCredentials, SignupCredentials } from '@repo/shared/types/auth'
+import type { User, LoginCredentials, RegisterCredentials } from '@repo/shared'
 import { type TypedAuthError } from '@repo/shared/types/auth-errors'
 
 interface AuthContextType {
@@ -17,7 +17,7 @@ interface AuthContextType {
   
   // Actions
   login: (credentials: LoginCredentials) => Promise<{ success: boolean; error?: TypedAuthError }>
-  signup: (credentials: SignupCredentials) => Promise<{ success: boolean; message?: string; error?: TypedAuthError }>
+  signup: (credentials: RegisterCredentials) => Promise<{ success: boolean; message?: string; error?: TypedAuthError }>
   logout: () => Promise<void>
   resetPassword: (email: string) => Promise<{ success: boolean; message?: string; error?: TypedAuthError }>
 }
@@ -36,7 +36,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const initializeAuth = async () => {
       try {
         setLoading(true)
-        const session = await get<{user: User}>('/api/auth/session')
+        const session = await apiGet<{user: User}>('/api/auth/session')
 
         if (mounted) {
           setUser(session?.user || null)
@@ -71,7 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setError(null)
         } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           try {
-            const authSession = await get<{user: User}>('/api/auth/session')
+            const authSession = await apiGet<{user: User}>('/api/auth/session')
             setUser(authSession?.user || null)
           } catch (backendError) {
             logger.warn('Backend sync failed:', {
@@ -86,13 +86,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 name: session.user.user_metadata?.name,
                 avatarUrl: session.user.user_metadata?.avatar_url,
                 role: session.user.user_metadata?.role || 'TENANT',
-                createdAt: new Date(session.user.created_at || Date.now()),
-                updatedAt: new Date(session.user.updated_at || Date.now()),
+                createdAt: session.user.created_at || new Date().toISOString(),
+                updatedAt: session.user.updated_at || new Date().toISOString(),
                 supabaseId: session.user.id,
                 phone: null,
                 bio: null,
-                stripeCustomerId: null,
-                organizationId: null
+                stripeCustomerId: null
               })
             }
           }
@@ -118,7 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(true)
       setError(null)
 
-      const session = await post<{user: User}>('/api/auth/login', credentials)
+      const session = await apiMutate<{user: User}>('POST', '/api/auth/login', credentials)
       setUser(session.user)
 
       toast.success('Welcome back!')
@@ -138,12 +137,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   // Signup action
-  const signup = useCallback(async (credentials: SignupCredentials) => {
+  const signup = useCallback(async (credentials: RegisterCredentials) => {
     try {
       setLoading(true)
       setError(null)
 
-      const _result = await post<{message: string}>('/api/auth/signup', credentials)
+      const _result = await apiMutate<{message: string}>('POST', '/api/auth/signup', credentials)
       toast.success(_result.message)
       return { success: true, message: _result.message }
     } catch (error: unknown) {
@@ -164,7 +163,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = useCallback(async () => {
     try {
       setLoading(true)
-      await post<Record<string, never>>('/api/auth/logout', {})
+      await apiMutate<Record<string, never>>('POST', '/api/auth/logout', {})
       setUser(null)
       setError(null)
       toast.success('Logged out successfully')
@@ -188,7 +187,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(true)
       setError(null)
 
-      const _result = await post<{message: string}>('/api/auth/reset-password', { email })
+      const _result = await apiMutate<{message: string}>('POST', '/api/auth/reset-password', { email })
       toast.success(_result.message)
       return { success: true, message: _result.message }
     } catch (error: unknown) {

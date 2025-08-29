@@ -31,13 +31,8 @@ function mapSupabaseUserToAppUser(supabaseUser: SupabaseUser): AuthUser {
 		bio: null,
 		avatarUrl: supabaseUser.user_metadata?.avatar_url || null,
 		role: 'TENANT', // Default role - backend will update with correct role
-		organizationId: null,
-		createdAt: new Date(
-			supabaseUser.created_at || new Date().toISOString()
-		),
-		updatedAt: new Date(
-			supabaseUser.updated_at || new Date().toISOString()
-		),
+		createdAt: supabaseUser.created_at || new Date().toISOString(),
+		updatedAt: supabaseUser.updated_at || new Date().toISOString(),
 		stripeCustomerId: null,
 		emailVerified: !!supabaseUser.email_confirmed_at
 	}
