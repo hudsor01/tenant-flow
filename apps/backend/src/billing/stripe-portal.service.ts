@@ -20,7 +20,7 @@ import { ConfigService } from '@nestjs/config'
 import { PinoLogger } from 'nestjs-pino'
 import Stripe from 'stripe'
 import type { EnvironmentVariables } from '../config/config.schema'
-import { UserSupabaseRepository } from '../database/user-supabase.repository'
+import { SupabaseService } from '../database/supabase.service'
 
 @Injectable()
 export class StripePortalService {
@@ -29,7 +29,7 @@ export class StripePortalService {
 
 	constructor(
 		private configService: ConfigService<EnvironmentVariables>,
-		private userRepository: UserSupabaseRepository,
+		private readonly supabaseService: SupabaseService,
 		private readonly logger: PinoLogger
 	) {
 		// PinoLogger context handled automatically via app-level configuration
@@ -58,10 +58,21 @@ export class StripePortalService {
 		cancelUrl?: string
 	}): Promise<{ url: string; sessionId: string }> {
 		// Get or create Stripe customer
-		const user = await this.userRepository.findByIdWithSubscription(
-			params.userId
-		)
-		if (!user) {
+		const { data: user, error: userError } = await this.supabaseService
+			.getAdminClient()
+			.from('User')
+			.select(`
+				id,
+				email,
+				name,
+				Subscription (
+					stripeCustomerId
+				)
+			`)
+			.eq('id', params.userId)
+			.single()
+
+		if (userError || !user) {
 			throw new NotFoundException('User not found')
 		}
 
@@ -75,11 +86,15 @@ export class StripePortalService {
 			})
 			customerId = customer.id
 
-			// Store customer ID for future use
-			await this.userRepository.updateStripeCustomerId(
-				params.userId,
-				customerId
-			)
+			// Store customer ID for future use - create or update subscription record
+			await this.supabaseService
+				.getAdminClient()
+				.from('Subscription')
+				.upsert({
+					userId: params.userId,
+					stripeCustomerId: customerId,
+					status: 'INCOMPLETE'
+				})
 		}
 
 		// Create checkout session
@@ -136,10 +151,19 @@ export class StripePortalService {
 		returnUrl?: string
 	}): Promise<{ url: string }> {
 		// Get user's Stripe customer ID
-		const user = await this.userRepository.findByIdWithSubscription(
-			params.userId
-		)
-		if (!user) {
+		const { data: user, error: userError } = await this.supabaseService
+			.getAdminClient()
+			.from('User')
+			.select(`
+				id,
+				Subscription (
+					stripeCustomerId
+				)
+			`)
+			.eq('id', params.userId)
+			.single()
+
+		if (userError || !user) {
 			throw new NotFoundException('User not found')
 		}
 
