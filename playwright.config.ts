@@ -62,7 +62,7 @@ export default defineConfig({
 	use: {
 		/* Base URL for the application */
 		baseURL:
-			process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000',
+			process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:4500',
 
 		/* Collect trace when retrying the failed test */
 		trace: 'on-first-retry',
@@ -105,27 +105,32 @@ export default defineConfig({
 		: process.env.CI
 			? undefined
 			: [
-					{
-						command: 'npm run dev --filter=@repo/backend',
-						port: 8000,
-						reuseExistingServer: !process.env.CI,
-						timeout: 120000,
-						env: {
-							NODE_ENV: 'test',
-							DATABASE_URL:
-								process.env.DATABASE_URL_TEST ||
-								process.env.DATABASE_URL ||
-								'',
-							JWT_SECRET: 'test-secret',
-							STRIPE_SECRET_KEY:
-								process.env.STRIPE_SECRET_KEY_TEST || '',
-							STRIPE_WEBHOOK_SECRET:
-								process.env.STRIPE_WEBHOOK_SECRET_TEST || ''
-						}
-					},
+					// Optionally start backend (set SKIP_BACKEND=1 to skip)
+					...(process.env.SKIP_BACKEND
+						? []
+						: [
+								{
+									command: 'npm run dev --filter=@repo/backend',
+									port: 8000,
+									reuseExistingServer: !process.env.CI,
+									timeout: 120000,
+									env: {
+										NODE_ENV: 'test',
+										DATABASE_URL:
+											process.env.DATABASE_URL_TEST ||
+											process.env.DATABASE_URL ||
+											'',
+										JWT_SECRET: 'test-secret',
+										STRIPE_SECRET_KEY:
+											process.env.STRIPE_SECRET_KEY_TEST || '',
+										STRIPE_WEBHOOK_SECRET:
+											process.env.STRIPE_WEBHOOK_SECRET_TEST || ''
+									}
+								}
+						]),
 					{
 						command: 'npm run dev --filter=@repo/frontend',
-						port: 3000,
+						port: 4500,
 						reuseExistingServer: !process.env.CI,
 						timeout: 120000,
 						env: {
