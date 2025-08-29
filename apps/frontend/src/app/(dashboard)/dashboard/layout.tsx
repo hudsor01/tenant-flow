@@ -2,7 +2,7 @@ import { Suspense } from 'react'
 import type { Metadata } from 'next/types'
 import { PostHogPageView } from '@/components/analytics/posthog-page-view'
 import { ServerAuthGuard } from '@/components/auth/server-auth-guard'
-import { ProtectedRouteGuard } from '@/components/auth/protected-route-guard'
+import { AuthGuardCore, AuthLoadingState } from '@/components/auth/protected-route-guard'
 import { Navigation } from '@/components/dashboard/dashboard-navigation'
 import { OfflineBanner } from '@/components/ui/offline-indicator'
 
@@ -33,7 +33,13 @@ export default function DashboardLayout({
 				<PostHogPageView />
 			</Suspense>
 
-			<ProtectedRouteGuard>
+			<AuthGuardCore
+				mode="protect"
+				redirectTo="/auth/login"
+				fallback={<AuthLoadingState message="Checking authentication..." />}
+				redirectingMessage="Redirecting to login..."
+				requireAuth={true}
+			>
 				<div className="min-h-screen bg-base2">
 					{/* Offline Banner */}
 					<OfflineBanner />
@@ -80,7 +86,7 @@ export default function DashboardLayout({
 						</main>
 					</div>
 				</div>
-			</ProtectedRouteGuard>
+			</AuthGuardCore>
 		</ServerAuthGuard>
 	)
 }

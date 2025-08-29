@@ -106,6 +106,7 @@ interface LocalAppState {
 	// ============================================================================
 
 	setModalState: (name: string, isOpen: boolean) => void
+	setModalOpen: (name: string, open: boolean) => void
 	openModal: (name: string) => void
 	closeModal: (name: string) => void
 	closeAllModals: () => void

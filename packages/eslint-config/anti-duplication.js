@@ -60,6 +60,52 @@ export default [
       'anti-duplication/no-repeated-component-logic': 'error'
     }
   },
+
+  // Wrapper-only enforcement for core logic (strict)
+  {
+    name: 'anti-duplication/no-wrapper-core',
+    files: [
+      'apps/**/src/app/actions/**/*.{ts,tsx}',
+      'apps/**/src/lib/**/*.{ts,tsx}',
+      'apps/**/src/hooks/**/*.{ts,tsx}',
+      'apps/**/src/stores/**/*.{ts,tsx}',
+      'apps/**/src/services/**/*.{ts,tsx}',
+      'packages/shared/src/**/*.{ts,tsx}',
+      'apps/backend/src/**/*.{ts,tsx}'
+    ],
+    excludedFiles: [
+      '**/*.spec.ts',
+      '**/*.spec.tsx',
+      '**/*.test.ts',
+      '**/*.test.tsx',
+      '**/*.stories.tsx',
+      '**/generated/**',
+      '**/icons/**'
+    ],
+    rules: {
+      'anti-duplication/no-wrapper-only': [
+        'error',
+        { allowMarker: '@wrapper-allowed', minLines: 2 }
+      ]
+    }
+  },
+
+  // Wrapper-only enforcement for components (can be switched to 'warn' if desired)
+  {
+    name: 'anti-duplication/no-wrapper-components',
+    files: ['apps/frontend/src/components/**/*.{ts,tsx}'],
+    excludedFiles: [
+      '**/*.stories.tsx',
+      '**/generated/**',
+      '**/icons/**'
+    ],
+    rules: {
+      'anti-duplication/no-wrapper-only': [
+        'error',
+        { allowMarker: '@wrapper-allowed', minLines: 2 }
+      ]
+    }
+  },
   
   // API client files should have strict endpoint checking
   {
