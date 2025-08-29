@@ -152,12 +152,10 @@ export function useAuth() {
 
 						// Redirect from auth pages to dashboard
 						const currentPath = window.location.pathname
-						const isAuthPage = [
-							'/auth/login',
-							'/auth/signup',
-							'/login',
-							'/signup'
-						].some(route => currentPath === route)
+							const isAuthPage = [
+								'/auth/login',
+								'/auth/signup'
+							].some(route => currentPath === route)
 
 						if (isAuthPage) {
 							router.push('/dashboard')
