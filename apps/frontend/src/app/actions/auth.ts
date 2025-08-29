@@ -17,11 +17,9 @@ export interface AuthFormState {
 }
 
 export async function getCurrentUser() {
-	const supabase = await createActionClient()
-	const {
-		data: { user }
-	} = await supabase.auth.getUser()
-	return user
+    const supabase = await createActionClient()
+    const { data } = await supabase.auth.getUser()
+    return data?.user ?? null
 }
 
 export async function signIn(email: string, password: string) {
@@ -154,10 +152,9 @@ export async function updateProfile(
 }
 
 export async function deleteAccount() {
-	const supabase = await createActionClient()
-	const {
-		data: { user }
-	} = await supabase.auth.getUser()
+    const supabase = await createActionClient()
+    const { data } = await supabase.auth.getUser()
+    const user = data?.user ?? null
 
 	if (!user) {
 		return { success: false, error: 'No user found' }
@@ -196,11 +193,19 @@ export async function loginFormAction(
 ): Promise<AuthFormState> {
 	const email = formData.get('email') as string
 	const password = formData.get('password') as string
+	const redirectTo = formData.get('redirectTo') as string
 
 	const validationError = validateAuthCredentials(email, password)
 	if (validationError) return validationError
 
-	return await signIn(email, password)
+	const result = await signIn(email, password)
+	
+	// Redirect on success
+	if (result.success) {
+		redirect(redirectTo || '/dashboard')
+	}
+	
+	return result
 }
 
 export async function signupFormAction(
