@@ -71,7 +71,7 @@ export default /** @type {import('eslint').Linter.FlatConfig[]} */ (tseslint.con
 		}
 	},
 
-	// Test files - relaxed rules
+	// Test files - use production rules to catch bugs early
 	{
 		files: [
 			'**/*.test.ts',
@@ -80,9 +80,9 @@ export default /** @type {import('eslint').Linter.FlatConfig[]} */ (tseslint.con
 			'**/*.spec.tsx'
 		],
 		rules: {
-			'@typescript-eslint/no-explicit-any': 'off',
-			'@typescript-eslint/no-unused-vars': 'off',
+			// Only allow console in tests (for debugging)
 			'no-console': 'off'
+			// All other rules use production settings to catch bugs
 		}
 	},
 

@@ -5,7 +5,6 @@
  */
 import {
 	useSuspenseQuery,
-	useQueryClient,
 	type UseSuspenseQueryResult
 } from '@tanstack/react-query'
 import type {
@@ -101,18 +100,9 @@ export function useUnitOptimistic(id: string) {
 
 /**
  * PURE: Enhanced prefetch for Suspense patterns - ensures data available when component mounts
+ * Uses generic implementation to avoid duplication
  */
-export function usePrefetchUnit() {
-	const queryClient = useQueryClient()
-
-	return (id: string) => {
-		void queryClient.prefetchQuery({
-			queryKey: queryKeys.units.detail(id),
-			queryFn: async () => get<Unit>(`/api/units/${id}`),
-			staleTime: 10 * 1000 // 10 seconds
-		})
-	}
-}
+export { usePrefetchUnit } from './use-prefetch-resource'
 
 // ============================================================================
 // EXPORTS - React 19 Pure Implementation

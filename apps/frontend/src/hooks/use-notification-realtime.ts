@@ -8,7 +8,7 @@ import { supabase } from '@/lib/supabase/client'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAppActions } from '@/stores/app-store'
 import { notifications } from '@/lib/toast'
-import type { RealtimeChannel } from '@supabase/supabase-js'
+import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 import type { Database } from '@repo/shared/types/supabase-generated'
 
 export function useNotificationRealtime(userId: string | null) {
@@ -17,7 +17,7 @@ export function useNotificationRealtime(userId: string | null) {
 	const channelRef = useRef<RealtimeChannel | null>(null)
 
 	// Handler for new notifications - memoized to prevent recreating
-	const handleNewNotification = useCallback((payload: any) => {
+	const handleNewNotification = useCallback((payload: RealtimePostgresChangesPayload<Database['public']['Tables']['InAppNotification']['Row']>) => {
 		try {
 			// Safely extract notification data with fallbacks
 			const dbNotification = payload?.new as Database['public']['Tables']['InAppNotification']['Row']
@@ -124,7 +124,7 @@ export function useNotificationRealtime(userId: string | null) {
 				.subscribe((status) => {
 					// Log subscription status for debugging
 					if (status === 'SUBSCRIBED') {
-						console.debug(`Notification channel subscribed for user: ${userId}`)
+						console.info(`Notification channel subscribed for user: ${userId}`)
 					} else if (status === 'CHANNEL_ERROR') {
 						console.error(`Failed to subscribe to notification channel for user: ${userId}`)
 					}
@@ -145,7 +145,7 @@ export function useNotificationRealtime(userId: string | null) {
 					supabase.removeChannel(channelRef.current)
 				} catch (error) {
 					// Silently handle cleanup errors (e.g., already closed)
-					console.debug('Channel cleanup error (non-critical):', error)
+					console.info('Channel cleanup error (non-critical):', error)
 				} finally {
 					channelRef.current = null
 				}

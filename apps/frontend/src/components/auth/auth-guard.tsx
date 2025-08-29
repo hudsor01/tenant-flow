@@ -104,14 +104,36 @@ export function UnifiedAuthGuard({
 }
 
 /**
+ * Generic auth requirement wrapper - DRY principle
+ */
+function RequireAuthWrapper({ 
+	children, 
+	adminOnly = false, 
+	requiredRoles 
+}: { 
+	children: React.ReactNode
+	adminOnly?: boolean
+	requiredRoles?: UserRole[]
+}) {
+	return (
+		<UnifiedAuthGuard 
+			adminOnly={adminOnly} 
+			requiredRoles={requiredRoles}
+		>
+			{children}
+		</UnifiedAuthGuard>
+	)
+}
+
+/**
  * Helper components for specific auth scenarios
  */
 export function RequireAuth({ children }: { children: React.ReactNode }) {
-	return <UnifiedAuthGuard>{children}</UnifiedAuthGuard>
+	return <RequireAuthWrapper>{children}</RequireAuthWrapper>
 }
 
 export function RequireAdmin({ children }: { children: React.ReactNode }) {
-	return <UnifiedAuthGuard adminOnly>{children}</UnifiedAuthGuard>
+	return <RequireAuthWrapper adminOnly>{children}</RequireAuthWrapper>
 }
 
 export function RequireRole({
@@ -122,6 +144,6 @@ export function RequireRole({
 	children: React.ReactNode
 }) {
 	return (
-		<UnifiedAuthGuard requiredRoles={[role]}>{children}</UnifiedAuthGuard>
+		<RequireAuthWrapper requiredRoles={[role]}>{children}</RequireAuthWrapper>
 	)
 }

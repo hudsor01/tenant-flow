@@ -15,7 +15,7 @@ function NewUnitHeader() {
 	return (
 		<div className="flex items-center justify-between">
 			<div className="flex items-center space-x-4">
-				<Link href="/units">
+				<Link href="/properties/units">
 					<Button variant="outline" size="sm">
 						<i className="i-lucide-arrow-left mr-2 h-4 w-4"  />
 						Back to Units

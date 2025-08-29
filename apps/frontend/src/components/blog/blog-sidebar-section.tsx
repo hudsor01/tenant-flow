@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { motion } from '@/lib/lazy-motion'
+import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 // Removed blog-stubs imports - using placeholder data for unused component
 interface BlogArticle {

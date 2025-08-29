@@ -21,6 +21,7 @@ export type UpcomingTask = {
 import { queryKeys } from '@/lib/react-query/query-keys'
 import { get } from '@/lib/api-client'
 import type { DashboardStats, ActivityItem } from '@repo/shared'
+import { API_ENDPOINTS } from '@/lib/constants/api-endpoints'
 
 /**
  * Fetch dashboard overview statistics
@@ -33,7 +34,7 @@ export function useDashboardOverview(options?: {
 		queryKey: queryKeys.dashboard.overview(),
 		queryFn: async () => {
 			try {
-				const response = await get<DashboardStats>('/api/dashboard/overview')
+				const response = await get<DashboardStats>(API_ENDPOINTS.DASHBOARD.OVERVIEW)
 				return response
 			} catch {
 				// Return default data on error to allow UI to render
@@ -69,7 +70,7 @@ export function useDashboardActivity(options?: {
 		queryKey: queryKeys.dashboard.activity(),
 		queryFn: async () => {
 			try {
-				return await get<ActivityItem[]>('/api/dashboard/activity')
+				return await get<ActivityItem[]>(API_ENDPOINTS.DASHBOARD.ACTIVITY)
 			} catch {
 				logger.warn('Dashboard activity API unavailable', {
 					component: 'useDashboardActivity'
@@ -93,7 +94,7 @@ export function useUpcomingTasks(options?: {
 		queryKey: queryKeys.dashboard.tasks(),
 		queryFn: async () => {
 			try {
-				return await get<UpcomingTask[]>('/api/dashboard/tasks')
+				return await get<UpcomingTask[]>(API_ENDPOINTS.DASHBOARD.TASKS)
 			} catch {
 				logger.warn('Dashboard tasks API unavailable', {
 					component: 'useUpcomingTasks'
@@ -117,7 +118,7 @@ export function useDashboardAlerts(options?: {
 		queryKey: queryKeys.dashboard.alerts(),
 		queryFn: async () => {
 			try {
-				return await get<unknown[]>('/api/dashboard/alerts')
+				return await get<unknown[]>(API_ENDPOINTS.DASHBOARD.ALERTS)
 			} catch {
 				logger.warn('Dashboard alerts API unavailable', {
 					component: 'useDashboardAlerts'
@@ -150,7 +151,7 @@ export function useDashboardAlerts(options?: {
  * ```
  */
 export function createDashboardOverviewPromise(): Promise<DashboardStats> {
-	return get<DashboardStats>('/api/dashboard/overview')
+	return get<DashboardStats>(API_ENDPOINTS.DASHBOARD.OVERVIEW)
 }
 
 /**
@@ -158,7 +159,7 @@ export function createDashboardOverviewPromise(): Promise<DashboardStats> {
  * Eliminates TanStack Query when you don't need caching
  */
 export function createDashboardActivityPromise(): Promise<ActivityItem[]> {
-	return get<ActivityItem[]>('/api/dashboard/activity')
+	return get<ActivityItem[]>(API_ENDPOINTS.DASHBOARD.ACTIVITY)
 }
 
 /**
@@ -166,7 +167,7 @@ export function createDashboardActivityPromise(): Promise<ActivityItem[]> {
  * Stream data directly to components without hooks layer
  */
 export function createUpcomingTasksPromise(): Promise<UpcomingTask[]> {
-	return get<UpcomingTask[]>('/api/dashboard/tasks')
+	return get<UpcomingTask[]>(API_ENDPOINTS.DASHBOARD.TASKS)
 }
 
 /**
@@ -174,7 +175,7 @@ export function createUpcomingTasksPromise(): Promise<UpcomingTask[]> {
  * Components can use this for real-time streaming updates
  */
 export function createDashboardAlertsPromise(): Promise<unknown[]> {
-	return get<unknown[]>('/api/dashboard/alerts')
+	return get<unknown[]>(API_ENDPOINTS.DASHBOARD.ALERTS)
 }
 
 /**
@@ -184,7 +185,7 @@ export function createDashboardAlertsPromise(): Promise<unknown[]> {
 export function useDashboardOverviewSuspense(): UseSuspenseQueryResult<DashboardStats> {
 	return useSuspenseQuery({
 		queryKey: queryKeys.dashboard.overview(),
-		queryFn: async () => get<DashboardStats>('/api/dashboard/overview'),
+		queryFn: async () => get<DashboardStats>(API_ENDPOINTS.DASHBOARD.OVERVIEW),
 		staleTime: 2 * 60 * 1000,
 		gcTime: 5 * 60 * 1000
 	})
