@@ -193,7 +193,7 @@ export function Property_Form({
 				<CardHeader>
 					<div className="flex items-center gap-3">
 						<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-							<i className="i-lucide-building inline-block h-5 w-5 text-primary"  />
+							<i className="i-lucide-building h-5 w-5 text-primary"  />
 						</div>
 						<div>
 							<CardTitle>{title}</CardTitle>
@@ -559,7 +559,7 @@ export function Property_Form({
 								onClick={onClose}
 								disabled={isPending}
 							>
-								<i className="i-lucide-x inline-block mr-2 h-4 w-4"  />
+								<i className="i-lucide-x mr-2 h-4 w-4"  />
 								Cancel
 							</Button>
 
@@ -575,7 +575,7 @@ export function Property_Form({
 									</div>
 								) : (
 									<div className="flex items-center gap-2">
-										<i className="i-lucide-save inline-block h-4 w-4"  />
+										<i className="i-lucide-save h-4 w-4"  />
 										{isEditing ? 'Update Property_' : 'Create Property_'}
 									</div>
 								)}

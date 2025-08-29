@@ -121,7 +121,7 @@ export function Property_FormDialog({
 
 				{error && (
 					<Alert variant="destructive">
-						<i className="i-lucide-alert-triangle inline-block h-4 w-4"  />
+						<i className="i-lucide-alert-triangle h-4 w-4"  />
 						<AlertDescription>{error}</AlertDescription>
 					</Alert>
 				)}
@@ -295,7 +295,7 @@ export function Property_FormDialog({
 							>
 								{isPending ? (
 									<>
-										<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
+										<i className="i-lucide-loader-2 mr-2 h-4 w-4 animate-spin"  />
 										{mode === 'edit'
 											? 'Updating...'
 											: 'Creating...'}

@@ -64,7 +64,7 @@ export function SimpleForgotPasswordForm() {
 					</div>
 
 					{error && (
-						<div className="text-sm text-red-600">{error}</div>
+						<div className="text-sm text-red-6">{error}</div>
 					)}
 
 					<SubmitButton />

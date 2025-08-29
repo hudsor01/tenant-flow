@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { motion, AnimatePresence } from '@/lib/lazy-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -16,7 +16,7 @@ import {
 	TooltipProvider,
 	TooltipTrigger
 } from '@/components/ui/tooltip'
-import { useSidebar } from './sidebar-provider'
+import { useSidebar } from '@/components/ui/sidebar-provider'
 // Inline animation configs (removed lib/animations dependency)
 const springConfig = {
 	snappy: { type: 'spring' as const, stiffness: 400, damping: 30 },
@@ -103,13 +103,13 @@ export function SidebarNavItem({ item }: SidebarNavItemProps) {
 					{/* Activity indicator */}
 					{item.hasActivity && (
 						<motion.div
-							className="border-sidebar absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 bg-red-500"
+							className="border-sidebar absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 bg-red-5"
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
 							transition={springConfig.bouncy}
 						>
 							<motion.div
-								className="absolute inset-0 rounded-full bg-red-500"
+								className="absolute inset-0 rounded-full bg-red-5"
 								animate={{ scale: [1, 1.2, 1] }}
 								transition={{ duration: 2, repeat: Infinity }}
 							/>
@@ -169,7 +169,7 @@ export function SidebarNavItem({ item }: SidebarNavItemProps) {
 							<div className="relative">
 								{item.icon}
 								{item.hasActivity && (
-									<i className="i-lucide-activity inline-block absolute -right-1 -top-1 h-2 w-2 text-red-500"  />
+									<i className="i-lucide-activity absolute -right-1 -top-1 h-2 w-2 text-red-5"  />
 								)}
 							</div>
 							<span className="flex-1 text-left font-medium">
@@ -182,7 +182,7 @@ export function SidebarNavItem({ item }: SidebarNavItemProps) {
 										<motion.div
 											initial={{ scale: 0 }}
 											animate={{ scale: 1 }}
-											className="h-2 w-2 rounded-full bg-red-500"
+											className="h-2 w-2 rounded-full bg-red-5"
 										/>
 									)}
 								{item.badge && (
@@ -200,7 +200,7 @@ export function SidebarNavItem({ item }: SidebarNavItemProps) {
 							animate={{ rotate: isOpen ? 90 : 0 }}
 							transition={springConfig.snappy}
 						>
-							<i className="i-lucide-chevron-right inline-block text-sidebar-foreground/60 h-4 w-4"  />
+							<i className="i-lucide-chevron-right text-sidebar-foreground/60 h-4 w-4"  />
 						</motion.div>
 					</NavButton>
 				</CollapsibleTrigger>
@@ -254,7 +254,7 @@ export function SidebarNavItem({ item }: SidebarNavItemProps) {
 					{item.icon}
 					{item.hasActivity && (
 						<motion.div
-							className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-red-500"
+							className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-red-5"
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
 							transition={springConfig.bouncy}
@@ -281,7 +281,7 @@ export function SidebarNavItem({ item }: SidebarNavItemProps) {
 										<motion.div
 											initial={{ scale: 0 }}
 											animate={{ scale: 1 }}
-											className="h-2 w-2 rounded-full bg-red-500"
+											className="h-2 w-2 rounded-full bg-red-5"
 										/>
 									)}
 								{item.badge && (

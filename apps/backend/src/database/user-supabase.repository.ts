@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common'
 import { SupabaseService } from '../database/supabase.service'
-import type { Database } from '@repo/shared'
+import type { User, Subscription } from '@repo/shared/types/database'
+import { UserRole } from '@repo/shared/types/security'
 
-// Define types directly from Database schema - NO DUPLICATION
-type User = Database['public']['Tables']['User']['Row']
-type Subscription = Database['public']['Tables']['Subscription']['Row']
-type UserRole = Database['public']['Enums']['UserRole']
+// Type guard for database role enum to TypeScript UserRole
+function isValidUserRole(role: string): role is UserRole {
+	return ['OWNER', 'MANAGER', 'TENANT', 'ADMIN'].includes(role)
+}
 
 export interface UserWithSubscription extends User {
 	Subscription?: Subscription[]
@@ -25,12 +26,16 @@ export class UserSupabaseRepository {
 			.eq('stripeCustomerId', stripeCustomerId)
 			.single()
 
-		return data
-			? {
-					...data,
-					role: data.role as UserRole // Cast database enum to TypeScript UserRole
-				}
-			: null
+		if (!data) return null
+		
+		if (!isValidUserRole(data.role)) {
+			throw new Error(`Invalid user role from database: ${data.role}`)
+		}
+		
+		return {
+			...data,
+			role: data.role
+		}
 	}
 
 	async updateStripeCustomerId(
@@ -52,12 +57,16 @@ export class UserSupabaseRepository {
 			.eq('id', userId)
 			.single()
 
-		return data
-			? {
-					...data,
-					role: data.role as UserRole // Cast database enum to TypeScript UserRole
-				}
-			: null
+		if (!data) return null
+		
+		if (!isValidUserRole(data.role)) {
+			throw new Error(`Invalid user role from database: ${data.role}`)
+		}
+		
+		return {
+			...data,
+			role: data.role
+		}
 	}
 
 	async findByIdWithSubscription(
@@ -70,6 +79,16 @@ export class UserSupabaseRepository {
 			.eq('id', userId)
 			.single()
 
-		return data as UserWithSubscription | null
+		if (!data) return null
+		
+		if (!isValidUserRole(data.role)) {
+			throw new Error(`Invalid user role from database: ${data.role}`)
+		}
+		
+		return {
+			...data,
+			role: data.role,
+			Subscription: data.Subscription || []
+		}
 	}
 }

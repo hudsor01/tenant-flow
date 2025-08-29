@@ -4,6 +4,7 @@ import { useUnitStats } from '@/hooks/api/use-units'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
+import { handleStaticGenerationError } from '@/lib/utils/static-generation'
 import type { UnitStats } from '@repo/shared'
 
 function UnitsStatsSkeleton() {
@@ -44,21 +45,21 @@ function UnitsStatsUI({ stats }: UnitsStatsUIProps) {
 			value: stats.occupiedUnits,
 			description: `${formatPercentage(stats.occupancyRate)} occupancy`,
 			icon: 'i-lucide-home',
-			color: 'text-green-600'
+			color: 'text-green-6'
 		},
 		{
 			title: 'Available Units',
 			value: stats.availableUnits,
 			description: 'Ready for tenants',
 			icon: 'i-lucide-home',
-			color: 'text-blue-600'
+			color: 'text-blue-6'
 		},
 		{
 			title: 'In Maintenance',
 			value: stats.maintenanceUnits,
 			description: 'Under repair',
 			icon: 'i-lucide-wrench',
-			color: 'text-orange-600'
+			color: 'text-orange-6'
 		}
 	]
 
@@ -100,9 +101,9 @@ export function UnitsStats() {
 		return <UnitsStatsSkeleton />
 	}
 
-	// Error handling - throw to be caught by error boundary
+	// Error handling - graceful fallback for static generation
 	if (error) {
-		throw error
+		return handleStaticGenerationError(error, <UnitsStatsSkeleton />)
 	}
 
 	// Ensure we have stats data

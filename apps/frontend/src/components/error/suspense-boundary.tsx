@@ -44,7 +44,7 @@ function LoadingSpinner({
 				)}
 			>
 				<div className="text-center">
-					<i className="i-lucide-loader-2 inline-block mx-auto mb-4 h-8 w-8 animate-spin"  />
+					<i className="i-lucide-loader-2 mx-auto mb-4 h-8 w-8 animate-spin"  />
 					{message && (
 						<p className="text-muted-foreground">{message}</p>
 					)}

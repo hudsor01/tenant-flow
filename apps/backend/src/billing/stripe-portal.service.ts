@@ -40,9 +40,9 @@ export class StripePortalService {
 			throw new InternalServerErrorException('STRIPE_SECRET_KEY is required')
 		}
 
-		this.stripe = new Stripe(secretKey, {
-			apiVersion: '2025-07-30.basil'
-		})
+        this.stripe = new Stripe(secretKey, {
+            apiVersion: '2025-08-27.basil'
+        })
 
 		this.frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000'
 	}

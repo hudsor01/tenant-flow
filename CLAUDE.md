@@ -91,12 +91,74 @@ Act as if this is a **REAL-WORLD PRODUCTION SYSTEM**:
 | Date formatting | date-fns | Custom formatters |
 | HTTP client | Native fetch | Axios or wrappers |
 
-### BEFORE EVERY CODE CHANGE, ASK:
+### 🎨 UI/UX DEVELOPMENT PRINCIPLES
+
+**CRITICAL: These principles REINFORCE our DRY/KISS/Native architecture patterns.**
+
+#### RULE #4: NATIVE UI PATTERNS - EXTEND EXISTING COMPONENTS ONLY
+- **FORBIDDEN**: Creating custom UI components from scratch
+- **REQUIRED**: Extend Radix/ShadCN components using built-in composition patterns
+- **REQUIRED**: Use Tailwind's utility classes directly - no custom CSS abstractions
+- **REQUIRED**: Follow accessibility patterns built into Radix components
+
+#### UI/UX PRINCIPLES THAT ALIGN WITH OUR ARCHITECTURE:
+
+**1. Simplicity & Usability (REINFORCES KISS)**
+- Remove UI clutter and unnecessary interaction steps
+- Use predictable, platform-standard behaviors (buttons look like buttons)
+- Prefer native HTML semantics over custom implementations
+- Every UI element must justify its existence
+
+**2. Modular & Scalable Design (REINFORCES DRY)**
+- Each component must be self-contained and reusable
+- Use Radix's compound component patterns for flexibility
+- Optimize for tree-shaking - avoid importing unused component variants
+- Share UI patterns via composition, not duplication
+
+**3. Consistency (REINFORCES NATIVE-ONLY)**
+- Use the SAME design tokens across all components (via CSS variables)
+- Follow established interaction patterns from Radix primitives
+- Maintain predictable API surfaces - if one modal uses `onClose`, all do
+- NO "special case" components - favor predictable, reusable patterns
+
+**4. Accessibility Built-In (REINFORCES PLATFORM-NATIVE)**
+- NEVER override Radix's built-in ARIA roles or keyboard navigation
+- Use semantic HTML elements in their intended context
+- Leverage Radix's accessibility features rather than building custom solutions
+- Test with screen readers using native platform tools
+
+**5. Flexible Composition (REINFORCES NO-ABSTRACTIONS)**
+- Use Radix's slot/asChild patterns for customization
+- Enable styling overrides through className props, not wrapper components
+- Support content injection without breaking component contracts
+- Composition over complex configuration objects
+
+#### UI/UX PLATFORM FEATURES TO USE:
+
+| If you need... | USE THIS (NATIVE) | NOT THIS (CUSTOM) |
+|----------------|-------------------|-------------------|
+| Accessible buttons | Radix Button + Tailwind | Custom button components |
+| Form inputs | Radix Form + React Hook Form | Custom form libraries |
+| Modals/dialogs | Radix Dialog | Custom overlay solutions |
+| Dropdowns/selects | Radix Select | Custom dropdown logic |
+| Tooltips | Radix Tooltip | Custom hover implementations |
+| Loading states | Radix Progress + Tailwind | Custom spinners/skeletons |
+| Layout grids | CSS Grid + Tailwind | Custom layout components |
+| Animations | Tailwind transitions + Framer Motion | Custom CSS animations |
+| Theme switching | CSS variables + Tailwind | Custom theme providers |
+| Responsive design | Tailwind responsive prefixes | Custom media queries |
+| Focus management | Radix focus utilities | Custom focus trapping |
+| Keyboard navigation | Radix arrow key handling | Custom keydown listeners |
+
+### BEFORE EVERY CODE/UI CHANGE, ASK:
 1. Does this already exist elsewhere? (Search first!)
 2. Can I use a native platform feature instead?
 3. Can I delete code instead of adding?
 4. Is this the simplest possible solution?
 5. Will another developer understand this immediately?
+6. **UI/UX**: Does this follow accessibility standards? (Use Radix built-ins)
+7. **UI/UX**: Is this interaction predictable and consistent with existing patterns?
+8. **UI/UX**: Can users customize this without modifying core component code?
 
 **IF YOU VIOLATE THESE RULES, YOUR CODE WILL BE REJECTED.**
 
@@ -426,6 +488,18 @@ Is this adding a feature?
     YES → Does similar code exist?
         YES → Reuse/consolidate it → UPDATE SESSION NOTES
         NO → Use native platform features directly → UPDATE SESSION NOTES
+    NO ↓
+
+Is this UI/UX work?
+    YES → Is this a new component?
+        YES → Can I extend Radix/ShadCN instead?
+            YES → Use composition patterns → UPDATE SESSION NOTES
+            NO → Search for existing patterns first → UPDATE SESSION NOTES
+        NO → Is this styling?
+            YES → Use Tailwind utilities directly → UPDATE SESSION NOTES
+            NO → Is this accessibility?
+                YES → Use built-in Radix features → UPDATE SESSION NOTES
+                NO → Follow consistency patterns → UPDATE SESSION NOTES
     NO ↓
 
 Is this refactoring?

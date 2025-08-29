@@ -2,7 +2,6 @@
 	"$schema": "https://json.schemastore.org/tsconfig",
 	"display": "TenantFlow Frontend - Next.js 15 + React 19",
 	"compilerOptions": {
-		// Base TypeScript configuration - inlined for Vercel compatibility
 		"target": "ES2022",
 		"lib": ["ES2022", "DOM", "DOM.Iterable"],
 		"moduleDetection": "force",
@@ -39,8 +38,6 @@
 		"noPropertyAccessFromIndexSignature": false,
 		"allowUnusedLabels": false,
 		"allowUnreachableCode": false,
-		
-		// Next.js and React specific configuration
 		"baseUrl": ".",
 		"plugins": [
 			{
@@ -53,8 +50,6 @@
 			"@repo/shared/*": ["../../packages/shared/dist/cjs/*"]
 		},
 		"types": ["node", "react", "react-dom"],
-		
-		// Build configuration - no emit for Next.js
 		"noEmit": true,
 		"allowImportingTsExtensions": false
 	},

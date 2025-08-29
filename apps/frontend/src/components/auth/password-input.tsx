@@ -49,9 +49,9 @@ export function PasswordInput({
 					tabIndex={-1}
 				>
 					{showPassword ? (
-						<i className="i-lucide-eye-off inline-block h-4 w-4"  />
+						<i className="i-lucide-eye-off h-4 w-4"  />
 					) : (
-						<i className="i-lucide-eye inline-block h-4 w-4"  />
+						<i className="i-lucide-eye h-4 w-4"  />
 					)}
 				</button>
 			</div>

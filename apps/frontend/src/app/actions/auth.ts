@@ -171,14 +171,11 @@ export async function deleteAccount() {
 	}
 }
 
-// Form-compatible action wrappers for useActionState
-export async function loginFormAction(
-	prevState: AuthFormState,
-	formData: FormData
-): Promise<AuthFormState> {
-	const email = formData.get('email') as string
-	const password = formData.get('password') as string
-
+// Shared validation for auth forms - DRY principle
+function validateAuthCredentials(
+	email: string | null,
+	password: string | null
+): AuthFormState | null {
 	if (!email?.trim() || !password?.trim()) {
 		return {
 			success: false,
@@ -189,6 +186,19 @@ export async function loginFormAction(
 			}
 		}
 	}
+	return null // validation passed
+}
+
+// Form-compatible action wrappers for useActionState
+export async function loginFormAction(
+	prevState: AuthFormState,
+	formData: FormData
+): Promise<AuthFormState> {
+	const email = formData.get('email') as string
+	const password = formData.get('password') as string
+
+	const validationError = validateAuthCredentials(email, password)
+	if (validationError) return validationError
 
 	return await signIn(email, password)
 }
@@ -201,16 +211,8 @@ export async function signupFormAction(
 	const password = formData.get('password') as string
 	const fullName = formData.get('name') as string
 
-	if (!email?.trim() || !password?.trim()) {
-		return {
-			success: false,
-			error: 'Email and password are required',
-			errors: {
-				email: !email?.trim() ? ['Email is required'] : [],
-				password: !password?.trim() ? ['Password is required'] : []
-			}
-		}
-	}
+	const validationError = validateAuthCredentials(email, password)
+	if (validationError) return validationError
 
 	return await signUp(email, password, fullName)
 }

@@ -98,7 +98,7 @@ function DialogContent({
 						)}
 						aria-label="Close dialog"
 					>
-						<i className="i-lucide-xicon inline-block" aria-hidden="true" />
+						<i className="i-lucide-xicon" aria-hidden="true" />
 						<span className="sr-only">Close dialog</span>
 					</DialogPrimitive.Close>
 				)}

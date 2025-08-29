@@ -60,7 +60,7 @@ export function PaymentSuccess({
 		return (
 			<div className="flex items-center justify-center py-16">
 				<div className="text-center">
-					<i className="i-lucide-loader-2 inline-block text-primary mx-auto mb-4 h-12 w-12 animate-spin"  />
+					<i className="i-lucide-loader-2 text-primary mx-auto mb-4 h-12 w-12 animate-spin"  />
 					<p className="text-muted-foreground text-lg">
 						Activating your subscription...
 					</p>
@@ -76,7 +76,7 @@ export function PaymentSuccess({
 				<div
 					className={`transition-all duration-1000 ${showConfetti ? 'animate-bounce' : ''}`}
 				>
-					<i className="i-lucide-check-circle-2 inline-block mx-auto mb-4 h-16 w-16 text-green-500"  />
+					<i className="i-lucide-check-circle-2 mx-auto mb-4 h-16 w-16 text-green-5"  />
 				</div>
 				<h1 className="from-primary to-primary/70 mb-2 bg-gradient-to-r bg-clip-text text-4xl font-bold text-transparent">
 					Welcome to TenantFlow!
@@ -88,20 +88,20 @@ export function PaymentSuccess({
 
 			{/* Subscription Details Card */}
 			{subscriptionData && (
-				<Card className="border-green-200 bg-green-50 dark:bg-green-950/20">
+				<Card className="border-green-2 bg-green-50 dark:bg-green-950/20">
 					<CardHeader>
 						<div className="flex items-center justify-between">
-							<CardTitle className="text-green-700 dark:text-green-400">
+							<CardTitle className="text-green-7 dark:text-green-4">
 								Your Subscription
 							</CardTitle>
 							<Badge
 								variant="default"
-								className="bg-green-100 text-green-700 hover:bg-green-200"
+								className="bg-green-1 text-green-7 hover:bg-green-2"
 							>
 								Active
 							</Badge>
 						</div>
-						<CardDescription className="text-green-600 dark:text-green-300">
+						<CardDescription className="text-green-6 dark:text-green-3">
 							{subscriptionData.planName} Plan - Billed{' '}
 							{subscriptionData.billingInterval === 'annual'
 								? 'Annually'
@@ -110,7 +110,7 @@ export function PaymentSuccess({
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<div className="grid grid-cols-2 gap-4">
-							<div className="rounded-lg border bg-white p-3 dark:bg-gray-800">
+							<div className="rounded-lg border bg-white p-3 dark:bg-gray-8">
 								<div className="text-muted-foreground text-sm">
 									Amount
 								</div>
@@ -128,7 +128,7 @@ export function PaymentSuccess({
 								</div>
 							</div>
 
-							<div className="rounded-lg border bg-white p-3 dark:bg-gray-800">
+							<div className="rounded-lg border bg-white p-3 dark:bg-gray-8">
 								<div className="text-muted-foreground text-sm">
 									Next billing
 								</div>
@@ -153,7 +153,7 @@ export function PaymentSuccess({
 													key={index}
 													className="flex items-center gap-2 text-sm"
 												>
-													<i className="i-lucide-check-circle-2 inline-block h-4 w-4 shrink-0 text-green-500"  />
+													<i className="i-lucide-check-circle-2 h-4 w-4 shrink-0 text-green-5"  />
 													<span>{feature}</span>
 												</div>
 											)
@@ -230,7 +230,7 @@ function QuickActions() {
 										: 'bg-muted'
 								}`}
 							>
-								<i className={`${action.icon} inline-block h-5 w-5 ${
+								<i className={`${action.icon} h-5 w-5 ${
 										action.primary
 											? 'text-primary'
 											: 'text-muted-foreground'
@@ -245,7 +245,7 @@ function QuickActions() {
 								</p>
 							</div>
 						</div>
-						<i className="i-lucide-arrow-right inline-block text-muted-foreground group-hover:text-primary h-5 w-5 transition-all group-hover:translate-x-1"  />
+						<i className="i-lucide-arrow-right text-muted-foreground group-hover:text-primary h-5 w-5 transition-all group-hover:translate-x-1"  />
 					</button>
 				))}
 
@@ -279,9 +279,9 @@ function ErrorDisplay({ error }: { error: string }) {
 	const router = useRouter()
 
 	return (
-		<Card className="border-orange-200 bg-orange-50 dark:bg-orange-950/20">
+		<Card className="border-orange-2 bg-orange-1 dark:bg-orange-950/20">
 			<CardHeader>
-				<CardTitle className="text-orange-600 dark:text-orange-400">
+				<CardTitle className="text-orange-6 dark:text-orange-4">
 					Subscription Verification Issue
 				</CardTitle>
 			</CardHeader>

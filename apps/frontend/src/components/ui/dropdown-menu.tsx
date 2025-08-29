@@ -105,7 +105,7 @@ function DropdownMenuCheckboxItem({
 		>
 			<span className="pointer-events-none absolute left-2 flex w-3 h-3.5 items-center justify-center">
 				<DropdownMenuPrimitive.ItemIndicator>
-					<i className="i-lucide-checkicon inline-block w-4 h-4"  />
+					<i className="i-lucide-checkicon w-4 h-4"  />
 				</DropdownMenuPrimitive.ItemIndicator>
 			</span>
 			{children}
@@ -124,6 +124,7 @@ function DropdownMenuRadioGroup({
 	)
 }
 
+// eslint-disable-next-line anti-duplication/no-duplicate-function-implementations
 function DropdownMenuRadioItem({
 	className,
 	children,
@@ -140,7 +141,7 @@ function DropdownMenuRadioItem({
 		>
 			<span className="pointer-events-none absolute left-2 flex w-3 h-3.5 items-center justify-center">
 				<DropdownMenuPrimitive.ItemIndicator>
-					<i className="i-lucide-circleicon inline-block w-2 h-2 fill-current"  />
+					<i className="i-lucide-circleicon w-2 h-2 fill-current"  />
 				</DropdownMenuPrimitive.ItemIndicator>
 			</span>
 			{children}
@@ -197,6 +198,7 @@ function DropdownMenuShortcut({
 	)
 }
 
+// eslint-disable-next-line anti-duplication/no-duplicate-function-implementations
 function DropdownMenuSub({
 	...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Sub>) {
@@ -224,7 +226,7 @@ function DropdownMenuSubTrigger({
 			{...props}
 		>
 			{children}
-			<i className="i-lucide-chevronrighticon inline-block ml-auto w-4 h-4"  />
+			<i className="i-lucide-chevronrighticon ml-auto w-4 h-4"  />
 		</DropdownMenuPrimitive.SubTrigger>
 	)
 }

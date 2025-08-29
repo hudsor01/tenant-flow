@@ -5,7 +5,6 @@
  */
 import {
 	useSuspenseQuery,
-	useQueryClient,
 	type UseSuspenseQueryResult
 } from '@tanstack/react-query'
 import type {
@@ -14,6 +13,7 @@ import type {
 	UnitStats
 } from '@repo/shared'
 import { get } from '@/lib/api-client'
+import { API_ENDPOINTS } from '@/lib/constants/api-endpoints'
 import { queryKeys } from '@/lib/react-query/query-keys'
 
 // ============================================================================
@@ -26,7 +26,7 @@ import { queryKeys } from '@/lib/react-query/query-keys'
 export function useUnits(query?: UnitQuery): UseSuspenseQueryResult<Unit[]> {
 	return useSuspenseQuery({
 		queryKey: queryKeys.units.list(query),
-		queryFn: async () => get<Unit[]>('/api/units'),
+		queryFn: async () => get<Unit[]>(API_ENDPOINTS.UNITS.BASE),
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000 // 10 minutes
 	})
@@ -38,7 +38,7 @@ export function useUnits(query?: UnitQuery): UseSuspenseQueryResult<Unit[]> {
 export function useUnit(id: string): UseSuspenseQueryResult<Unit> {
 	return useSuspenseQuery({
 		queryKey: queryKeys.units.detail(id),
-		queryFn: async () => get<Unit>(`/api/units/${id}`),
+		queryFn: async () => get<Unit>(API_ENDPOINTS.UNITS.BY_ID(id)),
 		staleTime: 2 * 60 * 1000 // 2 minutes
 	})
 }
@@ -49,7 +49,7 @@ export function useUnit(id: string): UseSuspenseQueryResult<Unit> {
 export function useUnitsByProperty(propertyId: string): UseSuspenseQueryResult<Unit[]> {
 	return useSuspenseQuery({
 		queryKey: queryKeys.units.byProperty(propertyId),
-		queryFn: async () => get<Unit[]>(`/api/properties/${propertyId}/units`),
+		queryFn: async () => get<Unit[]>(`properties/${propertyId}/units`),
 		staleTime: 2 * 60 * 1000 // 2 minutes
 	})
 }
@@ -60,7 +60,7 @@ export function useUnitsByProperty(propertyId: string): UseSuspenseQueryResult<U
 export function useUnitStats(): UseSuspenseQueryResult<UnitStats> {
 	return useSuspenseQuery({
 		queryKey: queryKeys.units.stats(),
-		queryFn: async () => get<UnitStats>('/api/units/stats'),
+		queryFn: async () => get<UnitStats>(API_ENDPOINTS.UNITS.STATS),
 		staleTime: 2 * 60 * 1000, // 2 minutes
 		refetchInterval: 5 * 60 * 1000 // Auto-refresh every 5 minutes
 	})
@@ -101,18 +101,9 @@ export function useUnitOptimistic(id: string) {
 
 /**
  * PURE: Enhanced prefetch for Suspense patterns - ensures data available when component mounts
+ * Uses generic implementation to avoid duplication
  */
-export function usePrefetchUnit() {
-	const queryClient = useQueryClient()
-
-	return (id: string) => {
-		void queryClient.prefetchQuery({
-			queryKey: queryKeys.units.detail(id),
-			queryFn: async () => get<Unit>(`/api/units/${id}`),
-			staleTime: 10 * 1000 // 10 seconds
-		})
-	}
-}
+export { usePrefetchUnit } from './use-prefetch-resource'
 
 // ============================================================================
 // EXPORTS - React 19 Pure Implementation

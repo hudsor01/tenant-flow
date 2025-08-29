@@ -1,5 +1,4 @@
 import { SupabaseAuthProcessor } from '@/components/auth/supabase-auth-processor'
-import { QueryProvider } from '@/providers/query-provider'
 
 // Force dynamic rendering for OAuth callback processing
 // This prevents Next.js from statically generating this page at build time,
@@ -13,9 +12,6 @@ interface AuthCallbackPageProps {
 export default function AuthCallbackPage(_props: AuthCallbackPageProps) {
 	// Access to searchParams makes this page dynamic automatically
 	// This ensures OAuth codes in URL parameters are properly handled
-	return (
-		<QueryProvider>
-			<SupabaseAuthProcessor />
-		</QueryProvider>
-	)
+	// QueryProvider removed - already in root layout (DRY principle)
+	return <SupabaseAuthProcessor />
 }

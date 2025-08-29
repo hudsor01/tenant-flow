@@ -42,8 +42,8 @@ export function DashboardStatsCards() {
 
 	if (error) {
 		return (
-			<Alert variant="destructive" className="border-red-200 bg-red-50">
-				<i className="i-lucide-alert-triangle inline-block h-4 w-4"  />
+			<Alert variant="destructive" className="border-red-2 bg-red-1">
+				<i className="i-lucide-alert-triangle h-4 w-4"  />
 				<AlertDescription>
 					Failed to load dashboard statistics. Please try refreshing
 					the page.
@@ -85,10 +85,10 @@ export function DashboardStatsCards() {
 			description: 'Active tenants',
 			icon: 'i-lucide-users',
 			color: 'success',
-			bgColor: 'bg-gradient-to-br from-green-50 to-green-100/50',
+			bgColor: 'bg-gradient-to-br from-green-50 to-green-1/50',
 			iconColor: 'text-white',
-			iconBg: 'bg-green-500',
-			borderColor: 'border-green-200',
+			iconBg: 'bg-green-5',
+			borderColor: 'border-green-2',
 			trend: 'up',
 			change: '+8%'
 		},
@@ -101,7 +101,7 @@ export function DashboardStatsCards() {
 			bgColor: 'bg-gradient-to-br from-teal-50 to-teal-100/50',
 			iconColor: 'text-white',
 			iconBg: 'bg-gradient-to-br from-teal-500 to-teal-600',
-			borderColor: 'border-teal-200',
+			borderColor: 'border-teal-2',
 			trend: 'up',
 			change: '+5%'
 		},
@@ -113,8 +113,8 @@ export function DashboardStatsCards() {
 			color: 'warning',
 			bgColor: 'bg-gradient-to-br from-orange-50 to-orange-100/50',
 			iconColor: 'text-white',
-			iconBg: 'bg-orange-500',
-			borderColor: 'border-orange-200',
+			iconBg: 'bg-orange-5',
+			borderColor: 'border-orange-2',
 			trend: 'down',
 			change: '-15%'
 		}
@@ -146,7 +146,7 @@ export function DashboardStatsCards() {
 									'rounded-xl p-2.5 shadow-sm ring-1 ring-black/5',
 									stat.iconBg
 								)}>
-									<i className={cn(stat.icon, 'inline-block', cn('h-4 w-4', stat.iconColor))} />
+									<i className={cn(stat.icon, cn('h-4 w-4', stat.iconColor))} />
 								</div>
 							}
 							action={

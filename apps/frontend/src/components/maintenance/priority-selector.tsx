@@ -25,20 +25,20 @@ export function PrioritySelector({
 		switch (priority) {
 			case 'LOW':
 				return (
-					<div className="mr-2 h-2 w-2 rounded-full bg-green-500" />
+					<div className="mr-2 h-2 w-2 rounded-full bg-green-5" />
 				)
 			case 'MEDIUM':
 				return (
-					<div className="mr-2 h-2 w-2 rounded-full bg-yellow-500" />
+					<div className="mr-2 h-2 w-2 rounded-full bg-yellow-5" />
 				)
 			case 'HIGH':
 				return (
-					<div className="mr-2 h-2 w-2 rounded-full bg-orange-500" />
+					<div className="mr-2 h-2 w-2 rounded-full bg-orange-5" />
 				)
 			case 'EMERGENCY':
-				return <i className="i-lucide-alert-triangle inline-block mr-2 h-4 w-4 text-red-500"  />
+				return <i className="i-lucide-alert-triangle mr-2 h-4 w-4 text-red-5"  />
 			default:
-				return <div className="mr-2 h-2 w-2 rounded-full bg-gray-500" />
+				return <div className="mr-2 h-2 w-2 rounded-full bg-gray-5" />
 		}
 	}
 

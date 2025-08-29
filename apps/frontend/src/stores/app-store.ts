@@ -105,6 +105,8 @@ interface LocalAppState {
 	// ACTIONS - MODAL MANAGEMENT
 	// ============================================================================
 
+	setModalState: (name: string, isOpen: boolean) => void
+	setModalOpen: (name: string, open: boolean) => void
 	openModal: (name: string) => void
 	closeModal: (name: string) => void
 	closeAllModals: () => void
@@ -114,6 +116,10 @@ interface LocalAppState {
 	// ACTIONS - CACHE MANAGEMENT (Performance Optimization)
 	// ============================================================================
 
+	setCacheValue: <K extends keyof LocalAppState['cache']>(
+		key: K, 
+		value: LocalAppState['cache'][K]
+	) => void
 	setSelectedProperty: (id: string | null) => void
 	setSelectedTenant: (id: string | null) => void
 	addRecentSearch: (search: string) => void
@@ -179,7 +185,15 @@ export const useAppStore = create<LocalAppState>()(
 			// Add persistence for UI preferences
 			persist(
 				// Add Immer for immutable updates (performance + safety)
-				immer<LocalAppState>((set, get) => ({
+				immer<LocalAppState>((set, get) => {
+					// Shared utility for updating unread count - DRY principle
+						const updateUnreadCount = (state: LocalAppState) => {
+						state.unreadCount = state.notifications.filter(
+							(n: AppNotification) => !n.read
+						).length
+					}
+
+					return {
 					...initialState,
 
 					// ============================================================================
@@ -301,10 +315,8 @@ export const useAppStore = create<LocalAppState>()(
 								)
 							}
 
-							// Update unread count efficiently
-							state.unreadCount = state.notifications.filter(
-								(n: AppNotification) => !n.read
-							).length
+							// Update unread count using shared utility
+							updateUnreadCount(state)
 						})
 					},
 
@@ -315,9 +327,7 @@ export const useAppStore = create<LocalAppState>()(
 							)
 							if (index > -1) {
 								state.notifications.splice(index, 1)
-								state.unreadCount = state.notifications.filter(
-									(n: AppNotification) => !n.read
-								).length
+								updateUnreadCount(state)
 							}
 						})
 					},
@@ -329,9 +339,7 @@ export const useAppStore = create<LocalAppState>()(
 							)
 							if (notification && !notification.read) {
 								notification.read = true
-								state.unreadCount = state.notifications.filter(
-									(n: AppNotification) => !n.read
-								).length
+								updateUnreadCount(state)
 							}
 						})
 					},
@@ -358,17 +366,19 @@ export const useAppStore = create<LocalAppState>()(
 					// MODAL MANAGEMENT ACTIONS
 					// ============================================================================
 
-					openModal: (name: string) => {
+					// Generic modal setter - DRY principle
+					setModalState: (name: string, isOpen: boolean) => {
 						set(state => {
-							state.modals[name] = true
+							state.modals[name] = isOpen
 						})
 					},
 
-					closeModal: (name: string) => {
-						set(state => {
-							state.modals[name] = false
-						})
-					},
+					// Generic modal state setter - DRY principle
+					setModalOpen: (name: string, open: boolean) => get().setModalState(name, open),
+
+					openModal: (name: string) => get().setModalOpen(name, true),
+
+					closeModal: (name: string) => get().setModalOpen(name, false),
 
 					closeAllModals: () => {
 						set(state => {
@@ -388,17 +398,22 @@ export const useAppStore = create<LocalAppState>()(
 					// CACHE MANAGEMENT ACTIONS
 					// ============================================================================
 
-					setSelectedProperty: (id: string | null) => {
+					// Cache setter with proper generic typing
+					setCacheValue: <K extends keyof LocalAppState['cache']>(
+						key: K,
+						value: LocalAppState['cache'][K]
+					) => {
 						set(state => {
-							state.cache.selectedPropertyId = id
+							const cache = state.cache as { [P in keyof LocalAppState['cache']]: LocalAppState['cache'][P] }
+							cache[key] = value as LocalAppState['cache'][K]
 						})
 					},
 
-					setSelectedTenant: (id: string | null) => {
-						set(state => {
-							state.cache.selectedTenantId = id
-						})
-					},
+					setSelectedProperty: (id: string | null) => 
+						get().setCacheValue('selectedPropertyId', id),
+
+					setSelectedTenant: (id: string | null) => 
+						get().setCacheValue('selectedTenantId', id),
 
 					addRecentSearch: (search: string) => {
 						set(state => {
@@ -459,9 +474,7 @@ export const useAppStore = create<LocalAppState>()(
 									notification.read = read
 								}
 							})
-							state.unreadCount = state.notifications.filter(
-								(n: AppNotification) => !n.read
-							).length
+							updateUnreadCount(state)
 						})
 					},
 
@@ -472,7 +485,8 @@ export const useAppStore = create<LocalAppState>()(
 							ui: get().ui
 						}))
 					}
-				})),
+				}
+			}),
 				{
 					name: 'tenantflow-app-store',
 					// Only persist UI preferences and some cache data
@@ -507,10 +521,17 @@ export const useNotifications = () =>
 		unreadCount: state.unreadCount,
 		getUnreadNotifications: state.getUnreadNotifications
 	}))
-export const useSelectedProperty = () =>
-	useAppStore(state => state.cache.selectedPropertyId)
-export const useSelectedTenant = () =>
-	useAppStore(state => state.cache.selectedTenantId)
+// Generic cache selector factory - DRY principle
+export function useCacheSelector<T>(selector: (cache: LocalAppState['cache']) => T) {
+    return useAppStore(state => selector(state.cache))
+}
+
+// Generic cache field selector factory - further DRY consolidation
+const createCacheFieldSelector = <K extends keyof LocalAppState['cache']>(key: K) =>
+	() => useCacheSelector(cache => cache[key])
+
+export const useSelectedProperty = createCacheFieldSelector('selectedPropertyId')
+export const useSelectedTenant = createCacheFieldSelector('selectedTenantId')
 export const useIsOnline = () => useAppStore(state => state.isOnline)
 
 // Bulk action hooks for performance
