@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
@@ -15,18 +15,37 @@ import { loginFormAction } from '@/app/actions/auth'
 import { OAuthProviders } from '@/components/auth/oauth-providers'
 import { useState } from 'react'
 import Link from 'next/link'
+import { Eye, EyeOff } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
-interface SimpleLoginFormProps {
+interface LoginFormProps {
 	redirectTo?: string
 }
 
-export function SimpleLoginForm({
-	redirectTo = '/dashboard'
-}: SimpleLoginFormProps) {
-	const [state, formAction, isPending] = useActionState(loginFormAction, {
-		success: false
-	})
-	const [showPassword, setShowPassword] = useState(false)
+export function LoginForm({
+    redirectTo = '/dashboard'
+}: LoginFormProps) {
+    const [state, formAction, isPending] = useActionState(loginFormAction, {
+        success: false
+    })
+    const [showPassword, setShowPassword] = useState(false)
+    const router = useRouter()
+
+    useEffect(() => {
+        if (state.success) {
+            if (typeof window !== 'undefined') {
+                const current = window.location.pathname
+                if (redirectTo && redirectTo !== current) {
+                    router.push(redirectTo)
+                } else {
+                    router.refresh()
+                }
+            } else {
+                router.refresh()
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [state.success])
 
 	return (
 		<Card className="w-full max-w-md">
@@ -104,9 +123,9 @@ export function SimpleLoginForm({
 								disabled={isPending}
 							>
 								{showPassword ? (
-									<i className="i-lucide-eye-off h-4 w-4"  />
+									<EyeOff className="h-4 w-4" />
 								) : (
-									<i className="i-lucide-eye h-4 w-4"  />
+									<Eye className="h-4 w-4" />
 								)}
 							</button>
 						</div>

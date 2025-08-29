@@ -10,7 +10,7 @@ import {
 	type UseMutationResult
 } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { get, post } from '@/lib/api-client'
+import { apiGet, apiMutate } from '@/lib/utils/api-utils'
 import { queryKeys } from '@/lib/react-query/query-keys'
 import type {
 	User,
@@ -28,7 +28,7 @@ export function useCurrentUser(options?: {
 }): UseQueryResult<User> {
 	return useQuery({
 		queryKey: queryKeys.auth.profile(),
-		queryFn: () => get<User>('/api/auth/me'),
+		queryFn: () => apiGet<User>('/api/auth/me'),
 		enabled: options?.enabled ?? true,
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000, // 10 minutes
@@ -54,7 +54,7 @@ export function useLogin(): UseMutationResult<
 
 	return useMutation({
 		mutationFn: (credentials: LoginCredentials) =>
-			post<AuthResponse>('/api/auth/login', credentials),
+			apiMutate<AuthResponse>('POST', '/api/auth/login', credentials),
 		onSuccess: data => {
 			// Clear any cached data on successful login
 			queryClient.clear()
@@ -82,7 +82,7 @@ export function useRegister(): UseMutationResult<
 > {
 	return useMutation({
 		mutationFn: (credentials: RegisterCredentials) =>
-			post<AuthResponse>('/api/auth/register', credentials),
+			apiMutate<AuthResponse>('POST', '/api/auth/register', credentials),
 		onSuccess: data => {
 			toast.success(data.message || 'Account created successfully!')
 		},
@@ -103,7 +103,7 @@ export function useLogout(): UseMutationResult<
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: () => post<{ success: boolean; message: string }>('/api/auth/logout', {}),
+		mutationFn: () => apiMutate<{ success: boolean; message: string }>('POST', '/api/auth/logout', {}),
 		onSuccess: () => {
 			// Clear all cached data on logout
 			queryClient.clear()
@@ -129,7 +129,7 @@ export function useRefreshToken(): UseMutationResult<
 
 	return useMutation({
 		mutationFn: (refreshData: RefreshTokenRequest) =>
-			post<AuthResponse>('/api/auth/refresh', refreshData),
+			apiMutate<AuthResponse>('POST', '/api/auth/refresh', refreshData),
 		onSuccess: data => {
 			// Update cached user data if provided
 			if (data.user) {

@@ -2,7 +2,11 @@
 
 import { usePostHog as usePostHogBase } from 'posthog-js/react'
 import { useCallback } from 'react'
-import type { User, TenantFlowEvent } from '@repo/shared'
+import type { Tables } from '@repo/shared/types/supabase-generated'
+import type { TenantFlowEvent } from '@repo/shared'
+
+// ULTRA-NATIVE: Use generated type directly
+type User = Tables<'User'>
 
 // Custom event types for TenantFlow
 

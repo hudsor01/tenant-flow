@@ -10,7 +10,7 @@ import {
 	type UseMutationResult
 } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { get, post } from '@/lib/api-client'
+import { apiGet, apiMutate } from '@/lib/utils/api-utils'
 import { queryKeys } from '@/lib/react-query/query-keys'
 import type { PaymentMethod, Subscription } from '@repo/shared'
 
@@ -38,7 +38,7 @@ export function useSubscription(options?: {
 }): UseQueryResult<Subscription> {
     return useQuery({
         queryKey: queryKeys.billing.subscription(),
-        queryFn: () => get<Subscription>('stripe/subscription'),
+        queryFn: () => apiGet<Subscription>('stripe/subscription'),
         enabled: options?.enabled ?? true,
         refetchInterval: options?.refetchInterval,
         staleTime: 5 * 60 * 1000, // 5 minutes
@@ -55,7 +55,7 @@ async function fetchPortalUrl(options?: {
         returnUrl: options?.returnUrl || (typeof window !== 'undefined' ? window.location.origin : undefined),
         ...(options?.prefillEmail && { prefillEmail: options.prefillEmail })
     }
-    const res = await post<{ url?: string }>('stripe/portal', portalData)
+    const res = await apiMutate<{ url?: string }>('POST', 'stripe/portal', portalData)
     return { portalUrl: res.url ?? '', message: 'Open customer portal' }
 }
 
@@ -67,7 +67,7 @@ export function useInvoices(options?: {
     refetchInterval?: number
 }): UseQueryResult<PortalRedirectResponse> {
     return useQuery({
-        queryKey: queryKeys.billing.invoices(),
+        queryKey: queryKeys.billing.invoices(100),
         ...createPortalRequest(),
         enabled: options?.enabled ?? true,
         refetchInterval: options?.refetchInterval,
@@ -126,7 +126,7 @@ export function useCreateCheckoutSession(): UseMutationResult<
 			interval: 'monthly' | 'annual'
 			successUrl?: string
 			cancelUrl?: string
-    }) => post<{ url: string; sessionId?: string }>('stripe/checkout', data),
+    }) => apiMutate<{ url: string; sessionId?: string }>('POST', 'stripe/checkout', data),
 		onSuccess: data => {
 			// Redirect to checkout
 			const checkoutUrl = data.url
@@ -248,7 +248,7 @@ export function useUpdateSubscription(): UseMutationResult<
 				queryKey: queryKeys.billing.usage()
 			})
 			void queryClient.invalidateQueries({
-				queryKey: queryKeys.billing.invoices()
+				queryKey: queryKeys.billing.all()
 			})
 		}
 	})
@@ -320,7 +320,7 @@ export function useCancelSubscription(): UseMutationResult<
 				queryKey: queryKeys.billing.usage()
 			})
 			void queryClient.invalidateQueries({
-				queryKey: queryKeys.billing.invoices()
+				queryKey: queryKeys.billing.all()
 			})
 		}
 	})

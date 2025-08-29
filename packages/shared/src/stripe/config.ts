@@ -15,29 +15,21 @@ export function getPriceId(plan: PlanType, period: BillingPeriod): string {
 	const priceMap: Record<`${PlanType}_${BillingPeriod}`, string> = {
 		FREETRIAL_monthly: 'price_freetrial_monthly',
 		FREETRIAL_annual: 'price_freetrial_annual',
-		FREETRIAL_yearly: 'price_freetrial_yearly',
 		STARTER_monthly:
 			process.env.STRIPE_STARTER_MONTHLY_PRICE_ID ||
 			'price_starter_monthly',
 		STARTER_annual:
 			process.env.STRIPE_STARTER_ANNUAL_PRICE_ID ||
 			'price_starter_annual',
-		STARTER_yearly:
-			process.env.STRIPE_STARTER_YEARLY_PRICE_ID ||
-			'price_starter_yearly',
 		GROWTH_monthly:
 			process.env.STRIPE_GROWTH_MONTHLY_PRICE_ID ||
 			'price_growth_monthly',
 		GROWTH_annual:
 			process.env.STRIPE_GROWTH_ANNUAL_PRICE_ID || 'price_growth_annual',
-		GROWTH_yearly:
-			process.env.STRIPE_GROWTH_YEARLY_PRICE_ID || 'price_growth_yearly',
 		TENANTFLOW_MAX_monthly:
 			process.env.STRIPE_MAX_MONTHLY_PRICE_ID || 'price_max_monthly',
 		TENANTFLOW_MAX_annual:
 			process.env.STRIPE_MAX_ANNUAL_PRICE_ID || 'price_max_annual',
-		TENANTFLOW_MAX_yearly:
-			process.env.STRIPE_MAX_YEARLY_PRICE_ID || 'price_max_yearly'
 	}
 
 	return priceMap[`${plan}_${period}`] || 'price_default'

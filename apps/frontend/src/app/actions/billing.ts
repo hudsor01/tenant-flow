@@ -5,8 +5,8 @@
 
 'use server'
 
-import { post } from '@repo/shared'
 import { redirect } from 'next/navigation'
+import { serverApiMutate } from '@/lib/utils/api-server-utils'
 
 // Define local interface - no shared type needed for this simple case
 interface CreateCheckoutRequest {
@@ -53,10 +53,10 @@ export async function createCheckoutSession(
 			couponId: couponId as string | undefined
 		}
 
-		const response = await post<{
+		const response = await serverApiMutate<{
 			sessionId: string
 			sessionUrl: string
-		}>('/api/stripe/create-checkout-session', requestBody)
+		}>('POST', '/api/stripe/create-checkout-session', requestBody)
 
 		if (response.sessionUrl) {
 			redirect(response.sessionUrl)
@@ -81,9 +81,9 @@ export async function createPaymentIntent(
 	currency = 'usd'
 ): Promise<BillingFormState> {
 	try {
-		const response = await post<{
+		const response = await serverApiMutate<{
 			clientSecret: string
-		}>('/api/stripe/create-payment-intent', {
+		}>('POST', '/api/stripe/create-payment-intent', {
 			amount,
 			currency
 		})
@@ -105,9 +105,9 @@ export async function createPaymentIntent(
 
 export async function createPortalSession(): Promise<BillingFormState> {
 	try {
-		const response = await post<{
+		const response = await serverApiMutate<{
 			url: string
-		}>('/api/stripe/create-portal-session', {
+		}>('POST', '/api/stripe/create-portal-session', {
 			returnUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`
 		})
 
@@ -132,9 +132,9 @@ export async function createPortalSession(): Promise<BillingFormState> {
 
 export async function handleCheckoutReturn(sessionId: string) {
 	try {
-		const response = await post<{
+		const response = await serverApiMutate<{
 			session: unknown
-		}>('/api/stripe/checkout-session', {
+		}>('POST', '/api/stripe/checkout-session', {
 			sessionId
 		})
 

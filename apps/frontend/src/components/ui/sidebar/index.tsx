@@ -135,7 +135,7 @@ export function SidebarGroup({
 	)
 }
 
-// eslint-disable-next-line anti-duplication/no-duplicate-function-implementations  
+ 
 export function SidebarGroupContent({
 	children,
 	className,

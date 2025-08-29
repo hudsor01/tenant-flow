@@ -158,7 +158,7 @@ function SelectScrollUpButton({
 	)
 }
 
-// eslint-disable-next-line anti-duplication/no-duplicate-function-implementations
+ 
 function SelectScrollDownButton({
 	className,
 	...props

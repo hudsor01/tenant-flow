@@ -8,7 +8,7 @@
 
 import { useQueryClient, type QueryKey } from '@tanstack/react-query'
 import type { Tenant, Property, Unit, Lease } from '@repo/shared'
-import { get } from '@/lib/api-client'
+import { apiGet } from '@/lib/utils/api-utils'
 import { queryKeys } from '@/lib/react-query/query-keys'
 
 // Type mapping for API resources
@@ -55,7 +55,7 @@ export function usePrefetchResource<T extends ResourceType>(resourceType: T) {
     void queryClient.prefetchQuery({
       queryKey: queryKeyFactories[resourceType](id) as QueryKey,
       queryFn: async () => 
-        get<ResourceDataMap[T]>(`${apiEndpoints[resourceType]}/${id}`),
+        apiGet<ResourceDataMap[T]>(`${apiEndpoints[resourceType]}/${id}`),
       staleTime: 10 * 1000 // 10 seconds (consistent with existing pattern)
     })
   }
@@ -95,7 +95,7 @@ export function usePrefetchMultiple(
       void queryClient.prefetchQuery({
         queryKey: queryKeyFactories[type](id) as QueryKey,
         queryFn: async () => 
-          get<ResourceDataMap[typeof type]>(`${apiEndpoints[type]}/${id}`),
+          apiGet<ResourceDataMap[typeof type]>(`${apiEndpoints[type]}/${id}`),
         staleTime: 10 * 1000
       })
     })
