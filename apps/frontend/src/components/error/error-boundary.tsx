@@ -108,7 +108,7 @@ function DefaultErrorFallback({ error, resetError }: ErrorFallbackProps) {
 			<Card className="w-full max-w-md">
 				<CardHeader className="text-center">
 					<div className="bg-destructive/10 mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
-						<i className="i-lucide-alert-triangle inline-block text-destructive h-6 w-6"  />
+						<i className="i-lucide-alert-triangle text-destructive h-6 w-6"  />
 					</div>
 					<CardTitle className="text-lg font-semibold">
 						Something went wrong
@@ -138,7 +138,7 @@ function DefaultErrorFallback({ error, resetError }: ErrorFallbackProps) {
 					)}
 					<div className="flex gap-2">
 						<Button onClick={resetError} className="flex-1">
-							<i className="i-lucide-refreshcw inline-block mr-2 h-4 w-4"  />
+							<i className="i-lucide-refreshcw mr-2 h-4 w-4"  />
 							Try Again
 						</Button>
 						<Button
@@ -146,7 +146,7 @@ function DefaultErrorFallback({ error, resetError }: ErrorFallbackProps) {
 							onClick={() => (window.location.href = '/')}
 							className="flex-1"
 						>
-							<i className="i-lucide-home inline-block mr-2 h-4 w-4"  />
+							<i className="i-lucide-home mr-2 h-4 w-4"  />
 							Go Home
 						</Button>
 					</div>
@@ -180,7 +180,7 @@ function PageErrorFallback({ resetError }: ErrorFallbackProps) {
 	return (
 		<div className="container mx-auto px-4 py-16 text-center">
 			<div className="mx-auto max-w-md">
-				<i className="i-lucide-alert-triangle inline-block text-destructive mx-auto mb-4 h-12 w-12"  />
+				<i className="i-lucide-alert-triangle text-destructive mx-auto mb-4 h-12 w-12"  />
 				<h1 className="text-foreground mb-2 text-2xl font-bold">
 					Page Error
 				</h1>
@@ -190,14 +190,14 @@ function PageErrorFallback({ resetError }: ErrorFallbackProps) {
 				</p>
 				<div className="flex justify-center gap-2">
 					<Button onClick={resetError}>
-						<i className="i-lucide-refreshcw inline-block mr-2 h-4 w-4"  />
+						<i className="i-lucide-refreshcw mr-2 h-4 w-4"  />
 						Reload Page
 					</Button>
 					<Button
 						variant="outline"
 						onClick={() => (window.location.href = '/')}
 					>
-						<i className="i-lucide-home inline-block mr-2 h-4 w-4"  />
+						<i className="i-lucide-home mr-2 h-4 w-4"  />
 						Go Home
 					</Button>
 				</div>
@@ -224,10 +224,10 @@ function QueryErrorFallback({
 	return (
 		<Card className="mx-auto max-w-md">
 			<CardHeader className="text-center">
-				<div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-					<i className="i-lucide-alert-triangle inline-block h-6 w-6 text-red-600"  />
+				<div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-1">
+					<i className="i-lucide-alert-triangle h-6 w-6 text-red-6"  />
 				</div>
-				<CardTitle className="text-red-900">
+				<CardTitle className="text-red-9">
 					Data Loading Error
 				</CardTitle>
 				<CardDescription>{appError.message}</CardDescription>
@@ -242,22 +242,22 @@ function QueryErrorFallback({
 							className="w-full"
 							variant="outline"
 						>
-							<i className="i-lucide-refreshcw inline-block mr-2 h-4 w-4"  />
+							<i className="i-lucide-refreshcw mr-2 h-4 w-4"  />
 							Try again
 						</Button>
 					)}
 				<Button asChild className="w-full" variant="secondary">
 					<Link href="/dashboard">
-						<i className="i-lucide-home inline-block mr-2 h-4 w-4"  />
+						<i className="i-lucide-home mr-2 h-4 w-4"  />
 						Go to Dashboard
 					</Link>
 				</Button>
 				{process.env.DEV && (
 					<details className="mt-4">
-						<summary className="cursor-pointer text-sm text-gray-500">
+						<summary className="cursor-pointer text-sm text-gray-5">
 							Technical Details
 						</summary>
-						<pre className="mt-2 rounded bg-gray-100 p-2 text-xs">
+						<pre className="mt-2 rounded bg-gray-1 p-2 text-xs">
 							{JSON.stringify(
 								{ error: appError, original: error.message },
 								null,
@@ -327,10 +327,10 @@ function SectionErrorFallback({
 
 	if (showMinimal) {
 		return (
-			<div className="rounded border border-red-200 bg-red-50 p-4">
+			<div className="rounded border border-red-2 bg-red-5/10 p-4">
 				<div className="flex items-center gap-2">
-					<i className="i-lucide-alert-triangle inline-block h-4 w-4 text-red-600"  />
-					<span className="text-sm text-red-800">
+					<i className="i-lucide-alert-triangle h-4 w-4 text-red-6"  />
+					<span className="text-sm text-red-8">
 						Unable to load {sectionName}
 					</span>
 				</div>
@@ -344,7 +344,7 @@ function SectionErrorFallback({
 							variant="outline"
 							className="mt-2"
 						>
-							<i className="i-lucide-refreshcw inline-block mr-1 h-3 w-3"  />
+							<i className="i-lucide-refreshcw mr-1 h-3 w-3"  />
 							Retry
 						</Button>
 					)}
@@ -353,10 +353,10 @@ function SectionErrorFallback({
 	}
 
 	return (
-		<Card className="border-red-200">
+		<Card className="border-red-2">
 			<CardHeader className="pb-3">
 				<div className="flex items-center gap-2">
-					<i className="i-lucide-alert-triangle inline-block h-5 w-5 text-red-600"  />
+					<i className="i-lucide-alert-triangle h-5 w-5 text-red-6"  />
 					<CardTitle className="text-base">
 						Error loading {sectionName}
 					</CardTitle>
@@ -370,7 +370,7 @@ function SectionErrorFallback({
 						size="sm"
 						variant="outline"
 					>
-						<i className="i-lucide-refreshcw inline-block mr-2 h-4 w-4"  />
+						<i className="i-lucide-refreshcw mr-2 h-4 w-4"  />
 						Try again
 					</Button>
 				</CardContent>
@@ -422,10 +422,10 @@ export function NetworkErrorBoundary({
 				return (
 					<Card className="mx-auto max-w-md">
 						<CardHeader className="text-center">
-							<div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100">
-								<i className="i-lucide-alert-triangle inline-block h-6 w-6 text-yellow-600"  />
+							<div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-1">
+								<i className="i-lucide-alert-triangle h-6 w-6 text-yellow-6"  />
 							</div>
-							<CardTitle className="text-yellow-900">
+							<CardTitle className="text-yellow-9">
 								{isOffline
 									? "You're offline"
 									: 'Connection Error'}
@@ -441,7 +441,7 @@ export function NetworkErrorBoundary({
 								onClick={resetErrorBoundary}
 								className="w-full"
 							>
-								<i className="i-lucide-refreshcw inline-block mr-2 h-4 w-4"  />
+								<i className="i-lucide-refreshcw mr-2 h-4 w-4"  />
 								{isOffline ? 'Try again' : 'Retry connection'}
 							</Button>
 						</CardContent>

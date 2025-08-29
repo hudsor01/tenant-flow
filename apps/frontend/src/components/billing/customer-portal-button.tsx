@@ -37,8 +37,8 @@ export function CustomerPortalButton({
 	return (
 		<div className="space-y-3">
 			{showSecurityBadge && (
-				<div className="mb-2 flex items-center justify-center gap-2 text-sm text-gray-500">
-					<i className="i-lucide-shield inline-block h-4 w-4"  />
+				<div className="mb-2 flex items-center justify-center gap-2 text-sm text-gray-5">
+					<i className="i-lucide-shield h-4 w-4"  />
 					<span>Secure billing powered by Stripe</span>
 				</div>
 			)}
@@ -50,18 +50,18 @@ export function CustomerPortalButton({
 				size={size}
 				className={cn(
 					variant === 'default' &&
-						'from-primary border-0 bg-gradient-to-r to-indigo-600 text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg',
+						'from-primary border-0 bg-gradient-to-r to-indigo-600 text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:from-blue-7 hover:to-indigo-700 hover:shadow-lg',
 					className
 				)}
 			>
 				{createPortalMutation.isPending ? (
 					<>
-						<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
+						<i className="i-lucide-loader-2 mr-2 h-4 w-4 animate-spin"  />
 						Loading...
 					</>
 				) : (
 					<>
-						<i className="i-lucide-credit-card inline-block mr-2 h-4 w-4"  />
+						<i className="i-lucide-credit-card mr-2 h-4 w-4"  />
 						{children}
 					</>
 				)}
@@ -70,9 +70,9 @@ export function CustomerPortalButton({
 			{createPortalMutation.error && (
 				<Alert
 					variant="destructive"
-					className="border-red-200 bg-red-50"
+					className="border-red-2 bg-red-50"
 				>
-					<AlertDescription className="text-red-700">
+					<AlertDescription className="text-red-7">
 						{createPortalMutation.error.message}
 					</AlertDescription>
 				</Alert>

@@ -19,102 +19,79 @@ const TOAST_CONFIG = {
 	}
 }
 
+// Toast style configurations - DRY principle
+const TOAST_STYLES = {
+	success: {
+		icon: 'i-lucide-checkcircle',
+		background: 'rgba(240, 253, 244, 0.95)',
+		border: '1px solid rgba(34, 197, 94, 0.2)',
+		color: 'hsl(140, 60%, 30%)',
+		duration: TOAST_CONFIG.duration
+	},
+	error: {
+		icon: 'i-lucide-xcircle', 
+		background: 'rgba(254, 242, 242, 0.95)',
+		border: '1px solid rgba(239, 68, 68, 0.2)',
+		color: 'hsl(0, 65%, 45%)',
+		duration: 6000
+	},
+	warning: {
+		icon: 'i-lucide-alert-circle',
+		background: 'rgba(255, 247, 237, 0.95)', 
+		border: '1px solid rgba(251, 146, 60, 0.2)',
+		color: 'hsl(32, 70%, 45%)',
+		duration: TOAST_CONFIG.duration
+	},
+	info: {
+		icon: 'i-lucide-info',
+		background: 'rgba(239, 246, 255, 0.95)',
+		border: '1px solid rgba(59, 130, 246, 0.2)', 
+		color: 'hsl(213, 70%, 45%)',
+		duration: TOAST_CONFIG.duration
+	}
+} as const
+
+// Generic toast function - DRY principle
+function createToast(
+	type: keyof typeof TOAST_STYLES,
+	message: string,
+	options?: {
+		description?: string
+		action?: { label: string; onClick: () => void }
+	}
+) {
+	const style = TOAST_STYLES[type]
+	const toastFn = toast[type] as typeof toast.success
+	
+	return toastFn(message, {
+		...TOAST_CONFIG,
+		duration: style.duration,
+		description: options?.description,
+		action: options?.action,
+		icon: <i className={`${style.icon} h-5 w-5`} />,
+		style: {
+			...TOAST_CONFIG.style,
+			background: style.background,
+			backdropFilter: 'blur(10px)',
+			border: style.border,
+			color: style.color
+		}
+	})
+}
+
+// Generic notification factory - DRY principle  
+const createNotificationFn = (type: keyof typeof TOAST_STYLES) =>
+	(message: string, options?: { description?: string; action?: { label: string; onClick: () => void } }) =>
+		createToast(type, message, options)
+
 /**
  * Enhanced toast utilities with premium styling and icons
  */
 export const notifications = {
-	// Success notifications with green accent
-	success: (
-		message: string,
-		options?: {
-			description?: string
-			action?: { label: string; onClick: () => void }
-		}
-	) => {
-		return toast.success(message, {
-			...TOAST_CONFIG,
-			description: options?.description,
-			action: options?.action,
-			icon: <i className="i-lucide-checkcircle inline-block h-5 w-5"  />,
-			style: {
-				...TOAST_CONFIG.style,
-				background: 'rgba(240, 253, 244, 0.95)',
-				backdropFilter: 'blur(10px)',
-				border: '1px solid rgba(34, 197, 94, 0.2)',
-				color: 'hsl(140, 60%, 30%)'
-			}
-		})
-	},
-
-	// Error notifications with red accent
-	error: (
-		message: string,
-		options?: {
-			description?: string
-			action?: { label: string; onClick: () => void }
-		}
-	) => {
-		return toast.error(message, {
-			...TOAST_CONFIG,
-			duration: 6000, // Longer duration for errors
-			description: options?.description,
-			action: options?.action,
-			icon: <i className="i-lucide-xcircle inline-block h-5 w-5"  />,
-			style: {
-				...TOAST_CONFIG.style,
-				background: 'rgba(254, 242, 242, 0.95)',
-				backdropFilter: 'blur(10px)',
-				border: '1px solid rgba(239, 68, 68, 0.2)',
-				color: 'hsl(0, 65%, 45%)'
-			}
-		})
-	},
-
-	// Warning notifications with orange accent
-	warning: (
-		message: string,
-		options?: {
-			description?: string
-			action?: { label: string; onClick: () => void }
-		}
-	) => {
-		return toast.warning(message, {
-			...TOAST_CONFIG,
-			description: options?.description,
-			action: options?.action,
-			icon: <i className="i-lucide-alert-circle inline-block h-5 w-5"  />,
-			style: {
-				...TOAST_CONFIG.style,
-				background: 'rgba(255, 247, 237, 0.95)',
-				backdropFilter: 'blur(10px)',
-				border: '1px solid rgba(251, 146, 60, 0.2)',
-				color: 'hsl(32, 70%, 45%)'
-			}
-		})
-	},
-
-	// Info notifications with blue accent
-	info: (
-		message: string,
-		options?: {
-			description?: string
-			action?: { label: string; onClick: () => void }
-		}
-	) => {
-		return toast.info(message, {
-			...TOAST_CONFIG,
-			description: options?.description,
-			action: options?.action,
-			icon: <i className="i-lucide-info inline-block h-5 w-5"  />,
-			style: {
-				...TOAST_CONFIG.style,
-				background: 'rgba(239, 246, 255, 0.95)',
-				backdropFilter: 'blur(10px)',
-				border: '1px solid rgba(59, 130, 246, 0.2)',
-				color: 'hsl(213, 70%, 45%)'
-			}
-		})
-	},
+	success: createNotificationFn('success'),
+	error: createNotificationFn('error'),
+	warning: createNotificationFn('warning'),  
+	info: createNotificationFn('info'),
 
 	// Loading notifications with animated spinner
 	loading: (message: string, options?: { description?: string }) => {
@@ -122,7 +99,7 @@ export const notifications = {
 			...TOAST_CONFIG,
 			duration: Infinity, // Keep until dismissed
 			description: options?.description,
-			icon: <i className="i-lucide-loader-2 inline-block h-5 w-5 animate-spin"  />,
+			icon: <i className="i-lucide-loader-2 h-5 w-5 animate-spin"  />,
 			style: {
 				...TOAST_CONFIG.style,
 				background: 'rgba(248, 250, 252, 0.95)',
@@ -214,7 +191,7 @@ export const stripeNotifications = {
 		return toast.success('Free trial activated!', {
 			...TOAST_CONFIG,
 			description: `You now have ${trialDays} days of full access to explore all features.`,
-			icon: <i className="i-lucide-sparkles inline-block h-5 w-5"  />,
+			icon: <i className="i-lucide-sparkles h-5 w-5"  />,
 			style: {
 				...TOAST_CONFIG.style,
 				background:
@@ -251,7 +228,7 @@ export const stripeNotifications = {
 			duration?: number
 		}
 	) => {
-		const icon = <i className="i-lucide-credit-card inline-block h-5 w-5"  />
+		const icon = <i className="i-lucide-credit-card h-5 w-5"  />
 
 		return toast[options?.type || 'info'](message, {
 			...TOAST_CONFIG,

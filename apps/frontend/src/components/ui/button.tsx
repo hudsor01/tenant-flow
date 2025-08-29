@@ -22,13 +22,13 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 
 // UnoCSS class maps - will be converted to shortcuts in uno.config.ts
 const variantClasses: Record<ButtonVariant, string> = {
-	default: 'bg-brand-500 text-white hover:bg-brand-600',
-	destructive: 'bg-red-500 text-white hover:bg-red-600',
-	outline: 'border border-gray-300 bg-white hover:bg-gray-50',
-	secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200',
-	ghost: 'hover:bg-gray-100 hover:text-gray-900',
-	link: 'text-brand-500 underline-offset-4 hover:underline',
-	premium: 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 shadow-lg'
+	default: 'bg-primary text-primary-foreground hover:bg-primary/90',
+	destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+	outline: 'border border-input bg-card hover:bg-muted',
+	secondary: 'bg-secondary text-secondary-foreground hover:bg-muted',
+	ghost: 'hover:bg-muted hover:text-foreground',
+	link: 'text-primary underline-offset-4 hover:underline',
+	premium: 'bg-gradient-to-r from-primary to-accent text-primary-foreground hover:from-primary/90 hover:to-accent/90 shadow-lg'
 }
 
 const sizeClasses: Record<ButtonSize, string> = {
@@ -39,7 +39,7 @@ const sizeClasses: Record<ButtonSize, string> = {
 }
 
 // Base button classes using UnoCSS utilities
-const baseClasses = 'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg font-medium transition-all duration-fast focus-visible:(outline-none ring-2 ring-brand-500 ring-offset-2) disabled:(pointer-events-none opacity-50) [&_svg]:(pointer-events-none size-4 shrink-0)'
+const baseClasses = 'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg font-medium transition-all duration-fast focus-visible:(outline-none ring-2 ring-primary/50 ring-offset-2) disabled:(pointer-events-none opacity-50) [&_svg]:(pointer-events-none size-4 shrink-0)'
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 	(

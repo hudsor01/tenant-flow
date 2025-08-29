@@ -1,75 +1,40 @@
-'use client'
+/**
+ * Footer Section - Server Component
+ * Using semantic tokens for consistency
+ */
 
-import { useState } from 'react'
-import { logger } from '@/lib/logger'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 
-export function FooterSection() {
-	const [email, setEmail] = useState('')
+interface FooterSectionProps {
+	locale: string
+}
 
-	const handleNewsletterSubmit = (e: React.FormEvent) => {
-		e.preventDefault()
-		// Newsletter signup functionality will be implemented later
-		logger.info('Newsletter signup:', {
-			component: 'footersection',
-			data: email
-		})
-		setEmail('')
-	}
-
+export function FooterSection({
+	locale
+}: FooterSectionProps) {
 	return (
-		<footer className="bg-gray-900 px-4 py-12 text-gray-400">
+		<footer className="bg-base12 px-4 py-12 text-base4">
 			<div className="container mx-auto">
 				<div className="mb-8 grid gap-8 md:grid-cols-5">
 					<div className="md:col-span-2">
 						<div className="mb-4 flex items-center space-x-2">
-							<i className="i-lucide-building-2 inline-block text-primary h-6 w-6"  />
+							<i className="i-lucide-building-2 h-6 w-6 text-primary" />
 							<span className="font-bold text-white">
 								TenantFlow
 							</span>
 						</div>
 						<p className="mb-4 text-sm">
-							The modern property management platform that helps
-							you save time, increase revenue, and delight
-							tenants.
+							The modern property management platform that saves
+							you time and makes you money.
 						</p>
-
-						<div className="mb-4">
-							<h4 className="mb-2 font-semibold text-white">
-								Stay Updated
-							</h4>
-							<form
-								onSubmit={handleNewsletterSubmit}
-								className="flex gap-2"
-							>
-								<input
-									type="email"
-									placeholder="Enter your email"
-									value={email}
-									onChange={e => setEmail(e.target.value)}
-									className="focus:border-primary flex-1 rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white placeholder-gray-500 focus:outline-none"
-									required
-								/>
-								<Button
-									type="submit"
-									className="bg-primary hover:bg-blue-700"
-								>
-									<i className="i-lucide-mail inline-block h-4 w-4"  />
-								</Button>
-							</form>
-						</div>
-
-						<div className="flex space-x-4">
-							<Link href="#" className="hover:text-white">
-								Twitter
-							</Link>
-							<Link href="#" className="hover:text-white">
-								LinkedIn
-							</Link>
-							<Link href="#" className="hover:text-white">
-								Facebook
-							</Link>
+						<div className="flex items-center gap-4">
+							<Badge className="bg-success text-white">
+								SOC 2 Certified
+							</Badge>
+							<Badge className="bg-primary text-white">
+								GDPR Compliant
+							</Badge>
 						</div>
 					</div>
 
@@ -80,35 +45,33 @@ export function FooterSection() {
 						<ul className="space-y-2 text-sm">
 							<li>
 								<Link
-									href="/features"
-									className="hover:text-white"
+									href={`/${locale}/features`}
+									className="transition-colors hover:text-white"
 								>
 									Features
 								</Link>
 							</li>
 							<li>
 								<Link
-									href="/pricing"
-									className="hover:text-white"
+									href={`/${locale}/pricing`}
+									className="transition-colors hover:text-white"
 								>
 									Pricing
 								</Link>
 							</li>
 							<li>
-								<Link href="/demo" className="hover:text-white">
+								<Link
+									href={`/${locale}/demo`}
+									className="transition-colors hover:text-white"
+								>
 									Demo
 								</Link>
 							</li>
 							<li>
 								<Link
-									href="/integrations"
-									className="hover:text-white"
+									href={`/${locale}/api`}
+									className="transition-colors hover:text-white"
 								>
-									Integrations
-								</Link>
-							</li>
-							<li>
-								<Link href="/api" className="hover:text-white">
 									API
 								</Link>
 							</li>
@@ -122,39 +85,34 @@ export function FooterSection() {
 						<ul className="space-y-2 text-sm">
 							<li>
 								<Link
-									href="/about"
-									className="hover:text-white"
+									href={`/${locale}/about`}
+									className="transition-colors hover:text-white"
 								>
 									About
 								</Link>
 							</li>
 							<li>
-								<Link href="/blog" className="hover:text-white">
+								<Link
+									href={`/${locale}/blog`}
+									className="transition-colors hover:text-white"
+								>
 									Blog
 								</Link>
 							</li>
 							<li>
 								<Link
-									href="/careers"
-									className="hover:text-white"
+									href={`/${locale}/careers`}
+									className="transition-colors hover:text-white"
 								>
 									Careers
 								</Link>
 							</li>
 							<li>
 								<Link
-									href="/contact"
-									className="hover:text-white"
+									href={`/${locale}/contact`}
+									className="transition-colors hover:text-white"
 								>
 									Contact
-								</Link>
-							</li>
-							<li>
-								<Link
-									href="/partners"
-									className="hover:text-white"
-								>
-									Partners
 								</Link>
 							</li>
 						</ul>
@@ -162,65 +120,64 @@ export function FooterSection() {
 
 					<div>
 						<h4 className="mb-4 font-semibold text-white">
-							Support
+							Legal
 						</h4>
 						<ul className="space-y-2 text-sm">
 							<li>
-								<Link href="/help" className="hover:text-white">
-									Help Center
-								</Link>
-							</li>
-							<li>
-								<Link href="/docs" className="hover:text-white">
-									Documentation
+								<Link
+									href={`/${locale}/terms-of-service`}
+									className="transition-colors hover:text-white"
+								>
+									Terms of Service
 								</Link>
 							</li>
 							<li>
 								<Link
-									href="/status"
-									className="hover:text-white"
+									href={`/${locale}/privacy`}
+									className="transition-colors hover:text-white"
 								>
-									System Status
+									Privacy Policy
 								</Link>
 							</li>
 							<li>
 								<Link
-									href="/privacy"
-									className="hover:text-white"
+									href={`/${locale}/security`}
+									className="transition-colors hover:text-white"
 								>
-									Privacy
-								</Link>
-							</li>
-							<li>
-								<Link
-									href="/terms"
-									className="hover:text-white"
-								>
-									Terms
+									Security
 								</Link>
 							</li>
 						</ul>
 					</div>
 				</div>
 
-				<div className="border-t border-gray-800 pt-8">
-					<div className="flex flex-col items-center justify-between md:flex-row">
-						<p className="mb-4 text-sm md:mb-0">
-							&copy; 2024 TenantFlow. All rights reserved.
+				<div className="border-t border-base6 pt-8">
+					<div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
+						<p className="text-sm text-base6">
+							© 2024 TenantFlow. All rights reserved.
 						</p>
-						<div className="flex items-center space-x-4 text-sm">
-							<div className="flex items-center">
-								<i className="i-lucide-map-pin inline-block mr-1 h-4 w-4"  />
-								San Francisco, CA
-							</div>
-							<div className="flex items-center">
-								<i className="i-lucide-phone inline-block mr-1 h-4 w-4"  />
-								1-800-TENANT
-							</div>
-							<div className="flex items-center">
-								<i className="i-lucide-mail inline-block mr-1 h-4 w-4"  />
-								hello@tenantflow.app
-							</div>
+						<div className="flex items-center space-x-6">
+							<Link
+								href="https://twitter.com/tenantflow"
+								className="text-base6 transition-colors hover:text-primary"
+								aria-label="Follow us on Twitter"
+							>
+								<i className="i-lucide-twitter h-5 w-5" />
+							</Link>
+							<Link
+								href="https://linkedin.com/company/tenantflow"
+								className="text-base6 transition-colors hover:text-primary"
+								aria-label="Connect with us on LinkedIn"
+							>
+								<i className="i-lucide-linkedin h-5 w-5" />
+							</Link>
+							<Link
+								href="https://github.com/tenantflow"
+								className="text-base6 transition-colors hover:text-primary"
+								aria-label="View our code on GitHub"
+							>
+								<i className="i-lucide-github h-5 w-5" />
+							</Link>
 						</div>
 					</div>
 				</div>

@@ -8,7 +8,7 @@ import {
 	AnimatePresence,
 	useDragControls,
 	type PanInfo
-} from '@/lib/lazy-motion'
+} from 'framer-motion'
 import { logger } from '@/lib/logger'
 import {
 	SidebarProvider,
@@ -42,7 +42,7 @@ const getNavigationItems = (stats?: DashboardStats) => [
 		href: '/properties',
 		icon: 'i-lucide-building',
 		badge: stats?.properties?.total ?? null,
-		badgeColor: 'bg-blue-100 text-blue-700'
+		badgeColor: 'bg-blue-1 text-blue-7'
 	},
 	{
 		id: 'tenants',
@@ -50,7 +50,7 @@ const getNavigationItems = (stats?: DashboardStats) => [
 		href: '/tenants',
 		icon: 'i-lucide-users',
 		badge: stats?.tenants?.total ?? null,
-		badgeColor: 'bg-green-100 text-green-700'
+		badgeColor: 'bg-green-1 text-green-7'
 	},
 	{
 		id: 'leases',
@@ -58,7 +58,7 @@ const getNavigationItems = (stats?: DashboardStats) => [
 		href: '/leases',
 		icon: 'i-lucide-file-text',
 		badge: stats?.units?.total ?? null,
-		badgeColor: 'bg-purple-100 text-purple-700'
+		badgeColor: 'bg-purple-1 text-purple-7'
 	},
 	{
 		id: 'maintenance',
@@ -68,8 +68,8 @@ const getNavigationItems = (stats?: DashboardStats) => [
 		badge: stats?.maintenance?.total ?? null,
 		badgeColor:
 			(stats?.maintenance?.total ?? 0) > 0
-				? 'bg-red-100 text-red-700'
-				: 'bg-gray-100 text-gray-700'
+				? 'bg-red-1 text-red-7'
+				: 'bg-gray-1 text-gray-7'
 	},
 	{
 		id: 'reports',
@@ -169,11 +169,11 @@ export function DashboardSidebar({
 							className="flex items-center gap-2 px-2 transition-all hover:scale-105"
 						>
 							<div className="relative">
-								<i className="i-lucide-building inline-block text-primary h-8 w-8"  />
+								<i className="i-lucide-building text-primary h-8 w-8"  />
 								{/* Activity pulse indicator */}
-								<div className="absolute -top-1 -right-1 h-3 w-3 animate-pulse rounded-full bg-green-500 group-data-[collapsible=icon]:hidden" />
+								<div className="absolute -top-1 -right-1 h-3 w-3 animate-pulse rounded-full bg-green-5 group-data-[collapsible=icon]:hidden" />
 							</div>
-							<span className="bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-xl font-bold text-transparent group-data-[collapsible=icon]:hidden">
+							<span className="bg-gradient-to-r from-gray-9 to-gray-6 bg-clip-text text-xl font-bold text-transparent group-data-[collapsible=icon]:hidden">
 								TenantFlow
 							</span>
 						</Link>
@@ -211,7 +211,7 @@ export function DashboardSidebar({
 															item.badge > 0 && (
 																<Badge
 																	variant="secondary"
-																	className={`rounded-full px-2 py-0.5 text-xs group-data-[collapsible=icon]:hidden ${item.badgeColor || 'bg-gray-100 text-gray-700'}`}
+																	className={`rounded-full px-2 py-0.5 text-xs group-data-[collapsible=icon]:hidden ${item.badgeColor || 'bg-gray-1 text-gray-7'}`}
 																>
 																	{item.badge}
 																</Badge>
@@ -242,12 +242,12 @@ export function DashboardSidebar({
 										href="/notifications"
 										className="relative"
 									>
-										<i className="i-lucide-bell inline-block h-4 w-4"  />
+										<i className="i-lucide-bell h-4 w-4"  />
 										<span>Notifications</span>
 										{/* Notification badge */}
 										{(stats?.maintenance?.total ||
 											0) > 0 && (
-											<div className="absolute -top-1 -right-1 hidden h-2 w-2 rounded-full bg-red-500 group-data-[collapsible=icon]:block" />
+											<div className="absolute -top-1 -right-1 hidden h-2 w-2 rounded-full bg-red-5 group-data-[collapsible=icon]:block" />
 										)}
 										{(stats?.maintenance?.total ||
 											0) > 0 && (
@@ -266,7 +266,7 @@ export function DashboardSidebar({
 							<SidebarMenuItem>
 								<SidebarMenuButton asChild tooltip="Activity">
 									<Link href="/activity">
-										<i className="i-lucide-activity inline-block h-4 w-4"  />
+										<i className="i-lucide-activity h-4 w-4"  />
 										<span>Activity</span>
 									</Link>
 								</SidebarMenuButton>
@@ -279,7 +279,7 @@ export function DashboardSidebar({
 										href="/profile"
 										className="transition-all hover:scale-[1.02]"
 									>
-										<i className="i-lucide-user inline-block h-4 w-4"  />
+										<i className="i-lucide-user h-4 w-4"  />
 										<span>Profile</span>
 									</Link>
 								</SidebarMenuButton>
@@ -294,9 +294,9 @@ export function DashboardSidebar({
 												component: 'dashboardsidebar'
 											})
 										}
-										className="w-full transition-all hover:scale-[1.02] hover:text-red-600"
+										className="w-full transition-all hover:scale-[1.02] hover:text-red-6"
 									>
-										<i className="i-lucide-log-out inline-block h-4 w-4"  />
+										<i className="i-lucide-log-out h-4 w-4"  />
 										<span>Logout</span>
 									</button>
 								</SidebarMenuButton>
@@ -333,7 +333,7 @@ export function DashboardSidebar({
 						ref={sidebarRef}
 						className={cn(
 							'fixed top-0 left-0 z-50 h-full w-80 max-w-[85vw] bg-white shadow-xl md:hidden',
-							'border-r border-gray-200',
+							'border-r border-gray-2',
 							className
 						)}
 						initial={{ x: '-100%' }}
@@ -351,24 +351,24 @@ export function DashboardSidebar({
 						onDragEnd={handleDragEnd}
 					>
 						{/* Drag handle indicator */}
-						<div className="absolute top-4 right-4 h-8 w-1 rounded-full bg-gray-300" />
+						<div className="absolute top-4 right-4 h-8 w-1 rounded-full bg-gray-3" />
 
 						{/* Header */}
-						<div className="border-b border-gray-100 p-6">
+						<div className="border-b border-gray-1 p-6">
 							<Link
 								href="/dashboard"
 								onClick={handleNavigation}
 								className="flex items-center gap-3 transition-all hover:scale-105"
 							>
 								<div className="relative">
-									<i className="i-lucide-building inline-block text-primary h-10 w-10"  />
-									<div className="absolute -top-1 -right-1 h-3 w-3 animate-pulse rounded-full bg-green-500" />
+									<i className="i-lucide-building text-primary h-10 w-10"  />
+									<div className="absolute -top-1 -right-1 h-3 w-3 animate-pulse rounded-full bg-green-5" />
 								</div>
 								<div>
-									<span className="bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-2xl font-bold text-transparent">
+									<span className="bg-gradient-to-r from-gray-9 to-gray-6 bg-clip-text text-2xl font-bold text-transparent">
 										TenantFlow
 									</span>
-									<p className="mt-1 text-xs text-gray-500">
+									<p className="mt-1 text-xs text-gray-5">
 										Property_ Management
 									</p>
 								</div>
@@ -397,8 +397,8 @@ export function DashboardSidebar({
 													'flex w-full items-center justify-between rounded-lg px-3 py-3 text-sm font-medium transition-all',
 													'hover:scale-[1.02] hover:bg-gray-50 active:scale-[0.98]',
 													isActive
-														? 'border border-blue-200 bg-blue-50 text-blue-700'
-														: 'text-gray-700 hover:text-gray-900'
+														? 'border border-blue-2 bg-blue-50 text-blue-7'
+														: 'text-gray-7 hover:text-gray-9'
 												)}
 											>
 												<div className="flex items-center gap-3">
@@ -407,7 +407,7 @@ export function DashboardSidebar({
 															'inline-block h-5 w-5',
 															isActive
 																? 'text-primary'
-																: 'text-gray-500'
+																: 'text-gray-5'
 														)} />
 													<span>{item.name}</span>
 												</div>
@@ -420,7 +420,7 @@ export function DashboardSidebar({
 															className={cn(
 																'rounded-full px-2 py-0.5 text-xs',
 																item.badgeColor ||
-																	'bg-gray-100 text-gray-700'
+																	'bg-gray-1 text-gray-7'
 															)}
 														>
 															{item.badge}
@@ -434,15 +434,15 @@ export function DashboardSidebar({
 						</div>
 
 						{/* Footer */}
-						<div className="space-y-1 border-t border-gray-100 p-4">
+						<div className="space-y-1 border-t border-gray-1 p-4">
 							{/* Notifications */}
 							<Link
 								href="/notifications"
 								onClick={handleNavigation}
-								className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50"
+								className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-gray-7 transition-all hover:bg-gray-50"
 							>
 								<div className="flex items-center gap-3">
-									<i className="i-lucide-bell inline-block h-5 w-5 text-gray-500"  />
+									<i className="i-lucide-bell h-5 w-5 text-gray-5"  />
 									<span>Notifications</span>
 								</div>
 								{(stats?.maintenance?.total ?? 0) >
@@ -460,9 +460,9 @@ export function DashboardSidebar({
 							<Link
 								href="/activity"
 								onClick={handleNavigation}
-								className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50"
+								className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-7 transition-all hover:bg-gray-50"
 							>
-								<i className="i-lucide-activity inline-block h-5 w-5 text-gray-500"  />
+								<i className="i-lucide-activity h-5 w-5 text-gray-5"  />
 								<span>Activity</span>
 							</Link>
 
@@ -470,9 +470,9 @@ export function DashboardSidebar({
 							<Link
 								href="/profile"
 								onClick={handleNavigation}
-								className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50"
+								className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-7 transition-all hover:bg-gray-50"
 							>
-								<i className="i-lucide-user inline-block h-5 w-5 text-gray-500"  />
+								<i className="i-lucide-user h-5 w-5 text-gray-5"  />
 								<span>Profile</span>
 							</Link>
 
@@ -484,9 +484,9 @@ export function DashboardSidebar({
 									})
 									handleNavigation()
 								}}
-								className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-red-600 transition-all hover:bg-red-50"
+								className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-red-6 transition-all hover:bg-red-50"
 							>
-								<i className="i-lucide-log-out inline-block h-5 w-5"  />
+								<i className="i-lucide-log-out h-5 w-5"  />
 								<span>Logout</span>
 							</button>
 						</div>

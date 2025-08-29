@@ -103,25 +103,4 @@ export function UnifiedAuthGuard({
 	return <>{children}</>
 }
 
-/**
- * Helper components for specific auth scenarios
- */
-export function RequireAuth({ children }: { children: React.ReactNode }) {
-	return <UnifiedAuthGuard>{children}</UnifiedAuthGuard>
-}
-
-export function RequireAdmin({ children }: { children: React.ReactNode }) {
-	return <UnifiedAuthGuard adminOnly>{children}</UnifiedAuthGuard>
-}
-
-export function RequireRole({
-	role,
-	children
-}: {
-	role: UserRole
-	children: React.ReactNode
-}) {
-	return (
-		<UnifiedAuthGuard requiredRoles={[role]}>{children}</UnifiedAuthGuard>
-	)
-}
+// Deleted unnecessary wrapper functions - use UnifiedAuthGuard directly

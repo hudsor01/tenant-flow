@@ -4,6 +4,7 @@ import { useLeases } from '@/hooks/api/use-leases'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
+import { handleStaticGenerationError } from '@/lib/utils/static-generation'
 import type { Database } from '@repo/shared'
 
   type Lease = Database['public']['Tables']['Lease']['Row']
@@ -79,21 +80,21 @@ function LeasesStatsUI({ stats }: LeasesStatsUIProps) {
 			value: stats.activeLeases,
 			description: 'Currently in effect',
 			icon: 'i-lucide-check-circle',
-			color: 'text-green-600'
+			color: 'text-green-6'
 		},
 		{
 			title: 'Expiring Soon',
 			value: stats.expiringSoon,
 			description: 'Within 30 days',
 			icon: 'i-lucide-calendar',
-			color: stats.expiringSoon > 0 ? 'text-orange-600' : 'text-gray-600'
+			color: stats.expiringSoon > 0 ? 'text-orange-6' : 'text-gray-6'
 		},
 		{
 			title: 'Monthly Revenue',
 			value: `$${stats.totalMonthlyRent.toLocaleString()}`,
 			description: 'From active leases',
 			icon: 'i-lucide-dollar-sign',
-			color: 'text-green-600'
+			color: 'text-green-6'
 		}
 	]
 
@@ -132,9 +133,9 @@ export function LeasesStats() {
 		return <LeasesStatsSkeleton />
 	}
 
-	// Error handling - throw to be caught by error boundary
+	// Error handling - graceful fallback for static generation
 	if (error) {
-		throw error
+		return handleStaticGenerationError(error, <LeasesStatsSkeleton />)
 	}
 
 	// Calculate stats using pure function

@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { motion } from '@/lib/lazy-motion'
+import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import type { BlogArticleWithDetails } from '@repo/shared'
 
@@ -30,7 +30,7 @@ export default function BlogHeaderSection({
 							href="/blog"
 							className="text-muted-foreground hover:text-foreground inline-flex items-center text-sm transition-colors"
 						>
-							<i className="i-lucide-arrow-left inline-block mr-2 h-4 w-4"  />
+							<i className="i-lucide-arrow-left mr-2 h-4 w-4"  />
 							Back to articles
 						</Link>
 					</div>
@@ -38,7 +38,7 @@ export default function BlogHeaderSection({
 					{/* Category */}
 					<div className="mb-6">
 						<span className="bg-muted text-muted-foreground inline-flex items-center rounded-full px-3 py-1 text-sm font-medium">
-							<i className="i-lucide-tag inline-block mr-1 h-3 w-3"  />
+							<i className="i-lucide-tag mr-1 h-3 w-3"  />
 							{article.category}
 						</span>
 					</div>
@@ -56,13 +56,13 @@ export default function BlogHeaderSection({
 					{/* Meta Information */}
 					<div className="text-muted-foreground border-border flex flex-wrap items-center gap-6 border-t pt-6 text-sm">
 						<div className="flex items-center gap-2">
-							<i className="i-lucide-user inline-block h-4 w-4"  />
+							<i className="i-lucide-user h-4 w-4"  />
 							<span className="font-medium">
 								{article.author?.name || article.authorName}
 							</span>
 						</div>
 						<div className="flex items-center gap-2">
-							<i className="i-lucide-calendar inline-block h-4 w-4"  />
+							<i className="i-lucide-calendar h-4 w-4"  />
 							<time>
 								{article.publishedAt
 									? new Date(
@@ -76,7 +76,7 @@ export default function BlogHeaderSection({
 							</time>
 						</div>
 						<div className="flex items-center gap-2">
-							<i className="i-lucide-clock inline-block h-4 w-4"  />
+							<i className="i-lucide-clock h-4 w-4"  />
 							<span>{article.readTime ?? 5} min read</span>
 						</div>
 						<Button
@@ -84,7 +84,7 @@ export default function BlogHeaderSection({
 							size="sm"
 							className="text-muted-foreground hover:text-foreground ml-auto"
 						>
-							<i className="i-lucide-share-2 inline-block mr-2 h-4 w-4"  />
+							<i className="i-lucide-share-2 mr-2 h-4 w-4"  />
 							Share
 						</Button>
 					</div>

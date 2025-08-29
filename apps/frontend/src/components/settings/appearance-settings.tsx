@@ -15,7 +15,7 @@ export function AppearanceSettings() {
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<i className="i-lucide-palette inline-block h-5 w-5"  />
+						<i className="i-lucide-palette h-5 w-5"  />
 						Appearance
 					</CardTitle>
 					<CardDescription>
@@ -35,7 +35,7 @@ export function AppearanceSettings() {
 									htmlFor="light"
 									className="flex cursor-pointer items-center gap-2"
 								>
-									<i className="i-lucide-sun inline-block h-4 w-4"  />
+									<i className="i-lucide-sun h-4 w-4"  />
 									Light
 								</Label>
 							</div>
@@ -45,7 +45,7 @@ export function AppearanceSettings() {
 									htmlFor="dark"
 									className="flex cursor-pointer items-center gap-2"
 								>
-									<i className="i-lucide-moon inline-block h-4 w-4"  />
+									<i className="i-lucide-moon h-4 w-4"  />
 									Dark
 								</Label>
 							</div>
@@ -55,7 +55,7 @@ export function AppearanceSettings() {
 									htmlFor="system"
 									className="flex cursor-pointer items-center gap-2"
 								>
-									<i className="i-lucide-monitor inline-block h-4 w-4"  />
+									<i className="i-lucide-monitor h-4 w-4"  />
 									System
 								</Label>
 							</div>

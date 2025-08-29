@@ -20,7 +20,7 @@ export default function AuthStatusRoute() {
 					<h1 className="mb-2 text-2xl font-bold">
 						Access Restricted
 					</h1>
-					<p className="text-gray-600">
+					<p className="text-gray-6">
 						This page is only available in development mode.
 					</p>
 				</div>
@@ -34,7 +34,7 @@ export default function AuthStatusRoute() {
 				<h1 className="mb-2 text-2xl font-bold">
 					Authentication Status
 				</h1>
-				<p className="text-gray-600">Development auth status page</p>
+				<p className="text-gray-6">Development auth status page</p>
 			</div>
 		</div>
 	)
