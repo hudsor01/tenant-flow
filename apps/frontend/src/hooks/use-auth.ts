@@ -66,6 +66,17 @@ export function useAuth() {
 					component: 'useAuth'
 				})
 
+				// If Supabase Auth is not configured (e.g., preview env), gracefully degrade
+				if (!supabase || !supabase.auth || typeof supabase.auth.getSession !== 'function') {
+					logger.warn('Supabase auth not configured; skipping session init')
+					if (mounted) {
+						setStoreUser(null)
+						setLoading(false)
+						setInitialized(true)
+					}
+					return
+				}
+
 				// Get initial session from Supabase
 				const {
 					data: { session }
@@ -80,11 +91,11 @@ export function useAuth() {
 					setInitialized(true)
 				}
 
-				logger.debug('Auth state initialized', {
-					component: 'useAuth',
-					hasUser: !!session?.user
-				})
-			} catch (err) {
+                logger.debug('Auth state initialized', {
+                    component: 'useAuth',
+                    hasUser: !!session?.user
+                })
+            } catch (err) {
 				logger.error(
 					'Auth initialization failed:',
 					err instanceof Error ? err : new Error(String(err))
@@ -106,13 +117,19 @@ export function useAuth() {
 		void initializeAuth()
 
 		// Listen for auth state changes - Direct Supabase usage
-		const {
-			data: { subscription }
-		} = supabase.auth.onAuthStateChange(
-			async (event: AuthChangeEvent, session: Session | null) => {
-				if (!mounted) {
-					return
-				}
+		const unsubscribe = ((): (() => void) => {
+			// If auth is not available, no subscription needed
+			if (!supabase || !supabase.auth || typeof supabase.auth.onAuthStateChange !== 'function') {
+				return () => {}
+			}
+
+			const {
+				data: { subscription }
+			} = supabase.auth.onAuthStateChange(
+				async (event: AuthChangeEvent, session: Session | null) => {
+					if (!mounted) {
+						return
+					}
 
 				logger.debug('Auth state change event', {
 					component: 'useAuth',
@@ -172,20 +189,30 @@ export function useAuth() {
 							: 'Auth state change failed'
 					)
 				}
-			}
-		)
+				}
+			)
+
+			return () => subscription.unsubscribe()
+		})()
 
 		return () => {
 			mounted = false
-			subscription.unsubscribe()
+			unsubscribe()
 		}
-	}, [router, setStoreUser, clearSession])
+    }, [router, setStoreUser, clearSession])
 
 	// Sign in method - Direct Supabase usage
 	const signIn = useCallback(async (email: string, password: string) => {
 		try {
 			setLoading(true)
 			setError(null)
+
+			if (!supabase || !supabase.auth || typeof supabase.auth.signInWithPassword !== 'function') {
+				const msg = 'Authentication is not configured in this environment.'
+				setError(msg)
+				notifications.error('Login failed', { description: msg })
+				return { success: false, error: msg }
+			}
 
 			const { data: _data, error: authError } =
 				await supabase.auth.signInWithPassword({
@@ -219,6 +246,13 @@ export function useAuth() {
 			try {
 				setLoading(true)
 				setError(null)
+
+				if (!supabase || !supabase.auth || typeof supabase.auth.signUp !== 'function') {
+					const msg = 'Authentication is not configured in this environment.'
+					setError(msg)
+					notifications.error('Signup failed', { description: msg })
+					return { success: false, error: msg }
+				}
 
 				const { data: _data, error: authError } =
 					await supabase.auth.signUp({
@@ -263,6 +297,13 @@ export function useAuth() {
 			setLoading(true)
 			setError(null)
 
+			if (!supabase || !supabase.auth || typeof supabase.auth.signOut !== 'function') {
+				// Clear local state even if logout cannot be called
+				clearSession()
+				router.push('/')
+				return
+			}
+
 			const { error: authError } = await supabase.auth.signOut()
 
 			if (authError) {
@@ -291,6 +332,13 @@ export function useAuth() {
 	const resetPassword = useCallback(async (email: string) => {
 		try {
 			setError(null)
+
+			if (!supabase || !supabase.auth || typeof supabase.auth.resetPasswordForEmail !== 'function') {
+				const msg = 'Authentication is not configured in this environment.'
+				setError(msg)
+				notifications.error('Password reset failed', { description: msg })
+				return { success: false, error: msg }
+			}
 
 			const { error: authError } =
 				await supabase.auth.resetPasswordForEmail(email, {

@@ -16,7 +16,6 @@ import { Cron, CronExpression } from '@nestjs/schedule'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { PinoLogger } from 'nestjs-pino'
 import { SupabaseService } from '../database/supabase.service'
-import { PaymentReceivedEvent, PaymentFailedEvent } from '../notifications/events/notification.events'
 import type { Stripe } from 'stripe'
 
 // Extended interfaces for Stripe objects with missing properties
@@ -35,8 +34,7 @@ interface StripeSubscriptionWithPeriods extends Stripe.Subscription {
 export class StripeWebhookService {
 	constructor(
 		private readonly supabaseService: SupabaseService,
-		private readonly logger: PinoLogger,
-		private readonly eventEmitter: EventEmitter2
+		private readonly logger: PinoLogger
 	) {
 		// PinoLogger context handled automatically via app-level configuration
 	}
@@ -169,36 +167,6 @@ export class StripeWebhookService {
 		this.logger.warn(
 			`Payment failed for subscription: ${subscriptionId}. Smart Retries will handle recovery.`
 		)
-
-		// Emit payment failed event for notification service using native EventEmitter2
-		try {
-			// Get user by customer ID to emit event
-			const customerId = typeof invoice.customer === 'string' ? invoice.customer : invoice.customer?.id
-			if (customerId) {
-				const { data: user } = await this.supabaseService
-					.getAdminClient()
-					.from('User')
-					.select('id, name, email')
-					.eq('stripeCustomerId', customerId)
-					.single()
-
-				if (user) {
-					this.eventEmitter.emit(
-						'payment.failed',
-						new PaymentFailedEvent(
-							user.id,
-							subscriptionId || '',
-							invoice.amount_due || 0,
-							invoice.currency || 'usd',
-							invoice.hosted_invoice_url || '',
-							`Payment failed for subscription ${subscriptionId}`
-						)
-					)
-				}
-			}
-		} catch (error) {
-			this.logger.error('Failed to emit payment failed event:', error)
-		}
 	}
 
 	/**
@@ -217,36 +185,6 @@ export class StripeWebhookService {
 
 		await this.updateSubscriptionStatus(subscriptionId || '', 'ACTIVE')
 		this.logger.info(`Payment succeeded for subscription: ${subscriptionId}`)
-
-		// Emit payment received event for notification service using native EventEmitter2
-		try {
-			// Get user by customer ID to emit event
-			const customerId = typeof invoice.customer === 'string' ? invoice.customer : invoice.customer?.id
-			if (customerId) {
-				const { data: user } = await this.supabaseService
-					.getAdminClient()
-					.from('User')
-					.select('id, name, email')
-					.eq('stripeCustomerId', customerId)
-					.single()
-
-				if (user) {
-					this.eventEmitter.emit(
-						'payment.received',
-						new PaymentReceivedEvent(
-							user.id,
-							subscriptionId || '',
-							invoice.amount_paid || 0,
-							invoice.currency || 'usd',
-							invoice.hosted_invoice_url || '',
-							`Payment of ${((invoice.amount_paid || 0) / 100).toFixed(2)} ${invoice.currency?.toUpperCase()} received successfully`
-						)
-					)
-				}
-			}
-		} catch (error) {
-			this.logger.error('Failed to emit payment received event:', error)
-		}
 	}
 
 	/**
@@ -360,18 +298,17 @@ export class StripeWebhookService {
 	/**
 	 * Insert-first idempotency gate: try to insert event record
 	 * Returns true if new event (should process), false if duplicate (skip)
-	 * 
-	 * Note: Using 'as any' type assertion until migration is applied and types regenerated
 	 */
 	private async tryMarkEventAsProcessing(stripeEventId: string, eventType: string): Promise<boolean> {
 		try {
 			const { error } = await this.supabaseService
 				.getAdminClient()
-				.from('processed_stripe_events' as any)
+				.from('WebhookEvent')
 				.insert({
-					stripe_event_id: stripeEventId,
-					event_type: eventType
-				} as any)
+					stripeEventId: stripeEventId,
+					eventType: eventType,
+					processed: false
+				})
 
 			if (error) {
 				// Check if it's a unique constraint violation (duplicate event)
@@ -398,9 +335,9 @@ export class StripeWebhookService {
 		try {
 			const { error } = await this.supabaseService
 				.getAdminClient()
-				.from('processed_stripe_events' as any)
+				.from('WebhookEvent')
 				.delete()
-				.eq('stripe_event_id', stripeEventId)
+				.eq('stripeEventId', stripeEventId)
 
 			if (error) {
 				this.logger.error(`Failed to remove processed event for retry: ${error.message}`)
@@ -422,9 +359,9 @@ export class StripeWebhookService {
 
 			const { error } = await this.supabaseService
 				.getAdminClient()
-				.from('processed_stripe_events' as any)
+				.from('WebhookEvent')
 				.delete()
-				.lt('processed_at', cutoffDate.toISOString())
+				.lt('createdAt', cutoffDate.toISOString())
 
 			if (error) {
 				this.logger.error(`Failed to cleanup old processed events: ${error.message}`)

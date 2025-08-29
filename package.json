@@ -109,7 +109,8 @@
 		"typescript-eslint": "^8.41.0"
 	},
 	"dependencies": {
-		"dompurify": "3.2.6"
+		"dompurify": "3.2.6",
+		"vercel": "46.1.0"
 	},
 	"optionalDependencies": {
 		"turbo-darwin-64": "2.5.6",

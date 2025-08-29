@@ -47,15 +47,15 @@ export default defineConfig({
 		/* JSON reporter for test result processing */
 		['json', { outputFile: 'test-results/results.json' }],
 
-		/* Allure reporter for detailed reporting */
-		[
-			'allure-playwright',
-			{
-				detail: true,
-				outputFolder: 'allure-results',
-				suiteTitle: 'TenantFlow E2E Tests'
-			}
-		]
+		/* Allure reporter for detailed reporting - disabled until installed */
+		// [
+		// 	'allure-playwright',
+		// 	{
+		// 		detail: true,
+		// 		outputFolder: 'allure-results',
+		// 		suiteTitle: 'TenantFlow E2E Tests'
+		// 	}
+		// ]
 	],
 
 	/* Shared settings for all projects */

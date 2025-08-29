@@ -8,14 +8,10 @@ CREATE EXTENSION IF NOT EXISTS wrappers WITH SCHEMA extensions;
 CREATE EXTENSION IF NOT EXISTS supabase_vault WITH SCHEMA vault;
 
 -- Store Stripe API key securely in vault
--- Replace with your actual Stripe secret key
-INSERT INTO vault.secrets (name, secret)
-VALUES (
-  'stripe_secret_key',
-  'your-stripe-secret-key-here'
-) ON CONFLICT (name) DO UPDATE SET
-  secret = EXCLUDED.secret,
-  updated_at = now();
+-- NOTE: The stripe_secret_key must be added manually via Supabase Dashboard
+-- Go to: Project Settings > Vault > Add new secret
+-- Name: stripe_secret_key
+-- Value: your actual Stripe secret key
 
 -- Create foreign server for Stripe
 CREATE SERVER IF NOT EXISTS stripe_server

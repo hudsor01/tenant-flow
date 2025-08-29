@@ -19,7 +19,6 @@ import { MaintenanceModule } from './maintenance/maintenance.module'
 import { HealthModule } from './health/health.module'
 import { StripeModule } from './billing/stripe.module'
 import { NotificationsModule } from './notifications/notifications.module'
-import { WebhooksModule } from './webhooks/webhooks.module'
 import { AnalyticsService } from './analytics/analytics.service'
 import { StripeService } from './billing/stripe.service'
 import { AppController } from './app.controller'
@@ -191,8 +190,7 @@ import { HEALTH_PATHS } from './shared/constants/routes'
 		MaintenanceModule,
 		HealthModule,
 		StripeModule,
-		NotificationsModule,
-		WebhooksModule
+        NotificationsModule
 	],
 	controllers: [AppController],
 	providers: [
