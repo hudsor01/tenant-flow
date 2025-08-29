@@ -3,138 +3,113 @@
  * This is the SINGLE SOURCE OF TRUTH for all query keys
  */
 
+// Base query keys
+const baseQueryKeys = ['tenantflow'] as const
+
+// Generic query key factory - DRY principle for common patterns
+function createResourceQueryKeys(resource: string) {
+	const resourceBase = () => [...baseQueryKeys, resource] as const
+	
+	return {
+		all: resourceBase,
+		lists: () => [...resourceBase(), 'list'] as const,
+		list: (params?: Record<string, unknown>) =>
+			[...resourceBase(), 'list', params] as const,
+		detail: (id: string) =>
+			[...resourceBase(), 'detail', id] as const,
+		stats: () => [...resourceBase(), 'stats'] as const,
+		byProperty: (propertyId: string) =>
+			[...resourceBase(), 'by-property', propertyId] as const,
+		byTenant: (tenantId: string) =>
+			[...resourceBase(), 'by-tenant', tenantId] as const
+	}
+}
+
 export const queryKeys = {
-	all: ['tenantflow'] as const,
+	all: baseQueryKeys,
 
 	// Authentication
 	auth: {
-		all: () => [...queryKeys.all, 'auth'] as const,
-		session: () => [...queryKeys.auth.all(), 'session'] as const,
-		profile: () => [...queryKeys.auth.all(), 'profile'] as const,
-		user: () => [...queryKeys.auth.all(), 'user'] as const
+		all: () => [...baseQueryKeys, 'auth'] as const,
+		session: () => [...baseQueryKeys, 'auth', 'session'] as const,
+		profile: () => [...baseQueryKeys, 'auth', 'profile'] as const,
+		user: () => [...baseQueryKeys, 'auth', 'user'] as const
 	},
 
-	// Properties
-	properties: {
-		all: () => [...queryKeys.all, 'properties'] as const,
-		lists: () => [...queryKeys.properties.all(), 'list'] as const,
-		list: (params?: Record<string, unknown>) =>
-			[...queryKeys.properties.all(), 'list', params] as const,
-		detail: (id: string) =>
-			[...queryKeys.properties.all(), 'detail', id] as const,
-		stats: () => [...queryKeys.properties.all(), 'stats'] as const,
-		units: (propertyId: string) =>
-			[...queryKeys.properties.all(), propertyId, 'units'] as const,
-		analytics: (propertyId: string) =>
-			[...queryKeys.properties.all(), propertyId, 'analytics'] as const,
-		maintenance: (propertyId: string) =>
-			[...queryKeys.properties.all(), propertyId, 'maintenance'] as const
-	},
+	// Properties - using factory with extensions
+	properties: (() => {
+		const base = createResourceQueryKeys('properties')
+		return {
+			...base,
+			units: (propertyId: string) =>
+				[...base.all(), propertyId, 'units'] as const,
+			analytics: (propertyId: string) =>
+				[...base.all(), propertyId, 'analytics'] as const,
+			maintenance: (propertyId: string) =>
+				[...base.all(), propertyId, 'maintenance'] as const
+		}
+	})(),
 
-	// Tenants
-	tenants: {
-		all: () => [...queryKeys.all, 'tenants'] as const,
-		lists: () => [...queryKeys.tenants.all(), 'list'] as const,
-		list: (params?: Record<string, unknown>) =>
-			[...queryKeys.tenants.all(), 'list', params] as const,
-		detail: (id: string) =>
-			[...queryKeys.tenants.all(), 'detail', id] as const,
-		stats: () => [...queryKeys.tenants.all(), 'stats'] as const,
-		byProperty: (propertyId: string) =>
-			[...queryKeys.tenants.all(), 'by-property', propertyId] as const,
-		lease: (tenantId: string) =>
-			[...queryKeys.tenants.all(), tenantId, 'lease'] as const,
-		payments: (tenantId: string) =>
-			[...queryKeys.tenants.all(), tenantId, 'payments'] as const,
-		documents: (tenantId: string) =>
-			[...queryKeys.tenants.all(), tenantId, 'documents'] as const,
-		maintenance: (tenantId: string) =>
-			[...queryKeys.tenants.all(), tenantId, 'maintenance'] as const
-	},
+	// Tenants - using factory with extensions
+	tenants: (() => {
+		const base = createResourceQueryKeys('tenants')
+		return {
+			...base,
+			lease: (tenantId: string) =>
+				[...base.all(), tenantId, 'lease'] as const,
+			payments: (tenantId: string) =>
+				[...base.all(), tenantId, 'payments'] as const,
+			documents: (tenantId: string) =>
+				[...base.all(), tenantId, 'documents'] as const,
+			maintenance: (tenantId: string) =>
+				[...base.all(), tenantId, 'maintenance'] as const
+		}
+	})(),
 
-	// Units
-	units: {
-		all: () => [...queryKeys.all, 'units'] as const,
-		lists: () => [...queryKeys.units.all(), 'list'] as const,
-		list: (params?: Record<string, unknown>) =>
-			[...queryKeys.units.all(), 'list', params] as const,
-		detail: (id: string) =>
-			[...queryKeys.units.all(), 'detail', id] as const,
-		byProperty: (propertyId: string) =>
-			[...queryKeys.units.all(), 'by-property', propertyId] as const,
-		stats: () => [...queryKeys.units.all(), 'stats'] as const
-	},
+	// Units - using factory
+	units: createResourceQueryKeys('units'),
 
-	// Leases
-	leases: {
-		all: () => [...queryKeys.all, 'leases'] as const,
-		lists: () => [...queryKeys.leases.all(), 'list'] as const,
-		list: (params?: Record<string, unknown>) =>
-			[...queryKeys.leases.all(), 'list', params] as const,
-		detail: (id: string) =>
-			[...queryKeys.leases.all(), 'detail', id] as const,
-		byProperty: (propertyId: string) =>
-			[...queryKeys.leases.all(), 'by-property', propertyId] as const,
-		byTenant: (tenantId: string) =>
-			[...queryKeys.leases.all(), 'by-tenant', tenantId] as const,
-		stats: () => [...queryKeys.leases.all(), 'stats'] as const
-	},
+	// Leases - using factory (already has byProperty and byTenant from factory)
+	leases: createResourceQueryKeys('leases'),
 
-	// Maintenance
-	maintenance: {
-		all: () => [...queryKeys.all, 'maintenance'] as const,
-		lists: () => [...queryKeys.maintenance.all(), 'list'] as const,
-		list: (params?: Record<string, unknown>) =>
-			[...queryKeys.maintenance.all(), 'list', params] as const,
-		detail: (id: string) =>
-			[...queryKeys.maintenance.all(), 'detail', id] as const,
-		stats: () => [...queryKeys.maintenance.all(), 'stats'] as const,
-		byProperty: (propertyId: string) =>
-			[
-				...queryKeys.maintenance.all(),
-				'by-property',
-				propertyId
-			] as const,
-		byTenant: (tenantId: string) =>
-			[...queryKeys.maintenance.all(), 'by-tenant', tenantId] as const
-	},
+	// Maintenance - using factory (already has byProperty and byTenant from factory)  
+	maintenance: createResourceQueryKeys('maintenance'),
 
-	// Dashboard
+	// Dashboard - custom pattern (different from resource pattern)
 	dashboard: {
-		all: () => [...queryKeys.all, 'dashboard'] as const,
-		overview: () => [...queryKeys.dashboard.all(), 'overview'] as const,
-		stats: () => [...queryKeys.dashboard.all(), 'stats'] as const,
-		tasks: () => [...queryKeys.dashboard.all(), 'tasks'] as const,
-		activity: () => [...queryKeys.dashboard.all(), 'activity'] as const,
-		alerts: () => [...queryKeys.dashboard.all(), 'alerts'] as const,
+		all: () => [...baseQueryKeys, 'dashboard'] as const,
+		overview: () => [...baseQueryKeys, 'dashboard', 'overview'] as const,
+		stats: () => [...baseQueryKeys, 'dashboard', 'stats'] as const,
+		tasks: () => [...baseQueryKeys, 'dashboard', 'tasks'] as const,
+		activity: () => [...baseQueryKeys, 'dashboard', 'activity'] as const,
+		alerts: () => [...baseQueryKeys, 'dashboard', 'alerts'] as const,
 		metrics: (period: string) =>
-			[...queryKeys.dashboard.all(), 'metrics', period] as const
+			[...baseQueryKeys, 'dashboard', 'metrics', period] as const
 	},
 
 	// Billing
 	billing: {
-		all: () => [...queryKeys.all, 'billing'] as const,
-		subscription: () =>
-			[...queryKeys.billing.all(), 'subscription'] as const,
+		all: () => [...baseQueryKeys, 'billing'] as const,
+		subscription: () => [...baseQueryKeys, 'billing', 'subscription'] as const,
 		invoices: (limit?: number) =>
-			[...queryKeys.billing.all(), 'invoices', limit] as const,
+			[...baseQueryKeys, 'billing', 'invoices', limit] as const,
 		paymentMethods: () =>
-			[...queryKeys.billing.all(), 'payment-methods'] as const,
-		usage: () => [...queryKeys.billing.all(), 'usage'] as const
+			[...baseQueryKeys, 'billing', 'payment-methods'] as const,
+		usage: () => [...baseQueryKeys, 'billing', 'usage'] as const
 	},
 
 	// PDF
 	pdf: {
-		all: () => [...queryKeys.all, 'pdf'] as const,
-		health: () => [...queryKeys.pdf.all(), 'health'] as const
+		all: () => [...baseQueryKeys, 'pdf'] as const,
+		health: () => [...baseQueryKeys, 'pdf', 'health'] as const
 	},
 
 	// Notifications
 	notifications: {
-		all: () => [...queryKeys.all, 'notifications'] as const,
-		unread: () => [...queryKeys.notifications.all(), 'unread'] as const,
+		all: () => [...baseQueryKeys, 'notifications'] as const,
+		unread: () => [...baseQueryKeys, 'notifications', 'unread'] as const,
 		list: (params?: Record<string, unknown>) =>
-			[...queryKeys.notifications.all(), 'list', params] as const
+			[...baseQueryKeys, 'notifications', 'list', params] as const
 	}
 }
 

@@ -153,8 +153,8 @@ Tenant {isEditing ? 'updated' : 'created'} successfully!
 						{/* Form Header */}
 						<div>
 							<div className="mb-2 flex items-center gap-3">
-								<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
-									<i className="i-lucide-user inline-block text-primary h-4 w-4 dark:text-blue-400"  />
+								<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-1 dark:bg-blue-9/20">
+									<i className="i-lucide-user h-4 w-4 text-blue-6 dark:text-blue-4"  />
 								</div>
 								<div>
 									<h2 className="text-xl font-semibold">
@@ -250,7 +250,7 @@ Tenant {isEditing ? 'updated' : 'created'} successfully!
 								onClick={onClose}
 								disabled={isPending}
 							>
-								<i className="i-lucide-x inline-block mr-2 h-4 w-4"  />
+								<i className="i-lucide-x mr-2 h-4 w-4"  />
 								Cancel
 							</Button>
 
@@ -266,7 +266,7 @@ Tenant {isEditing ? 'updated' : 'created'} successfully!
 									</div>
 								) : (
 									<div className="flex items-center gap-2">
-										<i className="i-lucide-save inline-block h-4 w-4"  />
+										<i className="i-lucide-save h-4 w-4"  />
 										{isEditing ? 'Update Tenant' : 'Add Tenant'}
 									</div>
 								)}

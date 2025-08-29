@@ -16,6 +16,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { signOut } from '@/app/actions/auth'
 import { useAuth } from '@/hooks/use-auth'
+import { useNotificationRealtime } from '@/hooks/use-notification-realtime'
+import { useNotifications } from '@/hooks/api/use-notifications'
 import { cn } from '@/lib/utils/css.utils'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -37,6 +39,10 @@ export function Navigation({
 	const [scrolled, setScrolled] = useState(false)
 	const pathname = usePathname()
 	const { user } = useAuth()
+	
+	// Set up realtime notifications and fetch data using native hooks
+	const { unreadNotifications } = useNotifications()
+	useNotificationRealtime(user?.id || null)
 
 	// Handle scroll for transparent nav
 	useEffect(() => {
@@ -164,7 +170,7 @@ export function Navigation({
 										  !scrolled &&
 										  context === 'public'
 										? 'text-white/90 hover:text-white'
-										: 'text-gray-600 hover:text-gray-900'
+										: 'text-gray-6 hover:text-gray-9'
 							)}
 						>
 							{item.label}
@@ -183,7 +189,7 @@ export function Navigation({
 								'focus-visible:ring-ring rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
 								transparent && !scrolled && context === 'public'
 									? 'text-white/90 hover:text-white'
-									: 'text-gray-600 hover:text-gray-900'
+									: 'text-gray-6 hover:text-gray-9'
 							)}
 							onClick={() =>
 								setActiveMenu(
@@ -211,7 +217,7 @@ export function Navigation({
 						>
 							Tools
 							<i className={cn(
-								'i-lucide-chevron-down inline-block',
+								'i-lucide-chevron-down',
 									'ml-1 h-4 w-4 transition-transform duration-200',
 									activeMenu === 'resources'
 										? 'rotate-180'
@@ -229,7 +235,7 @@ export function Navigation({
 									transition={{ duration: 0.15 }}
 									className="absolute right-0 top-full z-50 w-80 pt-2"
 								>
-									<div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl">
+									<div className="overflow-hidden rounded-xl border border-gray-2 bg-white shadow-xl">
 										<div
 											className="p-6"
 											role="menu"
@@ -237,10 +243,10 @@ export function Navigation({
 											aria-labelledby="resources-button"
 										>
 											<h3
-												className="mb-4 flex items-center text-sm font-semibold text-gray-900"
+												className="mb-4 flex items-center text-sm font-semibold text-gray-9"
 												role="presentation"
 											>
-												<i className="i-lucide-sparkles inline-block text-primary mr-2 h-4 w-4" aria-hidden="true" />
+												<i className="i-lucide-sparkles text-primary mr-2 h-4 w-4" aria-hidden="true" />
 												Free Tools
 											</h3>
 											<div
@@ -274,17 +280,17 @@ export function Navigation({
 																}
 															}}
 														>
-															<div className="mr-3 rounded-lg bg-blue-50 p-2 transition-colors group-hover:bg-blue-100">
+															<div className="mr-3 rounded-lg bg-blue-50 p-2 transition-colors group-hover:bg-blue-1">
 																<i
 																	className={`${item.icon} text-primary h-4 w-4`}
 																	aria-hidden="true"
 																/>
 															</div>
 															<div className="flex-1">
-																<div className="group-hover:text-primary text-sm font-medium text-gray-900 transition-colors">
+																<div className="group-hover:text-primary text-sm font-medium text-gray-9 transition-colors">
 																	{item.label}
 																</div>
-																<div className="text-xs text-gray-500">
+																<div className="text-xs text-gray-5">
 																	{
 																		item.description
 																	}
@@ -328,10 +334,10 @@ export function Navigation({
 									damping: 25,
 									stiffness: 200
 								}}
-								className="absolute right-0 top-0 h-full w-80 border-l border-gray-200 bg-white shadow-xl"
+								className="absolute right-0 top-0 h-full w-80 border-l border-gray-2 bg-white shadow-xl"
 							>
 								{/* Header */}
-								<div className="flex items-center justify-between border-b border-gray-200 p-6">
+								<div className="flex items-center justify-between border-b border-gray-2 p-6">
 									<div className="flex items-center space-x-3">
 										<Image
 											src="/tenant-flow-logo.png"
@@ -341,10 +347,10 @@ export function Navigation({
 											className="h-8 w-auto object-contain"
 										/>
 										<div>
-											<span className="text-xl font-bold text-gray-900">
+											<span className="text-xl font-bold text-gray-9">
 												TenantFlow
 											</span>
-											<p className="text-xs text-gray-500">
+											<p className="text-xs text-gray-5">
 												PROPERTY MANAGEMENT
 											</p>
 										</div>
@@ -355,9 +361,9 @@ export function Navigation({
 										onClick={() =>
 											setIsMobileMenuOpen(false)
 										}
-										className="text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+										className="text-gray-5 hover:bg-gray-1 hover:text-gray-9"
 									>
-										<i className="i-lucide-x inline-block h-5 w-5"  />
+										<i className="i-lucide-x h-5 w-5"  />
 									</Button>
 								</div>
 
@@ -375,8 +381,8 @@ export function Navigation({
 												className={cn(
 													'flex items-center rounded-lg p-4 transition-colors duration-200',
 													pathname === item.to
-														? 'text-primary border border-blue-200 bg-blue-50'
-														: 'hover:text-primary text-gray-700 hover:bg-gray-50'
+														? 'text-primary border border-blue-2 bg-blue-50'
+														: 'hover:text-primary text-gray-7 hover:bg-gray-50'
 												)}
 											>
 												<span className="font-medium">
@@ -390,7 +396,7 @@ export function Navigation({
 									))}
 
 									{/* Authentication Section for Mobile */}
-									<div className="space-y-3 border-t border-gray-200 pt-6">
+									<div className="space-y-3 border-t border-gray-2 pt-6">
 										<motion.div
 											initial={{ opacity: 0, x: 20 }}
 											animate={{ opacity: 1, x: 0 }}
@@ -402,7 +408,7 @@ export function Navigation({
 											<Link href="/auth/login">
 												<Button
 													variant="ghost"
-													className="hover:text-primary h-auto w-full justify-start rounded-lg p-4 font-medium text-gray-700 hover:bg-gray-50"
+													className="hover:text-primary h-auto w-full justify-start rounded-lg p-4 font-medium text-gray-7 hover:bg-gray-50"
 												>
 													Log in
 												</Button>
@@ -417,10 +423,10 @@ export function Navigation({
 											}}
 										>
 											<Link href="/get-started">
-												<Button className="bg-primary h-auto w-full justify-center rounded-lg border-0 p-4 font-medium text-white shadow-sm hover:bg-blue-700">
+												<Button className="bg-primary h-auto w-full justify-center rounded-lg border-0 p-4 font-medium text-white shadow-sm hover:bg-blue-7">
 													<span className="flex items-center">
 														Get Started
-														<i className="i-lucide-arrow-right inline-block ml-2 h-4 w-4"  />
+														<i className="i-lucide-arrow-right ml-2 h-4 w-4"  />
 													</span>
 												</Button>
 											</Link>
@@ -428,9 +434,9 @@ export function Navigation({
 									</div>
 
 									{/* Tools Section */}
-									<div className="border-t border-gray-200 pt-6">
-										<h3 className="mb-4 flex items-center font-semibold text-gray-900">
-											<i className="i-lucide-sparkles inline-block text-primary mr-2 h-4 w-4"  />
+									<div className="border-t border-gray-2 pt-6">
+										<h3 className="mb-4 flex items-center font-semibold text-gray-9">
+											<i className="i-lucide-sparkles text-primary mr-2 h-4 w-4"  />
 											Free Tools
 										</h3>
 										<div className="space-y-2">
@@ -455,14 +461,14 @@ export function Navigation({
 												>
 													<Link
 														href={item.to}
-														className="hover:text-primary group flex items-center rounded-lg p-3 text-gray-600 transition-colors duration-200 hover:bg-gray-50"
+														className="hover:text-primary group flex items-center rounded-lg p-3 text-gray-6 transition-colors duration-200 hover:bg-gray-50"
 													>
-														<i className={`${item.icon} text-primary mr-3 h-4 w-4 transition-colors group-hover:text-blue-700`} />
+														<i className={`${item.icon} text-primary mr-3 h-4 w-4 transition-colors group-hover:text-blue-7`} />
 														<div className="min-w-0 flex-1">
 															<div className="text-sm font-medium">
 																{item.label}
 															</div>
-															<div className="text-xs text-gray-500">
+															<div className="text-xs text-gray-5">
 																{
 																	item.description
 																}
@@ -485,51 +491,97 @@ export function Navigation({
 	const AuthSection = () => {
 		if (context === 'authenticated' || context === 'tenant-portal') {
 			return (
-				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<button className="rounded-full">
-							<CurrentUserAvatar />
-						</button>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent align="end" className="w-56">
-						<DropdownMenuLabel>
-							<div className="flex flex-col space-y-1">
-								<p className="text-sm font-medium">
-									{user?.name ||
-										user?.email?.split('@')[0] ||
-										'User'}
-								</p>
-								<p className="text-muted-foreground text-xs">
-									{user?.email}
-								</p>
-							</div>
-						</DropdownMenuLabel>
-						<DropdownMenuSeparator />
-						<DropdownMenuItem asChild>
-							<Link
-								href={
-									context === 'authenticated'
-										? '/profile'
-										: '/tenant-dashboard'
-								}
-							>
-								<i className="i-lucide-usercircle inline-block mr-2 h-4 w-4"  />
-								Profile
-							</Link>
-						</DropdownMenuItem>
-						{context === 'authenticated' && (
+				<div className="flex items-center space-x-2">
+					{/* Native Notification Bell using existing DropdownMenu pattern */}
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild>
+							<Button variant="ghost" size="icon" className="relative">
+								<i className="i-lucide-bell h-5 w-5" />
+								{/* Dynamic notification badge - using native patterns */}
+								{unreadNotifications && unreadNotifications.length > 0 && (
+									<span className="absolute -right-1 -top-1 h-4 w-4 rounded-full bg-red-5 text-xs font-bold text-white flex items-center justify-center">
+										{unreadNotifications.length > 9 ? '9+' : unreadNotifications.length}
+									</span>
+								)}
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align="end" className="w-80 max-h-96 overflow-y-auto">
+							<DropdownMenuLabel>Notifications</DropdownMenuLabel>
+							<DropdownMenuSeparator />
+							{unreadNotifications && unreadNotifications.length > 0 ? (
+								unreadNotifications.slice(0, 5).map((notification) => (
+									<DropdownMenuItem key={notification.id}>
+										<div className="flex flex-col space-y-1 w-full">
+											<p className="text-sm font-medium">{notification.title}</p>
+											<p className="text-xs text-gray-5">{notification.message}</p>
+											<p className="text-xs text-gray-4">
+												{new Date(notification.created_at).toLocaleString()}
+											</p>
+										</div>
+									</DropdownMenuItem>
+								))
+							) : (
+								<DropdownMenuItem disabled>
+									<div className="flex flex-col items-center space-y-1 w-full py-4">
+										<i className="i-lucide-inbox h-8 w-8 text-gray-4" />
+										<p className="text-sm text-gray-5">No new notifications</p>
+									</div>
+								</DropdownMenuItem>
+							)}
+							<DropdownMenuSeparator />
 							<DropdownMenuItem>
-								<i className="i-lucide-settings inline-block mr-2 h-4 w-4"  />
-								Settings
+								<i className="i-lucide-bell mr-2 h-4 w-4" />
+								View all notifications
 							</DropdownMenuItem>
-						)}
-						<DropdownMenuSeparator />
-						<DropdownMenuItem onClick={handleLogout}>
-							<i className="i-lucide-log-out inline-block mr-2 h-4 w-4"  />
-							Log out
-						</DropdownMenuItem>
-					</DropdownMenuContent>
-				</DropdownMenu>
+						</DropdownMenuContent>
+					</DropdownMenu>
+					
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild>
+							<button className="rounded-full">
+								<CurrentUserAvatar />
+							</button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align="end" className="w-56">
+							<DropdownMenuLabel>
+								<div className="flex flex-col space-y-1">
+									<p className="text-sm font-medium">
+										{user?.name ||
+											user?.email?.split('@')[0] ||
+											'User'}
+									</p>
+									<p className="text-muted-foreground text-xs">
+										{user?.email}
+									</p>
+								</div>
+							</DropdownMenuLabel>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem asChild>
+								<Link
+									href={
+										context === 'authenticated'
+											? '/profile'
+											: '/tenant-dashboard'
+									}
+								>
+									<i className="i-lucide-usercircle mr-2 h-4 w-4"  />
+									Profile
+								</Link>
+							</DropdownMenuItem>
+							{context === 'authenticated' && (
+								<DropdownMenuItem>
+									<i className="i-lucide-settings mr-2 h-4 w-4"  />
+									Settings
+								</DropdownMenuItem>
+							)}
+							<DropdownMenuSeparator />
+							<DropdownMenuItem onClick={handleLogout}>
+								<i className="i-lucide-log-out mr-2 h-4 w-4"  />
+								Log out
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
+				</div>
 			)
 		}
 
@@ -541,7 +593,7 @@ export function Navigation({
 						'text-2xl font-medium transition-colors duration-200',
 						transparent && !scrolled && context === 'public'
 							? 'text-white/90 hover:text-white'
-							: 'text-gray-600 hover:text-gray-900'
+							: 'text-gray-6 hover:text-gray-9'
 					)}
 				>
 					Log in
@@ -563,11 +615,11 @@ export function Navigation({
 			return onSidebarToggle ? (
 				<button
 					onClick={onSidebarToggle}
-					className="focus-visible:ring-ring rounded-md p-2 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 lg:hidden"
+					className="focus-visible:ring-ring rounded-md p-2 transition-colors hover:bg-gray-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 lg:hidden"
 					aria-label="Toggle sidebar"
 					aria-expanded="false"
 				>
-					<i className="i-lucide-menu inline-block h-5 w-5 text-gray-600" aria-hidden="true" />
+					<i className="i-lucide-menu h-5 w-5 text-gray-6" aria-hidden="true" />
 				</button>
 			) : null
 		}
@@ -579,7 +631,7 @@ export function Navigation({
 					'focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
 					transparent && !scrolled && context === 'public'
 						? 'text-white hover:bg-white/10'
-						: 'text-gray-600 hover:bg-gray-100'
+						: 'text-gray-6 hover:bg-gray-1'
 				)}
 				onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
 				aria-label={
@@ -589,9 +641,9 @@ export function Navigation({
 				aria-controls="mobile-menu"
 			>
 				{isMobileMenuOpen ? (
-					<i className="i-lucide-x inline-block h-5 w-5" aria-hidden="true" />
+					<i className="i-lucide-x h-5 w-5" aria-hidden="true" />
 				) : (
-					<i className="i-lucide-menu inline-block h-5 w-5" aria-hidden="true" />
+					<i className="i-lucide-menu h-5 w-5" aria-hidden="true" />
 				)}
 			</button>
 		)

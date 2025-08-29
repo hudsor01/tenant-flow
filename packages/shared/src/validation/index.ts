@@ -3,7 +3,8 @@
  * Common Zod schemas used across frontend and backend
  */
 
-export * from './auth'
+// ❌ Auth schemas moved to generated files - see ./auth.ts for migration guide
+// export * from './auth' // REMOVED: Use generated schemas instead
 export * from './common'
 export * from './properties'
 export * from './tenants'

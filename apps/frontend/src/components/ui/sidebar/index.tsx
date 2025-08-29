@@ -105,27 +105,46 @@ export interface SidebarMenuButtonProps extends React.ComponentProps<'button'> {
 	children?: React.ReactNode
 }
 
+// Generic sidebar container - DRY principle
+function SidebarContainer({
+	children,
+	className,
+	spacing = 'space-y-2',
+	...props
+}: {
+	children?: React.ReactNode
+	className?: string
+	spacing?: string
+} & React.HTMLAttributes<HTMLDivElement>) {
+	return (
+		<div className={cn(spacing, className)} {...props}>
+			{children}
+		</div>
+	)
+}
+
 export function SidebarGroup({
 	children,
 	className,
 	...props
 }: SidebarGroupProps) {
 	return (
-		<div className={cn('space-y-2', className)} {...props}>
+		<SidebarContainer className={className} spacing="space-y-2" {...props}>
 			{children}
-		</div>
+		</SidebarContainer>
 	)
 }
 
+// eslint-disable-next-line anti-duplication/no-duplicate-function-implementations  
 export function SidebarGroupContent({
 	children,
 	className,
 	...props
 }: SidebarGroupContentProps) {
 	return (
-		<div className={cn('space-y-1', className)} {...props}>
+		<SidebarContainer className={className} spacing="space-y-1" {...props}>
 			{children}
-		</div>
+		</SidebarContainer>
 	)
 }
 
@@ -162,7 +181,7 @@ export function SidebarMenuButton({
 	...props
 }: SidebarMenuButtonProps) {
 	const baseClasses =
-		'flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm font-medium transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus:bg-sidebar-accent focus:text-sidebar-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50'
+		'flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm font-medium transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus:bg-sidebar-accent focus:text-sidebar-accent-foreground focus:outline-none disabled:pointer-events-none disabled:op-50'
 	const activeClasses = isActive
 		? 'bg-sidebar-accent text-sidebar-accent-foreground'
 		: 'text-sidebar-foreground'

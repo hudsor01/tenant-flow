@@ -68,7 +68,7 @@ export function Property_DeleteDialog({
 
 				{hasOccupiedUnits && (
 					<Alert variant="destructive">
-						<i className="i-lucide-alert-triangle inline-block h-4 w-4"  />
+						<i className="i-lucide-alert-triangle h-4 w-4"  />
 						<AlertDescription>
 							This property has occupied units. Please ensure all
 							tenants are relocated before deleting.
@@ -78,7 +78,7 @@ export function Property_DeleteDialog({
 
 				{hasUnits && !hasOccupiedUnits && (
 					<Alert>
-						<i className="i-lucide-alert-triangle inline-block h-4 w-4"  />
+						<i className="i-lucide-alert-triangle h-4 w-4"  />
 						<AlertDescription>
 							This property has {property.units?.length} unit(s)
 							that will also be deleted.
@@ -88,7 +88,7 @@ export function Property_DeleteDialog({
 
 				{error && (
 					<Alert variant="destructive">
-						<i className="i-lucide-alert-triangle inline-block h-4 w-4"  />
+						<i className="i-lucide-alert-triangle h-4 w-4"  />
 						<AlertDescription>{error}</AlertDescription>
 					</Alert>
 				)}
@@ -108,7 +108,7 @@ export function Property_DeleteDialog({
 					>
 						{propertiesOptimistic.isPending ? (
 							<>
-								<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
+								<i className="i-lucide-loader-2 mr-2 h-4 w-4 animate-spin"  />
 								Deleting...
 							</>
 						) : (

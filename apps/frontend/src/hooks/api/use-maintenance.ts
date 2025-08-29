@@ -15,8 +15,8 @@ import type { MaintenanceStats } from '@repo/shared/types/dashboard-stats'
 type MaintenanceRequest = Database['public']['Tables']['MaintenanceRequest']['Row']
 type CreateMaintenanceInput = Database['public']['Tables']['MaintenanceRequest']['Insert']
 type UpdateMaintenanceInput = Database['public']['Tables']['MaintenanceRequest']['Update']
-import { apiClient, get, post, put, del } from '@/lib/api-client'
-import { queryKeys } from '@/lib/query-keys'
+import { get, post, put, del } from '@/lib/api-client'
+import { queryKeys } from '@/lib/react-query/query-keys'
 
 // ============================================================================
 // PURE DATA HOOKS - TanStack Query Suspense (No Optimistic Logic)
@@ -30,7 +30,7 @@ export function useMaintenanceRequests(
 ): UseQueryResult<MaintenanceRequestApiResponse[]> {
 	return useQuery({
 		queryKey: queryKeys.maintenance.list(params),
-		queryFn: async () => apiClient.get<MaintenanceRequestApiResponse[]>('/api/maintenance'),
+		queryFn: async () => get<MaintenanceRequestApiResponse[]>('/api/maintenance'),
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000 // 10 minutes
 	})
@@ -42,7 +42,7 @@ export function useMaintenanceRequests(
 export function useMaintenanceRequest(id: string): UseQueryResult<MaintenanceRequest> {
 	return useQuery({
 		queryKey: queryKeys.maintenance.detail(id),
-		queryFn: async () => apiClient.get<MaintenanceRequest>(`/api/maintenance/${id}`),
+		queryFn: async () => get<MaintenanceRequest>(`/api/maintenance/${id}`),
 		staleTime: 2 * 60 * 1000, // 2 minutes
 		enabled: !!id
 	})

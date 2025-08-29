@@ -27,12 +27,12 @@ export function Property_BasicInfoSection({
 			<div className="space-y-2">
 				<Label
 					htmlFor="name"
-					className="text-sm font-medium text-gray-700"
+					className="text-sm font-medium text-gray-7"
 				>
 					Property_ Name *
 				</Label>
 				<div className="relative">
-					<i className="i-lucide-building-2 inline-block absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400"  />
+					<i className="i-lucide-building-2 absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-4"  />
 					<Input
 						id="name"
 						placeholder="e.g., Sunset Apartments, 123 Main St"
@@ -41,7 +41,7 @@ export function Property_BasicInfoSection({
 					/>
 				</div>
 				{form.formState.errors.name && (
-					<p className="text-sm text-red-600">
+					<p className="text-sm text-red-6">
 						{form.formState.errors.name.message}
 					</p>
 				)}
@@ -51,7 +51,7 @@ export function Property_BasicInfoSection({
 			<div className="space-y-2">
 				<Label
 					htmlFor="propertyType"
-					className="text-sm font-medium text-gray-700"
+					className="text-sm font-medium text-gray-7"
 				>
 					Property_ Type *
 				</Label>
@@ -66,7 +66,7 @@ export function Property_BasicInfoSection({
 					<option value="COMMERCIAL">Commercial Property_</option>
 				</select>
 				{form.formState.errors.propertyType && (
-					<p className="text-sm text-red-600">
+					<p className="text-sm text-red-6">
 						{form.formState.errors.propertyType.message}
 					</p>
 				)}
@@ -76,10 +76,10 @@ export function Property_BasicInfoSection({
 			{mode === 'create' &&
 				(propertyType === 'MULTI_UNIT' ||
 					propertyType === 'APARTMENT') && (
-					<div className="space-y-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
+					<div className="space-y-4 rounded-lg border border-blue-2 bg-blue-50 p-4">
 						<div className="flex items-center space-x-2">
-							<i className="i-lucide-users inline-block text-primary h-5 w-5"  />
-							<h4 className="font-medium text-blue-900">
+							<i className="i-lucide-users text-primary h-5 w-5"  />
+							<h4 className="font-medium text-blue-9">
 								Multi-Unit Configuration
 							</h4>
 						</div>
@@ -88,7 +88,7 @@ export function Property_BasicInfoSection({
 						<div className="space-y-2">
 							<Label
 								htmlFor="numberOfUnits"
-								className="text-sm font-medium text-gray-700"
+								className="text-sm font-medium text-gray-7"
 							>
 								How many units does this property have?
 							</Label>
@@ -104,7 +104,7 @@ export function Property_BasicInfoSection({
 								})}
 							/>
 							{form.formState.errors.numberOfUnits && (
-								<p className="text-sm text-red-600">
+								<p className="text-sm text-red-6">
 									{
 										form.formState.errors.numberOfUnits
 											.message
@@ -119,12 +119,12 @@ export function Property_BasicInfoSection({
 								<input
 									type="checkbox"
 									id="createUnitsNow"
-									className="text-primary focus:ring-primary rounded border-gray-300"
+									className="text-primary focus:ring-primary rounded border-gray-3"
 									{...form.register('createUnitsNow')}
 								/>
 								<Label
 									htmlFor="createUnitsNow"
-									className="cursor-pointer text-sm text-gray-700"
+									className="cursor-pointer text-sm text-gray-7"
 								>
 									Create {numberOfUnits} basic units now (you
 									can edit details later)
@@ -143,10 +143,10 @@ export function Property_BasicInfoSection({
 			{mode === 'edit' &&
 				(propertyType === 'MULTI_UNIT' ||
 					propertyType === 'APARTMENT') && (
-					<div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+					<div className="rounded-lg border border-gray-2 bg-gray-50 p-3">
 						<div className="flex items-center space-x-2">
-							<i className="i-lucide-home inline-block h-4 w-4 text-gray-600"  />
-							<span className="text-sm text-gray-700">
+							<i className="i-lucide-home h-4 w-4 text-gray-6"  />
+							<span className="text-sm text-gray-7">
 								This property has {numberOfUnits ?? 0} units.
 								Manage units from the property details page.
 							</span>

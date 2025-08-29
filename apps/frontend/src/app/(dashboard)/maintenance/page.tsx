@@ -1,3 +1,5 @@
+'use client'
+
 import { Suspense } from 'react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -7,13 +9,6 @@ import Link from 'next/link'
 import { MaintenanceDataTable } from '@/components/maintenance/maintenance-data-table'
 import { MaintenanceStats } from '@/components/maintenance/maintenance-stats'
 import { PageTracker } from '@/components/analytics/page-tracker'
-import type { Metadata } from 'next/types'
-
-export const metadata: Metadata = {
-	title: 'Maintenance | TenantFlow',
-	description:
-		'Manage your property maintenance requests and track completion'
-}
 
 function MaintenanceHeader() {
 	return (
@@ -28,12 +23,12 @@ function MaintenanceHeader() {
 			</div>
 			<div className="flex gap-2">
 				<Button variant="outline" size="sm">
-					<i className="i-lucide-filter inline-block mr-2 h-4 w-4"  />
+					<i className="i-lucide-filter  mr-2 h-4 w-4"  />
 					Filter
 				</Button>
 				<Link href="/maintenance/new">
 					<Button size="sm">
-						<i className="i-lucide-plus inline-block mr-2 h-4 w-4"  />
+						<i className="i-lucide-plus  mr-2 h-4 w-4"  />
 						Add Request
 					</Button>
 				</Link>
@@ -48,14 +43,14 @@ function MaintenanceSearch() {
 			<CardContent className="p-4">
 				<div className="flex gap-4">
 					<div className="relative flex-1">
-						<i className="i-lucide-search inline-block text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform"  />
+						<i className="i-lucide-search  text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform"  />
 						<Input
 							placeholder="Search requests by title, unit, or status..."
 							className="pl-10"
 						/>
 					</div>
 					<Button variant="outline">
-						<i className="i-lucide-filter inline-block mr-2 h-4 w-4"  />
+						<i className="i-lucide-filter  mr-2 h-4 w-4"  />
 						Filters
 					</Button>
 				</div>

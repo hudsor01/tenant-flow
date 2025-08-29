@@ -102,7 +102,7 @@ export default function DocumentsPage() {
 					</p>
 				</div>
 				<Button>
-					<i className="i-lucide-upload inline-block mr-2 h-4 w-4"  />
+					<i className="i-lucide-upload  mr-2 h-4 w-4"  />
 					Upload Document
 				</Button>
 			</div>
@@ -114,7 +114,7 @@ export default function DocumentsPage() {
 						<CardTitle className="text-sm font-medium">
 							Total Documents
 						</CardTitle>
-						<i className="i-lucide-file-text inline-block text-muted-foreground h-4 w-4"  />
+						<i className="i-lucide-file-text  text-muted-foreground h-4 w-4"  />
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">
@@ -128,7 +128,7 @@ export default function DocumentsPage() {
 						<CardTitle className="text-sm font-medium">
 							Total Size
 						</CardTitle>
-						<i className="i-lucide-file-text inline-block text-muted-foreground h-4 w-4"  />
+						<i className="i-lucide-file-text  text-muted-foreground h-4 w-4"  />
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">
@@ -142,7 +142,7 @@ export default function DocumentsPage() {
 						<CardTitle className="text-sm font-medium">
 							Document Types
 						</CardTitle>
-						<i className="i-lucide-filter inline-block text-muted-foreground h-4 w-4"  />
+						<i className="i-lucide-filter  text-muted-foreground h-4 w-4"  />
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">
@@ -156,7 +156,7 @@ export default function DocumentsPage() {
 						<CardTitle className="text-sm font-medium">
 							Recent Uploads
 						</CardTitle>
-						<i className="i-lucide-upload inline-block text-muted-foreground h-4 w-4"  />
+						<i className="i-lucide-upload  text-muted-foreground h-4 w-4"  />
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">
@@ -180,7 +180,7 @@ export default function DocumentsPage() {
 			{/* Search and Filters */}
 			<div className="flex flex-col gap-4 sm:flex-row">
 				<div className="relative flex-1">
-					<i className="i-lucide-search inline-block text-muted-foreground absolute left-2 top-2.5 h-4 w-4"  />
+					<i className="i-lucide-search  text-muted-foreground absolute left-2 top-2.5 h-4 w-4"  />
 					<Input
 						aria-label="Search documents by name or property..."
 						placeholder="Search documents by name or property..."
@@ -241,7 +241,7 @@ export default function DocumentsPage() {
 									<TableRow key={document.id}>
 										<TableCell>
 											<div className="flex items-center space-x-2">
-												<i className="i-lucide-file-text inline-block text-muted-foreground h-4 w-4"  />
+												<i className="i-lucide-file-text  text-muted-foreground h-4 w-4"  />
 												<span className="font-medium">
 													{document.name}
 												</span>
@@ -286,20 +286,20 @@ export default function DocumentsPage() {
 														variant="ghost"
 														className="h-8 w-8 p-0"
 													>
-														<i className="i-lucide-more-horizontal inline-block h-4 w-4"  />
+														<i className="i-lucide-more-horizontal  h-4 w-4"  />
 													</Button>
 												</DropdownMenuTrigger>
 												<DropdownMenuContent align="end">
 													<DropdownMenuItem>
-														<i className="i-lucide-eye inline-block mr-2 h-4 w-4"  />
+														<i className="i-lucide-eye  mr-2 h-4 w-4"  />
 														View
 													</DropdownMenuItem>
 													<DropdownMenuItem>
-														<i className="i-lucide-download inline-block mr-2 h-4 w-4"  />
+														<i className="i-lucide-download  mr-2 h-4 w-4"  />
 														Download
 													</DropdownMenuItem>
 													<DropdownMenuItem className="text-destructive">
-														<i className="i-lucide-trash-2 inline-block mr-2 h-4 w-4"  />
+														<i className="i-lucide-trash-2  mr-2 h-4 w-4"  />
 														Delete
 													</DropdownMenuItem>
 												</DropdownMenuContent>

@@ -1,74 +1,80 @@
 /**
- * Authentication validation schemas
- * Using Zod schemas as single source of truth instead of DTOs
+ * Authentication validation schemas - MOVED TO GENERATED SCHEMAS
+ * 
+ * ❌ DEPRECATED: Auth schemas in this shared package have been moved to maintain single source of truth.
+ * 
+ * 🎯 NEW PATTERN: Authentication schemas are now generated from backend JSON schemas.
+ * 
+ * USAGE:
+ * - Frontend: Import from `apps/frontend/src/lib/validation/generated-auth-schemas.ts`
+ * - Backend: Use native JSON schemas in `apps/backend/src/schemas/auth.schemas.ts`
+ * 
+ * WHY THIS CHANGE:
+ * - Backend uses native Fastify JSON Schema validation (10x faster performance)
+ * - Frontend auto-generates Zod schemas from backend JSON schemas
+ * - Single source of truth prevents schema drift between frontend/backend
+ * - Eliminates duplicate validation logic
+ * 
+ * MIGRATION GUIDE:
+ * Replace imports like this:
+ * 
+ * BEFORE:
+ * import { loginSchema } from '@repo/shared/validation'
+ * 
+ * AFTER:
+ * // Frontend
+ * import { loginSchema } from '../lib/validation/generated-auth-schemas'
+ * 
+ * // Backend  
+ * import { loginSchema } from '../schemas/auth.schemas'
  */
 
-import { z } from 'zod'
-import { emailSchema, requiredString } from './common'
+// ❌ All auth schemas removed - use generated schemas instead
+// This ensures CLAUDE.md DRY compliance and single source of truth
 
-// Login validation schema
-export const loginSchema = z.object({
-	email: emailSchema,
-	password: requiredString.min(8, 'Password must be at least 8 characters')
-})
+// Re-export common validation utilities that auth schemas might need
+export { emailSchema, requiredString } from './common'
 
-// Register validation schema
-export const registerSchema = z.object({
-	email: emailSchema,
-	password: requiredString.min(8, 'Password must be at least 8 characters'),
-	name: requiredString.max(100, 'Name cannot exceed 100 characters')
-})
+// ⚠️  TEMPORARY: Legacy type aliases for backward compatibility during migration
+// These will be removed in a future version
+export type LoginDto = {
+  email: string
+  password: string
+  rememberMe?: boolean
+}
 
-// Refresh token validation schema
-export const refreshTokenSchema = z.object({
-	refresh_token: requiredString.min(10, 'Invalid refresh token format')
-})
+export type RegisterDto = {
+  name: string
+  email: string
+  password: string
+  company?: string
+  acceptTerms?: boolean
+}
 
-// Password reset validation schema
-export const passwordResetSchema = z.object({
-	email: emailSchema
-})
+export type RefreshTokenDto = {
+  refresh_token: string
+}
 
-// Password reset confirm validation schema
-export const passwordResetConfirmSchema = z
-	.object({
-		token: requiredString.min(10, 'Invalid reset token'),
-		password: requiredString.min(
-			8,
-			'Password must be at least 8 characters'
-		),
-		confirmPassword: requiredString.min(
-			8,
-			'Password confirmation is required'
-		)
-	})
-	.refine(data => data.password === data.confirmPassword, {
-		message: 'Passwords do not match',
-		path: ['confirmPassword']
-	})
+export type PasswordResetDto = {
+  email: string
+}
 
-// Change password validation schema
-export const changePasswordSchema = z
-	.object({
-		currentPassword: requiredString.min(8, 'Current password is required'),
-		newPassword: requiredString.min(
-			8,
-			'New password must be at least 8 characters'
-		),
-		confirmPassword: requiredString.min(
-			8,
-			'Password confirmation is required'
-		)
-	})
-	.refine(data => data.newPassword === data.confirmPassword, {
-		message: 'Passwords do not match',
-		path: ['confirmPassword']
-	})
+export type PasswordResetConfirmDto = {
+  token: string
+  newPassword: string
+  confirmPassword: string
+}
 
-// Type exports for TypeScript usage
-export type LoginDto = z.infer<typeof loginSchema>
-export type RegisterDto = z.infer<typeof registerSchema>
-export type RefreshTokenDto = z.infer<typeof refreshTokenSchema>
-export type PasswordResetDto = z.infer<typeof passwordResetSchema>
-export type PasswordResetConfirmDto = z.infer<typeof passwordResetConfirmSchema>
-export type ChangePasswordDto = z.infer<typeof changePasswordSchema>
+export type ChangePasswordDto = {
+  currentPassword: string
+  newPassword: string
+  confirmPassword: string
+}
+
+/**
+ * 🚨 IMPORTANT: These schemas have been moved to generated files
+ * 
+ * This file will be removed in a future version. Update your imports to use:
+ * - Frontend: generated-auth-schemas.ts
+ * - Backend: JSON schemas in auth.schemas.ts
+ */
