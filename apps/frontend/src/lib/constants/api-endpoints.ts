@@ -5,28 +5,42 @@
 
 export const API_ENDPOINTS = {
   DASHBOARD: {
-    OVERVIEW: '/api/dashboard/overview',
-    ACTIVITY: '/api/dashboard/activity', 
-    TASKS: '/api/dashboard/tasks',
-    ALERTS: '/api/dashboard/alerts'
+    OVERVIEW: 'dashboard/overview',
+    ACTIVITY: 'dashboard/activity', 
+    TASKS: 'dashboard/tasks',
+    ALERTS: 'dashboard/alerts'
   },
   PROPERTIES: {
-    BASE: '/api/properties',
-    STATS: '/api/properties/stats',
-    WITH_UNITS: '/api/properties/with-units',
-    BY_ID: (id: string) => `/api/properties/${id}`
+    BASE: 'properties',
+    STATS: 'properties/stats',
+    WITH_UNITS: 'properties/with-units',
+    BY_ID: (id: string) => `properties/${id}`
   },
   TENANTS: {
-    BASE: '/api/tenants'
+    BASE: 'tenants',
+    STATS: 'tenants/stats',
+    BY_ID: (id: string) => `tenants/${id}`
   },
   UNITS: {
-    BASE: '/api/units'
+    BASE: 'units',
+    STATS: 'units/stats',
+    BY_ID: (id: string) => `units/${id}`
+  },
+  LEASES: {
+    BASE: 'leases',
+    STATS: 'leases/stats',
+    BY_ID: (id: string) => `leases/${id}`
   },
   MAINTENANCE: {
-    BASE: '/api/maintenance'
+    BASE: 'maintenance',
+    STATS: 'maintenance/stats',
+    BY_ID: (id: string) => `maintenance/${id}`
   },
   AUTH: {
-    BASE: '/api/auth'
+    BASE: 'auth',
+    LOGIN: 'auth/login',
+    LOGOUT: 'auth/logout',
+    REFRESH: 'auth/refresh'
   }
 } as const
 
