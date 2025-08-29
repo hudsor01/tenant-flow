@@ -4,6 +4,7 @@ import { useUnitStats } from '@/hooks/api/use-units'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
+import { handleStaticGenerationError } from '@/lib/utils/static-generation'
 import type { UnitStats } from '@repo/shared'
 
 function UnitsStatsSkeleton() {
@@ -100,9 +101,9 @@ export function UnitsStats() {
 		return <UnitsStatsSkeleton />
 	}
 
-	// Error handling - throw to be caught by error boundary
+	// Error handling - graceful fallback for static generation
 	if (error) {
-		throw error
+		return handleStaticGenerationError(error, <UnitsStatsSkeleton />)
 	}
 
 	// Ensure we have stats data

@@ -1,3 +1,5 @@
+'use client'
+
 import { Suspense } from 'react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -7,12 +9,6 @@ import Link from 'next/link'
 import { UnitsDataTable } from '@/components/properties/units/units-data-table'
 import { UnitsStats } from '@/components/properties/units/units-stats'
 import { PageTracker } from '@/components/analytics/page-tracker'
-import type { Metadata } from 'next/types'
-
-export const metadata: Metadata = {
-	title: 'Units | TenantFlow',
-	description: 'Manage your property units and track occupancy'
-}
 
 function UnitsHeader() {
 	return (
@@ -30,7 +26,7 @@ function UnitsHeader() {
 					<i className="i-lucide-filter  mr-2 h-4 w-4"  />
 					Filter
 				</Button>
-				<Link href="/units/new">
+				<Link href="/properties/units/new">
 					<Button size="sm">
 						<i className="i-lucide-plus  mr-2 h-4 w-4"  />
 						Add Unit

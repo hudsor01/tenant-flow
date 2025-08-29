@@ -1,3 +1,5 @@
+'use client'
+
 import { Suspense } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import Property_StatsSection from '@/components/properties/property-stats-section'
