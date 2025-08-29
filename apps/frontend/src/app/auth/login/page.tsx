@@ -4,12 +4,10 @@
  */
 
 import type { Metadata } from 'next/types'
-import { Suspense } from 'react'
 import { AuthLayout } from '@/components/layout/auth/layout'
-import { SimpleLoginForm } from '@/components/forms/supabase-login-form'
+import { LoginForm } from '@/components/forms/supabase-login-form'
 import { getCurrentUser } from '@/app/actions/auth'
 import { AuthRedirect } from '@/components/auth/auth-redirect'
-import { SkeletonForm } from '@/components/ui/skeleton'
 
 export const metadata: Metadata = {
 	title: 'Sign In | TenantFlow',
@@ -18,21 +16,21 @@ export const metadata: Metadata = {
 }
 
 interface LoginPageProps {
-	searchParams: Promise<{ redirect?: string; error?: string }>
+    // Next 15 passes a promise; support both 'redirect' and 'redirectTo'
+    searchParams: Promise<Record<string, string | undefined>>
 }
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
-	// Await searchParams as required in Next.js 15
-	const params = await searchParams
+    const params = await searchParams
 
 	// Check if user is already authenticated
 	const user = await getCurrentUser()
 
-	if (user) {
-		return <AuthRedirect to={params?.redirect ?? '/dashboard'} />
-	}
+    if (user) {
+        return <AuthRedirect to={(params?.redirect || params?.redirectTo) ?? '/dashboard'} />
+    }
 
-	const redirectTo = params?.redirect ?? '/dashboard'
+    const redirectTo = (params?.redirect || params?.redirectTo) ?? '/dashboard'
 
 	return (
 		<AuthLayout
@@ -45,20 +43,12 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 				alt: 'Modern property management dashboard'
 			}}
 			heroContent={{
-				title: 'Streamline Your Property_ Management',
+				title: 'Streamline Your Property Management',
 				description:
 					'Join thousands of property owners who save hours every week with our powerful, intuitive platform.'
 			}}
 		>
-			<Suspense
-				fallback={
-					<div className="mx-auto w-full max-w-md">
-						<SkeletonForm />
-					</div>
-				}
-			>
-				<SimpleLoginForm redirectTo={redirectTo} />
-			</Suspense>
+			<LoginForm redirectTo={redirectTo} />
 		</AuthLayout>
 	)
 }

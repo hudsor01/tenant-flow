@@ -20,40 +20,45 @@ class FrontendLogger implements ILogger {
 	}
 
 	/**
+	 * Core logging method - handles all log levels with native patterns
+	 */
+	private log(level: 'debug' | 'info' | 'warn', message: string, context?: LogContext): void {
+		// Development console output
+		if (this.isDevelopment && !this.isTest) {
+			console.warn(`[${level.toUpperCase()}] ${message}`, context)
+		}
+
+		// Analytics conditions using native object lookup
+		const shouldSendAnalytics = {
+			debug: false,
+			info: !this.isDevelopment && !this.isTest,
+			warn: !this.isTest
+		}[level]
+
+		if (shouldSendAnalytics) {
+			this.sendToAnalytics(level, message, context)
+		}
+	}
+
+	/**
 	 * Debug level logging - only in development
 	 */
 	debug(message: string, context?: LogContext): void {
-		if (this.isDevelopment && !this.isTest) {
-			console.warn(`[DEBUG] ${message}`, context)
-		}
+		this.log('debug', message, context)
 	}
 
 	/**
 	 * Info level logging
 	 */
 	info(message: string, context?: LogContext): void {
-		if (this.isDevelopment && !this.isTest) {
-			console.warn(`[INFO] ${message}`, context)
-		}
-
-		// Send to analytics in production
-		if (!this.isDevelopment && !this.isTest) {
-			this.sendToAnalytics('info', message, context)
-		}
+		this.log('info', message, context)
 	}
 
 	/**
 	 * Warning level logging
 	 */
 	warn(message: string, context?: LogContext): void {
-		if (this.isDevelopment && !this.isTest) {
-			console.warn(`[WARN] ${message}`, context)
-		}
-
-		// Always send warnings to analytics
-		if (!this.isTest) {
-			this.sendToAnalytics('warn', message, context)
-		}
+		this.log('warn', message, context)
 	}
 
 	/**

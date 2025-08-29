@@ -171,6 +171,16 @@ export const profileUpdateSchema = z.object({
 	zipCode: commonValidations.zipCode.optional()
 })
 
+// Profile form schema for profile-settings.tsx - ULTRA-NATIVE Zod usage
+export const profileFormSchema = z.object({
+	name: z.string().min(1, 'Name is required'),
+	email: z.string().min(1, 'Email is required').email('Please enter a valid email'),
+	phone: z.string().optional(),
+	company: z.string().optional(),
+	address: z.string().optional(),
+	avatar: z.string().optional()
+})
+
 // Type exports for use in components - re-export shared types and add frontend-specific ones
 export type {
 	PropertyFormData,
@@ -185,3 +195,4 @@ export type PaymentFormData = z.infer<typeof paymentFormSchema>
 export type LoginData = z.infer<typeof loginSchema>
 export type SignupData = z.infer<typeof signupSchema>
 export type ProfileUpdateData = z.infer<typeof profileUpdateSchema>
+export type ProfileFormData = z.infer<typeof profileFormSchema>

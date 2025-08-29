@@ -1,7 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { post } from '@repo/shared/utils/api-client'
+import { serverApiMutate } from '@/lib/utils/api-server-utils'
 
 interface CheckoutFormState {
 	success: boolean
@@ -23,7 +23,8 @@ export async function createCheckoutSession(
 			couponId: formData.get('couponId') as string | undefined
 		}
 
-    const response = await post<{ url: string }>(
+    const response = await serverApiMutate<{ url: string }>(
+        'POST',
         'stripe/checkout',
         data
     )

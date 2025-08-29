@@ -13,26 +13,39 @@ interface OAuthProvidersProps {
 }
 
 export function OAuthProviders({
-	disabled = false,
-	onProviderClick
+    disabled = false,
+    onProviderClick
 }: OAuthProvidersProps) {
-	const [isGoogleLoading, setIsGoogleLoading] = useState(false)
-	const [isHovered, setIsHovered] = useState(false)
+    const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+    const [isHovered, setIsHovered] = useState(false)
+    type SupaAuthLike = {
+        auth?: {
+            signInWithOAuth?: (opts: { provider: string; options?: { redirectTo?: string } }) => Promise<{ error?: { message?: string } }>
+        }
+    }
+    const supa = supabase as unknown as SupaAuthLike
+    const canOAuth = Boolean(supa?.auth?.signInWithOAuth)
 
-	const handleGoogleLogin = async () => {
-		if (disabled || isGoogleLoading) {
-			return
-		}
+    const handleGoogleLogin = async () => {
+        if (disabled || isGoogleLoading) {
+            return
+        }
 
-		onProviderClick?.('Google')
-		setIsGoogleLoading(true)
-		try {
-			const _result = await supabase.auth.signInWithOAuth({
-				provider: 'google',
-				options: {
-					redirectTo: `${window.location.origin}/auth/callback`
-				}
-			})
+        onProviderClick?.('Google')
+        setIsGoogleLoading(true)
+        try {
+            if (!canOAuth || !supa.auth?.signInWithOAuth) {
+                toast.error('OAuth is unavailable in this environment.')
+                setIsGoogleLoading(false)
+                return
+            }
+
+            const _result = await supa.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: `${window.location.origin}/auth/callback`
+                }
+            })
 			if (_result.error) {
 				toast.error(
 					_result.error.message ?? 'Failed to sign in with Google'
@@ -69,7 +82,7 @@ export function OAuthProviders({
 						disabled && 'cursor-not-allowed op-50'
 					)}
 					onClick={handleGoogleLogin}
-					disabled={disabled || isGoogleLoading}
+                disabled={disabled || isGoogleLoading || !canOAuth}
 					onMouseEnter={() => setIsHovered(true)}
 					onMouseLeave={() => setIsHovered(false)}
 				>
@@ -127,9 +140,9 @@ export function OAuthProviders({
 							animate={{ x: isHovered ? 2 : 0 }}
 							transition={{ duration: 0.2 }}
 						>
-							{isGoogleLoading
-								? 'Connecting...'
-								: 'Sign up with Google'}
+                        {isGoogleLoading
+                            ? 'Connecting...'
+                            : canOAuth ? 'Sign up with Google' : 'OAuth unavailable'}
 						</motion.span>
 
 						{/* Subtle loading indicator */}

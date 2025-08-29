@@ -141,12 +141,15 @@ export async function signOut(): Promise<{ error: AuthError | null }> {
 // ========================
 
 // Re-export useful types for consumers
-export type { Database } from '../types/supabase'
+export type { 
+	Database,
+	Tables, 
+	TablesInsert, 
+	TablesUpdate, 
+	Enums 
+} from '../types/supabase-generated'
+
 export type {
-	Tables,
-	TablesInsert,
-	TablesUpdate,
-	Enums,
 	QueryData,
 	QueryError,
 	TenantFlowUserMetadata,

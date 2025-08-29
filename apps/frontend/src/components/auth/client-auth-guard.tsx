@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { logger } from '@/lib/logger/logger'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser } from '@/app/actions/auth'
-import type { User } from '@supabase/supabase-js'
+import type { User } from '@repo/shared'
 
 interface ClientAuthGuardProps {
 	children: React.ReactNode
