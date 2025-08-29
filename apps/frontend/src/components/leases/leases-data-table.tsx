@@ -38,6 +38,73 @@ import {
 	TableRow
 } from '@/components/ui/table'
 import Link from 'next/link'
+import { createActionColumn, type TableAction } from '@/components/data-table/data-table-action-factory'
+
+// Create custom actions that include download for leases
+const leasesActions: TableAction<LeaseTableRow>[] = [
+	{
+		type: 'view',
+		icon: 'i-lucide-eye',
+		label: 'View lease',
+		href: (lease) => `/leases/${lease.id}`,
+		variant: 'ghost'
+	},
+	{
+		type: 'edit',
+		icon: 'i-lucide-edit-3',
+		label: 'Edit lease',
+		href: (lease) => `/leases/${lease.id}/edit`,
+		variant: 'ghost'
+	},
+	{
+		type: 'custom',
+		icon: 'i-lucide-download',
+		label: 'Download lease',
+		onClick: (lease) => {
+			// Generate and download lease document
+			const leaseData = {
+				leaseId: lease.id,
+				tenant: lease.tenant ? `${lease.tenant.first_name} ${lease.tenant.last_name}` : 'Unknown',
+				unit: lease.unit?.name || 'Unknown Unit',
+				property: lease.unit?.property?.name || 'Unknown Property',
+				startDate: lease.startDate,
+				endDate: lease.endDate,
+				monthlyRent: lease.rentAmount,
+				status: lease.status
+			}
+			
+			// Create downloadable lease document
+			const leaseContent = `LEASE AGREEMENT
+			
+Lease ID: ${leaseData.leaseId}
+Tenant: ${leaseData.tenant}
+Property: ${leaseData.property}
+Unit: ${leaseData.unit}
+Lease Period: ${leaseData.startDate} to ${leaseData.endDate}
+Monthly Rent: $${leaseData.monthlyRent}
+Status: ${leaseData.status}
+
+Generated: ${new Date().toLocaleDateString()}`
+
+			const blob = new Blob([leaseContent], { type: 'text/plain' })
+			const url = URL.createObjectURL(blob)
+			const link = document.createElement('a')
+			link.href = url
+			link.download = `lease-${lease.id}-${leaseData.tenant.replace(/\s+/g, '-').toLowerCase()}.txt`
+			document.body.appendChild(link)
+			link.click()
+			document.body.removeChild(link)
+			URL.revokeObjectURL(url)
+		},
+		variant: 'ghost'
+	}
+]
+
+const LeasesActions = createActionColumn({
+	entity: 'lease',
+	basePath: '/leases',
+	actions: leasesActions
+})
 
 function LeaseRow({ lease }: { lease: LeaseTableRow }) {
 	// Check if lease is expiring soon (within 30 days)
@@ -168,21 +235,7 @@ function LeaseRow({ lease }: { lease: LeaseTableRow }) {
 				</div>
 			</TableCell>
 			<TableCell>
-				<div className="flex items-center gap-2">
-					<Link href={`/leases/${lease.id}`}>
-						<Button variant="ghost" size="sm">
-							<i className="i-lucide-eye h-4 w-4"  />
-						</Button>
-					</Link>
-					<Link href={`/leases/${lease.id}/edit`}>
-						<Button variant="ghost" size="sm">
-							<i className="i-lucide-edit-3 h-4 w-4"  />
-						</Button>
-					</Link>
-					<Button variant="ghost" size="sm">
-						<i className="i-lucide-download h-4 w-4"  />
-					</Button>
-				</div>
+				<LeasesActions item={lease} />
 			</TableCell>
 		</TableRow>
 	)

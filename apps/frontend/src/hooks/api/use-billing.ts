@@ -20,6 +20,15 @@ interface PortalRedirectResponse {
 	message: string
 }
 
+// Generic portal request factory - DRY principle  
+const createPortalRequest = () => ({
+	queryFn: () => fetchPortalUrl()
+})
+
+const createPortalMutation = () => ({
+	mutationFn: () => fetchPortalUrl()
+})
+
 /**
  * Fetch current user subscription
  */
@@ -59,7 +68,7 @@ export function useInvoices(options?: {
 }): UseQueryResult<PortalRedirectResponse> {
     return useQuery({
         queryKey: queryKeys.billing.invoices(),
-        queryFn: () => fetchPortalUrl(),
+        ...createPortalRequest(),
         enabled: options?.enabled ?? true,
         refetchInterval: options?.refetchInterval,
         staleTime: 10 * 60 * 1000 // 10 minutes
@@ -74,7 +83,7 @@ export function usePaymentMethods(options?: {
 }): UseQueryResult<PortalRedirectResponse> {
     return useQuery({
         queryKey: queryKeys.billing.paymentMethods(),
-        queryFn: () => fetchPortalUrl(),
+        ...createPortalRequest(),
         enabled: options?.enabled ?? true,
         staleTime: 10 * 60 * 1000 // 10 minutes
     })
@@ -328,7 +337,7 @@ export function useAddPaymentMethod(): UseMutationResult<
 	const queryClient = useQueryClient()
 
     return useMutation({
-        mutationFn: () => fetchPortalUrl(),
+        ...createPortalMutation(),
 		onSuccess: () => {
 			toast.success('Payment method added successfully')
 		},
@@ -421,7 +430,7 @@ export function useDownloadInvoice(): UseMutationResult<
     { invoiceId: string; filename?: string }
 > {
     return useMutation({
-        mutationFn: () => fetchPortalUrl(),
+        ...createPortalMutation(),
         onSuccess: data => {
             const url = data.portalUrl
             if (url) {

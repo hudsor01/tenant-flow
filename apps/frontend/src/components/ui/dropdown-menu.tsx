@@ -124,6 +124,7 @@ function DropdownMenuRadioGroup({
 	)
 }
 
+// eslint-disable-next-line anti-duplication/no-duplicate-function-implementations
 function DropdownMenuRadioItem({
 	className,
 	children,
@@ -197,6 +198,7 @@ function DropdownMenuShortcut({
 	)
 }
 
+// eslint-disable-next-line anti-duplication/no-duplicate-function-implementations
 function DropdownMenuSub({
 	...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Sub>) {

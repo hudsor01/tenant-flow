@@ -10,7 +10,7 @@
 	},
 	"scripts": {
 		"dev": "next dev -p 4500",
-		"build": "npm run generate:schemas && next build",
+		"build": "next build",
 		"build:no-schemas": "next build",
 		"start": "next start",
 		"lint": "eslint . --fix",

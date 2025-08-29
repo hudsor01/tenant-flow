@@ -21,14 +21,18 @@ import {
 	TableHeader,
 	TableRow
 } from '@/components/ui/table'
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
+// Dropdown menu imports removed - now using consolidated action factory
 import Link from 'next/link'
 import type { PropertyWithUnits } from '@repo/shared'
+import { createPropertiesActions, createActionColumn } from '@/components/data-table/data-table-action-factory'
+
+// Create actions components using consolidated factory
+const PropertiesActions = createPropertiesActions
+const PropertiesDropdownActions = createActionColumn({
+	entity: 'property',
+	basePath: '/properties',
+	variant: 'dropdown'
+})
 
 // Use relation type that includes units for property data table
 interface Property_RowProps {
@@ -37,7 +41,7 @@ interface Property_RowProps {
   onEdit?: (property: PropertyWithUnits) => void
 }
 
-function Property_Row({ property, onView, onEdit }: Property_RowProps) {
+function Property_Row({ property, onView: _onView, onEdit: _onEdit }: Property_RowProps) {
 	const totalUnits = property.units?.length ?? 0
 	const occupiedUnits =
 		property.units?.filter(unit => unit.status === 'OCCUPIED').length ?? 0
@@ -48,7 +52,7 @@ function Property_Row({ property, onView, onEdit }: Property_RowProps) {
 		<TableRow className="hover:bg-accent/50">
 			<TableCell
 				className="cursor-pointer"
-				onClick={() => onView?.(property)}
+				onClick={() => _onView?.(property)}
 			>
 				<div className="flex items-center gap-3">
 					<div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-lg">
@@ -96,30 +100,7 @@ function Property_Row({ property, onView, onEdit }: Property_RowProps) {
 				</Badge>
 			</TableCell>
 			<TableCell>
-				<div className="flex items-center gap-2">
-					<Button
-						variant="ghost"
-						size="sm"
-						onClick={(e: React.MouseEvent) => {
-							e.stopPropagation()
-							onView?.(property)
-						}}
-						aria-label={`View ${property.name}`}
-					>
-						<i className="i-lucide-eye h-4 w-4"  />
-					</Button>
-					<Button
-						variant="ghost"
-						size="sm"
-						onClick={(e: React.MouseEvent) => {
-							e.stopPropagation()
-							onEdit?.(property)
-						}}
-						aria-label={`Edit ${property.name}`}
-					>
-						<i className="i-lucide-edit-3 h-4 w-4"  />
-					</Button>
-				</div>
+				<PropertiesActions item={property} />
 			</TableCell>
 		</TableRow>
 	)
@@ -131,7 +112,7 @@ interface Property_CardProps {
   onEdit?: (property: PropertyWithUnits) => void
 }
 
-function Property_Card({ property, onView, onEdit }: Property_CardProps) {
+function Property_Card({ property, onView: _onView, onEdit: _onEdit }: Property_CardProps) {
 	const totalUnits = property.units?.length ?? 0
 	const occupiedUnits =
 		property.units?.filter(unit => unit.status === 'OCCUPIED').length ?? 0
@@ -156,31 +137,7 @@ function Property_Card({ property, onView, onEdit }: Property_CardProps) {
 							</div>
 						</div>
 					</div>
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<Button
-								variant="ghost"
-								size="sm"
-								className="h-8 w-8 p-0"
-							>
-								<i className="i-lucide-more-horizontal h-4 w-4"  />
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end">
-							<DropdownMenuItem
-								onClick={() => onView?.(property)}
-							>
-								<i className="i-lucide-eye mr-2 h-4 w-4"  />
-								View Details
-							</DropdownMenuItem>
-							<DropdownMenuItem
-								onClick={() => onEdit?.(property)}
-							>
-								<i className="i-lucide-edit-3 mr-2 h-4 w-4"  />
-								Edit Property_
-							</DropdownMenuItem>
-						</DropdownMenuContent>
-					</DropdownMenu>
+					<PropertiesDropdownActions item={property} />
 				</div>
 			</CardHeader>
 			<CardContent className="pt-0">

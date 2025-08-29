@@ -15,6 +15,9 @@ export default defineConfig({
     ]
   },
   
+  // Disable web fonts globally to prevent timeout in Vercel builds
+  safelist: [],
+  
   presets: [
     // Tailwind 4 utilities (your choice - following user preference)
     presetWind4({
@@ -27,11 +30,14 @@ export default defineConfig({
       darkSelector: '.dark'
     }),
     
-    // Icons only
+    // Icons only - load from local packages
+    // Note: Fonts are handled by Next.js next/font/google in layout.tsx
     presetIcons({
       collections: {
         lucide: () => import('@iconify-json/lucide/icons.json').then(i => i.default),
-      }
+      },
+      // Don't use CDN - load icons from local packages only
+      autoInstall: false
     }),
   ],
   

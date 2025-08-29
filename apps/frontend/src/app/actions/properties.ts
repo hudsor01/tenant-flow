@@ -43,10 +43,11 @@ function revalidatePropertyPaths(propertyId?: string): void {
 }
 
 // Shared response formatting for property operations - DRY principle
-function formatPropertyResponse(data: Property & { units?: Unit[] }): PropertyWithUnits {
+function formatPropertyResponse(data: unknown): PropertyWithUnits {
+  const propertyData = data as Property & { units?: Unit[] }
   return {
-    ...data,
-    units: data.units || []
+    ...propertyData,
+    units: propertyData.units || []
   } as PropertyWithUnits
 }
 
@@ -171,11 +172,18 @@ export async function createProperty(formData: FormData): Promise<PropertyWithUn
       revalidatePaths: ['/properties', '/dashboard'],
       transform: formatPropertyResponse
     },
-    (supabase) => supabase
-      .from('properties')
-      .insert(propertyData)
-      .select(`*, units (*)`)
-      .single()
+    async (supabase) => {
+      const result = await supabase
+        .from('properties')
+        .insert(propertyData)
+        .select(`*, units (*)`)
+        .single()
+      
+      return {
+        data: result.data,
+        error: result.error ? new Error(result.error.message) : null
+      }
+    }
   )
 }
 
@@ -197,12 +205,19 @@ export async function updateProperty(
       revalidatePaths: ['/properties', '/dashboard', `/properties/${id}`],
       transform: formatPropertyResponse
     },
-    (supabase) => supabase
-      .from('properties')
-      .update(updateData)
-      .eq('id', id)
-      .select(`*, units (*)`)
-      .single()
+    async (supabase) => {
+      const result = await supabase
+        .from('properties')
+        .update(updateData)
+        .eq('id', id)
+        .select(`*, units (*)`)
+        .single()
+      
+      return {
+        data: result.data,
+        error: result.error ? new Error(result.error.message) : null
+      }
+    }
   )
 }
 
@@ -228,42 +243,6 @@ export async function deleteProperty(id: string): Promise<void> {
   redirect('/properties')
 }
 
-/**
- * NATIVE Server Action: Get property statistics
- * Aggregated data with caching - specialized for dashboard stats
- */
-export async function getPropertyStats() {
-  const supabase = await createActionClient()
-  
-  // Batch queries for better performance
-  const [
-    { count: totalProperties },
-    { data: occupiedData },
-    { count: openMaintenance }
-  ] = await Promise.all([
-    supabase.from('properties').select('*', { count: 'exact', head: true }),
-    supabase.from('properties').select(`
-      id,
-      units!inner(
-        id,
-        leases!inner(id, status)
-      )
-    `).eq('units.leases.status', 'ACTIVE'),
-    supabase.from('maintenance_requests').select('*', { count: 'exact', head: true }).eq('status', 'OPEN')
-  ])
-
-  const occupiedProperties = occupiedData?.length || 0
-  const occupancyRate = totalProperties 
-    ? Math.round((occupiedProperties / totalProperties) * 100) 
-    : 0
-
-  return {
-    totalProperties: totalProperties || 0,
-    occupancyRate,
-    openMaintenanceRequests: openMaintenance || 0,
-    monthlyRevenue: 0 // Calculate from active leases if needed
-  }
-}
 
 /**
  * NATIVE Server Action: Bulk update properties

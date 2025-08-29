@@ -258,6 +258,20 @@ class SimpleApiClient {
 		return this.makeValidatedRequest<T>('GET', path, schema, schemaName, undefined, config)
 	}
 
+	// Generic validated request method - DRY principle
+	private createValidatedMethod<T>(method: 'POST' | 'PUT' | 'PATCH') {
+		return (
+			path: string,
+			schema: ZodTypeAny,
+			schemaName: string,
+			data?: Record<string, unknown> | FormData,
+			config?: RequestConfig,
+			_validationOptions?: ValidationOptions
+		): Promise<T> => {
+			return this.makeValidatedRequest<T>(method, path, schema, schemaName, data, config)
+		}
+	}
+
 	async postValidated<T>(
 		path: string,
 		schema: ZodTypeAny,
@@ -266,7 +280,7 @@ class SimpleApiClient {
 		config?: RequestConfig,
 		_validationOptions?: ValidationOptions
 	): Promise<T> {
-		return this.makeValidatedRequest<T>('POST', path, schema, schemaName, data, config)
+		return this.createValidatedMethod<T>('POST')(path, schema, schemaName, data, config, _validationOptions)
 	}
 
 	async putValidated<T>(
@@ -277,7 +291,7 @@ class SimpleApiClient {
 		config?: RequestConfig,
 		_validationOptions?: ValidationOptions
 	): Promise<T> {
-		return this.makeValidatedRequest<T>('PUT', path, schema, schemaName, data, config)
+		return this.createValidatedMethod<T>('PUT')(path, schema, schemaName, data, config, _validationOptions)
 	}
 
 	async patchValidated<T>(
@@ -288,7 +302,7 @@ class SimpleApiClient {
 		config?: RequestConfig,
 		_validationOptions?: ValidationOptions
 	): Promise<T> {
-		return this.makeValidatedRequest<T>('PATCH', path, schema, schemaName, data, config)
+		return this.createValidatedMethod<T>('PATCH')(path, schema, schemaName, data, config, _validationOptions)
 	}
 
 	async deleteValidated<T>(

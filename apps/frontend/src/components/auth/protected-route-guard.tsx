@@ -5,18 +5,10 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/use-auth'
 import { logger } from '@/lib/logger/logger'
 
-interface BaseAuthGuardProps {
-	children: React.ReactNode
-	redirectTo?: string
-	fallback?: React.ReactNode
-}
-
-interface ProtectedRouteGuardProps extends BaseAuthGuardProps {
-	requireAuth?: boolean
-}
+// Deleted unused interfaces - use props inline
 
 // Shared loading component - DRY principle
-function AuthLoadingState({ 
+export function AuthLoadingState({ 
 	message, 
 	bgColor = 'bg-gray-1' 
 }: { 
@@ -69,27 +61,26 @@ function useAuthGuard(mode: 'protect' | 'reverse', redirectTo: string) {
 	}
 }
 
-/**
- * AUTHENTICATED-ONLY Route Guard
- * 
- * PURPOSE: Requires user authentication - blocks anonymous users
- * BEHAVIOR: Redirects unauthenticated users to login
- * USE CASE: Dashboard pages, user settings, private content
- *
- * This component handles client-side auth protection and provides
- * loading states during auth checks. It's designed to work alongside
- * server-side protection for a seamless user experience.
- */
-export function ProtectedRouteGuard({
+// Generic auth guard implementation - DRY principle
+export function AuthGuardCore({
 	children,
-	redirectTo = '/auth/login',
-	requireAuth = true,
-	fallback = <AuthLoadingState message="Checking authentication..." />
-}: ProtectedRouteGuardProps) {
+	mode,
+	redirectTo,
+	fallback,
+	redirectingMessage,
+	requireAuth = true
+}: {
+	children: React.ReactNode
+	mode: 'protect' | 'reverse'
+	redirectTo: string
+	fallback: React.ReactNode
+	redirectingMessage: string
+	requireAuth?: boolean
+}) {
 	const { loading, initialized, isRedirecting, shouldShowContent } = 
-		useAuthGuard('protect', redirectTo)
+		useAuthGuard(mode, redirectTo)
 
-	// If auth protection is disabled, render children immediately
+	// If auth protection is disabled (for ProtectedRouteGuard only)
 	if (!requireAuth) {
 		return <>{children}</>
 	}
@@ -101,44 +92,14 @@ export function ProtectedRouteGuard({
 
 	// Show loading state while redirecting
 	if (isRedirecting || !shouldShowContent) {
-		return <AuthLoadingState message="Redirecting to login..." />
+		return <AuthLoadingState message={redirectingMessage} />
 	}
 
-	// User is authenticated, render protected content
+	// Render content when conditions are met
 	return <>{children}</>
 }
 
-/**
- * ANONYMOUS-ONLY Route Guard (Reverse Auth)
- * 
- * PURPOSE: Requires user to be NOT authenticated - blocks logged-in users  
- * BEHAVIOR: Redirects authenticated users to dashboard
- * USE CASE: Login pages, signup pages, public landing with auth CTA
- * 
- * OPPOSITE of ProtectedRouteGuard - prevents logged-in users from seeing
- * auth forms or marketing pages intended for anonymous visitors.
- */
-export function ReverseAuthGuard({
-	children,
-	redirectTo = '/dashboard',
-	fallback = <AuthLoadingState message="Loading..." bgColor="bg-white" />
-}: Omit<ProtectedRouteGuardProps, 'requireAuth'>) {
-	const { loading, initialized, isRedirecting, shouldShowContent } = 
-		useAuthGuard('reverse', redirectTo)
-
-	// Show loading state while initializing or during auth check
-	if (!initialized || loading) {
-		return <>{fallback}</>
-	}
-
-	// Show loading state while redirecting authenticated users
-	if (isRedirecting || !shouldShowContent) {
-		return <AuthLoadingState message="Redirecting to dashboard..." bgColor="bg-white" />
-	}
-
-	// User is not authenticated, show auth content
-	return <>{children}</>
-}
+// Deleted unnecessary wrapper functions - use AuthGuardCore directly with appropriate mode prop
 
 /**
  * Simple loading component for auth states (alias for compatibility)

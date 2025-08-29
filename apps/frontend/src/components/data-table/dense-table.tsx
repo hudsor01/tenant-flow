@@ -21,7 +21,6 @@ import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,
 	DropdownMenuContent,
-	DropdownMenuItem,
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
@@ -35,6 +34,7 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
+import { createActionColumn } from '@/components/data-table/data-table-action-factory'
 
 interface DenseTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[]
@@ -522,57 +522,36 @@ export function createSelectColumn<T>() {
 	} as ColumnDef<T>
 }
 
-export function createActionsColumn<T>(
-	actions: {
-		label: string
-		onClick: (_item: T) => void
-		icon?: React.ReactNode
-		variant?: 'default' | 'destructive'
-	}[]
+export function createActionsColumn<T extends { id: string }>(
+    actions: {
+        label: string
+        onClick: (_item: T) => void
+        icon?: React.ReactNode
+        variant?: 'default' | 'destructive'
+    }[]
 ) {
-	return {
-		id: 'actions',
-		enableHiding: false,
-		size: 50,
-		cell: ({ row }: { row: { original: T } }) => {
-			const item = row.original
+    // Delegate to consolidated factory (dropdown variant) to avoid duplicating menu markup
+    const Actions = createActionColumn<T>({
+        entity: 'item',
+        basePath: '',
+        actions: actions.map(a => ({
+            type: 'custom',
+            icon: '',
+            label: a.label,
+            onClick: (item: T) => a.onClick(item),
+            variant: a.variant === 'destructive' ? 'destructive' : 'ghost'
+        })),
+        variant: 'dropdown'
+    })
 
-			return (
-				<div className="op-0 transition-opacity group-hover:op-100">
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<Button variant="ghost" className="h-6 w-6 p-0">
-								<span className="sr-only">Open menu</span>
-								<i className="i-lucide-more-horizontal h-3 w-3"  />
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end" className="w-[160px]">
-							<DropdownMenuLabel className="text-xs">
-								Actions
-							</DropdownMenuLabel>
-							<DropdownMenuSeparator />
-							{actions.map((action, index) => (
-								<DropdownMenuItem
-									key={index}
-									onClick={() => action.onClick(item)}
-									className={cn(
-										'text-xs',
-										action.variant === 'destructive' &&
-											'text-destructive focus:text-destructive'
-									)}
-								>
-									{action.icon && (
-										<span className="mr-2">
-											{action.icon}
-										</span>
-									)}
-									{action.label}
-								</DropdownMenuItem>
-							))}
-						</DropdownMenuContent>
-					</DropdownMenu>
-				</div>
-			)
-		}
-	} as ColumnDef<T>
+    return {
+        id: 'actions',
+        enableHiding: false,
+        size: 50,
+        cell: ({ row }: { row: { original: T } }) => (
+            <div className="op-0 transition-opacity group-hover:op-100">
+                <Actions item={row.original} />
+            </div>
+        )
+    } as ColumnDef<T>
 }

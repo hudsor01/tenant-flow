@@ -3,7 +3,7 @@
  * Eliminates duplication in FormData processing, validation, and Supabase operations
  */
 
-import { createActionClient } from '@/lib/supabase/server'
+import { createActionClient } from '@/lib/supabase/action-client'
 import { revalidatePath } from 'next/cache'
 import type { Database } from '@repo/shared'
 
