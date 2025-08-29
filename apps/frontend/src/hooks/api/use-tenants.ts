@@ -12,6 +12,7 @@ import type {
 	TenantStats
 } from '@repo/shared'
 import { get } from '@/lib/api-client'
+import { API_ENDPOINTS } from '@/lib/constants/api-endpoints'
 import { queryKeys } from '@/lib/react-query/query-keys'
 
 /**
@@ -20,7 +21,7 @@ import { queryKeys } from '@/lib/react-query/query-keys'
 export function useTenants(query?: TenantQuery): UseSuspenseQueryResult<Tenant[]> {
 	return useSuspenseQuery({
 		queryKey: queryKeys.tenants.list(query),
-		queryFn: async () => get<Tenant[]>('/api/tenants'),
+		queryFn: async () => get<Tenant[]>(API_ENDPOINTS.TENANTS.BASE),
 		staleTime: 5 * 60 * 1000 // 5 minutes
 	})
 }
@@ -31,7 +32,7 @@ export function useTenants(query?: TenantQuery): UseSuspenseQueryResult<Tenant[]
 export function useTenant(id: string): UseSuspenseQueryResult<Tenant> {
 	return useSuspenseQuery({
 		queryKey: queryKeys.tenants.detail(id),
-		queryFn: async () => get<Tenant>(`/api/tenants/${id}`),
+		queryFn: async () => get<Tenant>(API_ENDPOINTS.TENANTS.BY_ID(id)),
 		staleTime: 2 * 60 * 1000 // 2 minutes
 	})
 }
@@ -42,7 +43,7 @@ export function useTenant(id: string): UseSuspenseQueryResult<Tenant> {
 export function useTenantStats(): UseSuspenseQueryResult<TenantStats> {
 	return useSuspenseQuery({
 		queryKey: queryKeys.tenants.stats(),
-		queryFn: async () => get<TenantStats>('/api/tenants/stats'),
+		queryFn: async () => get<TenantStats>(API_ENDPOINTS.TENANTS.STATS),
 		staleTime: 2 * 60 * 1000 // 2 minutes
 	})
 }
