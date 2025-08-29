@@ -108,7 +108,7 @@ export default function BlogContentSection({
 						have already transformed their property management.
 					</p>
 					<Flex direction={{ initial: 'column', sm: 'row' }} gap="4">
-						<Link href="/get-started" style={{ flex: 1 }}>
+						<Link href="/auth/signup?source=blog" style={{ flex: 1 }}>
 							<Button
 								variant="default"
 								size="lg"
