@@ -11,6 +11,7 @@ import {
 	CardTitle
 } from '@/components/ui/card'
 import { signupFormAction } from '@/app/actions/auth'
+import Link from 'next/link'
 
 interface SimpleSignupFormProps {
 	redirectTo?: string
@@ -78,6 +79,19 @@ export function SimpleSignupForm({
 						{isPending ? 'Creating account...' : 'Create Account'}
 					</Button>
 				</form>
+
+				{/* Sign in link */}
+				<div className="text-center text-sm mt-4">
+					<span className="text-muted-foreground">
+						Already have an account?{' '}
+					</span>
+					<Link
+						href="/auth/login"
+						className="text-primary font-medium hover:underline"
+					>
+						Sign in
+					</Link>
+				</div>
 			</CardContent>
 		</Card>
 	)

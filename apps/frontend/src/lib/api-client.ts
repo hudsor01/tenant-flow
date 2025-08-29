@@ -97,7 +97,7 @@ class SimpleApiClient {
 			clearTimeout(timeoutId)
 
 			if (response.status === 401) {
-				window.location.href = '/auth/login'
+				// Do not redirect here; surface a typed error and let callers/UI decide.
 				throw new Error('Authentication required')
 			}
 
