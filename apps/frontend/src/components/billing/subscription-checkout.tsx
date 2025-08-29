@@ -127,8 +127,8 @@ export function SubscriptionCheckout({
 		return (
 			<Card className="mx-auto w-full max-w-md">
 				<CardHeader className="text-center">
-					<CardTitle className="flex items-center justify-center gap-2 text-green-600">
-						<i className="i-lucide-checkcircle inline-block h-6 w-6"  />
+					<CardTitle className="flex items-center justify-center gap-2 text-green-6">
+						<i className="i-lucide-checkcircle h-6 w-6"  />
 						Subscription Activated!
 					</CardTitle>
 					<CardDescription>
@@ -156,7 +156,7 @@ export function SubscriptionCheckout({
 		<Card className="mx-auto w-full max-w-md">
 			<CardHeader className="text-center">
 				<CardTitle className="flex items-center justify-center gap-2">
-					<i className="i-lucide-credit-card inline-block h-5 w-5"  />
+					<i className="i-lucide-credit-card h-5 w-5"  />
 					Subscribe to {plan?.name}
 				</CardTitle>
 				<CardDescription>
@@ -168,7 +168,7 @@ export function SubscriptionCheckout({
 					)}
 					<br />
 					<div className="mt-2 flex items-center justify-center gap-1">
-						<i className="i-lucide-shield inline-block h-4 w-4"  />
+						<i className="i-lucide-shield h-4 w-4"  />
 						<span>Secure checkout powered by Stripe</span>
 					</div>
 				</CardDescription>
@@ -257,7 +257,7 @@ export function SubscriptionCheckout({
 						>
 							{isProcessing ? (
 								<>
-									<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
+									<i className="i-lucide-loader-2 mr-2 h-4 w-4 animate-spin"  />
 									Processing...
 								</>
 							) : (
@@ -269,7 +269,7 @@ export function SubscriptionCheckout({
 					{/* Enhanced security indicators */}
 					<div className="space-y-2 text-center">
 						<div className="text-muted-foreground flex items-center justify-center gap-2 text-sm">
-							<i className="i-lucide-shield inline-block h-4 w-4"  />
+							<i className="i-lucide-shield h-4 w-4"  />
 							<span>
 								256-bit SSL encryption • PCI DSS compliant
 							</span>

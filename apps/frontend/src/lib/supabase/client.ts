@@ -2,7 +2,7 @@ import { createBrowserClient } from '@supabase/ssr'
 import { logger } from '@/lib/logger/logger'
 import { config } from '../config'
 import type { Database } from '@repo/shared/types/supabase-generated'
-import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
+import type { AuthChangeEvent, Session, User, AuthError } from '@supabase/supabase-js'
 
 // Use global variable to ensure single instance across all imports
 
@@ -95,50 +95,48 @@ export const auth = new Proxy({} as object, {
 const authRequestTimestamps = new Map<string, number>()
 const AUTH_RATE_LIMIT_MS = 2000
 
-export async function getSession() {
-	const key = 'getSession'
-	const lastCall = authRequestTimestamps.get(key)
+// Session helper with rate limiting
+async function _getSessionWithRateLimit(): Promise<{ session: Session | null; error: AuthError | null }> {
+	const lastCall = authRequestTimestamps.get('getSession')
 	const now = Date.now()
 
 	if (lastCall && now - lastCall < AUTH_RATE_LIMIT_MS) {
-		logger.warn(`[Auth] Rate limiting ${key} - too many requests`, {
+		logger.warn(`[Auth] Rate limiting getSession - too many requests`, {
 			component: 'lib_supabase_client.ts'
 		})
-		const {
-			data: { session }
-		} = await supabase.auth.getSession()
-		return { session, error: null }
+		const result = await supabase.auth.getSession()
+		return { session: result.data.session ?? null, error: null }
 	}
 
-	authRequestTimestamps.set(key, now)
-	const {
-		data: { session },
-		error
-	} = await supabase.auth.getSession()
-	return { session, error }
+	authRequestTimestamps.set('getSession', now)
+	const result = await supabase.auth.getSession()
+	return { session: result.data.session ?? null, error: result.error }
+}
+
+// User helper with rate limiting  
+async function _getUserWithRateLimit(): Promise<{ user: User | null; error: AuthError | null }> {
+	const lastCall = authRequestTimestamps.get('getUser')
+	const now = Date.now()
+
+	if (lastCall && now - lastCall < AUTH_RATE_LIMIT_MS) {
+		logger.warn(`[Auth] Rate limiting getUser - too many requests`, {
+			component: 'lib_supabase_client.ts'
+		})
+		const result = await supabase.auth.getUser()
+		return { user: result.data.user ?? null, error: null }
+	}
+
+	authRequestTimestamps.set('getUser', now)
+	const result = await supabase.auth.getUser()
+	return { user: result.data.user ?? null, error: result.error }
+}
+
+export async function getSession() {
+	return _getSessionWithRateLimit()
 }
 
 export async function getUser() {
-	const key = 'getUser'
-	const lastCall = authRequestTimestamps.get(key)
-	const now = Date.now()
-
-	if (lastCall && now - lastCall < AUTH_RATE_LIMIT_MS) {
-		logger.warn(`[Auth] Rate limiting ${key} - too many requests`, {
-			component: 'lib_supabase_client.ts'
-		})
-		const {
-			data: { user }
-		} = await supabase.auth.getUser()
-		return { user, error: null }
-	}
-
-	authRequestTimestamps.set(key, now)
-	const {
-		data: { user },
-		error
-	} = await supabase.auth.getUser()
-	return { user, error }
+	return _getUserWithRateLimit()
 }
 
 export function onAuthStateChange(

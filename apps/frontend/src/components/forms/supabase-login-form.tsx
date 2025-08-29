@@ -104,16 +104,16 @@ export function SimpleLoginForm({
 								disabled={isPending}
 							>
 								{showPassword ? (
-									<i className="i-lucide-eye-off inline-block h-4 w-4"  />
+									<i className="i-lucide-eye-off h-4 w-4"  />
 								) : (
-									<i className="i-lucide-eye inline-block h-4 w-4"  />
+									<i className="i-lucide-eye h-4 w-4"  />
 								)}
 							</button>
 						</div>
 					</div>
 
 					{state.error && (
-						<div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+						<div className="rounded-md border border-red-2 bg-red-1 p-3 text-sm text-red-6">
 							{state.error}
 						</div>
 					)}

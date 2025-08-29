@@ -1,6 +1,7 @@
 'use client'
 
 import { useUnits } from '@/hooks/api/use-units'
+import { handleStaticGenerationError } from '@/lib/utils/static-generation'
 import {
 	Card,
 	CardContent,
@@ -21,6 +22,7 @@ import {
 } from '@/components/ui/table'
 import Link from 'next/link'
 import type { Database } from '@repo/shared'
+import { createUnitsActions } from '@/components/data-table/data-table-action-factory'
 
 // Define types directly from Database schema - NO DUPLICATION
 type Unit = Database['public']['Tables']['Unit']['Row']
@@ -35,6 +37,9 @@ type UnitDisplayData = Unit & {
 	monthlyRent?: number
 }
 
+// Create actions component using consolidated factory
+const UnitsActions = createUnitsActions
+
 function UnitRow({ unit }: { unit: UnitDisplayData }) {
 	// Get status styling
 	const getStatusBadge = (status: string) => {
@@ -43,14 +48,14 @@ function UnitRow({ unit }: { unit: UnitDisplayData }) {
 				return (
 					<Badge
 						variant="secondary"
-						className="bg-green-100 text-green-800"
+						className="bg-green-1 text-green-8"
 					>
 						Available
 					</Badge>
 				)
 			case 'OCCUPIED':
 				return (
-					<Badge variant="default" className="bg-blue-500">
+					<Badge variant="default" className="bg-blue-5">
 						Occupied
 					</Badge>
 				)
@@ -82,15 +87,15 @@ function UnitRow({ unit }: { unit: UnitDisplayData }) {
 		<TableRow className="hover:bg-accent/50">
 			<TableCell>
 				<div className="flex items-center gap-3">
-					<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
-						<i className="i-lucide-home inline-block h-4 w-4 text-blue-600 dark:text-blue-400"  />
+					<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-1 dark:bg-blue-9/20">
+						<i className="i-lucide-home h-4 w-4 text-blue-6 dark:text-blue-4"  />
 					</div>
 					<div className="space-y-1">
 						<p className="font-medium leading-none">
 							Unit {unit.unitNumber}
 						</p>
 						<div className="text-muted-foreground flex items-center gap-1 text-sm">
-							<i className="i-lucide-building inline-block h-3 w-3"  />
+							<i className="i-lucide-building h-3 w-3"  />
 							{unit.property?.name || 'Unknown Property_'}
 						</div>
 					</div>
@@ -98,36 +103,25 @@ function UnitRow({ unit }: { unit: UnitDisplayData }) {
 			</TableCell>
 			<TableCell>
 				<div className="flex items-center gap-1 text-sm">
-					<i className="i-lucide-users inline-block text-muted-foreground h-3 w-3"  />
+					<i className="i-lucide-users text-muted-foreground h-3 w-3"  />
 					{unit.bedrooms}BR / {unit.bathrooms}BA
 				</div>
 			</TableCell>
 			<TableCell>
 				<div className="flex items-center gap-1 text-sm">
-					<i className="i-lucide-ruler inline-block text-muted-foreground h-3 w-3"  />
+					<i className="i-lucide-ruler text-muted-foreground h-3 w-3"  />
 					{formatSquareFeet(unit.squareFeet)}
 				</div>
 			</TableCell>
 			<TableCell>
 				<div className="flex items-center gap-1 text-sm">
-					<i className="i-lucide-dollar-sign inline-block text-muted-foreground h-3 w-3"  />
+					<i className="i-lucide-dollar-sign text-muted-foreground h-3 w-3"  />
 					{formatRent(unit.rent)}
 				</div>
 			</TableCell>
 			<TableCell>{getStatusBadge(unit.status)}</TableCell>
 			<TableCell>
-				<div className="flex items-center gap-2">
-					<Link href={`/units/${unit.id}`}>
-						<Button variant="ghost" size="sm">
-							<i className="i-lucide-eye inline-block h-4 w-4"  />
-						</Button>
-					</Link>
-					<Link href={`/units/${unit.id}/edit`}>
-						<Button variant="ghost" size="sm">
-							<i className="i-lucide-edit-3 inline-block h-4 w-4"  />
-						</Button>
-					</Link>
-				</div>
+				<UnitsActions item={unit} />
 			</TableCell>
 		</TableRow>
 	)
@@ -170,7 +164,7 @@ function UnitsTableUI({ units }: UnitsTableUIProps) {
 				</CardHeader>
 				<CardContent>
 					<div className="flex flex-col items-center justify-center py-12 text-center">
-						<i className="i-lucide-home inline-block text-muted-foreground/50 mb-4 h-16 w-16"  />
+						<i className="i-lucide-home text-muted-foreground/50 mb-4 h-16 w-16"  />
 						<h3 className="mb-2 text-lg font-medium">
 							No units yet
 						</h3>
@@ -180,7 +174,7 @@ function UnitsTableUI({ units }: UnitsTableUIProps) {
 						</p>
 						<Link href="/units/new">
 							<Button>
-								<i className="i-lucide-plus inline-block mr-2 h-4 w-4"  />
+								<i className="i-lucide-plus mr-2 h-4 w-4"  />
 								Add First Unit
 							</Button>
 						</Link>
@@ -202,7 +196,7 @@ function UnitsTableUI({ units }: UnitsTableUIProps) {
 					</div>
 					<Link href="/units/new">
 						<Button size="sm">
-							<i className="i-lucide-plus inline-block mr-2 h-4 w-4"  />
+							<i className="i-lucide-plus mr-2 h-4 w-4"  />
 							Add Unit
 						</Button>
 					</Link>
@@ -263,9 +257,19 @@ export function UnitsDataTable() {
 		)
 	}
 
-	// Error handling - throw to be caught by error boundary
+	// Error handling - graceful fallback for static generation
 	if (error) {
-		throw error
+		return handleStaticGenerationError(error, (
+			<Card>
+				<CardHeader>
+					<CardTitle>Units</CardTitle>
+					<CardDescription>Loading units data...</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<UnitsTableSkeleton />
+				</CardContent>
+			</Card>
+		))
 	}
 
 	return <UnitsTableUI units={(units as UnitDisplayData[]) || []} />

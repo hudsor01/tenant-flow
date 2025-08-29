@@ -29,12 +29,12 @@ export function Spinner({
 	
 	// Map colors to UnoCSS color utilities
 	const colorMap = {
-		primary: 'text-blue-600',
-		secondary: 'text-gray-500',
+		primary: 'text-blue-6',
+		secondary: 'text-gray-5',
 		white: 'text-white',
 		current: 'text-current',
-		red: 'text-red-500',
-		blue: 'text-blue-500'
+		red: 'text-red-5',
+		blue: 'text-blue-5'
 	}
 	
 	// Different spinner variants using various icon libraries
@@ -73,7 +73,7 @@ export function LoadingSpinner({
 	return (
 		<div className="flex items-center gap-2">
 			<Spinner size={size} variant={variant} />
-			<span className="text-gray-600 text-sm">{text}</span>
+			<span className="text-gray-6 text-sm">{text}</span>
 		</div>
 	)
 }
@@ -94,7 +94,7 @@ export function CenteredSpinner({
 			<div className="text-center">
 				<Spinner size={size} variant={variant} className="mx-auto" />
 				{text && (
-					<p className="text-gray-600 mt-2 text-sm">{text}</p>
+					<p className="text-gray-6 mt-2 text-sm">{text}</p>
 				)}
 			</div>
 		</div>

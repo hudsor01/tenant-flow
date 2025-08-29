@@ -9,6 +9,7 @@
  */
 
 import baseConfig from '@repo/eslint-config/base'
+import antiDuplicationRules from '@repo/eslint-config/rules/anti-duplication'
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
 import reactPlugin from 'eslint-plugin-react'
 import nextPlugin from '@next/eslint-plugin-next'
@@ -16,6 +17,14 @@ import nextPlugin from '@next/eslint-plugin-next'
 export default [
   // Use shared base configuration (ignores, JavaScript, TypeScript base rules)
   ...baseConfig,
+  
+  // Anti-duplication rules configuration
+  {
+    name: 'frontend/anti-duplication-plugin',
+    plugins: {
+      'anti-duplication': antiDuplicationRules
+    }
+  },
   
   // Ignore problematic test files that aren't in TypeScript project
   {
@@ -31,6 +40,7 @@ export default [
       'src/test/**',
       '*.config.js', // All JavaScript config files don't need TypeScript type checking
       '*.config.mjs', // All ES module config files
+      '*.config.cjs', // All CommonJS config files
       'public/**', // Public directory contains plain JavaScript service workers
       '.next/**', // Next.js build directory
       'coverage/**', // Test coverage directory
@@ -60,6 +70,40 @@ export default [
       '@next/next/no-sync-scripts': 'error',
       '@next/next/no-head-import-in-document': 'error',
       '@next/next/no-duplicate-head': 'error'
+    }
+  },
+  
+  // Anti-duplication rules for hooks and API files
+  {
+    name: 'frontend/anti-duplication-strict',
+    files: ['src/hooks/**/*.ts', 'src/hooks/**/*.tsx', 'src/lib/api/**/*.ts'],
+    rules: {
+      'anti-duplication/no-duplicate-function-implementations': [
+        'error',
+        {
+          similarity: 0.75, // Strict for hooks
+          minLength: 8
+        }
+      ],
+      'anti-duplication/no-repeated-component-logic': 'error',
+      'anti-duplication/no-similar-api-endpoints': 'error'
+    }
+  },
+  
+  // Anti-duplication rules for general files
+  {
+    name: 'frontend/anti-duplication-general',
+    files: ['**/*.ts', '**/*.tsx'],
+    rules: {
+      'anti-duplication/no-duplicate-function-implementations': [
+        'warn',
+        {
+          similarity: 0.85, // More permissive for general files
+          minLength: 10
+        }
+      ],
+      'anti-duplication/no-repeated-config-patterns': 'warn',
+      'anti-duplication/no-repeated-component-logic': 'warn'
     }
   },
   

@@ -39,7 +39,6 @@ function BreadcrumbLink({
 }) {
     if (asChild) {
         return (
-            // @ts-expect-error - Radix Slot component has complex typing that conflicts with anchor props
             <Slot
                 className={cn('hover:text-foreground transition-colors', className)}
                 {...props}
@@ -81,7 +80,7 @@ function BreadcrumbSeparator({
 			className={cn('[&>svg]:w-3 h-3.5', className)}
 			{...props}
 		>
-			{children ?? <i className="i-lucide-chevron-right inline-block"  />}
+			{children ?? <i className="i-lucide-chevron-right"  />}
 		</li>
 	)
 }
@@ -98,7 +97,7 @@ function BreadcrumbEllipsis({
 			className={cn('flex w-9 h-9 items-center justify-center', className)}
 			{...props}
 		>
-			<i className="i-lucide-more-horizontal inline-block w-4 h-4"  />
+			<i className="i-lucide-more-horizontal w-4 h-4"  />
 			<span className="sr-only">More</span>
 		</span>
 	)

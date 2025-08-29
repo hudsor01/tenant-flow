@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { ThemeToggle } from '@/components/theme-toggle'
 import { cn } from '@/lib/utils'
 
 export function NavigationSection(): React.ReactElement {
@@ -34,17 +35,17 @@ export function NavigationSection(): React.ReactElement {
 		<nav
 			className={cn(
 				'fixed top-0 z-50 w-full transition-all duration-300',
-				'border-b border-gray-200/50 bg-white/95 backdrop-blur-md',
-				scrollY > 50 && 'bg-white/98 border-gray-200/80 shadow-sm'
+				'border-b border-border/50 bg-card/95 backdrop-blur-md',
+				scrollY > 50 && 'bg-card/98 border-border/80 shadow-sm'
 			)}
 		>
 			<div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
 				{/* Simplified modern logo */}
 				<Link href="/" className="flex items-center space-x-3">
-					<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-purple-600">
-						<i className="i-lucide-building-2 inline-block h-5 w-5 text-white"  />
+					<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent">
+						<i className="i-lucide-building-2 h-5 w-5 text-white"  />
 					</div>
-					<span className="text-xl font-bold text-gray-900">
+					<span className="text-xl font-bold text-foreground">
 						TenantFlow
 					</span>
 				</Link>
@@ -53,15 +54,15 @@ export function NavigationSection(): React.ReactElement {
 				<div className="hidden items-center space-x-1 md:flex">
 					{navItems.map(item => (
 						<div key={item.href} className="group relative">
-							{item.dropdown ? (
-								<button className="flex items-center space-x-1 rounded-lg px-4 py-2 text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900">
+					{item.dropdown ? (
+								<button className="flex items-center space-x-1 rounded-lg px-4 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
 									<span>{item.label}</span>
-									<i className="i-lucide-chevron-down inline-block h-4 w-4"  />
+									<i className="i-lucide-chevron-down h-4 w-4"  />
 								</button>
 							) : (
 								<Link
 									href={item.href}
-									className="rounded-lg px-4 py-2 text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900"
+									className="rounded-lg px-4 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
 								>
 									{item.label}
 								</Link>
@@ -69,13 +70,13 @@ export function NavigationSection(): React.ReactElement {
 
 							{/* Dropdown menu */}
 							{item.dropdown && (
-								<div className="invisible absolute left-0 top-full mt-1 w-48 translate-y-2 transform rounded-xl border border-gray-200/50 bg-white/95 opacity-0 shadow-xl backdrop-blur-md transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+								<div className="invisible absolute left-0 top-full mt-1 w-48 translate-y-2 transform rounded-xl border border-border/50 bg-card/95 opacity-0 shadow-xl backdrop-blur-md transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
 									<div className="py-2">
 										{item.dropdown.map(dropdownItem => (
 											<Link
 												key={dropdownItem.href}
 												href={dropdownItem.href}
-												className="block px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900"
+											className="block px-4 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
 											>
 												{dropdownItem.label}
 											</Link>
@@ -89,15 +90,16 @@ export function NavigationSection(): React.ReactElement {
 
 				{/* Modern CTA buttons */}
 				<div className="hidden items-center space-x-4 md:flex">
+					<ThemeToggle />
 					<Link
 						href="/auth/login"
-						className="text-sm font-medium text-gray-700 hover:text-gray-900"
+						className="text-sm font-medium text-muted-foreground hover:text-foreground"
 					>
 						Sign in
 					</Link>
 					<Link
 						href="/auth/signup"
-						className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+						className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
 					>
 						Get started
 					</Link>
@@ -105,21 +107,21 @@ export function NavigationSection(): React.ReactElement {
 
 				{/* Mobile menu button */}
 				<button
-					className="rounded-lg p-2 transition-colors hover:bg-gray-100 md:hidden"
+					className="rounded-lg p-2 transition-colors hover:bg-gray-1 md:hidden"
 					onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
 				>
 					{mobileMenuOpen ? (
-						<i className="i-lucide-x inline-block h-6 w-6 text-gray-700"  />
+						<i className="i-lucide-x h-6 w-6 text-gray-7"  />
 					) : (
-						<i className="i-lucide-menu inline-block h-6 w-6 text-gray-700"  />
+						<i className="i-lucide-menu h-6 w-6 text-gray-7"  />
 					)}
 				</button>
 			</div>
 
 			{/* Mobile menu */}
 			<div
-				className={cn(
-					'bg-white/98 absolute left-0 right-0 top-full border-b border-gray-200/50 shadow-xl backdrop-blur-md transition-all duration-300 md:hidden',
+					className={cn(
+						'bg-card/98 absolute left-0 right-0 top-full border-b border-border/50 shadow-xl backdrop-blur-md transition-all duration-300 md:hidden',
 					mobileMenuOpen
 						? 'visible opacity-100'
 						: 'invisible opacity-0'
@@ -130,7 +132,7 @@ export function NavigationSection(): React.ReactElement {
 						<div key={item.href}>
 							<Link
 								href={item.href}
-								className="block py-2 text-gray-700 transition-colors hover:text-gray-900"
+								className="block py-2 text-muted-foreground transition-colors hover:text-foreground"
 								onClick={() => setMobileMenuOpen(false)}
 							>
 								{item.label}
@@ -141,7 +143,7 @@ export function NavigationSection(): React.ReactElement {
 										<Link
 											key={dropdownItem.href}
 											href={dropdownItem.href}
-											className="block py-1 text-sm text-gray-600 transition-colors hover:text-gray-800"
+											className="block py-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
 											onClick={() =>
 												setMobileMenuOpen(false)
 											}
@@ -170,7 +172,7 @@ export function NavigationSection(): React.ReactElement {
 						</Button>
 						<Button
 							asChild
-							className="from-primary w-full justify-center bg-gradient-to-r to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
+							className="from-primary w-full justify-center bg-gradient-to-r to-accent text-primary-foreground hover:from-primary/90 hover:to-accent/90"
 						>
 							<Link
 								href="/auth/signup"

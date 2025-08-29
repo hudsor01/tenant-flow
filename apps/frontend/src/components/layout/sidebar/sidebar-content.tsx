@@ -3,7 +3,7 @@ import * as React from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
-import { useSidebar } from './sidebar-provider'
+import { useSidebar } from '@/components/ui/sidebar-provider'
 import { SidebarNavItem, type NavItem } from './sidebar-nav-item'
 
 // Enhanced Navigation items with activity tracking and descriptions
@@ -11,7 +11,7 @@ const navItems: NavItem[] = [
 	{
 		title: 'Dashboard',
 		url: '/dashboard',
-		icon: <i className="i-lucide-home inline-block h-4 w-4"  />,
+		icon: <i className="i-lucide-home h-4 w-4"  />,
 		isActive: true,
 		description: 'Overview of your property portfolio',
 		shortcut: '⌘+D',
@@ -20,7 +20,7 @@ const navItems: NavItem[] = [
 	{
 		title: 'Properties',
 		url: '/properties',
-		icon: <i className="i-lucide-building-2 inline-block h-4 w-4"  />,
+		icon: <i className="i-lucide-building-2 h-4 w-4"  />,
 		badge: '24',
 		description: 'Manage your property portfolio',
 		shortcut: '⌘+P',
@@ -29,19 +29,19 @@ const navItems: NavItem[] = [
 			{
 				title: 'All Properties',
 				url: '/properties',
-				icon: <i className="i-lucide-building-2 inline-block h-3 w-3"  />,
+				icon: <i className="i-lucide-building-2 h-3 w-3"  />,
 				description: 'View all properties in your portfolio'
 			},
 			{
 				title: 'Add Property_',
 				url: '/properties/new',
-				icon: <i className="i-lucide-plus inline-block h-3 w-3"  />,
+				icon: <i className="i-lucide-plus h-3 w-3"  />,
 				description: 'Add a new property to your portfolio'
 			},
 			{
 				title: 'Property_ Types',
 				url: '/properties/types',
-				icon: <i className="i-lucide-building-2 inline-block h-3 w-3"  />,
+				icon: <i className="i-lucide-building-2 h-3 w-3"  />,
 				description: 'Configure property categories'
 			}
 		]
@@ -49,7 +49,7 @@ const navItems: NavItem[] = [
 	{
 		title: 'Tenants',
 		url: '/tenants',
-		icon: <i className="i-lucide-users inline-block h-4 w-4"  />,
+		icon: <i className="i-lucide-users h-4 w-4"  />,
 		badge: '1,284',
 		description: 'Manage tenant relationships',
 		shortcut: '⌘+T',
@@ -59,13 +59,13 @@ const navItems: NavItem[] = [
 			{
 				title: 'Active Tenants',
 				url: '/tenants/active',
-				icon: <i className="i-lucide-users inline-block h-3 w-3"  />,
+				icon: <i className="i-lucide-users h-3 w-3"  />,
 				description: 'View all active tenant accounts'
 			},
 			{
 				title: 'Applications',
 				url: '/tenants/applications',
-				icon: <i className="i-lucide-file-text inline-block h-3 w-3"  />,
+				icon: <i className="i-lucide-file-text h-3 w-3"  />,
 				badge: '5',
 				hasActivity: true,
 				activityCount: 5,
@@ -74,7 +74,7 @@ const navItems: NavItem[] = [
 			{
 				title: 'Add Tenant',
 				url: '/tenants/new',
-				icon: <i className="i-lucide-plus inline-block h-3 w-3"  />,
+				icon: <i className="i-lucide-plus h-3 w-3"  />,
 				description: 'Add a new tenant to the system'
 			}
 		]
@@ -82,7 +82,7 @@ const navItems: NavItem[] = [
 	{
 		title: 'Leases',
 		url: '/leases',
-		icon: <i className="i-lucide-file-text inline-block h-4 w-4"  />,
+		icon: <i className="i-lucide-file-text h-4 w-4"  />,
 		description: 'Manage lease agreements',
 		shortcut: '⌘+L',
 		hasActivity: true,
@@ -91,13 +91,13 @@ const navItems: NavItem[] = [
 			{
 				title: 'Active Leases',
 				url: '/leases/active',
-				icon: <i className="i-lucide-file-text inline-block h-3 w-3"  />,
+				icon: <i className="i-lucide-file-text h-3 w-3"  />,
 				description: 'View all active lease agreements'
 			},
 			{
 				title: 'Expiring Soon',
 				url: '/leases/expiring',
-				icon: <i className="i-lucide-calendar inline-block h-3 w-3"  />,
+				icon: <i className="i-lucide-calendar h-3 w-3"  />,
 				badge: '18',
 				hasActivity: true,
 				activityCount: 18,
@@ -106,7 +106,7 @@ const navItems: NavItem[] = [
 			{
 				title: 'Generate Lease',
 				url: '/leases/generate',
-				icon: <i className="i-lucide-plus inline-block h-3 w-3"  />,
+				icon: <i className="i-lucide-plus h-3 w-3"  />,
 				description: 'Create new lease agreement'
 			}
 		]
@@ -115,7 +115,7 @@ const navItems: NavItem[] = [
 		title: 'Documents',
 		// Documents feature not yet implemented
 		url: '#',
-		icon: <i className="i-lucide-file-text inline-block h-4 w-4"  />,
+		icon: <i className="i-lucide-file-text h-4 w-4"  />,
 		description: 'Manage property documents and files',
 		shortcut: '⌘+Shift+D',
 		hasActivity: false,
@@ -124,14 +124,14 @@ const navItems: NavItem[] = [
 				title: 'All Documents',
 				// Documents feature not yet implemented
 				url: '#',
-				icon: <i className="i-lucide-file-text inline-block h-3 w-3"  />,
+				icon: <i className="i-lucide-file-text h-3 w-3"  />,
 				description: 'View all uploaded documents'
 			},
 			{
 				title: 'Upload Document',
 				// Upload feature not yet implemented
 				url: '#',
-				icon: <i className="i-lucide-plus inline-block h-3 w-3"  />,
+				icon: <i className="i-lucide-plus h-3 w-3"  />,
 				description: 'Upload new document or file'
 			}
 		]
@@ -139,7 +139,7 @@ const navItems: NavItem[] = [
 	{
 		title: 'Maintenance',
 		url: '/maintenance',
-		icon: <i className="i-lucide-wrench inline-block h-4 w-4"  />,
+		icon: <i className="i-lucide-wrench h-4 w-4"  />,
 		badge: '7',
 		description: 'Track property maintenance requests',
 		shortcut: '⌘+M',
@@ -149,7 +149,7 @@ const navItems: NavItem[] = [
 			{
 				title: 'Open Requests',
 				url: '/maintenance/open',
-				icon: <i className="i-lucide-wrench inline-block h-3 w-3"  />,
+				icon: <i className="i-lucide-wrench h-3 w-3"  />,
 				badge: '7',
 				hasActivity: true,
 				activityCount: 7,
@@ -158,7 +158,7 @@ const navItems: NavItem[] = [
 			{
 				title: 'In Progress',
 				url: '/maintenance/progress',
-				icon: <i className="i-lucide-settings inline-block h-3 w-3"  />,
+				icon: <i className="i-lucide-settings h-3 w-3"  />,
 				badge: '3',
 				hasActivity: true,
 				activityCount: 3,
@@ -167,7 +167,7 @@ const navItems: NavItem[] = [
 			{
 				title: 'Completed',
 				url: '/maintenance/completed',
-				icon: <i className="i-lucide-file-text inline-block h-3 w-3"  />,
+				icon: <i className="i-lucide-file-text h-3 w-3"  />,
 				description: 'Completed maintenance history'
 			}
 		]
@@ -175,7 +175,7 @@ const navItems: NavItem[] = [
 	{
 		title: 'Finances',
 		url: '/finances',
-		icon: <i className="i-lucide-dollar-sign inline-block h-4 w-4"  />,
+		icon: <i className="i-lucide-dollar-sign h-4 w-4"  />,
 		description: 'Financial management and reporting',
 		shortcut: '⌘+F',
 		hasActivity: false,
@@ -183,25 +183,25 @@ const navItems: NavItem[] = [
 			{
 				title: 'Overview',
 				url: '/finances',
-				icon: <i className="i-lucide-bar-chart-3 inline-block h-3 w-3"  />,
+				icon: <i className="i-lucide-bar-chart-3 h-3 w-3"  />,
 				description: 'Financial performance overview'
 			},
 			{
 				title: 'Rent Collection',
 				url: '/finances/rent',
-				icon: <i className="i-lucide-dollar-sign inline-block h-3 w-3"  />,
+				icon: <i className="i-lucide-dollar-sign h-3 w-3"  />,
 				description: 'Monthly rent collection tracking'
 			},
 			{
 				title: 'Expenses',
 				url: '/finances/expenses',
-				icon: <i className="i-lucide-file-text inline-block h-3 w-3"  />,
+				icon: <i className="i-lucide-file-text h-3 w-3"  />,
 				description: 'Property_ expense management'
 			},
 			{
 				title: 'Reports',
 				url: '/finances/reports',
-				icon: <i className="i-lucide-bar-chart-3 inline-block h-3 w-3"  />,
+				icon: <i className="i-lucide-bar-chart-3 h-3 w-3"  />,
 				description: 'Generate financial reports'
 			}
 		]
@@ -212,21 +212,21 @@ const bottomNavItems: NavItem[] = [
 	{
 		title: 'Analytics',
 		url: '/analytics',
-		icon: <i className="i-lucide-bar-chart-3 inline-block h-4 w-4"  />,
+		icon: <i className="i-lucide-bar-chart-3 h-4 w-4"  />,
 		description: 'Business intelligence and insights',
 		shortcut: '⌘+A'
 	},
 	{
 		title: 'Settings',
 		url: '/settings',
-		icon: <i className="i-lucide-settings inline-block h-4 w-4"  />,
+		icon: <i className="i-lucide-settings h-4 w-4"  />,
 		description: 'Application and account settings',
 		shortcut: '⌘+,'
 	},
 	{
 		title: 'Help & Support',
 		url: '/help',
-		icon: <i className="i-lucide-help-circle inline-block h-4 w-4"  />,
+		icon: <i className="i-lucide-help-circle h-4 w-4"  />,
 		description: 'Get help and contact support',
 		shortcut: '⌘+?'
 	}
@@ -242,7 +242,7 @@ export function SidebarContent() {
 			{!collapsed && (
 				<div className="px-4 pb-4">
 					<div className="group relative">
-						<i className="i-lucide-search inline-block text-sidebar-foreground/60 group-focus-within:text-primary absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transition-colors"  />
+						<i className="i-lucide-search text-sidebar-foreground/60 group-focus-within:text-primary absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transition-colors"  />
 						<Input
 							placeholder="Search properties, tenants..."
 							className="bg-sidebar-accent/50 border-sidebar-border focus:bg-background focus:border-primary/50 h-9 w-full pl-9 pr-16 text-sm transition-all duration-200 focus:shadow-sm"
@@ -262,7 +262,7 @@ export function SidebarContent() {
 							size="sm"
 							className="h-8 flex-1 text-xs shadow-sm transition-all duration-200 hover:scale-105 hover:shadow-md active:scale-95"
 						>
-							<i className="i-lucide-plus inline-block mr-1 h-3 w-3"  />
+							<i className="i-lucide-plus mr-1 h-3 w-3"  />
 							Add Property_
 						</Button>
 						<Button
@@ -270,7 +270,7 @@ export function SidebarContent() {
 							size="sm"
 							className="hover:bg-sidebar-accent/50 hover:border-primary/30 h-8 flex-1 text-xs transition-all duration-200 hover:scale-105 active:scale-95"
 						>
-							<i className="i-lucide-users inline-block mr-1 h-3 w-3"  />
+							<i className="i-lucide-users mr-1 h-3 w-3"  />
 							Add Tenant
 						</Button>
 					</div>

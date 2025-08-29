@@ -1,4 +1,4 @@
-import { motion } from '@/lib/lazy-motion'
+import { motion } from 'framer-motion'
 
 interface AuthLayoutClientProps {
 	children: React.ReactNode
