@@ -202,7 +202,9 @@ const nextConfig: NextConfig = {
 				...typedConfig.resolve.fallback,
 				fs: false,
 				net: false,
-				tls: false
+				tls: false,
+				// Add ws polyfill for Supabase realtime
+				ws: false
 			}
 		}
 
