@@ -13,13 +13,13 @@ export function OAuthLoadingSkeleton({
 	return (
 		<div className={cn('w-full', className)}>
 			{/* Loading button skeleton */}
-			<div className="flex h-11 w-full animate-pulse items-center justify-center rounded-md border border-gray-200 bg-gradient-to-r from-gray-100 via-gray-50 to-gray-100">
+			<div className="flex h-11 w-full animate-pulse items-center justify-center rounded-md border border-gray-2 bg-gradient-to-r from-gray-2 via-gray-1 to-gray-2">
 				<div className="flex items-center gap-3">
 					{/* Icon skeleton */}
-					<div className="h-4 w-4 animate-pulse rounded bg-gray-300" />
+					<div className="h-4 w-4 animate-pulse rounded bg-gray-3" />
 
 					{/* Text skeleton with shimmer effect */}
-					<div className="relative h-4 w-32 overflow-hidden rounded bg-gray-300">
+					<div className="relative h-4 w-32 overflow-hidden rounded bg-gray-3">
 						<div className="animate-shimmer absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent" />
 					</div>
 				</div>

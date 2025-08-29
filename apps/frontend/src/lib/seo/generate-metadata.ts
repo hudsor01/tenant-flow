@@ -112,16 +112,41 @@ export function generateMetadata({
 	return metadata
 }
 
+// Common schema properties - DRY principle
+const BASE_SCHEMA_CONFIG = {
+	context: 'https://schema.org',
+	companyName: 'TenantFlow',
+	url: 'https://tenantflow.app',
+	logo: 'https://tenantflow.app/logo.png',
+	baseDescription: 'Modern property management platform for landlords and tenants',
+	rating: {
+		'@type': 'AggregateRating',
+		ratingValue: '4.8',
+		ratingCount: '1250',
+		bestRating: '5',
+		worstRating: '1'
+	}
+} as const
+
+// Generic schema generator - DRY principle
+function createSchema<T extends Record<string, unknown>>(
+	type: string,
+	specificProps: T
+): { '@context': string; '@type': string } & T {
+	return {
+		'@context': BASE_SCHEMA_CONFIG.context,
+		'@type': type,
+		...specificProps
+	}
+}
+
 // JSON-LD structured data generators
 export function generateOrganizationSchema() {
-	return {
-		'@context': 'https://schema.org',
-		'@type': 'Organization',
-		name: 'TenantFlow',
-		url: 'https://tenantflow.app',
-		logo: 'https://tenantflow.app/logo.png',
-		description:
-			'Modern property management platform for landlords and tenants',
+	return createSchema('Organization', {
+		name: BASE_SCHEMA_CONFIG.companyName,
+		url: BASE_SCHEMA_CONFIG.url,
+		logo: BASE_SCHEMA_CONFIG.logo,
+		description: BASE_SCHEMA_CONFIG.baseDescription,
 		contactPoint: {
 			'@type': 'ContactPoint',
 			telephone: '+1-555-123-4567',
@@ -132,22 +157,20 @@ export function generateOrganizationSchema() {
 			'https://www.facebook.com/tenantflow',
 			'https://linkedin.com/company/tenantflow'
 		]
-	}
+	})
 }
 
 export function generateWebsiteSchema() {
-	return {
-		'@context': 'https://schema.org',
-		'@type': 'WebSite',
-		name: 'TenantFlow',
-		url: 'https://tenantflow.app',
-		description: 'Property management platform for landlords and tenants',
+	return createSchema('WebSite', {
+		name: BASE_SCHEMA_CONFIG.companyName,
+		url: BASE_SCHEMA_CONFIG.url,
+		description: BASE_SCHEMA_CONFIG.baseDescription,
 		potentialAction: {
 			'@type': 'SearchAction',
 			target: 'https://tenantflow.app/search?q={search_term_string}',
 			'query-input': 'required name=search_term_string'
 		}
-	}
+	})
 }
 
 export function generateSoftwareApplicationSchema() {
@@ -211,28 +234,24 @@ export function generateSoftwareApplicationSchema() {
 	}
 }
 
-// Additional schema generators for enhanced SEO
+// Enhanced schema generators using consolidated createSchema factory
 export function generateBreadcrumbSchema(
 	items: { name: string; url: string }[]
 ) {
-	return {
-		'@context': 'https://schema.org',
-		'@type': 'BreadcrumbList',
+	return createSchema('BreadcrumbList', {
 		itemListElement: items.map((item, index) => ({
 			'@type': 'ListItem',
 			position: index + 1,
 			name: item.name,
 			item: item.url
 		}))
-	}
+	})
 }
 
 export function generateFAQSchema(
 	faqs: { question: string; answer: string }[]
 ) {
-	return {
-		'@context': 'https://schema.org',
-		'@type': 'FAQPage',
+	return createSchema('FAQPage', {
 		mainEntity: faqs.map(faq => ({
 			'@type': 'Question',
 			name: faq.question,
@@ -241,13 +260,11 @@ export function generateFAQSchema(
 				text: faq.answer
 			}
 		}))
-	}
+	})
 }
 
 export function generateLocalBusinessSchema() {
-	return {
-		'@context': 'https://schema.org',
-		'@type': 'ProfessionalService',
+	return createSchema('ProfessionalService', {
 		name: 'TenantFlow Property Management Services',
 		description:
 			'Professional property management software and services for landlords and property managers',
@@ -272,28 +289,20 @@ export function generateLocalBusinessSchema() {
 			'@type': 'Country',
 			name: 'United States'
 		}
-	}
+	})
 }
 
 export function generateProductSchema() {
-	return {
-		'@context': 'https://schema.org',
-		'@type': 'Product',
+	return createSchema('Product', {
 		name: 'TenantFlow Property Management Platform',
 		description:
 			'All-in-one property management solution with rent collection, maintenance tracking, and tenant communication',
 		brand: {
 			'@type': 'Brand',
-			name: 'TenantFlow'
+			name: BASE_SCHEMA_CONFIG.companyName
 		},
 		category: 'Software > Business Software > Property Management',
-		aggregateRating: {
-			'@type': 'AggregateRating',
-			ratingValue: '4.8',
-			ratingCount: '1250',
-			bestRating: '5',
-			worstRating: '1'
-		},
+		aggregateRating: BASE_SCHEMA_CONFIG.rating,
 		offers: {
 			'@type': 'AggregateOffer',
 			lowPrice: '29',
@@ -316,5 +325,5 @@ export function generateProductSchema() {
 			'Real-time notifications',
 			'Mobile-responsive dashboard'
 		]
-	}
+	})
 }

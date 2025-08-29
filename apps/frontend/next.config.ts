@@ -217,6 +217,9 @@ const nextConfig: NextConfig = {
 			}
 		}
 
+		// UnoCSS is now handled by PostCSS, not webpack
+		// Removed webpack plugin to prevent conflicts
+
 		return typedConfig
 	}
 

@@ -43,7 +43,7 @@ export function MutationLoading({
 				{isLoading && (
 					<>
 						<Spinner size="sm" />
-						<span className="text-gray-500">
+						<span className="text-gray-5">
 							{loadingMessage}
 						</span>
 					</>
@@ -51,8 +51,8 @@ export function MutationLoading({
 				{error && (
 					<>
 						{/* Using Heroicons for warning */}
-						<i className="i-heroicons-exclamation-triangle text-red-500 h-4 w-4" />
-						<span className="text-red-500">
+						<i className="i-heroicons-exclamation-triangle text-red-5 h-4 w-4" />
+						<span className="text-red-5">
 							{errorMessage || error.message}
 						</span>
 						{onRetry && (
@@ -73,22 +73,22 @@ export function MutationLoading({
 
 	if (variant === 'overlay') {
 		return (
-			<div className="bg-white/50 dark:bg-gray-900/50 absolute inset-0 z-10 flex items-center justify-center backdrop-blur-sm">
+			<div className="bg-white/50 dark:bg-gray-9/50 absolute inset-0 z-10 flex items-center justify-center backdrop-blur-sm">
 				{isLoading && (
 					<div className="flex flex-col items-center gap-2">
 						<Spinner size={size === 'sm' ? 'md' : 'lg'} />
-						<span className="text-gray-500 text-sm">
+						<span className="text-gray-5 text-sm">
 							{loadingMessage}
 						</span>
 					</div>
 				)}
 				{error && (
-					<Card className="border-red-200 bg-red-50">
+					<Card className="border-red-2 bg-red-1">
 						<CardContent className="p-4">
 							<div className="mb-2 flex items-center gap-2">
 								{/* Using Phosphor icons for error */}
-								<i className="i-ph-warning-circle-bold text-red-500 h-5 w-5" />
-								<span className="text-red-600 font-medium">
+								<i className="i-ph-warning-circle-bold text-red-5 h-5 w-5" />
+								<span className="text-red-6 font-medium">
 									Error
 								</span>
 							</div>
@@ -129,8 +129,8 @@ export function MutationLoading({
 		<Card
 			className={cn(
 				'border-dashed',
-				isLoading && 'border-brand-500/50 bg-brand-50',
-				error && 'border-red-500/50 bg-red-50'
+            isLoading && 'border-primary/30 bg-primary/10',
+				error && 'border-red-5/50 bg-red-1'
 			)}
 		>
 			<CardContent className="p-6">
@@ -140,7 +140,7 @@ export function MutationLoading({
 							size={size === 'sm' ? 'md' : 'lg'}
 							className="mb-3"
 						/>
-						<p className="text-gray-500 text-sm">
+						<p className="text-gray-5 text-sm">
 							{loadingMessage}
 						</p>
 					</div>
@@ -148,11 +148,11 @@ export function MutationLoading({
 				{error && (
 					<div className="text-center">
 						{/* Using Material Design Icons for error state */}
-						<i className="i-mdi-alert-octagon text-red-500 mx-auto mb-3 h-8 w-8 block" />
-						<p className="text-red-600 mb-1 font-medium">
+						<i className="i-mdi-alert-octagon text-red-5 mx-auto mb-3 h-8 w-8 block" />
+						<p className="text-red-6 mb-1 font-medium">
 							Operation Failed
 						</p>
-						<p className="text-gray-500 mb-4 text-sm">
+						<p className="text-gray-5 mb-4 text-sm">
 							{errorMessage || error.message}
 						</p>
 						<div className="flex justify-center gap-2">
@@ -204,27 +204,27 @@ export function MutationSuccess({
 		return (
 			<div className="flex items-center gap-2 text-sm">
 				{/* Using Lucide for success */}
-				<i className="i-lucide-check-circle h-4 w-4 text-green-600" />
-				<span className="text-green-700">{message}</span>
+				<i className="i-lucide-check-circle h-4 w-4 text-green-6" />
+				<span className="text-green-7">{message}</span>
 			</div>
 		)
 	}
 
 	return (
-		<Card className="border-green-200 bg-green-50">
+		<Card className="border-green-2 bg-green-50">
 			<CardContent className="p-4">
 				<div className="flex items-center gap-2">
 					{/* Using Heroicons for checkmark */}
-					<i className="i-heroicons-check-badge-solid h-5 w-5 text-green-600" />
-					<span className="font-medium text-green-800">Success</span>
+					<i className="i-heroicons-check-badge-solid h-5 w-5 text-green-6" />
+					<span className="font-medium text-green-8">Success</span>
 				</div>
-				<p className="mt-1 text-sm text-green-700">{message}</p>
+				<p className="mt-1 text-sm text-green-7">{message}</p>
 				{onDismiss && !autoHide && (
 					<Button
 						variant="link"
 						size="sm"
 						onClick={onDismiss}
-						className="mt-2 h-auto p-0 text-green-700"
+						className="mt-2 h-auto p-0 text-green-7"
 					>
 						Dismiss
 					</Button>
@@ -255,14 +255,14 @@ export function GlobalMutationLoading({
 	return (
 		<div
 			className={cn(
-				'bg-brand-50 border-brand-200 fixed left-0 right-0 z-50',
+				'bg-brand-1 border-brand-2 fixed left-0 right-0 z-50',
 				position === 'top' ? 'top-0 border-b' : 'bottom-0 border-t'
 			)}
 		>
 			<div className="container mx-auto px-4 py-2">
 				<div className="flex items-center justify-center gap-2">
 					<Spinner size="sm" />
-					<span className="text-brand-600 text-sm">
+                    <span className="text-primary text-sm">
 						{mutatingCount === 1
 							? 'Processing request...'
 							: `Processing ${mutatingCount} requests...`}
@@ -330,11 +330,11 @@ export function MutationForm({
 
 			{/* Loading overlay for forms with container query */}
 			{isLoading && (
-				<div className="bg-white/50 dark:bg-gray-900/50 absolute inset-0 flex items-center justify-center rounded-lg backdrop-blur-sm @container-sm:p-8">
+				<div className="bg-white/50 dark:bg-gray-9/50 absolute inset-0 flex items-center justify-center rounded-lg backdrop-blur-sm @container-sm:p-8">
 					<div className="flex flex-col items-center gap-2">
 						{/* Using Radix Icons for form loading */}
-						<i className="i-radix-icons-update animate-spin h-8 w-8 text-brand-500" />
-						<span className="text-gray-500 text-sm @container-sm:text-base">
+                            <i className="i-radix-icons-update animate-spin h-8 w-8 text-primary" />
+						<span className="text-gray-5 text-sm @container-sm:text-base">
 							{loadingMessage}
 						</span>
 					</div>

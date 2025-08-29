@@ -16,7 +16,7 @@ export function InvoiceDetails({ register }: InvoiceDetailsProps) {
 			<CardHeader className="from-primary/5 to-accent/5 border-border/50 flex items-center justify-center border-b bg-gradient-to-r py-4">
 				<CardTitle className="text-foreground flex items-center justify-center gap-3">
 					<div className="bg-primary/10 group-hover:bg-primary/20 rounded-lg p-2 transition-colors">
-						<i className="i-lucide-eye inline-block text-primary h-5 w-5"  />
+						<i className="i-lucide-eye text-primary h-5 w-5"  />
 					</div>
 					<span className="font-serif">Invoice Details</span>
 				</CardTitle>

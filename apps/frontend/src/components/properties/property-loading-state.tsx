@@ -6,13 +6,13 @@ export default function Property_LoadingState() {
 	return (
 		<div className="animate-pulse space-y-6">
 			<div className="flex items-center space-x-4">
-				<div className="h-10 w-10 rounded bg-gray-200" />
-				<div className="h-8 w-64 rounded bg-gray-200" />
+				<div className="h-10 w-10 rounded bg-gray-2" />
+				<div className="h-8 w-64 rounded bg-gray-2" />
 			</div>
-			<div className="h-64 rounded-lg bg-gray-200" />
+			<div className="h-64 rounded-lg bg-gray-2" />
 			<div className="grid grid-cols-1 gap-6 md:grid-cols-3">
 				{[...Array(3)].map((_, i) => (
-					<div key={i} className="h-32 rounded-lg bg-gray-200" />
+					<div key={i} className="h-32 rounded-lg bg-gray-2" />
 				))}
 			</div>
 		</div>

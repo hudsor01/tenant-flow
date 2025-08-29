@@ -48,6 +48,9 @@ interface SidebarContextProps {
 	setOpenMobile: (open: boolean) => void
 	isMobile: boolean
 	toggleSidebar: () => void
+	// Derived properties for backward compatibility
+	collapsed: boolean
+	setCollapsed: (collapsed: boolean) => void
 }
 
 const SidebarContext = React.createContext<SidebarContextProps | null>(null)
@@ -128,7 +131,10 @@ export function SidebarProvider({
 			isMobile,
 			openMobile,
 			setOpenMobile,
-			toggleSidebar
+			toggleSidebar,
+			// Derived properties for backward compatibility
+			collapsed: !open,
+			setCollapsed: (collapsed: boolean) => setOpen(!collapsed)
 		}),
 		[
 			state,

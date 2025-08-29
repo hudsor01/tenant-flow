@@ -1,3 +1,9 @@
+'use client'
+
+// Avoid static generation; this page depends on runtime-authenticated data.
+export const dynamic = 'force-dynamic'
+export const fetchCache = 'default-no-store'
+
 import { Suspense } from 'react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -7,12 +13,6 @@ import Link from 'next/link'
 import { TenantsDataTable } from '@/components/tenants/tenants-data-table'
 import { TenantsStats } from '@/components/tenants/tenants-stats'
 import { PageTracker } from '@/components/analytics/page-tracker'
-import type { Metadata } from 'next/types'
-
-export const metadata: Metadata = {
-	title: 'Tenants | TenantFlow',
-	description: 'Manage your tenants and track lease status'
-}
 
 function TenantsHeader() {
 	return (
@@ -27,12 +27,12 @@ function TenantsHeader() {
 			</div>
 			<div className="flex gap-2">
 				<Button variant="outline" size="sm">
-					<i className="i-lucide-filter inline-block mr-2 h-4 w-4"  />
+					<i className="i-lucide-filter  mr-2 h-4 w-4"  />
 					Filter
 				</Button>
 				<Link href="/tenants/new">
 					<Button size="sm">
-						<i className="i-lucide-plus inline-block mr-2 h-4 w-4"  />
+						<i className="i-lucide-plus  mr-2 h-4 w-4"  />
 						Add Tenant
 					</Button>
 				</Link>
@@ -47,14 +47,14 @@ function TenantsSearch() {
 			<CardContent className="p-4">
 				<div className="flex gap-4">
 					<div className="relative flex-1">
-						<i className="i-lucide-search inline-block text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform"  />
+						<i className="i-lucide-search  text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform"  />
 						<Input
 							placeholder="Search tenants by name, email, or phone..."
 							className="pl-10"
 						/>
 					</div>
 					<Button variant="outline">
-						<i className="i-lucide-filter inline-block mr-2 h-4 w-4"  />
+						<i className="i-lucide-filter  mr-2 h-4 w-4"  />
 						Filters
 					</Button>
 				</div>

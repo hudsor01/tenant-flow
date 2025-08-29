@@ -1,3 +1,9 @@
+'use client'
+
+// Avoid static generation; this page depends on runtime-authenticated data.
+export const dynamic = 'force-dynamic'
+export const fetchCache = 'default-no-store'
+
 import { Suspense } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import Property_StatsSection from '@/components/properties/property-stats-section'

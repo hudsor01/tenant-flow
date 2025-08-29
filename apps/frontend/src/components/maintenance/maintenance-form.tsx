@@ -131,10 +131,10 @@ export function MaintenanceForm({
 
 	// Priority levels
 	const priorityLevels = [
-		{ value: 'LOW', label: 'Low Priority', color: 'text-green-600' },
-		{ value: 'MEDIUM', label: 'Medium Priority', color: 'text-yellow-600' },
-		{ value: 'HIGH', label: 'High Priority', color: 'text-orange-600' },
-		{ value: 'EMERGENCY', label: 'Emergency', color: 'text-red-600' }
+		{ value: 'LOW', label: 'Low Priority', color: 'text-green-6' },
+		{ value: 'MEDIUM', label: 'Medium Priority', color: 'text-yellow-6' },
+		{ value: 'HIGH', label: 'High Priority', color: 'text-orange-6' },
+		{ value: 'EMERGENCY', label: 'Emergency', color: 'text-red-6' }
 	]
 
 	// Status options for editing
@@ -149,14 +149,14 @@ export function MaintenanceForm({
 		<div className={cn('mx-auto w-full max-w-2xl', className)}>
 			{/* Simple optimistic feedback - using UnoCSS classes */}
 			{optimisticItem && (
-				<div className="mb-4 p-4 bg-blue-50 text-blue-800 rounded">
+				<div className="mb-4 p-4 bg-blue-50 text-blue-8 rounded">
 					{isEditing ? 'Updating' : 'Creating'} request...
 				</div>
 			)}
 
 			{/* Simple success feedback */}
 			{formState.success && (
-				<div className="mb-4 p-4 bg-green-50 text-green-800 rounded">
+				<div className="mb-4 p-4 bg-green-50 text-green-8 rounded">
 					Request {isEditing ? 'updated' : 'created'} successfully!
 				</div>
 			)}
@@ -164,8 +164,8 @@ export function MaintenanceForm({
 			<Card>
 				<CardHeader>
 					<div className="flex items-center gap-3">
-						<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/20">
-							<i className="i-lucide-wrench inline-block h-5 w-5 text-primary dark:text-orange-400"  />
+						<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-1 dark:bg-orange-9/20">
+							<i className="i-lucide-wrench h-5 w-5 text-primary dark:text-orange-4"  />
 						</div>
 						<div>
 							<CardTitle>{title}</CardTitle>
@@ -180,7 +180,7 @@ export function MaintenanceForm({
 					<form action={formDispatch} className="space-y-6">
 						{/* Simple error display - UnoCSS classes */}
 						{formState.error && (
-							<div className="mb-4 p-4 bg-red-50 text-red-800 rounded">
+							<div className="mb-4 p-4 bg-red-50 text-red-8 rounded">
 								{formState.error}
 							</div>
 						)}
@@ -373,7 +373,7 @@ export function MaintenanceForm({
 								<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 									<div className="space-y-2">
 										<Label htmlFor="preferredDate">
-											<i className="i-lucide-calendar inline-block inline h-4 w-4 mr-1"  />
+											<i className="i-lucide-calendar inline h-4 w-4 mr-1"  />
 											Preferred Date
 										</Label>
 										<Input
@@ -387,7 +387,7 @@ export function MaintenanceForm({
 
 									<div className="space-y-2">
 										<Label htmlFor="estimatedCost">
-											<i className="i-lucide-dollar-sign inline-block inline h-4 w-4 mr-1"  />
+											<i className="i-lucide-dollar-sign inline h-4 w-4 mr-1"  />
 											Estimated Cost
 										</Label>
 										<Input
@@ -439,7 +439,7 @@ export function MaintenanceForm({
 								onClick={onClose}
 								disabled={isPending}
 							>
-								<i className="i-lucide-x inline-block mr-2 h-4 w-4"  />
+								<i className="i-lucide-x mr-2 h-4 w-4"  />
 								Cancel
 							</Button>
 
@@ -455,7 +455,7 @@ export function MaintenanceForm({
 									</div>
 								) : (
 									<div className="flex items-center gap-2">
-										<i className="i-lucide-save inline-block h-4 w-4"  />
+										<i className="i-lucide-save h-4 w-4"  />
 										{isEditing ? 'Update Request' : 'Create Request'}
 									</div>
 								)}

@@ -38,8 +38,8 @@ function ReportsGrid() {
 			icon: 'i-lucide-dollar-sign',
 			period: 'Monthly',
 			lastGenerated: '2 hours ago',
-			color: 'text-green-600',
-			bgColor: 'bg-green-50'
+			color: 'text-green-6',
+			bgColor: 'bg-green-1'
 		},
 		{
 			title: 'Occupancy Report',
@@ -48,7 +48,7 @@ function ReportsGrid() {
 			period: 'Weekly',
 			lastGenerated: '1 day ago',
 			color: 'text-primary',
-			bgColor: 'bg-blue-50'
+			bgColor: 'bg-blue-5'
 		},
 		{
 			title: 'Tenant Activity',
@@ -56,8 +56,8 @@ function ReportsGrid() {
 			icon: 'i-lucide-users',
 			period: 'Daily',
 			lastGenerated: '4 hours ago',
-			color: 'text-purple-600',
-			bgColor: 'bg-purple-50'
+			color: 'text-purple-6',
+			bgColor: 'bg-purple-1'
 		},
 		{
 			title: 'Maintenance Report',
@@ -65,8 +65,8 @@ function ReportsGrid() {
 			icon: 'i-lucide-bar-chart-3',
 			period: 'Monthly',
 			lastGenerated: '6 hours ago',
-			color: 'text-orange-600',
-			bgColor: 'bg-orange-50'
+			color: 'text-orange-6',
+			bgColor: 'bg-orange-1'
 		}
 	]
 
@@ -84,7 +84,7 @@ function ReportsGrid() {
 									className={`rounded-lg p-3 ${report.bgColor}`}
 								>
 									<i
-										className={`${report.icon} h-6 w-6 inline-block ${report.color}`}
+										className={`${report.icon} h-6 w-6 ${report.color}`}
 									/>
 								</div>
 								<Badge variant="secondary">
@@ -107,11 +107,11 @@ function ReportsGrid() {
 								</div>
 								<div className="flex gap-2">
 									<Button size="sm" variant="outline">
-										<i className="i-lucide-bar-chart-3 inline-block mr-2 h-4 w-4"  />
+										<i className="i-lucide-bar-chart-3 mr-2 h-4 w-4"  />
 										View
 									</Button>
 									<Button size="sm" variant="outline">
-										<i className="i-lucide-download inline-block h-4 w-4"  />
+										<i className="i-lucide-download h-4 w-4"  />
 									</Button>
 								</div>
 							</div>
@@ -128,7 +128,7 @@ function QuickStats() {
 		<Card>
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2">
-					<i className="i-lucide-trending-up inline-block h-5 w-5"  />
+					<i className="i-lucide-trending-up h-5 w-5"  />
 					Quick Stats
 				</CardTitle>
 				<CardDescription>Key metrics for this month</CardDescription>
@@ -136,7 +136,7 @@ function QuickStats() {
 			<CardContent>
 				<div className="grid gap-4 md:grid-cols-4">
 					<div className="text-center">
-						<div className="text-2xl font-bold text-green-600">
+						<div className="text-2xl font-bold text-green-6">
 							$12,450
 						</div>
 						<p className="text-muted-foreground text-sm">
@@ -152,7 +152,7 @@ function QuickStats() {
 						</p>
 					</div>
 					<div className="text-center">
-						<div className="text-2xl font-bold text-purple-600">
+						<div className="text-2xl font-bold text-purple-6">
 							28
 						</div>
 						<p className="text-muted-foreground text-sm">
@@ -160,7 +160,7 @@ function QuickStats() {
 						</p>
 					</div>
 					<div className="text-center">
-						<div className="text-2xl font-bold text-orange-600">
+						<div className="text-2xl font-bold text-orange-6">
 							$2,100
 						</div>
 						<p className="text-muted-foreground text-sm">
@@ -219,7 +219,7 @@ function RecentReports() {
 						>
 							<div className="flex items-center gap-3">
 								<div className="bg-primary/10 rounded-lg p-2">
-									<i className="i-lucide-file-text inline-block text-primary h-4 w-4"  />
+									<i className="i-lucide-file-text text-primary h-4 w-4"  />
 								</div>
 								<div className="space-y-1">
 									<p className="font-medium">{report.name}</p>
@@ -238,7 +238,7 @@ function RecentReports() {
 								</div>
 							</div>
 							<Button size="sm" variant="ghost">
-								<i className="i-lucide-download inline-block h-4 w-4"  />
+								<i className="i-lucide-download h-4 w-4"  />
 							</Button>
 						</div>
 					))}
