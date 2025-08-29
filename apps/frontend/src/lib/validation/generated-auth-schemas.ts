@@ -4,7 +4,7 @@
  * This file is generated from backend JSON schemas by scripts/generate-frontend-schemas.ts
  * To update these schemas, modify the backend JSON schemas and regenerate.
  * 
- * Generated at: 2025-08-29T22:18:08.133Z
+ * Generated at: 2025-08-29T23:19:59.212Z
  * Source: apps/backend/src/schemas/
  */
 

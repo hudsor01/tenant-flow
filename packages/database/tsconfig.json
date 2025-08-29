@@ -3,12 +3,12 @@
 	"display": "TenantFlow Database Package Config - Composite with Shared Dependency",
 	"compilerOptions": {
 		"target": "ES2022",
-		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		"lib": ["ES2022"],
 		"moduleDetection": "force",
-		"module": "ESNext",
-		"moduleResolution": "Bundler",
+		"module": "CommonJS",
+		"moduleResolution": "Node",
 		"resolveJsonModule": true,
-		"allowJs": true,
+		"allowJs": false,
 		"checkJs": false,
 		"esModuleInterop": true,
 		"allowSyntheticDefaultImports": true,
@@ -45,10 +45,11 @@
 		"declarationMap": true,
 		"sourceMap": true,
 		"noEmit": false,
-		"tsBuildInfoFile": "./dist/.tsbuildinfo"
+		"tsBuildInfoFile": "./dist/.tsbuildinfo",
+		"types": ["node"]
 	},
 	"include": ["src/**/*"],
-	"exclude": ["node_modules", "dist", "src/generated"],
+	"exclude": ["node_modules", "dist", "src/generated", "**/*.test.ts", "**/*.spec.ts"],
 	"references": [{ "path": "../shared" }],
 	"ts-node": {
 		"swc": true
