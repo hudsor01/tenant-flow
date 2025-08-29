@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/table'
 import Link from 'next/link'
 import type { MaintenanceRequestApiResponse } from '@repo/shared'
+import { createMaintenanceActions } from '@/components/data-table/data-table-action-factory'
 import {
 	getPriorityColor,
 	getPriorityLabel,
@@ -32,6 +33,9 @@ import {
 type MaintenanceRequest = MaintenanceRequestApiResponse
 type Priority = MaintenanceRequest['priority']
 type RequestStatus = MaintenanceRequest['status']
+
+// Create actions component using consolidated factory
+const MaintenanceActions = createMaintenanceActions
 
 function MaintenanceRow({
 	request
@@ -106,18 +110,7 @@ function MaintenanceRow({
 				</div>
 			</TableCell>
 			<TableCell>
-				<div className="flex items-center gap-2">
-					<Link href={`/maintenance/${request.id}`}>
-						<Button variant="ghost" size="sm">
-							<i className="i-lucide-eye h-4 w-4"  />
-						</Button>
-					</Link>
-					<Link href={`/maintenance/${request.id}/edit`}>
-						<Button variant="ghost" size="sm">
-							<i className="i-lucide-edit-3 h-4 w-4"  />
-						</Button>
-					</Link>
-				</div>
+				<MaintenanceActions item={request} />
 			</TableCell>
 		</TableRow>
 	)

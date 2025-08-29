@@ -22,6 +22,10 @@ import {
 } from '@/components/ui/table'
 import Link from 'next/link'
 import type { TenantWithLeases } from '@repo/shared'
+import { createTenantsActions } from '@/components/data-table/data-table-action-factory'
+
+// Create actions component using consolidated factory
+const TenantsActions = createTenantsActions
 
 function TenantRow({ tenant }: { tenant: TenantWithLeases }) {
 	const activeLease = tenant.leases?.find(lease => lease.status === 'ACTIVE')
@@ -125,18 +129,7 @@ function TenantRow({ tenant }: { tenant: TenantWithLeases }) {
 				)}
 			</TableCell>
 			<TableCell>
-				<div className="flex items-center gap-2">
-					<Link href={`/tenants/${tenant.id}`}>
-						<Button variant="ghost" size="sm">
-							<i className="i-lucide-eye h-4 w-4"  />
-						</Button>
-					</Link>
-					<Link href={`/tenants/${tenant.id}/edit`}>
-						<Button variant="ghost" size="sm">
-							<i className="i-lucide-edit-3 h-4 w-4"  />
-						</Button>
-					</Link>
-				</div>
+				<TenantsActions item={tenant} />
 			</TableCell>
 		</TableRow>
 	)

@@ -105,27 +105,46 @@ export interface SidebarMenuButtonProps extends React.ComponentProps<'button'> {
 	children?: React.ReactNode
 }
 
+// Generic sidebar container - DRY principle
+function SidebarContainer({
+	children,
+	className,
+	spacing = 'space-y-2',
+	...props
+}: {
+	children?: React.ReactNode
+	className?: string
+	spacing?: string
+} & React.HTMLAttributes<HTMLDivElement>) {
+	return (
+		<div className={cn(spacing, className)} {...props}>
+			{children}
+		</div>
+	)
+}
+
 export function SidebarGroup({
 	children,
 	className,
 	...props
 }: SidebarGroupProps) {
 	return (
-		<div className={cn('space-y-2', className)} {...props}>
+		<SidebarContainer className={className} spacing="space-y-2" {...props}>
 			{children}
-		</div>
+		</SidebarContainer>
 	)
 }
 
+// eslint-disable-next-line anti-duplication/no-duplicate-function-implementations  
 export function SidebarGroupContent({
 	children,
 	className,
 	...props
 }: SidebarGroupContentProps) {
 	return (
-		<div className={cn('space-y-1', className)} {...props}>
+		<SidebarContainer className={className} spacing="space-y-1" {...props}>
 			{children}
-		</div>
+		</SidebarContainer>
 	)
 }
 

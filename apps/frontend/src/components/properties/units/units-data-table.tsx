@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/table'
 import Link from 'next/link'
 import type { Database } from '@repo/shared'
+import { createUnitsActions } from '@/components/data-table/data-table-action-factory'
 
 // Define types directly from Database schema - NO DUPLICATION
 type Unit = Database['public']['Tables']['Unit']['Row']
@@ -35,6 +36,9 @@ type UnitDisplayData = Unit & {
 	// Add monthlyRent as alias for rent to handle legacy references
 	monthlyRent?: number
 }
+
+// Create actions component using consolidated factory
+const UnitsActions = createUnitsActions
 
 function UnitRow({ unit }: { unit: UnitDisplayData }) {
 	// Get status styling
@@ -117,18 +121,7 @@ function UnitRow({ unit }: { unit: UnitDisplayData }) {
 			</TableCell>
 			<TableCell>{getStatusBadge(unit.status)}</TableCell>
 			<TableCell>
-				<div className="flex items-center gap-2">
-					<Link href={`/units/${unit.id}`}>
-						<Button variant="ghost" size="sm">
-							<i className="i-lucide-eye h-4 w-4"  />
-						</Button>
-					</Link>
-					<Link href={`/units/${unit.id}/edit`}>
-						<Button variant="ghost" size="sm">
-							<i className="i-lucide-edit-3 h-4 w-4"  />
-						</Button>
-					</Link>
-				</div>
+				<UnitsActions item={unit} />
 			</TableCell>
 		</TableRow>
 	)
