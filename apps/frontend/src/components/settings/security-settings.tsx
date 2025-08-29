@@ -14,7 +14,7 @@ export function SecuritySettings() {
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<i className="i-lucide-shield inline-block h-5 w-5"  />
+						<i className="i-lucide-shield h-5 w-5"  />
 						Security Settings
 					</CardTitle>
 					<CardDescription>
@@ -26,7 +26,7 @@ export function SecuritySettings() {
 						<Card>
 							<CardHeader className="pb-3">
 								<CardTitle className="flex items-center gap-2 text-lg">
-									<i className="i-lucide-key inline-block h-4 w-4"  />
+									<i className="i-lucide-key h-4 w-4"  />
 									Password
 								</CardTitle>
 							</CardHeader>
@@ -46,7 +46,7 @@ export function SecuritySettings() {
 						<Card>
 							<CardHeader className="pb-3">
 								<CardTitle className="flex items-center gap-2 text-lg">
-									<i className="i-lucide-smartphone inline-block h-4 w-4"  />
+									<i className="i-lucide-smartphone h-4 w-4"  />
 									Two-Factor Auth
 								</CardTitle>
 							</CardHeader>

@@ -21,7 +21,6 @@ import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,
 	DropdownMenuContent,
-	DropdownMenuItem,
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
@@ -35,6 +34,7 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
+import { createActionColumn } from '@/components/data-table/data-table-action-factory'
 
 interface DenseTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[]
@@ -126,7 +126,7 @@ export function DenseTable<TData, TValue>({
 				<div className="flex items-center gap-2">
 					{enableGlobalFilter && (
 						<div className="relative">
-							<i className="i-lucide-search inline-block text-muted-foreground pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"  />
+							<i className="i-lucide-search text-muted-foreground pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"  />
 							<Input
 								placeholder={searchPlaceholder}
 								value={globalFilter}
@@ -169,9 +169,9 @@ export function DenseTable<TData, TValue>({
 									size="sm"
 									className="h-8 text-sm"
 								>
-									<i className="i-lucide-filter inline-block mr-1 h-3 w-3"  />
+									<i className="i-lucide-filter mr-1 h-3 w-3"  />
 									Columns
-									<i className="i-lucide-chevron-down inline-block ml-1 h-3 w-3"  />
+									<i className="i-lucide-chevron-down ml-1 h-3 w-3"  />
 								</Button>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent
@@ -267,7 +267,7 @@ export function DenseTable<TData, TValue>({
 																header.getContext()
 															)}
 													{header.column.getCanSort() && (
-														<i className="i-lucide-arrowupdown inline-block h-3 w-3 opacity-50"  />
+														<i className="i-lucide-arrowupdown h-3 w-3 op-50"  />
 													)}
 												</div>
 
@@ -275,7 +275,7 @@ export function DenseTable<TData, TValue>({
 												<div
 													className={cn(
 														'hover:bg-primary/50 active:bg-primary absolute right-0 top-0 h-full w-1 cursor-col-resize select-none bg-transparent',
-														'opacity-0 group-hover:opacity-100'
+														'op-0 group-hover:op-100'
 													)}
 													onMouseDown={header.getResizeHandler()}
 													onTouchStart={header.getResizeHandler()}
@@ -444,7 +444,7 @@ function DenseTablePagination<TData>({
 							onClick={() => table.setPageIndex(0)}
 							disabled={!table.getCanPreviousPage()}
 						>
-							<i className="i-lucide-chevronsleft inline-block h-3 w-3"  />
+							<i className="i-lucide-chevronsleft h-3 w-3"  />
 						</Button>
 						<Button
 							variant="outline"
@@ -453,7 +453,7 @@ function DenseTablePagination<TData>({
 							onClick={() => table.previousPage()}
 							disabled={!table.getCanPreviousPage()}
 						>
-							<i className="i-lucide-chevron-left inline-block h-3 w-3"  />
+							<i className="i-lucide-chevron-left h-3 w-3"  />
 						</Button>
 						<Button
 							variant="outline"
@@ -462,7 +462,7 @@ function DenseTablePagination<TData>({
 							onClick={() => table.nextPage()}
 							disabled={!table.getCanNextPage()}
 						>
-							<i className="i-lucide-chevron-right inline-block h-3 w-3"  />
+							<i className="i-lucide-chevron-right h-3 w-3"  />
 						</Button>
 						<Button
 							variant="outline"
@@ -473,7 +473,7 @@ function DenseTablePagination<TData>({
 							}
 							disabled={!table.getCanNextPage()}
 						>
-							<i className="i-lucide-chevronsright inline-block h-3 w-3"  />
+							<i className="i-lucide-chevronsright h-3 w-3"  />
 						</Button>
 					</div>
 				</div>
@@ -522,57 +522,36 @@ export function createSelectColumn<T>() {
 	} as ColumnDef<T>
 }
 
-export function createActionsColumn<T>(
-	actions: {
-		label: string
-		onClick: (_item: T) => void
-		icon?: React.ReactNode
-		variant?: 'default' | 'destructive'
-	}[]
+export function createActionsColumn<T extends { id: string }>(
+    actions: {
+        label: string
+        onClick: (_item: T) => void
+        icon?: React.ReactNode
+        variant?: 'default' | 'destructive'
+    }[]
 ) {
-	return {
-		id: 'actions',
-		enableHiding: false,
-		size: 50,
-		cell: ({ row }: { row: { original: T } }) => {
-			const item = row.original
+    // Delegate to consolidated factory (dropdown variant) to avoid duplicating menu markup
+    const Actions = createActionColumn<T>({
+        entity: 'item',
+        basePath: '',
+        actions: actions.map(a => ({
+            type: 'custom',
+            icon: '',
+            label: a.label,
+            onClick: (item: T) => a.onClick(item),
+            variant: a.variant === 'destructive' ? 'destructive' : 'ghost'
+        })),
+        variant: 'dropdown'
+    })
 
-			return (
-				<div className="opacity-0 transition-opacity group-hover:opacity-100">
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<Button variant="ghost" className="h-6 w-6 p-0">
-								<span className="sr-only">Open menu</span>
-								<i className="i-lucide-more-horizontal inline-block h-3 w-3"  />
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end" className="w-[160px]">
-							<DropdownMenuLabel className="text-xs">
-								Actions
-							</DropdownMenuLabel>
-							<DropdownMenuSeparator />
-							{actions.map((action, index) => (
-								<DropdownMenuItem
-									key={index}
-									onClick={() => action.onClick(item)}
-									className={cn(
-										'text-xs',
-										action.variant === 'destructive' &&
-											'text-destructive focus:text-destructive'
-									)}
-								>
-									{action.icon && (
-										<span className="mr-2">
-											{action.icon}
-										</span>
-									)}
-									{action.label}
-								</DropdownMenuItem>
-							))}
-						</DropdownMenuContent>
-					</DropdownMenu>
-				</div>
-			)
-		}
-	} as ColumnDef<T>
+    return {
+        id: 'actions',
+        enableHiding: false,
+        size: 50,
+        cell: ({ row }: { row: { original: T } }) => (
+            <div className="op-0 transition-opacity group-hover:op-100">
+                <Actions item={row.original} />
+            </div>
+        )
+    } as ColumnDef<T>
 }

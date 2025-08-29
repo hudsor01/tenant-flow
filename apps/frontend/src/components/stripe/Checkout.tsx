@@ -78,7 +78,7 @@ export function Checkout({
 			<div
 				className={`flex items-center justify-center p-8 ${className}`}
 			>
-				<div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600" />
+				<div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-6" />
 			</div>
 		)
 	}
@@ -93,7 +93,7 @@ export function Checkout({
 			/>
 
 			{errorMessage && (
-				<div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+				<div className="mt-4 rounded-lg border border-red-2 bg-red-50 p-3 text-sm text-red-7">
 					{errorMessage}
 				</div>
 			)}
@@ -105,7 +105,7 @@ export function Checkout({
 			>
 				{isProcessing ? (
 					<>
-						<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
+						<i className="i-lucide-loader-2 mr-2 h-4 w-4 animate-spin"  />
 						Processing...
 					</>
 				) : (

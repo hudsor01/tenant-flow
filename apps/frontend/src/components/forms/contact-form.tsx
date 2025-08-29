@@ -64,25 +64,25 @@ export function ContactForm({
 		{
 			value: 'demo',
 			label: 'Schedule a Demo',
-			icon: () => <i className="i-lucide-calendar inline-block" />,
+			icon: () => <i className="i-lucide-calendar " />,
 			description: 'See TenantFlow in action'
 		},
 		{
 			value: 'sales',
 			label: 'Sales Inquiry',
-			icon: () => <i className="i-lucide-phone inline-block" />,
+			icon: () => <i className="i-lucide-phone " />,
 			description: 'Learn about pricing & features'
 		},
 		{
 			value: 'support',
 			label: 'Technical Support',
-			icon: () => <i className="i-lucide-mail inline-block" />,
+			icon: () => <i className="i-lucide-mail " />,
 			description: 'Get help with your account'
 		},
 		{
 			value: 'general',
 			label: 'General Question',
-			icon: () => <i className="i-lucide-check-circle inline-block" />,
+			icon: () => <i className="i-lucide-check-circle " />,
 			description: 'Other inquiries'
 		}
 	]
@@ -110,8 +110,8 @@ export function ContactForm({
 							animate={{ opacity: 1, scale: 1 }}
 							className="py-8 text-center"
 						>
-							<div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-								<i className="i-lucide-checkcircle inline-block h-8 w-8 text-green-600"  />
+							<div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-1">
+								<i className="i-lucide-check-circle h-8 w-8 text-green-6"  />
 							</div>
 							<h3 className="mb-2 text-xl font-semibold">
 								Message Sent!
@@ -279,7 +279,7 @@ export function ContactForm({
 							</div>
 
 							{state.error && (
-								<div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+								<div className="rounded-md border border-red-2 bg-red-1 p-3 text-sm text-red-6">
 									{state.error}
 								</div>
 							)}
@@ -301,7 +301,7 @@ export function ContactForm({
 										{inquiryType === 'demo'
 											? 'Request Demo'
 											: 'Send Message'}
-										<i className="i-lucide-send inline-block ml-2 h-4 w-4"  />
+										<i className="i-lucide-send  ml-2 h-4 w-4"  />
 									</>
 								)}
 							</Button>
@@ -310,15 +310,15 @@ export function ContactForm({
 							<div className="border-t pt-4">
 								<div className="text-muted-foreground flex flex-wrap items-center justify-center gap-4 text-xs">
 									<div className="flex items-center gap-1">
-										<i className="i-lucide-checkcircle inline-block h-3 w-3"  />
+										<i className="i-lucide-checkcircle  h-3 w-3"  />
 										<span>No spam, ever</span>
 									</div>
 									<div className="flex items-center gap-1">
-										<i className="i-lucide-checkcircle inline-block h-3 w-3"  />
+										<i className="i-lucide-checkcircle  h-3 w-3"  />
 										<span>24-hour response</span>
 									</div>
 									<div className="flex items-center gap-1">
-										<i className="i-lucide-checkcircle inline-block h-3 w-3"  />
+										<i className="i-lucide-checkcircle  h-3 w-3"  />
 										<span>Free consultation</span>
 									</div>
 								</div>

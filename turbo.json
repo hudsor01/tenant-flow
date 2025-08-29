@@ -88,6 +88,8 @@
 				"components/**",
 				"lib/**",
 				"public/**",
+				"scripts/**",
+				"../backend/src/schemas/**",
 				"next.config.ts",
 				"tsconfig*.json",
 				"package.json",
@@ -357,6 +359,17 @@
 		"clean": {
 			"cache": false,
 			"outputs": [],
+			"persistent": false
+		},
+		"generate:schemas": {
+			"dependsOn": ["@repo/shared#build"],
+			"inputs": [
+				"../backend/src/schemas/**",
+				"scripts/generate-frontend-schemas.ts",
+				"package.json"
+			],
+			"outputs": ["src/lib/validation/generated-*.ts"],
+			"cache": true,
 			"persistent": false
 		}
 	}

@@ -115,9 +115,9 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						<div className="flex items-center gap-2 rounded-md border border-green-200 bg-green-50 p-3">
-							<i className="i-lucide-checkcircle inline-block h-5 w-5 text-green-600"  />
-							<p className="text-sm text-green-800">
+						<div className="flex items-center gap-2 rounded-md border border-green-2 bg-green-1 p-3">
+							<i className="i-lucide-checkcircle h-5 w-5 text-green-6"  />
+							<p className="text-sm text-green-8">
 								Password updated successfully! Redirecting to
 								sign in...
 							</p>
@@ -152,7 +152,7 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 					{state.error && (
 						<div className="bg-destructive/10 border-destructive/20 rounded-md border p-3">
 							<div className="flex items-center gap-2">
-								<i className="i-lucide-alert-circle inline-block text-destructive h-4 w-4"  />
+								<i className="i-lucide-alert-circle text-destructive h-4 w-4"  />
 								<p className="text-destructive text-sm">
 									{state.error}
 								</p>
@@ -197,9 +197,9 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 									}
 								>
 									{showPw ? (
-										<i className="i-lucide-eye-off inline-block h-4 w-4"  />
+										<i className="i-lucide-eye-off h-4 w-4"  />
 									) : (
-										<i className="i-lucide-eye inline-block h-4 w-4"  />
+										<i className="i-lucide-eye h-4 w-4"  />
 									)}
 								</button>
 							</div>
@@ -300,9 +300,9 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 									}
 								>
 									{showPw2 ? (
-										<i className="i-lucide-eye-off inline-block h-4 w-4"  />
+										<i className="i-lucide-eye-off h-4 w-4"  />
 									) : (
-										<i className="i-lucide-eye inline-block h-4 w-4"  />
+										<i className="i-lucide-eye h-4 w-4"  />
 									)}
 								</button>
 							</div>
@@ -330,7 +330,7 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 						>
 							{isPending ? (
 								<span className="inline-flex items-center gap-2">
-									<i className="i-lucide-loader-2 inline-block h-4 w-4 animate-spin"  />
+									<i className="i-lucide-loader-2 h-4 w-4 animate-spin"  />
 									Updating password…
 								</span>
 							) : (

@@ -67,14 +67,14 @@ export default function SettingsPage() {
 							value="profile"
 							className="flex items-center gap-2"
 						>
-							<i className="i-lucide-user inline-block h-4 w-4"  />
+							<i className="i-lucide-user  h-4 w-4"  />
 							<span className="hidden sm:inline">Profile</span>
 						</TabsTrigger>
 						<TabsTrigger
 							value="notifications"
 							className="flex items-center gap-2"
 						>
-							<i className="i-lucide-bell inline-block h-4 w-4"  />
+							<i className="i-lucide-bell  h-4 w-4"  />
 							<span className="hidden sm:inline">
 								Notifications
 							</span>
@@ -83,28 +83,28 @@ export default function SettingsPage() {
 							value="security"
 							className="flex items-center gap-2"
 						>
-							<i className="i-lucide-shield inline-block h-4 w-4"  />
+							<i className="i-lucide-shield  h-4 w-4"  />
 							<span className="hidden sm:inline">Security</span>
 						</TabsTrigger>
 						<TabsTrigger
 							value="billing"
 							className="flex items-center gap-2"
 						>
-							<i className="i-lucide-credit-card inline-block h-4 w-4"  />
+							<i className="i-lucide-credit-card  h-4 w-4"  />
 							<span className="hidden sm:inline">Billing</span>
 						</TabsTrigger>
 						<TabsTrigger
 							value="appearance"
 							className="flex items-center gap-2"
 						>
-							<i className="i-lucide-palette inline-block h-4 w-4"  />
+							<i className="i-lucide-palette  h-4 w-4"  />
 							<span className="hidden sm:inline">Appearance</span>
 						</TabsTrigger>
 						<TabsTrigger
 							value="data"
 							className="flex items-center gap-2"
 						>
-							<i className="i-lucide-database inline-block h-4 w-4"  />
+							<i className="i-lucide-database  h-4 w-4"  />
 							<span className="hidden sm:inline">Data</span>
 						</TabsTrigger>
 					</TabsList>

@@ -42,54 +42,54 @@ export function MaintenanceList({
 	const getPriorityColor = (priority: string) => {
 		switch (priority.toLowerCase()) {
 			case 'low':
-				return 'bg-green-100 text-green-800 border-green-200'
+				return 'bg-green-1 text-green-8 border-green-2'
 			case 'medium':
-				return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+				return 'bg-yellow-1 text-yellow-8 border-yellow-2'
 			case 'high':
-				return 'bg-orange-100 text-orange-800 border-orange-200'
+				return 'bg-orange-1 text-orange-8 border-orange-2'
 			case 'emergency':
-				return 'bg-red-100 text-red-800 border-red-200'
+				return 'bg-red-1 text-red-8 border-red-2'
 			default:
-				return 'bg-gray-100 text-gray-800 border-gray-200'
+				return 'bg-gray-1 text-gray-8 border-gray-2'
 		}
 	}
 
 	const getStatusColor = (status: string) => {
 		switch (status.toUpperCase()) {
 			case 'OPEN':
-				return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+				return 'bg-yellow-1 text-yellow-8 border-yellow-2'
 			case 'IN_PROGRESS':
-				return 'bg-blue-100 text-blue-800 border-blue-200'
+				return 'bg-blue-1 text-blue-8 border-blue-2'
 			case 'COMPLETED':
-				return 'bg-green-100 text-green-800 border-green-200'
+				return 'bg-green-1 text-green-8 border-green-2'
 			case 'CANCELED':
-				return 'bg-gray-100 text-gray-800 border-gray-200'
+				return 'bg-gray-1 text-gray-8 border-gray-2'
 			case 'ON_HOLD':
-				return 'bg-orange-100 text-orange-800 border-orange-200'
+				return 'bg-orange-1 text-orange-8 border-orange-2'
 			default:
-				return 'bg-gray-100 text-gray-800 border-gray-200'
+				return 'bg-gray-1 text-gray-8 border-gray-2'
 		}
 	}
 
 	const getStatusIcon = (status: string) => {
 		switch (status.toUpperCase()) {
 			case 'OPEN':
-				return <i className="i-lucide-clock inline-block h-3 w-3"  />
+				return <i className="i-lucide-clock h-3 w-3"  />
 			case 'IN_PROGRESS':
-				return <i className="i-lucide-wrench inline-block h-3 w-3"  />
+				return <i className="i-lucide-wrench h-3 w-3"  />
 			case 'COMPLETED':
-				return <i className="i-lucide-check-circle-2 inline-block h-3 w-3"  />
+				return <i className="i-lucide-check-circle-2 h-3 w-3"  />
 			case 'CANCELED':
-				return <i className="i-lucide-xcircle inline-block h-3 w-3"  />
+				return <i className="i-lucide-xcircle h-3 w-3"  />
 			default:
-				return <i className="i-lucide-clock inline-block h-3 w-3"  />
+				return <i className="i-lucide-clock h-3 w-3"  />
 		}
 	}
 
 	const getPriorityIcon = (priority: string) => {
 		switch (priority.toLowerCase()) {
 			case 'emergency':
-				return <i className="i-lucide-alert-triangle inline-block h-3 w-3"  />
+				return <i className="i-lucide-alert-triangle h-3 w-3"  />
 			default:
 				return null
 		}
@@ -98,7 +98,7 @@ export function MaintenanceList({
 	if (isLoading) {
 		return (
 			<div className="flex items-center justify-center p-8">
-				<i className="i-lucide-loader-2 inline-block text-muted-foreground h-8 w-8 animate-spin"  />
+				<i className="i-lucide-loader-2 text-muted-foreground h-8 w-8 animate-spin"  />
 				<span className="text-muted-foreground ml-2">
 					Loading maintenance requests...
 				</span>
@@ -108,12 +108,12 @@ export function MaintenanceList({
 
 	if (error) {
 		return (
-			<Card className="border-red-200 bg-red-50">
+			<Card className="border-red-2 bg-red-50">
 				<CardHeader>
-					<CardTitle className="text-red-800">
+					<CardTitle className="text-red-8">
 						Error Loading Maintenance Requests
 					</CardTitle>
-					<CardDescription className="text-red-600">
+					<CardDescription className="text-red-6">
 						{error.message || 'Failed to load maintenance requests'}
 					</CardDescription>
 				</CardHeader>
@@ -121,7 +121,7 @@ export function MaintenanceList({
 					<Button
 						onClick={() => refetch()}
 						variant="outline"
-						className="border-red-200 text-red-800 hover:bg-red-100"
+						className="border-red-2 text-red-8 hover:bg-red-1"
 					>
 						Try Again
 					</Button>
@@ -134,7 +134,7 @@ export function MaintenanceList({
 		return (
 			<Card>
 				<CardContent className="flex flex-col items-center justify-center p-8">
-					<i className="i-lucide-wrench inline-block text-muted-foreground mb-4 h-12 w-12"  />
+					<i className="i-lucide-wrench text-muted-foreground mb-4 h-12 w-12"  />
 					<CardTitle className="text-muted-foreground text-center text-lg">
 						No maintenance requests found
 					</CardTitle>

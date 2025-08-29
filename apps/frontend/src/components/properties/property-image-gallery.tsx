@@ -18,7 +18,7 @@ import {
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
-import { motion } from '@/lib/lazy-motion'
+import { motion } from 'framer-motion'
 import type { Property } from '@repo/shared'
 type Property_ = Property
 
@@ -132,7 +132,7 @@ export default function Property_ImageGallery({
 						].map(skeleton => (
 							<div
 								key={skeleton.id}
-								className="aspect-square animate-pulse rounded-lg bg-gray-200"
+								className="aspect-square animate-pulse rounded-lg bg-gray-2"
 							/>
 						))}
 					</div>
@@ -146,7 +146,7 @@ export default function Property_ImageGallery({
 	// 	return (
 	// 		<Card className={className}>
 	// 			<CardContent className="p-6">
-	// 				<div className="text-center text-red-600">
+	// 				<div className="text-center text-red-6">
 	// 					<p>Failed to load images: {error?.message || 'Unknown error'}</p>
 	// 				</div>
 	// 			</CardContent>
@@ -168,7 +168,7 @@ export default function Property_ImageGallery({
 						</CardTitle>
 						{onUploadClick && (
 							<Button onClick={onUploadClick} size="sm">
-								<i className="i-lucide-upload inline-block mr-2 h-4 w-4"  />
+								<i className="i-lucide-upload mr-2 h-4 w-4"  />
 								Upload Images
 							</Button>
 						)}
@@ -178,18 +178,18 @@ export default function Property_ImageGallery({
 					{images.length === 0 ? (
 						<div className="py-12 text-center">
 							<span
-								className="i-lucide-image mx-auto mb-4 h-12 w-12 text-gray-400"
+								className="i-lucide-image mx-auto mb-4 h-12 w-12 text-gray-4"
 								aria-hidden="true"
 							/>
-							<h3 className="mb-2 text-lg font-semibold text-gray-800">
+							<h3 className="mb-2 text-lg font-semibold text-gray-8">
 								No Images
 							</h3>
-							<p className="mb-4 text-gray-600">
+							<p className="mb-4 text-gray-6">
 								Upload some images to showcase this property.
 							</p>
 							{onUploadClick && (
 								<Button onClick={onUploadClick}>
-									<i className="i-lucide-upload inline-block mr-2 h-4 w-4"  />
+									<i className="i-lucide-upload mr-2 h-4 w-4"  />
 									Upload First Image
 								</Button>
 							)}
@@ -204,7 +204,7 @@ export default function Property_ImageGallery({
 									transition={{ delay: index * 0.1 }}
 									className="group relative"
 								>
-									<div className="relative aspect-square overflow-hidden rounded-lg border-2 border-gray-200 transition-colors hover:border-gray-300">
+									<div className="relative aspect-square overflow-hidden rounded-lg border-2 border-gray-2 transition-colors hover:border-gray-3">
 										<NextImage
 											src={image.url}
 											alt={`Property_ image: ${image.name}`}
@@ -217,8 +217,8 @@ export default function Property_ImageGallery({
 
 										{/* Primary image badge */}
 										{isPrimaryImage(image.url) && (
-											<Badge className="absolute left-2 top-2 bg-yellow-500 text-white">
-												<i className="i-lucide-star inline-block mr-1 h-3 w-3"  />
+											<Badge className="absolute left-2 top-2 bg-yellow-5 text-white">
+												<i className="i-lucide-star mr-1 h-3 w-3"  />
 												Primary
 											</Badge>
 										)}
@@ -232,7 +232,7 @@ export default function Property_ImageGallery({
 														variant="secondary"
 														className="h-8 w-8 p-0"
 													>
-														<i className="i-lucide-more-vertical inline-block h-4 w-4"  />
+														<i className="i-lucide-more-vertical h-4 w-4"  />
 													</Button>
 												</DropdownMenuTrigger>
 												<DropdownMenuContent align="end">
@@ -243,7 +243,7 @@ export default function Property_ImageGallery({
 															)
 														}
 													>
-														<i className="i-lucide-eye inline-block mr-2 h-4 w-4"  />
+														<i className="i-lucide-eye mr-2 h-4 w-4"  />
 														View Full Size
 													</DropdownMenuItem>
 													{!isPrimaryImage(
@@ -260,7 +260,7 @@ export default function Property_ImageGallery({
 																setPrimaryImage.isPending
 															}
 														>
-															<i className="i-lucide-star inline-block mr-2 h-4 w-4"  />
+															<i className="i-lucide-star mr-2 h-4 w-4"  />
 															Set as Primary
 														</DropdownMenuItem>
 													)}
@@ -270,9 +270,9 @@ export default function Property_ImageGallery({
 																image.id
 															)
 														}
-														className="text-red-600"
+														className="text-red-6"
 													>
-														<i className="i-lucide-trash-2 inline-block mr-2 h-4 w-4"  />
+														<i className="i-lucide-trash-2 mr-2 h-4 w-4"  />
 														Delete
 													</DropdownMenuItem>
 												</DropdownMenuContent>
@@ -282,7 +282,7 @@ export default function Property_ImageGallery({
 
 									{/* Image name */}
 									<p
-										className="mt-2 truncate text-xs text-gray-600"
+										className="mt-2 truncate text-xs text-gray-6"
 										title={image.name}
 									>
 										{image.name}

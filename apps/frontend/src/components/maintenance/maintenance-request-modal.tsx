@@ -124,8 +124,8 @@ export function MaintenanceRequestModal({
 			<DialogContent className="max-h-[90vh] max-w-[95vw] overflow-y-auto sm:max-w-[700px]">
 				<DialogHeader>
 					<div className="flex items-center gap-3">
-						<div className="bg-orange-100 rounded-lg p-2">
-							<i className="i-lucide-wrench inline-block h-5 w-5 text-orange-600"  />
+						<div className="bg-orange-1 rounded-lg p-2">
+							<i className="i-lucide-wrench h-5 w-5 text-orange-6"  />
 						</div>
 						<div>
 							<DialogTitle>Schedule Maintenance Request</DialogTitle>
@@ -138,7 +138,7 @@ export function MaintenanceRequestModal({
 
 				{error && (
 					<Alert variant="destructive">
-						<i className="i-lucide-alert-triangle inline-block h-4 w-4"  />
+						<i className="i-lucide-alert-triangle h-4 w-4"  />
 						<AlertDescription>{error}</AlertDescription>
 					</Alert>
 				)}
@@ -411,12 +411,12 @@ export function MaintenanceRequestModal({
 							>
 								{isLoading ? (
 									<>
-										<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
+										<i className="i-lucide-loader-2 mr-2 h-4 w-4 animate-spin"  />
 										Creating...
 									</>
 								) : (
 									<>
-										<i className="i-lucide-wrench inline-block mr-2 h-4 w-4"  />
+										<i className="i-lucide-wrench mr-2 h-4 w-4"  />
 										Create Request
 									</>
 								)}

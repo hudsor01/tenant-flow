@@ -153,6 +153,62 @@ export class NotificationsController {
 		}
 	}
 
+	@Post('maintenance')
+	async createMaintenanceNotification(
+		@Body() createMaintenanceDto: {
+			ownerId: string
+			title: string
+			description: string
+			priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
+			propertyName: string
+			unitNumber: string
+			maintenanceId?: string
+			actionUrl?: string
+		},
+		@CurrentUser() user: ValidatedUser
+	) {
+		const { ownerId, title, description, priority, propertyName, unitNumber, maintenanceId, actionUrl } = createMaintenanceDto
+
+		this.logger.info(
+			`Creating maintenance notification for user ${ownerId}`,
+			{
+				createdBy: user.id,
+				ownerId,
+				title,
+				priority,
+				propertyName,
+				unitNumber
+			}
+		)
+
+		try {
+			const notification = await this.notificationsService.createMaintenanceNotification(
+				ownerId,
+				title,
+				description,
+				priority,
+				propertyName,
+				unitNumber,
+				maintenanceId,
+				actionUrl
+			)
+
+			this.logger.info(`Maintenance notification created successfully`, {
+				notificationId: notification.id,
+				ownerId,
+				priority
+			})
+
+			return notification
+		} catch (error) {
+			this.logger.error(
+				`Failed to create maintenance notification for user ${ownerId}`,
+				error
+			)
+			throw error
+		}
+	}
+
 	@Get('priority-info/:priority')
 	@Public()
 	getPriorityInfo(@Param('priority') priority: string) {

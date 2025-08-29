@@ -51,12 +51,12 @@ function Property_Card({ property }: { property: Property_ }) {
 							{property.name}
 						</CardTitle>
 						<p className="text-muted-foreground flex items-center gap-1 text-sm">
-							<i className="i-lucide-map-pin inline-block h-3 w-3"  />
+							<i className="i-lucide-map-pin h-3 w-3"  />
 							{property.address}
 						</p>
 					</div>
 					<Badge
-						className="bg-blue-100 text-blue-800"
+						className="bg-blue-1 text-blue-8"
 						variant="secondary"
 					>
 						Active
@@ -67,12 +67,12 @@ function Property_Card({ property }: { property: Property_ }) {
 				<div className="space-y-3">
 					<div className="flex items-center justify-between text-sm">
 						<span className="flex items-center gap-2">
-							<i className="i-lucide-building inline-block h-4 w-4"  />
+							<i className="i-lucide-building h-4 w-4"  />
 							{property.propertyType?.replace('_', ' ') ||
 								'Property_'}
 						</span>
 						<span className="flex items-center gap-2">
-							<i className="i-lucide-users inline-block h-4 w-4"  />
+							<i className="i-lucide-users h-4 w-4"  />
 							{property.units?.length ?? 0} units
 						</span>
 					</div>
@@ -162,7 +162,7 @@ async function PropertiesList() {
 		return (
 			<Card>
 				<CardContent className="p-8 text-center">
-					<i className="i-lucide-building inline-block text-muted-foreground mx-auto mb-4 h-12 w-12"  />
+					<i className="i-lucide-building text-muted-foreground mx-auto mb-4 h-12 w-12"  />
 					<h3 className="mb-2 text-lg font-semibold">
 						No properties found
 					</h3>
@@ -171,7 +171,7 @@ async function PropertiesList() {
 					</p>
 					<Button asChild>
 						<Link href="/properties/new">
-							<i className="i-lucide-plus inline-block mr-2 h-4 w-4"  />
+							<i className="i-lucide-plus mr-2 h-4 w-4"  />
 							Add Property_
 						</Link>
 					</Button>
@@ -203,7 +203,7 @@ export default function Property_ListServer() {
 				</div>
 				<Button asChild>
 					<Link href="/properties/new">
-						<i className="i-lucide-plus inline-block mr-2 h-4 w-4"  />
+						<i className="i-lucide-plus mr-2 h-4 w-4"  />
 						Add Property_
 					</Link>
 				</Button>

@@ -14,7 +14,7 @@ export function BillingSettings() {
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<i className="i-lucide-credit-card inline-block h-5 w-5"  />
+						<i className="i-lucide-credit-card h-5 w-5"  />
 						Billing & Subscription
 					</CardTitle>
 					<CardDescription>
@@ -35,7 +35,7 @@ export function BillingSettings() {
 										<span className="font-medium">
 											Premium
 										</span>
-										<Badge className="bg-green-500">
+										<Badge className="bg-green-5">
 											Active
 										</Badge>
 									</div>
@@ -43,7 +43,7 @@ export function BillingSettings() {
 										$29/month • Unlimited properties
 									</p>
 									<div className="text-muted-foreground flex items-center gap-2 text-sm">
-										<i className="i-lucide-calendar inline-block h-3 w-3"  />
+										<i className="i-lucide-calendar h-3 w-3"  />
 										Next billing: Jan 15, 2025
 									</div>
 								</div>
@@ -62,7 +62,7 @@ export function BillingSettings() {
 							<CardContent className="space-y-4">
 								<div className="space-y-2">
 									<div className="flex items-center gap-2">
-										<i className="i-lucide-credit-card inline-block h-4 w-4"  />
+										<i className="i-lucide-credit-card h-4 w-4"  />
 										<span className="text-sm">
 											**** **** **** 4242
 										</span>
@@ -104,7 +104,7 @@ export function BillingSettings() {
 											$29.00
 										</span>
 										<Button size="sm" variant="ghost">
-											<i className="i-lucide-download inline-block h-4 w-4"  />
+											<i className="i-lucide-download h-4 w-4"  />
 										</Button>
 									</div>
 								</div>

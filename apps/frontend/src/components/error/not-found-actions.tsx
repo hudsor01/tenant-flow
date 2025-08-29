@@ -22,7 +22,7 @@ export function NotFoundActions() {
 			variant="outline"
 			className="flex w-full items-center justify-center gap-2"
 		>
-			<i className="i-lucide-arrow-left inline-block h-4 w-4"  />
+			<i className="i-lucide-arrow-left h-4 w-4"  />
 			Go Back
 		</Button>
 	)

@@ -1,5 +1,5 @@
 /**
- * Optimized Testimonials Section - Server Component
+ * Testimonials Section - Server Component
  * Static customer testimonials with ratings and metrics
  */
 
@@ -41,35 +41,35 @@ export function TestimonialsSection() {
 	]
 
 	return (
-		<section className="bg-white px-4 py-20">
+		<section className="bg-background px-4 py-20">
 			<div className="container mx-auto">
 				<div className="mb-12 text-center">
-					<Badge className="mb-4 bg-yellow-100 text-yellow-700">
+					<Badge className="mb-4 bg-warning/10 text-warning">
 						CUSTOMER SUCCESS
 					</Badge>
-					<h2 className="mb-4 text-4xl font-bold text-gray-900">
+					<h2 className="mb-4 text-4xl font-bold text-foreground">
 						Real Results from Real Property_ Managers
 					</h2>
 				</div>
 
 				<div className="grid gap-8 md:grid-cols-3">
-					{testimonials.map(testimonial => (
+					{testimonials.map((testimonial, index) => (
 						<Card
-							key={testimonial.name}
+							key={index}
 							className="p-6 transition-all hover:shadow-xl"
 						>
 							<div className="mb-4 flex items-start justify-between">
 								<div className="flex items-center gap-1">
 									{[...Array(5)].map((_, i) => (
-										<i className="i-lucide-star inline-block h-4 w-4 fill-yellow-400 text-yellow-400" key={`star-${testimonial.name}-${i}`} />
+										<i className="i-lucide-star h-4 w-4 fill-warning text-warning" key={i} />
 									))}
 								</div>
-								<Badge className="bg-green-100 text-xs text-green-700">
+								<Badge className="bg-success/10 text-xs text-success">
 									{testimonial.metric}
 								</Badge>
 							</div>
 
-							<p className="mb-4 italic text-gray-600">
+							<p className="mb-4 italic text-muted-foreground">
 								"{testimonial.content}"
 							</p>
 
@@ -78,13 +78,13 @@ export function TestimonialsSection() {
 									{testimonial.image}
 								</div>
 								<div>
-									<p className="font-semibold text-gray-900">
+									<p className="font-semibold text-foreground">
 										{testimonial.name}
 									</p>
-									<p className="text-sm text-gray-500">
+									<p className="text-sm text-muted-foreground">
 										{testimonial.role}
 									</p>
-									<p className="text-xs text-gray-400">
+									<p className="text-xs text-muted-foreground">
 										{testimonial.company}
 									</p>
 								</div>
@@ -94,11 +94,11 @@ export function TestimonialsSection() {
 				</div>
 
 				<div className="mt-8 text-center">
-					<p className="text-gray-600">
+					<p className="text-muted-foreground">
 						Join{' '}
-						<span className="font-bold text-gray-900">10,000+</span>{' '}
+						<span className="font-bold text-foreground">10,000+</span>{' '}
 						property managers with a combined{' '}
-						<span className="font-bold text-gray-900">
+						<span className="font-bold text-foreground">
 							500,000+
 						</span>{' '}
 						units under management

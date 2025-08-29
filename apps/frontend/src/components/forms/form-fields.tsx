@@ -5,9 +5,8 @@
  * Common form patterns following DRY principles
  */
 
-import { Input } from '@/components/ui/input'
+import React from 'react'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import {
 	Select,
 	SelectContent,
@@ -16,6 +15,7 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
+import type { ReactNode } from 'react'
 
 export interface FormFieldProps {
 	label: string
@@ -25,27 +25,34 @@ export interface FormFieldProps {
 	className?: string
 }
 
-export interface TextFieldProps extends FormFieldProps {
-	type?: 'text' | 'email' | 'tel' | 'url'
+// Shared field container component - DRY principle
+function FieldContainer({
+	label,
+	name,
+	error,
+	required,
+	className,
+	children
+}: FormFieldProps & { children: ReactNode }) {
+	return (
+		<div className={`space-y-2 ${className || ''}`}>
+			<Label htmlFor={name}>
+				{label}
+				{required && <span className="ml-1 text-red-5">*</span>}
+			</Label>
+			{children}
+			{error && <p className="text-sm text-red-6">{error}</p>}
+		</div>
+	)
+}
+
+export interface BaseInputFieldProps extends FormFieldProps {
 	placeholder?: string
-	defaultValue?: string
+	defaultValue?: string | number
 	maxLength?: number
 }
 
-export interface NumberFieldProps extends FormFieldProps {
-	placeholder?: string
-	defaultValue?: number
-	min?: number
-	max?: number
-	step?: number
-}
-
-export interface TextareaFieldProps extends FormFieldProps {
-	placeholder?: string
-	defaultValue?: string
-	rows?: number
-	maxLength?: number
-}
+// Deleted unused type interfaces - use BaseInputFieldProps directly with Input/Textarea
 
 export interface SelectFieldProps extends FormFieldProps {
 	placeholder?: string
@@ -58,104 +65,7 @@ export interface CheckboxFieldProps extends FormFieldProps {
 	description?: string
 }
 
-export function TextField({
-	label,
-	name,
-	type = 'text',
-	placeholder,
-	defaultValue,
-	error,
-	required,
-	maxLength,
-	className
-}: TextFieldProps) {
-	return (
-		<div className={`space-y-2 ${className || ''}`}>
-			<Label htmlFor={name}>
-				{label}
-				{required && <span className="ml-1 text-red-500">*</span>}
-			</Label>
-			<Input
-				id={name}
-				name={name}
-				type={type}
-				placeholder={placeholder}
-				defaultValue={defaultValue}
-				required={required}
-				maxLength={maxLength}
-				className={error ? 'input-error-red' : ''}
-			/>
-			{error && <p className="text-sm text-red-600">{error}</p>}
-		</div>
-	)
-}
-
-export function NumberField({
-	label,
-	name,
-	placeholder,
-	defaultValue,
-	error,
-	required,
-	min,
-	max,
-	step,
-	className
-}: NumberFieldProps) {
-	return (
-		<div className={`space-y-2 ${className || ''}`}>
-			<Label htmlFor={name}>
-				{label}
-				{required && <span className="ml-1 text-red-500">*</span>}
-			</Label>
-			<Input
-				id={name}
-				name={name}
-				type="number"
-				placeholder={placeholder}
-				defaultValue={defaultValue}
-				required={required}
-				min={min}
-				max={max}
-				step={step}
-				className={error ? 'input-error-red' : ''}
-			/>
-			{error && <p className="text-sm text-red-600">{error}</p>}
-		</div>
-	)
-}
-
-export function TextareaField({
-	label,
-	name,
-	placeholder,
-	defaultValue,
-	error,
-	required,
-	rows = 3,
-	maxLength,
-	className
-}: TextareaFieldProps) {
-	return (
-		<div className={`space-y-2 ${className || ''}`}>
-			<Label htmlFor={name}>
-				{label}
-				{required && <span className="ml-1 text-red-500">*</span>}
-			</Label>
-			<Textarea
-				id={name}
-				name={name}
-				placeholder={placeholder}
-				defaultValue={defaultValue}
-				required={required}
-				rows={rows}
-				maxLength={maxLength}
-				className={error ? 'input-error-red' : ''}
-			/>
-			{error && <p className="text-sm text-red-600">{error}</p>}
-		</div>
-	)
-}
+// Deleted unused BaseField wrapper - use FieldContainer directly with UI components
 
 export function SelectField({
 	label,
@@ -168,11 +78,13 @@ export function SelectField({
 	className
 }: SelectFieldProps) {
 	return (
-		<div className={`space-y-2 ${className || ''}`}>
-			<Label htmlFor={name}>
-				{label}
-				{required && <span className="ml-1 text-red-500">*</span>}
-			</Label>
+		<FieldContainer
+			label={label}
+			name={name}
+			error={error}
+			required={required}
+			className={className}
+		>
 			<Select name={name} defaultValue={defaultValue} required={required}>
 				<SelectTrigger className={error ? 'input-error-red' : ''}>
 					<SelectValue placeholder={placeholder} />
@@ -185,8 +97,7 @@ export function SelectField({
 					))}
 				</SelectContent>
 			</Select>
-			{error && <p className="text-sm text-red-600">{error}</p>}
-		</div>
+		</FieldContainer>
 	)
 }
 
@@ -210,25 +121,22 @@ export function CheckboxField({
 				/>
 				<Label
 					htmlFor={name}
-					className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+					className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:op-70"
 				>
 					{label}
-					{required && <span className="ml-1 text-red-500">*</span>}
+					{required && <span className="ml-1 text-red-5">*</span>}
 				</Label>
 			</div>
 			{description && (
-				<p className="text-sm text-gray-600">{description}</p>
+				<p className="text-sm text-gray-6">{description}</p>
 			)}
-			{error && <p className="text-sm text-red-600">{error}</p>}
+			{error && <p className="text-sm text-red-6">{error}</p>}
 		</div>
 	)
 }
 
-// Export all field components
+// Export remaining field components - use BaseField with Input/Textarea for basic fields
 export {
-	TextField as FormTextField,
-	NumberField as FormNumberField,
-	TextareaField as FormTextareaField,
 	SelectField as FormSelectField,
 	CheckboxField as FormCheckboxField
 }

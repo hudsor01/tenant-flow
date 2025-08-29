@@ -7,8 +7,10 @@
  */
 
 import { Injectable, BadRequestException } from '@nestjs/common'
+import { EventEmitter2 } from '@nestjs/event-emitter'
 import { PinoLogger } from 'nestjs-pino'
 import { SupabaseService } from '../database/supabase.service'
+import { MaintenanceUpdatedEvent } from '../notifications/events/notification.events'
 import type {
 	CreateMaintenanceRequest,
 	UpdateMaintenanceRequest
@@ -18,7 +20,8 @@ import type {
 export class MaintenanceService {
 	constructor(
 		private readonly supabaseService: SupabaseService,
-		private readonly logger: PinoLogger
+		private readonly logger: PinoLogger,
+		private readonly eventEmitter: EventEmitter2
 	) {
 		// PinoLogger context handled automatically via app-level configuration
 	}
@@ -217,6 +220,31 @@ export class MaintenanceService {
 				error: error.message
 			})
 			return null
+		}
+
+		// Emit event for notification service using native EventEmitter2
+		if (data) {
+			const maintenanceRecord = data as {
+				title?: string
+				status?: string
+				priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
+				property_name?: string
+				unit_number?: string
+				description?: string
+			}
+			this.eventEmitter.emit(
+				'maintenance.updated',
+				new MaintenanceUpdatedEvent(
+					userId,
+					maintenanceId,
+					maintenanceRecord.title || updateRequest.title || 'Maintenance Request',
+					maintenanceRecord.status || updateRequest.status || 'PENDING',
+					maintenanceRecord.priority || (updateRequest.priority === 'URGENT' ? 'EMERGENCY' : updateRequest.priority) || 'MEDIUM',
+					maintenanceRecord.property_name || 'Property',
+					maintenanceRecord.unit_number || 'Unit',
+					maintenanceRecord.description || updateRequest.description || 'Maintenance request updated'
+				)
+			)
 		}
 
 		return data

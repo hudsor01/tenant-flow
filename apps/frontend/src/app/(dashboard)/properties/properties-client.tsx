@@ -66,7 +66,7 @@ export function PropertiesClient({ className }: PropertiesClientProps) {
 			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 				<div className="flex flex-1 gap-2">
 					<div className="relative max-w-sm flex-1">
-						<i className="i-lucide-search inline-block text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"  />
+						<i className="i-lucide-search  text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"  />
 						<Input
 							placeholder="Search properties..."
 							value={searchQuery}
@@ -77,12 +77,12 @@ export function PropertiesClient({ className }: PropertiesClientProps) {
 						/>
 					</div>
 					<Button variant="outline" size="sm">
-						<i className="i-lucide-filter inline-block mr-2 h-4 w-4"  />
+						<i className="i-lucide-filter  mr-2 h-4 w-4"  />
 						Filter
 					</Button>
 				</div>
 				<Button onClick={handleAddProperty_} size="sm">
-					<i className="i-lucide-plus inline-block mr-2 h-4 w-4"  />
+					<i className="i-lucide-plus  mr-2 h-4 w-4"  />
 					Add Property_
 				</Button>
 			</div>

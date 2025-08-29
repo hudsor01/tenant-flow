@@ -24,12 +24,12 @@ export function Property_MediaSection({
 			<div className="space-y-2">
 				<Label
 					htmlFor="imageUrl"
-					className="text-sm font-medium text-gray-700"
+					className="text-sm font-medium text-gray-7"
 				>
 					Property_ Image URL (Optional)
 				</Label>
 				<div className="relative">
-					<i className="i-lucide-image absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" aria-hidden="true" />
+					<i className="i-lucide-image absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-4" aria-hidden="true" />
 					<Input
 						id="imageUrl"
 						type="url"
@@ -39,7 +39,7 @@ export function Property_MediaSection({
 					/>
 				</div>
 				{form.formState.errors.imageUrl && (
-					<p className="text-sm text-red-600">
+					<p className="text-sm text-red-6">
 						{form.formState.errors.imageUrl.message}
 					</p>
 				)}
@@ -48,10 +48,10 @@ export function Property_MediaSection({
 			{/* Image Preview */}
 			{imageUrl && imageUrl.trim() !== '' && (
 				<div className="space-y-2">
-					<Label className="text-sm font-medium text-gray-700">
+					<Label className="text-sm font-medium text-gray-7">
 						Preview
 					</Label>
-					<div className="overflow-hidden rounded-lg border border-gray-200">
+					<div className="overflow-hidden rounded-lg border border-gray-2">
 						<NextImage
 							src={imageUrl}
 							alt="Property_ preview"
@@ -72,10 +72,10 @@ export function Property_MediaSection({
 								}
 							}}
 						/>
-						<div className="hidden h-48 w-full items-center justify-center border-2 border-dashed border-gray-300 bg-gray-100">
+						<div className="hidden h-48 w-full items-center justify-center border-2 border-dashed border-gray-3 bg-gray-1">
 							<div className="text-center">
-								<i className="i-lucide-image mx-auto h-8 w-8 text-gray-400" aria-hidden="true" />
-								<p className="mt-1 text-sm text-gray-500">
+								<i className="i-lucide-image mx-auto h-8 w-8 text-gray-4" aria-hidden="true" />
+								<p className="mt-1 text-sm text-gray-5">
 									Failed to load image
 								</p>
 							</div>
@@ -85,14 +85,14 @@ export function Property_MediaSection({
 			)}
 
 			{/* Future Upload Section */}
-			<div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+			<div className="rounded-lg border border-blue-2 bg-blue-50 p-3">
 				<div className="flex items-start space-x-2">
 					<i className="i-lucide-image text-primary mt-0.5 h-4 w-4" aria-hidden="true" />
 					<div className="text-sm">
-						<p className="mb-1 font-medium text-blue-900">
+						<p className="mb-1 font-medium text-blue-9">
 							Coming Soon: File Upload
 						</p>
-						<p className="text-blue-700">
+						<p className="text-blue-7">
 							Soon you&apos;ll be able to upload photos directly
 							from your device. For now, you can use an image URL.
 						</p>
@@ -100,7 +100,7 @@ export function Property_MediaSection({
 				</div>
 			</div>
 
-			<p className="text-xs text-gray-500">
+			<p className="text-xs text-gray-5">
 				📸 A good property photo helps tenants identify your property
 				and makes it look more .
 			</p>

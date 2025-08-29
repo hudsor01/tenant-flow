@@ -140,8 +140,8 @@ export function SupabaseFormField<TFormData extends FieldValues = FieldValues>({
 	const isError = !!fieldError
 
 	const fieldClassName = cn(
-		isError && 'border-red-500',
-		isValidating && 'border-yellow-500',
+		isError && 'border-red-5',
+		isValidating && 'border-yellow-5',
 		className
 	)
 
@@ -226,13 +226,13 @@ export function SupabaseFormField<TFormData extends FieldValues = FieldValues>({
 		<div className="space-y-2">
 			<Label htmlFor={name}>
 				{label}
-				{required && <span className="ml-1 text-red-500">*</span>}
+				{required && <span className="ml-1 text-red-5">*</span>}
 				{isValidating && (
-					<span className="ml-1 text-yellow-500">(checking...)</span>
+					<span className="ml-1 text-yellow-5">(checking...)</span>
 				)}
 			</Label>
 			{renderField()}
-			{fieldError && <p className="text-sm text-red-600">{fieldError}</p>}
+			{fieldError && <p className="text-sm text-red-6">{fieldError}</p>}
 		</div>
 	)
 }
@@ -268,7 +268,7 @@ export function Property_TypeField<TFormData extends FieldValues = FieldValues>(
 		<div className={cn('space-y-2', className)}>
 			<Label htmlFor={name}>
 				{label}
-				{required && <span className="ml-1 text-red-500">*</span>}
+				{required && <span className="ml-1 text-red-5">*</span>}
 			</Label>
 			<Select
 				name={name}
@@ -276,7 +276,7 @@ export function Property_TypeField<TFormData extends FieldValues = FieldValues>(
 				onValueChange={onChange}
 				required={required}
 			>
-				<SelectTrigger className={cn(error && 'border-red-500')}>
+				<SelectTrigger className={cn(error && 'border-red-5')}>
 					<SelectValue placeholder="Select property type" />
 				</SelectTrigger>
 				<SelectContent>
@@ -288,7 +288,7 @@ export function Property_TypeField<TFormData extends FieldValues = FieldValues>(
 				</SelectContent>
 			</Select>
 			{error?.message && (
-				<p className="text-sm text-red-600">{error.message}</p>
+				<p className="text-sm text-red-6">{error.message}</p>
 			)}
 		</div>
 	)

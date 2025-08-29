@@ -7,10 +7,7 @@
 import { config } from './config'
 import { getSession } from './supabase/client'
 import type { FrontendApiError as ApiError, RequestConfig, ValidationOptions } from '@repo/shared/types/api'
-import {
-	ResponseValidator
-} from './api/response-validator'
-import type { ZodTypeAny } from 'zod/v4'
+import type { ZodTypeAny } from 'zod'
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
 
 
@@ -34,29 +31,32 @@ class SimpleApiClient {
 		}
 	}
 
-	private buildURL(
-		path: string,
-		params?: Record<
-			string,
-			string | number | boolean | string[] | undefined
-		>
-	): string {
-		const url = new URL(path, this.baseURL)
-		if (params) {
-			Object.entries(params).forEach(([key, value]) => {
-				if (value !== undefined && value !== null) {
-					if (Array.isArray(value)) {
-						value.forEach(v =>
-							url.searchParams.append(key, String(v))
-						)
-					} else {
-						url.searchParams.append(key, String(value))
-					}
-				}
-			})
-		}
-		return url.toString()
-	}
+    private buildURL(
+        path: string,
+        params?: Record<
+            string,
+            string | number | boolean | string[] | undefined
+        >
+    ): string {
+        // Ensure we always append to base path (e.g., /api/v1), even if path starts with '/'
+        const base = new URL(this.baseURL)
+        const basePath = base.pathname.endsWith('/') ? base.pathname : `${base.pathname}/`
+        const relPath = path.replace(/^\/+/, '') // drop leading slashes
+        base.pathname = `${basePath}${relPath}`
+
+        if (params) {
+            Object.entries(params).forEach(([key, value]) => {
+                if (value !== undefined && value !== null) {
+                    if (Array.isArray(value)) {
+                        value.forEach(v => base.searchParams.append(key, String(v)))
+                    } else {
+                        base.searchParams.append(key, String(value))
+                    }
+                }
+            })
+        }
+        return base.toString()
+    }
 
 	private async makeRequest<T>(
 		method: string,
@@ -203,6 +203,7 @@ class SimpleApiClient {
 		return this.makeRequest<T>('POST', path, data, config)
 	}
 
+	// eslint-disable-next-line anti-duplication/no-duplicate-function-implementations
 	async put<T>(
 		path: string,
 		data?: unknown,
@@ -211,6 +212,7 @@ class SimpleApiClient {
 		return this.makeRequest<T>('PUT', path, data, config)
 	}
 
+	// eslint-disable-next-line anti-duplication/no-duplicate-function-implementations  
 	async patch<T>(
 		path: string,
 		data?: unknown,
@@ -219,52 +221,30 @@ class SimpleApiClient {
 		return this.makeRequest<T>('PATCH', path, data, config)
 	}
 
+	// eslint-disable-next-line anti-duplication/no-duplicate-function-implementations
 	async delete<T>(path: string, config?: RequestConfig): Promise<T> {
 		return this.makeRequest<T>('DELETE', path, undefined, config)
 	}
 
-	// ==================
-	// REACT 19 use() HOOK PROMISE STREAMING
-	// ==================
-	
-	/**
-	 * React 19 use() compatible promise for GET requests
-	 * Components can consume this directly with use() hook
-	 */
-	promise<T>(path: string, config?: RequestConfig): Promise<T> {
-		return this.makeRequest<T>('GET', path, undefined, config)
-	}
+	// Standard methods already return promises compatible with React 19 use() hook
+	// No separate promise methods needed - use get(), post(), put(), delete() directly
 
-	/**
-	 * React 19 use() compatible promise for POST requests
-	 * Components can consume this directly with use() hook
-	 */
-	promisePost<T>(
-		path: string, 
-		data?: unknown, 
+	// Consolidated validation method - DRY principle
+	private async makeValidatedRequest<T>(
+		method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+		path: string,
+		schema: ZodTypeAny,
+		schemaName: string,
+		data?: unknown,
 		config?: RequestConfig
 	): Promise<T> {
-		return this.makeRequest<T>('POST', path, data, config)
-	}
-
-	/**
-	 * React 19 use() compatible promise for PUT requests
-	 * Components can consume this directly with use() hook
-	 */
-	promisePut<T>(
-		path: string, 
-		data?: unknown, 
-		config?: RequestConfig
-	): Promise<T> {
-		return this.makeRequest<T>('PUT', path, data, config)
-	}
-
-	/**
-	 * React 19 use() compatible promise for DELETE requests
-	 * Components can consume this directly with use() hook
-	 */
-	promiseDelete<T>(path: string, config?: RequestConfig): Promise<T> {
-		return this.makeRequest<T>('DELETE', path, undefined, config)
+		const responseData = await this.makeRequest<T>(method, path, data, config)
+		// Direct Zod validation - no abstraction
+		const result = schema.safeParse(responseData)
+		if (!result.success) {
+			throw new Error(`Validation failed for ${schemaName}: ${result.error.message}`)
+		}
+		return result.data as T
 	}
 
 	// Validated API methods with Zod schema validation
@@ -273,15 +253,23 @@ class SimpleApiClient {
 		schema: ZodTypeAny,
 		schemaName: string,
 		config?: RequestConfig,
-		validationOptions?: ValidationOptions
+		_validationOptions?: ValidationOptions
 	): Promise<T> {
-		const data = await this.makeRequest<T>('GET', path, undefined, config)
-		return ResponseValidator.validate(
-			schema,
-			data,
-			schemaName,
-			validationOptions
-		)
+		return this.makeValidatedRequest<T>('GET', path, schema, schemaName, undefined, config)
+	}
+
+	// Generic validated request method - DRY principle
+	private createValidatedMethod<T>(method: 'POST' | 'PUT' | 'PATCH') {
+		return (
+			path: string,
+			schema: ZodTypeAny,
+			schemaName: string,
+			data?: Record<string, unknown> | FormData,
+			config?: RequestConfig,
+			_validationOptions?: ValidationOptions
+		): Promise<T> => {
+			return this.makeValidatedRequest<T>(method, path, schema, schemaName, data, config)
+		}
 	}
 
 	async postValidated<T>(
@@ -290,20 +278,9 @@ class SimpleApiClient {
 		schemaName: string,
 		data?: Record<string, unknown> | FormData,
 		config?: RequestConfig,
-		validationOptions?: ValidationOptions
+		_validationOptions?: ValidationOptions
 	): Promise<T> {
-		const responseData = await this.makeRequest<T>(
-			'POST',
-			path,
-			data,
-			config
-		)
-		return ResponseValidator.validate(
-			schema,
-			responseData,
-			schemaName,
-			validationOptions
-		)
+		return this.createValidatedMethod<T>('POST')(path, schema, schemaName, data, config, _validationOptions)
 	}
 
 	async putValidated<T>(
@@ -312,20 +289,9 @@ class SimpleApiClient {
 		schemaName: string,
 		data?: Record<string, unknown> | FormData,
 		config?: RequestConfig,
-		validationOptions?: ValidationOptions
+		_validationOptions?: ValidationOptions
 	): Promise<T> {
-		const responseData = await this.makeRequest<T>(
-			'PUT',
-			path,
-			data,
-			config
-		)
-		return ResponseValidator.validate(
-			schema,
-			responseData,
-			schemaName,
-			validationOptions
-		)
+		return this.createValidatedMethod<T>('PUT')(path, schema, schemaName, data, config, _validationOptions)
 	}
 
 	async patchValidated<T>(
@@ -334,20 +300,9 @@ class SimpleApiClient {
 		schemaName: string,
 		data?: Record<string, unknown> | FormData,
 		config?: RequestConfig,
-		validationOptions?: ValidationOptions
+		_validationOptions?: ValidationOptions
 	): Promise<T> {
-		const responseData = await this.makeRequest<T>(
-			'PATCH',
-			path,
-			data,
-			config
-		)
-		return ResponseValidator.validate(
-			schema,
-			responseData,
-			schemaName,
-			validationOptions
-		)
+		return this.createValidatedMethod<T>('PATCH')(path, schema, schemaName, data, config, _validationOptions)
 	}
 
 	async deleteValidated<T>(
@@ -355,20 +310,9 @@ class SimpleApiClient {
 		schema: ZodTypeAny,
 		schemaName: string,
 		config?: RequestConfig,
-		validationOptions?: ValidationOptions
+		_validationOptions?: ValidationOptions
 	): Promise<T> {
-		const responseData = await this.makeRequest<T>(
-			'DELETE',
-			path,
-			undefined,
-			config
-		)
-		return ResponseValidator.validate(
-			schema,
-			responseData,
-			schemaName,
-			validationOptions
-		)
+		return this.makeValidatedRequest<T>('DELETE', path, schema, schemaName, undefined, config)
 	}
 
 	async healthCheck(): Promise<{ status: string; timestamp: string }> {

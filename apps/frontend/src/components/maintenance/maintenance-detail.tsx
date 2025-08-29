@@ -65,7 +65,7 @@ export function MaintenanceDetail({
 	if (isLoading) {
 		return (
 			<div className="flex items-center justify-center p-8">
-				<i className="i-lucide-loader-2 inline-block text-muted-foreground h-8 w-8 animate-spin"  />
+				<i className="i-lucide-loader-2 text-muted-foreground h-8 w-8 animate-spin"  />
 				<span className="text-muted-foreground ml-2">
 					Loading maintenance request...
 				</span>
@@ -75,12 +75,12 @@ export function MaintenanceDetail({
 
 	if (error || !request) {
 		return (
-			<Card className="border-red-200 bg-red-50">
+			<Card className="border-red-2 bg-red-50">
 				<CardHeader>
-					<CardTitle className="text-red-800">
+					<CardTitle className="text-red-8">
 						Error Loading Request
 					</CardTitle>
-					<CardDescription className="text-red-600">
+					<CardDescription className="text-red-6">
 						{error?.message || 'Maintenance request not found'}
 					</CardDescription>
 				</CardHeader>
@@ -88,7 +88,7 @@ export function MaintenanceDetail({
 					<Button
 						onClick={() => refetch()}
 						variant="outline"
-						className="border-red-200 text-red-800 hover:bg-red-100"
+						className="border-red-2 text-red-8 hover:bg-red-1"
 					>
 						Try Again
 					</Button>
@@ -112,7 +112,7 @@ export function MaintenanceDetail({
 									className={getPriorityColor(request.priority)}
 								>
 									{request.priority === 'EMERGENCY' && (
-										<i className="i-lucide-alert-triangle inline-block mr-1 h-3 w-3"  />
+										<i className="i-lucide-alert-triangle mr-1 h-3 w-3"  />
 									)}
 									{getPriorityLabel(request.priority)}
 								</Badge>
@@ -133,7 +133,7 @@ export function MaintenanceDetail({
 									size="sm"
 									onClick={onEdit}
 								>
-									<i className="i-lucide-edit inline-block mr-1 h-4 w-4"  />
+									<i className="i-lucide-edit mr-1 h-4 w-4"  />
 									Edit
 								</Button>
 							)}
@@ -144,7 +144,7 @@ export function MaintenanceDetail({
 									setShowStatusUpdate(!showStatusUpdate)
 								}
 							>
-								<i className="i-lucide-clock inline-block mr-1 h-4 w-4"  />
+								<i className="i-lucide-clock mr-1 h-4 w-4"  />
 								Update Status
 							</Button>
 							<AlertDialog>
@@ -152,9 +152,9 @@ export function MaintenanceDetail({
 									<Button
 										variant="outline"
 										size="sm"
-										className="text-red-600 hover:text-red-700"
+										className="text-red-6 hover:text-red-7"
 									>
-										<i className="i-lucide-trash-2 inline-block mr-1 h-4 w-4"  />
+										<i className="i-lucide-trash-2 mr-1 h-4 w-4"  />
 										Delete
 									</Button>
 								</AlertDialogTrigger>
@@ -175,11 +175,11 @@ export function MaintenanceDetail({
 										</AlertDialogCancel>
 										<AlertDialogAction
 											onClick={handleDelete}
-											className="bg-red-600 hover:bg-red-700"
+											className="bg-red-6 hover:bg-red-7"
 											disabled={deleteRequest.isPending}
 										>
 											{deleteRequest.isPending && (
-												<i className="i-lucide-loader-2 inline-block mr-2 h-4 w-4 animate-spin"  />
+												<i className="i-lucide-loader-2 mr-2 h-4 w-4 animate-spin"  />
 											)}
 											Delete
 										</AlertDialogAction>
@@ -202,7 +202,7 @@ export function MaintenanceDetail({
 					<div className="grid grid-cols-2 gap-4 text-sm">
 						<div className="space-y-2">
 							<div className="text-muted-foreground flex items-center">
-								<i className="i-lucide-building inline-block mr-2 h-4 w-4"  />
+								<i className="i-lucide-building mr-2 h-4 w-4"  />
 								<span>Property_:</span>
 							</div>
 							<p className="font-medium">
@@ -212,7 +212,7 @@ export function MaintenanceDetail({
 
 						<div className="space-y-2">
 							<div className="text-muted-foreground flex items-center">
-								<i className="i-lucide-home inline-block mr-2 h-4 w-4"  />
+								<i className="i-lucide-home mr-2 h-4 w-4"  />
 								<span>Unit:</span>
 							</div>
 							<p className="font-medium">
@@ -222,7 +222,7 @@ export function MaintenanceDetail({
 
 						<div className="space-y-2">
 							<div className="text-muted-foreground flex items-center">
-								<i className="i-lucide-user inline-block mr-2 h-4 w-4"  />
+								<i className="i-lucide-user mr-2 h-4 w-4"  />
 								<span>Submitted by:</span>
 							</div>
 							<p className="font-medium">
@@ -232,7 +232,7 @@ export function MaintenanceDetail({
 
 						<div className="space-y-2">
 							<div className="text-muted-foreground flex items-center">
-								<i className="i-lucide-calendar inline-block mr-2 h-4 w-4"  />
+								<i className="i-lucide-calendar mr-2 h-4 w-4"  />
 								<span>Created:</span>
 							</div>
 							<p className="font-medium">

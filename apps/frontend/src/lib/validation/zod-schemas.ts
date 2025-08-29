@@ -62,72 +62,36 @@ export type {
 } from '@repo/shared/validation'
 
 // ========================================
-// Frontend-Only Validation Schemas
+// Auto-Generated Authentication Schemas (Single Source of Truth)
 // ========================================
 
-// Authentication schemas (frontend-specific for forms)
-export const loginSchema = z.object({
-	email: z.string().email('Please enter a valid email address'),
-	password: z.string().min(1, 'Password is required')
-})
-
-export const signupSchema = z
-	.object({
-		email: z.string().email('Please enter a valid email address'),
-		password: z
-			.string()
-			.min(8, 'Password must be at least 8 characters')
-			.regex(
-				/(?=.*[a-z])/,
-				'Password must contain at least one lowercase letter'
-			)
-			.regex(
-				/(?=.*[A-Z])/,
-				'Password must contain at least one uppercase letter'
-			)
-			.regex(/(?=.*\d)/, 'Password must contain at least one number'),
-		confirmPassword: z.string(),
-		firstName: z
-			.string()
-			.min(1, 'First name is required')
-			.max(100, 'First name is too long'),
-		lastName: z
-			.string()
-			.min(1, 'Last name is required')
-			.max(100, 'Last name is too long'),
-		acceptTerms: z
-			.boolean()
-			.refine(val => val, 'You must accept the terms of service')
-	})
-	.refine(data => data.password === data.confirmPassword, {
-		message: 'Passwords do not match',
-		path: ['confirmPassword']
-	})
-
-export const forgotPasswordSchema = z.object({
-	email: z.string().email('Please enter a valid email address')
-})
-
-export const resetPasswordSchema = z
-	.object({
-		password: z
-			.string()
-			.min(8, 'Password must be at least 8 characters')
-			.regex(
-				/(?=.*[a-z])/,
-				'Password must contain at least one lowercase letter'
-			)
-			.regex(
-				/(?=.*[A-Z])/,
-				'Password must contain at least one uppercase letter'
-			)
-			.regex(/(?=.*\d)/, 'Password must contain at least one number'),
-		confirmPassword: z.string()
-	})
-	.refine(data => data.password === data.confirmPassword, {
-		message: 'Passwords do not match',
-		path: ['confirmPassword']
-	})
+// Import generated authentication schemas from backend JSON schemas
+export {
+	loginSchema,
+	signupSchema, // alias for registerSchema
+	registerSchema,
+	forgotPasswordSchema,
+	resetPasswordSchema,
+	changePasswordSchema,
+	refreshTokenSchema,
+	authResponseSchema,
+	userProfileResponseSchema,
+	// Export types as well
+	type LoginRequest,
+	type RegisterRequest,
+	type ForgotPasswordRequest,
+	type ResetPasswordRequest,
+	type ChangePasswordRequest,
+	type RefreshTokenRequest,
+	type AuthResponse,
+	type UserProfileResponse,
+	// Legacy type aliases
+	type LoginFormData,
+	type SignupFormData,
+	type ForgotPasswordFormData,
+	type ResetPasswordFormData,
+	type ChangePasswordFormData
+} from './generated-auth-schemas'
 
 // Frontend-specific form UI schemas (for complex form interactions)
 export const dateInputSchema = z
@@ -159,12 +123,9 @@ export const searchInputSchema = z.object({
 	limit: z.coerce.number().int().positive().max(100).default(10)
 })
 
-// Export types for frontend use
-export type LoginFormData = z.infer<typeof loginSchema>
-export type SignupFormData = z.infer<typeof signupSchema>
-export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>
-export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>
+// Export types for frontend use  
 export type SearchInputData = z.infer<typeof searchInputSchema>
+// Note: Authentication types are now exported from ./generated-auth-schemas
 
 // CLAUDE.md NO_ABSTRACTIONS: Legacy aliases DELETED
 // Use direct imports from @repo/shared/validation instead

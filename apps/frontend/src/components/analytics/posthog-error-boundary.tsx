@@ -35,7 +35,7 @@ export class PostHogErrorBoundary extends React.Component<
 						</h2>
 						<button
 							onClick={() => this.setState({ hasError: false })}
-							className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+							className="rounded bg-blue-6 px-4 py-2 text-white hover:bg-blue-7"
 						>
 							Try again
 						</button>

@@ -1,12 +1,10 @@
 import type { Metadata } from 'next/types'
-import {
-  HeroSection,
-  StatsSection,
-  FeaturesSection,
-  PricingSection,
-  TestimonialsSection,
-  FooterSection,
-} from '@/components/landing'
+import { HeroSection } from '@/components/landing/hero-section'
+import { StatsSection } from '@/components/landing/stats-section'
+import { FeaturesSection } from '@/components/landing/features-section'
+import { PricingSection } from '@/components/landing/pricing-section'
+import { TestimonialsSection } from '@/components/landing/testimonials-section'
+import { FooterSection } from '@/components/landing/footer-section'
 import { NavigationSection } from '@/components/landing/navigation-section'
 import { CtaSection as CTASection } from '@/components/landing/cta-section'
 import { SEO } from '@/components/seo/SEO'
@@ -14,11 +12,11 @@ import { SEO } from '@/components/seo/SEO'
 export const metadata: Metadata = {
   title: 'TenantFlow - Property Management Made Simple',
   description:
-    'Save 10+ hours per week with the all-in-one property management platform trusted by 10,000+ property managers. Start your free 14-day trial.',
+    'Streamline your property portfolio with real-time occupancy tracking, maintenance management, and comprehensive analytics. Start your free trial.',
   openGraph: {
     title: 'TenantFlow - Property Management Made Simple',
     description:
-      'Save 10+ hours per week with the all-in-one property management platform trusted by 10,000+ property managers.',
+      'Streamline your property portfolio with real-time occupancy tracking, maintenance management, and comprehensive analytics.',
     type: 'website',
   },
 }
@@ -28,7 +26,7 @@ export default function HomePage(): React.ReactElement {
     <>
       <SEO
         title="Property Management Made Simple"
-        description="Save 10+ hours per week with the all-in-one platform trusted by 10,000+ property managers. Start your free 14-day trial."
+        description="Streamline your property portfolio with real-time occupancy tracking, maintenance management, and comprehensive analytics."
         keywords="property management software, tenant management, rental properties, landlord tools, property managers"
         includeProduct={true}
         faqs={[
@@ -40,12 +38,12 @@ export default function HomePage(): React.ReactElement {
           {
             question: 'Do I need a credit card for the free trial?',
             answer:
-              'No, our 14-day free trial requires no credit card. You can explore all features risk-free.',
+              'No, our free trial requires no credit card. You can explore all features risk-free.',
           },
         ]}
       />
       <NavigationSection />
-      <HeroSection locale="en" />
+      <HeroSection />
       <StatsSection />
       <FeaturesSection locale="en" />
       <TestimonialsSection />

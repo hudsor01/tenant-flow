@@ -2,7 +2,7 @@ import 'reflect-metadata'
 import * as dotenv from 'dotenv'
 dotenv.config()
 import { NestFactory } from '@nestjs/core'
-import { ValidationPipe } from '@nestjs/common'
+import { ValidationPipe, RequestMethod } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { Logger } from 'nestjs-pino'
 import { AppModule } from './app.module'
@@ -26,6 +26,7 @@ import env from '@fastify/env'
 import multipart from '@fastify/multipart'
 import cors from '@fastify/cors'
 import { GlobalExceptionFilter } from './shared/filters/global-exception.filter'
+import { HEALTH_PATHS } from './shared/constants/routes'
 
 // Node.js error interface with common error properties
 interface NodeError extends Error {
@@ -48,17 +49,18 @@ async function bootstrap() {
 	// Create bootstrap Pino logger (before Fastify is available)
 	const logger = pino({
 		level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-		transport:
-			process.env.NODE_ENV !== 'production'
-				? {
-						target: 'pino-pretty',
-						options: {
-							colorize: true,
-							translateTime: 'HH:MM:ss Z',
-							ignore: 'pid,hostname'
-						}
-					}
-				: undefined,
+		// Temporarily disable pino-pretty transport for development
+		// transport:
+		// 	process.env.NODE_ENV !== 'production'
+		// 		? {
+		// 				target: 'pino-pretty',
+		// 				options: {
+		// 					colorize: true,
+		// 					translateTime: 'HH:MM:ss Z',
+		// 					ignore: 'pid,hostname'
+		// 				}
+		// 			}
+		// 		: undefined,
 		base: { component: 'Bootstrap' }
 	})
 
@@ -76,18 +78,19 @@ async function bootstrap() {
 		trustProxy: true,
 		bodyLimit: 10485760,
 		logger: {
-			level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-			transport:
-				process.env.NODE_ENV !== 'production'
-					? {
-							target: 'pino-pretty',
-							options: {
-								colorize: true,
-								translateTime: 'HH:MM:ss Z',
-								ignore: 'pid,hostname'
-							}
-						}
-					: undefined
+			level: process.env.NODE_ENV === 'production' ? 'info' : 'debug'
+			// Temporarily disable pino-pretty
+			// transport:
+			// 	process.env.NODE_ENV !== 'production'
+			// 		? {
+			// 				target: 'pino-pretty',
+			// 				options: {
+			// 					colorize: true,
+			// 					translateTime: 'HH:MM:ss Z',
+			// 					ignore: 'pid,hostname'
+			// 				}
+			// 			}
+			// 		: undefined
 		}
 	})
 	const app = await NestFactory.create<NestFastifyApplication>(
@@ -110,14 +113,11 @@ async function bootstrap() {
 	// Core configuration
 	logger.info('Setting global prefix: api/v1')
 	app.setGlobalPrefix('api/v1', {
-		exclude: [
-			{ path: 'health', method: 0 },
-			{ path: 'health/ping', method: 0 },
-			{ path: 'health/ready', method: 0 },
-			{ path: 'health/debug', method: 0 },
-			{ path: '/', method: 0 }
-		]
-	})
+    exclude: [
+        ...HEALTH_PATHS.map(path => ({ path, method: RequestMethod.ALL })),
+        { path: '/', method: RequestMethod.ALL }
+        ]
+    })
 
 	// Configure CORS using native Fastify plugin
 	logger.info('Configuring CORS...')
@@ -299,30 +299,31 @@ async function bootstrap() {
 	logger.info('Cookie support registered')
 
 	// 4. CSRF protection at Fastify level (exclude webhook endpoints)
-	await app.register(csrfProtection, {
-		cookieOpts: {
-			httpOnly: true,
-			secure: process.env.NODE_ENV === 'production',
-			sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax'
-		},
-		sessionPlugin: '@fastify/cookie',
-		getToken: req => {
-			// Skip CSRF for webhook endpoints
-			if (req.url?.includes('/webhook')) {
-				return undefined
-			}
-			const csrfToken = req.headers['x-csrf-token']
-			const xsrfToken = req.headers['x-xsrf-token']
-			if (typeof csrfToken === 'string') {
-				return csrfToken
-			}
-			if (typeof xsrfToken === 'string') {
-				return xsrfToken
-			}
-			return undefined
-		},
-		cookieKey: '_csrf'
-	})
+    await app.register(csrfProtection, {
+        cookieOpts: {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax'
+        },
+        sessionPlugin: '@fastify/cookie',
+        getToken: req => {
+            // Skip CSRF only for the exact Stripe webhook endpoint
+            const url = req.url || ''
+            if (url === '/api/v1/stripe/webhook') {
+                return undefined
+            }
+            const csrfToken = req.headers['x-csrf-token']
+            const xsrfToken = req.headers['x-xsrf-token']
+            if (typeof csrfToken === 'string') {
+                return csrfToken
+            }
+            if (typeof xsrfToken === 'string') {
+                return xsrfToken
+            }
+            return undefined
+        },
+        cookieKey: '_csrf'
+    })
 	logger.info('CSRF protection registered')
 
 	// 5. Multipart support for file uploads
@@ -527,28 +528,7 @@ async function bootstrap() {
 	})
 	logger.info('Security middleware registered (enhanced CSP)')
 
-	// Initialize Fastify Type Providers for schema-driven validation
-	logger.info('Initializing Fastify Type Providers...')
-	try {
-		const { initializeTypeProviders, validateEnvironment } = await import(
-			'./setup-type-providers.js'
-		)
-
-		// Validate environment with schema
-		const env = validateEnvironment()
-		logger.info(`✅ Environment validated (NODE_ENV: ${env.NODE_ENV})`)
-
-		// Setup type providers
-		await initializeTypeProviders(fastifyAdapter)
-		logger.info('✅ Fastify Type Providers initialized successfully')
-	} catch (typeProviderError) {
-		logger.error(
-			'❌ Failed to initialize Type Providers: ' +
-				String(typeProviderError)
-		)
-		// Continue without type providers in case of setup failure
-		logger.warn('⚠️  Continuing without schema-driven type inference')
-	}
+	// (Removed) Fastify Type Providers initialization block
 
 	// Liveness probe handled by HealthController
 	logger.info('Enabling graceful shutdown hooks...')
@@ -629,17 +609,18 @@ async function bootstrap() {
 bootstrap().catch((err: unknown) => {
 	const logger = pino({
 		level: 'error',
-		transport:
-			process.env.NODE_ENV !== 'production'
-				? {
-						target: 'pino-pretty',
-						options: {
-							colorize: true,
-							translateTime: 'HH:MM:ss Z',
-							ignore: 'pid,hostname'
-						}
-					}
-				: undefined,
+		// Temporarily disable pino-pretty
+		// transport:
+		// 	process.env.NODE_ENV !== 'production'
+		// 		? {
+		// 				target: 'pino-pretty',
+		// 				options: {
+		// 					colorize: true,
+		// 					translateTime: 'HH:MM:ss Z',
+		// 					ignore: 'pid,hostname'
+		// 				}
+		// 			}
+		// 		: undefined,
 		base: { component: 'Bootstrap-Error' }
 	})
 
