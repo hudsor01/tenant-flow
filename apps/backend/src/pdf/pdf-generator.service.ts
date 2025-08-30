@@ -24,8 +24,13 @@ export class PDFGeneratorService implements OnModuleDestroy {
 	private async getBrowser(): Promise<Browser> {
 		if (!this.browser?.connected) {
 			this.logger.info('Launching Puppeteer browser')
+			
+			// Use system Chromium in Docker, downloaded Chromium locally
+			const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || undefined
+			
 			this.browser = await puppeteer.launch({
 				headless: true,
+				executablePath,
 				args: [
 					'--no-sandbox',
 					'--disable-setuid-sandbox',
@@ -33,7 +38,11 @@ export class PDFGeneratorService implements OnModuleDestroy {
 					'--disable-accelerated-2d-canvas',
 					'--no-zygote',
 					'--single-process',
-					'--disable-gpu'
+					'--disable-gpu',
+					'--disable-extensions',
+					'--disable-background-timer-throttling',
+					'--disable-backgrounding-occluded-windows',
+					'--disable-renderer-backgrounding'
 				]
 			})
 		}
