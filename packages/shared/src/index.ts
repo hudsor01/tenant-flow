@@ -324,6 +324,19 @@ export type {
 // Export analytics types
 export type { TenantFlowEvent } from './types/analytics'
 
+// Export lease generator types
+export type {
+	USState,
+	PropertyType,
+	LeaseTermType,
+	LeaseFormData,
+	StateLeaseRequirements,
+	GeneratedLease,
+	UserLeaseHistory,
+	LeaseGenerationPricing,
+	LeaseGenerationResponse,
+	LeaseValidationResponse
+} from './types/lease-generator.types'
 
 // ============================================================================
 // STOP - No more type duplications allowed beyond this point  
