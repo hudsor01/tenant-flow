@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { getCSPString } from '@repo/shared'
 // import type { NextRequest } from 'next/server'
 
 /**
@@ -27,21 +28,8 @@ export function GET() {
 		)
 	}
 
-	// CSP (Content Security Policy)
-	const cspDirectives = [
-		"default-src 'self'",
-		"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://*.vercel-scripts.com",
-		"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-		"font-src 'self' https://fonts.gstatic.com",
-		"img-src 'self' data: https: blob:",
-		"connect-src 'self' https://api.tenantflow.app https://*.supabase.co wss://*.supabase.co https://api.stripe.com",
-		"frame-ancestors 'none'",
-		"base-uri 'self'",
-		"form-action 'self'",
-		'upgrade-insecure-requests'
-	]
-
-	response.headers.set('Content-Security-Policy', cspDirectives.join('; '))
+	// CSP using unified configuration (DRY principle)
+	response.headers.set('Content-Security-Policy', getCSPString())
 
 	return response
 }

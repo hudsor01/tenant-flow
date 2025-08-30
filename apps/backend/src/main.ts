@@ -27,6 +27,7 @@ import multipart from '@fastify/multipart'
 import cors from '@fastify/cors'
 import { GlobalExceptionFilter } from './shared/filters/global-exception.filter'
 import { HEALTH_PATHS } from './shared/constants/routes'
+import { getCORSConfig } from '@repo/shared'
 
 // Node.js error interface with common error properties
 interface NodeError extends Error {
@@ -119,16 +120,10 @@ async function bootstrap() {
         ]
     })
 
-	// Configure CORS using native Fastify plugin
+	// Configure CORS using unified configuration (aligned with CSP)
 	logger.info('Configuring CORS...')
-	await app.register(cors, {
-		origin: process.env.NODE_ENV === 'production' 
-			? ['https://tenantflow.app', 'https://www.tenantflow.app']
-			: true, // Allow all origins in development
-		credentials: true,
-		methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS']
-	})
-	logger.info('CORS enabled with native Fastify plugin')
+	await app.register(cors, getCORSConfig())
+	logger.info('CORS enabled with aligned configuration')
 
 	// Use NestJS native validation pipe with better configuration
 	logger.info('Setting up validation pipes...')
