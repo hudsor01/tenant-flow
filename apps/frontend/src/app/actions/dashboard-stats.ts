@@ -37,7 +37,7 @@ export const getDashboardStatsAction = cache(async (): Promise<DashboardStats> =
 				tags: ['dashboard-stats'], // For targeted cache invalidation
 				revalidate: 300 // 5 minutes cache
 			}
-		})
+		} as RequestInit)
 
 		if (!response.ok) {
 			throw new Error(`HTTP error! status: ${response.status}`)
@@ -64,7 +64,7 @@ export const getRevenuStatsAction = cache(async (): Promise<{ total: number, cha
 				tags: ['revenue-stats'],
 				revalidate: 60 // 1 minute cache for revenue
 			}
-		})
+		} as RequestInit)
 
 		if (!response.ok) {
 			throw new Error(`HTTP error! status: ${response.status}`)
