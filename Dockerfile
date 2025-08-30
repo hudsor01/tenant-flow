@@ -75,6 +75,21 @@ RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-/root/.npm,targ
 # Final minimal runtime image with security hardening
 FROM node:24-alpine AS runtime
 
+# Install Puppeteer runtime dependencies for headless Chrome
+# Required for PDF generation on Railway
+RUN apk add --no-cache \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont \
+    && rm -rf /var/cache/apk/*
+
+# Tell Puppeteer to skip installing Chromium - we'll use system Chromium
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
 # Create non-root user for security (Railway/Docker best practice)
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
