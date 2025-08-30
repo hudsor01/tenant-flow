@@ -6,7 +6,7 @@
 
 import { type NextRequest, NextResponse } from 'next/server'
 import type { UserRole} from '@repo/shared';
-import { USER_ROLE, Permission } from '@repo/shared'
+import { USER_ROLE, Permission, getCSPString } from '@repo/shared'
 
 // ===========================
 // TYPES AND INTERFACES
@@ -258,18 +258,8 @@ export class Security {
 			'max-age=31536000; includeSubDomains'
 		)
 
-		// CSP for production
-		const csp = [
-			"default-src 'self'",
-			"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://maps.googleapis.com",
-			"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-			"img-src 'self' data: https: *.supabase.co *.googleusercontent.com",
-			"font-src 'self' https://fonts.gstatic.com",
-			"connect-src 'self' https://api.tenantflow.app https://*.supabase.co https://js.stripe.com wss:",
-			"frame-src 'self' https://js.stripe.com"
-		].join('; ')
-
-		response.headers.set('Content-Security-Policy', csp)
+		// CSP using unified configuration (DRY principle)
+		response.headers.set('Content-Security-Policy', getCSPString())
 
 		return response
 	}
