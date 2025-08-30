@@ -1,5 +1,6 @@
 import type { NextConfig } from 'next/types'
 import path from 'node:path'
+import { getCSPString } from '@repo/shared'
 
 // Webpack configuration for production builds
 interface WebpackConfig {
@@ -115,7 +116,7 @@ const nextConfig: NextConfig = {
 					},
 					{
 						key: 'Content-Security-Policy',
-						value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://us.i.posthog.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; connect-src 'self' https://api.tenantflow.app https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://us.i.posthog.com; frame-src https://js.stripe.com; frame-ancestors 'none';"
+						value: getCSPString()
 					}
 				]
 			},
