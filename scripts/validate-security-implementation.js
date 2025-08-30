@@ -7,8 +7,13 @@
  * and checks if all critical security measures are properly configured.
  */
 
-const fs = require('fs')
-const path = require('path')
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+// ES module equivalent of __dirname
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 console.log('🔒 Validating TenantFlow Security Implementation...\n')
 
@@ -78,7 +83,7 @@ validationResults.authGuardImplementation = checkFileForPattern(
 
 // 2. Check RLS Policies Exist
 console.log('\n2. 🛡️  Validating RLS policies...')
-const rlsMigrationPath = path.join(__dirname, '../supabase/migrations/20250826_ultra_native_rpc_functions.sql')
+const rlsMigrationPath = path.join(__dirname, '../supabase/migrations/20250827_ultra_native_rpc_functions.sql')
 validationResults.rlsPoliciesExist = checkFileForPattern(
 	rlsMigrationPath,
 	[
@@ -92,7 +97,7 @@ validationResults.rlsPoliciesExist = checkFileForPattern(
 
 // 3. Check Input Validation
 console.log('\n3. 🧹 Validating input validation...')
-const zodSchemasPath = path.join(__dirname, '../packages/shared/src/validation/zod-schemas.ts')
+const zodSchemasPath = path.join(__dirname, '../apps/frontend/src/lib/validation/zod-schemas.ts')
 const validationPipePath = path.join(__dirname, '../apps/backend/src/shared/pipes/zod-validation.pipe.ts')
 
 const hasZodSchemas = checkFileForPattern(
@@ -121,7 +126,7 @@ validationResults.inputValidation = hasZodSchemas && hasValidationPipe
 
 // 4. Check RPC Functions Security
 console.log('\n4. 🔐 Validating RPC function security...')
-const rpcFunctionsPath = path.join(__dirname, '../supabase/migrations/20250826_ultra_native_rpc_functions.sql')
+const rpcFunctionsPath = path.join(__dirname, '../supabase/migrations/20250827_ultra_native_rpc_functions.sql')
 validationResults.rpcFunctionsSecurity = checkFileForPattern(
 	rpcFunctionsPath,
 	[

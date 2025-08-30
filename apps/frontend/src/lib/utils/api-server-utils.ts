@@ -119,7 +119,7 @@ export async function serverApiGet<T>(
 		next: {
 			revalidate: 60 // Cache for 60 seconds by default
 		}
-	})
+	} as RequestInit)
 
 	return handleApiResponse<T>(response)
 }
