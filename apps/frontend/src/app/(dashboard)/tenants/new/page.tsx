@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { TenantForm } from '@/components/tenants/tenant-form'
 import { PageTracker } from '@/components/analytics/page-tracker'
 import type { Metadata } from 'next/types'
-
+import { User , ArrowLeft } from 'lucide-react'
 export const metadata: Metadata = {
 	title: 'Add New Tenant | TenantFlow',
 	description: 'Add a new tenant to your property management system'
@@ -17,7 +17,7 @@ function NewTenantHeader() {
 			<div className="flex items-center space-x-4">
 				<Link href="/tenants">
 					<Button variant="outline" size="sm">
-						<i className="i-lucide-arrow-left mr-2 h-4 w-4"  />
+						<ArrowLeft className=" mr-2 h-4 w-4"  />
 						Back to Tenants
 					</Button>
 				</Link>
@@ -45,7 +45,7 @@ export default function NewTenantPage() {
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
 							<div className="bg-primary op-10 rounded-lg p-2">
-								<i className="i-lucide-user text-primary h-5 w-5"  />
+								<User className=" text-primary h-5 w-5"  />
 							</div>
 							Tenant Information
 						</CardTitle>
@@ -54,9 +54,9 @@ export default function NewTenantPage() {
 						<Suspense
 							fallback={
 								<div className="space-y-4">
-									<div className="h-10 w-full animate-pulse rounded bg-gray-2" />
-									<div className="h-10 w-full animate-pulse rounded bg-gray-2" />
-									<div className="h-10 w-full animate-pulse rounded bg-gray-2" />
+									<div className="h-10 w-full animate-pulse rounded bg-gray-200" />
+									<div className="h-10 w-full animate-pulse rounded bg-gray-200" />
+									<div className="h-10 w-full animate-pulse rounded bg-gray-200" />
 								</div>
 							}
 						>

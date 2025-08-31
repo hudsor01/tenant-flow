@@ -11,11 +11,12 @@ import {
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import Link from 'next/link'
+import { MoreHorizontal } from 'lucide-react'
 
 // Generic action configuration for any data table row
 export interface TableAction<T = unknown> {
 	type: 'view' | 'edit' | 'delete' | 'custom'
-	icon: string // UnoCSS icon class
+	icon: string
 	label: string
 	href?: string | ((item: T) => string) // Link-based action
 	onClick?: (item: T, event?: React.MouseEvent) => void // Callback-based action
@@ -28,7 +29,7 @@ export interface TableAction<T = unknown> {
 export const COMMON_ACTIONS = {
     view: (entity: string): TableAction => ({
 		type: 'view',
-		icon: 'i-lucide-eye',
+		icon: 'eye',
 		label: `View ${entity}`,
 		href: '', // Will be set dynamically
 		variant: 'ghost'
@@ -36,7 +37,7 @@ export const COMMON_ACTIONS = {
 	
     edit: (entity: string): TableAction => ({
 		type: 'edit',
-		icon: 'i-lucide-edit-3',
+		icon: 'edit-3',
 		label: `Edit ${entity}`,
 		href: '', // Will be set dynamically
 		variant: 'ghost'
@@ -44,7 +45,7 @@ export const COMMON_ACTIONS = {
 	
 	delete: (entity: string, onDelete: (id: string) => void): TableAction => ({
 		type: 'delete',
-		icon: 'i-lucide-trash-2',
+		icon: 'trash-2',
 		label: `Delete ${entity}`,
 		onClick: (item: unknown, _event?: React.MouseEvent) => {
 			const typedItem = item as { id: string }
@@ -153,7 +154,7 @@ export function createActionColumn<T extends { id: string }>({
 						size={size}
 						className="h-8 w-8 p-0"
 					>
-						<i className="i-lucide-more-horizontal h-4 w-4" />
+						<MoreHorizontal className="h-4 w-4" />
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end">

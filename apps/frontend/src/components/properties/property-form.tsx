@@ -25,7 +25,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
 import { SuccessFeedback, ErrorFeedback, OptimisticFeedback } from '@/components/ui/feedback'
-
+import { Home, X, DollarSign, Building, Save, MapPin, Star, Ruler } from 'lucide-react'
 // Types for form props
 interface Property_FormProps {
 	property?: Property_
@@ -81,10 +81,19 @@ export function Property_Form({
 				createdAt: new Date().toISOString(),
 				updatedAt: new Date().toISOString(),
 				
-				// Property_WithUnits computed fields
+				// PropertyWithUnits computed fields
 				units: [],
 				totalUnits: 1,
-				monthlyRent: 0
+				occupiedUnits: 0,
+				vacantUnits: 1,
+				maintenanceUnits: 0,
+				occupancyRate: 0,
+				monthlyRevenue: 0,
+				potentialRevenue: 0,
+				revenueUtilization: 0,
+				averageRentPerUnit: 0,
+				maintenanceRequests: 0,
+				openMaintenanceRequests: 0
 			}
 			return [...currentProperties, tempProperty_]
 		}
@@ -193,7 +202,7 @@ export function Property_Form({
 				<CardHeader>
 					<div className="flex items-center gap-3">
 						<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-							<i className="i-lucide-building h-5 w-5 text-primary"  />
+							<Building className="h-5 w-5 text-primary" />
 						</div>
 						<div>
 							<CardTitle>{title}</CardTitle>
@@ -216,7 +225,7 @@ export function Property_Form({
 						{/* Basic Information Section */}
 						<div className="space-y-4">
 							<div className="flex items-center gap-2">
-								<i className="i-lucide-home h-4 w-4 text-muted-foreground" />
+								<Home className="h-4 w-4 text-muted-foreground" />
 								<div>
 									<h3 className="text-lg font-medium">Basic Information</h3>
 									<p className="text-muted-foreground text-sm">Essential property details</p>
@@ -302,7 +311,7 @@ export function Property_Form({
 						{/* Location Section */}
 						<div className="space-y-4">
 							<div className="flex items-center gap-2">
-								<i className="i-lucide-map-pin h-4 w-4 text-muted-foreground" />
+								<MapPin className="h-4 w-4 text-muted-foreground" />
 								<div>
 									<h3 className="text-lg font-medium">Location</h3>
 									<p className="text-muted-foreground text-sm">Property_ address and location details</p>
@@ -384,7 +393,7 @@ export function Property_Form({
 						{/* Financial Information */}
 						<div className="space-y-4">
 							<div className="flex items-center gap-2">
-								<i className="i-lucide-dollar-sign h-4 w-4 text-muted-foreground" />
+								<DollarSign className="h-4 w-4 text-muted-foreground" />
 								<div>
 									<h3 className="text-lg font-medium">Financial Information</h3>
 									<p className="text-muted-foreground text-sm">Rental rates and financial details</p>
@@ -401,7 +410,7 @@ export function Property_Form({
 										type="number"
 										step="0.01"
 										min="0"
-										defaultValue={property?.monthlyRent || ''}
+										defaultValue={property?.monthlyRevenue || ''}
 										placeholder="2500.00"
 										disabled={isPending}
 									/>
@@ -417,7 +426,7 @@ export function Property_Form({
 										type="number"
 										step="0.01"
 										min="0"
-										defaultValue={property?.securityDeposit || ''}
+										defaultValue=""
 										placeholder="2500.00"
 										disabled={isPending}
 									/>
@@ -430,7 +439,7 @@ export function Property_Form({
 						{/* Property_ Details */}
 						<div className="space-y-4">
 							<div className="flex items-center gap-2">
-								<i className="i-lucide-ruler h-4 w-4 text-muted-foreground" />
+								<Ruler className="h-4 w-4 text-muted-foreground" />
 								<div>
 									<h3 className="text-lg font-medium">Property_ Details</h3>
 									<p className="text-muted-foreground text-sm">Size and specifications</p>
@@ -446,7 +455,7 @@ export function Property_Form({
 										name="squareFeet"
 										type="number"
 										min="0"
-										defaultValue={property?.squareFeet || ''}
+										defaultValue=""
 										placeholder="1200"
 										disabled={isPending}
 									/>
@@ -461,7 +470,7 @@ export function Property_Form({
 										name="bedrooms"
 										type="number"
 										min="0"
-										defaultValue={property?.bedrooms || ''}
+										defaultValue=""
 										placeholder="2"
 										disabled={isPending}
 									/>
@@ -477,7 +486,7 @@ export function Property_Form({
 										type="number"
 										step="0.5"
 										min="0"
-										defaultValue={property?.bathrooms || ''}
+										defaultValue=""
 										placeholder="1.5"
 										disabled={isPending}
 									/>
@@ -493,7 +502,7 @@ export function Property_Form({
 										type="number"
 										min="1800"
 										max={new Date().getFullYear()}
-										defaultValue={property?.yearBuilt || ''}
+										defaultValue=""
 										placeholder="1990"
 										disabled={isPending}
 									/>
@@ -506,7 +515,7 @@ export function Property_Form({
 						{/* Amenities Section */}
 						<div className="space-y-4">
 							<div className="flex items-center gap-2">
-								<i className="i-lucide-star h-4 w-4 text-muted-foreground" />
+								<Star className="h-4 w-4 text-muted-foreground" />
 								<div>
 									<h3 className="text-lg font-medium">Amenities</h3>
 									<p className="text-muted-foreground text-sm">Available features and amenities</p>
@@ -517,7 +526,7 @@ export function Property_Form({
 									<Switch
 										id="hasParking"
 										name="hasParking"
-										defaultChecked={property?.amenities?.includes('parking') || false}
+										defaultChecked={false}
 										disabled={isPending}
 									/>
 									<Label htmlFor="hasParking" className="cursor-pointer">
@@ -529,7 +538,7 @@ export function Property_Form({
 									<Switch
 										id="hasLaundry"
 										name="hasLaundry"
-										defaultChecked={property?.amenities?.includes('laundry') || false}
+										defaultChecked={false}
 										disabled={isPending}
 									/>
 									<Label htmlFor="hasLaundry" className="cursor-pointer">
@@ -541,7 +550,7 @@ export function Property_Form({
 									<Switch
 										id="petsAllowed"
 										name="petsAllowed"
-										defaultChecked={property?.petsAllowed || false}
+										defaultChecked={false}
 										disabled={isPending}
 									/>
 									<Label htmlFor="petsAllowed" className="cursor-pointer">
@@ -559,7 +568,7 @@ export function Property_Form({
 								onClick={onClose}
 								disabled={isPending}
 							>
-								<i className="i-lucide-x mr-2 h-4 w-4"  />
+								<X className="mr-2 h-4 w-4" />
 								Cancel
 							</Button>
 
@@ -575,7 +584,7 @@ export function Property_Form({
 									</div>
 								) : (
 									<div className="flex items-center gap-2">
-										<i className="i-lucide-save h-4 w-4"  />
+										<Save className="h-4 w-4" />
 										{isEditing ? 'Update Property_' : 'Create Property_'}
 									</div>
 								)}

@@ -10,7 +10,7 @@ import { useQueryClient } from '@tanstack/react-query'
 // Removed debug-auth import - using logger directly
 import { queryKeys } from '@/lib/react-query/query-keys'
 import type { Session, AuthError } from '@supabase/supabase-js'
-
+import { X , Loader2 , Check } from 'lucide-react'
 type ProcessingState = 'loading' | 'success' | 'error'
 
 interface ProcessingStatus {
@@ -516,15 +516,15 @@ export function SupabaseAuthProcessor() {
 		switch (status.state) {
 			case 'loading':
 				return (
-					<i className="i-lucide-loader-2 text-primary h-12 w-12 animate-spin"  />
+					<Loader2 className=" text-primary h-12 w-12 animate-spin"  />
 				)
 			case 'success':
-				return <i className="i-lucide-checkcircle h-12 w-12 text-green-5"  />
+				return <Check className="circle h-12 w-12 text-green-500"  />
 			case 'error':
-				return <i className="i-lucide-xcircle h-12 w-12 text-red-5"  />
+				return <X className="circle h-12 w-12 text-red-500"  />
 			default:
 				return (
-					<i className="i-lucide-loader-2 text-primary h-12 w-12 animate-spin"  />
+					<Loader2 className=" text-primary h-12 w-12 animate-spin"  />
 				)
 		}
 	}
@@ -581,7 +581,7 @@ export function SupabaseAuthProcessor() {
 							transition={{ delay: 0.4 }}
 							className="mt-4"
 						>
-							<div className="h-1 w-full overflow-hidden rounded-full bg-gray-2">
+							<div className="h-1 w-full overflow-hidden rounded-full bg-gray-200">
 								<motion.div
 									className="bg-primary h-full rounded-full"
 									initial={{ width: 0 }}

@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { ChevronUp, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface TableProps extends React.TableHTMLAttributes<HTMLTableElement> {
@@ -134,15 +135,13 @@ const TableHead = React.forwardRef<HTMLTableCellElement, TableHeadProps>(
 					<div className="flex items-center gap-2">
 						{children}
 						<div className="flex flex-col">
-							<i className={cn(
-								'i-lucide-chevron-up',
+							<ChevronUp className={cn(
 									'h-3 w-3 transition-opacity',
 									sorted === 'asc'
 										? 'opacity-100'
 										: 'opacity-30'
 								)} />
-							<i className={cn(
-								'i-lucide-chevron-down',
+							<ChevronDown className={cn(
 									'h-3 w-3 transition-opacity',
 									sorted === 'desc'
 										? 'opacity-100'

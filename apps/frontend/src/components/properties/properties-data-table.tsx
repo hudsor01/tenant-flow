@@ -11,8 +11,9 @@ import {
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-// UnoCSS icons used instead of lucide-react
-// Unused UI components removed: Skeleton, Alert, AlertDescription, AlertTitle
+
+import { BlurFade } from '@/components/magicui'
+import { getStaggerDelay } from '@/lib/animations/constants'
 import {
 	Table,
 	TableBody,
@@ -21,11 +22,11 @@ import {
 	TableHeader,
 	TableRow
 } from '@/components/ui/table'
-// Dropdown menu imports removed - now using consolidated action factory
+
 import Link from 'next/link'
 import type { PropertyWithUnits } from '@repo/shared'
 import { createPropertiesActions, createActionColumn } from '@/components/data-table/data-table-action-factory'
-
+import { Plus , Home , Users , Building , MapPin } from 'lucide-react'
 // Create actions components using consolidated factory
 const PropertiesActions = createPropertiesActions
 const PropertiesDropdownActions = createActionColumn({
@@ -42,11 +43,10 @@ interface Property_RowProps {
 }
 
 function Property_Row({ property, onView: _onView, onEdit: _onEdit }: Property_RowProps) {
-	const totalUnits = property.units?.length ?? 0
-	const occupiedUnits =
-		property.units?.filter(unit => unit.status === 'OCCUPIED').length ?? 0
-	const occupancyRate =
-		totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
+	// NO CALCULATIONS - Use backend-provided metrics
+	const totalUnits = property.totalUnits
+	const occupiedUnits = property.occupiedUnits
+	const occupancyRate = property.occupancyRate
 
 	return (
 		<TableRow className="hover:bg-accent/50">
@@ -56,14 +56,14 @@ function Property_Row({ property, onView: _onView, onEdit: _onEdit }: Property_R
 			>
 				<div className="flex items-center gap-3">
 					<div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-lg">
-						<i className="i-lucide-building-2 text-primary h-5 w-5"  />
+						<Building className="text-primary h-5 w-5" />
 					</div>
 					<div className="space-y-1">
 						<p className="font-medium leading-none">
 							{property.name}
 						</p>
 						<div className="text-muted-foreground flex items-center gap-1 text-sm">
-							<i className="i-lucide-map-pin h-3 w-3"  />
+							<MapPin className="h-3 w-3" />
 							{property.address}
 						</div>
 					</div>
@@ -76,13 +76,13 @@ function Property_Row({ property, onView: _onView, onEdit: _onEdit }: Property_R
 			</TableCell>
 			<TableCell>
 				<div className="flex items-center gap-1">
-					<i className="i-lucide-home text-muted-foreground h-3 w-3"  />
+					<Home className="text-muted-foreground h-3 w-3" />
 					{totalUnits}
 				</div>
 			</TableCell>
 			<TableCell>
 				<div className="flex items-center gap-1">
-					<i className="i-lucide-users text-muted-foreground h-3 w-3"  />
+					<Users className="text-muted-foreground h-3 w-3" />
 					{occupiedUnits}
 				</div>
 			</TableCell>
@@ -113,11 +113,10 @@ interface Property_CardProps {
 }
 
 function Property_Card({ property, onView: _onView, onEdit: _onEdit }: Property_CardProps) {
-	const totalUnits = property.units?.length ?? 0
-	const occupiedUnits =
-		property.units?.filter(unit => unit.status === 'OCCUPIED').length ?? 0
-	const occupancyRate =
-		totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
+	// NO CALCULATIONS - Use backend-provided metrics  
+	const totalUnits = property.totalUnits
+	const occupiedUnits = property.occupiedUnits
+	const occupancyRate = property.occupancyRate
 
 	return (
 		<Card className="transition-all hover:shadow-md">
@@ -125,14 +124,14 @@ function Property_Card({ property, onView: _onView, onEdit: _onEdit }: Property_
 				<div className="flex items-start justify-between">
 					<div className="flex items-center gap-3">
 						<div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-lg">
-							<i className="i-lucide-building-2 text-primary h-5 w-5"  />
+							<Building className="text-primary h-5 w-5" />
 						</div>
 						<div className="space-y-1">
 							<CardTitle className="text-base leading-none">
 								{property.name}
 							</CardTitle>
 							<div className="text-muted-foreground flex items-center gap-1 text-sm">
-								<i className="i-lucide-map-pin h-3 w-3"  />
+								<MapPin className="h-3 w-3" />
 								{property.address}
 							</div>
 						</div>
@@ -160,14 +159,14 @@ function Property_Card({ property, onView: _onView, onEdit: _onEdit }: Property_
 					</div>
 					<div className="grid grid-cols-2 gap-4 text-sm">
 						<div className="flex items-center gap-1">
-							<i className="i-lucide-home text-muted-foreground h-3 w-3"  />
+							<Home className="text-muted-foreground h-3 w-3" />
 							<span className="text-muted-foreground">
 								Units:
 							</span>
 							<span className="font-medium">{totalUnits}</span>
 						</div>
 						<div className="flex items-center gap-1">
-							<i className="i-lucide-users text-muted-foreground h-3 w-3"  />
+							<Users className="text-muted-foreground h-3 w-3" />
 							<span className="text-muted-foreground">
 								Tenants:
 							</span>
@@ -232,7 +231,7 @@ function PropertiesTableUI({
 				</CardHeader>
 				<CardContent>
 					<div className="flex flex-col items-center justify-center py-12 text-center">
-						<i className="i-lucide-building-2 text-muted-foreground/50 mb-4 h-16 w-16"  />
+						<Building className="text-muted-foreground/50 mb-4 h-16 w-16" />
 						<h3 className="mb-2 text-lg font-medium">
 							{hasFilters
 								? 'No properties found'
@@ -246,7 +245,7 @@ function PropertiesTableUI({
 						{!hasFilters && (
 							<Link href="/properties/new">
 								<Button>
-									<span className="i-lucide-plus mr-2 h-4 w-4" />
+									<Plus className="mr-2 h-4 w-4" />
 									Add First Property_
 								</Button>
 							</Link>
@@ -269,7 +268,7 @@ function PropertiesTableUI({
 					</div>
 					<Link href="/properties/new">
 						<Button size="sm">
-							<span className="i-lucide-plus mr-2 h-4 w-4" />
+							<Plus className="mr-2 h-4 w-4" />
 							<span className="hidden sm:inline">
 								Add Property_
 							</span>
@@ -281,13 +280,14 @@ function PropertiesTableUI({
 			<CardContent>
 				{/* Mobile Card View */}
 				<div className="space-y-4 md:hidden">
-          {properties.map((property: PropertyWithUnits) => (
-						<Property_Card
-							key={property.id}
-							property={property}
-							onView={onViewProperty_}
-							onEdit={onEditProperty_}
-						/>
+          {properties.map((property: PropertyWithUnits, index: number) => (
+						<BlurFade key={property.id} delay={getStaggerDelay(index, 'MEDIUM_STAGGER')}>
+							<Property_Card
+								property={property}
+								onView={onViewProperty_}
+								onEdit={onEditProperty_}
+							/>
+						</BlurFade>
 					))}
 				</div>
 
@@ -308,13 +308,14 @@ function PropertiesTableUI({
 								</TableRow>
 							</TableHeader>
 							<TableBody>
-                    {properties.map((property: PropertyWithUnits) => (
-									<Property_Row
-										key={property.id}
-										property={property}
-										onView={onViewProperty_}
-										onEdit={onEditProperty_}
-									/>
+                    {properties.map((property: PropertyWithUnits, index: number) => (
+									<BlurFade key={property.id} delay={getStaggerDelay(index, 'FAST_STAGGER')}>
+										<Property_Row
+											property={property}
+											onView={onViewProperty_}
+											onEdit={onEditProperty_}
+										/>
+									</BlurFade>
 								))}
 							</TableBody>
 						</Table>

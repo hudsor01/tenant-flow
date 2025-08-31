@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { PageTracker } from '@/components/analytics/page-tracker'
+import { DollarSign, Building, Users, BarChart3, TrendingUp, FileText, Download } from 'lucide-react'
 import type { Metadata } from 'next/types'
 
 export const metadata: Metadata = {
@@ -35,38 +36,38 @@ function ReportsGrid() {
 		{
 			title: 'Financial Summary',
 			description: 'Revenue, expenses, and profit analysis',
-			icon: 'i-lucide-dollar-sign',
+			icon: DollarSign,
 			period: 'Monthly',
 			lastGenerated: '2 hours ago',
-			color: 'text-green-6',
-			bgColor: 'bg-green-1'
+			color: 'text-green-600',
+			bgColor: 'bg-green-50'
 		},
 		{
 			title: 'Occupancy Report',
 			description: 'Occupancy rates and vacancy analysis',
-			icon: 'i-lucide-building',
+			icon: Building,
 			period: 'Weekly',
 			lastGenerated: '1 day ago',
-			color: 'text-primary',
-			bgColor: 'bg-blue-5'
+			color: 'text-blue-600',
+			bgColor: 'bg-blue-50'
 		},
 		{
 			title: 'Tenant Activity',
 			description: 'Tenant communications and interactions',
-			icon: 'i-lucide-users',
+			icon: Users,
 			period: 'Daily',
 			lastGenerated: '4 hours ago',
-			color: 'text-purple-6',
-			bgColor: 'bg-purple-1'
+			color: 'text-purple-600',
+			bgColor: 'bg-purple-50'
 		},
 		{
 			title: 'Maintenance Report',
 			description: 'Maintenance costs and completion rates',
-			icon: 'i-lucide-bar-chart-3',
+			icon: BarChart3,
 			period: 'Monthly',
 			lastGenerated: '6 hours ago',
-			color: 'text-orange-6',
-			bgColor: 'bg-orange-1'
+			color: 'text-orange-600',
+			bgColor: 'bg-orange-50'
 		}
 	]
 
@@ -83,9 +84,7 @@ function ReportsGrid() {
 								<div
 									className={`rounded-lg p-3 ${report.bgColor}`}
 								>
-									<i
-										className={`${report.icon} h-6 w-6 ${report.color}`}
-									/>
+									<report.icon className={`h-6 w-6 ${report.color}`} />
 								</div>
 								<Badge variant="secondary">
 									{report.period}
@@ -107,11 +106,11 @@ function ReportsGrid() {
 								</div>
 								<div className="flex gap-2">
 									<Button size="sm" variant="outline">
-										<i className="i-lucide-bar-chart-3 mr-2 h-4 w-4"  />
+										<BarChart3 className="mr-2 h-4 w-4" />
 										View
 									</Button>
 									<Button size="sm" variant="outline">
-										<i className="i-lucide-download h-4 w-4"  />
+										<Download className="h-4 w-4" />
 									</Button>
 								</div>
 							</div>
@@ -128,7 +127,7 @@ function QuickStats() {
 		<Card>
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2">
-					<i className="i-lucide-trending-up h-5 w-5"  />
+					<TrendingUp className="h-5 w-5" />
 					Quick Stats
 				</CardTitle>
 				<CardDescription>Key metrics for this month</CardDescription>
@@ -136,7 +135,7 @@ function QuickStats() {
 			<CardContent>
 				<div className="grid gap-4 md:grid-cols-4">
 					<div className="text-center">
-						<div className="text-2xl font-bold text-green-6">
+						<div className="text-2xl font-bold text-green-600">
 							$12,450
 						</div>
 						<p className="text-muted-foreground text-sm">
@@ -144,7 +143,7 @@ function QuickStats() {
 						</p>
 					</div>
 					<div className="text-center">
-						<div className="text-primary text-2xl font-bold">
+						<div className="text-blue-600 text-2xl font-bold">
 							94%
 						</div>
 						<p className="text-muted-foreground text-sm">
@@ -152,7 +151,7 @@ function QuickStats() {
 						</p>
 					</div>
 					<div className="text-center">
-						<div className="text-2xl font-bold text-purple-6">
+						<div className="text-2xl font-bold text-purple-600">
 							28
 						</div>
 						<p className="text-muted-foreground text-sm">
@@ -160,7 +159,7 @@ function QuickStats() {
 						</p>
 					</div>
 					<div className="text-center">
-						<div className="text-2xl font-bold text-orange-6">
+						<div className="text-2xl font-bold text-orange-600">
 							$2,100
 						</div>
 						<p className="text-muted-foreground text-sm">
@@ -219,7 +218,7 @@ function RecentReports() {
 						>
 							<div className="flex items-center gap-3">
 								<div className="bg-primary/10 rounded-lg p-2">
-									<i className="i-lucide-file-text text-primary h-4 w-4"  />
+									<FileText className="text-primary h-4 w-4" />
 								</div>
 								<div className="space-y-1">
 									<p className="font-medium">{report.name}</p>
@@ -238,7 +237,7 @@ function RecentReports() {
 								</div>
 							</div>
 							<Button size="sm" variant="ghost">
-								<i className="i-lucide-download h-4 w-4"  />
+								<Download className="h-4 w-4" />
 							</Button>
 						</div>
 					))}

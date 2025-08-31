@@ -9,7 +9,7 @@ import { BillingSettings } from '@/components/settings/billing-settings'
 import { AppearanceSettings } from '@/components/settings/appearance-settings'
 import { DataSettings } from '@/components/settings/data-settings'
 import type { Metadata } from 'next/types'
-
+import { User, Shield, CreditCard, Bell, Database, Palette } from 'lucide-react'
 export const metadata: Metadata = {
 	title: 'Settings | TenantFlow',
 	description: 'Manage your account settings and preferences'
@@ -67,14 +67,14 @@ export default function SettingsPage() {
 							value="profile"
 							className="flex items-center gap-2"
 						>
-							<i className="i-lucide-user  h-4 w-4"  />
+							<User className="h-4 w-4" />
 							<span className="hidden sm:inline">Profile</span>
 						</TabsTrigger>
 						<TabsTrigger
 							value="notifications"
 							className="flex items-center gap-2"
 						>
-							<i className="i-lucide-bell  h-4 w-4"  />
+							<Bell className="h-4 w-4" />
 							<span className="hidden sm:inline">
 								Notifications
 							</span>
@@ -83,28 +83,28 @@ export default function SettingsPage() {
 							value="security"
 							className="flex items-center gap-2"
 						>
-							<i className="i-lucide-shield  h-4 w-4"  />
+							<Shield className="h-4 w-4" />
 							<span className="hidden sm:inline">Security</span>
 						</TabsTrigger>
 						<TabsTrigger
 							value="billing"
 							className="flex items-center gap-2"
 						>
-							<i className="i-lucide-credit-card  h-4 w-4"  />
+							<CreditCard className="h-4 w-4" />
 							<span className="hidden sm:inline">Billing</span>
 						</TabsTrigger>
 						<TabsTrigger
 							value="appearance"
 							className="flex items-center gap-2"
 						>
-							<i className="i-lucide-palette  h-4 w-4"  />
+							<Palette className="h-4 w-4" />
 							<span className="hidden sm:inline">Appearance</span>
 						</TabsTrigger>
 						<TabsTrigger
 							value="data"
 							className="flex items-center gap-2"
 						>
-							<i className="i-lucide-database  h-4 w-4"  />
+							<Database className="h-4 w-4" />
 							<span className="hidden sm:inline">Data</span>
 						</TabsTrigger>
 					</TabsList>

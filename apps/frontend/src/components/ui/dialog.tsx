@@ -4,6 +4,7 @@ import * as React from 'react'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 
 import { cn } from '@/lib/utils'
+import { X } from 'lucide-react'
 
 function Dialog({
 	...props
@@ -98,7 +99,7 @@ function DialogContent({
 						)}
 						aria-label="Close dialog"
 					>
-						<i className="i-lucide-xicon" aria-hidden="true" />
+						<X className="h-4 w-4" aria-hidden="true" />
 						<span className="sr-only">Close dialog</span>
 					</DialogPrimitive.Close>
 				)}

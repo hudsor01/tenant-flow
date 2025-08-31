@@ -6,7 +6,7 @@ import {
 	CardTitle
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-
+import { Check } from 'lucide-react'
 interface SignupSuccessProps {
 	email: string
 	onBackToSignIn: () => void
@@ -16,8 +16,8 @@ export function SignupSuccess({ email, onBackToSignIn }: SignupSuccessProps) {
 	return (
 		<Card className="w-full max-w-md border-0 shadow-xl">
 			<CardHeader className="space-y-1 pb-6">
-				<div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-1">
-					<i className="i-lucide-checkcircle h-6 w-6 text-green-6"  />
+				<div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+					<Check className="circle h-6 w-6 text-green-600"  />
 				</div>
 				<CardTitle className="text-center text-2xl font-bold">
 					Check your email

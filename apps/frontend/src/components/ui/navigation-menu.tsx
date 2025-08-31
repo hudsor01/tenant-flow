@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as NavigationMenuPrimitive from '@radix-ui/react-navigation-menu'
+import { ChevronDown } from 'lucide-react'
 
 import { cn } from '@/lib/utils/css.utils'
 
@@ -70,7 +71,7 @@ function NavigationMenuTrigger({
 			{...props}
 		>
 			{children}{' '}
-			<i className="i-lucide-chevron-down relative top-[1px] ml-1 w-3 h-3 transition duration-300 group-data-[state=open]:rotate-180" aria-hidden="true" />
+			<ChevronDown className="relative top-[1px] ml-1 w-3 h-3 transition duration-300 group-data-[state=open]:rotate-180" aria-hidden="true" />
 		</NavigationMenuPrimitive.Trigger>
 	)
 }

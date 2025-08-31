@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
+import { Loader2, CheckCircle2, Home, Users, FileText, ArrowRight } from 'lucide-react'
 
 interface SubscriptionDetails {
 	planName: string
@@ -60,7 +61,7 @@ export function PaymentSuccess({
 		return (
 			<div className="flex items-center justify-center py-16">
 				<div className="text-center">
-					<i className="i-lucide-loader-2 text-primary mx-auto mb-4 h-12 w-12 animate-spin"  />
+					<Loader2 className="text-primary mx-auto mb-4 h-12 w-12 animate-spin" />
 					<p className="text-muted-foreground text-lg">
 						Activating your subscription...
 					</p>
@@ -76,7 +77,7 @@ export function PaymentSuccess({
 				<div
 					className={`transition-all duration-1000 ${showConfetti ? 'animate-bounce' : ''}`}
 				>
-					<i className="i-lucide-check-circle-2 mx-auto mb-4 h-16 w-16 text-green-5"  />
+					<CheckCircle2 className="mx-auto mb-4 h-16 w-16 text-green-500" />
 				</div>
 				<h1 className="from-primary to-primary/70 mb-2 bg-gradient-to-r bg-clip-text text-4xl font-bold text-transparent">
 					Welcome to TenantFlow!
@@ -91,17 +92,17 @@ export function PaymentSuccess({
 				<Card className="border-green-2 bg-green-50 dark:bg-green-950/20">
 					<CardHeader>
 						<div className="flex items-center justify-between">
-							<CardTitle className="text-green-7 dark:text-green-4">
+							<CardTitle className="text-green-7 dark:text-green-400">
 								Your Subscription
 							</CardTitle>
 							<Badge
 								variant="default"
-								className="bg-green-1 text-green-7 hover:bg-green-2"
+								className="bg-green-1 text-green-7 hover:bg-green-200"
 							>
 								Active
 							</Badge>
 						</div>
-						<CardDescription className="text-green-6 dark:text-green-3">
+						<CardDescription className="text-green-6 dark:text-green-300">
 							{subscriptionData.planName} Plan - Billed{' '}
 							{subscriptionData.billingInterval === 'annual'
 								? 'Annually'
@@ -110,7 +111,7 @@ export function PaymentSuccess({
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<div className="grid grid-cols-2 gap-4">
-							<div className="rounded-lg border bg-white p-3 dark:bg-gray-8">
+							<div className="rounded-lg border bg-white p-3 dark:bg-gray-800">
 								<div className="text-muted-foreground text-sm">
 									Amount
 								</div>
@@ -128,7 +129,7 @@ export function PaymentSuccess({
 								</div>
 							</div>
 
-							<div className="rounded-lg border bg-white p-3 dark:bg-gray-8">
+							<div className="rounded-lg border bg-white p-3 dark:bg-gray-800">
 								<div className="text-muted-foreground text-sm">
 									Next billing
 								</div>
@@ -153,7 +154,7 @@ export function PaymentSuccess({
 													key={index}
 													className="flex items-center gap-2 text-sm"
 												>
-													<i className="i-lucide-check-circle-2 h-4 w-4 shrink-0 text-green-5"  />
+													<CheckCircle2 className="h-4 w-4 shrink-0 text-green-500" />
 													<span>{feature}</span>
 												</div>
 											)
@@ -182,20 +183,20 @@ function QuickActions() {
 
 	const actions = [
 		{
-			icon: 'i-lucide-home',
+			icon: Home,
 			title: 'Add your first property',
 			description: 'Start by adding property details and units',
 			action: () => router.push('/properties?action=add'),
 			primary: true
 		},
 		{
-			icon: 'i-lucide-users',
+			icon: Users,
 			title: 'Invite tenants',
 			description: 'Send invitations to your tenants to join the portal',
 			action: () => router.push('/tenants?action=invite')
 		},
 		{
-			icon: 'i-lucide-file-text',
+			icon: FileText,
 			title: 'Create a lease',
 			description: 'Set up lease agreements and track important dates',
 			action: () => router.push('/leases?action=create')
@@ -230,7 +231,7 @@ function QuickActions() {
 										: 'bg-muted'
 								}`}
 							>
-								<i className={`${action.icon} h-5 w-5 ${
+								<action.icon className={`h-5 w-5 ${
 										action.primary
 											? 'text-primary'
 											: 'text-muted-foreground'
@@ -245,7 +246,7 @@ function QuickActions() {
 								</p>
 							</div>
 						</div>
-						<i className="i-lucide-arrow-right text-muted-foreground group-hover:text-primary h-5 w-5 transition-all group-hover:translate-x-1"  />
+						<ArrowRight className="text-muted-foreground group-hover:text-primary h-5 w-5 transition-all group-hover:translate-x-1" />
 					</button>
 				))}
 
@@ -281,7 +282,7 @@ function ErrorDisplay({ error }: { error: string }) {
 	return (
 		<Card className="border-orange-2 bg-orange-1 dark:bg-orange-950/20">
 			<CardHeader>
-				<CardTitle className="text-orange-6 dark:text-orange-4">
+				<CardTitle className="text-orange-6 dark:text-orange-400">
 					Subscription Verification Issue
 				</CardTitle>
 			</CardHeader>

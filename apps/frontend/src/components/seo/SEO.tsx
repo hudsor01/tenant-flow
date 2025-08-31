@@ -37,7 +37,7 @@ interface SEOProps {
 }
 
 const DEFAULT_SEO = {
-	title: 'TenantFlow - Modern Property_ Management Software',
+	title: 'TenantFlow - Modern Property Management Software',
 	description:
 		'Streamline your property management with TenantFlow. Manage tenants, properties, maintenance requests, and finances all in one powerful platform.',
 	keywords:
@@ -127,7 +127,7 @@ export function SEO({
 		updateMetaTag('og:image:height', '630', true)
 		updateMetaTag(
 			'og:image:alt',
-			`${siteTitle} - Property_ Management Software`,
+			`${siteTitle} - Property Management Software`,
 			true
 		)
 		updateMetaTag('og:url', fullUrl, true)
@@ -141,7 +141,7 @@ export function SEO({
 		updateMetaTag('twitter:image', fullImageUrl)
 		updateMetaTag(
 			'twitter:image:alt',
-			`${siteTitle} - Property_ Management Software`
+			`${siteTitle} - Property Management Software`
 		)
 
 		// Facebook-specific meta tags for better scraping

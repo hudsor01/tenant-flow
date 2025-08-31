@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils/css.utils'
 import { useCreatePortalSession } from '@/hooks/api/use-billing'
-
+import { Shield , CreditCard , Loader2 } from 'lucide-react'
 interface CustomerPortalButtonProps {
 	variant?: 'default' | 'outline' | 'secondary' | 'ghost'
 	size?: 'default' | 'sm' | 'lg'
@@ -37,8 +37,8 @@ export function CustomerPortalButton({
 	return (
 		<div className="space-y-3">
 			{showSecurityBadge && (
-				<div className="mb-2 flex items-center justify-center gap-2 text-sm text-gray-5">
-					<i className="i-lucide-shield h-4 w-4"  />
+				<div className="mb-2 flex items-center justify-center gap-2 text-sm text-gray-500">
+					<Shield className=" h-4 w-4"  />
 					<span>Secure billing powered by Stripe</span>
 				</div>
 			)}
@@ -56,12 +56,12 @@ export function CustomerPortalButton({
 			>
 				{createPortalMutation.isPending ? (
 					<>
-						<i className="i-lucide-loader-2 mr-2 h-4 w-4 animate-spin"  />
+						<Loader2 className=" mr-2 h-4 w-4 animate-spin"  />
 						Loading...
 					</>
 				) : (
 					<>
-						<i className="i-lucide-credit-card mr-2 h-4 w-4"  />
+						<CreditCard className=" mr-2 h-4 w-4"  />
 						{children}
 					</>
 				)}
@@ -72,7 +72,7 @@ export function CustomerPortalButton({
 					variant="destructive"
 					className="border-red-2 bg-red-50"
 				>
-					<AlertDescription className="text-red-7">
+					<AlertDescription className="text-red-700">
 						{createPortalMutation.error.message}
 					</AlertDescription>
 				</Alert>

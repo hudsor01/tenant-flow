@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
+import { EASING_CURVES } from '@/lib/animations/constants'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -14,7 +15,7 @@ import {
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { useSidebar } from '@/components/ui/sidebar-provider'
-
+import { Plus, Users, X, Building, Settings, ChevronDown, Check, Sparkles, Crown } from 'lucide-react'
 interface Workspace {
 	id: string
 	name: string
@@ -75,13 +76,13 @@ export function SidebarHeader() {
 	const getWorkspaceIcon = (type: Workspace['type']) => {
 		switch (type) {
 			case 'personal':
-				return <i className="i-lucide-users h-4 w-4"  />
+				return <Users className="h-4 w-4" />
 			case 'team':
-				return <i className="i-lucide-building h-4 w-4"  />
+				return <Building className="h-4 w-4" />
 			case 'enterprise':
-				return <i className="i-lucide-crown h-4 w-4"  />
+				return <Crown className="h-4 w-4" />
 			default:
-				return <i className="i-lucide-building-2 h-4 w-4"  />
+				return <Building className="h-4 w-4" />
 		}
 	}
 
@@ -90,7 +91,7 @@ export function SidebarHeader() {
 			case 'personal':
 				return 'bg-gradient-to-br from-primary to-primary/80'
 			case 'team':
-				return 'bg-gradient-to-br from-green-5 to-green-6'
+				return 'bg-gradient-to-br from-green-500 to-green-600'
 			case 'enterprise':
 				return 'bg-gradient-to-br from-purple-500 to-purple-600'
 			default:
@@ -107,7 +108,7 @@ export function SidebarHeader() {
 						rotate: [0, -5, 5, 0],
 						transition: {
 							duration: 0.6,
-							ease: [0.25, 0.46, 0.45, 0.94],
+							ease: EASING_CURVES.SMOOTH,
 							rotate: {
 								duration: 0.8,
 								ease: 'easeInOut'
@@ -154,7 +155,7 @@ export function SidebarHeader() {
 					className="ml-auto h-8 w-8 lg:hidden"
 					onClick={() => setCollapsed(!collapsed)}
 				>
-					<i className="i-lucide-x h-4 w-4"  />
+					<X className="h-4 w-4" />
 				</Button>
 			</div>
 		)
@@ -174,7 +175,7 @@ export function SidebarHeader() {
 								rotate: [0, -3, 3, 0],
 								transition: {
 									duration: 0.4,
-									ease: [0.25, 0.46, 0.45, 0.94]
+									ease: EASING_CURVES.SMOOTH
 								}
 							}}
 							whileTap={{ scale: 0.9 }}
@@ -236,7 +237,7 @@ export function SidebarHeader() {
 											}
 										}}
 									>
-										<i className="i-lucide-sparkles h-3 w-3 text-purple-5"  />
+										<Sparkles className="h-3 w-3 text-purple-500" />
 									</motion.div>
 								)}
 							</div>
@@ -260,7 +261,7 @@ export function SidebarHeader() {
 								ease: 'easeInOut'
 							}}
 						>
-							<i className="i-lucide-chevron-down text-sidebar-foreground/60 h-4 w-4"  />
+							<ChevronDown className="text-sidebar-foreground/60 h-4 w-4" />
 						</motion.div>
 					</Button>
 				</DropdownMenuTrigger>
@@ -295,7 +296,7 @@ export function SidebarHeader() {
 										{workspace.name}
 									</p>
 									{workspace.isActive && (
-										<i className="i-lucide-check h-4 w-4 text-green-6"  />
+										<Check className="h-4 w-4 text-green-600" />
 									)}
 									{workspace.type === 'enterprise' && (
 										<Badge
@@ -320,12 +321,12 @@ export function SidebarHeader() {
 					<DropdownMenuSeparator />
 
 					<DropdownMenuItem className="flex cursor-pointer items-center gap-2">
-						<i className="i-lucide-plus h-4 w-4"  />
+						<Plus className="h-4 w-4" />
 						<span>Create Workspace</span>
 					</DropdownMenuItem>
 
 					<DropdownMenuItem className="flex cursor-pointer items-center gap-2">
-						<i className="i-lucide-settings h-4 w-4"  />
+						<Settings className="h-4 w-4" />
 						<span>Workspace Settings</span>
 					</DropdownMenuItem>
 				</DropdownMenuContent>
@@ -337,7 +338,7 @@ export function SidebarHeader() {
 				className="ml-2 h-8 w-8 lg:hidden"
 				onClick={() => setCollapsed(!collapsed)}
 			>
-				<i className="i-lucide-x h-4 w-4"  />
+				<X className=" h-4 w-4"  />
 			</Button>
 		</div>
 	)

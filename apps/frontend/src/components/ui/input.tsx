@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { AnimatePresence } from 'framer-motion'
+import { EyeOff, Eye, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -174,9 +175,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 							aria-controls={actualId}
 						>
 							{showPassword ? (
-								<i className="i-lucide-eye-off h-4 w-4" aria-hidden="true" />
+								<EyeOff className="h-4 w-4" aria-hidden="true" />
 							) : (
-								<i className="i-lucide-eye h-4 w-4" aria-hidden="true" />
+								<Eye className="h-4 w-4" aria-hidden="true" />
 							)}
 						</button>
 					)}
@@ -187,10 +188,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 						(hasError || hasSuccess) && (
 							<div className="absolute right-3 top-1/2 -translate-y-1/2">
 								{hasError && (
-									<i className="i-lucide-alert-circle text-destructive animate-fade-in h-4 w-4"  />
+									<AlertCircle className="text-destructive animate-fade-in h-4 w-4" />
 								)}
 								{hasSuccess && (
-									<i className="i-lucide-check-circle-2 animate-success h-4 w-4 text-green-5"  />
+									<CheckCircle2 className="animate-success h-4 w-4 text-green-500" />
 								)}
 							</div>
 						)}
@@ -223,18 +224,18 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 										role="alert"
 										aria-live="assertive"
 									>
-										<i className="i-lucide-alert-circle h-3 w-3" aria-hidden="true" />
+										<AlertCircle className="h-3 w-3" aria-hidden="true" />
 										{error}
 									</p>
 								)}
 								{success && !error && (
 									<p
 										id={successId}
-										className="flex items-center gap-1 text-green-6"
+										className="flex items-center gap-1 text-green-600"
 										role="status"
 										aria-live="polite"
 									>
-										<i className="i-lucide-check-circle-2 h-3 w-3" aria-hidden="true" />
+										<CheckCircle2 className="h-3 w-3" aria-hidden="true" />
 										{success}
 									</p>
 								)}
@@ -280,9 +281,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 						aria-controls={actualId}
 					>
 						{showPassword ? (
-							<i className="i-lucide-eye-off h-4 w-4" aria-hidden="true" />
+							<EyeOff className="h-4 w-4" aria-hidden="true" />
 						) : (
-							<i className="i-lucide-eye h-4 w-4" aria-hidden="true" />
+							<Eye className="h-4 w-4" aria-hidden="true" />
 						)}
 					</button>
 				)}
@@ -293,10 +294,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 					(hasError || hasSuccess) && (
 						<div className="absolute right-3 top-1/2 -translate-y-1/2">
 							{hasError && (
-								<i className="i-lucide-alert-circle text-destructive animate-fade-in h-4 w-4"  />
+								<AlertCircle className="text-destructive animate-fade-in h-4 w-4" />
 							)}
 							{hasSuccess && (
-								<i className="i-lucide-check-circle-2 animate-success h-4 w-4 text-green-5"  />
+								<CheckCircle2 className="animate-success h-4 w-4 text-green-500" />
 							)}
 						</div>
 					)}
@@ -329,18 +330,18 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 									role="alert"
 									aria-live="assertive"
 								>
-									<i className="i-lucide-alert-circle h-3 w-3" aria-hidden="true" />
+									<AlertCircle className="h-3 w-3" aria-hidden="true" />
 									{error}
 								</p>
 							)}
 							{success && !error && (
 								<p
 									id={successId}
-									className="flex items-center gap-1 text-green-6"
+									className="flex items-center gap-1 text-green-600"
 									role="status"
 									aria-live="polite"
 								>
-									<i className="i-lucide-check-circle-2 h-3 w-3" aria-hidden="true" />
+									<CheckCircle2 className="h-3 w-3" aria-hidden="true" />
 									{success}
 								</p>
 							)}

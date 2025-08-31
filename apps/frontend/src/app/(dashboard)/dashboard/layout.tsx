@@ -5,7 +5,7 @@ import { ServerAuthGuard } from '@/components/auth/server-auth-guard'
 import { AuthGuardCore, AuthLoadingState } from '@/components/auth/protected-route-guard'
 import { Navigation } from '@/components/dashboard/dashboard-navigation'
 import { OfflineBanner } from '@/components/ui/offline-indicator'
-
+import { Loader2 } from 'lucide-react'
 export const metadata: Metadata = {
 	title: {
 		template: '%s | Dashboard - TenantFlow',
@@ -75,7 +75,7 @@ export default function DashboardLayout({
 							<Suspense
 								fallback={
 									<div className="flex h-64 items-center justify-center">
-										<i className="i-lucide-loader-2 h-8 w-8 animate-spin" />
+										<Loader2 className=" h-8 w-8 animate-spin" />
 									</div>
 								}
 							>

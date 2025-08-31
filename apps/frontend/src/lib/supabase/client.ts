@@ -15,6 +15,12 @@ declare global {
 let client: SupabaseClientType | null | undefined
 
 export function createClient(): SupabaseClientType | null {
+	// Temporarily disable Supabase for UI showcase
+	if (process.env.NODE_ENV === 'development') {
+		logger.info('[Supabase] Temporarily disabled for UI showcase')
+		return null
+	}
+	
 	// Check for global instance first to prevent multiple instances
 	if (typeof window !== 'undefined' && globalThis.__supabaseClient) {
 		return globalThis.__supabaseClient
@@ -46,6 +52,16 @@ export function createClient(): SupabaseClientType | null {
 				flowType: 'pkce',
 				storageKey: 'tf-auth-v2',
 				debug: process.env.NODE_ENV === 'development'
+			},
+			realtime: {
+				params: {
+					eventsPerSecond: 10,
+				},
+			},
+			global: {
+				headers: {
+					'X-Client-Info': 'supabase-js-web',
+				},
 			}
 		})
 

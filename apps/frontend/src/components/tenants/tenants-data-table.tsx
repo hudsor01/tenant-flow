@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
+import { BlurFade } from '@/components/magicui'
 import {
 	Table,
 	TableBody,
@@ -23,7 +24,7 @@ import {
 import Link from 'next/link'
 import type { TenantWithLeases } from '@repo/shared'
 import { createTenantsActions } from '@/components/data-table/data-table-action-factory'
-
+import { Plus , Users , Calendar , Building , Mail , Phone } from 'lucide-react'
 // Create actions component using consolidated factory
 const TenantsActions = createTenantsActions
 
@@ -67,7 +68,7 @@ function TenantRow({ tenant }: { tenant: TenantWithLeases }) {
 							{tenant.name}
 						</p>
 						<div className="text-muted-foreground flex items-center gap-1 text-sm">
-							<i className="i-lucide-mail h-3 w-3"  />
+							<Mail className=" h-3 w-3"  />
 							{tenant.email}
 						</div>
 					</div>
@@ -76,7 +77,7 @@ function TenantRow({ tenant }: { tenant: TenantWithLeases }) {
 			<TableCell>
 				{tenant.phone ? (
 					<div className="flex items-center gap-1 text-sm">
-						<i className="i-lucide-phone text-muted-foreground h-3 w-3"  />
+						<Phone className=" text-muted-foreground h-3 w-3"  />
 						{tenant.phone}
 					</div>
 				) : (
@@ -95,7 +96,7 @@ function TenantRow({ tenant }: { tenant: TenantWithLeases }) {
 				{isExpiringSoon && (
 					<Badge
 						variant="outline"
-						className="ml-2 border-orange-6 text-orange-6"
+						className="ml-2 border-orange-6 text-orange-600"
 					>
 						Expiring Soon
 					</Badge>
@@ -104,7 +105,7 @@ function TenantRow({ tenant }: { tenant: TenantWithLeases }) {
 			<TableCell>
 				{property ? (
 					<div className="flex items-center gap-1 text-sm">
-						<i className="i-lucide-building text-muted-foreground h-3 w-3"  />
+						<Building className=" text-muted-foreground h-3 w-3"  />
 						<span
 							className="max-w-[150px] truncate"
 							title={property.name}
@@ -121,7 +122,7 @@ function TenantRow({ tenant }: { tenant: TenantWithLeases }) {
 			<TableCell>
 				{activeLease ? (
 					<div className="flex items-center gap-1 text-sm">
-						<i className="i-lucide-calendar text-muted-foreground h-3 w-3"  />
+						<Calendar className=" text-muted-foreground h-3 w-3"  />
 						{new Date(activeLease.endDate).toLocaleDateString()}
 					</div>
 				) : (
@@ -170,7 +171,7 @@ function TenantsTableUI({ tenants }: TenantsTableUIProps) {
 				</CardHeader>
 				<CardContent>
 					<div className="flex flex-col items-center justify-center py-12 text-center">
-						<i className="i-lucide-users text-muted-foreground/50 mb-4 h-16 w-16"  />
+						<Users className=" text-muted-foreground/50 mb-4 h-16 w-16"  />
 						<h3 className="mb-2 text-lg font-medium">
 							No tenants yet
 						</h3>
@@ -180,7 +181,7 @@ function TenantsTableUI({ tenants }: TenantsTableUIProps) {
 						</p>
 						<Link href="/tenants/new">
 							<Button>
-								<i className="i-lucide-plus mr-2 h-4 w-4" />
+								<Plus className=" mr-2 h-4 w-4" />
 								Add First Tenant
 							</Button>
 						</Link>
@@ -202,7 +203,7 @@ function TenantsTableUI({ tenants }: TenantsTableUIProps) {
 					</div>
 					<Link href="/tenants/new">
 						<Button size="sm">
-							<i className="i-lucide-plus mr-2 h-4 w-4" />
+							<Plus className=" mr-2 h-4 w-4" />
 							Add Tenant
 						</Button>
 					</Link>
@@ -224,8 +225,10 @@ function TenantsTableUI({ tenants }: TenantsTableUIProps) {
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-							{tenants.map(tenant => (
-								<TenantRow key={tenant.id} tenant={tenant} />
+							{tenants.map((tenant, index) => (
+								<BlurFade key={tenant.id} delay={0.05 * index}>
+									<TenantRow tenant={tenant} />
+								</BlurFade>
 							))}
 						</TableBody>
 					</Table>

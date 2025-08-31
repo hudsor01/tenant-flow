@@ -7,14 +7,14 @@ import {
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-
+import { Shield, Key, Smartphone } from 'lucide-react'
 export function SecuritySettings() {
 	return (
 		<div className="space-y-6">
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<i className="i-lucide-shield h-5 w-5"  />
+						<Shield className="h-5 w-5" />
 						Security Settings
 					</CardTitle>
 					<CardDescription>
@@ -26,7 +26,7 @@ export function SecuritySettings() {
 						<Card>
 							<CardHeader className="pb-3">
 								<CardTitle className="flex items-center gap-2 text-lg">
-									<i className="i-lucide-key h-4 w-4"  />
+									<Key className="h-4 w-4" />
 									Password
 								</CardTitle>
 							</CardHeader>
@@ -46,7 +46,7 @@ export function SecuritySettings() {
 						<Card>
 							<CardHeader className="pb-3">
 								<CardTitle className="flex items-center gap-2 text-lg">
-									<i className="i-lucide-smartphone h-4 w-4"  />
+									<Smartphone className="h-4 w-4" />
 									Two-Factor Auth
 								</CardTitle>
 							</CardHeader>

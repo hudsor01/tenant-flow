@@ -21,8 +21,5 @@
     "format": "echo 'No formatting configured for config package'",
     "format:check": "echo 'No formatting configured for config package'",
     "clean": "echo 'No build artifacts to clean in config package'"
-  },
-  "devDependencies": {
-    "eslint": "^9.34.0"
   }
 }

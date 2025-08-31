@@ -7,7 +7,6 @@ import { validate } from './config/config.schema'
 import { APP_FILTER, APP_GUARD } from '@nestjs/core'
 import { ThrottlerModule } from '@nestjs/throttler'
 import { ThrottlerProxyGuard } from './shared/guards/throttler-proxy.guard'
-import { ThrottlerExceptionFilter } from './shared/filters/throttler-exception.filter'
 import { SupabaseModule } from './database/supabase.module'
 import { AuthModule } from './auth/auth.module'
 import { PropertiesModule } from './properties/properties.module'
@@ -19,8 +18,6 @@ import { MaintenanceModule } from './maintenance/maintenance.module'
 import { HealthModule } from './health/health.module'
 import { StripeModule } from './billing/stripe.module'
 import { NotificationsModule } from './notifications/notifications.module'
-import { AnalyticsService } from './analytics/analytics.service'
-import { StripeService } from './billing/stripe.service'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { HEALTH_PATHS } from './shared/constants/routes'
@@ -195,19 +192,14 @@ import { HEALTH_PATHS } from './shared/constants/routes'
 	controllers: [AppController],
 	providers: [
 		AppService,
-		AnalyticsService,
-		StripeService,
+		// AnalyticsService, // Temporarily disabled due to logger injection issue
+		// StripeService, // Temporarily disabled due to logger injection issue
 		// Global rate limiting guard with proxy support
 		{
 			provide: APP_GUARD,
 			useClass: ThrottlerProxyGuard
-		},
-		// Global exception filter for rate limiting errors
-		{
-			provide: APP_FILTER,
-			useClass: ThrottlerExceptionFilter
 		}
 	],
-	exports: [AnalyticsService, StripeService]
+	exports: [] // StripeService and AnalyticsService temporarily disabled
 })
 export class AppModule {}

@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { Search, Home, ArrowLeft } from 'lucide-react'
 
 export function NotFoundPage() {
 	return (
@@ -11,7 +12,7 @@ export function NotFoundPage() {
 							404
 						</div>
 						<div className="absolute inset-0 flex items-center justify-center">
-							<i className="i-lucide-search h-20 w-20 text-slate-4 md:h-24 md:w-24 dark:text-slate-5"  />
+							<Search className="h-20 w-20 text-slate-4 md:h-24 md:w-24 dark:text-slate-5" />
 						</div>
 					</div>
 
@@ -28,7 +29,7 @@ export function NotFoundPage() {
 					<div className="flex flex-col gap-3 pt-4 sm:flex-row">
 						<Link href="/">
 							<Button className="flex items-center gap-2">
-								<i className="i-lucide-home h-4 w-4"  />
+								<Home className="h-4 w-4" />
 								Go to Dashboard
 							</Button>
 						</Link>
@@ -37,7 +38,7 @@ export function NotFoundPage() {
 							variant="outline"
 							className="flex items-center gap-2"
 						>
-							<i className="i-lucide-arrow-left h-4 w-4"  />
+							<ArrowLeft className="h-4 w-4" />
 							Go Back
 						</Button>
 					</div>

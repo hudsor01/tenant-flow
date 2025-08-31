@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { useTheme } from 'next-themes'
+import { Sun, Moon, Monitor } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -18,8 +19,8 @@ export function ThemeToggle() {
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
 				<Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-					<i className="i-lucide-sun h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"  />
-					<i className="i-lucide-moon absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"  />
+					<Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+					<Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
 					<span className="sr-only">Toggle theme</span>
 				</Button>
 			</DropdownMenuTrigger>
@@ -28,21 +29,21 @@ export function ThemeToggle() {
 					onClick={() => setTheme('light')}
 					className="cursor-pointer"
 				>
-					<i className="i-lucide-sun mr-2 h-4 w-4"  />
+					<Sun className="mr-2 h-4 w-4" />
 					<span>Light</span>
 				</DropdownMenuItem>
 				<DropdownMenuItem
 					onClick={() => setTheme('dark')}
 					className="cursor-pointer"
 				>
-					<i className="i-lucide-moon mr-2 h-4 w-4"  />
+					<Moon className="mr-2 h-4 w-4" />
 					<span>Dark</span>
 				</DropdownMenuItem>
 				<DropdownMenuItem
 					onClick={() => setTheme('system')}
 					className="cursor-pointer"
 				>
-					<i className="i-lucide-monitor mr-2 h-4 w-4"  />
+					<Monitor className="mr-2 h-4 w-4" />
 					<span>System</span>
 				</DropdownMenuItem>
 			</DropdownMenuContent>

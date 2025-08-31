@@ -1,16 +1,6 @@
 import type { Metadata, Viewport } from 'next/types'
-import '@unocss/reset/tailwind.css'
 import './global.css'
 import { RootProviders } from '@/providers/root-providers'
-import { Poppins } from 'next/font/google'
-
-// Use Google Fonts directly - no abstraction needed
-const poppins = Poppins({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-poppins',
-  weight: ['300', '400', '500', '600', '700']
-})
 
 export const metadata: Metadata = {
 	title: {
@@ -44,7 +34,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={poppins.variable} suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body className="font-sans antialiased bg-background text-foreground">
         <RootProviders>
           {children}

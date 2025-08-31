@@ -5,6 +5,8 @@
 
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
+import { Building } from 'lucide-react'
+import { SocialIcon } from 'react-social-icons'
 
 interface FooterSectionProps {
 	locale: string
@@ -19,7 +21,7 @@ export function FooterSection({
 				<div className="mb-8 grid gap-8 md:grid-cols-5">
 					<div className="md:col-span-2">
 						<div className="mb-4 flex items-center space-x-2">
-							<i className="i-lucide-building-2 h-6 w-6 text-primary" />
+							<Building className="h-6 w-6 text-primary" />
 							<span className="font-bold text-white">
 								TenantFlow
 							</span>
@@ -157,27 +159,24 @@ export function FooterSection({
 							© 2024 TenantFlow. All rights reserved.
 						</p>
 						<div className="flex items-center space-x-6">
-							<Link
-								href="https://twitter.com/tenantflow"
+							<SocialIcon
+								url="https://twitter.com/tenantflow"
+								style={{ height: 20, width: 20 }}
+								bgColor="currentColor"
 								className="text-base6 transition-colors hover:text-primary"
-								aria-label="Follow us on Twitter"
-							>
-								<i className="i-lucide-twitter h-5 w-5" />
-							</Link>
-							<Link
-								href="https://linkedin.com/company/tenantflow"
+							/>
+							<SocialIcon
+								url="https://linkedin.com/company/tenantflow"
+								style={{ height: 20, width: 20 }}
+								bgColor="currentColor"
 								className="text-base6 transition-colors hover:text-primary"
-								aria-label="Connect with us on LinkedIn"
-							>
-								<i className="i-lucide-linkedin h-5 w-5" />
-							</Link>
-							<Link
-								href="https://github.com/tenantflow"
+							/>
+							<SocialIcon
+								url="https://github.com/tenantflow"
+								style={{ height: 20, width: 20 }}
+								bgColor="currentColor"
 								className="text-base6 transition-colors hover:text-primary"
-								aria-label="View our code on GitHub"
-							>
-								<i className="i-lucide-github h-5 w-5" />
-							</Link>
+							/>
 						</div>
 					</div>
 				</div>

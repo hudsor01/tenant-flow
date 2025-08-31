@@ -4,6 +4,7 @@
  */
 
 import { toast } from 'sonner'
+import { CheckCircle, XCircle, AlertCircle, Info, Loader2, Sparkles, CreditCard } from 'lucide-react'
 
 // Toast configuration optimized for professional SaaS interface
 const TOAST_CONFIG = {
@@ -22,28 +23,28 @@ const TOAST_CONFIG = {
 // Toast style configurations - DRY principle
 const TOAST_STYLES = {
 	success: {
-		icon: 'i-lucide-checkcircle',
+		icon: CheckCircle,
 		background: 'rgba(240, 253, 244, 0.95)',
 		border: '1px solid rgba(34, 197, 94, 0.2)',
 		color: 'hsl(140, 60%, 30%)',
 		duration: TOAST_CONFIG.duration
 	},
 	error: {
-		icon: 'i-lucide-xcircle', 
+		icon: XCircle, 
 		background: 'rgba(254, 242, 242, 0.95)',
 		border: '1px solid rgba(239, 68, 68, 0.2)',
 		color: 'hsl(0, 65%, 45%)',
 		duration: 6000
 	},
 	warning: {
-		icon: 'i-lucide-alert-circle',
+		icon: AlertCircle,
 		background: 'rgba(255, 247, 237, 0.95)', 
 		border: '1px solid rgba(251, 146, 60, 0.2)',
 		color: 'hsl(32, 70%, 45%)',
 		duration: TOAST_CONFIG.duration
 	},
 	info: {
-		icon: 'i-lucide-info',
+		icon: Info,
 		background: 'rgba(239, 246, 255, 0.95)',
 		border: '1px solid rgba(59, 130, 246, 0.2)', 
 		color: 'hsl(213, 70%, 45%)',
@@ -68,7 +69,7 @@ function createToast(
 		duration: style.duration,
 		description: options?.description,
 		action: options?.action,
-		icon: <i className={`${style.icon} h-5 w-5`} />,
+		icon: <style.icon className="h-5 w-5" />,
 		style: {
 			...TOAST_CONFIG.style,
 			background: style.background,
@@ -99,7 +100,7 @@ export const notifications = {
 			...TOAST_CONFIG,
 			duration: Infinity, // Keep until dismissed
 			description: options?.description,
-			icon: <i className="i-lucide-loader-2 h-5 w-5 animate-spin"  />,
+			icon: <Loader2 className="h-5 w-5 animate-spin" />,
 			style: {
 				...TOAST_CONFIG.style,
 				background: 'rgba(248, 250, 252, 0.95)',
@@ -191,7 +192,7 @@ export const stripeNotifications = {
 		return toast.success('Free trial activated!', {
 			...TOAST_CONFIG,
 			description: `You now have ${trialDays} days of full access to explore all features.`,
-			icon: <i className="i-lucide-sparkles h-5 w-5"  />,
+			icon: <Sparkles className="h-5 w-5" />,
 			style: {
 				...TOAST_CONFIG.style,
 				background:
@@ -228,7 +229,7 @@ export const stripeNotifications = {
 			duration?: number
 		}
 	) => {
-		const icon = <i className="i-lucide-credit-card h-5 w-5"  />
+		const icon = <CreditCard className="h-5 w-5" />
 
 		return toast[options?.type || 'info'](message, {
 			...TOAST_CONFIG,

@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { NavigationLink } from './navigation-link'
 import type { NavItem } from '@repo/shared/types/frontend-utils'
-
+import { X , Menu } from 'lucide-react'
 interface MobileNavigationProps {
 	items: NavItem[]
 	trigger?: React.ReactNode
@@ -31,7 +31,7 @@ export function MobileNavigation({
 
 	const defaultTrigger = (
 		<Button variant="ghost" size="icon" className="md:hidden">
-			<i className="i-lucide-menu h-5 w-5"  />
+			<Menu className=" h-5 w-5"  />
 		</Button>
 	)
 
@@ -74,7 +74,7 @@ export function MobileNavigation({
 									size="icon"
 									onClick={() => setIsOpen(false)}
 								>
-									<i className="i-lucide-x h-5 w-5"  />
+									<X className=" h-5 w-5"  />
 								</Button>
 							</div>
 

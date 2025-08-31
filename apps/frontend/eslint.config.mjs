@@ -53,26 +53,23 @@ export default [
     ]
   },
   
-  // Next.js configuration with official plugin
+  // Next.js configuration - direct plugin usage for flat config
+  // NOTE: Next.js may still show "plugin was not detected" warning during build.
+  // This is a known limitation (Next.js Issue #73655) - the detection logic hasn't
+  // been updated for ESLint 9 flat config yet. The configuration below is correct
+  // and linting works properly. The warning is cosmetic only.
   {
-    name: 'frontend/next-core-rules',
+    name: 'frontend/next-plugin',
     files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
     plugins: {
-      react: reactPlugin,
       '@next/next': nextPlugin
     },
     rules: {
-      // Include Next.js recommended rule set so Next can detect the plugin
-      // and silence the build warning. We can still override below.
-      ...(nextPlugin.configs?.recommended?.rules ?? {}),
-      // Core Next.js rules
+      ...nextPlugin.configs.recommended.rules,
+      ...nextPlugin.configs['core-web-vitals'].rules,
+      // Override strict rules to match our existing patterns
       'react/no-unescaped-entities': 'off', // Allow apostrophes and quotes in JSX text
-      'react/jsx-key': 'error', // Require key prop in lists
-      '@next/next/no-html-link-for-pages': 'error',
-      '@next/next/no-img-element': 'warn', // Suggest using next/image
-      '@next/next/no-sync-scripts': 'error',
-      '@next/next/no-head-import-in-document': 'error',
-      '@next/next/no-duplicate-head': 'error'
+      '@next/next/no-img-element': 'warn' // Suggest using next/image but don't error
     }
   },
   

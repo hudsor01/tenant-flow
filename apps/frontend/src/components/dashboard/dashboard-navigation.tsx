@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Menu, Building, Search, Command, Bell, User, Settings, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -60,13 +61,13 @@ export function Navigation({ className }: NavigationProps) {
 						className="h-8 w-8 p-0"
 						aria-label="Open navigation menu"
 					>
-						<i className="i-lucide-menu h-5 w-5"  />
+						<Menu className="h-5 w-5" />
 					</Button>
 					<Link
 						href="/dashboard"
 						className="flex items-center gap-2 transition-all hover:scale-105"
 					>
-						<i className="i-lucide-building text-primary h-6 w-6"  />
+						<Building className="h-6 w-6 text-primary" />
 						<span className="text-lg font-bold">TenantFlow</span>
 					</Link>
 				</div>
@@ -74,7 +75,7 @@ export function Navigation({ className }: NavigationProps) {
 				{/* Desktop Search - Command Palette Trigger */}
 				<div className="hidden max-w-md flex-1 items-center gap-4 md:flex">
 					<div className="relative flex-1">
-						<i className="i-lucide-search text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform"  />
+						<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
 						<Input
 							placeholder="Search properties, tenants... (⌘K)"
 							className="cursor-pointer pl-10"
@@ -89,7 +90,7 @@ export function Navigation({ className }: NavigationProps) {
 						onClick={handleSearchClick}
 						className="hidden items-center gap-2 lg:flex"
 					>
-						<i className="i-lucide-command h-4 w-4"  />
+						<Command className="h-4 w-4" />
 						<span className="text-muted-foreground text-xs">
 							⌘K
 						</span>
@@ -106,7 +107,7 @@ export function Navigation({ className }: NavigationProps) {
 						className="h-8 w-8 p-0 md:hidden"
 						aria-label="Search"
 					>
-						<i className="i-lucide-search h-4 w-4"  />
+						<Search className="h-4 w-4" />
 					</Button>
 
 					{/* Offline Indicator */}
@@ -119,7 +120,7 @@ export function Navigation({ className }: NavigationProps) {
 						className="h-8 w-8 p-0"
 						aria-label="Notifications"
 					>
-						<i className="i-lucide-bell h-4 w-4 sm:h-5 sm:w-5"  />
+						<Bell className="h-4 w-4 sm:h-5 sm:w-5" />
 					</Button>
 
 					{/* User Menu */}
@@ -166,7 +167,7 @@ export function Navigation({ className }: NavigationProps) {
 									href="/profile"
 									className="cursor-pointer"
 								>
-									<i className="i-lucide-user mr-2 h-4 w-4"  />
+									<User className="mr-2 h-4 w-4" />
 									<span>Profile</span>
 								</Link>
 							</DropdownMenuItem>
@@ -175,7 +176,7 @@ export function Navigation({ className }: NavigationProps) {
 									href="/settings"
 									className="cursor-pointer"
 								>
-									<i className="i-lucide-settings mr-2 h-4 w-4"  />
+									<Settings className="mr-2 h-4 w-4" />
 									<span>Settings</span>
 								</Link>
 							</DropdownMenuItem>
@@ -185,7 +186,7 @@ export function Navigation({ className }: NavigationProps) {
 								onClick={handleLogout}
 								disabled={isLoggingOut}
 							>
-								<i className="i-lucide-log-out mr-2 h-4 w-4"  />
+								<LogOut className="mr-2 h-4 w-4" />
 								<span>
 									{isLoggingOut
 										? 'Signing out...'
@@ -207,7 +208,7 @@ export function Navigation({ className }: NavigationProps) {
 						>
 							Close
 						</button>
-						<p className="text-gray-5">Navigation menu</p>
+						<p className="text-gray-500">Navigation menu</p>
 					</div>
 				</div>
 			)}

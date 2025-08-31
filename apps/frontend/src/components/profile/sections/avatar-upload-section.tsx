@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import type { User } from '@repo/shared'
-
+import { Loader2 , Camera } from 'lucide-react'
 interface AvatarState {
 	file: File | null
 	preview: string | null
@@ -44,13 +44,13 @@ export function AvatarUploadSection({
 
 				{/* Upload Overlay */}
 				<div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity hover:opacity-100">
-					<i className="i-lucide-camera h-6 w-6 text-white"  />
+					<Camera className=" h-6 w-6 text-white"  />
 				</div>
 
 				{/* Loading Overlay */}
 				{avatarState.uploading && (
 					<div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/60">
-						<i className="i-lucide-loader-2 h-6 w-6 animate-spin text-white"  />
+						<Loader2 className=" h-6 w-6 animate-spin text-white"  />
 					</div>
 				)}
 			</div>
@@ -67,7 +67,7 @@ export function AvatarUploadSection({
 						asChild
 					>
 						<span>
-							<i className="i-lucide-camera mr-2 h-4 w-4"  />
+							<Camera className=" mr-2 h-4 w-4"  />
 							{avatarState.file ? 'Change Photo' : 'Upload Photo'}
 						</span>
 					</Button>
@@ -88,7 +88,7 @@ export function AvatarUploadSection({
 					JPG, PNG or GIF. Max file size 2MB.
 				</p>
 				{avatarState.file && (
-					<p className="text-xs font-medium text-green-6">
+					<p className="text-xs font-medium text-green-600">
 						✓ Ready to upload: {avatarState.file.name}
 					</p>
 				)}

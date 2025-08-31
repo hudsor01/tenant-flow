@@ -19,12 +19,12 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useRouter } from 'next/navigation'
-
+import { Home, FileText, Users, Building, Building2, CheckCircle2, ArrowRight, Sparkles } from 'lucide-react'
 interface OnboardingStep {
 	id: string
 	title: string
 	description: string
-	icon: string // Changed from React.ElementType to string for UnoCSS icons
+	icon: React.ComponentType<{ className?: string }>
 	action: string
 	href: string
 	completed: boolean
@@ -41,7 +41,7 @@ export function OnboardingWizard() {
 			title: 'Welcome to TenantFlow!',
 			description:
 				"Let's get your property management system set up in just a few steps.",
-			icon: 'i-lucide-sparkles',
+			icon: Sparkles,
 			action: 'Get Started',
 			href: '#',
 			completed: false
@@ -51,7 +51,7 @@ export function OnboardingWizard() {
 			title: 'Add Your First Property_',
 			description:
 				'Start by adding a property you manage. You can add more later.',
-			icon: 'i-lucide-building-2',
+			icon: Building2,
 			action: 'Add Property_',
 			href: '/properties/new',
 			completed: false
@@ -61,7 +61,7 @@ export function OnboardingWizard() {
 			title: 'Set Up Units',
 			description:
 				'Add units or rooms to your property for detailed management.',
-			icon: 'i-lucide-home',
+			icon: Home,
 			action: 'Add Units',
 			href: '/properties',
 			completed: false
@@ -71,7 +71,7 @@ export function OnboardingWizard() {
 			title: 'Add Tenants',
 			description:
 				'Add your current tenants to start tracking leases and payments.',
-			icon: 'i-lucide-users',
+			icon: Users,
 			action: 'Add Tenant',
 			href: '/tenants/new',
 			completed: false
@@ -81,7 +81,7 @@ export function OnboardingWizard() {
 			title: 'Create a Lease',
 			description:
 				'Set up lease agreements to track rent and tenant information.',
-			icon: 'i-lucide-file-text',
+			icon: FileText,
 			action: 'Create Lease',
 			href: '/leases/new',
 			completed: false
@@ -91,7 +91,7 @@ export function OnboardingWizard() {
 			title: "You're All Set!",
 			description:
 				'Your property management system is ready. Explore the dashboard to see everything in action.',
-			icon: 'i-lucide-check-circle-2',
+			icon: CheckCircle2,
 			action: 'Go to Dashboard',
 			href: '/dashboard',
 			completed: false
@@ -131,7 +131,7 @@ export function OnboardingWizard() {
 			<Card className="w-full max-w-2xl">
 				<CardHeader className="text-center">
 					<div className="bg-primary/10 mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
-						<i className={`${step.icon} text-primary inline-block h-6 w-6`} />
+						<step.icon className="text-primary h-6 w-6" />
 					</div>
 					<CardTitle className="text-2xl">{step.title}</CardTitle>
 					<CardDescription className="mt-2 text-base">
@@ -145,7 +145,7 @@ export function OnboardingWizard() {
 					{currentStep === 0 && (
 						<div className="space-y-4">
 							<Alert>
-								<i className="i-lucide-sparkles h-4 w-4"  />
+								<Sparkles className="h-4 w-4" />
 								<AlertDescription>
 									TenantFlow helps you manage properties,
 									tenants, and leases all in one place. This
@@ -156,7 +156,7 @@ export function OnboardingWizard() {
 
 							<div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
 								<div className="p-4 text-center">
-									<i className="i-lucide-building-2 text-primary mx-auto mb-2 h-8 w-8"  />
+									<Building className="-2 text-primary mx-auto mb-2 h-8 w-8"  />
 									<div className="font-medium">
 										Properties
 									</div>
@@ -165,14 +165,14 @@ export function OnboardingWizard() {
 									</div>
 								</div>
 								<div className="p-4 text-center">
-									<i className="i-lucide-users mx-auto mb-2 h-8 w-8 text-green-6"  />
+									<Users className=" mx-auto mb-2 h-8 w-8 text-green-600"  />
 									<div className="font-medium">Tenants</div>
 									<div className="text-muted-foreground text-sm">
 										Track tenant information
 									</div>
 								</div>
 								<div className="p-4 text-center">
-									<i className="i-lucide-file-text mx-auto mb-2 h-8 w-8 text-purple-6"  />
+									<FileText className=" mx-auto mb-2 h-8 w-8 text-purple-600"  />
 									<div className="font-medium">Leases</div>
 									<div className="text-muted-foreground text-sm">
 										Handle lease agreements
@@ -184,9 +184,9 @@ export function OnboardingWizard() {
 
 					{currentStep === steps.length - 1 && (
 						<div className="space-y-4">
-							<Alert className="border-green-2 bg-green-50 dark:bg-green-950/20">
-								<i className="i-lucide-check-circle-2 h-4 w-4 text-green-6"  />
-								<AlertDescription className="text-green-8 dark:text-green-2">
+							<Alert className="border-green-200 bg-green-50 dark:bg-green-950/20">
+								<CheckCircle2 className=" h-4 w-4 text-green-600"  />
+								<AlertDescription className="text-green-800 dark:text-green-200">
 									Congratulations! Your property management
 									system is ready to use.
 								</AlertDescription>
@@ -194,19 +194,19 @@ export function OnboardingWizard() {
 
 							<div className="mt-6 space-y-3">
 								<div className="bg-muted/50 flex items-center gap-3 rounded-lg p-3">
-									<i className="i-lucide-check-circle-2 h-5 w-5 text-green-6"  />
+									<CheckCircle2 className=" h-5 w-5 text-green-600"  />
 									<span>
 										Property_ management system configured
 									</span>
 								</div>
 								<div className="bg-muted/50 flex items-center gap-3 rounded-lg p-3">
-									<i className="i-lucide-check-circle-2 h-5 w-5 text-green-6"  />
+									<CheckCircle2 className=" h-5 w-5 text-green-600"  />
 									<span>
 										Ready to add properties and tenants
 									</span>
 								</div>
 								<div className="bg-muted/50 flex items-center gap-3 rounded-lg p-3">
-									<i className="i-lucide-check-circle-2 h-5 w-5 text-green-6"  />
+									<CheckCircle2 className=" h-5 w-5 text-green-600"  />
 									<span>Dashboard and reports available</span>
 								</div>
 							</div>
@@ -242,7 +242,7 @@ export function OnboardingWizard() {
 
 						<Button onClick={handleAction}>
 							{step.action}
-							<i className="i-lucide-arrow-right ml-2 h-4 w-4"  />
+							<ArrowRight className=" ml-2 h-4 w-4"  />
 						</Button>
 					</div>
 				</CardFooter>

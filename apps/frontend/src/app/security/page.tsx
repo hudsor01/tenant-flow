@@ -5,7 +5,9 @@ import { motion } from 'framer-motion'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { NumberTicker } from '@/components/magicui/number-ticker'
 import Link from 'next/link'
+import { Shield, Globe, FileCheck, Lock, CheckCircle, Database, Key, Server, Eye, Fingerprint, Cloud, Clock, Download, ExternalLink, AlertTriangle } from 'lucide-react'
 
 // Server Component for certifications
 function ComplianceCertifications() {
@@ -14,28 +16,28 @@ function ComplianceCertifications() {
 			title: 'SOC 2 Type II',
 			description: 'Security, availability, and confidentiality controls',
 			status: 'Certified',
-			icon: 'i-lucide-shield',
+			icon: Shield,
 			validUntil: '2025'
 		},
 		{
 			title: 'GDPR Compliant',
 			description: 'European data protection regulation compliance',
 			status: 'Compliant',
-			icon: 'i-lucide-globe',
+			icon: Globe,
 			validUntil: 'Ongoing'
 		},
 		{
 			title: 'CCPA Compliant',
 			description: 'California consumer privacy act compliance',
 			status: 'Compliant',
-			icon: 'i-lucide-file-check',
+			icon: FileCheck,
 			validUntil: 'Ongoing'
 		},
 		{
 			title: 'ISO 27001',
 			description: 'Information security management system',
 			status: 'In Progress',
-			icon: 'i-lucide-lock',
+			icon: Lock,
 			validUntil: '2025'
 		}
 	]
@@ -46,11 +48,11 @@ function ComplianceCertifications() {
 				return (
 					<Card
 						key={cert.title}
-						className="to-success/5 border-0 bg-gradient-to-br from-white transition-all duration-300 hover:shadow-lg"
+						className="border-0 bg-gradient-to-br from-white to-success/5 transition-all duration-300 hover:shadow-lg"
 					>
 						<CardContent className="p-6 text-center">
 							<div className="bg-success/10 mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
-								<i className={`${cert.icon}  text-success h-6 w-6`} />
+								<cert.icon className="text-success h-6 w-6" />
 							</div>
 							<h3 className="text-foreground mb-2 font-semibold">
 								{cert.title}
@@ -59,7 +61,7 @@ function ComplianceCertifications() {
 								{cert.description}
 							</p>
 							<div className="flex items-center justify-center space-x-2">
-								<i className="i-lucide-checkcircle  text-success h-4 w-4"  />
+								<CheckCircle className="text-success h-4 w-4" />
 								<span className="text-success text-xs font-medium">
 									{cert.status}
 								</span>
@@ -80,7 +82,7 @@ function SecurityFeatures() {
 	const features = [
 		{
 			category: 'Data Protection',
-			icon: 'i-lucide-database',
+			icon: Database,
 			items: [
 				'AES-256 encryption at rest',
 				'TLS 1.3 encryption in transit',
@@ -90,7 +92,7 @@ function SecurityFeatures() {
 		},
 		{
 			category: 'Access Control',
-			icon: 'i-lucide-key',
+			icon: Key,
 			items: [
 				'Multi-factor authentication (MFA)',
 				'Role-based access control (RBAC)',
@@ -100,7 +102,7 @@ function SecurityFeatures() {
 		},
 		{
 			category: 'Infrastructure',
-			icon: 'i-lucide-server',
+			icon: Server,
 			items: [
 				'AWS security best practices',
 				'Network isolation & VPCs',
@@ -110,7 +112,7 @@ function SecurityFeatures() {
 		},
 		{
 			category: 'Monitoring',
-			icon: 'i-lucide-eye',
+			icon: Eye,
 			items: [
 				'24/7 security monitoring',
 				'Intrusion detection systems',
@@ -131,11 +133,11 @@ function SecurityFeatures() {
 						transition={{ duration: 0.5, delay: index * 0.1 }}
 						viewport={{ once: true }}
 					>
-						<Card className="to-primary/5 h-full border-0 bg-gradient-to-br from-white transition-all duration-300 hover:shadow-lg">
+						<Card className="h-full border-0 bg-gradient-to-br from-white to-primary/5 transition-all duration-300 hover:shadow-lg">
 							<CardHeader className="pb-4">
 								<div className="flex items-center space-x-3">
 									<div className="from-primary to-accent flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br">
-										<i className={`${feature.icon}  h-5 w-5 text-white`} />
+										<feature.icon className="h-5 w-5 text-white" />
 									</div>
 									<CardTitle className="text-foreground text-xl">
 										{feature.category}
@@ -149,7 +151,7 @@ function SecurityFeatures() {
 											key={itemIndex}
 											className="flex items-center space-x-3"
 										>
-											<i className="i-lucide-checkcircle  text-success h-4 w-4 flex-shrink-0"  />
+											<CheckCircle className="text-success h-4 w-4 flex-shrink-0" />
 											<span className="text-muted-foreground">
 												{item}
 											</span>
@@ -166,29 +168,6 @@ function SecurityFeatures() {
 }
 
 export default function SecurityPage() {
-	const trustSignals = [
-		{
-			metric: '99.9%',
-			label: 'Uptime SLA',
-			description: 'Guaranteed availability'
-		},
-		{
-			metric: '< 5min',
-			label: 'Response Time',
-			description: 'Security incident response'
-		},
-		{
-			metric: '0',
-			label: 'Data Breaches',
-			description: 'Since inception'
-		},
-		{
-			metric: '24/7',
-			label: 'Monitoring',
-			description: 'Continuous security watch'
-		}
-	]
-
 	const securityPolicies = [
 		{
 			title: 'Privacy Policy',
@@ -217,7 +196,7 @@ export default function SecurityPage() {
 	]
 
 	return (
-		<div className="from-background to-muted/20 min-h-screen bg-gradient-to-b">
+		<div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
 			{/* Hero Section */}
 			<section className="px-4 pb-16 pt-24">
 				<div className="mx-auto max-w-7xl">
@@ -228,8 +207,8 @@ export default function SecurityPage() {
 								animate={{ opacity: 1, scale: 1 }}
 								transition={{ duration: 0.5 }}
 							>
-								<Badge className="from-success via-primary to-accent border-0 bg-gradient-to-r px-6 py-2 text-sm font-semibold text-white shadow-lg">
-									<i className="i-lucide-shield  mr-2 h-4 w-4"  />
+								<Badge className="border-0 bg-gradient-to-r from-success via-primary to-accent px-6 py-2 text-sm font-semibold text-white shadow-lg">
+									<Shield className="mr-2 h-4 w-4" />
 									Enterprise Security
 								</Badge>
 							</motion.div>
@@ -267,24 +246,62 @@ export default function SecurityPage() {
 						transition={{ duration: 0.8, delay: 0.3 }}
 						className="mb-16 grid grid-cols-2 gap-6 lg:grid-cols-4"
 					>
-						{trustSignals.map(signal => (
-							<Card
-								key={signal.label}
-								className="to-success/5 border-0 bg-gradient-to-br from-white text-center"
-							>
-								<CardContent className="p-6">
-									<div className="text-success mb-2 text-3xl font-bold">
-										{signal.metric}
-									</div>
-									<div className="text-foreground mb-1 text-sm font-semibold">
-										{signal.label}
-									</div>
-									<div className="text-muted-foreground text-xs">
-										{signal.description}
-									</div>
-								</CardContent>
-							</Card>
-						))}
+						<Card className="border-0 bg-gradient-to-br from-white to-success/5 text-center">
+							<CardContent className="p-6">
+								<div className="text-success mb-2 text-3xl font-bold">
+									<NumberTicker value={99.9} decimalPlaces={1} />
+									<span className="text-success">%</span>
+								</div>
+								<div className="text-foreground mb-1 text-sm font-semibold">
+									Uptime SLA
+								</div>
+								<div className="text-muted-foreground text-xs">
+									Guaranteed availability
+								</div>
+							</CardContent>
+						</Card>
+						<Card className="border-0 bg-gradient-to-br from-white to-success/5 text-center">
+							<CardContent className="p-6">
+								<div className="text-success mb-2 text-3xl font-bold">
+									{'< '}
+									<NumberTicker value={5} />
+									<span className="text-success">min</span>
+								</div>
+								<div className="text-foreground mb-1 text-sm font-semibold">
+									Response Time
+								</div>
+								<div className="text-muted-foreground text-xs">
+									Security incident response
+								</div>
+							</CardContent>
+						</Card>
+						<Card className="border-0 bg-gradient-to-br from-white to-success/5 text-center">
+							<CardContent className="p-6">
+								<div className="text-success mb-2 text-3xl font-bold">
+									<NumberTicker value={0} />
+								</div>
+								<div className="text-foreground mb-1 text-sm font-semibold">
+									Data Breaches
+								</div>
+								<div className="text-muted-foreground text-xs">
+									Since inception
+								</div>
+							</CardContent>
+						</Card>
+						<Card className="border-0 bg-gradient-to-br from-white to-success/5 text-center">
+							<CardContent className="p-6">
+								<div className="text-success mb-2 text-3xl font-bold">
+									<NumberTicker value={24} />
+									<span className="text-success">/7</span>
+								</div>
+								<div className="text-foreground mb-1 text-sm font-semibold">
+									Monitoring
+								</div>
+								<div className="text-muted-foreground text-xs">
+									Continuous security watch
+								</div>
+							</CardContent>
+						</Card>
 					</motion.div>
 
 					{/* Compliance Certifications */}
@@ -308,7 +325,7 @@ export default function SecurityPage() {
 			</section>
 
 			{/* Security Features */}
-			<section className="from-muted/20 to-muted/10 bg-gradient-to-r px-4 py-16">
+			<section className="bg-gradient-to-r from-muted/20 to-muted/10 px-4 py-16">
 				<div className="mx-auto max-w-7xl">
 					<motion.div
 						initial={{ opacity: 0, y: 30 }}
@@ -357,11 +374,11 @@ export default function SecurityPage() {
 							transition={{ duration: 0.6 }}
 							viewport={{ once: true }}
 						>
-							<Card className="to-primary/5 h-full border-0 bg-gradient-to-br from-white">
+							<Card className="h-full border-0 bg-gradient-to-br from-white to-primary/5">
 								<CardContent className="p-8">
 									<div className="mb-6 flex items-center space-x-3">
 										<div className="from-primary to-accent flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br">
-											<i className="i-lucide-fingerprint  h-6 w-6 text-white"  />
+											<Fingerprint className="h-6 w-6 text-white" />
 										</div>
 										<h3 className="text-foreground text-2xl font-bold">
 											Your Data, Your Control
@@ -369,28 +386,28 @@ export default function SecurityPage() {
 									</div>
 									<ul className="text-muted-foreground space-y-4">
 										<li className="flex items-start space-x-3">
-											<i className="i-lucide-checkcircle  text-success mt-0.5 h-5 w-5 flex-shrink-0"  />
+											<CheckCircle className="text-success mt-0.5 h-5 w-5 flex-shrink-0" />
 											<span>
 												You own your data - we're just
 												the custodians
 											</span>
 										</li>
 										<li className="flex items-start space-x-3">
-											<i className="i-lucide-checkcircle  text-success mt-0.5 h-5 w-5 flex-shrink-0"  />
+											<CheckCircle className="text-success mt-0.5 h-5 w-5 flex-shrink-0" />
 											<span>
 												Export your data anytime in
 												standard formats
 											</span>
 										</li>
 										<li className="flex items-start space-x-3">
-											<i className="i-lucide-checkcircle  text-success mt-0.5 h-5 w-5 flex-shrink-0"  />
+											<CheckCircle className="text-success mt-0.5 h-5 w-5 flex-shrink-0" />
 											<span>
 												Request deletion and we'll
 												comply within 30 days
 											</span>
 										</li>
 										<li className="flex items-start space-x-3">
-											<i className="i-lucide-checkcircle  text-success mt-0.5 h-5 w-5 flex-shrink-0"  />
+											<CheckCircle className="text-success mt-0.5 h-5 w-5 flex-shrink-0" />
 											<span>
 												Transparent data usage with
 												clear consent
@@ -407,11 +424,11 @@ export default function SecurityPage() {
 							transition={{ duration: 0.6, delay: 0.1 }}
 							viewport={{ once: true }}
 						>
-							<Card className="to-accent/5 h-full border-0 bg-gradient-to-br from-white">
+							<Card className="h-full border-0 bg-gradient-to-br from-white to-accent/5">
 								<CardContent className="p-8">
 									<div className="mb-6 flex items-center space-x-3">
 										<div className="from-accent to-success flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br">
-											<i className="i-lucide-cloud  h-6 w-6 text-white"  />
+											<Cloud className="h-6 w-6 text-white" />
 										</div>
 										<h3 className="text-foreground text-2xl font-bold">
 											Secure Infrastructure
@@ -419,28 +436,28 @@ export default function SecurityPage() {
 									</div>
 									<ul className="text-muted-foreground space-y-4">
 										<li className="flex items-start space-x-3">
-											<i className="i-lucide-checkcircle  text-success mt-0.5 h-5 w-5 flex-shrink-0"  />
+											<CheckCircle className="text-success mt-0.5 h-5 w-5 flex-shrink-0" />
 											<span>
 												AWS infrastructure with SOC 2
 												compliance
 											</span>
 										</li>
 										<li className="flex items-start space-x-3">
-											<i className="i-lucide-checkcircle  text-success mt-0.5 h-5 w-5 flex-shrink-0"  />
+											<CheckCircle className="text-success mt-0.5 h-5 w-5 flex-shrink-0" />
 											<span>
 												Automated daily backups with
 												encryption
 											</span>
 										</li>
 										<li className="flex items-start space-x-3">
-											<i className="i-lucide-checkcircle  text-success mt-0.5 h-5 w-5 flex-shrink-0"  />
+											<CheckCircle className="text-success mt-0.5 h-5 w-5 flex-shrink-0" />
 											<span>
 												Disaster recovery with 4-hour
 												RTO
 											</span>
 										</li>
 										<li className="flex items-start space-x-3">
-											<i className="i-lucide-checkcircle  text-success mt-0.5 h-5 w-5 flex-shrink-0"  />
+											<CheckCircle className="text-success mt-0.5 h-5 w-5 flex-shrink-0" />
 											<span>
 												Regular penetration testing &
 												vulnerability scans
@@ -509,7 +526,7 @@ export default function SecurityPage() {
 														{policy.description}
 													</p>
 													<div className="text-muted-foreground flex items-center space-x-2 text-xs">
-														<i className="i-lucide-clock  h-3 w-3"  />
+														<Clock className="h-3 w-3" />
 														<span>
 															{policy.lastUpdated}
 														</span>
@@ -519,9 +536,9 @@ export default function SecurityPage() {
 													{policy.href.endsWith(
 														'.pdf'
 													) ? (
-														<i className="i-lucide-download  text-muted-foreground group-hover:text-primary h-5 w-5 transition-colors"  />
+														<Download className="text-muted-foreground group-hover:text-primary h-5 w-5 transition-colors" />
 													) : (
-														<i className="i-lucide-external-link  text-muted-foreground group-hover:text-primary h-5 w-5 transition-colors"  />
+														<ExternalLink className="text-muted-foreground group-hover:text-primary h-5 w-5 transition-colors" />
 													)}
 												</div>
 											</div>
@@ -547,7 +564,7 @@ export default function SecurityPage() {
 							<CardContent className="p-8">
 								<div className="mb-6 flex items-center justify-center space-x-3">
 									<div className="bg-warning/10 flex h-12 w-12 items-center justify-center rounded-full">
-										<i className="i-lucide-alert-triangle  text-warning h-6 w-6"  />
+										<AlertTriangle className="text-warning h-6 w-6" />
 									</div>
 									<h2 className="text-foreground text-2xl font-bold">
 										Security Concerns?

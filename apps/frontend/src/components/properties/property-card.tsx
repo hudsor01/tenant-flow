@@ -3,9 +3,13 @@
 import { useCallback, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
-import { formatCurrency } from '@repo/shared'
+import { Building2, MoreVertical, Eye, Edit3, Trash2 , Home , DollarSign , User , MapPin } from 'lucide-react'
+
 import { logger } from '@/lib/logger/logger'
 import { toast } from 'sonner'
+import { BorderBeam, NumberTicker } from '@/components/magicui'
+import { BORDER_BEAM_PRESETS } from '@/lib/animations/constants'
+import { useOptimizedAnimations } from '@/hooks/use-mobile-animations'
 import { Button } from '@/components/ui/button'
 import {
 	Card,
@@ -69,45 +73,86 @@ export default function Property_Card({
 		onEdit?.(property)
 	}, [onEdit, property])
 
-	// Calculate property statistics
-	const totalUnits = property.units?.length ?? 0
-	const occupiedUnits =
-		property.units?.filter(unit => unit.status === 'OCCUPIED')
-			.length ?? 0
-	const vacantUnits = totalUnits - occupiedUnits
-	const occupancyRate =
-		totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
+	// NO CALCULATIONS - ALL metrics from backend
+	const totalUnits = property.totalUnits
+	const occupiedUnits = property.occupiedUnits
+	const vacantUnits = property.vacantUnits
+	const occupancyRate = property.occupancyRate
+	const totalRent = property.monthlyRevenue
 
-	// Calculate total MONTHLY rent (simplified - uses unit rent instead of lease data)
-	const totalRent =
-		property.units?.reduce((sum: number, unit) => {
-			if (unit.status === 'OCCUPIED') {
-				return sum + (unit.rent ?? 0)
+	// Memoize animation variants to prevent recreation on each render
+	const cardVariants = useOptimizedAnimations(
+		useMemo(() => ({
+			hidden: { opacity: 0, y: 20 },
+			visible: {
+				opacity: 1,
+				y: 0,
+				transition: { duration: 0.3 }
+			},
+			hover: {
+				y: -4,
+				transition: { duration: 0.2 }
 			}
-			return sum
-		}, 0) ?? 0
-
-	const cardVariants = {
-		hidden: { opacity: 0, y: 20 },
-		visible: {
-			opacity: 1,
-			y: 0,
-			transition: { duration: 0.3 }
-		},
-		hover: {
-			y: -4,
-			transition: { duration: 0.2 }
+		}), []),
+		{
+			// Mobile - simpler animations
+			mobile: useMemo(() => ({
+				hidden: { opacity: 0, y: 10 },
+				visible: {
+					opacity: 1,
+					y: 0,
+					transition: { duration: 0.2 }
+				},
+				hover: {
+					y: -2,
+					transition: { duration: 0.15 }
+				}
+			}), []),
+			// Reduced motion - no vertical movement
+			reduced: useMemo(() => ({
+				hidden: { opacity: 0, y: 0 },
+				visible: {
+					opacity: 1,
+					y: 0,
+					transition: { duration: 0.2 }
+				},
+				hover: {
+					y: 0,
+					transition: { duration: 0.1 }
+				}
+			}), [])
 		}
-	}
+	)
 
-	const statVariants = {
-		hidden: { opacity: 0, scale: 0.8 },
-		visible: {
-			opacity: 1,
-			scale: 1,
-			transition: { duration: 0.3, delay: 0.1 }
+	const statVariants = useOptimizedAnimations(
+		useMemo(() => ({
+			hidden: { opacity: 0, scale: 0.8 },
+			visible: {
+				opacity: 1,
+				scale: 1,
+				transition: { duration: 0.3, delay: 0.1 }
+			}
+		}), []),
+		{
+			// Mobile - no scaling for performance
+			mobile: useMemo(() => ({
+				hidden: { opacity: 0 },
+				visible: {
+					opacity: 1,
+					transition: { duration: 0.2, delay: 0.05 }
+				}
+			}), []),
+			// Reduced motion - no scaling
+			reduced: useMemo(() => ({
+				hidden: { opacity: 0, scale: 1 },
+				visible: {
+					opacity: 1,
+					scale: 1,
+					transition: { duration: 0.2, delay: 0 }
+				}
+			}), [])
 		}
-	}
+	)
 
 	return (
 		<motion.div
@@ -116,8 +161,15 @@ export default function Property_Card({
 			animate="visible"
 			whileHover="hover"
 			className="group"
+			style={{ willChange: 'transform, opacity' }}
 		>
-			<Card className="group/card from-card via-card to-card/95 hover:shadow-primary/10 hover:border-primary/20 overflow-hidden border-0 bg-gradient-to-br shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-2xl">
+			<Card className="group/card from-card via-card to-card/95 hover:shadow-primary/10 hover:border-primary/20 overflow-hidden border-0 bg-gradient-to-br shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-2xl relative">
+				{/* Magic UI Border Beam on Hover */}
+				<div className="opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+					<BorderBeam 
+						{...BORDER_BEAM_PRESETS.MEDIUM}
+					/>
+				</div>
 				{/* Property_ Image */}
 				<div className="from-primary via-primary to-accent relative h-52 overflow-hidden bg-gradient-to-br">
 					{property.imageUrl ? (
@@ -129,7 +181,7 @@ export default function Property_Card({
 						/>
 					) : (
 						<div className="flex h-full w-full items-center justify-center">
-							<i className="i-lucide-building-2 h-16 w-16 text-white/70"  />
+							<Building2 className="h-16 w-16 text-white/70" />
 						</div>
 					)}
 
@@ -142,18 +194,18 @@ export default function Property_Card({
 									size="icon"
 									className="h-8 w-8 border border-white/20 bg-white/10 text-white backdrop-blur-sm transition-colors hover:bg-white/20"
 								>
-									<i className="i-lucide-more-vertical h-4 w-4"  />
+									<MoreVertical className="h-4 w-4" />
 								</Button>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent align="end" className="w-48">
 								<DropdownMenuLabel>Actions</DropdownMenuLabel>
 								<DropdownMenuSeparator />
 								<DropdownMenuItem onClick={handleView}>
-									<i className="i-lucide-eye mr-2 h-4 w-4"  />
+									<Eye className="mr-2 h-4 w-4" />
 									View Details
 								</DropdownMenuItem>
 								<DropdownMenuItem onClick={handleEdit}>
-									<i className="i-lucide-edit-3 mr-2 h-4 w-4"  />
+									<Edit3 className="mr-2 h-4 w-4" />
 									Edit Property_
 								</DropdownMenuItem>
 								<DropdownMenuSeparator />
@@ -172,9 +224,9 @@ export default function Property_Card({
 											)
 										})
 									}}
-									className="text-red-6 hover:bg-red-50 hover:text-red-7"
+									className="text-red-6 hover:bg-red-50 hover:text-red-700"
 								>
-									<i className="i-lucide-trash-2 mr-2 h-4 w-4"  />
+									<Trash2 className="mr-2 h-4 w-4" />
 									Delete Property_
 								</DropdownMenuItem>
 							</DropdownMenuContent>
@@ -205,7 +257,7 @@ export default function Property_Card({
 								{property.name}
 							</CardTitle>
 							<CardDescription className="flex items-center">
-								<i className="i-lucide-map-pin mr-1 h-4 w-4"  />
+								<MapPin className=" mr-1 h-4 w-4"  />
 								{property.address}, {property.city},{' '}
 								{property.state} {property.zipCode}
 							</CardDescription>
@@ -225,64 +277,68 @@ export default function Property_Card({
 					<motion.div
 						variants={statVariants}
 						className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
+						style={{ willChange: 'transform, opacity' }}
 					>
 						{/* Total Units */}
 						<div className="flex items-center rounded-lg bg-blue-50 p-3">
-							<div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-blue-1">
-								<i className="i-lucide-home text-primary h-4 w-4"  />
+							<div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100">
+								<Home className=" text-primary h-4 w-4"  />
 							</div>
 							<div>
 								<p className="text-caption text-muted-foreground">
 									Total Units
 								</p>
-								<p className="stat-value text-lg">
-									{totalUnits}
-								</p>
+								<div className="stat-value text-lg font-bold">
+									<NumberTicker value={totalUnits} />
+								</div>
 							</div>
 						</div>
 
 						{/* Occupied Units */}
 						<div className="flex items-center rounded-lg bg-green-50 p-3">
-							<div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-green-1">
-								<i className="i-lucide-user-check h-4 w-4 text-green-6"  />
+							<div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-green-100">
+								<User className="-check h-4 w-4 text-green-600"  />
 							</div>
 							<div>
 								<p className="text-caption text-muted-foreground">
 									Occupied
 								</p>
-								<p className="stat-value text-lg">
-									{occupiedUnits}
-								</p>
+								<div className="stat-value text-lg font-bold">
+									<NumberTicker value={occupiedUnits} />
+								</div>
 							</div>
 						</div>
 
 						{/* Vacant Units */}
 						<div className="flex items-center rounded-lg bg-orange-50 p-3">
-							<div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-orange-1">
-								<i className="i-lucide-user-x h-4 w-4 text-orange-6"  />
+							<div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-orange-100">
+								<User className="-x h-4 w-4 text-orange-600"  />
 							</div>
 							<div>
 								<p className="text-caption text-muted-foreground">
 									Vacant
 								</p>
-								<p className="stat-value text-lg">
-									{vacantUnits}
-								</p>
+								<div className="stat-value text-lg font-bold">
+									<NumberTicker value={vacantUnits} />
+								</div>
 							</div>
 						</div>
 
 						{/* Monthly Revenue */}
 						<div className="flex items-center rounded-lg bg-purple-50 p-3">
 							<div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-purple-1">
-								<i className="i-lucide-dollar-sign h-4 w-4 text-purple-6"  />
+								<DollarSign className=" h-4 w-4 text-purple-600"  />
 							</div>
 							<div>
 								<p className="text-caption text-muted-foreground">
 									Monthly
 								</p>
-								<p className="stat-value text-lg">
-									{formatCurrency(totalRent)}
-								</p>
+								<div className="stat-value text-lg font-bold">
+									$<NumberTicker 
+										value={totalRent} 
+										className="text-lg font-bold"
+									/>
+								</div>
 							</div>
 						</div>
 					</motion.div>
@@ -292,19 +348,19 @@ export default function Property_Card({
 						<Button
 							variant="outline"
 							size="sm"
-							className="flex-1 transition-colors hover:border-blue-2 hover:bg-blue-50 hover:text-blue-7"
+							className="flex-1 transition-colors hover:border-blue-2 hover:bg-blue-50 hover:text-blue-700"
 							onClick={() => onView?.(property)}
 						>
-							<i className="i-lucide-eye mr-2 h-4 w-4"  />
+							<Eye className=" mr-2 h-4 w-4"  />
 							View Details
 						</Button>
 						<Button
 							variant="outline"
 							size="sm"
-							className="flex-1 transition-colors hover:border-green-2 hover:bg-green-50 hover:text-green-7"
+							className="flex-1 transition-colors hover:border-green-2 hover:bg-green-50 hover:text-green-700"
 							onClick={() => onEdit?.(property)}
 						>
-							<i className="i-lucide-edit-3 mr-2 h-4 w-4"  />
+							<Edit3 className="mr-2 h-4 w-4"  />
 							Edit
 						</Button>
 					</div>

@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { AuthLayoutClient } from './layout-client'
-
+import { Shield , Star , Check , Zap , TrendingUp , Sparkles } from 'lucide-react'
 interface AuthLayoutProps {
 	children: React.ReactNode
 	side?: 'left' | 'right'
@@ -36,22 +36,22 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 	heroContent,
 	features = [
 		{
-			icon: <i className="i-lucide-shield h-5 w-5"  />,
+			icon: <Shield className=" h-5 w-5"  />,
 			title: 'Enterprise Security',
 			description: 'SOC 2 compliant with bank-level encryption'
 		},
 		{
-			icon: <i className="i-lucide-trending-up h-5 w-5"  />,
+			icon: <TrendingUp className=" h-5 w-5"  />,
 			title: 'Boost ROI by 60%',
 			description: 'Streamline operations and increase profitability'
 		},
 		{
-			icon: <i className="i-lucide-sparkles h-5 w-5"  />,
+			icon: <Sparkles className=" h-5 w-5"  />,
 			title: 'AI-Powered Insights',
 			description: 'Smart analytics and predictive maintenance'
 		},
 		{
-			icon: <i className="i-lucide-star h-5 w-5"  />,
+			icon: <Star className=" h-5 w-5"  />,
 			title: 'Trusted by 10K+ Properties',
 			description: 'Join property managers who love TenantFlow'
 		}
@@ -115,13 +115,13 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 						{/* Trust indicators */}
 						<div className="border-border/30 mt-6 flex items-center justify-center space-x-6 border-t pt-4">
 							<div className="text-muted-foreground flex items-center space-x-2 text-xs">
-								<i className="i-lucide-shield text-success h-4 w-4"  />
+								<Shield className=" text-success h-4 w-4"  />
 								<span className="font-medium">
 									SOC 2 Certified
 								</span>
 							</div>
 							<div className="text-muted-foreground flex items-center space-x-2 text-xs">
-								<i className="i-lucide-checkcircle text-success h-4 w-4"  />
+								<Check className="circle text-success h-4 w-4"  />
 								<span className="font-medium">
 									10K+ Properties
 								</span>
@@ -158,7 +158,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 					{/* Enhanced hero title with gradient text */}
 					<div className="mb-6">
 						<div className="mb-4 inline-flex items-center rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium backdrop-blur-md">
-							<i className="i-lucide-star mr-2 h-4 w-4 text-amber-3"  />
+							<Star className=" mr-2 h-4 w-4 text-amber-3"  />
 							<span>Rated #1 Property_ Management Platform</span>
 						</div>
 						<h2 className="mb-4 bg-gradient-to-r from-white via-white/95 to-white/90 bg-clip-text text-4xl font-bold leading-tight text-transparent lg:text-5xl">
@@ -203,7 +203,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 											key={i}
 											className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white/30 bg-gradient-to-r from-white/20 to-white/10"
 										>
-											<i className="i-lucide-checkcircle text-success h-4 w-4"  />
+											<Check className="circle text-success h-4 w-4"  />
 										</div>
 									))}
 								</div>
@@ -212,7 +212,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 								</span>
 							</div>
 							<div className="flex items-center space-x-2">
-								<i className="i-lucide-zap text-accent h-4 w-4"  />
+								<Zap className=" text-accent h-4 w-4"  />
 								<span className="text-white/90">
 									60% Faster Operations
 								</span>

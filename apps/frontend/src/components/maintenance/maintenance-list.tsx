@@ -11,7 +11,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { MaintenanceRequestApiResponse } from '@repo/shared'
-
+import { Wrench , X , AlertTriangle , Loader2 , CheckCircle2 , Clock } from 'lucide-react'
 // Define types directly from API response - NO DUPLICATION
 type MaintenanceRequest = MaintenanceRequestApiResponse
 
@@ -74,22 +74,22 @@ export function MaintenanceList({
 	const getStatusIcon = (status: string) => {
 		switch (status.toUpperCase()) {
 			case 'OPEN':
-				return <i className="i-lucide-clock h-3 w-3"  />
+				return <Clock className=" h-3 w-3"  />
 			case 'IN_PROGRESS':
-				return <i className="i-lucide-wrench h-3 w-3"  />
+				return <Wrench className=" h-3 w-3"  />
 			case 'COMPLETED':
-				return <i className="i-lucide-check-circle-2 h-3 w-3"  />
+				return <CheckCircle2 className=" h-3 w-3"  />
 			case 'CANCELED':
-				return <i className="i-lucide-xcircle h-3 w-3"  />
+				return <X className="circle h-3 w-3"  />
 			default:
-				return <i className="i-lucide-clock h-3 w-3"  />
+				return <Clock className=" h-3 w-3"  />
 		}
 	}
 
 	const getPriorityIcon = (priority: string) => {
 		switch (priority.toLowerCase()) {
 			case 'emergency':
-				return <i className="i-lucide-alert-triangle h-3 w-3"  />
+				return <AlertTriangle className=" h-3 w-3"  />
 			default:
 				return null
 		}
@@ -98,7 +98,7 @@ export function MaintenanceList({
 	if (isLoading) {
 		return (
 			<div className="flex items-center justify-center p-8">
-				<i className="i-lucide-loader-2 text-muted-foreground h-8 w-8 animate-spin"  />
+				<Loader2 className=" text-muted-foreground h-8 w-8 animate-spin"  />
 				<span className="text-muted-foreground ml-2">
 					Loading maintenance requests...
 				</span>
@@ -110,10 +110,10 @@ export function MaintenanceList({
 		return (
 			<Card className="border-red-2 bg-red-50">
 				<CardHeader>
-					<CardTitle className="text-red-8">
+					<CardTitle className="text-red-800">
 						Error Loading Maintenance Requests
 					</CardTitle>
-					<CardDescription className="text-red-6">
+					<CardDescription className="text-red-600">
 						{error.message || 'Failed to load maintenance requests'}
 					</CardDescription>
 				</CardHeader>
@@ -121,7 +121,7 @@ export function MaintenanceList({
 					<Button
 						onClick={() => refetch()}
 						variant="outline"
-						className="border-red-2 text-red-8 hover:bg-red-1"
+						className="border-red-2 text-red-8 hover:bg-red-100"
 					>
 						Try Again
 					</Button>
@@ -134,7 +134,7 @@ export function MaintenanceList({
 		return (
 			<Card>
 				<CardContent className="flex flex-col items-center justify-center p-8">
-					<i className="i-lucide-wrench text-muted-foreground mb-4 h-12 w-12"  />
+					<Wrench className=" text-muted-foreground mb-4 h-12 w-12"  />
 					<CardTitle className="text-muted-foreground text-center text-lg">
 						No maintenance requests found
 					</CardTitle>

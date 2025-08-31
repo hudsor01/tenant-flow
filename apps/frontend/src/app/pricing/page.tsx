@@ -11,7 +11,7 @@ import { PricingComparison } from '@/components/pricing/pricing-comparison'
 import { PricingCTA } from '@/components/pricing/pricing-cta'
 
 export const metadata: Metadata = {
-	title: 'Pricing Plans - TenantFlow Property_ Management',
+	title: 'Pricing Plans - TenantFlow Property Management',
 	description:
 		'Simple, transparent pricing for property management software. Start with a free trial, then scale as your portfolio grows. No hidden fees.',
 	keywords: [
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 		'tenant management pricing'
 	],
 	openGraph: {
-		title: 'TenantFlow Pricing - Property_ Management Software',
+		title: 'TenantFlow Pricing - Property Management Software',
 		description:
 			'Professional property management starting at $29/month. Free trial included.',
 		type: 'website',
@@ -71,7 +71,7 @@ export default function PricingPage() {
 					__html: JSON.stringify({
 						'@context': 'https://schema.org',
 						'@type': 'Product',
-						name: 'TenantFlow Property_ Management Software',
+						name: 'TenantFlow Property Management Software',
 						description:
 							'Professional property management software for landlords and property managers',
 						offers: [

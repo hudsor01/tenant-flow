@@ -64,3 +64,13 @@ export * from './sidebar-toggle'
 // export * from './enhanced-button' // Component not implemented yet
 
 // Design System Foundation - Removed variants.ts (using direct Tailwind classes)
+
+// Magic UI Components - Premium animated components
+export * from '../magicui'
+
+// Premium UI Components - Custom animated components
+export * from './magnetic-button'
+export * from './animated-text-reveal'
+
+// Premium Design System Showcase
+export { DesignSystemShowcase } from './design-system-showcase'

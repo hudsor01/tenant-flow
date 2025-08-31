@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import Image from 'next/image'
 import { CurrentUserAvatar } from '@/components/profile/sections/current-user-avatar'
 // Remove accessibility utils import
@@ -21,6 +22,9 @@ import { useNotifications } from '@/hooks/api/use-notifications'
 import { cn } from '@/lib/utils/css.utils'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { ChevronDown, Calculator, Wrench, X, ArrowRight, Sparkles, Bell, Inbox, LayoutDashboard, Settings, LogOut, Menu } from 'lucide-react'
+import { MagneticButton } from '@/components/ui/magnetic-button'
+import { ShimmerButton } from '@/components/magicui'
 
 interface NavigationProps {
 	context: 'public' | 'authenticated' | 'tenant-portal'
@@ -132,19 +136,19 @@ export function Navigation({
 				to: '/tools/invoice-generator',
 				label: 'Invoice Generator',
 				description: 'Generate professional invoice templates',
-				icon: 'i-lucide-calculator'
+				icon: Calculator
 			},
 			{
 				to: '/tools/rent-calculator',
 				label: 'Rent Calculator',
 				description: 'Calculate optimal rental prices',
-				icon: 'i-lucide-calculator'
+				icon: Calculator
 			},
 			{
 				to: '/tools/maintenance-tracker',
 				label: 'Maintenance Tracker',
 				description: 'Track property maintenance requests',
-				icon: 'i-lucide-wrench'
+				icon: Wrench
 			}
 		]
 
@@ -157,13 +161,14 @@ export function Navigation({
 		return (
 			<>
 				{/* Desktop Navigation */}
-				<nav className="hidden items-center space-x-8 lg:flex">
+				<nav className="hidden items-center space-x-2 lg:flex">
 					{navItems.map(item => (
-						<Link
-							key={item.to}
-							href={item.to}
-							className={cn(
-								'hover:text-primary text-2xl font-medium transition-colors duration-200',
+						<MagneticButton key={item.to} strength={0.15}>
+							<Link
+								href={item.to}
+								className={cn(
+								'px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200',
+								'hover:bg-gray-50/80 dark:hover:bg-slate-800/50',
 								pathname === item.to
 									? 'text-primary'
 									: transparent &&
@@ -175,6 +180,7 @@ export function Navigation({
 						>
 							{item.label}
 						</Link>
+						</MagneticButton>
 					))}
 
 					{/* Resources Dropdown */}
@@ -216,8 +222,7 @@ export function Navigation({
 							id="resources-button"
 						>
 							Tools
-							<i className={cn(
-								'i-lucide-chevron-down',
+							<ChevronDown className={cn(
 									'ml-1 h-4 w-4 transition-transform duration-200',
 									activeMenu === 'resources'
 										? 'rotate-180'
@@ -243,10 +248,10 @@ export function Navigation({
 											aria-labelledby="resources-button"
 										>
 											<h3
-												className="mb-4 flex items-center text-sm font-semibold text-gray-9"
+												className="mb-4 flex items-center text-sm font-semibold text-gray-900"
 												role="presentation"
 											>
-												<i className="i-lucide-sparkles text-primary mr-2 h-4 w-4" aria-hidden="true" />
+												<Sparkles className="text-primary mr-2 h-4 w-4" aria-hidden="true" />
 												Free Tools
 											</h3>
 											<div
@@ -280,9 +285,9 @@ export function Navigation({
 																}
 															}}
 														>
-															<div className="mr-3 rounded-lg bg-blue-50 p-2 transition-colors group-hover:bg-blue-1">
-																<i
-																	className={`${item.icon} text-primary h-4 w-4`}
+															<div className="mr-3 rounded-lg bg-blue-50 p-2 transition-colors group-hover:bg-blue-100">
+																<item.icon
+																	className="text-primary h-4 w-4"
 																	aria-hidden="true"
 																/>
 															</div>
@@ -290,7 +295,7 @@ export function Navigation({
 																<div className="group-hover:text-primary text-sm font-medium text-gray-9 transition-colors">
 																	{item.label}
 																</div>
-																<div className="text-xs text-gray-5">
+																<div className="text-xs text-gray-500">
 																	{
 																		item.description
 																	}
@@ -347,10 +352,10 @@ export function Navigation({
 											className="h-8 w-auto object-contain"
 										/>
 										<div>
-											<span className="text-xl font-bold text-gray-9">
+											<span className="text-xl font-bold text-gray-900">
 												TenantFlow
 											</span>
-											<p className="text-xs text-gray-5">
+											<p className="text-xs text-gray-500">
 												PROPERTY MANAGEMENT
 											</p>
 										</div>
@@ -361,9 +366,9 @@ export function Navigation({
 										onClick={() =>
 											setIsMobileMenuOpen(false)
 										}
-										className="text-gray-5 hover:bg-gray-1 hover:text-gray-9"
+										className="text-gray-5 hover:bg-gray-1 hover:text-gray-900"
 									>
-										<i className="i-lucide-x h-5 w-5"  />
+										<X className="h-5 w-5" />
 									</Button>
 								</div>
 
@@ -423,10 +428,10 @@ export function Navigation({
 											}}
 										>
 											<Link href="/auth/signup">
-												<Button className="bg-primary h-auto w-full justify-center rounded-lg border-0 p-4 font-medium text-white shadow-sm hover:bg-blue-7">
+												<Button className="bg-primary h-auto w-full justify-center rounded-lg border-0 p-4 font-medium text-white shadow-sm hover:bg-blue-700">
 													<span className="flex items-center">
 														Get Started
-														<i className="i-lucide-arrow-right ml-2 h-4 w-4"  />
+														<ArrowRight className="ml-2 h-4 w-4" />
 													</span>
 												</Button>
 											</Link>
@@ -435,8 +440,8 @@ export function Navigation({
 
 									{/* Tools Section */}
 									<div className="border-t border-gray-2 pt-6">
-										<h3 className="mb-4 flex items-center font-semibold text-gray-9">
-											<i className="i-lucide-sparkles text-primary mr-2 h-4 w-4"  />
+										<h3 className="mb-4 flex items-center font-semibold text-gray-900">
+											<Sparkles className="text-primary mr-2 h-4 w-4" />
 											Free Tools
 										</h3>
 										<div className="space-y-2">
@@ -463,12 +468,12 @@ export function Navigation({
 														href={item.to}
 														className="hover:text-primary group flex items-center rounded-lg p-3 text-gray-6 transition-colors duration-200 hover:bg-gray-50"
 													>
-														<i className={`${item.icon} text-primary mr-3 h-4 w-4 transition-colors group-hover:text-blue-7`} />
+														<item.icon className="text-primary mr-3 h-4 w-4 transition-colors group-hover:text-blue-700" />
 														<div className="min-w-0 flex-1">
 															<div className="text-sm font-medium">
 																{item.label}
 															</div>
-															<div className="text-xs text-gray-5">
+															<div className="text-xs text-gray-500">
 																{
 																	item.description
 																}
@@ -496,7 +501,7 @@ export function Navigation({
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
 							<Button variant="ghost" size="icon" className="relative">
-								<i className="i-lucide-bell h-5 w-5" />
+								<Bell className="h-5 w-5" />
 								{/* Dynamic notification badge - using native patterns */}
 								{unreadNotifications && unreadNotifications.length > 0 && (
 									<span className="absolute -right-1 -top-1 h-4 w-4 rounded-full bg-red-5 text-xs font-bold text-white flex items-center justify-center">
@@ -513,8 +518,8 @@ export function Navigation({
 									<DropdownMenuItem key={notification.id}>
 										<div className="flex flex-col space-y-1 w-full">
 											<p className="text-sm font-medium">{notification.title}</p>
-											<p className="text-xs text-gray-5">{notification.message}</p>
-											<p className="text-xs text-gray-4">
+											<p className="text-xs text-gray-500">{notification.message}</p>
+											<p className="text-xs text-gray-400">
 												{new Date(notification.created_at).toLocaleString()}
 											</p>
 										</div>
@@ -523,14 +528,14 @@ export function Navigation({
 							) : (
 								<DropdownMenuItem disabled>
 									<div className="flex flex-col items-center space-y-1 w-full py-4">
-										<i className="i-lucide-inbox h-8 w-8 text-gray-4" />
-										<p className="text-sm text-gray-5">No new notifications</p>
+										<Inbox className="h-8 w-8 text-gray-400" />
+										<p className="text-sm text-gray-500">No new notifications</p>
 									</div>
 								</DropdownMenuItem>
 							)}
 							<DropdownMenuSeparator />
 							<DropdownMenuItem>
-								<i className="i-lucide-bell mr-2 h-4 w-4" />
+								<Bell className="mr-2 h-4 w-4" />
 								View all notifications
 							</DropdownMenuItem>
 						</DropdownMenuContent>
@@ -555,19 +560,19 @@ export function Navigation({
 							<DropdownMenuSeparator />
 							<DropdownMenuItem asChild>
 								<Link href="/dashboard">
-									<i className="i-lucide-layout-dashboard mr-2 h-4 w-4" />
+									<LayoutDashboard className="mr-2 h-4 w-4" />
 									Dashboard
 								</Link>
 							</DropdownMenuItem>
 							<DropdownMenuItem asChild>
 								<Link href="/settings">
-									<i className="i-lucide-settings mr-2 h-4 w-4" />
+									<Settings className="mr-2 h-4 w-4" />
 									Settings
 								</Link>
 							</DropdownMenuItem>
 							<DropdownMenuSeparator />
 							<DropdownMenuItem onClick={handleLogout}>
-								<i className="i-lucide-log-out mr-2 h-4 w-4" />
+								<LogOut className="mr-2 h-4 w-4" />
 								Log out
 							</DropdownMenuItem>
 						</DropdownMenuContent>
@@ -610,7 +615,7 @@ export function Navigation({
 					aria-label="Toggle sidebar"
 					aria-expanded="false"
 				>
-					<i className="i-lucide-menu h-5 w-5 text-gray-6" aria-hidden="true" />
+					<Menu className="h-5 w-5 text-gray-600" aria-hidden="true" />
 				</button>
 			) : null
 		}
@@ -632,36 +637,79 @@ export function Navigation({
 				aria-controls="mobile-menu"
 			>
 				{isMobileMenuOpen ? (
-					<i className="i-lucide-x h-5 w-5" aria-hidden="true" />
+					<X className="h-5 w-5" aria-hidden="true" />
 				) : (
-					<i className="i-lucide-menu h-5 w-5" aria-hidden="true" />
+					<Menu className="h-5 w-5" aria-hidden="true" />
 				)}
 			</button>
 		)
 	}
 
 	return (
-		<nav
-			className={cn(getNavBarClasses(), className)}
-			style={{
-				backgroundColor: 'var(--overlay-light)',
-				borderColor: 'var(--border-subtle)'
-			}}
+		<motion.nav
+			className={cn(
+				'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
+				'bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl',
+				'border-b border-gray-100/50 dark:border-slate-800/50',
+				'shadow-lg shadow-gray-100/20 dark:shadow-slate-900/20',
+				className
+			)}
+			initial={{ y: -100, opacity: 0 }}
+			animate={{ y: 0, opacity: 1 }}
+			transition={{ duration: 0.5, ease: "easeOut" }}
 			role="navigation"
 			aria-label="Main navigation"
 			id="navigation"
 			data-skip-target="skip-to-nav"
 		>
 			<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-				<div className="flex h-20 items-center justify-between">
-					<LogoSection />
-					<PublicNavigation />
-					<div className="flex items-center space-x-4">
-						<AuthSection />
+				<div className="flex h-16 items-center justify-between">
+					{/* Premium Logo with Magnetic Effect */}
+					<MagneticButton strength={0.3}>
+						<LogoSection />
+					</MagneticButton>
+					
+					{/* Premium Navigation Items */}
+					<div className="hidden md:flex items-center space-x-1">
+						<PublicNavigation />
+					</div>
+					
+					{/* Premium Auth Section */}
+					<div className="flex items-center space-x-3">
+						{context === 'public' && (
+							<>
+								<MagneticButton strength={0.2}>
+									<Link href="/auth/login">
+										<Button variant="ghost" size="sm" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+											Sign In
+										</Button>
+									</Link>
+								</MagneticButton>
+								
+								<MagneticButton strength={0.4}>
+									<Link href="/auth/register">
+										<ShimmerButton 
+											className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-medium h-9 px-4 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+											shimmerColor="#3b82f6"
+										>
+											Get Started
+											<ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+										</ShimmerButton>
+									</Link>
+								</MagneticButton>
+							</>
+						)}
+						
+						{(context === 'authenticated' || context === 'tenant-portal') && (
+							<MagneticButton strength={0.2}>
+								<AuthSection />
+							</MagneticButton>
+						)}
+						
 						<MobileMenuButton />
 					</div>
 				</div>
 			</div>
-		</nav>
+		</motion.nav>
 	)
 }

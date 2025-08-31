@@ -2,6 +2,8 @@
 
 import * as React from 'react'
 import { motion } from 'framer-motion'
+import { INTERACTION_ANIMATIONS } from '@/lib/animations/constants'
+import { useIsMobile } from '@/hooks/use-mobile-animations'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -15,10 +17,11 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { useSidebar } from '@/components/ui/sidebar-provider'
-
+import { User , Shield , Settings , Bell , ChevronDown , Zap , LogOut } from 'lucide-react'
 // Enhanced Sidebar Footer with status indicators
 export function SidebarFooter() {
 	const { collapsed } = useSidebar()
+	const isMobile = useIsMobile()
 	const [onlineStatus, _setOnlineStatus] = React.useState(true)
 	const [hasUnreadNotifications, _setHasUnreadNotifications] =
 		React.useState(true)
@@ -29,8 +32,7 @@ export function SidebarFooter() {
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
 						<motion.div
-							whileHover={{ scale: 1.05 }}
-							whileTap={{ scale: 0.95 }}
+							{...INTERACTION_ANIMATIONS.PROMINENT_TAP}
 							className="relative"
 						>
 							<Button
@@ -46,12 +48,12 @@ export function SidebarFooter() {
 								</Avatar>
 								{/* Online Status Indicator */}
 								<motion.div
-									animate={{
+									animate={isMobile ? {} : {
 										scale: onlineStatus ? [1, 1.2, 1] : 1
 									}}
 									transition={{
 										duration: 2,
-										repeat: onlineStatus ? Infinity : 0,
+										repeat: onlineStatus && !isMobile ? Infinity : 0,
 										ease: 'easeInOut'
 									}}
 									className={`border-sidebar absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 ${
@@ -63,15 +65,15 @@ export function SidebarFooter() {
 								{/* Notification Indicator */}
 								{hasUnreadNotifications && (
 									<motion.div
-										animate={{
+										animate={isMobile ? {} : {
 											scale: [1, 1.3, 1]
 										}}
 										transition={{
 											duration: 1.5,
-											repeat: Infinity,
+											repeat: isMobile ? 0 : Infinity,
 											ease: 'easeInOut'
 										}}
-										className="border-sidebar absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border bg-red-5"
+										className="border-sidebar absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border bg-red-500"
 									/>
 								)}
 							</Button>
@@ -99,7 +101,7 @@ export function SidebarFooter() {
 											variant="outline"
 											className="px-1.5 py-0 text-xs"
 										>
-											<i className="i-lucide-shield mr-1 h-2.5 w-2.5"  />
+											<Shield className=" mr-1 h-2.5 w-2.5"  />
 											Admin
 										</Badge>
 									</div>
@@ -121,28 +123,28 @@ export function SidebarFooter() {
 						</DropdownMenuLabel>
 						<DropdownMenuSeparator />
 						<DropdownMenuItem className="cursor-pointer">
-							<i className="i-lucide-user mr-2 h-4 w-4"  />
+							<User className=" mr-2 h-4 w-4"  />
 							Profile
 						</DropdownMenuItem>
 						<DropdownMenuItem className="cursor-pointer">
-							<i className="i-lucide-settings mr-2 h-4 w-4"  />
+							<Settings className=" mr-2 h-4 w-4"  />
 							Settings
 						</DropdownMenuItem>
 						<DropdownMenuItem className="relative cursor-pointer">
-							<i className="i-lucide-bell mr-2 h-4 w-4"  />
+							<Bell className=" mr-2 h-4 w-4"  />
 							Notifications
 							{hasUnreadNotifications && (
 								<Badge
 									variant="destructive"
 									className="ml-auto h-5 min-w-[1.25rem] px-1.5 py-0 text-xs"
 								>
-									<i className="i-lucide-zap h-2.5 w-2.5"  />
+									<Zap className=" h-2.5 w-2.5"  />
 								</Badge>
 							)}
 						</DropdownMenuItem>
 						<DropdownMenuSeparator />
-						<DropdownMenuItem className="cursor-pointer text-red-6 focus:text-red-6">
-							<i className="i-lucide-log-out mr-2 h-4 w-4"  />
+						<DropdownMenuItem className="cursor-pointer text-red-6 focus:text-red-600">
+							<LogOut className=" mr-2 h-4 w-4"  />
 							Sign out
 						</DropdownMenuItem>
 					</DropdownMenuContent>
@@ -156,8 +158,7 @@ export function SidebarFooter() {
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
 					<motion.div
-						whileHover={{ scale: 1.02 }}
-						whileTap={{ scale: 0.98 }}
+						{...INTERACTION_ANIMATIONS.TAP_SCALE}
 						className="w-full"
 					>
 						<Button
@@ -173,12 +174,12 @@ export function SidebarFooter() {
 								</Avatar>
 								{/* Online Status Indicator */}
 								<motion.div
-									animate={{
+									animate={isMobile ? {} : {
 										scale: onlineStatus ? [1, 1.2, 1] : 1
 									}}
 									transition={{
 										duration: 2,
-										repeat: onlineStatus ? Infinity : 0,
+										repeat: onlineStatus && !isMobile ? Infinity : 0,
 										ease: 'easeInOut'
 									}}
 									className={`border-sidebar absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 ${
@@ -190,15 +191,15 @@ export function SidebarFooter() {
 								{/* Notification Indicator */}
 								{hasUnreadNotifications && (
 									<motion.div
-										animate={{
+										animate={isMobile ? {} : {
 											scale: [1, 1.3, 1]
 										}}
 										transition={{
 											duration: 1.5,
-											repeat: Infinity,
+											repeat: isMobile ? 0 : Infinity,
 											ease: 'easeInOut'
 										}}
-										className="border-sidebar absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border bg-red-5"
+										className="border-sidebar absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border bg-red-500"
 									/>
 								)}
 							</div>
@@ -211,7 +212,7 @@ export function SidebarFooter() {
 										variant="outline"
 										className="ml-auto px-1.5 py-0 text-xs"
 									>
-										<i className="i-lucide-shield mr-1 h-2.5 w-2.5"  />
+										<Shield className=" mr-1 h-2.5 w-2.5"  />
 										Admin
 									</Badge>
 								</div>
@@ -228,16 +229,16 @@ export function SidebarFooter() {
 								</div>
 							</div>
 							<motion.div
-								animate={{
+								animate={isMobile ? {} : {
 									y: [0, 2, 0]
 								}}
 								transition={{
 									duration: 2,
-									repeat: Infinity,
+									repeat: isMobile ? 0 : Infinity,
 									ease: 'easeInOut'
 								}}
 							>
-								<i className="i-lucide-chevron-down text-sidebar-foreground/60 group-hover:text-sidebar-foreground h-4 w-4 transition-colors"  />
+								<ChevronDown className=" text-sidebar-foreground/60 group-hover:text-sidebar-foreground h-4 w-4 transition-colors"  />
 							</motion.div>
 						</Button>
 					</motion.div>
@@ -260,7 +261,7 @@ export function SidebarFooter() {
 										variant="outline"
 										className="px-1.5 py-0 text-xs"
 									>
-										<i className="i-lucide-shield mr-1 h-2.5 w-2.5"  />
+										<Shield className=" mr-1 h-2.5 w-2.5"  />
 										Admin
 									</Badge>
 								</div>
@@ -280,28 +281,28 @@ export function SidebarFooter() {
 					</DropdownMenuLabel>
 					<DropdownMenuSeparator />
 					<DropdownMenuItem className="cursor-pointer">
-						<i className="i-lucide-user mr-2 h-4 w-4"  />
+						<User className=" mr-2 h-4 w-4"  />
 						Profile
 					</DropdownMenuItem>
 					<DropdownMenuItem className="cursor-pointer">
-						<i className="i-lucide-settings mr-2 h-4 w-4"  />
+						<Settings className=" mr-2 h-4 w-4"  />
 						Settings
 					</DropdownMenuItem>
 					<DropdownMenuItem className="relative cursor-pointer">
-						<i className="i-lucide-bell mr-2 h-4 w-4"  />
+						<Bell className=" mr-2 h-4 w-4"  />
 						Notifications
 						{hasUnreadNotifications && (
 							<Badge
 								variant="destructive"
 								className="ml-auto h-5 min-w-[1.25rem] px-1.5 py-0 text-xs"
 							>
-								<i className="i-lucide-zap h-2.5 w-2.5"  />
+								<Zap className=" h-2.5 w-2.5"  />
 							</Badge>
 						)}
 					</DropdownMenuItem>
 					<DropdownMenuSeparator />
-					<DropdownMenuItem className="cursor-pointer text-red-6 focus:text-red-6">
-						<i className="i-lucide-log-out mr-2 h-4 w-4"  />
+					<DropdownMenuItem className="cursor-pointer text-red-6 focus:text-red-600">
+						<LogOut className=" mr-2 h-4 w-4"  />
 						Sign out
 					</DropdownMenuItem>
 				</DropdownMenuContent>

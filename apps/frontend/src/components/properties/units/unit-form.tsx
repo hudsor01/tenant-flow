@@ -29,7 +29,7 @@ import {
 	FormSection
 } from '@/components/ui/form'
 import { toast } from 'sonner'
-
+import { Home , X , Save , AlertCircle , CheckCircle , Square , Bed , Bath , Info } from 'lucide-react'
 // Simple form schema without transformations for React Hook Form compatibility
 const unitFormSchema = z.object({
 	propertyId: z.string().min(1, 'Property_ is required'),
@@ -101,10 +101,10 @@ export function UnitForm({
 			// Call appropriate server action
 			let _result: Unit
 			if (isEditing && unit) {
-				_result = await updateUnit(unit.id, formData)
+				_result = await updateUnit(unit.id, formData) as Unit
 				toast.success('Unit updated successfully!')
 			} else {
-				_result = await createUnit(formData)
+				_result = await createUnit(formData) as Unit
 				toast.success('Unit created successfully!')
 			}
 
@@ -128,11 +128,11 @@ export function UnitForm({
 		<div className={cn('mx-auto w-full max-w-3xl', className)}>
 			{/* Success feedback */}
 			{submitSuccess && (
-				<div className="mb-4 rounded-md bg-green-50 border border-green-2 p-4">
+				<div className="mb-4 rounded-md bg-green-50 border border-green-200 p-4">
 					<div className="flex">
-						<i className="i-lucide-check-circle h-5 w-5 text-green-6" />
+						<CheckCircle className="h-5 w-5 text-green-600" />
 						<div className="ml-3">
-							<p className="text-sm font-medium text-green-8">
+							<p className="text-sm font-medium text-green-800">
 								Unit {isEditing ? 'updated' : 'created'} successfully!
 							</p>
 						</div>
@@ -142,11 +142,11 @@ export function UnitForm({
 
 			{/* Error feedback */}
 			{submitError && (
-				<div className="mb-4 rounded-md bg-red-50 border border-red-2 p-4">
+				<div className="mb-4 rounded-md bg-red-50 border border-red-200 p-4">
 					<div className="flex">
-						<i className="i-lucide-alert-circle h-5 w-5 text-red-6" />
+						<AlertCircle className="h-5 w-5 text-red-600" />
 						<div className="ml-3">
-							<p className="text-sm font-medium text-red-8">
+							<p className="text-sm font-medium text-red-800">
 								{submitError}
 							</p>
 						</div>
@@ -158,7 +158,7 @@ export function UnitForm({
 				<CardHeader>
 					<div className="flex items-center gap-3">
 						<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-							<i className="i-lucide-home h-5 w-5 text-primary" />
+							<Home className=" h-5 w-5 text-primary" />
 						</div>
 						<div>
 							<CardTitle>{title}</CardTitle>
@@ -269,10 +269,10 @@ export function UnitForm({
 										name="squareFootage"
 										render={({ field }) => (
 											<FormItem>
-												<FormLabel>
-													<i className="i-lucide-square h-4 w-4 mr-1" />
-													Square Feet
-												</FormLabel>
+<FormLabel>
+	<Square className="h-4 w-4 mr-1" />
+	Square Feet
+</FormLabel>
 												<FormControl>
 													<Input
 														type="number"
@@ -292,10 +292,10 @@ export function UnitForm({
 										name="bedrooms"
 										render={({ field }) => (
 											<FormItem>
-												<FormLabel>
-													<i className="i-lucide-bed h-4 w-4 mr-1" />
-													Bedrooms
-												</FormLabel>
+<FormLabel>
+	<Bed className="h-4 w-4 mr-1" />
+	Bedrooms
+</FormLabel>
 												<FormControl>
 													<Input
 														type="number"
@@ -316,10 +316,10 @@ export function UnitForm({
 										name="bathrooms"
 										render={({ field }) => (
 											<FormItem>
-												<FormLabel>
-													<i className="i-lucide-bath h-4 w-4 mr-1" />
-													Bathrooms
-												</FormLabel>
+<FormLabel>
+	<Bath className="h-4 w-4 mr-1" />
+	Bathrooms
+</FormLabel>
 												<FormControl>
 													<Input
 														type="number"
@@ -372,10 +372,10 @@ export function UnitForm({
 									/>
 
 									{/* Status is managed server-side and not part of the form schema */}
-									<div className="flex items-center text-sm text-muted-foreground">
-										<i className="i-lucide-info h-4 w-4 mr-2" />
-										Unit status will be set to "Vacant" by default
-									</div>
+<div className="flex items-center text-sm text-muted-foreground">
+	<Info className="h-4 w-4 mr-2" />
+	Unit status will be set to "Vacant" by default
+</div>
 								</div>
 							</FormSection>
 
@@ -387,7 +387,7 @@ export function UnitForm({
 									onClick={onClose}
 									disabled={isSubmitting}
 								>
-									<i className="i-lucide-x mr-2 h-4 w-4" />
+									<X className=" mr-2 h-4 w-4" />
 									Cancel
 								</Button>
 
@@ -403,7 +403,7 @@ export function UnitForm({
 										</div>
 									) : (
 										<div className="flex items-center gap-2">
-											<i className="i-lucide-save h-4 w-4" />
+											<Save className=" h-4 w-4" />
 											{isEditing ? 'Update Unit' : 'Create Unit'}
 										</div>
 									)}

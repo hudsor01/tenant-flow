@@ -1,6 +1,6 @@
 import { Dialog, DialogContent } from '../ui/dialog'
 import { Button } from '../ui/button'
-// Define props inline to avoid missing types
+import { X } from 'lucide-react'// Define props inline to avoid missing types
 interface UpgradePromptModalProps {
 	isOpen: boolean
 	onClose: () => void
@@ -20,7 +20,7 @@ export function UpgradePromptModal({
 						onClick={onClose}
 						className="hover:bg-muted absolute right-4 top-4 rounded-full p-2 transition-colors"
 					>
-						<i className="i-lucide-x h-4 w-4"  />
+						<X className=" h-4 w-4"  />
 					</button>
 
 					<div className="text-center">

@@ -8,7 +8,7 @@
 import React, { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
-
+import { ChevronRight , ChevronDown } from 'lucide-react'
 interface CollapsibleFormSectionProps {
 	title?: string
 	description?: string
@@ -50,9 +50,9 @@ export function CollapsibleFormSection({
 						</div>
 						<div className="flex items-center">
 							{isExpanded ? (
-								<i className="i-lucide-chevron-down  h-4 w-4 transition-transform"  />
+								<ChevronDown className="  h-4 w-4 transition-transform"  />
 							) : (
-								<i className="i-lucide-chevron-right  h-4 w-4 transition-transform"  />
+								<ChevronRight className="  h-4 w-4 transition-transform"  />
 							)}
 						</div>
 					</div>

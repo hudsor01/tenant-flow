@@ -7,14 +7,14 @@ import {
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-
+import { Calendar , CreditCard , Download } from 'lucide-react'
 export function BillingSettings() {
 	return (
 		<div className="space-y-6">
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<i className="i-lucide-credit-card h-5 w-5"  />
+						<CreditCard className=" h-5 w-5"  />
 						Billing & Subscription
 					</CardTitle>
 					<CardDescription>
@@ -43,7 +43,7 @@ export function BillingSettings() {
 										$29/month • Unlimited properties
 									</p>
 									<div className="text-muted-foreground flex items-center gap-2 text-sm">
-										<i className="i-lucide-calendar h-3 w-3"  />
+										<Calendar className=" h-3 w-3"  />
 										Next billing: Jan 15, 2025
 									</div>
 								</div>
@@ -62,7 +62,7 @@ export function BillingSettings() {
 							<CardContent className="space-y-4">
 								<div className="space-y-2">
 									<div className="flex items-center gap-2">
-										<i className="i-lucide-credit-card h-4 w-4"  />
+										<CreditCard className=" h-4 w-4"  />
 										<span className="text-sm">
 											**** **** **** 4242
 										</span>
@@ -104,7 +104,7 @@ export function BillingSettings() {
 											$29.00
 										</span>
 										<Button size="sm" variant="ghost">
-											<i className="i-lucide-download h-4 w-4"  />
+											<Download className=" h-4 w-4"  />
 										</Button>
 									</div>
 								</div>

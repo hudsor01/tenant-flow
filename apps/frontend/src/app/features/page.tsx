@@ -2,23 +2,38 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { 
+  Building2, 
+  Users, 
+  CreditCard, 
+  FileText, 
+  Wrench, 
+  BarChart3, 
+  Smartphone, 
+  Shield, 
+  Zap, 
+  Clock, 
+  Sparkles, 
+  CheckCircle, 
+  ArrowRight 
+} from 'lucide-react'
 
 const features = [
 	{
-		icon: 'i-lucide-building-2',
-		title: 'Property_ Management',
+		icon: Building2,
+		title: 'Property Management',
 		description:
 			'Comprehensive property portfolio management with occupancy tracking',
 		details: [
 			'Multi-property dashboard',
 			'Unit availability tracking',
-			'Property_ maintenance scheduling',
+			'Property maintenance scheduling',
 			'Digital property records'
 		],
 		gradient: 'from-primary to-cyan-500'
 	},
 	{
-		icon: 'i-lucide-users',
+		icon: Users,
 		title: 'Tenant Portal',
 		description:
 			'Self-service portal for tenants to manage their rental experience',
@@ -31,7 +46,7 @@ const features = [
 		gradient: 'from-purple-500 to-pink-500'
 	},
 	{
-		icon: 'i-lucide-credit-card',
+		icon: CreditCard,
 		title: 'Online Payments',
 		description: 'Secure payment processing with automated reminders',
 		details: [
@@ -40,10 +55,10 @@ const features = [
 			'Late fee automation',
 			'Payment history tracking'
 		],
-		gradient: 'from-green-5 to-emerald-500'
+		gradient: 'from-green-500 to-emerald-500'
 	},
 	{
-		icon: 'i-lucide-file-text',
+		icon: FileText,
 		title: 'Digital Leases',
 		description: 'Create, sign, and manage lease agreements electronically',
 		details: [
@@ -52,10 +67,10 @@ const features = [
 			'Automated lease renewals',
 			'Document storage & retrieval'
 		],
-		gradient: 'from-orange-500 to-red-5'
+		gradient: 'from-orange-500 to-red-500'
 	},
 	{
-		icon: 'i-lucide-wrench',
+		icon: Wrench,
 		title: 'Maintenance Tracking',
 		description:
 			'Streamlined maintenance request and work order management',
@@ -68,7 +83,7 @@ const features = [
 		gradient: 'from-pink-500 to-rose-500'
 	},
 	{
-		icon: 'i-lucide-bar-chart-3',
+		icon: BarChart3,
 		title: 'Analytics & Reports',
 		description: 'Comprehensive financial and operational reporting',
 		details: [
@@ -83,22 +98,22 @@ const features = [
 
 const additionalFeatures = [
 	{
-		icon: 'i-lucide-smartphone',
+		icon: Smartphone,
 		title: 'Mobile App',
 		description: 'Manage properties on-the-go with our mobile application'
 	},
 	{
-		icon: 'i-lucide-shield',
+		icon: Shield,
 		title: 'Security & Compliance',
 		description: 'Bank-level security with compliance reporting'
 	},
 	{
-		icon: 'i-lucide-zap',
+		icon: Zap,
 		title: 'API Integration',
 		description: 'Connect with your favorite tools via our robust API'
 	},
 	{
-		icon: 'i-lucide-clock',
+		icon: Clock,
 		title: '24/7 Support',
 		description: 'Round-the-clock customer support and assistance'
 	}
@@ -114,7 +129,7 @@ export default function FeaturesPage() {
 						href="/"
 						className="group flex items-center space-x-2"
 					>
-						<i className="i-lucide-building-2  text-primary h-8 w-8 transition-transform group-hover:scale-110"  />
+						<Building2 className="text-primary h-8 w-8 transition-transform group-hover:scale-110" />
 						<span className="from-primary bg-gradient-to-r to-purple-600 bg-clip-text text-xl font-bold text-transparent">
 							TenantFlow
 						</span>
@@ -129,13 +144,13 @@ export default function FeaturesPage() {
 			<section className="bg-gradient-to-br from-blue-50 to-purple-50 px-4 pb-12 pt-24">
 				<div className="container mx-auto text-center">
 					<Badge className="from-primary mb-6 bg-gradient-to-r to-purple-600 text-white">
-						<i className="i-lucide-sparkles  mr-2 h-4 w-4"  />
+						<Sparkles className="mr-2 h-4 w-4" />
 						Complete Feature Set
 					</Badge>
-					<h1 className="mb-6 bg-gradient-to-r from-gray-9 to-gray-7 bg-clip-text text-5xl font-bold text-transparent">
+					<h1 className="mb-6 bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-5xl font-bold text-transparent">
 						Everything You Need to Manage Properties
 					</h1>
-					<p className="mx-auto max-w-3xl text-xl text-gray-6">
+					<p className="mx-auto max-w-3xl text-xl text-gray-600">
 						From tenant management to financial reporting,
 						TenantFlow provides all the tools you need to streamline
 						your property management operations.
@@ -157,12 +172,12 @@ export default function FeaturesPage() {
 										<div
 											className={`h-14 w-14 rounded-xl bg-gradient-to-br ${feature.gradient} mb-6 flex items-center justify-center`}
 										>
-											<i className={`${feature.icon} h-7 w-7  text-white`} />
+											<feature.icon className="h-7 w-7 text-white" />
 										</div>
-										<h3 className="mb-3 text-xl font-semibold text-gray-9">
+										<h3 className="mb-3 text-xl font-semibold text-gray-900">
 											{feature.title}
 										</h3>
-										<p className="mb-6 text-gray-6">
+										<p className="mb-6 text-gray-600">
 											{feature.description}
 										</p>
 										<ul className="space-y-2">
@@ -170,9 +185,9 @@ export default function FeaturesPage() {
 												(detail, idx) => (
 													<li
 														key={idx}
-														className="flex items-center text-sm text-gray-6"
+														className="flex items-center text-sm text-gray-600"
 													>
-														<i className="i-lucide-check-circle  mr-2 h-4 w-4 flex-shrink-0 text-green-5" />
+														<CheckCircle className="mr-2 h-4 w-4 flex-shrink-0 text-green-500" />
 														{detail}
 													</li>
 												)
@@ -187,13 +202,13 @@ export default function FeaturesPage() {
 			</section>
 
 			{/* Additional Features */}
-			<section className="bg-gray-5 px-4 py-20">
+			<section className="bg-gray-50 px-4 py-20">
 				<div className="container mx-auto">
 					<div className="mb-12 text-center">
-						<h2 className="mb-4 text-3xl font-bold text-gray-9">
+						<h2 className="mb-4 text-3xl font-bold text-gray-900">
 							Plus Many More Features
 						</h2>
-						<p className="mx-auto max-w-2xl text-gray-6">
+						<p className="mx-auto max-w-2xl text-gray-600">
 							TenantFlow includes everything you need to run your
 							property management business efficiently
 						</p>
@@ -205,11 +220,11 @@ export default function FeaturesPage() {
 									key={index}
 									className="p-6 text-center transition-shadow hover:shadow-lg"
 								>
-									<i className={`${feature.icon} text-primary mx-auto mb-4 h-8 w-8 `} />
+									<feature.icon className="text-primary mx-auto mb-4 h-8 w-8" />
 									<h3 className="mb-2 font-semibold">
 										{feature.title}
 									</h3>
-									<p className="text-sm text-gray-6">
+									<p className="text-sm text-gray-600">
 										{feature.description}
 									</p>
 								</Card>
@@ -225,17 +240,17 @@ export default function FeaturesPage() {
 					<h2 className="mb-4 text-4xl font-bold">
 						Ready to Get Started?
 					</h2>
-					<p className="mb-8 text-xl text-blue-1">
+					<p className="mb-8 text-xl text-blue-100">
 						Join thousands of property managers using TenantFlow
 					</p>
 					<div className="flex flex-col justify-center gap-4 sm:flex-row">
 						<Link href="/auth/signup">
 							<Button
 								size="lg"
-								className="text-primary inline-flex items-center bg-white hover:bg-gray-1"
+								className="text-primary inline-flex items-center bg-white hover:bg-gray-100"
 							>
 								Start Free Trial
-								<i className="i-lucide-arrow-right  ml-2 h-5 w-5"  />
+								<ArrowRight className="ml-2 h-5 w-5" />
 							</Button>
 						</Link>
 						<Link href="/pricing">
@@ -252,7 +267,7 @@ export default function FeaturesPage() {
 			</section>
 
 			{/* Footer */}
-			<footer className="bg-gray-9 px-4 py-8 text-gray-4">
+			<footer className="bg-gray-900 px-4 py-8 text-gray-400">
 				<div className="container mx-auto text-center">
 					<p>&copy; 2023 TenantFlow. All rights reserved.</p>
 				</div>

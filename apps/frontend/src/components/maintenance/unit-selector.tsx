@@ -9,7 +9,7 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import type { Database } from '@repo/shared'
-
+import { Home } from 'lucide-react'
 // Define types directly from Database schema - NO DUPLICATION
 type Unit = Database['public']['Tables']['Unit']['Row']
 
@@ -46,7 +46,7 @@ export function UnitSelector({
 					{units.map(unit => (
 						<SelectItem key={unit.id} value={unit.id}>
 							<div className="flex items-center">
-								<i className="i-lucide-home mr-2 h-4 w-4"  />
+								<Home className=" mr-2 h-4 w-4"  />
 								{unit.property?.name || 'Unknown Property_'} -
 								Unit {unit.unitNumber}
 							</div>

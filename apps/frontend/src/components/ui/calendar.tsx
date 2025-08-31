@@ -6,6 +6,7 @@ import {
 	DayPicker,
 	getDefaultClassNames
 } from 'react-day-picker'
+import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -144,18 +145,18 @@ function Calendar({
 					)
 				},
 				Chevron: ({ className, orientation }) => {
-					const iconMap: Record<string, string> = {
-						left: 'i-lucide-chevron-left',
-						right: 'i-lucide-chevron-right',
-						down: 'i-lucide-chevron-down',
-						up: 'i-lucide-chevron-up'
+					const iconMap: Record<string, React.ComponentType<React.SVGProps<SVGSVGElement>>> = {
+						left: ChevronLeft,
+						right: ChevronRight,
+						down: ChevronDown,
+						up: ChevronUp
 					}
 					
-					const iconClass = iconMap[orientation || 'down'] || iconMap.down
+					const IconComponent = iconMap[orientation || 'down'] || ChevronDown
 					
 					return (
-						<i 
-							className={cn(iconClass, 'w-4 h-4 inline-block', className)}
+						<IconComponent 
+							className={cn('w-4 h-4', className)}
 							aria-hidden="true"
 						/>
 					)

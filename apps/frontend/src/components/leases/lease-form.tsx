@@ -23,7 +23,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-// Using native form elements - no abstractions needed
+import { FileText , X , Save } from 'lucide-react'// Using native form elements - no abstractions needed
 
 // Types for form props
 interface LeaseFormProps {
@@ -100,12 +100,12 @@ export function LeaseForm({
 		<div className={cn('mx-auto w-full max-w-3xl', className)}>
 			{/* Native form feedback */}
 			{formState.success && (
-				<div className="mb-4 rounded-md bg-green-50 p-3 text-sm text-green-6">
+				<div className="mb-4 rounded-md bg-green-50 p-3 text-sm text-green-600">
 					Lease {lease ? 'updated' : 'created'} successfully!
 				</div>
 			)}
 			{formState.error && (
-				<div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-6">
+				<div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-600">
 					{formState.error}
 				</div>
 			)}
@@ -114,7 +114,7 @@ export function LeaseForm({
 				<CardHeader>
 					<div className="flex items-center gap-3">
 						<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-1 dark:bg-green-9/20">
-							<i className="i-lucide-file-text h-5 w-5 text-green-6 dark:text-green-4"  />
+							<FileText className=" h-5 w-5 text-green-6 dark:text-green-400"  />
 						</div>
 						<div>
 							<CardTitle>{title}</CardTitle>
@@ -337,7 +337,7 @@ export function LeaseForm({
 								onClick={onClose}
 								disabled={isPending}
 							>
-								<i className="i-lucide-x mr-2 h-4 w-4"  />
+								<X className=" mr-2 h-4 w-4"  />
 								Cancel
 							</Button>
 
@@ -353,7 +353,7 @@ export function LeaseForm({
 									</div>
 								) : (
 									<div className="flex items-center gap-2">
-										<i className="i-lucide-save h-4 w-4"  />
+										<Save className=" h-4 w-4"  />
 										{isEditing ? 'Update Lease' : 'Create Lease'}
 									</div>
 								)}
