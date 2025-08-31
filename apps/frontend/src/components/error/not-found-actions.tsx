@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-
+import { ArrowLeft } from 'lucide-react'
 /**
  * NotFoundActions - Client component for interactive actions
  * Handles browser-specific functionality like going back in history
@@ -22,7 +22,7 @@ export function NotFoundActions() {
 			variant="outline"
 			className="flex w-full items-center justify-center gap-2"
 		>
-			<i className="i-lucide-arrow-left h-4 w-4"  />
+			<ArrowLeft className=" h-4 w-4"  />
 			Go Back
 		</Button>
 	)

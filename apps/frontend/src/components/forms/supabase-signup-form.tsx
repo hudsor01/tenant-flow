@@ -66,7 +66,7 @@ export function SimpleSignupForm({
 					</div>
 
 					{state.error && (
-						<div className="text-sm text-red-6">
+						<div className="text-sm text-red-600">
 							{state.error}
 						</div>
 					)}

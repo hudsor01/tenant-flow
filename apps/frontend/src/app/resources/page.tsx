@@ -7,6 +7,26 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
+import {
+	BookOpen,
+	FileText,
+	Video,
+	Download,
+	Code,
+	Lightbulb,
+	PlayCircle,
+	Star,
+	Clock,
+	Eye,
+	ArrowRight,
+	ExternalLink,
+	Sparkles,
+	Search,
+	Filter,
+	HelpCircle,
+	Users,
+	MessageCircle
+} from 'lucide-react'
 
 interface Resource {
 	id: string
@@ -26,7 +46,7 @@ interface Resource {
 const resources: Resource[] = [
 	{
 		id: '1',
-		title: 'Complete Property_ Management Setup Guide',
+		title: 'Complete Property Management Setup Guide',
 		description:
 			'Step-by-step walkthrough to get your first property listed and tenants organized in under 30 minutes.',
 		category: 'guide',
@@ -64,7 +84,7 @@ const resources: Resource[] = [
 	},
 	{
 		id: '4',
-		title: 'Property_ Management API Documentation',
+		title: 'Property Management API Documentation',
 		description:
 			'Complete API reference for integrating TenantFlow with your existing systems and tools.',
 		category: 'api',
@@ -89,7 +109,7 @@ const resources: Resource[] = [
 	},
 	{
 		id: '6',
-		title: 'Advanced Property_ Analytics Webinar',
+		title: 'Advanced Property Analytics Webinar',
 		description:
 			"Learn how to use TenantFlow's analytics to make data-driven decisions and increase profitability.",
 		category: 'webinar',
@@ -102,13 +122,13 @@ const resources: Resource[] = [
 ]
 
 const categories = [
-	{ id: 'all', label: 'All Resources', icon: 'i-lucide-book-open' },
-	{ id: 'guide', label: 'Guides', icon: 'i-lucide-file-text' },
-	{ id: 'video', label: 'Videos', icon: 'i-lucide-video' },
-	{ id: 'template', label: 'Templates', icon: 'i-lucide-download' },
-	{ id: 'api', label: 'API Docs', icon: 'i-lucide-code' },
-	{ id: 'blog', label: 'Blog Posts', icon: 'i-lucide-lightbulb' },
-	{ id: 'webinar', label: 'Webinars', icon: 'i-lucide-play-circle' }
+	{ id: 'all', label: 'All Resources', icon: BookOpen },
+	{ id: 'guide', label: 'Guides', icon: FileText },
+	{ id: 'video', label: 'Videos', icon: Video },
+	{ id: 'template', label: 'Templates', icon: Download },
+	{ id: 'api', label: 'API Docs', icon: Code },
+	{ id: 'blog', label: 'Blog Posts', icon: Lightbulb },
+	{ id: 'webinar', label: 'Webinars', icon: PlayCircle }
 ]
 
 interface ResourceCardProps {
@@ -120,23 +140,23 @@ function ResourceCard({ resource, className }: ResourceCardProps) {
 	const getCategoryIcon = (category: Resource['category']) => {
 		switch (category) {
 			case 'guide':
-				return 'i-lucide-file-text'
+				return FileText
 			case 'video':
-				return 'i-lucide-video'
+				return Video
 			case 'template':
-				return 'i-lucide-download'
+				return Download
 			case 'api':
-				return 'i-lucide-code'
+				return Code
 			case 'blog':
-				return 'i-lucide-lightbulb'
+				return Lightbulb
 			case 'webinar':
-				return 'i-lucide-play-circle'
+				return PlayCircle
 			default:
-				return 'i-lucide-book-open'
+				return BookOpen
 		}
 	}
 
-	const categoryIcon = getCategoryIcon(resource.category)
+	const CategoryIcon = getCategoryIcon(resource.category)
 
 	return (
 		<motion.div
@@ -162,8 +182,8 @@ function ResourceCard({ resource, className }: ResourceCardProps) {
 										: 'from-muted to-muted-foreground/20 bg-gradient-to-br'
 								}`}
 							>
-								<i
-									className={`${categoryIcon}  h-5 w-5 ${resource.type === 'premium' ? 'text-white' : 'text-muted-foreground'}`}
+								<CategoryIcon
+									className={`h-5 w-5 ${resource.type === 'premium' ? 'text-white' : 'text-muted-foreground'}`}
 								/>
 							</div>
 							<div>
@@ -190,7 +210,7 @@ function ResourceCard({ resource, className }: ResourceCardProps) {
 							</div>
 						</div>
 						<div className="flex items-center space-x-1">
-							<i className="i-lucide-star  h-4 w-4 fill-current text-yellow-5"  />
+							<Star className="h-4 w-4 fill-current text-yellow-500" />
 							<span className="text-muted-foreground text-sm">
 								{resource.rating}
 							</span>
@@ -210,11 +230,11 @@ function ResourceCard({ resource, className }: ResourceCardProps) {
 					<div className="text-muted-foreground mb-4 flex items-center justify-between text-sm">
 						<div className="flex items-center space-x-4">
 							<div className="flex items-center space-x-1">
-								<i className="i-lucide-clock  h-4 w-4"  />
+								<Clock className="h-4 w-4" />
 								<span>{resource.readTime}</span>
 							</div>
 							<div className="flex items-center space-x-1">
-								<i className="i-lucide-eye  h-4 w-4"  />
+								<Eye className="h-4 w-4" />
 								<span>{resource.views}</span>
 							</div>
 						</div>
@@ -246,7 +266,7 @@ function ResourceCard({ resource, className }: ResourceCardProps) {
 								{resource.downloadUrl ? (
 									<>
 										Download
-										<i className="i-lucide-download  ml-2 h-4 w-4 transition-transform group-hover/btn:translate-y-0.5"  />
+										<Download className="ml-2 h-4 w-4 transition-transform group-hover/btn:translate-y-0.5" />
 									</>
 								) : (
 									<>
@@ -254,7 +274,7 @@ function ResourceCard({ resource, className }: ResourceCardProps) {
 										resource.category === 'webinar'
 											? 'Watch'
 											: 'Read'}
-										<i className="i-lucide-arrow-right  ml-2 h-4 w-4 transition-transform group-hover/btn:translate-x-1"  />
+										<ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
 									</>
 								)}
 							</Link>
@@ -262,7 +282,7 @@ function ResourceCard({ resource, className }: ResourceCardProps) {
 						{resource.href && (
 							<Link href={resource.href}>
 								<Button variant="ghost" size="sm">
-									<i className="i-lucide-external-link  h-4 w-4"  />
+									<ExternalLink className="h-4 w-4" />
 								</Button>
 							</Link>
 						)}
@@ -303,7 +323,7 @@ export default function ResourcesPage() {
 							className="mb-6"
 						>
 							<Badge className="from-primary via-accent to-success border-0 bg-gradient-to-r px-6 py-2 text-sm font-semibold text-white shadow-lg">
-								<i className="i-lucide-sparkles  mr-2 h-4 w-4"  />
+								<Sparkles className="mr-2 h-4 w-4" />
 								Resource Hub
 							</Badge>
 						</motion.div>
@@ -341,7 +361,7 @@ export default function ResourcesPage() {
 						className="mb-12 flex flex-col items-center justify-between gap-6 lg:flex-row"
 					>
 						<div className="relative max-w-md flex-1">
-							<i className="i-lucide-search  text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform"  />
+							<Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
 							<Input
 								placeholder="Search resources..."
 								value={searchQuery}
@@ -354,6 +374,7 @@ export default function ResourcesPage() {
 
 						<div className="flex flex-wrap gap-2">
 							{categories.map(category => {
+								const Icon = category.icon
 								return (
 									<Button
 										key={category.id}
@@ -368,7 +389,7 @@ export default function ResourcesPage() {
 										}
 										className="flex items-center space-x-2"
 									>
-										<i className={`${category.icon}  h-4 w-4`} />
+										<Icon className="h-4 w-4" />
 										<span>{category.label}</span>
 									</Button>
 								)
@@ -451,7 +472,7 @@ export default function ResourcesPage() {
 									variant="outline"
 									className="flex items-center space-x-2"
 								>
-									<i className="i-lucide-filter  h-4 w-4"  />
+									<Filter className="h-4 w-4" />
 									<span>Sort by Popular</span>
 								</Button>
 							)}
@@ -476,14 +497,14 @@ export default function ResourcesPage() {
 							</motion.div>
 						) : (
 							<motion.div
-								key="no-_results"
+								key="no-results"
 								initial={{ opacity: 0 }}
 								animate={{ opacity: 1 }}
 								exit={{ opacity: 0 }}
 								className="py-12 text-center"
 							>
 								<div className="bg-muted mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full">
-									<i className="i-lucide-help-circle  text-muted-foreground h-8 w-8"  />
+									<HelpCircle className="text-muted-foreground h-8 w-8" />
 								</div>
 								<h3 className="text-foreground mb-4 text-2xl font-semibold">
 									No resources found
@@ -518,7 +539,7 @@ export default function ResourcesPage() {
 					>
 						<div className="mb-8">
 							<div className="from-primary to-accent mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br">
-								<i className="i-lucide-users  h-8 w-8 text-white"  />
+								<Users className="h-8 w-8 text-white" />
 							</div>
 							<h2 className="text-foreground mb-6 text-4xl font-bold">
 								Need More Help?
@@ -533,24 +554,25 @@ export default function ResourcesPage() {
 						<div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
 							{[
 								{
-									icon: 'i-lucide-message-circle',
+									icon: MessageCircle,
 									title: 'Live Chat',
 									description:
 										'Get instant help from our team'
 								},
 								{
-									icon: 'i-lucide-video',
+									icon: Video,
 									title: '1-on-1 Training',
 									description:
 										'Schedule personalized onboarding'
 								},
 								{
-									icon: 'i-lucide-users',
+									icon: Users,
 									title: 'Community Forum',
 									description:
 										'Connect with other property owners'
 								}
 							].map(option => {
+								const Icon = option.icon
 								return (
 									<Card
 										key={option.title}
@@ -558,7 +580,7 @@ export default function ResourcesPage() {
 									>
 										<CardContent className="p-6 text-center">
 											<div className="from-primary to-accent mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br">
-												<i className={`${option.icon}  h-6 w-6 text-white`} />
+												<Icon className="h-6 w-6 text-white" />
 											</div>
 											<h3 className="text-foreground mb-2 font-semibold">
 												{option.title}
@@ -581,7 +603,7 @@ export default function ResourcesPage() {
 							>
 								<Link href="/contact">
 									Contact Support
-									<i className="i-lucide-arrow-right  ml-2 h-4 w-4 transition-transform group-hover:translate-x-1"  />
+									<ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
 								</Link>
 							</Button>
 							<Button asChild variant="outline" size="lg">

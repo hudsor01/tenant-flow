@@ -1,8 +1,4 @@
-/**
- * Native UnoCSS Spinner Component
- * Uses pure CSS icons for zero JavaScript bundle impact
- */
-
+import { Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface SpinnerProps {
@@ -18,7 +14,7 @@ export function Spinner({
 	variant = 'circle',
 	className
 }: SpinnerProps) {
-	// Map sizes to UnoCSS icon sizes
+
 	const iconSizes = {
 		xs: 'text-xs',
 		sm: 'text-sm',
@@ -27,29 +23,38 @@ export function Spinner({
 		xl: 'text-5xl'
 	}
 	
-	// Map colors to UnoCSS color utilities
+	// Map colors to Tailwind color utilities
 	const colorMap = {
-		primary: 'text-blue-6',
-		secondary: 'text-gray-5',
+		primary: 'text-blue-600',
+		secondary: 'text-gray-500',
 		white: 'text-white',
 		current: 'text-current',
-		red: 'text-red-5',
-		blue: 'text-blue-5'
+		red: 'text-red-500',
+		blue: 'text-blue-500'
 	}
 	
-	// Different spinner variants using various icon libraries
-	const spinnerIcons = {
-		circle: 'i-lucide-loader-2',
-		dots: 'i-svg-spinners-3-dots-fade',
-		pulse: 'i-svg-spinners-pulse-3',
-		ring: 'i-svg-spinners-ring-resize'
+	// For simplicity, we'll use Lucide's Loader2 for all variants
+	// Different animations can be achieved with CSS classes
+	const getSpinnerAnimation = () => {
+		switch (variant) {
+			case 'circle':
+				return 'animate-spin'
+			case 'dots':
+				return 'animate-pulse'
+			case 'pulse':
+				return 'animate-pulse'
+			case 'ring':
+				return 'animate-spin'
+			default:
+				return 'animate-spin'
+		}
 	}
 	
 	return (
-		<i 
+		<Loader2 
 			className={cn(
-				spinnerIcons[variant],
-				'animate-spin inline-block',
+				getSpinnerAnimation(),
+				'inline-block',
 				iconSizes[size],
 				colorMap[color],
 				className
@@ -73,7 +78,7 @@ export function LoadingSpinner({
 	return (
 		<div className="flex items-center gap-2">
 			<Spinner size={size} variant={variant} />
-			<span className="text-gray-6 text-sm">{text}</span>
+			<span className="text-gray-600 text-sm">{text}</span>
 		</div>
 	)
 }
@@ -94,7 +99,7 @@ export function CenteredSpinner({
 			<div className="text-center">
 				<Spinner size={size} variant={variant} className="mx-auto" />
 				{text && (
-					<p className="text-gray-6 mt-2 text-sm">{text}</p>
+					<p className="text-gray-600 mt-2 text-sm">{text}</p>
 				)}
 			</div>
 		</div>

@@ -265,7 +265,7 @@ export function EnhancedElementsProvider({
 	if (stripeError && !isRetrying) {
 		return (
 			<div className="flex flex-col items-center justify-center p-8 text-center">
-				<div className="mb-4 text-red-6">
+				<div className="mb-4 text-red-600">
 					<svg
 						className="mx-auto mb-2 h-12 w-12"
 						fill="none"
@@ -280,7 +280,7 @@ export function EnhancedElementsProvider({
 						/>
 					</svg>
 					<p className="font-semibold">Payment system unavailable</p>
-					<p className="mt-1 text-sm text-gray-6">{stripeError}</p>
+					<p className="mt-1 text-sm text-gray-600">{stripeError}</p>
 				</div>
 				<button
 					onClick={() => {
@@ -301,7 +301,7 @@ export function EnhancedElementsProvider({
 						}
 						void loadStripeInstance()
 					}}
-					className="rounded-lg bg-blue-6 px-4 py-2 text-white transition-colors hover:bg-blue-7"
+					className="rounded-lg bg-blue-6 px-4 py-2 text-white transition-colors hover:bg-blue-700"
 				>
 					Try Again
 				</button>
@@ -313,8 +313,8 @@ export function EnhancedElementsProvider({
 	if (isRetrying) {
 		return (
 			<div className="flex flex-col items-center justify-center p-8">
-				<div className="mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-blue-6" />
-				<p className="text-gray-6">Reconnecting payment system...</p>
+				<div className="mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600" />
+				<p className="text-gray-600">Reconnecting payment system...</p>
 			</div>
 		)
 	}
@@ -324,8 +324,8 @@ export function EnhancedElementsProvider({
 		return (
 			<div className="flex items-center justify-center p-8">
 				<div className="text-center">
-					<div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-blue-6" />
-					<p className="text-gray-6">Loading payment system...</p>
+					<div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600" />
+					<p className="text-gray-600">Loading payment system...</p>
 				</div>
 			</div>
 		)

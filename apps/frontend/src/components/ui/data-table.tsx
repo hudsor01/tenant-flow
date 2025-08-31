@@ -14,6 +14,7 @@ import {
 	getSortedRowModel,
 	useReactTable
 } from '@tanstack/react-table'
+import { Filter, ChevronDown, Download, Plus, ArrowUpDown } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -143,9 +144,9 @@ export function EnhancedDataTable<TData, TValue>({
 								size="sm"
 								className="h-10"
 							>
-								<i className="i-lucide-filter mr-2 h-4 w-4"  />
+								<Filter className="mr-2 h-4 w-4" />
 								Columns
-								<i className="i-lucide-chevron-down ml-2 h-4 w-4"  />
+								<ChevronDown className="ml-2 h-4 w-4" />
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end" className="w-[200px]">
@@ -183,13 +184,13 @@ export function EnhancedDataTable<TData, TValue>({
 							onClick={onExport}
 							className="h-10"
 						>
-							<i className="i-lucide-download mr-2 h-4 w-4"  />
+							<Download className="mr-2 h-4 w-4" />
 							Export
 						</Button>
 					)}
 					{enableAdd && (
 						<Button onClick={onAdd} size="sm" className="h-10">
-							<i className="i-lucide-plus mr-2 h-4 w-4"  />
+							<Plus className="mr-2 h-4 w-4" />
 							Add New
 						</Button>
 					)}
@@ -365,7 +366,7 @@ export function createSortableHeader<_T>(
 			)}
 		>
 			{title}
-			<i className="i-lucide-arrowupdown ml-2 h-4 w-4"  />
+			<ArrowUpDown className="ml-2 h-4 w-4" />
 		</Button>
 	)
 }

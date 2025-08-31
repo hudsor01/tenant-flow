@@ -24,7 +24,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
-// Form state type - simple, no abstractions
+import { Wrench , X , DollarSign , Calendar , Save } from 'lucide-react'// Form state type - simple, no abstractions
 type FormState = {
 	success: boolean
 	error?: string
@@ -147,7 +147,7 @@ export function MaintenanceForm({
 
 	return (
 		<div className={cn('mx-auto w-full max-w-2xl', className)}>
-			{/* Simple optimistic feedback - using UnoCSS classes */}
+			{/* Simple optimistic feedback */}
 			{optimisticItem && (
 				<div className="mb-4 p-4 bg-blue-50 text-blue-8 rounded">
 					{isEditing ? 'Updating' : 'Creating'} request...
@@ -165,7 +165,7 @@ export function MaintenanceForm({
 				<CardHeader>
 					<div className="flex items-center gap-3">
 						<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-1 dark:bg-orange-9/20">
-							<i className="i-lucide-wrench h-5 w-5 text-primary dark:text-orange-4"  />
+							<Wrench className=" h-5 w-5 text-primary dark:text-orange-400"  />
 						</div>
 						<div>
 							<CardTitle>{title}</CardTitle>
@@ -178,7 +178,7 @@ export function MaintenanceForm({
 
 				<CardContent>
 					<form action={formDispatch} className="space-y-6">
-						{/* Simple error display - UnoCSS classes */}
+						{/* Simple error display */}
 						{formState.error && (
 							<div className="mb-4 p-4 bg-red-50 text-red-8 rounded">
 								{formState.error}
@@ -373,7 +373,7 @@ export function MaintenanceForm({
 								<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 									<div className="space-y-2">
 										<Label htmlFor="preferredDate">
-											<i className="i-lucide-calendar inline h-4 w-4 mr-1"  />
+											<Calendar className=" inline h-4 w-4 mr-1"  />
 											Preferred Date
 										</Label>
 										<Input
@@ -387,7 +387,7 @@ export function MaintenanceForm({
 
 									<div className="space-y-2">
 										<Label htmlFor="estimatedCost">
-											<i className="i-lucide-dollar-sign inline h-4 w-4 mr-1"  />
+											<DollarSign className=" inline h-4 w-4 mr-1"  />
 											Estimated Cost
 										</Label>
 										<Input
@@ -439,7 +439,7 @@ export function MaintenanceForm({
 								onClick={onClose}
 								disabled={isPending}
 							>
-								<i className="i-lucide-x mr-2 h-4 w-4"  />
+								<X className=" mr-2 h-4 w-4"  />
 								Cancel
 							</Button>
 
@@ -455,7 +455,7 @@ export function MaintenanceForm({
 									</div>
 								) : (
 									<div className="flex items-center gap-2">
-										<i className="i-lucide-save h-4 w-4"  />
+										<Save className=" h-4 w-4"  />
 										{isEditing ? 'Update Request' : 'Create Request'}
 									</div>
 								)}

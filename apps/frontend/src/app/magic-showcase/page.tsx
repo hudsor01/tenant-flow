@@ -44,14 +44,14 @@ export default function MagicShowcasePage() {
         
         <BlurFade delay={0.25} inView>
           <h1 className="text-5xl font-bold text-center mb-8">
-            MagicUI Components with UnoCSS
+            MagicUI Components with Hudson Digital Solutions
           </h1>
         </BlurFade>
 
         <BlurFade delay={0.5} inView>
           <div className="flex justify-center mb-8">
             <AnimatedGradientText>
-              ✨ Powered by UnoCSS
+              Built by Hudson Digital Solutions 
             </AnimatedGradientText>
           </div>
         </BlurFade>
@@ -60,7 +60,7 @@ export default function MagicShowcasePage() {
       {/* Stats Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
         <BlurFade delay={0.25} inView>
-          <div className="text-center p-6 rounded-lg border border-gray-2 dark:border-gray-8">
+          <div className="text-center p-6 rounded-lg border border-gray-2 dark:border-gray-800">
             <div className="text-4xl font-bold">
               <NumberTicker value={1250} />+
             </div>
@@ -69,7 +69,7 @@ export default function MagicShowcasePage() {
         </BlurFade>
 
         <BlurFade delay={0.5} inView>
-          <div className="text-center p-6 rounded-lg border border-gray-2 dark:border-gray-8">
+          <div className="text-center p-6 rounded-lg border border-gray-2 dark:border-gray-800">
             <div className="text-4xl font-bold">
               <NumberTicker value={98.5} decimalPlaces={1} />%
             </div>
@@ -78,7 +78,7 @@ export default function MagicShowcasePage() {
         </BlurFade>
 
         <BlurFade delay={0.75} inView>
-          <div className="text-center p-6 rounded-lg border border-gray-2 dark:border-gray-8">
+          <div className="text-center p-6 rounded-lg border border-gray-2 dark:border-gray-800">
             <div className="text-4xl font-bold">
               $<NumberTicker value={2500000} />
             </div>
@@ -154,7 +154,7 @@ export default function MagicShowcasePage() {
           <BlurFade key={feature} delay={0.25 + i * 0.1} inView>
             <div className="p-6 rounded-lg border border-gray-2 dark:border-gray-8 hover:shadow-lg transition-shadow">
               <h3 className="text-lg font-semibold mb-2">{feature}</h3>
-              <p className="text-gray-6 dark:text-gray-4">
+              <p className="text-gray-6 dark:text-gray-400">
                 Streamline your {feature.toLowerCase()} with our powerful tools.
               </p>
             </div>

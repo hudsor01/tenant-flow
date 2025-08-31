@@ -9,6 +9,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { 
+	Mail, 
+	Phone, 
+	MessageCircle, 
+	Headphones, 
+	Sparkles, 
+	Clock, 
+	CheckCircle, 
+	Users, 
+	Zap, 
+	Shield, 
+	Send 
+} from 'lucide-react'
 
 interface ContactForm {
 	name: string
@@ -19,7 +32,7 @@ interface ContactForm {
 }
 
 interface ContactMethod {
-	icon: string
+	icon: React.ComponentType<{ className?: string }>
 	title: string
 	description: string
 	contact: string
@@ -44,7 +57,7 @@ export default function ContactPage() {
 
 	const contactMethods: ContactMethod[] = [
 		{
-			icon: 'i-lucide-mail',
+			icon: Mail,
 			title: 'Email Support',
 			description: 'Get help with any questions or issues',
 			contact: 'support@tenantflow.app',
@@ -52,15 +65,15 @@ export default function ContactPage() {
 			gradient: 'from-primary to-primary'
 		},
 		{
-			icon: 'i-lucide-phone',
+			icon: Phone,
 			title: 'Phone Support',
 			description: 'Speak directly with our team',
 			contact: '+1 (555) 123-4567',
 			availability: 'Mon-Fri, 9AM-6PM EST',
-			gradient: 'from-green-5 to-green-6'
+			gradient: 'from-green-500 to-green-600'
 		},
 		{
-			icon: 'i-lucide-message-circle',
+			icon: MessageCircle,
 			title: 'Live Chat',
 			description: 'Instant help when you need it',
 			contact: 'Available in app',
@@ -68,7 +81,7 @@ export default function ContactPage() {
 			gradient: 'from-purple-500 to-purple-600'
 		},
 		{
-			icon: 'i-lucide-headphones',
+			icon: Headphones,
 			title: 'Sales Inquiry',
 			description: 'Learn more about our solutions',
 			contact: 'sales@tenantflow.app',
@@ -131,7 +144,7 @@ export default function ContactPage() {
 							className="mb-6"
 						>
 							<Badge className="from-primary via-accent to-success border-0 bg-gradient-to-r px-6 py-2 text-sm font-semibold text-white shadow-lg">
-								<i className="i-lucide-sparkles  mr-2 h-4 w-4"  />
+								<Sparkles className="mr-2 h-4 w-4" />
 								Contact Us
 							</Badge>
 						</motion.div>
@@ -199,7 +212,7 @@ export default function ContactPage() {
 													<div
 														className={`h-12 w-12 bg-gradient-to-br ${method.gradient} flex items-center justify-center rounded-full transition-transform duration-300 group-hover:scale-110`}
 													>
-														<i className={`${method.icon}  h-6 w-6 text-white`} />
+														<method.icon className="h-6 w-6 text-white" />
 													</div>
 													<div className="flex-1">
 														<h3 className="text-foreground mb-1 font-semibold">
@@ -233,7 +246,7 @@ export default function ContactPage() {
 								<Card className="from-accent/5 to-primary/5 border-0 bg-gradient-to-br">
 									<CardContent className="p-6">
 										<div className="mb-4 flex items-center space-x-3">
-											<i className="i-lucide-clock  text-accent h-6 w-6"  />
+											<Clock className="text-accent h-6 w-6" />
 											<h3 className="text-foreground font-semibold">
 												Office Hours
 											</h3>
@@ -300,7 +313,7 @@ export default function ContactPage() {
 												className="py-12 text-center"
 											>
 												<div className="from-success to-accent mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br">
-													<i className="i-lucide-checkcircle  h-8 w-8 text-white"  />
+													<CheckCircle className="h-8 w-8 text-white" />
 												</div>
 												<h3 className="text-foreground mb-4 text-2xl font-semibold">
 													Message Sent!
@@ -342,17 +355,17 @@ export default function ContactPage() {
 															{
 																value: 'sales',
 																label: 'Sales Inquiry',
-																icon: 'i-lucide-users'
+																icon: Users
 															},
 															{
 																value: 'support',
 																label: 'Technical Support',
-																icon: 'i-lucide-zap'
+																icon: Zap
 															},
 															{
 																value: 'general',
 																label: 'General Question',
-																icon: 'i-lucide-shield'
+																icon: Shield
 															}
 														].map(option => {
 															return (
@@ -374,7 +387,7 @@ export default function ContactPage() {
 																			: 'border-input hover:border-accent/50 text-muted-foreground hover:text-foreground'
 																	}`}
 																>
-																	<i className={`${option.icon}  mx-auto mb-2 h-5 w-5`} />
+																	<option.icon className="mx-auto mb-2 h-5 w-5" />
 																	<div className="text-sm font-medium">
 																		{
 																			option.label
@@ -511,7 +524,7 @@ export default function ContactPage() {
 													) : (
 														<>
 															Send Message
-															<i className="i-lucide-send  ml-2 h-4 w-4 transition-transform group-hover:translate-x-1"  />
+															<Send className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
 														</>
 													)}
 												</Button>

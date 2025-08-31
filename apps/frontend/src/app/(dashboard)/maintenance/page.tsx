@@ -9,6 +9,7 @@ import Link from 'next/link'
 import { MaintenanceDataTable } from '@/components/maintenance/maintenance-data-table'
 import { MaintenanceStats } from '@/components/maintenance/maintenance-stats'
 import { PageTracker } from '@/components/analytics/page-tracker'
+import { Filter, Plus, Search } from 'lucide-react'
 
 function MaintenanceHeader() {
 	return (
@@ -23,12 +24,12 @@ function MaintenanceHeader() {
 			</div>
 			<div className="flex gap-2">
 				<Button variant="outline" size="sm">
-					<i className="i-lucide-filter  mr-2 h-4 w-4"  />
+					<Filter className="mr-2 h-4 w-4" />
 					Filter
 				</Button>
 				<Link href="/maintenance/new">
 					<Button size="sm">
-						<i className="i-lucide-plus  mr-2 h-4 w-4"  />
+						<Plus className="mr-2 h-4 w-4" />
 						Add Request
 					</Button>
 				</Link>
@@ -43,14 +44,14 @@ function MaintenanceSearch() {
 			<CardContent className="p-4">
 				<div className="flex gap-4">
 					<div className="relative flex-1">
-						<i className="i-lucide-search  text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform"  />
+						<Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
 						<Input
 							placeholder="Search requests by title, unit, or status..."
 							className="pl-10"
 						/>
 					</div>
 					<Button variant="outline">
-						<i className="i-lucide-filter  mr-2 h-4 w-4"  />
+						<Filter className="mr-2 h-4 w-4" />
 						Filters
 					</Button>
 				</div>

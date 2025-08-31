@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 import type { MaintenanceStats } from '@repo/shared/types/dashboard-stats'
-
+import { Wrench, Clock, CheckCircle, ClipboardList, PlayCircle } from 'lucide-react'
 function MaintenanceStatsSkeleton() {
 	return (
 		<div className="grid gap-4 md:grid-cols-4">
@@ -43,29 +43,29 @@ function MaintenanceStatsUI({ stats }: MaintenanceStatsUIProps) {
 			title: 'Total Requests',
 			value: stats.total,
 			description: 'All maintenance requests',
-			icon: 'i-lucide-clipboard-list',
+			icon: ClipboardList,
 			color: 'text-primary'
 		},
 		{
 			title: 'Open Requests',
 			value: stats.open,
 			description: 'Awaiting action',
-			icon: 'i-lucide-wrench',
-			color: 'text-yellow-6'
+			icon: Wrench,
+			color: 'text-yellow-600'
 		},
 		{
 			title: 'In Progress',
 			value: stats.inProgress,
 			description: 'Being worked on',
-			icon: 'i-lucide-play-circle',
-			color: 'text-blue-6'
+			icon: PlayCircle,
+			color: 'text-blue-600'
 		},
 		{
 			title: 'Completed',
 			value: stats.completed,
 			description: 'Successfully resolved',
-			icon: 'i-lucide-check-circle',
-			color: 'text-green-6'
+			icon: CheckCircle,
+			color: 'text-green-600'
 		}
 	]
 
@@ -82,7 +82,7 @@ function MaintenanceStatsUI({ stats }: MaintenanceStatsUIProps) {
 								<CardTitle className="text-sm font-medium">
 									{stat.title}
 								</CardTitle>
-								<i className={cn(stat.icon, 'inline-block h-4 w-4', stat.color)} />
+								<stat.icon className={cn('h-4 w-4', stat.color)} />
 							</CardHeader>
 							<CardContent>
 								<div className="text-2xl font-bold">
@@ -104,7 +104,7 @@ function MaintenanceStatsUI({ stats }: MaintenanceStatsUIProps) {
 						<CardTitle className="text-sm font-medium">
 							Avg Resolution Time
 						</CardTitle>
-						<i className="i-lucide-clock h-4 w-4 text-blue-6"  />
+						<Clock className="h-4 w-4 text-blue-600" />
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">
@@ -128,7 +128,7 @@ function MaintenanceStatsUI({ stats }: MaintenanceStatsUIProps) {
 								<span className="text-muted-foreground">
 									Emergency
 								</span>
-								<span className="font-medium text-red-6">
+								<span className="font-medium text-red-600">
 									{0}
 								</span>
 							</div>
@@ -136,7 +136,7 @@ function MaintenanceStatsUI({ stats }: MaintenanceStatsUIProps) {
 								<span className="text-muted-foreground">
 									High
 								</span>
-								<span className="font-medium text-orange-6">
+								<span className="font-medium text-orange-600">
 									{0}
 								</span>
 							</div>
@@ -144,7 +144,7 @@ function MaintenanceStatsUI({ stats }: MaintenanceStatsUIProps) {
 								<span className="text-muted-foreground">
 									Medium
 								</span>
-								<span className="font-medium text-yellow-6">
+								<span className="font-medium text-yellow-600">
 									{0}
 								</span>
 							</div>
@@ -152,7 +152,7 @@ function MaintenanceStatsUI({ stats }: MaintenanceStatsUIProps) {
 								<span className="text-muted-foreground">
 									Low
 								</span>
-								<span className="font-medium text-green-6">
+								<span className="font-medium text-green-600">
 									{0}
 								</span>
 							</div>

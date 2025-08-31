@@ -93,9 +93,23 @@ const nextConfig: NextConfig = {
 
 	// Security headers
 	async headers() {
-		return [
+		const headers = [
+			// Static asset caching
 			{
-				source: '/:path*',
+				source: '/_next/static/:path*',
+				headers: [
+					{
+						key: 'Cache-Control',
+						value: 'public, max-age=31536000, immutable'
+					}
+				]
+			}
+		]
+		
+		// Only apply security headers in production to avoid development MIME issues
+		if (process.env.NODE_ENV === 'production') {
+			headers.push({
+				source: '/((?!_next/static).*)',
 				headers: [
 					{
 						key: 'X-Frame-Options',
@@ -118,18 +132,10 @@ const nextConfig: NextConfig = {
 						value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://us.i.posthog.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; connect-src 'self' https://api.tenantflow.app https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://us.i.posthog.com; frame-src https://js.stripe.com; frame-ancestors 'none';"
 					}
 				]
-			},
-			// Static asset caching
-			{
-				source: '/_next/static/:path*',
-				headers: [
-					{
-						key: 'Cache-Control',
-						value: 'public, max-age=31536000, immutable'
-					}
-				]
-			}
-		]
+			})
+		}
+		
+		return headers
 	},
 
 	// PostHog analytics proxy (prevents ad blockers)
@@ -208,8 +214,8 @@ const nextConfig: NextConfig = {
 			}
 		}
 
-		// UnoCSS is now handled by PostCSS, not webpack
-		// Removed webpack plugin to prevent conflicts
+		// Tailwind CSS v4 is now handled by PostCSS, not webpack
+		// No additional webpack configuration needed
 
 		return typedConfig
 	}

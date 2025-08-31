@@ -19,7 +19,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
 import { SuccessFeedback, ErrorFeedback, OptimisticFeedback } from '@/components/ui/feedback'
-
+import { X , User , Save } from 'lucide-react'
 // Types for form props
 interface TenantFormProps {
 	tenant?: Tenant
@@ -154,7 +154,7 @@ Tenant {isEditing ? 'updated' : 'created'} successfully!
 						<div>
 							<div className="mb-2 flex items-center gap-3">
 								<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-1 dark:bg-blue-9/20">
-									<i className="i-lucide-user h-4 w-4 text-blue-6 dark:text-blue-4"  />
+									<User className=" h-4 w-4 text-blue-6 dark:text-blue-400"  />
 								</div>
 								<div>
 									<h2 className="text-xl font-semibold">
@@ -173,7 +173,7 @@ Tenant {isEditing ? 'updated' : 'created'} successfully!
 						{/* Basic Information Section */}
 						<div className="space-y-4">
 							<div className="flex items-center gap-2">
-								<i className="i-lucide-user h-4 w-4 text-muted-foreground" />
+								<User className=" h-4 w-4 text-muted-foreground" />
 								<div>
 									<h3 className="text-lg font-medium">Basic Information</h3>
 									<p className="text-muted-foreground text-sm">Primary tenant details and contact information</p>
@@ -250,7 +250,7 @@ Tenant {isEditing ? 'updated' : 'created'} successfully!
 								onClick={onClose}
 								disabled={isPending}
 							>
-								<i className="i-lucide-x mr-2 h-4 w-4"  />
+								<X className=" mr-2 h-4 w-4"  />
 								Cancel
 							</Button>
 
@@ -266,7 +266,7 @@ Tenant {isEditing ? 'updated' : 'created'} successfully!
 									</div>
 								) : (
 									<div className="flex items-center gap-2">
-										<i className="i-lucide-save h-4 w-4"  />
+										<Save className=" h-4 w-4"  />
 										{isEditing ? 'Update Tenant' : 'Add Tenant'}
 									</div>
 								)}

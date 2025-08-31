@@ -9,6 +9,7 @@ import {
 	DialogHeader,
 	DialogTitle
 } from '@/components/ui/dialog'
+import { Loader2 } from 'lucide-react'
 
 interface CheckoutButtonProps {
 	planType: keyof typeof PLAN_TYPE
@@ -53,7 +54,7 @@ export function CheckoutButton({
 			>
 				{isLoading ? (
 					<>
-						<i className="i-lucide-loader-2 mr-2 h-4 w-4 animate-spin"  />
+						<Loader2 className=" mr-2 h-4 w-4 animate-spin"  />
 						Loading...
 					</>
 				) : (

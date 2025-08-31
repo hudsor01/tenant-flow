@@ -7,6 +7,7 @@
 'use client'
 
 import React from 'react'
+import { AlertCircle, Loader2 } from 'lucide-react'
 import { Input } from './input'
 import { Label } from './label'
 import { Textarea } from './textarea'
@@ -74,7 +75,7 @@ export function FormError({ error, errors, className, ...props }: FormErrorProps
 			role="alert"
 			{...props}
 		>
-			<i className="i-lucide-alert-circle h-4 w-4 flex-shrink-0"  />
+			<AlertCircle className="h-4 w-4 flex-shrink-0" />
 			<div>
 				{errorList.length === 1 ? (
 					<span>{errorList[0]}</span>
@@ -111,7 +112,7 @@ export function FormSubmit({
 		>
 			{isPending ? (
 				<div className="flex items-center gap-2">
-					<i className="i-lucide-loader-2 h-4 w-4 animate-spin"  />
+					<Loader2 className="h-4 w-4 animate-spin" />
 					{pendingText}
 				</div>
 			) : children}

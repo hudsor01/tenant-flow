@@ -2,7 +2,9 @@
 
 import * as React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Activity, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { INTERACTION_ANIMATIONS } from '@/lib/animations/constants'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -169,7 +171,7 @@ export function SidebarNavItem({ item }: SidebarNavItemProps) {
 							<div className="relative">
 								{item.icon}
 								{item.hasActivity && (
-									<i className="i-lucide-activity absolute -right-1 -top-1 h-2 w-2 text-red-5"  />
+									<Activity className="absolute -right-1 -top-1 h-2 w-2 text-red-500" />
 								)}
 							</div>
 							<span className="flex-1 text-left font-medium">
@@ -200,7 +202,7 @@ export function SidebarNavItem({ item }: SidebarNavItemProps) {
 							animate={{ rotate: isOpen ? 90 : 0 }}
 							transition={springConfig.snappy}
 						>
-							<i className="i-lucide-chevron-right text-sidebar-foreground/60 h-4 w-4"  />
+							<ChevronRight className="text-sidebar-foreground/60 h-4 w-4" />
 						</motion.div>
 					</NavButton>
 				</CollapsibleTrigger>

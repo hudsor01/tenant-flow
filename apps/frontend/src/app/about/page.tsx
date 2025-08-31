@@ -6,28 +6,29 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import Link from 'next/link'
+import { Target, Zap, Heart, Shield, Building2, Users, Award, Sparkles, ArrowRight } from 'lucide-react'
 
 const values = [
 	{
-		icon: 'i-lucide-target',
+		icon: Target,
 		title: 'User-Focused',
 		description:
 			'Every feature starts with understanding your actual needs, not what we think you need.'
 	},
 	{
-		icon: 'i-lucide-zap',
+		icon: Zap,
 		title: 'Lightning Fast',
 		description:
 			'Time is money. Our platform is optimized for speed so you can work efficiently.'
 	},
 	{
-		icon: 'i-lucide-heart',
+		icon: Heart,
 		title: 'Built with Care',
 		description:
 			'We obsess over the details so you can focus on growing your business.'
 	},
 	{
-		icon: 'i-lucide-shield',
+		icon: Shield,
 		title: 'Secure & Reliable',
 		description:
 			'Bank-level security and 99.9% uptime guarantee. Your data is safe with us.'
@@ -37,10 +38,10 @@ const values = [
 // Server Component for static content
 function CompanyStats() {
 	const stats = [
-		{ label: 'Properties Managed', value: '10K+', icon: 'i-lucide-building-2' },
-		{ label: 'Happy Property_ Owners', value: '2.5K+', icon: 'i-lucide-users' },
-		{ label: 'Years of Experience', value: '8+', icon: 'i-lucide-award' },
-		{ label: 'Uptime Guarantee', value: '99.9%', icon: 'i-lucide-shield' }
+		{ label: 'Properties Managed', value: '10K+', icon: Building2 },
+		{ label: 'Happy Property Owners', value: '2.5K+', icon: Users },
+		{ label: 'Years of Experience', value: '8+', icon: Award },
+		{ label: 'Uptime Guarantee', value: '99.9%', icon: Shield }
 	]
 
 	return (
@@ -53,7 +54,7 @@ function CompanyStats() {
 					>
 						<CardContent className="p-6 text-center">
 							<div className="bg-primary/10 mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
-								<i className={`${stat.icon} text-primary h-6 w-6 `} />
+								<stat.icon className="text-primary h-6 w-6" />
 							</div>
 							<div className="text-foreground mb-2 text-3xl font-bold">
 								{stat.value}
@@ -83,7 +84,7 @@ export function AboutContent() {
 							className="mb-6"
 						>
 							<Badge className="from-primary via-accent to-success border-0 bg-gradient-to-r px-6 py-2 text-sm font-semibold text-white shadow-lg">
-								<i className="i-lucide-sparkles  mr-2 h-4 w-4"  />
+								<Sparkles className="mr-2 h-4 w-4" />
 								About TenantFlow
 							</Badge>
 						</motion.div>
@@ -216,7 +217,7 @@ export function AboutContent() {
 									<Card className="h-full border-0 bg-white/80 backdrop-blur-sm transition-all duration-300 hover:shadow-lg">
 										<CardContent className="p-6 text-center">
 											<div className="from-primary to-accent mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br">
-												<i className={`${value.icon} h-8 w-8  text-white`} />
+												<value.icon className="h-8 w-8 text-white" />
 											</div>
 											<h3 className="text-foreground mb-3 text-xl font-semibold">
 												{value.title}
@@ -260,7 +261,7 @@ export function AboutContent() {
 											className="group"
 										>
 											Start Free Trial
-											<i className="i-lucide-arrow-right  ml-2 h-4 w-4 transition-transform group-hover:translate-x-1"  />
+											<ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
 										</Button>
 									</Link>
 									<Link href="/contact">

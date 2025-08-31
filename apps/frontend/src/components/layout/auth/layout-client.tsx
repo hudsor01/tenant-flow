@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { EASING_CURVES } from '@/lib/animations/constants'
 
 interface AuthLayoutClientProps {
 	children: React.ReactNode
@@ -20,7 +21,7 @@ export function AuthLayoutClient({ children, side }: AuthLayoutClientProps) {
 			scale: 1,
 			transition: {
 				duration: 0.8,
-				ease: [0.22, 1, 0.36, 1] as const, // Custom cubic bezier easing
+				ease: EASING_CURVES.ELEGANT,
 				staggerChildren: 0.1
 			}
 		}
@@ -38,7 +39,7 @@ export function AuthLayoutClient({ children, side }: AuthLayoutClientProps) {
 			scale: 1,
 			transition: {
 				duration: 0.6,
-				ease: [0.22, 1, 0.36, 1] as const
+				ease: EASING_CURVES.ELEGANT
 			}
 		}
 	}

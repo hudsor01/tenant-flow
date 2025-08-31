@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { NavigationLink } from './navigation-link'
 import type { NavItem } from '@repo/shared/types/frontend-utils'
-
+import { ChevronRight } from 'lucide-react'
 interface NavigationGroupProps {
 	title?: string
 	items: NavItem[]
@@ -51,11 +51,10 @@ export function NavigationGroup({
 							onClick={() => setIsOpen(!isOpen)}
 							className="h-6 w-6 p-0"
 						>
-							<i className={cn(
-								'i-lucide-chevron-right',
-									'h-3 w-3 transition-transform duration-200',
-									isOpen && 'rotate-90'
-								)} />
+							<ChevronRight className={cn(
+								'h-3 w-3 transition-transform duration-200',
+								isOpen && 'rotate-90'
+							)} />
 						</Button>
 					)}
 				</div>

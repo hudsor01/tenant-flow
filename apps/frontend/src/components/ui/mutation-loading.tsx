@@ -1,8 +1,4 @@
-/**
- * Mutation Loading Components with Mixed Icon Sets
- * Demonstrates using multiple icon libraries with UnoCSS
- */
-
+import { CheckCircle, Loader2, RefreshCw, AlertTriangle } from 'lucide-react'
 import { ButtonSpinner, Spinner } from './spinner'
 import { Button } from './button'
 import { Card, CardContent } from './card'
@@ -43,16 +39,16 @@ export function MutationLoading({
 				{isLoading && (
 					<>
 						<Spinner size="sm" />
-						<span className="text-gray-5">
+						<span className="text-gray-500">
 							{loadingMessage}
 						</span>
 					</>
 				)}
 				{error && (
 					<>
-						{/* Using Heroicons for warning */}
-						<i className="i-heroicons-exclamation-triangle text-red-5 h-4 w-4" />
-						<span className="text-red-5">
+						{/* Using Lucide for warning */}
+						<AlertTriangle className="text-red-5 h-4 w-4" />
+						<span className="text-red-500">
 							{errorMessage || error.message}
 						</span>
 						{onRetry && (
@@ -83,11 +79,11 @@ export function MutationLoading({
 					</div>
 				)}
 				{error && (
-					<Card className="border-red-2 bg-red-1">
+					<Card className="border-red-2 bg-red-100">
 						<CardContent className="p-4">
 							<div className="mb-2 flex items-center gap-2">
-								{/* Using Phosphor icons for error */}
-								<i className="i-ph-warning-circle-bold text-red-5 h-5 w-5" />
+								{/* Using Lucide for error */}
+								<AlertTriangle className="text-red-5 h-5 w-5" />
 								<span className="text-red-6 font-medium">
 									Error
 								</span>
@@ -102,8 +98,8 @@ export function MutationLoading({
 										size="sm"
 										onClick={onRetry}
 									>
-										{/* Using Tabler icons for refresh */}
-										<i className="i-tabler-refresh mr-1 h-3 w-3" />
+										{/* Using Lucide for refresh */}
+										<RefreshCw className="mr-1 h-3 w-3" />
 										Retry
 									</Button>
 								)}
@@ -147,8 +143,8 @@ export function MutationLoading({
 				)}
 				{error && (
 					<div className="text-center">
-						{/* Using Material Design Icons for error state */}
-						<i className="i-mdi-alert-octagon text-red-5 mx-auto mb-3 h-8 w-8 block" />
+						{/* Using Lucide for error state */}
+						<AlertTriangle className="text-red-5 mx-auto mb-3 h-8 w-8 block" />
 						<p className="text-red-6 mb-1 font-medium">
 							Operation Failed
 						</p>
@@ -162,8 +158,8 @@ export function MutationLoading({
 									size="sm"
 									onClick={onRetry}
 								>
-									{/* Using Carbon icons for retry */}
-									<i className="i-carbon-reset mr-1 h-3 w-3" />
+									{/* Using Lucide for retry */}
+									<RefreshCw className="mr-1 h-3 w-3" />
 									Try Again
 								</Button>
 							)}
@@ -204,8 +200,8 @@ export function MutationSuccess({
 		return (
 			<div className="flex items-center gap-2 text-sm">
 				{/* Using Lucide for success */}
-				<i className="i-lucide-check-circle h-4 w-4 text-green-6" />
-				<span className="text-green-7">{message}</span>
+				<CheckCircle className="h-4 w-4 text-green-600" />
+				<span className="text-green-700">{message}</span>
 			</div>
 		)
 	}
@@ -214,17 +210,17 @@ export function MutationSuccess({
 		<Card className="border-green-2 bg-green-50">
 			<CardContent className="p-4">
 				<div className="flex items-center gap-2">
-					{/* Using Heroicons for checkmark */}
-					<i className="i-heroicons-check-badge-solid h-5 w-5 text-green-6" />
-					<span className="font-medium text-green-8">Success</span>
+					{/* Using Lucide for checkmark */}
+					<CheckCircle className="h-5 w-5 text-green-600" />
+					<span className="font-medium text-green-800">Success</span>
 				</div>
-				<p className="mt-1 text-sm text-green-7">{message}</p>
+				<p className="mt-1 text-sm text-green-700">{message}</p>
 				{onDismiss && !autoHide && (
 					<Button
 						variant="link"
 						size="sm"
 						onClick={onDismiss}
-						className="mt-2 h-auto p-0 text-green-7"
+						className="mt-2 h-auto p-0 text-green-700"
 					>
 						Dismiss
 					</Button>
@@ -279,13 +275,13 @@ export function GlobalMutationLoading({
 interface LoadingButtonProps extends React.ComponentProps<typeof Button> {
 	isLoading?: boolean
 	loadingText?: string
-	loadingIcon?: string // Allow custom loading icon
+	loadingIcon?: React.ReactNode // Allow custom loading icon
 }
 
 export function LoadingButton({
 	isLoading = false,
 	loadingText = 'Loading...',
-	loadingIcon = 'i-lucide-loader-2', // Default to Lucide
+	loadingIcon, // Allow custom loading icon
 	disabled,
 	children,
 	...props
@@ -294,7 +290,7 @@ export function LoadingButton({
 		<Button disabled={disabled || isLoading} {...props}>
 			{isLoading ? (
 				<>
-					<i className={`${loadingIcon} animate-spin h-4 w-4`} />
+					{loadingIcon || <Loader2 className="animate-spin h-4 w-4" />}
 					<span>{loadingText}</span>
 				</>
 			) : (
@@ -332,8 +328,8 @@ export function MutationForm({
 			{isLoading && (
 				<div className="bg-white/50 dark:bg-gray-9/50 absolute inset-0 flex items-center justify-center rounded-lg backdrop-blur-sm @container-sm:p-8">
 					<div className="flex flex-col items-center gap-2">
-						{/* Using Radix Icons for form loading */}
-                            <i className="i-radix-icons-update animate-spin h-8 w-8 text-primary" />
+						{/* Using Lucide for form loading */}
+						<Loader2 className="animate-spin h-8 w-8 text-primary" />
 						<span className="text-gray-5 text-sm @container-sm:text-base">
 							{loadingMessage}
 						</span>

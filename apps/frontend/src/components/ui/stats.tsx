@@ -6,10 +6,7 @@
 
 import React from 'react'
 import { cn } from '@/lib/utils'
-
-// ============================================================================
-// NATIVE STYLING CLASSES - Using UnoCSS shortcuts
-// ============================================================================
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 
 const statsClasses = {
 	container: {
@@ -210,11 +207,11 @@ const StatsTrend = React.forwardRef<HTMLDivElement, StatsTrendProps>(
 			if (!showIcon) return null
 			switch (trendDirection) {
 				case 'up':
-					return <i className="icon-sm i-lucide-trending-up"  />
+					return <TrendingUp className="icon-sm" />
 				case 'down':
-					return <i className="icon-sm i-lucide-trending-down"  />
+					return <TrendingDown className="icon-sm" />
 				case 'neutral':
-					return <i className="icon-sm i-lucide-minus"  />
+					return <Minus className="icon-sm" />
 				default:
 					return null
 			}

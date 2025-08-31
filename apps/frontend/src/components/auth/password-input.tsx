@@ -1,6 +1,6 @@
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-
+import { Eye } from 'lucide-react'
 interface PasswordInputProps {
 	id: string
 	label: string
@@ -49,9 +49,9 @@ export function PasswordInput({
 					tabIndex={-1}
 				>
 					{showPassword ? (
-						<i className="i-lucide-eye-off h-4 w-4"  />
+						<Eye className="-off h-4 w-4"  />
 					) : (
-						<i className="i-lucide-eye h-4 w-4"  />
+						<Eye className=" h-4 w-4"  />
 					)}
 				</button>
 			</div>

@@ -11,6 +11,8 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { BlurFade } from '@/components/magicui'
+
 import {
 	Table,
 	TableBody,
@@ -28,6 +30,7 @@ import {
 	getRequestStatusColor,
 	getRequestStatusLabel
 } from '@repo/shared'
+import { Plus, Home, Wrench, DollarSign, Calendar } from 'lucide-react'
 
 // Use flattened API response shape from RPC
 type MaintenanceRequest = MaintenanceRequestApiResponse
@@ -81,14 +84,14 @@ function MaintenanceRow({
 			<TableCell>
 				<div className="flex items-center gap-3">
 					<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-1 dark:bg-orange-9/20">
-						<i className="i-lucide-wrench h-4 w-4 text-orange-6 dark:text-orange-4"  />
+						<Wrench className=" h-4 w-4 text-orange-6 dark:text-orange-400"  />
 					</div>
 					<div className="space-y-1">
 						<p className="font-medium leading-none">
 							{request.title}
 						</p>
 						<div className="text-muted-foreground flex items-center gap-1 text-sm">
-							<i className="i-lucide-home h-3 w-3"  />
+							<Home className=" h-3 w-3"  />
                     {request.propertyName || 'Unknown Property_'}{' '}
                     {request.unitNumber && `- Unit ${request.unitNumber}`}
 						</div>
@@ -99,13 +102,13 @@ function MaintenanceRow({
 			<TableCell>{getStatusBadge(request.status)}</TableCell>
 			<TableCell>
 				<div className="flex items-center gap-1 text-sm">
-					<i className="i-lucide-calendar text-muted-foreground h-3 w-3"  />
+					<Calendar className=" text-muted-foreground h-3 w-3"  />
 					{formatDate(request.createdAt)}
 				</div>
 			</TableCell>
 			<TableCell>
 				<div className="flex items-center gap-1 text-sm">
-					<i className="i-lucide-dollar-sign text-muted-foreground h-3 w-3"  />
+					<DollarSign className=" text-muted-foreground h-3 w-3"  />
 					{formatCurrency(request.estimatedCost)}
 				</div>
 			</TableCell>
@@ -153,7 +156,7 @@ function MaintenanceTableUI({ requests }: MaintenanceTableUIProps) {
 				</CardHeader>
 				<CardContent>
 					<div className="flex flex-col items-center justify-center py-12 text-center">
-						<i className="i-lucide-wrench text-muted-foreground/50 mb-4 h-16 w-16"  />
+						<Wrench className=" text-muted-foreground/50 mb-4 h-16 w-16"  />
 						<h3 className="mb-2 text-lg font-medium">
 							No maintenance requests yet
 						</h3>
@@ -163,7 +166,7 @@ function MaintenanceTableUI({ requests }: MaintenanceTableUIProps) {
 						</p>
 						<Link href="/maintenance/new">
 							<Button>
-								<i className="i-lucide-plus mr-2 h-4 w-4"  />
+								<Plus className=" mr-2 h-4 w-4"  />
 								Add First Request
 							</Button>
 						</Link>
@@ -185,7 +188,7 @@ function MaintenanceTableUI({ requests }: MaintenanceTableUIProps) {
 					</div>
 					<Link href="/maintenance/new">
 						<Button size="sm">
-							<i className="i-lucide-plus mr-2 h-4 w-4"  />
+							<Plus className=" mr-2 h-4 w-4"  />
 							Add Request
 						</Button>
 					</Link>
@@ -207,11 +210,10 @@ function MaintenanceTableUI({ requests }: MaintenanceTableUIProps) {
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-							{requests.map(request => (
-								<MaintenanceRow
-									key={request.id}
-									request={request}
-								/>
+							{requests.map((request, index) => (
+								<BlurFade key={request.id} delay={0.05 * index}>
+									<MaintenanceRow request={request} />
+								</BlurFade>
 							))}
 						</TableBody>
 					</Table>

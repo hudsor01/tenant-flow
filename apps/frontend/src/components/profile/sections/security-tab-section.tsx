@@ -5,7 +5,7 @@ import { logger } from '@/lib/logger/logger'
 import { toast } from 'sonner'
 import type { UseFormReturn } from 'react-hook-form'
 import type { PasswordFormData } from '@repo/shared/types/frontend'
-
+import { Shield , Save , AlertCircle , Lock } from 'lucide-react'
 interface SecurityTabSectionProps {
 	form: UseFormReturn<PasswordFormData>
 	onSubmit: (data: PasswordFormData) => Promise<void>
@@ -42,12 +42,12 @@ export function SecurityTabSection({
 			{/* Security Information */}
 			<div className="rounded-lg border border-blue-2 bg-blue-50 p-4">
 				<div className="flex items-start space-x-3">
-					<i className="i-lucide-shield text-primary mt-0.5 h-5 w-5"  />
+					<Shield className=" text-primary mt-0.5 h-5 w-5"  />
 					<div className="text-sm">
-						<p className="mb-1 font-medium text-blue-9">
+						<p className="mb-1 font-medium text-blue-900">
 							Password Security
 						</p>
-						<p className="text-blue-7">
+						<p className="text-blue-700">
 							Choose a strong password with at least 6 characters.
 							A good password includes a mix of letters, numbers,
 							and symbols.
@@ -62,12 +62,12 @@ export function SecurityTabSection({
 				<div className="space-y-2">
 					<Label
 						htmlFor="currentPass"
-						className="text-sm font-medium text-gray-7"
+						className="text-sm font-medium text-gray-700"
 					>
 						Current Password *
 					</Label>
 					<div className="relative">
-						<i className="i-lucide-lock absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-4"  />
+						<Lock className=" absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400"  />
 						<Input
 							id="currentPass"
 							type="password"
@@ -78,7 +78,7 @@ export function SecurityTabSection({
 						/>
 					</div>
 					{form.formState.errors.currentPassword && (
-						<p className="text-sm text-red-6">
+						<p className="text-sm text-red-600">
 							{form.formState.errors.currentPassword.message}
 						</p>
 					)}
@@ -88,12 +88,12 @@ export function SecurityTabSection({
 				<div className="space-y-2">
 					<Label
 						htmlFor="newPassword"
-						className="text-sm font-medium text-gray-7"
+						className="text-sm font-medium text-gray-700"
 					>
 						New Password *
 					</Label>
 					<div className="relative">
-						<i className="i-lucide-lock absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-4"  />
+						<Lock className=" absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400"  />
 						<Input
 							id="newPassword"
 							type="password"
@@ -104,7 +104,7 @@ export function SecurityTabSection({
 						/>
 					</div>
 					{form.formState.errors.newPassword && (
-						<p className="text-sm text-red-6">
+						<p className="text-sm text-red-600">
 							{form.formState.errors.newPassword.message}
 						</p>
 					)}
@@ -114,12 +114,12 @@ export function SecurityTabSection({
 				<div className="space-y-2">
 					<Label
 						htmlFor="confirmPass"
-						className="text-sm font-medium text-gray-7"
+						className="text-sm font-medium text-gray-700"
 					>
 						Confirm New Password *
 					</Label>
 					<div className="relative">
-						<i className="i-lucide-lock absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-4"  />
+						<Lock className=" absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400"  />
 						<Input
 							id="confirmPass"
 							type="password"
@@ -130,7 +130,7 @@ export function SecurityTabSection({
 						/>
 					</div>
 					{form.formState.errors.confirmPassword && (
-						<p className="text-sm text-red-6">
+						<p className="text-sm text-red-600">
 							{form.formState.errors.confirmPassword.message}
 						</p>
 					)}
@@ -140,7 +140,7 @@ export function SecurityTabSection({
 			{/* Security Warning */}
 			<div className="rounded-lg border border-amber-2 bg-amber-1 p-4">
 				<div className="flex items-start space-x-3">
-					<i className="i-lucide-alert-circle mt-0.5 h-5 w-5 text-amber-6"  />
+					<AlertCircle className=" mt-0.5 h-5 w-5 text-amber-6"  />
 					<div className="text-sm">
 						<p className="mb-1 font-medium text-amber-9">
 							Important Security Note
@@ -167,7 +167,7 @@ export function SecurityTabSection({
 				<Button
 					type="submit"
 					disabled={form.formState.isSubmitting}
-					className="bg-red-6 hover:bg-red-7"
+					className="bg-red-6 hover:bg-red-700"
 				>
 					{form.formState.isSubmitting ? (
 						<>
@@ -176,7 +176,7 @@ export function SecurityTabSection({
 						</>
 					) : (
 						<>
-							<i className="i-lucide-save mr-2 h-4 w-4"  />
+							<Save className=" mr-2 h-4 w-4"  />
 							Update Password
 						</>
 					)}

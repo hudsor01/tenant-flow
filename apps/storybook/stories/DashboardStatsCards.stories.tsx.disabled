@@ -1,0 +1,185 @@
+import type { Meta, StoryObj } from '@storybook/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { DashboardStatsCards } from '../../frontend/src/components/dashboard/dashboard-stats-cards';
+import type { DashboardStats } from '@repo/shared';
+
+// Mock hook for different states
+const mockUseDashboardStats = (mockData: {
+  data?: DashboardStats | null;
+  isLoading?: boolean;
+  error?: Error | null;
+}) => ({
+  data: mockData.data ?? null,
+  isLoading: mockData.isLoading ?? false,
+  error: mockData.error ?? null,
+});
+
+// Create a wrapper component that can mock the hook
+const DashboardStatsCardsWrapper = ({ 
+  mockData 
+}: { 
+  mockData: Parameters<typeof mockUseDashboardStats>[0] 
+}) => {
+  // Mock the hook at module level
+  const originalModule = require('../../frontend/src/hooks/api/use-dashboard');
+  originalModule.useDashboardStats = () => mockUseDashboardStats(mockData);
+  
+  return <DashboardStatsCards />;
+};
+
+// Wrap with QueryClient provider
+const StoryWrapper = ({ children }: { children: React.ReactNode }) => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false, refetchOnWindowFocus: false },
+    },
+  });
+  
+  return (
+    <QueryClientProvider client={queryClient}>
+      <div className="p-6 bg-background">
+        {children}
+      </div>
+    </QueryClientProvider>
+  );
+};
+
+const meta: Meta<typeof DashboardStatsCardsWrapper> = {
+  title: 'TenantFlow/Dashboard/StatsCards',
+  component: DashboardStatsCardsWrapper,
+  decorators: [(Story) => <StoryWrapper><Story /></StoryWrapper>],
+  parameters: {
+    layout: 'fullscreen',
+    docs: {
+      description: {
+        component: 'Dashboard statistics cards showing key property management metrics including properties, tenants, leases, and maintenance requests.',
+      },
+    },
+  },
+  tags: ['autodocs'],
+};
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+// Sample data for different scenarios
+const mockStatsData: DashboardStats = {
+  properties: {
+    totalProperties: 12,
+    totalUnits: 48,
+    occupancyRate: 87.5,
+    averageRent: 1450,
+  },
+  tenants: {
+    totalTenants: 42,
+    activeTenants: 42,
+    inactiveTenants: 0,
+  },
+  units: {
+    totalUnits: 48,
+    availableUnits: 6,
+    occupiedUnits: 42,
+    maintenanceUnits: 0,
+    averageRent: 1450,
+  },
+  leases: {
+    totalLeases: 42,
+    activeLeases: 42,
+    expiredLeases: 0,
+    pendingLeases: 0,
+    totalRentRoll: 60900,
+  },
+  maintenanceRequests: {
+    total: 8,
+    open: 3,
+    inProgress: 2,
+    completed: 3,
+  },
+  notifications: {
+    total: 15,
+    unread: 4,
+  },
+};
+
+// Default story with healthy portfolio
+export const Default: Story = {
+  args: {
+    mockData: { data: mockStatsData },
+  },
+};
+
+// High occupancy, successful business
+export const SuccessfulPortfolio: Story = {
+  args: {
+    mockData: {
+      data: {
+        ...mockStatsData,
+        properties: { ...mockStatsData.properties, totalProperties: 25, totalUnits: 120, occupancyRate: 96.7 },
+        tenants: { ...mockStatsData.tenants, totalTenants: 116, activeTenants: 116 },
+        leases: { ...mockStatsData.leases, totalLeases: 116, activeLeases: 116, totalRentRoll: 174000 },
+        units: { ...mockStatsData.units, totalUnits: 120, occupiedUnits: 116, availableUnits: 4 },
+        maintenanceRequests: { total: 2, open: 1, inProgress: 1, completed: 0 },
+      },
+    },
+  },
+};
+
+// New landlord with few properties
+export const StartingPortfolio: Story = {
+  args: {
+    mockData: {
+      data: {
+        ...mockStatsData,
+        properties: { ...mockStatsData.properties, totalProperties: 2, totalUnits: 6, occupancyRate: 50 },
+        tenants: { ...mockStatsData.tenants, totalTenants: 3, activeTenants: 3 },
+        leases: { ...mockStatsData.leases, totalLeases: 3, activeLeases: 3, totalRentRoll: 4200 },
+        units: { ...mockStatsData.units, totalUnits: 6, occupiedUnits: 3, availableUnits: 3 },
+        maintenanceRequests: { total: 1, open: 1, inProgress: 0, completed: 0 },
+      },
+    },
+  },
+};
+
+// High maintenance, challenging period
+export const MaintenanceHeavy: Story = {
+  args: {
+    mockData: {
+      data: {
+        ...mockStatsData,
+        properties: { ...mockStatsData.properties, occupancyRate: 75 },
+        maintenanceRequests: { total: 25, open: 12, inProgress: 8, completed: 5 },
+        units: { ...mockStatsData.units, occupiedUnits: 36, availableUnits: 8, maintenanceUnits: 4 },
+      },
+    },
+  },
+};
+
+// Empty state - no data
+export const NoData: Story = {
+  args: {
+    mockData: {
+      data: {
+        properties: { totalProperties: 0, totalUnits: 0, occupancyRate: 0, averageRent: 0 },
+        tenants: { totalTenants: 0, activeTenants: 0, inactiveTenants: 0 },
+        units: { totalUnits: 0, availableUnits: 0, occupiedUnits: 0, maintenanceUnits: 0, averageRent: 0 },
+        leases: { totalLeases: 0, activeLeases: 0, expiredLeases: 0, pendingLeases: 0, totalRentRoll: 0 },
+        maintenanceRequests: { total: 0, open: 0, inProgress: 0, completed: 0 },
+        notifications: { total: 0, unread: 0 },
+      },
+    },
+  },
+};
+
+// Loading state
+export const Loading: Story = {
+  args: {
+    mockData: { isLoading: true },
+  },
+};
+
+// Error state
+export const Error: Story = {
+  args: {
+    mockData: { error: new Error('Failed to load dashboard statistics') },
+  },
+};

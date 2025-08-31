@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { MaintenanceForm } from '@/components/maintenance/maintenance-form'
 import { PageTracker } from '@/components/analytics/page-tracker'
 import type { Metadata } from 'next/types'
-
+import { Wrench , ArrowLeft } from 'lucide-react'
 export const metadata: Metadata = {
 	title: 'Create Maintenance Request | TenantFlow',
 	description: 'Create a new maintenance request for your property'
@@ -17,7 +17,7 @@ function NewMaintenanceHeader() {
 			<div className="flex items-center space-x-4">
 				<Link href="/maintenance">
 					<Button variant="outline" size="sm">
-						<i className="i-lucide-arrow-left mr-2 h-4 w-4"  />
+						<ArrowLeft className=" mr-2 h-4 w-4"  />
 						Back to Maintenance
 					</Button>
 				</Link>
@@ -45,7 +45,7 @@ export default function NewMaintenancePage() {
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
 							<div className="bg-primary op-10 rounded-lg p-2">
-								<i className="i-lucide-wrench text-primary h-5 w-5"  />
+								<Wrench className=" text-primary h-5 w-5"  />
 							</div>
 							Request Information
 						</CardTitle>
@@ -54,9 +54,9 @@ export default function NewMaintenancePage() {
 						<Suspense
 							fallback={
 								<div className="space-y-4">
-									<div className="h-10 w-full animate-pulse rounded bg-gray-2" />
-									<div className="h-10 w-full animate-pulse rounded bg-gray-2" />
-									<div className="h-10 w-full animate-pulse rounded bg-gray-2" />
+									<div className="h-10 w-full animate-pulse rounded bg-gray-200" />
+									<div className="h-10 w-full animate-pulse rounded bg-gray-200" />
+									<div className="h-10 w-full animate-pulse rounded bg-gray-200" />
 								</div>
 							}
 						>
