@@ -1,11 +1,18 @@
-// PostCSS config in CommonJS for Next.js compatibility
+// PostCSS config optimized for Tailwind CSS v4 and Next.js
 module.exports = {
   plugins: {
-    '@unocss/postcss': {
-      // Load UnoCSS config from this app directory
-      configOrPath: './uno.config.ts',
+    '@tailwindcss/postcss': {
+      // Enable Tailwind CSS v4 optimizations
+      optimize: true,
     },
-    autoprefixer: {},
+    autoprefixer: {
+      // Optimize for modern browsers
+      overrideBrowserslist: [
+        'defaults',
+        'not IE 11',
+        'not IE_Mob 11',
+      ],
+    },
   },
 }
 

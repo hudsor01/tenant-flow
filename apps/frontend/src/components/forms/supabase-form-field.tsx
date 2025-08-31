@@ -226,13 +226,13 @@ export function SupabaseFormField<TFormData extends FieldValues = FieldValues>({
 		<div className="space-y-2">
 			<Label htmlFor={name}>
 				{label}
-				{required && <span className="ml-1 text-red-5">*</span>}
+				{required && <span className="ml-1 text-red-500">*</span>}
 				{isValidating && (
-					<span className="ml-1 text-yellow-5">(checking...)</span>
+					<span className="ml-1 text-yellow-500">(checking...)</span>
 				)}
 			</Label>
 			{renderField()}
-			{fieldError && <p className="text-sm text-red-6">{fieldError}</p>}
+			{fieldError && <p className="text-sm text-red-600">{fieldError}</p>}
 		</div>
 	)
 }
@@ -268,7 +268,7 @@ export function Property_TypeField<TFormData extends FieldValues = FieldValues>(
 		<div className={cn('space-y-2', className)}>
 			<Label htmlFor={name}>
 				{label}
-				{required && <span className="ml-1 text-red-5">*</span>}
+				{required && <span className="ml-1 text-red-500">*</span>}
 			</Label>
 			<Select
 				name={name}
@@ -288,7 +288,7 @@ export function Property_TypeField<TFormData extends FieldValues = FieldValues>(
 				</SelectContent>
 			</Select>
 			{error?.message && (
-				<p className="text-sm text-red-6">{error.message}</p>
+				<p className="text-sm text-red-600">{error.message}</p>
 			)}
 		</div>
 	)

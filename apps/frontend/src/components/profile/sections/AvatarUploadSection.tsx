@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-
+import { User , Upload } from 'lucide-react'
 interface AvatarUploadSectionProps {
 	currentAvatar?: string
 	userName?: string
@@ -53,7 +53,7 @@ export function AvatarUploadSection({
 						alt={userName}
 					/>
 					<AvatarFallback>
-						{currentAvatar ? <i className="i-lucide-user"  /> : getInitials(userName)}
+						{currentAvatar ? <User className=""  /> : getInitials(userName)}
 					</AvatarFallback>
 				</Avatar>
 
@@ -66,7 +66,7 @@ export function AvatarUploadSection({
 							asChild
 						>
 							<span>
-								<i className="i-lucide-upload mr-2 h-4 w-4"  />
+								<Upload className=" mr-2 h-4 w-4"  />
 								Change Avatar
 							</span>
 						</Button>

@@ -1,0 +1,503 @@
+import type { Meta, StoryObj } from '@storybook/react';
+import { useState } from 'react';
+import { ProfileSettings } from '../../../apps/frontend/src/components/settings/profile-settings';
+
+const meta: Meta<typeof ProfileSettings> = {
+  title: 'Authentication/Profile & Settings',
+  component: ProfileSettings,
+  parameters: {
+    layout: 'centered',
+    docs: {
+      description: {
+        component: `
+        Profile and account settings components for TenantFlow users.
+        
+        Features:
+        - User profile information management
+        - Avatar upload and management
+        - Contact information updates
+        - Business information for landlords
+        - Account status display
+        - Form validation and error handling
+        - Save state management
+        `,
+      },
+    },
+  },
+  tags: ['autodocs'],
+};
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+// Basic Profile Settings
+export const BasicProfileSettings: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story: 'Standard profile settings form with all user information fields.',
+      },
+    },
+  },
+};
+
+// Landlord Profile Settings
+export const LandlordProfileSettings: Story = {
+  render: () => {
+    const [profile, setProfile] = useState({
+      firstName: 'Sarah',
+      lastName: 'Johnson',
+      email: 'sarah.johnson@propertymax.com',
+      phone: '+1 (555) 234-5678',
+      company: 'PropertyMax Management LLC',
+      address: '456 Business Ave, Suite 200, Denver, CO 80202',
+      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face'
+    });
+    
+    const [isLoading, setIsLoading] = useState(false);
+    
+    const handleSave = async () => {
+      setIsLoading(true);
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      setIsLoading(false);
+    };
+    
+    return (
+      <div className="w-full max-w-2xl">
+        <div className="mb-6 text-center">
+          <h2 className="text-2xl font-bold mb-2">Landlord Profile</h2>
+          <p className="text-muted-foreground">Manage your property management business information</p>
+        </div>
+        <ProfileSettings />
+      </div>
+    );
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: 'Profile settings specifically configured for landlord users with business information.',
+      },
+    },
+  },
+};
+
+// Tenant Profile Settings
+export const TenantProfileSettings: Story = {
+  render: () => (
+    <div className="w-full max-w-2xl">
+      <div className="mb-6 text-center">
+        <h2 className="text-2xl font-bold mb-2">Tenant Profile</h2>
+        <p className="text-muted-foreground">Keep your rental information up to date</p>
+      </div>
+      <ProfileSettings />
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story: 'Profile settings for tenant users focusing on personal and contact information.',
+      },
+    },
+  },
+};
+
+// Profile Settings with Validation Errors
+export const WithValidationErrors: Story = {
+  render: () => {
+    const [errors, setErrors] = useState({
+      email: 'Please enter a valid email address',
+      phone: 'Phone number must be at least 10 digits',
+    });
+    
+    return (
+      <div className="w-full max-w-2xl space-y-6">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">Profile with Validation Errors</h2>
+          <p className="text-muted-foreground">Form showing validation error states</p>
+        </div>
+        
+        <ProfileSettings />
+        
+        {/* Simulate validation errors */}
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <h3 className="font-semibold text-red-800 mb-2">Validation Errors:</h3>
+          <ul className="text-sm text-red-700 space-y-1">
+            {Object.entries(errors).map(([field, error]) => (
+              <li key={field}>• {field}: {error}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    );
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: 'Profile settings form showing validation errors and how they are displayed to users.',
+      },
+    },
+  },
+};
+
+// Profile Settings Comparison
+export const ProfileSettingsComparison: Story = {
+  render: () => (
+    <div className="w-full space-y-8 p-8">
+      <div className="text-center mb-8">
+        <h2 className="text-2xl font-bold mb-2">Profile Settings Variations</h2>
+        <p className="text-muted-foreground">Different profile configurations for various user types</p>
+      </div>
+      
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 max-w-7xl mx-auto">
+        {/* Basic User Profile */}
+        <div className="space-y-4">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold">Basic User Profile</h3>
+            <p className="text-sm text-muted-foreground">Standard profile for individual users</p>
+          </div>
+          <div className="border rounded-lg p-6 bg-blue-50/30">
+            <ProfileSettings />
+          </div>
+        </div>
+        
+        {/* Business User Profile */}
+        <div className="space-y-4">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold">Business User Profile</h3>
+            <p className="text-sm text-muted-foreground">Enhanced profile with business information</p>
+          </div>
+          <div className="border rounded-lg p-6 bg-green-50/30">
+            <ProfileSettings />
+          </div>
+        </div>
+      </div>
+    </div>
+  ),
+  parameters: {
+    layout: 'fullscreen',
+    docs: {
+      description: {
+        story: 'Side-by-side comparison of profile settings for different user types and use cases.',
+      },
+    },
+  },
+};
+
+// Account Status Variations
+export const AccountStatusVariations: Story = {
+  render: () => (
+    <div className="w-full space-y-8 p-8">
+      <div className="text-center mb-8">
+        <h2 className="text-2xl font-bold mb-2">Account Status Variations</h2>
+        <p className="text-muted-foreground">Different account statuses and subscription plans</p>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        {/* Free Plan */}
+        <div className="space-y-3">
+          <h3 className="font-semibold text-center">Free Plan</h3>
+          <div className="border rounded-lg p-4 bg-gray-50/30">
+            <div className="flex justify-between items-center">
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Account Status</p>
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    Active
+                  </span>
+                  <span className="text-sm text-muted-foreground">Free Plan</span>
+                </div>
+              </div>
+              <button className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
+                Upgrade
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        {/* Premium Plan */}
+        <div className="space-y-3">
+          <h3 className="font-semibold text-center">Premium Plan</h3>
+          <div className="border rounded-lg p-4 bg-blue-50/30">
+            <div className="flex justify-between items-center">
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Account Status</p>
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    Active
+                  </span>
+                  <span className="text-sm text-muted-foreground">Premium Plan</span>
+                </div>
+              </div>
+              <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
+                Manage
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        {/* Trial Plan */}
+        <div className="space-y-3">
+          <h3 className="font-semibold text-center">Trial Plan</h3>
+          <div className="border rounded-lg p-4 bg-orange-50/30">
+            <div className="flex justify-between items-center">
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Account Status</p>
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                    Trial
+                  </span>
+                  <span className="text-sm text-muted-foreground">7 days left</span>
+                </div>
+              </div>
+              <button className="px-3 py-1 text-sm bg-orange-600 text-white rounded hover:bg-orange-700">
+                Subscribe
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        {/* Suspended Account */}
+        <div className="space-y-3">
+          <h3 className="font-semibold text-center">Suspended Account</h3>
+          <div className="border rounded-lg p-4 bg-red-50/30">
+            <div className="flex justify-between items-center">
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Account Status</p>
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                    Suspended
+                  </span>
+                  <span className="text-sm text-muted-foreground">Payment required</span>
+                </div>
+              </div>
+              <button className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700">
+                Reactivate
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        {/* Cancelled Account */}
+        <div className="space-y-3">
+          <h3 className="font-semibold text-center">Cancelled Account</h3>
+          <div className="border rounded-lg p-4 bg-gray-100/50">
+            <div className="flex justify-between items-center">
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Account Status</p>
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                    Cancelled
+                  </span>
+                  <span className="text-sm text-muted-foreground">Expires Dec 31</span>
+                </div>
+              </div>
+              <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
+                Renew
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        {/* Enterprise Plan */}
+        <div className="space-y-3">
+          <h3 className="font-semibold text-center">Enterprise Plan</h3>
+          <div className="border rounded-lg p-4 bg-purple-50/30">
+            <div className="flex justify-between items-center">
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Account Status</p>
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                    Enterprise
+                  </span>
+                  <span className="text-sm text-muted-foreground">Custom Plan</span>
+                </div>
+              </div>
+              <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
+                Contact Sales
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  ),
+  parameters: {
+    layout: 'fullscreen',
+    docs: {
+      description: {
+        story: 'Various account status displays showing different subscription plans and account states.',
+      },
+    },
+  },
+};
+
+// Avatar Upload Variations
+export const AvatarUploadVariations: Story = {
+  render: () => (
+    <div className="w-full space-y-8 p-8">
+      <div className="text-center mb-8">
+        <h2 className="text-2xl font-bold mb-2">Avatar Upload Variations</h2>
+        <p className="text-muted-foreground">Different avatar states and upload interfaces</p>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+        {/* Default Avatar */}
+        <div className="text-center space-y-3">
+          <h3 className="font-semibold">Default Avatar</h3>
+          <div className="flex flex-col items-center">
+            <div className="h-20 w-20 rounded-full bg-blue-500 flex items-center justify-center text-white text-lg font-bold mb-3">
+              JD
+            </div>
+            <button className="px-3 py-1 text-sm border rounded hover:bg-gray-50">
+              Upload Photo
+            </button>
+          </div>
+        </div>
+        
+        {/* With Photo */}
+        <div className="text-center space-y-3">
+          <h3 className="font-semibold">With Photo</h3>
+          <div className="flex flex-col items-center">
+            <img 
+              src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face" 
+              alt="User avatar"
+              className="h-20 w-20 rounded-full object-cover mb-3"
+            />
+            <button className="px-3 py-1 text-sm border rounded hover:bg-gray-50">
+              Change Photo
+            </button>
+          </div>
+        </div>
+        
+        {/* Upload in Progress */}
+        <div className="text-center space-y-3">
+          <h3 className="font-semibold">Uploading</h3>
+          <div className="flex flex-col items-center">
+            <div className="h-20 w-20 rounded-full bg-gray-200 flex items-center justify-center mb-3 relative">
+              <div className="absolute inset-0 rounded-full bg-black/20 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent"></div>
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground">Uploading...</p>
+          </div>
+        </div>
+        
+        {/* Upload Error */}
+        <div className="text-center space-y-3">
+          <h3 className="font-semibold">Upload Error</h3>
+          <div className="flex flex-col items-center">
+            <div className="h-20 w-20 rounded-full bg-red-100 flex items-center justify-center text-red-600 mb-3">
+              <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <button className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700">
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  ),
+  parameters: {
+    layout: 'fullscreen',
+    docs: {
+      description: {
+        story: 'Different avatar states including default, uploaded, uploading, and error states.',
+      },
+    },
+  },
+};
+
+// Save States Demo
+export const SaveStatesDemo: Story = {
+  render: () => {
+    const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+    
+    const simulateSave = async () => {
+      setSaveState('saving');
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Simulate random success/error for demo
+      const success = Math.random() > 0.3;
+      setSaveState(success ? 'saved' : 'error');
+      
+      setTimeout(() => setSaveState('idle'), 3000);
+    };
+    
+    return (
+      <div className="w-full max-w-2xl space-y-6">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">Save States Demo</h2>
+          <p className="text-muted-foreground">Interactive demo of different save states</p>
+        </div>
+        
+        <ProfileSettings />
+        
+        {/* Save button with different states */}
+        <div className="flex justify-center space-x-4">
+          <button
+            onClick={simulateSave}
+            disabled={saveState === 'saving'}
+            className={`px-6 py-2 rounded-lg font-medium transition-all ${
+              saveState === 'saving' 
+                ? 'bg-gray-400 text-white cursor-not-allowed' 
+                : saveState === 'saved'
+                ? 'bg-green-600 text-white'
+                : saveState === 'error'
+                ? 'bg-red-600 text-white'
+                : 'bg-blue-600 text-white hover:bg-blue-700'
+            }`}
+          >
+            {saveState === 'saving' && (
+              <>
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Saving...
+              </>
+            )}
+            {saveState === 'saved' && (
+              <>
+                <svg className="mr-2 h-4 w-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Saved!
+              </>
+            )}
+            {saveState === 'error' && (
+              <>
+                <svg className="mr-2 h-4 w-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Error
+              </>
+            )}
+            {saveState === 'idle' && 'Save Changes'}
+          </button>
+        </div>
+        
+        {/* Status message */}
+        {saveState !== 'idle' && (
+          <div className={`text-center text-sm p-3 rounded-lg ${
+            saveState === 'saving' ? 'bg-blue-50 text-blue-700' :
+            saveState === 'saved' ? 'bg-green-50 text-green-700' :
+            'bg-red-50 text-red-700'
+          }`}>
+            {saveState === 'saving' && 'Saving your changes...'}
+            {saveState === 'saved' && 'Your profile has been updated successfully!'}
+            {saveState === 'error' && 'Failed to save changes. Please try again.'}
+          </div>
+        )}
+      </div>
+    );
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: 'Interactive demonstration of different save states including idle, saving, success, and error states.',
+      },
+    },
+  },
+};

@@ -12,14 +12,14 @@ import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-
+import { Users, Wrench, DollarSign, AlertTriangle, Calendar, Save, Bell, Mail, Smartphone, Loader2 } from 'lucide-react'
 interface NotificationSetting {
 	id: string
 	label: string
 	description: string
 	email: boolean
 	push: boolean
-	icon: string // UnoCSS icon class name
+	icon: React.ComponentType<{ className?: string }>
 }
 
 export function NotificationSettings() {
@@ -32,7 +32,7 @@ export function NotificationSettings() {
 			description: 'Get notified when rent is paid or overdue',
 			email: true,
 			push: true,
-			icon: 'i-lucide-dollar-sign'
+			icon: DollarSign
 		},
 		{
 			id: 'lease_expiry',
@@ -40,7 +40,7 @@ export function NotificationSettings() {
 			description: 'Alerts when leases are expiring soon',
 			email: true,
 			push: false,
-			icon: 'i-lucide-calendar'
+			icon: Calendar
 		},
 		{
 			id: 'maintenance_requests',
@@ -48,7 +48,7 @@ export function NotificationSettings() {
 			description: 'New maintenance requests from tenants',
 			email: true,
 			push: true,
-			icon: 'i-lucide-wrench'
+			icon: Wrench
 		},
 		{
 			id: 'tenant_messages',
@@ -56,7 +56,7 @@ export function NotificationSettings() {
 			description: 'Messages and communications from tenants',
 			email: false,
 			push: true,
-			icon: 'i-lucide-users'
+			icon: Users
 		},
 		{
 			id: 'urgent_issues',
@@ -64,7 +64,7 @@ export function NotificationSettings() {
 			description: 'High priority maintenance or emergency alerts',
 			email: true,
 			push: true,
-			icon: 'i-lucide-alert-triangle'
+			icon: AlertTriangle
 		}
 	])
 
@@ -94,7 +94,7 @@ export function NotificationSettings() {
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<i className="i-lucide-bell h-5 w-5"  />
+						<Bell className="h-5 w-5" />
 						Notification Preferences
 					</CardTitle>
 					<CardDescription>
@@ -110,11 +110,11 @@ export function NotificationSettings() {
 								Notification Type
 							</div>
 							<div className="flex items-center gap-2 text-sm font-medium">
-								<i className="i-lucide-mail h-4 w-4"  />
+								<Mail className="h-4 w-4" />
 								Email
 							</div>
 							<div className="flex items-center gap-2 text-sm font-medium">
-								<i className="i-lucide-smartphone h-4 w-4"  />
+								<Smartphone className="h-4 w-4" />
 								Push
 							</div>
 						</div>
@@ -129,7 +129,7 @@ export function NotificationSettings() {
 								>
 									<div className="space-y-1">
 										<div className="flex items-center gap-2">
-											<i className={`${setting.icon} text-muted-foreground h-4 w-4`} />
+											<setting.icon className="text-muted-foreground h-4 w-4" />
 											<Label className="font-medium">
 												{setting.label}
 											</Label>
@@ -174,9 +174,9 @@ export function NotificationSettings() {
 					<div className="flex justify-end">
 						<Button onClick={handleSave} disabled={isLoading}>
 							{isLoading ? (
-								<i className="i-lucide-loader-2 mr-2 h-4 w-4 animate-spin"  />
+								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 							) : (
-								<i className="i-lucide-save mr-2 h-4 w-4"  />
+								<Save className="mr-2 h-4 w-4" />
 							)}
 							Save Preferences
 						</Button>

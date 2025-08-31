@@ -3,28 +3,12 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
-import type { Unit } from '@repo/shared'
-
-// Define local interface for component needs - explicitly include key fields to avoid type resolution issues
-interface Property_WithUnits {
-	id: string
-	name: string
-	address: string
-	city: string
-	state: string
-	zipCode: string
-	description: string | null
-	propertyType: string
-	imageUrl: string | null
-	ownerId: string
-	createdAt: string
-	updatedAt: string
-	units?: Unit[]
-}
+import type { PropertyWithUnits } from '@repo/shared'
 import { formatCurrency as sharedFormatCurrency } from '@repo/shared'
+import { Building2, MapPin, DollarSign, Eye, Edit, Trash } from 'lucide-react'
 
-// Use the Unit type that comes with Property_WithUnits to avoid conflicts
-type Property_Unit = NonNullable<Property_WithUnits['units']>[0]
+// Use the Unit type that comes with PropertyWithUnits to avoid conflicts
+type Property_Unit = NonNullable<PropertyWithUnits['units']>[0]
 import { createSelectColumn, createActionsColumn } from '../dense-table'
 import { cn } from '@/lib/utils'
 import { createPropertyDeletionHandler } from '@/lib/utils/property-deletion'
@@ -72,9 +56,9 @@ function getStatusLabel(occupancyRate: number): string {
 // Use property.stats which comes from backend calculations in property-actions.ts
 // This ensures data consistency and prevents duplication of business logic
 
-// Column definitions - Property_WithUnits includes units array for calculating stats
-export const propertyColumns: ColumnDef<Property_WithUnits>[] = [
-	createSelectColumn<Property_WithUnits>(),
+// Column definitions - PropertyWithUnits includes units array for calculating stats
+export const propertyColumns: ColumnDef<PropertyWithUnits>[] = [
+	createSelectColumn<PropertyWithUnits>(),
 
 	{
 		accessorKey: 'name',
@@ -85,7 +69,7 @@ export const propertyColumns: ColumnDef<Property_WithUnits>[] = [
 			return (
 				<div className="flex min-w-0 items-center gap-2">
 					<div className="bg-primary/10 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded">
-						<i className="i-lucide-building-2 text-primary h-3 w-3"  />
+						<Building2 className="text-primary h-3 w-3" />
 					</div>
 					<div className="min-w-0 flex-1">
 						<Link
@@ -110,7 +94,7 @@ export const propertyColumns: ColumnDef<Property_WithUnits>[] = [
 
 			return (
 				<div className="flex min-w-0 items-center gap-2">
-					<i className="i-lucide-map-pin text-muted-foreground h-3 w-3 flex-shrink-0"  />
+					<MapPin className="text-muted-foreground h-3 w-3 flex-shrink-0" />
 					<span
 						className="text-muted-foreground truncate text-xs"
 						title={fullAddress}
@@ -129,8 +113,9 @@ export const propertyColumns: ColumnDef<Property_WithUnits>[] = [
 		cell: ({ row }) => {
 			const property = row.original
 			// Calculate stats from units if available
-			const totalUnits = property.units?.length ?? 0
-			const occupiedUnits = property.units?.filter((u: Property_Unit) => u.status === 'OCCUPIED').length ?? 0
+			// NO CALCULATIONS - Use backend metrics
+			const totalUnits = property.totalUnits
+			const occupiedUnits = property.occupiedUnits
 
 			return (
 				<div className="text-center">
@@ -149,9 +134,10 @@ export const propertyColumns: ColumnDef<Property_WithUnits>[] = [
 		cell: ({ row }) => {
 			const property = row.original
 			// Calculate occupancy rate from units
-			const totalUnits = property.units?.length ?? 0
-			const occupiedUnits = property.units?.filter((u: Property_Unit) => u.status === 'OCCUPIED').length ?? 0
-			const occupancyRate = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
+			// NO CALCULATIONS - Use backend metrics
+			const _totalUnits = property.totalUnits
+			const _occupiedUnits = property.occupiedUnits
+			const occupancyRate = property.occupancyRate
 
 			return (
 				<div className="flex items-center gap-2">
@@ -194,7 +180,7 @@ export const propertyColumns: ColumnDef<Property_WithUnits>[] = [
 
 			return (
 				<div className="flex items-center gap-1">
-					<i className="i-lucide-dollar-sign text-muted-foreground h-3 w-3"  />
+					<DollarSign className="text-muted-foreground h-3 w-3" />
 					<span className="text-xs font-medium">
 						{formatCurrency(totalRevenue)}
 					</span>
@@ -210,9 +196,10 @@ export const propertyColumns: ColumnDef<Property_WithUnits>[] = [
 		cell: ({ row }) => {
 			const property = row.original
 			// Calculate occupancy rate from units
-			const totalUnits = property.units?.length ?? 0
-			const occupiedUnits = property.units?.filter((u: Property_Unit) => u.status === 'OCCUPIED').length ?? 0
-			const occupancyRate = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
+			// NO CALCULATIONS - Use backend metrics
+			const _totalUnits = property.totalUnits
+			const _occupiedUnits = property.occupiedUnits
+			const occupancyRate = property.occupancyRate
 			const statusLabel = getStatusLabel(occupancyRate)
 			const variant = getStatusBadgeVariant(occupancyRate)
 
@@ -227,33 +214,33 @@ export const propertyColumns: ColumnDef<Property_WithUnits>[] = [
 	// Property_ type column removed - not in base Property_ interface
 	// Following KISS principle - only show data that exists
 
-	createActionsColumn<Property_WithUnits>([
+	createActionsColumn<PropertyWithUnits>([
 		{
 			label: 'View',
 			onClick: property => {
 				window.location.href = `/properties/${property.id}`
 			},
-			icon: <i className="i-lucide-eye h-3 w-3"  />
+			icon: <Eye className="h-3 w-3" />
 		},
 		{
 			label: 'Edit',
 			onClick: property => {
 				window.location.href = `/properties/${property.id}/edit`
 			},
-			icon: <i className="i-lucide-edit h-3 w-3"  />
+			icon: <Edit className="h-3 w-3" />
 		},
 		{
 			label: 'Delete',
 			onClick: createPropertyDeletionHandler(),
-			icon: <i className="i-lucide-trash h-3 w-3"  />,
+			icon: <Trash className="h-3 w-3" />,
 			variant: 'destructive' as const
 		}
 	])
 ]
 
 // Alternative simplified columns for mobile/compact views
-export const compactPropertyColumns: ColumnDef<Property_WithUnits>[] = [
-	createSelectColumn<Property_WithUnits>(),
+export const compactPropertyColumns: ColumnDef<PropertyWithUnits>[] = [
+	createSelectColumn<PropertyWithUnits>(),
 
 	{
 		accessorKey: 'name',
@@ -261,9 +248,10 @@ export const compactPropertyColumns: ColumnDef<Property_WithUnits>[] = [
 		cell: ({ row }) => {
 			const property = row.original
 			// Calculate stats from units
-			const totalUnits = property.units?.length ?? 0
-			const occupiedUnits = property.units?.filter((u: Property_Unit) => u.status === 'OCCUPIED').length ?? 0
-			const occupancyRate = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
+			// NO CALCULATIONS - Use backend metrics
+			const _totalUnits = property.totalUnits
+			const _occupiedUnits = property.occupiedUnits
+			const occupancyRate = property.occupancyRate
 			const revenue = property.units?.reduce((sum: number, u: Property_Unit) => {
 				return u.status === 'OCCUPIED' ? sum + (u.rent || 0) : sum
 			}, 0) ?? 0
@@ -271,7 +259,7 @@ export const compactPropertyColumns: ColumnDef<Property_WithUnits>[] = [
 			return (
 				<div className="space-y-1">
 					<div className="flex items-center gap-2">
-						<i className="i-lucide-building-2 text-primary h-3 w-3 flex-shrink-0"  />
+						<Building2 className="text-primary h-3 w-3 flex-shrink-0" />
 						<Link
 							href={`/properties/${property.id}`}
 							className="text-foreground hover:text-primary truncate text-sm font-medium"
@@ -280,7 +268,7 @@ export const compactPropertyColumns: ColumnDef<Property_WithUnits>[] = [
 						</Link>
 					</div>
 					<div className="text-muted-foreground flex items-center gap-4 text-xs">
-						<span>{totalUnits} units</span>
+						<span>{_totalUnits} units</span>
 						<span>{occupancyRate}% occupied</span>
 						<span>{formatCurrency(revenue)}/mo</span>
 					</div>
@@ -289,20 +277,20 @@ export const compactPropertyColumns: ColumnDef<Property_WithUnits>[] = [
 		}
 	},
 
-	createActionsColumn<Property_WithUnits>([
+	createActionsColumn<PropertyWithUnits>([
 		{
 			label: 'View',
 			onClick: property => {
 				window.location.href = `/properties/${property.id}`
 			},
-			icon: <i className="i-lucide-eye h-3 w-3"  />
+			icon: <Eye className="h-3 w-3" />
 		},
 		{
 			label: 'Edit',
 			onClick: property => {
 				window.location.href = `/properties/${property.id}/edit`
 			},
-			icon: <i className="i-lucide-edit h-3 w-3"  />
+			icon: <Edit className="h-3 w-3" />
 		}
 	])
 ]

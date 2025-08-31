@@ -28,6 +28,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { BlurFade } from '@/components/magicui'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import {
 	Table,
@@ -39,26 +40,26 @@ import {
 } from '@/components/ui/table'
 import Link from 'next/link'
 import { createActionColumn, type TableAction } from '@/components/data-table/data-table-action-factory'
-
+import { Plus, FileText, DollarSign, AlertTriangle, User, Calendar, Building, Eye, Edit, Download, Edit3 } from 'lucide-react'
 // Create custom actions that include download for leases
 const leasesActions: TableAction<LeaseTableRow>[] = [
 	{
 		type: 'view',
-		icon: 'i-lucide-eye',
+		icon: 'Eye',
 		label: 'View lease',
 		href: (lease) => `/leases/${lease.id}`,
 		variant: 'ghost'
 	},
 	{
 		type: 'edit',
-		icon: 'i-lucide-edit-3',
+		icon: 'Edit3',
 		label: 'Edit lease',
 		href: (lease) => `/leases/${lease.id}/edit`,
 		variant: 'ghost'
 	},
 	{
 		type: 'custom',
-		icon: 'i-lucide-download',
+		icon: 'Download',
 		label: 'Download lease',
 		onClick: (lease) => {
 			// Generate and download lease document
@@ -138,15 +139,15 @@ function LeaseRow({ lease }: { lease: LeaseTableRow }) {
 	const getStatusColor = (status: string) => {
 		switch (status) {
 			case 'active':
-				return 'bg-green-5'
+				return 'bg-green-500'
 			case 'expired':
-				return 'bg-red-5'
+				return 'bg-red-500'
 			case 'pending':
-				return 'bg-yellow-5'
+				return 'bg-yellow-500'
 			case 'cancelled':
-				return 'bg-gray-5'
+				return 'bg-gray-500'
 			default:
-				return 'bg-gray-5'
+				return 'bg-gray-500'
 		}
 	}
 
@@ -155,14 +156,14 @@ function LeaseRow({ lease }: { lease: LeaseTableRow }) {
 			<TableCell>
 				<div className="flex items-center gap-3">
 					<div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-lg">
-						<i className="i-lucide-file-text text-primary h-5 w-5"  />
+						<FileText className="text-primary h-5 w-5" />
 					</div>
 					<div className="space-y-1">
 						<p className="font-medium leading-none">
 							Lease #{lease.id.slice(-8)}
 						</p>
 						<div className="text-muted-foreground flex items-center gap-1 text-sm">
-							<i className="i-lucide-calendar h-3 w-3"  />
+							<Calendar className="h-3 w-3" />
 							{new Date(
 								lease.startDate
 							).toLocaleDateString()} -{' '}
@@ -174,7 +175,7 @@ function LeaseRow({ lease }: { lease: LeaseTableRow }) {
 			<TableCell>
 				{lease.tenant ? (
 					<div className="flex items-center gap-1 text-sm">
-						<i className="i-lucide-user text-muted-foreground h-3 w-3"  />
+						<User className="text-muted-foreground h-3 w-3" />
 						{lease.tenant.first_name} {lease.tenant.last_name}
 					</div>
 				) : (
@@ -186,7 +187,7 @@ function LeaseRow({ lease }: { lease: LeaseTableRow }) {
 			<TableCell>
 				{lease.unit?.property ? (
 					<div className="flex items-center gap-1 text-sm">
-						<i className="i-lucide-building text-muted-foreground h-3 w-3"  />
+						<Building className="text-muted-foreground h-3 w-3" />
 						<div className="space-y-1">
 							<p className="font-medium">
 								{lease.unit.property.name}
@@ -204,7 +205,7 @@ function LeaseRow({ lease }: { lease: LeaseTableRow }) {
 			</TableCell>
 			<TableCell>
 				<div className="flex items-center gap-1">
-					<i className="i-lucide-dollar-sign text-muted-foreground h-3 w-3"  />$
+					<DollarSign className="text-muted-foreground h-3 w-3" />$
 					{lease.rentAmount?.toLocaleString() || '0'}/month
 				</div>
 			</TableCell>
@@ -219,7 +220,7 @@ function LeaseRow({ lease }: { lease: LeaseTableRow }) {
 					{isExpiringSoon && (
 						<Badge
 							variant="outline"
-							className="border-orange-6 text-xs text-orange-6"
+							className="border-orange-600 text-xs text-orange-600"
 						>
 							Expiring Soon
 						</Badge>
@@ -227,7 +228,7 @@ function LeaseRow({ lease }: { lease: LeaseTableRow }) {
 					{isExpired && lease.status === 'ACTIVE' && (
 						<Badge
 							variant="outline"
-							className="border-red-6 text-xs text-red-6"
+							className="border-red-600 text-xs text-red-600"
 						>
 							Overdue
 						</Badge>
@@ -292,7 +293,7 @@ export function LeasesDataTable() {
 				</CardHeader>
 				<CardContent>
 					<Alert variant="destructive">
-						<i className="i-lucide-alert-triangle h-4 w-4"  />
+						<AlertTriangle className="h-4 w-4" />
 						<AlertTitle>Error loading leases</AlertTitle>
 						<AlertDescription>
 							There was a problem loading your leases. Please try
@@ -315,7 +316,7 @@ export function LeasesDataTable() {
 				</CardHeader>
 				<CardContent>
 					<div className="flex flex-col items-center justify-center py-12 text-center">
-						<i className="i-lucide-file-text text-muted-foreground/50 mb-4 h-16 w-16"  />
+						<FileText className="text-muted-foreground/50 mb-4 h-16 w-16" />
 						<h3 className="mb-2 text-lg font-medium">
 							No leases yet
 						</h3>
@@ -325,7 +326,7 @@ export function LeasesDataTable() {
 						</p>
 						<Link href="/leases/new">
 							<Button>
-								<i className="i-lucide-plus mr-2 h-4 w-4"  />
+								<Plus className="mr-2 h-4 w-4" />
 								Create First Lease
 							</Button>
 						</Link>
@@ -347,7 +348,7 @@ export function LeasesDataTable() {
 					</div>
 					<Link href="/leases/new">
 						<Button size="sm">
-							<i className="i-lucide-plus mr-2 h-4 w-4"  />
+							<Plus className="mr-2 h-4 w-4" />
 							Create Lease
 						</Button>
 					</Link>
@@ -369,11 +370,10 @@ export function LeasesDataTable() {
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-							{leases.map(lease => (
-								<LeaseRow
-									key={lease.id}
-									lease={lease as LeaseTableRow}
-								/>
+							{leases.map((lease, index) => (
+								<BlurFade key={lease.id} delay={0.05 * index}>
+									<LeaseRow lease={lease as LeaseTableRow} />
+								</BlurFade>
 							))}
 						</TableBody>
 					</Table>

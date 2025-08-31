@@ -1,6 +1,7 @@
 "use client"
 
 import { cn } from "./utils"
+import { useMemo, useId } from "react"
 
 interface GridPatternProps {
   width?: number
@@ -13,6 +14,16 @@ interface GridPatternProps {
   _maxOpacity?: number
   duration?: number
   repeatDelay?: number
+  seed?: number
+}
+
+// Seeded random number generator for consistent values
+function seededRandom(seed: number) {
+  let value = seed
+  return () => {
+    value = (value * 9301 + 49297) % 233280
+    return value / 233280
+  }
 }
 
 export function GridPattern({
@@ -26,15 +37,21 @@ export function GridPattern({
   _maxOpacity = 0.5,
   duration = 4,
   repeatDelay = 0.5,
+  seed = 12345,
   ...props
 }: GridPatternProps) {
-  const id = Math.floor(Math.random() * 100000)
-  const squares = Array.from({ length: numSquares }, (_, i) => ({
-    id: i,
-    x: Math.floor(Math.random() * (100 / width)) * width,
-    y: Math.floor(Math.random() * (100 / height)) * height,
-    delay: Math.random() * duration,
-  }))
+  const id = useId()
+  
+  // Generate consistent random values using seed to avoid hydration mismatch
+  const squares = useMemo(() => {
+    const random = seededRandom(seed)
+    return Array.from({ length: numSquares }, (_, i) => ({
+      id: i,
+      x: Math.floor(random() * (100 / width)) * width,
+      y: Math.floor(random() * (100 / height)) * height,
+      delay: random() * duration,
+    }))
+  }, [numSquares, width, height, duration, seed])
 
   return (
     <svg

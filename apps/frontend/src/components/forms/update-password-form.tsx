@@ -18,7 +18,7 @@ import {
 	type AuthFormState
 } from '@/app/actions/auth'
 import { AuthError } from '../auth/auth-error'
-
+import { Eye , AlertCircle , Loader2 , Check } from 'lucide-react'
 interface UpdatePasswordFormProps {
 	error?: string
 }
@@ -116,8 +116,8 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<div className="flex items-center gap-2 rounded-md border border-green-2 bg-green-1 p-3">
-							<i className="i-lucide-checkcircle h-5 w-5 text-green-6"  />
-							<p className="text-sm text-green-8">
+							<Check className="circle h-5 w-5 text-green-600"  />
+							<p className="text-sm text-green-800">
 								Password updated successfully! Redirecting to
 								sign in...
 							</p>
@@ -152,7 +152,7 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 					{state.error && (
 						<div className="bg-destructive/10 border-destructive/20 rounded-md border p-3">
 							<div className="flex items-center gap-2">
-								<i className="i-lucide-alert-circle text-destructive h-4 w-4"  />
+								<AlertCircle className=" text-destructive h-4 w-4"  />
 								<p className="text-destructive text-sm">
 									{state.error}
 								</p>
@@ -197,9 +197,9 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 									}
 								>
 									{showPw ? (
-										<i className="i-lucide-eye-off h-4 w-4"  />
+										<Eye className="-off h-4 w-4"  />
 									) : (
-										<i className="i-lucide-eye h-4 w-4"  />
+										<Eye className=" h-4 w-4"  />
 									)}
 								</button>
 							</div>
@@ -300,9 +300,9 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 									}
 								>
 									{showPw2 ? (
-										<i className="i-lucide-eye-off h-4 w-4"  />
+										<Eye className="-off h-4 w-4"  />
 									) : (
-										<i className="i-lucide-eye h-4 w-4"  />
+										<Eye className=" h-4 w-4"  />
 									)}
 								</button>
 							</div>
@@ -330,7 +330,7 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
 						>
 							{isPending ? (
 								<span className="inline-flex items-center gap-2">
-									<i className="i-lucide-loader-2 h-4 w-4 animate-spin"  />
+									<Loader2 className=" h-4 w-4 animate-spin"  />
 									Updating password…
 								</span>
 							) : (

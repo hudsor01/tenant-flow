@@ -25,7 +25,6 @@ import csrfProtection from '@fastify/csrf-protection'
 import env from '@fastify/env'
 import multipart from '@fastify/multipart'
 import cors from '@fastify/cors'
-import { GlobalExceptionFilter } from './shared/filters/global-exception.filter'
 import { HEALTH_PATHS } from './shared/constants/routes'
 
 // Node.js error interface with common error properties
@@ -143,10 +142,8 @@ async function bootstrap() {
 		})
 	)
 
-	// Use NestJS native global exception filter (replaces custom ErrorHandlerService)
-	logger.info('Setting up global exception filters...')
-	app.useGlobalFilters(new GlobalExceptionFilter(app.get(Logger)))
-	logger.info('Global exception filters registered')
+	// Native NestJS exception handling - no custom filters needed
+	logger.info('Using native NestJS exception handling')
 
 	// Native Fastify error hooks for automatic error serialization
 	logger.info('Registering Fastify error hooks...')

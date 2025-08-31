@@ -6,6 +6,7 @@ import { handleCheckoutReturn } from '@/app/actions/billing'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Loader2, XCircle, CheckCircle, ArrowRight } from 'lucide-react'
 
 interface CheckoutSession {
 	id: string
@@ -60,7 +61,7 @@ function CheckoutReturnContent() {
 			<Card className="mx-auto w-full max-w-md">
 				<CardContent className="flex items-center justify-center p-8">
 					<div className="space-y-4 text-center">
-						<i className="i-lucide-loader-2 mx-auto h-8 w-8 animate-spin text-blue-6"  />
+						<Loader2 className="mx-auto h-8 w-8 animate-spin text-blue-600" />
 						<p className="text-muted-foreground">
 							Processing your payment...
 						</p>
@@ -74,8 +75,8 @@ function CheckoutReturnContent() {
 		return (
 			<Card className="mx-auto w-full max-w-md">
 				<CardHeader>
-					<CardTitle className="flex items-center gap-2 text-red-6">
-						<i className="i-lucide-xcircle h-5 w-5"  />
+					<CardTitle className="flex items-center gap-2 text-red-600">
+						<XCircle className="h-5 w-5" />
 						Payment Error
 					</CardTitle>
 				</CardHeader>
@@ -98,8 +99,8 @@ function CheckoutReturnContent() {
 		return (
 			<Card className="mx-auto w-full max-w-md">
 				<CardHeader>
-					<CardTitle className="flex items-center gap-2 text-green-6">
-						<i className="i-lucide-checkcircle h-5 w-5"  />
+					<CardTitle className="flex items-center gap-2 text-green-600">
+						<CheckCircle className="h-5 w-5" />
 						Payment Successful!
 					</CardTitle>
 				</CardHeader>
@@ -127,7 +128,7 @@ function CheckoutReturnContent() {
 							className="w-full"
 						>
 							Go to Dashboard
-							<i className="i-lucide-arrow-right ml-2 h-4 w-4"  />
+							<ArrowRight className="ml-2 h-4 w-4" />
 						</Button>
 						<Button
 							variant="outline"
@@ -146,8 +147,8 @@ function CheckoutReturnContent() {
 		return (
 			<Card className="mx-auto w-full max-w-md">
 				<CardHeader>
-					<CardTitle className="flex items-center gap-2 text-yellow-6">
-						<i className="i-lucide-xcircle h-5 w-5"  />
+					<CardTitle className="flex items-center gap-2 text-yellow-600">
+						<XCircle className="h-5 w-5" />
 						Payment Incomplete
 					</CardTitle>
 				</CardHeader>
@@ -180,7 +181,7 @@ export default function CheckoutReturnPage() {
 				fallback={
 					<Card className="mx-auto w-full max-w-md">
 						<CardContent className="flex items-center justify-center p-8">
-							<i className="i-lucide-loader-2 h-8 w-8 animate-spin text-blue-6"  />
+							<Loader2 className="h-8 w-8 animate-spin text-blue-600" />
 						</CardContent>
 					</Card>
 				}

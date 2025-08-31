@@ -33,6 +33,10 @@ export class StripePortalService {
 		private readonly logger: PinoLogger
 	) {
 		// PinoLogger context handled automatically via app-level configuration
+		if (!this.configService) {
+			throw new InternalServerErrorException('ConfigService not available - check module imports')
+		}
+		
 		const secretKey = this.configService.get('STRIPE_SECRET_KEY', {
 			infer: true
 		})

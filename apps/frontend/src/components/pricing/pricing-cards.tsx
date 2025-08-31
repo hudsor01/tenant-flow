@@ -5,12 +5,11 @@
  * Inspired by Resend's clean card design and Stripe's interaction patterns
  */
 
-'use client'
-
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Star, Check, ArrowRight, Minus, Zap } from 'lucide-react'
 import {
 	getAllPlans,
 	formatPrice,
@@ -27,18 +26,18 @@ export function PricingCards() {
 	// Computed class functions - KISS principle compliance
 	const getBillingToggleClasses = (isActive: boolean) => 
 		isActive 
-			? 'rounded-lg pad-md text-sm font-medium transition-colors bg-white text-gray-9 shadow-sm'
-			: 'rounded-lg pad-md text-sm font-medium transition-colors text-gray-6 hover:text-gray-9'
+			? 'rounded-lg p-3 text-sm font-medium transition-colors bg-white text-gray-900 shadow-sm'
+			: 'rounded-lg p-3 text-sm font-medium transition-colors text-gray-600 hover:text-gray-900'
 
 	const getCardClasses = (isHighlighted: boolean) =>
 		isHighlighted
-			? 'relative overflow-hidden transition-default scale-105 border-2 border-blue-5 shadow-xl ring-4 ring-blue-50'
-			: 'relative overflow-hidden transition-default border border-gray-2 shadow-sm hover:border-gray-3 hover-lift'
+			? 'relative overflow-hidden transition-all scale-105 border-2 border-blue-500 shadow-xl ring-4 ring-blue-50'
+			: 'relative overflow-hidden transition-all border border-gray-200 shadow-sm hover:border-gray-300 hover:shadow-lg'
 
 	const getCtaButtonClasses = (isHighlighted: boolean) =>
 		isHighlighted
-			? 'h-12 w-full text-base font-semibold transition-default bg-blue-6 text-white shadow-lg hover:bg-blue-7 hover:shadow-xl'
-			: 'h-12 w-full text-base font-semibold transition-default bg-gray-9 text-white hover:bg-gray-8'
+			? 'h-12 w-full text-base font-semibold transition-all bg-blue-600 text-white shadow-lg hover:bg-blue-700 hover:shadow-xl'
+			: 'h-12 w-full text-base font-semibold transition-all bg-gray-900 text-white hover:bg-gray-800'
 
 	const handleGetStarted = async (planId: PlanType) => {
 		_createCheckoutMutation.mutate({
@@ -54,10 +53,10 @@ export function PricingCards() {
 			<div className="mx-auto max-w-7xl px-4">
 				{/* Section header */}
 				<div className="mb-16 text-center">
-					<h2 className="mb-4 text-4xl font-bold text-gray-9 sm:text-5xl">
+					<h2 className="mb-4 text-4xl font-bold text-gray-900 sm:text-5xl">
 						Choose your plan
 					</h2>
-					<p className="mx-auto max-w-2xl text-lg text-gray-6">
+					<p className="mx-auto max-w-2xl text-lg text-gray-600">
 						Start with a 14-day free trial, then select the plan
 						that best fits your property portfolio size.
 					</p>
@@ -65,7 +64,7 @@ export function PricingCards() {
 
 				{/* Billing toggle */}
 				<div className="mb-12 flex justify-center">
-					<div className="flex items-center rounded-xl border border-gray-2 bg-gray-50 p-1">
+					<div className="flex items-center rounded-xl border border-gray-200 bg-gray-50 p-1">
 						<button
 							onClick={() => setBillingPeriod('monthly')}
 							className={getBillingToggleClasses(billingPeriod === 'monthly')}
@@ -79,7 +78,7 @@ export function PricingCards() {
 							<span>Annual</span>
 							<Badge
 								variant="secondary"
-								className="ml-2 bg-green-1 text-green-7"
+								className="ml-2 bg-green-100 text-green-700"
 							>
 								Save 20%
 							</Badge>
@@ -112,9 +111,9 @@ export function PricingCards() {
 								{/* Popular/Recommended badge */}
 								{(isPopular || isRecommended) && (
 									<div className="absolute -top-4 left-1/2 -translate-x-1/2">
-										<Badge className="bg-blue-6 px-4 py-1 font-medium text-white">
+										<Badge className="bg-blue-600 px-4 py-1 font-medium text-white">
 											{isRecommended && (
-												<i className="i-lucide-star mr-1 h-3 w-3 fill-current"  />
+												<Star className="mr-1 h-3 w-3 fill-current" />
 											)}
 											{isRecommended
 												? 'Recommended'
@@ -125,23 +124,23 @@ export function PricingCards() {
 
 								<CardHeader className="pb-8 pt-8">
 									<div className="text-center">
-										<h3 className="text-2xl font-bold text-gray-9">
+										<h3 className="text-2xl font-bold text-gray-900">
 											{plan.name}
 										</h3>
-										<p className="mt-2 text-gray-6">
+										<p className="mt-2 text-gray-600">
 											{plan.description}
 										</p>
 
 										{/* Pricing */}
 										<div className="mt-6">
 											<div className="flex items-baseline justify-center">
-												<span className="text-5xl font-bold text-gray-9">
+												<span className="text-5xl font-bold text-gray-900">
 													{formatPrice(
 														price,
 														billingPeriod
 													)}
 												</span>
-												<span className="ml-2 text-lg text-gray-6">
+												<span className="ml-2 text-lg text-gray-600">
 													/
 													{billingPeriod === 'monthly'
 														? 'month'
@@ -151,7 +150,7 @@ export function PricingCards() {
 
 											{billingPeriod === 'annual' &&
 												savings > 0 && (
-													<div className="mt-2 text-sm font-medium text-green-6">
+													<div className="mt-2 text-sm font-medium text-green-600">
 														Save{' '}
 														{formatPrice(
 															savings,
@@ -162,7 +161,7 @@ export function PricingCards() {
 												)}
 
 											{billingPeriod === 'monthly' && (
-												<div className="mt-2 text-sm text-gray-5">
+												<div className="mt-2 text-sm text-gray-500">
 													or{' '}
 													{formatPrice(
 														plan.price.annual,
@@ -183,8 +182,8 @@ export function PricingCards() {
 												key={index}
 												className="flex items-start gap-3"
 											>
-												<i className="i-lucide-check mt-0.5 h-5 w-5 flex-shrink-0 text-green-6"  />
-												<span className="text-gray-7">
+												<Check className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600" />
+												<span className="text-gray-700">
 													{feature}
 												</span>
 											</div>
@@ -192,11 +191,11 @@ export function PricingCards() {
 									</div>
 
 									{/* Usage limits */}
-									<div className="mb-8 rounded-lg border border-gray-1 bg-gray-50 p-4">
-										<div className="mb-3 text-sm font-medium text-gray-9">
+									<div className="mb-8 rounded-lg border border-gray-100 bg-gray-50 p-4">
+										<div className="mb-3 text-sm font-medium text-gray-900">
 											Usage limits:
 										</div>
-										<div className="space-y-2 text-sm text-gray-6">
+										<div className="space-y-2 text-sm text-gray-600">
 											<div className="flex justify-between">
 												<span>Properties:</span>
 												<span className="font-medium">
@@ -238,12 +237,12 @@ export function PricingCards() {
 										) : (
 											<div className="flex items-center gap-2">
 												Start free trial
-												<i className="i-lucide-arrow-right h-4 w-4"  />
+												<ArrowRight className="h-4 w-4" />
 											</div>
 										)}
 									</Button>
 
-									<div className="mt-4 text-center text-sm text-gray-5">
+									<div className="mt-4 text-center text-sm text-gray-500">
 										14-day free trial • No credit card
 										required • Cancel anytime
 									</div>
@@ -255,33 +254,33 @@ export function PricingCards() {
 
 				{/* Enterprise CTA */}
 				<div className="mt-16 text-center">
-					<div className="mx-auto max-w-2xl rounded-2xl border border-gray-2 bg-gradient-to-r from-gray-50 to-white p-8">
-						<h3 className="mb-4 text-2xl font-bold text-gray-9">
+					<div className="mx-auto max-w-2xl rounded-2xl border border-gray-200 bg-gradient-to-r from-gray-50 to-white p-8">
+						<h3 className="mb-4 text-2xl font-bold text-gray-900">
 							Need a custom solution?
 						</h3>
-						<p className="mb-6 text-gray-6">
+						<p className="mb-6 text-gray-600">
 							For large property management companies with
 							specific requirements, we offer custom enterprise
 							solutions with dedicated support.
 						</p>
 						<Button variant="outline" size="lg" className="gap-2">
 							<span>Contact sales</span>
-							<i className="i-lucide-arrow-right h-4 w-4"  />
+							<ArrowRight className="h-4 w-4" />
 						</Button>
 					</div>
 				</div>
 
 				{/* Money back guarantee */}
 				<div className="mt-16 text-center">
-					<div className="inline-flex items-center gap-3 rounded-xl border border-green-2 bg-green-50 px-6 py-3">
-						<div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-1">
-							<i className="i-lucide-zap h-4 w-4 text-green-6"  />
+					<div className="inline-flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-6 py-3">
+						<div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100">
+							<Zap className="h-4 w-4 text-green-600" />
 						</div>
 						<div className="text-sm">
-							<span className="font-semibold text-green-8">
+							<span className="font-semibold text-green-800">
 								30-day money-back guarantee
 							</span>
-							<span className="text-green-7">
+							<span className="text-green-700">
 								{' '}
 								• No questions asked
 							</span>

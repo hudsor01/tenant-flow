@@ -3,7 +3,7 @@ import { Label } from '@/components/ui/label'
 import { FormSection } from '@/components/modals/base-form-modal'
 import type { UseFormReturn } from 'react-hook-form'
 import type { PropertyFormData } from '@repo/shared/validation'
-
+import { MapPin } from 'lucide-react'
 interface Property_LocationSectionProps {
   form: UseFormReturn<PropertyFormData>
 }
@@ -21,12 +21,12 @@ export function Property_LocationSection({
 			<div className="space-y-2">
 				<Label
 					htmlFor="address"
-					className="text-sm font-medium text-gray-7"
+					className="text-sm font-medium text-gray-700"
 				>
 					Street Address *
 				</Label>
 				<div className="relative">
-					<i className="i-lucide-map-pin absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-4"  />
+					<MapPin className=" absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400"  />
 					<Input
 						id="address"
 						placeholder="e.g., 123 Main Street"
@@ -35,7 +35,7 @@ export function Property_LocationSection({
 					/>
 				</div>
 				{form.formState.errors.address && (
-					<p className="text-sm text-red-6">
+					<p className="text-sm text-red-600">
 						{form.formState.errors.address.message}
 					</p>
 				)}
@@ -47,7 +47,7 @@ export function Property_LocationSection({
 				<div className="space-y-2">
 					<Label
 						htmlFor="city"
-						className="text-sm font-medium text-gray-7"
+						className="text-sm font-medium text-gray-700"
 					>
 						City *
 					</Label>
@@ -58,7 +58,7 @@ export function Property_LocationSection({
 						{...form.register('city')}
 					/>
 					{form.formState.errors.city && (
-						<p className="text-sm text-red-6">
+						<p className="text-sm text-red-600">
 							{form.formState.errors.city.message}
 						</p>
 					)}
@@ -68,7 +68,7 @@ export function Property_LocationSection({
 				<div className="space-y-2">
 					<Label
 						htmlFor="state"
-						className="text-sm font-medium text-gray-7"
+						className="text-sm font-medium text-gray-700"
 					>
 						State *
 					</Label>
@@ -79,7 +79,7 @@ export function Property_LocationSection({
 						{...form.register('state')}
 					/>
 					{form.formState.errors.state && (
-						<p className="text-sm text-red-6">
+						<p className="text-sm text-red-600">
 							{form.formState.errors.state.message}
 						</p>
 					)}
@@ -89,7 +89,7 @@ export function Property_LocationSection({
 				<div className="space-y-2">
 					<Label
 						htmlFor="zipCode"
-						className="text-sm font-medium text-gray-7"
+						className="text-sm font-medium text-gray-700"
 					>
 						ZIP Code *
 					</Label>
@@ -100,14 +100,14 @@ export function Property_LocationSection({
 						{...form.register('zipCode')}
 					/>
 					{form.formState.errors.zipCode && (
-						<p className="text-sm text-red-6">
+						<p className="text-sm text-red-600">
 							{form.formState.errors.zipCode.message}
 						</p>
 					)}
 				</div>
 			</div>
 
-			<p className="text-xs text-gray-5">
+			<p className="text-xs text-gray-500">
 				📍 This address will be used for lease documents and tenant
 				communications.
 			</p>

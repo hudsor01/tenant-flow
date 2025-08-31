@@ -1,23 +1,34 @@
 'use client'
 
 import { useOptimistic, useTransition } from 'react'
+import { Building2, Users, FileText, Wrench, AlertTriangle } from 'lucide-react'
 import { useDashboardOverview } from '@/hooks/api/use-dashboard'
 import { 
 	Stats, 
 	StatsGrid, 
 	StatsHeader, 
-	StatsValue, 
-	StatsTrend, 
-	StatsSkeleton
+	StatsTrend
 } from '@/components/ui/stats'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Sparkline } from './sparkline'
 import { cn } from '@/lib/utils'
 import type { DashboardStats } from '@repo/shared'
 
+// Simple loading skeleton without complex animations
+function StatsCardSkeleton() {
+  return (
+    <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm rounded-xl p-6 border border-gray-100/50 dark:border-slate-800/50 shadow-sm">
+      <div className="w-12 h-12 bg-gray-200 dark:bg-slate-700 rounded-xl mb-4 animate-pulse" />
+      <div className="w-24 h-4 bg-gray-200 dark:bg-slate-700 rounded mb-2 animate-pulse" />
+      <div className="w-16 h-8 bg-gray-300 dark:bg-slate-600 rounded mb-2 animate-pulse" />
+      <div className="w-20 h-3 bg-gray-200 dark:bg-slate-700 rounded animate-pulse" />
+    </div>
+  )
+}
+
 /**
- * Dashboard Stats Cards Component with React 19 useOptimistic
- * Focused component for displaying key metrics with instant feedback
- * Extracted from massive dashboard client component
+ * Simplified Dashboard Stats Cards Component
+ * Focus on performance and clarity over complex animations
  */
 export function DashboardStatsCards() {
 	const { data: stats, isLoading, error } = useDashboardOverview()
@@ -42,21 +53,21 @@ export function DashboardStatsCards() {
 
 	if (error) {
 		return (
-			<Alert variant="destructive" className="border-red-2 bg-red-1">
-				<i className="i-lucide-alert-triangle h-4 w-4"  />
+			<Alert variant="destructive" className="border-red-200 bg-red-100">
+				<AlertTriangle className="h-4 w-4" />
 				<AlertDescription>
 					Failed to load dashboard statistics. Please try refreshing
 					the page.
 				</AlertDescription>
 			</Alert>
-		)
+	)
 	}
 
 	if (isLoading) {
 		return (
 			<StatsGrid columns={4}>
 				{Array.from({ length: 4 }).map((_, i) => (
-					<StatsSkeleton key={i} showTrend />
+					<StatsCardSkeleton key={i} />
 				))}
 			</StatsGrid>
 		)
@@ -70,25 +81,16 @@ export function DashboardStatsCards() {
 			title: 'Total Properties',
 			value: currentStats?.properties?.total ?? 0,
 			description: `${currentStats?.units?.occupancyRate ?? 0}% occupancy`,
-			icon: 'i-lucide-building-2',
-			color: 'primary',
-			bgColor: 'bg-simplify-soft',
-			iconColor: 'text-white',
-			iconBg: 'bg-simplify',
-			borderColor: 'border-primary/20',
+			icon: Building2,
 			trend: 'up',
-			change: '+12%'
+			change: '+12%',
+			sparklineData: [5, 8, 7, 10, 12, 15, 18]
 		},
 		{
 			title: 'Active Tenants',
 			value: currentStats?.tenants?.total ?? 0,
 			description: 'Active tenants',
-			icon: 'i-lucide-users',
-			color: 'success',
-			bgColor: 'bg-gradient-to-br from-green-50 to-green-1/50',
-			iconColor: 'text-white',
-			iconBg: 'bg-green-5',
-			borderColor: 'border-green-2',
+			icon: Users,
 			trend: 'up',
 			change: '+8%'
 		},
@@ -96,12 +98,7 @@ export function DashboardStatsCards() {
 			title: 'Total Units',
 			value: currentStats?.units?.total ?? 0,
 			description: 'Total units',
-			icon: 'i-lucide-file-text',
-			color: 'accent',
-			bgColor: 'bg-gradient-to-br from-teal-50 to-teal-100/50',
-			iconColor: 'text-white',
-			iconBg: 'bg-gradient-to-br from-teal-500 to-teal-600',
-			borderColor: 'border-teal-2',
+			icon: FileText,
 			trend: 'up',
 			change: '+5%'
 		},
@@ -109,12 +106,7 @@ export function DashboardStatsCards() {
 			title: 'Maintenance',
 			value: currentStats?.maintenance?.total ?? 0,
 			description: 'Maintenance requests',
-			icon: 'i-lucide-wrench',
-			color: 'warning',
-			bgColor: 'bg-gradient-to-br from-orange-50 to-orange-100/50',
-			iconColor: 'text-white',
-			iconBg: 'bg-orange-5',
-			borderColor: 'border-orange-2',
+			icon: Wrench,
 			trend: 'down',
 			change: '-15%'
 		}
@@ -122,54 +114,50 @@ export function DashboardStatsCards() {
 
 	return (
 		<StatsGrid columns={4} className={cn(isPending && 'opacity-75')}>
-			{statCards.map((stat, index) => {
-				return (
-					<Stats
-						key={stat.title}
-						className={cn(
-							'transition-all duration-500 hover:-translate-y-1 hover:scale-[1.02]',
-							stat.bgColor,
-							stat.borderColor,
-							isPending && 'animate-pulse'
-						)}
-						emphasis="elevated"
-						interactive
-						style={{
-							animationDelay: `${index * 100}ms`
-						}}
-					>
-						<StatsHeader
-							title={stat.title}
-							subtitle={stat.description}
-							icon={
-								<div className={cn(
-									'rounded-xl p-2.5 shadow-sm ring-1 ring-black/5',
-									stat.iconBg
-								)}>
-									<i className={cn(stat.icon, cn('h-4 w-4', stat.iconColor))} />
-								</div>
-							}
-							action={
-								stat.trend && (
-									<StatsTrend
-										value={stat.trend === 'up' ? 8 : -5}
-										label={stat.change}
-										className="text-xs"
-									/>
-								)
-							}
-						/>
+			{statCards.map((stat, index) => (
+				<Stats
+					key={stat.title}
+					className={cn(
+						'group relative cursor-pointer select-none bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl p-6 border border-gray-100/50 dark:border-slate-700/50 shadow-sm hover:shadow-md transition-all duration-200',
+						isPending && 'animate-pulse'
+					)}
+					emphasis="elevated"
+					interactive
+				>
+					<StatsHeader
+						title={stat.title}
+						subtitle={stat.description}
+						icon={
+							<div className="rounded-xl p-2.5 bg-blue-500 text-white shadow-sm">
+								<stat.icon className="h-4 w-4" />
+							</div>
+						}
+						action={
+							stat.trend && (
+								<StatsTrend
+									value={stat.trend === 'up' ? 8 : -5}
+									label={stat.change}
+									className="text-xs"
+								/>
+							)
+						}
+					/>
 
-						<div className="mt-4">
-							<StatsValue 
-								value={stat.value}
-								size="lg"
-								className="text-foreground"
-							/>
+					<div className="mt-4 flex items-end justify-between">
+						<div className="text-3xl font-bold text-foreground">
+							{stat.value}
 						</div>
-					</Stats>
-				)
-			})}
+						{'sparklineData' in stat && stat.sparklineData && (
+							<div className="opacity-70">
+								<Sparkline 
+									data={stat.sparklineData}
+									color="#3b82f6"
+								/>
+							</div>
+						)}
+					</div>
+				</Stats>
+			))}
 		</StatsGrid>
 	)
 }

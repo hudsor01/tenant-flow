@@ -6,19 +6,20 @@ import { motion } from 'framer-motion'
 import { Badge } from '@/components/ui/badge'
 import { useDashboardOverview } from '@/hooks/api/use-dashboard'
 import { cn } from '@/lib/utils'
+import { Home, Building, Plus, BarChart3, User } from 'lucide-react'
 const navigationItems = [
 	{
 		id: 'dashboard',
 		name: 'Dashboard',
 		href: '/dashboard',
-		icon: 'i-lucide-home',
+		icon: Home,
 		shortName: 'Home'
 	},
 	{
 		id: 'properties',
 		name: 'Properties',
 		href: '/properties',
-		icon: 'i-lucide-building',
+		icon: Building,
 		shortName: 'Props',
 		badgeKey: 'properties.totalProperties'
 	},
@@ -26,7 +27,7 @@ const navigationItems = [
 		id: 'add',
 		name: 'Add',
 		href: '/properties/new',
-		icon: 'i-lucide-plus',
+		icon: Plus,
 		shortName: 'Add',
 		isFab: true
 	},
@@ -34,14 +35,14 @@ const navigationItems = [
 		id: 'reports',
 		name: 'Reports',
 		href: '/reports',
-		icon: 'i-lucide-bar-chart-3',
+		icon: BarChart3,
 		shortName: 'Reports'
 	},
 	{
 		id: 'profile',
 		name: 'Profile',
 		href: '/profile',
-		icon: 'i-lucide-user',
+		icon: User,
 		shortName: 'Profile'
 	}
 ]
@@ -111,7 +112,7 @@ export function MobileNav({ className }: MobileNavProps) {
 										damping: 25
 									}}
 								>
-									<i className={`${item.icon} h-6 w-6`} />
+									<item.icon className="h-6 w-6" />
 								</motion.div>
 
 								{/* Ripple effect for FAB */}
@@ -157,12 +158,12 @@ export function MobileNav({ className }: MobileNavProps) {
 									damping: 25
 								}}
 							>
-								<i className={cn(item.icon, 'inline-block', cn(
+								<item.icon className={cn(
 										'mb-1 h-5 w-5 transition-colors duration-200',
 										isActive
 											? 'text-primary'
 											: 'text-gray-5'
-									))} />
+									)} />
 
 								{/* Badge for item counts */}
 								{badgeValue && (
@@ -173,7 +174,7 @@ export function MobileNav({ className }: MobileNavProps) {
 									>
 										<Badge
 											variant="secondary"
-											className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-1 px-1.5 py-0.5 text-[10px] text-red-7"
+											className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-1 px-1.5 py-0.5 text-[10px] text-red-700"
 										>
 											{badgeValue > 99
 												? '99+'

@@ -24,10 +24,10 @@ export default function TermsOfServicePage() {
 				<div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
 					<div className="mx-auto max-w-4xl">
 						<div className="mb-12 text-center">
-							<h1 className="mb-4 text-4xl font-bold text-gray-9">
+							<h1 className="mb-4 text-4xl font-bold text-gray-900">
 								Terms of Service
 							</h1>
-							<p className="text-lg text-gray-6">
+							<p className="text-lg text-gray-600">
 								Last updated:{' '}
 								{new Date().toLocaleDateString('en-US', {
 									year: 'numeric',
@@ -41,10 +41,10 @@ export default function TermsOfServicePage() {
 								<div className="p-8">
 									<div className="max-w-none">
 										<section className="mb-8">
-											<h2 className="mb-4 text-2xl font-semibold text-gray-9">
+											<h2 className="mb-4 text-2xl font-semibold text-gray-900">
 												1. Acceptance of Terms
 											</h2>
-											<p className="text-gray-7">
+											<p className="text-gray-700">
 												By accessing and using
 												TenantFlow (&quot;the
 												Service&quot;), you accept and
@@ -57,10 +57,10 @@ export default function TermsOfServicePage() {
 										</section>
 
 										<section className="mb-8">
-											<h2 className="mb-4 text-2xl font-semibold text-gray-9">
+											<h2 className="mb-4 text-2xl font-semibold text-gray-900">
 												2. Description of Service
 											</h2>
-											<p className="text-gray-7">
+											<p className="text-gray-700">
 												TenantFlow is a property
 												management platform that
 												provides tools for landlords and
@@ -70,7 +70,7 @@ export default function TermsOfServicePage() {
 												activities. The Service includes
 												but is not limited to:
 											</p>
-											<ul className="ml-4 mt-2 list-inside list-disc text-gray-7">
+											<ul className="ml-4 mt-2 list-inside list-disc text-gray-700">
 												<li>
 													Property_ and tenant
 													management tools
@@ -99,10 +99,10 @@ export default function TermsOfServicePage() {
 										</section>
 
 										<section className="mb-8">
-											<h2 className="mb-4 text-2xl font-semibold text-gray-9">
+											<h2 className="mb-4 text-2xl font-semibold text-gray-900">
 												3. User Accounts
 											</h2>
-											<p className="text-gray-7">
+											<p className="text-gray-700">
 												To access certain features of
 												the Service, you must register
 												for an account. You agree to
@@ -113,7 +113,7 @@ export default function TermsOfServicePage() {
 												it accurate, current, and
 												complete.
 											</p>
-											<p className="mt-4 text-gray-7">
+											<p className="mt-4 text-gray-700">
 												You are responsible for
 												safeguarding the password and
 												for all activities that occur
@@ -124,16 +124,16 @@ export default function TermsOfServicePage() {
 										</section>
 
 										<section className="mb-8">
-											<h2 className="mb-4 text-2xl font-semibold text-gray-9">
+											<h2 className="mb-4 text-2xl font-semibold text-gray-900">
 												4. Acceptable Use
 											</h2>
-											<p className="text-gray-7">
+											<p className="text-gray-700">
 												You agree to use the Service
 												only for lawful purposes and in
 												accordance with these Terms. You
 												agree not to:
 											</p>
-											<ul className="ml-4 mt-2 list-inside list-disc text-gray-7">
+											<ul className="ml-4 mt-2 list-inside list-disc text-gray-700">
 												<li>
 													Use the Service in any way
 													that violates applicable
@@ -162,10 +162,10 @@ export default function TermsOfServicePage() {
 										</section>
 
 										<section className="mb-8">
-											<h2 className="mb-4 text-2xl font-semibold text-gray-9">
+											<h2 className="mb-4 text-2xl font-semibold text-gray-900">
 												5. Payment Terms
 											</h2>
-											<p className="text-gray-7">
+											<p className="text-gray-700">
 												The Service offers both free and
 												paid subscription plans. Paid
 												subscriptions are billed in
@@ -185,10 +185,10 @@ export default function TermsOfServicePage() {
 										</section>
 
 										<section className="mb-8">
-											<h2 className="mb-4 text-2xl font-semibold text-gray-9">
+											<h2 className="mb-4 text-2xl font-semibold text-gray-900">
 												6. Data and Privacy
 											</h2>
-											<p className="text-gray-7">
+											<p className="text-gray-700">
 												Your privacy is important to us.
 												Please review our Privacy
 												Policy, which also governs your
@@ -209,10 +209,10 @@ export default function TermsOfServicePage() {
 										</section>
 
 										<section className="mb-8">
-											<h2 className="mb-4 text-2xl font-semibold text-gray-9">
+											<h2 className="mb-4 text-2xl font-semibold text-gray-900">
 												7. Disclaimer of Warranties
 											</h2>
-											<p className="text-gray-7">
+											<p className="text-gray-700">
 												The Service is provided &quot;as
 												is&quot; and &quot;as
 												available&quot; without any
@@ -226,10 +226,10 @@ export default function TermsOfServicePage() {
 										</section>
 
 										<section className="mb-8">
-											<h2 className="mb-4 text-2xl font-semibold text-gray-9">
+											<h2 className="mb-4 text-2xl font-semibold text-gray-900">
 												8. Limitation of Liability
 											</h2>
-											<p className="text-gray-7">
+											<p className="text-gray-700">
 												In no event shall TenantFlow be
 												liable for any indirect,
 												incidental, special,
@@ -242,10 +242,10 @@ export default function TermsOfServicePage() {
 										</section>
 
 										<section className="mb-8">
-											<h2 className="mb-4 text-2xl font-semibold text-gray-9">
+											<h2 className="mb-4 text-2xl font-semibold text-gray-900">
 												9. Termination
 											</h2>
-											<p className="text-gray-7">
+											<p className="text-gray-700">
 												We may terminate or suspend your
 												account and bar access to the
 												Service immediately, without
@@ -258,10 +258,10 @@ export default function TermsOfServicePage() {
 										</section>
 
 										<section className="mb-8">
-											<h2 className="mb-4 text-2xl font-semibold text-gray-9">
+											<h2 className="mb-4 text-2xl font-semibold text-gray-900">
 												10. Changes to Terms
 											</h2>
-											<p className="text-gray-7">
+											<p className="text-gray-700">
 												We reserve the right to modify
 												or replace these Terms at any
 												time. If a revision is material,
@@ -272,10 +272,10 @@ export default function TermsOfServicePage() {
 										</section>
 
 										<section className="mb-8">
-											<h2 className="mb-4 text-2xl font-semibold text-gray-9">
+											<h2 className="mb-4 text-2xl font-semibold text-gray-900">
 												11. Contact Information
 											</h2>
-											<p className="text-gray-7">
+											<p className="text-gray-700">
 												If you have any questions about
 												these Terms of Service, please
 												contact us at:

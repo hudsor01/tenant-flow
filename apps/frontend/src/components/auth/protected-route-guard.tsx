@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/use-auth'
 import { logger } from '@/lib/logger/logger'
-
+import { Loader2 } from 'lucide-react'
 // Deleted unused interfaces - use props inline
 
 // Shared loading component - DRY principle
@@ -18,7 +18,7 @@ export function AuthLoadingState({
 	return (
 		<div className={`flex min-h-screen items-center justify-center ${bgColor}`}>
 			<div className="text-center">
-				<i className="i-lucide-loader-2 text-primary mx-auto h-8 w-8 animate-spin" />
+				<Loader2 className=" text-primary mx-auto h-8 w-8 animate-spin" />
 				<p className="text-muted-foreground mt-2 text-sm">{message}</p>
 			</div>
 		</div>

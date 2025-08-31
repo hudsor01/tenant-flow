@@ -9,7 +9,7 @@ import {
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import type { Unit, Lease } from '@repo/shared'
-
+import { Users , MapPin , Trash2 , ArrowLeft , Edit , MoreVertical } from 'lucide-react'
 // Define local interface for component needs - explicitly include key fields to avoid type resolution issues
 interface Property_WithUnitsAndLeases {
 	id: string
@@ -63,14 +63,14 @@ export default function PropertyHeaderSection({
 					onClick={onBackToProperties}
 					className="hover:bg-accent"
 				>
-					<i className="i-lucide-arrow-left h-5 w-5"  />
+					<ArrowLeft className=" h-5 w-5"  />
 				</Button>
 				<div>
 					<h1 className="text-3xl font-bold tracking-tight">
 						{property.name}
 					</h1>
 					<p className="text-muted-foreground mt-1 flex items-center">
-						<i className="i-lucide-map-pin mr-1 h-4 w-4"  />
+						<MapPin className=" mr-1 h-4 w-4"  />
 						{property.address}, {property.city}, {property.state}{' '}
 						{property.zipCode}
 					</p>
@@ -80,18 +80,18 @@ export default function PropertyHeaderSection({
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
 					<Button variant="outline" size="icon">
-						<i className="i-lucide-more-vertical h-4 w-4"  />
+						<MoreVertical className=" h-4 w-4"  />
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end">
 					<DropdownMenuLabel>Property Actions</DropdownMenuLabel>
 					<DropdownMenuSeparator />
 					<DropdownMenuItem onClick={onEditProperty}>
-						<i className="i-lucide-edit mr-2 h-4 w-4"  />
+						<Edit className=" mr-2 h-4 w-4"  />
 						Edit Property
 					</DropdownMenuItem>
 					<DropdownMenuItem onClick={onInviteTenant}>
-						<i className="i-lucide-users mr-2 h-4 w-4"  />
+						<Users className=" mr-2 h-4 w-4"  />
 						Invite Tenant
 					</DropdownMenuItem>
 					<DropdownMenuSeparator />
@@ -100,7 +100,7 @@ export default function PropertyHeaderSection({
 						disabled={isDeleting}
 						className="text-destructive focus:text-destructive"
 					>
-						<i className="i-lucide-trash-2 mr-2 h-4 w-4"  />
+						<Trash2 className=" mr-2 h-4 w-4"  />
 						{isDeleting ? 'Deleting...' : 'Delete Property'}
 					</DropdownMenuItem>
 				</DropdownMenuContent>

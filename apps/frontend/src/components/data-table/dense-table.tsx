@@ -14,6 +14,7 @@ import {
 	useReactTable,
 	type Table as TanstackTable
 } from '@tanstack/react-table'
+import { Search, Filter, ChevronDown, ArrowUpDown, ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -126,7 +127,7 @@ export function DenseTable<TData, TValue>({
 				<div className="flex items-center gap-2">
 					{enableGlobalFilter && (
 						<div className="relative">
-							<i className="i-lucide-search text-muted-foreground pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"  />
+							<Search className="text-muted-foreground pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
 							<Input
 								placeholder={searchPlaceholder}
 								value={globalFilter}
@@ -169,9 +170,9 @@ export function DenseTable<TData, TValue>({
 									size="sm"
 									className="h-8 text-sm"
 								>
-									<i className="i-lucide-filter mr-1 h-3 w-3"  />
+									<Filter className="mr-1 h-3 w-3" />
 									Columns
-									<i className="i-lucide-chevron-down ml-1 h-3 w-3"  />
+									<ChevronDown className="ml-1 h-3 w-3" />
 								</Button>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent
@@ -267,7 +268,7 @@ export function DenseTable<TData, TValue>({
 																header.getContext()
 															)}
 													{header.column.getCanSort() && (
-														<i className="i-lucide-arrowupdown h-3 w-3 op-50"  />
+														<ArrowUpDown className="h-3 w-3 opacity-50" />
 													)}
 												</div>
 
@@ -444,7 +445,7 @@ function DenseTablePagination<TData>({
 							onClick={() => table.setPageIndex(0)}
 							disabled={!table.getCanPreviousPage()}
 						>
-							<i className="i-lucide-chevronsleft h-3 w-3"  />
+							<ChevronsLeft className="h-3 w-3" />
 						</Button>
 						<Button
 							variant="outline"
@@ -453,7 +454,7 @@ function DenseTablePagination<TData>({
 							onClick={() => table.previousPage()}
 							disabled={!table.getCanPreviousPage()}
 						>
-							<i className="i-lucide-chevron-left h-3 w-3"  />
+							<ChevronLeft className="h-3 w-3" />
 						</Button>
 						<Button
 							variant="outline"
@@ -462,7 +463,7 @@ function DenseTablePagination<TData>({
 							onClick={() => table.nextPage()}
 							disabled={!table.getCanNextPage()}
 						>
-							<i className="i-lucide-chevron-right h-3 w-3"  />
+							<ChevronRight className="h-3 w-3" />
 						</Button>
 						<Button
 							variant="outline"
@@ -473,7 +474,7 @@ function DenseTablePagination<TData>({
 							}
 							disabled={!table.getCanNextPage()}
 						>
-							<i className="i-lucide-chevronsright h-3 w-3"  />
+							<ChevronsRight className="h-3 w-3" />
 						</Button>
 					</div>
 				</div>

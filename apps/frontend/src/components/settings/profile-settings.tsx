@@ -21,7 +21,7 @@ import { profileFormSchema, type ProfileFormData } from '@/lib/validation/schema
 
 
 import { useAuth } from '@/hooks/use-auth'
-
+import { User , Building , Save , MapPin , Loader2 , Mail , Phone , Camera } from 'lucide-react'
 export function ProfileSettings() {
 	const { user } = useAuth()
 
@@ -107,7 +107,7 @@ export function ProfileSettings() {
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<i className="i-lucide-user h-5 w-5"  />
+						<User className=" h-5 w-5"  />
 						Profile Information
 					</CardTitle>
 					<CardDescription>
@@ -129,7 +129,7 @@ export function ProfileSettings() {
 						</Avatar>
 						<div className="space-y-2">
 							<Button variant="outline" size="sm">
-								<i className="i-lucide-camera mr-2 h-4 w-4"  />
+								<Camera className=" mr-2 h-4 w-4"  />
 								Change Photo
 							</Button>
 							<p className="text-muted-foreground text-sm">
@@ -160,7 +160,7 @@ export function ProfileSettings() {
 								htmlFor="email"
 								className="flex items-center gap-2"
 							>
-								<i className="i-lucide-mail h-4 w-4"  />
+								<Mail className=" h-4 w-4"  />
 								Email Address
 							</Label>
 							<Input
@@ -178,7 +178,7 @@ export function ProfileSettings() {
 								htmlFor="phone"
 								className="flex items-center gap-2"
 							>
-								<i className="i-lucide-phone h-4 w-4"  />
+								<Phone className=" h-4 w-4"  />
 								Phone Number
 							</Label>
 							<Input
@@ -199,7 +199,7 @@ export function ProfileSettings() {
 								htmlFor="company"
 								className="flex items-center gap-2"
 							>
-								<i className="i-lucide-building h-4 w-4"  />
+								<Building className=" h-4 w-4"  />
 								Company Name
 							</Label>
 							<Input
@@ -213,7 +213,7 @@ export function ProfileSettings() {
 								htmlFor="address"
 								className="flex items-center gap-2"
 							>
-								<i className="i-lucide-map-pin h-4 w-4"  />
+								<MapPin className=" h-4 w-4"  />
 								Business Address
 							</Label>
 							<Input
@@ -240,9 +240,9 @@ export function ProfileSettings() {
 						</div>
 						<Button onClick={handleSubmit(onSubmit)} disabled={isLoading || isSubmitting}>
 							{(isLoading || isSubmitting) ? (
-								<i className="i-lucide-loader-2 mr-2 h-4 w-4 animate-spin"  />
+								<Loader2 className=" mr-2 h-4 w-4 animate-spin"  />
 							) : (
-								<i className="i-lucide-save mr-2 h-4 w-4"  />
+								<Save className=" mr-2 h-4 w-4"  />
 							)}
 							Save Changes
 						</Button>

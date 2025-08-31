@@ -9,7 +9,7 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { PRIORITY, type Priority } from '@repo/shared'
-
+import { AlertTriangle } from 'lucide-react'
 interface PrioritySelectorProps {
 	value?: Priority
 	onValueChange: (_value: Priority) => void
@@ -25,20 +25,20 @@ export function PrioritySelector({
 		switch (priority) {
 			case 'LOW':
 				return (
-					<div className="mr-2 h-2 w-2 rounded-full bg-green-5" />
+					<div className="mr-2 h-2 w-2 rounded-full bg-green-500" />
 				)
 			case 'MEDIUM':
 				return (
-					<div className="mr-2 h-2 w-2 rounded-full bg-yellow-5" />
+					<div className="mr-2 h-2 w-2 rounded-full bg-yellow-500" />
 				)
 			case 'HIGH':
 				return (
-					<div className="mr-2 h-2 w-2 rounded-full bg-orange-5" />
+					<div className="mr-2 h-2 w-2 rounded-full bg-orange-500" />
 				)
 			case 'EMERGENCY':
-				return <i className="i-lucide-alert-triangle mr-2 h-4 w-4 text-red-5"  />
+				return <AlertTriangle className=" mr-2 h-4 w-4 text-red-500"  />
 			default:
-				return <div className="mr-2 h-2 w-2 rounded-full bg-gray-5" />
+				return <div className="mr-2 h-2 w-2 rounded-full bg-gray-500" />
 		}
 	}
 

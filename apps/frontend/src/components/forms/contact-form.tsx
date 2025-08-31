@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/card'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
-
+import { Calendar, Mail, Phone, CheckCircle, Send, Check } from 'lucide-react'
 interface ContactFormProps {
 	defaultType?: 'demo' | 'support' | 'sales' | 'general'
 	source?: string
@@ -64,25 +64,25 @@ export function ContactForm({
 		{
 			value: 'demo',
 			label: 'Schedule a Demo',
-			icon: () => <i className="i-lucide-calendar " />,
+			icon: () => <Calendar className="h-5 w-5" />,
 			description: 'See TenantFlow in action'
 		},
 		{
 			value: 'sales',
 			label: 'Sales Inquiry',
-			icon: () => <i className="i-lucide-phone " />,
+			icon: () => <Phone className="h-5 w-5" />,
 			description: 'Learn about pricing & features'
 		},
 		{
 			value: 'support',
 			label: 'Technical Support',
-			icon: () => <i className="i-lucide-mail " />,
+			icon: () => <Mail className="h-5 w-5" />,
 			description: 'Get help with your account'
 		},
 		{
 			value: 'general',
 			label: 'General Question',
-			icon: () => <i className="i-lucide-check-circle " />,
+			icon: () => <CheckCircle className="h-5 w-5" />,
 			description: 'Other inquiries'
 		}
 	]
@@ -110,8 +110,8 @@ export function ContactForm({
 							animate={{ opacity: 1, scale: 1 }}
 							className="py-8 text-center"
 						>
-							<div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-1">
-								<i className="i-lucide-check-circle h-8 w-8 text-green-6"  />
+							<div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+								<CheckCircle className="h-8 w-8 text-green-600" />
 							</div>
 							<h3 className="mb-2 text-xl font-semibold">
 								Message Sent!
@@ -279,7 +279,7 @@ export function ContactForm({
 							</div>
 
 							{state.error && (
-								<div className="rounded-md border border-red-2 bg-red-1 p-3 text-sm text-red-6">
+								<div className="rounded-md border border-red-200 bg-red-100 p-3 text-sm text-red-600">
 									{state.error}
 								</div>
 							)}
@@ -301,7 +301,7 @@ export function ContactForm({
 										{inquiryType === 'demo'
 											? 'Request Demo'
 											: 'Send Message'}
-										<i className="i-lucide-send  ml-2 h-4 w-4"  />
+										<Send className="ml-2 h-4 w-4" />
 									</>
 								)}
 							</Button>
@@ -310,15 +310,15 @@ export function ContactForm({
 							<div className="border-t pt-4">
 								<div className="text-muted-foreground flex flex-wrap items-center justify-center gap-4 text-xs">
 									<div className="flex items-center gap-1">
-										<i className="i-lucide-checkcircle  h-3 w-3"  />
+										<Check className="h-3 w-3" />
 										<span>No spam, ever</span>
 									</div>
 									<div className="flex items-center gap-1">
-										<i className="i-lucide-checkcircle  h-3 w-3"  />
+										<Check className="h-3 w-3" />
 										<span>24-hour response</span>
 									</div>
 									<div className="flex items-center gap-1">
-										<i className="i-lucide-checkcircle  h-3 w-3"  />
+										<Check className="h-3 w-3" />
 										<span>Free consultation</span>
 									</div>
 								</div>

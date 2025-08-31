@@ -10,6 +10,7 @@ import {
 	generateBillingMetadata
 } from '@/components/billing/billing-layout'
 import { PaymentSuccess } from '@/components/billing/payment-success'
+import { Loader2 } from 'lucide-react'
 
 interface BillingSuccessPageProps {
 	searchParams: { session_id?: string }
@@ -49,7 +50,7 @@ function BillingSuccessLoading() {
 	return (
 		<div className="flex items-center justify-center py-16">
 			<div className="text-center">
-				<i className="i-lucide-loader-2 text-primary mx-auto mb-4 h-12 w-12 animate-spin"  />
+				<Loader2 className="text-primary mx-auto mb-4 h-12 w-12 animate-spin" />
 				<p className="text-muted-foreground text-lg">
 					Activating your subscription...
 				</p>
