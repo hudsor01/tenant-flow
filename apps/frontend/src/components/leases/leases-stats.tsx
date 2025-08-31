@@ -6,7 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 import { handleStaticGenerationError } from '@/lib/utils/static-generation'
 import type { Database } from '@repo/shared'
-
+import { FileText , DollarSign , Calendar , CheckCircle } from 'lucide-react'
   type Lease = Database['public']['Tables']['Lease']['Row']
 
 function LeasesStatsSkeleton() {
@@ -72,29 +72,29 @@ function LeasesStatsUI({ stats }: LeasesStatsUIProps) {
 			title: 'Total Leases',
 			value: stats.totalLeases,
 			description: `${stats.activeLeases} currently active`,
-			icon: 'i-lucide-file-text',
+			icon: FileText,
 			color: 'text-primary'
 		},
 		{
 			title: 'Active Leases',
 			value: stats.activeLeases,
 			description: 'Currently in effect',
-			icon: 'i-lucide-check-circle',
-			color: 'text-green-6'
+			icon: CheckCircle,
+			color: 'text-green-600'
 		},
 		{
 			title: 'Expiring Soon',
 			value: stats.expiringSoon,
 			description: 'Within 30 days',
-			icon: 'i-lucide-calendar',
-			color: stats.expiringSoon > 0 ? 'text-orange-6' : 'text-gray-6'
+			icon: Calendar,
+			color: stats.expiringSoon > 0 ? 'text-orange-600' : 'text-gray-600'
 		},
 		{
 			title: 'Monthly Revenue',
 			value: `$${stats.totalMonthlyRent.toLocaleString()}`,
 			description: 'From active leases',
-			icon: 'i-lucide-dollar-sign',
-			color: 'text-green-6'
+			icon: DollarSign,
+			color: 'text-green-600'
 		}
 	]
 
@@ -109,7 +109,7 @@ function LeasesStatsUI({ stats }: LeasesStatsUIProps) {
 							<CardTitle className="text-sm font-medium">
 								{stat.title}
 							</CardTitle>
-							<i className={cn(stat.icon, 'inline-block h-4 w-4', stat.color)} />
+							<stat.icon className={cn('h-4 w-4', stat.color)} />
 						</CardHeader>
 						<CardContent>
 							<div className="text-2xl font-bold">

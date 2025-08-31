@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react"
 import { useInView, useMotionValue, useSpring } from "framer-motion"
-import { cn } from "./utils"
+import { cn } from "@/lib/utils"
 
 export interface NumberTickerProps {
   value: number

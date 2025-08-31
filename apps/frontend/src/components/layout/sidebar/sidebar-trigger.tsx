@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { Button } from '@/components/ui/button'
 import { useSidebar } from '@/components/ui/sidebar-provider'
-
+import { Menu } from 'lucide-react'
 // Mobile Sidebar Trigger
 export function SidebarTrigger() {
 	const { collapsed, setCollapsed } = useSidebar()
@@ -15,7 +15,7 @@ export function SidebarTrigger() {
 			className="lg:hidden"
 			onClick={() => setCollapsed(!collapsed)}
 		>
-			<i className="i-lucide-menu h-4 w-4"  />
+			<Menu className=" h-4 w-4"  />
 		</Button>
 	)
 }

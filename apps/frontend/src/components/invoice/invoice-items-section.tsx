@@ -9,7 +9,7 @@ import type {
 	UseFormGetValues
 } from 'react-hook-form'
 import type { CustomerInvoiceForm, CustomerInvoiceItem } from '@repo/shared/types/invoices' // Import CustomerInvoiceItem
-
+import { Plus, FileText, Minus } from 'lucide-react'
 // Removed local InvoiceItem type definition
 
 // Extended props for the invoice items section
@@ -49,7 +49,7 @@ export function InvoiceItemsSection({
 			<CardHeader className="from-primary/5 to-accent/5 border-border/50 flex items-center justify-center border-b bg-gradient-to-r py-4">
 				<CardTitle className="text-foreground flex items-center justify-center gap-2 text-base">
 					<div className="bg-primary/10 group-hover:bg-primary/20 rounded-lg p-1.5 transition-colors">
-						<i className="i-lucide-file-text text-primary h-4 w-4"  />
+						<FileText className="text-primary h-4 w-4" />
 					</div>
 					<span className="font-serif">Invoice Items</span>
 				</CardTitle>
@@ -107,7 +107,7 @@ export function InvoiceItemsSection({
 										}}
 										className="h-10 w-10 p-0"
 									>
-										<i className="i-lucide-minus h-4 w-4"  />
+										<Minus className="h-4 w-4" />
 									</Button>
 									<div className="w-16 text-center text-sm font-medium">
 										{watchedItems[index]?.quantity ?? 0}
@@ -128,7 +128,7 @@ export function InvoiceItemsSection({
 										}}
 										className="h-10 w-10 p-0"
 									>
-										<i className="i-lucide-plus h-4 w-4"  />
+										<Plus className="h-4 w-4" />
 									</Button>
 								</div>
 							</div>
@@ -183,7 +183,7 @@ export function InvoiceItemsSection({
 								className="bg-primary/10 border-primary/20 text-primary hover:bg-primary hover:text-primary-foreground h-10 w-full max-w-[140px] transition-colors"
 							>
 								<div className="flex items-center gap-2">
-									<i className="i-lucide-plus h-4 w-4"  />
+									<Plus className="h-4 w-4" />
 									<span>Add Item</span>
 								</div>
 							</Button>
@@ -208,7 +208,7 @@ export function InvoiceItemsSection({
 									Tax ({autoTaxRate}%):
 								</span>
 								{clientState && clientState.length === 2 && (
-									<span className="text-sm font-medium text-green-6">
+									<span className="text-sm font-medium text-green-600">
 										{clientState.toUpperCase()}
 									</span>
 								)}

@@ -13,6 +13,7 @@ import {
 	CardTitle
 } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Mail, AlertCircle, CheckCircle, Loader2, RotateCcw, ArrowRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { logger } from '@/lib/logger/logger'
@@ -190,8 +191,8 @@ function VerifyEmailContent({ email }: VerifyEmailContentProps) {
 		<div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4">
 			<Card className="w-full max-w-md border-0 bg-white/95 shadow-2xl backdrop-blur-sm">
 				<CardHeader className="space-y-2 pb-8 text-center">
-					<div className="mx-auto mb-4 flex h-16 w-16 animate-pulse items-center justify-center rounded-full bg-blue-1">
-						<i className="i-lucide-mail  text-primary h-8 w-8"  />
+					<div className="mx-auto mb-4 flex h-16 w-16 animate-pulse items-center justify-center rounded-full bg-blue-100">
+						<Mail className="text-primary h-8 w-8" />
 					</div>
 					<CardTitle className="text-3xl font-bold">
 						Check Your Email
@@ -204,7 +205,7 @@ function VerifyEmailContent({ email }: VerifyEmailContentProps) {
 				<CardContent className="space-y-6">
 					{email && (
 						<div className="rounded-lg border border-blue-2 bg-blue-5 p-4">
-							<p className="text-center text-sm font-medium text-blue-8">
+							<p className="text-center text-sm font-medium text-blue-800">
 								{email}
 							</p>
 						</div>
@@ -220,9 +221,9 @@ function VerifyEmailContent({ email }: VerifyEmailContentProps) {
 							}
 						>
 							{message.type === 'error' ? (
-								<i className="i-lucide-alert-circle  h-4 w-4"  />
+								<AlertCircle className="h-4 w-4" />
 							) : (
-								<i className="i-lucide-checkcircle  h-4 w-4"  />
+								<CheckCircle className="h-4 w-4" />
 							)}
 							<AlertDescription>{message.text}</AlertDescription>
 						</Alert>
@@ -230,7 +231,7 @@ function VerifyEmailContent({ email }: VerifyEmailContentProps) {
 
 					<div className="space-y-4">
 						<div className="flex items-start gap-3">
-							<i className="i-lucide-checkcircle  mt-0.5 h-5 w-5 flex-shrink-0 text-green-6"  />
+							<CheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600" />
 							<div className="space-y-1">
 								<p className="text-sm font-medium">
 									Check your inbox
@@ -244,7 +245,7 @@ function VerifyEmailContent({ email }: VerifyEmailContentProps) {
 						</div>
 
 						<div className="flex items-start gap-3">
-							<i className="i-lucide-checkcircle  mt-0.5 h-5 w-5 flex-shrink-0 text-green-6"  />
+							<CheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600" />
 							<div className="space-y-1">
 								<p className="text-sm font-medium">
 									Complete your setup
@@ -257,7 +258,7 @@ function VerifyEmailContent({ email }: VerifyEmailContentProps) {
 						</div>
 
 						<div className="flex items-start gap-3">
-							<i className="i-lucide-checkcircle  mt-0.5 h-5 w-5 flex-shrink-0 text-green-6"  />
+							<CheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600" />
 							<div className="space-y-1">
 								<p className="text-sm font-medium">
 									Check your spam folder
@@ -277,7 +278,7 @@ function VerifyEmailContent({ email }: VerifyEmailContentProps) {
 							</p>
 
 							{timeUntilNextResend > 0 && (
-								<p className="text-center text-xs text-orange-6">
+								<p className="text-center text-xs text-orange-600">
 									You can request another email in{' '}
 									{timeUntilNextResend} seconds
 								</p>
@@ -291,19 +292,19 @@ function VerifyEmailContent({ email }: VerifyEmailContentProps) {
 							>
 								{isPending ? (
 									<>
-										<i className="i-lucide-loader-2  mr-2 h-4 w-4 animate-spin"  />
+										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 										Sending...
 									</>
 								) : (
 									<>
-										<i className="i-lucide-rotateccw  mr-2 h-4 w-4"  />
+										<RotateCcw className="mr-2 h-4 w-4" />
 										{getResendButtonText()}
 									</>
 								)}
 							</Button>
 
 							{resendAttempts >= 3 && (
-								<p className="text-center text-xs text-red-6">
+								<p className="text-center text-xs text-red-600">
 									Maximum attempts reached. Please{' '}
 									<Link
 										href="/contact"
@@ -323,10 +324,10 @@ function VerifyEmailContent({ email }: VerifyEmailContentProps) {
 							className="text-primary hover:text-primary/80 inline-flex items-center gap-2 text-sm font-medium transition-colors"
 						>
 							Back to login
-							<i className="i-lucide-arrow-right  h-4 w-4"  />
+							<ArrowRight className="h-4 w-4" />
 						</Link>
 
-						<div className="text-xs text-gray-5">
+						<div className="text-xs text-gray-500">
 							<p>
 								Having trouble? Try signing up with a different
 								email or{' '}
@@ -361,7 +362,7 @@ export default function VerifyEmailPage() {
 					<Card className="w-full max-w-md border-0 bg-white/95 shadow-2xl backdrop-blur-sm">
 						<CardContent className="flex items-center justify-center p-8">
 							<div className="space-y-4 text-center">
-								<i className="i-lucide-loader-2  mx-auto h-8 w-8 animate-spin text-blue-6"  />
+								<Loader2 className="mx-auto h-8 w-8 animate-spin text-blue-600" />
 								<p className="text-muted-foreground text-sm">
 									Loading...
 								</p>

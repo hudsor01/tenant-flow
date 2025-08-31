@@ -1,36 +1,38 @@
 /**
- * CTA Section - Client Component
- * Using semantic tokens and gradients for consistency
+ * CTA Section - Client Component with Magic UI
+ * Enhanced with animations and ShimmerButton CTAs
  */
 'use client'
 
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { usePostHog } from 'posthog-js/react'
 import { useCallback } from 'react'
+import { DollarSign, Shield, Bell, Home, Sparkles, ArrowRight, Phone, Star } from 'lucide-react'
+import { ShimmerButton, BlurFade } from '@/components/magicui'
+import { ANIMATION_DELAYS } from '@/lib/animations/constants'
 
 const trustPoints = [
 	{
-		icon: 'i-lucide-dollar-sign',
+		icon: DollarSign,
 		title: 'Free Trial',
 		subtitle: '14 days, no CC required',
 		gradient: 'from-success/80 to-success'
 	},
 	{
-		icon: 'i-lucide-shield',
+		icon: Shield,
 		title: 'Secure',
 		subtitle: 'Bank-level encryption',
 		gradient: 'from-primary/80 to-primary'
 	},
 	{
-		icon: 'i-lucide-bell',
+		icon: Bell,
 		title: '24/7 Support',
 		subtitle: 'Always here to help',
 		gradient: 'from-accent/80 to-accent'
 	},
 	{
-		icon: 'i-lucide-home',
+		icon: Home,
 		title: '10,000+ Users',
 		subtitle: 'Trusted nationwide',
 		gradient: 'from-warning/80 to-warning'
@@ -57,7 +59,7 @@ export function CtaSection() {
 	}, [posthog])
 
 	return (
-		<section className="relative overflow-hidden bg-gradient-to-br from-primary via-accent to-primary/80 px-4 py-24 text-white">
+	<section className="section-spacing relative overflow-hidden bg-gradient-to-br from-primary via-accent to-primary/80 text-white">
 			{/* Enhanced background effects */}
 			<div className="absolute inset-0">
 				<div className="animate-blob absolute left-10 top-10 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
@@ -65,67 +67,77 @@ export function CtaSection() {
 				<div className="animate-blob animation-delay-4000 absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-white/5 blur-3xl" />
 			</div>
 
-			<div className="container relative z-10 mx-auto max-w-5xl text-center">
+			<div className="container relative z-10 mx-auto max-w-5xl px-6 lg:px-8 text-center">
 				{/* Enhanced header with badge */}
-				<div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 backdrop-blur-sm">
-					<i className="i-lucide-sparkles h-4 w-4" />
-					<span className="text-sm font-medium">
-						Join 10,000+ Property Managers
-					</span>
-				</div>
+				<BlurFade delay={ANIMATION_DELAYS.FAST_STAGGER * 0}>
+					<div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 backdrop-blur-sm">
+						<Sparkles className="h-4 w-4" />
+						<span className="text-sm font-medium">
+							Join 10,000+ Property Managers
+						</span>
+					</div>
+				</BlurFade>
 
-				<h2 className="mb-6 text-4xl font-bold leading-tight md:text-6xl">
-					Ready to Transform Your
-					<span className="block bg-gradient-to-r from-warning to-warning/70 bg-clip-text text-transparent">
-						Property Management?
-					</span>
-				</h2>
+				<BlurFade delay={ANIMATION_DELAYS.FAST_STAGGER * 1}>
+					<h2 className="mb-6 text-4xl font-bold leading-tight md:text-6xl">
+						Ready to Transform Your
+						<span className="block bg-gradient-to-r from-warning to-warning/70 bg-clip-text text-transparent">
+							Property Management?
+						</span>
+					</h2>
+				</BlurFade>
 
-				<p className="mx-auto mb-12 max-w-2xl text-xl leading-relaxed text-white/80">
-					Join thousands of property managers who save time, increase
-					revenue, and delight tenants with TenantFlow
-				</p>
+				<BlurFade delay={ANIMATION_DELAYS.FAST_STAGGER * 2}>
+					<p className="mx-auto mb-12 max-w-2xl text-xl leading-relaxed text-white/80">
+						Join thousands of property managers who save time, increase
+						revenue, and delight tenants with TenantFlow
+					</p>
+				</BlurFade>
 
 				{/* Enhanced CTA buttons with glassmorphism */}
-				<div className="mb-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
+				<BlurFade delay={ANIMATION_DELAYS.FAST_STAGGER * 3}>
+					<div className="mb-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
 					<Link
 						href="/auth/signup?source=cta"
 						className="w-full sm:w-auto"
 					>
-						<Button
-							size="lg"
-							className="hover:shadow-3xl group h-16 w-full min-w-[280px] rounded-xl bg-white px-8 text-lg font-semibold text-primary shadow-2xl transition-all duration-300 hover:scale-105 hover:bg-base1 sm:w-auto"
+						<ShimmerButton
+							className="hover:shadow-3xl group h-16 w-full min-w-[280px] rounded-xl px-8 text-lg font-semibold shadow-2xl transition-all duration-300 hover:scale-105 sm:w-auto"
 							onClick={handleSignupClick}
 							aria-label="Start your free 14-day trial - no credit card required"
+							shimmerColor="#3b82f6"
+							background="rgba(255, 255, 255, 0.95)"
 						>
-							<span className="flex items-center justify-center gap-3">
+							<span className="flex items-center justify-center gap-3 text-primary">
 								Start Your Free Trial Now
-								<i className="i-lucide-arrow-right h-5 w-5 transition-transform group-hover:translate-x-1" />
+								<ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
 							</span>
-						</Button>
+						</ShimmerButton>
 					</Link>
 
 					<Link
 						href="/contact?demo=true&source=cta"
 						className="w-full sm:w-auto"
 					>
-						<Button
-							size="lg"
-							variant="outline"
-							className="h-16 w-full min-w-[280px] rounded-xl border-2 border-white/30 bg-white/10 px-8 text-lg font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:border-white hover:bg-white/20 sm:w-auto"
+						<ShimmerButton
+							className="h-16 w-full min-w-[280px] rounded-xl border-2 border-white/30 px-8 text-lg font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:border-white sm:w-auto"
 							onClick={handleDemoClick}
 							aria-label="Schedule a personalized demo with our team"
+							shimmerColor="#ffffff"
+							background="rgba(255, 255, 255, 0.1)"
 						>
 							<span className="flex items-center justify-center gap-3">
-								<i className="i-lucide-phone h-5 w-5" />
+								<Phone className="h-5 w-5" />
 								Schedule a Demo
 							</span>
-						</Button>
+						</ShimmerButton>
 					</Link>
-				</div>
+					</div>
+				</BlurFade>
 
 				{/* Enhanced trust points with cards */}
-				<div className="mx-auto mb-12 grid max-w-4xl grid-cols-2 gap-6 md:grid-cols-4">
+				<BlurFade delay={ANIMATION_DELAYS.FAST_STAGGER * 4}>
+					<div className="mx-auto mb-12 grid max-w-4xl grid-cols-2 gap-6 md:grid-cols-4">
 					{trustPoints.map((point, index) => (
 						<Card
 							key={index}
@@ -135,7 +147,7 @@ export function CtaSection() {
 								<div
 									className={`mx-auto mb-4 h-12 w-12 bg-gradient-to-br ${point.gradient} flex items-center justify-center rounded-xl shadow-lg transition-transform duration-300 group-hover:scale-110`}
 								>
-									<i className={`${point.icon} inline-block h-6 w-6 text-white`} />
+									<point.icon className="inline-block h-6 w-6 text-white" />
 								</div>
 								<p className="mb-1 font-semibold text-white">
 									{point.title}
@@ -146,14 +158,16 @@ export function CtaSection() {
 							</CardContent>
 						</Card>
 					))}
-				</div>
+					</div>
+				</BlurFade>
 
 				{/* Social proof with stars */}
-				<div className="flex flex-col items-center justify-center gap-6 text-white/80 sm:flex-row">
+				<BlurFade delay={ANIMATION_DELAYS.FAST_STAGGER * 5}>
+					<div className="flex flex-col items-center justify-center gap-6 text-white/80 sm:flex-row">
 					<div className="flex items-center gap-2">
 						<div className="flex">
 							{[...Array(5)].map((_, i) => (
-								<i className="i-lucide-star h-4 w-4 fill-warning text-warning" key={i} />
+								<Star className="h-4 w-4 fill-warning text-warning" key={i} />
 							))}
 						</div>
 						<span className="text-sm">
@@ -163,7 +177,8 @@ export function CtaSection() {
 					<div className="text-sm">
 						• Trusted by property managers nationwide
 					</div>
-				</div>
+					</div>
+				</BlurFade>
 			</div>
 		</section>
 	)

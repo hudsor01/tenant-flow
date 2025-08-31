@@ -3,7 +3,7 @@
 import { cn } from "./utils"
 import type { ReactNode } from "react"
 
-interface AnimatedGradientTextProps {
+export interface AnimatedGradientTextProps {
   children: ReactNode
   className?: string
 }

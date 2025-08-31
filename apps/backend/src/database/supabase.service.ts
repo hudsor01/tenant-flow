@@ -37,7 +37,12 @@ export class SupabaseService {
 			}
 		)
 
-		this.logger.info('Supabase service initialized successfully')
+		// Defensive check for logger injection issue
+		if (this.logger && this.logger.info) {
+			this.logger.info('Supabase service initialized successfully')
+		} else {
+			console.log('Supabase service initialized successfully (logger not available)')
+		}
 	}
 
 	getAdminClient(): SupabaseClient<Database> {

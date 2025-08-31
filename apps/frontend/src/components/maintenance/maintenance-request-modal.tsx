@@ -54,7 +54,7 @@ import { useProperties } from '@/hooks/api/use-properties'
 import type { Unit } from '@repo/shared'
 // Removed unused useUnits import
 import { useUnitsByProperty } from '@/hooks/api/use-units'
-
+import { Wrench , AlertTriangle , Loader2 } from 'lucide-react'
 interface MaintenanceRequestModalProps {
 	open: boolean
 	onOpenChange: (open: boolean) => void
@@ -125,7 +125,7 @@ export function MaintenanceRequestModal({
 				<DialogHeader>
 					<div className="flex items-center gap-3">
 						<div className="bg-orange-1 rounded-lg p-2">
-							<i className="i-lucide-wrench h-5 w-5 text-orange-6"  />
+							<Wrench className=" h-5 w-5 text-orange-600"  />
 						</div>
 						<div>
 							<DialogTitle>Schedule Maintenance Request</DialogTitle>
@@ -138,7 +138,7 @@ export function MaintenanceRequestModal({
 
 				{error && (
 					<Alert variant="destructive">
-						<i className="i-lucide-alert-triangle h-4 w-4"  />
+						<AlertTriangle className=" h-4 w-4"  />
 						<AlertDescription>{error}</AlertDescription>
 					</Alert>
 				)}
@@ -411,12 +411,12 @@ export function MaintenanceRequestModal({
 							>
 								{isLoading ? (
 									<>
-										<i className="i-lucide-loader-2 mr-2 h-4 w-4 animate-spin"  />
+										<Loader2 className=" mr-2 h-4 w-4 animate-spin"  />
 										Creating...
 									</>
 								) : (
 									<>
-										<i className="i-lucide-wrench mr-2 h-4 w-4"  />
+										<Wrench className=" mr-2 h-4 w-4"  />
 										Create Request
 									</>
 								)}

@@ -6,7 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 import { handleStaticGenerationError } from '@/lib/utils/static-generation'
 import type { UnitStats } from '@repo/shared'
-
+import { Home , Wrench } from 'lucide-react'
 function UnitsStatsSkeleton() {
 	return (
 		<div className="grid gap-4 md:grid-cols-4">
@@ -28,8 +28,9 @@ interface UnitsStatsUIProps {
 
 function UnitsStatsUI({ stats }: UnitsStatsUIProps) {
 
+	// NO CALCULATIONS - Backend provides percentages already calculated
 	const formatPercentage = (rate: number) => {
-		return `${Math.round(rate * 100)}%`
+		return `${rate}%` // Already a percentage from backend
 	}
 
 	const statItems = [
@@ -37,29 +38,29 @@ function UnitsStatsUI({ stats }: UnitsStatsUIProps) {
 			title: 'Total Units',
 			value: stats.totalUnits,
 			description: 'All property units',
-			icon: 'i-lucide-home',
+			icon: Home,
 			color: 'text-primary'
 		},
 		{
 			title: 'Occupied Units',
 			value: stats.occupiedUnits,
 			description: `${formatPercentage(stats.occupancyRate)} occupancy`,
-			icon: 'i-lucide-home',
-			color: 'text-green-6'
+			icon: Home,
+			color: 'text-green-600'
 		},
 		{
 			title: 'Available Units',
 			value: stats.availableUnits,
 			description: 'Ready for tenants',
-			icon: 'i-lucide-home',
-			color: 'text-blue-6'
+			icon: Home,
+			color: 'text-blue-600'
 		},
 		{
 			title: 'In Maintenance',
 			value: stats.maintenanceUnits,
 			description: 'Under repair',
-			icon: 'i-lucide-wrench',
-			color: 'text-orange-6'
+			icon: Wrench,
+			color: 'text-orange-600'
 		}
 	]
 
@@ -75,7 +76,7 @@ function UnitsStatsUI({ stats }: UnitsStatsUIProps) {
 							<CardTitle className="text-sm font-medium">
 								{stat.title}
 							</CardTitle>
-							<i className={cn('inline-block h-4 w-4', stat.icon, stat.color)} />
+							<stat.icon className={cn('h-4 w-4', stat.color)} />
 						</CardHeader>
 						<CardContent>
 							<div className="text-2xl font-bold">

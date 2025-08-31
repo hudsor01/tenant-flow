@@ -4,10 +4,11 @@
  */
 
 import { Button } from '@/components/ui/button'
+import { ArrowRight, Check, Clock, Shield, Star } from 'lucide-react'
 
 export function PricingCTA() {
 	return (
-		<section className="bg-gradient-to-r from-blue-6 via-purple-600 to-blue-8 py-24 text-white">
+		<section className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 py-24 text-white">
 			<div className="mx-auto max-w-4xl px-4 text-center">
 				{/* Main CTA */}
 				<h2 className="mb-6 text-4xl font-bold sm:text-5xl">
@@ -16,7 +17,7 @@ export function PricingCTA() {
 					property management?
 				</h2>
 
-				<p className="mb-12 text-xl leading-relaxed text-blue-1">
+				<p className="mb-12 text-xl leading-relaxed text-blue-100">
 					Join thousands of property managers who've streamlined their
 					operations and increased their revenue with TenantFlow.
 				</p>
@@ -25,34 +26,34 @@ export function PricingCTA() {
 				<div className="mb-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
 					<Button
 						size="lg"
-						className="bg-white px-8 py-4 text-lg font-semibold text-blue-6 shadow-lg transition-all hover:bg-gray-1 hover:shadow-xl"
+						className="bg-white px-8 py-4 text-lg font-semibold text-blue-600 shadow-lg transition-all hover:bg-gray-100 hover:shadow-xl"
 					>
 						<span>Start your free trial</span>
-						<i className="i-lucide-arrow-right ml-2 h-5 w-5"  />
+						<ArrowRight className="ml-2 h-5 w-5" />
 					</Button>
 
 					<Button
 						variant="outline"
 						size="lg"
-						className="border-blue-3 px-8 py-4 text-lg font-semibold text-white hover:bg-blue-7"
+						className="border-blue-300 px-8 py-4 text-lg font-semibold text-white hover:bg-blue-700"
 					>
 						Schedule a demo
 					</Button>
 				</div>
 
 				{/* Trust indicators */}
-				<div className="mb-8 text-sm text-blue-2">
+				<div className="mb-8 text-sm text-blue-200">
 					<div className="flex flex-wrap items-center justify-center gap-8">
 						<div className="flex items-center gap-2">
-							<i className="i-lucide-clock h-4 w-4"  />
+							<Clock className="h-4 w-4" />
 							<span>14-day free trial</span>
 						</div>
 						<div className="flex items-center gap-2">
-							<i className="i-lucide-shield h-4 w-4"  />
+							<Shield className="h-4 w-4" />
 							<span>No credit card required</span>
 						</div>
 						<div className="flex items-center gap-2">
-							<i className="i-lucide-star h-4 w-4"  />
+							<Star className="h-4 w-4" />
 							<span>Cancel anytime</span>
 						</div>
 					</div>
@@ -64,7 +65,7 @@ export function PricingCTA() {
 						<div className="mb-4 text-3xl font-bold text-white">
 							200+
 						</div>
-						<div className="text-blue-1">
+						<div className="text-blue-100">
 							Properties managed on average per customer
 						</div>
 					</div>
@@ -73,7 +74,7 @@ export function PricingCTA() {
 						<div className="mb-4 text-3xl font-bold text-white">
 							10 hrs
 						</div>
-						<div className="text-blue-1">
+						<div className="text-blue-100">
 							Saved per week with automation
 						</div>
 					</div>
@@ -82,7 +83,7 @@ export function PricingCTA() {
 						<div className="mb-4 text-3xl font-bold text-white">
 							98%
 						</div>
-						<div className="text-blue-1">
+						<div className="text-blue-100">
 							Customer satisfaction rating
 						</div>
 					</div>

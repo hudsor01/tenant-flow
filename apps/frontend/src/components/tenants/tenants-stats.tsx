@@ -5,7 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 import { useTenantStats } from '@/hooks/api/use-tenants'
 import type { TenantStats } from '@repo/shared'
-
+import { Users, UserCheck, UserX } from 'lucide-react'
 function TenantsStatsSkeleton() {
 	return (
 		<div className="grid gap-4 md:grid-cols-4">
@@ -35,22 +35,22 @@ function TenantsStatsUI({ stats }: TenantsStatsUIProps) {
 			title: 'Total Tenants',
 			value: stats.total,
 			description: 'All registered tenants',
-			icon: 'i-lucide-users',
+			icon: Users,
 			color: 'text-primary'
 		},
 		{
 			title: 'Active Tenants',
 			value: stats.active,
 			description: 'Currently active tenants',
-			icon: 'i-lucide-user-check',
-			color: 'text-green-6'
+			icon: UserCheck,
+			color: 'text-green-600'
 		},
 		{
 			title: 'Inactive Tenants',
 			value: stats.inactive,
 			description: 'No longer active',
-			icon: 'i-lucide-user-x',
-			color: 'text-red-6'
+			icon: UserX,
+			color: 'text-red-600'
 		}
 	]
 
@@ -66,7 +66,7 @@ function TenantsStatsUI({ stats }: TenantsStatsUIProps) {
 							<CardTitle className="text-sm font-medium">
 								{stat.title}
 							</CardTitle>
-							<i className={cn('h-4 w-4', stat.color, stat.icon)} />
+							<stat.icon className={cn('h-4 w-4', stat.color)} />
 						</CardHeader>
 						<CardContent>
 							<div className="text-2xl font-bold">

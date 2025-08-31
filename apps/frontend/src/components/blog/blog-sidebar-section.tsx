@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
+import { ArrowUpRight } from 'lucide-react'
 // Removed blog-stubs imports - using placeholder data for unused component
 interface BlogArticle {
 	slug: string
@@ -51,7 +52,7 @@ export default function BlogSidebarSection({
 									</p>
 									<div className="text-primary flex items-center text-xs transition-all group-hover:gap-2">
 										Read article
-										<i className="i-lucide-arrowupright h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100"  />
+										<ArrowUpRight className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100" />
 									</div>
 								</Link>
 							</article>

@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { BlurFade } from '@/components/magicui'
 import {
 	Table,
 	TableBody,
@@ -23,8 +24,8 @@ import {
 import Link from 'next/link'
 import type { Database } from '@repo/shared'
 import { createUnitsActions } from '@/components/data-table/data-table-action-factory'
+import { Plus , Home , Users , DollarSign , Building, Ruler } from 'lucide-react'
 
-// Define types directly from Database schema - NO DUPLICATION
 type Unit = Database['public']['Tables']['Unit']['Row']
 
 // Use UnitWithProperty_ instead of UnitWithDetails for better type alignment
@@ -48,14 +49,14 @@ function UnitRow({ unit }: { unit: UnitDisplayData }) {
 				return (
 					<Badge
 						variant="secondary"
-						className="bg-green-1 text-green-8"
+						className="bg-green-1 text-green-800"
 					>
 						Available
 					</Badge>
 				)
 			case 'OCCUPIED':
 				return (
-					<Badge variant="default" className="bg-blue-5">
+					<Badge variant="default" className="bg-blue-500">
 						Occupied
 					</Badge>
 				)
@@ -88,14 +89,14 @@ function UnitRow({ unit }: { unit: UnitDisplayData }) {
 			<TableCell>
 				<div className="flex items-center gap-3">
 					<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-1 dark:bg-blue-9/20">
-						<i className="i-lucide-home h-4 w-4 text-blue-6 dark:text-blue-4"  />
+						<Home className=" h-4 w-4 text-blue-6 dark:text-blue-400"  />
 					</div>
 					<div className="space-y-1">
 						<p className="font-medium leading-none">
 							Unit {unit.unitNumber}
 						</p>
 						<div className="text-muted-foreground flex items-center gap-1 text-sm">
-							<i className="i-lucide-building h-3 w-3"  />
+							<Building className=" h-3 w-3"  />
 							{unit.property?.name || 'Unknown Property_'}
 						</div>
 					</div>
@@ -103,19 +104,19 @@ function UnitRow({ unit }: { unit: UnitDisplayData }) {
 			</TableCell>
 			<TableCell>
 				<div className="flex items-center gap-1 text-sm">
-					<i className="i-lucide-users text-muted-foreground h-3 w-3"  />
+					<Users className=" text-muted-foreground h-3 w-3"  />
 					{unit.bedrooms}BR / {unit.bathrooms}BA
 				</div>
 			</TableCell>
 			<TableCell>
 				<div className="flex items-center gap-1 text-sm">
-					<i className="i-lucide-ruler text-muted-foreground h-3 w-3"  />
+					<Ruler className="text-muted-foreground h-3 w-3"  />
 					{formatSquareFeet(unit.squareFeet)}
 				</div>
 			</TableCell>
 			<TableCell>
 				<div className="flex items-center gap-1 text-sm">
-					<i className="i-lucide-dollar-sign text-muted-foreground h-3 w-3"  />
+					<DollarSign className=" text-muted-foreground h-3 w-3"  />
 					{formatRent(unit.rent)}
 				</div>
 			</TableCell>
@@ -164,7 +165,7 @@ function UnitsTableUI({ units }: UnitsTableUIProps) {
 				</CardHeader>
 				<CardContent>
 					<div className="flex flex-col items-center justify-center py-12 text-center">
-						<i className="i-lucide-home text-muted-foreground/50 mb-4 h-16 w-16"  />
+						<Home className=" text-muted-foreground/50 mb-4 h-16 w-16"  />
 						<h3 className="mb-2 text-lg font-medium">
 							No units yet
 						</h3>
@@ -174,7 +175,7 @@ function UnitsTableUI({ units }: UnitsTableUIProps) {
 						</p>
 						<Link href="/units/new">
 							<Button>
-								<i className="i-lucide-plus mr-2 h-4 w-4"  />
+								<Plus className=" mr-2 h-4 w-4"  />
 								Add First Unit
 							</Button>
 						</Link>
@@ -196,7 +197,7 @@ function UnitsTableUI({ units }: UnitsTableUIProps) {
 					</div>
 					<Link href="/units/new">
 						<Button size="sm">
-							<i className="i-lucide-plus mr-2 h-4 w-4"  />
+							<Plus className=" mr-2 h-4 w-4"  />
 							Add Unit
 						</Button>
 					</Link>
@@ -218,8 +219,10 @@ function UnitsTableUI({ units }: UnitsTableUIProps) {
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-							{units.map(unit => (
-								<UnitRow key={unit.id} unit={unit} />
+							{units.map((unit, index) => (
+								<BlurFade key={unit.id} delay={0.05 * index}>
+									<UnitRow unit={unit} />
+								</BlurFade>
 							))}
 						</TableBody>
 					</Table>

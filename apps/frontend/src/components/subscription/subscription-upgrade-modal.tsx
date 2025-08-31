@@ -13,7 +13,7 @@ import { Badge } from '../ui/badge'
 import { useCreateCheckoutSession, useUpdateSubscription } from '../../hooks/api/use-billing'
 import { LoadingSpinner } from '../ui/loading-spinner'
 import type { PlanType } from '@repo/shared'
-
+import { X , Check, ArrowUpIcon, CreditCardIcon } from 'lucide-react'
 interface SubscriptionUpgradeModalProps {
 	isOpen: boolean
 	onClose: () => void
@@ -150,17 +150,17 @@ export function SubscriptionUpgradeModal({
 			<Dialog open={isOpen} onOpenChange={onClose}>
 				<DialogContent className="sm:max-w-md">
 					<div className="flex flex-col items-center py-6 text-center">
-						<div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-1">
-							<i className="i-lucide-check h-6 w-6 text-green-6"  />
+						<div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+							<Check className=" h-6 w-6 text-green-600"  />
 						</div>
 						<h3 className="mb-2 text-lg font-semibold">
 							Upgrade Successful!
 						</h3>
-						<p className="mb-4 text-gray-6">
+						<p className="mb-4 text-gray-600">
 							Your subscription has been upgraded to{' '}
 							{selectedPlanOption?.name}.
 						</p>
-						<p className="text-sm text-gray-5">
+						<p className="text-sm text-gray-500">
 							Redirecting to your dashboard...
 						</p>
 					</div>
@@ -174,7 +174,7 @@ export function SubscriptionUpgradeModal({
 			<DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">
-						<i className="i-lucide-arrowupicon h-5 w-5"  />
+						<ArrowUpIcon className="h-5 w-5"  />
 						Upgrade Your Subscription
 					</DialogTitle>
 				</DialogHeader>
@@ -242,7 +242,7 @@ export function SubscriptionUpgradeModal({
 										<h3 className="text-lg font-semibold">
 											{plan.name}
 										</h3>
-										<p className="mt-1 text-sm text-gray-6">
+										<p className="mt-1 text-sm text-gray-600">
 											{plan.description}
 										</p>
 									</div>
@@ -251,11 +251,11 @@ export function SubscriptionUpgradeModal({
 										<div className="text-3xl font-bold">
 											${price}
 										</div>
-										<div className="text-sm text-gray-6">
+										<div className="text-sm text-gray-600">
 											{billingCycle === 'annual' ? (
 												<>
 													per year
-													<div className="text-xs text-gray-5">
+													<div className="text-xs text-gray-500">
 														(${monthlyEquivalent}
 														/month)
 													</div>
@@ -272,7 +272,7 @@ export function SubscriptionUpgradeModal({
 												key={index}
 												className="flex items-start gap-2"
 											>
-												<i className="i-lucide-check mt-0.5 h-4 w-4 flex-shrink-0 text-green-6"  />
+												<Check className=" mt-0.5 h-4 w-4 flex-shrink-0 text-green-600"  />
 												<span className="text-sm">
 													{feature}
 												</span>
@@ -303,7 +303,7 @@ export function SubscriptionUpgradeModal({
 						<h4 className="mb-2 font-medium">
 							Current Plan: {currentPlan}
 						</h4>
-						<p className="text-sm text-gray-6">
+						<p className="text-sm text-gray-600">
 							You'll be upgraded immediately and charged a
 							prorated amount for the remainder of your billing
 							period.
@@ -314,8 +314,8 @@ export function SubscriptionUpgradeModal({
 					{upgradeError && (
 						<div className="rounded-lg border border-red-2 bg-red-50 p-4">
 							<div className="flex items-center gap-2">
-								<i className="i-lucide-x h-4 w-4 text-red-6"  />
-								<span className="text-sm text-red-6">
+								<X className=" h-4 w-4 text-red-600"  />
+								<span className="text-sm text-red-600">
 									{upgradeError.message ||
 										'Upgrade failed. Please try again.'}
 								</span>
@@ -344,7 +344,7 @@ export function SubscriptionUpgradeModal({
 							</>
 						) : (
 							<>
-								<i className="i-lucide-creditcardicon h-4 w-4"  />
+								<CreditCardIcon className="h-4 w-4"  />
 								Upgrade Now
 								{selectedPlanOption && (
 									<span className="ml-2">

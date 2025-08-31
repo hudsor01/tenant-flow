@@ -8,7 +8,6 @@ import type { ReactNode } from 'react'
 import { ThemeProvider } from '@/components/theme-provider'
 import { QueryProvider } from './query-provider'
 import { PHProvider } from './posthog-provider'
-import { PostHogErrorBoundary } from '@/components/analytics/posthog-error-boundary'
 import { PostHogUserProvider } from '@/components/analytics/posthog-user-provider'
 import { CommandPaletteProvider } from '@/hooks/use-command-palette'
 
@@ -24,15 +23,13 @@ export function RootProviders({ children }: RootProvidersProps) {
 	return (
 		<ThemeProvider attribute="class" defaultTheme="system" enableSystem>
 			<PHProvider>
-				<PostHogErrorBoundary>
-					<QueryProvider>
-						<PostHogUserProvider>
-							<CommandPaletteProvider>
-								{children}
-							</CommandPaletteProvider>
-						</PostHogUserProvider>
-					</QueryProvider>
-				</PostHogErrorBoundary>
+				<QueryProvider>
+					<PostHogUserProvider>
+						<CommandPaletteProvider>
+							{children}
+						</CommandPaletteProvider>
+					</PostHogUserProvider>
+				</QueryProvider>
 			</PHProvider>
 		</ThemeProvider>
 	)

@@ -12,7 +12,7 @@ import {
 import type { PLAN_TYPE } from '@repo/shared'
 import { PLANS } from '@repo/shared'
 import { apiMutate } from '@/lib/utils/api-utils'
-
+import { Shield , CreditCard , Loader2 , Check } from 'lucide-react'
 interface SubscriptionCheckoutProps {
 	planType: keyof typeof PLAN_TYPE
 	billingInterval: 'monthly' | 'annual'
@@ -127,8 +127,8 @@ export function SubscriptionCheckout({
 		return (
 			<Card className="mx-auto w-full max-w-md">
 				<CardHeader className="text-center">
-					<CardTitle className="flex items-center justify-center gap-2 text-green-6">
-						<i className="i-lucide-checkcircle h-6 w-6"  />
+					<CardTitle className="flex items-center justify-center gap-2 text-green-600">
+						<Check className="circle h-6 w-6"  />
 						Subscription Activated!
 					</CardTitle>
 					<CardDescription>
@@ -156,7 +156,7 @@ export function SubscriptionCheckout({
 		<Card className="mx-auto w-full max-w-md">
 			<CardHeader className="text-center">
 				<CardTitle className="flex items-center justify-center gap-2">
-					<i className="i-lucide-credit-card h-5 w-5"  />
+					<CreditCard className=" h-5 w-5"  />
 					Subscribe to {plan?.name}
 				</CardTitle>
 				<CardDescription>
@@ -168,7 +168,7 @@ export function SubscriptionCheckout({
 					)}
 					<br />
 					<div className="mt-2 flex items-center justify-center gap-1">
-						<i className="i-lucide-shield h-4 w-4"  />
+						<Shield className=" h-4 w-4"  />
 						<span>Secure checkout powered by Stripe</span>
 					</div>
 				</CardDescription>
@@ -257,7 +257,7 @@ export function SubscriptionCheckout({
 						>
 							{isProcessing ? (
 								<>
-									<i className="i-lucide-loader-2 mr-2 h-4 w-4 animate-spin"  />
+									<Loader2 className=" mr-2 h-4 w-4 animate-spin"  />
 									Processing...
 								</>
 							) : (
@@ -269,7 +269,7 @@ export function SubscriptionCheckout({
 					{/* Enhanced security indicators */}
 					<div className="space-y-2 text-center">
 						<div className="text-muted-foreground flex items-center justify-center gap-2 text-sm">
-							<i className="i-lucide-shield h-4 w-4"  />
+							<Shield className=" h-4 w-4"  />
 							<span>
 								256-bit SSL encryption • PCI DSS compliant
 							</span>
