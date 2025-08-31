@@ -2,6 +2,28 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 🚨 CRITICAL: UI MANDATORY AND REQUIRED RULES 🚨
+
+**REMEMBER: Reuse existing pages, layouts, components where possible
+Install or use shadcn components vs. creating custom components where possible
+Keep component organization flat and simple
+Add new pages following existing patterns
+Always use central Zustand store instead of component state
+Avoid prop drilling completely
+Components should access store directly via hooks
+Only use component state for temporary UI states (form inputs while typing)
+Keep component organization flat
+Place new components in appropriate existing folders
+Don't group by features unless app is complex
+Follow existing naming conventions
+Always use shadcn components if available
+When setting primary color, you MUST update both the Tailwind and Magic UI theme to keep them in sync
+Customize the primary color for the application using Tailwind 
+Reuse the current authentication layouts and flow
+Components - always look for existing shadcn components before attempting to create new custom components
+Creating Charts - Use shadcn charts for any charting https://ui.shadcn.com/charts
+
+
 **REMEMBER: Every line of code is a liability. Less code = fewer bugs = easier maintenance.**
 
 ## 🚨 CRITICAL: MANDATORY DEVELOPMENT RULES 🚨

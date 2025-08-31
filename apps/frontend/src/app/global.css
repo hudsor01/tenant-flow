@@ -336,6 +336,25 @@ body::before {
   66% { transform: translate(20px, -10px) scale(0.98); }
 }
 
+/* Animated Gradient for Text */
+@keyframes gradient {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient 3s ease infinite;
+}
+
+.bg-300\% {
+  background-size: 300% 300%;
+}
+
 /* Noise Texture Overlay */
 body::after {
   content: '';
@@ -1997,6 +2016,15 @@ button,
     }
     50% {
       opacity: 1;
+    }
+  }
+
+  @keyframes gradient-x {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
     }
   }
 }

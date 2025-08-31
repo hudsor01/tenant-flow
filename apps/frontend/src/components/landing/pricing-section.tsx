@@ -6,7 +6,6 @@
 'use client'
 
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { CheckCircle } from 'lucide-react'
 import { AnimatedGradientText, BlurFade, BorderBeam, ShimmerButton, InteractiveHoverButton } from '@/components/magicui'

@@ -6,7 +6,7 @@
 'use client'
 
 import { Home, DollarSign, Wrench, Shield } from 'lucide-react'
-import { NumberTicker, BlurFade, BorderBeam } from '@/components/magicui'
+import { NumberTicker, BlurFade } from '@/components/magicui'
 import { ANIMATION_DELAYS } from '@/lib/animations/constants'
 
 const benefits = [
