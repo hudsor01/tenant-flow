@@ -44,7 +44,7 @@ export function useIsTouchDevice(): boolean {
       setIsTouch(
         'ontouchstart' in window ||
         navigator.maxTouchPoints > 0 ||
-        // @ts-ignore - vendor prefix
+        // @ts-expect-error - vendor prefix for legacy IE support
         navigator.msMaxTouchPoints > 0
       )
     }
@@ -79,13 +79,13 @@ export function useMobileOptimizedAnimations<T extends Record<string, any>>(
   }
   
   // Otherwise, simplify desktop variants for mobile
-  const simplified = { ...desktopVariants } as T
+  const simplified = { ...desktopVariants }
   Object.keys(simplified).forEach(key => {
-    const variant = simplified[key]
+    const variant = simplified[key as keyof T]
     if (typeof variant === 'object' && variant !== null) {
       // Reduce animation duration on mobile
       if (variant.transition && typeof variant.transition === 'object') {
-        simplified[key] = {
+        (simplified as any)[key] = {
           ...variant,
           transition: {
             ...variant.transition,
@@ -100,16 +100,18 @@ export function useMobileOptimizedAnimations<T extends Record<string, any>>(
       }
       
       // Remove complex transforms on mobile
-      if ('rotate' in variant) {
-        delete simplified[key].rotate
+      const variantCopy = { ...(simplified as any)[key] }
+      if ('rotate' in variantCopy) {
+        delete variantCopy.rotate
       }
-      if ('scale' in variant && variant.scale > 1.2) {
-        simplified[key].scale = 1.1 // Cap scale at 1.1 on mobile
+      if ('scale' in variantCopy && variantCopy.scale > 1.2) {
+        variantCopy.scale = 1.1 // Cap scale at 1.1 on mobile
       }
+      (simplified as any)[key] = variantCopy
     }
   })
   
-  return simplified
+  return simplified as T
 }
 
 /**

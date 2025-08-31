@@ -35,6 +35,41 @@ export function HeroSection() {
   const opacity = useTransform(scrollYProgress, [0, 0.5, 1], [1, 0.9, 0.5])
   const scale = useTransform(scrollYProgress, [0, 1], [1, 0.98])
 
+  // Memoized animation variants with mobile optimization
+  const badgeVariants = useOptimizedAnimations(
+    useMemo(() => ({
+      initial: { scale: 0.8, opacity: 0 },
+      animate: { scale: 1, opacity: 1 }
+    }), []),
+    {
+      mobile: useMemo(() => ({
+        initial: { opacity: 0 },
+        animate: { opacity: 1 }
+      }), []),
+      reduced: useMemo(() => ({
+        initial: { opacity: 0 },
+        animate: { opacity: 1 }
+      }), [])
+    }
+  )
+
+  const trustItemVariants = useOptimizedAnimations(
+    useMemo(() => ({
+      initial: { opacity: 0, y: 20 },
+      animate: { opacity: 1, y: 0 }
+    }), []),
+    {
+      mobile: useMemo(() => ({
+        initial: { opacity: 0 },
+        animate: { opacity: 1 }
+      }), []),
+      reduced: useMemo(() => ({
+        initial: { opacity: 0 },
+        animate: { opacity: 1 }
+      }), [])
+    }
+  )
+
   return (
     <section ref={ref} className="relative min-h-screen overflow-hidden flex items-center justify-center pt-16">
       {/* Animated Backgrounds */}
@@ -63,10 +98,12 @@ export function HeroSection() {
           {/* Animated Badge */}
           <BlurFade delay={0.1}>
             <motion.div 
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
+              variants={badgeVariants}
+              initial="initial"
+              animate="animate"
               transition={{ duration: 0.6, ease: "easeOut" }}
               className="relative mb-8 inline-flex items-center gap-3 rounded-full border border-primary/20 bg-card/50 backdrop-blur-sm px-4 py-2 text-sm shadow-lg"
+              style={{ willChange: 'transform, opacity' }}
             >
               <BorderBeam {...BORDER_BEAM_PRESETS.MEDIUM} />
               <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
@@ -150,10 +187,12 @@ export function HeroSection() {
               ].map((item, index) => (
                 <motion.div 
                   key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  variants={trustItemVariants}
+                  initial="initial"
+                  animate="animate"
                   transition={{ duration: 0.6, delay: 0.7 + item.delay }}
                   className="flex items-center justify-center gap-3 rounded-lg border border-border/50 bg-card/30 backdrop-blur-sm px-4 py-3 font-medium text-muted-foreground hover:bg-card/50 transition-all duration-300"
+                  style={{ willChange: 'transform, opacity' }}
                 >
                   <span className="text-lg">{item.icon}</span>
                   <span>{item.text}</span>

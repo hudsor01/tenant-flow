@@ -108,7 +108,7 @@ export function AnimatedHero() {
         .animate-gradient {
           animation: gradient 3s ease infinite;
         }
-        .bg-300\% {
+        .bg-300% {
           background-size: 300% 300%;
         }
       `}</style>

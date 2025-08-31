@@ -4,7 +4,6 @@ import * as React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Activity, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { INTERACTION_ANIMATIONS } from '@/lib/animations/constants'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {

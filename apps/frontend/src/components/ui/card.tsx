@@ -229,6 +229,36 @@ const CardFooter = React.forwardRef<HTMLDivElement, CardFooterProps>(
 )
 CardFooter.displayName = 'CardFooter'
 
+const cardActionVariants = cva(
+  "shrink-0",
+  {
+    variants: {
+      position: {
+        default: "",
+        header: "col-start-2 row-span-2 row-start-1 self-start justify-self-end",
+      },
+    },
+    defaultVariants: {
+      position: "default",
+    },
+  }
+)
+
+export interface CardActionProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof cardActionVariants> {}
+
+const CardAction = React.forwardRef<HTMLDivElement, CardActionProps>(
+  ({ className, position, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn(cardActionVariants({ position, className }))}
+      {...props}
+    />
+  )
+)
+CardAction.displayName = 'CardAction'
+
 export { 
   Card, 
   CardHeader, 
@@ -236,10 +266,12 @@ export {
   CardTitle, 
   CardDescription, 
   CardContent,
+  CardAction,
   cardVariants,
   cardHeaderVariants,
   cardTitleVariants,
   cardDescriptionVariants,
   cardContentVariants,
-  cardFooterVariants
+  cardFooterVariants,
+  cardActionVariants
 }
