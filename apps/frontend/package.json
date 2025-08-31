@@ -9,9 +9,9 @@
 		"npm": ">=10.0.0"
 	},
 	"scripts": {
-		"dev": "node scripts/dev-server.js",
-		"dev:fixed": "rm -rf .next && next dev --turbo -p 4500",
-		"dev:webpack": "rm -rf .next && PORT=${PORT:-4500} next dev",
+		"dev": "next dev --turbo -p 3000",
+		"dev:fixed": "rm -rf .next && next dev --turbo -p 3000",
+		"dev:webpack": "rm -rf .next && PORT=${PORT:-3000} next dev",
 		"build": "next build",
 		"build:no-schemas": "next build",
 		"start": "next start",
