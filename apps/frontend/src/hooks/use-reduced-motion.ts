@@ -39,6 +39,9 @@ export function usePrefersReducedMotion(): boolean {
       mediaQuery.addListener(handleChange)
       return () => mediaQuery.removeListener(handleChange)
     }
+    
+    // Return empty cleanup function if no listeners were added
+    return () => {}
   }, [])
 
   return prefersReducedMotion
@@ -67,18 +70,18 @@ export function useAccessibleAnimations<T extends Record<string, any>>(
   }
   
   // Otherwise, strip motion from full variants
-  const stripped = { ...fullVariants } as T
+  const stripped = { ...fullVariants }
   Object.keys(stripped).forEach(key => {
-    const variant = stripped[key]
+    const variant = stripped[key as keyof T]
     if (typeof variant === 'object' && variant !== null) {
       // Keep opacity changes but remove transforms
       if ('opacity' in variant) {
-        stripped[key] = { opacity: variant.opacity }
+        (stripped as any)[key] = { opacity: variant.opacity }
       } else {
-        stripped[key] = {}
+        (stripped as any)[key] = {}
       }
     }
   })
   
-  return stripped
+  return stripped as T
 }

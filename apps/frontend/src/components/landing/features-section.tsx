@@ -6,10 +6,9 @@
 'use client'
 
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Home, Wrench, FileText, Play } from 'lucide-react'
+import { Home, Wrench, FileText } from 'lucide-react'
 import { AnimatedGradientText, BlurFade, BorderBeam, InteractiveHoverButton, NumberTicker } from '@/components/magicui'
 import { ANIMATION_DELAYS, getStaggerDelay, BORDER_BEAM_PRESETS } from '@/lib/animations/constants'
 

@@ -114,7 +114,7 @@ export function DashboardStatsCards() {
 
 	return (
 		<StatsGrid columns={4} className={cn(isPending && 'opacity-75')}>
-			{statCards.map((stat, index) => (
+			{statCards.map((stat, _index) => (
 				<Stats
 					key={stat.title}
 					className={cn(

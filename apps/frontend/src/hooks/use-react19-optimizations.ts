@@ -27,7 +27,7 @@ export function useOptimisticUpdate<T>(
 /**
  * Hook for deferred values with loading states
  */
-export function useDeferredSearch(searchTerm: string, delay = 300) {
+export function useDeferredSearch(searchTerm: string, _delay = 300) {
   const deferredSearchTerm = useDeferredValue(searchTerm)
   const isStale = searchTerm !== deferredSearchTerm
 
