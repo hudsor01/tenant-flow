@@ -324,6 +324,37 @@ export type {
 // Export analytics types
 export type { TenantFlowEvent } from './types/analytics'
 
+// Export lease generator types
+export type {
+	USState,
+	PropertyType,
+	LeaseTermType,
+	LeaseFormData,
+	StateLeaseRequirements,
+	GeneratedLease,
+	UserLeaseHistory,
+	LeaseGenerationPricing,
+	LeaseGenerationResponse,
+	LeaseValidationResponse
+} from './types/lease-generator.types'
+
+// Export CSP configuration utilities (unified CSP/CORS alignment)
+export {
+	generateCSPDirectives,
+	cspDirectivesToString,
+	getProductionCSP,
+	getDevelopmentCSP,
+	getCSPString,
+	CSP_DOMAINS
+} from './security/csp-config'
+
+// Export CORS configuration utilities (aligned with CSP)
+export {
+	getCORSOrigins,
+	getCORSOriginsForEnv,
+	getCORSConfig,
+	APP_DOMAINS
+} from './security/cors-config'
 
 // ============================================================================
 // STOP - No more type duplications allowed beyond this point  
