@@ -1,22 +1,35 @@
-import 'reflect-metadata'
 import * as dotenv from 'dotenv'
+import 'reflect-metadata'
 dotenv.config()
 
+import cors from '@fastify/cors'
+import { RequestMethod, ValidationPipe } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
-import { ValidationPipe } from '@nestjs/common'
+import {
+	FastifyAdapter,
+	type NestFastifyApplication
+} from '@nestjs/platform-fastify'
+import { getCORSConfig } from '@repo/shared'
 import { Logger } from 'nestjs-pino'
 import { AppModule } from './app.module'
-import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify'
-import cors from '@fastify/cors'
-import { FASTIFY_OPTIONS, registerCorePlugins } from './config/fastify.config'
+import { HEALTH_PATHS } from './shared/constants/routes'
+
+// Extend FastifyRequest interface for timing
+declare module 'fastify' {
+	interface FastifyRequest {
+		startTime?: number
+	}
+}
 
 async function bootstrap() {
 	const startTime = Date.now()
 	const port = parseInt(process.env.PORT ?? '4600', 10)
-	
+
 	// Create Fastify adapter
-	const fastifyAdapter = new FastifyAdapter(FASTIFY_OPTIONS)
-	
+	const fastifyAdapter = new FastifyAdapter({
+		logger: false // Disable Fastify's internal logger, use NestJS Pino instead
+	})
+
 	// Create NestJS application
 	const app = await NestFactory.create<NestFastifyApplication>(
 		AppModule,
@@ -29,21 +42,20 @@ async function bootstrap() {
 
 	// Use Pino logger
 	app.useLogger(app.get(Logger))
-	
+	const logger = app.get(Logger)
+
 	// Set global prefix
 	app.setGlobalPrefix('api/v1', {
-		exclude: ['/health', '/health/ping', '/health/ready', '/health/debug']
+		exclude: [
+			...HEALTH_PATHS.map(path => ({ path, method: RequestMethod.ALL })),
+			{ path: '/', method: RequestMethod.ALL }
+		]
 	})
 
-	// Enable CORS
-	await app.register(cors, {
-		origin: process.env.FRONTEND_URL ?? 'http://localhost:3001',
-		credentials: true,
-		methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
-	})
-
-	// Register Fastify plugins
-	await registerCorePlugins(app)
+	// Configure CORS using unified configuration (aligned with CSP)
+	logger.log('Configuring CORS...')
+	await app.register(cors, getCORSConfig())
+	logger.log('CORS enabled with aligned configuration')
 
 	// Global validation pipe
 	app.useGlobalPipes(
@@ -62,9 +74,8 @@ async function bootstrap() {
 
 	// Start server
 	await app.listen(port, '0.0.0.0')
-	
+
 	// Log startup info
-	const logger = app.get(Logger)
 	const startupTime = ((Date.now() - startTime) / 1000).toFixed(2)
 	logger.log(`🚀 Server listening on http://0.0.0.0:${port}`)
 	logger.log(`⏱️  Startup time: ${startupTime}s`)
