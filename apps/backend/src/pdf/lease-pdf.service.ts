@@ -33,6 +33,15 @@ export class LeasePDFService {
 	}
 
 	/**
+	 * Generate lease agreement (alias for test compatibility)
+	 */
+	async generateLeaseAgreement(
+		leaseData: Record<string, unknown>
+	): Promise<Buffer> {
+		return this.generateLeasePDF(leaseData)
+	}
+
+	/**
 	 * Generate lease PDF with ID and user context (for controller compatibility)
 	 */
 	async generateLeasePdf(
