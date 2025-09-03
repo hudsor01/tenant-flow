@@ -1,211 +1,104 @@
 {
-	"$schema": "https://json.schemastore.org/package",
-	"name": "@repo/shared",
-	"version": "0.1.0",
-	"main": "./dist/cjs/index.js",
-	"module": "./dist/esm/index.js",
-	"types": "./dist/cjs/index.d.ts",
-	"typesVersions": {
-		"*": {
-			"types/*": [
-				"./dist/cjs/types/*"
-			]
-		}
-	},
-	"private": true,
-	"packageManager": "npm@10.0.0",
-	"exports": {
-		".": {
-			"types": "./dist/cjs/index.d.ts",
-			"import": "./dist/esm/index.js",
-			"require": "./dist/cjs/index.js",
-			"default": "./dist/esm/index.js"
-		},
-		"./types": {
-			"types": "./dist/cjs/types/index.d.ts",
-			"import": "./dist/esm/types/index.js",
-			"require": "./dist/cjs/types/index.js"
-		},
-		"./types/*": {
-			"types": "./dist/cjs/types/*.d.ts",
-			"import": "./dist/esm/types/*.js",
-			"require": "./dist/cjs/types/*.js"
-		},
-		"./types/api-inputs": {
-			"types": "./dist/cjs/types/api-inputs.d.ts",
-			"import": "./dist/esm/types/api-inputs.js",
-			"require": "./dist/cjs/types/api-inputs.js"
-		},
-		"./types/notifications": {
-			"types": "./dist/cjs/types/notifications.d.ts",
-			"import": "./dist/esm/types/notifications.js",
-			"require": "./dist/cjs/types/notifications.js"
-		},
-		"./types/supabase": {
-			"types": "./dist/cjs/types/supabase.d.ts",
-			"import": "./dist/esm/types/supabase.js",
-			"require": "./dist/cjs/types/supabase.js"
-		},
-		"./types/properties": {
-			"types": "./dist/cjs/types/properties.d.ts",
-			"import": "./dist/esm/types/properties.js",
-			"require": "./dist/cjs/types/properties.js"
-		},
-		"./types/tenants": {
-			"types": "./dist/cjs/types/tenants.d.ts",
-			"import": "./dist/esm/types/tenants.js",
-			"require": "./dist/cjs/types/tenants.js"
-		},
-		"./types/leases": {
-			"types": "./dist/cjs/types/leases.d.ts",
-			"import": "./dist/esm/types/leases.js",
-			"require": "./dist/cjs/types/leases.js"
-		},
-		"./types/maintenance": {
-			"types": "./dist/cjs/types/maintenance.d.ts",
-			"import": "./dist/esm/types/maintenance.js",
-			"require": "./dist/cjs/types/maintenance.js"
-		},
-		"./types/common": {
-			"types": "./dist/cjs/types/common.d.ts",
-			"import": "./dist/esm/types/common.js",
-			"require": "./dist/cjs/types/common.js"
-		},
-		"./types/auth": {
-			"types": "./dist/cjs/types/auth.d.ts",
-			"import": "./dist/esm/types/auth.js",
-			"require": "./dist/cjs/types/auth.js"
-		},
-		"./constants": {
-			"types": "./dist/cjs/constants/index.d.ts",
-			"import": "./dist/esm/constants/index.js",
-			"require": "./dist/cjs/constants/index.js"
-		},
-		"./constants/*": {
-			"types": "./dist/cjs/constants/*.d.ts",
-			"import": "./dist/esm/constants/*.js",
-			"require": "./dist/cjs/constants/*.js"
-		},
-		"./utils": {
-			"types": "./dist/cjs/utils/index.d.ts",
-			"import": "./dist/esm/utils/index.js",
-			"require": "./dist/cjs/utils/index.js"
-		},
-		"./utils/*": {
-			"types": "./dist/cjs/utils/*.d.ts",
-			"import": "./dist/esm/utils/*.js",
-			"require": "./dist/cjs/utils/*.js"
-		},
-		"./validation": {
-			"types": "./dist/cjs/validation/index.d.ts",
-			"import": "./dist/esm/validation/index.js",
-			"require": "./dist/cjs/validation/index.js"
-		},
-		"./validation/*": {
-			"types": "./dist/cjs/validation/*.d.ts",
-			"import": "./dist/esm/validation/*.js",
-			"require": "./dist/cjs/validation/*.js"
-		},
-		"./validation/properties": {
-			"types": "./dist/cjs/validation/properties.d.ts",
-			"import": "./dist/esm/validation/properties.js",
-			"require": "./dist/cjs/validation/properties.js"
-		},
-		"./validation/leases": {
-			"types": "./dist/cjs/validation/leases.d.ts",
-			"import": "./dist/esm/validation/leases.js",
-			"require": "./dist/cjs/validation/leases.js"
-		},
-		"./stripe": {
-			"types": "./dist/cjs/stripe/index.d.ts",
-			"import": "./dist/esm/stripe/index.js",
-			"require": "./dist/cjs/stripe/index.js"
-		},
-		"./stripe/*": {
-			"types": "./dist/cjs/stripe/*.d.ts",
-			"import": "./dist/esm/stripe/*.js",
-			"require": "./dist/cjs/stripe/*.js"
-		},
-		"./lib": {
-			"types": "./dist/cjs/lib/index.d.ts",
-			"import": "./dist/esm/lib/index.js",
-			"require": "./dist/cjs/lib/index.js"
-		},
-		"./lib/*": {
-			"types": "./dist/cjs/lib/*.d.ts",
-			"import": "./dist/esm/lib/*.js",
-			"require": "./dist/cjs/lib/*.js"
-		},
-		"./patterns": {
-			"types": "./dist/cjs/patterns/index.d.ts",
-			"import": "./dist/esm/patterns/index.js",
-			"require": "./dist/cjs/patterns/index.js"
-		},
-		"./patterns/*": {
-			"types": "./dist/cjs/patterns/*.d.ts",
-			"import": "./dist/esm/patterns/*.js",
-			"require": "./dist/cjs/patterns/*.js"
-		},
-		"./types/domain": {
-			"types": "./dist/cjs/types/domain.d.ts",
-			"import": "./dist/esm/types/domain.js",
-			"require": "./dist/cjs/types/domain.js"
-		},
-		"./types/utilities": {
-			"types": "./dist/cjs/types/utilities.d.ts",
-			"import": "./dist/esm/types/utilities.js",
-			"require": "./dist/cjs/types/utilities.js"
-		},
-		"./config": {
-			"types": "./dist/cjs/config/index.d.ts",
-			"import": "./dist/esm/config/index.js",
-			"require": "./dist/cjs/config/index.js"
-		},
-		"./config/*": {
-			"types": "./dist/cjs/config/*.d.ts",
-			"import": "./dist/esm/config/*.js",
-			"require": "./dist/cjs/config/*.js"
-		}
-	},
-	"scripts": {
-		"build": "npm run clean && tsc -p tsconfig.build.json",
-		"build:cjs": "echo 'CJS build already exists'",
-		"build:esm": "echo 'ESM build skipped'",
-		"typecheck": "tsc --noEmit",
-		"check-types": "tsc --noEmit",
-		"claude:check": "npm run lint && npm run typecheck",
-		"lint": "eslint . --no-warn-ignored",
-		"lint:fix": "eslint . --fix",
-		"format": "prettier --write \"src/**/*.ts\"",
-		"format:check": "prettier --check \"src/**/*.ts\"",
-		"clean": "tsc --build --clean && rm -rf dist"
-	},
-	"dependencies": {
-		"@supabase/supabase-js": "^2.56.0",
-		"stripe": "^18.4.0",
-		"zod": "^4.1.0"
-	},
-	"peerDependencies": {
-		"@tanstack/react-query": "^5.85.5",
-		"react": "19.1.1",
-		"react-dom": "19.1.1",
-		"react-hook-form": "^7.62.0"
-	},
-	"devDependencies": {
-		"@repo/typescript-config": "*",
-		"@types/node": "24.3.0",
-		"@types/react": "19.1.12",
-		"@types/react-dom": "19.1.8",
-		"eslint": "9.34.0",
-		"globals": "16.3.0",
-		"typescript": "5.9.2",
-		"typescript-eslint": "8.41.0"
-	},
-	"overrides": {
-		"minimatch": "^10.0.3"
-	},
-	"optionalDependencies": {
-		"@esbuild/linux-x64": "0.25.9",
-		"@rollup/rollup-linux-x64-gnu": "4.49.0"
-	}
+  "$schema": "https://json.schemastore.org/package",
+  "name": "@repo/shared",
+  "version": "0.1.0",
+  "main": "./dist/cjs/index.js",
+  "types": "./dist/cjs/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "types/*": [
+        "./dist/cjs/types/*"
+      ]
+    }
+  },
+  "private": true,
+  "packageManager": "npm@10.0.0",
+  "exports": {
+    ".": {
+      "types": "./dist/cjs/index.d.ts",
+      "require": "./dist/cjs/index.js",
+      "default": "./dist/cjs/index.js"
+    },
+    "./types": {
+      "types": "./dist/cjs/types/index.d.ts",
+      "require": "./dist/cjs/types/index.js",
+      "default": "./dist/cjs/types/index.js"
+    },
+    "./types/*": {
+      "types": "./dist/cjs/types/*.d.ts",
+      "require": "./dist/cjs/types/*.js",
+      "default": "./dist/cjs/types/*.js"
+    },
+    "./lib": {
+      "types": "./dist/cjs/lib/index.d.ts",
+      "require": "./dist/cjs/lib/index.js",
+      "default": "./dist/cjs/lib/index.js"
+    },
+    "./lib/*": {
+      "types": "./dist/cjs/lib/*.d.ts",
+      "require": "./dist/cjs/lib/*.js",
+      "default": "./dist/cjs/lib/*.js"
+    },
+    "./constants": {
+      "types": "./dist/cjs/constants/index.d.ts",
+      "require": "./dist/cjs/constants/index.js",
+      "default": "./dist/cjs/constants/index.js"
+    },
+    "./utils": {
+      "types": "./dist/cjs/utils/index.d.ts",
+      "require": "./dist/cjs/utils/index.js",
+      "default": "./dist/cjs/utils/index.js"
+    },
+    "./validation": {
+      "types": "./dist/cjs/validation/index.d.ts",
+      "require": "./dist/cjs/validation/index.js",
+      "default": "./dist/cjs/validation/index.js"
+    },
+    "./validation/*": {
+      "types": "./dist/cjs/validation/*.d.ts",
+      "require": "./dist/cjs/validation/*.js",
+      "default": "./dist/cjs/validation/*.js"
+    }
+  },
+  "scripts": {
+    "build": "npm run clean && tsc -p tsconfig.build.json",
+    "build:cjs": "echo 'CJS build already exists'",
+    "build:esm": "echo 'ESM build skipped'",
+    "typecheck": "tsc --noEmit",
+    "check-types": "tsc --noEmit",
+    "claude:check": "npm run lint && npm run typecheck",
+    "lint": "eslint . --no-warn-ignored",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
+    "clean": "tsc --build --clean && rm -rf dist"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.56.1",
+    "stripe": "^18.5.0",
+    "zod": "^4.1.0"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5.85.5",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "react-hook-form": "^7.62.0"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "*",
+    "@types/node": "24.3.0",
+    "@types/react": "19.1.12",
+    "@types/react-dom": "19.1.9",
+    "eslint": "9.34.0",
+    "globals": "16.3.0",
+    "typescript": "5.9.2",
+    "typescript-eslint": "8.41.0"
+  },
+  "overrides": {
+    "minimatch": "^10.0.3"
+  },
+  "optionalDependencies": {
+    "@esbuild/linux-x64": "0.25.9",
+    "@rollup/rollup-linux-x64-gnu": "4.49.0"
+  }
 }

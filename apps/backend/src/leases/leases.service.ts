@@ -168,7 +168,7 @@ export class LeasesService {
 				p_unit_id: createRequest.unitId,
 				p_start_date: createRequest.startDate,
 				p_end_date: createRequest.endDate,
-				p_monthly_rent: createRequest.monthlyRent,
+				p_rentamount: createRequest.monthlyRent,
 				p_security_deposit: createRequest.securityDeposit,
 				p_payment_frequency:
 					createRequest.paymentFrequency || 'MONTHLY',
@@ -202,7 +202,7 @@ export class LeasesService {
 				p_lease_id: leaseId,
 				p_start_date: updateRequest.startDate,
 				p_end_date: updateRequest.endDate,
-				p_monthly_rent: updateRequest.monthlyRent,
+				p_rentamount: updateRequest.monthlyRent,
 				p_security_deposit: updateRequest.securityDeposit,
 				p_payment_frequency: updateRequest.paymentFrequency,
 				p_status: updateRequest.status

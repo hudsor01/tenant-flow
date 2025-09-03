@@ -2236,8 +2236,8 @@ export type Database = {
       create_lease: {
         Args: {
           p_end_date: string
-          p_monthly_rent: number
           p_payment_frequency?: string
+          p_rentamount: number
           p_security_deposit: number
           p_start_date: string
           p_status?: string
@@ -2569,8 +2569,8 @@ export type Database = {
         Args: {
           p_end_date?: string
           p_lease_id: string
-          p_monthly_rent?: number
           p_payment_frequency?: string
+          p_rentamount?: number
           p_security_deposit?: number
           p_start_date?: string
           p_status?: string
