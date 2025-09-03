@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common'
+import { LoggerModule } from 'nestjs-pino'
 import { DashboardController } from './dashboard.controller'
 import { DashboardService } from './dashboard.service'
 import { PropertiesModule } from '../properties/properties.module'
@@ -7,7 +8,7 @@ import { LeasesModule } from '../leases/leases.module'
 // Removed ErrorHandlerService - using native NestJS exceptions
 
 @Module({
-	imports: [PropertiesModule, TenantsModule, LeasesModule],
+	imports: [PropertiesModule, TenantsModule, LeasesModule, LoggerModule],
 	controllers: [DashboardController],
 	providers: [DashboardService],
 	exports: [DashboardService]

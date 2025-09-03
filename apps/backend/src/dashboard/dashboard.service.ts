@@ -1,27 +1,23 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common'
 import { PinoLogger } from 'nestjs-pino'
-import { SupabaseService } from '../database/supabase.service'
+import { PropertiesService } from '../properties/properties.service'
+import { TenantsService } from '../tenants/tenants.service'
+import { LeasesService } from '../leases/leases.service'
 import type { 
 	DashboardStats,
 	PropertyStats,
 	TenantStats,
 	UnitStats,
-	LeaseStats
+	LeaseStats,
+	MaintenanceStats
 } from '@repo/shared'
 
-// RPC function return types - matches actual PostgreSQL functions
-interface UnitStatsRPC {
-	totalUnits: number
-	occupiedUnits: number
-	occupancyRate: number
-}
-
-interface InvoiceStatsRPC {
-	totalAmount: number
-	paidAmount: number
-}
-
 // Using shared stats types - NO DUPLICATION
+// Backend-specific raw types for service layer data mapping
+
+type RawPropertyStats = { total?: number; vacantUnits?: number; totalMonthlyRent?: number }
+
+type RawTenantStats = { total?: number; active?: number; inactive?: number; newThisMonth?: number }
 
 export interface DashboardActivity {
 	activities: {
@@ -38,91 +34,90 @@ export interface DashboardActivity {
 @Injectable()
 export class DashboardService {
 	constructor(
-		// @ts-expect-error Will be used when RPC functions are implemented
-		private readonly _supabaseService: SupabaseService,
+		private readonly propertiesService: PropertiesService,
+		private readonly tenantsService: TenantsService,
+		private readonly leasesService: LeasesService,
 		private readonly logger: PinoLogger
-		// Removed unused services and errorHandler - using native NestJS patterns
+		// Removed errorHandler - using native NestJS patterns
 	) {
 		// PinoLogger context handled automatically via app-level configuration
 	}
 
 	/**
-	 * Get comprehensive dashboard statistics - ALL CALCULATED IN DATABASE
-	 * NO business logic here - just pass through from RPC
+	 * Get comprehensive dashboard statistics
 	 */
 	async getStats(
 		userId: string,
 		authToken?: string
 	): Promise<DashboardStats> {
 		try {
-			// TODO: Replace with single RPC call when migration 20250902_missing_rpc_functions.sql is applied
-			// get_dashboard_metrics(p_user_id) will return ALL stats in one call
-			const unitStats: UnitStatsRPC = {
-				totalUnits: 0, // Will come from RPC: unit counts per user
-				occupiedUnits: 0, // Will come from RPC: units with active leases
-				occupancyRate: 0 // Will come from RPC: occupied/total percentage
-			}
-			const invoiceStats: InvoiceStatsRPC = {
-				totalAmount: 0, // Will come from RPC: sum of all invoice amounts
-				paidAmount: 0 // Will come from RPC: sum of paid invoices
-			}
+			// Get stats from all services in parallel
+			const [rawPropertyStats, rawTenantStats, rawLeaseStats] =
+				await Promise.all([
+					this.propertiesService.getStats(userId),
+					this.tenantsService.getStats(userId),
+					this.leasesService.getStats(userId)
+				])
 
-			// TODO: All stats will come from single RPC call - NO separate queries needed
+			// Map to PropertyStats interface
+			const propertyData: RawPropertyStats = (rawPropertyStats ?? {}) as RawPropertyStats
+			const totalUnits = propertyData?.total ?? 0
+			const vacantUnits = propertyData?.vacantUnits ?? 0
+			const totalMonthlyRent = propertyData?.totalMonthlyRent ?? 0
+			const occupiedUnits = totalUnits - vacantUnits
 			const properties: PropertyStats = {
-				total: 0, // Will come from RPC: count of properties per user
-				owned: 0, // Will come from RPC: properties owned by user
-				rented: 0, // Will come from RPC: properties with active leases
-				available: 0, // Will come from RPC: properties available for rent
-				maintenance: 0 // Will come from RPC: properties with maintenance issues
+				total: totalUnits,
+				occupied: occupiedUnits,
+				vacant: vacantUnits,
+				occupancyRate: totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0,
+				totalMonthlyRent: totalMonthlyRent,
+				averageRent: totalUnits > 0 ? totalMonthlyRent / totalUnits : 0
 			}
 
+			// Map to TenantStats interface
+			const tenantData: RawTenantStats = (rawTenantStats ?? {}) as RawTenantStats
 			const tenants: TenantStats = {
-				total: 0, // Will come from RPC: count of tenants per user
-				active: 0, // Will come from RPC: tenants with active leases
-				inactive: 0 // Will come from RPC: tenants with expired/terminated leases
+				total: tenantData?.total || 0,
+				active: tenantData?.active || 0,
+				inactive: tenantData?.inactive || 0,
+				newThisMonth: tenantData?.newThisMonth || 0
 			}
 
-			// Map to UnitStats interface - align with @repo/shared convention
-			// TODO: Replace with actual RPC data when migration 20250902_missing_rpc_functions.sql is applied
+			// Map to UnitStats interface
 			const units: UnitStats = {
-				// Primary naming convention from @repo/shared
-				total: unitStats.totalUnits || 0,
-				occupied: unitStats.occupiedUnits || 0,
-				vacant: 0, // totalUnits - occupiedUnits when RPC is available
-				occupancyRate: unitStats.occupancyRate || 0,
-				averageRent: 0, // Would need from unit stats RPC
-				// Extended properties for compatibility
-				totalUnits: unitStats.totalUnits || 0,
-				availableUnits: 0, // Same as vacant when RPC is available
-				occupiedUnits: unitStats.occupiedUnits || 0,
-				maintenanceUnits: 0 // Would need from unit stats breakdown
+				total: totalUnits,
+				occupied: occupiedUnits,
+				vacant: vacantUnits,
+				maintenance: 0, // TODO: Add maintenance units calculation
+				averageRent: totalUnits > 0 ? totalMonthlyRent / totalUnits : 0,
+				available: vacantUnits,
+				occupancyRate: totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0,
+				totalPotentialRent: totalMonthlyRent,
+				totalActualRent: totalMonthlyRent
 			}
 
-			// Map to LeaseStats interface - simplified for now
+			// Map to LeaseStats interface
+			const leaseData = rawLeaseStats as unknown as LeaseStats
 			const leases: LeaseStats = {
-				totalLeases: 0,
-				activeLeases: 0,
-				expiredLeases: 0,
-				pendingLeases: 0,
-				totalRentRoll: invoiceStats.paidAmount || 0,
-				total: 0,
-				active: 0,
-				expired: 0,
-				pending: 0
+				total: leaseData?.total || 0,
+				active: leaseData?.active || 0,
+				expired: leaseData?.expired || 0,
+				expiringSoon: leaseData?.expiringSoon || 0
 			}
 
-			// TODO: Will come from RPC - consolidated to eliminate DRY violation
-			const maintenanceStats = {
-				total: 0, // Will come from RPC: total maintenance requests
-				open: 0, // Will come from RPC: open maintenance requests
-				inProgress: 0, // Will come from RPC: in-progress requests
-				completed: 0, // Will come from RPC: completed requests
-				canceled: 0, // Will come from RPC: canceled requests
-				onHold: 0, // Will come from RPC: on-hold requests
-				overdue: 0, // Will come from RPC: overdue requests
-				averageCompletionTime: 0, // Will come from RPC: avg completion time
-				totalCost: 0, // Will come from RPC: total maintenance cost
-				averageCost: 0 // Will come from RPC: average cost per request
+			// Map to MaintenanceStats interface
+			const maintenanceStats: MaintenanceStats = {
+				total: 0,
+				open: 0,
+				inProgress: 0,
+				completed: 0,
+				avgResolutionTime: 0,
+				byPriority: {
+					low: 0,
+					medium: 0,
+					high: 0,
+					emergency: 0
+				}
 			}
 
 			const dashboardStats: DashboardStats = {
@@ -131,15 +126,10 @@ export class DashboardService {
 				units,
 				leases,
 				maintenance: maintenanceStats,
-				maintenanceRequests: maintenanceStats, // Reference same object - NO DUPLICATION
-				notifications: {
-					total: 0,
-					unread: 0
-				},
 				revenue: {
-					total: 0,
-					monthly: 0,
-					collected: 0
+					monthly: totalMonthlyRent,
+					yearly: totalMonthlyRent * 12,
+					growth: 0 // TODO: Calculate growth from historical data
 				}
 			}
 

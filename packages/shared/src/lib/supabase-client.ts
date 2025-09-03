@@ -60,13 +60,14 @@ export const supabaseClient: SupabaseClient<Database> = createClient<Database>(
  * ONLY use this in backend services where you need to bypass RLS
  *
  * SECURITY WARNING: Never use this client with user input without validation
+ * IMPORTANT: This will throw an error if used in frontend without SUPABASE_SERVICE_KEY
  */
-export const supabaseAdmin: SupabaseClient<Database> = (() => {
+export function getSupabaseAdmin(): SupabaseClient<Database> {
 	if (!SUPABASE_SERVICE_KEY) {
-		throw new Error('SUPABASE_SERVICE_KEY required for admin client')
+		throw new Error('SUPABASE_SERVICE_KEY required for admin client - this should only be used in backend services')
 	}
 
-	return createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+	return createClient<Database>(SUPABASE_URL!, SUPABASE_SERVICE_KEY, {
 		auth: {
 			persistSession: false,
 			autoRefreshToken: false
@@ -75,7 +76,24 @@ export const supabaseAdmin: SupabaseClient<Database> = (() => {
 			schema: 'public'
 		}
 	})
-})()
+}
+
+// For environments where admin client is needed, use getSupabaseAdmin()
+// This prevents immediate initialization that would fail in frontend
+let _adminClient: SupabaseClient<Database> | null = null
+
+export const supabaseAdmin: SupabaseClient<Database> = new Proxy({} as SupabaseClient<Database>, {
+	get(target, prop, receiver) {
+		// Only create admin client when actually accessed (and only in backend)
+		if (typeof window !== 'undefined') {
+			throw new Error('supabaseAdmin cannot be used in browser/frontend code. Use supabaseClient instead.')
+		}
+		if (!_adminClient) {
+			_adminClient = getSupabaseAdmin()
+		}
+		return Reflect.get(_adminClient, prop, receiver)
+	}
+})
 
 // ========================
 // Direct Client Usage Only

@@ -21,15 +21,7 @@ additional_redirect_urls = [
   "https://tenantflow.app/auth/login",
   "https://tenantflow.app/dashboard",
   "https://tenantflow.app/tenant/dashboard",
-  "https://tenantflow.app/api/auth/callback/google",
-  "https://tenant-flow-hudson-dev.vercel.app/",
-  "https://tenant-flow-hudson-dev.vercel.app/**",
-  "https://tenant-*-flow-hudson-dev.vercel.app",
-  "https://tenant-*-flow-hudson-dev.vercel.app/**",
-  "https://tenant-flow-hudsor01-hudson-dev.vercel.app/",
-  "https://tenant-flow-hudsor01-hudson-dev.vercel.app/**",
-  "https://tenant-*-flow-hudsor01-hudson-dev.vercel.app",
-  "https://tenant-*-flow-hudsor01-hudson-dev.vercel.app/**"
+  "https://tenantflow.app/api/auth/callback/google"
 ]
 jwt_expiry = 3600
 enable_refresh_token_rotation = true

@@ -22,11 +22,25 @@ export type { FetchResponse } from './utils/api-client'
 // ============================================================================
 
 // Import Database and Constants - direct from Supabase types
-export type { Database } from './types/supabase-generated'
+export type { 
+	Database, 
+	Tables, 
+	TablesInsert, 
+	TablesUpdate, 
+	Enums 
+} from './types/supabase-generated'
 export { Constants } from './types/supabase-generated'
 
-// Import constants for creating derived types
+// Import types for creating derived types
+import type { Tables } from './types/supabase-generated'
 import { Constants as ImportedConstants } from './types/supabase-generated'
+
+// Native Supabase table types - ULTRA-NATIVE pattern
+export type Lease = Tables<'Lease'>
+export type Tenant = Tables<'Tenant'> 
+export type Property = Tables<'Property'>
+export type Unit = Tables<'Unit'>
+export type Payment = Tables<'RentPayment'>
 
 // Export enum constants for easier usage
 export const PRIORITY = ImportedConstants.public.Enums.Priority
@@ -101,7 +115,6 @@ export {
 export type { 
 	MaintenanceRequestInput,
 	MaintenanceRequestUpdate,
-	MaintenanceStats,
 	MaintenancePriorityValidation,
 	MaintenanceStatusValidation,
 	MaintenanceCategoryValidation,
@@ -181,10 +194,6 @@ export type UpdateUnitInput = UnitUpdate
 // Export auth types including User from supabase.ts
 export type { 
 	User,
-	Property,
-	Tenant,
-	Lease,
-	Unit,
 	Subscription,
 	Invoice,
 	MaintenanceRequest,
@@ -228,15 +237,16 @@ export { USER_ROLE, USER_ROLE_OPTIONS } from './constants/auth'
 // This eliminates unnecessary re-export layers and follows native patterns
 // ============================================================================
 
-// Export dashboard stats types for frontend/backend sharing
+// Export dashboard stats types
 export type {
+	BaseStats,
 	PropertyStats,
 	TenantStats,
 	UnitStats,
 	LeaseStats,
-	DashboardStats,
-	ActivityItem
-} from './types/dashboard-stats'
+	MaintenanceStats,
+	DashboardStats
+} from './types/stats'
 
 // Export activity types
 export type { ActivityType } from './types/activity'
@@ -279,31 +289,40 @@ export type {
 
 // Subscription now exported above from supabase.ts
 
-// Export frontend store and UI types
+// Export frontend types
 export type {
-	AppNotification,
-	RecentActivity,
+	CalendarEvent,
+	UseModalReturn,
+	Theme,
+	ThemeContextType,
+	SidebarContextType,
+	IconProps,
+	FormFieldError,
+	FormState,
+	DashboardStat,
+	MapMarker,
+	MapConfig,
+	ChartDataPoint,
+	ChartConfig,
 	UIPreferences,
 	UserSession,
-	AppState,
-	NotificationLevel,
-	Theme
+	RecentActivity,
+	AppNotification
 } from './types/frontend'
 
-// Export frontend utility types
+// Export UI extension types
 export type {
-	NavItem,
-	TabItem,
-	BreadcrumbItem
-} from './types/frontend-utils'
+	LeaseUIExtended,
+	TenantUIExtended,
+	PaymentUIExtended,
+	InvoiceUIExtended,
+	PaymentUIStatus
+} from './types/ui-extensions'
 
-// Export UI component props
-export type {
-	EnhancedElementsProviderProps,
-	UnitFormProps,
-	FormState,
-	FormErrors
-} from './types/ui'
+export {
+	mapPaymentStatusToUI,
+	mapLeaseStatusToUI
+} from './types/ui-extensions'
 
 // Export API response types
 export type { 
