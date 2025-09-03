@@ -6,7 +6,7 @@
 		"lib": ["ES2022", "DOM", "DOM.Iterable"],
 		"moduleDetection": "force",
 		"module": "ESNext",
-		"moduleResolution": "bundler",
+		"moduleResolution": "node",
 		"resolveJsonModule": true,
 		"allowJs": true,
 		"checkJs": false,
@@ -46,6 +46,11 @@
 		],
 		"paths": {
 			"@/*": ["./src/*"],
+			"@/components/*": ["./src/components/*"],
+			"@/lib/*": ["./src/lib/*"],
+			"@/hooks/*": ["./src/hooks/*"],
+			"@/stores/*": ["./src/stores/*"],
+			"@/types/*": ["./src/types/*"],
 			"@repo/shared": ["../../packages/shared/dist/cjs"],
 			"@repo/shared/*": ["../../packages/shared/dist/cjs/*"]
 		},
@@ -57,6 +62,7 @@
 		"next-env.d.ts",
 		"**/*.ts",
 		"**/*.tsx",
+		"src/**/*",
 		".next/types/**/*.ts",
 		"src/types/**/*.d.ts",
 		"src/types/jest-dom.d.ts",

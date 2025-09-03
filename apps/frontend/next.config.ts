@@ -84,11 +84,16 @@ const nextConfig: NextConfig = {
 				protocol: 'https',
 				hostname: 'images.unsplash.com',
 				pathname: '/**'
+			},
+			{
+				protocol: 'https',
+				hostname: 'ui-avatars.com',
+				pathname: '/**'
 			}
 		],
 		formats: ['image/avif', 'image/webp'],
 		minimumCacheTTL: 31536000, // 1 year
-		dangerouslyAllowSVG: false,
+		dangerouslyAllowSVG: true,
 		contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;"
 	},
 
@@ -139,9 +144,14 @@ const nextConfig: NextConfig = {
 		return headers
 	},
 
-	// PostHog analytics proxy (prevents ad blockers)
+	// PostHog analytics proxy (prevents ad blockers) + Backend API proxy
 	async rewrites() {
 		return [
+			// Proxy API calls to backend (add v1 prefix)
+			{
+				source: '/api/:path*',
+				destination: 'http://localhost:4600/api/v1/:path*'
+			},
 			{
 				source: '/ingest/static/:path*',
 				destination: 'https://us-assets.i.posthog.com/static/:path*'
