@@ -50,6 +50,8 @@ export default [
       'vitest.config.ts',
       'playwright.config.ts', // Playwright config file
       'scripts/**', // CLI scripts are allowed to use console
+      'playwright-report/**', // Playwright test reports
+      'test-results/**', // Playwright test results
     ]
   },
   

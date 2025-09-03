@@ -32,7 +32,7 @@ import type {
 	CreatePortalRequest,
 	CreateSubscriptionDto
 } from '../schemas/stripe.schemas'
-import { getPriceId } from '@repo/shared/stripe/config'
+import { getPriceId } from '@repo/shared'
 import { SupabaseService } from '../database/supabase.service'
 import type { BillingPeriod, PlanType } from '@repo/shared'
 

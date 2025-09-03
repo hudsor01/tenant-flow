@@ -11,7 +11,7 @@
 	},
 	"scripts": {
 		"build": "tsc -p tsconfig.build.json",
-		"dev": "tsx watch src/main.ts",
+		"dev": "doppler run -- tsx watch src/main.ts",
 		"start": "node dist/main.js",
 		"start:prod": "node dist/main.js",
 		"lint": "eslint . --fix --no-warn-ignored",

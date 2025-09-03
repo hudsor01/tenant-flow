@@ -20,32 +20,88 @@ export default defineConfig({
 	],
 
 	use: {
-		baseURL: process.env.PLAYWRIGHT_BASE_URL || process.env.CI 
-			? process.env.VERCEL_URL 
-				? `https://${process.env.VERCEL_URL}` 
-				: 'https://tenantflow.app'
-			: 'http://localhost:4500',
-		trace: 'on-first-retry',
+		// Enhanced debugging configuration
+		trace: process.env.CI ? 'on-first-retry' : 'retain-on-failure',
 		screenshot: 'only-on-failure',
-		video: 'retain-on-failure'
+		video: 'retain-on-failure',
+		
+		// Headless mode configuration - true for performance and CI compatibility
+		headless: true,
+		
+		// Better base URL handling
+		baseURL:
+			process.env.PLAYWRIGHT_TEST_BASE_URL ||
+			process.env.PLAYWRIGHT_BASE_URL ||
+			(process.env.CI
+				? process.env.VERCEL_URL
+					? `https://${process.env.VERCEL_URL}`
+					: 'https://tenantflow.app'
+				: 'http://localhost:3000'),
+				
+		// Performance and reliability settings
+		actionTimeout: 10000,
+		navigationTimeout: 30000,
+		
+		// Visual testing settings
+		ignoreHTTPSErrors: true,
+		acceptDownloads: true,
+		
+		// Viewport for consistent screenshots
+		viewport: { width: 1280, height: 720 }
 	},
 
 	projects: [
+		// Setup project for authentication
+		{ 
+			name: 'setup', 
+			testMatch: /.*\.setup\.ts/,
+			use: {
+				...devices['Desktop Chrome'],
+				headless: true,
+				baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3003'
+			}
+		},
+		
+		// Main test project with authentication
 		{
-			name: 'chromium-mvp',
-			use: { ...devices['Desktop Chrome'] }
+			name: 'chromium',
+			use: {
+				...devices['Desktop Chrome'],
+				headless: true,
+				// Use saved authentication state
+				storageState: 'playwright/.auth/user.json',
+				baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3003'
+			},
+			dependencies: ['setup']
+		},
+		
+		// Project for tests that don't need authentication
+		{
+			name: 'chromium-no-auth',
+			use: {
+				...devices['Desktop Chrome'],
+				headless: true,
+				baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3003'
+			},
+			testIgnore: ['**/auth.setup.ts']
 		}
 	],
 
-	// webServer disabled - run server manually for MVP approach
-	// This prevents port conflicts and gives more control over the dev environment
-
 	// Visual regression testing configuration
 	expect: {
+		// Enhanced screenshot comparison
 		toHaveScreenshot: {
 			maxDiffPixels: 100,
 			threshold: 0.2,
-			animations: 'disabled'
-		}
-	}
+			animations: 'disabled', // More reliable screenshots
+			mode: 'strict',
+			stylePath: './tests/visual-regression.css'
+		},
+		// General assertion timeout
+		timeout: 10000
+	},
+
+	// Global test configuration
+	globalSetup: './tests/global-setup.ts',
+	globalTeardown: './tests/global-teardown.ts'
 })
