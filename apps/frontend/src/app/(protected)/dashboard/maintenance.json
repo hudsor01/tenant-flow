@@ -1,0 +1,102 @@
+[
+  {
+    "id": 1,
+    "title": "Leaky faucet in kitchen",
+    "unitId": "UNIT-101",
+    "priority": "MEDIUM",
+    "status": "OPEN",
+    "createdAt": "2025-08-15T10:12:00Z",
+    "preferredDate": "2025-08-20T00:00:00Z",
+    "assignedTo": "Alex Thompson"
+  },
+  {
+    "id": 2,
+    "title": "AC not cooling",
+    "unitId": "UNIT-302",
+    "priority": "HIGH",
+    "status": "IN_PROGRESS",
+    "createdAt": "2025-08-10T09:00:00Z",
+    "preferredDate": null,
+    "assignedTo": "Jordan Lee"
+  },
+  {
+    "id": 3,
+    "title": "Power outlet sparks",
+    "unitId": "UNIT-207",
+    "priority": "EMERGENCY",
+    "status": "OPEN",
+    "createdAt": "2025-08-18T22:45:00Z",
+    "preferredDate": null,
+    "assignedTo": null
+  },
+  {
+    "id": 4,
+    "title": "Broken window latch",
+    "unitId": "UNIT-115",
+    "priority": "LOW",
+    "status": "ON_HOLD",
+    "createdAt": "2025-08-01T15:30:00Z",
+    "preferredDate": null,
+    "assignedTo": "Taylor Brooks"
+  },
+  {
+    "id": 5,
+    "title": "Dishwasher leak",
+    "unitId": "UNIT-410",
+    "priority": "HIGH",
+    "status": "COMPLETED",
+    "createdAt": "2025-08-05T12:00:00Z",
+    "preferredDate": "2025-08-06T00:00:00Z",
+    "assignedTo": "Sam Patel"
+  },
+  {
+    "id": 6,
+    "title": "Heater making noise",
+    "unitId": "UNIT-208",
+    "priority": "MEDIUM",
+    "status": "OPEN",
+    "createdAt": "2025-08-12T08:20:00Z",
+    "preferredDate": null,
+    "assignedTo": null
+  },
+  {
+    "id": 7,
+    "title": "Clogged bathroom drain",
+    "unitId": "UNIT-503",
+    "priority": "MEDIUM",
+    "status": "IN_PROGRESS",
+    "createdAt": "2025-08-17T11:10:00Z",
+    "preferredDate": "2025-08-19T00:00:00Z",
+    "assignedTo": "Chris Walker"
+  },
+  {
+    "id": 8,
+    "title": "Smoke detector chirping",
+    "unitId": "UNIT-114",
+    "priority": "LOW",
+    "status": "OPEN",
+    "createdAt": "2025-08-13T07:55:00Z",
+    "preferredDate": null,
+    "assignedTo": null
+  },
+  {
+    "id": 9,
+    "title": "Refrigerator not cooling",
+    "unitId": "UNIT-221",
+    "priority": "HIGH",
+    "status": "OPEN",
+    "createdAt": "2025-08-16T14:05:00Z",
+    "preferredDate": null,
+    "assignedTo": "Jordan Lee"
+  },
+  {
+    "id": 10,
+    "title": "Door lock sticking",
+    "unitId": "UNIT-318",
+    "priority": "MEDIUM",
+    "status": "OPEN",
+    "createdAt": "2025-08-03T10:40:00Z",
+    "preferredDate": null,
+    "assignedTo": null
+  }
+]

@@ -3218,8 +3218,7 @@ declare type RequestParams = {
 };
 
 declare type RequiredExtensionArgs = NameArgs & ResultArgs & ModelArgs & ClientArgs & QueryOptions;
-export { RequiredExtensionArgs }
-export { RequiredExtensionArgs as UserArgs }
+export { RequiredExtensionArgs, RequiredExtensionArgs as UserArgs }
 
 export declare type RequiredKeys<O> = {
     [K in keyof O]-?: {} extends Pick_2<O, K> ? never : K;

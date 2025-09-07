@@ -1,7 +1,4 @@
-import {
-	Injectable,
-	InternalServerErrorException
-} from '@nestjs/common'
+import { Injectable, InternalServerErrorException } from '@nestjs/common'
 import { PinoLogger } from 'nestjs-pino'
 import { PDFGeneratorService } from './pdf-generator.service'
 
@@ -21,9 +18,7 @@ export class LeasePDFService {
 	/**
 	 * Generate lease agreement PDF
 	 */
-	async generateLeasePDF(
-		leaseData: Record<string, unknown>
-	): Promise<Buffer> {
+	async generateLeasePDF(leaseData: Record<string, unknown>): Promise<Buffer> {
 		const result = await this.generateLeasePdf(
 			String(leaseData.id || ''),
 			String(leaseData.userId || ''),
@@ -91,9 +86,7 @@ export class LeasePDFService {
 			}
 		} catch (error) {
 			this.logger.error('Error generating lease PDF:', error)
-			throw new InternalServerErrorException(
-				'Failed to generate lease PDF'
-			)
+			throw new InternalServerErrorException('Failed to generate lease PDF')
 		}
 	}
 
@@ -102,7 +95,7 @@ export class LeasePDFService {
 	 */
 	private generateLeaseHTML(leaseData: Record<string, unknown>): string {
 		// This is a placeholder implementation
-		// In a real implementation, you would use a template engine
+		// TODO: use a template engine
 		return `
 			<html>
 				<head>

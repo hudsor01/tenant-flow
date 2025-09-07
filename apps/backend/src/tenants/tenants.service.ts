@@ -1,8 +1,8 @@
 /**
- * 🚨 ULTRA-NATIVE SERVICE - DO NOT ADD ORCHESTRATION 🚨
+ * ULTRA-NATIVE SERVICE - DO NOT ADD ORCHESTRATION
  *
  * DIRECT PostgreSQL RPC calls ONLY. Each method <30 lines.
- * ❌ FORBIDDEN: Service layers, repositories, business logic classes
+ * FORBIDDEN: Service layers, repositories, business logic classes
  * See: apps/backend/ULTRA_NATIVE_ARCHITECTURE.md
  */
 
@@ -15,9 +15,10 @@ import type {
 	CreateTenantRequest,
 	UpdateTenantRequest
 } from '../schemas/tenants.schema'
-import type {
-	Tenant
-} from '@repo/shared/types/database'
+import type { Tables } from '@repo/shared/types/supabase'
+
+// Use native Supabase table types
+type Tenant = Tables<'Tenant'>
 
 export interface TenantWithRelations extends Tenant {
 	_Lease?: {

@@ -1,59 +1,29 @@
-import { type ReactNode } from 'react'
-
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
-
-import { Toaster } from '@/components/ui/sonner'
-import { APP_CONFIG } from '@/config/app-config'
+import '@/app/globals.css'
 import { QueryProvider } from '@/providers/query-provider'
-import { getPreference } from '@/server/server-actions'
-import { PreferencesStoreProvider } from '@/stores/preferences/preferences-provider'
-import {
-	THEME_MODE_VALUES,
-	THEME_PRESET_VALUES,
-	type ThemeMode,
-	type ThemePreset
-} from '@/types/preferences/theme'
-
-import './globals.css'
-
-const inter = Inter({ subsets: ['latin'] })
+import { StripeProvider } from '@/providers/stripe-provider'
+import type { Metadata } from 'next/types'
 
 export const metadata: Metadata = {
-	title: APP_CONFIG.meta.title,
-	description: APP_CONFIG.meta.description
+	title: 'TenantFlow - Property Management Platform',
+	description:
+		'Streamline tenant management, track maintenance, and maximize your real estate investments'
 }
 
-export default async function RootLayout({
+export default function RootLayout({
 	children
-}: Readonly<{ children: ReactNode }>) {
-	const themeMode = await getPreference<ThemeMode>(
-		'theme_mode',
-		THEME_MODE_VALUES,
-		'light'
-	)
-	const themePreset = await getPreference<ThemePreset>(
-		'theme_preset',
-		THEME_PRESET_VALUES,
-		'default'
-	)
-
+}: {
+	children: React.ReactNode
+}) {
 	return (
-		<html
-			lang="en"
-			className={themeMode === 'dark' ? 'dark' : ''}
-			data-theme-preset={themePreset}
-			suppressHydrationWarning
-		>
-			<body className={`${inter.className} min-h-screen antialiased`}>
+		<html lang="en">
+			<head>
+				<meta name="viewport" content="width=device-width, initial-scale=1" />
+			</head>
+			<body className="min-h-screen bg-white touch-manipulation overscroll-y-contain">
 				<QueryProvider>
-					<PreferencesStoreProvider
-						themeMode={themeMode}
-						themePreset={themePreset}
-					>
+					<StripeProvider>
 						{children}
-						<Toaster />
-					</PreferencesStoreProvider>
+					</StripeProvider>
 				</QueryProvider>
 			</body>
 		</html>

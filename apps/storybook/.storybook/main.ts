@@ -1,122 +1,108 @@
-import type { StorybookConfig } from '@storybook/nextjs';
-import { join, dirname } from 'path';
-const postcss = require('postcss');
+import type { StorybookConfig } from '@storybook/nextjs-vite'
+import { join, dirname } from 'path'
 
-function getAbsolutePath(value: string): any {
-  return dirname(require.resolve(join(value, 'package.json')));
+/**
+ * This function is used to resolve the absolute path of a package.
+ * It is needed in projects that use Yarn PnP or are set up within a monorepo.
+ */
+function getAbsolutePath(value: string): string {
+  return dirname(require.resolve(join(value, 'package.json')))
 }
 
 const config: StorybookConfig = {
   stories: [
     '../stories/**/*.stories.@(js|jsx|mjs|ts|tsx)',
+    '../../frontend/src/**/*.stories.@(js|jsx|mjs|ts|tsx)'
   ],
+  
   addons: [
     getAbsolutePath('@storybook/addon-links'),
-    getAbsolutePath('@storybook/addon-essentials'),
-    getAbsolutePath('@storybook/addon-onboarding'),
-    getAbsolutePath('@storybook/addon-interactions'),
     getAbsolutePath('@storybook/addon-themes'),
-    {
-      name: getAbsolutePath('@storybook/addon-postcss'),
-      options: {
-        postcssLoaderOptions: {
-          implementation: postcss,
-          postcssOptions: {
-            config: join(__dirname, '../postcss.config.cjs'),
-          },
-        },
-      },
-    },
-    // Note: Coverage addon temporarily disabled due to Node.js compatibility issue
-    // getAbsolutePath('@storybook/addon-coverage'),
+    getAbsolutePath('@storybook/addon-console'),
+    getAbsolutePath('msw-storybook-addon'),
+    getAbsolutePath('storybook-addon-grid-overlay'),
   ],
+
   framework: {
-    name: getAbsolutePath('@storybook/nextjs'),
-    options: {},
+    name: getAbsolutePath('@storybook/nextjs-vite'),
+    options: {
+      nextConfigPath: join(__dirname, '../../frontend/next.config.ts')
+    },
   },
-  staticDirs: ['../../frontend/public'],
-  webpackFinal: async (config, { configType }) => {
+
+  staticDirs: ['../../frontend/public', '../public'],
+
+  async viteFinal(config, { configType }) {
+    const { mergeConfig } = await import('vite')
+    
     // Add path aliases for frontend imports and shared package
-    config.resolve!.alias = {
-      ...config.resolve!.alias,
-      '@': join(__dirname, '../../frontend/src'),
-      '@repo/shared': join(__dirname, '../../../packages/shared/src'),
-      '@repo/shared/validation': join(__dirname, '../../../packages/shared/src/validation'),
-    };
-
-    // Resolve Node.js built-in modules for browser compatibility
-    config.resolve!.fallback = {
-      ...config.resolve!.fallback,
-      'fs': false,
-      'path': false,
-      'os': false,
-      'crypto': false,
-      'stream': false,
-      'http': false,
-      'https': false,
-      'zlib': false,
-      'url': false,
-      'buffer': false,
-      'util': false,
-      'assert': false,
-      'events': false,
-      'readline': false,
-      'child_process': false,
-      'net': false,
-      'tls': false,
-      'dns': false,
-      'timers': false,
-      'querystring': false,
-    };
-
-    // Mock server-side modules that cause Node.js import issues
-    config.resolve!.alias = {
-      ...config.resolve!.alias,
-      // Mock PostHog server imports
-      'posthog-node': false,
-      // Mock server actions that use Node.js modules
-      '@/lib/actions/auth-actions': join(__dirname, '../mocks/auth-actions.js'),
-      '@/lib/analytics/posthog-server': join(__dirname, '../mocks/posthog-server.js'),
-    };
-
-    // Optimize lucide-react to prevent webpack from processing entire icon bundle
-    config.optimization = config.optimization || {};
-    config.optimization.splitChunks = {
-      ...config.optimization.splitChunks,
-      cacheGroups: {
-        ...config.optimization.splitChunks?.cacheGroups,
-        lucideReact: {
-          name: 'lucide-react',
-          test: /[\\/]node_modules[\\/]lucide-react[\\/]/,
-          chunks: 'all',
-          priority: 30,
+    const customConfig = {
+      resolve: {
+        alias: {
+          '@': join(__dirname, '../../frontend/src'),
+          '@repo/shared': join(__dirname, '../../../packages/shared/src'),
+          '@repo/shared/validation': join(__dirname, '../../../packages/shared/src/validation'),
+          '@repo/shared/lib/supabase-client': join(__dirname, '../mocks/supabase-client.js'),
+          // Stub missing optional dependency used by framer-motion
+          '@emotion/is-prop-valid': join(__dirname, '../mocks/emotion-is-prop-valid.js'),
+          // Mock server actions that use Node.js modules
+          '@/lib/actions/auth-actions': join(__dirname, '../mocks/auth-actions.js'),
+          '@/lib/analytics/posthog-server': join(__dirname, '../mocks/posthog-server.js'),
         },
       },
-    };
+      
+      // Environment variables for modules that read process.env on import
+      define: {
+        'process.env.NODE_ENV': JSON.stringify('development'),
+        'process.env.SUPABASE_URL': JSON.stringify('https://mock-project.supabase.co'),
+        'process.env.NEXT_PUBLIC_SUPABASE_URL': JSON.stringify('https://mock-project.supabase.co'),
+        'process.env.SUPABASE_ANON_KEY': JSON.stringify('eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.mock-anon-key'),
+        'process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY': JSON.stringify('eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.mock-anon-key'),
+        'process.env.NEXT_PUBLIC_POSTHOG_KEY': JSON.stringify('mock-posthog-key'),
+        'process.env.NEXT_PUBLIC_POSTHOG_HOST': JSON.stringify('https://app.posthog.com'),
+        'process.env.NEXT_PUBLIC_BACKEND_URL': JSON.stringify('http://localhost:4600'),
+      },
 
-    // Add resolve alias for lucide-react to optimize imports
-    config.resolve!.alias = {
-      ...config.resolve!.alias,
-      // Use ES modules version for better tree shaking
-      'lucide-react': require.resolve('lucide-react/dist/esm/lucide-react.js'),
-    };
+      // CSS configuration for proper Tailwind v4 and global styles
+      css: {
+        postcss: {
+          plugins: [
+            require('@tailwindcss/postcss'),
+            require('autoprefixer'),
+          ],
+        },
+      },
 
-    return config;
+      // Mock Node.js modules that don't exist in browser
+      optimizeDeps: {
+        exclude: ['posthog-node'],
+        include: [
+          '@tanstack/react-query',
+          '@tanstack/react-table',
+          'framer-motion',
+          'lucide-react',
+          'recharts',
+        ],
+      },
+    }
+
+    return mergeConfig(config, customConfig)
   },
+
   typescript: {
     check: false,
-    reactDocgen: 'react-docgen-typescript',
-    reactDocgenTypescriptOptions: {
-      shouldExtractLiteralValuesFromEnum: true,
-      propFilter: (prop) => (prop.parent ? !/node_modules/.test(prop.parent.fileName) : true),
-    },
+    reactDocgen: false,
   },
+
+  docs: {
+    autodocs: false,
+    defaultName: 'Documentation',
+  },
+
   features: {
     experimentalRSC: true,
+    buildStoriesJson: true,
   },
-  docs: {
-    autodocs: 'tag',
-  },
-};
+}
 
-export default config;
+export default config

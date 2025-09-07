@@ -93,6 +93,15 @@ export class EnvironmentVariables {
 	@IsString()
 	STRIPE_WEBHOOK_SECRET!: string
 
+	// Stripe Sync Engine Configuration (Sub-Plan 1)
+	@IsOptional()
+	@IsString()
+	STRIPE_SYNC_DATABASE_SCHEMA?: string = 'stripe'
+
+	@IsOptional()
+	@Transform(({ value }) => value === 'true')
+	STRIPE_SYNC_AUTO_EXPAND_LISTS?: boolean = true
+
 	@IsOptional()
 	@IsString()
 	STRIPE_PRICE_ID_STARTER?: string

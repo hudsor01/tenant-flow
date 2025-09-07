@@ -29,8 +29,8 @@ SELECT
   'TEST 1: Tenant Isolation' as test_name,
   COUNT(*) as unauthorized_records,
   CASE 
-    WHEN COUNT(*) = 0 THEN '✅ PASS' 
-    ELSE '❌ FAIL - CAN ACCESS OTHER USERS TENANTS' 
+    WHEN COUNT(*) = 0 THEN 'PASS' 
+    ELSE 'FAIL - CAN ACCESS OTHER USERS TENANTS' 
   END as result
 FROM "Tenant" 
 WHERE "userId" != auth.uid()::text OR "userId" IS NULL;
@@ -41,8 +41,8 @@ SELECT
   'TEST 1b: Tenant Self-Access' as test_name,
   COUNT(*) as own_records,
   CASE 
-    WHEN COUNT(*) >= 1 THEN '✅ PASS' 
-    ELSE '❌ FAIL - CANNOT ACCESS OWN TENANT RECORD' 
+    WHEN COUNT(*) >= 1 THEN 'PASS' 
+    ELSE 'FAIL - CANNOT ACCESS OWN TENANT RECORD' 
   END as result
 FROM "Tenant" 
 WHERE "userId" = auth.uid()::text;
@@ -57,8 +57,8 @@ SELECT
   'TEST 2: Property Isolation' as test_name,
   COUNT(*) as unauthorized_records,
   CASE 
-    WHEN COUNT(*) = 0 THEN '✅ PASS' 
-    ELSE '❌ FAIL - CAN ACCESS OTHER USERS PROPERTIES' 
+    WHEN COUNT(*) = 0 THEN 'PASS' 
+    ELSE 'FAIL - CAN ACCESS OTHER USERS PROPERTIES' 
   END as result
 FROM "Property" 
 WHERE "ownerId" != auth.uid()::text;
@@ -69,8 +69,8 @@ SELECT
   'TEST 3: Unit Access Control' as test_name,
   COUNT(*) as unauthorized_records,
   CASE 
-    WHEN COUNT(*) = 0 THEN '✅ PASS' 
-    ELSE '❌ FAIL - CAN ACCESS UNITS FROM OTHER PROPERTIES' 
+    WHEN COUNT(*) = 0 THEN 'PASS' 
+    ELSE 'FAIL - CAN ACCESS UNITS FROM OTHER PROPERTIES' 
   END as result
 FROM "Unit" u
 JOIN "Property" p ON u."propertyId" = p.id
@@ -82,8 +82,8 @@ SELECT
   'TEST 4: Lease Access Control' as test_name,
   COUNT(*) as unauthorized_records,
   CASE 
-    WHEN COUNT(*) = 0 THEN '✅ PASS' 
-    ELSE '❌ FAIL - CAN ACCESS LEASES FROM OTHER PROPERTIES' 
+    WHEN COUNT(*) = 0 THEN 'PASS' 
+    ELSE 'FAIL - CAN ACCESS LEASES FROM OTHER PROPERTIES' 
   END as result
 FROM "Lease" l
 JOIN "Unit" u ON l."unitId" = u.id  
@@ -100,8 +100,8 @@ SELECT
   'TEST 5: Expense Access Control' as test_name,
   COUNT(*) as unauthorized_records,
   CASE 
-    WHEN COUNT(*) = 0 THEN '✅ PASS' 
-    ELSE '❌ FAIL - CAN ACCESS EXPENSES FROM OTHER PROPERTIES' 
+    WHEN COUNT(*) = 0 THEN 'PASS' 
+    ELSE 'FAIL - CAN ACCESS EXPENSES FROM OTHER PROPERTIES' 
   END as result
 FROM "Expense" e
 JOIN "Property" p ON e."propertyId" = p.id
@@ -113,8 +113,8 @@ SELECT
   'TEST 6: Rent Charge Access Control' as test_name,
   COUNT(*) as unauthorized_records,
   CASE 
-    WHEN COUNT(*) = 0 THEN '✅ PASS' 
-    ELSE '❌ FAIL - CAN ACCESS RENT CHARGES FROM OTHER PROPERTIES' 
+    WHEN COUNT(*) = 0 THEN 'PASS' 
+    ELSE 'FAIL - CAN ACCESS RENT CHARGES FROM OTHER PROPERTIES' 
   END as result
 FROM "RentCharge" rc
 JOIN "Unit" u ON rc."unitId" = u.id
@@ -127,8 +127,8 @@ SELECT
   'TEST 7: Payment Method Access Control' as test_name,
   COUNT(*) as unauthorized_records,
   CASE 
-    WHEN COUNT(*) = 0 THEN '✅ PASS' 
-    ELSE '❌ FAIL - CAN ACCESS OTHER TENANTS PAYMENT METHODS' 
+    WHEN COUNT(*) = 0 THEN 'PASS' 
+    ELSE 'FAIL - CAN ACCESS OTHER TENANTS PAYMENT METHODS' 
   END as result
 FROM "PaymentMethod" pm
 WHERE pm."tenantId" NOT IN (
@@ -145,8 +145,8 @@ SELECT
   'TEST 8: Maintenance Request Access Control' as test_name,
   COUNT(*) as unauthorized_records,
   CASE 
-    WHEN COUNT(*) = 0 THEN '✅ PASS' 
-    ELSE '❌ FAIL - CAN ACCESS MAINTENANCE FROM OTHER PROPERTIES' 
+    WHEN COUNT(*) = 0 THEN 'PASS' 
+    ELSE 'FAIL - CAN ACCESS MAINTENANCE FROM OTHER PROPERTIES' 
   END as result
 FROM "MaintenanceRequest" mr
 JOIN "Unit" u ON mr."unitId" = u.id
@@ -159,8 +159,8 @@ SELECT
   'TEST 9: File Access Control' as test_name,
   COUNT(*) as unauthorized_records,
   CASE 
-    WHEN COUNT(*) = 0 THEN '✅ PASS' 
-    ELSE '❌ FAIL - CAN ACCESS FILES FROM OTHER USERS/PROPERTIES' 
+    WHEN COUNT(*) = 0 THEN 'PASS' 
+    ELSE 'FAIL - CAN ACCESS FILES FROM OTHER USERS/PROPERTIES' 
   END as result
 FROM "File" f
 LEFT JOIN "Property" p ON f."propertyId" = p.id
@@ -181,8 +181,8 @@ SELECT
   'TEST 10: Message Access Control' as test_name,
   COUNT(*) as unauthorized_records,
   CASE 
-    WHEN COUNT(*) = 0 THEN '✅ PASS' 
-    ELSE '❌ FAIL - CAN ACCESS MESSAGES NOT INVOLVING USER' 
+    WHEN COUNT(*) = 0 THEN 'PASS' 
+    ELSE 'FAIL - CAN ACCESS MESSAGES NOT INVOLVING USER' 
   END as result
 FROM "Message" m
 WHERE m."senderId" != auth.uid()::text 
@@ -198,8 +198,8 @@ SELECT
   'TEST 11: User Record Isolation' as test_name,
   COUNT(*) as unauthorized_records,
   CASE 
-    WHEN COUNT(*) = 0 THEN '✅ PASS' 
-    ELSE '❌ FAIL - CAN ACCESS OTHER USERS RECORDS' 
+    WHEN COUNT(*) = 0 THEN 'PASS' 
+    ELSE 'FAIL - CAN ACCESS OTHER USERS RECORDS' 
   END as result
 FROM "User" 
 WHERE id != auth.uid()::text;
@@ -210,8 +210,8 @@ SELECT
   'TEST 12: Invoice Access Control' as test_name,
   COUNT(*) as unauthorized_records,
   CASE 
-    WHEN COUNT(*) = 0 THEN '✅ PASS' 
-    ELSE '❌ FAIL - CAN ACCESS OTHER USERS INVOICES' 
+    WHEN COUNT(*) = 0 THEN 'PASS' 
+    ELSE 'FAIL - CAN ACCESS OTHER USERS INVOICES' 
   END as result
 FROM "Invoice" 
 WHERE "userId" != auth.uid()::text;
@@ -222,8 +222,8 @@ SELECT
   'TEST 13: Subscription Access Control' as test_name,
   COUNT(*) as unauthorized_records,
   CASE 
-    WHEN COUNT(*) = 0 THEN '✅ PASS' 
-    ELSE '❌ FAIL - CAN ACCESS OTHER USERS SUBSCRIPTIONS' 
+    WHEN COUNT(*) = 0 THEN 'PASS' 
+    ELSE 'FAIL - CAN ACCESS OTHER USERS SUBSCRIPTIONS' 
   END as result
 FROM "Subscription" 
 WHERE "userId" != auth.uid()::text;
@@ -238,8 +238,8 @@ SELECT
   'TEST 14: Notification Access Control' as test_name,
   COUNT(*) as unauthorized_records,
   CASE 
-    WHEN COUNT(*) = 0 THEN '✅ PASS' 
-    ELSE '❌ FAIL - CAN ACCESS OTHER USERS NOTIFICATIONS' 
+    WHEN COUNT(*) = 0 THEN 'PASS' 
+    ELSE 'FAIL - CAN ACCESS OTHER USERS NOTIFICATIONS' 
   END as result
 FROM "InAppNotification" 
 WHERE "userId" != auth.uid()::text;
@@ -250,8 +250,8 @@ SELECT
   'TEST 15: Notifications Table Access Control' as test_name,
   COUNT(*) as unauthorized_records,
   CASE 
-    WHEN COUNT(*) = 0 THEN '✅ PASS' 
-    ELSE '❌ FAIL - CAN ACCESS OTHER USERS NOTIFICATION RECORDS' 
+    WHEN COUNT(*) = 0 THEN 'PASS' 
+    ELSE 'FAIL - CAN ACCESS OTHER USERS NOTIFICATION RECORDS' 
   END as result
 FROM "notifications" 
 WHERE recipient_id != auth.uid()::text;
@@ -264,17 +264,17 @@ WHERE recipient_id != auth.uid()::text;
 WITH test_results AS (
   -- Add all the above test queries here with UNION ALL
   -- This is a template - you'd need to combine all tests
-  SELECT 'Sample Test' as test_name, 0 as unauthorized_records, '✅ PASS' as result
+  SELECT 'Sample Test' as test_name, 0 as unauthorized_records, 'PASS' as result
 )
 SELECT 
   'SECURITY TEST SUMMARY' as summary,
   COUNT(*) as total_tests,
-  SUM(CASE WHEN result LIKE '✅%' THEN 1 ELSE 0 END) as passed_tests,
-  SUM(CASE WHEN result LIKE '❌%' THEN 1 ELSE 0 END) as failed_tests,
+  SUM(CASE WHEN result LIKE 'PASS%' THEN 1 ELSE 0 END) as passed_tests,
+  SUM(CASE WHEN result LIKE 'FAIL%' THEN 1 ELSE 0 END) as failed_tests,
   CASE 
-    WHEN SUM(CASE WHEN result LIKE '❌%' THEN 1 ELSE 0 END) = 0 
-    THEN '🛡️ ALL SECURITY TESTS PASSED' 
-    ELSE '🚨 SECURITY VULNERABILITIES DETECTED' 
+    WHEN SUM(CASE WHEN result LIKE 'FAIL%' THEN 1 ELSE 0 END) = 0 
+    THEN 'ALL SECURITY TESTS PASSED' 
+    ELSE 'SECURITY VULNERABILITIES DETECTED' 
   END as overall_status
 FROM test_results;
 
@@ -302,8 +302,8 @@ SELECT
   'TEST E1: NULL Handling' as test_name,
   COUNT(*) as null_user_records,
   CASE 
-    WHEN COUNT(*) = 0 THEN '✅ PASS' 
-    ELSE '⚠️ WARNING - NULL USER RECORDS ACCESSIBLE' 
+    WHEN COUNT(*) = 0 THEN 'PASS' 
+    ELSE 'WARNING - NULL USER RECORDS ACCESSIBLE' 
   END as result
 FROM "Tenant" 
 WHERE "userId" IS NULL;
@@ -313,8 +313,8 @@ SELECT
   'TEST E2: Empty String Handling' as test_name,
   COUNT(*) as empty_user_records,
   CASE 
-    WHEN COUNT(*) = 0 THEN '✅ PASS' 
-    ELSE '⚠️ WARNING - EMPTY USER RECORDS ACCESSIBLE' 
+    WHEN COUNT(*) = 0 THEN 'PASS' 
+    ELSE 'WARNING - EMPTY USER RECORDS ACCESSIBLE' 
   END as result
 FROM "Tenant" 
 WHERE "userId" = '';
@@ -333,8 +333,8 @@ TO RUN THESE TESTS:
 
 EXPECTED RESULTS:
 - All "unauthorized_records" should be 0
-- All results should show "✅ PASS"  
-- Any "❌ FAIL" indicates a security vulnerability
+- All results should show "PASS"  
+- Any "FAIL" indicates a security vulnerability
 
 EMERGENCY RESPONSE:
 If any tests fail:

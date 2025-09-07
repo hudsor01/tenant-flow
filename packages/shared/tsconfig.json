@@ -4,10 +4,10 @@
 	"compilerOptions": {
 		"target": "ES2022",
 		"lib": ["ES2022", "DOM", "DOM.Iterable"],
-		"types": ["node"],
+		"skipLibCheck": true,
 		"moduleDetection": "force",
 		"module": "ESNext",
-		"moduleResolution": "Bundler",
+		"moduleResolution": "Node",
 		"resolveJsonModule": true,
 		"allowJs": true,
 		"checkJs": false,
@@ -43,8 +43,6 @@
 		"rootDir": "./src",
 		"baseUrl": ".",
 		"paths": {
-			"react": ["../../node_modules/react", "node_modules/react"],
-			"react/*": ["../../node_modules/react/*", "node_modules/react/*"],
 			"zod": ["../../node_modules/zod"],
 			"zod/*": ["../../node_modules/zod/*"],
 			"@tanstack/react-query": [

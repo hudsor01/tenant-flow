@@ -1,32 +1,26 @@
 import { Module } from '@nestjs/common'
-import { EventEmitterModule } from '@nestjs/event-emitter'
 import { ConfigModule } from '@nestjs/config'
-import { PaymentRecoveryService } from './payment-recovery.service'
-import { PaymentNotificationService } from './payment-notification.service'
-import { StripeWebhookService } from './stripe-webhook.service'
+
+import { StripeSyncService } from './stripe-sync.service'
+import { StripeController } from './stripe.controller'
 import { SupabaseService } from '../database/supabase.service'
 
 @Module({
-	imports: [EventEmitterModule, ConfigModule],
+	imports: [
+		ConfigModule
+	],
 	providers: [
-		// Core services
-		// StripeService, // Temporarily disabled due to logger injection issue
-		PaymentRecoveryService,
-		PaymentNotificationService,
-
-		// New minimal services
-		StripeWebhookService,
-		// StripePortalService, // Temporarily disabled due to ConfigService injection issue
+		// Only StripeSyncService for @supabase/stripe-sync-engine integration
+		StripeSyncService,
 
 		// Database
 		SupabaseService
 	],
+	controllers: [
+		StripeController
+	],
 	exports: [
-		// StripeService, // Temporarily disabled due to logger injection issue
-		PaymentRecoveryService,
-		PaymentNotificationService,
-		StripeWebhookService,
-		// StripePortalService // Temporarily disabled
+		StripeSyncService
 	]
 })
 export class StripeModule {}
