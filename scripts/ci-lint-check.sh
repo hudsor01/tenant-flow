@@ -30,11 +30,11 @@ if [[ -n "$CHANGED_FILES" ]]; then
     echo ""
     npx eslint $LINT_FILES --max-warnings 5 --no-warn-ignored || {
       echo ""
-      echo "⚠️ Linting found issues - CI will fail!"
+      echo "WARNING: Linting found issues - CI will fail!"
       echo "Fix these issues before pushing."
       exit 1
     }
-    echo "✅ All lint checks passed!"
+    echo "SUCCESS: All lint checks passed!"
   else
     echo "No existing files to lint."
   fi

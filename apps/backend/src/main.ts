@@ -77,14 +77,14 @@ async function bootstrap() {
 
 	// Log startup info
 	const startupTime = ((Date.now() - startTime) / 1000).toFixed(2)
-	logger.log(`🚀 Server listening on http://0.0.0.0:${port}`)
-	logger.log(`⏱️  Startup time: ${startupTime}s`)
-	logger.log(`🌍 Environment: ${process.env.NODE_ENV}`)
+	logger.log(`SERVER: Listening on http://0.0.0.0:${port}`)
+	logger.log(`STARTUP: Completed in ${startupTime}s`)
+	logger.log(`ENVIRONMENT: ${process.env.NODE_ENV}`)
 }
 
 // Handle errors
 bootstrap().catch(err => {
-	console.error('❌ Failed to start server:', err)
+	console.error('ERROR: Failed to start server:', err)
 	process.exit(1)
 })
 

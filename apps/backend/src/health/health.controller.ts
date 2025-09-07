@@ -4,12 +4,16 @@ import { PinoLogger } from 'nestjs-pino'
 import { hostname } from 'os'
 import { Public } from '../shared/decorators/public.decorator'
 import { SupabaseHealthIndicator } from './supabase.health'
+import { StripeFdwHealthIndicator } from './stripe-fdw.health'
+import { StripeSyncService } from '../billing/stripe-sync.service'
 
 @Controller('health')
 export class HealthController {
 	constructor(
 		private readonly health: HealthCheckService,
 		private readonly supabase: SupabaseHealthIndicator,
+		private readonly stripeFdw: StripeFdwHealthIndicator,
+		private readonly stripeSyncService: StripeSyncService,
 		private readonly logger: PinoLogger
 	) {
 		// PinoLogger context handled automatically via app-level configuration
@@ -28,7 +32,10 @@ export class HealthController {
 			},
 			`Health check started - Environment: ${process.env.NODE_ENV}`
 		)
-		return this.health.check([() => this.supabase.pingCheck('database')])
+		return this.health.check([
+			() => this.supabase.pingCheck('database'),
+			() => this.stripeFdw.isHealthy('stripe_fdw')
+		])
 	}
 
 	@Get('ping')
@@ -48,7 +55,29 @@ export class HealthController {
 	@Public()
 	@HealthCheck()
 	ready() {
-		return this.health.check([() => this.supabase.quickPing('database')])
+		return this.health.check([
+			() => this.supabase.quickPing('database'),
+			() => this.stripeFdw.quickPing('stripe_fdw')
+		])
+	}
+
+	@Get('stripe')
+	@Public()
+	@HealthCheck()
+	async stripeCheck() {
+		this.logger.info('Stripe FDW health check started')
+		return this.health.check([() => this.stripeFdw.detailedCheck('stripe_fdw')])
+	}
+
+	@Get('stripe-sync')
+	@Public()
+	async checkStripeSyncHealth() {
+		const health = this.stripeSyncService.getHealthStatus()
+		return {
+			status: health.initialized && health.migrationsRun ? 'healthy' : 'unhealthy',
+			...health,
+			timestamp: new Date().toISOString()
+		}
 	}
 
 	@Get('debug')

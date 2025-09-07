@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { Module, forwardRef } from '@nestjs/common'
 import { LoggerModule } from 'nestjs-pino'
 import { DashboardController } from './dashboard.controller'
 import { DashboardService } from './dashboard.service'
@@ -8,7 +8,12 @@ import { LeasesModule } from '../leases/leases.module'
 // Removed ErrorHandlerService - using native NestJS exceptions
 
 @Module({
-	imports: [PropertiesModule, TenantsModule, LeasesModule, LoggerModule],
+	imports: [
+		forwardRef(() => PropertiesModule), 
+		forwardRef(() => TenantsModule), 
+		forwardRef(() => LeasesModule), 
+		LoggerModule
+	],
 	controllers: [DashboardController],
 	providers: [DashboardService],
 	exports: [DashboardService]

@@ -17,6 +17,12 @@ export {
 export { apiClient, get, post, put, del } from './utils/api-client'
 export type { FetchResponse } from './utils/api-client'
 
+// Frontend Logging - Direct Pino usage (no wrappers)
+export { logger } from './lib/frontend-logger'
+
+// Supabase Client - Typed client instances
+export { supabaseClient, supabaseAdmin, getCurrentUser, getCurrentSession, signOut } from './lib/supabase-client'
+
 // ============================================================================
 // DIRECT SUPABASE IMPORT - Use this everywhere instead of re-exports
 // ============================================================================
@@ -289,7 +295,7 @@ export type {
 
 // Subscription now exported above from supabase.ts
 
-// Export frontend types
+// Export frontend types - CONSOLIDATED THEME SYSTEM
 export type {
 	CalendarEvent,
 	UseModalReturn,
@@ -307,7 +313,34 @@ export type {
 	UIPreferences,
 	UserSession,
 	RecentActivity,
-	AppNotification
+	AppNotification,
+	// Comprehensive theme system exports
+	ThemeMode,
+	ThemeColors,
+	ThemeRadius,
+	ThemeColorStateParams,
+	ThemeProviderProps,
+	ThemeCSSVariables,
+	ThemePreset,
+	ThemePresetValue,
+	// Layout preference exports
+	SidebarVariant,
+	SidebarCollapsible,
+	ContentLayout
+} from './types/frontend'
+
+// Export theme constants and options
+export {
+	THEME_MODE_OPTIONS,
+	THEME_MODE_VALUES,
+	THEME_PRESET_OPTIONS,
+	THEME_PRESET_VALUES,
+	SIDEBAR_VARIANT_OPTIONS,
+	SIDEBAR_VARIANT_VALUES,
+	SIDEBAR_COLLAPSIBLE_OPTIONS,
+	SIDEBAR_COLLAPSIBLE_VALUES,
+	CONTENT_LAYOUT_OPTIONS,
+	CONTENT_LAYOUT_VALUES
 } from './types/frontend'
 
 // Export UI extension types

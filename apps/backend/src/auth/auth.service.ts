@@ -18,8 +18,8 @@ function normalizeSupabaseUser(
 	return {
 		id: supabaseUser.id,
 		email: supabaseUser.email,
-		name: supabaseUser.name ?? undefined,
-		avatarUrl: supabaseUser.avatarUrl ?? undefined,
+		name: supabaseUser.name ?? null,
+		avatarUrl: supabaseUser.avatarUrl ?? null,
 		role: supabaseUser.role as UserRole,
 		phone: supabaseUser.phone ?? null,
 		createdAt: new Date(supabaseUser.createdAt),
@@ -27,7 +27,7 @@ function normalizeSupabaseUser(
 		emailVerified: true,
 		bio: supabaseUser.bio ?? null,
 		supabaseId: supabaseUser.supabaseId ?? supabaseUser.id,
-		stripeCustomerId: supabaseUser.stripeCustomerId ?? undefined,
+		stripeCustomerId: supabaseUser.stripeCustomerId ?? null,
 		profileComplete: true,
 		lastLoginAt: new Date(),
 		organizationId: undefined
@@ -163,7 +163,7 @@ export class AuthService {
 		return {
 			...normalizeSupabaseUser(user),
 			supabaseId,
-			stripeCustomerId: subscription?.stripeCustomerId ?? undefined
+			stripeCustomerId: subscription?.stripeCustomerId ?? null
 		}
 	}
 

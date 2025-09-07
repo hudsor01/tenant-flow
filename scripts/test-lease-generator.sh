@@ -5,7 +5,7 @@
 
 set -e # Exit on any error
 
-echo "🚀 Testing Lease Generator for Production Readiness"
+echo "STARTING: Testing Lease Generator for Production Readiness"
 echo "=================================================="
 
 # Colors for output
@@ -181,18 +181,18 @@ fi
 # Summary
 echo ""
 echo "=================================================="
-print_success "🎉 All lease generator tests passed!"
+print_success "All lease generator tests passed!"
 echo ""
 echo "Production Readiness Checklist:"
-echo "✅ TypeScript compilation"
-echo "✅ ESLint validation" 
-echo "✅ Backend build"
-echo "✅ Frontend build"
+echo "SUCCESS: TypeScript compilation"
+echo "SUCCESS: ESLint validation" 
+echo "SUCCESS: Backend build"
+echo "SUCCESS: Frontend build"
 if command -v docker &> /dev/null; then
-    echo "✅ Docker build"
+    echo "SUCCESS: Docker build"
 fi
 echo ""
-echo "🚀 The lease generator is ready for production deployment!"
+echo "STARTING: The lease generator is ready for production deployment!"
 echo ""
 echo "Next steps:"
 echo "1. Deploy backend to Railway with proper environment variables"
