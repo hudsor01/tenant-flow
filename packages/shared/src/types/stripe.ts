@@ -86,22 +86,20 @@ export interface StripeWebhookProcessor {
 }
 
 // ========================
-// Re-export Official Types  
+// Native Stripe Types Usage Guide
 // ========================
 
 /**
- * Re-export PaymentMethod for compatibility
- * Always prefer using official Stripe.PaymentMethod directly
+ * ALWAYS use native Stripe types from the official SDK:
+ * 
+ * [OK] CORRECT:
+ * import type { Stripe } from 'stripe'
+ * const paymentMethod: Stripe.PaymentMethod = ...
+ * const customer: Stripe.Customer = ...
+ * const subscription: Stripe.Subscription = ...
+ * 
+ * [ERROR] DO NOT create custom type duplicates
+ * 
+ * For database PaymentMethod table, use:
+ * import type { PaymentMethod } from '@repo/shared/types/supabase'
  */
-export type PaymentMethod = {
-	id: string
-	type: string
-	card?: {
-		brand: string
-		last4: string
-		exp_month: number
-		exp_year: number
-	}
-	created: number
-	customer?: string
-}

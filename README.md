@@ -2,7 +2,7 @@
 
 A production-ready, multi-tenant property management platform built with React 19, NestJS, and Supabase.
 
-## 🏗️ Recent Major Updates
+## [UPDATE] Recent Major Updates
 
 **Railway Backend API Fix** - Debugging routing issue where all endpoints except /health return 404
 
@@ -20,7 +20,7 @@ See [CLAUDE.md](./CLAUDE.md#uiux-architecture-cleanup-december-2024) for detaile
 
 This document outlines the Turborepo best practices that have been implemented in the TenantFlow project.
 
-## 🚀 Tech Stack
+## [TECH] Tech Stack
 
 - **Frontend**: React 19 + Next.js + Zustand + TypeScript
 - **Backend**: NestJS + Fastify + PostgreSQL (Supabase)
@@ -28,7 +28,7 @@ This document outlines the Turborepo best practices that have been implemented i
 - **Auth**: Supabase Auth with JWT + Row-Level Security (RLS)
 - **Payments**: Stripe subscriptions with webhook processing
 
-## 📁 Project Structure
+## [STRUCTURE] Project Structure
 
 ```
 apps/
@@ -40,7 +40,7 @@ packages/
 ├── utils/             # Shared utilities
 ```
 
-## 🛠️ Development
+## [DEVELOPMENT] Development
 
 ```bash
 # Install dependencies
@@ -58,9 +58,30 @@ npm run build
 
 See [CLAUDE.md](./CLAUDE.md) for comprehensive development guidelines.
 
-## 📚 Documentation
+## [DATABASE] Database Migrations
+
+**CRITICAL**: Always use official Supabase CLI for migrations. Never manually create migration files.
+
+```bash
+# Create new migration (generates unique timestamp automatically)
+npm run db:migration:new "descriptive_name"
+
+# Test migrations locally
+npm run db:reset
+
+# Deploy to production
+npm run db:push
+
+# Check migration status
+npm run db:migration:list
+```
+
+See **[MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md)** for complete migration workflow and CLAUDE.md compliance rules.
+
+## [DOCUMENTATION] Documentation
 
 - **[CLAUDE.md](./CLAUDE.md)** - Development guidelines and architecture decisions
+- **[MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md)** - Official Supabase migration workflow
 - **[apps/backend/README.md](./apps/backend/README.md)** - Backend-specific documentation
 - **[apps/frontend/README.md](./apps/frontend/README.md)** - Frontend-specific documentation
 
@@ -99,7 +120,7 @@ See [CLAUDE.md](./CLAUDE.md) for comprehensive development guidelines.
 - Persistent tasks properly configured for dev servers
 - Added cache-friendly task dependencies
 
-## 📚 Additional Resources
+## [DOCUMENTATION] Additional Resources
 
 - [Turborepo Docs](https://turbo.build/repo/docs)
 - [Environment Variables Guide](https://turbo.build/repo/docs/crafting-your-repository/using-environment-variables)

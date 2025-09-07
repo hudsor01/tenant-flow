@@ -35,9 +35,9 @@ jobs:
       - name: Verify build outputs exist
         run: |
           echo "Checking shared package build outputs..."
-          ls -la packages/shared/dist/cjs/ || echo "❌ Shared package dist not found"
-          ls -la apps/backend/dist/ || echo "❌ Backend dist not found"
-          echo "✅ Build verification complete"
+          ls -la packages/shared/dist/cjs/ || echo "ERROR: Shared package dist not found"
+          ls -la apps/backend/dist/ || echo "ERROR: Backend dist not found"
+          echo "SUCCESS: Build verification complete"
 
       - name: Run tests
         continue-on-error: true

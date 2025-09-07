@@ -1,8 +1,8 @@
 /**
- * 🚨 ULTRA-NATIVE SERVICE - DO NOT ADD ORCHESTRATION 🚨
+ * ULTRA-NATIVE SERVICE - DO NOT ADD ORCHESTRATION
  *
  * DIRECT PostgreSQL RPC calls ONLY. Each method <30 lines.
- * ❌ FORBIDDEN: Service layers, repositories, business logic classes
+ * FORBIDDEN: Service layers, repositories, business logic classes
  * See: apps/backend/ULTRA_NATIVE_ARCHITECTURE.md
  */
 
@@ -13,12 +13,13 @@ import type {
 	CreateLeaseRequest,
 	UpdateLeaseRequest
 } from '../schemas/leases.schema'
-import type { 
-	Lease,
-	Unit,
-	Property,
-	Tenant
-} from '@repo/shared/types/database'
+import type { Tables } from '@repo/shared/types/supabase'
+
+// Use native Supabase table types
+type Lease = Tables<'Lease'>
+type Unit = Tables<'Unit'>
+type Property = Tables<'Property'>
+type Tenant = Tables<'Tenant'>
 
 export interface LeaseWithRelations extends Lease {
 	Unit?: Unit & {

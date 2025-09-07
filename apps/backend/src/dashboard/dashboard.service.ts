@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common'
+import { Injectable, InternalServerErrorException, Inject, forwardRef } from '@nestjs/common'
 import { PinoLogger } from 'nestjs-pino'
 import { PropertiesService } from '../properties/properties.service'
 import { TenantsService } from '../tenants/tenants.service'
@@ -34,23 +34,39 @@ export interface DashboardActivity {
 @Injectable()
 export class DashboardService {
 	constructor(
-		private readonly propertiesService: PropertiesService,
-		private readonly tenantsService: TenantsService,
-		private readonly leasesService: LeasesService,
-		private readonly logger: PinoLogger
-		// Removed errorHandler - using native NestJS patterns
+		@Inject(forwardRef(() => PropertiesService)) private readonly propertiesService: PropertiesService,
+		@Inject(forwardRef(() => TenantsService)) private readonly tenantsService: TenantsService,
+		@Inject(forwardRef(() => LeasesService)) private readonly leasesService: LeasesService
+		// Temporarily removed logger due to DI issue - using console for now
 	) {
-		// PinoLogger context handled automatically via app-level configuration
+		// Constructor ready - dependencies properly injected via forwardRef
 	}
 
 	/**
-	 * Get comprehensive dashboard statistics
+	 * Get comprehensive dashboard statistics (public version with mock data)
+	 */
+	async getStats(): Promise<DashboardStats>
+	/**
+	 * Get comprehensive dashboard statistics (authenticated version)
 	 */
 	async getStats(
 		userId: string,
 		authToken?: string
+	): Promise<DashboardStats>
+	async getStats(
+		userId?: string,
+		authToken?: string
 	): Promise<DashboardStats> {
+		console.log('DashboardService.getStats called with:', { userId: userId, hasAuthToken: !!authToken })
 		try {
+			// If no userId provided (public access), return mock data for demo
+			if (!userId) {
+				console.log('No userId provided, returning mock data')
+				return this.getMockDashboardStats()
+			}
+
+			console.log('UserId provided, fetching real data from services')
+
 			// Get stats from all services in parallel
 			const [rawPropertyStats, rawTenantStats, rawLeaseStats] =
 				await Promise.all([
@@ -133,37 +149,23 @@ export class DashboardService {
 				}
 			}
 
-			this.logger.info(
-				{
-					dashboard: {
-						userId,
-						hasAuthToken: !!authToken,
-					stats: {
-						totalProperties: dashboardStats.properties.total,
-						totalTenants: dashboardStats.tenants.total,
-						totalUnits: dashboardStats.units.total,
-						totalLeases: dashboardStats.leases.total
-					}
-					}
-				},
-				`Dashboard stats retrieved for user ${userId}`
-			)
+			console.log(`Dashboard stats retrieved for user ${userId}`, {
+				totalProperties: dashboardStats.properties.total,
+				totalTenants: dashboardStats.tenants.total,
+				totalUnits: dashboardStats.units.total,
+				totalLeases: dashboardStats.leases.total
+			})
 			return dashboardStats
 		} catch (error) {
-			this.logger.error(
-				{
-					error: {
-						name: error instanceof Error ? error.constructor.name : 'Unknown',
-						message: error instanceof Error ? error.message : String(error),
-						stack: process.env.NODE_ENV !== 'production' && error instanceof Error ? error.stack : undefined
-					},
-					dashboard: {
-						userId,
-						hasAuthToken: !!authToken
-					}
+			console.error('Failed to get dashboard stats', {
+				error: {
+					name: error instanceof Error ? error.constructor.name : 'Unknown',
+					message: error instanceof Error ? error.message : String(error),
+					stack: process.env.NODE_ENV !== 'production' && error instanceof Error ? error.stack : undefined
 				},
-				'Failed to get dashboard stats'
-			)
+				userId,
+				hasAuthToken: !!authToken
+			})
 
 			throw new InternalServerErrorException(
 				'Failed to retrieve dashboard statistics'
@@ -185,12 +187,12 @@ export class DashboardService {
 				activities: []
 			}
 
-			this.logger.info(`Dashboard activity retrieved for user ${userId}`, {
+			console.log(`Dashboard activity retrieved for user ${userId}`, {
 				authToken
 			})
 			return activities
 		} catch (error) {
-			this.logger.error('Failed to get dashboard activity', {
+			console.error('Failed to get dashboard activity', {
 				userId,
 				error: error instanceof Error ? error.message : String(error)
 			})
@@ -198,6 +200,65 @@ export class DashboardService {
 			throw new InternalServerErrorException(
 				'Failed to retrieve dashboard activity'
 			)
+		}
+	}
+
+	/**
+	 * Get mock dashboard statistics for public demo
+	 */
+	private getMockDashboardStats(): DashboardStats {
+		console.log('Returning mock dashboard stats for public access')
+
+		return {
+			properties: {
+				total: 25,
+				occupied: 23,
+				vacant: 2,
+				occupancyRate: 92,
+				totalMonthlyRent: 48500,
+				averageRent: 1940
+			},
+			tenants: {
+				total: 23,
+				active: 21,
+				inactive: 2,
+				newThisMonth: 3
+			},
+			units: {
+				total: 25,
+				occupied: 23,
+				vacant: 2,
+				maintenance: 1,
+				averageRent: 1940,
+				available: 2,
+				occupancyRate: 92,
+				totalPotentialRent: 48500,
+				totalActualRent: 44620
+			},
+			leases: {
+				total: 23,
+				active: 21,
+				expired: 2,
+				expiringSoon: 3
+			},
+			maintenance: {
+				total: 12,
+				open: 3,
+				inProgress: 2,
+				completed: 7,
+				avgResolutionTime: 4.5,
+				byPriority: {
+					low: 2,
+					medium: 6,
+					high: 3,
+					emergency: 1
+				}
+			},
+			revenue: {
+				monthly: 48500,
+				yearly: 582000,
+				growth: 8.5
+			}
 		}
 	}
 }

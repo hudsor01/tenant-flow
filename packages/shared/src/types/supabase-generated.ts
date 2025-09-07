@@ -2270,6 +2270,34 @@ export type Database = {
         }
         Returns: Json
       }
+      create_stripe_checkout_session: {
+        Args: {
+          p_cancel_url?: string
+          p_interval: string
+          p_plan_id: string
+          p_success_url?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      create_stripe_customer_with_trial: {
+        Args: {
+          p_email: string
+          p_name: string
+          p_price_id: string
+          p_trial_days?: number
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      create_stripe_portal_session: {
+        Args: { p_return_url?: string; p_user_id: string }
+        Returns: Json
+      }
+      create_stripe_setup_intent: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
       create_tenant: {
         Args: {
           p_email: string

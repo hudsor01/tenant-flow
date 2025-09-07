@@ -15,7 +15,7 @@ import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-console.log('🔒 Validating TenantFlow Security Implementation...\n')
+console.log('SECURITY: Validating TenantFlow Security Implementation...\n')
 
 const validationResults = {
 	authGuardImplementation: false,
@@ -32,7 +32,7 @@ const validationResults = {
 function checkFileForPattern(filePath, patterns, description) {
 	try {
 		if (!fs.existsSync(filePath)) {
-			console.log(`   ❌ ${description}: File not found - ${filePath}`)
+			console.log(`   ERROR: ${description}: File not found - ${filePath}`)
 			return false
 		}
 
@@ -46,10 +46,10 @@ function checkFileForPattern(filePath, patterns, description) {
 		})
 
 		if (hasAllPatterns) {
-			console.log(`   ✅ ${description}: Implementation found`)
+			console.log(`   SUCCESS: ${description}: Implementation found`)
 			return true
 		} else {
-			console.log(`   ⚠️  ${description}: Partial implementation`)
+			console.log(`   WARNING:  ${description}: Partial implementation`)
 			patterns.forEach((pattern, index) => {
 				const found = typeof pattern === 'string' 
 					? content.includes(pattern) 
@@ -61,13 +61,13 @@ function checkFileForPattern(filePath, patterns, description) {
 			return false
 		}
 	} catch (error) {
-		console.log(`   ❌ ${description}: Error reading file - ${error.message}`)
+		console.log(`   ERROR: ${description}: Error reading file - ${error.message}`)
 		return false
 	}
 }
 
 // 1. Check Auth Guard Implementation
-console.log('1. 🔍 Validating Auth Guard implementation...')
+console.log('1. CHECKING: Validating Auth Guard implementation...')
 const authGuardPath = path.join(__dirname, '../apps/backend/src/shared/guards/auth.guard.ts')
 validationResults.authGuardImplementation = checkFileForPattern(
 	authGuardPath,
@@ -82,7 +82,7 @@ validationResults.authGuardImplementation = checkFileForPattern(
 )
 
 // 2. Check RLS Policies Exist
-console.log('\n2. 🛡️  Validating RLS policies...')
+console.log('\n2. SECURITY:  Validating RLS policies...')
 const rlsMigrationPath = path.join(__dirname, '../supabase/migrations/20250827_ultra_native_rpc_functions.sql')
 validationResults.rlsPoliciesExist = checkFileForPattern(
 	rlsMigrationPath,
@@ -96,7 +96,7 @@ validationResults.rlsPoliciesExist = checkFileForPattern(
 )
 
 // 3. Check Input Validation
-console.log('\n3. 🧹 Validating input validation...')
+console.log('\n3. VALIDATION: Validating input validation...')
 const zodSchemasPath = path.join(__dirname, '../apps/frontend/src/lib/validation/zod-schemas.ts')
 const validationPipePath = path.join(__dirname, '../apps/backend/src/shared/pipes/zod-validation.pipe.ts')
 
@@ -125,7 +125,7 @@ const hasValidationPipe = checkFileForPattern(
 validationResults.inputValidation = hasZodSchemas && hasValidationPipe
 
 // 4. Check RPC Functions Security
-console.log('\n4. 🔐 Validating RPC function security...')
+console.log('\n4. SECURITY: Validating RPC function security...')
 const rpcFunctionsPath = path.join(__dirname, '../supabase/migrations/20250827_ultra_native_rpc_functions.sql')
 validationResults.rpcFunctionsSecurity = checkFileForPattern(
 	rpcFunctionsPath,
@@ -139,7 +139,7 @@ validationResults.rpcFunctionsSecurity = checkFileForPattern(
 )
 
 // 5. Check Rate Limiting
-console.log('\n5. ⏱️  Validating rate limiting...')
+console.log('\n5. RATE_LIMIT: Validating rate limiting...')
 const rateLimitPath = path.join(__dirname, '../apps/backend/src/shared/guards/throttler-proxy.guard.ts')
 validationResults.rateLimiting = checkFileForPattern(
 	rateLimitPath,
@@ -166,7 +166,7 @@ if (!validationResults.rateLimiting) {
 }
 
 // 6. Check Security Headers
-console.log('\n6. 🛡️  Validating security headers...')
+console.log('\n6. SECURITY:  Validating security headers...')
 const fastifyConfigPaths = [
 	path.join(__dirname, '../apps/backend/src/main.ts'),
 	path.join(__dirname, '../apps/frontend/next.config.ts')
@@ -191,7 +191,7 @@ for (const configPath of fastifyConfigPaths) {
 validationResults.securityHeaders = hasSecurityHeaders
 
 // 7. Check CSRF Protection
-console.log('\n7. 🔒 Validating CSRF protection...')
+console.log('\n7. SECURITY: Validating CSRF protection...')
 const csrfPaths = [
 	path.join(__dirname, '../apps/backend/src/security/csrf.guard.ts'),
 	path.join(__dirname, '../apps/frontend/src/lib/auth/csrf.ts'),
@@ -216,7 +216,7 @@ for (const csrfPath of csrfPaths) {
 validationResults.csrfProtection = hasCsrfProtection
 
 // 8. Check File Upload Validation
-console.log('\n8. 📎 Validating file upload security...')
+console.log('\n8. FILE_UPLOAD: Validating file upload security...')
 const storageServicePath = path.join(__dirname, '../apps/backend/src/database/storage.service.ts')
 validationResults.fileUploadValidation = checkFileForPattern(
 	storageServicePath,
@@ -245,7 +245,7 @@ if (!validationResults.fileUploadValidation) {
 
 // Generate Final Report
 console.log('\n' + '='.repeat(70))
-console.log('📊 SECURITY IMPLEMENTATION VALIDATION RESULTS')
+console.log('STATS: SECURITY IMPLEMENTATION VALIDATION RESULTS')
 console.log('='.repeat(70))
 
 const securityChecks = [
@@ -263,8 +263,8 @@ let criticalIssues = 0
 let totalIssues = 0
 
 securityChecks.forEach(check => {
-	const status = check.implemented ? '✅ IMPLEMENTED' : '❌ NOT IMPLEMENTED'
-	const priority = check.critical ? '🔴 CRITICAL' : '🟡 IMPORTANT'
+	const status = check.implemented ? 'SUCCESS: IMPLEMENTED' : 'ERROR: NOT IMPLEMENTED'
+	const priority = check.critical ? 'CRITICAL' : 'IMPORTANT'
 	
 	console.log(`${status} - ${check.name} (${priority})`)
 	
@@ -283,41 +283,41 @@ const implementedCount = securityChecks.filter(check => check.implemented).lengt
 const totalChecks = securityChecks.length
 const implementationPercentage = Math.round((implementedCount / totalChecks) * 100)
 
-console.log(`📈 IMPLEMENTATION SCORE: ${implementedCount}/${totalChecks} (${implementationPercentage}%)`)
+console.log(`STATS: IMPLEMENTATION SCORE: ${implementedCount}/${totalChecks} (${implementationPercentage}%)`)
 
 if (criticalIssues === 0 && totalIssues <= 2) {
-	console.log('🎉 SECURITY STATUS: PRODUCTION READY')
+	console.log('SUCCESS: SECURITY STATUS: PRODUCTION READY')
 	console.log('   All critical security measures are implemented.')
 	if (totalIssues > 0) {
 		console.log(`   ${totalIssues} non-critical enhancements recommended.`)
 	}
 } else if (criticalIssues === 0) {
-	console.log('⚠️  SECURITY STATUS: MOSTLY READY')
+	console.log('WARNING:  SECURITY STATUS: MOSTLY READY')
 	console.log(`   ${totalIssues} security enhancements needed before production.`)
 } else {
-	console.log('🚨 SECURITY STATUS: NOT PRODUCTION READY')
+	console.log('ERROR: SECURITY STATUS: NOT PRODUCTION READY')
 	console.log(`   ${criticalIssues} critical security issues must be resolved.`)
 	console.log(`   ${totalIssues} total security issues found.`)
 }
 
-console.log('\n📋 NEXT STEPS:')
+console.log('\nNEXT STEPS:')
 if (criticalIssues > 0) {
-	console.log('1. 🔴 Address all CRITICAL security implementations immediately')
-	console.log('2. 🟡 Implement remaining IMPORTANT security measures')
-	console.log('3. 🧪 Run comprehensive security test suite')
-	console.log('4. 📝 Update security documentation')
+	console.log('1. CRITICAL: Address all CRITICAL security implementations immediately')
+	console.log('2. IMPORTANT: Implement remaining IMPORTANT security measures')
+	console.log('3. TESTING: Run comprehensive security test suite')
+	console.log('4. INFO: Update security documentation')
 } else {
-	console.log('1. 🟡 Complete remaining security enhancements')
-	console.log('2. 🧪 Execute full security test suite (102 tests)')
-	console.log('3. 📊 Set up security monitoring and alerting')
-	console.log('4. 📅 Schedule regular security reviews')
+	console.log('1. TODO: Complete remaining security enhancements')
+	console.log('2. TESTING: Execute full security test suite (102 tests)')
+	console.log('3. STATS: Set up security monitoring and alerting')
+	console.log('4. SCHEDULE: Schedule regular security reviews')
 }
 
-console.log('\n🔗 RELATED FILES:')
-console.log('   📄 Security Test Report: ./SECURITY_TEST_REPORT.md')
-console.log('   🧪 E2E Security Tests: ./tests/e2e/security.spec.ts')
-console.log('   🔍 API Security Tests: ./apps/backend/src/__tests__/security/')
-console.log('   🗄️  RLS Validation Tests: ./apps/backend/src/__tests__/security/rls-validation.spec.ts')
+console.log('\nRELATED FILES:')
+console.log('   FILE: Security Test Report: ./SECURITY_TEST_REPORT.md')
+console.log('   FILE: E2E Security Tests: ./tests/e2e/security.spec.ts')
+console.log('   CHECKING: API Security Tests: ./apps/backend/src/__tests__/security/')
+console.log('   FILE: RLS Validation Tests: ./apps/backend/src/__tests__/security/rls-validation.spec.ts')
 
 // Exit with appropriate code
 if (criticalIssues > 0) {

@@ -26,10 +26,10 @@ const colors = {
 }
 
 const log = {
-	success: msg => console.log(`${colors.green}✓${colors.reset} ${msg}`),
-	error: msg => console.log(`${colors.red}✗${colors.reset} ${msg}`),
-	warning: msg => console.log(`${colors.yellow}⚠${colors.reset} ${msg}`),
-	info: msg => console.log(`${colors.blue}ℹ${colors.reset} ${msg}`),
+	success: msg => console.log(`${colors.green}SUCCESS:${colors.reset} ${msg}`),
+	error: msg => console.log(`${colors.red}ERROR:${colors.reset} ${msg}`),
+	warning: msg => console.log(`${colors.yellow}WARNING:${colors.reset} ${msg}`),
+	info: msg => console.log(`${colors.blue}INFO:${colors.reset} ${msg}`),
 	section: msg =>
 		console.log(`\n${colors.bold}${colors.blue}${msg}${colors.reset}`),
 	subsection: msg => console.log(`\n${colors.bold}  ${msg}${colors.reset}`)
@@ -436,7 +436,7 @@ function checkPerformance() {
  * 8. Generate Summary Report
  */
 function generateReport() {
-	log.section('📊 VALIDATION SUMMARY')
+	log.section('STATS: VALIDATION SUMMARY')
 
 	const total =
 		results.passed.length + results.warnings.length + results.errors.length
@@ -445,9 +445,9 @@ function generateReport() {
 	console.log(`
 ${colors.bold}Overall Health Score: ${score >= 80 ? colors.green : score >= 60 ? colors.yellow : colors.red}${score}%${colors.reset}
 
-${colors.green}✓ Passed: ${results.passed.length}${colors.reset}
-${colors.yellow}⚠ Warnings: ${results.warnings.length}${colors.reset}
-${colors.red}✗ Errors: ${results.errors.length}${colors.reset}
+${colors.green}PASS: Passed: ${results.passed.length}${colors.reset}
+${colors.yellow}WARN: Warnings: ${results.warnings.length}${colors.reset}
+${colors.red}FAIL: Errors: ${results.errors.length}${colors.reset}
 
 ${colors.bold}Key Findings:${colors.reset}`)
 

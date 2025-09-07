@@ -85,5 +85,5 @@ export function validateEnvironment(): void {
 		)
 	}
 
-	logger.log('✅ Environment validation completed successfully')
+	logger.log('Environment validation completed successfully')
 }

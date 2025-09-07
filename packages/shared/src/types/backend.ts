@@ -2,16 +2,17 @@
 export interface ValidatedUser {
 	id: string
 	email: string
-	name?: string
+	name: string | null
 	phone: string | null
 	bio: string | null
-	avatarUrl?: string
+	avatarUrl: string | null
 	role: string
-	createdAt: string
-	updatedAt: string
+	createdAt: Date
+	updatedAt: Date
 	emailVerified: boolean
 	supabaseId: string
 	stripeCustomerId: string | null
+	organizationId: string | null | undefined
 }
 
 // Base Context type for API requests

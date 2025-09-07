@@ -49,6 +49,7 @@
 		"@react-email/components": "0.5.1",
 		"@repo/database": "*",
 		"@repo/shared": "*",
+		"@supabase/stripe-sync-engine": "0.40.2",
 		"@supabase/supabase-js": "^2.56.1",
 		"@types/uuid": "10.0.0",
 		"class-transformer": "0.5.1",

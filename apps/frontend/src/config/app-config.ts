@@ -1,14 +1,20 @@
-import packageJson from "../../package.json";
-
-const currentYear = new Date().getFullYear();
-
 export const APP_CONFIG = {
-  name: "TenantFlow",
-  version: packageJson.version,
-  copyright: `© ${currentYear}, TenantFlow.`,
-  meta: {
-    title: "TenantFlow - Property Management Platform",
-    description:
-      "TenantFlow is a comprehensive property management platform built with Next.js 15, Tailwind CSS v4, and shadcn/ui. Streamline your property operations, tenant management, and financial tracking.",
+  name: 'TenantFlow',
+  description: 'Modern property management platform',
+  url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+  copyright: `© ${new Date().getFullYear()} TenantFlow. All rights reserved.`,
+  auth: {
+    redirectUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ? '/auth/callback' : '/login'
   },
-};
+  api: {
+    baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+  },
+  features: {
+    registration: true,
+    socialAuth: true,
+    emailVerification: true
+  }
+} as const
+
+export const appConfig = APP_CONFIG
+export type AppConfig = typeof APP_CONFIG

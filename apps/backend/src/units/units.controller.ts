@@ -1,13 +1,13 @@
 /**
- * 🚨 ULTRA-NATIVE CONTROLLER - DO NOT ADD ABSTRACTIONS 🚨
+ * ULTRA-NATIVE CONTROLLER - DO NOT ADD ABSTRACTIONS
  *
  * This file implements the ULTRA-NATIVE pattern. DO NOT MODIFY:
- * ✅ ONLY built-in NestJS pipes (ParseUUIDPipe, DefaultValuePipe, ParseIntPipe)
- * ✅ ONLY native exceptions (BadRequestException, NotFoundException)
- * ✅ ONLY direct service calls with PostgreSQL RPC functions
+ * [OK] ONLY built-in NestJS pipes (ParseUUIDPipe, DefaultValuePipe, ParseIntPipe)
+ * [OK] ONLY native exceptions (BadRequestException, NotFoundException)
+ * [OK] ONLY direct service calls with PostgreSQL RPC functions
  *
- * ❌ FORBIDDEN: Custom decorators, DTOs, validation classes, service layers
- * ❌ FORBIDDEN: Middleware, interceptors, custom validators, wrapper functions
+ * FORBIDDEN: Custom decorators, DTOs, validation classes, service layers
+ * FORBIDDEN: Middleware, interceptors, custom validators, wrapper functions
  *
  * See: apps/backend/ULTRA_NATIVE_ARCHITECTURE.md for complete rules
  */

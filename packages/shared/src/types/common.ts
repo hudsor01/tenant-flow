@@ -8,29 +8,32 @@
 // =============================================================================
 
 export interface ApiResponse<T = unknown> {
-  data: T
-  error?: string
-  message?: string
-  success?: boolean
+	data: T
+	error?: string
+	message?: string
+	success?: boolean
 }
 
 export interface PaginationParams {
-  page?: number
-  limit?: number
-  offset?: number
+	page?: number
+	limit?: number
+	offset?: number
 }
 
 export interface SortParams {
-  sort?: string
-  order?: 'asc' | 'desc'
+	sort?: string
+	order?: 'asc' | 'desc'
 }
 
 export interface SearchParams {
-  search?: string
-  query?: string
+	search?: string
+	query?: string
 }
 
-export interface QueryOptions extends PaginationParams, SortParams, SearchParams {}
+export interface QueryOptions
+	extends PaginationParams,
+		SortParams,
+		SearchParams {}
 
 // =============================================================================
 // COMMON STATUS TYPES - CONSOLIDATED duplicates
@@ -48,30 +51,30 @@ export type ActionStatus = 'pending' | 'success' | 'error'
 // =============================================================================
 
 export interface DashboardStats {
-  totalProperties: number
-  totalUnits: number
-  totalTenants: number
-  totalRevenue: number
-  occupancyRate: number
-  maintenanceRequests: number
+	totalProperties: number
+	totalUnits: number
+	totalTenants: number
+	totalRevenue: number
+	occupancyRate: number
+	maintenanceRequests: number
 }
 
 export interface DashboardMetrics {
-  revenue: {
-    current: number
-    previous: number
-    change: number
-  }
-  occupancy: {
-    current: number
-    previous: number
-    change: number
-  }
-  maintenance: {
-    open: number
-    completed: number
-    avgResponseTime: number
-  }
+	revenue: {
+		current: number
+		previous: number
+		change: number
+	}
+	occupancy: {
+		current: number
+		previous: number
+		change: number
+	}
+	maintenance: {
+		open: number
+		completed: number
+		avgResponseTime: number
+	}
 }
 
 // =============================================================================
@@ -79,14 +82,14 @@ export interface DashboardMetrics {
 // =============================================================================
 
 export interface Notification {
-  id: string
-  user_id: string
-  title: string
-  message: string
-  type: NotificationType
-  priority: NotificationPriority
-  read: boolean
-  created_at: string
+	id: string
+	user_id: string
+	title: string
+	message: string
+	type: NotificationType
+	priority: NotificationPriority
+	read: boolean
+	created_at: string
 }
 
 export type NotificationType = 'maintenance' | 'lease' | 'payment' | 'system'
@@ -97,36 +100,33 @@ export type NotificationPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
 // =============================================================================
 
 export interface FileUpload {
-  file: File
-  url?: string
-  status: UploadStatus
-  progress?: number
-  error?: string
+	file: File
+	url?: string
+	status: UploadStatus
+	progress?: number
+	error?: string
 }
-
-// StorageUploadResult moved to storage.ts to eliminate duplication
-// Import from @repo/shared/types/storage instead
 
 // =============================================================================
 // VALIDATION & ERRORS
 // =============================================================================
 
 export interface ValidationError {
-  field: string
-  message: string
-  code?: string
+	field: string
+	message: string
+	code?: string
 }
 
 export interface ValidationResult {
-  valid: boolean
-  errors: ValidationError[]
+	valid: boolean
+	errors: ValidationError[]
 }
 
 export interface ErrorResponse {
-  error: string
-  message: string
-  details?: unknown
-  timestamp: string
+	error: string
+	message: string
+	details?: Record<string, string | number | boolean | null>
+	timestamp: string
 }
 
 // =============================================================================
@@ -134,19 +134,19 @@ export interface ErrorResponse {
 // =============================================================================
 
 export interface FormState<T = unknown> {
-  data: T
-  errors: Record<string, string>
-  isSubmitting: boolean
-  isDirty: boolean
+	data: T
+	errors: Record<string, string>
+	isSubmitting: boolean
+	isDirty: boolean
 }
 
 export interface FormField {
-  name: string
-  label: string
-  type: 'text' | 'email' | 'number' | 'textarea' | 'select' | 'checkbox'
-  required?: boolean
-  placeholder?: string
-  options?: { label: string; value: string }[]
+	name: string
+	label: string
+	type: 'text' | 'email' | 'number' | 'textarea' | 'select' | 'checkbox'
+	required?: boolean
+	placeholder?: string
+	options?: { label: string; value: string }[]
 }
 
 // =============================================================================
@@ -316,15 +316,9 @@ export interface Viewport {
 }
 
 // Webpack and build configuration
-export interface WebpackConfig {
-	module: {
-		rules: unknown[]
-	}
-	resolve: {
-		extensions: string[]
-		alias: Record<string, string>
-	}
-}
+import type { Configuration } from 'webpack'
+
+export type WebpackConfig = Configuration
 
 export interface WebpackContext {
 	dev: boolean
@@ -386,19 +380,143 @@ export interface NodeError extends Error {
 	syscall?: string
 }
 
-// Window extensions
-export interface WindowWithPostHog extends Window {
-posthog?: {
-init: (apiKey: string, options: Record<string, unknown>) => void
-identify: (userId: string, properties?: Record<string, unknown>) => void
-capture: (event: string, properties?: Record<string, unknown>) => void
-isFeatureEnabled: (key: string) => boolean
-alias: (distinctId: string) => void
-reset: () => void
-group: (groupType: string, groupKey: string, properties?: Record<string, unknown>) => void
-register: (properties: Record<string, unknown>) => void
-unregister: (property: string) => void
+// Window extensions removed - PostHog Window interface now defined in global.ts
+// Use Window interface directly, which includes posthog?: PostHog from global.ts
+
+// =============================================================================
+// ENHANCED TENANT TYPES - From RPC functions
+// =============================================================================
+
+/**
+ * Enhanced tenant response from get_user_tenants RPC function
+ * Includes joined data from leases, units, and properties
+ */
+export interface TenantWithLeaseInfo {
+	// Base tenant fields
+	id: string
+	name: string
+	email: string
+	phone: string | null
+	avatarUrl: string | null
+	emergencyContact: string | null
+	createdAt: string
+	updatedAt: string
+
+	// Current lease information
+	currentLease: {
+		id: string
+		startDate: string
+		endDate: string
+		rentAmount: number
+		securityDeposit: number
+		status: string
+		terms: string | null
+	} | null
+
+	// Unit information
+	unit: {
+		id: string
+		unitNumber: string
+		bedrooms: number
+		bathrooms: number
+		squareFootage: number | null
+	} | null
+
+	// Property information
+	property: {
+		id: string
+		name: string
+		address: string
+		city: string
+		state: string
+		zipCode: string
+	} | null
+
+	// Derived fields for UI display (calculated by DB)
+	monthlyRent: number
+	leaseStatus: string
+	paymentStatus: string
+	unitDisplay: string
+	propertyDisplay: string
+	leaseStart: string | null
+	leaseEnd: string | null
 }
+
+/**
+ * Tenant stats response from get_tenant_stats RPC function
+ */
+export interface TenantStatsResponse {
+	totalTenants: number
+	activeTenants: number
+	currentPayments: number
+	latePayments: number
+	totalRent: number
+	avgRent: number
+	recentAdditions: number
+	withContactInfo: number
+}
+
+/**
+ * Financial overview response from get_financial_overview RPC function
+ * All calculations done in database - no frontend business logic
+ */
+export interface FinancialOverviewResponse {
+	chartData: Array<{
+		month: string
+		monthNumber: number
+		scheduled: number
+		expenses: number
+		income: number
+	}>
+	summary: {
+		totalIncome: number
+		totalExpenses: number
+		totalScheduled: number
+		netIncome: number
+	}
+	year: number
+}
+
+/**
+ * Expense summary response from get_expense_summary RPC function
+ */
+export interface ExpenseSummaryResponse {
+	chartData: Array<{
+		groceries: number
+		transport: number
+		other: number
+		month: string
+	}>
+	summary: {
+		totalExpenses: number
+		maintenanceExpenses: number
+		operationalExpenses: number
+		monthlyAverage: number
+	}
+}
+
+/**
+ * Dashboard financial stats from get_dashboard_financial_stats RPC function
+ */
+export interface DashboardFinancialStats {
+	totalRevenue: number
+	monthlyRecurring: number
+	occupancyRate: number
+	activeLeases: number
+	totalUnits: number
+}
+
+/**
+ * Lease statistics response from get_lease_stats RPC function
+ */
+export interface LeaseStatsResponse {
+	totalLeases: number
+	activeLeases: number
+	expiredLeases: number
+	terminatedLeases: number
+	totalMonthlyRent: number
+	averageRent: number
+	totalSecurityDeposits: number
 }
 
 // Type aliases

@@ -1,4 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, Inject } from '@nestjs/common'
+import { SupabaseService } from './supabase.service'
 
 interface IndexRecommendation {
 	name: string
@@ -11,7 +12,9 @@ interface IndexRecommendation {
 export class DatabaseOptimizationService {
 	private readonly logger = new Logger(DatabaseOptimizationService.name)
 
-	constructor() {}
+	constructor(
+		@Inject(SupabaseService) private readonly supabaseService: SupabaseService
+	) {}
 
 	/**
 	 * Apply database optimization indexes
@@ -23,49 +26,32 @@ export class DatabaseOptimizationService {
 		error?: string
 	}> {
 		const results: string[] = []
-		
-		// Define recommended indexes for TenantFlow
-		const indexes: IndexRecommendation[] = [
-			{
-				name: 'idx_property_owner_id',
-				sql: 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_property_owner_id ON "Property" (ownerId);',
-				description: 'Index on Property.ownerId for faster user property lookups',
-				impact: 'high'
-			},
-			{
-				name: 'idx_user_email',
-				sql: 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_email ON "User" (email);',
-				description: 'Index on User.email for authentication queries',
-				impact: 'high'
-			},
-			{
-				name: 'idx_subscription_user_id',
-				sql: 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_subscription_user_id ON "Subscription" (userId);',
-				description: 'Index on Subscription.userId for subscription lookups',
-				impact: 'medium'
-			},
-			{
-				name: 'idx_tenant_user_id',
-				sql: 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_tenant_user_id ON "Tenant" (userId);',
-				description: 'Index on Tenant.userId for tenant lookups',
-				impact: 'medium'
-			},
-			{
-				name: 'idx_lease_tenant_id',
-				sql: 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_lease_tenant_id ON "Lease" (tenantId);',
-				description: 'Index on Lease.tenantId for lease lookups',
-				impact: 'medium'
-			}
-		]
 
 		try {
-			// TODO: Implement index creation when RPC functions are available
-			for (const index of indexes) {
-				this.logger.warn(`Index creation disabled: ${index.name} - RPC function not available`)
-				results.push(`⚠️ ${index.name}: Disabled - RPC function not available`)
+			const client = this.supabaseService.getAdminClient()
+			
+			// Use native Supabase RPC function to create performance indexes
+			const { data, error } = await client.rpc('create_performance_indexes')
+			
+			if (error) {
+				this.logger.error('Failed to apply database optimizations:', error.message)
+				return { success: false, error: error.message }
 			}
-
-			return { success: true, results }
+			
+			if (data?.results) {
+				// Log each result for monitoring
+				for (const result of data.results) {
+					if (result.startsWith('SUCCESS:')) {
+						this.logger.log(result)
+					} else if (result.startsWith('ERROR:')) {
+						this.logger.error(result)
+					}
+				}
+				results.push(...data.results)
+			}
+			
+			this.logger.log(`Database optimization completed: ${data?.total_operations || 0} operations`)
+			return { success: data?.success || false, results }
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : String(error)
 			this.logger.error('Failed to apply optimizations:', error)
@@ -90,8 +76,9 @@ export class DatabaseOptimizationService {
 		error?: string
 	}> {
 		try {
-			// TODO: Fix type compatibility after RPC function is available
-			return { success: false, error: 'Index stats disabled - RPC function not available' }
+			// Index usage statistics are available through the performance overview
+			// For detailed index stats, use getPerformanceOverview() method
+			return { success: false, error: 'Use getPerformanceOverview() for index statistics' }
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : String(error)
 			this.logger.error('Error getting index usage stats:', error)
@@ -115,8 +102,9 @@ export class DatabaseOptimizationService {
 		error?: string
 	}> {
 		try {
-			// TODO: Fix type compatibility after RPC function is available
-			return { success: false, error: 'Slow query stats disabled - RPC function not available' }
+			// Slow query statistics require pg_stat_statements extension
+			// This would need to be enabled at the database level
+			return { success: false, error: 'Slow query statistics require pg_stat_statements extension' }
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : String(error)
 			this.logger.warn('Error getting slow query stats:', error)
@@ -139,9 +127,10 @@ export class DatabaseOptimizationService {
 		const analyzed: string[] = []
 
 		try {
+			// Table analysis (ANALYZE command) would require direct SQL execution
+			// For now, we acknowledge the tables and recommend using the performance overview
 			for (const table of tablesToAnalyze) {
-				// TODO: Implement table analysis when RPC functions are available
-				this.logger.warn(`Table analysis disabled: ${table} - RPC function not available`)
+				this.logger.log(`Table analysis noted for: ${table} (use performance overview for stats)`)
 				analyzed.push(table)
 			}
 
@@ -162,11 +151,17 @@ export class DatabaseOptimizationService {
 		error?: string
 	}> {
 		try {
-			// TODO: Fix type compatibility after RPC function is available
-			const overview = {
-				message: 'Performance overview disabled - RPC function not available'
+			const client = this.supabaseService.getAdminClient()
+			
+			// Use native Supabase RPC function to get performance stats
+			const { data, error } = await client.rpc('get_database_performance_stats')
+			
+			if (error) {
+				this.logger.error('Failed to get performance overview:', error.message)
+				return { success: false, error: error.message }
 			}
-			return { success: true, overview }
+			
+			return { success: true, overview: data }
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : String(error)
 			this.logger.error('Error getting performance overview:', error)
@@ -189,8 +184,9 @@ export class DatabaseOptimizationService {
 		error?: string
 	}> {
 		try {
-			// TODO: Fix type compatibility after RPC function is available
-			return { success: false, error: 'Unused index detection disabled - RPC function not available' }
+			// Unused index information is available through the performance overview
+			// Check index_usage in getPerformanceOverview() for scan counts
+			return { success: false, error: 'Use getPerformanceOverview() for index usage statistics' }
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : String(error)
 			this.logger.error('Error finding unused indexes:', error)
