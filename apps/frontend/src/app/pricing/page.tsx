@@ -1,12 +1,12 @@
 import Navbar from '@/components/navbar';
-import { SaasPricingSection } from '@/components/sections/saas-pricing-section';
+import { StripePricingSection } from '@/components/pricing/stripe-pricing-section';
 
 export default function PricingPage() {
   return (
     <main className="min-h-screen bg-background">
       <Navbar />
       <div className="pt-20">
-        <SaasPricingSection />
+        <StripePricingSection />
         
         {/* FAQ Section */}
         <section className="py-24 bg-muted/20">

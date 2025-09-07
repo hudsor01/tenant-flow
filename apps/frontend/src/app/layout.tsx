@@ -1,6 +1,7 @@
 import '@/app/globals.css'
 import { QueryProvider } from '@/providers/query-provider'
 import { StripeProvider } from '@/providers/stripe-provider'
+import { PaymentStatusNotification } from '@/components/billing/payment-status-notification'
 import type { Metadata } from 'next/types'
 
 export const metadata: Metadata = {
@@ -23,6 +24,7 @@ export default function RootLayout({
 				<QueryProvider>
 					<StripeProvider>
 						{children}
+						<PaymentStatusNotification />
 					</StripeProvider>
 				</QueryProvider>
 			</body>

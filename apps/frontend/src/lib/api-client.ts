@@ -159,3 +159,28 @@ export const leasesApi = {
 	remove: (id: string) =>
 		apiClient<void>(`${API_BASE_URL}/api/v1/leases/${id}`, { method: 'DELETE' })
 }
+
+/**
+ * Stripe/Billing API endpoints
+ */
+export const stripeApi = {
+	createCheckout: (body: {
+		planId: 'STARTER' | 'GROWTH' | 'TENANTFLOW_MAX'
+		interval: 'monthly' | 'annual'
+		successUrl?: string
+		cancelUrl?: string
+	}) =>
+		apiClient<{ sessionId: string; url?: string }>(`${API_BASE_URL}/api/v1/stripe/checkout`, {
+			method: 'POST',
+			body: JSON.stringify(body)
+		}),
+	
+	createPortal: (body: { returnUrl?: string }) =>
+		apiClient<{ url: string }>(`${API_BASE_URL}/api/v1/stripe/portal`, {
+			method: 'POST',
+			body: JSON.stringify(body)
+		}),
+	
+	getSubscription: () =>
+		apiClient<Tables<'Subscription'>>(`${API_BASE_URL}/api/v1/stripe/subscription`)
+}

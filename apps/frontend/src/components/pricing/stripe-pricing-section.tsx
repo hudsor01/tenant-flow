@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from 'react'
-import { useStripe } from '@stripe/react-stripe-js'
 import { Check, Crown, Building, Zap, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -11,7 +10,8 @@ import { BlurFade } from '@/components/magicui/blur-fade'
 import { ShimmerButton } from '@/components/magicui/shimmer-button'
 import { BorderBeam } from '@/components/magicui/border-beam'
 import { cn } from '@/lib/utils'
-import { PLANS, type PlanType } from '@repo/shared'
+import { PLANS } from '@repo/shared'
+import { stripeApi } from '@/lib/api-client'
 
 interface StripePricingSectionProps {
   className?: string
@@ -19,20 +19,6 @@ interface StripePricingSectionProps {
 
 // Enhanced plan configuration with Stripe integration
 const enhancedPlans = [
-  {
-    ...PLANS[0], // FREETRIAL
-    icon: Building,
-    popular: false,
-    enhanced_features: [
-      'Up to 2 properties',
-      'Basic tenant management', 
-      'Rent collection',
-      'Maintenance requests',
-      '5GB storage',
-      'Email support'
-    ],
-    cta: 'Start Free Trial'
-  },
   {
     ...PLANS[1], // STARTER  
     icon: Building,
@@ -46,7 +32,7 @@ const enhancedPlans = [
       'Email & phone support',
       'Financial reporting'
     ],
-    cta: 'Upgrade to Starter'
+    cta: 'Start Free Trial'
   },
   {
     ...PLANS[2], // GROWTH
@@ -62,7 +48,7 @@ const enhancedPlans = [
       'Advanced analytics',
       'API access'
     ],
-    cta: 'Upgrade to Growth'
+    cta: 'Start Free Trial'
   },
   {
     ...PLANS[3], // TENANTFLOW_MAX
@@ -86,47 +72,32 @@ const enhancedPlans = [
 export function StripePricingSection({ className }: StripePricingSectionProps) {
   const [isYearly, setIsYearly] = useState(false)
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null)
-  const stripe = useStripe()
 
-  const handleSubscribe = async (planId: string, priceId: string | null) => {
-    if (!stripe || !priceId || planId === 'FREETRIAL') {
-      // Handle free trial or contact sales
-      if (planId === 'FREETRIAL') {
-        window.location.href = '/auth/register'
-      } else if (planId === 'TENANTFLOW_MAX') {
-        window.location.href = '/contact'
-      }
+  const handleSubscribe = async (planId: string) => {
+    // Handle special cases
+    if (planId === 'TENANTFLOW_MAX') {
+      window.location.href = '/contact'
       return
     }
 
     setLoadingPlan(planId)
     
     try {
-      // Create checkout session via your backend API
-      const response = await fetch('/api/stripe/create-checkout-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          priceId,
-          planId,
-          billingPeriod: isYearly ? 'annual' : 'monthly'
-        })
+      // Create checkout session via backend API
+      const response = await stripeApi.createCheckout({
+        planId: planId as 'STARTER' | 'GROWTH' | 'TENANTFLOW_MAX',
+        interval: isYearly ? 'annual' : 'monthly',
+        successUrl: `${window.location.origin}/dashboard?payment=success`,
+        cancelUrl: `${window.location.origin}/pricing?payment=cancelled`
       })
 
-      const { sessionId } = await response.json()
-      
       // Redirect to Stripe Checkout
-      const { error } = await stripe.redirectToCheckout({
-        sessionId
-      })
-
-      if (error) {
-        console.error('Stripe checkout error:', error)
+      if (response.url) {
+        window.location.href = response.url
       }
     } catch (error) {
       console.error('Subscription error:', error)
+      // TODO: Add toast notification for error
     } finally {
       setLoadingPlan(null)
     }
@@ -135,6 +106,12 @@ export function StripePricingSection({ className }: StripePricingSectionProps) {
   const formatPrice = (price: { monthly: number; annual: number }) => {
     const amount = isYearly ? price.annual : price.monthly
     return Math.floor(amount / 100) // Convert from cents
+  }
+
+  const calculateSavings = (monthly: number, annual: number) => {
+    const monthlyCost = monthly * 12
+    const savings = ((monthlyCost - annual) / monthlyCost * 100)
+    return Math.round(savings)
   }
 
   return (
@@ -189,7 +166,7 @@ export function StripePricingSection({ className }: StripePricingSectionProps) {
                 Yearly
               </span>
               <Badge variant="secondary" className="ms-2 bg-green-500/10 text-green-600 dark:text-green-400">
-                Save 17%
+                Save {calculateSavings(enhancedPlans[0].price!.monthly, enhancedPlans[0].price!.annual)}%
               </Badge>
             </div>
             <p className="text-xs text-muted-foreground">
@@ -199,7 +176,7 @@ export function StripePricingSection({ className }: StripePricingSectionProps) {
         </div>
 
         {/* Pricing Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
           {enhancedPlans.map((plan, index) => (
             <BlurFade key={index} delay={0.1 + index * 0.1} inView>
               <Card className={cn(
@@ -275,7 +252,7 @@ export function StripePricingSection({ className }: StripePricingSectionProps) {
                       background="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
                       className="button-primary button-lg w-full"
                       disabled={loadingPlan === plan.id}
-                      onClick={() => handleSubscribe(plan.id!, isYearly ? null : null)} // Will be set from backend
+                      onClick={() => handleSubscribe(plan.id!)}
                     >
                       {loadingPlan === plan.id && (
                         <Loader2 className="w-4 h-4 me-2 animate-spin" />
@@ -287,7 +264,7 @@ export function StripePricingSection({ className }: StripePricingSectionProps) {
                       variant={plan.id === "TENANTFLOW_MAX" ? "outline" : "default"}
                       className={`w-full ${plan.id === "TENANTFLOW_MAX" ? "button-secondary" : "button-primary"} button-lg`}
                       disabled={loadingPlan === plan.id}
-                      onClick={() => handleSubscribe(plan.id!, isYearly ? null : null)} // Will be set from backend
+                      onClick={() => handleSubscribe(plan.id!)}
                     >
                       {loadingPlan === plan.id && (
                         <Loader2 className="w-4 h-4 me-2 animate-spin" />
