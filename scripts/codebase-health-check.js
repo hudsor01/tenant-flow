@@ -21,7 +21,7 @@ class CodebaseHealthChecker {
   }
 
   async runHealthCheck() {
-    console.log('🔍 Running comprehensive codebase health check...\n');
+    console.log('CHECKING: Running comprehensive codebase health check...\n');
     
     try {
       await this.checkDuplicateCode();
@@ -30,13 +30,13 @@ class CodebaseHealthChecker {
       await this.checkBundleSize();
       await this.generateReport();
     } catch (error) {
-      console.error('❌ Health check failed:', error.message);
+      console.error('ERROR: Health check failed:', error.message);
       process.exit(1);
     }
   }
 
   async checkDuplicateCode() {
-    console.log('📋 Checking for duplicate code...');
+    console.log('Checking for duplicate code...');
     
     try {
       // Use jscpd for duplicate detection
@@ -51,12 +51,12 @@ class CodebaseHealthChecker {
       console.log(`   Found ${this.results.duplicateCode.length} duplicate code blocks`);
     } catch (error) {
       // jscpd not installed or no duplicates found
-      console.log('   ✅ No duplicate code detected (or jscpd not available)');
+      console.log('   SUCCESS: No duplicate code detected (or jscpd not available)');
     }
   }
 
   async checkComplexity() {
-    console.log('🧮 Checking code complexity...');
+    console.log('Checking code complexity...');
     
     const complexFiles = [];
     const sourceFiles = glob.sync('**/*.{ts,tsx,js,jsx}', {
@@ -109,7 +109,7 @@ class CodebaseHealthChecker {
   }
 
   async checkNativeCompliance() {
-    console.log('🏗️ Checking native pattern compliance...');
+    console.log('Checking native pattern compliance...');
     
     const violations = [];
     const antiPatterns = [
@@ -157,7 +157,7 @@ class CodebaseHealthChecker {
   }
 
   async checkBundleSize() {
-    console.log('📦 Checking bundle size...');
+    console.log('PACKAGE: Checking bundle size...');
     
     try {
       // Check if build exists
@@ -165,12 +165,12 @@ class CodebaseHealthChecker {
       if (fs.existsSync(frontendDistPath)) {
         const buildInfo = execSync('ls -la apps/frontend/.next/static/chunks/ | head -10', 
           { encoding: 'utf8' });
-        console.log('   ✅ Build artifacts found');
+        console.log('   SUCCESS: Build artifacts found');
       } else {
-        console.log('   ⚠️ No build artifacts found (run npm run build)');
+        console.log('   WARNING: No build artifacts found (run npm run build)');
       }
     } catch (error) {
-      console.log('   ⚠️ Could not analyze bundle size');
+      console.log('   WARNING: Could not analyze bundle size');
     }
   }
 
@@ -190,63 +190,63 @@ class CodebaseHealthChecker {
   generateReport() {
     this.results.healthScore = this.calculateHealthScore();
     
-    console.log('\n📊 CODEBASE HEALTH REPORT');
+    console.log('\nSTATS: CODEBASE HEALTH REPORT');
     console.log('═'.repeat(50));
     
-    const scoreColor = this.results.healthScore >= 80 ? '🟢' : 
-                       this.results.healthScore >= 60 ? '🟡' : '🔴';
+    const scoreColor = this.results.healthScore >= 80 ? 'EXCELLENT' : 
+                       this.results.healthScore >= 60 ? 'GOOD' : 'NEEDS ATTENTION';
     
     console.log(`${scoreColor} Overall Health Score: ${this.results.healthScore}/100`);
-    console.log(`📁 Total Files Analyzed: ${this.results.totalFiles}`);
+    console.log(`Total Files Analyzed: ${this.results.totalFiles}`);
     
-    console.log('\n🔍 DETAILED FINDINGS:');
+    console.log('\nCHECKING: DETAILED FINDINGS:');
     
     // DRY Violations
     if (this.results.duplicateCode.length > 0) {
-      console.log(`\n❌ DRY Violations: ${this.results.duplicateCode.length}`);
+      console.log(`\nERROR: DRY Violations: ${this.results.duplicateCode.length}`);
       this.results.duplicateCode.slice(0, 5).forEach(dup => {
-        console.log(`   📄 ${dup.firstFile?.name || 'Unknown file'}: ${dup.linesCount || 'N/A'} duplicate lines`);
+        console.log(`   ${dup.firstFile?.name || 'Unknown file'}: ${dup.linesCount || 'N/A'} duplicate lines`);
       });
       if (this.results.duplicateCode.length > 5) {
         console.log(`   ... and ${this.results.duplicateCode.length - 5} more`);
       }
     } else {
-      console.log('\n✅ DRY Compliance: No duplicate code detected');
+      console.log('\nSUCCESS: DRY Compliance: No duplicate code detected');
     }
     
     // KISS Violations
     if (this.results.complexityViolations.length > 0) {
-      console.log(`\n❌ KISS Violations: ${this.results.complexityViolations.length} complex files`);
+      console.log(`\nERROR: KISS Violations: ${this.results.complexityViolations.length} complex files`);
       this.results.complexityViolations.slice(0, 5).forEach(item => {
-        console.log(`   📄 ${item.file}: complexity ${item.complexity}`);
+        console.log(`   ${item.file}: complexity ${item.complexity}`);
       });
     } else {
-      console.log('\n✅ KISS Compliance: No overly complex code detected');
+      console.log('\nSUCCESS: KISS Compliance: No overly complex code detected');
     }
     
     // Native Pattern Violations  
     if (this.results.nativeViolations.length > 0) {
-      console.log(`\n❌ Native Pattern Violations: ${this.results.nativeViolations.length}`);
+      console.log(`\nERROR: Native Pattern Violations: ${this.results.nativeViolations.length}`);
       const groupedViolations = this.results.nativeViolations.reduce((acc, v) => {
         acc[v.severity] = (acc[v.severity] || 0) + 1;
         return acc;
       }, {});
       
       Object.entries(groupedViolations).forEach(([severity, count]) => {
-        const icon = severity === 'high' ? '🔴' : severity === 'medium' ? '🟡' : '🟠';
-        console.log(`   ${icon} ${severity}: ${count} violations`);
+        const riskLevel = severity === 'high' ? 'HIGH RISK' : severity === 'medium' ? 'MEDIUM RISK' : 'LOW RISK';
+        console.log(`   ${riskLevel} ${severity}: ${count} violations`);
       });
     } else {
-      console.log('\n✅ Native Pattern Compliance: All patterns follow platform conventions');
+      console.log('\nSUCCESS: Native Pattern Compliance: All patterns follow platform conventions');
     }
     
     // Recommendations
-    console.log('\n💡 RECOMMENDATIONS:');
+    console.log('\nTIP: RECOMMENDATIONS:');
     
     if (this.results.healthScore >= 80) {
-      console.log('✅ Excellent codebase health! Keep up the good work.');
+      console.log('SUCCESS: Excellent codebase health! Keep up the good work.');
     } else if (this.results.healthScore >= 60) {
-      console.log('⚠️  Good codebase health with room for improvement:');
+      console.log('WARNING:  Good codebase health with room for improvement:');
       if (this.results.duplicateCode.length > 0) {
         console.log('   • Consolidate duplicate code using shared utilities');
       }
@@ -254,7 +254,7 @@ class CodebaseHealthChecker {
         console.log('   • Break down complex functions into smaller pieces');  
       }
     } else {
-      console.log('🔴 Codebase needs attention:');
+      console.log('CRITICAL: Codebase needs attention:');
       console.log('   • Review CLAUDE.md principles for DRY, KISS, Native-Only patterns');
       console.log('   • Consider running automated refactoring tools');
       console.log('   • Implement stricter ESLint rules to prevent future violations');
@@ -263,7 +263,7 @@ class CodebaseHealthChecker {
     // Save report to file
     const reportPath = 'codebase-health-report.json';
     fs.writeFileSync(reportPath, JSON.stringify(this.results, null, 2));
-    console.log(`\n📄 Detailed report saved to: ${reportPath}`);
+    console.log(`\nDetailed report saved to: ${reportPath}`);
   }
 }
 

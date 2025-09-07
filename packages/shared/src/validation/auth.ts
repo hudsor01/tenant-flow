@@ -1,9 +1,9 @@
 /**
  * Authentication validation schemas - MOVED TO GENERATED SCHEMAS
  * 
- * ❌ DEPRECATED: Auth schemas in this shared package have been moved to maintain single source of truth.
+ * ERROR: DEPRECATED: Auth schemas in this shared package have been moved to maintain single source of truth.
  * 
- * 🎯 NEW PATTERN: Authentication schemas are now generated from backend JSON schemas.
+ * TARGET: NEW PATTERN: Authentication schemas are now generated from backend JSON schemas.
  * 
  * USAGE:
  * - Frontend: Import from `apps/frontend/src/lib/validation/generated-auth-schemas.ts`
@@ -29,13 +29,13 @@
  * import { loginSchema } from '../schemas/auth.schemas'
  */
 
-// ❌ All auth schemas removed - use generated schemas instead
+// ERROR: All auth schemas removed - use generated schemas instead
 // This ensures CLAUDE.md DRY compliance and single source of truth
 
 // Re-export common validation utilities that auth schemas might need
 export { emailSchema, requiredString } from './common'
 
-// ⚠️  TEMPORARY: Legacy type aliases for backward compatibility during migration
+// WARNING:  TEMPORARY: Legacy type aliases for backward compatibility during migration
 // These will be removed in a future version
 export type LoginDto = {
   email: string
@@ -72,7 +72,7 @@ export type ChangePasswordDto = {
 }
 
 /**
- * 🚨 IMPORTANT: These schemas have been moved to generated files
+ * IMPORTANT: These schemas have been moved to generated files
  * 
  * This file will be removed in a future version. Update your imports to use:
  * - Frontend: generated-auth-schemas.ts

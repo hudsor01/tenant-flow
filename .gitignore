@@ -131,6 +131,13 @@ secrets.*
 
 # Never allow password/secret/key patterns
 **/*[Pp]assword*
+# Exception for legitimate UI components
+!**/forgot-password-form.tsx
+!**/reset-password-form.tsx
+!**/update-password-form.tsx
+!**/forgot-password/
+!**/reset-password/
+!**/update-password/
 **/*[Ss]ecret*
 **/*[Kk]ey*
 **/*actual[_-]password*

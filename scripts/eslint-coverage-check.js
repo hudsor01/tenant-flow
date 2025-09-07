@@ -21,10 +21,10 @@ const colors = {
 }
 
 const log = {
-	success: msg => console.log(`${colors.green}✓${colors.reset} ${msg}`),
-	error: msg => console.log(`${colors.red}✗${colors.reset} ${msg}`),
-	warning: msg => console.log(`${colors.yellow}⚠${colors.reset} ${msg}`),
-	info: msg => console.log(`${colors.blue}ℹ${colors.reset} ${msg}`),
+	success: msg => console.log(`${colors.green}PASS${colors.reset} ${msg}`),
+	error: msg => console.log(`${colors.red}FAIL${colors.reset} ${msg}`),
+	warning: msg => console.log(`${colors.yellow}WARN${colors.reset} ${msg}`),
+	info: msg => console.log(`${colors.blue}INFO${colors.reset} ${msg}`),
 	section: msg =>
 		console.log(`\n${colors.bold}${colors.blue}${msg}${colors.reset}`),
 	gray: msg => console.log(`${colors.gray}  ${msg}${colors.reset}`)
@@ -226,7 +226,7 @@ class ESLintCoverageChecker {
 	 * Analyze coverage for a workspace
 	 */
 	analyzeWorkspace(workspacePath, name) {
-		log.section(`\n📦 ${name}`)
+		log.section(`\nPACKAGE: ${name}`)
 
 		// Get all directories and files
 		const allDirs = this.getAllDirs(workspacePath, process.cwd())
@@ -314,7 +314,7 @@ class ESLintCoverageChecker {
 	 * Generate coverage report
 	 */
 	generateReport() {
-		log.section('\n📊 COVERAGE SUMMARY')
+		log.section('\nSTATS: COVERAGE SUMMARY')
 		console.log('═'.repeat(50))
 
 		const totalFilesChecked = this.stats.lintedFiles.size
@@ -337,12 +337,12 @@ ${colors.bold}Directory Coverage:${colors.reset}
 `)
 
 		if (this.stats.configErrors.length > 0) {
-			log.section('⚠️ Configuration Errors')
+			log.section('WARNING: Configuration Errors')
 			this.stats.configErrors.forEach(error => log.error(error))
 		}
 
 		if (this.stats.missedFiles.size > 0) {
-			log.section('❌ Missed Files (Top 20)')
+			log.section('ERROR: Missed Files (Top 20)')
 			Array.from(this.stats.missedFiles)
 				.slice(0, 20)
 				.forEach(file => {
@@ -351,7 +351,7 @@ ${colors.bold}Directory Coverage:${colors.reset}
 		}
 
 		// Check specific important directories
-		log.section('🎯 Critical Directory Coverage')
+		log.section('TARGET: Critical Directory Coverage')
 		const criticalDirs = [
 			'apps/frontend/src/app',
 			'apps/frontend/src/components',
@@ -379,7 +379,7 @@ ${colors.bold}Directory Coverage:${colors.reset}
 		})
 
 		// Recommendations
-		log.section('💡 Recommendations')
+		log.section('TIP: Recommendations')
 		if (coveragePercent < 100) {
 			console.log(`
 1. Check if missed files are in .eslintignore or ignore patterns

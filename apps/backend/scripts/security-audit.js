@@ -10,7 +10,7 @@
 const fs = require('fs')
 const path = require('path')
 
-console.log('🔒 Starting comprehensive security audit...\n')
+console.log('SECURITY: Starting comprehensive security audit...\n')
 
 const auditResults = {
 	typesSafety: false,
@@ -21,7 +21,7 @@ const auditResults = {
 }
 
 // 1. Check Type Safety - auth.service.supabase.ts
-console.log('1. 🔍 Checking type safety in auth.service.supabase.ts...')
+console.log('1. CHECKING: Checking type safety in auth.service.supabase.ts...')
 try {
 	const authServicePath = path.join(
 		__dirname,
@@ -38,10 +38,10 @@ try {
 	)
 
 	if (hasProperTypes && hasZodValidation) {
-		console.log('   ✅ Type safety implemented with Zod validation')
+		console.log('   SUCCESS: Type safety implemented with Zod validation')
 		auditResults.typesSafety = true
 	} else {
-		console.log('   ❌ Type safety issues found')
+		console.log('   ERROR: Type safety issues found')
 		if (!hasProperTypes)
 			console.log(
 				'      - normalizeSupabaseUser method needs proper typing'
@@ -49,11 +49,11 @@ try {
 		if (!hasZodValidation) console.log('      - Missing Zod validation')
 	}
 } catch (error) {
-	console.log('   ❌ Could not read auth service file:', error.message)
+	console.log('   ERROR: Could not read auth service file:', error.message)
 }
 
 // 2. Check SQL Injection - multi-tenant-prisma.service.ts
-console.log('\n2. 🛡️  Checking SQL injection protections...')
+console.log('\n2. SECURITY:  Checking SQL injection protections...')
 try {
 	const prismaServicePath = path.join(
 		__dirname,
@@ -68,12 +68,12 @@ try {
 	const hasValidation = prismaServiceContent.includes('validateJWTClaims')
 
 	if (hasParameterizedQueries && noUnsafeQueries && hasValidation) {
-		console.log('   ✅ SQL injection protections in place')
+		console.log('   SUCCESS: SQL injection protections in place')
 		console.log('      - Using $executeRaw with template literals')
 		console.log('      - JWT claims validation implemented')
 		auditResults.sqlInjection = true
 	} else {
-		console.log('   ❌ SQL injection vulnerabilities found')
+		console.log('   ERROR: SQL injection vulnerabilities found')
 		if (!hasParameterizedQueries)
 			console.log('      - Missing parameterized queries')
 		if (!noUnsafeQueries)
@@ -81,11 +81,11 @@ try {
 		if (!hasValidation) console.log('      - Missing JWT claims validation')
 	}
 } catch (error) {
-	console.log('   ❌ Could not read Prisma service file:', error.message)
+	console.log('   ERROR: Could not read Prisma service file:', error.message)
 }
 
 // 3. Check Database Permissions - SQL scripts
-console.log('\n3. 🔐 Checking database permissions...')
+console.log('\n3. SECURITY: Checking database permissions...')
 try {
 	const supabaseDir = path.join(__dirname, '../supabase')
 	const prismaDir = path.join(__dirname, '../prisma')
@@ -139,17 +139,17 @@ try {
 	checkDirectory(prismaDir, 'prisma')
 
 	if (!foundOverlyBroadPermissions) {
-		console.log('   ✅ No overly broad database permissions found')
+		console.log('   SUCCESS: No overly broad database permissions found')
 		auditResults.databasePermissions = true
 	} else {
-		console.log('   ❌ Overly broad database permissions detected')
+		console.log('   ERROR: Overly broad database permissions detected')
 	}
 } catch (error) {
-	console.log('   ❌ Could not check database permissions:', error.message)
+	console.log('   ERROR: Could not check database permissions:', error.message)
 }
 
 // 4. Check Parameterized Query Validation Middleware
-console.log('\n4. 🚧 Checking parameterized query validation middleware...')
+console.log('\n4. MIDDLEWARE: Checking parameterized query validation middleware...')
 try {
 	const middlewarePath = path.join(
 		__dirname,
@@ -176,7 +176,7 @@ try {
 		appModuleImportsMiddleware
 	) {
 		console.log(
-			'   ✅ Parameterized query validation middleware implemented'
+			'   SUCCESS: Parameterized query validation middleware implemented'
 		)
 		console.log('      - Middleware exists')
 		console.log('      - Security module configured')
@@ -184,7 +184,7 @@ try {
 		auditResults.middleware = true
 	} else {
 		console.log(
-			'   ❌ Parameterized query validation middleware incomplete'
+			'   ERROR: Parameterized query validation middleware incomplete'
 		)
 		if (!middlewareExists) console.log('      - Middleware file missing')
 		if (!securityModuleExists)
@@ -194,13 +194,13 @@ try {
 	}
 } catch (error) {
 	console.log(
-		'   ❌ Could not check middleware implementation:',
+		'   ERROR: Could not check middleware implementation:',
 		error.message
 	)
 }
 
 // 5. Check Type Guards and Security Utilities
-console.log('\n5. 🛡️  Checking security type guards...')
+console.log('\n5. SECURITY:  Checking security type guards...')
 try {
 	const typeGuardsPath = path.join(
 		__dirname,
@@ -215,18 +215,18 @@ try {
 	)
 
 	if (hasUserIdValidation && hasJWTValidation && hasSecurityValidation) {
-		console.log('   ✅ Security type guards implemented')
+		console.log('   SUCCESS: Security type guards implemented')
 		auditResults.parameterizedQueries = true
 	} else {
-		console.log('   ❌ Security type guards incomplete')
+		console.log('   ERROR: Security type guards incomplete')
 	}
 } catch (error) {
-	console.log('   ❌ Could not check type guards:', error.message)
+	console.log('   ERROR: Could not check type guards:', error.message)
 }
 
 // Final Results
 console.log('\n' + '='.repeat(60))
-console.log('📊 SECURITY AUDIT RESULTS')
+console.log('STATS: SECURITY AUDIT RESULTS')
 console.log('='.repeat(60))
 
 const issues = [
@@ -248,18 +248,18 @@ const issues = [
 
 let allFixed = true
 issues.forEach(issue => {
-	const status = issue.fixed ? '✅ FIXED' : '❌ NOT FIXED'
+	const status = issue.fixed ? 'SUCCESS: FIXED' : 'ERROR: NOT FIXED'
 	console.log(`${status} - ${issue.name}`)
 	if (!issue.fixed) allFixed = false
 })
 
 console.log('\n' + '='.repeat(60))
 if (allFixed) {
-	console.log('🎉 ALL CRITICAL SECURITY ISSUES HAVE BEEN RESOLVED!')
+	console.log('SUCCESS: ALL CRITICAL SECURITY ISSUES HAVE BEEN RESOLVED!')
 	console.log("   The codebase now meets Claude's security requirements.")
 	process.exit(0)
 } else {
-	console.log('⚠️  SOME CRITICAL SECURITY ISSUES REMAIN UNRESOLVED')
+	console.log('WARNING:  SOME CRITICAL SECURITY ISSUES REMAIN UNRESOLVED')
 	console.log('   Please address the remaining issues before deployment.')
 	process.exit(1)
 }

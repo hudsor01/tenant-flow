@@ -8,10 +8,10 @@
 // Skip in CI environment
 if (process.env.CI || process.env.GITHUB_ACTIONS || process.env.RUNNER_OS) {
 	console.log(
-		'🚧 Running in CI environment - skipping RLS completeness check'
+		'CI: Running in CI environment - skipping RLS completeness check'
 	)
 	console.log(
-		'✅ RLS completeness check skipped in CI (database connection not available)'
+		'SUCCESS: RLS completeness check skipped in CI (database connection not available)'
 	)
 	process.exit(0)
 }

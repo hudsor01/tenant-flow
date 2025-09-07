@@ -7,6 +7,7 @@
 
 import { config } from 'dotenv'
 import { resolve } from 'path'
+import { logger } from '@repo/shared'
 
 // Load environment variables
 config({ path: resolve(process.cwd(), '.env.local') })
@@ -25,7 +26,7 @@ interface HealthCheckResponse {
 }
 
 async function runHealthCheck() {
-	console.log('🔍 Running Supabase Auth Health Check...\n')
+	logger.info('Running Supabase Auth Health Check...\n')
 
 	const baseUrl =
 		process.env.NEXT_PUBLIC_SITE_URL || 'http://api.tenantflow.app'
@@ -48,41 +49,41 @@ async function runHealthCheck() {
 		const data: HealthCheckResponse = await response.json()
 
 		// Display results
-		console.log('='.repeat(60))
-		console.log('AUTH HEALTH CHECK RESULTS')
-		console.log('='.repeat(60))
-		console.log(`Overall Status: ${data.status.toUpperCase()}`)
-		console.log(`Environment: ${data.environment}`)
-		console.log(`Timestamp: ${new Date(data.timestamp).toLocaleString()}`)
-		console.log('\nSystem Checks:')
+		logger.info('='.repeat(60))
+		logger.info('AUTH HEALTH CHECK RESULTS')
+		logger.info('='.repeat(60))
+		logger.info(`Overall Status: ${data.status.toUpperCase()}`)
+		logger.info(`Environment: ${data.environment}`)
+		logger.info(`Timestamp: ${new Date(data.timestamp).toLocaleString()}`)
+		logger.info('\nSystem Checks:')
 
 		Object.entries(data.checks).forEach(([name, isHealthy]) => {
-			const icon = isHealthy ? '✅' : '❌'
+			const icon = isHealthy ? '[OK]' : '[ERROR]'
 			const displayName = name.replace(/([A-Z_])/g, ' $1').trim()
-			console.log(
+			logger.info(
 				`  ${icon} ${displayName}: ${isHealthy ? 'PASS' : 'FAIL'}`
 			)
 		})
 
-		console.log('\n' + '='.repeat(60))
+		logger.info('\n' + '='.repeat(60))
 
 		// Exit with appropriate code
 		if (data.status === 'unhealthy') {
-			console.error(
-				'\n❌ Auth system is unhealthy. Please address the issues above.'
+			logger.error(
+				'\nERROR: Auth system is unhealthy. Please address the issues above.'
 			)
 			process.exit(1)
 		} else {
-			console.log('\n✅ Auth system is healthy!')
+			logger.info('\nSUCCESS: Auth system is healthy!')
 			process.exit(0)
 		}
 	} catch (error) {
-		console.error('❌ Health check failed:', error)
-		console.error('\nMake sure the Next.js development server is running:')
-		console.error('  npm run dev')
+		logger.error('ERROR: Health check failed:', error)
+		logger.error('\nMake sure the Next.js development server is running:')
+		logger.error('  npm run dev')
 		process.exit(1)
 	}
 }
 
 // Run the check
-runHealthCheck().catch(console.error)
+runHealthCheck().catch((error) => logger.error(error))

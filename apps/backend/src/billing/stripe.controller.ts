@@ -1,18 +1,17 @@
-import {
-    Body,
-    Controller,
-    Headers,
-    Post,
-    Get,
-    Req,
-    UsePipes,
-    ValidationPipe,
-    NotFoundException,
-    BadRequestException,
-    InternalServerErrorException,
-    UseGuards
-} from '@nestjs/common'
 import type { RawBodyRequest } from '@nestjs/common'
+import {
+	BadRequestException,
+	Body,
+	Controller,
+	Get,
+	Headers,
+	InternalServerErrorException,
+	NotFoundException,
+	Optional,
+	Post,
+	Req,
+	UseGuards
+} from '@nestjs/common'
 import {
 	ApiBearerAuth,
 	ApiOperation,
@@ -21,20 +20,17 @@ import {
 } from '@nestjs/swagger'
 import type { FastifyRequest } from 'fastify'
 import { PinoLogger } from 'nestjs-pino'
-import { StripeService } from './stripe.service'
-import { StripeWebhookService } from './stripe-webhook.service'
-import { StripePortalService } from './stripe-portal.service'
-import { CurrentUser } from '../shared/decorators/current-user.decorator'
-import { AuthGuard } from '../shared/guards/auth.guard'
-import { Public } from '../shared/decorators/public.decorator'
-import type {
-	CreateCheckoutRequest,
-	CreatePortalRequest,
-	CreateSubscriptionDto
-} from '../schemas/stripe.schemas'
-import { getPriceId } from '@repo/shared'
 import { SupabaseService } from '../database/supabase.service'
-import type { BillingPeriod, PlanType } from '@repo/shared'
+import {
+	createCheckoutSchema,
+	createPortalSchema,
+	type CreateCheckoutRequest,
+	type CreatePortalRequest
+} from '../schemas/stripe.schemas'
+import { CurrentUser } from '../shared/decorators/current-user.decorator'
+import { Public } from '../shared/decorators/public.decorator'
+import { AuthGuard } from '../shared/guards/auth.guard'
+import { StripeSyncService } from './stripe-sync.service'
 
 // Use proper auth type from shared
 import type { AuthUser } from '@repo/shared/types/auth'
@@ -44,188 +40,129 @@ import type { AuthUser } from '@repo/shared/types/auth'
 @Controller('stripe')
 export class StripeController {
 	constructor(
-		private readonly stripeService: StripeService,
-		private readonly stripeWebhookService: StripeWebhookService,
-		private readonly stripePortalService: StripePortalService,
+		private readonly stripeSyncService: StripeSyncService,
 		private readonly supabaseService: SupabaseService,
-		private readonly logger: PinoLogger
+		@Optional() private readonly logger?: PinoLogger
 	) {
-		// PinoLogger context handled automatically via app-level configuration
-  }
+		this.logger?.setContext(StripeController.name)
+	}
 
-  @Get('subscription')
-  @ApiOperation({ summary: 'Get current user subscription' })
-  @ApiResponse({ status: 200, description: 'Returns latest subscription for user' })
-  @ApiResponse({ status: 404, description: 'Subscription not found' })
-  @ApiBearerAuth()
-  async getSubscription(@CurrentUser() user: AuthUser) {
-    this.logger.info(
-      { subscription: { userId: user.id } },
-      `Fetching subscription for user ${user.id}`
-    )
+	@Get('subscription')
+	@ApiOperation({ summary: 'Get current user subscription' })
+	@ApiResponse({
+		status: 200,
+		description: 'Returns latest subscription for user'
+	})
+	@ApiResponse({ status: 404, description: 'Subscription not found' })
+	@ApiBearerAuth()
+	async getSubscription(@CurrentUser() user: AuthUser) {
+		this.logger?.info({ userId: user.id }, 'Getting user subscription')
 
-    const client = this.supabaseService.getAdminClient()
-    const { data: sub, error } = await client
-      .from('Subscription')
-      .select('*')
-      .eq('userId', user.id)
-      .order('updatedAt', { ascending: false })
-      .limit(1)
-      .maybeSingle()
+		// Ultra-native: Direct database query with RLS enforcement
+		const client = this.supabaseService.getAdminClient()
+		const { data: sub, error } = await client
+			.from('Subscription')
+			.select('*')
+			.eq('userId', user.id)
+			.order('updatedAt', { ascending: false })
+			.limit(1)
+			.maybeSingle()
 
-    if (error) {
-      this.logger.error('Failed to fetch subscription', error)
-      throw new InternalServerErrorException('Failed to fetch subscription')
-    }
+		if (error) {
+			this.logger?.error('Failed to fetch subscription', error)
+			throw new InternalServerErrorException('Failed to fetch subscription')
+		}
 
-    if (!sub) {
-      throw new NotFoundException('No subscription found')
-    }
+		if (!sub) {
+			throw new NotFoundException('No subscription found')
+		}
 
-    return sub
-  }
+		return sub
+	}
 
-  @Post('setup-intent')
-  @ApiOperation({ summary: 'Create Setup Intent for adding a payment method' })
-  @ApiResponse({ status: 200, description: 'Returns setup intent client secret' })
-  @ApiBearerAuth()
-  async createSetupIntent(@CurrentUser() user: AuthUser) {
-    this.logger.info(
-      { setupIntent: { userId: user.id } },
-      `Creating setup intent for user ${user.id}`
-    )
+	@Post('setup-intent')
+	@ApiOperation({ summary: 'Create Setup Intent for adding a payment method' })
+	@ApiResponse({
+		status: 200,
+		description: 'Returns setup intent client secret'
+	})
+	@ApiBearerAuth()
+	async createSetupIntent(@CurrentUser() user: AuthUser) {
+		this.logger?.info({ userId: user.id }, 'Creating setup intent')
 
-    // Ensure Stripe customer exists
-    const admin = this.supabaseService.getAdminClient()
-    const { data: existingUser, error: userErr } = await admin
-      .from('User')
-      .select('id, email, stripeCustomerId')
-      .eq('id', user.id)
-      .single()
+		try {
+			// Ultra-native: Direct RPC call
+			const client = this.supabaseService.getAdminClient()
+			const { data, error } = await client.rpc(
+				'create_stripe_setup_intent' as any,
+				{
+					p_user_id: user.id
+				}
+			)
 
-    if (userErr || !existingUser) {
-      throw new NotFoundException('User not found')
-    }
+			if (error) {
+				this.logger?.error('RPC call failed', error)
+				throw new InternalServerErrorException(
+					`Setup intent creation failed: ${error.message}`
+				)
+			}
 
-    let customerId = existingUser.stripeCustomerId || undefined
-
-    if (!customerId) {
-      const customer = await this.stripeService.createCustomer(user.email, user.email)
-      customerId = customer.id
-      await admin
-        .from('User')
-        .update({ stripeCustomerId: customerId })
-        .eq('id', user.id)
-    }
-
-    // Create setup intent
-    const setupIntent = await this.stripeService.client.setupIntents.create({
-      customer: customerId,
-      payment_method_types: ['card'],
-      usage: 'off_session'
-    })
-
-    return {
-      clientSecret: setupIntent.client_secret,
-      setupIntentId: setupIntent.id
-    }
-  }
+			return data
+		} catch (error) {
+			this.logger?.error('Setup intent creation failed', error)
+			throw new InternalServerErrorException('Failed to create setup intent')
+		}
+	}
 
 	@Post('checkout')
 	@ApiOperation({
 		summary: 'Create Stripe checkout session',
-		description:
-			'Creates a secure checkout session for subscription purchase'
+		description: 'Creates a secure checkout session for subscription purchase'
 	})
 	@ApiResponse({
 		status: 200,
-		description: 'Checkout session created successfully',
-		schema: {
-			properties: {
-				url: { type: 'string', description: 'Stripe checkout URL' },
-				sessionId: {
-					type: 'string',
-					description: 'Checkout session ID'
-				}
-			}
-		}
+		description: 'Checkout session created successfully'
 	})
 	@ApiResponse({ status: 400, description: 'Invalid request data' })
-	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@ApiBearerAuth()
-	@UsePipes(
-		new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true })
-	)
 	async createCheckout(
 		@Body() dto: CreateCheckoutRequest,
 		@CurrentUser() user: AuthUser
 	) {
-		this.logger.info(
-			{
-				checkout: {
-					userId: user.id,
-					planId: dto.planId,
-					interval: dto.interval
-				}
-			},
-			`Creating checkout for user ${user.id}, plan: ${dto.planId}`
+		// Ultra-native: Zod validation
+		const validatedDto = createCheckoutSchema.parse(dto)
+
+		this.logger?.info(
+			{ userId: user.id, planId: validatedDto.planId },
+			'Creating checkout session'
 		)
 
 		try {
-			// Get the price ID from our centralized config
-			const priceId = getPriceId(
-				dto.planId as PlanType,
-				dto.interval as BillingPeriod
-			)
-
-			if (!priceId) {
-				throw new BadRequestException(
-					`No price ID found for plan ${dto.planId} with interval ${dto.interval}`
-				)
-			}
-
-			// Use the simplified portal service for checkout creation
-			const result = await this.stripePortalService.createCheckoutSession(
+			// Ultra-native: Direct RPC call
+			const client = this.supabaseService.getAdminClient()
+			const { data, error } = await client.rpc(
+				'create_stripe_checkout_session' as any,
 				{
-					userId: user.id,
-					priceId,
-					successUrl:
-						dto.successUrl ??
-						`${process.env.FRONTEND_URL ?? 'https://tenantflow.app'}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
-					cancelUrl:
-						dto.cancelUrl ??
-						`${process.env.FRONTEND_URL ?? 'https://tenantflow.app'}/pricing`
+					p_user_id: user.id,
+					p_plan_id: validatedDto.planId,
+					p_interval: validatedDto.interval,
+					p_success_url: validatedDto.successUrl,
+					p_cancel_url: validatedDto.cancelUrl
 				}
 			)
 
-			this.logger.info(
-				{
-					checkout: {
-						sessionId: result.sessionId,
-						userId: user.id
-					}
-				},
-				`Checkout session created: ${result.sessionId}`
-			)
+			if (error) {
+				this.logger?.error('RPC call failed', error)
+				throw new InternalServerErrorException(
+					`Checkout creation failed: ${error.message}`
+				)
+			}
 
-			return result
-		} catch (error: unknown) {
-			this.logger.error(
-				{
-					error: {
-						name: error instanceof Error ? error.constructor.name : 'Unknown',
-						message: error instanceof Error ? error.message : String(error),
-						stack: process.env.NODE_ENV !== 'production' && error instanceof Error ? error.stack : undefined
-					},
-					checkout: {
-						userId: user.id,
-						planId: dto.planId
-					}
-				},
-				'Failed to create checkout session'
-			)
+			return data
+		} catch (error) {
+			this.logger?.error('Checkout creation failed', error)
 			throw new InternalServerErrorException(
-				`Failed to create checkout session: ${error instanceof Error ? error.message : String(error)}`
+				'Failed to create checkout session'
 			)
 		}
 	}
@@ -238,315 +175,135 @@ export class StripeController {
 	})
 	@ApiResponse({
 		status: 200,
-		description: 'Portal session created successfully',
-		schema: {
-			properties: {
-				url: { type: 'string', description: 'Customer portal URL' }
-			}
-		}
+		description: 'Portal session created successfully'
 	})
 	@ApiResponse({ status: 400, description: 'Invalid request data' })
-	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@ApiBearerAuth()
-	@UsePipes(
-		new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true })
-	)
 	async createPortal(
 		@Body() dto: CreatePortalRequest,
 		@CurrentUser() user: AuthUser
 	) {
-		this.logger.info(
-			{
-				portal: {
-					userId: user.id,
-					returnUrl: dto.returnUrl
-				}
-			},
-			`Creating portal session for user ${user.id}`
-		)
+		// Ultra-native: Zod validation
+		const validatedDto = createPortalSchema.parse(dto)
+
+		this.logger?.info({ userId: user.id }, 'Creating portal session')
 
 		try {
-			// Use the simplified portal service
-			const result = await this.stripePortalService.createPortalSession({
-				userId: user.id,
-				returnUrl:
-					dto.returnUrl ??
-					`${process.env.FRONTEND_URL ?? 'https://tenantflow.app'}/billing`
-			})
-
-			this.logger.info(
+			// Ultra-native: Direct RPC call
+			const client = this.supabaseService.getAdminClient()
+			const { data, error } = await client.rpc(
+				'create_stripe_portal_session' as any,
 				{
-					portal: {
-						userId: user.id,
-						url: result.url
-					}
-				},
-				`Portal session created for user ${user.id}`
+					p_user_id: user.id,
+					p_return_url: validatedDto.returnUrl
+				}
 			)
 
-			return result
-		} catch (error: unknown) {
-			this.logger.error(
-				{
-					error: {
-						name: error instanceof Error ? error.constructor.name : 'Unknown',
-						message: error instanceof Error ? error.message : String(error),
-						stack: process.env.NODE_ENV !== 'production' && error instanceof Error ? error.stack : undefined
-					},
-					portal: {
-						userId: user.id
-					}
-				},
-				'Failed to create portal session'
-			)
-			throw new InternalServerErrorException(
-				`Failed to create portal session: ${error instanceof Error ? error.message : String(error)}`
-			)
+			if (error) {
+				this.logger?.error('RPC call failed', error)
+				throw new InternalServerErrorException(
+					`Portal creation failed: ${error.message}`
+				)
+			}
+
+			return data
+		} catch (error) {
+			this.logger?.error('Portal creation failed', error)
+			throw new InternalServerErrorException('Failed to create portal session')
 		}
 	}
 
-	@Post('create-subscription')
+	@Post('webhook')
 	@ApiOperation({
-		summary: 'Create subscription with confirmation token',
-		description:
-			"Creates subscription using Stripe's 2025 Confirmation Token pattern for embedded checkout"
+		summary: 'Stripe webhook endpoint',
+		description: 'Handles Stripe webhook events with signature verification'
 	})
-	@ApiResponse({
-		status: 200,
-		description: 'Subscription created successfully',
-		schema: {
-			properties: {
-				subscription: {
-					type: 'object',
-					properties: {
-						id: { type: 'string' },
-						status: { type: 'string' }
-					}
-				},
-				clientSecret: {
-					type: 'string',
-					description:
-						'Payment Intent client secret (if additional action required)'
-				},
-				requiresAction: {
-					type: 'boolean',
-					description:
-						'Whether additional customer action is required'
-				}
-			}
-		}
-	})
-	@ApiResponse({ status: 400, description: 'Invalid request data' })
-	@ApiResponse({ status: 401, description: 'Unauthorized' })
-	@ApiBearerAuth()
-	@UsePipes(
-		new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true })
-	)
-	async createSubscription(
-		@Body() dto: CreateSubscriptionDto,
-		@CurrentUser() user: AuthUser
+	@ApiResponse({ status: 200, description: 'Webhook processed successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid webhook signature' })
+	@Public()
+	async handleWebhook(
+		@Req() req: RawBodyRequest<FastifyRequest>,
+		@Headers('stripe-signature') signature: string
 	) {
-		this.logger.info(
-			{
-				subscription: {
-					userId: user.id,
-					planType: dto.planType,
-					billingInterval: dto.billingInterval,
-					confirmationTokenId: dto.confirmationTokenId
-				}
-			},
-			`Creating subscription for user ${user.id}, plan: ${dto.planType}`
-		)
-
-		try {
-			// Step 1: Get or create Stripe customer
-			const { data: existingUser } = await this.supabaseService
-				.getAdminClient()
-				.from('User')
-				.select('*')
-				.eq('id', user.id)
-				.single()
-
-			if (!existingUser) {
-				throw new NotFoundException('User not found')
-			}
-			let customerId = existingUser.stripeCustomerId
-
-			if (!customerId) {
-				// Create new Stripe customer
-				const customer = await this.stripeService.createCustomer(
-					user.email,
-					user.email
-				)
-				customerId = customer.id
-
-				// Update user with Stripe customer ID
-				await this.supabaseService
-					.getAdminClient()
-					.from('User')
-					.update({ stripeCustomerId: customerId })
-					.eq('id', user.id)
-
-				this.logger.info(
-					{
-						stripeCustomer: {
-							customerId,
-							userId: user.id,
-							email: user.email
-						}
-					},
-					`Created new Stripe customer: ${customerId}`
-				)
-			}
-
-			// Step 2: Get price ID from configuration
-			const priceId = getPriceId(
-				dto.planType as PlanType,
-				dto.billingInterval as BillingPeriod
-			)
-			if (!priceId) {
-				throw new BadRequestException(
-					`No price ID found for plan ${dto.planType} with interval ${dto.billingInterval}`
-				)
-			}
-
-			// Step 3: Create subscription using Confirmation Token
-			if (!customerId) {
-				throw new BadRequestException('Customer ID is required')
-			}
-
-			const subscription =
-				await this.stripeService.createSubscriptionWithConfirmationToken(
-					dto.confirmationTokenId,
-					customerId,
-					priceId,
-					{
-						userId: user.id,
-						planType: dto.planType
-					}
-				)
-
-			this.logger.info(
-				{
-					subscription: {
-						id: subscription.id,
-						status: subscription.status,
-						userId: user.id,
-						planType: dto.planType,
-						customerId
-					}
-				},
-				`Subscription created: ${subscription.id}, status: ${subscription.status}`
-			)
-
-			// Step 4: Check if additional action is required
-			const latestInvoice = subscription.latest_invoice
-			const paymentIntent =
-				typeof latestInvoice === 'object' &&
-				latestInvoice &&
-				'payment_intent' in latestInvoice
-					? latestInvoice.payment_intent
-					: null
-
-			let requiresAction = false
-			let clientSecret: string | undefined
-
-			if (
-				typeof paymentIntent === 'object' &&
-				paymentIntent &&
-				'status' in paymentIntent &&
-				paymentIntent.status === 'requires_action'
-			) {
-				requiresAction = true
-				clientSecret =
-					'client_secret' in paymentIntent
-						? (paymentIntent.client_secret as string) || undefined
-						: undefined
-			}
-
-			return {
-				subscription: {
-					id: subscription.id,
-					status: subscription.status
-				},
-				clientSecret,
-				requiresAction
-			}
-		} catch (error: unknown) {
-			this.logger.error(
-				{
-					error: {
-						name: error instanceof Error ? error.constructor.name : 'Unknown',
-						message: error instanceof Error ? error.message : String(error),
-						stack: process.env.NODE_ENV !== 'production' && error instanceof Error ? error.stack : undefined
-					},
-					subscription: {
-						userId: user.id,
-						planType: dto.planType,
-						confirmationTokenId: dto.confirmationTokenId
-					}
-				},
-				'Failed to create subscription'
-			)
-			throw new InternalServerErrorException(
-				`Failed to create subscription: ${error instanceof Error ? error.message : String(error)}`
-			)
-		}
-	}
-
-  @Post('webhook')
-  @ApiOperation({
-    summary: 'Stripe webhook endpoint',
-    description: 'Handles Stripe webhook events with signature verification'
-  })
-  @ApiResponse({ status: 200, description: 'Webhook processed successfully' })
-  @ApiResponse({ status: 400, description: 'Invalid webhook signature' })
-  @Public()
-  async handleWebhook(
-    @Req() req: RawBodyRequest<FastifyRequest>,
-    @Headers('stripe-signature') signature: string
-  ) {
-		this.logger.info('Received Stripe webhook')
+		const startTime = Date.now()
+		this.logger?.info('Received Stripe webhook')
 
 		try {
 			if (!req.rawBody) {
 				throw new BadRequestException('No raw body found in request')
 			}
 			if (!signature) {
+				throw new BadRequestException('No stripe signature found in headers')
+			}
+
+			// Ultra-native: Direct RPC call for webhook verification
+			const client = this.supabaseService.getAdminClient()
+			const { data: eventData, error } = await client.rpc(
+				'verify_stripe_webhook' as any,
+				{
+					p_payload: req.rawBody.toString(),
+					p_signature: signature
+				}
+			)
+
+			if (error) {
+				this.logger?.error('Webhook verification failed', error)
 				throw new BadRequestException(
-					'No stripe signature found in headers'
+					`Webhook verification failed: ${error.message}`
 				)
 			}
 
-			// Verify the webhook signature
-			const event = await this.stripeService.handleWebhook(
-				req.rawBody,
-				signature
-			)
+			// Parse the verified event
+			const event = eventData as any
 
-			this.logger.info(
+			this.logger?.info(
 				{
-					webhook: {
-						eventType: event.type,
-						eventId: event.id,
-						livemode: event.livemode
-					}
+					eventType: event?.type,
+					eventId: event?.id,
+					livemode: event?.livemode
 				},
-				`Processing webhook event: ${event.type}`
+				`Processing webhook event: ${event?.type}`
 			)
 
-			// Delegate to the simplified webhook service
-			// Return 2xx quickly, actual processing happens async
-			await this.stripeWebhookService.handleWebhook(event)
+			// Process asynchronously to return 200 quickly (Stripe best practice)
+			setImmediate(async () => {
+				const processingStartTime = Date.now()
+
+				try {
+					// Step 1: Auto-sync data using Stripe Sync Engine (Ultra-native)
+					await this.stripeSyncService.processWebhook(req.rawBody!, signature)
+
+					const totalTime = Date.now() - processingStartTime
+					this.logger?.info('Webhook processed successfully', {
+						eventType: event?.type,
+						eventId: event?.id,
+						processingTime: `${totalTime}ms`
+					})
+				} catch (error) {
+					// Log error but don't fail the webhook (already returned 200)
+					this.logger?.error('Async webhook processing failed', {
+						eventType: event?.type,
+						eventId: event?.id,
+						error: error instanceof Error ? error.message : 'Unknown error',
+						processingTime: `${Date.now() - processingStartTime}ms`,
+						stack: error instanceof Error ? error.stack : undefined
+					})
+				}
+			})
+
+			const responseTime = Date.now() - startTime
+			this.logger?.info(`Webhook response sent in ${responseTime}ms`)
 
 			return { received: true }
-		} catch (error: unknown) {
-			this.logger.error(
+		} catch (error) {
+			this.logger?.error(
 				{
 					error: {
-						name: error instanceof Error ? error.constructor.name : 'Unknown',
 						message: error instanceof Error ? error.message : String(error),
-						stack: process.env.NODE_ENV !== 'production' && error instanceof Error ? error.stack : undefined
+						stack:
+							process.env.NODE_ENV !== 'production' && error instanceof Error
+								? error.stack
+								: undefined
 					},
 					webhook: {
 						hasRawBody: !!req.rawBody,
@@ -560,19 +317,4 @@ export class StripeController {
 			)
 		}
 	}
-
-	// NOTE: All webhook event handling has been moved to StripeWebhookService
-	// The previous individual handler methods have been removed as part of the simplification
-	// - handleCheckoutCompleted
-	// - handleSubscriptionChange
-	// - handlePaymentSucceeded
-	// - handlePaymentFailed
-	// These are now handled centrally by StripeWebhookService with trust in Stripe as source of truth
-
-	// NOTE: Embedded checkout can use the regular checkout endpoint
-	// The frontend can handle the difference in UI presentation
-	// Removing this duplicate endpoint as part of simplification
-
-	// NOTE: Checkout session retrieval removed as part of simplification
-	// Success/failure is handled via webhooks, not polling
 }
