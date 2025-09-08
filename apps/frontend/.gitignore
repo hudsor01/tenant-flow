@@ -15,11 +15,9 @@ playwright/.auth/
 
 # Additional frontend build artifacts
 .next/
-storybook-static/
 
 # OS and editor files
 .DS_Store
-*~
 *.swp
 .env
 .env.example

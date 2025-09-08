@@ -179,8 +179,13 @@ export default function TenantsPage() {
 										<div className="flex items-center gap-1 text-sm text-muted-foreground">
 											<Calendar className="size-3" />
 											<span>
-												{new Date(tenant.leaseStart).toLocaleDateString()} -{' '}
-												{new Date(tenant.leaseEnd).toLocaleDateString()}
+												{tenant.leaseStart
+													? new Date(tenant.leaseStart).toLocaleDateString()
+													: '—'}
+												{' - '}
+												{tenant.leaseEnd
+													? new Date(tenant.leaseEnd).toLocaleDateString()
+													: '—'}
 											</span>
 										</div>
 									</TableCell>
@@ -188,16 +193,16 @@ export default function TenantsPage() {
 										<Badge
 											style={{
 												backgroundColor:
-													tenant.status === 'active'
+													(tenant as { status?: string }).status === 'active'
 														? 'var(--chart-1)'
 														: 'var(--chart-5)',
 												color: 'white'
 											}}
 											className="capitalize"
 										>
-											{tenant.status === 'notice_given'
+											{(tenant as { status?: string }).status === 'notice_given'
 												? 'Notice Given'
-												: tenant.status}
+												: ((tenant as { status?: string }).status ?? 'Unknown')}
 										</Badge>
 									</TableCell>
 									<TableCell>

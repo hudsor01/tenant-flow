@@ -178,12 +178,6 @@ apps/*/.next/
 apps/*/dist/
 apps/*/.turbo/
 
-# Storybook
-storybook-static/
-**/storybook-static/
-*storybook.log
-.storybook-out/
-
 # ========================================
 # LOGS & REPORTS
 # ========================================
@@ -298,31 +292,9 @@ docker-compose.secrets.yml
 !docker-compose.example.yml
 .dockerignore.local
 
-# Cloud provider configs
-.aws/
-.gcp/
-.azure/
-terraform.tfvars
-terraform.tfvars.json
-*.auto.tfvars
-*.auto.tfvars.json
-
-# Kubernetes
-kube-config
-*.kubeconfig
-k8s-secrets.yaml
-
 # ========================================
 # PROJECT SPECIFIC
 # ========================================
-# Uploads (user data)
-uploads/
-avatars/
-/uploads/
-/avatars/
-/maintenance-files/
-/property-files/
-/tenant-files/
 /documents/
 temp/
 
