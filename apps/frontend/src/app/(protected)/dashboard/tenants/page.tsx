@@ -1,7 +1,10 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
+import { ChartAreaInteractive } from '@/components/chart-area-interactive'
+import { Loader } from '@/components/magicui/loader'
+import { MetricsCard } from '@/components/metrics-card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
 	Table,
 	TableBody,
@@ -10,16 +13,21 @@ import {
 	TableHeader,
 	TableRow
 } from '@/components/ui/table'
-import { Users, Phone, Mail, Calendar, TrendingUp, CreditCard } from 'lucide-react'
-import { MetricsCard } from '@/components/metrics-card'
 import { useTenants, useTenantStats } from '@/hooks/api/tenants'
-import { Loader } from '@/components/magicui/loader'
 import { formatCurrency } from '@/lib/utils'
+import {
+	Calendar,
+	CreditCard,
+	Mail,
+	Phone,
+	TrendingUp,
+	Users
+} from 'lucide-react'
 
 export default function TenantsPage() {
-	const { data: tenants, isLoading: tenantsLoading, error: tenantsError } = useTenants()
-	const { data: stats, isLoading: statsLoading, error: statsError } = useTenantStats()
-	
+	const { data: tenants, isLoading: tenantsLoading } = useTenants()
+	const { data: stats, isLoading: statsLoading } = useTenantStats()
+
 	// Loading state
 	if (tenantsLoading || statsLoading) {
 		return (
@@ -86,15 +94,25 @@ export default function TenantsPage() {
 			<div className="px-4 lg:px-6">
 				<div className="flex items-center justify-between mb-6">
 					<div>
-						<h1 className="text-3xl font-bold text-gradient-primary mb-2">Tenant Management</h1>
-						<p className="text-muted-foreground">Manage tenant information, leases, and communications</p>
+						<h1 className="text-3xl font-bold text-gradient-primary mb-2">
+							Tenant Management
+						</h1>
+						<p className="text-muted-foreground">
+							Manage tenant information, leases, and communications
+						</p>
 					</div>
-					
-					<Button className="flex items-center gap-2" style={{ backgroundColor: 'var(--chart-2)' }}>
+
+					<Button
+						className="flex items-center gap-2"
+						style={{ backgroundColor: 'var(--chart-2)' }}
+					>
 						<Users className="size-4" />
 						Add Tenant
 					</Button>
 				</div>
+
+				{/* Interactive Chart */}
+				<ChartAreaInteractive className="mb-6" />
 
 				{/* Tenants Table */}
 				<div className="rounded-md border bg-card shadow-sm">
@@ -119,7 +137,10 @@ export default function TenantsPage() {
 										<div className="flex items-center gap-3">
 											<div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
 												<span className="text-xs font-semibold text-primary">
-													{tenant.name.split(' ').map((n: string) => n[0]).join('')}
+													{tenant.name
+														.split(' ')
+														.map((n: string) => n[0])
+														.join('')}
 												</span>
 											</div>
 											<div>
@@ -131,11 +152,15 @@ export default function TenantsPage() {
 										<div className="space-y-1">
 											<div className="flex items-center gap-2 text-sm">
 												<Mail className="size-3 text-muted-foreground" />
-												<span className="text-muted-foreground">{tenant.email}</span>
+												<span className="text-muted-foreground">
+													{tenant.email}
+												</span>
 											</div>
 											<div className="flex items-center gap-2 text-sm">
 												<Phone className="size-3 text-muted-foreground" />
-												<span className="text-muted-foreground">{tenant.phone}</span>
+												<span className="text-muted-foreground">
+													{tenant.phone}
+												</span>
 											</div>
 										</div>
 									</TableCell>
@@ -153,25 +178,36 @@ export default function TenantsPage() {
 									<TableCell>
 										<div className="flex items-center gap-1 text-sm text-muted-foreground">
 											<Calendar className="size-3" />
-											<span>{new Date(tenant.leaseStart).toLocaleDateString()} - {new Date(tenant.leaseEnd).toLocaleDateString()}</span>
+											<span>
+												{new Date(tenant.leaseStart).toLocaleDateString()} -{' '}
+												{new Date(tenant.leaseEnd).toLocaleDateString()}
+											</span>
 										</div>
 									</TableCell>
 									<TableCell>
-										<Badge 
-											style={{ 
-												backgroundColor: tenant.status === 'active' ? 'var(--chart-1)' : 'var(--chart-5)', 
-												color: 'white' 
+										<Badge
+											style={{
+												backgroundColor:
+													tenant.status === 'active'
+														? 'var(--chart-1)'
+														: 'var(--chart-5)',
+												color: 'white'
 											}}
 											className="capitalize"
 										>
-											{tenant.status === 'notice_given' ? 'Notice Given' : tenant.status}
+											{tenant.status === 'notice_given'
+												? 'Notice Given'
+												: tenant.status}
 										</Badge>
 									</TableCell>
 									<TableCell>
-										<Badge 
-											style={{ 
-												backgroundColor: tenant.paymentStatus === 'current' ? 'var(--chart-1)' : 'var(--chart-10)', 
-												color: 'white' 
+										<Badge
+											style={{
+												backgroundColor:
+													tenant.paymentStatus === 'current'
+														? 'var(--chart-1)'
+														: 'var(--chart-10)',
+												color: 'white'
 											}}
 											className="capitalize flex items-center gap-1"
 										>
@@ -181,8 +217,12 @@ export default function TenantsPage() {
 									</TableCell>
 									<TableCell>
 										<div className="flex items-center gap-1">
-											<Button variant="outline" size="sm">Edit</Button>
-											<Button variant="outline" size="sm">View</Button>
+											<Button variant="outline" size="sm">
+												Edit
+											</Button>
+											<Button variant="outline" size="sm">
+												View
+											</Button>
 										</div>
 									</TableCell>
 								</TableRow>

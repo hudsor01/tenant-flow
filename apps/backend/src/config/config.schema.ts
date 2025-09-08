@@ -103,6 +103,14 @@ export class EnvironmentVariables {
 	STRIPE_SYNC_AUTO_EXPAND_LISTS?: boolean = true
 
 	@IsOptional()
+	@Transform(({ value }) => value === 'true')
+	STRIPE_SYNC_BACKFILL_RELATED_ENTITIES?: boolean = true
+
+	@IsOptional()
+	@Transform(({ value }) => parseInt(value, 10))
+	STRIPE_SYNC_MAX_POSTGRES_CONNECTIONS?: number = 10
+
+	@IsOptional()
 	@IsString()
 	STRIPE_PRICE_ID_STARTER?: string
 

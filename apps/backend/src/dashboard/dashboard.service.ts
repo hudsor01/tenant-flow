@@ -1,8 +1,9 @@
-import { Injectable, InternalServerErrorException, Inject, forwardRef } from '@nestjs/common'
+import { Injectable, InternalServerErrorException, Inject, forwardRef, Optional } from '@nestjs/common'
 import { PinoLogger } from 'nestjs-pino'
 import { PropertiesService } from '../properties/properties.service'
 import { TenantsService } from '../tenants/tenants.service'
 import { LeasesService } from '../leases/leases.service'
+import { StripeDataService } from '../billing/stripe-data.service'
 import type { 
 	DashboardStats,
 	PropertyStats,
@@ -11,6 +12,11 @@ import type {
 	LeaseStats,
 	MaintenanceStats
 } from '@repo/shared'
+import type {
+	RevenueAnalytics,
+	ChurnAnalytics,
+	CustomerLifetimeValue
+} from '../billing/stripe-data.service'
 
 // Using shared stats types - NO DUPLICATION
 // Backend-specific raw types for service layer data mapping
@@ -31,12 +37,21 @@ export interface DashboardActivity {
 	}[]
 }
 
+export interface BillingInsights {
+	revenue: RevenueAnalytics[]
+	churn: ChurnAnalytics[]
+	customerLifetimeValue: CustomerLifetimeValue[]
+	mrr: Array<{ month: string; mrr: number; active_subscriptions: number }>
+	subscriptionStatusBreakdown: Record<string, number>
+}
+
 @Injectable()
 export class DashboardService {
 	constructor(
 		@Inject(forwardRef(() => PropertiesService)) private readonly propertiesService: PropertiesService,
 		@Inject(forwardRef(() => TenantsService)) private readonly tenantsService: TenantsService,
-		@Inject(forwardRef(() => LeasesService)) private readonly leasesService: LeasesService
+		@Inject(forwardRef(() => LeasesService)) private readonly leasesService: LeasesService,
+		@Optional() private readonly stripeDataService?: StripeDataService
 		// Temporarily removed logger due to DI issue - using console for now
 	) {
 		// Constructor ready - dependencies properly injected via forwardRef
@@ -200,6 +215,85 @@ export class DashboardService {
 			throw new InternalServerErrorException(
 				'Failed to retrieve dashboard activity'
 			)
+		}
+	}
+
+	/**
+	 * Get comprehensive billing insights using Stripe Sync Engine data
+	 * Phase 5: Advanced SQL analytics for billing insights
+	 */
+	async getBillingInsights(
+		startDate?: Date, 
+		endDate?: Date
+	): Promise<BillingInsights | null> {
+		if (!this.stripeDataService) {
+			console.log('StripeDataService not available - billing insights disabled')
+			return null
+		}
+
+		try {
+			console.log('Fetching billing insights from Stripe Sync Engine data')
+			
+			// Default to last 12 months if no date range provided
+			const defaultEndDate = endDate || new Date()
+			const defaultStartDate = startDate || new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)
+
+			// Execute all analytics queries in parallel for optimal performance
+			const [
+				revenue,
+				churn, 
+				customerLifetimeValue,
+				mrrTrend,
+				subscriptionStatusBreakdown
+			] = await Promise.all([
+				this.stripeDataService.getRevenueAnalytics(defaultStartDate, defaultEndDate),
+				this.stripeDataService.getChurnAnalytics(),
+				this.stripeDataService.getCustomerLifetimeValue(),
+				this.stripeDataService.getMRRTrend(12),
+				this.stripeDataService.getSubscriptionStatusBreakdown()
+			])
+
+			const insights: BillingInsights = {
+				revenue,
+				churn,
+				customerLifetimeValue,
+				mrr: mrrTrend,
+				subscriptionStatusBreakdown
+			}
+
+			console.log('Billing insights retrieved successfully', {
+				revenueDataPoints: revenue.length,
+				churnDataPoints: churn.length,
+				customers: customerLifetimeValue.length,
+				mrrDataPoints: mrrTrend.length,
+				subscriptionStatuses: Object.keys(subscriptionStatusBreakdown).length
+			})
+
+			return insights
+		} catch (error) {
+			console.error('Failed to get billing insights:', {
+				error: error instanceof Error ? error.message : String(error),
+				stack: error instanceof Error ? error.stack : undefined
+			})
+
+			// Return null instead of throwing to allow dashboard to continue without billing data
+			return null
+		}
+	}
+
+	/**
+	 * Check if Stripe data service is available and healthy
+	 */
+	async isBillingInsightsAvailable(): Promise<boolean> {
+		if (!this.stripeDataService) {
+			return false
+		}
+
+		try {
+			return await this.stripeDataService.isHealthy()
+		} catch (error) {
+			console.error('Billing insights health check failed:', error)
+			return false
 		}
 	}
 

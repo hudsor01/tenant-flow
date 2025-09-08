@@ -1,7 +1,9 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
+import { ChartAreaInteractive } from '@/components/chart-area-interactive'
+import { Loader } from '@/components/magicui/loader'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
 	Table,
 	TableBody,
@@ -10,16 +12,13 @@ import {
 	TableHeader,
 	TableRow
 } from '@/components/ui/table'
-import { FileText, Calendar, AlertTriangle, TrendingUp, Clock } from 'lucide-react'
 import { useLeases, useLeaseStats } from '@/hooks/api/leases'
-import { Loader } from '@/components/magicui/loader'
-
-
+import { AlertTriangle, Calendar, Clock, FileText } from 'lucide-react'
 
 export default function LeasesPage() {
 	const { data: leases, isLoading: leasesLoading } = useLeases()
 	const { data: leaseStats, isLoading: statsLoading } = useLeaseStats()
-	
+
 	// Loading state
 	if (leasesLoading || statsLoading) {
 		return (
@@ -28,7 +27,7 @@ export default function LeasesPage() {
 			</div>
 		)
 	}
-	
+
 	// Fallback to empty array/object if no data
 	const leasesData = leases || []
 	const statsData = leaseStats || {
@@ -37,7 +36,7 @@ export default function LeasesPage() {
 		totalMonthlyRent: 0,
 		averageRent: 0
 	}
-	
+
 	// All calculations now done in database - no frontend business logic!
 
 	return (
@@ -46,17 +45,27 @@ export default function LeasesPage() {
 			<div className="grid grid-cols-1 gap-4 px-4 lg:px-6 md:grid-cols-4">
 				<div className="p-4 rounded-lg border bg-card shadow-sm">
 					<div className="flex items-center justify-between mb-2">
-						<h3 className="text-sm font-medium text-muted-foreground">Total Leases</h3>
-						<div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--chart-4)' }} />
+						<h3 className="text-sm font-medium text-muted-foreground">
+							Total Leases
+						</h3>
+						<div
+							className="w-2 h-2 rounded-full"
+							style={{ backgroundColor: 'var(--chart-4)' }}
+						/>
 					</div>
 					<div className="text-2xl font-bold">{statsData.totalLeases}</div>
 					<p className="text-xs text-muted-foreground mt-1">All agreements</p>
 				</div>
-				
+
 				<div className="p-4 rounded-lg border bg-card shadow-sm">
 					<div className="flex items-center justify-between mb-2">
-						<h3 className="text-sm font-medium text-muted-foreground">Active Leases</h3>
-						<div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--chart-1)' }} />
+						<h3 className="text-sm font-medium text-muted-foreground">
+							Active Leases
+						</h3>
+						<div
+							className="w-2 h-2 rounded-full"
+							style={{ backgroundColor: 'var(--chart-1)' }}
+						/>
 					</div>
 					<div className="text-2xl font-bold">{statsData.activeLeases}</div>
 					<div className="text-xs mt-1" style={{ color: 'var(--chart-1)' }}>
@@ -66,10 +75,20 @@ export default function LeasesPage() {
 
 				<div className="p-4 rounded-lg border bg-card shadow-sm">
 					<div className="flex items-center justify-between mb-2">
-						<h3 className="text-sm font-medium text-muted-foreground">Expiring Soon</h3>
-						<div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--chart-5)' }} />
+						<h3 className="text-sm font-medium text-muted-foreground">
+							Expiring Soon
+						</h3>
+						<div
+							className="w-2 h-2 rounded-full"
+							style={{ backgroundColor: 'var(--chart-5)' }}
+						/>
 					</div>
-					<div className="text-2xl font-bold" style={{ color: 'var(--chart-5)' }}>0</div>
+					<div
+						className="text-2xl font-bold"
+						style={{ color: 'var(--chart-5)' }}
+					>
+						0
+					</div>
 					<div className="text-xs mt-1 text-muted-foreground">
 						Within 60 days
 					</div>
@@ -77,11 +96,23 @@ export default function LeasesPage() {
 
 				<div className="p-4 rounded-lg border bg-card shadow-sm">
 					<div className="flex items-center justify-between mb-2">
-						<h3 className="text-sm font-medium text-muted-foreground">Monthly Revenue</h3>
-						<div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--chart-3)' }} />
+						<h3 className="text-sm font-medium text-muted-foreground">
+							Monthly Revenue
+						</h3>
+						<div
+							className="w-2 h-2 rounded-full"
+							style={{ backgroundColor: 'var(--chart-3)' }}
+						/>
 					</div>
-					<div className="text-2xl font-bold" style={{ color: 'var(--chart-3)' }}>
-						{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(statsData.totalMonthlyRent)}
+					<div
+						className="text-2xl font-bold"
+						style={{ color: 'var(--chart-3)' }}
+					>
+						{new Intl.NumberFormat('en-US', {
+							style: 'currency',
+							currency: 'USD',
+							maximumFractionDigits: 0
+						}).format(statsData.totalMonthlyRent)}
 					</div>
 					<div className="text-xs mt-1 text-muted-foreground">
 						From all leases
@@ -93,15 +124,25 @@ export default function LeasesPage() {
 			<div className="px-4 lg:px-6">
 				<div className="flex items-center justify-between mb-6">
 					<div>
-						<h1 className="text-3xl font-bold text-gradient-growth mb-2">Lease Management</h1>
-						<p className="text-muted-foreground">Track lease agreements, renewals, and expirations</p>
+						<h1 className="text-3xl font-bold text-gradient-growth mb-2">
+							Lease Management
+						</h1>
+						<p className="text-muted-foreground">
+							Track lease agreements, renewals, and expirations
+						</p>
 					</div>
-					
-					<Button className="flex items-center gap-2" style={{ backgroundColor: 'var(--chart-9)' }}>
+
+					<Button
+						className="flex items-center gap-2"
+						style={{ backgroundColor: 'var(--chart-9)' }}
+					>
 						<FileText className="size-4" />
 						New Lease
 					</Button>
 				</div>
+
+				{/* Interactive Chart */}
+				<ChartAreaInteractive className="mb-6" />
 
 				{/* Leases Table */}
 				<div className="rounded-md border bg-card shadow-sm">
@@ -113,9 +154,13 @@ export default function LeasesPage() {
 								<TableHead className="font-semibold">Property & Unit</TableHead>
 								<TableHead className="font-semibold">Lease Term</TableHead>
 								<TableHead className="font-semibold">Monthly Rent</TableHead>
-								<TableHead className="font-semibold">Security Deposit</TableHead>
+								<TableHead className="font-semibold">
+									Security Deposit
+								</TableHead>
 								<TableHead className="font-semibold">Status</TableHead>
-								<TableHead className="font-semibold">Days Until Expiry</TableHead>
+								<TableHead className="font-semibold">
+									Days Until Expiry
+								</TableHead>
 								<TableHead className="font-semibold">Actions</TableHead>
 							</TableRow>
 						</TableHeader>
@@ -135,12 +180,16 @@ export default function LeasesPage() {
 													{lease.tenantId ? lease.tenantId.slice(0, 2) : 'N/A'}
 												</span>
 											</div>
-											<span className="font-medium">{lease.tenantId || 'No Tenant'}</span>
+											<span className="font-medium">
+												{lease.tenantId || 'No Tenant'}
+											</span>
 										</div>
 									</TableCell>
 									<TableCell>
 										<div className="space-y-1">
-											<div className="font-medium">{lease.unitId || 'No Unit'}</div>
+											<div className="font-medium">
+												{lease.unitId || 'No Unit'}
+											</div>
 											<Badge variant="outline" className="text-xs">
 												{lease.unitId ? `Unit ${lease.unitId}` : 'No Unit'}
 											</Badge>
@@ -150,38 +199,67 @@ export default function LeasesPage() {
 										<div className="flex items-center gap-1 text-sm">
 											<Calendar className="size-3 text-muted-foreground" />
 											<div className="space-y-1">
-												<div>{lease.startDate ? new Date(lease.startDate).toLocaleDateString() : 'No start date'}</div>
-												<div className="text-muted-foreground">to {lease.endDate ? new Date(lease.endDate).toLocaleDateString() : 'No end date'}</div>
+												<div>
+													{lease.startDate
+														? new Date(lease.startDate).toLocaleDateString()
+														: 'No start date'}
+												</div>
+												<div className="text-muted-foreground">
+													to{' '}
+													{lease.endDate
+														? new Date(lease.endDate).toLocaleDateString()
+														: 'No end date'}
+												</div>
 											</div>
 										</div>
 									</TableCell>
 									<TableCell className="font-medium">
-										{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(lease.rentAmount || 0)}
+										{new Intl.NumberFormat('en-US', {
+											style: 'currency',
+											currency: 'USD'
+										}).format(lease.rentAmount || 0)}
 									</TableCell>
 									<TableCell className="text-muted-foreground">
-										{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(lease.securityDeposit || 0)}
+										{new Intl.NumberFormat('en-US', {
+											style: 'currency',
+											currency: 'USD'
+										}).format(lease.securityDeposit || 0)}
 									</TableCell>
 									<TableCell>
 										{lease.status === 'ACTIVE' && (
-											<Badge style={{ backgroundColor: 'var(--chart-1)', color: 'white' }}>
+											<Badge
+												style={{
+													backgroundColor: 'var(--chart-1)',
+													color: 'white'
+												}}
+											>
 												Active
 											</Badge>
 										)}
 										{lease.status === 'EXPIRED' && (
-											<Badge style={{ backgroundColor: 'var(--chart-5)', color: 'white' }} className="flex items-center gap-1">
+											<Badge
+												style={{
+													backgroundColor: 'var(--chart-5)',
+													color: 'white'
+												}}
+												className="flex items-center gap-1"
+											>
 												<AlertTriangle className="size-3" />
 												Expired
 											</Badge>
 										)}
 										{lease.status === 'TERMINATED' && (
-											<Badge style={{ backgroundColor: 'var(--chart-2)', color: 'white' }}>
+											<Badge
+												style={{
+													backgroundColor: 'var(--chart-2)',
+													color: 'white'
+												}}
+											>
 												Terminated
 											</Badge>
 										)}
 										{!lease.status && (
-											<Badge variant="outline">
-												No Status
-											</Badge>
+											<Badge variant="outline">No Status</Badge>
 										)}
 									</TableCell>
 									<TableCell>
@@ -194,9 +272,15 @@ export default function LeasesPage() {
 									</TableCell>
 									<TableCell>
 										<div className="flex items-center gap-1">
-											<Button variant="outline" size="sm">Edit</Button>
-											<Button variant="outline" size="sm">Renew</Button>
-											<Button variant="outline" size="sm">View</Button>
+											<Button variant="outline" size="sm">
+												Edit
+											</Button>
+											<Button variant="outline" size="sm">
+												Renew
+											</Button>
+											<Button variant="outline" size="sm">
+												View
+											</Button>
 										</div>
 									</TableCell>
 								</TableRow>
@@ -213,12 +297,18 @@ export default function LeasesPage() {
 					</h3>
 					<div className="space-y-2 text-sm">
 						<div className="flex items-center justify-between p-2 rounded bg-orange-50 dark:bg-orange-950/20">
-							<span>Michael Chen's lease expires in 30 days - Contact for renewal</span>
-							<Button size="sm" variant="outline">Contact</Button>
+							<span>
+								Michael Chen's lease expires in 30 days - Contact for renewal
+							</span>
+							<Button size="sm" variant="outline">
+								Contact
+							</Button>
 						</div>
 						<div className="flex items-center justify-between p-2 rounded bg-blue-50 dark:bg-blue-950/20">
 							<span>David Kim has renewal pending - Review and process</span>
-							<Button size="sm" variant="outline">Process</Button>
+							<Button size="sm" variant="outline">
+								Process
+							</Button>
 						</div>
 					</div>
 				</div>

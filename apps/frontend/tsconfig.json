@@ -1,12 +1,12 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
 	"display": "TenantFlow Frontend - Next.js 15 + React 19",
+	
 	"compilerOptions": {
 		"target": "ES2022",
 		"lib": ["ES2022", "DOM", "DOM.Iterable"],
 		"moduleDetection": "force",
-		"module": "ESNext",
-		"moduleResolution": "node",
+
 		"resolveJsonModule": true,
 		"allowJs": true,
 		"checkJs": false,
@@ -18,8 +18,10 @@
 		"incremental": true,
 		"skipLibCheck": true,
 		"skipDefaultLibCheck": true,
-		"jsx": "preserve",
-		"strict": true,
+	"jsx": "preserve",
+	"module": "ESNext",
+	"moduleResolution": "node",
+	"strict": true,
 		"noImplicitAny": true,
 		"strictNullChecks": true,
 		"strictFunctionTypes": true,
@@ -55,8 +57,8 @@
 			"@repo/shared/*": ["../../packages/shared/dist/cjs/*"]
 		},
 		"types": ["node", "react", "react-dom"],
-		"noEmit": true,
-		"allowImportingTsExtensions": false
+	"noEmit": true,
+	"allowImportingTsExtensions": false
 	},
 	"include": [
 		"next-env.d.ts",

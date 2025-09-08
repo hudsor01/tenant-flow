@@ -1,5 +1,4 @@
 import * as React from "react"
-import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
@@ -32,10 +31,20 @@ function Badge({
   ...props
 }: React.ComponentProps<"span"> &
   VariantProps<typeof badgeVariants> & { asChild?: boolean }) {
-  const Comp = asChild ? Slot : "span"
+  // Temporary fix for Turbopack compatibility - simplified asChild implementation
+  if (asChild) {
+    return React.createElement(
+      'div',
+      {
+        className: cn(badgeVariants({ variant }), className),
+        'data-slot': 'badge',
+        ...props
+      }
+    )
+  }
 
   return (
-    <Comp
+    <span
       data-slot="badge"
       className={cn(badgeVariants({ variant }), className)}
       {...props}

@@ -1783,3 +1783,25 @@
     @apply bg-background text-foreground;
 	}
 }
+
+/* Stripe Elements Styling */
+.StripeElement {
+	border-radius: var(--radius-md);
+	border: 1px solid var(--color-input);
+	padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+	background-color: var(--color-background);
+	transition: colors 0.2s ease;
+}
+
+.StripeElement:focus {
+	outline: 2px solid color-mix(in oklab, var(--color-primary) 50%, transparent);
+	border-color: var(--color-primary);
+}
+
+.StripeElement--invalid {
+	border-color: var(--color-destructive);
+}
+
+.StripeElement--webkit-autofill {
+	background-color: var(--color-background) !important;
+}
