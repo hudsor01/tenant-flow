@@ -1,28 +1,36 @@
 'use client'
 
 import { ChartAreaInteractive } from '@/components/chart-area-interactive'
-import { SectionCards } from '@/components/section-cards'
-import { Loader } from '@/components/magicui/loader'
-import { useDashboardStats } from '@/hooks/api/use-dashboard'
-import { useProperties } from '@/hooks/api/properties'
 import { DataTable } from '@/components/data-table'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Loader } from '@/components/magicui/loader'
+import { SectionCards } from '@/components/section-cards'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle
+} from '@/components/ui/card'
+import { useProperties } from '@/hooks/api/properties'
+import { useDashboardStats } from '@/hooks/api/use-dashboard'
 import { QueryErrorResetBoundary } from '@tanstack/react-query'
-import { ErrorBoundary } from 'react-error-boundary'
-import { RefreshCw, AlertTriangle, Wifi, WifiOff } from 'lucide-react'
+import { AlertTriangle, RefreshCw, Wifi, WifiOff } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { ErrorBoundary } from 'react-error-boundary'
 
 // Enhanced error fallback component
-function DashboardErrorFallback({ 
-	error, 
-	resetErrorBoundary 
-}: { 
+function DashboardErrorFallback({
+	error,
+	resetErrorBoundary
+}: {
 	error: Error
-	resetErrorBoundary: () => void 
+	resetErrorBoundary: () => void
 }) {
-	const [isOnline, setIsOnline] = useState(navigator.onlineMode !== false)
+	const [isOnline, setIsOnline] = useState(
+		typeof navigator !== 'undefined' ? navigator.onLine : true
+	)
 
 	useEffect(() => {
 		const handleOnline = () => setIsOnline(true)
@@ -44,7 +52,9 @@ function DashboardErrorFallback({
 					<CardHeader>
 						<div className="flex items-center gap-2">
 							<AlertTriangle className="h-5 w-5 text-destructive" />
-							<CardTitle className="text-destructive">Dashboard Error</CardTitle>
+							<CardTitle className="text-destructive">
+								Dashboard Error
+							</CardTitle>
 						</div>
 						<CardDescription>
 							Something went wrong while loading the dashboard data.
@@ -62,7 +72,8 @@ function DashboardErrorFallback({
 								<WifiOff className="h-4 w-4" />
 								<AlertTitle>Connection Issue</AlertTitle>
 								<AlertDescription>
-									You appear to be offline. Check your internet connection and try again.
+									You appear to be offline. Check your internet connection and
+									try again.
 								</AlertDescription>
 							</Alert>
 						)}
@@ -76,16 +87,16 @@ function DashboardErrorFallback({
 						</div>
 
 						<div className="flex gap-2">
-							<Button 
-								onClick={resetErrorBoundary} 
+							<Button
+								onClick={resetErrorBoundary}
 								className="flex items-center gap-2"
 								variant="default"
 							>
 								<RefreshCw className="h-4 w-4" />
 								Retry Dashboard
 							</Button>
-							<Button 
-								onClick={() => window.location.reload()} 
+							<Button
+								onClick={() => window.location.reload()}
 								variant="outline"
 							>
 								Refresh Page
@@ -99,11 +110,11 @@ function DashboardErrorFallback({
 }
 
 // Enhanced retry component for individual sections
-function RetryableSection({ 
-	error, 
-	onRetry, 
-	title, 
-	children 
+function RetryableSection({
+	error,
+	onRetry,
+	title,
+	children
 }: {
 	error: Error | null
 	onRetry: () => void
@@ -117,9 +128,9 @@ function RetryableSection({
 				<AlertTitle>Failed to load {title}</AlertTitle>
 				<AlertDescription className="flex items-center justify-between">
 					<span>{error.message}</span>
-					<Button 
-						onClick={onRetry} 
-						size="sm" 
+					<Button
+						onClick={onRetry}
+						size="sm"
 						variant="outline"
 						className="ml-2 flex items-center gap-1"
 					>
@@ -135,8 +146,18 @@ function RetryableSection({
 }
 
 function DashboardContent() {
-	const { data: dashboardStats, isLoading, error, refetch } = useDashboardStats()
-	const { data: propertiesData, isLoading: propertiesLoading, error: propertiesError, refetch: refetchProperties } = useProperties()
+	const {
+		data: dashboardStats,
+		isLoading,
+		error,
+		refetch
+	} = useDashboardStats()
+	const {
+		data: propertiesData,
+		isLoading: propertiesLoading,
+		error: propertiesError,
+		refetch: refetchProperties
+	} = useProperties()
 
 	// Loading state (using MagicUI loader)
 	if (isLoading) {
@@ -181,7 +202,7 @@ function DashboardContent() {
 								id: index + 1,
 								header: property.name,
 								type: property.propertyType,
-								status: "Active",
+								status: 'Active',
 								target: `${property.city}, ${property.state}`,
 								limit: property.address,
 								reviewer: property.zipCode
