@@ -34,7 +34,7 @@ type TenantUpdate = TablesUpdate<'Tenant'>
 type UnitInsert = TablesInsert<'Unit'>
 type UnitUpdate = TablesUpdate<'Unit'>
 
-const API_BASE_URL =
+export const API_BASE_URL =
 	process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4600'
 
 /**
