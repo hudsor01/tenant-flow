@@ -47,8 +47,25 @@ export async function POST(request: NextRequest) {
 			subscription = {
 				id: subData.id,
 				status: subData.status,
-				current_period_start: subData.current_period_start,
-				current_period_end: subData.current_period_end,
+				// Normalize period start/end which may be present as nested object or top-level numeric fields
+				current_period_start: (() => {
+					const val =
+						(subData as any).current_period_start ??
+						(subData as any).current_period?.start
+					if (typeof val === 'number') return val
+					if (val && typeof val === 'object' && typeof val.start === 'number')
+						return val.start
+					return null
+				})(),
+				current_period_end: (() => {
+					const val =
+						(subData as any).current_period_end ??
+						(subData as any).current_period?.end
+					if (typeof val === 'number') return val
+					if (val && typeof val === 'object' && typeof val.end === 'number')
+						return val.end
+					return null
+				})(),
 				cancel_at_period_end: subData.cancel_at_period_end,
 				items: subData.items.data.map(item => ({
 					id: item.id,
