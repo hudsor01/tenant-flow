@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import type * as LabelPrimitive from "@radix-ui/react-label"
-import { Slot } from "@radix-ui/react-slot"
 import {
   Controller,
   FormProvider,
@@ -105,11 +104,24 @@ function FormLabel({
   )
 }
 
-function FormControl({ ...props }: React.ComponentProps<typeof Slot>) {
+function FormControl({ children, ...props }: React.ComponentProps<"div"> & { children: React.ReactNode }) {
   const { error, formItemId, formDescriptionId, formMessageId } = useFormField()
 
+  // Temporary fix for Turbopack compatibility - clone children with form props
+  if (React.isValidElement(children)) {
+    return React.cloneElement(children, {
+      ...props,
+      id: formItemId,
+      'aria-describedby': !error
+        ? `${formDescriptionId}`
+        : `${formDescriptionId} ${formMessageId}`,
+      'aria-invalid': !!error,
+      'data-slot': 'form-control'
+    })
+  }
+
   return (
-    <Slot
+    <div
       data-slot="form-control"
       id={formItemId}
       aria-describedby={
@@ -119,7 +131,9 @@ function FormControl({ ...props }: React.ComponentProps<typeof Slot>) {
       }
       aria-invalid={!!error}
       {...props}
-    />
+    >
+      {children}
+    </div>
   )
 }
 
