@@ -1,6 +1,13 @@
 'use client'
 
-import { cn } from '@/lib/utils'
+import { 
+  cn, 
+  buttonClasses,
+  cardClasses,
+  inputClasses,
+  ANIMATION_DURATIONS,
+  TYPOGRAPHY_SCALE
+} from '@/lib/utils'
 import { supabaseClient } from '@repo/shared'
 import { Button } from '@/components/ui/button'
 import {
@@ -12,57 +19,294 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { useMutation } from '@tanstack/react-query'
+import { Lock, Eye, EyeOff, Shield, CheckCircle2, AlertTriangle } from 'lucide-react'
+import { toast } from 'sonner'
 
 export function UpdatePasswordForm({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
   const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [passwordStrength, setPasswordStrength] = useState(0)
   const router = useRouter()
 
-  const handleUpdatePassword = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError(null)
+  // Password strength calculation
+  const calculatePasswordStrength = (pwd: string) => {
+    let strength = 0
+    if (pwd.length >= 8) strength++
+    if (/[A-Z]/.test(pwd)) strength++
+    if (/[a-z]/.test(pwd)) strength++
+    if (/\d/.test(pwd)) strength++
+    if (/[!@#$%^&*(),.?":{}|<>]/.test(pwd)) strength++
+    return strength
+  }
 
-    try {
-      const { error } = await supabaseClient.auth.updateUser({ password })
-      if (error) throw error
-      router.push('/dashboard')
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'An error occurred')
-    } finally {
-      setIsLoading(false)
+  const handlePasswordChange = (value: string) => {
+    setPassword(value)
+    setPasswordStrength(calculatePasswordStrength(value))
+  }
+
+  const getStrengthColor = (strength: number) => {
+    switch (strength) {
+      case 0: case 1: return 'bg-red-500'
+      case 2: return 'bg-orange-500'
+      case 3: return 'bg-yellow-500'
+      case 4: return 'bg-blue-500'
+      case 5: return 'bg-green-500'
+      default: return 'bg-gray-300'
     }
   }
 
+  const getStrengthText = (strength: number) => {
+    switch (strength) {
+      case 0: case 1: return 'Weak'
+      case 2: return 'Fair'
+      case 3: return 'Good'
+      case 4: return 'Strong'
+      case 5: return 'Very Strong'
+      default: return 'Enter password'
+    }
+  }
+
+  // TanStack Query mutation with enhanced feedback
+  const updatePasswordMutation = useMutation({
+    mutationFn: async (password: string) => {
+      if (password !== confirmPassword) {
+        throw new Error('Passwords do not match')
+      }
+      if (passwordStrength < 3) {
+        throw new Error('Password is too weak. Please use a stronger password.')
+      }
+      const { error } = await supabaseClient.auth.updateUser({ password })
+      if (error) throw error
+      return { success: true }
+    },
+    onSuccess: () => {
+      toast.success('Password updated successfully!')
+      setTimeout(() => router.push('/dashboard'), 1500)
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : 'Failed to update password')
+    }
+  })
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    updatePasswordMutation.mutate(password)
+  }
+
   return (
-    <div className={cn('form-container', className)} {...props}>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Reset Your Password</CardTitle>
-          <CardDescription>Please enter your new password below.</CardDescription>
-        </CardHeader>        <CardContent>
-          <form onSubmit={handleUpdatePassword}>
-            <div className="form-grid">
-              <div className="grid gap-2">
-                <Label htmlFor="password">New password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="New password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
+    <div 
+      className={cn('form-container max-w-md mx-auto', className)} 
+      style={{
+        animation: `fadeIn ${ANIMATION_DURATIONS.slow} ease-out`
+      }}
+      {...props}
+    >
+      <Card 
+        className={cn(
+          cardClasses(),
+          'shadow-xl border-2 hover:shadow-2xl'
+        )}
+        style={{
+          transition: `all ${ANIMATION_DURATIONS.default} ease-out`
+        }}
+      >
+        <CardHeader 
+          className="text-center space-y-4"
+          style={{
+            animation: `slideInFromTop ${ANIMATION_DURATIONS.default} ease-out`
+          }}
+        >
+          <div className="mx-auto bg-primary/10 p-3 rounded-full w-fit">
+            <Lock className="w-6 h-6 text-primary" />
+          </div>
+          <div className="space-y-2">
+            <CardTitle 
+              className="font-bold tracking-tight"
+              style={{
+                fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize,
+                lineHeight: TYPOGRAPHY_SCALE['heading-lg'].lineHeight
+              }}
+            >
+              Reset Your Password
+            </CardTitle>
+            <CardDescription className="leading-relaxed">
+              Please enter a strong new password to secure your account.
+            </CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent 
+          className="space-y-6"
+          style={{
+            animation: `slideInFromBottom ${ANIMATION_DURATIONS.default} ease-out`
+          }}
+        >
+          <form onSubmit={handleUpdatePassword} className="space-y-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-sm font-semibold">
+                  New password
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Enter your new password"
+                    required
+                    value={password}
+                    onChange={(e) => handlePasswordChange(e.target.value)}
+                    disabled={updatePasswordMutation.isPending}
+                    className={cn(
+                      inputClasses(),
+                      'pr-10 transition-all'
+                    )}
+                    style={{
+                      transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                    disabled={updatePasswordMutation.isPending}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="w-4 h-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
+                {password && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Password strength:</span>
+                      <span className={cn(
+                        'font-semibold',
+                        passwordStrength < 3 ? 'text-red-600' : passwordStrength < 4 ? 'text-yellow-600' : 'text-green-600'
+                      )}>
+                        {getStrengthText(passwordStrength)}
+                      </span>
+                    </div>
+                    <div className="h-1 bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className={cn('h-full transition-all', getStrengthColor(passwordStrength))}
+                        style={{ 
+                          width: `${(passwordStrength / 5) * 100}%`,
+                          transition: `all ${ANIMATION_DURATIONS.default} ease-out`
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
-              {error && <p className="text-sm text-red-500">{error}</p>}
-              <Button type="submit" className="button w-full" disabled={isLoading}>
-                {isLoading ? 'Saving...' : 'Save new password'}
-              </Button>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword" className="text-sm font-semibold">
+                  Confirm password
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    placeholder="Confirm your new password"
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    disabled={updatePasswordMutation.isPending}
+                    className={cn(
+                      inputClasses(),
+                      'pr-10 transition-all',
+                      confirmPassword && password !== confirmPassword && 'border-red-500 focus:border-red-500'
+                    )}
+                    style={{
+                      transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    disabled={updatePasswordMutation.isPending}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="w-4 h-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="w-4 h-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
+                {confirmPassword && password !== confirmPassword && (
+                  <p className="text-xs text-red-600 flex items-center gap-1">
+                    <AlertTriangle className="w-3 h-3" />
+                    Passwords do not match
+                  </p>
+                )}
+                {confirmPassword && password === confirmPassword && (
+                  <p className="text-xs text-green-600 flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3" />
+                    Passwords match
+                  </p>
+                )}
+              </div>
             </div>
+
+            {updatePasswordMutation.isError && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  {updatePasswordMutation.error instanceof Error 
+                    ? updatePasswordMutation.error.message 
+                    : 'An error occurred while updating your password'}
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <Button 
+              type="submit" 
+              className={cn(
+                buttonClasses('primary', 'lg'),
+                'w-full font-semibold hover:scale-105'
+              )}
+              disabled={
+                updatePasswordMutation.isPending || 
+                !password || 
+                !confirmPassword || 
+                password !== confirmPassword ||
+                passwordStrength < 3
+              }
+              style={{
+                transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
+              }}
+            >
+              {updatePasswordMutation.isPending ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Shield className="w-4 h-4 mr-2" />
+                  Save new password
+                </>
+              )}
+            </Button>
           </form>
+
+          <div className="text-center pt-4 border-t">
+            <p className="text-xs text-muted-foreground">
+              Your password will be encrypted and stored securely
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>

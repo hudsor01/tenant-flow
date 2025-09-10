@@ -1,6 +1,6 @@
-import * as dotenv from 'dotenv'
 import 'reflect-metadata'
-dotenv.config()
+
+// Environment variables are loaded via Doppler when backend is run with 'doppler run --'
 
 import cors from '@fastify/cors'
 import { RequestMethod, ValidationPipe } from '@nestjs/common'

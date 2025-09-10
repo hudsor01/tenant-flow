@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { cn } from '@/lib/utils'
-import { LucideIcon } from 'lucide-react'
+import { cn, cardClasses, SEMANTIC_COLORS, ANIMATION_DURATIONS } from '@/lib/utils'
+import type { LucideIcon } from 'lucide-react'
 import {
   Card,
   CardDescription,
@@ -36,7 +36,7 @@ export const MetricsCard = React.forwardRef<HTMLDivElement, MetricsCardProps>(
     description, 
     status, 
     statusIcon: StatusIcon, 
-    icon: Icon, 
+    icon: _Icon, 
     colorVariant,
     className, 
     ...props 
@@ -47,10 +47,14 @@ export const MetricsCard = React.forwardRef<HTMLDivElement, MetricsCardProps>(
       <Card 
         ref={ref}
         className={cn(
-          "@container/card border-l-4 transform-gpu will-change-transform touch-manipulation transition-transform duration-200 hover:scale-[1.01] active:scale-[0.99]",
+          cardClasses('interactive'),
+          "dashboard-metric-card @container/card border-l-4 transform-gpu will-change-transform touch-manipulation active:scale-[0.99]",
           className
         )}
-        style={{ borderLeftColor: `var(--${chartColor})` }}
+        style={{ 
+          borderLeftColor: `var(--${chartColor})`,
+          transition: `all ${ANIMATION_DURATIONS.default} ease-out`
+        }}
         {...props}
       >
         <CardHeader>

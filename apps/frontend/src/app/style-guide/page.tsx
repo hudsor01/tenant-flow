@@ -24,13 +24,14 @@ import {
 	TrendingUp,
 	Users
 } from 'lucide-react'
+import { PageLayout } from '@/components/layout/page-layout'
 
 export default function StyleGuidePage() {
 	return (
-		<div className="min-h-screen bg-background">
+		<PageLayout>
 			{/* Header */}
-			<div className="border-b bg-card">
-				<div className="container py-6">
+			<div className="border-b bg-card rounded-lg mb-8">
+				<div className="p-6">
 					<h1 className="text-4xl font-bold">
 						Style Guide & Testing Framework
 					</h1>
@@ -41,7 +42,7 @@ export default function StyleGuidePage() {
 				</div>
 			</div>
 
-			<div className="container py-8 space-y-12">
+			<div className="space-y-12">
 				{/* Color System */}
 				<section>
 					<h2 className="text-3xl font-semibold mb-6">Color System</h2>
@@ -470,6 +471,6 @@ export default function StyleGuidePage() {
 					</div>
 				</section>
 			</div>
-		</div>
+		</PageLayout>
 	)
 }

@@ -1,220 +1,247 @@
-import Navbar from '@/components/navbar';
-import { MessageSquare, Mail, Phone } from 'lucide-react';
+import Navbar from '@/components/navbar'
+import { Mail, MessageSquare, Phone } from 'lucide-react'
 
 export default function ContactPage() {
-  return (
-    <main className="min-h-screen bg-background">
-      <Navbar />
-      <div className="pt-20">
-        {/* Hero Section */}
-        <section className="marketing-hero surface-pattern">
-          <div className="container text-center max-w-4xl">
-            <h1 className="text-display text-gradient-premium mb-6">
-              Get in touch with our team
-            </h1>
-            <p className="text-xl text-muted-foreground">
-              Have questions about TenantFlow? We're here to help you find the right solution 
-              for your property management needs.
-            </p>
-          </div>
-        </section>
-        
-        {/* Contact Options */}
-        <section className="py-12">
-          <div className="container max-w-6xl">
-            <div className="grid md:grid-cols-3 gap-8">
-              {[
-                {
-                  icon: MessageSquare,
-                  title: 'Live Chat',
-                  description: 'Get instant answers to your questions',
-                  action: 'Start Chat',
-                  available: 'Available 24/7'
-                },
-                {
-                  icon: Mail,
-                  title: 'Email Support',
-                  description: 'Send us a detailed message',
-                  action: 'Send Email',
-                  available: 'Response within 4 hours'
-                },
-                {
-                  icon: Phone,
-                  title: 'Phone Support',
-                  description: 'Speak directly with our team',
-                  action: 'Schedule Call',
-                  available: 'Mon-Fri, 9AM-6PM PST'
-                }
-              ].map((option, index) => (
-                <div key={index} className="text-center p-8 border rounded-lg hover:shadow-md transition-shadow">
-                  <option.icon className="w-12 h-12 mx-auto mb-4 text-primary" />
-                  <h3 className="text-xl font-semibold mb-3">{option.title}</h3>
-                  <p className="text-muted-foreground mb-4">{option.description}</p>
-                  <button className="button-primary mb-2">
-                    {option.action}
-                  </button>
-                  <p className="text-sm text-muted-foreground">{option.available}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-        
-        {/* Contact Form */}
-        <section className="py-24 bg-muted/20">
-          <div className="container mx-auto px-4 max-w-4xl">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold mb-4">Send us a message</h2>
-              <p className="text-muted-foreground">
-                Fill out the form below and we'll get back to you within 24 hours.
-              </p>
-            </div>
-            
-            <div className="bg-card border rounded-lg p-8">
-              <form className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">First Name</label>
-                    <input
-                      type="text"
-                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                      placeholder="Enter your first name"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Last Name</label>
-                    <input
-                      type="text"
-                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                      placeholder="Enter your last name"
-                    />
-                  </div>
-                </div>
-                
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Email</label>
-                    <input
-                      type="email"
-                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                      placeholder="Enter your email"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Company</label>
-                    <input
-                      type="text"
-                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                      placeholder="Enter your company name"
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-2">How can we help?</label>
-                  <select className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                    <option value="">Select a topic</option>
-                    <option value="sales">Sales Inquiry</option>
-                    <option value="support">Technical Support</option>
-                    <option value="demo">Product Demo</option>
-                    <option value="partnership">Partnership</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-2">Message</label>
-                  <textarea
-                    rows={6}
-                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-                    placeholder="Tell us more about how we can help you..."
-                  ></textarea>
-                </div>
-                
-                <div className="text-center">
-                  <button
-                    type="submit"
-                    className="bg-primary text-primary-foreground px-8 py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors"
-                  >
-                    Send Message
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </section>
-        
-        {/* Office Info */}
-        <section className="py-24">
-          <div className="container mx-auto px-4 max-w-6xl">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold mb-4">Visit our offices</h2>
-              <p className="text-muted-foreground">
-                We have offices around the world. Stop by for a coffee and chat about property management.
-              </p>
-            </div>
-            
-            <div className="grid md:grid-cols-3 gap-8">
-              {[
-                {
-                  city: 'San Francisco',
-                  address: '123 Market Street\nSuite 500\nSan Francisco, CA 94103',
-                  phone: '+1 (555) 123-4567',
-                  email: 'sf@tenantflow.com'
-                },
-                {
-                  city: 'New York',
-                  address: '456 Broadway\nFloor 12\nNew York, NY 10013',
-                  phone: '+1 (555) 987-6543',
-                  email: 'ny@tenantflow.com'
-                },
-                {
-                  city: 'Austin',
-                  address: '789 Congress Ave\nBuilding A\nAustin, TX 78701',
-                  phone: '+1 (555) 456-7890',
-                  email: 'austin@tenantflow.com'
-                }
-              ].map((office, index) => (
-                <div key={index} className="text-center p-6 border rounded-lg">
-                  <h3 className="text-xl font-semibold mb-4">{office.city}</h3>
-                  <div className="space-y-3 text-muted-foreground">
-                    <div>
-                      <p className="font-medium text-foreground mb-1">Address</p>
-                      <p className="whitespace-pre-line text-sm">{office.address}</p>
-                    </div>
-                    <div>
-                      <p className="font-medium text-foreground mb-1">Phone</p>
-                      <p className="text-sm">{office.phone}</p>
-                    </div>
-                    <div>
-                      <p className="font-medium text-foreground mb-1">Email</p>
-                      <p className="text-sm">{office.email}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-        
-        {/* FAQ Quick Links */}
-        <section className="py-16 bg-muted/20">
-          <div className="container mx-auto px-4 max-w-4xl text-center">
-            <h2 className="text-2xl font-bold mb-4">Need quick answers?</h2>
-            <p className="text-muted-foreground mb-8">
-              Check out our frequently asked questions or browse our help center.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="border border-border px-6 py-2 rounded-lg hover:bg-muted/50 transition-colors">
-                View FAQ
-              </button>
-              <button className="border border-border px-6 py-2 rounded-lg hover:bg-muted/50 transition-colors">
-                Help Center
-              </button>
-            </div>
-          </div>
-        </section>
-      </div>
-    </main>
-  );
+	return (
+		<main className="min-h-screen bg-background">
+			<Navbar />
+			<div className="pt-10">
+				{/* Hero Section */}
+				<section className="marketing-hero surface-pattern">
+					<div className="container text-center max-w-4xl">
+						<h1 className="text-display text-gradient-premium mb-6">
+							Get in touch with our team
+						</h1>
+						<p className="text-xl text-muted-foreground">
+							Have questions about TenantFlow? We're here to help you find the
+							right solution for your property management needs.
+						</p>
+					</div>
+				</section>
+
+				{/* Contact Options */}
+				<section className="py-12">
+					<div className="container max-w-6xl">
+						<div className="grid md:grid-cols-3 gap-8">
+							{[
+								{
+									icon: MessageSquare,
+									title: 'Live Chat',
+									description: 'Get instant answers to your questions',
+									action: 'Start Chat',
+									available: 'Available 24/7'
+								},
+								{
+									icon: Mail,
+									title: 'Email Support',
+									description: 'Send us a detailed message',
+									action: 'Send Email',
+									available: 'Response within 4 hours'
+								},
+								{
+									icon: Phone,
+									title: 'Phone Support',
+									description: 'Speak directly with our team',
+									action: 'Schedule Call',
+									available: 'Mon-Fri, 9AM-6PM PST'
+								}
+							].map((option, index) => (
+								<div
+									key={index}
+									className="text-center p-8 border rounded-lg hover:shadow-md transition-shadow"
+								>
+									<option.icon className="w-12 h-12 mx-auto mb-4 text-primary" />
+									<h3 className="text-xl font-semibold mb-3">{option.title}</h3>
+									<p className="text-muted-foreground mb-4">
+										{option.description}
+									</p>
+									<button className="button-primary mb-2">
+										{option.action}
+									</button>
+									<p className="text-sm text-muted-foreground">
+										{option.available}
+									</p>
+								</div>
+							))}
+						</div>
+					</div>
+				</section>
+
+				{/* Contact Form */}
+				<section className="py-24 bg-muted/20">
+					<div className="container mx-auto px-4 max-w-4xl">
+						<div className="text-center mb-12">
+							<h2 className="text-3xl font-bold mb-4">Send us a message</h2>
+							<p className="text-muted-foreground">
+								Fill out the form below and we'll get back to you within 24
+								hours.
+							</p>
+						</div>
+
+						<div className="bg-card border rounded-lg p-8">
+							<form className="space-y-6">
+								<div className="grid md:grid-cols-2 gap-6">
+									<div>
+										<label className="block text-sm font-medium mb-2">
+											First Name
+										</label>
+										<input
+											type="text"
+											className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+											placeholder="Enter your first name"
+										/>
+									</div>
+									<div>
+										<label className="block text-sm font-medium mb-2">
+											Last Name
+										</label>
+										<input
+											type="text"
+											className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+											placeholder="Enter your last name"
+										/>
+									</div>
+								</div>
+
+								<div className="grid md:grid-cols-2 gap-6">
+									<div>
+										<label className="block text-sm font-medium mb-2">
+											Email
+										</label>
+										<input
+											type="email"
+											className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+											placeholder="Enter your email"
+										/>
+									</div>
+									<div>
+										<label className="block text-sm font-medium mb-2">
+											Company
+										</label>
+										<input
+											type="text"
+											className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+											placeholder="Enter your company name"
+										/>
+									</div>
+								</div>
+
+								<div>
+									<label className="block text-sm font-medium mb-2">
+										How can we help?
+									</label>
+									<select className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+										<option value="">Select a topic</option>
+										<option value="sales">Sales Inquiry</option>
+										<option value="support">Technical Support</option>
+										<option value="demo">Product Demo</option>
+										<option value="partnership">Partnership</option>
+										<option value="other">Other</option>
+									</select>
+								</div>
+
+								<div>
+									<label className="block text-sm font-medium mb-2">
+										Message
+									</label>
+									<textarea
+										rows={6}
+										className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+										placeholder="Tell us more about how we can help you..."
+									></textarea>
+								</div>
+
+								<div className="text-center">
+									<button
+										type="submit"
+										className="bg-primary text-primary-foreground px-8 py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors"
+									>
+										Send Message
+									</button>
+								</div>
+							</form>
+						</div>
+					</div>
+				</section>
+
+				{/* Office Info */}
+				<section className="py-24">
+					<div className="container mx-auto px-4 max-w-6xl">
+						<div className="text-center mb-16">
+							<h2 className="text-3xl font-bold mb-4">Visit our offices</h2>
+							<p className="text-muted-foreground">
+								We have offices around the world. Stop by for a coffee and chat
+								about property management.
+							</p>
+						</div>
+
+						<div className="grid md:grid-cols-3 gap-8">
+							{[
+								{
+									city: 'San Francisco',
+									address:
+										'123 Market Street\nSuite 500\nSan Francisco, CA 94103',
+									phone: '+1 (555) 123-4567',
+									email: 'sf@tenantflow.com'
+								},
+								{
+									city: 'New York',
+									address: '456 Broadway\nFloor 12\nNew York, NY 10013',
+									phone: '+1 (555) 987-6543',
+									email: 'ny@tenantflow.com'
+								},
+								{
+									city: 'Austin',
+									address: '789 Congress Ave\nBuilding A\nAustin, TX 78701',
+									phone: '+1 (555) 456-7890',
+									email: 'austin@tenantflow.com'
+								}
+							].map((office, index) => (
+								<div key={index} className="text-center p-6 border rounded-lg">
+									<h3 className="text-xl font-semibold mb-4">{office.city}</h3>
+									<div className="space-y-3 text-muted-foreground">
+										<div>
+											<p className="font-medium text-foreground mb-1">
+												Address
+											</p>
+											<p className="whitespace-pre-line text-sm">
+												{office.address}
+											</p>
+										</div>
+										<div>
+											<p className="font-medium text-foreground mb-1">Phone</p>
+											<p className="text-sm">{office.phone}</p>
+										</div>
+										<div>
+											<p className="font-medium text-foreground mb-1">Email</p>
+											<p className="text-sm">{office.email}</p>
+										</div>
+									</div>
+								</div>
+							))}
+						</div>
+					</div>
+				</section>
+
+				{/* FAQ Quick Links */}
+				<section className="py-16 bg-muted/20">
+					<div className="container mx-auto px-4 max-w-4xl text-center">
+						<h2 className="text-2xl font-bold mb-4">Need quick answers?</h2>
+						<p className="text-muted-foreground mb-8">
+							Check out our frequently asked questions or browse our help
+							center.
+						</p>
+						<div className="flex flex-col sm:flex-row gap-4 justify-center">
+							<button className="border border-border px-6 py-2 rounded-lg hover:bg-muted/50 transition-colors">
+								View FAQ
+							</button>
+							<button className="border border-border px-6 py-2 rounded-lg hover:bg-muted/50 transition-colors">
+								Help Center
+							</button>
+						</div>
+					</div>
+				</section>
+			</div>
+		</main>
+	)
 }

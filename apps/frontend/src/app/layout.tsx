@@ -1,10 +1,7 @@
-import '@/app/globals.css'
-import { Toaster } from '@/components/ui/sonner'
-import { QueryProvider } from '@/providers/query-provider'
-import { StripeProvider } from '@/providers/stripe-provider'
-import { ReactPlugin } from '@21st-extension/react'
-import { TwentyFirstToolbar } from '@21st-extension/toolbar-next'
 import type { Metadata } from 'next/types'
+import '../styles/globals.css'
+import { AuthStoreProvider } from '@/stores/auth-provider'
+import { QueryProvider } from '@/providers/query-provider'
 
 export const metadata: Metadata = {
 	title: 'TenantFlow - Property Management Platform',
@@ -22,12 +19,12 @@ export default function RootLayout({
 			<head>
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
 			</head>
-			<body className="min-h-screen bg-white touch-manipulation overscroll-y-contain">
-				<TwentyFirstToolbar config={{ plugins: [ReactPlugin] }} />
+			<body>
 				<QueryProvider>
-					<StripeProvider>{children}</StripeProvider>
+					<AuthStoreProvider>
+						{children}
+					</AuthStoreProvider>
 				</QueryProvider>
-				<Toaster />
 			</body>
 		</html>
 	)

@@ -2,6 +2,9 @@
 
 Guidance for Claude Code working with this repository.
 
+Read the CLAUDE_SESSION_NOTES.md for the latest in migrations, activities etc
+and overall context before proceeeding with the rest of this file
+
 ## MANDATORY RULES - NO EXCEPTIONS
 
 ### NO EMOJIS RULE
@@ -24,6 +27,148 @@ Guidance for Claude Code working with this repository.
 - **KISS**: Choose simplest solution. Delete code instead of adding when possible
 - **NO ABSTRACTIONS**: Use native platform features directly. No wrappers, factories, or custom layers
 - **PRODUCTION MINDSET**: Security first, platform-native, performance-conscious, reliability-focused
+
+### TYPESCRIPT SHARED TYPES ARCHITECTURE - MANDATORY COMPLIANCE
+
+**ABSOLUTE PROHIBITIONS - ZERO TOLERANCE**
+- **NEVER create new type files** without explicit approval and architectural review
+- **NEVER duplicate type definitions** - search existing types first with `rg -r "TypeName"`
+- **NEVER import from removed paths** - all legacy type paths are forbidden
+- **NEVER use custom utility types** when native TypeScript 5.9.2 equivalents exist
+- **NEVER break the single source of truth** - consolidation is permanent
+
+**MANDATORY TYPE IMPORT PATTERNS**
+
+CORRECT - Single source imports:
+- import type { ApiResponse, DashboardStats, PropertyStats } from '@repo/shared'
+- import type { User, Property, Unit, Tenant } from '@repo/shared'
+- import type { ValidatedUser, AuthUser } from '@repo/shared'
+
+FORBIDDEN - Legacy/removed paths:
+- import type { ApiResponse } from '@repo/shared/types/common' - REMOVED
+- import type { TenantStats } from '@repo/shared/types/stats' - REMOVED  
+- import type { ValidatedUser } from '@repo/shared/types/backend' - REMOVED
+- import type { StorageUploadResult } from '@repo/shared/types/storage' - REMOVED
+
+**CONSOLIDATED TYPE ARCHITECTURE - IMMUTABLE STRUCTURE**
+
+File Structure:
+- core.ts - PRIMARY: All shared types, utilities, patterns
+- index.ts - EXPORT HUB: Single import source
+- domain.ts - CONSOLIDATED: Contact, storage, websocket, theme
+- backend-domain.ts - CONSOLIDATED: Backend context, config, performance
+- auth.ts - AUTH DOMAIN: User management, authentication
+- supabase-generated.ts - SUPABASE: Generated database types
+- frontend.ts - FRONTEND: UI-specific types only
+- Only minimal essential files allowed
+
+**NATIVE TYPESCRIPT 5.9.2 PATTERNS - USE THESE ONLY**
+
+Required Patterns:
+- Native Result Pattern: ApiResponse with success/error discriminated union
+- Native Template Literals: CamelCase string manipulation types  
+- Native Conditional Types: DeepReadonly using recursive conditional logic
+- Native Utility Types: CreateInput using Omit, UpdateInput using Partial
+- Use built-in TypeScript utilities instead of custom implementations
+
+**TYPE LOCATION RULES - STRICT ENFORCEMENT**
+
+1. **Core Types** (`types/core.ts`):
+   - All shared API patterns (ApiResponse, QueryParams, Pagination)
+   - Entity types from Supabase (User, Property, Unit, Tenant, etc.)
+   - Common utilities (DeepReadonly, DeepPartial, Result<T,E>)
+   - Dashboard statistics (DashboardStats, PropertyStats, etc.)
+
+2. **Domain Types** (`types/domain.ts`):
+   - Contact forms, storage uploads, websocket messages
+   - Session management, user management configs
+   - Theme types, webhook event types
+
+3. **Backend Types** (`types/backend-domain.ts`):
+   - ValidatedUser, Context, AuthenticatedContext
+   - Router output interfaces, config types
+   - Performance metrics, health checks
+
+4. **Auth Types** (`types/auth.ts`):
+   - AuthUser, LoginCredentials, RegisterCredentials
+   - JWT payload types, authentication flows
+   - Permission enums, security validation
+
+**MODIFICATION RULES - BREAKING CHANGE PROTOCOL**
+
+**Before Adding ANY Type:**
+1. Search existing: `rg -r "NewTypeName" packages/shared/src/`
+2. Check if native TypeScript utility exists
+3. Verify it belongs in existing consolidated file
+4. Follow naming conventions: `PascalCase` for types, `camelCase` for properties
+
+**Before Modifying Existing Types:**
+1. Run full typecheck: `npm run typecheck`  
+2. Check breaking changes across frontend/backend
+3. Update with backward compatibility when possible
+4. Document migration path if breaking
+
+**PERFORMANCE & DEVELOPER EXPERIENCE ENFORCEMENT**
+
+- **Single Import Rule**: `import type { A, B, C } from '@repo/shared'` - never scatter imports
+- **Build Performance**: Modifications must not increase TypeScript compilation time
+- **IDE Performance**: Types must provide instant intellisense without lag
+- **Zero Circular Dependencies**: Violations break the build immediately
+
+**VALIDATION REQUIREMENTS**
+
+Every type change MUST pass:
+- npm run typecheck - All packages compile
+- npm run build:backend - Backend builds successfully  
+- npm run build:frontend - Frontend builds successfully
+- npm run test:unit - Type-dependent tests pass
+
+**MIGRATION ENFORCEMENT - NO LEGACY SUPPORT**
+
+- **Zero Legacy Compatibility**: Old import paths must fail compilation
+- **Forced Migration**: Developers MUST use new consolidated patterns
+- **Documentation**: All legacy patterns removed from examples/docs
+- **Training**: New developers start with modern patterns only
+
+**SUCCESS METRICS - CONTINUOUS MONITORING**
+
+- **File Count**: Shared types directory capped at ≤20 essential files
+- **Duplication**: Zero tolerance for duplicate type definitions
+- **Build Speed**: TypeScript compilation ≤3 seconds for shared package
+- **Developer Velocity**: New types added to existing files, not new files
+
+**VIOLATION CONSEQUENCES**: Code that violates these rules will be rejected in PR reviews and must be refactored before merge. This architecture is production-tested and performance-optimized - deviations compromise system stability.
+
+**QUICK REFERENCE - COMMON TYPE TASKS**
+
+Search before creating:
+- rg -r "UserProfile|DashboardData|ApiResponse" packages/shared/src/
+
+Add to existing files:
+- Edit packages/shared/src/types/core.ts for new shared types
+- Use consolidated imports from '@repo/shared'
+
+Test immediately:
+- npm run typecheck
+- npm run build:backend
+
+**MIGRATION GUIDE FOR EXISTING CODE**
+
+OLD to NEW Migration Examples:
+
+Before - Scattered imports:
+- import { ApiResponse } from '@repo/shared/types/common'
+- import { TenantStats } from '@repo/shared/types/stats' 
+- import { ValidatedUser } from '@repo/shared/types/backend'
+
+After - Single consolidated import:
+- import type { ApiResponse, TenantStats, ValidatedUser } from '@repo/shared'
+
+Before - Custom utility types:
+- type MyDeepPartial<T> = { [P in keyof T]?: MyDeepPartial<T[P]> }
+
+After - Native TypeScript utilities:
+- import type { DeepPartial } from '@repo/shared'
 
 ### BACKEND RULES (75% code reduction achieved)
 **FORBIDDEN**: Custom DTOs, validation decorators, service layers, repositories, middleware, interceptors, wrappers, helper classes, factories, builders, custom error handlers
@@ -117,7 +262,7 @@ Protected files: `apps/backend/ULTRA_NATIVE_ARCHITECTURE.md`
 
 ## Monorepo
 
-- `apps/`: frontend, backend, storybook
+- `apps/`: frontend, backend
 - `packages/`: shared (build first), emails, tailwind-config, typescript-config
 
 Build dependencies: shared → frontend/backend
@@ -134,6 +279,49 @@ Build dependencies: shared → frontend/backend
 - `apps/frontend/src/lib/query-keys.ts`: TanStack Query cache keys
 - `apps/backend/src/shared/`: Backend utilities
 - `packages/shared/src/types/`: Shared TypeScript types
+
+## Testing Strategy
+
+### MANDATORY TEST COVERAGE
+- **Controllers**: All endpoints with auth, validation, error handling
+- **Services**: All business logic with edge cases and error scenarios  
+- **Critical Paths**: Auth, billing, user management, core business entities
+
+### TEST QUALITY STANDARDS
+- **Edge Cases**: Invalid inputs, missing data, network failures
+- **Security**: Authorization, input validation, data sanitization
+- **Performance**: Concurrent requests, timeout handling
+- **Integration**: Database operations, external service calls
+
+### TEST ORGANIZATION
+- Unit tests: `/src/**/*.spec.ts`
+- Integration tests: `/src/**/*.integration.spec.ts`
+- Use SilentLogger for clean test output
+- Mock external dependencies (Supabase, Stripe, Email)
+
+### TESTING METHODOLOGY
+```typescript
+// Proven pattern for 100% coverage
+describe('validation', () => {
+  it('validates production input patterns', async () => {
+    await expect(controller.method(user, 'invalid-uuid'))
+      .rejects.toThrow('Invalid unit ID')
+  })
+})
+
+it('mirrors production behavior exactly', async () => {
+  // Test actual edge cases, including bugs/quirks
+  service.method.mockResolvedValue(mockData)
+  const result = await controller.method(user, edgeCaseParams)
+  expect(result).toEqual(expectedProductionBehavior)
+})
+```
+
+### CURRENT TESTING STATUS
+- **Controllers**: 5/17 tested (Dashboard/Maintenance have 100% coverage)
+- **Services**: 15/22 tested (Auth, Database, PDF, Business Logic covered)
+- **Critical Missing**: Auth controllers, Stripe controllers (security/financial risk)
+- **Quality**: Excellent infrastructure, proven methodology established
 
 ## Session Notes
 

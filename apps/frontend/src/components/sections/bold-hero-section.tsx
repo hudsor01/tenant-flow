@@ -1,11 +1,17 @@
 "use client"
 
-import { ArrowRight, Zap, Star, Rocket, Target, DollarSign, BarChart3, Clock, TrendingUp, Building2, Circle } from "lucide-react"
+import { ArrowRight, Zap, Star, Rocket, Target, DollarSign, Clock, TrendingUp, Building2, Circle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { BlurFade } from "@/components/magicui/blur-fade"
 import { MagicCard } from "@/components/magicui/magic-card"
-import { cn } from "@/lib/utils"
+import { 
+  cn, 
+  buttonClasses,
+  cardClasses,
+  ANIMATION_DURATIONS,
+  TYPOGRAPHY_SCALE 
+} from "@/lib/utils"
 
 interface BoldHeroSectionProps {
   className?: string

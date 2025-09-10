@@ -5,7 +5,7 @@ import { LeaseGeneratorController } from './lease-generator.controller'
 import { LeasePDFService } from '../pdf/lease-pdf.service'
 import { SupabaseModule } from '../database/supabase.module'
 import { PDFModule } from '../pdf/pdf.module'
-import { CommonModule } from '../shared/common.module'
+import { SharedModule } from '../shared/shared.module'
 
 /**
  * Leases module - Simplified with direct Supabase usage
@@ -15,7 +15,7 @@ import { CommonModule } from '../shared/common.module'
 	imports: [
 		SupabaseModule,
 		PDFModule, // For lease PDF generation
-		CommonModule
+		SharedModule
 	],
 	controllers: [LeasesController, LeaseGeneratorController],
 	providers: [LeasesService, LeasePDFService],

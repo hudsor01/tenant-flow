@@ -11,8 +11,17 @@ import {
 } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { cn, formatCurrency } from '@/lib/utils'
-import { Bot, CreditCard, Figma, Globe, Plus, Smartphone } from 'lucide-react'
+import { 
+  cn, 
+  formatCurrency, 
+  buttonClasses, 
+  cardClasses, 
+  ANIMATION_DURATIONS, 
+  SEMANTIC_COLORS,
+  TYPOGRAPHY_SCALE 
+} from '@/lib/utils'
+import { Bot, CreditCard, Figma, Globe, Plus, Smartphone, Eye, EyeOff, Copy, Check } from 'lucide-react'
+import { useState } from 'react'
 
 function ChipSVG() {
 	return (
@@ -123,116 +132,288 @@ const recentPayments = [
 ]
 
 export function AccountOverview() {
+	const [showCardDetails, setShowCardDetails] = useState(false)
+	const [copied, setCopied] = useState(false)
+
+	const handleCopyCardNumber = () => {
+		navigator.clipboard.writeText('1234 5678 9012 5416')
+		setCopied(true)
+		setTimeout(() => setCopied(false), 2000)
+	}
+
 	return (
-		<Card className="shadow-xs transition-shadow hover:shadow-md">
-			<CardHeader className="items-center">
-				<CardTitle className="tracking-tight">My Cards</CardTitle>
-				<CardDescription className="leading-relaxed">
-					Your card summary, balance, and recent transactions in one view.
-				</CardDescription>
+		<Card 
+			className={cn(
+				cardClasses(),
+				'shadow-lg border-2 hover:shadow-2xl'
+			)}
+			style={{ 
+				animation: `fadeIn ${ANIMATION_DURATIONS.slow} ease-out`,
+				transition: `all ${ANIMATION_DURATIONS.default} ease-out`,
+			}}
+		>
+			<CardHeader 
+				className="items-center space-y-4"
+				style={{ 
+					animation: `slideInFromTop ${ANIMATION_DURATIONS.default} ease-out`,
+				}}
+			>
+				<div className="space-y-3 text-center">
+					<CardTitle 
+						className="tracking-tight font-bold"
+						style={{
+							fontSize: TYPOGRAPHY_SCALE['heading-xl'].fontSize,
+							lineHeight: TYPOGRAPHY_SCALE['heading-xl'].lineHeight,
+							fontWeight: TYPOGRAPHY_SCALE['heading-xl'].fontWeight
+						}}
+					>
+						My Cards
+					</CardTitle>
+					<CardDescription className="leading-relaxed text-base max-w-md">
+						Your card summary, balance, and recent transactions in one secure view.
+					</CardDescription>
+				</div>
 				<CardAction>
-					<Button size="icon" variant="outline">
+					<Button 
+						size="icon" 
+						variant="outline"
+						className={cn(
+							buttonClasses('outline', 'sm'),
+							'hover:scale-110'
+						)}
+						style={{
+							transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
+						}}
+					>
 						<Plus className="size-4" />
 					</Button>
 				</CardAction>
 			</CardHeader>
-			<CardContent>
-				<Tabs className="gap-4" defaultValue="virtual">
-					<TabsList className="w-full">
-						<TabsTrigger value="virtual">Virtual</TabsTrigger>
-						<TabsTrigger value="physical" disabled>
-							Physical
+			<CardContent 
+				className="p-6"
+				style={{ 
+					animation: `slideInFromBottom ${ANIMATION_DURATIONS.default} ease-out`,
+				}}
+			>
+				<Tabs className="gap-6 space-y-6" defaultValue="virtual">
+					<TabsList 
+						className="w-full h-12"
+						style={{
+							transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
+						}}
+					>
+						<TabsTrigger 
+							value="virtual" 
+							className="flex-1 h-10 text-sm font-medium transition-all"
+							style={{
+								transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
+							}}
+						>
+							Virtual Card
+						</TabsTrigger>
+						<TabsTrigger 
+							value="physical" 
+							disabled
+							className="flex-1 h-10 text-sm font-medium transition-all opacity-50"
+							style={{
+								transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
+							}}
+						>
+							Physical Card
 						</TabsTrigger>
 					</TabsList>
-					<TabsContent value="virtual">
-						<div className="space-y-4">
-							<div className="bg-primary relative aspect-8/5 w-full max-w-96 overflow-hidden rounded-xl perspective-distant">
+					<TabsContent 
+						value="virtual"
+						style={{ 
+							animation: `slideInFromLeft ${ANIMATION_DURATIONS.default} ease-out`,
+						}}
+					>
+						<div className="space-y-6">
+							<div 
+								className="bg-gradient-to-br from-primary via-primary to-primary/80 relative aspect-8/5 w-full max-w-96 mx-auto overflow-hidden rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105 cursor-pointer group"
+								style={{
+									transition: `all ${ANIMATION_DURATIONS.slow} ease-out`,
+									background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)) 50%, hsl(var(--primary)/0.9) 100%)',
+								}}
+							>
+								<div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
 								<div className="absolute top-6 left-6">
-									<Smartphone className="text-primary-foreground size-8" />
+									<Smartphone className="text-primary-foreground size-8 group-hover:scale-110 transition-transform" />
+								</div>
+								<div className="absolute top-6 right-6">
+									<div className="text-primary-foreground/80 text-xs font-medium tracking-wider">
+										VIRTUAL
+									</div>
 								</div>
 								<div className="absolute top-1/2 w-full -translate-y-1/2">
 									<div className="flex items-end justify-between px-6">
-										<span className="text-accent font-mono text-lg leading-none font-medium tracking-wide uppercase">
-											Arham Khan
+										<span className="text-primary-foreground font-mono text-xl leading-none font-bold tracking-wider">
+											JOHN DOE
 										</span>
-										<ChipSVG />
+										<div className="group-hover:scale-110 transition-transform">
+											<ChipSVG />
+										</div>
+									</div>
+								</div>
+								<div className="absolute bottom-6 left-6 right-6">
+									<div className="flex items-center justify-between">
+										<span className="text-primary-foreground/90 font-mono text-sm tracking-widest">
+											•••• •••• •••• 5416
+										</span>
+										<span className="text-primary-foreground/90 font-mono text-sm">
+											06/29
+										</span>
 									</div>
 								</div>
 							</div>
 
-							<div className="space-y-2 text-sm">
+							<div 
+								className="space-y-4 p-4 bg-muted/30 rounded-xl border"
+								style={{ 
+									animation: `slideInFromRight ${ANIMATION_DURATIONS.default} ease-out`,
+								}}
+							>
 								<div className="flex items-center justify-between">
-									<span className="text-muted-foreground">Card Number</span>
-									<span className="font-medium tabular-nums">
-										•••• •••• 5416
-									</span>
+									<span className="text-muted-foreground font-medium">Card Number</span>
+									<div className="flex items-center gap-2">
+										<span className="font-semibold tabular-nums">
+											{showCardDetails ? '1234 5678 9012 5416' : '•••• •••• •••• 5416'}
+										</span>
+										<Button
+											variant="ghost"
+											size="sm"
+											onClick={() => setShowCardDetails(!showCardDetails)}
+											className="p-1 h-6 w-6 hover:bg-muted"
+											style={{
+												transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
+											}}
+										>
+											{showCardDetails ? <EyeOff className="size-3" /> : <Eye className="size-3" />}
+										</Button>
+										<Button
+											variant="ghost"
+											size="sm"
+											onClick={handleCopyCardNumber}
+											className="p-1 h-6 w-6 hover:bg-muted"
+											style={{
+												transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
+											}}
+										>
+											{copied ? <Check className="size-3 text-green-600" /> : <Copy className="size-3" />}
+										</Button>
+									</div>
 								</div>
 								<div className="flex items-center justify-between">
-									<span className="text-muted-foreground">Expiry Date</span>
-									<span className="font-medium tabular-nums">06/09</span>
+									<span className="text-muted-foreground font-medium">Expiry Date</span>
+									<span className="font-semibold tabular-nums">06/29</span>
 								</div>
 								<div className="flex items-center justify-between">
-									<span className="text-muted-foreground">CVC</span>
-									<span className="font-medium">•••</span>
+									<span className="text-muted-foreground font-medium">CVC</span>
+									<span className="font-semibold">{showCardDetails ? '123' : '•••'}</span>
+								</div>
+								<Separator />
+								<div className="flex items-center justify-between">
+									<span className="text-muted-foreground font-medium">Spending Limit</span>
+									<span className="font-bold tabular-nums text-lg">$62,000.00</span>
 								</div>
 								<div className="flex items-center justify-between">
-									<span className="text-muted-foreground">Spending Limit</span>
-									<span className="font-medium tabular-nums">$62,000.00</span>
-								</div>
-								<div className="flex items-center justify-between">
-									<span className="text-muted-foreground">
-										Available Balance
-									</span>
-									<span className="font-medium tabular-nums">$13,100.06</span>
+									<span className="text-muted-foreground font-medium">Available Balance</span>
+									<span className="font-bold tabular-nums text-xl text-green-600">$13,100.06</span>
 								</div>
 							</div>
 
-							<div className="flex gap-2">
-								<Button className="flex-1 transition-colors" variant="outline" size="sm">
+							<div 
+								className="flex gap-3"
+								style={{ 
+									animation: `slideInFromBottom ${ANIMATION_DURATIONS.default} ease-out`,
+								}}
+							>
+								<Button 
+									className={cn(
+										buttonClasses('outline', 'sm'),
+										'flex-1 h-10 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700'
+									)}
+									style={{
+										transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
+									}}
+								>
 									Freeze Card
 								</Button>
-								<Button className="flex-1 transition-colors" variant="outline" size="sm">
+								<Button 
+									className={cn(
+										buttonClasses('outline', 'sm'),
+										'flex-1 h-10 hover:bg-green-50 hover:border-green-200 hover:text-green-700'
+									)}
+									style={{
+										transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
+									}}
+								>
 									Set Limit
 								</Button>
-								<Button className="flex-1 transition-colors" variant="outline" size="sm">
+								<Button 
+									className={cn(
+										buttonClasses('outline', 'sm'),
+										'flex-1 h-10 hover:bg-purple-50 hover:border-purple-200 hover:text-purple-700'
+									)}
+									style={{
+										transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
+									}}
+								>
 									More
 								</Button>
 							</div>
 
 							<Separator />
 
-							<div className="space-y-4">
-								<h6 className="text-muted-foreground text-sm uppercase">
-									Recent Payments
-								</h6>
+							<div 
+								className="space-y-6"
+								style={{ 
+									animation: `slideInFromBottom ${ANIMATION_DURATIONS.slow} ease-out`,
+								}}
+							>
+								<div className="flex items-center justify-between">
+									<h6 className="text-foreground text-base font-semibold">
+										Recent Payments
+									</h6>
+									<p className="text-muted-foreground text-sm">Last 7 days</p>
+								</div>
 
-								<div className="space-y-4">
-									{recentPayments.map(transaction => (
+								<div className="space-y-3">
+									{recentPayments.map((transaction, index) => (
 										<div
 											key={transaction.id}
-											className="flex items-center gap-2 group cursor-pointer"
+											className="flex items-center gap-4 p-3 rounded-xl bg-muted/20 hover:bg-muted/40 group cursor-pointer border border-transparent hover:border-muted transition-all"
+											style={{ 
+												animation: `slideInFromLeft ${ANIMATION_DURATIONS.default} ease-out`,
+												animationDelay: `${index * 100}ms`,
+												transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
+											}}
 										>
-											<div className="bg-muted flex size-10 shrink-0 items-center justify-center rounded-full transition-colors group-hover:bg-muted/80">
-												<transaction.icon className="size-5" />
+											<div className="bg-muted/60 flex size-12 shrink-0 items-center justify-center rounded-full group-hover:bg-primary/10 group-hover:scale-110 transition-all">
+												<transaction.icon className="size-5 group-hover:text-primary transition-colors" />
 											</div>
-											<div className="flex w-full items-end justify-between">
-												<div>
-													<p className="text-sm font-medium">
+											<div className="flex w-full items-center justify-between">
+												<div className="space-y-1">
+													<p className="text-sm font-semibold text-foreground">
 														{transaction.title}
 													</p>
-													<p className="text-muted-foreground line-clamp-1 text-xs">
+													<p className="text-muted-foreground line-clamp-1 text-xs leading-relaxed">
 														{transaction.subtitle}
 													</p>
+													<p className="text-muted-foreground text-xs">
+														{transaction.date}
+													</p>
 												</div>
-												<div>
+												<div className="text-right">
 													<span
 														className={cn(
-															'text-sm leading-none font-medium tabular-nums',
+															'text-base leading-none font-bold tabular-nums',
 															transaction.type === 'debit'
-																? 'text-destructive'
-																: 'text-green-500'
+																? 'text-red-600'
+																: 'text-green-600'
 														)}
 													>
+														{transaction.type === 'debit' ? '-' : '+'}
 														{formatCurrency(transaction.amount)}
 													</span>
 												</div>
@@ -241,14 +422,61 @@ export function AccountOverview() {
 									))}
 								</div>
 
-								<Button className="w-full transition-colors" size="sm" variant="outline">
+								<Button 
+									className={cn(
+										buttonClasses('outline', 'sm'),
+										'w-full h-10 hover:bg-primary/5 hover:border-primary/30 hover:text-primary font-semibold'
+									)}
+									style={{
+										transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
+									}}
+								>
 									View All Payments
 								</Button>
 							</div>
 						</div>
 					</TabsContent>
-					<TabsContent value="physical">
-						Physical card details are currently unavailable
+					<TabsContent 
+						value="physical"
+						style={{ 
+							animation: `slideInFromRight ${ANIMATION_DURATIONS.default} ease-out`,
+						}}
+					>
+						<div 
+							className="flex flex-col items-center justify-center py-12 space-y-6 text-center"
+							style={{ 
+								animation: `fadeIn ${ANIMATION_DURATIONS.slow} ease-out`,
+							}}
+						>
+							<div className="bg-muted/30 rounded-full p-6">
+								<CreditCard className="size-12 text-muted-foreground" />
+							</div>
+							<div className="space-y-3 max-w-md">
+								<h3 
+									className="font-bold text-foreground"
+									style={{
+										fontSize: TYPOGRAPHY_SCALE['heading-md'].fontSize,
+										lineHeight: TYPOGRAPHY_SCALE['heading-md'].lineHeight,
+									}}
+								>
+									Physical Card Coming Soon
+								</h3>
+								<p className="text-muted-foreground leading-relaxed">
+									Order your premium physical card to use anywhere. Get notified when it becomes available.
+								</p>
+							</div>
+							<Button 
+								className={cn(
+									buttonClasses('primary', 'sm'),
+									'hover:scale-105'
+								)}
+								style={{
+									transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
+								}}
+							>
+								Get Notified
+							</Button>
+						</div>
 					</TabsContent>
 				</Tabs>
 			</CardContent>

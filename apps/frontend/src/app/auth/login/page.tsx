@@ -1,20 +1,17 @@
 'use client'
 
 import { LoginLayout } from '@/components/auth/login-layout'
-import { createClient } from '@/utils/supabase/client'
+import { supabaseClient } from '@repo/shared/lib/supabase-client'
+import { useMutation } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
 import { toast } from 'sonner'
 
 export default function LoginPage() {
 	const router = useRouter()
-	const supabase = createClient()
-	const [isLoading, setIsLoading] = useState(false)
-	const [isGoogleLoading, setIsGoogleLoading] = useState(false)
 
-	const handleSubmit = async (data: { email: string; password: string }) => {
-		setIsLoading(true)
-		try {
+	// TanStack Query mutations replacing manual loading states
+	const loginMutation = useMutation({
+		mutationFn: async (data: { email: string; password: string }) => {
 			// Check if we're using placeholder/development credentials
 			const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 			const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -25,17 +22,16 @@ export default function LoginPage() {
 				supabaseUrl.includes('placeholder') ||
 				supabaseKey.includes('placeholder')
 			) {
-				toast.error('Development Environment', {
-					description:
-						'Authentication is not configured for local development. Please use production credentials or contact your administrator.'
-				})
-				return
+				throw new Error(
+					'Development Environment: Authentication is not configured for local development. Please use production credentials or contact your administrator.'
+				)
 			}
 
-			const { data: _data, error } = await supabase.auth.signInWithPassword({
-				email: data.email,
-				password: data.password
-			})
+			const { data: authData, error } =
+				await supabaseClient.auth.signInWithPassword({
+					email: data.email,
+					password: data.password
+				})
 
 			if (error) {
 				// Provide more specific error messages
@@ -46,14 +42,13 @@ export default function LoginPage() {
 				} else if (error.message.includes('Invalid login credentials')) {
 					errorMessage = 'Invalid email or password. Please try again.'
 				}
-
-				toast.error('Login failed', {
-					description: errorMessage
-				})
-				return
+				throw new Error(errorMessage)
 			}
 
-			if (_data.user) {
+			return authData.user
+		},
+		onSuccess: user => {
+			if (user) {
 				toast.success('Welcome back!', {
 					description: 'You have been successfully logged in.'
 				})
@@ -64,22 +59,66 @@ export default function LoginPage() {
 
 				router.push(redirectTo)
 			}
-		} catch (error) {
+		},
+		onError: error => {
 			console.error('Login error:', error)
 
 			// Provide better error messages for different error types
-			let errorMessage = 'Please try again later.'
+			let errorMessage =
+				error instanceof Error ? error.message : 'Please try again later.'
 			if (error instanceof TypeError && error.message.includes('fetch')) {
 				errorMessage =
 					'Network connection failed. Please check your internet connection and try again.'
 			}
 
-			toast.error('Authentication Error', {
-				description: errorMessage
-			})
-		} finally {
-			setIsLoading(false)
+			toast.error(
+				error.message.includes('Development Environment')
+					? 'Development Environment'
+					: 'Login failed',
+				{
+					description: errorMessage
+				}
+			)
 		}
+	})
+
+	const googleLoginMutation = useMutation({
+		mutationFn: async () => {
+			const { data: oauthData, error } =
+				await supabaseClient.auth.signInWithOAuth({
+					provider: 'google',
+					options: {
+						redirectTo: `${window.location.origin}/auth/oauth?next=/dashboard`,
+						queryParams: {
+							access_type: 'offline',
+							prompt: 'consent'
+						}
+					}
+				})
+
+			if (error) {
+				let errorMessage = error.message
+				if (error.message.includes('Failed to fetch')) {
+					errorMessage =
+						'Unable to connect to Google. Please check your network connection and try again.'
+				}
+				throw new Error(errorMessage)
+			}
+
+			return oauthData
+		},
+		onError: error => {
+			console.error('Google OAuth error:', error)
+			toast.error('Google Sign-in failed', {
+				description:
+					error instanceof Error ? error.message : 'Please try again later.'
+			})
+		}
+	})
+
+	const handleSubmit = async (data: Record<string, unknown>) => {
+		const { email, password } = data as { email: string; password: string }
+		loginMutation.mutate({ email, password })
 	}
 
 	const handleForgotPassword = () => {
@@ -91,41 +130,7 @@ export default function LoginPage() {
 	}
 
 	const handleGoogleLogin = async () => {
-		setIsGoogleLoading(true)
-		try {
-			const { data: _oauthData, error } = await supabase.auth.signInWithOAuth({
-				provider: 'google',
-				options: {
-					redirectTo: `${window.location.origin}/auth/oauth?next=/dashboard`,
-					queryParams: {
-						access_type: 'offline',
-						prompt: 'consent'
-					}
-				}
-			})
-
-			if (error) {
-				let errorMessage = error.message
-				if (error.message.includes('Failed to fetch')) {
-					errorMessage =
-						'Unable to connect to Google. Please check your network connection and try again.'
-				}
-
-				toast.error('Google Sign-in failed', {
-					description: errorMessage
-				})
-				return
-			}
-
-			// OAuth redirect will be handled automatically
-		} catch (error) {
-			console.error('Google OAuth error:', error)
-			toast.error('Authentication Error', {
-				description: 'Please try again later.'
-			})
-		} finally {
-			setIsGoogleLoading(false)
-		}
+		googleLoginMutation.mutate()
 	}
 
 	return (
@@ -134,8 +139,8 @@ export default function LoginPage() {
 			onForgotPassword={handleForgotPassword}
 			onSignUp={handleSignUp}
 			onGoogleLogin={handleGoogleLogin}
-			isLoading={isLoading}
-			isGoogleLoading={isGoogleLoading}
+			isLoading={loginMutation.isPending}
+			isGoogleLoading={googleLoginMutation.isPending}
 		/>
 	)
 }
