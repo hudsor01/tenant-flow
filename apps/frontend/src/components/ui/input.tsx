@@ -16,7 +16,7 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
       )}
       style={{
         transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
-        ...((props as any).style || {})
+        ...((props as React.InputHTMLAttributes<HTMLInputElement>).style || {})
       }}
       {...props}
     />
