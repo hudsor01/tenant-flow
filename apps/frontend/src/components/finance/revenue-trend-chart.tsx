@@ -8,12 +8,10 @@ import type { ChartConfig} from "@/components/ui/chart";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { 
   formatCurrency, 
   ANIMATION_DURATIONS, 
   cn, 
-  cardClasses, 
   TYPOGRAPHY_SCALE 
 } from "@/lib/utils";
 import { useState, useMemo } from "react";

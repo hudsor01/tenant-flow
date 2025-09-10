@@ -1,8 +1,6 @@
 'use client'
 import { 
-  cn, 
-  ANIMATION_DURATIONS,
-  TYPOGRAPHY_SCALE 
+  cn
 } from '@/lib/design-system'
 import React from 'react'
 
