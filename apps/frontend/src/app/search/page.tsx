@@ -3,10 +3,11 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Search, Filter, FileText, Users, FolderOpen } from "lucide-react"
+import { PageLayout } from "@/components/layout/page-layout"
 
 export default function SearchPage() {
   return (
-    <div className="container max-w-6xl py-8">
+    <PageLayout containerClass="max-w-6xl py-8">
       <div className="flex flex-col gap-6">
         {/* Search Header */}
         <div className="flex flex-col gap-4">
@@ -133,6 +134,6 @@ export default function SearchPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </PageLayout>
   )
 }

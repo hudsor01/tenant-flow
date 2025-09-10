@@ -84,8 +84,8 @@ export class StripeController {
         automatic_payment_methods: { enabled: true },
         metadata: {
           tenant_id: body.tenantId || '',
-          property_id: body.propertyId || '',
-          subscription_type: body.subscriptionType || ''
+          property_id: body.propertyId || '' || '',
+          subscription_type: body.subscriptionType || '' || ''
         }
       })
 
@@ -144,7 +144,7 @@ export class StripeController {
       })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      this.logger?.error(`❌ Webhook signature verification failed: ${errorMessage}`)
+      this.logger?.error(`Webhook signature verification failed: ${errorMessage}`)
       return { error: `Webhook Error: ${errorMessage}` }
     }
 
@@ -164,9 +164,9 @@ export class StripeController {
     if (permittedEvents.includes(event.type)) {
       try {
         await this.processStripeEvent(event)
-        this.logger?.info(`✅ Successfully processed event: ${event.type}`)
+        this.logger?.info(`Successfully processed event: ${event.type}`)
       } catch (error) {
-        this.logger?.error(`❌ Event processing failed: ${event.type}`, error)
+        this.logger?.error(`Event processing failed: ${event.type}`, error)
       }
     } else {
       this.logger?.debug(`Unhandled webhook event type: ${event.type}`)
@@ -187,7 +187,7 @@ export class StripeController {
         type: 'card'
       })
     } catch (error) {
-      this.handleStripeError(error)
+      this.handleStripeError(error as Stripe.errors.StripeError)
     }
   }
 
@@ -242,7 +242,7 @@ export class StripeController {
         customer_id: customerId
       }
     } catch (error) {
-      this.handleStripeError(error)
+      this.handleStripeError(error as Stripe.errors.StripeError)
     }
   }
 
@@ -278,7 +278,7 @@ export class StripeController {
         expand: ['latest_invoice.payment_intent'], // Official expand pattern
         metadata: {
           tenant_id: body.tenantId,
-          subscription_type: body.subscriptionType
+          subscription_type: body.subscriptionType || ''
         }
       })
 
@@ -288,7 +288,7 @@ export class StripeController {
       })
 
       const latestInvoice = subscription.latest_invoice as Stripe.Invoice
-      const paymentIntent = latestInvoice?.payment_intent as Stripe.PaymentIntent
+      const paymentIntent = (latestInvoice as { payment_intent?: Stripe.PaymentIntent })?.payment_intent
       
       return {
         subscription_id: subscription.id,
@@ -296,7 +296,7 @@ export class StripeController {
         status: subscription.status
       }
     } catch (error) {
-      this.handleStripeError(error)
+      this.handleStripeError(error as Stripe.errors.StripeError)
     }
   }
 
@@ -345,7 +345,7 @@ export class StripeController {
 
       return { url: session.url || '', session_id: session.id }
     } catch (error) {
-      this.handleStripeError(error)
+      this.handleStripeError(error as Stripe.errors.StripeError)
     }
   }
 
@@ -371,7 +371,7 @@ export class StripeController {
 
       return { url: session.url || '' }
     } catch (error) {
-      this.handleStripeError(error)
+      this.handleStripeError(error as Stripe.errors.StripeError)
     }
   }
 
@@ -397,10 +397,10 @@ export class StripeController {
         amount: body.amount,
         currency: 'usd',
         application_fee_amount: body.platformFee, // TenantFlow commission
-        transfer_data: { destination: body.propertyOwnerAccount },
+        transfer_data: { destination: body.propertyOwnerAccount || '' },
         metadata: {
           tenant_id: body.tenantId,
-          property_id: body.propertyId
+          property_id: body.propertyId || ''
         }
       }, {
         stripeAccount: body.connectedAccountId // Property owner account
@@ -417,7 +417,7 @@ export class StripeController {
         payment_intent_id: paymentIntent.id
       }
     } catch (error) {
-      this.handleStripeError(error)
+      this.handleStripeError(error as Stripe.errors.StripeError)
     }
   }
 
@@ -433,7 +433,7 @@ export class StripeController {
         expand: ['data.default_payment_method', 'data.latest_invoice']
       })
     } catch (error) {
-      this.handleStripeError(error)
+      this.handleStripeError(error as Stripe.errors.StripeError)
     }
   }
 
@@ -475,8 +475,8 @@ export class StripeController {
         subscription = {
           id: subData.id,
           status: subData.status,
-          current_period_start: Number(subData.current_period_start),
-          current_period_end: Number(subData.current_period_end),
+          current_period_start: Number((subData as unknown as { current_period_start: number }).current_period_start),
+          current_period_end: Number((subData as unknown as { current_period_end: number }).current_period_end),
           cancel_at_period_end: subData.cancel_at_period_end,
           items: subData.items.data.map(item => ({
             id: item.id,
@@ -511,7 +511,7 @@ export class StripeController {
         subscription
       }
     } catch (error) {
-      this.handleStripeError(error)
+      this.handleStripeError(error as Stripe.errors.StripeError)
     }
   }
 
@@ -577,25 +577,21 @@ export class StripeController {
       // Update user payment status if tenant_id is provided
       if (paymentIntent.metadata.tenant_id) {
         await supabase
-          .from('profiles')
+          .from('User')
           .update({ 
-            payment_status: 'active',
-            stripe_payment_intent_id: paymentIntent.id,
-            last_payment_date: new Date().toISOString()
+            stripeCustomerId: paymentIntent.customer as string
           })
           .eq('id', paymentIntent.metadata.tenant_id)
 
-        this.logger?.info(`✅ Updated user payment status for: ${paymentIntent.metadata.tenant_id}`)
+        this.logger?.info(`Updated user payment status for: ${paymentIntent.metadata.tenant_id}`)
       }
 
       // Log payment event for audit trail
       await supabase
-        .from('stripe_events')
+        .from('WebhookEvent')
         .insert({
-          stripe_event_id: `pi_succeeded_${paymentIntent.id}`,
-          event_type: 'payment_intent.succeeded',
-          stripe_object_id: paymentIntent.id,
-          data: paymentIntent,
+          stripeEventId: `pi_succeeded_${paymentIntent.id}`,
+          eventType: 'payment_intent.succeeded',
           processed_at: new Date().toISOString()
         })
     } catch (error) {
@@ -604,7 +600,7 @@ export class StripeController {
   }
 
   private async handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
-    this.logger?.warn(`❌ Payment failed: ${paymentIntent.id}`, {
+    this.logger?.warn(`Payment failed: ${paymentIntent.id}`, {
       error: paymentIntent.last_payment_error?.message,
       tenant_id: paymentIntent.metadata.tenant_id
     })
@@ -630,19 +626,21 @@ export class StripeController {
       
       // Create or update subscription record
       await supabase
-        .from('user_subscriptions')
+        .from('Subscription')
         .upsert({
-          stripe_subscription_id: subscription.id,
-          stripe_customer_id: subscription.customer as string,
-          status: subscription.status,
-          current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-          current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-          cancel_at_period_end: subscription.cancel_at_period_end,
-          created_at: new Date(subscription.created * 1000).toISOString(),
-          updated_at: new Date().toISOString()
+          stripeSubscriptionId: subscription.id,
+          stripeCustomerId: subscription.customer as string,
+          status: subscription.status.toUpperCase() as 'ACTIVE' | 'CANCELED' | 'TRIALING' | 'PAST_DUE' | 'UNPAID' | 'INCOMPLETE' | 'INCOMPLETE_EXPIRED',
+          currentPeriodStart: new Date((subscription as unknown as { current_period_start: number }).current_period_start * 1000).toISOString(),
+          currentPeriodEnd: new Date((subscription as unknown as { current_period_end: number }).current_period_end * 1000).toISOString(),
+          cancelAtPeriodEnd: subscription.cancel_at_period_end,
+          createdAt: new Date(subscription.created * 1000).toISOString(),
+          updatedAt: new Date().toISOString(),
+          userId: 'placeholder', // TODO: Get actual user ID from session or customer
+          startDate: new Date(subscription.created * 1000).toISOString()
         })
 
-      this.logger?.info(`✅ Created subscription record: ${subscription.id}`)
+      this.logger?.info(`Created subscription record: ${subscription.id}`)
     } catch (error) {
       this.logger?.error('Failed to create subscription record', error)
     }
@@ -659,15 +657,15 @@ export class StripeController {
       
       // Update existing subscription record
       const { data, error } = await supabase
-        .from('user_subscriptions')
+        .from('Subscription')
         .update({
-          status: subscription.status,
-          current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-          current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-          cancel_at_period_end: subscription.cancel_at_period_end,
-          updated_at: new Date().toISOString()
+          status: subscription.status.toUpperCase() as 'ACTIVE' | 'CANCELED' | 'TRIALING' | 'PAST_DUE' | 'UNPAID' | 'INCOMPLETE' | 'INCOMPLETE_EXPIRED',
+          currentPeriodStart: new Date((subscription as unknown as { current_period_start: number }).current_period_start * 1000).toISOString(),
+          currentPeriodEnd: new Date((subscription as unknown as { current_period_end: number }).current_period_end * 1000).toISOString(),
+          cancelAtPeriodEnd: subscription.cancel_at_period_end,
+          updatedAt: new Date().toISOString()
         })
-        .eq('stripe_subscription_id', subscription.id)
+        .eq('stripeSubscriptionId', subscription.id)
         .select()
 
       if (error) {
@@ -678,7 +676,7 @@ export class StripeController {
       if (data && data.length > 0) {
         const isActive = ['active', 'trialing'].includes(subscription.status)
         // Note: This would need the user ID from the subscription metadata or customer mapping
-        this.logger?.info(`✅ Updated subscription: ${subscription.id}, Active: ${isActive}`)
+        this.logger?.info(`Updated subscription: ${subscription.id}, Active: ${isActive}`)
       }
     } catch (error) {
       this.logger?.error('Failed to update subscription record', error)
@@ -701,7 +699,7 @@ export class StripeController {
   }
 
   private async handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
-    this.logger?.warn(`❌ Invoice payment failed: ${invoice.id}`, {
+    this.logger?.warn(`Invoice payment failed: ${invoice.id}`, {
       customer: invoice.customer,
       attempt_count: invoice.attempt_count
     })
@@ -719,12 +717,10 @@ export class StripeController {
       
       // Log successful checkout session
       await supabase
-        .from('stripe_events')
+        .from('WebhookEvent')
         .insert({
-          stripe_event_id: `checkout_completed_${session.id}`,
-          event_type: 'checkout.session.completed',
-          stripe_object_id: session.id,
-          data: session,
+          stripeEventId: `checkout_completed_${session.id}`,
+          eventType: 'checkout.session.completed',
           processed_at: new Date().toISOString()
         })
 
@@ -735,7 +731,7 @@ export class StripeController {
         this.logger?.info(`🔗 Linking subscription ${session.subscription} to customer ${session.customer}`)
       }
 
-      this.logger?.info(`✅ Processed checkout completion: ${session.id}`)
+      this.logger?.info(`Processed checkout completion: ${session.id}`)
     } catch (error) {
       this.logger?.error('Failed to process checkout completion', error)
     }

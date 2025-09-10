@@ -1,29 +1,12 @@
 import { Body, Controller, Headers, HttpCode, Post } from '@nestjs/common'
 import { getPriceId } from '@repo/shared'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
+import type { SupabaseWebhookEvent } from '@repo/shared/types/auth'
 import { PinoLogger } from 'nestjs-pino'
 import { SupabaseService } from '../database/supabase.service'
 import { Public } from '../shared/decorators/public.decorator'
 import { UsersService } from '../users/users.service'
 import { AuthService } from './auth.service'
-
-interface SupabaseWebhookEvent {
-	type: 'INSERT' | 'UPDATE' | 'DELETE'
-	table: string
-	schema: 'auth' | 'public'
-	record: {
-		id: string
-		email?: string
-		email_confirmed_at?: string | null
-		user_metadata?: {
-			name?: string
-			full_name?: string
-		}
-		created_at: string
-		updated_at: string
-	}
-	old_record?: string | null
-}
 
 @Controller('webhooks/auth')
 export class AuthWebhookController {

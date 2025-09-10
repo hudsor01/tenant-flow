@@ -1,13 +1,19 @@
 import type { NextRequest } from 'next/server'
-import Stripe from 'stripe'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-	apiVersion: '2025-08-27.basil'
-})
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:4600'
 
 export async function POST(req: NextRequest) {
 	try {
-		const { amount, currency = 'usd', metadata = {} } = await req.json()
+		const body = await req.json()
+		const { 
+			amount, 
+			currency = 'usd', 
+			metadata = {}, 
+			customerEmail,
+			tenantId,
+			propertyId,
+			subscriptionType
+		} = body
 
 		if (!amount || amount < 50) {
 			return Response.json(
@@ -16,22 +22,51 @@ export async function POST(req: NextRequest) {
 			)
 		}
 
-		const paymentIntent = await stripe.paymentIntents.create({
-			amount,
-			currency,
-			metadata,
-			automatic_payment_methods: {
-				enabled: true
-			}
+		// Proxy request to backend Stripe controller
+		const backendResponse = await fetch(`${BACKEND_URL}/api/v1/stripe/create-payment-intent`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				// Forward auth headers if present
+				...(req.headers.get('authorization') && {
+					'authorization': req.headers.get('authorization')!
+				})
+			},
+			body: JSON.stringify({
+				amount: Math.round(amount),
+				currency,
+				metadata: {
+					...metadata,
+					source: 'tenantflow_frontend',
+					customerEmail: customerEmail || 'unknown'
+				},
+				tenantId,
+				propertyId,
+				subscriptionType
+			})
 		})
 
+		if (!backendResponse.ok) {
+			const errorData = await backendResponse.json().catch(() => ({ error: 'Backend request failed' }))
+			return Response.json(
+				{ error: errorData.message || errorData.error || 'Payment initialization failed' },
+				{ status: backendResponse.status }
+			)
+		}
+
+		const result = await backendResponse.json()
+		
+		// Map backend response to frontend expected format
 		return Response.json({
-			clientSecret: paymentIntent.client_secret
+			clientSecret: result.client_secret,
+			paymentIntentId: result.payment_intent_id,
+			status: result.status
 		})
 	} catch (error) {
-		console.error('Error creating payment intent:', error)
+		console.error('Payment Intent proxy failed:', error)
+		
 		return Response.json(
-			{ error: 'Failed to create payment intent' },
+			{ error: 'Internal server error' },
 			{ status: 500 }
 		)
 	}

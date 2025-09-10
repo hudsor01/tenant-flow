@@ -1,8 +1,5 @@
 'use client'
 
-import { BlurFade } from '@/components/magicui/blur-fade'
-import { BorderBeam } from '@/components/magicui/border-beam'
-import { ShimmerButton } from '@/components/magicui/shimmer-button'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
@@ -13,13 +10,20 @@ import {
 	isValidAuthToken,
 	validateCheckoutData
 } from '@/lib/security'
-import { cn } from '@/lib/utils'
+import { 
+	cn, 
+	buttonClasses,
+	cardClasses,
+	ANIMATION_DURATIONS,
+	TYPOGRAPHY_SCALE
+} from '@/lib/utils'
 import { PLANS } from '@repo/shared'
 import { getStripePriceId } from '@repo/shared/stripe/plans'
 import { useStripe } from '@stripe/react-stripe-js'
-import { Building, Check, Crown, Loader2, Zap } from 'lucide-react'
+import { Building, Check, Crown, Loader2, Zap, Shield, Star } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { useMutation } from '@tanstack/react-query'
 
 interface StripePricingSectionProps {
 	className?: string
@@ -93,48 +97,38 @@ const enhancedPlans = [
 
 export function StripePricingSection({ className }: StripePricingSectionProps) {
 	const [isYearly, setIsYearly] = useState(false)
-	const [loadingPlan, setLoadingPlan] = useState<string | null>(null)
 	const stripe = useStripe()
 
-	const handleSubscribe = async (planId: string) => {
-		if (!stripe) {
-			toast.error(
-				'Stripe is not loaded. Please refresh the page and try again.'
-			)
-			return
-		}
+	const subscriptionMutation = useMutation({
+		mutationFn: async (planId: string) => {
+			if (!stripe) {
+				throw new Error('Stripe is not loaded. Please refresh the page and try again.')
+			}
 
-		if (planId === 'FREETRIAL') {
-			// Handle free trial
-			window.location.href = '/auth/register'
-			return
-		}
+			if (planId === 'FREETRIAL') {
+				// Handle free trial
+				window.location.href = '/auth/register'
+				return { success: true }
+			}
 
-		if (planId === 'TENANTFLOW_MAX') {
-			// Handle enterprise contact
-			window.location.href = '/contact'
-			return
-		}
+			if (planId === 'TENANTFLOW_MAX') {
+				// Handle enterprise contact
+				window.location.href = '/contact'
+				return { success: true }
+			}
 
-		// Check rate limiting
-		if (!checkoutRateLimiter.canMakeRequest()) {
-			toast.error(
-				'Too many requests. Please wait a moment before trying again.'
-			)
-			return
-		}
+			// Check rate limiting
+			if (!checkoutRateLimiter.canMakeRequest()) {
+				throw new Error('Too many requests. Please wait a moment before trying again.')
+			}
 
-		// Check if user is authenticated
-		const authToken = localStorage.getItem('auth-token')
-		if (!authToken || !isValidAuthToken(authToken)) {
-			toast.error('Please sign in to subscribe to a plan')
-			window.location.href = '/auth/login'
-			return
-		}
+			// Check if user is authenticated
+			const authToken = localStorage.getItem('auth-token')
+			if (!authToken || !isValidAuthToken(authToken)) {
+				window.location.href = '/auth/login'
+				throw new Error('Please sign in to subscribe to a plan')
+			}
 
-		setLoadingPlan(planId)
-
-		try {
 			// Get the correct price ID for the plan and billing period (for validation)
 			getStripePriceId(
 				planId as 'FREETRIAL' | 'STARTER' | 'GROWTH' | 'TENANTFLOW_MAX',
@@ -187,16 +181,21 @@ export function StripePricingSection({ className }: StripePricingSectionProps) {
 				console.error('Stripe checkout error:', error)
 				throw error
 			}
-		} catch (error) {
+
+			return { success: true }
+		},
+		onError: (error) => {
 			console.error('Subscription error:', error)
 			// Show error toast
 			toast.error(
 				`Failed to start checkout: ${error instanceof Error ? error.message : 'Unknown error'}`,
 				{ id: 'checkout' }
 			)
-		} finally {
-			setLoadingPlan(null)
 		}
+	})
+
+	const handleSubscribe = async (planId: string) => {
+		subscriptionMutation.mutate(planId)
 	}
 
 	const formatPrice = (price: { monthly: number; annual: number }) => {
@@ -210,74 +209,130 @@ export function StripePricingSection({ className }: StripePricingSectionProps) {
 				'relative py-24 bg-gradient-to-b from-muted/20 to-background',
 				className
 			)}
+			style={{
+				animation: `fadeIn ${ANIMATION_DURATIONS.slow} ease-out`
+			}}
 		>
 			<div className="container px-4 mx-auto">
 				{/* Section Header */}
-				<div className="text-center max-w-3xl mx-auto mb-16">
-					<BlurFade delay={0.1} inView>
-						<Badge variant="outline" className="mb-4 px-3 py-1">
-							<Crown className="w-4 h-4 me-2" />
-							Pricing
+				<div 
+					className="text-center max-w-4xl mx-auto mb-20"
+					style={{
+						animation: `slideInFromTop ${ANIMATION_DURATIONS.default} ease-out`
+					}}
+				>
+					<div className="mb-6">
+						<Badge 
+							variant="outline" 
+							className="mb-4 px-4 py-2 text-sm font-semibold border-2 hover:bg-primary/5 transition-colors"
+							style={{
+								transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
+							}}
+						>
+							<Crown className="w-4 h-4 me-2 text-primary" />
+							Pricing Plans
 						</Badge>
-					</BlurFade>
+					</div>
 
-					<BlurFade delay={0.2} inView>
-						<h2 className="text-4xl sm:text-5xl font-bold font-heading tracking-tight mb-6">
+					<div className="mb-6">
+						<h2 
+							className="font-bold tracking-tight mb-4"
+							style={{
+								fontSize: TYPOGRAPHY_SCALE['display-lg'].fontSize,
+								lineHeight: TYPOGRAPHY_SCALE['display-lg'].lineHeight,
+								fontWeight: TYPOGRAPHY_SCALE['display-lg'].fontWeight,
+								letterSpacing: TYPOGRAPHY_SCALE['display-lg'].letterSpacing
+							}}
+						>
 							Simple, transparent pricing
-							<span className="block text-gradient-premium text-2xl sm:text-3xl font-normal mt-2">
+							<span 
+								className="block text-primary/80 font-medium mt-3"
+								style={{
+									fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize,
+									lineHeight: TYPOGRAPHY_SCALE['heading-lg'].lineHeight
+								}}
+							>
 								that grows with your business
 							</span>
 						</h2>
-					</BlurFade>
+					</div>
 
-					<BlurFade delay={0.3} inView>
-						<p className="text-xl text-muted-foreground leading-relaxed mb-8">
+					<div className="mb-8">
+						<p 
+							className="text-muted-foreground leading-relaxed max-w-2xl mx-auto"
+							style={{
+								fontSize: TYPOGRAPHY_SCALE['body-lg'].fontSize,
+								lineHeight: TYPOGRAPHY_SCALE['body-lg'].lineHeight
+							}}
+						>
 							Start with our 14-day free trial. No credit card required. Cancel
 							anytime.
 						</p>
-					</BlurFade>
+					</div>
 
 					{/* Billing Toggle */}
-					<BlurFade delay={0.4} inView>
-						<div className="flex items-center justify-center gap-4 mb-2">
+					<div 
+						className="bg-muted/30 rounded-2xl p-6 border-2 border-muted/50"
+						style={{
+							animation: `slideInFromBottom ${ANIMATION_DURATIONS.default} ease-out`,
+							transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
+						}}
+					>
+						<div className="flex items-center justify-center gap-6 mb-3">
 							<span
 								className={cn(
-									'text-sm font-medium transition-colors',
+									'text-sm font-semibold transition-all',
 									!isYearly ? 'text-foreground' : 'text-muted-foreground'
 								)}
+								style={{
+									transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
+								}}
 							>
 								Monthly
 							</span>
 							<Switch
 								checked={isYearly}
 								onCheckedChange={setIsYearly}
-								className="data-[state=checked]:bg-primary"
+								className="data-[state=checked]:bg-primary scale-110"
+								style={{
+									transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
+								}}
 							/>
 							<span
 								className={cn(
-									'text-sm font-medium transition-colors',
+									'text-sm font-semibold transition-all',
 									isYearly ? 'text-foreground' : 'text-muted-foreground'
 								)}
+								style={{
+									transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
+								}}
 							>
 								Yearly
 							</span>
 							<Badge
 								variant="secondary"
-								className="ms-2 bg-green-500/10 text-green-600 dark:text-green-400"
+								className="ms-2 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 font-semibold px-3 py-1 hover:scale-105"
+								style={{
+									transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
+								}}
 							>
+								<Star className="w-3 h-3 mr-1" />
 								Save 17%
 							</Badge>
 						</div>
-						<p className="text-xs text-muted-foreground">
-							All plans include a 14-day free trial
-						</p>
-					</BlurFade>
+						<div className="flex items-center justify-center gap-2">
+							<Shield className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+							<p className="text-xs text-muted-foreground font-medium">
+								All plans include a 14-day free trial
+							</p>
+						</div>
+					</div>
 				</div>
 
 				{/* Pricing Grid */}
 				<div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-16">
 					{enhancedPlans.map((plan, index) => (
-						<BlurFade key={index} delay={0.1 + index * 0.1} inView>
+						<div key={index}>
 							<Card
 								className={cn(
 									'relative h-full transition-all duration-300 hover:scale-105',
@@ -287,14 +342,11 @@ export function StripePricingSection({ className }: StripePricingSectionProps) {
 								)}
 							>
 								{plan.popular && (
-									<>
-										<BorderBeam size={250} duration={12} delay={9} />
-										<div className="absolute -top-4 left-1/2 -translate-x-1/2">
-											<Badge className="bg-primary text-primary-foreground px-4 py-1">
-												Most Popular
-											</Badge>
-										</div>
-									</>
+									<div className="absolute -top-4 left-1/2 -translate-x-1/2">
+										<Badge className="bg-primary text-primary-foreground px-4 py-1">
+											Most Popular
+										</Badge>
+									</div>
 								)}
 
 								<CardHeader className="text-center pb-8 pt-8">
@@ -356,31 +408,26 @@ export function StripePricingSection({ className }: StripePricingSectionProps) {
 
 								<CardFooter className="px-6 pb-8">
 									{plan.popular ? (
-										<ShimmerButton
-											shimmerColor="#ffffff"
-											shimmerSize="0.05em"
-											shimmerDuration="3s"
-											borderRadius="8px"
-											background="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-											className="button-primary button-lg w-full"
-											disabled={loadingPlan === plan.id}
-											onClick={() => handleSubscribe(plan.id!)} // Will be set from backend
+										<Button
+											className="button-primary button-lg w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transition-all duration-300"
+											disabled={subscriptionMutation.isPending}
+											onClick={() => handleSubscribe(plan.id!)}
 										>
-											{loadingPlan === plan.id && (
+											{subscriptionMutation.isPending && (
 												<Loader2 className="w-4 h-4 me-2 animate-spin" />
 											)}
 											{plan.cta}
-										</ShimmerButton>
+										</Button>
 									) : (
 										<Button
 											variant={
 												plan.id === 'TENANTFLOW_MAX' ? 'outline' : 'default'
 											}
 											className={`w-full ${plan.id === 'TENANTFLOW_MAX' ? 'button-secondary' : 'button-primary'} button-lg`}
-											disabled={loadingPlan === plan.id}
+											disabled={subscriptionMutation.isPending}
 											onClick={() => handleSubscribe(plan.id!)} // Will be set from backend
 										>
-											{loadingPlan === plan.id && (
+											{subscriptionMutation.isPending && (
 												<Loader2 className="w-4 h-4 me-2 animate-spin" />
 											)}
 											{plan.cta}
@@ -388,12 +435,12 @@ export function StripePricingSection({ className }: StripePricingSectionProps) {
 									)}
 								</CardFooter>
 							</Card>
-						</BlurFade>
+						</div>
 					))}
 				</div>
 
 				{/* Trust Signals */}
-				<BlurFade delay={0.6} inView>
+				<div>
 					<div className="text-center">
 						<div className="flex flex-wrap items-center justify-center gap-6 mb-8">
 							<Badge variant="secondary" className="badge-success px-4 py-2">
@@ -422,7 +469,7 @@ export function StripePricingSection({ className }: StripePricingSectionProps) {
 							</Button>
 						</div>
 					</div>
-				</BlurFade>
+				</div>
 			</div>
 		</section>
 	)

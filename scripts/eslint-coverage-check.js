@@ -43,7 +43,6 @@ const IGNORE_DIRS = [
 	'build',
 	'coverage',
 	'.nyc_output',
-	'storybook-static',
 	'.vercel',
 	'.swc',
 	'public',
@@ -292,7 +291,6 @@ class ESLintCoverageChecker {
 		const workspaces = [
 			{ path: './apps/frontend', name: 'Frontend (Next.js)' },
 			{ path: './apps/backend', name: 'Backend (NestJS)' },
-			{ path: './apps/storybook', name: 'Storybook' },
 			{ path: './packages/shared', name: 'Shared Package' },
 			{ path: './packages/database', name: 'Database Package' },
 			{ path: './packages/eslint-config', name: 'ESLint Config' },

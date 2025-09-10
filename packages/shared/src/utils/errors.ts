@@ -121,7 +121,7 @@ export function createValidationError(
 	const field = firstIssue?.path.join('.') || 'unknown'
 
 	const fieldErrors: Record<string, string[]> = {}
-	zodError.issues.forEach(issue => {
+	zodError.issues.forEach((issue: z.ZodIssue) => {
 		const fieldPath = issue.path.join('.')
 		fieldErrors[fieldPath] ??= []
 		fieldErrors[fieldPath].push(issue.message)
@@ -138,8 +138,7 @@ export function createValidationError(
 		},
 		context,
 		timestamp: new Date().toISOString(),
-		userMessage:
-			firstIssue?.message || 'Please check your input and try again',
+		userMessage: firstIssue?.message || 'Please check your input and try again',
 		retryable: false
 	}
 }
@@ -160,9 +159,7 @@ export function createNetworkError(
 	return {
 		type: ERROR_TYPES.NETWORK,
 		severity:
-			status && status >= 500
-				? ERROR_SEVERITY.HIGH
-				: ERROR_SEVERITY.MEDIUM,
+			status && status >= 500 ? ERROR_SEVERITY.HIGH : ERROR_SEVERITY.MEDIUM,
 		message,
 		details: {
 			status,
@@ -298,8 +295,7 @@ export function classifyError(error: unknown): StandardError {
 				error.message,
 				{
 					severity: ERROR_SEVERITY.MEDIUM,
-					userMessage:
-						"You don't have permission to perform this action."
+					userMessage: "You don't have permission to perform this action."
 				}
 			)
 			standardError.retryable = false

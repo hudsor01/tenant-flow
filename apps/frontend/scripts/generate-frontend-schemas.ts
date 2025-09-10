@@ -19,7 +19,14 @@ import { jsonSchemaToZod } from 'json-schema-to-zod'
 import { z } from 'zod'
 import { logger } from '@repo/shared'
 
-type JSONSchema = any // Permissive typing for JSON Schema objects
+interface JSONSchema {
+  type?: string
+  properties?: Record<string, JSONSchema>
+  required?: string[]
+  items?: JSONSchema
+  enum?: unknown[]
+  [key: string]: unknown
+}
 
 /**
  * Generate all frontend schemas using native features only
@@ -28,11 +35,11 @@ async function generateSchemas() {
   logger.info('Generating frontend Zod schemas from backend JSON schemas...')
   
   // Use native Node.js import from built backend files
-  let backendSchemas: any
+  let backendSchemas: Record<string, JSONSchema>
   try {
     backendSchemas = await import('../../backend/dist/schemas/auth.schemas.js')
     logger.info('SUCCESS: Backend schemas imported successfully')
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error.code === 'MODULE_NOT_FOUND') {
       logger.error('ERROR: Backend schemas not found')
       logger.error('Solution: Run `turbo build --filter=@repo/backend` first')
@@ -96,7 +103,7 @@ async function generateSchemas() {
       generatedSchemas.push(exportedCode)
       generatedTypes.push(`export type ${type} = z.infer<typeof ${name}>`)
       
-    } catch (conversionError: any) {
+    } catch (conversionError: unknown) {
       logger.warn(`WARNING: Schema conversion failed for ${name}: ${conversionError.message}`)
       logger.warn(`Using minimal fallback for ${name}`)
       
@@ -156,7 +163,7 @@ ${aliasTypes.join('\n')}
   const outputDir = join(process.cwd(), 'src', 'lib', 'validation')
   try {
     mkdirSync(outputDir, { recursive: true })
-  } catch (dirError: any) {
+  } catch (dirError: unknown) {
     logger.warn(`WARNING: Could not create output directory: ${dirError.message}`)
     // Continue anyway - writeFileSync might still work
   }
@@ -169,7 +176,7 @@ ${aliasTypes.join('\n')}
     logger.info(`Generated ${schemas.length} schemas`)
     
     return outputPath
-  } catch (writeError: any) {
+  } catch (writeError: unknown) {
     logger.error(`ERROR: Failed to write schema file: ${writeError.message}`)
     process.exit(1)
   }
@@ -181,7 +188,7 @@ if (require.main === module) {
     try {
       await generateSchemas()
       logger.info('Schema generation complete!')
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('ERROR: Schema generation failed:', error.message)
       process.exit(1)
     }

@@ -1,14 +1,19 @@
 "use client"
 
 import { ArrowRight, Play, Sparkles } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { BlurFade } from "@/components/magicui/blur-fade"
 import { AnimatedGradientText } from "@/components/magicui/animated-gradient-text"
 import { ShimmerButton } from "@/components/magicui/shimmer-button"
 import { BorderBeam } from "@/components/magicui/border-beam"
 import Particles from "@/components/magicui/particles"
-import { cn } from "@/lib/utils"
+import { 
+  cn, 
+  buttonClasses,
+  cardClasses,
+  ANIMATION_DURATIONS,
+  TYPOGRAPHY_SCALE 
+} from "@/lib/utils"
 
 interface SaasHeroSectionProps {
   className?: string
@@ -82,13 +87,13 @@ export function SaasHeroSection({ className }: SaasHeroSectionProps) {
                 <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" />
               </ShimmerButton>
               
-              <Button
-                variant="outline"
-                className="button-secondary button-lg group"
-              >
-                <Play className="w-5 h-5 mr-2" />
-                Watch demo
-              </Button>
+              <button className="relative inline-flex h-12 overflow-hidden rounded-lg p-[2px] focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50 group">
+                <span className="absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2E8F0_0%,#3B82F6_50%,#E2E8F0_100%)]" />
+                <span className="inline-flex h-full w-full cursor-pointer items-center justify-center rounded-lg bg-white px-6 py-3 text-sm font-medium text-slate-900 backdrop-blur-3xl gap-2 transition-all duration-200 hover:bg-slate-50">
+                  <Play className="w-5 h-5" />
+                  Watch demo
+                </span>
+              </button>
             </div>
           </BlurFade>
 

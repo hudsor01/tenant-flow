@@ -1,8 +1,10 @@
 "use client";
 
 import { memo, useCallback, useEffect, useRef } from "react";
-import { cn } from "@/lib/utils";
-import { animate } from "motion/react";
+import { 
+  cn, 
+  ANIMATION_DURATIONS 
+} from "@/lib/design-system";
 
 interface GlowingEffectProps {
   blur?: number;
@@ -86,13 +88,9 @@ const GlowingEffect = memo(
           const angleDiff = ((targetAngle - currentAngle + 180) % 360) - 180;
           const newAngle = currentAngle + angleDiff;
 
-          animate(currentAngle, newAngle, {
-            duration: movementDuration,
-            ease: [0.16, 1, 0.3, 1],
-            onUpdate: (value) => {
-              element.style.setProperty("--start", String(value));
-            },
-          });
+          // Simple transition using CSS transition
+          element.style.transition = `--start ${movementDuration}s cubic-bezier(0.16, 1, 0.3, 1)`;
+          element.style.setProperty("--start", String(newAngle));
         });
       },
       [inactiveZone, proximity, movementDuration]

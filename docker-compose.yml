@@ -1,40 +1,38 @@
-services:
-    backend:
-        build:
-            context: .
-            dockerfile: Dockerfile
-            target: production
-        ports:
-            - '3001:3001'
-        environment:
-            - NODE_ENV=production
-            - PORT=3001
-            - DATABASE_URL=${DATABASE_URL}
-            - DIRECT_URL=${DIRECT_URL}
-            - JWT_SECRET=${JWT_SECRET}
-            - SUPABASE_URL=${SUPABASE_URL}
-            - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
-            - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}
-            - CORS_ORIGINS=${CORS_ORIGINS}
-            # Database optimization settings
-            - DATABASE_MAX_CONNECTIONS=25
-            - DATABASE_POOL_TIMEOUT=10
-            - DATABASE_CONNECTION_TIMEOUT=10
-            - DATABASE_POOLER=pgbouncer
-            # Memory optimization
-            - NODE_OPTIONS=--max-old-space-size=4096
-        healthcheck:
-            test: ['CMD', 'curl', '-f', 'https://tenantflow.app/api/v1/health']
-            interval: 30s
-            timeout: 10s
-            retries: 3
-            start_period: 60s
-        restart: unless-stopped
-        networks:
-            - tenantflow-network
-        volumes:
-            - ./logs:/app/logs
-
 networks:
-    tenantflow-network:
-        driver: bridge
+  tenantflow-network:
+    driver: bridge
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DATABASE_URL=${DATABASE_URL}
+      - DIRECT_URL=${DIRECT_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}
+      - CORS_ORIGINS=${CORS_ORIGINS}
+      - DATABASE_MAX_CONNECTIONS=25
+      - DATABASE_POOL_TIMEOUT=10
+      - DATABASE_CONNECTION_TIMEOUT=10
+      - DATABASE_POOLER=pgbouncer
+      - NODE_OPTIONS=--max-old-space-size=8192
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 60s
+      test: ['CMD', 'curl', '-f', 'https://tenantflow.app/api/v1/health']
+      timeout: 10s
+    networks:
+      - tenantflow-network
+    ports:
+      - '3001:3001'
+    restart: unless-stopped
+    volumes:
+      - ./logs:/app/logs

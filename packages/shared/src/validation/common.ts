@@ -61,7 +61,7 @@ export const paginationResponseSchema = z.object({
 
 export const dateStringSchema = z
 	.string()
-	.refine(val => !val || !isNaN(Date.parse(val)), {
+	.refine((val: string | undefined) => !val || !isNaN(Date.parse(val)), {
 		message: 'Invalid date format'
 	})
 
@@ -135,22 +135,16 @@ export const metadataValueSchema = z.union([
 		.array(z.string().max(255, 'Metadata array string too long'))
 		.max(50, 'Too many metadata array items'),
 	z
-		.record(
-			z.string(),
-			z.string().max(255, 'Nested metadata value too long')
-		)
+		.record(z.string(), z.string().max(255, 'Nested metadata value too long'))
 		.refine(
-			obj => Object.keys(obj).length <= 20,
+			(obj: Record<string, string>) => Object.keys(obj).length <= 20,
 			'Too many nested metadata properties'
 		)
 ])
 
 export const metadataSchema = z
 	.record(z.string().max(100, 'Metadata key too long'), metadataValueSchema)
-	.refine(
-		obj => Object.keys(obj).length <= 50,
-		'Too many metadata properties'
-	)
+	.refine(obj => Object.keys(obj).length <= 50, 'Too many metadata properties')
 
 export const auditFieldsSchema = z.object({
 	createdBy: z
@@ -238,7 +232,7 @@ export const percentageSchema = z
 
 // URL validation
 export const urlSchema = z.string().refine(
-	val => {
+	(val: string) => {
 		try {
 			new URL(val)
 			return true
@@ -281,10 +275,7 @@ export const addressSchema = z.object({
 	city: nonEmptyStringSchema,
 	state: nonEmptyStringSchema,
 	zipCode: z.string().regex(/^\d{5}(-\d{4})?$/, 'Invalid ZIP code format'),
-	country: z
-		.string()
-		.length(2, 'Country code must be 2 letters')
-		.default('US')
+	country: z.string().length(2, 'Country code must be 2 letters').default('US')
 })
 
 // Coordinate validation
@@ -315,10 +306,7 @@ export const filterValueSchema = z.union([
 export const advancedSearchSchema = searchSchema.extend({
 	filters: z
 		.record(z.string().max(100, 'Filter key too long'), filterValueSchema)
-		.refine(
-			obj => Object.keys(obj).length <= 20,
-			'Too many filter properties'
-		)
+		.refine(obj => Object.keys(obj).length <= 20, 'Too many filter properties')
 		.optional(),
 	sort: z.array(sortSchema).max(5, 'Too many sort criteria').optional(),
 	include: z

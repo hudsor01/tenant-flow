@@ -279,8 +279,7 @@ export function getStateRequirements(state: string): StateLeaseRequirements['not
 		entryForInspection: 24,
 		entryForRepairs: 24,
 		monthToMonthTermination: 30,
-		rentIncrease: 30,
-		securityDepositReturn: 30
+		rentIncrease: 30
 	}
 
 	// State-specific overrides
@@ -289,29 +288,25 @@ export function getStateRequirements(state: string): StateLeaseRequirements['not
 			entryForInspection: 24,
 			entryForRepairs: 24,
 			monthToMonthTermination: 30,
-			rentIncrease: 30,
-			securityDepositReturn: 21
+			rentIncrease: 30
 		},
 		NY: {
 			entryForInspection: 24,
 			entryForRepairs: 24,
 			monthToMonthTermination: 30,
-			rentIncrease: 30,
-			securityDepositReturn: 14
+			rentIncrease: 30
 		},
 		TX: {
 			entryForInspection: 24,
 			entryForRepairs: 24,
 			monthToMonthTermination: 30,
-			rentIncrease: 30,
-			securityDepositReturn: 30
+			rentIncrease: 30
 		},
 		FL: {
 			entryForInspection: 12,
 			entryForRepairs: 12,
 			monthToMonthTermination: 15,
-			rentIncrease: 15,
-			securityDepositReturn: 15
+			rentIncrease: 15
 		}
 		// Add more states as needed
 	}

@@ -1,4 +1,4 @@
-import { LoggerService } from '@nestjs/common'
+import type { LoggerService } from '@nestjs/common'
 
 /**
  * Silent logger for tests - prevents console spam during test runs

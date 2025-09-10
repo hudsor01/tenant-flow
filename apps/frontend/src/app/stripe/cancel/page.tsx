@@ -1,11 +1,16 @@
 import { MessageCircle, XCircle } from 'lucide-react'
 import Link from 'next/link'
 import { Suspense } from 'react'
+import { PageLayout } from '@/components/layout/page-layout'
 
 function CancelContent() {
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-100 flex items-center justify-center px-4">
-			<div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
+		<PageLayout 
+			showNavbar={false} 
+			className="bg-gradient-to-br from-red-50 to-orange-100" 
+			containerClass="flex items-center justify-center min-h-screen max-w-md"
+		>
+			<div className="w-full bg-white rounded-2xl shadow-xl p-8 text-center">
 				<div className="mb-6">
 					<XCircle className="mx-auto h-16 w-16 text-red-500" />
 				</div>
@@ -42,7 +47,7 @@ function CancelContent() {
 					</div>
 				</div>
 			</div>
-		</div>
+		</PageLayout>
 	)
 }
 
@@ -50,9 +55,13 @@ export default function CancelPage() {
 	return (
 		<Suspense
 			fallback={
-				<div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-100 flex items-center justify-center">
+				<PageLayout 
+					showNavbar={false} 
+					className="bg-gradient-to-br from-red-50 to-orange-100" 
+					containerClass="flex items-center justify-center min-h-screen"
+				>
 					<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
-				</div>
+				</PageLayout>
 			}
 		>
 			<CancelContent />

@@ -1,20 +1,22 @@
 'use client'
 
 import { LoginLayout } from '@/components/auth/login-layout'
-import { createClient } from '@/utils/supabase/client'
+import { supabaseClient } from '@repo/shared'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 
 export default function SignUpPage() {
 	const router = useRouter()
-	const supabase = createClient()
 
-	const handleSubmit = async (data: {
-		email: string
-		password: string
-		name: string
-	}) => {
+	const handleSubmit = async (data: Record<string, unknown>) => {
 		try {
+			// Type assert the data to the expected shape
+			const { email, password, name } = data as {
+				email: string
+				password: string
+				name: string
+			}
+
 			// Check if we're using placeholder/development credentials
 			const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 			const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -32,12 +34,12 @@ export default function SignUpPage() {
 				return
 			}
 
-			const { data: _data, error } = await supabase.auth.signUp({
-				email: data.email,
-				password: data.password,
+			const { data: _data, error } = await supabaseClient.auth.signUp({
+				email,
+				password,
 				options: {
 					data: {
-						full_name: data.name
+						full_name: name
 					}
 				}
 			})
@@ -87,16 +89,17 @@ export default function SignUpPage() {
 
 	const handleGoogleSignUp = async () => {
 		try {
-			const { data: _oauthData, error } = await supabase.auth.signInWithOAuth({
-				provider: 'google',
-				options: {
-					redirectTo: `${window.location.origin}/auth/oauth?next=/dashboard`,
-					queryParams: {
-						access_type: 'offline',
-						prompt: 'consent'
+			const { data: _oauthData, error } =
+				await supabaseClient.auth.signInWithOAuth({
+					provider: 'google',
+					options: {
+						redirectTo: `${window.location.origin}/auth/oauth?next=/dashboard`,
+						queryParams: {
+							access_type: 'offline',
+							prompt: 'consent'
+						}
 					}
-				}
-			})
+				})
 
 			if (error) {
 				let errorMessage = error.message

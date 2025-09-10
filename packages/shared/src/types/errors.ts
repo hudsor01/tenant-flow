@@ -3,7 +3,8 @@
  * Centralized error handling types for consistent error management
  */
 
-import type { ReactNode } from 'react'
+// React node type definition for error boundaries - avoiding React dependency
+export type ReactNodeType = unknown
 
 // Base error interface
 export interface BaseError {
@@ -150,7 +151,7 @@ export type ErrorHandler = (error: AppError) => void
 export interface ErrorBoundaryProps {
 	fallback?: string | null
 	onError?: ErrorHandler
-	children: ReactNode // React 19 compatible children
+	children: ReactNodeType // React 19 compatible children
 }
 
 // Form error state

@@ -7,221 +7,150 @@ import {
 	Post,
 	Put,
 	Query,
-	UseGuards
+	UseGuards,
+	ParseUUIDPipe,
+	BadRequestException
 } from '@nestjs/common'
-import { PinoLogger } from 'nestjs-pino'
 import { AuthGuard } from '../shared/guards/auth.guard'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
-import type { ValidatedUser } from '@repo/shared/types/auth'
-import { AdminOnly, Public } from '../shared/decorators/auth.decorators'
-import { NotificationsService } from './notifications.service'
-// Ultra-native: Define inline types instead of DTOs
-// Use shared types instead of local interfaces
-import type { GetNotificationOptions, CreateNotificationRequest } from '@repo/shared/types/notifications'
+import { SupabaseService } from '../database/supabase.service'
+import type { ValidatedUser } from '@repo/shared'
+import { AdminOnly } from '../shared/decorators/auth.decorators'
 
+/**
+ * ULTRA-NATIVE Notifications Controller
+ * Uses Supabase directly with native NestJS validation pipes
+ * No service layer wrapper - direct database operations
+ */
 @Controller('notifications')
 @UseGuards(AuthGuard)
 export class NotificationsController {
 	constructor(
-		private readonly notificationsService: NotificationsService,
-		private readonly logger: PinoLogger
-	) {
-		// PinoLogger context handled automatically via app-level configuration
-	}
+		private readonly supabase: SupabaseService
+	) {}
 
 	@Get()
 	async getNotifications(
-		@Query() query: GetNotificationOptions,
-		@CurrentUser() user: ValidatedUser
+		@CurrentUser() user: ValidatedUser,
+		@Query('limit') limit = '10',
+		@Query('offset') offset = '0'
 	) {
-		this.logger.info(`Getting notifications for user ${user.id}`, {
-			userId: user.id,
-			unreadOnly: query.unreadOnly
-		})
+		const { data, error } = await this.supabase
+			.getAdminClient()
+			.from('InAppNotification')
+			.select('*')
+			.eq('userId', user.id)
+			.order('createdAt', { ascending: false })
+			.range(parseInt(offset), parseInt(offset) + parseInt(limit) - 1)
 
-		// For now, only support unread notifications - can be extended later
-		const notifications =
-			await this.notificationsService.getUnreadNotifications(user.id)
-		this.logger.info(
-			`Retrieved ${notifications.length} notifications for user ${user.id}`
-		)
-		return notifications
+		if (error) throw new BadRequestException(error.message)
+		return { notifications: data || [] }
 	}
 
 	@Post()
 	@AdminOnly()
 	async createNotification(
-		@Body() createNotificationDto: CreateNotificationRequest,
-		@CurrentUser() user: ValidatedUser
-	) {
-		const { recipientId, title, message, priority, actionUrl, data } =
-			createNotificationDto
-
-		this.logger.info(
-			`Admin ${user.id} creating notification for user ${recipientId}`,
-			{
-				adminId: user.id,
-				recipientId,
-				title,
-				priority,
-				hasActionUrl: !!actionUrl
-			}
-		)
-
-		try {
-			// For now, we'll create a generic notification
-			// In the future, this could be expanded to handle different types
-			const notification =
-				await this.notificationsService.createMaintenanceNotification(
-					recipientId,
-					title,
-					message,
-					priority,
-					(data!.propertyName as string) || '',
-					(data!.unitNumber as string) || '',
-					data!.maintenanceId as string,
-					actionUrl
-				)
-
-			this.logger.info(`Notification created successfully`, {
-				recipientId,
-				priority,
-				title
-			})
-
-			return notification
-		} catch (error) {
-			this.logger.error(
-				`Failed to create notification for user ${recipientId}`,
-				error
-			)
-			throw error
+		@Body() body: {
+			userId: string;
+			title: string;
+			content: string;
+			type: 'maintenance' | 'lease' | 'payment' | 'system';
+			priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY';
+			actionUrl?: string;
 		}
+	) {
+		const { data, error } = await this.supabase
+			.getAdminClient()
+			.from('InAppNotification')
+			.insert({
+				userId: body.userId,
+				title: body.title,
+				content: body.content,
+				type: body.type,
+				priority: body.priority,
+				actionUrl: body.actionUrl,
+				isRead: false
+			})
+			.select()
+			.single()
+
+		if (error) throw new BadRequestException(error.message)
+		return { notification: data }
 	}
 
 	@Put(':id/read')
 	async markAsRead(
-		@Param('id') notificationId: string,
+		@Param('id', ParseUUIDPipe) id: string,
 		@CurrentUser() user: ValidatedUser
 	) {
-		this.logger.info(
-			`User ${user.id} marking notification ${notificationId} as read`
-		)
+		const { error } = await this.supabase
+			.getAdminClient()
+			.from('InAppNotification')
+			.update({ isRead: true })
+			.eq('id', id)
+			.eq('userId', user.id)
 
-		try {
-			const result = await this.notificationsService.markAsRead(
-				notificationId,
-				user.id
-			)
-			this.logger.info(
-				`Notification ${notificationId} marked as read by user ${user.id}`
-			)
-			return result
-		} catch (error) {
-			this.logger.error(
-				`Failed to mark notification ${notificationId} as read for user ${user.id}`,
-				error
-			)
-			throw error
-		}
+		if (error) throw new BadRequestException(error.message)
+		return { success: true }
 	}
 
 	@Delete(':id')
-	async cancelNotification(
-		@Param('id') notificationId: string,
+	async deleteNotification(
+		@Param('id', ParseUUIDPipe) id: string,
 		@CurrentUser() user: ValidatedUser
 	) {
-		this.logger.info(
-			`User ${user.id} cancelling notification ${notificationId}`
-		)
+		const { error } = await this.supabase
+			.getAdminClient()
+			.from('InAppNotification')
+			.delete()
+			.eq('id', id)
+			.eq('userId', user.id)
 
-		try {
-			const result = await this.notificationsService.cancelNotification(
-				notificationId,
-				user.id
-			)
-			this.logger.info(
-				`Notification ${notificationId} cancelled by user ${user.id}`
-			)
-			return result
-		} catch (error) {
-			this.logger.error(
-				`Failed to cancel notification ${notificationId} for user ${user.id}`,
-				error
-			)
-			throw error
-		}
+		if (error) throw new BadRequestException(error.message)
+		return { success: true }
 	}
 
 	@Post('maintenance')
+	@AdminOnly()
 	async createMaintenanceNotification(
-		@Body() createMaintenanceDto: {
-			ownerId: string
-			title: string
-			description: string
-			priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
-			propertyName: string
-			unitNumber: string
-			maintenanceId?: string
-			actionUrl?: string
-		},
-		@CurrentUser() user: ValidatedUser
-	) {
-		const { ownerId, title, description, priority, propertyName, unitNumber, maintenanceId, actionUrl } = createMaintenanceDto
-
-		this.logger.info(
-			`Creating maintenance notification for user ${ownerId}`,
-			{
-				createdBy: user.id,
-				ownerId,
-				title,
-				priority,
-				propertyName,
-				unitNumber
-			}
-		)
-
-		try {
-			const notification = await this.notificationsService.createMaintenanceNotification(
-				ownerId,
-				title,
-				description,
-				priority,
-				propertyName,
-				unitNumber,
-				maintenanceId,
-				actionUrl
-			)
-
-			this.logger.info(`Maintenance notification created successfully`, {
-				notificationId: notification.id,
-				ownerId,
-				priority
-			})
-
-			return notification
-		} catch (error) {
-			this.logger.error(
-				`Failed to create maintenance notification for user ${ownerId}`,
-				error
-			)
-			throw error
+		@Body() body: {
+			userId: string;
+			maintenanceId: string;
+			propertyName: string;
+			unitNumber: string;
 		}
+	) {
+		const { data, error } = await this.supabase
+			.getAdminClient()
+			.from('InAppNotification')
+			.insert({
+				userId: body.userId,
+				title: 'Maintenance Request Update',
+				content: `Your maintenance request for ${body.propertyName} Unit ${body.unitNumber} has been updated.`,
+				type: 'maintenance',
+				priority: 'MEDIUM',
+				actionUrl: `/maintenance/${body.maintenanceId}`,
+				isRead: false
+			})
+			.select()
+			.single()
+
+		if (error) throw new BadRequestException(error.message)
+		return { notification: data }
 	}
 
 	@Get('priority-info/:priority')
-	@Public()
-	getPriorityInfo(@Param('priority') priority: string) {
-		const priorityEnum = priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
-		return {
-			label: this.notificationsService.getPriorityLabel(priorityEnum),
-			urgent: this.notificationsService.getNotificationUrgency(
-				priorityEnum
-			),
-			timeout:
-				this.notificationsService.getNotificationTimeout(priorityEnum),
-			sendImmediately:
-				this.notificationsService.shouldSendImmediately(priorityEnum)
+	async getPriorityInfo(@Param('priority') priority: string) {
+		const priorities = {
+			LOW: { color: '#6b7280', label: 'Low Priority' },
+			MEDIUM: { color: '#f59e0b', label: 'Medium Priority' },
+			HIGH: { color: '#ef4444', label: 'High Priority' },
+			EMERGENCY: { color: '#dc2626', label: 'Emergency' }
 		}
+
+		const info = priorities[priority.toUpperCase() as keyof typeof priorities]
+		if (!info) throw new BadRequestException('Invalid priority')
+
+		return info
 	}
 }

@@ -25,14 +25,7 @@ import type {
 } from './errors'
 
 export type { _ControllerApiResponse as ControllerApiResponse }
-import type {
-	CheckoutResponse as _CheckoutResponse,
-	PortalResponse as _CreatePortalSessionResponse,
-	TrialResponse as _StartTrialResponse,
-	ApiSubscriptionCreateResponse as _CreateSubscriptionResponse,
-	SubscriptionUpdateResponse as _UpdateSubscriptionResponse,
-	SubscriptionCancelResponse as _CancelSubscriptionResponse
-} from './responses'
+// Response types moved to core.ts - using ApiResponse pattern instead
 
 // Note: Core types (User, Lease, Property, etc.) are exported from their own files
 // Note: Error types are exported from errors.ts
