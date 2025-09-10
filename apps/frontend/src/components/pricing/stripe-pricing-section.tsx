@@ -14,19 +14,38 @@ import {
 	cn, 
 	buttonClasses,
 	cardClasses,
+	animationClasses,
+	badgeClasses,
 	ANIMATION_DURATIONS,
 	TYPOGRAPHY_SCALE
 } from '@/lib/utils'
 import { PLANS } from '@repo/shared'
 import { getStripePriceId } from '@repo/shared/stripe/plans'
 import { useStripe } from '@stripe/react-stripe-js'
-import { Building, Check, Crown, Loader2, Zap, Shield, Star } from 'lucide-react'
+import { 
+	Building, 
+	Check, 
+	Crown, 
+	Loader2, 
+	Zap, 
+	Shield, 
+	Star,
+	TrendingUp,
+	Users,
+	CheckCircle2,
+	ArrowRight,
+	Sparkles,
+	Target
+} from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { useMutation } from '@tanstack/react-query'
 
 interface StripePricingSectionProps {
 	className?: string
+	showTestimonial?: boolean
+	showStats?: boolean
+	compactView?: boolean
 }
 
 // Enhanced plan configuration with Stripe integration
@@ -95,7 +114,12 @@ const enhancedPlans = [
 	}
 ]
 
-export function StripePricingSection({ className }: StripePricingSectionProps) {
+export function StripePricingSection({ 
+	className,
+	showTestimonial = true,
+	showStats = true,
+	compactView = false
+}: StripePricingSectionProps) {
 	const [isYearly, setIsYearly] = useState(false)
 	const stripe = useStripe()
 
@@ -206,53 +230,68 @@ export function StripePricingSection({ className }: StripePricingSectionProps) {
 	return (
 		<section
 			className={cn(
-				'relative py-24 bg-gradient-to-b from-muted/20 to-background',
+				'relative py-24 bg-gradient-to-b from-muted/10 via-background to-muted/5',
+				compactView && 'py-16',
+				animationClasses('fade-in'),
 				className
 			)}
-			style={{
-				animation: `fadeIn ${ANIMATION_DURATIONS.slow} ease-out`
-			}}
 		>
 			<div className="container px-4 mx-auto">
 				{/* Section Header */}
-				<div 
-					className="text-center max-w-4xl mx-auto mb-20"
-					style={{
-						animation: `slideInFromTop ${ANIMATION_DURATIONS.default} ease-out`
-					}}
-				>
+				<div className={cn("text-center max-w-5xl mx-auto", compactView ? "mb-12" : "mb-20", animationClasses('slide-down'))}>
+					{/* Stats Bar */}
+					{showStats && (
+						<div className="flex flex-wrap items-center justify-center gap-6 mb-8 text-sm text-muted-foreground">
+							<div className="flex items-center gap-2">
+								<Users className="h-4 w-4 text-primary" />
+								<span className="font-semibold">10,000+ Property Managers</span>
+							</div>
+							<div className="flex items-center gap-2">
+								<TrendingUp className="h-4 w-4 text-green-600" />
+								<span className="font-semibold">99.9% Uptime</span>
+							</div>
+							<div className="flex items-center gap-2">
+								<Target className="h-4 w-4 text-blue-600" />
+								<span className="font-semibold">50M+ Rent Collected</span>
+							</div>
+						</div>
+					)}
+					
 					<div className="mb-6">
 						<Badge 
 							variant="outline" 
-							className="mb-4 px-4 py-2 text-sm font-semibold border-2 hover:bg-primary/5 transition-colors"
+							className={cn(
+								badgeClasses('outline', 'default'),
+								"mb-4 px-4 py-2 text-sm font-semibold border-2 hover:bg-primary/5 hover:border-primary/30 transition-all hover:scale-105"
+							)}
 							style={{
 								transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
 							}}
 						>
-							<Crown className="w-4 h-4 me-2 text-primary" />
-							Pricing Plans
+							<Sparkles className="w-4 h-4 me-2 text-primary" />
+							Choose Your Plan
 						</Badge>
 					</div>
 
-					<div className="mb-6">
+					<div className="mb-8">
 						<h2 
-							className="font-bold tracking-tight mb-4"
+							className="font-bold tracking-tight mb-4 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent"
 							style={{
-								fontSize: TYPOGRAPHY_SCALE['display-lg'].fontSize,
-								lineHeight: TYPOGRAPHY_SCALE['display-lg'].lineHeight,
+								fontSize: compactView ? TYPOGRAPHY_SCALE['display-xl'].fontSize : TYPOGRAPHY_SCALE['display-lg'].fontSize,
+								lineHeight: compactView ? TYPOGRAPHY_SCALE['display-xl'].lineHeight : TYPOGRAPHY_SCALE['display-lg'].lineHeight,
 								fontWeight: TYPOGRAPHY_SCALE['display-lg'].fontWeight,
 								letterSpacing: TYPOGRAPHY_SCALE['display-lg'].letterSpacing
 							}}
 						>
 							Simple, transparent pricing
 							<span 
-								className="block text-primary/80 font-medium mt-3"
+								className="block text-primary font-medium mt-3"
 								style={{
-									fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize,
-									lineHeight: TYPOGRAPHY_SCALE['heading-lg'].lineHeight
+									fontSize: compactView ? TYPOGRAPHY_SCALE['heading-md'].fontSize : TYPOGRAPHY_SCALE['heading-lg'].fontSize,
+									lineHeight: compactView ? TYPOGRAPHY_SCALE['heading-md'].lineHeight : TYPOGRAPHY_SCALE['heading-lg'].lineHeight
 								}}
 							>
-								that grows with your business
+								that scales with your portfolio
 							</span>
 						</h2>
 					</div>

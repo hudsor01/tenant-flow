@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { cn, cardClasses, SEMANTIC_COLORS, ANIMATION_DURATIONS } from '@/lib/utils'
+import { cn, cardClasses, ANIMATION_DURATIONS } from '@/lib/utils'
 import type { LucideIcon } from 'lucide-react'
 import {
   Card,

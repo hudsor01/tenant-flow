@@ -51,24 +51,23 @@ export type StorageFileType = 'document' | 'image' | 'avatar'
 // WEBSOCKET DOMAIN
 // =============================================================================
 
-export interface WebSocketMessage {
+export interface WebSocketMessage<T = Record<string, string | number | boolean | null>> {
   type: string
-  data: unknown
+  data: T
   timestamp?: string
   userId?: string
 }
 
-export interface MaintenanceUpdateMessage extends WebSocketMessage {
+export interface MaintenanceUpdateMessage extends WebSocketMessage<{
+  id: string
+  type: string
+  status?: string
+  priority?: string
+  unitId?: string
+  assignedTo?: string
+  metadata?: Record<string, string | number | boolean | null>
+}> {
   type: 'maintenance_update'
-  data: {
-    id: string
-    type: string
-    status?: string
-    priority?: string
-    unitId?: string
-    assignedTo?: string
-    metadata?: Record<string, string | number | boolean | null>
-  }
 }
 
 export type TypedWebSocketMessage = MaintenanceUpdateMessage | WebSocketMessage

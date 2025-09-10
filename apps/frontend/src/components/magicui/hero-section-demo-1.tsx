@@ -1,14 +1,10 @@
 'use client'
 
-import { 
-  cn, 
-  ANIMATION_DURATIONS,
-  TYPOGRAPHY_SCALE 
-} from "@/lib/design-system";
+import { ANIMATION_DURATIONS, cn, TYPOGRAPHY_SCALE } from '@/lib/design-system'
 
 export default function HeroSectionOne() {
 	return (
-		<section 
+		<section
 			className="relative mx-auto my-10 flex max-w-7xl flex-col items-center justify-center"
 			aria-labelledby="hero-heading"
 		>
@@ -23,15 +19,15 @@ export default function HeroSectionOne() {
 				<div className="absolute mx-auto h-px w-40 bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
 			</div>
 			<div className="px-4 py-10 md:py-20">
-				<h1 
+				<h1
 					id="hero-heading"
 					className={cn(
-						"relative z-10 mx-auto max-w-4xl text-center font-bold",
-						"text-foreground",
-						"transition-colors duration-300 ease-out",
+						'relative z-10 mx-auto max-w-4xl text-center font-bold',
+						'text-foreground',
+						'transition-colors duration-300 ease-out',
 						// Modern SaaS typography with better responsiveness
-						"text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl",
-						"leading-[0.9] tracking-tight"
+						'text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl',
+						'leading-[0.9] tracking-tight'
 					)}
 					style={{
 						fontSize: TYPOGRAPHY_SCALE['display-2xl'].fontSize,
@@ -46,8 +42,8 @@ export default function HeroSectionOne() {
 							<span
 								key={index}
 								className={cn(
-									"mr-2 inline-block transition-all ease-out",
-									"hover:text-primary hover:scale-105"
+									'mr-2 inline-block transition-all ease-out',
+									'hover:text-primary hover:scale-105'
 								)}
 								style={{
 									animationDelay: `${index * 100}ms`,
@@ -88,26 +84,26 @@ export default function HeroSectionOne() {
 					}}
 					className="relative z-10 mt-8 flex flex-wrap items-center justify-center gap-4"
 				>
-					<button 
+					<button
 						className={cn(
-							"group relative overflow-hidden",
-							"w-full sm:w-60 rounded-xl bg-primary px-8 py-4 font-semibold text-primary-foreground",
-							"transition-all duration-200 ease-out",
-							"hover:scale-[1.02] hover:bg-primary/90 active:scale-[0.98]",
-							"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2",
-							"shadow-lg shadow-primary/25"
+							'group relative overflow-hidden',
+							'w-full sm:w-60 rounded-xl bg-primary px-8 py-4 font-semibold text-primary-foreground',
+							'transition-all duration-200 ease-out',
+							'hover:scale-[1.02] hover:bg-primary/90 active:scale-[0.98]',
+							'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2',
+							'shadow-lg shadow-primary/25'
 						)}
 						aria-label="Start exploring features"
 					>
 						<span className="relative z-10">Explore Now</span>
 					</button>
-					<button 
+					<button
 						className={cn(
-							"group relative overflow-hidden",
-							"w-full sm:w-60 rounded-xl border border-border bg-background px-8 py-4 font-semibold text-foreground",
-							"transition-all duration-200 ease-out",
-							"hover:scale-[1.02] hover:bg-muted active:scale-[0.98]",
-							"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2"
+							'group relative overflow-hidden',
+							'w-full sm:w-60 rounded-xl border border-border bg-background px-8 py-4 font-semibold text-foreground',
+							'transition-all duration-200 ease-out',
+							'hover:scale-[1.02] hover:bg-muted active:scale-[0.98]',
+							'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2'
 						)}
 						aria-label="Contact support team"
 					>
@@ -140,7 +136,7 @@ export default function HeroSectionOne() {
 					</div>
 				</div>
 			</div>
-		</div>
+		</section>
 	)
 }
 

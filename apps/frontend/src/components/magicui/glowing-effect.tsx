@@ -2,8 +2,7 @@
 
 import { memo, useCallback, useEffect, useRef } from "react";
 import { 
-  cn, 
-  ANIMATION_DURATIONS 
+  cn
 } from "@/lib/design-system";
 
 interface GlowingEffectProps {

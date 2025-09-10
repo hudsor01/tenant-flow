@@ -5,10 +5,9 @@ import {
   cn, 
   ANIMATION_DURATIONS
 } from "@/lib/design-system";
-import type { ComponentProps } from "@repo/shared";
 
 export interface ShimmerButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>, ComponentProps {
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   shimmerColor?: string;
   shimmerSize?: string;
   borderRadius?: string;
@@ -20,6 +19,7 @@ export interface ShimmerButtonProps
   reducedMotion?: boolean;
   icon?: React.ReactNode;
   iconPosition?: 'left' | 'right';
+  asChild?: boolean;
 }
 
 const ShimmerButton = React.forwardRef<HTMLButtonElement, ShimmerButtonProps>(
@@ -38,7 +38,8 @@ const ShimmerButton = React.forwardRef<HTMLButtonElement, ShimmerButtonProps>(
       reducedMotion = false,
       icon,
       iconPosition = 'left',
-      disabled,
+      disabled = false,
+      asChild = false,
       ...props
     },
     ref,
@@ -100,21 +101,21 @@ const ShimmerButton = React.forwardRef<HTMLButtonElement, ShimmerButtonProps>(
     // Enhanced size configurations
     const sizes = {
       sm: {
-        base: 'px-4 py-2.5 text-sm',
-        icon: 'w-4 h-4',
-        gap: 'gap-2'
+        base: 'px-4 py-2.5 text-sm' as string,
+        icon: 'w-4 h-4' as string,
+        gap: 'gap-2' as string
       },
       md: {
-        base: 'px-6 py-3 text-base',
-        icon: 'w-5 h-5',
-        gap: 'gap-2.5'
+        base: 'px-6 py-3 text-base' as string,
+        icon: 'w-5 h-5' as string,
+        gap: 'gap-2.5' as string
       },
       lg: {
-        base: 'px-8 py-4 text-lg',
-        icon: 'w-6 h-6',
-        gap: 'gap-3'
+        base: 'px-8 py-4 text-lg' as string,
+        icon: 'w-6 h-6' as string,
+        gap: 'gap-3' as string
       }
-    }
+    } as const
 
     // Intensity configurations for shimmer effect
     const intensityConfig = {
@@ -135,11 +136,48 @@ const ShimmerButton = React.forwardRef<HTMLButtonElement, ShimmerButtonProps>(
       }
     }
 
-    const variantConfig = variants[variant as keyof typeof variants] ?? variants.primary
-    const sizeConfig = sizes[size as keyof typeof sizes] ?? sizes.md
-    const intensitySettings = intensityConfig[intensity as keyof typeof intensityConfig] ?? intensityConfig.normal
+    const variantConfig = variants[variant] || variants.primary
+    const sizeConfig = sizes[size] || sizes.md
+    const intensitySettings = intensityConfig[intensity] || intensityConfig.normal
     const finalBackground = background || variantConfig.background
     const finalShimmerColor = shimmerColor || variantConfig.shimmer
+    
+    // Handle asChild case
+    if (asChild && React.isValidElement(children)) {
+      return React.cloneElement(children as React.ReactElement<any>, {
+        className: cn(
+          "group relative z-0 flex cursor-pointer items-center justify-center overflow-hidden whitespace-nowrap font-semibold",
+          "[background:var(--bg)] [border-radius:var(--radius)]",
+          sizeConfig.base,
+          icon ? sizeConfig.gap : '',
+          iconPosition === 'right' ? "flex-row-reverse" : '',
+          variantConfig.text,
+          variantConfig.shadow,
+          !shouldReduceMotion 
+            ? `transform-gpu transition-all duration-[${ANIMATION_DURATIONS.default}ms] ease-in-out`
+            : `transform-gpu transition-all duration-[${ANIMATION_DURATIONS.default}ms] ease-in-out`,
+          !shouldReduceMotion && "active:translate-y-px hover:scale-[1.02]",
+          "hover:brightness-110",
+          "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary/50",
+          "focus-visible:ring-4 focus-visible:ring-primary/30",
+          disabled && "opacity-50 cursor-not-allowed pointer-events-none",
+          className,
+          (children as any).props.className
+        ),
+        style: {
+          '--bg': finalBackground,
+          '--radius': borderRadius,
+          '--shimmer-color': finalShimmerColor,
+          '--shimmer-size': shimmerSize,
+          '--speed': shimmerDuration,
+          '--spread': shouldReduceMotion ? "0deg" : "90deg",
+          '--shimmer-blur': intensitySettings.blur,
+          '--shimmer-opacity': intensitySettings.opacity,
+          ...((children as any).props.style || {})
+        } as CSSProperties
+      })
+    }
+    
     return (
       <button
         style={

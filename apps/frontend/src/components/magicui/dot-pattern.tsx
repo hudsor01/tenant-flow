@@ -5,7 +5,7 @@ import {
   cn, 
   ANIMATION_DURATIONS 
 } from "@/lib/design-system";
-import type { ComponentProps } from "@repo/shared";
+
 
 interface DotPatternProps extends React.SVGProps<SVGSVGElement> {
   cx?: number | string;

@@ -17,7 +17,6 @@ import {
   buttonClasses, 
   cardClasses, 
   ANIMATION_DURATIONS, 
-  SEMANTIC_COLORS,
   TYPOGRAPHY_SCALE 
 } from '@/lib/utils'
 import { Bot, CreditCard, Figma, Globe, Plus, Smartphone, Eye, EyeOff, Copy, Check } from 'lucide-react'

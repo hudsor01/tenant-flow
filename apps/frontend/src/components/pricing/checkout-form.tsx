@@ -328,34 +328,48 @@ export function CheckoutForm({
 		return (
 			<MagicCard 
 				className={cn(
-					cardClasses(),
-					"w-full max-w-md mx-auto p-6 shadow-xl"
+					cardClasses('elevated'),
+					"w-full max-w-lg mx-auto p-8 shadow-2xl border-2",
+					animationClasses('fade-in')
 				)}
-				style={{
-					animation: `fadeIn ${ANIMATION_DURATIONS.slow} ease-out`
-				}}
 			>
-				<div 
-					className="flex flex-col items-center justify-center space-y-4 py-8"
-					style={{
-						animation: `slideInFromBottom ${ANIMATION_DURATIONS.default} ease-out`
-					}}
-				>
-					<Loader />
-					<div className="text-center space-y-2">
-						<p 
+				<div className="flex flex-col items-center justify-center space-y-6 py-8">
+					<div className="relative">
+						<div className="absolute inset-0 bg-primary/20 rounded-full animate-ping" />
+						<div className="relative bg-primary/10 p-4 rounded-full">
+							<Lock className="h-8 w-8 text-primary animate-pulse" />
+						</div>
+					</div>
+					
+					<div className="text-center space-y-3">
+						<h3 
 							className="font-bold text-foreground"
 							style={{
-								fontSize: TYPOGRAPHY_SCALE['heading-sm'].fontSize,
-								lineHeight: TYPOGRAPHY_SCALE['heading-sm'].lineHeight
+								fontSize: TYPOGRAPHY_SCALE['heading-md'].fontSize,
+								lineHeight: TYPOGRAPHY_SCALE['heading-md'].lineHeight
 							}}
 						>
-							Setting up secure payment
+							Secure Payment Setup
+						</h3>
+						<p className="text-base text-muted-foreground leading-relaxed max-w-sm">
+							Initializing bank-grade encryption for your payment...
 						</p>
-						<p className="text-sm text-muted-foreground leading-relaxed">
-							Initializing payment form...
-						</p>
+						
+						{showTrustSignals && business.trustSignals && (
+							<div className="flex flex-wrap justify-center gap-2 pt-4">
+								{business.trustSignals.map((signal, index) => (
+									<span
+										key={index}
+										className={badgeClasses('secondary', 'sm', 'text-xs font-medium')}
+									>
+										{signal}
+									</span>
+								))}
+							</div>
+						)}
 					</div>
+					
+					<Loader />
 				</div>
 			</MagicCard>
 		)
@@ -458,8 +472,8 @@ export function CheckoutForm({
 		<animated.div style={containerSpring}>
 			<MagicCard 
 				className={cn(
-					cardClasses(),
-					"w-full max-w-md mx-auto relative overflow-hidden shadow-2xl border-2"
+					cardClasses('elevated'),
+					"w-full max-w-lg mx-auto relative overflow-hidden shadow-2xl border-2"
 				)}
 			>
 				<GlowingEffect
@@ -468,29 +482,57 @@ export function CheckoutForm({
 					glow={!isProcessing}
 				/>
 				
-				<CardHeader 
-					className="pb-4"
-					style={{
-						animation: `slideInFromTop ${ANIMATION_DURATIONS.default} ease-out`
-					}}
-				>
-					<div className="flex items-center gap-3">
-						<div className="bg-primary/10 p-2 rounded-lg">
-							<CreditCard className="h-5 w-5 text-primary" />
+				<CardHeader className={cn("pb-6", animationClasses('slide-down'))}>
+					<div className="text-center space-y-4">
+						<div className="flex items-center justify-center gap-3">
+							<div className="bg-primary/10 p-3 rounded-xl">
+								<CreditCard className="h-6 w-6 text-primary" />
+							</div>
+							<CardTitle 
+								className="font-bold tracking-tight"
+								style={{
+									fontSize: TYPOGRAPHY_SCALE['heading-xl'].fontSize,
+									lineHeight: TYPOGRAPHY_SCALE['heading-xl'].lineHeight
+								}}
+							>
+								Secure Checkout
+							</CardTitle>
 						</div>
-						<CardTitle 
-							className="font-bold tracking-tight"
-							style={{
-								fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize,
-								lineHeight: TYPOGRAPHY_SCALE['heading-lg'].lineHeight
-							}}
-						>
-							Complete Payment
-						</CardTitle>
+
+						{/* Plan Summary */}
+						<div className="bg-muted/30 rounded-xl p-4 border">
+							<div className="flex items-center justify-between">
+								<div className="text-left">
+									{planName && (
+										<p className="font-semibold text-foreground">{planName}</p>
+									)}
+									<p className="text-sm text-muted-foreground">{business.name} {business.description && `• ${business.description}`}</p>
+								</div>
+								<div className="text-right">
+									<p className="font-bold text-xl text-primary">{formatAmount(amount)}</p>
+									<p className="text-xs text-muted-foreground">One-time payment</p>
+								</div>
+							</div>
+						</div>
+
+						{/* Features Preview */}
+						{features.length > 0 && (
+							<div className="space-y-2">
+								<p className="text-sm font-medium text-muted-foreground">What's included:</p>
+								<div className="grid grid-cols-1 gap-1">
+									{features.slice(0, 3).map((feature, index) => (
+										<div key={index} className="flex items-center gap-2 text-sm">
+											<CheckCircle2 className="h-3 w-3 text-green-600 flex-shrink-0" />
+											<span className="text-muted-foreground">{feature}</span>
+										</div>
+									))}
+									{features.length > 3 && (
+										<p className="text-xs text-muted-foreground pl-5">+{features.length - 3} more features</p>
+									)}
+								</div>
+							</div>
+						)}
 					</div>
-					<CardDescription className="leading-relaxed text-base mt-2">
-						Secure payment for <span className="font-semibold text-foreground">{business.name}</span> • Total: <span className="font-bold text-primary">{formatAmount(amount)}</span>
-					</CardDescription>
 				</CardHeader>
 
 				<CardContent 
@@ -592,11 +634,51 @@ export function CheckoutForm({
 						</ShimmerButton>
 					</form>
 
-					{/* Security Notice */}
-					<div className="text-center text-xs text-muted-foreground space-y-1">
-						<p>Secured by Stripe • Your payment information is encrypted</p>
-						<p>We never store your card details</p>
-					</div>
+					{/* Enhanced Security Notice & Trust Signals */}
+					{showSecurityNotice && (
+						<div className="space-y-4">
+							<div className="bg-muted/20 rounded-lg p-4 border border-muted/40">
+								<div className="flex items-center justify-center gap-2 mb-3">
+									<Shield className="h-4 w-4 text-green-600" />
+									<span className="text-sm font-semibold text-foreground">Bank-Level Security</span>
+								</div>
+								<div className="grid grid-cols-2 gap-3 text-xs text-muted-foreground">
+									<div className="flex items-center gap-2">
+										<Lock className="h-3 w-3 text-blue-600" />
+										<span>256-bit SSL encryption</span>
+									</div>
+									<div className="flex items-center gap-2">
+										<Shield className="h-3 w-3 text-green-600" />
+										<span>PCI DSS compliant</span>
+									</div>
+									<div className="flex items-center gap-2">
+										<CheckCircle2 className="h-3 w-3 text-blue-600" />
+										<span>Powered by Stripe</span>
+									</div>
+									<div className="flex items-center gap-2">
+										<Users className="h-3 w-3 text-green-600" />
+										<span>Trusted by 10,000+</span>
+									</div>
+								</div>
+							</div>
+							
+							{showTrustSignals && business.trustSignals && (
+								<div className="text-center">
+									<p className="text-xs text-muted-foreground mb-2">Trusted by property managers worldwide</p>
+									<div className="flex flex-wrap justify-center gap-2">
+										{business.trustSignals.slice(0, 2).map((signal, index) => (
+											<span
+												key={index}
+												className={badgeClasses('outline', 'sm', 'text-xs')}
+											>
+												{signal}
+											</span>
+										))}
+									</div>
+								</div>
+							)}
+						</div>
+					)}
 				</CardContent>
 			</MagicCard>
 		</animated.div>

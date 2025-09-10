@@ -7,9 +7,6 @@ import { NumberTicker } from "@/components/magicui/number-ticker"
 import { Loader2, Mail, ArrowLeft, Shield } from 'lucide-react'
 import { 
   cn, 
-  buttonClasses,
-  inputClasses,
-  cardClasses,
   ANIMATION_DURATIONS,
   TYPOGRAPHY_SCALE
 } from "@/lib/utils"
