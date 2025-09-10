@@ -289,8 +289,8 @@ export function extractTailwindClasses(className?: string): string[] {
  * @returns Tailwind theme configuration object
  */
 export function generateTailwindTheme(
-  lightVariables: ThemeCSSVariables,
-  darkVariables: ThemeCSSVariables
+  _lightVariables: ThemeCSSVariables,
+  _darkVariables: ThemeCSSVariables
 ) {
   return {
     extend: {
