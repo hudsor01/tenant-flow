@@ -1,21 +1,27 @@
 import { z } from 'zod'
+import { Constants } from '../types/supabase-generated'
 import {
-	uuidSchema,
 	nonEmptyStringSchema,
 	nonNegativeNumberSchema,
+	requiredString,
 	urlSchema,
-	requiredString
+	uuidSchema
 } from './common'
-import { Constants } from '../types/supabase-generated'
 
 // Maintenance priority enum - uses auto-generated Supabase enums
-export const maintenancePrioritySchema = z.enum(Constants.public.Enums.Priority as readonly [string, ...string[]])
+export const maintenancePrioritySchema = z.enum(
+	Constants.public.Enums.Priority as readonly [string, ...string[]]
+)
 
 // Maintenance status enum - uses auto-generated Supabase enums
-export const maintenanceStatusSchema = z.enum(Constants.public.Enums.RequestStatus as readonly [string, ...string[]])
+export const maintenanceStatusSchema = z.enum(
+	Constants.public.Enums.RequestStatus as readonly [string, ...string[]]
+)
 
 // Maintenance category enum - uses auto-generated Supabase enums
-export const maintenanceCategorySchema = z.enum(Constants.public.Enums.MaintenanceCategory as readonly [string, ...string[]])
+export const maintenanceCategorySchema = z.enum(
+	Constants.public.Enums.MaintenanceCategory as readonly [string, ...string[]]
+)
 
 // Base maintenance request input schema (for forms and API creation)
 export const maintenanceRequestInputSchema = z.object({
@@ -47,19 +53,16 @@ export const maintenanceRequestInputSchema = z.object({
 	images: z.array(urlSchema).optional().default([]),
 
 	// Additional notes
-	notes: z
-		.string()
-		.max(1000, 'Notes cannot exceed 1000 characters')
-		.optional(),
+	notes: z.string().max(1000, 'Notes cannot exceed 1000 characters').optional(),
 
 	// Scheduled/preferred completion date
 	scheduledDate: z
 		.string()
 		.optional()
-		.refine(val => !val || !isNaN(Date.parse(val)), {
+		.refine((val: string | undefined) => !val || !isNaN(Date.parse(val)), {
 			message: 'Please enter a valid scheduled date'
 		})
-		.transform(val => (val ? new Date(val) : undefined)),
+		.transform((val: string | undefined) => (val ? new Date(val) : undefined)),
 
 	// Tenant access info
 	accessInstructions: z
@@ -95,10 +98,12 @@ export const maintenanceRequestUpdateSchema = maintenanceRequestInputSchema
 		completedAt: z
 			.string()
 			.optional()
-			.refine(val => !val || !isNaN(Date.parse(val)), {
+			.refine((val: string | undefined) => !val || !isNaN(Date.parse(val)), {
 				message: 'Please enter a valid completion date'
 			})
-			.transform(val => (val ? new Date(val) : undefined)),
+			.transform((val: string | undefined) =>
+				val ? new Date(val) : undefined
+			),
 		vendorId: uuidSchema.optional(),
 		vendorNotes: z.string().max(1000).optional()
 	})
@@ -115,13 +120,13 @@ export const maintenanceRequestQuerySchema = z.object({
 	dateFrom: z
 		.string()
 		.optional()
-		.refine(val => !val || !isNaN(Date.parse(val)), {
+		.refine((val: string | undefined) => !val || !isNaN(Date.parse(val)), {
 			message: 'Invalid date format'
 		}),
 	dateTo: z
 		.string()
 		.optional()
-		.refine(val => !val || !isNaN(Date.parse(val)), {
+		.refine((val: string | undefined) => !val || !isNaN(Date.parse(val)), {
 			message: 'Invalid date format'
 		}),
 	minCost: nonNegativeNumberSchema.optional(),
@@ -190,20 +195,30 @@ export const maintenanceRequestFormSchema = z
 		estimatedCost: z
 			.string()
 			.optional()
-			.transform(val => (val ? parseFloat(val) : undefined)),
+			.transform((val: string | undefined) =>
+				val ? parseFloat(val) : undefined
+			),
 		scheduledDate: z.string().optional().or(z.literal('')),
 		accessInstructions: z.string().optional(),
 		notes: z.string().optional()
 	})
-	.transform(data => ({
-		...data,
-		priority: data.priority as MaintenancePriorityValidation,
-		category: data.category as MaintenanceCategoryValidation,
-		tenantId: data.tenantId === '' ? undefined : data.tenantId,
-		assignedTo: data.assignedTo === '' ? undefined : data.assignedTo,
-		scheduledDate:
-			data.scheduledDate === '' ? undefined : data.scheduledDate
-	}))
+	.transform(
+		(data: {
+			priority: string
+			category: string
+			tenantId?: string
+			assignedTo?: string
+			scheduledDate?: string
+			[key: string]: unknown
+		}) => ({
+			...data,
+			priority: data.priority as MaintenancePriorityValidation,
+			category: data.category as MaintenanceCategoryValidation,
+			tenantId: data.tenantId === '' ? undefined : data.tenantId,
+			assignedTo: data.assignedTo === '' ? undefined : data.assignedTo,
+			scheduledDate: data.scheduledDate === '' ? undefined : data.scheduledDate
+		})
+	)
 
 export type MaintenanceRequestFormData = z.input<
 	typeof maintenanceRequestFormSchema

@@ -1,4 +1,9 @@
-import { cn } from "@/lib/utils";
+import { 
+  cn, 
+  cardClasses,
+  ANIMATION_DURATIONS,
+  TYPOGRAPHY_SCALE 
+} from "@/lib/design-system";
 import {
   Settings,
   Cloud,

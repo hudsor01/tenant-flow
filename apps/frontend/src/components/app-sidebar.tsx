@@ -48,7 +48,7 @@ const data = {
 			items: [
 				{
 					title: 'Units',
-					url: '/dashboard/units'
+					url: '/dashboard/properties/units'
 				}
 			]
 		},
@@ -99,11 +99,9 @@ const data = {
 	]
 }
 
-interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {}
-
 export const AppSidebar = React.forwardRef<
-	React.ElementRef<typeof Sidebar>,
-	AppSidebarProps
+	React.ComponentRef<typeof Sidebar>,
+	React.ComponentProps<typeof Sidebar>
 >(({ className, ...props }, ref) => {
 	// Enhanced touch event handlers for mobile gesture support
 	const handleTouchStart = React.useCallback((e: React.TouchEvent) => {

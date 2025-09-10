@@ -1,16 +1,18 @@
-"use client";
-
-import { cn } from "@/lib/utils";
+import { 
+  cn, 
+  ANIMATION_DURATIONS 
+} from "@/lib/design-system"
 
 interface BorderBeamProps {
-  className?: string;
-  size?: number;
-  duration?: number;
-  borderWidth?: number;
-  anchor?: number;
-  colorFrom?: string;
-  colorTo?: string;
-  delay?: number;
+  className?: string
+  size?: number
+  duration?: number
+  borderWidth?: number
+  anchor?: number
+  colorFrom?: string
+  colorTo?: string
+  delay?: number
+  variant?: 'primary' | 'accent' | 'rainbow' | 'success' | 'warning' | 'danger'
 }
 
 export const BorderBeam = ({
@@ -19,36 +21,51 @@ export const BorderBeam = ({
   duration = 15,
   anchor = 90,
   borderWidth = 1.5,
-  colorFrom = "#ffaa40",
-  colorTo = "#9c40ff",
+  colorFrom,
+  colorTo,
   delay = 0,
+  variant = 'primary',
 }: BorderBeamProps) => {
+  // Color variants
+  const colorVariants = {
+    primary: { from: 'var(--primary)', to: 'var(--primary-foreground)' },
+    accent: { from: 'var(--accent)', to: 'var(--accent-foreground)' },
+    rainbow: { from: '#ff6b6b', to: '#4ecdc4' },
+    success: { from: '#10b981', to: '#065f46' },
+    warning: { from: '#f59e0b', to: '#92400e' },
+    danger: { from: '#ef4444', to: '#991b1b' },
+  }
+
+  const selectedColors = colorVariants[variant]
+  const finalColorFrom = colorFrom || selectedColors.from
+  const finalColorTo = colorTo || selectedColors.to
+
   return (
     <div
+      style={
+        {
+          "--size": size,
+          "--duration": duration,
+          "--anchor": anchor,
+          "--border-width": borderWidth,
+          "--color-from": finalColorFrom,
+          "--color-to": finalColorTo,
+          "--delay": `-${delay}s`,
+        } as React.CSSProperties
+      }
       className={cn(
         "pointer-events-none absolute inset-0 rounded-[inherit] [border:calc(var(--border-width)*1px)_solid_transparent]",
 
         // mask styles
-        "[background:linear-gradient(var(--angle),transparent_20%,var(--color-from)_50%,var(--color-to)_70%,transparent_80%)_border-box]",
-        "[mask:linear-gradient(#fff_0_0)_padding-box,_linear-gradient(#fff_0_0)]",
-        "[mask-composite:xor]",
+        "![mask-clip:padding-box,border-box] ![mask-composite:intersect] [mask:linear-gradient(transparent,transparent),linear-gradient(white,white)]",
 
         // pseudo styles
-        "before:absolute before:aspect-square before:w-full before:rotate-0 before:animate-border-beam before:[background:conic-gradient(from_calc(270deg-(var(--angle)*0.5)),transparent_0deg,var(--color-from)_calc(var(--angle)*1deg),var(--color-to)_calc(var(--angle)*2deg),transparent_calc(var(--angle)*3deg))] before:[mask:radial-gradient(calc(var(--size)*1px)_at_50%_calc(0px-calc(var(--border-width)*1px)),_#0000_99%,_#000_100%)] before:absolute before:inset-0 before:h-full before:w-full before:opacity-100",
-
-        className
+        "after:absolute after:aspect-square after:w-[calc(var(--size)*1px)] after:animate-border-beam after:[animation-delay:var(--delay)] after:[background:linear-gradient(to_left,var(--color-from),var(--color-to),transparent)] after:[offset-anchor:calc(var(--anchor)*1%)_50%] after:[offset-path:rect(0_auto_auto_0_round_calc(var(--size)*1px))]",
+        
+        // Enhanced styles for better performance
+        "after:will-change-transform after:backface-visibility-hidden",
+        className,
       )}
-      style={
-        {
-          "--size": size,
-          "--duration": `${duration}s`,
-          "--anchor": `${anchor}deg`,
-          "--border-width": borderWidth,
-          "--color-from": colorFrom,
-          "--color-to": colorTo,
-          "--delay": `-${delay}s`,
-        } as React.CSSProperties
-      }
     />
-  );
-};
+  )
+}

@@ -1,20 +1,26 @@
 'use client'
 
-import * as React from 'react'
 import { Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
+import * as React from 'react'
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 interface ModeToggleProps extends React.ComponentProps<typeof Button> {
-  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
-  size?: 'default' | 'sm' | 'lg' | 'icon'
+	variant?:
+		| 'default'
+		| 'destructive'
+		| 'outline'
+		| 'secondary'
+		| 'ghost'
+		| 'link'
+	size?: 'default' | 'sm' | 'lg' | 'icon'
 }
 
 export const ModeToggle = React.forwardRef<
-  React.ElementRef<typeof Button>, 
-  ModeToggleProps
+	React.ComponentRef<typeof Button>,
+	ModeToggleProps
 >(({ className, variant = 'secondary', size = 'icon', ...props }, ref) => {
 	const { setTheme, resolvedTheme } = useTheme()
 
@@ -27,7 +33,7 @@ export const ModeToggle = React.forwardRef<
 			ref={ref}
 			variant={variant}
 			size={size}
-			className={cn("group/toggle size-8", className)}
+			className={cn('group/toggle size-8', className)}
 			onClick={toggleTheme}
 			{...props}
 		>

@@ -1,5 +1,6 @@
 import { Injectable, Optional, InternalServerErrorException } from '@nestjs/common'
 import { PinoLogger } from 'nestjs-pino'
+import type Stripe from 'stripe'
 
 /**
  * Stripe Data Service

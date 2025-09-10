@@ -42,7 +42,7 @@ COPY --from=deps /app ./
 COPY . .
 
 # Remove unnecessary files to reduce build context and layer size
-RUN rm -rf .git .github docs *.md apps/frontend apps/storybook
+RUN rm -rf .git .github docs *.md apps/frontend
 
 # Disable telemetry for faster builds
 ENV TURBO_TELEMETRY_DISABLED=1
@@ -72,7 +72,6 @@ RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-/root/.npm,targ
     npm ci --omit=dev --silent
 
 # ===== RUNTIME STAGE =====
-# Final minimal runtime image with security hardening
 FROM node:24-alpine AS runtime
 
 # Install Puppeteer runtime dependencies for headless Chrome
@@ -97,7 +96,6 @@ RUN addgroup -g 1001 -S nodejs && \
 WORKDIR /app
 
 # Copy production artifacts with correct ownership
-# Using --chown prevents permission issues and follows security best practices
 COPY --from=prod-deps --chown=nodejs:nodejs /app/node_modules ./node_modules
 COPY --from=prod-deps --chown=nodejs:nodejs /app/package*.json ./
 COPY --from=prod-deps --chown=nodejs:nodejs /app/apps/backend/package.json ./apps/backend/
@@ -109,7 +107,6 @@ COPY --from=builder --chown=nodejs:nodejs /app/apps/backend/dist ./apps/backend/
 COPY --from=builder --chown=nodejs:nodejs /app/packages/shared/dist ./packages/shared/dist
 COPY --from=builder --chown=nodejs:nodejs /app/packages/database/dist ./packages/database/dist
 
-# Install curl for healthchecks and utilities
 USER root
 RUN apk add --no-cache curl
 USER nodejs
@@ -123,9 +120,6 @@ ENV NODE_ENV=production \
 # Railway PORT injection with fallback
 ARG PORT=4600
 ENV PORT=${PORT}
-
-# NO HEALTHCHECK - Railway handles this externally via HTTP endpoint
-# The app exposes /health/ping and /health/pressure endpoints natively
 
 # Direct Node.js execution
 CMD ["node", "apps/backend/dist/main.js"]

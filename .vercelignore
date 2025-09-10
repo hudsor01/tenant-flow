@@ -1,80 +1,95 @@
 # Development files
+
 .git
 .github
 .husky
 .vscode
 .idea
-*.log
-*.md
+_.log
+_.md
 !README.md
 .DS_Store
 
 # Build outputs - prevent warning about uploading .next
+
 .next
 **/.next
 **/dist
-**/build
+\*\*/build
 
 # Test files
-**/*.test.*
-**/*.spec.*
-**/*.stories.*
+
+**/_.test._
+**/_.spec._
 **/test-results
 **/playwright-report
-**/coverage
+\*\*/coverage
 cypress
 e2e
 tests
-__tests__
-__mocks__
+**tests**
+**mocks**
 
 # Build tools
+
 .turbo
 .eslintcache
 .prettierignore
 .prettierrc
-eslint.config.*
+eslint.config.\*
 
 # Backend files (not needed for frontend deployment)
+
 apps/backend
 
-# Config packages can be ignored for deployment  
+# Config packages can be ignored for deployment
+
 packages/eslint-config
 packages/prettier-config
 packages/typescript-config
 
 # Keep these packages - they're needed for frontend build:
+
 # packages/shared (required by frontend)
-# packages/database (required by shared) 
+
+# packages/database (required by shared)
+
 # packages/tailwind-config (required by frontend)
+
 # packages/emails (required by frontend for types)
+
 Dockerfile
 railway.toml
 railway.json
 
 # Scripts not needed in production
+
 scripts
 !apps/frontend/scripts/analyze-bundle.js
 
 # Documentation
+
 docs
-*.drawio
-*.svg
-!apps/frontend/public/*.svg
+_.drawio
+_.svg
+!apps/frontend/public/\*.svg
 
 # Other unnecessary files
+
 .env*
 .env.production
 docker-compose*
-Dockerfile*
-*.sh
+Dockerfile\*
+\*.sh
 !apps/frontend/scripts/quick-deploy.sh
 
 # Database files
-*.db
-*.sqlite
+
+_.db
+_.sqlite
 
 # Reduce deployment size
+
 node_modules
 .turbo
 dist/
@@ -82,22 +97,26 @@ build/
 !apps/frontend/dist/
 
 # Package manager files
+
 pnpm-lock.yaml
 yarn.lock
 .pnpm-store
 
 # macOS files
+
 .DS_Store
 
 # IDE files
+
 .idea
 .vscode
-*.sublime-*
+_.sublime-_
 
 # Temporary files
-*.tmp
-*.temp
+
+_.tmp
+_.temp
 .cache
-.flaskenv*
+.flaskenv\*
 !.env.project
 !.env.vault

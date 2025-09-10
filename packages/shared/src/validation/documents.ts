@@ -1,9 +1,9 @@
 import { z } from 'zod'
 import {
-	uuidSchema,
 	nonEmptyStringSchema,
 	nonNegativeNumberSchema,
-	urlSchema
+	urlSchema,
+	uuidSchema
 } from './common'
 
 // Document type enum (should match database enum)
@@ -77,13 +77,13 @@ export const documentQuerySchema = z.object({
 	createdFrom: z
 		.string()
 		.optional()
-		.refine(val => !val || !isNaN(Date.parse(val)), {
+		.refine((val: string | undefined) => !val || !isNaN(Date.parse(val)), {
 			message: 'Invalid date format'
 		}),
 	createdTo: z
 		.string()
 		.optional()
-		.refine(val => !val || !isNaN(Date.parse(val)), {
+		.refine((val: string | undefined) => !val || !isNaN(Date.parse(val)), {
 			message: 'Invalid date format'
 		}),
 	minFileSize: nonNegativeNumberSchema.optional(),

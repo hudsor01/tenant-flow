@@ -668,7 +668,7 @@ h3: 1.5rem (24px)
 
 - **Unit tests**: Individual component logic
 - **Integration tests**: Component interactions
-- **Visual regression**: Storybook snapshots
+- **Visual regression**: Playwright visual testing
 - **Accessibility tests**: ARIA compliance
 
 ### 11.2 User Experience Testing

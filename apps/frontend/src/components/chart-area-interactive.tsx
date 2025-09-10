@@ -5,7 +5,6 @@ import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import {
-  Card,
   CardAction,
   CardContent,
   CardDescription,
@@ -142,7 +141,7 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-interface ChartAreaInteractiveProps extends React.ComponentProps<'div'> {}
+type ChartAreaInteractiveProps = React.ComponentProps<'div'>
 
 export const ChartAreaInteractive = React.forwardRef<HTMLDivElement, ChartAreaInteractiveProps>(
   ({ className, ...props }, ref) => {
@@ -170,7 +169,7 @@ export const ChartAreaInteractive = React.forwardRef<HTMLDivElement, ChartAreaIn
   })
 
   return (
-    <div ref={ref} className={cn("card-elevated @container/card touch-manipulation transform-gpu will-change-transform", className)} {...props}>
+    <div ref={ref} className={cn("dashboard-widget @container/card touch-manipulation transform-gpu will-change-transform", className)} {...props}>
       <CardHeader>
         <CardTitle>Total Visitors</CardTitle>
         <CardDescription>
@@ -216,7 +215,7 @@ export const ChartAreaInteractive = React.forwardRef<HTMLDivElement, ChartAreaIn
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         <ChartContainer
           config={chartConfig}
-          className="aspect-auto h-[250px] w-full touch-manipulation overscroll-contain"
+          className="chart-container-landscape touch-manipulation overscroll-contain"
         >
           <AreaChart data={filteredData}>
             <defs>

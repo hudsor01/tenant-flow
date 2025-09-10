@@ -90,8 +90,8 @@ export function createMockSupabaseService(
 	const mockUserClient = createMockSupabaseClient(userClientReturn)
 
 	return {
-		getAdminClient: jest.fn().mockReturnValue(mockAdminClient),
-		getUserClient: jest.fn().mockReturnValue(mockUserClient),
+		getAdminClient: jest.fn().mockReturnValue(mockAdminClient) as jest.Mock<MockSupabaseClient>,
+		getUserClient: jest.fn().mockReturnValue(mockUserClient) as jest.Mock<MockSupabaseClient>,
 	}
 }
 
@@ -102,7 +102,7 @@ export function configureDashboardRPCMocks(mockSupabaseService: MockSupabaseServ
 	const mockAdminClient = mockSupabaseService.getAdminClient()
 
 	// Mock successful dashboard stats RPC
-	mockAdminClient.rpc.mockImplementation((functionName: string, params: any) => {
+	mockAdminClient.rpc.mockImplementation((functionName: string, _params?: unknown) => {
 		switch (functionName) {
 			case 'get_user_dashboard_stats':
 				return Promise.resolve({
@@ -195,7 +195,7 @@ export function configureDashboardRPCMocks(mockSupabaseService: MockSupabaseServ
 /**
  * Helper to mock RPC errors for testing error scenarios
  */
-export function mockRPCError(mockSupabaseService: MockSupabaseService, functionName: string, error: any) {
+export function mockRPCError(mockSupabaseService: MockSupabaseService, functionName: string, error: unknown) {
 	const mockAdminClient = mockSupabaseService.getAdminClient()
 	
 	mockAdminClient.rpc.mockImplementation((name: string) => {
