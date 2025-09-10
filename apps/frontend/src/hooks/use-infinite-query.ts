@@ -11,10 +11,9 @@ const supabase = supabaseClient
 type TableName = keyof Database['public']['Tables']
 type TableRow<T extends TableName> = Tables<T>
 
-// Simple query modifier function using Supabase's built-in types
-type QueryModifier<_T extends TableName> = (
-  query: unknown
-) => unknown
+// Query modifier that accepts and returns a query builder
+// Using a generic approach that works with the existing supabase client
+type QueryModifier<T extends TableName> = <Q>(query: Q) => Q
 
 interface UseInfiniteQueryProps<T extends TableName> {
   tableName: T
