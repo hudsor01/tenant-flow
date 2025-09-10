@@ -208,8 +208,8 @@ export function FinancialMetricsCards({
   if (isLoading) {
     return (
       <div className={cn("grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6", className)}>
-        {[0, 100, 200, 300].map((delay, index) => (
-          <MetricCardSkeleton key={index} delay={delay} />
+        {[0, 100, 200, 300].map((delay, _index) => (
+          <MetricCardSkeleton key={_index} delay={delay} />
         ))}
       </div>
     );
@@ -303,7 +303,7 @@ export function FinancialMetricsCards({
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-        {metrics.map((metric, index) => (
+        {metrics.map((metric, _index) => (
           <MetricCard key={metric.title} {...metric} />
         ))}
       </div>

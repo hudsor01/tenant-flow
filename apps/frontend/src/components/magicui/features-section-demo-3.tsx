@@ -1,10 +1,7 @@
 'use client'
 
 import { 
-  cn, 
-  cardClasses,
-  ANIMATION_DURATIONS,
-  TYPOGRAPHY_SCALE 
+  cn
 } from '@/lib/design-system'
 import { animated, config, useSpring, useTrail } from '@react-spring/web'
 import { Play, User, CreditCard, Wrench, FileText } from 'lucide-react'

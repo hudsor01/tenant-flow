@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowDownLeft, ArrowUpRight, CalendarCheck, TrendingUp, TrendingDown, DollarSign } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ChartConfig} from "@/components/ui/chart";
@@ -14,12 +14,9 @@ import {
   formatCurrency, 
   ANIMATION_DURATIONS, 
   cn, 
-  cardClasses, 
-  SEMANTIC_COLORS, 
   TYPOGRAPHY_SCALE 
 } from "@/lib/utils";
 import { useFinancialOverview } from "@/hooks/api/financial";
-import { Loader } from "@/components/magicui/loader";
 import { useState, useMemo } from "react";
 
 const chartConfig = {
