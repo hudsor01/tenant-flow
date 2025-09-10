@@ -1,14 +1,13 @@
 "use client";
 
 import { DollarSign, TrendingUp, TrendingDown, BarChart3, PieChart, Target } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { 
   formatCurrency, 
   ANIMATION_DURATIONS, 
   cn, 
-  cardClasses, 
   TYPOGRAPHY_SCALE 
 } from "@/lib/utils";
 import type { DashboardFinancialStats } from "@repo/shared";

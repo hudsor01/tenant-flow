@@ -77,7 +77,7 @@ export function AnimatedGradientText({
     animationDuration: `${2.5 / speed}s`, // Slightly faster animation
     fontSize: TYPOGRAPHY_SCALE[size].fontSize,
     lineHeight: TYPOGRAPHY_SCALE[size].lineHeight,
-    letterSpacing: (TYPOGRAPHY_SCALE[size] as any).letterSpacing || '-0.025em', // Tighter letter spacing
+    letterSpacing: (TYPOGRAPHY_SCALE[size] as { letterSpacing?: string }).letterSpacing || '-0.025em', // Tighter letter spacing
     fontWeight: TYPOGRAPHY_SCALE[size].fontWeight,
    } as React.CSSProperties}
    {...props}
