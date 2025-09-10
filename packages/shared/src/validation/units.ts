@@ -1,15 +1,17 @@
 import { z } from 'zod'
-import {
-	uuidSchema,
-	nonEmptyStringSchema,
-	positiveNumberSchema,
-	nonNegativeNumberSchema,
-	requiredString
-} from './common'
 import { Constants } from '../types/supabase-generated'
+import {
+	nonEmptyStringSchema,
+	nonNegativeNumberSchema,
+	positiveNumberSchema,
+	requiredString,
+	uuidSchema
+} from './common'
 
 // Unit status enum - uses auto-generated Supabase enums
-export const unitStatusSchema = z.enum(Constants.public.Enums.UnitStatus as readonly [string, ...string[]])
+export const unitStatusSchema = z.enum(
+	Constants.public.Enums.UnitStatus as readonly [string, ...string[]]
+)
 
 // Base unit input schema (for forms and API creation)
 export const unitInputSchema = z.object({
@@ -125,27 +127,37 @@ export const unitFormSchema = z
 		bedrooms: z
 			.string()
 			.optional()
-			.transform(val => (val ? parseInt(val, 10) : undefined)),
+			.transform((val: string | undefined) =>
+				val ? parseInt(val, 10) : undefined
+			),
 		bathrooms: z
 			.string()
 			.optional()
-			.transform(val => (val ? parseFloat(val) : undefined)),
+			.transform((val: string | undefined) =>
+				val ? parseFloat(val) : undefined
+			),
 		squareFootage: z
 			.string()
 			.optional()
-			.transform(val => (val ? parseInt(val, 10) : undefined)),
+			.transform((val: string | undefined) =>
+				val ? parseInt(val, 10) : undefined
+			),
 		rent: z
 			.string()
 			.optional()
-			.transform(val => (val ? parseFloat(val) : undefined)),
+			.transform((val: string | undefined) =>
+				val ? parseFloat(val) : undefined
+			),
 		deposit: z
 			.string()
 			.optional()
-			.transform(val => (val ? parseFloat(val) : undefined)),
+			.transform((val: string | undefined) =>
+				val ? parseFloat(val) : undefined
+			),
 		description: z.string().optional(),
 		tenantId: z.string().optional().or(z.literal(''))
 	})
-	.transform(data => ({
+	.transform((data: { tenantId?: string; [key: string]: unknown }) => ({
 		...data,
 		tenantId: data.tenantId === '' ? undefined : data.tenantId
 	}))

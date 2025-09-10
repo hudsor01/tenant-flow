@@ -1,22 +1,86 @@
 import React from "react";
 import { useId } from "react";
+import {
+  cn,
+  cardClasses,
+  ANIMATION_DURATIONS,
+  TYPOGRAPHY_SCALE
+} from "@/lib/design-system";
 
 export default function FeaturesSectionDemo() {
   return (
     <div className="py-20 lg:py-40">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10 md:gap-2 max-w-7xl mx-auto">
-        {grid.map((feature) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10 md:gap-6 max-w-7xl mx-auto px-4">
+        {grid.map((feature, index) => (
           <div
             key={feature.title}
-            className="relative bg-gradient-to-b dark:from-neutral-900 from-neutral-100 dark:to-neutral-950 to-white p-6 rounded-3xl overflow-hidden"
+            className={cn(
+              "group relative overflow-hidden rounded-2xl p-8 transition-all",
+              "bg-gradient-to-br from-white/80 to-gray-50/50 dark:from-gray-900/80 dark:to-gray-800/50",
+              "border border-gray-200/50 dark:border-gray-700/50",
+              "hover:shadow-xl hover:scale-[1.02] hover:border-primary/30",
+              "backdrop-blur-sm",
+              cardClasses('elevated')
+            )}
+            style={{
+              animationDelay: `${index * 100}ms`,
+              transition: `all ${ANIMATION_DURATIONS.default}ms ease-out`
+            }}
           >
             <Grid size={20} />
-            <p className="text-base font-bold text-neutral-800 dark:text-white relative z-20">
+
+            {/* Feature Icon */}
+            <div className={cn(
+              "w-12 h-12 rounded-xl bg-primary/10 dark:bg-primary/20",
+              "flex items-center justify-center mb-6 relative z-20",
+              "group-hover:bg-primary/20 dark:group-hover:bg-primary/30",
+              "transition-colors"
+            )}
+            style={{ transition: `all ${ANIMATION_DURATIONS.fast}ms ease-out` }}
+            >
+              <div className="w-6 h-6 rounded bg-primary/70" />
+            </div>
+
+            <h3 
+              className={cn(
+                "font-bold text-gray-900 dark:text-white relative z-20 mb-3",
+                "group-hover:text-primary dark:group-hover:text-primary",
+                "transition-colors"
+              )}
+              style={{ 
+                fontSize: TYPOGRAPHY_SCALE['body-lg'].fontSize,
+                lineHeight: TYPOGRAPHY_SCALE['body-lg'].lineHeight,
+                fontWeight: TYPOGRAPHY_SCALE['body-lg'].fontWeight,
+                transition: `color ${ANIMATION_DURATIONS.fast}ms ease-out` 
+              }}
+            >
               {feature.title}
-            </p>
-            <p className="text-neutral-600 dark:text-neutral-400 mt-4 text-base font-normal relative z-20">
+            </h3>
+
+            <p 
+              className={cn(
+                "text-gray-600 dark:text-gray-300 relative z-20 leading-relaxed",
+                "group-hover:text-gray-700 dark:group-hover:text-gray-200",
+                "transition-colors"
+              )}
+              style={{ 
+                fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize,
+                lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight,
+                fontWeight: TYPOGRAPHY_SCALE['body-sm'].fontWeight,
+                transition: `color ${ANIMATION_DURATIONS.fast}ms ease-out` 
+              }}
+            >
               {feature.description}
             </p>
+
+            {/* Hover Gradient */}
+            <div className={cn(
+              "absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5",
+              "opacity-0 group-hover:opacity-100 transition-opacity",
+              "pointer-events-none"
+            )}
+            style={{ transition: `opacity ${ANIMATION_DURATIONS.default}ms ease-out` }}
+            />
           </div>
         ))}
       </div>

@@ -1,5 +1,4 @@
-"use client"
-
+import './dashboard.css'
 import type { ReactNode } from 'react'
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
@@ -7,8 +6,6 @@ import {
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar"
-
-import '@/app/globals.css'
 
 export default function DashboardLayout({
 	children

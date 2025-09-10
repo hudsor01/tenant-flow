@@ -8,16 +8,15 @@ import type {
 	ExpenseSummaryResponse,
 	FinancialOverviewResponse,
 	LeaseStatsResponse,
-	TenantStatsResponse,
 	TenantWithLeaseInfo
-} from '@repo/shared/types/common'
-import type { DashboardStats } from '@repo/shared/types/stats'
+} from '@repo/shared'
+import type { DashboardStats, TenantStats } from '@repo/shared'
 
 import type {
 	Tables,
 	TablesInsert,
 	TablesUpdate
-} from '@repo/shared/types/supabase-generated'
+} from '@repo/shared'
 
 // Use native Supabase table types for API operations
 type Lease = Tables<'Lease'>
@@ -121,8 +120,7 @@ export const tenantsApi = {
 		apiClient<TenantWithLeaseInfo[]>(
 			`${API_BASE_URL}/api/v1/tenants${params?.status ? `?status=${encodeURIComponent(params.status)}` : ''}`
 		),
-	stats: () =>
-		apiClient<TenantStatsResponse>(`${API_BASE_URL}/api/v1/tenants/stats`),
+	stats: () => apiClient<TenantStats>(`${API_BASE_URL}/api/v1/tenants/stats`),
 	create: (body: TenantInsert) =>
 		apiClient<Tenant>(`${API_BASE_URL}/api/v1/tenants`, {
 			method: 'POST',
@@ -158,4 +156,74 @@ export const leasesApi = {
 		}),
 	remove: (id: string) =>
 		apiClient<void>(`${API_BASE_URL}/api/v1/leases/${id}`, { method: 'DELETE' })
+}
+
+/**
+ * Authentication API endpoints
+ */
+export const authApi = {
+	register: (data: { email: string; firstName: string; lastName: string; password: string }) =>
+		apiClient<{
+			user: { id: string; email: string; name: string };
+			access_token: string;
+			refresh_token: string;
+		}>(`${API_BASE_URL}/api/v1/auth/register`, {
+			method: 'POST',
+			body: JSON.stringify(data)
+		}),
+	
+	login: (data: { email: string; password: string }) =>
+		apiClient<{
+			access_token: string;
+			refresh_token: string;
+			expires_in: number;
+			user: { id: string; email: string; name?: string };
+		}>(`${API_BASE_URL}/api/v1/auth/login`, {
+			method: 'POST',
+			body: JSON.stringify(data)
+		}),
+	
+	logout: (token: string) =>
+		apiClient<{ success: boolean }>(`${API_BASE_URL}/api/v1/auth/logout`, {
+			method: 'POST',
+			headers: {
+				'Authorization': `Bearer ${token}`
+			}
+		}),
+	
+	refreshToken: (refresh_token: string) =>
+		apiClient<{
+			access_token: string;
+			refresh_token: string;
+			expires_in: number;
+		}>(`${API_BASE_URL}/api/v1/auth/refresh`, {
+			method: 'POST',
+			body: JSON.stringify({ refresh_token })
+		}),
+	
+	getCurrentUser: (token: string) =>
+		apiClient<{ id: string; email: string; name?: string; role?: string }>(`${API_BASE_URL}/api/v1/auth/me`, {
+			headers: {
+				'Authorization': `Bearer ${token}`
+			}
+		})
+}
+
+/**
+ * Auth form draft API for React 19 useFormState integration
+ */
+export const authDraftApi = {
+	save: (data: { email?: string; name?: string; formType: 'signup' | 'login' | 'reset' }) =>
+		apiClient<{ success: boolean; sessionId: string }>(`${API_BASE_URL}/api/v1/auth/draft`, {
+			method: 'POST',
+			body: JSON.stringify(data)
+		}),
+	
+	load: (formType: 'signup' | 'login' | 'reset', sessionId?: string) =>
+		apiClient<{ email?: string; name?: string } | null>(
+			`${API_BASE_URL}/api/v1/auth/draft/${formType}`,
+			sessionId ? {
+				headers: { 'x-session-id': sessionId }
+			} : undefined
+		)
 }

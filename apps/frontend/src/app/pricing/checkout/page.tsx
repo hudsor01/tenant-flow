@@ -9,19 +9,20 @@ import { Label } from '@/components/ui/label'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { PageLayout } from '@/components/layout/page-layout'
 
 export default function CheckoutPage() {
 	const router = useRouter()
 	const [amount, setAmount] = useState<number>(1000) // $10.00 in cents
 	const [showCheckout, setShowCheckout] = useState(false)
 
-	const handleSuccess = (paymentIntent: any) => {
-		console.log('Payment successful:', paymentIntent)
+	const handleSuccess = (_paymentIntent: unknown) => {
+		// Payment successful - navigate to success page
 		router.push('/pricing/success')
 	}
 
-	const handleError = (error: any) => {
-		console.error('Payment failed:', error)
+	const handleError = (_error: unknown) => {
+		// Payment failed - handle error appropriately
 	}
 
 	const formatCurrency = (cents: number) => {
@@ -33,89 +34,85 @@ export default function CheckoutPage() {
 
 	if (showCheckout) {
 		return (
-			<div className="min-h-screen bg-gray-50 py-12 px-4">
-				<div className="max-w-md mx-auto">
-					<div className="mb-6">
-						<Button
-							variant="ghost"
-							onClick={() => setShowCheckout(false)}
-							className="mb-4"
-						>
-							<ArrowLeft className="w-4 h-4 mr-2" />
-							Back
-						</Button>
-					</div>
-					
-					<CheckoutForm
-						amount={amount}
-						currency="usd"
-						metadata={{ testPayment: 'true' }}
-						onSuccess={handleSuccess}
-						onError={handleError}
-					/>
+			<PageLayout containerClass="max-w-md py-12">
+				<div className="mb-6">
+					<Button
+						variant="ghost"
+						onClick={() => setShowCheckout(false)}
+						className="mb-4"
+					>
+						<ArrowLeft className="w-4 h-4 mr-2" />
+						Back
+					</Button>
 				</div>
-			</div>
+				
+				<CheckoutForm
+					amount={amount}
+					currency="usd"
+					metadata={{ testPayment: 'true' }}
+					onSuccess={handleSuccess}
+					onError={handleError}
+				/>
+			</PageLayout>
 		)
 	}
 
 	return (
-		<div className="min-h-screen bg-gray-50 py-12 px-4">
-			<div className="max-w-md mx-auto">
-				<Card>
-					<CardHeader>
-						<CardTitle>Test Stripe Payment</CardTitle>
-						<div className="flex items-center gap-2 text-sm text-gray-600">
-							<Link href="/pricing" className="hover:underline">
-								← Back to Pricing
-							</Link>
-						</div>
-					</CardHeader>
-					<CardContent className="space-y-6">
-						<div className="space-y-2">
-							<Label htmlFor="amount">Payment Amount</Label>
-							<Input
-								id="amount"
-								type="number"
-								value={amount}
-								onChange={(e) => setAmount(Number(e.target.value))}
-								placeholder="Amount in cents (minimum 50)"
-								min={50}
-							/>
-							<p className="text-sm text-gray-600">
-								Enter amount in cents (e.g., 1000 = {formatCurrency(1000)})
-							</p>
-						</div>
+		<PageLayout containerClass="max-w-md py-12">
+			<Card>
+				<CardHeader>
+					<CardTitle>Test Stripe Payment</CardTitle>
+					<div className="flex items-center gap-2 text-sm text-gray-600">
+						<Link href="/pricing" className="hover:underline">
+							← Back to Pricing
+						</Link>
+					</div>
+				</CardHeader>
+				<CardContent className="space-y-6">
+					<div className="space-y-2">
+						<Label htmlFor="amount">Payment Amount</Label>
+						<Input
+							id="amount"
+							type="number"
+							value={amount}
+							onChange={(e) => setAmount(Number(e.target.value))}
+							placeholder="Amount in cents (minimum 50)"
+							min={50}
+						/>
+						<p className="text-sm text-gray-600">
+							Enter amount in cents (e.g., 1000 = {formatCurrency(1000)})
+						</p>
+					</div>
 
-						<div className="bg-blue-50 p-4 rounded-lg">
-							<h3 className="font-semibold text-blue-900 mb-2">Test Payment Details</h3>
-							<div className="text-sm text-blue-800 space-y-1">
-								<p><strong>Amount:</strong> {formatCurrency(amount)}</p>
-								<p><strong>Currency:</strong> USD</p>
-								<p><strong>Test Mode:</strong> Yes</p>
-							</div>
+					<div className="bg-blue-50 p-4 rounded-lg">
+						<h3 className="font-semibold text-blue-900 mb-2">Test Payment Details</h3>
+						<div className="text-sm text-blue-800 space-y-1">
+							<p><strong>Amount:</strong> {formatCurrency(amount)}</p>
+							<p><strong>Currency:</strong> USD</p>
+							<p><strong>Test Mode:</strong> Yes</p>
 						</div>
+					</div>
 
-						<div className="bg-yellow-50 p-4 rounded-lg">
-							<h3 className="font-semibold text-yellow-900 mb-2">Test Card Numbers</h3>
-							<div className="text-sm text-yellow-800 space-y-1">
-								<p><strong>Success:</strong> 4242 4242 4242 4242</p>
-								<p><strong>Decline:</strong> 4000 0000 0000 0002</p>
-								<p><strong>CVV:</strong> Any 3 digits</p>
-								<p><strong>Expiry:</strong> Any future date</p>
-							</div>
+					<div className="bg-yellow-50 p-4 rounded-lg">
+						<h3 className="font-semibold text-yellow-900 mb-2">Test Card Numbers</h3>
+						<div className="text-sm text-yellow-800 space-y-1">
+							<p><strong>Success:</strong> 4242 4242 4242 4242</p>
+							<p><strong>Decline:</strong> 4000 0000 0000 0002</p>
+							<p><strong>CVV:</strong> Any 3 digits</p>
+							<p><strong>Expiry:</strong> Any future date</p>
 						</div>
+					</div>
 
-						<Button
-							onClick={() => setShowCheckout(true)}
-							className="w-full"
-							size="lg"
-							disabled={amount < 50}
-						>
-							Proceed to Payment ({formatCurrency(amount)})
-						</Button>
-					</CardContent>
-				</Card>
-			</div>
-		</div>
+					<Button
+						onClick={() => setShowCheckout(true)}
+						className="w-full"
+						size="lg"
+						disabled={amount < 50}
+					>
+						Proceed to Payment ({formatCurrency(amount)})
+					</Button>
+				</CardContent>
+			</Card>
+		</PageLayout>
 	)
 }

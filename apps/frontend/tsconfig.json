@@ -1,45 +1,8 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
 	"display": "TenantFlow Frontend - Next.js 15 + React 19",
-
+	"extends": "../../packages/typescript-config/next.json",
 	"compilerOptions": {
-		"target": "ES2022",
-		"lib": ["ES2022", "DOM", "DOM.Iterable"],
-		"moduleDetection": "force",
-
-		"resolveJsonModule": true,
-		"allowJs": true,
-		"checkJs": false,
-		"esModuleInterop": true,
-		"allowSyntheticDefaultImports": true,
-		"forceConsistentCasingInFileNames": true,
-		"verbatimModuleSyntax": false,
-		"isolatedModules": true,
-		"incremental": true,
-		"skipLibCheck": true,
-		"skipDefaultLibCheck": true,
-	"jsx": "preserve",
-	"module": "ESNext",
-	"moduleResolution": "node",
-	"strict": true,
-		"noImplicitAny": true,
-		"strictNullChecks": true,
-		"strictFunctionTypes": true,
-		"strictBindCallApply": true,
-		"strictPropertyInitialization": true,
-		"noImplicitThis": true,
-		"useUnknownInCatchVariables": true,
-		"alwaysStrict": true,
-		"noUnusedLocals": false,
-		"noUnusedParameters": false,
-		"exactOptionalPropertyTypes": false,
-		"noImplicitReturns": true,
-		"noFallthroughCasesInSwitch": true,
-		"noUncheckedIndexedAccess": true,
-		"noImplicitOverride": true,
-		"noPropertyAccessFromIndexSignature": false,
-		"allowUnusedLabels": false,
-		"allowUnreachableCode": false,
 		"baseUrl": ".",
 		"plugins": [
 			{
@@ -56,9 +19,7 @@
 			"@repo/shared": ["../../packages/shared/dist/cjs"],
 			"@repo/shared/*": ["../../packages/shared/dist/cjs/*"]
 		},
-		"types": ["node", "react", "react-dom"],
-	"noEmit": true,
-	"allowImportingTsExtensions": false
+		"types": ["node", "react", "react-dom"]
 	},
 	"include": [
 		"next-env.d.ts",
@@ -74,6 +35,7 @@
 		"node_modules",
 		".next",
 		"out",
+		"src/components/ui/chart.tsx",
 		"dist",
 		"build",
 		"scripts/**/*",
@@ -92,8 +54,6 @@
 		"jest.config.js",
 		"vitest.config.production.ts",
 		"playwright.config.ts"
-		,"**/*.stories.tsx",
-		"**/*.stories.mdx"
 	],
 	"references": [
 		{

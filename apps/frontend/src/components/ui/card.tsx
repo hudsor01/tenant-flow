@@ -1,15 +1,54 @@
 import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority"
 
-import { cn } from "@/lib/utils"
+import { cn, cardClasses, ANIMATION_DURATIONS, SEMANTIC_COLORS } from "@/lib/utils"
 
-function Card({ className, ...props }: React.ComponentProps<"div">) {
+const cardVariants = cva(
+  "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border shadow-sm",
+  {
+    variants: {
+      variant: {
+        default: "py-6",
+        elevated: "py-6 shadow-lg hover:shadow-xl transition-shadow",
+        interactive: "py-6 hover:shadow-md transition-all hover:scale-[1.01] cursor-pointer",
+        premium: "py-6 border-gradient bg-gradient-to-br from-card via-card to-accent/5 shadow-lg",
+        success: "py-6 border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-900/20",
+        warning: "py-6 border-amber-200 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-900/20",
+        error: "py-6 border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-900/20",
+      },
+      size: {
+        default: "p-6",
+        sm: "p-4",
+        lg: "p-8",
+        xl: "p-10",
+      },
+      padding: {
+        none: "p-0",
+        sm: "p-4",
+        default: "p-6", 
+        lg: "p-8",
+      }
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+)
+
+type CardProps = React.ComponentProps<"div"> & VariantProps<typeof cardVariants>
+
+function Card({ className, variant, size, padding, ...props }: CardProps) {
   return (
     <div
       data-slot="card"
-      className={cn(
-        "bg-gradient-to-br from-card via-background to-card/90 text-card-foreground flex flex-col gap-6 rounded-xl border-2 border-border/50 hover:border-primary/20 py-6 shadow-sm hover:shadow-lg transition-all duration-300 ease-out backdrop-blur-sm relative overflow-hidden group",
-        className
-      )}
+      className={cn(cardVariants({ variant, size, padding }), className)}
+      style={{
+        transition: variant === 'interactive' || variant === 'elevated' 
+          ? `all ${ANIMATION_DURATIONS.default} ease-out`
+          : undefined,
+        ...((props as any).style || {})
+      }}
       {...props}
     />
   )
@@ -89,4 +128,6 @@ export {
   CardAction,
   CardDescription,
   CardContent,
+  cardVariants,
+  type CardProps,
 }

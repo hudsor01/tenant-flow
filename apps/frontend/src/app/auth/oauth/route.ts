@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { supabaseAdmin } from '@repo/shared'
+import { supabaseClient } from '@repo/shared'
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
@@ -13,7 +13,7 @@ export async function GET(request: Request) {
   }
 
   if (code) {
-    const { error } = await supabaseAdmin.auth.exchangeCodeForSession(code)
+    const { error } = await supabaseClient.auth.exchangeCodeForSession(code)
     
     if (!error) {
       const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer

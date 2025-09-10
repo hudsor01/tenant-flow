@@ -58,7 +58,7 @@ export default function TenantsPage() {
 			<div className="grid grid-cols-1 gap-4 px-4 lg:px-6 md:grid-cols-4">
 				<MetricsCard
 					title="Total Tenants"
-					value={statsData.totalTenants}
+					value={statsData.totalTenants ?? 0}
 					description="All registered"
 					icon={Users}
 					colorVariant="property"
@@ -66,7 +66,7 @@ export default function TenantsPage() {
 
 				<MetricsCard
 					title="Current Payments"
-					value={statsData.currentPayments}
+					value={statsData.currentPayments ?? 0}
 					status="Up to date"
 					statusIcon={TrendingUp}
 					icon={CreditCard}
@@ -75,7 +75,7 @@ export default function TenantsPage() {
 
 				<MetricsCard
 					title="Late Payments"
-					value={statsData.latePayments}
+					value={statsData.latePayments ?? 0}
 					description="Need attention"
 					icon={CreditCard}
 					colorVariant="warning"
@@ -83,7 +83,7 @@ export default function TenantsPage() {
 
 				<MetricsCard
 					title="Avg Monthly Rent"
-					value={formatCurrency(statsData.avgRent)}
+					value={formatCurrency(statsData.avgRent ?? 0)}
 					description="Per tenant average"
 					icon={TrendingUp}
 					colorVariant="revenue"

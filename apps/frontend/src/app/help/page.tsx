@@ -1,10 +1,11 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { HelpCircle, Mail, Book, MessageCircle } from "lucide-react"
+import { PageLayout } from "@/components/layout/page-layout"
 
 export default function HelpPage() {
   return (
-    <div className="container max-w-4xl py-8">
+    <PageLayout containerClass="max-w-4xl py-8">
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-2">
           <h1 className="text-3xl font-bold">Get Help</h1>
@@ -88,6 +89,6 @@ export default function HelpPage() {
           </Card>
         </div>
       </div>
-    </div>
+    </PageLayout>
   )
 }

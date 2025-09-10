@@ -42,7 +42,7 @@ fi
 print_status "Checking lease generator files..."
 REQUIRED_FILES=(
     "apps/frontend/src/components/lease-generator/lease-form-wizard.tsx"
-    "apps/frontend/src/components/lease-generator/lease-preview.tsx" 
+    "apps/frontend/src/components/lease-generator/lease-preview.tsx"
     "apps/backend/src/leases/lease-generator.controller.ts"
     "apps/backend/src/pdf/lease-pdf.service.ts"
     "packages/shared/src/types/lease-generator.types.ts"
@@ -105,7 +105,7 @@ if command -v docker &> /dev/null; then
         exit 1
     }
     print_success "Docker build passed"
-    
+
     # Clean up test image
     docker rmi tenantflow-lease-test || print_warning "Failed to clean up test Docker image"
 else
@@ -116,7 +116,7 @@ fi
 print_status "Checking if backend is running..."
 if curl -s http://localhost:3001/health/ping > /dev/null 2>&1; then
     print_status "Backend is running, testing API endpoints..."
-    
+
     # Test lease validation endpoint
     print_status "Testing lease validation endpoint..."
     VALIDATION_RESPONSE=$(curl -s -X POST http://localhost:3001/api/lease/validate \
@@ -125,7 +125,7 @@ if curl -s http://localhost:3001/health/ping > /dev/null 2>&1; then
             "property": {
                 "address": {
                     "street": "123 Test St",
-                    "city": "San Francisco", 
+                    "city": "San Francisco",
                     "state": "CA",
                     "zipCode": "94102"
                 },
@@ -139,7 +139,7 @@ if curl -s http://localhost:3001/health/ping > /dev/null 2>&1; then
                 "rentAmount": 300000
             }
         }' || echo '{"error": "API call failed"}')
-    
+
     if echo "$VALIDATION_RESPONSE" | grep -q '"valid"'; then
         print_success "Lease validation endpoint working"
     else
@@ -185,7 +185,7 @@ print_success "All lease generator tests passed!"
 echo ""
 echo "Production Readiness Checklist:"
 echo "SUCCESS: TypeScript compilation"
-echo "SUCCESS: ESLint validation" 
+echo "SUCCESS: ESLint validation"
 echo "SUCCESS: Backend build"
 echo "SUCCESS: Frontend build"
 if command -v docker &> /dev/null; then
@@ -201,4 +201,3 @@ echo "3. Run E2E tests in staging environment"
 echo "4. Monitor performance and error rates in production"
 echo ""
 echo "For E2E tests, run: npm run test:e2e"
-echo "For Storybook, run: npm run storybook"

@@ -12,7 +12,7 @@ const userData = {
   avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=TenantFlow",
 }
 
-interface SiteHeaderProps extends React.ComponentProps<'header'> {}
+type SiteHeaderProps = React.ComponentProps<'header'>
 
 export const SiteHeader = React.forwardRef<HTMLElement, SiteHeaderProps>(
   ({ className, ...props }, ref) => {

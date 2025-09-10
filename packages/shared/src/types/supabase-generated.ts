@@ -1307,6 +1307,27 @@ export type Database = {
           },
         ]
       }
+      processed_stripe_events: {
+        Row: {
+          event_type: string
+          id: string
+          processed_at: string | null
+          stripe_event_id: string
+        }
+        Insert: {
+          event_type: string
+          id?: string
+          processed_at?: string | null
+          stripe_event_id: string
+        }
+        Update: {
+          event_type?: string
+          id?: string
+          processed_at?: string | null
+          stripe_event_id?: string
+        }
+        Relationships: []
+      }
       Property: {
         Row: {
           address: string
@@ -2260,6 +2281,10 @@ export type Database = {
         }
         Returns: Json
       }
+      create_performance_indexes: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       create_property: {
         Args: {
           p_address: string
@@ -2355,12 +2380,36 @@ export type Database = {
         Args: { sql_query: string }
         Returns: Json
       }
+      get_dashboard_financial_stats: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
+      get_dashboard_metrics: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
       get_dashboard_stats: {
         Args: { user_id_param: string } | { user_id_param: string }
         Returns: Json
       }
+      get_database_performance_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      get_expense_summary: {
+        Args: { p_user_id: string; p_year?: number }
+        Returns: Json
+      }
       get_expiring_leases: {
         Args: { p_days?: number; p_user_id: string }
+        Returns: Json
+      }
+      get_financial_overview: {
+        Args: { p_user_id: string; p_year?: number }
+        Returns: Json
+      }
+      get_invoice_statistics: {
+        Args: { p_user_id: string }
         Returns: Json
       }
       get_lease_by_id: {
@@ -2383,6 +2432,10 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: Json
       }
+      get_properties_with_stats: {
+        Args: { p_search?: string; p_status?: string; p_user_id: string }
+        Returns: Json
+      }
       get_property_by_id: {
         Args: { p_property_id: string; p_user_id: string }
         Returns: Json
@@ -2392,6 +2445,10 @@ export type Database = {
         Returns: Json
       }
       get_property_units: {
+        Args: { p_property_id: string; p_user_id: string }
+        Returns: Json
+      }
+      get_property_with_stats: {
         Args: { p_property_id: string; p_user_id: string }
         Returns: Json
       }
@@ -2496,6 +2553,10 @@ export type Database = {
       }
       get_unit_by_id: {
         Args: { p_unit_id: string; p_user_id: string }
+        Returns: Json
+      }
+      get_unit_statistics: {
+        Args: { p_user_id: string }
         Returns: Json
       }
       get_unit_stats: {
@@ -2664,6 +2725,14 @@ export type Database = {
           p_unit_number?: string
           p_user_id: string
         }
+        Returns: Json
+      }
+      urlencode: {
+        Args: { input: string }
+        Returns: string
+      }
+      verify_stripe_webhook: {
+        Args: { p_payload: string; p_signature: string }
         Returns: Json
       }
     }

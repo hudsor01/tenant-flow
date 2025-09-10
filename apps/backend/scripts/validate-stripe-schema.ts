@@ -1,5 +1,6 @@
-import 'dotenv/config'
 import pg from 'pg'
+
+// Environment variables are loaded via Doppler when script is run with 'doppler run --'
 
 /**
  * Validate Stripe Schema Creation

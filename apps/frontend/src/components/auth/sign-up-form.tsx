@@ -1,23 +1,26 @@
 'use client'
 
 import * as React from 'react'
+import { useDeferredValue, startTransition, useState, useEffect } from 'react'
 import { z } from 'zod'
-import { cn } from "@/lib/utils"
+import { 
+  cn, 
+  buttonClasses,
+  inputClasses,
+  cardClasses,
+  ANIMATION_DURATIONS,
+  TYPOGRAPHY_SCALE
+} from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
+import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { Badge } from "@/components/ui/badge"
+import { useFormWithDraft } from '@/hooks/use-form-draft'
+import { authApi } from '@/lib/api-client'
+
+// React 19 2025 Pattern: Native optimization with mount-aware hydration
 
 // Sign up form validation schema
 const SignUpSchema = z.object({
@@ -41,49 +44,158 @@ const SignUpSchema = z.object({
 
 type SignUpData = z.infer<typeof SignUpSchema>
 
+// Real production signup function
+const submitSignUp = async (data: SignUpData): Promise<void> => {
+  // Parse the full name into first and last name
+  const nameParts = data.name.trim().split(' ')
+  const firstName = nameParts[0] || ''
+  const lastName = nameParts.slice(1).join(' ') || ''
+
+  const response = await authApi.register({
+    email: data.email,
+    firstName,
+    lastName,
+    password: data.password
+  })
+
+  // Store tokens in secure storage (you might want to use a proper auth store)
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('access_token', response.access_token)
+    localStorage.setItem('refresh_token', response.refresh_token)
+  }
+}
+
 interface SignUpFormProps extends Omit<React.ComponentProps<'div'>, 'onSubmit'> {
-  onSubmit?: (data: SignUpData) => void | Promise<void>
+  onSubmit?: (data: SignUpData) => Promise<void>
   onLogin?: () => void
   onGoogleSignUp?: () => void | Promise<void>
 }
 
 export const SignUpForm = React.forwardRef<HTMLDivElement, SignUpFormProps>(
   ({ className, onSubmit, onLogin, onGoogleSignUp, ...props }, ref) => {
-  const [showPassword, setShowPassword] = React.useState(false)
-  const form = useForm<z.infer<typeof SignUpSchema>>({
-    resolver: zodResolver(SignUpSchema),
-    defaultValues: {
-      name: '',
-      email: '',
-      password: '',
-    },
+  // React 19 2025 Pattern: Mount-aware hydration
+  const [mounted, setMounted] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+
+  // React 19 native form state with backend draft persistence
+  const {
+    formData,
+    updateField,
+    handleSubmit,
+    isSubmitting,
+    submitError,
+    isHydrated: _isHydrated,
+    draft
+  } = useFormWithDraft('signup', onSubmit || submitSignUp, {
+    name: '',
+    email: '',
+    password: ''
   })
 
-  const handleSubmit = async (data: SignUpData) => {
-    try {
-      await onSubmit?.(data)
-    } catch (error) {
-      console.error('Sign up failed:', error)
+  // React 19: Deferred values for validation (non-urgent updates)
+  const deferredFormData = useDeferredValue(formData)
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
+  const [validationStatus, setValidationStatus] = useState<'idle' | 'validating' | 'valid' | 'invalid'>('idle')
+
+  // Modern 2025 hydration pattern
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // React 19: startTransition for non-urgent validation
+  useEffect(() => {
+    if (!deferredFormData.name && !deferredFormData.email && !deferredFormData.password) {
+      setValidationStatus('idle')
+      return
     }
+
+    setValidationStatus('validating')
+    
+    startTransition(() => {
+      const result = SignUpSchema.safeParse(deferredFormData)
+      
+      if (result.success) {
+        setValidationErrors({})
+        setValidationStatus('valid')
+      } else {
+        const errors: Record<string, string> = {}
+        result.error.issues.forEach((err: { path: unknown[]; message: string }) => {
+          if (err.path.length > 0) {
+            errors[err.path[0] as string] = err.message
+          }
+        })
+        setValidationErrors(errors)
+        setValidationStatus('invalid')
+      }
+    })
+  }, [deferredFormData])
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    await handleSubmit(formData)
+  }
+
+  // React Compiler automatically optimizes these handlers
+  const handleGoogleSignup = async () => {
+    if (onGoogleSignUp) {
+      try {
+        await onGoogleSignUp()
+      } catch (error) {
+        console.error('Google signup failed:', error)
+      }
+    }
+  }
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(prev => !prev)
+  }
+
+  // Prevent hydration mismatch with mount check
+  if (!mounted) {
+    return (
+      <div ref={ref} className={cn("space-y-6", className)} {...props}>
+        <div className="text-center space-y-2">
+          <h1 className="text-2xl font-bold tracking-tight">Create your account</h1>
+          <p className="text-muted-foreground text-sm text-balance leading-relaxed">
+            Loading form...
+          </p>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div ref={ref} className={cn("space-y-6", className)} {...props}>
-      <div className="text-center space-y-2">
-        <h1 className="text-2xl font-bold tracking-tight">Create your account</h1>
-        <p className="text-muted-foreground text-sm text-balance leading-relaxed">
-          Enter your details below to create your account
-        </p>
-      </div>
+
+      {/* React 19 validation status indicator */}
+      {validationStatus !== 'idle' && (
+        <div className="flex items-center justify-center gap-2 p-3 bg-gray-50 rounded-lg">
+          <Badge variant={
+            validationStatus === 'valid' ? 'default' :
+            validationStatus === 'invalid' ? 'destructive' :
+            'secondary'
+          }>
+            {validationStatus === 'validating' && <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin mr-1" />}
+            {validationStatus === 'valid' && <CheckCircle2 className="h-3 w-3 mr-1" />}
+            {validationStatus === 'invalid' && <AlertCircle className="h-3 w-3 mr-1" />}
+            Validation: {validationStatus}
+          </Badge>
+          {draft.hasData && (
+            <Badge variant="outline">
+              Draft Saved
+            </Badge>
+          )}
+        </div>
+      )}
       
       {onGoogleSignUp && (
         <>
           <Button
             type="button"
             variant="outline"
-            onClick={onGoogleSignUp}
+            onClick={handleGoogleSignup}
             className="w-full transition-all duration-200 hover:bg-gray-50 border-gray-200"
-            disabled={form.formState.isSubmitting}
+            disabled={isSubmitting}
           >
             <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
               <path
@@ -119,103 +231,114 @@ export const SignUpForm = React.forwardRef<HTMLDivElement, SignUpFormProps>(
         </>
       )}
       
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Full Name *</FormLabel>
-                <FormControl>
-                  <Input 
-                    type="text" 
-                    placeholder="John Doe" 
-                    autoComplete="name"
-                    {...field}
-                    aria-required
-                  />
-                </FormControl>
-                <FormDescription className="sr-only">
-                  Enter your full name
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
+      <form onSubmit={handleFormSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="name">
+            Full Name *
+            {formData.name !== deferredFormData.name && (
+              <span className="text-xs text-gray-400 ml-2">(typing...)</span>
             )}
+          </Label>
+          <Input 
+            id="name"
+            type="text" 
+            placeholder="John Doe" 
+            autoComplete="name"
+            aria-required
+            value={formData.name}
+            onChange={(e) => updateField('name', e.target.value)}
+            disabled={isSubmitting}
           />
-          
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email *</FormLabel>
-                <FormControl>
-                  <Input 
-                    type="email" 
-                    placeholder="m@example.com" 
-                    autoComplete="email"
-                    {...field}
-                    aria-required
-                  />
-                </FormControl>
-                <FormDescription className="sr-only">
-                  Enter your email address
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
+          <p className="text-sm text-muted-foreground sr-only">
+            Enter your full name
+          </p>
+          {validationErrors.name && (
+            <div className="text-sm text-red-600">{validationErrors.name}</div>
+          )}
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="email">
+            Email *
+            {formData.email !== deferredFormData.email && (
+              <span className="text-xs text-gray-400 ml-2">(typing...)</span>
             )}
+          </Label>
+          <Input 
+            id="email"
+            type="email" 
+            placeholder="m@example.com" 
+            autoComplete="email"
+            aria-required
+            value={formData.email}
+            onChange={(e) => updateField('email', e.target.value)}
+            disabled={isSubmitting}
           />
-          
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Password *</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <Input 
-                      type={showPassword ? "text" : "password"} 
-                      autoComplete="new-password"
-                      className="pr-10"
-                      placeholder="Create a strong password"
-                      {...field}
-                      aria-required
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                      onClick={() => setShowPassword(!showPassword)}
-                      aria-label={showPassword ? "Hide password" : "Show password"}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
-                </FormControl>
-                <FormDescription>
-                  Must be at least 8 characters with uppercase, lowercase, number, and special character
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
+          <p className="text-sm text-muted-foreground sr-only">
+            Enter your email address
+          </p>
+          {validationErrors.email && (
+            <div className="text-sm text-red-600">{validationErrors.email}</div>
+          )}
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="password">
+            Password *
+            {formData.password !== deferredFormData.password && (
+              <span className="text-xs text-gray-400 ml-2">(typing...)</span>
             )}
-          />
-          
-          <Button 
-            type="submit" 
-            className="w-full transition-all duration-200 shadow-sm hover:shadow-md"
-            disabled={form.formState.isSubmitting}
-          >
-            {form.formState.isSubmitting ? 'Creating account...' : 'Create Account'}
-          </Button>
-        </form>
-      </Form>
+          </Label>
+          <div className="relative">
+            <Input 
+              id="password"
+              type={showPassword ? "text" : "password"} 
+              autoComplete="new-password"
+              className="pr-10"
+              placeholder="Create a strong password"
+              aria-required
+              value={formData.password}
+              onChange={(e) => updateField('password', e.target.value)}
+              disabled={isSubmitting}
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+              onClick={togglePasswordVisibility}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Must be at least 8 characters with uppercase, lowercase, number, and special character
+          </p>
+          {validationErrors.password && (
+            <div className="text-sm text-red-600">{validationErrors.password}</div>
+          )}
+        </div>
+        
+        {/* Submission error display */}
+        {submitError && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+            {submitError}
+          </div>
+        )}
+        
+        <Button 
+          type="submit" 
+          className="w-full transition-all duration-200 shadow-sm hover:shadow-md"
+          disabled={isSubmitting || validationStatus === 'invalid'}
+        >
+          {isSubmitting ? 'Creating account...' : 'Create Account'}
+        </Button>
+      </form>
       
       <div className="text-center text-sm">
         Already have an account?{" "}

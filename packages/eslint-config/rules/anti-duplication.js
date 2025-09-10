@@ -5,8 +5,8 @@
  * Use this config when you want strict anti-duplication checking.
  */
 
+import antiDuplicationPlugin from '../../../.eslint/plugins/anti-duplication.js'
 import baseConfig from '../base.js'
-import antiDuplicationRules from './anti-duplication.js'
 
 export default [
 	// Include all base configurations first
@@ -16,7 +16,7 @@ export default [
 	{
 		name: 'anti-duplication/plugin-registration',
 		plugins: {
-			'anti-duplication': antiDuplicationRules
+			'anti-duplication': antiDuplicationPlugin
 		}
 	},
 
@@ -25,6 +25,10 @@ export default [
 		name: 'anti-duplication/typescript-rules',
 		files: ['**/*.ts', '**/*.tsx'],
 		rules: {
+			// Basic ESLint rules for duplication detection
+			'no-duplicate-imports': 'error',
+			'prefer-const': 'error',
+
 			// Function duplication detection (warning level to start)
 			'anti-duplication/no-duplicate-function-implementations': [
 				'warn',
@@ -78,7 +82,6 @@ export default [
 			'**/*.spec.tsx',
 			'**/*.test.ts',
 			'**/*.test.tsx',
-			'**/*.stories.tsx',
 			'**/generated/**',
 			'**/icons/**'
 		],
@@ -94,7 +97,7 @@ export default [
 	{
 		name: 'anti-duplication/no-wrapper-components',
 		files: ['apps/frontend/src/components/**/*.{ts,tsx}'],
-		excludedFiles: ['**/*.stories.tsx', '**/generated/**', '**/icons/**'],
+		excludedFiles: ['**/generated/**', '**/icons/**'],
 		rules: {
 			'anti-duplication/no-wrapper-only': [
 				'error',

@@ -5,13 +5,9 @@
  * Usage: npm run auth:health
  */
 
-import { config } from 'dotenv'
-import { resolve } from 'path'
 import { logger } from '@repo/shared'
 
-// Load environment variables
-config({ path: resolve(process.cwd(), '.env.local') })
-config({ path: resolve(process.cwd(), '.env') })
+// Environment variables are loaded via Doppler when script is run with 'doppler run --'
 
 // Type definitions for health check response
 interface HealthCheckResponse {

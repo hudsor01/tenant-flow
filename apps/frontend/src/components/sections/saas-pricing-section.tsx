@@ -1,8 +1,6 @@
 'use client'
 
-import { BlurFade } from '@/components/magicui/blur-fade'
-import { BorderBeam } from '@/components/magicui/border-beam'
-import { ShimmerButton } from '@/components/magicui/shimmer-button'
+import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { cn } from '@/lib/utils'
 import {
@@ -133,66 +131,56 @@ export function SaasPricingSection({ className }: SaasPricingSectionProps) {
 		<section
 			className={cn('relative py-32 surface-glow overflow-hidden', className)}
 		>
-			{/* Enhanced Premium background elements */}
-			<div className="absolute inset-0 bg-gradient-to-br from-blue-50/20 via-transparent to-purple-50/20 dark:from-blue-950/10 dark:to-purple-950/10" />
-			<div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[1000px] bg-gradient-to-r from-blue-400/8 to-purple-400/8 rounded-full blur-3xl animate-pulse-glow" />
+			{/* Sophisticated neutral background elements */}
+			<div className="absolute inset-0 bg-neutral-gradient opacity-20 dark:opacity-10" />
+			<div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[1000px] bg-charcoal-subtle rounded-full blur-3xl animate-pulse-glow opacity-30" />
 
 			<div className="container relative px-4 mx-auto max-w-7xl">
 				{/* Enhanced Premium Section Header */}
 				<div className="text-center max-w-4xl mx-auto mb-20">
-					<BlurFade delay={0.1} inView>
-						<div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50 border border-blue-200/50 dark:border-blue-800/50 mb-8 animate-fade-in-up">
-							<Sparkles className="w-4 h-4 text-blue-600 animate-spin-around" />
-							<span className="text-sm font-medium text-gradient-primary">
-								Trusted by 10,000+ property managers
-							</span>
-						</div>
-					</BlurFade>
+					<div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-slate-50 to-stone-50 dark:from-slate-900/50 dark:to-stone-900/50 border border-slate-200/50 dark:border-slate-700/50 mb-8 animate-fade-in-up">
+						<Sparkles className="w-4 h-4 text-slate-600 animate-spin-around" />
+						<span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+							Trusted by 10,000+ property managers
+						</span>
+					</div>
 
-					<BlurFade delay={0.2} inView>
+					
 						<h2 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight mb-6 animate-fade-in-scale">
-							<span className="text-gradient-primary">Simple pricing,</span>
+							<span className="text-slate-800 dark:text-slate-200">Simple pricing,</span>
 							<br />
-							<span className="text-gradient-energy">
+							<span className="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent">
 								extraordinary results
 							</span>
 						</h2>
-					</BlurFade>
+					
 
-					<BlurFade delay={0.3} inView>
+					
 						<p className="text-xl text-slate-600 dark:text-slate-400 leading-relaxed mb-12 max-w-3xl mx-auto animate-slide-up">
 							Join thousands of property managers who have transformed their
 							business with our all-in-one platform. Start free, scale
 							effortlessly.
 						</p>
-					</BlurFade>
+					
 				</div>
 
 				{/* Enhanced Premium Pricing Grid */}
 				<div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-20">
 					{pricingPlans.map((plan, index) => (
-						<BlurFade key={index} delay={0.1 + index * 0.1} inView>
-							<div
-								className={cn(
-									'relative h-full transition-all duration-500 hover:scale-[1.02] group gpu-accelerated',
-									plan.popular ? 'card-elevated-gradient' : 'card-glass'
-								)}
-							>
+						<div
+							key={index}
+							className={cn(
+								'relative h-full transition-all duration-500 hover:scale-[1.02] group gpu-accelerated',
+								plan.popular ? 'card-elevated-gradient' : 'card-glass'
+							)}
+						>
 								{plan.popular && (
-									<>
-										<BorderBeam
-											size={300}
-											duration={12}
-											delay={9}
-											className="opacity-60"
-										/>
-										<div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10 animate-bounce-in">
-											<div className="inline-flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-sm bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0 shadow-lg shadow-blue-500/30 animate-pulse-glow">
-												<Sparkles className="w-3 h-3" />
-												{plan.badge}
-											</div>
+									<div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10 animate-bounce-in">
+										<div className="inline-flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-sm bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0 shadow-lg shadow-blue-500/30 animate-pulse-glow">
+											<Sparkles className="w-3 h-3" />
+											{plan.badge}
 										</div>
-									</>
+									</div>
 								)}
 
 								<div className="p-8">
@@ -281,17 +269,10 @@ export function SaasPricingSection({ className }: SaasPricingSectionProps) {
 
 									<div className="px-8 pb-8">
 										{plan.popular ? (
-											<ShimmerButton
-												shimmerColor="#ffffff"
-												shimmerSize="0.05em"
-												shimmerDuration="3s"
-												borderRadius="12px"
-												background="linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)"
-												className="w-full h-12 text-white font-semibold text-base shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300 animate-bounce-in"
-											>
+											<Button className="w-full h-12 text-white font-semibold text-base shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300 animate-bounce-in bg-gradient-to-r from-blue-500 to-purple-600">
 												{plan.cta}
 												<ArrowRight className="w-4 h-4 ml-2" />
-											</ShimmerButton>
+											</Button>
 										) : (
 											<button
 												className={cn(
@@ -310,12 +291,12 @@ export function SaasPricingSection({ className }: SaasPricingSectionProps) {
 									</div>
 								</div>
 							</div>
-						</BlurFade>
+						
 					))}
 				</div>
 
 				{/* Enhanced Premium Billing Toggle */}
-				<BlurFade delay={0.4} inView>
+				
 					<div className="flex items-center justify-center gap-6 mb-4 animate-slide-up">
 						<span
 							className={cn(
@@ -353,10 +334,10 @@ export function SaasPricingSection({ className }: SaasPricingSectionProps) {
 					<p className="text-sm text-slate-500 dark:text-slate-400 animate-fade-in">
 						14-day free trial • No credit card required • Cancel anytime
 					</p>
-				</BlurFade>
+				
 
 				{/* Enhanced Premium Trust Indicators */}
-				<BlurFade delay={0.7} inView>
+				
 					<div className="text-center mb-20">
 						<div className="flex flex-wrap items-center justify-center gap-8 mb-12">
 							{trustIndicators.map((indicator, index) => (
@@ -375,10 +356,10 @@ export function SaasPricingSection({ className }: SaasPricingSectionProps) {
 							))}
 						</div>
 					</div>
-				</BlurFade>
+				
 
 				{/* Enhanced Premium Enterprise Features */}
-				<BlurFade delay={0.8} inView>
+				
 					<div className="surface-glow rounded-3xl border border-slate-200/50 dark:border-slate-700/50 p-12 mb-20 animate-zoom-in">
 						<div className="text-center mb-12">
 							<div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-500/25 animate-rippling">
@@ -410,10 +391,10 @@ export function SaasPricingSection({ className }: SaasPricingSectionProps) {
 							))}
 						</div>
 					</div>
-				</BlurFade>
+				
 
 				{/* Enhanced FAQ Teaser */}
-				<BlurFade delay={0.9} inView>
+				
 					<div className="text-center mt-16 animate-slide-up">
 						<p className="text-muted-foreground mb-6 text-lg">
 							Questions about our pricing?
@@ -430,10 +411,10 @@ export function SaasPricingSection({ className }: SaasPricingSectionProps) {
 							</button>
 						</div>
 					</div>
-				</BlurFade>
+				
 
 				{/* Enhanced Premium Final CTA */}
-				<BlurFade delay={0.9} inView>
+				
 					<div className="text-center animate-zoom-in">
 						<div className="surface-glow rounded-3xl border border-blue-200/50 dark:border-blue-800/50 p-12">
 							<h3 className="text-3xl font-bold mb-4 text-gradient-energy">
@@ -444,17 +425,10 @@ export function SaasPricingSection({ className }: SaasPricingSectionProps) {
 								operations and increased profitability
 							</p>
 							<div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-								<ShimmerButton
-									shimmerColor="#ffffff"
-									shimmerSize="0.05em"
-									shimmerDuration="3s"
-									borderRadius="12px"
-									background="linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)"
-									className="px-8 py-4 text-white font-semibold text-lg shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300 animate-rippling"
-								>
+								<Button className="px-8 py-4 text-white font-semibold text-lg shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300 animate-rippling bg-gradient-to-r from-blue-500 to-purple-600">
 									Start Your Free Trial
 									<ArrowRight className="w-5 h-5 ml-2" />
-								</ShimmerButton>
+								</Button>
 								<button
 									className="button-secondary px-8 py-4 text-lg animate-bounce-in"
 									style={{ animationDelay: '0.2s' }}
@@ -467,7 +441,7 @@ export function SaasPricingSection({ className }: SaasPricingSectionProps) {
 							</p>
 						</div>
 					</div>
-				</BlurFade>
+				
 			</div>
 		</section>
 	)

@@ -9,7 +9,7 @@
  */
 
 import baseConfig from '@repo/eslint-config/base'
-import antiDuplicationRules from '@repo/eslint-config/rules/anti-duplication'
+import antiDuplicationPlugin from '../../.eslint/plugins/anti-duplication.js'
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
 
 export default [
@@ -18,7 +18,7 @@ export default [
 	{
 		name: 'frontend/anti-duplication-plugin',
 		plugins: {
-			'anti-duplication': antiDuplicationRules
+			'anti-duplication': antiDuplicationPlugin
 		}
 	},
 	{
@@ -28,7 +28,6 @@ export default [
 			'src/components/tenants/__tests__/**',
 			'src/hooks/api/__tests__/**',
 			'tests/**', // All test files outside src directory
-			'vitest.config.production.ts',
 			'src/lib/auth/__tests__/**',
 			'src/smoke.spec.tsx',
 			'src/test/**',
@@ -41,7 +40,6 @@ export default [
 			'jest.config.js',
 			'eslint.config.mjs',
 			'next-sitemap.config.js',
-			'vitest.config.ts',
 			'playwright.config.ts',
 			'scripts/**',
 			'playwright-report/**',
@@ -125,8 +123,8 @@ export default [
 			'@typescript-eslint/require-await': 'off'
 		}
 	},
-  {
-    name: 'frontend/tests',
+	{
+		name: 'frontend/tests',
 		files: [
 			'**/*.test.ts',
 			'**/*.test.tsx',
@@ -143,7 +141,6 @@ export default [
 			'@typescript-eslint/no-unsafe-return': 'off',
 			'@typescript-eslint/no-unsafe-argument': 'off',
 			'no-console': 'off'
-    }
-  }
-  
+		}
+	}
 ]

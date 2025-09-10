@@ -57,7 +57,7 @@ export class PropertiesService {
 	async findAll(
 		userId: string,
 		query: { search: string | null; limit: number; offset: number }
-	) {
+	): Promise<PropertyWithUnits[]> {
 		const { data, error } = await this.supabaseService
 			.getAdminClient()
 			.rpc('get_user_properties', {
@@ -85,7 +85,7 @@ export class PropertiesService {
 
 		// Data comes with ALL metrics pre-calculated from DB
 		// NO business logic transformations allowed here
-		return data || []
+		return (data as unknown as PropertyWithUnits[]) || []
 	}
 
 	/**
@@ -261,26 +261,21 @@ export class PropertiesService {
 	}
 
 	/**
-	 * Get all properties with their units and statistics
-	 * Uses RPC function for ALL calculations - ULTRA-NATIVE
+	 * Get all properties with their units and statistics using RPC
+	 * ALL business logic is in the database - NO calculations here
 	 */
 	async findAllWithUnits(
 		userId: string,
 		query: { search: string | null; limit: number; offset: number }
 	): Promise<PropertyWithUnits[]> {
-		// TODO: Replace with RPC call 'get_properties_with_units' when migration 20250902_missing_rpc_functions.sql is applied
-		// Using direct query fallback until RPC function exists - maintains consistent error handling pattern
-		
 		const { data, error } = await this.supabaseService
 			.getAdminClient()
-			.from('Property')
-			.select(`
-				id, name, address, city, state, zipCode, description,
-				propertyType, createdAt, updatedAt, ownerId, imageUrl
-			`)
-			.eq('ownerId', userId)
-			.order('createdAt', { ascending: false })
-			.range(query.offset, query.offset + query.limit - 1)
+			.rpc('get_user_properties', {
+				p_user_id: userId,
+				p_search: query.search || undefined,
+				p_limit: query.limit,
+				p_offset: query.offset
+			})
 
 		if (error) {
 			this.logger.error(
@@ -293,28 +288,13 @@ export class PropertiesService {
 					userId,
 					query
 				},
-				'Failed to get properties with units'
+				'Failed to get properties with units via RPC'
 			)
-			throw new BadRequestException('Failed to retrieve properties')
+			throw new BadRequestException('Failed to retrieve properties with units')
 		}
 
-		// Transform data to match PropertyWithUnits interface
-		// TODO: Replace with direct RPC return when function is available
-		return (data || []).map(property => ({
-			...property,
-			// Calculated metrics will come directly from RPC when available
-			totalUnits: 0,
-			occupiedUnits: 0,
-			vacantUnits: 0,
-			maintenanceUnits: 0,
-			occupancyRate: 0,
-			monthlyRevenue: 0,
-			potentialRevenue: 0,
-			revenueUtilization: 0,
-			averageRentPerUnit: 0,
-			maintenanceRequests: 0,
-			openMaintenanceRequests: 0,
-			units: [] // Empty units array for now
-		})) as PropertyWithUnits[]
+		// Data comes with ALL metrics and units pre-calculated from DB
+		// NO business logic transformations allowed here
+		return (data as unknown as PropertyWithUnits[]) || []
 	}
 }

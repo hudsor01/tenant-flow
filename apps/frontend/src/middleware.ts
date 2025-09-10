@@ -1,17 +1,34 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { updateSession } from '@/utils/supabase/middleware'
+import { supabaseClient } from '@repo/shared/lib/supabase-client'
 
 export async function middleware(request: NextRequest) {
-  const { supabaseResponse, user } = await updateSession(request)
+  const response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  })
+
+  try {
+    // Get the current session using the shared client
+    const {
+      data: { session },
+      error,
+    } = await supabaseClient.auth.getSession()
+
+    const user = error ? null : session?.user ?? null
+    
+    if (error) {
+      console.error('[Middleware] Session error:', error)
+    }
 
   const pathname = request.nextUrl.pathname
 
   // Debug logging in development
   if (process.env.NODE_ENV === 'development') {
-    console.log(`[Middleware] ${pathname} - User: ${user ? user.email : 'None'}`)
+    console.info(`[Middleware] ${pathname} - User: ${user ? user.email : 'None'}`)
   }
 
-  // Define protected routes - all dashboard routes require authentication
+  // Define protected routes - these require authentication
   const protectedRoutes = ['/dashboard']
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
 
@@ -26,7 +43,7 @@ export async function middleware(request: NextRequest) {
     loginUrl.searchParams.set('redirectTo', pathname)
     
     if (process.env.NODE_ENV === 'development') {
-      console.log(`[Middleware] Redirecting to login: ${loginUrl}`)
+      console.info(`[Middleware] Redirecting to login: ${loginUrl}`)
     }
     
     return NextResponse.redirect(loginUrl)
@@ -37,17 +54,21 @@ export async function middleware(request: NextRequest) {
     const dashboardUrl = new URL('/dashboard', request.url)
     
     if (process.env.NODE_ENV === 'development') {
-      console.log(`[Middleware] Authenticated user on auth page, redirecting to dashboard: ${dashboardUrl}`)
+      console.info(`[Middleware] Authenticated user on auth page, redirecting to dashboard: ${dashboardUrl}`)
     }
     
     return NextResponse.redirect(dashboardUrl)
   }
 
   if (process.env.NODE_ENV === 'development' && user && isProtectedRoute) {
-    console.log(`[Middleware] Allowing authenticated access to ${pathname}`)
+    console.info(`[Middleware] Allowing authenticated access to ${pathname}`)
   }
 
-  return supabaseResponse
+  return response
+  } catch (error) {
+    console.error('[Middleware] Unexpected error:', error)
+    return response
+  }
 }
 
 export const config = {

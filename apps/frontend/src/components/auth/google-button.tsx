@@ -2,7 +2,12 @@
 
 import { forwardRef } from "react"
 import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import { 
+  cn, 
+  buttonClasses,
+  ANIMATION_DURATIONS,
+  TYPOGRAPHY_SCALE
+} from "@/lib/utils"
 import { Loader2 } from "lucide-react"
 
 interface GoogleButtonProps extends React.ComponentProps<typeof Button> {
@@ -19,13 +24,16 @@ export const GoogleButton = forwardRef<HTMLButtonElement, GoogleButtonProps>(
         type="button"
         variant="outline"
         className={cn(
-          "w-full relative overflow-hidden",
-          "transition-all duration-200 ease-out",
-          "hover:bg-gray-50 hover:shadow-md hover:scale-[1.01]",
-          "active:scale-[0.99] active:shadow-sm",
-          "border-gray-200 dark:border-gray-700",
-          "focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
+          buttonClasses('outline', 'default'),
+          "w-full relative overflow-hidden h-12 rounded-10px",
+          `transition-all duration-[${ANIMATION_DURATIONS.default}] ease-out`,
+          "hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-red-50/30 dark:hover:from-blue-900/20 dark:hover:to-red-900/10",
+          "hover:shadow-lg hover:shadow-blue-500/10 hover:scale-[1.02]",
+          "active:scale-[0.98] active:shadow-md",
+          "border-2 border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600",
+          "focus:ring-3 focus:ring-blue-500/20 focus:ring-offset-2 dark:focus:ring-offset-gray-900",
           "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none",
+          "group",
           className
         )}
         disabled={isLoading || props.disabled}
@@ -33,17 +41,36 @@ export const GoogleButton = forwardRef<HTMLButtonElement, GoogleButtonProps>(
       >
         <span className="flex items-center justify-center gap-3 relative z-10">
           {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <div className="relative">
+              <Loader2 className="h-5 w-5 animate-spin text-gray-500" />
+              <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-blue-500 animate-spin opacity-30" />
+            </div>
           ) : (
-            <HighResGoogleIcon />
+            <div className="transform group-hover:scale-110 transition-transform duration-200">
+              <HighResGoogleIcon />
+            </div>
           )}
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+          <span 
+            className={cn(
+              "font-semibold text-gray-700 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-gray-100",
+              `transition-colors duration-[${ANIMATION_DURATIONS.fast}]`
+            )}
+            style={{
+              fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize,
+              lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight,
+              fontWeight: TYPOGRAPHY_SCALE['body-sm'].fontWeight
+            }}
+          >
             {isLoading ? loadingText : children}
           </span>
         </span>
         
-        {/* Subtle hover effect background */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-50/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300" />
+        {/* Enhanced gradient hover effect */}
+        <div className={cn(
+          "absolute inset-0 bg-gradient-to-r from-blue-500/5 via-red-500/5 to-yellow-500/5",
+          "opacity-0 group-hover:opacity-100",
+          `transition-opacity duration-[${ANIMATION_DURATIONS.default}ms]`
+        )} />
       </Button>
     )
   }

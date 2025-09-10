@@ -1,15 +1,15 @@
 'use client'
 
 import {
-	LayoutDashboard,
 	Database,
-	FileText,
+	FileBarChart,
 	FileEdit,
+	FileText,
 	FolderOpen,
 	HelpCircle,
 	Home,
+	LayoutDashboard,
 	List,
-	FileBarChart,
 	Search,
 	Settings,
 	Users
@@ -54,7 +54,7 @@ const data = {
 		},
 		{
 			title: 'Units',
-			url: '/dashboard/units',
+			url: '/dashboard/properties/units',
 			icon: List
 		},
 		{

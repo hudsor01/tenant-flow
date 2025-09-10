@@ -3,11 +3,10 @@
 import { ArrowRight, CheckCircle, Sparkles, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
 import { BlurFade } from "@/components/magicui/blur-fade"
 import { ShimmerButton } from "@/components/magicui/shimmer-button"
 import { BorderBeam } from "@/components/magicui/border-beam"
-import Particles from "@/components/magicui/particles"
-import { cn } from "@/lib/utils"
 
 interface SaasCtaSectionProps {
   className?: string
@@ -34,13 +33,6 @@ export function SaasCtaSection({ className }: SaasCtaSectionProps) {
     )}>
       {/* Background Effects */}
       <div className="absolute inset-0 bg-grid-small-black/[0.02] dark:bg-grid-small-white/[0.02]" />
-      <Particles
-        className="absolute inset-0"
-        quantity={50}
-        ease={80}
-        color="#64748b"
-        refresh
-      />
       
       <div className="container px-4 mx-auto relative z-10">
         <div className="max-w-4xl mx-auto text-center">

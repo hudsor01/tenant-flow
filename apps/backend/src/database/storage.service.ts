@@ -5,7 +5,7 @@ import {
 import { PinoLogger } from 'nestjs-pino'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@repo/shared/types/supabase-generated'
-import type { StorageUploadResult, FileUploadOptions, StorageEntityType, StorageFileType } from '@repo/shared/types/storage'
+import type { StorageUploadResult, FileUploadOptions, StorageEntityType, StorageFileType } from '@repo/shared/types/domain'
 import * as path from 'path'
 import { SupabaseService } from './supabase.service'
 
@@ -28,13 +28,16 @@ export class StorageService {
 	 * Validate and sanitize file path to prevent path traversal attacks
 	 */
 	private validateFilePath(filePath: string): string {
-		// Remove any path traversal attempts
-		const sanitized = filePath.replace(/\.\./g, '').replace(/\/\//g, '/')
+		// First check for path traversal attempts BEFORE sanitizing
+		if (filePath.includes('..') || filePath === '..' || filePath.startsWith('../')) {
+			throw new BadRequestException('Invalid file path detected')
+		}
 
-		// Normalize the path and ensure it doesn't escape the intended directory
+		// Remove double slashes and normalize
+		const sanitized = filePath.replace(/\/\//g, '/')
 		const normalized = path.normalize(sanitized)
 
-		// Reject paths that try to go outside the storage root
+		// Additional check after normalization
 		if (
 			normalized.startsWith('../') ||
 			normalized.includes('/../') ||

@@ -6,7 +6,13 @@ import { ShimmerButton } from '@/components/magicui/shimmer-button'
 import { ArrowRight, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import type { HeroVariant } from '@/types/marketing'
-import { cn } from '@/lib/utils'
+import { 
+  cn, 
+  buttonClasses,
+  cardClasses,
+  ANIMATION_DURATIONS,
+  TYPOGRAPHY_SCALE 
+} from '@/lib/utils'
 
 export interface HeroSectionProps extends React.ComponentProps<'section'> {
   variant?: HeroVariant;

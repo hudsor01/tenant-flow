@@ -1,7 +1,7 @@
 'use client'
 
 import { supabaseClient } from '@repo/shared'
-import { useEffect, useRef, useSyncExternalStore } from 'react'
+import { useInfiniteQuery as useTanStackInfiniteQuery } from '@tanstack/react-query'
 import type { Database, Tables } from '@repo/shared'
 import { logger } from '@repo/shared'
 
@@ -23,146 +23,79 @@ interface UseInfiniteQueryProps<T extends TableName> {
   trailingQuery?: QueryModifier<T>
 }
 
-interface StoreState<TData> {
+interface InfiniteQueryPage<TData> {
   data: TData[]
   count: number
-  isSuccess: boolean
-  isLoading: boolean
-  isFetching: boolean
-  error: Error | null
-  hasInitialFetch: boolean
+  nextCursor?: number
 }
 
-type Listener = () => void
-
-function createStore<TData extends TableRow<T>, T extends TableName>(
-  props: UseInfiniteQueryProps<T>
-) {
-  const { tableName, columns = '*', pageSize = 20, trailingQuery } = props
-
-  let state: StoreState<TData> = {
-    data: [],
-    count: 0,
-    isSuccess: false,
-    isLoading: false,
-    isFetching: false,
-    error: null,
-    hasInitialFetch: false,
-  }
-
-  const listeners = new Set<Listener>()
-
-  const notify = () => {
-    listeners.forEach((listener) => listener())
-  }
-
-  const setState = (newState: Partial<StoreState<TData>>) => {
-    state = { ...state, ...newState }
-    notify()
-  }
-
-  const fetchPage = async (skip: number) => {
-    if (state.hasInitialFetch && (state.isFetching || state.count <= state.data.length)) return
-
-    setState({ isFetching: true })
-
-    let query = supabase.from(tableName).select(columns, { count: 'exact' })
-
-    if (trailingQuery) {
-      query = trailingQuery(query) as typeof query
-    }
-    const { data: newData, count, error } = await query.range(skip, skip + pageSize - 1)
-
-    if (error) {
-      logger.error({ error: error.message, table: tableName }, 'An unexpected error occurred')
-      setState({ error })
-    } else {
-      const deduplicatedData = ((newData || []) as TData[]).filter(
-        (item) => !state.data.find((old) => 
-          'id' in old && 'id' in item && old.id === item.id
-        )
-      )
-
-      setState({
-        data: [...state.data, ...deduplicatedData],
-        count: count || 0,
-        isSuccess: true,
-        error: null,
-      })
-    }
-    setState({ isFetching: false })
-  }
-
-  const fetchNextPage = async () => {
-    if (state.isFetching) return
-    await fetchPage(state.data.length)
-  }
-
-  const initialize = async () => {
-    setState({ isLoading: true, isSuccess: false, data: [] })
-    await fetchNextPage()
-    setState({ isLoading: false, hasInitialFetch: true })
-  }
-
-  return {
-    getState: () => state,
-    subscribe: (listener: Listener) => {
-      listeners.add(listener)
-      return () => listeners.delete(listener)
-    },
-    fetchNextPage,
-    initialize,
-  }
-}
-
-// Empty initial state to avoid hydration errors.
-const initialState = {
-  data: [],
-  count: 0,
-  isSuccess: false,
-  isLoading: false,
-  isFetching: false,
-  error: null,
-  hasInitialFetch: false,
-}
-
+/**
+ * Native TanStack Query infinite query for Supabase tables
+ * Replaces custom implementation with native TanStack features:
+ * - Automatic caching and stale-while-revalidate
+ * - Built-in error boundaries and retry logic  
+ * - Native loading and fetching states
+ * - Optimistic updates and cache management
+ * - Background refetch and focus management
+ */
 function useInfiniteQuery<
   TData extends TableRow<T>,
   T extends TableName = TableName,
 >(props: UseInfiniteQueryProps<T>) {
-  const storeRef = useRef(createStore<TData, T>(props))
+  const { tableName, columns = '*', pageSize = 20, trailingQuery } = props
 
-  const state = useSyncExternalStore(
-    storeRef.current.subscribe,
-    () => storeRef.current.getState(),
-    () => initialState as StoreState<TData>
-  )
+  const query = useTanStackInfiniteQuery({
+    queryKey: ['infinite', tableName, columns, pageSize, trailingQuery?.toString()],
+    queryFn: async ({ pageParam = 0 }): Promise<InfiniteQueryPage<TData>> => {
+      const skip = pageParam as number
+      
+      let query = supabase.from(tableName).select(columns, { count: 'exact' })
 
-  useEffect(() => {
-    // Initialize if not already done
-    if (!state.hasInitialFetch && typeof window !== 'undefined') {
-      storeRef.current.initialize()
-    }
-  }, [state.hasInitialFetch])
+      if (trailingQuery) {
+        query = trailingQuery(query) as typeof query
+      }
+      
+      const { data, count, error } = await query.range(skip, skip + pageSize - 1)
 
-  // Separate effect for props changes to avoid recreating store unnecessarily  
-  useEffect(() => {
-    if (state.hasInitialFetch) {
-      storeRef.current = createStore<TData, T>(props)
-      storeRef.current.initialize()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.tableName, props.columns, props.pageSize, props.trailingQuery, state.hasInitialFetch])
+      if (error) {
+        logger.error({ error: error.message, table: tableName }, 'Infinite query error')
+        throw new Error(error.message)
+      }
+
+      return {
+        data: (data || []) as TData[],
+        count: count || 0,
+        nextCursor: (data?.length === pageSize && (skip + pageSize) < (count || 0)) ? skip + pageSize : undefined
+      }
+    },
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    initialPageParam: 0,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
+    retry: 3,
+    refetchOnWindowFocus: false // Don't refetch on every window focus for infinite data
+  })
+
+  // Flatten pages data for easier consumption
+  const flatData = query.data?.pages?.flatMap(page => page.data) || []
+  const totalCount = query.data?.pages?.[0]?.count || 0
 
   return {
-    data: state.data,
-    count: state.count,
-    isSuccess: state.isSuccess,
-    isLoading: state.isLoading,
-    isFetching: state.isFetching,
-    error: state.error,
-    hasMore: state.count > state.data.length,
-    fetchNextPage: storeRef.current.fetchNextPage,
+    data: flatData,
+    count: totalCount,
+    isSuccess: query.isSuccess,
+    isLoading: query.isLoading,
+    isFetching: query.isFetching,
+    isError: query.isError,
+    error: query.error,
+    hasMore: query.hasNextPage || false,
+    fetchNextPage: query.fetchNextPage,
+    isFetchingNextPage: query.isFetchingNextPage,
+    // Additional TanStack Query native features
+    refetch: query.refetch,
+    isRefetching: query.isRefetching,
+    failureCount: query.failureCount,
+    failureReason: query.failureReason
   }
 }
 
@@ -172,4 +105,5 @@ export {
   type TableRow,
   type TableName,
   type UseInfiniteQueryProps,
+  type InfiniteQueryPage
 }

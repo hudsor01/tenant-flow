@@ -4,10 +4,6 @@ import * as React from "react"
 import {
   ArrowUpDown,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
   CheckCircle,
   MoreVertical,
   Columns3,
@@ -17,7 +13,6 @@ import {
 import type {
   ColumnDef,
   ColumnFiltersState,
-  Row,
   SortingState,
   VisibilityState} from "@tanstack/react-table";
 import {
@@ -30,7 +25,7 @@ import {
 } from "@tanstack/react-table"
 import { z } from "zod"
 
-import { cn } from "@/lib/utils"
+import { cn, tableClasses, ANIMATION_DURATIONS } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"

@@ -272,7 +272,12 @@ $RECYCLE.BIN/
 # ========================================
 # IDE & EDITORS
 # ========================================
-.vscode/
+# VS Code - only ignore specific files, not the entire directory
+.vscode/settings.json
+.vscode/tasks.json
+.vscode/launch.json
+.vscode/extensions.json
+.vscode/.ropeproject
 .vscode-test
 .idea/
 *.sublime-*

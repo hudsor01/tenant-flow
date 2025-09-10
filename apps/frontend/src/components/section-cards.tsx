@@ -2,6 +2,7 @@ import * as React from "react"
 import { TrendingUp, Minus } from "lucide-react"
 import { formatCurrency, cn } from "@/lib/utils"
 import type { DashboardStats } from "@repo/shared"
+import { useSpring, animated, config } from "@react-spring/web"
 
 import {
   Card,
@@ -15,6 +16,80 @@ interface SectionCardsProps extends React.ComponentProps<'div'> {
   data?: DashboardStats
 }
 
+interface AnimatedMetricCardProps {
+  title: string
+  value: number
+  formatValue: (value: number) => string
+  borderColor: string
+  textColor: string
+  trend: string
+  description: string
+  icon: React.ReactNode
+  delay?: number
+}
+
+const AnimatedMetricCard = React.memo(({ 
+  title, 
+  value, 
+  formatValue, 
+  borderColor, 
+  textColor, 
+  trend, 
+  description, 
+  icon,
+  delay = 0 
+}: AnimatedMetricCardProps) => {
+  const valueSpring = useSpring({
+    number: value,
+    from: { number: 0 },
+    config: config.gentle,
+    delay,
+  })
+
+  const cardSpring = useSpring({
+    opacity: 1,
+    transform: 'translateY(0px) scale(1)',
+    from: { opacity: 0, transform: 'translateY(20px) scale(0.95)' },
+    config: config.gentle,
+    delay,
+  })
+
+  const [hovered, setHovered] = React.useState(false)
+  const hoverSpring = useSpring({
+    transform: hovered ? 'translateY(-2px) scale(1.02)' : 'translateY(0px) scale(1)',
+    config: config.wobbly,
+  })
+
+  return (
+    <animated.div
+      style={cardSpring}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <animated.div style={hoverSpring}>
+        <Card className={cn("dashboard-metric-card @container/card border-l-4 touch-manipulation", borderColor)}>
+          <CardHeader>
+            <CardDescription>{title}</CardDescription>
+            <CardTitle className={cn("text-2xl font-semibold tabular-nums @[250px]/card:text-3xl", textColor)}>
+              <animated.span>
+                {valueSpring.number.to(formatValue)}
+              </animated.span>
+            </CardTitle>
+          </CardHeader>
+          <CardFooter className="flex-col items-start gap-1.5 text-sm">
+            <div className={cn("line-clamp-1 flex gap-2 font-medium", textColor)}>
+              {trend} {icon}
+            </div>
+            <div className="text-muted-foreground">
+              {description}
+            </div>
+          </CardFooter>
+        </Card>
+      </animated.div>
+    </animated.div>
+  )
+})
+
 export const SectionCards = React.forwardRef<HTMLDivElement, SectionCardsProps>(
   ({ data, className, ...props }, ref) => {
   // Fallback values for loading state - NO CALCULATIONS, pure presentation
@@ -22,69 +97,62 @@ export const SectionCards = React.forwardRef<HTMLDivElement, SectionCardsProps>(
   const occupancyRate = data?.properties?.occupancyRate ?? 0
   const growth = data?.revenue?.growth ?? 0
 
+  // Container animation
+  const containerSpring = useSpring({
+    opacity: 1,
+    from: { opacity: 0 },
+    config: config.gentle,
+  })
+
   return (
-    <div 
-      ref={ref} 
+    <animated.div 
+      ref={ref}
+      style={containerSpring}
       className={cn(
-        "*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-3 touch-manipulation",
+        "dashboard-cards-container *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs px-4 lg:px-6 touch-manipulation",
         className
       )}
       {...props}
     >
       {/* Monthly Revenue - Green (Profitable) */}
-      <Card className="@container/card border-l-4 border-l-success transform-gpu will-change-transform touch-manipulation transition-transform duration-200 hover:scale-[1.01] active:scale-[0.99]">
-        <CardHeader>
-          <CardDescription>Monthly Revenue</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl text-success">
-            {formatCurrency(revenue)}
-          </CardTitle>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium text-success">
-            Strong revenue growth <TrendingUp className="size-4" />
-          </div>
-          <div className="text-muted-foreground">
-            Rent collections up from last month
-          </div>
-        </CardFooter>
-      </Card>
+      <AnimatedMetricCard
+        title="Monthly Revenue"
+        value={revenue}
+        formatValue={formatCurrency}
+        borderColor="border-l-success"
+        textColor="text-success"
+        trend="Strong revenue growth"
+        description="Rent collections up from last month"
+        icon={<TrendingUp className="size-4" />}
+        delay={0}
+      />
 
       {/* Occupancy Rate - Info (Performance Metric) */}
-      <Card className="@container/card border-l-4 border-l-info transform-gpu will-change-transform touch-manipulation transition-transform duration-200 hover:scale-[1.01] active:scale-[0.99]">
-        <CardHeader>
-          <CardDescription>Occupancy Rate</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl text-info">
-            {occupancyRate.toFixed(1)}%
-          </CardTitle>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium text-info">
-            Stable occupancy rate <Minus className="size-4" />
-          </div>
-          <div className="text-muted-foreground">
-            Minor decrease from last month
-          </div>
-        </CardFooter>
-      </Card>
+      <AnimatedMetricCard
+        title="Occupancy Rate"
+        value={occupancyRate}
+        formatValue={(val) => `${val.toFixed(1)}%`}
+        borderColor="border-l-info"
+        textColor="text-info"
+        trend="Stable occupancy rate"
+        description="Minor decrease from last month"
+        icon={<Minus className="size-4" />}
+        delay={100}
+      />
 
       {/* Revenue Growth - Info (Performance Metric) */}
-      <Card className="@container/card border-l-4 border-l-info transform-gpu will-change-transform touch-manipulation transition-transform duration-200 hover:scale-[1.01] active:scale-[0.99]">
-        <CardHeader>
-          <CardDescription>Revenue Growth</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl text-info">
-            {growth.toFixed(1)}%
-          </CardTitle>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium text-info">
-            Month over month growth <TrendingUp className="size-4" />
-          </div>
-          <div className="text-muted-foreground">
-            Revenue growth compared to last month
-          </div>
-        </CardFooter>
-      </Card>
-    </div>
+      <AnimatedMetricCard
+        title="Revenue Growth"
+        value={growth}
+        formatValue={(val) => `${val.toFixed(1)}%`}
+        borderColor="border-l-info"
+        textColor="text-info"
+        trend="Month over month growth"
+        description="Revenue growth compared to last month"
+        icon={<TrendingUp className="size-4" />}
+        delay={200}
+      />
+    </animated.div>
   )
 })
 SectionCards.displayName = 'SectionCards'

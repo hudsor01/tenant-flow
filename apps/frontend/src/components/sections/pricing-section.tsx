@@ -3,82 +3,19 @@
 import { BlurFade } from '@/components/magicui/blur-fade'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-import type { PricingPlan } from '@/types/marketing'
+import { 
+  cn, 
+  buttonClasses,
+  cardClasses,
+  ANIMATION_DURATIONS,
+  TYPOGRAPHY_SCALE 
+} from '@/lib/utils'
+import { PRICING_PLANS, type PricingConfig } from '@repo/shared/config/pricing'
 import { ArrowRight, Check, Shield, Star, Users, Zap } from 'lucide-react'
 import * as React from 'react'
 
-export const DEFAULT_PLANS: PricingPlan[] = [
-	{
-		name: 'Starter',
-		price: '$29',
-		originalPrice: '$39',
-		yearlyPrice: '$290',
-		originalYearlyPrice: '$390',
-		description: 'Perfect for individual property managers',
-		usageLimit: 'Up to 5 properties',
-		features: [
-			'Property & tenant management',
-			'Basic reporting & analytics',
-			'Mobile app access',
-			'Email support',
-			'5GB document storage',
-			'Standard integrations'
-		],
-		badge: 'Best for beginners',
-		ctaText: 'Start free trial',
-		ctaVariant: 'outline' as const
-	},
-	{
-		name: 'Professional',
-		price: '$79',
-		originalPrice: '$99',
-		yearlyPrice: '$790',
-		originalYearlyPrice: '$990',
-		description: 'Most popular for growing businesses',
-		usageLimit: 'Up to 50 properties',
-		features: [
-			'Everything in Starter',
-			'Advanced analytics & insights',
-			'Automated workflows',
-			'Priority support (24/7)',
-			'50GB document storage',
-			'Team collaboration (up to 5 users)',
-			'Custom branding',
-			'API access',
-			'Advanced reporting suite'
-		],
-		featured: true,
-		badge: 'Most Popular',
-		ctaText: 'Start free trial',
-		ctaVariant: 'default' as const,
-		testimonial: {
-			text: 'Increased our efficiency by 200% in just 3 months',
-			author: 'Sarah Johnson',
-			role: 'Property Manager'
-		}
-	},
-	{
-		name: 'Enterprise',
-		price: 'Custom',
-		description: 'For large-scale operations',
-		usageLimit: 'Unlimited properties',
-		features: [
-			'Everything in Professional',
-			'Unlimited users & properties',
-			'White-label solution',
-			'Dedicated success manager',
-			'Custom integrations & API',
-			'Advanced security (SSO, SAML)',
-			'SLA guarantees (99.9% uptime)',
-			'Priority implementation',
-			'Custom training & onboarding'
-		],
-		badge: 'Contact Sales',
-		ctaText: 'Contact Sales',
-		ctaVariant: 'outline' as const
-	}
-]
+// Use existing pricing configuration from shared package
+const DEFAULT_PLANS = Object.values(PRICING_PLANS)
 
 const testimonials = [
 	{
@@ -105,7 +42,7 @@ const testimonials = [
 ]
 
 export interface PricingSectionProps extends React.ComponentProps<'section'> {
-	plans?: PricingPlan[]
+	plans?: PricingConfig[]
 	featuredIndex?: number | null
 	showTestimonials?: boolean
 	billingPeriod?: 'monthly' | 'annual'
@@ -134,10 +71,14 @@ export const PricingSection = React.forwardRef<
 		},
 		ref
 	) => {
-		const derivedPlans: PricingPlan[] = plans.map((p, i) => ({
+		// Adapt PricingConfig to UI needs (KISS approach)
+		const derivedPlans = plans.map((p, i) => ({
 			...p,
-			featured:
-				typeof featuredIndex === 'number' ? i === featuredIndex : p.featured
+			featured: typeof featuredIndex === 'number' ? i === featuredIndex : false,
+			badge: p.planId === 'growth' ? 'Most Popular' : p.planId === 'max' ? 'Enterprise' : 'Starter',
+			ctaText: p.planId === 'max' ? 'Contact Sales' : 'Get Started',
+			ctaVariant: p.planId === 'growth' ? ('default' as const) : ('outline' as const),
+			usageLimit: `Up to ${p.limits.properties === -1 ? 'unlimited' : p.limits.properties} properties`
 		}))
 
 		const [internalPeriod, setInternalPeriod] = React.useState<
@@ -145,21 +86,14 @@ export const PricingSection = React.forwardRef<
 		>(billingPeriod)
 		const period = onBillingPeriodChange ? billingPeriod : internalPeriod
 
-		function formatPrice(value: number) {
+		function _formatPrice(value: number) {
 			return `$${Math.round(value)}`
 		}
 
-		function parseMonthlyPrice(price: string | undefined): number | null {
-			if (!price) return null
-			if (price.toLowerCase() === 'custom') return null
-			const match = price.match(/\$([0-9]+(?:\.[0-9]{1,2})?)/)
-			if (!match || !match[1]) return null
-			return Number.parseFloat(match[1])
-		}
 
-		function calculateSavings(plan: PricingPlan): string {
-			const monthly = parseMonthlyPrice(plan.price)
-			const yearly = parseMonthlyPrice(plan.yearlyPrice)
+		function calculateSavings(plan: PricingConfig): string {
+			const monthly = plan.price.monthly
+			const yearly = plan.price.annual
 			if (!monthly || !yearly) return ''
 			const monthlyCost = monthly * 12
 			const savings = ((monthlyCost - yearly) / monthlyCost) * 100
@@ -269,15 +203,11 @@ export const PricingSection = React.forwardRef<
 					{/* Modern Pricing Cards */}
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
 						{derivedPlans.map((plan, index) => {
-							const isCustom = (plan.price || '').toLowerCase() === 'custom'
-							const displayPrice =
-								period === 'annual' && plan.yearlyPrice
-									? plan.yearlyPrice
-									: plan.price
-							const originalDisplayPrice =
-								period === 'annual' && plan.originalYearlyPrice
-									? plan.originalYearlyPrice
-									: plan.originalPrice
+							const isCustom = plan.planId === 'max' && plan.price.monthly === 0
+							const displayPrice = period === 'annual' 
+								? `$${plan.price.annual}` 
+								: `$${plan.price.monthly}`
+							const originalDisplayPrice = null // PricingConfig doesn't have original prices
 							const showSavings = period === 'annual' && calculateSavings(plan)
 
 							return (
@@ -369,25 +299,6 @@ export const PricingSection = React.forwardRef<
 											))}
 										</ul>
 
-										{/* Testimonial for featured plan */}
-										{plan.testimonial && (
-											<div className="mb-6 p-4 rounded-lg bg-muted/50 border">
-												<div className="flex items-center gap-1 mb-2">
-													{[...Array(5)].map((_, i) => (
-														<Star
-															key={i}
-															className="w-3 h-3 fill-yellow-400 text-yellow-400"
-														/>
-													))}
-												</div>
-												<p className="text-xs text-muted-foreground mb-2 italic">
-													"{plan.testimonial.text}"
-												</p>
-												<p className="text-xs font-medium text-foreground">
-													— {plan.testimonial.author}, {plan.testimonial.role}
-												</p>
-											</div>
-										)}
 
 										{/* CTA Button */}
 										<Button

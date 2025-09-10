@@ -24,7 +24,8 @@
 		"src/test-utils/**/*",
 		"src/shared/test-utils/**/*",
 		"src/queues/__tests__/**/*",
-		"src/**/__tests__/**/*"
+		"src/**/__tests__/**/*",
+		"src/**/__test__/**/*"
 	],
 	"references": []
 }

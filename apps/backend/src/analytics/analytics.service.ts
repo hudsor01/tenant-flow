@@ -1,19 +1,19 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { PinoLogger } from 'nestjs-pino'
-import type { EnvironmentVariables } from '../config/config.schema'
+import type { Config } from '../config/config.schema'
 
 @Injectable()
 export class AnalyticsService {
 	private posthogKey: string | undefined
 
 	constructor(
-		@Inject(ConfigService) private readonly configService: ConfigService<EnvironmentVariables>,
+		@Inject(ConfigService) private readonly configService: ConfigService<Config>,
 		private readonly logger: PinoLogger
 	) {
 		// PinoLogger context handled automatically via app-level configuration
 		try {
-			this.posthogKey = this.configService.get('POSTHOG_KEY', { infer: true })
+			this.posthogKey = this.configService.get('POSTHOG_KEY')
 			if (this.posthogKey) {
 				this.logger.info(
 					{ posthog: { enabled: true, configured: true } },

@@ -6,7 +6,7 @@
 // Import constants from the single source of truth
 import type { USER_ROLE } from '../constants/auth'
 import type { Tables, Database } from './supabase-generated'
-import type { ValidatedUser as BackendValidatedUser } from './backend'
+import type { ValidatedUser as BackendValidatedUser } from './backend-domain'
 
 
 // ULTRA-NATIVE: Use generated types directly
@@ -209,8 +209,8 @@ export interface JwtPayload {
 	exp?: number
 }
 
-// Re-export ValidatedUser from backend.ts to avoid duplication
-export type { ValidatedUser } from './backend'
+// Re-export ValidatedUser from backend-domain.ts to avoid duplication
+export type { ValidatedUser } from './backend-domain'
 
 // Supabase user structure (from Supabase auth.getUser())
 export interface SupabaseUser {

@@ -6,7 +6,13 @@ import { DotPattern } from '@/components/magicui/dot-pattern'
 import { MagicCard } from '@/components/magicui/magic-card'
 import Particles from '@/components/magicui/particles'
 import { Building, Users, BarChart, Shield, TrendingUp, Calendar, MessageSquare, Settings } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { 
+  cn, 
+  buttonClasses,
+  cardClasses,
+  ANIMATION_DURATIONS,
+  TYPOGRAPHY_SCALE 
+} from '@/lib/utils'
 
 const features = [
   {
@@ -89,7 +95,7 @@ const features = [
   }
 ];
 
-interface FeaturesSectionProps extends React.ComponentProps<'section'> {}
+type FeaturesSectionProps = React.ComponentProps<'section'>
 
 export const FeaturesSection = React.forwardRef<HTMLElement, FeaturesSectionProps>(
   ({ className, ...props }, ref) => {
