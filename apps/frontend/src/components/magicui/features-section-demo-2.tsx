@@ -1,8 +1,5 @@
 import { 
-  cn, 
-  cardClasses,
-  ANIMATION_DURATIONS,
-  TYPOGRAPHY_SCALE 
+  cn
 } from "@/lib/design-system";
 import {
   Settings,
