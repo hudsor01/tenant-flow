@@ -17,6 +17,15 @@ import Stripe from 'stripe'
 import type { FastifyRequest } from 'fastify'
 import { PinoLogger } from 'nestjs-pino'
 import { SupabaseService } from '../database/supabase.service'
+import type { 
+  CreatePaymentIntentRequest, 
+  CreateSetupIntentRequest,
+  CreateSubscriptionRequest,
+  CreateCheckoutSessionRequest,
+  CreateBillingPortalRequest,
+  CreateConnectedPaymentRequest,
+  VerifyCheckoutSessionRequest
+} from './stripe-interfaces'
 // CLAUDE.md Compliant: NO custom DTOs - using native validation only
 
 /**
@@ -52,7 +61,7 @@ export class StripeController {
    */
   @Post('create-payment-intent')
   @HttpCode(HttpStatus.OK)
-  async createPaymentIntent(@Body() body: any) {
+  async createPaymentIntent(@Body() body: CreatePaymentIntentRequest) {
     this.logger?.info('Payment Intent creation started', {
       amount: body.amount,
       tenantId: body.tenantId
@@ -98,11 +107,11 @@ export class StripeController {
       return response
     } catch (error) {
       this.logger?.error('Payment Intent creation failed', {
-        error: error.message,
-        type: error.type || 'unknown',
-        code: error.code || 'unknown'
+        error: error instanceof Error ? error.message : String(error),
+        type: (error as Stripe.errors.StripeError).type || 'unknown',
+        code: (error as Stripe.errors.StripeError).code || 'unknown'
       })
-      this.handleStripeError(error)
+      this.handleStripeError(error as Stripe.errors.StripeError)
     }
   }
 
@@ -187,7 +196,7 @@ export class StripeController {
    * Official Pattern: Setup Intent creation for future payments
    */
   @Post('create-setup-intent')
-  async createSetupIntent(@Body() body: any) {
+  async createSetupIntent(@Body() body: CreateSetupIntentRequest) {
     // Native validation - CLAUDE.md compliant (outside try-catch)
     if (!body.tenantId) {
       throw new BadRequestException('tenantId is required')
@@ -242,7 +251,7 @@ export class StripeController {
    * Official Pattern: subscription with payment_behavior and expand
    */
   @Post('create-subscription')
-  async createSubscription(@Body() body: any) {
+  async createSubscription(@Body() body: CreateSubscriptionRequest) {
     // Native validation - CLAUDE.md compliant
     if (!body.customerId) {
       throw new BadRequestException('customerId is required')
@@ -296,7 +305,7 @@ export class StripeController {
    * Official Pattern: checkout session with success/cancel URLs
    */
   @Post('create-checkout-session')
-  async createCheckoutSession(@Body() body: any) {
+  async createCheckoutSession(@Body() body: CreateCheckoutSessionRequest) {
     // Native validation - CLAUDE.md compliant
     if (!body.productName) {
       throw new BadRequestException('productName is required')
@@ -345,7 +354,7 @@ export class StripeController {
    * Official Pattern: customer self-service portal
    */
   @Post('create-billing-portal')
-  async createBillingPortal(@Body() body: any) {
+  async createBillingPortal(@Body() body: CreateBillingPortalRequest) {
     // Native validation - CLAUDE.md compliant
     if (!body.customerId) {
       throw new BadRequestException('customerId is required')
@@ -371,7 +380,7 @@ export class StripeController {
    * Official Pattern: Connect payment with application fees
    */
   @Post('connect/payment-intent')
-  async createConnectedPayment(@Body() body: any) {
+  async createConnectedPayment(@Body() body: CreateConnectedPaymentRequest) {
     // Native validation - CLAUDE.md compliant
     if (!body.amount || body.amount < 50) {
       throw new BadRequestException('Amount must be at least 50 cents')
@@ -433,7 +442,7 @@ export class StripeController {
    * Official Pattern: session verification with subscription expansion
    */
   @Post('verify-checkout-session')
-  async verifyCheckoutSession(@Body() body: { sessionId: string }) {
+  async verifyCheckoutSession(@Body() body: VerifyCheckoutSessionRequest) {
     try {
       if (!body.sessionId) {
         throw new BadRequestException('Session ID is required')
@@ -466,8 +475,8 @@ export class StripeController {
         subscription = {
           id: subData.id,
           status: subData.status,
-          current_period_start: subData.current_period_start,
-          current_period_end: subData.current_period_end,
+          current_period_start: Number(subData.current_period_start),
+          current_period_end: Number(subData.current_period_end),
           cancel_at_period_end: subData.cancel_at_period_end,
           items: subData.items.data.map(item => ({
             id: item.id,
@@ -736,7 +745,7 @@ export class StripeController {
    * Official Error Handling Pattern from Server SDK docs
    * Comprehensive error mapping for production use
    */
-  private handleStripeError(error: any): never {
+  private handleStripeError(error: Stripe.errors.StripeError): never {
     this.logger?.error('Stripe API error:', {
       type: error.type,
       message: error.message,
