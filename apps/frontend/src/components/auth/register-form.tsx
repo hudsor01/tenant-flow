@@ -20,10 +20,7 @@ import {
   formLabelClasses,
   formErrorClasses,
   animationClasses,
-  ANIMATION_DURATIONS, 
-  SEMANTIC_COLORS,
-  TYPOGRAPHY_SCALE,
-  SHADOW_SCALE
+  ANIMATION_DURATIONS
 } from "@/lib/utils";
 import { useFormWithDraft } from '@/hooks/use-form-draft';
 import { authApi } from '@/lib/api-client';

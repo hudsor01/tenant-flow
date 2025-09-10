@@ -1,6 +1,5 @@
 import { 
-  cn, 
-  ANIMATION_DURATIONS 
+  cn
 } from "@/lib/design-system"
 
 interface BorderBeamProps {

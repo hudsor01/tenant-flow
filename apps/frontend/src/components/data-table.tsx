@@ -25,7 +25,7 @@ import {
 } from "@tanstack/react-table"
 import { z } from "zod"
 
-import { cn, tableClasses, ANIMATION_DURATIONS } from "@/lib/utils"
+import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"

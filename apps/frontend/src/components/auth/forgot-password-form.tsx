@@ -7,10 +7,7 @@ import {
   cardClasses,
   formFieldClasses,
   formLabelClasses,
-  formErrorClasses,
   animationClasses,
-  ANIMATION_DURATIONS, 
-  SEMANTIC_COLORS,
   TYPOGRAPHY_SCALE 
 } from '@/lib/utils'
 import { supabaseClient } from '@repo/shared'

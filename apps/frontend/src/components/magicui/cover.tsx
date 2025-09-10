@@ -3,9 +3,7 @@ import React, { useEffect, useId, useState } from "react";
 import { useSpring, animated, config } from "@react-spring/web";
 import { useRef } from "react";
 import { 
-  cn, 
-  ANIMATION_DURATIONS,
-  TYPOGRAPHY_SCALE
+  cn
 } from "@/lib/design-system";
 import { SparklesCore } from "@/components/magicui/sparkles";
 

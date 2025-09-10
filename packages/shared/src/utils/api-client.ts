@@ -4,8 +4,9 @@
  * 30 lines max - native functionality only
  */
 import { createBrowserClient } from '@supabase/ssr'
+import type { Json } from '../types/supabase-generated'
 
-export interface FetchResponse<T = unknown> {
+export interface FetchResponse<T = Json> {
   success: boolean
   data?: T
   error?: string
@@ -13,7 +14,7 @@ export interface FetchResponse<T = unknown> {
   statusCode?: number
 }
 
-export async function apiClient<T = unknown>(
+export async function apiClient<T = Json>(
   url: string,
   options?: RequestInit
 ): Promise<T> {
@@ -55,8 +56,8 @@ export async function apiClient<T = unknown>(
 
 // Convenience methods
 export const get = <T>(url: string) => apiClient<T>(url)
-export const post = <T>(url: string, body: unknown) =>
+export const post = <T>(url: string, body: Json) =>
   apiClient<T>(url, { method: 'POST', body: JSON.stringify(body) })
-export const put = <T>(url: string, body: unknown) =>
+export const put = <T>(url: string, body: Json) =>
   apiClient<T>(url, { method: 'PUT', body: JSON.stringify(body) })
 export const del = <T>(url: string) => apiClient<T>(url, { method: 'DELETE' })
