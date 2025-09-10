@@ -38,3 +38,22 @@ export interface StripeWebhookEvent {
 	created: number
 	livemode: boolean
 }
+
+// Supabase webhook event structure for auth events
+export interface SupabaseWebhookEvent {
+	type: 'INSERT' | 'UPDATE' | 'DELETE'
+	table: string
+	schema: 'auth' | 'public'
+	record: {
+		id: string
+		email?: string
+		email_confirmed_at?: string | null
+		user_metadata?: {
+			name?: string
+			full_name?: string
+		}
+		created_at: string
+		updated_at: string
+	}
+	old_record?: string | null
+}
