@@ -10,7 +10,7 @@ import {
 	ChartTooltip,
 	ChartTooltipContent
 } from '@/components/ui/chart'
-import { Separator } from '@/components/ui/separator'
+
 import { Badge } from '@/components/ui/badge'
 import { 
 	cn, 
