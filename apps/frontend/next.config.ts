@@ -18,19 +18,6 @@ const nextConfig: NextConfig = {
 	// Security headers configuration
 	async headers() {
 		const isDev = process.env.NODE_ENV === 'development'
-		
-		// Allowed origins for CORS
-		const allowedOrigins = isDev 
-			? [
-				'http://localhost:3000',
-				'http://localhost:3002',
-				'http://127.0.0.1:3000',
-				'http://127.0.0.1:3002'
-			  ]
-			: [
-				'https://tenantflow.app',
-				'https://www.tenantflow.app'
-			  ]
 
 		return [
 			{

@@ -4,11 +4,9 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
-import { API_BASE_URL } from '@/lib/api-client'
+import { createCheckoutSession, isUserAuthenticated } from '@/lib/stripe-client'
 import {
-	checkoutRateLimiter,
-	isValidAuthToken,
-	validateCheckoutData
+	checkoutRateLimiter
 } from '@/lib/security'
 import { 
 	cn, 
@@ -21,7 +19,6 @@ import {
 } from '@/lib/utils'
 import { PRICING_PLANS } from '@repo/shared/config/pricing'
 import { useDynamicPricing } from '@/hooks/use-dynamic-pricing'
-import { useStripe } from '@stripe/react-stripe-js'
 import { 
 	Crown, 
 	Loader2, 
@@ -112,7 +109,6 @@ export function StripePricingSection({
 	// Use dynamic pricing with fallback
 	const { plans: dynamicPlans, loading: pricingLoading, error: pricingError } = useDynamicPricing()
 	const fallbackPlans = Object.values(PRICING_PLANS)
-	const stripe = useStripe()
 
 	// Determine which plans to use: dynamic if available, fallback otherwise
 	const activePlans = dynamicPlans.length > 0 ? dynamicPlans : fallbackPlans
@@ -175,10 +171,6 @@ export function StripePricingSection({
 
 	const subscriptionMutation = useMutation({
 		mutationFn: async (planId: string) => {
-			if (!stripe) {
-				throw new Error('Stripe is not loaded. Please refresh the page and try again.')
-			}
-
 			if (planId === 'freetrial') {
 				// Handle free trial
 				window.location.href = '/auth/register'
@@ -196,9 +188,9 @@ export function StripePricingSection({
 				throw new Error('Too many requests. Please wait a moment before trying again.')
 			}
 
-			// Check if user is authenticated
-			const authToken = localStorage.getItem('auth-token')
-			if (!authToken || !isValidAuthToken(authToken)) {
+			// Check if user is authenticated with Supabase
+			const isAuthenticated = await isUserAuthenticated()
+			if (!isAuthenticated) {
 				window.location.href = '/auth/login'
 				throw new Error('Please sign in to subscribe to a plan')
 			}
@@ -209,52 +201,29 @@ export function StripePricingSection({
 				throw new Error(`Invalid plan selected: ${planId}`)
 			}
 
-			// Validate checkout data
-			const checkoutData = validateCheckoutData({
-				planId: planId as 'STARTER' | 'GROWTH' | 'TENANTFLOW_MAX',
-				interval: isYearly ? 'annual' : 'monthly',
-				successUrl: `${window.location.origin}/pricing/success?session_id={CHECKOUT_SESSION_ID}`,
-				cancelUrl: `${window.location.origin}/pricing/cancel`
-			})
-
-			if (!checkoutData) {
-				throw new Error('Invalid checkout data')
+			// Get the appropriate Stripe price ID for the selected plan and billing period
+			const stripePriceId = selectedPlan.stripePriceIds?.[isYearly ? 'annual' : 'monthly']
+			if (!stripePriceId) {
+				throw new Error(`No ${isYearly ? 'annual' : 'monthly'} price configured for ${planId} plan`)
 			}
 
 			// Show loading toast
 			toast.loading('Creating checkout session...', { id: 'checkout' })
 
-			// Create checkout session via backend API (backend service expects /stripe/*)
-			const response = await fetch(`${API_BASE_URL}/stripe/checkout`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: `Bearer ${authToken}`
-				},
-				body: JSON.stringify(checkoutData)
-			})
-
-			if (!response.ok) {
-				const errorData = await response.json()
-				throw new Error(
-					errorData.message || 'Failed to create checkout session'
-				)
+			// Create checkout session via Supabase Edge Function
+			const checkoutData = {
+				priceId: stripePriceId,
+				planName: selectedPlan.name,
+				description: selectedPlan.description
 			}
 
-			const { sessionId } = await response.json()
+			const { url } = await createCheckoutSession(checkoutData)
 
 			// Update toast to success
 			toast.success('Redirecting to checkout...', { id: 'checkout' })
 
 			// Redirect to Stripe Checkout
-			const { error } = await stripe.redirectToCheckout({
-				sessionId
-			})
-
-			if (error) {
-				console.error('Stripe checkout error:', error)
-				throw error
-			}
+			window.location.href = url
 
 			return { success: true }
 		},

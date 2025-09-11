@@ -3,24 +3,12 @@
 	"installCommand": "npm install --prefer-online --no-audit --no-fund",
 	"buildCommand": "turbo run build",
 	"framework": "nextjs",
-	"outputDirectory": "apps/frontend/.next",
+	"outputDirectory": ".next",
 	"redirects": [
 		{
 			"source": "/home",
 			"destination": "/",
 			"permanent": true
-		}
-	],
-	"routes": [
-		{
-			"src": "/.*",
-			"dest": "/404.html",
-			"status": 404,
-			"headers": {
-				"X-Robots-Tag": "noindex",
-				"Cache-Control": "no-cache"
-			},
-			"check": true
 		}
 	],
 	"rewrites": [

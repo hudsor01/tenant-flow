@@ -329,6 +329,7 @@ export class StripeController {
       productName: body.productName,
       priceId: body.priceId,
       tenantId: body.tenantId,
+      customerEmail: body.customerEmail,
       isSubscription: body.isSubscription
     })
 
@@ -345,10 +346,13 @@ export class StripeController {
         mode: body.isSubscription ? 'subscription' : 'payment',
         success_url: `${body.domain}/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${body.domain}/cancel`,
+        // Following official Stripe pattern: customer identification via email
+        ...(body.customerEmail && { customer_email: body.customerEmail }),
         metadata: {
           tenant_id: body.tenantId,
           product_name: body.productName,
-          price_id: body.priceId || 'legacy_amount'
+          price_id: body.priceId || 'legacy_amount',
+          ...(body.customerEmail && { customer_email: body.customerEmail })
         }
       })
 
@@ -864,7 +868,7 @@ export class StripeController {
 
           // Parse features from metadata
           const features = product.metadata.features ? 
-            JSON.parse(product.metadata.features) : []
+            JSON.parse(product.metadata.features) as string[] : []
 
           return {
             id: product.id,

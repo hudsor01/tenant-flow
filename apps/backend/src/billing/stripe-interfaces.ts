@@ -32,6 +32,7 @@ export interface CreateCheckoutSessionRequest {
   description?: string
   isSubscription?: boolean
   priceId: string // Required Stripe price ID (e.g., price_1234...)
+  customerEmail?: string // Authenticated user email for Stripe customer identification
 }
 
 export interface CreateBillingPortalRequest {
