@@ -26,11 +26,11 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - name: Remove platform-specific lock
-        run: rm -f package-lock.json
-
-      - name: Install dependencies
-        run: npm install --prefer-offline --no-audit
+      - name: Clean install for cross-platform compatibility  
+        run: |
+          rm -f package-lock.json
+          npm cache clean --force
+          npm install --no-audit
 
       - name: Build all packages (with proper dependencies)
         run: npm run build
