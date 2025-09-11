@@ -97,7 +97,7 @@ export class StripeDataService {
 	 */
 	async getCustomerSubscriptions(
 		customerId: string
-	): Promise<StripeCustomerSubscription[]> {
+	): Promise<any[]> {
 		try {
 			this.logger?.info('Fetching customer subscriptions', { customerId })
 
@@ -287,10 +287,10 @@ export class StripeDataService {
 	}
 
 	// Ultra-native: Helper method for CLV calculation
-	private calculateCustomerLifetimeValue(customers: any[], subscriptions: any[]): any[] {
+	private calculateCustomerLifetimeValue(customers: any[], subscriptions: any[]): CustomerLifetimeValue[] {
 		return customers.map(customer => {
 			const customerSubs = subscriptions.filter(sub => (sub as any).customer === customer.id)
-			const total_revenue = customerSubs.length * 2999 // Simplified revenue calculation
+			const total_revenue = customerSubs.length * STANDARD_SUBSCRIPTION_VALUE // Simplified revenue calculation
 			const subscription_count = customerSubs.length
 			const first_subscription = customerSubs.length > 0 
 				? new Date(Math.min(...customerSubs.map(sub => new Date(sub.created).getTime())))
@@ -350,7 +350,7 @@ export class StripeDataService {
 	}
 
 	// Ultra-native: Helper method for MRR calculation
-	private calculateMRRTrend(subscriptions: any[], months: number): any[] {
+	private calculateMRRTrend(subscriptions: any[], months: number): Array<{ month: string; mrr: number; active_subscriptions: number }> {
 		// Filter for active subscriptions and group by month
 		const activeSubs = subscriptions.filter(sub => (sub as any).status === 'active')
 		const grouped: Record<string, any[]> = {}
@@ -364,7 +364,7 @@ export class StripeDataService {
 		// Convert to array and limit to requested months
 		const result = Object.entries(grouped).map(([month, monthSubs]) => ({
 			month,
-			mrr: monthSubs.length * 2999, // Simplified MRR calculation
+			mrr: monthSubs.length * STANDARD_SUBSCRIPTION_VALUE, // Simplified MRR calculation
 			active_subscriptions: monthSubs.length
 		}))
 
