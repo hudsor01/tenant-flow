@@ -21,7 +21,7 @@ export class DirectEmailService {
     private readonly logger: PinoLogger
   ) {
     // PinoLogger context handled automatically via app-level configuration
-    const resendKey = this.configService.get('RESEND_API_KEY')
+    const resendKey = this.configService.get('RESEND_API_KEY') as string
     if (!resendKey) {
       throw new InternalServerErrorException('RESEND_API_KEY is required for email functionality')
     }
