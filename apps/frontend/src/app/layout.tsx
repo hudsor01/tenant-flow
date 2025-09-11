@@ -10,9 +10,27 @@ import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 
 export const metadata: Metadata = {
-	title: 'TenantFlow - Property Management Platform',
-	description:
-		'Streamline tenant management, track maintenance, and maximize your real estate investments'
+	title: 'TenantFlow - Simplify Property Management | Professional Property Management Software',
+	description: 'Professional property management software trusted by thousands. Streamline operations, automate workflows, and scale your business with TenantFlow\'s enterprise platform.',
+	keywords: 'property management software, rental property management, property manager tools, real estate management platform, tenant management system',
+	authors: [{ name: 'TenantFlow' }],
+	creator: 'TenantFlow',
+	publisher: 'TenantFlow',
+	robots: 'index, follow',
+	openGraph: {
+		title: 'TenantFlow - Simplify Property Management',
+		description: 'Professional property management software trusted by thousands. Streamline operations and scale your business.',
+		url: 'https://tenantflow.app',
+		siteName: 'TenantFlow',
+		type: 'website',
+		locale: 'en_US',
+	},
+	twitter: {
+		card: 'summary_large_image',
+		title: 'TenantFlow - Simplify Property Management',
+		description: 'Professional property management software trusted by thousands. Streamline operations and scale your business.',
+		creator: '@tenantflow',
+	},
 }
 
 export default function RootLayout({

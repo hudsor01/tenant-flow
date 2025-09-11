@@ -1,6 +1,6 @@
 {
 	"$schema": "https://openapi.vercel.sh/vercel.json",
-	"installCommand": "npm install --prefer-online --no-audit --no-fund",
+    "installCommand": "npm ci --no-audit --no-fund",
 	"buildCommand": "turbo run build --filter=@repo/frontend",
 	"framework": "nextjs",
 	"outputDirectory": "apps/frontend/.next",
