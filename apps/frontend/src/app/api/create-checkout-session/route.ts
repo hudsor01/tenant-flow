@@ -16,11 +16,19 @@ export async function POST(request: NextRequest) {
 			)
 		}
 
+		// Validate priceId format (should be Stripe price ID)
+		if (!priceId.startsWith('price_')) {
+			return NextResponse.json(
+				{ error: 'Invalid priceId format. Expected Stripe price ID starting with "price_"' },
+				{ status: 400 }
+			)
+		}
+
 		// Get the origin for success/cancel URLs
 		const headersList = await headers()
 		const origin = headersList.get('origin') || 'http://localhost:3000'
 
-		// Proxy request to our NestJS backend controller
+		// Proxy request to our NestJS backend controller with real Stripe price ID
 		const backendResponse = await fetch(`${BACKEND_URL}/api/v1/stripe/create-checkout-session`, {
 			method: 'POST',
 			headers: {
@@ -31,9 +39,9 @@ export async function POST(request: NextRequest) {
 				})
 			},
 			body: JSON.stringify({
+				priceId: priceId, // Use actual Stripe price ID instead of hardcoded amounts
 				productName: planName,
 				description: `${planName} subscription for TenantFlow`,
-				amount: priceId === 'starter' ? 2900 : 9900, // Map priceId to amounts
 				domain: origin,
 				isSubscription: true,
 				tenantId: 'frontend_user' // TODO: Get from auth context

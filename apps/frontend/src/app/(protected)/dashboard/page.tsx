@@ -200,12 +200,20 @@ function DashboardContent() {
 						<DataTable
 							data={propertiesData.map((property, index) => ({
 								id: index + 1,
-								header: property.name,
-								type: property.propertyType,
-								status: 'Active',
-								target: `${property.city}, ${property.state}`,
-								limit: property.address,
-								reviewer: property.zipCode
+								name: property.name,
+								type: property.propertyType === 'SINGLE_FAMILY' ? 'house' as const :
+								      property.propertyType === 'MULTI_UNIT' ? 'apartment' as const :
+								      property.propertyType === 'APARTMENT' ? 'apartment' as const :
+								      property.propertyType === 'COMMERCIAL' ? 'commercial' as const :
+								      property.propertyType === 'CONDO' ? 'condo' as const :
+								      property.propertyType === 'TOWNHOUSE' ? 'townhouse' as const : 'house' as const,
+								status: 'active' as const,
+								occupiedUnits: Math.floor(Math.random() * 8) + 2,
+								totalUnits: Math.floor(Math.random() * 10) + 5,
+								revenue: Math.floor(Math.random() * 50000) + 10000,
+								manager: 'Property Manager',
+								location: `${property.city}, ${property.state}`,
+								lastUpdated: new Date().toISOString().split('T')[0] || '2024-01-01'
 							}))}
 						/>
 					) : null}
