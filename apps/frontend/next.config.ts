@@ -12,18 +12,7 @@ const nextConfig: NextConfig = {
 
 	// ESLint configuration
 	eslint: {
-		// Specify the directories to check
 		dirs: ['src'],
-		// Ignore during builds to prevent flat config detection warning
-		ignoreDuringBuilds: true,
-	},
-	async rewrites() {
-		return [
-			{
-				source: '/api/:path*',
-				destination: 'http://api.tenantflow.app/api/v1/:path*'
-			}
-		]
 	},
 
 	// Mobile-optimized image configuration
