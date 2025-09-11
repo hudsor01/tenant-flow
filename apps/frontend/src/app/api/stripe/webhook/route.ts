@@ -3,6 +3,9 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 
+// Ensure Node.js runtime for Stripe SDK
+export const runtime = 'nodejs'
+
 // Initialize Stripe lazily to avoid build-time errors
 function getStripe() {
 	if (!process.env.STRIPE_SECRET_KEY) {
