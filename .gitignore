@@ -365,3 +365,42 @@ pids
 test-signup-form.js
 test-supabase-auth.js
 .vercel
+
+# Turborepo
+.turbo
+.next
+.next/
+.vscode/
+.supabase/
+.playwright-mcp/
+.husky/
+.eslintcache
+.claude/
+.eslint/
+
+# macOS system files
+.DS_Store
+
+# Build outputs
+dist/
+coverage/
+.tsbuildinfo
+*.tsbuildinfo
+
+# Cache directories
+.cache/
+.swc/
+
+# Environment files
+.env
+.env.local
+.env.vault
+
+# Test artifacts
+test-results/
+.last-run.json
+playwright-report/
+
+# Temporary files
+.temp/
+.tmp/

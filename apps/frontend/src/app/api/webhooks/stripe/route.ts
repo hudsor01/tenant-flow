@@ -1,13 +1,24 @@
 import Stripe from 'stripe'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-	apiVersion: '2025-08-27.basil'
-})
-
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
+// Initialize Stripe lazily to avoid build-time errors
+function getStripe() {
+	if (!process.env.STRIPE_SECRET_KEY) {
+		throw new Error('STRIPE_SECRET_KEY is required')
+	}
+	return new Stripe(process.env.STRIPE_SECRET_KEY, {
+		apiVersion: '2025-08-27.basil'
+	})
+}
 
 export async function POST(req: Request) {
 	try {
+		const stripe = getStripe()
+		const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+		
+		if (!webhookSecret) {
+			return new Response('Webhook secret not configured', { status: 500 })
+		}
+
 		const body = await req.text()
 		const signature = req.headers.get('stripe-signature')!
 
