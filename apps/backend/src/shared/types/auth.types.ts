@@ -17,9 +17,6 @@ export type SupabaseUser = {
 	app_metadata?: Record<string, unknown>
 }
 
-export interface RequestWithUser extends Request {
-	user: AuthenticatedUser
-}
 
 export interface GoogleOAuthUser {
 	id: string

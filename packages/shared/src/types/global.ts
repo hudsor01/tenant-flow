@@ -5,6 +5,9 @@
  * window object, and other global interfaces used throughout the application.
  */
 
+// Use official PostHog types
+import type { PostHog } from 'posthog-js'
+
 /**
  * Extend NodeJS ProcessEnv interface
  * Using namespace declaration for global augmentation
@@ -45,29 +48,12 @@ declare global {
 			CI?: string
 		}
 	}
+
 	/**
-	 * PostHog analytics integration
+	 * PostHog analytics integration using official PostHog types
 	 */
 	interface Window {
-		posthog?: {
-			capture: (
-				event: string,
-				properties?: Record<string, unknown>
-			) => void
-			identify: (
-				distinctId: string,
-				properties?: Record<string, unknown>
-			) => void
-			alias: (alias: string) => void
-			reset: () => void
-			group: (
-				groupType: string,
-				groupKey: string,
-				properties?: Record<string, unknown>
-			) => void
-			register: (properties: Record<string, unknown>) => void
-			unregister: (property: string) => void
-		}
+		posthog?: PostHog
 	}
 }
 

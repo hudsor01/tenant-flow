@@ -55,10 +55,14 @@ export interface DirectSubscriptionParams {
  * Parameters for updating an existing subscription
  * Used by useDirectSubscription hook for plan changes
  */
-export interface SubscriptionUpdateParams extends Record<string, unknown> {
+export interface SubscriptionUpdateParams {
 	subscriptionId: string
 	newPriceId: string
 	prorationBehavior?: 'create_prorations' | 'none' | 'always_invoice'
+	coupon?: string
+	metadata?: Record<string, string> // Stripe metadata is always string values
+	description?: string
+	trialEnd?: number | 'now'
 }
 
 /**
@@ -99,34 +103,15 @@ export type PropertyQueryInput = PropertyQuery
 
 /**
  * Input for creating a new unit
- * Used by unit management hooks
+ * Uses Supabase generated types for type safety
  */
-export interface CreateUnitInput {
-	propertyId: string
-	unitNumber: string
-	bedrooms: number
-	bathrooms: number
-	squareFeet?: number
-	monthlyRent: number
-	status?: string
-	description?: string
-	[key: string]: unknown
-}
+export type CreateUnitInput = Database['public']['Tables']['Unit']['Insert']
 
 /**
  * Input for updating an existing unit
- * Used by unit management hooks
+ * Uses Supabase generated types for type safety
  */
-export interface UpdateUnitInput {
-	unitNumber?: string
-	bedrooms?: number
-	bathrooms?: number
-	squareFeet?: number
-	monthlyRent?: number
-	status?: string
-	description?: string
-	[key: string]: unknown
-}
+export type UpdateUnitInput = Database['public']['Tables']['Unit']['Update']
 
 // ========================
 // Tenant API Inputs
@@ -134,34 +119,15 @@ export interface UpdateUnitInput {
 
 /**
  * Input for creating a new tenant
- * Used by tenant management hooks
+ * Uses Supabase generated types for type safety
  */
-export interface CreateTenantInput {
-	name: string
-	email: string
-	phone?: string
-	emergencyContact?: string
-	emergencyPhone?: string
-	moveInDate?: string
-	notes?: string
-	[key: string]: unknown
-}
+export type CreateTenantInput = Database['public']['Tables']['Tenant']['Insert']
 
 /**
  * Input for updating an existing tenant
- * Used by tenant management hooks
+ * Uses Supabase generated types for type safety
  */
-export interface UpdateTenantInput {
-	name?: string
-	email?: string
-	phone?: string
-	emergencyContact?: string
-	emergencyPhone?: string
-	moveInDate?: string
-	moveOutDate?: string
-	notes?: string
-	[key: string]: unknown
-}
+export type UpdateTenantInput = Database['public']['Tables']['Tenant']['Update']
 
 // ========================
 // Lease API Inputs
@@ -169,37 +135,15 @@ export interface UpdateTenantInput {
 
 /**
  * Input for creating a new lease
- * Used by lease management hooks
+ * Uses Supabase generated types for type safety
  */
-export interface CreateLeaseInput {
-	unitId: string
-	tenantId: string
-	propertyId?: string
-	startDate: string
-	endDate: string
-	rentAmount: number
-	securityDeposit?: number
-	lateFeeDays?: number
-	lateFeeAmount?: number
-	leaseTerms?: string
-	[key: string]: unknown
-}
+export type CreateLeaseInput = Database['public']['Tables']['Lease']['Insert']
 
 /**
  * Input for updating an existing lease
- * Used by lease management hooks
+ * Uses Supabase generated types for type safety
  */
-export interface UpdateLeaseInput {
-	startDate?: string
-	endDate?: string
-	rentAmount?: number
-	securityDeposit?: number
-	lateFeeDays?: number
-	lateFeeAmount?: number
-	leaseTerms?: string
-	status?: string
-	[key: string]: unknown
-}
+export type UpdateLeaseInput = Database['public']['Tables']['Lease']['Update']
 
 // ========================
 // Maintenance API Inputs
@@ -207,45 +151,15 @@ export interface UpdateLeaseInput {
 
 /**
  * Input for creating a maintenance request
- * Used by maintenance management hooks
+ * Uses Supabase generated types for type safety
  */
-export interface CreateMaintenanceInput {
-	unitId: string
-	title: string
-	description: string
-	category: string
-	priority?: string
-	status?: string
-	preferredDate?: string
-	allowEntry?: boolean
-	contactPhone?: string
-	requestedBy?: string
-	notes?: string
-	photos?: string[]
-	[key: string]: unknown
-}
+export type CreateMaintenanceInput = Database['public']['Tables']['MaintenanceRequest']['Insert']
 
 /**
  * Input for updating a maintenance request
- * Used by maintenance management hooks
+ * Uses Supabase generated types for type safety
  */
-export interface UpdateMaintenanceInput {
-	title?: string
-	description?: string
-	category?: string
-	priority?: string
-	status?: string
-	preferredDate?: string
-	allowEntry?: boolean
-	contactPhone?: string
-	assignedTo?: string
-	estimatedCost?: number
-	actualCost?: number
-	completedAt?: string
-	notes?: string
-	photos?: string[]
-	[key: string]: unknown
-}
+export type UpdateMaintenanceInput = Database['public']['Tables']['MaintenanceRequest']['Update']
 
 /**
  * Query parameters for maintenance request search (extends from queries.ts)
@@ -286,7 +200,7 @@ export interface UsePropertyFormDataProps {
  * Form field context types for React Hook Form integration
  */
 export interface FormFieldContextValue<
-	TFieldValues extends Record<string, unknown> = Record<string, unknown>,
+	TFieldValues extends Record<string, string | number | boolean | null> = Record<string, string | number | boolean | null>,
 	TName extends keyof TFieldValues = keyof TFieldValues
 > {
 	name: TName
@@ -417,5 +331,4 @@ export interface UpdateUserProfileInput {
 	bio?: string
 	company?: string
 	avatarUrl?: string
-	[key: string]: unknown
 }

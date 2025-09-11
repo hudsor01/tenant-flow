@@ -4,7 +4,7 @@ import {
 	OnModuleDestroy
 } from '@nestjs/common'
 import { PinoLogger } from 'nestjs-pino'
-import puppeteer, { type Browser, type PDFOptions } from 'puppeteer'
+import puppeteer from 'puppeteer'
 
 /**
  * PDF Generator Service using Puppeteer
@@ -12,7 +12,7 @@ import puppeteer, { type Browser, type PDFOptions } from 'puppeteer'
  */
 @Injectable()
 export class PDFGeneratorService implements OnModuleDestroy {
-	private browser: Browser | null = null
+	private browser: Awaited<ReturnType<typeof puppeteer.launch>> | null = null
 
 	constructor(private readonly logger: PinoLogger) {
 		// PinoLogger context handled automatically via app-level configuration
@@ -21,7 +21,7 @@ export class PDFGeneratorService implements OnModuleDestroy {
 	/**
 	 * Initialize browser instance
 	 */
-	private async getBrowser(): Promise<Browser> {
+	private async getBrowser(): Promise<Awaited<ReturnType<typeof puppeteer.launch>>> {
 		if (!this.browser?.connected) {
 			this.logger.info('Launching Puppeteer browser')
 			
@@ -80,7 +80,7 @@ export class PDFGeneratorService implements OnModuleDestroy {
 			await page.setContent(htmlContent, { waitUntil: 'networkidle0' })
 
 			// PDF options with defaults
-			const pdfOptions: PDFOptions = {
+			const pdfOptions = {
 				format: options?.format || 'A4',
 				printBackground: true,
 				margin: options?.margin || {

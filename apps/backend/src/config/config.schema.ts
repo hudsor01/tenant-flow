@@ -1,293 +1,124 @@
-import {
-	IsEmail,
-	IsEnum,
-	IsNumberString,
-	IsOptional,
-	IsString,
-	IsUrl,
-	MinLength,
-	validateSync,
-	ValidationError
-} from 'class-validator'
-import { plainToClass, Transform } from 'class-transformer'
+import { z } from 'zod'
 
 /**
- * Environment Configuration using class-validator
- *
- * NestJS native approach for configuration validation
+ * Environment Configuration using Zod (CLAUDE.md compliant)
+ * 
+ * Native Zod validation - no custom DTOs or decorators
  */
 
-export class EnvironmentVariables {
+const environmentSchema = z.object({
 	// Application
-	@IsEnum(['development', 'production', 'test'])
-	@IsOptional()
-	NODE_ENV = 'production'
-
-	@IsOptional()
-	@Transform(({ value }) => (value ? parseInt(String(value), 10) : 4600))
-	PORT = 4600
+	NODE_ENV: z.enum(['development', 'production', 'test']).default('production'),
+	PORT: z.coerce.number().default(4600),
 
 	// Database
-	@IsString()
-	DATABASE_URL!: string
-
-	@IsOptional()
-	@IsString()
-	DIRECT_URL?: string
-
-	@IsOptional()
-	@IsNumberString()
-	DATABASE_MAX_CONNECTIONS?: string
-
-	@IsOptional()
-	@IsNumberString()
-	DATABASE_CONNECTION_TIMEOUT?: string
+	DATABASE_URL: z.string(),
+	DIRECT_URL: z.string().optional(),
+	DATABASE_MAX_CONNECTIONS: z.string().optional(),
+	DATABASE_CONNECTION_TIMEOUT: z.string().optional(),
 
 	// Authentication
-	@IsString()
-	@MinLength(32, { message: 'JWT secret must be at least 32 characters' })
-	JWT_SECRET!: string
-
-	@IsOptional()
-	@IsString()
-	JWT_EXPIRES_IN = '7d'
+	JWT_EXPIRES_IN: z.string().default('7d'),
 
 	// Supabase
-	@IsUrl({}, { message: 'Must be a valid URL' })
-	SUPABASE_URL!: string
-
-	@IsString()
-	SUPABASE_SERVICE_ROLE_KEY!: string
-
-	@IsString()
-	@MinLength(32, {
-		message: 'Supabase JWT secret must be at least 32 characters'
-	})
-	SUPABASE_JWT_SECRET!: string
-
-	@IsString()
-	SUPABASE_ANON_KEY!: string
+	SUPABASE_URL: z.string().url('Must be a valid URL'),
+	SERVICE_ROLE_KEY: z.string(),
+	JWT_SECRET: z.string().min(32, 'JWT secret must be at least 32 characters'),
+	SUPABASE_ANON_KEY: z.string(),
 
 	// CORS
-	@IsOptional()
-	@IsString()
-	CORS_ORIGINS?: string
+	CORS_ORIGINS: z.string().optional(),
 
 	// Rate Limiting
-	@IsOptional()
-	@IsNumberString()
-	RATE_LIMIT_TTL?: string
-
-	@IsOptional()
-	@IsNumberString()
-	RATE_LIMIT_LIMIT?: string
+	RATE_LIMIT_TTL: z.string().optional(),
+	RATE_LIMIT_LIMIT: z.string().optional(),
 
 	// Stripe
-	@IsString()
-	STRIPE_SECRET_KEY!: string
+	STRIPE_SECRET_KEY: z.string(),
+	STRIPE_PUBLISHABLE_KEY: z.string().optional(),
+	STRIPE_WEBHOOK_SECRET: z.string(),
 
-	@IsOptional()
-	@IsString()
-	STRIPE_PUBLISHABLE_KEY?: string
-
-	@IsString()
-	STRIPE_WEBHOOK_SECRET!: string
-
-	@IsOptional()
-	@IsString()
-	STRIPE_PRICE_ID_STARTER?: string
-
-	@IsOptional()
-	@IsString()
-	STRIPE_PRICE_ID_GROWTH?: string
-
-	@IsOptional()
-	@IsString()
-	STRIPE_PRICE_ID_BUSINESS?: string
-
-	@IsOptional()
-	@IsString()
-	STRIPE_PRICE_ID_TENANTFLOW_MAX?: string
+	// Stripe Sync Engine Configuration
+	STRIPE_SYNC_DATABASE_SCHEMA: z.string().default('stripe'),
+	STRIPE_SYNC_AUTO_EXPAND_LISTS: z.coerce.boolean().default(true),
+	STRIPE_SYNC_BACKFILL_RELATED_ENTITIES: z.coerce.boolean().default(true),
+	STRIPE_SYNC_MAX_POSTGRES_CONNECTIONS: z.coerce.number().default(10),
+	STRIPE_PRICE_ID_STARTER: z.string().optional(),
+	STRIPE_PRICE_ID_GROWTH: z.string().optional(),
+	STRIPE_PRICE_ID_BUSINESS: z.string().optional(),
+	STRIPE_PRICE_ID_TENANTFLOW_MAX: z.string().optional(),
 
 	// Redis
-	@IsOptional()
-	@IsString()
-	REDIS_URL?: string
-
-	@IsOptional()
-	@IsString()
-	REDIS_HOST?: string
-
-	@IsOptional()
-	@IsNumberString()
-	REDIS_PORT?: string
-
-	@IsOptional()
-	@IsString()
-	REDIS_PASSWORD?: string
-
-	@IsOptional()
-	@IsNumberString()
-	REDIS_DB?: string
+	REDIS_URL: z.string().optional(),
+	REDIS_HOST: z.string().optional(),
+	REDIS_PORT: z.string().optional(),
+	REDIS_PASSWORD: z.string().optional(),
+	REDIS_DB: z.string().optional(),
 
 	// Logging
-	@IsOptional()
-	@IsEnum(['error', 'warn', 'info', 'debug'])
-	LOG_LEVEL = 'info'
+	LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug']).default('info'),
 
 	// Monitoring
-	@IsOptional()
-	@Transform(({ value }) => value === 'true')
-	ENABLE_METRICS = false
+	ENABLE_METRICS: z.coerce.boolean().default(false),
 
 	// File Storage
-	@IsOptional()
-	@IsEnum(['local', 'supabase', 's3'])
-	STORAGE_PROVIDER = 'supabase'
-
-	@IsOptional()
-	@IsString()
-	STORAGE_BUCKET = 'tenant-flow-storage'
+	STORAGE_PROVIDER: z.enum(['local', 'supabase', 's3']).default('supabase'),
+	STORAGE_BUCKET: z.string().default('tenant-flow-storage'),
 
 	// Email
-	@IsOptional()
-	@IsString()
-	SMTP_HOST?: string
-
-	@IsOptional()
-	@IsNumberString()
-	SMTP_PORT?: string
-
-	@IsOptional()
-	@IsString()
-	SMTP_USER?: string
-
-	@IsOptional()
-	@IsString()
-	SMTP_PASS?: string
-
-	@IsOptional()
-	@IsEmail()
-	FROM_EMAIL?: string
+	SMTP_HOST: z.string().optional(),
+	SMTP_PORT: z.string().optional(),
+	SMTP_USER: z.string().optional(),
+	SMTP_PASS: z.string().optional(),
+	FROM_EMAIL: z.string().email('Must be a valid email address').optional(),
 
 	// Resend
-	@IsOptional()
-	@IsString()
-	RESEND_API_KEY?: string
-
-	@IsOptional()
-	@IsEmail()
-	RESEND_FROM_EMAIL?: string = 'noreply@tenantflow.app'
+	RESEND_API_KEY: z.string().optional(),
+	RESEND_FROM_EMAIL: z.string().email('Must be a valid email address').default('noreply@tenantflow.app'),
 
 	// Analytics
-	@IsOptional()
-	@IsString()
-	POSTHOG_KEY?: string
+	POSTHOG_KEY: z.string().optional(),
 
 	// Security
-	@IsOptional()
-	@IsString()
-	CSRF_SECRET?: string
+	CSRF_SECRET: z.string().optional(),
+	SESSION_SECRET: z.string().min(32, 'Session secret must be at least 32 characters').optional(),
 
-	@IsOptional()
-	@IsString()
-	@MinLength(32, { message: 'Session secret must be at least 32 characters' })
-	SESSION_SECRET?: string
+	// Production Features
+	ENABLE_SWAGGER: z.coerce.boolean().default(false),
+	ENABLE_RATE_LIMITING: z.coerce.boolean().default(true),
 
-	// Production Features (stable configuration)
-	@IsOptional()
-	@Transform(({ value }) => value === 'true')
-	ENABLE_SWAGGER = false
-
-	@IsOptional()
-	@Transform(({ value }) => value !== 'false')
-	ENABLE_RATE_LIMITING = true
-
-	// Rate limiting is configured directly in code for simplicity
-
-	// Platform Detection (optional)
-	@IsOptional()
-	@IsString()
-	RAILWAY_PUBLIC_DOMAIN?: string
-
-	@IsOptional()
-	@IsString()
-	RAILWAY_PRIVATE_DOMAIN?: string
-
-	@IsOptional()
-	@IsString()
-	RAILWAY_PROJECT_NAME?: string
-
-	@IsOptional()
-	@IsString()
-	RAILWAY_ENVIRONMENT_NAME?: string
-
-	@IsOptional()
-	@IsString()
-	RAILWAY_SERVICE_NAME?: string
-
-	@IsOptional()
-	@IsString()
-	RAILWAY_PROJECT_ID?: string
-
-	@IsOptional()
-	@IsString()
-	RAILWAY_ENVIRONMENT_ID?: string
-
-	@IsOptional()
-	@IsString()
-	RAILWAY_SERVICE_ID?: string
-
-	@IsOptional()
-	@Transform(({ value }) => value === 'true')
-	ALLOW_LOCALHOST_CORS = false
-
-	@IsOptional()
-	@IsString()
-	REDISHOST?: string
-
-	@IsOptional()
-	@IsString()
-	REDISPASSWORD?: string
-
-	@IsOptional()
-	@Transform(({ value }) => value ? String(value) : undefined)
-	REDISPORT?: string
-
-	@IsOptional()
-	@IsString()
-	VERCEL_ENV?: string
-
-	@IsOptional()
-	@IsString()
-	VERCEL_URL?: string
-
-	@IsOptional()
-	@Transform(({ value }) => value === 'true')
-	DOCKER_CONTAINER = false
-}
+	// Platform Detection
+	RAILWAY_PUBLIC_DOMAIN: z.string().optional(),
+	RAILWAY_PRIVATE_DOMAIN: z.string().optional(),
+	RAILWAY_PROJECT_NAME: z.string().optional(),
+	RAILWAY_ENVIRONMENT_NAME: z.string().optional(),
+	RAILWAY_SERVICE_NAME: z.string().optional(),
+	RAILWAY_PROJECT_ID: z.string().optional(),
+	RAILWAY_ENVIRONMENT_ID: z.string().optional(),
+	RAILWAY_SERVICE_ID: z.string().optional(),
+	ALLOW_LOCALHOST_CORS: z.coerce.boolean().default(false),
+	REDISHOST: z.string().optional(),
+	REDISPASSWORD: z.string().optional(),
+	REDISPORT: z.string().optional(),
+	VERCEL_ENV: z.string().optional(),
+	VERCEL_URL: z.string().optional(),
+	DOCKER_CONTAINER: z.coerce.boolean().default(false)
+})
 
 export function validate(config: Record<string, unknown>) {
-	const validatedConfig = plainToClass(EnvironmentVariables, config, {
-		enableImplicitConversion: true
-	})
-
-	const errors = validateSync(validatedConfig, {
-		skipMissingProperties: false,
-		forbidUnknownValues: false
-	})
-
-	if (errors.length > 0) {
-		const errorMessages = errors.map((error: ValidationError) => {
-			const constraints = error.constraints || {}
-			return `${error.property}: ${Object.values(constraints).join(', ')}`
-		})
-		throw new Error(
-			`Configuration validation failed: ${errorMessages.join('; ')}`
-		)
+	try {
+		return environmentSchema.parse(config)
+	} catch (error) {
+		if (error instanceof z.ZodError) {
+			const errorMessages = error.issues.map((err) => {
+				return `${err.path.join('.')}: ${err.message}`
+			})
+			throw new Error(
+				`Configuration validation failed: ${errorMessages.join('; ')}`
+			)
+		}
+		throw error
 	}
-
-	return validatedConfig
 }
 
-export type Config = EnvironmentVariables
+export type Config = z.infer<typeof environmentSchema>

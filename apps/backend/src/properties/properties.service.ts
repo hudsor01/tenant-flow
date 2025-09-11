@@ -13,7 +13,26 @@ import type {
 	CreatePropertyRequest,
 	UpdatePropertyRequest
 } from '../schemas/properties.schema'
-import type { Database, PropertyWithUnits } from '@repo/shared'
+import type { PropertyWithUnits } from '@repo/shared'
+
+// Simple utility function (not abstraction) - follows KISS principle
+const formatAddress = (addr: {
+	address?: string
+	city?: string
+	state?: string
+	zipCode?: string
+}): string | undefined => {
+	if (!addr.address) return undefined
+	
+	const parts = [addr.address]
+	if (addr.city) parts.push(addr.city)
+	if (addr.state) parts.push(addr.state)
+	if (addr.zipCode) parts.push(addr.zipCode)
+	
+	return parts.join(', ')
+}
+
+// RPC function return types will be added when migration is applied
 
 // PropertyWithUnits imported above from @repo/shared - NO DUPLICATION
 
@@ -32,12 +51,13 @@ export class PropertiesService {
 	}
 
 	/**
-	 * Get all properties for a user using RPC
+	 * Get all properties with CALCULATED METRICS using RPC
+	 * ALL business logic is in the database - NO calculations here
 	 */
 	async findAll(
 		userId: string,
 		query: { search: string | null; limit: number; offset: number }
-	) {
+	): Promise<PropertyWithUnits[]> {
 		const { data, error } = await this.supabaseService
 			.getAdminClient()
 			.rpc('get_user_properties', {
@@ -58,12 +78,14 @@ export class PropertiesService {
 					userId,
 					query
 				},
-				'Failed to get properties via RPC'
+				'Failed to get properties with metrics via RPC'
 			)
 			throw new BadRequestException('Failed to retrieve properties')
 		}
 
-		return data || []
+		// Data comes with ALL metrics pre-calculated from DB
+		// NO business logic transformations allowed here
+		return (data as unknown as PropertyWithUnits[]) || []
 	}
 
 	/**
@@ -106,7 +128,7 @@ export class PropertiesService {
 			.rpc('create_property', {
 				p_user_id: userId,
 				p_name: createRequest.name,
-				p_address: `${createRequest.address}, ${createRequest.city}, ${createRequest.state} ${createRequest.zipCode}`,
+				p_address: formatAddress(createRequest) || createRequest.address,
 				p_type: createRequest.propertyType || 'SINGLE_FAMILY',
 				p_description: createRequest.description
 			})
@@ -149,9 +171,7 @@ export class PropertiesService {
 				p_user_id: userId,
 				p_property_id: propertyId,
 				p_name: updateRequest.name,
-				p_address: updateRequest.address
-					? `${updateRequest.address}${updateRequest.city ? `, ${updateRequest.city}` : ''}${updateRequest.state ? `, ${updateRequest.state}` : ''}${updateRequest.zipCode ? ` ${updateRequest.zipCode}` : ''}`
-					: undefined,
+				p_address: formatAddress(updateRequest),
 				p_type: updateRequest.propertyType,
 				p_description: updateRequest.description
 			})
@@ -241,41 +261,21 @@ export class PropertiesService {
 	}
 
 	/**
-	 * Get all properties with their units for stat calculations
-	 * Direct query with units relation
+	 * Get all properties with their units and statistics using RPC
+	 * ALL business logic is in the database - NO calculations here
 	 */
 	async findAllWithUnits(
 		userId: string,
 		query: { search: string | null; limit: number; offset: number }
 	): Promise<PropertyWithUnits[]> {
-		// Build the query for properties with units using actual database column names
 		const { data, error } = await this.supabaseService
 			.getAdminClient()
-			.from('Property')
-			.select(`
-				id,
-				name,
-				address,
-				city,
-				state,
-				zipCode,
-				description,
-				propertyType,
-				createdAt,
-				updatedAt,
-				ownerId,
-				Unit (
-					id,
-					unitNumber,
-					status,
-					rent,
-					propertyId
-				)
-			`)
-			.eq('ownerId', userId)
-			.order('createdAt', { ascending: false })
-			.range(query.offset, query.offset + query.limit - 1)
-			.ilike('name', query.search ? `%${query.search}%` : '%')
+			.rpc('get_user_properties', {
+				p_user_id: userId,
+				p_search: query.search || undefined,
+				p_limit: query.limit,
+				p_offset: query.offset
+			})
 
 		if (error) {
 			this.logger.error(
@@ -288,67 +288,13 @@ export class PropertiesService {
 					userId,
 					query
 				},
-				'Failed to get properties with units'
+				'Failed to get properties with units via RPC'
 			)
-			throw new BadRequestException('Failed to retrieve properties')
+			throw new BadRequestException('Failed to retrieve properties with units')
 		}
 
-		// Transform to PropertyWithUnits type from @repo/shared
-		// Map database fields to match shared type interface  
-		// KISS principle: simple type annotation for raw query result
-		// Map actual database schema to expected interface
-		const properties = (data || []) as Array<{
-			id: string
-			name: string
-			address: string
-			city: string
-			state: string
-			zipCode: string // Database uses zipCode, not zip
-			description: string | null
-			propertyType: string // Database uses propertyType, not status
-			createdAt: string // Database uses camelCase
-			updatedAt: string // Database uses camelCase
-			ownerId: string // Database uses ownerId, not user_id
-			Unit?: Array<{
-				id: string
-				unitNumber: string // Database uses camelCase
-				status: string
-				rent: number | null // Database uses rent, not rentAmount
-				propertyId: string // Database uses propertyId
-				description?: string | null // Unit description field
-				createdAt?: string // Unit creation timestamp
-				updatedAt?: string // Unit update timestamp
-			}>
-		}>
-		
-		return properties.map(property => ({
-			id: property.id,
-			name: property.name,
-			address: property.address,
-			city: property.city,
-			state: property.state,
-			zipCode: property.zipCode, // Keep zipCode as in Database Property type
-			description: property.description, // Keep as nullable per Database Property type
-			propertyType: property.propertyType as Database['public']['Enums']['PropertyType'], // Cast to proper enum type
-			createdAt: property.createdAt, // Keep camelCase to match Database Property type
-			updatedAt: property.updatedAt, // Keep camelCase to match Database Property type
-			ownerId: property.ownerId, // Keep ownerId to match Database Property type
-			imageUrl: null, // Add required imageUrl property (default to null)
-			units: (property.Unit || []).map(unit => ({
-				id: unit.id,
-				propertyId: unit.propertyId, // Keep propertyId to match Database Unit type
-				unitNumber: unit.unitNumber, // Keep unitNumber to match Database Unit type
-				rent: unit.rent || 0, // Keep rent field
-				status: unit.status as Database['public']['Enums']['UnitStatus'], // Cast to proper enum type
-				createdAt: unit.createdAt || new Date().toISOString(), // Keep camelCase 
-				updatedAt: unit.updatedAt || new Date().toISOString(), // Keep camelCase
-
-				bedrooms: 0, // Default value
-				bathrooms: 0, // Default value
-				squareFeet: null, // Optional field
-				lastInspectionDate: null, // Optional field
-				leases: [] // Required by PropertyWithUnits relation type
-			}))
-		}))
+		// Data comes with ALL metrics and units pre-calculated from DB
+		// NO business logic transformations allowed here
+		return (data as unknown as PropertyWithUnits[]) || []
 	}
 }

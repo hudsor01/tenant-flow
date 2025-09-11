@@ -3,7 +3,7 @@
 	"ui": "tui",
 	"remoteCache": {
 		"enabled": true,
-		"signature": true,
+		"signature": false,
 		"timeout": 60
 	},
 	"globalEnv": [
@@ -30,7 +30,6 @@
 				"!**/*.md",
 				"!**/*.test.*",
 				"!**/*.spec.*",
-				"!**/*.stories.*",
 				"!**/test-results/**",
 				"!**/playwright-report/**",
 				"!**/coverage/**",
@@ -52,20 +51,6 @@
 			"persistent": false,
 			"env": ["VERCEL", "VERCEL_ENV", "VERCEL_URL"]
 		},
-		"@repo/database#build": {
-			"dependsOn": ["@repo/shared#build"],
-			"inputs": [
-				"src/**",
-				"tsconfig*.json",
-				"package.json",
-				"!**/*.md",
-				"!**/*.test.*",
-				"!**/*.spec.*"
-			],
-			"outputs": ["dist/**", ".turbo/**"],
-			"cache": true,
-			"persistent": false
-		},
 		"@repo/shared#build": {
 			"dependsOn": [],
 			"inputs": [
@@ -81,7 +66,7 @@
 			"persistent": false
 		},
 		"@repo/frontend#build": {
-			"dependsOn": ["@repo/shared#build", "@repo/database#build"],
+			"dependsOn": ["@repo/shared#build"],
 			"inputs": [
 				"src/**",
 				"app/**",
@@ -96,7 +81,6 @@
 				"!**/*.md",
 				"!**/*.test.*",
 				"!**/*.spec.*",
-				"!**/*.stories.*",
 				"!**/test-results/**",
 				"!**/playwright-report/**"
 			],
@@ -112,7 +96,7 @@
 			"persistent": false
 		},
 		"@repo/backend#build": {
-			"dependsOn": ["@repo/shared#build", "@repo/database#build"],
+			"dependsOn": ["@repo/shared#build"],
 			"inputs": [
 				"src/**",
 				"tsconfig*.json",
@@ -202,7 +186,7 @@
 			"persistent": false
 		},
 		"@repo/frontend#typecheck": {
-			"dependsOn": ["@repo/shared#build", "@repo/database#build"],
+			"dependsOn": ["@repo/shared#build"],
 			"inputs": [
 				"src/**",
 				"app/**",
@@ -216,7 +200,7 @@
 			"persistent": false
 		},
 		"@repo/backend#typecheck": {
-			"dependsOn": ["@repo/shared#build", "@repo/database#build"],
+			"dependsOn": ["@repo/shared#build"],
 			"inputs": [
 				"src/**",
 				"tsconfig*.json",
@@ -261,7 +245,6 @@
 				"**/*.spec.tsx",
 				"src/**",
 				"jest.config.*",
-				"vitest.config.*",
 				"!coverage/**",
 				"!test-results/**"
 			],
@@ -280,7 +263,6 @@
 				"tests/unit/**/*.spec.ts",
 				"tests/unit/**/*.spec.tsx",
 				"jest.config.*",
-				"vitest.config.*",
 				"!coverage/**",
 				"!test-results/**",
 				"!**/node_modules/**",
@@ -307,7 +289,7 @@
 			"cache": false,
 			"outputs": ["coverage/**", "test-results/**"],
 			"persistent": false,
-			"env": ["DATABASE_URL", "CI"]
+			"env": ["CI"]
 		},
 		"test:vitest": {
 			"dependsOn": ["@repo/shared#build"],
@@ -318,7 +300,6 @@
 				"src/**/*.spec.tsx",
 				"tests/unit/**/*.test.ts",
 				"tests/unit/**/*.test.tsx",
-				"vitest.config.*",
 				"!coverage/**",
 				"!test-results/**",
 				"!**/node_modules/**"

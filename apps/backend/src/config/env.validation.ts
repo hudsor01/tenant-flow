@@ -3,10 +3,9 @@ import { Logger } from '@nestjs/common'
 export interface RequiredEnvVars {
 	DATABASE_URL: string
 	DIRECT_URL: string
-	JWT_SECRET: string
 	SUPABASE_URL: string
-	SUPABASE_SERVICE_ROLE_KEY: string
-	SUPABASE_JWT_SECRET: string
+	SERVICE_ROLE_KEY: string
+	JWT_SECRET: string
 	CORS_ORIGINS: string
 }
 
@@ -17,10 +16,9 @@ export function validateEnvironment(): void {
 	const requiredVars: (keyof RequiredEnvVars)[] = [
 		'DATABASE_URL',
 		'DIRECT_URL',
-		'JWT_SECRET',
 		'SUPABASE_URL',
-		'SUPABASE_SERVICE_ROLE_KEY',
-		'SUPABASE_JWT_SECRET',
+		'SERVICE_ROLE_KEY',
+		'JWT_SECRET',
 		'CORS_ORIGINS'
 	]
 
@@ -85,5 +83,5 @@ export function validateEnvironment(): void {
 		)
 	}
 
-	logger.log('✅ Environment validation completed successfully')
+	logger.log('Environment validation completed successfully')
 }

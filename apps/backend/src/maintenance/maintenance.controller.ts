@@ -1,8 +1,8 @@
 /**
- * 🚨 ULTRA-NATIVE CONTROLLER - DO NOT ADD ABSTRACTIONS 🚨
+ *  ULTRA-NATIVE CONTROLLER - DO NOT ADD ABSTRACTIONS 
  *
  * ONLY built-in NestJS pipes, native exceptions, direct RPC calls.
- * ❌ FORBIDDEN: Custom decorators, DTOs, validation layers, middleware
+ * FORBIDDEN: Custom decorators, DTOs, validation layers, middleware
  * See: apps/backend/ULTRA_NATIVE_ARCHITECTURE.md
  */
 

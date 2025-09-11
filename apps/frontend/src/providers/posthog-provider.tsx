@@ -1,50 +1,25 @@
 'use client'
 
+import { useEffect } from 'react'
 import posthog from 'posthog-js'
 import { PostHogProvider } from 'posthog-js/react'
-import { useEffect } from 'react'
 
-if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
-	posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
-		api_host: '/ingest', // Use reverse proxy to avoid ad blockers
-		person_profiles: 'identified_only', // Reduce costs by only tracking identified users
-		capture_pageview: false, // We'll manually track pageviews for better control
-		capture_pageleave: true, // Track when users leave pages
-		persistence: 'localStorage+cookie', // Use both for better persistence
-		autocapture: false, // Disable autocapture for privacy
-		session_recording: {
-			maskAllInputs: true, // Mask all inputs for privacy
-			maskInputOptions: {
-				password: true,
-				email: true,
-				tel: true
-			}
-		},
-		opt_out_capturing_by_default: false,
-		loaded: posthog => {
-			// Check if we should track based on env and feature flags
-			if (process.env.NEXT_PUBLIC_ENABLE_ANALYTICS !== 'true') {
-				posthog.opt_out_capturing()
-			}
-		}
-	})
-}
-
-export function PHProvider({ children }: { children: React.ReactNode }) {
+export default function PostHogClientProvider({ children }: { children: React.ReactNode }) {
 	useEffect(() => {
-		// Check for Do Not Track browser setting
-		if (typeof window !== 'undefined' && navigator.doNotTrack === '1') {
-			posthog.opt_out_capturing()
+		// Initialize PostHog only on the client side in useEffect
+		if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_POSTHOG_KEY && !posthog.__loaded) {
+			posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
+				api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
+				capture_pageview: false, // We'll handle this manually for App Router
+				person_profiles: 'identified_only',
+				persistence: 'localStorage+cookie',
+				session_recording: {
+					maskAllInputs: false,
+					maskInputOptions: { password: true }
+				}
+			})
 		}
 	}, [])
 
-	if (!process.env.NEXT_PUBLIC_POSTHOG_KEY) {
-		return <>{children}</>
-	}
-
-	return (
-		<PostHogProvider apiKey={process.env.NEXT_PUBLIC_POSTHOG_KEY}>
-			{children}
-		</PostHogProvider>
-	)
+	return <PostHogProvider client={posthog}>{children}</PostHogProvider>
 }

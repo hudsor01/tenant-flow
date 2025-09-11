@@ -17,25 +17,33 @@ import { writeFileSync, mkdirSync } from 'fs'
 import { join } from 'path'
 import { jsonSchemaToZod } from 'json-schema-to-zod'
 import { z } from 'zod'
+import { logger } from '@repo/shared'
 
-type JSONSchema = any // Permissive typing for JSON Schema objects
+interface JSONSchema {
+  type?: string
+  properties?: Record<string, JSONSchema>
+  required?: string[]
+  items?: JSONSchema
+  enum?: unknown[]
+  [key: string]: unknown
+}
 
 /**
  * Generate all frontend schemas using native features only
  */
 async function generateSchemas() {
-  console.log('🔄 Generating frontend Zod schemas from backend JSON schemas...')
+  logger.info('Generating frontend Zod schemas from backend JSON schemas...')
   
   // Use native Node.js import from built backend files
-  let backendSchemas: any
+  let backendSchemas: Record<string, JSONSchema>
   try {
     backendSchemas = await import('../../backend/dist/schemas/auth.schemas.js')
-    console.log('✅ Backend schemas imported successfully')
-  } catch (error: any) {
+    logger.info('SUCCESS: Backend schemas imported successfully')
+  } catch (error: unknown) {
     if (error.code === 'MODULE_NOT_FOUND') {
-      console.error('❌ Backend schemas not found')
-      console.error('💡 Solution: Run `turbo build --filter=@repo/backend` first')
-      console.error('This ensures proper build dependency order.')
+      logger.error('ERROR: Backend schemas not found')
+      logger.error('Solution: Run `turbo build --filter=@repo/backend` first')
+      logger.error('This ensures proper build dependency order.')
       process.exit(1)
     }
     // Re-throw unexpected errors (network, permissions, etc.)
@@ -56,8 +64,8 @@ async function generateSchemas() {
 
   // Basic validation that schemas exist
   if (!loginSchema || !registerSchema) {
-    console.error('❌ Required backend schemas are missing')
-    console.error('Available schemas:', Object.keys(backendSchemas))
+    logger.error('ERROR: Required backend schemas are missing')
+    logger.error('Available schemas:', Object.keys(backendSchemas))
     process.exit(1)
   }
 
@@ -79,7 +87,7 @@ async function generateSchemas() {
 
   // Convert each schema with individual error handling
   for (const { jsonSchema, name, type } of schemas) {
-    console.log(`  Converting ${name}...`)
+    logger.info(`  Converting ${name}...`)
     
     try {
       // Use existing json-schema-to-zod with basic error handling
@@ -95,9 +103,9 @@ async function generateSchemas() {
       generatedSchemas.push(exportedCode)
       generatedTypes.push(`export type ${type} = z.infer<typeof ${name}>`)
       
-    } catch (conversionError: any) {
-      console.warn(`⚠️  Schema conversion failed for ${name}: ${conversionError.message}`)
-      console.warn(`Using minimal fallback for ${name}`)
+    } catch (conversionError: unknown) {
+      logger.warn(`WARNING: Schema conversion failed for ${name}: ${conversionError.message}`)
+      logger.warn(`Using minimal fallback for ${name}`)
       
       // Use Zod's built-in unknown() as fallback instead of hardcoded schemas
       generatedSchemas.push(`// ${name} (conversion failed)`)
@@ -155,21 +163,21 @@ ${aliasTypes.join('\n')}
   const outputDir = join(process.cwd(), 'src', 'lib', 'validation')
   try {
     mkdirSync(outputDir, { recursive: true })
-  } catch (dirError: any) {
-    console.warn(`⚠️  Could not create output directory: ${dirError.message}`)
+  } catch (dirError: unknown) {
+    logger.warn(`WARNING: Could not create output directory: ${dirError.message}`)
     // Continue anyway - writeFileSync might still work
   }
   
   const outputPath = join(outputDir, 'generated-auth-schemas.ts')
   try {
     writeFileSync(outputPath, fileContent, 'utf8')
-    console.log('✅ Generated frontend schemas successfully!')
-    console.log(`📁 Output: ${outputPath}`)
-    console.log(`📊 Generated ${schemas.length} schemas`)
+    logger.info('SUCCESS: Generated frontend schemas successfully!')
+    logger.info(`Output: ${outputPath}`)
+    logger.info(`Generated ${schemas.length} schemas`)
     
     return outputPath
-  } catch (writeError: any) {
-    console.error(`❌ Failed to write schema file: ${writeError.message}`)
+  } catch (writeError: unknown) {
+    logger.error(`ERROR: Failed to write schema file: ${writeError.message}`)
     process.exit(1)
   }
 }
@@ -179,9 +187,9 @@ if (require.main === module) {
   ;(async () => {
     try {
       await generateSchemas()
-      console.log('🎉 Schema generation complete!')
-    } catch (error: any) {
-      console.error('❌ Schema generation failed:', error.message)
+      logger.info('Schema generation complete!')
+    } catch (error: unknown) {
+      logger.error('ERROR: Schema generation failed:', error.message)
       process.exit(1)
     }
   })()

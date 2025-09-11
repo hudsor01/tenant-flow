@@ -18,7 +18,7 @@ logs/
 # Environment files (extra safety)
 .env*
 .env
-.env.example
+.env.*
 
 # Secrets and keys
 *.key
@@ -29,7 +29,6 @@ logs/
 
 # OS and editor files
 .DS_Store
-*~
 *.swp
 
 # Email templates backup
