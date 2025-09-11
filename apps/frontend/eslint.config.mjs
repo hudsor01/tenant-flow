@@ -11,10 +11,21 @@
 import baseConfig from '@repo/eslint-config/base'
 import antiDuplicationPlugin from '../../.eslint/plugins/anti-duplication.js'
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
+import nextPlugin from '@next/eslint-plugin-next'
 
 export default [
 	...baseConfig,
 
+	{
+		name: 'frontend/next.js-plugin',
+		plugins: {
+			'@next/next': nextPlugin
+		},
+		rules: {
+			...nextPlugin.configs.recommended.rules,
+			...nextPlugin.configs['core-web-vitals'].rules
+		}
+	},
 	{
 		name: 'frontend/anti-duplication-plugin',
 		plugins: {

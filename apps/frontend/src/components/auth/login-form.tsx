@@ -7,11 +7,17 @@ import {
   cn,
   buttonClasses,
   inputClasses,
-  ANIMATION_DURATIONS
+  cardClasses,
+  formFieldClasses,
+  formLabelClasses,
+  formErrorClasses,
+  animationClasses,
+  ANIMATION_DURATIONS,
+  TYPOGRAPHY_SCALE
 } from '@/lib/utils'
 import { emailSchema, requiredString, supabaseClient } from '@repo/shared'
 import { useForm } from '@tanstack/react-form'
-import { Loader2, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react'
+import { Loader2, Eye, EyeOff, AlertCircle, CheckCircle, Shield, Lock, Mail, User, Building } from 'lucide-react'
 import { useState } from 'react'
 import { z } from 'zod'
 
@@ -147,15 +153,67 @@ export function LoginForm({
 			}}
 			{...props}
 		>
-
-			<form
-				onSubmit={e => {
-					e.preventDefault()
-					form.handleSubmit()
-				}}
-				className="space-y-6"
+			{/* Trust Header with Security Indicators */}
+			<div 
+				className={cn(
+					cardClasses('elevated'),
+					animationClasses('slide-down'),
+					'p-6 text-center space-y-4 border-2 bg-gradient-to-br from-card to-card/50'
+				)}
 			>
-				<div className="space-y-5">
+				<div className="flex items-center justify-center gap-2 text-primary">
+					<Shield className="w-5 h-5" />
+					<span 
+						className="font-semibold"
+						style={{
+							fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize,
+							fontWeight: TYPOGRAPHY_SCALE['body-sm'].fontWeight
+						}}
+					>
+						Secure Authentication
+					</span>
+				</div>
+				<h1 
+					className="font-bold tracking-tight text-foreground"
+					style={{
+						fontSize: TYPOGRAPHY_SCALE['display-xl'].fontSize,
+						lineHeight: TYPOGRAPHY_SCALE['display-xl'].lineHeight,
+						letterSpacing: TYPOGRAPHY_SCALE['display-xl'].letterSpacing,
+						fontWeight: TYPOGRAPHY_SCALE['display-xl'].fontWeight
+					}}
+				>
+					{isLogin ? 'Welcome back' : 'Create your account'}
+				</h1>
+				<p 
+					className="text-muted-foreground leading-relaxed max-w-sm mx-auto"
+					style={{
+						fontSize: TYPOGRAPHY_SCALE['body-md'].fontSize,
+						lineHeight: TYPOGRAPHY_SCALE['body-md'].lineHeight
+					}}
+				>
+					{isLogin 
+						? 'Sign in to access your property management dashboard' 
+						: 'Join thousands of property managers using TenantFlow'
+					}
+				</p>
+			</div>
+
+			{/* Main Form Container */}
+			<div 
+				className={cn(
+					cardClasses('elevated'),
+					animationClasses('fade-in'),
+					'border-2 shadow-xl bg-gradient-to-br from-card to-card/80'
+				)}
+			>
+				<form
+					onSubmit={e => {
+						e.preventDefault()
+						form.handleSubmit()
+					}}
+					className="p-8 space-y-8"
+				>
+				<div className="space-y-6">
 					{/* Name fields for signup */}
 					{!isLogin && (
 						<div 
@@ -166,11 +224,15 @@ export function LoginForm({
 						>
 							<form.Field name="firstName">
 								{field => (
-									<div className="space-y-2">
+									<div className={cn(formFieldClasses(field.state.meta.errors.length > 0 && field.state.meta.isTouched))}>
 										<Label 
 											htmlFor="firstName"
-											className="text-sm font-medium text-foreground"
+											className={cn(
+												formLabelClasses(true),
+												"flex items-center gap-2"
+											)}
 										>
+											<User className="w-4 h-4 text-primary" />
 											First name
 										</Label>
 										<Input
@@ -181,10 +243,11 @@ export function LoginForm({
 											onBlur={field.handleBlur}
 											disabled={form.state.isSubmitting}
 											className={cn(
-												inputClasses('default'),
-												field.state.meta.errors.length > 0 && field.state.meta.isTouched
-													? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-													: 'focus:border-primary focus:ring-primary/20'
+												inputClasses(
+													field.state.meta.errors.length > 0 && field.state.meta.isTouched ? 'invalid' : 'default',
+													'default'
+												),
+												'h-11 text-base transition-all focus:ring-2 focus:ring-offset-1'
 											)}
 											style={{
 												transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
@@ -193,10 +256,11 @@ export function LoginForm({
 										{field.state.meta.errors.length > 0 &&
 											field.state.meta.isTouched && (
 												<div 
-													className="flex items-center gap-2 text-sm text-red-600"
-													style={{ 
-														animation: `fadeIn ${ANIMATION_DURATIONS.fast} ease-out`,
-													}}
+													className={cn(
+														formErrorClasses(),
+														animationClasses('slide-down'),
+														"flex items-center gap-2"
+													)}
 												>
 													<AlertCircle className="h-4 w-4" />
 													{field.state.meta.errors[0]}
@@ -207,11 +271,15 @@ export function LoginForm({
 							</form.Field>
 							<form.Field name="lastName">
 								{field => (
-									<div className="space-y-2">
+									<div className={cn(formFieldClasses(field.state.meta.errors.length > 0 && field.state.meta.isTouched))}>
 										<Label 
 											htmlFor="lastName"
-											className="text-sm font-medium text-foreground"
+											className={cn(
+												formLabelClasses(true),
+												"flex items-center gap-2"
+											)}
 										>
+											<User className="w-4 h-4 text-primary" />
 											Last name
 										</Label>
 										<Input
@@ -222,10 +290,11 @@ export function LoginForm({
 											onBlur={field.handleBlur}
 											disabled={form.state.isSubmitting}
 											className={cn(
-												inputClasses('default'),
-												field.state.meta.errors.length > 0 && field.state.meta.isTouched
-													? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-													: 'focus:border-primary focus:ring-primary/20'
+												inputClasses(
+													field.state.meta.errors.length > 0 && field.state.meta.isTouched ? 'invalid' : 'default',
+													'default'
+												),
+												'h-11 text-base transition-all focus:ring-2 focus:ring-offset-1'
 											)}
 											style={{
 												transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
@@ -234,10 +303,11 @@ export function LoginForm({
 										{field.state.meta.errors.length > 0 &&
 											field.state.meta.isTouched && (
 												<div 
-													className="flex items-center gap-2 text-sm text-red-600"
-													style={{ 
-														animation: `fadeIn ${ANIMATION_DURATIONS.fast} ease-out`,
-													}}
+													className={cn(
+														formErrorClasses(),
+														animationClasses('slide-down'),
+														"flex items-center gap-2"
+													)}
 												>
 													<AlertCircle className="h-4 w-4" />
 													{field.state.meta.errors[0]}
@@ -254,15 +324,19 @@ export function LoginForm({
 						<form.Field name="company">
 							{field => (
 								<div 
-									className="space-y-2"
-									style={{ 
-										animation: `slideInFromLeft ${ANIMATION_DURATIONS.default} ease-out`,
-									}}
+									className={cn(
+										formFieldClasses(field.state.meta.errors.length > 0 && field.state.meta.isTouched),
+										animationClasses('slide-up')
+									)}
 								>
 									<Label 
 										htmlFor="company"
-										className="text-sm font-medium text-foreground"
+										className={cn(
+											formLabelClasses(true),
+											"flex items-center gap-2"
+										)}
 									>
+										<Building className="w-4 h-4 text-primary" />
 										Company
 									</Label>
 									<Input
@@ -273,10 +347,11 @@ export function LoginForm({
 										onBlur={field.handleBlur}
 										disabled={form.state.isSubmitting}
 										className={cn(
-											inputClasses('default'),
-											field.state.meta.errors.length > 0 && field.state.meta.isTouched
-												? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-												: 'focus:border-primary focus:ring-primary/20'
+											inputClasses(
+												field.state.meta.errors.length > 0 && field.state.meta.isTouched ? 'invalid' : 'default',
+												'default'
+											),
+											'h-11 text-base transition-all focus:ring-2 focus:ring-offset-1'
 										)}
 										style={{
 											transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
@@ -285,10 +360,11 @@ export function LoginForm({
 									{field.state.meta.errors.length > 0 &&
 										field.state.meta.isTouched && (
 											<div 
-												className="flex items-center gap-2 text-sm text-red-600"
-												style={{ 
-													animation: `fadeIn ${ANIMATION_DURATIONS.fast} ease-out`,
-												}}
+												className={cn(
+													formErrorClasses(),
+													animationClasses('slide-down'),
+													"flex items-center gap-2"
+												)}
 											>
 												<AlertCircle className="h-4 w-4" />
 												{field.state.meta.errors[0]}
@@ -302,30 +378,36 @@ export function LoginForm({
 					<form.Field name="email">
 						{field => (
 							<div 
-								className="space-y-2"
-								style={{ 
-									animation: `slideInFromRight ${ANIMATION_DURATIONS.default} ease-out`,
-								}}
+								className={cn(
+									formFieldClasses(field.state.meta.errors.length > 0 && field.state.meta.isTouched),
+									animationClasses('slide-up')
+								)}
 							>
 								<Label 
 									htmlFor="email"
-									className="text-sm font-medium text-foreground"
+									className={cn(
+										formLabelClasses(true),
+										"flex items-center gap-2"
+									)}
 								>
+									<Mail className="w-4 h-4 text-primary" />
 									Email address
 								</Label>
 								<Input
 									id="email"
 									type="email"
 									placeholder="john@company.com"
+									autoComplete="email"
 									value={field.state.value}
 									onChange={e => field.handleChange(e.target.value)}
 									onBlur={field.handleBlur}
 									disabled={form.state.isSubmitting}
 									className={cn(
-										inputClasses('default'),
-										field.state.meta.errors.length > 0 && field.state.meta.isTouched
-											? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-											: 'focus:border-primary focus:ring-primary/20'
+										inputClasses(
+											field.state.meta.errors.length > 0 && field.state.meta.isTouched ? 'invalid' : 'default',
+											'default'
+										),
+										'h-11 text-base transition-all focus:ring-2 focus:ring-offset-1'
 									)}
 									style={{
 										transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
@@ -334,10 +416,11 @@ export function LoginForm({
 								{field.state.meta.errors.length > 0 &&
 									field.state.meta.isTouched && (
 										<div 
-											className="flex items-center gap-2 text-sm text-red-600"
-											style={{ 
-												animation: `fadeIn ${ANIMATION_DURATIONS.fast} ease-out`,
-											}}
+											className={cn(
+												formErrorClasses(),
+												animationClasses('slide-down'),
+												"flex items-center gap-2"
+											)}
 										>
 											<AlertCircle className="h-4 w-4" />
 											{field.state.meta.errors[0]}
@@ -350,28 +433,35 @@ export function LoginForm({
 					<form.Field name="password">
 						{field => (
 							<div 
-								className="space-y-2"
-								style={{ 
-									animation: `slideInFromLeft ${ANIMATION_DURATIONS.default} ease-out`,
-								}}
+								className={cn(
+									formFieldClasses(field.state.meta.errors.length > 0 && field.state.meta.isTouched),
+									animationClasses('slide-up')
+								)}
 							>
 								<div className="flex items-center justify-between">
 									<Label 
 										htmlFor="password"
-										className="text-sm font-medium text-foreground"
+										className={cn(
+											formLabelClasses(true),
+											"flex items-center gap-2"
+										)}
 									>
+										<Lock className="w-4 h-4 text-primary" />
 										Password
 									</Label>
 									{isLogin && (
-										<button
-											type="button"
-											className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
+										<a
+											href="/auth/forgot-password"
+											className={cn(
+												"text-sm text-primary hover:text-primary/80 font-medium transition-colors",
+												"focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded px-1"
+											)}
 											style={{
 												transition: `color ${ANIMATION_DURATIONS.fast} ease-out`,
 											}}
 										>
 											Forgot password?
-										</button>
+										</a>
 									)}
 								</div>
 								<div className="relative">
@@ -379,16 +469,17 @@ export function LoginForm({
 										id="password"
 										type={showPassword ? 'text' : 'password'}
 										placeholder={isLogin ? 'Enter your password' : 'Create a strong password'}
+										autoComplete={isLogin ? 'current-password' : 'new-password'}
 										value={field.state.value}
 										onChange={e => field.handleChange(e.target.value)}
 										onBlur={field.handleBlur}
 										disabled={form.state.isSubmitting}
 										className={cn(
-											inputClasses('default'),
-											'pr-10',
-											field.state.meta.errors.length > 0 && field.state.meta.isTouched
-												? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-												: 'focus:border-primary focus:ring-primary/20'
+											inputClasses(
+												field.state.meta.errors.length > 0 && field.state.meta.isTouched ? 'invalid' : 'default',
+												'default'
+											),
+											'pr-10 h-11 text-base transition-all focus:ring-2 focus:ring-offset-1'
 										)}
 										style={{
 											transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
@@ -397,7 +488,11 @@ export function LoginForm({
 									<button
 										type="button"
 										onClick={() => setShowPassword(!showPassword)}
-										className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+										className={cn(
+											"absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors",
+											"focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded p-1"
+										)}
+										aria-label={showPassword ? "Hide password" : "Show password"}
 										style={{
 											transition: `color ${ANIMATION_DURATIONS.fast} ease-out`,
 										}}
@@ -412,20 +507,23 @@ export function LoginForm({
 								{field.state.meta.errors.length > 0 &&
 									field.state.meta.isTouched && (
 										<div 
-											className="flex items-center gap-2 text-sm text-red-600"
-											style={{ 
-												animation: `fadeIn ${ANIMATION_DURATIONS.fast} ease-out`,
-											}}
+											className={cn(
+												formErrorClasses(),
+												animationClasses('slide-down'),
+												"flex items-center gap-2"
+											)}
 										>
 											<AlertCircle className="h-4 w-4" />
 											{field.state.meta.errors[0]}
 										</div>
 									)}
 								{!isLogin && (
-									<p className="text-xs text-muted-foreground leading-relaxed">
-										Must be at least 8 characters with uppercase, lowercase,
-										number and special character
-									</p>
+									<div className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+										<Shield className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+										<p className="text-xs text-blue-700 dark:text-blue-400 leading-relaxed">
+											Must include uppercase, lowercase, number, and special character (8+ chars)
+										</p>
+									</div>
 								)}
 							</div>
 						)}
@@ -436,15 +534,19 @@ export function LoginForm({
 						<form.Field name="confirmPassword">
 							{field => (
 								<div 
-									className="space-y-2"
-									style={{ 
-										animation: `slideInFromRight ${ANIMATION_DURATIONS.default} ease-out`,
-									}}
+									className={cn(
+										formFieldClasses(field.state.meta.errors.length > 0 && field.state.meta.isTouched),
+										animationClasses('slide-up')
+									)}
 								>
 									<Label 
 										htmlFor="confirmPassword"
-										className="text-sm font-medium text-foreground"
+										className={cn(
+											formLabelClasses(true),
+											"flex items-center gap-2"
+										)}
 									>
+										<Lock className="w-4 h-4 text-primary" />
 										Confirm password
 									</Label>
 									<div className="relative">
@@ -452,16 +554,17 @@ export function LoginForm({
 											id="confirmPassword"
 											type={showConfirmPassword ? 'text' : 'password'}
 											placeholder="Confirm your password"
+											autoComplete="new-password"
 											value={field.state.value}
 											onChange={e => field.handleChange(e.target.value)}
 											onBlur={field.handleBlur}
 											disabled={form.state.isSubmitting}
 											className={cn(
-												inputClasses('default'),
-												'pr-10',
-												field.state.meta.errors.length > 0 && field.state.meta.isTouched
-													? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-													: 'focus:border-primary focus:ring-primary/20'
+												inputClasses(
+													field.state.meta.errors.length > 0 && field.state.meta.isTouched ? 'invalid' : 'default',
+													'default'
+												),
+												'pr-10 h-11 text-base transition-all focus:ring-2 focus:ring-offset-1'
 											)}
 											style={{
 												transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
@@ -470,7 +573,11 @@ export function LoginForm({
 										<button
 											type="button"
 											onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-											className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+											className={cn(
+												"absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors",
+												"focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded p-1"
+											)}
+											aria-label={showConfirmPassword ? "Hide password confirmation" : "Show password confirmation"}
 											style={{
 												transition: `color ${ANIMATION_DURATIONS.fast} ease-out`,
 											}}
@@ -485,10 +592,11 @@ export function LoginForm({
 									{field.state.meta.errors.length > 0 &&
 										field.state.meta.isTouched && (
 											<div 
-												className="flex items-center gap-2 text-sm text-red-600"
-												style={{ 
-													animation: `fadeIn ${ANIMATION_DURATIONS.fast} ease-out`,
-												}}
+												className={cn(
+													formErrorClasses(),
+													animationClasses('slide-down'),
+													"flex items-center gap-2"
+												)}
 											>
 												<AlertCircle className="h-4 w-4" />
 												{field.state.meta.errors[0]}
@@ -504,10 +612,11 @@ export function LoginForm({
 						<form.Field name="terms">
 							{field => (
 								<div 
-									className="space-y-3"
-									style={{ 
-										animation: `slideInFromBottom ${ANIMATION_DURATIONS.default} ease-out`,
-									}}
+									className={cn(
+										formFieldClasses(field.state.meta.errors.length > 0 && field.state.meta.isTouched),
+										animationClasses('slide-up'),
+										'pt-2'
+									)}
 								>
 									<div className="flex items-start gap-3">
 										<input
@@ -516,7 +625,12 @@ export function LoginForm({
 											checked={field.state.value}
 											onChange={e => field.handleChange(e.target.checked)}
 											onBlur={field.handleBlur}
-											className="mt-0.5 h-4 w-4 rounded border-2 border-input bg-background text-primary focus:ring-2 focus:ring-primary/20 focus:ring-offset-0 transition-colors"
+											disabled={form.state.isSubmitting}
+											className={cn(
+												"mt-0.5 h-5 w-5 rounded border-2 border-input bg-background text-primary",
+												"focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all cursor-pointer",
+												"disabled:opacity-50 disabled:cursor-not-allowed"
+											)}
 											style={{
 												transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
 											}}
@@ -524,11 +638,20 @@ export function LoginForm({
 										<label
 											htmlFor="terms"
 											className="text-sm text-muted-foreground leading-relaxed cursor-pointer select-none"
+											style={{
+												fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize,
+												lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight
+											}}
 										>
 											I agree to the{' '}
 											<a
-												href="#"
-												className="text-primary hover:text-primary/80 underline underline-offset-4 font-medium transition-colors"
+												href="/legal/terms"
+												target="_blank"
+												rel="noopener noreferrer"
+												className={cn(
+													"text-primary hover:text-primary/80 underline underline-offset-4 font-medium transition-colors",
+													"focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded"
+												)}
 												style={{
 													transition: `color ${ANIMATION_DURATIONS.fast} ease-out`,
 												}}
@@ -537,8 +660,13 @@ export function LoginForm({
 											</a>{' '}
 											and{' '}
 											<a
-												href="#"
-												className="text-primary hover:text-primary/80 underline underline-offset-4 font-medium transition-colors"
+												href="/legal/privacy"
+												target="_blank"
+												rel="noopener noreferrer"
+												className={cn(
+													"text-primary hover:text-primary/80 underline underline-offset-4 font-medium transition-colors",
+													"focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded"
+												)}
 												style={{
 													transition: `color ${ANIMATION_DURATIONS.fast} ease-out`,
 												}}
@@ -550,10 +678,11 @@ export function LoginForm({
 									{field.state.meta.errors.length > 0 &&
 										field.state.meta.isTouched && (
 											<div 
-												className="flex items-center gap-2 text-sm text-red-600"
-												style={{ 
-													animation: `fadeIn ${ANIMATION_DURATIONS.fast} ease-out`,
-												}}
+												className={cn(
+													formErrorClasses(),
+													animationClasses('slide-down'),
+													"flex items-center gap-2 mt-2"
+												)}
 											>
 												<AlertCircle className="h-4 w-4" />
 												{field.state.meta.errors[0]}
@@ -568,135 +697,202 @@ export function LoginForm({
 					{error && (
 						<div
 							className={cn(
-								'flex items-center gap-3 text-sm p-4 rounded-lg border-2',
+								cardClasses('elevated'),
+								animationClasses('slide-down'),
+								'flex items-center gap-3 p-4 border-2',
 								error.includes('check your email')
-									? 'text-green-700 bg-green-50 border-green-200 dark:text-green-400 dark:bg-green-900/20 dark:border-green-800'
-									: 'text-red-700 bg-red-50 border-red-200 dark:text-red-400 dark:bg-red-900/20 dark:border-red-800'
+									? 'text-green-700 bg-green-50 border-green-300 dark:text-green-400 dark:bg-green-900/20 dark:border-green-600'
+									: 'text-red-700 bg-red-50 border-red-300 dark:text-red-400 dark:bg-red-900/20 dark:border-red-600'
 							)}
-							style={{ 
-								animation: `slideInFromTop ${ANIMATION_DURATIONS.default} ease-out`,
-							}}
+							role="alert"
+							aria-live="polite"
 						>
 							{error.includes('check your email') ? (
 								<CheckCircle className="h-5 w-5 flex-shrink-0" />
 							) : (
 								<AlertCircle className="h-5 w-5 flex-shrink-0" />
 							)}
-							<span className="font-medium leading-relaxed">{error}</span>
+							<div className="flex-1">
+								<span 
+									className="font-medium leading-relaxed"
+									style={{
+										fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize,
+										lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight
+									}}
+								>
+									{error}
+								</span>
+								{error.includes('check your email') && (
+									<p 
+										className="text-xs mt-1 opacity-75"
+										style={{
+											fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize,
+											lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight
+										}}
+									>
+										If you don't see it, check your spam folder
+									</p>
+								)}
+							</div>
 						</div>
 					)}
 
+					{/* Submit Button */}
 					<Button
 						type="submit"
+						size="lg"
 						className={cn(
-							buttonClasses('primary', 'default'),
-							'w-full h-12 text-base font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 shadow-lg hover:shadow-xl',
+							buttonClasses('primary', 'lg'),
+							'w-full font-semibold bg-gradient-to-r from-primary via-primary to-primary/90',
+							'hover:from-primary/90 hover:via-primary/95 hover:to-primary/80',
+							'shadow-lg hover:shadow-xl active:shadow-md',
+							'transform transition-all hover:scale-[1.02] active:scale-[0.98]',
+							'focus:ring-2 focus:ring-primary focus:ring-offset-2',
+							'disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100',
+							form.state.isSubmitting && 'animate-pulse'
 						)}
 						disabled={form.state.isSubmitting}
 						style={{
 							transition: `all ${ANIMATION_DURATIONS.default} ease-out`,
-							transform: form.state.isSubmitting ? 'scale(0.98)' : 'scale(1)',
 						}}
 					>
 						{form.state.isSubmitting ? (
-							<div className="flex items-center gap-3">
-								<Loader2 
-									className="w-5 h-5 animate-spin" 
+							<div className="flex items-center justify-center gap-3">
+								<div className="relative">
+									<Loader2 className="w-5 h-5 animate-spin" />
+									<div className="absolute inset-0 rounded-full border-2 border-transparent border-t-white/30 animate-spin" />
+								</div>
+								<span 
 									style={{
-										animation: `spin 1s linear infinite`,
+										fontSize: TYPOGRAPHY_SCALE['body-md'].fontSize,
+										fontWeight: TYPOGRAPHY_SCALE['body-md'].fontWeight
 									}}
-								/>
-								<span>{isLogin ? 'Signing you in...' : 'Creating your account...'}</span>
+								>
+									{isLogin ? 'Signing you in...' : 'Creating your account...'}
+								</span>
 							</div>
 						) : (
-							<span className="flex items-center justify-center gap-2">
-								{isLogin ? 'Sign In' : 'Create Account'}
-							</span>
+							<div className="flex items-center justify-center gap-2">
+								<Shield className="w-5 h-5" />
+								<span 
+									style={{
+										fontSize: TYPOGRAPHY_SCALE['body-md'].fontSize,
+										fontWeight: TYPOGRAPHY_SCALE['body-md'].fontWeight
+									}}
+								>
+									{isLogin ? 'Sign In Securely' : 'Create Account'}
+								</span>
+							</div>
 						)}
 					</Button>
 
+					{/* Social Login Divider */}
 					<div 
-						className="relative flex items-center justify-center py-4"
-						style={{ 
-							animation: `fadeIn ${ANIMATION_DURATIONS.slow} ease-out`,
-						}}
+						className={cn(
+							"relative flex items-center justify-center py-6",
+							animationClasses('fade-in')
+						)}
 					>
 						<div className="absolute inset-0 flex items-center">
-							<div className="w-full border-t border-border"></div>
+							<div className="w-full border-t border-border opacity-60"></div>
 						</div>
-						<div className="relative flex justify-center text-sm">
-							<span className="bg-background px-4 text-muted-foreground font-medium">
-								Or continue with
+						<div className="relative flex justify-center">
+							<span 
+								className="bg-card px-6 text-muted-foreground font-medium"
+								style={{
+									fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize,
+									letterSpacing: '0.05em'
+								}}
+							>
+								OR CONTINUE WITH
 							</span>
 						</div>
 					</div>
 
+					{/* Google Sign-In Button */}
 					<Button
 						type="button"
 						variant="outline"
+						size="lg"
 						className={cn(
-							buttonClasses('outline', 'default'),
-							'w-full h-12 text-base font-medium border-2 hover:bg-muted/50',
+							buttonClasses('outline', 'lg'),
+							'w-full font-medium border-2 relative overflow-hidden group',
+							'hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-red-50/30',
+							'hover:border-blue-300 hover:shadow-lg hover:shadow-blue-500/10',
+							'dark:hover:from-blue-900/20 dark:hover:to-red-900/10',
+							'transform transition-all hover:scale-[1.02] active:scale-[0.98]',
+							'focus:ring-2 focus:ring-blue-500/20 focus:ring-offset-2',
+							'disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100'
 						)}
 						onClick={handleGoogleAuth}
 						disabled={isGoogleLoading || form.state.isSubmitting}
 						style={{
 							transition: `all ${ANIMATION_DURATIONS.default} ease-out`,
-							transform: isGoogleLoading ? 'scale(0.98)' : 'scale(1)',
 						}}
 					>
 						{isGoogleLoading ? (
-							<div className="flex items-center gap-3">
-								<Loader2 
-									className="w-5 h-5 animate-spin" 
-									style={{
-										animation: `spin 1s linear infinite`,
-									}}
-								/>
+							<div className="flex items-center justify-center gap-3">
+								<div className="relative">
+									<Loader2 className="w-5 h-5 animate-spin text-primary" />
+									<div className="absolute inset-0 rounded-full border-2 border-transparent border-t-blue-500 animate-spin opacity-30" />
+								</div>
 								<span>
 									{isLogin ? 'Signing you in...' : 'Creating your account...'}
 								</span>
 							</div>
 						) : (
-							<div className="flex items-center gap-3">
-								<svg className="w-5 h-5" viewBox="0 0 24 24">
-									<path
-										fill="#4285F4"
-										d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-									/>
-									<path
-										fill="#34A853"
-										d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-									/>
-									<path
-										fill="#FBBC05"
-										d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-									/>
-									<path
-										fill="#EA4335"
-										d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-									/>
-								</svg>
-								<span>Continue with Google</span>
+							<div className="flex items-center justify-center gap-3 relative z-10">
+								<div className="transform group-hover:scale-110 transition-transform duration-200">
+									<svg className="w-5 h-5" viewBox="0 0 48 48" aria-hidden="true">
+										<path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
+										<path fill="#FF3D00" d="m6.306 14.691 6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/>
+										<path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/>
+										<path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
+									</svg>
+								</div>
+								<span 
+									className="group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors"
+									style={{
+										fontSize: TYPOGRAPHY_SCALE['body-md'].fontSize,
+										fontWeight: TYPOGRAPHY_SCALE['body-md'].fontWeight
+									}}
+								>
+									Continue with Google
+								</span>
 							</div>
 						)}
+						{/* Hover gradient effect */}
+						<div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-red-500/5 to-yellow-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 					</Button>
 				</div>
 			</form>
+		</div>
 
-			<div 
-				className="text-center text-sm"
-				style={{ 
-					animation: `fadeIn ${ANIMATION_DURATIONS.slow} ease-out`,
-				}}
-			>
-				<p className="text-muted-foreground">
+		{/* Footer Section */}
+		<div 
+			className={cn(
+				cardClasses('default'),
+				animationClasses('fade-in'),
+				'text-center p-6 bg-gradient-to-br from-muted/30 to-muted/10 border border-border/50'
+			)}
+		>
+			<div className="space-y-4">
+				<p 
+					className="text-muted-foreground"
+					style={{
+						fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize,
+						lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight
+					}}
+				>
 					{isLogin ? (
 						<>
 							Don&apos;t have an account?{' '}
 							<a
-								href="/signup"
-								className="text-primary hover:text-primary/80 underline underline-offset-4 font-medium transition-colors"
+								href="/auth/sign-up"
+								className={cn(
+									"text-primary hover:text-primary/80 underline underline-offset-4 font-semibold transition-colors",
+									"focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded px-1"
+								)}
 								style={{
 									transition: `color ${ANIMATION_DURATIONS.fast} ease-out`,
 								}}
@@ -708,8 +904,11 @@ export function LoginForm({
 						<>
 							Already have an account?{' '}
 							<a
-								href="/login"
-								className="text-primary hover:text-primary/80 underline underline-offset-4 font-medium transition-colors"
+								href="/auth/login"
+								className={cn(
+									"text-primary hover:text-primary/80 underline underline-offset-4 font-semibold transition-colors",
+									"focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded px-1"
+								)}
 								style={{
 									transition: `color ${ANIMATION_DURATIONS.fast} ease-out`,
 								}}
@@ -719,7 +918,24 @@ export function LoginForm({
 						</>
 					)}
 				</p>
+				
+				{/* Trust Indicators */}
+				<div className="flex items-center justify-center gap-6 pt-2 text-xs text-muted-foreground/75">
+					<div className="flex items-center gap-1">
+						<Shield className="w-3 h-3 text-green-600" />
+						<span>256-bit SSL</span>
+					</div>
+					<div className="flex items-center gap-1">
+						<Lock className="w-3 h-3 text-blue-600" />
+						<span>SOC 2 Compliant</span>
+					</div>
+					<div className="flex items-center gap-1">
+						<CheckCircle className="w-3 h-3 text-primary" />
+						<span>GDPR Ready</span>
+					</div>
+				</div>
 			</div>
+		</div>
 		</div>
 	)
 }

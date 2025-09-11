@@ -1,10 +1,10 @@
 'use client'
 
 import { 
-  cn, 
-  ANIMATION_DURATIONS 
+  cn
 } from '@/lib/design-system'
-import { useEffect, useRef, useCallback, useMemo } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import type { ComponentProps } from '@repo/shared'
 
 interface ParticleType {
@@ -50,9 +50,10 @@ function ParticlesComponent({
 	const animationFrameRef = useRef<number | null>(null)
 	const mouseRef = useRef({ x: 0, y: 0 })
 
-	// Memoized preset configurations for better performance
-	const presetConfig = useMemo(() => {
-		const configs = {
+	// TanStack Query-based preset configuration (replaces useMemo with automatic structural sharing)
+	const { data: presetConfig } = useQuery({
+		queryKey: ['particles', 'preset-config', preset],
+		queryFn: () => Promise.resolve({
 			subtle: {
 				quantity: 30,
 				size: 0.8,
@@ -81,9 +82,11 @@ function ParticlesComponent({
 				opacity: 0.8,
 				speed: 1.5
 			}
-		}
-		return configs[preset]
-	}, [preset])
+		}),
+		select: (configs) => configs[preset],
+		staleTime: Infinity, // Static data, never refetch
+		gcTime: Infinity, // Keep in memory indefinitely
+	})
 
 	// Theme-aware color handling
 	const getThemeColor = useCallback(() => {
@@ -94,11 +97,20 @@ function ParticlesComponent({
 		return theme === 'dark' ? '#ffffff' : '#000000'
 	}, [theme])
 
-	// Density-based quantity adjustment
-	const getQuantity = useMemo(() => {
-		const densityMultiplier = { low: 0.5, medium: 1, high: 1.5 }[density]
-		return Math.floor((quantity || presetConfig.quantity) * densityMultiplier)
-	}, [quantity, presetConfig.quantity, density])
+	// TanStack Query-based quantity calculation (replaces useMemo with select transformation)
+	const { data: calculatedQuantity } = useQuery({
+		queryKey: ['particles', 'quantity', preset, density, quantity],
+		queryFn: () => Promise.resolve({ preset, density, quantity }),
+		select: ({ preset, density, quantity }) => {
+			const densityMultiplier = { low: 0.5, medium: 1, high: 1.5 }[density]
+			// Use preset to determine base quantity if quantity not provided
+			const presetQuantities = { snow: 80, stars: 120, bubbles: 60 }
+			const baseQuantity = quantity || presetQuantities[preset as keyof typeof presetQuantities] || (presetConfig?.quantity ?? 50)
+			return Math.floor(baseQuantity * densityMultiplier)
+		},
+		staleTime: Infinity, // Static calculation, never refetch
+		enabled: !!presetConfig, // Only calculate when presetConfig is available
+	})
 
 	useEffect(() => {
 		const canvas = canvasRef.current
@@ -119,19 +131,24 @@ function ParticlesComponent({
 			canvas.style.height = rect.height + 'px'
 		}
 
-		const createParticle = (): ParticleType => ({
-			x: Math.random() * canvas.clientWidth,
-			y: Math.random() * canvas.clientHeight,
-			vx: (Math.random() - 0.5) * ((ease || presetConfig.ease) / 10) * presetConfig.speed,
-			vy: (Math.random() - 0.5) * ((ease || presetConfig.ease) / 10) * presetConfig.speed,
-			life: 0,
-			maxLife: Math.random() * 300 + 150,
-			size: (size || presetConfig.size) * (0.8 + Math.random() * 0.4),
-			alpha: presetConfig.opacity * (0.5 + Math.random() * 0.5)
-		})
+		const createParticle = (): ParticleType => {
+			// Safe defaults when presetConfig is not yet loaded
+			const config = presetConfig || { ease: 50, speed: 0.5, size: 0.4, opacity: 0.5 }
+			
+			return {
+				x: Math.random() * canvas.clientWidth,
+				y: Math.random() * canvas.clientHeight,
+				vx: (Math.random() - 0.5) * ((ease || config.ease) / 10) * config.speed,
+				vy: (Math.random() - 0.5) * ((ease || config.ease) / 10) * config.speed,
+				life: 0,
+				maxLife: Math.random() * 300 + 150,
+				size: (size || config.size) * (0.8 + Math.random() * 0.4),
+				alpha: config.opacity * (0.5 + Math.random() * 0.5)
+			}
+		}
 
 		const initParticles = () => {
-			particlesRef.current = Array.from({ length: getQuantity }, createParticle)
+			particlesRef.current = Array.from({ length: calculatedQuantity || 50 }, createParticle)
 		}
 
 		const updateParticle = (particle: ParticleType) => {
@@ -161,9 +178,10 @@ function ParticlesComponent({
 				Object.assign(particle, createParticle())
 			}
 
-			// Update alpha for smooth fading
+			// Update alpha for smooth fading with safe defaults
 			const lifeCycle = particle.life / particle.maxLife
-			particle.alpha = presetConfig.opacity * (1 - lifeCycle * 0.3) * (0.5 + Math.sin(lifeCycle * Math.PI) * 0.5)
+			const config = presetConfig || { opacity: 0.5 }
+			particle.alpha = config.opacity * (1 - lifeCycle * 0.3) * (0.5 + Math.sin(lifeCycle * Math.PI) * 0.5)
 		}
 
 		const drawParticle = (particle: ParticleType) => {
@@ -278,7 +296,7 @@ function ParticlesComponent({
 			canvas.removeEventListener('mousemove', handleMouseMove)
 			mediaQuery.removeEventListener('change', handleReducedMotionChange)
 		}
-	}, [getQuantity, staticity, ease, size, color, refresh, preset, theme, density, reducedMotion])
+	}, [calculatedQuantity, staticity, ease, size, color, refresh, preset, theme, density, reducedMotion, getThemeColor, presetConfig])
 
 	return (
 		<div

@@ -24,6 +24,22 @@ export { formatCurrency } from './utils/currency'
 export { getCORSConfig } from './security/cors-config'
 export { getPriceId, getAllPlans, formatPrice, getAnnualSavings } from './stripe/config'
 
+// ============================================================================
+// PRICING CONFIGURATION (Static + Dynamic)
+// ============================================================================
+export * from './config/pricing'
+export { 
+  calculateAnnualSavings as calculateAnnualSavingsPercentage,
+  formatPrice as formatDynamicPrice,
+  findPlanByPriceId,
+  getPriceIdForPlan,
+  type DynamicPricingConfig,
+  type DynamicPlan,
+  type DynamicPricingService,
+  FrontendPricingService,
+  dynamicPlanToPricingConfig
+} from './config/dynamic-pricing'
+
 export {
   toCamelCase,
   toSnakeCase,

@@ -310,41 +310,56 @@ export class StripeController {
     if (!body.productName) {
       throw new BadRequestException('productName is required')
     }
-    if (!body.amount || body.amount < 50) {
-      throw new BadRequestException('Amount must be at least 50 cents')
-    }
     if (!body.tenantId) {
       throw new BadRequestException('tenantId is required')
     }
     if (!body.domain) {
       throw new BadRequestException('domain is required')
     }
+    
+    // Validate priceId is provided and correctly formatted
+    if (!body.priceId) {
+      throw new BadRequestException('priceId is required')
+    }
+    if (!body.priceId.startsWith('price_')) {
+      throw new BadRequestException('Invalid priceId format. Expected Stripe price ID starting with "price_"')
+    }
+
+    this.logger?.info('Creating checkout session', {
+      productName: body.productName,
+      priceId: body.priceId,
+      tenantId: body.tenantId,
+      isSubscription: body.isSubscription
+    })
 
     try {
+      // Use Stripe price ID - ensures pricing consistency
+      const lineItems = [{
+        price: body.priceId,
+        quantity: 1,
+      }]
+
       const session = await this.stripe.checkout.sessions.create({
         payment_method_types: ['card'],
-        line_items: [{
-          price_data: {
-            currency: 'usd',
-            product_data: { 
-              name: body.productName,
-              description: body.description 
-            },
-            unit_amount: body.amount,
-            recurring: body.isSubscription ? { interval: 'month' } : undefined
-          },
-          quantity: 1,
-        }],
+        line_items: lineItems,
         mode: body.isSubscription ? 'subscription' : 'payment',
         success_url: `${body.domain}/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${body.domain}/cancel`,
         metadata: {
-          tenant_id: body.tenantId
+          tenant_id: body.tenantId,
+          product_name: body.productName,
+          price_id: body.priceId || 'legacy_amount'
         }
+      })
+
+      this.logger?.info('Checkout session created successfully', {
+        sessionId: session.id,
+        url: session.url
       })
 
       return { url: session.url || '', session_id: session.id }
     } catch (error) {
+      this.logger?.error('Failed to create checkout session', error)
       this.handleStripeError(error as Stripe.errors.StripeError)
     }
   }
@@ -734,6 +749,165 @@ export class StripeController {
       this.logger?.info(`Processed checkout completion: ${session.id}`)
     } catch (error) {
       this.logger?.error('Failed to process checkout completion', error)
+    }
+  }
+
+  /**
+   * Get all active products from Stripe
+   * Dynamic product configuration instead of hardcoding
+   */
+  @Get('products')
+  @HttpCode(HttpStatus.OK)
+  async getProducts() {
+    this.logger?.info('Fetching products from Stripe API')
+    
+    try {
+      const products = await this.stripe.products.list({
+        active: true,
+        limit: 100,
+        expand: ['data.default_price']
+      })
+
+      this.logger?.info(`Successfully fetched ${products.data.length} products`)
+      
+      return {
+        success: true,
+        products: products.data
+      }
+    } catch (error) {
+      this.logger?.error('Failed to fetch products from Stripe', error)
+      if (error instanceof Stripe.errors.StripeError) {
+        this.handleStripeError(error)
+      }
+      throw new InternalServerErrorException('Failed to fetch products')
+    }
+  }
+
+  /**
+   * Get all active prices from Stripe
+   * Dynamic pricing configuration instead of hardcoding
+   */
+  @Get('prices')
+  @HttpCode(HttpStatus.OK)
+  async getPrices() {
+    this.logger?.info('Fetching prices from Stripe API')
+    
+    try {
+      const prices = await this.stripe.prices.list({
+        active: true,
+        limit: 100,
+        expand: ['data.product']
+      })
+
+      this.logger?.info(`Successfully fetched ${prices.data.length} prices`)
+      
+      return {
+        success: true,
+        prices: prices.data
+      }
+    } catch (error) {
+      this.logger?.error('Failed to fetch prices from Stripe', error)
+      if (error instanceof Stripe.errors.StripeError) {
+        this.handleStripeError(error)
+      }
+      throw new InternalServerErrorException('Failed to fetch prices')
+    }
+  }
+
+  /**
+   * Get pricing configuration with products and prices combined
+   * Returns data in format suitable for frontend pricing components
+   */
+  @Get('pricing-config')
+  @HttpCode(HttpStatus.OK)
+  async getPricingConfig() {
+    this.logger?.info('Fetching pricing configuration from Stripe API')
+    
+    try {
+      // Fetch products and prices in parallel
+      const [productsResponse, pricesResponse] = await Promise.all([
+        this.stripe.products.list({
+          active: true,
+          limit: 100
+        }),
+        this.stripe.prices.list({
+          active: true,
+          limit: 100,
+          expand: ['data.product']
+        })
+      ])
+
+      // Group prices by product
+      const productPriceMap = new Map<string, Stripe.Price[]>()
+      pricesResponse.data.forEach(price => {
+        const productId = typeof price.product === 'string' ? price.product : price.product.id
+        if (!productPriceMap.has(productId)) {
+          productPriceMap.set(productId, [])
+        }
+        productPriceMap.get(productId)!.push(price)
+      })
+
+      // Build pricing configuration
+      const pricingConfig = productsResponse.data
+        .filter(product => {
+          // Only include products that match our TenantFlow naming pattern
+          return product.id.includes('tenantflow_') || 
+                 product.name.toLowerCase().includes('tenantflow') ||
+                 product.name.toLowerCase().includes('starter') ||
+                 product.name.toLowerCase().includes('growth') ||
+                 product.name.toLowerCase().includes('trial')
+        })
+        .map(product => {
+          const prices = productPriceMap.get(product.id) || []
+          const monthlyPrice = prices.find(p => p.recurring?.interval === 'month')
+          const annualPrice = prices.find(p => p.recurring?.interval === 'year')
+
+          // Parse features from metadata
+          const features = product.metadata.features ? 
+            JSON.parse(product.metadata.features) : []
+
+          return {
+            id: product.id,
+            name: product.name,
+            description: product.description || '',
+            metadata: product.metadata,
+            prices: {
+              monthly: monthlyPrice ? {
+                id: monthlyPrice.id,
+                amount: monthlyPrice.unit_amount || 0,
+                currency: monthlyPrice.currency
+              } : null,
+              annual: annualPrice ? {
+                id: annualPrice.id,
+                amount: annualPrice.unit_amount || 0,
+                currency: annualPrice.currency
+              } : null
+            },
+            features,
+            limits: {
+              properties: parseInt(product.metadata.propertyLimit || '0'),
+              units: parseInt(product.metadata.unitLimit || '0'),
+              storage: parseInt(product.metadata.storageGB || '0')
+            },
+            support: product.metadata.support || '',
+            order: parseInt(product.metadata.order || '999')
+          }
+        })
+        .sort((a, b) => a.order - b.order)
+
+      this.logger?.info(`Successfully built pricing configuration for ${pricingConfig.length} products`)
+      
+      return {
+        success: true,
+        config: pricingConfig,
+        lastUpdated: new Date().toISOString()
+      }
+    } catch (error) {
+      this.logger?.error('Failed to fetch pricing configuration from Stripe', error)
+      if (error instanceof Stripe.errors.StripeError) {
+        this.handleStripeError(error)
+      }
+      throw new InternalServerErrorException('Failed to fetch pricing configuration')
     }
   }
 

@@ -1,7 +1,7 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 
-import { cn, cardClasses, ANIMATION_DURATIONS, SEMANTIC_COLORS } from "@/lib/utils"
+import { cn, cardClasses, ANIMATION_DURATIONS, SEMANTIC_COLORS } from "@/lib/design-system"
 
 const cardVariants = cva(
   "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border shadow-sm",
@@ -39,15 +39,27 @@ const cardVariants = cva(
 type CardProps = React.ComponentProps<"div"> & VariantProps<typeof cardVariants>
 
 function Card({ className, variant, size, padding, ...props }: CardProps) {
+  // Map variant to design system variant
+  const designSystemVariant = variant === 'elevated' ? 'elevated' 
+    : variant === 'interactive' ? 'interactive'
+    : variant === 'premium' ? 'premium'
+    : 'default'
+
   return (
     <div
       data-slot="card"
-      className={cn(cardVariants({ variant, size, padding }), className)}
+      className={cn(
+        // Use design system cardClasses for consistent styling
+        cardClasses(designSystemVariant, className),
+        // Fallback to cardVariants for legacy variants
+        ['success', 'warning', 'error'].includes(variant || '') && cardVariants({ variant, size, padding })
+      )}
       style={{
         transition: variant === 'interactive' || variant === 'elevated' 
           ? `all ${ANIMATION_DURATIONS.default} ease-out`
           : undefined,
-        ...((props as any).style || {})
+        borderColor: variant === 'premium' ? SEMANTIC_COLORS.primary : undefined,
+        ...(props.style || {})
       }}
       {...props}
     />

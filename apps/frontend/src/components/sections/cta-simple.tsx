@@ -11,21 +11,34 @@ import {
   cn, 
   cardClasses, 
   buttonClasses,
-  TYPOGRAPHY_SCALE 
+  TYPOGRAPHY_SCALE,
+  ANIMATION_DURATIONS
 } from '@/lib/design-system'
 
 const benefits = [
-  { icon: Zap, text: 'Setup in 5 minutes' },
-  { icon: Users, text: 'No credit card required' },
-  { icon: CheckCircle, text: '14-day free trial' },
-  { icon: Clock, text: '24/7 support included' }
+  { icon: Zap, text: 'Setup in 5 minutes', highlight: 'instant' },
+  { icon: Users, text: 'No credit card required', highlight: 'risk-free' },
+  { icon: CheckCircle, text: '14-day free trial', highlight: 'trial' },
+  { icon: Clock, text: '24/7 support included', highlight: 'support' }
 ]
 
-const testimonialStat = {
-  value: '98%',
-  label: 'Customer satisfaction',
-  description: 'Join 10,000+ happy property managers'
-}
+const testimonialStats = [
+  {
+    value: '98%',
+    label: 'Customer satisfaction',
+    description: 'Average rating from 2,000+ reviews'
+  },
+  {
+    value: '10,000+',
+    label: 'Active users',
+    description: 'Property managers worldwide'
+  },
+  {
+    value: '40%',
+    label: 'Revenue increase',
+    description: 'Average portfolio growth'
+  }
+]
 
 export interface CTASimpleProps extends React.ComponentProps<'section'> {
   variant?: 'simple' | 'enhanced' | 'testimonial'
@@ -49,12 +62,18 @@ export const CTASimple = React.forwardRef<HTMLElement, CTASimpleProps>(
     className,
     ...props
   }, ref) => {
+    const variantStyles = {
+      simple: 'py-16 md:py-20 bg-background',
+      enhanced: 'py-24 md:py-32 bg-gradient-to-br from-primary/5 via-background to-accent/5',
+      testimonial: 'py-20 md:py-28 bg-gradient-to-r from-background via-primary/5 to-background'
+    }
+
     return (
       <section 
         ref={ref}
         className={cn(
-          'py-24 md:py-32 relative overflow-hidden',
-          'bg-gradient-to-br from-primary/5 via-background to-accent/5',
+          'relative overflow-hidden',
+          variantStyles[variant],
           className
         )}
         {...props}
@@ -67,9 +86,12 @@ export const CTASimple = React.forwardRef<HTMLElement, CTASimpleProps>(
           <BlurFade delay={0.1}>
             <div className="text-center">
               {/* Enhanced Badge */}
-              <Badge variant="secondary" className="mb-8 text-sm font-medium">
-                <Zap className="mr-2 size-4" />
-                Ready to get started?
+              <Badge 
+                variant="secondary" 
+                className="mb-8 text-sm font-medium bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20 hover:border-primary/40 transition-all duration-200"
+              >
+                <Zap className="mr-2 size-4 text-primary animate-pulse" />
+                Ready to transform your property management?
               </Badge>
 
               {/* Enhanced Headlines */}
@@ -77,27 +99,54 @@ export const CTASimple = React.forwardRef<HTMLElement, CTASimpleProps>(
                 className="text-balance text-foreground mb-6 tracking-tight"
                 style={TYPOGRAPHY_SCALE['display-lg']}
               >
-                Start Managing Properties Today
+                Ready to <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Scale Your Success</span>?
               </h2>
               
-              <p 
-                className="text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-8"
-                style={TYPOGRAPHY_SCALE['body-lg']}
-              >
-                Join thousands of property managers who trust TenantFlow to streamline their operations and increase efficiency.
-              </p>
+              <div className="max-w-3xl mx-auto mb-8 space-y-4">
+                <p 
+                  className="text-muted-foreground leading-relaxed"
+                  style={TYPOGRAPHY_SCALE['body-lg']}
+                >
+                  Join thousands of property managers who've transformed their business with TenantFlow's intelligent automation and real-time insights.
+                </p>
+                <div className="flex items-center justify-center gap-8 text-sm">
+                  <div className="flex items-center gap-2 text-green-600 font-medium">
+                    <CheckCircle className="size-4" />
+                    <span>Trusted by 10,000+ managers</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-blue-600 font-medium">
+                    <CheckCircle className="size-4" />
+                    <span>SOC 2 Type II certified</span>
+                  </div>
+                </div>
+              </div>
 
-              {/* Benefits Grid */}
+              {/* Enhanced Benefits Grid */}
               {showBenefits && (
-                <div className="flex flex-wrap justify-center gap-6 mb-12 max-w-3xl mx-auto">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12 max-w-4xl mx-auto">
                   {benefits.map((benefit, index) => {
                     const Icon = benefit.icon
+                    const highlightColors = {
+                      instant: 'from-orange-500 to-red-500',
+                      'risk-free': 'from-green-500 to-emerald-500', 
+                      trial: 'from-blue-500 to-cyan-500',
+                      support: 'from-purple-500 to-pink-500'
+                    }
+                    
                     return (
-                      <div key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                          <Icon className="h-3 w-3 text-green-600 dark:text-green-400" />
+                      <div key={index} 
+                           className={cn(
+                             cardClasses('interactive'),
+                             "p-4 text-center group cursor-pointer bg-gradient-to-br from-card to-muted/20"
+                           )}
+                           style={{
+                             transition: `all ${ANIMATION_DURATIONS.default} cubic-bezier(0.4, 0, 0.2, 1)`
+                           }}
+                      >
+                        <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-r ${highlightColors[benefit.highlight as keyof typeof highlightColors]} mb-3 group-hover:scale-110 transition-transform shadow-lg`}>
+                          <Icon className="h-6 w-6 text-white" />
                         </div>
-                        <span>{benefit.text}</span>
+                        <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">{benefit.text}</p>
                       </div>
                     )
                   })}
@@ -105,55 +154,76 @@ export const CTASimple = React.forwardRef<HTMLElement, CTASimpleProps>(
               )}
 
               {/* Enhanced CTA Buttons */}
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-16">
                 <ShimmerButton 
-                  className="px-8 py-3 text-base font-medium"
+                  className="px-10 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 active:scale-95"
                   asChild
+                  style={{
+                    transition: `all ${ANIMATION_DURATIONS.default} cubic-bezier(0.4, 0, 0.2, 1)`
+                  }}
                 >
                   <Link href={primaryCTAHref}>
                     <span className="flex items-center gap-2">
+                      <Zap className="size-5" />
                       {primaryCTAText}
-                      <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+                      <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" />
                     </span>
                   </Link>
                 </ShimmerButton>
 
-                <Button 
-                  asChild 
-                  size="lg" 
+                <Button
                   variant="outline"
-                  className="px-8 py-3 text-base font-medium hover:shadow-md transition-all duration-200"
+                  size="lg"
+                  className={cn(
+                    buttonClasses('outline', 'lg'),
+                    "px-10 py-4 text-lg font-medium border-2 hover:shadow-lg transform hover:scale-105 active:scale-95 bg-background/80 backdrop-blur-sm"
+                  )}
+                  style={{
+                    transition: `all ${ANIMATION_DURATIONS.default} cubic-bezier(0.4, 0, 0.2, 1)`
+                  }}
+                  asChild
                 >
                   <Link href={secondaryCTAHref}>
-                    <span>{secondaryCTAText}</span>
+                    <span className="flex items-center gap-2">
+                      <Users className="size-5" />
+                      {secondaryCTAText}
+                    </span>
                   </Link>
                 </Button>
               </div>
 
-              {/* Testimonial Stat */}
+              {/* Enhanced Testimonial Stats */}
               {showTestimonialStat && (
-                <div className={cn(cardClasses('default'), 'inline-flex items-center gap-4 px-8 py-4')}>
-                  <div className="text-center">
-                    <div 
-                      className="font-bold text-primary mb-1"
-                      style={TYPOGRAPHY_SCALE['heading-md']}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                  {testimonialStats.map((stat, index) => (
+                    <div key={index} 
+                         className={cn(
+                           cardClasses('interactive'), 
+                           'p-6 text-center group cursor-pointer bg-gradient-to-br from-card via-background to-muted/30'
+                         )}
+                         style={{
+                           transition: `all ${ANIMATION_DURATIONS.default} cubic-bezier(0.4, 0, 0.2, 1)`
+                         }}
                     >
-                      {testimonialStat.value}
+                      <div 
+                        className="font-bold text-primary mb-2 group-hover:scale-110 transition-transform"
+                        style={TYPOGRAPHY_SCALE['heading-lg']}
+                      >
+                        {stat.value}
+                      </div>
+                      <div 
+                        className="text-foreground font-semibold mb-1 group-hover:text-primary transition-colors"
+                        style={TYPOGRAPHY_SCALE['body-sm']}
+                      >
+                        {stat.label}
+                      </div>
+                      <p 
+                        className="text-muted-foreground text-xs leading-relaxed"
+                      >
+                        {stat.description}
+                      </p>
                     </div>
-                    <div 
-                      className="text-muted-foreground"
-                      style={TYPOGRAPHY_SCALE['body-xs']}
-                    >
-                      {testimonialStat.label}
-                    </div>
-                  </div>
-                  <div className="h-8 w-px bg-border" />
-                  <p 
-                    className="text-muted-foreground"
-                    style={TYPOGRAPHY_SCALE['body-sm']}
-                  >
-                    {testimonialStat.description}
-                  </p>
+                  ))}
                 </div>
               )}
             </div>

@@ -27,11 +27,11 @@ export interface CreateSubscriptionRequest {
 
 export interface CreateCheckoutSessionRequest {
   productName: string
-  amount: number
   tenantId: string
   domain: string
   description?: string
   isSubscription?: boolean
+  priceId: string // Required Stripe price ID (e.g., price_1234...)
 }
 
 export interface CreateBillingPortalRequest {

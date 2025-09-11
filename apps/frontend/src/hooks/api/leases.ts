@@ -13,201 +13,115 @@ type UpdateLease = Database['public']['Tables']['Lease']['Update']
 
 type LeaseStatus = Database['public']['Enums']['LeaseStatus']
 
+// Enhanced leases hook using pre-calculated analytics from database RPC functions
 export function useLeases(status?: LeaseStatus) {
 	return useQuery({
-		queryKey: ['leases', status ?? 'ALL'],
+		queryKey: ['leases', 'analytics', status ?? 'ALL'],
 		queryFn: async () => {
-			return leasesApi.list(status ? { status } : undefined)
-		}
+			// Use RPC function that returns pre-calculated lease analytics
+			return leasesApi.getLeasesWithAnalytics(status)
+		},
+		staleTime: 2 * 60 * 1000, // 2 minutes
+		gcTime: 10 * 60 * 1000, // 10 minutes
+		retry: 3
 	})
 }
 
+// Enhanced lease stats using pre-calculated financial summary from database RPC functions
 export function useLeaseStats() {
 	return useQuery({
-		queryKey: ['leases', 'stats'],
+		queryKey: ['leases', 'financial-summary'],
 		queryFn: async () => {
-			return leasesApi.stats()
-		}
+			// Use RPC function that returns pre-calculated financial summary
+			return leasesApi.getLeaseFinancialSummary()
+		},
+		staleTime: 2 * 60 * 1000, // 2 minutes
+		gcTime: 10 * 60 * 1000, // 10 minutes
+		retry: 3
 	})
 }
 
+// Enhanced create lease using server-side financial calculations
 export function useCreateLease() {
 	const qc = useQueryClient()
 	return useMutation({
-		mutationFn: async (values: InsertLease) => leasesApi.create(values),
-		onMutate: async (newLease) => {
-			// Cancel outgoing refetches to prevent optimistic update conflicts
-			await qc.cancelQueries({ queryKey: ['leases'] })
-
-			// Snapshot previous value for rollback
-			const previousLeases = qc.getQueryData(['leases', 'ALL'])
-
-			// Optimistically update cache with new lease
-			qc.setQueryData(['leases', 'ALL'], (old: _Lease[] | undefined) => {
-				const optimisticLease: _Lease = {
-					id: `temp-${Date.now()}`, // Temporary ID until server response
-					...newLease,
-					status: newLease.status || 'ACTIVE',
-					terms: newLease.terms || null,
-					createdAt: new Date().toISOString(),
-					updatedAt: new Date().toISOString()
-				}
-				return old ? [...old, optimisticLease] : [optimisticLease]
-			})
-
-			// Update stats optimistically
-			qc.setQueriesData({ queryKey: ['leases', 'stats'] }, (old: { totalLeases?: number, activeLeases?: number, totalMonthlyRent?: number } | undefined) => {
-				if (old) {
-					return {
-						...old,
-						totalLeases: (old.totalLeases || 0) + 1,
-						activeLeases: newLease.status === 'ACTIVE' ? (old.activeLeases || 0) + 1 : old.activeLeases,
-						totalMonthlyRent: (old.totalMonthlyRent || 0) + (newLease.rentAmount || 0)
-					}
-				}
-				return old
-			})
-
-			// Return context for rollback
-			return { previousLeases }
+		mutationFn: async (values: InsertLease) => {
+			// Use RPC function that handles financial calculations server-side
+			return leasesApi.createLeaseWithFinancialCalculations(values)
 		},
-		onError: (_err, _newLease, context) => {
-			// Rollback optimistic updates on error
-			if (context?.previousLeases) {
-				qc.setQueryData(['leases', 'ALL'], context.previousLeases)
-			}
-			// Also refresh stats to ensure consistency
-			qc.invalidateQueries({ queryKey: ['leases', 'stats'] })
+		onMutate: async () => {
+			// Cancel outgoing refetches to prevent conflicts
+			await qc.cancelQueries({ queryKey: ['leases'] })
+			
+			// No optimistic updates with business logic - server handles all calculations
+			// Just show loading state to user
+			return {}
+		},
+		onError: () => {
+			// Invalidate to refresh from server on error
+			qc.invalidateQueries({ queryKey: ['leases'] })
 			qc.invalidateQueries({ queryKey: dashboardKeys.stats() })
 		},
 		onSuccess: () => {
-			// Refresh all lease queries to get server data
+			// Refresh all lease queries to get server-calculated data
 			qc.invalidateQueries({ queryKey: ['leases'] })
 			qc.invalidateQueries({ queryKey: dashboardKeys.stats() })
 		}
 	})
 }
 
+// Enhanced update lease using server-side financial recalculations
 export function useUpdateLease() {
 	const qc = useQueryClient()
 	return useMutation({
-		mutationFn: async ({ id, values }: { id: string; values: UpdateLease }) =>
-			leasesApi.update(id, values),
-		onMutate: async ({ id, values }) => {
+		mutationFn: async ({ id, values }: { id: string; values: UpdateLease }) => {
+			// Use RPC function that handles financial recalculations server-side
+			return leasesApi.updateLeaseWithFinancialCalculations(id, values)
+		},
+		onMutate: async () => {
 			// Cancel outgoing refetches
 			await qc.cancelQueries({ queryKey: ['leases'] })
-
-			// Snapshot previous value
-			const previousLeases = qc.getQueryData(['leases', 'ALL'])
-			const previousStats = qc.getQueryData(['leases', 'stats'])
-
-			// Optimistically update lease in cache
-			qc.setQueryData(['leases', 'ALL'], (old: _Lease[] | undefined) => {
-				if (!old) return old
-				return old.map(lease => 
-					lease.id === id 
-						? { ...lease, ...values, updatedAt: new Date().toISOString() }
-						: lease
-				)
-			})
-
-			// Update stats if status or rent changed
-			if (values.status || values.rentAmount) {
-				const oldLease = (previousLeases as _Lease[])?.find(l => l.id === id)
-				if (oldLease) {
-					qc.setQueriesData({ queryKey: ['leases', 'stats'] }, (old: { totalLeases?: number, activeLeases?: number, totalMonthlyRent?: number } | undefined) => {
-						if (!old) return old
-						
-						const newStats = { ...old }
-						
-						// Handle status change
-						if (values.status && oldLease.status !== values.status) {
-							if (oldLease.status === 'ACTIVE') {
-								newStats.activeLeases = Math.max(0, (newStats.activeLeases || 0) - 1)
-							}
-							if (values.status === 'ACTIVE') {
-								newStats.activeLeases = (newStats.activeLeases || 0) + 1
-							}
-						}
-						
-						// Handle rent amount change
-						if (values.rentAmount !== undefined) {
-							newStats.totalMonthlyRent = (newStats.totalMonthlyRent || 0) - (oldLease.rentAmount || 0) + (values.rentAmount || 0)
-						}
-						
-						return newStats
-					})
-				}
-			}
-
-			return { previousLeases, previousStats }
+			
+			// No optimistic updates with business logic - server handles all calculations
+			// Just show loading state to user
+			return {}
 		},
-		onError: (_err, _variables, context) => {
-			// Rollback optimistic updates
-			if (context?.previousLeases) {
-				qc.setQueryData(['leases', 'ALL'], context.previousLeases)
-			}
-			if (context?.previousStats) {
-				qc.setQueryData(['leases', 'stats'], context.previousStats)
-			}
+		onError: () => {
+			// Invalidate to refresh from server on error
+			qc.invalidateQueries({ queryKey: ['leases'] })
+			qc.invalidateQueries({ queryKey: dashboardKeys.stats() })
 		},
 		onSuccess: () => {
+			// Refresh all lease queries to get server-calculated data
 			qc.invalidateQueries({ queryKey: ['leases'] })
 			qc.invalidateQueries({ queryKey: dashboardKeys.stats() })
 		}
 	})
 }
 
+// Enhanced delete lease using server-side financial impact calculations
 export function useDeleteLease() {
 	const qc = useQueryClient()
 	return useMutation({
 		mutationFn: async (id: string) => {
-			await leasesApi.remove(id)
-			return true
+			// Use RPC function that handles financial impact calculations server-side
+			return leasesApi.terminateLeaseWithFinancialCalculations(id)
 		},
-		onMutate: async (id) => {
+		onMutate: async () => {
 			// Cancel outgoing refetches
 			await qc.cancelQueries({ queryKey: ['leases'] })
-
-			// Snapshot previous values
-			const previousLeases = qc.getQueryData(['leases', 'ALL']) as _Lease[] | undefined
-			const previousStats = qc.getQueryData(['leases', 'stats'])
-
-			// Find the lease being deleted for stats update
-			const leaseToDelete = previousLeases?.find(l => l.id === id)
-
-			// Optimistically remove lease from cache
-			qc.setQueryData(['leases', 'ALL'], (old: _Lease[] | undefined) => {
-				if (!old) return old
-				return old.filter(lease => lease.id !== id)
-			})
-
-			// Update stats optimistically
-			if (leaseToDelete) {
-				qc.setQueriesData({ queryKey: ['leases', 'stats'] }, (old: { totalLeases?: number, activeLeases?: number, totalMonthlyRent?: number } | undefined) => {
-					if (!old) return old
-					
-					return {
-						...old,
-						totalLeases: Math.max(0, (old.totalLeases || 0) - 1),
-						activeLeases: leaseToDelete.status === 'ACTIVE' ? Math.max(0, (old.activeLeases || 0) - 1) : old.activeLeases,
-						totalMonthlyRent: Math.max(0, (old.totalMonthlyRent || 0) - (leaseToDelete.rentAmount || 0))
-					}
-				})
-			}
-
-			return { previousLeases, previousStats, deletedLease: leaseToDelete }
+			
+			// No optimistic updates with business logic - server handles all calculations
+			// Just show loading state to user
+			return {}
 		},
-		onError: (_err, _id, context) => {
-			// Rollback optimistic updates
-			if (context?.previousLeases) {
-				qc.setQueryData(['leases', 'ALL'], context.previousLeases)
-			}
-			if (context?.previousStats) {
-				qc.setQueryData(['leases', 'stats'], context.previousStats)
-			}
+		onError: () => {
+			// Invalidate to refresh from server on error
+			qc.invalidateQueries({ queryKey: ['leases'] })
+			qc.invalidateQueries({ queryKey: dashboardKeys.stats() })
 		},
 		onSuccess: () => {
+			// Refresh all lease queries to get server-calculated data
 			qc.invalidateQueries({ queryKey: ['leases'] })
 			qc.invalidateQueries({ queryKey: dashboardKeys.stats() })
 		}

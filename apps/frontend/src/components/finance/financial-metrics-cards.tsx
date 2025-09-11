@@ -8,7 +8,10 @@ import {
   formatCurrency, 
   ANIMATION_DURATIONS, 
   cn, 
-  TYPOGRAPHY_SCALE 
+  TYPOGRAPHY_SCALE,
+  cardClasses,
+  badgeClasses,
+  animationClasses
 } from "@/lib/utils";
 import type { DashboardFinancialStats } from "@repo/shared";
 
@@ -91,31 +94,47 @@ function MetricCard({
   return (
     <Card 
       className={cn(
-        `group relative overflow-hidden rounded-2xl bg-gradient-to-br ${colors.bg} border-2 ${colors.border} ${colors.shadow} hover:shadow-lg transition-all cursor-pointer`,
+        cardClasses('interactive'),
+        `group relative overflow-hidden rounded-2xl bg-gradient-to-br ${colors.bg} border-2 ${colors.border} ${colors.shadow} hover:shadow-xl focus-within:ring-2 focus-within:ring-primary/20 focus-within:ring-offset-2`,
+        animationClasses('fade-in'),
       )}
       style={{ 
-        animation: `slideInFromBottom ${ANIMATION_DURATIONS.default} ease-out ${delay}ms`,
-        transition: `all ${ANIMATION_DURATIONS.default} ease-out`,
+        animationDelay: `${delay}ms`,
+        transform: 'translateY(20px)',
+        animation: `slideInFromBottom ${ANIMATION_DURATIONS.default} ease-out ${delay}ms both`,
+        transition: `all ${ANIMATION_DURATIONS.default} cubic-bezier(0.4, 0, 0.2, 1)`,
       }}
       tabIndex={0}
       role="button"
       aria-label={`${title}: ${typeof value === 'number' ? formatCurrency(value) : value}${trend ? `, trending ${trend.isPositive ? 'up' : 'down'} by ${trend.value}%` : ''}`}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          // Add click behavior here if needed
+        }
+      }}
     >
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div className="space-y-3 flex-1">
             <div className="flex items-center gap-3">
               <div className={cn(
-                `flex size-12 items-center justify-center rounded-xl border group-hover:scale-110 transition-transform`,
+                `flex size-12 items-center justify-center rounded-xl border shadow-sm group-hover:scale-110 group-hover:shadow-md group-focus-visible:scale-110`,
                 colors.icon
-              )}>
-                <Icon className="size-6" />
+              )}
+              style={{
+                transition: `all ${ANIMATION_DURATIONS.fast} cubic-bezier(0.4, 0, 0.2, 1)`,
+              }}>
+                <Icon className="size-6 transition-transform group-hover:scale-110" />
               </div>
               <div className="space-y-1">
                 <p className={cn(
-                  "text-sm font-semibold uppercase tracking-wide",
+                  "text-sm font-semibold uppercase tracking-wide group-hover:tracking-wider",
                   colors.text
-                )}>
+                )}
+                style={{
+                  transition: `letter-spacing ${ANIMATION_DURATIONS.fast} ease-out`,
+                }}>
                   {title}
                 </p>
                 {trend && (
@@ -154,14 +173,26 @@ function MetricCard({
               )}
               
               {progress !== undefined && (
-                <div className="space-y-1">
+                <div className="space-y-2">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">Progress</span>
-                    <span className={colors.accent}>{progress}%</span>
+                    <span className="text-muted-foreground font-medium">Progress</span>
+                    <span className={cn("font-semibold tabular-nums", colors.accent)}>
+                      {progress}%
+                    </span>
                   </div>
                   <Progress 
                     value={progress} 
-                    className="h-2" 
+                    className={cn(
+                      "h-2 bg-muted/30",
+                      "[&>div]:transition-all [&>div]:duration-1000 [&>div]:ease-out",
+                      colors.bg.includes('green') ? '[&>div]:bg-emerald-500' :
+                      colors.bg.includes('blue') ? '[&>div]:bg-blue-500' :
+                      colors.bg.includes('purple') ? '[&>div]:bg-purple-500' : '[&>div]:bg-orange-500'
+                    )}
+                    style={{
+                      transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
+                      animationDelay: `${delay + 200}ms`
+                    }}
                     aria-label={`${title} progress: ${progress}%`}
                   />
                 </div>
@@ -181,18 +212,27 @@ function MetricCard({
 function MetricCardSkeleton({ delay = 0 }: { delay?: number }) {
   return (
     <Card 
-      className="overflow-hidden rounded-2xl border-2 animate-pulse"
+      className={cn(
+        cardClasses('elevated'),
+        "overflow-hidden rounded-2xl border-2",
+        animationClasses('pulse')
+      )}
       style={{ 
         animationDelay: `${delay}ms`,
+        animation: `fadeIn ${ANIMATION_DURATIONS.default} ease-out ${delay}ms both`,
       }}
     >
       <CardContent className="p-6">
         <div className="flex items-start gap-4">
-          <div className="size-12 bg-muted rounded-xl" />
-          <div className="space-y-2 flex-1">
-            <div className="h-3 bg-muted rounded w-24" />
-            <div className="h-8 bg-muted rounded w-32" />
-            <div className="h-3 bg-muted rounded w-20" />
+          <div className="size-12 bg-gradient-to-br from-muted to-muted/60 rounded-xl animate-pulse shadow-sm" />
+          <div className="space-y-3 flex-1">
+            <div className="h-3 bg-gradient-to-r from-muted to-muted/60 rounded-full w-24 animate-pulse" />
+            <div className="h-8 bg-gradient-to-r from-muted to-muted/60 rounded-lg w-32 animate-pulse" />
+            <div className="h-3 bg-gradient-to-r from-muted to-muted/60 rounded-full w-20 animate-pulse" />
+            <div className="space-y-1">
+              <div className="h-2 bg-gradient-to-r from-muted to-muted/60 rounded-full w-16 animate-pulse" />
+              <div className="h-2 bg-gradient-to-r from-muted/50 to-muted/30 rounded-full w-full animate-pulse" />
+            </div>
           </div>
         </div>
       </CardContent>
@@ -297,7 +337,17 @@ export function FinancialMetricsCards({
             Track your most important financial indicators
           </p>
         </div>
-        <Badge variant="outline" className="text-xs">
+        <Badge 
+          variant="outline" 
+          className={cn(
+            badgeClasses('outline', 'sm'),
+            "animate-pulse bg-primary/5 border-primary/20 text-primary"
+          )}
+          style={{
+            animation: `pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite`,
+          }}
+        >
+          <div className="size-2 bg-emerald-500 rounded-full mr-2 animate-pulse" />
           Live Data
         </Badge>
       </div>
