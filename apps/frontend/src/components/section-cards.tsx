@@ -2,7 +2,8 @@ import * as React from "react"
 import { TrendingUp, Minus } from "lucide-react"
 import { formatCurrency, cn } from "@/lib/utils"
 import type { DashboardStats } from "@repo/shared"
-import { useSpring, animated, config } from "@react-spring/web"
+import { useSpring } from "@react-spring/core"
+import { animated } from "@react-spring/web"
 
 import {
   Card,
@@ -42,7 +43,7 @@ const AnimatedMetricCard = React.memo(({
   const valueSpring = useSpring({
     number: value,
     from: { number: 0 },
-    config: config.gentle,
+    config: { mass: 1, tension: 120, friction: 14 },
     delay,
   })
 
@@ -50,14 +51,14 @@ const AnimatedMetricCard = React.memo(({
     opacity: 1,
     transform: 'translateY(0px) scale(1)',
     from: { opacity: 0, transform: 'translateY(20px) scale(0.95)' },
-    config: config.gentle,
+    config: { mass: 1, tension: 120, friction: 14 },
     delay,
   })
 
   const [hovered, setHovered] = React.useState(false)
   const hoverSpring = useSpring({
     transform: hovered ? 'translateY(-2px) scale(1.02)' : 'translateY(0px) scale(1)',
-    config: config.wobbly,
+    config: { mass: 1, tension: 180, friction: 12 },
   })
 
   return (
@@ -101,7 +102,7 @@ export const SectionCards = React.forwardRef<HTMLDivElement, SectionCardsProps>(
   const containerSpring = useSpring({
     opacity: 1,
     from: { opacity: 0 },
-    config: config.gentle,
+    config: { mass: 1, tension: 120, friction: 14 },
   })
 
   return (

@@ -1,10 +1,7 @@
 "use client"
 
-import {
-  useSpring,
-  animated,
-  config
-} from "@react-spring/web"
+import { useSpring } from "@react-spring/core"
+import { animated } from "@react-spring/web"
 import { 
   cn, 
   animationClasses 
@@ -140,7 +137,6 @@ export function BlurFade({
     config: shouldReduceMotion 
       ? { duration: 0 }
       : {
-          ...config.wobbly, // More modern spring config
           tension: 280,
           friction: 60,
           duration: Math.min(duration, 300) // Faster animations

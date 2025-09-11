@@ -1,4 +1,5 @@
-import { useSpring, animated } from "@react-spring/web"
+import { useSpring } from "@react-spring/core"
+import { animated } from "@react-spring/web"
 import type React from "react"
 import { useEffect, useState } from "react"
 
