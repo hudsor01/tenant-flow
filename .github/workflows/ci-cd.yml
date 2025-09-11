@@ -39,6 +39,14 @@ jobs:
       - name: Install Doppler CLI
         uses: dopplerhq/cli-action@v3
 
+      - name: Resolve Doppler config from repo variables (fallbacks)
+        run: |
+          echo "DOPPLER_TOKEN=${DOPPLER_TOKEN:-${{ vars.DOPPLER_TOKEN }}}" >> $GITHUB_ENV
+          echo "DOPPLER_PERSONAL_TOKEN=${DOPPLER_PERSONAL_TOKEN:-${{ vars.DOPPLER_PERSONAL_TOKEN }}}" >> $GITHUB_ENV
+          echo "DOPPLER_PROJECT=${DOPPLER_PROJECT:-${{ vars.DOPPLER_PROJECT }}}" >> $GITHUB_ENV
+          echo "DOPPLER_CONFIG=${DOPPLER_CONFIG:-${{ vars.DOPPLER_CONFIG }}}" >> $GITHUB_ENV
+          echo "DOPPLER_ENVIRONMENT=${DOPPLER_ENVIRONMENT:-${{ vars.DOPPLER_ENVIRONMENT }}}" >> $GITHUB_ENV
+
       - name: Authenticate with Doppler (service or personal token)
         run: |
           if [ -n "${DOPPLER_TOKEN}" ]; then
