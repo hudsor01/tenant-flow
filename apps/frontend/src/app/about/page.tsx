@@ -19,12 +19,11 @@ export default function AboutPage() {
 				<section className="marketing-hero surface-glow">
 					<div className="container text-center max-w-4xl">
 						<h1 className="text-display text-gradient-innovation mb-6">
-							We're building the future of property management
+							Stop losing $2,400+ per property per year
 						</h1>
 						<p className="text-xl text-muted-foreground">
-							TenantFlow was born from the frustration of managing properties
-							with outdated tools. We're here to change that with modern,
-							intuitive software that actually works.
+							Professional property managers increase NOI by 40% with TenantFlow's enterprise-grade 
+							automation, advanced analytics, and scalable operations platform. ROI guaranteed in 90 days.
 						</p>
 					</div>
 				</section>
@@ -132,10 +131,10 @@ export default function AboutPage() {
 
 						<div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
 							{[
+								{ number: '40%', label: 'Average NOI Increase' },
 								{ number: '10,000+', label: 'Properties Managed' },
-								{ number: '2,500+', label: 'Happy Customers' },
-								{ number: '50+', label: 'Cities Served' },
-								{ number: '99.9%', label: 'Uptime SLA' }
+								{ number: '65%', label: 'Vacancy Reduction' },
+								{ number: '90 Days', label: 'ROI Guarantee' }
 							].map((stat, index) => (
 								<div key={index}>
 									<div className="text-3xl font-bold text-primary mb-2">
@@ -203,18 +202,18 @@ export default function AboutPage() {
 				<section className="py-24 surface-glow">
 					<div className="container text-center">
 						<h2 className="text-3xl font-bold mb-4 text-gradient-growth">
-							Ready to experience TenantFlow?
+							Stop losing $2,400+ per property per year
 						</h2>
 						<p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-							Join thousands of property managers who have already transformed
-							their operations.
+							Join 10,000+ property managers who have increased their NOI by 40% with TenantFlow's 
+							enterprise-grade automation. ROI guaranteed in 90 days.
 						</p>
 						<div className="flex flex-col sm:flex-row gap-4 justify-center">
 							<button className="button-primary button-lg">
-								Start Free Trial
+								Start 14-day transformation
 							</button>
 							<button className="button-secondary button-lg">
-								Schedule Demo
+								See ROI calculator
 							</button>
 						</div>
 					</div>

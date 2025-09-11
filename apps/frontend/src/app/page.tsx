@@ -12,21 +12,21 @@ const CTASection = () => (
     <div className="mx-auto max-w-6xl px-6 text-center">
       <div className="prose prose-xl lg:prose-2xl prose-slate mx-auto mb-12">
         <h2 className="text-display text-gradient-primary mb-6 not-prose">
-          Ready to Transform Your Property Management?
+          Stop losing $2,400+ per property per year
         </h2>
         <p className="text-xl leading-relaxed text-balance text-muted-foreground max-w-3xl mx-auto">
-          Join thousands of property managers who have streamlined their operations with our comprehensive management platform.
+          Join 10,000+ property managers who have increased their NOI by 40% with TenantFlow's enterprise-grade automation. ROI guaranteed in 90 days.
         </p>
       </div>
       
       <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 border border-white/50">
         <h3 className="text-2xl font-semibold mb-8 text-foreground tracking-tight">
-          Start Your Journey Today
+          Transform Your Operations Today
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Button size="lg" className="w-full font-medium">Get Started Free</Button>
-          <Button size="lg" variant="outline" className="w-full font-medium">Schedule Demo</Button>
-          <Button size="lg" variant="secondary" className="w-full font-medium">View Pricing</Button>
+          <Button size="lg" className="w-full font-medium">Start 14-day transformation</Button>
+          <Button size="lg" variant="outline" className="w-full font-medium">See ROI calculator</Button>
+          <Button size="lg" variant="secondary" className="w-full font-medium">Schedule Demo</Button>
         </div>
       </div>
     </div>
