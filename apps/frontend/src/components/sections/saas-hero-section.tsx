@@ -34,8 +34,8 @@ export interface SaasHeroSectionProps extends React.ComponentProps<'section'> {
 export const SaasHeroSection = React.forwardRef<HTMLElement, SaasHeroSectionProps>(
   ({ 
     announcementText = "Trusted by 10,000+ property managers",
-    headline = "Stop losing $2,400+ per property per year",
-    subheadline = "Professional property managers increase NOI by 40% with TenantFlow's enterprise-grade automation, advanced analytics, and scalable operations platform.",
+    headline = "Simplify Property Management",
+    subheadline = "Professional property managers streamline operations, automate workflows, and scale their business with TenantFlow's enterprise-grade platform.",
     primaryCTAText = "Start 14-day transformation",
     primaryCTAHref = "/auth/sign-up",
     secondaryCTAText = "See ROI calculator",
@@ -101,10 +101,12 @@ export const SaasHeroSection = React.forwardRef<HTMLElement, SaasHeroSectionProp
                 className="text-foreground tracking-tight text-balance leading-tight mb-6"
                 style={TYPOGRAPHY_SCALE['display-2xl']}
               >
-                {headline.split(' ').slice(0, 2).join(' ')}
-                <br />
                 <span className="inline-block bg-gradient-to-r from-primary via-primary/80 to-accent bg-clip-text text-transparent drop-shadow-lg">
-                  {headline.split(' ').slice(2).join(' ')}
+                  Simplify
+                </span>
+                <br />
+                <span className="text-foreground">
+                  Property Management
                 </span>
               </h1>
             </BlurFade>

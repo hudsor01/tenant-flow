@@ -12,10 +12,10 @@ const CTASection = () => (
     <div className="mx-auto max-w-6xl px-6 text-center">
       <div className="prose prose-xl lg:prose-2xl prose-slate mx-auto mb-12">
         <h2 className="text-display text-gradient-primary mb-6 not-prose">
-          Stop losing $2,400+ per property per year
+          Ready to transform your property management?
         </h2>
         <p className="text-xl leading-relaxed text-balance text-muted-foreground max-w-3xl mx-auto">
-          Join 10,000+ property managers who have increased their NOI by 40% with TenantFlow's enterprise-grade automation. ROI guaranteed in 90 days.
+          Join thousands of property managers who've streamlined their operations and scaled their business with TenantFlow's enterprise platform.
         </p>
       </div>
       
