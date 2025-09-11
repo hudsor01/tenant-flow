@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useStripe, useElements, PaymentElement, ExpressCheckoutElement } from '@stripe/react-stripe-js'
-import { useSpring, animated } from '@react-spring/web'
+import { useSpring } from '@react-spring/core'
+import { animated } from '@react-spring/web'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
