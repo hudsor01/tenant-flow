@@ -10,11 +10,11 @@ export default function ContactPage() {
 				<section className="marketing-hero surface-pattern">
 					<div className="container text-center max-w-4xl">
 						<h1 className="text-display text-gradient-premium mb-6">
-							Get in touch with our team
+							Ready to increase your NOI by 40%?
 						</h1>
 						<p className="text-xl text-muted-foreground">
-							Have questions about TenantFlow? We're here to help you find the
-							right solution for your property management needs.
+							Join 10,000+ property managers who have transformed their operations with TenantFlow. 
+							Our experts will show you exactly how to reduce costs by 32% and automate 80% of daily tasks.
 						</p>
 					</div>
 				</section>
@@ -26,24 +26,24 @@ export default function ContactPage() {
 							{[
 								{
 									icon: MessageSquare,
-									title: 'Live Chat',
-									description: 'Get instant answers to your questions',
-									action: 'Start Chat',
-									available: 'Available 24/7'
-								},
-								{
-									icon: Mail,
-									title: 'Email Support',
-									description: 'Send us a detailed message',
-									action: 'Send Email',
-									available: 'Response within 4 hours'
+									title: 'Free ROI Calculator',
+									description: 'See exactly how much TenantFlow can save your properties in 90 days',
+									action: 'Get My ROI Report',
+									available: 'Instant results in 2 minutes'
 								},
 								{
 									icon: Phone,
-									title: 'Phone Support',
-									description: 'Speak directly with our team',
-									action: 'Schedule Call',
-									available: 'Mon-Fri, 9AM-6PM PST'
+									title: 'Expert Consultation',
+									description: 'Speak with a property management automation specialist',
+									action: 'Schedule Free Call',
+									available: 'Available Mon-Fri, 9AM-6PM PST'
+								},
+								{
+									icon: Mail,
+									title: 'Custom Demo',
+									description: 'See TenantFlow configured for your specific portfolio',
+									action: 'Request Demo',
+									available: 'Personalized for your properties'
 								}
 							].map((option, index) => (
 								<div
@@ -71,10 +71,10 @@ export default function ContactPage() {
 				<section className="py-24 bg-muted/20">
 					<div className="container mx-auto px-4 max-w-4xl">
 						<div className="text-center mb-12">
-							<h2 className="text-3xl font-bold mb-4">Send us a message</h2>
+							<h2 className="text-3xl font-bold mb-4">Get your custom ROI projection in 24 hours</h2>
 							<p className="text-muted-foreground">
-								Fill out the form below and we'll get back to you within 24
-								hours.
+								Tell us about your portfolio and we'll show you exactly how much TenantFlow can save you. 
+								Most property managers see $2,400+ savings per property within 90 days.
 							</p>
 						</div>
 
@@ -131,12 +131,13 @@ export default function ContactPage() {
 										How can we help?
 									</label>
 									<select className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-										<option value="">Select a topic</option>
-										<option value="sales">Sales Inquiry</option>
-										<option value="support">Technical Support</option>
-										<option value="demo">Product Demo</option>
-										<option value="partnership">Partnership</option>
-										<option value="other">Other</option>
+										<option value="">How many properties do you manage?</option>
+										<option value="1-5">1-5 properties (Starter Plan)</option>
+										<option value="6-20">6-20 properties (Growth Plan)</option>
+										<option value="21-100">21-100 properties (Scale Plan)</option>
+										<option value="100+">100+ properties (Enterprise)</option>
+										<option value="demo">I want to see a demo first</option>
+										<option value="other">Other inquiry</option>
 									</select>
 								</div>
 
@@ -156,8 +157,11 @@ export default function ContactPage() {
 										type="submit"
 										className="bg-primary text-primary-foreground px-8 py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors"
 									>
-										Send Message
+										Get My Custom ROI Report
 									</button>
+									<p className="text-sm text-muted-foreground mt-2">
+										Free analysis • No commitment required • Results in 24 hours
+									</p>
 								</div>
 							</form>
 						</div>
