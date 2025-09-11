@@ -18,6 +18,10 @@ env:
 
 jobs:
   build-and-test:
+    # Skip the whole job if neither service nor personal Doppler token is available
+    if: >-
+      ${{ (secrets.DOPPLER_TOKEN != '' || secrets.DOPPLER_PERSONAL_TOKEN != '' ||
+           vars.DOPPLER_TOKEN != '' || vars.DOPPLER_PERSONAL_TOKEN != '') }}
     name: Build and Test
     runs-on: ubuntu-latest
     timeout-minutes: 20
