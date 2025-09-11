@@ -3,16 +3,25 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 
-// Initialize Stripe with your secret key
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-	apiVersion: '2025-08-27.basil'
-})
-
-// Webhook secret for verifying webhook signatures
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
+// Initialize Stripe lazily to avoid build-time errors
+function getStripe() {
+	if (!process.env.STRIPE_SECRET_KEY) {
+		throw new Error('STRIPE_SECRET_KEY is required')
+	}
+	return new Stripe(process.env.STRIPE_SECRET_KEY, {
+		apiVersion: '2025-08-27.basil'
+	})
+}
 
 export async function POST(request: NextRequest) {
 	try {
+		const stripe = getStripe()
+		const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+		
+		if (!webhookSecret) {
+			return NextResponse.json({ error: 'Webhook secret not configured' }, { status: 500 })
+		}
+
 		const body = await request.text()
 		const headersList = await headers()
 		const sig = headersList.get('stripe-signature')
@@ -83,6 +92,7 @@ async function handleCheckoutSessionCompleted(
 
 	// Retrieve the subscription using Stripe's official API
 	if (session.subscription) {
+		const stripe = getStripe()
 		const subscription = await stripe.subscriptions.retrieve(
 			session.subscription as string
 		)
