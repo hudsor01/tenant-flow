@@ -102,7 +102,7 @@ export class HealthController {
 				RAILWAY_ENVIRONMENT: process.env.RAILWAY_ENVIRONMENT,
 
 				hasSupabaseUrl: !!process.env.SUPABASE_URL,
-				hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY
+				hasServiceKey: !!process.env.SERVICE_ROLE_KEY
 			}
 		}
 	}
