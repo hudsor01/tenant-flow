@@ -41,7 +41,7 @@ function SheetOverlay({
       )}
       style={{
         transition: `all ${ANIMATION_DURATIONS.default} ease-out`,
-        ...((props as any).style || {})
+        ...(props.style || {})
       }}
       {...props}
     />

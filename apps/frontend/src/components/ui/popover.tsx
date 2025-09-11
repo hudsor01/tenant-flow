@@ -34,7 +34,9 @@ function PopoverContent({
           className
         )}
         style={{
-          transformOrigin: "var(--radix-popover-content-transform-origin)"
+          transformOrigin: "var(--radix-popover-content-transform-origin)",
+          animationDuration: ANIMATION_DURATIONS.fast,
+          transition: `all ${ANIMATION_DURATIONS.fast} cubic-bezier(0.4, 0, 0.2, 1)`
         }}
         {...props}
       />

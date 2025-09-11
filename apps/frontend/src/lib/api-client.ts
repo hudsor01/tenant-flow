@@ -48,7 +48,7 @@ export const dashboardApi = {
 }
 
 /**
- * Financial API endpoints - all calculations done in database
+ * Financial API endpoints - all calculations done in database via RPC functions
  */
 export const financialApi = {
 	getOverview: (year?: number): Promise<FinancialOverviewResponse> =>
@@ -56,14 +56,29 @@ export const financialApi = {
 			`${API_BASE_URL}/api/v1/financial/overview${year ? `?year=${year}` : ''}`
 		),
 
+	getOverviewWithCalculations: (year?: number): Promise<FinancialOverviewResponse> =>
+		apiClient<FinancialOverviewResponse>(
+			`${API_BASE_URL}/api/v1/financial/overview-calculated${year ? `?year=${year}` : ''}`
+		),
+
 	getExpenseSummary: (year?: number): Promise<ExpenseSummaryResponse> =>
 		apiClient<ExpenseSummaryResponse>(
 			`${API_BASE_URL}/api/v1/financial/expenses${year ? `?year=${year}` : ''}`
 		),
 
+	getExpenseSummaryWithPercentages: (year?: number): Promise<ExpenseSummaryResponse> =>
+		apiClient<ExpenseSummaryResponse>(
+			`${API_BASE_URL}/api/v1/financial/expenses-calculated${year ? `?year=${year}` : ''}`
+		),
+
 	getDashboardStats: (): Promise<DashboardFinancialStats> =>
 		apiClient<DashboardFinancialStats>(
 			`${API_BASE_URL}/api/v1/financial/dashboard-stats`
+		),
+
+	getDashboardFinancialStatsCalculated: (): Promise<DashboardFinancialStats> =>
+		apiClient<DashboardFinancialStats>(
+			`${API_BASE_URL}/api/v1/financial/dashboard-stats-calculated`
 		)
 }
 
@@ -80,6 +95,10 @@ export const propertiesApi = {
 		apiClient<Property[]>(
 			`${API_BASE_URL}/api/v1/properties${params?.status ? `?status=${encodeURIComponent(params.status)}` : ''}`
 		),
+	
+	getPropertiesWithAnalytics: () =>
+		apiClient<Property[]>(`${API_BASE_URL}/api/v1/properties/analytics`),
+	
 	create: (body: PropertyInsert) =>
 		apiClient<Property>(`${API_BASE_URL}/api/v1/properties`, {
 			method: 'POST',
@@ -120,6 +139,10 @@ export const tenantsApi = {
 		apiClient<TenantWithLeaseInfo[]>(
 			`${API_BASE_URL}/api/v1/tenants${params?.status ? `?status=${encodeURIComponent(params.status)}` : ''}`
 		),
+	
+	getTenantsWithAnalytics: () =>
+		apiClient<TenantWithLeaseInfo[]>(`${API_BASE_URL}/api/v1/tenants/analytics`),
+	
 	stats: () => apiClient<TenantStats>(`${API_BASE_URL}/api/v1/tenants/stats`),
 	create: (body: TenantInsert) =>
 		apiClient<Tenant>(`${API_BASE_URL}/api/v1/tenants`, {
@@ -142,6 +165,32 @@ export const leasesApi = {
 		apiClient<Lease[]>(
 			`${API_BASE_URL}/api/v1/leases${params?.status ? `?status=${encodeURIComponent(params.status)}` : ''}`
 		),
+	
+	getLeasesWithAnalytics: (status?: string) =>
+		apiClient<Lease[]>(
+			`${API_BASE_URL}/api/v1/leases/analytics${status ? `?status=${encodeURIComponent(status)}` : ''}`
+		),
+	
+	getLeaseFinancialSummary: (): Promise<LeaseStatsResponse> =>
+		apiClient<LeaseStatsResponse>(`${API_BASE_URL}/api/v1/leases/financial-summary`),
+	
+	createLeaseWithFinancialCalculations: (body: LeaseInsert) =>
+		apiClient<Lease>(`${API_BASE_URL}/api/v1/leases/create-calculated`, {
+			method: 'POST',
+			body: JSON.stringify(body)
+		}),
+	
+	updateLeaseWithFinancialCalculations: (id: string, body: LeaseUpdate) =>
+		apiClient<Lease>(`${API_BASE_URL}/api/v1/leases/${id}/update-calculated`, {
+			method: 'PUT',
+			body: JSON.stringify(body)
+		}),
+	
+	terminateLeaseWithFinancialCalculations: (id: string) =>
+		apiClient<void>(`${API_BASE_URL}/api/v1/leases/${id}/terminate-calculated`, { 
+			method: 'PUT' 
+		}),
+	
 	stats: (): Promise<LeaseStatsResponse> =>
 		apiClient<LeaseStatsResponse>(`${API_BASE_URL}/api/v1/leases/stats`),
 	create: (body: LeaseInsert) =>

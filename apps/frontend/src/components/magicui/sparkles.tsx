@@ -1,7 +1,6 @@
 'use client'
 import { 
-  cn, 
-  ANIMATION_DURATIONS 
+  cn
 } from '@/lib/design-system'
 import type { Container, SingleOrMultiple } from '@tsparticles/engine'
 import Particles, { initParticlesEngine } from '@tsparticles/react'

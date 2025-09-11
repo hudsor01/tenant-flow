@@ -1,65 +1,130 @@
 'use client'
 
 import { 
-  cn
+  cn,
+  containerClasses,
+  gridClasses,
+  cardClasses,
+  TYPOGRAPHY_SCALE,
+  ANIMATION_DURATIONS
 } from '@/lib/design-system'
+import type { ComponentSize } from '@repo/shared';
 import { animated, config, useSpring, useTrail } from '@react-spring/web'
 import { Play, User, CreditCard, Wrench, FileText } from 'lucide-react'
 import React from 'react'
 
-function FeaturesSectionDemo() {
+interface FeaturesSectionDemoProps {
+  variant?: 'default' | 'modern' | 'glass';
+  size?: ComponentSize;
+  className?: string;
+}
+
+function FeaturesSectionDemo({ 
+  variant = 'default',
+  size = 'default',
+  className
+}: FeaturesSectionDemoProps = {}) {
 	const features = [
 		{
-			title: 'Manage Properties Effectively',
+			title: 'Reduce Vacancy Time by 65%',
 			description:
-				'Track occupancy, collect rent, and manage maintenance requests across all your properties.',
+				'Smart tenant screening and automated marketing fill units faster while ensuring quality tenants.',
 			skeleton: <SkeletonOne />,
 			className:
 				'col-span-1 lg:col-span-4 border-b lg:border-r dark:border-neutral-800'
 		},
 		{
-			title: 'Tenant Management',
+			title: 'Cut Maintenance Costs 32%',
 			description:
-				'Handle tenant applications, leases, and communications in one centralized platform.',
+				'Preventive maintenance scheduling and vendor network management reduce emergency repairs.',
 			skeleton: <SkeletonTwo />,
 			className: 'border-b col-span-1 lg:col-span-2 dark:border-neutral-800'
 		},
 		{
-			title: 'Financial Dashboard',
+			title: 'Increase NOI by 40% Average',
 			description:
-				'Monitor rental income, expenses, and property performance with real-time analytics.',
+				'Real-time financial analytics and automated rent optimization maximize property returns.',
 			skeleton: <SkeletonThree />,
 			className: 'col-span-1 lg:col-span-3 lg:border-r  dark:border-neutral-800'
 		},
 		{
-			title: 'Automated Workflows',
+			title: 'Automate 80% of Daily Tasks',
 			description:
-				'Streamline rent collection, lease renewals, and maintenance scheduling with smart automation.',
+				'Smart workflows handle rent collection, lease renewals, and tenant communications automatically.',
 			skeleton: <SkeletonFour />,
 			className: 'col-span-1 lg:col-span-3 border-b lg:border-none'
 		}
 	]
+  // Design system integrated spacing
+  const spacingVariants = {
+    default: "py-10 lg:py-40",
+    modern: "py-16 lg:py-32", 
+    glass: "py-12 lg:py-24"
+  };
+
+  // Typography configurations
+  const headingStyles = {
+    xs: TYPOGRAPHY_SCALE['heading-lg'],
+    sm: TYPOGRAPHY_SCALE['heading-xl'],
+    default: TYPOGRAPHY_SCALE['display-lg'],
+    lg: TYPOGRAPHY_SCALE['display-xl'],
+    xl: TYPOGRAPHY_SCALE['display-2xl']
+  };
+
+  const subheadingStyles = {
+    xs: TYPOGRAPHY_SCALE['body-sm'],
+    sm: TYPOGRAPHY_SCALE['body-md'],
+    default: TYPOGRAPHY_SCALE['body-lg'],
+    lg: TYPOGRAPHY_SCALE['heading-sm'],
+    xl: TYPOGRAPHY_SCALE['heading-md']
+  };
+
+  // Container variant styles
+  const containerVariants = {
+    default: "xl:border border-border/60 rounded-2xl shadow-sm",
+    modern: "xl:border border-primary/20 rounded-3xl shadow-lg bg-card/50 backdrop-blur-sm",
+    glass: "xl:border border-border/30 rounded-2xl shadow-2xl bg-card/30 backdrop-blur-xl"
+  };
+
 	return (
-		<div className="relative z-20 py-10 lg:py-40 max-w-7xl mx-auto">
-			<div className="px-8">
-				<h4 className="text-3xl lg:text-5xl lg:leading-tight max-w-5xl mx-auto text-center tracking-tight font-medium text-black dark:text-white">
-					Everything you need to manage rental properties
+		<div className={cn(
+      "relative z-20",
+      containerClasses('2xl'),
+      spacingVariants[variant],
+      className
+    )}>
+			<div className="px-8 text-center">
+				<h4 
+          className="max-w-5xl mx-auto text-center tracking-tight font-bold text-foreground"
+          style={headingStyles[size]}
+        >
+					Proven results that transform property management
 				</h4>
 
-				<p className="text-sm lg:text-base  max-w-2xl  my-4 mx-auto text-neutral-500 text-center font-normal dark:text-neutral-300">
-					From tenant screening to rent collection, TenantFlow provides all the
-					tools property managers need to streamline their operations and
-					maximize returns.
+				<p 
+          className="max-w-2xl my-6 mx-auto text-muted-foreground text-center font-normal"
+          style={subheadingStyles[size]}
+        >
+					Professional property managers use TenantFlow to reduce costs by 32%, 
+					increase NOI by 40%, and automate 80% of repetitive tasks.
 				</p>
 			</div>
 
-			<div className="relative ">
-				<div className="grid grid-cols-1 lg:grid-cols-6 mt-12 xl:border rounded-md dark:border-neutral-800">
+			<div className="relative">
+				<div className={cn(
+          gridClasses({ default: 1, lg: 6 }),
+          "mt-12",
+          containerVariants[variant]
+        )}>
 					{features.map(feature => (
-						<FeatureCard key={feature.title} className={feature.className}>
-							<FeatureTitle>{feature.title}</FeatureTitle>
-							<FeatureDescription>{feature.description}</FeatureDescription>
-							<div className=" h-full w-full">{feature.skeleton}</div>
+						<FeatureCard 
+              key={feature.title} 
+              className={feature.className}
+              variant={variant}
+            >
+							<FeatureTitle size={size}>{feature.title}</FeatureTitle>
+							<FeatureDescription size={size}>{feature.description}</FeatureDescription>
+							<div className="h-full w-full">{feature.skeleton}</div>
 						</FeatureCard>
 					))}
 				</div>
@@ -68,36 +133,84 @@ function FeaturesSectionDemo() {
 	)
 }
 
+interface FeatureCardProps {
+	children?: React.ReactNode;
+	className?: string;
+	variant?: 'default' | 'modern' | 'glass';
+}
+
 const FeatureCard = ({
 	children,
-	className
-}: {
-	children?: React.ReactNode
-	className?: string
-}) => {
+	className,
+	variant = 'default'
+}: FeatureCardProps) => {
+  // Enhanced card variants with design system integration
+  const cardVariants = {
+    default: "p-4 sm:p-8 relative overflow-hidden hover:bg-accent/5",
+    modern: "p-6 sm:p-10 relative overflow-hidden hover:bg-card/80 hover:shadow-md rounded-lg",
+    glass: "p-6 sm:p-8 relative overflow-hidden hover:bg-card/60 backdrop-blur-sm"
+  };
+
 	return (
-		<div className={cn(`p-4 sm:p-8 relative overflow-hidden`, className)}>
+		<div 
+      className={cn(
+        cardVariants[variant],
+        "transition-all group/card focus-within:ring-2 focus-within:ring-primary/20",
+        className
+      )}
+      style={{
+        transition: `all ${ANIMATION_DURATIONS.default} ease-out`
+      }}
+    >
 			{children}
 		</div>
 	)
 }
 
-const FeatureTitle = ({ children }: { children?: React.ReactNode }) => {
+interface FeatureTitleProps {
+	children?: React.ReactNode;
+	size?: ComponentSize;
+}
+
+const FeatureTitle = ({ children, size = 'default' }: FeatureTitleProps) => {
+  // Typography scale integration
+  const titleStyles = {
+    xs: TYPOGRAPHY_SCALE['heading-sm'],
+    sm: TYPOGRAPHY_SCALE['heading-md'],
+    default: TYPOGRAPHY_SCALE['heading-lg'],
+    lg: TYPOGRAPHY_SCALE['heading-xl'],
+    xl: TYPOGRAPHY_SCALE['display-lg']
+  };
+
 	return (
-		<p className=" max-w-5xl mx-auto text-left tracking-tight text-black dark:text-white text-xl md:text-2xl md:leading-snug">
+		<h3 
+      className="max-w-5xl text-left tracking-tight text-foreground font-semibold mb-3"
+      style={titleStyles[size]}
+    >
 			{children}
-		</p>
+		</h3>
 	)
 }
 
-const FeatureDescription = ({ children }: { children?: React.ReactNode }) => {
+interface FeatureDescriptionProps {
+	children?: React.ReactNode;
+	size?: ComponentSize;
+}
+
+const FeatureDescription = ({ children, size = 'default' }: FeatureDescriptionProps) => {
+  // Typography scale integration
+  const descriptionStyles = {
+    xs: TYPOGRAPHY_SCALE['body-xs'],
+    sm: TYPOGRAPHY_SCALE['body-sm'],
+    default: TYPOGRAPHY_SCALE['body-md'],
+    lg: TYPOGRAPHY_SCALE['body-lg'],
+    xl: TYPOGRAPHY_SCALE['heading-sm']
+  };
+
 	return (
 		<p
-			className={cn(
-				'text-sm md:text-base  max-w-4xl text-left mx-auto',
-				'text-neutral-500 text-center font-normal dark:text-neutral-300',
-				'text-left max-w-sm mx-0 md:text-sm my-2'
-			)}
+			className="max-w-sm text-left text-muted-foreground font-normal leading-relaxed mb-4"
+      style={descriptionStyles[size]}
 		>
 			{children}
 		</p>
@@ -142,13 +255,22 @@ export const SkeletonOne = () => {
 
 	return (
 		<div className="relative flex py-8 px-2 gap-10 h-full">
-			<div className="w-full p-5 mx-auto bg-white dark:bg-neutral-900 shadow-2xl group h-full">
-				<div className="flex flex-1 w-full h-full flex-col space-y-3">
-					<div className="flex justify-between items-center mb-4">
-						<h3 className="font-semibold text-gray-900 dark:text-white">
+			<div className={cn(
+        cardClasses('elevated'),
+        "w-full p-6 mx-auto group h-full"
+      )}>
+				<div className="flex flex-1 w-full h-full flex-col space-y-4">
+					<div className="flex justify-between items-center mb-6">
+						<h3 
+              className="font-semibold text-card-foreground"
+              style={TYPOGRAPHY_SCALE['heading-sm']}
+            >
 							Property Portfolio
 						</h3>
-						<div className="text-xs text-gray-500 dark:text-gray-400">
+						<div 
+              className="text-muted-foreground"
+              style={TYPOGRAPHY_SCALE['body-xs']}
+            >
 							28 units • 88% occupied
 						</div>
 					</div>
@@ -156,31 +278,51 @@ export const SkeletonOne = () => {
 						{properties.map(property => (
 							<div
 								key={property.id}
-								className="flex items-center justify-between p-3 bg-gray-50 dark:bg-neutral-800 rounded-lg"
+								className={cn(
+                  cardClasses('interactive'),
+                  "p-4 group/property"
+                )}
+                style={{
+                  transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
+                }}
 							>
 								<div className="flex-1">
-									<div className="font-medium text-sm text-gray-900 dark:text-white">
+									<div 
+                    className="font-medium text-card-foreground"
+                    style={TYPOGRAPHY_SCALE['body-sm']}
+                  >
 										{property.name}
 									</div>
-									<div className="text-xs text-gray-500 dark:text-gray-400">
+									<div 
+                    className="text-muted-foreground mt-1"
+                    style={TYPOGRAPHY_SCALE['body-xs']}
+                  >
 										{property.occupied}/{property.units} units occupied
 									</div>
 								</div>
-								<div className="flex items-center space-x-3">
+								<div className="flex items-center space-x-4">
 									<div className="text-right">
-										<div className="text-sm font-semibold text-green-600 dark:text-green-400">
+										<div 
+                      className="font-semibold text-green-600 dark:text-green-400"
+                      style={TYPOGRAPHY_SCALE['body-sm']}
+                    >
 											{property.rent}
 										</div>
-										<div className="text-xs text-gray-500 dark:text-gray-400">
+										<div 
+                      className="text-muted-foreground"
+                      style={TYPOGRAPHY_SCALE['body-xs']}
+                    >
 											monthly
 										</div>
 									</div>
 									<span
-										className={`px-2 py-1 text-xs rounded-full ${
-											property.status === 'Active'
-												? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-												: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'
-										}`}
+										className={cn(
+                      "px-3 py-1 rounded-full font-medium",
+                      property.status === 'Active'
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                        : 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400'
+                    )}
+                    style={TYPOGRAPHY_SCALE['body-xs']}
 									>
 										{property.status}
 									</span>
@@ -191,8 +333,8 @@ export const SkeletonOne = () => {
 				</div>
 			</div>
 
-			<div className="absolute bottom-0 z-40 inset-x-0 h-60 bg-gradient-to-t from-white dark:from-black via-white dark:via-black to-transparent w-full pointer-events-none" />
-			<div className="absolute top-0 z-40 inset-x-0 h-60 bg-gradient-to-b from-white dark:from-black via-transparent to-transparent w-full pointer-events-none" />
+			<div className="absolute bottom-0 z-40 inset-x-0 h-60 bg-gradient-to-t from-background via-background/80 to-transparent w-full pointer-events-none" />
+			<div className="absolute top-0 z-40 inset-x-0 h-60 bg-gradient-to-b from-background via-transparent to-transparent w-full pointer-events-none" />
 		</div>
 	)
 }

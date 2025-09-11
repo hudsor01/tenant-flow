@@ -12,7 +12,11 @@ import {
   formatCurrency, 
   ANIMATION_DURATIONS, 
   cn, 
-  TYPOGRAPHY_SCALE 
+  TYPOGRAPHY_SCALE,
+  cardClasses,
+  badgeClasses,
+  animationClasses,
+  buttonClasses
 } from "@/lib/utils";
 import { useState, useMemo } from "react";
 
@@ -67,27 +71,42 @@ const mockData: RevenueDataPoint[] = [
 
 function RevenueTrendSkeleton() {
   return (
-    <Card className={cn(cardClasses(), 'shadow-xl border-2 backdrop-blur-sm bg-card/95')}>
-      <CardHeader className="space-y-4 pb-6">
-        <div className="animate-pulse">
+    <Card 
+      className={cn(
+        cardClasses('elevated'), 
+        'shadow-xl border-2 backdrop-blur-sm bg-card/95 overflow-hidden',
+        animationClasses('fade-in')
+      )}
+      role="status"
+      aria-label="Loading revenue trend data"
+    >
+      <CardHeader className="space-y-4 pb-6 bg-gradient-to-br from-background to-muted/20">
+        <div className={animationClasses('pulse')}>
           <div className="flex items-center justify-between">
-            <div className="space-y-2">
-              <div className="h-6 bg-muted rounded w-48" />
-              <div className="h-4 bg-muted rounded w-64" />
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="size-10 bg-gradient-to-br from-muted to-muted/60 rounded-lg animate-pulse shadow-sm" />
+                <div className="h-6 bg-gradient-to-r from-muted to-muted/60 rounded w-48 animate-pulse" />
+              </div>
+              <div className="h-4 bg-gradient-to-r from-muted/70 to-muted/40 rounded w-64 animate-pulse" />
             </div>
-            <div className="size-8 bg-muted rounded" />
+            <div className="size-8 bg-gradient-to-br from-muted to-muted/60 rounded animate-pulse" />
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div className="space-y-1">
-            <div className="h-4 bg-muted rounded w-20" />
-            <div className="h-8 bg-muted rounded w-32" />
-          </div>
-          <div className="h-8 bg-muted rounded w-24" />
+      <CardContent className="space-y-6 px-8 pb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-border/40">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="space-y-2" style={{ animationDelay: `${i * 100}ms` }}>
+              <div className="flex items-center gap-2">
+                <div className="size-4 bg-gradient-to-br from-muted to-muted/60 rounded animate-pulse" />
+                <div className="h-3 bg-gradient-to-r from-muted to-muted/60 rounded w-20 animate-pulse" />
+              </div>
+              <div className="h-8 bg-gradient-to-r from-muted to-muted/60 rounded w-32 animate-pulse" />
+            </div>
+          ))}
         </div>
-        <div className="h-80 bg-muted/20 rounded-xl animate-pulse" />
+        <div className="h-80 bg-gradient-to-br from-muted/10 to-muted/5 rounded-2xl border-2 border-muted/20 animate-pulse shadow-inner" />
       </CardContent>
     </Card>
   );
@@ -128,13 +147,14 @@ export function RevenueTrendChart({
   return (
     <Card 
       className={cn(
-        cardClasses(),
-        'shadow-xl border-2 hover:shadow-2xl backdrop-blur-sm bg-card/95 overflow-hidden',
+        cardClasses('elevated'),
+        'shadow-xl border-2 hover:shadow-2xl backdrop-blur-sm bg-card/95 overflow-hidden group',
+        animationClasses('fade-in'),
         className
       )}
       style={{ 
         animation: `fadeIn ${ANIMATION_DURATIONS.slow} ease-out`,
-        transition: `all ${ANIMATION_DURATIONS.default} ease-out`,
+        transition: `all ${ANIMATION_DURATIONS.default} cubic-bezier(0.4, 0, 0.2, 1)`,
       }}
       role="region"
       aria-labelledby="revenue-trend-title"
@@ -148,8 +168,10 @@ export function RevenueTrendChart({
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div className="space-y-3">
             <div className="flex items-center gap-3">
-              <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 border border-primary/20">
-                <TrendingUp className="size-5 text-primary" />
+              <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 border border-primary/20 shadow-sm group-hover:scale-110 group-hover:shadow-md transition-all"
+                   style={{ transition: `all ${ANIMATION_DURATIONS.fast} cubic-bezier(0.4, 0, 0.2, 1)` }}>
+                <TrendingUp className="size-5 text-primary transition-transform group-hover:scale-110" 
+                           style={{ transition: `transform ${ANIMATION_DURATIONS.fast} ease-out` }} />
               </div>
               <CardTitle 
                 id="revenue-trend-title"
@@ -174,10 +196,18 @@ export function RevenueTrendChart({
               onValueChange={setTimeframe}
               aria-label="Select timeframe for revenue data"
             >
-              <SelectTrigger className="w-auto min-w-[120px] transition-all shadow-sm hover:shadow-md bg-background border-2">
+              <SelectTrigger 
+                className={cn(
+                  buttonClasses('outline', 'sm'),
+                  "w-auto min-w-[120px] shadow-sm hover:shadow-md bg-background border-2 hover:border-primary/30 hover:scale-105"
+                )}
+                style={{
+                  transition: `all ${ANIMATION_DURATIONS.fast} cubic-bezier(0.4, 0, 0.2, 1)`,
+                }}
+              >
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="border-2">
                 <SelectItem value="3m">3 Months</SelectItem>
                 <SelectItem value="6m">6 Months</SelectItem>
                 <SelectItem value="12m">12 Months</SelectItem>
@@ -190,10 +220,18 @@ export function RevenueTrendChart({
               onValueChange={(value) => setChartType(value as 'area' | 'line')}
               aria-label="Select chart type"
             >
-              <SelectTrigger className="w-auto min-w-[100px] transition-all shadow-sm hover:shadow-md bg-background border-2">
+              <SelectTrigger 
+                className={cn(
+                  buttonClasses('outline', 'sm'),
+                  "w-auto min-w-[100px] shadow-sm hover:shadow-md bg-background border-2 hover:border-primary/30 hover:scale-105"
+                )}
+                style={{
+                  transition: `all ${ANIMATION_DURATIONS.fast} cubic-bezier(0.4, 0, 0.2, 1)`,
+                }}
+              >
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="border-2">
                 <SelectItem value="area">Area</SelectItem>
                 <SelectItem value="line">Line</SelectItem>
               </SelectContent>
@@ -234,8 +272,23 @@ export function RevenueTrendChart({
               </p>
               <Badge 
                 variant={metrics.trend === 'up' ? 'default' : metrics.trend === 'down' ? 'destructive' : 'secondary'}
-                className="text-xs"
+                className={cn(
+                  badgeClasses(
+                    metrics.trend === 'up' ? 'success' : 
+                    metrics.trend === 'down' ? 'destructive' : 'secondary',
+                    'sm'
+                  ),
+                  "text-xs animate-pulse"
+                )}
+                style={{
+                  animation: `pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite`,
+                }}
               >
+                <div className={cn(
+                  "size-2 rounded-full mr-1",
+                  metrics.trend === 'up' ? "bg-emerald-500" : 
+                  metrics.trend === 'down' ? "bg-red-500" : "bg-muted-foreground"
+                )} />
                 vs last month
               </Badge>
             </div>

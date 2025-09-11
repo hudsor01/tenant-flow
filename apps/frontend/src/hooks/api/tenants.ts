@@ -21,6 +21,70 @@ export function useTenants(status?: string) {
 	})
 }
 
+// Enhanced hook with select transformation for table-ready tenants data
+export function useTenantsFormatted(status?: string) {
+	return useQuery({
+		queryKey: ['tenants', status ?? 'ALL'],
+		queryFn: async () => {
+			return tenantsApi.list(status ? { status } : undefined)
+		},
+		select: (data) => ({
+			tenants: data.map(tenant => ({
+				...tenant,
+				// Format display values (replaces useMemo in table components)
+				displayName: tenant.name,
+				displayEmail: tenant.email.toLowerCase(),
+				displayPhone: tenant.phone ? formatPhoneNumber(tenant.phone) : 'N/A',
+				// Add status indicators (tenant.status doesn't exist in DB)
+				statusDisplay: 'Active',
+				statusColor: getTenantStatusColor('ACTIVE'),
+				// Format dates for display
+				createdAtFormatted: new Date(tenant.createdAt).toLocaleDateString(),
+				updatedAtFormatted: new Date(tenant.updatedAt).toLocaleDateString(),
+				// Calculate tenant tenure for sorting/analytics
+				tenureInDays: Math.floor((Date.now() - new Date(tenant.createdAt).getTime()) / (1000 * 60 * 60 * 24)),
+				// Avatar initials for display
+				avatarInitials: tenant.name.split(' ').map(n => n.charAt(0)).join('').toUpperCase().slice(0, 2)
+			})),
+			// Pre-calculate summary stats for dashboard widgets
+			summary: {
+				total: data.length,
+				active: data.length, // All tenants are considered active since status doesn't exist in DB
+				byStatus: data.reduce((acc, _tenant) => {
+					const status = 'ACTIVE' // Default status since tenant.status doesn't exist in DB
+					acc[status] = (acc[status] || 0) + 1
+					return acc
+				}, {} as Record<string, number>),
+				recentlyAdded: data.filter(tenant => 
+					Date.now() - new Date(tenant.createdAt).getTime() < 7 * 24 * 60 * 60 * 1000
+				).length,
+				// Communication stats
+				withPhone: data.filter(t => t.phone).length,
+				withEmergencyContact: data.filter(t => t.emergencyContact).length
+			}
+		})
+	})
+}
+
+// Helper functions for consistent formatting
+function formatPhoneNumber(phone: string): string {
+	const cleaned = phone.replace(/\D/g, '')
+	if (cleaned.length === 10) {
+		return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`
+	}
+	return phone // Return original if not standard format
+}
+
+function getTenantStatusColor(status?: string): string {
+	const colorMap: Record<string, string> = {
+		'ACTIVE': '#10b981', // emerald
+		'INACTIVE': '#6b7280', // gray
+		'PENDING': '#f59e0b', // amber
+		'EVICTED': '#ef4444' // red
+	}
+	return colorMap[status || 'ACTIVE'] || '#10b981'
+}
+
 export function useTenantStats() {
 	return useQuery({
 		queryKey: ['tenants', 'stats'],
