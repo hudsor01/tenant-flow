@@ -1,0 +1,3 @@
+setup:
+  config: dev
+  project: tenant-flow
