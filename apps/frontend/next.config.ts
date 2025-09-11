@@ -7,6 +7,14 @@ const nextConfig: NextConfig = {
 	experimental: {
 		reactCompiler: true,
 	},
+
+	// ESLint configuration
+	eslint: {
+		// Specify the directories to check
+		dirs: ['src'],
+		// Ignore during builds to prevent flat config detection warning
+		ignoreDuringBuilds: true,
+	},
 	async rewrites() {
 		return [
 			{
@@ -30,6 +38,10 @@ const nextConfig: NextConfig = {
 			{
 				protocol: 'https',
 				hostname: 'api.dicebear.com'
+			},
+			{
+				protocol: 'https',
+				hostname: 'assets.aceternity.com'
 			}
 		],
 		formats: ['image/avif', 'image/webp'],

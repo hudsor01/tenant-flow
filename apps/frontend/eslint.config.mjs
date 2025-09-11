@@ -18,6 +18,7 @@ export default [
 
 	{
 		name: 'frontend/next.js-plugin',
+		files: ['**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx'],
 		plugins: {
 			'@next/next': nextPlugin
 		},
