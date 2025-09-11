@@ -15,14 +15,6 @@
 		{
 			"source": "/api/v1/:path*",
 			"destination": "https://api.tenantflow.app/api/v1/:path*"
-		},
-		{
-			"source": "/health",
-			"destination": "/api/health"
-		},
-		{
-			"source": "/api/backend/:path*",
-			"destination": "https://api.tenantflow.app/api/v1/:path*"
 		}
 	],
 	"headers": [
@@ -163,6 +155,5 @@
 		}
 	],
 	"trailingSlash": false,
-	"cleanUrls": true,
-	"crons": []
+	"cleanUrls": true
 }
