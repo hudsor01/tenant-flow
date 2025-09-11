@@ -9,7 +9,8 @@ import {
   ANIMATION_DURATIONS
 } from '@/lib/design-system'
 import type { ComponentSize } from '@repo/shared';
-import { animated, config, useSpring, useTrail } from '@react-spring/web'
+import { useSpring, useTrail } from '@react-spring/core'
+import { animated } from '@react-spring/web'
 import { Play, User, CreditCard, Wrench, FileText } from 'lucide-react'
 import React from 'react'
 
@@ -539,28 +540,28 @@ export const AutomationFlow = ({ className }: { className?: string }) => {
 	const backgroundRings = useTrail(3, {
 		from: { opacity: 0, transform: 'rotate(0deg) scale(0.8)' },
 		to: { opacity: 1, transform: 'rotate(360deg) scale(1)' },
-		config: config.molasses, // Prebuilt slow, smooth config
+		config: { mass: 1, tension: 280, friction: 120 }, // Slow, smooth config
 		loop: true
 	})
 
 	const centralHub = useSpring({
 		from: { scale: 0, opacity: 0 },
 		to: { scale: 1, opacity: 1 },
-		config: config.gentle, // Prebuilt smooth config
+		config: { mass: 1, tension: 120, friction: 14 }, // Smooth config
 		delay: 500
 	})
 
 	const nodeTrail = useTrail(workflowSteps.length, {
 		from: { opacity: 0, scale: 0 },
 		to: { opacity: 1, scale: 1 },
-		config: config.wobbly, // Prebuilt bouncy config
+		config: { mass: 1, tension: 180, friction: 12 }, // Bouncy config
 		delay: 800
 	})
 
 	const connectionLines = useTrail(connections.length, {
 		from: { strokeDashoffset: 100, opacity: 0 },
 		to: { strokeDashoffset: 0, opacity: 0.7 },
-		config: config.slow, // Prebuilt deliberate config
+		config: { mass: 1, tension: 280, friction: 60 }, // Deliberate config
 		delay: 1500
 	})
 
@@ -572,14 +573,14 @@ export const AutomationFlow = ({ className }: { className?: string }) => {
 				await next({ opacity: 0.3, y: 0 })
 			}
 		},
-		config: config.gentle,
+		config: { mass: 1, tension: 120, friction: 14 },
 		delay: 2000
 	})
 
 	const labels = useTrail(2, {
 		from: { opacity: 0, y: 20 },
 		to: { opacity: 1, y: 0 },
-		config: config.gentle,
+		config: { mass: 1, tension: 120, friction: 14 },
 		delay: 2500
 	})
 

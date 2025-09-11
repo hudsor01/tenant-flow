@@ -6,6 +6,8 @@ const nextConfig: NextConfig = {
 	// Enable React Compiler for automatic optimization
 	experimental: {
 		reactCompiler: true,
+		// Disable server minification to fix Next.js 15.5.3 build issues
+		serverMinification: false,
 	},
 
 	// ESLint configuration
