@@ -3,7 +3,8 @@
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/auth-provider'
 import { supabaseClient } from '@repo/shared'
-import { useSpring, useTransition, animated, config } from '@react-spring/web'
+import { useSpring, useTransition } from '@react-spring/core'
+import { animated } from '@react-spring/web'
 import { ArrowRight, Building2, ChevronDown, Menu, X } from 'lucide-react'
 import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
@@ -161,22 +162,22 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 		const navbarSpring = useSpring({
 			y: 0,
 			from: { y: -100 },
-			config: config.gentle
+			config: { mass: 1, tension: 120, friction: 14 }
 		})
 
 		const logoSpring = useSpring({
 			scale: logoHover ? 1.05 : 1,
-			config: config.wobbly
+			config: { mass: 1, tension: 180, friction: 12 }
 		})
 
 		const ctaSpring = useSpring({
 			scale: ctaTap ? 0.95 : ctaHover ? 1.05 : 1,
-			config: config.wobbly
+			config: { mass: 1, tension: 180, friction: 12 }
 		})
 
 		const mobileButtonSpring = useSpring({
 			scale: mobileButtonTap ? 0.95 : 1,
-			config: config.wobbly
+			config: { mass: 1, tension: 180, friction: 12 }
 		})
 
 		// Dropdown transitions
@@ -184,7 +185,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 			from: { opacity: 0, y: 10, scale: 0.95 },
 			enter: { opacity: 1, y: 0, scale: 1 },
 			leave: { opacity: 0, y: 10, scale: 0.95 },
-			config: config.gentle
+			config: { mass: 1, tension: 120, friction: 14 }
 		})
 
 		// Mobile menu transition
@@ -192,7 +193,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 			from: { opacity: 0, height: 0 },
 			enter: { opacity: 1, height: 'auto' },
 			leave: { opacity: 0, height: 0 },
-			config: config.gentle
+			config: { mass: 1, tension: 120, friction: 14 }
 		})
 
 		// Simple hover animation styles (using CSS transitions instead of hooks-in-callbacks)

@@ -2,7 +2,8 @@
 
 import { useState } from "react"
 import { Check, ArrowRight, Zap, Shield, Crown } from "lucide-react"
-import { useSpring, animated } from "@react-spring/web"
+import { useSpring } from "@react-spring/core"
+import { animated } from "@react-spring/web"
 import { BlurFade } from "@/components/magicui/blur-fade"
 import { MagicCard } from "@/components/magicui/magic-card"
 import { ShimmerButton } from "@/components/magicui/shimmer-button"
