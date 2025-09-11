@@ -1,361 +1,159 @@
 /**
- * Main export file for @repo/shared package
- * NO TYPE DUPLICATION - Import directly from Supabase
+ * @repo/shared - Modern TypeScript 5.9.2 Consolidated Package
+ * 
+ * ULTRA-NATIVE: Direct Supabase types + essential utilities only
+ * NO LEGACY COMPATIBILITY - All code must migrate to modern patterns
  */
 
 // ============================================================================
-// Utilities Only - No Type Re-exports
+// PRIMARY EXPORT: Modern TypeScript 5.9.2 Core Types
 // ============================================================================
-export {
-	toCamelCase,
-	toSnakeCase,
-	keysToCamelCase,
-	keysToSnakeCase
-} from './utils/case-conversion'
+export * from './types/core'
+export * from './types'
 
-// API Client - Native fetch utilities
+// ============================================================================
+// ESSENTIAL UTILITIES (No Wrappers)
+// ============================================================================
 export { apiClient, get, post, put, del } from './utils/api-client'
 export type { FetchResponse } from './utils/api-client'
 
-// ============================================================================
-// DIRECT SUPABASE IMPORT - Use this everywhere instead of re-exports
-// ============================================================================
-
-// Import Database and Constants - direct from Supabase types
-export type { Database } from './types/supabase-generated'
-export { Constants } from './types/supabase-generated'
-
-// Import constants for creating derived types
-import { Constants as ImportedConstants } from './types/supabase-generated'
-
-// Export enum constants for easier usage
-export const PRIORITY = ImportedConstants.public.Enums.Priority
-export type Priority = typeof PRIORITY[number]
-
-export const UNIT_STATUS = ImportedConstants.public.Enums.UnitStatus
-export type UnitStatus = typeof UNIT_STATUS[number]
-
-// ============================================================================
-// Utility Functions Only
-// ============================================================================
+export { supabaseClient, supabaseAdmin, getCurrentUser, getCurrentSession, signOut } from './lib/supabase-client'
+export { logger } from './lib/frontend-logger'
 
 export { formatCurrency } from './utils/currency'
+export { getCORSConfig } from './security/cors-config'
+export { getPriceId, getAllPlans, formatPrice, getAnnualSavings } from './stripe/config'
+
+// ============================================================================
+// PRICING CONFIGURATION (Static + Dynamic)
+// ============================================================================
+export * from './config/pricing'
+export { 
+  calculateAnnualSavings as calculateAnnualSavingsPercentage,
+  formatPrice as formatDynamicPrice,
+  findPlanByPriceId,
+  getPriceIdForPlan,
+  type DynamicPricingConfig,
+  type DynamicPlan,
+  type DynamicPricingService,
+  FrontendPricingService,
+  dynamicPlanToPricingConfig
+} from './config/dynamic-pricing'
+
 export {
-	getPriorityLabel,
-	getPriorityColor,
-	getRequestStatusLabel,
-	getRequestStatusColor
+  toCamelCase,
+  toSnakeCase,
+  keysToCamelCase,
+  keysToSnakeCase
+} from './utils/case-conversion'
+
+export {
+  getPriorityLabel,
+  getPriorityColor,
+  getRequestStatusLabel,
+  getRequestStatusColor
 } from './utils/maintenance'
 
-// Stripe utilities
-export { getPriceId, getAllPlans, formatPrice, getAnnualSavings } from './stripe/config'
-export type { PlanType, BillingPeriod } from './types/stripe'
+export {
+  cn,
+  getTailwindColor,
+  getColorVariantClasses,
+  responsive,
+  cssVar,
+  generateTailwindTheme,
+  isValidTailwindClass,
+  extractTailwindClasses
+} from './utils/tailwind'
+
+export type { ClassValue, TailwindBreakpoint } from './utils/tailwind'
 
 // ============================================================================
-// Constants (if any exist)
+// ESSENTIAL DOMAIN CONSTANTS
 // ============================================================================
-
-// Export security permissions enum
 export { Permission } from './types/security'
+export { PLAN_TYPE, PLANS } from './constants/billing'
+export { USER_ROLE } from './constants/auth'
 
-// Export billing constants
-export { PLAN_TYPE, PLAN_TYPE_OPTIONS, PLANS } from './constants/billing'
+export {
+  FONT_FAMILIES,
+  TYPOGRAPHY_SCALE,
+  SPACING_SCALE,
+  SEMANTIC_COLORS,
+  COMPONENT_SIZES,
+  BORDER_RADIUS_SCALE,
+  SHADOW_SCALE,
+  ANIMATION_DURATIONS,
+  ANIMATION_EASINGS,
+  BREAKPOINTS,
+  CONTAINER_SIZES,
+  Z_INDEX_SCALE,
+  COMPONENT_PRESETS
+} from './constants/design-system'
 
-// Export error types for backend
-export type { 
-	BusinessErrorCode, 
-	FastifyErrorResponse, 
-	FastifyBusinessErrorResponse,
-	ErrorLogContext 
-} from './types/fastify-errors'
-
-// Export error types for frontend
 export type {
-	AppError,
-	AuthError,
-	ValidationError,
-	NetworkError,
-	ServerError,
-	BusinessError,
-	FileUploadError,
-	PaymentError,
-	ErrorContext
-} from './types/errors'
+  SpacingSize,
+  TypographyVariant,
+  ComponentSize,
+  BorderRadiusSize,
+  ShadowSize,
+  AnimationDuration,
+  AnimationEasing,
+  Breakpoint,
+  ZIndexLevel
+} from './constants/design-system'
 
-// Export logger types
-export type {
-	ILogger,
-	LogContext,
-	AnalyticsEvent,
-	LogEntry,
-	LoggerConfig
-} from './types/logger'
-
-// Export maintenance constants and types from validation
-export { 
-	maintenancePrioritySchema,
-	maintenanceStatusSchema,
-	maintenanceCategorySchema 
-} from './validation/maintenance'
-
-export type { 
-	MaintenanceRequestInput,
-	MaintenanceRequestUpdate,
-	MaintenanceStats,
-	MaintenancePriorityValidation,
-	MaintenanceStatusValidation,
-	MaintenanceCategoryValidation,
-	MaintenanceRequestFormData,
-	MaintenanceRequestFormOutput
-} from './validation/maintenance'
-
-// Export form schema for use in components
-export { maintenanceRequestFormSchema } from './validation/maintenance'
-
-// Export maintenance category constants
 export const MAINTENANCE_CATEGORY = {
-	GENERAL: 'GENERAL',
-	PLUMBING: 'PLUMBING', 
-	ELECTRICAL: 'ELECTRICAL',
-	HVAC: 'HVAC',
-	APPLIANCES: 'APPLIANCES',
-	SAFETY: 'SAFETY',
-	OTHER: 'OTHER'
+  GENERAL: 'GENERAL',
+  PLUMBING: 'PLUMBING', 
+  ELECTRICAL: 'ELECTRICAL',
+  HVAC: 'HVAC',
+  APPLIANCES: 'APPLIANCES',
+  SAFETY: 'SAFETY',
+  OTHER: 'OTHER'
 } as const
 
-export type MaintenanceCategory = keyof typeof MAINTENANCE_CATEGORY
+// ============================================================================
+// ESSENTIAL VALIDATION (Domain-Specific Only)
+// ============================================================================
+export { emailSchema, requiredString, positiveNumberSchema, nonNegativeNumberSchema } from './validation/common'
+export { unitStatusSchema } from './validation/units'
+export type { LeaseFormData } from './types/lease-generator.types'
 
-// Export unit validation types
-export type {
-	UnitInput,
-	UnitUpdate,
-	UnitQuery,
-	UnitFormData,
-	UnitFormOutput
-} from './validation/units'
-
-// Export unit schemas for components
-export { unitInputSchema, unitUpdateSchema, unitQuerySchema, unitStatusSchema, unitFormSchema } from './validation/units'
-
-// Export property validation types
-export type {
-	PropertyInput,
-	PropertyUpdate,
-	PropertyQuery
-} from './validation/properties'
-
-// Export property schemas for components
-export { propertyInputSchema, propertyUpdateSchema, propertyQuerySchema, propertyStatusSchema } from './validation/properties'
-
-// Export lease validation types
-export type {
-	CreateLeaseInput,
-	UpdateLeaseInput,
-	LeaseInput,
-	LeaseQuery
-} from './validation/leases'
-
-// Export tenant validation types
-export type {
-	TenantInput,
-	TenantQuery
-} from './validation/tenants'
-
-// Import types for aliases
-import type { UnitInput, UnitUpdate } from './validation/units'
-import type { PropertyInput, PropertyUpdate } from './validation/properties'
-import type { TenantInput, TenantUpdate } from './validation/tenants'
-import type { MaintenanceRequestInput, MaintenanceRequestUpdate } from './validation/maintenance'
-
-// Create aliases for frontend compatibility
-export type CreateUnitRequest = UnitInput
-export type CreateUnitInput = UnitInput
-export type CreatePropertyInput = PropertyInput
-export type UpdatePropertyInput = PropertyUpdate
-export type CreateTenantInput = TenantInput
-export type UpdateTenantInput = TenantUpdate
-export type CreateMaintenanceInput = MaintenanceRequestInput
-export type UpdateMaintenanceInput = MaintenanceRequestUpdate
-export type UpdateUnitInput = UnitUpdate
-
-// Export auth types including User from supabase.ts
+// ============================================================================
+// BACKEND TYPES (Required for Controllers/Services)
+// ============================================================================
 export type { 
-	User,
-	Property,
-	Tenant,
-	Lease,
-	Unit,
-	Subscription,
-	Invoice,
-	MaintenanceRequest,
-	Document,
-	Activity,
-	TenantFlowNotification,
-	RentPayment,
-	PaymentMethod,
-	UserInsert,
-	PropertyInsert,
-	TenantInsert
-} from './types/supabase'
-
-export type { 
-	UserRole, 
-	ValidatedUser, 
-	AuthServiceValidatedUser, 
-	SupabaseUser,
-	AuthUser,
-	LoginCredentials,
-	RegisterCredentials,
-	AuthResponse,
-	RefreshTokenRequest,
-	AuthFormState
+  UserRole, 
+  ValidatedUser, 
+  AuthServiceValidatedUser, 
+  SupabaseUser,
+  AuthUser,
+  LoginCredentials,
+  RegisterCredentials,
+  AuthResponse,
+  RefreshTokenRequest,
+  AuthFormState
 } from './types/auth'
 
-// Export auth constants for runtime usage
-export { USER_ROLE, USER_ROLE_OPTIONS } from './constants/auth'
+export type { 
+  BusinessErrorCode, 
+  FastifyErrorResponse, 
+  FastifyBusinessErrorResponse,
+  ErrorLogContext 
+} from './types/fastify-errors'
+
+export type { PlanType, BillingPeriod } from './types/stripe'
+export type { MaintenanceNotificationData } from './types/notifications'
+export type { PropertyWithUnits } from './types/relations'
+export type { ThemeColors, ThemeRadius, SVGPatternProps } from './types/frontend'
 
 // ============================================================================
-// ULTRA-NATIVE: Import Supabase types directly from generated source
-// ============================================================================
+// MIGRATION NOTE: All legacy aliases removed
 // 
-// Apps should import directly from generated types:
-//
-// import type { Tables, TablesInsert, Database } from '@repo/shared/types/supabase-generated'  
-// type User = Tables<'User'>
-// type Property = Tables<'Property'>
-// type UserInsert = TablesInsert<'User'>
-//
-// This eliminates unnecessary re-export layers and follows native patterns
-// ============================================================================
-
-// Export dashboard stats types for frontend/backend sharing
-export type {
-	PropertyStats,
-	TenantStats,
-	UnitStats,
-	LeaseStats,
-	DashboardStats,
-	ActivityItem
-} from './types/dashboard-stats'
-
-// Export activity types
-export type { ActivityType } from './types/activity'
-
-// Export blog types
-export type { BlogArticleWithDetails } from './types/blog'
-
-// Export invoice types
-export type { CustomerInvoiceForm } from './types/invoices'
-
-// Export Stripe types (PaymentMethod exported above from supabase types)
-
-// Export relation types that frontend needs
-export type { 
-	PropertyWithUnits,
-	PropertyWithDetails,
-	PropertyWithFullDetails,
-	PropertySummary,
-	PropertyFormData,
-	PropertyStatsExtended,
-	PropertySearchResult,
-	PropertyFilters,
-	UnitWithDetails,
-	UnitWithProperty,
-	MaintenanceRequestWithRelations,
-	MaintenanceRequestWithDetails,
-	LeaseWithDetails,
-	LeaseWithRelations,
-	TenantWithLeases,
-	TenantWithDetails
-} from './types/relations'
-
-// Export notification types (use Database enums instead of custom types)
-export { NotificationType } from './types/notifications'
-export type {
-	NotificationData,
-	NotificationResponse,
-	MaintenanceNotificationData
-} from './types/notifications'
-
-// Subscription now exported above from supabase.ts
-
-// Export frontend store and UI types
-export type {
-	AppNotification,
-	RecentActivity,
-	UIPreferences,
-	UserSession,
-	AppState,
-	NotificationLevel,
-	Theme
-} from './types/frontend'
-
-// Export frontend utility types
-export type {
-	NavItem,
-	TabItem,
-	BreadcrumbItem
-} from './types/frontend-utils'
-
-// Export UI component props
-export type {
-	EnhancedElementsProviderProps,
-	UnitFormProps,
-	FormState,
-	FormErrors
-} from './types/ui'
-
-// Export API response types
-export type { 
-	ControllerApiResponse, 
-	MaintenanceRequestApiResponse,
-	UpdateUserProfileInput
-} from './types/api'
-
-// Export webhook types for Stripe integration
-export type {
-	StripeWebhookEventType,
-	StripeWebhookEvent,
-	WebhookNotification,
-	WebhookProcessorFunction,
-	StripeWebhookProcessor
-} from './types/webhook'
-
-// Export analytics types
-export type { TenantFlowEvent } from './types/analytics'
-
-// Export lease generator types
-export type {
-	USState,
-	PropertyType,
-	LeaseTermType,
-	LeaseFormData,
-	StateLeaseRequirements,
-	GeneratedLease,
-	UserLeaseHistory,
-	LeaseGenerationPricing,
-	LeaseGenerationResponse,
-	LeaseValidationResponse
-} from './types/lease-generator.types'
-
-// Export CSP configuration utilities (unified CSP/CORS alignment)
-export {
-	generateCSPDirectives,
-	cspDirectivesToString,
-	getProductionCSP,
-	getDevelopmentCSP,
-	getCSPString,
-	CSP_DOMAINS
-} from './security/csp-config'
-
-// Export CORS configuration utilities (aligned with CSP)
-export {
-	getCORSOrigins,
-	getCORSOriginsForEnv,
-	getCORSConfig,
-	APP_DOMAINS
-} from './security/cors-config'
-
-// ============================================================================
-// STOP - No more type duplications allowed beyond this point  
+// OLD → NEW:
+// - ApiResponse → use native Result<T, E> pattern
+// - PaginationParams → use Pagination interface
+// - StandardApiResponse → use ApiResponse<T>
+// - LoadingState/ActionStatus → use Status type
+// - CreateInput/UpdateInput → use native Omit<T, 'id'> patterns
 // ============================================================================

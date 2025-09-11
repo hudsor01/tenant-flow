@@ -4,6 +4,7 @@
  */
 
 import { z } from 'zod'
+import type { Json } from '../types/supabase-generated'
 
 // Error classification constants
 export const ERROR_TYPES = {
@@ -42,9 +43,9 @@ export interface StandardError {
 	severity: ErrorSeverity
 	message: string
 	code?: string
-	details?: Record<string, unknown>
+	details?: Record<string, Json>
 	field?: string
-	context?: Record<string, unknown>
+	context?: Record<string, Json>
 	timestamp: string
 	userMessage?: string
 }
@@ -53,10 +54,7 @@ export interface StandardError {
 export interface ValidationError extends StandardError {
 	type: typeof ERROR_TYPES.VALIDATION
 	field: string
-	details: {
-		zodError?: z.ZodError
-		fieldErrors?: Record<string, string[]>
-	}
+	details: Record<string, Json>
 }
 
 // Network error structure
@@ -90,9 +88,9 @@ export function createStandardError(
 	options: {
 		severity?: ErrorSeverity
 		code?: string
-		details?: Record<string, unknown>
+		details?: Record<string, Json>
 		field?: string
-		context?: Record<string, unknown>
+		context?: Record<string, Json>
 		userMessage?: string
 	} = {}
 ): StandardError {
@@ -101,9 +99,9 @@ export function createStandardError(
 		severity: options.severity || ERROR_SEVERITY.MEDIUM,
 		message,
 		code: options.code,
-		details: options.details,
+		details: options.details as Record<string, Json>,
 		field: options.field,
-		context: options.context,
+		context: options.context as Record<string, Json>,
 		timestamp: new Date().toISOString(),
 		userMessage: options.userMessage || message,
 		retryable: false
@@ -115,13 +113,13 @@ export function createStandardError(
  */
 export function createValidationError(
 	zodError: z.ZodError,
-	context?: Record<string, unknown>
+	context?: Record<string, Json>
 ): ValidationError {
 	const firstIssue = zodError.issues[0]
 	const field = firstIssue?.path.join('.') || 'unknown'
 
 	const fieldErrors: Record<string, string[]> = {}
-	zodError.issues.forEach(issue => {
+	zodError.issues.forEach((issue: z.ZodIssue) => {
 		const fieldPath = issue.path.join('.')
 		fieldErrors[fieldPath] ??= []
 		fieldErrors[fieldPath].push(issue.message)
@@ -131,15 +129,17 @@ export function createValidationError(
 		type: ERROR_TYPES.VALIDATION,
 		severity: ERROR_SEVERITY.LOW,
 		message: `Validation failed for field: ${field}`,
-		field,
+		code: 'VALIDATION_ERROR',
 		details: {
-			zodError,
-			fieldErrors
-		},
-		context,
+			field,
+			zodErrorMessage: zodError.message,
+			fieldErrors,
+			issuesCount: zodError.issues.length
+		} as Record<string, Json>,
+		field,
+		context: context as Record<string, Json>,
 		timestamp: new Date().toISOString(),
-		userMessage:
-			firstIssue?.message || 'Please check your input and try again',
+		userMessage: firstIssue?.message || 'Please check your input and try again',
 		retryable: false
 	}
 }
@@ -160,9 +160,7 @@ export function createNetworkError(
 	return {
 		type: ERROR_TYPES.NETWORK,
 		severity:
-			status && status >= 500
-				? ERROR_SEVERITY.HIGH
-				: ERROR_SEVERITY.MEDIUM,
+			status && status >= 500 ? ERROR_SEVERITY.HIGH : ERROR_SEVERITY.MEDIUM,
 		message,
 		details: {
 			status,
@@ -170,7 +168,7 @@ export function createNetworkError(
 			url: options.url,
 			method: options.method
 		},
-		context: options.context,
+		context: options.context as Record<string, Json>,
 		timestamp: new Date().toISOString(),
 		userMessage: getNetworkErrorMessage(status, message),
 		retryable: !status || status >= 500
@@ -201,7 +199,7 @@ export function createBusinessLogicError(
 			resource: options.resource,
 			reason
 		},
-		context: options.context,
+		context: options.context as Record<string, Json>,
 		timestamp: new Date().toISOString(),
 		userMessage: options.userMessage || reason,
 		retryable: false
@@ -298,8 +296,7 @@ export function classifyError(error: unknown): StandardError {
 				error.message,
 				{
 					severity: ERROR_SEVERITY.MEDIUM,
-					userMessage:
-						"You don't have permission to perform this action."
+					userMessage: "You don't have permission to perform this action."
 				}
 			)
 			standardError.retryable = false
@@ -332,7 +329,7 @@ export function classifyError(error: unknown): StandardError {
 		'An unexpected error occurred',
 		{
 			severity: ERROR_SEVERITY.MEDIUM,
-			details: { originalError: error }
+			details: { originalError: error } as Record<string, Json>
 		}
 	)
 	standardError.retryable = true

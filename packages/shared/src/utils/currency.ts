@@ -267,12 +267,12 @@ export const getCollectionRateStatus = (
 	icon: string
 } => {
 	if (rate >= 95) {
-		return { status: 'Excellent', color: 'text-green-600', icon: '🎯' }
+		return { status: 'Excellent', color: 'text-green-600', icon: 'TARGET:' }
 	} else if (rate >= 85) {
-		return { status: 'Good', color: 'text-blue-600', icon: '👍' }
+		return { status: 'Good', color: 'text-blue-600', icon: '[OK]' }
 	} else if (rate >= 70) {
-		return { status: 'Fair', color: 'text-orange-600', icon: '⚠️' }
+		return { status: 'Fair', color: 'text-orange-600', icon: 'WARNING:' }
 	} else {
-		return { status: 'Poor', color: 'text-red-600', icon: '🔻' }
+		return { status: 'Poor', color: 'text-red-600', icon: '[DOWN]' }
 	}
 }

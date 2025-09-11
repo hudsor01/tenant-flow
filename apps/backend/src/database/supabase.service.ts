@@ -1,26 +1,14 @@
-import { Injectable, InternalServerErrorException, Inject } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
-import { PinoLogger } from 'nestjs-pino'
+import { Injectable, InternalServerErrorException } from '@nestjs/common'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
-import type { Database } from '@repo/shared/types/supabase-generated'
-import type { EnvironmentVariables } from '../config/config.schema'
+import type { Database } from '@repo/shared'
 
 @Injectable()
 export class SupabaseService {
 	private adminClient: SupabaseClient<Database>
 
-	constructor(
-		@Inject(ConfigService) private readonly configService: ConfigService<EnvironmentVariables>,
-		private readonly logger: PinoLogger
-	) {
-		// PinoLogger context handled automatically via app-level configuration
-		const supabaseUrl = this.configService.get('SUPABASE_URL', {
-			infer: true
-		})
-		const supabaseServiceKey = this.configService.get(
-			'SUPABASE_SERVICE_ROLE_KEY',
-			{ infer: true }
-		)
+	constructor() {
+		const supabaseUrl = process.env.SUPABASE_URL
+		const supabaseServiceKey = process.env.SERVICE_ROLE_KEY
 
 		if (!supabaseUrl || !supabaseServiceKey) {
 			throw new InternalServerErrorException('Supabase configuration is missing')
@@ -37,7 +25,8 @@ export class SupabaseService {
 			}
 		)
 
-		this.logger.info('Supabase service initialized successfully')
+		// Ultra-native: direct logging
+		console.log('Supabase service initialized successfully')
 	}
 
 	getAdminClient(): SupabaseClient<Database> {

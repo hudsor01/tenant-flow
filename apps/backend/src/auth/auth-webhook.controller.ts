@@ -1,42 +1,18 @@
-import {
-	Body,
-	Controller,
-	Headers,
-	HttpCode,
-	Post
-} from '@nestjs/common'
-import { PinoLogger } from 'nestjs-pino'
+import { Body, Controller, Headers, HttpCode, Post } from '@nestjs/common'
 import { getPriceId } from '@repo/shared'
-import { AuthService } from './auth.service'
-import { StripeService } from '../billing/stripe.service'
-import { UsersService } from '../users/users.service'
-import { Public } from '../shared/decorators/public.decorator'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
-// Remove non-existent import - define function locally if needed
-
-interface SupabaseWebhookEvent {
-	type: 'INSERT' | 'UPDATE' | 'DELETE'
-	table: string
-	schema: 'auth' | 'public'
-	record: {
-		id: string
-		email?: string
-		email_confirmed_at?: string | null
-		user_metadata?: {
-			name?: string
-			full_name?: string
-		}
-		created_at: string
-		updated_at: string
-	}
-	old_record?: string | null
-}
+import type { SupabaseWebhookEvent } from '@repo/shared/types/auth'
+import { PinoLogger } from 'nestjs-pino'
+import { SupabaseService } from '../database/supabase.service'
+import { Public } from '../shared/decorators/public.decorator'
+import { UsersService } from '../users/users.service'
+import { AuthService } from './auth.service'
 
 @Controller('webhooks/auth')
 export class AuthWebhookController {
 	constructor(
 		private authService: AuthService,
-		private stripeService: StripeService,
+		private supabaseService: SupabaseService,
 		private usersService: UsersService,
 		private readonly logger: PinoLogger
 	) {
@@ -45,7 +21,7 @@ export class AuthWebhookController {
 
 	@Post('supabase')
 	@Public()
-		@HttpCode(200)
+	@HttpCode(200)
 	async handleSupabaseAuthWebhook(
 		@Body() event: SupabaseWebhookEvent,
 		@Headers('authorization') _authHeader: string
@@ -122,7 +98,7 @@ export class AuthWebhookController {
 				updated_at: user.updated_at,
 				is_anonymous: false
 			}
-			
+
 			// Sync user with local database
 			await this.authService.syncUserWithDatabase(supabaseUser)
 
@@ -130,13 +106,10 @@ export class AuthWebhookController {
 			await this.createSubscription(user.id, user.email, userName)
 
 			// Send welcome email (EmailService disabled)
-			this.logger.info(
-				'Welcome email would be sent (EmailService disabled)',
-				{
-					email: user.email,
-					name: userName
-				}
-			)
+			this.logger.info('Welcome email would be sent (EmailService disabled)', {
+				email: user.email,
+				name: userName
+			})
 		} catch (error) {
 			this.logger.error('Error processing user creation', {
 				userId: user.id,
@@ -148,10 +121,7 @@ export class AuthWebhookController {
 
 	private handleUserUpdated(user: SupabaseWebhookEvent['record']): void {
 		// Check if email was just confirmed
-		if (
-			user.email_confirmed_at &&
-			!user.email_confirmed_at.includes('1970')
-		) {
+		if (user.email_confirmed_at && !user.email_confirmed_at.includes('1970')) {
 			this.logger.info('User email confirmed', {
 				userId: user.id,
 				email: user.email,
@@ -175,74 +145,51 @@ export class AuthWebhookController {
 				}
 			)
 
-			// Create Stripe customer
-			const customer = await this.stripeService.createCustomer(
-				email,
-				name
+			// Ultra-native: Direct RPC call for customer and subscription creation
+			const client = this.supabaseService.getAdminClient()
+			const { data: subscriptionData, error } = await client.rpc(
+				'create_stripe_customer_with_trial',
+				{
+					p_user_id: userId,
+					p_email: email,
+					p_name: name,
+					p_price_id: getPriceId('FREETRIAL', 'monthly'),
+					p_trial_days: 14
+				}
 			)
 
-			this.logger.info('Stripe customer created successfully', {
-				userId,
-				customerId: customer.id
-			})
-
-			// Create free trial subscription in Stripe
-			const stripeSubscription =
-				await this.stripeService.client.subscriptions.create({
-					customer: customer.id,
-					items: [
-						{
-							price: getPriceId('FREETRIAL', 'monthly')
-						}
-					],
-					trial_period_days: 14,
-					payment_behavior: 'default_incomplete',
-					payment_settings: {
-						save_default_payment_method: 'off',
-						payment_method_types: ['card']
-					},
-					metadata: {
-						userId,
-						plan: 'free_trial',
-						source: 'auto_signup'
-					}
-				})
-
-			this.logger.info('Stripe subscription created successfully', {
-				userId,
-				subscriptionId: stripeSubscription.id,
-				status: stripeSubscription.status,
-				trialEnd: stripeSubscription.trial_end
-			})
-
-			// Create/update local subscription record with Stripe info
-			try {
-				// Subscription management handled via Stripe webhooks after initial setup
-				this.logger.info(
-					`User created: ${userId}, subscription will be created via Stripe webhooks`
-				)
-				await this.updateSubscriptionWithStripeData(
-					userId,
-					customer.id,
-					stripeSubscription.id
-				)
-
-				this.logger.info('Local subscription updated with Stripe data', {
-					userId,
-					stripeSubscriptionId: stripeSubscription.id
-				})
-			} catch (localDbError) {
+			if (error) {
 				this.logger.error(
-					'Failed to update local subscription with Stripe data',
+					'Failed to create customer and subscription via RPC',
 					{
 						userId,
-						stripeSubscriptionId: stripeSubscription.id,
-						error:
-							localDbError instanceof Error
-								? localDbError.message
-								: 'Unknown error'
+						email,
+						error: error.message
 					}
 				)
+				throw new Error(`Customer creation failed: ${error.message}`)
+			}
+
+			// Type the response data using proper typing
+			const responseData = subscriptionData as {
+				customerId?: string
+				subscriptionId?: string
+			} | null
+
+			this.logger.info(
+				'Stripe customer and subscription created successfully',
+				{
+					userId,
+					customerId: responseData?.customerId,
+					subscriptionId: responseData?.subscriptionId
+				}
+			)
+
+			// Update user record with Stripe customer ID
+			if (responseData?.customerId) {
+				await this.usersService.updateUser(userId, {
+					stripeCustomerId: responseData.customerId
+				})
 			}
 		} catch (error) {
 			this.logger.error('Failed to create user subscription', {
@@ -253,24 +200,5 @@ export class AuthWebhookController {
 			// Don't throw - we don't want to fail the webhook because of subscription creation issues
 			// The user can still use the platform and subscription can be created later
 		}
-	}
-
-	/**
-	 * Update local subscription record with Stripe data
-	 */
-	private async updateSubscriptionWithStripeData(
-		userId: string,
-		stripeCustomerId: string,
-		stripeSubscriptionId: string
-	): Promise<void> {
-		// Subscription updates handled via webhooks after initial user creation
-		this.logger.info(
-			`Subscription ${stripeSubscriptionId} will be handled via webhooks`
-		)
-
-		// Also update user record with Stripe customer ID using users service
-		await this.usersService.updateUser(userId, {
-			stripeCustomerId
-		})
 	}
 }

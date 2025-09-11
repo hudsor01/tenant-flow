@@ -1,262 +1,164 @@
-import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-
-const features = [
-	{
-		icon: 'i-lucide-building-2',
-		title: 'Property_ Management',
-		description:
-			'Comprehensive property portfolio management with occupancy tracking',
-		details: [
-			'Multi-property dashboard',
-			'Unit availability tracking',
-			'Property_ maintenance scheduling',
-			'Digital property records'
-		],
-		gradient: 'from-primary to-cyan-500'
-	},
-	{
-		icon: 'i-lucide-users',
-		title: 'Tenant Portal',
-		description:
-			'Self-service portal for tenants to manage their rental experience',
-		details: [
-			'Online rent payments',
-			'Maintenance request submission',
-			'Lease document access',
-			'Communication center'
-		],
-		gradient: 'from-purple-500 to-pink-500'
-	},
-	{
-		icon: 'i-lucide-credit-card',
-		title: 'Online Payments',
-		description: 'Secure payment processing with automated reminders',
-		details: [
-			'Multiple payment methods',
-			'Automatic rent collection',
-			'Late fee automation',
-			'Payment history tracking'
-		],
-		gradient: 'from-green-5 to-emerald-500'
-	},
-	{
-		icon: 'i-lucide-file-text',
-		title: 'Digital Leases',
-		description: 'Create, sign, and manage lease agreements electronically',
-		details: [
-			'Digital signature integration',
-			'Customizable lease templates',
-			'Automated lease renewals',
-			'Document storage & retrieval'
-		],
-		gradient: 'from-orange-500 to-red-5'
-	},
-	{
-		icon: 'i-lucide-wrench',
-		title: 'Maintenance Tracking',
-		description:
-			'Streamlined maintenance request and work order management',
-		details: [
-			'Work order automation',
-			'Vendor management',
-			'Cost tracking',
-			'Maintenance history'
-		],
-		gradient: 'from-pink-500 to-rose-500'
-	},
-	{
-		icon: 'i-lucide-bar-chart-3',
-		title: 'Analytics & Reports',
-		description: 'Comprehensive financial and operational reporting',
-		details: [
-			'Revenue analytics',
-			'Occupancy reports',
-			'Maintenance cost analysis',
-			'Custom report builder'
-		],
-		gradient: 'from-indigo-500 to-purple-500'
-	}
-]
-
-const additionalFeatures = [
-	{
-		icon: 'i-lucide-smartphone',
-		title: 'Mobile App',
-		description: 'Manage properties on-the-go with our mobile application'
-	},
-	{
-		icon: 'i-lucide-shield',
-		title: 'Security & Compliance',
-		description: 'Bank-level security with compliance reporting'
-	},
-	{
-		icon: 'i-lucide-zap',
-		title: 'API Integration',
-		description: 'Connect with your favorite tools via our robust API'
-	},
-	{
-		icon: 'i-lucide-clock',
-		title: '24/7 Support',
-		description: 'Round-the-clock customer support and assistance'
-	}
-]
+import { ArrowRight, Check, TrendingUp, Users, Shield, Zap } from 'lucide-react'
+import { Navbar } from '@/components/navbar'
+import { FooterMinimal } from '@/components/sections/footer-minimal'
+import { FeaturesSectionDemo3 } from '@/components/magicui/features-section-demo-3'
 
 export default function FeaturesPage() {
-	return (
-		<div className="min-h-screen bg-white">
-			{/* Navigation */}
-			<nav className="border-b bg-white/95 backdrop-blur-sm">
-				<div className="container mx-auto flex h-16 items-center justify-between px-4">
-					<Link
-						href="/"
-						className="group flex items-center space-x-2"
-					>
-						<i className="i-lucide-building-2  text-primary h-8 w-8 transition-transform group-hover:scale-110"  />
-						<span className="from-primary bg-gradient-to-r to-purple-600 bg-clip-text text-xl font-bold text-transparent">
-							TenantFlow
-						</span>
-					</Link>
-					<Button asChild>
-						<Link href="/auth/signup">Get Started Free</Link>
-					</Button>
-				</div>
-			</nav>
+  return (
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      
+      {/* Hero Section */}
+      <section className="pt-24 pb-16 bg-gradient-to-br from-slate-50 to-blue-50">
+        <div className="container mx-auto px-6 max-w-6xl text-center">
+          <Badge variant="outline" className="mb-6">
+            <Users className="w-4 h-4 mr-2" />
+            Trusted by 10,000+ property managers
+          </Badge>
+          
+          <h1 className="text-5xl md:text-6xl font-bold mb-6">
+            Everything you need to
+            <span className="block bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
+              maximize your ROI
+            </span>
+          </h1>
+          
+          <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
+            Professional property managers increase NOI by 40% with TenantFlow's enterprise-grade 
+            automation, advanced analytics, and scalable operations platform.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button size="lg" className="px-8">
+              Start 14-day transformation
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+            <Button size="lg" variant="outline" className="px-8">
+              See ROI calculator
+            </Button>
+          </div>
+        </div>
+      </section>
 
-			{/* Hero Section */}
-			<section className="bg-gradient-to-br from-blue-50 to-purple-50 px-4 pb-12 pt-24">
-				<div className="container mx-auto text-center">
-					<Badge className="from-primary mb-6 bg-gradient-to-r to-purple-600 text-white">
-						<i className="i-lucide-sparkles  mr-2 h-4 w-4"  />
-						Complete Feature Set
-					</Badge>
-					<h1 className="mb-6 bg-gradient-to-r from-gray-9 to-gray-7 bg-clip-text text-5xl font-bold text-transparent">
-						Everything You Need to Manage Properties
-					</h1>
-					<p className="mx-auto max-w-3xl text-xl text-gray-6">
-						From tenant management to financial reporting,
-						TenantFlow provides all the tools you need to streamline
-						your property management operations.
-					</p>
-				</div>
-			</section>
+      {/* Main Features Section */}
+      <FeaturesSectionDemo3 />
 
-			{/* Main Features Grid */}
-			<section className="px-4 py-20">
-				<div className="container mx-auto">
-					<div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-						{features.map((feature, index) => {
-							return (
-								<Card
-									key={index}
-									className="border-0 shadow-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl"
-								>
-									<CardContent className="p-8">
-										<div
-											className={`h-14 w-14 rounded-xl bg-gradient-to-br ${feature.gradient} mb-6 flex items-center justify-center`}
-										>
-											<i className={`${feature.icon} h-7 w-7  text-white`} />
-										</div>
-										<h3 className="mb-3 text-xl font-semibold text-gray-9">
-											{feature.title}
-										</h3>
-										<p className="mb-6 text-gray-6">
-											{feature.description}
-										</p>
-										<ul className="space-y-2">
-											{feature.details.map(
-												(detail, idx) => (
-													<li
-														key={idx}
-														className="flex items-center text-sm text-gray-6"
-													>
-														<i className="i-lucide-check-circle  mr-2 h-4 w-4 flex-shrink-0 text-green-5" />
-														{detail}
-													</li>
-												)
-											)}
-										</ul>
-									</CardContent>
-								</Card>
-							)
-						})}
-					</div>
-				</div>
-			</section>
+      {/* Key Benefits Grid */}
+      <section className="py-24 bg-white">
+        <div className="container mx-auto px-6 max-w-6xl">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-4">
+              Proven results that transform property management
+            </h2>
+            <p className="text-xl text-muted-foreground">
+              Professional property managers use TenantFlow to reduce costs by 32%, increase NOI by 40%, and automate 80% of repetitive tasks
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <TrendingUp className="w-8 h-8 text-green-600" />
+              </div>
+              <h3 className="text-2xl font-bold mb-4">Increase NOI by 40% Average</h3>
+              <p className="text-muted-foreground mb-4">
+                Real-time financial analytics and automated rent optimization maximize property returns.
+                ROI in 90 days guaranteed.
+              </p>
+              <ul className="text-left space-y-2 text-sm">
+                <li className="flex items-center">
+                  <Check className="w-4 h-4 text-green-500 mr-2" />
+                  Automated rent optimization
+                </li>
+                <li className="flex items-center">
+                  <Check className="w-4 h-4 text-green-500 mr-2" />
+                  Reduce vacancy time by 65%
+                </li>
+                <li className="flex items-center">
+                  <Check className="w-4 h-4 text-green-500 mr-2" />
+                  Pays for itself in 2.3 months
+                </li>
+              </ul>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Zap className="w-8 h-8 text-blue-600" />
+              </div>
+              <h3 className="text-2xl font-bold mb-4">Automate 80% of Daily Tasks</h3>
+              <p className="text-muted-foreground mb-4">
+                Smart workflows handle rent collection, lease renewals, and tenant communications automatically.
+                Save 20+ hours per week.
+              </p>
+              <ul className="text-left space-y-2 text-sm">
+                <li className="flex items-center">
+                  <Check className="w-4 h-4 text-blue-500 mr-2" />
+                  Automated rent collection
+                </li>
+                <li className="flex items-center">
+                  <Check className="w-4 h-4 text-blue-500 mr-2" />
+                  Cut maintenance costs 32%
+                </li>
+                <li className="flex items-center">
+                  <Check className="w-4 h-4 text-blue-500 mr-2" />
+                  Smart tenant screening
+                </li>
+              </ul>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Shield className="w-8 h-8 text-purple-600" />
+              </div>
+              <h3 className="text-2xl font-bold mb-4">Enterprise Security</h3>
+              <p className="text-muted-foreground mb-4">
+                Bank-level security with SOC 2 compliance ensures your sensitive property and 
+                tenant data is always protected.
+              </p>
+              <ul className="text-left space-y-2 text-sm">
+                <li className="flex items-center">
+                  <Check className="w-4 h-4 text-purple-500 mr-2" />
+                  256-bit SSL encryption
+                </li>
+                <li className="flex items-center">
+                  <Check className="w-4 h-4 text-purple-500 mr-2" />
+                  SOC 2 Type II compliant
+                </li>
+                <li className="flex items-center">
+                  <Check className="w-4 h-4 text-purple-500 mr-2" />
+                  Regular security audits
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
 
-			{/* Additional Features */}
-			<section className="bg-gray-5 px-4 py-20">
-				<div className="container mx-auto">
-					<div className="mb-12 text-center">
-						<h2 className="mb-4 text-3xl font-bold text-gray-9">
-							Plus Many More Features
-						</h2>
-						<p className="mx-auto max-w-2xl text-gray-6">
-							TenantFlow includes everything you need to run your
-							property management business efficiently
-						</p>
-					</div>
-					<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-						{additionalFeatures.map((feature, index) => {
-							return (
-								<Card
-									key={index}
-									className="p-6 text-center transition-shadow hover:shadow-lg"
-								>
-									<i className={`${feature.icon} text-primary mx-auto mb-4 h-8 w-8 `} />
-									<h3 className="mb-2 font-semibold">
-										{feature.title}
-									</h3>
-									<p className="text-sm text-gray-6">
-										{feature.description}
-									</p>
-								</Card>
-							)
-						})}
-					</div>
-				</div>
-			</section>
+      {/* CTA Section */}
+      <section className="py-16 bg-gradient-to-r from-blue-600 to-purple-600">
+        <div className="container mx-auto px-6 max-w-4xl text-center">
+          <h2 className="text-4xl font-bold text-white mb-4">
+            Stop losing $2,400+ per property per year
+          </h2>
+          <p className="text-xl text-blue-100 mb-8">
+            Professional property managers increase NOI by 40% with TenantFlow's enterprise-grade automation.
+            ROI guaranteed in 90 days.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button size="lg" variant="secondary" className="px-8">
+              Start 14-day transformation
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+            <Button size="lg" variant="outline" className="px-8 text-white border-white hover:bg-white hover:text-blue-600">
+              See ROI calculator
+            </Button>
+          </div>
+        </div>
+      </section>
 
-			{/* CTA Section */}
-			<section className="from-primary bg-gradient-to-r to-purple-600 px-4 py-20 text-white">
-				<div className="container mx-auto text-center">
-					<h2 className="mb-4 text-4xl font-bold">
-						Ready to Get Started?
-					</h2>
-					<p className="mb-8 text-xl text-blue-1">
-						Join thousands of property managers using TenantFlow
-					</p>
-					<div className="flex flex-col justify-center gap-4 sm:flex-row">
-						<Link href="/auth/signup">
-							<Button
-								size="lg"
-								className="text-primary inline-flex items-center bg-white hover:bg-gray-1"
-							>
-								Start Free Trial
-								<i className="i-lucide-arrow-right  ml-2 h-5 w-5"  />
-							</Button>
-						</Link>
-						<Link href="/pricing">
-							<Button
-								size="lg"
-								variant="outline"
-								className="border-white text-white hover:bg-white/10"
-							>
-								View Pricing
-							</Button>
-						</Link>
-					</div>
-				</div>
-			</section>
-
-			{/* Footer */}
-			<footer className="bg-gray-9 px-4 py-8 text-gray-4">
-				<div className="container mx-auto text-center">
-					<p>&copy; 2023 TenantFlow. All rights reserved.</p>
-				</div>
-			</footer>
-		</div>
-	)
+      <FooterMinimal />
+    </div>
+  )
 }

@@ -3,8 +3,10 @@
  * Follows backend error handling standards from global-exception.filter.ts
  * 30 lines max - native functionality only
  */
+import { createBrowserClient } from '@supabase/ssr'
+import type { Json } from '../types/supabase-generated'
 
-export interface FetchResponse<T = unknown> {
+export interface FetchResponse<T = Json> {
   success: boolean
   data?: T
   error?: string
@@ -12,13 +14,35 @@ export interface FetchResponse<T = unknown> {
   statusCode?: number
 }
 
-export async function apiClient<T = unknown>(
+export async function apiClient<T = Json>(
   url: string,
   options?: RequestInit
 ): Promise<T> {
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+  const {
+    data: { session }
+  } = await supabase.auth.getSession()
+
+  const baseHeaders: Record<string, string> = {
+    'Content-Type': 'application/json'
+  }
+
+  // Add custom headers if provided
+  if (options?.headers) {
+    const customHeaders = options.headers as Record<string, string>
+    Object.assign(baseHeaders, customHeaders)
+  }
+
+  if (session) {
+    baseHeaders['Authorization'] = `Bearer ${session.access_token}`
+  }
+
   const response = await fetch(url, {
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    ...options
+    ...options,
+    headers: baseHeaders
   })
 
   const data = await response.json() as FetchResponse<T>
@@ -32,8 +56,8 @@ export async function apiClient<T = unknown>(
 
 // Convenience methods
 export const get = <T>(url: string) => apiClient<T>(url)
-export const post = <T>(url: string, body: unknown) => 
+export const post = <T>(url: string, body: Json) =>
   apiClient<T>(url, { method: 'POST', body: JSON.stringify(body) })
-export const put = <T>(url: string, body: unknown) => 
+export const put = <T>(url: string, body: Json) =>
   apiClient<T>(url, { method: 'PUT', body: JSON.stringify(body) })
 export const del = <T>(url: string) => apiClient<T>(url, { method: 'DELETE' })

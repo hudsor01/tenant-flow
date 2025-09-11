@@ -3,7 +3,7 @@
  * Types for file uploads and document management
  */
 
-// Document type enum - matches Prisma schema DocumentType enum
+// Document type enum
 export enum DocumentType {
 	LEASE = 'LEASE',
 	INVOICE = 'INVOICE',
@@ -14,7 +14,7 @@ export enum DocumentType {
 	OTHER = 'OTHER'
 }
 
-// Document interface - matches Prisma schema
+// Document interface
 export interface Document {
 	id: string
 	name: string
@@ -30,7 +30,7 @@ export interface Document {
 	updatedAt: string | null
 }
 
-// File interface - matches Prisma schema
+// File interface
 export interface File {
 	id: string
 	filename: string

@@ -1,110 +1,69 @@
-/**
- * Native Button Component with UnoCSS
- * No CVA, no external dependencies, just UnoCSS shortcuts
- */
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cva, type VariantProps } from "class-variance-authority"
 
-'use client'
+import { cn, buttonClasses, ANIMATION_DURATIONS, SEMANTIC_COLORS } from "@/lib/design-system"
 
-import * as React from 'react'
-import { Slot } from '@radix-ui/react-slot'
-import { cn } from '@/lib/utils'
-
-// Native variant types without CVA
-export type ButtonVariant = 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link' | 'premium'
-export type ButtonSize = 'default' | 'sm' | 'lg' | 'icon'
-
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-	variant?: ButtonVariant
-	size?: ButtonSize
-	asChild?: boolean
-	loading?: boolean
-}
-
-// UnoCSS class maps - will be converted to shortcuts in uno.config.ts
-const variantClasses: Record<ButtonVariant, string> = {
-	default: 'bg-primary text-primary-foreground hover:bg-primary/90',
-	destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
-	outline: 'border border-input bg-card hover:bg-muted',
-	secondary: 'bg-secondary text-secondary-foreground hover:bg-muted',
-	ghost: 'hover:bg-muted hover:text-foreground',
-	link: 'text-primary underline-offset-4 hover:underline',
-	premium: 'bg-gradient-to-r from-primary to-accent text-primary-foreground hover:from-primary/90 hover:to-accent/90 shadow-lg'
-}
-
-const sizeClasses: Record<ButtonSize, string> = {
-	default: 'h-10 px-4 py-2 text-sm',
-	sm: 'h-9 px-3 text-xs',
-	lg: 'h-11 px-8 text-base',
-	icon: 'h-10 w-10 p-0'
-}
-
-// Base button classes using UnoCSS utilities
-const baseClasses = 'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg font-medium transition-all duration-fast focus-visible:(outline-none ring-2 ring-primary/50 ring-offset-2) disabled:(pointer-events-none opacity-50) [&_svg]:(pointer-events-none size-4 shrink-0)'
-
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-	(
-		{
-			className,
-			variant = 'default',
-			size = 'default',
-			asChild = false,
-			loading,
-			disabled,
-			children,
-			...props
-		},
-		ref
-	) => {
-		const Comp = asChild ? Slot : 'button'
-
-		// Build complete className
-		const classes = cn(
-			baseClasses,
-			variantClasses[variant],
-			sizeClasses[size],
-			className
-		)
-
-		// When using asChild, we can't add extra elements like the loading spinner
-		if (asChild) {
-			return (
-				<Comp
-					className={classes}
-					ref={ref}
-					disabled={disabled || loading}
-					{...props}
-				>
-					{children}
-				</Comp>
-			)
-		}
-
-		return (
-			<Comp
-				className={classes}
-				ref={ref}
-				disabled={disabled || loading}
-				aria-busy={loading}
-				{...props}
-			>
-				{loading && (
-					<i className="i-lucide-loader-2 animate-spin" aria-label="Loading" />
-				)}
-				{children}
-			</Comp>
-		)
-	}
+// Using design system buttonClasses with legacy cva fallback for existing variants
+const buttonVariants = cva(
+  `inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive`,
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
+        primary: "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
+        secondary: "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
+        destructive: "bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+        outline: "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
+        ghost: "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+        link: "text-primary underline-offset-4 hover:underline",
+      },
+      size: {
+        xs: "h-6 px-2 text-xs has-[>svg]:px-1.5",
+        sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
+        default: "h-9 px-4 py-2 has-[>svg]:px-3",
+        lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
+        xl: "h-11 px-8 has-[>svg]:px-6",
+        icon: "size-9",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
 )
 
-Button.displayName = 'Button'
+function Button({
+  className,
+  variant,
+  size,
+  asChild = false,
+  ...props
+}: React.ComponentProps<"button"> &
+  VariantProps<typeof buttonVariants> & {
+    asChild?: boolean
+  }) {
+  const Comp = asChild ? Slot : "button"
 
-// Export variants for compatibility with existing components
-export const buttonVariants = (props: { variant?: ButtonVariant; size?: ButtonSize }) => {
-	return cn(
-		baseClasses,
-		variantClasses[props.variant || 'default'],
-		sizeClasses[props.size || 'default']
-	)
+  return (
+    <Comp
+      data-slot="button"
+      className={cn(
+        // Use design system buttonClasses for consistent styling
+        (['primary', 'secondary', 'outline', 'ghost', 'destructive'].includes(variant || '') || variant === 'default') ? 
+          buttonClasses(variant === 'default' ? 'primary' : (variant as 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive') || 'primary', (size === 'icon' ? 'default' : size) || 'default', className) : '',
+        // Fallback to buttonVariants for legacy variant compatibility (like 'link')
+        !['primary', 'secondary', 'outline', 'ghost', 'destructive'].includes(variant || '') && buttonVariants({ variant, size })
+      )}
+      style={{ 
+        transition: `all ${ANIMATION_DURATIONS.default} ease-out`,
+        color: variant === 'primary' ? SEMANTIC_COLORS['primary-foreground'] : undefined,
+        ...(props.style || {})
+      }}
+      {...props}
+    />
+  )
 }
 
-export { Button }
+export { Button, buttonVariants }

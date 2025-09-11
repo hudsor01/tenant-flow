@@ -15,6 +15,10 @@ import noManualValidationSchemas from '../rules/no-manual-validation-schemas.js'
 import noDuplicateApiMethods from '../rules/no-duplicate-api-methods.js'
 import enforceGlobalLoading from '../rules/enforce-global-loading.js'
 import enforceSchemaGeneration from '../rules/enforce-schema-generation.js'
+import noDuplicateFunctionImplementations from '../rules/no-duplicate-function-implementations.js'
+import noRepeatedConfigPatterns from '../rules/no-repeated-config-patterns.js'
+import noSimilarApiEndpoints from '../rules/no-similar-api-endpoints.js'
+import noRepeatedComponentLogic from '../rules/no-repeated-component-logic.js'
 
 const plugin = {
   meta: {
@@ -26,7 +30,11 @@ const plugin = {
     'no-manual-validation-schemas': noManualValidationSchemas,
     'no-duplicate-api-methods': noDuplicateApiMethods,
     'enforce-global-loading': enforceGlobalLoading,
-    'enforce-schema-generation': enforceSchemaGeneration
+    'enforce-schema-generation': enforceSchemaGeneration,
+    'no-duplicate-function-implementations': noDuplicateFunctionImplementations,
+    'no-repeated-config-patterns': noRepeatedConfigPatterns,
+    'no-similar-api-endpoints': noSimilarApiEndpoints,
+    'no-repeated-component-logic': noRepeatedComponentLogic
   }
 }
 

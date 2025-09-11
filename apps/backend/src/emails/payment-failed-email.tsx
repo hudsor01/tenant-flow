@@ -74,7 +74,7 @@ export const PaymentFailedEmail = ({
             {isLastAttempt ? (
               <Section style={urgentNotice}>
                 <Text style={urgentText}>
-                  <strong>⚠️ Important Notice:</strong>
+                  <strong>Important Notice:</strong>
                 </Text>
                 <Text style={urgentText}>
                   This was your final payment attempt. Your subscription will be canceled 

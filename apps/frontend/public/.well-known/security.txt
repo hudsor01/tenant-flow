@@ -1,0 +1,35 @@
+Contact: security@tenantflow.app
+Expires: 2025-12-31T23:59:59.000Z
+Encryption: https://tenantflow.app/.well-known/pgp-key.txt
+Preferred-Languages: en
+Canonical: https://tenantflow.app/.well-known/security.txt
+Policy: https://tenantflow.app/security-policy
+
+# Security Policy
+# We take security seriously and appreciate responsible disclosure of vulnerabilities.
+# Please report security issues to security@tenantflow.app with detailed information.
+# 
+# Response Time: We aim to acknowledge reports within 24 hours
+# Disclosure Timeline: 90 days for coordinated disclosure
+# Bug Bounty: Contact us for information about our bug bounty program
+# 
+# Scope:
+# In Scope:
+# - tenantflow.app and subdomains
+# - api.tenantflow.app
+# - Authentication and authorization issues
+# - Data validation and injection vulnerabilities
+# - Cross-site scripting (XSS)
+# - Cross-site request forgery (CSRF)
+# - Server-side request forgery (SSRF)
+# - Remote code execution
+# - Privilege escalation
+# - Information disclosure
+# 
+# Out of Scope:
+# - Social engineering attacks
+# - Physical security issues
+# - Denial of service attacks
+# - Spam or content injection
+# - Issues requiring extensive user interaction
+# - Third-party services (Stripe, Supabase) - report directly to them

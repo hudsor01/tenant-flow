@@ -98,51 +98,22 @@ export interface NotificationWithDetails extends NotificationData {
 
 // Complex query result types
 export interface PropertyWithUnits extends Property {
-	// Core relations - units is optional since not all queries include it
-	units?: Unit[]
+	// Core relations - units is ALWAYS included from backend
+	units: Unit[]
 	
-	// Computed fields that components expect
-	totalUnits?: number
-	occupiedUnits?: number
-	availableUnits?: number
-	monthlyRent?: number
-	monthlyRevenue?: number
-	squareFeet?: number
-	totalSize?: number  // Alias for squareFeet
-	bedrooms?: number
-	bathrooms?: number
-	yearBuilt?: number
-	securityDeposit?: number
-	
-	// Property management fields
-	manager?: string
-	managerId?: string
-	managerName?: string
-	managerEmail?: string
-	managerPhone?: string
-	
-	// Amenities and features
-	amenities?: string[]
-	petsAllowed?: boolean
-	parkingSpaces?: number
-	
-	// Remove conflicting status field - use the database PropertyStatus instead
-	occupancyRate?: number
-	averageRent?: number
-	rentAmount?: number  // Alias for monthlyRent
-	
-	// Financial calculations
-	totalMonthlyRent?: number
-	potentialMonthlyRent?: number
-	
-	// UI-specific fields  
-	images?: string[]
-	notes?: string
-	
-	// Lease-related computed fields
-	activeLeases?: number
-	expiringSoon?: number
-	vacantUnits?: number
+	// REQUIRED computed fields - ALL calculated in database
+	totalUnits: number
+	occupiedUnits: number
+	vacantUnits: number
+	maintenanceUnits: number
+	occupancyRate: number
+	monthlyRevenue: number
+	potentialRevenue: number
+	revenueUtilization: number
+	averageRentPerUnit: number
+	maintenanceRequests: number
+	openMaintenanceRequests: number
+	// ALL metrics are REQUIRED from backend - no duplicates allowed
 }
 
 export interface PropertyWithUnitsAndLeases extends Property {
@@ -273,13 +244,9 @@ export interface PropertyWithFullDetails extends PropertyWithUnits {
 	owner?: User
 	leases?: LeaseWithDetails[]
 	tenants?: TenantWithDetails[]
-	maintenanceRequests?: MaintenanceRequestWithDetails[]
+	maintenanceHistory?: MaintenanceRequestWithDetails[]
 	
-	// Extended analytics
-	averageRent?: number
-	totalRevenue?: number
-	expiredLeases?: number
-	pendingMaintenance?: number
+	// ALL analytics come from PropertyWithUnits base - no duplicates
 }
 
 /**

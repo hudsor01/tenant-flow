@@ -1,8 +1,8 @@
 /**
- * 🚨 ULTRA-NATIVE SERVICE - DO NOT ADD ORCHESTRATION 🚨
+ *  ULTRA-NATIVE SERVICE - DO NOT ADD ORCHESTRATION 
  *
  * DIRECT PostgreSQL RPC calls ONLY. Each method <30 lines.
- * ❌ FORBIDDEN: Service layers, repositories, business logic classes
+ * FORBIDDEN: Service layers, repositories, business logic classes
  * See: apps/backend/ULTRA_NATIVE_ARCHITECTURE.md
  */
 

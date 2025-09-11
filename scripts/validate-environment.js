@@ -28,12 +28,12 @@ const COLORS = {
 }
 
 const log = {
-	info: msg => console.log(`${COLORS.blue}ℹ${COLORS.reset} ${msg}`),
-	success: msg => console.log(`${COLORS.green}✅${COLORS.reset} ${msg}`),
-	warning: msg => console.log(`${COLORS.yellow}⚠️${COLORS.reset} ${msg}`),
-	error: msg => console.log(`${COLORS.red}❌${COLORS.reset} ${msg}`),
+	info: msg => console.log(`${COLORS.blue}INFO:${COLORS.reset} ${msg}`),
+	success: msg => console.log(`${COLORS.green}SUCCESS:${COLORS.reset} ${msg}`),
+	warning: msg => console.log(`${COLORS.yellow}WARNING:${COLORS.reset} ${msg}`),
+	error: msg => console.log(`${COLORS.red}ERROR:${COLORS.reset} ${msg}`),
 	title: msg =>
-		console.log(`${COLORS.bold}${COLORS.cyan}🔒 ${msg}${COLORS.reset}\n`)
+		console.log(`${COLORS.bold}${COLORS.cyan}SECURITY: ${msg}${COLORS.reset}\n`)
 }
 
 // Required environment variables by environment
@@ -269,7 +269,7 @@ function validateEnvironment(targetEnvironment = 'development') {
 		)
 
 		if (issues.length === 0) {
-			const displayValue = value ? '✓' : '(default)'
+			const displayValue = value ? 'SET' : '(default)'
 			log.success(`${name}: ${displayValue}`)
 			validCount++
 		} else {
@@ -285,17 +285,17 @@ function validateEnvironment(targetEnvironment = 'development') {
 	// Summary
 	const totalVars = Object.keys(config).length
 	if (allIssues.length === 0) {
-		log.success(`All ${totalVars} environment variables are valid! 🎉`)
+		log.success(`All ${totalVars} environment variables are valid! SUCCESS`)
 
 		// Additional production recommendations
 		if (targetEnvironment === 'production') {
 			console.log('')
 			log.info('Production Security Recommendations:')
-			log.info('• Rotate secrets regularly (monthly)')
-			log.info('• Use different secrets per environment')
-			log.info('• Monitor for secret exposure in logs')
-			log.info('• Enable secret scanning in CI/CD')
-			log.info('• Use platform-native secret management')
+			log.info('- Rotate secrets regularly (monthly)')
+			log.info('- Use different secrets per environment')
+			log.info('- Monitor for secret exposure in logs')
+			log.info('- Enable secret scanning in CI/CD')
+			log.info('- Use platform-native secret management')
 		}
 
 		return true

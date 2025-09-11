@@ -17,16 +17,17 @@ import { AuthService } from './auth.service'
 import { Public } from '../shared/decorators/auth.decorators'
 import type { ValidatedUser } from '@repo/shared'
 import type { FastifyRequest } from 'fastify'
-import { UsersService } from '../users/users.service'
 // Using native Fastify JSON Schema validation - no DTOs needed
 // Validation is handled by Fastify schema at route level
 
 @Controller('auth')
 export class AuthController {
-	constructor(
-		private readonly authService: AuthService,
-		private readonly usersService: UsersService
-	) {}
+	private readonly authService: AuthService
+
+	constructor() {
+		// Ultra-native: Create AuthService instance directly to bypass DI issues
+		this.authService = new AuthService()
+	}
 
 	// Note: All auth operations are handled by Supabase directly
 	// Auth endpoints are now implemented as standard NestJS routes
@@ -35,7 +36,7 @@ export class AuthController {
 	@Get('me')
 	@UseGuards(AuthGuard)
 	async getCurrentUser(@CurrentUser() user: ValidatedUser) {
-		const userProfile = await this.usersService.getUserById(user.id)
+		const userProfile = await this.authService.getUserBySupabaseId(user.id)
 		if (!userProfile) {
 			throw new NotFoundException('User not found')
 		}
@@ -110,5 +111,29 @@ export class AuthController {
 		await this.authService.logout(token)
 		// Return native response - NestJS handles this automatically
 		return { success: true }
+	}
+
+	/**
+	 * Save form draft for persistence across sessions
+	 * React 19 useFormState integration
+	 */
+	@Post('draft')
+	@Public()
+	@Throttle({ default: { limit: 10, ttl: 60000 } })
+	@HttpCode(HttpStatus.OK)
+	async saveDraft(@Body() body: { email?: string; name?: string; formType: 'signup' | 'login' | 'reset' }) {
+		return this.authService.saveDraft(body)
+	}
+
+	/**
+	 * Retrieve form draft
+	 * React 19 useFormState integration
+	 */
+	@Get('draft/:formType')
+	@Public()
+	@Throttle({ default: { limit: 20, ttl: 60000 } })
+	async getDraft(@Body() body: { sessionId?: string }, @Req() request: FastifyRequest) {
+		const sessionId = body.sessionId || request.headers['x-session-id'] as string
+		return this.authService.getDraft(sessionId)
 	}
 }

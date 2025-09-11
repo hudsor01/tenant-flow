@@ -1,14 +1,65 @@
-# *
+# TenantFlow Property Management Software
+# https://tenantflow.app
+
+# All search engines
 User-agent: *
 Allow: /
 Disallow: /admin/
 Disallow: /api/
+Disallow: /auth/
 Disallow: /dashboard/
 Disallow: /settings/
 Disallow: /profile/
+Disallow: /billing/
+Disallow: /_next/
+Disallow: /sw.js
+Disallow: /workbox-*
+Disallow: /*.json$
 
-# Host
+# Google crawlers
+User-agent: Googlebot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /dashboard/
+Disallow: /settings/
+Disallow: /profile/
+Disallow: /billing/
+Crawl-delay: 1
+
+# Bing crawler
+User-agent: Bingbot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /dashboard/
+Disallow: /settings/
+Disallow: /profile/
+Disallow: /billing/
+Crawl-delay: 2
+
+# Social media crawlers (allow for previews)
+User-agent: facebookexternalhit/1.1
+Allow: /
+User-agent: Twitterbot
+Allow: /
+User-agent: LinkedInBot
+Allow: /
+
+# Prevent bad bots
+User-agent: SemrushBot
+Disallow: /
+User-agent: AhrefsBot
+Disallow: /
+User-agent: MJ12bot
+Disallow: /
+
+# Host and Sitemaps
 Host: https://tenantflow.app
-
-# Sitemaps
 Sitemap: https://tenantflow.app/sitemap.xml
+Sitemap: https://tenantflow.app/sitemap-index.xml
+
+# Crawl rate
+Request-rate: 1/10s

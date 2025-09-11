@@ -1,283 +1,224 @@
-"use client"
-
-import React from 'react'
-import { motion } from 'framer-motion'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import Link from 'next/link'
-
-const values = [
-	{
-		icon: 'i-lucide-target',
-		title: 'User-Focused',
-		description:
-			'Every feature starts with understanding your actual needs, not what we think you need.'
-	},
-	{
-		icon: 'i-lucide-zap',
-		title: 'Lightning Fast',
-		description:
-			'Time is money. Our platform is optimized for speed so you can work efficiently.'
-	},
-	{
-		icon: 'i-lucide-heart',
-		title: 'Built with Care',
-		description:
-			'We obsess over the details so you can focus on growing your business.'
-	},
-	{
-		icon: 'i-lucide-shield',
-		title: 'Secure & Reliable',
-		description:
-			'Bank-level security and 99.9% uptime guarantee. Your data is safe with us.'
-	}
-]
-
-// Server Component for static content
-function CompanyStats() {
-	const stats = [
-		{ label: 'Properties Managed', value: '10K+', icon: 'i-lucide-building-2' },
-		{ label: 'Happy Property_ Owners', value: '2.5K+', icon: 'i-lucide-users' },
-		{ label: 'Years of Experience', value: '8+', icon: 'i-lucide-award' },
-		{ label: 'Uptime Guarantee', value: '99.9%', icon: 'i-lucide-shield' }
-	]
-
-	return (
-		<div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
-			{stats.map(stat => {
-				return (
-					<Card
-						key={stat.label}
-						className="to-muted/30 border-0 bg-gradient-to-br from-white transition-all duration-300 hover:shadow-lg"
-					>
-						<CardContent className="p-6 text-center">
-							<div className="bg-primary/10 mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
-								<i className={`${stat.icon} text-primary h-6 w-6 `} />
-							</div>
-							<div className="text-foreground mb-2 text-3xl font-bold">
-								{stat.value}
-							</div>
-							<div className="text-muted-foreground text-sm">
-								{stat.label}
-							</div>
-						</CardContent>
-					</Card>
-				)
-			})}
-		</div>
-	)
-}
-
-export function AboutContent() {
-	return (
-		<div className="from-background to-muted/20 min-h-screen bg-gradient-to-b">
-			{/* Hero Section */}
-			<section className="px-4 pb-16 pt-24">
-				<div className="mx-auto max-w-7xl">
-					<div className="mb-16 text-center">
-						<motion.div
-							initial={{ opacity: 0, y: 20 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ duration: 0.6 }}
-							className="mb-6"
-						>
-							<Badge className="from-primary via-accent to-success border-0 bg-gradient-to-r px-6 py-2 text-sm font-semibold text-white shadow-lg">
-								<i className="i-lucide-sparkles  mr-2 h-4 w-4"  />
-								About TenantFlow
-							</Badge>
-						</motion.div>
-
-						<motion.h1
-							initial={{ opacity: 0, y: 20 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ duration: 0.6, delay: 0.1 }}
-							className="text-foreground mb-6 text-5xl font-bold leading-tight lg:text-6xl"
-						>
-							Revolutionizing{' '}
-							<span className="from-primary via-accent to-success bg-gradient-to-r bg-clip-text text-transparent">
-								Property_ Management
-							</span>
-						</motion.h1>
-
-						<motion.p
-							initial={{ opacity: 0, y: 20 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ duration: 0.6, delay: 0.2 }}
-							className="text-muted-foreground mx-auto max-w-3xl text-xl leading-relaxed"
-						>
-							We&apos;re on a mission to simplify property
-							management for everyone. From individual landlords
-							to large property management companies, TenantFlow
-							makes it easy to manage properties, tenants, and
-							maintenance - all in one place.
-						</motion.p>
-					</div>
-
-					{/* Stats Grid */}
-					<motion.div
-						initial={{ opacity: 0, y: 30 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.8, delay: 0.3 }}
-					>
-						<CompanyStats />
-					</motion.div>
-				</div>
-			</section>
-
-			{/* Story Section */}
-			<section className="px-4 py-16">
-				<div className="mx-auto max-w-4xl">
-					<motion.div
-						initial={{ opacity: 0, y: 30 }}
-						whileInView={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.6 }}
-						viewport={{ once: true }}
-						className="prose prose-lg text-muted-foreground mx-auto"
-					>
-						<h2 className="text-foreground mb-8 text-center text-3xl font-bold">
-							Our Story
-						</h2>
-
-						<div className="space-y-6 leading-relaxed">
-							<p>
-								TenantFlow was born from frustration. In 2016,
-								our founders - property owners themselves - were
-								drowning in spreadsheets, paper leases, and
-								endless phone calls. They knew there had to be a
-								better way to manage rental properties.
-							</p>
-
-							<p>
-								After trying every property management software
-								on the market, they found the same problems
-								everywhere: complex interfaces, bloated
-								features, and pricing that didn't make sense for
-								small to medium property owners. So they decided
-								to build something different.
-							</p>
-
-							<p>
-								Starting with just five beta users in a
-								co-working space in Austin, TenantFlow grew
-								through word-of-mouth from property owners who
-								finally found software that actually made their
-								lives easier. No venture capital, no aggressive
-								sales tactics - just a commitment to building
-								the best property management platform possible.
-							</p>
-
-							<p>
-								Today, TenantFlow serves thousands of property
-								owners worldwide, from individual investors
-								managing a single rental to large portfolios
-								spanning multiple markets. Every feature we
-								build, every design decision we make, stems from
-								real feedback from real property managers facing
-								real challenges.
-							</p>
-						</div>
-					</motion.div>
-				</div>
-			</section>
-
-			{/* Values Section */}
-			<section className="from-muted/20 to-muted/10 bg-gradient-to-r px-4 py-16">
-				<div className="mx-auto max-w-6xl">
-					<motion.div
-						initial={{ opacity: 0, y: 30 }}
-						whileInView={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.6 }}
-						viewport={{ once: true }}
-						className="mb-16 text-center"
-					>
-						<h2 className="text-foreground mb-6 text-4xl font-bold">
-							Our Values
-						</h2>
-						<p className="text-muted-foreground mx-auto max-w-2xl text-xl">
-							These core principles guide every decision we make
-							and every feature we build.
-						</p>
-					</motion.div>
-
-					<div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
-						{values.map((value, index) => {
-							return (
-								<motion.div
-									key={value.title}
-									initial={{ opacity: 0, y: 20 }}
-									whileInView={{ opacity: 1, y: 0 }}
-									transition={{
-										duration: 0.5,
-										delay: index * 0.1
-									}}
-									viewport={{ once: true }}
-								>
-									<Card className="h-full border-0 bg-white/80 backdrop-blur-sm transition-all duration-300 hover:shadow-lg">
-										<CardContent className="p-6 text-center">
-											<div className="from-primary to-accent mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br">
-												<i className={`${value.icon} h-8 w-8  text-white`} />
-											</div>
-											<h3 className="text-foreground mb-3 text-xl font-semibold">
-												{value.title}
-											</h3>
-											<p className="text-muted-foreground leading-relaxed">
-												{value.description}
-											</p>
-										</CardContent>
-									</Card>
-								</motion.div>
-							)
-						})}
-					</div>
-				</div>
-			</section>
-
-			{/* CTA Section */}
-			<section className="px-4 py-16">
-				<div className="mx-auto max-w-4xl text-center">
-					<motion.div
-						initial={{ opacity: 0, y: 30 }}
-						whileInView={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.6 }}
-						viewport={{ once: true }}
-					>
-						<Card className="from-primary/5 via-accent/5 to-success/5 border-0 bg-gradient-to-br backdrop-blur-sm">
-							<CardContent className="p-12">
-								<h2 className="text-foreground mb-6 text-4xl font-bold">
-									Ready to Transform Your Property_ Management?
-								</h2>
-								<p className="text-muted-foreground mx-auto mb-8 max-w-2xl text-xl">
-									Join thousands of property owners who've
-									already simplified their operations with
-									TenantFlow.
-								</p>
-								<div className="flex flex-col justify-center gap-4 sm:flex-row">
-									<Link href="/auth/signup">
-										<Button
-											variant="premium"
-											size="lg"
-											className="group"
-										>
-											Start Free Trial
-											<i className="i-lucide-arrow-right  ml-2 h-4 w-4 transition-transform group-hover:translate-x-1"  />
-										</Button>
-									</Link>
-									<Link href="/contact">
-										<Button variant="outline" size="lg">
-											Talk to Sales
-										</Button>
-									</Link>
-								</div>
-							</CardContent>
-						</Card>
-					</motion.div>
-				</div>
-			</section>
-		</div>
-	)
-}
+import Navbar from '@/components/navbar'
+import {
+	Handshake,
+	Lightbulb,
+	Lock,
+	Rocket,
+	Sprout,
+	Target,
+	User,
+	Zap
+} from 'lucide-react'
 
 export default function AboutPage() {
-	return <AboutContent />
+	return (
+		<main className="min-h-screen bg-background">
+			<Navbar />
+			<div className="pt-10">
+				{/* Hero Section */}
+				<section className="marketing-hero surface-glow">
+					<div className="container text-center max-w-4xl">
+						<h1 className="text-display text-gradient-innovation mb-6">
+							Stop losing $2,400+ per property per year
+						</h1>
+						<p className="text-xl text-muted-foreground">
+							Professional property managers increase NOI by 40% with TenantFlow's enterprise-grade 
+							automation, advanced analytics, and scalable operations platform. ROI guaranteed in 90 days.
+						</p>
+					</div>
+				</section>
+
+				{/* Mission Section */}
+				<section className="py-16 surface">
+					<div className="container max-w-6xl">
+						<div className="grid md:grid-cols-2 gap-16 items-center">
+							<div className="prose prose-lg prose-slate max-w-none">
+								<h2 className="text-3xl font-bold mb-6 text-foreground not-prose">Our Mission</h2>
+								<p className="text-lg leading-relaxed text-muted-foreground mb-6">
+									To empower property managers with the tools they need to grow
+									their business, reduce operational overhead, and provide
+									exceptional service to their tenants.
+								</p>
+								<p className="text-base leading-relaxed text-muted-foreground">
+									We believe that property management should be streamlined,
+									data-driven, and focused on building lasting relationships
+									between managers and tenants.
+								</p>
+							</div>
+							<div className="bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg p-12 text-center">
+								<Target className="w-16 h-16 mx-auto mb-4 text-primary" />
+								<p className="font-semibold text-lg">
+									Mission-Driven Development
+								</p>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				{/* Values Section */}
+				<section className="py-24">
+					<div className="container mx-auto px-4 max-w-6xl">
+						<div className="text-center mb-16">
+							<div className="prose prose-lg prose-slate mx-auto">
+								<h2 className="text-3xl font-bold mb-4 text-foreground not-prose">Our Values</h2>
+								<p className="text-lg leading-relaxed text-muted-foreground max-w-2xl mx-auto">
+									These principles guide everything we do, from product
+									development to customer support.
+								</p>
+							</div>
+						</div>
+
+						<div className="grid md:grid-cols-3 gap-8">
+							{[
+								{
+									icon: Rocket,
+									title: 'Innovation First',
+									description:
+										'We constantly push boundaries to bring cutting-edge solutions to property management.'
+								},
+								{
+									icon: Handshake,
+									title: 'Customer Success',
+									description:
+										'Your success is our success. We are committed to helping you achieve your goals.'
+								},
+								{
+									icon: Lock,
+									title: 'Security & Privacy',
+									description:
+										'We protect your data with enterprise-grade security and transparent privacy practices.'
+								},
+								{
+									icon: Zap,
+									title: 'Simplicity',
+									description:
+										'Complex problems deserve simple solutions. We make powerful tools easy to use.'
+								},
+								{
+									icon: Sprout,
+									title: 'Sustainable Growth',
+									description:
+										'We build for the long term, creating lasting value for our customers and community.'
+								},
+								{
+									icon: Lightbulb,
+									title: 'Continuous Learning',
+									description:
+										'We listen, learn, and adapt to meet the evolving needs of property managers.'
+								}
+							].map((value, index) => (
+								<div key={index} className="text-center p-6">
+									<value.icon className="w-10 h-10 mx-auto mb-4 text-primary" />
+									<h3 className="text-xl font-semibold mb-3">{value.title}</h3>
+									<p className="text-muted-foreground">{value.description}</p>
+								</div>
+							))}
+						</div>
+					</div>
+				</section>
+
+				{/* Stats Section */}
+				<section className="py-16 bg-muted/20">
+					<div className="container mx-auto px-4 max-w-4xl">
+						<div className="text-center mb-12">
+							<h2 className="text-3xl font-bold mb-4">
+								TenantFlow by the Numbers
+							</h2>
+							<p className="text-muted-foreground">
+								Growing alongside our community of property managers
+							</p>
+						</div>
+
+						<div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+							{[
+								{ number: '40%', label: 'Average NOI Increase' },
+								{ number: '10,000+', label: 'Properties Managed' },
+								{ number: '65%', label: 'Vacancy Reduction' },
+								{ number: '90 Days', label: 'ROI Guarantee' }
+							].map((stat, index) => (
+								<div key={index}>
+									<div className="text-3xl font-bold text-primary mb-2">
+										{stat.number}
+									</div>
+									<div className="text-muted-foreground">{stat.label}</div>
+								</div>
+							))}
+						</div>
+					</div>
+				</section>
+
+				{/* Team Section */}
+				<section className="py-24">
+					<div className="container mx-auto px-4 max-w-6xl">
+						<div className="text-center mb-16">
+							<h2 className="text-3xl font-bold mb-4">Meet the Team</h2>
+							<p className="text-muted-foreground max-w-2xl mx-auto">
+								We're a diverse team of engineers, designers, and property
+								management experts working together to build something great.
+							</p>
+						</div>
+
+						<div className="grid md:grid-cols-3 gap-8">
+							{[
+								{
+									name: 'Alex Chen',
+									role: 'CEO & Founder',
+									bio: 'Former property manager turned tech entrepreneur. 10+ years in real estate.'
+								},
+								{
+									name: 'Sarah Johnson',
+									role: 'CTO',
+									bio: 'Software architect with expertise in scalable systems and security.'
+								},
+								{
+									name: 'Mike Rodriguez',
+									role: 'Head of Product',
+									bio: 'Product strategist focused on user experience and customer success.'
+								}
+							].map((member, index) => (
+								<div key={index} className="text-center">
+									<div className="w-24 h-24 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center">
+										<User className="w-10 h-10 text-muted-foreground" />
+									</div>
+									<h3 className="text-xl font-semibold mb-1">{member.name}</h3>
+									<p className="text-primary mb-3">{member.role}</p>
+									<p className="text-muted-foreground text-sm">{member.bio}</p>
+								</div>
+							))}
+						</div>
+
+						<div className="text-center mt-16">
+							<p className="text-muted-foreground mb-4">
+								We're hiring! Join our growing team.
+							</p>
+							<button className="border border-border px-6 py-2 rounded-lg hover:bg-muted/50 transition-colors">
+								View Open Positions
+							</button>
+						</div>
+					</div>
+				</section>
+
+				{/* CTA Section */}
+				<section className="py-24 surface-glow">
+					<div className="container text-center">
+						<h2 className="text-3xl font-bold mb-4 text-gradient-growth">
+							Stop losing $2,400+ per property per year
+						</h2>
+						<p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+							Join 10,000+ property managers who have increased their NOI by 40% with TenantFlow's 
+							enterprise-grade automation. ROI guaranteed in 90 days.
+						</p>
+						<div className="flex flex-col sm:flex-row gap-4 justify-center">
+							<button className="button-primary button-lg">
+								Start 14-day transformation
+							</button>
+							<button className="button-secondary button-lg">
+								See ROI calculator
+							</button>
+						</div>
+					</div>
+				</section>
+			</div>
+		</main>
+	)
 }

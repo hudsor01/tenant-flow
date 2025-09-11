@@ -6,10 +6,11 @@
  * following Turborepo best practices for monorepo configuration
  */
 
-import baseConfig from './packages/eslint-config/base.js'
-import noInlineTypes from './.eslint/rules/no-inline-types.js'
-import noBarrelExports from './.eslint/rules/no-barrel-exports.js'
 import antiDuplicationPlugin from './.eslint/plugins/anti-duplication.js'
+import designSystemClasses from './.eslint/rules/design-system-classes.js'
+import noBarrelExports from './.eslint/rules/no-barrel-exports.js'
+import noInlineTypes from './.eslint/rules/no-inline-types.js'
+import baseConfig from './packages/eslint-config/base.js'
 
 /**
  * Root-level configuration with project-specific overrides
@@ -18,22 +19,14 @@ import antiDuplicationPlugin from './.eslint/plugins/anti-duplication.js'
  */
 export default [
 	// Use the shared base configuration
-	...baseConfig,
-
-	// Root-level specific configurations
+	...baseConfig, // Root-level specific configurations
 	{
 		name: 'root/monorepo-files',
 		files: ['*.js', '*.mjs', '*.ts'],
 		rules: {
-			// Allow console in root scripts
 			'no-console': 'off'
-			// NOTE: Removed @typescript-eslint/no-explicit-any override - now enforced
 		}
 	},
-
-	// Note: TypeScript project resolution is handled in packages/eslint-config/base.js
-
-	// Scripts directory (excluding .github scripts)
 	{
 		name: 'root/scripts',
 		files: ['scripts/**/*.{js,mjs,ts}'],
@@ -49,23 +42,16 @@ export default [
 			}
 		}
 	},
-
-	// Ignore .github scripts entirely - CI specific scripts
 	{
 		name: 'root/github-scripts-ignore',
 		ignores: ['.github/**/*.ts', '.github/**/*.js']
 	},
-
-	// Type centralization enforcement - ONLY for application code
 	{
 		name: 'apps/type-centralization',
-		files: [
-			'apps/frontend/**/*.{ts,tsx}',
-			'apps/backend/**/*.ts'
-		],
+		files: ['apps/frontend/**/*.{ts,tsx}', 'apps/backend/**/*.ts'],
 		ignores: [
-			'**/*.test.*', 
-			'**/*.spec.*', 
+			'**/*.test.*',
+			'**/*.spec.*',
 			'**/*.config.*',
 			'**/*.d.ts',
 			'**/node_modules/**',
@@ -78,33 +64,34 @@ export default [
 					'no-inline-types': noInlineTypes,
 					'no-barrel-exports': noBarrelExports
 				}
+			},
+			'design-system': {
+				rules: {
+					classes: designSystemClasses
+				}
 			}
 		},
 		rules: {
-			// Warn instead of error during transition period
-			'type-centralization/no-inline-types': 'warn',
-			'type-centralization/no-barrel-exports': ['warn', {
-				allowedBarrels: [
-					'packages/shared/src/index.ts',
-					'apps/frontend/src/components/ui/index.ts', // UI component library
-					'apps/frontend/src/hooks/api/index.ts' // API hooks barrel for convenience
-				]
-			}]
+			'type-centralization/no-inline-types': 'error',
+			'type-centralization/no-barrel-exports': [
+				'error',
+				{
+					allowedBarrels: ['packages/shared/src/index.ts']
+				}
+			],
+			'design-system/classes': 'error'
 		}
 	},
-
-	// Anti-duplication rules - Phase 3 of DRY/KISS enforcement 
 	{
 		name: 'root/anti-duplication',
 		files: ['**/*.ts', '**/*.tsx'],
 		ignores: [
-			'**/*.test.*', 
-			'**/*.spec.*', 
+			'**/*.test.*',
+			'**/*.spec.*',
 			'**/*.config.*',
 			'**/*.d.ts',
 			'**/generated-*',
 			'.eslint/**',
-			// Shared package IS the source of schemas - don't flag it
 			'packages/shared/src/validation/**',
 			'packages/shared/src/types/**'
 		],
@@ -112,35 +99,23 @@ export default [
 			'anti-duplication': antiDuplicationPlugin
 		},
 		rules: {
-			// Enforce schema generation (error level - critical for single source of truth)
 			'anti-duplication/enforce-schema-generation': 'error',
 			'anti-duplication/no-manual-validation-schemas': 'error',
-			
-			// Prevent API duplication (error level - DRY principle)
 			'anti-duplication/no-duplicate-api-methods': 'error',
-			
-			// Enforce global loading (warn level - UX consistency)
 			'anti-duplication/enforce-global-loading': 'warn'
 		}
-	},
-
-	// Project-specific anti-pattern guards and SECURITY RULES
+	}, // Project-specific anti-pattern guards and SECURITY RULES
 	{
 		name: 'root/anti-patterns-and-security',
 		files: ['**/*.ts', '**/*.tsx'],
 		ignores: ['**/*.test.*', '**/*.spec.*', '**/*.config.*'],
 		rules: {
-			// Prevent factory pattern reintroduction
 			'no-restricted-imports': [
 				'error',
 				{
 					patterns: [
 						{
-							group: [
-								'**/factory/**',
-								'**/*factory*',
-								'**/*Factory*'
-							],
+							group: ['**/factory/**', '**/*factory*', '**/*Factory*'],
 							message:
 								'Factory patterns are prohibited. Use direct library usage instead.'
 						},

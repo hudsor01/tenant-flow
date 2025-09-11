@@ -28,7 +28,7 @@ export class SupabaseHealthIndicator {
 					responseTime,
 					supabaseStatus: result.status,
 					hasUrl: !!process.env.SUPABASE_URL,
-					hasKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY
+					hasKey: !!process.env.SERVICE_ROLE_KEY
 				})
 			}
 
@@ -37,7 +37,7 @@ export class SupabaseHealthIndicator {
 				responseTime,
 				supabaseStatus: result.status,
 				hasUrl: !!process.env.SUPABASE_URL,
-				hasKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY
+				hasKey: !!process.env.SERVICE_ROLE_KEY
 			})
 		} catch (error: unknown) {
 			const responseTime = Date.now() - startTime
