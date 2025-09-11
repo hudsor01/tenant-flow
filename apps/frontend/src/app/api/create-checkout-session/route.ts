@@ -1,10 +1,16 @@
 import { headers } from 'next/headers'
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
+import { rateLimiter, RATE_LIMITS } from '@/lib/rate-limiter'
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:4600'
 
 export async function POST(request: NextRequest) {
+	// Apply rate limiting for payment endpoints
+	const rateLimitResult = await rateLimiter(request, RATE_LIMITS.PAYMENT)
+	if (rateLimitResult instanceof NextResponse) {
+		return rateLimitResult // Rate limit exceeded
+	}
 	try {
 		const { priceId, planName, isYearly: _isYearly } = await request.json()
 

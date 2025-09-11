@@ -1,4 +1,6 @@
 import Stripe from 'stripe'
+import type { NextRequest } from 'next/server'
+import { rateLimiter } from '@/lib/rate-limiter'
 
 // Initialize Stripe lazily to avoid build-time errors
 function getStripe() {
@@ -10,7 +12,13 @@ function getStripe() {
 	})
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+	// Apply rate limiting for webhook endpoints (more lenient as they come from Stripe)
+	const rateLimitResult = await rateLimiter(req, { maxRequests: 500, windowMs: 15 * 60 * 1000 })
+	if (rateLimitResult instanceof Response) {
+		return rateLimitResult // Rate limit exceeded
+	}
+	
 	try {
 		const stripe = getStripe()
 		const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
