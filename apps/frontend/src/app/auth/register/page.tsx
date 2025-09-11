@@ -6,6 +6,7 @@ import { BorderBeam } from '@/components/magicui/border-beam'
 import { Particles } from '@/components/magicui/particles'
 import { AnimatedGradientText } from '@/components/magicui/animated-gradient-text'
 import Link from 'next/link'
+import Image from 'next/image'
 import { ArrowLeft, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -94,10 +95,11 @@ export default function RegisterPage() {
                   <BorderBeam size={300} duration={15} delay={12} />
                   
                   <div className="aspect-[4/3] rounded-2xl overflow-hidden relative">
-                    <img 
+                    <Image 
                       src="/assets/dashboard-clean-demo.png" 
                       alt="TenantFlow Dashboard Preview" 
-                      className="w-full h-full object-cover object-top"
+                      fill
+                      className="object-cover object-top"
                     />
                     
                     {/* Overlay Features */}

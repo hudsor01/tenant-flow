@@ -1,6 +1,7 @@
 'use client'
 
 import { ANIMATION_DURATIONS, cn, TYPOGRAPHY_SCALE } from '@/lib/design-system'
+import Image from 'next/image'
 
 export default function HeroSectionOne() {
 	return (
@@ -126,7 +127,7 @@ export default function HeroSectionOne() {
 					className="relative z-10 mt-20 rounded-3xl border border-neutral-200 bg-neutral-100 p-4 shadow-md dark:border-neutral-800 dark:bg-neutral-900"
 				>
 					<div className="w-full overflow-hidden rounded-xl border border-gray-300 dark:border-gray-700">
-						<img
+						<Image
 							src="https://assets.aceternity.com/pro/aceternity-landing.webp"
 							alt="Landing page preview"
 							className="aspect-video h-auto w-full object-cover"
