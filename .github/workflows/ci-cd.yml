@@ -1,19 +1,19 @@
-# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 name: CI/CD Pipeline
 
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+
 on:
-  pull_request:
   push:
+    branches:
+      - main
+      - develop
+  pull_request:
     branches:
       - main
       - develop
 
 env:
   NODE_VERSION: '22'
-  DOPPLER_PROJECT: ${{ secrets.DOPPLER_PROJECT }}
-  DOPPLER_CONFIG: ${{ secrets.DOPPLER_CONFIG }}
-  DOPPLER_ENVIRONMENT: ${{ secrets.DOPPLER_ENVIRONMENT }}
-  DOPPLER_PERSONAL_TOKEN: ${{ secrets.DOPPLER_PERSONAL_TOKEN }}
 
 jobs:
   build-and-test:
@@ -22,10 +22,6 @@ jobs:
     timeout-minutes: 20
     env:
       DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
-      DOPPLER_PERSONAL_TOKEN: ${{ secrets.DOPPLER_PERSONAL_TOKEN }}
-      DOPPLER_PROJECT: ${{ secrets.DOPPLER_PROJECT }}
-      DOPPLER_CONFIG: ${{ secrets.DOPPLER_CONFIG }}
-      DOPPLER_ENVIRONMENT: ${{ secrets.DOPPLER_ENVIRONMENT }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -40,12 +36,23 @@ jobs:
         uses: dopplerhq/cli-action@v3
 
       - name: Resolve Doppler config from repo variables (fallbacks)
+        env:
+          SECRET_DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+          SECRET_DOPPLER_PERSONAL_TOKEN: ${{ secrets.DOPPLER_PERSONAL_TOKEN }}
+          VARS_DOPPLER_TOKEN: ${{ vars.DOPPLER_TOKEN }}
+          VARS_DOPPLER_PERSONAL_TOKEN: ${{ vars.DOPPLER_PERSONAL_TOKEN }}
+          SECRET_DOPPLER_PROJECT: ${{ secrets.DOPPLER_PROJECT }}
+          SECRET_DOPPLER_CONFIG: ${{ secrets.DOPPLER_CONFIG }}
+          SECRET_DOPPLER_ENVIRONMENT: ${{ secrets.DOPPLER_ENVIRONMENT }}
+          VARS_DOPPLER_PROJECT: ${{ vars.DOPPLER_PROJECT }}
+          VARS_DOPPLER_CONFIG: ${{ vars.DOPPLER_CONFIG }}
+          VARS_DOPPLER_ENVIRONMENT: ${{ vars.DOPPLER_ENVIRONMENT }}
         run: |
-          echo "DOPPLER_TOKEN=${DOPPLER_TOKEN:-${{ vars.DOPPLER_TOKEN }}}" >> $GITHUB_ENV
-          echo "DOPPLER_PERSONAL_TOKEN=${DOPPLER_PERSONAL_TOKEN:-${{ vars.DOPPLER_PERSONAL_TOKEN }}}" >> $GITHUB_ENV
-          echo "DOPPLER_PROJECT=${DOPPLER_PROJECT:-${{ vars.DOPPLER_PROJECT }}}" >> $GITHUB_ENV
-          echo "DOPPLER_CONFIG=${DOPPLER_CONFIG:-${{ vars.DOPPLER_CONFIG }}}" >> $GITHUB_ENV
-          echo "DOPPLER_ENVIRONMENT=${DOPPLER_ENVIRONMENT:-${{ vars.DOPPLER_ENVIRONMENT }}}" >> $GITHUB_ENV
+          echo "DOPPLER_TOKEN=${SECRET_DOPPLER_TOKEN:-$VARS_DOPPLER_TOKEN}" >> $GITHUB_ENV
+          echo "DOPPLER_PERSONAL_TOKEN=${SECRET_DOPPLER_PERSONAL_TOKEN:-$VARS_DOPPLER_PERSONAL_TOKEN}" >> $GITHUB_ENV
+          echo "DOPPLER_PROJECT=${SECRET_DOPPLER_PROJECT:-$VARS_DOPPLER_PROJECT}" >> $GITHUB_ENV
+          echo "DOPPLER_CONFIG=${SECRET_DOPPLER_CONFIG:-$VARS_DOPPLER_CONFIG}" >> $GITHUB_ENV
+          echo "DOPPLER_ENVIRONMENT=${SECRET_DOPPLER_ENVIRONMENT:-$VARS_DOPPLER_ENVIRONMENT}" >> $GITHUB_ENV
 
       - name: Authenticate with Doppler (service or personal token)
         run: |
@@ -56,7 +63,7 @@ jobs:
             doppler login --token "${DOPPLER_PERSONAL_TOKEN}" --silent
           else
             echo "Doppler Error: you must provide a token" 1>&2
-            echo "Set 'DOPPLER_TOKEN' or 'DOPPLER_PERSONAL_TOKEN' in GitHub Actions secrets" 1>&2
+            echo "Set 'DOPPLER_TOKEN' or 'DOPPLER_PERSONAL_TOKEN' in GitHub Actions secrets or variables" 1>&2
             exit 1
           fi
 
@@ -83,5 +90,5 @@ jobs:
         run: npm run test:unit
 
       - name: Lint check
-        run: npm run lint
         continue-on-error: true
+        run: npm run lint
