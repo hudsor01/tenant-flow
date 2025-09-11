@@ -21,7 +21,7 @@ export class TokenValidationService {
 	constructor() {
 		// Ultra-native: Initialize Supabase client directly to avoid circular dependency
 		const supabaseUrl = process.env.SUPABASE_URL
-		const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+		const supabaseServiceKey = process.env.SERVICE_ROLE_KEY
 
 		if (!supabaseUrl || !supabaseServiceKey) {
 			throw new InternalServerErrorException('Supabase configuration is missing')

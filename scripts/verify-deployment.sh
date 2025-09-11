@@ -84,7 +84,7 @@ else
     echo "  1. Check logs: railway logs"
     echo "  2. Verify environment variables are set:"
     echo "     - SUPABASE_URL"
-    echo "     - SUPABASE_SERVICE_ROLE_KEY"
+    echo "     - SERVICE_ROLE_KEY"
     echo "     - JWT_SECRET"
     echo "     - STRIPE_SECRET_KEY"
     echo "  3. Verify database connection"

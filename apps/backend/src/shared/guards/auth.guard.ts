@@ -29,7 +29,7 @@ export class AuthGuard implements CanActivate {
 	constructor(private readonly reflector: Reflector) {
 		// Ultra-native: Initialize Supabase client directly to avoid circular dependency with TokenValidationService
 		const supabaseUrl = process.env.SUPABASE_URL
-		const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+		const supabaseServiceKey = process.env.SERVICE_ROLE_KEY
 
 		if (!supabaseUrl || !supabaseServiceKey) {
 			throw new Error('Supabase configuration is missing')

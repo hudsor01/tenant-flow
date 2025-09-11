@@ -38,7 +38,7 @@ export async function registerCorePlugins(app: NestFastifyApplication) {
 				},
 				PORT: { type: 'string', default: '4600' },
 				SUPABASE_URL: { type: 'string' },
-				SUPABASE_SERVICE_ROLE_KEY: { type: 'string' },
+				SERVICE_ROLE_KEY: { type: 'string' },
 				JWT_SECRET: { type: 'string' }
 			}
 		},
