@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import React, { useEffect, useState } from "react";
+import type { ComponentProps } from '@repo/shared';
 
 import { 
   cn, 
@@ -144,7 +145,7 @@ const ShimmerButton = React.forwardRef<HTMLButtonElement, ShimmerButtonProps>(
     
     // Handle asChild case
     if (asChild && React.isValidElement(children)) {
-      return React.cloneElement(children as React.ReactElement<any>, {
+      return React.cloneElement(children as React.ReactElement<ComponentProps>, {
         className: cn(
           "group relative z-0 flex cursor-pointer items-center justify-center overflow-hidden whitespace-nowrap font-semibold",
           "[background:var(--bg)] [border-radius:var(--radius)]",
@@ -162,7 +163,7 @@ const ShimmerButton = React.forwardRef<HTMLButtonElement, ShimmerButtonProps>(
           "focus-visible:ring-4 focus-visible:ring-primary/30",
           disabled && "opacity-50 cursor-not-allowed pointer-events-none",
           className,
-          (children as any).props.className
+          (children as React.ReactElement<ComponentProps>).props.className
         ),
         style: {
           '--bg': finalBackground,
@@ -173,7 +174,7 @@ const ShimmerButton = React.forwardRef<HTMLButtonElement, ShimmerButtonProps>(
           '--spread': shouldReduceMotion ? "0deg" : "90deg",
           '--shimmer-blur': intensitySettings.blur,
           '--shimmer-opacity': intensitySettings.opacity,
-          ...((children as any).props.style || {})
+          ...((children as React.ReactElement<ComponentProps>).props.style || {})
         } as CSSProperties
       })
     }

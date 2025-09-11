@@ -2,6 +2,7 @@ import type { Metadata } from 'next/types'
 import '../styles/globals.css'
 import { AuthStoreProvider } from '@/stores/auth-provider'
 import { QueryProvider } from '@/providers/query-provider'
+import { GlobalLoadingIndicator } from '@/components/global-loading-indicator'
 
 export const metadata: Metadata = {
 	title: 'TenantFlow - Property Management Platform',
@@ -23,6 +24,7 @@ export default function RootLayout({
 				<QueryProvider>
 					<AuthStoreProvider>
 						{children}
+						<GlobalLoadingIndicator variant="bar" position="top" />
 					</AuthStoreProvider>
 				</QueryProvider>
 			</body>

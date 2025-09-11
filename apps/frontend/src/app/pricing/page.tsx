@@ -19,11 +19,11 @@ const pricingPlans = [
     id: 'starter',
     name: 'Starter',
     price: { monthly: 29, yearly: 290 },
-    description: 'Perfect for individual property owners',
+    description: 'Perfect for small property managers',
     features: [
       'Up to 5 properties',
-      'Basic tenant management',
-      'Rent collection tracking',
+      'Professional tenant management',
+      'Automated rent collection',
       'Email support',
       'Mobile app access',
       'Basic reporting'
@@ -31,13 +31,13 @@ const pricingPlans = [
     popular: false
   },
   {
-    id: 'professional',
-    name: 'Professional',
-    price: { monthly: 99, yearly: 990 },
-    description: 'Best for growing property businesses',
+    id: 'growth',
+    name: 'Growth',
+    price: { monthly: 79, yearly: 790 },
+    description: 'For expanding property portfolios',
     features: [
-      'Up to 50 properties',
-      'Advanced analytics',
+      'Up to 20 properties',
+      'Advanced analytics & insights',
       'Automated workflows',
       'Priority support',
       'API access',
@@ -49,19 +49,19 @@ const pricingPlans = [
     popular: true
   },
   {
-    id: 'enterprise',
-    name: 'Enterprise',
-    price: null,
-    description: 'Tailored for large property portfolios',
+    id: 'max',
+    name: 'TenantFlow Max',
+    price: { monthly: 299, yearly: 2990 },
+    description: 'Enterprise features for serious professionals',
     features: [
       'Unlimited properties',
+      'White-label portal',
       'Custom integrations',
-      'Dedicated support manager',
-      'Custom training sessions',
-      'SLA guarantees',
+      'Dedicated account manager',
+      '24/7 priority support',
       'Advanced security features',
-      'White-label solution',
-      'Custom reporting'
+      'Custom training',
+      'SLA guarantees'
     ],
     popular: false
   }

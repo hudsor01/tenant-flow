@@ -33,11 +33,11 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 					href: '#',
 					hasDropdown: true,
 					dropdownItems: [
-						{ name: 'Property Management', href: '/features', description: 'Complete property management suite' },
-						{ name: 'Tenant Portal', href: '/features#tenant-portal', description: 'Self-service tenant dashboard' },
-						{ name: 'Maintenance Tracking', href: '/features#maintenance', description: 'Track and manage maintenance requests' },
-						{ name: 'Financial Reports', href: '/features#financial', description: 'Detailed financial analytics' },
-						{ name: 'All Features', href: '/features', description: 'See everything TenantFlow offers' }
+						{ name: 'Property Management', href: '/features' },
+						{ name: 'Tenant Portal', href: '/features#tenant-portal' },
+						{ name: 'Maintenance Tracking', href: '/features#maintenance' },
+						{ name: 'Financial Reports', href: '/features#financial' },
+						{ name: 'All Features', href: '/features' }
 					]
 				},
 				{
@@ -45,10 +45,10 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 					href: '#',
 					hasDropdown: true,
 					dropdownItems: [
-						{ name: 'Small Landlords', href: '/solutions/small-landlords', description: '1-10 properties' },
-						{ name: 'Property Managers', href: '/solutions/property-managers', description: '10+ properties' },
-						{ name: 'Enterprise', href: '/solutions/enterprise', description: '500+ units' },
-						{ name: 'Real Estate Investors', href: '/solutions/investors', description: 'Portfolio management' }
+						{ name: 'Small Landlords', href: '/solutions/small-landlords' },
+						{ name: 'Property Managers', href: '/solutions/property-managers' },
+						{ name: 'Enterprise', href: '/solutions/enterprise' },
+						{ name: 'Real Estate Investors', href: '/solutions/investors' }
 					]
 				},
 				{
@@ -56,11 +56,11 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 					href: '#',
 					hasDropdown: true,
 					dropdownItems: [
-						{ name: 'Help Center', href: '/help', description: 'Get support and tutorials' },
-						{ name: 'Blog', href: '/blog', description: 'Industry insights and tips' },
-						{ name: 'FAQ', href: '/faq', description: 'Common questions answered' },
-						{ name: 'Contact', href: '/contact', description: 'Get in touch with our team' },
-						{ name: 'API Documentation', href: '/docs', description: 'Developer resources' }
+						{ name: 'Help Center', href: '/help' },
+						{ name: 'Blog', href: '/blog' },
+						{ name: 'FAQ', href: '/faq' },
+						{ name: 'Contact', href: '/contact' },
+						{ name: 'API Documentation', href: '/docs' }
 					]
 				},
 				{ name: 'Pricing', href: '/pricing' },
@@ -82,6 +82,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 		const [hoveredNavItem, setHoveredNavItem] = useState<string | null>(null)
 		const [hoveredDropdownItem, setHoveredDropdownItem] = useState<string | null>(null)
 		const [hoveredMobileItem, setHoveredMobileItem] = useState<string | null>(null)
+		const [isMounted, setIsMounted] = useState(false)
 
 		// Auth state
 		const { user, isAuthenticated, isLoading } = useAuthStore(state => ({
@@ -89,6 +90,11 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 			isAuthenticated: state.isAuthenticated,
 			isLoading: state.isLoading
 		}))
+
+		// Prevent hydration mismatch by only rendering auth content after mount
+		useEffect(() => {
+			setIsMounted(true)
+		}, [])
 
 		// Dynamic navigation based on auth state
 		const getNavItems = () => {
@@ -99,13 +105,13 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 						href: '/dashboard',
 						hasDropdown: true,
 						dropdownItems: [
-							{ name: 'Overview', href: '/dashboard', description: 'Dashboard home and summary' },
-							{ name: 'Properties', href: '/dashboard/properties', description: 'Manage your properties' },
-							{ name: 'Tenants', href: '/dashboard/tenants', description: 'Manage tenant information' },
-							{ name: 'Leases', href: '/dashboard/leases', description: 'View and manage leases' },
-							{ name: 'Maintenance', href: '/dashboard/maintenance', description: 'Track maintenance requests' },
-							{ name: 'Reports', href: '/dashboard/reports', description: 'Financial and operational reports' },
-							{ name: 'Analytics', href: '/dashboard/analytics', description: 'Performance insights' }
+							{ name: 'Overview', href: '/dashboard' },
+							{ name: 'Properties', href: '/dashboard/properties' },
+							{ name: 'Tenants', href: '/dashboard/tenants' },
+							{ name: 'Leases', href: '/dashboard/leases' },
+							{ name: 'Maintenance', href: '/dashboard/maintenance' },
+							{ name: 'Reports', href: '/dashboard/reports' },
+							{ name: 'Analytics', href: '/dashboard/analytics' }
 						]
 					},
 					{
@@ -113,10 +119,10 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 						href: '#',
 						hasDropdown: true,
 						dropdownItems: [
-							{ name: 'Settings', href: '/dashboard/settings', description: 'Account and preferences' },
-							{ name: 'Help Center', href: '/help', description: 'Support and tutorials' },
-							{ name: 'API Docs', href: '/docs', description: 'Developer documentation' },
-							{ name: 'Contact Support', href: '/contact', description: 'Get help from our team' }
+							{ name: 'Settings', href: '/dashboard/settings' },
+							{ name: 'Help Center', href: '/help' },
+							{ name: 'API Docs', href: '/docs' },
+							{ name: 'Contact Support', href: '/contact' }
 						]
 					}
 				]
@@ -124,7 +130,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 			return navItems
 		}
 
-		const currentNavItems = getNavItems()
+		const currentNavItems = isMounted ? getNavItems() : navItems
 
 		useEffect(() => {
 			const handleScroll = () => {
@@ -266,7 +272,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 									dropdownName === item.name ? (
 										<animated.div
 											style={style}
-											className="absolute top-full left-0 mt-2 w-80 bg-white/98 backdrop-blur-lg rounded-xl shadow-xl border border-gray-200/50 py-3"
+											className="absolute top-full left-0 mt-2 w-56 bg-white/98 backdrop-blur-lg rounded-xl shadow-xl border border-gray-200/50 py-2"
 										>
 											{item.dropdownItems?.map(dropdownItem => (
 												<animated.div
@@ -277,16 +283,9 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 												>
 													<Link
 														href={dropdownItem.href}
-														className="block px-4 py-3 text-gray-800 hover:bg-blue-50/80 transition-all duration-200 group"
+														className="block px-4 py-2.5 text-gray-800 hover:bg-blue-50/80 transition-all duration-200 group font-medium text-sm group-hover:text-blue-700"
 													>
-														<div className="font-medium text-sm group-hover:text-blue-700">
-															{dropdownItem.name}
-														</div>
-														{dropdownItem.description && (
-															<div className="text-xs text-gray-500 mt-1 group-hover:text-blue-600">
-																{dropdownItem.description}
-															</div>
-														)}
+														{dropdownItem.name}
 													</Link>
 												</animated.div>
 											))}
@@ -299,7 +298,11 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 
 					{/* CTA Button & Mobile Menu */}
 					<div className="flex items-center space-x-4">
-						{isLoading ? (
+						{!isMounted ? (
+							<div className="hidden sm:flex px-4 py-2 text-muted-foreground">
+								Loading...
+							</div>
+						) : isLoading ? (
 							<div className="hidden sm:flex px-4 py-2 text-muted-foreground">
 								Loading...
 							</div>

@@ -1,7 +1,7 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 
-import { cn, badgeClasses, ANIMATION_DURATIONS } from "@/lib/utils"
+import { cn, badgeClasses, ANIMATION_DURATIONS } from "@/lib/design-system"
 
 const badgeVariants = cva(
   "inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive overflow-hidden",
@@ -48,20 +48,33 @@ function Badge({
         'data-slot': 'badge',
         style: {
           transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
-          ...((props as any).style || {})
+          ...(props.style || {})
         },
         ...props
       }
     )
   }
 
+  // Map variant to design system variant
+  const designSystemVariant = variant === 'secondary' ? 'secondary'
+    : variant === 'destructive' ? 'destructive'
+    : variant === 'success' ? 'success'
+    : variant === 'warning' ? 'warning'
+    : variant === 'outline' ? 'outline'
+    : 'default'
+
   return (
     <span
       data-slot="badge"
-      className={cn(badgeVariants({ variant }), className)}
+      className={cn(
+        // Use design system badgeClasses for consistent styling
+        badgeClasses(designSystemVariant, 'default', className),
+        // Fallback to badgeVariants for legacy variants
+        ['info', 'neutral'].includes(variant || '') && badgeVariants({ variant })
+      )}
       style={{
         transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
-        ...((props as any).style || {})
+        ...(props.style || {})
       }}
       {...props}
     />

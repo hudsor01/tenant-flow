@@ -19,6 +19,58 @@ export function useProperties(status?: PropertyStatus) {
 	})
 }
 
+// Enhanced hook with select transformation for table-ready properties data
+export function usePropertiesFormatted(status?: PropertyStatus) {
+	return useQuery({
+		queryKey: ['properties', status ?? 'ALL'],
+		queryFn: async () => propertiesApi.list(status ? { status } : undefined),
+		select: (data) => ({
+			properties: data.map(property => ({
+				...property,
+				// Format display values (replaces useMemo in table components)
+				displayAddress: `${property.address}, ${property.city}, ${property.state}`,
+				displayType: property.propertyType.charAt(0) + property.propertyType.slice(1).toLowerCase(),
+				statusDisplay: 'Active', // Default status since property.status doesn't exist in DB
+				// Add status color for consistent UI (replaces inline calculations)
+				statusColor: getPropertyStatusColor('ACTIVE'),
+				// Format dates for display
+				createdAtFormatted: new Date(property.createdAt).toLocaleDateString(),
+				updatedAtFormatted: new Date(property.updatedAt).toLocaleDateString(),
+				// Calculate property age for sorting/filtering
+				ageInDays: Math.floor((Date.now() - new Date(property.createdAt).getTime()) / (1000 * 60 * 60 * 24))
+			})),
+			// Pre-calculate summary stats for dashboard widgets
+			summary: {
+				total: data.length,
+				byStatus: data.reduce((acc, _prop) => {
+					const status = 'ACTIVE' // Default status since property.status doesn't exist in DB
+					acc[status] = (acc[status] || 0) + 1
+					return acc
+				}, {} as Record<string, number>),
+				byType: data.reduce((acc, prop) => {
+					acc[prop.propertyType] = (acc[prop.propertyType] || 0) + 1
+					return acc
+				}, {} as Record<string, number>),
+				recentlyAdded: data.filter(prop => 
+					Date.now() - new Date(prop.createdAt).getTime() < 7 * 24 * 60 * 60 * 1000
+				).length
+			}
+		})
+	})
+}
+
+// Helper function for consistent status color coding
+function getPropertyStatusColor(status?: string): string {
+	const colorMap: Record<string, string> = {
+		'ACTIVE': '#10b981', // emerald
+		'MAINTENANCE': '#f59e0b', // amber
+		'VACANT': '#6b7280', // gray
+		'PENDING': '#3b82f6', // blue
+		'INACTIVE': '#ef4444' // red
+	}
+	return colorMap[status || 'INACTIVE'] || '#6b7280'
+}
+
 
 export function useCreateProperty() {
 	const qc = useQueryClient()

@@ -18,7 +18,7 @@ function Switch({
       )}
       style={{
         transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
-        ...((props as any).style || {})
+        ...(props.style || {})
       }}
       {...props}
     >

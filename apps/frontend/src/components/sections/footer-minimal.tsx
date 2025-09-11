@@ -98,9 +98,15 @@ export const FooterMinimal = React.forwardRef<HTMLElement, FooterMinimalProps>(
         )}
         {...props}
       >
-        <div className="container mx-auto max-w-7xl px-6 py-16">
+        <div className={cn(
+          "container mx-auto max-w-7xl px-6",
+          variant === 'minimal' ? 'py-8' : 'py-16'
+        )}>
           {/* Main Content */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-12 mb-12">
+          <div className={cn(
+            "grid gap-12 mb-12",
+            variant === 'minimal' ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 lg:grid-cols-4'
+          )}>
             {/* Brand Column */}
             <div className="lg:col-span-1">
               <div className="flex items-center mb-6">
@@ -121,6 +127,11 @@ export const FooterMinimal = React.forwardRef<HTMLElement, FooterMinimalProps>(
               >
                 The modern property management platform that helps you streamline operations, increase efficiency, and scale your business.
               </p>
+              
+              <Badge variant="secondary" className="mb-4">
+                <Shield className="w-3 h-3 mr-2" />
+                SOC 2 Compliant
+              </Badge>
 
               {/* Social Links */}
               <div className="flex gap-3">

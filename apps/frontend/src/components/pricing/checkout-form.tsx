@@ -8,19 +8,19 @@ import { toast } from 'sonner'
 
 // UI Components
 import { Button } from '@/components/ui/button'
-import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
 
 // Design System
 import { 
-	cn, 
-	buttonClasses,
-	cardClasses,
+	cn,
 	animationClasses,
-	badgeClasses,
 	ANIMATION_DURATIONS,
-	TYPOGRAPHY_SCALE
+	TYPOGRAPHY_SCALE,
+	cardClasses,
+	badgeClasses,
+	buttonClasses
 } from '@/lib/utils'
 
 // MagicUI Components
@@ -656,8 +656,12 @@ export function CheckoutForm({
 										<span>Powered by Stripe</span>
 									</div>
 									<div className="flex items-center gap-2">
-										<Users className="h-3 w-3 text-green-600" />
-										<span>Trusted by 10,000+</span>
+										<TrendingUp className="h-3 w-3 text-green-600" />
+										<span>Growing customer base</span>
+									</div>
+									<div className="flex items-center gap-2">
+										<Users className="h-3 w-3 text-purple-600" />
+										<span>10,000+ active users</span>
 									</div>
 								</div>
 							</div>

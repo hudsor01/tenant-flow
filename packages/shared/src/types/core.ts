@@ -301,6 +301,14 @@ export interface DashboardFinancialStats {
   occupancyRate: number
   activeLeases: number
   totalUnits: number
+  monthlyRevenueFormatted?: string
+  revenueChange?: number
+  monthlyExpensesFormatted?: string
+  monthlyExpenses?: number
+  expenseChange?: number
+  netIncomeFormatted?: string
+  netIncome?: number
+  profitMargin?: number
 }
 
 export interface FinancialOverviewResponse {

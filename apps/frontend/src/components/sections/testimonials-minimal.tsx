@@ -48,6 +48,7 @@ const testimonials = [
 const trustIndicators = [
   { icon: Users, label: '25,000+ Happy Users', color: 'text-blue-600' },
   { icon: Star, label: '4.9/5 Average Rating', color: 'text-yellow-500' },
+  { icon: TrendingUp, label: '150% Growth Rate', color: 'text-emerald-600' },
   { icon: Shield, label: '99.8% Uptime SLA', color: 'text-green-600' }
 ]
 
@@ -65,11 +66,18 @@ export const TestimonialsMinimal = React.forwardRef<HTMLElement, TestimonialsMin
     className, 
     ...props 
   }, ref) => {
+    const variantStyles = {
+      minimal: 'py-16 bg-background',
+      cards: 'py-24 bg-background',
+      quotes: 'py-24 bg-gradient-to-b from-background to-muted/20'
+    }
+
     return (
       <section 
         ref={ref}
         className={cn(
-          'py-24 bg-gradient-to-b from-background to-muted/20 relative overflow-hidden',
+          'relative overflow-hidden',
+          variantStyles[variant],
           className
         )}
         {...props}
@@ -109,7 +117,8 @@ export const TestimonialsMinimal = React.forwardRef<HTMLElement, TestimonialsMin
                 <div 
                   className={cn(
                     cardClasses('elevated'),
-                    'p-8 text-center hover:shadow-lg transition-all duration-300 h-full flex flex-col'
+                    animationClasses('fade-in'),
+                    'p-8 text-center hover:shadow-lg h-full flex flex-col'
                   )}
                 >
                   {/* Category Badge */}

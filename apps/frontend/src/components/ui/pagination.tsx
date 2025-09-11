@@ -59,8 +59,12 @@ function PaginationLink({
           variant: isActive ? "outline" : "ghost",
           size,
         }),
+        "hover:scale-105 active:scale-95 transform",
         className
       )}
+      style={{
+        transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
+      }}
       {...props}
     />
   )

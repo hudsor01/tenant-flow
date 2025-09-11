@@ -1,12 +1,33 @@
 import * as React from 'react'
-import { MoreHorizontalIcon, EditIcon, EyeIcon, TrashIcon, Home, DollarSign, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
-import { toast } from 'sonner'
 import { 
-	cn, 
-	buttonClasses,
-	ANIMATION_DURATIONS,
-	TYPOGRAPHY_SCALE
+  MoreHorizontalIcon, 
+  EditIcon, 
+  EyeIcon, 
+  TrashIcon, 
+  Home, 
+  DollarSign, 
+  ArrowUpDown, 
+  ArrowUp, 
+  ArrowDown,
+  Bed,
+  Bath,
+  Maximize2,
+  Users,
+  Calendar,
+  MapPin,
+  Star,
+  TrendingUp,
+  AlertTriangle
+} from 'lucide-react'
+import { toast } from 'sonner'
+import type { UnitStats } from '@repo/shared'
+import { 
+  cn, 
+  buttonClasses,
+  cardClasses,
+  inputClasses
 } from '@/lib/utils'
+import { ANIMATION_DURATIONS, TYPOGRAPHY_SCALE } from '@/lib/design-system'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -35,70 +56,162 @@ import type { Database } from '@repo/shared'
 import type { ColumnDef } from '@tanstack/react-table'
 import type { Column } from '@tanstack/react-table'
 
-export type UnitRow = Database['public']['Tables']['Unit']['Row']
-type UnitStatus = Database['public']['Enums']['UnitStatus']
+// Enhanced unit type with comprehensive information
+export type UnitRow = Database['public']['Tables']['Unit']['Row'] & {
+  property?: {
+    name: string
+    address: string
+  }
+  tenant?: {
+    name: string
+    email: string
+    phone?: string
+  }
+  lastUpdated?: string
+  marketValue?: number
+  renewalDate?: string
+}
 
-// Reusable sortable header component
+type UnitStatus = 'OCCUPIED' | 'VACANT' | 'MAINTENANCE' | 'RESERVED'
+
+// Enhanced sortable header component with professional design
 interface SortableHeaderProps {
-	column: Column<UnitRow, unknown>
-	children: React.ReactNode
-	className?: string
+  column: Column<UnitRow, unknown>
+  children: React.ReactNode
+  className?: string
+  align?: 'left' | 'center' | 'right'
 }
 
-function SortableHeader({ column, children, className }: SortableHeaderProps) {
-	const sortDirection = column.getIsSorted()
-	
-	return (
-		<Button
-			variant="ghost"
-			onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-			className={cn(
-				"h-auto p-0 font-semibold text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100",
-				`transition-colors duration-[${ANIMATION_DURATIONS.fast}]`,
-				className
-			)}
-		>
-			<div className="flex items-center gap-2">
-				{children}
-				<div className="w-4 h-4 flex items-center justify-center">
-					{sortDirection === "desc" ? (
-						<ArrowDown className="h-3 w-3" />
-					) : sortDirection === "asc" ? (
-						<ArrowUp className="h-3 w-3" />
-					) : (
-						<ArrowUpDown className="h-3 w-3 opacity-50" />
-					)}
-				</div>
-			</div>
-		</Button>
-	)
+function SortableHeader({ column, children, className, align = 'left' }: SortableHeaderProps) {
+  const sortDirection = column.getIsSorted()
+  const isActive = sortDirection !== false
+  
+  const alignmentClasses = {
+    left: 'justify-start',
+    center: 'justify-center',
+    right: 'justify-end'
+  }
+  
+  return (
+    <Button
+      variant="ghost"
+      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      className={cn(
+        buttonClasses('ghost', 'sm'),
+        "h-auto p-2 font-semibold hover:bg-muted/50 transition-all",
+        alignmentClasses[align],
+        "gap-2",
+        isActive && "text-primary",
+        className
+      )}
+      style={{ 
+        ...TYPOGRAPHY_SCALE['body-md'],
+        transitionDuration: ANIMATION_DURATIONS.fast
+      }}
+    >
+      <div className="flex items-center gap-2">
+        {children}
+        <div className="w-4 h-4 flex items-center justify-center">
+          {sortDirection === "desc" ? (
+            <ArrowDown className={cn(
+              "h-3.5 w-3.5 transition-all",
+              isActive ? "text-primary" : "text-muted-foreground"
+            )} 
+            style={{ transitionDuration: ANIMATION_DURATIONS.fast }} />
+          ) : sortDirection === "asc" ? (
+            <ArrowUp className={cn(
+              "h-3.5 w-3.5 transition-all",
+              isActive ? "text-primary" : "text-muted-foreground"
+            )} 
+            style={{ transitionDuration: ANIMATION_DURATIONS.fast }} />
+          ) : (
+            <ArrowUpDown className="h-3.5 w-3.5 opacity-50 transition-opacity hover:opacity-75" 
+            style={{ transitionDuration: ANIMATION_DURATIONS.fast }} />
+          )}
+        </div>
+      </div>
+    </Button>
+  )
 }
 
+// Enhanced status configuration with icons and semantic meaning
 const statusConfig: Record<UnitStatus, { 
-	variant: 'default' | 'secondary' | 'destructive' | 'outline'
-	bgColor: string
-	textColor: string
+  variant: 'default' | 'secondary' | 'destructive' | 'outline'
+  label: string
+  icon: React.ComponentType<{ className?: string }>
+  className: string
+  priority: number
 }> = {
-	OCCUPIED: { 
-		variant: 'default', 
-		bgColor: 'bg-green-100 dark:bg-green-900/20 border-green-200 dark:border-green-800',
-		textColor: 'text-green-700 dark:text-green-300'
-	},
-	VACANT: { 
-		variant: 'secondary', 
-		bgColor: 'bg-blue-100 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800',
-		textColor: 'text-blue-700 dark:text-blue-300'
-	},
-	MAINTENANCE: { 
-		variant: 'destructive', 
-		bgColor: 'bg-orange-100 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800',
-		textColor: 'text-orange-700 dark:text-orange-300'
-	},
-	RESERVED: { 
-		variant: 'outline', 
-		bgColor: 'bg-purple-100 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800',
-		textColor: 'text-purple-700 dark:text-purple-300'
-	}
+  OCCUPIED: { 
+    variant: 'default',
+    label: 'Occupied',
+    icon: Users,
+    className: 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800',
+    priority: 1
+  },
+  VACANT: { 
+    variant: 'secondary',
+    label: 'Available',
+    icon: Home,
+    className: 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800',
+    priority: 2
+  },
+  MAINTENANCE: { 
+    variant: 'destructive',
+    label: 'Maintenance',
+    icon: AlertTriangle,
+    className: 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/20 dark:text-orange-300 dark:border-orange-800',
+    priority: 4
+  },
+  RESERVED: { 
+    variant: 'outline',
+    label: 'Reserved',
+    icon: Calendar,
+    className: 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/20 dark:text-purple-300 dark:border-purple-800',
+    priority: 3
+  }
+}
+
+// Enhanced unit stats display component
+const UnitStatsDisplay: React.FC<{ stats: UnitStats; className?: string }> = ({ stats, className }) => {
+  return (
+    <div className={cn("flex gap-2", className)}>
+      <input
+        type="text"
+        readOnly
+        value={`${stats.occupied}/${stats.total} occupied`}
+        className={cn(inputClasses('default', 'xs'), "text-center pointer-events-none bg-muted/50")}
+      />
+      <input
+        type="text"
+        readOnly
+        value={`${((stats.occupied / stats.total) * 100).toFixed(1)}%`}
+        className={cn(inputClasses('default', 'xs'), "text-center pointer-events-none bg-primary/10")}
+      />
+    </div>
+  )
+}
+
+// Enhanced status badge component
+const UnitStatusBadge: React.FC<{ status: UnitStatus; className?: string }> = ({ status, className }) => {
+  const config = statusConfig[status]
+  const IconComponent = config.icon
+
+  return (
+    <Badge 
+      variant={config.variant}
+      className={cn(
+        'flex items-center gap-1.5 px-3 py-1 font-medium text-xs rounded-full border transition-all',
+        config.className,
+        'hover:shadow-sm hover:scale-105',
+        className
+      )}
+      style={{ transitionDuration: ANIMATION_DURATIONS.fast }}
+    >
+      <IconComponent className="h-3 w-3" />
+      {config.label}
+    </Badge>
+  )
 }
 
 interface UnitActionsProps {
@@ -106,305 +219,422 @@ interface UnitActionsProps {
 }
 
 function UnitActions({ unit }: UnitActionsProps) {
-	const [viewOpen, setViewOpen] = React.useState(false)
-	const [editOpen, setEditOpen] = React.useState(false)
-	const [deleteOpen, setDeleteOpen] = React.useState(false)
-	const [isDeleting, setIsDeleting] = React.useState(false)
+  const [viewOpen, setViewOpen] = React.useState(false)
+  const [editOpen, setEditOpen] = React.useState(false)
+  const [deleteOpen, setDeleteOpen] = React.useState(false)
+  const [isDeleting, setIsDeleting] = React.useState(false)
 
-	const deleteUnit = useDeleteUnit()
+  const deleteUnit = useDeleteUnit()
 
-	const handleDelete = async () => {
-		setIsDeleting(true)
-		try {
-			await deleteUnit.mutateAsync(unit.id)
-			toast.success(`Unit ${unit.unitNumber} has been deleted`)
-			setDeleteOpen(false)
-		} catch (error) {
-			console.error('Failed to delete unit:', error)
-			toast.error('Failed to delete unit. Please try again.')
-		} finally {
-			setIsDeleting(false)
-		}
-	}
+  const handleDelete = async () => {
+    setIsDeleting(true)
+    try {
+      await deleteUnit.mutateAsync(unit.id)
+      toast.success(`Unit ${unit.unitNumber} has been deleted successfully`)
+      setDeleteOpen(false)
+    } catch (error) {
+      console.error('Failed to delete unit:', error)
+      toast.error('Failed to delete unit. Please try again.')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
-	// Don't allow deletion of occupied units
-	const canDelete = unit.status !== 'OCCUPIED'
+  // Don't allow deletion of occupied units
+  const canDelete = unit.status !== 'OCCUPIED'
+  const config = statusConfig[unit.status as UnitStatus]
 
-	return (
-		<>
-			<DropdownMenu>
-				<DropdownMenuTrigger asChild>
-					<Button 
-						variant="ghost" 
-						className={cn(
-							"h-8 w-8 p-0 opacity-60 hover:opacity-100",
-							"transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800",
-							"rounded-6px"
-						)}
-					>
-						<span className="sr-only">Open menu for unit {unit.unitNumber}</span>
-						<MoreHorizontalIcon className="h-4 w-4" />
-					</Button>
-				</DropdownMenuTrigger>
-				<DropdownMenuContent 
-					align="end"
-					className={cn(
-						"w-48 p-2 rounded-8px border shadow-lg",
-						"animate-in slide-in-from-top-2",
-						`duration-[${ANIMATION_DURATIONS.fast}ms]`
-					)}
-				>
-					<DropdownMenuLabel className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-2 py-1" style={{ fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize }}>
-						Unit Actions
-					</DropdownMenuLabel>
-					<DropdownMenuItem
-						onClick={() => setViewOpen(true)}
-						className={cn(
-							"flex items-center gap-2 rounded-6px px-2 py-2 text-sm",
-							"hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors",
-							`duration-[${ANIMATION_DURATIONS.fast}ms]`,
-							"cursor-pointer text-blue-600 dark:text-blue-400"
-						)}
-					>
-						<EyeIcon className="h-4 w-4" />
-						View details
-					</DropdownMenuItem>
-					<DropdownMenuItem
-						onClick={() => setEditOpen(true)}
-						className={cn(
-							"flex items-center gap-2 rounded-6px px-2 py-2 text-sm",
-							"hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors",
-							`duration-[${ANIMATION_DURATIONS.fast}ms]`,
-							"cursor-pointer text-amber-600 dark:text-amber-400"
-						)}
-					>
-						<EditIcon className="h-4 w-4" />
-						Edit unit
-					</DropdownMenuItem>
-					<DropdownMenuSeparator className="my-1 bg-gray-200 dark:bg-gray-700" />
-					<DropdownMenuItem
-						onClick={() => setDeleteOpen(true)}
-						disabled={!canDelete}
-						className={cn(
-							"flex items-center gap-2 rounded-6px px-2 py-2 text-sm",
-							canDelete 
-								? cn(
-									"hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 cursor-pointer",
-									`transition-colors duration-[${ANIMATION_DURATIONS.fast}ms]`
-								)
-								: "opacity-40 cursor-not-allowed text-gray-400"
-						)}
-					>
-						<TrashIcon className="h-4 w-4" />
-						Delete unit
-						{!canDelete && (
-							<span className="text-xs text-gray-400 ml-auto">(Occupied)</span>
-						)}
-					</DropdownMenuItem>
-				</DropdownMenuContent>
-			</DropdownMenu>
+  return (
+    <>
+      <div className="flex items-center justify-center">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className={cn(
+                buttonClasses('ghost', 'sm'),
+                "h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-muted/50",
+                "transition-all"
+              )}
+              style={{ transitionDuration: ANIMATION_DURATIONS.fast }}
+            >
+              <span className="sr-only">Open actions menu for unit {unit.unitNumber}</span>
+              <MoreHorizontalIcon className="h-4 w-4" />
+              {config.icon && <config.icon className="h-2 w-2 absolute -top-1 -right-1 opacity-60" />}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent 
+            align="end"
+            className="w-56"
+          >
+            <DropdownMenuLabel 
+              className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
+              style={TYPOGRAPHY_SCALE['body-xs']}
+            >
+              Unit {unit.unitNumber} Actions
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => setViewOpen(true)}
+              className="gap-2 cursor-pointer"
+            >
+              <EyeIcon className="h-4 w-4 text-blue-500" />
+              <span>View Details</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => setEditOpen(true)}
+              className="gap-2 cursor-pointer"
+            >
+              <EditIcon className="h-4 w-4 text-amber-500" />
+              <span>Edit Unit</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => setDeleteOpen(true)}
+              disabled={!canDelete}
+              className={cn(
+                "gap-2",
+                canDelete 
+                  ? "cursor-pointer text-destructive focus:text-destructive"
+                  : "opacity-50 cursor-not-allowed"
+              )}
+            >
+              <TrashIcon className="h-4 w-4" />
+              <span>Delete Unit</span>
+              {!canDelete && (
+                <Badge variant="secondary" className="ml-auto text-xs">
+                  Occupied
+                </Badge>
+              )}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
-			<UnitViewDialog
-				unit={unit}
-				open={viewOpen}
-				onOpenChange={setViewOpen}
-			/>
+      <UnitViewDialog
+        unit={unit}
+        open={viewOpen}
+        onOpenChange={setViewOpen}
+      />
 
-			<UnitEditDialog
-				unit={unit}
-				open={editOpen}
-				onOpenChange={setEditOpen}
-			/>
+      <UnitEditDialog
+        unit={unit}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+      />
 
-			<AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-				<AlertDialogContent className={cn(
-					"rounded-12px border shadow-xl max-w-md",
-					"animate-in fade-in-0 zoom-in-95",
-					`duration-[${ANIMATION_DURATIONS.default}ms]`
-				)}>
-					<AlertDialogHeader className="space-y-3">
-						<div className={cn(
-							"w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/20",
-							"flex items-center justify-center mx-auto"
-						)}>
-							<TrashIcon className="w-6 h-6 text-red-600 dark:text-red-400" />
-						</div>
-						<AlertDialogTitle className="text-center text-gray-900 dark:text-gray-100 font-semibold" style={{ fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize, fontWeight: TYPOGRAPHY_SCALE['heading-lg'].fontWeight, lineHeight: TYPOGRAPHY_SCALE['heading-lg'].lineHeight }}>
-							Delete Unit {unit.unitNumber}?
-						</AlertDialogTitle>
-						<AlertDialogDescription className="text-center text-gray-600 dark:text-gray-400 leading-relaxed" style={{ fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize, lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight }}>
-							This action cannot be undone. This will permanently delete the unit
-							and remove it from all systems.
-							{unit.status === 'OCCUPIED' && (
-								<span className={cn(
-									"block mt-3 p-3 rounded-8px",
-									"bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800",
-									"text-red-700 dark:text-red-300 font-medium text-sm"
-								)}>
-									⚠️ This unit is currently occupied and cannot be deleted.
-								</span>
-							)}
-						</AlertDialogDescription>
-					</AlertDialogHeader>
-					<AlertDialogFooter className="flex gap-3 pt-6">
-						<AlertDialogCancel 
-							disabled={isDeleting}
-							className={cn(
-								buttonClasses('outline'),
-								"flex-1 rounded-8px",
-								`transition-all duration-[${ANIMATION_DURATIONS.fast}ms]`,
-								"hover:bg-gray-50 dark:hover:bg-gray-800"
-							)}
-						>
-							Cancel
-						</AlertDialogCancel>
-						<AlertDialogAction
-							onClick={handleDelete}
-							disabled={isDeleting || !canDelete}
-							className={cn(
-								"flex-1 rounded-8px",
-								"bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700",
-								"text-white font-medium",
-								`transition-all duration-[${ANIMATION_DURATIONS.fast}ms]`,
-								"disabled:opacity-40 disabled:cursor-not-allowed",
-								isDeleting && "animate-pulse"
-							)}
-						>
-							{isDeleting ? (
-								<span className="flex items-center gap-2">
-									<div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-									Deleting...
-								</span>
-							) : (
-								'Delete Unit'
-							)}
-						</AlertDialogAction>
-					</AlertDialogFooter>
-				</AlertDialogContent>
-			</AlertDialog>
-		</>
-	)
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent className={cn(cardClasses('elevated'), "max-w-md")}>
+          <AlertDialogHeader className="space-y-4">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
+              <TrashIcon className="h-6 w-6 text-destructive" />
+            </div>
+            <AlertDialogTitle 
+              className="text-center"
+              style={TYPOGRAPHY_SCALE['heading-sm']}
+            >
+              Delete Unit {unit.unitNumber}?
+            </AlertDialogTitle>
+            <AlertDialogDescription 
+              className="text-center text-muted-foreground"
+              style={TYPOGRAPHY_SCALE['body-md']}
+            >
+              This action cannot be undone. The unit will be permanently removed from your property management system.
+              {unit.status === 'OCCUPIED' && (
+                <div className={cn(
+                  cardClasses('default'),
+                  "mt-4 p-3 border-destructive/20 bg-destructive/5"
+                )}>
+                  <div className="flex items-center gap-2 text-destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <span 
+                      className="font-medium text-sm"
+                      style={TYPOGRAPHY_SCALE['body-xs']}
+                    >
+                      This unit is currently occupied and cannot be deleted.
+                    </span>
+                  </div>
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex gap-3">
+            <AlertDialogCancel 
+              disabled={isDeleting}
+              className={cn(buttonClasses('outline'), "flex-1")}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting || !canDelete}
+              className={cn(
+                buttonClasses('destructive'),
+                "flex-1"
+              )}
+            >
+              {isDeleting ? (
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                  <span>Deleting...</span>
+                </div>
+              ) : (
+                'Delete Unit'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  )
 }
 
+// Export the UnitStatsDisplay component for use in dashboard and analytics
+export { UnitStatsDisplay }
+
+// Enhanced column definitions with professional design and comprehensive data display
 export const unitColumns: ColumnDef<UnitRow>[] = [
-	{
-		accessorKey: 'unitNumber',
-		header: ({ column }) => (
-			<SortableHeader column={column}>
-				<Home className="h-4 w-4" />
-				Unit #
-			</SortableHeader>
-		),
-		cell: ({ row }) => (
-			<div className="font-semibold text-gray-900 dark:text-gray-100" style={{ fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize }}>
-				{row.getValue('unitNumber')}
-			</div>
-		),
-	},
-	{
-		accessorKey: 'bedrooms',
-		header: ({ column }) => (
-			<SortableHeader column={column} className="justify-center">
-				Beds
-			</SortableHeader>
-		),
-		cell: ({ row }) => (
-			<div className="text-center font-medium text-gray-800 dark:text-gray-200" style={{ fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize }}>
-				{row.getValue('bedrooms')}
-			</div>
-		),
-	},
-	{
-		accessorKey: 'bathrooms',
-		header: ({ column }) => (
-			<SortableHeader column={column} className="justify-center">
-				Baths
-			</SortableHeader>
-		),
-		cell: ({ row }) => (
-			<div className="text-center font-medium text-gray-800 dark:text-gray-200" style={{ fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize }}>
-				{row.getValue('bathrooms')}
-			</div>
-		),
-	},
-	{
-		accessorKey: 'squareFeet',
-		header: ({ column }) => (
-			<SortableHeader column={column} className="justify-center">
-				Sq Ft
-			</SortableHeader>
-		),
-		cell: ({ row }) => {
-			const squareFeet = row.getValue('squareFeet') as number | null
-			return (
-				<div className="text-center font-medium text-gray-800 dark:text-gray-200" style={{ fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize }}>
-					{squareFeet ? squareFeet.toLocaleString() : '—'}
-				</div>
-			)
-		},
-	},
-	{
-		accessorKey: 'rent',
-		header: ({ column }) => (
-			<SortableHeader column={column} className="justify-end">
-				<DollarSign className="h-4 w-4" />
-				Monthly Rent
-			</SortableHeader>
-		),
-		cell: ({ row }) => {
-			const rent = parseFloat(row.getValue('rent'))
-			const formatted = new Intl.NumberFormat('en-US', {
-				style: 'currency',
-				currency: 'USD',
-			}).format(rent)
-			return (
-				<div className="text-right font-bold text-green-600 dark:text-green-400" style={{ fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize }}>
-					{formatted}
-				</div>
-			)
-		},
-	},
-	{
-		accessorKey: 'status',
-		header: ({ column }) => (
-			<SortableHeader column={column}>
-				Status
-			</SortableHeader>
-		),
-		cell: ({ row }) => {
-			const status = row.getValue('status') as UnitStatus
-			const config = statusConfig[status]
-			const statusIcons = {
-				OCCUPIED: '🏠',
-				VACANT: '🔑',
-				MAINTENANCE: '🔧',
-				RESERVED: '📋'
-			}
-			return (
-				<Badge 
-					variant={config.variant}
-					className={cn(
-						"capitalize font-medium border rounded-full px-3 py-1",
-						config.bgColor,
-						config.textColor,
-						`transition-all duration-[${ANIMATION_DURATIONS.fast}ms]`,
-						"hover:shadow-sm hover:scale-105"
-					)}
-				>
-					<span className="mr-1.5">{statusIcons[status]}</span>
-					{status.toLowerCase()}
-				</Badge>
-			)
-		},
-	},
-	{
-		id: 'actions',
-		header: () => (
-			<div className="text-center font-semibold text-gray-700 dark:text-gray-300" style={{ fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize }}>
-				Actions
-			</div>
-		),
-		cell: ({ row }) => <UnitActions unit={row.original} />,
-		enableSorting: false,
-	},
+  {
+    accessorKey: 'unitNumber',
+    header: ({ column }) => (
+      <SortableHeader column={column} align="left">
+        <Home className="h-4 w-4" />
+        Unit Details
+      </SortableHeader>
+    ),
+    cell: ({ row }) => {
+      const unit: UnitRow = row.original
+      return (
+        <div className="flex flex-col gap-1 py-2">
+          <div 
+            className="font-bold text-foreground"
+            style={TYPOGRAPHY_SCALE['body-md']}
+          >
+            Unit {row.getValue('unitNumber')}
+          </div>
+          {unit.property && (
+            <div 
+              className="text-muted-foreground text-xs"
+              style={TYPOGRAPHY_SCALE['body-xs']}
+            >
+              <MapPin className="h-3 w-3 inline mr-1" />
+              {unit.property.name}
+            </div>
+          )}
+        </div>
+      )
+    },
+    size: 160,
+    enableHiding: false,
+  },
+  {
+    id: 'layout',
+    header: ({ column }) => (
+      <SortableHeader column={column} align="center">
+        <Bed className="h-4 w-4" />
+        Layout
+      </SortableHeader>
+    ),
+    accessorFn: (row) => `${row.bedrooms}bed${row.bathrooms}bath`,
+    cell: ({ row }) => {
+      const bedrooms = row.getValue('bedrooms') as number
+      const bathrooms = row.getValue('bathrooms') as number
+      const squareFeet = row.getValue('squareFeet') as number | null
+      
+      return (
+        <div className="text-center space-y-1">
+          <div className="flex items-center justify-center gap-3">
+            <div className="flex items-center gap-1">
+              <Bed className="h-3 w-3 text-muted-foreground" />
+              <span 
+                className="font-medium"
+                style={TYPOGRAPHY_SCALE['body-md']}
+              >
+                {bedrooms}
+              </span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Bath className="h-3 w-3 text-muted-foreground" />
+              <span 
+                className="font-medium"
+                style={TYPOGRAPHY_SCALE['body-md']}
+              >
+                {bathrooms}
+              </span>
+            </div>
+          </div>
+          {squareFeet && (
+            <div className="flex items-center justify-center gap-1">
+              <Maximize2 className="h-3 w-3 text-muted-foreground" />
+              <span 
+                className="text-muted-foreground text-xs"
+                style={TYPOGRAPHY_SCALE['body-xs']}
+              >
+                {squareFeet.toLocaleString()} ft²
+              </span>
+            </div>
+          )}
+        </div>
+      )
+    },
+    sortingFn: (rowA, rowB) => {
+      const layoutA = rowA.original.bedrooms * 10 + rowA.original.bathrooms
+      const layoutB = rowB.original.bedrooms * 10 + rowB.original.bathrooms
+      return layoutA - layoutB
+    },
+    size: 120,
+  },
+  {
+    accessorKey: 'rent',
+    header: ({ column }) => (
+      <SortableHeader column={column} align="right">
+        <DollarSign className="h-4 w-4" />
+        Rent & Value
+      </SortableHeader>
+    ),
+    cell: ({ row }) => {
+      const unit: UnitRow = row.original
+      const rent = parseFloat(row.getValue('rent'))
+      const marketValue = unit.marketValue || rent
+      const variance = marketValue !== rent ? ((rent - marketValue) / marketValue * 100) : 0
+      
+      const rentFormatted = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 0,
+      }).format(rent)
+
+      return (
+        <div className="text-right space-y-1 py-2">
+          <div 
+            className="font-bold text-foreground"
+            style={TYPOGRAPHY_SCALE['body-md']}
+          >
+            {rentFormatted}
+          </div>
+          <div 
+            className="text-muted-foreground text-xs"
+            style={TYPOGRAPHY_SCALE['body-xs']}
+          >
+            per month
+          </div>
+          {variance !== 0 && (
+            <div className="flex items-center justify-end gap-1">
+              <TrendingUp className={cn(
+                "h-3 w-3",
+                variance > 0 ? "text-green-500" : "text-red-500"
+              )} />
+              <span className={cn(
+                "text-xs font-medium",
+                variance > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+              )}>
+                {variance > 0 ? '+' : ''}{variance.toFixed(1)}%
+              </span>
+            </div>
+          )}
+        </div>
+      )
+    },
+    size: 140,
+  },
+  {
+    accessorKey: 'status',
+    header: ({ column }) => (
+      <SortableHeader column={column} align="left">
+        Status & Tenant
+      </SortableHeader>
+    ),
+    cell: ({ row }) => {
+      const unit: UnitRow = row.original
+      const status = row.getValue('status') as UnitStatus
+      
+      return (
+        <div className="space-y-2 py-2">
+          <UnitStatusBadge status={status} />
+          {unit.tenant && status === 'OCCUPIED' && (
+            <div className="space-y-1">
+              <div 
+                className="font-medium text-foreground text-sm"
+                style={TYPOGRAPHY_SCALE['body-xs']}
+              >
+                {unit.tenant.name}
+              </div>
+              <div 
+                className="text-muted-foreground text-xs"
+                style={TYPOGRAPHY_SCALE['body-xs']}
+              >
+                {unit.tenant.email}
+              </div>
+            </div>
+          )}
+        </div>
+      )
+    },
+    filterFn: (row, id, value) => {
+      return value.includes(row.getValue(id))
+    },
+    sortingFn: (rowA, rowB) => {
+      const statusA = rowA.getValue('status') as UnitStatus
+      const statusB = rowB.getValue('status') as UnitStatus
+      return statusConfig[statusA].priority - statusConfig[statusB].priority
+    },
+    size: 200,
+  },
+  {
+    id: 'lastUpdated',
+    accessorKey: 'lastUpdated',
+    header: ({ column }) => (
+      <SortableHeader column={column} align="center">
+        <Calendar className="h-4 w-4" />
+        Last Updated
+      </SortableHeader>
+    ),
+    cell: ({ row }) => {
+      const unit: UnitRow = row.original
+      const lastUpdated = unit.lastUpdated || new Date().toISOString()
+      const date = new Date(lastUpdated)
+      const isRecent = Date.now() - date.getTime() < 7 * 24 * 60 * 60 * 1000 // 7 days
+      
+      return (
+        <div className="text-center space-y-1">
+          <div 
+            className="font-medium text-foreground"
+            style={TYPOGRAPHY_SCALE['body-xs']}
+          >
+            {date.toLocaleDateString()}
+          </div>
+          <div 
+            className={cn(
+              "text-xs",
+              isRecent ? "text-green-600 dark:text-green-400" : "text-muted-foreground"
+            )}
+            style={TYPOGRAPHY_SCALE['body-xs']}
+          >
+            {isRecent && <Star className="h-3 w-3 inline mr-1" />}
+            {date.toLocaleDateString('en-US', { 
+              month: 'short', 
+              day: 'numeric'
+            })}
+          </div>
+        </div>
+      )
+    },
+    size: 120,
+  },
+  {
+    id: 'actions',
+    header: () => (
+      <div 
+        className="text-center font-semibold text-muted-foreground"
+        style={TYPOGRAPHY_SCALE['body-md']}
+      >
+        Actions
+      </div>
+    ),
+    cell: ({ row }) => <UnitActions unit={row.original} />,
+    enableSorting: false,
+    enableHiding: false,
+    size: 80,
+  },
 ]

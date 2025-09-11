@@ -39,13 +39,13 @@ export interface PricingConfig {
 	readonly trial: boolean | TrialConfig
 }
 
-// Simple pricing plans configuration
+// Simple pricing plans configuration - Updated with correct Stripe data
 export const PRICING_PLANS: Record<string, PricingConfig> = {
 	FREETRIAL: {
 		id: 'FREETRIAL',
 		planId: 'trial',
 		name: 'Free Trial',
-		description: 'Perfect for trying out TenantFlow',
+		description: 'Perfect for getting started with property management',
 		price: {
 			monthly: 0,
 			annual: 0
@@ -62,13 +62,15 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 			apiCalls: 1000
 		},
 		features: [
-			'Up to 1 property',
+			'1 property',
 			'Up to 5 units',
-			'Basic tenant management',
+			'Basic maintenance tracking',
+			'Tenant management',
+			'1GB document storage',
 			'Email support',
-			'Mobile app access'
+			'14-day trial period'
 		],
-		support: 'email',
+		support: 'Email',
 		trial: {
 			trialPeriodDays: 14,
 			collectPaymentMethod: false,
@@ -79,77 +81,83 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		id: 'STARTER',
 		planId: 'starter',
 		name: 'Starter',
-		description: 'Great for small property managers',
+		description: 'Ideal for small landlords managing a few properties',
 		price: {
 			monthly: 29,
 			annual: 290
 		},
 		stripePriceIds: {
-			monthly: 'price_1RtWGhP3WCR53Sdo5Li5xHiD' as StripePriceId,
-			annual: 'price_1RtWGhP3WCR53Sdo5Li5xHiE' as StripePriceId
+			monthly: 'price_1RtWFcP3WCR53SdoCxiVldhb' as StripePriceId,
+			annual: 'price_1RtWFdP3WCR53SdoArRRXYrL' as StripePriceId
 		},
 		limits: {
-			properties: 10,
-			units: 50,
-			users: 3,
+			properties: 5,
+			units: 25,
+			users: 1,
 			storage: 10,
 			apiCalls: 10000
 		},
 		features: [
-			'Up to 10 properties',
-			'Up to 50 units',
-			'Full tenant management',
+			'Up to 5 properties',
+			'Up to 25 units',
+			'Full maintenance tracking',
+			'Tenant portal access',
+			'Lease management',
+			'Financial reporting',
+			'10GB document storage',
 			'Priority email support',
-			'Mobile app access',
-			'Basic reporting'
+			'Mobile app access'
 		],
-		support: 'email',
+		support: 'Priority Email',
 		trial: false
 	},
 	GROWTH: {
 		id: 'GROWTH',
 		planId: 'growth',
 		name: 'Growth',
-		description: 'Perfect for growing property portfolios',
+		description: 'For growing portfolios that need advanced features',
 		price: {
-			monthly: 89,
-			annual: 890
+			monthly: 79,
+			annual: 790
 		},
 		stripePriceIds: {
-			monthly: 'price_1RtWHiP3WCR53Sdo5Li5xHiF' as StripePriceId,
-			annual: 'price_1RtWHiP3WCR53Sdo5Li5xHiG' as StripePriceId
+			monthly: 'price_1RtWFdP3WCR53Sdoz98FFpSu' as StripePriceId,
+			annual: 'price_1RtWFdP3WCR53SdoHDRR9kAJ' as StripePriceId
 		},
 		limits: {
-			properties: 50,
-			units: 250,
-			users: 10,
+			properties: 20,
+			units: 100,
+			users: 3,
 			storage: 50,
 			apiCalls: 50000
 		},
 		features: [
-			'Up to 50 properties',
-			'Up to 250 units',
-			'Advanced tenant management',
-			'Priority support',
-			'Advanced reporting',
+			'Up to 20 properties',
+			'Up to 100 units',
+			'Advanced analytics',
+			'Automated rent collection',
+			'Vendor network',
+			'Custom templates',
+			'50GB storage',
+			'Phone support',
 			'API access',
-			'Bulk operations'
+			'Team (3 users)'
 		],
-		support: 'priority',
+		support: 'Phone & Email',
 		trial: false
 	},
 	TENANTFLOW_MAX: {
 		id: 'TENANTFLOW_MAX',
 		planId: 'max',
 		name: 'TenantFlow Max',
-		description: 'Enterprise-grade property management',
+		description: 'Enterprise solution for property management professionals',
 		price: {
-			monthly: 199,
-			annual: 1990
+			monthly: 299,
+			annual: 2990
 		},
 		stripePriceIds: {
-			monthly: 'price_1RtWIjP3WCR53Sdo5Li5xHiH' as StripePriceId,
-			annual: 'price_1RtWIjP3WCR53Sdo5Li5xHiI' as StripePriceId
+			monthly: 'price_1S645BP3WCR53SdoSGL8gzLd' as StripePriceId,
+			annual: 'price_1S645BP3WCR53SdobSnLUXFx' as StripePriceId
 		},
 		limits: {
 			properties: -1,
@@ -161,14 +169,16 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		features: [
 			'Unlimited properties',
 			'Unlimited units',
-			'Unlimited users',
-			'Dedicated account manager',
+			'White-label portal',
+			'Full automation',
 			'Custom integrations',
-			'Advanced analytics',
-			'White-label options',
-			'SLA guarantee'
+			'Account manager',
+			'Unlimited storage',
+			'24/7 support',
+			'Full API access',
+			'Unlimited team'
 		],
-		support: 'dedicated',
+		support: '24/7 Dedicated',
 		trial: false
 	}
 }

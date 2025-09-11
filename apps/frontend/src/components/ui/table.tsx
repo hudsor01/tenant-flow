@@ -2,7 +2,7 @@
 
 import * as React from "react"
 
-import { cn, tableClasses } from "@/lib/utils"
+import { cn, tableClasses } from "@/lib/design-system"
 
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
@@ -12,7 +12,12 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
     >
       <table
         data-slot="table"
-        className={cn("w-full caption-bottom text-sm", className)}
+        className={cn(
+          // Use design system tableClasses for consistent styling
+          tableClasses('default', className),
+          // Base table styles
+          "w-full caption-bottom text-sm"
+        )}
         {...props}
       />
     </div>

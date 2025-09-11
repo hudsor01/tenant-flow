@@ -14,7 +14,11 @@ import {
   formatCurrency, 
   ANIMATION_DURATIONS, 
   cn, 
-  TYPOGRAPHY_SCALE 
+  TYPOGRAPHY_SCALE,
+  cardClasses,
+  badgeClasses,
+  animationClasses,
+  buttonClasses
 } from "@/lib/utils";
 import { useFinancialOverview } from "@/hooks/api/financial";
 import { useState, useMemo } from "react";
@@ -87,12 +91,15 @@ export function FinancialOverview() {
     return (
       <Card 
         className={cn(
-          cardClasses(),
-          'shadow-xl border-2 backdrop-blur-sm bg-card/95'
+          cardClasses('elevated'),
+          'shadow-xl border-2 backdrop-blur-sm bg-card/95 overflow-hidden',
+          animationClasses('fade-in')
         )}
         style={{ 
           animation: `fadeIn ${ANIMATION_DURATIONS.slow} ease-out`,
         }}
+        role="status"
+        aria-label="Loading financial overview data"
       >
         <CardHeader className="space-y-4 pb-6">
           <div className="flex items-center justify-between">
@@ -119,18 +126,19 @@ export function FinancialOverview() {
         <CardContent className="space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="animate-pulse">
-                <div className="flex items-center gap-4 p-6 rounded-xl bg-muted/30 border-2">
-                  <div className="size-14 bg-muted rounded-full" />
-                  <div className="space-y-2 flex-1">
-                    <div className="h-3 bg-muted rounded w-20" />
-                    <div className="h-6 bg-muted rounded w-24" />
+              <div key={i} className={animationClasses('pulse')} style={{ animationDelay: `${i * 100}ms` }}>
+                <div className="flex items-center gap-4 p-6 rounded-xl bg-gradient-to-br from-muted/20 to-muted/10 border-2 border-muted/30 shadow-sm">
+                  <div className="size-14 bg-gradient-to-br from-muted to-muted/60 rounded-xl animate-pulse shadow-sm" />
+                  <div className="space-y-3 flex-1">
+                    <div className="h-3 bg-gradient-to-r from-muted to-muted/60 rounded-full w-20 animate-pulse" />
+                    <div className="h-6 bg-gradient-to-r from-muted to-muted/60 rounded-lg w-24 animate-pulse" />
+                    <div className="h-3 bg-gradient-to-r from-muted/70 to-muted/40 rounded-full w-16 animate-pulse" />
                   </div>
                 </div>
               </div>
             ))}
           </div>
-          <div className="h-80 bg-muted/20 rounded-xl animate-pulse" />
+          <div className="h-80 bg-gradient-to-br from-muted/10 to-muted/5 rounded-2xl border-2 border-muted/20 animate-pulse shadow-inner" />
         </CardContent>
       </Card>
     );
@@ -140,12 +148,13 @@ export function FinancialOverview() {
   return (
     <Card 
       className={cn(
-        cardClasses(),
-        'dashboard-widget shadow-xl border-2 hover:shadow-2xl backdrop-blur-sm bg-card/95 overflow-hidden'
+        cardClasses('elevated'),
+        'dashboard-widget shadow-xl border-2 hover:shadow-2xl backdrop-blur-sm bg-card/95 overflow-hidden group',
+        animationClasses('fade-in')
       )}
       style={{ 
         animation: `fadeIn ${ANIMATION_DURATIONS.slow} ease-out`,
-        transition: `all ${ANIMATION_DURATIONS.default} ease-out`,
+        transition: `all ${ANIMATION_DURATIONS.default} cubic-bezier(0.4, 0, 0.2, 1)`,
       }}
       role="region"
       aria-labelledby="financial-overview-title"
@@ -202,8 +211,18 @@ export function FinancialOverview() {
             {metrics.profitMargin !== 0 && (
               <Badge 
                 variant={metrics.profitMargin > 0 ? "default" : "destructive"}
-                className="text-xs font-semibold px-3 py-1"
+                className={cn(
+                  badgeClasses(metrics.profitMargin > 0 ? 'success' : 'destructive', 'sm'),
+                  "text-xs font-semibold px-3 py-1 animate-pulse"
+                )}
+                style={{
+                  animation: `pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite`,
+                }}
               >
+                <div className={cn(
+                  "size-2 rounded-full mr-2",
+                  metrics.profitMargin > 0 ? "bg-emerald-500" : "bg-red-500"
+                )} />
                 {metrics.profitMargin > 0 ? "+" : ""}{metrics.profitMargin.toFixed(1)}% margin
               </Badge>
             )}
@@ -224,20 +243,28 @@ export function FinancialOverview() {
         >
           {/* Income Card */}
           <article 
-            className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-950/50 dark:to-green-900/20 border-2 border-green-200/60 dark:border-green-800/40 hover:border-green-300 dark:hover:border-green-700 hover:shadow-lg hover:shadow-green-100/50 dark:hover:shadow-green-950/50 transition-all cursor-pointer"
+            className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-950/50 dark:to-green-900/20 border-2 border-green-200/60 dark:border-green-800/40 hover:border-green-300 dark:hover:border-green-700 hover:shadow-xl hover:shadow-green-100/50 dark:hover:shadow-green-950/50 focus-within:ring-2 focus-within:ring-green-500/20 focus-within:ring-offset-2 cursor-pointer transform hover:scale-[1.02]"
             style={{ 
               animation: `slideInFromLeft ${ANIMATION_DURATIONS.default} ease-out`,
-              transition: `all ${ANIMATION_DURATIONS.default} ease-out`,
+              transition: `all ${ANIMATION_DURATIONS.default} cubic-bezier(0.4, 0, 0.2, 1)`,
             }}
             tabIndex={0}
             role="button"
             aria-label={`Total income: ${formatCurrency(summary.totalIncome)}${trends.income !== 0 ? `, trending ${trends.income > 0 ? 'up' : 'down'} by ${Math.abs(trends.income).toFixed(1)}%` : ''}`}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                // Add click behavior here if needed
+              }
+            }}
           >
             <div className="flex items-start justify-between p-6">
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <div className="flex size-12 items-center justify-center rounded-xl bg-green-200/50 border border-green-300/50 group-hover:scale-110 transition-transform">
-                    <ArrowDownLeft className="size-6 text-green-700 dark:text-green-400" />
+                  <div className="flex size-12 items-center justify-center rounded-xl bg-green-200/50 border border-green-300/50 shadow-sm group-hover:scale-110 group-hover:shadow-md group-focus-visible:scale-110 transition-all"
+                       style={{ transition: `all ${ANIMATION_DURATIONS.fast} cubic-bezier(0.4, 0, 0.2, 1)` }}>
+                    <ArrowDownLeft className="size-6 text-green-700 dark:text-green-400 transition-transform group-hover:scale-110" 
+                                   style={{ transition: `transform ${ANIMATION_DURATIONS.fast} ease-out` }} />
                   </div>
                   <div>
                     <p className="text-green-800 dark:text-green-300 text-sm font-semibold uppercase tracking-wide">
@@ -270,20 +297,28 @@ export function FinancialOverview() {
           
           {/* Expenses Card */}
           <article 
-            className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-red-50 to-red-100/50 dark:from-red-950/50 dark:to-red-900/20 border-2 border-red-200/60 dark:border-red-800/40 hover:border-red-300 dark:hover:border-red-700 hover:shadow-lg hover:shadow-red-100/50 dark:hover:shadow-red-950/50 transition-all cursor-pointer"
+            className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-red-50 to-red-100/50 dark:from-red-950/50 dark:to-red-900/20 border-2 border-red-200/60 dark:border-red-800/40 hover:border-red-300 dark:hover:border-red-700 hover:shadow-xl hover:shadow-red-100/50 dark:hover:shadow-red-950/50 focus-within:ring-2 focus-within:ring-red-500/20 focus-within:ring-offset-2 cursor-pointer transform hover:scale-[1.02]"
             style={{ 
               animation: `slideInFromTop ${ANIMATION_DURATIONS.default} ease-out`,
-              transition: `all ${ANIMATION_DURATIONS.default} ease-out`,
+              transition: `all ${ANIMATION_DURATIONS.default} cubic-bezier(0.4, 0, 0.2, 1)`,
             }}
             tabIndex={0}
             role="button"
             aria-label={`Total expenses: ${formatCurrency(summary.totalExpenses)}${trends.expenses !== 0 ? `, trending ${trends.expenses > 0 ? 'up' : 'down'} by ${Math.abs(trends.expenses).toFixed(1)}%` : ''}`}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                // Add click behavior here if needed
+              }
+            }}
           >
             <div className="flex items-start justify-between p-6">
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <div className="flex size-12 items-center justify-center rounded-xl bg-red-200/50 border border-red-300/50 group-hover:scale-110 transition-transform">
-                    <ArrowUpRight className="size-6 text-red-700 dark:text-red-400" />
+                  <div className="flex size-12 items-center justify-center rounded-xl bg-red-200/50 border border-red-300/50 shadow-sm group-hover:scale-110 group-hover:shadow-md group-focus-visible:scale-110 transition-all"
+                       style={{ transition: `all ${ANIMATION_DURATIONS.fast} cubic-bezier(0.4, 0, 0.2, 1)` }}>
+                    <ArrowUpRight className="size-6 text-red-700 dark:text-red-400 transition-transform group-hover:scale-110" 
+                                  style={{ transition: `transform ${ANIMATION_DURATIONS.fast} ease-out` }} />
                   </div>
                   <div>
                     <p className="text-red-800 dark:text-red-300 text-sm font-semibold uppercase tracking-wide">
@@ -316,20 +351,28 @@ export function FinancialOverview() {
           
           {/* Scheduled/Net Income Card */}
           <article 
-            className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/50 dark:to-blue-900/20 border-2 border-blue-200/60 dark:border-blue-800/40 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-lg hover:shadow-blue-100/50 dark:hover:shadow-blue-950/50 transition-all cursor-pointer"
+            className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/50 dark:to-blue-900/20 border-2 border-blue-200/60 dark:border-blue-800/40 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-xl hover:shadow-blue-100/50 dark:hover:shadow-blue-950/50 focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:ring-offset-2 cursor-pointer transform hover:scale-[1.02]"
             style={{ 
               animation: `slideInFromRight ${ANIMATION_DURATIONS.default} ease-out`,
-              transition: `all ${ANIMATION_DURATIONS.default} ease-out`,
+              transition: `all ${ANIMATION_DURATIONS.default} cubic-bezier(0.4, 0, 0.2, 1)`,
             }}
             tabIndex={0}
             role="button"
             aria-label={`Net income: ${formatCurrency(summary.netIncome)}${trends.net !== 0 ? `, trending ${trends.net > 0 ? 'up' : 'down'} by ${Math.abs(trends.net).toFixed(1)}%` : ''}`}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                // Add click behavior here if needed
+              }
+            }}
           >
             <div className="flex items-start justify-between p-6">
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <div className="flex size-12 items-center justify-center rounded-xl bg-blue-200/50 border border-blue-300/50 group-hover:scale-110 transition-transform">
-                    <CalendarCheck className="size-6 text-blue-700 dark:text-blue-400" />
+                  <div className="flex size-12 items-center justify-center rounded-xl bg-blue-200/50 border border-blue-300/50 shadow-sm group-hover:scale-110 group-hover:shadow-md group-focus-visible:scale-110 transition-all"
+                       style={{ transition: `all ${ANIMATION_DURATIONS.fast} cubic-bezier(0.4, 0, 0.2, 1)` }}>
+                    <CalendarCheck className="size-6 text-blue-700 dark:text-blue-400 transition-transform group-hover:scale-110" 
+                                   style={{ transition: `transform ${ANIMATION_DURATIONS.fast} ease-out` }} />
                   </div>
                   <div>
                     <p className="text-blue-800 dark:text-blue-300 text-sm font-semibold uppercase tracking-wide">
@@ -391,11 +434,23 @@ export function FinancialOverview() {
               <Button
                 variant="outline"
                 size="sm"
-                className="text-xs h-8 px-3 border-2 hover:bg-muted/50"
+                className={cn(
+                  buttonClasses('outline', 'sm'),
+                  "text-xs h-8 px-3 border-2 hover:bg-muted/50 hover:scale-105 font-semibold"
+                )}
+                style={{
+                  transition: `all ${ANIMATION_DURATIONS.fast} cubic-bezier(0.4, 0, 0.2, 1)`,
+                }}
               >
                 Export Data
               </Button>
-              <Badge variant="outline" className="text-xs">
+              <Badge 
+                variant="outline" 
+                className={cn(
+                  badgeClasses('outline', 'sm'),
+                  "text-xs bg-primary/5 border-primary/20 text-primary"
+                )}
+              >
                 {chartData.length} months
               </Badge>
             </div>

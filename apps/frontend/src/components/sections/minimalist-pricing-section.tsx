@@ -17,42 +17,42 @@ const plans = [
   {
     name: "Starter",
     price: 29,
-    description: "For individual property owners",
+    description: "Perfect for small property managers",
     icon: Zap,
     features: [
       "Up to 5 properties",
-      "Basic tenant management", 
-      "Rent collection",
-      "Email support"
+      "Professional tenant management", 
+      "Automated rent collection",
+      "Priority email support"
     ],
     gradient: "from-green-400 to-blue-500"
   },
   {
-    name: "Professional",
-    price: 99,
-    description: "For growing property businesses",
+    name: "Growth",
+    price: 79,
+    description: "For expanding property portfolios",
     icon: Shield,
     features: [
-      "Up to 50 properties",
-      "Advanced analytics",
+      "Up to 20 properties",
+      "Advanced analytics & insights",
       "Automated workflows",
-      "Priority support",
+      "Phone & email support",
       "API access"
     ],
     popular: true,
     gradient: "from-purple-400 to-pink-500"
   },
   {
-    name: "Enterprise",
-    price: null,
-    description: "For large property portfolios",
+    name: "TenantFlow Max",
+    price: 299,
+    description: "Enterprise features for serious professionals",
     icon: Crown,
     features: [
       "Unlimited properties",
+      "White-label portal",
       "Custom integrations",
-      "Dedicated support",
-      "Custom training",
-      "SLA guarantees"
+      "Dedicated account manager",
+      "24/7 priority support"
     ],
     gradient: "from-orange-400 to-red-500"
   }
