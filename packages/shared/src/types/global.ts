@@ -5,13 +5,8 @@
  * window object, and other global interfaces used throughout the application.
  */
 
-// PostHog type declaration since @types/posthog-js doesn't exist
-interface PostHog {
-  init(key: string, options?: any): void
-  identify(id: string, properties?: any): void
-  capture(event: string, properties?: any): void
-  reset(): void
-}
+// Use official PostHog types
+import type { PostHog } from 'posthog-js'
 
 /**
  * Extend NodeJS ProcessEnv interface
