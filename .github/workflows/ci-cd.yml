@@ -25,6 +25,8 @@ jobs:
     name: Build and Test
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    environment:
+      name: tenantflow-backend
     permissions:
       contents: read
     concurrency:
