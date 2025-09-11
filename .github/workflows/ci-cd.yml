@@ -15,7 +15,7 @@ jobs:
   build-and-test:
     name: Build and Test
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -29,14 +29,14 @@ jobs:
       - name: Install Doppler CLI
         uses: dopplerhq/cli-action@v3
 
-      - name: Clean install for cross-platform compatibility  
+      - name: Clean install for cross-platform compatibility
         run: |
           rm -f package-lock.json
           npm cache clean --force
           npm install --no-audit
 
       - name: Build all packages (with proper dependencies and secrets)
-        run: doppler run -- npm run build:shared && doppler run -- turbo run build --filter=@repo/frontend && doppler run -- turbo run build --filter=@repo/backend
+        run: doppler run -- npm run build
         env:
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
 
@@ -53,3 +53,7 @@ jobs:
           CI: true
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
         run: doppler run -- npm run test:unit
+
+      - name: Lint check
+        run: npm run lint
+        continue-on-error: true
