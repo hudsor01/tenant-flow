@@ -1,4 +1,5 @@
 import Stripe from 'stripe'
+export const runtime = 'nodejs'
 import type { NextRequest } from 'next/server'
 import { rateLimiter } from '@/lib/rate-limiter'
 
