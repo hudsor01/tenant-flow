@@ -2,10 +2,19 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 
-// Initialize Stripe with your secret key
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-	apiVersion: '2025-08-27.basil' // Use the latest API version
-})
+// Force Node.js runtime for Stripe SDK
+export const runtime = 'nodejs'
+
+// Lazily initialize Stripe to avoid build-time failures
+function getStripe() {
+  const key = process.env.STRIPE_SECRET_KEY
+  if (!key) {
+    throw new Error('STRIPE_SECRET_KEY is required')
+  }
+  return new Stripe(key, {
+    apiVersion: '2025-08-27.basil',
+  })
+}
 
 export async function POST(request: NextRequest) {
 	try {
@@ -20,8 +29,9 @@ export async function POST(request: NextRequest) {
 			)
 		}
 
-		// Create checkout session using Stripe's official API
-		const session = await stripe.checkout.sessions.create({
+    // Create checkout session using Stripe's official API
+    const stripe = getStripe()
+    const session = await stripe.checkout.sessions.create({
 			mode: 'subscription',
 			payment_method_types: ['card'],
 			line_items: [
