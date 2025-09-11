@@ -2,7 +2,7 @@
 	"$schema": "https://openapi.vercel.sh/vercel.json",
 	"framework": "nextjs",
 	"installCommand": "cd ../.. && npm install --prefer-online --no-audit --no-fund",
-	"buildCommand": "cd ../.. && doppler run -- turbo run build --filter=@repo/frontend",
+	"buildCommand": "cd ../.. && turbo run build --filter=@repo/frontend",
 	"outputDirectory": "apps/frontend/.next",
 	"headers": [
 		{
