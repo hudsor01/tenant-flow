@@ -131,6 +131,13 @@ secrets.*
 
 # Never allow password/secret/key patterns
 **/*[Pp]assword*
+# Exception for legitimate UI components
+!**/forgot-password-form.tsx
+!**/reset-password-form.tsx
+!**/update-password-form.tsx
+!**/forgot-password/
+!**/reset-password/
+!**/update-password/
 **/*[Ss]ecret*
 **/*[Kk]ey*
 **/*actual[_-]password*
@@ -170,12 +177,6 @@ packages/*/.turbo/
 apps/*/.next/
 apps/*/dist/
 apps/*/.turbo/
-
-# Storybook
-storybook-static/
-**/storybook-static/
-*storybook.log
-.storybook-out/
 
 # ========================================
 # LOGS & REPORTS
@@ -271,7 +272,12 @@ $RECYCLE.BIN/
 # ========================================
 # IDE & EDITORS
 # ========================================
-.vscode/
+# VS Code - only ignore specific files, not the entire directory
+.vscode/settings.json
+.vscode/tasks.json
+.vscode/launch.json
+.vscode/extensions.json
+.vscode/.ropeproject
 .vscode-test
 .idea/
 *.sublime-*
@@ -291,31 +297,9 @@ docker-compose.secrets.yml
 !docker-compose.example.yml
 .dockerignore.local
 
-# Cloud provider configs
-.aws/
-.gcp/
-.azure/
-terraform.tfvars
-terraform.tfvars.json
-*.auto.tfvars
-*.auto.tfvars.json
-
-# Kubernetes
-kube-config
-*.kubeconfig
-k8s-secrets.yaml
-
 # ========================================
 # PROJECT SPECIFIC
 # ========================================
-# Uploads (user data)
-uploads/
-avatars/
-/uploads/
-/avatars/
-/maintenance-files/
-/property-files/
-/tenant-files/
 /documents/
 temp/
 
@@ -381,3 +365,43 @@ pids
 test-signup-form.js
 test-supabase-auth.js
 .vercel
+
+# Turborepo
+.turbo
+.next
+.next/
+.vscode/
+.supabase/
+.playwright-mcp/
+.husky/
+.eslintcache
+.claude/
+.eslint/
+
+# macOS system files
+.DS_Store
+
+# Build outputs
+dist/
+coverage/
+.tsbuildinfo
+*.tsbuildinfo
+
+# Cache directories
+.cache/
+.swc/
+
+# Environment files
+.env
+.env.local
+.env.vault
+
+# Test artifacts
+test-results/
+.last-run.json
+playwright-report/
+
+# Temporary files
+.temp/
+.tmp/
+doppler.json

@@ -4,7 +4,7 @@
 
 This directory contains the comprehensive database indexing strategy for TenantFlow, a multi-tenant property management application built on Supabase (PostgreSQL).
 
-## 🎯 Goals
+## Goals
 
 - **Multi-tenant Performance**: Optimize queries for owner-scoped data access
 - **Fast Property Operations**: Efficient property, unit, and lease management
@@ -12,12 +12,12 @@ This directory contains the comprehensive database indexing strategy for TenantF
 - **Real-time Dashboards**: Fast analytics and reporting queries
 - **Billing Integration**: Optimized Stripe customer and subscription lookups
 
-## 📁 Files
+## Files
 
 - **`indexes.sql`** - Complete SQL index definitions and maintenance commands
 - **`README.md`** - This documentation file
 
-## 🔍 Index Categories
+## Index Categories
 
 ### 1. Multi-tenant Core Indexes
 ```sql
@@ -60,7 +60,7 @@ idx_property_search ON "Property" USING gin (to_tsvector('english', "name" || ' 
 idx_tenant_name_search ON "Tenant" USING gin (to_tsvector('english', "name"))
 ```
 
-## 🚀 Usage
+## Usage
 
 ### Applying Indexes
 
@@ -112,7 +112,7 @@ npm run cli:db -- --action health --verbose
 npm run cli:db -- --action unused
 ```
 
-## 📊 Query Patterns Optimized
+## Query Patterns Optimized
 
 ### 1. Property Management
 ```sql
@@ -157,7 +157,7 @@ SELECT * FROM "User" WHERE "stripeCustomerId" = ?;
 SELECT * FROM "Subscription" WHERE "stripeCustomerId" = ?;
 ```
 
-## ⚡ Performance Impact
+## Performance Impact
 
 ### Before Indexing
 - Property list queries: ~500ms for 1000+ properties
@@ -171,7 +171,7 @@ SELECT * FROM "Subscription" WHERE "stripeCustomerId" = ?;
 - Search operations: ~100ms (10x faster)
 - Billing lookups: ~20ms (10x faster)
 
-## 🔧 Maintenance
+## Maintenance
 
 ### Regular Tasks
 
@@ -208,7 +208,7 @@ npm run cli:db -- --action analyze
 npm run cli:db -- --action stats
 ```
 
-## 🎛️ Supabase-Specific Considerations
+## Supabase-Specific Considerations
 
 ### Row Level Security (RLS)
 - All indexes work seamlessly with RLS policies
@@ -225,7 +225,7 @@ npm run cli:db -- --action stats
 - Faster queries = better real-time update responsiveness
 - Consider index impact on INSERT/UPDATE operations
 
-## 📈 Scaling Considerations
+## Scaling Considerations
 
 ### Small Scale (< 1,000 properties)
 - Basic indexes provide excellent performance
@@ -241,7 +241,7 @@ npm run cli:db -- --action stats
 - Regular maintenance becomes essential
 - Consider database partitioning strategies
 
-## 🚨 Troubleshooting
+## Troubleshooting
 
 ### Slow Queries
 1. Check if appropriate indexes exist: `npm run cli:db -- --action stats`
@@ -260,7 +260,7 @@ npm run cli:db -- --action stats
 2. Monitor index sizes in usage statistics
 3. Drop unused indexes to reduce overhead
 
-## 🔗 Related Files
+## Related Files
 
 - **Backend Services**: `apps/backend/src/**/**.service.ts`
 - **Database Service**: `apps/backend/src/database/supabase.service.ts`
@@ -268,7 +268,7 @@ npm run cli:db -- --action stats
 - **CLI Commands**: `apps/backend/src/cli/database-optimization.command.ts`
 - **Type Definitions**: `packages/shared/src/types/supabase-generated.ts`
 
-## 📚 Additional Resources
+## Additional Resources
 
 - [PostgreSQL Index Documentation](https://www.postgresql.org/docs/current/indexes.html)
 - [Supabase Performance Guide](https://supabase.com/docs/guides/platform/performance)

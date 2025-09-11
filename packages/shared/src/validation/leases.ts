@@ -1,7 +1,7 @@
 // Lease validation schema for TenantFlow
 import { z } from 'zod'
-import { requiredString } from './common'
 import { Constants } from '../types/supabase-generated'
+import { requiredString } from './common'
 
 // Enhanced validation with Zod patterns
 const positiveMoneyAmount = z
@@ -19,14 +19,21 @@ const uuidString = z
 
 const dateString = z
 	.string()
-	.refine(val => /^\d{4}-\d{2}-\d{2}$/.test(val) || !isNaN(Date.parse(val)), {
-		message: 'Invalid date format'
-	})
+	.refine(
+		(val: string) => /^\d{4}-\d{2}-\d{2}$/.test(val) || !isNaN(Date.parse(val)),
+		{
+			message: 'Invalid date format'
+		}
+	)
 
 // Use auto-generated Supabase enums - single source of truth
-export const leaseStatusEnum = z.enum(Constants.public.Enums.LeaseStatus as readonly [string, ...string[]])
+export const leaseStatusEnum = z.enum(
+	Constants.public.Enums.LeaseStatus as readonly [string, ...string[]]
+)
 
-export const leaseTypeEnum = z.enum(Constants.public.Enums.LeaseType as readonly [string, ...string[]])
+export const leaseTypeEnum = z.enum(
+	Constants.public.Enums.LeaseType as readonly [string, ...string[]]
+)
 
 export const smokingPolicyEnum = z.enum(['ALLOWED', 'NOT_ALLOWED'])
 
@@ -60,13 +67,11 @@ const leaseBaseSchema = z.object({
 
 // Main lease input schema (with refinements)
 export const leaseInputSchema = leaseBaseSchema.refine(
-	data => {
+	(data: { startDate: string; endDate: string }) => {
 		try {
 			const start = new Date(data.startDate)
 			const end = new Date(data.endDate)
-			return (
-				!isNaN(start.getTime()) && !isNaN(end.getTime()) && end > start
-			)
+			return !isNaN(start.getTime()) && !isNaN(end.getTime()) && end > start
 		} catch {
 			return false
 		}

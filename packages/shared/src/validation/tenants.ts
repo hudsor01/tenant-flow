@@ -1,15 +1,17 @@
 import { z } from 'zod'
-import {
-	uuidSchema,
-	nonEmptyStringSchema,
-	emailSchema,
-	phoneSchema,
-	requiredString
-} from './common'
 import { Constants } from '../types/supabase-generated'
+import {
+	emailSchema,
+	nonEmptyStringSchema,
+	phoneSchema,
+	requiredString,
+	uuidSchema
+} from './common'
 
 // Tenant status enum - uses auto-generated Supabase enums
-export const tenantStatusSchema = z.enum(Constants.public.Enums.TenantStatus as readonly [string, ...string[]])
+export const tenantStatusSchema = z.enum(
+	Constants.public.Enums.TenantStatus as readonly [string, ...string[]]
+)
 
 // Emergency contact schema
 export const emergencyContactSchema = z
@@ -18,7 +20,7 @@ export const emergencyContactSchema = z
 			100,
 			'Emergency contact name cannot exceed 100 characters'
 		),
-		phone: phoneSchema.refine(val => val && val.length > 0, {
+		phone: phoneSchema.refine((val: string) => val && val.length > 0, {
 			message: 'Emergency contact phone is required'
 		}),
 		relationship: nonEmptyStringSchema.max(
@@ -45,10 +47,10 @@ const tenantBaseSchema = z.object({
 	dateOfBirth: z
 		.string()
 		.optional()
-		.refine(val => !val || !isNaN(Date.parse(val)), {
+		.refine((val: string | undefined) => !val || !isNaN(Date.parse(val)), {
 			message: 'Please enter a valid date of birth'
 		})
-		.transform(val => (val ? new Date(val) : undefined)),
+		.transform((val: string | undefined) => (val ? new Date(val) : undefined)),
 
 	emergencyContact: emergencyContactSchema,
 
@@ -60,28 +62,25 @@ const tenantBaseSchema = z.object({
 	leaseStartDate: z
 		.string()
 		.optional()
-		.refine(val => !val || !isNaN(Date.parse(val)), {
+		.refine((val: string | undefined) => !val || !isNaN(Date.parse(val)), {
 			message: 'Please enter a valid lease start date'
 		})
-		.transform(val => (val ? new Date(val) : undefined)),
+		.transform((val: string | undefined) => (val ? new Date(val) : undefined)),
 
 	leaseEndDate: z
 		.string()
 		.optional()
-		.refine(val => !val || !isNaN(Date.parse(val)), {
+		.refine((val: string | undefined) => !val || !isNaN(Date.parse(val)), {
 			message: 'Please enter a valid lease end date'
 		})
-		.transform(val => (val ? new Date(val) : undefined)),
+		.transform((val: string | undefined) => (val ? new Date(val) : undefined)),
 
-	notes: z
-		.string()
-		.max(1000, 'Notes cannot exceed 1000 characters')
-		.optional()
+	notes: z.string().max(1000, 'Notes cannot exceed 1000 characters').optional()
 })
 
 // Base tenant input schema (for forms and API creation)
 export const tenantInputSchema = tenantBaseSchema.refine(
-	data => {
+	(data: { leaseStartDate?: Date; leaseEndDate?: Date }) => {
 		// Validate lease date logic
 		if (data.leaseStartDate && data.leaseEndDate) {
 			return data.leaseEndDate > data.leaseStartDate
@@ -118,13 +117,13 @@ export const tenantQuerySchema = z.object({
 	moveInDateFrom: z
 		.string()
 		.optional()
-		.refine(val => !val || !isNaN(Date.parse(val)), {
+		.refine((val: string | undefined) => !val || !isNaN(Date.parse(val)), {
 			message: 'Invalid move-in date format'
 		}),
 	moveInDateTo: z
 		.string()
 		.optional()
-		.refine(val => !val || !isNaN(Date.parse(val)), {
+		.refine((val: string | undefined) => !val || !isNaN(Date.parse(val)), {
 			message: 'Invalid move-in date format'
 		}),
 	sortBy: z
@@ -174,26 +173,42 @@ export const tenantFormSchema = z
 		emergencyContactPhone: z.string().optional(),
 		emergencyContactRelationship: z.string().optional()
 	})
-	.transform(data => ({
-		email: data.email,
-		firstName: data.firstName,
-		lastName: data.lastName,
-		phone: data.phone,
-		dateOfBirth: data.dateOfBirth,
-		propertyId: data.propertyId,
-		unitId: data.unitId,
-		leaseStartDate: data.leaseStartDate,
-		leaseEndDate: data.leaseEndDate,
-		notes: data.notes,
-		emergencyContact:
-			data.emergencyContactName && data.emergencyContactPhone
-				? {
-						name: data.emergencyContactName,
-						phone: data.emergencyContactPhone,
-						relationship: data.emergencyContactRelationship ?? ''
-					}
-				: undefined
-	}))
+	.transform(
+		(data: {
+			email: string
+			firstName: string
+			lastName: string
+			phone?: string
+			dateOfBirth?: string
+			propertyId?: string
+			unitId?: string
+			leaseStartDate?: string
+			leaseEndDate?: string
+			notes?: string
+			emergencyContactName?: string
+			emergencyContactPhone?: string
+			emergencyContactRelationship?: string
+		}) => ({
+			email: data.email,
+			firstName: data.firstName,
+			lastName: data.lastName,
+			phone: data.phone,
+			dateOfBirth: data.dateOfBirth,
+			propertyId: data.propertyId,
+			unitId: data.unitId,
+			leaseStartDate: data.leaseStartDate,
+			leaseEndDate: data.leaseEndDate,
+			notes: data.notes,
+			emergencyContact:
+				data.emergencyContactName && data.emergencyContactPhone
+					? {
+							name: data.emergencyContactName,
+							phone: data.emergencyContactPhone,
+							relationship: data.emergencyContactRelationship ?? ''
+						}
+					: undefined
+		})
+	)
 
 export type TenantFormData = z.input<typeof tenantFormSchema>
 export type TenantFormOutput = z.output<typeof tenantFormSchema>

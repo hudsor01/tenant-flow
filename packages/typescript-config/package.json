@@ -22,7 +22,7 @@
     "format:check": "echo 'No formatting configured for config package'",
     "clean": "echo 'No build artifacts to clean in config package'"
   },
-  "devDependencies": {
-    "eslint": "^9.34.0"
+  "dependencies": {
+    "prettier-plugin-organize-imports": "4.2.0"
   }
 }

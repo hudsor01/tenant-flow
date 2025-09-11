@@ -36,15 +36,15 @@ log_phase() {
 }
 
 log_success() {
-  echo -e "${GREEN}✓ $1${NC}"
+  echo -e "${GREEN}PASS $1${NC}"
 }
 
 log_warning() {
-  echo -e "${YELLOW}⚠ $1${NC}"
+  echo -e "${YELLOW}WARN $1${NC}"
 }
 
 log_error() {
-  echo -e "${RED}✗ $1${NC}"
+  echo -e "${RED}FAIL $1${NC}"
 }
 
 run_command() {
@@ -244,21 +244,21 @@ phase_5() {
   echo -e "${BLUE}========================================${NC}"
   
   echo -e "\n${GREEN}Core Checks:${NC}"
-  echo "• JSON Syntax: ✓"
-  echo "• TypeScript Compilation: ✓"
-  echo "• ESLint Configuration: ✓"
-  echo "• Build Process: ✓"
+  echo "• JSON Syntax: PASS"
+  echo "• TypeScript Compilation: PASS"
+  echo "• ESLint Configuration: PASS"
+  echo "• Build Process: PASS"
   
   echo -e "\n${GREEN}TypeScript 5.9 Features:${NC}"
-  echo "• moduleDetection: $([ "$MODULE_DETECTION" -gt 0 ] && echo "✓" || echo "⚠")"
-  echo "• verbatimModuleSyntax: $([ "$VERBATIM" -gt 0 ] && echo "✓" || echo "⚠")"
-  echo "• bundler resolution: ✓"
-  echo "• nodenext for NestJS: ✓"
+  echo "• moduleDetection: $([ "$MODULE_DETECTION" -gt 0 ] && echo "PASS" || echo "WARN")"
+  echo "• verbatimModuleSyntax: $([ "$VERBATIM" -gt 0 ] && echo "PASS" || echo "WARN")"
+  echo "• bundler resolution: PASS"
+  echo "• nodenext for NestJS: PASS"
   
   echo -e "\n${GREEN}Monorepo Structure:${NC}"
-  echo "• Project References: ✓"
-  echo "• Shared Package: ✓"
-  echo "• Build Order: ✓"
+  echo "• Project References: PASS"
+  echo "• Shared Package: PASS"
+  echo "• Build Order: PASS"
   
   echo -e "\n${GREEN}Phase 5 Complete!${NC}"
 }

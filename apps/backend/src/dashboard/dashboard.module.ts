@@ -1,15 +1,14 @@
 import { Module } from '@nestjs/common'
 import { DashboardController } from './dashboard.controller'
-import { DashboardService } from './dashboard.service'
-import { PropertiesModule } from '../properties/properties.module'
-import { TenantsModule } from '../tenants/tenants.module'
-import { LeasesModule } from '../leases/leases.module'
-// Removed ErrorHandlerService - using native NestJS exceptions
+import { SupabaseModule } from '../database/supabase.module'
 
+/**
+ * ULTRA-NATIVE Dashboard Module
+ * No service layers, forwardRef complexity, or circular dependencies
+ * Direct Supabase RPC calls in controller
+ */
 @Module({
-	imports: [PropertiesModule, TenantsModule, LeasesModule],
-	controllers: [DashboardController],
-	providers: [DashboardService],
-	exports: [DashboardService]
+	imports: [SupabaseModule],
+	controllers: [DashboardController]
 })
 export class DashboardModule {}

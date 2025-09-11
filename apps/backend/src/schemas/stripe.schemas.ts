@@ -1,438 +1,91 @@
 /**
  * Stripe/Billing Schemas
  *
- * JSON Schema definitions for Stripe and billing endpoints.
- * Replaces class-validator DTOs with type-safe schema definitions.
+ * Zod schema definitions for Stripe and billing endpoints.
+ * Ultra-native approach per CLAUDE.md - no class-validator DTOs.
  */
 
-import type { JSONSchema } from '../shared/types/fastify-type-provider'
+import { z } from 'zod'
 
 // Plan ID enum schema based on shared types
-const planIdSchema: JSONSchema = {
-	type: 'string',
-	enum: ['STARTER', 'GROWTH', 'TENANTFLOW_MAX'],
-	description: 'Subscription plan identifier'
-}
+const planIdSchema = z.enum(['STARTER', 'GROWTH', 'TENANTFLOW_MAX'])
 
 // Billing interval schema
-const billingIntervalSchema: JSONSchema = {
-	type: 'string',
-	enum: ['monthly', 'annual'],
-	description: 'Billing interval for subscription'
-}
+const billingIntervalSchema = z.enum(['monthly', 'annual'])
 
 /**
  * Create checkout session request
  */
-export interface CreateCheckoutRequest {
-	planId: string
-	interval: 'monthly' | 'annual'
-	successUrl?: string
-	cancelUrl?: string
-}
+export const createCheckoutSchema = z.object({
+	planId: planIdSchema,
+	interval: billingIntervalSchema,
+	successUrl: z.string().url().optional(),
+	cancelUrl: z.string().url().optional()
+})
 
-export const createCheckoutSchema: JSONSchema = {
-	type: 'object',
-	required: ['planId', 'interval'],
-	additionalProperties: false,
-	properties: {
-		planId: planIdSchema,
-		interval: billingIntervalSchema,
-		successUrl: {
-			type: 'string',
-			format: 'uri',
-			description: 'URL to redirect to after successful checkout'
-		},
-		cancelUrl: {
-			type: 'string',
-			format: 'uri',
-			description: 'URL to redirect to after cancelled checkout'
-		}
-	}
-}
+export type CreateCheckoutRequest = z.infer<typeof createCheckoutSchema>
 
 /**
  * Create embedded checkout session request
  */
-export interface CreateEmbeddedCheckoutRequest {
-	priceId: string
-	quantity?: number
-	customerId?: string
-	trialPeriodDays?: number
-	couponId?: string
-	metadata?: Record<string, string>
-}
+export const createEmbeddedCheckoutSchema = z.object({
+	priceId: z.string().regex(/^price_[a-zA-Z0-9_]+$/),
+	quantity: z.number().int().min(1).max(1000).default(1).optional(),
+	customerId: z.string().regex(/^cus_[a-zA-Z0-9_]+$/).optional(),
+	trialPeriodDays: z.number().int().min(0).max(365).optional(),
+	couponId: z.string().regex(/^[a-zA-Z0-9_-]+$/).optional(),
+	metadata: z.record(z.string(), z.string()).optional()
+})
 
-export const createEmbeddedCheckoutSchema: JSONSchema = {
-	type: 'object',
-	required: ['priceId'],
-	additionalProperties: false,
-	properties: {
-		priceId: {
-			type: 'string',
-			pattern: '^price_[a-zA-Z0-9_]+$',
-			description: 'Stripe price ID'
-		},
-		quantity: {
-			type: 'integer',
-			minimum: 1,
-			maximum: 1000,
-			default: 1,
-			description: 'Quantity of items to purchase'
-		},
-		customerId: {
-			type: 'string',
-			pattern: '^cus_[a-zA-Z0-9_]+$',
-			description: 'Existing Stripe customer ID'
-		},
-		trialPeriodDays: {
-			type: 'integer',
-			minimum: 0,
-			maximum: 365,
-			description: 'Number of days for free trial'
-		},
-		couponId: {
-			type: 'string',
-			pattern: '^[a-zA-Z0-9_-]+$',
-			description: 'Stripe coupon ID to apply'
-		},
-		metadata: {
-			type: 'object',
-			additionalProperties: {
-				type: 'string'
-			},
-			maxProperties: 50,
-			description: 'Additional metadata for the checkout session'
-		}
-	}
-}
+export type CreateEmbeddedCheckoutRequest = z.infer<typeof createEmbeddedCheckoutSchema>
 
 /**
  * Create customer portal session request
  */
-export interface CreatePortalRequest {
-	returnUrl?: string
-}
+export const createPortalSchema = z.object({
+	returnUrl: z.string().url().optional()
+})
 
-export const createPortalSchema: JSONSchema = {
-	type: 'object',
-	additionalProperties: false,
-	properties: {
-		returnUrl: {
-			type: 'string',
-			format: 'uri',
-			description: 'URL to return to from customer portal'
-		}
-	}
-}
+export type CreatePortalRequest = z.infer<typeof createPortalSchema>
 
 /**
  * Checkout session response
  */
-export interface CheckoutResponse {
-	sessionId: string
-	url?: string
-	clientSecret?: string
-}
+export const checkoutResponseSchema = z.object({
+	sessionId: z.string().regex(/^cs_[a-zA-Z0-9_]+$/),
+	url: z.string().url().optional(),
+	clientSecret: z.string().optional()
+})
 
-export const checkoutResponseSchema: JSONSchema = {
-	type: 'object',
-	required: ['sessionId'],
-	properties: {
-		sessionId: {
-			type: 'string',
-			pattern: '^cs_[a-zA-Z0-9_]+$',
-			description: 'Stripe checkout session ID'
-		},
-		url: {
-			type: 'string',
-			format: 'uri',
-			description: 'Checkout session URL (for hosted checkout)'
-		},
-		clientSecret: {
-			type: 'string',
-			description: 'Client secret for embedded checkout'
-		}
-	}
-}
-
-/**
- * Create subscription with confirmation token request
- */
-export interface CreateSubscriptionDto {
-	planType: string
-	billingInterval: 'monthly' | 'annual'
-	confirmationTokenId: string
-}
-
-export const createSubscriptionSchema: JSONSchema = {
-	type: 'object',
-	required: ['planType', 'billingInterval', 'confirmationTokenId'],
-	additionalProperties: false,
-	properties: {
-		planType: planIdSchema,
-		billingInterval: billingIntervalSchema,
-		confirmationTokenId: {
-			type: 'string',
-			pattern: '^cnf_[a-zA-Z0-9_]+$',
-			description: 'Stripe confirmation token ID for embedded checkout'
-		}
-	}
-}
+export type CheckoutResponse = z.infer<typeof checkoutResponseSchema>
 
 /**
  * Customer portal response
  */
-export interface PortalResponse {
-	url: string
-}
+export const portalResponseSchema = z.object({
+	url: z.string().url()
+})
 
-export const portalResponseSchema: JSONSchema = {
-	type: 'object',
-	required: ['url'],
-	properties: {
-		url: {
-			type: 'string',
-			format: 'uri',
-			description: 'Customer portal URL'
-		}
-	}
-}
-
-/**
- * Subscription status response
- */
-export interface SubscriptionStatusResponse {
-	id: string
-	status: string
-	planId: string
-	planName: string
-	interval: string
-	currentPeriodStart: string
-	currentPeriodEnd: string
-	cancelAtPeriodEnd: boolean
-	trialEnd?: string
-	amount: number
-	currency: string
-}
-
-export const subscriptionStatusResponseSchema: JSONSchema = {
-	type: 'object',
-	required: [
-		'id',
-		'status',
-		'planId',
-		'planName',
-		'interval',
-		'currentPeriodStart',
-		'currentPeriodEnd',
-		'cancelAtPeriodEnd',
-		'amount',
-		'currency'
-	],
-	properties: {
-		id: {
-			type: 'string',
-			pattern: '^sub_[a-zA-Z0-9_]+$',
-			description: 'Stripe subscription ID'
-		},
-		status: {
-			type: 'string',
-			enum: [
-				'incomplete',
-				'incomplete_expired',
-				'trialing',
-				'active',
-				'past_due',
-				'canceled',
-				'unpaid'
-			],
-			description: 'Current subscription status'
-		},
-		planId: planIdSchema,
-		planName: {
-			type: 'string',
-			description: 'Human-readable plan name'
-		},
-		interval: billingIntervalSchema,
-		currentPeriodStart: {
-			type: 'string',
-			format: 'date-time',
-			description: 'Start of current billing period'
-		},
-		currentPeriodEnd: {
-			type: 'string',
-			format: 'date-time',
-			description: 'End of current billing period'
-		},
-		cancelAtPeriodEnd: {
-			type: 'boolean',
-			description: 'Whether subscription will cancel at period end'
-		},
-		trialEnd: {
-			type: 'string',
-			format: 'date-time',
-			description: 'End of trial period if applicable'
-		},
-		amount: {
-			type: 'integer',
-			minimum: 0,
-			description: 'Subscription amount in cents'
-		},
-		currency: {
-			type: 'string',
-			pattern: '^[A-Z]{3}$',
-			default: 'USD',
-			description: 'Currency code (ISO 4217)'
-		}
-	}
-}
+export type PortalResponse = z.infer<typeof portalResponseSchema>
 
 /**
  * Webhook event schema for Stripe webhooks
  */
-export interface StripeWebhookEvent {
-	id: string
-	object: string
-	type: string
-	created: number
-	data: {
-		object: Record<string, unknown>
-		previous_attributes?: Record<string, unknown>
-	}
-	livemode: boolean
-	pending_webhooks: number
-	request: {
-		id: string | null
-		idempotency_key: string | null
-	}
-}
+export const stripeWebhookEventSchema = z.object({
+	id: z.string().regex(/^evt_[a-zA-Z0-9_]+$/),
+	object: z.literal('event'),
+	type: z.string(),
+	created: z.number(),
+	data: z.object({
+		object: z.record(z.string(), z.unknown()),
+		previous_attributes: z.record(z.string(), z.unknown()).optional()
+	}),
+	livemode: z.boolean(),
+	pending_webhooks: z.number(),
+	request: z.object({
+		id: z.string().nullable(),
+		idempotency_key: z.string().nullable()
+	})
+})
 
-export const stripeWebhookEventSchema: JSONSchema = {
-	type: 'object',
-	required: [
-		'id',
-		'object',
-		'type',
-		'created',
-		'data',
-		'livemode',
-		'pending_webhooks',
-		'request'
-	],
-	properties: {
-		id: {
-			type: 'string',
-			pattern: '^evt_[a-zA-Z0-9_]+$',
-			description: 'Stripe event ID'
-		},
-		object: {
-			type: 'string',
-			enum: ['event'],
-			description: 'Object type (always "event")'
-		},
-		type: {
-			type: 'string',
-			description: 'Event type'
-		},
-		created: {
-			type: 'integer',
-			description: 'Unix timestamp when event was created'
-		},
-		data: {
-			type: 'object',
-			required: ['object'],
-			properties: {
-				object: {
-					type: 'object',
-					description:
-						'The object that was created, updated, or deleted'
-				},
-				previous_attributes: {
-					type: 'object',
-					description:
-						'Previous attributes if this was an update event'
-				}
-			}
-		},
-		livemode: {
-			type: 'boolean',
-			description: 'Whether this event was sent in live mode'
-		},
-		pending_webhooks: {
-			type: 'integer',
-			description: 'Number of pending webhook deliveries'
-		},
-		request: {
-			type: 'object',
-			required: ['id', 'idempotency_key'],
-			properties: {
-				id: {
-					type: ['string', 'null'],
-					description: 'Request ID that created this event'
-				},
-				idempotency_key: {
-					type: ['string', 'null'],
-					description: 'Idempotency key for the request'
-				}
-			}
-		}
-	}
-}
-
-// Schemas are exported directly for use in NestJS controllers
-// No custom registry needed - use Fastify's native addSchema() if sharing is required
-
-// Export route schemas for controller usage
-export const stripeRouteSchemas = {
-	createCheckout: {
-		body: createCheckoutSchema,
-		response: {
-			200: checkoutResponseSchema,
-			400: {
-				type: 'object',
-				properties: {
-					statusCode: { type: 'number' },
-					error: { type: 'string' },
-					message: { type: 'string' }
-				}
-			}
-		}
-	},
-	createEmbeddedCheckout: {
-		body: createEmbeddedCheckoutSchema,
-		response: {
-			200: checkoutResponseSchema
-		}
-	},
-	createPortal: {
-		body: createPortalSchema,
-		response: {
-			200: portalResponseSchema
-		}
-	},
-	getSubscriptionStatus: {
-		response: {
-			200: subscriptionStatusResponseSchema,
-			404: {
-				type: 'object',
-				properties: {
-					statusCode: { type: 'number' },
-					error: { type: 'string' },
-					message: { type: 'string' }
-				}
-			}
-		}
-	},
-	stripeWebhook: {
-		body: stripeWebhookEventSchema,
-		response: {
-			200: {
-				type: 'object',
-				properties: {
-					received: { type: 'boolean' }
-				}
-			}
-		}
-	}
-} as const
+export type StripeWebhookEvent = z.infer<typeof stripeWebhookEventSchema>

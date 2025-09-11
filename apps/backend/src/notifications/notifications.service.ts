@@ -2,7 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import { PinoLogger } from 'nestjs-pino'
 import { SupabaseService } from '../database/supabase.service'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { Database } from '@repo/shared'
 import type { MaintenanceNotificationData } from '@repo/shared'
 import { z } from 'zod'
 import {

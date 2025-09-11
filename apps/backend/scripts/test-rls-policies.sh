@@ -5,8 +5,8 @@
 
 # Skip in CI environment
 if [ -n "$CI" ] || [ -n "$GITHUB_ACTIONS" ] || [ -n "$RUNNER_OS" ]; then
-    echo "🚧 Running in CI environment - skipping RLS database tests"
-    echo "✅ RLS tests skipped in CI (database connection not available)"
+    echo "CI: Running in CI environment - skipping RLS database tests"
+    echo "SUCCESS: RLS tests skipped in CI (database connection not available)"
     exit 0
 fi
 

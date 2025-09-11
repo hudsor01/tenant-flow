@@ -1,8 +1,8 @@
 /**
- * 🚨 ULTRA-NATIVE SERVICE - DO NOT ADD ORCHESTRATION 🚨
+ * ULTRA-NATIVE SERVICE - DO NOT ADD ORCHESTRATION
  *
  * DIRECT PostgreSQL RPC calls ONLY. Each method <30 lines.
- * ❌ FORBIDDEN: Service layers, repositories, business logic classes
+ * FORBIDDEN: Service layers, repositories, business logic classes
  * See: apps/backend/ULTRA_NATIVE_ARCHITECTURE.md
  */
 
@@ -13,12 +13,13 @@ import type {
 	CreateLeaseRequest,
 	UpdateLeaseRequest
 } from '../schemas/leases.schema'
-import type { 
-	Lease,
-	Unit,
-	Property,
-	Tenant
-} from '@repo/shared/types/database'
+import type { Tables } from '@repo/shared/types/supabase'
+
+// Use native Supabase table types
+type Lease = Tables<'Lease'>
+type Unit = Tables<'Unit'>
+type Property = Tables<'Property'>
+type Tenant = Tables<'Tenant'>
 
 export interface LeaseWithRelations extends Lease {
 	Unit?: Unit & {
@@ -168,7 +169,7 @@ export class LeasesService {
 				p_unit_id: createRequest.unitId,
 				p_start_date: createRequest.startDate,
 				p_end_date: createRequest.endDate,
-				p_monthly_rent: createRequest.monthlyRent,
+				p_rentamount: createRequest.monthlyRent,
 				p_security_deposit: createRequest.securityDeposit,
 				p_payment_frequency:
 					createRequest.paymentFrequency || 'MONTHLY',
@@ -202,7 +203,7 @@ export class LeasesService {
 				p_lease_id: leaseId,
 				p_start_date: updateRequest.startDate,
 				p_end_date: updateRequest.endDate,
-				p_monthly_rent: updateRequest.monthlyRent,
+				p_rentamount: updateRequest.monthlyRent,
 				p_security_deposit: updateRequest.securityDeposit,
 				p_payment_frequency: updateRequest.paymentFrequency,
 				p_status: updateRequest.status

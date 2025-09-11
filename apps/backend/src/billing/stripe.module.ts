@@ -1,33 +1,40 @@
 import { Module } from '@nestjs/common'
-import { EventEmitterModule } from '@nestjs/event-emitter'
-import { StripeService } from './stripe.service'
-import { PaymentRecoveryService } from './payment-recovery.service'
-import { PaymentNotificationService } from './payment-notification.service'
-import { StripeWebhookService } from './stripe-webhook.service'
-import { StripePortalService } from './stripe-portal.service'
-import { SupabaseService } from '../database/supabase.service'
 
+import { StripeSyncService } from './stripe-sync.service'
+import { StripeDataService } from './stripe-data.service'
+import { StripeController } from './stripe.controller'
+import { SupabaseModule } from '../database/supabase.module'
+import { EventEmitter2 } from '@nestjs/event-emitter'
+
+/**
+ * Production-Grade Stripe Module
+ * 
+ * Consolidated from 3 controllers into 1 comprehensive controller
+ * Based on official Stripe documentation patterns:
+ * - Payment Intent lifecycle management
+ * - Advanced webhook handling with signature verification
+ * - Subscription billing with flexible pricing models
+ * - Stripe Connect for multi-tenant payments
+ * - Type-safe DTOs with comprehensive validation
+ */
 @Module({
-	imports: [EventEmitterModule],
+	imports: [SupabaseModule],
 	providers: [
-		// Core services
-		StripeService,
-		PaymentRecoveryService,
-		PaymentNotificationService,
+		// Stripe Sync Engine integration (using native @supabase/stripe-sync-engine)
+		StripeSyncService,
+		
+		// Data access layer for stripe.* tables  
+		StripeDataService,
 
-		// New minimal services
-		StripeWebhookService,
-		StripePortalService,
-
-		// Database
-		SupabaseService
+		// Event system (native NestJS)
+		EventEmitter2
+	],
+	controllers: [
+		StripeController // Single production-grade controller with all Stripe functionality
 	],
 	exports: [
-		StripeService,
-		PaymentRecoveryService,
-		PaymentNotificationService,
-		StripeWebhookService,
-		StripePortalService
+		StripeSyncService,
+		StripeDataService
 	]
 })
 export class StripeModule {}

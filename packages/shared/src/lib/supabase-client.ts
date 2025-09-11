@@ -7,18 +7,13 @@
 
 import {
 	createClient,
-	type SupabaseClient,
-	type User,
+	type AuthError,
 	type Session,
-	type AuthError
+	type SupabaseClient,
+	type User
 } from '@supabase/supabase-js'
 import type { Database } from '../types/supabase'
 
-// ========================
-// Client Configuration
-// ========================
-
-// Environment variables validation
 const SUPABASE_URL =
 	process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
 const SUPABASE_ANON_KEY =
@@ -33,14 +28,6 @@ if (!SUPABASE_ANON_KEY) {
 	throw new Error('Missing SUPABASE_ANON_KEY environment variable')
 }
 
-// ========================
-// Typed Client Instances
-// ========================
-
-/**
- * Client-side Supabase client with anonymous/authenticated access
- * Use this in frontend components and client-side API calls
- */
 export const supabaseClient: SupabaseClient<Database> = createClient<Database>(
 	SUPABASE_URL,
 	SUPABASE_ANON_KEY,
@@ -60,13 +47,16 @@ export const supabaseClient: SupabaseClient<Database> = createClient<Database>(
  * ONLY use this in backend services where you need to bypass RLS
  *
  * SECURITY WARNING: Never use this client with user input without validation
+ * IMPORTANT: This will throw an error if used in frontend without SUPABASE_SERVICE_KEY
  */
-export const supabaseAdmin: SupabaseClient<Database> = (() => {
+export function getSupabaseAdmin(): SupabaseClient<Database> {
 	if (!SUPABASE_SERVICE_KEY) {
-		throw new Error('SUPABASE_SERVICE_KEY required for admin client')
+		throw new Error(
+			'SUPABASE_SERVICE_KEY required for admin client - this should only be used in backend services'
+		)
 	}
 
-	return createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+	return createClient<Database>(SUPABASE_URL!, SUPABASE_SERVICE_KEY, {
 		auth: {
 			persistSession: false,
 			autoRefreshToken: false
@@ -75,24 +65,29 @@ export const supabaseAdmin: SupabaseClient<Database> = (() => {
 			schema: 'public'
 		}
 	})
-})()
+}
 
-// ========================
-// Direct Client Usage Only
-// ========================
-// ULTRA-NATIVE: Use supabaseClient and supabaseAdmin directly
-// No factory functions - violates KISS principle
+// For environments where admin client is needed, use getSupabaseAdmin()
+// This prevents immediate initialization that would fail in frontend
+let _adminClient: SupabaseClient<Database> | null = null
 
-// ========================
-// Type-Safe Query Helpers
-// ========================
-
-// ULTRA-NATIVE: Use Supabase query results directly
-// No wrapper functions - handle .data and .error inline
-
-// ========================
-// Common Query Patterns
-// ========================
+export const supabaseAdmin: SupabaseClient<Database> = new Proxy(
+	{} as SupabaseClient<Database>,
+	{
+		get(target, prop, receiver) {
+			// Only create admin client when actually accessed (and only in backend)
+			if (typeof globalThis !== 'undefined' && 'window' in globalThis) {
+				throw new Error(
+					'supabaseAdmin cannot be used in browser/frontend code. Use supabaseClient instead.'
+				)
+			}
+			if (!_adminClient) {
+				_adminClient = getSupabaseAdmin()
+			}
+			return Reflect.get(_adminClient, prop, receiver)
+		}
+	}
+)
 
 /**
  * Get current authenticated user with type safety
@@ -108,9 +103,6 @@ export async function getCurrentUser(): Promise<{
 	return { user, error }
 }
 
-/**
- * Get user session with type safety
- */
 export async function getCurrentSession(): Promise<{
 	session: Session | null
 	error: AuthError | null
@@ -122,9 +114,6 @@ export async function getCurrentSession(): Promise<{
 	return { session, error }
 }
 
-/**
- * Sign out current user
- */
 export async function signOut(): Promise<{ error: AuthError | null }> {
 	const { error } = await supabaseClient.auth.signOut()
 	return { error }
@@ -136,23 +125,18 @@ export async function signOut(): Promise<{ error: AuthError | null }> {
 // Use RLS policies directly - no wrapper classes
 // Example: supabaseClient.from('Property').select('*').eq('organizationId', orgId)
 
-// ========================
-// Type Exports
-// ========================
-
-// Re-export useful types for consumers
-export type { 
+export type {
 	Database,
-	Tables, 
-	TablesInsert, 
-	TablesUpdate, 
-	Enums 
+	Enums,
+	Tables,
+	TablesInsert,
+	TablesUpdate
 } from '../types/supabase-generated'
 
 export type {
 	QueryData,
 	QueryError,
-	TenantFlowUserMetadata,
 	TenantFlowOrganizationSettings,
-	TenantFlowPropertyMetadata
+	TenantFlowPropertyMetadata,
+	TenantFlowUserMetadata
 } from '../types/supabase'

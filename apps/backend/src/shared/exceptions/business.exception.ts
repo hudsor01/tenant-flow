@@ -6,7 +6,6 @@ import type { BusinessErrorCode } from '@repo/shared'
  * Following CLAUDE.md RULE #3: No abstractions - direct NestJS usage only
  *
  * Simple exception class that extends NestJS HttpException
- * Used for business logic violations that should return structured error responses
  */
 export class BusinessException extends HttpException {
 	public readonly code: BusinessErrorCode

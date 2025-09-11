@@ -1,14 +1,14 @@
 /**
- * 🚨 ULTRA-NATIVE SERVICE - DO NOT ADD ORCHESTRATION 🚨
+ *  ULTRA-NATIVE SERVICE - DO NOT ADD ORCHESTRATION 
  *
  * This file implements DIRECT PostgreSQL RPC calls ONLY:
- * ✅ Single RPC call per method (<30 lines each)
- * ✅ Direct Supabase client calls with automatic RLS
- * ✅ Native NestJS exception handling only
+ * [OK] Single RPC call per method (<30 lines each)
+ * [OK] Direct Supabase client calls with automatic RLS
+ * [OK] Native NestJS exception handling only
  *
- * ❌ FORBIDDEN: Service orchestration, repositories, query builders
- * ❌ FORBIDDEN: Custom error handlers, response formatters, data mappers
- * ❌ FORBIDDEN: Business logic layers, validation services, helper methods
+ * FORBIDDEN: Service orchestration, repositories, query builders
+ * FORBIDDEN: Custom error handlers, response formatters, data mappers
+ * FORBIDDEN: Business logic layers, validation services, helper methods
  *
  * See: apps/backend/ULTRA_NATIVE_ARCHITECTURE.md
  */

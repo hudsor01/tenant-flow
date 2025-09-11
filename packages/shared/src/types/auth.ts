@@ -5,7 +5,9 @@
 
 // Import constants from the single source of truth
 import type { USER_ROLE } from '../constants/auth'
-import type { Tables } from './supabase-generated'
+import type { Tables, Database } from './supabase-generated'
+import type { ValidatedUser as BackendValidatedUser } from './backend-domain'
+
 
 // ULTRA-NATIVE: Use generated types directly
 type User = Tables<'User'>
@@ -80,7 +82,6 @@ export interface UpdatePasswordFormData {
 }
 
 export interface ProfileFormData {
-	[key: string]: string | undefined
 	name: string
 	email: string
 	phone?: string
@@ -208,29 +209,8 @@ export interface JwtPayload {
 	exp?: number
 }
 
-// Validated user (after authentication) - type-safe with security context
-export interface ValidatedUser {
-	id: string
-	email: string
-	name?: string
-role?: UserRole
-organizationId?: string | null
-stripeCustomerId?: string
-	subscription?: SecureSubscriptionData
-	metadata?: SecureUserMetadata
-	emailVerified?: boolean
-	lastLoginAt?: Date
-	createdAt?: Date
-	updatedAt?: Date
-	securityFlags?: {
-		requiresMFA?: boolean
-		isLocked?: boolean
-		suspiciousActivity?: boolean
-		passwordExpiresAt?: Date
-		lastPasswordChange?: Date
-		failedLoginAttempts?: number
-	}
-}
+// Re-export ValidatedUser from backend-domain.ts to avoid duplication
+export type { ValidatedUser } from './backend-domain'
 
 // Supabase user structure (from Supabase auth.getUser())
 export interface SupabaseUser {
@@ -246,18 +226,14 @@ export interface SupabaseUser {
 	updated_at?: string
 }
 
-// Auth service validated user - extends base ValidatedUser with string dates for compatibility
-export interface AuthServiceValidatedUser
-extends Omit<ValidatedUser, 'createdAt' | 'updatedAt' | 'lastLoginAt' | 'name' | 'organizationId'> {
-name: string | undefined
-createdAt: Date
-updatedAt: Date
-supabaseId: string
-bio: string | null
-profileComplete: boolean
-lastLoginAt: Date
-organizationId: string | null | undefined
-[key: string]: unknown
+// Auth service validated user - directly extends database User table type
+export interface AuthServiceValidatedUser extends Omit<Database['public']['Tables']['User']['Row'], 'createdAt' | 'updatedAt'> {
+	createdAt: Date
+	updatedAt: Date
+	profileComplete: boolean
+	lastLoginAt: Date
+	organizationId: string | null | undefined
+	emailVerified: boolean
 }
 
 // =============================================================================
@@ -295,8 +271,8 @@ export interface ChangePasswordRequest {
 // Extended auth context and guard types
 // MIGRATED from apps/backend/src/shared/guards/auth.guard.ts
 export interface AuthenticatedRequest {
-	user: ValidatedUser
-	[key: string]: unknown
+	user: BackendValidatedUser
+	// Additional authenticated request context could be added here with specific types
 }
 
 // MIGRATED from apps/backend/src/shared/guards/roles.guard.ts
@@ -304,7 +280,7 @@ export interface RequestWithUser {
 	user?: User & { organizationId?: string }
 	params?: Record<string, string>
 	query?: Record<string, string>
-	body?: Record<string, unknown>
+	body?: Record<string, string | number | boolean | null> // HTTP request bodies have constrained JSON values
 	ip?: string
 }
 
@@ -373,8 +349,14 @@ export interface AuthContext {
 	roles: UserRole[]
 }
 
+// Define FormState locally since UI types were moved to frontend-only
+type FormState<T = Record<string, string | number | boolean | null>> = {
+	data: Partial<T>
+	errors: Record<string, string[]>
+	isDirty: boolean
+	isSubmitting: boolean
+	isValid: boolean
+}
+
 // Form state type alias for auth forms
 export type AuthFormState = FormState<User>
-
-// Import FormState from UI types
-import type { FormState } from './ui'

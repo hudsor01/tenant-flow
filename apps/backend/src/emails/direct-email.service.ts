@@ -2,7 +2,7 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { PinoLogger } from 'nestjs-pino'
 import { Resend } from 'resend'
-import type { EnvironmentVariables } from '../config/config.schema'
+import type { Config } from '../config/config.schema'
 import { MaintenanceRequestEmail } from './maintenance-request-email'
 
 /**
@@ -17,11 +17,11 @@ export class DirectEmailService {
   private readonly fromAddress: string
 
   constructor(
-    private readonly configService: ConfigService<EnvironmentVariables>,
+    private readonly configService: ConfigService<Config>,
     private readonly logger: PinoLogger
   ) {
     // PinoLogger context handled automatically via app-level configuration
-    const resendKey = this.configService.get('RESEND_API_KEY', { infer: true })
+    const resendKey = this.configService.get('RESEND_API_KEY') as string
     if (!resendKey) {
       throw new InternalServerErrorException('RESEND_API_KEY is required for email functionality')
     }
