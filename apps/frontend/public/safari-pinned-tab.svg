@@ -1,0 +1,11 @@
+<?xml version="1.0" standalone="no"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="180px" height="180px" viewBox="0 0 180 180">
+<g>
+    <polygon fill="#2563eb" points="45,60 45,30 60,30 90,60 60,90 45,90"/>
+    <rect fill="#2563eb" x="75" y="75" width="15" height="15"/>
+    <rect fill="#2563eb" x="95" y="75" width="15" height="15"/>
+    <rect fill="#2563eb" x="75" y="95" width="15" height="15"/>
+    <rect fill="#2563eb" x="95" y="95" width="15" height="15"/>
+    <path fill="#2563eb" d="M120,60 Q135,75 135,105 Q135,135 120,150 L105,135 Q120,120 120,105 Q120,90 105,75 Z"/>
+</g>
+</svg>
