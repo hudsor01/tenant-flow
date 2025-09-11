@@ -37,7 +37,11 @@ export const APP_DOMAINS = {
  */
 export function getCORSOrigins(environment: 'development' | 'production' = 'production'): string[] | boolean {
 	if (environment === 'development') {
-		return true // Allow all origins in development for easier testing
+		// SECURITY FIX: Use specific origins even in development
+		return [
+			...APP_DOMAINS.FRONTEND.DEVELOPMENT,
+			...APP_DOMAINS.BACKEND.DEVELOPMENT
+		]
 	}
 	
 	return [
