@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, CheckCircle, Clock, TrendingUp, Users, Zap, Book, MessageCircle, Phone, Mail } from "lucide-react"
+import { ArrowRight, CheckCircle, Clock, TrendingUp, Users, Book, MessageCircle, Phone, Mail } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { FooterMinimal } from "@/components/sections/footer-minimal"
 

@@ -8,9 +8,6 @@ import {
 	Clock,
 	BarChart3,
 	Building2,
-	FileText,
-	Monitor,
-	Newspaper,
 	TrendingUp,
 	Users,
 	Zap
