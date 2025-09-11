@@ -14,6 +14,9 @@ import {
 } from '@/components/ui/table'
 import { useLeases, useLeaseStats } from '@/hooks/api/leases'
 import { AlertTriangle, Calendar, Clock, FileText } from 'lucide-react'
+import type { Database } from '@repo/shared'
+
+type Lease = Database['public']['Tables']['Lease']['Row']
 
 export default function LeasesPage() {
 	const { data: leases, isLoading: leasesLoading } = useLeases()
@@ -165,7 +168,7 @@ export default function LeasesPage() {
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-							{leasesData.map(lease => (
+							{leasesData.map((lease: Lease) => (
 								<TableRow key={lease.id} className="hover:bg-muted/30">
 									<TableCell>
 										<div className="flex items-center gap-2">

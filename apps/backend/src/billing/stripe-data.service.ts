@@ -1,14 +1,17 @@
-import { Injectable, Optional, InternalServerErrorException } from '@nestjs/common'
+import { Injectable, Optional, InternalServerErrorException, BadRequestException } from '@nestjs/common'
+import { SupabaseService } from '../database/supabase.service'
 import { PinoLogger } from 'nestjs-pino'
-import type Stripe from 'stripe'
 
 /**
  * Stripe Data Service
  *
  * Ultra-native data access layer for querying stripe.* tables
  * Following Phase 4 of Stripe Sync Engine Integration Plan
- * Direct SQL queries with advanced analytics capabilities
+ * Direct table access with minimal abstraction (ULTRA-NATIVE)
  */
+
+// Standard subscription value for calculations
+const STANDARD_SUBSCRIPTION_VALUE = 2999
 
 export interface StripeCustomerSubscription {
 	id: string
@@ -81,13 +84,16 @@ export interface CustomerLifetimeValue {
 
 @Injectable()
 export class StripeDataService {
-	constructor(@Optional() private readonly logger?: PinoLogger) {
+	constructor(
+		private readonly supabaseService: SupabaseService,
+		@Optional() private readonly logger?: PinoLogger
+	) {
 		this.logger?.setContext(StripeDataService.name)
 	}
 
 	/**
 	 * Get customer subscriptions with full relationship data
-	 * Direct SQL queries against stripe.* tables (Ultra-native)
+	 * Ultra-native: Direct table access with minimal abstraction
 	 */
 	async getCustomerSubscriptions(
 		customerId: string
@@ -95,69 +101,31 @@ export class StripeDataService {
 		try {
 			this.logger?.info('Fetching customer subscriptions', { customerId })
 
-			// TODO: Uncomment when stripe.subscriptions table is created
-			// const { data, error } = await this.supabaseService
-			//   .getAdminClient()
-			//   .from('stripe.subscriptions')
-			//   .select(`
-			//     id,
-			//     customer,
-			//     status,
-			//     current_period_start,
-			//     current_period_end,
-			//     created,
-			//     canceled_at,
-			//     stripe.customers!inner (
-			//       id,
-			//       email,
-			//       name,
-			//       created
-			//     ),
-			//     stripe.prices (
-			//       id,
-			//       unit_amount,
-			//       currency,
-			//       recurring,
-			//       stripe.products (
-			//         id,
-			//         name,
-			//         description
-			//       )
-			//     )
-			//   `)
-			//   .eq('customer', customerId)
-			//   .order('created', { ascending: false })
+			// Ultra-native: Direct table query - no complex joins, no custom SQL
+			// Note: Using 'as any' to bypass TypeScript type checking for stripe schema
+			const { data, error } = await this.supabaseService
+				.getAdminClient()
+				.from('stripe.subscriptions' as any)
+				.select('*')
+				.eq('customer', customerId)
+				.order('created', { ascending: false })
 
-			// if (error) {
-			//   this.logger?.error('Failed to fetch customer subscriptions', { error, customerId })
-			//   throw error
-			// }
+			if (error) {
+				this.logger?.error('Failed to fetch customer subscriptions', { error, customerId })
+				throw new InternalServerErrorException('Failed to fetch customer subscriptions')
+			}
 
-			// // Transform the data to match our interface
-			// return (data || []).map(sub => ({
-			//   id: sub.id,
-			//   customer: sub.customer,
-			//   status: sub.status,
-			//   current_period_start: sub.current_period_start,
-			//   current_period_end: sub.current_period_end,
-			//   created: sub.created,
-			//   canceled_at: sub.canceled_at,
-			//   customer_data: (sub as any)['stripe.customers'],
-			//   price_data: sub['stripe.prices'],
-			//   product_data: sub['stripe.prices']?.['stripe.products']
-			// }))
-
-			// Return mock data for now
-			return []
+			// Ultra-native: Direct mapping - no complex transformations
+			return data || []
 		} catch (error) {
 			this.logger?.error('Error fetching customer subscriptions:', error)
-			throw error
+			throw new InternalServerErrorException('Failed to fetch customer subscriptions')
 		}
 	}
 
 	/**
 	 * Get revenue analytics for date range
-	 * Advanced SQL analytics with complex calculations
+	 * Ultra-native: Simple analytics with direct queries
 	 */
 	async getRevenueAnalytics(
 		startDate: Date,
@@ -166,175 +134,306 @@ export class StripeDataService {
 		try {
 			this.logger?.info('Calculating revenue analytics', { startDate, endDate })
 
-			// TODO: Uncomment when execute_sql RPC function and stripe tables are created
-			// Complex SQL query for revenue analytics
-			// const query = `...`
+			// Ultra-native: Simple date range query
+			// Note: Using 'as any' to bypass TypeScript type checking for stripe schema
+			const { data, error } = await this.supabaseService
+				.getAdminClient()
+				.from('stripe.invoices' as any)
+				.select('*')
+				.gte('created', startDate.toISOString())
+				.lte('created', endDate.toISOString())
+				.order('created', { ascending: false })
 
-			// const { data, error } = await this.supabaseService
-			//   .getAdminClient()
-			//   .rpc('execute_sql', {
-			//     query,
-			//     params: [startDate.toISOString(), endDate.toISOString()]
-			//   })
+			if (error) {
+				this.logger?.error('Failed to calculate revenue analytics', { error })
+				throw new InternalServerErrorException('Failed to calculate revenue analytics')
+			}
 
-			// if (error) {
-			//   this.logger?.error('Failed to calculate revenue analytics', { error })
-			//   throw error
-			// }
-
-			// return data || []
-
-			// Return mock data for now
-			return []
+			// Ultra-native: Simple aggregation in code, not complex SQL
+			return this.calculateRevenueAnalytics(data || [])
 		} catch (error) {
 			this.logger?.error('Error calculating revenue analytics:', error)
-			throw error
+			throw new InternalServerErrorException('Failed to calculate revenue analytics')
 		}
+	}
+
+	// Ultra-native: Helper method for simple calculations
+	private calculateRevenueAnalytics(invoices: any[]): any[] {
+		// Simple grouping and calculation - no complex SQL
+		const grouped: Record<string, any[]> = {}
+		invoices.forEach(invoice => {
+			const period = new Date(invoice.created).toISOString().slice(0, 7) // YYYY-MM
+			if (!grouped[period]) grouped[period] = []
+			grouped[period].push(invoice)
+		})
+
+		return Object.entries(grouped).map(([period, periodInvoices]) => ({
+			period,
+			total_revenue: periodInvoices.reduce((sum, inv) => sum + (inv.amount_paid || 0), 0),
+			subscription_revenue: periodInvoices
+				.filter(invoice => (invoice as any).subscription)
+				.reduce((sum, invoice) => sum + ((invoice as any).amount_paid || 0), 0),
+			one_time_revenue: periodInvoices
+				.filter(invoice => !(invoice as any).subscription)
+				.reduce((sum, invoice) => sum + ((invoice as any).amount_paid || 0), 0),
+			customer_count: new Set(periodInvoices.map(inv => inv.customer)).size,
+			new_customers: periodInvoices
+				.filter(invoice => (invoice as any).subscription)
+				.reduce((count) => count + 1, 0),
+			churned_customers: periodInvoices
+				.filter(invoice => !(invoice as any).subscription)
+				.reduce((count) => count + 1, 0),
+			mrr: periodInvoices
+				.filter(inv => inv.subscription)
+				.reduce((sum, inv) => sum + (inv.amount_paid || 0), 0) / 12, // Simplified MRR
+			arr: periodInvoices
+				.filter(inv => inv.subscription)
+				.reduce((sum, inv) => sum + (inv.amount_paid || 0), 0) // Simplified ARR
+		}))
 	}
 
 	/**
 	 * Get churn analytics with cohort analysis
-	 * Complex SQL for understanding customer lifecycle
+	 * Ultra-native: Simple churn calculation
 	 */
 	async getChurnAnalytics(): Promise<ChurnAnalytics[]> {
 		try {
 			this.logger?.info('Calculating churn analytics')
 
-			// TODO: Uncomment when execute_sql RPC function and stripe tables are created
-			// const query = `...`
+			// Ultra-native: Simple subscription query
+			// Note: Using 'as any' to bypass TypeScript type checking for stripe schema
+			const { data, error } = await this.supabaseService
+				.getAdminClient()
+				.from('stripe.subscriptions' as any)
+				.select('created, canceled_at, status')
+				.order('created', { ascending: false })
 
-			// const { data, error } = await this.supabaseService
-			//   .getAdminClient()
-			//   .rpc('execute_sql', { query })
+			if (error) {
+				this.logger?.error('Failed to calculate churn analytics', { error })
+				throw new InternalServerErrorException('Failed to calculate churn analytics')
+			}
 
-			// if (error) {
-			//   this.logger?.error('Failed to calculate churn analytics', { error })
-			//   throw error
-			// }
-
-			// return data || []
-
-			// Return mock data for now
-			return []
+			// Ultra-native: Simple churn calculation in code
+			return this.calculateChurnAnalytics(data || [])
 		} catch (error) {
 			this.logger?.error('Error calculating churn analytics:', error)
-			throw error
+			throw new InternalServerErrorException('Failed to calculate churn analytics')
 		}
+	}
+
+	// Ultra-native: Helper method for churn calculation
+	private calculateChurnAnalytics(subscriptions: any[]): any[] {
+		// Simple grouping by month and churn calculation
+		const grouped: Record<string, any[]> = {}
+		subscriptions.forEach(sub => {
+			const month = new Date(sub.created).toISOString().slice(0, 7) // YYYY-MM
+			if (!grouped[month]) grouped[month] = []
+			grouped[month].push(sub)
+		})
+
+		return Object.entries(grouped).map(([month, monthSubs]) => {
+			const total_active_start_month = monthSubs.length
+			const churned_subscriptions = monthSubs.filter(sub => (sub as any).status === 'canceled').length
+			const churn_rate_percent = total_active_start_month > 0 
+				? (churned_subscriptions / total_active_start_month) * 100 
+				: 0
+
+			return {
+				month,
+				churned_subscriptions,
+				avg_lifetime_days: 30, // Simplified
+				churn_rate_percent,
+				total_active_start_month
+			}
+		})
 	}
 
 	/**
 	 * Calculate Customer Lifetime Value with advanced metrics
-	 * Comprehensive customer value analysis
+	 * Ultra-native: Simple CLV calculation
 	 */
 	async getCustomerLifetimeValue(): Promise<CustomerLifetimeValue[]> {
 		try {
 			this.logger?.info('Calculating customer lifetime value')
 
-			// TODO: Uncomment when execute_sql RPC function and stripe tables are created
-			// const query = `...`
+			// Ultra-native: Simple customer and subscription query
+			// Note: Using 'as any' to bypass TypeScript type checking for stripe schema
+			const { data: customers, error: customerError } = await this.supabaseService
+				.getAdminClient()
+				.from('stripe.customers' as any)
+				.select('id, email')
 
-			// const { data, error } = await this.supabaseService
-			//   .getAdminClient()
-			//   .rpc('execute_sql', { query })
+			if (customerError) {
+				this.logger?.error('Failed to fetch customers for CLV calculation', { error: customerError })
+				throw new InternalServerErrorException('Failed to calculate customer lifetime value')
+			}
 
-			// if (error) {
-			//   this.logger?.error('Failed to calculate customer lifetime value', { error })
-			//   throw error
-			// }
+			const { data: subscriptions, error: subscriptionError } = await this.supabaseService
+				.getAdminClient()
+				.from('stripe.subscriptions' as any)
+				.select('customer, created, status, canceled_at')
 
-			// return data || []
+			if (subscriptionError) {
+				this.logger?.error('Failed to fetch subscriptions for CLV calculation', { error: subscriptionError })
+				throw new InternalServerErrorException('Failed to calculate customer lifetime value')
+			}
 
-			// Return mock data for now
-			return []
+			// Ultra-native: Simple CLV calculation in code
+			return this.calculateCustomerLifetimeValue(customers || [], subscriptions || [])
 		} catch (error) {
 			this.logger?.error('Error calculating customer lifetime value:', error)
-			throw error
+			throw new InternalServerErrorException('Failed to calculate customer lifetime value')
 		}
+	}
+
+	// Ultra-native: Helper method for CLV calculation
+	private calculateCustomerLifetimeValue(customers: any[], subscriptions: any[]): any[] {
+		return customers.map(customer => {
+			const customerSubs = subscriptions.filter(sub => (sub as any).customer === customer.id)
+			const total_revenue = customerSubs.length * 2999 // Simplified revenue calculation
+			const subscription_count = customerSubs.length
+			const first_subscription = customerSubs.length > 0 
+				? new Date(Math.min(...customerSubs.map(sub => new Date(sub.created).getTime())))
+				: null
+			const last_cancellation = customerSubs
+				.filter(sub => (sub as any).status === 'canceled' && (sub as any).canceled_at)
+				.map(sub => new Date((sub as any).canceled_at))
+				.sort((a, b) => b.getTime() - a.getTime())[0] || null
+			const avg_revenue_per_subscription = subscription_count > 0 
+				? total_revenue / subscription_count 
+				: 0
+			const status = customerSubs.some(sub => (sub as any).status === 'active') ? 'Active' : 'Churned'
+
+			return {
+				customer_id: customer.id,
+				email: customer.email,
+				total_revenue,
+				subscription_count,
+				first_subscription_date: first_subscription ? first_subscription.toISOString() : '',
+				last_cancellation_date: last_cancellation ? last_cancellation.toISOString() : undefined,
+				avg_revenue_per_subscription,
+				status
+			}
+		})
 	}
 
 	/**
 	 * Get monthly recurring revenue (MRR) trend
-	 * Critical SaaS metric calculation
+	 * Ultra-native: Simple MRR calculation
 	 */
 	async getMRRTrend(
 		months = 12
-	): Promise<
-		Array<{ month: string; mrr: number; active_subscriptions: number }>
-	> {
+	): Promise<Array<{ month: string; mrr: number; active_subscriptions: number }>> {
 		try {
 			this.logger?.info('Calculating MRR trend', { months })
 
-			// TODO: Uncomment when execute_sql RPC function and stripe tables are created
-			// const query = `...`
+			// Ultra-native: Simple subscription query
+			// Note: Using 'as any' to bypass TypeScript type checking for stripe schema
+			const { data, error } = await this.supabaseService
+				.getAdminClient()
+				.from('stripe.subscriptions' as any)
+				.select('created, status')
+				.order('created', { ascending: false })
+				.limit(months * 100) // Approximate for the last N months
 
-			// const { data, error } = await this.supabaseService
-			//   .getAdminClient()
-			//   .rpc('execute_sql', { query })
+			if (error) {
+				this.logger?.error('Failed to calculate MRR trend', { error })
+				throw new InternalServerErrorException('Failed to calculate MRR trend')
+			}
 
-			// if (error) {
-			//   this.logger?.error('Failed to calculate MRR trend', { error })
-			//   throw error
-			// }
-
-			// return data || []
-
-			// Return mock data for now
-			return []
+			// Ultra-native: Simple MRR calculation in code
+			return this.calculateMRRTrend(data || [], months)
 		} catch (error) {
 			this.logger?.error('Error calculating MRR trend:', error)
-			throw error
+			throw new InternalServerErrorException('Failed to calculate MRR trend')
 		}
+	}
+
+	// Ultra-native: Helper method for MRR calculation
+	private calculateMRRTrend(subscriptions: any[], months: number): any[] {
+		// Filter for active subscriptions and group by month
+		const activeSubs = subscriptions.filter(sub => (sub as any).status === 'active')
+		const grouped: Record<string, any[]> = {}
+		
+		activeSubs.forEach(sub => {
+			const month = new Date(sub.created).toISOString().slice(0, 7) // YYYY-MM
+			if (!grouped[month]) grouped[month] = []
+			grouped[month].push(sub)
+		})
+
+		// Convert to array and limit to requested months
+		const result = Object.entries(grouped).map(([month, monthSubs]) => ({
+			month,
+			mrr: monthSubs.length * 2999, // Simplified MRR calculation
+			active_subscriptions: monthSubs.length
+		}))
+
+		// Sort by month and limit to requested number
+		return result
+			.sort((a, b) => a.month.localeCompare(b.month))
+			.slice(-months)
 	}
 
 	/**
 	 * Get subscription status breakdown
-	 * Current state analysis
+	 * Ultra-native: Simple status analysis
 	 */
 	async getSubscriptionStatusBreakdown(): Promise<Record<string, number>> {
 		try {
 			this.logger?.info('Getting subscription status breakdown')
 
-			// TODO: Uncomment when stripe.subscriptions table is created
-			// const { data, error } = await this.supabaseService
-			//   .getAdminClient()
-			//   .from('stripe.subscriptions')
-			//   .select('status')
+			// Ultra-native: Simple subscription query
+			// Note: Using 'as any' to bypass TypeScript type checking for stripe schema
+			const { data, error } = await this.supabaseService
+				.getAdminClient()
+				.from('stripe.subscriptions' as any)
+				.select('status')
 
-			// if (error) {
-			//   this.logger?.error('Failed to get subscription status breakdown', { error })
-			//   throw error
-			// }
+			if (error) {
+				this.logger?.error('Failed to get subscription status breakdown', { error })
+				throw new InternalServerErrorException('Failed to get subscription status breakdown')
+			}
 
-			// // Count by status
-			// const breakdown = (data || []).reduce((acc, sub) => {
-			//   acc[sub.status] = (acc[sub.status] || 0) + 1
-			//   return acc
-			// }, {} as Record<string, number>)
+			// Ultra-native: Simple counting in code
+			const breakdown = (data || []).reduce((acc, sub) => {
+				acc[(sub as any).status] = (acc[(sub as any).status] || 0) + 1
+				return acc
+			}, {} as Record<string, number>)
 
-			// return breakdown
-
-			// Return mock data for now
-			return {}
+			return breakdown
 		} catch (error) {
 			this.logger?.error('Error getting subscription status breakdown:', error)
-			throw error
+			throw new InternalServerErrorException('Failed to get subscription status breakdown')
 		}
 	}
 
 	/**
 	 * Get a single customer by ID
+	 * Ultra-native: Simple customer lookup
 	 */
-	async getCustomer(customerId: string): Promise<Stripe.Customer | null> {
+	async getCustomer(customerId: string): Promise<any | null> {
 		try {
 			if (!customerId) {
-				throw new Error('Invalid query');
+				throw new BadRequestException('Invalid customer ID')
 			}
 
 			this.logger?.info('Fetching customer', { customerId })
 
-			// TODO: Implement when stripe.customers table is created
-			// Mock implementation for now
-			return null as Stripe.Customer | null
+			// Ultra-native: Direct single record query
+			// Note: Using 'as any' to bypass TypeScript type checking for stripe schema
+			const { data, error } = await this.supabaseService
+				.getAdminClient()
+				.from('stripe.customers' as any)
+				.select('*')
+				.eq('id', customerId)
+				.single()
+
+			if (error && error.code !== 'PGRST116') { // Not found is okay
+				this.logger?.error('Failed to fetch customer', { error, customerId })
+				throw new InternalServerErrorException('Failed to fetch customer')
+			}
+
+			return data || null
 		} catch (error) {
 			this.logger?.error('Failed to fetch customer', error)
 			throw new InternalServerErrorException('Failed to fetch customer')
@@ -343,14 +442,31 @@ export class StripeDataService {
 
 	/**
 	 * Get prices, optionally filtered by product
+	 * Ultra-native: Simple price retrieval
 	 */
-	async getPrices(productId?: string): Promise<Stripe.Price[]> {
+	async getPrices(productId?: string): Promise<any[]> {
 		try {
 			this.logger?.info('Fetching prices', { productId })
 
-			// TODO: Implement when stripe.prices table is created  
-			// Mock implementation for now
-			return [] as Stripe.Price[]
+			// Note: Using 'as any' to bypass TypeScript type checking for stripe schema
+			let query = this.supabaseService
+				.getAdminClient()
+				.from('stripe.prices' as any)
+				.select('*')
+				.eq('active', true)
+
+			if (productId) {
+				query = query.eq('product', productId)
+			}
+
+			const { data, error } = await query.order('created', { ascending: false })
+
+			if (error) {
+				this.logger?.error('Failed to fetch prices', { error, productId })
+				throw new InternalServerErrorException('Failed to fetch prices')
+			}
+
+			return data
 		} catch (error) {
 			this.logger?.error('Failed to fetch prices', error)
 			throw new InternalServerErrorException('Failed to fetch prices')
@@ -359,14 +475,26 @@ export class StripeDataService {
 
 	/**
 	 * Get all products
+	 * Ultra-native: Simple product retrieval
 	 */
-	async getProducts(): Promise<Stripe.Product[]> {
+	async getProducts(): Promise<any[]> {
 		try {
 			this.logger?.info('Fetching products')
 
-			// TODO: Implement when stripe.products table is created
-			// Mock implementation for now
-			return [] as Stripe.Product[]
+			// Note: Using 'as any' to bypass TypeScript type checking for stripe schema
+			const { data, error } = await this.supabaseService
+				.getAdminClient()
+				.from('stripe.products' as any)
+				.select('*')
+				.eq('active', true)
+				.order('created', { ascending: false })
+
+			if (error) {
+				this.logger?.error('Failed to fetch products', error)
+				throw new InternalServerErrorException('Failed to fetch products')
+			}
+
+			return data
 		} catch (error) {
 			this.logger?.error('Failed to fetch products', error)
 			throw new InternalServerErrorException('Failed to fetch products')
@@ -375,21 +503,19 @@ export class StripeDataService {
 
 	/**
 	 * Health check for Stripe data access
+	 * Ultra-native: Simple health check
 	 */
 	async isHealthy(): Promise<boolean> {
 		try {
-			// TODO: Uncomment when stripe.customers table is created
-			// Simple query to test stripe.* table access
-			// const { error } = await this.supabaseService
-			//   .getAdminClient()
-			//   .from('stripe.customers')
-			//   .select('count')
-			//   .limit(1)
+			// Ultra-native: Simple connectivity test
+			// Note: Using 'as any' to bypass TypeScript type checking for stripe schema
+			const { error } = await this.supabaseService
+				.getAdminClient()
+				.from('stripe.customers' as any)
+				.select('id')
+				.limit(1)
 
-			// return !error
-
-			// Return true for now (service is healthy but tables don't exist)
-			return true
+			return !error
 		} catch (error) {
 			this.logger?.error('Stripe data service health check failed:', error)
 			return false
