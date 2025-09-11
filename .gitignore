@@ -404,3 +404,4 @@ playwright-report/
 # Temporary files
 .temp/
 .tmp/
+doppler.json

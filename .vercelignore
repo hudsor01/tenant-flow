@@ -42,11 +42,10 @@ eslint.config.\*
 
 apps/backend
 
-# Config packages can be ignored for deployment
+# Config packages can be ignored for deployment (except typescript-config needed for builds)
 
 packages/eslint-config
 packages/prettier-config
-packages/typescript-config
 
 # Keep these packages - they're needed for frontend build:
 
