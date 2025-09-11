@@ -11,6 +11,7 @@ on:
     branches:
       - main
       - develop
+  workflow_dispatch:
 
 env:
   NODE_VERSION: '22'
@@ -20,6 +21,11 @@ jobs:
     name: Build and Test
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: read
+    concurrency:
+      group: ci-${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     env:
       DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
     steps:
@@ -31,22 +37,23 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
 
       - name: Install Doppler CLI
         uses: dopplerhq/cli-action@v3
 
       - name: Resolve Doppler config from repo variables (fallbacks)
         env:
-          SECRET_DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
-          SECRET_DOPPLER_PERSONAL_TOKEN: ${{ secrets.DOPPLER_PERSONAL_TOKEN }}
-          VARS_DOPPLER_TOKEN: ${{ vars.DOPPLER_TOKEN }}
-          VARS_DOPPLER_PERSONAL_TOKEN: ${{ vars.DOPPLER_PERSONAL_TOKEN }}
-          SECRET_DOPPLER_PROJECT: ${{ secrets.DOPPLER_PROJECT }}
           SECRET_DOPPLER_CONFIG: ${{ secrets.DOPPLER_CONFIG }}
           SECRET_DOPPLER_ENVIRONMENT: ${{ secrets.DOPPLER_ENVIRONMENT }}
-          VARS_DOPPLER_PROJECT: ${{ vars.DOPPLER_PROJECT }}
+          SECRET_DOPPLER_PERSONAL_TOKEN: ${{ secrets.DOPPLER_PERSONAL_TOKEN }}
+          SECRET_DOPPLER_PROJECT: ${{ secrets.DOPPLER_PROJECT }}
+          SECRET_DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
           VARS_DOPPLER_CONFIG: ${{ vars.DOPPLER_CONFIG }}
           VARS_DOPPLER_ENVIRONMENT: ${{ vars.DOPPLER_ENVIRONMENT }}
+          VARS_DOPPLER_PERSONAL_TOKEN: ${{ vars.DOPPLER_PERSONAL_TOKEN }}
+          VARS_DOPPLER_PROJECT: ${{ vars.DOPPLER_PROJECT }}
+          VARS_DOPPLER_TOKEN: ${{ vars.DOPPLER_TOKEN }}
         run: |
           echo "DOPPLER_TOKEN=${SECRET_DOPPLER_TOKEN:-$VARS_DOPPLER_TOKEN}" >> $GITHUB_ENV
           echo "DOPPLER_PERSONAL_TOKEN=${SECRET_DOPPLER_PERSONAL_TOKEN:-$VARS_DOPPLER_PERSONAL_TOKEN}" >> $GITHUB_ENV
@@ -67,11 +74,8 @@ jobs:
             exit 1
           fi
 
-      - name: Clean install for cross-platform compatibility
-        run: |
-          rm -f package-lock.json
-          npm cache clean --force
-          npm install --no-audit
+      - name: Install dependencies
+        run: npm ci --no-audit
 
       - name: Build all packages (with proper dependencies and secrets)
         run: npm run build
