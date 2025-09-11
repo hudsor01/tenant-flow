@@ -583,7 +583,7 @@ export function VisitorAnalyticsChart({
 												})
 											}}
 											formatter={(value) => [
-												`${value.toLocaleString()} visitors`,
+												`${(value as number).toLocaleString()} visitors`,
 												'Visitors'
 											]}
 											indicator="dot"
