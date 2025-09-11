@@ -26,14 +26,19 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
+      - name: Install Doppler CLI
+        uses: dopplerhq/cli-action@v3
+
       - name: Clean install for cross-platform compatibility  
         run: |
           rm -f package-lock.json
           npm cache clean --force
           npm install --no-audit
 
-      - name: Build all packages (with proper dependencies)
-        run: npm run build
+      - name: Build all packages (with proper dependencies and secrets)
+        run: doppler run -- npm run build:shared && doppler run -- turbo run build --filter=@repo/frontend && doppler run -- turbo run build --filter=@repo/backend
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
 
       - name: Verify build outputs exist
         run: |
@@ -46,4 +51,5 @@ jobs:
         continue-on-error: true
         env:
           CI: true
-        run: npm run test:unit
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+        run: doppler run -- npm run test:unit
