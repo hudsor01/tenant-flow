@@ -14,8 +14,9 @@ export * from './types'
 // ============================================================================
 // ESSENTIAL UTILITIES (No Wrappers)
 // ============================================================================
-export { apiClient, get, post, put, del } from './utils/api-client'
-export type { FetchResponse } from './utils/api-client'
+// NOTE: Browser-only API client is intentionally NOT re-exported from the root
+// to avoid pulling '@supabase/ssr' into Node backends. Frontend apps should
+// import from './utils/api-client' directly when needed.
 
 export { supabaseClient, supabaseAdmin, getCurrentUser, getCurrentSession, signOut } from './lib/supabase-client'
 export { logger } from './lib/frontend-logger'
