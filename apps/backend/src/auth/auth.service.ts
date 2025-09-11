@@ -2,49 +2,40 @@ import {
 	Injectable,
 	UnauthorizedException,
 	BadRequestException,
-	InternalServerErrorException
+	InternalServerErrorException,
+	Logger
 } from '@nestjs/common'
-import { PinoLogger } from 'nestjs-pino'
-import type { SupabaseClient, User as SupabaseUser } from '@supabase/supabase-js'
-import { SupabaseService } from '../database/supabase.service'
-import type { UserRole, AuthServiceValidatedUser } from '@repo/shared'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import { createClient } from '@supabase/supabase-js'
+import type { User as SupabaseUser, SupabaseClient } from '@supabase/supabase-js'
+import type { UserRole, AuthServiceValidatedUser, Database } from '@repo/shared'
 
-// Types now imported from @repo/shared to eliminate duplication
-
-function normalizeSupabaseUser(
-	supabaseUser: Database['public']['Tables']['User']['Row']
-): AuthServiceValidatedUser {
-	return {
-		id: supabaseUser.id,
-		email: supabaseUser.email,
-		name: supabaseUser.name ?? undefined,
-		avatarUrl: supabaseUser.avatarUrl ?? undefined,
-		role: supabaseUser.role as UserRole,
-		phone: supabaseUser.phone ?? null,
-		createdAt: new Date(supabaseUser.createdAt),
-		updatedAt: new Date(supabaseUser.updatedAt),
-		emailVerified: true,
-		bio: supabaseUser.bio ?? null,
-		supabaseId: supabaseUser.supabaseId ?? supabaseUser.id,
-		stripeCustomerId: supabaseUser.stripeCustomerId ?? undefined,
-		profileComplete: true,
-		lastLoginAt: new Date(),
-		organizationId: undefined
-	}
-}
+// Ultra-native: Direct Supabase client instead of service dependency
 
 @Injectable()
 export class AuthService {
-	constructor(
-		private readonly supabaseService: SupabaseService,
-		private readonly logger: PinoLogger
-	) {
-		// PinoLogger context handled automatically via app-level configuration
-	}
+	private adminClient: SupabaseClient<Database>
+	private readonly logger = new Logger(AuthService.name)
 
-	private get supabase(): SupabaseClient<Database> {
-		return this.supabaseService.getAdminClient()
+	constructor() {
+		// Ultra-native: Initialize Supabase client directly
+		const supabaseUrl = process.env.SUPABASE_URL
+		const supabaseServiceKey = process.env.SERVICE_ROLE_KEY
+
+		if (!supabaseUrl || !supabaseServiceKey) {
+			throw new InternalServerErrorException('Supabase configuration is missing')
+		}
+
+		this.adminClient = createClient<Database>(
+			supabaseUrl,
+			supabaseServiceKey,
+			{
+				auth: {
+					persistSession: false,
+					autoRefreshToken: false
+				}
+			}
+		)
+
 	}
 
 	async validateSupabaseToken(token: string): Promise<AuthServiceValidatedUser> {
@@ -64,7 +55,7 @@ export class AuthService {
 			const {
 				data: { user },
 				error
-			} = await this.supabase.auth.getUser(token)
+			} = await this.adminClient.auth.getUser(token)
 
 			if (error || !user) {
 				this.logger.warn('Token validation failed', {
@@ -86,9 +77,7 @@ export class AuthService {
 			if (error instanceof UnauthorizedException) {
 				throw error
 			}
-			this.logger.error('Token validation error', {
-				error: error instanceof Error ? error.message : 'Unknown error'
-			})
+			this.logger.error('Token validation error', error instanceof Error ? error.message : 'Unknown error')
 			throw new UnauthorizedException('Token validation failed')
 		}
 	}
@@ -112,7 +101,7 @@ export class AuthService {
 			: null
 		const phone = metadata.phone ? String(metadata.phone) : null
 
-		const adminClient = this.supabaseService.getAdminClient()
+		const adminClient = this.adminClient
 
 		const { data: existingUser } = await adminClient
 			.from('User')
@@ -146,11 +135,7 @@ export class AuthService {
 		}
 
 		if (isNewUser) {
-			this.logger.info('New user created', {
-				userId: supabaseId,
-				email,
-				name
-			})
+			this.logger.log('New user created', { userId: supabaseId, email, name })
 		}
 
 		const { data: subscription } = await adminClient
@@ -161,22 +146,50 @@ export class AuthService {
 			.single()
 
 		return {
-			...normalizeSupabaseUser(user),
+			id: user.id,
+			email: user.email,
+			name: user.name ?? null,
+			phone: user.phone ?? null,
+			bio: user.bio ?? null,
+			avatarUrl: user.avatarUrl ?? null,
+			role: user.role as UserRole,
+			createdAt: new Date(user.createdAt),
+			updatedAt: new Date(user.updatedAt),
 			supabaseId,
-			stripeCustomerId: subscription?.stripeCustomerId ?? undefined
+			stripeCustomerId: subscription?.stripeCustomerId ?? null,
+			profileComplete: !!(user.name && user.phone),
+			lastLoginAt: new Date(),
+			organizationId: null,
+			emailVerified: true
 		}
 	}
 
 	async getUserBySupabaseId(
 		supabaseId: string
 	): Promise<AuthServiceValidatedUser | null> {
-		const adminClient = this.supabaseService.getAdminClient()
+		const adminClient = this.adminClient
 		const { data: user } = await adminClient
 			.from('User')
 			.select('*')
 			.eq('id', supabaseId)
 			.single()
-		return user ? normalizeSupabaseUser(user) : null
+		return user ? {
+			id: user.id,
+			email: user.email,
+			name: user.name ?? null,
+			phone: user.phone ?? null,
+			bio: user.bio ?? null,
+			avatarUrl: user.avatarUrl ?? null,
+			role: user.role as UserRole,
+			createdAt: new Date(user.createdAt),
+			updatedAt: new Date(user.updatedAt),
+			supabaseId: user.supabaseId,
+			stripeCustomerId: user.stripeCustomerId,
+			profileComplete: !!(user.name && user.phone),
+			lastLoginAt: new Date(),
+			organizationId: null,
+			emailVerified: true
+		} : null
 	}
 
 	async updateUserProfile(
@@ -188,7 +201,7 @@ export class AuthService {
 			avatarUrl?: string
 		}
 	): Promise<{ user: AuthServiceValidatedUser }> {
-		const adminClient = this.supabaseService.getAdminClient()
+		const adminClient = this.adminClient
 		const { data: user, error } = await adminClient
 			.from('User')
 			.update({ ...updates, updatedAt: new Date().toISOString() })
@@ -201,21 +214,111 @@ export class AuthService {
 				'Failed to update user profile'
 			)
 		}
-		return { user: normalizeSupabaseUser(user) }
+		return { 
+		user: {
+			id: user.id,
+			email: user.email,
+			name: user.name ?? null,
+			phone: user.phone ?? null,
+			bio: user.bio ?? null,
+			avatarUrl: user.avatarUrl ?? null,
+			role: user.role as UserRole,
+			createdAt: new Date(user.createdAt),
+			updatedAt: new Date(user.updatedAt),
+			supabaseId: user.supabaseId,
+			stripeCustomerId: user.stripeCustomerId,
+			profileComplete: !!(user.name && user.phone),
+			lastLoginAt: new Date(),
+			organizationId: null,
+			emailVerified: true
+		}
+	}
 	}
 
 	async validateTokenAndGetUser(token: string): Promise<AuthServiceValidatedUser> {
-		return this.validateSupabaseToken(token)
+		try {
+			const {
+				data: { user },
+				error
+			} = await this.adminClient.auth.getUser(token)
+
+			if (error || !user) {
+				this.logger.warn('Token validation failed', {
+					errorType: error?.name ?? 'unknown'
+				})
+				throw new UnauthorizedException('Invalid or expired token')
+			}
+
+			if (!user.email_confirmed_at) {
+				throw new UnauthorizedException('Email verification required')
+			}
+
+			if (!user.id || !user.email) {
+				throw new UnauthorizedException('User data integrity error')
+			}
+
+			// Get user from database for role and organization info
+			const adminClient = this.adminClient
+			const { data: dbUser } = await adminClient
+				.from('User')
+				.select('*')
+				.eq('supabaseId', user.id)
+				.single()
+
+			if (!dbUser) {
+				throw new UnauthorizedException('User not found in database')
+			}
+
+			return {
+				id: dbUser.id,
+				email: dbUser.email,
+				name: dbUser.name ?? null,
+				avatarUrl: dbUser.avatarUrl ?? null,
+				phone: dbUser.phone ?? null,
+				bio: dbUser.bio ?? null,
+				role: dbUser.role as UserRole,
+				organizationId: null,
+				supabaseId: dbUser.supabaseId,
+				stripeCustomerId: dbUser.stripeCustomerId ?? null,
+				profileComplete: !!(dbUser.name && dbUser.phone),
+				lastLoginAt: new Date(),
+				emailVerified: !!user.email_confirmed_at,
+				createdAt: new Date(dbUser.createdAt),
+				updatedAt: new Date(dbUser.updatedAt)
+			}
+		} catch (error) {
+			if (error instanceof UnauthorizedException) {
+				throw error
+			}
+			this.logger.error('Token validation error', error instanceof Error ? error.message : 'Unknown error')
+			throw new UnauthorizedException('Token validation failed')
+		}
 	}
 
 	async getUserByEmail(email: string): Promise<AuthServiceValidatedUser | null> {
-		const adminClient = this.supabaseService.getAdminClient()
+		const adminClient = this.adminClient
 		const { data: user } = await adminClient
 			.from('User')
 			.select('*')
 			.eq('email', email)
 			.single()
-		return user ? normalizeSupabaseUser(user) : null
+		return user ? {
+			id: user.id,
+			email: user.email,
+			name: user.name ?? null,
+			phone: user.phone ?? null,
+			bio: user.bio ?? null,
+			avatarUrl: user.avatarUrl ?? null,
+			role: user.role as UserRole,
+			createdAt: new Date(user.createdAt),
+			updatedAt: new Date(user.updatedAt),
+			supabaseId: user.supabaseId,
+			stripeCustomerId: user.stripeCustomerId,
+			profileComplete: !!(user.name && user.phone),
+			lastLoginAt: new Date(),
+			organizationId: null,
+			emailVerified: true
+		} : null
 	}
 
 	async userHasRole(supabaseId: string, role: string): Promise<boolean> {
@@ -231,7 +334,7 @@ export class AuthService {
 			tenants: number
 		}
 	}> {
-		const adminClient = this.supabaseService.getAdminClient()
+		const adminClient = this.adminClient
 		const [totalResult, ownersResult, managersResult, tenantsResult] =
 			await Promise.all([
 				adminClient
@@ -283,7 +386,7 @@ export class AuthService {
 			}
 		}
 
-		const { data, error } = await this.supabase.auth.admin.createUser({
+		const { data, error } = await this.adminClient.auth.admin.createUser({
 			email: userData.email,
 			password: userData.password ?? undefined,
 			email_confirm: false,
@@ -327,7 +430,7 @@ export class AuthService {
 	}
 
 	async deleteUser(supabaseId: string): Promise<void> {
-		const adminClient = this.supabaseService.getAdminClient()
+		const adminClient = this.adminClient
 		const { error } = await adminClient
 			.from('User')
 			.delete()
@@ -339,7 +442,7 @@ export class AuthService {
 
 	async logout(token: string): Promise<void> {
 		try {
-			await this.supabase.auth.admin.signOut(token)
+			await this.adminClient.auth.admin.signOut(token)
 		} catch (error) {
 			this.logger.error('Logout error:', error)
 		}
@@ -351,7 +454,7 @@ export class AuthService {
 		expires_in: number
 		user: AuthServiceValidatedUser
 	}> {
-		const { data, error } = await this.supabase.auth.refreshSession({
+		const { data, error } = await this.adminClient.auth.refreshSession({
 			refresh_token: refreshToken
 		})
 
@@ -381,7 +484,7 @@ export class AuthService {
 		expires_in: number
 		user: AuthServiceValidatedUser
 	}> {
-		this.logger.info(`Auth attempt for email: ${email} from IP: ${ip}`)
+		this.logger.log(`Auth attempt for email: ${email} from IP: ${ip}`)
 
 		// Rate limiting temporarily disabled
 		// if (authAttempt.blocked) {
@@ -397,7 +500,7 @@ export class AuthService {
 		//	)
 		// }
 
-		const { data, error } = await this.supabase.auth.signInWithPassword({
+		const { data, error } = await this.adminClient.auth.signInWithPassword({
 			email,
 			password
 		})
@@ -424,7 +527,7 @@ export class AuthService {
 			data.session.access_token
 		)
 
-		this.logger.info(
+		this.logger.log(
 			`Auth success for user: ${validatedUser.id} from IP: ${ip}`
 		)
 
@@ -440,7 +543,7 @@ export class AuthService {
 		connected: boolean
 		auth?: object
 	}> {
-		const { data, error } = await this.supabase.auth.getSession()
+		const { data, error } = await this.adminClient.auth.getSession()
 
 		if (error) {
 			throw new BadRequestException(
@@ -457,5 +560,27 @@ export class AuthService {
 					: 'not configured'
 			}
 		}
+	}
+
+	/**
+	 * Save form draft to database with 30-minute expiration
+	 * React 19 useFormState integration
+	 * TEMPORARY: Disabled until form_drafts table is added to Supabase schema
+	 */
+	async saveDraft(data: { email?: string; name?: string; formType: 'signup' | 'login' | 'reset' }): Promise<{ success: boolean; sessionId: string }> {
+		// Temporary in-memory storage for graceful degradation
+		const sessionId = `draft_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+		this.logger.log('Form draft save (temporary disabled)', { formType: data.formType, sessionId })
+		return { success: true, sessionId }
+	}
+
+	/**
+	 * Retrieve form draft from database
+	 * React 19 useFormState integration
+	 * TEMPORARY: Disabled until form_drafts table is added to Supabase schema
+	 */
+	async getDraft(sessionId: string): Promise<{ email?: string; name?: string } | null> {
+		this.logger.log('Form draft retrieval (temporary disabled)', { sessionId })
+		return null
 	}
 }

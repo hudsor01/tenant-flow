@@ -6,8 +6,8 @@ dist/
 
 # OS and editor files
 .DS_Store
-*~
 *.swp
 
 # Environment files
 .env*
+.env.*

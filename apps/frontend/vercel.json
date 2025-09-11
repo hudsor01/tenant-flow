@@ -1,0 +1,158 @@
+{
+	"$schema": "https://openapi.vercel.sh/vercel.json",
+	"framework": "nextjs",
+	"installCommand": "cd ../.. && npm install --prefer-online --no-audit --no-fund",
+	"buildCommand": "cd ../.. && turbo run build --filter=@repo/frontend",
+	"outputDirectory": "apps/frontend/.next",
+	"headers": [
+		{
+			"source": "/static/(.*)",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400"
+				},
+				{
+					"key": "X-Content-Type-Options",
+					"value": "nosniff"
+				}
+			]
+		},
+		{
+			"source": "/_next/static/(.*)",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400"
+				}
+			]
+		},
+		{
+			"source": "/static/img/(.*)",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400"
+				},
+				{
+					"key": "Vary",
+					"value": "Accept"
+				}
+			]
+		},
+		{
+			"source": "/manifest.json",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public, max-age=3600, s-maxage=86400"
+				}
+			]
+		},
+		{
+			"source": "/sw.js",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public, max-age=0, must-revalidate"
+				}
+			]
+		},
+		{
+			"source": "/(.*)",
+			"headers": [
+				{
+					"key": "X-Content-Type-Options",
+					"value": "nosniff"
+				},
+				{
+					"key": "X-Frame-Options",
+					"value": "DENY"
+				},
+				{
+					"key": "X-XSS-Protection",
+					"value": "1; mode=block"
+				},
+				{
+					"key": "Referrer-Policy",
+					"value": "strict-origin-when-cross-origin"
+				},
+				{
+					"key": "Permissions-Policy",
+					"value": "camera=(), microphone=(), geolocation=(), payment=(self), autoplay=(self), encrypted-media=(), fullscreen=(), picture-in-picture=()"
+				},
+				{
+					"key": "Strict-Transport-Security",
+					"value": "max-age=31536000; includeSubDomains; preload"
+				},
+				{
+					"key": "Cross-Origin-Embedder-Policy",
+					"value": "require-corp"
+				},
+				{
+					"key": "Cross-Origin-Opener-Policy",
+					"value": "same-origin"
+				},
+				{
+					"key": "Cross-Origin-Resource-Policy",
+					"value": "cross-origin"
+				}
+			]
+		},
+		{
+			"source": "/favicon.ico",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public, max-age=86400"
+				}
+			]
+		},
+		{
+			"source": "/(.*\\.(?:jpg|jpeg|png|gif|ico|svg|webp|avif))",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public, max-age=31536000, immutable"
+				},
+				{
+					"key": "Vary",
+					"value": "Accept"
+				}
+			]
+		},
+		{
+			"source": "/properties/(.*)",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public, s-maxage=300, stale-while-revalidate=3600"
+				},
+				{
+					"key": "Vary",
+					"value": "Authorization, Cookie"
+				}
+			]
+		},
+		{
+			"source": "/dashboard",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "private, no-cache, must-revalidate"
+				}
+			]
+		},
+		{
+			"source": "/api/(.*)",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "no-store, max-age=0"
+				}
+			]
+		}
+	],
+	"trailingSlash": false,
+	"cleanUrls": true
+}

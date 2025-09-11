@@ -1,187 +1,45 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common'
 import { PinoLogger } from 'nestjs-pino'
-import { PropertiesService } from '../properties/properties.service'
-import { TenantsService } from '../tenants/tenants.service'
-import { LeasesService } from '../leases/leases.service'
-import type { 
-	DashboardStats,
-	PropertyStats,
-	TenantStats,
-	UnitStats,
-	LeaseStats
-} from '@repo/shared'
-
-// Using shared stats types - NO DUPLICATION
-// Backend-specific raw types for service layer data mapping
-
-type RawPropertyStats = { total?: number; vacantUnits?: number; totalMonthlyRent?: number }
-
-type RawTenantStats = { total?: number; active?: number; inactive?: number }
-
-export interface DashboardActivity {
-	activities: {
-		id: string
-		type: 'property' | 'tenant' | 'lease' | 'maintenance'
-		action: 'created' | 'updated' | 'deleted'
-		title: string
-		description: string
-		timestamp: string
-		userId: string
-	}[]
-}
+import { SupabaseService } from '../database/supabase.service'
+import type { DashboardStats } from '@repo/shared'
 
 @Injectable()
 export class DashboardService {
 	constructor(
-		private readonly propertiesService: PropertiesService,
-		private readonly tenantsService: TenantsService,
-		private readonly leasesService: LeasesService,
+		private readonly supabase: SupabaseService,
 		private readonly logger: PinoLogger
-		// Removed errorHandler - using native NestJS patterns
 	) {
-		// PinoLogger context handled automatically via app-level configuration
+		this.logger.setContext(DashboardService.name)
 	}
 
 	/**
 	 * Get comprehensive dashboard statistics
 	 */
-	async getStats(
-		userId: string,
-		authToken?: string
-	): Promise<DashboardStats> {
+	async getStats(userId?: string): Promise<DashboardStats> {
 		try {
-			// Get stats from all services in parallel
-			const [rawPropertyStats, rawTenantStats, rawLeaseStats] =
-				await Promise.all([
-					this.propertiesService.getStats(userId),
-					this.tenantsService.getStats(userId),
-					this.leasesService.getStats(userId)
-				])
-
-// Map to PropertyStats interface
-const propertyData: RawPropertyStats = (rawPropertyStats ?? {}) as RawPropertyStats
-const totalUnits = propertyData?.total ?? 0
-const vacantUnits = propertyData?.vacantUnits ?? 0
-const totalMonthlyRent = propertyData?.totalMonthlyRent ?? 0
-const occupiedUnits = totalUnits - vacantUnits
-const properties: PropertyStats = {
-	total: totalUnits,
-	owned: totalUnits,
-	rented: occupiedUnits,
-	available: vacantUnits,
-	maintenance: 0 // TODO: Add maintenance calculation
-}
-
-			// Map to TenantStats interface
-			const tenantData: RawTenantStats = (rawTenantStats ?? {}) as RawTenantStats
-			const tenants: TenantStats = {
-				total: tenantData?.total || 0,
-				active: tenantData?.active || 0,
-				inactive: tenantData?.inactive || 0
+			// If no userId provided (public access), return mock data for demo
+			if (!userId) {
+				this.logger.info({ action: 'get_dashboard_stats', type: 'mock' }, 'Returning mock dashboard stats for public access')
+				return this.getMockDashboardStats()
 			}
 
-			// Map to UnitStats interface
-			const units: UnitStats = {
-				totalUnits: totalUnits,
-				availableUnits: vacantUnits,
-				occupiedUnits: occupiedUnits,
-				maintenanceUnits: 0, // TODO: Add maintenance units calculation
-				averageRent: totalUnits > 0 ? totalMonthlyRent / totalUnits : 0,
-				total: totalUnits,
-				occupied: occupiedUnits,
-				vacant: vacantUnits,
-				occupancyRate: totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
+			this.logger.info({ userId, action: 'get_dashboard_stats' }, 'Fetching dashboard statistics')
+
+			// ULTRA-NATIVE: Direct RPC call with proper types
+			const { data, error } = await this.supabase
+				.getAdminClient()
+				.rpc('get_dashboard_stats', { user_id_param: userId })
+
+			if (error) {
+				this.logger.error({ userId, error: error.message }, 'Failed to get dashboard stats via RPC')
+				throw new InternalServerErrorException('Failed to retrieve dashboard statistics')
 			}
 
-			// Map to LeaseStats interface
-			const leaseData = rawLeaseStats as unknown as LeaseStats
-			const leases: LeaseStats = {
-				totalLeases: leaseData?.totalLeases || 0,
-				activeLeases: leaseData?.activeLeases || 0,
-				expiredLeases: leaseData?.expiredLeases || 0,
-				pendingLeases: leaseData?.pendingLeases || 0,
-				totalRentRoll: totalMonthlyRent || 0,
-				total: leaseData?.total || 0,
-				active: leaseData?.active || 0,
-				expired: leaseData?.expired || 0,
-				pending: leaseData?.pending || 0
-			}
-
-			const dashboardStats: DashboardStats = {
-				properties,
-				tenants,
-				units,
-				leases,
-				maintenance: {
-					total: 0,
-					open: 0,
-					inProgress: 0,
-					completed: 0,
-					canceled: 0,
-					onHold: 0,
-					overdue: 0,
-					averageCompletionTime: 0,
-					totalCost: 0,
-					averageCost: 0
-				},
-				maintenanceRequests: {
-					total: 0,
-					open: 0,
-					inProgress: 0,
-					completed: 0,
-					canceled: 0,
-					onHold: 0,
-					overdue: 0,
-					averageCompletionTime: 0,
-					totalCost: 0,
-					averageCost: 0
-				},
-				notifications: {
-					total: 0,
-					unread: 0
-				},
-				revenue: {
-					total: 0,
-					monthly: 0,
-					collected: 0
-				}
-			}
-
-			this.logger.info(
-				{
-					dashboard: {
-						userId,
-						hasAuthToken: !!authToken,
-					stats: {
-						totalProperties: dashboardStats.properties.total,
-						totalTenants: dashboardStats.tenants.total,
-						totalUnits: dashboardStats.units.total,
-						totalLeases: dashboardStats.leases.total
-					}
-					}
-				},
-				`Dashboard stats retrieved for user ${userId}`
-			)
-			return dashboardStats
+			this.logger.info({ userId, action: 'get_dashboard_stats' }, 'Dashboard stats retrieved successfully')
+			return data as unknown as DashboardStats
 		} catch (error) {
-			this.logger.error(
-				{
-					error: {
-						name: error instanceof Error ? error.constructor.name : 'Unknown',
-						message: error instanceof Error ? error.message : String(error),
-						stack: process.env.NODE_ENV !== 'production' && error instanceof Error ? error.stack : undefined
-					},
-					dashboard: {
-						userId,
-						hasAuthToken: !!authToken
-					}
-				},
-				'Failed to get dashboard stats'
-			)
-
-			throw new InternalServerErrorException(
-				'Failed to retrieve dashboard statistics'
-			)
+			this.logger.error({ userId, error: error instanceof Error ? error.message : String(error) }, 'Failed to get dashboard stats')
+			throw new InternalServerErrorException('Failed to retrieve dashboard statistics')
 		}
 	}
 
@@ -190,28 +48,97 @@ const properties: PropertyStats = {
 	 */
 	async getActivity(
 		userId: string,
-		authToken?: string
-	): Promise<DashboardActivity> {
+		_authToken?: string
+	): Promise<{ activities: Record<string, unknown>[] }> {
 		try {
-			// TODO: Implement actual activity feed from database
-			// For now, return empty activity feed
-			const activities: DashboardActivity = {
-				activities: []
+			this.logger.info({ userId, action: 'get_dashboard_activity' }, 'Fetching dashboard activity')
+
+			// ULTRA-NATIVE: Direct RPC call
+			const { data, error } = await this.supabase
+				.getAdminClient()
+				.rpc('get_dashboard_metrics', { p_user_id: userId })
+
+			if (error) {
+				this.logger.error({ userId, error: error.message }, 'Failed to get dashboard activity')
+				throw new InternalServerErrorException('Failed to retrieve dashboard activity')
 			}
 
-			this.logger.info(`Dashboard activity retrieved for user ${userId}`, {
-				authToken
-			})
-			return activities
+			this.logger.info({ userId, action: 'get_dashboard_activity' }, 'Dashboard activity retrieved successfully')
+			return ((data as unknown) as { activities: Record<string, unknown>[] }) || { activities: [] }
 		} catch (error) {
-			this.logger.error('Failed to get dashboard activity', {
-				userId,
-				error: error instanceof Error ? error.message : String(error)
-			})
+			this.logger.error({ userId, error: error instanceof Error ? error.message : String(error) }, 'Failed to get dashboard activity')
+			throw new InternalServerErrorException('Failed to retrieve dashboard activity')
+		}
+	}
 
-			throw new InternalServerErrorException(
-				'Failed to retrieve dashboard activity'
-			)
+	/**
+	 * Get comprehensive billing insights using direct RPC
+	 */
+	async getBillingInsights(): Promise<Record<string, unknown> | null> {
+		return null
+	}
+
+	/**
+	 * Check if Stripe data service is available and healthy
+	 */
+	async isBillingInsightsAvailable(): Promise<boolean> {
+		return false
+	}
+
+	/**
+	 * Get mock dashboard statistics for public demo
+	 */
+	private getMockDashboardStats(): DashboardStats {
+		return {
+			properties: {
+				total: 25,
+				occupied: 23,
+				vacant: 2,
+				occupancyRate: 92,
+				totalMonthlyRent: 48500,
+				averageRent: 1940
+			},
+			tenants: {
+				total: 23,
+				active: 21,
+				inactive: 2,
+				newThisMonth: 3
+			},
+			units: {
+				total: 25,
+				occupied: 23,
+				vacant: 2,
+				maintenance: 1,
+				averageRent: 1940,
+				available: 2,
+				occupancyRate: 92,
+				totalPotentialRent: 48500,
+				totalActualRent: 44620
+			},
+			leases: {
+				total: 23,
+				active: 21,
+				expired: 2,
+				expiringSoon: 3
+			},
+			maintenance: {
+				total: 12,
+				open: 3,
+				inProgress: 2,
+				completed: 7,
+				avgResolutionTime: 4.5,
+				byPriority: {
+					low: 2,
+					medium: 6,
+					high: 3,
+					emergency: 1
+				}
+			},
+			revenue: {
+				monthly: 48500,
+				yearly: 582000,
+				growth: 8.5
+			}
 		}
 	}
 }
