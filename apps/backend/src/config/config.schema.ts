@@ -18,13 +18,12 @@ const environmentSchema = z.object({
 	DATABASE_CONNECTION_TIMEOUT: z.string().optional(),
 
 	// Authentication
-	JWT_SECRET: z.string().min(32, 'JWT secret must be at least 32 characters'),
 	JWT_EXPIRES_IN: z.string().default('7d'),
 
 	// Supabase
 	SUPABASE_URL: z.string().url('Must be a valid URL'),
-	SUPABASE_SERVICE_ROLE_KEY: z.string(),
-	SUPABASE_JWT_SECRET: z.string().min(32, 'Supabase JWT secret must be at least 32 characters'),
+	SERVICE_ROLE_KEY: z.string(),
+	JWT_SECRET: z.string().min(32, 'JWT secret must be at least 32 characters'),
 	SUPABASE_ANON_KEY: z.string(),
 
 	// CORS
