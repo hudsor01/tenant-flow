@@ -193,10 +193,13 @@
   transition: all 0.2s ease;
 }
 
-@utility btn-gradient-primary:hover {
-  background: theme('--gradient-btn-primary-hover');
-  box-shadow: 0 8px 16px -4px rgba(26, 54, 93, 0.3);
-  transform: translateY(-1px);
+/* Tailwind v4: avoid pseudo-selectors inside @utility names */
+@layer components {
+  .btn-gradient-primary:hover {
+    background: theme('--gradient-btn-primary-hover');
+    box-shadow: 0 8px 16px -4px rgba(26, 54, 93, 0.3);
+    transform: translateY(-1px);
+  }
 }
 
 @utility btn-gradient-primary-dark {
@@ -204,9 +207,11 @@
   border: 1px solid rgba(43, 108, 176, 0.3);
 }
 
-@utility btn-gradient-primary-dark:hover {
-  background: theme('--gradient-btn-primary-dark-hover');
-  box-shadow: 0 8px 16px -4px rgba(43, 108, 176, 0.4);
+@layer components {
+  .btn-gradient-primary-dark:hover {
+    background: theme('--gradient-btn-primary-dark-hover');
+    box-shadow: 0 8px 16px -4px rgba(43, 108, 176, 0.4);
+  }
 }
 
 /* === BASE LAYER === */
@@ -480,17 +485,14 @@
 	}
 
 	/* EVIDENCE: Multiple gradient text usage across components */
-	.text-gradient-primary {
-		background: linear-gradient(
-			135deg,
-			var(--color-primary),
-			color-mix(in srgb, var(--color-primary) 70%, #60a5fa)
-		);
-		background-clip: text;
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		color: transparent;
-	}
+.text-gradient-primary {
+  /* Align to design system: reuse authority text gradient */
+  background: theme('--gradient-text-authority');
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
 
 	.text-gradient-dominance {
 		background: linear-gradient(135deg, #1e40af, #3b82f6, #60a5fa);
