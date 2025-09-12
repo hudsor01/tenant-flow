@@ -87,8 +87,14 @@ export class DashboardService {
 
 	/**
 	 * Get mock dashboard statistics for public demo
+	 * Includes calculated occupancy change for realistic demo data
 	 */
 	private getMockDashboardStats(): DashboardStats {
+		// Calculate dynamic occupancy change based on current performance metrics
+		const currentOccupancyRate = 92
+		const simulatedPreviousRate = 89.9 // Simulated previous period rate
+		const occupancyChange = Number((currentOccupancyRate - simulatedPreviousRate).toFixed(1))
+		
 		return {
 			properties: {
 				total: 25,
@@ -112,6 +118,7 @@ export class DashboardService {
 				averageRent: 1940,
 				available: 2,
 				occupancyRate: 92,
+				occupancyChange, // Calculated from performance metrics
 				totalPotentialRent: 48500,
 				totalActualRent: 44620
 			},

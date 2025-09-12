@@ -12,6 +12,8 @@ export const dashboardKeys = {
   all: ['dashboard'] as const,
   stats: () => [...dashboardKeys.all, 'stats'] as const,
   activity: () => [...dashboardKeys.all, 'activity'] as const,
+  propertyPerformance: () => [...dashboardKeys.all, 'property-performance'] as const,
+  uptime: () => [...dashboardKeys.all, 'uptime'] as const,
 }
 
 /**
@@ -45,5 +47,41 @@ export function useDashboardActivity() {
     refetchOnMount: true, // Always fetch fresh data on component mount
     retry: 2, // Retry twice on failure
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000), // Exponential backoff
+  })
+}
+
+/**
+ * Hook to fetch property performance metrics with 30-second auto-refresh
+ * Returns sorted array of property performance data (sorted by occupancy rate desc, then units desc)
+ */
+export function usePropertyPerformance() {
+  return useQuery({
+    queryKey: dashboardKeys.propertyPerformance(),
+    queryFn: dashboardApi.getPropertyPerformance,
+    staleTime: 30 * 1000, // 30 seconds - data considered fresh for this period
+    refetchInterval: 30 * 1000, // Auto-refresh every 30 seconds
+    refetchIntervalInBackground: true, // Continue refreshing when tab not active
+    refetchOnWindowFocus: true, // Refresh when user returns to tab
+    refetchOnMount: true, // Always fetch fresh data on component mount
+    retry: 2, // Retry twice on failure
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000), // Exponential backoff
+  })
+}
+
+/**
+ * Hook to fetch system uptime metrics with 5-minute auto-refresh
+ * Returns current system uptime and SLA status
+ */
+export function useSystemUptime() {
+  return useQuery({
+    queryKey: dashboardKeys.uptime(),
+    queryFn: dashboardApi.getUptime,
+    staleTime: 5 * 60 * 1000, // 5 minutes - uptime data doesn't change frequently
+    refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes
+    refetchIntervalInBackground: false, // No need to refresh in background for uptime
+    refetchOnWindowFocus: true, // Refresh when user returns to tab
+    refetchOnMount: true, // Always fetch fresh data on component mount
+    retry: 1, // Only retry once for uptime data
+    retryDelay: 2000, // 2 second delay for retry
   })
 }

@@ -1,23 +1,18 @@
 #!/usr/bin/env node
 
-/**
- * Convert Backend JSON Schemas to Frontend Zod Schemas
- *
- * This script reads JSON Schema definitions from the backend
- * and converts them to Zod schemas for frontend validation
- */
-
 import * as fs from 'fs'
 import { jsonSchemaToZod } from 'json-schema-to-zod'
 import path from 'path'
 import * as ts from 'typescript'
+import { fileURLToPath } from 'url'
 
-// Paths
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
 const BACKEND_SCHEMAS_DIR = path.resolve(__dirname, '../../backend/src/schemas')
 const OUTPUT_DIR = path.resolve(__dirname, '../src/lib/validation/generated')
 const OUTPUT_FILE = path.join(OUTPUT_DIR, 'backend-schemas.ts')
 
-// Schema files to process
 const SCHEMA_FILES = [
 	'contact.schemas.ts',
 	'auth.schemas.ts',
@@ -63,8 +58,8 @@ function parseSchemaFile(filePath: string): Array<{ name: string; schema: any }>
 								schema: jsonSchema
 							})
 						}
-					} catch (error) {
-						console.warn(`Failed to parse schema ${declaration.name.text}:`, error instanceof Error ? error.message : String(error))
+					} catch {
+						// Skip invalid schemas in production
 					}
 				}
 			}
@@ -76,22 +71,20 @@ function parseSchemaFile(filePath: string): Array<{ name: string; schema: any }>
 	return schemas
 }
 
-function validateZodSchema(zodCode: string, schemaName: string): boolean {
+async function validateZodSchema(zodCode: string, schemaName: string): Promise<boolean> {
 	try {
-		const testModule = `const { z } = require('zod'); ${zodCode}; module.exports = ${schemaName.replace('Schema', 'ZodSchema')};`
-		const vm = require('vm')
-		const context = { require, module: { exports: {} }, console }
-		vm.createContext(context)
-		vm.runInContext(testModule, context)
-		return typeof context.module.exports === 'object'
+		const { z } = await import('zod')
+		const testCode = `
+			const zodSchema = ${zodCode};
+			return typeof zodSchema === 'object' && zodSchema !== null;
+		`
+		return Function('z', testCode)(z)
 	} catch {
 		return false
 	}
 }
 
 async function convertSchemas() {
-	console.log('Converting backend JSON schemas to Zod...')
-
 	if (!fs.existsSync(OUTPUT_DIR)) {
 		fs.mkdirSync(OUTPUT_DIR, { recursive: true })
 	}
@@ -104,12 +97,10 @@ async function convertSchemas() {
 		const schemaPath = path.join(BACKEND_SCHEMAS_DIR, schemaFile)
 
 		if (!fs.existsSync(schemaPath)) {
-			console.log(`Schema file not found: ${schemaFile}`)
 			stats.skipped++
 			continue
 		}
 
-		console.log(`Processing ${schemaFile}...`)
 		stats.processed++
 
 		try {
@@ -120,28 +111,23 @@ async function convertSchemas() {
 					const zodSchemaCode = jsonSchemaToZod(jsonSchema)
 					const zodSchemaName = schemaName.replace('Schema', 'ZodSchema')
 					
-					if (validateZodSchema(zodSchemaCode, schemaName)) {
+					if (await validateZodSchema(zodSchemaCode, schemaName)) {
 						zodSchemas.push(`export const ${zodSchemaName} = ${zodSchemaCode}`)
-						console.log(`  Converted ${schemaName} → ${zodSchemaName}`)
 						stats.converted++
 					} else {
-						console.error(`  Invalid Zod schema generated for ${schemaName}`)
 						stats.failed++
 					}
-				} catch (error) {
-					console.error(`  Failed to convert ${schemaName}:`, error instanceof Error ? error.message : String(error))
+				} catch {
 					stats.failed++
 				}
 			}
-		} catch (error) {
-			console.error(`Error processing ${schemaFile}:`, error instanceof Error ? error.message : String(error))
+		} catch {
 			stats.failed++
 		}
 	}
 
 	if (zodSchemas.length === 0) {
-		console.warn('No schemas were successfully converted')
-		return
+		throw new Error('Schema conversion failed: no valid schemas generated')
 	}
 
 	const outputContent = `/**
@@ -159,7 +145,7 @@ ${zodSchemas.join('\n\n')}
 ${zodSchemas
 	.map(schema => {
 		const match = schema.match(/export const (\w+) =/)
-		if (match) {
+		if (match && match[1]) {
 			const schemaName = match[1]
 			const typeName = schemaName.replace('ZodSchema', 'Type')
 			return `export type ${typeName} = z.infer<typeof ${schemaName}>`
@@ -172,17 +158,15 @@ ${zodSchemas
 
 	fs.writeFileSync(OUTPUT_FILE, outputContent, 'utf-8')
 
-	console.log(`Generated Zod schemas: ${OUTPUT_FILE}`)
-	console.log(`Conversion Statistics:`)
-	console.log(`  Files processed: ${stats.processed}`)
-	console.log(`  Schemas converted: ${stats.converted}`)
-	console.log(`  Failures: ${stats.failed}`)
-	console.log(`  Files skipped: ${stats.skipped}`)
+	if (stats.failed > 0) {
+		throw new Error(`Schema conversion completed with ${stats.failed} failures`)
+	}
 }
 
-// Run the conversion
-if (require.main === module) {
-	convertSchemas().catch(console.error)
+if (import.meta.url === `file://${process.argv[1]}`) {
+	convertSchemas().catch(() => {
+		process.exit(1)
+	})
 }
 
 export { convertSchemas }
