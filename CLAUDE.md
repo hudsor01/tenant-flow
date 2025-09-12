@@ -177,6 +177,35 @@ After - Native TypeScript utilities:
 
 Protected files: `apps/backend/ULTRA_NATIVE_ARCHITECTURE.md`
 
+## NestJS Dependency Injection Crisis Prevention
+
+### Coffee Shop Rule
+Controller=Cashier (takes orders), Service=Barista (makes coffee), Database=Machine (does work) | WRONG: Cashier making coffee | RIGHT: Cashier→Barista→Machine
+
+### 6-Point DI Failure Checklist
+When you get "Cannot read properties of undefined (reading 'X')":
+1. **Missing Service in Module providers[]** - Service not registered in @Module providers
+2. **Wrong Injection Pattern** - Controller directly accessing database instead of service layer  
+3. **Missing @Injectable()** - Service class needs @Injectable() decorator
+4. **Missing Module Imports** - Service needs another service but module doesn't import it
+5. **Circular Dependencies** - Services importing each other, use @Global() modules instead
+6. **Parameter Mismatch** - Constructor parameter name/type doesn't match injection
+
+### Emergency Commands
+Check logs: `doppler run -- npm run dev` | Find modules: `rg -A5 "@Module" --type ts` | Check providers: `rg "providers.*\[" --type ts`
+
+### Ultra-Native Patterns
+**Controller**: Service layer + PinoLogger only, delegate to services, use built-in pipes | **Service**: SupabaseService + PinoLogger only, direct RPC calls under 30 lines | **Module**: imports/providers/exports arrays, @Global() for shared services
+
+### Critical Rules  
+**No Abstractions**: Direct PostgreSQL RPC via Supabase, no repositories/DTOs/wrappers | **Built-in NestJS**: ParseUUIDPipe, exceptions, guards only | **Error Handling**: Simple logging + NestJS exceptions
+
+### Mandatory Testing
+**Every update/action/implementation requires test proving production functionality** | **Test Coverage**: Controllers, Services, Critical paths with edge cases | **Production Mirroring**: Tests must replicate actual production behavior exactly
+
+### Success Verification
+Server starts with "dependencies initialized" | Public endpoints work | Protected endpoints work with auth | No undefined property errors
+
 ### UI/UX RULES
 - Reuse existing pages/layouts/components first
 - Use shadcn components vs creating custom

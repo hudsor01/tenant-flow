@@ -29,6 +29,40 @@ export class AuthController {
 		this.authService = new AuthService()
 	}
 
+	/**
+	 * Lightweight Auth health endpoint
+	 * Verifies required env and basic Supabase connectivity
+	 */
+	@Get('health')
+	@Public()
+	@HttpCode(HttpStatus.OK)
+	async health() {
+		const envChecks = {
+			supabase_url: Boolean(process.env.SUPABASE_URL),
+			supabase_service_key: Boolean(process.env.SERVICE_ROLE_KEY)
+		}
+
+		let connected = false
+		try {
+			const result = await this.authService.testSupabaseConnection()
+			connected = !!result.connected
+		} catch (_) {
+			connected = false
+		}
+
+		const healthy = envChecks.supabase_url && envChecks.supabase_service_key && connected
+
+		return {
+			status: healthy ? 'healthy' : 'unhealthy',
+			timestamp: new Date().toISOString(),
+			environment: process.env.NODE_ENV || 'unknown',
+			checks: {
+				...envChecks,
+				supabase_connection: connected
+			}
+		}
+	}
+
 	// Note: All auth operations are handled by Supabase directly
 	// Auth endpoints are now implemented as standard NestJS routes
 	// Profile updates available at: PUT /api/v1/users/profile

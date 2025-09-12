@@ -16,6 +16,7 @@ import {
   TYPOGRAPHY_SCALE
 } from '@/lib/utils'
 import { emailSchema, requiredString, supabaseClient } from '@repo/shared'
+import { authApi } from '@/lib/api-client'
 import { useForm } from '@tanstack/react-form'
 import { Loader2, Eye, EyeOff, AlertCircle, CheckCircle, Shield, Lock, Mail, User, Building } from 'lucide-react'
 import { useState } from 'react'
@@ -84,33 +85,25 @@ export function LoginForm({
 					confirmPassword: '',
 					terms: false
 				},
-		onSubmit: async ({ value }) => {
+	onSubmit: async ({ value }) => {
 			setError(null)
 
 			try {
 				if (isLogin) {
 					const loginData = value as LoginFormData
-					const { error } = await supabaseClient.auth.signInWithPassword({
-						email: loginData.email,
-						password: loginData.password
+					const result = await authApi.login({ email: loginData.email, password: loginData.password })
+					await supabaseClient.auth.setSession({
+						access_token: result.access_token,
+						refresh_token: result.refresh_token
 					})
-					if (error) throw error
 				} else {
 					const signupData = value as SignupFormData
-					const { error } = await supabaseClient.auth.signUp({
+					await authApi.register({
 						email: signupData.email,
-						password: signupData.password,
-						options: {
-							data: {
-								first_name: signupData.firstName,
-								last_name: signupData.lastName,
-								full_name: `${signupData.firstName} ${signupData.lastName}`,
-								company: signupData.company
-							}
-						}
+						firstName: signupData.firstName,
+						lastName: signupData.lastName,
+						password: signupData.password
 					})
-					if (error) throw error
-
 					setError('Please check your email to confirm your account.')
 				}
 			} catch (error: unknown) {

@@ -1,7 +1,7 @@
 'use client'
 
 import { LoginLayout } from '@/components/auth/login-layout'
-import { supabaseClient } from '@repo/shared'
+import { authApi } from '@/lib/api-client'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 
@@ -17,57 +17,12 @@ export default function SignUpPage() {
 				name: string
 			}
 
-			// Check if we're using placeholder/development credentials
-			const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-			const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-			if (
-				!supabaseUrl ||
-				!supabaseKey ||
-				supabaseUrl.includes('placeholder') ||
-				supabaseKey.includes('placeholder')
-			) {
-				toast.error('Development Environment', {
-					description:
-						'Authentication is not configured for local development. Please use production credentials or contact your administrator.'
-				})
-				return
-			}
-
-			const { data: _data, error } = await supabaseClient.auth.signUp({
-				email,
-				password,
-				options: {
-					data: {
-						full_name: name
-					}
-				}
-			})
-
-			if (error) {
-				let errorMessage = error.message
-				if (error.message.includes('Failed to fetch')) {
-					errorMessage =
-						'Unable to connect to authentication service. Please check your network connection.'
-				} else if (error.message.includes('User already registered')) {
-					errorMessage =
-						'An account with this email already exists. Please sign in instead.'
-				}
-
-				toast.error('Sign up failed', {
-					description: errorMessage
-				})
-				return
-			}
-
-			if (_data.user) {
-				toast.success('Account created successfully!', {
-					description: 'Please check your email to verify your account.'
-				})
-
-				// Redirect to a confirmation page or dashboard
-				router.push('/auth/sign-up-success')
-			}
+        // Use backend registration; tokens may require email confirmation
+        await authApi.register({ email, firstName: name.split(' ')[0] ?? '', lastName: name.split(' ').slice(1).join(' ') ?? '', password })
+        toast.success('Account created successfully!', {
+            description: 'Please check your email to verify your account.'
+        })
+        router.push('/auth/sign-up-success')
 		} catch (error) {
 			console.error('Sign up error:', error)
 
@@ -87,41 +42,25 @@ export default function SignUpPage() {
 		router.push('/auth/login')
 	}
 
-	const handleGoogleSignUp = async () => {
-		try {
-			const { data: _oauthData, error } =
-				await supabaseClient.auth.signInWithOAuth({
-					provider: 'google',
-					options: {
-						redirectTo: `${window.location.origin}/auth/oauth?next=/dashboard`,
-						queryParams: {
-							access_type: 'offline',
-							prompt: 'consent'
-						}
-					}
-				})
-
-			if (error) {
-				let errorMessage = error.message
-				if (error.message.includes('Failed to fetch')) {
-					errorMessage =
-						'Unable to connect to Google. Please check your network connection and try again.'
-				}
-
-				toast.error('Google Sign-up failed', {
-					description: errorMessage
-				})
-				return
-			}
-
-			// OAuth redirect will be handled automatically
-		} catch (error) {
-			console.error('Google OAuth error:', error)
-			toast.error('Authentication Error', {
-				description: 'Please try again later.'
-			})
-		}
-	}
+    const handleGoogleSignUp = async () => {
+        try {
+            // Defer to existing OAuth redirect flow via Supabase client
+            const { error } = await (await import('@repo/shared')).supabaseClient.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: `${window.location.origin}/auth/oauth?next=/dashboard`,
+                    queryParams: { access_type: 'offline', prompt: 'consent' }
+                }
+            })
+            if (error) throw error
+            // Redirect handled by provider
+        } catch (error) {
+            console.error('Google OAuth error:', error)
+            toast.error('Authentication Error', {
+                description: 'Please try again later.'
+            })
+        }
+    }
 
 	return (
 		<LoginLayout

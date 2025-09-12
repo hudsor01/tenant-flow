@@ -643,7 +643,19 @@ export class StripeController {
     try {
       const supabase = this.supabaseService.getAdminClient()
       
-      // Create or update subscription record
+      // Get real user ID from Stripe customer ID
+      const { data: userRecord, error: userError } = await supabase
+        .from('User')
+        .select('id')
+        .eq('stripeCustomerId', subscription.customer as string)
+        .single()
+
+      if (userError || !userRecord) {
+        this.logger?.error(`Failed to find user for Stripe customer: ${subscription.customer}`, userError)
+        throw new Error(`User not found for Stripe customer: ${subscription.customer}`)
+      }
+
+      // Create or update subscription record with real user ID
       await supabase
         .from('Subscription')
         .upsert({
@@ -655,13 +667,14 @@ export class StripeController {
           cancelAtPeriodEnd: subscription.cancel_at_period_end,
           createdAt: new Date(subscription.created * 1000).toISOString(),
           updatedAt: new Date().toISOString(),
-          userId: 'placeholder', // TODO: Get actual user ID from session or customer
+          userId: userRecord.id, // Real user ID from database lookup
           startDate: new Date(subscription.created * 1000).toISOString()
         })
 
-      this.logger?.info(`Created subscription record: ${subscription.id}`)
+      this.logger?.info(`Created subscription record: ${subscription.id} for user: ${userRecord.id}`)
     } catch (error) {
       this.logger?.error('Failed to create subscription record', error)
+      // Don't throw - webhook should not fail due to this
     }
   }
 

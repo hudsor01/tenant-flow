@@ -1,6 +1,6 @@
 'use client'
 
-import type { Database, TenantWithLeaseInfo } from '@repo/shared'
+import type { Database, TenantWithLeaseInfo, PropertyWithUnits } from '@repo/shared'
 import { useQuery } from '@tanstack/react-query'
 import { propertiesApi, tenantsApi } from '@/lib/api-client'
 
@@ -18,7 +18,7 @@ type Tenant = Database['public']['Tables']['Tenant']['Row']
 // Enhanced properties hook using pre-calculated analytics from database RPC functions
 export function useVirtualizedProperties(pageSize = 50) {
 	// Use properties with analytics RPC function instead of raw table data
-	const { data: propertiesWithAnalytics, isLoading, error } = useQuery<Property[]>({
+	const { data: propertiesWithAnalytics, isLoading, error } = useQuery<PropertyWithUnits[]>({
 		queryKey: ['properties', 'virtualized-analytics', pageSize],
 		queryFn: async () => {
 			// Call RPC function that returns all calculations and formatting done server-side

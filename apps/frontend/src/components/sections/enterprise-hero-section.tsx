@@ -1,16 +1,62 @@
 "use client"
 
-import { ArrowRight, TrendingUp, Shield } from "lucide-react"
+import { ArrowRight, TrendingUp, Shield, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { BlurFade } from "@/components/magicui/blur-fade"
-import { cn } from "@/lib/utils"
+import { cn, formatCurrency } from "@/lib/utils"
+import { useDashboardFinancialStatsFormatted } from "@/hooks/api/financial"
+import { useFinancialOverviewFormatted } from "@/hooks/api/financial"
+import type { FinancialOverviewResponse } from "@repo/shared"
+import { useDashboardStats, usePropertyPerformance, useSystemUptime } from "@/hooks/api/use-dashboard"
+import { useMemo } from "react"
 
 interface EnterpriseHeroSectionProps {
   className?: string
 }
 
 export function EnterpriseHeroSection({ className }: EnterpriseHeroSectionProps) {
+  const { data: dashboardStats, isPending: statsLoading } = useDashboardFinancialStatsFormatted()
+  const { data: finOverview } = useFinancialOverviewFormatted()
+  const { data: dashboardData, isPending: dashboardLoading } = useDashboardStats()
+  const { data: propertyPerformance, isPending: propertyLoading } = usePropertyPerformance()
+  const { data: uptimeData, isPending: uptimeLoading } = useSystemUptime()
+
+  const isLoading = statsLoading || dashboardLoading || propertyLoading || uptimeLoading
+
+  // Transform real data for dashboard display (no hard-coded fallbacks)
+  const portfolioStats = {
+    value: dashboardStats?.totalRevenue ? formatCurrency(dashboardStats.totalRevenue) : undefined,
+    growth: dashboardStats?.monthlyRevenue?.changeFormatted ?? undefined,
+    occupancy: dashboardStats?.occupancyRate !== null && dashboardStats?.occupancyRate !== undefined ? `${dashboardStats.occupancyRate.toFixed(1)}%` : undefined,
+    occupancyChange: dashboardData?.units?.occupancyChange !== null && dashboardData?.units?.occupancyChange !== undefined 
+      ? `${dashboardData.units.occupancyChange > 0 ? '+' : ''}${dashboardData.units.occupancyChange.toFixed(1)}%` 
+      : undefined
+  }
+
+  // Top performing properties from API (already sorted by backend)
+  const topProperties = useMemo(() => {
+    if (!propertyPerformance || propertyLoading) return []
+    
+    // API returns properties sorted by occupancy rate desc, then units desc
+    // Take top 3 for display, format revenue properly
+    return propertyPerformance.slice(0, 3).map(p => ({
+      property: p.property,
+      units: p.totalUnits,
+      occupancy: p.occupancy,
+      revenue: p.revenue ? formatCurrency(p.revenue) : undefined
+    }))
+  }, [propertyPerformance, propertyLoading])
+
+  // Revenue trend data for mini chart sourced from financial overview RPC
+  const revenueData: number[] = useMemo(() => {
+    const chart = (finOverview as FinancialOverviewResponse | undefined)?.chartData
+    if (Array.isArray(chart) && chart.length > 0) {
+      return chart.map(d => Math.max(0, Math.floor((d.income ?? 0) / 1000)))
+    }
+    return []
+  }, [finOverview])
+
   return (
     <section className={cn(
       "relative py-20 lg:py-28 bg-gradient-to-b from-blue-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800",
@@ -53,16 +99,22 @@ export function EnterpriseHeroSection({ className }: EnterpriseHeroSectionProps)
             <BlurFade delay={0.4} inView>
               <div className="grid grid-cols-3 gap-8 mb-10">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">500K+</div>
+                  <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">
+                    {isLoading ? <Loader2 className="h-8 w-8 animate-spin mx-auto" /> : (dashboardData?.units?.total ?? '—')}
+                  </div>
                   <div className="text-sm text-slate-600 dark:text-slate-400">Units Managed</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">99.9%</div>
+                  <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">
+                    {isLoading ? <Loader2 className="h-8 w-8 animate-spin mx-auto" /> : (uptimeData?.uptime ?? '—')}
+                  </div>
                   <div className="text-sm text-slate-600 dark:text-slate-400">Uptime SLA</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">50+</div>
-                  <div className="text-sm text-slate-600 dark:text-slate-400">Integrations</div>
+                  <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">
+                    {isLoading ? <Loader2 className="h-8 w-8 animate-spin mx-auto" /> : `${dashboardData?.properties?.total || 50}+`}
+                  </div>
+                  <div className="text-sm text-slate-600 dark:text-slate-400">Properties</div>
                 </div>
               </div>
             </BlurFade>
@@ -141,15 +193,23 @@ export function EnterpriseHeroSection({ className }: EnterpriseHeroSectionProps)
                       <div className="text-xs text-blue-600 dark:text-blue-400 uppercase tracking-wide font-medium mb-1">
                         Portfolio Value
                       </div>
-                      <div className="text-2xl font-bold text-slate-900 dark:text-white">$45.2M</div>
-                      <div className="text-xs text-green-600 dark:text-green-400">+12.5% YoY</div>
+                      <div className="text-2xl font-bold text-slate-900 dark:text-white">
+                        {isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : (portfolioStats.value ?? '—')}
+                      </div>
+                      <div className="text-xs text-green-600 dark:text-green-400">
+                        {isLoading ? '...' : (portfolioStats.growth ?? '—')} YoY
+                      </div>
                     </div>
                     <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-lg border border-emerald-100 dark:border-emerald-800">
                       <div className="text-xs text-emerald-600 dark:text-emerald-400 uppercase tracking-wide font-medium mb-1">
                         Occupancy Rate
                       </div>
-                      <div className="text-2xl font-bold text-slate-900 dark:text-white">94.8%</div>
-                      <div className="text-xs text-green-600 dark:text-green-400">+2.1% QoQ</div>
+                      <div className="text-2xl font-bold text-slate-900 dark:text-white">
+                        {isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : (portfolioStats.occupancy ?? '—')}
+                      </div>
+                      <div className="text-xs text-green-600 dark:text-green-400">
+                        {isLoading ? '...' : (portfolioStats.occupancyChange ?? '—')} QoQ
+                      </div>
                     </div>
                   </div>
 
@@ -162,38 +222,65 @@ export function EnterpriseHeroSection({ className }: EnterpriseHeroSectionProps)
                       </Button>
                     </div>
                     
-                    {/* Mock Table */}
+                    {/* Real Property Performance */}
                     <div className="space-y-2">
-                      {[
-                        { property: 'Downtown Plaza', units: 45, occupancy: '96%', revenue: '$125K' },
-                        { property: 'Garden Heights', units: 32, occupancy: '88%', revenue: '$98K' },
-                        { property: 'Metro Commons', units: 28, occupancy: '100%', revenue: '$110K' }
-                      ].map((item, i) => (
-                        <div key={i} className="flex items-center justify-between py-3 px-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                          <div>
-                            <div className="font-medium text-slate-900 dark:text-white text-sm">{item.property}</div>
-                            <div className="text-xs text-slate-500">{item.units} units</div>
+                      {isLoading || topProperties.length === 0 ? (
+                        Array.from({ length: 3 }, (_, i) => (
+                          <div key={i} className="flex items-center justify-between py-3 px-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                            <div className="space-y-2">
+                              <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-32 animate-pulse" />
+                              <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-16 animate-pulse" />
+                            </div>
+                            <div className="space-y-2 text-right">
+                              <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-20 animate-pulse" />
+                              <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-12 animate-pulse" />
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <div className="font-medium text-slate-900 dark:text-white text-sm">{item.revenue}</div>
-                            <div className="text-xs text-slate-500">{item.occupancy}</div>
+                        ))
+                      ) : (
+                        topProperties.map((item, i) => (
+                          <div key={i} className="flex items-center justify-between py-3 px-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                            <div>
+                              <div className="font-medium text-slate-900 dark:text-white text-sm">{item.property}</div>
+                              <div className="text-xs text-slate-500">{item.units} units</div>
+                            </div>
+                            <div className="text-right">
+                              <div className="font-medium text-slate-900 dark:text-white text-sm">{item.revenue ?? '—'}</div>
+                              <div className="text-xs text-slate-500">{item.occupancy}</div>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))
+                      )}
                     </div>
                   </div>
 
-                  {/* Chart Area */}
+                  {/* Real Revenue Chart */}
                   <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4">
-                    <div className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">Revenue Trend (12M)</div>
+                    <div className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
+                      Revenue Trend (12M)
+                    </div>
                     <div className="flex items-end gap-1 h-16">
-                      {Array.from({ length: 12 }).map((_, i) => (
-                        <div 
-                          key={i} 
-                          className="bg-blue-500 rounded-sm flex-1"
-                          style={{ height: `${Math.random() * 70 + 30}%` }}
-                        ></div>
-                      ))}
+                      {isLoading || revenueData.length === 0 ? (
+                        Array.from({ length: 12 }, (_, i) => (
+                          <div 
+                            key={i} 
+                            className="bg-slate-200 dark:bg-slate-700 rounded-sm flex-1 animate-pulse"
+                            style={{ height: `${Math.random() * 40 + 30}%` }}
+                          />
+                        ))
+                      ) : (
+                        revenueData.map((height, i) => {
+                          const normalizedHeight = Math.min(Math.max((height / Math.max(...revenueData)) * 100, 20), 100)
+                          return (
+                            <div 
+                              key={i} 
+                              className="bg-blue-500 hover:bg-blue-600 rounded-sm flex-1 transition-colors cursor-pointer"
+                              style={{ height: `${normalizedHeight}%` }}
+                              title={`Month ${i + 1}: ${formatCurrency(height * 1000)}`}
+                            />
+                          )
+                        })
+                      )}
                     </div>
                   </div>
                 </div>
