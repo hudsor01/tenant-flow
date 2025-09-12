@@ -149,20 +149,20 @@ export default function RootLayout({
 					}}
 				/>
 			</head>
-			<body>
-				<QueryProvider>
-					<PostHogClientProvider>
-						<AuthStoreProvider>
-							{children}
-							<GlobalLoadingIndicator variant="bar" position="top" />
-						</AuthStoreProvider>
-						<PostHogPageView />
-					</PostHogClientProvider>
-				</QueryProvider>
-				<Analytics />
-				<SpeedInsights />
-				<WebVitals />
-			</body>
+                        <body className="min-h-screen bg-background text-foreground antialiased">
+                                <QueryProvider>
+                                        <PostHogClientProvider>
+                                                <AuthStoreProvider>
+                                                        {children}
+                                                        <GlobalLoadingIndicator variant="bar" position="top" />
+                                                </AuthStoreProvider>
+                                                <PostHogPageView />
+                                        </PostHogClientProvider>
+                                </QueryProvider>
+                                <Analytics />
+                                <SpeedInsights />
+                                <WebVitals />
+                        </body>
 		</html>
 	)
 }
