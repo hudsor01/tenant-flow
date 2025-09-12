@@ -62,12 +62,15 @@ function transformFinancialDataToRevenue(apiData: any[]): RevenueDataPoint[] {
     const recurring = Math.floor(revenue * 0.75)
     const oneTime = revenue - recurring
     
+    const month = (item.monthNumber && item.monthNumber > 0 && item.monthNumber <= 12 
+      ? monthNames[item.monthNumber - 1] 
+      : monthNames[index % 12]) as string
+    
     return {
-      month: monthNames[item.monthNumber - 1] || monthNames[index % 12],
+      month,
       revenue,
       recurring,
       oneTime,
-      // Add projected value for the last month if it's current year
       projected: index === apiData.length - 1 && new Date().getFullYear() === new Date().getFullYear() 
         ? Math.floor(revenue * 1.1) 
         : undefined
