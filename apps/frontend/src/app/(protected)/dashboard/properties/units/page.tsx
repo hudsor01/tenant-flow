@@ -35,6 +35,8 @@ import { DoorOpen, Filter, Plus } from 'lucide-react'
 
 type InsertUnit = Database['public']['Tables']['Unit']['Insert']
 type UnitStatus = Database['public']['Enums']['UnitStatus']
+type UnitRowDB = Database['public']['Tables']['Unit']['Row']
+type PropertyRowDB = Database['public']['Tables']['Property']['Row']
 
 export default function UnitsPage({
 	searchParams
@@ -48,25 +50,25 @@ export default function UnitsPage({
 	const { data: properties = [] } = useProperties()
 
 	// Filter units by property if specified
-	const filteredUnits = propertyFilter
-		? units.filter(unit => unit.propertyId === propertyFilter)
-		: units
+    const filteredUnits = propertyFilter
+        ? units.filter((unit: UnitRowDB) => unit.propertyId === propertyFilter)
+        : units
 
 	// Get occupancy stats
-	const occupiedUnits = filteredUnits.filter(unit => unit.status === 'OCCUPIED')
-	const vacantUnits = filteredUnits.filter(unit => unit.status === 'VACANT')
-	const _maintenanceUnits = filteredUnits.filter(
-		unit => unit.status === 'MAINTENANCE'
-	)
+    const occupiedUnits = filteredUnits.filter((unit: UnitRowDB) => unit.status === 'OCCUPIED')
+    const vacantUnits = filteredUnits.filter((unit: UnitRowDB) => unit.status === 'VACANT')
+    const _maintenanceUnits = filteredUnits.filter(
+        (unit: UnitRowDB) => unit.status === 'MAINTENANCE'
+    )
 	const occupancyRate =
 		filteredUnits.length > 0
 			? (occupiedUnits.length / filteredUnits.length) * 100
 			: 0
 	const avgRent =
 		filteredUnits.length > 0
-			? filteredUnits.reduce((sum, unit) => sum + (unit.rent || 0), 0) /
-				filteredUnits.length
-			: 0
+            ? filteredUnits.reduce((sum: number, unit: UnitRowDB) => sum + (unit.rent || 0), 0) /
+                filteredUnits.length
+            : 0
 
 	return (
 		<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
@@ -185,11 +187,11 @@ export default function UnitsPage({
 							</SelectTrigger>
 							<SelectContent>
 								<SelectItem value="ALL">All Properties</SelectItem>
-								{properties.map(property => (
-									<SelectItem key={property.id} value={property.id}>
-										{property.name}
-									</SelectItem>
-								))}
+                            {properties.map((property: PropertyRowDB) => (
+                                <SelectItem key={property.id} value={property.id}>
+                                    {property.name}
+                                </SelectItem>
+                            ))}
 							</SelectContent>
 						</Select>
 					</div>
