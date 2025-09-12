@@ -9,9 +9,13 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { PageLayout } from '@/components/layout/page-layout'
+import { BlurFade } from '@/components/magicui/blur-fade'
 
 // Icons
 import { Check, Star, ArrowRight } from 'lucide-react'
+
+// Design System
+import { TYPOGRAPHY_SCALE } from '@repo/shared'
 
 // Pricing Plans Configuration
 const pricingPlans = [
@@ -96,49 +100,61 @@ export default function PricingPage() {
       <section className="py-8 md:py-16">
         <div className="mx-auto max-w-7xl">
           {/* Header */}
-          <div className="mx-auto max-w-2xl space-y-6 text-center mb-16">
-            <Badge variant="outline" className="mb-4">
-              <Star className="w-3 h-3 mr-1" />
-              Trusted by 10,000+ property managers
-            </Badge>
-            
-            <h1 className="text-center text-4xl font-semibold lg:text-5xl">
-              Stop losing $2,400+ per property per year
-            </h1>
-            
-            <p className="text-muted-foreground">
-              Professional property managers increase NOI by 40% with TenantFlow's enterprise-grade 
-              automation, advanced analytics, and scalable operations platform.
-            </p>
-            
-            {/* Billing Toggle */}
-            <div className="flex items-center justify-center gap-4 mt-8">
-              <span className={`text-sm font-medium ${!isYearly ? 'text-foreground' : 'text-muted-foreground'}`}>
-                Monthly
-              </span>
-              <button
-                onClick={() => setIsYearly(!isYearly)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                  isYearly ? 'bg-primary' : 'bg-muted'
-                }`}
+          <BlurFade delay={0.1} inView>
+            <div className="mx-auto max-w-4xl space-y-6 text-center mb-16">
+              <Badge variant="outline" className="mb-4">
+                <Star className="w-3 h-3 mr-1" />
+                Trusted by 10,000+ property managers
+              </Badge>
+              
+              <h1 
+                className="text-center text-foreground font-bold tracking-tight leading-tight"
+                style={TYPOGRAPHY_SCALE['display-lg']}
               >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-background transition-transform ${
-                    isYearly ? 'translate-x-6' : 'translate-x-1'
+                Choose the perfect plan to{' '}
+                <span className="bg-gradient-to-r from-primary via-primary/80 to-accent bg-clip-text text-transparent">
+                  scale your business
+                </span>
+              </h1>
+              
+              <p 
+                className="text-muted-foreground leading-relaxed max-w-2xl mx-auto"
+                style={TYPOGRAPHY_SCALE['body-lg']}
+              >
+                Professional property managers increase NOI by 40% with TenantFlow's enterprise-grade 
+                automation, advanced analytics, and scalable operations platform.
+              </p>
+            
+              {/* Billing Toggle */}
+              <div className="flex items-center justify-center gap-4 mt-8">
+                <span className={`text-sm font-medium ${!isYearly ? 'text-foreground' : 'text-muted-foreground'}`}>
+                  Monthly
+                </span>
+                <button
+                  onClick={() => setIsYearly(!isYearly)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+                    isYearly ? 'bg-primary' : 'bg-muted'
                   }`}
-                />
-              </button>
-              <span className={`text-sm font-medium ${isYearly ? 'text-foreground' : 'text-muted-foreground'}`}>
-                Yearly
-                <Badge className="ml-2 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs">
-                  Save 17%
-                </Badge>
-              </span>
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-background transition-transform ${
+                      isYearly ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+                <span className={`text-sm font-medium ${isYearly ? 'text-foreground' : 'text-muted-foreground'}`}>
+                  Yearly
+                  <Badge className="ml-2 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs">
+                    Save 17%
+                  </Badge>
+                </span>
+              </div>
             </div>
-          </div>
+          </BlurFade>
 
           {/* Pricing Grid */}
-          <div className="grid gap-6 lg:grid-cols-3 lg:gap-8">
+          <BlurFade delay={0.2} inView>
+            <div className="grid gap-6 lg:grid-cols-3 lg:gap-8">
             {pricingPlans.map((plan) => (
               <Card 
                 key={plan.id} 
@@ -216,51 +232,84 @@ export default function PricingPage() {
                 </CardFooter>
               </Card>
             ))}
-          </div>
+            </div>
+          </BlurFade>
 
           {/* Features Section */}
-          <div className="mt-32">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold mb-4">
-                Proven results that transform property management
-              </h2>
-              <p className="text-muted-foreground">
-                Professional property managers use TenantFlow to reduce costs by 32%, increase NOI by 40%, and automate 80% of repetitive tasks
-              </p>
-            </div>
+          <BlurFade delay={0.3} inView>
+            <div className="mt-32">
+              <div className="text-center mb-12 space-y-4">
+                <h2 
+                  className="text-foreground font-bold tracking-tight"
+                  style={TYPOGRAPHY_SCALE['heading-xl']}
+                >
+                  Proven results that transform property management
+                </h2>
+                <p 
+                  className="text-muted-foreground leading-relaxed max-w-2xl mx-auto"
+                  style={TYPOGRAPHY_SCALE['body-lg']}
+                >
+                  Professional property managers use TenantFlow to reduce costs by 32%, increase NOI by 40%, and automate 80% of repetitive tasks
+                </p>
+              </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <Check className="w-6 h-6 text-primary" />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <Check className="w-6 h-6 text-primary" />
+                  </div>
+                  <h3 
+                    className="font-semibold mb-2 text-foreground"
+                    style={TYPOGRAPHY_SCALE['heading-sm']}
+                  >
+                    Increase NOI by 40% Average
+                  </h3>
+                  <p 
+                    className="text-muted-foreground leading-relaxed"
+                    style={TYPOGRAPHY_SCALE['body-sm']}
+                  >
+                    Real-time financial analytics and automated rent optimization maximize property returns. ROI in 90 days guaranteed.
+                  </p>
                 </div>
-                <h3 className="font-semibold mb-2">Increase NOI by 40% Average</h3>
-                <p className="text-sm text-muted-foreground">
-                  Real-time financial analytics and automated rent optimization maximize property returns. ROI in 90 days guaranteed.
-                </p>
-              </div>
-              
-              <div className="text-center">
-                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <ArrowRight className="w-6 h-6 text-primary" />
+                
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <ArrowRight className="w-6 h-6 text-primary" />
+                  </div>
+                  <h3 
+                    className="font-semibold mb-2 text-foreground"
+                    style={TYPOGRAPHY_SCALE['heading-sm']}
+                  >
+                    Automate 80% of Daily Tasks
+                  </h3>
+                  <p 
+                    className="text-muted-foreground leading-relaxed"
+                    style={TYPOGRAPHY_SCALE['body-sm']}
+                  >
+                    Smart workflows handle rent collection, lease renewals, and tenant communications automatically. Save 20+ hours per week.
+                  </p>
                 </div>
-                <h3 className="font-semibold mb-2">Automate 80% of Daily Tasks</h3>
-                <p className="text-sm text-muted-foreground">
-                  Smart workflows handle rent collection, lease renewals, and tenant communications automatically. Save 20+ hours per week.
-                </p>
-              </div>
-              
-              <div className="text-center">
-                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <Star className="w-6 h-6 text-primary" />
+                
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <Star className="w-6 h-6 text-primary" />
+                  </div>
+                  <h3 
+                    className="font-semibold mb-2 text-foreground"
+                    style={TYPOGRAPHY_SCALE['heading-sm']}
+                  >
+                    Enterprise Security
+                  </h3>
+                  <p 
+                    className="text-muted-foreground leading-relaxed"
+                    style={TYPOGRAPHY_SCALE['body-sm']}
+                  >
+                    Bank-level security with SOC 2 compliance ensures your sensitive property and tenant data is always protected.
+                  </p>
                 </div>
-                <h3 className="font-semibold mb-2">Enterprise Security</h3>
-                <p className="text-sm text-muted-foreground">
-                  Bank-level security with SOC 2 compliance ensures your sensitive property and tenant data is always protected.
-                </p>
               </div>
             </div>
-          </div>
+          </BlurFade>
 
           {/* Bottom CTA */}
           <div className="text-center mt-16">

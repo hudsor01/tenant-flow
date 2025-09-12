@@ -25,12 +25,12 @@ export default function DashboardLayout({
 			<AppSidebar variant="inset" />
 			
 			{/* Main Content Area */}
-			<SidebarInset className="flex flex-col min-h-screen">
+			<SidebarInset className="dashboard-root flex flex-col min-h-screen">
 				{/* Sticky Header */}
 				<SiteHeader className="sticky top-0 z-40 bg-background/80 backdrop-blur-sm border-b touch-manipulation" />
 				
 				{/* Scrollable Content Area */}
-				<main className="flex-1 overflow-auto overscroll-contain scroll-smooth">
+				<main className="dashboard-main flex-1 overflow-auto overscroll-contain scroll-smooth">
 					<div className="@container/main flex flex-1 flex-col transform-gpu will-change-scroll">
 						{children}
 					</div>

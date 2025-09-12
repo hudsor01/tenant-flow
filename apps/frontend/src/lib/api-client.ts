@@ -2,7 +2,7 @@
  * Frontend API client configuration for TenantFlow
  * Integrates with shared API client and backend endpoints
  */
-import { apiClient } from '@repo/shared'
+import { apiClient } from '@repo/shared/utils/api-client'
 import type {
 	DashboardFinancialStats,
 	ExpenseSummaryResponse,

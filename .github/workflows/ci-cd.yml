@@ -102,3 +102,25 @@ jobs:
       - name: Lint check
         continue-on-error: true
         run: npm run lint
+
+  deploy-backend:
+    name: Deploy Backend (Railway)
+    needs: build-and-test
+    # Deploy on main or when manually dispatched
+    if: >-
+      ${{ (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch') &&
+          (secrets.RAILWAY_TOKEN != '') }}
+    runs-on: ubuntu-latest
+    environment:
+      name: tenantflow-backend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm i -g @railway/cli@3
+
+      - name: Deploy via Railway (Dockerfile + railway.toml)
+        run: railway up --yes --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
