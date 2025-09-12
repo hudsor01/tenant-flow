@@ -5,30 +5,57 @@ import { FooterMinimal } from '@/components/sections/footer-minimal'
 import ClientFeedback from '@/components/ui/testimonial'
 import { Button } from '@/components/ui/button'
 import { Navbar } from '@/components/navbar'
+import { BlurFade } from '@/components/magicui/blur-fade'
+import { TYPOGRAPHY_SCALE } from '@repo/shared'
+import { containerClasses } from '@/lib/design-system'
+import { ArrowRight } from 'lucide-react'
 
-// CTA Section with Enhanced Typography
+// CTA Section with Design System Consistency
 const CTASection = () => (
-  <section className="py-20 bg-gradient-to-br from-slate-50 to-blue-50">
-    <div className="mx-auto max-w-6xl px-6 text-center">
-      <div className="prose prose-xl lg:prose-2xl prose-slate mx-auto mb-12">
-        <h2 className="text-display text-gradient-primary mb-6 not-prose">
-          Ready to transform your property management?
-        </h2>
-        <p className="text-xl leading-relaxed text-balance text-muted-foreground max-w-3xl mx-auto">
-          Join thousands of property managers who've streamlined their operations and scaled their business with TenantFlow's enterprise platform.
-        </p>
-      </div>
-      
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 border border-white/50">
-        <h3 className="text-2xl font-semibold mb-8 text-foreground tracking-tight">
-          Transform Your Operations Today
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Button size="lg" className="w-full font-medium">Start 14-day transformation</Button>
-          <Button size="lg" variant="outline" className="w-full font-medium">See ROI calculator</Button>
-          <Button size="lg" variant="secondary" className="w-full font-medium">Schedule Demo</Button>
+  <section className="py-24 bg-gradient-to-br from-primary/5 via-background to-accent/5">
+    <div className={containerClasses('lg')}>
+      <BlurFade delay={0.1} inView>
+        <div className="text-center space-y-8">
+          <h2 
+            className="font-bold tracking-tight leading-tight"
+            style={TYPOGRAPHY_SCALE['heading-xl']}
+          >
+            Ready to{' '}
+            <span className="bg-gradient-to-r from-primary via-primary/80 to-accent bg-clip-text text-transparent">
+              transform property management
+            </span>
+            ?
+          </h2>
+          <p 
+            className="text-muted-foreground leading-relaxed max-w-2xl mx-auto"
+            style={TYPOGRAPHY_SCALE['body-lg']}
+          >
+            Join thousands of property managers who've streamlined their operations and 
+            scaled their business with TenantFlow's enterprise platform.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button 
+              size="xl"
+              className="group"
+            >
+              Start Free Trial
+              <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
+            </Button>
+            <Button 
+              variant="outline"
+              size="xl"
+            >
+              Schedule Demo
+            </Button>
+          </div>
+          <p 
+            className="text-muted-foreground"
+            style={TYPOGRAPHY_SCALE['body-sm']}
+          >
+            No setup fees • Enterprise security • 99.9% uptime SLA • Cancel anytime
+          </p>
         </div>
-      </div>
+      </BlurFade>
     </div>
   </section>
 )
