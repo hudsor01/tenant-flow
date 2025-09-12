@@ -8,8 +8,8 @@ import { AppService } from './app.service'
 import { AuthModule } from './auth/auth.module'
 import { StripeModule } from './billing/stripe.module'
 import { validate } from './config/config.schema'
-import { DashboardModule } from './dashboard/dashboard.module'
 import { SupabaseModule } from './database/supabase.module'
+import { HealthModule } from './health/health.module'
 import { SharedModule } from './shared/shared.module'
 import { LeasesModule } from './leases/leases.module'
 import { MaintenanceModule } from './maintenance/maintenance.module'
@@ -18,6 +18,7 @@ import { PropertiesModule } from './properties/properties.module'
 import { TenantsModule } from './tenants/tenants.module'
 import { UnitsModule } from './units/units.module'
 import { UsersModule } from './users/users.module'
+import { DashboardModule } from './dashboard/dashboard.module'
 
 /**
  * Core App Module - KISS principle
@@ -48,14 +49,17 @@ import { UsersModule } from './users/users.module'
 		SupabaseModule,
 		SharedModule,
 		
+		// Native health checks with dependency injection validation
+		HealthModule,
+		
 		// Business modules that depend on global services
 		AuthModule,
 		StripeModule,
+		DashboardModule,
 		PropertiesModule,
 		UnitsModule,
 		TenantsModule,
 		LeasesModule,
-		DashboardModule,
 		MaintenanceModule,
 		NotificationsModule,
 		UsersModule

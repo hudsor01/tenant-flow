@@ -78,17 +78,17 @@
     "typescript-eslint": "^8.43.0"
   },
   "optionalDependencies": {
+    "@tailwindcss/oxide-linux-arm64-gnu": "4.1.13",
+    "@tailwindcss/oxide-linux-arm64-musl": "4.1.13",
+    "@tailwindcss/oxide-linux-x64-gnu": "4.1.13",
+    "@tailwindcss/oxide-linux-x64-musl": "4.1.13",
+    "@tailwindcss/oxide-wasm32-wasi": "4.1.13",
+    "lightningcss-linux-x64-gnu": "1.30.1",
+    "lightningcss-linux-x64-musl": "1.30.1",
     "turbo-darwin-64": "2.5.6",
     "turbo-darwin-arm64": "2.5.6",
     "turbo-linux-64": "2.5.6",
-    "turbo-linux-arm64": "2.5.6",
-    "lightningcss-linux-x64-gnu": "1.30.1",
-    "lightningcss-linux-x64-musl": "1.30.1",
-    "@tailwindcss/oxide-linux-x64-gnu": "4.1.13",
-    "@tailwindcss/oxide-linux-x64-musl": "4.1.13",
-    "@tailwindcss/oxide-linux-arm64-gnu": "4.1.13",
-    "@tailwindcss/oxide-linux-arm64-musl": "4.1.13",
-    "@tailwindcss/oxide-wasm32-wasi": "4.1.13"
+    "turbo-linux-arm64": "2.5.6"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -122,5 +122,8 @@
     "sourcemap-codec": "npm:@jridgewell/sourcemap-codec@^1.5.5",
     "inflight": "npm:lru-cache@^11.2.1",
     "lightningcss": "1.30.1"
+  },
+  "dependencies": {
+    "@nestjs/terminus": "11.0.0"
   }
 }
