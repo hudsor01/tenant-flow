@@ -173,6 +173,47 @@ export interface HealthCheckResponse {
 }
 
 // =============================================================================
+// DATABASE PERFORMANCE & HEALTH (Supabase / Postgres)
+// =============================================================================
+
+// Row describing index usage metrics (derived from pg_stat_* views or RPC)
+export interface DbIndexUsageRow {
+  schemaname: string
+  tablename: string
+  indexname: string
+  scans: number
+  tuples_read: number
+  tuples_fetched: number
+  size: string
+}
+
+// Row describing slow query statistics (typically from pg_stat_statements)
+export interface DbSlowQueryRow {
+  query: string
+  calls: number
+  total_time: number
+  mean_time: number
+  rows: number
+  hit_percent: number
+}
+
+// Aggregated, normalized DB health metrics returned by backend
+export interface DbHealthMetrics {
+  connections: number
+  cache_hit_ratio: number
+  table_sizes: { table_name: string; size: string; row_count: number }[]
+  index_sizes: { index_name: string; size: string; table_name: string }[]
+}
+
+// Overview payload shape produced by performance RPCs (optional sections)
+export interface DbPerformanceOverview {
+  index_usage?: unknown
+  slow_queries?: unknown
+  health?: unknown
+  [k: string]: unknown
+}
+
+// =============================================================================
 // CONFIG TYPES
 // =============================================================================
 

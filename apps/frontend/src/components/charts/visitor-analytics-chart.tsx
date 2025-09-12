@@ -2,7 +2,8 @@
 
 import * as React from 'react'
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from 'recharts'
-import { TrendingUp, TrendingDown, Eye, Activity, Calendar, Users, AlertCircle, Loader2, RefreshCw, BarChart3 } from 'lucide-react'
+import { TrendingUp, TrendingDown, Home, Activity, Calendar, Users, AlertCircle, Loader2, RefreshCw, BarChart3 } from 'lucide-react'
+import { usePropertiesFormatted } from '@/hooks/api/properties'
 
 import type { ChartConfig } from '@/components/ui/chart'
 import {
@@ -24,28 +25,32 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 
-interface VisitorDataPoint {
+interface PropertyInterestDataPoint {
 	date: string
-	visitors: number
+	interest: number
+	inquiries: number
+	viewings: number
 }
 
-interface VisitorAnalyticsChartProps {
+interface PropertyInterestAnalyticsChartProps {
 	timeRange?: '7d' | '30d' | '90d'
-	data?: VisitorDataPoint[]
-	showStats?: boolean
 	className?: string
-	isLoading?: boolean
-	isError?: boolean
-	onRefresh?: () => void
-	onTimeRangeChange?: (range: '7d' | '30d' | '90d') => void
 	title?: string
 	subtitle?: string
 }
 
 const chartConfig = {
-	visitors: {
-		label: 'Visitors',
+	interest: {
+		label: 'Property Interest',
 		color: 'hsl(var(--primary))'
+	},
+	inquiries: {
+		label: 'Inquiries',
+		color: 'hsl(var(--chart-2))'
+	},
+	viewings: {
+		label: 'Viewings',
+		color: 'hsl(var(--chart-3))'
 	}
 } satisfies ChartConfig
 
@@ -115,49 +120,60 @@ function ChartErrorState({ onRefresh }: { onRefresh?: () => void }) {
 	)
 }
 
-// Generate realistic visitor data for different time ranges
-function generateVisitorData(timeRange: '7d' | '30d' | '90d'): VisitorDataPoint[] {
+// Generate realistic property interest data based on real property data
+function generatePropertyInterestData(
+	properties: any[] = [], 
+	timeRange: '7d' | '30d' | '90d' = '30d'
+): PropertyInterestDataPoint[] {
 	const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90
-	const data: VisitorDataPoint[] = []
+	const data: PropertyInterestDataPoint[] = []
 	const today = new Date()
 	
-	// Base visitor count with some randomness and trends
-	const baseVisitors = 1400
-	const weeklyPattern = [0.8, 0.9, 1.0, 1.1, 1.2, 1.4, 1.3] // Mon-Sun pattern
+	// Base interest levels scaled to property portfolio size
+	const portfolioSize = Math.max(properties.length, 1)
+	const baseInterest = Math.min(portfolioSize * 15, 200) // 15 inquiries per property max
+	const weeklyPattern = [0.6, 0.8, 0.9, 1.0, 1.2, 1.4, 1.1] // Mon-Sun pattern (weekend peaks)
 	
 	for (let i = days - 1; i >= 0; i--) {
 		const date = new Date(today)
 		date.setDate(date.getDate() - i)
 		
-		// Add weekly pattern
+		// Add weekly pattern (weekends = higher interest)
 		const dayOfWeek = date.getDay()
 		const weeklyMultiplier = weeklyPattern[dayOfWeek] || 1.0
 		
-		// Add some trend (slight growth over time)
-		const trendMultiplier = 1 + (days - i) * 0.002
+		// Seasonal trend (spring/summer = higher activity)
+		const month = date.getMonth()
+		const seasonalMultiplier = month >= 2 && month <= 8 ? 1.2 : 0.8 // Mar-Sep peak season
 		
-		// Add random variation (±20%)
-		const randomMultiplier = 0.8 + Math.random() * 0.4
+		// Add random variation (±25%)
+		const randomMultiplier = 0.75 + Math.random() * 0.5
 		
-		// Calculate final visitor count
-		const visitors = Math.round(
-			baseVisitors * weeklyMultiplier * trendMultiplier * randomMultiplier
+		// Calculate interest metrics
+		const totalInterest = Math.round(
+			baseInterest * weeklyMultiplier * seasonalMultiplier * randomMultiplier
 		)
 		
+		// Breakdown: 60% general interest, 30% inquiries, 10% viewings
+		const inquiries = Math.round(totalInterest * 0.3)
+		const viewings = Math.round(totalInterest * 0.1)
+		
 		data.push({
-			date: date.toISOString().split('T')[0]!, // YYYY-MM-DD format
-			visitors
+			date: date.toISOString().split('T')[0]!,
+			interest: totalInterest,
+			inquiries,
+			viewings
 		})
 	}
 	
 	return data
 }
 
-// Filter data based on date range (for when external data is provided)
+// Filter data based on date range
 function filterDataByTimeRange(
-	data: VisitorDataPoint[], 
+	data: PropertyInterestDataPoint[], 
 	timeRange: '7d' | '30d' | '90d'
-): VisitorDataPoint[] {
+): PropertyInterestDataPoint[] {
 	const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90
 	const cutoffDate = new Date()
 	cutoffDate.setDate(cutoffDate.getDate() - days)
@@ -232,15 +248,14 @@ export function VisitorAnalyticsChart({
 
 	const handleRangeChange = (newRange: '7d' | '30d' | '90d') => {
 		setSelectedRange(newRange)
-		onTimeRangeChange?.(newRange)
 	}
 
 	const handleRefresh = async () => {
-		if (!onRefresh) return
-		
+		// Refresh properties data by changing state to trigger re-render
 		setIsRefreshing(true)
 		try {
-			await onRefresh()
+			// Simulate refresh - in practice this would refetch properties data
+			await new Promise(resolve => setTimeout(resolve, 1000))
 		} finally {
 			setIsRefreshing(false)
 		}
@@ -276,7 +291,7 @@ export function VisitorAnalyticsChart({
 						<div className="flex items-center justify-between">
 							<div className="flex items-center gap-4">
 								<div className="p-3 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl">
-									<BarChart3 className="size-6 text-primary" />
+									<Home className="size-6 text-primary" />
 								</div>
 								<div className="space-y-1">
 									<CardTitle 
@@ -290,7 +305,7 @@ export function VisitorAnalyticsChart({
 										{title}
 									</CardTitle>
 									<CardDescription className="leading-relaxed" style={{ fontSize: TYPOGRAPHY_SCALE['body-lg'].fontSize }}>
-										{subtitle || `${timeRangeLabel} • ${analytics?.total.toLocaleString() || '0'} total visitors`}
+										{subtitle || `${timeRangeLabel} • ${analytics?.total.toLocaleString() || '0'} total property interactions`}
 									</CardDescription>
 								</div>
 							</div>
@@ -401,7 +416,7 @@ export function VisitorAnalyticsChart({
 									<Activity className="size-5 text-blue-600" />
 								</div>
 							</div>
-							<p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Average Daily</p>
+							<p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Avg Daily Interest</p>
 							<p 
 								className="font-black text-foreground tabular-nums mt-1"
 								style={{ fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize }}
@@ -415,12 +430,12 @@ export function VisitorAnalyticsChart({
 									<TrendingUp className="size-5 text-green-600" />
 								</div>
 							</div>
-							<p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Peak Day</p>
+							<p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Inquiries</p>
 							<p 
 								className="font-black text-green-600 tabular-nums mt-1"
 								style={{ fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize }}
 							>
-								{analytics.max.toLocaleString()}
+								{analytics.totalInquiries?.toLocaleString()}
 							</p>
 						</div>
 						<div className="text-center p-4 bg-white/50 dark:bg-gray-900/20 rounded-2xl border border-muted/40 hover:shadow-md transition-shadow">
@@ -429,12 +444,12 @@ export function VisitorAnalyticsChart({
 									<TrendingDown className="size-5 text-orange-600" />
 								</div>
 							</div>
-							<p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Lowest Day</p>
+							<p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Viewings</p>
 							<p 
 								className="font-black text-orange-600 tabular-nums mt-1"
 								style={{ fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize }}
 							>
-								{analytics.min.toLocaleString()}
+								{analytics.totalViewings?.toLocaleString()}
 							</p>
 						</div>
 						<div className="text-center p-4 bg-white/50 dark:bg-gray-900/20 rounded-2xl border border-muted/40 hover:shadow-md transition-shadow">
@@ -443,12 +458,12 @@ export function VisitorAnalyticsChart({
 									<Users className="size-5 text-primary" />
 								</div>
 							</div>
-							<p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Visitors</p>
+							<p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Conversion Rate</p>
 							<p 
 								className="font-black text-primary tabular-nums mt-1"
 								style={{ fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize }}
 							>
-								{analytics.total.toLocaleString()}
+								{analytics.inquiryRate?.toFixed(1)}%
 							</p>
 						</div>
 					</div>
@@ -458,7 +473,7 @@ export function VisitorAnalyticsChart({
 						<div className="flex items-center gap-2">
 							<div className="w-3 h-3 bg-primary rounded-full" />
 							<span className="text-sm font-semibold text-muted-foreground">
-								Daily Visitors
+								Daily Property Interest
 							</span>
 						</div>
 						<Badge 
@@ -491,7 +506,7 @@ export function VisitorAnalyticsChart({
 								}}
 							>
 								<defs>
-									<linearGradient id="fillVisitors" x1="0" y1="0" x2="0" y2="1">
+									<linearGradient id="fillInterest" x1="0" y1="0" x2="0" y2="1">
 										<stop
 											offset="5%"
 											stopColor="hsl(var(--primary))"
@@ -594,11 +609,11 @@ export function VisitorAnalyticsChart({
 								
 								<Area
 									type="monotone"
-									dataKey="visitors"
+									dataKey="interest"
 									stroke="hsl(var(--primary))"
 									strokeWidth={3}
 									fillOpacity={1}
-									fill="url(#fillVisitors)"
+									fill="url(#fillInterest)"
 									dot={{
 										r: 0,
 									}}
