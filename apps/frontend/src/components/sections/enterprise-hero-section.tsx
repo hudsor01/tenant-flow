@@ -34,30 +34,19 @@ export function EnterpriseHeroSection({ className }: EnterpriseHeroSectionProps)
       : undefined
   }
 
-  // Top performing properties based on current units data (no mocked values)
+  // Top performing properties from API (already sorted by backend)
   const topProperties = useMemo(() => {
-    const props = propertiesData?.properties ?? []
-    const units = unitsData ?? []
-    if (!props.length || !units.length) return [] as { property: string; units: number; occupancy: string; revenue?: string }[]
-
-    const perf = props.map(p => {
-      const unitsForProp = units.filter(u => u.propertyId === p.id)
-      const totalUnits = unitsForProp.length
-      const occupied = unitsForProp.filter(u => u.status === 'OCCUPIED').length
-      const occupancyPct = totalUnits > 0 ? Math.round((occupied / totalUnits) * 100) : 0
-      // Per-property revenue is not yet available from API; leave undefined rather than fabricate
-      return {
-        property: p.name,
-        units: totalUnits,
-        occupancy: `${occupancyPct}%`,
-        revenue: undefined as string | undefined
-      }
-    })
-
-    // Sort by occupancy desc, then units desc
-    perf.sort((a, b) => (parseInt(b.occupancy) - parseInt(a.occupancy)) || (b.units - a.units))
-    return perf.slice(0, 3)
-  }, [propertiesData?.properties, unitsData])
+    if (!propertyPerformance || propertyLoading) return []
+    
+    // API returns properties sorted by occupancy rate desc, then units desc
+    // Take top 3 for display, format revenue properly
+    return propertyPerformance.slice(0, 3).map(p => ({
+      property: p.property,
+      units: p.totalUnits,
+      occupancy: p.occupancy,
+      revenue: p.revenue ? formatCurrency(p.revenue) : undefined
+    }))
+  }, [propertyPerformance, propertyLoading])
 
   // Revenue trend data for mini chart sourced from financial overview RPC
   const revenueData: number[] = useMemo(() => {
@@ -111,19 +100,19 @@ export function EnterpriseHeroSection({ className }: EnterpriseHeroSectionProps)
               <div className="grid grid-cols-3 gap-8 mb-10">
                 <div className="text-center">
                   <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">
-                    {isLoading ? <Loader2 className="h-8 w-8 animate-spin mx-auto" /> : (propertiesData?.summary?.total !== null && propertiesData?.summary?.total !== undefined ? propertiesData.summary.total : '—')}
+                    {isLoading ? <Loader2 className="h-8 w-8 animate-spin mx-auto" /> : (dashboardData?.units?.totalUnits ?? '—')}
                   </div>
                   <div className="text-sm text-slate-600 dark:text-slate-400">Units Managed</div>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">
-                    {isLoading ? <Loader2 className="h-8 w-8 animate-spin mx-auto" /> : '—'}
+                    {isLoading ? <Loader2 className="h-8 w-8 animate-spin mx-auto" /> : (uptimeData?.uptime ?? '—')}
                   </div>
                   <div className="text-sm text-slate-600 dark:text-slate-400">Uptime SLA</div>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">
-                    {isLoading ? <Loader2 className="h-8 w-8 animate-spin mx-auto" /> : `${propertiesData?.summary?.total || 50}+`}
+                    {isLoading ? <Loader2 className="h-8 w-8 animate-spin mx-auto" /> : `${dashboardData?.properties?.total || 50}+`}
                   </div>
                   <div className="text-sm text-slate-600 dark:text-slate-400">Properties</div>
                 </div>
