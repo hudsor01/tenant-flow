@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common'
-import { HealthIndicatorService, TerminusModule } from '@nestjs/terminus'
+import { TerminusModule } from '@nestjs/terminus'
 import { HealthController } from './health.controller'
 import { SupabaseModule } from '../database/supabase.module'
 import { SupabaseHealthIndicator } from './supabase.health'
@@ -14,9 +14,10 @@ import { StripeModule } from '../billing/stripe.module'
 	],
 	providers: [
 		SupabaseHealthIndicator,
-		StripeFdwHealthIndicator,
-		HealthIndicatorService
-		// All custom monitoring services removed - use native Fastify plugins
+		StripeFdwHealthIndicator
+		// HealthCheckService is automatically provided by TerminusModule
+		// HealthIndicatorService is automatically provided by TerminusModule  
+		// PinoLogger is provided globally via LoggerModule in app.module.ts
 	],
 	exports: []
 })
