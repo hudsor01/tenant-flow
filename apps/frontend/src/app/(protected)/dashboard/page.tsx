@@ -171,22 +171,24 @@ function DashboardContent() {
 	}
 
 	return (
-		<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+		<div className="dashboard-root dashboard-main flex flex-col gap-4 py-4 md:gap-6 md:py-6">
 			{/* Enhanced error display for dashboard stats */}
-			<RetryableSection
-				error={error as Error | null}
-				onRetry={() => refetch()}
-				title="dashboard statistics"
-			>
-				<SectionCards data={dashboardStats} />
-			</RetryableSection>
+			<div className="dashboard-section">
+				<RetryableSection
+					error={error as Error | null}
+					onRetry={() => refetch()}
+					title="dashboard statistics"
+				>
+					<SectionCards data={dashboardStats} />
+				</RetryableSection>
+			</div>
 
-			<div className="px-4 lg:px-6">
+			<div className="dashboard-section px-4 lg:px-6">
 				<ChartAreaInteractive />
 			</div>
 
 			{/* Enhanced error handling for properties */}
-			<div className="px-4 lg:px-6">
+			<div className="dashboard-section px-4 lg:px-6">
 				<RetryableSection
 					error={propertiesError as Error | null}
 					onRetry={() => refetchProperties()}

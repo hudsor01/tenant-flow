@@ -60,9 +60,9 @@ export default function PropertiesPage() {
 	const totalRevenue = units.reduce((sum, unit) => sum + (unit.rent || 0), 0)
 
 	return (
-		<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+		<div className="dashboard-root dashboard-main flex flex-col gap-4 py-4 md:gap-6 md:py-6">
 			{/* Properties Metrics Cards */}
-			<div className="grid grid-cols-1 gap-4 px-4 lg:px-6 md:grid-cols-3">
+			<div className="dashboard-section dashboard-cards-container grid grid-cols-1 gap-4 px-4 lg:px-6 md:grid-cols-3">
 				<MetricsCard
 					title="Total Properties"
 					value={totalProperties}
@@ -147,7 +147,7 @@ export default function PropertiesPage() {
 						</div>
 					) : (
 						<div className="rounded-md border bg-card shadow-sm">
-							<Table>
+							<Table className="dashboard-table">
 								<TableHeader className="bg-muted/50">
 									<TableRow>
 										<TableHead className="font-semibold">

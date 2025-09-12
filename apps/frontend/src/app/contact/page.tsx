@@ -1,5 +1,9 @@
-import Navbar from '@/components/navbar'
-import { Mail, MessageSquare, Phone } from 'lucide-react'
+import { Navbar } from '@/components/navbar'
+import { Mail, MessageSquare, Phone, ArrowRight } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { BlurFade } from '@/components/magicui/blur-fade'
+import { TYPOGRAPHY_SCALE } from '@repo/shared'
+import { containerClasses } from '@/lib/design-system'
 
 export default function ContactPage() {
 	return (
@@ -7,76 +11,115 @@ export default function ContactPage() {
 			<Navbar />
 			<div className="pt-10">
 				{/* Hero Section */}
-				<section className="marketing-hero surface-pattern">
-					<div className="container text-center max-w-4xl">
-						<h1 className="text-display text-gradient-premium mb-6">
-							Ready to increase your NOI by 40%?
-						</h1>
-						<p className="text-xl text-muted-foreground">
-							Join 10,000+ property managers who have transformed their operations with TenantFlow. 
-							Our experts will show you exactly how to reduce costs by 32% and automate 80% of daily tasks.
-						</p>
+				<section className="pt-24 pb-16 bg-gradient-to-br from-background via-background to-muted/20">
+					<div className={containerClasses('xl')}>
+						<BlurFade delay={0.1} inView>
+							<div className="text-center max-w-4xl mx-auto space-y-8">
+								<h1 
+									className="text-foreground font-bold tracking-tight leading-tight"
+									style={TYPOGRAPHY_SCALE['display-lg']}
+								>
+									Ready to{' '}
+									<span className="bg-gradient-to-r from-primary via-primary/80 to-accent bg-clip-text text-transparent">
+										transform your business
+									</span>
+									?
+								</h1>
+								<p 
+									className="text-muted-foreground leading-relaxed max-w-2xl mx-auto"
+									style={TYPOGRAPHY_SCALE['body-lg']}
+								>
+									Join 10,000+ property managers who have transformed their operations with TenantFlow. 
+									Our experts will show you exactly how to reduce costs by 32% and automate 80% of daily tasks.
+								</p>
+							</div>
+						</BlurFade>
 					</div>
 				</section>
 
 				{/* Contact Options */}
-				<section className="py-12">
-					<div className="container max-w-6xl">
-						<div className="grid md:grid-cols-3 gap-8">
-							{[
-								{
-									icon: MessageSquare,
-									title: 'Free ROI Calculator',
-									description: 'See exactly how much TenantFlow can save your properties in 90 days',
-									action: 'Get My ROI Report',
-									available: 'Instant results in 2 minutes'
-								},
-								{
-									icon: Phone,
-									title: 'Expert Consultation',
-									description: 'Speak with a property management automation specialist',
-									action: 'Schedule Free Call',
-									available: 'Available Mon-Fri, 9AM-6PM PST'
-								},
-								{
-									icon: Mail,
-									title: 'Custom Demo',
-									description: 'See TenantFlow configured for your specific portfolio',
-									action: 'Request Demo',
-									available: 'Personalized for your properties'
-								}
-							].map((option, index) => (
-								<div
-									key={index}
-									className="text-center p-8 border rounded-lg hover:shadow-md transition-shadow"
-								>
-									<option.icon className="w-12 h-12 mx-auto mb-4 text-primary" />
-									<h3 className="text-xl font-semibold mb-3">{option.title}</h3>
-									<p className="text-muted-foreground mb-4">
-										{option.description}
-									</p>
-									<button className="button-primary mb-2">
-										{option.action}
-									</button>
-									<p className="text-sm text-muted-foreground">
-										{option.available}
-									</p>
-								</div>
-							))}
-						</div>
+				<section className="py-24">
+					<div className={containerClasses('xl')}>
+						<BlurFade delay={0.2} inView>
+							<div className="grid md:grid-cols-3 gap-8">
+								{[
+									{
+										icon: MessageSquare,
+										title: 'Free ROI Calculator',
+										description: 'See exactly how much TenantFlow can save your properties in 90 days',
+										action: 'Get My ROI Report',
+										available: 'Instant results in 2 minutes'
+									},
+									{
+										icon: Phone,
+										title: 'Expert Consultation',
+										description: 'Speak with a property management automation specialist',
+										action: 'Schedule Free Call',
+										available: 'Available Mon-Fri, 9AM-6PM PST'
+									},
+									{
+										icon: Mail,
+										title: 'Custom Demo',
+										description: 'See TenantFlow configured for your specific portfolio',
+										action: 'Request Demo',
+										available: 'Personalized for your properties'
+									}
+								].map((option, index) => (
+									<div
+										key={index}
+										className="bg-card rounded-2xl p-8 text-center border border-border/50 hover:border-primary/20 transition-all duration-300 hover:shadow-lg group"
+									>
+										<div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-primary/20 to-accent/20 mx-auto mb-6 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+											<option.icon className="w-8 h-8 text-primary" />
+										</div>
+										<h3 
+											className="font-semibold text-foreground mb-3"
+											style={TYPOGRAPHY_SCALE['heading-sm']}
+										>
+											{option.title}
+										</h3>
+										<p 
+											className="text-muted-foreground leading-relaxed mb-6"
+											style={TYPOGRAPHY_SCALE['body-sm']}
+										>
+											{option.description}
+										</p>
+										<Button className="mb-4 w-full group">
+											{option.action}
+											<ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
+										</Button>
+										<p 
+											className="text-muted-foreground"
+											style={TYPOGRAPHY_SCALE['body-xs']}
+										>
+											{option.available}
+										</p>
+									</div>
+								))}
+							</div>
+						</BlurFade>
 					</div>
 				</section>
 
 				{/* Contact Form */}
 				<section className="py-24 bg-muted/20">
-					<div className="container mx-auto px-4 max-w-4xl">
-						<div className="text-center mb-12">
-							<h2 className="text-3xl font-bold mb-4">Get your custom ROI projection in 24 hours</h2>
-							<p className="text-muted-foreground">
-								Tell us about your portfolio and we'll show you exactly how much TenantFlow can save you. 
-								Most property managers see $2,400+ savings per property within 90 days.
-							</p>
-						</div>
+					<div className={containerClasses('lg')}>
+						<BlurFade delay={0.3} inView>
+							<div className="text-center mb-12 space-y-4">
+								<h2 
+									className="text-foreground font-bold tracking-tight"
+									style={TYPOGRAPHY_SCALE['heading-xl']}
+								>
+									Get your custom ROI projection in 24 hours
+								</h2>
+								<p 
+									className="text-muted-foreground leading-relaxed max-w-2xl mx-auto"
+									style={TYPOGRAPHY_SCALE['body-lg']}
+								>
+									Tell us about your portfolio and we'll show you exactly how much TenantFlow can save you. 
+									Most property managers see significant cost reductions and improved efficiency within 90 days.
+								</p>
+							</div>
 
 						<div className="bg-card border rounded-lg p-8">
 							<form className="space-y-6">
@@ -153,18 +196,24 @@ export default function ContactPage() {
 								</div>
 
 								<div className="text-center">
-									<button
+									<Button
 										type="submit"
-										className="bg-primary text-primary-foreground px-8 py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors"
+										size="xl"
+										className="px-8 group"
 									>
 										Get My Custom ROI Report
-									</button>
-									<p className="text-sm text-muted-foreground mt-2">
+										<ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
+									</Button>
+									<p 
+										className="text-muted-foreground mt-2"
+										style={TYPOGRAPHY_SCALE['body-sm']}
+									>
 										Free analysis • No commitment required • Results in 24 hours
 									</p>
 								</div>
 							</form>
 						</div>
+						</BlurFade>
 					</div>
 				</section>
 
