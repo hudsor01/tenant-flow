@@ -21,7 +21,8 @@ import {
 	UseGuards,
 	ParseIntPipe,
 	DefaultValuePipe,
-	NotFoundException
+	NotFoundException,
+	BadRequestException
 } from '@nestjs/common'
 import { ThrottlerGuard } from '@nestjs/throttler'
 import { ApiTags } from '@nestjs/swagger'
@@ -131,6 +132,112 @@ export class PropertiesController {
 	@Get('stats')
 	async getStats(@CurrentUser() user: ValidatedUser) {
 		return this.propertiesService.getStats(user.id)
+	}
+
+	/**
+	 * Get per-property analytics and performance metrics
+	 * Returns detailed metrics for each property
+	 */
+	@Get('analytics/performance')
+	async getPropertyPerformanceAnalytics(
+		@CurrentUser() user: ValidatedUser,
+		@Query('propertyId') propertyId?: string,
+		@Query('timeframe', new DefaultValuePipe('30d')) timeframe?: string,
+		@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit?: number
+	) {
+		// Validate propertyId if provided
+		if (propertyId && !propertyId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+			throw new BadRequestException('Invalid property ID')
+		}
+		
+		// Validate timeframe
+		if (!['7d', '30d', '90d', '1y'].includes(timeframe ?? '30d')) {
+			throw new BadRequestException('Invalid timeframe. Must be one of: 7d, 30d, 90d, 1y')
+		}
+
+		return this.propertiesService.getPropertyPerformanceAnalytics(user.id, {
+			propertyId,
+			timeframe: timeframe ?? '30d',
+			limit
+		})
+	}
+
+	/**
+	 * Get property occupancy trends and analytics
+	 * Tracks occupancy rates over time per property
+	 */
+	@Get('analytics/occupancy')
+	async getPropertyOccupancyAnalytics(
+		@CurrentUser() user: ValidatedUser,
+		@Query('propertyId') propertyId?: string,
+		@Query('period', new DefaultValuePipe('monthly')) period?: string
+	) {
+		// Validate propertyId if provided
+		if (propertyId && !propertyId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+			throw new BadRequestException('Invalid property ID')
+		}
+
+		// Validate period
+		if (!['daily', 'weekly', 'monthly', 'yearly'].includes(period ?? 'monthly')) {
+			throw new BadRequestException('Invalid period. Must be one of: daily, weekly, monthly, yearly')
+		}
+
+		return this.propertiesService.getPropertyOccupancyAnalytics(user.id, {
+			propertyId,
+			period: period ?? 'monthly'
+		})
+	}
+
+	/**
+	 * Get property financial analytics
+	 * Revenue, expenses, and profitability per property
+	 */
+	@Get('analytics/financial')
+	async getPropertyFinancialAnalytics(
+		@CurrentUser() user: ValidatedUser,
+		@Query('propertyId') propertyId?: string,
+		@Query('timeframe', new DefaultValuePipe('12m')) timeframe?: string
+	) {
+		// Validate propertyId if provided
+		if (propertyId && !propertyId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+			throw new BadRequestException('Invalid property ID')
+		}
+
+		// Validate timeframe
+		if (!['3m', '6m', '12m', '24m'].includes(timeframe ?? '12m')) {
+			throw new BadRequestException('Invalid timeframe. Must be one of: 3m, 6m, 12m, 24m')
+		}
+
+		return this.propertiesService.getPropertyFinancialAnalytics(user.id, {
+			propertyId,
+			timeframe: timeframe ?? '12m'
+		})
+	}
+
+	/**
+	 * Get property maintenance analytics
+	 * Maintenance costs, frequency, and trends per property
+	 */
+	@Get('analytics/maintenance')
+	async getPropertyMaintenanceAnalytics(
+		@CurrentUser() user: ValidatedUser,
+		@Query('propertyId') propertyId?: string,
+		@Query('timeframe', new DefaultValuePipe('6m')) timeframe?: string
+	) {
+		// Validate propertyId if provided
+		if (propertyId && !propertyId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+			throw new BadRequestException('Invalid property ID')
+		}
+
+		// Validate timeframe
+		if (!['1m', '3m', '6m', '12m'].includes(timeframe ?? '6m')) {
+			throw new BadRequestException('Invalid timeframe. Must be one of: 1m, 3m, 6m, 12m')
+		}
+
+		return this.propertiesService.getPropertyMaintenanceAnalytics(user.id, {
+			propertyId,
+			timeframe: timeframe ?? '6m'
+		})
 	}
 
 	/**

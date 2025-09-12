@@ -114,6 +114,112 @@ export class LeasesController {
 		return this.leasesService.getStats(user.id)
 	}
 
+	@Get('analytics/performance')
+	@ApiOperation({ summary: 'Get per-lease performance analytics' })
+	@ApiResponse({ status: HttpStatus.OK })
+	async getLeasePerformanceAnalytics(
+		@CurrentUser() user: ValidatedUser,
+		@Query('leaseId') leaseId?: string,
+		@Query('propertyId') propertyId?: string,
+		@Query('timeframe', new DefaultValuePipe('90d')) timeframe?: string
+	) {
+		// Validate UUIDs if provided
+		if (leaseId && !leaseId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+			throw new BadRequestException('Invalid lease ID')
+		}
+		if (propertyId && !propertyId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+			throw new BadRequestException('Invalid property ID')
+		}
+
+		// Validate timeframe
+		if (!['30d', '90d', '6m', '1y'].includes(timeframe ?? '90d')) {
+			throw new BadRequestException('Invalid timeframe. Must be one of: 30d, 90d, 6m, 1y')
+		}
+
+		return this.leasesService.getLeasePerformanceAnalytics(user.id, {
+			leaseId,
+			propertyId,
+			timeframe: timeframe ?? '90d'
+		})
+	}
+
+	@Get('analytics/duration')
+	@ApiOperation({ summary: 'Get lease duration and renewal analytics' })
+	@ApiResponse({ status: HttpStatus.OK })
+	async getLeaseDurationAnalytics(
+		@CurrentUser() user: ValidatedUser,
+		@Query('propertyId') propertyId?: string,
+		@Query('period', new DefaultValuePipe('yearly')) period?: string
+	) {
+		// Validate propertyId if provided
+		if (propertyId && !propertyId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+			throw new BadRequestException('Invalid property ID')
+		}
+
+		// Validate period
+		if (!['monthly', 'quarterly', 'yearly'].includes(period ?? 'yearly')) {
+			throw new BadRequestException('Invalid period. Must be one of: monthly, quarterly, yearly')
+		}
+
+		return this.leasesService.getLeaseDurationAnalytics(user.id, {
+			propertyId,
+			period: period ?? 'yearly'
+		})
+	}
+
+	@Get('analytics/turnover')
+	@ApiOperation({ summary: 'Get lease turnover and retention analytics' })
+	@ApiResponse({ status: HttpStatus.OK })
+	async getLeaseTurnoverAnalytics(
+		@CurrentUser() user: ValidatedUser,
+		@Query('propertyId') propertyId?: string,
+		@Query('timeframe', new DefaultValuePipe('12m')) timeframe?: string
+	) {
+		// Validate propertyId if provided
+		if (propertyId && !propertyId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+			throw new BadRequestException('Invalid property ID')
+		}
+
+		// Validate timeframe
+		if (!['6m', '12m', '24m', '36m'].includes(timeframe ?? '12m')) {
+			throw new BadRequestException('Invalid timeframe. Must be one of: 6m, 12m, 24m, 36m')
+		}
+
+		return this.leasesService.getLeaseTurnoverAnalytics(user.id, {
+			propertyId,
+			timeframe: timeframe ?? '12m'
+		})
+	}
+
+	@Get('analytics/revenue')
+	@ApiOperation({ summary: 'Get per-lease revenue analytics and trends' })
+	@ApiResponse({ status: HttpStatus.OK })
+	async getLeaseRevenueAnalytics(
+		@CurrentUser() user: ValidatedUser,
+		@Query('leaseId') leaseId?: string,
+		@Query('propertyId') propertyId?: string,
+		@Query('period', new DefaultValuePipe('monthly')) period?: string
+	) {
+		// Validate UUIDs if provided
+		if (leaseId && !leaseId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+			throw new BadRequestException('Invalid lease ID')
+		}
+		if (propertyId && !propertyId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+			throw new BadRequestException('Invalid property ID')
+		}
+
+		// Validate period
+		if (!['weekly', 'monthly', 'quarterly'].includes(period ?? 'monthly')) {
+			throw new BadRequestException('Invalid period. Must be one of: weekly, monthly, quarterly')
+		}
+
+		return this.leasesService.getLeaseRevenueAnalytics(user.id, {
+			leaseId,
+			propertyId,
+			period: period ?? 'monthly'
+		})
+	}
+
 	@Get('expiring')
 	@ApiOperation({ summary: 'Get expiring leases' })
 	@ApiResponse({ status: HttpStatus.OK })

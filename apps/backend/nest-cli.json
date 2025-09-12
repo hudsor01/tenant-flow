@@ -12,6 +12,10 @@
 			{
 				"include": "email-templates/**/*",
 				"outDir": "email-templates"
+			},
+			{
+				"include": "pdf/templates/**/*",
+				"outDir": "src/pdf/templates"
 			}
 		],
 		"plugins": [

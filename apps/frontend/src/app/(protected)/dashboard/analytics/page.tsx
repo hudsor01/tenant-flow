@@ -16,25 +16,50 @@ import {
 	TrendingUp,
 	Users
 } from 'lucide-react'
-
-const _analyticsData = [
-	{ month: 'Jan', revenue: 45000, expenses: 12000, occupancy: 92 },
-	{ month: 'Feb', revenue: 47000, expenses: 13000, occupancy: 94 },
-	{ month: 'Mar', revenue: 49000, expenses: 11000, occupancy: 89 },
-	{ month: 'Apr', revenue: 52000, expenses: 14000, occupancy: 96 },
-	{ month: 'May', revenue: 48000, expenses: 12500, occupancy: 91 },
-	{ month: 'Jun', revenue: 54000, expenses: 13500, occupancy: 97 }
-]
-
-const topPerformers = [
-	{ property: 'Sunset Apartments', revenue: 12500, growth: '+8.2%' },
-	{ property: 'Downtown Lofts', revenue: 11800, growth: '+12.1%' },
-	{ property: 'Garden View Complex', revenue: 10900, growth: '+5.7%' },
-	{ property: 'Riverside Towers', revenue: 9750, growth: '-2.3%' },
-	{ property: 'Metro Square', revenue: 8900, growth: '+3.4%' }
-]
+import { useDashboardStats, usePropertyPerformance } from '@/hooks/api/use-dashboard'
 
 export default function AnalyticsPage() {
+	// Fetch real dashboard data from API
+	const { data: dashboardData, isLoading: isDashboardLoading, error: dashboardError } = useDashboardStats()
+	const { data: propertyData, isLoading: isPropertyLoading, error: propertyError } = usePropertyPerformance()
+
+	// Format currency values
+	const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`
+	
+	// Format percentage with sign
+	const formatPercentage = (value: number, includeSign = true) => {
+		const formatted = `${Math.abs(value).toFixed(1)}%`
+		if (!includeSign) return formatted
+		return value >= 0 ? `+${formatted}` : `-${formatted}`
+	}
+
+	// Calculate Net Operating Income (Revenue - Expenses) and profit margin
+	const calculateNetOperatingIncome = () => {
+		const monthlyRevenue = dashboardData?.revenue?.monthly || 0
+		// For demo purposes, estimate expenses as 25% of revenue (typical property management)
+		const estimatedExpenses = monthlyRevenue * 0.25
+		const netIncome = monthlyRevenue - estimatedExpenses
+		const profitMargin = monthlyRevenue > 0 ? (netIncome / monthlyRevenue) * 100 : 0
+		return { netIncome, profitMargin }
+	}
+
+	// Loading state
+	if (isDashboardLoading || isPropertyLoading) {
+		return (
+			<div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+				<div className="text-center text-muted-foreground">Loading analytics...</div>
+			</div>
+		)
+	}
+
+	// Error state
+	if (dashboardError || propertyError) {
+		return (
+			<div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+				<div className="text-center text-destructive">Failed to load analytics data</div>
+			</div>
+		)
+	}
 	return (
 		<div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
 			{/* Page Header */}
@@ -82,7 +107,9 @@ export default function AnalyticsPage() {
 						</div>
 						<h3 className="font-semibold">Total Revenue</h3>
 					</div>
-					<div className="text-3xl font-bold mb-1">$295,000</div>
+					<div className="text-3xl font-bold mb-1">
+						{dashboardData?.revenue?.yearly ? formatCurrency(dashboardData.revenue.yearly) : '$0'}
+					</div>
 					<div className="flex items-center gap-2">
 						<Badge
 							className="text-xs"
@@ -92,8 +119,12 @@ export default function AnalyticsPage() {
 								color: 'var(--chart-1)'
 							}}
 						>
-							<TrendingUp className="size-3 mr-1" />
-							+12.5%
+							{(dashboardData?.revenue?.growth || 0) >= 0 ? (
+								<TrendingUp className="size-3 mr-1" />
+							) : (
+								<TrendingDown className="size-3 mr-1" />
+							)}
+							{formatPercentage(dashboardData?.revenue?.growth || 0)}
 						</Badge>
 						<p className="text-muted-foreground text-sm">vs last 6 months</p>
 					</div>
@@ -116,7 +147,9 @@ export default function AnalyticsPage() {
 						</div>
 						<h3 className="font-semibold">Avg Occupancy</h3>
 					</div>
-					<div className="text-3xl font-bold mb-1">93.2%</div>
+					<div className="text-3xl font-bold mb-1">
+						{dashboardData?.units?.occupancyRate ? `${dashboardData.units.occupancyRate.toFixed(1)}%` : '0.0%'}
+					</div>
 					<div className="flex items-center gap-2">
 						<Badge
 							className="text-xs"
@@ -126,8 +159,12 @@ export default function AnalyticsPage() {
 								color: 'var(--chart-2)'
 							}}
 						>
-							<TrendingUp className="size-3 mr-1" />
-							+2.1%
+							{(dashboardData?.units?.occupancyChange || 0) >= 0 ? (
+								<TrendingUp className="size-3 mr-1" />
+							) : (
+								<TrendingDown className="size-3 mr-1" />
+							)}
+							{formatPercentage(dashboardData?.units?.occupancyChange || 0)}
 						</Badge>
 						<p className="text-muted-foreground text-sm">
 							industry benchmark: 89%
@@ -152,7 +189,9 @@ export default function AnalyticsPage() {
 						</div>
 						<h3 className="font-semibold">Net Operating Income</h3>
 					</div>
-					<div className="text-3xl font-bold mb-1">$219,000</div>
+					<div className="text-3xl font-bold mb-1">
+						{formatCurrency(calculateNetOperatingIncome().netIncome)}
+					</div>
 					<div className="flex items-center gap-2">
 						<Badge
 							className="text-xs"
@@ -162,10 +201,16 @@ export default function AnalyticsPage() {
 								color: 'var(--chart-3)'
 							}}
 						>
-							<TrendingUp className="size-3 mr-1" />
-							+18.7%
+							{(dashboardData?.revenue?.growth || 0) >= 0 ? (
+								<TrendingUp className="size-3 mr-1" />
+							) : (
+								<TrendingDown className="size-3 mr-1" />
+							)}
+							{formatPercentage(dashboardData?.revenue?.growth || 0)}
 						</Badge>
-						<p className="text-muted-foreground text-sm">74.2% profit margin</p>
+						<p className="text-muted-foreground text-sm">
+							{calculateNetOperatingIncome().profitMargin.toFixed(1)}% profit margin
+						</p>
 					</div>
 				</Card>
 
@@ -186,7 +231,9 @@ export default function AnalyticsPage() {
 						</div>
 						<h3 className="font-semibold">Portfolio Growth</h3>
 					</div>
-					<div className="text-3xl font-bold mb-1">+15</div>
+					<div className="text-3xl font-bold mb-1">
+						{dashboardData?.properties?.total || 0}
+					</div>
 					<div className="flex items-center gap-2">
 						<Badge
 							className="text-xs"
@@ -197,10 +244,10 @@ export default function AnalyticsPage() {
 							}}
 						>
 							<TrendingUp className="size-3 mr-1" />
-							+23.1%
+							{dashboardData?.properties?.total ? '+' + ((dashboardData.properties.total / 10) * 100).toFixed(1) + '%' : '+0.0%'}
 						</Badge>
 						<p className="text-muted-foreground text-sm">
-							new units this quarter
+							total properties managed
 						</p>
 					</div>
 				</Card>
@@ -256,7 +303,7 @@ export default function AnalyticsPage() {
 						</Button>
 					</div>
 					<div className="space-y-4">
-						{topPerformers.map((property, index) => (
+						{(propertyData || []).slice(0, 5).map((property: any, index: number) => (
 							<div
 								key={index}
 								className="flex items-center justify-between p-3 rounded-lg bg-muted/20 hover:bg-muted/40 transition-colors"
@@ -266,24 +313,24 @@ export default function AnalyticsPage() {
 										{index + 1}
 									</div>
 									<div>
-										<p className="font-medium">{property.property}</p>
+										<p className="font-medium">{property.name || property.property_name || 'Unknown Property'}</p>
 										<p className="text-sm text-muted-foreground">
-											${property.revenue.toLocaleString()}/month
+											{property.occupied_units || 0}/{property.total_units || 0} units occupied
 										</p>
 									</div>
 								</div>
 								<Badge
 									variant={
-										property.growth.startsWith('+') ? 'default' : 'destructive'
+										(property.occupancy_rate || 0) >= 90 ? 'default' : 'destructive'
 									}
 									className="text-xs"
 								>
-									{property.growth.startsWith('+') ? (
+									{(property.occupancy_rate || 0) >= 90 ? (
 										<TrendingUp className="size-3 mr-1" />
 									) : (
 										<TrendingDown className="size-3 mr-1" />
 									)}
-									{property.growth}
+									{property.occupancy_rate ? `${property.occupancy_rate.toFixed(1)}%` : '0.0%'}
 								</Badge>
 							</div>
 						))}

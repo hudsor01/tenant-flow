@@ -4,13 +4,7 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - main
-      - develop
   pull_request:
-    branches:
-      - main
-      - develop
   workflow_dispatch:
 
 env:
@@ -18,22 +12,17 @@ env:
 
 jobs:
   build-and-test:
-    # Skip the whole job if neither service nor personal Doppler token is available
+    # Run on push to main, pull requests, or manual dispatch
     if: >-
-      ${{ (secrets.DOPPLER_TOKEN != '' || secrets.DOPPLER_PERSONAL_TOKEN != '' ||
-           vars.DOPPLER_TOKEN != '' || vars.DOPPLER_PERSONAL_TOKEN != '') }}
+      ${{ github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' }}
     name: Build and Test
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    environment:
-      name: tenantflow-backend
     permissions:
       contents: read
     concurrency:
       group: ci-${{ github.workflow }}-${{ github.ref }}
       cancel-in-progress: true
-    env:
-      DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -54,14 +43,11 @@ jobs:
           SECRET_DOPPLER_ENVIRONMENT: ${{ secrets.DOPPLER_ENVIRONMENT }}
           SECRET_DOPPLER_PERSONAL_TOKEN: ${{ secrets.DOPPLER_PERSONAL_TOKEN }}
           SECRET_DOPPLER_PROJECT: ${{ secrets.DOPPLER_PROJECT }}
-          SECRET_DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
           VARS_DOPPLER_CONFIG: ${{ vars.DOPPLER_CONFIG }}
           VARS_DOPPLER_ENVIRONMENT: ${{ vars.DOPPLER_ENVIRONMENT }}
           VARS_DOPPLER_PERSONAL_TOKEN: ${{ vars.DOPPLER_PERSONAL_TOKEN }}
           VARS_DOPPLER_PROJECT: ${{ vars.DOPPLER_PROJECT }}
-          VARS_DOPPLER_TOKEN: ${{ vars.DOPPLER_TOKEN }}
         run: |
-          echo "DOPPLER_TOKEN=${SECRET_DOPPLER_TOKEN:-$VARS_DOPPLER_TOKEN}" >> $GITHUB_ENV
           echo "DOPPLER_PERSONAL_TOKEN=${SECRET_DOPPLER_PERSONAL_TOKEN:-$VARS_DOPPLER_PERSONAL_TOKEN}" >> $GITHUB_ENV
           echo "DOPPLER_PROJECT=${SECRET_DOPPLER_PROJECT:-$VARS_DOPPLER_PROJECT}" >> $GITHUB_ENV
           echo "DOPPLER_CONFIG=${SECRET_DOPPLER_CONFIG:-$VARS_DOPPLER_CONFIG}" >> $GITHUB_ENV
@@ -108,12 +94,19 @@ jobs:
     needs: build-and-test
     # Deploy on main or when manually dispatched
     if: >-
-      ${{ (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch') &&
-          (secrets.RAILWAY_TOKEN != '') }}
+      ${{ github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
-    environment:
-      name: tenantflow-backend
     steps:
+      - name: Ensure RAILWAY_TOKEN is set
+        # runtime check: secrets are injected into env here
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          if [ -z "${RAILWAY_TOKEN}" ]; then
+            echo "Skipping deploy: RAILWAY_TOKEN secret is not set" 1>&2
+            exit 1
+          fi
+
       - name: Checkout code
         uses: actions/checkout@v4
 

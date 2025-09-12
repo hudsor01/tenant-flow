@@ -297,4 +297,166 @@ export class PropertiesService {
 		// NO business logic transformations allowed here
 		return (data as unknown as PropertyWithUnits[]) || []
 	}
+
+	/**
+	 * Get property performance analytics
+	 * Uses RPC for detailed per-property metrics and calculations
+	 */
+	async getPropertyPerformanceAnalytics(
+		userId: string,
+		query: {
+			propertyId?: string
+			timeframe: string
+			limit?: number
+		}
+	) {
+		const { data, error } = await this.supabaseService
+			.getAdminClient()
+			.rpc('get_property_performance_analytics', {
+				p_user_id: userId,
+				p_property_id: query.propertyId || undefined,
+				p_timeframe: query.timeframe,
+				p_limit: query.limit || 10
+			})
+
+		if (error) {
+			this.logger.error(
+				{
+					error: {
+						message: error.message,
+						code: error.code,
+						hint: error.hint
+					},
+					userId,
+					query
+				},
+				'Failed to get property performance analytics via RPC'
+			)
+			throw new BadRequestException(
+				'Failed to retrieve property performance analytics'
+			)
+		}
+
+		return data || []
+	}
+
+	/**
+	 * Get property occupancy analytics
+	 * Tracks occupancy trends over time per property
+	 */
+	async getPropertyOccupancyAnalytics(
+		userId: string,
+		query: {
+			propertyId?: string
+			period: string
+		}
+	) {
+		const { data, error } = await this.supabaseService
+			.getAdminClient()
+			.rpc('get_property_occupancy_analytics', {
+				p_user_id: userId,
+				p_property_id: query.propertyId || undefined,
+				p_period: query.period
+			})
+
+		if (error) {
+			this.logger.error(
+				{
+					error: {
+						message: error.message,
+						code: error.code,
+						hint: error.hint
+					},
+					userId,
+					query
+				},
+				'Failed to get property occupancy analytics via RPC'
+			)
+			throw new BadRequestException(
+				'Failed to retrieve property occupancy analytics'
+			)
+		}
+
+		return data || []
+	}
+
+	/**
+	 * Get property financial analytics
+	 * Revenue, expenses, and profitability metrics per property
+	 */
+	async getPropertyFinancialAnalytics(
+		userId: string,
+		query: {
+			propertyId?: string
+			timeframe: string
+		}
+	) {
+		const { data, error } = await this.supabaseService
+			.getAdminClient()
+			.rpc('get_property_financial_analytics', {
+				p_user_id: userId,
+				p_property_id: query.propertyId || undefined,
+				p_timeframe: query.timeframe
+			})
+
+		if (error) {
+			this.logger.error(
+				{
+					error: {
+						message: error.message,
+						code: error.code,
+						hint: error.hint
+					},
+					userId,
+					query
+				},
+				'Failed to get property financial analytics via RPC'
+			)
+			throw new BadRequestException(
+				'Failed to retrieve property financial analytics'
+			)
+		}
+
+		return data || []
+	}
+
+	/**
+	 * Get property maintenance analytics
+	 * Maintenance costs, frequency, and trends per property
+	 */
+	async getPropertyMaintenanceAnalytics(
+		userId: string,
+		query: {
+			propertyId?: string
+			timeframe: string
+		}
+	) {
+		const { data, error } = await this.supabaseService
+			.getAdminClient()
+			.rpc('get_property_maintenance_analytics', {
+				p_user_id: userId,
+				p_property_id: query.propertyId || undefined,
+				p_timeframe: query.timeframe
+			})
+
+		if (error) {
+			this.logger.error(
+				{
+					error: {
+						message: error.message,
+						code: error.code,
+						hint: error.hint
+					},
+					userId,
+					query
+				},
+				'Failed to get property maintenance analytics via RPC'
+			)
+			throw new BadRequestException(
+				'Failed to retrieve property maintenance analytics'
+			)
+		}
+
+		return data || []
+	}
 }
