@@ -54,14 +54,14 @@
     "nest-commander": "3.19.1",
     "nestjs-pino": "4.4.0",
     "pino-http": "10.5.0",
-    "posthog-js": "1.264.1",
+    "posthog-js": "1.264.2",
     "puppeteer": "^24.20.0",
     "reflect-metadata": "0.2.2",
     "resend": "6.0.3",
     "rxjs": "^7.8.2",
     "stripe": "^18.5.0",
     "uuid": "13.0.0",
-    "zod": "4.1.7"
+    "zod": "4.1.8"
   },
   "devDependencies": {
     "@golevelup/ts-jest": "0.7.0",
