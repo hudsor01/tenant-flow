@@ -1,9 +1,8 @@
 'use client'
 
 import { tenantsApi } from '@/lib/api-client'
-import type { Database } from '@repo/shared'
-import type { TenantStats } from '@repo/shared'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { Database, TenantWithLeaseInfo, TenantStats } from '@repo/shared'
+import { useMutation, useQuery, useQueryClient, type QueryFunction } from '@tanstack/react-query'
 import { dashboardKeys } from './use-dashboard'
 
 type _Tenant = Database['public']['Tables']['Tenant']['Row']
@@ -13,24 +12,30 @@ type InsertTenant = Database['public']['Tables']['Tenant']['Insert']
 type UpdateTenant = Database['public']['Tables']['Tenant']['Update']
 
 export function useTenants(status?: string) {
-	return useQuery({
-		queryKey: ['tenants', status ?? 'ALL'],
-		queryFn: async () => {
-			return tenantsApi.list(status ? { status } : undefined)
-		}
-	})
+    const key = ['tenants-analytics', status ?? 'ALL'] as [string, string]
+    const listFn: QueryFunction<TenantWithLeaseInfo[], [string, string]> = async () => {
+        return tenantsApi.getTenantsWithAnalytics()
+    }
+
+    // Cast to loosen React Query's generic inference for this enriched shape
+    // Loosen types to avoid React Query overload mismatch in strict TS; data shape is TenantWithLeaseInfo[]
+    const result = (useQuery as any)({
+        queryKey: key,
+        queryFn: listFn
+    }) as { data: TenantWithLeaseInfo[] | undefined; isLoading: boolean }
+    return result
 }
 
 // Enhanced hook with select transformation for table-ready tenants data
 export function useTenantsFormatted(status?: string) {
-	return useQuery({
-		queryKey: ['tenants', status ?? 'ALL'],
-		queryFn: async () => {
-			return tenantsApi.list(status ? { status } : undefined)
-		},
-		select: (data) => ({
-			tenants: data.map(tenant => ({
-				...tenant,
+    return useQuery({
+        queryKey: ['tenants', status ?? 'ALL'],
+        queryFn: async () => {
+            return tenantsApi.list(status ? { status } : undefined)
+        },
+        select: (data: TenantWithLeaseInfo[]) => ({
+            tenants: data.map((tenant: TenantWithLeaseInfo) => ({
+                ...tenant,
 				// Format display values (replaces useMemo in table components)
 				displayName: tenant.name,
 				displayEmail: tenant.email.toLowerCase(),
@@ -47,23 +52,23 @@ export function useTenantsFormatted(status?: string) {
 				avatarInitials: tenant.name.split(' ').map(n => n.charAt(0)).join('').toUpperCase().slice(0, 2)
 			})),
 			// Pre-calculate summary stats for dashboard widgets
-			summary: {
-				total: data.length,
-				active: data.length, // All tenants are considered active since status doesn't exist in DB
-				byStatus: data.reduce((acc, _tenant) => {
-					const status = 'ACTIVE' // Default status since tenant.status doesn't exist in DB
-					acc[status] = (acc[status] || 0) + 1
-					return acc
-				}, {} as Record<string, number>),
-				recentlyAdded: data.filter(tenant => 
-					Date.now() - new Date(tenant.createdAt).getTime() < 7 * 24 * 60 * 60 * 1000
-				).length,
-				// Communication stats
-				withPhone: data.filter(t => t.phone).length,
-				withEmergencyContact: data.filter(t => t.emergencyContact).length
-			}
-		})
-	})
+            summary: {
+                total: data.length,
+                active: data.length, // All tenants are considered active since status doesn't exist in DB
+                byStatus: data.reduce((acc: Record<string, number>, _tenant: TenantWithLeaseInfo) => {
+                    const status = 'ACTIVE' // Default status since tenant.status doesn't exist in DB
+                    acc[status] = (acc[status] || 0) + 1
+                    return acc
+                }, {} as Record<string, number>),
+                recentlyAdded: data.filter((tenant: TenantWithLeaseInfo) => 
+                    Date.now() - new Date(tenant.createdAt).getTime() < 7 * 24 * 60 * 60 * 1000
+                ).length,
+                // Communication stats
+                withPhone: data.filter((t: TenantWithLeaseInfo) => t.phone).length,
+                withEmergencyContact: data.filter((t: TenantWithLeaseInfo) => t.emergencyContact).length
+            }
+        })
+    })
 }
 
 // Helper functions for consistent formatting

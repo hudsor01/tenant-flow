@@ -21,12 +21,12 @@ export function useProperties(status?: PropertyStatus) {
 
 // Enhanced hook with select transformation for table-ready properties data
 export function usePropertiesFormatted(status?: PropertyStatus) {
-	return useQuery({
-		queryKey: ['properties', status ?? 'ALL'],
-		queryFn: async () => propertiesApi.list(status ? { status } : undefined),
-		select: (data) => ({
-			properties: data.map(property => ({
-				...property,
+    return useQuery({
+        queryKey: ['properties', status ?? 'ALL'],
+        queryFn: async () => propertiesApi.list(status ? { status } : undefined),
+        select: (data: _Property[]) => ({
+            properties: data.map((property: _Property) => ({
+                ...property,
 				// Format display values (replaces useMemo in table components)
 				displayAddress: `${property.address}, ${property.city}, ${property.state}`,
 				displayType: property.propertyType.charAt(0) + property.propertyType.slice(1).toLowerCase(),
@@ -40,23 +40,23 @@ export function usePropertiesFormatted(status?: PropertyStatus) {
 				ageInDays: Math.floor((Date.now() - new Date(property.createdAt).getTime()) / (1000 * 60 * 60 * 24))
 			})),
 			// Pre-calculate summary stats for dashboard widgets
-			summary: {
-				total: data.length,
-				byStatus: data.reduce((acc, _prop) => {
-					const status = 'ACTIVE' // Default status since property.status doesn't exist in DB
-					acc[status] = (acc[status] || 0) + 1
-					return acc
-				}, {} as Record<string, number>),
-				byType: data.reduce((acc, prop) => {
-					acc[prop.propertyType] = (acc[prop.propertyType] || 0) + 1
-					return acc
-				}, {} as Record<string, number>),
-				recentlyAdded: data.filter(prop => 
-					Date.now() - new Date(prop.createdAt).getTime() < 7 * 24 * 60 * 60 * 1000
-				).length
-			}
-		})
-	})
+            summary: {
+                total: data.length,
+                byStatus: data.reduce((acc: Record<string, number>, _prop: _Property) => {
+                    const status = 'ACTIVE' // Default status since property.status doesn't exist in DB
+                    acc[status] = (acc[status] || 0) + 1
+                    return acc
+                }, {} as Record<string, number>),
+                byType: data.reduce((acc: Record<string, number>, prop: _Property) => {
+                    acc[prop.propertyType] = (acc[prop.propertyType] || 0) + 1
+                    return acc
+                }, {} as Record<string, number>),
+                recentlyAdded: data.filter((prop: _Property) => 
+                    Date.now() - new Date(prop.createdAt).getTime() < 7 * 24 * 60 * 60 * 1000
+                ).length
+            }
+        })
+    })
 }
 
 // Helper function for consistent status color coding
