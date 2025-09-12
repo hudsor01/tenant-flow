@@ -18,6 +18,7 @@ import { useDashboardStats } from '@/hooks/api/use-dashboard'
 import { QueryErrorResetBoundary } from '@tanstack/react-query'
 import { AlertTriangle, RefreshCw, Wifi, WifiOff } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import type { Tables } from '@repo/shared'
 import { ErrorBoundary } from 'react-error-boundary'
 
 // Enhanced error fallback component
@@ -200,7 +201,7 @@ function DashboardContent() {
 						</div>
 					) : propertiesData ? (
 						<DataTable
-							data={propertiesData.map((property, index) => ({
+							data={propertiesData.map((property: Tables<'Property'>, index) => ({
 								id: index + 1,
 								name: property.name,
 								type: property.propertyType === 'SINGLE_FAMILY' ? 'house' as const :
