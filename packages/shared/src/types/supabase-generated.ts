@@ -1340,6 +1340,7 @@ export type Database = {
           ownerId: string
           propertyType: Database["public"]["Enums"]["PropertyType"]
           state: string
+          status: Database["public"]["Enums"]["PropertyStatus"]
           updatedAt: string
           zipCode: string
         }
@@ -1354,6 +1355,7 @@ export type Database = {
           ownerId: string
           propertyType?: Database["public"]["Enums"]["PropertyType"]
           state: string
+          status?: Database["public"]["Enums"]["PropertyStatus"]
           updatedAt?: string
           zipCode: string
         }
@@ -1368,6 +1370,7 @@ export type Database = {
           ownerId?: string
           propertyType?: Database["public"]["Enums"]["PropertyType"]
           state?: string
+          status?: Database["public"]["Enums"]["PropertyStatus"]
           updatedAt?: string
           zipCode?: string
         }
@@ -2268,6 +2271,19 @@ export type Database = {
         }
         Returns: Json
       }
+      create_lease_with_financial_calculations: {
+        Args: {
+          p_end_date: string
+          p_lease_terms?: string
+          p_rent_amount: number
+          p_security_deposit?: number
+          p_start_date: string
+          p_tenant_id: string
+          p_unit_id: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       create_maintenance: {
         Args: {
           p_category?: string
@@ -2416,17 +2432,84 @@ export type Database = {
         Args: { p_lease_id: string; p_user_id: string }
         Returns: Json
       }
+      get_lease_duration_analytics: {
+        Args: { p_period?: string; p_property_id?: string; p_user_id: string }
+        Returns: Json[]
+      }
+      get_lease_financial_summary: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
+      get_lease_performance_analytics: {
+        Args: {
+          p_lease_id?: string
+          p_property_id?: string
+          p_timeframe?: string
+          p_user_id: string
+        }
+        Returns: Json[]
+      }
+      get_lease_revenue_analytics: {
+        Args: {
+          p_lease_id?: string
+          p_period?: string
+          p_property_id?: string
+          p_user_id: string
+        }
+        Returns: Json[]
+      }
       get_lease_stats: {
         Args: { p_user_id: string }
+        Returns: Json
+      }
+      get_lease_turnover_analytics: {
+        Args: {
+          p_property_id?: string
+          p_timeframe?: string
+          p_user_id: string
+        }
+        Returns: Json[]
+      }
+      get_leases_with_financial_analytics: {
+        Args: { p_status?: string; p_user_id: string }
         Returns: Json
       }
       get_maintenance_by_id: {
         Args: { p_maintenance_id: string; p_user_id: string }
         Returns: Json
       }
+      get_maintenance_cost_analytics: {
+        Args: {
+          p_property_id?: string
+          p_timeframe?: string
+          p_user_id: string
+        }
+        Returns: Json[]
+      }
+      get_maintenance_performance_analytics: {
+        Args: {
+          p_maintenance_id?: string
+          p_property_id?: string
+          p_timeframe?: string
+          p_user_id: string
+        }
+        Returns: Json[]
+      }
       get_maintenance_stats: {
         Args: { p_user_id: string }
         Returns: Json
+      }
+      get_maintenance_trend_analytics: {
+        Args: { p_period?: string; p_property_id?: string; p_user_id: string }
+        Returns: Json[]
+      }
+      get_maintenance_vendor_analytics: {
+        Args: {
+          p_property_id?: string
+          p_timeframe?: string
+          p_user_id: string
+        }
+        Returns: Json[]
       }
       get_overdue_maintenance: {
         Args: { p_user_id: string }
@@ -2439,6 +2522,35 @@ export type Database = {
       get_property_by_id: {
         Args: { p_property_id: string; p_user_id: string }
         Returns: Json
+      }
+      get_property_financial_analytics: {
+        Args: {
+          p_property_id?: string
+          p_timeframe?: string
+          p_user_id: string
+        }
+        Returns: Json[]
+      }
+      get_property_maintenance_analytics: {
+        Args: {
+          p_property_id?: string
+          p_timeframe?: string
+          p_user_id: string
+        }
+        Returns: Json[]
+      }
+      get_property_occupancy_analytics: {
+        Args: { p_period?: string; p_property_id?: string; p_user_id: string }
+        Returns: Json[]
+      }
+      get_property_performance_analytics: {
+        Args: {
+          p_limit?: number
+          p_property_id?: string
+          p_timeframe?: string
+          p_user_id: string
+        }
+        Returns: Json[]
       }
       get_property_stats: {
         Args: { p_user_id: string }
@@ -2543,9 +2655,34 @@ export type Database = {
           trial_end: string
         }[]
       }
+      get_tenant_behavior_analytics: {
+        Args: {
+          p_property_id?: string
+          p_tenant_id?: string
+          p_timeframe?: string
+          p_user_id: string
+        }
+        Returns: Json[]
+      }
       get_tenant_by_id: {
         Args: { p_tenant_id: string; p_user_id: string }
         Returns: Json
+      }
+      get_tenant_demographics_analytics: {
+        Args: { p_property_id?: string; p_user_id: string }
+        Returns: Json[]
+      }
+      get_tenant_retention_analytics: {
+        Args: { p_period?: string; p_property_id?: string; p_user_id: string }
+        Returns: Json[]
+      }
+      get_tenant_satisfaction_analytics: {
+        Args: {
+          p_property_id?: string
+          p_timeframe?: string
+          p_user_id: string
+        }
+        Returns: Json[]
       }
       get_tenant_stats: {
         Args: { p_user_id: string }
@@ -2654,12 +2791,34 @@ export type Database = {
         Args: { p_lease_id: string; p_reason?: string; p_user_id: string }
         Returns: Json
       }
+      terminate_lease_with_financial_calculations: {
+        Args: {
+          p_lease_id: string
+          p_termination_date?: string
+          p_termination_reason?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       update_lease: {
         Args: {
           p_end_date?: string
           p_lease_id: string
           p_payment_frequency?: string
           p_rentamount?: number
+          p_security_deposit?: number
+          p_start_date?: string
+          p_status?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      update_lease_with_financial_calculations: {
+        Args: {
+          p_end_date?: string
+          p_lease_id: string
+          p_lease_terms?: string
+          p_rent_amount?: number
           p_security_deposit?: number
           p_start_date?: string
           p_status?: string

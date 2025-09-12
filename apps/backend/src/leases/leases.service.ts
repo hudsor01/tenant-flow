@@ -292,4 +292,132 @@ export class LeasesService {
 
 		return data
 	}
+
+	/**
+	 * Get lease performance analytics
+	 * Per-lease metrics and detailed performance data
+	 */
+	async getLeasePerformanceAnalytics(
+		userId: string,
+		query: {
+			leaseId?: string
+			propertyId?: string
+			timeframe: string
+		}
+	) {
+		const { data, error } = await this.supabaseService
+			.getAdminClient()
+			.rpc('get_lease_performance_analytics', {
+				p_user_id: userId,
+				p_lease_id: query.leaseId || undefined,
+				p_property_id: query.propertyId || undefined,
+				p_timeframe: query.timeframe
+			})
+
+		if (error) {
+			this.logger.error('Failed to get lease performance analytics', {
+				userId,
+				query,
+				error: error.message
+			})
+			throw new BadRequestException('Failed to retrieve lease performance analytics')
+		}
+
+		return data || []
+	}
+
+	/**
+	 * Get lease duration and renewal analytics
+	 * Analysis of lease terms and renewal patterns
+	 */
+	async getLeaseDurationAnalytics(
+		userId: string,
+		query: {
+			propertyId?: string
+			period: string
+		}
+	) {
+		const { data, error } = await this.supabaseService
+			.getAdminClient()
+			.rpc('get_lease_duration_analytics', {
+				p_user_id: userId,
+				p_property_id: query.propertyId || undefined,
+				p_period: query.period
+			})
+
+		if (error) {
+			this.logger.error('Failed to get lease duration analytics', {
+				userId,
+				query,
+				error: error.message
+			})
+			throw new BadRequestException('Failed to retrieve lease duration analytics')
+		}
+
+		return data || []
+	}
+
+	/**
+	 * Get lease turnover and retention analytics
+	 * Tenant turnover rates and retention metrics
+	 */
+	async getLeaseTurnoverAnalytics(
+		userId: string,
+		query: {
+			propertyId?: string
+			timeframe: string
+		}
+	) {
+		const { data, error } = await this.supabaseService
+			.getAdminClient()
+			.rpc('get_lease_turnover_analytics', {
+				p_user_id: userId,
+				p_property_id: query.propertyId || undefined,
+				p_timeframe: query.timeframe
+			})
+
+		if (error) {
+			this.logger.error('Failed to get lease turnover analytics', {
+				userId,
+				query,
+				error: error.message
+			})
+			throw new BadRequestException('Failed to retrieve lease turnover analytics')
+		}
+
+		return data || []
+	}
+
+	/**
+	 * Get lease revenue analytics
+	 * Per-lease revenue trends and payment analytics
+	 */
+	async getLeaseRevenueAnalytics(
+		userId: string,
+		query: {
+			leaseId?: string
+			propertyId?: string
+			period: string
+		}
+	) {
+		const { data, error } = await this.supabaseService
+			.getAdminClient()
+			.rpc('get_lease_revenue_analytics', {
+				p_user_id: userId,
+				p_lease_id: query.leaseId || undefined,
+				p_property_id: query.propertyId || undefined,
+				p_period: query.period
+			})
+
+		if (error) {
+			this.logger.error('Failed to get lease revenue analytics', {
+				userId,
+				query,
+				error: error.message
+			})
+			throw new BadRequestException('Failed to retrieve lease revenue analytics')
+		}
+
+		return data || []
+	}
 }
