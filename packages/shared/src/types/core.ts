@@ -225,6 +225,7 @@ export interface UnitStats extends BaseStats {
   averageRent: number
   available: number
   occupancyRate: number
+  occupancyChange: number // Period-over-period occupancy rate change percentage
   totalPotentialRent: number
   totalActualRent: number
 }
@@ -402,4 +403,38 @@ export interface TenantWithLeaseInfo {
   propertyDisplay: string
   leaseStart: string | null
   leaseEnd: string | null
+}
+
+// Property Performance Response Types
+export interface PropertyPerformance {
+  property: string
+  propertyId: string
+  units: number
+  totalUnits: number
+  occupiedUnits: number
+  vacantUnits: number
+  occupancy: string // e.g. "95%" 
+  occupancyRate: number // e.g. 95.5
+  revenue: number
+  monthlyRevenue: number
+  potentialRevenue: number
+  address: string
+  propertyType: string
+  status: 'NO_UNITS' | 'VACANT' | 'FULL' | 'PARTIAL'
+}
+
+export interface PropertyPerformanceResponse {
+  properties: PropertyPerformance[]
+}
+
+// System Uptime Response Types  
+export interface SystemUptime {
+  uptime: string // e.g. "99.95%"
+  uptimePercentage: number // e.g. 99.95
+  sla: string // e.g. "99.5%" - target SLA
+  slaStatus: 'excellent' | 'good' | 'acceptable' | 'poor'
+  status: 'operational' | 'degraded' | 'outage'
+  lastIncident: string | null // ISO timestamp of last incident
+  responseTime: number // Average response time in ms
+  timestamp: string // ISO timestamp of measurement
 }

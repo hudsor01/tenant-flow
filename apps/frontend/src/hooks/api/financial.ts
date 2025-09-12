@@ -2,6 +2,7 @@
 
 import { financialApi } from '@/lib/api-client'
 import { useQuery } from '@tanstack/react-query'
+import type { FinancialOverviewResponse } from '@repo/shared'
 
 /**
  * Financial hooks - all calculations done in database via RPC functions
@@ -9,7 +10,7 @@ import { useQuery } from '@tanstack/react-query'
  */
 
 export function useFinancialOverview(year?: number) {
-	return useQuery({
+	return useQuery<FinancialOverviewResponse>({
 		queryKey: ['financial', 'overview', year ?? 'current'],
 		queryFn: async () => {
 			return financialApi.getOverview(year)
@@ -23,13 +24,13 @@ export function useFinancialOverview(year?: number) {
 
 // Enhanced hook using pre-calculated financial data from database RPC functions
 export function useFinancialOverviewFormatted(year?: number) {
-	return useQuery({
+	return useQuery<FinancialOverviewResponse>({
 		queryKey: ['financial', 'overview-calculated', year ?? 'current'],
 		queryFn: async () => {
 			// Use enhanced RPC function that returns pre-calculated and formatted data
 			return financialApi.getOverviewWithCalculations(year)
 		},
-		select: (data) => ({
+		select: (data): FinancialOverviewResponse => ({
 			...data,
 			// All formatting and calculations are now done server-side
 			// Just pass through the pre-calculated values from database

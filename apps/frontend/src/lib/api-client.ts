@@ -8,7 +8,10 @@ import type {
 	ExpenseSummaryResponse,
 	FinancialOverviewResponse,
 	LeaseStatsResponse,
-	TenantWithLeaseInfo
+	TenantWithLeaseInfo,
+	PropertyPerformance,
+	PropertyWithUnits,
+	SystemUptime
 } from '@repo/shared'
 import type { DashboardStats, TenantStats } from '@repo/shared'
 
@@ -44,7 +47,13 @@ export const dashboardApi = {
 		apiClient<DashboardStats>(`${API_BASE_URL}/api/v1/dashboard/stats`),
 
 	getActivity: (): Promise<{ activities: Array<unknown> }> =>
-		apiClient(`${API_BASE_URL}/api/v1/dashboard/activity`)
+		apiClient(`${API_BASE_URL}/api/v1/dashboard/activity`),
+
+	getPropertyPerformance: (): Promise<PropertyPerformance[]> =>
+		apiClient<PropertyPerformance[]>(`${API_BASE_URL}/api/v1/dashboard/property-performance`),
+
+	getUptime: (): Promise<SystemUptime> =>
+		apiClient<SystemUptime>(`${API_BASE_URL}/api/v1/dashboard/uptime`)
 }
 
 /**
@@ -96,8 +105,9 @@ export const propertiesApi = {
 			`${API_BASE_URL}/api/v1/properties${params?.status ? `?status=${encodeURIComponent(params.status)}` : ''}`
 		),
 	
+	// Returns properties with units and pre-calculated analytics
 	getPropertiesWithAnalytics: () =>
-		apiClient<Property[]>(`${API_BASE_URL}/api/v1/properties/analytics`),
+		apiClient<PropertyWithUnits[]>(`${API_BASE_URL}/api/v1/properties/with-units`),
 	
 	create: (body: PropertyInsert) =>
 		apiClient<Property>(`${API_BASE_URL}/api/v1/properties`, {
