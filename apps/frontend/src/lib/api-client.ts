@@ -10,6 +10,7 @@ import type {
 	LeaseStatsResponse,
 	TenantWithLeaseInfo,
 	PropertyPerformance,
+	PropertyWithUnits,
 	SystemUptime
 } from '@repo/shared'
 import type { DashboardStats, TenantStats } from '@repo/shared'
@@ -104,8 +105,9 @@ export const propertiesApi = {
 			`${API_BASE_URL}/api/v1/properties${params?.status ? `?status=${encodeURIComponent(params.status)}` : ''}`
 		),
 	
+	// Returns properties with units and pre-calculated analytics
 	getPropertiesWithAnalytics: () =>
-		apiClient<Property[]>(`${API_BASE_URL}/api/v1/properties/analytics`),
+		apiClient<PropertyWithUnits[]>(`${API_BASE_URL}/api/v1/properties/with-units`),
 	
 	create: (body: PropertyInsert) =>
 		apiClient<Property>(`${API_BASE_URL}/api/v1/properties`, {

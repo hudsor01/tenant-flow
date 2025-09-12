@@ -1,4 +1,4 @@
-import { SaasHeroSection } from '@/components/sections/saas-hero-section'
+import { PremiumHeroSection } from '@/components/sections/premium-hero-section'
 import { FeaturesSectionDemo3 } from '@/components/magicui/features-section-demo-3'
 import { MinimalistPricingSection } from '@/components/sections/minimalist-pricing-section'
 import { FooterMinimal } from '@/components/sections/footer-minimal'
@@ -21,7 +21,7 @@ const CTASection = () => (
             style={TYPOGRAPHY_SCALE['heading-xl']}
           >
             Ready to{' '}
-            <span className="bg-gradient-to-r from-primary via-primary/80 to-accent bg-clip-text text-transparent">
+            <span className="text-gradient-authority">
               transform property management
             </span>
             ?
@@ -68,8 +68,8 @@ export default function HomePage() {
       {/* Navigation */}
       <Navbar />
       
-      {/* Hero Section - SELECTED */}
-      <SaasHeroSection />
+      {/* Hero Section - PREMIUM BENTO LAYOUT */}
+      <PremiumHeroSection />
       
       {/* Features Section - SELECTED */}
       <FeaturesSectionDemo3 />
