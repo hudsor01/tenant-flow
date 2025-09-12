@@ -14,6 +14,7 @@ import {
 	TableRow
 } from '@/components/ui/table'
 import { useTenants, useTenantStats } from '@/hooks/api/tenants'
+import type { TenantWithLeaseInfo } from '@repo/shared'
 import { formatCurrency } from '@/lib/utils'
 import {
 	Calendar,
@@ -131,7 +132,7 @@ export default function TenantsPage() {
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-							{tenantsData.map(tenant => (
+                        {tenantsData.map((tenant: TenantWithLeaseInfo) => (
 								<TableRow key={tenant.id} className="hover:bg-muted/30">
 									<TableCell>
 										<div className="flex items-center gap-3">
