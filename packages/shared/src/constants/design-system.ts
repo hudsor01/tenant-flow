@@ -48,76 +48,127 @@ export const FONT_FAMILIES = {
 } as const
 
 /**
- * Typography scale following modern design principles
- * Aligned with Tailwind CSS text size utilities
+ * Professional Masculine Typography Scale
+ * Designed to convey authority, dominance, and business confidence
+ * Optimized for SaaS leadership positioning
  */
 export const TYPOGRAPHY_SCALE = {
-  // Display sizes for hero sections and major headings
+  // Display sizes - Maximum Authority for Hero Sections
   'display-2xl': {
     fontSize: '4.5rem',      // 72px
-    lineHeight: '1.1',
-    letterSpacing: '-0.025em',
-    fontWeight: '800'
+    lineHeight: '1.05',      // Tighter for commanding presence
+    letterSpacing: '-0.035em', // More aggressive tracking
+    fontWeight: '900'        // Maximum weight for dominance
   },
   'display-xl': {
     fontSize: '3.75rem',     // 60px  
-    lineHeight: '1.1',
-    letterSpacing: '-0.025em',
-    fontWeight: '800'
+    lineHeight: '1.05',
+    letterSpacing: '-0.035em',
+    fontWeight: '900'
   },
   'display-lg': {
     fontSize: '3rem',        // 48px
-    lineHeight: '1.2',
-    letterSpacing: '-0.025em', 
-    fontWeight: '700'
+    lineHeight: '1.1',
+    letterSpacing: '-0.03em', 
+    fontWeight: '800'        // Strong authority
   },
   
-  // Heading sizes for content hierarchy
+  // Heading sizes - Professional Hierarchy with Authority
   'heading-xl': {
     fontSize: '2.25rem',     // 36px
-    lineHeight: '1.3',
-    letterSpacing: '-0.025em',
-    fontWeight: '700'
+    lineHeight: '1.2',       // Confident line height
+    letterSpacing: '-0.03em',
+    fontWeight: '800'        // Executive weight
   },
   'heading-lg': {
     fontSize: '1.875rem',    // 30px
-    lineHeight: '1.3',
+    lineHeight: '1.25',
     letterSpacing: '-0.025em',
-    fontWeight: '600'
+    fontWeight: '700'        // Strong professional presence
   },
   'heading-md': {
     fontSize: '1.5rem',      // 24px
-    lineHeight: '1.4',
-    letterSpacing: '-0.025em',
-    fontWeight: '600'
+    lineHeight: '1.3',
+    letterSpacing: '-0.02em',
+    fontWeight: '700'        // Authoritative section headers
   },
   'heading-sm': {
     fontSize: '1.25rem',     // 20px
-    lineHeight: '1.4',
-    letterSpacing: '-0.025em',
-    fontWeight: '600'
+    lineHeight: '1.35',
+    letterSpacing: '-0.015em',
+    fontWeight: '600'        // Professional subsections
   },
   
-  // Body text sizes  
+  // Professional Body Text - Clear Business Communication
   'body-lg': {
     fontSize: '1.125rem',    // 18px
-    lineHeight: '1.7',
-    fontWeight: '400'
+    lineHeight: '1.6',       // Professional readability
+    fontWeight: '450',       // Slightly heavier for authority
+    letterSpacing: '-0.005em'
   },
   'body-md': {
     fontSize: '1rem',        // 16px
-    lineHeight: '1.6',
-    fontWeight: '400'
+    lineHeight: '1.55',
+    fontWeight: '400',
+    letterSpacing: '0em'     // Clean business standard
   },
   'body-sm': {
     fontSize: '0.875rem',    // 14px
-    lineHeight: '1.6',
-    fontWeight: '400'
+    lineHeight: '1.5',
+    fontWeight: '450',       // Professional UI text
+    letterSpacing: '0.005em'
   },
   'body-xs': {
     fontSize: '0.75rem',     // 12px
+    lineHeight: '1.4',
+    fontWeight: '500',       // Strong small text for UI
+    letterSpacing: '0.01em'
+  },
+
+  // Professional UI Variants - Business Application Focused
+  'ui-title': {
+    fontSize: '1.125rem',    // 18px
+    lineHeight: '1.4',
+    fontWeight: '700',       // Dashboard section titles
+    letterSpacing: '-0.015em'
+  },
+  'ui-label': {
+    fontSize: '0.875rem',    // 14px
+    lineHeight: '1.3',
+    fontWeight: '600',       // Form labels, table headers
+    letterSpacing: '0.005em'
+  },
+  'ui-caption': {
+    fontSize: '0.75rem',     // 12px
+    lineHeight: '1.3',
+    fontWeight: '500',       // Captions, help text
+    letterSpacing: '0.025em'
+  },
+
+  // Marketing Hierarchy - Conversion-Focused Typography
+  'hero-primary': {
+    fontSize: '3.5rem',      // 56px
+    lineHeight: '1.05',
+    letterSpacing: '-0.04em',
+    fontWeight: '900'        // Maximum marketing impact
+  },
+  'hero-secondary': {
+    fontSize: '1.25rem',     // 20px
     lineHeight: '1.5',
-    fontWeight: '400'
+    fontWeight: '450',       // Supporting hero text
+    letterSpacing: '-0.01em'
+  },
+  'feature-title': {
+    fontSize: '1.5rem',      // 24px
+    lineHeight: '1.3',
+    fontWeight: '700',       // Feature section headers
+    letterSpacing: '-0.02em'
+  },
+  'cta-text': {
+    fontSize: '1rem',        // 16px
+    lineHeight: '1.4',
+    fontWeight: '600',       // Call-to-action buttons
+    letterSpacing: '0.01em'
   }
 } as const
 
@@ -458,3 +509,10 @@ export type AnimationDuration = keyof typeof ANIMATION_DURATIONS
 export type AnimationEasing = keyof typeof ANIMATION_EASINGS
 export type Breakpoint = keyof typeof BREAKPOINTS
 export type ZIndexLevel = keyof typeof Z_INDEX_SCALE
+
+// Professional Typography Utilities for Easy Component Usage
+export type DisplayVariant = 'display-2xl' | 'display-xl' | 'display-lg'
+export type HeadingVariant = 'heading-xl' | 'heading-lg' | 'heading-md' | 'heading-sm'
+export type BodyVariant = 'body-lg' | 'body-md' | 'body-sm' | 'body-xs'
+export type UIVariant = 'ui-title' | 'ui-label' | 'ui-caption'
+export type MarketingVariant = 'hero-primary' | 'hero-secondary' | 'feature-title' | 'cta-text'

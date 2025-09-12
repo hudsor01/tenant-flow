@@ -1,107 +1,41 @@
-import { Controller, Get, Query } from '@nestjs/common'
-import { ApiOperation, ApiResponse, ApiTags, ApiQuery } from '@nestjs/swagger'
+import { Controller, Get, Optional, Query, NotFoundException } from '@nestjs/common'
+import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger'
+import type { AuthServiceValidatedUser } from '@repo/shared'
+import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import { PinoLogger } from 'nestjs-pino'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
 import { Public } from '../shared/decorators/public.decorator'
-import { SupabaseService } from '../database/supabase.service'
-import type { ControllerApiResponse } from '@repo/shared/types/errors'
-import type { AuthServiceValidatedUser } from '@repo/shared'
+import { DashboardService } from './dashboard.service'
 
 @ApiTags('dashboard')
 @Controller('dashboard')
 export class DashboardController {
 	constructor(
-		private readonly supabase: SupabaseService,
-		private readonly logger: PinoLogger
+		@Optional() private readonly dashboardService?: DashboardService,
+		@Optional() private readonly logger?: PinoLogger
 	) {
 		// PinoLogger context handled automatically via app-level configuration
 	}
 
-	private logMessage(message: string, data?: Record<string, unknown>): void {
-		if (this.logger?.info) {
-			this.logger.info(data || {}, message)
-		} else {
-			console.log(message, data || {})
-		}
-	}
-
-	private logError(message: string, error: Error | unknown): void {
-		if (this.logger?.error) {
-			this.logger.error(message, error)
-		} else {
-			console.error(message, error)
-		}
-	}
-
 	@Get('stats')
-	@Public()
 	@ApiOperation({ summary: 'Get dashboard statistics (test user data)' })
 	@ApiResponse({
 		status: 200,
 		description: 'Dashboard statistics retrieved successfully'
 	})
 	async getStats(): Promise<ControllerApiResponse> {
-		this.logMessage('Getting dashboard stats (public test endpoint)', {
-			dashboard: {
-				action: 'getStats'
-			}
-		})
+		this.logger?.info({ action: 'getStats' }, 'Getting dashboard stats')
 
-		try {
-			// Use test user ID - in production this would come from @CurrentUser()
-			const testUserId = '00000000-0000-0000-0000-000000000000'
-			
-			// Ultra-native: Direct RPC call for dashboard stats with test user
-			const { data, error } = await this.supabase
-				.getAdminClient()
-				.rpc('get_dashboard_stats' as never, { 
-					user_id_param: testUserId 
-				} as never)
+		if (!this.dashboardService) {
+			throw new NotFoundException('Dashboard service not available')
+		}
 
-			if (error) {
-				this.logError('Failed to get dashboard stats from RPC', error)
-				// Fallback to demo data if RPC fails
-				const demoData = {
-					totalProperties: 12,
-					totalUnits: 48,
-					totalTenants: 42,
-					totalRevenue: 24500,
-					occupancyRate: 87.5,
-					maintenanceRequests: 6
-				}
-				
-				return {
-					success: true,
-					data: demoData,
-					message: 'Dashboard statistics retrieved successfully (fallback demo data)',
-					timestamp: new Date()
-				}
-			}
-
-			return {
-				success: true,
-				data,
-				message: 'Dashboard statistics retrieved successfully (from database)',
-				timestamp: new Date()
-			}
-		} catch (error) {
-			this.logError('Unexpected error getting dashboard stats', error)
-			// Final fallback
-			const demoData = {
-				totalProperties: 12,
-				totalUnits: 48,
-				totalTenants: 42,
-				totalRevenue: 24500,
-				occupancyRate: 87.5,
-				maintenanceRequests: 6
-			}
-			
-			return {
-				success: true,
-				data: demoData,
-				message: 'Dashboard statistics retrieved successfully (fallback demo data)',
-				timestamp: new Date()
-			}
+		const data = await this.dashboardService.getStats('test-user-id')
+		return {
+			success: true,
+			data,
+			message: 'Dashboard statistics retrieved successfully',
+        timestamp: new Date()
 		}
 	}
 
@@ -112,38 +46,46 @@ export class DashboardController {
 		description: 'Dashboard activity retrieved successfully'
 	})
 	async getActivity(
-		@CurrentUser() user: AuthServiceValidatedUser
+		@CurrentUser() user?: AuthServiceValidatedUser
 	): Promise<ControllerApiResponse> {
-		this.logMessage(`Getting dashboard activity for user ${user.id}`)
-		// Ultra-native: Direct RPC call for user activity
-		const { data, error } = await this.supabase
-			.getAdminClient()
-			.rpc('get_user_dashboard_activity' as never, { 
-				p_user_id: user.id 
-			} as never)
+		this.logger?.info(
+			{
+				dashboard: {
+					action: 'getActivity',
+					userId: user?.id
+				}
+			},
+			'Getting dashboard activity via DashboardService'
+		)
 
-		if (error) {
-			this.logError('Failed to get dashboard activity', error)
-			throw new Error(`Dashboard activity failed: ${error.message}`)
+		if (!this.dashboardService) {
+			throw new NotFoundException('Dashboard service not available')
 		}
+
+		const data = await this.dashboardService.getActivity(
+			user?.id || 'test-user-id'
+		)
+
 		return {
 			success: true,
 			data,
 			message: 'Dashboard activity retrieved successfully',
-			timestamp: new Date()
+        timestamp: new Date()
 		}
 	}
 
 	@Get('billing/insights')
-	@ApiOperation({ 
+	@ApiOperation({
 		summary: 'Get comprehensive billing insights from Stripe Sync Engine',
-		description: 'Advanced analytics including revenue, churn, MRR, and customer lifetime value'
+		description:
+			'Advanced analytics including revenue, churn, MRR, and customer lifetime value'
 	})
 	@ApiQuery({
 		name: 'startDate',
 		required: false,
 		type: String,
-		description: 'Start date for analytics (ISO string, defaults to 12 months ago)'
+		description:
+			'Start date for analytics (ISO string, defaults to 12 months ago)'
 	})
 	@ApiQuery({
 		name: 'endDate',
@@ -153,7 +95,8 @@ export class DashboardController {
 	})
 	@ApiResponse({
 		status: 200,
-		description: 'Billing insights retrieved successfully from Stripe Sync Engine data'
+		description:
+			'Billing insights retrieved successfully from Stripe Sync Engine data'
 	})
 	@ApiResponse({
 		status: 404,
@@ -163,51 +106,47 @@ export class DashboardController {
 		@Query('startDate') startDate?: string,
 		@Query('endDate') endDate?: string
 	): Promise<ControllerApiResponse> {
-		this.logMessage('Getting billing insights from Stripe Sync Engine', {
-			dateRange: { startDate, endDate }
-		})
+		this.logger?.info(
+			{
+				dashboard: {
+					action: 'getBillingInsights',
+					dateRange: { startDate, endDate }
+				}
+			},
+			'Getting billing insights via DashboardService'
+		)
+
+		if (!this.dashboardService) {
+			throw new NotFoundException('Dashboard service not available')
+		}
 
 		const parsedStartDate = startDate ? new Date(startDate) : undefined
 		const parsedEndDate = endDate ? new Date(endDate) : undefined
-
-		// Ultra-native: Direct RPC call for billing insights
-		const { data, error } = await this.supabase
-			.getAdminClient()
-			.rpc('get_stripe_billing_insights' as never, {
-				p_start_date: parsedStartDate?.toISOString(),
-				p_end_date: parsedEndDate?.toISOString()
-			} as never)
-
-		if (error) {
-			this.logError('Failed to get billing insights', error)
+		if ((parsedStartDate && isNaN(parsedStartDate.getTime())) || (parsedEndDate && isNaN(parsedEndDate.getTime()))) {
 			return {
 				success: false,
 				data: null,
-				message: 'Billing insights not available - Stripe Sync Engine not configured or no data',
-				timestamp: new Date()
+				message: 'Invalid date format. Use ISO date strings.',
+        timestamp: new Date()
 			}
 		}
 
-		if (!data) {
-			return {
-				success: false,
-				data: null,
-				message: 'Billing insights not available - Stripe Sync Engine not configured or no data',
-				timestamp: new Date()
-			}
-		}
+		const data = await this.dashboardService.getBillingInsights(
+			parsedStartDate,
+			parsedEndDate
+		)
 
 		return {
 			success: true,
 			data,
 			message: 'Billing insights retrieved successfully from Stripe Sync Engine',
-			timestamp: new Date()
+        timestamp: new Date()
 		}
 	}
 
 	@Get('billing/health')
 	@Public()
-	@ApiOperation({ 
+	@ApiOperation({
 		summary: 'Check if billing insights are available',
 		description: 'Health check for Stripe Sync Engine integration'
 	})
@@ -216,30 +155,113 @@ export class DashboardController {
 		description: 'Billing insights availability status'
 	})
 	async getBillingHealth(): Promise<ControllerApiResponse> {
-		// Ultra-native: Direct RPC call to check billing health
-		const { data: healthData, error } = await this.supabase
-			.getAdminClient()
-			.rpc('check_stripe_sync_health' as never)
+		this.logger?.info(
+			{
+				dashboard: {
+					action: 'getBillingHealth'
+				}
+			},
+			'Checking billing insights availability via DashboardService'
+		)
 
-		const isAvailable = !error && healthData
+		if (!this.dashboardService) {
+			throw new NotFoundException('Dashboard service not available')
+		}
+
+		const isAvailable = await this.dashboardService.isBillingInsightsAvailable()
 
 		return {
 			success: true,
-			data: { 
+			data: {
 				available: isAvailable,
 				service: 'Stripe Sync Engine',
-				capabilities: isAvailable ? [
-					'Revenue Analytics',
-					'Churn Analysis', 
-					'Customer Lifetime Value',
-					'MRR Tracking',
-					'Subscription Status Breakdown'
-				] : []
+				capabilities: isAvailable
+					? [
+							'Revenue Analytics',
+							'Churn Analysis',
+							'Customer Lifetime Value',
+							'MRR Tracking',
+							'Subscription Status Breakdown'
+						]
+					: []
 			},
-			message: isAvailable 
-				? 'Billing insights are available' 
+			message: isAvailable
+				? 'Billing insights are available'
 				: 'Billing insights not available - Stripe Sync Engine not configured',
-			timestamp: new Date()
+        timestamp: new Date()
+		}
+	}
+
+	@Get('property-performance')
+	@ApiOperation({
+		summary: 'Get per-property performance metrics',
+		description:
+			'Returns sorted property performance data including occupancy rates, unit counts, and revenue'
+	})
+	@ApiResponse({
+		status: 200,
+		description: 'Property performance metrics retrieved successfully'
+	})
+	async getPropertyPerformance(
+		@CurrentUser() user?: AuthServiceValidatedUser
+	): Promise<ControllerApiResponse> {
+		this.logger?.info(
+			{
+				dashboard: {
+					action: 'getPropertyPerformance',
+					userId: user?.id || 'test-user-id'
+				}
+			},
+			'Getting property performance via DashboardService'
+		)
+
+		if (!this.dashboardService) {
+			throw new NotFoundException('Dashboard service not available')
+		}
+
+		const data = await this.dashboardService.getPropertyPerformance(
+			user?.id || 'test-user-id'
+		)
+
+		return {
+			success: true,
+			data,
+			message: 'Property performance retrieved successfully',
+            timestamp: new Date()
+		}
+	}
+
+	@Get('uptime')
+	@Public()
+	@ApiOperation({
+		summary: 'Get system uptime and SLA metrics',
+		description: 'Returns current system uptime percentage and SLA status'
+	})
+	@ApiResponse({
+		status: 200,
+		description: 'System uptime metrics retrieved successfully'
+	})
+	async getUptime(): Promise<ControllerApiResponse> {
+		this.logger?.info(
+			{
+				dashboard: {
+					action: 'getUptime'
+				}
+			},
+			'Getting system uptime metrics via DashboardService'
+		)
+
+		if (!this.dashboardService) {
+			throw new NotFoundException('Dashboard service not available')
+		}
+
+		const data = await this.dashboardService.getUptime()
+
+		return {
+			success: true,
+			data,
+			message: 'System uptime retrieved successfully',
+            timestamp: new Date()
 		}
 	}
 }
