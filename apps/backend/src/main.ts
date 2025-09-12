@@ -23,16 +23,36 @@ async function bootstrap() {
 	const startTime = Date.now()
 	const port = Number(process.env.PORT) || 4600
 
-	// Fastify adapter with NestJS
-	const fastifyAdapter = new FastifyAdapter({ logger: false })
-	const app = await NestFactory.create<NestFastifyApplication>(
-		AppModule,
-		fastifyAdapter,
-		{
-			rawBody: true,
-			bufferLogs: true
-		}
-	)
+    // Fastify adapter with NestJS
+    const fastifyAdapter = new FastifyAdapter({ logger: false })
+    // Attach onRoute hook BEFORE Nest registers routes so schemas apply
+    const GLOBAL_PREFIX = 'api/v1'
+    const preInstance = fastifyAdapter.getInstance()
+    const attachSchemas: onRouteHookHandler = (routeOptions) => {
+      const methods = Array.isArray(routeOptions.method)
+        ? routeOptions.method
+        : [routeOptions.method]
+      for (const method of methods) {
+        const match = routeSchemaRegistry.find(String(method), routeOptions.url, GLOBAL_PREFIX)
+        if (match) {
+          routeOptions.schema = {
+            ...(routeOptions.schema ?? {}),
+            ...match.schema
+          }
+          break
+        }
+      }
+    }
+    preInstance.addHook('onRoute', attachSchemas)
+
+    const app = await NestFactory.create<NestFastifyApplication>(
+      AppModule,
+      fastifyAdapter,
+      {
+        rawBody: true,
+        bufferLogs: true
+      }
+    )
 
     // Use Pino logger from NestJS
     const logger = app.get(Logger)
@@ -49,7 +69,6 @@ async function bootstrap() {
     )
 
     // Global API prefix
-    const GLOBAL_PREFIX = 'api/v1'
     app.setGlobalPrefix(GLOBAL_PREFIX, {
         exclude: [
           ...HEALTH_PATHS.map(path => ({ path, method: RequestMethod.ALL })),
@@ -74,26 +93,7 @@ async function bootstrap() {
 		})
 	)
 
-    // Attach Fastify schema from decorator registry using onRoute
     const fastify = app.getHttpAdapter().getInstance()
-    const attachSchemas: onRouteHookHandler = (routeOptions) => {
-      // routeOptions.method can be string | string[]
-      const methods = Array.isArray(routeOptions.method)
-        ? routeOptions.method
-        : [routeOptions.method]
-      for (const method of methods) {
-        const match = routeSchemaRegistry.find(String(method), routeOptions.url, GLOBAL_PREFIX)
-        if (match) {
-          // Merge schemas if any already exist
-          routeOptions.schema = {
-            ...(routeOptions.schema ?? {}),
-            ...match.schema
-          }
-          break
-        }
-      }
-    }
-    fastify.addHook('onRoute', attachSchemas)
 
     // Enable graceful shutdown
     app.enableShutdownHooks()
