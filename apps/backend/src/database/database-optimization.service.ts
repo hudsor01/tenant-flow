@@ -1,13 +1,112 @@
 import { Inject, Injectable, Logger } from '@nestjs/common'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import type {
+  DbIndexUsageRow,
+  DbSlowQueryRow,
+  DbHealthMetrics,
+  DbPerformanceOverview,
+} from '@repo/shared'
 import { SupabaseService } from './supabase.service'
+
+type RpcResponse<T> = { data: T | null; error: { message: string } | null }
+
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null
+}
+
+function toNumber(v: unknown, fallback = 0): number {
+  const n = typeof v === 'number' ? v : Number(v)
+  return Number.isFinite(n) ? n : fallback
+}
+
+function toString(v: unknown, fallback = ''): string {
+  return typeof v === 'string' ? v : String(v ?? fallback)
+}
+
+function decodeIndexUsageRow(v: unknown): DbIndexUsageRow | null {
+  if (!isRecord(v)) return null
+  return {
+    schemaname: toString(v.schemaname ?? v.schema, 'public'),
+    tablename: toString(v.tablename ?? v.table, ''),
+    indexname: toString(v.indexname ?? v.index, ''),
+    scans: toNumber(v.scans ?? v.idx_scan, 0),
+    tuples_read: toNumber(v.tuples_read, 0),
+    tuples_fetched: toNumber(v.tuples_fetched, 0),
+    size: toString(v.size ?? v.index_size, '0 bytes'),
+  }
+}
+
+function decodeSlowQueryRow(v: unknown): DbSlowQueryRow | null {
+  if (!isRecord(v)) return null
+  const calls = toNumber(v.calls, 0)
+  const total = toNumber(v.total_time, 0)
+  const hasMean = typeof v.mean_time !== 'undefined' && v.mean_time !== null
+  const mean = hasMean ? toNumber(v.mean_time, 0) : (calls > 0 ? total / calls : 0)
+  return {
+    query: toString(v.query ?? v.normalized_query, ''),
+    calls,
+    total_time: total,
+    mean_time: mean,
+    rows: toNumber(v.rows, 0),
+    hit_percent: toNumber(v.hit_percent ?? v.shared_blks_hit_percent, 0),
+  }
+}
+
+function decodeHealth(v: unknown): DbHealthMetrics | null {
+  if (!isRecord(v)) return null
+  const tableSizes = Array.isArray(v.table_sizes)
+    ? v.table_sizes
+        .map(ts =>
+          isRecord(ts)
+            ? {
+                table_name: toString(ts.table_name ?? ts.tablename, ''),
+                size: toString(ts.size ?? ts.total_bytes_readable, '0 bytes'),
+                row_count: toNumber(ts.row_count ?? ts.estimated_rows, 0),
+              }
+            : null,
+        )
+        .filter(Boolean) as DbHealthMetrics['table_sizes']
+    : []
+
+  const indexSizes = Array.isArray(v.index_sizes)
+    ? v.index_sizes
+        .map(ix =>
+          isRecord(ix)
+            ? {
+                index_name: toString(ix.index_name ?? ix.index, ''),
+                size: toString(ix.size ?? ix.index_size, '0 bytes'),
+                table_name: toString(ix.table_name ?? ix.tablename, ''),
+              }
+            : null,
+        )
+        .filter(Boolean) as DbHealthMetrics['index_sizes']
+    : []
+
+  return {
+    connections: toNumber(v.connections, 0),
+    cache_hit_ratio: toNumber(v.cache_hit_ratio ?? v.cache_hit_percent, 0),
+    table_sizes: tableSizes,
+    index_sizes: indexSizes,
+  }
+}
 
 @Injectable()
 export class DatabaseOptimizationService {
 	private readonly logger = new Logger(DatabaseOptimizationService.name)
 
-	constructor(
-		@Inject(SupabaseService) private readonly supabaseService: SupabaseService
-	) {}
+  constructor(
+    @Inject(SupabaseService) private readonly supabaseService: SupabaseService
+  ) {}
+
+  // Typed RPC helper: centralizes bypass of generated RPC name union while preserving typed payloads
+  private async rpc<T>(
+    client: SupabaseClient,
+    fn: string,
+    args?: Record<string, unknown>
+  ): Promise<RpcResponse<T>> {
+    const caller = (client as unknown as { rpc: (f: string, a?: Record<string, unknown>) => Promise<RpcResponse<T>> }).rpc
+    return caller(fn, args)
+  }
 
 	/**
 	 * Apply database optimization indexes
@@ -94,48 +193,38 @@ export class DatabaseOptimizationService {
 		try {
 			const client = this.supabaseService.getAdminClient()
 			// Prefer a dedicated RPC if available
-			let stats: any[] | undefined
-			const { data: rpcData, error: rpcError } = await (client.rpc as any)(
-				'get_index_usage_stats' as any
-			)
+			let stats: unknown[] | undefined
+      const { data: rpcData, error: rpcError } = await this.rpc<unknown[]>(
+        client,
+        'get_index_usage_stats'
+      )
 
 			if (!rpcError && Array.isArray(rpcData)) {
 				stats = rpcData
 			} else {
 				// Fallback: fetch the broader performance overview and extract index_usage
-				const { data: overview, error } = await client.rpc(
-					'get_database_performance_stats'
-				)
+      const { data: overview, error } = await this.rpc<DbPerformanceOverview>(
+        client,
+        'get_database_performance_stats'
+      )
 				if (error) {
 					this.logger.warn('get_index_usage_stats not available, overview failed:', error.message)
 					return { success: false, error: error.message }
 				}
-				if (
-					overview &&
-					typeof overview === 'object' &&
-					'index_usage' in overview &&
-					Array.isArray((overview as any).index_usage)
-				) {
-					stats = (overview as any).index_usage
-				}
+        if (overview && Array.isArray(overview.index_usage)) {
+          stats = overview.index_usage
+        }
 			}
 
 			if (!stats) {
 				return { success: false, error: 'Index usage not available' }
 			}
 
-			const typed = stats
-				.map(s => ({
-					schemaname: String(s.schemaname ?? s.schema ?? 'public'),
-					tablename: String(s.tablename ?? s.table ?? ''),
-					indexname: String(s.indexname ?? s.index ?? ''),
-					scans: Number(s.scans ?? s.idx_scan ?? 0),
-					tuples_read: Number(s.tuples_read ?? 0),
-					tuples_fetched: Number(s.tuples_fetched ?? 0),
-					size: String(s.size ?? s.index_size ?? '0 bytes')
-				}))
-				// deterministic ordering by lowest scans first
-				.sort((a, b) => a.scans - b.scans)
+      const typed = (stats as unknown[])
+        .map(decodeIndexUsageRow)
+        .filter((r): r is DbIndexUsageRow => !!r)
+        // deterministic ordering by lowest scans first
+        .sort((a, b) => a.scans - b.scans)
 
 			return { success: true, stats: typed }
 		} catch (error) {
@@ -163,39 +252,32 @@ export class DatabaseOptimizationService {
 		try {
 			const client = this.supabaseService.getAdminClient()
 			// Prefer dedicated RPC if extension is enabled on DB
-			const { data, error } = await (client.rpc as any)('get_slow_query_stats' as any)
-			if (!error && Array.isArray(data)) {
-				const typed = data.map((q: any) => ({
-					query: String(q.query ?? q.normalized_query ?? ''),
-					calls: Number(q.calls ?? 0),
-					total_time: Number(q.total_time ?? 0),
-					mean_time: Number(q.mean_time ?? q.total_time / Math.max(1, Number(q.calls ?? 1))),
-					rows: Number(q.rows ?? 0),
-					hit_percent: Number(q.hit_percent ?? q.shared_blks_hit_percent ?? 0)
-				}))
-				// order by mean_time desc
-				.sort((a, b) => b.mean_time - a.mean_time)
-				.slice(0, 50)
-				return { success: true, queries: typed }
-			}
+      const { data, error } = await this.rpc<unknown[]>(client, 'get_slow_query_stats')
+      if (!error && Array.isArray(data)) {
+        const typed = data
+          .map(decodeSlowQueryRow)
+          .filter((q): q is DbSlowQueryRow => !!q)
+          // order by mean_time desc
+          .sort((a, b) => b.mean_time - a.mean_time)
+          .slice(0, 50)
+        return { success: true, queries: typed }
+      }
 
 			// Fallback: try overview
-			const { data: overview, error: ovErr } = await client.rpc('get_database_performance_stats')
+      const { data: overview, error: ovErr } = await this.rpc<DbPerformanceOverview>(
+        client,
+        'get_database_performance_stats'
+      )
 			if (ovErr) {
 				return { success: false, error: 'Slow query stats unavailable (pg_stat_statements disabled)' }
 			}
-			const queries = (overview as any)?.slow_queries
-			if (Array.isArray(queries)) {
-				const typed = queries.map((q: any) => ({
-					query: String(q.query ?? ''),
-					calls: Number(q.calls ?? 0),
-					total_time: Number(q.total_time ?? 0),
-					mean_time: Number(q.mean_time ?? 0),
-					rows: Number(q.rows ?? 0),
-					hit_percent: Number(q.hit_percent ?? 0)
-				}))
-				return { success: true, queries: typed }
-			}
+      const queries = overview?.slow_queries
+      if (Array.isArray(queries)) {
+        const typed = (queries as unknown[])
+          .map(decodeSlowQueryRow)
+          .filter((q): q is DbSlowQueryRow => !!q)
+        return { success: true, queries: typed }
+      }
 
 			return { success: false, error: 'Slow query stats not available' }
 		} catch (error) {
@@ -223,24 +305,24 @@ export class DatabaseOptimizationService {
 		try {
 			const client = this.supabaseService.getAdminClient()
 			let analyzed: string[] = []
-			if (tablesToAnalyze && tablesToAnalyze.length > 0) {
-				const { data, error } = await (client.rpc as any)('analyze_tables' as any, {
-					tables: tablesToAnalyze
-				})
+      if (tablesToAnalyze && tablesToAnalyze.length > 0) {
+        const { data, error } = await this.rpc<unknown[]>(client, 'analyze_tables', {
+          tables: tablesToAnalyze
+        })
 				if (error) {
 					this.logger.error('ANALYZE tables failed:', error.message)
 					return { success: false, error: error.message }
 				}
-				analyzed = Array.isArray(data) ? data.map(String) : tablesToAnalyze
-			} else {
-				// Full analyze
-				const { data, error } = await (client.rpc as any)('analyze_all_tables' as any)
-				if (error) {
-					this.logger.error('ANALYZE all tables failed:', error.message)
-					return { success: false, error: error.message }
-				}
-				analyzed = Array.isArray(data) ? data.map(String) : []
-			}
+        analyzed = Array.isArray(data) ? (data as unknown[]).map(v => toString(v)) : tablesToAnalyze
+      } else {
+        // Full analyze
+        const { data, error } = await this.rpc<unknown[]>(client, 'analyze_all_tables')
+        if (error) {
+          this.logger.error('ANALYZE all tables failed:', error.message)
+          return { success: false, error: error.message }
+        }
+        analyzed = Array.isArray(data) ? (data as unknown[]).map(v => toString(v)) : []
+      }
 
 			return { success: true, analyzed }
 		} catch (error) {
@@ -301,17 +383,13 @@ export class DatabaseOptimizationService {
 		try {
 			// Try a dedicated RPC that returns unused indexes by scan count
 			const client = this.supabaseService.getAdminClient()
-			const { data, error } = await (client.rpc as any)('find_unused_indexes' as any)
-			if (!error && Array.isArray(data)) {
-				const typed = data.map((d: any) => ({
-					schemaname: String(d.schemaname ?? 'public'),
-					tablename: String(d.tablename ?? ''),
-					indexname: String(d.indexname ?? ''),
-					size: String(d.size ?? d.index_size ?? '0 bytes'),
-					scans: Number(d.scans ?? d.idx_scan ?? 0)
-				}))
-				return { success: true, unused_indexes: typed }
-			}
+      const { data, error } = await this.rpc<unknown[]>(client, 'find_unused_indexes')
+      if (!error && Array.isArray(data)) {
+        const typed = (data as unknown[])
+          .map(decodeIndexUsageRow)
+          .filter((r): r is DbIndexUsageRow => !!r)
+        return { success: true, unused_indexes: typed }
+      }
 
 			// Fallback: compute from index usage
 			const usage = await this.getIndexUsageStats()
@@ -351,40 +429,25 @@ export class DatabaseOptimizationService {
 		try {
 			const client = this.supabaseService.getAdminClient()
 			// Prefer a dedicated RPC if present
-			let health: any
-			const { data, error } = await (client.rpc as any)('get_database_health_metrics' as any)
-			if (!error && data && typeof data === 'object') {
-				health = data
-			} else {
-				const { data: overview, error: ovErr } = await client.rpc(
-					'get_database_performance_stats'
-				)
-				if (ovErr) {
-					return { success: false, error: ovErr.message }
-				}
-				health = (overview as any)?.health ?? overview
-			}
+			let health: unknown
+      const { data, error } = await this.rpc<unknown>(client, 'get_database_health_metrics')
+      if (!error && data && typeof data === 'object') {
+        health = data as Record<string, unknown>
+      } else {
+        const { data: overview, error: ovErr } = await this.rpc<DbPerformanceOverview>(
+          client,
+          'get_database_performance_stats'
+        )
+        if (ovErr) {
+          return { success: false, error: ovErr.message }
+        }
+        health = (overview?.health as unknown) ?? (overview as unknown)
+      }
 
-			const normalized = {
-				connections: Number(health?.connections ?? 0),
-				cache_hit_ratio: Number(health?.cache_hit_ratio ?? health?.cache_hit_percent ?? 0),
-				table_sizes: Array.isArray(health?.table_sizes)
-					? (health.table_sizes as any[]).map(t => ({
-						table_name: String(t.table_name ?? t.tablename ?? ''),
-						size: String(t.size ?? t.total_bytes_readable ?? '0 bytes'),
-						row_count: Number(t.row_count ?? t.estimated_rows ?? 0)
-					}))
-					: [],
-				index_sizes: Array.isArray(health?.index_sizes)
-					? (health.index_sizes as any[]).map(i => ({
-						index_name: String(i.index_name ?? i.index ?? ''),
-						size: String(i.size ?? i.index_size ?? '0 bytes'),
-						table_name: String(i.table_name ?? i.tablename ?? '')
-					}))
-					: []
-			}
+      const normalized = decodeHealth(health)
+      if (!normalized) return { success: false, error: 'Invalid health payload' }
 
-			return { success: true, health: normalized }
+      return { success: true, health: normalized }
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : String(error)
 			this.logger.error('Error getting health metrics:', error)

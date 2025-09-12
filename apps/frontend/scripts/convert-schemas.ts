@@ -2,14 +2,15 @@
 
 /**
  * Convert Backend JSON Schemas to Frontend Zod Schemas
- * 
+ *
  * This script reads JSON Schema definitions from the backend
  * and converts them to Zod schemas for frontend validation
  */
 
+import * as fs from 'fs'
 import { jsonSchemaToZod } from 'json-schema-to-zod'
-import fs from 'fs'
 import path from 'path'
+import * as ts from 'typescript'
 
 // Paths
 const BACKEND_SCHEMAS_DIR = path.resolve(__dirname, '../../backend/src/schemas')
@@ -19,79 +20,133 @@ const OUTPUT_FILE = path.join(OUTPUT_DIR, 'backend-schemas.ts')
 // Schema files to process
 const SCHEMA_FILES = [
 	'contact.schemas.ts',
-	'auth.schemas.ts', 
+	'auth.schemas.ts',
 	'stripe.schemas.ts',
 	'property.schemas.ts'
 ]
 
+interface ConversionStats {
+	processed: number
+	converted: number
+	failed: number
+	skipped: number
+}
+
+function parseSchemaFile(filePath: string): Array<{ name: string; schema: any }> {
+	const sourceText = fs.readFileSync(filePath, 'utf-8')
+	const sourceFile = ts.createSourceFile(
+		filePath,
+		sourceText,
+		ts.ScriptTarget.Latest,
+		true
+	)
+
+	const schemas: Array<{ name: string; schema: any }> = []
+
+	function visit(node: ts.Node) {
+		if (ts.isVariableStatement(node)) {
+			for (const declaration of node.declarationList.declarations) {
+				if (
+					ts.isIdentifier(declaration.name) &&
+					declaration.name.text.endsWith('Schema') &&
+					declaration.initializer &&
+					ts.isObjectLiteralExpression(declaration.initializer)
+				) {
+					try {
+						const schemaText = declaration.initializer.getFullText(sourceFile)
+						const cleanedText = schemaText.trim()
+						const jsonSchema = Function('"use strict"; return (' + cleanedText + ')')() as any
+						
+						if (typeof jsonSchema === 'object' && jsonSchema !== null) {
+							schemas.push({
+								name: declaration.name.text,
+								schema: jsonSchema
+							})
+						}
+					} catch (error) {
+						console.warn(`Failed to parse schema ${declaration.name.text}:`, error instanceof Error ? error.message : String(error))
+					}
+				}
+			}
+		}
+		ts.forEachChild(node, visit)
+	}
+
+	visit(sourceFile)
+	return schemas
+}
+
+function validateZodSchema(zodCode: string, schemaName: string): boolean {
+	try {
+		const testModule = `const { z } = require('zod'); ${zodCode}; module.exports = ${schemaName.replace('Schema', 'ZodSchema')};`
+		const vm = require('vm')
+		const context = { require, module: { exports: {} }, console }
+		vm.createContext(context)
+		vm.runInContext(testModule, context)
+		return typeof context.module.exports === 'object'
+	} catch {
+		return false
+	}
+}
+
 async function convertSchemas() {
-	console.log('🔄 Converting backend JSON schemas to Zod...')
-	
-	// Ensure output directory exists
+	console.log('Converting backend JSON schemas to Zod...')
+
 	if (!fs.existsSync(OUTPUT_DIR)) {
 		fs.mkdirSync(OUTPUT_DIR, { recursive: true })
 	}
 
-	let zodSchemas: string[] = []
-	let imports: string[] = ['import { z } from "zod"']
-	
+	const zodSchemas: string[] = []
+	const imports: string[] = ['import { z } from "zod"']
+	const stats: ConversionStats = { processed: 0, converted: 0, failed: 0, skipped: 0 }
+
 	for (const schemaFile of SCHEMA_FILES) {
 		const schemaPath = path.join(BACKEND_SCHEMAS_DIR, schemaFile)
-		
+
 		if (!fs.existsSync(schemaPath)) {
-			console.log(`⚠️  Schema file not found: ${schemaFile}`)
+			console.log(`Schema file not found: ${schemaFile}`)
+			stats.skipped++
 			continue
 		}
-		
-		console.log(`📝 Processing ${schemaFile}...`)
-		
+
+		console.log(`Processing ${schemaFile}...`)
+		stats.processed++
+
 		try {
-			// Import the schema file (this is a simple approach)
-			// In a real implementation, you might want to parse the TS file
-			// and extract the JSON schema objects
-			const schemaContent = fs.readFileSync(schemaPath, 'utf-8')
+			const extractedSchemas = parseSchemaFile(schemaPath)
 			
-			// Extract schema objects using regex (basic approach)
-			const schemaMatches = schemaContent.match(/export const (\w+Schema): JSONSchema = ({[\s\S]*?^})/gm)
-			
-			if (schemaMatches) {
-				for (const match of schemaMatches) {
-					const nameMatch = match.match(/export const (\w+Schema)/)
-					const schemaMatch = match.match(/= ({[\s\S]*})/)
+			for (const { name: schemaName, schema: jsonSchema } of extractedSchemas) {
+				try {
+					const zodSchemaCode = jsonSchemaToZod(jsonSchema)
+					const zodSchemaName = schemaName.replace('Schema', 'ZodSchema')
 					
-					if (nameMatch && schemaMatch) {
-						const schemaName = nameMatch[1]
-						const jsonSchemaStr = schemaMatch[1]
-						
-						try {
-							// Parse the JSON schema
-							const jsonSchema = eval(`(${jsonSchemaStr})`)
-							
-							// Convert to Zod
-							const zodSchemaCode = jsonSchemaToZod(jsonSchema)
-							
-							// Clean up the schema name for Zod
-							const zodSchemaName = schemaName.replace('Schema', 'ZodSchema')
-							
-							zodSchemas.push(`export const ${zodSchemaName} = ${zodSchemaCode}`)
-							
-							console.log(`  ✅ Converted ${schemaName} → ${zodSchemaName}`)
-							
-						} catch (error) {
-							console.error(`  ❌ Failed to convert ${schemaName}:`, error)
-						}
+					if (validateZodSchema(zodSchemaCode, schemaName)) {
+						zodSchemas.push(`export const ${zodSchemaName} = ${zodSchemaCode}`)
+						console.log(`  Converted ${schemaName} → ${zodSchemaName}`)
+						stats.converted++
+					} else {
+						console.error(`  Invalid Zod schema generated for ${schemaName}`)
+						stats.failed++
 					}
+				} catch (error) {
+					console.error(`  Failed to convert ${schemaName}:`, error instanceof Error ? error.message : String(error))
+					stats.failed++
 				}
 			}
 		} catch (error) {
-			console.error(`❌ Error processing ${schemaFile}:`, error)
+			console.error(`Error processing ${schemaFile}:`, error instanceof Error ? error.message : String(error))
+			stats.failed++
 		}
 	}
-	
-	// Generate the output file
+
+	if (zodSchemas.length === 0) {
+		console.warn('No schemas were successfully converted')
+		return
+	}
+
 	const outputContent = `/**
  * Generated Zod Schemas from Backend JSON Schemas
- * 
+ *
  * DO NOT EDIT THIS FILE MANUALLY
  * Generated by: scripts/convert-schemas.ts
  * Generated at: ${new Date().toISOString()}
@@ -101,23 +156,28 @@ ${imports.join('\n')}
 
 ${zodSchemas.join('\n\n')}
 
-// Type exports
-${zodSchemas.map(schema => {
-	const match = schema.match(/export const (\w+) =/)
-	if (match) {
-		const schemaName = match[1]
-		const typeName = schemaName.replace('ZodSchema', 'Type')
-		return `export type ${typeName} = z.infer<typeof ${schemaName}>`
-	}
-	return ''
-}).filter(Boolean).join('\n')}
+${zodSchemas
+	.map(schema => {
+		const match = schema.match(/export const (\w+) =/)
+		if (match) {
+			const schemaName = match[1]
+			const typeName = schemaName.replace('ZodSchema', 'Type')
+			return `export type ${typeName} = z.infer<typeof ${schemaName}>`
+		}
+		return ''
+	})
+	.filter(Boolean)
+	.join('\n')}
 `
 
-	// Write the output file
 	fs.writeFileSync(OUTPUT_FILE, outputContent, 'utf-8')
-	
-	console.log(`✅ Generated Zod schemas: ${OUTPUT_FILE}`)
-	console.log(`📊 Converted ${zodSchemas.length} schemas`)
+
+	console.log(`Generated Zod schemas: ${OUTPUT_FILE}`)
+	console.log(`Conversion Statistics:`)
+	console.log(`  Files processed: ${stats.processed}`)
+	console.log(`  Schemas converted: ${stats.converted}`)
+	console.log(`  Failures: ${stats.failed}`)
+	console.log(`  Files skipped: ${stats.skipped}`)
 }
 
 // Run the conversion
