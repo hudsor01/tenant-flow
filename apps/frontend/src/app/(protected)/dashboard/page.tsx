@@ -201,7 +201,7 @@ function DashboardContent() {
 						</div>
 					) : propertiesData ? (
 						<DataTable
-							data={propertiesData.map((property: Tables<'Property'>, index) => ({
+							data={propertiesData.map((property: Tables<'Property'>, index: number) => ({
 								id: index + 1,
 								name: property.name,
 								type: property.propertyType === 'SINGLE_FAMILY' ? 'house' as const :

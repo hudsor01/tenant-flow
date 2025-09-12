@@ -35,6 +35,7 @@ import { Building, DollarSign, Plus, TrendingUp } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 
 type PropertyRow = Database['public']['Tables']['Property']['Row']
+type UnitRow = Database['public']['Tables']['Unit']['Row']
 type InsertProperty = Database['public']['Tables']['Property']['Insert']
 type PropertyStatus = Database['public']['Enums']['PropertyStatus']
 type PropertyType = Database['public']['Enums']['PropertyType']
@@ -55,9 +56,9 @@ export default function PropertiesPage() {
 	// Calculate metrics
 	const totalProperties = properties.length
 	const totalUnits = units.length
-	const occupiedUnits = units.filter(unit => unit.status === 'OCCUPIED').length
-	const occupancyRate = totalUnits > 0 ? (occupiedUnits / totalUnits) * 100 : 0
-	const totalRevenue = units.reduce((sum, unit) => sum + (unit.rent || 0), 0)
+    const occupiedUnits = units.filter((unit: UnitRow) => unit.status === 'OCCUPIED').length
+    const occupancyRate = totalUnits > 0 ? (occupiedUnits / totalUnits) * 100 : 0
+    const totalRevenue = units.reduce((sum: number, unit: UnitRow) => sum + (unit.rent || 0), 0)
 
 	return (
 		<div className="dashboard-root dashboard-main flex flex-col gap-4 py-4 md:gap-6 md:py-6">
@@ -166,12 +167,12 @@ export default function PropertiesPage() {
 								<TableBody>
 									{properties?.length ? (
 										properties.map((property: PropertyRow) => {
-											const propertyUnits = units.filter(
-												unit => unit.propertyId === property.id
-											)
-											const occupiedUnits = propertyUnits.filter(
-												unit => unit.status === 'OCCUPIED'
-											)
+                                const propertyUnits = units.filter(
+                                    (unit: UnitRow) => unit.propertyId === property.id
+                                )
+                                const occupiedUnits = propertyUnits.filter(
+                                    (unit: UnitRow) => unit.status === 'OCCUPIED'
+                                )
 
 											return (
 												<TableRow
