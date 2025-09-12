@@ -2,29 +2,44 @@ import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
 
-import { cn, buttonClasses, ANIMATION_DURATIONS, SEMANTIC_COLORS } from "@/lib/design-system"
+import { cn } from "@/lib/design-system"
 
-// Using design system buttonClasses with legacy cva fallback for existing variants
+// Professional Masculine Button System - Single Source of Truth
 const buttonVariants = cva(
-  `inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive`,
+  `inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-semibold transition-all duration-200 
+   disabled:pointer-events-none disabled:opacity-50 
+   [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 
+   outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2
+   shadow-sm hover:shadow-md active:scale-[0.98]`,
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
-        primary: "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
-        secondary: "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
-        destructive: "bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
-        outline: "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
-        ghost: "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
-        link: "text-primary underline-offset-4 hover:underline",
+        // Primary - Deep Navy Authority
+        default: "bg-primary text-primary-foreground hover:bg-primary/90 border border-primary/20",
+        primary: "bg-primary text-primary-foreground hover:bg-primary/90 border border-primary/20",
+        
+        // Secondary - Professional Steel
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-secondary/20",
+        
+        // Destructive - Confident Red
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 border border-destructive/20 focus-visible:ring-destructive/50",
+        
+        // Outline - Authoritative Border
+        outline: "border-2 border-primary bg-background text-primary hover:bg-primary hover:text-primary-foreground",
+        
+        // Ghost - Subtle Command
+        ghost: "text-primary hover:bg-primary/10 hover:text-primary",
+        
+        // Link - Minimal Authority
+        link: "text-primary underline-offset-4 hover:underline font-medium",
       },
       size: {
-        xs: "h-6 px-2 text-xs has-[>svg]:px-1.5",
-        sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
-        default: "h-9 px-4 py-2 has-[>svg]:px-3",
-        lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
-        xl: "h-11 px-8 has-[>svg]:px-6",
-        icon: "size-9",
+        xs: "h-7 px-3 text-xs rounded-sm",
+        sm: "h-8 px-4 text-sm rounded-md",
+        default: "h-10 px-6 text-sm rounded-md",
+        lg: "h-11 px-8 text-base rounded-lg",
+        xl: "h-12 px-10 text-base rounded-lg font-bold",
+        icon: "size-10 rounded-md",
       },
     },
     defaultVariants: {
@@ -49,18 +64,7 @@ function Button({
   return (
     <Comp
       data-slot="button"
-      className={cn(
-        // Use design system buttonClasses for consistent styling
-        (['primary', 'secondary', 'outline', 'ghost', 'destructive'].includes(variant || '') || variant === 'default') ? 
-          buttonClasses(variant === 'default' ? 'primary' : (variant as 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive') || 'primary', (size === 'icon' ? 'default' : size) || 'default', className) : '',
-        // Fallback to buttonVariants for legacy variant compatibility (like 'link')
-        !['primary', 'secondary', 'outline', 'ghost', 'destructive'].includes(variant || '') && buttonVariants({ variant, size })
-      )}
-      style={{ 
-        transition: `all ${ANIMATION_DURATIONS.default} ease-out`,
-        color: variant === 'primary' ? SEMANTIC_COLORS['primary-foreground'] : undefined,
-        ...(props.style || {})
-      }}
+      className={cn(buttonVariants({ variant, size }), className)}
       {...props}
     />
   )
