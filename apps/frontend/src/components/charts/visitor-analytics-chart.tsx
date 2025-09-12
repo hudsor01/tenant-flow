@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from 'recharts'
-import { TrendingUp, TrendingDown, Home, Activity, Calendar, Users, AlertCircle, Loader2, RefreshCw, BarChart3 } from 'lucide-react'
+import { TrendingUp, TrendingDown, Home, Activity, Calendar, Users, AlertCircle, Loader2, RefreshCw, BarChart3, Eye } from 'lucide-react'
 import { usePropertiesFormatted } from '@/hooks/api/properties'
 
 import type { ChartConfig } from '@/components/ui/chart'
@@ -35,145 +35,45 @@ interface PropertyInterestDataPoint {
 interface PropertyInterestAnalyticsChartProps {
 	timeRange?: '7d' | '30d' | '90d'
 	className?: string
-	title?: string
-	subtitle?: string
 }
 
 const chartConfig = {
 	interest: {
 		label: 'Property Interest',
-		color: 'hsl(var(--primary))'
+		color: 'hsl(var(--chart-1))',
 	},
 	inquiries: {
 		label: 'Inquiries',
-		color: 'hsl(var(--chart-2))'
+		color: 'hsl(var(--chart-2))',
 	},
 	viewings: {
 		label: 'Viewings',
-		color: 'hsl(var(--chart-3))'
-	}
-} satisfies ChartConfig
+		color: 'hsl(var(--chart-3))',
+	},
+} as ChartConfig
 
-// Loading skeleton component for the chart
-function ChartLoadingSkeleton() {
-	return (
-		<div className="space-y-4">
-			{/* Header skeleton */}
-			<div className="flex items-center justify-between">
-				<div className="space-y-2">
-					<Skeleton className="h-6 w-32" />
-					<Skeleton className="h-4 w-48" />
-				</div>
-				<Skeleton className="h-8 w-20" />
-			</div>
-			
-			{/* Stats skeleton */}
-			<div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-6 bg-muted/20 border-b rounded-t-lg">
-				{[...Array(4)].map((_, i) => (
-					<div key={i} className="space-y-2">
-						<Skeleton className="h-3 w-16" />
-						<Skeleton className="h-6 w-12" />
-					</div>
-				))}
-			</div>
-			
-			{/* Chart skeleton */}
-			<div className="p-6">
-				<div className="h-[300px] flex items-end justify-between space-x-2">
-					{[...Array(12)].map((_, i) => (
-						<Skeleton 
-							key={i} 
-							className="w-full" 
-							style={{ height: `${Math.random() * 200 + 50}px` }}
-						/>
-					))}
-				</div>
-			</div>
-		</div>
-	)
-}
-
-// Error state component
-function ChartErrorState({ onRefresh }: { onRefresh?: () => void }) {
-	return (
-		<div className="flex flex-col items-center justify-center h-[400px] space-y-4">
-			<div className="p-4 bg-red-100 dark:bg-red-900/20 rounded-full">
-				<AlertCircle className="h-8 w-8 text-red-600" />
-			</div>
-			<div className="text-center space-y-2">
-				<h3 className="font-semibold text-foreground">Failed to load analytics</h3>
-				<p className="text-sm text-muted-foreground">
-					There was an error loading the visitor data. Please try again.
-				</p>
-			</div>
-			{onRefresh && (
-				<Button 
-					variant="outline" 
-					onClick={onRefresh}
-					className="mt-4"
-				>
-					<RefreshCw className="h-4 w-4 mr-2" />
-					Retry
-				</Button>
-			)}
-		</div>
-	)
-}
-
-// Generate realistic property interest data based on real property data
-function generatePropertyInterestData(
-	properties: any[] = [], 
-	timeRange: '7d' | '30d' | '90d' = '30d'
-): PropertyInterestDataPoint[] {
+function generatePropertyInterestData(properties: any[] = [], timeRange: '7d' | '30d' | '90d' = '30d'): PropertyInterestDataPoint[] {
 	const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90
-	const data: PropertyInterestDataPoint[] = []
-	const today = new Date()
+	const baseInterest = Math.floor(Math.random() * 20) + 30
 	
-	// Base interest levels scaled to property portfolio size
-	const portfolioSize = Math.max(properties.length, 1)
-	const baseInterest = Math.min(portfolioSize * 15, 200) // 15 inquiries per property max
-	const weeklyPattern = [0.6, 0.8, 0.9, 1.0, 1.2, 1.4, 1.1] // Mon-Sun pattern (weekend peaks)
-	
-	for (let i = days - 1; i >= 0; i--) {
-		const date = new Date(today)
-		date.setDate(date.getDate() - i)
+	return Array.from({ length: days }, (_, i) => {
+		const date = new Date()
+		date.setDate(date.getDate() - (days - 1 - i))
 		
-		// Add weekly pattern (weekends = higher interest)
-		const dayOfWeek = date.getDay()
-		const weeklyMultiplier = weeklyPattern[dayOfWeek] || 1.0
+		const interest = Math.floor(baseInterest + Math.random() * 20 - 10)
+		const inquiries = Math.floor(interest * (0.15 + Math.random() * 0.1))
+		const viewings = Math.floor(inquiries * (0.3 + Math.random() * 0.2))
 		
-		// Seasonal trend (spring/summer = higher activity)
-		const month = date.getMonth()
-		const seasonalMultiplier = month >= 2 && month <= 8 ? 1.2 : 0.8 // Mar-Sep peak season
-		
-		// Add random variation (±25%)
-		const randomMultiplier = 0.75 + Math.random() * 0.5
-		
-		// Calculate interest metrics
-		const totalInterest = Math.round(
-			baseInterest * weeklyMultiplier * seasonalMultiplier * randomMultiplier
-		)
-		
-		// Breakdown: 60% general interest, 30% inquiries, 10% viewings
-		const inquiries = Math.round(totalInterest * 0.3)
-		const viewings = Math.round(totalInterest * 0.1)
-		
-		data.push({
+		return {
 			date: date.toISOString().split('T')[0]!,
-			interest: totalInterest,
-			inquiries,
-			viewings
-		})
-	}
-	
-	return data
+			interest: Math.max(0, interest),
+			inquiries: Math.max(0, inquiries),
+			viewings: Math.max(0, viewings)
+		}
+	})
 }
 
-// Filter data based on date range
-function filterDataByTimeRange(
-	data: PropertyInterestDataPoint[], 
-	timeRange: '7d' | '30d' | '90d'
-): PropertyInterestDataPoint[] {
+function filterDataByRange(data: PropertyInterestDataPoint[], timeRange: '7d' | '30d' | '90d'): PropertyInterestDataPoint[] {
 	const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90
 	const cutoffDate = new Date()
 	cutoffDate.setDate(cutoffDate.getDate() - days)
@@ -183,22 +83,25 @@ function filterDataByTimeRange(
 		.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 }
 
-// Calculate analytics stats
-function calculateAnalytics(data: VisitorDataPoint[]) {
+function calculateAnalytics(data: PropertyInterestDataPoint[]) {
 	if (data.length === 0) return null
 	
-	const total = data.reduce((sum, item) => sum + item.visitors, 0)
-	const average = Math.round(total / data.length)
-	const max = Math.max(...data.map(item => item.visitors))
-	const min = Math.min(...data.map(item => item.visitors))
+	const total = data.reduce((sum, item) => ({ 
+		interest: sum.interest + item.interest, 
+		inquiries: sum.inquiries + item.inquiries, 
+		viewings: sum.viewings + item.viewings 
+	}), { interest: 0, inquiries: 0, viewings: 0 })
 	
-	// Calculate trend (comparing first half vs second half)
+	const average = Math.round(total.interest / data.length)
+	const max = Math.max(...data.map(item => item.interest))
+	const min = Math.min(...data.map(item => item.interest))
+	
 	const midPoint = Math.floor(data.length / 2)
 	const firstHalf = data.slice(0, midPoint)
 	const secondHalf = data.slice(midPoint)
 	
-	const firstHalfAvg = firstHalf.reduce((sum, item) => sum + item.visitors, 0) / firstHalf.length
-	const secondHalfAvg = secondHalf.reduce((sum, item) => sum + item.visitors, 0) / secondHalf.length
+	const firstHalfAvg = firstHalf.reduce((sum, item) => sum + item.interest, 0) / firstHalf.length
+	const secondHalfAvg = secondHalf.reduce((sum, item) => sum + item.interest, 0) / secondHalf.length
 	
 	const trendPercentage = ((secondHalfAvg - firstHalfAvg) / firstHalfAvg) * 100
 	const isIncreasing = trendPercentage > 0
@@ -209,434 +112,219 @@ function calculateAnalytics(data: VisitorDataPoint[]) {
 		max,
 		min,
 		trendPercentage: Math.abs(trendPercentage),
-		isIncreasing
+		isIncreasing,
+		totalInquiries: total.inquiries,
+		totalViewings: total.viewings,
+		inquiryRate: total.interest > 0 ? Math.round((total.inquiries / total.interest) * 100) : 0
 	}
 }
 
-export function VisitorAnalyticsChart({
-	timeRange = '7d',
-	data: externalData,
-	showStats = true,
-	className,
-	isLoading = false,
-	isError = false,
-	onRefresh,
-	onTimeRangeChange,
-	title = 'Visitor Analytics',
-	subtitle
-}: VisitorAnalyticsChartProps) {
-	const [selectedRange, setSelectedRange] = React.useState(timeRange)
+export function PropertyInterestAnalyticsChart({
+	timeRange = '30d',
+	className
+}: PropertyInterestAnalyticsChartProps) {
+	const { data: propertiesData, isPending: isLoading } = usePropertiesFormatted()
+	const [selectedRange, setSelectedRange] = React.useState<'7d' | '30d' | '90d'>(timeRange)
 	const [isRefreshing, setIsRefreshing] = React.useState(false)
 
 	const chartData = React.useMemo(() => {
-		// If external data is provided, filter it by time range
-		if (externalData && externalData.length > 0) {
-			return filterDataByTimeRange(externalData, selectedRange)
-		}
-		
-		// Otherwise generate realistic mock data
-		return generateVisitorData(selectedRange)
-	}, [selectedRange, externalData])
+		return generatePropertyInterestData(propertiesData?.properties ?? [], selectedRange)
+	}, [propertiesData?.properties, selectedRange])
 
-	const analytics = React.useMemo(() => calculateAnalytics(chartData), [chartData])
+	const analytics = React.useMemo(() => {
+		const filteredData = filterDataByRange(chartData, selectedRange)
+		return calculateAnalytics(filteredData)
+	}, [chartData, selectedRange])
 
-	const timeRangeLabel = {
+	const timeRangeLabels: Record<'7d' | '30d' | '90d', string> = {
 		'7d': 'Last 7 days',
 		'30d': 'Last 30 days', 
 		'90d': 'Last 90 days'
-	}[selectedRange]
-
-	const handleRangeChange = (newRange: '7d' | '30d' | '90d') => {
-		setSelectedRange(newRange)
 	}
 
-	const handleRefresh = async () => {
-		// Refresh properties data by changing state to trigger re-render
+	const handleRefresh = React.useCallback(async () => {
 		setIsRefreshing(true)
-		try {
-			// Simulate refresh - in practice this would refetch properties data
-			await new Promise(resolve => setTimeout(resolve, 1000))
-		} finally {
-			setIsRefreshing(false)
-		}
+		await new Promise(resolve => setTimeout(resolve, 1000))
+		setIsRefreshing(false)
+	}, [])
+
+	const handleTimeRangeChange = React.useCallback((range: '7d' | '30d' | '90d') => {
+		setSelectedRange(range)
+	}, [])
+
+	if (isLoading) {
+		return (
+			<Card className={cn('w-full', className)}>
+				<CardHeader>
+					<div className="space-y-2">
+						<Skeleton className="h-4 w-[200px]" />
+						<Skeleton className="h-3 w-[150px]" />
+					</div>
+				</CardHeader>
+				<CardContent>
+					<div className="space-y-4">
+						<div className="grid grid-cols-3 gap-4">
+							{Array.from({ length: 3 }, (_, i) => (
+								<div key={i} className="space-y-2">
+									<Skeleton className="h-8 w-full" />
+									<Skeleton className="h-3 w-[80px]" />
+								</div>
+							))}
+						</div>
+						<Skeleton className="h-[300px] w-full" />
+					</div>
+				</CardContent>
+			</Card>
+		)
 	}
 
 	return (
-		<Card 
-			className={cn(
-				cardClasses('elevated'),
-				'shadow-xl hover:shadow-2xl border-2 border-primary/10',
-				'bg-gradient-to-br from-background via-muted/5 to-background',
-				animationClasses('fade-in'),
-				className
-			)}
-			style={{ 
-				transition: `all ${ANIMATION_DURATIONS.default} cubic-bezier(0.4, 0, 0.2, 1)`,
-			}}
-		>
-			{/* Show loading skeleton or error state */}
-			{isLoading ? (
-				<ChartLoadingSkeleton />
-			) : isError ? (
-				<ChartErrorState onRefresh={onRefresh} />
-			) : (
-				<>
-					<CardHeader 
-						className={cn(
-							'flex flex-col space-y-4 pb-6',
-							animationClasses('slide-down')
-						)}
+		<Card className={cn('w-full', className)}>
+			<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-6">
+				<div className="space-y-1">
+					<CardTitle className="text-base font-semibold">
+						Property Interest Analytics
+					</CardTitle>
+					<CardDescription>
+						Track property interest, inquiries, and viewings over time
+					</CardDescription>
+				</div>
+				
+				<div className="flex items-center gap-2">
+					<div className="flex items-center gap-1 rounded-md border bg-background p-1">
+						{(['7d', '30d', '90d'] as const).map((range) => (
+							<Button
+								key={range}
+								variant={selectedRange === range ? 'default' : 'ghost'}
+								size="sm"
+								className="h-7 px-3 text-xs"
+								onClick={() => handleTimeRangeChange(range)}
+							>
+								{range === '7d' ? '7D' : range === '30d' ? '30D' : '90D'}
+							</Button>
+						))}
+					</div>
+					
+					<Button
+						variant="outline"
+						size="sm"
+						className="h-8 w-8 p-0"
+						onClick={handleRefresh}
+						disabled={isRefreshing}
 					>
-						{/* Title and Controls Row */}
-						<div className="flex items-center justify-between">
-							<div className="flex items-center gap-4">
-								<div className="p-3 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl">
-									<Home className="size-6 text-primary" />
-								</div>
-								<div className="space-y-1">
-									<CardTitle 
-										className="tracking-tight font-bold text-foreground"
-										style={{
-											fontSize: TYPOGRAPHY_SCALE['heading-xl'].fontSize,
-											lineHeight: TYPOGRAPHY_SCALE['heading-xl'].lineHeight,
-											fontWeight: TYPOGRAPHY_SCALE['heading-xl'].fontWeight
-										}}
-									>
-										{title}
-									</CardTitle>
-									<CardDescription className="leading-relaxed" style={{ fontSize: TYPOGRAPHY_SCALE['body-lg'].fontSize }}>
-										{subtitle || `${timeRangeLabel} • ${analytics?.total.toLocaleString() || '0'} total property interactions`}
-									</CardDescription>
-								</div>
-							</div>
-							
-							{/* Controls */}
-							<div className="flex items-center gap-3">
-								{/* View Details Button */}
-								<Button
-									variant="ghost"
-									size="sm"
-									className={cn(
-										buttonClasses('ghost', 'sm'),
-										"h-8 w-8 p-0 hover:bg-blue-100 hover:text-blue-600",
-										"dark:hover:bg-blue-900/20 dark:hover:text-blue-400",
-										"focus:ring-2 focus:ring-blue-500/20 focus:ring-offset-1"
-									)}
-									title="View detailed analytics"
-									style={{ transition: `all ${ANIMATION_DURATIONS.fast} ease-out` }}
-								>
-									<Eye className="h-4 w-4" />
-								</Button>
+						<RefreshCw className={cn('h-3 w-3', isRefreshing && 'animate-spin')} />
+					</Button>
+				</div>
+			</CardHeader>
 
-								{/* Time Range Selector */}
-								<div className="flex items-center bg-muted/30 rounded-lg p-1 border">
-									{(['7d', '30d', '90d'] as const).map((range) => (
-										<Button
-											key={range}
-											variant={selectedRange === range ? 'default' : 'ghost'}
-											size="sm"
-											onClick={() => handleRangeChange(range)}
-											className={cn(
-												buttonClasses('ghost', 'sm'),
-												"h-8 px-3 text-xs font-medium",
-												selectedRange === range
-													? "bg-primary text-primary-foreground shadow-sm"
-													: "text-muted-foreground hover:text-foreground"
-											)}
-											style={{ transition: `all ${ANIMATION_DURATIONS.fast} ease-out` }}
-										>
-											{range === '7d' ? '7D' : range === '30d' ? '30D' : '90D'}
-										</Button>
-									))}
-								</div>
-								
-								{/* Refresh Button */}
-								{onRefresh && (
-									<Button
-										variant="outline"
-										size="sm"
-										onClick={handleRefresh}
-										disabled={isRefreshing}
-										className={cn(
-											buttonClasses('outline', 'sm'),
-											"h-8 px-3 border-2"
-										)}
-										style={{ transition: `all ${ANIMATION_DURATIONS.fast} ease-out` }}
-									>
-										{isRefreshing ? (
-											<Loader2 className="size-3 animate-spin" />
+			<CardContent className="space-y-6">
+				{analytics && (
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+						<div className="flex items-center space-x-3 p-3 rounded-lg bg-primary/5 border">
+							<div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+								<Eye className="h-4 w-4 text-primary" />
+							</div>
+							<div className="space-y-0.5">
+								<p className="text-sm font-medium">Total Interest</p>
+								<div className="flex items-center space-x-1">
+									<span className="text-xl font-semibold">{analytics.total.interest}</span>
+									<Badge variant={analytics.isIncreasing ? 'default' : 'secondary'} className="text-xs">
+										{analytics.isIncreasing ? (
+											<TrendingUp className="w-3 h-3 mr-1" />
 										) : (
-											<RefreshCw className="size-3" />
+											<TrendingDown className="w-3 h-3 mr-1" />
 										)}
-									</Button>
-								)}
+										{analytics.trendPercentage.toFixed(1)}%
+									</Badge>
+								</div>
 							</div>
 						</div>
 
-						{/* Trend Indicator */}
-						{analytics && (
-							<div className="flex items-center justify-center">
-								<Badge 
-									variant="outline"
-									className={cn(
-										badgeClasses(analytics.isIncreasing ? 'success' : 'destructive'),
-										"px-4 py-2 font-semibold border-2",
-										analytics.isIncreasing 
-											? "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800"
-											: "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800"
-									)}
-									style={{ transition: `all ${ANIMATION_DURATIONS.fast} ease-out` }}
-								>
-									{analytics.isIncreasing ? (
-										<TrendingUp className="size-4 mr-2" />
-									) : (
-										<TrendingDown className="size-4 mr-2" />
-									)}
-									{analytics.trendPercentage.toFixed(1)}% {analytics.isIncreasing ? 'increase' : 'decrease'} vs previous period
-								</Badge>
+						<div className="flex items-center space-x-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
+							<div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
+								<Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
 							</div>
-						)}
-					</CardHeader>
-			<CardContent 
-				className="p-0"
-				style={{ 
-					animation: `slideInFromBottom ${ANIMATION_DURATIONS.default} ease-out`,
-				}}
-			>
-				{showStats && analytics && (
-					<div 
-						className="grid grid-cols-2 lg:grid-cols-4 gap-6 p-8 bg-gradient-to-r from-muted/20 via-background to-muted/20 border-b-2 border-muted/30"
-						style={{ 
-							animation: `fadeIn ${ANIMATION_DURATIONS.slow} ease-out`,
-						}}
-					>
-						<div className="text-center p-4 bg-white/50 dark:bg-gray-900/20 rounded-2xl border border-muted/40 hover:shadow-md transition-shadow">
-							<div className="flex items-center justify-center mb-3">
-								<div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-									<Activity className="size-5 text-blue-600" />
+							<div className="space-y-0.5">
+								<p className="text-sm font-medium">Total Inquiries</p>
+								<div className="flex items-center space-x-1">
+									<span className="text-xl font-semibold">{analytics.totalInquiries}</span>
+									<span className="text-xs text-muted-foreground">
+										({analytics.inquiryRate}% rate)
+									</span>
 								</div>
 							</div>
-							<p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Avg Daily Interest</p>
-							<p 
-								className="font-black text-foreground tabular-nums mt-1"
-								style={{ fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize }}
-							>
-								{analytics.average.toLocaleString()}
-							</p>
 						</div>
-						<div className="text-center p-4 bg-white/50 dark:bg-gray-900/20 rounded-2xl border border-muted/40 hover:shadow-md transition-shadow">
-							<div className="flex items-center justify-center mb-3">
-								<div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
-									<TrendingUp className="size-5 text-green-600" />
+
+						<div className="flex items-center space-x-3 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800">
+							<div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
+								<Home className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+							</div>
+							<div className="space-y-0.5">
+								<p className="text-sm font-medium">Total Viewings</p>
+								<div className="flex items-center space-x-1">
+									<span className="text-xl font-semibold">{analytics.totalViewings}</span>
+									<span className="text-xs text-muted-foreground">
+										({analytics.totalInquiries > 0 ? Math.round((analytics.totalViewings / analytics.totalInquiries) * 100) : 0}% rate)
+									</span>
 								</div>
 							</div>
-							<p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Inquiries</p>
-							<p 
-								className="font-black text-green-600 tabular-nums mt-1"
-								style={{ fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize }}
-							>
-								{analytics.totalInquiries?.toLocaleString()}
-							</p>
-						</div>
-						<div className="text-center p-4 bg-white/50 dark:bg-gray-900/20 rounded-2xl border border-muted/40 hover:shadow-md transition-shadow">
-							<div className="flex items-center justify-center mb-3">
-								<div className="p-2 bg-orange-100 dark:bg-orange-900/20 rounded-lg">
-									<TrendingDown className="size-5 text-orange-600" />
-								</div>
-							</div>
-							<p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Viewings</p>
-							<p 
-								className="font-black text-orange-600 tabular-nums mt-1"
-								style={{ fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize }}
-							>
-								{analytics.totalViewings?.toLocaleString()}
-							</p>
-						</div>
-						<div className="text-center p-4 bg-white/50 dark:bg-gray-900/20 rounded-2xl border border-muted/40 hover:shadow-md transition-shadow">
-							<div className="flex items-center justify-center mb-3">
-								<div className="p-2 bg-primary/20 rounded-lg">
-									<Users className="size-5 text-primary" />
-								</div>
-							</div>
-							<p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Conversion Rate</p>
-							<p 
-								className="font-black text-primary tabular-nums mt-1"
-								style={{ fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize }}
-							>
-								{analytics.inquiryRate?.toFixed(1)}%
-							</p>
 						</div>
 					</div>
 				)}
-				<div className="p-8">
-					<div className="mb-4 flex items-center justify-between">
-						<div className="flex items-center gap-2">
-							<div className="w-3 h-3 bg-primary rounded-full" />
-							<span className="text-sm font-semibold text-muted-foreground">
-								Daily Property Interest
-							</span>
-						</div>
-						<Badge 
-							variant="outline" 
-							className={cn(
-								badgeClasses('secondary'),
-								"text-xs font-medium"
-							)}
-						>
-							<Calendar className="w-3 h-3 mr-1" />
-							{timeRangeLabel}
-						</Badge>
+
+				<div className="space-y-3">
+					<div className="flex items-center justify-between">
+						<h4 className="text-sm font-medium">Interest Timeline</h4>
+						<p className="text-xs text-muted-foreground">
+							{timeRangeLabels[selectedRange]}
+						</p>
 					</div>
 					
-					<ChartContainer
-						config={chartConfig}
-						className="h-[400px] w-full"
-						style={{ 
-							animation: `slideInFromBottom ${ANIMATION_DURATIONS.slow} ease-out`,
-						}}
-					>
-						<ResponsiveContainer width="100%" height="100%">
-							<AreaChart
-								data={chartData}
-								margin={{
-									top: 20,
-									right: 30,
-									left: 20,
-									bottom: 20
-								}}
-							>
+					<ChartContainer config={chartConfig}>
+						<ResponsiveContainer width="100%" height={300}>
+							<AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
 								<defs>
-									<linearGradient id="fillInterest" x1="0" y1="0" x2="0" y2="1">
-										<stop
-											offset="5%"
-											stopColor="hsl(var(--primary))"
-											stopOpacity={0.9}
-										/>
-										<stop
-											offset="50%"
-											stopColor="hsl(var(--primary))"
-											stopOpacity={0.4}
-										/>
-										<stop
-											offset="95%"
-											stopColor="hsl(var(--primary))"
-											stopOpacity={0.05}
-										/>
+									<linearGradient id="colorInterest" x1="0" y1="0" x2="0" y2="1">
+										<stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3} />
+										<stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0} />
 									</linearGradient>
-									
-									{/* Grid pattern */}
-									<pattern id="gridPattern" patternUnits="userSpaceOnUse" width="20" height="20">
-										<path
-											d="M 20 0 L 0 0 0 20"
-											fill="none"
-											stroke="hsl(var(--muted-foreground))"
-											strokeWidth="0.5"
-											strokeOpacity="0.1"
-										/>
-									</pattern>
 								</defs>
-								
-								<CartesianGrid 
-									strokeDasharray="none" 
-									stroke="url(#gridPattern)"
-								/>
-								
-								<XAxis
-									dataKey="date"
-									tickLine={false}
+								<CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+								<XAxis 
+									dataKey="date" 
 									axisLine={false}
-									tickMargin={16}
-									tick={{ 
-										fontSize: 12, 
-										fill: 'hsl(var(--muted-foreground))',
-										fontWeight: 500
-									}}
-									tickFormatter={value => {
-										const date = new Date(value)
-										return selectedRange === '7d' 
-											? date.toLocaleDateString('en-US', { weekday: 'short' })
-											: date.toLocaleDateString('en-US', {
-												month: 'short',
-												day: 'numeric'
-											})
-									}}
-								/>
-								
-								<YAxis
 									tickLine={false}
+									tick={{ fontSize: 12 }}
+									tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+								/>
+								<YAxis 
 									axisLine={false}
-									tickMargin={16}
-									tick={{ 
-										fontSize: 12, 
-										fill: 'hsl(var(--muted-foreground))',
-										fontWeight: 500
-									}}
-									tickFormatter={value => {
-										if (value >= 1000) {
-											return `${(value / 1000).toFixed(1)}k`
-										}
-										return value.toString()
-									}}
+									tickLine={false}
+									tick={{ fontSize: 12 }}
 								/>
-								
-								<ChartTooltip
-									cursor={{
-										stroke: 'hsl(var(--primary))',
-										strokeWidth: 3,
-										strokeDasharray: 'none',
-										fill: 'hsl(var(--primary))',
-										fillOpacity: 0.1
-									}}
-									content={
-										<ChartTooltipContent
-											labelFormatter={value => {
-												return new Date(value).toLocaleDateString('en-US', {
-													weekday: 'long',
-													month: 'long',
-													day: 'numeric',
-													year: 'numeric'
-												})
-											}}
-											formatter={(value) => [
-												`${(value as number).toLocaleString()} visitors`,
-												'Visitors'
-											]}
-											indicator="dot"
-											className="bg-background/98 backdrop-blur-sm border-2 border-primary/20 shadow-2xl rounded-xl p-4"
-										/>
-									}
+								<ChartTooltip 
+									content={<ChartTooltipContent />}
+									labelFormatter={(value) => new Date(value).toLocaleDateString('en-US', { 
+										weekday: 'short', 
+										month: 'short', 
+										day: 'numeric' 
+									})}
 								/>
-								
 								<Area
 									type="monotone"
 									dataKey="interest"
-									stroke="hsl(var(--primary))"
-									strokeWidth={3}
+									stroke="hsl(var(--chart-1))"
 									fillOpacity={1}
-									fill="url(#fillInterest)"
-									dot={{
-										r: 0,
-									}}
-									activeDot={{
-										r: 8,
-										fill: 'hsl(var(--primary))',
-										strokeWidth: 3,
-										stroke: 'hsl(var(--background))',
-										style: {
-											filter: 'drop-shadow(0 4px 8px hsla(var(--primary), 0.4))'
-										}
-									}}
-									style={{
-										filter: 'drop-shadow(0 4px 12px hsla(var(--primary), 0.2))'
-									}}
+									fill="url(#colorInterest)"
+									strokeWidth={2}
 								/>
 							</AreaChart>
 						</ResponsiveContainer>
 					</ChartContainer>
 				</div>
 			</CardContent>
-				</>
-			)}
 		</Card>
 	)
 }
+
+export { PropertyInterestAnalyticsChart as VisitorAnalyticsChart }

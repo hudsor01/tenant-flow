@@ -6,9 +6,9 @@ import { Badge } from "@/components/ui/badge"
 import { BlurFade } from "@/components/magicui/blur-fade"
 import { cn, formatCurrency } from "@/lib/utils"
 import { useDashboardFinancialStatsFormatted } from "@/hooks/api/financial"
-import { usePropertiesFormatted } from "@/hooks/api/properties"
-import { useUnits } from "@/hooks/api/units"
 import { useFinancialOverviewFormatted } from "@/hooks/api/financial"
+import type { FinancialOverviewResponse } from "@repo/shared"
+import { useDashboardStats, usePropertyPerformance, useSystemUptime } from "@/hooks/api/use-dashboard"
 import { useMemo } from "react"
 
 interface EnterpriseHeroSectionProps {
@@ -17,18 +17,21 @@ interface EnterpriseHeroSectionProps {
 
 export function EnterpriseHeroSection({ className }: EnterpriseHeroSectionProps) {
   const { data: dashboardStats, isPending: statsLoading } = useDashboardFinancialStatsFormatted()
-  const { data: propertiesData, isPending: propertiesLoading } = usePropertiesFormatted()
-  const { data: unitsData } = useUnits()
   const { data: finOverview } = useFinancialOverviewFormatted()
+  const { data: dashboardData, isPending: dashboardLoading } = useDashboardStats()
+  const { data: propertyPerformance, isPending: propertyLoading } = usePropertyPerformance()
+  const { data: uptimeData, isPending: uptimeLoading } = useSystemUptime()
 
-  const isLoading = statsLoading || propertiesLoading
+  const isLoading = statsLoading || dashboardLoading || propertyLoading || uptimeLoading
 
   // Transform real data for dashboard display (no hard-coded fallbacks)
   const portfolioStats = {
     value: dashboardStats?.totalRevenue ? formatCurrency(dashboardStats.totalRevenue) : undefined,
     growth: dashboardStats?.monthlyRevenue?.changeFormatted ?? undefined,
-    occupancy: dashboardStats?.occupancyRate != null ? `${dashboardStats.occupancyRate.toFixed(1)}%` : undefined,
-    occupancyChange: undefined as string | undefined // TODO: server to supply occupancy delta
+    occupancy: dashboardStats?.occupancyRate !== null && dashboardStats?.occupancyRate !== undefined ? `${dashboardStats.occupancyRate.toFixed(1)}%` : undefined,
+    occupancyChange: dashboardData?.units?.occupancyChange !== null && dashboardData?.units?.occupancyChange !== undefined 
+      ? `${dashboardData.units.occupancyChange > 0 ? '+' : ''}${dashboardData.units.occupancyChange.toFixed(1)}%` 
+      : undefined
   }
 
   // Top performing properties based on current units data (no mocked values)
@@ -58,9 +61,9 @@ export function EnterpriseHeroSection({ className }: EnterpriseHeroSectionProps)
 
   // Revenue trend data for mini chart sourced from financial overview RPC
   const revenueData: number[] = useMemo(() => {
-    const chart = (finOverview as any)?.chartData as Array<{ value?: number }>
+    const chart = (finOverview as FinancialOverviewResponse | undefined)?.chartData
     if (Array.isArray(chart) && chart.length > 0) {
-      return chart.map(d => Math.max(0, Math.floor((d?.value ?? 0) / 1000)))
+      return chart.map(d => Math.max(0, Math.floor((d.income ?? 0) / 1000)))
     }
     return []
   }, [finOverview])
@@ -108,7 +111,7 @@ export function EnterpriseHeroSection({ className }: EnterpriseHeroSectionProps)
               <div className="grid grid-cols-3 gap-8 mb-10">
                 <div className="text-center">
                   <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">
-                    {isLoading ? <Loader2 className="h-8 w-8 animate-spin mx-auto" /> : (propertiesData?.summary?.total != null ? propertiesData.summary.total : '—')}
+                    {isLoading ? <Loader2 className="h-8 w-8 animate-spin mx-auto" /> : (propertiesData?.summary?.total !== null && propertiesData?.summary?.total !== undefined ? propertiesData.summary.total : '—')}
                   </div>
                   <div className="text-sm text-slate-600 dark:text-slate-400">Units Managed</div>
                 </div>

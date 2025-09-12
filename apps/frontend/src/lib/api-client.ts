@@ -8,7 +8,9 @@ import type {
 	ExpenseSummaryResponse,
 	FinancialOverviewResponse,
 	LeaseStatsResponse,
-	TenantWithLeaseInfo
+	TenantWithLeaseInfo,
+	PropertyPerformance,
+	SystemUptime
 } from '@repo/shared'
 import type { DashboardStats, TenantStats } from '@repo/shared'
 
@@ -44,7 +46,13 @@ export const dashboardApi = {
 		apiClient<DashboardStats>(`${API_BASE_URL}/api/v1/dashboard/stats`),
 
 	getActivity: (): Promise<{ activities: Array<unknown> }> =>
-		apiClient(`${API_BASE_URL}/api/v1/dashboard/activity`)
+		apiClient(`${API_BASE_URL}/api/v1/dashboard/activity`),
+
+	getPropertyPerformance: (): Promise<PropertyPerformance[]> =>
+		apiClient<PropertyPerformance[]>(`${API_BASE_URL}/api/v1/dashboard/property-performance`),
+
+	getUptime: (): Promise<SystemUptime> =>
+		apiClient<SystemUptime>(`${API_BASE_URL}/api/v1/dashboard/uptime`)
 }
 
 /**
