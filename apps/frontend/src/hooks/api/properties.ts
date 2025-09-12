@@ -1,7 +1,7 @@
 'use client'
 
 import { propertiesApi } from '@/lib/api-client'
-import type { Database, PropertyPerformanceResponse } from '@repo/shared'
+import type { Database, PropertyWithUnits } from '@repo/shared'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { dashboardKeys } from './use-dashboard'
 import type { DashboardStats } from '@repo/shared'
@@ -19,9 +19,9 @@ export function useProperties(status?: PropertyStatus) {
 	})
 }
 
-// Server-calculated property performance analytics
+// Server-calculated property analytics (properties with units)
 export function usePropertyPerformance() {
-  return useQuery<PropertyPerformanceResponse>({
+  return useQuery<PropertyWithUnits[]>({
     queryKey: ['properties', 'analytics'],
     queryFn: async () => propertiesApi.getPropertiesWithAnalytics(),
     staleTime: 2 * 60 * 1000,
@@ -103,6 +103,7 @@ export function useCreateProperty() {
 					propertyType: newProperty.propertyType || 'APARTMENT',
 					description: newProperty.description || null,
 					imageUrl: newProperty.imageUrl || null,
+					status: 'ACTIVE',
 					createdAt: new Date().toISOString(),
 					updatedAt: new Date().toISOString()
 				}

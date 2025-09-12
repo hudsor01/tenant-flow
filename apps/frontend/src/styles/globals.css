@@ -3,559 +3,716 @@
 /* Research sources: Official docs + GitHub discussions + working examples */
 
 /* === CORE IMPORT === */
-@import "tailwindcss";
+@import 'tailwindcss';
+@import 'shadcn-prose';
 
 /* === PLUGIN SYSTEM (v4 Syntax) === */
-@plugin "@tailwindcss/forms";           /* Verified: package.json v0.5.10 */
-@plugin "@tailwindcss/typography";      /* Verified: package.json v0.5.16 */
-@plugin "@tailwindcss/aspect-ratio";    /* Verified: package.json v0.4.2 */
+@plugin "@tailwindcss/forms"; /* Verified: package.json v0.5.10 */
+@plugin "@tailwindcss/typography"; /* Verified: package.json v0.5.16 */
+@plugin "@tailwindcss/aspect-ratio"; /* Verified: package.json v0.4.2 */
 @plugin "@tailwindcss/container-queries"; /* Verified: package.json v0.1.1 */
 
 /* === DARK MODE VARIANT (Multiple Syntax Options Found) === */
-@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant dark (&: where(.dark, .dark *));
 
 /* === CASCADE LAYER ORDER === */
 @layer theme, base, components, utilities;
 
 /* === THEME CONFIGURATION (v4 @theme Directive) === */
 @theme {
-  /* EVIDENCE: 15+ files use bg-background, text-foreground etc. */
-  /* Research: @theme generates CSS variables automatically */
-  
-  /* Color System - Semantic naming */
-  --color-background: #ffffff;
-  --color-foreground: #0f172a;
-  --color-card: #ffffff;
-  --color-card-foreground: #0f172a;
-  --color-popover: #ffffff;
-  --color-popover-foreground: #0f172a;
-  
-  --color-primary: #1e40af;
-  --color-primary-foreground: #f8fafc;
-  --color-secondary: #f1f5f9;
-  --color-secondary-foreground: #0f172a;
-  
-  --color-muted: #f1f5f9;
-  --color-muted-foreground: #64748b;
-  --color-accent: #f1f5f9;
-  --color-accent-foreground: #0f172a;
-  
-  --color-destructive: #dc2626;
-  --color-destructive-foreground: #f8fafc;
-  
-  --color-border: #e2e8f0;
-  --color-input: #e2e8f0;
-  --color-ring: #1e40af;
-  
-  /* Spacing System */
-  --radius: 0.5rem;
-  --radius-sm: 0.25rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
+	/* EVIDENCE: 15+ files use bg-background, text-foreground etc. */
+	/* Research: @theme generates CSS variables automatically */
+
+	/* Professional Masculine Color System - Authority & Dominance */
+	--color-background: #ffffff;
+	--color-foreground: #0a0f1c;
+	--color-card: #ffffff;
+	--color-card-foreground: #0a0f1c;
+	--color-popover: #ffffff;
+	--color-popover-foreground: #0a0f1c;
+
+	/* Primary: Deep Navy - Authority & Trust */
+	--color-primary: #1a365d;
+	--color-primary-foreground: #ffffff;
+	
+	/* Secondary: Professional Steel - Sophisticated Strength */
+	--color-secondary: #f7fafc;
+	--color-secondary-foreground: #2d3748;
+
+	/* Muted: Refined Gray - Professional Depth */
+	--color-muted: #f7fafc;
+	--color-muted-foreground: #4a5568;
+	--color-accent: #edf2f7;
+	--color-accent-foreground: #2d3748;
+
+	/* Destructive: Controlled Red - Decisive Authority */
+	--color-destructive: #c53030;
+	--color-destructive-foreground: #ffffff;
+
+	/* Borders & Inputs: Clean Professional Lines */
+	--color-border: #e2e8f0;
+	--color-input: #edf2f7;
+	--color-ring: #1a365d;
+
+	/* Spacing System */
+	--radius: 0.5rem;
+	--radius-sm: 0.25rem;
+	--radius-lg: 0.75rem;
+	--radius-xl: 1rem;
 }
 
 /* === DARK MODE THEME (CSS Variables Approach) === */
 @layer theme {
-  .dark {
-    --color-background: #0f172a;
-    --color-foreground: #f8fafc;
-    --color-card: #0f172a;
-    --color-card-foreground: #f8fafc;
-    --color-popover: #0f172a;
-    --color-popover-foreground: #f8fafc;
-    
-    --color-primary: #3b82f6;
-    --color-primary-foreground: #1e293b;
-    --color-secondary: #1e293b;
-    --color-secondary-foreground: #f8fafc;
-    
-    --color-muted: #1e293b;
-    --color-muted-foreground: #94a3b8;
-    --color-accent: #1e293b;
-    --color-accent-foreground: #f8fafc;
-    
-    --color-destructive: #7f1d1d;
-    --color-destructive-foreground: #f8fafc;
-    
-    --color-border: #1e293b;
-    --color-input: #1e293b;
-    --color-ring: #60a5fa;
-  }
+	.dark {
+		/* Dark Mode: Sophisticated Authority - Command & Control */
+		--color-background: #0a0f1c;
+		--color-foreground: #f7fafc;
+		--color-card: #1a202c;
+		--color-card-foreground: #f7fafc;
+		--color-popover: #1a202c;
+		--color-popover-foreground: #f7fafc;
+
+		/* Primary: Commanding Blue - Executive Presence */
+		--color-primary: #2b6cb0;
+		--color-primary-foreground: #ffffff;
+		
+		/* Secondary: Executive Steel - Professional Power */
+		--color-secondary: #2d3748;
+		--color-secondary-foreground: #e2e8f0;
+
+		/* Muted: Strategic Gray - Thoughtful Depth */
+		--color-muted: #2d3748;
+		--color-muted-foreground: #a0aec0;
+		--color-accent: #4a5568;
+		--color-accent-foreground: #f7fafc;
+
+		/* Destructive: Decisive Red - Controlled Authority */
+		--color-destructive: #e53e3e;
+		--color-destructive-foreground: #ffffff;
+
+		/* Borders & Inputs: Strong Professional Lines */
+		--color-border: #4a5568;
+		--color-input: #2d3748;
+		--color-ring: #2b6cb0;
+
+	}
+}
+
+/* === SIGNATURE MASCULINE GRADIENTS === */
+@theme {
+  /* Authority Gradient System */
+  --gradient-authority: linear-gradient(135deg, #1a365d 0%, #2c5282 50%, #2b6cb0 100%);
+  --gradient-authority-dark: linear-gradient(135deg, #2b6cb0 0%, #1a365d 50%, #2c5282 100%);
+  
+  /* Professional Background */
+  --gradient-professional: linear-gradient(180deg, rgba(26, 54, 93, 0.04) 0%, rgba(44, 82, 130, 0.02) 100%);
+  --gradient-professional-dark: linear-gradient(180deg, rgba(43, 108, 176, 0.08) 0%, rgba(26, 54, 93, 0.04) 100%);
+  
+  /* Text Authority */
+  --gradient-text-authority: linear-gradient(135deg, #1a365d, #2c5282, #3182ce);
+  --gradient-text-authority-dark: linear-gradient(135deg, #3182ce, #2b6cb0, #1a365d);
+  
+  /* Accent Highlights */
+  --gradient-accent: linear-gradient(90deg, rgba(26, 54, 93, 0.05) 0%, rgba(44, 82, 130, 0.02) 100%);
+  --gradient-accent-dark: linear-gradient(90deg, rgba(43, 108, 176, 0.1) 0%, rgba(74, 85, 104, 0.05) 100%);
+
+  /* Card Elevation */
+  --gradient-card-authority: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(247, 250, 252, 0.9) 100%);
+  --gradient-card-authority-dark: linear-gradient(145deg, rgba(26, 32, 44, 0.95) 0%, rgba(45, 55, 72, 0.9) 100%);
+
+  /* Button Authority */
+  --gradient-btn-primary: linear-gradient(135deg, #1a365d 0%, #2c5282 100%);
+  --gradient-btn-primary-hover: linear-gradient(135deg, #2c5282 0%, #1a365d 100%);
+  --gradient-btn-primary-dark: linear-gradient(135deg, #2b6cb0 0%, #3182ce 100%);
+  --gradient-btn-primary-dark-hover: linear-gradient(135deg, #3182ce 0%, #2b6cb0 100%);
+}
+
+/* Authority Gradient Utilities - Tailwind v4 Syntax */
+@utility gradient-authority {
+  background: theme('--gradient-authority');
+}
+
+@utility gradient-authority-dark {
+  background: theme('--gradient-authority-dark');
+}
+
+@utility gradient-professional {
+  background: theme('--gradient-professional');
+}
+
+@utility gradient-professional-dark {
+  background: theme('--gradient-professional-dark');
+}
+
+@utility text-gradient-authority {
+  background: theme('--gradient-text-authority');
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 200% 200%;
+}
+
+@utility text-gradient-authority-dark {
+  background: theme('--gradient-text-authority-dark');
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@utility gradient-accent {
+  background: theme('--gradient-accent');
+}
+
+@utility gradient-accent-dark {
+  background: theme('--gradient-accent-dark');
+}
+
+@utility card-elevated-authority {
+  background: theme('--gradient-card-authority');
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(26, 54, 93, 0.1);
+  box-shadow: 
+    0 4px 6px -1px rgba(26, 54, 93, 0.1),
+    0 2px 4px -1px rgba(26, 54, 93, 0.06),
+    0 20px 25px -5px rgba(26, 54, 93, 0.04);
+}
+
+@utility card-elevated-authority-dark {
+  background: theme('--gradient-card-authority-dark');
+  border: 1px solid rgba(43, 108, 176, 0.2);
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.3),
+    0 2px 4px -1px rgba(0, 0, 0, 0.2),
+    0 20px 25px -5px rgba(0, 0, 0, 0.15);
+}
+
+@utility btn-gradient-primary {
+  background: theme('--gradient-btn-primary');
+  border: 1px solid rgba(26, 54, 93, 0.2);
+  color: white;
+  transition: all 0.2s ease;
+}
+
+@utility btn-gradient-primary:hover {
+  background: theme('--gradient-btn-primary-hover');
+  box-shadow: 0 8px 16px -4px rgba(26, 54, 93, 0.3);
+  transform: translateY(-1px);
+}
+
+@utility btn-gradient-primary-dark {
+  background: theme('--gradient-btn-primary-dark');
+  border: 1px solid rgba(43, 108, 176, 0.3);
+}
+
+@utility btn-gradient-primary-dark:hover {
+  background: theme('--gradient-btn-primary-dark-hover');
+  box-shadow: 0 8px 16px -4px rgba(43, 108, 176, 0.4);
 }
 
 /* === BASE LAYER === */
 @layer base {
-  * {
-    border-color: var(--color-border);
-  }
-  
-  body {
-    background-color: var(--color-background);
-    color: var(--color-foreground);
-    font-feature-settings: "rlig" 1, "calt" 1;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
+	* {
+		border-color: var(--color-border);
+	}
 
-  /* Enhanced typography base for @tailwindcss/typography */
-  .prose {
-    color: var(--color-foreground);
-    max-width: none;
-  }
-  
-  .prose :where(h1, h2, h3, h4, h5, h6):not(:where([class~="not-prose"] *)) {
-    color: var(--color-foreground);
-    font-weight: 600;
-    line-height: 1.25;
-    letter-spacing: -0.025em;
-  }
-  
-  .prose :where(p):not(:where([class~="not-prose"] *)) {
-    margin-top: 1.25em;
-    margin-bottom: 1.25em;
-    line-height: 1.7;
-  }
-  
-  .prose :where(a):not(:where([class~="not-prose"] *)) {
-    color: var(--color-primary);
-    text-decoration: underline;
-    text-decoration-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
-    text-underline-offset: 2px;
-    transition: text-decoration-color 0.2s ease;
-  }
-  
-  .prose :where(a):hover:not(:where([class~="not-prose"] *)) {
-    text-decoration-color: var(--color-primary);
-  }
+	body {
+		background-color: var(--color-background);
+		color: var(--color-foreground);
+		font-feature-settings:
+			'rlig' 1,
+			'calt' 1;
+		text-rendering: optimizeLegibility;
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+	}
 
-  .prose :where(blockquote):not(:where([class~="not-prose"] *)) {
-    border-left: 4px solid var(--color-primary);
-    background: color-mix(in srgb, var(--color-muted) 30%, transparent);
-    padding: 1rem 1.5rem;
-    margin: 1.5em 0;
-    font-style: italic;
-  }
+	/* Enhanced typography base for @tailwindcss/typography */
+	.prose {
+		color: var(--color-foreground);
+		max-width: none;
+	}
 
-  .prose :where(code):not(:where([class~="not-prose"] *)) {
-    background: var(--color-muted);
-    padding: 0.125rem 0.25rem;
-    border-radius: var(--radius-sm);
-    font-size: 0.875em;
-  }
+	.prose :where(h1, h2, h3, h4, h5, h6):not(:where([class~='not-prose'] *)) {
+		color: var(--color-foreground);
+		font-weight: 600;
+		line-height: 1.25;
+		letter-spacing: -0.025em;
+	}
 
-  .prose :where(pre):not(:where([class~="not-prose"] *)) {
-    background: var(--color-muted);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius);
-    padding: 1rem;
-    overflow-x: auto;
-    font-size: 0.875em;
-    line-height: 1.7;
-  }
+	.prose :where(p):not(:where([class~='not-prose'] *)) {
+		margin-top: 1.25em;
+		margin-bottom: 1.25em;
+		line-height: 1.7;
+	}
 
-  /* Form base styling enhanced by @tailwindcss/forms */
-  input[type='text'],
-  input[type='email'],
-  input[type='password'],
-  input[type='number'],
-  input[type='search'],
-  input[type='tel'],
-  input[type='url'],
-  textarea,
-  select {
-    appearance: none;
-    background-color: var(--color-background);
-    border: 1px solid var(--color-input);
-    border-radius: var(--radius);
-    padding: 0.5rem 0.75rem;
-    font-size: 0.875rem;
-    line-height: 1.25rem;
-    color: var(--color-foreground);
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
-  }
-  
-  input:focus,
-  textarea:focus,
-  select:focus {
-    outline: none;
-    border-color: var(--color-ring);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-ring) 20%, transparent);
-  }
-  
-  input::placeholder,
-  textarea::placeholder {
-    color: var(--color-muted-foreground);
-  }
+	.prose :where(a):not(:where([class~='not-prose'] *)) {
+		color: var(--color-primary);
+		text-decoration: underline;
+		text-decoration-color: color-mix(
+			in srgb,
+			var(--color-primary) 30%,
+			transparent
+		);
+		text-underline-offset: 2px;
+		transition: text-decoration-color 0.2s ease;
+	}
 
-  /* Checkbox and radio base styling */
-  input[type='checkbox'],
-  input[type='radio'] {
-    appearance: none;
-    background-color: var(--color-background);
-    border: 1px solid var(--color-input);
-    width: 1rem;
-    height: 1rem;
-    display: inline-block;
-    vertical-align: middle;
-    transition: background-color 0.15s ease, border-color 0.15s ease;
-  }
-  
-  input[type='checkbox'] {
-    border-radius: var(--radius-sm);
-  }
-  
-  input[type='radio'] {
-    border-radius: 50%;
-  }
-  
-  input[type='checkbox']:checked,
-  input[type='radio']:checked {
-    background-color: var(--color-primary);
-    border-color: var(--color-primary);
-  }
-  
-  input[type='checkbox']:checked {
-    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='m13.854 3.646-6 6a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7 8.293l5.646-5.647a.5.5 0 0 1 .708.708z'/%3e%3c/svg%3e");
-  }
-  
-  input[type='radio']:checked {
-    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e");
-  }
-  
-  /* System preference dark mode support */
-  @media (prefers-color-scheme: dark) {
-    :root {
-      color-scheme: dark;
-    }
-  }
+	.prose :where(a):hover:not(:where([class~='not-prose'] *)) {
+		text-decoration-color: var(--color-primary);
+	}
+
+	.prose :where(blockquote):not(:where([class~='not-prose'] *)) {
+		border-left: 4px solid var(--color-primary);
+		background: color-mix(in srgb, var(--color-muted) 30%, transparent);
+		padding: 1rem 1.5rem;
+		margin: 1.5em 0;
+		font-style: italic;
+	}
+
+	.prose :where(code):not(:where([class~='not-prose'] *)) {
+		background: var(--color-muted);
+		padding: 0.125rem 0.25rem;
+		border-radius: var(--radius-sm);
+		font-size: 0.875em;
+	}
+
+	.prose :where(pre):not(:where([class~='not-prose'] *)) {
+		background: var(--color-muted);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius);
+		padding: 1rem;
+		overflow-x: auto;
+		font-size: 0.875em;
+		line-height: 1.7;
+	}
+
+	/* Form base styling enhanced by @tailwindcss/forms */
+	input[type='text'],
+	input[type='email'],
+	input[type='password'],
+	input[type='number'],
+	input[type='search'],
+	input[type='tel'],
+	input[type='url'],
+	textarea,
+	select {
+		appearance: none;
+		background-color: var(--color-background);
+		border: 1px solid var(--color-input);
+		border-radius: var(--radius);
+		padding: 0.5rem 0.75rem;
+		font-size: 0.875rem;
+		line-height: 1.25rem;
+		color: var(--color-foreground);
+		transition:
+			border-color 0.15s ease,
+			box-shadow 0.15s ease;
+	}
+
+	input:focus,
+	textarea:focus,
+	select:focus {
+		outline: none;
+		border-color: var(--color-ring);
+		box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-ring) 20%, transparent);
+	}
+
+	input::placeholder,
+	textarea::placeholder {
+		color: var(--color-muted-foreground);
+	}
+
+	/* Checkbox and radio base styling */
+	input[type='checkbox'],
+	input[type='radio'] {
+		appearance: none;
+		background-color: var(--color-background);
+		border: 1px solid var(--color-input);
+		width: 1rem;
+		height: 1rem;
+		display: inline-block;
+		vertical-align: middle;
+		transition:
+			background-color 0.15s ease,
+			border-color 0.15s ease;
+	}
+
+	input[type='checkbox'] {
+		border-radius: var(--radius-sm);
+	}
+
+	input[type='radio'] {
+		border-radius: 50%;
+	}
+
+	input[type='checkbox']:checked,
+	input[type='radio']:checked {
+		background-color: var(--color-primary);
+		border-color: var(--color-primary);
+	}
+
+	input[type='checkbox']:checked {
+		background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='m13.854 3.646-6 6a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7 8.293l5.646-5.647a.5.5 0 0 1 .708.708z'/%3e%3c/svg%3e");
+	}
+
+	input[type='radio']:checked {
+		background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e");
+	}
+
+	/* System preference dark mode support */
+	@media (prefers-color-scheme: dark) {
+		:root {
+			color-scheme: dark;
+		}
+	}
 }
 
 /* === COMPONENT LAYER (Only Evidence-Based) === */
 @layer components {
-  
-  /* EVIDENCE: /stripe/pricing/page.tsx:10 */
-  .surface-glow {
-    position: relative;
-    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.1);
-  }
-  
-  /* EVIDENCE: stripe-pricing-section.tsx:350,364 */
-  .button-primary {
-    background-color: var(--color-primary);
-    color: var(--color-primary-foreground);
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--radius-lg);
-    font-weight: 500;
-    transition: background-color 0.2s;
-  }
-  
-  .button-primary:hover {
-    background-color: color-mix(in srgb, var(--color-primary) 90%, black);
-  }
-  
-  .button-secondary {
-    background-color: var(--color-secondary);
-    color: var(--color-secondary-foreground);
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--radius-lg);
-    transition: background-color 0.2s;
-  }
-  
-  .button-secondary:hover {
-    background-color: color-mix(in srgb, var(--color-secondary) 80%, black);
-  }
-  
-  .button-lg {
-    padding: 1rem 2rem;
-    font-size: 1.125rem;
-  }
-  
-  /* EVIDENCE: stripe-pricing-section.tsx badge usage */
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.25rem 0.75rem;
-    border-radius: 9999px;
-    font-size: 0.875rem;
-    font-weight: 500;
-  }
-  
-  .badge-success {
-    background-color: #dcfce7;
-    color: #15803d;
-  }
-  
-  .badge-info {
-    background-color: #dbeafe;
-    color: #1d4ed8;
-  }
-  
-  /* EVIDENCE: auth pages register/page.tsx:64,93 */
-  .card-elevated-gradient {
-    background: linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(248,250,252,0.9) 100%);
-    border: 1px solid rgba(226,232,240,0.5);
-  }
-  
-  .dark .card-elevated-gradient {
-    background: linear-gradient(145deg, rgba(30,41,59,0.9) 0%, rgba(15,23,42,0.9) 100%);
-    border: 1px solid rgba(71,85,105,0.3);
-  }
+	/* EVIDENCE: /stripe/pricing/page.tsx:10 */
+	.surface-glow {
+		position: relative;
+		background: linear-gradient(
+			135deg,
+			rgba(255, 255, 255, 0.1) 0%,
+			rgba(255, 255, 255, 0.05) 100%
+		);
+		backdrop-filter: blur(10px);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+	}
 
-  /* EVIDENCE: style-guide/page.tsx, saas-pricing-section.tsx */
-  .card-glass {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(16px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-lg);
-  }
-  
-  .dark .card-glass {
-    background: rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-  }
+	/* EVIDENCE: stripe-pricing-section.tsx:350,364 */
+	.button-primary {
+		background-color: var(--color-primary);
+		color: var(--color-primary-foreground);
+		padding: 0.75rem 1.5rem;
+		border-radius: var(--radius-lg);
+		font-weight: 500;
+		transition: background-color 0.2s;
+	}
 
-  /* EVIDENCE: stripe-pricing-section.tsx:405 */
-  .button-ghost {
-    background-color: transparent;
-    color: var(--color-foreground);
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--color-border);
-    transition: all 0.2s;
-  }
-  
-  .button-ghost:hover {
-    background-color: var(--color-accent);
-    color: var(--color-accent-foreground);
-  }
+	.button-primary:hover {
+		background-color: color-mix(in srgb, var(--color-primary) 90%, black);
+	}
 
-  /* EVIDENCE: Multiple gradient text usage across components */
-  .text-gradient-primary {
-    background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 70%, #60a5fa));
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-  }
+	.button-secondary {
+		background-color: var(--color-secondary);
+		color: var(--color-secondary-foreground);
+		padding: 0.75rem 1.5rem;
+		border-radius: var(--radius-lg);
+		transition: background-color 0.2s;
+	}
 
-  .text-gradient-dominance {
-    background: linear-gradient(135deg, #1e40af, #3b82f6, #60a5fa);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-  }
+	.button-secondary:hover {
+		background-color: color-mix(in srgb, var(--color-secondary) 80%, black);
+	}
 
-  .text-gradient-premium {
-    background: linear-gradient(135deg, #7c3aed, #a855f7, #c084fc);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-  }
+	.button-lg {
+		padding: 1rem 2rem;
+		font-size: 1.125rem;
+	}
 
-  .text-gradient-energy {
-    background: linear-gradient(135deg, #059669, #10b981, #34d399);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-  }
+	/* EVIDENCE: stripe-pricing-section.tsx badge usage */
+	.badge {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.25rem 0.75rem;
+		border-radius: 9999px;
+		font-size: 0.875rem;
+		font-weight: 500;
+	}
 
-  .text-gradient-growth {
-    background: linear-gradient(135deg, #dc2626, #ef4444, #f87171);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-  }
+	.badge-success {
+		background-color: #dcfce7;
+		color: #15803d;
+	}
 
-  .text-gradient-innovation {
-    background: linear-gradient(135deg, #0891b2, #06b6d4, #67e8f9);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-  }
+	.badge-info {
+		background-color: #dbeafe;
+		color: #1d4ed8;
+	}
 
-  .text-gradient-steel {
-    background: linear-gradient(135deg, #475569, #64748b, #94a3b8);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-  }
+	/* EVIDENCE: auth pages register/page.tsx:64,93 */
+	.card-elevated-gradient {
+		background: linear-gradient(
+			145deg,
+			rgba(255, 255, 255, 0.9) 0%,
+			rgba(248, 250, 252, 0.9) 100%
+		);
+		border: 1px solid rgba(226, 232, 240, 0.5);
+	}
 
-  /* EVIDENCE: Multiple marketing pages and components */
-  .marketing-hero {
-    position: relative;
-    padding: 6rem 0 4rem;
-    overflow: hidden;
-  }
+	.dark .card-elevated-gradient {
+		background: linear-gradient(
+			145deg,
+			rgba(30, 41, 59, 0.9) 0%,
+			rgba(15, 23, 42, 0.9) 100%
+		);
+		border: 1px solid rgba(71, 85, 105, 0.3);
+	}
 
-  /* EVIDENCE: Multiple components use surface-pattern */
-  .surface-pattern {
-    position: relative;
-    background-image: 
-      radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0);
-    background-size: 20px 20px;
-  }
+	/* EVIDENCE: style-guide/page.tsx, saas-pricing-section.tsx */
+	.card-glass {
+		background: rgba(255, 255, 255, 0.05);
+		backdrop-filter: blur(16px) saturate(180%);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: var(--radius-lg);
+	}
 
-  /* EVIDENCE: app-sidebar, hero-section, pricing components */
-  .text-display {
-    font-size: clamp(2rem, 5vw, 4rem);
-    font-weight: 700;
-    line-height: 1.1;
-    letter-spacing: -0.025em;
-  }
+	.dark .card-glass {
+		background: rgba(0, 0, 0, 0.1);
+		border: 1px solid rgba(255, 255, 255, 0.05);
+	}
 
-  /* EVIDENCE: Multiple components with custom animations */
-  .animate-fade-in-up {
-    animation: fade-in-up 0.6s ease-out;
-  }
+	/* EVIDENCE: stripe-pricing-section.tsx:405 */
+	.button-ghost {
+		background-color: transparent;
+		color: var(--color-foreground);
+		padding: 0.75rem 1.5rem;
+		border-radius: var(--radius-lg);
+		border: 1px solid var(--color-border);
+		transition: all 0.2s;
+	}
 
-  .animate-zoom-in {
-    animation: zoom-in 0.5s ease-out;
-  }
+	.button-ghost:hover {
+		background-color: var(--color-accent);
+		color: var(--color-accent-foreground);
+	}
 
-  .animate-bounce-in {
-    animation: bounce-in 0.8s ease-out;
-  }
+	/* EVIDENCE: Multiple gradient text usage across components */
+	.text-gradient-primary {
+		background: linear-gradient(
+			135deg,
+			var(--color-primary),
+			color-mix(in srgb, var(--color-primary) 70%, #60a5fa)
+		);
+		background-clip: text;
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		color: transparent;
+	}
 
-  .animate-pulse-glow {
-    animation: pulse-glow 2s ease-in-out infinite;
-  }
+	.text-gradient-dominance {
+		background: linear-gradient(135deg, #1e40af, #3b82f6, #60a5fa);
+		background-clip: text;
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		color: transparent;
+	}
 
-  /* Animation keyframes */
-  @keyframes fade-in-up {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
+	.text-gradient-premium {
+		background: linear-gradient(135deg, #7c3aed, #a855f7, #c084fc);
+		background-clip: text;
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		color: transparent;
+	}
 
-  @keyframes zoom-in {
-    from {
-      opacity: 0;
-      transform: scale(0.9);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
+	.text-gradient-energy {
+		background: linear-gradient(135deg, #059669, #10b981, #34d399);
+		background-clip: text;
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		color: transparent;
+	}
 
-  @keyframes bounce-in {
-    0% {
-      opacity: 0;
-      transform: scale(0.3) translateY(-100px);
-    }
-    50% {
-      opacity: 1;
-      transform: scale(1.05);
-    }
-    70% {
-      transform: scale(0.95);
-    }
-    100% {
-      opacity: 1;
-      transform: scale(1) translateY(0);
-    }
-  }
+	.text-gradient-growth {
+		background: linear-gradient(135deg, #dc2626, #ef4444, #f87171);
+		background-clip: text;
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		color: transparent;
+	}
 
-  @keyframes pulse-glow {
-    0%, 100% {
-      opacity: 1;
-      box-shadow: 0 0 5px currentColor;
-    }
-    50% {
-      opacity: 0.8;
-      box-shadow: 0 0 20px currentColor, 0 0 30px currentColor;
-    }
-  }
+	.text-gradient-innovation {
+		background: linear-gradient(135deg, #0891b2, #06b6d4, #67e8f9);
+		background-clip: text;
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		color: transparent;
+	}
 
-  /* Auth form animations */
-  @keyframes fadeIn {
-    0% {
-      opacity: 0;
-    }
-    100% {
-      opacity: 1;
-    }
-  }
+	.text-gradient-steel {
+		background: linear-gradient(135deg, #475569, #64748b, #94a3b8);
+		background-clip: text;
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		color: transparent;
+	}
 
-  @keyframes slideInFromLeft {
-    0% {
-      opacity: 0;
-      transform: translateX(-20px);
-    }
-    100% {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
+	/* EVIDENCE: Multiple marketing pages and components */
+	.marketing-hero {
+		position: relative;
+		padding: 6rem 0 4rem;
+		overflow: hidden;
+	}
 
-  @keyframes slideInFromRight {
-    0% {
-      opacity: 0;
-      transform: translateX(20px);
-    }
-    100% {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
+	/* EVIDENCE: Multiple components use surface-pattern */
+	.surface-pattern {
+		position: relative;
+		background-image: radial-gradient(
+			circle at 1px 1px,
+			rgba(255, 255, 255, 0.15) 1px,
+			transparent 0
+		);
+		background-size: 20px 20px;
+	}
 
-  @keyframes slideInFromTop {
-    0% {
-      opacity: 0;
-      transform: translateY(-20px);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
+	/* EVIDENCE: app-sidebar, hero-section, pricing components */
+	.text-display {
+		font-size: clamp(2rem, 5vw, 4rem);
+		font-weight: 700;
+		line-height: 1.1;
+		letter-spacing: -0.025em;
+	}
 
-  @keyframes slideInFromBottom {
-    0% {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
+	/* EVIDENCE: Multiple components with custom animations */
+	.animate-fade-in-up {
+		animation: fade-in-up 0.6s ease-out;
+	}
 
-  /* EVIDENCE: app-sidebar scroll snap utilities */
-  .scroll-snap-start {
-    scroll-snap-align: start;
-  }
+	.animate-zoom-in {
+		animation: zoom-in 0.5s ease-out;
+	}
 
-  .scroll-snap-end {
-    scroll-snap-align: end;
-  }
+	.animate-bounce-in {
+		animation: bounce-in 0.8s ease-out;
+	}
+
+	.animate-pulse-glow {
+		animation: pulse-glow 2s ease-in-out infinite;
+	}
+
+	/* Animation keyframes */
+	@keyframes fade-in-up {
+		from {
+			opacity: 0;
+			transform: translateY(20px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	@keyframes zoom-in {
+		from {
+			opacity: 0;
+			transform: scale(0.9);
+		}
+		to {
+			opacity: 1;
+			transform: scale(1);
+		}
+	}
+
+	@keyframes bounce-in {
+		0% {
+			opacity: 0;
+			transform: scale(0.3) translateY(-100px);
+		}
+		50% {
+			opacity: 1;
+			transform: scale(1.05);
+		}
+		70% {
+			transform: scale(0.95);
+		}
+		100% {
+			opacity: 1;
+			transform: scale(1) translateY(0);
+		}
+	}
+
+	@keyframes pulse-glow {
+		0%,
+		100% {
+			opacity: 1;
+			box-shadow: 0 0 5px currentColor;
+		}
+		50% {
+			opacity: 0.8;
+			box-shadow:
+				0 0 20px currentColor,
+				0 0 30px currentColor;
+		}
+	}
+
+	/* Auth form animations */
+	@keyframes fadeIn {
+		0% {
+			opacity: 0;
+		}
+		100% {
+			opacity: 1;
+		}
+	}
+
+	@keyframes slideInFromLeft {
+		0% {
+			opacity: 0;
+			transform: translateX(-20px);
+		}
+		100% {
+			opacity: 1;
+			transform: translateX(0);
+		}
+	}
+
+	@keyframes slideInFromRight {
+		0% {
+			opacity: 0;
+			transform: translateX(20px);
+		}
+		100% {
+			opacity: 1;
+			transform: translateX(0);
+		}
+	}
+
+	@keyframes slideInFromTop {
+		0% {
+			opacity: 0;
+			transform: translateY(-20px);
+		}
+		100% {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	@keyframes slideInFromBottom {
+		0% {
+			opacity: 0;
+			transform: translateY(20px);
+		}
+		100% {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	/* EVIDENCE: app-sidebar scroll snap utilities */
+	.scroll-snap-start {
+		scroll-snap-align: start;
+	}
+
+	.scroll-snap-end {
+		scroll-snap-align: end;
+	}
 }
 
 /* === UTILITY LAYER (v4 @utility Directive) === */
 @utility text-balance {
-  text-wrap: balance;
+	text-wrap: balance;
 }
 
 @utility scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+	-ms-overflow-style: none;
+	scrollbar-width: none;
 }
 
 /* Webkit scrollbar hiding handled via CSS selector */
 .scrollbar-hide::-webkit-scrollbar {
-  display: none;
+	display: none;
 }

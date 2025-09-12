@@ -4,7 +4,6 @@ import * as React from 'react'
 import Image from "next/image"
 import { Lock, Zap, Smartphone } from 'lucide-react'
 import { LoginForm } from "./login-form"
-import { SignUpForm } from "./sign-up-form"
 import { 
   cn, 
   cardClasses,
@@ -192,13 +191,9 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
               `transition-all duration-[${ANIMATION_DURATIONS.medium}]`
             )}>
               {mode === 'login' ? (
-                <LoginForm
-                  className="space-y-6"
-                />
+                <LoginForm className="space-y-6" />
               ) : (
-                <SignUpForm
-                  className="space-y-6"
-                />
+                <LoginForm className="space-y-6" mode="signup" />
               )}
             </div>
           </div>

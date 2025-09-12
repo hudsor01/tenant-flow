@@ -27,6 +27,7 @@
     "dev": "doppler run -- turbo run dev",
     "dev:clean": "doppler run -- turbo run dev:clean",
     "build": "doppler run -- turbo run build",
+    "build:ci": "turbo run build",
     "build:frontend": "doppler run -- turbo run build --filter=@repo/shared && turbo run build --filter=@repo/frontend",
     "build:backend": "doppler run -- turbo run build --filter=@repo/backend",
     "build:shared": "turbo run build --filter=@repo/shared",

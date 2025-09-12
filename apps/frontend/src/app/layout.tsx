@@ -10,6 +10,7 @@ import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 
 export const metadata: Metadata = {
+	metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://tenantflow.app'),
 	title: 'TenantFlow - Simplify Property Management | Professional Property Management Software',
 	description: 'Professional property management software trusted by thousands. Streamline operations, automate workflows, and scale your business with TenantFlow\'s enterprise platform.',
 	keywords: 'property management software, rental property management, property manager tools, real estate management platform, tenant management system, landlord software, property portfolio management',

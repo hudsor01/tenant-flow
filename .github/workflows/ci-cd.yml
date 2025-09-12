@@ -83,7 +83,7 @@ jobs:
             export NEXT_PUBLIC_SUPABASE_URL=https://placeholder.supabase.co
             export NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder
             export BACKEND_SCHEMAS_DIR=./supabase/schema-exports
-            npm run build
+            npm run build:ci
           fi
 
       - name: Verify build outputs exist
