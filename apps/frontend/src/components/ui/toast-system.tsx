@@ -104,6 +104,11 @@ function ToastItem({
   const Icon = toastIcons[toast.type]
   const styles = toastVariants[toast.type]
 
+  const handleRemove = useCallback(() => {
+    setIsExiting(true)
+    setTimeout(() => onRemove(toast.id), 300)
+  }, [toast.id, onRemove])
+
   // Show animation
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 10)
@@ -119,12 +124,9 @@ function ToastItem({
       
       return () => clearTimeout(timer)
     }
-  }, [toast.duration, toast.id])
-
-  const handleRemove = useCallback(() => {
-    setIsExiting(true)
-    setTimeout(() => onRemove(toast.id), 300)
-  }, [toast.id, onRemove])
+    
+    return undefined
+  }, [toast.duration, toast.id, handleRemove])
 
   return (
     <div
