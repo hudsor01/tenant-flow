@@ -330,7 +330,7 @@ export function CheckoutForm({
 			<MagicCard 
 				className={cn(
 					cardClasses('elevated'),
-					"w-full max-w-lg mx-auto p-8 shadow-2xl border-2",
+					"w-full max-w-lg mx-auto card-padding shadow-2xl border-2",
 					animationClasses('fade-in')
 				)}
 			>

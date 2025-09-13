@@ -8,6 +8,7 @@ import { WebVitals } from '@/components/web-vitals'
 import PostHogPageView from '@/components/posthog-pageview'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
+import SiteNavRoot from '@/components/site-nav-root'
 
 export const metadata: Metadata = {
 	metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://tenantflow.app'),
@@ -154,7 +155,9 @@ export default function RootLayout({
 				<QueryProvider>
 					<PostHogClientProvider>
 						<AuthStoreProvider>
-							{children}
+            			{/* Global marketing Navbar (hidden on protected routes) */}
+            			<SiteNavRoot />
+            			{children}
 							<GlobalLoadingIndicator variant="bar" position="top" />
 						</AuthStoreProvider>
 						<PostHogPageView />
