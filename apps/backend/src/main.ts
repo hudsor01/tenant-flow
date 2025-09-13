@@ -170,6 +170,23 @@ async function bootstrap() {
         })
       }
     })
+
+    // Railway compatibility endpoint - simple ping that Railway expects
+    fastify.get('/health/ping', async (_req: FastifyRequest, reply: FastifyReply) => {
+      if (shuttingDown) {
+        return reply.header('Cache-Control', 'no-store').code(503).type('application/json; charset=utf-8').send({
+          status: 'unhealthy',
+          reason: 'shutting_down'
+        })
+      }
+      
+      return reply.header('Cache-Control', 'no-store').code(200).type('application/json; charset=utf-8').send({
+        status: 'ok',
+        uptime: Math.round(process.uptime()),
+        timestamp: new Date().toISOString()
+      })
+    })
+
     // fastify.head('/health', async (_req: FastifyRequest, reply: FastifyReply) => {
     //   if (shuttingDown) return reply.header('Cache-Control', 'no-store').code(503).send()
     //   const db = await dbHealthy()
