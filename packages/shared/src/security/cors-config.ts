@@ -2,6 +2,7 @@
  * Unified CORS Configuration for TenantFlow
  * Ensures alignment between backend CORS and frontend CSP policies
  * Follows DRY/KISS/Native principles
+ * Note: ENABLE_MOCK_AUTH disabled in production for real auth providers
  */
 
 // Application domains configuration
