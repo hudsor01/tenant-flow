@@ -29,6 +29,16 @@ export const APP_DOMAINS = {
 			'http://localhost:4600',
 			'http://127.0.0.1:4600'
 		]
+	},
+	
+	// Railway infrastructure
+	RAILWAY: {
+		PRODUCTION: [
+			'https://healthcheck.railway.app'
+		],
+		DEVELOPMENT: [
+			'https://healthcheck.railway.app'
+		]
 	}
 } as const
 
@@ -40,14 +50,17 @@ export function getCORSOrigins(environment: 'development' | 'production' = 'prod
 		// SECURITY FIX: Use specific origins even in development
 		return [
 			...APP_DOMAINS.FRONTEND.DEVELOPMENT,
-			...APP_DOMAINS.BACKEND.DEVELOPMENT
+			...APP_DOMAINS.BACKEND.DEVELOPMENT,
+			...APP_DOMAINS.RAILWAY.DEVELOPMENT
 		]
 	}
 	
 	return [
 		...APP_DOMAINS.FRONTEND.PRODUCTION,
 		// Allow API calls from the same domain (for server-side operations)
-		...APP_DOMAINS.BACKEND.PRODUCTION
+		...APP_DOMAINS.BACKEND.PRODUCTION,
+		// Allow Railway healthcheck requests
+		...APP_DOMAINS.RAILWAY.PRODUCTION
 	]
 }
 
