@@ -26,7 +26,8 @@ async function runHealthCheck() {
 
 	const baseUrl =
 		process.env.NEXT_PUBLIC_SITE_URL || 'http://api.tenantflow.app'
-	const healthUrl = `${baseUrl}/api/auth/health`
+	// Backend exposes auth health at /api/v1/auth/health
+	const healthUrl = `${baseUrl}/api/v1/auth/health`
 
 	try {
 		const response = await fetch(healthUrl, {

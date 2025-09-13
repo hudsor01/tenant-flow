@@ -10,7 +10,7 @@ function CancelContent() {
 			className="bg-gradient-to-br from-red-50 to-orange-100" 
 			containerClass="flex items-center justify-center min-h-screen max-w-md"
 		>
-			<div className="w-full bg-white rounded-2xl shadow-xl p-8 text-center">
+			<div className="w-full bg-white rounded-2xl shadow-xl card-padding text-center">
 				<div className="mb-6">
 					<XCircle className="mx-auto h-16 w-16 text-red-500" />
 				</div>

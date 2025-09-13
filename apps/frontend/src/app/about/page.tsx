@@ -49,7 +49,7 @@ export default function AboutPage() {
 			</section>
 
 			{/* Mission Section */}
-			<section className="py-24">
+    <section className="section-hero">
 				<div className={containerClasses('xl')}>
 					<BlurFade delay={0.2} inView>
 						<div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -77,7 +77,7 @@ export default function AboutPage() {
 									</p>
 								</div>
 							</div>
-							<div className="bg-gradient-to-br from-primary/10 via-accent/5 to-primary/10 rounded-2xl p-12 text-center border border-primary/10">
+            <div className="bg-gradient-to-br from-primary/10 via-accent/5 to-primary/10 rounded-2xl card-padding text-center border border-primary/10">
 								<Target className="w-20 h-20 mx-auto mb-6 text-primary" />
 								<h3 
 									className="font-semibold text-foreground"
@@ -95,7 +95,7 @@ export default function AboutPage() {
 			</section>
 
 			{/* Values Section */}
-			<section className="py-24 bg-muted/20">
+    <section className="section-hero bg-muted/20">
 				<div className={containerClasses('xl')}>
 					<BlurFade delay={0.3} inView>
 						<div className="text-center mb-16 space-y-4">
@@ -153,7 +153,7 @@ export default function AboutPage() {
 								}
 							].map((value, index) => (
 								<BlurFade key={index} delay={0.4 + (index * 0.1)} inView>
-									<div className="bg-card rounded-2xl p-8 text-center border border-border/50 hover:border-primary/20 transition-all duration-300 hover:shadow-lg group">
+                <div className="bg-card rounded-2xl card-padding text-center border border-border/50 hover:border-primary/20 transition-all duration-300 hover:shadow-lg group">
 										<div className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${value.color} mx-auto mb-6 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
 											<value.icon className="w-8 h-8 text-white" />
 										</div>
@@ -178,7 +178,7 @@ export default function AboutPage() {
 			</section>
 
 			{/* Stats Section */}
-			<section className="py-24">
+    <section className="section-hero">
 				<div className={containerClasses('lg')}>
 					<BlurFade delay={0.5} inView>
 						<div className="text-center mb-16 space-y-4">
@@ -204,7 +204,7 @@ export default function AboutPage() {
 								{ number: '24/7', label: 'Customer Support', icon: '🛟' }
 							].map((stat, index) => (
 								<BlurFade key={index} delay={0.6 + (index * 0.1)} inView>
-									<div className="text-center bg-card rounded-2xl p-8 border border-border/50 hover:border-primary/20 transition-all duration-300 hover:shadow-lg">
+            <div className="text-center bg-card rounded-2xl card-padding border border-border/50 hover:border-primary/20 transition-all duration-300 hover:shadow-lg">
 										<div className="text-3xl mb-4">{stat.icon}</div>
 										<div 
 											className="font-bold text-primary mb-2"
@@ -227,7 +227,7 @@ export default function AboutPage() {
 			</section>
 
 			{/* Team Section */}
-			<section className="py-24 bg-muted/20">
+    <section className="section-hero bg-muted/20">
 				<div className={containerClasses('xl')}>
 					<BlurFade delay={0.7} inView>
 						<div className="text-center mb-16 space-y-4">
@@ -265,7 +265,7 @@ export default function AboutPage() {
 								}
 							].map((member, index) => (
 								<BlurFade key={index} delay={0.8 + (index * 0.1)} inView>
-									<div className="text-center bg-card rounded-2xl p-8 border border-border/50 hover:border-primary/20 transition-all duration-300 hover:shadow-lg">
+            <div className="text-center bg-card rounded-2xl card-padding border border-border/50 hover:border-primary/20 transition-all duration-300 hover:shadow-lg">
 										<div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-primary/20 to-accent/20 rounded-full flex items-center justify-center">
 											<User className="w-12 h-12 text-primary" />
 										</div>
@@ -289,7 +289,7 @@ export default function AboutPage() {
 
 						<div className="text-center">
 							<BlurFade delay={1.1} inView>
-								<div className="bg-card rounded-2xl p-8 border border-border/50 max-w-md mx-auto">
+            <div className="bg-card rounded-2xl card-padding border border-border/50 max-w-md mx-auto">
 									<p 
 										className="text-muted-foreground mb-6"
 										style={TYPOGRAPHY_SCALE['body-md']}
@@ -314,7 +314,7 @@ export default function AboutPage() {
 			</section>
 
 			{/* CTA Section */}
-			<section className="py-24 bg-gradient-to-br from-primary/5 via-background to-accent/5">
+    <section className="section-hero bg-gradient-to-br from-primary/5 via-background to-accent/5">
 				<div className={containerClasses('lg')}>
 					<BlurFade delay={1.2} inView>
 						<div className="text-center space-y-8">

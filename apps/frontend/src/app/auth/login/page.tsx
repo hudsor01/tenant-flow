@@ -2,6 +2,7 @@
 
 import { LoginLayout } from '@/components/auth/login-layout'
 import { supabaseClient } from '@repo/shared/lib/supabase-client'
+import { authApi } from '@/lib/api-client'
 import { useMutation } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -11,47 +12,21 @@ export default function LoginPage() {
 
 	// TanStack Query mutations replacing manual loading states
 	const loginMutation = useMutation({
-		mutationFn: async (data: { email: string; password: string }) => {
-			// Check if we're using placeholder/development credentials
-			const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-			const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-			if (
-				!supabaseUrl ||
-				!supabaseKey ||
-				supabaseUrl.includes('placeholder') ||
-				supabaseKey.includes('placeholder')
-			) {
-				throw new Error(
-					'Development Environment: Authentication is not configured for local development. Please use production credentials or contact your administrator.'
-				)
-			}
-
-			const { data: authData, error } =
-				await supabaseClient.auth.signInWithPassword({
-					email: data.email,
-					password: data.password
-				})
-
-			if (error) {
-				// Provide more specific error messages
-				let errorMessage = error.message
-				if (error.message.includes('Failed to fetch')) {
-					errorMessage =
-						'Unable to connect to authentication service. Please check your network connection.'
-				} else if (error.message.includes('Invalid login credentials')) {
-					errorMessage = 'Invalid email or password. Please try again.'
-				}
-				throw new Error(errorMessage)
-			}
-
-			return authData.user
-		},
-		onSuccess: user => {
-			if (user) {
-				toast.success('Welcome back!', {
-					description: 'You have been successfully logged in.'
-				})
+    mutationFn: async (data: { email: string; password: string }) => {
+        // Centralized backend login for consistency and DB sync
+        const result = await authApi.login({ email: data.email, password: data.password })
+        // Mirror session in Supabase client for frontend state
+        await supabaseClient.auth.setSession({
+            access_token: result.access_token,
+            refresh_token: result.refresh_token
+        })
+        return result.user
+    },
+    onSuccess: user => {
+        if (user) {
+            toast.success('Welcome back!', {
+                description: 'You have been successfully logged in.'
+            })
 
 				// Check if there's a redirect URL
 				const searchParams = new URLSearchParams(window.location.search)
@@ -60,27 +35,27 @@ export default function LoginPage() {
 				router.push(redirectTo)
 			}
 		},
-		onError: error => {
-			console.error('Login error:', error)
+    onError: error => {
+        console.error('Login error:', error)
 
-			// Provide better error messages for different error types
-			let errorMessage =
-				error instanceof Error ? error.message : 'Please try again later.'
-			if (error instanceof TypeError && error.message.includes('fetch')) {
-				errorMessage =
-					'Network connection failed. Please check your internet connection and try again.'
-			}
+        // Provide better error messages for different error types
+        let errorMessage =
+            error instanceof Error ? error.message : 'Please try again later.'
+        if (error instanceof TypeError && error.message.includes('fetch')) {
+            errorMessage =
+                'Network connection failed. Please check your internet connection and try again.'
+        }
 
-			toast.error(
-				error.message.includes('Development Environment')
-					? 'Development Environment'
-					: 'Login failed',
-				{
-					description: errorMessage
-				}
-			)
-		}
-	})
+        toast.error(
+            error instanceof Error && error.message.includes('Development Environment')
+                ? 'Development Environment'
+                : 'Login failed',
+            {
+                description: errorMessage
+            }
+        )
+    }
+})
 
 	const googleLoginMutation = useMutation({
 		mutationFn: async () => {
