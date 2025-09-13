@@ -76,14 +76,14 @@ jobs:
         run: |
           if [ -n "${DOPPLER_TOKEN}" ] || [ -n "${DOPPLER_PERSONAL_TOKEN}" ]; then
             echo "Building with Doppler secrets..."
-            npm run build
+            npm run build:ci
           else
             echo "Building with environment defaults (no Doppler secrets)..."
             # Set minimal required environment variables for CI build
             export NEXT_PUBLIC_SUPABASE_URL=https://placeholder.supabase.co
             export NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder
             export BACKEND_SCHEMAS_DIR=./supabase/schema-exports
-            npm run build
+            npm run build:ci
           fi
 
       - name: Verify build outputs exist
