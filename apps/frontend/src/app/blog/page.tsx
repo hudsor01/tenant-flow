@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { ShimmerButton } from '@/components/magicui/shimmer-button'
 import { Navbar } from '@/components/navbar'
 import { FooterMinimal } from '@/components/sections/footer-minimal'
 import {
@@ -20,18 +21,15 @@ export default function BlogPage() {
 			<Navbar />
 			
 			{/* Hero Section */}
-			<section className="pt-24 pb-16 bg-gradient-to-br from-slate-50 to-blue-50">
+			<section className="pt-24 pb-16 gradient-authority">
 				<div className="container mx-auto px-6 max-w-4xl text-center">
 					<Badge variant="outline" className="mb-6">
 						<CheckCircle className="w-4 h-4 mr-2 text-green-600" />
 						Trusted by 10,000+ property managers
 					</Badge>
 					
-					<h1 className="text-5xl md:text-6xl font-bold mb-6">
-						Master property management
-						<span className="block bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
-							with expert insights
-						</span>
+					<h1 className="text-5xl md:text-6xl font-bold mb-6 text-gradient-authority">
+						Master property management with expert insights
 					</h1>
 					
 					<p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
@@ -40,11 +38,13 @@ export default function BlogPage() {
 					</p>
 					
 					<div className="flex flex-col sm:flex-row gap-4 justify-center">
-						<Button size="lg" className="px-8">
-							Start 14-day transformation
-							<ArrowRight className="w-5 h-5 ml-2" />
-						</Button>
-						<Button size="lg" variant="outline" className="px-8">
+						<ShimmerButton className="px-8 py-3 text-base font-semibold">
+							<span className="inline-flex items-center">
+								Start 14-day transformation
+								<ArrowRight className="w-5 h-5 ml-2" />
+							</span>
+						</ShimmerButton>
+						<Button size="lg" variant="outline" className="px-8 btn-gradient-primary">
 							Get ROI calculator
 						</Button>
 					</div>
@@ -54,7 +54,7 @@ export default function BlogPage() {
       {/* Featured Article - High-Converting Content */}
       <section className="section-hero">
 				<div className="container mx-auto px-6 max-w-6xl">
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl card-padding md:p-12 border border-blue-100">
+        <div className="card-elevated-authority rounded-2xl card-padding md:p-12">
 						<div className="grid md:grid-cols-2 gap-8 items-center">
 							<div>
 								<Badge className="mb-4 bg-green-100 text-green-800">
@@ -78,12 +78,12 @@ export default function BlogPage() {
 										<span className="text-sm text-muted-foreground">50K+ readers</span>
 									</div>
 								</div>
-								<Button size="lg" className="px-8">
+								<Button size="lg" className="px-8 btn-gradient-primary">
 									Read Complete Guide
 									<ArrowRight className="w-5 h-5 ml-2" />
 								</Button>
 							</div>
-                <div className="bg-white rounded-xl card-padding shadow-lg">
+                <div className="card-elevated-authority rounded-xl card-padding">
 								<div className="text-center">
 									<div className="text-4xl font-bold text-green-600 mb-2">40%</div>
 									<p className="text-sm text-muted-foreground mb-4">Average NOI Increase</p>
@@ -149,7 +149,7 @@ export default function BlogPage() {
 							<Link
 								key={index}
 								href={`/blog/category/${category.name.toLowerCase().replace(' ', '-')}`}
-                className="bg-white card-padding border rounded-lg hover:shadow-lg transition-all duration-300 text-center group hover:-translate-y-1"
+                className="card-elevated-authority card-padding rounded-lg transition-all duration-300 text-center group hover:-translate-y-1"
 							>
 								<div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 ${category.color.replace('text-', 'bg-').replace('-800', '-100')}`}>
 									<category.icon className={`w-8 h-8 ${category.color.replace('bg-', 'text-').replace('-100', '-600')}`} />
@@ -218,7 +218,7 @@ export default function BlogPage() {
 							<Link
 								key={index}
 								href={`/blog/${article.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
-                className="bg-white border rounded-xl card-padding hover:shadow-xl transition-all duration-300 group hover:-translate-y-1"
+                className="card-elevated-authority rounded-xl card-padding transition-all duration-300 group hover:-translate-y-1"
 							>
 								<div className="flex items-center justify-between mb-4">
 									<Badge className={article.badge}>
@@ -250,16 +250,16 @@ export default function BlogPage() {
 					</div>
 
 					<div className="text-center mt-16">
-						<Button size="lg" variant="outline" className="px-8">
-							View All Success Strategies
-							<ArrowRight className="w-5 h-5 ml-2" />
-						</Button>
+							<Button size="lg" variant="outline" className="px-8 btn-gradient-primary">
+								View All Success Strategies
+								<ArrowRight className="w-5 h-5 ml-2" />
+							</Button>
 					</div>
 				</div>
 			</section>
 
 			{/* Newsletter with Strong Value Prop */}
-      <section className="section-content bg-gradient-to-r from-blue-600 to-purple-600">
+      <section className="section-content gradient-authority">
 				<div className="container mx-auto px-6 text-center max-w-4xl">
 					<h2 className="text-4xl font-bold text-white mb-4">
 						Get the strategies that increase NOI by 40%

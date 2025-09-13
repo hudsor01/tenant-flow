@@ -11,9 +11,8 @@ function getStripe() {
   if (!key) {
     throw new Error('STRIPE_SECRET_KEY is required')
   }
-  return new Stripe(key, {
-    apiVersion: '2025-08-27.basil',
-  })
+  const apiVersion = process.env.STRIPE_API_VERSION as Stripe.StripeConfig['apiVersion'] | undefined
+  return new Stripe(key, apiVersion ? { apiVersion } : {})
 }
 
 export async function POST(request: NextRequest) {

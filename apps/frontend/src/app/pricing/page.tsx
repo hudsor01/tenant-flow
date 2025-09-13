@@ -13,6 +13,7 @@ import { BlurFade } from '@/components/magicui/blur-fade'
 
 // Icons
 import { Check, Star, ArrowRight } from 'lucide-react'
+import { ShimmerButton } from '@/components/magicui/shimmer-button'
 
 // Design System
 import { TYPOGRAPHY_SCALE } from '@repo/shared'
@@ -75,29 +76,70 @@ export default function PricingPage() {
   const router = useRouter()
   const [isYearly, setIsYearly] = useState(false)
 
-  const handleSelectPlan = (planId: string) => {
+  const priceIds = {
+    starter: {
+      monthly: process.env.NEXT_PUBLIC_PRICE_STARTER_MONTHLY,
+      yearly: process.env.NEXT_PUBLIC_PRICE_STARTER_YEARLY,
+    },
+    growth: {
+      monthly: process.env.NEXT_PUBLIC_PRICE_GROWTH_MONTHLY,
+      yearly: process.env.NEXT_PUBLIC_PRICE_GROWTH_YEARLY,
+    },
+    max: {
+      monthly: process.env.NEXT_PUBLIC_PRICE_MAX_MONTHLY,
+      yearly: process.env.NEXT_PUBLIC_PRICE_MAX_YEARLY,
+    },
+  } as const
+
+  const handleSelectPlan = async (planId: string) => {
     const plan = pricingPlans.find(p => p.id === planId)
-    
     if (!plan) return
-    
-    if (plan.id === 'enterprise') {
-      toast.info('Redirecting to contact form...', {
-        description: 'We\'ll help you find the perfect enterprise solution.'
-      })
+
+    if (plan.id === 'enterprise' || plan.id === 'max') {
+      toast.info('Connecting you with sales...', { description: 'We\'ll help tailor the best plan.' })
       router.push('/contact?plan=enterprise')
       return
     }
-    
-    toast.success(`Selected ${plan.name} plan!`, {
-      description: 'Redirecting to checkout...'
-    })
-    
-    router.push(`/pricing/checkout?plan=${planId}&interval=${isYearly ? 'yearly' : 'monthly'}`)
+
+    const key = planId as keyof typeof priceIds
+    const priceId = isYearly ? priceIds[key].yearly : priceIds[key].monthly
+    if (!priceId) {
+      toast.error('Stripe price not configured', { description: 'Set NEXT_PUBLIC_PRICE_* env vars.' })
+      return
+    }
+
+    try {
+      toast.loading('Redirecting to secure checkout...', { id: 'checkout' })
+      const res = await fetch('/api/stripe/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          priceId,
+          planName: plan.name,
+          isYearly,
+          successUrl: `${window.location.origin}/pricing/success?session_id={CHECKOUT_SESSION_ID}`,
+          cancelUrl: `${window.location.origin}/pricing/cancel`,
+        }),
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err?.error?.message || 'Failed to create checkout session')
+      }
+      const data = await res.json()
+      toast.dismiss('checkout')
+      if (data?.url) {
+        window.location.href = data.url
+      } else {
+        throw new Error('Missing checkout URL')
+      }
+    } catch (e) {
+      toast.error('Checkout failed', { description: e instanceof Error ? e.message : 'Unknown error' })
+    }
   }
 
   return (
     <PageLayout>
-  <section className="section-content md:py-16">
+  <section className="section-content md:py-16 gradient-authority">
         <div className="mx-auto max-w-7xl">
           {/* Header */}
           <BlurFade delay={0.1} inView>
@@ -107,14 +149,8 @@ export default function PricingPage() {
                 Trusted by 10,000+ property managers
               </Badge>
               
-              <h1 
-                className="text-center text-foreground font-bold tracking-tight leading-tight"
-                style={TYPOGRAPHY_SCALE['display-lg']}
-              >
-                Choose the perfect plan to{' '}
-                <span className="bg-gradient-to-r from-primary via-primary/80 to-accent bg-clip-text text-transparent">
-                  scale your business
-                </span>
+              <h1 className="text-center font-bold tracking-tight leading-tight text-gradient-authority" style={TYPOGRAPHY_SCALE['display-lg']}>
+                Choose the perfect plan to scale your business
               </h1>
               
               <p 
@@ -158,11 +194,7 @@ export default function PricingPage() {
             {pricingPlans.map((plan) => (
               <Card 
                 key={plan.id} 
-                className={`relative flex flex-col ${
-                  plan.popular 
-                    ? 'border-2 border-primary shadow-lg' 
-                    : 'border'
-                }`}
+                className={`relative flex flex-col card-elevated-authority ${plan.popular ? 'ring-1 ring-primary/30' : ''}`}
               >
                 {plan.popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
@@ -217,18 +249,19 @@ export default function PricingPage() {
                 </CardContent>
 
                 <CardFooter>
-                  <Button
-                    onClick={() => handleSelectPlan(plan.id)}
-                    className={`w-full ${
-                      plan.popular
-                        ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                        : 'variant-outline'
-                    }`}
-                    variant={plan.popular ? 'default' : 'outline'}
-                  >
-                    {plan.id === 'enterprise' ? 'Contact Sales' : 'Get Started'}
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
+                  {plan.popular ? (
+                    <ShimmerButton className="w-full h-12 text-base font-bold">
+                      <span className="inline-flex items-center">
+                        {plan.id === 'enterprise' ? 'Contact Sales' : 'Get Started'}
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </span>
+                    </ShimmerButton>
+                  ) : (
+                    <Button onClick={() => handleSelectPlan(plan.id)} variant="outline" className="w-full btn-gradient-primary">
+                      {plan.id === 'enterprise' ? 'Contact Sales' : 'Get Started'}
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  )}
                 </CardFooter>
               </Card>
             ))}

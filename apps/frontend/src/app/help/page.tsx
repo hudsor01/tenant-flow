@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { ShimmerButton } from "@/components/magicui/shimmer-button"
 import { ArrowRight, CheckCircle, Clock, TrendingUp, Users, Book, MessageCircle, Phone, Mail } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { FooterMinimal } from "@/components/sections/footer-minimal"
@@ -11,18 +12,15 @@ export default function HelpPage() {
       <Navbar />
       
       {/* Hero Section */}
-      <section className="pt-24 pb-16 bg-gradient-to-br from-slate-50 to-blue-50">
+      <section className="pt-24 pb-16 gradient-authority">
         <div className="container mx-auto px-6 max-w-4xl text-center">
           <Badge variant="outline" className="mb-6">
             <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
             Trusted by 10,000+ property managers
           </Badge>
           
-          <h1 className="text-5xl md:text-6xl font-bold mb-6">
-            Get help increasing your
-            <span className="block bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
-              NOI by 40%
-            </span>
+          <h1 className="text-5xl md:text-6xl font-bold mb-6 text-gradient-authority">
+            Get help increasing your NOI by 40%
           </h1>
           
           <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
@@ -31,11 +29,13 @@ export default function HelpPage() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="px-8">
-              Start 14-day transformation
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-            <Button size="lg" variant="outline" className="px-8">
+            <ShimmerButton className="px-8 py-3 text-base font-semibold">
+              <span className="inline-flex items-center">
+                Start 14-day transformation
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </span>
+            </ShimmerButton>
+            <Button size="lg" variant="outline" className="px-8 btn-gradient-primary">
               Schedule Expert Call
             </Button>
           </div>
@@ -55,7 +55,7 @@ export default function HelpPage() {
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <Card className="text-center hover:shadow-lg transition-shadow">
+            <Card className="text-center card-elevated-authority transition-shadow">
               <CardHeader>
                 <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <MessageCircle className="w-8 h-8 text-green-600" />
@@ -77,7 +77,7 @@ export default function HelpPage() {
               </CardContent>
             </Card>
 
-            <Card className="text-center hover:shadow-lg transition-shadow">
+            <Card className="text-center card-elevated-authority transition-shadow">
               <CardHeader>
                 <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <Phone className="w-8 h-8 text-blue-600" />
@@ -97,7 +97,7 @@ export default function HelpPage() {
               </CardContent>
             </Card>
 
-            <Card className="text-center hover:shadow-lg transition-shadow">
+            <Card className="text-center card-elevated-authority transition-shadow">
               <CardHeader>
                 <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <Book className="w-8 h-8 text-purple-600" />
@@ -117,7 +117,7 @@ export default function HelpPage() {
               </CardContent>
             </Card>
 
-            <Card className="text-center hover:shadow-lg transition-shadow">
+            <Card className="text-center card-elevated-authority transition-shadow">
               <CardHeader>
                 <div className="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <Mail className="w-8 h-8 text-orange-600" />
@@ -144,7 +144,7 @@ export default function HelpPage() {
       <section className="section-hero bg-muted/20">
         <div className="container mx-auto px-6 max-w-6xl">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">
+            <h2 className="text-4xl font-bold mb-4 text-gradient-authority">
               Success stories from our clients
             </h2>
             <p className="text-xl text-muted-foreground">
@@ -153,7 +153,7 @@ export default function HelpPage() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            <Card>
+              <Card className="card-elevated-authority">
               <CardContent className="card-padding">
                 <div className="flex items-center mb-4">
                   <TrendingUp className="w-8 h-8 text-green-600 mr-3" />
@@ -172,7 +172,7 @@ export default function HelpPage() {
               </CardContent>
             </Card>
 
-            <Card>
+              <Card className="card-elevated-authority">
               <CardContent className="card-padding">
                 <div className="flex items-center mb-4">
                   <Clock className="w-8 h-8 text-blue-600 mr-3" />
@@ -191,7 +191,7 @@ export default function HelpPage() {
               </CardContent>
             </Card>
 
-            <Card>
+              <Card className="card-elevated-authority">
               <CardContent className="card-padding">
                 <div className="flex items-center mb-4">
                   <Users className="w-8 h-8 text-purple-600 mr-3" />
@@ -217,7 +217,7 @@ export default function HelpPage() {
       <section className="section-hero">
         <div className="container mx-auto px-6 max-w-4xl">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">
+            <h2 className="text-4xl font-bold mb-4 text-gradient-authority">
               Popular resources
             </h2>
             <p className="text-xl text-muted-foreground">
@@ -252,7 +252,7 @@ export default function HelpPage() {
                 badgeColor: "bg-orange-100 text-orange-800"
               }
             ].map((resource, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow">
+              <Card key={index} className="card-elevated-authority transition-shadow">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <h3 className="font-semibold text-lg leading-tight pr-4">
@@ -277,21 +277,21 @@ export default function HelpPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="section-content bg-gradient-to-r from-blue-600 to-purple-600">
+      <section className="section-content gradient-authority">
         <div className="container mx-auto px-6 max-w-4xl text-center">
-          <h2 className="text-4xl font-bold text-white mb-4">
+          <h2 className="text-4xl font-bold text-primary-foreground mb-4">
             Ready to stop losing money?
           </h2>
-          <p className="text-xl text-blue-100 mb-8">
+          <p className="text-xl text-primary-foreground/90 mb-8">
             Join 10,000+ property managers who have increased their NOI by 40% with TenantFlow. 
             Our experts are standing by to help you get started.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary" className="px-8">
+            <Button size="lg" variant="secondary" className="px-8 btn-gradient-primary">
               Start 14-day transformation
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
-            <Button size="lg" variant="outline" className="px-8 text-white border-white hover:bg-white hover:text-blue-600">
+            <Button size="lg" variant="outline" className="px-8 btn-gradient-primary">
               Talk to an Expert
             </Button>
           </div>

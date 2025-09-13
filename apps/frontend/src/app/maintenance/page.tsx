@@ -6,7 +6,7 @@ import { TYPOGRAPHY_SCALE, ANIMATION_DURATIONS } from '@repo/shared'
 
 export default function MaintenancePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4">
+    <div className="min-h-screen gradient-authority flex items-center justify-center p-4">
       <div className="max-w-2xl w-full text-center space-y-10">
         
         {/* Maintenance Animation */}

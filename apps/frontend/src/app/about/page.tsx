@@ -1,5 +1,6 @@
 import { Navbar } from '@/components/navbar'
 import { Button } from '@/components/ui/button'
+import { ShimmerButton } from '@/components/magicui/shimmer-button'
 import { BlurFade } from '@/components/magicui/blur-fade'
 import {
 	Handshake,
@@ -23,18 +24,12 @@ export default function AboutPage() {
 			<Navbar />
 			
 			{/* Hero Section */}
-			<section className="pt-24 pb-16 bg-gradient-to-br from-background via-background to-muted/20">
+			<section className="pt-24 pb-16 gradient-authority">
 				<div className={containerClasses('xl')}>
 					<BlurFade delay={0.1} inView>
 						<div className="text-center max-w-4xl mx-auto space-y-8">
-							<h1 
-								className="text-foreground font-bold tracking-tight leading-tight"
-								style={TYPOGRAPHY_SCALE['display-lg']}
-							>
-								Simplifying property management for{' '}
-								<span className="bg-gradient-to-r from-primary via-primary/80 to-accent bg-clip-text text-transparent">
-									thousands of professionals
-								</span>
+							<h1 className="text-gradient-authority font-bold tracking-tight leading-tight" style={TYPOGRAPHY_SCALE['display-lg']}>
+								Simplifying property management for thousands of professionals
 							</h1>
 							<p 
 								className="text-muted-foreground leading-relaxed max-w-2xl mx-auto"
@@ -77,7 +72,7 @@ export default function AboutPage() {
 									</p>
 								</div>
 							</div>
-            <div className="bg-gradient-to-br from-primary/10 via-accent/5 to-primary/10 rounded-2xl card-padding text-center border border-primary/10">
+            <div className="card-elevated-authority rounded-2xl card-padding text-center">
 								<Target className="w-20 h-20 mx-auto mb-6 text-primary" />
 								<h3 
 									className="font-semibold text-foreground"
