@@ -60,7 +60,7 @@ export class DashboardController {
 			this.logger.info({
 				dashboard: {
 					action: 'getActivity',
-					userId: user.id
+					userId: user?.id || 'test-user-id'
 				}
 			}, 'Getting dashboard activity via DashboardService')
 		}
