@@ -81,7 +81,7 @@ export function OTPVerification({
     <div className={cn("min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-purple-50", className)}>
       <div className="w-full max-w-md">
         <BlurFade delay={0.2} inView>
-          <div className="bg-white rounded-3xl p-8 shadow-2xl border border-gray-100">
+          <div className="bg-white rounded-3xl card-padding shadow-2xl border border-gray-100">
             {/* Header */}
             <div className="text-center mb-8">
               <div className="flex justify-center mb-6">
