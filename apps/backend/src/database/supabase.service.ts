@@ -12,8 +12,8 @@ export class SupabaseService {
     const supabaseUrl = process.env.SUPABASE_URL
     // Accept common aliases to avoid env name drift in platforms
     const supabaseServiceKey =
-      process.env.SERVICE_ROLE_KEY ||
       process.env.SUPABASE_SERVICE_ROLE_KEY ||
+      process.env.SERVICE_ROLE_KEY ||
       process.env.SUPABASE_SERVICE_KEY
 
 		if (!supabaseUrl || !supabaseServiceKey) {
