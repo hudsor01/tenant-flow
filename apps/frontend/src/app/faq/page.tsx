@@ -107,18 +107,15 @@ export default function FAQPage() {
       <Navbar />
       
       {/* Hero Section */}
-      <section className="pt-24 pb-16 bg-gradient-to-br from-slate-50 to-blue-50">
+      <section className="pt-24 pb-16 gradient-authority">
         <div className="container mx-auto px-6 max-w-4xl text-center">
           <Badge variant="outline" className="mb-6">
             <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
             Trusted by 10,000+ property managers
           </Badge>
           
-          <h1 className="text-5xl md:text-6xl font-bold mb-6">
-            Questions about increasing your
-            <span className="block bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
-              NOI by 40%?
-            </span>
+          <h1 className="text-5xl md:text-6xl font-bold mb-6 text-gradient-authority">
+            Questions about increasing your NOI by 40%?
           </h1>
           
           <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
@@ -190,7 +187,7 @@ export default function FAQPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="section-content bg-gradient-to-r from-blue-600 to-purple-600">
+      <section className="section-content gradient-authority">
         <div className="container mx-auto px-6 max-w-4xl text-center">
           <h2 className="text-4xl font-bold text-white mb-4">
             Still have questions?

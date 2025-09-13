@@ -6,7 +6,7 @@ import { TYPOGRAPHY_SCALE, ANIMATION_DURATIONS } from '@repo/shared'
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4">
+    <div className="min-h-screen gradient-authority flex items-center justify-center p-4">
       <div className="max-w-md w-full text-center space-y-8">
         
         {/* 404 Animation */}
@@ -35,7 +35,7 @@ export default function NotFound() {
         <BlurFade delay={0.2} inView>
           <div className="space-y-4">
             <h1 
-              className="text-foreground font-bold tracking-tight"
+              className="text-gradient-authority font-bold tracking-tight"
               style={TYPOGRAPHY_SCALE['heading-lg']}
             >
               Page not found

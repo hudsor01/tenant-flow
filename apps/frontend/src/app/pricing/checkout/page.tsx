@@ -10,6 +10,7 @@ import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { PageLayout } from '@/components/layout/page-layout'
+import { StripeProvider } from '@/providers/stripe-provider'
 
 export default function CheckoutPage() {
 	const router = useRouter()
@@ -34,7 +35,7 @@ export default function CheckoutPage() {
 
 	if (showCheckout) {
 		return (
-			<PageLayout containerClass="max-w-md py-12">
+			<PageLayout className="gradient-authority" containerClass="max-w-md py-12">
 				<div className="mb-6">
 					<Button
 						variant="ghost"
@@ -46,19 +47,21 @@ export default function CheckoutPage() {
 					</Button>
 				</div>
 				
-				<CheckoutForm
+				<StripeProvider>
+					<CheckoutForm
 					amount={amount}
 					currency="usd"
 					metadata={{ testPayment: 'true' }}
 					onSuccess={handleSuccess}
 					onError={handleError}
 				/>
+				</StripeProvider>
 			</PageLayout>
 		)
 	}
 
 	return (
-		<PageLayout containerClass="max-w-md py-12">
+		<PageLayout className="gradient-authority" containerClass="max-w-md py-12">
 			<Card>
 				<CardHeader>
 					<CardTitle>Test Stripe Payment</CardTitle>
