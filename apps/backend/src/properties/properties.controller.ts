@@ -52,7 +52,7 @@ export class PropertiesController {
 	 * Built-in pipes handle all validation
 	 */
 	@Get()
-    @RouteSchema({ method: 'GET', path: 'properties', schema: propertyRouteSchemas.findAll })
+	@RouteSchema({ method: 'GET', path: 'properties', schema: propertyRouteSchemas.findAll })
 	async findAll(
 		@Query('search', new DefaultValuePipe(null)) search: string | null,
 		@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,

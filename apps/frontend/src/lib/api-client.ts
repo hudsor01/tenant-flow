@@ -37,7 +37,7 @@ type UnitInsert = TablesInsert<'Unit'>
 type UnitUpdate = TablesUpdate<'Unit'>
 
 export const API_BASE_URL =
-	process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4600'
+	process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3003'
 
 /**
  * Dashboard API endpoints
