@@ -1,7 +1,7 @@
 'use client'
 
 import { ChartAreaInteractive } from '@/components/chart-area-interactive'
-import { Loader } from '@/components/magicui/loader'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -26,7 +26,7 @@ export default function LeasesPage() {
 	if (leasesLoading || statsLoading) {
 		return (
 			<div className="flex items-center justify-center h-32">
-				<Loader />
+				<LoadingSpinner variant="primary" />
 			</div>
 		)
 	}

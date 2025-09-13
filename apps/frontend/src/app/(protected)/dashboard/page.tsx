@@ -2,7 +2,7 @@
 
 import { ChartAreaInteractive } from '@/components/chart-area-interactive'
 import { DataTable } from '@/components/data-table'
-import { Loader } from '@/components/magicui/loader'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { SectionCards } from '@/components/section-cards'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -160,12 +160,12 @@ function DashboardContent() {
 		refetch: refetchProperties
 	} = useProperties()
 
-	// Loading state (using MagicUI loader)
+	// Loading state
 	if (isLoading) {
 		return (
 			<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
 				<div className="flex items-center justify-center h-32">
-					<Loader />
+					<LoadingSpinner variant="primary" />
 				</div>
 			</div>
 		)
@@ -197,7 +197,7 @@ function DashboardContent() {
 				>
 					{propertiesLoading ? (
 						<div className="flex items-center justify-center h-32">
-							<Loader />
+							<LoadingSpinner variant="primary" />
 						</div>
 					) : propertiesData ? (
 						<DataTable

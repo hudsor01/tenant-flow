@@ -1,7 +1,7 @@
 'use client'
 
 import { ChartAreaInteractive } from '@/components/chart-area-interactive'
-import { Loader } from '@/components/magicui/loader'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { MetricsCard } from '@/components/metrics-card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -34,7 +34,7 @@ export default function TenantsPage() {
 		return (
 			<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
 				<div className="flex items-center justify-center h-32">
-					<Loader />
+					<LoadingSpinner variant="primary" />
 				</div>
 			</div>
 		)
