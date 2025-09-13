@@ -56,6 +56,16 @@
 
 /* === DARK MODE THEME (CSS Variables Approach) === */
 @layer theme {
+  /* Aliases for third‑party components (Magic UI) */
+  :root {
+    --primary: var(--color-primary);
+    --primary-foreground: var(--color-primary-foreground);
+    --secondary: var(--color-secondary);
+    --secondary-foreground: var(--color-secondary-foreground);
+    --accent: var(--color-accent);
+    --accent-foreground: var(--color-accent-foreground);
+  }
+
   .dark {
     --color-background: #0f172a;
     --color-foreground: #f8fafc;
@@ -80,6 +90,14 @@
     --color-border: #1e293b;
     --color-input: #1e293b;
     --color-ring: #60a5fa;
+
+    /* Maintain aliases in dark mode */
+    --primary: var(--color-primary);
+    --primary-foreground: var(--color-primary-foreground);
+    --secondary: var(--color-secondary);
+    --secondary-foreground: var(--color-secondary-foreground);
+    --accent: var(--color-accent);
+    --accent-foreground: var(--color-accent-foreground);
   }
 }
 
@@ -233,6 +251,16 @@
 
 /* === COMPONENT LAYER (Only Evidence-Based) === */
 @layer components {
+  /* Authority aliases mapped to existing design system utilities */
+  .text-gradient-authority { @apply text-gradient-primary; }
+  .gradient-authority { 
+    background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 70%, #60a5fa));
+  }
+  .card-elevated-authority { @apply card-elevated-gradient; }
+  .btn-gradient-primary {
+    background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 70%, #60a5fa));
+    color: var(--color-primary-foreground);
+  }
   
   /* EVIDENCE: /stripe/pricing/page.tsx:10 */
   .surface-glow {
