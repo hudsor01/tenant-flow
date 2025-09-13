@@ -1,32 +1,45 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common'
-import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import { Injectable, InternalServerErrorException, Optional } from '@nestjs/common'
 import type { Database } from '@repo/shared'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import { PinoLogger } from 'nestjs-pino'
 
 @Injectable()
 export class SupabaseService {
 	private adminClient: SupabaseClient<Database>
 
-	constructor() {
+	constructor(@Optional() private readonly logger?: PinoLogger) {
+		this.logger?.setContext?.(SupabaseService.name)
 		const supabaseUrl = process.env.SUPABASE_URL
 		const supabaseServiceKey = process.env.SERVICE_ROLE_KEY
 
 		if (!supabaseUrl || !supabaseServiceKey) {
-			throw new InternalServerErrorException('Supabase configuration is missing')
+			this.logger?.error(
+				{
+					issue: 'missing_supabase_env',
+					hasSupabaseUrl: !!supabaseUrl,
+					hasServiceKey: !!supabaseServiceKey,
+					env: process.env.NODE_ENV
+				},
+				'Missing Supabase configuration. Ensure SUPABASE_URL and SERVICE_ROLE_KEY are set (via Doppler).'
+			)
+			throw new InternalServerErrorException(
+				'Supabase configuration is missing'
+			)
 		}
 
-		this.adminClient = createClient<Database>(
-			supabaseUrl,
-			supabaseServiceKey,
-			{
-				auth: {
-					persistSession: false,
-					autoRefreshToken: false
-				}
+		this.adminClient = createClient<Database>(supabaseUrl, supabaseServiceKey, {
+			auth: {
+				persistSession: false,
+				autoRefreshToken: false
 			}
-		)
+		})
 
-		// Ultra-native: direct logging
-		console.log('Supabase service initialized successfully')
+		try {
+			const urlHost = new URL(supabaseUrl).host
+			this.logger?.info({ supabaseHost: urlHost }, 'Supabase service initialized')
+		} catch {
+			this.logger?.info('Supabase service initialized')
+		}
 	}
 
 	getAdminClient(): SupabaseClient<Database> {
@@ -38,7 +51,9 @@ export class SupabaseService {
 		const supabaseAnonKey = process.env.SUPABASE_ANON_KEY
 
 		if (!supabaseUrl || !supabaseAnonKey) {
-			throw new InternalServerErrorException('Supabase configuration is missing for user client')
+			throw new InternalServerErrorException(
+				'Supabase configuration is missing for user client'
+			)
 		}
 
 		return createClient<Database>(supabaseUrl, supabaseAnonKey, {
@@ -54,21 +69,29 @@ export class SupabaseService {
 		})
 	}
 
-	async checkConnection(): Promise<{ status: string; message?: string }> {
-		try {
-			const { error } = await this.adminClient
-				.from('User')
-				.select('count', { count: 'exact', head: true })
+  async checkConnection(): Promise<{
+    status: 'healthy' | 'unhealthy'
+    message?: string
+  }> {
+    try {
+      // Connectivity check: lightweight HEAD count on a canonical table.
+      // Configure HEALTH_CHECK_TABLE if 'User' is not present in your public schema.
+      const table = process.env.HEALTH_CHECK_TABLE || 'User'
+      const { error } = await this.adminClient
+        .from(table as never)
+        .select('*', { count: 'exact', head: true })
 
-			if (error) {
-				return { status: 'unhealthy', message: error.message }
-			}
+      if (error) {
+        this.logger?.error({ error, table }, 'Supabase table ping failed')
+        return { status: 'unhealthy', message: error.message }
+      }
 
-			return { status: 'healthy' }
-		} catch (error) {
-			const message =
-				error instanceof Error ? error.message : 'Unknown error'
-			return { status: 'unhealthy', message }
-		}
-	}
+      this.logger?.debug({ table }, 'Supabase table ping ok')
+      return { status: 'healthy' }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error'
+      this.logger?.error({ error }, 'Supabase connectivity check threw')
+      return { status: 'unhealthy', message }
+    }
+  }
 }

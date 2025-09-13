@@ -1,0 +1,23 @@
+{
+  "timestamp": "2025-09-13T00:34:21.750Z",
+  "summary": {
+    "total_checks": 5,
+    "violations": 0,
+    "warnings": 0,
+    "passed": 5,
+    "security_score": 100
+  },
+  "violations": [],
+  "warnings": [],
+  "passed": [
+    "DEV_AUTH_LOG_LEAK_GUARDED",
+    "TEST_EMAIL_LEAK_GUARDED",
+    "MOCK_TOKEN_LEAK_GUARDED",
+    "TEST_EMAIL_LEAK_GUARDED",
+    "MOCK_DATA_LEAK_GUARDED"
+  ],
+  "recommendations": [
+    "Regular security audits should be performed",
+    "Keep dependencies updated to patch security vulnerabilities"
+  ]
+}

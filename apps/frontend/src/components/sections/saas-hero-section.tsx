@@ -59,7 +59,7 @@ export const SaasHeroSection = React.forwardRef<HTMLElement, SaasHeroSectionProp
         className={cn(
           "relative min-h-screen flex items-center justify-center overflow-hidden",
           "bg-gradient-to-br from-background via-background to-muted/20",
-          "py-24 sm:py-32",
+        "section-hero sm:py-32",
           className
         )}
         {...props}
