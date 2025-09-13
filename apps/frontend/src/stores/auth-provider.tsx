@@ -72,23 +72,25 @@ export const AuthStoreProvider = ({
     }
 
     // Try mock auth first, fallback to real Supabase
-    if (!checkMockAuth()) {
-      // Get initial session
-      supabaseClient.auth.getSession().then(({ data: { session } }) => {
-        store.getState().setSession(session)
-        store.getState().setLoading(false)
-      })
-
-      // Listen for auth changes
-      const {
-        data: { subscription },
-      } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
-        store.getState().setSession(session)
-        store.getState().setLoading(false)
-      })
-
-      return () => subscription.unsubscribe()
+    if (checkMockAuth()) {
+      return // Early return for mock auth
     }
+    
+    // Get initial session
+    supabaseClient.auth.getSession().then(({ data: { session } }) => {
+      store.getState().setSession(session)
+      store.getState().setLoading(false)
+    })
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
+      store.getState().setSession(session)
+      store.getState().setLoading(false)
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
 
   return (
