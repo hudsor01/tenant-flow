@@ -128,6 +128,6 @@ jobs:
         run: npm i -g @railway/cli@3
 
       - name: Deploy via Railway (Dockerfile + railway.toml)
-        run: railway up --yes --detach
+        run: railway up --detach
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
