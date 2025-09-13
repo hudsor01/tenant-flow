@@ -113,6 +113,10 @@ async function bootstrap() {
         return 'Missing SUPABASE_URL or SERVICE_ROLE_KEY. Set them in Doppler/Railway env.'
       if (msg.includes('does not exist'))
         return 'Table for health check not found. Set HEALTH_CHECK_TABLE to an existing public table.'
+      if (msg.includes('invalid jwt') || msg.includes('jwt') || msg.includes('auth'))
+        return 'Auth failed. Use the Supabase service role key (not anon) in SERVICE_ROLE_KEY.'
+      if (msg.includes('db_unhealthy'))
+        return 'Supabase returned an error. Enable /health/debug and verify credentials + table name.'
       return 'Check Supabase credentials (URL/Service Key) and connectivity.'
     }
 
