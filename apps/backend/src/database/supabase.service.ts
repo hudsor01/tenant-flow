@@ -88,6 +88,7 @@ export class SupabaseService {
   }> {
     try {
       // Prefer a lightweight RPC if available; fall back to HEAD on a known table.
+      // Using health_check function with SECURITY DEFINER for consistent permissions
       const fn = process.env.HEALTH_CHECK_FUNCTION || 'health_check'
       try {
         // Attempt RPC call (must exist in DB). Returns ok=true when reachable.
