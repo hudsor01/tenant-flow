@@ -19,28 +19,28 @@ export class DashboardService {
 		// PinoLogger context handled automatically via app-level configuration
 	}
 
-		/**
-		 * Get comprehensive dashboard statistics
-		 */
-		async getStats(userId?: string): Promise<DashboardStats> {
-			const [properties, tenants, units, leases, maintenance, revenue] = await Promise.all([
-				this.getPropertyStats(userId),
-				this.getTenantStats(userId),
-				this.getUnitStats(userId),
-				this.getLeaseStats(userId),
-				this.getMaintenanceStats(userId),
-				this.getFinancialStats(userId)
-			] as const)
+        /**
+         * Get comprehensive dashboard statistics
+         */
+        async getStats(userId?: string): Promise<DashboardStats> {
+                const [properties, tenants, units, leases, maintenance, revenue] = await Promise.all([
+                        this.getPropertyStats(userId),
+                        this.getTenantStats(userId),
+                        this.getUnitStats(userId),
+                        this.getLeaseStats(userId),
+                        this.getMaintenanceStats(userId),
+                        this.getFinancialStats(userId)
+                ] as const)
 
-			return {
-				properties,
-				tenants,
-				units,
-				leases,
-				maintenance,
-				revenue
-			}
-		}
+                return {
+                        properties,
+                        tenants,
+                        units,
+                        leases,
+                        maintenance,
+                        revenue
+                }
+        }
 
 	/**
 	 * Get recent activity feed
@@ -257,7 +257,7 @@ export class DashboardService {
 	/**
 	 * Get property statistics using database RPC
 	 */
-	private async getPropertyStats(userId?: string): Promise<PropertyStats> {
+        private async getPropertyStats(userId?: string): Promise<PropertyStats> {
 		if (!userId) {
 			return { total: 0, occupied: 0, vacant: 0, occupancyRate: 0, totalMonthlyRent: 0, averageRent: 0 }
 		}
@@ -271,20 +271,20 @@ export class DashboardService {
 			return { total: 0, occupied: 0, vacant: 0, occupancyRate: 0, totalMonthlyRent: 0, averageRent: 0 }
 		}
 
-		return (data as unknown as PropertyStats) || {
-			total: 0,
-			occupied: 0,
-			vacant: 0,
-			occupancyRate: 0,
-			totalMonthlyRent: 0,
-			averageRent: 0
-		}
+                return (data as unknown as PropertyStats) || {
+                        total: 0,
+                        occupied: 0,
+                        vacant: 0,
+                        occupancyRate: 0,
+                        totalMonthlyRent: 0,
+                        averageRent: 0
+                }
 	}
 
 	/**
 	 * Get tenant statistics using database RPC
 	 */
-	private async getTenantStats(userId?: string): Promise<TenantStats> {
+        private async getTenantStats(userId?: string): Promise<TenantStats> {
 		if (!userId) {
 			return { total: 0, active: 0, inactive: 0, newThisMonth: 0 }
 		}
@@ -298,18 +298,18 @@ export class DashboardService {
 			return { total: 0, active: 0, inactive: 0, newThisMonth: 0 }
 		}
 
-		return (data as unknown as TenantStats) || {
-			total: 0,
-			active: 0,
-			inactive: 0,
-			newThisMonth: 0
-		}
+                return (data as unknown as TenantStats) || {
+                        total: 0,
+                        active: 0,
+                        inactive: 0,
+                        newThisMonth: 0
+                }
 	}
 
 	/**
 	 * Get unit statistics using database RPC with occupancy change calculation
 	 */
-	private async getUnitStats(userId?: string): Promise<UnitStats> {
+        private async getUnitStats(userId?: string): Promise<UnitStats> {
 		if (!userId) {
 			return { total: 0, occupied: 0, vacant: 0, maintenance: 0, averageRent: 0, available: 0, occupancyRate: 0, occupancyChange: 0, totalPotentialRent: 0, totalActualRent: 0 }
 		}
@@ -330,9 +330,9 @@ export class DashboardService {
 			try {
 				const { data: previousData } = await this.supabase
 					.getAdminClient()
-					.rpc('get_property_occupancy_analytics', {
-						p_user_id: userId,
-						p_period: 'monthly'
+					.rpc('get_property_occupancy_analytics', { 
+						p_user_id: userId, 
+						p_period: 'monthly' 
 					})
 				
 				if (previousData && Array.isArray(previousData) && previousData.length >= 2) {
@@ -345,13 +345,13 @@ export class DashboardService {
 			}
 		}
 
-		return { ...(unitData as unknown as UnitStats), occupancyChange }
+                return { ...(unitData as unknown as UnitStats), occupancyChange }
 	}
 
 	/**
 	 * Get lease statistics using database RPC
 	 */
-	private async getLeaseStats(userId?: string): Promise<LeaseStats> {
+        private async getLeaseStats(userId?: string): Promise<LeaseStats> {
 		if (!userId) {
 			return { total: 0, active: 0, expired: 0, expiringSoon: 0 }
 		}
@@ -365,18 +365,18 @@ export class DashboardService {
 			return { total: 0, active: 0, expired: 0, expiringSoon: 0 }
 		}
 
-		return (data as unknown as LeaseStats) || {
-			total: 0,
-			active: 0,
-			expired: 0,
-			expiringSoon: 0
-		}
+                return (data as unknown as LeaseStats) || {
+                        total: 0,
+                        active: 0,
+                        expired: 0,
+                        expiringSoon: 0
+                }
 	}
 
 	/**
 	 * Get maintenance statistics using database RPC
 	 */
-	private async getMaintenanceStats(userId?: string): Promise<MaintenanceStats> {
+        private async getMaintenanceStats(userId?: string): Promise<MaintenanceStats> {
 		if (!userId) {
 			return { total: 0, open: 0, inProgress: 0, completed: 0, avgResolutionTime: 0, byPriority: { low: 0, medium: 0, high: 0, emergency: 0 } }
 		}
@@ -390,20 +390,20 @@ export class DashboardService {
 			return { total: 0, open: 0, inProgress: 0, completed: 0, avgResolutionTime: 0, byPriority: { low: 0, medium: 0, high: 0, emergency: 0 } }
 		}
 
-		return (data as unknown as MaintenanceStats) || {
-			total: 0,
-			open: 0,
-			inProgress: 0,
-			completed: 0,
-			avgResolutionTime: 0,
-			byPriority: { low: 0, medium: 0, high: 0, emergency: 0 }
-		}
+                return (data as unknown as MaintenanceStats) || {
+                        total: 0,
+                        open: 0,
+                        inProgress: 0,
+                        completed: 0,
+                        avgResolutionTime: 0,
+                        byPriority: { low: 0, medium: 0, high: 0, emergency: 0 }
+                }
 	}
 
 	/**
 	 * Get financial statistics using database RPC
 	 */
-	private async getFinancialStats(userId?: string): Promise<DashboardStats['revenue']> {
+        private async getFinancialStats(userId?: string): Promise<DashboardStats['revenue']> {
 		if (!userId) {
 			return { monthly: 0, yearly: 0, growth: 0 }
 		}
@@ -417,10 +417,10 @@ export class DashboardService {
 			return { monthly: 0, yearly: 0, growth: 0 }
 		}
 
-		return (data as unknown as DashboardStats['revenue']) || {
-			monthly: 0,
-			yearly: 0,
-			growth: 0
-		}
+                return (data as unknown as DashboardStats['revenue']) || {
+                        monthly: 0,
+                        yearly: 0,
+                        growth: 0
+                }
 	}
 }
