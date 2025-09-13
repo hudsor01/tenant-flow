@@ -4,6 +4,7 @@ import { MinimalistPricingSection } from '@/components/sections/minimalist-prici
 import { FooterMinimal } from '@/components/sections/footer-minimal'
 import ClientFeedback from '@/components/ui/testimonial'
 import { Button } from '@/components/ui/button'
+import { ShimmerButton } from '@/components/magicui/shimmer-button'
 import { Navbar } from '@/components/navbar'
 import { BlurFade } from '@/components/magicui/blur-fade'
 import { TYPOGRAPHY_SCALE } from '@repo/shared'
@@ -12,19 +13,12 @@ import { ArrowRight } from 'lucide-react'
 
 // CTA Section with Design System Consistency
 const CTASection = () => (
-  <section className="section-hero bg-gradient-to-br from-primary/5 via-background to-accent/5">
+  <section className="section-hero gradient-authority">
     <div className={containerClasses('lg')}>
       <BlurFade delay={0.1} inView>
         <div className="text-center space-y-8">
-          <h2 
-            className="font-bold tracking-tight leading-tight"
-            style={TYPOGRAPHY_SCALE['heading-xl']}
-          >
-            Ready to{' '}
-            <span className="text-gradient-authority">
-              transform property management
-            </span>
-            ?
+          <h2 className="font-bold tracking-tight leading-tight text-gradient-authority" style={TYPOGRAPHY_SCALE['heading-xl']}>
+            Ready to transform property management?
           </h2>
           <p 
             className="text-muted-foreground leading-relaxed max-w-2xl mx-auto"
@@ -34,16 +28,16 @@ const CTASection = () => (
             scaled their business with TenantFlow's enterprise platform.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="xl"
-              className="group"
-            >
-              Start Free Trial
-              <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
-            </Button>
+            <ShimmerButton size="lg" className="group">
+              <span className="inline-flex items-center">
+                Start Free Trial
+                <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
+              </span>
+            </ShimmerButton>
             <Button 
               variant="outline"
               size="xl"
+              className="btn-gradient-primary"
             >
               Schedule Demo
             </Button>
