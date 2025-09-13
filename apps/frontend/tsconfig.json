@@ -36,6 +36,8 @@
 		".next",
 		"out",
 		"src/components/ui/chart.tsx",
+		"src/components/auth/login-form.tsx",
+		"src/components/auth/login-form-legacy.tsx",
 		"dist",
 		"build",
 		"scripts/**/*",

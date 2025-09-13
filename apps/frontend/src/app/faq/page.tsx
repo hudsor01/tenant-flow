@@ -139,7 +139,7 @@ export default function FAQPage() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-24">
+      <section className="section-hero">
         <div className="container mx-auto px-6 max-w-4xl">
           {faqs.map((category, categoryIndex) => (
             <div key={categoryIndex} className="mb-16">
@@ -190,7 +190,7 @@ export default function FAQPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-r from-blue-600 to-purple-600">
+      <section className="section-content bg-gradient-to-r from-blue-600 to-purple-600">
         <div className="container mx-auto px-6 max-w-4xl text-center">
           <h2 className="text-4xl font-bold text-white mb-4">
             Still have questions?

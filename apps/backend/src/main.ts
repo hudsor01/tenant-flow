@@ -1,20 +1,18 @@
-import 'reflect-metadata'
-
-// Environment variables are loaded via Doppler when backend is run with 'doppler run --'
-
 import cors from '@fastify/cors'
 import { RequestMethod, ValidationPipe } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
-import {
-	FastifyAdapter,
-	type NestFastifyApplication
-} from '@nestjs/platform-fastify'
+import type { NestFastifyApplication } from '@nestjs/platform-fastify'
+import { FastifyAdapter } from '@nestjs/platform-fastify'
 import { getCORSConfig } from '@repo/shared'
+import type { FastifyReply, FastifyRequest, onRouteHookHandler } from 'fastify'
 import { Logger } from 'nestjs-pino'
+import { SupabaseService } from './database/supabase.service'
+import 'reflect-metadata'
 import { AppModule } from './app.module'
 import { HEALTH_PATHS } from './shared/constants/routes'
+import { routeSchemaRegistry } from './shared/utils/route-schema-registry'
 
-// Extend FastifyRequest interface for timing
+// Extend FastifyRequest interface for request timing
 declare module 'fastify' {
 	interface FastifyRequest {
 		startTime?: number
@@ -23,39 +21,65 @@ declare module 'fastify' {
 
 async function bootstrap() {
 	const startTime = Date.now()
-	const port = parseInt(process.env.PORT ?? '4600', 10)
+	const port = Number(process.env.PORT) || 4600
 
-	// Create Fastify adapter
-	const fastifyAdapter = new FastifyAdapter({
-		logger: false // Disable Fastify's internal logger, use NestJS Pino instead
-	})
+    // Fastify adapter with NestJS
+    const fastifyAdapter = new FastifyAdapter({ logger: false })
+    // Attach onRoute hook BEFORE Nest registers routes so schemas apply
+    const GLOBAL_PREFIX = 'api/v1'
+    const preInstance = fastifyAdapter.getInstance()
+    const attachSchemas: onRouteHookHandler = (routeOptions) => {
+      const methods = Array.isArray(routeOptions.method)
+        ? routeOptions.method
+        : [routeOptions.method]
+      for (const method of methods) {
+        const match = routeSchemaRegistry.find(String(method), routeOptions.url, GLOBAL_PREFIX)
+        if (match) {
+          routeOptions.schema = {
+            ...(routeOptions.schema ?? {}),
+            ...match.schema
+          }
+          break
+        }
+      }
+    }
+    preInstance.addHook('onRoute', attachSchemas)
 
-	// Create NestJS application
-	const app = await NestFactory.create<NestFastifyApplication>(
-		AppModule,
-		fastifyAdapter,
-		{
-			rawBody: true,
-			bufferLogs: true
-		}
-	)
+    const app = await NestFactory.create<NestFastifyApplication>(
+      AppModule,
+      fastifyAdapter,
+      {
+        rawBody: true,
+        bufferLogs: true
+      }
+    )
 
-	// Use Pino logger
-	app.useLogger(app.get(Logger))
-	const logger = app.get(Logger)
+    // Use Pino logger from NestJS
+    const logger = app.get(Logger)
+    app.useLogger(logger)
+    // Quick environment summary to help diagnose deploy issues (no secrets)
+    logger.log(
+      {
+        env: process.env.NODE_ENV,
+        port,
+        hasSupabaseUrl: !!process.env.SUPABASE_URL,
+        hasServiceKey: !!process.env.SERVICE_ROLE_KEY
+      },
+      'Environment summary'
+    )
 
-	// Set global prefix
-	app.setGlobalPrefix('api/v1', {
-		exclude: [
-			...HEALTH_PATHS.map(path => ({ path, method: RequestMethod.ALL })),
-			{ path: '/', method: RequestMethod.ALL }
-		]
-	})
+    // Global API prefix
+    app.setGlobalPrefix(GLOBAL_PREFIX, {
+        exclude: [
+          ...HEALTH_PATHS.map(path => ({ path, method: RequestMethod.ALL })),
+          { path: '/', method: RequestMethod.ALL }
+        ]
+      })
 
-	// Configure CORS using unified configuration (aligned with CSP)
+	// Configure CORS
 	logger.log('Configuring CORS...')
-	await app.register(cors, getCORSConfig())
-	logger.log('CORS enabled with aligned configuration')
+	app.register(cors, getCORSConfig())
+	logger.log('CORS enabled')
 
 	// Global validation pipe
 	app.useGlobalPipes(
@@ -69,30 +93,117 @@ async function bootstrap() {
 		})
 	)
 
-	// Enable graceful shutdown
-	app.enableShutdownHooks()
+    const fastify = app.getHttpAdapter().getInstance()
+
+    // Enable graceful shutdown
+    app.enableShutdownHooks()
+
+    // Ultra-reliable health endpoint for Railway: raw Fastify with real checks
+    const supabase = app.get(SupabaseService)
+    let shuttingDown = false
+    process.on('SIGTERM', () => (shuttingDown = true))
+    process.on('SIGINT', () => (shuttingDown = true))
+
+    function healthHintFor(message?: string) {
+      if (!message) return 'Check Supabase URL/service key and network reachability.'
+      if (message.includes('health_db_timeout'))
+        return 'DB timed out. Verify Supabase is reachable from Railway and not rate-limited.'
+      const msg = message.toLowerCase()
+      if (msg.includes('configuration is missing'))
+        return 'Missing SUPABASE_URL or SERVICE_ROLE_KEY. Set them in Doppler/Railway env.'
+      if (msg.includes('does not exist'))
+        return 'Table for health check not found. Set HEALTH_CHECK_TABLE to an existing public table.'
+      return 'Check Supabase credentials (URL/Service Key) and connectivity.'
+    }
+
+    async function dbHealthy(timeoutMs = Number(process.env.HEALTH_DB_TIMEOUT_MS ?? 1500)) {
+      try {
+        const result = await Promise.race([
+          supabase.checkConnection(),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('health_db_timeout')), timeoutMs)
+          )
+        ])
+        const { status, message } = result as { status: 'healthy' | 'unhealthy'; message?: string }
+        return { ok: status === 'healthy', message }
+      } catch (err) {
+        return { ok: false, message: err instanceof Error ? err.message : 'unknown' }
+      }
+    }
+
+    fastify.get('/health', async (_req: FastifyRequest, reply: FastifyReply) => {
+      const start = Date.now()
+      const headers = (): FastifyReply =>
+        reply.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+
+      if (shuttingDown) {
+        logger.warn({ reason: 'shutting_down' }, 'Health check unhealthy: shutting down')
+        headers().code(503).type('application/json; charset=utf-8').send({
+          status: 'unhealthy',
+          reason: 'shutting_down',
+          uptime: Math.round(process.uptime()),
+          timestamp: new Date().toISOString()
+        })
+        return
+      }
+
+      const db = await dbHealthy()
+      const duration = Date.now() - start
+      if (db.ok) {
+        logger.log({ duration }, 'Health check ok')
+        headers().code(200).type('application/json; charset=utf-8').send({
+          status: 'ok',
+          checks: { db: 'healthy' },
+          duration,
+          uptime: Math.round(process.uptime()),
+          timestamp: new Date().toISOString()
+        })
+      } else {
+        const hint = healthHintFor(db.message)
+        logger.error({ duration, reason: db.message, hint }, 'Health check unhealthy: db')
+        headers().code(503).type('application/json; charset=utf-8').send({
+          status: 'unhealthy',
+          checks: { db: 'unhealthy', message: db.message, hint },
+          duration,
+          uptime: Math.round(process.uptime()),
+          timestamp: new Date().toISOString()
+        })
+      }
+    })
+    // fastify.head('/health', async (_req: FastifyRequest, reply: FastifyReply) => {
+    //   if (shuttingDown) return reply.header('Cache-Control', 'no-store').code(503).send()
+    //   const db = await dbHealthy()
+    //   reply.header('Cache-Control', 'no-store').code(db.ok ? 200 : 503).send()
+    // })
+
+    		fastify.addHook(
+            'onRequest',
+            (req: FastifyRequest, _reply: FastifyReply, done: () => void) => {
+              req.startTime = Date.now()
+              done()
+            }
+          )
+
+    		fastify.addHook(
+            'onResponse',
+            (req: FastifyRequest, reply: FastifyReply, done: () => void) => {
+              const duration = Date.now() - (req.startTime ?? Date.now())
+              logger.log(`${req.method} ${req.url} -> ${reply.statusCode} in ${duration}ms`)
+              done()
+            }
+          )
 
 	// Start server
 	await app.listen(port, '0.0.0.0')
 
-	// Log startup info
 	const startupTime = ((Date.now() - startTime) / 1000).toFixed(2)
 	logger.log(`SERVER: Listening on http://0.0.0.0:${port}`)
 	logger.log(`STARTUP: Completed in ${startupTime}s`)
 	logger.log(`ENVIRONMENT: ${process.env.NODE_ENV}`)
 }
 
-// Handle errors
-bootstrap().catch(err => {
+// Catch bootstrap errors
+bootstrap().catch((err: unknown) => {
 	console.error('ERROR: Failed to start server:', err)
 	process.exit(1)
-})
-
-// Graceful shutdown handlers
-process.on('SIGTERM', () => {
-	console.log('SIGTERM received, shutting down gracefully...')
-})
-
-process.on('SIGINT', () => {
-	console.log('SIGINT received, shutting down gracefully...')
 })
