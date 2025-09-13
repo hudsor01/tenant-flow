@@ -54,16 +54,17 @@ const chartConfig = {
 } as ChartConfig;
 
 // Transform API data to chart format
-function transformFinancialDataToRevenue(apiData: any[]): RevenueDataPoint[] {
+function transformFinancialDataToRevenue(apiData: Record<string, unknown>[]): RevenueDataPoint[] {
   return apiData.map((item, index) => {
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-    const revenue = item.income || 0
+    const revenue = (item.income as number) || 0
     // Calculate recurring vs one-time split (75% recurring average for property management)
     const recurring = Math.floor(revenue * 0.75)
     const oneTime = revenue - recurring
     
-    const month = (item.monthNumber && item.monthNumber > 0 && item.monthNumber <= 12 
-      ? monthNames[item.monthNumber - 1] 
+    const monthNumber = item.monthNumber as number
+    const month = (monthNumber && monthNumber > 0 && monthNumber <= 12 
+      ? monthNames[monthNumber - 1] 
       : monthNames[index % 12]) as string
     
     return {
