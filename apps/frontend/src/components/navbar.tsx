@@ -6,6 +6,7 @@ import { supabaseClient } from '@repo/shared'
 import { useSpring, useTransition } from '@react-spring/core'
 import { animated } from '@react-spring/web'
 import { ArrowRight, Building2, ChevronDown, Menu, X } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
 
@@ -29,29 +30,9 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 			className,
 			logo = 'TenantFlow',
 			navItems = [
-				{
-					name: 'Products',
-					href: '#',
-					hasDropdown: true,
-					dropdownItems: [
-						{ name: 'Property Management', href: '/features' },
-						{ name: 'Tenant Portal', href: '/features#tenant-portal' },
-						{ name: 'Maintenance Tracking', href: '/features#maintenance' },
-						{ name: 'Financial Reports', href: '/features#financial' },
-						{ name: 'All Features', href: '/features' }
-					]
-				},
-				{
-					name: 'Solutions',
-					href: '#',
-					hasDropdown: true,
-					dropdownItems: [
-						{ name: 'Small Landlords', href: '/solutions/small-landlords' },
-						{ name: 'Property Managers', href: '/solutions/property-managers' },
-						{ name: 'Enterprise', href: '/solutions/enterprise' },
-						{ name: 'Real Estate Investors', href: '/solutions/investors' }
-					]
-				},
+				{ name: 'Features', href: '/features' },
+				{ name: 'Pricing', href: '/pricing' },
+				{ name: 'About', href: '/about' },
 				{
 					name: 'Resources',
 					href: '#',
@@ -60,15 +41,12 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 						{ name: 'Help Center', href: '/help' },
 						{ name: 'Blog', href: '/blog' },
 						{ name: 'FAQ', href: '/faq' },
-						{ name: 'Contact', href: '/contact' },
-						{ name: 'API Documentation', href: '/docs' }
+						{ name: 'Contact', href: '/contact' }
 					]
-				},
-				{ name: 'Pricing', href: '/pricing' },
-				{ name: 'About', href: '/about' }
+				}
 			],
-			ctaText = 'Get Started',
-			ctaHref = '/signup',
+				ctaText = 'Get Started',
+				ctaHref = '/auth/sign-up',
 			...props
 		},
 		ref
@@ -101,29 +79,18 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 		const getNavItems = () => {
 			if (isAuthenticated) {
 				return [
+					{ name: 'Dashboard', href: '/dashboard' },
+					{ name: 'Properties', href: '/dashboard/properties' },
+					{ name: 'Analytics', href: '/dashboard/analytics' },
 					{
-						name: 'Dashboard',
-						href: '/dashboard',
-						hasDropdown: true,
-						dropdownItems: [
-							{ name: 'Overview', href: '/dashboard' },
-							{ name: 'Properties', href: '/dashboard/properties' },
-							{ name: 'Tenants', href: '/dashboard/tenants' },
-							{ name: 'Leases', href: '/dashboard/leases' },
-							{ name: 'Maintenance', href: '/dashboard/maintenance' },
-							{ name: 'Reports', href: '/dashboard/reports' },
-							{ name: 'Analytics', href: '/dashboard/analytics' }
-						]
-					},
-					{
-						name: 'Tools',
+						name: 'More',
 						href: '#',
 						hasDropdown: true,
 						dropdownItems: [
-							{ name: 'Settings', href: '/dashboard/settings' },
-							{ name: 'Help Center', href: '/help' },
-							{ name: 'API Docs', href: '/docs' },
-							{ name: 'Contact Support', href: '/contact' }
+							{ name: 'Leases', href: '/dashboard/leases' },
+							{ name: 'Maintenance', href: '/dashboard/maintenance' },
+							{ name: 'Reports', href: '/dashboard/reports' },
+							{ name: 'Settings', href: '/dashboard/settings' }
 						]
 					}
 				]
@@ -215,7 +182,8 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 		})
 
 		return (
-			<animated.nav
+    			<animated.nav
+                data-site-navbar
 				ref={ref}
 				style={navbarSpring}
 				className={cn(
@@ -235,8 +203,15 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 						onMouseLeave={() => setLogoHover(false)}
 						className="flex items-center space-x-2"
 					>
-						<div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-							<Building2 className="text-white size-4" />
+						<div className="w-8 h-8 rounded-lg overflow-hidden bg-background border border-border flex items-center justify-center">
+							<Image
+								src="/tenant-flow-logo.png"
+								alt="TenantFlow"
+								width={24}
+								height={24}
+								className="w-6 h-6 object-contain"
+								priority
+							/>
 						</div>
 						<span className="text-xl font-bold text-gray-900">{logo}</span>
 					</animated.div>
@@ -284,7 +259,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 												>
 													<Link
 														href={dropdownItem.href}
-														className="block px-4 py-2.5 text-gray-800 hover:bg-blue-50/80 transition-all duration-200 group font-medium text-sm group-hover:text-blue-700"
+														className="block px-4 py-2.5 text-gray-800 hover:bg-primary/5 hover:text-primary transition-all duration-200 font-medium text-sm"
 													>
 														{dropdownItem.name}
 													</Link>
@@ -322,7 +297,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 						) : (
 							<>
 								<Link
-									href="/login"
+									href="/auth/login"
 									className="hidden sm:flex px-4 py-2 text-foreground hover:text-foreground rounded-xl hover:bg-muted/50 transition-all duration-300 font-medium"
 								>
 									Sign In
@@ -337,7 +312,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 								>
 									<Link
 										href={ctaHref}
-										className="hidden sm:flex items-center px-6 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium text-sm rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+										className="hidden sm:flex items-center px-6 py-2.5 bg-gradient-to-r from-primary to-primary/80 text-white font-medium text-sm rounded-xl hover:from-primary/90 hover:to-primary/70 transition-all duration-200 shadow-lg hover:shadow-xl"
 									>
 										{ctaText}
 										<ArrowRight className="ml-2 h-4 w-4" />
@@ -459,7 +434,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 											onMouseLeave={() => setHoveredMobileItem(null)}
 										>
 											<Link
-												href="/login"
+												href="/auth/login"
 												onClick={() => setIsOpen(false)}
 												className="block px-4 py-3 text-foreground hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-200"
 											>
@@ -478,7 +453,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 											<Link
 												href={ctaHref}
 												onClick={() => setIsOpen(false)}
-												className="flex items-center justify-center w-full px-6 py-3 mt-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium text-sm rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg"
+												className="flex items-center justify-center w-full px-6 py-3 mt-4 bg-gradient-to-r from-primary to-primary/80 text-white font-medium text-sm rounded-xl hover:from-primary/90 hover:to-primary/70 transition-all duration-200 shadow-lg"
 											>
 												{ctaText}
 												<ArrowRight className="ml-2 h-4 w-4" />

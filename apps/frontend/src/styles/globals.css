@@ -387,30 +387,7 @@
 	}
 
 	/* EVIDENCE: stripe-pricing-section.tsx:350,364 */
-	.button-primary {
-		background-color: var(--color-primary);
-		color: var(--color-primary-foreground);
-		padding: 0.75rem 1.5rem;
-		border-radius: var(--radius-lg);
-		font-weight: 500;
-		transition: background-color 0.2s;
-	}
-
-	.button-primary:hover {
-		background-color: color-mix(in srgb, var(--color-primary) 90%, black);
-	}
-
-	.button-secondary {
-		background-color: var(--color-secondary);
-		color: var(--color-secondary-foreground);
-		padding: 0.75rem 1.5rem;
-		border-radius: var(--radius-lg);
-		transition: background-color 0.2s;
-	}
-
-	.button-secondary:hover {
-		background-color: color-mix(in srgb, var(--color-secondary) 80%, black);
-	}
+		/* Button utilities should use DS classes like btn-gradient-primary */
 
 	.button-lg {
 		padding: 1rem 2rem;
@@ -427,15 +404,29 @@
 		font-weight: 500;
 	}
 
-	.badge-success {
-		background-color: #dcfce7;
-		color: #15803d;
-	}
+.badge-success {
+  background-color: #dcfce7;
+  color: #15803d;
+}
 
-	.badge-info {
-		background-color: #dbeafe;
-		color: #1d4ed8;
-	}
+.badge-info {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+/* Dark mode badge contrast improvements */
+@layer components {
+  .dark .badge-success {
+    background-color: color-mix(in srgb, #10b981 20%, transparent);
+    color: #34d399;
+    border-color: color-mix(in srgb, #10b981 40%, transparent);
+  }
+  .dark .badge-info {
+    background-color: color-mix(in srgb, #3b82f6 20%, transparent);
+    color: #93c5fd;
+    border-color: color-mix(in srgb, #3b82f6 40%, transparent);
+  }
+}
 
 	/* EVIDENCE: auth pages register/page.tsx:64,93 */
 	.card-elevated-gradient {
@@ -470,19 +461,7 @@
 	}
 
 	/* EVIDENCE: stripe-pricing-section.tsx:405 */
-	.button-ghost {
-		background-color: transparent;
-		color: var(--color-foreground);
-		padding: 0.75rem 1.5rem;
-		border-radius: var(--radius-lg);
-		border: 1px solid var(--color-border);
-		transition: all 0.2s;
-	}
 
-	.button-ghost:hover {
-		background-color: var(--color-accent);
-		color: var(--color-accent-foreground);
-	}
 
 	/* EVIDENCE: Multiple gradient text usage across components */
 .text-gradient-primary {
@@ -494,53 +473,7 @@
   color: transparent;
 }
 
-	.text-gradient-dominance {
-		background: linear-gradient(135deg, #1e40af, #3b82f6, #60a5fa);
-		background-clip: text;
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		color: transparent;
-	}
 
-	.text-gradient-premium {
-		background: linear-gradient(135deg, #7c3aed, #a855f7, #c084fc);
-		background-clip: text;
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		color: transparent;
-	}
-
-	.text-gradient-energy {
-		background: linear-gradient(135deg, #059669, #10b981, #34d399);
-		background-clip: text;
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		color: transparent;
-	}
-
-	.text-gradient-growth {
-		background: linear-gradient(135deg, #dc2626, #ef4444, #f87171);
-		background-clip: text;
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		color: transparent;
-	}
-
-	.text-gradient-innovation {
-		background: linear-gradient(135deg, #0891b2, #06b6d4, #67e8f9);
-		background-clip: text;
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		color: transparent;
-	}
-
-	.text-gradient-steel {
-		background: linear-gradient(135deg, #475569, #64748b, #94a3b8);
-		background-clip: text;
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		color: transparent;
-	}
 
 	/* EVIDENCE: Multiple marketing pages and components */
 	.marketing-hero {
@@ -561,12 +494,13 @@
 	}
 
 	/* EVIDENCE: app-sidebar, hero-section, pricing components */
-	.text-display {
-		font-size: clamp(2rem, 5vw, 4rem);
-		font-weight: 700;
-		line-height: 1.1;
-		letter-spacing: -0.025em;
-	}
+.text-display {
+  /* Alias to display-xl (60px) from design system */
+  font-size: 60px;
+  font-weight: 900;
+  letter-spacing: -0.035em;
+  line-height: 1.06;
+}
 
 	/* EVIDENCE: Multiple components with custom animations */
 	.animate-fade-in-up {
