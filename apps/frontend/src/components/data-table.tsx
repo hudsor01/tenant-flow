@@ -743,7 +743,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(
 			return (
 				<div
 					ref={ref}
-					className={cn(cardClasses('elevated'), 'p-8 text-center', className)}
+					className={cn(cardClasses('elevated'), 'card-padding text-center', className)}
 					{...props}
 				>
 					<div className="flex flex-col items-center gap-4">
