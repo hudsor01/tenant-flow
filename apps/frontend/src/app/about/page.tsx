@@ -2,6 +2,7 @@ import { Navbar } from '@/components/navbar'
 import { Button } from '@/components/ui/button'
 import { ShimmerButton } from '@/components/magicui/shimmer-button'
 import { BlurFade } from '@/components/magicui/blur-fade'
+import { HeroAuthority } from '@/components/marketing/hero-authority'
 import {
 	Handshake,
 	Lightbulb,
@@ -24,24 +25,12 @@ export default function AboutPage() {
 			<Navbar />
 			
 			{/* Hero Section */}
-			<section className="pt-24 pb-16 gradient-authority">
-				<div className={containerClasses('xl')}>
-					<BlurFade delay={0.1} inView>
-						<div className="text-center max-w-4xl mx-auto space-y-8">
-							<h1 className="text-gradient-authority font-bold tracking-tight leading-tight" style={TYPOGRAPHY_SCALE['display-lg']}>
-								Simplifying property management for thousands of professionals
-							</h1>
-							<p 
-								className="text-muted-foreground leading-relaxed max-w-2xl mx-auto"
-								style={TYPOGRAPHY_SCALE['body-lg']}
-							>
-								We're on a mission to transform how property managers work, grow, and succeed. 
-								Our platform empowers professionals to streamline operations and scale their business with confidence.
-							</p>
-						</div>
-					</BlurFade>
-				</div>
-			</section>
+			<HeroAuthority 
+				title={<>Simplifying property management for thousands of professionals</>}
+				subtitle={<>We're on a mission to transform how property managers work, grow, and succeed. Our platform empowers professionals to streamline operations and scale their business with confidence.</>}
+				primaryCta={{ label: 'Start Free Trial', href: '/auth/sign-up' }}
+				secondaryCta={{ label: 'Talk to Sales', href: '/contact' }}
+			/>
 
 			{/* Mission Section */}
     <section className="section-hero">
