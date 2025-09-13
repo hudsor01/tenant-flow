@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ShimmerButton } from "@/components/magicui/shimmer-button"
+import { HeroAuthority } from '@/components/marketing/hero-authority'
 import { ArrowRight, CheckCircle, Clock, TrendingUp, Users, Book, MessageCircle, Phone, Mail } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { FooterMinimal } from "@/components/sections/footer-minimal"
@@ -12,35 +13,12 @@ export default function HelpPage() {
       <Navbar />
       
       {/* Hero Section */}
-      <section className="pt-24 pb-16 gradient-authority">
-        <div className="container mx-auto px-6 max-w-4xl text-center">
-          <Badge variant="outline" className="mb-6">
-            <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
-            Trusted by 10,000+ property managers
-          </Badge>
-          
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 text-gradient-authority">
-            Get help increasing your NOI by 40%
-          </h1>
-          
-          <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            Our property management experts are here to help you reduce costs by 32%, automate 80% of tasks, 
-            and guarantee ROI in 90 days. Get the support you need to transform your operations.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <ShimmerButton className="px-8 py-3 text-base font-semibold">
-              <span className="inline-flex items-center">
-                Start 14-day transformation
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </span>
-            </ShimmerButton>
-            <Button size="lg" variant="outline" className="px-8 btn-gradient-primary">
-              Schedule Expert Call
-            </Button>
-          </div>
-        </div>
-      </section>
+      <HeroAuthority 
+        title={<>Get help increasing your NOI by 40%</>}
+        subtitle={<>Our property management experts are here to help you reduce costs by 32%, automate 80% of tasks, and guarantee ROI in 90 days.</>}
+        primaryCta={{ label: 'Start 14-day transformation', href: '/auth/sign-up' }}
+        secondaryCta={{ label: 'Schedule Expert Call', href: '/contact' }}
+      />
 
       {/* Support Options */}
       <section className="section-hero">
