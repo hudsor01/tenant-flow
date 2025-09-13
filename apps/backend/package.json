@@ -17,9 +17,10 @@
     "start:prod": "node dist/main.js",
     "lint": "eslint . --fix --no-warn-ignored",
     "typecheck": "tsc -p tsconfig.build.json --noEmit --incremental --skipLibCheck",
-    "test": "doppler run -- npx jest",
-    "test:unit": "doppler run -- npx jest --testPathIgnorePatterns=\"integration|e2e\" --passWithNoTests",
-    "test:integration": "doppler run -- npx jest --testMatch=\"**/*.integration.spec.ts\" --passWithNoTests",
+    "test": "npx jest",
+    "test:unit": "npx jest --testPathIgnorePatterns=\"integration|e2e\" --passWithNoTests",
+    "test:integration": "npx jest --testMatch=\"**/*.integration.spec.ts\" --passWithNoTests",
+    "test:doppler": "doppler run -- npx jest",
     "clean": "rm -rf dist .turbo",
     "claude:check": "npm run lint && npm run typecheck"
   },
