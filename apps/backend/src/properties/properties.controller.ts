@@ -53,10 +53,10 @@ export class PropertiesController {
 	@Get()
 	@Public()
 	async findAll(
-		@CurrentUser() user?: ValidatedUser,
 		@Query('search', new DefaultValuePipe(null)) search: string | null,
 		@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-		@Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset: number
+		@Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset: number,
+		@CurrentUser() user?: ValidatedUser
 	) {
 		return this.propertiesService.findAll(user?.id || 'test-user-id', {
 			search,
