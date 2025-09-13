@@ -14,6 +14,7 @@ import {
 	Zap
 } from 'lucide-react'
 import Link from 'next/link'
+import { HeroAuthority } from '@/components/marketing/hero-authority'
 
 export default function BlogPage() {
 	return (
@@ -21,35 +22,12 @@ export default function BlogPage() {
 			<Navbar />
 			
 			{/* Hero Section */}
-			<section className="pt-24 pb-16 gradient-authority">
-				<div className="container mx-auto px-6 max-w-4xl text-center">
-					<Badge variant="outline" className="mb-6">
-						<CheckCircle className="w-4 h-4 mr-2 text-green-600" />
-						Trusted by 10,000+ property managers
-					</Badge>
-					
-					<h1 className="text-5xl md:text-6xl font-bold mb-6 text-gradient-authority">
-						Master property management with expert insights
-					</h1>
-					
-					<p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-						Learn the proven strategies that help property managers increase NOI by 40%, reduce costs by 32%, 
-						and automate 80% of daily tasks. Get actionable insights from industry experts.
-					</p>
-					
-					<div className="flex flex-col sm:flex-row gap-4 justify-center">
-						<ShimmerButton className="px-8 py-3 text-base font-semibold">
-							<span className="inline-flex items-center">
-								Start 14-day transformation
-								<ArrowRight className="w-5 h-5 ml-2" />
-							</span>
-						</ShimmerButton>
-						<Button size="lg" variant="outline" className="px-8 btn-gradient-primary">
-							Get ROI calculator
-						</Button>
-					</div>
-				</div>
-			</section>
+			<HeroAuthority 
+			  title={<>Master property management with expert insights</>}
+			  subtitle={<>Learn the proven strategies that help property managers increase NOI by 40%, reduce costs by 32%, and automate 80% of daily tasks.</>}
+			  primaryCta={{ label: 'Start 14-day transformation', href: '/auth/sign-up' }}
+			  secondaryCta={{ label: 'Get ROI calculator', href: '/pricing' }}
+			/>
 
       {/* Featured Article - High-Converting Content */}
       <section className="section-hero">

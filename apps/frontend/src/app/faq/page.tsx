@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { ChevronDown, ChevronUp, ArrowRight, CheckCircle } from 'lucide-react'
 import { Navbar } from '@/components/navbar'
 import { FooterMinimal } from '@/components/sections/footer-minimal'
+import { HeroAuthority } from '@/components/marketing/hero-authority'
 
 const faqs = [
   {
@@ -107,33 +108,12 @@ export default function FAQPage() {
       <Navbar />
       
       {/* Hero Section */}
-      <section className="pt-24 pb-16 gradient-authority">
-        <div className="container mx-auto px-6 max-w-4xl text-center">
-          <Badge variant="outline" className="mb-6">
-            <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
-            Trusted by 10,000+ property managers
-          </Badge>
-          
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 text-gradient-authority">
-            Questions about increasing your NOI by 40%?
-          </h1>
-          
-          <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            Get answers about how TenantFlow's enterprise-grade automation helps property managers 
-            reduce costs by 32%, automate 80% of tasks, and guarantee ROI in 90 days.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="px-8">
-              Start 14-day transformation
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-            <Button size="lg" variant="outline" className="px-8">
-              See ROI calculator
-            </Button>
-          </div>
-        </div>
-      </section>
+      <HeroAuthority
+        title={<>Questions about increasing your NOI by 40%?</>}
+        subtitle={<>Get answers about how TenantFlow's enterprise-grade automation reduces costs by 32%, automates 80% of tasks, and guarantees ROI in 90 days.</>}
+        primaryCta={{ label: 'Start 14-day transformation', href: '/auth/sign-up' }}
+        secondaryCta={{ label: 'See ROI calculator', href: '/pricing' }}
+      />
 
       {/* FAQ Section */}
       <section className="section-hero">

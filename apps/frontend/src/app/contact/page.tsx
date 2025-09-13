@@ -2,6 +2,7 @@ import { Navbar } from '@/components/navbar'
 import { Mail, MessageSquare, Phone, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ShimmerButton } from '@/components/magicui/shimmer-button'
+import { HeroAuthority } from '@/components/marketing/hero-authority'
 import { BlurFade } from '@/components/magicui/blur-fade'
 import { TYPOGRAPHY_SCALE } from '@repo/shared'
 import { containerClasses } from '@/lib/design-system'
@@ -12,27 +13,15 @@ export default function ContactPage() {
 			<Navbar />
 			<div className="pt-10">
 				{/* Hero Section */}
-				<section className="pt-24 pb-16 gradient-authority">
-					<div className={containerClasses('xl')}>
-						<BlurFade delay={0.1} inView>
-							<div className="text-center max-w-4xl mx-auto space-y-8">
-								<h1 className="text-gradient-authority font-bold tracking-tight leading-tight" style={TYPOGRAPHY_SCALE['display-lg']}>
-									Ready to transform your business?
-								</h1>
-								<p 
-									className="text-muted-foreground leading-relaxed max-w-2xl mx-auto"
-									style={TYPOGRAPHY_SCALE['body-lg']}
-								>
-									Join 10,000+ property managers who have transformed their operations with TenantFlow. 
-									Our experts will show you exactly how to reduce costs by 32% and automate 80% of daily tasks.
-								</p>
-							</div>
-						</BlurFade>
-					</div>
-				</section>
+				<HeroAuthority 
+				  title={<>Ready to transform your business?</>}
+				  subtitle={<>Join 10,000+ property managers who have transformed their operations with TenantFlow. Our experts will show you exactly how to reduce costs by 32% and automate 80% of daily tasks.</>}
+				  primaryCta={{ label: 'Get ROI Report', href: '#contact-form' }}
+				  secondaryCta={{ label: 'Schedule Free Call', href: '#options' }}
+				/>
 
 				{/* Contact Options */}
-      <section className="section-hero">
+      <section className="section-hero" id="options">
 					<div className={containerClasses('xl')}>
 						<BlurFade delay={0.2} inView>
 							<div className="grid md:grid-cols-3 gap-8">
@@ -96,7 +85,7 @@ export default function ContactPage() {
 				</section>
 
 				{/* Contact Form */}
-      <section className="section-hero bg-muted/20">
+      <section className="section-hero bg-muted/20" id="contact-form">
 					<div className={containerClasses('lg')}>
 						<BlurFade delay={0.3} inView>
 							<div className="text-center mb-12 space-y-4">
