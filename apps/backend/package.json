@@ -10,7 +10,8 @@
     "npm": ">=10.0.0"
   },
   "scripts": {
-    "build": "doppler run -- tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json",
+    "build:doppler": "doppler run -- tsc -p tsconfig.build.json",
     "dev": "doppler run -- tsx watch src/main.ts",
     "start": "node dist/main.js",
     "start:prod": "node dist/main.js",
