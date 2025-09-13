@@ -5,7 +5,7 @@ watchPaths = ["apps/backend/**", "packages/shared/**", "packages/database/**", "
 
 [deploy]
 startCommand = "node apps/backend/dist/main.js"
-healthcheckPath = "/health/ping"
+healthcheckPath = "/health"
 healthcheckTimeout = 60
 healthcheckInterval = 30
 restartPolicyType = "on_failure" 
