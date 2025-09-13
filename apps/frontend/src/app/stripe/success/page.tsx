@@ -10,7 +10,7 @@ function SuccessContent() {
 			className="bg-gradient-to-br from-green-50 to-emerald-100" 
 			containerClass="flex items-center justify-center min-h-screen max-w-md"
 		>
-			<div className="w-full bg-white rounded-2xl shadow-xl p-8 text-center">
+			<div className="w-full bg-white rounded-2xl shadow-xl card-padding text-center">
 				<div className="mb-6">
 					<CheckCircle className="mx-auto h-16 w-16 text-green-500" />
 				</div>

@@ -1,5 +1,12 @@
 import type { NextConfig } from 'next'
 
+// Workaround: disable Next.js DevTools in dev to avoid
+// SegmentViewNode manifest crashes seen during HMR on some setups.
+// This sets the env var if not already provided by Doppler/host.
+if (process.env.NODE_ENV === 'development' && !process.env.NEXT_DISABLE_DEVTOOLS) {
+  process.env.NEXT_DISABLE_DEVTOOLS = '1'
+}
+
 const nextConfig: NextConfig = {
 	reactStrictMode: true,
 	

@@ -7,7 +7,7 @@ import Link from 'next/link'
 export function CTAMinimal() {
   return (
     <section>
-      <div className="bg-muted py-16 md:py-20">
+  <div className="bg-muted section-content md:py-20">
         <div className="mx-auto max-w-5xl px-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8">
             <div>

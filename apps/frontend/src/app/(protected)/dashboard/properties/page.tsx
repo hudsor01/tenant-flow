@@ -293,7 +293,7 @@ function NewPropertyButton() {
 			</DialogTrigger>
 			<DialogContent className="sm:max-w-lg">
 				<DialogHeader>
-					<DialogTitle className="text-gradient-premium">
+            <DialogTitle className="text-gradient-authority">
 						Create New Property
 					</DialogTitle>
 				</DialogHeader>

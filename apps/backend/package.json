@@ -10,15 +10,15 @@
     "npm": ">=10.0.0"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "doppler run -- tsc -p tsconfig.build.json",
     "dev": "doppler run -- tsx watch src/main.ts",
     "start": "node dist/main.js",
     "start:prod": "node dist/main.js",
     "lint": "eslint . --fix --no-warn-ignored",
     "typecheck": "tsc -p tsconfig.build.json --noEmit --incremental --skipLibCheck",
-    "test": "npx jest",
-    "test:unit": "npx jest --testPathIgnorePatterns=\"integration|e2e\" --passWithNoTests",
-    "test:integration": "npx jest --testMatch=\"**/*.integration.spec.ts\" --passWithNoTests",
+    "test": "doppler run -- npx jest",
+    "test:unit": "doppler run -- npx jest --testPathIgnorePatterns=\"integration|e2e\" --passWithNoTests",
+    "test:integration": "doppler run -- npx jest --testMatch=\"**/*.integration.spec.ts\" --passWithNoTests",
     "clean": "rm -rf dist .turbo",
     "claude:check": "npm run lint && npm run typecheck"
   },
