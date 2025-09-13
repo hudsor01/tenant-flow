@@ -1,6 +1,6 @@
 "use client"
 
-import { SignUpForm } from '@/components/auth/sign-up-form'
+import { LoginForm } from '@/components/auth/login-form'
 import { BlurFade } from '@/components/magicui/blur-fade'
 import { BorderBeam } from '@/components/magicui/border-beam'
 import { Particles } from '@/components/magicui/particles'
@@ -43,10 +43,10 @@ export default function RegisterPage() {
               <div className="text-center lg:text-left">
                 <AnimatedGradientText className="inline-flex items-center justify-center mb-4">
                   <Sparkles className="w-4 h-4 me-2" />
-                  <span className="text-gradient-premium">Join TenantFlow Today</span>
+                  <span className="text-gradient-authority">Join TenantFlow Today</span>
                 </AnimatedGradientText>
                 
-                <h1 className="text-4xl font-heading font-bold tracking-tight text-gradient-dominance mb-4">
+                <h1 className="text-4xl font-heading font-bold tracking-tight text-gradient-authority mb-4">
                   Create Your Account
                 </h1>
                 
@@ -62,9 +62,9 @@ export default function RegisterPage() {
             {/* Form */}
             <BlurFade delay={0.3} inView>
               <div className="relative">
-                <div className="card-elevated-gradient p-8 rounded-2xl border border-border/20">
+                <div className="card-elevated-authority card-padding rounded-2xl">
                   <BorderBeam size={200} duration={12} delay={9} />
-                  <SignUpForm />
+                  <LoginForm mode="signup" />
                 </div>
               </div>
             </BlurFade>
@@ -91,7 +91,7 @@ export default function RegisterPage() {
             {/* Dashboard Preview */}
             <div className="relative h-full flex items-center justify-center p-12">
               <div className="relative max-w-2xl w-full">
-                <div className="card-elevated-gradient p-6 rounded-3xl border-2 border-border/20 group hover:scale-105 transition-transform duration-700">
+                <div className="card-elevated-authority p-6 rounded-3xl border-2 group hover:scale-105 transition-transform duration-700">
                   <BorderBeam size={300} duration={15} delay={12} />
                   
                   <div className="aspect-[4/3] rounded-2xl overflow-hidden relative">
@@ -105,43 +105,43 @@ export default function RegisterPage() {
                     {/* Overlay Features */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
                     
-                    {/* Feature Badges */}
+                    {/* Feature Badges - Professional Authority Styling */}
                     <div className="absolute top-6 left-6">
-                      <div className="badge-success backdrop-blur-sm px-4 py-2 rounded-xl">
+                      <div className="bg-emerald-600 text-white backdrop-blur-sm px-4 py-2 rounded-xl font-semibold">
                         Real-time Analytics
                       </div>
                     </div>
                     
                     <div className="absolute top-6 right-6">
-                      <div className="badge-info backdrop-blur-sm px-4 py-2 rounded-xl">
+                      <div className="bg-blue-600 text-white backdrop-blur-sm px-4 py-2 rounded-xl font-semibold">
                         AI-Powered Insights
                       </div>
                     </div>
                     
                     <div className="absolute bottom-6 left-6">
-                      <div className="badge backdrop-blur-sm px-4 py-2 rounded-xl">
+                      <div className="bg-slate-700 text-white backdrop-blur-sm px-4 py-2 rounded-xl font-semibold">
                         Automated Workflows
                       </div>
                     </div>
                     
                     <div className="absolute bottom-6 right-6">
-                      <div className="badge-success backdrop-blur-sm px-4 py-2 rounded-xl">
+                      <div className="bg-emerald-600 text-white backdrop-blur-sm px-4 py-2 rounded-xl font-semibold">
                         Smart Reporting
                       </div>
                     </div>
                   </div>
                 </div>
                 
-                {/* Trust Indicators */}
+                {/* Trust Indicators - Professional Authority */}
                 <div className="mt-8 text-center space-y-4">
                   <div className="flex justify-center gap-4">
-                    <div className="badge-success px-4 py-2 rounded-xl">SOC 2 Compliant</div>
-                    <div className="badge-info px-4 py-2 rounded-xl">GDPR Ready</div>
-                    <div className="badge px-4 py-2 rounded-xl">Enterprise Security</div>
+                    <div className="bg-emerald-600 text-white px-4 py-2 rounded-xl font-semibold">SOC 2 Compliant</div>
+                    <div className="bg-blue-600 text-white px-4 py-2 rounded-xl font-semibold">GDPR Ready</div>
+                    <div className="bg-slate-700 text-white px-4 py-2 rounded-xl font-semibold">Enterprise Security</div>
                   </div>
                   
                   <p className="text-muted-foreground">
-                    Trusted by <span className="font-bold text-foreground">10,000+</span> property managers
+                    Trusted by <span className="font-bold text-gradient-authority">10,000+</span> property managers
                   </p>
                 </div>
               </div>
@@ -152,4 +152,3 @@ export default function RegisterPage() {
     </div>
   )
 }
-

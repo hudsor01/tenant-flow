@@ -1,5 +1,5 @@
-import { SaasHeroSection } from '@/components/sections/saas-hero-section'
-import { FeaturesSectionDemo3 } from '@/components/magicui/features-section-demo-3'
+import { PremiumHeroSection } from '@/components/sections/premium-hero-section'
+import { FeaturesSection } from '@/components/sections/features-section'
 import { MinimalistPricingSection } from '@/components/sections/minimalist-pricing-section'
 import { FooterMinimal } from '@/components/sections/footer-minimal'
 import ClientFeedback from '@/components/ui/testimonial'
@@ -12,7 +12,7 @@ import { ArrowRight } from 'lucide-react'
 
 // CTA Section with Design System Consistency
 const CTASection = () => (
-  <section className="py-24 bg-gradient-to-br from-primary/5 via-background to-accent/5">
+  <section className="section-hero bg-gradient-to-br from-primary/5 via-background to-accent/5">
     <div className={containerClasses('lg')}>
       <BlurFade delay={0.1} inView>
         <div className="text-center space-y-8">
@@ -21,7 +21,7 @@ const CTASection = () => (
             style={TYPOGRAPHY_SCALE['heading-xl']}
           >
             Ready to{' '}
-            <span className="bg-gradient-to-r from-primary via-primary/80 to-accent bg-clip-text text-transparent">
+            <span className="text-gradient-authority">
               transform property management
             </span>
             ?
@@ -68,11 +68,11 @@ export default function HomePage() {
       {/* Navigation */}
       <Navbar />
       
-      {/* Hero Section - SELECTED */}
-      <SaasHeroSection />
+      {/* Hero Section - PREMIUM BENTO LAYOUT */}
+      <PremiumHeroSection />
       
-      {/* Features Section - SELECTED */}
-      <FeaturesSectionDemo3 />
+      {/* Features Section - Design System (MagicUI) */}
+      <FeaturesSection />
       
       {/* CTA Section - IMPLEMENTED */}
       <CTASection />
