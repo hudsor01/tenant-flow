@@ -1,6 +1,7 @@
 import { Navbar } from '@/components/navbar'
 import { Mail, MessageSquare, Phone, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { ShimmerButton } from '@/components/magicui/shimmer-button'
 import { BlurFade } from '@/components/magicui/blur-fade'
 import { TYPOGRAPHY_SCALE } from '@repo/shared'
 import { containerClasses } from '@/lib/design-system'
@@ -11,19 +12,12 @@ export default function ContactPage() {
 			<Navbar />
 			<div className="pt-10">
 				{/* Hero Section */}
-				<section className="pt-24 pb-16 bg-gradient-to-br from-background via-background to-muted/20">
+				<section className="pt-24 pb-16 gradient-authority">
 					<div className={containerClasses('xl')}>
 						<BlurFade delay={0.1} inView>
 							<div className="text-center max-w-4xl mx-auto space-y-8">
-								<h1 
-									className="text-foreground font-bold tracking-tight leading-tight"
-									style={TYPOGRAPHY_SCALE['display-lg']}
-								>
-									Ready to{' '}
-									<span className="bg-gradient-to-r from-primary via-primary/80 to-accent bg-clip-text text-transparent">
-										transform your business
-									</span>
-									?
+								<h1 className="text-gradient-authority font-bold tracking-tight leading-tight" style={TYPOGRAPHY_SCALE['display-lg']}>
+									Ready to transform your business?
 								</h1>
 								<p 
 									className="text-muted-foreground leading-relaxed max-w-2xl mx-auto"
@@ -67,7 +61,7 @@ export default function ContactPage() {
 								].map((option, index) => (
               <div
                 key={index}
-                className="bg-card rounded-2xl card-padding text-center border border-border/50 hover:border-primary/20 transition-all duration-300 hover:shadow-lg group"
+                className="card-elevated-authority rounded-2xl card-padding text-center transition-all duration-300 hover:shadow-lg group"
               >
 										<div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-primary/20 to-accent/20 mx-auto mb-6 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
 											<option.icon className="w-8 h-8 text-primary" />
@@ -84,7 +78,7 @@ export default function ContactPage() {
 										>
 											{option.description}
 										</p>
-										<Button className="mb-4 w-full group">
+										<Button className="mb-4 w-full group btn-gradient-primary">
 											{option.action}
 											<ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
 										</Button>
@@ -121,7 +115,7 @@ export default function ContactPage() {
 								</p>
 							</div>
 
-            <div className="bg-card border rounded-lg card-padding">
+            <div className="card-elevated-authority rounded-2xl card-padding">
 							<form className="space-y-6">
 								<div className="grid md:grid-cols-2 gap-6">
 									<div>
@@ -196,14 +190,12 @@ export default function ContactPage() {
 								</div>
 
 								<div className="text-center">
-									<Button
-										type="submit"
-										size="xl"
-										className="px-8 group"
-									>
-										Get My Custom ROI Report
-										<ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
-									</Button>
+									<ShimmerButton className="px-8 py-3 text-base font-semibold">
+										<span className="inline-flex items-center">
+											Get My Custom ROI Report
+											<ArrowRight className="w-4 h-4 ml-2" />
+										</span>
+									</ShimmerButton>
 									<p 
 										className="text-muted-foreground mt-2"
 										style={TYPOGRAPHY_SCALE['body-sm']}

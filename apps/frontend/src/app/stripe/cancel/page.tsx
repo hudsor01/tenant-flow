@@ -7,15 +7,15 @@ function CancelContent() {
 	return (
 		<PageLayout 
 			showNavbar={false} 
-			className="bg-gradient-to-br from-red-50 to-orange-100" 
+			className="gradient-authority" 
 			containerClass="flex items-center justify-center min-h-screen max-w-md"
 		>
-			<div className="w-full bg-white rounded-2xl shadow-xl card-padding text-center">
+			<div className="w-full card-elevated-authority rounded-2xl card-padding text-center">
 				<div className="mb-6">
 					<XCircle className="mx-auto h-16 w-16 text-red-500" />
 				</div>
 
-				<h1 className="text-3xl font-bold text-gray-900 mb-4">
+				<h1 className="text-3xl font-bold mb-4 text-gradient-authority">
 					Payment Cancelled
 				</h1>
 
@@ -27,14 +27,14 @@ function CancelContent() {
 				<div className="space-y-4">
 					<Link
 						href="/pricing"
-						className="block w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+						className="block w-full btn-gradient-primary py-3 px-6 rounded-lg font-medium hover:brightness-110 transition"
 					>
 						Try Again
 					</Link>
 
 					<Link
 						href="/"
-						className="block w-full bg-gray-100 text-gray-700 py-3 px-6 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+						className="block w-full border py-3 px-6 rounded-lg font-medium hover:bg-accent transition-colors"
 					>
 						Back to Home
 					</Link>
@@ -55,9 +55,9 @@ export default function CancelPage() {
 	return (
 		<Suspense
 			fallback={
-				<PageLayout 
-					showNavbar={false} 
-					className="bg-gradient-to-br from-red-50 to-orange-100" 
+					<PageLayout 
+						showNavbar={false} 
+						className="gradient-authority" 
 					containerClass="flex items-center justify-center min-h-screen"
 				>
 					<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
