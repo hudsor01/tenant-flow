@@ -4,7 +4,7 @@ import * as React from 'react'
 import { cn } from '@/lib/design-system'
 import { TYPOGRAPHY_SCALE } from '@repo/shared'
 
-export interface SectionHeaderProps extends React.ComponentProps<'div'> {
+export interface SectionHeaderProps extends Omit<React.ComponentProps<'div'>, 'title'> {
   eyebrow?: React.ReactNode
   title: React.ReactNode
   subtitle?: React.ReactNode
