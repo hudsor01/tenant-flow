@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Construction, Clock, Home, Mail, Twitter, ArrowLeft } from 'lucide-react'
+import { Construction, Clock, Mail, Twitter, ArrowLeft } from 'lucide-react'
 import { BlurFade } from '@/components/magicui/blur-fade'
 import { TYPOGRAPHY_SCALE, ANIMATION_DURATIONS } from '@repo/shared'
 
