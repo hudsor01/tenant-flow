@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { ArrowRight } from 'lucide-react'
 import { Section } from './section'
 
-export interface HeroAuthorityProps extends React.ComponentProps<'section'> {
+export interface HeroAuthorityProps extends Omit<React.ComponentProps<'section'>, 'title'> {
   title: React.ReactNode
   subtitle?: React.ReactNode
   primaryCta?: { label: string; href: string }

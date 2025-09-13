@@ -4,7 +4,7 @@ import * as React from 'react'
 import { cn } from '@/lib/design-system'
 import { TYPOGRAPHY_SCALE } from '@repo/shared'
 
-export interface FeatureCardProps extends React.ComponentProps<'div'> {
+export interface FeatureCardProps extends Omit<React.ComponentProps<'div'>, 'title'> {
   icon?: React.ComponentType<{ className?: string }>
   title: React.ReactNode
   description?: React.ReactNode
