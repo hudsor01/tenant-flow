@@ -38,7 +38,7 @@ export default function AppLoading() {
 
 					<div className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
 						{[...Array(3)].map((_, i) => (
-							<div key={i} className="relative rounded-2xl border p-8">
+            <div key={i} className="relative rounded-2xl border card-padding">
 								<Skeleton className="mb-4 h-8 w-8 rounded-full" />
 								<Skeleton className="mb-2 h-6 w-3/4" />
 								<Skeleton className="h-4 w-full" />
@@ -59,7 +59,7 @@ export default function AppLoading() {
 
 					<div className="mt-16 grid grid-cols-1 gap-8 lg:grid-cols-3">
 						{[...Array(3)].map((_, i) => (
-							<div key={i} className="relative rounded-2xl border p-8">
+            <div key={i} className="relative rounded-2xl border card-padding">
 								<Skeleton className="mb-2 h-8 w-32" />
 								<Skeleton className="mb-4 h-4 w-48" />
 								<Skeleton className="mb-6 h-12 w-24" />

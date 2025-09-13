@@ -93,7 +93,7 @@ export function ModernHeroSection({ className }: ModernHeroSectionProps) {
               <div className="relative bg-white dark:bg-black rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
                 
                 {/* Clean Interface */}
-                <div className="p-8">
+              <div className="card-padding">
                   {/* Top Bar */}
                   <div className="flex items-center justify-between mb-8">
                     <div className="flex items-center gap-4">
@@ -126,7 +126,7 @@ export function ModernHeroSection({ className }: ModernHeroSectionProps) {
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                     
                     {/* Main Card */}
-                    <div className="lg:col-span-2 bg-slate-50 dark:bg-slate-950 rounded-2xl p-8 border border-slate-100 dark:border-slate-900">
+                    <div className="lg:col-span-2 bg-slate-50 dark:bg-slate-950 rounded-2xl card-padding border border-slate-100 dark:border-slate-900">
                       <div className="flex items-center justify-between mb-6">
                         <h3 className="text-xl font-semibold text-black dark:text-white">Portfolio Overview</h3>
                         <div className="text-sm text-slate-400">Last 30 days</div>

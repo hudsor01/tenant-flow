@@ -94,7 +94,6 @@ export default defineConfig({
 			maxDiffPixels: 100,
 			threshold: 0.2,
 			animations: 'disabled', // More reliable screenshots
-			mode: 'strict',
 			stylePath: './tests/visual-regression.css'
 		},
 		// General assertion timeout

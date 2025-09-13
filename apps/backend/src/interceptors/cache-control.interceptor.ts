@@ -23,10 +23,11 @@ export class CacheControlInterceptor implements NestInterceptor {
       .getRequest<{ method?: string; url?: string }>()
     const reply = context.switchToHttp().getResponse<FastifyReply>()
 
-    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+    // Safe Reflector access with fallback
+    const isPublic = this.reflector?.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass()
-    ])
+    ]) ?? false
 
     // Never cache health endpoints
     const url = request.url ?? ''

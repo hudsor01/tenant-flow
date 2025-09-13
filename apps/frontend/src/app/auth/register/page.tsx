@@ -43,7 +43,7 @@ export default function RegisterPage() {
               <div className="text-center lg:text-left">
                 <AnimatedGradientText className="inline-flex items-center justify-center mb-4">
                   <Sparkles className="w-4 h-4 me-2" />
-                  <span className="text-gradient-premium">Join TenantFlow Today</span>
+                  <span className="text-gradient-authority">Join TenantFlow Today</span>
                 </AnimatedGradientText>
                 
                 <h1 className="text-4xl font-heading font-bold tracking-tight text-gradient-authority mb-4">
@@ -62,7 +62,7 @@ export default function RegisterPage() {
             {/* Form */}
             <BlurFade delay={0.3} inView>
               <div className="relative">
-                <div className="card-elevated-authority p-8 rounded-2xl">
+                <div className="card-elevated-authority card-padding rounded-2xl">
                   <BorderBeam size={200} duration={12} delay={9} />
                   <LoginForm mode="signup" />
                 </div>

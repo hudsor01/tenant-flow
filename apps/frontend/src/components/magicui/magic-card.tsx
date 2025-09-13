@@ -49,7 +49,7 @@ export const MagicCard = React.forwardRef<HTMLDivElement, MagicCardProps>(
   const sizes = {
     sm: "p-4 rounded-xl",
     md: "p-6 rounded-2xl", 
-    lg: "p-8 rounded-3xl",
+    lg: "card-padding rounded-3xl",
     xl: "p-10 rounded-[2rem]"
   }
 

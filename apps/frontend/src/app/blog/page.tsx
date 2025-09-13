@@ -51,10 +51,10 @@ export default function BlogPage() {
 				</div>
 			</section>
 
-			{/* Featured Article - High-Converting Content */}
-			<section className="py-24">
+      {/* Featured Article - High-Converting Content */}
+      <section className="section-hero">
 				<div className="container mx-auto px-6 max-w-6xl">
-					<div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-8 md:p-12 border border-blue-100">
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl card-padding md:p-12 border border-blue-100">
 						<div className="grid md:grid-cols-2 gap-8 items-center">
 							<div>
 								<Badge className="mb-4 bg-green-100 text-green-800">
@@ -83,7 +83,7 @@ export default function BlogPage() {
 									<ArrowRight className="w-5 h-5 ml-2" />
 								</Button>
 							</div>
-							<div className="bg-white rounded-xl p-8 shadow-lg">
+                <div className="bg-white rounded-xl card-padding shadow-lg">
 								<div className="text-center">
 									<div className="text-4xl font-bold text-green-600 mb-2">40%</div>
 									<p className="text-sm text-muted-foreground mb-4">Average NOI Increase</p>
@@ -105,8 +105,8 @@ export default function BlogPage() {
 				</div>
 			</section>
 
-			{/* Results-Focused Categories */}
-			<section className="py-24 bg-muted/20">
+      {/* Results-Focused Categories */}
+      <section className="section-hero bg-muted/20">
 				<div className="container mx-auto px-6 max-w-6xl">
 					<div className="text-center mb-16">
 						<h2 className="text-4xl font-bold mb-4">Learn what works</h2>
@@ -149,7 +149,7 @@ export default function BlogPage() {
 							<Link
 								key={index}
 								href={`/blog/category/${category.name.toLowerCase().replace(' ', '-')}`}
-								className="bg-white p-8 border rounded-lg hover:shadow-lg transition-all duration-300 text-center group hover:-translate-y-1"
+                className="bg-white card-padding border rounded-lg hover:shadow-lg transition-all duration-300 text-center group hover:-translate-y-1"
 							>
 								<div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 ${category.color.replace('text-', 'bg-').replace('-800', '-100')}`}>
 									<category.icon className={`w-8 h-8 ${category.color.replace('bg-', 'text-').replace('-100', '-600')}`} />
@@ -170,7 +170,7 @@ export default function BlogPage() {
 			</section>
 
 			{/* High-Converting Articles */}
-			<section className="py-24">
+      <section className="section-hero">
 				<div className="container mx-auto px-6 max-w-6xl">
 					<div className="text-center mb-16">
 						<h2 className="text-4xl font-bold mb-4">Latest strategies that work</h2>
@@ -218,7 +218,7 @@ export default function BlogPage() {
 							<Link
 								key={index}
 								href={`/blog/${article.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
-								className="bg-white border rounded-xl p-8 hover:shadow-xl transition-all duration-300 group hover:-translate-y-1"
+                className="bg-white border rounded-xl card-padding hover:shadow-xl transition-all duration-300 group hover:-translate-y-1"
 							>
 								<div className="flex items-center justify-between mb-4">
 									<Badge className={article.badge}>
@@ -259,7 +259,7 @@ export default function BlogPage() {
 			</section>
 
 			{/* Newsletter with Strong Value Prop */}
-			<section className="py-16 bg-gradient-to-r from-blue-600 to-purple-600">
+      <section className="section-content bg-gradient-to-r from-blue-600 to-purple-600">
 				<div className="container mx-auto px-6 text-center max-w-4xl">
 					<h2 className="text-4xl font-bold text-white mb-4">
 						Get the strategies that increase NOI by 40%

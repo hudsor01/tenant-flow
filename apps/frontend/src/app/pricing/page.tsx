@@ -97,7 +97,7 @@ export default function PricingPage() {
 
   return (
     <PageLayout>
-      <section className="py-8 md:py-16">
+  <section className="section-content md:py-16">
         <div className="mx-auto max-w-7xl">
           {/* Header */}
           <BlurFade delay={0.1} inView>

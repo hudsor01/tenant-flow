@@ -37,7 +37,7 @@ export default function SettingsPage() {
 			{/* Page Header */}
 			<div className="flex items-center justify-between">
 				<div>
-					<h1 className="text-3xl font-bold text-gradient-dominance">
+            <h1 className="text-3xl font-bold text-gradient-authority">
 						Settings & Preferences
 					</h1>
 					<p className="text-muted-foreground mt-1">
