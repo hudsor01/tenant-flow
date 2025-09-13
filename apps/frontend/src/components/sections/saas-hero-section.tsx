@@ -34,7 +34,7 @@ export interface SaasHeroSectionProps extends React.ComponentProps<'section'> {
 export const SaasHeroSection = React.forwardRef<HTMLElement, SaasHeroSectionProps>(
   ({ 
     announcementText = "Trusted by 10,000+ property managers",
-    headline = "Simplify Property Management",
+    headline: _headline = "Simplify Property Management",
     subheadline = "Professional property managers streamline operations, automate workflows, and scale their business with TenantFlow's enterprise-grade platform.",
     primaryCTAText = "Start 14-day transformation",
     primaryCTAHref = "/auth/sign-up",

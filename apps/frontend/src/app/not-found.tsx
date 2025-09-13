@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Home, ArrowLeft, Search, HelpCircle } from 'lucide-react'
+import { Home, HelpCircle } from 'lucide-react'
 import { BlurFade } from '@/components/magicui/blur-fade'
 import { TYPOGRAPHY_SCALE, ANIMATION_DURATIONS } from '@repo/shared'
 

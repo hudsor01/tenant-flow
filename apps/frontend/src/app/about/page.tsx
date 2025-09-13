@@ -13,7 +13,7 @@ import {
 	ArrowRight,
 	Mail
 } from 'lucide-react'
-import { TYPOGRAPHY_SCALE, ANIMATION_DURATIONS } from '@repo/shared'
+import { TYPOGRAPHY_SCALE } from '@repo/shared'
 import { containerClasses } from '@/lib/design-system'
 import Link from 'next/link'
 
