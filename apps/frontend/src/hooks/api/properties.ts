@@ -1,7 +1,7 @@
 'use client'
 
-import { propertiesApi } from '@/lib/api-client'
-import type { Database, PropertyWithUnits } from '@repo/shared'
+import { propertiesApi, dashboardApi } from '@/lib/api-client'
+import type { Database, PropertyWithUnits, PropertyPerformance } from '@repo/shared'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { dashboardKeys } from './use-dashboard'
 import type { DashboardStats } from '@repo/shared'
@@ -21,11 +21,11 @@ export function useProperties(status?: PropertyStatus) {
 
 // Server-calculated property analytics (properties with units)
 export function usePropertyPerformance() {
-  return useQuery<PropertyWithUnits[]>({
+  return useQuery<PropertyPerformance[]>({
     queryKey: ['properties', 'analytics'],
     queryFn: async () => {
       const properties = await dashboardApi.getPropertyPerformance()
-      return { properties }
+      return properties
     },
     staleTime: 2 * 60 * 1000,
     gcTime: 15 * 60 * 1000,
