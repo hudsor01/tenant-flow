@@ -72,9 +72,9 @@ export function MinimalistPricingSection({
 	})
 
 	return (
-		<section
-			className={cn('py-24 lg:py-32 bg-white dark:bg-gray-950', className)}
-		>
+			<section
+				className={cn('section-hero lg:py-32 bg-white dark:bg-gray-950', className)}
+			>
 			<div className="container px-4 mx-auto">
 				<div className="max-w-6xl mx-auto">
 					{/* Section Header */}
@@ -116,11 +116,11 @@ export function MinimalistPricingSection({
 									>
 										<MagicCard
 											className={cn(
-												'relative p-8 transition-all duration-500 group cursor-pointer',
-												plan.popular
-													? 'border-2 border-purple-200 dark:border-purple-800 shadow-xl'
-													: 'border border-gray-200 dark:border-gray-800'
-											)}
+													'relative card-padding transition-all duration-500 group cursor-pointer',
+													plan.popular
+														? 'border-2 border-purple-200 dark:border-purple-800 shadow-xl'
+														: 'border border-gray-200 dark:border-gray-800'
+												)}
 											gradientColor={plan.popular ? '#a855f7' : '#64748b'}
 										>
 											{plan.popular && (

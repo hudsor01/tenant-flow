@@ -81,7 +81,7 @@ export default function CheckoutSuccessPage() {
 		<main className="min-h-screen bg-background">
 			<Navbar />
 			<div className="pt-20">
-				<div className="container mx-auto px-4 py-16 max-w-2xl">
+					<div className="container mx-auto px-4 section-content max-w-2xl">
 					<Card className="text-center">
 						<CardHeader className="pb-8">
 							<div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
