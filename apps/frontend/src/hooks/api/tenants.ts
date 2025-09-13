@@ -19,7 +19,7 @@ export function useTenants(status?: string) {
 
     // Cast to loosen React Query's generic inference for this enriched shape
     // Loosen types to avoid React Query overload mismatch in strict TS; data shape is TenantWithLeaseInfo[]
-    const result = (useQuery as any)({
+    const result = (useQuery as typeof useQuery)({
         queryKey: key,
         queryFn: listFn
     }) as { data: TenantWithLeaseInfo[] | undefined; isLoading: boolean }

@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from 'recharts'
-import { TrendingUp, TrendingDown, Home, Activity, Calendar, Users, AlertCircle, Loader2, RefreshCw, BarChart3, Eye } from 'lucide-react'
+import { TrendingUp, TrendingDown, Users, RefreshCw, Eye, Home } from 'lucide-react'
 import { usePropertiesFormatted } from '@/hooks/api/properties'
 
 import type { ChartConfig } from '@/components/ui/chart'
@@ -12,15 +12,7 @@ import {
 	ChartTooltipContent
 } from '@/components/ui/chart'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { 
-	cn, 
-	ANIMATION_DURATIONS, 
-	TYPOGRAPHY_SCALE,
-	cardClasses,
-	buttonClasses,
-	badgeClasses,
-	animationClasses
-} from '@/lib/utils'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -52,7 +44,7 @@ const chartConfig = {
 	},
 } as ChartConfig
 
-function generatePropertyInterestData(properties: any[] = [], timeRange: '7d' | '30d' | '90d' = '30d'): PropertyInterestDataPoint[] {
+function generatePropertyInterestData(_properties: unknown[] = [], timeRange: '7d' | '30d' | '90d' = '30d'): PropertyInterestDataPoint[] {
 	const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90
 	const baseInterest = Math.floor(Math.random() * 20) + 30
 	

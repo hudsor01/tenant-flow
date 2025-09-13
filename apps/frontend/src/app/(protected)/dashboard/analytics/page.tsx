@@ -303,7 +303,7 @@ export default function AnalyticsPage() {
 						</Button>
 					</div>
 					<div className="space-y-4">
-						{(propertyData || []).slice(0, 5).map((property: any, index: number) => (
+						{(propertyData || []).slice(0, 5).map((property, index: number) => (
 							<div
 								key={index}
 								className="flex items-center justify-between p-3 rounded-lg bg-muted/20 hover:bg-muted/40 transition-colors"
@@ -313,24 +313,24 @@ export default function AnalyticsPage() {
 										{index + 1}
 									</div>
 									<div>
-										<p className="font-medium">{property.name || property.property_name || 'Unknown Property'}</p>
+										<p className="font-medium">{property.property || 'Unknown Property'}</p>
 										<p className="text-sm text-muted-foreground">
-											{property.occupied_units || 0}/{property.total_units || 0} units occupied
+											{property.occupiedUnits || 0}/{property.totalUnits || 0} units occupied
 										</p>
 									</div>
 								</div>
 								<Badge
 									variant={
-										(property.occupancy_rate || 0) >= 90 ? 'default' : 'destructive'
+										(property.occupancyRate || 0) >= 90 ? 'default' : 'destructive'
 									}
 									className="text-xs"
 								>
-									{(property.occupancy_rate || 0) >= 90 ? (
+									{(property.occupancyRate || 0) >= 90 ? (
 										<TrendingUp className="size-3 mr-1" />
 									) : (
 										<TrendingDown className="size-3 mr-1" />
 									)}
-									{property.occupancy_rate ? `${property.occupancy_rate.toFixed(1)}%` : '0.0%'}
+									{property.occupancyRate ? `${property.occupancyRate.toFixed(1)}%` : '0.0%'}
 								</Badge>
 							</div>
 						))}

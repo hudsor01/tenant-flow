@@ -1,3 +1,5 @@
+"use client"
+
 import type { CSSProperties } from "react";
 import React, { useEffect, useState } from "react";
 import type { ComponentProps } from '@repo/shared';
