@@ -15,7 +15,7 @@ export default function FeaturesSectionDemo() {
           <div
             key={feature.title}
             className={cn(
-              "group relative overflow-hidden rounded-2xl p-8 transition-all",
+              "group relative overflow-hidden rounded-2xl card-padding transition-all",
               "bg-gradient-to-br from-white/80 to-gray-50/50 dark:from-gray-900/80 dark:to-gray-800/50",
               "border border-gray-200/50 dark:border-gray-700/50",
               "hover:shadow-xl hover:scale-[1.02] hover:border-primary/30",

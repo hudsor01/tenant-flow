@@ -127,7 +127,7 @@ export default function LeasesPage() {
 			<div className="px-4 lg:px-6">
 				<div className="flex items-center justify-between mb-6">
 					<div>
-						<h1 className="text-3xl font-bold text-gradient-growth mb-2">
+            <h1 className="text-3xl font-bold text-gradient-authority mb-2">
 							Lease Management
 						</h1>
 						<p className="text-muted-foreground">
