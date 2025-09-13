@@ -49,14 +49,13 @@ jobs:
     needs: build-and-test
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    container: ghcr.io/railwayapp/cli:latest
     
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Trigger Railway Deployment
-        run: |
-          npm i -g @railway/cli@3
-          railway status
+      - name: Deploy to Railway
+        run: railway up --service=tenantflow-backend
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
