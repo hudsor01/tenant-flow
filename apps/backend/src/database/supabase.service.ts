@@ -9,8 +9,12 @@ export class SupabaseService {
 
 	constructor(@Optional() private readonly logger?: PinoLogger) {
 		this.logger?.setContext?.(SupabaseService.name)
-		const supabaseUrl = process.env.SUPABASE_URL
-		const supabaseServiceKey = process.env.SERVICE_ROLE_KEY
+    const supabaseUrl = process.env.SUPABASE_URL
+    // Accept common aliases to avoid env name drift in platforms
+    const supabaseServiceKey =
+      process.env.SERVICE_ROLE_KEY ||
+      process.env.SUPABASE_SERVICE_ROLE_KEY ||
+      process.env.SUPABASE_SERVICE_KEY
 
 		if (!supabaseUrl || !supabaseServiceKey) {
 			this.logger?.error(
@@ -74,23 +78,44 @@ export class SupabaseService {
     message?: string
   }> {
     try {
+      // Prefer a lightweight RPC if available; fall back to HEAD on a known table.
+      const fn = process.env.HEALTH_CHECK_FUNCTION || 'health_check'
+      try {
+        // Attempt RPC call (must exist in DB). Returns ok=true when reachable.
+        const { data, error } = await this.adminClient.rpc(fn as any)
+        if (!error && Array.isArray(data)) {
+          const ok = data[0]?.ok ?? true
+          if (ok) {
+            this.logger?.debug({ fn }, 'Supabase RPC health ok')
+            return { status: 'healthy' }
+          }
+        }
+        if (error) {
+          this.logger?.warn({ error: error.message, fn }, 'Supabase RPC health failed; falling back to table ping')
+        }
+      } catch (rpcErr) {
+        // RPC not available; continue to table ping
+        this.logger?.debug({ fn, rpcErr: rpcErr instanceof Error ? rpcErr.message : String(rpcErr) }, 'RPC health not available; using table ping')
+      }
+
       // Connectivity check: lightweight HEAD count on a canonical table.
-      // Configure HEALTH_CHECK_TABLE if 'User' is not present in your public schema.
       const table = process.env.HEALTH_CHECK_TABLE || 'User'
       const { error } = await this.adminClient
         .from(table as never)
         .select('*', { count: 'exact', head: true })
 
       if (error) {
-        this.logger?.error({ error, table }, 'Supabase table ping failed')
-        return { status: 'unhealthy', message: error.message }
+        const message =
+          (error as any)?.message || (error as any)?.details || (error as any)?.hint || (error as any)?.code || 'db_unhealthy'
+        this.logger?.error({ error: message, table }, 'Supabase table ping failed')
+        return { status: 'unhealthy', message }
       }
 
       this.logger?.debug({ table }, 'Supabase table ping ok')
       return { status: 'healthy' }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error'
-      this.logger?.error({ error }, 'Supabase connectivity check threw')
+      this.logger?.error({ error: message }, 'Supabase connectivity check threw')
       return { status: 'unhealthy', message }
     }
   }
