@@ -56,17 +56,19 @@ export class DashboardController {
 	async getActivity(
 		@CurrentUser() user?: AuthServiceValidatedUser
 	): Promise<ControllerApiResponse> {
+		const userId = user?.id || 'test-user-id'
+		
 		if (this.logger) {
 			this.logger.info({
 				dashboard: {
 					action: 'getActivity',
-					userId: user?.id || 'test-user-id'
+					userId
 				}
 			}, 'Getting dashboard activity via DashboardService')
 		}
 
 		try {
-			const data = await this.dashboardService.getActivity(user?.id || 'test-user-id')
+			const data = await this.dashboardService.getActivity(userId)
 
 			return {
 				success: true,
