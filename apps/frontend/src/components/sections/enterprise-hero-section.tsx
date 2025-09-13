@@ -100,7 +100,7 @@ export function EnterpriseHeroSection({ className }: EnterpriseHeroSectionProps)
               <div className="grid grid-cols-3 gap-8 mb-10">
                 <div className="text-center">
                   <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">
-                    {isLoading ? <Loader2 className="h-8 w-8 animate-spin mx-auto" /> : (dashboardData?.units?.totalUnits ?? '—')}
+                    {isLoading ? <Loader2 className="h-8 w-8 animate-spin mx-auto" /> : (dashboardData?.units?.total ?? '—')}
                   </div>
                   <div className="text-sm text-slate-600 dark:text-slate-400">Units Managed</div>
                 </div>

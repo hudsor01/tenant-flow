@@ -4,7 +4,6 @@ import * as React from 'react'
 import Image from "next/image"
 import { Lock, Zap, Smartphone } from 'lucide-react'
 import { LoginForm } from "./login-form"
-import { SignUpForm } from "./sign-up-form"
 import { 
   cn, 
   cardClasses,
@@ -75,14 +74,14 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
             />
           </div>
           {/* Dynamic Overlay with depth */}
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-900/80 via-blue-900/60 to-slate-800/80 backdrop-blur-[0.5px]" />
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-900/80 via-slate-800/70 to-slate-900/80 backdrop-blur-[0.5px]" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
           
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className={cn("text-center text-white p-8 space-y-6 z-20 transform ease-out animate-in fade-in slide-in-from-bottom-8", `transition-all duration-[${ANIMATION_DURATIONS.slower}]`)}>
+            <div className={cn("text-center text-white card-padding space-y-6 z-20 transform ease-out animate-in fade-in slide-in-from-bottom-8", `transition-all duration-[${ANIMATION_DURATIONS.slower}]`)}>
               {/* Enhanced Logo Icon with glow */}
               <div className="w-16 h-16 mx-auto mb-8 relative group">
-                <div className={cn("absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl blur-lg group-hover:blur-xl", `transition-all duration-[${ANIMATION_DURATIONS.slow}]`)} />
+                <div className={cn("absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/30 rounded-2xl blur-lg group-hover:blur-xl", `transition-all duration-[${ANIMATION_DURATIONS.slow}]`)} />
                 <div className={cn("relative w-full h-full bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/20 group-hover:border-white/30 group-hover:scale-105", `transition-all duration-[${ANIMATION_DURATIONS.medium}]`)}>
                   <svg 
                     viewBox="0 0 24 24" 
@@ -102,7 +101,7 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
               </div>
               
               {/* Enhanced heading with animation */}
-              <h2 className={cn("font-bold bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent animate-in fade-in slide-in-from-bottom-4 delay-200", `duration-[${ANIMATION_DURATIONS.slow}]`)} style={{ fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize, fontWeight: TYPOGRAPHY_SCALE['heading-lg'].fontWeight, lineHeight: TYPOGRAPHY_SCALE['heading-lg'].lineHeight }}>
+              <h2 className={cn("font-bold text-white animate-in fade-in slide-in-from-bottom-4 delay-200", `duration-[${ANIMATION_DURATIONS.slow}]`)} style={{ fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize, fontWeight: TYPOGRAPHY_SCALE['heading-lg'].fontWeight, lineHeight: TYPOGRAPHY_SCALE['heading-lg'].lineHeight }}>
                 {content.heading}
               </h2>
               
@@ -140,30 +139,24 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
                style={{animationDuration: '4s', animationDelay: '1s'}} />
           <div className="absolute bottom-1/3 left-1/3 w-1.5 h-1.5 bg-white/20 rounded-full animate-pulse" 
                style={{animationDuration: '2.5s', animationDelay: '0.5s'}} />
-          <div className="absolute top-1/2 right-1/3 w-1 h-1 bg-blue-300/20 rounded-full animate-pulse" 
+          <div className="absolute top-1/2 right-1/3 w-1 h-1 bg-white/20 rounded-full animate-pulse" 
                style={{animationDuration: '3.5s', animationDelay: '2s'}} />
         </div>
       </div>
   )
 
   const FormSection = () => (
-    <div className="flex-1 md:w-1/2 flex items-center justify-center p-4 sm:p-8 lg:p-12 bg-gradient-to-br from-gray-50/80 via-white to-gray-50/50 relative overflow-hidden">
-        {/* Subtle background pattern */}
-        <div className="absolute inset-0 opacity-[0.02] bg-[radial-gradient(circle_at_1px_1px,_rgb(0,0,0)_1px,_transparent_0)] bg-[size:20px_20px]" />
-        
-        <div className="w-full max-w-md space-y-6 sm:space-y-8 relative z-10">
-          {/* Enhanced Logo/Brand */}
-          <div className={cn("text-center space-y-3 animate-in fade-in slide-in-from-top-4", `duration-[${ANIMATION_DURATIONS.slow}]`)}>
-            <div className="w-12 h-12 mx-auto mb-6 relative group">
-              {/* Glow effect */}
-              <div className={cn("absolute inset-0 bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-xl blur-lg group-hover:blur-xl opacity-75", `transition-all duration-[${ANIMATION_DURATIONS.slow}]`)} />
-              {/* Main icon */}
-              <div className={cn("relative w-full h-full bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-105", `transition-all duration-[${ANIMATION_DURATIONS.medium}]`)}>
+    <div className="flex-1 md:w-1/2 flex items-center justify-center p-4 sm:p-8 lg:p-12 bg-background">
+        <div className="w-full max-w-md space-y-6">
+          {/* Simple Logo/Brand */}
+          <div className="text-center space-y-3">
+            <div className="w-12 h-12 mx-auto mb-6">
+              <div className="w-full h-full bg-primary rounded-xl flex items-center justify-center">
                 <svg 
                   viewBox="0 0 24 24" 
                   fill="none" 
                   xmlns="http://www.w3.org/2000/svg"
-                  className={cn("w-6 h-6 text-white group-hover:scale-110", `transition-all duration-[${ANIMATION_DURATIONS.medium}]`)}
+                  className="w-6 h-6 text-white"
                 >
                   <path
                     d="M3 21L21 21M5 21V7L12 3L19 7V21M9 12H15M9 16H15"
@@ -176,49 +169,50 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
               </div>
             </div>
             
-            <h1 className="bg-gradient-to-r from-gray-900 via-blue-900 to-gray-900 bg-clip-text text-transparent" style={{ fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize, fontWeight: TYPOGRAPHY_SCALE['heading-lg'].fontWeight, lineHeight: TYPOGRAPHY_SCALE['heading-lg'].lineHeight }}>
-              {title}
+            <h1 className="text-2xl font-bold text-foreground">
+              TenantFlow
             </h1>
-            <p className="text-muted-foreground/80 leading-relaxed" style={{ fontSize: TYPOGRAPHY_SCALE['body-md'].fontSize, lineHeight: TYPOGRAPHY_SCALE['body-md'].lineHeight }}>
-              {subtitle}
+            <p className="text-muted-foreground text-sm">
+              Professional Property Management Platform
             </p>
           </div>
 
-          {/* Enhanced Auth Form Container */}
-          <div className={cn("pt-6 sm:pt-8 animate-in fade-in slide-in-from-bottom-4 delay-200", `duration-[${ANIMATION_DURATIONS.slow}]`)}>
-            <div className={cn(
-              cardClasses('interactive'), 
-              "bg-white/60 backdrop-blur-sm p-6 sm:p-8 hover:bg-white/80",
-              `transition-all duration-[${ANIMATION_DURATIONS.medium}]`
-            )}>
-              {mode === 'login' ? (
-                <LoginForm
-                  className="space-y-6"
-                />
-              ) : (
-                <SignUpForm
-                  className="space-y-6"
-                />
-              )}
-            </div>
+          {/* Auth Form */}
+          <div className="pt-6">
+            {mode === 'login' ? (
+              <LoginForm 
+                onSubmit={_onSubmit as any}
+                onForgotPassword={_onForgotPassword}
+                onSignUp={_onSignUp}
+                onGoogleLogin={_onGoogleLogin}
+                isLoading={_isLoading}
+                isGoogleLoading={_isGoogleLoading}
+              />
+            ) : (
+              <LoginForm 
+                mode="signup" 
+                onSubmit={_onSubmit as any}
+                isLoading={_isLoading}
+              />
+            )}
           </div>
 
-          {/* Enhanced Trust Indicators */}
-          <div className={cn("text-center space-y-4 pt-6 sm:pt-8 border-t border-gray-200/50 animate-in fade-in slide-in-from-bottom-4 delay-[400ms]", `duration-[${ANIMATION_DURATIONS.slow}]`)}>
-            <p className="text-muted-foreground/70 font-medium" style={{ fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize }}>
+          {/* Simple Trust Indicators */}
+          <div className="text-center space-y-4 pt-6 border-t border-border">
+            <p className="text-muted-foreground text-xs font-medium">
               Trusted by property managers worldwide
             </p>
-            <div className="flex items-center justify-center flex-wrap gap-4 sm:gap-6">
-              <div className={cn("flex items-center gap-1.5 font-medium text-muted-foreground/60 hover:text-muted-foreground group", `transition-colors duration-[${ANIMATION_DURATIONS.default}]`)} style={{ fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize }}>
-                <Lock className={cn("w-3 h-3 group-hover:scale-110", `transition-transform duration-[${ANIMATION_DURATIONS.default}]`)} />
+            <div className="flex items-center justify-center flex-wrap gap-4 text-xs">
+              <div className="flex items-center gap-1.5 text-muted-foreground/60">
+                <Lock className="w-3 h-3" />
                 Bank-level Security
               </div>
-              <div className={cn("flex items-center gap-1.5 font-medium text-muted-foreground/60 hover:text-muted-foreground group", `transition-colors duration-[${ANIMATION_DURATIONS.default}]`)} style={{ fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize }}>
-                <Zap className={cn("w-3 h-3 group-hover:scale-110", `transition-transform duration-[${ANIMATION_DURATIONS.default}]`)} />
+              <div className="flex items-center gap-1.5 text-muted-foreground/60">
+                <Zap className="w-3 h-3" />
                 99.9% Uptime
               </div>
-              <div className={cn("flex items-center gap-1.5 font-medium text-muted-foreground/60 hover:text-muted-foreground group", `transition-colors duration-[${ANIMATION_DURATIONS.default}]`)} style={{ fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize }}>
-                <Smartphone className={cn("w-3 h-3 group-hover:scale-110", `transition-transform duration-[${ANIMATION_DURATIONS.default}]`)} />
+              <div className="flex items-center gap-1.5 text-muted-foreground/60">
+                <Smartphone className="w-3 h-3" />
                 Mobile Ready
               </div>
             </div>
@@ -228,8 +222,8 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
   )
 
   return (
-    <div ref={ref} className={cn("min-h-screen flex overflow-hidden bg-gradient-to-br from-gray-50 to-white", className)} {...divProps}>
-      <div className={cn("w-full flex animate-in fade-in ease-out", `duration-[${ANIMATION_DURATIONS.slower}]`)}>
+    <div ref={ref} className={cn("min-h-screen flex overflow-hidden bg-background", className)} {...divProps}>
+      <div className="w-full flex">
         {imageOnRight ? (
           <>
             <FormSection />
