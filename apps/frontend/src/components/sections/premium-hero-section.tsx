@@ -45,13 +45,14 @@ export const PremiumHeroSection = React.forwardRef<HTMLElement, PremiumHeroSecti
         ref={ref}
         className={cn(
           "relative min-h-screen flex items-center justify-center overflow-hidden",
-          "bg-gradient-to-br from-background via-background to-muted/20",
+          "bg-background",
           "pt-32 pb-24 sm:pt-40 sm:pb-32",
           className
         )}
         {...props}
       >
         {/* Background Effects */}
+        <div className="absolute inset-0 gradient-authority opacity-10" />
         <div className="absolute inset-0 bg-grid-small-black/[0.02] dark:bg-grid-small-white/[0.02]" />
         <Particles
           className="absolute inset-0"
@@ -85,17 +86,10 @@ export const PremiumHeroSection = React.forwardRef<HTMLElement, PremiumHeroSecti
             {/* Enhanced Main Headline */}
             <BlurFade delay={0.2} inView>
               <div className="text-center mb-8">
-                <h1 
-                  className="text-foreground tracking-tight text-balance leading-tight mb-6"
-                  style={TYPOGRAPHY_SCALE['display-2xl']}
-                >
-                  <span className="inline-block bg-gradient-to-r from-primary via-primary/80 to-accent bg-clip-text text-transparent drop-shadow-lg">
-                    Simplify
-                  </span>
+                <h1 className="text-balance leading-tight mb-6 text-gradient-authority" style={TYPOGRAPHY_SCALE['display-2xl']}>
+                  Simplify
                   <br />
-                  <span className="text-foreground">
-                    Property Management
-                  </span>
+                  Property Management
                 </h1>
                 <p 
                   className="text-muted-foreground leading-relaxed text-balance max-w-3xl mx-auto"
@@ -114,7 +108,7 @@ export const PremiumHeroSection = React.forwardRef<HTMLElement, PremiumHeroSecti
                 <BentoCard 
                   variant="interactive" 
                   colSpan={3}
-                  className="bg-gradient-to-br from-primary via-primary/90 to-accent text-primary-foreground border-0"
+                  className="gradient-authority text-primary-foreground border-0"
                 >
                   <div className="flex flex-col items-center text-center h-full justify-center py-8">
                     <Sparkles className="w-12 h-12 mb-4 animate-pulse" />
