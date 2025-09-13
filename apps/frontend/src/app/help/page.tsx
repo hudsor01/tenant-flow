@@ -43,7 +43,7 @@ export default function HelpPage() {
       </section>
 
       {/* Support Options */}
-      <section className="py-24">
+      <section className="section-hero">
         <div className="container mx-auto px-6 max-w-6xl">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4">
@@ -141,7 +141,7 @@ export default function HelpPage() {
       </section>
 
       {/* Success Stories */}
-      <section className="py-24 bg-muted/20">
+      <section className="section-hero bg-muted/20">
         <div className="container mx-auto px-6 max-w-6xl">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4">
@@ -154,7 +154,7 @@ export default function HelpPage() {
 
           <div className="grid md:grid-cols-3 gap-8">
             <Card>
-              <CardContent className="p-8">
+              <CardContent className="card-padding">
                 <div className="flex items-center mb-4">
                   <TrendingUp className="w-8 h-8 text-green-600 mr-3" />
                   <div>
@@ -173,7 +173,7 @@ export default function HelpPage() {
             </Card>
 
             <Card>
-              <CardContent className="p-8">
+              <CardContent className="card-padding">
                 <div className="flex items-center mb-4">
                   <Clock className="w-8 h-8 text-blue-600 mr-3" />
                   <div>
@@ -192,7 +192,7 @@ export default function HelpPage() {
             </Card>
 
             <Card>
-              <CardContent className="p-8">
+              <CardContent className="card-padding">
                 <div className="flex items-center mb-4">
                   <Users className="w-8 h-8 text-purple-600 mr-3" />
                   <div>
@@ -214,7 +214,7 @@ export default function HelpPage() {
       </section>
 
       {/* Popular Resources */}
-      <section className="py-24">
+      <section className="section-hero">
         <div className="container mx-auto px-6 max-w-4xl">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4">
@@ -277,7 +277,7 @@ export default function HelpPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-r from-blue-600 to-purple-600">
+      <section className="section-content bg-gradient-to-r from-blue-600 to-purple-600">
         <div className="container mx-auto px-6 max-w-4xl text-center">
           <h2 className="text-4xl font-bold text-white mb-4">
             Ready to stop losing money?

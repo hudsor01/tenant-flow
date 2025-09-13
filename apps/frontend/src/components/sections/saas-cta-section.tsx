@@ -114,7 +114,7 @@ export function SaasCtaSection({ className }: SaasCtaSectionProps) {
 
           {/* Final Urgency Statement */}
           <BlurFade delay={0.7} inView>
-            <div className="relative p-8 rounded-3xl bg-gradient-to-r from-muted/30 to-muted/10 backdrop-blur-sm border border-border/50">
+            <div className="relative card-padding rounded-3xl bg-gradient-to-r from-muted/30 to-muted/10 backdrop-blur-sm border border-border/50">
               <BorderBeam size={250} duration={12} delay={9} />
               <div className="relative z-10">
                 <h3 className="text-2xl font-bold mb-4">

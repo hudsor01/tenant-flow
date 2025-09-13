@@ -1,4 +1,31 @@
 # ========================================
+# TESTING FILES - NEVER COMMIT TO GITHUB
+# ========================================
+# Visual testing
+**/visual-testing/
+**/dashboard/visual-testing/
+visual-testing/
+
+# Test harness and mock data
+**/testing/
+**/test-harness/
+**/mock-auth-data*
+**/mock-data*
+mock-*.ts
+mock-*.js
+
+# Dev-only API routes
+**/api/dev-auth/
+**/api/test/
+**/api/mock/
+
+# Test fixtures and data
+**/fixtures/
+**/test-data/
+test-*.ts
+test-*.js
+
+# ========================================
 # CRITICAL SECURITY - ENVIRONMENT & SECRETS
 # ========================================
 # Environment files - NEVER commit ANY .env files

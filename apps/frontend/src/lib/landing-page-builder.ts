@@ -25,7 +25,7 @@ export const availableComponents = {
 export const selectedComponents = {
   navbar: 1, // Main Navbar - already selected
   hero: 1,   // SaaS Hero Section - already selected
-  features: 6, // MagicUI Features Demo 3 - already selected  
+  features: 1, // Canonical Bento Features Section  
   pricing: 3,  // Minimalist Pricing Section - already selected
   cta: null,        // To be selected
   testimonials: null, // To be selected
@@ -60,11 +60,11 @@ export const generateLandingPageComponents = () => {
   
   // Always include selected components
   imports.push("import { SaasHeroSection } from '@/components/sections/saas-hero-section'")
-  imports.push("import { FeaturesSectionDemo3 } from '@/components/magicui/features-section-demo-3'")
+  imports.push("import { FeaturesSection } from '@/components/sections/features-section'")
   imports.push("import { MinimalistPricingSection } from '@/components/sections/minimalist-pricing-section'")
   
   components.push('<SaasHeroSection />')
-  components.push('<FeaturesSectionDemo3 />')
+  components.push('<FeaturesSection />')
   
   // Add selected CTA if chosen
   if (selectedComponents.cta && selectedComponents.cta in availableComponents.cta) {

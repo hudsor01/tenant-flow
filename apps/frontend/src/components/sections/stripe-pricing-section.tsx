@@ -205,11 +205,11 @@ function StripeCheckoutForm({
 				<div className="text-destructive text-sm font-medium">{message}</div>
 			)}
 
-			<button
-				type="submit"
-				disabled={!stripe || isLoading}
-				className="button-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
-			>
+                <button
+                  type="submit"
+                  disabled={!stripe || isLoading}
+                  className="btn-gradient-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                >
 				{isLoading ? 'Processing...' : `Subscribe to ${plan.name}`}
 			</button>
 		</form>
@@ -326,14 +326,14 @@ function PricingCard({
 
 			<div className="px-6 pb-6">
 				{!showCheckout ? (
-					<button
-						onClick={handleSubscribe}
-						className={cn(
-							'button-primary w-full',
-							plan.popular &&
-								'bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90'
-						)}
-					>
+            <button
+              onClick={handleSubscribe}
+              className={cn(
+                'btn-gradient-primary w-full',
+                plan.popular &&
+                  'bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90'
+              )}
+            >
 						{plan.cta}
 						<ArrowRight className="w-4 h-4 ml-2" />
 					</button>
@@ -383,10 +383,10 @@ export function StripePricingSection({ className }: { className?: string }) {
 						</span>
 					</div>
 
-					<h2 className="text-display font-bold tracking-tight mb-6">
+            <h2 className="display-xl font-bold tracking-tight mb-6">
 						<span className="text-gradient-primary">Simple pricing,</span>
 						<br />
-						<span className="text-gradient-dominance">
+              <span className="text-gradient-authority">
 							extraordinary results
 						</span>
 					</h2>
@@ -463,7 +463,7 @@ export function StripePricingSection({ className }: { className?: string }) {
 					className="text-center animate-fade-in-up"
 					style={{ animationDelay: '700ms' }}
 				>
-					<div className="bg-gradient-to-r from-muted to-muted/80 rounded-2xl p-8 max-w-4xl mx-auto">
+          <div className="bg-gradient-to-r from-muted to-muted/80 rounded-2xl card-padding max-w-4xl mx-auto">
 						<h3 className="text-2xl font-bold mb-4 text-foreground">
 							Need a custom enterprise solution?
 						</h3>
@@ -471,7 +471,7 @@ export function StripePricingSection({ className }: { className?: string }) {
 							Get unlimited properties, custom integrations, dedicated support,
 							and volume discounts.
 						</p>
-						<button className="button-secondary">
+							<button className="btn-gradient-primary">
 							Contact our sales team
 							<ArrowRight className="w-4 h-4 ml-2" />
 						</button>

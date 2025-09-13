@@ -65,7 +65,7 @@ export default function AnalyticsPage() {
 			{/* Page Header */}
 			<div className="flex items-center justify-between">
 				<div>
-					<h1 className="text-3xl font-bold text-gradient-dominance">
+            <h1 className="text-3xl font-bold text-gradient-authority">
 						Analytics & Insights
 					</h1>
 					<p className="text-muted-foreground mt-1">

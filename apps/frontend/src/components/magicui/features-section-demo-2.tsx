@@ -78,9 +78,9 @@ export default function FeaturesSectionDemo({
   ];
 
   const variants = {
-    default: "py-10",
-    modern: "py-16",
-    minimal: "py-8"
+    default: "section-content",
+    modern: "section-content",
+    minimal: "compact-padding"
   };
 
   return (
@@ -158,7 +158,7 @@ const Feature = ({
     modern: {
       container: cn(
         cardClasses('elevated'),
-        "flex flex-col p-8 relative group/feature rounded-xl border border-border/20 hover:border-primary/30 hover:shadow-lg bg-card/50 backdrop-blur-sm"
+        "flex flex-col card-padding relative group/feature rounded-xl border border-border/20 hover:border-primary/30 hover:shadow-lg bg-card/50 backdrop-blur-sm"
       ),
       gradient: "bg-gradient-to-t from-primary/5 to-transparent",
       gradientBottom: "bg-gradient-to-b from-primary/5 to-transparent", 

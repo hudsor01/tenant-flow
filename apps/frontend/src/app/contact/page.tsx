@@ -38,7 +38,7 @@ export default function ContactPage() {
 				</section>
 
 				{/* Contact Options */}
-				<section className="py-24">
+      <section className="section-hero">
 					<div className={containerClasses('xl')}>
 						<BlurFade delay={0.2} inView>
 							<div className="grid md:grid-cols-3 gap-8">
@@ -65,10 +65,10 @@ export default function ContactPage() {
 										available: 'Personalized for your properties'
 									}
 								].map((option, index) => (
-									<div
-										key={index}
-										className="bg-card rounded-2xl p-8 text-center border border-border/50 hover:border-primary/20 transition-all duration-300 hover:shadow-lg group"
-									>
+              <div
+                key={index}
+                className="bg-card rounded-2xl card-padding text-center border border-border/50 hover:border-primary/20 transition-all duration-300 hover:shadow-lg group"
+              >
 										<div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-primary/20 to-accent/20 mx-auto mb-6 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
 											<option.icon className="w-8 h-8 text-primary" />
 										</div>
@@ -102,7 +102,7 @@ export default function ContactPage() {
 				</section>
 
 				{/* Contact Form */}
-				<section className="py-24 bg-muted/20">
+      <section className="section-hero bg-muted/20">
 					<div className={containerClasses('lg')}>
 						<BlurFade delay={0.3} inView>
 							<div className="text-center mb-12 space-y-4">
@@ -121,7 +121,7 @@ export default function ContactPage() {
 								</p>
 							</div>
 
-						<div className="bg-card border rounded-lg p-8">
+            <div className="bg-card border rounded-lg card-padding">
 							<form className="space-y-6">
 								<div className="grid md:grid-cols-2 gap-6">
 									<div>
@@ -218,7 +218,7 @@ export default function ContactPage() {
 				</section>
 
 				{/* Office Info */}
-				<section className="py-24">
+        <section className="section-hero">
 					<div className="container mx-auto px-4 max-w-6xl">
 						<div className="text-center mb-16">
 							<h2 className="text-3xl font-bold mb-4">Visit our offices</h2>
@@ -277,7 +277,7 @@ export default function ContactPage() {
 				</section>
 
 				{/* FAQ Quick Links */}
-				<section className="py-16 bg-muted/20">
+        <section className="section-content bg-muted/20">
 					<div className="container mx-auto px-4 max-w-4xl text-center">
 						<h2 className="text-2xl font-bold mb-4">Need quick answers?</h2>
 						<p className="text-muted-foreground mb-8">

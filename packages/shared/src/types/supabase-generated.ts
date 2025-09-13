@@ -2771,6 +2771,13 @@ export type Database = {
         }
         Returns: Json
       }
+      health_check: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          at: string
+          ok: boolean
+        }[]
+      }
       mark_all_notifications_read: {
         Args: { user_id: string }
         Returns: number
