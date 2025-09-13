@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, Optional } from '@nestjs/common'
+import { Injectable, Optional } from '@nestjs/common'
 import { PinoLogger } from 'nestjs-pino'
 import { SupabaseService } from '../database/supabase.service'
 import type { DashboardStats } from '@repo/shared'
@@ -15,7 +15,7 @@ export class DashboardService {
 	/**
 	 * Get comprehensive dashboard statistics
 	 */
-	async getStats(userId?: string): Promise<DashboardStats> {
+	async getStats(): Promise<DashboardStats> {
 		// Ultra-simple hardcoded response to test API structure
 		const dashboardStats: DashboardStats = {
 			properties: { total: 0, occupied: 0, vacant: 0, occupancyRate: 0, totalMonthlyRent: 0, averageRent: 0 },
