@@ -1,7 +1,5 @@
 name: CI/CD Pipeline
 
-# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
-
 on:
   push:
   pull_request:
@@ -12,19 +10,15 @@ env:
 
 jobs:
   build-and-test:
-    # Run on push to main, pull requests, or manual dispatch
-    if: >-
-      ${{ github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' }}
     name: Build and Test
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    permissions:
-      contents: read
+    timeout-minutes: 15
     concurrency:
-      group: ci-${{ github.workflow }}-${{ github.ref }}
+      group: ci-${{ github.ref }}
       cancel-in-progress: true
+    
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -32,93 +26,37 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
-
-      - name: Install Doppler CLI
-        uses: dopplerhq/cli-action@v3
-
-      - name: Resolve Doppler config from repo variables (fallbacks)
-        env:
-          SECRET_DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
-        run: |
-          echo "DOPPLER_TOKEN=${SECRET_DOPPLER_TOKEN:-$VARS_DOPPLER_TOKEN}" >> $GITHUB_ENV
-          echo "DOPPLER_PERSONAL_TOKEN=${SECRET_DOPPLER_PERSONAL_TOKEN:-$VARS_DOPPLER_PERSONAL_TOKEN}" >> $GITHUB_ENV
-          echo "DOPPLER_PROJECT=${SECRET_DOPPLER_PROJECT:-$VARS_DOPPLER_PROJECT}" >> $GITHUB_ENV
-          echo "DOPPLER_CONFIG=${SECRET_DOPPLER_CONFIG:-$VARS_DOPPLER_CONFIG}" >> $GITHUB_ENV
-          echo "DOPPLER_ENVIRONMENT=${SECRET_DOPPLER_ENVIRONMENT:-$VARS_DOPPLER_ENVIRONMENT}" >> $GITHUB_ENV
-
-      - name: Authenticate with Doppler (service or personal token)
-        run: |
-          if [ -n "${DOPPLER_TOKEN}" ]; then
-            echo "Using Doppler service token via DOPPLER_TOKEN"
-          elif [ -n "${DOPPLER_PERSONAL_TOKEN}" ]; then
-            echo "Logging into Doppler with personal token"
-            doppler login --token "${DOPPLER_PERSONAL_TOKEN}" --silent
-          else
-            echo "Warning: No Doppler token provided - CI will run with environment defaults" 1>&2
-            echo "For full functionality, set 'DOPPLER_TOKEN' or 'DOPPLER_PERSONAL_TOKEN' in GitHub Actions secrets" 1>&2
-            echo "Continuing CI build without Doppler secrets..." 1>&2
-          fi
 
       - name: Install dependencies
         run: npm ci --no-audit
 
-      - name: Build all packages (with proper dependencies and secrets)
-        run: |
-          if [ -n "${DOPPLER_TOKEN}" ] || [ -n "${DOPPLER_PERSONAL_TOKEN}" ]; then
-            echo "Building with Doppler secrets..."
-            npm run build:ci
-          else
-            echo "Building with environment defaults (no Doppler secrets)..."
-            # Set minimal required environment variables for CI build
-            export NEXT_PUBLIC_SUPABASE_URL=https://placeholder.supabase.co
-            export NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder
-            export BACKEND_SCHEMAS_DIR=./supabase/schema-exports
-            npm run build:ci
-          fi
-
-      - name: Verify build outputs exist
-        run: |
-          echo "Checking shared package build outputs..."
-          ls -la packages/shared/dist/cjs/ || echo "ERROR: Shared package dist not found"
-          ls -la apps/backend/dist/ || echo "ERROR: Backend dist not found"
-          echo "SUCCESS: Build verification complete"
+      - name: Build packages
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          BACKEND_SCHEMAS_DIR: ./supabase/schema-exports
+        run: npm run build:ci
 
       - name: Run tests
-        continue-on-error: true
-        env:
-          CI: true
         run: npm run test:unit
 
       - name: Lint check
-        continue-on-error: true
         run: npm run lint
 
   deploy-backend:
-    name: Deploy Backend (Railway)
+    name: Deploy Backend
     needs: build-and-test
-    # Deploy on main or when manually dispatched
-    if: >-
-      ${{ github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch' }}
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    
     steps:
-      - name: Ensure RAILWAY_TOKEN is set
-        # runtime check: secrets are injected into env here
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: |
-          if [ -z "${RAILWAY_TOKEN}" ]; then
-            echo "Skipping deploy: RAILWAY_TOKEN secret is not set" 1>&2
-            exit 1
-          fi
-
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Railway CLI
-        run: npm i -g @railway/cli@3
-
-      - name: Deploy via Railway (Dockerfile + railway.toml)
-        run: railway up --detach
+      - name: Deploy to Railway
+        run: |
+          npm i -g @railway/cli@3
+          railway up --yes --detach
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}

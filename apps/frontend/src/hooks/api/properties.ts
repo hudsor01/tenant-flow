@@ -1,7 +1,7 @@
 'use client'
 
-import { propertiesApi, dashboardApi } from '@/lib/api-client'
-import type { Database, PropertyPerformanceResponse } from '@repo/shared'
+import { propertiesApi } from '@/lib/api-client'
+import type { Database, PropertyWithUnits } from '@repo/shared'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { dashboardKeys } from './use-dashboard'
 import type { DashboardStats } from '@repo/shared'
@@ -19,9 +19,9 @@ export function useProperties(status?: PropertyStatus) {
     })
 }
 
-// Server-calculated property performance analytics
+// Server-calculated property analytics (properties with units)
 export function usePropertyPerformance() {
-  return useQuery<PropertyPerformanceResponse>({
+  return useQuery<PropertyWithUnits[]>({
     queryKey: ['properties', 'analytics'],
     queryFn: async () => {
       const properties = await dashboardApi.getPropertyPerformance()
@@ -97,21 +97,21 @@ export function useCreateProperty() {
             // Snapshot previous value for rollback
             const previousProperties = qc.getQueryData(['properties', 'ALL'])
 
-            // Optimistically update cache with new property
-            qc.setQueryData(['properties', 'ALL'], (old: _Property[] | undefined) => {
-                const optimisticProperty: _Property = {
-                    id: `temp-${Date.now()}`, // Temporary ID until server response
-                    ...newProperty,
-                    ownerId: newProperty.ownerId || '',
-                    propertyType: newProperty.propertyType || 'APARTMENT',
-                    description: newProperty.description || null,
-                    imageUrl: newProperty.imageUrl || null,
-                    status: 'ACTIVE',
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString()
-                }
-                return old ? [...old, optimisticProperty] : [optimisticProperty]
-            })
+			// Optimistically update cache with new property
+			qc.setQueryData(['properties', 'ALL'], (old: _Property[] | undefined) => {
+				const optimisticProperty: _Property = {
+					id: `temp-${Date.now()}`, // Temporary ID until server response
+					...newProperty,
+					ownerId: newProperty.ownerId || '',
+					propertyType: newProperty.propertyType || 'APARTMENT',
+					description: newProperty.description || null,
+					imageUrl: newProperty.imageUrl || null,
+					status: 'ACTIVE',
+					createdAt: new Date().toISOString(),
+					updatedAt: new Date().toISOString()
+				}
+				return old ? [...old, optimisticProperty] : [optimisticProperty]
+			})
 
             // Update dashboard stats optimistically
             qc.setQueriesData({ queryKey: dashboardKeys.stats() }, (old: DashboardStats | undefined) => {

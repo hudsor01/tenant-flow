@@ -244,7 +244,7 @@ export function StripePricingSection({
 	// Show loading state while fetching dynamic pricing
 	if (pricingLoading && dynamicPlans.length === 0) {
 		return (
-			<div className="container py-24 text-center">
+					<div className="container section-hero text-center">
 				<div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary">
 					<Loader2 className="w-4 h-4 animate-spin" />
 					Loading pricing...
@@ -260,13 +260,13 @@ export function StripePricingSection({
 
 	return (
 		<section
-			className={cn(
-				'relative py-24 bg-gradient-to-br from-background via-muted/5 to-background',
-				'before:absolute before:inset-0 before:bg-gradient-to-r before:from-primary/5 before:via-transparent before:to-primary/5 before:opacity-50',
-				compactView && 'py-16',
-				animationClasses('fade-in'),
-				className
-			)}
+				className={cn(
+					'relative section-hero bg-gradient-to-br from-background via-muted/5 to-background',
+					'before:absolute before:inset-0 before:bg-gradient-to-r before:from-primary/5 before:via-transparent before:to-primary/5 before:opacity-50',
+					compactView && 'section-content',
+					animationClasses('fade-in'),
+					className
+				)}
 		>
 			<div className="relative container px-4 mx-auto">
 				{/* Section Header */}
@@ -661,7 +661,7 @@ export function StripePricingSection({
 				</div>
 
 				{/* Enhanced Trust Signals */}
-				<div className="bg-gradient-to-r from-muted/20 via-background to-muted/20 rounded-3xl p-8 border border-muted/40">
+					<div className="bg-gradient-to-r from-muted/20 via-background to-muted/20 rounded-3xl card-padding border border-muted/40">
 					<div className="text-center max-w-4xl mx-auto">
 						{/* Trust Badges */}
 						<div className="flex flex-wrap items-center justify-center gap-4 mb-8">

@@ -63,8 +63,8 @@ export const CTASimple = React.forwardRef<HTMLElement, CTASimpleProps>(
     ...props
   }, ref) => {
     const variantStyles = {
-      simple: 'py-16 md:py-20 bg-background',
-      enhanced: 'py-24 md:py-32 bg-gradient-to-br from-primary/5 via-background to-accent/5',
+      simple: 'section-content md:py-20 bg-background',
+      enhanced: 'section-hero md:py-32 bg-gradient-to-br from-primary/5 via-background to-accent/5',
       testimonial: 'py-20 md:py-28 bg-gradient-to-r from-background via-primary/5 to-background'
     }
 

@@ -67,9 +67,9 @@ export const TestimonialsMinimal = React.forwardRef<HTMLElement, TestimonialsMin
     ...props 
   }, ref) => {
     const variantStyles = {
-      minimal: 'py-16 bg-background',
-      cards: 'py-24 bg-background',
-      quotes: 'py-24 bg-gradient-to-b from-background to-muted/20'
+      minimal: 'section-content bg-background',
+      cards: 'section-hero bg-background',
+      quotes: 'section-hero bg-gradient-to-b from-background to-muted/20'
     }
 
     return (
@@ -118,7 +118,7 @@ export const TestimonialsMinimal = React.forwardRef<HTMLElement, TestimonialsMin
                   className={cn(
                     cardClasses('elevated'),
                     animationClasses('fade-in'),
-                    'p-8 text-center hover:shadow-lg h-full flex flex-col'
+                    'card-padding text-center hover:shadow-lg h-full flex flex-col'
                   )}
                 >
                   {/* Category Badge */}
