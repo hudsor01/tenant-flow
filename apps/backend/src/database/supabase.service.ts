@@ -12,8 +12,8 @@ export class SupabaseService {
     const supabaseUrl = process.env.SUPABASE_URL
     // Accept common aliases to avoid env name drift in platforms
     const supabaseServiceKey =
-      process.env.SUPABASE_SERVICE_ROLE_KEY ||
       process.env.SERVICE_ROLE_KEY ||
+      process.env.SUPABASE_SERVICE_ROLE_KEY ||
       process.env.SUPABASE_SERVICE_KEY
 
 		if (!supabaseUrl || !supabaseServiceKey) {
@@ -30,6 +30,15 @@ export class SupabaseService {
 				'Supabase configuration is missing'
 			)
 		}
+
+		this.logger?.info(
+			{
+				supabaseUrl,
+				hasServiceKey: !!supabaseServiceKey,
+				keyLength: supabaseServiceKey?.length
+			},
+			'Creating Supabase client'
+		)
 
 		this.adminClient = createClient<Database>(supabaseUrl, supabaseServiceKey, {
 			auth: {
@@ -106,8 +115,8 @@ export class SupabaseService {
 
       if (error) {
         const message =
-          (error as any)?.message || (error as any)?.details || (error as any)?.hint || (error as any)?.code || 'db_unhealthy'
-        this.logger?.error({ error: message, table }, 'Supabase table ping failed')
+          (error as any)?.message || (error as any)?.details || (error as any)?.hint || (error as any)?.code || JSON.stringify(error)
+        this.logger?.error({ error, table }, 'Supabase table ping failed')
         return { status: 'unhealthy', message }
       }
 
