@@ -1,9 +1,9 @@
 import {
 	Injectable,
+	Logger,
 	UnauthorizedException,
 	BadRequestException,
 	InternalServerErrorException,
-	Logger
 } from '@nestjs/common'
 import { createClient } from '@supabase/supabase-js'
 import type { User as SupabaseUser, SupabaseClient } from '@supabase/supabase-js'

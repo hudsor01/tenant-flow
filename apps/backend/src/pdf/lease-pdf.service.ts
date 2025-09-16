@@ -36,7 +36,7 @@ export class LeasePDFService {
 			const templateString = fs.readFileSync(templatePath, 'utf-8')
 			const compiledTemplate = compileTemplate(templateString)
 			this.templateCache.set('lease-agreement', compiledTemplate)
-			this.logger?.info('Lease templates loaded successfully')
+			this.logger?.log('Lease templates loaded successfully')
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : String(error)
 			this.logger?.error('Failed to load lease templates:', { error: errorMessage })
@@ -79,7 +79,7 @@ export class LeasePDFService {
 		mimeType: string
 		size: number
 	}> {
-		this.logger?.info(
+		this.logger?.log(
 			'Generating lease PDF for lease:',
 			leaseId,
 			'user:',
@@ -103,7 +103,7 @@ export class LeasePDFService {
 
 			const filename = `lease-${leaseId}.pdf`
 
-			this.logger?.info('Lease PDF generated successfully')
+			this.logger?.log('Lease PDF generated successfully')
 			return {
 				buffer: pdfBuffer,
 				filename,

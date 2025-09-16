@@ -37,7 +37,7 @@ export class SecurityController {
 		private readonly logger: Logger,
 		private readonly securityMonitor: SecurityMonitorService
 	) {
-		this.logger.setContext(SecurityController.name)
+		// Context removed - NestJS Logger doesn't support setContext
 	}
 
 	/**
@@ -82,7 +82,7 @@ export class SecurityController {
 	async getSecurityMetrics() {
 		const metrics = this.securityMonitor.getSecurityMetrics()
 
-		this.logger.info('Security metrics requested', {
+		this.logger.log('Security metrics requested', {
 			totalEvents: metrics.totalEvents,
 			criticalEvents: metrics.eventsBySeverity.critical,
 			highEvents: metrics.eventsBySeverity.high
@@ -107,7 +107,7 @@ export class SecurityController {
 	) {
 		await this.securityMonitor.resolveSecurityEvent(eventId, body.resolution)
 
-		this.logger.info('Security event resolved', {
+		this.logger.log('Security event resolved', {
 			eventId,
 			resolution: body.resolution
 		})

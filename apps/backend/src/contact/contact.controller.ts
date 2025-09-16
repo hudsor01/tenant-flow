@@ -37,7 +37,7 @@ export class ContactController {
   async submitContactForm(
     @Body() dto: ContactFormRequest
   ): Promise<ContactFormResponse> {
-    this.logger.info(
+    this.logger.log(
       {
         contactForm: {
           type: dto.type,
