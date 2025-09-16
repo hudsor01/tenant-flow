@@ -15,7 +15,7 @@ export function ExpressCheckout({ onConfirm }: Props) {
           onConfirm={onConfirm}
           options={{
             paymentMethodOrder: ['apple_pay', 'google_pay', 'paypal', 'link'],
-            wallets: { applePay: 'auto', googlePay: 'auto', paypal: 'auto', link: 'auto' },
+            wallets: { applePay: 'auto', googlePay: 'auto' },
           }}
         />
       </div>
