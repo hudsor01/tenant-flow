@@ -49,7 +49,7 @@ export class ResilienceService {
 			const fallbackCached = this.getExpired<T>(cacheKey)
 			if (fallbackCached !== null) {
 				this.logger?.warn(
-					{ error: error.message, cacheKey },
+					{ error: error instanceof Error ? error.message : String(error), cacheKey },
 					'Operation failed, returning cached fallback data'
 				)
 				return fallbackCached
