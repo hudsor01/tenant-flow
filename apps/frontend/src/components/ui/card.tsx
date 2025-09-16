@@ -1,20 +1,31 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 
-import { cn, cardClasses, ANIMATION_DURATIONS, SEMANTIC_COLORS } from "@/lib/design-system"
+import { cn } from "@/lib/utils"
 
+// Apple-Inspired Card System - Screenshot-worthy containers with satisfying interactions
 const cardVariants = cva(
-  "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border shadow-sm",
+  "bg-card text-card-foreground flex flex-col",
   {
     variants: {
       variant: {
-        default: "py-6",
-        elevated: "py-6 shadow-lg hover:shadow-xl transition-shadow",
-        interactive: "py-6 hover:shadow-md transition-all hover:scale-[1.01] cursor-pointer",
-        premium: "py-6 border-gradient bg-gradient-to-br from-card via-card to-accent/5 shadow-lg",
-        success: "py-6 border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-900/20",
-        warning: "py-6 border-amber-200 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-900/20",
-        error: "py-6 border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-900/20",
+        // Apple Card - Clean, minimal with subtle shadows
+        default: "card-apple py-6",
+
+        // Interactive Card - Hover effects with Apple motion
+        interactive: "card-interactive py-6",
+
+        // Elevated Card - More prominent with deeper shadows
+        elevated: "card-elevated py-6",
+
+        // Glass Card - Apple's translucent overlay effect
+        glass: "glass-apple py-6",
+
+        // Legacy variants for backward compatibility
+        premium: "card-apple py-6 border-primary/20 bg-gradient-to-br from-card via-card to-accent/5",
+        success: "card-apple py-6 border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-900/20",
+        warning: "card-apple py-6 border-amber-200 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-900/20",
+        error: "card-apple py-6 border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-900/20",
       },
       size: {
         default: "p-6",
@@ -39,28 +50,10 @@ const cardVariants = cva(
 type CardProps = React.ComponentProps<"div"> & VariantProps<typeof cardVariants>
 
 function Card({ className, variant, size, padding, ...props }: CardProps) {
-  // Map variant to design system variant
-  const designSystemVariant = variant === 'elevated' ? 'elevated' 
-    : variant === 'interactive' ? 'interactive'
-    : variant === 'premium' ? 'premium'
-    : 'default'
-
   return (
     <div
       data-slot="card"
-      className={cn(
-        // Use design system cardClasses for consistent styling
-        cardClasses(designSystemVariant, className),
-        // Fallback to cardVariants for legacy variants
-        ['success', 'warning', 'error'].includes(variant || '') && cardVariants({ variant, size, padding })
-      )}
-      style={{
-        transition: variant === 'interactive' || variant === 'elevated' 
-          ? `all ${ANIMATION_DURATIONS.default} ease-out`
-          : undefined,
-        borderColor: variant === 'premium' ? SEMANTIC_COLORS.primary : undefined,
-        ...(props.style || {})
-      }}
+      className={cn(cardVariants({ variant, size, padding }), className)}
       {...props}
     />
   )
