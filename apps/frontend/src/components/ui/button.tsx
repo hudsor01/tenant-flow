@@ -2,44 +2,59 @@ import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
 
-import { cn } from "@/lib/design-system"
+import { cn } from "@/lib/utils"
 
-// Professional Masculine Button System - Single Source of Truth
+// Apple Design Button System - Enhanced with Apple motion tokens
 const buttonVariants = cva(
-  `inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-semibold transition-all duration-200 
-   disabled:pointer-events-none disabled:opacity-50 
-   [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 
+  `inline-flex items-center justify-center gap-2 whitespace-nowrap font-semibold
+   disabled:pointer-events-none disabled:opacity-50
+   [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0
    outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2
-   shadow-sm hover:shadow-md active:scale-[0.98]`,
+   active:scale-[0.96]`,
   {
     variants: {
       variant: {
-        // Primary - Deep Navy Authority
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 border border-primary/20",
-        primary: "bg-primary text-primary-foreground hover:bg-primary/90 border border-primary/20",
-        
-        // Secondary - Professional Steel
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-secondary/20",
-        
-        // Destructive - Confident Red
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 border border-destructive/20 focus-visible:ring-destructive/50",
-        
-        // Outline - Authoritative Border
-        outline: "border-2 border-primary bg-background text-primary hover:bg-primary hover:text-primary-foreground",
-        
-        // Ghost - Subtle Command
-        ghost: "text-primary hover:bg-primary/10 hover:text-primary",
-        
-        // Link - Minimal Authority
-        link: "text-primary underline-offset-4 hover:underline font-medium",
+        // Primary - Apple motion with enhanced shadows
+        default: `bg-primary text-primary-foreground border border-primary/20 rounded-[--radius-md]
+                  hover:bg-primary/90 hover:shadow-[--shadow-md] hover:translate-y-[-1px]
+                  transition-all [transition-duration:--duration-fast] [transition-timing-function:--ease-out-expo]`,
+        primary: `bg-primary text-primary-foreground border border-primary/20 rounded-[--radius-md]
+                 hover:bg-primary/90 hover:shadow-[--shadow-md] hover:translate-y-[-1px]
+                 transition-all [transition-duration:--duration-fast] [transition-timing-function:--ease-out-expo]`,
+
+        // Secondary - Apple motion enhancement
+        secondary: `bg-secondary text-secondary-foreground border border-secondary/20 rounded-[--radius-md]
+                   hover:bg-secondary/80 hover:shadow-[--shadow-sm] hover:translate-y-[-1px]
+                   transition-all [transition-duration:--duration-fast] [transition-timing-function:--ease-out-expo]`,
+
+        // Destructive - Apple motion for actions
+        destructive: `bg-destructive text-destructive-foreground border border-destructive/20 rounded-[--radius-md]
+                     hover:bg-destructive/90 hover:shadow-[--shadow-md] hover:translate-y-[-1px]
+                     focus-visible:ring-destructive/50
+                     transition-all [transition-duration:--duration-fast] [transition-timing-function:--ease-out-expo]`,
+
+        // Outline - Apple border style
+        outline: `border-2 border-primary bg-background text-primary rounded-[--radius-md]
+                 hover:bg-primary hover:text-primary-foreground hover:shadow-[--shadow-sm] hover:translate-y-[-1px]
+                 transition-all [transition-duration:--duration-fast] [transition-timing-function:--ease-out-expo]`,
+
+        // Ghost - Subtle Apple interaction
+        ghost: `text-primary rounded-[--radius-md]
+               hover:bg-primary/10 hover:text-primary hover:shadow-[--shadow-sm]
+               transition-all [transition-duration:--duration-fast] [transition-timing-function:--ease-out-expo]`,
+
+        // Link - Minimal Apple interaction
+        link: `text-primary underline-offset-4 hover:underline font-medium rounded-[--radius-md]
+              transition-all [transition-duration:--duration-fast] [transition-timing-function:--ease-out-expo]`,
       },
       size: {
-        xs: "h-7 px-3 text-xs rounded-sm",
-        sm: "h-8 px-4 text-sm rounded-md",
-        default: "h-10 px-6 text-sm rounded-md",
-        lg: "h-11 px-8 text-base rounded-lg",
-        xl: "h-12 px-10 text-base rounded-lg font-bold",
-        icon: "size-10 rounded-md",
+        // Enhanced with 44px touch targets for accessibility
+        xs: "h-8 px-3 text-xs", // Minimum viable size
+        sm: "h-9 px-4 text-sm", // Close to touch target
+        default: "h-11 px-6 text-sm", // Meets 44px touch target (44px = ~11 * 0.25rem)
+        lg: "h-12 px-8 text-base", // Exceeds touch target comfortably
+        xl: "h-14 px-10 text-base font-bold", // Premium large size
+        icon: "size-11", // 44px touch target for icon buttons
       },
     },
     defaultVariants: {
