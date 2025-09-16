@@ -1,6 +1,6 @@
 import { Injectable, Optional, InternalServerErrorException, BadRequestException } from '@nestjs/common'
 import { SupabaseService } from '../database/supabase.service'
-import { PinoLogger } from 'nestjs-pino'
+import { Logger } from '@nestjs/common'
 
 /**
  * Stripe Data Service
@@ -86,9 +86,9 @@ export interface CustomerLifetimeValue {
 export class StripeDataService {
 	constructor(
 		private readonly supabaseService: SupabaseService,
-		@Optional() private readonly logger?: PinoLogger
+		@Optional() private readonly logger?: Logger
 	) {
-		this.logger?.setContext(StripeDataService.name)
+		// Logger context handled automatically via app-level configuration
 	}
 
 	/**

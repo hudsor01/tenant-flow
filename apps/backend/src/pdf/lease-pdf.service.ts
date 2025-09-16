@@ -1,5 +1,5 @@
 import { Injectable, InternalServerErrorException, Optional } from '@nestjs/common'
-import { PinoLogger } from 'nestjs-pino'
+import { Logger } from '@nestjs/common'
 import * as fs from 'fs'
 import * as path from 'path'
 import type { LeaseFormData } from '@repo/shared'
@@ -21,9 +21,9 @@ export class LeasePDFService {
 	
 	constructor(
 		private readonly pdfGenerator: PDFGeneratorService,
-		@Optional() private readonly logger?: PinoLogger
+		@Optional() private readonly logger?: Logger
 	) {
-		// PinoLogger context handled automatically via app-level configuration
+		// Logger context handled automatically via app-level configuration
 		this.loadTemplates()
 	}
 

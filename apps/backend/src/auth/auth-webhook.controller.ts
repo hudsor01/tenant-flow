@@ -2,7 +2,7 @@ import { Body, Controller, Headers, HttpCode, Post } from '@nestjs/common'
 import { getPriceId } from '@repo/shared'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 import type { SupabaseWebhookEvent } from '@repo/shared/types/auth'
-import { PinoLogger } from 'nestjs-pino'
+import { Logger } from '@nestjs/common'
 import { SupabaseService } from '../database/supabase.service'
 import { Public } from '../shared/decorators/public.decorator'
 import { UsersService } from '../users/users.service'
@@ -10,14 +10,13 @@ import { AuthService } from './auth.service'
 
 @Controller('webhooks/auth')
 export class AuthWebhookController {
+	private readonly logger = new Logger(AuthWebhookController.name)
+
 	constructor(
 		private authService: AuthService,
 		private supabaseService: SupabaseService,
-		private usersService: UsersService,
-		private readonly logger: PinoLogger
-	) {
-		// PinoLogger context handled automatically via app-level configuration
-	}
+		private usersService: UsersService
+	) {}
 
 	@Post('supabase')
 	@Public()
