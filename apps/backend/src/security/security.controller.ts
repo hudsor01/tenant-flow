@@ -9,7 +9,7 @@
  */
 
 import { Controller, Post, Get, Body, HttpCode, HttpStatus, Param } from '@nestjs/common'
-import { PinoLogger } from 'nestjs-pino'
+import { Logger } from '@nestjs/common'
 import { Public } from '../shared/decorators/public.decorator'
 import { AdminOnly } from '../shared/decorators/admin-only.decorator'
 import { SecurityMonitorService } from '../shared/services/security-monitor.service'
@@ -34,7 +34,7 @@ interface CSPReport {
 @Controller('security')
 export class SecurityController {
 	constructor(
-		private readonly logger: PinoLogger,
+		private readonly logger: Logger,
 		private readonly securityMonitor: SecurityMonitorService
 	) {
 		this.logger.setContext(SecurityController.name)

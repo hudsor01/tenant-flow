@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
-import { PinoLogger } from 'nestjs-pino'
+import { Logger } from '@nestjs/common'
 import { SupabaseService } from '../database/supabase.service'
 import type { Database } from '@repo/shared'
 import type { MaintenanceNotificationData } from '@repo/shared'
@@ -26,9 +26,9 @@ type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
 export class NotificationsService {
 	constructor(
 		private readonly supabaseService: SupabaseService,
-		private readonly logger: PinoLogger
+		private readonly logger: Logger
 	) {
-		// PinoLogger context handled automatically via app-level configuration
+		// Logger context handled automatically via app-level configuration
 	}
 
 	/**

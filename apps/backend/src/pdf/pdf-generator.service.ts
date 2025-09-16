@@ -3,7 +3,7 @@ import {
 	InternalServerErrorException,
 	OnModuleDestroy
 } from '@nestjs/common'
-import { PinoLogger } from 'nestjs-pino'
+import { Logger } from '@nestjs/common'
 import puppeteer from 'puppeteer'
 
 /**
@@ -14,8 +14,8 @@ import puppeteer from 'puppeteer'
 export class PDFGeneratorService implements OnModuleDestroy {
 	private browser: Awaited<ReturnType<typeof puppeteer.launch>> | null = null
 
-	constructor(private readonly logger: PinoLogger) {
-		// PinoLogger context handled automatically via app-level configuration
+	constructor(private readonly logger: Logger) {
+		// Logger context handled automatically via app-level configuration
 	}
 
 	/**

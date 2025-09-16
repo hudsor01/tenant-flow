@@ -1,14 +1,13 @@
-import { Injectable, InternalServerErrorException, Optional } from '@nestjs/common'
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common'
 import type { Database } from '@repo/shared'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
-import { PinoLogger } from 'nestjs-pino'
 
 @Injectable()
 export class SupabaseService {
 	private adminClient: SupabaseClient<Database>
+	private readonly logger = new Logger(SupabaseService.name)
 
-	constructor(@Optional() private readonly logger?: PinoLogger) {
-		this.logger?.setContext?.(SupabaseService.name)
+	constructor() {
     const supabaseUrl = process.env.SUPABASE_URL
     // Accept common aliases to avoid env name drift in platforms
     const supabaseServiceKey =
@@ -17,27 +16,27 @@ export class SupabaseService {
       process.env.SUPABASE_SERVICE_KEY
 
 		if (!supabaseUrl || !supabaseServiceKey) {
-			this.logger?.error(
+			this.logger.error(
+				'Missing Supabase configuration. Ensure SUPABASE_URL and SERVICE_ROLE_KEY are set (via Doppler).',
 				{
 					issue: 'missing_supabase_env',
 					hasSupabaseUrl: !!supabaseUrl,
 					hasServiceKey: !!supabaseServiceKey,
 					env: process.env.NODE_ENV
-				},
-				'Missing Supabase configuration. Ensure SUPABASE_URL and SERVICE_ROLE_KEY are set (via Doppler).'
+				}
 			)
 			throw new InternalServerErrorException(
 				'Supabase configuration is missing'
 			)
 		}
 
-		this.logger?.info(
+		this.logger.log(
+			'Creating Supabase client',
 			{
 				supabaseUrl,
 				hasServiceKey: !!supabaseServiceKey,
 				keyLength: supabaseServiceKey?.length
-			},
-			'Creating Supabase client'
+			}
 		)
 
 		this.adminClient = createClient<Database>(supabaseUrl, supabaseServiceKey, {
@@ -49,9 +48,9 @@ export class SupabaseService {
 
 		try {
 			const urlHost = new URL(supabaseUrl).host
-			this.logger?.info({ supabaseHost: urlHost }, 'Supabase service initialized')
+			this.logger.log('Supabase service initialized', { supabaseHost: urlHost })
 		} catch {
-			this.logger?.info('Supabase service initialized')
+			this.logger.log('Supabase service initialized')
 		}
 	}
 

@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit, Optional } from '@nestjs/common'
 import { StripeSync, runMigrations } from '@supabase/stripe-sync-engine'
-import { PinoLogger } from 'nestjs-pino'
+import { Logger } from '@nestjs/common'
 
 /**
  * Ultra-Native Stripe Sync Service
@@ -16,7 +16,7 @@ export class StripeSyncService implements OnModuleInit {
   private initialized = false
 
   constructor(
-    @Optional() private readonly logger?: PinoLogger
+    @Optional() private readonly logger?: Logger
   ) {
     this.logger?.setContext(StripeSyncService.name)
   }

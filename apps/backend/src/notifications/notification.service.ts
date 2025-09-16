@@ -1,6 +1,6 @@
 import { Injectable, Optional } from '@nestjs/common'
 import { SupabaseService } from '../database/supabase.service'
-import { PinoLogger } from 'nestjs-pino'
+import { Logger } from '@nestjs/common'
 
 type NotificationType = 
   | 'subscription_created'
@@ -33,7 +33,7 @@ export interface CreateNotificationParams {
 export class NotificationService {
   constructor(
     private readonly supabaseService: SupabaseService,
-    @Optional() private readonly logger?: PinoLogger
+    @Optional() private readonly logger?: Logger
   ) {
     this.logger?.setContext(NotificationService.name)
   }

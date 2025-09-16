@@ -17,7 +17,7 @@ import { StripeModule } from '../billing/stripe.module'
 		StripeFdwHealthIndicator
 		// HealthCheckService is automatically provided by TerminusModule
 		// HealthIndicatorService is automatically provided by TerminusModule  
-		// PinoLogger is provided globally via LoggerModule in app.module.ts
+		// Logger is provided globally via LoggerModule in app.module.ts
 	],
 	exports: []
 })

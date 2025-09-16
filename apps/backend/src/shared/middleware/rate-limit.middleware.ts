@@ -11,7 +11,7 @@
 
 import { Injectable, NestMiddleware, Logger } from '@nestjs/common'
 import type { FastifyRequest, FastifyReply } from 'fastify'
-import { PinoLogger } from 'nestjs-pino'
+import { Logger } from '@nestjs/common'
 
 interface RateLimitWindow {
 	requests: number
@@ -70,13 +70,13 @@ const RATE_LIMIT_CONFIGS: Record<string, RateLimitConfig> = {
 export class RateLimitMiddleware implements NestMiddleware {
 	private readonly logger = new Logger(RateLimitMiddleware.name)
 	private readonly rateLimitStore = new Map<string, RateLimitWindow>()
-	private readonly securityLogger: PinoLogger
+	private readonly securityLogger: Logger
 
 	// Track IPs with suspicious activity
 	private readonly suspiciousIPs = new Set<string>()
 	private readonly blockedIPs = new Set<string>()
 
-	constructor(logger: PinoLogger) {
+	constructor(logger: Logger) {
 		this.securityLogger = logger
 		this.securityLogger.setContext(RateLimitMiddleware.name)
 
