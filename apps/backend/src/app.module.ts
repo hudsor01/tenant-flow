@@ -24,6 +24,7 @@ import { SharedModule } from './shared/shared.module'
 import { TenantsModule } from './tenants/tenants.module'
 import { UnitsModule } from './units/units.module'
 import { UsersModule } from './users/users.module'
+import { SecurityModule } from './security/security.module'
 
 /**
  * Core App Module - KISS principle
@@ -131,7 +132,8 @@ import { UsersModule } from './users/users.module'
 		LeasesModule,
 		MaintenanceModule,
 		NotificationsModule,
-		UsersModule
+		UsersModule,
+		SecurityModule
 	],
 	controllers: [AppController],
 	providers: [

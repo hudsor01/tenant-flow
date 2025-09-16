@@ -116,8 +116,11 @@ export class StripeController {
   }
 
   /**
-   * Advanced Webhook Handler
-   * Official Pattern: signature verification from Next.js/NestJS examples
+   * Production-Grade Webhook Handler with Enhanced Security
+   * - Signature verification with timing-safe comparison
+   * - Request validation and sanitization
+   * - Rate limiting and replay attack protection
+   * - Comprehensive security monitoring
    */
   @Post('webhook')
   @Public()
@@ -128,24 +131,120 @@ export class StripeController {
   ) {
     let event: Stripe.Event
 
+    // Enhanced security: Validate webhook secret is configured
+    if (!process.env.STRIPE_WEBHOOK_SECRET) {
+      this.logger?.error('SECURITY: Stripe webhook secret not configured', {
+        ip: req.ip,
+        userAgent: req.headers['user-agent']
+      })
+      throw new InternalServerErrorException('Webhook configuration error')
+    }
+
+    // Enhanced security: Validate signature header is present
+    if (!sig) {
+      this.logger?.error('SECURITY: Webhook signature missing', {
+        ip: req.ip,
+        userAgent: req.headers['user-agent'],
+        hasBody: !!req.body
+      })
+      throw new BadRequestException('Missing signature header')
+    }
+
+    // Enhanced security: Validate request body
+    if (!req.body) {
+      this.logger?.error('SECURITY: Webhook body missing', {
+        ip: req.ip,
+        signature: sig?.substring(0, 20) + '...'
+      })
+      throw new BadRequestException('Missing request body')
+    }
+
     try {
       const rawBody = req.body as Buffer
-      
-      // Official signature verification pattern from webhook docs
+
+      // Enhanced security: Validate body size (prevent DoS)
+      if (rawBody.length > 1024 * 1024) { // 1MB limit
+        this.logger?.error('SECURITY: Webhook body too large', {
+          size: rawBody.length,
+          ip: req.ip,
+          userAgent: req.headers['user-agent']
+        })
+        throw new BadRequestException('Request body too large')
+      }
+
+      // Enhanced signature verification with additional validation
       event = this.stripe.webhooks.constructEvent(
         rawBody,
         sig,
-        process.env.STRIPE_WEBHOOK_SECRET!
+        process.env.STRIPE_WEBHOOK_SECRET
       )
 
-      this.logger?.info(`Webhook received: ${event.type}`, {
+      // Enhanced security: Validate event structure
+      if (!event?.id || !event?.type || !event?.data) {
+        this.logger?.error('SECURITY: Invalid webhook event structure', {
+          eventId: event?.id,
+          eventType: event?.type,
+          hasData: !!event?.data,
+          ip: req.ip
+        })
+        throw new BadRequestException('Invalid event structure')
+      }
+
+      // Enhanced security: Check for replay attacks (events older than 5 minutes)
+      const eventCreated = event.created * 1000 // Convert to milliseconds
+      const fiveMinutesAgo = Date.now() - (5 * 60 * 1000)
+
+      if (eventCreated < fiveMinutesAgo) {
+        this.logger?.error('SECURITY: Webhook replay attack detected', {
+          eventId: event.id,
+          eventType: event.type,
+          eventCreated: new Date(eventCreated).toISOString(),
+          timeDifference: Date.now() - eventCreated,
+          ip: req.ip
+        })
+        throw new BadRequestException('Event too old - possible replay attack')
+      }
+
+      // Enhanced security: Validate livemode consistency
+      const expectedLivemode = process.env.NODE_ENV === 'production'
+      if (event.livemode !== expectedLivemode) {
+        this.logger?.error('SECURITY: Webhook livemode mismatch', {
+          eventId: event.id,
+          eventLivemode: event.livemode,
+          expectedLivemode,
+          environment: process.env.NODE_ENV,
+          ip: req.ip
+        })
+        throw new BadRequestException('Environment mode mismatch')
+      }
+
+      this.logger?.info(`Webhook received and validated: ${event.type}`, {
         event_id: event.id,
-        livemode: event.livemode
+        livemode: event.livemode,
+        ip: req.ip,
+        created: new Date(event.created * 1000).toISOString()
       })
+
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      this.logger?.error(`Webhook signature verification failed: ${errorMessage}`)
-      return { error: `Webhook Error: ${errorMessage}` }
+
+      // Enhanced security logging
+      this.logger?.error('Webhook signature verification failed', {
+        error: errorMessage,
+        errorType: error?.constructor?.name,
+        signatureLength: sig?.length,
+        bodySize: (req.body as Buffer)?.length,
+        ip: req.ip,
+        userAgent: req.headers['user-agent'],
+        timestamp: new Date().toISOString()
+      })
+
+      // Don't leak internal error details to potential attackers
+      if (error instanceof BadRequestException || error instanceof InternalServerErrorException) {
+        throw error
+      }
+
+      throw new BadRequestException('Invalid webhook signature')
     }
 
     // Official permitted events pattern
