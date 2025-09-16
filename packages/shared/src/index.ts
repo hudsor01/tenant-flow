@@ -23,6 +23,7 @@ export { logger } from './lib/frontend-logger'
 
 export { formatCurrency } from './utils/currency'
 export { getCORSConfig } from './security/cors-config'
+export { getCSPString } from './security/csp-config'
 export { getPriceId, getAllPlans, formatPrice, getAnnualSavings } from './stripe/config'
 
 // ============================================================================
