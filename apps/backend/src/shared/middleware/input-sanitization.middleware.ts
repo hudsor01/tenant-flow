@@ -12,7 +12,7 @@
 
 import { Injectable, NestMiddleware, Logger, BadRequestException } from '@nestjs/common'
 import type { FastifyRequest, FastifyReply } from 'fastify'
-import { PinoLogger } from 'nestjs-pino'
+import { Logger } from '@nestjs/common'
 import { SecurityMonitorService } from '../services/security-monitor.service'
 
 interface SanitizationConfig {
@@ -180,11 +180,11 @@ const THREAT_PATTERNS: ThreatPattern[] = [
 @Injectable()
 export class InputSanitizationMiddleware implements NestMiddleware {
 	private readonly logger = new Logger(InputSanitizationMiddleware.name)
-	private readonly securityLogger: PinoLogger
+	private readonly securityLogger: Logger
 	private readonly securityMonitor: SecurityMonitorService
 
 	constructor(
-		logger: PinoLogger,
+		logger: Logger,
 		securityMonitor: SecurityMonitorService
 	) {
 		this.securityLogger = logger

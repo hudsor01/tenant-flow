@@ -2,7 +2,7 @@ import { Controller, Get, Optional, Query, NotFoundException } from '@nestjs/com
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger'
 import type { AuthServiceValidatedUser } from '@repo/shared'
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
-import { PinoLogger } from 'nestjs-pino'
+import { Logger } from '@nestjs/common'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
 import { Public } from '../shared/decorators/public.decorator'
 import { DashboardService } from './dashboard.service'
@@ -12,9 +12,9 @@ import { DashboardService } from './dashboard.service'
 export class DashboardController {
 	constructor(
 		@Optional() private readonly dashboardService?: DashboardService,
-		@Optional() private readonly logger?: PinoLogger
+		@Optional() private readonly logger?: Logger
 	) {
-		// PinoLogger context handled automatically via app-level configuration
+		// Logger context handled automatically via app-level configuration
 	}
 
 	@Get('stats')

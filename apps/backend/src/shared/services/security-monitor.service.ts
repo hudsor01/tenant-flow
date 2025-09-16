@@ -10,7 +10,7 @@
  */
 
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
-import { PinoLogger } from 'nestjs-pino'
+import { Logger } from '@nestjs/common'
 import { DirectEmailService } from '../../emails/direct-email.service'
 import { SupabaseService } from '../../database/supabase.service'
 
@@ -68,7 +68,7 @@ interface AlertChannel {
 @Injectable()
 export class SecurityMonitorService implements OnModuleInit {
 	private readonly logger = new Logger(SecurityMonitorService.name)
-	private readonly securityLogger: PinoLogger
+	private readonly securityLogger: Logger
 	private readonly recentEvents: SecurityEvent[] = []
 	private readonly maxRecentEvents = 1000
 
@@ -113,12 +113,10 @@ export class SecurityMonitorService implements OnModuleInit {
 	}
 
 	constructor(
-		pinoLogger: PinoLogger,
 		private readonly emailService: DirectEmailService,
 		_supabaseService: SupabaseService
 	) {
-		this.securityLogger = pinoLogger
-		this.securityLogger.setContext(SecurityMonitorService.name)
+		this.securityLogger = new Logger(SecurityMonitorService.name)
 		// Store for future use when SecurityEvent table is available
 		// this.supabaseService = supabaseService
 	}

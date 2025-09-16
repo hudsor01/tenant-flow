@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common'
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus'
-import { PinoLogger } from 'nestjs-pino'
+import { Logger } from '@nestjs/common'
 import { hostname } from 'os'
 import { Public } from '../shared/decorators/public.decorator'
 import { SupabaseHealthIndicator } from './supabase.health'
@@ -14,9 +14,9 @@ export class HealthController {
 		private readonly supabase: SupabaseHealthIndicator,
 		private readonly stripeFdw: StripeFdwHealthIndicator,
 		private readonly stripeSyncService: StripeSyncService,
-		private readonly logger: PinoLogger
+		private readonly logger: Logger
 	) {
-		// PinoLogger context handled automatically via app-level configuration
+		// Logger context handled automatically via app-level configuration
 	}
 
 	@Get()
