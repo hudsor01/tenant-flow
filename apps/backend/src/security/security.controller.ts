@@ -8,12 +8,11 @@
  * - IP blocking/unblocking management
  */
 
-import { Controller, Post, Get, Body, HttpCode, HttpStatus, UseGuards, Param } from '@nestjs/common'
+import { Controller, Post, Get, Body, HttpCode, HttpStatus, Param } from '@nestjs/common'
 import { PinoLogger } from 'nestjs-pino'
 import { Public } from '../shared/decorators/public.decorator'
 import { AdminOnly } from '../shared/decorators/admin-only.decorator'
 import { SecurityMonitorService } from '../shared/services/security-monitor.service'
-import { RateLimitMiddleware } from '../shared/middleware/rate-limit.middleware'
 
 interface CSPReport {
 	'csp-report': {

@@ -1,6 +1,6 @@
 "use client"
 
-import { MagicCard } from '@/components/ui/magic-card'
+
 import { Loader } from '@/components/ui/loader'
 import { Lock } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -12,7 +12,7 @@ type Props = {
 
 export function CheckoutLoading({ business, showTrustSignals = true }: Props) {
   return (
-    <MagicCard
+    <div
       className={cn(
         'card-base',
         'w-full max-w-lg mx-auto p-8 shadow-2xl border-2',
@@ -45,7 +45,7 @@ export function CheckoutLoading({ business, showTrustSignals = true }: Props) {
 
         <Loader />
       </div>
-    </MagicCard>
+    </div>
   )
 }
 

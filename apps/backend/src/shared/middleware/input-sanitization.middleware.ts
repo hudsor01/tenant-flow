@@ -192,7 +192,7 @@ export class InputSanitizationMiddleware implements NestMiddleware {
 		this.securityMonitor = securityMonitor
 	}
 
-	use(req: FastifyRequest, res: FastifyReply, next: () => void): void {
+	use(req: FastifyRequest, _res: FastifyReply, next: () => void): void {
 		const config = this.getConfigForEndpoint(req.url)
 
 		if (!config.enabled) {
@@ -216,15 +216,23 @@ export class InputSanitizationMiddleware implements NestMiddleware {
 	}
 
 	private getConfigForEndpoint(url: string): SanitizationConfig {
-		if (url.includes('/webhook')) {
+		if (url.includes('/webhook') && SANITIZATION_CONFIG.WEBHOOK) {
 			return SANITIZATION_CONFIG.WEBHOOK
 		}
 
-		if (url.includes('/upload') || url.includes('/file')) {
+		if ((url.includes('/upload') || url.includes('/file')) && SANITIZATION_CONFIG.FILE_UPLOAD) {
 			return SANITIZATION_CONFIG.FILE_UPLOAD
 		}
 
-		return SANITIZATION_CONFIG.DEFAULT
+		return SANITIZATION_CONFIG.DEFAULT || {
+			enabled: true,
+			maxDepth: 10,
+			maxStringLength: 10000,
+			maxArrayLength: 1000,
+			maxObjectKeys: 100,
+			allowHTML: false,
+			strictMode: true
+		}
 	}
 
 	private validateRequest(req: FastifyRequest, config: SanitizationConfig): void {

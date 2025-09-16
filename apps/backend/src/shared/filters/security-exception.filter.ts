@@ -16,7 +16,6 @@ import {
 	HttpException,
 	HttpStatus,
 	Logger,
-	InternalServerErrorException,
 	BadRequestException,
 	UnauthorizedException,
 	ForbiddenException,
@@ -136,7 +135,10 @@ export class SecurityExceptionFilter implements ExceptionFilter {
 
 		if (cfConnectingIP) return cfConnectingIP
 		if (realIP) return realIP
-		if (forwardedFor) return forwardedFor.split(',')[0].trim()
+		if (forwardedFor && typeof forwardedFor === 'string') {
+			const firstIp = forwardedFor.split(',')[0]
+			return firstIp ? firstIp.trim() : 'unknown'
+		}
 
 		return request.ip || 'unknown'
 	}

@@ -23,6 +23,7 @@
 		"src/auth/auth-production-diagnostic.ts",
 		"src/test-utils/**/*",
 		"src/shared/test-utils/**/*",
+		"src/shared/scripts/**/*",
 		"src/queues/__tests__/**/*",
 		"src/**/__tests__/**/*",
 		"src/**/__test__/**/*"

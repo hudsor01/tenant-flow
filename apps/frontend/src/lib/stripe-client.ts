@@ -80,10 +80,62 @@ export async function getCurrentUser() {
   )
 
   const { data: { user }, error } = await supabase.auth.getUser()
-  
+
   if (error || !user) {
     throw new Error('User not authenticated')
   }
 
   return user
+}
+
+/**
+ * Create a payment intent for direct Stripe Elements integration
+ */
+export async function createPaymentIntent({
+  amount,
+  currency = 'usd',
+  metadata = {},
+  customerEmail
+}: {
+  amount: number
+  currency?: string
+  metadata?: Record<string, string>
+  customerEmail?: string
+}) {
+  const supabase = createBrowserClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+
+  if (sessionError || !session?.access_token) {
+    throw new Error('Authentication required. Please sign in to continue.')
+  }
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/create-payment-intent`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`
+      },
+      body: JSON.stringify({
+        amount,
+        currency,
+        metadata,
+        customerEmail
+      })
+    }
+  )
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({
+      error: `HTTP ${response.status}: ${response.statusText}`
+    }))
+    throw new Error(errorData.error || 'Failed to create payment intent')
+  }
+
+  return response.json()
 }

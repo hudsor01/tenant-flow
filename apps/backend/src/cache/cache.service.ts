@@ -5,7 +5,6 @@
  */
 
 import { Injectable, Logger, Inject } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
 
 interface CacheEntry<T = any> {
 	data: T

@@ -9,7 +9,7 @@
  * - Security event logging and alerting
  */
 
-import { Injectable, NestMiddleware, Logger, HttpException, HttpStatus } from '@nestjs/common'
+import { Injectable, NestMiddleware, Logger } from '@nestjs/common'
 import type { FastifyRequest, FastifyReply } from 'fastify'
 import { PinoLogger } from 'nestjs-pino'
 
@@ -87,7 +87,11 @@ export class RateLimitMiddleware implements NestMiddleware {
 	use(req: FastifyRequest, res: FastifyReply, next: () => void): void {
 		const clientIP = this.getClientIP(req)
 		const endpoint = this.getEndpointType(req.url)
-		const config = RATE_LIMIT_CONFIGS[endpoint] || RATE_LIMIT_CONFIGS.DEFAULT
+		const config = RATE_LIMIT_CONFIGS[endpoint] || RATE_LIMIT_CONFIGS.DEFAULT || {
+			windowMs: 15 * 60 * 1000,
+			maxRequests: 1000,
+			burst: 50
+		}
 
 		// Check if IP is blocked
 		if (this.blockedIPs.has(clientIP)) {
@@ -174,7 +178,10 @@ export class RateLimitMiddleware implements NestMiddleware {
 
 		if (cfConnectingIP) return cfConnectingIP
 		if (realIP) return realIP
-		if (forwardedFor) return forwardedFor.split(',')[0].trim()
+		if (forwardedFor && typeof forwardedFor === 'string') {
+			const firstIp = forwardedFor.split(',')[0]
+			return firstIp ? firstIp.trim() : 'unknown'
+		}
 
 		return req.ip || 'unknown'
 	}
