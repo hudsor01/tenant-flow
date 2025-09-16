@@ -22,7 +22,7 @@ import {
 	NotFoundException
 } from '@nestjs/common'
 import type { FastifyRequest, FastifyReply } from 'fastify'
-import { PinoLogger } from 'nestjs-pino'
+import { Logger } from '@nestjs/common'
 import { SecurityMonitorService } from '../services/security-monitor.service'
 
 interface ErrorResponse {
@@ -48,7 +48,7 @@ interface SecurityErrorContext {
 @Catch()
 export class SecurityExceptionFilter implements ExceptionFilter {
 	private readonly logger = new Logger(SecurityExceptionFilter.name)
-	private readonly securityLogger: PinoLogger
+	private readonly securityLogger: Logger
 	private readonly securityMonitor: SecurityMonitorService
 
 	// Track error frequencies to detect enumeration attacks
@@ -73,7 +73,7 @@ export class SecurityExceptionFilter implements ExceptionFilter {
 	}
 
 	constructor(
-		securityLogger: PinoLogger,
+		securityLogger: Logger,
 		securityMonitor: SecurityMonitorService
 	) {
 		this.securityLogger = securityLogger

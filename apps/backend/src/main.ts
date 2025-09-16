@@ -93,8 +93,8 @@ async function bootstrap() {
 	// Security: Apply rate limiting middleware
 	logger.log('Configuring rate limiting...')
 	const { RateLimitMiddleware } = await import('./shared/middleware/rate-limit.middleware.js')
-	const { PinoLogger } = await import('nestjs-pino')
-	const pinoLogger = app.get(PinoLogger)
+	const { Logger } = await import('nestjs-pino')
+	const pinoLogger = app.get(Logger)
 	app.use(new RateLimitMiddleware(pinoLogger).use.bind(new RateLimitMiddleware(pinoLogger)))
 	logger.log('Rate limiting enabled')
 
