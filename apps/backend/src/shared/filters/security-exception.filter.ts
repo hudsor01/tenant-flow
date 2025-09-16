@@ -22,7 +22,6 @@ import {
 	NotFoundException
 } from '@nestjs/common'
 import type { FastifyRequest, FastifyReply } from 'fastify'
-import { Logger } from '@nestjs/common'
 import { SecurityMonitorService } from '../services/security-monitor.service'
 
 interface ErrorResponse {
@@ -77,7 +76,7 @@ export class SecurityExceptionFilter implements ExceptionFilter {
 		securityMonitor: SecurityMonitorService
 	) {
 		this.securityLogger = securityLogger
-		this.securityLogger.setContext(SecurityExceptionFilter.name)
+		// Context removed - NestJS Logger doesn't support setContext
 		this.securityMonitor = securityMonitor
 
 		// Cleanup error frequency tracking periodically
@@ -211,7 +210,7 @@ export class SecurityExceptionFilter implements ExceptionFilter {
 		} else if (context.statusCode === 401 || context.statusCode === 403) {
 			this.securityLogger.warn('Authentication/authorization error', logData)
 		} else if (context.statusCode >= 400) {
-			this.securityLogger.info('Client error', logData)
+			this.securityLogger.log('Client error', logData)
 		}
 	}
 

@@ -1,11 +1,10 @@
 import cors from '@fastify/cors'
-import { RequestMethod, ValidationPipe } from '@nestjs/common'
+import { Logger, RequestMethod, ValidationPipe } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 import type { NestFastifyApplication } from '@nestjs/platform-fastify'
 import { FastifyAdapter } from '@nestjs/platform-fastify'
 import { getCORSConfig } from '@repo/shared'
 import type { FastifyReply, FastifyRequest, onRouteHookHandler } from 'fastify'
-import { Logger } from 'nestjs-pino'
 import { SupabaseService } from './database/supabase.service'
 import 'reflect-metadata'
 import { AppModule } from './app.module'
@@ -57,8 +56,8 @@ async function bootstrap() {
       }
     )
 
-    // Use Pino logger from NestJS
-    const logger = app.get(Logger)
+    // Use native NestJS Logger
+    const logger = new Logger('Bootstrap')
     app.useLogger(logger)
     // Quick environment summary to help diagnose deploy issues (no secrets)
     logger.log(
@@ -93,9 +92,8 @@ async function bootstrap() {
 	// Security: Apply rate limiting middleware
 	logger.log('Configuring rate limiting...')
 	const { RateLimitMiddleware } = await import('./shared/middleware/rate-limit.middleware.js')
-	const { Logger } = await import('nestjs-pino')
-	const pinoLogger = app.get(Logger)
-	app.use(new RateLimitMiddleware(pinoLogger).use.bind(new RateLimitMiddleware(pinoLogger)))
+	const rateLimitLogger = new Logger('RateLimit')
+	app.use(new RateLimitMiddleware(rateLimitLogger).use.bind(new RateLimitMiddleware(rateLimitLogger)))
 	logger.log('Rate limiting enabled')
 
 	// Security: Apply input sanitization middleware
@@ -103,13 +101,15 @@ async function bootstrap() {
 	const { InputSanitizationMiddleware } = await import('./shared/middleware/input-sanitization.middleware.js')
 	const { SecurityMonitorService } = await import('./shared/services/security-monitor.service.js')
 	const securityMonitor = app.get(SecurityMonitorService)
-	app.use(new InputSanitizationMiddleware(pinoLogger, securityMonitor).use.bind(new InputSanitizationMiddleware(pinoLogger, securityMonitor)))
+	const sanitizationLogger = new Logger('InputSanitization')
+	app.use(new InputSanitizationMiddleware(sanitizationLogger, securityMonitor).use.bind(new InputSanitizationMiddleware(sanitizationLogger, securityMonitor)))
 	logger.log('Input sanitization enabled')
 
 	// Security: Apply security exception filter
 	logger.log('Configuring security exception filter...')
 	const { SecurityExceptionFilter } = await import('./shared/filters/security-exception.filter.js')
-	app.useGlobalFilters(new SecurityExceptionFilter(pinoLogger, securityMonitor))
+	const exceptionLogger = new Logger('SecurityException')
+	app.useGlobalFilters(new SecurityExceptionFilter(exceptionLogger, securityMonitor))
 	logger.log('Security exception filter enabled')
 
 	// Global validation pipe with enhanced security

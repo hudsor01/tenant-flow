@@ -35,7 +35,7 @@ export class NotificationService {
     private readonly supabaseService: SupabaseService,
     @Optional() private readonly logger?: Logger
   ) {
-    this.logger?.setContext(NotificationService.name)
+    // Context removed - NestJS Logger doesn't support setContext
   }
 
   /**
@@ -67,7 +67,7 @@ export class NotificationService {
         throw error
       }
 
-      this.logger?.info('Notification created', {
+      this.logger?.log('Notification created', {
         userId: params.userId,
         type: params.type,
         title: params.title
@@ -113,7 +113,7 @@ export class NotificationService {
         throw error
       }
 
-      this.logger?.info('Bulk notifications created', {
+      this.logger?.log('Bulk notifications created', {
         count: notifications.length
       })
     } catch (error) {
@@ -205,7 +205,7 @@ export class NotificationService {
         throw error
       }
 
-      this.logger?.info('Old notifications cleaned up', { count })
+      this.logger?.log('Old notifications cleaned up', { count })
     } catch (error) {
       this.logger?.error('Error cleaning up old notifications', {
         error: error instanceof Error ? error.message : String(error)

@@ -99,7 +99,7 @@ export class StripeDataService {
 		customerId: string
 	): Promise<any[]> {
 		try {
-			this.logger?.info('Fetching customer subscriptions', { customerId })
+			this.logger?.log('Fetching customer subscriptions', { customerId })
 
 			// Ultra-native: Direct table query - no complex joins, no custom SQL
 			// Note: Using 'as any' to bypass TypeScript type checking for stripe schema
@@ -132,7 +132,7 @@ export class StripeDataService {
 		endDate: Date
 	): Promise<RevenueAnalytics[]> {
 		try {
-			this.logger?.info('Calculating revenue analytics', { startDate, endDate })
+			this.logger?.log('Calculating revenue analytics', { startDate, endDate })
 
 			// Ultra-native: Simple date range query
 			// Note: Using 'as any' to bypass TypeScript type checking for stripe schema
@@ -198,7 +198,7 @@ export class StripeDataService {
 	 */
 	async getChurnAnalytics(): Promise<ChurnAnalytics[]> {
 		try {
-			this.logger?.info('Calculating churn analytics')
+			this.logger?.log('Calculating churn analytics')
 
 			// Ultra-native: Simple subscription query
 			// Note: Using 'as any' to bypass TypeScript type checking for stripe schema
@@ -254,7 +254,7 @@ export class StripeDataService {
 	 */
 	async getCustomerLifetimeValue(): Promise<CustomerLifetimeValue[]> {
 		try {
-			this.logger?.info('Calculating customer lifetime value')
+			this.logger?.log('Calculating customer lifetime value')
 
 			// Ultra-native: Simple customer and subscription query
 			// Note: Using 'as any' to bypass TypeScript type checking for stripe schema
@@ -325,7 +325,7 @@ export class StripeDataService {
 		months = 12
 	): Promise<Array<{ month: string; mrr: number; active_subscriptions: number }>> {
 		try {
-			this.logger?.info('Calculating MRR trend', { months })
+			this.logger?.log('Calculating MRR trend', { months })
 
 			// Ultra-native: Simple subscription query
 			// Note: Using 'as any' to bypass TypeScript type checking for stripe schema
@@ -380,7 +380,7 @@ export class StripeDataService {
 	 */
 	async getSubscriptionStatusBreakdown(): Promise<Record<string, number>> {
 		try {
-			this.logger?.info('Getting subscription status breakdown')
+			this.logger?.log('Getting subscription status breakdown')
 
 			// Ultra-native: Simple subscription query
 			// Note: Using 'as any' to bypass TypeScript type checking for stripe schema
@@ -417,7 +417,7 @@ export class StripeDataService {
 				throw new BadRequestException('Invalid customer ID')
 			}
 
-			this.logger?.info('Fetching customer', { customerId })
+			this.logger?.log('Fetching customer', { customerId })
 
 			// Ultra-native: Direct single record query
 			// Note: Using 'as any' to bypass TypeScript type checking for stripe schema
@@ -446,7 +446,7 @@ export class StripeDataService {
 	 */
 	async getPrices(productId?: string): Promise<any[]> {
 		try {
-			this.logger?.info('Fetching prices', { productId })
+			this.logger?.log('Fetching prices', { productId })
 
 			// Note: Using 'as any' to bypass TypeScript type checking for stripe schema
 			let query = this.supabaseService
@@ -479,7 +479,7 @@ export class StripeDataService {
 	 */
 	async getProducts(): Promise<any[]> {
 		try {
-			this.logger?.info('Fetching products')
+			this.logger?.log('Fetching products')
 
 			// Note: Using 'as any' to bypass TypeScript type checking for stripe schema
 			const { data, error } = await this.supabaseService

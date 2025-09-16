@@ -1,10 +1,9 @@
 import { Module } from '@nestjs/common'
-import type { IncomingMessage, ServerResponse } from 'http'
+// Native NestJS Logger used throughout application
 import { ConfigModule } from '@nestjs/config'
 import { APP_INTERCEPTOR } from '@nestjs/core'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { ThrottlerModule } from '@nestjs/throttler'
-import { LoggerModule } from 'nestjs-pino'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { AuthModule } from './auth/auth.module'
@@ -37,72 +36,8 @@ import { SecurityModule } from './security/security.module'
 			validate
 		}),
 
-		// Simplified logging - native Pino without complex configuration
-		LoggerModule.forRoot({
-			pinoHttp: {
-				level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-                // Generate or reuse a correlation ID and attach it to logs
-                genReqId(req: IncomingMessage & { id?: unknown }): string {
-                    const header = req.headers['x-request-id']
-                    const headerId = Array.isArray(header) ? header[0] : header
-                    const coerce = (v: unknown): string | undefined =>
-                        typeof v === 'string' ? v : typeof v === 'number' ? String(v) : undefined
-                    return (
-                        coerce(headerId) ||
-                        coerce(req.id) ||
-                        (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2))
-                    )
-                },
-                customProps(
-                    req: IncomingMessage & { id?: unknown; socket?: { remoteAddress?: string }; ip?: string },
-                    _res: ServerResponse
-                ) {
-                    return {
-                        requestId: ((): string => {
-                            const v = (req as { id?: unknown }).id
-                            return typeof v === 'string' || typeof v === 'number' ? String(v) : ''
-                        })(),
-                        remoteAddress: req.socket?.remoteAddress || req.ip || undefined
-                    }
-                },
-                customLogLevel(
-                    _req: IncomingMessage,
-                    res: ServerResponse & { statusCode: number },
-                    err?: Error | null
-                ) {
-                    if (err || res.statusCode >= 500) return 'error'
-                    if (res.statusCode >= 400) return 'warn'
-                    return 'info'
-                },
-                customReceivedMessage(req: IncomingMessage & { method?: string; url?: string }) {
-                    const m = req.method || 'UNKNOWN'
-                    const u = req.url || ''
-                    return `incoming request ${m} ${u}`
-                },
-                customSuccessMessage(
-                    req: IncomingMessage & { method?: string; url?: string },
-                    res: ServerResponse & { statusCode: number }
-                ) {
-                    const m = req.method || 'UNKNOWN'
-                    const u = req.url || ''
-                    return `request completed ${m} ${u} ${res.statusCode}`
-                },
-                customErrorMessage(
-                    req: IncomingMessage & { method?: string; url?: string },
-                    res: ServerResponse & { statusCode: number },
-                    err?: unknown
-                ) {
-                    const m = req.method || 'UNKNOWN'
-                    const u = req.url || ''
-                    const msg = err instanceof Error ? err.message : ''
-                    return `request errored ${m} ${u} ${res.statusCode} ${msg}`.trim()
-                },
-				transport:
-					process.env.NODE_ENV !== 'production'
-						? { target: 'pino-pretty' }
-						: undefined
-			}
-		}),
+		// Native NestJS Logger - simplified configuration
+		// Logger is automatically available throughout the application
 
 		// Event system for decoupled architecture
 		EventEmitterModule.forRoot(),

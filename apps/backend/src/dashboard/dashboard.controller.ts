@@ -24,7 +24,7 @@ export class DashboardController {
 		description: 'Dashboard statistics retrieved successfully'
 	})
 	async getStats(): Promise<ControllerApiResponse> {
-		this.logger?.info({ action: 'getStats' }, 'Getting dashboard stats')
+		this.logger?.log({ action: 'getStats' }, 'Getting dashboard stats')
 
 		if (!this.dashboardService) {
 			throw new NotFoundException('Dashboard service not available')
@@ -48,7 +48,7 @@ export class DashboardController {
 	async getActivity(
 		@CurrentUser() user?: AuthServiceValidatedUser
 	): Promise<ControllerApiResponse> {
-		this.logger?.info(
+		this.logger?.log(
 			{
 				dashboard: {
 					action: 'getActivity',
@@ -106,7 +106,7 @@ export class DashboardController {
 		@Query('startDate') startDate?: string,
 		@Query('endDate') endDate?: string
 	): Promise<ControllerApiResponse> {
-		this.logger?.info(
+		this.logger?.log(
 			{
 				dashboard: {
 					action: 'getBillingInsights',
@@ -155,7 +155,7 @@ export class DashboardController {
 		description: 'Billing insights availability status'
 	})
 	async getBillingHealth(): Promise<ControllerApiResponse> {
-		this.logger?.info(
+		this.logger?.log(
 			{
 				dashboard: {
 					action: 'getBillingHealth'
@@ -205,7 +205,7 @@ export class DashboardController {
 	async getPropertyPerformance(
 		@CurrentUser() user?: AuthServiceValidatedUser
 	): Promise<ControllerApiResponse> {
-		this.logger?.info(
+		this.logger?.log(
 			{
 				dashboard: {
 					action: 'getPropertyPerformance',
@@ -242,7 +242,7 @@ export class DashboardController {
 		description: 'System uptime metrics retrieved successfully'
 	})
 	async getUptime(): Promise<ControllerApiResponse> {
-		this.logger?.info(
+		this.logger?.log(
 			{
 				dashboard: {
 					action: 'getUptime'

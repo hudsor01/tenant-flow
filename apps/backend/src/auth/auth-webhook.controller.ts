@@ -70,7 +70,7 @@ export class AuthWebhookController {
 	private async handleUserCreated(
 		user: SupabaseWebhookEvent['record']
 	): Promise<void> {
-		this.logger.info('Processing new user creation', {
+		this.logger.log('Processing new user creation', {
 			userId: user.id,
 			email: user.email,
 			hasMetadata: !!user.user_metadata
@@ -105,7 +105,7 @@ export class AuthWebhookController {
 			await this.createSubscription(user.id, user.email, userName)
 
 			// Send welcome email (EmailService disabled)
-			this.logger.info('Welcome email would be sent (EmailService disabled)', {
+			this.logger.log('Welcome email would be sent (EmailService disabled)', {
 				email: user.email,
 				name: userName
 			})
@@ -121,7 +121,7 @@ export class AuthWebhookController {
 	private handleUserUpdated(user: SupabaseWebhookEvent['record']): void {
 		// Check if email was just confirmed
 		if (user.email_confirmed_at && !user.email_confirmed_at.includes('1970')) {
-			this.logger.info('User email confirmed', {
+			this.logger.log('User email confirmed', {
 				userId: user.id,
 				email: user.email,
 				confirmedAt: user.email_confirmed_at
@@ -135,7 +135,7 @@ export class AuthWebhookController {
 		name: string
 	): Promise<void> {
 		try {
-			this.logger.info(
+			this.logger.log(
 				'Creating Stripe customer and subscription for new user',
 				{
 					userId,
@@ -175,7 +175,7 @@ export class AuthWebhookController {
 				subscriptionId?: string
 			} | null
 
-			this.logger.info(
+			this.logger.log(
 				'Stripe customer and subscription created successfully',
 				{
 					userId,

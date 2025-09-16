@@ -11,7 +11,7 @@ export class PDFController {
 
 	@Get('health')
 	async health() {
-		this.logger.info(
+		this.logger.log(
 			{
 				pdf: {
 					healthCheck: true,
