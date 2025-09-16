@@ -58,6 +58,34 @@ export async function createCheckoutSession(
 }
 
 /**
+ * Create a payment intent for custom checkout flow
+ */
+export async function createPaymentIntent({
+  amount,
+  currency = 'usd',
+  metadata = {},
+  customerEmail
+}: {
+  amount: number
+  currency?: string
+  metadata?: Record<string, string>
+  customerEmail?: string
+}) {
+  const response = await fetch('/api/stripe/payment-intent', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ amount, currency, metadata, customerEmail })
+  })
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Payment intent creation failed' }))
+    throw new Error(error.error || 'Failed to create payment intent')
+  }
+
+  return response.json()
+}
+
+/**
  * Check if user is authenticated with Supabase
  */
 export async function isUserAuthenticated(): Promise<boolean> {

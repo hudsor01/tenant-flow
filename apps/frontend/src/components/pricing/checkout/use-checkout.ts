@@ -118,6 +118,7 @@ export function useCheckout({
 		status,
 		error,
 		confirmPayment,
-		reset
+		reset,
+		formatAmount
 	}
 }

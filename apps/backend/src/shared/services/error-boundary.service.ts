@@ -84,7 +84,7 @@ export class ErrorBoundaryService {
 			const responseTime = Date.now() - startTime
 			this.recordSuccess(serviceKey, responseTime)
 
-			return result
+			return result as T
 		} catch (error) {
 			const responseTime = Date.now() - startTime
 			this.recordFailure(serviceKey, error, responseTime)
@@ -128,12 +128,12 @@ export class ErrorBoundaryService {
 				this.cacheService.set(cacheKey, result, cacheTtl, [serviceKey])
 			}
 
-			return result
+			return result as T
 		} catch (error) {
 			// If we have cached data, return it
 			if (cachedResult !== null) {
-				this.logger.warn(`Returning cached data for ${serviceKey} due to error`, { error: error.message })
-				return cachedResult
+				this.logger.warn(`Returning cached data for ${serviceKey} due to error`, { error: error instanceof Error ? error.message : String(error) })
+				return cachedResult as T
 			}
 
 			throw error
@@ -283,7 +283,7 @@ export class ErrorBoundaryService {
 
 	private recordSuccess(serviceKey: string, responseTime: number): void {
 		const metrics = this.getServiceMetrics(serviceKey)
-		const state = this.getCircuitState(serviceKey)
+		// Circuit state tracked separately
 
 		metrics.totalRequests++
 		metrics.successCount++

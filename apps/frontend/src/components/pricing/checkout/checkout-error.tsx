@@ -1,6 +1,6 @@
 "use client"
 
-import { MagicCard } from '@/components/ui/magic-card'
+import { MagicCard } from '@/components/magicui/magic-card'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'

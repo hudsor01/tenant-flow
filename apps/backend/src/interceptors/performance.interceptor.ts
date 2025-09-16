@@ -144,7 +144,11 @@ export class PerformanceInterceptor implements NestInterceptor {
 		const timeouts = this.performanceHistory.filter(m => m.status === 'timeout')
 
 		// Critical path analysis
-		const criticalPathStats = {}
+		const criticalPathStats: Record<string, {
+			requests: number
+			averageTime: number
+			violations: number
+		}> = {}
 		for (const path of this.criticalPaths) {
 			const pathMetrics = this.performanceHistory.filter(m => m.endpoint === path)
 			if (pathMetrics.length > 0) {
@@ -243,9 +247,9 @@ export class PerformanceInterceptor implements NestInterceptor {
 		const cleanUrl = url.split('?')[0]
 
 		// Replace UUIDs with placeholders for grouping
-		return cleanUrl.replace(
+		return cleanUrl ? cleanUrl.replace(
 			/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi,
 			'/:id'
-		)
+		) : ''
 	}
 }
