@@ -12,7 +12,9 @@ import { StripeModule } from './billing/stripe.module'
 import { validate } from './config/config.schema'
 import { DashboardModule } from './dashboard/dashboard.module'
 import { SupabaseModule } from './database/supabase.module'
+import { HealthModule } from './health/health.module'
 import { CacheControlInterceptor } from './interceptors/cache-control.interceptor'
+import { PerformanceInterceptor } from './interceptors/performance.interceptor'
 import { TimeoutInterceptor } from './interceptors/timeout.interceptor'
 import { LeasesModule } from './leases/leases.module'
 import { MaintenanceModule } from './maintenance/maintenance.module'
@@ -114,11 +116,10 @@ import { UsersModule } from './users/users.module'
 			]
 		}),
 
-		// CRITICAL: Global modules must come first
+		// CRITICAL: Global modules must come first for zero-downtime architecture
 		SupabaseModule,
 		SharedModule,
-
-		// HealthModule removed – using simple /health in AppController
+		HealthModule, // Enhanced health monitoring
 
 		// Business modules that depend on global services
 		AuthModule,
@@ -135,7 +136,11 @@ import { UsersModule } from './users/users.module'
 	controllers: [AppController],
 	providers: [
 		AppService,
-		// Minimal global interceptors
+		// Zero-downtime interceptors for performance and reliability
+		{
+			provide: APP_INTERCEPTOR,
+			useClass: PerformanceInterceptor
+		},
 		{
 			provide: APP_INTERCEPTOR,
 			useClass: TimeoutInterceptor

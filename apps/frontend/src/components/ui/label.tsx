@@ -3,8 +3,9 @@
 import * as React from "react"
 import * as LabelPrimitive from "@radix-ui/react-label"
 
-import { cn, formLabelClasses, ANIMATION_DURATIONS } from "@/lib/utils"
+import { cn } from "@/lib/utils"
 
+// Apple-Inspired Label - Satisfying micro-animations on focus
 function Label({
   className,
   variant = "default",
@@ -17,17 +18,20 @@ function Label({
       data-slot="label"
       data-variant={variant}
       className={cn(
-        "flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
-        formLabelClasses(variant === "required", "default"),
-        "transition-all peer-focus:text-primary peer-focus:scale-105 peer-focus:font-semibold",
+        // Base Apple label styling
+        "flex items-center gap-2 text-sm leading-none font-medium select-none",
+        // Accessibility states
+        "group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50",
+        "peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
+        // Apple motion - micro-animations on focus
+        "transition-all [transition-duration:var(--duration-fast)] [transition-timing-function:var(--ease-out-expo)]",
+        "peer-focus:text-primary peer-focus:scale-105 peer-focus:font-semibold",
+        // Required asterisk with Apple styling
         {
-          "after:content-['*'] after:text-destructive after:ml-1": variant === "required"
+          "after:content-['*'] after:text-destructive after:ml-1 after:font-bold": variant === "required"
         },
         className
       )}
-      style={{
-        transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
-      }}
       {...props}
     />
   )

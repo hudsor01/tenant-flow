@@ -103,6 +103,32 @@ export type {
   ZIndexLevel
 } from './constants/design-system'
 
+// ============================================================================
+// APPLE MOTION SYSTEM - OBSESSION-WORTHY INTERACTIONS
+// ============================================================================
+export {
+  APPLE_EASINGS,
+  APPLE_DURATIONS,
+  APPLE_TOUCH_TARGETS,
+  APPLE_TRANSFORMS,
+  APPLE_SHADOWS,
+  APPLE_RADIUS,
+  APPLE_GLASS,
+  APPLE_MOTION_PRESETS,
+  APPLE_CSS_VARS
+} from './constants/motion-system'
+
+export type {
+  AppleEasing,
+  AppleDuration,
+  AppleTouchTarget,
+  AppleTransform,
+  AppleShadow,
+  AppleRadius,
+  AppleGlass,
+  AppleMotionPreset
+} from './constants/motion-system'
+
 export const MAINTENANCE_CATEGORY = {
   GENERAL: 'GENERAL',
   PLUMBING: 'PLUMBING', 

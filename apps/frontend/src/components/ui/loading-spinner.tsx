@@ -1,6 +1,6 @@
 "use client"
 
-import { cn } from '@/lib/design-system'
+import { cn } from '@/lib/utils'
 import { Loader2, RefreshCw, RotateCw } from 'lucide-react'
 
 interface LoadingSpinnerProps {
@@ -51,18 +51,21 @@ function LoadingSpinner({
       text ? "flex-col gap-3" : "",
       className
     )} {...props}>
-      <IconComponent 
+      <IconComponent
         className={cn(
           sizeClasses[size],
           variantClasses[variant],
-          "animate-spin"
+          // Apple motion - smooth spinner rotation with satisfying timing
+          "animate-spin [animation-duration:var(--duration-breathe)] [animation-timing-function:linear]"
         )}
       />
       {text && (
         <p className={cn(
           textSizeClasses[size],
           variantClasses[variant],
-          "font-medium animate-pulse"
+          "font-medium",
+          // Apple breathing animation for text
+          "animate-pulse [animation-duration:var(--duration-breathe)] [animation-timing-function:var(--ease-in-out-circ)]"
         )}>
           {text}
         </p>
@@ -112,30 +115,31 @@ function ButtonLoader({
   )
 }
 
-// Card/Section loading overlay
-function SectionLoader({ 
+// Card/Section loading overlay with Apple glass morphism
+function SectionLoader({
   text,
   className,
   children,
-  ...props 
-}: { 
+  ...props
+}: {
   text?: string
   children?: React.ReactNode
 } & React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div className={cn("relative", className)} {...props}>
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg">
-        <LoadingSpinner 
-          size="lg" 
-          variant="primary" 
-          text={text}
-          className="bg-card p-6 rounded-lg shadow-lg border"
-        />
+      {/* Apple Glass Backdrop */}
+      <div className="absolute inset-0 glass-apple z-10 flex items-center justify-center rounded-lg">
+        <div className="card-elevated p-6">
+          <LoadingSpinner
+            size="lg"
+            variant="primary"
+            text={text}
+          />
+        </div>
       </div>
-      
-      {/* Content (blurred) */}
-      <div className="opacity-50 pointer-events-none">
+
+      {/* Content (blurred with Apple motion) */}
+      <div className="opacity-50 pointer-events-none transition-all [transition-duration:var(--duration-medium)] [transition-timing-function:var(--ease-out-expo)]">
         {children}
       </div>
     </div>
@@ -156,19 +160,19 @@ function InlineLoader({
   )
 }
 
-// Loading dots animation (alternative to spinner)
-function LoadingDots({ 
+// Apple Loading Dots - Satisfying bounce animation with Apple timing
+function LoadingDots({
   className,
   variant = 'default',
   size = 'default',
-  ...props 
+  ...props
 }: {
   variant?: 'default' | 'primary' | 'muted'
   size?: 'sm' | 'default' | 'lg'
 } & React.HTMLAttributes<HTMLDivElement>) {
   const dotSize = {
     sm: 'w-1 h-1',
-    default: 'w-2 h-2', 
+    default: 'w-2 h-2',
     lg: 'w-3 h-3'
   }[size]
 
@@ -180,24 +184,34 @@ function LoadingDots({
 
   return (
     <div className={cn("flex items-center", dotSpacing, className)} {...props}>
-      <div className={cn(
-        dotSize,
-        "rounded-full animate-bounce",
-        variantClasses[variant],
-        "bg-current"
-      )} style={{ animationDelay: '0ms' }} />
-      <div className={cn(
-        dotSize,
-        "rounded-full animate-bounce",
-        variantClasses[variant], 
-        "bg-current"
-      )} style={{ animationDelay: '150ms' }} />
-      <div className={cn(
-        dotSize,
-        "rounded-full animate-bounce",
-        variantClasses[variant],
-        "bg-current"
-      )} style={{ animationDelay: '300ms' }} />
+      <div
+        className={cn(
+          dotSize,
+          "rounded-full animate-bounce bg-current",
+          variantClasses[variant],
+          // Apple motion - satisfying bounce with spring easing
+          "[animation-duration:var(--duration-breathe)] [animation-timing-function:var(--ease-spring)]"
+        )}
+        style={{ animationDelay: '0ms' }}
+      />
+      <div
+        className={cn(
+          dotSize,
+          "rounded-full animate-bounce bg-current",
+          variantClasses[variant],
+          "[animation-duration:var(--duration-breathe)] [animation-timing-function:var(--ease-spring)]"
+        )}
+        style={{ animationDelay: '200ms' }}
+      />
+      <div
+        className={cn(
+          dotSize,
+          "rounded-full animate-bounce bg-current",
+          variantClasses[variant],
+          "[animation-duration:var(--duration-breathe)] [animation-timing-function:var(--ease-spring)]"
+        )}
+        style={{ animationDelay: '400ms' }}
+      />
     </div>
   )
 }
