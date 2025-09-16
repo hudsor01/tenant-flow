@@ -23,7 +23,7 @@ export class HealthController {
 	@Public()
 	@HealthCheck()
 	async check() {
-		this.logger.info(
+		this.logger.log(
 			{
 				health: {
 					environment: process.env.NODE_ENV,
@@ -65,7 +65,7 @@ export class HealthController {
 	@Public()
 	@HealthCheck()
 	async stripeCheck() {
-		this.logger.info('Stripe FDW health check started')
+		this.logger.log('Stripe FDW health check started')
 		return this.health.check([() => this.stripeFdw.detailedCheck('stripe_fdw')])
 	}
 

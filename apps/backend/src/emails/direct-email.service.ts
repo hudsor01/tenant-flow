@@ -29,7 +29,7 @@ export class DirectEmailService {
     this.resend = new Resend(resendKey)
     this.fromAddress = 'TenantFlow <noreply@tenantflow.app>'
     
-    this.logger.info(
+    this.logger.log(
       {
         email: {
           provider: 'resend',
@@ -74,7 +74,7 @@ export class DirectEmailService {
         throw new InternalServerErrorException(`Resend error: ${error.message}`)
       }
 
-      this.logger.info(
+      this.logger.log(
         {
           email: {
             type: 'maintenance_notification',
@@ -127,7 +127,7 @@ export class DirectEmailService {
         throw new InternalServerErrorException(`Resend error: ${error.message}`)
       }
 
-      this.logger.info(`Simple email sent: ${data?.id}`)
+      this.logger.log(`Simple email sent: ${data?.id}`)
     } catch (error) {
       this.logger.error(`Failed to send simple email: ${error}`)
       throw error

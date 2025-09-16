@@ -10,7 +10,6 @@
  */
 
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
-import { Logger } from '@nestjs/common'
 import { DirectEmailService } from '../../emails/direct-email.service'
 import { SupabaseService } from '../../database/supabase.service'
 
