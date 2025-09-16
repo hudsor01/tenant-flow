@@ -1,6 +1,6 @@
 'use client'
 
-import { MagicCard } from '@/components/ui/magic-card'
+
 import { cn } from '@/lib/utils'
 import { animated } from '@react-spring/web'
 import { CheckCircle2 } from 'lucide-react'
@@ -18,7 +18,7 @@ export function SuccessConfirmation({
 }: Props) {
 	return (
 		<animated.div style={successSpring}>
-			<MagicCard
+			<div
 				className={cn(
 					'card',
 					'w-full max-w-md mx-auto p-6 border-slate-200 dark:border-slate-800 shadow-xl'
@@ -36,7 +36,7 @@ export function SuccessConfirmation({
 						</p>
 					</div>
 				</div>
-			</MagicCard>
+			</div>
 		</animated.div>
 	)
 }

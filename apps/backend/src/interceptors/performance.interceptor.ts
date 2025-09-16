@@ -144,7 +144,7 @@ export class PerformanceInterceptor implements NestInterceptor {
 		const timeouts = this.performanceHistory.filter(m => m.status === 'timeout')
 
 		// Critical path analysis
-		const criticalPathStats = {}
+		const criticalPathStats: Record<string, { requests: number; averageTime: number; violations: number }> = {}
 		for (const path of this.criticalPaths) {
 			const pathMetrics = this.performanceHistory.filter(m => m.endpoint === path)
 			if (pathMetrics.length > 0) {
@@ -240,7 +240,7 @@ export class PerformanceInterceptor implements NestInterceptor {
 
 	private normalizeEndpoint(url: string): string {
 		// Remove query parameters and normalize dynamic segments
-		const cleanUrl = url.split('?')[0]
+		const cleanUrl = url.split('?')[0] || url
 
 		// Replace UUIDs with placeholders for grouping
 		return cleanUrl.replace(
