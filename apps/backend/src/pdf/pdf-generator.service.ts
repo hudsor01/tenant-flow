@@ -23,7 +23,7 @@ export class PDFGeneratorService implements OnModuleDestroy {
 	 */
 	private async getBrowser(): Promise<Awaited<ReturnType<typeof puppeteer.launch>>> {
 		if (!this.browser?.connected) {
-			this.logger.info('Launching Puppeteer browser')
+			this.logger.log('Launching Puppeteer browser')
 			
 			// Use system Chromium in Docker, downloaded Chromium locally
 			const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || undefined
@@ -67,7 +67,7 @@ export class PDFGeneratorService implements OnModuleDestroy {
 			landscape?: boolean
 		}
 	): Promise<Buffer> {
-		this.logger.info('Generating PDF from HTML content', {
+		this.logger.log('Generating PDF from HTML content', {
 			contentLength: htmlContent.length,
 			format: options?.format || 'A4'
 		})
@@ -100,7 +100,7 @@ export class PDFGeneratorService implements OnModuleDestroy {
 			// Cleanup
 			await page.close()
 
-			this.logger.info('PDF generated successfully', {
+			this.logger.log('PDF generated successfully', {
 				sizeKB: Math.round(pdfBuffer.length / 1024)
 			})
 			return Buffer.from(pdfBuffer)
@@ -297,7 +297,7 @@ export class PDFGeneratorService implements OnModuleDestroy {
 	async onModuleDestroy(): Promise<void> {
 		if (this.browser) {
 			await this.browser.close()
-			this.logger.info('PDF generator browser closed')
+			this.logger.log('PDF generator browser closed')
 		}
 	}
 }

@@ -11,7 +11,6 @@
 
 import { Injectable, NestMiddleware, Logger } from '@nestjs/common'
 import type { FastifyRequest, FastifyReply } from 'fastify'
-import { Logger } from '@nestjs/common'
 
 interface RateLimitWindow {
 	requests: number
@@ -78,7 +77,7 @@ export class RateLimitMiddleware implements NestMiddleware {
 
 	constructor(logger: Logger) {
 		this.securityLogger = logger
-		this.securityLogger.setContext(RateLimitMiddleware.name)
+		// Context removed - NestJS Logger doesn't support setContext
 
 		// Cleanup expired rate limit entries every 5 minutes
 		setInterval(() => this.cleanupExpiredEntries(), 5 * 60 * 1000)
@@ -278,7 +277,7 @@ export class RateLimitMiddleware implements NestMiddleware {
 	public unblockIP(ip: string): void {
 		this.blockedIPs.delete(ip)
 		this.suspiciousIPs.delete(ip)
-		this.securityLogger.info('IP manually unblocked', { ip })
+		this.securityLogger.log('IP manually unblocked', { ip })
 	}
 
 	public getSuspiciousIPs(): string[] {
