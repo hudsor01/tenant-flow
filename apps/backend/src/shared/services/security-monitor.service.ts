@@ -87,7 +87,7 @@ export class SecurityMonitorService implements OnModuleInit {
 		],
 		pathTraversal: [
 			/\.\.\//g,
-			/\.\.\\\\[/gi,
+			/\.\.\\\/gi,
 			/\.\.\%2f/gi,
 			/\.\.\%5c/gi
 		]
