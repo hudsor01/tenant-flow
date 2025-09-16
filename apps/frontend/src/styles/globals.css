@@ -34,7 +34,7 @@
 	/* Primary: Deep Navy - Authority & Trust */
 	--color-primary: #1a365d;
 	--color-primary-foreground: #ffffff;
-	
+
 	/* Secondary: Professional Steel - Sophisticated Strength */
 	--color-secondary: #f7fafc;
 	--color-secondary-foreground: #2d3748;
@@ -54,11 +54,31 @@
 	--color-input: #edf2f7;
 	--color-ring: #1a365d;
 
-	/* Spacing System */
-	--radius: 0.5rem;
+	/* Apple Design System Tokens */
+	/* Motion System - Apple-quality animations */
+	--ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+	--duration-fast: 0.25s;
+	--duration-normal: 0.35s;
+	--duration-slow: 0.5s;
+
+	/* Apple Shadow System */
+	--shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+	--shadow-md: 0 4px 12px 0 rgb(0 0 0 / 0.1);
+	--shadow-lg: 0 8px 24px 0 rgb(0 0 0 / 0.12);
+	--shadow-xl: 0 16px 40px 0 rgb(0 0 0 / 0.15);
+
+	/* Apple Radius System */
+	--radius-md: 12px;    /* Apple's standard radius */
+	--radius: 16px;
+	--radius-lg: 20px;
+	--radius-xl: 24px;
+
+	/* Touch Target System - 44px minimum for accessibility */
+	--spacing-10: 40px;   /* Close to 44px for touch targets */
+	--spacing-12: 48px;   /* Exceeds 44px for comfort */
+
+	/* Legacy spacing - keeping for backward compatibility */
 	--radius-sm: 0.25rem;
-	--radius-lg: 0.75rem;
-	--radius-xl: 1rem;
 }
 
 /* === DARK MODE THEME (CSS Variables Approach) === */
@@ -468,6 +488,34 @@
 	.dark .card-glass {
 		background: rgba(0, 0, 0, 0.1);
 		border: 1px solid rgba(255, 255, 255, 0.05);
+	}
+
+	/* Apple Glass Effects for Modal Overlays */
+	.glass-apple {
+		background: rgba(255, 255, 255, 0.8);
+		backdrop-filter: blur(20px) saturate(180%);
+		border: 1px solid rgba(255, 255, 255, 0.2);
+		border-radius: var(--radius-md);
+		box-shadow: var(--shadow-lg);
+	}
+
+	.dark .glass-apple {
+		background: rgba(30, 30, 30, 0.8);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+	}
+
+	/* Apple Card Effects with Enhanced Shadows */
+	.card-apple {
+		background: var(--color-card);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-md);
+		box-shadow: var(--shadow-md);
+		transition: all var(--duration-fast) var(--ease-out-expo);
+	}
+
+	.card-apple:hover {
+		box-shadow: var(--shadow-lg);
+		transform: translateY(-2px);
 	}
 
 	/* EVIDENCE: stripe-pricing-section.tsx:405 */
