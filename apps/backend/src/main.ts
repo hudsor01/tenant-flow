@@ -50,7 +50,8 @@ async function bootstrap() {
       fastifyAdapter,
       {
         rawBody: true,
-        bufferLogs: true
+        bufferLogs: true,
+        bodyLimit: 10 * 1024 * 1024 // 10MB limit for security
       }
     )
 
@@ -81,7 +82,35 @@ async function bootstrap() {
 	app.register(cors, getCORSConfig())
 	logger.log('CORS enabled')
 
-	// Global validation pipe
+	// Security: Apply security headers middleware
+	logger.log('Applying security headers...')
+	const { SecurityHeadersMiddleware } = await import('./shared/middleware/security-headers.middleware')
+	app.use(new SecurityHeadersMiddleware().use.bind(new SecurityHeadersMiddleware()))
+	logger.log('Security headers enabled')
+
+	// Security: Apply rate limiting middleware
+	logger.log('Configuring rate limiting...')
+	const { RateLimitMiddleware } = await import('./shared/middleware/rate-limit.middleware')
+	const { PinoLogger } = await import('nestjs-pino')
+	const pinoLogger = app.get(PinoLogger)
+	app.use(new RateLimitMiddleware(pinoLogger).use.bind(new RateLimitMiddleware(pinoLogger)))
+	logger.log('Rate limiting enabled')
+
+	// Security: Apply input sanitization middleware
+	logger.log('Configuring input sanitization...')
+	const { InputSanitizationMiddleware } = await import('./shared/middleware/input-sanitization.middleware')
+	const { SecurityMonitorService } = await import('./shared/services/security-monitor.service')
+	const securityMonitor = app.get(SecurityMonitorService)
+	app.use(new InputSanitizationMiddleware(pinoLogger, securityMonitor).use.bind(new InputSanitizationMiddleware(pinoLogger, securityMonitor)))
+	logger.log('Input sanitization enabled')
+
+	// Security: Apply security exception filter
+	logger.log('Configuring security exception filter...')
+	const { SecurityExceptionFilter } = await import('./shared/filters/security-exception.filter')
+	app.useGlobalFilters(new SecurityExceptionFilter(pinoLogger, securityMonitor))
+	logger.log('Security exception filter enabled')
+
+	// Global validation pipe with enhanced security
 	app.useGlobalPipes(
 		new ValidationPipe({
 			transform: true,
@@ -89,7 +118,13 @@ async function bootstrap() {
 			whitelist: true,
 			forbidNonWhitelisted: true,
 			disableErrorMessages: process.env.NODE_ENV === 'production',
-			validationError: { target: false, value: false }
+			validationError: { target: false, value: false },
+			// Enhanced security options
+			validateCustomDecorators: true,
+			stopAtFirstError: false,
+			skipMissingProperties: false,
+			skipNullProperties: false,
+			skipUndefinedProperties: false
 		})
 	)
 

@@ -4,6 +4,9 @@ import { ChartAreaInteractive } from '@/components/chart-area-interactive'
 import { DataTable } from '@/components/data-table'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { SectionCards } from '@/components/section-cards'
+import { RevenueTrendChart } from '@/components/charts/revenue-trend-chart'
+import { OccupancyHeatmap } from '@/components/charts/occupancy-heatmap'
+import { MaintenanceAnalytics } from '@/components/charts/maintenance-analytics'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
@@ -172,9 +175,9 @@ function DashboardContent() {
 	}
 
 	return (
-		<div className="dashboard-root dashboard-main flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-			{/* Enhanced error display for dashboard stats */}
-			<div className="dashboard-section">
+		<div className="dashboard-root dashboard-main flex flex-col gap-6 py-4 md:gap-8 md:py-6">
+			{/* Financial Overview Cards */}
+			<div className="dashboard-section px-4 lg:px-6">
 				<RetryableSection
 					error={error as Error | null}
 					onRetry={() => refetch()}
@@ -184,11 +187,27 @@ function DashboardContent() {
 				</RetryableSection>
 			</div>
 
+			{/* Revenue Analytics - Apple-styled with hidden insights */}
+			<div className="dashboard-section px-4 lg:px-6">
+				<RevenueTrendChart />
+			</div>
+
+			{/* Occupancy Overview - Curiosity-driven interactions */}
+			<div className="dashboard-section px-4 lg:px-6">
+				<OccupancyHeatmap />
+			</div>
+
+			{/* Maintenance Analytics - Contextual drill-downs */}
+			<div className="dashboard-section px-4 lg:px-6">
+				<MaintenanceAnalytics />
+			</div>
+
+			{/* Interactive Analytics Chart */}
 			<div className="dashboard-section px-4 lg:px-6">
 				<ChartAreaInteractive />
 			</div>
 
-			{/* Enhanced error handling for properties */}
+			{/* Properties Data Table - Enhanced error handling */}
 			<div className="dashboard-section px-4 lg:px-6">
 				<RetryableSection
 					error={propertiesError as Error | null}
