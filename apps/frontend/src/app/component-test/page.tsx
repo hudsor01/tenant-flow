@@ -2,15 +2,16 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { PlayIcon, PauseIcon, StopIcon, ArrowRightIcon, HeartIcon, StarIcon } from 'lucide-react'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card'
+import { PlayIcon, PauseIcon, ArrowRightIcon, HeartIcon, StarIcon } from 'lucide-react'
 
 export default function ComponentTestPage() {
-  const [dialogOpen, setDialogOpen] = useState(false)
+  const [_dialogOpen, _setDialogOpen] = useState(false)
   const [currentTest, setCurrentTest] = useState('')
 
   const runTest = (testName: string) => {
     setCurrentTest(testName)
+    // eslint-disable-next-line no-console
     console.log(`Running test: ${testName}`)
   }
 
@@ -68,7 +69,7 @@ export default function ComponentTestPage() {
                 Secondary Motion
               </Button>
               <Button variant="destructive" onClick={() => runTest('Destructive Motion')}>
-                <StopIcon className="mr-2" />
+                <PauseIcon className="mr-2" />
                 Destructive Motion
               </Button>
               <Button variant="outline" onClick={() => runTest('Outline Motion')}>

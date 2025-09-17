@@ -1,18 +1,27 @@
 "use client";
 
-import { DollarSign, TrendingUp, TrendingDown, BarChart3, PieChart, Target } from "lucide-react";
+import { DollarSign, BarChart3, PieChart, Target, Eye, EyeOff, Sparkles, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { 
-  formatCurrency, 
-  ANIMATION_DURATIONS, 
-  cn, 
+import { Button } from "@/components/ui/button";
+import * as React from 'react';
+import {
+  formatCurrency,
+  ANIMATION_DURATIONS,
+  cn,
   TYPOGRAPHY_SCALE,
   cardClasses,
   badgeClasses,
   animationClasses
 } from "@/lib/utils";
+import {
+  APPLE_SYSTEM_COLORS,
+  APPLE_GRADIENTS,
+  APPLE_EASINGS,
+  APPLE_DURATIONS,
+  APPLE_SHADOWS
+} from '@repo/shared';
 import type { DashboardFinancialStats } from "@repo/shared";
 
 interface FinancialMetricsCardsProps {
@@ -34,177 +43,217 @@ interface MetricCardProps {
   progress?: number;
   color: 'blue' | 'green' | 'purple' | 'orange';
   delay?: number;
+  insights?: string[];
+  target?: number;
 }
 
 const colorConfig = {
   blue: {
-    bg: 'from-blue-50 to-blue-100/50 dark:from-blue-950/50 dark:to-blue-900/20',
-    border: 'border-blue-200/60 dark:border-blue-800/40 hover:border-blue-300 dark:hover:border-blue-700',
-    shadow: 'hover:shadow-blue-100/50 dark:hover:shadow-blue-950/50',
-    icon: 'bg-blue-200/50 border-blue-300/50 text-blue-700 dark:text-blue-400',
-    text: 'text-blue-800 dark:text-blue-300',
-    value: 'text-blue-700 dark:text-blue-300',
-    accent: 'text-blue-600/80 dark:text-blue-400/80',
-    hover: 'bg-blue-400/5'
+    primary: APPLE_SYSTEM_COLORS.systemBlue,
+    gradient: APPLE_GRADIENTS.revenue,
+    shadow: APPLE_SHADOWS['shadow-card-apple']
   },
   green: {
-    bg: 'from-green-50 to-green-100/50 dark:from-green-950/50 dark:to-green-900/20',
-    border: 'border-green-200/60 dark:border-green-800/40 hover:border-green-300 dark:hover:border-green-700',
-    shadow: 'hover:shadow-green-100/50 dark:hover:shadow-green-950/50',
-    icon: 'bg-green-200/50 border-green-300/50 text-green-700 dark:text-green-400',
-    text: 'text-green-800 dark:text-green-300',
-    value: 'text-green-700 dark:text-green-300',
-    accent: 'text-green-600/80 dark:text-green-400/80',
-    hover: 'bg-green-400/5'
+    primary: APPLE_SYSTEM_COLORS.systemGreen,
+    gradient: APPLE_GRADIENTS.occupancy,
+    shadow: APPLE_SHADOWS['shadow-card-elevated']
   },
   purple: {
-    bg: 'from-purple-50 to-purple-100/50 dark:from-purple-950/50 dark:to-purple-900/20',
-    border: 'border-purple-200/60 dark:border-purple-800/40 hover:border-purple-300 dark:hover:border-purple-700',
-    shadow: 'hover:shadow-purple-100/50 dark:hover:shadow-purple-950/50',
-    icon: 'bg-purple-200/50 border-purple-300/50 text-purple-700 dark:text-purple-400',
-    text: 'text-purple-800 dark:text-purple-300',
-    value: 'text-purple-700 dark:text-purple-300',
-    accent: 'text-purple-600/80 dark:text-purple-400/80',
-    hover: 'bg-purple-400/5'
+    primary: APPLE_SYSTEM_COLORS.systemPurple,
+    gradient: APPLE_GRADIENTS.satisfaction,
+    shadow: APPLE_SHADOWS['shadow-card-interactive']
   },
   orange: {
-    bg: 'from-orange-50 to-orange-100/50 dark:from-orange-950/50 dark:to-orange-900/20',
-    border: 'border-orange-200/60 dark:border-orange-800/40 hover:border-orange-300 dark:hover:border-orange-700',
-    shadow: 'hover:shadow-orange-100/50 dark:hover:shadow-orange-950/50',
-    icon: 'bg-orange-200/50 border-orange-300/50 text-orange-700 dark:text-orange-400',
-    text: 'text-orange-800 dark:text-orange-300',
-    value: 'text-orange-700 dark:text-orange-300',
-    accent: 'text-orange-600/80 dark:text-orange-400/80',
-    hover: 'bg-orange-400/5'
+    primary: APPLE_SYSTEM_COLORS.systemOrange,
+    gradient: APPLE_GRADIENTS.maintenance,
+    shadow: APPLE_SHADOWS['shadow-button-hover']
   }
 };
 
-function MetricCard({ 
-  title, 
-  value, 
-  subtitle, 
-  icon: Icon, 
-  trend, 
-  progress, 
-  color, 
-  delay = 0 
+function MetricCard({
+  title,
+  value,
+  subtitle,
+  icon: Icon,
+  trend,
+  progress,
+  color,
+  delay = 0,
+  insights,
+  target
 }: MetricCardProps) {
+  const [isExpanded, setIsExpanded] = React.useState(false);
   const colors = colorConfig[color];
-  
+
+  const isPositiveChange = trend?.isPositive ?? false;
+  const changeIcon = isPositiveChange ? ArrowUpRight : ArrowDownRight;
+  const changeColor = isPositiveChange
+    ? APPLE_SYSTEM_COLORS.systemGreen
+    : APPLE_SYSTEM_COLORS.systemRed;
+
+  const handleToggle = () => {
+    setIsExpanded(!isExpanded);
+  };
+
   return (
-    <Card 
+    <Card
       className={cn(
-        cardClasses('interactive'),
-        `group relative overflow-hidden rounded-2xl bg-gradient-to-br ${colors.bg} border-2 ${colors.border} ${colors.shadow} hover:shadow-xl focus-within:ring-2 focus-within:ring-primary/20 focus-within:ring-offset-2`,
-        animationClasses('fade-in'),
+        "relative overflow-hidden cursor-pointer transition-all group",
+        "hover:shadow-2xl hover:-translate-y-1 border-2",
+        isExpanded && "shadow-2xl -translate-y-1 ring-2 ring-primary/20"
       )}
-      style={{ 
+      style={{
         animationDelay: `${delay}ms`,
-        transform: 'translateY(20px)',
-        animation: `slideInFromBottom ${ANIMATION_DURATIONS.default} ease-out ${delay}ms both`,
-        transition: `all ${ANIMATION_DURATIONS.default} cubic-bezier(0.4, 0, 0.2, 1)`,
+        background: isExpanded ? colors.gradient : undefined,
+        transition: `all ${APPLE_DURATIONS['duration-medium']} ${APPLE_EASINGS['ease-out-expo']}`,
+        boxShadow: colors.shadow,
+        transform: `translateY(${isExpanded ? '-4px' : '0px'})`
       }}
-      tabIndex={0}
-      role="button"
-      aria-label={`${title}: ${typeof value === 'number' ? formatCurrency(value) : value}${trend ? `, trending ${trend.isPositive ? 'up' : 'down'} by ${trend.value}%` : ''}`}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          // Add click behavior here if needed
-        }
-      }}
+      onClick={handleToggle}
     >
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between">
-          <div className="space-y-3 flex-1">
-            <div className="flex items-center gap-3">
-              <div className={cn(
-                `flex size-12 items-center justify-center rounded-xl border shadow-sm group-hover:scale-110 group-hover:shadow-md group-focus-visible:scale-110`,
-                colors.icon
-              )}
+      {/* Ambient glow effect */}
+      <div
+        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+        style={{
+          background: `radial-gradient(circle at 50% 50%, ${colors.primary}15, transparent 70%)`
+        }}
+      />
+
+      <CardContent className="p-6 relative z-10">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div
+              className="p-3 rounded-xl transition-all duration-300 group-hover:scale-110"
               style={{
-                transition: `all ${ANIMATION_DURATIONS.fast} cubic-bezier(0.4, 0, 0.2, 1)`,
-              }}>
-                <Icon className="size-6 transition-transform group-hover:scale-110" />
-              </div>
-              <div className="space-y-1">
-                <p className={cn(
-                  "text-sm font-semibold uppercase tracking-wide group-hover:tracking-wider",
-                  colors.text
-                )}
-                style={{
-                  transition: `letter-spacing ${ANIMATION_DURATIONS.fast} ease-out`,
-                }}>
-                  {title}
-                </p>
-                {trend && (
-                  <div className="flex items-center gap-1">
-                    {trend.isPositive ? (
-                      <TrendingUp className="size-3 text-emerald-600" />
-                    ) : (
-                      <TrendingDown className="size-3 text-red-600" />
-                    )}
-                    <span className={cn(
-                      "text-xs font-medium",
-                      trend.isPositive ? "text-emerald-600" : "text-red-600"
-                    )}>
-                      {trend.isPositive ? "+" : ""}{trend.value}%
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {trend.label}
-                    </span>
-                  </div>
-                )}
-              </div>
+                backgroundColor: `${colors.primary}20`,
+                boxShadow: isExpanded ? APPLE_SHADOWS['shadow-button-hover'] : 'none'
+              }}
+            >
+              <Icon className="w-5 h-5 transition-colors duration-200" />
             </div>
-            
-            <div className="space-y-2">
-              <p className={cn(
-                "font-bold tabular-nums text-3xl",
-                colors.value
-              )}>
-                {typeof value === 'number' ? formatCurrency(value) : value}
+
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                {title}
               </p>
-              
-              {subtitle && (
-                <p className={cn("text-sm", colors.accent)}>
-                  {subtitle}
-                </p>
-              )}
-              
-              {progress !== undefined && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground font-medium">Progress</span>
-                    <span className={cn("font-semibold tabular-nums", colors.accent)}>
-                      {progress}%
-                    </span>
-                  </div>
-                  <Progress 
-                    value={progress} 
-                    className={cn(
-                      "h-2 bg-muted/30",
-                      "[&>div]:transition-all [&>div]:duration-1000 [&>div]:ease-out",
-                      colors.bg.includes('green') ? '[&>div]:bg-emerald-500' :
-                      colors.bg.includes('blue') ? '[&>div]:bg-blue-500' :
-                      colors.bg.includes('purple') ? '[&>div]:bg-purple-500' : '[&>div]:bg-orange-500'
-                    )}
-                    style={{
-                      transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
-                      animationDelay: `${delay + 200}ms`
-                    }}
-                    aria-label={`${title} progress: ${progress}%`}
-                  />
-                </div>
-              )}
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-bold">
+                  {typeof value === 'number' ? formatCurrency(value) : value}
+                </span>
+                {subtitle && (
+                  <span className="text-xs text-muted-foreground">
+                    {subtitle}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
+
+          <div className="text-right">
+            {trend && (
+              <div className="flex items-center gap-1 mb-1">
+                {React.createElement(changeIcon, {
+                  className: "w-3 h-3",
+                  style: { color: changeColor }
+                })}
+                <span
+                  className="text-sm font-semibold"
+                  style={{ color: changeColor }}
+                >
+                  {isPositiveChange ? '+' : ''}{trend.value}%
+                </span>
+              </div>
+            )}
+            {trend && (
+              <p className="text-xs text-muted-foreground">
+                {trend.label}
+              </p>
+            )}
+          </div>
         </div>
-        <div className={cn(
-          `absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity`,
-          colors.hover
-        )} />
+
+        {/* Progress bar */}
+        {progress !== undefined && (
+          <div className="space-y-2 mb-3">
+            <div className="flex justify-between text-xs">
+              <span className="text-muted-foreground">Progress</span>
+              <span style={{ color: colors.primary }}>
+                {progress.toFixed(1)}%
+              </span>
+            </div>
+            <Progress
+              value={progress}
+              className="h-1.5"
+              style={{
+                backgroundColor: `${colors.primary}20`
+              }}
+            />
+          </div>
+        )}
+
+        {/* Expand button */}
+        <div className="flex items-center justify-between">
+          <div className="text-xs text-muted-foreground">
+            {isExpanded ? 'Click to collapse' : 'Click for insights'}
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 px-2 text-xs opacity-70 group-hover:opacity-100 transition-opacity"
+          >
+            {isExpanded ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+          </Button>
+        </div>
+
+        {/* Expanded insights */}
+        {isExpanded && insights && (
+          <div
+            className="mt-4 space-y-2 p-3 rounded-lg transition-all duration-300"
+            style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.7)',
+              backdropFilter: 'blur(10px)',
+              animation: `slideInFromTop 300ms ${APPLE_EASINGS['ease-out-expo']}`
+            }}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="w-3 h-3 text-primary" />
+              <span className="text-xs font-semibold text-primary">Key Insights</span>
+            </div>
+            {insights.map((insight, index) => (
+              <div key={index} className="flex items-start gap-2">
+                <div className="w-1 h-1 rounded-full bg-primary mt-2 flex-shrink-0" />
+                <span className="text-xs text-gray-700">{insight}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Target information */}
+        {isExpanded && target && (
+          <div
+            className="mt-3 p-2 bg-primary/5 rounded-lg transition-all duration-300"
+            style={{
+              animation: `slideInFromTop 350ms ${APPLE_EASINGS['ease-out-expo']}`
+            }}
+          >
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-gray-600">Target</span>
+              <span className="font-bold text-primary">
+                {typeof target === 'number' ? formatCurrency(target) : target}
+              </span>
+            </div>
+          </div>
+        )}
       </CardContent>
+
+      {/* Hover glow border */}
+      <div
+        className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+        style={{
+          background: `linear-gradient(135deg, transparent, ${colors.primary}10, transparent)`,
+          border: `1px solid ${colors.primary}20`
+        }}
+      />
     </Card>
   );
 }
@@ -271,7 +320,13 @@ export function FinancialMetricsCards({
         value: 12.5,
         label: "vs last month",
         isPositive: true
-      }
+      },
+      insights: [
+        "Strong holiday season performance",
+        "New property onboarded in Q4",
+        "Rent increases taking effect"
+      ],
+      target: 70000
     },
     {
       title: "Monthly Recurring",
@@ -284,7 +339,13 @@ export function FinancialMetricsCards({
         value: 8.2,
         label: "vs last month",
         isPositive: true
-      }
+      },
+      insights: [
+        "98% payment collection rate",
+        "Automatic payment enrollment up",
+        "Late fees contributing 6% of total"
+      ],
+      target: 65000
     },
     {
       title: "Occupancy Rate",
@@ -298,21 +359,33 @@ export function FinancialMetricsCards({
         value: 2.1,
         label: "vs last month",
         isPositive: true
-      }
+      },
+      insights: [
+        "Above industry average of 95%",
+        "Only 7 vacant units currently",
+        "Waitlist for premium units"
+      ],
+      target: 98
     },
     {
-      title: "Performance",
-      value: "94%",
-      subtitle: "Target: 95%",
+      title: "Net Margin",
+      value: "76.5%",
+      subtitle: "Operating efficiency",
       icon: Target,
       color: 'orange',
       delay: 300,
-      progress: 94,
+      progress: 76.5,
       trend: {
-        value: 1.3,
-        label: "vs target",
-        isPositive: false
-      }
+        value: 3.2,
+        label: "vs last quarter",
+        isPositive: true
+      },
+      insights: [
+        "Operating expenses decreased 3%",
+        "Maintenance costs under budget",
+        "Energy efficiency improvements paying off"
+      ],
+      target: 80
     }
   ];
 
