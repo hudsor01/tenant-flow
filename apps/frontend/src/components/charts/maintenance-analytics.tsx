@@ -13,8 +13,8 @@ import {
   Cell,
   PieChart,
   Pie,
-  RadialBarChart,
-  RadialBar,
+  // RadialBarChart,
+  // RadialBar,
   AreaChart,
   Area
 } from 'recharts'
@@ -42,20 +42,20 @@ import {
   CheckCircle,
   Calendar,
   User,
-  MapPin,
-  TrendingUp,
-  TrendingDown,
+  // MapPin,
+  // TrendingUp,
+  // TrendingDown,
   Zap,
   Filter,
   Eye,
   EyeOff,
-  Timer,
+  // Timer,
   Star,
   Target
 } from 'lucide-react'
 import {
   APPLE_SYSTEM_COLORS,
-  PROPERTY_ANALYTICS_COLORS,
+  // PROPERTY_ANALYTICS_COLORS,
   APPLE_GRADIENTS,
   APPLE_EASINGS,
   APPLE_DURATIONS
@@ -444,13 +444,13 @@ const RequestDetailCard = ({
 // CUSTOM TOOLTIP
 // =============================================================================
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; name: string; color: string }>; label?: string }) => {
   if (!active || !payload || !payload.length) return null
 
   return (
     <div className="bg-white/95 backdrop-blur-sm border-2 border-primary/20 shadow-2xl rounded-xl p-4">
       <p className="font-semibold text-gray-900 mb-2">{label}</p>
-      {payload.map((entry: any, index: number) => (
+      {payload.map((entry: { value: number; name: string; color: string }, index: number) => (
         <div key={index} className="flex items-center gap-2 text-sm">
           <div
             className="w-3 h-3 rounded-full"

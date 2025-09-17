@@ -38,11 +38,11 @@ import {
 } from 'lucide-react'
 import {
   APPLE_SYSTEM_COLORS,
-  PROPERTY_ANALYTICS_COLORS,
+  // PROPERTY_ANALYTICS_COLORS,
   APPLE_GRADIENTS,
   APPLE_EASINGS,
   APPLE_DURATIONS,
-  APPLE_MOTION_PRESETS
+  // APPLE_MOTION_PRESETS
 } from '@repo/shared'
 import { cn } from '@/lib/utils'
 
@@ -192,7 +192,7 @@ const PropertyCard = ({
   property,
   isExpanded,
   onToggle,
-  analytics
+  analytics: _analytics
 }: {
   property: typeof occupancyData[0]
   isExpanded: boolean
@@ -624,7 +624,7 @@ export function OccupancyHeatmap() {
                       ))}
                     </Pie>
                     <Tooltip
-                      formatter={(value: any, name: any) => [
+                      formatter={(value: number | string, name: string) => [
                         `${value} properties`,
                         name
                       ]}
@@ -664,11 +664,11 @@ export function OccupancyHeatmap() {
                     domain={[80, 100]}
                   />
                   <Tooltip
-                    formatter={(value: any, name: any) => [
-                      `${value.toFixed(1)}%`,
+                    formatter={(value: number | string, _name: string) => [
+                      `${typeof value === 'number' ? value.toFixed(1) : value}%`,
                       'Occupancy Rate'
                     ]}
-                    labelFormatter={(label: any) => `Property: ${label}`}
+                    labelFormatter={(label: string | number) => `Property: ${label}`}
                   />
                   <Bar
                     dataKey="occupancyRate"

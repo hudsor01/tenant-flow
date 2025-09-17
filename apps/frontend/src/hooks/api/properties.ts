@@ -1,7 +1,7 @@
 'use client'
 
 import { propertiesApi, dashboardApi } from '@/lib/api-client'
-import type { Database, PropertyWithUnits, PropertyPerformance } from '@repo/shared'
+import type { Database, PropertyPerformance } from '@repo/shared'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { dashboardKeys } from './use-dashboard'
 import type { DashboardStats } from '@repo/shared'

@@ -7,7 +7,7 @@ import { animated } from '@react-spring/web'
 
 type Props = {
   amountText: string
-  spring: any
+  spring: { opacity: number; transform: string }
 }
 
 export function CheckoutSuccess({ amountText, spring }: Props) {
