@@ -1,2 +1,6 @@
-# Run lint-staged on staged files
+. "$(dirname -- "$0")/init.sh"
+
+# Husky v9.1.7 optimized pre-commit hook
+# Uses lint-staged for maximum efficiency
+
 npx lint-staged
