@@ -23,6 +23,7 @@ export { logger } from './lib/frontend-logger'
 
 export { formatCurrency } from './utils/currency'
 export { getCORSConfig } from './security/cors-config'
+export { getCSPString } from './security/csp-config'
 export { getPriceId, getAllPlans, formatPrice, getAnnualSavings } from './stripe/config'
 
 // ============================================================================
@@ -102,6 +103,50 @@ export type {
   Breakpoint,
   ZIndexLevel
 } from './constants/design-system'
+
+// ============================================================================
+// APPLE MOTION SYSTEM - OBSESSION-WORTHY INTERACTIONS
+// ============================================================================
+export {
+  APPLE_EASINGS,
+  APPLE_DURATIONS,
+  APPLE_TOUCH_TARGETS,
+  APPLE_TRANSFORMS,
+  APPLE_SHADOWS,
+  APPLE_RADIUS,
+  APPLE_GLASS,
+  APPLE_MOTION_PRESETS,
+  APPLE_CSS_VARS
+} from './constants/motion-system'
+
+export type {
+  AppleEasing,
+  AppleDuration,
+  AppleTouchTarget,
+  AppleTransform,
+  AppleShadow,
+  AppleRadius,
+  AppleGlass,
+  AppleMotionPreset
+} from './constants/motion-system'
+
+// ============================================================================
+// APPLE COLOR SYSTEM - EXACT PALETTE FOR DASHBOARD ANALYTICS
+// ============================================================================
+export {
+  APPLE_SYSTEM_COLORS,
+  PROPERTY_ANALYTICS_COLORS,
+  APPLE_CHART_PALETTES,
+  APPLE_GRADIENTS,
+  APPLE_ACCESSIBLE_PAIRS
+} from './constants/apple-colors'
+
+export type {
+  AppleSystemColor,
+  PropertyAnalyticsColorCategory,
+  AppleChartPalette,
+  AppleGradient
+} from './constants/apple-colors'
 
 export const MAINTENANCE_CATEGORY = {
   GENERAL: 'GENERAL',
