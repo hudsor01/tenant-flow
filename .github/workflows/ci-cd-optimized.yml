@@ -51,6 +51,10 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
+      # Install dependencies first
+      - name: Install dependencies
+        run: npm ci --no-audit
+
       # Type checking only - fastest feedback
       - name: TypeScript Check
         run: npx turbo run typecheck --filter='[HEAD^1]' --cache-dir=.turbo
