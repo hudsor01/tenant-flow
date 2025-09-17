@@ -4,7 +4,7 @@ import React, { createContext, useContext, useRef, useEffect } from 'react'
 import { type StoreApi } from 'zustand'
 import { supabaseClient } from '@repo/shared/lib/supabase-client'
 
-import type { AuthState } from './auth-store'
+import type { AuthState } from '@repo/shared'
 import { createAuthStore } from './auth-store'
 import type { Session } from '@supabase/supabase-js'
 

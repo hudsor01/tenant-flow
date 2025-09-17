@@ -5,22 +5,12 @@
  */
 
 import { Injectable, Logger, Inject } from '@nestjs/common'
+import type { CacheEntry as SharedCacheEntry, CacheStats, CacheableEntityType } from '@repo/shared'
 
-interface CacheEntry<T = any> {
-	data: T
+// Extend shared type with version and dependencies for zero-downtime support
+interface CacheEntry<T = unknown> extends Omit<SharedCacheEntry<T>, 'tags' | 'hits'> {
 	version: number
-	timestamp: number
-	ttl: number
 	dependencies: string[]
-}
-
-interface CacheStats {
-	hits: number
-	misses: number
-	invalidations: number
-	entries: number
-	memoryUsage: number
-	hitRatio: number
 }
 
 @Injectable()
@@ -32,7 +22,9 @@ export class ZeroCacheService {
 		invalidations: 0,
 		entries: 0,
 		memoryUsage: 0,
-		hitRatio: 0
+		hitRatio: 0,
+		evictions: 0,
+		lastCleanup: 0
 	}
 	private versionCounter = 1
 
@@ -129,7 +121,7 @@ export class ZeroCacheService {
 	/**
 	 * Invalidate by entity type - for business logic changes
 	 */
-	invalidateByEntity(entityType: 'property' | 'unit' | 'tenant' | 'lease' | 'maintenance', entityId?: string): number {
+	invalidateByEntity(entityType: CacheableEntityType, entityId?: string): number {
 		const pattern = entityId ? `${entityType}:${entityId}` : entityType
 		return this.invalidate(pattern, `${entityType}_changed`)
 	}
@@ -144,7 +136,7 @@ export class ZeroCacheService {
 	/**
 	 * Health check for cache service
 	 */
-	isHealthy(): { healthy: boolean; details: any } {
+	isHealthy(): { healthy: boolean; details: Record<string, unknown> } {
 		const memoryLimit = 100 * 1024 * 1024 // 100MB limit
 		const hitRatioThreshold = 0.7 // 70% hit ratio minimum
 
@@ -176,7 +168,7 @@ export class ZeroCacheService {
 	/**
 	 * Get cache key for user-specific data
 	 */
-	static getUserKey(userId: string, operation: string, params?: Record<string, any>): string {
+	static getUserKey(userId: string, operation: string, params?: Record<string, unknown>): string {
 		const paramsStr = params ? `:${JSON.stringify(params)}` : ''
 		return `user:${userId}:${operation}${paramsStr}`
 	}

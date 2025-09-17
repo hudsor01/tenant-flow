@@ -7,7 +7,6 @@ import { getCORSConfig } from '@repo/shared'
 import type { FastifyReply, FastifyRequest, onRouteHookHandler } from 'fastify'
 import 'reflect-metadata'
 import { AppModule } from './app.module'
-import { SupabaseService } from './database/supabase.service'
 import { HEALTH_PATHS } from './shared/constants/routes'
 import { routeSchemaRegistry } from './shared/utils/route-schema-registry'
 
@@ -164,113 +163,12 @@ async function bootstrap() {
 	// Enable graceful shutdown
 	app.enableShutdownHooks()
 
-	// Ultra-reliable health endpoint for Railway: raw Fastify with real checks
-	const supabase = app.get(SupabaseService)
+	// Graceful shutdown handling
 	let shuttingDown = false
 	process.on('SIGTERM', () => (shuttingDown = true))
 	process.on('SIGINT', () => (shuttingDown = true))
 
-	function healthHintFor(message?: string) {
-		if (!message)
-			return 'Check Supabase URL/service key and network reachability.'
-		if (message.includes('health_db_timeout'))
-			return 'DB timed out. Verify Supabase is reachable from Railway and not rate-limited.'
-		const msg = message.toLowerCase()
-		if (msg.includes('configuration is missing'))
-			return 'Missing SUPABASE_URL or SERVICE_ROLE_KEY. Set them in Doppler/Railway env.'
-		if (msg.includes('does not exist'))
-			return 'Table for health check not found. Set HEALTH_CHECK_TABLE to an existing public table.'
-		if (
-			msg.includes('invalid jwt') ||
-			msg.includes('jwt') ||
-			msg.includes('auth')
-		)
-			return 'Auth failed. Use the Supabase service role key (not anon) in SERVICE_ROLE_KEY.'
-		if (msg.includes('db_unhealthy'))
-			return 'Supabase returned an error. Enable /health/debug and verify credentials + table name.'
-		return 'Check Supabase credentials (URL/Service Key) and connectivity.'
-	}
-
-	async function dbHealthy(
-		timeoutMs = Number(process.env.HEALTH_DB_TIMEOUT_MS ?? 1500)
-	) {
-		try {
-			const result = await Promise.race([
-				supabase.checkConnection(),
-				new Promise((_, reject) =>
-					setTimeout(() => reject(new Error('health_db_timeout')), timeoutMs)
-				)
-			])
-			const { status, message } = result as {
-				status: 'healthy' | 'unhealthy'
-				message?: string
-			}
-			return { ok: status === 'healthy', message }
-		} catch (err) {
-			return {
-				ok: false,
-				message: err instanceof Error ? err.message : 'unknown'
-			}
-		}
-	}
-
-	fastify.get('/health', async (_req: FastifyRequest, reply: FastifyReply) => {
-		const start = Date.now()
-		const headers = (): FastifyReply =>
-			reply.header(
-				'Cache-Control',
-				'no-store, no-cache, must-revalidate, proxy-revalidate'
-			)
-
-		if (shuttingDown) {
-			logger.warn(
-				{ reason: 'shutting_down' },
-				'Health check unhealthy: shutting down'
-			)
-			headers()
-				.code(503)
-				.type('application/json; charset=utf-8')
-				.send({
-					status: 'unhealthy',
-					reason: 'shutting_down',
-					uptime: Math.round(process.uptime()),
-					timestamp: new Date().toISOString()
-				})
-			return
-		}
-
-		const db = await dbHealthy()
-		const duration = Date.now() - start
-		if (db.ok) {
-			logger.log({ duration }, 'Health check ok')
-			headers()
-				.code(200)
-				.type('application/json; charset=utf-8')
-				.send({
-					status: 'ok',
-					checks: { db: 'healthy' },
-					duration,
-					uptime: Math.round(process.uptime()),
-					timestamp: new Date().toISOString()
-				})
-		} else {
-			const hint = healthHintFor(db.message)
-			logger.error(
-				{ duration, reason: db.message, hint },
-				'Health check unhealthy: db'
-			)
-			headers()
-				.code(503)
-				.type('application/json; charset=utf-8')
-				.send({
-					status: 'unhealthy',
-					checks: { db: 'unhealthy', message: db.message, hint },
-					duration,
-					uptime: Math.round(process.uptime()),
-					timestamp: new Date().toISOString()
-				})
-		}
-	})
+	// Health check now handled by HealthController - simplified architecture
 
 	// Railway compatibility endpoint - simple ping that Railway expects
 	fastify.get(

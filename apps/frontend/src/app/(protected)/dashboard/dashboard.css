@@ -1,6 +1,6 @@
 /* Dashboard Extensions - Inherits from globals.css */
-/* Extends: apps/frontend/src/styles/globals.css */
-@import "../../../styles/globals.css";
+/* Extends: apps/frontend/src/app/globals.css */
+@import "../../globals.css";
 
 /* === DASHBOARD PERFORMANCE OPTIMIZATIONS === */
 

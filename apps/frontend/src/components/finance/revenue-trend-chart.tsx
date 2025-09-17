@@ -20,14 +20,7 @@ import {
 } from "@/lib/utils";
 import { useFinancialOverviewFormatted } from "@/hooks/api/financial";
 import { useState, useMemo } from "react";
-
-interface RevenueDataPoint {
-  month: string;
-  revenue: number;
-  recurring: number;
-  oneTime: number;
-  projected?: number;
-}
+import type { RevenueDataPoint } from "@repo/shared";
 
 interface RevenueTrendChartProps {
   year?: number;
@@ -82,11 +75,11 @@ function transformFinancialDataToRevenue(apiData: Record<string, unknown>[]): Re
 function RevenueTrendSkeleton() {
   return (
     <Card 
-      className={cn(
-        cardClasses('elevated'), 
+      className={cn(cardClasses('elevated'), 
         'shadow-xl border-2 backdrop-blur-sm bg-card/95 overflow-hidden',
-        animationClasses('fade-in')
-      )}
+        animationClasses('fade-in'),
+      'transition-transform'
+    )}
       role="status"
       aria-label="Loading revenue trend data"
     >
@@ -158,7 +151,9 @@ export function RevenueTrendChart({
   // Show error state
   if (isError) {
     return (
-      <Card className={cn(cardClasses('elevated'), 'shadow-xl border-2', className)}>
+      <Card className={cn(cardClasses('elevated'), 'shadow-xl border-2', className,
+      'transition-transform'
+    )}>
         <CardContent className="flex items-center justify-center h-96">
           <div className="text-center space-y-4">
             <div className="text-red-500 font-semibold">Failed to load revenue data</div>
@@ -175,12 +170,12 @@ export function RevenueTrendChart({
 
   return (
     <Card 
-      className={cn(
-        cardClasses('elevated'),
+      className={cn(cardClasses('elevated'),
         'shadow-xl border-2 hover:shadow-2xl backdrop-blur-sm bg-card/95 overflow-hidden group',
         animationClasses('fade-in'),
-        className
-      )}
+        className,
+      'transition-transform'
+    )}
       style={{ 
         animation: `fadeIn ${ANIMATION_DURATIONS.slow} ease-out`,
         transition: `all ${ANIMATION_DURATIONS.default} cubic-bezier(0.4, 0, 0.2, 1)`,
@@ -200,7 +195,7 @@ export function RevenueTrendChart({
               <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 border border-primary/20 shadow-sm group-hover:scale-110 group-hover:shadow-md transition-all"
                    style={{ transition: `all ${ANIMATION_DURATIONS.fast} cubic-bezier(0.4, 0, 0.2, 1)` }}>
                 <TrendingUp className="size-5 text-primary transition-transform group-hover:scale-110" 
-                           style={{ transition: `transform ${ANIMATION_DURATIONS.fast} ease-out` }} />
+                            />
               </div>
               <CardTitle 
                 id="revenue-trend-title"
@@ -226,10 +221,10 @@ export function RevenueTrendChart({
               aria-label="Select year for revenue data"
             >
               <SelectTrigger 
-                className={cn(
-                  buttonClasses('outline', 'sm'),
-                  "w-auto min-w-[120px] shadow-sm hover:shadow-md bg-background border-2 hover:border-primary/30 hover:scale-105"
-                )}
+                className={cn(buttonClasses('outline', 'sm'),
+                  "w-auto min-w-[120px] shadow-sm hover:shadow-md bg-background border-2 hover:border-primary/30 hover:scale-105",
+      'transition-transform'
+    )}
                 style={{
                   transition: `all ${ANIMATION_DURATIONS.fast} cubic-bezier(0.4, 0, 0.2, 1)`,
                 }}
@@ -250,10 +245,10 @@ export function RevenueTrendChart({
               aria-label="Select chart type"
             >
               <SelectTrigger 
-                className={cn(
-                  buttonClasses('outline', 'sm'),
-                  "w-auto min-w-[100px] shadow-sm hover:shadow-md bg-background border-2 hover:border-primary/30 hover:scale-105"
-                )}
+                className={cn(buttonClasses('outline', 'sm'),
+                  "w-auto min-w-[100px] shadow-sm hover:shadow-md bg-background border-2 hover:border-primary/30 hover:scale-105",
+      'transition-transform'
+    )}
                 style={{
                   transition: `all ${ANIMATION_DURATIONS.fast} cubic-bezier(0.4, 0, 0.2, 1)`,
                 }}
@@ -292,32 +287,32 @@ export function RevenueTrendChart({
               <span className="text-sm font-medium text-muted-foreground">Growth Rate</span>
             </div>
             <div className="flex items-center gap-2">
-              <p className={cn(
-                "text-2xl font-bold tabular-nums",
+              <p className={cn("text-2xl font-bold tabular-nums",
                 metrics.trend === 'up' ? "text-emerald-600" : 
-                metrics.trend === 'down' ? "text-red-600" : "text-muted-foreground"
-              )}>
+                metrics.trend === 'down' ? "text-red-600" : "text-muted-foreground",
+      'transition-transform'
+    )}>
                 {metrics.growth > 0 ? "+" : ""}{metrics.growth.toFixed(1)}%
               </p>
               <Badge 
                 variant={metrics.trend === 'up' ? 'default' : metrics.trend === 'down' ? 'destructive' : 'secondary'}
-                className={cn(
-                  badgeClasses(
+                className={cn(badgeClasses(
                     metrics.trend === 'up' ? 'success' : 
                     metrics.trend === 'down' ? 'destructive' : 'secondary',
                     'sm'
                   ),
-                  "text-xs animate-pulse"
-                )}
+                  "text-xs animate-pulse",
+      'transition-transform'
+    )}
                 style={{
                   animation: `pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite`,
                 }}
               >
-                <div className={cn(
-                  "size-2 rounded-full mr-1",
+                <div className={cn("size-2 rounded-full mr-1",
                   metrics.trend === 'up' ? "bg-emerald-500" : 
-                  metrics.trend === 'down' ? "bg-red-500" : "bg-muted-foreground"
-                )} />
+                  metrics.trend === 'down' ? "bg-red-500" : "bg-muted-foreground",
+      'transition-transform'
+    )} />
                 vs last month
               </Badge>
             </div>
@@ -351,9 +346,6 @@ export function RevenueTrendChart({
           <ChartContainer 
             className="h-[350px] w-full" 
             config={chartConfig}
-            style={{
-              transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
-            }}
           >
             <ResponsiveContainer width="100%" height="100%">
               {chartType === 'area' ? (

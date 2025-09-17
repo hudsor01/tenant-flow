@@ -48,6 +48,42 @@ export type StorageEntityType = 'property' | 'tenant' | 'maintenance' | 'user'
 export type StorageFileType = 'document' | 'image' | 'avatar'
 
 // =============================================================================
+// BILLING & ANALYTICS DOMAIN
+// =============================================================================
+
+export interface RevenueAnalytics {
+  period: string
+  total_revenue: number
+  subscription_revenue: number
+  one_time_revenue: number
+  customer_count: number
+  new_customers: number
+  churned_customers: number
+  mrr: number
+  arr: number
+}
+
+export interface ChurnAnalytics {
+  month: string
+  churned_subscriptions: number
+  avg_lifetime_days: number
+  churn_rate_percent: number
+  total_active_start_month: number
+}
+
+export interface CustomerLifetimeValue {
+  customer_id: string
+  email: string
+  total_revenue: number
+  subscription_count: number
+  first_subscription_date: string
+  last_cancellation_date?: string
+  avg_revenue_per_subscription: number
+  status: 'Active' | 'Churned'
+  lifetime_days?: number
+}
+
+// =============================================================================
 // WEBSOCKET DOMAIN
 // =============================================================================
 

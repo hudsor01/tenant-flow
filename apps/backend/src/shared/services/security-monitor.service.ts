@@ -12,51 +12,13 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
 import { DirectEmailService } from '../../emails/direct-email.service'
 import { SupabaseService } from '../../database/supabase.service'
-
-export interface SecurityEvent {
-	id?: string
-	type: SecurityEventType
-	severity: SecuritySeverity
-	source: string
-	description: string
-	metadata: Record<string, unknown>
-	ipAddress?: string
-	userAgent?: string
-	userId?: string
-	timestamp: string
-	resolved?: boolean
-}
-
-export type SecurityEventType =
-	| 'auth_failure'
-	| 'rate_limit_exceeded'
-	| 'suspicious_activity'
-	| 'unauthorized_access'
-	| 'webhook_failure'
-	| 'payment_fraud'
-	| 'data_breach_attempt'
-	| 'malicious_request'
-	| 'csrf_attempt'
-	| 'xss_attempt'
-	| 'sql_injection_attempt'
-	| 'file_upload_threat'
-	| 'ddos_attempt'
-	| 'privilege_escalation'
-	| 'account_takeover'
+import type { SecurityEventType, SecurityMetrics, SecurityEvent as SharedSecurityEvent } from '@repo/shared'
 
 export type SecuritySeverity = 'low' | 'medium' | 'high' | 'critical'
 
-interface SecurityMetrics {
-	totalEvents: number
-	eventsBySeverity: Record<SecuritySeverity, number>
-	eventsByType: Record<SecurityEventType, number>
-	topThreateningIPs: Array<{ ip: string; count: number }>
-	recentTrends: {
-		lastHour: number
-		last24Hours: number
-		last7Days: number
-	}
-}
+// Use shared SecurityEvent type directly
+export type SecurityEvent = SharedSecurityEvent
+
 
 interface AlertChannel {
 	type: 'email' | 'webhook' | 'log'
@@ -87,8 +49,8 @@ export class SecurityMonitorService implements OnModuleInit {
 		pathTraversal: [
 			/\.\.\//g,
 			/\.\.\\/gi,
-			/\.\.\%2f/gi,
-			/\.\.\%5c/gi
+			/\.\.%2f/gi,
+			/\.\.%5c/gi
 		]
 	}
 
@@ -490,8 +452,11 @@ This is an automated security alert from TenantFlow.
 
 		return {
 			totalEvents: events.length,
-			eventsBySeverity,
+			criticalEvents: eventsBySeverity.critical || 0,
+			unresolvedEvents: events.filter(e => !e.resolved).length,
+			averageResolutionTime: 0, // Calculate based on resolved events
 			eventsByType,
+			eventsBySeverity,
 			topThreateningIPs,
 			recentTrends: {
 				lastHour,

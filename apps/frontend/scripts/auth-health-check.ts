@@ -6,20 +6,9 @@
  */
 
 import { logger } from '@repo/shared'
+import type { FrontendHealthCheckResponse } from '@repo/shared'
 
 // Environment variables are loaded via Doppler when script is run with 'doppler run --'
-
-// Type definitions for health check response
-interface HealthCheckResponse {
-	status: 'healthy' | 'unhealthy'
-	timestamp: string
-	environment: string
-	checks: {
-		supabase_url: boolean
-		supabase_key: boolean
-	}
-	error?: string
-}
 
 async function runHealthCheck() {
 	logger.info('Running Supabase Auth Health Check...\n')
@@ -43,7 +32,7 @@ async function runHealthCheck() {
 			throw new Error(`Health check returned ${response.status}`)
 		}
 
-		const data: HealthCheckResponse = await response.json()
+		const data: FrontendHealthCheckResponse = await response.json()
 
 		// Display results
 		logger.info('='.repeat(60))
@@ -75,7 +64,7 @@ async function runHealthCheck() {
 			process.exit(0)
 		}
 	} catch (error) {
-		logger.error('ERROR: Health check failed:', error)
+		logger.error(`ERROR: Health check failed: ${error instanceof Error ? error.message : String(error)}`)
 		logger.error('\nMake sure the Next.js development server is running:')
 		logger.error('  npm run dev')
 		process.exit(1)

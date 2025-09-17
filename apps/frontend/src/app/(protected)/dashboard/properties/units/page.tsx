@@ -9,6 +9,7 @@ import {
 	DialogTitle,
 	DialogTrigger
 } from '@/components/ui/dialog'
+import { useRef } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -282,6 +283,7 @@ function UnitsTable({
 function NewUnitButton() {
 	const create = useCreateUnit()
 	const { data: properties = [] } = useProperties()
+	const closeButtonRef = useRef<HTMLButtonElement>(null)
 
 	async function onSubmit(form: HTMLFormElement) {
 		const fd = new FormData(form)
@@ -293,7 +295,7 @@ function NewUnitButton() {
 			propertyId: String(fd.get('propertyId') || ''),
 			status: 'VACANT'
 		} as InsertUnit)
-		;(document.getElementById('new-unit-close') as HTMLButtonElement)?.click()
+		closeButtonRef.current?.click()
 	}
 
 	return (
@@ -337,7 +339,7 @@ function NewUnitButton() {
 									<SelectValue placeholder="Select property" />
 								</SelectTrigger>
 								<SelectContent>
-									{properties.map(property => (
+									{properties.map((property: PropertyRowDB) => (
 										<SelectItem key={property.id} value={property.id}>
 											{property.name}
 										</SelectItem>
@@ -380,7 +382,7 @@ function NewUnitButton() {
 						</div>
 					</div>
 					<div className="flex justify-end gap-2 pt-2">
-						<Button id="new-unit-close" type="button" variant="outline">
+						<Button ref={closeButtonRef} type="button" variant="outline">
 							Cancel
 						</Button>
 						<Button type="submit" disabled={create.isPending}>

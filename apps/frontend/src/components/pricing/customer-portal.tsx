@@ -33,6 +33,7 @@ import {
 	Zap
 } from 'lucide-react'
 import type { ComponentProps } from 'react'
+import type { CustomerPortalCardProps } from '@repo/shared'
 import { toast } from 'sonner'
 
 export function CustomerPortalButton({
@@ -97,19 +98,18 @@ export function CustomerPortalButton({
 		<Button
 			variant={variant}
 			size={size}
-			className={cn(
-				// Use the inferred parameter types from buttonClasses to avoid unsafe 'unknown' casts
+			className={cn(// Use the inferred parameter types from buttonClasses to avoid unsafe 'unknown' casts
 				buttonClasses(
 					variant as Parameters<typeof buttonClasses>[0],
 					size as Parameters<typeof buttonClasses>[1]
 				),
 				'hover:scale-105 font-semibold',
-				className
-			)}
+				className,
+    )}
 			onClick={handlePortalAccess}
 			disabled={portalMutation.isPending}
 			style={{
-				transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
+				
 			}}
 			{...props}
 		>
@@ -121,32 +121,6 @@ export function CustomerPortalButton({
 			)}
 		</Button>
 	)
-}
-
-interface CustomerPortalCardProps {
-	className?: string
-	showStats?: boolean
-	showTestimonial?: boolean
-	currentPlan?: string
-	planTier?: 'starter' | 'professional' | 'enterprise' | 'ultimate'
-	usageStats?: {
-		properties: number
-		tenants: number
-		uptime: string
-		monthlyRevenue?: number
-		activeLeases?: number
-	}
-	billingInfo?: {
-		nextBillingDate?: string
-		lastPayment?: string
-		paymentMethod?: string
-	}
-	testimonial?: {
-		text: string
-		author: string
-		company: string
-		rating: number
-	}
 }
 
 export function CustomerPortalCard({
@@ -219,13 +193,12 @@ export function CustomerPortalCard({
 		<div className="space-y-6">
 			{/* Main Account Card */}
 			<Card
-				className={cn(
-					cardClasses('premium'),
+				className={cn(cardClasses('premium'),
 					'shadow-2xl hover:shadow-3xl border-2 bg-gradient-to-br from-background via-muted/5 to-background',
 					'relative overflow-hidden',
 					animationClasses('fade-in'),
-					className
-				)}
+					className,
+    )}
 				style={{
 					transition: `all ${ANIMATION_DURATIONS.default} cubic-bezier(0.4, 0, 0.2, 1)`
 				}}
@@ -234,15 +207,15 @@ export function CustomerPortalCard({
 				<div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 opacity-50" />
 
 				<CardHeader
-					className={cn('relative z-10', animationClasses('slide-down'))}
+					className={cn('relative z-10', animationClasses('slide-down'),
+    )}
 				>
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-4">
 							<div
-								className={cn(
-									'p-4 rounded-2xl bg-gradient-to-br shadow-lg',
-									config.gradient
-								)}
+								className={cn('p-4 rounded-2xl bg-gradient-to-br shadow-lg',
+									config.gradient,
+    )}
 							>
 								<Settings className="w-8 h-8 text-white" />
 							</div>
@@ -269,12 +242,11 @@ export function CustomerPortalCard({
 						{/* Plan Badge */}
 						<div className="text-right">
 							<Badge
-								className={cn(
-									'px-4 py-2 text-sm font-bold border-2',
+								className={cn('px-4 py-2 text-sm font-bold border-2',
 									config.bgGradient,
 									config.borderColor,
-									config.textColor
-								)}
+									config.textColor,
+    )}
 							>
 								<Award className="w-4 h-4 mr-2" />
 								{currentPlan}
@@ -289,10 +261,9 @@ export function CustomerPortalCard({
 					</div>
 				</CardHeader>
 				<CardContent
-					className={cn(
-						'relative z-10 space-y-8',
-						animationClasses('slide-up')
-					)}
+					className={cn('relative z-10 space-y-8',
+						animationClasses('slide-up'),
+    )}
 				>
 					{/* Enhanced Usage Stats */}
 					{showStats && (
@@ -503,14 +474,13 @@ export function CustomerPortalCard({
 
 					{/* Enhanced Feature Grid */}
 					<div
-						className={cn(
-							'grid grid-cols-1 lg:grid-cols-2 gap-4',
-							animationClasses('fade-in')
-						)}
+						className={cn('grid grid-cols-1 lg:grid-cols-2 gap-4',
+							animationClasses('fade-in'),
+    )}
 					>
 						<div
 							className="group p-5 bg-gradient-to-br from-blue-50/50 to-blue-100/30 dark:from-blue-900/10 dark:to-blue-800/5 rounded-2xl border-2 border-blue-200/50 dark:border-blue-800/30 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-lg cursor-pointer"
-							style={{ transition: `all ${ANIMATION_DURATIONS.fast} ease-out` }}
+							
 						>
 							<div className="flex items-center gap-4 mb-3">
 								<div className="p-3 bg-blue-100 dark:bg-blue-900/20 rounded-xl">
@@ -538,7 +508,7 @@ export function CustomerPortalCard({
 
 						<div
 							className="group p-5 bg-gradient-to-br from-green-50/50 to-green-100/30 dark:from-green-900/10 dark:to-green-800/5 rounded-2xl border-2 border-green-200/50 dark:border-green-800/30 hover:border-green-300 dark:hover:border-green-700 hover:shadow-lg cursor-pointer"
-							style={{ transition: `all ${ANIMATION_DURATIONS.fast} ease-out` }}
+							
 						>
 							<div className="flex items-center gap-4 mb-3">
 								<div className="p-3 bg-green-100 dark:bg-green-900/20 rounded-xl">
@@ -566,7 +536,7 @@ export function CustomerPortalCard({
 
 						<div
 							className="group p-5 bg-gradient-to-br from-purple-50/50 to-purple-100/30 dark:from-purple-900/10 dark:to-purple-800/5 rounded-2xl border-2 border-purple-200/50 dark:border-purple-800/30 hover:border-purple-300 dark:hover:border-purple-700 hover:shadow-lg cursor-pointer"
-							style={{ transition: `all ${ANIMATION_DURATIONS.fast} ease-out` }}
+							
 						>
 							<div className="flex items-center gap-4 mb-3">
 								<div className="p-3 bg-purple-100 dark:bg-purple-900/20 rounded-xl">
@@ -594,7 +564,7 @@ export function CustomerPortalCard({
 
 						<div
 							className="group p-5 bg-gradient-to-br from-orange-50/50 to-orange-100/30 dark:from-orange-900/10 dark:to-orange-800/5 rounded-2xl border-2 border-orange-200/50 dark:border-orange-800/30 hover:border-orange-300 dark:hover:border-orange-700 hover:shadow-lg cursor-pointer"
-							style={{ transition: `all ${ANIMATION_DURATIONS.fast} ease-out` }}
+							
 						>
 							<div className="flex items-center gap-4 mb-3">
 								<div className="p-3 bg-orange-100 dark:bg-orange-900/20 rounded-xl">
@@ -622,15 +592,15 @@ export function CustomerPortalCard({
 					</div>
 
 					{/* Enhanced Primary Action */}
-					<div className={cn('pt-4', animationClasses('slide-up'))}>
+					<div className={cn('pt-4', animationClasses('slide-up'),
+    )}>
 						<CustomerPortalButton
-							className={cn(
-								'w-full h-16 text-lg font-bold shadow-xl hover:shadow-2xl',
+							className={cn('w-full h-16 text-lg font-bold shadow-xl hover:shadow-2xl',
 								'bg-gradient-to-r from-primary via-primary to-primary/90',
 								'hover:from-primary/90 hover:via-primary/95 hover:to-primary/80',
 								'transform hover:scale-[1.02] active:scale-[0.98]',
-								'border-2 border-primary/20'
-							)}
+								'border-2 border-primary/20',
+    )}
 							size="lg"
 							variant="default"
 							style={{

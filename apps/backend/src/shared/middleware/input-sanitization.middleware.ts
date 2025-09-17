@@ -124,7 +124,7 @@ const THREAT_PATTERNS: ThreatPattern[] = [
 	},
 	{
 		name: 'path_traversal_encoded',
-		pattern: /(\.\.\%2f|\.\.\%5c|%2e%2e%2f)/gi,
+		pattern: /(\.\.%2f|\.\.%5c|%2e%2e%2f)/gi,
 		severity: 'high',
 		block: true
 	},
@@ -408,7 +408,7 @@ export class InputSanitizationMiddleware implements NestMiddleware {
 
 	private sanitizeRequest(req: FastifyRequest, config: SanitizationConfig): void {
 		if (req.query) {
-			req.query = this.sanitizeObject(req.query as Record<string, unknown>, config) as any
+			req.query = this.sanitizeObject(req.query as Record<string, unknown>, config) as Record<string, unknown>
 		}
 
 		if (req.body && typeof req.body === 'object') {
@@ -462,6 +462,7 @@ export class InputSanitizationMiddleware implements NestMiddleware {
 		sanitized = sanitized.trim()
 
 		// Remove control characters except tab, newline, and carriage return
+		// eslint-disable-next-line no-control-regex
 		sanitized = sanitized.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
 
 		// If strict mode, apply additional sanitization

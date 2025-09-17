@@ -1,5 +1,5 @@
 import type { Metadata } from 'next/types'
-import '../styles/globals.css'
+import './globals.css'
 import { AuthStoreProvider } from '@/stores/auth-provider'
 import { QueryProvider } from '@/providers/query-provider'
 import PostHogClientProvider from '@/providers/posthog-provider'

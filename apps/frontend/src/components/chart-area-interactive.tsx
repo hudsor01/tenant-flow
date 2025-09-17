@@ -31,9 +31,9 @@ import {
 } from "@/components/ui/toggle-group"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { 
-  cn, 
-  ANIMATION_DURATIONS, 
+import {
+  cn,
+  ANIMATION_DURATIONS,
   TYPOGRAPHY_SCALE,
   cardClasses,
   animationClasses
@@ -238,12 +238,12 @@ export const ChartAreaInteractive = React.forwardRef<HTMLDivElement, ChartAreaIn
   return (
     <div 
       ref={ref} 
-      className={cn(
-        cardClasses('elevated'),
+      className={cn(cardClasses('elevated'),
         'shadow-xl hover:shadow-2xl border-2 border-primary/10',
         'bg-gradient-to-br from-background via-muted/5 to-background',
         'touch-manipulation transform-gpu will-change-transform',
         animationClasses('fade-in'),
+        'transition-fast',
         className
       )} 
       style={{
@@ -294,11 +294,11 @@ export const ChartAreaInteractive = React.forwardRef<HTMLDivElement, ChartAreaIn
                     size="sm"
                     className={cn(
                       "h-8 w-8 p-0 hover:bg-primary/10 hover:text-primary",
-                      "focus:ring-2 focus:ring-primary/20 focus:ring-offset-1"
+                      "focus:ring-2 focus:ring-primary/20 focus:ring-offset-1",
+                      "transition-fast"
                     )}
                     onClick={() => window.location.reload()}
                     title="Refresh data"
-                    style={{ transition: `all ${ANIMATION_DURATIONS.fast} ease-out` }}
                   >
                     <RefreshCw className="h-4 w-4" />
                   </Button>
@@ -308,10 +308,10 @@ export const ChartAreaInteractive = React.forwardRef<HTMLDivElement, ChartAreaIn
                     className={cn(
                       "h-8 w-8 p-0 hover:bg-blue-100 hover:text-blue-600",
                       "dark:hover:bg-blue-900/20 dark:hover:text-blue-400",
-                      "focus:ring-2 focus:ring-blue-500/20 focus:ring-offset-1"
+                      "focus:ring-2 focus:ring-blue-500/20 focus:ring-offset-1",
+                      
                     )}
                     title="View details"
-                    style={{ transition: `all ${ANIMATION_DURATIONS.fast} ease-out` }}
                   >
                     <Eye className="h-4 w-4" />
                   </Button>
@@ -326,37 +326,37 @@ export const ChartAreaInteractive = React.forwardRef<HTMLDivElement, ChartAreaIn
                 >
                   <ToggleGroupItem 
                     value="90d" 
-                    className={cn(
-                      "h-8 px-3 text-xs font-medium",
+                    className={cn("h-8 px-3 text-xs font-medium",
                       timeRange === "90d" 
                         ? "bg-primary text-primary-foreground shadow-sm" 
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                    style={{ transition: `all ${ANIMATION_DURATIONS.fast} ease-out` }}
+                        : "text-muted-foreground hover:text-foreground",
+      
+    )}
+                    
                   >
                     3M
                   </ToggleGroupItem>
                   <ToggleGroupItem 
                     value="30d"
-                    className={cn(
-                      "h-8 px-3 text-xs font-medium",
+                    className={cn("h-8 px-3 text-xs font-medium",
                       timeRange === "30d" 
                         ? "bg-primary text-primary-foreground shadow-sm" 
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                    style={{ transition: `all ${ANIMATION_DURATIONS.fast} ease-out` }}
+                        : "text-muted-foreground hover:text-foreground",
+      
+    )}
+                    
                   >
                     30D
                   </ToggleGroupItem>
                   <ToggleGroupItem 
                     value="7d"
-                    className={cn(
-                      "h-8 px-3 text-xs font-medium",
+                    className={cn("h-8 px-3 text-xs font-medium",
                       timeRange === "7d" 
                         ? "bg-primary text-primary-foreground shadow-sm" 
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                    style={{ transition: `all ${ANIMATION_DURATIONS.fast} ease-out` }}
+                        : "text-muted-foreground hover:text-foreground",
+      
+    )}
+                    
                   >
                     7D
                   </ToggleGroupItem>
@@ -434,12 +434,12 @@ export const ChartAreaInteractive = React.forwardRef<HTMLDivElement, ChartAreaIn
               <div className="flex items-center justify-center">
                 <Badge 
                   variant="outline"
-                  className={cn(
-                    "px-3 py-2 font-semibold border-2",
+                  className={cn("px-3 py-2 font-semibold border-2",
                     analytics.isIncreasing 
                       ? "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800"
-                      : "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800"
-                  )}
+                      : "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800",
+      
+    )}
                 >
                   {analytics.isIncreasing ? (
                     <TrendingUp className="size-3 mr-1" />

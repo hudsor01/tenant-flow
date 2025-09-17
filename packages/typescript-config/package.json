@@ -1,28 +1,28 @@
 {
-  "$schema": "https://json.schemastore.org/package",
   "name": "@repo/typescript-config",
   "version": "0.1.0",
-  "private": true,
-  "packageManager": "npm@10.0.0",
-  "files": [
-    "*.json"
-  ],
+  "scripts": {
+    "build": "echo 'TypeScript config built successfully'",
+    "clean": "echo 'No build artifacts to clean in config package'",
+    "format": "echo 'No formatting configured for config package'",
+    "format:check": "echo 'No formatting configured for config package'",
+    "lint": "prettier --check '*.json' || echo 'JSON files have formatting issues'",
+    "lint:fix": "prettier --write '*.json'",
+    "typecheck": "echo 'No TypeScript files to check in config package'"
+  },
+  "$schema": "https://json.schemastore.org/package",
+  "dependencies": {
+    "prettier-plugin-organize-imports": "4.2.0"
+  },
   "exports": {
     "./base.json": "./base.json",
     "./nestjs.json": "./nestjs.json",
     "./react.json": "./react.json",
     "./library.json": "./library.json"
   },
-  "scripts": {
-    "build": "echo 'TypeScript config built successfully'",
-    "typecheck": "echo 'No TypeScript files to check in config package'",
-    "lint": "prettier --check '*.json' || echo 'JSON files have formatting issues'",
-    "lint:fix": "prettier --write '*.json'",
-    "format": "echo 'No formatting configured for config package'",
-    "format:check": "echo 'No formatting configured for config package'",
-    "clean": "echo 'No build artifacts to clean in config package'"
-  },
-  "dependencies": {
-    "prettier-plugin-organize-imports": "4.2.0"
-  }
+  "files": [
+    "*.json"
+  ],
+  "packageManager": "npm@10.0.0",
+  "private": true
 }

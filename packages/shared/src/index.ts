@@ -14,9 +14,8 @@ export * from './types'
 // ============================================================================
 // ESSENTIAL UTILITIES (No Wrappers)
 // ============================================================================
-// NOTE: Browser-only API client is intentionally NOT re-exported from the root
-// to avoid pulling '@supabase/ssr' into Node backends. Frontend apps should
-// import from './utils/api-client' directly when needed.
+// Browser-only API client (Supabase SSR) - Frontend specific
+export { apiClient } from './utils/api-client'
 
 export { supabaseClient, supabaseAdmin, getCurrentUser, getCurrentSession, signOut } from './lib/supabase-client'
 export { logger } from './lib/frontend-logger'
@@ -163,17 +162,38 @@ export const MAINTENANCE_CATEGORY = {
 // ============================================================================
 export { emailSchema, requiredString, positiveNumberSchema, nonNegativeNumberSchema } from './validation/common'
 export { unitStatusSchema } from './validation/units'
+
+// Auth validation schemas (moved from frontend)
+export {
+  loginZodSchema,
+  registerZodSchema,
+  authResponseZodSchema,
+  userProfileResponseZodSchema,
+  contactFormZodSchema,
+  contactFormResponseZodSchema
+} from './validation/auth'
+
+export type {
+  LoginData,
+  RegisterData,
+  AuthResponseData,
+  UserProfileResponseData,
+  ContactFormData,
+  ContactFormResponseData
+} from './validation/auth'
+
 export type { LeaseFormData } from './types/lease-generator.types'
 
 // ============================================================================
 // BACKEND TYPES (Required for Controllers/Services)
 // ============================================================================
-export type { 
-  UserRole, 
-  ValidatedUser, 
-  AuthServiceValidatedUser, 
+export type {
+  UserRole,
+  ValidatedUser,
+  AuthServiceValidatedUser,
   SupabaseUser,
   AuthUser,
+  AuthState,
   LoginCredentials,
   RegisterCredentials,
   AuthResponse,

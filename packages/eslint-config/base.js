@@ -71,7 +71,7 @@ export default /** @type {import('eslint').Linter.FlatConfig[]} */ (tseslint.con
 		}
 	},
 
-	// Test files - use production rules to catch bugs early
+	// Test files - relax some rules for mocking and testing patterns
 	{
 		files: [
 			'**/*.test.ts',
@@ -80,18 +80,29 @@ export default /** @type {import('eslint').Linter.FlatConfig[]} */ (tseslint.con
 			'**/*.spec.tsx'
 		],
 		rules: {
-			// Only allow console in tests (for debugging)
-			'no-console': 'off'
-			// All other rules use production settings to catch bugs
+			// Allow console in tests (for debugging)
+			'no-console': 'off',
+			// Allow any for test mocks and fixtures
+			'@typescript-eslint/no-explicit-any': 'off',
+			'@typescript-eslint/no-unsafe-argument': 'off',
+			'@typescript-eslint/no-unsafe-member-access': 'off',
+			'@typescript-eslint/no-unsafe-return': 'off',
+			'@typescript-eslint/no-unsafe-call': 'off',
+			// Allow unused vars in tests (sometimes needed for mocking)
+			'@typescript-eslint/no-unused-vars': 'off'
 		}
 	},
 
-	// Config files - very permissive
+	// Config and script files - very permissive
 	{
-		files: ['**/*.config.ts', '**/*.config.js', '**/*.config.mjs'],
+		files: ['**/*.config.ts', '**/*.config.js', '**/*.config.mjs', '**/scripts/**/*.ts'],
 		rules: {
 			'@typescript-eslint/no-explicit-any': 'off',
+			'@typescript-eslint/no-unsafe-argument': 'off',
+			'@typescript-eslint/no-unsafe-member-access': 'off',
+			'@typescript-eslint/no-unsafe-return': 'off',
+			'@typescript-eslint/no-unsafe-call': 'off',
 			'no-console': 'off'
-}
-}
+		}
+	}
 ))

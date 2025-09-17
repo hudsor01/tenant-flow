@@ -21,10 +21,14 @@ export * from './supabase-generated'
 export * from './domain'
 export * from './backend-domain'
 
+// Frontend-specific UI component types
+export * from './frontend'
+
 // Auth types (domain-specific business logic)
-export type { 
-  UserRole, 
+export type {
+  UserRole,
   AuthUser,
+  AuthState,
   LoginCredentials,
   RegisterCredentials,
   AuthResponse,

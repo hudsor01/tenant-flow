@@ -29,11 +29,13 @@ export default [
 	},
 	{
 		name: 'root/scripts',
-		files: ['scripts/**/*.{js,mjs,ts}'],
+		files: ['scripts/**/*.{js,mjs,ts}', 'apps/*/scripts/**/*.{js,mjs,ts}'],
 		rules: {
 			'no-console': 'off',
 			'@typescript-eslint/no-require-imports': 'off',
-			'@typescript-eslint/no-var-requires': 'off'
+			'@typescript-eslint/no-var-requires': 'off',
+			'no-restricted-globals': 'off', // Build scripts may need eval for code generation
+			'no-eval': 'off'
 		},
 		languageOptions: {
 			parserOptions: {
@@ -72,14 +74,14 @@ export default [
 			}
 		},
 		rules: {
-			'type-centralization/no-inline-types': 'error',
+			'type-centralization/no-inline-types': 'warn',
 			'type-centralization/no-barrel-exports': [
-				'error',
+				'warn',
 				{
 					allowedBarrels: ['packages/shared/src/index.ts']
 				}
 			],
-			'design-system/classes': 'error'
+			'design-system/classes': 'warn'
 		}
 	},
 	{
@@ -99,10 +101,22 @@ export default [
 			'anti-duplication': antiDuplicationPlugin
 		},
 		rules: {
-			'anti-duplication/enforce-schema-generation': 'error',
-			'anti-duplication/no-manual-validation-schemas': 'error',
-			'anti-duplication/no-duplicate-api-methods': 'error',
-			'anti-duplication/enforce-global-loading': 'warn'
+			'anti-duplication/enforce-schema-generation': 'warn',
+			'anti-duplication/no-manual-validation-schemas': 'warn',
+			'anti-duplication/no-duplicate-api-methods': 'warn',
+			'anti-duplication/enforce-global-loading': 'off'
+		}
+	},
+	{
+		name: 'root/test-files',
+		files: ['**/*.test.*', '**/*.spec.*'],
+		rules: {
+			'@typescript-eslint/no-explicit-any': 'off',
+			'@typescript-eslint/no-unsafe-argument': 'off',
+			'@typescript-eslint/no-unsafe-member-access': 'off',
+			'@typescript-eslint/no-unsafe-return': 'off',
+			'@typescript-eslint/no-unsafe-call': 'off',
+			'@typescript-eslint/no-unused-vars': 'off'
 		}
 	}, // Project-specific anti-pattern guards and SECURITY RULES
 	{

@@ -6,29 +6,13 @@
 
 import { Injectable, Logger, Inject } from '@nestjs/common'
 import { ZeroCacheService } from '../../cache/cache.service'
-
-interface CircuitState {
-	isOpen: boolean
-	failureCount: number
-	lastFailureTime: number
-	lastSuccessTime: number
-	nextAttemptTime: number
-}
+import type { CircuitState, ServiceMetrics } from '@repo/shared'
 
 interface ErrorBoundaryOptions {
 	maxFailures: number
 	timeWindow: number
 	circuitOpenTime: number
 	enableCircuitBreaker: boolean
-}
-
-interface ServiceMetrics {
-	totalRequests: number
-	successCount: number
-	failureCount: number
-	avgResponseTime: number
-	lastError?: string
-	lastErrorTime?: number
 }
 
 @Injectable()
@@ -165,8 +149,8 @@ export class ErrorBoundaryService {
 	/**
 	 * Get all service health statuses
 	 */
-	getAllServiceHealth(): Record<string, any> {
-		const services: Record<string, any> = {}
+	getAllServiceHealth(): Record<string, { status: 'healthy' | 'degraded' | 'unhealthy'; metrics: ServiceMetrics; circuit: CircuitState }> {
+		const services: Record<string, { status: 'healthy' | 'degraded' | 'unhealthy'; metrics: ServiceMetrics; circuit: CircuitState }> = {}
 
 		for (const serviceKey of this.serviceMetrics.keys()) {
 			services[serviceKey] = this.getServiceHealth(serviceKey)
@@ -292,12 +276,13 @@ export class ErrorBoundaryService {
 		this.updateCircuitState(serviceKey, true, this.defaultOptions)
 	}
 
-	private recordFailure(serviceKey: string, error: any, responseTime: number): void {
+	private recordFailure(serviceKey: string, error: Error | unknown, responseTime: number): void {
+		const errorMessage = error instanceof Error ? error.message : String(error)
 		const metrics = this.getServiceMetrics(serviceKey)
 
 		metrics.totalRequests++
 		metrics.failureCount++
-		metrics.lastError = error.message || String(error)
+		metrics.lastError = errorMessage
 		metrics.lastErrorTime = Date.now()
 		this.updateAverageResponseTime(serviceKey, responseTime)
 	}

@@ -26,6 +26,7 @@ import type {
   CreateConnectedPaymentRequest,
   VerifyCheckoutSessionRequest
 } from './stripe-interfaces'
+import type { StripeSubscriptionStatus } from '@repo/shared'
 // CLAUDE.md Compliant: NO custom DTOs - using native validation only
 
 /**
@@ -759,7 +760,7 @@ export class StripeController {
         .upsert({
           stripeSubscriptionId: subscription.id,
           stripeCustomerId: subscription.customer as string,
-          status: subscription.status.toUpperCase() as 'ACTIVE' | 'CANCELED' | 'TRIALING' | 'PAST_DUE' | 'UNPAID' | 'INCOMPLETE' | 'INCOMPLETE_EXPIRED',
+          status: subscription.status.toUpperCase() as StripeSubscriptionStatus,
           currentPeriodStart: new Date((subscription as unknown as { current_period_start: number }).current_period_start * 1000).toISOString(),
           currentPeriodEnd: new Date((subscription as unknown as { current_period_end: number }).current_period_end * 1000).toISOString(),
           cancelAtPeriodEnd: subscription.cancel_at_period_end,
@@ -789,7 +790,7 @@ export class StripeController {
       const { data, error } = await supabase
         .from('Subscription')
         .update({
-          status: subscription.status.toUpperCase() as 'ACTIVE' | 'CANCELED' | 'TRIALING' | 'PAST_DUE' | 'UNPAID' | 'INCOMPLETE' | 'INCOMPLETE_EXPIRED',
+          status: subscription.status.toUpperCase() as StripeSubscriptionStatus,
           currentPeriodStart: new Date((subscription as unknown as { current_period_start: number }).current_period_start * 1000).toISOString(),
           currentPeriodEnd: new Date((subscription as unknown as { current_period_end: number }).current_period_end * 1000).toISOString(),
           cancelAtPeriodEnd: subscription.cancel_at_period_end,
@@ -1000,12 +1001,12 @@ export class StripeController {
             },
             features,
             limits: {
-              properties: parseInt(product.metadata.propertyLimit || '0'),
-              units: parseInt(product.metadata.unitLimit || '0'),
-              storage: parseInt(product.metadata.storageGB || '0')
+              properties: parseInt(product.metadata.propertyLimit || '0', 10),
+              units: parseInt(product.metadata.unitLimit || '0', 10),
+              storage: parseInt(product.metadata.storageGB || '0', 10)
             },
             support: product.metadata.support || '',
-            order: parseInt(product.metadata.order || '999')
+            order: parseInt(product.metadata.order || '999', 10)
           }
         })
         .sort((a, b) => a.order - b.order)

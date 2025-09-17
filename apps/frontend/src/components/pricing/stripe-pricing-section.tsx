@@ -8,8 +8,8 @@ import { createCheckoutSession, isUserAuthenticated } from '@/lib/stripe-client'
 import {
 	checkoutRateLimiter
 } from '@/lib/security'
-import { 
-	cn, 
+import {
+	cn,
 	buttonClasses,
 	cardClasses,
 	animationClasses,
@@ -39,6 +39,7 @@ import {
 import { useState, useMemo } from 'react'
 import { toast } from 'sonner'
 import { useMutation } from '@tanstack/react-query'
+import type { PricingUIData } from '@repo/shared'
 
 interface StripePricingSectionProps {
 	className?: string
@@ -81,22 +82,7 @@ const planHighlightMap: Record<string, string> = {
 	'max': 'For portfolio managers'
 }
 
-// Enhanced UI data for pricing display
-interface PricingUIData {
-	icon: React.ComponentType<{ className?: string }>
-	popular: boolean
-	tier: string
-	tagline: string
-	enhanced_features: Array<{ text: string; highlight: boolean }>
-	benefits: string[]
-	cta: string
-	highlight: string
-	monthlySavings: number
-	yearlySavings: number
-	savingsPercentage: number
-	formattedPrice: string
-	fullYearPrice: string
-}
+// Enhanced UI data for pricing display - using shared type
 
 
 export function StripePricingSection({ 
@@ -260,17 +246,18 @@ export function StripePricingSection({
 
 	return (
 		<section
-				className={cn(
-					'relative section-hero bg-gradient-to-br from-background via-muted/5 to-background',
+				className={cn('relative section-hero bg-gradient-to-br from-background via-muted/5 to-background',
 					'before:absolute before:inset-0 before:bg-gradient-to-r before:from-primary/5 before:via-transparent before:to-primary/5 before:opacity-50',
 					compactView && 'section-content',
 					animationClasses('fade-in'),
+					'transition-fast',
 					className
-				)}
+    )}
 		>
 			<div className="relative container px-4 mx-auto">
 				{/* Section Header */}
-				<div className={cn("text-center max-w-6xl mx-auto", compactView ? "mb-16" : "mb-24", animationClasses('slide-down'))}>
+				<div className={cn("text-center max-w-6xl mx-auto", compactView ? "mb-16" : "mb-24", animationClasses('slide-down'),
+    )}>
 					{/* Enhanced Stats Bar */}
 					{showStats && (
 						<div 
@@ -321,12 +308,11 @@ export function StripePricingSection({
 					<div className="mb-6">
 						<Badge 
 							variant="outline" 
-							className={cn(
-								badgeClasses('outline', 'default'),
-								"mb-4 px-4 py-2 text-sm font-semibold border-2 hover:bg-primary/5 hover:border-primary/30 transition-all hover:scale-105"
-							)}
+							className={cn(badgeClasses('outline', 'default'),
+								"mb-4 px-4 py-2 text-sm font-semibold border-2 hover:bg-primary/5 hover:border-primary/30 transition-fast hover:scale-105",
+    )}
 							style={{
-								transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
+								
 							}}
 						>
 							<Sparkles className="w-4 h-4 me-2 text-primary" />
@@ -375,17 +361,16 @@ export function StripePricingSection({
 						className="bg-muted/30 rounded-2xl p-6 border-2 border-muted/50"
 						style={{
 							animation: `slideInFromBottom ${ANIMATION_DURATIONS.default} ease-out`,
-							transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
+							
 						}}
 					>
 						<div className="flex items-center justify-center gap-6 mb-3">
 							<span
-								className={cn(
-									'text-sm font-semibold transition-all',
-									!isYearly ? 'text-foreground' : 'text-muted-foreground'
-								)}
+								className={cn('text-sm font-semibold transition-fast',
+									!isYearly ? 'text-foreground' : 'text-muted-foreground',
+    )}
 								style={{
-									transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
+									
 								}}
 							>
 								Monthly
@@ -395,16 +380,15 @@ export function StripePricingSection({
 								onCheckedChange={setIsYearly}
 								className="data-[state=checked]:bg-primary scale-110"
 								style={{
-									transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
+									
 								}}
 							/>
 							<span
-								className={cn(
-									'text-sm font-semibold transition-all',
-									isYearly ? 'text-foreground' : 'text-muted-foreground'
-								)}
+								className={cn('text-sm font-semibold transition-fast',
+									isYearly ? 'text-foreground' : 'text-muted-foreground',
+    )}
 								style={{
-									transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
+									
 								}}
 							>
 								Yearly
@@ -413,7 +397,7 @@ export function StripePricingSection({
 								variant="secondary"
 								className="ms-2 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 font-semibold px-3 py-1 hover:scale-105"
 								style={{
-									transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
+									
 								}}
 							>
 								<Star className="w-3 h-3 mr-1" />
@@ -434,14 +418,13 @@ export function StripePricingSection({
 					{pricingData.map((plan, index) => (
 						<div key={index} className="relative group">
 							<Card
-								className={cn(
-									'relative h-full transition-all',
+								className={cn('relative h-full transition-fast',
 									cardClasses(plan.popular ? 'premium' : 'interactive'),
 									plan.popular
 										? 'border-2 border-primary shadow-2xl scale-105 bg-gradient-to-br from-primary/5 via-background to-primary/10'
 										: 'hover:scale-102 hover:shadow-xl',
-									'overflow-hidden'
-								)}
+									'overflow-hidden',
+    )}
 								style={{
 									transition: `all ${ANIMATION_DURATIONS.default} cubic-bezier(0.4, 0, 0.2, 1)`,
 									transform: plan.popular ? 'scale(1.05)' : undefined
@@ -459,15 +442,14 @@ export function StripePricingSection({
 
 								{/* Tier Badge */}
 								<div className="absolute top-4 right-4">
-									<Badge variant="outline" className={cn(
-										"text-xs font-medium capitalize border-2",
+									<Badge variant="outline" className={cn("text-xs font-medium capitalize border-2",
 										{
 											'border-pink-200 bg-pink-50 text-pink-700 dark:border-pink-800 dark:bg-pink-900/20 dark:text-pink-300': plan.tier === 'starter',
 											'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300': plan.tier === 'professional',
 											'border-purple-200 bg-purple-50 text-purple-700 dark:border-purple-800 dark:bg-purple-900/20 dark:text-purple-300': plan.tier === 'enterprise',
 											'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300': plan.tier === 'ultimate'
-										}
-									)}>
+										},
+    )}>
 										{plan.tier}
 									</Badge>
 								</div>
@@ -475,16 +457,15 @@ export function StripePricingSection({
 								<CardHeader className="text-center pb-6 pt-10 px-8">
 									<div className="mb-6">
 										<div
-											className={cn(
-												'w-16 h-16 rounded-2xl bg-gradient-to-br flex items-center justify-center mx-auto mb-4',
+											className={cn('w-16 h-16 rounded-2xl bg-gradient-to-br flex items-center justify-center mx-auto mb-4',
 												'shadow-lg ring-4 ring-background',
 												{
 													'from-pink-500 to-pink-600': plan.tier === 'starter',
 													'from-blue-500 to-blue-600': plan.tier === 'professional', 
 													'from-purple-500 to-purple-600': plan.tier === 'enterprise',
 													'from-amber-500 to-amber-600': plan.tier === 'ultimate'
-												}
-											)}
+												},
+    )}
 										>
 											<plan.icon
 												className="w-8 h-8 text-white"
@@ -558,19 +539,17 @@ export function StripePricingSection({
 												className="flex items-start text-sm"
 											>
 												<CheckCircle2 
-													className={cn(
-														"w-4 h-4 mt-0.5 mr-3 flex-shrink-0",
+													className={cn("w-4 h-4 mt-0.5 mr-3 flex-shrink-0",
 														feature.highlight 
 															? "text-primary fill-primary/20" 
-															: "text-green-500 fill-green-100 dark:fill-green-900/20"
-													)} 
+															: "text-green-500 fill-green-100 dark:fill-green-900/20",
+    )} 
 												/>
 												<span 
-													className={cn(
-														feature.highlight 
+													className={cn(feature.highlight 
 															? "font-semibold text-foreground" 
-															: "text-muted-foreground"
-													)}
+															: "text-muted-foreground",
+    )}
 												>
 													{feature.text}
 												</span>
@@ -600,13 +579,12 @@ export function StripePricingSection({
 								<CardFooter className="px-8 pb-8">
 									{plan.popular ? (
 										<Button
-											className={cn(
-												"w-full h-14 text-base font-bold",
+											className={cn("w-full h-14 text-base font-bold",
 												"bg-gradient-to-r from-primary via-primary to-primary/90",
 												"hover:from-primary/90 hover:via-primary/95 hover:to-primary/80",
 												"shadow-lg hover:shadow-xl",
-												"transform hover:scale-[1.02] active:scale-[0.98]"
-											)}
+												"transform hover:scale-[1.02] active:scale-[0.98]",
+    )}
 											disabled={subscriptionMutation.isPending}
 											onClick={() => handleSubscribe(plan.planId!)}
 											style={{
@@ -629,12 +607,11 @@ export function StripePricingSection({
 									) : (
 										<Button
 											variant={plan.planId === 'max' ? 'outline' : 'default'}
-											className={cn(
-												"w-full h-12 text-base font-semibold",
+											className={cn("w-full h-12 text-base font-semibold",
 												plan.planId === 'max'
 													? "border-2 hover:bg-primary hover:text-primary-foreground"
-													: "hover:scale-[1.02]"
-											)}
+													: "hover:scale-[1.02]",
+    )}
 											disabled={subscriptionMutation.isPending}
 											onClick={() => handleSubscribe(plan.planId!)}
 											style={{
@@ -667,12 +644,11 @@ export function StripePricingSection({
 						<div className="flex flex-wrap items-center justify-center gap-4 mb-8">
 							<Badge 
 								variant="secondary" 
-								className={cn(
-									badgeClasses('success', 'lg'),
-									"bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800 px-6 py-3 hover:scale-105"
-								)}
+								className={cn(badgeClasses('success', 'lg'),
+									"bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800 px-6 py-3 hover:scale-105",
+    )}
 								style={{
-									transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
+									
 								}}
 							>
 								<CheckCircle2 className="w-5 h-5 mr-2" />
@@ -680,12 +656,11 @@ export function StripePricingSection({
 							</Badge>
 							<Badge 
 								variant="secondary" 
-								className={cn(
-									badgeClasses('secondary', 'lg'),
-									"bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800 px-6 py-3 hover:scale-105"
-								)}
+								className={cn(badgeClasses('secondary', 'lg'),
+									"bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800 px-6 py-3 hover:scale-105",
+    )}
 								style={{
-									transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
+									
 								}}
 							>
 								<Shield className="w-5 h-5 mr-2" />
@@ -693,12 +668,11 @@ export function StripePricingSection({
 							</Badge>
 							<Badge 
 								variant="secondary" 
-								className={cn(
-									badgeClasses('outline', 'lg'),
-									"hover:bg-primary/5 hover:border-primary/30 px-6 py-3 hover:scale-105"
-								)}
+								className={cn(badgeClasses('outline', 'lg'),
+									"hover:bg-primary/5 hover:border-primary/30 px-6 py-3 hover:scale-105",
+    )}
 								style={{
-									transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
+									
 								}}
 							>
 								<Heart className="w-5 h-5 mr-2" />
@@ -706,12 +680,11 @@ export function StripePricingSection({
 							</Badge>
 							<Badge 
 								variant="secondary" 
-								className={cn(
-									badgeClasses('success', 'lg'),
-									"bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800 px-6 py-3 hover:scale-105"
-								)}
+								className={cn(badgeClasses('success', 'lg'),
+									"bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800 px-6 py-3 hover:scale-105",
+    )}
 								style={{
-									transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
+									
 								}}
 							>
 								<Award className="w-5 h-5 mr-2" />
@@ -746,12 +719,11 @@ export function StripePricingSection({
 							<div className="flex flex-col sm:flex-row items-center justify-center gap-4">
 								<Button 
 									variant="outline"
-									className={cn(
-										buttonClasses('outline', 'lg'),
-										"h-12 px-8 text-base font-semibold border-2 hover:bg-primary hover:text-primary-foreground hover:scale-105"
-									)}
+									className={cn(buttonClasses('outline', 'lg'),
+										"h-12 px-8 text-base font-semibold border-2 hover:bg-primary hover:text-primary-foreground hover:scale-105",
+    )}
 									style={{
-										transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
+										
 									}}
 								>
 									<Target className="w-5 h-5 mr-2" />
@@ -759,12 +731,11 @@ export function StripePricingSection({
 								</Button>
 								<Button 
 									variant="ghost"
-									className={cn(
-										buttonClasses('ghost', 'lg'),
-										"h-12 px-8 text-base font-semibold hover:bg-muted hover:scale-105"
-									)}
+									className={cn(buttonClasses('ghost', 'lg'),
+										"h-12 px-8 text-base font-semibold hover:bg-muted hover:scale-105",
+    )}
 									style={{
-										transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
+										
 									}}
 								>
 									<Users className="w-5 h-5 mr-2" />

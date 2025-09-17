@@ -23,26 +23,7 @@ import {
 } from '@nestjs/common'
 import type { FastifyRequest, FastifyReply } from 'fastify'
 import { SecurityMonitorService } from '../services/security-monitor.service'
-
-interface ErrorResponse {
-	statusCode: number
-	message: string
-	error?: string
-	timestamp: string
-	path: string
-	requestId?: string
-}
-
-interface SecurityErrorContext {
-	ip: string
-	userAgent?: string
-	userId?: string
-	endpoint: string
-	method: string
-	timestamp: string
-	errorType: string
-	statusCode: number
-}
+import type { ErrorResponse, SecurityErrorContext } from '@repo/shared'
 
 @Catch()
 export class SecurityExceptionFilter implements ExceptionFilter {
@@ -118,7 +99,7 @@ export class SecurityExceptionFilter implements ExceptionFilter {
 		return {
 			ip: this.getClientIP(request),
 			userAgent: request.headers['user-agent'],
-			userId: (request as any).user?.id,
+			userId: (request as { user?: { id?: string } }).user?.id,
 			endpoint: request.url,
 			method: request.method,
 			timestamp: new Date().toISOString(),
@@ -330,7 +311,7 @@ export class SecurityExceptionFilter implements ExceptionFilter {
 			if (exception instanceof HttpException) {
 				const response = exception.getResponse()
 				if (typeof response === 'object' && response !== null) {
-					baseResponse.error = (response as any).error || exception.name
+					baseResponse.error = (response as { error?: string }).error || exception.name
 
 					// Include validation errors in development
 					if (exception instanceof BadRequestException) {

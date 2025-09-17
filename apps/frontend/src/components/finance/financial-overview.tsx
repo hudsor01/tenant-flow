@@ -90,11 +90,11 @@ export function FinancialOverview() {
   if (isLoading) {
     return (
       <Card 
-        className={cn(
-          cardClasses('elevated'),
+        className={cn(cardClasses('elevated'),
           'shadow-xl border-2 backdrop-blur-sm bg-card/95 overflow-hidden',
-          animationClasses('fade-in')
-        )}
+          animationClasses('fade-in'),
+      'transition-transform'
+    )}
         style={{ 
           animation: `fadeIn ${ANIMATION_DURATIONS.slow} ease-out`,
         }}
@@ -147,11 +147,11 @@ export function FinancialOverview() {
   // Enhanced main component with modern SaaS design
   return (
     <Card 
-      className={cn(
-        cardClasses('elevated'),
+      className={cn(cardClasses('elevated'),
         'dashboard-widget shadow-xl border-2 hover:shadow-2xl backdrop-blur-sm bg-card/95 overflow-hidden group',
-        animationClasses('fade-in')
-      )}
+        animationClasses('fade-in'),
+      'transition-transform'
+    )}
       style={{ 
         animation: `fadeIn ${ANIMATION_DURATIONS.slow} ease-out`,
         transition: `all ${ANIMATION_DURATIONS.default} cubic-bezier(0.4, 0, 0.2, 1)`,
@@ -193,11 +193,8 @@ export function FinancialOverview() {
               onValueChange={setSelectedPeriod}
               aria-label="Select time period for financial data"
             >
-              <SelectTrigger 
+              <SelectTrigger
                 className="w-auto min-w-[160px] transition-all shadow-sm hover:shadow-md bg-background border-2"
-                style={{
-                  transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
-                }}
               >
                 <SelectValue placeholder="Select period" />
               </SelectTrigger>
@@ -211,18 +208,18 @@ export function FinancialOverview() {
             {metrics.profitMargin !== 0 && (
               <Badge 
                 variant={metrics.profitMargin > 0 ? "default" : "destructive"}
-                className={cn(
-                  badgeClasses(metrics.profitMargin > 0 ? 'success' : 'destructive', 'sm'),
-                  "text-xs font-semibold px-3 py-1 animate-pulse"
-                )}
+                className={cn(badgeClasses(metrics.profitMargin > 0 ? 'success' : 'destructive', 'sm'),
+                  "text-xs font-semibold px-3 py-1 animate-pulse",
+      'transition-transform'
+    )}
                 style={{
                   animation: `pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite`,
                 }}
               >
-                <div className={cn(
-                  "size-2 rounded-full mr-2",
-                  metrics.profitMargin > 0 ? "bg-emerald-500" : "bg-red-500"
-                )} />
+                <div className={cn("size-2 rounded-full mr-2",
+                  metrics.profitMargin > 0 ? "bg-emerald-500" : "bg-red-500",
+      'transition-transform'
+    )} />
                 {metrics.profitMargin > 0 ? "+" : ""}{metrics.profitMargin.toFixed(1)}% margin
               </Badge>
             )}
@@ -264,7 +261,7 @@ export function FinancialOverview() {
                   <div className="flex size-12 items-center justify-center rounded-xl bg-green-200/50 border border-green-300/50 shadow-sm group-hover:scale-110 group-hover:shadow-md group-focus-visible:scale-110 transition-all"
                        style={{ transition: `all ${ANIMATION_DURATIONS.fast} cubic-bezier(0.4, 0, 0.2, 1)` }}>
                     <ArrowDownLeft className="size-6 text-green-700 dark:text-green-400 transition-transform group-hover:scale-110" 
-                                   style={{ transition: `transform ${ANIMATION_DURATIONS.fast} ease-out` }} />
+                                    />
                   </div>
                   <div>
                     <p className="text-green-800 dark:text-green-300 text-sm font-semibold uppercase tracking-wide">
@@ -318,7 +315,7 @@ export function FinancialOverview() {
                   <div className="flex size-12 items-center justify-center rounded-xl bg-red-200/50 border border-red-300/50 shadow-sm group-hover:scale-110 group-hover:shadow-md group-focus-visible:scale-110 transition-all"
                        style={{ transition: `all ${ANIMATION_DURATIONS.fast} cubic-bezier(0.4, 0, 0.2, 1)` }}>
                     <ArrowUpRight className="size-6 text-red-700 dark:text-red-400 transition-transform group-hover:scale-110" 
-                                  style={{ transition: `transform ${ANIMATION_DURATIONS.fast} ease-out` }} />
+                                   />
                   </div>
                   <div>
                     <p className="text-red-800 dark:text-red-300 text-sm font-semibold uppercase tracking-wide">
@@ -372,7 +369,7 @@ export function FinancialOverview() {
                   <div className="flex size-12 items-center justify-center rounded-xl bg-blue-200/50 border border-blue-300/50 shadow-sm group-hover:scale-110 group-hover:shadow-md group-focus-visible:scale-110 transition-all"
                        style={{ transition: `all ${ANIMATION_DURATIONS.fast} cubic-bezier(0.4, 0, 0.2, 1)` }}>
                     <CalendarCheck className="size-6 text-blue-700 dark:text-blue-400 transition-transform group-hover:scale-110" 
-                                   style={{ transition: `transform ${ANIMATION_DURATIONS.fast} ease-out` }} />
+                                    />
                   </div>
                   <div>
                     <p className="text-blue-800 dark:text-blue-300 text-sm font-semibold uppercase tracking-wide">
@@ -434,10 +431,10 @@ export function FinancialOverview() {
               <Button
                 variant="outline"
                 size="sm"
-                className={cn(
-                  buttonClasses('outline', 'sm'),
-                  "text-xs h-8 px-3 border-2 hover:bg-muted/50 hover:scale-105 font-semibold"
-                )}
+                className={cn(buttonClasses('outline', 'sm'),
+                  "text-xs h-8 px-3 border-2 hover:bg-muted/50 hover:scale-105 font-semibold",
+      'transition-transform'
+    )}
                 style={{
                   transition: `all ${ANIMATION_DURATIONS.fast} cubic-bezier(0.4, 0, 0.2, 1)`,
                 }}
@@ -446,10 +443,10 @@ export function FinancialOverview() {
               </Button>
               <Badge 
                 variant="outline" 
-                className={cn(
-                  badgeClasses('outline', 'sm'),
-                  "text-xs bg-primary/5 border-primary/20 text-primary"
-                )}
+                className={cn(badgeClasses('outline', 'sm'),
+                  "text-xs bg-primary/5 border-primary/20 text-primary",
+      'transition-transform'
+    )}
               >
                 {chartData.length} months
               </Badge>
@@ -466,9 +463,6 @@ export function FinancialOverview() {
             <ChartContainer 
               className="h-[350px] w-full" 
               config={chartConfig}
-              style={{
-                transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
-              }}
             >
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart 

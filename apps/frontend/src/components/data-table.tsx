@@ -337,7 +337,7 @@ const columns: ColumnDef<PropertyTableData>[] = [
 						<div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
 							<div
 								className={cn(
-									'h-full transition-all rounded-full',
+									'h-full transition-fast rounded-full',
 									occupancyRate >= 90
 										? 'bg-green-500'
 										: occupancyRate >= 70

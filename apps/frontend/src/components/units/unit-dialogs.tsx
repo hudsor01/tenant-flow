@@ -176,7 +176,7 @@ export function UnitViewDialog({ unit, open, onOpenChange }: UnitViewDialogProps
 										"capitalize font-medium border rounded-full px-3 py-1.5",
 										statusConfig[unit.status].bgColor,
 										statusConfig[unit.status].textColor,
-										`transition-all duration-[${ANIMATION_DURATIONS.fast}ms]`,
+										`transition-fast`,
 										"hover:shadow-sm"
 									)}
 								>
@@ -311,7 +311,7 @@ export function UnitViewDialog({ unit, open, onOpenChange }: UnitViewDialogProps
 						className={cn(
 							buttonClasses('outline'),
 							"min-w-[120px] rounded-8px",
-							`transition-all duration-[${ANIMATION_DURATIONS.fast}ms]`,
+							`transition-fast`,
 							"hover:bg-gray-50 dark:hover:bg-gray-800"
 						)}
 					>
@@ -428,7 +428,7 @@ export function UnitEditDialog({ unit, open, onOpenChange }: UnitEditDialogProps
 										className={cn(
 											inputClasses('default'),
 											"rounded-8px",
-											`transition-all duration-[${ANIMATION_DURATIONS.fast}ms]`,
+											`transition-fast`,
 											field.state.meta.errors 
 												? 'border-red-300 dark:border-red-600 focus:border-red-500 dark:focus:border-red-400 bg-red-50 dark:bg-red-900/10' 
 												: 'focus:border-blue-500 dark:focus:border-blue-400 hover:border-gray-400 dark:hover:border-gray-500'
@@ -463,7 +463,7 @@ export function UnitEditDialog({ unit, open, onOpenChange }: UnitEditDialogProps
 									>
 										<SelectTrigger className={cn(
 											"rounded-8px h-11",
-											`transition-all duration-[${ANIMATION_DURATIONS.fast}ms]`,
+											`transition-fast`,
 											field.state.meta.errors 
 												? 'border-red-300 dark:border-red-600 focus:border-red-500 dark:focus:border-red-400 bg-red-50 dark:bg-red-900/10'
 												: 'focus:border-blue-500 dark:focus:border-blue-400 hover:border-gray-400 dark:hover:border-gray-500'
@@ -515,7 +515,7 @@ export function UnitEditDialog({ unit, open, onOpenChange }: UnitEditDialogProps
 										step="1"
 										placeholder="e.g., 2"
 										value={field.state.value || ''}
-										onChange={(e) => field.handleChange(parseInt(e.target.value) || undefined)}
+										onChange={(e) => field.handleChange(parseInt(e.target.value, 10) || undefined)}
 										onBlur={field.handleBlur}
 										disabled={form.state.isSubmitting}
 										className={`${field.state.meta.errors ? 'border-destructive focus:border-destructive' : 'focus:border-primary'}`}
@@ -575,7 +575,7 @@ export function UnitEditDialog({ unit, open, onOpenChange }: UnitEditDialogProps
 										step="1"
 										placeholder="e.g., 800"
 										value={field.state.value || ''}
-										onChange={(e) => field.handleChange(parseInt(e.target.value) || null)}
+										onChange={(e) => field.handleChange(parseInt(e.target.value, 10) || null)}
 										onBlur={field.handleBlur}
 										disabled={form.state.isSubmitting}
 										className={`${field.state.meta.errors ? 'border-destructive focus:border-destructive' : 'focus:border-primary'}`}

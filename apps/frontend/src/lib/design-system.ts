@@ -4,7 +4,18 @@
  * Provides frontend-specific implementations with tailwind-merge integration
  */
 
-import { SEMANTIC_COLORS, type ComponentSize } from '@repo/shared'
+import {
+	SEMANTIC_COLORS,
+	type ComponentSize,
+	type ButtonVariant,
+	type BadgeVariant,
+	type ContainerSize,
+	type AnimationType,
+	type StatusType,
+	type BadgeSize,
+	type GridColumnsConfig,
+	type ResponsiveValuesConfig
+} from '@repo/shared'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
@@ -62,12 +73,7 @@ export function createVariants<
  * @returns Complete button class string
  */
 export function buttonClasses(
-	variant:
-		| 'primary'
-		| 'secondary'
-		| 'outline'
-		| 'ghost'
-		| 'destructive' = 'primary',
+	variant: ButtonVariant = 'primary',
 	size: ComponentSize = 'default',
 	className?: string
 ): string {
@@ -157,14 +163,8 @@ export function cardClasses(
  * @returns Complete badge class string
  */
 export function badgeClasses(
-	variant:
-		| 'default'
-		| 'secondary'
-		| 'destructive'
-		| 'success'
-		| 'warning'
-		| 'outline' = 'default',
-	size: 'sm' | 'default' | 'lg' = 'default',
+	variant: BadgeVariant = 'default',
+	size: BadgeSize = 'default',
 	className?: string
 ): string {
 	const baseClasses =
@@ -199,14 +199,7 @@ export function badgeClasses(
  * @returns Grid class string
  */
 export function gridClasses(
-	columns: {
-		default: number
-		sm?: number
-		md?: number
-		lg?: number
-		xl?: number
-		'2xl'?: number
-	},
+	columns: GridColumnsConfig,
 	className?: string
 ): string {
 	const baseClasses = 'grid gap-4'
@@ -230,7 +223,7 @@ export function gridClasses(
  * @returns Container class string
  */
 export function containerClasses(
-	size: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full' = 'xl',
+	size: ContainerSize = 'xl',
 	className?: string
 ): string {
 	const baseClasses = 'mx-auto px-4 sm:px-6 lg:px-8'
@@ -254,7 +247,7 @@ export function containerClasses(
  * @returns Animation class string
  */
 export function animationClasses(
-	type: 'fade-in' | 'slide-up' | 'slide-down' | 'scale' | 'bounce' | 'pulse',
+	type: AnimationType,
 	className?: string
 ): string {
 	const animationClasses = {
@@ -268,6 +261,16 @@ export function animationClasses(
 
 	return cn(animationClasses[type], className)
 }
+
+/**
+ * Transition utility classes for consistent animations
+ * Replaces repetitive inline transition styles throughout the codebase
+ */
+export const transitionClasses = {
+	fast: 'transition-fast',
+	fastTransform: 'transition-fast-transform',
+	fastColor: 'transition-fast-color'
+} as const
 
 /**
  * Generate CSS custom properties for theme values
@@ -307,14 +310,7 @@ export function getSemanticColor(
  */
 export function responsiveClasses(
 	property: string,
-	values: {
-		default: string
-		sm?: string
-		md?: string
-		lg?: string
-		xl?: string
-		'2xl'?: string
-	}
+	values: ResponsiveValuesConfig
 ): string {
 	const classes = [
 		`${property}-${values.default}`,
@@ -382,8 +378,8 @@ export function formErrorClasses(className?: string): string {
  * @returns Status indicator class string
  */
 export function statusClasses(
-	status: 'success' | 'warning' | 'error' | 'info' | 'pending' = 'info',
-	size: 'sm' | 'default' | 'lg' = 'default',
+	status: StatusType = 'info',
+	size: BadgeSize = 'default',
 	className?: string
 ): string {
 	const baseClasses = 'inline-flex items-center rounded-full'
@@ -405,49 +401,6 @@ export function statusClasses(
 	return cn(baseClasses, sizeClasses[size], statusClasses[status], className)
 }
 
-/**
- * Generate progress indicator classes
- * @param variant - Progress style variant
- * @param className - Additional classes
- * @returns Progress class string
- */
-export function progressClasses(
-	variant: 'default' | 'success' | 'warning' | 'error' = 'default',
-	className?: string
-): string {
-	const baseClasses =
-		'relative h-2 w-full overflow-hidden rounded-full bg-secondary'
-
-	const variantClasses = {
-		default: '[&>div]:bg-primary',
-		success: '[&>div]:bg-green-500',
-		warning: '[&>div]:bg-yellow-500',
-		error: '[&>div]:bg-red-500'
-	}
-
-	return cn(baseClasses, variantClasses[variant], className)
-}
-
-/**
- * Generate skeleton loading classes
- * @param variant - Skeleton style variant
- * @param className - Additional classes
- * @returns Skeleton class string
- */
-export function skeletonClasses(
-	variant: 'default' | 'rounded' | 'circle' = 'default',
-	className?: string
-): string {
-	const baseClasses = 'animate-pulse bg-muted'
-
-	const variantClasses = {
-		default: 'rounded',
-		rounded: 'rounded-md',
-		circle: 'rounded-full'
-	}
-
-	return cn(baseClasses, variantClasses[variant], className)
-}
 
 /**
  * Generate table classes with consistent styling

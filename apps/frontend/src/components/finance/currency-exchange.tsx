@@ -90,7 +90,7 @@ export function CurrencyExchange() {
 				<div
 					className="overflow-hidden rounded-xl border-2 shadow-md hover:shadow-lg transition-all bg-gradient-to-br from-muted/20 to-background"
 					style={{
-						transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
+						
 					}}
 				>
 					<div className="border-b bg-muted/30 px-4 py-3">
@@ -103,7 +103,7 @@ export function CurrencyExchange() {
 								<div
 									className="bg-primary/10 p-2 rounded-full hover:bg-primary/20 transition-colors cursor-pointer"
 									style={{
-										transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
+										
 									}}
 								>
 									<ArrowLeftRight className="text-primary size-4" />
@@ -182,12 +182,10 @@ export function CurrencyExchange() {
 				</div>
 
 				<Button
-					className={cn(
-						buttonClasses('primary', 'lg'),
-						'w-full gap-2 font-semibold hover:scale-105'
-					)}
+					className={cn(buttonClasses('primary', 'lg'),
+						'w-full gap-2 font-semibold hover:scale-105')}
 					style={{
-						transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
+						
 					}}
 				>
 					<RefreshCw className="size-4" />

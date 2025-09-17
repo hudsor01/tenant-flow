@@ -1,7 +1,7 @@
 'use client'
 
-import { 
-  cn, 
+import {
+  cn,
   buttonClasses,
   cardClasses,
   inputClasses,
@@ -100,18 +100,18 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
   }
 
   return (
-    <div 
-      className={cn('form-container max-w-md mx-auto', className)} 
+    <div
+      className={cn('form-container max-w-md mx-auto', className)}
       style={{
         animation: `fadeIn ${ANIMATION_DURATIONS.slow} ease-out`
       }}
       {...props}
     >
       <Card 
-        className={cn(
-          cardClasses(),
-          'shadow-xl border-2 hover:shadow-2xl'
-        )}
+        className={cn(cardClasses(),
+          'shadow-xl border-2 hover:shadow-2xl',
+      'transition-fast'
+    )}
         style={{
           transition: `all ${ANIMATION_DURATIONS.default} ease-out`
         }}
@@ -161,12 +161,12 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
                     value={password}
                     onChange={(e) => handlePasswordChange(e.target.value)}
                     disabled={updatePasswordMutation.isPending}
-                    className={cn(
-                      inputClasses(),
-                      'pr-10 transition-all'
-                    )}
+                    className={cn(inputClasses(),
+                      'pr-10 transition-colors',
+      'transition-colors'
+    )}
                     style={{
-                      transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
+                      
                     }}
                   />
                   <Button
@@ -188,16 +188,18 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-muted-foreground">Password strength:</span>
-                      <span className={cn(
-                        'font-semibold',
-                        passwordStrength < 3 ? 'text-red-600' : passwordStrength < 4 ? 'text-yellow-600' : 'text-green-600'
-                      )}>
+                      <span className={cn('font-semibold',
+                        passwordStrength < 3 ? 'text-red-600' : passwordStrength < 4 ? 'text-yellow-600' : 'text-green-600',
+      'transition-colors'
+    )}>
                         {getStrengthText(passwordStrength)}
                       </span>
                     </div>
                     <div className="h-1 bg-muted rounded-full overflow-hidden">
                       <div 
-                        className={cn('h-full transition-all', getStrengthColor(passwordStrength))}
+                        className={cn('h-full transition-fast', getStrengthColor(passwordStrength),
+      'transition-fast'
+    )}
                         style={{ 
                           width: `${(passwordStrength / 5) * 100}%`,
                           transition: `all ${ANIMATION_DURATIONS.default} ease-out`
@@ -221,13 +223,13 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     disabled={updatePasswordMutation.isPending}
-                    className={cn(
-                      inputClasses(),
-                      'pr-10 transition-all',
-                      confirmPassword && password !== confirmPassword && 'border-red-500 focus:border-red-500'
-                    )}
+                    className={cn(inputClasses(),
+                      'pr-10 transition-colors',
+                      confirmPassword && password !== confirmPassword && 'border-red-500 focus:border-red-500',
+      'transition-colors'
+    )}
                     style={{
-                      transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
+                      
                     }}
                   />
                   <Button
@@ -273,10 +275,10 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
 
             <Button 
               type="submit" 
-              className={cn(
-                buttonClasses('primary', 'lg'),
-                'w-full font-semibold hover:scale-105'
-              )}
+              className={cn(buttonClasses('primary', 'lg'),
+                'w-full font-semibold hover:scale-105',
+      'transition-fast-transform'
+    )}
               disabled={
                 updatePasswordMutation.isPending || 
                 !password || 
@@ -285,7 +287,7 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
                 passwordStrength < 3
               }
               style={{
-                transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
+                
               }}
             >
               {updatePasswordMutation.isPending ? (

@@ -44,35 +44,7 @@ import {
 } from 'lucide-react'
 
 // Types
-import type { PaymentIntent, StripeError } from '@stripe/stripe-js'
-
-interface CheckoutFormProps {
-	amount: number
-	currency?: string
-	metadata?: Record<string, string>
-	onSuccess?: (paymentIntent: PaymentIntent) => void
-	onError?: (error: StripeError | Error) => void
-	business?: {
-		name: string
-		logo?: string
-		description?: string
-		trustSignals?: string[]
-	}
-	customerEmail?: string
-	enableExpressCheckout?: boolean
-	showTrustSignals?: boolean
-	showSecurityNotice?: boolean
-	planName?: string
-	features?: string[]
-}
-
-interface CreatePaymentIntentRequest {
-	amount: number
-	currency: string
-	metadata: Record<string, string>
-	customerEmail?: string
-	setupFutureUsage?: 'off_session' | 'on_session'
-}
+import type { CheckoutFormProps, CreatePaymentIntentRequest } from '@repo/shared'
 
 interface CreatePaymentIntentResponse {
 	clientSecret: string
@@ -328,8 +300,7 @@ export function CheckoutForm({
 	if (!stripe || createPaymentIntentMutation.isPending) {
 		return (
 			<MagicCard 
-				className={cn(
-					cardClasses('elevated'),
+				className={cn(cardClasses('elevated'),
 					"w-full max-w-lg mx-auto card-padding shadow-2xl border-2",
 					animationClasses('fade-in')
 				)}
@@ -380,9 +351,8 @@ export function CheckoutForm({
 	if (createPaymentIntentMutation.isError && !(createPaymentIntentMutation.data as unknown as { clientSecret?: string })?.clientSecret) {
 		return (
 			<animated.div style={errorSpring}>
-				<MagicCard 
-					className={cn(
-						cardClasses(),
+				<MagicCard
+					className={cn(cardClasses(),
 						"w-full max-w-md mx-auto p-6 border-destructive/30 shadow-xl"
 					)}
 				>
@@ -409,15 +379,14 @@ export function CheckoutForm({
 								{error || createPaymentIntentMutation.error?.message || 'Unable to initialize payment'}
 							</p>
 						</div>
-						<Button 
-							onClick={retryPayment} 
-							className={cn(
-								buttonClasses('primary', 'sm'),
+						<Button
+							onClick={retryPayment}
+							className={cn(buttonClasses('primary', 'sm'),
 								"w-full hover:scale-105"
 							)}
 							size="sm"
 							style={{
-								transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
+								
 							}}
 						>
 							<RefreshCw className="w-4 h-4 mr-2" />
@@ -434,10 +403,9 @@ export function CheckoutForm({
 		return (
 			<animated.div style={successSpring}>
 				<MagicCard 
-					className={cn(
-						cardClasses(),
-						"w-full max-w-md mx-auto p-6 border-green-200 dark:border-green-800 shadow-xl"
-					)}
+					className={cn(cardClasses(),
+						"w-full max-w-md mx-auto p-6 border-green-200 dark:border-green-800 shadow-xl",
+    )}
 				>
 					<div className="text-center space-y-6">
 						<div 
@@ -472,10 +440,9 @@ export function CheckoutForm({
 	return (
 		<animated.div style={containerSpring}>
 			<MagicCard 
-				className={cn(
-					cardClasses('elevated'),
-					"w-full max-w-lg mx-auto relative overflow-hidden shadow-2xl border-2"
-				)}
+				className={cn(cardClasses('elevated'),
+					"w-full max-w-lg mx-auto relative overflow-hidden shadow-2xl border-2",
+    )}
 			>
 				<GlowingEffect
 					proximity={150}
@@ -483,7 +450,8 @@ export function CheckoutForm({
 					glow={!isProcessing}
 				/>
 				
-				<CardHeader className={cn("pb-6", animationClasses('slide-down'))}>
+				<CardHeader className={cn("pb-6", animationClasses('slide-down'),
+    )}>
 					<div className="text-center space-y-4">
 						<div className="flex items-center justify-center gap-3">
 							<div className="bg-primary/10 p-3 rounded-xl">

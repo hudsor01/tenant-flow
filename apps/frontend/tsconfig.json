@@ -40,7 +40,6 @@
 		"src/components/auth/login-form-legacy.tsx",
 		"dist",
 		"build",
-		"scripts/**/*",
 		"src/test/**/*",
 		"src/test/**/*.ts",
 		"src/test/**/*.tsx",

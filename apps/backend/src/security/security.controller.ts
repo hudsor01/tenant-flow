@@ -133,12 +133,15 @@ export class SecurityController {
 		let status = 'healthy'
 		const alerts: string[] = []
 
-		if (metrics.eventsBySeverity.critical > 0) {
+		const criticalCount = metrics.eventsBySeverity.critical || 0
+		const highCount = metrics.eventsBySeverity.high || 0
+
+		if (criticalCount > 0) {
 			status = 'critical'
-			alerts.push(`${metrics.eventsBySeverity.critical} critical security events`)
-		} else if (metrics.eventsBySeverity.high > 5) {
+			alerts.push(`${criticalCount} critical security events require immediate attention`)
+		} else if (highCount > 5) {
 			status = 'warning'
-			alerts.push(`${metrics.eventsBySeverity.high} high-risk security events`)
+			alerts.push(`${highCount} high-risk security events detected`)
 		}
 
 		if (metrics.recentTrends.lastHour > 100) {

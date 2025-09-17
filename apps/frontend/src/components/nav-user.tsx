@@ -53,7 +53,7 @@ export const NavUser = React.forwardRef<HTMLDivElement, NavUserProps>(
                 size="lg"
                 className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground transition-colors"
               >
-              <Avatar className="h-8 w-8 rounded-lg grayscale hover:grayscale-0 transition-all">
+              <Avatar className="h-8 w-8 rounded-lg grayscale hover:grayscale-0 transition-fast">
                 <AvatarImage src={user.avatar} alt={user.name} />
                 <AvatarFallback className="rounded-lg">CN</AvatarFallback>
               </Avatar>

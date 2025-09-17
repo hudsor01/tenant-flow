@@ -251,3 +251,197 @@ export interface FullConfig {
   supabase: SupabaseConfig
   stripe: StripeConfig
 }
+
+// =============================================================================
+// CACHE TYPES
+// =============================================================================
+
+export interface CacheEntry<T = unknown> {
+  data: T
+  timestamp: number
+  ttl: number
+  tags: string[]
+  hits: number
+}
+
+export interface CacheStats {
+  entries: number
+  memoryUsage: number
+  hits: number
+  misses: number
+  evictions: number
+  lastCleanup: number
+  invalidations: number
+  hitRatio: number
+}
+
+export type CacheInvalidationReason =
+  | 'ttl_expired'
+  | 'manual'
+  | 'circuit_breaker_opened'
+  | 'memory_pressure'
+  | 'tag_invalidation'
+
+export type CacheableEntityType =
+  | 'property'
+  | 'unit'
+  | 'tenant'
+  | 'lease'
+  | 'maintenance'
+
+// =============================================================================
+// SECURITY AUDIT TYPES
+// =============================================================================
+
+// Script-specific endpoint info for security audit
+export interface EndpointInfo {
+  controller: string
+  method: string
+  path: string
+  httpMethod: string
+  filePath?: string
+  line?: number
+}
+
+// Script-specific audit result
+export interface EndpointAudit {
+  controller: string
+  method: string
+  path: string
+  httpMethod: string
+  isPublic: boolean
+  requiredRoles: string[]
+  adminOnly: boolean
+  hasRateLimit: boolean
+  securityRisk: 'low' | 'medium' | 'high' | 'critical'
+  recommendations: string[]
+  description?: string
+}
+
+// Script-specific audit report
+export interface SecurityAuditReport {
+  timestamp: string
+  totalEndpoints: number
+  publicEndpoints: number
+  protectedEndpoints: number
+  highRiskEndpoints: number
+  criticalRiskEndpoints: number
+  endpoints: EndpointAudit[]
+  summary?: Record<string, unknown>
+}
+
+// =============================================================================
+// ERROR BOUNDARY TYPES
+// =============================================================================
+
+export interface CircuitState {
+  isOpen: boolean
+  failureCount: number
+  lastFailureTime: number
+  lastSuccessTime: number
+  nextAttemptTime: number
+}
+
+export interface ServiceMetrics {
+  totalRequests: number
+  successCount: number
+  failureCount: number
+  avgResponseTime: number
+  lastError?: string
+  lastErrorTime?: number
+}
+
+// =============================================================================
+// SECURITY MONITORING TYPES
+// =============================================================================
+
+export interface SecurityEvent {
+  id: string
+  timestamp: string
+  type: SecurityEventType
+  severity: 'low' | 'medium' | 'high' | 'critical'
+  userId?: string
+  ip?: string
+  ipAddress?: string
+  endpoint?: string
+  details?: Record<string, unknown>
+  resolved?: boolean
+  resolutionTime?: Date
+  metadata: Record<string, unknown>
+  source?: string
+  description?: string
+  userAgent?: string
+}
+
+export type SecurityEventType =
+  | 'unauthorized_access'
+  | 'rate_limit_exceeded'
+  | 'suspicious_pattern'
+  | 'sql_injection_attempt'
+  | 'xss_attempt'
+  | 'csrf_violation'
+  | 'authentication_failure'
+  | 'authorization_failure'
+  | 'data_breach_attempt'
+  | 'brute_force_attempt'
+  | 'session_hijack_attempt'
+  | 'api_abuse'
+  | 'malformed_request'
+  | 'file_upload_violation'
+  | 'cors_violation'
+  | 'malicious_request'
+  | 'suspicious_activity'
+  | 'account_takeover'
+  | 'auth_failure'
+
+export interface SecurityMetrics {
+  totalEvents: number
+  criticalEvents: number
+  unresolvedEvents: number
+  averageResolutionTime: number
+  eventsByType: Record<string, number>
+  eventsBySeverity: Record<string, number>
+  topThreateningIPs: Array<{ ip: string; count: number }>
+  recentTrends: {
+    lastHour: number
+    last24Hours: number
+    last7Days: number
+  }
+}
+
+// =============================================================================
+// SECURITY EXCEPTION FILTER TYPES
+// =============================================================================
+
+export interface ErrorResponse {
+  statusCode: number
+  message: string
+  error?: string
+  timestamp: string
+  path: string
+  requestId?: string
+}
+
+export interface SecurityErrorContext {
+  ip: string
+  userAgent?: string
+  userId?: string
+  endpoint: string
+  method: string
+  timestamp: string
+  errorType: string
+  statusCode: number
+}
+
+// =============================================================================
+// STRIPE SUBSCRIPTION TYPES
+// =============================================================================
+
+export type StripeSubscriptionStatus =
+  | 'ACTIVE'
+  | 'CANCELED'
+  | 'TRIALING'
+  | 'PAST_DUE'
+  | 'UNPAID'
+  | 'INCOMPLETE'
+  | 'INCOMPLETE_EXPIRED'
