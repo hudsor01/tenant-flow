@@ -1,6 +1,6 @@
 "use client";
 
-import { DollarSign, TrendingUp, TrendingDown, BarChart3, PieChart, Target, Eye, EyeOff, Sparkles, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { DollarSign, BarChart3, PieChart, Target, Eye, EyeOff, Sparkles, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
