@@ -6,10 +6,12 @@ import { cn } from '@/lib/utils'
 import { animated } from '@react-spring/web'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
 
+import type { SpringValue } from '@react-spring/web'
+
 interface Props {
 	error?: string
 	onRetry: () => void
-	errorSpring: any
+	errorSpring: { opacity: SpringValue<number>; scale: SpringValue<number> }
 }
 
 export function ErrorBanner({ error, onRetry, errorSpring }: Props) {

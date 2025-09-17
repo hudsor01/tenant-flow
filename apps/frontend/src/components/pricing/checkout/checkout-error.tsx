@@ -9,7 +9,7 @@ import { animated } from '@react-spring/web'
 type Props = {
   message: string
   onRetry: () => void
-  spring: any
+  spring: { opacity: number; transform: string }
 }
 
 export function CheckoutError({ message, onRetry, spring }: Props) {
