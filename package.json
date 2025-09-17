@@ -85,7 +85,7 @@
     "@eslint/plugin-kit": "0.3.5",
     "@humanfs/node": "0.16.7",
     "@midscene/web": "0.28.8",
-    "@repo/eslint-config": "workspace:*",
+    "@repo/eslint-config": "*",
     "@types/node": "^24.3.1",
     "@typescript-eslint/eslint-plugin": "8.43.0",
     "@typescript-eslint/parser": "^8.43.0",
@@ -100,7 +100,7 @@
     "pre-commit": "1.2.2",
     "tsx": "^4.20.5",
     "turbo": "2.5.6",
-    "typescript": "^5.9.2",
+    "typescript": "5.9.2",
     "typescript-eslint": "^8.43.0"
   },
   "engines": {
@@ -143,7 +143,6 @@
     "win32"
   ],
   "overrides": {
-    "typescript": "5.9.2",
     "path-to-regexp": "^8.3.0",
     "undici": "^7.16.0",
     "tmp": "^0.2.5",
