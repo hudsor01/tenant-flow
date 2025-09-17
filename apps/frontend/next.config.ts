@@ -3,25 +3,28 @@ import type { NextConfig } from 'next'
 // Workaround: disable Next.js DevTools in dev to avoid
 // SegmentViewNode manifest crashes seen during HMR on some setups.
 // This sets the env var if not already provided by Doppler/host.
-if (process.env.NODE_ENV === 'development' && !process.env.NEXT_DISABLE_DEVTOOLS) {
-  process.env.NEXT_DISABLE_DEVTOOLS = '1'
+if (
+	process.env.NODE_ENV === 'development' &&
+	!process.env.NEXT_DISABLE_DEVTOOLS
+) {
+	process.env.NEXT_DISABLE_DEVTOOLS = '1'
 }
 
 const nextConfig: NextConfig = {
 	reactStrictMode: true,
-	
+
 	// Enable React Compiler for automatic optimization
 	experimental: {
 		reactCompiler: true,
 		// Disable server minification to fix Next.js 15.5.3 build issues
-		serverMinification: false,
+		serverMinification: false
 	},
 
-    // ESLint configuration — ignore during production builds to keep CI green
-    eslint: {
-        dirs: ['src'],
-        ignoreDuringBuilds: true,
-    },
+	// ESLint configuration — ignore during production builds to keep CI green
+	eslint: {
+		dirs: ['src'],
+		ignoreDuringBuilds: true
+	},
 
 	// Security headers configuration
 	async headers() {
@@ -72,8 +75,8 @@ const nextConfig: NextConfig = {
 							"base-uri 'self'",
 							"form-action 'self'",
 							"frame-ancestors 'none'",
-							"upgrade-insecure-requests",
-							"report-uri /api/security/csp-report"
+							'upgrade-insecure-requests',
+							'report-uri /api/security/csp-report'
 						].join('; ')
 					},
 					{
@@ -98,7 +101,8 @@ const nextConfig: NextConfig = {
 					},
 					{
 						key: 'Permissions-Policy',
-						value: 'camera=(), microphone=(), geolocation=(), payment=(self), autoplay=(self), encrypted-media=(), fullscreen=(), picture-in-picture=()'
+						value:
+							'camera=(), microphone=(), geolocation=(), payment=(self), autoplay=(self), encrypted-media=(), fullscreen=(), picture-in-picture=()'
 					}
 				]
 			}
