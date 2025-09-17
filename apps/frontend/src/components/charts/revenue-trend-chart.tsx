@@ -10,8 +10,8 @@ import {
   ResponsiveContainer,
   Tooltip,
   ReferenceLine,
-  Brush,
-  Legend
+  // Brush,
+  // Legend
 } from 'recharts'
 import {
   Card,
@@ -31,25 +31,25 @@ import {
 } from '@/components/ui/select'
 import {
   TrendingUp,
-  TrendingDown,
+  // TrendingDown,
   DollarSign,
-  Calendar,
+  // Calendar,
   Eye,
   EyeOff,
   Target,
   Zap,
   BarChart3,
-  ArrowUpRight,
-  ArrowDownRight,
+  // ArrowUpRight,
+  // ArrowDownRight,
   Info
 } from 'lucide-react'
 import {
   APPLE_SYSTEM_COLORS,
-  PROPERTY_ANALYTICS_COLORS,
+  // PROPERTY_ANALYTICS_COLORS,
   APPLE_GRADIENTS,
   APPLE_EASINGS,
   APPLE_DURATIONS,
-  APPLE_MOTION_PRESETS
+  // APPLE_MOTION_PRESETS
 } from '@repo/shared'
 import { cn } from '@/lib/utils'
 
@@ -246,10 +246,12 @@ const calculateAnalytics = (data: typeof revenueData) => {
 // CUSTOM TOOLTIP WITH HIDDEN INSIGHTS
 // =============================================================================
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; payload: { month: string; revenue: number; predictedRevenue: number; monthlyGrowth?: string; targetRevenue?: number; occupancy?: number; total?: number; rental?: number; fees?: number; deposits?: number; other?: number; properties?: number } }>; label?: string }) => {
   if (!active || !payload || !payload.length) return null
 
-  const data = payload[0].payload
+  const data = payload[0]?.payload
+
+  if (!data) return null
 
   return (
     <div className="bg-white/95 backdrop-blur-sm border-2 border-primary/20 shadow-2xl rounded-xl p-4 min-w-[280px]">
@@ -270,25 +272,25 @@ const CustomTooltip = ({ active, payload, label }: any) => {
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <span className="text-sm text-gray-600">Total Revenue</span>
-          <span className="font-bold text-lg">${data.total.toLocaleString()}</span>
+          <span className="font-bold text-lg">${(data.total ?? 0).toLocaleString()}</span>
         </div>
 
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: APPLE_SYSTEM_COLORS.systemBlue }} />
-            <span>Rent: ${data.rental.toLocaleString()}</span>
+            <span>Rent: ${(data.rental ?? 0).toLocaleString()}</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: APPLE_SYSTEM_COLORS.systemGreen }} />
-            <span>Fees: ${data.fees.toLocaleString()}</span>
+            <span>Fees: ${(data.fees ?? 0).toLocaleString()}</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: APPLE_SYSTEM_COLORS.systemOrange }} />
-            <span>Deposits: ${data.deposits.toLocaleString()}</span>
+            <span>Deposits: ${(data.deposits ?? 0).toLocaleString()}</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: APPLE_SYSTEM_COLORS.systemPurple }} />
-            <span>Other: ${data.other.toLocaleString()}</span>
+            <span>Other: ${(data.other ?? 0).toLocaleString()}</span>
           </div>
         </div>
 
@@ -311,7 +313,7 @@ export function RevenueTrendChart() {
   const [timeRange, setTimeRange] = React.useState('12m')
   const [showInsights, setShowInsights] = React.useState(false)
   const [showBreakdown, setShowBreakdown] = React.useState(true)
-  const [selectedMetric, setSelectedMetric] = React.useState('total')
+  const [_selectedMetric, _setSelectedMetric] = React.useState('total')
 
   const analytics = React.useMemo(() => calculateAnalytics(revenueData), [])
 

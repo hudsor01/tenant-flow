@@ -2,8 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { ChevronDown, ChevronUp, ArrowRight, CheckCircle } from 'lucide-react'
+import { ChevronDown, ChevronUp, ArrowRight } from 'lucide-react'
 import { Navbar } from '@/components/navbar'
 import { FooterMinimal } from '@/components/sections/footer-minimal'
 import { HeroAuthority } from '@/components/marketing/hero-authority'

@@ -4,11 +4,12 @@
 import { cn } from '@/lib/utils'
 import { animated } from '@react-spring/web'
 import { CheckCircle2 } from 'lucide-react'
+import type { SpringValue } from '@react-spring/web'
 
 interface Props {
 	amount: number
 	formatAmount: (cents: number) => string
-	successSpring: any
+	successSpring: { opacity: SpringValue<number>; scale: SpringValue<number>; rotate: SpringValue<number> }
 }
 
 export function SuccessConfirmation({
