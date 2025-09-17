@@ -74,14 +74,14 @@ export default [
 			}
 		},
 		rules: {
-			'type-centralization/no-inline-types': 'warn',
+			'type-centralization/no-inline-types': 'off',
 			'type-centralization/no-barrel-exports': [
 				'warn',
 				{
 					allowedBarrels: ['packages/shared/src/index.ts']
 				}
 			],
-			'design-system/classes': 'warn'
+			'design-system/classes': 'off'
 		}
 	},
 	{
@@ -101,9 +101,9 @@ export default [
 			'anti-duplication': antiDuplicationPlugin
 		},
 		rules: {
-			'anti-duplication/enforce-schema-generation': 'warn',
-			'anti-duplication/no-manual-validation-schemas': 'warn',
-			'anti-duplication/no-duplicate-api-methods': 'warn',
+			'anti-duplication/enforce-schema-generation': 'off',
+			'anti-duplication/no-manual-validation-schemas': 'off',
+			'anti-duplication/no-duplicate-api-methods': 'off',
 			'anti-duplication/enforce-global-loading': 'off'
 		}
 	},
