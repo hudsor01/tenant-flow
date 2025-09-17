@@ -6,7 +6,7 @@ import { Lock, Zap, Smartphone } from 'lucide-react'
 import { LoginForm } from "./login-form"
 import { 
   cn, 
-  cardClasses,
+  // cardClasses,
   ANIMATION_DURATIONS,
   TYPOGRAPHY_SCALE
 } from '@/lib/utils'
@@ -45,8 +45,8 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
     isGoogleLoading: _isGoogleLoading = false,
     imageOnRight = false,
     imageUrl = "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
-    title = "Welcome Back",
-    subtitle = "Sign in to your TenantFlow account to continue managing your properties",
+    title: _title = "Welcome Back",
+    subtitle: _subtitle = "Sign in to your TenantFlow account to continue managing your properties",
     content = {
       heading: "Manage Your Properties",
       description: "Streamline tenant management, track maintenance, and maximize your real estate investments with TenantFlow's comprehensive platform.",
@@ -181,7 +181,7 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
           <div className="pt-6">
             {mode === 'login' ? (
               <LoginForm 
-                onSubmit={_onSubmit as any}
+                onSubmit={_onSubmit as (data: Record<string, unknown>) => void | Promise<void>}
                 onForgotPassword={_onForgotPassword}
                 onSignUp={_onSignUp}
                 onGoogleLogin={_onGoogleLogin}
@@ -191,7 +191,7 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
             ) : (
               <LoginForm 
                 mode="signup" 
-                onSubmit={_onSubmit as any}
+                onSubmit={_onSubmit as (data: Record<string, unknown>) => void | Promise<void>}
                 isLoading={_isLoading}
               />
             )}

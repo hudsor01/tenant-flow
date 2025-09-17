@@ -3,44 +3,41 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
+// Apple-Inspired Card System - Screenshot-worthy containers with satisfying interactions
 const cardVariants = cva(
-  `bg-card text-card-foreground flex flex-col gap-6 border
-   transition-all [transition-duration:--duration-fast] [transition-timing-function:--ease-out-expo]
-   rounded-[--radius-md]`,
+  "bg-card text-card-foreground flex flex-col",
   {
     variants: {
       variant: {
-        // Default Apple card with subtle shadow
-        default: `py-6 shadow-[--shadow-sm]`,
+        // Apple Card - Clean, minimal with subtle shadows
+        default: "card-apple py-6",
 
-        // Elevated Apple card with enhanced shadow and lift effect
-        elevated: `py-6 shadow-[--shadow-md]
-                  hover:shadow-[--shadow-lg] hover:translate-y-[-2px]`,
+        // Interactive Card - Hover effects with Apple motion
+        interactive: "card-interactive py-6",
 
-        // Interactive Apple card with press feedback
-        interactive: `py-6 shadow-[--shadow-sm] cursor-pointer
-                     hover:shadow-[--shadow-md] hover:translate-y-[-1px]
-                     active:scale-[0.98] active:shadow-[--shadow-sm]`,
+        // Elevated Card - More prominent with deeper shadows
+        elevated: "card-elevated py-6",
 
-        // Premium Apple card with glass effect
-        premium: `py-6 card-apple border-gradient bg-gradient-to-br from-card via-card to-accent/5`,
+        // Glass Card - Apple's translucent overlay effect
+        glass: "glass-apple py-6",
 
-        // Semantic variants with Apple styling
-        success: "py-6 border-green-200 bg-green-50/50 shadow-[--shadow-sm] dark:border-green-800 dark:bg-green-900/20",
-        warning: "py-6 border-amber-200 bg-amber-50/50 shadow-[--shadow-sm] dark:border-amber-800 dark:bg-amber-900/20",
-        error: "py-6 border-red-200 bg-red-50/50 shadow-[--shadow-sm] dark:border-red-800 dark:bg-red-900/20",
+        // Legacy variants for backward compatibility
+        premium: "card-apple py-6 border-primary/20 bg-gradient-to-br from-card via-card to-accent/5",
+        success: "card-apple py-6 border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-900/20",
+        warning: "card-apple py-6 border-amber-200 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-900/20",
+        error: "card-apple py-6 border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-900/20",
       },
       size: {
         default: "p-6",
         sm: "p-4",
-    lg: "card-padding",
+        lg: "card-padding",
         xl: "p-10",
       },
       padding: {
         none: "p-0",
         sm: "p-4",
-        default: "p-6", 
-    lg: "card-padding",
+        default: "p-6",
+        lg: "card-padding",
       }
     },
     defaultVariants: {

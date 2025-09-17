@@ -1,5 +1,5 @@
 import { Injectable, InternalServerErrorException, Optional } from '@nestjs/common'
-import { PinoLogger } from 'nestjs-pino'
+import { Logger } from '@nestjs/common'
 import * as fs from 'fs'
 import * as path from 'path'
 import type { LeaseFormData } from '@repo/shared'
@@ -21,9 +21,9 @@ export class LeasePDFService {
 	
 	constructor(
 		private readonly pdfGenerator: PDFGeneratorService,
-		@Optional() private readonly logger?: PinoLogger
+		@Optional() private readonly logger?: Logger
 	) {
-		// PinoLogger context handled automatically via app-level configuration
+		// Logger context handled automatically via app-level configuration
 		this.loadTemplates()
 	}
 
@@ -36,7 +36,7 @@ export class LeasePDFService {
 			const templateString = fs.readFileSync(templatePath, 'utf-8')
 			const compiledTemplate = compileTemplate(templateString)
 			this.templateCache.set('lease-agreement', compiledTemplate)
-			this.logger?.info('Lease templates loaded successfully')
+			this.logger?.log('Lease templates loaded successfully')
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : String(error)
 			this.logger?.error('Failed to load lease templates:', { error: errorMessage })
@@ -79,7 +79,7 @@ export class LeasePDFService {
 		mimeType: string
 		size: number
 	}> {
-		this.logger?.info(
+		this.logger?.log(
 			'Generating lease PDF for lease:',
 			leaseId,
 			'user:',
@@ -103,7 +103,7 @@ export class LeasePDFService {
 
 			const filename = `lease-${leaseId}.pdf`
 
-			this.logger?.info('Lease PDF generated successfully')
+			this.logger?.log('Lease PDF generated successfully')
 			return {
 				buffer: pdfBuffer,
 				filename,

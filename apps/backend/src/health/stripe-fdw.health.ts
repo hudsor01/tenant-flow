@@ -1,22 +1,21 @@
-import { Injectable, Optional } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { HealthIndicator, HealthIndicatorResult, HealthCheckError } from '@nestjs/terminus';
 import { StripeSyncService } from '../billing/stripe-sync.service';
-import { PinoLogger } from 'nestjs-pino';
 
 /**
  * Stripe FDW Health Indicator
- * 
+ *
  * Checks the health of the Stripe Foreign Data Wrapper connection
  * following ultra-native architecture principles - no abstractions
  */
 @Injectable()
 export class StripeFdwHealthIndicator extends HealthIndicator {
+  private readonly logger = new Logger(StripeFdwHealthIndicator.name);
+
   constructor(
     private readonly stripeSyncService: StripeSyncService,
-    @Optional() private readonly logger?: PinoLogger
   ) {
     super();
-    this.logger?.setContext(StripeFdwHealthIndicator.name);
   }
 
   /**
@@ -42,7 +41,7 @@ export class StripeFdwHealthIndicator extends HealthIndicator {
       return result;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : typeof error === 'string' ? error : 'Unknown error';
-      this.logger?.error('Stripe FDW health check failed', error);
+      this.logger.error('Stripe FDW health check failed', error);
       
       const result = this.getStatus(key, false, {
         error: errorMessage,

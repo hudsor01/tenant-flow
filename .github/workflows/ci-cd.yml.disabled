@@ -7,6 +7,8 @@ on:
 
 env:
   NODE_VERSION: '22'
+  TURBO_TELEMETRY_DISABLED: 1
+  NEXT_TELEMETRY_DISABLED: 1
 
 jobs:
   build-and-test:
@@ -16,7 +18,7 @@ jobs:
     concurrency:
       group: ci-${{ github.ref }}
       cancel-in-progress: true
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -36,12 +38,21 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           BACKEND_SCHEMAS_DIR: ./supabase/schema-exports
+          # Turbo remote caching
+          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
         run: npm run build:ci
 
       - name: Run tests
+        env:
+          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
         run: npm run test:unit
 
       - name: Lint check
+        env:
+          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
         run: npm run lint
 
   deploy-backend:
@@ -49,7 +60,7 @@ jobs:
     needs: build-and-test
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4

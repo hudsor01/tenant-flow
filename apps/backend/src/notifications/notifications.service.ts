@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
-import { PinoLogger } from 'nestjs-pino'
+import { Logger } from '@nestjs/common'
 import { SupabaseService } from '../database/supabase.service'
 import type { Database } from '@repo/shared'
 import type { MaintenanceNotificationData } from '@repo/shared'
@@ -26,9 +26,9 @@ type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
 export class NotificationsService {
 	constructor(
 		private readonly supabaseService: SupabaseService,
-		private readonly logger: PinoLogger
+		private readonly logger: Logger
 	) {
-		// PinoLogger context handled automatically via app-level configuration
+		// Logger context handled automatically via app-level configuration
 	}
 
 	/**
@@ -274,7 +274,7 @@ notification: { recipientId: string; type: string; title: string }
 			}
 
 			// Email notifications removed for MVP - focus on in-app notifications only
-			this.logger.info(
+			this.logger.log(
 				{
 					notification: {
 						recipientId: notification.recipientId,
@@ -376,7 +376,7 @@ notification: { recipientId: string; type: string; title: string }
 			throw error
 		}
 
-		this.logger.info(
+		this.logger.log(
 			{
 				notification: {
 					id: notificationId,
@@ -417,7 +417,7 @@ notification: { recipientId: string; type: string; title: string }
 	 */
 	@OnEvent('maintenance.updated')
 	async handleMaintenanceUpdated(event: MaintenanceUpdatedEvent) {
-		this.logger.info(
+		this.logger.log(
 			`Processing maintenance updated event for user ${event.userId}`,
 			{
 				maintenanceId: event.maintenanceId,
@@ -437,7 +437,7 @@ notification: { recipientId: string; type: string; title: string }
 				event.maintenanceId
 			)
 
-			this.logger.info(
+			this.logger.log(
 				`Maintenance notification created for user ${event.userId}`
 			)
 		} catch (error) {
@@ -453,7 +453,7 @@ notification: { recipientId: string; type: string; title: string }
 	 */
 	@OnEvent('payment.received')
 	async handlePaymentReceived(event: PaymentReceivedEvent) {
-		this.logger.info(
+		this.logger.log(
 			`Processing payment received event for user ${event.userId}`,
 			{
 				subscriptionId: event.subscriptionId,
@@ -473,7 +473,7 @@ notification: { recipientId: string; type: string; title: string }
 				event.subscriptionId
 			)
 
-			this.logger.info(
+			this.logger.log(
 				`Payment notification created for user ${event.userId}`
 			)
 		} catch (error) {
@@ -489,7 +489,7 @@ notification: { recipientId: string; type: string; title: string }
 	 */
 	@OnEvent('payment.failed')
 	async handlePaymentFailed(event: PaymentFailedEvent) {
-		this.logger.info(
+		this.logger.log(
 			`Processing payment failed event for user ${event.userId}`,
 			{
 				amount: event.amount,
@@ -510,7 +510,7 @@ notification: { recipientId: string; type: string; title: string }
 				'/billing/payment-methods'
 			)
 
-			this.logger.info(
+			this.logger.log(
 				`Payment failed notification created for user ${event.userId}`
 			)
 		} catch (error) {
@@ -526,7 +526,7 @@ notification: { recipientId: string; type: string; title: string }
 	 */
 	@OnEvent('tenant.created')
 	async handleTenantCreated(event: TenantCreatedEvent) {
-		this.logger.info(
+		this.logger.log(
 			`Processing tenant created event for user ${event.userId}`,
 			{
 				tenantName: event.tenantName,
@@ -544,7 +544,7 @@ notification: { recipientId: string; type: string; title: string }
 				'/tenants'
 			)
 
-			this.logger.info(
+			this.logger.log(
 				`Tenant created notification sent for user ${event.userId}`
 			)
 		} catch (error) {
@@ -560,7 +560,7 @@ notification: { recipientId: string; type: string; title: string }
 	 */
 	@OnEvent('lease.expiring')
 	async handleLeaseExpiring(event: LeaseExpiringEvent) {
-		this.logger.info(
+		this.logger.log(
 			`Processing lease expiring event for user ${event.userId}`,
 			{
 				tenantName: event.tenantName,
@@ -579,7 +579,7 @@ notification: { recipientId: string; type: string; title: string }
 				'/leases'
 			)
 
-			this.logger.info(
+			this.logger.log(
 				`Lease expiring notification sent for user ${event.userId}`
 			)
 		} catch (error) {

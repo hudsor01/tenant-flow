@@ -1,40 +1,38 @@
-import { Inject, Injectable } from '@nestjs/common'
+import { Inject, Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { PinoLogger } from 'nestjs-pino'
 import type { Config } from '../config/config.schema'
 
 @Injectable()
 export class AnalyticsService {
+	private readonly logger = new Logger(AnalyticsService.name)
 	private posthogKey: string | undefined
 
 	constructor(
-		@Inject(ConfigService) private readonly configService: ConfigService<Config>,
-		private readonly logger: PinoLogger
+		@Inject(ConfigService) private readonly configService: ConfigService<Config>
 	) {
-		// PinoLogger context handled automatically via app-level configuration
 		try {
 			this.posthogKey = this.configService.get('POSTHOG_KEY')
 			if (this.posthogKey) {
-				this.logger.info(
-					{ posthog: { enabled: true, configured: true } },
-					'PostHog analytics enabled'
+				this.logger.log(
+					'PostHog analytics enabled',
+					{ posthog: { enabled: true, configured: true } }
 				)
 			} else {
-				this.logger.info(
-					{ posthog: { enabled: false, configured: false } },
-					'PostHog key not configured, analytics disabled'
+				this.logger.log(
+					'PostHog key not configured, analytics disabled',
+					{ posthog: { enabled: false, configured: false } }
 				)
 			}
 		} catch (error) {
 			this.logger.warn(
+				'Failed to initialize PostHog configuration, disabling analytics',
 				{
 					error: {
 						name: error instanceof Error ? error.constructor.name : 'Unknown',
 						message: error instanceof Error ? error.message : String(error)
 					},
 					posthog: { enabled: false, configured: false }
-				},
-				'Failed to initialize PostHog configuration, disabling analytics'
+				}
 			)
 			this.posthogKey = undefined
 		}

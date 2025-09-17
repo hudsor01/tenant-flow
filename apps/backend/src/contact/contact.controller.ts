@@ -7,14 +7,14 @@ import {
   InternalServerErrorException
 } from '@nestjs/common'
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
-import { PinoLogger } from 'nestjs-pino'
+import { Logger } from '@nestjs/common'
 import type { ContactFormRequest, ContactFormResponse } from '../schemas/contact.schemas'
 
 @ApiTags('contact')
 @Controller('contact')
 export class ContactController {
-  constructor(private readonly logger: PinoLogger) {
-    // PinoLogger context handled automatically via app-level configuration
+  constructor(private readonly logger: Logger) {
+    // Logger context handled automatically via app-level configuration
   }
 
   @Post()
@@ -37,7 +37,7 @@ export class ContactController {
   async submitContactForm(
     @Body() dto: ContactFormRequest
   ): Promise<ContactFormResponse> {
-    this.logger.info(
+    this.logger.log(
       {
         contactForm: {
           type: dto.type,

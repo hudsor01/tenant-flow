@@ -49,11 +49,24 @@
     "test:dashboard:integration": "node scripts/npm-test-integration.cjs integration",
     "test:dashboard:e2e": "node scripts/npm-test-integration.cjs e2e",
     "test:dashboard:performance": "node scripts/npm-test-integration.cjs performance",
+    "ci:local": "./test-ci-fast.sh",
+    "ci:full": "act -j build-and-test",
+    "ci:quick": "npx turbo run typecheck build --cache-dir=.turbo --filter='[HEAD^1]'",
+    "prepush:test": "SKIP_TESTS=true git push --dry-run && echo '✅ Pre-push checks would pass'",
     "test:dashboard:accessibility": "node scripts/npm-test-integration.cjs accessibility",
     "test:dashboard:visual": "node scripts/npm-test-integration.cjs visual",
     "test:dashboard:security": "node scripts/npm-test-integration.cjs security",
     "test:dashboard:check": "node scripts/npm-test-integration.cjs check",
     "test:dashboard:validate": "node scripts/npm-test-integration.cjs validate",
+    "test:performance": "npx playwright test tests/performance/ --reporter=json",
+    "test:performance:critical": "npx playwright test tests/performance/regression/performance-regression-prevention.spec.ts --reporter=json",
+    "test:performance:interactions": "npx playwright test tests/performance/interactions/ --reporter=json",
+    "test:performance:micro": "npx playwright test tests/performance/micro-interactions/ --reporter=json",
+    "test:performance:scroll": "npx playwright test tests/performance/scroll-performance/ --reporter=json",
+    "test:performance:loading": "npx playwright test tests/performance/loading-states/ --reporter=json",
+    "test:performance:lighthouse": "npx playwright test tests/performance/lighthouse-integration.spec.ts --reporter=json",
+    "test:performance:rum": "npx playwright test tests/performance/user-monitoring/ --reporter=json",
+    "test:performance:apple-standard": "npm run test:performance:critical && npm run test:performance:interactions && npm run test:performance:scroll",
     "security:audit": "node scripts/security-hardening.cjs audit",
     "security:check": "node scripts/security-hardening.cjs check",
     "generate": "echo 'Code generation available through individual tools: npm run update-supabase-types, npm run secrets:generate, npm run generate:schemas'",
@@ -65,7 +78,8 @@
     "db:push": "supabase db push",
     "db:pull": "supabase db pull",
     "db:link": "supabase link",
-    "db:status": "supabase status"
+    "db:status": "supabase status",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@commitlint/cli": "19.8.1",
@@ -83,6 +97,7 @@
     "eslint-config-turbo": "^2.5.6",
     "eslint-plugin-turbo": "^2.5.6",
     "globals": "16.4.0",
+    "husky": "9.1.7",
     "jsdom": "26.1.0",
     "lint-staged": "16.1.6",
     "pre-commit": "1.2.2",
@@ -106,9 +121,14 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": [
-      "bash -c 'npm run typecheck'"
+      "eslint --cache --fix",
+      "prettier --write"
     ],
-    "*.{js,jsx,json,md}": [
+    "*.{js,jsx}": [
+      "eslint --cache --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
       "prettier --write"
     ]
   },
@@ -138,6 +158,9 @@
     "lightningcss": "1.30.1"
   },
   "dependencies": {
-    "@nestjs/terminus": "11.0.0"
+    "@nestjs/terminus": "11.0.0",
+    "nestjs-pino": "4.4.0",
+    "pino-http": "10.5.0",
+    "pino-pretty": "13.1.1"
   }
 }

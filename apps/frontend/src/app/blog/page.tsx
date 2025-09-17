@@ -1,11 +1,9 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ShimmerButton } from '@/components/magicui/shimmer-button'
 import { Navbar } from '@/components/navbar'
 import { FooterMinimal } from '@/components/sections/footer-minimal'
 import {
 	ArrowRight,
-	CheckCircle,
 	Clock,
 	BarChart3,
 	Building2,

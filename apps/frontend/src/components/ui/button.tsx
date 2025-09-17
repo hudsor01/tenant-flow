@@ -4,57 +4,62 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
-// Apple Design Button System - Enhanced with Apple motion tokens
+// Apple-Inspired Button System - Obsession-Worthy Interactions
+// Follows Apple's design DNA with 44px touch targets and satisfying motion
 const buttonVariants = cva(
-  `inline-flex items-center justify-center gap-2 whitespace-nowrap font-semibold
+  `inline-flex items-center justify-center gap-2 whitespace-nowrap font-semibold user-select-none relative overflow-hidden
    disabled:pointer-events-none disabled:opacity-50
    [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0
    outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2
-   active:scale-[0.96]`,
+   transition-all [transition-duration:var(--duration-fast)] [transition-timing-function:var(--ease-out-expo)]
+   hover:translate-y-[var(--hover-lift)] active:scale-[var(--press-scale)] active:[transition-duration:var(--duration-instant)]`,
   {
     variants: {
       variant: {
-        // Primary - Apple motion with enhanced shadows
-        default: `bg-primary text-primary-foreground border border-primary/20 rounded-[--radius-md]
-                  hover:bg-primary/90 hover:shadow-[--shadow-md] hover:translate-y-[-1px]
-                  transition-all [transition-duration:--duration-fast] [transition-timing-function:--ease-out-expo]`,
-        primary: `bg-primary text-primary-foreground border border-primary/20 rounded-[--radius-md]
-                 hover:bg-primary/90 hover:shadow-[--shadow-md] hover:translate-y-[-1px]
-                 transition-all [transition-duration:--duration-fast] [transition-timing-function:--ease-out-expo]`,
+        // Primary - Apple-inspired primary action with satisfying shadows
+        default: `bg-primary text-primary-foreground border border-black/10 rounded-[var(--radius-button)]
+                   shadow-[0_2px_4px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.06)]
+                   hover:bg-[color-mix(in_srgb,var(--color-primary)_90%,black)]
+                   hover:shadow-[0_4px_8px_rgba(0,0,0,0.15),0_2px_4px_rgba(0,0,0,0.1)]`,
 
-        // Secondary - Apple motion enhancement
-        secondary: `bg-secondary text-secondary-foreground border border-secondary/20 rounded-[--radius-md]
-                   hover:bg-secondary/80 hover:shadow-[--shadow-sm] hover:translate-y-[-1px]
-                   transition-all [transition-duration:--duration-fast] [transition-timing-function:--ease-out-expo]`,
+        primary: `bg-primary text-primary-foreground border border-black/10 rounded-[var(--radius-button)]
+                  shadow-[0_2px_4px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.06)]
+                  hover:bg-[color-mix(in_srgb,var(--color-primary)_90%,black)]
+                  hover:shadow-[0_4px_8px_rgba(0,0,0,0.15),0_2px_4px_rgba(0,0,0,0.1)]`,
 
-        // Destructive - Apple motion for actions
-        destructive: `bg-destructive text-destructive-foreground border border-destructive/20 rounded-[--radius-md]
-                     hover:bg-destructive/90 hover:shadow-[--shadow-md] hover:translate-y-[-1px]
-                     focus-visible:ring-destructive/50
-                     transition-all [transition-duration:--duration-fast] [transition-timing-function:--ease-out-expo]`,
+        // Secondary - Apple-inspired secondary with subtle elevation
+        secondary: `bg-secondary text-secondary-foreground border border-black/6 rounded-[var(--radius-button)]
+                    shadow-[0_1px_3px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.06)]
+                    hover:bg-[color-mix(in_srgb,var(--color-secondary)_80%,black)]
+                    hover:shadow-[0_2px_4px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.08)]`,
 
-        // Outline - Apple border style
-        outline: `border-2 border-primary bg-background text-primary rounded-[--radius-md]
-                 hover:bg-primary hover:text-primary-foreground hover:shadow-[--shadow-sm] hover:translate-y-[-1px]
-                 transition-all [transition-duration:--duration-fast] [transition-timing-function:--ease-out-expo]`,
+        // Destructive - Apple-inspired destructive action
+        destructive: `bg-destructive text-destructive-foreground border border-black/10 rounded-[var(--radius-button)]
+                      shadow-[0_2px_4px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.06)]
+                      hover:bg-destructive/90 focus-visible:ring-destructive/50
+                      hover:shadow-[0_4px_8px_rgba(0,0,0,0.15),0_2px_4px_rgba(0,0,0,0.1)]`,
 
-        // Ghost - Subtle Apple interaction
-        ghost: `text-primary rounded-[--radius-md]
-               hover:bg-primary/10 hover:text-primary hover:shadow-[--shadow-sm]
-               transition-all [transition-duration:--duration-fast] [transition-timing-function:--ease-out-expo]`,
+        // Outline - Clean Apple-style outline
+        outline: `border border-primary bg-background text-primary rounded-[var(--radius-button)]
+                  hover:bg-primary hover:text-primary-foreground
+                  shadow-[0_1px_2px_rgba(0,0,0,0.05)]`,
 
-        // Link - Minimal Apple interaction
-        link: `text-primary underline-offset-4 hover:underline font-medium rounded-[--radius-md]
-              transition-all [transition-duration:--duration-fast] [transition-timing-function:--ease-out-expo]`,
+        // Ghost - Minimal Apple-style ghost button
+        ghost: `text-primary rounded-[var(--radius-button)] border border-transparent
+                hover:bg-[color-mix(in_srgb,var(--color-muted)_40%,transparent)]
+                hover:border-black/6`,
+
+        // Link - Clean Apple-style link
+        link: "text-primary underline-offset-4 hover:underline font-medium",
       },
       size: {
-        // Enhanced with 44px touch targets for accessibility
-        xs: "h-8 px-3 text-xs", // Minimum viable size
-        sm: "h-9 px-4 text-sm", // Close to touch target
-        default: "h-11 px-6 text-sm", // Meets 44px touch target (44px = ~11 * 0.25rem)
-        lg: "h-12 px-8 text-base", // Exceeds touch target comfortably
-        xl: "h-14 px-10 text-base font-bold", // Premium large size
-        icon: "size-11", // 44px touch target for icon buttons
+        // Apple sizes with 44px minimum touch targets
+        xs: "h-8 px-3 text-xs min-h-[32px]",  // Smallest size, still above 32px
+        sm: "h-10 px-4 text-sm min-h-[40px]", // Close to Apple minimum
+        default: "min-h-[var(--touch-44)] h-11 px-6 text-sm", // Apple 44px standard
+        lg: "min-h-[var(--touch-48)] h-12 px-8 text-base",    // Comfortable 48px
+        xl: "min-h-[var(--touch-56)] h-14 px-10 text-base font-bold", // Large 56px
+        icon: "min-h-[var(--touch-44)] size-11", // Square icon button with 44px
       },
     },
     defaultVariants: {

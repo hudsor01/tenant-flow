@@ -6,6 +6,7 @@ import { supabaseClient } from '@repo/shared/lib/supabase-client'
 
 import type { AuthState } from './auth-store'
 import { createAuthStore } from './auth-store'
+import type { Session } from '@supabase/supabase-js'
 
 const AuthStoreContext = createContext<StoreApi<AuthState> | null>(null)
 
@@ -61,7 +62,7 @@ export const AuthStoreProvider = ({
               aud: 'authenticated',
               role: 'authenticated'
             }
-          } as any
+          } as unknown as Session
           
           store.getState().setSession(mockSession)
           store.getState().setLoading(false)

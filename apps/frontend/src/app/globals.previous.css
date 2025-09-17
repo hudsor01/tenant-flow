@@ -1,0 +1,648 @@
+/**
+ * ============================================================================
+ * TENANTFLOW GLOBAL DESIGN SYSTEM v1.0.0
+ * ============================================================================
+ *
+ * PRODUCTION LOCKED - DO NOT MODIFY
+ * Last Updated: 2025-01-16
+ *
+ * Based on: Apple HIG, Graphite Design System
+ * Principles: Clarity, Deference, Depth
+ *
+ * This file is frozen. Any modifications require design system review.
+ * For extensions, use: globals-extensions.css
+ *
+ * ============================================================================
+ */
+
+@import 'tailwindcss';
+
+@source "./src/**/*.{js,ts,jsx,tsx,mdx}";
+
+/**
+ * ============================================================================
+ * SECTION 1: DESIGN TOKENS
+ * ============================================================================
+ */
+
+@theme {
+	/* =========================
+	   1.1 MOTION TOKENS
+	   ========================= */
+	--ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+	--ease-decelerate: cubic-bezier(0, 0, 0.2, 1);
+	--ease-accelerate: cubic-bezier(0.4, 0, 1, 1);
+	--ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+	--duration-instant: 100ms;
+	--duration-fast: 200ms;
+	--duration-normal: 300ms;
+	--duration-slow: 500ms;
+	--duration-deliberate: 700ms;
+
+	/* =========================
+	   1.2 SPACING SCALE
+	   ========================= */
+	--spacing-px: 1px;
+	--spacing-0: 0;
+	--spacing-1: 0.25rem;
+	--spacing-2: 0.5rem;
+	--spacing-3: 0.75rem;
+	--spacing-4: 1rem;
+	--spacing-5: 1.25rem;
+	--spacing-6: 1.5rem;
+	--spacing-8: 2rem;
+	--spacing-10: 2.5rem;
+	--spacing-12: 3rem;
+	--spacing-16: 4rem;
+	--spacing-20: 5rem;
+	--spacing-24: 6rem;
+
+	/* =========================
+	   1.3 RADIUS TOKENS
+	   ========================= */
+	--radius-none: 0;
+	--radius-sm: 0.25rem;
+	--radius-md: 0.375rem;
+	--radius: 0.5rem;
+	--radius-lg: 0.75rem;
+	--radius-xl: 1rem;
+	--radius-2xl: 1.5rem;
+	--radius-full: 9999px;
+
+	/* =========================
+	   1.4 SHADOW TOKENS
+	   ========================= */
+	--shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+	--shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+	--shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+	--shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+	--shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+	--shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+
+	/* =========================
+	   1.5 COLOR SYSTEM - CLEAN PROFESSIONAL PALETTE
+	   ========================= */
+
+	/* Core Surfaces */
+	--background: 0 0% 100%;                /* Pure white */
+	--foreground: 220 13% 13%;              /* Near black with subtle blue */
+
+	/* Card & Popover */
+	--card: 0 0% 100%;
+	--card-foreground: 220 13% 13%;
+	--popover: 0 0% 100%;
+	--popover-foreground: 220 13% 13%;
+
+	/* Primary - Professional Blue */
+	--primary: 217 91% 60%;                 /* Clean professional blue */
+	--primary-foreground: 0 0% 100%;
+
+	/* Secondary - Neutral */
+	--secondary: 220 14% 96%;               /* Light gray with blue tint */
+	--secondary-foreground: 220 13% 13%;
+
+	/* Muted */
+	--muted: 220 14% 96%;
+	--muted-foreground: 220 9% 46%;
+
+	/* Accent */
+	--accent: 217 91% 60%;
+	--accent-foreground: 0 0% 100%;
+
+	/* Destructive */
+	--destructive: 0 72% 51%;               /* Professional red */
+	--destructive-foreground: 0 0% 100%;
+
+	/* Borders & Inputs */
+	--border: 220 13% 91%;
+	--input: 220 13% 91%;
+	--ring: 217 91% 60%;
+
+	/* System Feedback Colors */
+	--success: 142 76% 36%;                 /* Professional green */
+	--success-foreground: 0 0% 100%;
+	--warning: 38 92% 50%;                  /* Amber warning */
+	--warning-foreground: 0 0% 100%;
+	--info: 199 89% 48%;                    /* Information blue */
+	--info-foreground: 0 0% 100%;
+
+	/* Gray Scale - 11 Steps */
+	--gray-50: 210 20% 98%;
+	--gray-100: 220 14% 96%;
+	--gray-200: 220 13% 91%;
+	--gray-300: 216 12% 84%;
+	--gray-400: 218 11% 65%;
+	--gray-500: 220 9% 46%;
+	--gray-600: 215 14% 34%;
+	--gray-700: 217 19% 27%;
+	--gray-800: 215 28% 17%;
+	--gray-900: 221 39% 11%;
+	--gray-950: 224 71% 4%;
+
+	/* Blue Scale - 11 Steps */
+	--blue-50: 214 100% 97%;
+	--blue-100: 214 95% 93%;
+	--blue-200: 213 97% 87%;
+	--blue-300: 212 96% 78%;
+	--blue-400: 213 94% 68%;
+	--blue-500: 217 91% 60%;                /* Primary */
+	--blue-600: 221 83% 53%;
+	--blue-700: 224 76% 48%;
+	--blue-800: 226 71% 40%;
+	--blue-900: 224 64% 33%;
+	--blue-950: 226 57% 21%;
+}
+
+/**
+ * ============================================================================
+ * SECTION 2: BASE STYLES
+ * ============================================================================
+ */
+
+@layer base {
+	* {
+		border-color: hsl(var(--border));
+	}
+
+	html {
+		-webkit-tap-highlight-color: transparent;
+		text-size-adjust: 100%;
+		font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+		             Roboto, 'Helvetica Neue', Arial, sans-serif;
+	}
+
+	body {
+		background-color: hsl(var(--background));
+		color: hsl(var(--foreground));
+		font-feature-settings: 'rlig' 1, 'calt' 1, 'kern' 1;
+		text-rendering: optimizeLegibility;
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+		line-height: 1.5;
+		min-height: 100vh;
+		position: relative;
+	}
+
+	/* Focus Visible - Accessibility */
+	:focus-visible {
+		outline: 2px solid hsl(var(--ring));
+		outline-offset: 2px;
+	}
+
+	/* Selection */
+	::selection {
+		background-color: hsl(var(--primary) / 0.2);
+		color: hsl(var(--primary));
+	}
+
+	/* Scrollbar - Minimal Design */
+	::-webkit-scrollbar {
+		width: 10px;
+		height: 10px;
+	}
+
+	::-webkit-scrollbar-track {
+		background: transparent;
+	}
+
+	::-webkit-scrollbar-thumb {
+		background-color: hsl(var(--gray-300));
+		border-radius: var(--radius-full);
+		border: 2px solid transparent;
+		background-clip: content-box;
+	}
+
+	::-webkit-scrollbar-thumb:hover {
+		background-color: hsl(var(--gray-400));
+	}
+}
+
+/**
+ * ============================================================================
+ * SECTION 3: TYPOGRAPHY SYSTEM
+ * ============================================================================
+ */
+
+@layer components {
+	/* =========================
+	   APPLE-INSPIRED TYPOGRAPHY
+	   =========================
+	   Simple, semantic, easy to remember */
+
+	/* Large Display - Hero sections */
+	.text-largeTitle {
+		font-size: clamp(2.125rem, 5vw, 3rem);
+		line-height: 1.1;
+		letter-spacing: -0.02em;
+		font-weight: 700;
+	}
+
+	/* Page Titles */
+	.text-headline {
+		font-size: 1.75rem;
+		line-height: 1.25;
+		letter-spacing: -0.01em;
+		font-weight: 600;
+	}
+
+	/* Section Headers */
+	.text-title {
+		font-size: 1.375rem;
+		line-height: 1.3;
+		letter-spacing: -0.005em;
+		font-weight: 600;
+	}
+
+	/* Card Titles, Form Labels */
+	.text-subheadline {
+		font-size: 1.125rem;
+		line-height: 1.4;
+		font-weight: 500;
+	}
+
+	/* Main Content - pairs with prose */
+	.text-body {
+		font-size: 1rem;
+		line-height: 1.6;
+		font-weight: 400;
+	}
+
+	/* Supporting Text */
+	.text-callout {
+		font-size: 0.9375rem;
+		line-height: 1.5;
+		font-weight: 400;
+	}
+
+	/* Small Text, Captions */
+	.text-footnote {
+		font-size: 0.8125rem;
+		line-height: 1.4;
+		font-weight: 400;
+	}
+
+	/* Tiny Text, Legal */
+	.text-caption {
+		font-size: 0.75rem;
+		line-height: 1.3;
+		font-weight: 400;
+		letter-spacing: 0.01em;
+	}
+
+	/* =========================
+	   3.5 TYPOGRAPHY UTILITIES
+	   ========================= */
+
+	.text-balance {
+		text-wrap: balance;
+	}
+
+	.text-pretty {
+		text-wrap: pretty;
+	}
+
+	.truncate {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.no-margin {
+		margin: 0 !important;
+	}
+}
+
+/**
+ * ============================================================================
+ * SECTION 4: COMPONENT PATTERNS
+ * ============================================================================
+ */
+
+@layer components {
+	/* =========================
+	   4.1 BUTTON SYSTEM
+	   ========================= */
+
+	.btn-base {
+		@apply inline-flex items-center justify-center font-medium transition-all;
+		@apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2;
+		@apply disabled:pointer-events-none disabled:opacity-50;
+		border-radius: var(--radius);
+		transition-duration: var(--duration-fast);
+	}
+
+	.btn-primary {
+		@apply btn-base bg-primary text-primary-foreground hover:bg-primary/90;
+		@apply focus-visible:ring-primary;
+	}
+
+	.btn-secondary {
+		@apply btn-base bg-secondary text-secondary-foreground hover:bg-secondary/80;
+		@apply focus-visible:ring-secondary;
+	}
+
+	.btn-outline {
+		@apply btn-base border border-input bg-background hover:bg-accent;
+		@apply hover:text-accent-foreground;
+	}
+
+	.btn-ghost {
+		@apply btn-base hover:bg-accent hover:text-accent-foreground;
+	}
+
+	.btn-destructive {
+		@apply btn-base bg-destructive text-destructive-foreground hover:bg-destructive/90;
+		@apply focus-visible:ring-destructive;
+	}
+
+	/* Button Sizes */
+	.btn-sm {
+		@apply h-9 px-3 text-sm;
+	}
+
+	.btn-md {
+		@apply h-10 px-4 py-2;
+	}
+
+	.btn-lg {
+		@apply h-11 px-8;
+	}
+
+	/* =========================
+	   4.2 CARD SYSTEM
+	   ========================= */
+
+	.card-base {
+		@apply bg-card text-card-foreground;
+		border-radius: var(--radius-lg);
+		border: 1px solid hsl(var(--border));
+	}
+
+	.card-interactive {
+		@apply card-base transition-all cursor-pointer;
+		@apply hover:shadow-lg hover:border-gray-300;
+		transition-duration: var(--duration-normal);
+	}
+
+	.card-elevated {
+		@apply card-base shadow-md;
+	}
+
+	/* =========================
+	   4.3 BADGE SYSTEM
+	   ========================= */
+
+	.badge-base {
+		@apply inline-flex items-center gap-1 px-2.5 py-0.5;
+		@apply text-xs font-semibold transition-colors;
+		border-radius: var(--radius-full);
+	}
+
+	.badge-primary {
+		@apply badge-base bg-primary/10 text-primary;
+	}
+
+	.badge-secondary {
+		@apply badge-base bg-secondary text-secondary-foreground;
+	}
+
+	.badge-success {
+		@apply badge-base bg-success/10 text-success;
+	}
+
+	.badge-warning {
+		@apply badge-base bg-warning/10 text-warning;
+	}
+
+	.badge-destructive {
+		@apply badge-base bg-destructive/10 text-destructive;
+	}
+
+	/* =========================
+	   4.4 INPUT SYSTEM
+	   ========================= */
+
+	.input-base {
+		@apply flex w-full bg-background text-sm;
+		@apply ring-offset-background file:border-0;
+		@apply file:bg-transparent file:text-sm file:font-medium;
+		@apply placeholder:text-muted-foreground;
+		@apply focus-visible:outline-none focus-visible:ring-2;
+		@apply focus-visible:ring-ring focus-visible:ring-offset-2;
+		@apply disabled:cursor-not-allowed disabled:opacity-50;
+		border-radius: var(--radius);
+		border: 1px solid hsl(var(--input));
+		padding: 0.5rem 0.75rem;
+		transition-duration: var(--duration-fast);
+	}
+
+	.input-sm {
+		@apply input-base h-9 text-sm;
+	}
+
+	.input-md {
+		@apply input-base h-10;
+	}
+
+	.input-lg {
+		@apply input-base h-11 text-base;
+	}
+}
+
+/**
+ * ============================================================================
+ * SECTION 5: LAYOUT UTILITIES
+ * ============================================================================
+ */
+
+@layer components {
+	/* =========================
+	   5.1 CONTAINERS
+	   ========================= */
+
+	.container-app {
+		@apply mx-auto w-full max-w-screen-2xl px-4 sm:px-6 lg:px-8;
+	}
+
+	.container-content {
+		@apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+	}
+
+	.container-narrow {
+		@apply mx-auto w-full max-w-4xl px-4 sm:px-6;
+	}
+
+	.container-wide {
+		@apply mx-auto w-full px-4 sm:px-6 lg:px-8;
+	}
+
+	/* =========================
+	   5.2 SECTIONS
+	   ========================= */
+
+	.section-base {
+		@apply py-12 md:py-16 lg:py-20;
+	}
+
+	.section-compact {
+		@apply py-8 md:py-12 lg:py-16;
+	}
+
+	.section-spacious {
+		@apply py-16 md:py-20 lg:py-24;
+	}
+
+	/* =========================
+	   5.3 GRIDS
+	   ========================= */
+
+	.grid-cards {
+		@apply grid gap-6 md:grid-cols-2 lg:grid-cols-3;
+	}
+
+	.grid-features {
+		@apply grid gap-8 md:grid-cols-2 lg:grid-cols-3;
+	}
+
+	.grid-tiles {
+		@apply grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4;
+	}
+}
+
+/**
+ * ============================================================================
+ * SECTION 6: STATE UTILITIES
+ * ============================================================================
+ */
+
+@layer utilities {
+	/* =========================
+	   6.1 ANIMATION STATES
+	   ========================= */
+
+	.animate-in {
+		animation-duration: var(--duration-normal);
+		animation-fill-mode: both;
+		animation-timing-function: var(--ease-decelerate);
+	}
+
+	.animate-out {
+		animation-duration: var(--duration-fast);
+		animation-fill-mode: both;
+		animation-timing-function: var(--ease-accelerate);
+	}
+
+	/* =========================
+	   6.2 LOADING STATES
+	   ========================= */
+
+	.skeleton {
+		@apply animate-pulse bg-muted;
+		border-radius: var(--radius);
+	}
+
+	.skeleton-text {
+		@apply skeleton h-4 w-full;
+	}
+
+	.skeleton-card {
+		@apply skeleton h-32 w-full;
+	}
+
+	/* =========================
+	   6.3 INTERACTION STATES
+	   ========================= */
+
+	.interactive {
+		@apply transition-all cursor-pointer;
+		transition-duration: var(--duration-fast);
+	}
+
+	.disabled {
+		@apply opacity-50 cursor-not-allowed pointer-events-none;
+	}
+
+	.loading {
+		@apply opacity-50 pointer-events-none;
+	}
+
+	/* =========================
+	   6.4 VISUAL STATES
+	   ========================= */
+
+	.glass {
+		@apply bg-background/80 backdrop-blur-md;
+		border: 1px solid hsl(var(--border) / 0.5);
+	}
+
+	.glow {
+		box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+	}
+
+	.elevated {
+		box-shadow: var(--shadow-lg);
+	}
+}
+
+/**
+ * ============================================================================
+ * SECTION 7: RESPONSIVE UTILITIES
+ * ============================================================================
+ */
+
+@layer utilities {
+	/* Hide scrollbar but keep functionality */
+	.no-scrollbar::-webkit-scrollbar {
+		display: none;
+	}
+
+	.no-scrollbar {
+		-ms-overflow-style: none;
+		scrollbar-width: none;
+	}
+
+	/* Safe area spacing for mobile */
+	.safe-top {
+		padding-top: env(safe-area-inset-top);
+	}
+
+	.safe-bottom {
+		padding-bottom: env(safe-area-inset-bottom);
+	}
+
+	.safe-left {
+		padding-left: env(safe-area-inset-left);
+	}
+
+	.safe-right {
+		padding-right: env(safe-area-inset-right);
+	}
+}
+
+/**
+ * ============================================================================
+ * SECTION 8: PRINT STYLES
+ * ============================================================================
+ */
+
+@media print {
+	body {
+		background-color: white;
+		color: black;
+	}
+
+	.no-print {
+		display: none !important;
+	}
+
+	.page-break {
+		page-break-before: always;
+	}
+}
+
+/**
+ * ============================================================================
+ * END OF GLOBAL DESIGN SYSTEM
+ * ============================================================================
+ */

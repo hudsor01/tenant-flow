@@ -51,9 +51,20 @@ export class AuthGuard implements CanActivate {
 	async canActivate(context: ExecutionContext): Promise<boolean> {
 		const request = context.switchToHttp().getRequest<AuthenticatedRequest>()
 
-		// Ultra-native: Bypass auth for development/testing
+		// SECURITY: Never bypass auth in production
 		if (process.env.NODE_ENV === 'production' && process.env.DISABLE_AUTH === 'true') {
-			this.logger.warn('Authentication disabled via DISABLE_AUTH environment variable')
+			this.logger.error('SECURITY VIOLATION: Attempt to disable auth in production environment', {
+				nodeEnv: process.env.NODE_ENV,
+				disableAuth: process.env.DISABLE_AUTH,
+				ip: request.ip,
+				userAgent: request.headers['user-agent']
+			})
+			throw new UnauthorizedException('Authentication cannot be disabled in production')
+		}
+
+		// Allow auth bypass only in development/test environments
+		if (process.env.NODE_ENV !== 'production' && process.env.DISABLE_AUTH === 'true') {
+			this.logger.warn('Authentication disabled via DISABLE_AUTH environment variable in non-production environment')
 			return true
 		}
 
