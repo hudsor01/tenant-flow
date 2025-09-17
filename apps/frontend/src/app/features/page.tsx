@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ArrowRight, Check, TrendingUp, Users, Shield, Zap, BarChart3, Clock, Star, Play, ChevronRight } from 'lucide-react'
+import { ArrowRight, Check, TrendingUp, Users, Shield, Zap, BarChart3, Clock, Star, ChevronRight } from 'lucide-react'
 import { Navbar } from '@/components/navbar'
 import { FooterMinimal } from '@/components/sections/footer-minimal'
 import { FeaturesSection } from '@/components/sections/features-section'
@@ -24,14 +24,6 @@ export default function FeaturesPage() {
     }
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  // Auto-rotate testimonials
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length)
-    }, 5000)
-    return () => clearInterval(interval)
   }, [])
 
   const testimonials = [
@@ -57,6 +49,14 @@ export default function FeaturesPage() {
       avatar: "/tenant-flow-logo.png"
     }
   ]
+
+  // Auto-rotate testimonials
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length)
+    }, 5000)
+    return () => clearInterval(interval)
+  }, [testimonials.length])
 
   const t = (testimonials[currentTestimonial] ?? testimonials[0]) as (typeof testimonials)[number]
 
@@ -109,7 +109,7 @@ export default function FeaturesPage() {
                 
                 {/* Customer Logos */}
                 <div className="flex flex-wrap items-center justify-center gap-8 opacity-60 grayscale hover:grayscale-0 transition-all duration-700">
-                  {customerLogos.slice(0, 4).map((customer, index) => (
+                  {customerLogos.slice(0, 4).map((customer) => (
                     <div key={customer.name} className="h-8 flex items-center">
                       <Image
                         src={customer.logo}

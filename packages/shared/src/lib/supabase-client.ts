@@ -20,24 +20,41 @@ const SUPABASE_ANON_KEY =
 	process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY
 
-if (!SUPABASE_URL) {
-	throw new Error('Missing SUPABASE_URL environment variable')
+// Create a lazy-initialized client to avoid build-time errors
+let _client: SupabaseClient<Database> | null = null
+
+function getSupabaseClient(): SupabaseClient<Database> {
+	if (!_client) {
+		if (!SUPABASE_URL) {
+			throw new Error('Missing SUPABASE_URL environment variable')
+		}
+		if (!SUPABASE_ANON_KEY) {
+			throw new Error('Missing SUPABASE_ANON_KEY environment variable')
+		}
+		_client = createClient<Database>(
+			SUPABASE_URL,
+			SUPABASE_ANON_KEY,
+			{
+				auth: {
+					persistSession: true,
+					autoRefreshToken: true
+				},
+				db: {
+					schema: 'public'
+				}
+			}
+		)
+	}
+	return _client
 }
 
-if (!SUPABASE_ANON_KEY) {
-	throw new Error('Missing SUPABASE_ANON_KEY environment variable')
-}
-
-export const supabaseClient: SupabaseClient<Database> = createClient<Database>(
-	SUPABASE_URL,
-	SUPABASE_ANON_KEY,
+// Export as proxy to maintain same API but lazy initialize
+export const supabaseClient: SupabaseClient<Database> = new Proxy(
+	{} as SupabaseClient<Database>,
 	{
-		auth: {
-			persistSession: true,
-			autoRefreshToken: true
-		},
-		db: {
-			schema: 'public'
+		get(target, prop, receiver) {
+			const client = getSupabaseClient()
+			return Reflect.get(client, prop, receiver)
 		}
 	}
 )
@@ -96,10 +113,11 @@ export async function getCurrentUser(): Promise<{
 	user: User | null
 	error: AuthError | null
 }> {
+	const client = getSupabaseClient()
 	const {
 		data: { user },
 		error
-	} = await supabaseClient.auth.getUser()
+	} = await client.auth.getUser()
 	return { user, error }
 }
 
@@ -107,15 +125,17 @@ export async function getCurrentSession(): Promise<{
 	session: Session | null
 	error: AuthError | null
 }> {
+	const client = getSupabaseClient()
 	const {
 		data: { session },
 		error
-	} = await supabaseClient.auth.getSession()
+	} = await client.auth.getSession()
 	return { session, error }
 }
 
 export async function signOut(): Promise<{ error: AuthError | null }> {
-	const { error } = await supabaseClient.auth.signOut()
+	const client = getSupabaseClient()
+	const { error } = await client.auth.signOut()
 	return { error }
 }
 

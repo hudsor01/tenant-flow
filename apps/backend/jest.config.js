@@ -34,7 +34,6 @@ module.exports = {
 		'^@repo/(.*)$': '<rootDir>/../../packages/$1/src'
 	},
 	setupFilesAfterEnv,
-	// 'setupFiles': ['<rootDir>/test/disable-nestjs-logger.ts'],
 	testTimeout: 10000,
 	maxWorkers: 1,
 	testSequencer:
@@ -49,11 +48,23 @@ module.exports = {
 		'^.+\.ts$': [
 			'ts-jest',
 			{
-				useESM: false
+				useESM: false,
+				tsconfig: {
+					module: 'commonjs',
+					target: 'es2022',
+					moduleResolution: 'node',
+					allowSyntheticDefaultImports: true,
+					esModuleInterop: true,
+					skipLibCheck: true,
+					forceConsistentCasingInFileNames: true,
+					strict: true,
+					isolatedModules: true
+				}
 			}
 		]
 	},
-	injectGlobals: true,
-	clearMocks: true,
-	restoreMocks: true
+	transformIgnorePatterns: [
+		'node_modules/(?!(@repo|@supabase|@fastify)/)'
+	],
+	injectGlobals: true
 }
