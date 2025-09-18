@@ -1,240 +1,68 @@
-name: CI/CD Pipeline (Optimized)
+name: CI/CD
 
 on:
   push:
-    branches: [main, develop, 'feature/**']
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - '.vscode/**'
-      - '.idea/**'
-  pull_request:
     branches: [main, develop]
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-  workflow_dispatch:
+  pull_request:
+    branches: [main]
 
 env:
   NODE_VERSION: '22'
-  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
 jobs:
-  # Quick checks that fail fast
-  quick-checks:
-    name: Quick Checks
+  build-and-test:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 15
+
+    concurrency:
+      group: ci-${{ github.ref }}
+      cancel-in-progress: true
+
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # Required for change detection
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Detect changes
-        id: changes
-        uses: dorny/paths-filter@v2
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
         with:
-          filters: |
-            frontend:
-              - 'apps/frontend/**'
-              - 'packages/shared/**'
-            backend:
-              - 'apps/backend/**'
-              - 'packages/shared/**'
-              - 'packages/database/**'
-            shared:
-              - 'packages/shared/**'
+          version: 10.0.0
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: 'pnpm'
 
-      # Install dependencies first
       - name: Install dependencies
-        run: npm ci --no-audit
+        run: pnpm install --frozen-lockfile
 
-      # Type checking only - fastest feedback
-      - name: TypeScript Check
-        run: npx turbo run typecheck --filter='[HEAD^1]' --cache-dir=.turbo
-
-    outputs:
-      frontend: ${{ steps.changes.outputs.frontend }}
-      backend: ${{ steps.changes.outputs.backend }}
-      shared: ${{ steps.changes.outputs.shared }}
-
-  # Parallel build jobs for changed packages only
-  build-backend:
-    name: Build Backend
-    needs: quick-checks
-    if: needs.quick-checks.outputs.backend == 'true' || needs.quick-checks.outputs.shared == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      # Use Turbo remote caching
-      - name: Setup Turbo Cache
-        run: |
-          echo "TURBO_REMOTE_CACHE_SIGNATURE_KEY=${{ secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY }}" >> $GITHUB_ENV
-
-      - name: Install dependencies (backend only)
-        run: npm ci --no-audit --workspace=@repo/backend --include-workspace-root
-
-      - name: Build Backend with Cache
+      - name: Build packages
         env:
-          BACKEND_SCHEMAS_DIR: ./supabase/schema-exports
-        run: npx turbo run build --filter=@repo/backend --cache-dir=.turbo
-
-      # Cache build artifacts for test job
-      - uses: actions/cache/save@v3
-        with:
-          path: |
-            apps/backend/dist
-            packages/shared/dist
-          key: backend-build-${{ github.sha }}
-
-  build-frontend:
-    name: Build Frontend
-    needs: quick-checks
-    if: needs.quick-checks.outputs.frontend == 'true' || needs.quick-checks.outputs.shared == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Setup Turbo Cache
-        run: |
-          echo "TURBO_REMOTE_CACHE_SIGNATURE_KEY=${{ secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY }}" >> $GITHUB_ENV
-
-      - name: Install dependencies (frontend only)
-        run: npm ci --no-audit --workspace=@repo/frontend --include-workspace-root
-
-      - name: Build Frontend with Cache
-        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          NEXT_TELEMETRY_DISABLED: 1
-        run: |
-          npx turbo run build --filter=@repo/frontend --cache-dir=.turbo
+          BACKEND_SCHEMAS_DIR: ./supabase/schema-exports
+        run: pnpm run build:ci
 
-      # Next.js specific optimizations
-      - uses: actions/cache@v3
-        with:
-          path: apps/frontend/.next/cache
-          key: nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
-          restore-keys: |
-            nextjs-${{ hashFiles('**/package-lock.json') }}-
+      - name: Run tests
+        run: pnpm run test:unit
 
-  # Unit tests - run in parallel with build jobs
-  test-unit:
-    name: Unit Tests
-    needs: quick-checks
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
+      - name: Lint check
+        run: pnpm run lint
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci --no-audit
-
-      - name: Run unit tests
-        run: npm run test:unit
-
-  # Linting in parallel
-  lint:
-    name: Lint & Format
-    needs: quick-checks
-    runs-on: ubuntu-latest
-    timeout-minutes: 3
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Install lint dependencies only
-        run: |
-          npm ci --no-audit --omit=optional --ignore-scripts
-
-      - name: ESLint with Turbo
-        run: npx turbo run lint --cache-dir=.turbo -- --cache --cache-location=.eslintcache
-
-      - name: Prettier Check
-        run: npx prettier --check "**/*.{js,ts,tsx,json,md}" --cache --cache-location=.prettiercache
-
-  # Final status check
-  ci-status:
-    name: CI Status
-    if: always()
-    needs: [quick-checks, build-backend, build-frontend, test-unit, lint]
-    runs-on: ubuntu-latest
-    timeout-minutes: 1
-    steps:
-      - name: Check CI Status
-        run: |
-          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
-            echo "❌ CI Failed - Check individual job results"
-            exit 1
-          else
-            echo "✅ CI Passed"
-          fi
-
-  # Deploy only after all checks pass
   deploy-backend:
     name: Deploy Backend
-    needs: [ci-status]
-    if: github.ref == 'refs/heads/main' && needs.ci-status.result == 'success'
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-    environment:
-      name: production
-      url: https://api.tenantflow.app
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Deploy to Railway
         run: |
           npm i -g @railway/cli@3
-          railway up --service=tenantflow-backend --detach
+          railway up --service=tenantflow-backend
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-
-      - name: Health Check
-        run: |
-          sleep 30
-          curl -f https://api.tenantflow.app/health || exit 1
-
-  deploy-frontend:
-    name: Deploy Frontend
-    needs: [ci-status]
-    if: github.ref == 'refs/heads/main' && needs.ci-status.result == 'success'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    environment:
-      name: production
-      url: https://tenantflow.app
-    steps:
-      # Vercel auto-deploys from GitHub, just verify
-      - name: Verify Vercel Deployment
-        run: |
-          sleep 60
-          curl -f https://tenantflow.app || exit 1
