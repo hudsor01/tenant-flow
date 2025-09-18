@@ -36,17 +36,6 @@
     }
   },
 
-  "crons": [
-    {
-      "path": "/api/cron/cleanup",
-      "schedule": "0 3 * * *"
-    },
-    {
-      "path": "/api/cron/revalidate",
-      "schedule": "*/5 * * * *"
-    }
-  ],
-
   "redirects": [
     {
       "source": "/home",
