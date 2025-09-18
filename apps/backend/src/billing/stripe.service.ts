@@ -55,6 +55,43 @@ export class StripeService {
 	}
 
 	/**
+	 * Get ALL subscriptions with complete pagination
+	 */
+	async getAllSubscriptions(params?: {
+		customer?: string
+		status?: Stripe.SubscriptionListParams.Status
+	}): Promise<Stripe.Subscription[]> {
+		try {
+			const allSubscriptions: Stripe.Subscription[] = []
+			let hasMore = true
+			let startingAfter: string | undefined
+
+			while (hasMore) {
+				const subscriptions = await this.stripe.subscriptions.list({
+					customer: params?.customer,
+					status: params?.status,
+					limit: 100,
+					starting_after: startingAfter,
+					expand: ['data.customer', 'data.items']
+				})
+
+				allSubscriptions.push(...subscriptions.data)
+				hasMore = subscriptions.has_more
+
+				if (hasMore && subscriptions.data.length > 0) {
+					startingAfter = subscriptions.data[subscriptions.data.length - 1]?.id
+				}
+			}
+
+			this.logger?.log(`Fetched ${allSubscriptions.length} total subscriptions`)
+			return allSubscriptions
+		} catch (error) {
+			this.logger?.error('Failed to get all subscriptions', { error })
+			throw error
+		}
+	}
+
+	/**
 	 * List invoices with optional filters
 	 */
 	async listInvoices(params?: {
@@ -81,47 +118,7 @@ export class StripeService {
 	}
 
 	/**
-	 * List customers with optional filters
-	 */
-	async listCustomers(params?: {
-		email?: string
-		limit?: number
-	}): Promise<Stripe.Customer[]> {
-		try {
-			const customers = await this.stripe.customers.list({
-				email: params?.email,
-				limit: params?.limit || 100,
-				expand: ['data.subscriptions']
-			})
-			// Filter out deleted customers
-			return customers.data.filter(c => !('deleted' in c))
-		} catch (error) {
-			this.logger?.error('Failed to list customers', { error })
-			throw error
-		}
-	}
-
-	/**
-	 * Get a specific customer
-	 */
-	async getCustomer(customerId: string): Promise<Stripe.Customer | null> {
-		try {
-			const customer = await this.stripe.customers.retrieve(customerId, {
-				expand: ['subscriptions']
-			})
-			if ('deleted' in customer) {
-				return null
-			}
-			return customer
-		} catch (error) {
-			this.logger?.error('Failed to get customer', { error, customerId })
-			return null
-		}
-	}
-
-	/**
-	 * Get ALL invoices with pagination
-	 * Critical for accurate analytics in production
+	 * Get ALL invoices with complete pagination
 	 */
 	async getAllInvoices(params?: {
 		customer?: string
@@ -147,6 +144,7 @@ export class StripeService {
 
 				allInvoices.push(...invoices.data)
 				hasMore = invoices.has_more
+
 				if (hasMore && invoices.data.length > 0) {
 					startingAfter = invoices.data[invoices.data.length - 1]?.id
 				}
@@ -161,45 +159,28 @@ export class StripeService {
 	}
 
 	/**
-	 * Get ALL subscriptions with pagination
-	 * Critical for accurate analytics in production
+	 * List customers with optional filters
 	 */
-	async getAllSubscriptions(params?: {
-		customer?: string
-		status?: Stripe.SubscriptionListParams.Status
-	}): Promise<Stripe.Subscription[]> {
+	async listCustomers(params?: {
+		email?: string
+		limit?: number
+	}): Promise<Stripe.Customer[]> {
 		try {
-			const allSubscriptions: Stripe.Subscription[] = []
-			let hasMore = true
-			let startingAfter: string | undefined
-
-			while (hasMore) {
-				const subscriptions = await this.stripe.subscriptions.list({
-					customer: params?.customer,
-					status: params?.status,
-					limit: 100,
-					starting_after: startingAfter,
-					expand: ['data.customer', 'data.items']
-				})
-
-				allSubscriptions.push(...subscriptions.data)
-				hasMore = subscriptions.has_more
-				if (hasMore && subscriptions.data.length > 0) {
-					startingAfter = subscriptions.data[subscriptions.data.length - 1]?.id
-				}
-			}
-
-			this.logger?.log(`Fetched ${allSubscriptions.length} total subscriptions`)
-			return allSubscriptions
+			const customers = await this.stripe.customers.list({
+				email: params?.email,
+				limit: params?.limit || 100,
+				expand: ['data.subscriptions']
+			})
+			// Filter out deleted customers
+			return customers.data.filter(c => !('deleted' in c))
 		} catch (error) {
-			this.logger?.error('Failed to get all subscriptions', { error })
+			this.logger?.error('Failed to list customers', { error })
 			throw error
 		}
 	}
 
 	/**
-	 * Get ALL customers with pagination
-	 * Critical for accurate analytics in production
+	 * Get ALL customers with complete pagination
 	 */
 	async getAllCustomers(params?: {
 		email?: string
@@ -218,15 +199,12 @@ export class StripeService {
 				})
 
 				// Filter out deleted customers
-				const validCustomers = customers.data.filter(c => !('deleted' in c))
-				allCustomers.push(...validCustomers)
-
+				const activeCustomers = customers.data.filter(c => !('deleted' in c))
+				allCustomers.push(...activeCustomers)
 				hasMore = customers.has_more
+
 				if (hasMore && customers.data.length > 0) {
-					const lastCustomer = customers.data[customers.data.length - 1]
-					if (lastCustomer) {
-						startingAfter = lastCustomer.id
-					}
+					startingAfter = customers.data[customers.data.length - 1]?.id
 				}
 			}
 
@@ -235,6 +213,24 @@ export class StripeService {
 		} catch (error) {
 			this.logger?.error('Failed to get all customers', { error })
 			throw error
+		}
+	}
+
+	/**
+	 * Get a specific customer
+	 */
+	async getCustomer(customerId: string): Promise<Stripe.Customer | null> {
+		try {
+			const customer = await this.stripe.customers.retrieve(customerId, {
+				expand: ['subscriptions']
+			})
+			if ('deleted' in customer) {
+				return null
+			}
+			return customer
+		} catch (error) {
+			this.logger?.error('Failed to get customer', { error, customerId })
+			return null
 		}
 	}
 

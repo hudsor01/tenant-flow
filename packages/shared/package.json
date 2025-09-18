@@ -15,8 +15,17 @@
     "dist/**"
   ],
   "scripts": {
-    "build": "tsc",
-    "typecheck": "tsc --noEmit"
+    "build": "pnpm run clean && tsc -p tsconfig.build.json",
+    "build:cjs": "echo 'CJS build already exists'",
+    "build:esm": "echo 'ESM build skipped'",
+    "typecheck": "tsc --noEmit",
+    "check-types": "tsc --noEmit",
+    "claude:check": "pnpm run lint && pnpm run typecheck",
+    "lint": "eslint . --no-warn-ignored",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
+    "clean": "tsc --build --clean && rm -rf dist"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",

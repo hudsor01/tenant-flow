@@ -3,20 +3,34 @@
   "version": "0.1.0",
   "private": true,
   "description": "Database utilities and types for TenantFlow monorepo",
+  "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
     "dist/**"
   ],
   "scripts": {
-    "build": "tsc",
-    "typecheck": "tsc --noEmit"
+    "build": "pnpm run clean-dist && tsc --build",
+    "clean": "tsc --build --clean && rm -rf dist",
+    "clean-dist": "tsc --build --clean && rm -rf dist",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --fix",
+    "lint:fix": "eslint . --fix",
+    "format": "echo 'No formatting configured for database package'",
+    "format:check": "echo 'No formatting configured for database package'"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4"
   },
   "devDependencies": {
+    "@repo/typescript-config": "*",
     "@types/node": "^24.3.1",
-    "typescript": "^5.9.2"
+    "eslint": "9.35.0",
+    "globals": "16.3.0",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "8.43.0"
+  },
+  "overrides": {
+    "minimatch": "^10.0.3"
   }
 }
