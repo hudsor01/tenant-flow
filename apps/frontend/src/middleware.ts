@@ -1,11 +1,24 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  const response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  })
+	const pathname = request.nextUrl.pathname
+
+	// Skip middleware for static files and API routes
+	if (
+		pathname.startsWith('/_next/static') ||
+		pathname.startsWith('/_next/image') ||
+		pathname === '/favicon.ico' ||
+		pathname.startsWith('/api') ||
+		/\.(svg|png|jpg|jpeg|gif|webp)$/i.test(pathname)
+	) {
+		return NextResponse.next()
+	}
+
+	const response = NextResponse.next({
+		request: {
+			headers: request.headers
+		}
+	})
 
   // Add security headers
   response.headers.set('X-Frame-Options', 'DENY')
@@ -30,15 +43,22 @@ export async function middleware(request: NextRequest) {
     const enableMockAuth = process.env.ENABLE_MOCK_AUTH === 'true'
     const isAuthenticated = hasSupabaseAuth || (isDevelopment && enableMockAuth)
 
-    const pathname = request.nextUrl.pathname
-
-    // Debug logging in development
-    if (process.env.NODE_ENV === 'development') {
-      console.info(`[Middleware] ${pathname} - Auth: ${isAuthenticated ? 'Yes' : 'No'}`)
-      console.info(`[Middleware] HasSupabaseAuth: ${hasSupabaseAuth}, MockAuth: ${isDevelopment && enableMockAuth}`)
-      console.info(`[Middleware] isAuthenticated calculation: ${hasSupabaseAuth} || (${isDevelopment} && ${enableMockAuth}) = ${isAuthenticated}`)
-      console.info(`[Middleware] Available cookies:`, cookies.getAll().map(({ name }) => name))
-    }
+		// Debug logging in development
+		if (process.env.NODE_ENV === 'development') {
+			console.info(
+				`[Middleware] ${pathname} - Auth: ${isAuthenticated ? 'Yes' : 'No'}`
+			)
+			console.info(
+				`[Middleware] HasSupabaseAuth: ${hasSupabaseAuth}, MockAuth: ${isDevelopment && enableMockAuth}`
+			)
+			console.info(
+				`[Middleware] isAuthenticated calculation: ${hasSupabaseAuth} || (${isDevelopment} && ${enableMockAuth}) = ${isAuthenticated}`
+			)
+			console.info(
+				`[Middleware] Available cookies:`,
+				cookies.getAll().map(({ name }) => name)
+			)
+		}
 
     // Define protected routes - these require authentication
     const protectedRoutes = ['/dashboard']
@@ -86,15 +106,17 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - api (API routes)
-     * - public assets
-     */
-    '/((?!_next/static|_next/image|favicon.ico|api|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-  ],
+	matcher: [
+		/*
+		 * Match all request paths except for the ones starting with:
+		 * - _next/static (static files)
+		 * - _next/image (image optimization files)
+		 * - favicon.ico (favicon file)
+		 * - api (API routes)
+		 * - public assets
+		 *
+		 * Using simple path pattern - exclusions handled in middleware function
+		 */
+		'/:path*'
+	]
 }
