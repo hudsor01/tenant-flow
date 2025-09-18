@@ -17,39 +17,10 @@ import { FastifyAdapter } from '@nestjs/platform-fastify'
 import { Injectable } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { AppModule } from '../../app.module'
+import type { EndpointAudit, SecurityAuditReport } from '@repo/shared'
 import * as fs from 'fs'
 import * as path from 'path'
 import { glob } from 'glob'
-
-interface EndpointAudit {
-	controller: string
-	method: string
-	path: string
-	httpMethod: string
-	isPublic: boolean
-	requiredRoles: string[]
-	adminOnly: boolean
-	hasRateLimit: boolean
-	securityRisk: 'low' | 'medium' | 'high' | 'critical'
-	recommendations: string[]
-	description?: string
-}
-
-interface SecurityAuditReport {
-	timestamp: string
-	totalEndpoints: number
-	publicEndpoints: number
-	protectedEndpoints: number
-	highRiskEndpoints: number
-	criticalRiskEndpoints: number
-	endpoints: EndpointAudit[]
-	summary: {
-		publicEndpointsRatio: number
-		authenticationCoverage: number
-		averageSecurityScore: number
-	}
-	recommendations: string[]
-}
 
 @Injectable()
 class SecurityAuditService {
@@ -113,8 +84,8 @@ class SecurityAuditService {
 		return glob(pattern)
 	}
 
-	private async parseControllerFile(filePath: string): Promise<any[]> {
-		const endpoints: any[] = []
+	private async parseControllerFile(filePath: string): Promise<Array<{ path: string; method: string; httpMethod: string }>> {
+		const endpoints: Array<{ path: string; method: string; httpMethod: string }> = []
 
 		try {
 			const content = fs.readFileSync(filePath, 'utf8')
