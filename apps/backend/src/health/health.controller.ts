@@ -352,7 +352,7 @@ export class HealthController {
 		if (result.status === 'fulfilled') {
 			return result.value
 		}
-		const error = result.reason
+		const error = result.reason as unknown
 		const errorMessage =
 			error instanceof Error ? error.message : 'Unknown error'
 		return {

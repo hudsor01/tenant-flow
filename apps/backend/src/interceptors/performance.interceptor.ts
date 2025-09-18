@@ -104,9 +104,10 @@ export class PerformanceInterceptor implements NestInterceptor {
 					)
 				}
 			}),
-			catchError(error => {
+			catchError((error: unknown) => {
 				const duration = Date.now() - startTime
-				const isTimeout = error.name === 'TimeoutError'
+				const isTimeout =
+					error instanceof Error && error.name === 'TimeoutError'
 
 				this.recordMetrics(
 					request as TypedRequest,
@@ -125,7 +126,7 @@ export class PerformanceInterceptor implements NestInterceptor {
 					})
 				}
 
-				return throwError(() => error)
+				return throwError(() => error as Error)
 			})
 		)
 	}
