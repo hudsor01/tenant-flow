@@ -7,7 +7,7 @@
  */
 
 import { Injectable, BadRequestException, Optional } from '@nestjs/common'
-import { PinoLogger } from 'nestjs-pino'
+import { Logger } from '@nestjs/common'
 import { SupabaseService } from '../database/supabase.service'
 import type {
 	CreatePropertyRequest,
@@ -45,9 +45,9 @@ const formatAddress = (addr: {
 export class PropertiesService {
 	constructor(
 		private readonly supabaseService: SupabaseService,
-		@Optional() private readonly logger?: PinoLogger
+		@Optional() private readonly logger?: Logger
 	) {
-		// PinoLogger context handled automatically via app-level configuration
+		// Logger context handled automatically via app-level configuration
 	}
 
 	/**

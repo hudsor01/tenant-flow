@@ -2,7 +2,7 @@ import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
 
-import { cn } from "@/lib/design-system"
+import { cn } from "@/lib/utils"
 
 // Apple-Inspired Button System - Obsession-Worthy Interactions
 // Follows Apple's design DNA with 44px touch targets and satisfying motion

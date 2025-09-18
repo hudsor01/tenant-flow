@@ -2,7 +2,7 @@ import {
 	CanActivate,
 	ExecutionContext,
 	Injectable,
-	Logger
+	Logger,
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import type { UserRole, AuthUser } from '@repo/shared'

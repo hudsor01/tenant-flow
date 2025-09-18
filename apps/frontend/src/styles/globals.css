@@ -54,8 +54,30 @@
 	--color-input: #edf2f7;
 	--color-ring: #1a365d;
 
-	/* Spacing System */
-	--radius: 0.5rem;
+	/* Apple Design System Tokens */
+	/* Motion System - Apple-quality animations */
+	--ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+	--duration-fast: 0.25s;
+	--duration-normal: 0.35s;
+	--duration-slow: 0.5s;
+
+	/* Apple Shadow System */
+	--shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+	--shadow-md: 0 4px 12px 0 rgb(0 0 0 / 0.1);
+	--shadow-lg: 0 8px 24px 0 rgb(0 0 0 / 0.12);
+	--shadow-xl: 0 16px 40px 0 rgb(0 0 0 / 0.15);
+
+	/* Apple Radius System */
+	--radius-md: 12px;    /* Apple's standard radius */
+	--radius: 16px;
+	--radius-lg: 20px;
+	--radius-xl: 24px;
+
+	/* Touch Target System - 44px minimum for accessibility */
+	--spacing-10: 40px;   /* Close to 44px for touch targets */
+	--spacing-12: 48px;   /* Exceeds 44px for comfort */
+
+	/* Legacy spacing - keeping for backward compatibility */
 	--radius-sm: 0.25rem;
 	--radius-lg: 0.75rem;
 	--radius-xl: 1rem;
@@ -653,6 +675,34 @@
 		border: 1px solid rgba(255, 255, 255, 0.05);
 	}
 
+	/* Apple Glass Effects for Modal Overlays */
+	.glass-apple {
+		background: rgba(255, 255, 255, 0.8);
+		backdrop-filter: blur(20px) saturate(180%);
+		border: 1px solid rgba(255, 255, 255, 0.2);
+		border-radius: var(--radius-md);
+		box-shadow: var(--shadow-lg);
+	}
+
+	.dark .glass-apple {
+		background: rgba(30, 30, 30, 0.8);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+	}
+
+	/* Apple Card Effects with Enhanced Shadows */
+	.card-apple {
+		background: var(--color-card);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-md);
+		box-shadow: var(--shadow-md);
+		transition: all var(--duration-fast) var(--ease-out-expo);
+	}
+
+	.card-apple:hover {
+		box-shadow: var(--shadow-lg);
+		transform: translateY(-2px);
+	}
+
 	/* EVIDENCE: stripe-pricing-section.tsx:405 */
 
 
@@ -858,4 +908,80 @@
   transition: color .15s ease, background-color .15s ease;
   &:hover { background: color-mix(in srgb, var(--color-muted) 40%, transparent); }
   &:focus-visible { outline: 2px solid var(--color-ring); outline-offset: 2px; }
+}
+
+/* === APPLE-STYLE ANIMATIONS FOR ADDICTIVE DASHBOARD === */
+/* Used by the enhanced dashboard analytics components */
+
+@keyframes slideInFromBottom {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes breathe {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 0.8;
+  }
+}
+
+/* Apple-inspired micro-interactions */
+@utility apple-hover-lift {
+  transition: transform 200ms cubic-bezier(0.19, 1, 0.22, 1);
+  &:hover {
+    transform: translateY(-1px);
+  }
+}
+
+@utility apple-press-scale {
+  transition: transform 150ms cubic-bezier(0.19, 1, 0.22, 1);
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+/* Glass morphism effects */
+@utility glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Smooth focus states */
+@utility focus-ring-apple {
+  &:focus-visible {
+    outline: 2px solid #007AFF;
+    outline-offset: 2px;
+    border-radius: 8px;
+  }
 }

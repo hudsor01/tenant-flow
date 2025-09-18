@@ -1,14 +1,21 @@
 'use client'
 
+<<<<<<< HEAD
 import { MagicCard } from '@/components/magicui/magic-card'
+||||||| 82bec1d5
+import { MagicCard } from '@/components/ui/magic-card'
+=======
+
+>>>>>>> origin/main
 import { cn } from '@/lib/utils'
 import { animated } from '@react-spring/web'
 import { CheckCircle2 } from 'lucide-react'
+import type { SpringValue } from '@react-spring/web'
 
 interface Props {
 	amount: number
 	formatAmount: (cents: number) => string
-	successSpring: any
+	successSpring: { opacity: SpringValue<number>; scale: SpringValue<number>; rotate: SpringValue<number> }
 }
 
 export function SuccessConfirmation({
@@ -18,7 +25,7 @@ export function SuccessConfirmation({
 }: Props) {
 	return (
 		<animated.div style={successSpring}>
-			<MagicCard
+			<div
 				className={cn(
 					'card',
 					'w-full max-w-md mx-auto p-6 border-slate-200 dark:border-slate-800 shadow-xl'
@@ -36,7 +43,7 @@ export function SuccessConfirmation({
 						</p>
 					</div>
 				</div>
-			</MagicCard>
+			</div>
 		</animated.div>
 	)
 }
