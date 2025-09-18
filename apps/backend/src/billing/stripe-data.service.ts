@@ -33,14 +33,14 @@ export class StripeDataService {
 
 	/**
 	 * Get customer subscriptions with full relationship data
-	 * Ultra-native: Direct API access
+	 * Ultra-native: Direct API access with complete pagination
 	 */
 	async getCustomerSubscriptions(
 		customerId: string
 	): Promise<Stripe.Subscription[]> {
 		try {
 			this.logger?.log('Fetching customer subscriptions', { customerId })
-			return await this.stripeService.listSubscriptions({
+			return await this.stripeService.getAllSubscriptions({
 				customer: customerId
 			})
 		} catch (error) {
@@ -53,7 +53,7 @@ export class StripeDataService {
 
 	/**
 	 * Get revenue analytics for date range
-	 * Ultra-native: Direct API access with in-memory calculations
+	 * Ultra-native: Direct API access with complete dataset via pagination
 	 */
 	async getRevenueAnalytics(
 		startDate: Date,
@@ -66,11 +66,14 @@ export class StripeDataService {
 			const startTimestamp = Math.floor(startDate.getTime() / 1000)
 			const endTimestamp = Math.floor(endDate.getTime() / 1000)
 
-			// Fetch invoices in date range
-			const invoices = await this.stripeService.listInvoices({
-				created: { gte: startTimestamp, lte: endTimestamp },
-				limit: 100
+			// Fetch ALL invoices in date range with pagination
+			const invoices = await this.stripeService.getAllInvoices({
+				created: { gte: startTimestamp, lte: endTimestamp }
 			})
+
+			this.logger?.log(
+				`Fetched ${invoices.length} total invoices for analytics`
+			)
 
 			// Ultra-native: Simple aggregation in code, not complex SQL
 			return this.calculateRevenueAnalytics(invoices)
@@ -80,6 +83,94 @@ export class StripeDataService {
 				'Failed to calculate revenue analytics'
 			)
 		}
+	}
+
+	/**
+	 * Get all invoices with pagination to ensure complete dataset
+	 * Ultra-native: Paginate through all records
+	 */
+	private async getAllInvoices(params: {
+		created?: { gte: number; lte: number }
+	}): Promise<Stripe.Invoice[]> {
+		const allInvoices: Stripe.Invoice[] = []
+		let hasMore = true
+		let startingAfter: string | undefined
+
+		while (hasMore) {
+			const invoicesResponse = await this.stripeService.listInvoices({
+				...params,
+				limit: 100,
+				starting_after: startingAfter
+			})
+
+			allInvoices.push(...invoicesResponse)
+
+			if (invoicesResponse.length < 100) {
+				hasMore = false
+			} else {
+				startingAfter = invoicesResponse[invoicesResponse.length - 1]?.id
+			}
+		}
+
+		return allInvoices
+	}
+
+	/**
+	 * Get all subscriptions with pagination to ensure complete dataset
+	 * Ultra-native: Paginate through all records
+	 */
+	private async getAllSubscriptions(params?: {
+		customer?: string
+	}): Promise<Stripe.Subscription[]> {
+		const allSubscriptions: Stripe.Subscription[] = []
+		let hasMore = true
+		let startingAfter: string | undefined
+
+		while (hasMore) {
+			const subscriptionsResponse = await this.stripeService.listSubscriptions({
+				...params,
+				limit: 100,
+				starting_after: startingAfter
+			})
+
+			allSubscriptions.push(...subscriptionsResponse)
+
+			if (subscriptionsResponse.length < 100) {
+				hasMore = false
+			} else {
+				startingAfter =
+					subscriptionsResponse[subscriptionsResponse.length - 1]?.id
+			}
+		}
+
+		return allSubscriptions
+	}
+
+	/**
+	 * Get all customers with pagination to ensure complete dataset
+	 * Ultra-native: Paginate through all records
+	 */
+	private async getAllCustomers(): Promise<Stripe.Customer[]> {
+		const allCustomers: Stripe.Customer[] = []
+		let hasMore = true
+		let startingAfter: string | undefined
+
+		while (hasMore) {
+			const customersResponse = await this.stripeService.listCustomers({
+				limit: 100,
+				starting_after: startingAfter
+			})
+
+			allCustomers.push(...customersResponse)
+
+			if (customersResponse.length < 100) {
+				hasMore = false
+			} else {
+				startingAfter = customersResponse[customersResponse.length - 1]?.id
+			}
+		}
+
+		return allCustomers
 	}
 
 	// Ultra-native: Helper method for simple calculations
@@ -153,10 +244,8 @@ export class StripeDataService {
 		try {
 			this.logger?.log('Calculating churn analytics')
 
-			// Fetch all subscriptions
-			const subscriptions = await this.stripeService.listSubscriptions({
-				limit: 100
-			})
+			// Fetch all subscriptions with pagination
+			const subscriptions = await this.stripeService.getAllSubscriptions()
 
 			// Ultra-native: Simple churn calculation in code
 			return this.calculateChurnAnalytics(subscriptions)
@@ -208,10 +297,10 @@ export class StripeDataService {
 		try {
 			this.logger?.log('Calculating customer lifetime value')
 
-			// Fetch customers and subscriptions
+			// Fetch customers and subscriptions with complete pagination
 			const [customers, subscriptions] = await Promise.all([
-				this.stripeService.listCustomers({ limit: 100 }),
-				this.stripeService.listSubscriptions({ limit: 100 })
+				this.stripeService.getAllCustomers(),
+				this.stripeService.getAllSubscriptions()
 			])
 
 			// Ultra-native: Simple CLV calculation in code
@@ -289,10 +378,9 @@ export class StripeDataService {
 				customerId
 			})
 
-			// Fetch customer subscriptions
-			const subscriptions = await this.stripeService.listSubscriptions({
-				customer: customerId,
-				limit: 100
+			// Fetch customer subscriptions with complete pagination
+			const subscriptions = await this.stripeService.getAllSubscriptions({
+				customer: customerId
 			})
 
 			// Ultra-native: Simple predictive calculation
