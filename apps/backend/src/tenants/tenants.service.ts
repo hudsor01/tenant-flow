@@ -15,7 +15,7 @@ import type {
 	CreateTenantRequest,
 	UpdateTenantRequest
 } from '../schemas/tenants.schema'
-import type { Tables } from '@repo/shared/types/supabase'
+import type { Tables } from '@repo/shared'
 
 // Use native Supabase table types
 type Tenant = Tables<'Tenant'>

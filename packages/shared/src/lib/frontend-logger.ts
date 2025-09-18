@@ -1,11 +1,15 @@
 /**
- * Native Pino for browser - zero abstractions
+ * Simple console logger - no dependencies
  */
-import pino from 'pino'
-
-export const logger = pino({
-  level: process.env.NODE_ENV === 'development' ? 'debug' : 'info',
-  browser: { asObject: true }
-})
+export const logger = {
+  debug: (...args: any[]) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.debug('[DEBUG]', ...args)
+    }
+  },
+  info: (...args: any[]) => console.info('[INFO]', ...args),
+  warn: (...args: any[]) => console.warn('[WARN]', ...args),
+  error: (...args: any[]) => console.error('[ERROR]', ...args)
+}
 
 export default logger

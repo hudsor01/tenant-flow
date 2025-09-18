@@ -36,6 +36,7 @@ export type {
 	AuthUser,
 	LoginCredentials,
 	RegisterCredentials,
+	SupabaseWebhookEvent,
 	UserRole
 } from './auth'
 
