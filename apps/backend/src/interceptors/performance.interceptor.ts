@@ -5,25 +5,15 @@
  */
 
 import {
-	Injectable,
-	NestInterceptor,
-	ExecutionContext,
 	CallHandler,
+	ExecutionContext,
+	Injectable,
 	Logger,
-	Inject
+	NestInterceptor
 } from '@nestjs/common'
+import type { PerformanceMetrics } from '@repo/shared'
 import { Observable, throwError } from 'rxjs'
-import { tap, catchError, timeout } from 'rxjs/operators'
-
-interface PerformanceMetrics {
-	endpoint: string
-	method: string
-	duration: number
-	timestamp: string
-	status: 'success' | 'error' | 'timeout'
-	userId?: string
-	userAgent?: string
-}
+import { catchError, tap, timeout } from 'rxjs/operators'
 
 @Injectable()
 export class PerformanceInterceptor implements NestInterceptor {
@@ -46,9 +36,9 @@ export class PerformanceInterceptor implements NestInterceptor {
 	private performanceHistory: PerformanceMetrics[] = []
 	private readonly maxHistorySize = 1000
 
-	constructor(@Inject(Logger) private readonly logger: Logger) {}
+	constructor(private readonly logger: Logger) {}
 
-	intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+	intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
 		const request = context.switchToHttp().getRequest()
 		const response = context.switchToHttp().getResponse()
 
@@ -56,10 +46,14 @@ export class PerformanceInterceptor implements NestInterceptor {
 		const method = request.method
 		const endpoint = this.normalizeEndpoint(request.url)
 		const isCriticalPath = this.criticalPaths.has(endpoint)
-		const targetTime = this.performanceTargets[method as keyof typeof this.performanceTargets] || 1000
+		const targetTime =
+			this.performanceTargets[method as keyof typeof this.performanceTargets] ||
+			1000
 
 		// Apply stricter timeout for critical paths
-		const timeoutMs = isCriticalPath ? Math.min(targetTime, 100) : targetTime * 2
+		const timeoutMs = isCriticalPath
+			? Math.min(targetTime, 100)
+			: targetTime * 2
 
 		return next.handle().pipe(
 			timeout(timeoutMs),
@@ -70,13 +64,16 @@ export class PerformanceInterceptor implements NestInterceptor {
 				// Log performance violations
 				if (duration > targetTime) {
 					const severity = isCriticalPath ? 'warn' : 'debug'
-					this.logger[severity](`Performance violation: ${method} ${endpoint}`, {
-						duration,
-						target: targetTime,
-						violation: duration - targetTime,
-						critical: isCriticalPath,
-						userId: request.user?.id
-					})
+					this.logger[severity](
+						`Performance violation: ${method} ${endpoint}`,
+						{
+							duration,
+							target: targetTime,
+							violation: duration - targetTime,
+							critical: isCriticalPath,
+							userId: request.user?.id
+						}
+					)
 				}
 
 				// Add performance headers for monitoring
@@ -84,7 +81,10 @@ export class PerformanceInterceptor implements NestInterceptor {
 				response.setHeader('X-Performance-Target', `${targetTime}ms`)
 
 				if (duration > targetTime) {
-					response.setHeader('X-Performance-Violation', `${duration - targetTime}ms`)
+					response.setHeader(
+						'X-Performance-Violation',
+						`${duration - targetTime}ms`
+					)
 				}
 			}),
 			catchError(error => {
@@ -121,7 +121,10 @@ export class PerformanceInterceptor implements NestInterceptor {
 		averageResponseTime: number
 		violationRate: number
 		timeoutRate: number
-		criticalPathStats: any
+		criticalPathStats: Record<
+			string,
+			{ requests: number; averageTime: number; violations: number }
+		>
 		recentViolations: PerformanceMetrics[]
 	} {
 		const total = this.performanceHistory.length
@@ -136,21 +139,32 @@ export class PerformanceInterceptor implements NestInterceptor {
 			}
 		}
 
-		const avgResponseTime = this.performanceHistory.reduce((sum, m) => sum + m.duration, 0) / total
+		const avgResponseTime =
+			this.performanceHistory.reduce((sum, m) => sum + m.duration, 0) / total
 		const violations = this.performanceHistory.filter(m => {
-			const target = this.performanceTargets[m.method as keyof typeof this.performanceTargets] || 1000
+			const target =
+				this.performanceTargets[
+					m.method as keyof typeof this.performanceTargets
+				] || 1000
 			return m.duration > target
 		})
 		const timeouts = this.performanceHistory.filter(m => m.status === 'timeout')
 
 		// Critical path analysis
-		const criticalPathStats: Record<string, { requests: number; averageTime: number; violations: number }> = {}
+		const criticalPathStats: Record<
+			string,
+			{ requests: number; averageTime: number; violations: number }
+		> = {}
 		for (const path of this.criticalPaths) {
-			const pathMetrics = this.performanceHistory.filter(m => m.endpoint === path)
+			const pathMetrics = this.performanceHistory.filter(
+				m => m.endpoint === path
+			)
 			if (pathMetrics.length > 0) {
 				criticalPathStats[path] = {
 					requests: pathMetrics.length,
-					averageTime: pathMetrics.reduce((sum, m) => sum + m.duration, 0) / pathMetrics.length,
+					averageTime:
+						pathMetrics.reduce((sum, m) => sum + m.duration, 0) /
+						pathMetrics.length,
 					violations: pathMetrics.filter(m => m.duration > 100).length // 100ms for critical paths
 				}
 			}
@@ -174,7 +188,7 @@ export class PerformanceInterceptor implements NestInterceptor {
 	getHealthStatus(): {
 		healthy: boolean
 		issues: string[]
-		metrics: any
+		metrics: ReturnType<typeof this.getPerformanceStats>
 	} {
 		const stats = this.getPerformanceStats()
 		const issues: string[] = []
@@ -199,7 +213,7 @@ export class PerformanceInterceptor implements NestInterceptor {
 		}
 
 		// Check critical paths
-		for (const [path, pathStats] of Object.entries(stats.criticalPathStats) as [string, any][]) {
+		for (const [path, pathStats] of Object.entries(stats.criticalPathStats)) {
 			if (pathStats.averageTime > 100) {
 				healthy = false
 				issues.push(`Critical path slow: ${path} (${pathStats.averageTime}ms)`)
@@ -214,7 +228,10 @@ export class PerformanceInterceptor implements NestInterceptor {
 	}
 
 	private recordMetrics(
-		request: any,
+		request: {
+			user?: { id?: string }
+			headers: Record<string, string | string[] | undefined>
+		},
 		status: 'success' | 'error' | 'timeout',
 		duration: number,
 		endpoint: string,
@@ -227,7 +244,9 @@ export class PerformanceInterceptor implements NestInterceptor {
 			timestamp: new Date().toISOString(),
 			status,
 			userId: request.user?.id,
-			userAgent: request.headers['user-agent']
+			userAgent: Array.isArray(request.headers['user-agent'])
+				? request.headers['user-agent'][0]
+				: request.headers['user-agent']
 		}
 
 		this.performanceHistory.push(metrics)
@@ -243,9 +262,11 @@ export class PerformanceInterceptor implements NestInterceptor {
 		const cleanUrl = url.split('?')[0] || url
 
 		// Replace UUIDs with placeholders for grouping
-		return cleanUrl ? cleanUrl.replace(
-			/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi,
-			'/:id'
-		) : ''
+		return cleanUrl
+			? cleanUrl.replace(
+					/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi,
+					'/:id'
+				)
+			: ''
 	}
 }
