@@ -18,15 +18,22 @@ export interface SystemHealth {
 		uptime: number
 		memory: {
 			used: number
+			free: number
 			total: number
-			percentage: number
+			usagePercent: number
 		}
 		cpu: {
-			percentage: number
+			user: number
+			system: number
 		}
 	}
+	cache: unknown
 	version: string
-	environment: string
+	deployment: {
+		environment: string
+		region: string
+		instance: string
+	}
 	checks?: {
 		db: 'healthy' | 'unhealthy'
 		message?: string
@@ -46,12 +53,15 @@ export interface SecurityEvent {
 	id: string
 	type: SecurityEventType
 	severity: 'low' | 'medium' | 'high' | 'critical'
-	timestamp: Date
+	timestamp: string
 	source: string
+	description: string
 	userAgent?: string
-	ip?: string
-	details: Record<string, unknown>
-	blocked: boolean
+	ipAddress?: string
+	userId?: string
+	metadata: Record<string, unknown>
+	blocked?: boolean
+	resolved?: boolean
 	ruleName?: string
 }
 
@@ -63,6 +73,7 @@ export type SecurityEventType =
 	| 'rate_limit_exceeded'
 	| 'suspicious_input'
 	| 'malformed_request'
+	| 'malicious_request'
 	| 'unauthorized_access'
 	| 'brute_force_attempt'
 	| 'csrf_token_missing'
@@ -71,11 +82,18 @@ export type SecurityEventType =
 	| 'injection_pattern_detected'
 	| 'sanitization_triggered'
 	| 'validation_failed'
+	| 'auth_failure'
+	| 'suspicious_activity'
+	| 'account_takeover'
 
 export interface SecurityMetrics {
 	totalEvents: number
-	blockedEvents: number
-	criticalEvents: number
-	eventsLast24h: number
-	topEventTypes: Array<{ type: SecurityEventType; count: number }>
+	eventsBySeverity: Record<'low' | 'medium' | 'high' | 'critical', number>
+	eventsByType: Record<SecurityEventType, number>
+	topThreateningIPs: Array<{ ip: string; count: number }>
+	recentTrends: {
+		lastHour: number
+		last24Hours: number
+		last7Days: number
+	}
 }
