@@ -1,9 +1,10 @@
 import PostHogClientProvider from '@/providers/posthog-provider'
 import { QueryProvider } from '@/providers/query-provider'
+import { ThemeProvider } from '@/providers/theme-provider'
 import { AuthStoreProvider } from '@/stores/auth-provider'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
-import type { Metadata } from 'next/types'
+import type { Metadata } from 'next'
 import { GlobalLoadingIndicator } from 'src/components/global-loading-indicator'
 import PostHogPageView from 'src/components/posthog-pageview'
 import SiteNavRoot from 'src/components/site-nav-root'
@@ -103,7 +104,7 @@ export default function RootLayout({
 	children: React.ReactNode
 }) {
 	return (
-		<html lang="en">
+		<html lang="en" suppressHydrationWarning>
 			<head>
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
 				<meta name="theme-color" content="hsl(var(--primary))" />
@@ -171,21 +172,28 @@ export default function RootLayout({
 				/>
 			</head>
 			<body>
-				<QueryProvider>
-					<PostHogClientProvider>
-						<AuthStoreProvider>
-							{/* Global marketing Navbar (hidden on protected routes) */}
-							<SiteNavRoot />
-							{children}
-							<GlobalLoadingIndicator variant="bar" position="top" />
-							<ToastContainer />
-						</AuthStoreProvider>
-						<PostHogPageView />
-					</PostHogClientProvider>
-				</QueryProvider>
-				<Analytics />
-				<SpeedInsights />
-				<WebVitals />
+				<ThemeProvider
+					attribute="class"
+					defaultTheme="light"
+					enableSystem
+					disableTransitionOnChange
+				>
+					<QueryProvider>
+						<PostHogClientProvider>
+							<AuthStoreProvider>
+								{/* Global marketing Navbar (hidden on protected routes) */}
+								<SiteNavRoot />
+								{children}
+								<GlobalLoadingIndicator variant="bar" position="top" />
+								<ToastContainer />
+							</AuthStoreProvider>
+							<PostHogPageView />
+						</PostHogClientProvider>
+					</QueryProvider>
+					<Analytics />
+					<SpeedInsights />
+					<WebVitals />
+				</ThemeProvider>
 			</body>
 		</html>
 	)

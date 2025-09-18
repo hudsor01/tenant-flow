@@ -179,7 +179,7 @@ export default function FeaturesPage() {
 							{/* High-contrast, prominent CTAs */}
 							<div className="flex flex-col sm:flex-row gap-6 justify-center pt-4">
 								<Button
-									size="xl"
+									size="lg"
 									className="group relative overflow-hidden bg-gradient-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-lg font-semibold px-8 py-4"
 									asChild
 								>
@@ -192,7 +192,7 @@ export default function FeaturesPage() {
 									</a>
 								</Button>
 								<Button
-									size="xl"
+									size="lg"
 									variant="outline"
 									className="group border-2 border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 text-lg font-semibold px-8 py-4 transition-all duration-300"
 									asChild
@@ -575,7 +575,7 @@ export default function FeaturesPage() {
 
 							<div className="flex flex-col sm:flex-row gap-6 justify-center">
 								<Button
-									size="xl"
+									size="lg"
 									className="group relative overflow-hidden bg-gradient-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-lg font-semibold px-10 py-5"
 									asChild
 								>
@@ -589,7 +589,7 @@ export default function FeaturesPage() {
 								</Button>
 								<Button
 									variant="outline"
-									size="xl"
+									size="lg"
 									className="group border-2 border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 text-lg font-semibold px-10 py-5 transition-all duration-300"
 									asChild
 								>

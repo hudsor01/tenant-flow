@@ -28,7 +28,7 @@ export function HeroAuthority({
 	return (
 		<Section
 			background="authority"
-			size="xl"
+			size="lg"
 			center
 			className={cn('relative overflow-hidden', className)}
 			{...props}
@@ -67,7 +67,7 @@ export function HeroAuthority({
 							<Button
 								asChild
 								variant="outline"
-								size="xl"
+								size="lg"
 								className="btn-gradient-primary"
 							>
 								<Link href={secondaryCta.href}>{secondaryCta.label}</Link>

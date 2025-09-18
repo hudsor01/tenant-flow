@@ -8,10 +8,18 @@
  * - IP blocking/unblocking management
  */
 
-import { Controller, Post, Get, Body, HttpCode, HttpStatus, Param } from '@nestjs/common'
-import { Logger } from '@nestjs/common'
-import { Public } from '../shared/decorators/public.decorator'
+import {
+	Body,
+	Controller,
+	Get,
+	HttpCode,
+	HttpStatus,
+	Logger,
+	Param,
+	Post
+} from '@nestjs/common'
 import { AdminOnly } from '../shared/decorators/admin-only.decorator'
+import { Public } from '../shared/decorators/public.decorator'
 
 interface CSPReport {
 	'csp-report': {
@@ -30,11 +38,39 @@ interface CSPReport {
 	}
 }
 
+interface SecurityEvent {
+	id: string
+	type: string
+	severity: 'low' | 'medium' | 'high' | 'critical'
+	timestamp: string
+	source: string
+	description: string
+	metadata?: Record<string, unknown>
+}
+
+interface SecurityMetrics {
+	events: SecurityEvent[]
+	alerts: number
+	blocked_ips: string[]
+	totalEvents?: number
+	eventsBySeverity?: {
+		low: number
+		medium: number
+		high: number
+		critical: number
+	}
+	recentTrends?: {
+		lastHour: number
+		last24Hours: number
+		last7Days: number
+	}
+	eventsByType?: Record<string, number>
+	topThreateningIPs?: Array<{ ip: string; count: number }>
+}
+
 @Controller('security')
 export class SecurityController {
-	constructor(
-		private readonly logger: Logger
-	) {}
+	constructor(private readonly logger: Logger) {}
 
 	/**
 	 * CSP Violation Reporting Endpoint
@@ -76,12 +112,21 @@ export class SecurityController {
 	@Get('metrics')
 	@AdminOnly()
 	async getSecurityMetrics() {
-		const metrics = { events: [], alerts: 0, blocked_ips: [] }
+		const metrics: SecurityMetrics = {
+			events: [],
+			alerts: 0,
+			blocked_ips: [],
+			totalEvents: 0,
+			eventsBySeverity: { critical: 0, high: 0, medium: 0, low: 0 },
+			recentTrends: { lastHour: 0, last24Hours: 0, last7Days: 0 },
+			eventsByType: {},
+			topThreateningIPs: []
+		}
 
 		this.logger.log('Security metrics requested', {
 			totalEvents: metrics.totalEvents,
-			criticalEvents: metrics.eventsBySeverity.critical,
-			highEvents: metrics.eventsBySeverity.high
+			criticalEvents: metrics.eventsBySeverity?.critical,
+			highEvents: metrics.eventsBySeverity?.high
 		})
 
 		return {
@@ -123,26 +168,39 @@ export class SecurityController {
 	@Get('health')
 	@AdminOnly()
 	async getSecurityHealth() {
-		const metrics = { events: [], alerts: 0, blocked_ips: [] }
+		const metrics: SecurityMetrics = {
+			events: [],
+			alerts: 0,
+			blocked_ips: [],
+			totalEvents: 0,
+			eventsBySeverity: { critical: 0, high: 0, medium: 0, low: 0 },
+			recentTrends: { lastHour: 0, last24Hours: 0, last7Days: 0 },
+			eventsByType: {},
+			topThreateningIPs: []
+		}
 
 		// Determine security health status
 		let status = 'healthy'
 		const alerts: string[] = []
 
-		const criticalCount = metrics.eventsBySeverity.critical || 0
-		const highCount = metrics.eventsBySeverity.high || 0
+		const criticalCount = metrics.eventsBySeverity?.critical || 0
+		const highCount = metrics.eventsBySeverity?.high || 0
 
 		if (criticalCount > 0) {
 			status = 'critical'
-			alerts.push(`${criticalCount} critical security events require immediate attention`)
+			alerts.push(
+				`${criticalCount} critical security events require immediate attention`
+			)
 		} else if (highCount > 5) {
 			status = 'warning'
 			alerts.push(`${highCount} high-risk security events detected`)
 		}
 
-		if (metrics.recentTrends.lastHour > 100) {
+		if ((metrics.recentTrends?.lastHour || 0) > 100) {
 			status = status === 'critical' ? 'critical' : 'warning'
-			alerts.push(`High security event volume: ${metrics.recentTrends.lastHour} events in last hour`)
+			alerts.push(
+				`High security event volume: ${metrics.recentTrends?.lastHour || 0} events in last hour`
+			)
 		}
 
 		return {
@@ -164,28 +222,37 @@ export class SecurityController {
 	@Get('dashboard')
 	@AdminOnly()
 	async getSecurityDashboard() {
-		const metrics = { events: [], alerts: 0, blocked_ips: [] }
+		const metrics: SecurityMetrics = {
+			events: [],
+			alerts: 0,
+			blocked_ips: [],
+			totalEvents: 0,
+			eventsBySeverity: { critical: 0, high: 0, medium: 0, low: 0 },
+			recentTrends: { lastHour: 0, last24Hours: 0, last7Days: 0 },
+			eventsByType: {},
+			topThreateningIPs: []
+		}
 
 		return {
 			success: true,
 			data: {
 				overview: {
 					totalEvents: metrics.totalEvents,
-					criticalEvents: metrics.eventsBySeverity.critical,
-					highEvents: metrics.eventsBySeverity.high,
-					mediumEvents: metrics.eventsBySeverity.medium,
-					lowEvents: metrics.eventsBySeverity.low
+					criticalEvents: metrics.eventsBySeverity?.critical || 0,
+					highEvents: metrics.eventsBySeverity?.high || 0,
+					mediumEvents: metrics.eventsBySeverity?.medium || 0,
+					lowEvents: metrics.eventsBySeverity?.low || 0
 				},
 				trends: metrics.recentTrends,
-				topThreatTypes: Object.entries(metrics.eventsByType)
-					.sort(([, a], [, b]) => b - a)
+				topThreatTypes: Object.entries(metrics.eventsByType || {})
+					.sort(([, a], [, b]) => (b as number) - (a as number))
 					.slice(0, 10)
-					.map(([type, count]) => ({ type, count })),
-				topThreateningIPs: metrics.topThreateningIPs.slice(0, 10),
+					.map(([type, count]) => ({ type, count: count as number })),
+				topThreateningIPs: (metrics.topThreateningIPs || []).slice(0, 10),
 				timeline: {
-					lastHour: metrics.recentTrends.lastHour,
-					last24Hours: metrics.recentTrends.last24Hours,
-					last7Days: metrics.recentTrends.last7Days
+					lastHour: metrics.recentTrends?.lastHour || 0,
+					last24Hours: metrics.recentTrends?.last24Hours || 0,
+					last7Days: metrics.recentTrends?.last7Days || 0
 				}
 			},
 			timestamp: new Date().toISOString()

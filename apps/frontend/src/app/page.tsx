@@ -1,11 +1,11 @@
 import { HeroSection } from 'src/components/marketing/hero-section'
 import { Navbar } from 'src/components/navbar'
 import { CTAMinimal } from 'src/components/sections/cta-minimal'
-import { FAQSection } from 'src/components/sections/faq-section'
+import FAQsFour from 'src/components/faqs-4'
 import { FeaturesGrid } from 'src/components/sections/features-grid'
-import { FooterMinimal } from 'src/components/sections/footer-minimal'
+import FooterSection from 'src/components/footer'
 import { MinimalistPricingSection } from 'src/components/sections/minimalist-pricing-section'
-import { StatsSection } from 'src/components/sections/stats-section'
+import StatsSection from 'src/components/stats-4'
 import { TestimonialsMinimal } from 'src/components/sections/testimonials-minimal'
 
 export default function HomePage() {
@@ -18,7 +18,7 @@ export default function HomePage() {
 			<HeroSection />
 
 			{/* Stats Section - Social Proof */}
-			<StatsSection className="relative -mt-20 z-10" />
+			<StatsSection />
 
 			{/* Features Grid - Visual Showcase */}
 			<FeaturesGrid className="py-24" />
@@ -30,13 +30,13 @@ export default function HomePage() {
 			<MinimalistPricingSection className="py-24" />
 
 			{/* FAQ - Address Concerns */}
-			<FAQSection className="bg-accent/5 py-24" />
+			<FAQsFour />
 
 			{/* CTA - Final Conversion */}
 			<CTAMinimal className="py-24" />
 
-			{/* Footer - Minimal and Clean */}
-			<FooterMinimal />
+			{/* Footer - Clean and Functional */}
+			<FooterSection />
 		</div>
 	)
 }

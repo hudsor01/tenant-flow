@@ -404,7 +404,7 @@ export interface PricingUIData {
 // Complex type aliases for UI components
 export type PaginationLinkProps = {
 	isActive?: boolean
-	size?: "xs" | "sm" | "default" | "lg" | "xl" | "icon"
+	size?: "sm" | "default" | "lg" | "icon"
 	className?: string
 } & React.ComponentProps<"a">
 

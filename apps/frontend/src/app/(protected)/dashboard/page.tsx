@@ -12,7 +12,7 @@ import { MaintenanceAnalytics } from 'src/components/charts/maintenance-analytic
 import { OccupancyHeatmap } from 'src/components/charts/occupancy-heatmap'
 import { RevenueTrendChart } from 'src/components/charts/revenue-trend-chart'
 import { DataTable } from 'src/components/data-table'
-import { SectionCards } from 'src/components/section-cards'
+import Stats01 from 'src/components/stats-01'
 import { Alert, AlertDescription, AlertTitle } from 'src/components/ui/alert'
 import { Button } from 'src/components/ui/button'
 import {
@@ -183,7 +183,7 @@ function DashboardContent() {
 					onRetry={() => refetch()}
 					title="dashboard statistics"
 				>
-					<SectionCards data={dashboardStats} />
+					<Stats01 data={dashboardStats} />
 				</RetryableSection>
 			</div>
 

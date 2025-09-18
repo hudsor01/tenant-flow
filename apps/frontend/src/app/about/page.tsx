@@ -337,13 +337,13 @@ export default function AboutPage() {
 								enterprise platform.
 							</p>
 							<div className="flex flex-col sm:flex-row gap-4 justify-center">
-								<Button asChild size="xl" className="group">
+								<Button asChild size="lg" className="group">
 									<Link href="/auth/sign-up">
 										Start Free Trial
 										<ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
 									</Link>
 								</Button>
-								<Button asChild variant="outline" size="xl">
+								<Button asChild variant="outline" size="lg">
 									<Link href="/contact">Talk to Sales</Link>
 								</Button>
 							</div>

@@ -286,12 +286,14 @@ Event ID: ${event.id}
 This is an automated security alert from TenantFlow.
 		`.trim()
 
-		// Using sendSimpleEmail method from DirectEmailService
-		await this.emailService.sendSimpleEmail({
-			to: process.env.SECURITY_ALERT_EMAIL || 'security@tenantflow.app',
-			subject,
-			html: emailBody.replace(/\n/g, '<br>')
-		})
+		// TODO: Email service integration temporarily disabled
+		// await this.emailService.sendSimpleEmail({
+		//	to: process.env.SECURITY_ALERT_EMAIL || 'security@tenantflow.app',
+		//	subject,
+		//	html: emailBody.replace(/\n/g, '<br>')
+		// })
+
+		this.logger.warn(`Security alert would be sent: ${subject}`, { alertEmail: emailBody })
 	}
 
 	private async sendWebhookAlert(event: SecurityEvent): Promise<void> {
