@@ -6,7 +6,7 @@
 
 import { Injectable, Logger, Inject } from '@nestjs/common'
 
-interface CacheEntry<T = any> {
+interface CacheEntry<T = unknown> {
 	data: T
 	version: number
 	timestamp: number
@@ -144,7 +144,7 @@ export class ZeroCacheService {
 	/**
 	 * Health check for cache service
 	 */
-	isHealthy(): { healthy: boolean; details: any } {
+	isHealthy(): { healthy: boolean; details: Record<string, unknown> } {
 		const memoryLimit = 100 * 1024 * 1024 // 100MB limit
 		const hitRatioThreshold = 0.7 // 70% hit ratio minimum
 
@@ -176,7 +176,7 @@ export class ZeroCacheService {
 	/**
 	 * Get cache key for user-specific data
 	 */
-	static getUserKey(userId: string, operation: string, params?: Record<string, any>): string {
+	static getUserKey(userId: string, operation: string, params?: Record<string, unknown>): string {
 		const paramsStr = params ? `:${JSON.stringify(params)}` : ''
 		return `user:${userId}:${operation}${paramsStr}`
 	}
