@@ -2,6 +2,7 @@
   "name": "@repo/eslint-config",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "description": "Shared ESLint configuration for TenantFlow monorepo",
   "main": "index.js",
   "files": [

@@ -38,8 +38,6 @@ module.exports = {
 	setupFilesAfterEnv,
 	testTimeout: 10000,
 	maxWorkers: 1,
-	testSequencer:
-		'<rootDir>/../../node_modules/@jest/test-sequencer/build/index.js',
 	verbose: false,
 	silent: true,
 	clearMocks: true,
