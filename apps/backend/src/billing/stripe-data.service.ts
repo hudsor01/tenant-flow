@@ -2,6 +2,7 @@ import { Injectable, Optional, InternalServerErrorException } from '@nestjs/comm
 import { SupabaseService } from '../database/supabase.service'
 import { Logger } from '@nestjs/common'
 import type { Stripe } from 'stripe'
+import type { RevenueAnalytics, ChurnAnalytics, CustomerLifetimeValue } from '@repo/shared'
 
 /**
  * Stripe Data Service
@@ -13,39 +14,6 @@ import type { Stripe } from 'stripe'
 
 // Standard subscription value for calculations
 const STANDARD_SUBSCRIPTION_VALUE = 2999
-
-// Analytics types (these are custom, not from Stripe SDK)
-export interface RevenueAnalytics {
-	period: string
-	total_revenue: number
-	subscription_revenue: number
-	one_time_revenue: number
-	customer_count: number
-	new_customers: number
-	churned_customers: number
-	mrr: number
-	arr: number
-}
-
-export interface ChurnAnalytics {
-	month: string
-	churned_subscriptions: number
-	avg_lifetime_days: number
-	churn_rate_percent: number
-	total_active_start_month: number
-}
-
-export interface CustomerLifetimeValue {
-	customer_id: string
-	email: string
-	total_revenue: number
-	subscription_count: number
-	first_subscription_date: string
-	last_cancellation_date?: string
-	avg_revenue_per_subscription: number
-	status: 'Active' | 'Churned'
-	lifetime_days?: number
-}
 
 @Injectable()
 export class StripeDataService {
