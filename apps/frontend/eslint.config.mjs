@@ -8,7 +8,7 @@
  * - Next.js 15 + React 19 compatibility
  */
 
-import baseConfig from '@repo/eslint-config/base'
+import baseConfig from '@repo/eslint-config/base.js'
 import antiDuplicationPlugin from '../../.eslint/plugins/anti-duplication.js'
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
 import nextPlugin from '@next/eslint-plugin-next'
