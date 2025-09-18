@@ -52,7 +52,7 @@ export interface PricingUIData {
 	fullYearPrice: string
 }
 
-// Validation types (Zod integration) - correct imports
+// Validation types and schemas (Zod integration) - correct imports
 export type {
 	MaintenanceRequestInput,
 	MaintenanceRequestUpdate
@@ -65,6 +65,22 @@ export type { PropertyInput, PropertyUpdate } from '../validation/properties'
 export type { TenantInput } from '../validation/tenants'
 
 export type { LeaseInput, LeaseUpdate } from '../validation/leases'
+
+// Common validation schemas
+export {
+	uuidSchema,
+	emailSchema,
+	phoneSchema,
+	requiredString,
+	requiredName,
+	requiredTitle,
+	requiredDescription,
+	paginationSchema,
+	dateStringSchema,
+	currencyAmountSchema,
+	successResponseSchema,
+	errorResponseSchema
+} from '../validation/common'
 
 // Lease generator types
 export type { LeaseFormData, StateLeaseRequirements } from './lease-generator.types'

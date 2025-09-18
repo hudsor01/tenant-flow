@@ -1,6 +1,6 @@
 /**
  * CORE TYPES - Consolidated shared types using TypeScript 5.9.2 native features
- * 
+ *
  * This file consolidates duplicate types and leverages modern TypeScript utilities
  * to reduce the shared types directory by 75% while improving type safety.
  */
@@ -8,24 +8,18 @@
 // =============================================================================
 // NATIVE TYPESCRIPT 5.9.2 UTILITY TYPES (replacing custom implementations)
 // =============================================================================
-
-// Use native TypeScript utilities instead of custom ones - removed Complex Deep type
-
-// Modern replacement for DeepReadonly using conditional types
 export type DeepReadonly<T> = {
-  readonly [P in keyof T]: T[P] extends Record<string, unknown> 
-    ? DeepReadonly<T[P]> 
+  readonly [P in keyof T]: T[P] extends Record<string, unknown>
+    ? DeepReadonly<T[P]>
     : T[P]
 }
 
-// Modern replacement for DeepPartial using conditional types  
 export type DeepPartial<T> = {
-  [P in keyof T]?: T[P] extends Record<string, unknown> 
-    ? DeepPartial<T[P]> 
+  [P in keyof T]?: T[P] extends Record<string, unknown>
+    ? DeepPartial<T[P]>
     : T[P]
 }
 
-// Template literal types for string manipulation (TS 5.9.2 feature)
 export type CamelCase<S extends string> = S extends `${infer P1}_${infer P2}${infer P3}`
   ? `${P1}${Capitalize<P2>}${CamelCase<P3>}`
   : S
@@ -39,12 +33,7 @@ export type KeysOfType<T, U> = keyof {
   [K in keyof T as T[K] extends U ? K : never]: T[K]
 }
 
-// =============================================================================
-// CONSOLIDATED API PATTERNS (single source of truth)
-// =============================================================================
-
-// Unified API response using native Result pattern
-export type ApiResponse<T = unknown> = 
+export type ApiResponse<T = unknown> =
   | { success: true; data: T; error?: never }
   | { success: false; error: string; data?: never }
 
@@ -63,36 +52,20 @@ export interface QueryParams extends Pagination {
   sort?: string
   order?: 'asc' | 'desc'
 }
-
-// =============================================================================
-// CONSOLIDATED STATUS TYPES (single definitions)
-// =============================================================================
-
 export type Status = 'idle' | 'loading' | 'success' | 'error'
 export type UploadStatus = 'idle' | 'uploading' | 'success' | 'error'
 export type ProcessStatus = 'pending' | 'processing' | 'completed' | 'failed'
 
-// =============================================================================
-// MODERN ERROR HANDLING (native Result pattern)
-// =============================================================================
-
-// Use native Result pattern instead of custom error types
-export type Result<T = void, E = string> = 
+export type Result<T = void, E = string> =
   | { ok: true; value: T; error?: never }
   | { ok: false; error: E; value?: never }
 
-// Simplified error interface using native Error
 export interface AppError extends Error {
   code?: string
   statusCode?: number
   context?: Record<string, unknown>
 }
 
-// =============================================================================
-// RE-EXPORT SUPABASE TYPES (single source of truth)
-// =============================================================================
-
-// Import from generated types and re-export with simplified names
 import type { Tables } from './supabase-generated'
 
 export type User = Tables<'User'>
@@ -106,11 +79,6 @@ export type RentPayment = Tables<'RentPayment'>
 // Re-export Database type for type composition
 export type { Database, Tables, TablesInsert, TablesUpdate, Enums } from './supabase-generated'
 
-// =============================================================================
-// GENERIC PATTERNS (leveraging TS 5.9.2 improvements)
-// =============================================================================
-
-// Use native Record and conditional types
 export type EnvConfig = Record<string, string | number | boolean>
 
 // Use template literals for type-safe string patterns
@@ -126,11 +94,6 @@ export type CreateInput<T> = Omit<T, 'id' | 'createdAt' | 'updatedAt'>
 export type UpdateInput<T> = Partial<CreateInput<T>>
 export type EntityWithRelations<T, R> = T & R
 
-// =============================================================================
-// FORM AND VALIDATION (simplified using native types)
-// =============================================================================
-
-// Use native FormData API instead of custom form types
 export type FormErrors<T> = Partial<Record<keyof T, string>>
 export type FormState<T> = {
   data: T
@@ -138,11 +101,6 @@ export type FormState<T> = {
   isSubmitting: boolean
 }
 
-// =============================================================================
-// COMPONENT PATTERNS (React 19 compatible)
-// =============================================================================
-
-// Use native React types instead of custom ones
 export type ComponentProps<T = Record<string, unknown>> = T & {
   className?: string
   children?: React.ReactNode
@@ -151,24 +109,21 @@ export type ComponentProps<T = Record<string, unknown>> = T & {
 export type EventHandler<T = Event> = (event: T) => void
 export type AsyncEventHandler<T = Event> = (event: T) => Promise<void>
 
-// =============================================================================
-// TIME AND DATE (native Date API)
-// =============================================================================
 
 export interface DateRange {
   start: Date
   end: Date
 }
 
-export type TimePeriod = 
-  | 'today' 
-  | 'yesterday' 
-  | 'last7days' 
-  | 'last30days' 
-  | 'thisMonth' 
+export type TimePeriod =
+  | 'today'
+  | 'yesterday'
+  | 'last7days'
+  | 'last30days'
+  | 'thisMonth'
   | 'lastMonth'
-  | 'thisYear' 
-  | 'lastYear' 
+  | 'thisYear'
+  | 'lastYear'
   | 'custom'
 
 // =============================================================================
@@ -413,7 +368,7 @@ export interface PropertyPerformance {
   totalUnits: number
   occupiedUnits: number
   vacantUnits: number
-  occupancy: string // e.g. "95%" 
+  occupancy: string // e.g. "95%"
   occupancyRate: number // e.g. 95.5
   revenue: number
   monthlyRevenue: number
@@ -427,7 +382,7 @@ export interface PropertyPerformanceResponse {
   properties: PropertyPerformance[]
 }
 
-// System Uptime Response Types  
+// System Uptime Response Types
 export interface SystemUptime {
   uptime: string // e.g. "99.95%"
   uptimePercentage: number // e.g. 99.95
