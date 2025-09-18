@@ -33,7 +33,7 @@ export class HealthController {
 		// Logger context handled automatically via app-level configuration
 	}
 
-	@Get()
+	@Get('check')
 	@Public()
 	@HealthCheck()
 	async check() {

@@ -1,109 +1,25 @@
 {
-  "$schema": "https://json.schemastore.org/package",
   "name": "@repo/shared",
   "version": "0.1.0",
-  "main": "./dist/cjs/index.js",
-  "types": "./dist/cjs/index.d.ts",
-  "typesVersions": {
-    "*": {
-      "types/*": [
-        "./dist/cjs/types/*"
-      ]
-    }
-  },
   "private": true,
-  "packageManager": "pnpm@9.0.0",
+  "description": "Shared types and utilities for TenantFlow monorepo",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/cjs/index.d.ts",
-      "require": "./dist/cjs/index.js",
-      "default": "./dist/cjs/index.js"
-    },
-    "./types": {
-      "types": "./dist/cjs/types/index.d.ts",
-      "require": "./dist/cjs/types/index.js",
-      "default": "./dist/cjs/types/index.js"
-    },
-    "./types/*": {
-      "types": "./dist/cjs/types/*.d.ts",
-      "require": "./dist/cjs/types/*.js",
-      "default": "./dist/cjs/types/*.js"
-    },
-    "./lib": {
-      "types": "./dist/cjs/lib/index.d.ts",
-      "require": "./dist/cjs/lib/index.js",
-      "default": "./dist/cjs/lib/index.js"
-    },
-    "./lib/*": {
-      "types": "./dist/cjs/lib/*.d.ts",
-      "require": "./dist/cjs/lib/*.js",
-      "default": "./dist/cjs/lib/*.js"
-    },
-    "./constants": {
-      "types": "./dist/cjs/constants/index.d.ts",
-      "require": "./dist/cjs/constants/index.js",
-      "default": "./dist/cjs/constants/index.js"
-    },
-    "./utils": {
-      "types": "./dist/cjs/utils/index.d.ts",
-      "require": "./dist/cjs/utils/index.js",
-      "default": "./dist/cjs/utils/index.js"
-    },
-    "./validation": {
-      "types": "./dist/cjs/validation/index.d.ts",
-      "require": "./dist/cjs/validation/index.js",
-      "default": "./dist/cjs/validation/index.js"
-    },
-    "./validation/*": {
-      "types": "./dist/cjs/validation/*.d.ts",
-      "require": "./dist/cjs/validation/*.js",
-      "default": "./dist/cjs/validation/*.js"
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     }
   },
+  "files": [
+    "dist/**"
+  ],
   "scripts": {
-    "build": "pnpm run clean && tsc -p tsconfig.build.json",
-    "build:cjs": "echo 'CJS build already exists'",
-    "build:esm": "echo 'ESM build skipped'",
-    "typecheck": "tsc --noEmit",
-    "check-types": "tsc --noEmit",
-    "claude:check": "pnpm run lint && pnpm run typecheck",
-    "lint": "eslint . --no-warn-ignored",
-    "lint:fix": "eslint . --fix",
-    "format": "prettier --write \"src/**/*.ts\"",
-    "format:check": "prettier --check \"src/**/*.ts\"",
-    "clean": "tsc --build --clean && rm -rf dist"
-  },
-  "dependencies": {
-    "@supabase/supabase-js": "^2.56.1",
-    "@supabase/ssr": "^0.5.2",
-    "pino": "9.9.4",
-    "posthog-js": "^1.189.1",
-    "react": "19.1.1",
-    "stripe": "^18.5.0",
-    "zod": "^4.1.0"
-  },
-  "peerDependencies": {
-    "@tanstack/react-query": "^5.85.5",
-    "react-dom": "19.1.1",
-    "react-hook-form": "^7.62.0"
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@repo/typescript-config": "*",
-    "@types/node": "24.3.0",
-    "@types/pg": "8.15.5",
-    "@types/react": "19.1.12",
-    "@types/react-dom": "19.1.9",
-    "@types/webpack": "5.28.5",
-    "eslint": "9.34.0",
-    "globals": "16.3.0",
-    "typescript": "5.9.2",
-    "typescript-eslint": "8.41.0"
-  },
-  "overrides": {
-    "minimatch": "^10.0.3"
-  },
-  "optionalDependencies": {
-    "@esbuild/linux-x64": "0.25.9",
-    "@rollup/rollup-linux-x64-gnu": "4.49.0"
+    "@types/node": "^24.3.1",
+    "typescript": "^5.9.2"
   }
 }

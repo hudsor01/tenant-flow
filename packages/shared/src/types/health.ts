@@ -97,3 +97,14 @@ export interface SecurityMetrics {
 		last7Days: number
 	}
 }
+
+// Performance monitoring types
+export interface PerformanceMetrics {
+	endpoint: string
+	method: string
+	duration: number
+	timestamp: string
+	status: 'success' | 'error' | 'timeout'
+	userId?: string
+	userAgent?: string
+}
