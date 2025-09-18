@@ -14,7 +14,7 @@
 import { NestFactory } from '@nestjs/core'
 import { NestFastifyApplication } from '@nestjs/platform-fastify'
 import { FastifyAdapter } from '@nestjs/platform-fastify'
-import { Module, Controller, Injectable } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { AppModule } from '../../app.module'
 import * as fs from 'fs'
@@ -85,8 +85,8 @@ class SecurityAuditService {
 		return report
 	}
 
-	private async discoverEndpoints(app: NestFastifyApplication): Promise<any[]> {
-		const routes: any[] = []
+	private async discoverEndpoints(app: NestFastifyApplication): Promise<Array<{ path: string; method: string; httpMethod: string }>> {
+		const routes: Array<{ path: string; method: string; httpMethod: string }> = []
 
 		// Use Fastify's route discovery
 		const fastifyInstance = app.getHttpAdapter().getInstance()
@@ -228,7 +228,7 @@ class SecurityAuditService {
 		}
 	}
 
-	private async isEndpointPublic(endpoint: any, app: NestFastifyApplication): Promise<boolean> {
+	private async isEndpointPublic(endpoint: { path: string; method: string }, _app: NestFastifyApplication): Promise<boolean> {
 		// This would need to be implemented based on your decorator system
 		// For now, we'll make educated guesses based on the path
 		const publicPaths = [
@@ -244,20 +244,20 @@ class SecurityAuditService {
 		return publicPaths.some(path => endpoint.path.includes(path))
 	}
 
-	private async getRequiredRoles(endpoint: any, app: NestFastifyApplication): Promise<string[]> {
+	private async getRequiredRoles(_endpoint: { path: string; method: string }, _app: NestFastifyApplication): Promise<string[]> {
 		// This would examine the @Roles() decorator
 		// For now, return empty array as placeholder
 		return []
 	}
 
-	private async isAdminOnly(endpoint: any, app: NestFastifyApplication): Promise<boolean> {
+	private async isAdminOnly(endpoint: { path: string; method: string }, _app: NestFastifyApplication): Promise<boolean> {
 		// Check for admin-only paths
 		return endpoint.path.includes('/admin') ||
 			   endpoint.path.includes('/analytics') ||
 			   endpoint.path.includes('/users') && endpoint.httpMethod !== 'GET'
 	}
 
-	private async hasRateLimit(endpoint: any, app: NestFastifyApplication): Promise<boolean> {
+	private async hasRateLimit(_endpoint: { path: string; method: string }, _app: NestFastifyApplication): Promise<boolean> {
 		// For now, assume rate limiting is applied globally
 		// In a real implementation, you'd check for rate limiting decorators
 		return true
