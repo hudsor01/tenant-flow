@@ -148,7 +148,7 @@ export class StripeService {
 				allInvoices.push(...invoices.data)
 				hasMore = invoices.has_more
 				if (hasMore && invoices.data.length > 0) {
-					startingAfter = invoices.data[invoices.data.length - 1].id
+					startingAfter = invoices.data[invoices.data.length - 1]?.id
 				}
 			}
 
@@ -185,7 +185,7 @@ export class StripeService {
 				allSubscriptions.push(...subscriptions.data)
 				hasMore = subscriptions.has_more
 				if (hasMore && subscriptions.data.length > 0) {
-					startingAfter = subscriptions.data[subscriptions.data.length - 1].id
+					startingAfter = subscriptions.data[subscriptions.data.length - 1]?.id
 				}
 			}
 
@@ -223,7 +223,10 @@ export class StripeService {
 
 				hasMore = customers.has_more
 				if (hasMore && customers.data.length > 0) {
-					startingAfter = customers.data[customers.data.length - 1].id
+					const lastCustomer = customers.data[customers.data.length - 1]
+					if (lastCustomer) {
+						startingAfter = lastCustomer.id
+					}
 				}
 			}
 
