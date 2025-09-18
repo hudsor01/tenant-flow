@@ -10,53 +10,15 @@
  */
 
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
-import { DirectEmailService } from '../../emails/direct-email.service'
+import type {
+	SecurityEvent,
+	SecurityEventType,
+	SecurityMetrics
+} from '@repo/shared'
 import { SupabaseService } from '../../database/supabase.service'
+import { DirectEmailService } from '../../emails/direct-email.service'
 
-export interface SecurityEvent {
-	id?: string
-	type: SecurityEventType
-	severity: SecuritySeverity
-	source: string
-	description: string
-	metadata: Record<string, unknown>
-	ipAddress?: string
-	userAgent?: string
-	userId?: string
-	timestamp: string
-	resolved?: boolean
-}
-
-export type SecurityEventType =
-	| 'auth_failure'
-	| 'rate_limit_exceeded'
-	| 'suspicious_activity'
-	| 'unauthorized_access'
-	| 'webhook_failure'
-	| 'payment_fraud'
-	| 'data_breach_attempt'
-	| 'malicious_request'
-	| 'csrf_attempt'
-	| 'xss_attempt'
-	| 'sql_injection_attempt'
-	| 'file_upload_threat'
-	| 'ddos_attempt'
-	| 'privilege_escalation'
-	| 'account_takeover'
-
-export type SecuritySeverity = 'low' | 'medium' | 'high' | 'critical'
-
-interface SecurityMetrics {
-	totalEvents: number
-	eventsBySeverity: Record<SecuritySeverity, number>
-	eventsByType: Record<SecurityEventType, number>
-	topThreateningIPs: Array<{ ip: string; count: number }>
-	recentTrends: {
-		lastHour: number
-		last24Hours: number
-		last7Days: number
-	}
-}
+type SecuritySeverity = 'low' | 'medium' | 'high' | 'critical'
 
 interface AlertChannel {
 	type: 'email' | 'webhook' | 'log'
@@ -84,12 +46,7 @@ export class SecurityMonitorService implements OnModuleInit {
 			/on\w+\s*=\s*["'][^"']*["']/gi,
 			/<iframe[^>]*>.*?<\/iframe>/gi
 		],
-		pathTraversal: [
-			/\.\.\//g,
-			/\.\.\\/gi,
-			/\.\.\%2f/gi,
-			/\.\.\%5c/gi
-		]
+		pathTraversal: [/\.\.\//g, /\.\.\\/gi, /\.\.%2f/gi, /\.\.%5c/gi]
 	}
 
 	// Alert channels configuration
@@ -102,12 +59,18 @@ export class SecurityMonitorService implements OnModuleInit {
 		high: [
 			{ type: 'log', enabled: true },
 			{ type: 'email', enabled: true },
-			{ type: 'webhook', enabled: process.env.SECURITY_WEBHOOK_URL ? true : false }
+			{
+				type: 'webhook',
+				enabled: process.env.SECURITY_WEBHOOK_URL ? true : false
+			}
 		],
 		critical: [
 			{ type: 'log', enabled: true },
 			{ type: 'email', enabled: true },
-			{ type: 'webhook', enabled: process.env.SECURITY_WEBHOOK_URL ? true : false }
+			{
+				type: 'webhook',
+				enabled: process.env.SECURITY_WEBHOOK_URL ? true : false
+			}
 		]
 	}
 
@@ -132,7 +95,9 @@ export class SecurityMonitorService implements OnModuleInit {
 	/**
 	 * Log and process a security event
 	 */
-	async logSecurityEvent(event: Omit<SecurityEvent, 'id' | 'timestamp'>): Promise<void> {
+	async logSecurityEvent(
+		event: Omit<SecurityEvent, 'id' | 'timestamp'>
+	): Promise<void> {
 		const securityEvent: SecurityEvent = {
 			...event,
 			id: this.generateEventId(),
@@ -147,7 +112,8 @@ export class SecurityMonitorService implements OnModuleInit {
 		}
 
 		// Enhance event with threat analysis
-		const enhancedEvent = await this.enhanceEventWithThreatAnalysis(securityEvent)
+		const enhancedEvent =
+			await this.enhanceEventWithThreatAnalysis(securityEvent)
 
 		// Store in database for persistence
 		await this.storeSecurityEvent(enhancedEvent)
@@ -166,7 +132,9 @@ export class SecurityMonitorService implements OnModuleInit {
 	/**
 	 * Enhanced threat detection with ML-like pattern analysis
 	 */
-	private async enhanceEventWithThreatAnalysis(event: SecurityEvent): Promise<SecurityEvent> {
+	private async enhanceEventWithThreatAnalysis(
+		event: SecurityEvent
+	): Promise<SecurityEvent> {
 		const enhanced = { ...event }
 
 		// Analyze request payload for known attack patterns
@@ -229,14 +197,19 @@ export class SecurityMonitorService implements OnModuleInit {
 		let threatScore = 0
 
 		if (recentEventsFromIP.length > 20) threatScore += 0.3
-		if (recentEventsFromIP.some(e => e.severity === 'critical')) threatScore += 0.5
+		if (recentEventsFromIP.some(e => e.severity === 'critical'))
+			threatScore += 0.5
 		if (recentEventsFromIP.some(e => e.severity === 'high')) threatScore += 0.3
 
 		// Check against known bad patterns
-		const failedAuthCount = recentEventsFromIP.filter(e => e.type === 'auth_failure').length
+		const failedAuthCount = recentEventsFromIP.filter(
+			e => e.type === 'auth_failure'
+		).length
 		if (failedAuthCount > 5) threatScore += 0.4
 
-		const rateLimitCount = recentEventsFromIP.filter(e => e.type === 'rate_limit_exceeded').length
+		const rateLimitCount = recentEventsFromIP.filter(
+			e => e.type === 'rate_limit_exceeded'
+		).length
 		if (rateLimitCount > 3) threatScore += 0.2
 
 		return Math.min(threatScore, 1.0)
@@ -244,9 +217,8 @@ export class SecurityMonitorService implements OnModuleInit {
 
 	private getRecentSimilarEvents(event: SecurityEvent): SecurityEvent[] {
 		const hourAgo = Date.now() - 60 * 60 * 1000
-		return this.recentEvents.filter(e =>
-			e.type === event.type &&
-			new Date(e.timestamp).getTime() > hourAgo
+		return this.recentEvents.filter(
+			e => e.type === event.type && new Date(e.timestamp).getTime() > hourAgo
 		)
 	}
 
@@ -352,14 +324,21 @@ This is an automated security alert from TenantFlow.
 		})
 
 		if (!webhook.ok) {
-			throw new Error(`Webhook alert failed: ${webhook.status} ${webhook.statusText}`)
+			throw new Error(
+				`Webhook alert failed: ${webhook.status} ${webhook.statusText}`
+			)
 		}
 	}
 
 	private sendLogAlert(event: SecurityEvent): void {
-		const logMethod = event.severity === 'critical' ? 'error' :
-						 event.severity === 'high' ? 'error' :
-						 event.severity === 'medium' ? 'warn' : 'debug'
+		const logMethod =
+			event.severity === 'critical'
+				? 'error'
+				: event.severity === 'high'
+					? 'error'
+					: event.severity === 'medium'
+						? 'warn'
+						: 'debug'
 
 		this.securityLogger[logMethod]('Security alert', {
 			...event,
@@ -399,13 +378,19 @@ This is an automated security alert from TenantFlow.
 	 * Background threat analysis
 	 */
 	private startThreatAnalysis(): void {
-		setInterval(() => {
-			this.analyzeThreatTrends()
-		}, 5 * 60 * 1000) // Every 5 minutes
+		setInterval(
+			() => {
+				this.analyzeThreatTrends()
+			},
+			5 * 60 * 1000
+		) // Every 5 minutes
 
-		setInterval(() => {
-			this.cleanupOldEvents()
-		}, 60 * 60 * 1000) // Every hour
+		setInterval(
+			() => {
+				this.cleanupOldEvents()
+			},
+			60 * 60 * 1000
+		) // Every hour
 	}
 
 	private analyzeThreatTrends(): void {
@@ -456,7 +441,10 @@ This is an automated security alert from TenantFlow.
 			critical: 0
 		}
 
-		const eventsByType: Record<SecurityEventType, number> = {} as Record<SecurityEventType, number>
+		const eventsByType: Record<SecurityEventType, number> = {} as Record<
+			SecurityEventType,
+			number
+		>
 
 		const ipCounts: Record<string, number> = {}
 
@@ -506,7 +494,10 @@ This is an automated security alert from TenantFlow.
 	}
 
 	// Public method to manually resolve security events
-	async resolveSecurityEvent(eventId: string, resolution: string): Promise<void> {
+	async resolveSecurityEvent(
+		eventId: string,
+		resolution: string
+	): Promise<void> {
 		try {
 			// TODO: Uncomment when SecurityEvent table is added to database types
 			// const supabase = this.supabaseService.getAdminClient()
@@ -520,7 +511,9 @@ This is an automated security alert from TenantFlow.
 			// 	})
 			// 	.eq('id', eventId)
 
-			this.logger.log(`Security event would be resolved: ${eventId} with resolution: ${resolution}`)
+			this.logger.log(
+				`Security event would be resolved: ${eventId} with resolution: ${resolution}`
+			)
 		} catch (error) {
 			this.logger.error('Failed to resolve security event', error)
 		}
