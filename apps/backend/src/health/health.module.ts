@@ -17,7 +17,7 @@ import { StripeModule } from '../billing/stripe.module'
 		StripeFdwHealthIndicator
 		// HealthCheckService is automatically provided by TerminusModule
 		// HealthIndicatorService is automatically provided by TerminusModule  
-		// Logger is provided globally via LoggerModule in app.module.ts
+		// Logger is available via NestJS built-in Logger
 	],
 	exports: []
 })

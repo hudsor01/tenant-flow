@@ -46,7 +46,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 				}
 			],
 				ctaText = 'Get Started',
-				ctaHref = '/signup',
+				ctaHref = '/auth/signup',
 			...props
 		},
 		ref
@@ -297,7 +297,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 						) : (
 							<>
 								<Link
-									href="/login"
+									href="/auth/login"
 									className="hidden sm:flex px-4 py-2 text-foreground hover:text-foreground rounded-xl hover:bg-muted/50 transition-all duration-300 font-medium"
 								>
 									Sign In
@@ -434,7 +434,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 											onMouseLeave={() => setHoveredMobileItem(null)}
 										>
 											<Link
-												href="/login"
+												href="/auth/login"
 												onClick={() => setIsOpen(false)}
 												className="block px-4 py-3 text-foreground hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-200"
 											>

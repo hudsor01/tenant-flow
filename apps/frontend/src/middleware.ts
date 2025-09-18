@@ -28,7 +28,7 @@ export async function middleware(request: NextRequest) {
     // CLAUDE.md Compliance: Environment-based, production-safe, no abstractions
     const isDevelopment = process.env.NODE_ENV === 'development'
     const enableMockAuth = process.env.ENABLE_MOCK_AUTH === 'true'
-    const isAuthenticated = (isDevelopment && enableMockAuth) || hasSupabaseAuth
+    const isAuthenticated = hasSupabaseAuth || (isDevelopment && enableMockAuth)
 
     const pathname = request.nextUrl.pathname
 
@@ -36,7 +36,8 @@ export async function middleware(request: NextRequest) {
     if (process.env.NODE_ENV === 'development') {
       console.info(`[Middleware] ${pathname} - Auth: ${isAuthenticated ? 'Yes' : 'No'}`)
       console.info(`[Middleware] HasSupabaseAuth: ${hasSupabaseAuth}, MockAuth: ${isDevelopment && enableMockAuth}`)
-      console.info(`[Middleware] Available cookies:`, cookies.getAll().map(({ name, value }) => `${name}=${value?.substring(0, 20)}...`))
+      console.info(`[Middleware] isAuthenticated calculation: ${hasSupabaseAuth} || (${isDevelopment} && ${enableMockAuth}) = ${isAuthenticated}`)
+      console.info(`[Middleware] Available cookies:`, cookies.getAll().map(({ name }) => name))
     }
 
     // Define protected routes - these require authentication
@@ -49,7 +50,7 @@ export async function middleware(request: NextRequest) {
 
     // Redirect unauthenticated users to login if accessing protected routes
     if (isProtectedRoute && !isAuthenticated) {
-      const loginUrl = new URL('/login', request.url)
+      const loginUrl = new URL('/auth/login', request.url)
       // Optional: Add the attempted URL as a query parameter for post-login redirect
       loginUrl.searchParams.set('redirectTo', pathname)
 
