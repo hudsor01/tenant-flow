@@ -8,7 +8,6 @@
 
 import noBarrelExports from './.eslint/rules/no-barrel-exports.js'
 import noInlineTypes from './.eslint/rules/no-inline-types.js'
-import antiDuplicationPlugin from './.eslint/plugins/anti-duplication.js'
 import baseConfig from './packages/eslint-config/base.js'
 
 /**
@@ -75,29 +74,6 @@ export default [
 					allowedBarrels: ['packages/shared/src/index.ts']
 				}
 			]
-		}
-	},
-	{
-		name: 'root/anti-duplication',
-		files: ['**/*.ts', '**/*.tsx'],
-		ignores: [
-			'**/*.test.*',
-			'**/*.spec.*',
-			'**/*.config.*',
-			'**/*.d.ts',
-			'**/generated-*',
-			'.eslint/**',
-			'packages/shared/src/validation/**',
-			'packages/shared/src/types/**'
-		],
-		plugins: {
-			'anti-duplication': antiDuplicationPlugin
-		},
-		rules: {
-			'anti-duplication/enforce-schema-generation': 'off',
-			'anti-duplication/no-manual-validation-schemas': 'off',
-			'anti-duplication/no-duplicate-api-methods': 'off',
-			'anti-duplication/enforce-global-loading': 'error'
 		}
 	},
 	{

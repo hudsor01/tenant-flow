@@ -40,7 +40,8 @@ describe('AuthController', () => {
 					]
 				})
 			],
-			controllers: [AuthController]
+			controllers: [AuthController],
+			providers: [AuthService]
 		}).compile()
 
 		controller = module.get<AuthController>(AuthController)
