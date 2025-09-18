@@ -10,7 +10,7 @@ import {
 	requiredString,
 	requiredTitle,
 	requiredDescription
-} from '@repo/shared/validation/common'
+} from '@repo/shared'
 import {
 	MaintenanceUpdatedEvent,
 	PaymentReceivedEvent,
