@@ -1,9 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ShimmerButton } from "@/components/magicui/shimmer-button"
 import { HeroAuthority } from '@/components/marketing/hero-authority'
-import { ArrowRight, CheckCircle, Clock, TrendingUp, Users, Book, MessageCircle, Phone, Mail } from "lucide-react"
+import { ArrowRight, Clock, TrendingUp, Users, Book, MessageCircle, Phone, Mail } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { FooterMinimal } from "@/components/sections/footer-minimal"
 

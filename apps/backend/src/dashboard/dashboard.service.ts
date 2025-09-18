@@ -1,5 +1,5 @@
 import { Injectable, Optional } from '@nestjs/common'
-import { PinoLogger } from 'nestjs-pino'
+import { Logger } from '@nestjs/common'
 import { SupabaseService } from '../database/supabase.service'
 import type {
         DashboardStats,
@@ -14,9 +14,9 @@ import type {
 export class DashboardService {
 	constructor(
 		private readonly supabase: SupabaseService,
-		@Optional() private readonly logger?: PinoLogger
+		@Optional() private readonly logger?: Logger
 	) {
-		// PinoLogger context handled automatically via app-level configuration
+		// Logger context handled automatically via app-level configuration
 	}
 
         /**
@@ -50,7 +50,7 @@ export class DashboardService {
 		_authToken?: string
 	): Promise<{ activities: Record<string, unknown>[] }> {
 		try {
-			this.logger?.info({ userId, action: 'get_dashboard_activity' }, 'Fetching dashboard activity')
+			this.logger?.log({ userId, action: 'get_dashboard_activity' }, 'Fetching dashboard activity')
 
 			// ULTRA-NATIVE: Direct RPC call with fallback
 			const { data, error } = await this.supabase
@@ -94,7 +94,7 @@ export class DashboardService {
 				}
 			}
 
-			this.logger?.info({ userId, action: 'get_dashboard_activity' }, 'Dashboard activity retrieved successfully')
+			this.logger?.log({ userId, action: 'get_dashboard_activity' }, 'Dashboard activity retrieved successfully')
 			return ((data as unknown) as { activities: Record<string, unknown>[] }) || { activities: [] }
 		} catch (error) {
 			this.logger?.error({ userId, error: error instanceof Error ? error.message : String(error) }, 'Failed to get dashboard activity, returning empty fallback')
@@ -109,7 +109,7 @@ export class DashboardService {
 	 */
 	async getBillingInsights(startDate?: Date, endDate?: Date): Promise<Record<string, unknown> | null> {
 		try {
-			this.logger?.info({ 
+			this.logger?.log({ 
 				action: 'get_billing_insights',
 				dateRange: { startDate, endDate }
 			}, 'Fetching billing insights from Stripe Sync Engine')

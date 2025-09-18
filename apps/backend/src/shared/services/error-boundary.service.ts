@@ -78,7 +78,7 @@ export class ErrorBoundaryService {
 			const result = await Promise.race([
 				operation(),
 				this.timeoutPromise(5000) // 5 second timeout for sub-200ms goal
-			])
+			]) as T
 
 			// Record success metrics
 			const responseTime = Date.now() - startTime
@@ -118,7 +118,7 @@ export class ErrorBoundaryService {
 	): Promise<T> {
 		// Try cache first for performance
 		const cachedResult = this.cacheService.get<T>(cacheKey)
-		const fallback = () => cachedResult
+		const fallback = cachedResult !== null ? (() => cachedResult as T) : undefined
 
 		try {
 			const result = await this.execute(serviceKey, operation, fallback, options)
@@ -283,7 +283,6 @@ export class ErrorBoundaryService {
 
 	private recordSuccess(serviceKey: string, responseTime: number): void {
 		const metrics = this.getServiceMetrics(serviceKey)
-		// Circuit state tracked separately
 
 		metrics.totalRequests++
 		metrics.successCount++

@@ -2,7 +2,7 @@ import {
 	Injectable,
 	BadRequestException
 } from '@nestjs/common'
-import { PinoLogger } from 'nestjs-pino'
+import { Logger } from '@nestjs/common'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import type { StorageUploadResult, FileUploadOptions, StorageEntityType, StorageFileType } from '@repo/shared/types/domain'
@@ -15,9 +15,9 @@ import { SupabaseService } from './supabase.service'
 export class StorageService {
 	constructor(
 		private readonly supabaseService: SupabaseService,
-		private readonly logger: PinoLogger
+		private readonly logger: Logger
 	) {
-		// PinoLogger context handled automatically via app-level configuration
+		// Logger context handled automatically via app-level configuration
 	}
 
 	private get supabase(): SupabaseClient<Database> {

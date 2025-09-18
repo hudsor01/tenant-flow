@@ -31,11 +31,9 @@
     "test:media-stack": "./tests/e2e/run-media-stack-tests.sh",
     "test:media-stack:all": "./tests/e2e/run-media-stack-tests.sh all",
     "validate-env": "tsx scripts/validate-env.ts",
-    "pre-deploy": "npm run validate-env && npm run lint && npm run typecheck",
     "health-check": "doppler run -- tsx scripts/auth-health-check.ts",
     "generate:schemas": "node --import tsx scripts/generate-frontend-schemas.ts",
-    "generate:backend-schemas": "node --import tsx scripts/convert-schemas.ts",
-    "claude:check": "npm run lint && npm run typecheck"
+    "generate:backend-schemas": "node --import tsx scripts/convert-schemas.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "6.3.1",

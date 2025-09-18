@@ -400,7 +400,6 @@ test-supabase-auth.js
 .vscode/
 .supabase/
 .playwright-mcp/
-.husky/
 .eslintcache
 .claude/
 .eslint/
