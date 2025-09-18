@@ -1250,10 +1250,13 @@ export class StripeController {
 		}
 
 		// Remove null bytes and control characters
-		// eslint-disable-next-line no-control-regex
 		let sanitized = value
-			.replace(/\0/g, '')
-			.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+			.split('')
+			.filter(char => {
+				const code = char.charCodeAt(0)
+				return code > 31 && code !== 127 && code !== 0
+			})
+			.join('')
 
 		// Normalize unicode to prevent encoding attacks
 		sanitized = sanitized.normalize('NFC')
