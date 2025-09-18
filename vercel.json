@@ -79,7 +79,7 @@
       ]
     },
     {
-      "source": "/(.*\\.(jpg|jpeg|png|gif|ico|svg|webp|avif))",
+      "source": "/(.*)\\.(jpg|jpeg|png|gif|ico|svg|webp|avif)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -96,7 +96,7 @@
       ]
     },
     {
-      "source": "/(.*\\.(woff2|woff|ttf|otf))",
+      "source": "/(.*)\\.(woff2|woff|ttf|otf)",
       "headers": [
         {
           "key": "Cache-Control",
