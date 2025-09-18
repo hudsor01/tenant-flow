@@ -1,13 +1,7 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-<<<<<<< HEAD
 import { MagicCard } from '@/components/magicui/magic-card'
-||||||| 82bec1d5
-import { MagicCard } from '@/components/ui/magic-card'
-=======
-
->>>>>>> origin/main
 import { cn } from '@/lib/utils'
 import { animated } from '@react-spring/web'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
