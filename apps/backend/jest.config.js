@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
+/* eslint-disable no-undef */
 const path = require('path')
 const fs = require('fs')
 
@@ -30,11 +32,10 @@ module.exports = {
 	coverageReporters: ['text', 'lcov', 'html'],
 	moduleNameMapper: {
 		'^@/(.*)$': '<rootDir>/src/$1',
-        '^@repo/shared/(.*)$': '<rootDir>/../../packages/shared/src/$1',
+		'^@repo/shared/(.*)$': '<rootDir>/../../packages/shared/src/$1',
 		'^@repo/(.*)$': '<rootDir>/../../packages/$1/src'
 	},
 	setupFilesAfterEnv,
-	// 'setupFiles': ['<rootDir>/test/disable-nestjs-logger.ts'],
 	testTimeout: 10000,
 	maxWorkers: 1,
 	testSequencer:
@@ -46,14 +47,24 @@ module.exports = {
 	bail: false,
 	coverageProvider: 'v8',
 	transform: {
-		'^.+\.ts$': [
+		'^.+\\.ts$': [
 			'ts-jest',
 			{
-				useESM: false
+				useESM: false,
+				tsconfig: {
+					module: 'commonjs',
+					target: 'es2022',
+					moduleResolution: 'node',
+					allowSyntheticDefaultImports: true,
+					esModuleInterop: true,
+					skipLibCheck: true,
+					forceConsistentCasingInFileNames: true,
+					strict: true,
+					isolatedModules: true
+				}
 			}
 		]
 	},
-	injectGlobals: true,
-	clearMocks: true,
-	restoreMocks: true
+	transformIgnorePatterns: ['node_modules/(?!(@repo|@supabase|@fastify)/)'],
+	injectGlobals: true
 }

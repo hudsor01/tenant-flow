@@ -1,5 +1,5 @@
 // Kept import in case we want to compare original content vs bento layout quickly
-import FeaturesDemo1 from '@/components/magicui/features-section-demo-1'
+// import FeaturesDemo1 from '@/components/magicui/features-section-demo-1'
 import { containerClasses } from '@/lib/design-system'
 import type { Metadata } from 'next/types'
 import { Suspense } from 'react'

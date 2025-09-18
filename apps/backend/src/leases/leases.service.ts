@@ -7,7 +7,7 @@
  */
 
 import { Injectable, BadRequestException } from '@nestjs/common'
-import { PinoLogger } from 'nestjs-pino'
+import { Logger } from '@nestjs/common'
 import { SupabaseService } from '../database/supabase.service'
 import type {
 	CreateLeaseRequest,
@@ -49,9 +49,9 @@ export interface LeaseQueryOptions {
 export class LeasesService {
 	constructor(
 		private readonly supabaseService: SupabaseService,
-		private readonly logger: PinoLogger
+		private readonly logger: Logger
 	) {
-		// PinoLogger context handled automatically via app-level configuration
+		// Logger context handled automatically via app-level configuration
 	}
 
 	/**

@@ -6,7 +6,7 @@
 
 import { Controller, Get, Optional } from '@nestjs/common'
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus'
-import { PinoLogger } from 'nestjs-pino'
+import { Logger } from '@nestjs/common'
 import { hostname } from 'os'
 import { Public } from '../shared/decorators/public.decorator'
 import { SupabaseHealthIndicator } from './supabase.health'
@@ -59,13 +59,25 @@ export class HealthController {
 		private readonly supabase: SupabaseHealthIndicator,
 		private readonly stripeFdw: StripeFdwHealthIndicator,
 		private readonly resilience: ResilienceService,
-		@Optional() private readonly logger?: PinoLogger
-	) {}
+		private readonly stripeSyncService: StripeSyncService,
+		private readonly logger: Logger
+	) {
+		// Logger context handled automatically via app-level configuration
+	}
 
 	@Get()
 	@Public()
 	@HealthCheck()
 	async check() {
+		this.logger.log(
+			{
+				health: {
+					environment: process.env.NODE_ENV,
+					checkType: 'full'
+				}
+			},
+			`Health check started - Environment: ${process.env.NODE_ENV}`
+		)
 		return this.health.check([
 			() => this.supabase.pingCheck('database'),
 			() => this.stripeFdw.isHealthy('stripe_fdw')
@@ -98,6 +110,25 @@ export class HealthController {
 	/**
 	 * Comprehensive system health with all services and performance metrics
 	 */
+	@Get('stripe')
+	@Public()
+	@HealthCheck()
+	async stripeCheck() {
+		this.logger.log('Stripe FDW health check started')
+		return this.health.check([() => this.stripeFdw.detailedCheck('stripe_fdw')])
+	}
+
+	@Get('stripe-sync')
+	@Public()
+	async checkStripeSyncHealth() {
+		const health = this.stripeSyncService.getHealthStatus()
+		return {
+			status: health.initialized && health.migrationsRun ? 'healthy' : 'unhealthy',
+			...health,
+			timestamp: new Date().toISOString()
+		}
+	}
+
 	@Get('system')
 	@Public()
 	async systemHealth(): Promise<SystemHealth> {
@@ -143,15 +174,14 @@ export class HealthController {
 			// Log performance warning if response takes >100ms
 			const responseTime = Date.now() - startTime
 			if (responseTime > 100) {
-				this.logger?.warn(
-					{ responseTime, target: 100 },
+				this.logger.warn(
 					`Health check took ${responseTime}ms (target: <100ms)`
 				)
 			}
 
 			return systemHealth
 		} catch (error) {
-			this.logger?.error({ error: error instanceof Error ? error.message : String(error) }, 'System health check failed')
+			this.logger.error('System health check failed', error instanceof Error ? error.message : String(error))
 			throw error
 		}
 	}
