@@ -8,7 +8,6 @@ dist/
 
 # Backend test files
 vitest.*
-coverage/
 test-results/
 
 # Logs
@@ -33,9 +32,6 @@ logs/
 
 # Email templates backup
 email-templates/*.bak
-/src/test/
-/src/test
-/src/test-utils/
-/src/test-utils
-
+*.BAK
+*.bak
 .vercel

@@ -7,7 +7,7 @@ echo "🔍 Running pre-push validation..."
 
 # Use Turbo's built-in parallelization for all checks
 # Filter only changed files since HEAD^1 for speed
-npx turbo run typecheck lint build \
+npx turbo run typecheck lint build test:unit \
   --cache-dir=.turbo \
   --filter='[HEAD^1]' \
   --concurrency=10 || {

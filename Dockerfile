@@ -22,15 +22,15 @@ WORKDIR /app
 FROM base AS deps
 
 # Copy only package files for optimal layer caching
-COPY package*.json turbo.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY apps/backend/package.json ./apps/backend/
 COPY packages/*/package.json ./packages/
 
 # Advanced cache mount with npm optimization (2025 technique)
 # Multiple cache mounts for different package managers
-RUN --mount=type=cache,id=npm-cache,target=/root/.npm \
-    --mount=type=cache,id=node-modules-cache,target=/app/node_modules \
-    npm ci --silent --prefer-offline --no-audit --no-fund
+RUN --mount=type=cache,id=tenantflow-backend-pnpm-cache,target=/root/.local/share/pnpm/store \
+    npm install -g pnpm@8.15.5 && \
+    pnpm install --frozen-lockfile --prefer-offline
 
 # ===== BUILDER STAGE =====
 # TypeScript compilation with build optimization
@@ -53,8 +53,8 @@ ENV TURBO_TELEMETRY_DISABLED=1 \
     NODE_OPTIONS="--max-old-space-size=2048"
 
 # Parallel builds with error handling (2025 optimization)
-RUN npm run build:shared && \
-    npm run build:backend
+RUN pnpm run build:shared && \
+    pnpm run build:backend
 
 # ===== PROD-DEPS OPTIMIZATION =====
 # Clean production dependencies with node-prune (2025 technique)
@@ -64,16 +64,17 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 # Copy package files
-COPY package*.json turbo.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY apps/backend/package.json ./apps/backend/
 COPY packages/*/package.json ./packages/
 
 # Install production deps with advanced caching
-RUN --mount=type=cache,id=npm-prod-cache,target=/root/.npm \
-    npm ci --omit=dev --silent --prefer-offline --no-audit --no-fund
+RUN --mount=type=cache,id=tenantflow-backend-pnpm-prod-cache,target=/root/.local/share/pnpm/store \
+    npm install -g pnpm@8.15.5 && \
+    pnpm install --frozen-lockfile --prod --prefer-offline
 
 # Install node-prune and optimize node_modules (85% size reduction)
-RUN npm install -g node-prune && \
+RUN pnpm add -g node-prune && \
     node-prune && \
     rm -rf node_modules/**/test \
            node_modules/**/tests \

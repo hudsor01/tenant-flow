@@ -137,15 +137,12 @@ jobs:
           restore-keys: |
             nextjs-${{ hashFiles('**/package-lock.json') }}-
 
-  # Tests run in parallel with builds
+  # Unit tests - run in parallel with build jobs
   test-unit:
     name: Unit Tests
     needs: quick-checks
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    strategy:
-      matrix:
-        package: ['backend', 'frontend', 'shared']
     steps:
       - uses: actions/checkout@v4
 
@@ -154,25 +151,11 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - name: Install test dependencies
-        run: npm ci --no-audit --workspace=@repo/${{ matrix.package }} --include-workspace-root
+      - name: Install dependencies
+        run: npm ci --no-audit
 
-      # Use Jest cache for faster test runs
-      - uses: actions/cache@v3
-        with:
-          path: |
-            apps/${{ matrix.package }}/jest-cache
-            packages/${{ matrix.package }}/jest-cache
-          key: jest-${{ matrix.package }}-${{ github.sha }}
-          restore-keys: |
-            jest-${{ matrix.package }}-
-
-      - name: Run Tests with Coverage
-        run: |
-          npx turbo run test:unit --filter=@repo/${{ matrix.package }} \
-            --cache-dir=.turbo \
-            -- --cache --cacheDirectory=jest-cache --passWithNoTests
-        continue-on-error: true # Don't fail CI for test failures during development
+      - name: Run unit tests
+        run: npm run test:unit
 
   # Linting in parallel
   lint:

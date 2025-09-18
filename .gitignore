@@ -1,29 +1,3 @@
-# ========================================
-# TESTING FILES - NEVER COMMIT TO GITHUB
-# ========================================
-# Visual testing
-**/visual-testing/
-**/dashboard/visual-testing/
-visual-testing/
-
-# Test harness and mock data
-**/testing/
-**/test-harness/
-**/mock-auth-data*
-**/mock-data*
-mock-*.ts
-mock-*.js
-
-# Dev-only API routes
-**/api/dev-auth/
-**/api/test/
-**/api/mock/
-
-# Test fixtures and data
-**/fixtures/
-**/test-data/
-test-*.ts
-test-*.js
 
 # ========================================
 # CRITICAL SECURITY - ENVIRONMENT & SECRETS
@@ -220,27 +194,6 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 # ========================================
 # TESTING & COVERAGE
 # ========================================
-# Test directories
-test/
-tests/
-e2e/
-**/test/**
-**/tests/**
-**/__tests__/**
-**/__mocks__/**
-**/e2e/**
-
-# Test files
-**/*.test.*
-**/*.spec.*
-**/*.e2e.*
-**/*.e2e-spec.*
-*.mock.ts
-*.mock.tsx
-*.spec.ts
-*.spec.tsx
-*.test.ts
-*.test.tsx
 
 # Test results and coverage
 coverage/
@@ -262,13 +215,9 @@ jest-results/
 test-results.json
 *.test-report.*
 
-# Test configurations
-playwright.config.ts
+# Test cache only (keep test files tracked)
 playwright/.cache/
 playwright/.auth/
-tsconfig.spec.json
-tsconfig.test.json
-vitest.config.*.ts
 
 # ========================================
 # CACHING
@@ -388,9 +337,6 @@ pids
 *.seed
 *.pid.lock
 
-# Test files that may contain hardcoded secrets
-test-signup-form.js
-test-supabase-auth.js
 .vercel
 
 # Turborepo

@@ -1,0 +1,45 @@
+/* CSS for consistent visual regression testing */
+/* Disable animations and transitions for stable screenshots */
+
+*, *::before, *::after {
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+}
+
+/* Hide dynamic content that can change between screenshots */
+.dynamic-timestamp,
+.loading-spinner,
+.progress-bar {
+  visibility: hidden !important;
+}
+
+/* Ensure consistent font rendering */
+* {
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  text-rendering: optimizeLegibility !important;
+}
+
+/* Hide scrollbars for consistent layout */
+::-webkit-scrollbar {
+  display: none !important;
+}
+
+body {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+/* Ensure consistent cursor state */
+* {
+  cursor: default !important;
+}
+
+/* Hide elements that may cause flakiness */
+.cursor-pointer:hover,
+.hover\:bg-gray-50:hover,
+.hover\:bg-brand-600:hover {
+  transition: none !important;
+}
