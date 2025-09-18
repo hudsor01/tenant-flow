@@ -17,7 +17,8 @@ import {
 	ANIMATION_DURATIONS,
 	TYPOGRAPHY_SCALE
 } from '@/lib/utils'
-import { PRICING_PLANS } from '@repo/shared/config/pricing'
+import { PRICING_PLANS, type PricingConfig } from '@repo/shared/config/pricing'
+import { type PricingUIData } from '@repo/shared'
 import { useDynamicPricing } from '@/hooks/use-dynamic-pricing'
 import { 
 	Crown, 
@@ -81,22 +82,7 @@ const planHighlightMap: Record<string, string> = {
 	'max': 'For portfolio managers'
 }
 
-// Enhanced UI data for pricing display
-interface PricingUIData {
-	icon: React.ComponentType<{ className?: string }>
-	popular: boolean
-	tier: string
-	tagline: string
-	enhanced_features: Array<{ text: string; highlight: boolean }>
-	benefits: string[]
-	cta: string
-	highlight: string
-	monthlySavings: number
-	yearlySavings: number
-	savingsPercentage: number
-	formattedPrice: string
-	fullYearPrice: string
-}
+// PricingUIData interface now imported from @repo/shared
 
 
 export function StripePricingSection({ 
@@ -115,7 +101,7 @@ export function StripePricingSection({
 
 	// Calculate savings and format pricing - MOVED UP TO FIX HOOKS RULES
 	const pricingData = useMemo((): (PricingUIData & { name: string; planId: string })[] => {
-		return activePlans.map((plan): PricingUIData & { name: string; planId: string } => {
+		return activePlans.map((plan: PricingConfig): PricingUIData & { name: string; planId: string } => {
 			if (!plan.price) return { 
 				name: plan.name || '',
 				planId: plan.planId,
@@ -196,7 +182,7 @@ export function StripePricingSection({
 			}
 
 			// Validate plan exists in our pricing data
-			const selectedPlan = activePlans.find(p => p.planId === planId)
+			const selectedPlan = activePlans.find((p: PricingConfig) => p.planId === planId)
 			if (!selectedPlan) {
 				throw new Error(`Invalid plan selected: ${planId}`)
 			}
