@@ -1,9 +1,11 @@
 /**
  * CONSOLIDATED TYPES INDEX - Using TypeScript 5.9.2 Native Features
- * 
+ *
  * Primary export from core.ts with minimal additional domain-specific types
  * 75% reduction from previous scattered type definitions
  */
+
+import type * as React from 'react'
 
 // =============================================================================
 // PRIMARY EXPORT - Consolidated core types using native TypeScript features
@@ -18,55 +20,73 @@ export * from './core'
 export * from './supabase-generated'
 
 // Consolidated domain types
-export * from './domain'
 export * from './backend-domain'
-
-// Frontend-specific UI component types
-export * from './frontend'
+export * from './domain'
+export type {
+	HealthCheckResult,
+	PerformanceMetrics,
+	SecurityEvent,
+	SecurityEventType,
+	SecurityMetrics,
+	ServiceHealth,
+	SystemHealth
+} from './health'
 
 // Auth types (domain-specific business logic)
 export type {
-  UserRole,
-  AuthUser,
-  AuthState,
-  LoginCredentials,
-  RegisterCredentials,
-  AuthResponse,
-  AuthFormState
+	AuthFormState,
+	AuthResponse,
+	AuthUser,
+	LoginCredentials,
+	RegisterCredentials,
+	SubscriptionStatus,
+	SupabaseWebhookEvent,
+	UserRole
 } from './auth'
+
+// UI Component types (pricing components)
+export interface PricingUIData {
+	icon: React.ComponentType<{ className?: string }>
+	popular: boolean
+	tier: string
+	tagline: string
+	enhanced_features: Array<{ text: string; highlight: boolean }>
+	benefits: string[]
+	cta: string
+	highlight: string
+	monthlySavings: number
+	yearlySavings: number
+	savingsPercentage: number
+	formattedPrice: string
+	fullYearPrice: string
+}
 
 // Validation types (Zod integration) - correct imports
 export type {
-  MaintenanceRequestInput,
-  MaintenanceRequestUpdate
+	MaintenanceRequestInput,
+	MaintenanceRequestUpdate
 } from '../validation/maintenance'
 
-export type {
-  UnitInput,
-  UnitUpdate,
-  UnitFormData
-} from '../validation/units'
+export type { UnitFormData, UnitInput, UnitUpdate } from '../validation/units'
 
-export type {
-  PropertyInput,
-  PropertyUpdate
-} from '../validation/properties'
+export type { PropertyInput, PropertyUpdate } from '../validation/properties'
 
-export type {
-  TenantInput
-} from '../validation/tenants'
+export type { TenantInput } from '../validation/tenants'
 
-export type {
-  LeaseInput,
-  LeaseUpdate  
-} from '../validation/leases'
+export type { LeaseInput, LeaseUpdate } from '../validation/leases'
+
+// Lease generator types
+export type { LeaseFormData, StateLeaseRequirements } from './lease-generator.types'
+
+// Controller response types (from errors.ts)
+export type { ControllerApiResponse } from './errors'
 
 // Security permissions (business rules)
 export { Permission } from './security'
 
 // Essential business constants
-export { PLAN_TYPE, PLANS } from '../constants/billing'
 export { USER_ROLE } from '../constants/auth'
+export { PLANS, PLAN_TYPE } from '../constants/billing'
 
 // =============================================================================
 // NO LEGACY COMPATIBILITY - Use core types directly
@@ -78,7 +98,8 @@ export { USER_ROLE } from '../constants/auth'
 
 // Re-export only the most commonly used utility functions
 export type WithRequired<T, K extends keyof T> = T & Required<Pick<T, K>>
-export type WithOptional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
+export type WithOptional<T, K extends keyof T> = Omit<T, K> &
+	Partial<Pick<T, K>>
 
 // Native TypeScript alternatives for common patterns
 export type NonNullable<T> = T extends null | undefined ? never : T
@@ -96,13 +117,13 @@ export type Numberify<T> = { [K in keyof T]: number }
 // - responses.ts → core.ts
 // - frontend.ts → native React types + core.ts
 // - errors.ts → core.ts (simplified error handling)
-// 
+//
 // REMOVED PATTERNS (use native TypeScript):
 // - DeepReadonly<T> → use core.ts Deep<T, 'readonly'>
 // - DeepPartial<T> → use core.ts Deep<T, 'partial'>
 // - Custom string manipulation → use template literal types
 // - Custom result patterns → use native Result<T, E>
-// 
+//
 // MIGRATION PATH:
 // 1. Import from '@repo/shared/types' gets core.ts by default
 // 2. Specific domain types from '@repo/shared/types/auth', etc.
