@@ -22,15 +22,6 @@ export * from './supabase-generated'
 // Consolidated domain types
 export * from './backend-domain'
 export * from './domain'
-export type {
-	HealthCheckResult,
-	PerformanceMetrics,
-	SecurityEvent,
-	SecurityEventType,
-	SecurityMetrics,
-	ServiceHealth,
-	SystemHealth
-} from './health'
 
 // Auth types (domain-specific business logic)
 export type {
