@@ -1,7 +1,7 @@
 import { Body, Controller, Headers, HttpCode, Post } from '@nestjs/common'
 import { getPriceId } from '@repo/shared'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
-import type { SupabaseWebhookEvent } from '@repo/shared/types/auth'
+import type { SupabaseWebhookEvent } from '@repo/shared'
 import { Logger } from '@nestjs/common'
 import { SupabaseService } from '../database/supabase.service'
 import { Public } from '../shared/decorators/public.decorator'

@@ -1,12 +1,12 @@
-import cors from '@fastify/cors'
 import { Logger, RequestMethod, ValidationPipe } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 import type { NestFastifyApplication } from '@nestjs/platform-fastify'
 import { FastifyAdapter } from '@nestjs/platform-fastify'
 import { getCORSConfig } from '@repo/shared'
-import type { FastifyReply, FastifyRequest, onRouteHookHandler } from 'fastify'
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import 'reflect-metadata'
 import { AppModule } from './app.module'
+import { SupabaseService } from './database/supabase.service'
 import { HEALTH_PATHS } from './shared/constants/routes'
 import { routeSchemaRegistry } from './shared/utils/route-schema-registry'
 
@@ -29,7 +29,8 @@ async function bootstrap() {
 	// Attach onRoute hook BEFORE Nest registers routes so schemas apply
 	const GLOBAL_PREFIX = 'api/v1'
 	const preInstance = fastifyAdapter.getInstance()
-	const attachSchemas: onRouteHookHandler = routeOptions => {
+
+	preInstance.addHook('onRoute', routeOptions => {
 		const methods = Array.isArray(routeOptions.method)
 			? routeOptions.method
 			: [routeOptions.method]
@@ -47,8 +48,7 @@ async function bootstrap() {
 				break
 			}
 		}
-	}
-	preInstance.addHook('onRoute', attachSchemas)
+	})
 
 	const app = await NestFactory.create<NestFastifyApplication>(
 		AppModule,
@@ -81,9 +81,9 @@ async function bootstrap() {
 		]
 	})
 
-	// Configure CORS
+	// Configure CORS using NestJS built-in support
 	logger.log('Configuring CORS...')
-	app.register(cors, getCORSConfig())
+	app.enableCors(getCORSConfig())
 	logger.log('CORS enabled')
 
 	// Security: Apply security headers middleware
@@ -158,17 +158,120 @@ async function bootstrap() {
 		})
 	)
 
-	const fastify = app.getHttpAdapter().getInstance()
+	const fastify = app
+		.getHttpAdapter()
+		.getInstance() as unknown as FastifyInstance
 
 	// Enable graceful shutdown
 	app.enableShutdownHooks()
 
-	// Graceful shutdown handling
+	// Ultra-reliable health endpoint for Railway: raw Fastify with real checks
+	const supabase = app.get(SupabaseService)
 	let shuttingDown = false
 	process.on('SIGTERM', () => (shuttingDown = true))
 	process.on('SIGINT', () => (shuttingDown = true))
 
-	// Health check now handled by HealthController - simplified architecture
+	function healthHintFor(message?: string) {
+		if (!message)
+			return 'Check Supabase URL/service key and network reachability.'
+		if (message.includes('health_db_timeout'))
+			return 'DB timed out. Verify Supabase is reachable from Railway and not rate-limited.'
+		const msg = message.toLowerCase()
+		if (msg.includes('configuration is missing'))
+			return 'Missing SUPABASE_URL or SERVICE_ROLE_KEY. Set them in Doppler/Railway env.'
+		if (msg.includes('does not exist'))
+			return 'Table for health check not found. Set HEALTH_CHECK_TABLE to an existing public table.'
+		if (
+			msg.includes('invalid jwt') ||
+			msg.includes('jwt') ||
+			msg.includes('auth')
+		)
+			return 'Auth failed. Use the Supabase service role key (not anon) in SERVICE_ROLE_KEY.'
+		if (msg.includes('db_unhealthy'))
+			return 'Supabase returned an error. Enable /health/debug and verify credentials + table name.'
+		return 'Check Supabase credentials (URL/Service Key) and connectivity.'
+	}
+
+	async function dbHealthy(
+		timeoutMs = Number(process.env.HEALTH_DB_TIMEOUT_MS ?? 1500)
+	) {
+		try {
+			const result = await Promise.race([
+				supabase.checkConnection(),
+				new Promise((_, reject) =>
+					setTimeout(() => reject(new Error('health_db_timeout')), timeoutMs)
+				)
+			])
+			const { status, message } = result as {
+				status: 'healthy' | 'unhealthy'
+				message?: string
+			}
+			return { ok: status === 'healthy', message }
+		} catch (err) {
+			return {
+				ok: false,
+				message: err instanceof Error ? err.message : 'unknown'
+			}
+		}
+	}
+
+	fastify.get('/health', async (_req: FastifyRequest, reply: FastifyReply) => {
+		const start = Date.now()
+		const headers = (): FastifyReply =>
+			reply.header(
+				'Cache-Control',
+				'no-store, no-cache, must-revalidate, proxy-revalidate'
+			)
+
+		if (shuttingDown) {
+			logger.warn(
+				{ reason: 'shutting_down' },
+				'Health check unhealthy: shutting down'
+			)
+			headers()
+				.code(503)
+				.type('application/json; charset=utf-8')
+				.send({
+					status: 'unhealthy',
+					reason: 'shutting_down',
+					uptime: Math.round(process.uptime()),
+					timestamp: new Date().toISOString()
+				})
+			return
+		}
+
+		const db = await dbHealthy()
+		const duration = Date.now() - start
+		if (db.ok) {
+			logger.log({ duration }, 'Health check ok')
+			headers()
+				.code(200)
+				.type('application/json; charset=utf-8')
+				.send({
+					status: 'ok',
+					checks: { db: 'healthy' },
+					duration,
+					uptime: Math.round(process.uptime()),
+					timestamp: new Date().toISOString()
+				})
+		} else {
+			const hint = healthHintFor(db.message)
+			logger.error(
+				{ duration, reason: db.message, hint },
+				'Health check unhealthy: db'
+			)
+			headers()
+				.code(503)
+				.type('application/json; charset=utf-8')
+				.send({
+					status: 'unhealthy',
+					checks: { db: 'unhealthy', message: db.message, hint },
+					duration,
+					uptime: Math.round(process.uptime()),
+					timestamp: new Date().toISOString()
+				})
+		}
+	})
 
 	// Railway compatibility endpoint - simple ping that Railway expects
 	fastify.get(
@@ -233,8 +336,7 @@ async function bootstrap() {
 
 // Catch bootstrap errors
 bootstrap().catch((err: unknown) => {
-	const logger = new Logger('Bootstrap')
-	logger.error('Failed to start server', err)
+	console.error('ERROR: Failed to start server:', err)
 	process.exit(1)
 })
 // test

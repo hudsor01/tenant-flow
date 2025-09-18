@@ -13,7 +13,7 @@ import type {
 	CreateLeaseRequest,
 	UpdateLeaseRequest
 } from '../schemas/leases.schema'
-import type { Tables } from '@repo/shared/types/supabase'
+import type { Tables } from '@repo/shared'
 
 // Use native Supabase table types
 type Lease = Tables<'Lease'>

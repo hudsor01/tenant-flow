@@ -25,6 +25,7 @@
 		"src/shared/scripts/**/*",
 		"src/queues/__tests__/**/*",
 		"src/**/__tests__/**/*",
-		"src/**/__test__/**/*"
+		"src/**/__test__/**/*",
+		"src/config/fastify.config.ts"
 	]
 }

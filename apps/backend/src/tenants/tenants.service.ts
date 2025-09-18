@@ -13,7 +13,7 @@ import {
 	Optional
 } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
-import type { Tables } from '@repo/shared/types/supabase'
+import type { Tables } from '@repo/shared'
 import { SupabaseService } from '../database/supabase.service'
 import { TenantCreatedEvent } from '../notifications/events/notification.events'
 import type {
