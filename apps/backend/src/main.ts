@@ -1,10 +1,9 @@
-import cors from '@fastify/cors'
 import { Logger, RequestMethod, ValidationPipe } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 import type { NestFastifyApplication } from '@nestjs/platform-fastify'
 import { FastifyAdapter } from '@nestjs/platform-fastify'
 import { getCORSConfig } from '@repo/shared'
-import type { FastifyReply, FastifyRequest, onRouteHookHandler } from 'fastify'
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import 'reflect-metadata'
 import { AppModule } from './app.module'
 import { SupabaseService } from './database/supabase.service'
@@ -30,7 +29,8 @@ async function bootstrap() {
 	// Attach onRoute hook BEFORE Nest registers routes so schemas apply
 	const GLOBAL_PREFIX = 'api/v1'
 	const preInstance = fastifyAdapter.getInstance()
-	const attachSchemas: onRouteHookHandler = routeOptions => {
+
+	preInstance.addHook('onRoute', routeOptions => {
 		const methods = Array.isArray(routeOptions.method)
 			? routeOptions.method
 			: [routeOptions.method]
@@ -48,8 +48,7 @@ async function bootstrap() {
 				break
 			}
 		}
-	}
-	preInstance.addHook('onRoute', attachSchemas)
+	})
 
 	const app = await NestFactory.create<NestFastifyApplication>(
 		AppModule,
@@ -82,9 +81,9 @@ async function bootstrap() {
 		]
 	})
 
-	// Configure CORS
+	// Configure CORS using NestJS built-in support
 	logger.log('Configuring CORS...')
-	app.register(cors, getCORSConfig())
+	app.enableCors(getCORSConfig())
 	logger.log('CORS enabled')
 
 	// Security: Apply security headers middleware
@@ -159,7 +158,9 @@ async function bootstrap() {
 		})
 	)
 
-	const fastify = app.getHttpAdapter().getInstance()
+	const fastify = app
+		.getHttpAdapter()
+		.getInstance() as unknown as FastifyInstance
 
 	// Enable graceful shutdown
 	app.enableShutdownHooks()
