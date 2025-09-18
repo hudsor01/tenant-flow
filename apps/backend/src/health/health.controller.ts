@@ -4,55 +4,23 @@
  * Integrates with existing PinoLogger patterns
  */
 
-import { Controller, Get, Optional } from '@nestjs/common'
+import { Controller, Get, Logger } from '@nestjs/common'
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus'
-import { Logger } from '@nestjs/common'
+import type { ServiceHealth, SystemHealth } from '@repo/shared'
 import { hostname } from 'os'
+import { StripeSyncService } from '../billing/stripe-sync.service'
 import { Public } from '../shared/decorators/public.decorator'
-import { SupabaseHealthIndicator } from './supabase.health'
-import { StripeFdwHealthIndicator } from './stripe-fdw.health'
 import { ResilienceService } from '../shared/services/resilience.service'
-
-interface ServiceHealth {
-	healthy: boolean
-	responseTime?: number
-	lastCheck?: string
-	details?: unknown // Flexible to accept any health check details
-}
-
-interface SystemHealth {
-	status: 'healthy' | 'degraded' | 'unhealthy'
-	timestamp: string
-	services: Record<string, ServiceHealth>
-	performance: {
-		uptime: number
-		memory: {
-			used: number
-			free: number
-			total: number
-			usagePercent: number
-		}
-		cpu: {
-			user: number
-			system: number
-		}
-	}
-	cache: {
-		healthy: boolean
-		metrics?: Record<string, number>
-	}
-	version: string
-	deployment: {
-		environment: string
-		region?: string
-		instance: string
-	}
-}
+import { StripeFdwHealthIndicator } from './stripe-fdw.health'
+import { SupabaseHealthIndicator } from './supabase.health'
 
 @Controller('health')
 export class HealthController {
 	private lastHealthCheck: SystemHealth | null = null
-	private healthCheckCache = new Map<string, { result: ServiceHealth; timestamp: number }>()
+	private healthCheckCache = new Map<
+		string,
+		{ result: ServiceHealth; timestamp: number }
+	>()
 
 	constructor(
 		private readonly health: HealthCheckService,
@@ -123,7 +91,8 @@ export class HealthController {
 	async checkStripeSyncHealth() {
 		const health = this.stripeSyncService.getHealthStatus()
 		return {
-			status: health.initialized && health.migrationsRun ? 'healthy' : 'unhealthy',
+			status:
+				health.initialized && health.migrationsRun ? 'healthy' : 'unhealthy',
 			...health,
 			timestamp: new Date().toISOString()
 		}
@@ -136,11 +105,12 @@ export class HealthController {
 
 		try {
 			// Parallel health checks for faster response
-			const [databaseHealth, stripeHealth, cacheHealth] = await Promise.allSettled([
-				this.checkDatabaseHealth(),
-				this.checkStripeHealth(),
-				this.checkCacheHealth()
-			])
+			const [databaseHealth, stripeHealth, cacheHealth] =
+				await Promise.allSettled([
+					this.checkDatabaseHealth(),
+					this.checkStripeHealth(),
+					this.checkCacheHealth()
+				])
 
 			const services = {
 				database: this.extractHealthResult(databaseHealth),
@@ -150,10 +120,18 @@ export class HealthController {
 
 			// Overall system status based on critical services
 			const criticalServices = ['database', 'cache']
-			const criticalHealthy = criticalServices.every(service => services[service as keyof typeof services]?.healthy)
-			const allHealthy = Object.values(services).every(service => service.healthy)
+			const criticalHealthy = criticalServices.every(
+				service => services[service as keyof typeof services]?.healthy
+			)
+			const allHealthy = Object.values(services).every(
+				service => service.healthy
+			)
 
-			const status = allHealthy ? 'healthy' : criticalHealthy ? 'degraded' : 'unhealthy'
+			const status = allHealthy
+				? 'healthy'
+				: criticalHealthy
+					? 'degraded'
+					: 'unhealthy'
 
 			const systemHealth: SystemHealth = {
 				status,
@@ -164,7 +142,10 @@ export class HealthController {
 				version: process.env.npm_package_version || '1.0.0',
 				deployment: {
 					environment: process.env.NODE_ENV || 'development',
-					region: process.env.RAILWAY_REGION || process.env.VERCEL_REGION || 'unknown',
+					region:
+						process.env.RAILWAY_REGION ||
+						process.env.VERCEL_REGION ||
+						'unknown',
 					instance: hostname()
 				}
 			}
@@ -174,14 +155,15 @@ export class HealthController {
 			// Log performance warning if response takes >100ms
 			const responseTime = Date.now() - startTime
 			if (responseTime > 100) {
-				this.logger.warn(
-					`Health check took ${responseTime}ms (target: <100ms)`
-				)
+				this.logger.warn(`Health check took ${responseTime}ms (target: <100ms)`)
 			}
 
 			return systemHealth
 		} catch (error) {
-			this.logger.error('System health check failed', error instanceof Error ? error.message : String(error))
+			this.logger.error(
+				'System health check failed',
+				error instanceof Error ? error.message : String(error)
+			)
 			throw error
 		}
 	}
@@ -192,19 +174,31 @@ export class HealthController {
 	@Get('services/database')
 	@Public()
 	async databaseHealth() {
-		return this.getCachedOrFresh('database', () => this.checkDatabaseHealth(), 30_000)
+		return this.getCachedOrFresh(
+			'database',
+			() => this.checkDatabaseHealth(),
+			30_000
+		)
 	}
 
 	@Get('services/stripe')
 	@Public()
 	async stripeHealthCheck() {
-		return this.getCachedOrFresh('stripe', () => this.checkStripeHealth(), 30_000)
+		return this.getCachedOrFresh(
+			'stripe',
+			() => this.checkStripeHealth(),
+			30_000
+		)
 	}
 
 	@Get('services/cache')
 	@Public()
 	async cacheHealthCheck() {
-		return this.getCachedOrFresh('cache', () => Promise.resolve(this.checkCacheHealth()), 10_000)
+		return this.getCachedOrFresh(
+			'cache',
+			() => Promise.resolve(this.checkCacheHealth()),
+			10_000
+		)
 	}
 
 	/**
@@ -219,10 +213,12 @@ export class HealthController {
 		return {
 			...performance,
 			cache,
-			healthCheckHistory: this.lastHealthCheck ? {
-				lastStatus: this.lastHealthCheck.status,
-				lastCheck: this.lastHealthCheck.timestamp
-			} : null,
+			healthCheckHistory: this.lastHealthCheck
+				? {
+						lastStatus: this.lastHealthCheck.status,
+						lastCheck: this.lastHealthCheck.timestamp
+					}
+				: null,
 			thresholds: {
 				memory: { warning: 80, critical: 95 },
 				cache: { memoryLimit: 100_000_000 }, // 100MB
@@ -238,26 +234,34 @@ export class HealthController {
 	@Public()
 	circuitBreakerStatus() {
 		const services = ['database', 'stripe', 'cache']
-		const status = services.reduce((acc, service) => {
-			const cached = this.healthCheckCache.get(service)
-			const isStale = !cached || Date.now() - cached.timestamp > 60_000
+		const status = services.reduce(
+			(acc, service) => {
+				const cached = this.healthCheckCache.get(service)
+				const isStale = !cached || Date.now() - cached.timestamp > 60_000
 
-			acc[service] = {
-				open: isStale || !cached.result.healthy,
-				lastSuccess: cached?.timestamp || null,
-				failureCount: 0 // Implement failure tracking if needed
-			}
-			return acc
-		}, {} as Record<string, {
-			open: boolean
-			lastSuccess: number | null
-			failureCount: number
-		}>)
+				acc[service] = {
+					open: isStale || !cached.result.healthy,
+					lastSuccess: cached?.timestamp || null,
+					failureCount: 0 // Implement failure tracking if needed
+				}
+				return acc
+			},
+			{} as Record<
+				string,
+				{
+					open: boolean
+					lastSuccess: number | null
+					failureCount: number
+				}
+			>
+		)
 
 		return {
 			timestamp: new Date().toISOString(),
 			services: status,
-			systemStatus: Object.values(status).some(s => s.open) ? 'degraded' : 'healthy'
+			systemStatus: Object.values(status).some(s => s.open)
+				? 'degraded'
+				: 'healthy'
 		}
 	}
 
@@ -276,7 +280,9 @@ export class HealthController {
 				healthy: false,
 				responseTime: Date.now() - startTime,
 				lastCheck: new Date().toISOString(),
-				details: { error: error instanceof Error ? error.message : String(error) }
+				details: {
+					error: error instanceof Error ? error.message : String(error)
+				}
 			}
 		}
 	}
@@ -296,7 +302,9 @@ export class HealthController {
 				healthy: false,
 				responseTime: Date.now() - startTime,
 				lastCheck: new Date().toISOString(),
-				details: { error: error instanceof Error ? error.message : String(error) }
+				details: {
+					error: error instanceof Error ? error.message : String(error)
+				}
 			}
 		}
 	}
@@ -323,9 +331,13 @@ export class HealthController {
 			uptime: Math.round(process.uptime()),
 			memory: {
 				used: Math.round(memoryUsage.heapUsed / 1024 / 1024),
-				free: Math.round((memoryUsage.heapTotal - memoryUsage.heapUsed) / 1024 / 1024),
+				free: Math.round(
+					(memoryUsage.heapTotal - memoryUsage.heapUsed) / 1024 / 1024
+				),
 				total: Math.round(memoryUsage.heapTotal / 1024 / 1024),
-				usagePercent: Math.round((memoryUsage.heapUsed / memoryUsage.heapTotal) * 100)
+				usagePercent: Math.round(
+					(memoryUsage.heapUsed / memoryUsage.heapTotal) * 100
+				)
 			},
 			cpu: {
 				user: Math.round(cpuUsage.user / 1000),
@@ -334,7 +346,9 @@ export class HealthController {
 		}
 	}
 
-	private extractHealthResult(result: PromiseSettledResult<ServiceHealth>): ServiceHealth {
+	private extractHealthResult(
+		result: PromiseSettledResult<ServiceHealth>
+	): ServiceHealth {
 		if (result.status === 'fulfilled') {
 			return result.value
 		}
@@ -345,7 +359,11 @@ export class HealthController {
 		}
 	}
 
-	private async getCachedOrFresh(key: string, fn: () => Promise<ServiceHealth>, maxAge: number): Promise<ServiceHealth> {
+	private async getCachedOrFresh(
+		key: string,
+		fn: () => Promise<ServiceHealth>,
+		maxAge: number
+	): Promise<ServiceHealth> {
 		const cached = this.healthCheckCache.get(key)
 
 		if (cached && Date.now() - cached.timestamp < maxAge) {
