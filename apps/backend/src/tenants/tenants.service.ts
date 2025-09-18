@@ -8,7 +8,7 @@
 
 import { Injectable, BadRequestException } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
-import { PinoLogger } from 'nestjs-pino'
+import { Logger } from '@nestjs/common'
 import { SupabaseService } from '../database/supabase.service'
 import { TenantCreatedEvent } from '../notifications/events/notification.events'
 import type {
@@ -49,10 +49,10 @@ export interface TenantWithRelations extends Tenant {
 export class TenantsService {
 	constructor(
 		private readonly supabaseService: SupabaseService,
-		private readonly logger: PinoLogger,
+		private readonly logger: Logger,
 		private readonly eventEmitter: EventEmitter2
 	) {
-		// PinoLogger context handled automatically via app-level configuration
+		// Logger context handled automatically via app-level configuration
 	}
 
 	/**

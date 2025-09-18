@@ -1,7 +1,13 @@
 'use client'
 
 import { Loader } from '@/components/ui/loader'
+<<<<<<< HEAD
 import { MagicCard } from '@/components/magicui/magic-card'
+||||||| 82bec1d5
+import { MagicCard } from '@/components/ui/magic-card'
+=======
+
+>>>>>>> origin/main
 import { cn } from '@/lib/utils'
 import { Lock } from 'lucide-react'
 
@@ -16,7 +22,7 @@ interface Props {
 
 export function LoadingOverlay({ business, showTrustSignals = true }: Props) {
 	return (
-		<MagicCard
+		<div
 			className={cn(
 				'card',
 				'w-full max-w-lg mx-auto p-8 shadow-2xl border-2',
@@ -50,6 +56,6 @@ export function LoadingOverlay({ business, showTrustSignals = true }: Props) {
 
 				<Loader />
 			</div>
-		</MagicCard>
+		</div>
 	)
 }

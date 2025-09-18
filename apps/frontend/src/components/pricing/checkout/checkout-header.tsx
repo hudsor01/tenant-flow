@@ -11,7 +11,7 @@ interface Props {
 	}
 }
 
-export function CheckoutHeader({ business }: Props) {
+export function CheckoutHeader({ business: _business }: Props) {
 	return (
 		<div className="text-center space-y-4">
 			<div className="flex items-center justify-center gap-3">

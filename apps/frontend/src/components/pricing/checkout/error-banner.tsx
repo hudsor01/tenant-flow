@@ -1,21 +1,29 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+<<<<<<< HEAD
 import { MagicCard } from '@/components/magicui/magic-card'
+||||||| 82bec1d5
+import { MagicCard } from '@/components/ui/magic-card'
+=======
+
+>>>>>>> origin/main
 import { cn } from '@/lib/utils'
 import { animated } from '@react-spring/web'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
 
+import type { SpringValue } from '@react-spring/web'
+
 interface Props {
 	error?: string
 	onRetry: () => void
-	errorSpring: any
+	errorSpring: { opacity: SpringValue<number>; scale: SpringValue<number> }
 }
 
 export function ErrorBanner({ error, onRetry, errorSpring }: Props) {
 	return (
 		<animated.div style={errorSpring}>
-			<MagicCard
+			<div
 				className={cn(
 					'card',
 					'w-full max-w-md mx-auto p-6 border-destructive/30 shadow-xl'
@@ -43,7 +51,7 @@ export function ErrorBanner({ error, onRetry, errorSpring }: Props) {
 						Try Again
 					</Button>
 				</div>
-			</MagicCard>
+			</div>
 		</animated.div>
 	)
 }

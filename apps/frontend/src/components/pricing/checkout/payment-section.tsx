@@ -6,6 +6,7 @@ import { animated } from '@react-spring/web'
 import { PaymentElement } from '@stripe/react-stripe-js'
 import type { Stripe, StripeElements } from '@stripe/stripe-js'
 import { AlertTriangle } from 'lucide-react'
+import type { SpringValue } from '@react-spring/web'
 
 interface Props {
 	clientSecret?: string
@@ -14,7 +15,7 @@ interface Props {
 	isProcessing: boolean
 	paymentStatus: 'idle' | 'processing' | 'succeeded' | 'failed'
 	error?: string
-	errorSpring: any
+	errorSpring: { opacity: SpringValue<number>; scale: SpringValue<number> }
 	onSubmit: (e: React.FormEvent) => void
 	amount: number
 	formatAmount: (cents: number) => string
@@ -28,7 +29,7 @@ interface Props {
 export function PaymentSection({
 	clientSecret,
 	stripe,
-	elements,
+	elements: _elements,
 	isProcessing,
 	paymentStatus,
 	error,

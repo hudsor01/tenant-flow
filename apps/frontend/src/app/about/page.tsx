@@ -1,6 +1,5 @@
 import { Navbar } from '@/components/navbar'
 import { Button } from '@/components/ui/button'
-import { ShimmerButton } from '@/components/magicui/shimmer-button'
 import { BlurFade } from '@/components/magicui/blur-fade'
 import { HeroAuthority } from '@/components/marketing/hero-authority'
 import {

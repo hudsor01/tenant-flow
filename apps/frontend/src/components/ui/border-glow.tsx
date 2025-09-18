@@ -16,7 +16,7 @@ export function BorderGlow({
 	children,
 	className,
 	duration = '15s',
-	size = 200,
+	size: _size = 200,
 	borderWidth = 1,
 	colorFrom = 'rgb(59, 130, 246)', // blue-500
 	colorTo = 'rgb(99, 102, 241)' // indigo-500

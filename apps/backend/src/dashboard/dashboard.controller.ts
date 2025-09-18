@@ -2,7 +2,7 @@ import { Controller, Get, Optional, Query, NotFoundException } from '@nestjs/com
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger'
 import type { AuthServiceValidatedUser } from '@repo/shared'
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
-import { PinoLogger } from 'nestjs-pino'
+import { Logger } from '@nestjs/common'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
 import { Public } from '../shared/decorators/public.decorator'
 import { DashboardService } from './dashboard.service'
@@ -12,9 +12,9 @@ import { DashboardService } from './dashboard.service'
 export class DashboardController {
 	constructor(
 		@Optional() private readonly dashboardService?: DashboardService,
-		@Optional() private readonly logger?: PinoLogger
+		@Optional() private readonly logger?: Logger
 	) {
-		// PinoLogger context handled automatically via app-level configuration
+		// Logger context handled automatically via app-level configuration
 	}
 
 	@Get('stats')
@@ -24,7 +24,7 @@ export class DashboardController {
 		description: 'Dashboard statistics retrieved successfully'
 	})
 	async getStats(): Promise<ControllerApiResponse> {
-		this.logger?.info({ action: 'getStats' }, 'Getting dashboard stats')
+		this.logger?.log({ action: 'getStats' }, 'Getting dashboard stats')
 
 		if (!this.dashboardService) {
 			throw new NotFoundException('Dashboard service not available')
@@ -48,7 +48,7 @@ export class DashboardController {
 	async getActivity(
 		@CurrentUser() user?: AuthServiceValidatedUser
 	): Promise<ControllerApiResponse> {
-		this.logger?.info(
+		this.logger?.log(
 			{
 				dashboard: {
 					action: 'getActivity',
@@ -106,7 +106,7 @@ export class DashboardController {
 		@Query('startDate') startDate?: string,
 		@Query('endDate') endDate?: string
 	): Promise<ControllerApiResponse> {
-		this.logger?.info(
+		this.logger?.log(
 			{
 				dashboard: {
 					action: 'getBillingInsights',
@@ -155,7 +155,7 @@ export class DashboardController {
 		description: 'Billing insights availability status'
 	})
 	async getBillingHealth(): Promise<ControllerApiResponse> {
-		this.logger?.info(
+		this.logger?.log(
 			{
 				dashboard: {
 					action: 'getBillingHealth'
@@ -205,7 +205,7 @@ export class DashboardController {
 	async getPropertyPerformance(
 		@CurrentUser() user?: AuthServiceValidatedUser
 	): Promise<ControllerApiResponse> {
-		this.logger?.info(
+		this.logger?.log(
 			{
 				dashboard: {
 					action: 'getPropertyPerformance',
@@ -242,7 +242,7 @@ export class DashboardController {
 		description: 'System uptime metrics retrieved successfully'
 	})
 	async getUptime(): Promise<ControllerApiResponse> {
-		this.logger?.info(
+		this.logger?.log(
 			{
 				dashboard: {
 					action: 'getUptime'

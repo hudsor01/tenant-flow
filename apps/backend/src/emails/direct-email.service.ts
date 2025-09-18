@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { PinoLogger } from 'nestjs-pino'
+import { Logger } from '@nestjs/common'
 import { Resend } from 'resend'
 import type { Config } from '../config/config.schema'
 import { MaintenanceRequestEmail } from './maintenance-request-email'
@@ -18,9 +18,9 @@ export class DirectEmailService {
 
   constructor(
     private readonly configService: ConfigService<Config>,
-    private readonly logger: PinoLogger
+    private readonly logger: Logger
   ) {
-    // PinoLogger context handled automatically via app-level configuration
+    // Logger context handled automatically via app-level configuration
     const resendKey = this.configService.get('RESEND_API_KEY') as string
     if (!resendKey) {
       throw new InternalServerErrorException('RESEND_API_KEY is required for email functionality')
@@ -29,7 +29,7 @@ export class DirectEmailService {
     this.resend = new Resend(resendKey)
     this.fromAddress = 'TenantFlow <noreply@tenantflow.app>'
     
-    this.logger.info(
+    this.logger.log(
       {
         email: {
           provider: 'resend',
@@ -74,7 +74,7 @@ export class DirectEmailService {
         throw new InternalServerErrorException(`Resend error: ${error.message}`)
       }
 
-      this.logger.info(
+      this.logger.log(
         {
           email: {
             type: 'maintenance_notification',
@@ -127,7 +127,7 @@ export class DirectEmailService {
         throw new InternalServerErrorException(`Resend error: ${error.message}`)
       }
 
-      this.logger.info(`Simple email sent: ${data?.id}`)
+      this.logger.log(`Simple email sent: ${data?.id}`)
     } catch (error) {
       this.logger.error(`Failed to send simple email: ${error}`)
       throw error

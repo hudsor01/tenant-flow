@@ -15,7 +15,7 @@ export function GlowingEffect({
   children,
   className,
   glowColor = "hsl(var(--primary))",
-  glowSize = "20px",
+  glowSize: _glowSize = "20px",
   glowOpacity = 0.4,
 }: GlowingEffectProps) {
   return (

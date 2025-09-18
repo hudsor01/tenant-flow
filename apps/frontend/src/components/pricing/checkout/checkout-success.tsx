@@ -1,19 +1,25 @@
 "use client"
 
+<<<<<<< HEAD
 import { MagicCard } from '@/components/magicui/magic-card'
+||||||| 82bec1d5
+import { MagicCard } from '@/components/ui/magic-card'
+=======
+
+>>>>>>> origin/main
 import { CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { animated } from '@react-spring/web'
 
 type Props = {
   amountText: string
-  spring: any
+  spring: { opacity: number; transform: string }
 }
 
 export function CheckoutSuccess({ amountText, spring }: Props) {
   return (
     <animated.div style={spring}>
-      <MagicCard
+      <div
         className={cn(
           'card-base',
           'w-full max-w-md mx-auto p-6 border-slate-200 dark:border-slate-800 shadow-xl'
@@ -30,7 +36,7 @@ export function CheckoutSuccess({ amountText, spring }: Props) {
             </p>
           </div>
         </div>
-      </MagicCard>
+      </div>
     </animated.div>
   )
 }

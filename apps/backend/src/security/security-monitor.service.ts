@@ -1,11 +1,8 @@
-import { Injectable } from '@nestjs/common'
-import { PinoLogger } from 'nestjs-pino'
+import { Injectable, Logger } from '@nestjs/common'
 
 @Injectable()
 export class SecurityMonitorService {
-	constructor(private readonly logger: PinoLogger) {
-		// PinoLogger context handled automatically via app-level configuration
-	}
+	private readonly logger = new Logger(SecurityMonitorService.name)
 
 	logSecurityEvent(event: string, details: Record<string, unknown> = {}) {
 		this.logger.warn(

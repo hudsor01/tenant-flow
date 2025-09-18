@@ -1,11 +1,11 @@
 /**
  * Resilience Service - Zero-Downtime Architecture
  * Ultra-simple implementation following CLAUDE.md principles
- * Integrates with existing PinoLogger patterns
+ * Integrates with existing Logger patterns
  */
 
 import { Injectable, Optional } from '@nestjs/common'
-import { PinoLogger } from 'nestjs-pino'
+import { Logger } from '@nestjs/common'
 
 interface CacheEntry<T = any> {
 	data: T
@@ -17,7 +17,7 @@ interface CacheEntry<T = any> {
 export class ResilienceService {
 	private cache = new Map<string, CacheEntry>()
 
-	constructor(@Optional() private readonly logger?: PinoLogger) {
+	constructor(@Optional() private readonly logger?: Logger) {
 		// Auto-cleanup expired entries every 30 seconds
 		setInterval(() => this.cleanupExpired(), 30_000)
 	}

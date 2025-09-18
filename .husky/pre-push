@@ -1,0 +1,20 @@
+. "$(dirname -- "$0")/init.sh"
+
+# Husky v9.1.7 optimized pre-push hook
+# Runs parallel checks using Turbo for maximum speed
+
+echo "🔍 Running pre-push validation..."
+
+# Use Turbo's built-in parallelization for all checks
+# Filter only changed files since HEAD^1 for speed
+npx turbo run typecheck lint build test:unit \
+  --cache-dir=.turbo \
+  --filter='[HEAD^1]' \
+  --concurrency=10 || {
+    echo "❌ Pre-push checks failed!"
+    echo "Fix errors before pushing to avoid CI/CD failures."
+    echo "Use 'git push --no-verify' to bypass (not recommended)."
+    exit 1
+}
+
+echo "✅ All checks passed! Pushing to remote..."

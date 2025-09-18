@@ -1,6 +1,5 @@
 "use client"
 
-import { MagicCard } from '@/components/magicui/magic-card'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -9,13 +8,13 @@ import { animated } from '@react-spring/web'
 type Props = {
   message: string
   onRetry: () => void
-  spring: any
+  spring: { opacity: number; transform: string }
 }
 
 export function CheckoutError({ message, onRetry, spring }: Props) {
   return (
     <animated.div style={spring}>
-      <MagicCard
+      <div
         className={cn(
           'card-base',
           'w-full max-w-md mx-auto p-6 border-destructive/30 shadow-xl'
@@ -34,7 +33,7 @@ export function CheckoutError({ message, onRetry, spring }: Props) {
             Try Again
           </Button>
         </div>
-      </MagicCard>
+      </div>
     </animated.div>
   )
 }

@@ -23,6 +23,7 @@ export { logger } from './lib/frontend-logger'
 
 export { formatCurrency } from './utils/currency'
 export { getCORSConfig } from './security/cors-config'
+export { getCSPString } from './security/csp-config'
 export { getPriceId, getAllPlans, formatPrice, getAnnualSavings } from './stripe/config'
 
 // ============================================================================
@@ -128,6 +129,24 @@ export type {
   AppleGlass,
   AppleMotionPreset
 } from './constants/motion-system'
+
+// ============================================================================
+// APPLE COLOR SYSTEM - EXACT PALETTE FOR DASHBOARD ANALYTICS
+// ============================================================================
+export {
+  APPLE_SYSTEM_COLORS,
+  PROPERTY_ANALYTICS_COLORS,
+  APPLE_CHART_PALETTES,
+  APPLE_GRADIENTS,
+  APPLE_ACCESSIBLE_PAIRS
+} from './constants/apple-colors'
+
+export type {
+  AppleSystemColor,
+  PropertyAnalyticsColorCategory,
+  AppleChartPalette,
+  AppleGradient
+} from './constants/apple-colors'
 
 export const MAINTENANCE_CATEGORY = {
   GENERAL: 'GENERAL',
