@@ -22,6 +22,7 @@ export * from './backend-domain'
 export * from './domain'
 export type {
 	HealthCheckResult,
+	PerformanceMetrics,
 	SecurityEvent,
 	SecurityEventType,
 	SecurityMetrics,
@@ -53,6 +54,12 @@ export type { PropertyInput, PropertyUpdate } from '../validation/properties'
 export type { TenantInput } from '../validation/tenants'
 
 export type { LeaseInput, LeaseUpdate } from '../validation/leases'
+
+// Lease generator types
+export type { LeaseFormData, StateLeaseRequirements } from './lease-generator.types'
+
+// Controller response types (from errors.ts)
+export type { ControllerApiResponse } from './errors'
 
 // Security permissions (business rules)
 export { Permission } from './security'
