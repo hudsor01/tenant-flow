@@ -1,6 +1,19 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
 export async function middleware(request: NextRequest) {
+	const pathname = request.nextUrl.pathname
+
+	// Skip middleware for static files and API routes
+	if (
+		pathname.startsWith('/_next/static') ||
+		pathname.startsWith('/_next/image') ||
+		pathname === '/favicon.ico' ||
+		pathname.startsWith('/api') ||
+		/\.(svg|png|jpg|jpeg|gif|webp)$/i.test(pathname)
+	) {
+		return NextResponse.next()
+	}
+
 	const response = NextResponse.next({
 		request: {
 			headers: request.headers
@@ -27,8 +40,6 @@ export async function middleware(request: NextRequest) {
 		const isDevelopment = process.env.NODE_ENV === 'development'
 		const enableMockAuth = process.env.ENABLE_MOCK_AUTH === 'true'
 		const isAuthenticated = (isDevelopment && enableMockAuth) || hasSupabaseAuth
-
-		const pathname = request.nextUrl.pathname
 
 		// Debug logging in development
 		if (process.env.NODE_ENV === 'development') {
@@ -106,7 +117,9 @@ export const config = {
 		 * - favicon.ico (favicon file)
 		 * - api (API routes)
 		 * - public assets
+		 *
+		 * Using simple path pattern - exclusions handled in middleware function
 		 */
-		'/((?!_next/static|_next/image|favicon.ico|api|.*\\.(svg|png|jpg|jpeg|gif|webp)).*)'
+		'/:path*'
 	]
 }

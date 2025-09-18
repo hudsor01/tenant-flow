@@ -11,22 +11,19 @@ import {
 	UseGuards
 } from '@nestjs/common'
 import { Throttle } from '@nestjs/throttler'
-import { AuthGuard } from '../shared/guards/auth.guard'
-import { CurrentUser } from '../shared/decorators/current-user.decorator'
-import { AuthService } from './auth.service'
-import { Public } from '../shared/decorators/auth.decorators'
 import type { ValidatedUser } from '@repo/shared'
 import type { FastifyRequest } from 'fastify'
+import { Public } from '../shared/decorators/auth.decorators'
+import { CurrentUser } from '../shared/decorators/current-user.decorator'
+import { AuthGuard } from '../shared/guards/auth.guard'
+import { AuthService } from './auth.service'
 // Using native Fastify JSON Schema validation - no DTOs needed
 // Validation is handled by Fastify schema at route level
 
 @Controller('auth')
 export class AuthController {
-	private readonly authService: AuthService
-
-	constructor() {
-		// Ultra-native: Create AuthService instance directly to bypass DI issues
-		this.authService = new AuthService()
+	constructor(private readonly authService: AuthService) {
+		// Use proper dependency injection for security
 	}
 
 	/**
@@ -50,7 +47,8 @@ export class AuthController {
 			connected = false
 		}
 
-		const healthy = envChecks.supabase_url && envChecks.supabase_service_key && connected
+		const healthy =
+			envChecks.supabase_url && envChecks.supabase_service_key && connected
 
 		return {
 			status: healthy ? 'healthy' : 'unhealthy',
@@ -99,7 +97,10 @@ export class AuthController {
 	@Public()
 	@Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 login attempts per minute
 	@HttpCode(HttpStatus.OK)
-	async login(@Body() body: { email: string; password: string }, @Req() request: FastifyRequest) {
+	async login(
+		@Body() body: { email: string; password: string },
+		@Req() request: FastifyRequest
+	) {
 		const forwardedFor = request.headers['x-forwarded-for']
 		const ip =
 			request.ip ||
@@ -117,7 +118,15 @@ export class AuthController {
 	@Public()
 	@Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 registration attempts per minute
 	@HttpCode(HttpStatus.CREATED)
-	async register(@Body() body: { email: string; password: string; firstName: string; lastName: string }) {
+	async register(
+		@Body()
+		body: {
+			email: string
+			password: string
+			firstName: string
+			lastName: string
+		}
+	) {
 		// Transform firstName/lastName to name for service compatibility
 		const userData = {
 			email: body.email,
@@ -155,7 +164,14 @@ export class AuthController {
 	@Public()
 	@Throttle({ default: { limit: 10, ttl: 60000 } })
 	@HttpCode(HttpStatus.OK)
-	async saveDraft(@Body() body: { email?: string; name?: string; formType: 'signup' | 'login' | 'reset' }) {
+	async saveDraft(
+		@Body()
+		body: {
+			email?: string
+			name?: string
+			formType: 'signup' | 'login' | 'reset'
+		}
+	) {
 		return this.authService.saveDraft(body)
 	}
 
@@ -166,8 +182,12 @@ export class AuthController {
 	@Get('draft/:formType')
 	@Public()
 	@Throttle({ default: { limit: 20, ttl: 60000 } })
-	async getDraft(@Body() body: { sessionId?: string }, @Req() request: FastifyRequest) {
-		const sessionId = body.sessionId || request.headers['x-session-id'] as string
+	async getDraft(
+		@Body() body: { sessionId?: string },
+		@Req() request: FastifyRequest
+	) {
+		const sessionId =
+			body.sessionId || (request.headers['x-session-id'] as string)
 		return this.authService.getDraft(sessionId)
 	}
 }
