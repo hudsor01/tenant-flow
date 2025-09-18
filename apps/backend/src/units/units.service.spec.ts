@@ -20,7 +20,7 @@ import { UnitsService } from './units.service'
 describe('UnitsService', () => {
 	let service: UnitsService
 	let supabaseService: SupabaseService
-	let logger: Logger
+	let loggerErrorSpy: jest.SpyInstance
 
 	// Mock Supabase admin client
 	const mockSupabaseClient = {
@@ -31,16 +31,24 @@ describe('UnitsService', () => {
 	beforeEach(async () => {
 		jest.clearAllMocks()
 
-		const mockSupabaseService = {
-			getAdminClient: jest.fn(() => mockSupabaseClient)
-		}
-
-		const mockLogger = {
+		// Mock the Logger class methods
+		const mockLoggerMethods = {
 			log: jest.fn(),
 			error: jest.fn(),
 			warn: jest.fn(),
 			debug: jest.fn(),
 			verbose: jest.fn()
+		}
+
+		// Override the Logger constructor to return our mock
+		jest.spyOn(Logger.prototype, 'log').mockImplementation(mockLoggerMethods.log)
+		jest.spyOn(Logger.prototype, 'error').mockImplementation(mockLoggerMethods.error)
+		jest.spyOn(Logger.prototype, 'warn').mockImplementation(mockLoggerMethods.warn)
+		jest.spyOn(Logger.prototype, 'debug').mockImplementation(mockLoggerMethods.debug)
+		jest.spyOn(Logger.prototype, 'verbose').mockImplementation(mockLoggerMethods.verbose)
+
+		const mockSupabaseService = {
+			getAdminClient: jest.fn(() => mockSupabaseClient)
 		}
 
 		const module: TestingModule = await Test.createTestingModule({
@@ -49,10 +57,6 @@ describe('UnitsService', () => {
 				{
 					provide: SupabaseService,
 					useValue: mockSupabaseService
-				},
-				{
-					provide: Logger,
-					useValue: mockLogger
 				}
 			]
 		})
@@ -61,7 +65,7 @@ describe('UnitsService', () => {
 
 		service = module.get<UnitsService>(UnitsService)
 		supabaseService = module.get<SupabaseService>(SupabaseService)
-		logger = module.get<Logger>(Logger)
+		loggerErrorSpy = Logger.prototype.error as jest.MockedFunction<typeof Logger.prototype.error>
 	})
 
 	describe('Service Initialization', () => {
@@ -145,7 +149,7 @@ describe('UnitsService', () => {
 			await expect(service.findAll(userId, query)).rejects.toThrow(
 				BadRequestException
 			)
-			expect(logger.error).toHaveBeenCalledWith('Failed to get units', {
+			expect(loggerErrorSpy).toHaveBeenCalledWith('Failed to get units', {
 				userId,
 				error: 'Units query failed'
 			})
@@ -190,7 +194,7 @@ describe('UnitsService', () => {
 			await expect(service.getStats(userId)).rejects.toThrow(
 				BadRequestException
 			)
-			expect(logger.error).toHaveBeenCalledWith('Failed to get unit stats', {
+			expect(loggerErrorSpy).toHaveBeenCalledWith('Failed to get unit stats', {
 				userId,
 				error: 'Stats calculation error'
 			})
@@ -238,7 +242,7 @@ describe('UnitsService', () => {
 			const result = await service.findOne(userId, unitId)
 
 			expect(result).toBeNull()
-			expect(logger.error).toHaveBeenCalledWith('Failed to get unit', {
+			expect(loggerErrorSpy).toHaveBeenCalledWith('Failed to get unit', {
 				userId,
 				unitId,
 				error: 'Unit not found'
@@ -334,7 +338,7 @@ describe('UnitsService', () => {
 			await expect(service.create(userId, createRequest)).rejects.toThrow(
 				BadRequestException
 			)
-			expect(logger.error).toHaveBeenCalledWith('Failed to create unit', {
+			expect(loggerErrorSpy).toHaveBeenCalledWith('Failed to create unit', {
 				userId,
 				error: 'Unit number already exists'
 			})
@@ -394,7 +398,7 @@ describe('UnitsService', () => {
 			const result = await service.update(userId, unitId, updateRequest)
 
 			expect(result).toBeNull()
-			expect(logger.error).toHaveBeenCalledWith('Failed to update unit', {
+			expect(loggerErrorSpy).toHaveBeenCalledWith('Failed to update unit', {
 				userId,
 				unitId,
 				error: 'Update failed: unit has active lease'
@@ -430,7 +434,7 @@ describe('UnitsService', () => {
 			await expect(service.remove(userId, unitId)).rejects.toThrow(
 				BadRequestException
 			)
-			expect(logger.error).toHaveBeenCalledWith('Failed to delete unit', {
+			expect(loggerErrorSpy).toHaveBeenCalledWith('Failed to delete unit', {
 				userId,
 				unitId,
 				error: 'Cannot delete unit with active tenant'
