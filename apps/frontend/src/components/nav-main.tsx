@@ -5,12 +5,13 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import * as React from 'react'
 
-import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+import { Button } from 'src/components/ui/button'
 import {
 	Collapsible,
 	CollapsibleContent,
 	CollapsibleTrigger
-} from '@/components/ui/collapsible'
+} from 'src/components/ui/collapsible'
 import {
 	SidebarGroup,
 	SidebarGroupContent,
@@ -20,8 +21,7 @@ import {
 	SidebarMenuSub,
 	SidebarMenuSubButton,
 	SidebarMenuSubItem
-} from '@/components/ui/sidebar'
-import { cn } from '@/lib/utils'
+} from 'src/components/ui/sidebar'
 
 interface NavMainProps extends React.ComponentProps<typeof SidebarGroup> {
 	items: {

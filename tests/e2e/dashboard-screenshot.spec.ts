@@ -11,11 +11,7 @@ test.describe('Dashboard Screenshot', () => {
 		// Wait for any potential loading states to complete
 		await page.waitForTimeout(2000)
 
-		// Take a full page screenshot
-		await page.screenshot({
-			path: 'dashboard-screenshot.png',
-			fullPage: true
-		})
+		// Screenshot removed - visual validation no longer needed
 
 		// Verify we're on the dashboard page
 		expect(page.url()).toContain('/dashboard')
@@ -28,10 +24,6 @@ test.describe('Dashboard Screenshot', () => {
 		const cardElements = await page.locator('[class*="card"]').count()
 		console.log('Found card-like elements:', cardElements)
 
-		// Take an additional screenshot of just the viewport
-		await page.screenshot({
-			path: 'dashboard-screenshot-viewport.png',
-			fullPage: false
-		})
+		// Screenshot removed - viewport visual validation no longer needed
 	})
 })

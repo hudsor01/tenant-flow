@@ -16,11 +16,11 @@ export function CheckoutSuccess({ amountText, spring }: Props) {
       <div
         className={cn(
           'card-base',
-          'w-full max-w-md mx-auto p-6 border-slate-200 dark:border-slate-800 shadow-xl'
+          'w-full max-w-md mx-auto p-6 border-border shadow-xl'
         )}
       >
         <div className="text-center space-y-6">
-          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-900/20 mx-auto animate-bounce">
+          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-muted mx-auto animate-bounce">
             <CheckCircle2 className="h-8 w-8 text-success" />
           </div>
           <div className="space-y-2">

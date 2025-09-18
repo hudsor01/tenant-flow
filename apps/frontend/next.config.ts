@@ -9,8 +9,6 @@ if (
 
 const nextConfig: NextConfig = {
 	reactStrictMode: true,
-
-	// Enable React Compiler for automatic optimization
 	experimental: {
 		reactCompiler: true,
 		serverMinification: false
@@ -21,10 +19,8 @@ const nextConfig: NextConfig = {
 	},
 	async headers() {
 		const isDev = process.env.NODE_ENV === 'development'
-
 		return [
 			{
-				// API routes security
 				source: '/api/(.*)',
 				headers: [
 					{
@@ -50,7 +46,6 @@ const nextConfig: NextConfig = {
 				]
 			},
 			{
-				// Global security headers
 				source: '/(.*)',
 				headers: [
 					{
@@ -124,5 +119,4 @@ const nextConfig: NextConfig = {
 		imageSizes: [16, 32, 48, 64, 96, 128, 256, 384]
 	}
 }
-
 export default nextConfig

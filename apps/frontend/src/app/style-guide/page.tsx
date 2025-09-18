@@ -1,18 +1,5 @@
 'use client'
 
-import { NumberTicker } from '@/components/magicui/number-ticker'
-import { ShimmerButton } from '@/components/magicui/shimmer-button'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle
-} from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Separator } from '@/components/ui/separator'
 import {
 	ArrowRight,
 	Building2,
@@ -24,7 +11,20 @@ import {
 	TrendingUp,
 	Users
 } from 'lucide-react'
-import { PageLayout } from '@/components/layout/page-layout'
+import { PageLayout } from 'src/components/layout/page-layout'
+import { NumberTicker } from 'src/components/magicui/number-ticker'
+import { ShimmerButton } from 'src/components/magicui/shimmer-button'
+import { Badge } from 'src/components/ui/badge'
+import { Button } from 'src/components/ui/button'
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle
+} from 'src/components/ui/card'
+import { Input } from 'src/components/ui/input'
+import { Separator } from 'src/components/ui/separator'
 
 export default function StyleGuidePage() {
 	return (
@@ -68,45 +68,74 @@ export default function StyleGuidePage() {
 							<p className="text-xs text-muted-foreground">Subtle background</p>
 						</div>
 					</div>
-      </section>
+				</section>
 
-      {/* Design System Utilities */}
-      <section className="section-content">
-        <h2 className="text-2xl font-semibold mb-4">Design System Utilities</h2>
-        <div className="grid md:grid-cols-2 gap-6">
-          <div className="card-elevated-authority card-padding rounded-xl">
-            <h3 className="heading-md mb-3">Typography</h3>
-            <ul className="text-sm text-muted-foreground space-y-1">
-              <li><code>display-2xl</code> • <code>display-xl</code> • <code>display-lg</code></li>
-              <li><code>heading-xl</code> • <code>heading-lg</code> • <code>heading-md</code></li>
-              <li><code>body-lg</code> • <code>body-md</code> • <code>body-sm</code></li>
-            </ul>
-          </div>
-          <div className="card-elevated-authority card-padding rounded-xl">
-            <h3 className="heading-md mb-3">Spacing</h3>
-            <ul className="text-sm text-muted-foreground space-y-1">
-              <li><code>section-hero</code> (py-24)</li>
-              <li><code>section-content</code> (py-16)</li>
-              <li><code>card-padding</code> (p-8) • <code>compact-padding</code> (p-4)</li>
-            </ul>
-          </div>
-          <div className="card-elevated-authority card-padding rounded-xl">
-            <h3 className="heading-md mb-3">Gradients</h3>
-            <ul className="text-sm text-muted-foreground space-y-1">
-              <li><code>gradient-authority</code> • <code>gradient-professional</code></li>
-              <li><code>text-gradient-authority</code></li>
-              <li>Cards: <code>card-elevated-authority</code></li>
-            </ul>
-          </div>
-          <div className="card-elevated-authority card-padding rounded-xl">
-            <h3 className="heading-md mb-3">Buttons</h3>
-            <ul className="text-sm text-muted-foreground space-y-1">
-              <li>Primary: <code>btn-gradient-primary</code></li>
-              <li>Dark: <code>btn-gradient-primary-dark</code></li>
-            </ul>
-          </div>
-        </div>
-      </section>
+				{/* Design System Utilities */}
+				<section className="section-content">
+					<h2 className="text-2xl font-semibold mb-4">
+						Design System Utilities
+					</h2>
+					<div className="grid md:grid-cols-2 gap-6">
+						<div className="card-elevated-authority card-padding rounded-xl">
+							<h3 className="heading-md mb-3">Typography</h3>
+							<ul className="text-sm text-muted-foreground space-y-1">
+								<li>
+									<code>display-2xl</code> • <code>display-xl</code> •{' '}
+									<code>display-lg</code>
+								</li>
+								<li>
+									<code>heading-xl</code> • <code>heading-lg</code> •{' '}
+									<code>heading-md</code>
+								</li>
+								<li>
+									<code>body-lg</code> • <code>body-md</code> •{' '}
+									<code>body-sm</code>
+								</li>
+							</ul>
+						</div>
+						<div className="card-elevated-authority card-padding rounded-xl">
+							<h3 className="heading-md mb-3">Spacing</h3>
+							<ul className="text-sm text-muted-foreground space-y-1">
+								<li>
+									<code>section-hero</code> (py-24)
+								</li>
+								<li>
+									<code>section-content</code> (py-16)
+								</li>
+								<li>
+									<code>card-padding</code> (p-8) • <code>compact-padding</code>{' '}
+									(p-4)
+								</li>
+							</ul>
+						</div>
+						<div className="card-elevated-authority card-padding rounded-xl">
+							<h3 className="heading-md mb-3">Gradients</h3>
+							<ul className="text-sm text-muted-foreground space-y-1">
+								<li>
+									<code>gradient-authority</code> •{' '}
+									<code>gradient-professional</code>
+								</li>
+								<li>
+									<code>text-gradient-authority</code>
+								</li>
+								<li>
+									Cards: <code>card-elevated-authority</code>
+								</li>
+							</ul>
+						</div>
+						<div className="card-elevated-authority card-padding rounded-xl">
+							<h3 className="heading-md mb-3">Buttons</h3>
+							<ul className="text-sm text-muted-foreground space-y-1">
+								<li>
+									Primary: <code>btn-gradient-primary</code>
+								</li>
+								<li>
+									Dark: <code>btn-gradient-primary-dark</code>
+								</li>
+							</ul>
+						</div>
+					</div>
+				</section>
 
 				{/* Button System */}
 				<section>
@@ -141,7 +170,7 @@ export default function StyleGuidePage() {
 						<h3 className="text-xl font-medium">Magic UI Components</h3>
 						<div className="flex flex-wrap gap-4">
 							<ShimmerButton>Shimmer Effect</ShimmerButton>
-							<ShimmerButton className="bg-gradient-to-r from-blue-500 to-purple-600">
+							<ShimmerButton className="bg-gradient-to-r from-primary to-accent">
 								Custom Gradient
 							</ShimmerButton>
 						</div>
@@ -278,10 +307,10 @@ export default function StyleGuidePage() {
 							</CardContent>
 						</Card>
 
-                    <Card className="card-elevated-authority">
+						<Card className="card-elevated-authority">
 							<CardHeader>
 								<CardTitle className="flex items-center gap-2">
-									<Star className="h-5 w-5 text-yellow-500" />
+									<Star className="h-5 w-5 text-accent" />
 									Marketing Pages
 								</CardTitle>
 								<CardDescription>
@@ -431,9 +460,9 @@ export default function StyleGuidePage() {
 					{/* Marketing Layout */}
 					<div className="space-y-6">
 						<h3 className="text-xl font-medium">Marketing Layout</h3>
-                            <div className="surface-glow rounded-lg card-padding">
+						<div className="surface-glow rounded-lg card-padding">
 							<div className="container text-center">
-                                <h4 className="display-xl text-gradient-authority mb-4">
+								<h4 className="display-xl text-gradient-authority mb-4">
 									Transform Your Property Management
 								</h4>
 								<p className="text-lg text-muted-foreground mb-8">

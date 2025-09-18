@@ -46,7 +46,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 				}
 			],
 				ctaText = 'Get Started',
-				ctaHref = '/auth/sign-up',
+				ctaHref = '/signup',
 			...props
 		},
 		ref
@@ -187,10 +187,10 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 				ref={ref}
 				style={navbarSpring}
 				className={cn(
-					'fixed top-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 rounded-2xl px-6 py-4 w-[95%] max-w-5xl',
+					'fixed top-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 rounded-2xl px-6 py-4 w-[95%] max-w-6xl',
 					isScrolled
-						? 'bg-white shadow-xl border border-gray-300'
-						: 'bg-white/95 shadow-lg border border-gray-200',
+						? 'bg-background/95 backdrop-blur-xl shadow-2xl border border-border/50'
+						: 'bg-background/90 backdrop-blur-lg shadow-xl border border-border/30',
 					className
 				)}
 				{...props}
@@ -213,7 +213,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 								priority
 							/>
 						</div>
-						<span className="text-xl font-bold text-gray-900">{logo}</span>
+						<span className="text-xl font-bold text-foreground">{logo}</span>
 					</animated.div>
 
 					{/* Desktop Navigation */}
@@ -234,7 +234,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 								<animated.div style={getNavItemStyle(item.name)}>
 									<Link
 										href={item.href}
-										className="flex items-center px-4 py-2 text-gray-700 hover:text-gray-900 font-medium text-sm rounded-xl hover:bg-gray-100/50 transition-all duration-200"
+										className="flex items-center px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-muted/50 transition-all duration-200"
 									>
 										{item.name}
 										{item.hasDropdown && (
@@ -248,7 +248,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 									dropdownName === item.name ? (
 										<animated.div
 											style={style}
-											className="absolute top-full left-0 mt-2 w-56 bg-white/98 backdrop-blur-lg rounded-xl shadow-xl border border-gray-200/50 py-2"
+											className="absolute top-full left-0 mt-2 w-56 bg-background/98 backdrop-blur-lg rounded-xl shadow-xl border border-border/50 py-2"
 										>
 											{item.dropdownItems?.map(dropdownItem => (
 												<animated.div
@@ -259,7 +259,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 												>
 													<Link
 														href={dropdownItem.href}
-														className="block px-4 py-2.5 text-gray-800 hover:bg-primary/5 hover:text-primary transition-all duration-200 font-medium text-sm"
+														className="block px-4 py-2.5 text-foreground hover:bg-primary/5 hover:text-primary transition-all duration-200 font-medium text-sm"
 													>
 														{dropdownItem.name}
 													</Link>
@@ -297,7 +297,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 						) : (
 							<>
 								<Link
-									href="/auth/login"
+									href="/login"
 									className="hidden sm:flex px-4 py-2 text-foreground hover:text-foreground rounded-xl hover:bg-muted/50 transition-all duration-300 font-medium"
 								>
 									Sign In
@@ -434,7 +434,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 											onMouseLeave={() => setHoveredMobileItem(null)}
 										>
 											<Link
-												href="/auth/login"
+												href="/login"
 												onClick={() => setIsOpen(false)}
 												className="block px-4 py-3 text-foreground hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-200"
 											>

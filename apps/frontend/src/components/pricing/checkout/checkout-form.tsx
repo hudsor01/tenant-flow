@@ -1,6 +1,6 @@
 'use client'
 
-import { CardContent, CardHeader } from '@/components/ui/card'
+import { CardContent, CardHeader } from 'src/components/ui/card'
 
 import { cn } from '@/lib/utils'
 import { animated } from '@react-spring/web'

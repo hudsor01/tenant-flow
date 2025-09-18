@@ -183,8 +183,8 @@ export function badgeClasses(
 			'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',
 		destructive:
 			'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80',
-		success: 'border-transparent bg-green-500 text-white hover:bg-green-600',
-		warning: 'border-transparent bg-yellow-500 text-white hover:bg-yellow-600',
+		success: 'border-transparent bg-accent text-accent-foreground hover:bg-accent/80',
+		warning: 'border-transparent bg-muted text-muted-foreground hover:bg-muted/80',
 		outline:
 			'border-input text-foreground hover:bg-accent hover:text-accent-foreground'
 	}
@@ -391,11 +391,11 @@ export function statusClasses(
 	}
 
 	const statusClasses = {
-		success: 'bg-green-500',
-		warning: 'bg-yellow-500',
-		error: 'bg-red-500',
-		info: 'bg-blue-500',
-		pending: 'bg-gray-400'
+		success: 'bg-accent',
+		warning: 'bg-muted',
+		error: 'bg-destructive',
+		info: 'bg-primary',
+		pending: 'bg-muted'
 	}
 
 	return cn(baseClasses, sizeClasses[size], statusClasses[status], className)

@@ -90,29 +90,25 @@ const StatusBadge: React.FC<{ status: PropertyTableData['status'] }> = ({
 		active: {
 			variant: 'default' as const,
 			icon: CheckCircle,
-			className:
-				'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+			className: 'bg-primary/20 text-primary',
 			label: 'Active'
 		},
 		maintenance: {
 			variant: 'secondary' as const,
 			icon: Loader,
-			className:
-				'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
+			className: 'bg-accent/20 text-accent',
 			label: 'Maintenance'
 		},
 		vacant: {
 			variant: 'outline' as const,
 			icon: Building2,
-			className:
-				'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400',
+			className: 'bg-muted text-muted-foreground',
 			label: 'Vacant'
 		},
 		leased: {
 			variant: 'default' as const,
 			icon: Users,
-			className:
-				'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
+			className: 'bg-primary/20 text-primary',
 			label: 'Leased'
 		}
 	}
@@ -142,30 +138,27 @@ const PropertyTypeBadge: React.FC<{ type: PropertyTableData['type'] }> = ({
 		apartment: {
 			icon: Building2,
 			label: 'Apartment',
-			color:
-				'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400'
+			color: 'bg-primary/20 text-primary'
 		},
 		house: {
 			icon: Building2,
 			label: 'House',
-			color:
-				'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+			color: 'bg-primary/20 text-primary'
 		},
 		condo: {
 			icon: Building2,
 			label: 'Condo',
-			color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
+			color: 'bg-primary/20 text-primary'
 		},
 		townhouse: {
 			icon: Building2,
 			label: 'Townhouse',
-			color:
-				'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400'
+			color: 'bg-accent/20 text-accent'
 		},
 		commercial: {
 			icon: BarChart3,
 			label: 'Commercial',
-			color: 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400'
+			color: 'bg-muted text-muted-foreground'
 		}
 	}
 
@@ -339,12 +332,12 @@ const columns: ColumnDef<PropertyTableData>[] = [
 								className={cn(
 									'h-full transition-fast rounded-full',
 									occupancyRate >= 90
-										? 'bg-green-500'
+										? 'bg-primary'
 										: occupancyRate >= 70
-											? 'bg-blue-500'
+											? 'bg-primary'
 											: occupancyRate >= 50
-												? 'bg-yellow-500'
-												: 'bg-red-500'
+												? 'bg-accent'
+												: 'bg-destructive'
 								)}
 								style={{
 									width: `${occupancyRate}%`,
@@ -743,7 +736,11 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(
 			return (
 				<div
 					ref={ref}
-					className={cn(cardClasses('elevated'), 'card-padding text-center', className)}
+					className={cn(
+						cardClasses('elevated'),
+						'card-padding text-center',
+						className
+					)}
 					{...props}
 				>
 					<div className="flex flex-col items-center gap-4">

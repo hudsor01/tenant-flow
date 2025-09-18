@@ -23,9 +23,9 @@ const cardVariants = cva(
 
         // Legacy variants for backward compatibility
         premium: "card-apple py-6 border-primary/20 bg-gradient-to-br from-card via-card to-accent/5",
-        success: "card-apple py-6 border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-900/20",
-        warning: "card-apple py-6 border-amber-200 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-900/20",
-        error: "card-apple py-6 border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-900/20",
+        success: "card-apple py-6 border-primary/20 bg-primary/5 dark:border-primary/30 dark:bg-primary/10",
+        warning: "card-apple py-6 border-primary/20 bg-primary/5 dark:border-primary/30 dark:bg-primary/10",
+        error: "card-apple py-6 border-destructive/20 bg-destructive/5 dark:border-destructive/30 dark:bg-destructive/10",
       },
       size: {
         default: "p-6",

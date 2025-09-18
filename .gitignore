@@ -1,7 +1,13 @@
+#build output
+dist
+!.github/actions/*/dist
+.next
+target
+packages/next/wasm/@next
+tarballs/
+packages/**/*.tgz
+.errors/
 
-# ========================================
-# CRITICAL SECURITY - ENVIRONMENT & SECRETS
-# ========================================
 # Environment files - NEVER commit ANY .env files
 .env
 .env.*
@@ -28,9 +34,7 @@ api-keys.*
 tokens.*
 *.token
 
-# ========================================
 # SECRETS & CREDENTIALS (CRITICAL)
-# ========================================
 # Private keys and certificates
 *.key
 *.pem
@@ -145,10 +149,14 @@ secrets.*
 **/*real[_-]secret*
 **/*private[_-]key*
 
-# ========================================
-# DEPENDENCIES
-# ========================================
+# dependencies
 node_modules/
+package-lock.json
+yarn.lock
+!/yarn.lock
+test/node_modules
+.pnpm-store/
+.github/**/node_modules
 jspm_packages/
 .pnp
 .pnp.js
@@ -160,9 +168,49 @@ jspm_packages/
 !.yarn/sdks
 !.yarn/versions
 
-# ========================================
-# BUILD OUTPUTS
-# ========================================
+# test output
+test/**/out/*
+test/**/next-env.d.ts
+test/**/.next*
+.DS_Store
+/e2e-tests
+test/tmp/**
+test/.trace
+test/traces
+
+# Editors
+**/.idea
+**/.#*
+.nvmrc
+
+# examples
+examples/**/out/*
+examples/**/.env*.local
+
+pr-stats.md
+test-timings.json
+
+# Vercel
+.vercel
+.now
+
+# Cache
+*.tsbuildinfo
+.swc/
+.turbo
+
+# Storybook
+*storybook.log
+
+# logs & pids
+*.log
+pids
+*.cpuprofile
+*.heapsnapshot
+
+# coverage
+.nyc_output
+coverage
 dist/
 build/
 .next/
@@ -178,22 +226,13 @@ packages/*/.turbo/
 apps/*/.next/
 apps/*/dist/
 apps/*/.turbo/
-
-# ========================================
-# LOGS & REPORTS
-# ========================================
 logs/
-*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 pnpm-debug.log*
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
-
-# ========================================
-# TESTING & COVERAGE
-# ========================================
 
 # Test results and coverage
 coverage/
@@ -209,8 +248,6 @@ test-screenshots/
 **/test-screenshots/
 test-videos/
 **/test-videos/
-allure-results/
-**/allure-results/
 jest-results/
 test-results.json
 *.test-report.*
@@ -218,20 +255,12 @@ test-results.json
 # Test cache only (keep test files tracked)
 playwright/.cache/
 playwright/.auth/
-
-# ========================================
-# CACHING
-# ========================================
 .npm
 .eslintcache
 .stylelintcache
 .cache
 .parcel-cache
 .fusebox/
-
-# ========================================
-# OS FILES
-# ========================================
 .DS_Store
 **/.DS_Store
 Thumbs.db
@@ -245,23 +274,14 @@ $RECYCLE.BIN/
 **/*.swp
 **/*.swo
 
-# ========================================
 # IDE & EDITORS
-# ========================================
 # VS Code - only ignore specific files, not the entire directory
-.vscode/settings.json
-.vscode/tasks.json
-.vscode/launch.json
-.vscode/extensions.json
-.vscode/.ropeproject
+.vscode/*
 .vscode-test
 .idea/
 *.sublime-*
 .history/
 
-# ========================================
-# DEPLOYMENT & CLOUD
-# ========================================
 .vercel/
 .railway/
 .netlify/
@@ -272,10 +292,6 @@ docker-compose.*.yml
 docker-compose.secrets.yml
 !docker-compose.example.yml
 .dockerignore.local
-
-# ========================================
-# PROJECT SPECIFIC
-# ========================================
 /documents/
 temp/
 
@@ -288,17 +304,14 @@ mcp.json
 ROADMAP.md
 roadmap.md
 backend_logs.json
+.claude/*
 
-# ========================================
 # DOCUMENTATION & EXAMPLES
-# ========================================
 docs/
 documentation/
 *.md
 !README.md
 !LICENSE.md
-ARCHITECTURE_*.md
-MIGRATION_*.md
 *_GUIDE.md
 *_PLAN.md
 *_ANALYSIS.md
@@ -311,9 +324,7 @@ examples/
 demos/
 .env.example
 
-# ========================================
 # BACKUP & TEMP FILES
-# ========================================
 *.backup
 *.bak
 *.old
@@ -326,9 +337,7 @@ demos/
 *-copy.*
 *-backup.*
 
-# ========================================
 # MONITORING & MISC
-# ========================================
 monitoring/
 clinerules-bank/
 memory-bank/
@@ -349,9 +358,6 @@ pids
 .eslintcache
 .claude/
 .eslint/
-
-# macOS system files
-.DS_Store
 
 # Build outputs
 dist/
@@ -377,3 +383,4 @@ playwright-report/
 .temp/
 .tmp/
 doppler.json
+.doppler.yaml

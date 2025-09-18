@@ -11,11 +11,12 @@
     ],
     "paths": {
       "@/*": ["./src/app/*"],
-      "@/components/*": ["./src/components/*"],
+      "@/components/*": ["src/components/*"],
       "@/lib/*": ["./src/lib/*"],
       "@/hooks/*": ["./src/hooks/*"],
       "@/stores/*": ["./src/stores/*"],
       "@/types/*": ["./src/types/*"],
+      "@/providers/*": ["./src/providers/*"],
       "@repo/shared": ["../../packages/shared/dist/cjs"],
       "@repo/shared/*": ["../../packages/shared/dist/cjs/*"]
     },

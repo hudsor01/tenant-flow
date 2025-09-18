@@ -4,8 +4,7 @@ test('debug homepage buttons', async ({ page }) => {
 	await page.goto('/')
 	await page.waitForLoadState('networkidle')
 
-	// Take full page screenshot
-	await page.screenshot({ path: 'homepage-debug.png', fullPage: true })
+	// Screenshot removed - visual debugging no longer needed
 
 	// Log page info
 	console.log('Page title:', await page.title())

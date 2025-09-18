@@ -14,7 +14,7 @@
 import { NestFactory } from '@nestjs/core'
 import { NestFastifyApplication } from '@nestjs/platform-fastify'
 import { FastifyAdapter } from '@nestjs/platform-fastify'
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { AppModule } from '../../app.module'
 import type { EndpointInfo, EndpointAudit, SecurityAuditReport } from '@repo/shared'
@@ -34,10 +34,11 @@ interface _LocalSecurityAuditReport extends SecurityAuditReport {
 
 @Injectable()
 class SecurityAuditService {
+	private readonly logger = new Logger(SecurityAuditService.name)
 	private readonly reflector = new Reflector()
 
 	async auditEndpoints(app: NestFastifyApplication): Promise<SecurityAuditReport> {
-		console.info('🔍 Starting comprehensive API security audit...\n')
+		this.logger.log('🔍 Starting comprehensive API security audit...\n')
 
 		const endpoints = await this.discoverEndpoints(app)
 		const auditResults = await this.auditEndpointSecurity(endpoints, app)
@@ -45,22 +46,22 @@ class SecurityAuditService {
 		const report = this.generateSecurityReport(auditResults)
 		await this.saveAuditReport(report)
 
-		console.info('📊 Security Audit Summary:')
-		console.info(`  Total Endpoints: ${report.totalEndpoints}`)
-		console.info(`  Public Endpoints: ${report.publicEndpoints}`)
-		console.info(`  Protected Endpoints: ${report.protectedEndpoints}`)
-		console.info(`  High Risk Endpoints: ${report.highRiskEndpoints}`)
-		console.info(`  Critical Risk Endpoints: ${report.criticalRiskEndpoints}`)
-		console.info(`  Authentication Coverage: ${report.summary.authenticationCoverage.toFixed(1)}%`)
+		this.logger.log('📊 Security Audit Summary:')
+		this.logger.log(`  Total Endpoints: ${report.totalEndpoints}`)
+		this.logger.log(`  Public Endpoints: ${report.publicEndpoints}`)
+		this.logger.log(`  Protected Endpoints: ${report.protectedEndpoints}`)
+		this.logger.log(`  High Risk Endpoints: ${report.highRiskEndpoints}`)
+		this.logger.log(`  Critical Risk Endpoints: ${report.criticalRiskEndpoints}`)
+		this.logger.log(`  Authentication Coverage: ${report.summary.authenticationCoverage.toFixed(1)}%`)
 
 		if (report.criticalRiskEndpoints > 0) {
-			console.info('\n🚨 CRITICAL SECURITY ISSUES FOUND!')
-			console.info('   Immediate action required before production deployment.')
+			this.logger.warn('\n🚨 CRITICAL SECURITY ISSUES FOUND!')
+			this.logger.warn('   Immediate action required before production deployment.')
 		} else if (report.highRiskEndpoints > 0) {
-			console.info('\n⚠️  HIGH RISK ENDPOINTS DETECTED')
-			console.info('   Review and secure before production.')
+			this.logger.warn('\n⚠️  HIGH RISK ENDPOINTS DETECTED')
+			this.logger.warn('   Review and secure before production.')
 		} else {
-			console.info('\n✅ No critical security issues detected')
+			this.logger.log('\n✅ No critical security issues detected')
 		}
 
 		return report
@@ -75,7 +76,7 @@ class SecurityAuditService {
 		// Get all registered routes
 		fastifyInstance.ready(() => {
 			for (const route of fastifyInstance.printRoutes({ includeHooks: true })) {
-				console.info(route)
+				this.logger.debug(route)
 			}
 		})
 
@@ -121,7 +122,7 @@ class SecurityAuditService {
 				})
 			}
 		} catch (error) {
-			console.warn(`Failed to parse controller file: ${filePath}`, error)
+			this.logger.warn(`Failed to parse controller file: ${filePath}`, error)
 		}
 
 		return endpoints
@@ -131,7 +132,7 @@ class SecurityAuditService {
 		const audits: EndpointAudit[] = []
 
 		for (const endpoint of endpoints) {
-			console.info(`🔐 Auditing ${endpoint.httpMethod} ${endpoint.path}`)
+			this.logger.debug(`🔐 Auditing ${endpoint.httpMethod} ${endpoint.path}`)
 
 			const audit = await this.auditSingleEndpoint(endpoint, app)
 			audits.push(audit)
@@ -373,14 +374,14 @@ class SecurityAuditService {
 
 		fs.writeFileSync(filepath, JSON.stringify(report, null, 2))
 
-		console.info(`\n📝 Security audit report saved: ${filepath}`)
+		this.logger.log(`\n📝 Security audit report saved: ${filepath}`)
 
 		// Also create a summary file
 		const summaryPath = path.join(reportDir, 'security-summary.txt')
 		const summary = this.generateTextSummary(report)
 		fs.writeFileSync(summaryPath, summary)
 
-		console.info(`📄 Summary report saved: ${summaryPath}`)
+		this.logger.log(`📄 Summary report saved: ${summaryPath}`)
 	}
 
 	private generateTextSummary(report: SecurityAuditReport): string {
@@ -422,6 +423,7 @@ class SecurityAuditService {
 }
 
 async function runSecurityAudit(): Promise<void> {
+	const logger = new Logger('SecurityAudit')
 	try {
 		const app = await NestFactory.create<NestFastifyApplication>(
 			AppModule,
@@ -433,10 +435,10 @@ async function runSecurityAudit(): Promise<void> {
 		await auditService.auditEndpoints(app)
 
 		await app.close()
-		console.info('\n✅ Security audit completed successfully')
+		logger.log('\n✅ Security audit completed successfully')
 		process.exit(0)
 	} catch (error) {
-		console.error('❌ Security audit failed:', error)
+		logger.error('❌ Security audit failed:', error)
 		process.exit(1)
 	}
 }

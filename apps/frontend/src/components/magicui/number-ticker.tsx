@@ -46,9 +46,9 @@ export function NumberTicker({
   const variants = {
     default: 'text-foreground',
     primary: 'text-primary font-semibold',
-    success: 'text-green-600 dark:text-green-400 font-semibold',
-    warning: 'text-orange-600 dark:text-orange-400 font-semibold',
-    danger: 'text-red-600 dark:text-red-400 font-semibold',
+    success: 'text-accent dark:text-accent/80 font-semibold',
+    warning: 'text-muted-foreground dark:text-muted-foreground/80 font-semibold',
+    danger: 'text-destructive dark:text-destructive/80 font-semibold',
     muted: 'text-muted-foreground'
   }
 

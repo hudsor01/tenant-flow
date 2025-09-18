@@ -10,7 +10,12 @@ import {
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+	Card,
+	CardContent,
+	CardHeader,
+	CardTitle
+} from '@/components/ui/card'
 import {
 	Select,
 	SelectContent,
@@ -89,9 +94,7 @@ export function CurrencyExchange() {
 			>
 				<div
 					className="overflow-hidden rounded-xl border-2 shadow-md hover:shadow-lg transition-all bg-gradient-to-br from-muted/20 to-background"
-					style={{
-						
-					}}
+					style={{}}
 				>
 					<div className="border-b bg-muted/30 px-4 py-3">
 						<div className="flex justify-between items-center">
@@ -102,9 +105,7 @@ export function CurrencyExchange() {
 							<div className="flex flex-1 items-center justify-center">
 								<div
 									className="bg-primary/10 p-2 rounded-full hover:bg-primary/20 transition-colors cursor-pointer"
-									style={{
-										
-									}}
+									style={{}}
 								>
 									<ArrowLeftRight className="text-primary size-4" />
 								</div>
@@ -137,9 +138,9 @@ export function CurrencyExchange() {
 						</div>
 					</div>
 					<div className="bg-muted/50 border-t py-2 text-center text-sm tabular-nums flex items-center justify-center gap-2">
-						<TrendingUp className="w-4 h-4 text-green-600" />
+						<TrendingUp className="w-4 h-4 text-accent" />
 						<span className="text-muted-foreground">1 USD = </span>
-						<span className="font-bold text-green-600">0.85 EUR</span>
+						<span className="font-bold text-accent">0.85 EUR</span>
 						<Badge variant="secondary" className="text-xs">
 							+0.02%
 						</Badge>
@@ -161,13 +162,13 @@ export function CurrencyExchange() {
 					<div className="space-y-2 text-sm">
 						<div className="flex items-center justify-between p-2 bg-background rounded-lg">
 							<span className="text-muted-foreground">Tax (2%)</span>
-							<span className="font-semibold tabular-nums text-orange-600">
+							<span className="font-semibold tabular-nums text-muted-foreground">
 								{formatCurrency(2)}
 							</span>
 						</div>
 						<div className="flex items-center justify-between p-2 bg-background rounded-lg">
 							<span className="text-muted-foreground">Exchange Fee (1%)</span>
-							<span className="font-semibold tabular-nums text-blue-600">
+							<span className="font-semibold tabular-nums text-primary">
 								{formatCurrency(1)}
 							</span>
 						</div>
@@ -182,11 +183,11 @@ export function CurrencyExchange() {
 				</div>
 
 				<Button
-					className={cn(buttonClasses('primary', 'lg'),
-						'w-full gap-2 font-semibold hover:scale-105')}
-					style={{
-						
-					}}
+					className={cn(
+						buttonClasses('primary', 'lg'),
+						'w-full gap-2 font-semibold hover:scale-105'
+					)}
+					style={{}}
 				>
 					<RefreshCw className="size-4" />
 					Exchange Currency

@@ -233,7 +233,8 @@ async function bootstrap() {
 
 // Catch bootstrap errors
 bootstrap().catch((err: unknown) => {
-	console.error('ERROR: Failed to start server:', err)
+	const logger = new Logger('Bootstrap')
+	logger.error('Failed to start server', err)
 	process.exit(1)
 })
 // test

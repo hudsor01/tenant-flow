@@ -10,7 +10,6 @@
  */
 
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
-import { DirectEmailService } from '../../emails/direct-email.service'
 import { SupabaseService } from '../../database/supabase.service'
 import type { SecurityEventType, SecurityMetrics, SecurityEvent as SharedSecurityEvent } from '@repo/shared'
 
@@ -74,7 +73,6 @@ export class SecurityMonitorService implements OnModuleInit {
 	}
 
 	constructor(
-		private readonly emailService: DirectEmailService,
 		_supabaseService: SupabaseService
 	) {
 		this.securityLogger = new Logger(SecurityMonitorService.name)

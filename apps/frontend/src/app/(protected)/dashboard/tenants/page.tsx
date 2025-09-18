@@ -1,21 +1,8 @@
 'use client'
 
-import { ChartAreaInteractive } from '@/components/chart-area-interactive'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { MetricsCard } from '@/components/metrics-card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow
-} from '@/components/ui/table'
 import { useTenants, useTenantStats } from '@/hooks/api/tenants'
-import type { TenantWithLeaseInfo } from '@repo/shared'
 import { formatCurrency } from '@/lib/utils'
+import type { TenantWithLeaseInfo } from '@repo/shared'
 import {
 	Calendar,
 	CreditCard,
@@ -24,6 +11,19 @@ import {
 	TrendingUp,
 	Users
 } from 'lucide-react'
+import { ChartAreaInteractive } from 'src/components/chart-area-interactive'
+import { MetricsCard } from 'src/components/metrics-card'
+import { Badge } from 'src/components/ui/badge'
+import { Button } from 'src/components/ui/button'
+import { LoadingSpinner } from 'src/components/ui/loading-spinner'
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow
+} from 'src/components/ui/table'
 
 export default function TenantsPage() {
 	const { data: tenants, isLoading: tenantsLoading } = useTenants()
@@ -132,7 +132,7 @@ export default function TenantsPage() {
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-                        {tenantsData.map((tenant: TenantWithLeaseInfo) => (
+							{tenantsData.map((tenant: TenantWithLeaseInfo) => (
 								<TableRow key={tenant.id} className="hover:bg-muted/30">
 									<TableCell>
 										<div className="flex items-center gap-3">
@@ -197,7 +197,7 @@ export default function TenantsPage() {
 													(tenant as { status?: string }).status === 'active'
 														? 'var(--chart-1)'
 														: 'var(--chart-5)',
-												color: 'white'
+												color: 'hsl(var(--primary-foreground))'
 											}}
 											className="capitalize"
 										>
@@ -213,7 +213,7 @@ export default function TenantsPage() {
 													tenant.paymentStatus === 'current'
 														? 'var(--chart-1)'
 														: 'var(--chart-10)',
-												color: 'white'
+												color: 'hsl(var(--primary-foreground))'
 											}}
 											className="capitalize flex items-center gap-1"
 										>

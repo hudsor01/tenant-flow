@@ -36,19 +36,19 @@ export function AnimatedGradientText({
      via: 'hsl(var(--primary))'
    },
    rainbow: {
-     from: '#6366f1', // Indigo
-     to: '#8b5cf6', // Violet  
-     via: '#a855f7' // Purple
+     from: 'hsl(var(--primary))', // Primary
+     to: 'hsl(var(--accent))', // Accent
+     via: 'hsl(var(--primary) / 0.8)' // Primary variant
    },
    sunset: {
-     from: '#f97316', // Orange
-     to: '#ef4444', // Red
-     via: '#f59e0b' // Amber
+     from: 'hsl(var(--accent))', // Accent
+     to: 'hsl(var(--destructive))', // Destructive for red
+     via: 'hsl(var(--accent) / 0.8)' // Accent variant
    },
    ocean: {
-     from: '#0ea5e9', // Sky blue
-     to: '#06b6d4', // Cyan
-     via: '#3b82f6' // Blue
+     from: 'hsl(var(--primary))', // Primary blue
+     to: 'hsl(var(--accent))', // Accent blue
+     via: 'hsl(var(--primary) / 0.7)' // Primary variant
    }
  }
 

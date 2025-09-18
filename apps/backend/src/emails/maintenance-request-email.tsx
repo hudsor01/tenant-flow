@@ -153,7 +153,7 @@ const h3 = {
 }
 
 const priorityBadge = {
-  color: 'white',
+  color: '#ffffff',
   padding: '8px 12px',
   borderRadius: '4px',
   display: 'inline-block',
@@ -210,7 +210,7 @@ const buttonContainer = {
 
 const button = {
   backgroundColor: '#007bff',
-  color: 'white',
+  color: '#ffffff',
   padding: '12px 24px',
   textDecoration: 'none',
   borderRadius: '4px',

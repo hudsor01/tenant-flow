@@ -1,6 +1,6 @@
 'use client'
 
-import { supabaseClient } from '@repo/shared/lib/supabase-client'
+import { createBrowserClient } from '@supabase/ssr'
 import React, { createContext, useContext, useEffect, useRef } from 'react'
 import { type StoreApi } from 'zustand'
 
@@ -9,6 +9,12 @@ import type { Session } from '@supabase/supabase-js'
 import { createAuthStore } from './auth-store'
 
 const AuthStoreContext = createContext<StoreApi<AuthState> | null>(null)
+
+// Create SSR-compatible Supabase client for authentication
+const supabaseClient = createBrowserClient(
+	process.env.NEXT_PUBLIC_SUPABASE_URL!,
+	process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 export const AuthStoreProvider = ({
 	children
@@ -29,7 +35,7 @@ export const AuthStoreProvider = ({
 				process.env.NEXT_PUBLIC_ENABLE_MOCK_AUTH === 'true'
 			) {
 				// Check for mock auth cookies
-				// eslint-disable-next-line no-restricted-globals
+				 
 				const mockToken = document.cookie
 					.split('; ')
 					.find(

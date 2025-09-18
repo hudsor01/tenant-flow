@@ -43,8 +43,8 @@ export function getStripeConfig(): StripeEnvironmentConfig {
  */
 export function getSiteConfig() {
 	return {
-		siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
-		backendUrl: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4600'
+		siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://tenantflow.app',
+		backendUrl: process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'https://api.tenantflow.app'
 	}
 }
 

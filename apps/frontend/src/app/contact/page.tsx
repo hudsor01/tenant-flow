@@ -1,11 +1,11 @@
-import { Navbar } from '@/components/navbar'
-import { Mail, MessageSquare, Phone, ArrowRight } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { ShimmerButton } from '@/components/magicui/shimmer-button'
-import { HeroAuthority } from '@/components/marketing/hero-authority'
-import { BlurFade } from '@/components/magicui/blur-fade'
-import { TYPOGRAPHY_SCALE } from '@repo/shared'
 import { containerClasses } from '@/lib/design-system'
+import { TYPOGRAPHY_SCALE } from '@repo/shared'
+import { ArrowRight, Mail, MessageSquare, Phone } from 'lucide-react'
+import { BlurFade } from 'src/components/magicui/blur-fade'
+import { ShimmerButton } from 'src/components/magicui/shimmer-button'
+import { HeroAuthority } from 'src/components/marketing/hero-authority'
+import { Navbar } from 'src/components/navbar'
+import { Button } from 'src/components/ui/button'
 
 export default function ContactPage() {
 	return (
@@ -13,15 +13,21 @@ export default function ContactPage() {
 			<Navbar />
 			<div className="pt-10">
 				{/* Hero Section */}
-				<HeroAuthority 
-				  title={<>Ready to transform your business?</>}
-				  subtitle={<>Join 10,000+ property managers who have transformed their operations with TenantFlow. Our experts will show you exactly how to reduce costs by 32% and automate 80% of daily tasks.</>}
-				  primaryCta={{ label: 'Get ROI Report', href: '#contact-form' }}
-				  secondaryCta={{ label: 'Schedule Free Call', href: '#options' }}
+				<HeroAuthority
+					title={<>Ready to transform your business?</>}
+					subtitle={
+						<>
+							Join 10,000+ property managers who have transformed their
+							operations with TenantFlow. Our experts will show you exactly how
+							to reduce costs by 32% and automate 80% of daily tasks.
+						</>
+					}
+					primaryCta={{ label: 'Get ROI Report', href: '#contact-form' }}
+					secondaryCta={{ label: 'Schedule Free Call', href: '#options' }}
 				/>
 
 				{/* Contact Options */}
-      <section className="section-hero" id="options">
+				<section className="section-hero" id="options">
 					<div className={containerClasses('xl')}>
 						<BlurFade delay={0.2} inView>
 							<div className="grid md:grid-cols-3 gap-8">
@@ -29,39 +35,42 @@ export default function ContactPage() {
 									{
 										icon: MessageSquare,
 										title: 'Free ROI Calculator',
-										description: 'See exactly how much TenantFlow can save your properties in 90 days',
+										description:
+											'See exactly how much TenantFlow can save your properties in 90 days',
 										action: 'Get My ROI Report',
 										available: 'Instant results in 2 minutes'
 									},
 									{
 										icon: Phone,
 										title: 'Expert Consultation',
-										description: 'Speak with a property management automation specialist',
+										description:
+											'Speak with a property management automation specialist',
 										action: 'Schedule Free Call',
 										available: 'Available Mon-Fri, 9AM-6PM PST'
 									},
 									{
 										icon: Mail,
 										title: 'Custom Demo',
-										description: 'See TenantFlow configured for your specific portfolio',
+										description:
+											'See TenantFlow configured for your specific portfolio',
 										action: 'Request Demo',
 										available: 'Personalized for your properties'
 									}
 								].map((option, index) => (
-              <div
-                key={index}
-                className="card-elevated-authority rounded-2xl card-padding text-center transition-all duration-300 hover:shadow-lg group"
-              >
+									<div
+										key={index}
+										className="card-elevated-authority rounded-2xl card-padding text-center transition-all duration-300 hover:shadow-lg group"
+									>
 										<div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-primary/20 to-accent/20 mx-auto mb-6 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
 											<option.icon className="w-8 h-8 text-primary" />
 										</div>
-										<h3 
+										<h3
 											className="font-semibold text-foreground mb-3"
 											style={TYPOGRAPHY_SCALE['heading-sm']}
 										>
 											{option.title}
 										</h3>
-										<p 
+										<p
 											className="text-muted-foreground leading-relaxed mb-6"
 											style={TYPOGRAPHY_SCALE['body-sm']}
 										>
@@ -71,7 +80,7 @@ export default function ContactPage() {
 											{option.action}
 											<ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
 										</Button>
-										<p 
+										<p
 											className="text-muted-foreground"
 											style={TYPOGRAPHY_SCALE['body-xs']}
 										>
@@ -85,121 +94,130 @@ export default function ContactPage() {
 				</section>
 
 				{/* Contact Form */}
-      <section className="section-hero bg-muted/20" id="contact-form">
+				<section className="section-hero bg-muted/20" id="contact-form">
 					<div className={containerClasses('lg')}>
 						<BlurFade delay={0.3} inView>
 							<div className="text-center mb-12 space-y-4">
-								<h2 
+								<h2
 									className="text-foreground font-bold tracking-tight"
 									style={TYPOGRAPHY_SCALE['heading-xl']}
 								>
 									Get your custom ROI projection in 24 hours
 								</h2>
-								<p 
+								<p
 									className="text-muted-foreground leading-relaxed max-w-2xl mx-auto"
 									style={TYPOGRAPHY_SCALE['body-lg']}
 								>
-									Tell us about your portfolio and we'll show you exactly how much TenantFlow can save you. 
-									Most property managers see significant cost reductions and improved efficiency within 90 days.
+									Tell us about your portfolio and we'll show you exactly how
+									much TenantFlow can save you. Most property managers see
+									significant cost reductions and improved efficiency within 90
+									days.
 								</p>
 							</div>
 
-            <div className="card-elevated-authority rounded-2xl card-padding">
-							<form className="space-y-6">
-								<div className="grid md:grid-cols-2 gap-6">
+							<div className="card-elevated-authority rounded-2xl card-padding">
+								<form className="space-y-6">
+									<div className="grid md:grid-cols-2 gap-6">
+										<div>
+											<label className="block text-sm font-medium mb-2">
+												First Name
+											</label>
+											<input
+												type="text"
+												className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+												placeholder="Enter your first name"
+											/>
+										</div>
+										<div>
+											<label className="block text-sm font-medium mb-2">
+												Last Name
+											</label>
+											<input
+												type="text"
+												className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+												placeholder="Enter your last name"
+											/>
+										</div>
+									</div>
+
+									<div className="grid md:grid-cols-2 gap-6">
+										<div>
+											<label className="block text-sm font-medium mb-2">
+												Email
+											</label>
+											<input
+												type="email"
+												className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+												placeholder="Enter your email"
+											/>
+										</div>
+										<div>
+											<label className="block text-sm font-medium mb-2">
+												Company
+											</label>
+											<input
+												type="text"
+												className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+												placeholder="Enter your company name"
+											/>
+										</div>
+									</div>
+
 									<div>
 										<label className="block text-sm font-medium mb-2">
-											First Name
+											How can we help?
 										</label>
-										<input
-											type="text"
-											className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-											placeholder="Enter your first name"
-										/>
+										<select className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+											<option value="">
+												How many properties do you manage?
+											</option>
+											<option value="1-5">1-5 properties (Starter Plan)</option>
+											<option value="6-20">
+												6-20 properties (Growth Plan)
+											</option>
+											<option value="21-100">
+												21-100 properties (Scale Plan)
+											</option>
+											<option value="100+">100+ properties (Enterprise)</option>
+											<option value="demo">I want to see a demo first</option>
+											<option value="other">Other inquiry</option>
+										</select>
 									</div>
+
 									<div>
 										<label className="block text-sm font-medium mb-2">
-											Last Name
+											Message
 										</label>
-										<input
-											type="text"
-											className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-											placeholder="Enter your last name"
-										/>
+										<textarea
+											rows={6}
+											className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+											placeholder="Tell us more about how we can help you..."
+										></textarea>
 									</div>
-								</div>
 
-								<div className="grid md:grid-cols-2 gap-6">
-									<div>
-										<label className="block text-sm font-medium mb-2">
-											Email
-										</label>
-										<input
-											type="email"
-											className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-											placeholder="Enter your email"
-										/>
+									<div className="text-center">
+										<ShimmerButton className="px-8 py-3 text-base font-semibold">
+											<span className="inline-flex items-center">
+												Get My Custom ROI Report
+												<ArrowRight className="w-4 h-4 ml-2" />
+											</span>
+										</ShimmerButton>
+										<p
+											className="text-muted-foreground mt-2"
+											style={TYPOGRAPHY_SCALE['body-sm']}
+										>
+											Free analysis • No commitment required • Results in 24
+											hours
+										</p>
 									</div>
-									<div>
-										<label className="block text-sm font-medium mb-2">
-											Company
-										</label>
-										<input
-											type="text"
-											className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-											placeholder="Enter your company name"
-										/>
-									</div>
-								</div>
-
-								<div>
-									<label className="block text-sm font-medium mb-2">
-										How can we help?
-									</label>
-									<select className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-										<option value="">How many properties do you manage?</option>
-										<option value="1-5">1-5 properties (Starter Plan)</option>
-										<option value="6-20">6-20 properties (Growth Plan)</option>
-										<option value="21-100">21-100 properties (Scale Plan)</option>
-										<option value="100+">100+ properties (Enterprise)</option>
-										<option value="demo">I want to see a demo first</option>
-										<option value="other">Other inquiry</option>
-									</select>
-								</div>
-
-								<div>
-									<label className="block text-sm font-medium mb-2">
-										Message
-									</label>
-									<textarea
-										rows={6}
-										className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-										placeholder="Tell us more about how we can help you..."
-									></textarea>
-								</div>
-
-								<div className="text-center">
-									<ShimmerButton className="px-8 py-3 text-base font-semibold">
-										<span className="inline-flex items-center">
-											Get My Custom ROI Report
-											<ArrowRight className="w-4 h-4 ml-2" />
-										</span>
-									</ShimmerButton>
-									<p 
-										className="text-muted-foreground mt-2"
-										style={TYPOGRAPHY_SCALE['body-sm']}
-									>
-										Free analysis • No commitment required • Results in 24 hours
-									</p>
-								</div>
-							</form>
-						</div>
+								</form>
+							</div>
 						</BlurFade>
 					</div>
 				</section>
 
 				{/* Office Info */}
-        <section className="section-hero">
+				<section className="section-hero">
 					<div className="container mx-auto px-4 max-w-6xl">
 						<div className="text-center mb-16">
 							<h2 className="text-3xl font-bold mb-4">Visit our offices</h2>
@@ -258,7 +276,7 @@ export default function ContactPage() {
 				</section>
 
 				{/* FAQ Quick Links */}
-        <section className="section-content bg-muted/20">
+				<section className="section-content bg-muted/20">
 					<div className="container mx-auto px-4 max-w-4xl text-center">
 						<h2 className="text-2xl font-bold mb-4">Need quick answers?</h2>
 						<p className="text-muted-foreground mb-8">

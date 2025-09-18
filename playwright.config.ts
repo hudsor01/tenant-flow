@@ -1,5 +1,6 @@
 import { defineConfig, devices } from '@playwright/test'
 import * as dotenv from 'dotenv'
+import path from 'path'
 
 // Load test environment variables
 dotenv.config({ path: '.env.test' })
@@ -19,7 +20,11 @@ export default defineConfig({
 
 	/* Expect timeout for assertions */
 	expect: {
-		timeout: 10000
+		timeout: 10000,
+		// Screenshot expectations
+		toHaveScreenshot: {
+			maxDiffPixels: 100,
+		}
 	},
 
 	/* Run tests in files in parallel */
@@ -34,7 +39,11 @@ export default defineConfig({
 	/* Opt out of parallel tests on CI */
 	workers: process.env.CI ? 1 : undefined,
 
-	/* No global setup needed for CI - keep it simple */
+	/* Global setup for auth */
+	globalSetup: './tests/e2e/global-setup',
+
+	/* Global teardown */
+	globalTeardown: './tests/e2e/global-teardown',
 
 	/* Reporter configuration */
 	reporter: [
@@ -62,13 +71,13 @@ export default defineConfig({
 	use: {
 		/* Base URL for the application */
 		baseURL:
-			process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:4500',
+			process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3005',
 
-		/* Collect trace when retrying the failed test */
-		trace: 'on-first-retry',
+		/* Collect comprehensive trace for all test runs */
+		trace: 'on',
 
-		/* Take screenshot on failure */
-		screenshot: 'only-on-failure',
+		/* Disable screenshots - using comprehensive tracing instead */
+		screenshot: 'off',
 
 		/* Record video on failure */
 		video: 'retain-on-failure',
@@ -85,17 +94,60 @@ export default defineConfig({
 		/* Test environment configuration */
 		extraHTTPHeaders: {
 			Authorization: process.env.E2E_API_TOKEN || ''
-		}
+		},
+
+		/* Viewport size */
+		viewport: { width: 1280, height: 720 },
+
+		/* Permissions */
+		permissions: ['geolocation', 'clipboard-read', 'clipboard-write'],
+
+		/* Locale and timezone */
+		locale: 'en-US',
+		timezoneId: 'America/New_York',
 	},
 
 	/* Configure projects for major browsers */
 	projects: [
-		/* Desktop Chrome - simplified for CI */
+		/* Setup project for auth */
+		{
+			name: 'setup',
+			testMatch: /global\.setup\.ts/,
+			use: {
+				// Use playwright-chromium for consistent auth flow
+				browserName: 'chromium',
+			}
+		},
+
+		/* Desktop Chrome with auth state */
 		{
 			name: 'chromium',
 			use: {
-				...devices['Desktop Chrome']
-			}
+				...devices['Desktop Chrome'],
+				// Use auth state from global setup
+				storageState: 'playwright/.auth/user.json',
+			},
+			dependencies: ['setup'],
+		},
+
+		/* Mobile Chrome - for responsive testing */
+		{
+			name: 'mobile-chrome',
+			use: {
+				...devices['Pixel 5'],
+				storageState: 'playwright/.auth/user.json',
+			},
+			dependencies: ['setup'],
+		},
+
+		/* Test without auth for login/signup flows */
+		{
+			name: 'chromium-no-auth',
+			use: {
+				...devices['Desktop Chrome'],
+				// No storage state - fresh browser
+			},
+			testMatch: /auth\/.+\.spec\.ts/,
 		}
 	],
 
@@ -145,6 +197,10 @@ export default defineConfig({
 	/* Test output configuration */
 	outputDir: 'test-results/',
 
+	/* Snapshots directory */
+	snapshotDir: 'tests/e2e/__snapshots__',
+	snapshotPathTemplate: '{snapshotDir}/{testFileDir}/{testFileName}-snapshots/{arg}{-projectName}{-snapshotSuffix}{ext}',
+
 	/* Test metadata */
 	metadata: {
 		project: 'TenantFlow',
@@ -159,7 +215,9 @@ export const testPatterns = {
 	integration: 'tests/integration/**/*.{test,spec}.{js,ts}',
 	e2e: 'tests/e2e/**/*.spec.ts',
 	performance: 'tests/performance/**/*.spec.ts',
-	critical: 'tests/e2e/**/*.critical.spec.ts'
+	critical: 'tests/e2e/**/*.critical.spec.ts',
+	auth: 'tests/e2e/auth/**/*.spec.ts',
+	dashboard: 'tests/e2e/dashboard/**/*.spec.ts'
 }
 
 /* Environment-specific configurations */
@@ -180,4 +238,12 @@ export const environments = {
 		retries: 2,
 		forbidOnly: true
 	}
+}
+
+/* Auth configurations for different user roles */
+export const authStates = {
+	admin: 'playwright/.auth/admin.json',
+	user: 'playwright/.auth/user.json',
+	landlord: 'playwright/.auth/landlord.json',
+	tenant: 'playwright/.auth/tenant.json'
 }

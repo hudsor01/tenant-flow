@@ -88,11 +88,7 @@ test.describe('Landing Page Visual Regression', () => {
 		console.log('Has Body Content:', hasContent)
 		console.log('Console Logs:', logs.join('\n'))
 
-		// Take screenshot for debugging
-		await page.screenshot({
-			path: 'tests/visual/debug-landing-current.png',
-			fullPage: true
-		})
+		// Screenshot removed - visual debugging no longer needed
 
 		// Basic content checks
 		expect(title).toBeTruthy()

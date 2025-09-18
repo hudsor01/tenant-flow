@@ -18,31 +18,31 @@ const buttonVariants = cva(
       variant: {
         // Primary - Apple-inspired primary action with satisfying shadows
         default: `bg-primary text-primary-foreground border border-black/10 rounded-[var(--radius-button)]
-                   shadow-[0_2px_4px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.06)]
+                   shadow-sm
                    hover:bg-[color-mix(in_srgb,var(--color-primary)_90%,black)]
-                   hover:shadow-[0_4px_8px_rgba(0,0,0,0.15),0_2px_4px_rgba(0,0,0,0.1)]`,
+                   hover:shadow-md`,
 
         primary: `bg-primary text-primary-foreground border border-black/10 rounded-[var(--radius-button)]
-                  shadow-[0_2px_4px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.06)]
+                  shadow-sm
                   hover:bg-[color-mix(in_srgb,var(--color-primary)_90%,black)]
-                  hover:shadow-[0_4px_8px_rgba(0,0,0,0.15),0_2px_4px_rgba(0,0,0,0.1)]`,
+                  hover:shadow-md`,
 
         // Secondary - Apple-inspired secondary with subtle elevation
         secondary: `bg-secondary text-secondary-foreground border border-black/6 rounded-[var(--radius-button)]
-                    shadow-[0_1px_3px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.06)]
+                    shadow-sm
                     hover:bg-[color-mix(in_srgb,var(--color-secondary)_80%,black)]
-                    hover:shadow-[0_2px_4px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.08)]`,
+                    hover:shadow-md`,
 
         // Destructive - Apple-inspired destructive action
         destructive: `bg-destructive text-destructive-foreground border border-black/10 rounded-[var(--radius-button)]
-                      shadow-[0_2px_4px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.06)]
+                      shadow-sm
                       hover:bg-destructive/90 focus-visible:ring-destructive/50
-                      hover:shadow-[0_4px_8px_rgba(0,0,0,0.15),0_2px_4px_rgba(0,0,0,0.1)]`,
+                      hover:shadow-md`,
 
         // Outline - Clean Apple-style outline
         outline: `border border-primary bg-background text-primary rounded-[var(--radius-button)]
                   hover:bg-primary hover:text-primary-foreground
-                  shadow-[0_1px_2px_rgba(0,0,0,0.05)]`,
+                  shadow-sm`,
 
         // Ghost - Minimal Apple-style ghost button
         ghost: `text-primary rounded-[var(--radius-button)] border border-transparent

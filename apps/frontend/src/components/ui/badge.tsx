@@ -17,13 +17,13 @@ const badgeVariants = cva(
         outline:
           "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         success:
-          "border-transparent bg-green-500 text-white [a&]:hover:bg-green-600 dark:bg-green-600 dark:[a&]:hover:bg-green-700",
+          "border-transparent bg-primary/70 text-white [a&]:hover:bg-primary/80 dark:bg-primary/70 dark:[a&]:hover:bg-primary/80",
         warning:
-          "border-transparent bg-amber-500 text-white [a&]:hover:bg-amber-600 dark:bg-amber-600 dark:[a&]:hover:bg-amber-700",
+          "border-transparent bg-primary/60 text-white [a&]:hover:bg-primary/70 dark:bg-primary/60 dark:[a&]:hover:bg-primary/70",
         info:
-          "border-transparent bg-blue-500 text-white [a&]:hover:bg-blue-600 dark:bg-blue-600 dark:[a&]:hover:bg-blue-700",
+          "border-transparent bg-primary text-white [a&]:hover:bg-primary/90 dark:bg-primary dark:[a&]:hover:bg-primary/90",
         neutral:
-          "border-transparent bg-gray-500 text-white [a&]:hover:bg-gray-600 dark:bg-gray-600 dark:[a&]:hover:bg-gray-700",
+          "border-transparent bg-muted text-muted-foreground [a&]:hover:bg-muted/50",
       },
     },
     defaultVariants: {

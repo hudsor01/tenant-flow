@@ -1,19 +1,19 @@
 'use client'
 
-import * as React from 'react'
-import { useForm } from '@tanstack/react-form'
-import { toast } from 'sonner'
-import { z } from 'zod'
-import { 
-	cn, 
-	buttonClasses,
-	inputClasses,
+import {
 	ANIMATION_DURATIONS,
+	buttonClasses,
+	cn,
+	inputClasses,
 	TYPOGRAPHY_SCALE
 } from '@/lib/utils'
+import { useForm } from '@tanstack/react-form'
+import * as React from 'react'
+import { toast } from 'sonner'
+import { z } from 'zod'
 
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { Badge } from 'src/components/ui/badge'
+import { Button } from 'src/components/ui/button'
 import {
 	Dialog,
 	DialogContent,
@@ -21,31 +21,47 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+} from 'src/components/ui/dialog'
+import { Input } from 'src/components/ui/input'
+import { Label } from 'src/components/ui/label'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue
-} from '@/components/ui/select'
-import { Separator } from '@/components/ui/separator'
+} from 'src/components/ui/select'
+import { Separator } from 'src/components/ui/separator'
 
 import { useUpdateUnit } from '@/hooks/api/units'
-import { unitStatusSchema, requiredString, positiveNumberSchema, nonNegativeNumberSchema } from '@repo/shared'
 import type { Database } from '@repo/shared'
+import {
+	nonNegativeNumberSchema,
+	positiveNumberSchema,
+	requiredString,
+	unitStatusSchema
+} from '@repo/shared'
 
 type UnitRow = Database['public']['Tables']['Unit']['Row']
 type UnitStatus = Database['public']['Enums']['UnitStatus']
 
 // TanStack Form validation schema for unit updates
 const unitEditFormSchema = z.object({
-	unitNumber: requiredString.min(1, 'Unit number is required').max(20, 'Unit number cannot exceed 20 characters'),
-	bedrooms: positiveNumberSchema.int('Bedrooms must be a whole number').max(20, 'Maximum 20 bedrooms allowed').optional(),
-	bathrooms: positiveNumberSchema.max(20, 'Maximum 20 bathrooms allowed').optional(),
-	squareFeet: positiveNumberSchema.int('Square feet must be a whole number').max(50000, 'Square feet seems unrealistic').optional().nullable(),
+	unitNumber: requiredString
+		.min(1, 'Unit number is required')
+		.max(20, 'Unit number cannot exceed 20 characters'),
+	bedrooms: positiveNumberSchema
+		.int('Bedrooms must be a whole number')
+		.max(20, 'Maximum 20 bedrooms allowed')
+		.optional(),
+	bathrooms: positiveNumberSchema
+		.max(20, 'Maximum 20 bathrooms allowed')
+		.optional(),
+	squareFeet: positiveNumberSchema
+		.int('Square feet must be a whole number')
+		.max(50000, 'Square feet seems unrealistic')
+		.optional()
+		.nullable(),
 	rent: nonNegativeNumberSchema.max(100000, 'Rent amount seems unrealistic'),
 	status: unitStatusSchema,
 	lastInspectionDate: z.string().nullable().optional()
@@ -65,56 +81,71 @@ interface UnitEditDialogProps {
 	onOpenChange: (open: boolean) => void
 }
 
-const statusConfig: Record<UnitStatus, { 
-	variant: 'default' | 'secondary' | 'destructive' | 'outline'
-	bgColor: string
-	textColor: string
-	icon: string
-	description: string
-}> = {
-	OCCUPIED: { 
-		variant: 'default', 
-		bgColor: 'bg-green-100 dark:bg-green-900/20 border-green-200 dark:border-green-800',
-		textColor: 'text-green-700 dark:text-green-300',
+const statusConfig: Record<
+	UnitStatus,
+	{
+		variant: 'default' | 'secondary' | 'destructive' | 'outline'
+		bgColor: string
+		textColor: string
+		icon: string
+		description: string
+	}
+> = {
+	OCCUPIED: {
+		variant: 'default',
+		bgColor: 'bg-primary/10 border-primary/20',
+		textColor: 'text-primary',
 		icon: '🏠',
 		description: 'Currently occupied by tenant'
 	},
-	VACANT: { 
-		variant: 'secondary', 
-		bgColor: 'bg-blue-100 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800',
-		textColor: 'text-blue-700 dark:text-blue-300',
+	VACANT: {
+		variant: 'secondary',
+		bgColor: 'bg-accent/10 border-accent/20',
+		textColor: 'text-accent',
 		icon: '🔑',
 		description: 'Available for rent'
 	},
-	MAINTENANCE: { 
-		variant: 'destructive', 
-		bgColor: 'bg-orange-100 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800',
-		textColor: 'text-orange-700 dark:text-orange-300',
+	MAINTENANCE: {
+		variant: 'destructive',
+		bgColor: 'bg-destructive/10 border-destructive/20',
+		textColor: 'text-destructive',
 		icon: '🔧',
 		description: 'Under maintenance or repair'
 	},
-	RESERVED: { 
-		variant: 'outline', 
-		bgColor: 'bg-purple-100 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800',
-		textColor: 'text-purple-700 dark:text-purple-300',
+	RESERVED: {
+		variant: 'outline',
+		bgColor: 'bg-muted border-muted-foreground/20',
+		textColor: 'text-muted-foreground',
 		icon: '📋',
 		description: 'Reserved for specific tenant'
 	}
 }
 
-const statusOptions: { value: UnitStatus; label: string; config: typeof statusConfig[UnitStatus] }[] = [
+const statusOptions: {
+	value: UnitStatus
+	label: string
+	config: (typeof statusConfig)[UnitStatus]
+}[] = [
 	{ value: 'OCCUPIED', label: 'Occupied', config: statusConfig.OCCUPIED },
 	{ value: 'VACANT', label: 'Vacant', config: statusConfig.VACANT },
-	{ value: 'MAINTENANCE', label: 'Maintenance', config: statusConfig.MAINTENANCE },
+	{
+		value: 'MAINTENANCE',
+		label: 'Maintenance',
+		config: statusConfig.MAINTENANCE
+	},
 	{ value: 'RESERVED', label: 'Reserved', config: statusConfig.RESERVED }
 ]
 
-export function UnitViewDialog({ unit, open, onOpenChange }: UnitViewDialogProps) {
+export function UnitViewDialog({
+	unit,
+	open,
+	onOpenChange
+}: UnitViewDialogProps) {
 	const formatCurrency = (amount: string | number) => {
 		const value = typeof amount === 'string' ? parseFloat(amount) : amount
 		return new Intl.NumberFormat('en-US', {
 			style: 'currency',
-			currency: 'USD',
+			currency: 'USD'
 		}).format(value)
 	}
 
@@ -129,62 +160,107 @@ export function UnitViewDialog({ unit, open, onOpenChange }: UnitViewDialogProps
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className={cn(
-				"max-w-lg rounded-12px border shadow-xl",
-				"animate-in fade-in-0 zoom-in-95",
-				`duration-[${ANIMATION_DURATIONS.default}ms]`
-			)}>
+			<DialogContent
+				className={cn(
+					'max-w-lg rounded-12px border shadow-xl',
+					'animate-in fade-in-0 zoom-in-95',
+					`duration-[${ANIMATION_DURATIONS.default}ms]`
+				)}
+			>
 				<DialogHeader className="space-y-3 pb-6">
-					<div className={cn(
-						"w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/20",
-						"flex items-center justify-center mx-auto"
-					)}>
+					<div
+						className={cn(
+							'w-12 h-12 rounded-full bg-accent/10',
+							'flex items-center justify-center mx-auto'
+						)}
+					>
 						<span className="text-2xl">🏠</span>
 					</div>
-					<DialogTitle className="text-center text-gray-900 dark:text-gray-100 font-semibold" style={{ fontSize: TYPOGRAPHY_SCALE['heading-xl'].fontSize, fontWeight: TYPOGRAPHY_SCALE['heading-xl'].fontWeight, lineHeight: TYPOGRAPHY_SCALE['heading-xl'].lineHeight }}>
+					<DialogTitle
+						className="text-center text-foreground font-semibold"
+						style={{
+							fontSize: TYPOGRAPHY_SCALE['heading-xl'].fontSize,
+							fontWeight: TYPOGRAPHY_SCALE['heading-xl'].fontWeight,
+							lineHeight: TYPOGRAPHY_SCALE['heading-xl'].lineHeight
+						}}
+					>
 						Unit {unit.unitNumber} Details
 					</DialogTitle>
-					<DialogDescription className="text-center text-gray-600 dark:text-gray-400" style={{ fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize, lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight }}>
+					<DialogDescription
+						className="text-center text-muted-foreground"
+						style={{
+							fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize,
+							lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight
+						}}
+					>
 						Comprehensive property information and current status
 					</DialogDescription>
 				</DialogHeader>
-				
+
 				<div className="grid gap-6">
 					<div className="grid grid-cols-2 gap-6">
 						<div className="space-y-3">
-							<Label className="text-xs font-semibold text-gray-500 uppercase tracking-wider" style={{ fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize, lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight }}>
+							<Label
+								className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
+								style={{
+									fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize,
+									lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight
+								}}
+							>
 								Unit Number
 							</Label>
-							<div className={cn(
-								"flex items-center gap-2 p-3 rounded-8px bg-gray-50 dark:bg-gray-800/50",
-								"border border-gray-200 dark:border-gray-700"
-							)}>
+							<div
+								className={cn(
+									'flex items-center gap-2 p-3 rounded-8px bg-muted/50',
+									'border border-muted'
+								)}
+							>
 								<span className="text-lg">🏠</span>
-								<p className="text-lg font-bold text-gray-900 dark:text-gray-100" style={{ fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize, fontWeight: TYPOGRAPHY_SCALE['heading-lg'].fontWeight }}>
+								<p
+									className="text-lg font-bold text-foreground"
+									style={{
+										fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize,
+										fontWeight: TYPOGRAPHY_SCALE['heading-lg'].fontWeight
+									}}
+								>
 									{unit.unitNumber}
 								</p>
 							</div>
 						</div>
 						<div className="space-y-2">
-							<Label className="text-xs font-semibold text-gray-500 uppercase tracking-wider" style={{ fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize, lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight }}>
+							<Label
+								className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
+								style={{
+									fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize,
+									lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight
+								}}
+							>
 								Status
 							</Label>
 							<div className="flex items-center">
-								<Badge 
+								<Badge
 									variant={statusConfig[unit.status].variant}
 									className={cn(
-										"capitalize font-medium border rounded-full px-3 py-1.5",
+										'capitalize font-medium border rounded-full px-3 py-1.5',
 										statusConfig[unit.status].bgColor,
 										statusConfig[unit.status].textColor,
 										`transition-fast`,
-										"hover:shadow-sm"
+										'hover:shadow-sm'
 									)}
 								>
-									<span className="mr-1.5">{statusConfig[unit.status].icon}</span>
+									<span className="mr-1.5">
+										{statusConfig[unit.status].icon}
+									</span>
 									{unit.status.toLowerCase()}
 								</Badge>
 							</div>
-							<p className="text-xs text-gray-500 dark:text-gray-400" style={{ fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize, lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight }}>
+							<p
+								className="text-xs text-muted-foreground"
+								style={{
+									fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize,
+									lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight
+								}}
+							>
 								{statusConfig[unit.status].description}
 							</p>
 						</div>
@@ -193,111 +269,221 @@ export function UnitViewDialog({ unit, open, onOpenChange }: UnitViewDialogProps
 					<Separator />
 
 					<div className="grid grid-cols-2 gap-6">
-						<div className={cn(
-							"space-y-3 p-4 rounded-8px bg-blue-50 dark:bg-blue-900/10",
-							"border border-blue-200 dark:border-blue-800"
-						)}>
-							<Label className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider flex items-center gap-1" style={{ fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize, lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight }}>
+						<div
+							className={cn(
+								'space-y-3 p-4 rounded-8px bg-accent/5',
+								'border border-accent/20'
+							)}
+						>
+							<Label
+								className="text-xs font-semibold text-accent uppercase tracking-wider flex items-center gap-1"
+								style={{
+									fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize,
+									lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight
+								}}
+							>
 								🛏️ Bedrooms
 							</Label>
-							<p className="text-2xl font-bold text-blue-700 dark:text-blue-300" style={{ fontSize: TYPOGRAPHY_SCALE['heading-xl'].fontSize, fontWeight: TYPOGRAPHY_SCALE['heading-xl'].fontWeight }}>
+							<p
+								className="text-2xl font-bold text-accent"
+								style={{
+									fontSize: TYPOGRAPHY_SCALE['heading-xl'].fontSize,
+									fontWeight: TYPOGRAPHY_SCALE['heading-xl'].fontWeight
+								}}
+							>
 								{unit.bedrooms || '—'}
 							</p>
 						</div>
-						<div className={cn(
-							"space-y-3 p-4 rounded-8px bg-purple-50 dark:bg-purple-900/10",
-							"border border-purple-200 dark:border-purple-800"
-						)}>
-							<Label className="text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider flex items-center gap-1" style={{ fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize, lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight }}>
+						<div
+							className={cn(
+								'space-y-3 p-4 rounded-8px bg-primary/5',
+								'border border-primary/20'
+							)}
+						>
+							<Label
+								className="text-xs font-semibold text-primary uppercase tracking-wider flex items-center gap-1"
+								style={{
+									fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize,
+									lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight
+								}}
+							>
 								🚿 Bathrooms
 							</Label>
-							<p className="text-2xl font-bold text-purple-700 dark:text-purple-300" style={{ fontSize: TYPOGRAPHY_SCALE['heading-xl'].fontSize, fontWeight: TYPOGRAPHY_SCALE['heading-xl'].fontWeight }}>
+							<p
+								className="text-2xl font-bold text-primary"
+								style={{
+									fontSize: TYPOGRAPHY_SCALE['heading-xl'].fontSize,
+									fontWeight: TYPOGRAPHY_SCALE['heading-xl'].fontWeight
+								}}
+							>
 								{unit.bathrooms || '—'}
 							</p>
 						</div>
 					</div>
 
 					<div className="grid grid-cols-2 gap-6">
-						<div className={cn(
-							"space-y-3 p-4 rounded-8px bg-amber-50 dark:bg-amber-900/10",
-							"border border-amber-200 dark:border-amber-800"
-						)}>
-							<Label className="text-xs font-semibold text-amber-600 dark:text-amber-500 uppercase tracking-wider flex items-center gap-1" style={{ fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize, lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight }}>
+						<div
+							className={cn(
+								'space-y-3 p-4 rounded-8px bg-muted/50',
+								'border border-muted'
+							)}
+						>
+							<Label
+								className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1"
+								style={{
+									fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize,
+									lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight
+								}}
+							>
 								📐 Square Feet
 							</Label>
-							<p className="text-lg font-bold text-amber-700 dark:text-amber-300" style={{ fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize, fontWeight: TYPOGRAPHY_SCALE['heading-lg'].fontWeight }}>
+							<p
+								className="text-lg font-bold text-foreground"
+								style={{
+									fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize,
+									fontWeight: TYPOGRAPHY_SCALE['heading-lg'].fontWeight
+								}}
+							>
 								{unit.squareFeet ? `${unit.squareFeet.toLocaleString()}` : '—'}
 								{unit.squareFeet && (
-									<span className="text-sm font-normal text-amber-600 dark:text-amber-400 ml-1" style={{ fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize, lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight }}>
+									<span
+										className="text-sm font-normal text-muted-foreground ml-1"
+										style={{
+											fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize,
+											lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight
+										}}
+									>
 										sq ft
 									</span>
 								)}
 							</p>
 						</div>
-						<div className={cn(
-							"space-y-3 p-4 rounded-8px bg-green-50 dark:bg-green-900/10",
-							"border border-green-200 dark:border-green-800",
-							"relative overflow-hidden"
-						)}>
-							<div className="absolute top-0 right-0 w-20 h-20 bg-green-200/30 dark:bg-green-700/20 rounded-full -translate-y-6 translate-x-6" />
-							<Label className="text-xs font-semibold text-green-600 dark:text-green-400 uppercase tracking-wider flex items-center gap-1 relative z-10" style={{ fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize, lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight }}>
+						<div
+							className={cn(
+								'space-y-3 p-4 rounded-8px bg-primary/5',
+								'border border-primary/20',
+								'relative overflow-hidden'
+							)}
+						>
+							<div className="absolute top-0 right-0 w-20 h-20 bg-primary/30 rounded-full -translate-y-6 translate-x-6" />
+							<Label
+								className="text-xs font-semibold text-primary uppercase tracking-wider flex items-center gap-1 relative z-10"
+								style={{
+									fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize,
+									lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight
+								}}
+							>
 								💰 Monthly Rent
 							</Label>
-							<p className="text-2xl font-bold text-green-700 dark:text-green-300 relative z-10" style={{ fontSize: TYPOGRAPHY_SCALE['display-lg'].fontSize, fontWeight: TYPOGRAPHY_SCALE['display-lg'].fontWeight }}>
+							<p
+								className="text-2xl font-bold text-primary relative z-10"
+								style={{
+									fontSize: TYPOGRAPHY_SCALE['display-lg'].fontSize,
+									fontWeight: TYPOGRAPHY_SCALE['display-lg'].fontWeight
+								}}
+							>
 								{formatCurrency(unit.rent)}
 							</p>
 						</div>
 					</div>
 
-					<div className={cn(
-						"space-y-3 p-4 rounded-8px",
-						unit.lastInspectionDate 
-							? "bg-indigo-50 dark:bg-indigo-900/10 border border-indigo-200 dark:border-indigo-800"
-							: "bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700"
-					)}>
-						<Label className={cn(
-							"text-xs font-semibold uppercase tracking-wider flex items-center gap-2",
-							unit.lastInspectionDate 
-								? "text-indigo-600 dark:text-indigo-400"
-								: "text-gray-500 dark:text-gray-400"
-						)} style={{ fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize, lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight }}>
+					<div
+						className={cn(
+							'space-y-3 p-4 rounded-8px',
+							unit.lastInspectionDate
+								? 'bg-accent/5 border border-accent/20'
+								: 'bg-muted border border-muted'
+						)}
+					>
+						<Label
+							className={cn(
+								'text-xs font-semibold uppercase tracking-wider flex items-center gap-2',
+								unit.lastInspectionDate
+									? 'text-accent'
+									: 'text-muted-foreground'
+							)}
+							style={{
+								fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize,
+								lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight
+							}}
+						>
 							🔍 Last Inspection
 						</Label>
-						<p className={cn(
-							"text-lg font-semibold",
-							unit.lastInspectionDate 
-								? "text-indigo-700 dark:text-indigo-300"
-								: "text-gray-600 dark:text-gray-400"
-						)} style={{ fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize, fontWeight: TYPOGRAPHY_SCALE['heading-lg'].fontWeight }}>
-							{unit.lastInspectionDate ? formatDate(unit.lastInspectionDate) : 'No inspection recorded'}
+						<p
+							className={cn(
+								'text-lg font-semibold',
+								unit.lastInspectionDate
+									? 'text-accent'
+									: 'text-muted-foreground'
+							)}
+							style={{
+								fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize,
+								fontWeight: TYPOGRAPHY_SCALE['heading-lg'].fontWeight
+							}}
+						>
+							{unit.lastInspectionDate
+								? formatDate(unit.lastInspectionDate)
+								: 'No inspection recorded'}
 						</p>
 						{!unit.lastInspectionDate && (
-							<p className="text-xs text-gray-500 dark:text-gray-400 italic" style={{ fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize, lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight }}>
+							<p
+								className="text-xs text-muted-foreground italic"
+								style={{
+									fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize,
+									lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight
+								}}
+							>
 								Consider scheduling a property inspection
 							</p>
 						)}
 					</div>
 
-					<Separator className="my-6 bg-gray-200 dark:bg-gray-700" />
+					<Separator className="my-6" />
 
-					<div className={cn(
-						"grid grid-cols-2 gap-6 p-4 rounded-8px",
-						"bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-900/50",
-						"border border-gray-200 dark:border-gray-700"
-					)}>
+					<div
+						className={cn(
+							'grid grid-cols-2 gap-6 p-4 rounded-8px',
+							'bg-gradient-to-br from-muted/20 to-muted/40',
+							'border border-muted'
+						)}
+					>
 						<div className="space-y-2">
-							<Label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-1" style={{ fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize, lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight }}>
+							<Label
+								className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1"
+								style={{
+									fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize,
+									lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight
+								}}
+							>
 								📅 Created
 							</Label>
-							<p className="text-sm font-semibold text-gray-700 dark:text-gray-300" style={{ fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize, lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight }}>
+							<p
+								className="text-sm font-semibold text-foreground"
+								style={{
+									fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize,
+									lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight
+								}}
+							>
 								{formatDate(unit.createdAt)}
 							</p>
 						</div>
 						<div className="space-y-2">
-							<Label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-1" style={{ fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize, lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight }}>
+							<Label
+								className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1"
+								style={{
+									fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize,
+									lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight
+								}}
+							>
 								✏️ Last Updated
 							</Label>
-							<p className="text-sm font-semibold text-gray-700 dark:text-gray-300" style={{ fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize, lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight }}>
+							<p
+								className="text-sm font-semibold text-foreground"
+								style={{
+									fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize,
+									lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight
+								}}
+							>
 								{formatDate(unit.updatedAt)}
 							</p>
 						</div>
@@ -305,14 +491,14 @@ export function UnitViewDialog({ unit, open, onOpenChange }: UnitViewDialogProps
 				</div>
 
 				<DialogFooter className="flex gap-3 pt-6">
-					<Button 
-						variant="outline" 
-						onClick={() => onOpenChange(false)} 
+					<Button
+						variant="outline"
+						onClick={() => onOpenChange(false)}
 						className={cn(
 							buttonClasses('outline'),
-							"min-w-[120px] rounded-8px",
+							'min-w-[120px] rounded-8px',
 							`transition-fast`,
-							"hover:bg-gray-50 dark:hover:bg-gray-800"
+							'hover:bg-muted'
 						)}
 					>
 						Close
@@ -323,7 +509,11 @@ export function UnitViewDialog({ unit, open, onOpenChange }: UnitViewDialogProps
 	)
 }
 
-export function UnitEditDialog({ unit, open, onOpenChange }: UnitEditDialogProps) {
+export function UnitEditDialog({
+	unit,
+	open,
+	onOpenChange
+}: UnitEditDialogProps) {
 	const updateUnit = useUpdateUnit()
 
 	// TanStack Form with direct Zod validation
@@ -347,11 +537,15 @@ export function UnitEditDialog({ unit, open, onOpenChange }: UnitEditDialogProps
 						bathrooms: value.bathrooms || undefined,
 						squareFeet: value.squareFeet,
 						rent: value.rent,
-						status: value.status as "MAINTENANCE" | "VACANT" | "OCCUPIED" | "RESERVED",
+						status: value.status as
+							| 'MAINTENANCE'
+							| 'VACANT'
+							| 'OCCUPIED'
+							| 'RESERVED',
 						lastInspectionDate: value.lastInspectionDate
 					}
 				})
-				
+
 				toast.success('Unit updated successfully')
 				onOpenChange(false)
 			} catch (error) {
@@ -380,28 +574,46 @@ export function UnitEditDialog({ unit, open, onOpenChange }: UnitEditDialogProps
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className={cn(
-				"max-w-2xl max-h-[90vh] overflow-y-auto rounded-12px border shadow-xl",
-				"animate-in fade-in-0 zoom-in-95",
-				`duration-[${ANIMATION_DURATIONS.default}ms]`
-			)}>
+			<DialogContent
+				className={cn(
+					'max-w-2xl max-h-[90vh] overflow-y-auto rounded-12px border shadow-xl',
+					'animate-in fade-in-0 zoom-in-95',
+					`duration-[${ANIMATION_DURATIONS.default}ms]`
+				)}
+			>
 				<DialogHeader className="space-y-3 pb-6">
-					<div className={cn(
-						"w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/20",
-						"flex items-center justify-center mx-auto"
-					)}>
+					<div
+						className={cn(
+							'w-12 h-12 rounded-full bg-accent/10',
+							'flex items-center justify-center mx-auto'
+						)}
+					>
 						<span className="text-2xl">✏️</span>
 					</div>
-					<DialogTitle className="text-center text-gray-900 dark:text-gray-100 font-semibold" style={{ fontSize: TYPOGRAPHY_SCALE['heading-xl'].fontSize, fontWeight: TYPOGRAPHY_SCALE['heading-xl'].fontWeight, lineHeight: TYPOGRAPHY_SCALE['heading-xl'].lineHeight }}>
+					<DialogTitle
+						className="text-center text-foreground font-semibold"
+						style={{
+							fontSize: TYPOGRAPHY_SCALE['heading-xl'].fontSize,
+							fontWeight: TYPOGRAPHY_SCALE['heading-xl'].fontWeight,
+							lineHeight: TYPOGRAPHY_SCALE['heading-xl'].lineHeight
+						}}
+					>
 						Edit Unit {unit.unitNumber}
 					</DialogTitle>
-					<DialogDescription className="text-center text-gray-600 dark:text-gray-400" style={{ fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize, lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight }}>
-						Update property details and settings. Changes are saved automatically.
+					<DialogDescription
+						className="text-center text-muted-foreground"
+						style={{
+							fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize,
+							lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight
+						}}
+					>
+						Update property details and settings. Changes are saved
+						automatically.
 					</DialogDescription>
 				</DialogHeader>
 
 				<form
-					onSubmit={(e) => {
+					onSubmit={e => {
 						e.preventDefault()
 						form.handleSubmit()
 					}}
@@ -409,36 +621,41 @@ export function UnitEditDialog({ unit, open, onOpenChange }: UnitEditDialogProps
 				>
 					<div className="grid grid-cols-2 gap-6">
 						<form.Field name="unitNumber">
-							{(field) => (
+							{field => (
 								<div className="space-y-3">
-									<Label 
-										htmlFor="unitNumber" 
-										className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2"
-										style={{ fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize, lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight }}
+									<Label
+										htmlFor="unitNumber"
+										className="text-sm font-semibold text-foreground flex items-center gap-2"
+										style={{
+											fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize,
+											lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight
+										}}
 									>
-										🏠 Unit Number <span className="text-red-500">*</span>
+										🏠 Unit Number <span className="text-destructive">*</span>
 									</Label>
 									<Input
 										id="unitNumber"
 										placeholder="e.g., 101, A1, Suite 200"
 										value={field.state.value}
-										onChange={(e) => field.handleChange(e.target.value)}
+										onChange={e => field.handleChange(e.target.value)}
 										onBlur={field.handleBlur}
 										disabled={form.state.isSubmitting}
 										className={cn(
 											inputClasses('default'),
-											"rounded-8px",
+											'rounded-8px',
 											`transition-fast`,
-											field.state.meta.errors 
-												? 'border-red-300 dark:border-red-600 focus:border-red-500 dark:focus:border-red-400 bg-red-50 dark:bg-red-900/10' 
-												: 'focus:border-blue-500 dark:focus:border-blue-400 hover:border-gray-400 dark:hover:border-gray-500'
+											field.state.meta.errors
+												? 'border-destructive focus:border-destructive bg-destructive/10'
+												: 'focus:border-primary hover:border-muted-foreground'
 										)}
 									/>
 									{field.state.meta.errors && (
-										<div className={cn(
-											"text-sm text-red-600 dark:text-red-400 font-medium flex items-center gap-2 p-2 rounded-6px",
-											"bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
-										)}>
+										<div
+											className={cn(
+												'text-sm text-destructive font-medium flex items-center gap-2 p-2 rounded-6px',
+												'bg-destructive/10 border border-destructive/20'
+											)}
+										>
 											⚠️ {field.state.meta.errors.join(', ')}
 										</div>
 									)}
@@ -447,40 +664,53 @@ export function UnitEditDialog({ unit, open, onOpenChange }: UnitEditDialogProps
 						</form.Field>
 
 						<form.Field name="status">
-							{(field) => (
+							{field => (
 								<div className="space-y-3">
-									<Label 
-										htmlFor="status" 
-										className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2"
-										style={{ fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize, lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight }}
+									<Label
+										htmlFor="status"
+										className="text-sm font-semibold text-foreground flex items-center gap-2"
+										style={{
+											fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize,
+											lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight
+										}}
 									>
-										📊 Status <span className="text-red-500">*</span>
+										📊 Status <span className="text-destructive">*</span>
 									</Label>
 									<Select
 										value={field.state.value}
 										onValueChange={field.handleChange}
 										disabled={form.state.isSubmitting}
 									>
-										<SelectTrigger className={cn(
-											"rounded-8px h-11",
-											`transition-fast`,
-											field.state.meta.errors 
-												? 'border-red-300 dark:border-red-600 focus:border-red-500 dark:focus:border-red-400 bg-red-50 dark:bg-red-900/10'
-												: 'focus:border-blue-500 dark:focus:border-blue-400 hover:border-gray-400 dark:hover:border-gray-500'
-										)}>
+										<SelectTrigger
+											className={cn(
+												'rounded-8px h-11',
+												`transition-fast`,
+												field.state.meta.errors
+													? 'border-destructive focus:border-destructive bg-destructive/10'
+													: 'focus:border-primary hover:border-muted-foreground'
+											)}
+										>
 											<SelectValue placeholder="Choose unit status" />
 										</SelectTrigger>
 										<SelectContent className="rounded-8px">
-											{statusOptions.map((option) => (
-												<SelectItem key={option.value} value={option.value} className="rounded-6px">
+											{statusOptions.map(option => (
+												<SelectItem
+													key={option.value}
+													value={option.value}
+													className="rounded-6px"
+												>
 													<div className="flex items-center gap-3">
-														<div className={cn(
-															"w-3 h-3 rounded-full flex items-center justify-center",
-															option.config.bgColor
-														)}>
+														<div
+															className={cn(
+																'w-3 h-3 rounded-full flex items-center justify-center',
+																option.config.bgColor
+															)}
+														>
 															<div className="w-1.5 h-1.5 rounded-full bg-current opacity-80" />
 														</div>
-														<span className="font-medium">{option.config.icon}</span>
+														<span className="font-medium">
+															{option.config.icon}
+														</span>
 														<span>{option.label}</span>
 													</div>
 												</SelectItem>
@@ -488,10 +718,12 @@ export function UnitEditDialog({ unit, open, onOpenChange }: UnitEditDialogProps
 										</SelectContent>
 									</Select>
 									{field.state.meta.errors && (
-										<div className={cn(
-											"text-sm text-red-600 dark:text-red-400 font-medium flex items-center gap-2 p-2 rounded-6px",
-											"bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
-										)}>
+										<div
+											className={cn(
+												'text-sm text-destructive font-medium flex items-center gap-2 p-2 rounded-6px',
+												'bg-destructive/10 border border-destructive/20'
+											)}
+										>
 											⚠️ {field.state.meta.errors.join(', ')}
 										</div>
 									)}
@@ -502,7 +734,7 @@ export function UnitEditDialog({ unit, open, onOpenChange }: UnitEditDialogProps
 
 					<div className="grid grid-cols-2 gap-6">
 						<form.Field name="bedrooms">
-							{(field) => (
+							{field => (
 								<div className="space-y-2">
 									<Label htmlFor="bedrooms" className="text-sm font-medium">
 										Bedrooms
@@ -515,12 +747,18 @@ export function UnitEditDialog({ unit, open, onOpenChange }: UnitEditDialogProps
 										step="1"
 										placeholder="e.g., 2"
 										value={field.state.value || ''}
-										onChange={(e) => field.handleChange(parseInt(e.target.value, 10) || undefined)}
+										onChange={e =>
+											field.handleChange(
+												parseInt(e.target.value, 10) || undefined
+											)
+										}
 										onBlur={field.handleBlur}
 										disabled={form.state.isSubmitting}
 										className={`${field.state.meta.errors ? 'border-destructive focus:border-destructive' : 'focus:border-primary'}`}
 									/>
-									<p className="text-xs text-muted-foreground">Number of bedrooms (0-20)</p>
+									<p className="text-xs text-muted-foreground">
+										Number of bedrooms (0-20)
+									</p>
 									{field.state.meta.errors && (
 										<div className="text-sm text-destructive font-medium flex items-center gap-1">
 											⚠️ {field.state.meta.errors.join(', ')}
@@ -531,7 +769,7 @@ export function UnitEditDialog({ unit, open, onOpenChange }: UnitEditDialogProps
 						</form.Field>
 
 						<form.Field name="bathrooms">
-							{(field) => (
+							{field => (
 								<div className="space-y-2">
 									<Label htmlFor="bathrooms" className="text-sm font-medium">
 										Bathrooms
@@ -544,12 +782,18 @@ export function UnitEditDialog({ unit, open, onOpenChange }: UnitEditDialogProps
 										step="0.5"
 										placeholder="e.g., 1.5"
 										value={field.state.value || ''}
-										onChange={(e) => field.handleChange(parseFloat(e.target.value) || undefined)}
+										onChange={e =>
+											field.handleChange(
+												parseFloat(e.target.value) || undefined
+											)
+										}
 										onBlur={field.handleBlur}
 										disabled={form.state.isSubmitting}
 										className={`${field.state.meta.errors ? 'border-destructive focus:border-destructive' : 'focus:border-primary'}`}
 									/>
-									<p className="text-xs text-muted-foreground">Include half-baths (e.g., 1.5)</p>
+									<p className="text-xs text-muted-foreground">
+										Include half-baths (e.g., 1.5)
+									</p>
 									{field.state.meta.errors && (
 										<div className="text-sm text-destructive font-medium flex items-center gap-1">
 											⚠️ {field.state.meta.errors.join(', ')}
@@ -562,7 +806,7 @@ export function UnitEditDialog({ unit, open, onOpenChange }: UnitEditDialogProps
 
 					<div className="grid grid-cols-2 gap-6">
 						<form.Field name="squareFeet">
-							{(field) => (
+							{field => (
 								<div className="space-y-2">
 									<Label htmlFor="squareFeet" className="text-sm font-medium">
 										Square Feet
@@ -575,7 +819,9 @@ export function UnitEditDialog({ unit, open, onOpenChange }: UnitEditDialogProps
 										step="1"
 										placeholder="e.g., 800"
 										value={field.state.value || ''}
-										onChange={(e) => field.handleChange(parseInt(e.target.value, 10) || null)}
+										onChange={e =>
+											field.handleChange(parseInt(e.target.value, 10) || null)
+										}
 										onBlur={field.handleBlur}
 										disabled={form.state.isSubmitting}
 										className={`${field.state.meta.errors ? 'border-destructive focus:border-destructive' : 'focus:border-primary'}`}
@@ -593,13 +839,15 @@ export function UnitEditDialog({ unit, open, onOpenChange }: UnitEditDialogProps
 						</form.Field>
 
 						<form.Field name="rent">
-							{(field) => (
+							{field => (
 								<div className="space-y-2">
 									<Label htmlFor="rent" className="text-sm font-medium">
 										Monthly Rent <span className="text-destructive">*</span>
 									</Label>
 									<div className="relative">
-										<span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sm text-muted-foreground">$</span>
+										<span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sm text-muted-foreground">
+											$
+										</span>
 										<Input
 											id="rent"
 											type="number"
@@ -608,7 +856,9 @@ export function UnitEditDialog({ unit, open, onOpenChange }: UnitEditDialogProps
 											step="0.01"
 											placeholder="1200.00"
 											value={field.state.value}
-											onChange={(e) => field.handleChange(parseFloat(e.target.value) || 0)}
+											onChange={e =>
+												field.handleChange(parseFloat(e.target.value) || 0)
+											}
 											onBlur={field.handleBlur}
 											disabled={form.state.isSubmitting}
 											className={`pl-7 ${field.state.meta.errors ? 'border-destructive focus:border-destructive' : 'focus:border-primary'}`}
@@ -628,16 +878,21 @@ export function UnitEditDialog({ unit, open, onOpenChange }: UnitEditDialogProps
 					</div>
 
 					<form.Field name="lastInspectionDate">
-						{(field) => (
+						{field => (
 							<div className="space-y-2">
-								<Label htmlFor="lastInspectionDate" className="text-sm font-medium">
+								<Label
+									htmlFor="lastInspectionDate"
+									className="text-sm font-medium"
+								>
 									Last Inspection Date
 								</Label>
 								<Input
 									id="lastInspectionDate"
 									type="date"
-									value={field.state.value ? field.state.value.split('T')[0] : ''}
-									onChange={(e) => field.handleChange(e.target.value || null)}
+									value={
+										field.state.value ? field.state.value.split('T')[0] : ''
+									}
+									onChange={e => field.handleChange(e.target.value || null)}
 									onBlur={field.handleBlur}
 									disabled={form.state.isSubmitting}
 									className={`${field.state.meta.errors ? 'border-destructive focus:border-destructive' : 'focus:border-primary'}`}
@@ -664,8 +919,8 @@ export function UnitEditDialog({ unit, open, onOpenChange }: UnitEditDialogProps
 						>
 							Cancel
 						</Button>
-						<Button 
-							type="submit" 
+						<Button
+							type="submit"
 							disabled={form.state.isSubmitting || !form.state.canSubmit}
 							className="min-w-[120px] bg-primary hover:bg-primary/90 text-primary-foreground"
 						>

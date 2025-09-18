@@ -16,8 +16,13 @@ export async function middleware(request: NextRequest) {
     const cookies = request.cookies
     const hasSupabaseAuth = Boolean(
       cookies.get('sb-access-token')?.value ||
+      cookies.get('sb-refresh-token')?.value ||
       cookies.get('supabase-auth-token')?.value ||
-      cookies.get('supabase.auth.token')?.value
+      cookies.get('supabase.auth.token')?.value ||
+      // Standard Supabase cookie pattern - use getAll() for Next.js cookies
+      cookies.getAll().some(({ name }) =>
+        name.startsWith('sb-') && name.includes('-auth-token')
+      )
     )
     // Development-only mock authentication bypass
     // CLAUDE.md Compliance: Environment-based, production-safe, no abstractions
@@ -30,12 +35,13 @@ export async function middleware(request: NextRequest) {
     // Debug logging in development
     if (process.env.NODE_ENV === 'development') {
       console.info(`[Middleware] ${pathname} - Auth: ${isAuthenticated ? 'Yes' : 'No'}`)
-      console.info(`[Middleware] Available cookies:`, request.cookies.toString())
+      console.info(`[Middleware] HasSupabaseAuth: ${hasSupabaseAuth}, MockAuth: ${isDevelopment && enableMockAuth}`)
+      console.info(`[Middleware] Available cookies:`, cookies.getAll().map(({ name, value }) => `${name}=${value?.substring(0, 20)}...`))
     }
 
     // Define protected routes - these require authentication
     const protectedRoutes = ['/dashboard']
-    const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route))
+    const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route)) || pathname.startsWith('/(protected)')
 
     // Define public routes that should redirect to dashboard if logged in
     const publicAuthRoutes = ['/auth/login', '/auth/register', '/auth/sign-up', '/login']
@@ -43,7 +49,7 @@ export async function middleware(request: NextRequest) {
 
     // Redirect unauthenticated users to login if accessing protected routes
     if (isProtectedRoute && !isAuthenticated) {
-      const loginUrl = new URL('/auth/login', request.url)
+      const loginUrl = new URL('/login', request.url)
       // Optional: Add the attempted URL as a query parameter for post-login redirect
       loginUrl.searchParams.set('redirectTo', pathname)
 

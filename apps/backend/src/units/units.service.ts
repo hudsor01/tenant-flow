@@ -14,7 +14,7 @@
  */
 
 import { Injectable, BadRequestException } from '@nestjs/common'
-import { Logger } from '@nestjs/common'
+import { PinoLogger } from 'nestjs-pino'
 import { SupabaseService } from '../database/supabase.service'
 import type {
 	CreateUnitRequest,
@@ -25,7 +25,7 @@ import type {
 export class UnitsService {
 	constructor(
 		private readonly supabaseService: SupabaseService,
-		private readonly logger: Logger
+		private readonly logger: PinoLogger
 	) {
 		// Logger context handled automatically via app-level configuration
 	}

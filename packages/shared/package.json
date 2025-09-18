@@ -1,109 +1,108 @@
 {
-  "name": "@repo/shared",
-  "version": "0.1.0",
-  "main": "./dist/cjs/index.js",
-  "types": "./dist/cjs/index.d.ts",
-  "scripts": {
-    "build": "npm run clean && tsc -p tsconfig.build.json",
-    "build:cjs": "echo 'CJS build already exists'",
-    "build:esm": "echo 'ESM build skipped'",
-    "check-types": "tsc --noEmit",
-    "claude:check": "npm run lint && npm run typecheck",
-    "clean": "tsc --build --clean && rm -rf dist",
-    "format": "prettier --write \"src/**/*.ts\"",
-    "format:check": "prettier --check \"src/**/*.ts\"",
-    "lint": "eslint . --no-warn-ignored",
-    "lint:fix": "eslint . --fix",
-    "typecheck": "tsc --noEmit"
-  },
-  "$schema": "https://json.schemastore.org/package",
-  "dependencies": {
-    "@supabase/ssr": "0.7.0",
-    "@supabase/supabase-js": "^2.57.4",
-    "pino": "9.9.5",
-    "posthog-js": "^1.264.2",
-    "react": "19.1.1",
-    "stripe": "^18.5.0",
-    "zod": "4.1.8"
-  },
-  "devDependencies": {
-    "@repo/typescript-config": "*",
-    "@types/node": "^24.3.1",
-    "@types/pg": "8.15.5",
-    "@types/react": "19.1.12",
-    "@types/react-dom": "19.1.9",
-    "@types/webpack": "5.28.5",
-    "eslint": "^9.35.0",
-    "globals": "16.4.0",
-    "typescript": "^5.9.2",
-    "typescript-eslint": "^8.43.0"
-  },
-  "exports": {
-    ".": {
-      "types": "./dist/cjs/index.d.ts",
-      "require": "./dist/cjs/index.js",
-      "default": "./dist/cjs/index.js"
-    },
-    "./types": {
-      "types": "./dist/cjs/types/index.d.ts",
-      "require": "./dist/cjs/types/index.js",
-      "default": "./dist/cjs/types/index.js"
-    },
-    "./types/*": {
-      "types": "./dist/cjs/types/*.d.ts",
-      "require": "./dist/cjs/types/*.js",
-      "default": "./dist/cjs/types/*.js"
-    },
-    "./lib": {
-      "types": "./dist/cjs/lib/index.d.ts",
-      "require": "./dist/cjs/lib/index.js",
-      "default": "./dist/cjs/lib/index.js"
-    },
-    "./lib/*": {
-      "types": "./dist/cjs/lib/*.d.ts",
-      "require": "./dist/cjs/lib/*.js",
-      "default": "./dist/cjs/lib/*.js"
-    },
-    "./constants": {
-      "types": "./dist/cjs/constants/index.d.ts",
-      "require": "./dist/cjs/constants/index.js",
-      "default": "./dist/cjs/constants/index.js"
-    },
-    "./utils": {
-      "types": "./dist/cjs/utils/index.d.ts",
-      "require": "./dist/cjs/utils/index.js",
-      "default": "./dist/cjs/utils/index.js"
-    },
-    "./validation": {
-      "types": "./dist/cjs/validation/index.d.ts",
-      "require": "./dist/cjs/validation/index.js",
-      "default": "./dist/cjs/validation/index.js"
-    },
-    "./validation/*": {
-      "types": "./dist/cjs/validation/*.d.ts",
-      "require": "./dist/cjs/validation/*.js",
-      "default": "./dist/cjs/validation/*.js"
-    }
-  },
-  "optionalDependencies": {
-    "@esbuild/linux-x64": "0.25.9",
-    "@rollup/rollup-linux-x64-gnu": "4.49.0"
-  },
-  "overrides": {
-    "minimatch": "^10.0.3"
-  },
-  "packageManager": "npm@10.0.0",
-  "peerDependencies": {
-    "@tanstack/react-query": "5.87.4",
-    "react-dom": "19.1.1",
-    "react-hook-form": "^7.62.0"
-  },
-  "private": true,
-  "typesVersions": {
-    "*": {
-      "types/*": [
-        "./dist/cjs/types/*"
-      ]
-    }
-  }
+	"name": "@repo/shared",
+	"version": "0.1.0",
+	"main": "./dist/cjs/index.js",
+	"types": "./dist/cjs/index.d.ts",
+	"scripts": {
+		"build": "npm run clean && tsc -p tsconfig.build.json",
+		"build:cjs": "echo 'CJS build already exists'",
+		"build:esm": "echo 'ESM build skipped'",
+		"check-types": "tsc --noEmit",
+		"claude:check": "npm run lint && npm run typecheck",
+		"clean": "tsc --build --clean && rm -rf dist",
+		"format": "prettier --write \"src/**/*.ts\"",
+		"format:check": "prettier --check \"src/**/*.ts\"",
+		"lint": "eslint . --no-warn-ignored",
+		"lint:fix": "eslint . --fix",
+		"typecheck": "tsc --noEmit"
+	},
+	"$schema": "https://json.schemastore.org/package",
+	"dependencies": {
+		"@supabase/ssr": "0.7.0",
+		"@supabase/supabase-js": "^2.57.4",
+		"pino": "9.9.5",
+		"posthog-js": "^1.266.0",
+		"react": "19.1.1",
+		"stripe": "^18.5.0",
+		"zod": "4.1.8"
+	},
+	"devDependencies": {
+		"@repo/typescript-config": "*",
+		"@types/node": "^24.5.0",
+		"@types/pg": "8.15.5",
+		"@types/react": "19.1.13",
+		"@types/react-dom": "19.1.9",
+		"@types/webpack": "5.28.5",
+		"eslint": "^9.35.0",
+		"globals": "16.4.0",
+		"typescript": "^5.9.2",
+		"typescript-eslint": "^8.43.0"
+	},
+	"exports": {
+		".": {
+			"types": "./dist/cjs/index.d.ts",
+			"require": "./dist/cjs/index.js",
+			"default": "./dist/cjs/index.js"
+		},
+		"./types": {
+			"types": "./dist/cjs/types/index.d.ts",
+			"require": "./dist/cjs/types/index.js",
+			"default": "./dist/cjs/types/index.js"
+		},
+		"./types/*": {
+			"types": "./dist/cjs/types/*.d.ts",
+			"require": "./dist/cjs/types/*.js",
+			"default": "./dist/cjs/types/*.js"
+		},
+		"./lib": {
+			"types": "./dist/cjs/lib/index.d.ts",
+			"require": "./dist/cjs/lib/index.js",
+			"default": "./dist/cjs/lib/index.js"
+		},
+		"./lib/*": {
+			"types": "./dist/cjs/lib/*.d.ts",
+			"require": "./dist/cjs/lib/*.js",
+			"default": "./dist/cjs/lib/*.js"
+		},
+		"./constants": {
+			"types": "./dist/cjs/constants/index.d.ts",
+			"require": "./dist/cjs/constants/index.js",
+			"default": "./dist/cjs/constants/index.js"
+		},
+		"./utils": {
+			"types": "./dist/cjs/utils/index.d.ts",
+			"require": "./dist/cjs/utils/index.js",
+			"default": "./dist/cjs/utils/index.js"
+		},
+		"./validation": {
+			"types": "./dist/cjs/validation/index.d.ts",
+			"require": "./dist/cjs/validation/index.js",
+			"default": "./dist/cjs/validation/index.js"
+		},
+		"./validation/*": {
+			"types": "./dist/cjs/validation/*.d.ts",
+			"require": "./dist/cjs/validation/*.js",
+			"default": "./dist/cjs/validation/*.js"
+		}
+	},
+	"optionalDependencies": {
+		"@esbuild/linux-x64": "0.25.9",
+		"@rollup/rollup-linux-x64-gnu": "4.50.1"
+	},
+	"overrides": {
+		"minimatch": "^10.0.3"
+	},
+	"peerDependencies": {
+		"@tanstack/react-query": "5.87.4",
+		"react-dom": "19.1.1",
+		"react-hook-form": "^7.62.0"
+	},
+	"private": true,
+	"typesVersions": {
+		"*": {
+			"types/*": [
+				"./dist/cjs/types/*"
+			]
+		}
+	}
 }

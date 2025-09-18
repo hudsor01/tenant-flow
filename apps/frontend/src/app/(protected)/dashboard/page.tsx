@@ -1,28 +1,28 @@
 'use client'
 
-import { ChartAreaInteractive } from '@/components/chart-area-interactive'
-import { DataTable } from '@/components/data-table'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { SectionCards } from '@/components/section-cards'
-import { RevenueTrendChart } from '@/components/charts/revenue-trend-chart'
-import { OccupancyHeatmap } from '@/components/charts/occupancy-heatmap'
-import { MaintenanceAnalytics } from '@/components/charts/maintenance-analytics'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
+import { useProperties } from '@/hooks/api/properties'
+import { useDashboardStats } from '@/hooks/api/use-dashboard'
+import type { Tables } from '@repo/shared'
+import { QueryErrorResetBoundary } from '@tanstack/react-query'
+import { AlertTriangle, RefreshCw, Wifi, WifiOff } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { ErrorBoundary } from 'react-error-boundary'
+import { ChartAreaInteractive } from 'src/components/chart-area-interactive'
+import { MaintenanceAnalytics } from 'src/components/charts/maintenance-analytics'
+import { OccupancyHeatmap } from 'src/components/charts/occupancy-heatmap'
+import { RevenueTrendChart } from 'src/components/charts/revenue-trend-chart'
+import { DataTable } from 'src/components/data-table'
+import { SectionCards } from 'src/components/section-cards'
+import { Alert, AlertDescription, AlertTitle } from 'src/components/ui/alert'
+import { Button } from 'src/components/ui/button'
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle
-} from '@/components/ui/card'
-import { useProperties } from '@/hooks/api/properties'
-import { useDashboardStats } from '@/hooks/api/use-dashboard'
-import { QueryErrorResetBoundary } from '@tanstack/react-query'
-import { AlertTriangle, RefreshCw, Wifi, WifiOff } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import type { Tables } from '@repo/shared'
-import { ErrorBoundary } from 'react-error-boundary'
+} from 'src/components/ui/card'
+import { LoadingSpinner } from 'src/components/ui/loading-spinner'
 
 // Enhanced error fallback component
 function DashboardErrorFallback({
@@ -220,23 +220,34 @@ function DashboardContent() {
 						</div>
 					) : propertiesData ? (
 						<DataTable
-							data={propertiesData.map((property: Tables<'Property'>, index: number) => ({
-								id: index + 1,
-								name: property.name,
-								type: property.propertyType === 'SINGLE_FAMILY' ? 'house' as const :
-								      property.propertyType === 'MULTI_UNIT' ? 'apartment' as const :
-								      property.propertyType === 'APARTMENT' ? 'apartment' as const :
-								      property.propertyType === 'COMMERCIAL' ? 'commercial' as const :
-								      property.propertyType === 'CONDO' ? 'condo' as const :
-								      property.propertyType === 'TOWNHOUSE' ? 'townhouse' as const : 'house' as const,
-								status: 'active' as const,
-								occupiedUnits: Math.floor(Math.random() * 8) + 2,
-								totalUnits: Math.floor(Math.random() * 10) + 5,
-								revenue: Math.floor(Math.random() * 50000) + 10000,
-								manager: 'Property Manager',
-								location: `${property.city}, ${property.state}`,
-								lastUpdated: new Date().toISOString().split('T')[0] || '2024-01-01'
-							}))}
+							data={propertiesData.map(
+								(property: Tables<'Property'>, index: number) => ({
+									id: index + 1,
+									name: property.name,
+									type:
+										property.propertyType === 'SINGLE_FAMILY'
+											? ('house' as const)
+											: property.propertyType === 'MULTI_UNIT'
+												? ('apartment' as const)
+												: property.propertyType === 'APARTMENT'
+													? ('apartment' as const)
+													: property.propertyType === 'COMMERCIAL'
+														? ('commercial' as const)
+														: property.propertyType === 'CONDO'
+															? ('condo' as const)
+															: property.propertyType === 'TOWNHOUSE'
+																? ('townhouse' as const)
+																: ('house' as const),
+									status: 'active' as const,
+									occupiedUnits: Math.floor(Math.random() * 8) + 2,
+									totalUnits: Math.floor(Math.random() * 10) + 5,
+									revenue: Math.floor(Math.random() * 50000) + 10000,
+									manager: 'Property Manager',
+									location: `${property.city}, ${property.state}`,
+									lastUpdated:
+										new Date().toISOString().split('T')[0] || '2024-01-01'
+								})
+							)}
 						/>
 					) : null}
 				</RetryableSection>

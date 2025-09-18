@@ -9,13 +9,13 @@ export default function MinimalPage() {
     }}>
       <div style={{
         padding: '2rem',
-        border: '1px solid #ccc',
+        border: '1px solid hsl(var(--border))',
         borderRadius: '8px',
         textAlign: 'center'
       }}>
         <h1>Minimal Test</h1>
         <p>Testing without TypeScript or complex setup</p>
-        <p style={{color: 'green'}}>✓ Basic Next.js page working</p>
+        <p style={{color: 'hsl(var(--accent))'}}>✓ Basic Next.js page working</p>
       </div>
     </div>
   )
