@@ -1,13 +1,7 @@
 'use client'
 
 import { Loader } from '@/components/ui/loader'
-<<<<<<< HEAD
 import { MagicCard } from '@/components/magicui/magic-card'
-||||||| 82bec1d5
-import { MagicCard } from '@/components/ui/magic-card'
-=======
-
->>>>>>> origin/main
 import { cn } from '@/lib/utils'
 import { Lock } from 'lucide-react'
 
