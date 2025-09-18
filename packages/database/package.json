@@ -23,7 +23,7 @@
     "@supabase/supabase-js": "^2.57.4"
   },
   "devDependencies": {
-    "@repo/typescript-config": "*",
+    "@repo/typescript-config": "workspace:*",
     "@types/node": "^24.3.1",
     "eslint": "9.35.0",
     "globals": "16.3.0",
