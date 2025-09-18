@@ -120,6 +120,122 @@ export class StripeService {
 	}
 
 	/**
+	 * Get ALL invoices with pagination
+	 * Critical for accurate analytics in production
+	 */
+	async getAllInvoices(params?: {
+		customer?: string
+		subscription?: string
+		status?: string
+		created?: { gte?: number; lte?: number }
+	}): Promise<Stripe.Invoice[]> {
+		try {
+			const allInvoices: Stripe.Invoice[] = []
+			let hasMore = true
+			let startingAfter: string | undefined
+
+			while (hasMore) {
+				const invoices = await this.stripe.invoices.list({
+					customer: params?.customer,
+					subscription: params?.subscription,
+					status: params?.status as Stripe.InvoiceListParams.Status,
+					created: params?.created,
+					limit: 100,
+					starting_after: startingAfter,
+					expand: ['data.subscription', 'data.customer']
+				})
+
+				allInvoices.push(...invoices.data)
+				hasMore = invoices.has_more
+				if (hasMore && invoices.data.length > 0) {
+					startingAfter = invoices.data[invoices.data.length - 1].id
+				}
+			}
+
+			this.logger?.log(`Fetched ${allInvoices.length} total invoices`)
+			return allInvoices
+		} catch (error) {
+			this.logger?.error('Failed to get all invoices', { error })
+			throw error
+		}
+	}
+
+	/**
+	 * Get ALL subscriptions with pagination
+	 * Critical for accurate analytics in production
+	 */
+	async getAllSubscriptions(params?: {
+		customer?: string
+		status?: Stripe.SubscriptionListParams.Status
+	}): Promise<Stripe.Subscription[]> {
+		try {
+			const allSubscriptions: Stripe.Subscription[] = []
+			let hasMore = true
+			let startingAfter: string | undefined
+
+			while (hasMore) {
+				const subscriptions = await this.stripe.subscriptions.list({
+					customer: params?.customer,
+					status: params?.status,
+					limit: 100,
+					starting_after: startingAfter,
+					expand: ['data.customer', 'data.items']
+				})
+
+				allSubscriptions.push(...subscriptions.data)
+				hasMore = subscriptions.has_more
+				if (hasMore && subscriptions.data.length > 0) {
+					startingAfter = subscriptions.data[subscriptions.data.length - 1].id
+				}
+			}
+
+			this.logger?.log(`Fetched ${allSubscriptions.length} total subscriptions`)
+			return allSubscriptions
+		} catch (error) {
+			this.logger?.error('Failed to get all subscriptions', { error })
+			throw error
+		}
+	}
+
+	/**
+	 * Get ALL customers with pagination
+	 * Critical for accurate analytics in production
+	 */
+	async getAllCustomers(params?: {
+		email?: string
+	}): Promise<Stripe.Customer[]> {
+		try {
+			const allCustomers: Stripe.Customer[] = []
+			let hasMore = true
+			let startingAfter: string | undefined
+
+			while (hasMore) {
+				const customers = await this.stripe.customers.list({
+					email: params?.email,
+					limit: 100,
+					starting_after: startingAfter,
+					expand: ['data.subscriptions']
+				})
+
+				// Filter out deleted customers
+				const validCustomers = customers.data.filter(c => !('deleted' in c))
+				allCustomers.push(...validCustomers)
+
+				hasMore = customers.has_more
+				if (hasMore && customers.data.length > 0) {
+					startingAfter = customers.data[customers.data.length - 1].id
+				}
+			}
+
+			this.logger?.log(`Fetched ${allCustomers.length} total customers`)
+			return allCustomers
+		} catch (error) {
+			this.logger?.error('Failed to get all customers', { error })
+			throw error
+		}
+	}
+
+	/**
 	 * Search for resources using Stripe's search API
 	 */
 	async searchSubscriptions(query: string): Promise<Stripe.Subscription[]> {

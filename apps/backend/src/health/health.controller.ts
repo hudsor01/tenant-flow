@@ -33,7 +33,7 @@ export class HealthController {
 		// Logger context handled automatically via app-level configuration
 	}
 
-	@Get('check')
+	@Get()
 	@Public()
 	@HealthCheck()
 	async check() {
@@ -50,6 +50,14 @@ export class HealthController {
 			() => this.supabase.pingCheck('database'),
 			() => this.stripeFdw.isHealthy('stripe_fdw')
 		])
+	}
+
+	@Get('check')
+	@Public()
+	@HealthCheck()
+	async checkEndpoint() {
+		// Alias for main health endpoint for backward compatibility
+		return this.check()
 	}
 
 	@Get('ping')
