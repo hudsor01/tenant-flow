@@ -165,8 +165,8 @@ export class ErrorBoundaryService {
 	/**
 	 * Get all service health statuses
 	 */
-	getAllServiceHealth(): Record<string, any> {
-		const services: Record<string, any> = {}
+	getAllServiceHealth(): Record<string, { status: 'healthy' | 'degraded' | 'unhealthy'; metrics: ServiceMetrics; circuit: CircuitState }> {
+		const services: Record<string, { status: 'healthy' | 'degraded' | 'unhealthy'; metrics: ServiceMetrics; circuit: CircuitState }> = {}
 
 		for (const serviceKey of this.serviceMetrics.keys()) {
 			services[serviceKey] = this.getServiceHealth(serviceKey)
@@ -292,12 +292,12 @@ export class ErrorBoundaryService {
 		this.updateCircuitState(serviceKey, true, this.defaultOptions)
 	}
 
-	private recordFailure(serviceKey: string, error: any, responseTime: number): void {
+	private recordFailure(serviceKey: string, error: Error | unknown, responseTime: number): void {
 		const metrics = this.getServiceMetrics(serviceKey)
 
 		metrics.totalRequests++
 		metrics.failureCount++
-		metrics.lastError = error.message || String(error)
+		metrics.lastError = error instanceof Error ? error.message : String(error)
 		metrics.lastErrorTime = Date.now()
 		this.updateAverageResponseTime(serviceKey, responseTime)
 	}

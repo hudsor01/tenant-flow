@@ -7,7 +7,7 @@
 import { Injectable, Optional } from '@nestjs/common'
 import { Logger } from '@nestjs/common'
 
-interface CacheEntry<T = any> {
+interface CacheEntry<T = unknown> {
 	data: T
 	timestamp: number
 	ttl: number
@@ -82,7 +82,7 @@ export class ResilienceService {
 	/**
 	 * Get cache key for user-specific data
 	 */
-	static getUserKey(userId: string, operation: string, params?: any): string {
+	static getUserKey(userId: string, operation: string, params?: Record<string, unknown>): string {
 		const paramsStr = params ? `:${JSON.stringify(params)}` : ''
 		return `user:${userId}:${operation}${paramsStr}`
 	}

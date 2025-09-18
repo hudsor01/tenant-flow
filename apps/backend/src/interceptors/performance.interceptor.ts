@@ -188,7 +188,17 @@ export class PerformanceInterceptor implements NestInterceptor {
 	getHealthStatus(): {
 		healthy: boolean
 		issues: string[]
-		metrics: ReturnType<typeof this.getPerformanceStats>
+		metrics: {
+			totalRequests: number
+			averageResponseTime: number
+			violationRate: number
+			timeoutRate: number
+			criticalPathStats: Record<
+				string,
+				{ requests: number; averageTime: number; violations: number }
+			>
+			recentViolations: PerformanceMetrics[]
+		}
 	} {
 		const stats = this.getPerformanceStats()
 		const issues: string[] = []

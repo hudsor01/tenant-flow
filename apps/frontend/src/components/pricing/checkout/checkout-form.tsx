@@ -1,8 +1,6 @@
 'use client'
 
 import { CardContent, CardHeader } from '@/components/ui/card'
-import { GlowingEffect } from '@/components/magicui/glowing-effect'
-import { MagicCard } from '@/components/magicui/magic-card'
 import { cn } from '@/lib/utils'
 import { animated } from '@react-spring/web'
 import { useElements, useStripe } from '@stripe/react-stripe-js'

@@ -46,7 +46,7 @@ export class AuthController {
 		try {
 			const result = await this.authService.testSupabaseConnection()
 			connected = !!result.connected
-		} catch (_) {
+		} catch {
 			connected = false
 		}
 
