@@ -352,10 +352,13 @@ export class HealthController {
 		if (result.status === 'fulfilled') {
 			return result.value
 		}
+		const error = result.reason
+		const errorMessage =
+			error instanceof Error ? error.message : 'Unknown error'
 		return {
 			healthy: false,
 			lastCheck: new Date().toISOString(),
-			details: { error: result.reason?.message || 'Unknown error' }
+			details: { error: errorMessage }
 		}
 	}
 

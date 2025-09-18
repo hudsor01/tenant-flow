@@ -15,6 +15,17 @@ import type { PerformanceMetrics } from '@repo/shared'
 import { Observable, throwError } from 'rxjs'
 import { catchError, tap, timeout } from 'rxjs/operators'
 
+interface TypedRequest {
+	method: string
+	url: string
+	user?: { id?: string }
+	headers: Record<string, string | string[] | undefined>
+}
+
+interface TypedResponse {
+	setHeader: (name: string, value: string) => void
+}
+
 @Injectable()
 export class PerformanceInterceptor implements NestInterceptor {
 	private readonly performanceTargets = {
@@ -39,8 +50,8 @@ export class PerformanceInterceptor implements NestInterceptor {
 	constructor(private readonly logger: Logger) {}
 
 	intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
-		const request = context.switchToHttp().getRequest()
-		const response = context.switchToHttp().getResponse()
+		const request = context.switchToHttp().getRequest<TypedRequest>()
+		const response = context.switchToHttp().getResponse<TypedResponse>()
 
 		const startTime = Date.now()
 		const method = request.method
@@ -59,7 +70,13 @@ export class PerformanceInterceptor implements NestInterceptor {
 			timeout(timeoutMs),
 			tap(() => {
 				const duration = Date.now() - startTime
-				this.recordMetrics(request, 'success', duration, endpoint, method)
+				this.recordMetrics(
+					request as TypedRequest,
+					'success',
+					duration,
+					endpoint,
+					method
+				)
 
 				// Log performance violations
 				if (duration > targetTime) {
@@ -92,7 +109,7 @@ export class PerformanceInterceptor implements NestInterceptor {
 				const isTimeout = error.name === 'TimeoutError'
 
 				this.recordMetrics(
-					request,
+					request as TypedRequest,
 					isTimeout ? 'timeout' : 'error',
 					duration,
 					endpoint,
@@ -238,10 +255,7 @@ export class PerformanceInterceptor implements NestInterceptor {
 	}
 
 	private recordMetrics(
-		request: {
-			user?: { id?: string }
-			headers: Record<string, string | string[] | undefined>
-		},
+		request: TypedRequest,
 		status: 'success' | 'error' | 'timeout',
 		duration: number,
 		endpoint: string,
