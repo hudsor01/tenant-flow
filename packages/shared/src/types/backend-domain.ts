@@ -151,14 +151,7 @@ export interface QueryPerformanceMetric {
 // =============================================================================
 // PERFORMANCE MONITORING
 // =============================================================================
-
-export interface PerformanceMetrics {
-  requestDuration: number
-  databaseQueryTime: number
-  memoryUsage: number
-  cpuUsage: number
-  timestamp: Date
-}
+// Note: PerformanceMetrics interface moved to health.ts to resolve conflicts
 
 export interface HealthCheckResponse {
   status: 'healthy' | 'unhealthy'
