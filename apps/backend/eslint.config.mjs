@@ -3,7 +3,7 @@
  * Extends shared base config with NestJS-specific overrides
  */
 
-import baseConfig from '@repo/eslint-config/base'
+import baseConfig from '@repo/eslint-config/base.js'
 import globals from 'globals'
 
 export default [
