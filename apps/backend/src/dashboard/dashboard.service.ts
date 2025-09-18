@@ -325,7 +325,7 @@ export class DashboardService {
 
 		// Add occupancy change calculation by comparing current vs previous month
 		let occupancyChange = 0
-		const unitData = data as any
+		const unitData = data as { occupancyRate?: number }
 		if (unitData?.occupancyRate) {
 			try {
 				const { data: previousData } = await this.supabase
@@ -336,8 +336,8 @@ export class DashboardService {
 					})
 				
 				if (previousData && Array.isArray(previousData) && previousData.length >= 2) {
-					const currentRate = (previousData[previousData.length - 1] as any)?.occupancy_rate || unitData.occupancyRate
-					const previousRate = (previousData[previousData.length - 2] as any)?.occupancy_rate || unitData.occupancyRate
+					const currentRate = (previousData[previousData.length - 1] as { occupancy_rate?: number })?.occupancy_rate || unitData.occupancyRate
+					const previousRate = (previousData[previousData.length - 2] as { occupancy_rate?: number })?.occupancy_rate || unitData.occupancyRate
 					occupancyChange = Number((currentRate - previousRate).toFixed(1))
 				}
 			} catch (occupancyError) {

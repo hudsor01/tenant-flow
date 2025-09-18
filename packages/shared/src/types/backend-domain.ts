@@ -244,3 +244,36 @@ export interface FullConfig {
   supabase: SupabaseConfig
   stripe: StripeConfig
 }
+
+// Security audit types
+export interface EndpointAudit {
+  controller: string
+  method: string
+  path: string
+  httpMethod: string
+  isPublic: boolean
+  requiredRoles: string[]
+  adminOnly: boolean
+  hasRateLimit: boolean
+  securityRisk: 'low' | 'medium' | 'high' | 'critical'
+  recommendations: string[]
+  description?: string
+}
+
+export interface SecurityAuditReport {
+  timestamp: string
+  totalEndpoints: number
+  publicEndpoints: number
+  protectedEndpoints: number
+  highRiskEndpoints: number
+  criticalRiskEndpoints: number
+  endpoints: EndpointAudit[]
+  summary: {
+    publicEndpointsRatio: number
+    authenticationCoverage: number
+    rateLimitCoverage: number
+    adminAccessPoints: number
+    overallRisk: 'low' | 'medium' | 'high' | 'critical'
+    recommendations: string[]
+  }
+}

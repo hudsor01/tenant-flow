@@ -5,23 +5,7 @@
  */
 
 import { Injectable, Logger, Inject } from '@nestjs/common'
-
-interface CacheEntry<T = unknown> {
-	data: T
-	version: number
-	timestamp: number
-	ttl: number
-	dependencies: string[]
-}
-
-interface CacheStats {
-	hits: number
-	misses: number
-	invalidations: number
-	entries: number
-	memoryUsage: number
-	hitRatio: number
-}
+import type { CacheEntry, CacheStats } from '@repo/shared'
 
 @Injectable()
 export class ZeroCacheService {

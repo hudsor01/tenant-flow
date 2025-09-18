@@ -307,9 +307,24 @@ export interface DashboardFinancialStats {
   monthlyExpensesFormatted?: string
   monthlyExpenses?: number
   expenseChange?: number
-  netIncomeFormatted?: string
-  netIncome?: number
-  profitMargin?: number
+}
+
+// Cache system types
+export interface CacheEntry<T = unknown> {
+  data: T
+  version: number
+  timestamp: number
+  ttl: number
+  dependencies: string[]
+}
+
+export interface CacheStats {
+  hits: number
+  misses: number
+  invalidations: number
+  entries: number
+  memoryUsage: number
+  hitRatio: number
 }
 
 export interface FinancialOverviewResponse {

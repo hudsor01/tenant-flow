@@ -91,7 +91,7 @@ export class SupabaseService {
       const fn = process.env.HEALTH_CHECK_FUNCTION || 'health_check'
       try {
         // Attempt RPC call (must exist in DB). Returns ok=true when reachable.
-        const { data, error } = await this.adminClient.rpc(fn as any)
+        const { data, error } = await this.adminClient.rpc(fn as string) as { data: unknown; error: unknown }
         if (!error && Array.isArray(data)) {
           const ok = data[0]?.ok ?? true
           if (ok) {
@@ -114,8 +114,18 @@ export class SupabaseService {
         .select('*', { count: 'exact', head: true })
 
       if (error) {
-        const message =
-          (error as any)?.message || (error as any)?.details || (error as any)?.hint || (error as any)?.code || JSON.stringify(error)
+        interface SupabaseError {
+          message?: string
+          details?: string
+          hint?: string
+          code?: string
+        }
+        const message = error instanceof Error ? error.message :
+          (error as SupabaseError)?.message ||
+          (error as SupabaseError)?.details ||
+          (error as SupabaseError)?.hint ||
+          (error as SupabaseError)?.code ||
+          JSON.stringify(error)
         this.logger?.error({ error, table }, 'Supabase table ping failed')
         return { status: 'unhealthy', message }
       }

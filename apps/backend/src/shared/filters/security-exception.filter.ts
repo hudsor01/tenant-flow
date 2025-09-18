@@ -118,7 +118,7 @@ export class SecurityExceptionFilter implements ExceptionFilter {
 		return {
 			ip: this.getClientIP(request),
 			userAgent: request.headers['user-agent'],
-			userId: (request as any).user?.id,
+			userId: (request as { user?: { id?: string } }).user?.id,
 			endpoint: request.url,
 			method: request.method,
 			timestamp: new Date().toISOString(),
@@ -330,7 +330,7 @@ export class SecurityExceptionFilter implements ExceptionFilter {
 			if (exception instanceof HttpException) {
 				const response = exception.getResponse()
 				if (typeof response === 'object' && response !== null) {
-					baseResponse.error = (response as any).error || exception.name
+					baseResponse.error = (response as { error?: string }).error || exception.name
 
 					// Include validation errors in development
 					if (exception instanceof BadRequestException) {
