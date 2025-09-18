@@ -6,7 +6,7 @@ import { supabaseClient } from '@repo/shared/lib/supabase-client'
 
 import type { AuthState } from './auth-store'
 import { createAuthStore } from './auth-store'
-import type { Session } from '@supabase/supabase-js'
+import type { Session, AuthChangeEvent } from '@supabase/supabase-js'
 
 const AuthStoreContext = createContext<StoreApi<AuthState> | null>(null)
 
@@ -78,7 +78,7 @@ export const AuthStoreProvider = ({
     }
     
     // Get initial session
-    supabaseClient.auth.getSession().then(({ data: { session } }) => {
+    supabaseClient.auth.getSession().then(({ data: { session } }: { data: { session: Session | null } }) => {
       store.getState().setSession(session)
       store.getState().setLoading(false)
     })
@@ -86,7 +86,7 @@ export const AuthStoreProvider = ({
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
+    } = supabaseClient.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
       store.getState().setSession(session)
       store.getState().setLoading(false)
     })

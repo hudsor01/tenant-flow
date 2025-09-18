@@ -161,21 +161,22 @@ export const MAINTENANCE_CATEGORY = {
 // ============================================================================
 // ESSENTIAL VALIDATION (Domain-Specific Only)
 // ============================================================================
-export { emailSchema, requiredString, positiveNumberSchema, nonNegativeNumberSchema } from './validation/common'
+export { emailSchema, requiredString, positiveNumberSchema, nonNegativeNumberSchema, uuidSchema, requiredTitle, requiredDescription } from './validation/common'
 export { unitStatusSchema } from './validation/units'
-export type { LeaseFormData } from './types/lease-generator.types'
+export type { LeaseFormData, StateLeaseRequirements } from './types/lease-generator.types'
 
 // ============================================================================
 // BACKEND TYPES (Required for Controllers/Services)
 // ============================================================================
-export type { 
-  UserRole, 
-  ValidatedUser, 
-  AuthServiceValidatedUser, 
+export type {
+  UserRole,
+  ValidatedUser,
+  AuthServiceValidatedUser,
   SupabaseUser,
   AuthUser,
   LoginCredentials,
   RegisterCredentials,
+  SupabaseWebhookEvent,
   AuthResponse,
   RefreshTokenRequest,
   AuthFormState
