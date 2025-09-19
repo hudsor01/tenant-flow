@@ -15,6 +15,7 @@ import { TokenValidationService } from './services/token-validation.service'
  * - AuthGuard: JWT authentication and role-based access control
  * - UsageLimitsGuard: Rate limiting and usage enforcement
  * - ResilienceService: Cache and fallback patterns for zero-downtime
+ * - SecurityMonitorService: Production-grade security monitoring and threat detection
  * - Reflector: NestJS metadata reflection service for guards
  */
 @Global()
@@ -33,7 +34,8 @@ import { TokenValidationService } from './services/token-validation.service'
 		TokenValidationService,
 		UsageLimitsGuard,
 		AuthGuard,
-		ResilienceService
+		ResilienceService,
+		SecurityMonitorService
 	]
 })
 export class SharedModule {}

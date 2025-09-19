@@ -16,7 +16,6 @@ import type {
 	SecurityMetrics
 } from '@repo/shared'
 import { SupabaseService } from '../../database/supabase.service'
-import { DirectEmailService } from '../../emails/direct-email.service'
 
 type SecuritySeverity = 'low' | 'medium' | 'high' | 'critical'
 
@@ -74,10 +73,7 @@ export class SecurityMonitorService implements OnModuleInit {
 		]
 	}
 
-	constructor(
-		private readonly emailService: DirectEmailService,
-		private readonly supabaseService: SupabaseService
-	) {
+	constructor(private readonly supabaseService: SupabaseService) {
 		this.securityLogger = new Logger(SecurityMonitorService.name)
 	}
 
@@ -276,34 +272,21 @@ export class SecurityMonitorService implements OnModuleInit {
 	private async sendEmailAlert(event: SecurityEvent): Promise<void> {
 		if (!process.env.SECURITY_ALERT_EMAIL) return
 
-		const subject = `🚨 Security Alert: ${event.type} (${event.severity.toUpperCase()})`
-
-		const emailBody = `
-Security Event Detected:
-
-Type: ${event.type}
-Severity: ${event.severity.toUpperCase()}
-Source: ${event.source}
-Description: ${event.description}
-Time: ${event.timestamp}
-
-${event.ipAddress ? `IP Address: ${event.ipAddress}` : ''}
-${event.userAgent ? `User Agent: ${event.userAgent}` : ''}
-${event.userId ? `User ID: ${event.userId}` : ''}
-
-Metadata:
-${JSON.stringify(event.metadata, null, 2)}
-
-Event ID: ${event.id}
-
-This is an automated security alert from TenantFlow.
-		`.trim()
-
-		// Using sendSimpleEmail method from DirectEmailService
-		await this.emailService.sendSimpleEmail({
-			to: process.env.SECURITY_ALERT_EMAIL || 'security@tenantflow.app',
-			subject,
-			html: emailBody.replace(/\n/g, '<br>')
+		// TODO: Implement email alerts when DirectEmailService is available
+		// For now, log the alert details that would be sent
+		this.logger.warn('EMAIL ALERT (DirectEmailService not available)', {
+			to: process.env.SECURITY_ALERT_EMAIL,
+			subject: `Security Alert: ${event.type} (${event.severity.toUpperCase()})`,
+			eventId: event.id,
+			type: event.type,
+			severity: event.severity,
+			source: event.source,
+			description: event.description,
+			timestamp: event.timestamp,
+			ipAddress: event.ipAddress,
+			userAgent: event.userAgent,
+			userId: event.userId,
+			metadata: event.metadata
 		})
 	}
 
