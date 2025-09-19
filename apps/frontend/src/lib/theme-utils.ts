@@ -1,23 +1,24 @@
-import type { ThemeColors, ThemeRadius } from '@repo/shared'
+import type { TailwindColorName, TailwindRadiusValue } from '@repo/shared'
 
-export function getSavedThemeColor(): ThemeColors {
+export function getSavedThemeColor(): TailwindColorName {
 	if (typeof window === 'undefined') return 'blue'
-	return (localStorage.getItem('themeColor') as ThemeColors) || 'blue'
+	return (localStorage.getItem('themeColor') as TailwindColorName) || 'blue'
 }
 
-export function getSavedThemeRadius(): ThemeRadius {
+export function getSavedThemeRadius(): TailwindRadiusValue {
 	if (typeof window === 'undefined') return 0.65
 	return parseFloat(
 		localStorage.getItem('themeRadius') || '0.65'
-	) as ThemeRadius
+	) as TailwindRadiusValue
 }
 
 // Single global design system: tokens live in globals.css (:root and .dark).
 // No dynamic color preset swapping at runtime.
 
 export function updateThemeMode(value: 'light' | 'dark') {
-	if (typeof document === 'undefined') return
-	const root = document.documentElement
+	if (typeof window === 'undefined' || typeof window.document === 'undefined')
+		return
+	const root = window.document.documentElement
 	if (value === 'dark') {
 		root.classList.add('dark')
 	} else {

@@ -5,15 +5,11 @@
  * NO LEGACY COMPATIBILITY - All code must migrate to modern patterns
  */
 
-// ============================================================================
 // PRIMARY EXPORT: Modern TypeScript 5.9.2 Core Types
-// ============================================================================
 // All types exported via types/index.ts which includes core types
 export * from './types'
 
-// ============================================================================
 // ESSENTIAL UTILITIES (No Wrappers)
-// ============================================================================
 // Browser-only API client (Supabase SSR) - Frontend specific
 export { apiClient } from './utils/api-client'
 
@@ -36,9 +32,7 @@ export {
 } from './stripe/config'
 export { formatCurrency } from './utils/currency'
 
-// ============================================================================
 // PRICING CONFIGURATION (Static + Dynamic)
-// ============================================================================
 export {
 	FrontendPricingService,
 	calculateAnnualSavings as calculateAnnualSavingsPercentage,
@@ -79,9 +73,7 @@ export {
 
 export type { ClassValue, TailwindBreakpoint } from './utils/tailwind'
 
-// ============================================================================
 // ESSENTIAL DOMAIN CONSTANTS
-// ============================================================================
 export { USER_ROLE } from './constants/auth'
 export { PLANS, PLAN_TYPE } from './constants/billing'
 export { Permission } from './types/security'
@@ -114,9 +106,7 @@ export type {
 	ZIndexLevel
 } from './constants/design-system'
 
-// ============================================================================
 // APPLE MOTION SYSTEM - OBSESSION-WORTHY INTERACTIONS
-// ============================================================================
 export {
 	APPLE_CSS_VARS,
 	APPLE_DURATIONS,
@@ -140,9 +130,7 @@ export type {
 	AppleTransform
 } from './constants/motion-system'
 
-// ============================================================================
 // APPLE COLOR SYSTEM - EXACT PALETTE FOR DASHBOARD ANALYTICS
-// ============================================================================
 export {
 	APPLE_ACCESSIBLE_PAIRS,
 	APPLE_CHART_PALETTES,
@@ -168,9 +156,7 @@ export const MAINTENANCE_CATEGORY = {
 	OTHER: 'OTHER'
 } as const
 
-// ============================================================================
 // ESSENTIAL VALIDATION (Domain-Specific Only)
-// ============================================================================
 export type {
 	LeaseFormData,
 	StateLeaseRequirements
@@ -186,9 +172,7 @@ export {
 } from './validation/common'
 export { unitStatusSchema } from './validation/units'
 
-// ============================================================================
 // BACKEND TYPES (Required for Controllers/Services)
-// ============================================================================
 export type {
 	AuthFormState,
 	AuthResponse,
@@ -211,22 +195,9 @@ export type {
 	FastifyErrorResponse
 } from './types/fastify-errors'
 
-export type {
-	SVGPatternProps,
-	ThemeColors,
-	ThemeRadius
-} from './types/frontend'
 export type { MaintenanceNotificationData } from './types/notifications'
 export type { PropertyWithUnits } from './types/relations'
 export type { BillingPeriod, PlanType } from './types/stripe'
 
-// ============================================================================
-// MIGRATION NOTE: All legacy aliases removed
-//
-// OLD → NEW:
-// - ApiResponse → use native Result<T, E> pattern
-// - PaginationParams → use Pagination interface
-// - StandardApiResponse → use ApiResponse<T>
-// - LoadingState/ActionStatus → use Status type
-// - CreateInput/UpdateInput → use native Omit<T, 'id'> patterns
-// ============================================================================
+// FRONTEND TYPES
+export * from './types/frontend'
