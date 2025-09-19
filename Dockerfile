@@ -142,8 +142,9 @@ ENV PORT=${PORT}
 EXPOSE ${PORT}
 
 # Use dumb-init for proper signal handling (SIGTERM, SIGINT)
+# Shell form to enable environment variable expansion for PORT
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "--enable-source-maps", "apps/backend/dist/main.js"]
+CMD ["/bin/sh", "-c", "exec node --enable-source-maps apps/backend/dist/main.js"]
 
 # Build-time metadata (2025 standard)
 LABEL maintainer="TenantFlow Team" \
