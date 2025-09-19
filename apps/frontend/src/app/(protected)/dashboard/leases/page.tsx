@@ -3,7 +3,18 @@
 import { useLeases, useLeaseStats } from '@/hooks/api/leases'
 import type { Database } from '@repo/shared'
 import { AlertTriangle, Calendar, Clock, FileText } from 'lucide-react'
-
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow
+} from '@/components/ui/table'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
+import { ChartAreaInteractive } from '@/components/chart-area-interactive'
 import { CreateLeaseDialog } from '@/components/leases/create-lease-dialog'
 import { LeaseActionButtons } from '@/components/leases/lease-action-buttons'
 

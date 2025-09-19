@@ -6,6 +6,7 @@ import {
 import * as React from 'react'
 
 import { cn } from '@/lib/utils'
+import { buttonVariants } from '@/components/ui/button'
 import type { PaginationLinkProps } from '@repo/shared'
 
 

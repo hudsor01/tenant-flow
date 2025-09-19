@@ -1,5 +1,9 @@
 'use client'
 
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { ChartAreaInteractive } from '@/components/chart-area-interactive'
 import {
 	useDashboardStats,
 	usePropertyPerformance

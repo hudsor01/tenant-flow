@@ -4,10 +4,6 @@ import { useState } from 'react'
 import { useCreateProperty, useProperties } from '@/hooks/api/properties'
 import { useUnits } from '@/hooks/api/units'
 import type { Database } from '@repo/shared'
-import { Building, DollarSign, Plus, TrendingUp } from 'lucide-react'
-import { useSearchParams } from 'next/navigation'
-
-
 
 
 import { PropertyEditViewButtons } from '@/components/properties/edit-button'

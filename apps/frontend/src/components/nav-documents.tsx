@@ -11,8 +11,21 @@ import Link from 'next/link'
 import * as React from 'react'
 
 import { cn } from '@/lib/utils'
-
-
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
+import {
+	SidebarGroup,
+	SidebarGroupContent,
+	SidebarGroupLabel,
+	SidebarMenu,
+	SidebarMenuAction,
+	SidebarMenuButton,
+	SidebarMenuItem
+} from '@/components/ui/sidebar'
 
 interface NavDocumentsProps extends React.ComponentProps<typeof SidebarGroup> {
 	items: {

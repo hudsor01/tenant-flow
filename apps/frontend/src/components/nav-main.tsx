@@ -6,9 +6,21 @@ import { usePathname } from 'next/navigation'
 import * as React from 'react'
 
 import { cn } from '@/lib/utils'
-
-
-
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger
+} from '@/components/ui/collapsible'
+import {
+	SidebarGroup,
+	SidebarGroupContent,
+	SidebarMenu,
+	SidebarMenuButton,
+	SidebarMenuItem,
+	SidebarMenuSub,
+	SidebarMenuSubButton,
+	SidebarMenuSubItem
+} from '@/components/ui/sidebar'
 
 interface NavMainProps extends React.ComponentProps<typeof SidebarGroup> {
 	items: {

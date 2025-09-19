@@ -4,8 +4,21 @@ import { ChevronsUpDown, Plus } from 'lucide-react'
 import * as React from 'react'
 
 import { cn } from '@/lib/utils'
-
-
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuShortcut,
+	DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
+import {
+	SidebarMenu,
+	SidebarMenuButton,
+	SidebarMenuItem,
+	useSidebar
+} from '@/components/ui/sidebar'
 
 interface TeamSwitcherProps extends React.ComponentProps<'div'> {
 	teams: {

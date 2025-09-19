@@ -1,6 +1,7 @@
 'use client'
 import Image from 'next/image'
 import { useRef } from 'react'
+import { TimelineContent } from '@/components/ui/timeline-animation'
 
 
 function ClientFeedback() {
