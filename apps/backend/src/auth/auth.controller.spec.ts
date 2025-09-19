@@ -1,9 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { ThrottlerModule } from '@nestjs/throttler'
 import type { ValidatedUser } from '@repo/shared'
+import type { User } from '@supabase/supabase-js'
 import { AuthController } from './auth.controller'
 import { AuthService } from './auth.service'
 
@@ -48,7 +47,10 @@ describe('AuthController', () => {
 
 		controller = module.get<AuthController>(AuthController)
 		// Get the mocked instance that was created during controller instantiation
-		mockAuthServiceInstance = (controller as any).authService
+		const controllerWithService = controller as unknown as {
+			authService: jest.Mocked<AuthService>
+		}
+		mockAuthServiceInstance = controllerWithService.authService
 	})
 
 	afterEach(() => {
@@ -102,11 +104,11 @@ describe('AuthController', () => {
 				organizationId: null
 			}
 
-			const user = { id: 'supa-123', email: 'test@example.com' } as any
+			const user: Partial<User> = { id: 'supa-123', email: 'test@example.com' }
 
 			mockAuthServiceInstance.getUserBySupabaseId.mockResolvedValue(mockUser)
 
-			const result = await controller.getProfile(user)
+			const result = await controller.getProfile(user as User)
 
 			expect(result).toEqual(mockUser)
 			expect(mockAuthServiceInstance.getUserBySupabaseId).toHaveBeenCalledWith(
@@ -115,11 +117,11 @@ describe('AuthController', () => {
 		})
 
 		it('should throw NotFoundException when user not found', async () => {
-			const user = { id: 'supa-123', email: 'test@example.com' } as any
+			const user: Partial<User> = { id: 'supa-123', email: 'test@example.com' }
 
 			mockAuthServiceInstance.getUserBySupabaseId.mockResolvedValue(null)
 
-			await expect(controller.getProfile(user)).rejects.toMatchObject({
+			await expect(controller.getProfile(user as User)).rejects.toMatchObject({
 				message: 'User not found'
 			})
 		})
@@ -152,17 +154,27 @@ describe('AuthController', () => {
 			}
 
 			const mockLoginResult = {
+				access_token: 'access-token',
+				refresh_token: 'refresh-token',
+				expires_in: 3600,
 				user: {
 					id: 'user-123',
-					email: 'test@example.com'
-				},
-				session: {
-					accessToken: 'access-token',
-					refreshToken: 'refresh-token'
+					email: 'test@example.com',
+					name: 'Test User',
+					phone: null,
+					bio: null,
+					avatarUrl: null,
+					role: 'user',
+					createdAt: new Date(),
+					updatedAt: new Date(),
+					emailVerified: true,
+					supabaseId: 'supa-123',
+					stripeCustomerId: null,
+					organizationId: null
 				}
 			}
 
-			mockAuthServiceInstance.login.mockResolvedValue(mockLoginResult as any)
+			mockAuthServiceInstance.login.mockResolvedValue(mockLoginResult)
 
 			const result = await controller.login(loginDto)
 
@@ -200,14 +212,14 @@ describe('AuthController', () => {
 			const mockRegisterResult = {
 				user: {
 					id: 'user-456',
-					email: 'new@example.com'
+					email: 'new@example.com',
+					name: 'New User'
 				},
-				session: null
+				access_token: 'access-token',
+				refresh_token: 'refresh-token'
 			}
 
-			mockAuthServiceInstance.createUser.mockResolvedValue(
-				mockRegisterResult as any
-			)
+			mockAuthServiceInstance.createUser.mockResolvedValue(mockRegisterResult)
 
 			const result = await controller.register(registerDto)
 
