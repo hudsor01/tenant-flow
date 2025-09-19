@@ -55,10 +55,7 @@ export class StripeDataService {
 	 * Get revenue analytics for date range
 	 * Ultra-native: Direct API access with complete dataset via pagination
 	 */
-	async getRevenueAnalytics(
-		startDate: Date,
-		endDate: Date
-	): Promise<RevenueAnalytics[]> {
+	async getRevenueAnalytics(startDate: Date, endDate: Date): Promise<RevenueAnalytics[]> {
 		try {
 			this.logger?.log('Calculating revenue analytics', { startDate, endDate })
 

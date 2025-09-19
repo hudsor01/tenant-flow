@@ -1,16 +1,5 @@
 'use client'
 
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from '@/components/ui/select'
 import {
 	Building,
 	Calendar,
@@ -27,6 +16,17 @@ import {
 	TrendingUp,
 	Users
 } from 'lucide-react'
+import { Badge } from 'src/components/ui/badge'
+import { Button } from 'src/components/ui/button'
+import { Card } from 'src/components/ui/card'
+import { Input } from 'src/components/ui/input'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from 'src/components/ui/select'
 
 const availableReports = [
 	{
@@ -124,7 +124,7 @@ export default function ReportsPage() {
 			{/* Page Header */}
 			<div className="flex items-center justify-between">
 				<div>
-            <h1 className="text-3xl font-bold text-gradient-authority">
+					<h1 className="text-3xl font-bold text-gradient-authority">
 						Reports & Analytics
 					</h1>
 					<p className="text-muted-foreground mt-1">

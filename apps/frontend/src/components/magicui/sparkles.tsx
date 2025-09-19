@@ -1,11 +1,9 @@
 'use client'
-import { 
-  cn
-} from '@/lib/design-system'
+import { cn } from '@/lib/design-system'
+import { animated, useSpring } from '@react-spring/web'
 import type { Container, SingleOrMultiple } from '@tsparticles/engine'
 import Particles, { initParticlesEngine } from '@tsparticles/react'
 import { loadSlim } from '@tsparticles/slim'
-import { useSpring, animated } from '@react-spring/web'
 import { useEffect, useId, useState } from 'react'
 
 type ParticlesProps = {
@@ -62,7 +60,7 @@ export const SparklesCore = (props: ParticlesProps) => {
 					options={{
 						background: {
 							color: {
-								value: background || '#0d47a1'
+								value: background || 'hsl(var(--primary))'
 							}
 						},
 						fullScreen: {
@@ -125,7 +123,7 @@ export const SparklesCore = (props: ParticlesProps) => {
 								}
 							},
 							color: {
-								value: particleColor || '#ffffff',
+								value: particleColor || 'hsl(var(--foreground))',
 								animation: {
 									h: {
 										count: 0,
@@ -256,7 +254,7 @@ export const SparklesCore = (props: ParticlesProps) => {
 							shadow: {
 								blur: 0,
 								color: {
-									value: '#000'
+									value: 'hsl(var(--background))'
 								},
 								enable: false,
 								offset: {
@@ -398,7 +396,7 @@ export const SparklesCore = (props: ParticlesProps) => {
 							links: {
 								blink: false,
 								color: {
-									value: '#fff'
+									value: 'hsl(var(--foreground))'
 								},
 								consent: false,
 								distance: 100,
@@ -408,7 +406,7 @@ export const SparklesCore = (props: ParticlesProps) => {
 								shadow: {
 									blur: 5,
 									color: {
-										value: '#000'
+										value: 'hsl(var(--background))'
 									},
 									enable: false
 								},

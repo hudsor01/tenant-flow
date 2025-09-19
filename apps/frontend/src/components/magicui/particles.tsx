@@ -37,7 +37,7 @@ function ParticlesComponent({
 	staticity = 50,
 	ease = 50,
 	size = 0.4,
-	color = '#ffffff',
+	color = 'hsl(var(--foreground))',
 	refresh = false,
 	theme = 'auto',
 	preset = 'subtle',
@@ -92,9 +92,9 @@ function ParticlesComponent({
 	const getThemeColor = useCallback(() => {
 		if (theme === 'auto') {
 			const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-			return isDark ? '#ffffff' : '#000000'
+			return isDark ? 'hsl(var(--foreground))' : 'hsl(var(--foreground))'
 		}
-		return theme === 'dark' ? '#ffffff' : '#000000'
+		return theme === 'dark' ? 'hsl(var(--foreground))' : 'hsl(var(--foreground))'
 	}, [theme])
 
 	// TanStack Query-based quantity calculation (replaces useMemo with select transformation)
@@ -185,9 +185,6 @@ function ParticlesComponent({
 		}
 
 		const drawParticle = (particle: ParticleType) => {
-			const currentColor = color || getThemeColor()
-			const rgbColor = hexToRgb(currentColor)
-			
 			// Enhanced drawing with glow effect for sparkling preset
 			if (preset === 'sparkling') {
 				// Outer glow
@@ -196,18 +193,19 @@ function ParticlesComponent({
 					particle.x, particle.y, 0,
 					particle.x, particle.y, glowSize
 				)
-				gradient.addColorStop(0, `rgba(${rgbColor.join(', ')}, ${particle.alpha * 0.8})`)
-				gradient.addColorStop(0.5, `rgba(${rgbColor.join(', ')}, ${particle.alpha * 0.2})`)
-				gradient.addColorStop(1, `rgba(${rgbColor.join(', ')}, 0)`)
-				
+				// Use CSS custom properties for semantic colors
+				gradient.addColorStop(0, `hsl(var(--foreground) / ${particle.alpha * 0.8})`)
+				gradient.addColorStop(0.5, `hsl(var(--foreground) / ${particle.alpha * 0.2})`)
+				gradient.addColorStop(1, `hsl(var(--foreground) / 0)`)
+
 				ctx.fillStyle = gradient
 				ctx.beginPath()
 				ctx.arc(particle.x, particle.y, glowSize, 0, Math.PI * 2)
 				ctx.fill()
 			}
-			
-			// Main particle
-			ctx.fillStyle = `rgba(${rgbColor.join(', ')}, ${particle.alpha})`
+
+			// Main particle - use semantic color
+			ctx.fillStyle = `hsl(var(--foreground) / ${particle.alpha})`
 			ctx.beginPath()
 			ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
 			ctx.fill()
@@ -216,7 +214,7 @@ function ParticlesComponent({
 		const animate = () => {
 			// Fade out animation instead of clear for smoother effect
 			if (preset === 'floating' || preset === 'subtle') {
-				ctx.fillStyle = 'rgba(255, 255, 255, 0.05)'
+				ctx.fillStyle = 'hsl(var(--foreground) / 0.05)'
 				ctx.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight)
 			} else {
 				ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight)
@@ -253,16 +251,6 @@ function ParticlesComponent({
 			}
 		}
 
-		const hexToRgb = (hex: string): [number, number, number] => {
-			const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
-			return result
-				? [
-						parseInt(result[1]!, 16),
-						parseInt(result[2]!, 16),
-						parseInt(result[3]!, 16)
-					]
-				: [255, 255, 255]
-		}
 
 		// Check for reduced motion preference
 		const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')

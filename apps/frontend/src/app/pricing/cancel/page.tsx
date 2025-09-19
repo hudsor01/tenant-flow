@@ -1,21 +1,26 @@
 'use client'
 
-import Navbar from '@/components/navbar'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ArrowLeft, Home, MessageCircle, XCircle } from 'lucide-react'
 import Link from 'next/link'
+import Navbar from 'src/components/navbar'
+import { Button } from 'src/components/ui/button'
+import {
+	Card,
+	CardContent,
+	CardHeader,
+	CardTitle
+} from 'src/components/ui/card'
 
 export default function CheckoutCancelPage() {
 	return (
 		<main className="min-h-screen gradient-authority">
 			<Navbar />
 			<div className="pt-20">
-					<div className="container mx-auto px-4 section-content max-w-2xl">
+				<div className="container mx-auto px-4 section-content max-w-2xl">
 					<Card className="text-center card-elevated-authority">
 						<CardHeader className="pb-8">
-							<div className="w-16 h-16 bg-orange-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-								<XCircle className="w-8 h-8 text-orange-600" />
+							<div className="w-16 h-16 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-6">
+								<XCircle className="w-8 h-8 text-muted-foreground" />
 							</div>
 							<CardTitle className="text-3xl font-bold mb-4">
 								Payment Cancelled

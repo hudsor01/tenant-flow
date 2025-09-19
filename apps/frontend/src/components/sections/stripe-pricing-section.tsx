@@ -1,7 +1,5 @@
 'use client'
 
-import { Badge } from '@/components/ui/badge'
-import { Switch } from '@/components/ui/switch'
 import { API_BASE_URL } from '@/lib/api-client'
 import { cn } from '@/lib/utils'
 import {
@@ -25,6 +23,8 @@ import {
 	Zap
 } from 'lucide-react'
 import { useState } from 'react'
+import { Badge } from 'src/components/ui/badge'
+import { Switch } from 'src/components/ui/switch'
 
 // Initialize Stripe with your publishable key
 const stripePromise = loadStripe(
@@ -119,10 +119,10 @@ const pricingPlans: PricingPlan[] = [
 ]
 
 const trustIndicators = [
-	{ icon: Shield, text: 'SOC 2 Type II Compliant', color: 'text-green-600' },
-	{ icon: Users, text: '10,000+ Properties Managed', color: 'text-blue-600' },
-	{ icon: Award, text: 'G2 Leader in PropTech', color: 'text-purple-600' },
-	{ icon: Star, text: '4.9/5 Customer Rating', color: 'text-yellow-600' }
+	{ icon: Shield, text: 'SOC 2 Type II Compliant', color: 'text-accent' },
+	{ icon: Users, text: '10,000+ Properties Managed', color: 'text-primary' },
+	{ icon: Award, text: 'G2 Leader in PropTech', color: 'text-accent' },
+	{ icon: Star, text: '4.9/5 Customer Rating', color: 'text-accent' }
 ]
 
 // Official Stripe Checkout Component using their SDK
@@ -205,11 +205,11 @@ function StripeCheckoutForm({
 				<div className="text-destructive text-sm font-medium">{message}</div>
 			)}
 
-                <button
-                  type="submit"
-                  disabled={!stripe || isLoading}
-                  className="btn-gradient-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
-                >
+			<button
+				type="submit"
+				disabled={!stripe || isLoading}
+				className="btn-gradient-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+			>
 				{isLoading ? 'Processing...' : `Subscribe to ${plan.name}`}
 			</button>
 		</form>
@@ -326,14 +326,14 @@ function PricingCard({
 
 			<div className="px-6 pb-6">
 				{!showCheckout ? (
-            <button
-              onClick={handleSubscribe}
-              className={cn(
-                'btn-gradient-primary w-full',
-                plan.popular &&
-                  'bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90'
-              )}
-            >
+					<button
+						onClick={handleSubscribe}
+						className={cn(
+							'btn-gradient-primary w-full',
+							plan.popular &&
+								'bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90'
+						)}
+					>
 						{plan.cta}
 						<ArrowRight className="w-4 h-4 ml-2" />
 					</button>
@@ -383,10 +383,10 @@ export function StripePricingSection({ className }: { className?: string }) {
 						</span>
 					</div>
 
-            <h2 className="display-xl font-bold tracking-tight mb-6">
+					<h2 className="display-xl font-bold tracking-tight mb-6">
 						<span className="text-gradient-primary">Simple pricing,</span>
 						<br />
-              <span className="text-gradient-authority">
+						<span className="text-gradient-authority">
 							extraordinary results
 						</span>
 					</h2>
@@ -463,7 +463,7 @@ export function StripePricingSection({ className }: { className?: string }) {
 					className="text-center animate-fade-in-up"
 					style={{ animationDelay: '700ms' }}
 				>
-          <div className="bg-gradient-to-r from-muted to-muted/80 rounded-2xl card-padding max-w-4xl mx-auto">
+					<div className="bg-gradient-to-r from-muted to-muted/80 rounded-2xl card-padding max-w-4xl mx-auto">
 						<h3 className="text-2xl font-bold mb-4 text-foreground">
 							Need a custom enterprise solution?
 						</h3>
@@ -471,7 +471,7 @@ export function StripePricingSection({ className }: { className?: string }) {
 							Get unlimited properties, custom integrations, dedicated support,
 							and volume discounts.
 						</p>
-							<button className="btn-gradient-primary">
+						<button className="btn-gradient-primary">
 							Contact our sales team
 							<ArrowRight className="w-4 h-4 ml-2" />
 						</button>
