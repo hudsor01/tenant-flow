@@ -50,8 +50,8 @@ import {
 
 // Types
 import type {
-	CheckoutFormProps,
-	CreatePaymentIntentRequest
+	CreatePaymentIntentRequest,
+	ExtendedCheckoutFormProps
 } from '@repo/shared'
 
 interface CreatePaymentIntentResponse {
@@ -79,7 +79,7 @@ export function CheckoutForm({
 	showSecurityNotice = true,
 	planName,
 	features = []
-}: CheckoutFormProps) {
+}: ExtendedCheckoutFormProps) {
 	const stripe = useStripe()
 	const elements = useElements()
 
@@ -127,11 +127,12 @@ export function CheckoutForm({
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					amount: request.amount,
-					tenantId: request.metadata.tenant_id || request.metadata.planId || '',
-					propertyId: request.metadata.property_id || '',
+					tenantId:
+						request.metadata?.tenant_id || request.metadata?.planId || '',
+					propertyId: request.metadata?.property_id || '',
 					subscriptionType:
-						request.metadata.subscription_type ||
-						request.metadata.planName ||
+						request.metadata?.subscription_type ||
+						request.metadata?.planName ||
 						''
 				})
 			})
@@ -247,7 +248,9 @@ export function CheckoutForm({
 
 					setError(errorMessage)
 					errorApi.start({ opacity: 1, scale: 1 })
-					onError?.(submitError)
+					const error = new Error(errorMessage)
+					error.name = 'StripeError'
+					onError?.(error)
 					toast.error('Payment failed', { description: errorMessage })
 				} else if (paymentIntent) {
 					// Handle successful PaymentIntent lifecycle states
@@ -260,7 +263,7 @@ export function CheckoutForm({
 								rotate: 0,
 								config: { tension: 200, friction: 15 }
 							})
-							onSuccess?.(paymentIntent)
+							onSuccess?.()
 							toast.success('Payment successful!', {
 								description: `Payment of ${formatAmount(amount)} completed successfully.`
 							})

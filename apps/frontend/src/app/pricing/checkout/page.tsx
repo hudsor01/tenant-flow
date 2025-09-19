@@ -1,12 +1,12 @@
 'use client'
 
+import { CheckoutForm } from '@/components/pricing/checkout-form'
 import { StripeProvider } from '@/providers/stripe-provider'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { PageLayout } from 'src/components/layout/page-layout'
-import { CheckoutForm } from 'src/components/pricing/checkout-form'
 import { Button } from 'src/components/ui/button'
 import {
 	Card,
@@ -22,7 +22,7 @@ export default function CheckoutPage() {
 	const [amount, setAmount] = useState<number>(1000) // $10.00 in cents
 	const [showCheckout, setShowCheckout] = useState(false)
 
-	const handleSuccess = (_paymentIntent: unknown) => {
+	const handleSuccess = () => {
 		// Payment successful - navigate to success page
 		router.push('/pricing/success')
 	}

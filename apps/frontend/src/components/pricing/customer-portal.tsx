@@ -9,6 +9,37 @@ import {
 	cn,
 	TYPOGRAPHY_SCALE
 } from '@/lib/utils'
+// Extended interface for customer portal with additional properties
+interface ExtendedCustomerPortalCardProps
+	extends Omit<
+		CustomerPortalCardProps,
+		'usageStats' | 'billingInfo' | 'testimonial'
+	> {
+	usageStats?: {
+		properties?: number
+		tenants?: number
+		leases?: number
+		maintenance?: number
+		uptime?: string
+		monthlyRevenue?: number
+		activeLeases?: number
+	}
+	billingInfo?: {
+		nextBillingDate?: string
+		billingAmount?: number
+		billingCycle?: string
+		lastPayment?: string
+		paymentMethod?: string
+	}
+	testimonial?: {
+		quote?: string
+		text?: string
+		author?: string
+		company?: string
+		rating?: number
+	}
+}
+
 import type { CustomerPortalCardProps } from '@repo/shared'
 import { useMutation } from '@tanstack/react-query'
 import {
@@ -151,7 +182,7 @@ export function CustomerPortalCard({
 		company: 'Metro Properties',
 		rating: 5
 	}
-}: CustomerPortalCardProps) {
+}: ExtendedCustomerPortalCardProps) {
 	// Plan tier configuration
 	const tierConfig = {
 		starter: {

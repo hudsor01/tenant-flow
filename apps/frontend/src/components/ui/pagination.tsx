@@ -60,7 +60,7 @@ function PaginationLink({
 			className={cn(
 				buttonVariants({
 					variant: isActive ? 'outline' : 'ghost',
-					size
+					size: size as 'default' | 'sm' | 'lg' | 'icon' | null | undefined
 				}),
 				'hover:scale-105 active:scale-95 transform transition-fast-transform',
 				className

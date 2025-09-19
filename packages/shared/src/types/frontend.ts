@@ -128,11 +128,31 @@ export interface CheckoutFormProps {
 	className?: string
 }
 
+export interface ExtendedCheckoutFormProps {
+	amount: number
+	currency?: string
+	metadata?: Record<string, string>
+	onSuccess?: () => void
+	onError?: (error: Error) => void
+	business?: {
+		name: string
+		description?: string
+		trustSignals?: string[]
+	}
+	customerEmail?: string
+	enableExpressCheckout?: boolean
+	showTrustSignals?: boolean
+	showSecurityNotice?: boolean
+	planName?: string
+	features?: string[]
+}
+
 export interface CreatePaymentIntentRequest {
 	amount: number
 	currency: string
 	description?: string
 	customerId?: string
+	customerEmail?: string
 	metadata?: Record<string, string>
 }
 
@@ -143,6 +163,27 @@ export interface CustomerPortalCardProps {
 	actionText: string
 	onAction: () => void
 	disabled?: boolean
+	className?: string
+	showStats?: boolean
+	showTestimonial?: boolean
+	currentPlan?: string
+	planTier?: string
+	usageStats?: {
+		properties?: number
+		tenants?: number
+		leases?: number
+		maintenance?: number
+	}
+	billingInfo?: {
+		nextBillingDate?: string
+		billingAmount?: number
+		billingCycle?: string
+	}
+	testimonial?: {
+		quote?: string
+		author?: string
+		company?: string
+	}
 }
 
 // PAGINATION TYPES
@@ -151,6 +192,8 @@ export interface PaginationLinkProps {
 	page: number
 	currentPage: number
 	onPageChange: (page: number) => void
+	isActive?: boolean
+	size?: string
 	className?: string
 	children: React.ReactNode
 }
@@ -161,20 +204,29 @@ export interface VirtualizedListProps<T> {
 	items: T[]
 	renderItem: (item: T, index: number) => React.ReactNode
 	getItemKey: (item: T) => string | number
-	itemHeight: number
-	containerHeight: number
+	itemHeight?: number
+	containerHeight?: number
+	height?: number
+	estimateSize?: number | ((index: number) => number)
+	gap?: number
+	overscan?: number
+	onScrollToEnd?: () => void
 	className?: string
 }
 
 export interface VirtualizedPropertyListProps {
 	properties: Property[]
 	onPropertySelect?: (property: Property) => void
+	onPropertyClick?: (propertyId: string) => void
+	height?: number
 	className?: string
 }
 
 export interface VirtualizedTenantListProps {
 	tenants: Tenant[]
 	onTenantSelect?: (tenant: Tenant) => void
+	onTenantClick?: (tenantId: string) => void
+	height?: number
 	className?: string
 }
 
@@ -193,6 +245,15 @@ export interface UseDataTableInstanceProps<T> {
 		direction: 'asc' | 'desc'
 	}
 	onSort?: (key: keyof T, direction: 'asc' | 'desc') => void
+}
+
+export interface DataTableProps<T> {
+	data: T[]
+	columns: unknown[]
+	enableRowSelection?: boolean
+	defaultPageIndex?: number
+	defaultPageSize?: number
+	getRowId?: (row: T) => string
 }
 
 // DESIGN SYSTEM TYPES
@@ -227,6 +288,7 @@ export type StatusType = 'success' | 'warning' | 'error' | 'info' | 'pending'
 export type BadgeSize = 'sm' | 'default' | 'lg'
 
 export interface GridColumnsConfig {
+	default?: number
 	xs?: number
 	sm?: number
 	md?: number
@@ -236,6 +298,7 @@ export interface GridColumnsConfig {
 }
 
 export interface ResponsiveValuesConfig {
+	default?: string | number
 	xs?: string | number
 	sm?: string | number
 	md?: string | number
