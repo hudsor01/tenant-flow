@@ -1,7 +1,6 @@
 import { Controller, Get, Optional, Query, NotFoundException } from '@nestjs/common'
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger'
-import type { AuthServiceValidatedUser } from '@repo/shared'
-import type { ControllerApiResponse } from '@repo/shared'
+import type { AuthServiceValidatedUser, ControllerApiResponse } from '@repo/shared'
 import { Logger } from '@nestjs/common'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
 import { Public } from '../shared/decorators/public.decorator'

@@ -121,12 +121,7 @@ export class StripeController {
 			})
 
 			return response
-		} catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-			// Re-throw validation errors (BadRequestException) as-is
-			if (error.constructor?.name === 'BadRequestException') {
-				throw error
-			}
-
+		} catch (error) {
 			this.logger.error('Payment Intent creation failed', {
 				error: error instanceof Error ? error.message : String(error),
 				type: (error as Stripe.errors.StripeError).type || 'unknown',
@@ -246,7 +241,7 @@ export class StripeController {
 				ip: req.ip,
 				created: new Date(event.created * 1000).toISOString()
 			})
-		} catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
+		} catch (error) {
 			const errorMessage =
 				error instanceof Error ? error.message : 'Unknown error'
 
@@ -263,8 +258,8 @@ export class StripeController {
 
 			// Don't leak internal error details to potential attackers
 			if (
-				error.constructor.name === 'BadRequestException' ||
-				error.constructor.name === 'InternalServerErrorException'
+				error instanceof BadRequestException ||
+				error instanceof InternalServerErrorException
 			) {
 				throw error
 			}
@@ -529,12 +524,7 @@ export class StripeController {
 			})
 
 			return { url: session.url || '', session_id: session.id }
-		} catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-			// Re-throw validation errors (BadRequestException) as-is
-			if (error.constructor?.name === 'BadRequestException') {
-				throw error
-			}
-
+		} catch (error) {
 			this.logger.error('Failed to create checkout session', error)
 			this.handleStripeError(error as Stripe.errors.StripeError)
 		}
@@ -626,12 +616,7 @@ export class StripeController {
 				client_secret: paymentIntent.client_secret || '',
 				payment_intent_id: paymentIntent.id
 			}
-		} catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-			// Re-throw validation errors (BadRequestException) as-is
-			if (error.constructor?.name === 'BadRequestException') {
-				throw error
-			}
-
+		} catch (error) {
 			this.handleStripeError(error as Stripe.errors.StripeError)
 		}
 	}
@@ -1195,14 +1180,7 @@ export class StripeController {
 	 * Official Error Handling Pattern from Server SDK docs
 	 * Comprehensive error mapping for production use
 	 */
-	private handleStripeError(error: any): never { // eslint-disable-line @typescript-eslint/no-explicit-any
-		// Re-throw validation errors (BadRequestException) as-is - don't convert to InternalServerErrorException
-		this.logger.debug('handleStripeError received:', error.constructor.name, error.message)
-		if (error.constructor.name === 'BadRequestException') {
-			this.logger.debug('Re-throwing BadRequestException')
-			throw error
-		}
-
+	private handleStripeError(error: Stripe.errors.StripeError): never {
 		this.logger.error('Stripe API error:', {
 			type: error.type,
 			message: error.message,
@@ -1272,13 +1250,10 @@ export class StripeController {
 		}
 
 		// Remove null bytes and control characters
+		// eslint-disable-next-line no-control-regex
 		let sanitized = value
-			.split('')
-			.filter(char => {
-				const code = char.charCodeAt(0)
-				return code > 31 && code !== 127 && code !== 0
-			})
-			.join('')
+			.replace(/\0/g, '')
+			.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
 
 		// Normalize unicode to prevent encoding attacks
 		sanitized = sanitized.normalize('NFC')

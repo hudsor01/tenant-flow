@@ -1,27 +1,12 @@
 {
-	"name": "@repo/typescript-config",
-	"version": "0.1.0",
-	"scripts": {
-		"build": "echo 'TypeScript config built successfully'",
-		"clean": "echo 'No build artifacts to clean in config package'",
-		"format": "echo 'No formatting configured for config package'",
-		"format:check": "echo 'No formatting configured for config package'",
-		"lint": "prettier --check '*.json' || echo 'JSON files have formatting issues'",
-		"lint:fix": "prettier --write '*.json'",
-		"typecheck": "echo 'No TypeScript files to check in config package'"
-	},
-	"$schema": "https://json.schemastore.org/package",
-	"dependencies": {
-		"prettier-plugin-organize-imports": "4.2.0"
-	},
-	"exports": {
-		"./base.json": "./base.json",
-		"./nestjs.json": "./nestjs.json",
-		"./react.json": "./react.json",
-		"./library.json": "./library.json"
-	},
-	"files": [
-		"*.json"
-	],
-	"private": true
+  "name": "@repo/typescript-config",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Shared TypeScript configuration for TenantFlow monorepo",
+  "main": "index.js",
+  "files": [
+    "base.json",
+    "nextjs.json",
+    "react-library.json"
+  ]
 }

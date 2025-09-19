@@ -6,13 +6,29 @@
 
 import { Injectable, Logger, Inject } from '@nestjs/common'
 import { ZeroCacheService } from '../../cache/cache.service'
-import type { CircuitState, ServiceMetrics } from '@repo/shared'
+
+interface CircuitState {
+	isOpen: boolean
+	failureCount: number
+	lastFailureTime: number
+	lastSuccessTime: number
+	nextAttemptTime: number
+}
 
 interface ErrorBoundaryOptions {
 	maxFailures: number
 	timeWindow: number
 	circuitOpenTime: number
 	enableCircuitBreaker: boolean
+}
+
+interface ServiceMetrics {
+	totalRequests: number
+	successCount: number
+	failureCount: number
+	avgResponseTime: number
+	lastError?: string
+	lastErrorTime?: number
 }
 
 @Injectable()
@@ -68,7 +84,7 @@ export class ErrorBoundaryService {
 			const responseTime = Date.now() - startTime
 			this.recordSuccess(serviceKey, responseTime)
 
-			return result
+			return result as T
 		} catch (error) {
 			const responseTime = Date.now() - startTime
 			this.recordFailure(serviceKey, error, responseTime)
@@ -112,12 +128,12 @@ export class ErrorBoundaryService {
 				this.cacheService.set(cacheKey, result, cacheTtl, [serviceKey])
 			}
 
-			return result
+			return result as T
 		} catch (error) {
 			// If we have cached data, return it
 			if (cachedResult !== null) {
 				this.logger.warn(`Returning cached data for ${serviceKey} due to error`, { error: error instanceof Error ? error.message : String(error) })
-				return cachedResult
+				return cachedResult as T
 			}
 
 			throw error
@@ -277,12 +293,11 @@ export class ErrorBoundaryService {
 	}
 
 	private recordFailure(serviceKey: string, error: Error | unknown, responseTime: number): void {
-		const errorMessage = error instanceof Error ? error.message : String(error)
 		const metrics = this.getServiceMetrics(serviceKey)
 
 		metrics.totalRequests++
 		metrics.failureCount++
-		metrics.lastError = errorMessage
+		metrics.lastError = error instanceof Error ? error.message : String(error)
 		metrics.lastErrorTime = Date.now()
 		this.updateAverageResponseTime(serviceKey, responseTime)
 	}

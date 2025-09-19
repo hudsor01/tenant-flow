@@ -1,8 +1,8 @@
 'use client'
 
-import { cn } from '@/lib/utils'
+import { Loader } from '@/components/ui/loader'
 import { Lock } from 'lucide-react'
-import { Loader } from 'src/components/ui/loader'
+import { cn } from '@/lib/utils'
 
 type Props = {
 	business?: { name: string; trustSignals?: string[] }

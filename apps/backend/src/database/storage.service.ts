@@ -4,7 +4,8 @@ import {
 } from '@nestjs/common'
 import { Logger } from '@nestjs/common'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Database, StorageUploadResult, FileUploadOptions, StorageEntityType, StorageFileType } from '@repo/shared'
+import type { Database } from '@repo/shared'
+import type { StorageUploadResult, FileUploadOptions, StorageEntityType, StorageFileType } from '@repo/shared'
 import * as path from 'path'
 import { SupabaseService } from './supabase.service'
 

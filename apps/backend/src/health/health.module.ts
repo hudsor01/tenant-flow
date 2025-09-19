@@ -5,6 +5,7 @@ import { SupabaseModule } from '../database/supabase.module'
 import { SupabaseHealthIndicator } from './supabase.health'
 import { StripeFdwHealthIndicator } from './stripe-fdw.health'
 import { StripeModule } from '../billing/stripe.module'
+import { ResilienceService } from '../shared/services/resilience.service'
 
 @Module({
 	imports: [TerminusModule, SupabaseModule, StripeModule],
@@ -14,10 +15,11 @@ import { StripeModule } from '../billing/stripe.module'
 	],
 	providers: [
 		SupabaseHealthIndicator,
-		StripeFdwHealthIndicator
+		StripeFdwHealthIndicator,
+		ResilienceService
 		// HealthCheckService is automatically provided by TerminusModule
-		// HealthIndicatorService is automatically provided by TerminusModule  
-		// Logger is available via NestJS built-in Logger
+		// HealthIndicatorService is automatically provided by TerminusModule
+		// Logger is provided globally via LoggerModule in app.module.ts
 	],
 	exports: []
 })

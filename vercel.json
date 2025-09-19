@@ -12,7 +12,7 @@
     }
   },
 
-  "installCommand": "npm ci --prefer-offline --no-audit --no-fund",
+  "installCommand": "pnpm install --frozen-lockfile",
   "buildCommand": "turbo run build --filter=@repo/frontend",
   "outputDirectory": "apps/frontend/.next",
 
@@ -35,17 +35,6 @@
       "runtime": "nodejs20.x"
     }
   },
-
-  "crons": [
-    {
-      "path": "/api/cron/cleanup",
-      "schedule": "0 3 * * *"
-    },
-    {
-      "path": "/api/cron/revalidate",
-      "schedule": "*/5 * * * *"
-    }
-  ],
 
   "redirects": [
     {
@@ -90,7 +79,24 @@
       ]
     },
     {
-      "source": "/(.*\\.(jpg|jpeg|png|gif|ico|svg|webp|avif|woff2|woff|ttf|otf))",
+      "source": "/(.*)\\.(jpg|jpeg|png|gif|ico|svg|webp|avif)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        },
+        {
+          "key": "Vary",
+          "value": "Accept"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)\\.(woff2|woff|ttf|otf)",
       "headers": [
         {
           "key": "Cache-Control",

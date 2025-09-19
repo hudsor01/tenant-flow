@@ -48,7 +48,7 @@ export type StorageEntityType = 'property' | 'tenant' | 'maintenance' | 'user'
 export type StorageFileType = 'document' | 'image' | 'avatar'
 
 // =============================================================================
-// BILLING & ANALYTICS DOMAIN
+// STRIPE ANALYTICS DOMAIN
 // =============================================================================
 
 export interface RevenueAnalytics {

@@ -1,9 +1,9 @@
 'use client'
 
+import { AlertTriangle, RefreshCw } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { animated } from '@react-spring/web'
-import { AlertTriangle, RefreshCw } from 'lucide-react'
-import { Button } from 'src/components/ui/button'
 
 type Props = {
 	message: string

@@ -13,7 +13,8 @@ ARG BUILDKIT_INLINE_CACHE=1
 # python3, make, g++: Required for native Node modules
 # dumb-init: Lightweight init system for proper signal handling (2025 best practice)
 RUN apk add --no-cache python3 make g++ dumb-init && \
-    rm -rf /var/cache/apk/* /tmp/*
+    rm -rf /var/cache/apk/* /tmp/* && \
+    npm install -g pnpm@9
 
 WORKDIR /app
 
@@ -26,10 +27,10 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY apps/backend/package.json ./apps/backend/
 COPY packages/*/package.json ./packages/
 
-# Advanced cache mount with npm optimization (2025 technique)
+# Advanced cache mount with pnpm optimization (2025 technique)
 # Multiple cache mounts for different package managers
-RUN --mount=type=cache,id=tenantflow-backend-pnpm-cache,target=/root/.local/share/pnpm/store \
-    npm install -g pnpm@8.15.5 && \
+RUN --mount=type=cache,id=pnpm-cache,target=/root/.local/share/pnpm/store \
+    --mount=type=cache,id=node-modules-cache,target=/app/node_modules \
     pnpm install --frozen-lockfile --prefer-offline
 
 # ===== BUILDER STAGE =====
@@ -69,12 +70,11 @@ COPY apps/backend/package.json ./apps/backend/
 COPY packages/*/package.json ./packages/
 
 # Install production deps with advanced caching
-RUN --mount=type=cache,id=tenantflow-backend-pnpm-prod-cache,target=/root/.local/share/pnpm/store \
-    npm install -g pnpm@8.15.5 && \
+RUN --mount=type=cache,id=pnpm-prod-cache,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile --prod --prefer-offline
 
 # Install node-prune and optimize node_modules (85% size reduction)
-RUN pnpm add -g node-prune && \
+RUN npm install -g pnpm@9 node-prune && \
     node-prune && \
     rm -rf node_modules/**/test \
            node_modules/**/tests \
@@ -117,7 +117,8 @@ WORKDIR /app
 
 # Copy production artifacts with single COPY for efficiency
 COPY --from=prod-deps --chown=node:node /app/node_modules ./node_modules
-COPY --from=prod-deps --chown=node:node /app/package*.json ./
+COPY --from=prod-deps --chown=node:node /app/package.json ./
+COPY --from=prod-deps --chown=node:node /app/pnpm-lock.yaml ./
 COPY --from=prod-deps --chown=node:node /app/apps/backend/package.json ./apps/backend/
 COPY --from=prod-deps --chown=node:node /app/packages ./packages
 

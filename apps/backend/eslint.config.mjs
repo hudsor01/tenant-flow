@@ -3,31 +3,24 @@
  * Extends shared base config with NestJS-specific overrides
  */
 
-import baseConfig from '@repo/eslint-config/base'
+import baseConfig from '@repo/eslint-config/base.js'
 import globals from 'globals'
 
 export default [
-	// Use shared base configuration (includes all TypeScript configs and security rules)
 	...baseConfig,
-
-	// Backend-specific ignores for files not in TypeScript project
 	{
 		name: 'backend/ignores',
 		ignores: ['test/**/*', 'vitest.config.ts', 'jest.config.js']
 	},
-
-	// Backend-specific TypeScript configuration overrides
 	{
 		name: 'backend/nestjs-overrides',
 		files: ['**/*.ts'],
 		languageOptions: {
 			parserOptions: {
-				// Override to use backend-specific tsconfig
 				project: ['./tsconfig.eslint.json'],
 				tsconfigRootDir: import.meta.dirname
 			},
 			globals: {
-				// Additional Node.js specific globals (base already has node, browser, es2024)
 				NodeJS: 'readonly',
 				Buffer: 'readonly',
 				process: 'readonly',
@@ -43,23 +36,16 @@ export default [
 			}
 		},
 		rules: {
-			// Backend logging is essential (override base config)
 			'no-console': 'off',
-
-			// NestJS framework allowances
 			'@typescript-eslint/explicit-function-return-type': 'off',
 			'@typescript-eslint/explicit-module-boundary-types': 'off',
-			'@typescript-eslint/no-empty-function': 'off', // NestJS decorators create empty methods
-			'@typescript-eslint/no-namespace': 'off', // NestJS uses namespaces for decorators
-
-			// SECURITY: Keep most unsafe rules as warnings (not completely off)
-			'@typescript-eslint/no-unsafe-assignment': 'off', // Downgrade but keep active
-			'@typescript-eslint/no-unsafe-member-access': 'off', // Downgrade but keep active
-			'@typescript-eslint/no-unsafe-call': 'off', // Downgrade but keep active
-			'@typescript-eslint/no-unsafe-return': 'off', // Downgrade but keep active
-			'@typescript-eslint/no-unsafe-argument': 'off', // Downgrade but keep active
-
-			// Performance-only overrides (these don't affect security)
+			'@typescript-eslint/no-empty-function': 'off',
+			'@typescript-eslint/no-namespace': 'off',
+			'@typescript-eslint/no-unsafe-assignment': 'warn',
+			'@typescript-eslint/no-unsafe-member-access': 'warn',
+			'@typescript-eslint/no-unsafe-call': 'warn',
+			'@typescript-eslint/no-unsafe-return': 'warn',
+			'@typescript-eslint/no-unsafe-argument': 'warn',
 			'@typescript-eslint/no-floating-promises': 'off',
 			'@typescript-eslint/no-misused-promises': 'off',
 			'@typescript-eslint/require-await': 'off',
@@ -69,8 +55,6 @@ export default [
 			'@typescript-eslint/no-base-to-string': 'off'
 		}
 	},
-
-	// Controllers and Decorators - very permissive
 	{
 		name: 'backend/controllers',
 		files: ['**/*.controller.ts', '**/*.resolver.ts', '**/*.gateway.ts'],
@@ -81,14 +65,12 @@ export default [
 				{
 					'ts-expect-error': 'allow-with-description',
 					'ts-ignore': false,
-					'ts-nocheck': true,
+					'ts-nocheck': false,
 					'ts-check': false
 				}
 			]
 		}
 	},
-
-	// DTOs and Entities
 	{
 		name: 'backend/dto-entities',
 		files: [
@@ -104,8 +86,6 @@ export default [
 			'@typescript-eslint/consistent-type-definitions': ['error', 'interface']
 		}
 	},
-
-	// Test files - use production rules to catch bugs early
 	{
 		name: 'backend/tests',
 		files: ['**/*.spec.ts', '**/*.test.ts', '**/*.e2e-spec.ts', 'test/**/*.ts'],
@@ -116,9 +96,7 @@ export default [
 			}
 		},
 		rules: {
-			// Only allow console in tests (for debugging)
 			'no-console': 'off',
-			// Test files are allowed to use unsafe operations for mocking
 			'@typescript-eslint/no-unsafe-assignment': 'off',
 			'@typescript-eslint/no-unsafe-member-access': 'off',
 			'@typescript-eslint/no-unsafe-call': 'off',
@@ -126,8 +104,6 @@ export default [
 			'@typescript-eslint/no-unsafe-argument': 'off'
 		}
 	},
-
-	// JavaScript files - Node.js environment
 	{
 		name: 'backend/javascript-node',
 		files: ['**/*.js', '**/*.mjs', '**/*.cjs'],
@@ -147,14 +123,12 @@ export default [
 			sourceType: 'module'
 		},
 		rules: {
-			'no-undef': 'off', // Turn off since globals handles this
-			'no-console': 'off', // Allow console in Node.js scripts
-			'@typescript-eslint/no-require-imports': 'off', // Allow require in JS files
-			'@typescript-eslint/no-var-requires': 'off' // Allow var requires in JS files
+			'no-undef': 'off',
+			'no-console': 'off',
+			'@typescript-eslint/no-require-imports': 'off',
+			'@typescript-eslint/no-var-requires': 'off'
 		}
 	},
-
-	// Config files and scripts - very permissive
 	{
 		name: 'backend/config-scripts',
 		files: [

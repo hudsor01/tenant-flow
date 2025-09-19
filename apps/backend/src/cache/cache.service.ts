@@ -5,13 +5,7 @@
  */
 
 import { Injectable, Logger, Inject } from '@nestjs/common'
-import type { CacheEntry as SharedCacheEntry, CacheStats, CacheableEntityType } from '@repo/shared'
-
-// Extend shared type with version and dependencies for zero-downtime support
-interface CacheEntry<T = unknown> extends Omit<SharedCacheEntry<T>, 'tags' | 'hits'> {
-	version: number
-	dependencies: string[]
-}
+import type { CacheEntry, CacheStats } from '@repo/shared'
 
 @Injectable()
 export class ZeroCacheService {
@@ -22,9 +16,7 @@ export class ZeroCacheService {
 		invalidations: 0,
 		entries: 0,
 		memoryUsage: 0,
-		hitRatio: 0,
-		evictions: 0,
-		lastCleanup: 0
+		hitRatio: 0
 	}
 	private versionCounter = 1
 
@@ -121,7 +113,7 @@ export class ZeroCacheService {
 	/**
 	 * Invalidate by entity type - for business logic changes
 	 */
-	invalidateByEntity(entityType: CacheableEntityType, entityId?: string): number {
+	invalidateByEntity(entityType: 'property' | 'unit' | 'tenant' | 'lease' | 'maintenance', entityId?: string): number {
 		const pattern = entityId ? `${entityType}:${entityId}` : entityType
 		return this.invalidate(pattern, `${entityType}_changed`)
 	}

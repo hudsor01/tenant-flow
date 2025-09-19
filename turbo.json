@@ -94,7 +94,7 @@
     "**/.env.*",
     ".prettierrc",
     "eslint.config.js",
-    "package-lock.json",
+    "pnpm-lock.yaml",
     "vercel.json"
   ],
   "envMode": "strict",

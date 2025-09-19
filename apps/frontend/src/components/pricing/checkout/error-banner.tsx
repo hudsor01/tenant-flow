@@ -1,7 +1,6 @@
 'use client'
 
-import { Button } from 'src/components/ui/button'
-
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { animated } from '@react-spring/web'
 import { AlertTriangle, RefreshCw } from 'lucide-react'

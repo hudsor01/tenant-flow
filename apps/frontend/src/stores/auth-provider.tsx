@@ -4,9 +4,9 @@ import { createBrowserClient } from '@supabase/ssr'
 import React, { createContext, useContext, useEffect, useRef } from 'react'
 import { type StoreApi } from 'zustand'
 
-import type { AuthState } from '@repo/shared'
-import type { Session } from '@supabase/supabase-js'
+import type { AuthState } from './auth-store'
 import { createAuthStore } from './auth-store'
+import type { Session, AuthChangeEvent } from '@supabase/supabase-js'
 
 const AuthStoreContext = createContext<StoreApi<AuthState> | null>(null)
 
@@ -35,7 +35,6 @@ export const AuthStoreProvider = ({
 				process.env.NEXT_PUBLIC_ENABLE_MOCK_AUTH === 'true'
 			) {
 				// Check for mock auth cookies
-				 
 				const mockToken = document.cookie
 					.split('; ')
 					.find(
@@ -92,7 +91,7 @@ export const AuthStoreProvider = ({
 		}
 
 		// Get initial session
-		supabaseClient.auth.getSession().then(({ data: { session } }) => {
+		supabaseClient.auth.getSession().then(({ data: { session } }: { data: { session: Session | null } }) => {
 			store.getState().setSession(session)
 			store.getState().setLoading(false)
 		})
@@ -100,7 +99,7 @@ export const AuthStoreProvider = ({
 		// Listen for auth changes
 		const {
 			data: { subscription }
-		} = supabaseClient.auth.onAuthStateChange(async (event, session) => {
+		} = supabaseClient.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
 			store.getState().setSession(session)
 			store.getState().setLoading(false)
 		})

@@ -160,29 +160,9 @@ export const MAINTENANCE_CATEGORY = {
 // ============================================================================
 // ESSENTIAL VALIDATION (Domain-Specific Only)
 // ============================================================================
-export { emailSchema, requiredString, positiveNumberSchema, nonNegativeNumberSchema } from './validation/common'
+export { emailSchema, requiredString, positiveNumberSchema, nonNegativeNumberSchema, uuidSchema, requiredTitle, requiredDescription } from './validation/common'
 export { unitStatusSchema } from './validation/units'
-
-// Auth validation schemas (moved from frontend)
-export {
-  loginZodSchema,
-  registerZodSchema,
-  authResponseZodSchema,
-  userProfileResponseZodSchema,
-  contactFormZodSchema,
-  contactFormResponseZodSchema
-} from './validation/auth'
-
-export type {
-  LoginData,
-  RegisterData,
-  AuthResponseData,
-  UserProfileResponseData,
-  ContactFormData,
-  ContactFormResponseData
-} from './validation/auth'
-
-export type { LeaseFormData } from './types/lease-generator.types'
+export type { LeaseFormData, StateLeaseRequirements } from './types/lease-generator.types'
 
 // ============================================================================
 // BACKEND TYPES (Required for Controllers/Services)
@@ -196,6 +176,7 @@ export type {
   AuthState,
   LoginCredentials,
   RegisterCredentials,
+  SupabaseWebhookEvent,
   AuthResponse,
   RefreshTokenRequest,
   AuthFormState

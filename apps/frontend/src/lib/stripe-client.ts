@@ -57,6 +57,7 @@ export async function createCheckoutSession(
   return response.json()
 }
 
+
 /**
  * Check if user is authenticated with Supabase
  */

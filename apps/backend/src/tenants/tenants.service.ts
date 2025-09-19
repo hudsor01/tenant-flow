@@ -6,20 +6,16 @@
  * See: apps/backend/ULTRA_NATIVE_ARCHITECTURE.md
  */
 
-import {
-	BadRequestException,
-	Injectable,
-	Logger,
-	Optional
-} from '@nestjs/common'
+import { Injectable, BadRequestException } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
-import type { Tables } from '@repo/shared'
+import { Logger } from '@nestjs/common'
 import { SupabaseService } from '../database/supabase.service'
 import { TenantCreatedEvent } from '../notifications/events/notification.events'
 import type {
 	CreateTenantRequest,
 	UpdateTenantRequest
 } from '../schemas/tenants.schema'
+import type { Tables } from '@repo/shared'
 
 // Use native Supabase table types
 type Tenant = Tables<'Tenant'>
@@ -53,8 +49,8 @@ export interface TenantWithRelations extends Tenant {
 export class TenantsService {
 	constructor(
 		private readonly supabaseService: SupabaseService,
-		private readonly eventEmitter: EventEmitter2,
-		@Optional() private readonly logger?: Logger
+		private readonly logger: Logger,
+		private readonly eventEmitter: EventEmitter2
 	) {
 		// Logger context handled automatically via app-level configuration
 	}
@@ -68,7 +64,9 @@ export class TenantsService {
 			.rpc('get_user_tenants', {
 				p_user_id: userId,
 				p_search: query.search as string | undefined,
-				p_invitation_status: query.invitationStatus as string | undefined,
+				p_invitation_status: query.invitationStatus as
+					| string
+					| undefined,
 				p_limit: query.limit as number | undefined,
 				p_offset: query.offset as number | undefined,
 				p_sort_by: query.sortBy as string | undefined,
@@ -76,7 +74,7 @@ export class TenantsService {
 			})
 
 		if (error) {
-			this.logger?.error('Failed to get tenants', {
+			this.logger.error('Failed to get tenants', {
 				userId,
 				error: error.message
 			})
@@ -96,11 +94,13 @@ export class TenantsService {
 			.single()
 
 		if (error) {
-			this.logger?.error('Failed to get tenant stats', {
+			this.logger.error('Failed to get tenant stats', {
 				userId,
 				error: error.message
 			})
-			throw new BadRequestException('Failed to retrieve tenant statistics')
+			throw new BadRequestException(
+				'Failed to retrieve tenant statistics'
+			)
 		}
 
 		return data
@@ -119,7 +119,7 @@ export class TenantsService {
 			.single()
 
 		if (error) {
-			this.logger?.error('Failed to get tenant', {
+			this.logger.error('Failed to get tenant', {
 				userId,
 				tenantId,
 				error: error.message
@@ -146,7 +146,7 @@ export class TenantsService {
 			.single()
 
 		if (error) {
-			this.logger?.error('Failed to create tenant', {
+			this.logger.error('Failed to create tenant', {
 				userId,
 				error: error.message
 			})
@@ -196,7 +196,7 @@ export class TenantsService {
 			.single()
 
 		if (error) {
-			this.logger?.error('Failed to update tenant', {
+			this.logger.error('Failed to update tenant', {
 				userId,
 				tenantId,
 				error: error.message
@@ -219,7 +219,7 @@ export class TenantsService {
 			})
 
 		if (error) {
-			this.logger?.error('Failed to delete tenant', {
+			this.logger.error('Failed to delete tenant', {
 				userId,
 				tenantId,
 				error: error.message
@@ -241,7 +241,7 @@ export class TenantsService {
 			.single()
 
 		if (error) {
-			this.logger?.error('Failed to send invitation', {
+			this.logger.error('Failed to send invitation', {
 				userId,
 				tenantId,
 				error: error.message
@@ -265,7 +265,7 @@ export class TenantsService {
 			.single()
 
 		if (error) {
-			this.logger?.error('Failed to resend invitation', {
+			this.logger.error('Failed to resend invitation', {
 				userId,
 				tenantId,
 				error: error.message

@@ -1,90 +1,196 @@
-import pg from 'pg'
+import { createClient } from '@supabase/supabase-js'
 
-// Environment variables are loaded via Doppler when script is run with 'doppler run --'
-
-/**
- * Validate Stripe Schema Creation
- * 
- * Checks that the Stripe Sync Engine properly created the database schema
- */
-async function validateStripeSchema() {
-  console.log('CHECKING: Validating Stripe schema creation...')
-  
-  const databaseUrl = process.env.DATABASE_URL
-  if (!databaseUrl) {
-    console.error('ERROR: DATABASE_URL not found')
-    process.exit(1)
-  }
-
-  const client = new pg.Client({ connectionString: databaseUrl })
-  
-  try {
-    await client.connect()
-    console.log('SUCCESS: Connected to database')
-
-    // Check if stripe schema exists
-    const schemaResult = await client.query(
-      "SELECT schema_name FROM information_schema.schemata WHERE schema_name = 'stripe'"
-    )
-    
-    if (schemaResult.rows.length === 0) {
-      console.error('ERROR: Stripe schema not found')
-      return
-    }
-    console.log('SUCCESS: Stripe schema exists')
-
-    // Count stripe tables
-    const tablesResult = await client.query(`
-      SELECT COUNT(*) as table_count 
-      FROM information_schema.tables 
-      WHERE table_schema = 'stripe'
-    `)
-    
-    const tableCount = parseInt(tablesResult.rows[0].table_count)
-    console.log(`STATS: Found ${tableCount} stripe tables`)
-    
-    if (tableCount < 50) {
-      console.warn(`WARNING:  Expected 90+ tables, found ${tableCount}`)
-    } else {
-      console.log('SUCCESS: Good number of tables created')
-    }
-
-    // List key tables
-    const keyTablesResult = await client.query(`
-      SELECT table_name 
-      FROM information_schema.tables 
-      WHERE table_schema = 'stripe' 
-      AND table_name IN ('customers', 'subscriptions', 'invoices', 'prices', 'products', 'charges', 'payment_intents')
-      ORDER BY table_name
-    `)
-
-    console.log('KEY: Key tables found:')
-    const foundTables = keyTablesResult.rows.map(row => row.table_name)
-    const expectedTables = ['customers', 'subscriptions', 'invoices', 'prices', 'products', 'charges', 'payment_intents']
-    
-    expectedTables.forEach(table => {
-      if (foundTables.includes(table)) {
-        console.log(`  SUCCESS: ${table}`)
-      } else {
-        console.log(`  ERROR: ${table} (missing)`)
-      }
-    })
-
-    // Check if tables are empty (expected with 0 users)
-    const customerCount = await client.query('SELECT COUNT(*) FROM stripe.customers')
-    console.log(`USERS: Customers in database: ${customerCount.rows[0].count}`)
-    
-    if (customerCount.rows[0].count === '0') {
-      console.log('SUCCESS: Database is empty as expected (0 users)')
-    }
-
-    console.log('\nSUCCESS: Stripe schema validation completed successfully!')
-    
-  } catch (error) {
-    console.error('ERROR: Validation failed:', error)
-  } finally {
-    await client.end()
-  }
+interface ValidationResult {
+	success: boolean
+	message: string
+	tableCount?: number
+	missingTables?: string[]
 }
 
-validateStripeSchema()
+class StripeSchemaValidator {
+	private client
+
+	constructor() {
+		const supabaseUrl = process.env.SUPABASE_URL
+		const serviceKey =
+			process.env.SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY
+
+		if (!supabaseUrl || !serviceKey) {
+			throw new Error('Missing Supabase configuration')
+		}
+
+		this.client = createClient(supabaseUrl, serviceKey)
+	}
+
+	async validateSchema(): Promise<ValidationResult> {
+		try {
+			const schemaExists = await this.checkSchemaExists()
+			if (!schemaExists.success) {
+				return schemaExists
+			}
+
+			const tableCount = await this.countStripeTables()
+			if (!tableCount.success) {
+				return tableCount
+			}
+
+			const keyTables = await this.validateKeyTables()
+			if (!keyTables.success) {
+				return { ...keyTables, tableCount: tableCount.tableCount }
+			}
+
+			await this.checkCustomerCount()
+
+			return {
+				success: true,
+				message: 'Stripe schema validation completed successfully',
+				tableCount: tableCount.tableCount
+			}
+		} catch (error) {
+			return {
+				success: false,
+				message:
+					error instanceof Error ? error.message : 'Unknown validation error'
+			}
+		}
+	}
+
+	private async checkSchemaExists(): Promise<ValidationResult> {
+		const { data, error } = await this.client.rpc('check_schema_exists', {
+			schema_name: 'stripe'
+		})
+
+		if (error) {
+			return {
+				success: false,
+				message: `Schema check failed: ${error.message}`
+			}
+		}
+
+		if (!(data as boolean)) {
+			return { success: false, message: 'Stripe schema not found' }
+		}
+
+		console.log('SUCCESS: Stripe schema exists')
+		return { success: true, message: 'Schema exists' }
+	}
+
+	private async countStripeTables(): Promise<
+		ValidationResult & { tableCount?: number }
+	> {
+		const { data, error } = await this.client.rpc('count_stripe_tables')
+
+		if (error) {
+			return { success: false, message: `Table count failed: ${error.message}` }
+		}
+
+		const tableCount = parseInt(String(data), 10)
+		console.log(`STATS: Found ${tableCount} stripe tables`)
+
+		if (tableCount < 50) {
+			console.warn(`WARNING: Expected 90+ tables, found ${tableCount}`)
+		} else {
+			console.log('SUCCESS: Good number of tables created')
+		}
+
+		return { success: true, message: 'Tables counted', tableCount }
+	}
+
+	private async validateKeyTables(): Promise<
+		ValidationResult & { missingTables?: string[] }
+	> {
+		const expectedTables = [
+			'customers',
+			'subscriptions',
+			'invoices',
+			'prices',
+			'products',
+			'charges',
+			'payment_intents'
+		]
+
+		const { data, error } = await this.client.rpc('get_key_stripe_tables', {
+			table_names: expectedTables
+		})
+
+		if (error) {
+			return {
+				success: false,
+				message: `Key tables check failed: ${error.message}`
+			}
+		}
+
+		const tableRows = data as Array<{ table_name: string }> | null
+		const foundTables = tableRows ? tableRows.map(row => row.table_name) : []
+		const missingTables = expectedTables.filter(
+			table => !foundTables.includes(table)
+		)
+
+		console.log('KEY: Key tables found:')
+		for (const table of expectedTables) {
+			if (foundTables.includes(table)) {
+				console.log(`  SUCCESS: ${table}`)
+			} else {
+				console.log(`  ERROR: ${table} (missing)`)
+			}
+		}
+
+		return {
+			success: missingTables.length === 0,
+			message:
+				missingTables.length > 0
+					? `Missing tables: ${missingTables.join(', ')}`
+					: 'All key tables found',
+			missingTables
+		}
+	}
+
+	private async checkCustomerCount(): Promise<ValidationResult> {
+		const { data, error } = await this.client.rpc('count_stripe_customers')
+
+		if (error) {
+			console.warn(`Customer count check failed: ${error.message}`)
+			return { success: true, message: 'Customer count unavailable' }
+		}
+
+		const customerCount = parseInt(String(data), 10)
+		console.log(`USERS: Customers in database: ${customerCount}`)
+
+		if (customerCount === 0) {
+			console.log('SUCCESS: Database is empty as expected (0 users)')
+		}
+
+		return { success: true, message: 'Customer count checked' }
+	}
+}
+
+async function validateStripeSchema(): Promise<void> {
+	console.log('CHECKING: Validating Stripe schema creation...')
+
+	try {
+		const validator = new StripeSchemaValidator()
+		const result = await validator.validateSchema()
+
+		if (result.success) {
+			console.log(`\nSUCCESS: ${result.message}`)
+			if (result.tableCount) {
+				console.log(`  Total tables: ${result.tableCount}`)
+			}
+		} else {
+			console.error(`\nERROR: ${result.message}`)
+			if (result.missingTables && result.missingTables.length > 0) {
+				console.error(`  Missing: ${result.missingTables.join(', ')}`)
+			}
+			process.exit(1)
+		}
+	} catch (error) {
+		const message = error instanceof Error ? error.message : 'Unknown error'
+		console.error('FATAL:', message)
+		process.exit(1)
+	}
+}
+
+validateStripeSchema().catch((error: unknown) => {
+	console.error('Fatal error:', error)
+	process.exit(1)
+})

@@ -1,5 +1,5 @@
-/* eslint-env node */
-/* eslint-disable @typescript-eslint/no-require-imports, no-undef */
+/* eslint-disable @typescript-eslint/no-require-imports */
+/* eslint-disable no-undef */
 const path = require('path')
 const fs = require('fs')
 
@@ -32,7 +32,7 @@ module.exports = {
 	coverageReporters: ['text', 'lcov', 'html'],
 	moduleNameMapper: {
 		'^@/(.*)$': '<rootDir>/src/$1',
-        '^@repo/shared/(.*)$': '<rootDir>/../../packages/shared/src/$1',
+		'^@repo/shared/(.*)$': '<rootDir>/../../packages/shared/src/$1',
 		'^@repo/(.*)$': '<rootDir>/../../packages/$1/src'
 	},
 	setupFilesAfterEnv,
@@ -63,8 +63,6 @@ module.exports = {
 			}
 		]
 	},
-	transformIgnorePatterns: [
-		'node_modules/(?!(@repo|@supabase|@fastify)/)'
-	],
+	transformIgnorePatterns: ['node_modules/(?!(@repo|@supabase|@fastify)/)'],
 	injectGlobals: true
 }

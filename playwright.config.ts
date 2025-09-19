@@ -162,7 +162,7 @@ export default defineConfig({
 						? []
 						: [
 								{
-									command: 'npm run dev --filter=@repo/backend',
+									command: 'pnpm run dev --filter=@repo/backend',
 									port: 8000,
 									reuseExistingServer: !process.env.CI,
 									timeout: 120000,
@@ -181,7 +181,7 @@ export default defineConfig({
 								}
 						]),
 					{
-						command: 'npm run dev --filter=@repo/frontend',
+						command: 'pnpm run dev --filter=@repo/frontend',
 						port: 4500,
 						reuseExistingServer: !process.env.CI,
 						timeout: 120000,

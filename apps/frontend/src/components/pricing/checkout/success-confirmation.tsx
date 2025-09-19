@@ -1,6 +1,5 @@
 'use client'
 
-
 import { cn } from '@/lib/utils'
 import { animated } from '@react-spring/web'
 import { CheckCircle2 } from 'lucide-react'

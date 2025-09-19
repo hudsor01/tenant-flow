@@ -1,58 +1,18 @@
 {
   "name": "@repo/eslint-config",
-  "version": "0.2.0",
-  "description": "Shared ESLint configurations for TenantFlow monorepo - 2025 optimized",
-  "main": "base.js",
-  "scripts": {
-    "build": "echo 'ESLint config package - no build needed'",
-    "lint": "echo 'ESLint config package - no linting needed'"
-  },
-  "$schema": "https://json.schemastore.org/package",
-  "devDependencies": {
-    "@eslint/js": "9.35.0",
-    "@next/eslint-plugin-next": "^15.5.0",
-    "@typescript-eslint/eslint-plugin": "8.43.0",
-    "@typescript-eslint/parser": "^8.43.0",
-    "eslint": "^9.35.0",
-    "eslint-config-prettier": "10.1.8",
-    "eslint-plugin-jsx-a11y": "^6.10.2",
-    "eslint-plugin-react": "^7.37.5",
-    "eslint-plugin-react-hooks": "^5.2.0",
-    "globals": "16.4.0",
-    "typescript-eslint": "^8.43.0"
-  },
-  "exports": {
-    "./base": "./base.js",
-    "./nextjs": "./nextjs.js",
-    "./nestjs": "./nestjs.js",
-    "./anti-duplication": "./anti-duplication.js",
-    "./rules/anti-duplication": "./rules/anti-duplication.js",
-    "./package.json": "./package.json"
-  },
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared ESLint configuration for TenantFlow monorepo",
+  "main": "index.js",
   "files": [
-    "base.js",
-    "nextjs.js",
-    "nestjs.js",
-    "anti-duplication.js",
-    "rules/"
+    "library.js",
+    "next.js",
+    "react-internal.js"
   ],
-  "keywords": [
-    "config",
-    "eslint",
-    "monorepo",
-    "nestjs",
-    "nextjs",
-    "performance",
-    "react19",
-    "typescript"
-  ],
-  "license": "MIT",
-  "overrides": {
-    "minimatch": "^10.0.3"
-  },
-  "peerDependencies": {
-    "eslint": "^9.35.0",
-    "typescript": "^5.9.2"
-  },
-  "type": "module"
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.43.0",
+    "@typescript-eslint/parser": "^8.43.0",
+    "eslint-config-turbo": "^2.5.6"
+  }
 }
