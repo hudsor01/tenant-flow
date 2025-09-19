@@ -1,12 +1,12 @@
-import { HeroSection } from 'src/components/marketing/hero-section'
-import { Navbar } from 'src/components/navbar'
-import { CTAMinimal } from 'src/components/sections/cta-minimal'
-import FAQsFour from 'src/components/faqs-4'
-import { FeaturesGrid } from 'src/components/sections/features-grid'
-import FooterSection from 'src/components/footer'
-import { MinimalistPricingSection } from 'src/components/sections/minimalist-pricing-section'
-import StatsSection from 'src/components/stats-4'
-import { TestimonialsMinimal } from 'src/components/sections/testimonials-minimal'
+import FAQsFour from '@/components/faqs-4'
+import FooterSection from '@/components/footer'
+import { HeroSection } from '@/components/marketing/hero-section'
+import { Navbar } from '@/components/navbar'
+import { CTAMinimal } from '@/components/sections/cta-minimal'
+import { FeaturesGrid } from '@/components/sections/features-grid'
+import { MinimalistPricingSection } from '@/components/sections/minimalist-pricing-section'
+import { TestimonialsMinimal } from '@/components/sections/testimonials-minimal'
+import StatsSection from '@/components/stats-4'
 
 export default function HomePage() {
 	return (

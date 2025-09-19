@@ -1,12 +1,13 @@
 'use client'
 
+import { ShimmerButton } from '@/components/magicui/shimmer-button'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/design-system'
 import { TYPOGRAPHY_SCALE } from '@repo/shared'
 import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import * as React from 'react'
-import { ShimmerButton } from 'src/components/magicui/shimmer-button'
-import { Button } from 'src/components/ui/button'
+
 import { Section } from './section'
 
 export interface HeroAuthorityProps

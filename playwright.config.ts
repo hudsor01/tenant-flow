@@ -211,7 +211,7 @@ export default defineConfig({
 
 /* Test patterns and organization */
 export const testPatterns = {
-	unit: 'src/**/*.{test,spec}.{js,ts}',
+	unit: '@/**/*.{test,spec}.{js,ts}',
 	integration: 'tests/integration/**/*.{test,spec}.{js,ts}',
 	e2e: 'tests/e2e/**/*.spec.ts',
 	performance: 'tests/performance/**/*.spec.ts',

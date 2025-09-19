@@ -1,5 +1,13 @@
 'use client'
 
+import { HeroAuthority } from '@/components/marketing/hero-authority'
+import { Navbar } from '@/components/navbar'
+import { CustomerPortalButton } from '@/components/pricing/customer-portal'
+import { FooterMinimal } from '@/components/sections/footer-minimal'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { API_BASE_URL } from '@/lib/api-client'
 import type { SubscriptionData } from '@/types/stripe'
 import { CheckCircle, Home } from 'lucide-react'
@@ -7,20 +15,10 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import Navbar from 'src/components/navbar'
-import { CustomerPortalButton } from 'src/components/pricing/customer-portal'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
-import {
-	Card,
-	CardContent,
-	CardHeader,
-	CardTitle
-} from 'src/components/ui/card'
 
 export default function CheckoutSuccessPage() {
 	const searchParams = useSearchParams()
-	const sessionId = searchParams.get('session_id')
+	const sessionId = searchParams?.get('session_id')
 	const [isVerifying, setIsVerifying] = useState(true)
 	const [subscription, setSubscription] = useState<SubscriptionData | null>(
 		null
@@ -85,6 +83,20 @@ export default function CheckoutSuccessPage() {
 	return (
 		<main className="min-h-screen gradient-authority">
 			<Navbar />
+
+			{/* Hero Authority Section */}
+			<HeroAuthority
+				title={<>Payment Successful!</>}
+				subtitle={
+					<>
+						Welcome to TenantFlow! Your subscription is now active and ready to
+						use. Start managing your properties with enterprise-grade tools.
+					</>
+				}
+				primaryCta={{ label: 'Go to Dashboard', href: '/dashboard' }}
+				secondaryCta={{ label: 'Contact Support', href: '/contact' }}
+			/>
+
 			<div className="pt-20">
 				<div className="container mx-auto px-4 section-content max-w-2xl">
 					<Card className="text-center card-elevated-authority">
@@ -165,6 +177,7 @@ export default function CheckoutSuccessPage() {
 					</Card>
 				</div>
 			</div>
+			<FooterMinimal />
 		</main>
 	)
 }

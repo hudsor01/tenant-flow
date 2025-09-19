@@ -1,145 +1,56 @@
 'use client'
 
-import {
-	AlertCircle,
-	Calendar,
-	CheckCircle,
-	Clock,
-	DollarSign,
-	Droplets,
-	Filter,
-	Hammer,
-	Home,
-	MapPin,
-	Phone,
-	Plus,
-	Search,
-	Thermometer,
-	User,
-	Wrench,
-	Zap
-} from 'lucide-react'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
-import { Card } from 'src/components/ui/card'
-import { Input } from 'src/components/ui/input'
+import { CreateMaintenanceDialog } from '@/components/maintenance/create-maintenance-dialog'
+import { MaintenanceTable } from '@/components/maintenance/maintenance-table'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue
-} from 'src/components/ui/select'
-
-const maintenanceData = [
-	{
-		id: 'MNT-2024-001',
-		title: 'HVAC System Repair',
-		property: 'Sunset Apartments',
-		unit: 'Unit 204',
-		priority: 'High',
-		status: 'In Progress',
-		category: 'HVAC',
-		assignedTo: 'Mike Johnson',
-		requestDate: '2024-01-15',
-		dueDate: '2024-01-17',
-		cost: 450,
-		description: 'Air conditioning unit not cooling properly',
-		icon: Thermometer
-	},
-	{
-		id: 'MNT-2024-002',
-		title: 'Plumbing Leak Fix',
-		property: 'Downtown Lofts',
-		unit: 'Unit 512',
-		priority: 'Critical',
-		status: 'Open',
-		category: 'Plumbing',
-		assignedTo: 'Sarah Wilson',
-		requestDate: '2024-01-16',
-		dueDate: '2024-01-16',
-		cost: 275,
-		description: 'Kitchen sink leaking underneath',
-		icon: Droplets
-	},
-	{
-		id: 'MNT-2024-003',
-		title: 'Electrical Outlet Repair',
-		property: 'Garden View Complex',
-		unit: 'Unit 308',
-		priority: 'Medium',
-		status: 'Completed',
-		category: 'Electrical',
-		assignedTo: 'Tom Rodriguez',
-		requestDate: '2024-01-14',
-		dueDate: '2024-01-15',
-		cost: 125,
-		description: 'Bedroom outlet not working',
-		icon: Zap
-	},
-	{
-		id: 'MNT-2024-004',
-		title: 'Door Lock Replacement',
-		property: 'Riverside Towers',
-		unit: 'Unit 1205',
-		priority: 'Low',
-		status: 'Scheduled',
-		category: 'General',
-		assignedTo: 'Mike Johnson',
-		requestDate: '2024-01-13',
-		dueDate: '2024-01-18',
-		cost: 89,
-		description: 'Front door lock sticking',
-		icon: Home
-	}
-]
-
-const statusColors = {
-	Open: {
-		bg: 'color-mix(in oklab, var(--chart-3) 15%, transparent)',
-		text: 'var(--chart-3)'
-	},
-	'In Progress': {
-		bg: 'color-mix(in oklab, var(--chart-4) 15%, transparent)',
-		text: 'var(--chart-4)'
-	},
-	Scheduled: {
-		bg: 'color-mix(in oklab, var(--chart-5) 15%, transparent)',
-		text: 'var(--chart-5)'
-	},
-	Completed: {
-		bg: 'color-mix(in oklab, var(--chart-1) 15%, transparent)',
-		text: 'var(--chart-1)'
-	}
-}
-
-const priorityColors = {
-	Critical: {
-		bg: 'color-mix(in oklab, hsl(var(--destructive)) 15%, transparent)',
-		text: 'hsl(var(--destructive))'
-	},
-	High: {
-		bg: 'color-mix(in oklab, hsl(var(--accent)) 15%, transparent)',
-		text: 'hsl(var(--accent))'
-	},
-	Medium: {
-		bg: 'color-mix(in oklab, var(--chart-5) 15%, transparent)',
-		text: 'var(--chart-5)'
-	},
-	Low: {
-		bg: 'color-mix(in oklab, var(--chart-1) 15%, transparent)',
-		text: 'var(--chart-1)'
-	}
-}
+} from '@/components/ui/select'
+import { maintenanceApi } from '@/lib/api-client'
+import { useQuery } from '@tanstack/react-query'
+import {
+	AlertCircle,
+	Calendar,
+	CheckCircle,
+	Clock,
+	DollarSign,
+	Filter,
+	Search,
+	User,
+	Wrench
+} from 'lucide-react'
 
 export default function MaintenancePage() {
+	const {
+		data: maintenanceResponse,
+		isLoading,
+		isError
+	} = useQuery({
+		queryKey: ['maintenance-requests'],
+		queryFn: () => maintenanceApi.list()
+	})
+
+	const maintenanceData = maintenanceResponse?.data || []
+
+	if (isLoading) return <div>Loading...</div>
+	if (isError || !maintenanceData) return <div>Error fetching data</div>
+
 	const openRequests = maintenanceData.filter(
-		item => item.status === 'Open'
+		(item: { status: string }) => item.status === 'OPEN'
 	).length
 	const inProgress = maintenanceData.filter(
-		item => item.status === 'In Progress'
+		(item: { status: string }) => item.status === 'IN_PROGRESS'
 	).length
-	const totalCost = maintenanceData.reduce((sum, item) => sum + item.cost, 0)
+	const totalCost = maintenanceData.reduce(
+		(sum: number, item) => sum + (item.estimatedCost || 0),
+		0
+	)
 	const avgResponseTime = '2.4 hours'
 
 	return (
@@ -159,16 +70,13 @@ export default function MaintenancePage() {
 						<Filter className="size-4 mr-2" />
 						Filter
 					</Button>
-					<Button size="sm">
-						<Plus className="size-4 mr-2" />
-						New Request
-					</Button>
+					<CreateMaintenanceDialog />
 				</div>
 			</div>
 
 			{/* Status Overview Cards */}
 			<div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-				{/* Open Requests */}
+				{/* Pending Requests */}
 				<Card
 					className="p-6 border shadow-sm"
 					style={{ borderLeftColor: 'var(--chart-3)', borderLeftWidth: '4px' }}
@@ -183,7 +91,7 @@ export default function MaintenancePage() {
 						>
 							<AlertCircle className="size-5" />
 						</div>
-						<h3 className="font-semibold">Open Requests</h3>
+						<h3 className="font-semibold">Pending Requests</h3>
 					</div>
 					<div className="text-3xl font-bold mb-1">{openRequests}</div>
 					<p className="text-muted-foreground text-sm">Awaiting assignment</p>
@@ -229,7 +137,9 @@ export default function MaintenancePage() {
 						</div>
 						<h3 className="font-semibold">Total Cost</h3>
 					</div>
-					<div className="text-3xl font-bold mb-1">${totalCost}</div>
+					<div className="text-3xl font-bold mb-1">
+						${totalCost.toLocaleString()}
+					</div>
 					<p className="text-muted-foreground text-sm">This month</p>
 				</Card>
 
@@ -268,10 +178,10 @@ export default function MaintenancePage() {
 						</SelectTrigger>
 						<SelectContent>
 							<SelectItem value="all">All Priorities</SelectItem>
-							<SelectItem value="critical">Critical</SelectItem>
-							<SelectItem value="high">High</SelectItem>
-							<SelectItem value="medium">Medium</SelectItem>
-							<SelectItem value="low">Low</SelectItem>
+							<SelectItem value="EMERGENCY">Emergency</SelectItem>
+							<SelectItem value="HIGH">High</SelectItem>
+							<SelectItem value="MEDIUM">Medium</SelectItem>
+							<SelectItem value="LOW">Low</SelectItem>
 						</SelectContent>
 					</Select>
 				</div>
@@ -282,10 +192,11 @@ export default function MaintenancePage() {
 						</SelectTrigger>
 						<SelectContent>
 							<SelectItem value="all">All Status</SelectItem>
-							<SelectItem value="open">Open</SelectItem>
-							<SelectItem value="progress">In Progress</SelectItem>
-							<SelectItem value="scheduled">Scheduled</SelectItem>
-							<SelectItem value="completed">Completed</SelectItem>
+							<SelectItem value="OPEN">Open</SelectItem>
+							<SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+							<SelectItem value="COMPLETED">Completed</SelectItem>
+							<SelectItem value="CANCELED">Canceled</SelectItem>
+							<SelectItem value="ON_HOLD">On Hold</SelectItem>
 						</SelectContent>
 					</Select>
 					<Select defaultValue="all">
@@ -294,128 +205,36 @@ export default function MaintenancePage() {
 						</SelectTrigger>
 						<SelectContent>
 							<SelectItem value="all">All Categories</SelectItem>
-							<SelectItem value="hvac">HVAC</SelectItem>
-							<SelectItem value="plumbing">Plumbing</SelectItem>
-							<SelectItem value="electrical">Electrical</SelectItem>
-							<SelectItem value="general">General</SelectItem>
+							<SelectItem value="HVAC">HVAC</SelectItem>
+							<SelectItem value="PLUMBING">Plumbing</SelectItem>
+							<SelectItem value="ELECTRICAL">Electrical</SelectItem>
+							<SelectItem value="APPLIANCE">Appliance</SelectItem>
+							<SelectItem value="STRUCTURAL">Structural</SelectItem>
+							<SelectItem value="GENERAL">General</SelectItem>
+							<SelectItem value="OTHER">Other</SelectItem>
 						</SelectContent>
 					</Select>
 				</div>
 			</div>
 
 			{/* Maintenance Requests List */}
-			<div className="space-y-4">
-				<h2 className="text-xl font-semibold">Active Maintenance Requests</h2>
-				{maintenanceData.map((request, index) => (
-					<Card key={index} className="border shadow-sm">
-						<div className="p-6">
-							<div className="flex items-start justify-between mb-4">
-								<div className="flex items-start gap-4">
-									<div
-										className="w-12 h-12 rounded-lg flex items-center justify-center"
-										style={{
-											backgroundColor:
-												'color-mix(in oklab, var(--chart-2) 15%, transparent)'
-										}}
-									>
-										<request.icon
-											className="size-6"
-											style={{ color: 'var(--chart-2)' }}
-										/>
-									</div>
-									<div>
-										<div className="flex items-center gap-2 mb-1">
-											<h3 className="text-lg font-semibold">{request.title}</h3>
-											<Badge
-												className="text-xs"
-												style={{
-													backgroundColor:
-														priorityColors[
-															request.priority as keyof typeof priorityColors
-														]?.bg,
-													color:
-														priorityColors[
-															request.priority as keyof typeof priorityColors
-														]?.text
-												}}
-											>
-												{request.priority}
-											</Badge>
-										</div>
-										<p className="text-muted-foreground text-sm mb-2">
-											{request.description}
-										</p>
-										<div className="flex items-center gap-4 text-sm text-muted-foreground">
-											<span className="flex items-center gap-1">
-												<MapPin className="size-3" />
-												{request.property} - {request.unit}
-											</span>
-											<span className="flex items-center gap-1">
-												<User className="size-3" />
-												{request.assignedTo}
-											</span>
-											<span className="flex items-center gap-1">
-												<Calendar className="size-3" />
-												Due: {request.dueDate}
-											</span>
-											<span className="flex items-center gap-1">
-												<DollarSign className="size-3" />${request.cost}
-											</span>
-										</div>
-									</div>
-								</div>
-								<div className="flex items-center gap-2">
-									<Badge
-										className="text-xs"
-										style={{
-											backgroundColor:
-												statusColors[
-													request.status as keyof typeof statusColors
-												]?.bg,
-											color:
-												statusColors[
-													request.status as keyof typeof statusColors
-												]?.text
-										}}
-									>
-										{request.status}
-									</Badge>
-									<span className="text-sm text-muted-foreground">
-										#{request.id}
-									</span>
-								</div>
-							</div>
-							<div className="flex items-center justify-between pt-4 border-t">
-								<div className="flex items-center gap-2">
-									<Button variant="outline" size="sm">
-										<Phone className="size-4 mr-2" />
-										Contact
-									</Button>
-									<Button variant="outline" size="sm">
-										<Hammer className="size-4 mr-2" />
-										Update
-									</Button>
-								</div>
-								<div className="flex items-center gap-2">
-									<Button size="sm">View Details</Button>
-								</div>
-							</div>
-						</div>
-					</Card>
-				))}
-			</div>
+			<Card className="border shadow-sm">
+				<div className="p-6 border-b">
+					<h2 className="text-xl font-semibold">Active Maintenance Requests</h2>
+					<p className="text-muted-foreground text-sm mt-1">
+						Track and manage all property maintenance requests
+					</p>
+				</div>
+				<div className="p-6">
+					<MaintenanceTable requests={maintenanceData} isLoading={isLoading} />
+				</div>
+			</Card>
 
 			{/* Quick Actions */}
 			<Card className="p-6 border shadow-sm">
 				<h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-					<Button
-						variant="outline"
-						className="h-auto p-4 flex flex-col items-center gap-2"
-					>
-						<Plus className="size-6" />
-						<span>Create Request</span>
-					</Button>
+					<CreateMaintenanceDialog />
 					<Button
 						variant="outline"
 						className="h-auto p-4 flex flex-col items-center gap-2"

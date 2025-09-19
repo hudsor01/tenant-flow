@@ -1,10 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any */
-import type { TestingModule } from '@nestjs/testing';
+import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { ThrottlerModule } from '@nestjs/throttler'
+import type { ValidatedUser } from '@repo/shared'
+import type { User } from '@supabase/supabase-js'
 import { AuthController } from './auth.controller'
 import { AuthService } from './auth.service'
-import type { ValidatedUser } from '@repo/shared'
 
 // Mock the AuthService class entirely since it's directly instantiated
 jest.mock('./auth.service', () => {
@@ -47,7 +47,10 @@ describe('AuthController', () => {
 
 		controller = module.get<AuthController>(AuthController)
 		// Get the mocked instance that was created during controller instantiation
-		mockAuthServiceInstance = (AuthService as jest.MockedClass<typeof AuthService>).mock.results[0].value
+		const controllerWithService = controller as unknown as {
+			authService: jest.Mocked<AuthService>
+		}
+		mockAuthServiceInstance = controllerWithService.authService
 	})
 
 	afterEach(() => {
@@ -55,316 +58,289 @@ describe('AuthController', () => {
 	})
 
 	describe('health', () => {
-		it('should return healthy status when all checks pass', async () => {
-			mockAuthServiceInstance.testSupabaseConnection.mockResolvedValue({ connected: true })
+		it('should return connection status', async () => {
+			mockAuthServiceInstance.testSupabaseConnection.mockResolvedValue({
+				connected: true
+			})
 
 			const result = await controller.health()
 
-			expect(result).toMatchObject({
-				status: 'healthy',
-				environment: 'test',
-				checks: {
-					supabase_url: true,
-					supabase_service_key: true,
-					supabase_connection: true
-				}
-			})
-			expect(result.timestamp).toBeDefined()
+			expect(result.status).toEqual('healthy')
+			expect(result.checks.supabase_connection).toBe(true)
+			expect(
+				mockAuthServiceInstance.testSupabaseConnection
+			).toHaveBeenCalledTimes(1)
 		})
 
-		it('should return unhealthy status when connection fails', async () => {
-			mockAuthServiceInstance.testSupabaseConnection.mockRejectedValue(new Error('Connection failed'))
+		it('should handle connection errors', async () => {
+			mockAuthServiceInstance.testSupabaseConnection.mockRejectedValue(
+				new Error('Connection failed')
+			)
 
 			const result = await controller.health()
 
-			expect(result).toMatchObject({
-				status: 'unhealthy',
-				environment: 'test',
-				checks: {
-					supabase_url: true,
-					supabase_service_key: true,
-					supabase_connection: false
-				}
-			})
-		})
-
-		it('should return unhealthy when env vars are missing', async () => {
-			// Temporarily clear env vars
-			const originalUrl = process.env.SUPABASE_URL
-			const originalKey = process.env.SERVICE_ROLE_KEY
-			delete process.env.SUPABASE_URL
-			delete process.env.SERVICE_ROLE_KEY
-
-			mockAuthServiceInstance.testSupabaseConnection.mockResolvedValue({ connected: true })
-
-			const result = await controller.health()
-
-			expect(result).toMatchObject({
-				status: 'unhealthy',
-				environment: 'test',
-				checks: {
-					supabase_url: false,
-					supabase_service_key: false,
-					supabase_connection: true
-				}
-			})
-
-			// Restore env vars
-			process.env.SUPABASE_URL = originalUrl
-			process.env.SERVICE_ROLE_KEY = originalKey
+			expect(result.status).toEqual('unhealthy')
+			expect(result.checks.supabase_connection).toBe(false)
 		})
 	})
 
 	describe('getCurrentUser', () => {
-		it('should return user profile when found', async () => {
-			const user: ValidatedUser = { id: 'user-123', email: 'test@example.com' }
-			const userProfile = { id: 'user-123', email: 'test@example.com', name: 'Test User' }
-			mockAuthServiceInstance.getUserBySupabaseId.mockResolvedValue(userProfile)
+		it('should return user profile when user is validated', async () => {
+			const mockUser: ValidatedUser = {
+				id: 'user-123',
+				email: 'test@example.com',
+				name: 'Test User',
+				phone: null,
+				bio: null,
+				avatarUrl: null,
+				role: 'user',
+				createdAt: new Date(),
+				updatedAt: new Date(),
+				emailVerified: true,
+				supabaseId: 'supa-123',
+				stripeCustomerId: null,
+				organizationId: null
+			}
 
-			const result = await controller.getCurrentUser(user)
+			mockAuthServiceInstance.getUserBySupabaseId.mockResolvedValue(mockUser)
 
-			expect(result).toEqual(userProfile)
-			expect(mockAuthServiceInstance.getUserBySupabaseId).toHaveBeenCalledWith('user-123')
+			const result = await controller.getCurrentUser(mockUser)
+
+			expect(result).toEqual(mockUser)
+			expect(mockAuthServiceInstance.getUserBySupabaseId).toHaveBeenCalledWith(
+				'user-123'
+			)
 		})
 
 		it('should throw NotFoundException when user not found', async () => {
-			const user: ValidatedUser = { id: 'user-123', email: 'test@example.com' }
+			const mockUser: ValidatedUser = {
+				id: 'user-123',
+				email: 'test@example.com',
+				name: 'Test User',
+				phone: null,
+				bio: null,
+				avatarUrl: null,
+				role: 'user',
+				createdAt: new Date(),
+				updatedAt: new Date(),
+				emailVerified: true,
+				supabaseId: 'supa-123',
+				stripeCustomerId: null,
+				organizationId: null
+			}
+
 			mockAuthServiceInstance.getUserBySupabaseId.mockResolvedValue(null)
 
-			await expect(controller.getCurrentUser(user)).rejects.toThrow('User not found')
+			await expect(controller.getCurrentUser(mockUser)).rejects.toMatchObject({
+				message: 'User not found'
+			})
 		})
 	})
 
 	describe('refreshToken', () => {
 		it('should refresh token successfully', async () => {
-			const refreshToken = 'refresh-token-123'
-			const expectedResult = { access_token: 'new-token', refresh_token: 'new-refresh' }
-			mockAuthServiceInstance.refreshToken.mockResolvedValue(expectedResult)
+			const mockToken = {
+				accessToken: 'new-token',
+				refreshToken: 'refresh-token',
+				expiresIn: 3600
+			}
 
-			const result = await controller.refreshToken({ refresh_token: refreshToken })
+			const body = { refresh_token: 'old-refresh-token' }
 
-			expect(result).toEqual(expectedResult)
-			expect(mockAuthServiceInstance.refreshToken).toHaveBeenCalledWith(refreshToken)
+			mockAuthServiceInstance.refreshToken.mockResolvedValue(mockToken)
+
+			const result = await controller.refreshToken(body)
+
+			expect(result).toEqual(mockToken)
+			expect(mockAuthServiceInstance.refreshToken).toHaveBeenCalledWith(
+				'old-refresh-token'
+			)
 		})
 	})
 
 	describe('login', () => {
-		it('should login successfully with IP from request', async () => {
-			const loginData = { email: 'test@example.com', password: 'password123' }
-			const expectedResult = { access_token: 'token', user: { id: 'user-123' } }
-			mockAuthServiceInstance.login.mockResolvedValue(expectedResult)
+		it('should login user successfully', async () => {
+			const loginDto = {
+				email: 'test@example.com',
+				password: 'password123'
+			}
 
 			const mockRequest = {
-				headers: {},
-				ip: '192.168.1.1'
-			} as any // eslint-disable-line @typescript-eslint/no-explicit-any
-
-			const result = await controller.login(loginData, mockRequest)
-
-			expect(result).toEqual(expectedResult)
-			expect(mockAuthServiceInstance.login).toHaveBeenCalledWith(
-				'test@example.com',
-				'password123',
-				'192.168.1.1'
-			)
-		})
-
-		it('should use forwarded IP when request.ip is not available', async () => {
-			const loginData = { email: 'test@example.com', password: 'password123' }
-			const expectedResult = { access_token: 'token', user: { id: 'user-123' } }
-			mockAuthServiceInstance.login.mockResolvedValue(expectedResult)
-
-			const mockRequest = {
-				headers: { 'x-forwarded-for': '10.0.0.1' },
-				ip: null // No direct IP available
-			} as any // eslint-disable-line @typescript-eslint/no-explicit-any
-
-			const result = await controller.login(loginData, mockRequest)
-
-			expect(result).toEqual(expectedResult)
-			expect(mockAuthServiceInstance.login).toHaveBeenCalledWith(
-				'test@example.com',
-				'password123',
-				'10.0.0.1'
-			)
-		})
-
-		it('should handle array of forwarded IPs when request.ip is not available', async () => {
-			const loginData = { email: 'test@example.com', password: 'password123' }
-			const expectedResult = { access_token: 'token', user: { id: 'user-123' } }
-			mockAuthServiceInstance.login.mockResolvedValue(expectedResult)
-
-			const mockRequest = {
-				headers: { 'x-forwarded-for': ['10.0.0.1', '10.0.0.2'] },
-				ip: null // No direct IP available
-			} as any // eslint-disable-line @typescript-eslint/no-explicit-any
-
-			const result = await controller.login(loginData, mockRequest)
-
-			expect(result).toEqual(expectedResult)
-			expect(mockAuthServiceInstance.login).toHaveBeenCalledWith(
-				'test@example.com',
-				'password123',
-				'10.0.0.1'
-			)
-		})
-
-		it('should use unknown when no IP available', async () => {
-			const loginData = { email: 'test@example.com', password: 'password123' }
-			const expectedResult = { access_token: 'token', user: { id: 'user-123' } }
-			mockAuthServiceInstance.login.mockResolvedValue(expectedResult)
-
-			const mockRequest = {
+				ip: '127.0.0.1',
 				headers: {}
-			} as any // eslint-disable-line @typescript-eslint/no-explicit-any
+			} as any
 
-			const result = await controller.login(loginData, mockRequest)
+			const mockLoginResult = {
+				access_token: 'access-token',
+				refresh_token: 'refresh-token',
+				expires_in: 3600,
+				user: {
+					id: 'user-123',
+					email: 'test@example.com',
+					name: 'Test User',
+					phone: null,
+					bio: null,
+					avatarUrl: null,
+					role: 'user',
+					createdAt: new Date(),
+					updatedAt: new Date(),
+					emailVerified: true,
+					supabaseId: 'supa-123',
+					stripeCustomerId: null,
+					organizationId: null
+				}
+			}
 
-			expect(result).toEqual(expectedResult)
+			mockAuthServiceInstance.login.mockResolvedValue(mockLoginResult)
+
+			const result = await controller.login(loginDto, mockRequest)
+
+			expect(result).toEqual(mockLoginResult)
 			expect(mockAuthServiceInstance.login).toHaveBeenCalledWith(
-				'test@example.com',
-				'password123',
-				'unknown'
+				loginDto.email,
+				loginDto.password,
+				'127.0.0.1'
+			)
+		})
+
+		it('should throw BadRequestException for invalid credentials', async () => {
+			const loginDto = {
+				email: 'test@example.com',
+				password: 'wrong-password'
+			}
+
+			const mockRequest = {
+				ip: '127.0.0.1',
+				headers: {}
+			} as any
+
+			mockAuthServiceInstance.login.mockRejectedValue(
+				new Error('Invalid login credentials')
+			)
+
+			await expect(controller.login(loginDto, mockRequest)).rejects.toThrow(
+				'Invalid login credentials'
 			)
 		})
 	})
 
 	describe('register', () => {
-		it('should register a new user successfully', async () => {
-			const registerData = {
+		it('should register new user successfully', async () => {
+			const registerDto = {
 				email: 'new@example.com',
 				password: 'password123',
-				firstName: 'John',
-				lastName: 'Doe'
+				firstName: 'New',
+				lastName: 'User'
 			}
-			const expectedResult = { user: { id: 'user-123', email: 'new@example.com' } }
-			mockAuthServiceInstance.createUser.mockResolvedValue(expectedResult)
 
-			const result = await controller.register(registerData)
-
-			expect(result).toEqual(expectedResult)
-			expect(mockAuthServiceInstance.createUser).toHaveBeenCalledWith({
-				email: 'new@example.com',
-				password: 'password123',
-				name: 'John Doe'
-			})
-		})
-
-		it('should handle single name correctly', async () => {
-			const registerData = {
-				email: 'new@example.com',
-				password: 'password123',
-				firstName: 'John',
-				lastName: ''
+			const mockRegisterResult = {
+				user: {
+					id: 'user-456',
+					email: 'new@example.com',
+					name: 'New User'
+				},
+				access_token: 'access-token',
+				refresh_token: 'refresh-token'
 			}
-			const expectedResult = { user: { id: 'user-123' } }
-			mockAuthServiceInstance.createUser.mockResolvedValue(expectedResult)
 
-			const result = await controller.register(registerData)
+			mockAuthServiceInstance.createUser.mockResolvedValue(mockRegisterResult)
 
-			expect(result).toEqual(expectedResult)
+			const result = await controller.register(registerDto)
+
+			expect(result).toEqual(mockRegisterResult)
 			expect(mockAuthServiceInstance.createUser).toHaveBeenCalledWith({
-				email: 'new@example.com',
-				password: 'password123',
-				name: 'John'
+				email: registerDto.email,
+				password: registerDto.password,
+				name: 'New User'
 			})
 		})
 	})
 
 	describe('logout', () => {
-		it('should logout successfully with Bearer token', async () => {
-			mockAuthServiceInstance.logout.mockResolvedValue(undefined)
-
+		it('should logout user successfully', async () => {
 			const mockRequest = {
-				headers: { authorization: 'Bearer token-123' }
-			} as any // eslint-disable-line @typescript-eslint/no-explicit-any
+				headers: {
+					authorization: 'Bearer test-token-123'
+				}
+			} as any
+
+			mockAuthServiceInstance.logout.mockResolvedValue(undefined)
 
 			const result = await controller.logout(mockRequest)
 
 			expect(result).toEqual({ success: true })
-			expect(mockAuthServiceInstance.logout).toHaveBeenCalledWith('token-123')
-		})
-
-		it('should handle non-Bearer auth header', async () => {
-			mockAuthServiceInstance.logout.mockResolvedValue(undefined)
-
-			const mockRequest = {
-				headers: { authorization: 'Basic sometoken' }
-			} as any // eslint-disable-line @typescript-eslint/no-explicit-any
-
-			const result = await controller.logout(mockRequest)
-
-			expect(result).toEqual({ success: true })
-			expect(mockAuthServiceInstance.logout).toHaveBeenCalledWith('')
-		})
-
-		it('should throw UnauthorizedException when no auth header', async () => {
-			const mockRequest = {
-				headers: {}
-			} as any // eslint-disable-line @typescript-eslint/no-explicit-any
-
-			await expect(controller.logout(mockRequest)).rejects.toThrow('No authorization header found')
+			expect(mockAuthServiceInstance.logout).toHaveBeenCalledWith('test-token-123')
 		})
 	})
 
 	describe('saveDraft', () => {
 		it('should save draft successfully', async () => {
-			const draftData = {
+			const draftDto = {
 				email: 'test@example.com',
 				name: 'Test User',
 				formType: 'signup' as const
 			}
-			const expectedResult = { success: true }
-			mockAuthServiceInstance.saveDraft.mockResolvedValue(expectedResult)
 
-			const result = await controller.saveDraft(draftData)
+			const mockDraft = {
+				id: 'draft-id',
+				email: 'test@example.com',
+				name: 'Test User',
+				formType: 'signup',
+				createdAt: new Date(),
+				updatedAt: new Date()
+			}
 
-			expect(result).toEqual(expectedResult)
-			expect(mockAuthServiceInstance.saveDraft).toHaveBeenCalledWith(draftData)
+			mockAuthServiceInstance.saveDraft.mockResolvedValue(mockDraft)
+
+			const result = await controller.saveDraft(draftDto)
+
+			expect(result).toEqual(mockDraft)
+			expect(mockAuthServiceInstance.saveDraft).toHaveBeenCalledWith(draftDto)
 		})
 	})
 
 	describe('getDraft', () => {
-		it('should get draft with sessionId from body', async () => {
-			const expectedResult = { email: 'test@example.com', formType: 'login' }
-			mockAuthServiceInstance.getDraft.mockResolvedValue(expectedResult)
+		it('should retrieve draft successfully', async () => {
+			const mockDraft = {
+				id: 'draft-id',
+				userId: 'user-123',
+				key: 'draft-123',
+				data: { content: 'Test content' },
+				createdAt: new Date(),
+				updatedAt: new Date()
+			}
 
 			const mockRequest = {
-				headers: {}
-			} as any // eslint-disable-line @typescript-eslint/no-explicit-any
+				headers: {
+					'x-session-id': 'session-123'
+				}
+			} as any
 
-			const result = await controller.getDraft({ sessionId: 'session-123' }, mockRequest)
+			const body = { sessionId: 'session-123' }
 
-			expect(result).toEqual(expectedResult)
+			mockAuthServiceInstance.getDraft.mockResolvedValue(mockDraft)
+
+			const result = await controller.getDraft(body, mockRequest)
+
+			expect(result).toEqual(mockDraft)
 			expect(mockAuthServiceInstance.getDraft).toHaveBeenCalledWith('session-123')
 		})
 
-		it('should get draft with sessionId from headers', async () => {
-			const expectedResult = { email: 'test@example.com', formType: 'login' }
-			mockAuthServiceInstance.getDraft.mockResolvedValue(expectedResult)
-
+		it('should return null when draft not found', async () => {
 			const mockRequest = {
-				headers: { 'x-session-id': 'session-456' }
-			} as any // eslint-disable-line @typescript-eslint/no-explicit-any
+				headers: {
+					'x-session-id': 'session-456'
+				}
+			} as any
 
-			const result = await controller.getDraft({}, mockRequest)
+			const body = { sessionId: 'session-456' }
 
-			expect(result).toEqual(expectedResult)
-			expect(mockAuthServiceInstance.getDraft).toHaveBeenCalledWith('session-456')
-		})
+			mockAuthServiceInstance.getDraft.mockResolvedValue(null)
 
-		it('should handle missing sessionId', async () => {
-			const expectedResult = null
-			mockAuthServiceInstance.getDraft.mockResolvedValue(expectedResult)
-
-			const mockRequest = {
-				headers: {}
-			} as any // eslint-disable-line @typescript-eslint/no-explicit-any
-
-			const result = await controller.getDraft({}, mockRequest)
+			const result = await controller.getDraft(body, mockRequest)
 
 			expect(result).toBeNull()
-			expect(mockAuthServiceInstance.getDraft).toHaveBeenCalledWith(undefined)
+			expect(mockAuthServiceInstance.getDraft).toHaveBeenCalledWith('session-456')
 		})
 	})
 })

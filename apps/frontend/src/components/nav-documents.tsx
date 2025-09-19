@@ -1,5 +1,6 @@
 'use client'
 
+import { Separator } from '@/components/ui/separator'
 import {
 	FolderOpen,
 	MoreHorizontal,
@@ -10,14 +11,12 @@ import {
 import Link from 'next/link'
 import * as React from 'react'
 
-import { cn } from '@/lib/utils'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
-	DropdownMenuSeparator,
 	DropdownMenuTrigger
-} from 'src/components/ui/dropdown-menu'
+} from '@/components/ui/dropdown-menu'
 import {
 	SidebarGroup,
 	SidebarGroupLabel,
@@ -26,7 +25,8 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 	useSidebar
-} from 'src/components/ui/sidebar'
+} from '@/components/ui/sidebar'
+import { cn } from '@/lib/utils'
 
 interface NavDocumentsProps extends React.ComponentProps<typeof SidebarGroup> {
 	items: {
@@ -37,7 +37,7 @@ interface NavDocumentsProps extends React.ComponentProps<typeof SidebarGroup> {
 }
 
 export const NavDocuments = React.forwardRef<
-	React.ComponentRef<typeof SidebarGroup>,
+	React.ElementRef<typeof SidebarGroup>,
 	NavDocumentsProps
 >(({ items, className, ...props }, ref) => {
 	const { isMobile } = useSidebar()
@@ -84,7 +84,7 @@ export const NavDocuments = React.forwardRef<
 									<Share2 className="size-4" />
 									<span>Share</span>
 								</DropdownMenuItem>
-								<DropdownMenuSeparator />
+								<Separator className="my-1" />
 								<DropdownMenuItem className="gap-2 hover:bg-destructive/10 hover:text-destructive transition-colors">
 									<Trash2 className="size-4" />
 									<span>Delete</span>

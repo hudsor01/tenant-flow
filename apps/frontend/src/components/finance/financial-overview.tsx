@@ -1,5 +1,29 @@
 'use client'
 
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+	Card,
+	CardAction,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle
+} from '@/components/ui/card'
+import {
+	ChartContainer,
+	ChartTooltip,
+	ChartTooltipContent,
+	type ChartConfig
+} from '@/components/ui/chart'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
 import {
 	ArrowDownLeft,
 	ArrowUpRight,
@@ -29,30 +53,6 @@ import {
 	TYPOGRAPHY_SCALE
 } from '@/lib/utils'
 import { useMemo, useState } from 'react'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
-import {
-	Card,
-	CardAction,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle
-} from 'src/components/ui/card'
-import type { ChartConfig } from 'src/components/ui/chart'
-import {
-	ChartContainer,
-	ChartTooltip,
-	ChartTooltipContent
-} from 'src/components/ui/chart'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from 'src/components/ui/select'
-import { Separator } from 'src/components/ui/separator'
 
 const chartConfig = {
 	scheduled: {

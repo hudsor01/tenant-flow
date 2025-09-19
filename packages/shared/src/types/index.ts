@@ -5,8 +5,6 @@
  * 75% reduction from previous scattered type definitions
  */
 
-import type * as React from 'react'
-
 // =============================================================================
 // PRIMARY EXPORT - Consolidated core types using native TypeScript features
 // =============================================================================
@@ -44,22 +42,38 @@ export type {
 	UserRole
 } from './auth'
 
-// UI Component types (pricing components)
-export interface PricingUIData {
-	icon: React.ComponentType<{ className?: string }>
-	popular: boolean
-	tier: string
-	tagline: string
-	enhanced_features: Array<{ text: string; highlight: boolean }>
-	benefits: string[]
-	cta: string
-	highlight: string
-	monthlySavings: number
-	yearlySavings: number
-	savingsPercentage: number
-	formattedPrice: string
-	fullYearPrice: string
-}
+// Frontend types (UI components and design system)
+export type {
+	AnimationType,
+	BadgeSize,
+	BadgeVariant,
+	ButtonVariant,
+	CheckoutFormProps,
+	ContainerSize,
+	CreatePaymentIntentRequest,
+	CustomerPortalCardProps,
+	DataTableProps,
+	ExtendedCheckoutFormProps,
+	FrontendHealthCheckResponse, // Alias for compatibility
+	GridColumnsConfig,
+	FrontendHealthCheckResponse as HealthCheckResponse,
+	PaginationLinkProps,
+	PricingUIData,
+	ResponsiveValuesConfig,
+	RevenueChartDataPoint,
+	RevenueDataPoint,
+	SVGPatternProps,
+	StatusType,
+	TailwindColorName,
+	TailwindRadiusValue,
+	ThemeCSSVariables,
+	ThemeColors,
+	ThemeRadius,
+	UseDataTableInstanceProps,
+	VirtualizedListProps,
+	VirtualizedPropertyListProps,
+	VirtualizedTenantListProps
+} from './frontend'
 
 // Validation types (Zod integration) - correct imports
 export type {
@@ -76,7 +90,10 @@ export type { TenantInput } from '../validation/tenants'
 export type { LeaseInput, LeaseUpdate } from '../validation/leases'
 
 // Lease generator types
-export type { LeaseFormData, StateLeaseRequirements } from './lease-generator.types'
+export type {
+	LeaseFormData,
+	StateLeaseRequirements
+} from './lease-generator.types'
 
 // Controller response types (from errors.ts)
 export type { ControllerApiResponse } from './errors'

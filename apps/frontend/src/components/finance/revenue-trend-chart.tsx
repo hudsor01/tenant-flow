@@ -1,5 +1,20 @@
 'use client'
 
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+	ChartContainer,
+	ChartTooltip,
+	ChartTooltipContent,
+	type ChartConfig
+} from '@/components/ui/chart'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '@/components/ui/select'
 import {
 	BarChart3,
 	Calendar,
@@ -29,28 +44,8 @@ import {
 	formatCurrency,
 	TYPOGRAPHY_SCALE
 } from '@/lib/utils'
-import type { RevenueDataPoint } from '@repo/shared'
+import type { RevenueChartDataPoint } from '@repo/shared'
 import { useMemo, useState } from 'react'
-import { Badge } from 'src/components/ui/badge'
-import {
-	Card,
-	CardContent,
-	CardHeader,
-	CardTitle
-} from 'src/components/ui/card'
-import type { ChartConfig } from 'src/components/ui/chart'
-import {
-	ChartContainer,
-	ChartTooltip,
-	ChartTooltipContent
-} from 'src/components/ui/chart'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from 'src/components/ui/select'
 
 interface RevenueTrendChartProps {
 	year?: number
@@ -79,7 +74,7 @@ const chartConfig = {
 // Transform API data to chart format
 function transformFinancialDataToRevenue(
 	apiData: Record<string, unknown>[]
-): RevenueDataPoint[] {
+): RevenueChartDataPoint[] {
 	return apiData.map((item, index) => {
 		const monthNames = [
 			'Jan',
@@ -297,7 +292,7 @@ export function RevenueTrendChart({
 					<div className="flex items-center gap-3">
 						<Select
 							value={selectedYear.toString()}
-							onValueChange={value => setSelectedYear(parseInt(value))}
+							onValueChange={value => setSelectedYear(parseInt(value, 10))}
 							aria-label="Select year for revenue data"
 						>
 							<SelectTrigger

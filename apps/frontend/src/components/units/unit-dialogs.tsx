@@ -1,19 +1,7 @@
 'use client'
 
-import {
-	ANIMATION_DURATIONS,
-	buttonClasses,
-	cn,
-	inputClasses,
-	TYPOGRAPHY_SCALE
-} from '@/lib/utils'
-import { useForm } from '@tanstack/react-form'
-import * as React from 'react'
-import { toast } from 'sonner'
-import { z } from 'zod'
-
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
 	Dialog,
 	DialogContent,
@@ -21,19 +9,25 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle
-} from 'src/components/ui/dialog'
-import { Input } from 'src/components/ui/input'
-import { Label } from 'src/components/ui/label'
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue
-} from 'src/components/ui/select'
-import { Separator } from 'src/components/ui/separator'
-
+} from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
 import { useUpdateUnit } from '@/hooks/api/units'
+import {
+	ANIMATION_DURATIONS,
+	buttonClasses,
+	cn,
+	inputClasses,
+	TYPOGRAPHY_SCALE
+} from '@/lib/utils'
 import type { Database } from '@repo/shared'
 import {
 	nonNegativeNumberSchema,
@@ -41,6 +35,10 @@ import {
 	requiredString,
 	unitStatusSchema
 } from '@repo/shared'
+import { useForm } from '@tanstack/react-form'
+import * as React from 'react'
+import { toast } from 'sonner'
+import { z } from 'zod'
 
 type UnitRow = Database['public']['Tables']['Unit']['Row']
 type UnitStatus = Database['public']['Enums']['UnitStatus']

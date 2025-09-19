@@ -1,17 +1,23 @@
 import {
 	Injectable,
 	InternalServerErrorException,
-	Logger
+	Logger,
+	OnModuleInit
 } from '@nestjs/common'
 import type { Database } from '@repo/shared'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
 @Injectable()
-export class SupabaseService {
-	private adminClient: SupabaseClient<Database>
+export class SupabaseService implements OnModuleInit {
+	private adminClient!: SupabaseClient<Database>
 	private readonly logger = new Logger(SupabaseService.name)
 
 	constructor() {
+		// Constructor should be lightweight - move client creation to onModuleInit
+		this.logger.log('SupabaseService constructor called')
+	}
+
+	onModuleInit() {
 		const supabaseUrl = process.env.SUPABASE_URL
 		// Accept common aliases to avoid env name drift in platforms
 		const supabaseServiceKey =

@@ -56,14 +56,14 @@ class StripeSchemaValidator {
 	}
 
 	private async checkSchemaExists(): Promise<ValidationResult> {
-		const { data, error } = await this.client.rpc('check_schema_exists', {
+		const { data, error } = (await this.client.rpc('check_schema_exists', {
 			schema_name: 'stripe'
-		})
+		})) as { data: unknown; error: unknown }
 
 		if (error) {
 			return {
 				success: false,
-				message: `Schema check failed: ${error.message}`
+				message: `Schema check failed: ${(error as { message: string }).message}`
 			}
 		}
 
@@ -78,10 +78,16 @@ class StripeSchemaValidator {
 	private async countStripeTables(): Promise<
 		ValidationResult & { tableCount?: number }
 	> {
-		const { data, error } = await this.client.rpc('count_stripe_tables')
+		const { data, error } = (await this.client.rpc('count_stripe_tables')) as {
+			data: unknown
+			error: unknown
+		}
 
 		if (error) {
-			return { success: false, message: `Table count failed: ${error.message}` }
+			return {
+				success: false,
+				message: `Table count failed: ${(error as { message: string }).message}`
+			}
 		}
 
 		const tableCount = parseInt(String(data), 10)
@@ -109,14 +115,14 @@ class StripeSchemaValidator {
 			'payment_intents'
 		]
 
-		const { data, error } = await this.client.rpc('get_key_stripe_tables', {
+		const { data, error } = (await this.client.rpc('get_key_stripe_tables', {
 			table_names: expectedTables
-		})
+		})) as { data: unknown; error: unknown }
 
 		if (error) {
 			return {
 				success: false,
-				message: `Key tables check failed: ${error.message}`
+				message: `Key tables check failed: ${(error as { message: string }).message}`
 			}
 		}
 
@@ -146,10 +152,14 @@ class StripeSchemaValidator {
 	}
 
 	private async checkCustomerCount(): Promise<ValidationResult> {
-		const { data, error } = await this.client.rpc('count_stripe_customers')
+		const { data, error } = (await this.client.rpc(
+			'count_stripe_customers'
+		)) as { data: unknown; error: unknown }
 
 		if (error) {
-			console.warn(`Customer count check failed: ${error.message}`)
+			console.warn(
+				`Customer count check failed: ${(error as { message: string }).message}`
+			)
 			return { success: true, message: 'Customer count unavailable' }
 		}
 

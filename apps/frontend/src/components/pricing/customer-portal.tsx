@@ -1,5 +1,8 @@
 'use client'
 
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { API_BASE_URL } from '@/lib/api-client'
 import {
 	ANIMATION_DURATIONS,
@@ -9,6 +12,37 @@ import {
 	cn,
 	TYPOGRAPHY_SCALE
 } from '@/lib/utils'
+// Extended interface for customer portal with additional properties
+interface ExtendedCustomerPortalCardProps
+	extends Omit<
+		CustomerPortalCardProps,
+		'usageStats' | 'billingInfo' | 'testimonial'
+	> {
+	usageStats?: {
+		properties?: number
+		tenants?: number
+		leases?: number
+		maintenance?: number
+		uptime?: string
+		monthlyRevenue?: number
+		activeLeases?: number
+	}
+	billingInfo?: {
+		nextBillingDate?: string
+		billingAmount?: number
+		billingCycle?: string
+		lastPayment?: string
+		paymentMethod?: string
+	}
+	testimonial?: {
+		quote?: string
+		text?: string
+		author?: string
+		company?: string
+		rating?: number
+	}
+}
+
 import type { CustomerPortalCardProps } from '@repo/shared'
 import { useMutation } from '@tanstack/react-query'
 import {
@@ -32,14 +66,8 @@ import {
 } from 'lucide-react'
 import type { ComponentProps } from 'react'
 import { toast } from 'sonner'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
-import {
-	Card,
-	CardContent,
-	CardHeader,
-	CardTitle
-} from 'src/components/ui/card'
+
+
 
 export function CustomerPortalButton({
 	variant = 'outline',
@@ -151,7 +179,7 @@ export function CustomerPortalCard({
 		company: 'Metro Properties',
 		rating: 5
 	}
-}: CustomerPortalCardProps) {
+}: ExtendedCustomerPortalCardProps) {
 	// Plan tier configuration
 	const tierConfig = {
 		starter: {
