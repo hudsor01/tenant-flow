@@ -1,6 +1,6 @@
 /**
  * @repo/shared - Modern TypeScript 5.9.2 Consolidated Package
- * 
+ *
  * ULTRA-NATIVE: Direct Supabase types + essential utilities only
  * NO LEGACY COMPATIBILITY - All code must migrate to modern patterns
  */
@@ -8,7 +8,7 @@
 // ============================================================================
 // PRIMARY EXPORT: Modern TypeScript 5.9.2 Core Types
 // ============================================================================
-export * from './types/core'
+// All types exported via types/index.ts which includes core types
 export * from './types'
 
 // ============================================================================
@@ -17,53 +17,64 @@ export * from './types'
 // Browser-only API client (Supabase SSR) - Frontend specific
 export { apiClient } from './utils/api-client'
 
-export { supabaseClient, supabaseAdmin, getCurrentUser, getCurrentSession, signOut } from './lib/supabase-client'
 export { logger } from './lib/frontend-logger'
+export {
+	getCurrentSession,
+	getCurrentUser,
+	signOut,
+	supabaseAdmin,
+	supabaseClient
+} from './lib/supabase-client'
 
-export { formatCurrency } from './utils/currency'
 export { getCORSConfig } from './security/cors-config'
 export { getCSPString } from './security/csp-config'
-export { getPriceId, getAllPlans, formatPrice, getAnnualSavings } from './stripe/config'
+export {
+	formatPrice,
+	getAllPlans,
+	getAnnualSavings,
+	getPriceId
+} from './stripe/config'
+export { formatCurrency } from './utils/currency'
 
 // ============================================================================
 // PRICING CONFIGURATION (Static + Dynamic)
 // ============================================================================
-export * from './config/pricing'
-export { 
-  calculateAnnualSavings as calculateAnnualSavingsPercentage,
-  formatPrice as formatDynamicPrice,
-  findPlanByPriceId,
-  getPriceIdForPlan,
-  type DynamicPricingConfig,
-  type DynamicPlan,
-  type DynamicPricingService,
-  FrontendPricingService,
-  dynamicPlanToPricingConfig
+export {
+	FrontendPricingService,
+	calculateAnnualSavings as calculateAnnualSavingsPercentage,
+	dynamicPlanToPricingConfig,
+	findPlanByPriceId,
+	formatPrice as formatDynamicPrice,
+	getPriceIdForPlan,
+	type DynamicPlan,
+	type DynamicPricingConfig,
+	type DynamicPricingService
 } from './config/dynamic-pricing'
+export * from './config/pricing'
 
 export {
-  toCamelCase,
-  toSnakeCase,
-  keysToCamelCase,
-  keysToSnakeCase
+	keysToCamelCase,
+	keysToSnakeCase,
+	toCamelCase,
+	toSnakeCase
 } from './utils/case-conversion'
 
 export {
-  getPriorityLabel,
-  getPriorityColor,
-  getRequestStatusLabel,
-  getRequestStatusColor
+	getPriorityColor,
+	getPriorityLabel,
+	getRequestStatusColor,
+	getRequestStatusLabel
 } from './utils/maintenance'
 
 export {
-  cn,
-  getTailwindColor,
-  getColorVariantClasses,
-  responsive,
-  cssVar,
-  generateTailwindTheme,
-  isValidTailwindClass,
-  extractTailwindClasses
+	cn,
+	cssVar,
+	extractTailwindClasses,
+	generateTailwindTheme,
+	getColorVariantClasses,
+	getTailwindColor,
+	isValidTailwindClass,
+	responsive
 } from './utils/tailwind'
 
 export type { ClassValue, TailwindBreakpoint } from './utils/tailwind'
@@ -71,132 +82,147 @@ export type { ClassValue, TailwindBreakpoint } from './utils/tailwind'
 // ============================================================================
 // ESSENTIAL DOMAIN CONSTANTS
 // ============================================================================
-export { Permission } from './types/security'
-export { PLAN_TYPE, PLANS } from './constants/billing'
 export { USER_ROLE } from './constants/auth'
+export { PLANS, PLAN_TYPE } from './constants/billing'
+export { Permission } from './types/security'
 
 export {
-  FONT_FAMILIES,
-  TYPOGRAPHY_SCALE,
-  SPACING_SCALE,
-  SEMANTIC_COLORS,
-  COMPONENT_SIZES,
-  BORDER_RADIUS_SCALE,
-  SHADOW_SCALE,
-  ANIMATION_DURATIONS,
-  ANIMATION_EASINGS,
-  BREAKPOINTS,
-  CONTAINER_SIZES,
-  Z_INDEX_SCALE,
-  COMPONENT_PRESETS
+	ANIMATION_DURATIONS,
+	ANIMATION_EASINGS,
+	BORDER_RADIUS_SCALE,
+	BREAKPOINTS,
+	COMPONENT_PRESETS,
+	COMPONENT_SIZES,
+	CONTAINER_SIZES,
+	FONT_FAMILIES,
+	SEMANTIC_COLORS,
+	SHADOW_SCALE,
+	SPACING_SCALE,
+	TYPOGRAPHY_SCALE,
+	Z_INDEX_SCALE
 } from './constants/design-system'
 
 export type {
-  SpacingSize,
-  TypographyVariant,
-  ComponentSize,
-  BorderRadiusSize,
-  ShadowSize,
-  AnimationDuration,
-  AnimationEasing,
-  Breakpoint,
-  ZIndexLevel
+	AnimationDuration,
+	AnimationEasing,
+	BorderRadiusSize,
+	Breakpoint,
+	ComponentSize,
+	ShadowSize,
+	SpacingSize,
+	TypographyVariant,
+	ZIndexLevel
 } from './constants/design-system'
 
 // ============================================================================
 // APPLE MOTION SYSTEM - OBSESSION-WORTHY INTERACTIONS
 // ============================================================================
 export {
-  APPLE_EASINGS,
-  APPLE_DURATIONS,
-  APPLE_TOUCH_TARGETS,
-  APPLE_TRANSFORMS,
-  APPLE_SHADOWS,
-  APPLE_RADIUS,
-  APPLE_GLASS,
-  APPLE_MOTION_PRESETS,
-  APPLE_CSS_VARS
+	APPLE_CSS_VARS,
+	APPLE_DURATIONS,
+	APPLE_EASINGS,
+	APPLE_GLASS,
+	APPLE_MOTION_PRESETS,
+	APPLE_RADIUS,
+	APPLE_SHADOWS,
+	APPLE_TOUCH_TARGETS,
+	APPLE_TRANSFORMS
 } from './constants/motion-system'
 
 export type {
-  AppleEasing,
-  AppleDuration,
-  AppleTouchTarget,
-  AppleTransform,
-  AppleShadow,
-  AppleRadius,
-  AppleGlass,
-  AppleMotionPreset
+	AppleDuration,
+	AppleEasing,
+	AppleGlass,
+	AppleMotionPreset,
+	AppleRadius,
+	AppleShadow,
+	AppleTouchTarget,
+	AppleTransform
 } from './constants/motion-system'
 
 // ============================================================================
 // APPLE COLOR SYSTEM - EXACT PALETTE FOR DASHBOARD ANALYTICS
 // ============================================================================
 export {
-  APPLE_SYSTEM_COLORS,
-  PROPERTY_ANALYTICS_COLORS,
-  APPLE_CHART_PALETTES,
-  APPLE_GRADIENTS,
-  APPLE_ACCESSIBLE_PAIRS
+	APPLE_ACCESSIBLE_PAIRS,
+	APPLE_CHART_PALETTES,
+	APPLE_GRADIENTS,
+	APPLE_SYSTEM_COLORS,
+	PROPERTY_ANALYTICS_COLORS
 } from './constants/apple-colors'
 
 export type {
-  AppleSystemColor,
-  PropertyAnalyticsColorCategory,
-  AppleChartPalette,
-  AppleGradient
+	AppleChartPalette,
+	AppleGradient,
+	AppleSystemColor,
+	PropertyAnalyticsColorCategory
 } from './constants/apple-colors'
 
 export const MAINTENANCE_CATEGORY = {
-  GENERAL: 'GENERAL',
-  PLUMBING: 'PLUMBING', 
-  ELECTRICAL: 'ELECTRICAL',
-  HVAC: 'HVAC',
-  APPLIANCES: 'APPLIANCES',
-  SAFETY: 'SAFETY',
-  OTHER: 'OTHER'
+	GENERAL: 'GENERAL',
+	PLUMBING: 'PLUMBING',
+	ELECTRICAL: 'ELECTRICAL',
+	HVAC: 'HVAC',
+	APPLIANCES: 'APPLIANCES',
+	SAFETY: 'SAFETY',
+	OTHER: 'OTHER'
 } as const
 
 // ============================================================================
 // ESSENTIAL VALIDATION (Domain-Specific Only)
 // ============================================================================
-export { emailSchema, requiredString, positiveNumberSchema, nonNegativeNumberSchema, uuidSchema, requiredTitle, requiredDescription } from './validation/common'
+export type {
+	LeaseFormData,
+	StateLeaseRequirements
+} from './types/lease-generator.types'
+export {
+	emailSchema,
+	nonNegativeNumberSchema,
+	positiveNumberSchema,
+	requiredDescription,
+	requiredString,
+	requiredTitle,
+	uuidSchema
+} from './validation/common'
 export { unitStatusSchema } from './validation/units'
-export type { LeaseFormData, StateLeaseRequirements } from './types/lease-generator.types'
 
 // ============================================================================
 // BACKEND TYPES (Required for Controllers/Services)
 // ============================================================================
 export type {
-  UserRole,
-  ValidatedUser,
-  AuthServiceValidatedUser,
-  SupabaseUser,
-  AuthUser,
-  AuthState,
-  LoginCredentials,
-  RegisterCredentials,
-  SupabaseWebhookEvent,
-  AuthResponse,
-  RefreshTokenRequest,
-  AuthFormState
+	AuthFormState,
+	AuthResponse,
+	AuthServiceValidatedUser,
+	AuthState,
+	AuthUser,
+	LoginCredentials,
+	RefreshTokenRequest,
+	RegisterCredentials,
+	SupabaseUser,
+	SupabaseWebhookEvent,
+	UserRole,
+	ValidatedUser
 } from './types/auth'
 
-export type { 
-  BusinessErrorCode, 
-  FastifyErrorResponse, 
-  FastifyBusinessErrorResponse,
-  ErrorLogContext 
+export type {
+	BusinessErrorCode,
+	ErrorLogContext,
+	FastifyBusinessErrorResponse,
+	FastifyErrorResponse
 } from './types/fastify-errors'
 
-export type { PlanType, BillingPeriod } from './types/stripe'
+export type {
+	SVGPatternProps,
+	ThemeColors,
+	ThemeRadius
+} from './types/frontend'
 export type { MaintenanceNotificationData } from './types/notifications'
 export type { PropertyWithUnits } from './types/relations'
-export type { ThemeColors, ThemeRadius, SVGPatternProps } from './types/frontend'
+export type { BillingPeriod, PlanType } from './types/stripe'
 
 // ============================================================================
 // MIGRATION NOTE: All legacy aliases removed
-// 
+//
 // OLD → NEW:
 // - ApiResponse → use native Result<T, E> pattern
 // - PaginationParams → use Pagination interface
