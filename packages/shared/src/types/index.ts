@@ -40,7 +40,6 @@ export type {
 	LoginCredentials,
 	RegisterCredentials,
 	SubscriptionStatus,
-	SubscriptionStatus,
 	SupabaseWebhookEvent,
 	UserRole
 } from './auth'
