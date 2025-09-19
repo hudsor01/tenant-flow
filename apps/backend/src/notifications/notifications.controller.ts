@@ -141,11 +141,12 @@ export class NotificationsController {
 
 	@Get('priority-info/:priority')
 	async getPriorityInfo(@Param('priority') priority: string) {
+		// Use semantic color references from design system
 		const priorities = {
-			LOW: { color: '#6b7280', label: 'Low Priority' },
-			MEDIUM: { color: '#f59e0b', label: 'Medium Priority' },
-			HIGH: { color: '#ef4444', label: 'High Priority' },
-			EMERGENCY: { color: '#dc2626', label: 'Emergency' }
+			LOW: { color: 'hsl(var(--muted-foreground))', label: 'Low Priority' },
+			MEDIUM: { color: '#FF9500', label: 'Medium Priority' }, // Apple systemOrange
+			HIGH: { color: 'hsl(var(--destructive))', label: 'High Priority' },
+			EMERGENCY: { color: '#FF3B30', label: 'Emergency' } // Apple systemRed
 		}
 
 		const info = priorities[priority.toUpperCase() as keyof typeof priorities]

@@ -1,5 +1,5 @@
 /**
- *  ULTRA-NATIVE SERVICE - DO NOT ADD ORCHESTRATION 
+ *  ULTRA-NATIVE SERVICE - DO NOT ADD ORCHESTRATION
  *
  * This file implements DIRECT PostgreSQL RPC calls ONLY:
  * [OK] Single RPC call per method (<30 lines each)
@@ -13,8 +13,7 @@
  * See: apps/backend/ULTRA_NATIVE_ARCHITECTURE.md
  */
 
-import { Injectable, BadRequestException } from '@nestjs/common'
-import { Logger } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { SupabaseService } from '../database/supabase.service'
 import type {
 	CreateUnitRequest,
@@ -23,12 +22,9 @@ import type {
 
 @Injectable()
 export class UnitsService {
-	constructor(
-		private readonly supabaseService: SupabaseService,
-		private readonly logger: Logger
-	) {
-		// Logger context handled automatically via app-level configuration
-	}
+	private readonly logger = new Logger(UnitsService.name)
+
+	constructor(private readonly supabaseService: SupabaseService) {}
 
 	/**
 	 * Get all units for a user using RPC
@@ -48,7 +44,7 @@ export class UnitsService {
 			})
 
 		if (error) {
-			this.logger.error('Failed to get units', {
+			this.logger?.error('Failed to get units', {
 				userId,
 				error: error.message
 			})
@@ -68,7 +64,7 @@ export class UnitsService {
 			.single()
 
 		if (error) {
-			this.logger.error('Failed to get unit stats', {
+			this.logger?.error('Failed to get unit stats', {
 				userId,
 				error: error.message
 			})
@@ -90,7 +86,7 @@ export class UnitsService {
 			})
 
 		if (error) {
-			this.logger.error('Failed to get property units', {
+			this.logger?.error('Failed to get property units', {
 				userId,
 				propertyId,
 				error: error.message
@@ -114,7 +110,7 @@ export class UnitsService {
 			.single()
 
 		if (error) {
-			this.logger.error('Failed to get unit', {
+			this.logger?.error('Failed to get unit', {
 				userId,
 				unitId,
 				error: error.message
@@ -144,7 +140,7 @@ export class UnitsService {
 			.single()
 
 		if (error) {
-			this.logger.error('Failed to create unit', {
+			this.logger?.error('Failed to create unit', {
 				userId,
 				error: error.message
 			})
@@ -177,7 +173,7 @@ export class UnitsService {
 			.single()
 
 		if (error) {
-			this.logger.error('Failed to update unit', {
+			this.logger?.error('Failed to update unit', {
 				userId,
 				unitId,
 				error: error.message
@@ -200,7 +196,7 @@ export class UnitsService {
 			})
 
 		if (error) {
-			this.logger.error('Failed to delete unit', {
+			this.logger?.error('Failed to delete unit', {
 				userId,
 				unitId,
 				error: error.message

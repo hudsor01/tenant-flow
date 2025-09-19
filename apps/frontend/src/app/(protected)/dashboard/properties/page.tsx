@@ -1,25 +1,30 @@
 'use client'
 
-import { ChartAreaInteractive } from '@/components/chart-area-interactive'
-import { MetricsCard } from '@/components/metrics-card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { useCreateProperty, useProperties } from '@/hooks/api/properties'
+import { useUnits } from '@/hooks/api/units'
+import type { Database } from '@repo/shared'
+import { Building, DollarSign, Plus, TrendingUp } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
+import { ChartAreaInteractive } from 'src/components/chart-area-interactive'
+import { MetricsCard } from 'src/components/metrics-card'
+import { Badge } from 'src/components/ui/badge'
+import { Button } from 'src/components/ui/button'
 import {
 	Dialog,
 	DialogContent,
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+} from 'src/components/ui/dialog'
+import { Input } from 'src/components/ui/input'
+import { Label } from 'src/components/ui/label'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue
-} from '@/components/ui/select'
+} from 'src/components/ui/select'
 import {
 	Table,
 	TableBody,
@@ -27,12 +32,7 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow
-} from '@/components/ui/table'
-import { useCreateProperty, useProperties } from '@/hooks/api/properties'
-import { useUnits } from '@/hooks/api/units'
-import type { Database } from '@repo/shared'
-import { Building, DollarSign, Plus, TrendingUp } from 'lucide-react'
-import { useSearchParams } from 'next/navigation'
+} from 'src/components/ui/table'
 
 type PropertyRow = Database['public']['Tables']['Property']['Row']
 type UnitRow = Database['public']['Tables']['Unit']['Row']
@@ -56,9 +56,14 @@ export default function PropertiesPage() {
 	// Calculate metrics
 	const totalProperties = properties.length
 	const totalUnits = units.length
-    const occupiedUnits = units.filter((unit: UnitRow) => unit.status === 'OCCUPIED').length
-    const occupancyRate = totalUnits > 0 ? (occupiedUnits / totalUnits) * 100 : 0
-    const totalRevenue = units.reduce((sum: number, unit: UnitRow) => sum + (unit.rent || 0), 0)
+	const occupiedUnits = units.filter(
+		(unit: UnitRow) => unit.status === 'OCCUPIED'
+	).length
+	const occupancyRate = totalUnits > 0 ? (occupiedUnits / totalUnits) * 100 : 0
+	const totalRevenue = units.reduce(
+		(sum: number, unit: UnitRow) => sum + (unit.rent || 0),
+		0
+	)
 
 	return (
 		<div className="dashboard-root dashboard-main flex flex-col gap-4 py-4 md:gap-6 md:py-6">
@@ -167,12 +172,12 @@ export default function PropertiesPage() {
 								<TableBody>
 									{properties?.length ? (
 										properties.map((property: PropertyRow) => {
-                                const propertyUnits = units.filter(
-                                    (unit: UnitRow) => unit.propertyId === property.id
-                                )
-                                const occupiedUnits = propertyUnits.filter(
-                                    (unit: UnitRow) => unit.status === 'OCCUPIED'
-                                )
+											const propertyUnits = units.filter(
+												(unit: UnitRow) => unit.propertyId === property.id
+											)
+											const occupiedUnits = propertyUnits.filter(
+												(unit: UnitRow) => unit.status === 'OCCUPIED'
+											)
 
 											return (
 												<TableRow
@@ -196,7 +201,7 @@ export default function PropertiesPage() {
 														<Badge
 															style={{
 																backgroundColor: 'var(--chart-1)',
-																color: 'white'
+																color: 'hsl(var(--primary-foreground))'
 															}}
 														>
 															Active
@@ -293,7 +298,7 @@ function NewPropertyButton() {
 			</DialogTrigger>
 			<DialogContent className="sm:max-w-lg">
 				<DialogHeader>
-            <DialogTitle className="text-gradient-authority">
+					<DialogTitle className="text-gradient-authority">
 						Create New Property
 					</DialogTitle>
 				</DialogHeader>

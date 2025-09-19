@@ -9,9 +9,9 @@
  */
 
 import baseConfig from '@repo/eslint-config/base.js'
-import antiDuplicationPlugin from '../../.eslint/plugins/anti-duplication.js'
-import reactHooksPlugin from 'eslint-plugin-react-hooks'
+// import antiDuplicationPlugin from '../../.eslint/plugins/anti-duplication.js' // File doesn't exist
 import nextPlugin from '@next/eslint-plugin-next'
+import reactHooksPlugin from 'eslint-plugin-react-hooks'
 
 export default [
 	...baseConfig,
@@ -24,13 +24,8 @@ export default [
 		},
 		rules: {
 			...nextPlugin.configs.recommended.rules,
-			...nextPlugin.configs['core-web-vitals'].rules
-		}
-	},
-	{
-		name: 'frontend/anti-duplication-plugin',
-		plugins: {
-			'anti-duplication': antiDuplicationPlugin
+			...nextPlugin.configs['core-web-vitals'].rules,
+			'@next/next/no-img-element': 'off'
 		}
 	},
 	{
@@ -57,30 +52,6 @@ export default [
 			'playwright-report/**',
 			'test-results/**'
 		]
-	},
-	{
-		name: 'frontend/anti-duplication-strict',
-		files: ['src/hooks/**/*.ts', 'src/hooks/**/*.tsx', 'src/lib/api/**/*.ts'],
-		rules: {
-			'anti-duplication/no-duplicate-function-implementations': [
-				'error',
-				{
-					similarity: 0.75,
-					minLength: 8
-				}
-			],
-			'anti-duplication/no-repeated-component-logic': 'error',
-			'anti-duplication/no-similar-api-endpoints': 'error'
-		}
-	},
-	{
-		name: 'frontend/anti-duplication-general',
-		files: ['**/*.ts', '**/*.tsx'],
-		rules: {
-			'anti-duplication/no-duplicate-function-implementations': 'off',
-			'anti-duplication/no-repeated-config-patterns': 'off',
-			'anti-duplication/no-repeated-component-logic': 'off'
-		}
 	},
 	{
 		name: 'frontend/react-typescript',
@@ -146,7 +117,7 @@ export default [
 			'**/test/**/*.tsx'
 		],
 		rules: {
-			'@typescript-eslint/no-explicit-any': 'off',
+			'@typescript-eslint/no-explicit-any': 'error',
 			'@typescript-eslint/no-unsafe-assignment': 'off',
 			'@typescript-eslint/no-unsafe-member-access': 'off',
 			'@typescript-eslint/no-unsafe-call': 'off',

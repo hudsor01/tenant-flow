@@ -2,11 +2,10 @@
 
 import type { ComponentPropsWithoutRef} from "react";
 import { useEffect, useRef, useState, useCallback } from "react";
-import { 
+import {
   cn,
-  TYPOGRAPHY_SCALE,
-  ANIMATION_DURATIONS
-} from "@/lib/design-system";
+  TYPOGRAPHY_SCALE
+} from "@/lib/utils";
 import type { TypographyVariant } from '@repo/shared';
 
 interface NumberTickerProps extends ComponentPropsWithoutRef<"span"> {
@@ -47,9 +46,9 @@ export function NumberTicker({
   const variants = {
     default: 'text-foreground',
     primary: 'text-primary font-semibold',
-    success: 'text-green-600 dark:text-green-400 font-semibold',
-    warning: 'text-orange-600 dark:text-orange-400 font-semibold',
-    danger: 'text-red-600 dark:text-red-400 font-semibold',
+    success: 'text-accent dark:text-accent/80 font-semibold',
+    warning: 'text-muted-foreground dark:text-muted-foreground/80 font-semibold',
+    danger: 'text-destructive dark:text-destructive/80 font-semibold',
     muted: 'text-muted-foreground'
   }
 
@@ -116,7 +115,7 @@ export function NumberTicker({
   }, [decimalPlaces]);
 
   // Get typography styles from design system
-  const typographyStyle = TYPOGRAPHY_SCALE[size] || TYPOGRAPHY_SCALE['body-md'];
+  const typographyStyle = TYPOGRAPHY_SCALE[size as keyof typeof TYPOGRAPHY_SCALE] || TYPOGRAPHY_SCALE['body-md'];
 
   // Enhanced number formatting with prefix/suffix support
   const formatDisplayValue = useCallback((num: number) => {
@@ -127,8 +126,7 @@ export function NumberTicker({
   if (!isMounted) {
     return (
       <span
-        className={cn(
-          "inline-block tabular-nums tracking-wider font-mono",
+        className={cn("inline-block tabular-nums tracking-wider font-mono",
           variants[variant],
           className
         )}
@@ -143,15 +141,11 @@ export function NumberTicker({
   return (
     <span
       ref={ref}
-      className={cn(
-        "inline-block tabular-nums tracking-wider font-mono transition-all",
+      className={cn("inline-block tabular-nums tracking-wider font-mono transition-all",
         variants[variant],
         className
       )}
-      style={{
-        ...typographyStyle,
-        transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
-      }}
+      style={typographyStyle}
       {...props}
     >
       {formatDisplayValue(currentValue)}

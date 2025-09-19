@@ -1,9 +1,10 @@
 'use client'
 
+import { cn } from '@/lib/utils'
+import { animated, config, useSpring } from '@react-spring/web'
 import * as React from 'react'
-import { useSpring, animated, config } from '@react-spring/web'
-import { useThemeConfig } from '@/components/active-theme'
-import { Label } from '@/components/ui/label'
+import { useThemeConfig } from 'src/components/active-theme'
+import { Label } from 'src/components/ui/label'
 import {
 	Select,
 	SelectContent,
@@ -13,8 +14,7 @@ import {
 	SelectSeparator,
 	SelectTrigger,
 	SelectValue
-} from '@/components/ui/select'
-import { cn } from '@/lib/utils'
+} from 'src/components/ui/select'
 
 const DEFAULT_THEMES = [
 	{
@@ -55,28 +55,34 @@ const MONO_THEMES = [
 
 type ThemeSelectorProps = React.ComponentProps<'div'>
 
-export const ThemeSelector = React.forwardRef<HTMLDivElement, ThemeSelectorProps>(
-	({ className, ...props }, ref) => {
+export const ThemeSelector = React.forwardRef<
+	HTMLDivElement,
+	ThemeSelectorProps
+>(({ className, ...props }, ref) => {
 	const { activeTheme, setActiveTheme } = useThemeConfig()
 	const [isHovered, setIsHovered] = React.useState(false)
 	const [isClicked, setIsClicked] = React.useState(false)
 
 	const springProps = useSpring({
-		transform: isClicked ? 'scale(0.95)' : isHovered ? 'scale(1.05)' : 'scale(1)',
-		config: config.wobbly,
+		transform: isClicked
+			? 'scale(0.95)'
+			: isHovered
+				? 'scale(1.05)'
+				: 'scale(1)',
+		config: config.wobbly
 	})
 
 	const fadeInProps = useSpring({
 		from: { opacity: 0, y: 10 },
 		to: { opacity: 1, y: 0 },
-		config: config.gentle,
+		config: config.gentle
 	})
 
 	return (
-		<animated.div 
-			ref={ref} 
+		<animated.div
+			ref={ref}
 			style={fadeInProps}
-			className={cn("flex items-center gap-2", className)} 
+			className={cn('flex items-center gap-2', className)}
 			{...props}
 		>
 			<Label htmlFor="theme-selector" className="sr-only">
@@ -93,11 +99,11 @@ export const ThemeSelector = React.forwardRef<HTMLDivElement, ThemeSelectorProps
 						onMouseDown={() => setIsClicked(true)}
 						onMouseUp={() => setIsClicked(false)}
 					>
-					<span className="text-muted-foreground hidden sm:block">
-						Select a theme:
-					</span>
-					<span className="text-muted-foreground block sm:hidden">Theme</span>
-					<SelectValue placeholder="Select a theme" />
+						<span className="text-muted-foreground hidden sm:block">
+							Select a theme:
+						</span>
+						<span className="text-muted-foreground block sm:hidden">Theme</span>
+						<SelectValue placeholder="Select a theme" />
 					</SelectTrigger>
 				</animated.div>
 				<SelectContent align="end">

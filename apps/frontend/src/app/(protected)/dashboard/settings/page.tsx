@@ -1,20 +1,5 @@
 'use client'
 
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Textarea } from '@/components/ui/textarea'
 import {
 	AlertTriangle,
 	Bell,
@@ -30,6 +15,26 @@ import {
 	Upload,
 	User
 } from 'lucide-react'
+import { Badge } from 'src/components/ui/badge'
+import { Button } from 'src/components/ui/button'
+import { Card } from 'src/components/ui/card'
+import { Input } from 'src/components/ui/input'
+import { Label } from 'src/components/ui/label'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from 'src/components/ui/select'
+import { Switch } from 'src/components/ui/switch'
+import {
+	Tabs,
+	TabsContent,
+	TabsList,
+	TabsTrigger
+} from 'src/components/ui/tabs'
+import { Textarea } from 'src/components/ui/textarea'
 
 export default function SettingsPage() {
 	return (
@@ -37,7 +42,7 @@ export default function SettingsPage() {
 			{/* Page Header */}
 			<div className="flex items-center justify-between">
 				<div>
-            <h1 className="text-3xl font-bold text-gradient-authority">
+					<h1 className="text-3xl font-bold text-gradient-authority">
 						Settings & Preferences
 					</h1>
 					<p className="text-muted-foreground mt-1">
@@ -262,8 +267,8 @@ export default function SettingsPage() {
 						<div className="space-y-4">
 							<div className="flex items-center justify-between p-4 rounded-lg bg-muted/20">
 								<div className="flex items-center gap-3">
-									<div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
-										<div className="w-3 h-3 rounded-full bg-green-500"></div>
+									<div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+										<div className="w-3 h-3 rounded-full bg-primary"></div>
 									</div>
 									<div>
 										<p className="font-medium">Current Session</p>

@@ -1,24 +1,36 @@
 'use client'
 
-import { Ellipsis, ShoppingBasket, TramFront, PieChart, TrendingDown, Calendar } from 'lucide-react'
+import {
+	Calendar,
+	Ellipsis,
+	PieChart,
+	ShoppingBasket,
+	TramFront,
+	TrendingDown
+} from 'lucide-react'
 import { Label, PolarRadiusAxis, RadialBar, RadialBarChart } from 'recharts'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import type { ChartConfig } from '@/components/ui/chart'
+import {
+	Card,
+	CardContent,
+	CardHeader,
+	CardTitle
+} from 'src/components/ui/card'
+import type { ChartConfig } from 'src/components/ui/chart'
 import {
 	ChartContainer,
 	ChartTooltip,
 	ChartTooltipContent
-} from '@/components/ui/chart'
+} from 'src/components/ui/chart'
 
-import { Badge } from '@/components/ui/badge'
-import { 
-	cn, 
-	formatCurrency, 
-	cardClasses,
+import {
 	ANIMATION_DURATIONS,
+	cardClasses,
+	cn,
+	formatCurrency,
 	TYPOGRAPHY_SCALE
 } from '@/lib/utils'
+import { Badge } from 'src/components/ui/badge'
 
 const chartData = [
 	{ period: 'last-week', groceries: 380, transport: 120, other: 80 }
@@ -46,23 +58,20 @@ export function ExpenseSummary() {
 				(chartData[0].transport || 0) +
 				(chartData[0].other || 0)
 			: 0
-			
+
 	const spendingCap = 2000
 	const remainingBudget = spendingCap - totalExpenses
 	const budgetPercentage = (totalExpenses / spendingCap) * 100
 
 	return (
-		<Card 
-			className={cn(
-				cardClasses(),
-				"shadow-lg hover:shadow-xl border-2"
-			)}
+		<Card
+			className={cn(cardClasses(), 'shadow-lg hover:shadow-xl border-2')}
 			style={{
 				animation: `fadeIn ${ANIMATION_DURATIONS.slow} ease-out`,
 				transition: `all ${ANIMATION_DURATIONS.default} ease-out`
 			}}
 		>
-			<CardHeader 
+			<CardHeader
 				style={{
 					animation: `slideInFromTop ${ANIMATION_DURATIONS.default} ease-out`
 				}}
@@ -73,7 +82,7 @@ export function ExpenseSummary() {
 							<PieChart className="w-5 h-5 text-primary" />
 						</div>
 						<div>
-							<CardTitle 
+							<CardTitle
 								className="tracking-tight font-bold"
 								style={{
 									fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize,
@@ -85,15 +94,18 @@ export function ExpenseSummary() {
 						</div>
 					</div>
 					<div className="flex items-center gap-2">
-						<Badge 
-							variant="outline" 
-							className="text-xs font-medium border-2"
-						>
+						<Badge variant="outline" className="text-xs font-medium border-2">
 							<Calendar className="w-3 h-3 mr-1" />
 							This Week
 						</Badge>
-						<Badge 
-							variant={budgetPercentage > 80 ? "destructive" : budgetPercentage > 60 ? "secondary" : "default"}
+						<Badge
+							variant={
+								budgetPercentage > 80
+									? 'destructive'
+									: budgetPercentage > 60
+										? 'secondary'
+										: 'default'
+							}
 							className="text-xs font-semibold"
 						>
 							<TrendingDown className="w-3 h-3 mr-1" />
@@ -102,7 +114,7 @@ export function ExpenseSummary() {
 					</div>
 				</div>
 			</CardHeader>
-			<CardContent 
+			<CardContent
 				className="space-y-6"
 				style={{
 					animation: `slideInFromBottom ${ANIMATION_DURATIONS.default} ease-out`
@@ -110,7 +122,7 @@ export function ExpenseSummary() {
 			>
 				<div className="bg-muted/20 rounded-xl p-4">
 					<div className="h-40">
-						<ChartContainer 
+						<ChartContainer
 							config={chartConfig}
 							style={{
 								animation: `slideInFromLeft ${ANIMATION_DURATIONS.slow} ease-out`
@@ -124,14 +136,23 @@ export function ExpenseSummary() {
 								outerRadius={130}
 							>
 								<ChartTooltip
-									content={<ChartTooltipContent hideLabel className="bg-background/95 backdrop-blur-sm border-2" />}
+									content={
+										<ChartTooltipContent
+											hideLabel
+											className="bg-background/95 backdrop-blur-sm border-2"
+										/>
+									}
 								/>
 								<PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
 									<Label
 										content={({ viewBox }) => {
 											if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
 												return (
-													<text x={viewBox.cx} y={viewBox.cy} textAnchor="middle">
+													<text
+														x={viewBox.cx}
+														y={viewBox.cy}
+														textAnchor="middle"
+													>
 														<tspan
 															x={viewBox.cx}
 															y={(viewBox.cy ?? 0) - 16}
@@ -179,63 +200,72 @@ export function ExpenseSummary() {
 					</div>
 				</div>
 
-				<div 
+				<div
 					className="grid grid-cols-3 gap-4"
 					style={{
 						animation: `fadeIn ${ANIMATION_DURATIONS.slow} ease-out`
 					}}
 				>
-					<div className="flex flex-col items-center space-y-3 p-4 bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-900/20 dark:to-green-800/10 rounded-xl border hover:shadow-md transition-all">
-						<div className="bg-green-100 dark:bg-green-900/20 flex size-12 items-center justify-center rounded-full transition-all hover:scale-110">
-							<ShoppingBasket className="size-6 text-green-600 dark:text-green-400" />
+					<div className="flex flex-col items-center space-y-3 p-4 bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border hover:shadow-md transition-all">
+						<div className="bg-primary/20 flex size-12 items-center justify-center rounded-full transition-all hover:scale-110">
+							<ShoppingBasket className="size-6 text-primary" />
 						</div>
 						<div className="space-y-1 text-center">
 							<p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
 								Groceries
 							</p>
-							<p className="font-bold text-lg tabular-nums text-green-700 dark:text-green-400">
+							<p className="font-bold text-lg tabular-nums text-primary">
 								{formatCurrency(chartData[0]?.groceries || 0)}
 							</p>
 						</div>
 					</div>
 
-					<div className="flex flex-col items-center space-y-3 p-4 bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-900/20 dark:to-blue-800/10 rounded-xl border hover:shadow-md transition-all">
-						<div className="bg-blue-100 dark:bg-blue-900/20 flex size-12 items-center justify-center rounded-full transition-all hover:scale-110">
-							<TramFront className="size-6 text-blue-600 dark:text-blue-400" />
+					<div className="flex flex-col items-center space-y-3 p-4 bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border hover:shadow-md transition-all">
+						<div className="bg-primary/20 flex size-12 items-center justify-center rounded-full transition-all hover:scale-110">
+							<TramFront className="size-6 text-primary" />
 						</div>
 						<div className="space-y-1 text-center">
 							<p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
 								Transport
 							</p>
-							<p className="font-bold text-lg tabular-nums text-blue-700 dark:text-blue-400">
+							<p className="font-bold text-lg tabular-nums text-primary">
 								{formatCurrency(chartData[0]?.transport || 0)}
 							</p>
 						</div>
 					</div>
 
-					<div className="flex flex-col items-center space-y-3 p-4 bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-800/10 rounded-xl border hover:shadow-md transition-all">
-						<div className="bg-purple-100 dark:bg-purple-900/20 flex size-12 items-center justify-center rounded-full transition-all hover:scale-110">
-							<Ellipsis className="size-6 text-purple-600 dark:text-purple-400" />
+					<div className="flex flex-col items-center space-y-3 p-4 bg-gradient-to-br from-accent/5 to-accent/10 rounded-xl border hover:shadow-md transition-all">
+						<div className="bg-accent/20 flex size-12 items-center justify-center rounded-full transition-all hover:scale-110">
+							<Ellipsis className="size-6 text-accent" />
 						</div>
 						<div className="space-y-1 text-center">
-							<p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">Other</p>
-							<p className="font-bold text-lg tabular-nums text-purple-700 dark:text-purple-400">
+							<p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
+								Other
+							</p>
+							<p className="font-bold text-lg tabular-nums text-accent">
 								{formatCurrency(chartData[0]?.other || 0)}
 							</p>
 						</div>
 					</div>
 				</div>
 
-				<div 
+				<div
 					className="bg-muted/30 rounded-xl p-4 border-2 border-dashed"
 					style={{
 						animation: `slideInFromRight ${ANIMATION_DURATIONS.default} ease-out`
 					}}
 				>
 					<div className="flex items-center justify-between mb-2">
-						<span className="text-sm font-semibold text-muted-foreground">Budget Status</span>
-						<Badge variant={remainingBudget > 0 ? "default" : "destructive"} className="text-xs">
-							{remainingBudget > 0 ? `${formatCurrency(remainingBudget)} left` : 'Over budget'}
+						<span className="text-sm font-semibold text-muted-foreground">
+							Budget Status
+						</span>
+						<Badge
+							variant={remainingBudget > 0 ? 'default' : 'destructive'}
+							className="text-xs"
+						>
+							{remainingBudget > 0
+								? `${formatCurrency(remainingBudget)} left`
+								: 'Over budget'}
 						</Badge>
 					</div>
 					<div className="space-y-2">
@@ -244,14 +274,18 @@ export function ExpenseSummary() {
 							<span className="font-bold">{formatCurrency(spendingCap)}</span>
 						</div>
 						<div className="h-2 bg-muted rounded-full overflow-hidden">
-							<div 
+							<div
 								className={cn(
-									"h-full transition-all rounded-full",
-									budgetPercentage > 100 ? "bg-red-500" : 
-									budgetPercentage > 80 ? "bg-orange-500" :
-									budgetPercentage > 60 ? "bg-yellow-500" : "bg-green-500"
+									'h-full transition-all rounded-full',
+									budgetPercentage > 100
+										? 'bg-destructive'
+										: budgetPercentage > 80
+											? 'bg-accent'
+											: budgetPercentage > 60
+												? 'bg-accent'
+												: 'bg-primary'
 								)}
-								style={{ 
+								style={{
 									width: `${Math.min(budgetPercentage, 100)}%`,
 									transition: `width ${ANIMATION_DURATIONS.slow} ease-out`
 								}}

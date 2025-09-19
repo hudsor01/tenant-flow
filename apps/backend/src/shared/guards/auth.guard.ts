@@ -7,10 +7,10 @@ import {
 	UnauthorizedException
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
+import type { Database, UserRole, ValidatedUser } from '@repo/shared'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@supabase/supabase-js'
 import type { FastifyRequest } from 'fastify'
-import type { UserRole, ValidatedUser, Database } from '@repo/shared'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator'
 
 interface AuthenticatedRequest extends FastifyRequest {
@@ -35,36 +35,44 @@ export class AuthGuard implements CanActivate {
 			throw new Error('Supabase configuration is missing')
 		}
 
-		this.adminClient = createClient<Database>(
-			supabaseUrl,
-			supabaseServiceKey,
-			{
-				auth: {
-					persistSession: false,
-					autoRefreshToken: false
-				}
+		this.adminClient = createClient<Database>(supabaseUrl, supabaseServiceKey, {
+			auth: {
+				persistSession: false,
+				autoRefreshToken: false
 			}
-		)
-
+		})
 	}
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
 		const request = context.switchToHttp().getRequest<AuthenticatedRequest>()
 
 		// SECURITY: Never bypass auth in production
-		if (process.env.NODE_ENV === 'production' && process.env.DISABLE_AUTH === 'true') {
-			this.logger.error('SECURITY VIOLATION: Attempt to disable auth in production environment', {
-				nodeEnv: process.env.NODE_ENV,
-				disableAuth: process.env.DISABLE_AUTH,
-				ip: request.ip,
-				userAgent: request.headers['user-agent']
-			})
-			throw new UnauthorizedException('Authentication cannot be disabled in production')
+		if (
+			process.env.NODE_ENV === 'production' &&
+			process.env.DISABLE_AUTH === 'true'
+		) {
+			this.logger.error(
+				'SECURITY VIOLATION: Attempt to disable auth in production environment',
+				{
+					nodeEnv: process.env.NODE_ENV,
+					disableAuth: process.env.DISABLE_AUTH,
+					ip: request.ip,
+					userAgent: request.headers['user-agent']
+				}
+			)
+			throw new UnauthorizedException(
+				'Authentication cannot be disabled in production'
+			)
 		}
 
 		// Allow auth bypass only in development/test environments
-		if (process.env.NODE_ENV !== 'production' && process.env.DISABLE_AUTH === 'true') {
-			this.logger.warn('Authentication disabled via DISABLE_AUTH environment variable in non-production environment')
+		if (
+			process.env.NODE_ENV !== 'production' &&
+			process.env.DISABLE_AUTH === 'true'
+		) {
+			this.logger.warn(
+				'Authentication disabled via DISABLE_AUTH environment variable in non-production environment'
+			)
 			return true
 		}
 
@@ -73,11 +81,11 @@ export class AuthGuard implements CanActivate {
 			this.logger.warn('Reflector not available, allowing access')
 			return true
 		}
-		
-		const isPublic = this.reflector.getAllAndOverride<boolean>(
-			IS_PUBLIC_KEY,
-			[context.getHandler(), context.getClass()]
-		)
+
+		const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+			context.getHandler(),
+			context.getClass()
+		])
 
 		if (isPublic) {
 			return true
@@ -98,7 +106,9 @@ export class AuthGuard implements CanActivate {
 		return true
 	}
 
-	private async authenticateUser(request: AuthenticatedRequest): Promise<ValidatedUser> {
+	private async authenticateUser(
+		request: AuthenticatedRequest
+	): Promise<ValidatedUser> {
 		const token = this.extractToken(request)
 
 		if (!token) {
@@ -158,6 +168,11 @@ export class AuthGuard implements CanActivate {
 			throw new UnauthorizedException('User not found in database')
 		}
 
+		// For now, use the user's ID as their organizationId since we don't have
+		// a separate organization structure. This ensures tenant isolation
+		// works correctly by restricting users to their own resources.
+		const organizationId = dbUser.id
+
 		return {
 			id: dbUser.id,
 			email: dbUser.email,
@@ -166,7 +181,7 @@ export class AuthGuard implements CanActivate {
 			phone: dbUser.phone ?? null,
 			bio: dbUser.bio ?? null,
 			role: dbUser.role as UserRole,
-			organizationId: null,
+			organizationId, // Use user ID as organization ID for tenant isolation
 			supabaseId: dbUser.supabaseId,
 			stripeCustomerId: dbUser.stripeCustomerId ?? null,
 			emailVerified: !!user.email_confirmed_at,
@@ -175,18 +190,30 @@ export class AuthGuard implements CanActivate {
 		}
 	}
 
-	private checkRoleAccess(context: ExecutionContext, user: ValidatedUser): void {
-		const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>('roles', [
-			context.getHandler(),
-			context.getClass()
-		])
+	private checkRoleAccess(
+		context: ExecutionContext,
+		user: ValidatedUser
+	): void {
+		const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(
+			'roles',
+			[context.getHandler(), context.getClass()]
+		)
 
-		if (requiredRoles && user.role && !requiredRoles.includes(user.role as UserRole)) {
-			throw new ForbiddenException(`Access denied. Required roles: ${requiredRoles.join(', ')}`)
+		if (
+			requiredRoles &&
+			user.role &&
+			!requiredRoles.includes(user.role as UserRole)
+		) {
+			throw new ForbiddenException(
+				`Access denied. Required roles: ${requiredRoles.join(', ')}`
+			)
 		}
 	}
 
-	private checkAdminAccess(context: ExecutionContext, user: ValidatedUser): void {
+	private checkAdminAccess(
+		context: ExecutionContext,
+		user: ValidatedUser
+	): void {
 		const adminOnly = this.reflector.getAllAndOverride<boolean>('admin-only', [
 			context.getHandler(),
 			context.getClass()
@@ -197,7 +224,10 @@ export class AuthGuard implements CanActivate {
 		}
 	}
 
-	private validateTenantIsolation(request: AuthenticatedRequest, user: ValidatedUser): void {
+	private validateTenantIsolation(
+		request: AuthenticatedRequest,
+		user: ValidatedUser
+	): void {
 		// Admins can access all tenants
 		if (user.role === 'ADMIN') {
 			return
@@ -217,7 +247,9 @@ export class AuthGuard implements CanActivate {
 				userOrg: user.organizationId,
 				requestedOrg: requestedOrgId
 			})
-			throw new ForbiddenException('Cannot access resources from other organizations')
+			throw new ForbiddenException(
+				'Cannot access resources from other organizations'
+			)
 		}
 	}
 
@@ -234,10 +266,15 @@ export class AuthGuard implements CanActivate {
 		const query = request.query as Record<string, string> | undefined
 		const body = request.body as Record<string, unknown> | undefined
 
+		// Since we use userId as organizationId, check for userId in requests
+		// This ensures proper tenant isolation when accessing user-specific resources
 		return (
 			params?.organizationId ||
+			params?.userId || // Check for userId as organization context
 			query?.organizationId ||
-			(typeof body?.organizationId === 'string' ? body.organizationId : null)
+			query?.userId || // Check for userId in query params
+			(typeof body?.organizationId === 'string' ? body.organizationId : null) ||
+			(typeof body?.userId === 'string' ? body.userId : null) // Check for userId in body
 		)
 	}
 }

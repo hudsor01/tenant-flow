@@ -1,7 +1,7 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 
-import { cn, badgeClasses, ANIMATION_DURATIONS } from "@/lib/design-system"
+import { cn, badgeClasses } from "@/lib/design-system"
 
 const badgeVariants = cva(
   "inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive overflow-hidden",
@@ -17,13 +17,13 @@ const badgeVariants = cva(
         outline:
           "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         success:
-          "border-transparent bg-green-500 text-white [a&]:hover:bg-green-600 dark:bg-green-600 dark:[a&]:hover:bg-green-700",
+          "border-transparent bg-primary/70 text-white [a&]:hover:bg-primary/80 dark:bg-primary/70 dark:[a&]:hover:bg-primary/80",
         warning:
-          "border-transparent bg-amber-500 text-white [a&]:hover:bg-amber-600 dark:bg-amber-600 dark:[a&]:hover:bg-amber-700",
+          "border-transparent bg-primary/60 text-white [a&]:hover:bg-primary/70 dark:bg-primary/60 dark:[a&]:hover:bg-primary/70",
         info:
-          "border-transparent bg-blue-500 text-white [a&]:hover:bg-blue-600 dark:bg-blue-600 dark:[a&]:hover:bg-blue-700",
+          "border-transparent bg-primary text-white [a&]:hover:bg-primary/90 dark:bg-primary dark:[a&]:hover:bg-primary/90",
         neutral:
-          "border-transparent bg-gray-500 text-white [a&]:hover:bg-gray-600 dark:bg-gray-600 dark:[a&]:hover:bg-gray-700",
+          "border-transparent bg-muted text-muted-foreground [a&]:hover:bg-muted/50",
       },
     },
     defaultVariants: {
@@ -46,10 +46,7 @@ function Badge({
       {
         className: cn(badgeVariants({ variant }), className),
         'data-slot': 'badge',
-        style: {
-          transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
-          ...(props.style || {})
-        },
+        style: props.style,
         ...props
       }
     )
@@ -66,16 +63,13 @@ function Badge({
   return (
     <span
       data-slot="badge"
-      className={cn(
-        // Use design system badgeClasses for consistent styling
+      className={cn(// Use design system badgeClasses for consistent styling
         badgeClasses(designSystemVariant, 'default', className),
         // Fallback to badgeVariants for legacy variants
-        ['info', 'neutral'].includes(variant || '') && badgeVariants({ variant })
-      )}
-      style={{
-        transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
-        ...(props.style || {})
-      }}
+        ['info', 'neutral'].includes(variant || '') && badgeVariants({ variant }),
+      'transition-all'
+    )}
+      style={props.style}
       {...props}
     />
   )
